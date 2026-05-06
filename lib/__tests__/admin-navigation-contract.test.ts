@@ -19,6 +19,14 @@ const adminDashboardClientSource = readFileSync(
   join(process.cwd(), "app/admin/admin-dashboard-client.tsx"),
   "utf8",
 )
+const intakesQueriesSource = readFileSync(
+  join(process.cwd(), "lib/data/intakes/queries.ts"),
+  "utf8",
+)
+const patientHandoffSource = readFileSync(
+  join(process.cwd(), "lib/doctor/patient-handoff.ts"),
+  "utf8",
+)
 const adminPageSource = readFileSync(
   join(process.cwd(), "app/admin/page.tsx"),
   "utf8",
@@ -106,6 +114,18 @@ describe("admin navigation contract", () => {
     expect(adminHubSource).not.toContain("DOCTOR_QUEUE_REVIEW_HREF")
     expect(adminHubSource).not.toContain("configuration exceptions")
     expect(adminHubSource).not.toContain('href: "/admin/settings"')
+  })
+
+  it("surfaces patient handoff gaps in admin without returning raw intake answers", () => {
+    expect(adminDashboardClientSource).toContain("HandoffBadge")
+    expect(adminDashboardClientSource).toContain("summary.actionLabel")
+    expect(adminDashboardClientSource).toContain("summary.detailLabel")
+    expect(intakesQueriesSource).toContain("buildPatientHandoffSummary")
+    expect(intakesQueriesSource).toContain("getPatientSnapshotOptionsForCase")
+    expect(intakesQueriesSource).toContain("answers: null")
+    expect(intakesQueriesSource).toContain("Do not return raw")
+    expect(patientHandoffSource).toContain("Missing doctor handoff fields")
+    expect(patientHandoffSource).toContain("Fix before review")
   })
 
   it("keeps admin operations recovery links inside admin-owned routes", () => {

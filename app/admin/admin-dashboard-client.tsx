@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  AlertTriangle,
   ArrowRight,
   ClipboardList,
   Eye,
@@ -31,6 +32,7 @@ import {
 } from "@/lib/dashboard/admin-work-lanes"
 import { buildAdminIntakeHref } from "@/lib/dashboard/routes"
 import { INTAKE_STATUS, type IntakeStatus } from "@/lib/data/status"
+import type { PatientHandoffSummary } from "@/lib/doctor/patient-handoff"
 import { formatDate } from "@/lib/format"
 import { formatIntakeStatus } from "@/lib/format/intake"
 import {
@@ -41,8 +43,12 @@ import {
 import { cn } from "@/lib/utils"
 import type { IntakeWithPatient } from "@/types/db"
 
+type AdminIntakeRow = IntakeWithPatient & {
+  handoff?: PatientHandoffSummary | null
+}
+
 interface AdminDashboardClientProps {
-  allIntakes: IntakeWithPatient[]
+  allIntakes: AdminIntakeRow[]
   totalIntakes?: number
   stats: {
     total: number
@@ -54,15 +60,15 @@ interface AdminDashboardClientProps {
   }
 }
 
-function getPatient(intake: IntakeWithPatient) {
+function getPatient(intake: AdminIntakeRow) {
   return intake.patient as { full_name?: string; suburb?: string; state?: string } | undefined
 }
 
-function getService(intake: IntakeWithPatient) {
+function getService(intake: AdminIntakeRow) {
   return intake.service as { name?: string; short_name?: string; type?: string } | undefined
 }
 
-function getServiceDisplay(intake: IntakeWithPatient) {
+function getServiceDisplay(intake: AdminIntakeRow) {
   const service = getService(intake)
   return getServicePresentation({
     type: service?.type,
@@ -72,8 +78,56 @@ function getServiceDisplay(intake: IntakeWithPatient) {
   })
 }
 
-function sortByWorkPriority(intakes: IntakeWithPatient[]) {
+function sortByWorkPriority(intakes: AdminIntakeRow[]) {
   return [...intakes].sort(compareAdminWorkItems)
+}
+
+function HandoffBadge({
+  summary,
+  compact = false,
+}: {
+  summary?: PatientHandoffSummary | null
+  compact?: boolean
+}) {
+  if (!summary) return null
+
+  if (summary.tone === "success") {
+    return compact ? null : (
+      <Badge
+        variant="success"
+        className="hidden w-fit text-[11px] xl:inline-flex"
+        title={summary.tooltip}
+        aria-label={summary.tooltip}
+      >
+        {summary.shortLabel}
+      </Badge>
+    )
+  }
+
+  return (
+    <Badge
+      variant={summary.tone === "critical" ? "destructive" : "warning"}
+      className={cn(
+        "max-w-full shrink-0 text-[11px]",
+        summary.tone === "critical"
+          ? "hover:bg-destructive/20"
+          : "hover:bg-warning-light/80",
+      )}
+      title={`${summary.tooltip} ${summary.actionLabel}.`}
+      aria-label={summary.tooltip}
+    >
+      <AlertTriangle className="h-3 w-3" />
+      {compact ? (
+        <span>{summary.shortLabel}</span>
+      ) : (
+        <>
+          <span className="sm:hidden">{summary.shortLabel}</span>
+          <span className="hidden truncate sm:inline xl:hidden">{summary.statusLabel}</span>
+          <span className="hidden truncate xl:inline">{summary.detailLabel}</span>
+        </>
+      )}
+    </Badge>
+  )
 }
 
 function WorkLane({
@@ -87,7 +141,7 @@ function WorkLane({
   title: string
   subtitle: string
   icon: LucideIcon
-  intakes: IntakeWithPatient[]
+  intakes: AdminIntakeRow[]
   empty: string
   getStatusBadge: (status: string) => string
 }) {
@@ -125,13 +179,14 @@ function WorkLane({
                   className="group flex items-center justify-between gap-3 px-3 py-2.5 transition-colors hover:bg-muted/35"
                 >
                   <div className="min-w-0">
-                    <div className="flex min-w-0 items-center gap-2">
+                    <div className="flex min-w-0 flex-wrap items-center gap-1.5">
                       <p className="truncate text-sm font-medium text-foreground">
                         {patient?.full_name || "Unknown patient"}
                       </p>
                       <Badge className={cn("shrink-0 text-[11px]", getStatusBadge(intake.status))}>
                         {formatIntakeStatus(intake.status)}
                       </Badge>
+                      <HandoffBadge summary={intake.handoff} compact />
                     </div>
                     <p className="mt-1 truncate text-xs text-muted-foreground">
                       {service.shortLabel} - {formatDate(intake.created_at)}
@@ -357,9 +412,12 @@ export function AdminDashboardClient({
                           size="sm"
                           className="min-w-0"
                         />
-                        <Badge className={cn("shrink-0 text-xs", getStatusBadge(intake.status))}>
-                          {formatIntakeStatus(intake.status)}
-                        </Badge>
+                        <div className="flex shrink-0 flex-col items-end gap-1">
+                          <Badge className={cn("text-xs", getStatusBadge(intake.status))}>
+                            {formatIntakeStatus(intake.status)}
+                          </Badge>
+                          <HandoffBadge summary={intake.handoff} compact />
+                        </div>
                       </div>
                       <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
                         <div>
@@ -410,11 +468,14 @@ export function AdminDashboardClient({
                     return (
                       <TableRow key={intake.id}>
                         <TableCell>
-                          <UserCard
-                            name={patient?.full_name || "Unknown"}
-                            description={`${patient?.suburb || ""}${patient?.state ? `, ${patient.state}` : ""}`}
-                            size="sm"
-                          />
+                          <div className="space-y-1.5">
+                            <UserCard
+                              name={patient?.full_name || "Unknown"}
+                              description={`${patient?.suburb || ""}${patient?.state ? `, ${patient.state}` : ""}`}
+                              size="sm"
+                            />
+                            <HandoffBadge summary={intake.handoff} />
+                          </div>
                         </TableCell>
                         <TableCell>
                           <span className="text-sm">{service.label}</span>

@@ -3,14 +3,15 @@ import "server-only"
 import { unstable_cache } from "next/cache"
 
 import { readDashboardQuery } from "@/lib/data/dashboard-read-model"
+import { decryptProfilePhi } from "@/lib/data/profiles"
 import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
+import { buildPatientHandoffSummary } from "@/lib/doctor/patient-handoff"
+import { buildPatientSnapshot, getPatientSnapshotOptionsForCase } from "@/lib/doctor/patient-snapshot"
 import { QUEUE_REVIEW_STATUSES } from "@/lib/doctor/queue-utils"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-const logger = createLogger("data-intakes")
-import { decryptProfilePhi } from "@/lib/data/profiles"
 import { readAnswers, readDoctorNotes, readPatientNoteContent } from "@/lib/security/phi-field-wrappers"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type {
   IntakeStatus,
   IntakeWithDetails,
@@ -24,6 +25,8 @@ import {
 } from "@/types/db"
 
 import type { DashboardIntake, DashboardPrescription } from "./types"
+
+const logger = createLogger("data-intakes")
 
 // ============================================
 // PATIENT-FACING QUERIES
@@ -701,6 +704,8 @@ export async function getAllIntakesForAdmin(
       id,
       patient_id,
       service_id,
+      category,
+      subtype,
       status,
       payment_status,
       is_priority,
@@ -713,7 +718,25 @@ export async function getAllIntakesForAdmin(
       declined_at,
       reviewed_by,
       reviewed_at,
-      patient:profiles!patient_id (id, full_name, email, date_of_birth, date_of_birth_encrypted, phone, phone_encrypted, suburb, state),
+      answers:intake_answers(id, answers, answers_encrypted),
+      patient:profiles!patient_id (
+        id,
+        full_name,
+        email,
+        date_of_birth,
+        date_of_birth_encrypted,
+        phone,
+        phone_encrypted,
+        sex,
+        medicare_number,
+        medicare_number_encrypted,
+        medicare_irn,
+        medicare_expiry,
+        address_line1,
+        suburb,
+        state,
+        postcode
+      ),
       service:services!service_id (id, name, short_name, type, slug)
     `)
 
@@ -735,16 +758,50 @@ export async function getAllIntakesForAdmin(
     return { data: [], total: count ?? 0, page, pageSize }
   }
 
-  // Decrypt patient PHI fields before returning
-  const unwrapped = (data || []).map(row => {
+  // Decrypt only long enough to calculate handoff completeness. Do not return raw
+  // answers, Medicare, or structured address fields in the admin ledger payload.
+  const unwrapped = await Promise.all((data || []).map(async (row) => {
     const rawPatient = Array.isArray(row.patient) ? row.patient[0] : row.patient
     const decryptedPatient = rawPatient ? decryptProfilePhi(rawPatient as Record<string, unknown>) : rawPatient
+    const rawAnswers = Array.isArray(row.answers) ? row.answers[0] : null
+    const answers = rawAnswers
+      ? await readAnswers({
+          answers: rawAnswers.answers as Record<string, unknown> | null,
+          answers_enc: rawAnswers.answers_encrypted as never,
+        })
+      : null
+    const service = Array.isArray(row.service) ? row.service[0] : row.service
+    const handoff = decryptedPatient
+      ? buildPatientHandoffSummary(buildPatientSnapshot(decryptedPatient as never, {
+          ...getPatientSnapshotOptionsForCase({
+            answers,
+            category: row.category,
+            serviceType: service?.type,
+            subtype: row.subtype,
+          }),
+          answers,
+        }))
+      : null
+    const patientForClient = decryptedPatient
+      ? {
+          id: decryptedPatient.id,
+          full_name: decryptedPatient.full_name,
+          email: decryptedPatient.email,
+          date_of_birth: decryptedPatient.date_of_birth,
+          phone: decryptedPatient.phone,
+          suburb: decryptedPatient.suburb,
+          state: decryptedPatient.state,
+        }
+      : decryptedPatient
+
     return {
       ...row,
-      patient: decryptedPatient,
-      service: Array.isArray(row.service) ? row.service[0] : row.service,
+      answers: null,
+      patient: patientForClient,
+      service,
+      handoff,
     }
-  })
+  }))
   const validData = unwrapped.filter((r) => r.patient !== null)
   return {
     data: validData as unknown as IntakeWithPatient[],

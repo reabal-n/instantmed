@@ -14,7 +14,7 @@ import {
   Zap,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useState,useTransition } from "react"
+import { useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { revokeAIApproval } from "@/app/actions/revoke-ai-approval"
@@ -37,8 +37,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Pagination,UserCard } from "@/components/uix"
+import { Pagination, UserCard } from "@/components/uix"
 import { capture } from "@/lib/analytics/capture"
+import { buildPatientHandoffSummary } from "@/lib/doctor/patient-handoff"
 import { buildPatientSnapshot, getPatientSnapshotOptionsForCase } from "@/lib/doctor/patient-snapshot"
 import { getQueueEnteredAt, getQueueStatusMeta } from "@/lib/doctor/queue-utils"
 import { prefetchReviewData } from "@/lib/doctor/review-data-cache"
@@ -205,6 +206,7 @@ export function QueueTable({
               }),
               answers,
             })
+            const handoffSummary = buildPatientHandoffSummary(patientSnapshot)
             const statusMeta = getQueueStatusMeta(intake.status)
             const paidAt = formatQueueTimestamp(intake.paid_at)
             const submittedAt = formatQueueTimestamp(intake.submitted_at ?? intake.created_at)
@@ -305,13 +307,16 @@ export function QueueTable({
                       {claimLabel}
                     </Badge>
                   )}
-                  {patientSnapshot.completenessTone !== "complete" && (
+                  {handoffSummary.tone !== "success" && (
                     <Badge
-                      variant={patientSnapshot.completenessTone === "partial" ? "warning" : "destructive"}
-                      className="text-xs"
+                      variant={handoffSummary.tone === "critical" ? "destructive" : "warning"}
+                      className="max-w-full text-xs"
+                      title={`${handoffSummary.tooltip} ${handoffSummary.actionLabel}.`}
+                      aria-label={handoffSummary.tooltip}
                     >
                       <AlertTriangle className="h-3 w-3" />
-                      {patientSnapshot.missingCriticalFields.slice(0, 2).join(", ")} missing
+                      <span className="sm:hidden">{handoffSummary.shortLabel}</span>
+                      <span className="hidden sm:inline">{handoffSummary.statusLabel}</span>
                     </Badge>
                   )}
                   {isOpen && (
