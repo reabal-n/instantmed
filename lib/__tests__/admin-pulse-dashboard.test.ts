@@ -60,6 +60,12 @@ describe("admin pulse dashboard", () => {
     const ledger = readProjectFile("app/admin/admin-dashboard-client.tsx")
 
     expect(ledger).toContain("getAdminWorkLaneForStatus")
+    expect(ledger).toContain("ADMIN_WORK_LANE_FILTER_OPTIONS")
+    expect(ledger).toContain("ADMIN_INTAKE_STATUS_FILTER_OPTIONS")
+    expect(ledger).toContain("matchesAdminWorkLaneFilter")
+    expect(ledger).toContain("matchesAdminStatusFilter")
+    expect(ledger).toContain("getServicePresentation")
+    expect(ledger).toContain("matchesAdminServiceFilter")
     expect(ledger).toContain("Doctor work")
     expect(ledger).toContain("Admin work")
     expect(ledger.indexOf("Doctor work")).toBeLessThan(ledger.indexOf("Search by name"))

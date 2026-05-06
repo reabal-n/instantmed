@@ -2,6 +2,29 @@ import type { DisplayIntakeStatus, IntakeStatus } from "@/types/intake"
 
 export type AdminWorkLane = "doctor" | "admin" | "done" | "other"
 
+export const ADMIN_WORK_LANE_FILTER_OPTIONS = [
+  { value: "all", label: "All" },
+  { value: "doctor", label: "Doctor" },
+  { value: "admin", label: "Admin" },
+  { value: "done", label: "Done" },
+] as const
+
+export type AdminWorkLaneFilterValue = (typeof ADMIN_WORK_LANE_FILTER_OPTIONS)[number]["value"]
+
+export const ADMIN_INTAKE_STATUS_FILTER_OPTIONS = [
+  { value: "all" },
+  { value: "paid" },
+  { value: "in_review" },
+  { value: "pending_info" },
+  { value: "awaiting_script" },
+  { value: "approved" },
+  { value: "declined" },
+  { value: "completed" },
+] as const
+
+export type AdminIntakeStatusFilterValue =
+  (typeof ADMIN_INTAKE_STATUS_FILTER_OPTIONS)[number]["value"]
+
 export const DOCTOR_WORK_STATUSES = [
   "awaiting_script",
   "paid",
@@ -53,6 +76,21 @@ export function getAdminWorkLaneForStatus(
   if (adminWorkStatusSet.has(status)) return "admin"
   if (doneWorkStatusSet.has(status)) return "done"
   return "other"
+}
+
+export function matchesAdminWorkLaneFilter(
+  status: IntakeStatus | DisplayIntakeStatus | string,
+  filterValue: AdminWorkLaneFilterValue,
+): boolean {
+  if (filterValue === "all") return true
+  return getAdminWorkLaneForStatus(status) === filterValue
+}
+
+export function matchesAdminStatusFilter(
+  status: IntakeStatus | DisplayIntakeStatus | string,
+  filterValue: AdminIntakeStatusFilterValue,
+): boolean {
+  return filterValue === "all" || status === filterValue
 }
 
 export function compareAdminWorkItems<T extends { status: string; created_at: string }>(

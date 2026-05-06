@@ -19,30 +19,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { UserCard } from "@/components/uix"
 import {
+  ADMIN_INTAKE_STATUS_FILTER_OPTIONS,
   ADMIN_STATUS_PRIORITY,
+  ADMIN_WORK_LANE_FILTER_OPTIONS,
+  type AdminIntakeStatusFilterValue,
+  type AdminWorkLaneFilterValue,
   compareAdminWorkItems,
   getAdminWorkLaneForStatus,
+  matchesAdminStatusFilter,
+  matchesAdminWorkLaneFilter,
 } from "@/lib/dashboard/admin-work-lanes"
 import { buildAdminIntakeHref } from "@/lib/dashboard/routes"
 import { INTAKE_STATUS, type IntakeStatus } from "@/lib/data/status"
 import { formatDate } from "@/lib/format"
+import { formatIntakeStatus } from "@/lib/format/intake"
+import {
+  ADMIN_SERVICE_FILTER_OPTIONS,
+  getServicePresentation,
+  matchesAdminServiceFilter,
+} from "@/lib/services/service-presentation"
 import { cn } from "@/lib/utils"
 import type { IntakeWithPatient } from "@/types/db"
-
-// Format functions (inline to avoid server-only import)
-function formatIntakeStatus(status: string): string {
-  const labels: Record<string, string> = {
-    pending_payment: "Awaiting Payment",
-    paid: "In Queue",
-    in_review: "Under Review",
-    approved: "Approved",
-    declined: "Declined",
-    completed: "Completed",
-    pending_info: "Needs Info",
-    awaiting_script: "Awaiting Script",
-  }
-  return labels[status] || status
-}
 
 interface AdminDashboardClientProps {
   allIntakes: IntakeWithPatient[]
@@ -63,6 +60,16 @@ function getPatient(intake: IntakeWithPatient) {
 
 function getService(intake: IntakeWithPatient) {
   return intake.service as { name?: string; short_name?: string; type?: string } | undefined
+}
+
+function getServiceDisplay(intake: IntakeWithPatient) {
+  const service = getService(intake)
+  return getServicePresentation({
+    type: service?.type,
+    category: intake.category,
+    name: service?.name,
+    shortName: service?.short_name,
+  })
 }
 
 function sortByWorkPriority(intakes: IntakeWithPatient[]) {
@@ -109,7 +116,7 @@ function WorkLane({
           <div className="divide-y divide-border/50">
             {intakes.slice(0, 5).map((intake) => {
               const patient = getPatient(intake)
-              const service = getService(intake)
+              const service = getServiceDisplay(intake)
 
               return (
                 <Link
@@ -127,7 +134,7 @@ function WorkLane({
                       </Badge>
                     </div>
                     <p className="mt-1 truncate text-xs text-muted-foreground">
-                      {service?.short_name || service?.name || "Request"} - {formatDate(intake.created_at)}
+                      {service.shortLabel} - {formatDate(intake.created_at)}
                     </p>
                   </div>
                   <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground opacity-60 transition-[opacity,transform] group-hover:translate-x-0.5 group-hover:opacity-100" />
@@ -153,7 +160,8 @@ export function AdminDashboardClient({
   stats,
 }: AdminDashboardClientProps) {
   const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [workLaneFilter, setWorkLaneFilter] = useState<AdminWorkLaneFilterValue>("all")
+  const [statusFilter, setStatusFilter] = useState<AdminIntakeStatusFilterValue>("all")
   const [serviceFilter, setServiceFilter] = useState<string>("all")
 
   const filteredIntakes = useMemo(() => {
@@ -161,7 +169,7 @@ export function AdminDashboardClient({
     return allIntakes
       .filter((intake) => {
         const patient = intake.patient as { full_name?: string; suburb?: string } | undefined
-        const service = intake.service as { type?: string } | undefined
+        const service = getService(intake)
 
         const matchesSearch =
           !query ||
@@ -169,10 +177,14 @@ export function AdminDashboardClient({
           patient?.suburb?.toLowerCase().includes(query) ||
           intake.id.toLowerCase().includes(query)
 
-        const matchesStatus = statusFilter === "all" || intake.status === statusFilter
-        const matchesService = serviceFilter === "all" || service?.type === serviceFilter
+        const matchesStatus = matchesAdminStatusFilter(intake.status, statusFilter)
+        const matchesLane = matchesAdminWorkLaneFilter(intake.status, workLaneFilter)
+        const matchesService = matchesAdminServiceFilter(
+          { type: service?.type, category: intake.category },
+          serviceFilter,
+        )
 
-        return matchesSearch && matchesStatus && matchesService
+        return matchesSearch && matchesLane && matchesStatus && matchesService
       })
       .sort((a, b) => {
         const priorityDelta =
@@ -180,7 +192,7 @@ export function AdminDashboardClient({
         if (priorityDelta !== 0) return priorityDelta
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       })
-  }, [allIntakes, searchQuery, statusFilter, serviceFilter])
+  }, [allIntakes, searchQuery, statusFilter, serviceFilter, workLaneFilter])
 
   const doctorWorkIntakes = useMemo(
     () => sortByWorkPriority(
@@ -207,6 +219,12 @@ export function AdminDashboardClient({
     { label: "Approved", value: stats.approved },
     { label: "Declined", value: stats.declined },
   ]
+  const workLaneCounts = useMemo(() => ({
+    all: allIntakes.length,
+    doctor: allIntakes.filter((intake) => getAdminWorkLaneForStatus(intake.status) === "doctor").length,
+    admin: allIntakes.filter((intake) => getAdminWorkLaneForStatus(intake.status) === "admin").length,
+    done: allIntakes.filter((intake) => getAdminWorkLaneForStatus(intake.status) === "done").length,
+  }), [allIntakes])
 
   return (
     <div>
@@ -249,6 +267,36 @@ export function AdminDashboardClient({
             />
           </div>
 
+          <div className="mb-4 overflow-x-auto">
+            <div
+              className="inline-flex min-w-max rounded-lg border border-border/50 bg-muted/25 p-1"
+              aria-label="Filter intakes by work lane"
+            >
+              {ADMIN_WORK_LANE_FILTER_OPTIONS.map((option) => {
+                const active = workLaneFilter === option.value
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => setWorkLaneFilter(option.value)}
+                    className={cn(
+                      "inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-semibold transition-colors",
+                      active
+                        ? "bg-white text-foreground shadow-sm shadow-primary/[0.04] dark:bg-card"
+                        : "text-muted-foreground hover:bg-white/70 hover:text-foreground dark:hover:bg-card/70",
+                    )}
+                  >
+                    {option.label}
+                    <span className="tabular-nums opacity-70">
+                      {workLaneCounts[option.value]}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
           <div className="mb-4 grid gap-3 md:flex md:flex-wrap">
             <div className="min-w-0 md:min-w-[200px] md:flex-1">
               <Input
@@ -258,18 +306,19 @@ export function AdminDashboardClient({
                 startContent={<Search className="h-4 w-4 text-muted-foreground" />}
               />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select
+              value={statusFilter}
+              onValueChange={(value) => setStatusFilter(value as AdminIntakeStatusFilterValue)}
+            >
               <SelectTrigger className="w-full md:w-[160px]" aria-label="Filter intakes by status">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="paid">In Queue</SelectItem>
-                <SelectItem value="in_review">In Review</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="declined">Declined</SelectItem>
-                <SelectItem value="awaiting_script">Awaiting Script</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
+                {ADMIN_INTAKE_STATUS_FILTER_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.value === "all" ? "All statuses" : formatIntakeStatus(option.value)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select value={serviceFilter} onValueChange={setServiceFilter}>
@@ -277,10 +326,11 @@ export function AdminDashboardClient({
                 <SelectValue placeholder="All Services" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Services</SelectItem>
-                <SelectItem value="med_certs">Medical Certificates</SelectItem>
-                <SelectItem value="repeat_rx">Repeat Scripts</SelectItem>
-                <SelectItem value="consults">Consultations</SelectItem>
+                {ADMIN_SERVICE_FILTER_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -289,8 +339,8 @@ export function AdminDashboardClient({
             {filteredIntakes.length > 0 ? (
               <div className="divide-y divide-border/50">
                 {filteredIntakes.map((intake) => {
-                  const patient = intake.patient as { full_name?: string; suburb?: string; state?: string } | undefined
-                  const service = intake.service as { name?: string; short_name?: string } | undefined
+                  const patient = getPatient(intake)
+                  const service = getServiceDisplay(intake)
 
                   return (
                     <Link
@@ -313,7 +363,7 @@ export function AdminDashboardClient({
                         <div>
                           <p className="text-muted-foreground">Service</p>
                           <p className="mt-0.5 font-medium text-foreground">
-                            {service?.short_name || service?.name || "—"}
+                            {service.shortLabel}
                           </p>
                         </div>
                         <div className="text-right">
@@ -352,8 +402,8 @@ export function AdminDashboardClient({
               <TableBody>
                 {filteredIntakes.length > 0 ? (
                   filteredIntakes.map((intake) => {
-                    const patient = intake.patient as { full_name?: string; suburb?: string; state?: string } | undefined
-                    const service = intake.service as { name?: string; short_name?: string } | undefined
+                    const patient = getPatient(intake)
+                    const service = getServiceDisplay(intake)
                     
                     return (
                       <TableRow key={intake.id}>
@@ -365,7 +415,7 @@ export function AdminDashboardClient({
                           />
                         </TableCell>
                         <TableCell>
-                          <span className="text-sm">{service?.short_name || service?.name || "—"}</span>
+                          <span className="text-sm">{service.label}</span>
                         </TableCell>
                         <TableCell>
                           <Badge className={getStatusBadge(intake.status)}>

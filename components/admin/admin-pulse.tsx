@@ -16,7 +16,7 @@ import { Badge, type BadgeProps } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { AdminPulseData, AdminPulseMood, AdminPulseTone } from "@/lib/data/admin-pulse"
 import { formatCurrency, formatMinutes } from "@/lib/format"
-import { formatServiceType } from "@/lib/format/intake"
+import { getServicePresentation } from "@/lib/services/service-presentation"
 import { cn } from "@/lib/utils"
 
 type IconComponent = ComponentType<SVGProps<SVGSVGElement>>
@@ -229,7 +229,7 @@ export function AdminPulse({ pulse }: AdminPulseProps) {
                       <span className="font-semibold tabular-nums text-foreground">
                         {item.count}
                       </span>
-                      {formatServiceType(item.category)}
+                      {getServicePresentation({ type: item.category }).label}
                     </span>
                   ))
                 ) : (
