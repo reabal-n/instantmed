@@ -308,7 +308,7 @@ export function AdminDashboardClient({
           <div className="mb-4 grid gap-3 lg:grid-cols-2">
             <WorkLane
               title="Clinical handoff"
-              subtitle="Read-only queue awareness. Review, prescribe, approve, or decline in Doctor mode."
+              subtitle="Admin shows what needs a clinical decision. Use your Doctor mode to review, prescribe, approve, or decline."
               icon={Stethoscope}
               intakes={clinicalHandoffIntakes}
               empty="No clinical handoffs waiting."

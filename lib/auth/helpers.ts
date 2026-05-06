@@ -12,6 +12,7 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 
+import { hasAdminAccess, hasDoctorAccess, roleHasAnyCapability } from "@/lib/auth/staff-capabilities"
 import { createLogger } from "@/lib/observability/logger"
 import { decryptField } from "@/lib/security/encryption"
 import { createClient } from "@/lib/supabase/server"
@@ -429,12 +430,14 @@ export async function requireRole(
 
   const userRole = authUser.profile.role
 
-  if (!allowedRoles.includes(userRole as "patient" | "doctor" | "admin")) {
+  if (!roleHasAnyCapability(userRole, allowedRoles)) {
     if (options?.redirectTo) {
       redirect(options.redirectTo)
     } else if (userRole === "patient") {
       redirect("/patient")
-    } else if (userRole === "doctor" || userRole === "admin") {
+    } else if (hasAdminAccess(authUser.profile)) {
+      redirect("/admin")
+    } else if (hasDoctorAccess(authUser.profile)) {
       redirect("/doctor/dashboard")
     } else {
       redirect("/sign-in")
@@ -458,7 +461,7 @@ export async function requireRoleOrNull(
   }
 
   const userRole = authUser.profile.role
-  if (!allowedRoles.includes(userRole as "patient" | "doctor" | "admin")) {
+  if (!roleHasAnyCapability(userRole, allowedRoles)) {
     return null
   }
 
@@ -632,6 +635,6 @@ export async function requireApiRole(
 ): Promise<{ userId: string; profile: Profile } | null> {
   const result = await getApiAuth()
   if (!result) return null
-  if (!allowedRoles.includes(result.profile.role as "patient" | "doctor" | "admin")) return null
+  if (!roleHasAnyCapability(result.profile.role, allowedRoles)) return null
   return result
 }

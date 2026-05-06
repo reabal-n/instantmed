@@ -504,7 +504,7 @@ export default async function AdminPatientDetailPage({
         <div>
           <p className="font-semibold">Need to prescribe or update clinical history?</p>
           <p className="text-sm text-muted-foreground">
-            Prescribing, clinical notes, and patient-facing clinical actions stay in Doctor mode.
+            Prescribing, clinical notes, and patient-facing clinical actions stay in your Doctor mode.
           </p>
         </div>
         <Button asChild>

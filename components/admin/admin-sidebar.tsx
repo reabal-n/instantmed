@@ -9,6 +9,7 @@ import {
   ListOrdered,
   Menu,
   Settings,
+  Stethoscope,
   X,
 } from "lucide-react"
 import Link from "next/link"
@@ -42,6 +43,10 @@ interface NavItem {
 const workNavItems: NavItem[] = [
   { href: ADMIN_DASHBOARD_HREF, label: "Dashboard", icon: LayoutDashboard },
   { href: ADMIN_INTAKE_LEDGER_HREF, label: "Intake ledger", icon: ListOrdered },
+]
+
+const clinicalNavItems: NavItem[] = [
+  { href: "/doctor/dashboard", label: "Doctor queue", icon: Stethoscope },
 ]
 
 const businessNavItems: NavItem[] = [
@@ -187,6 +192,8 @@ export function AdminSidebar({ userName, userRole = "Admin" }: AdminSidebarProps
         <nav className="flex flex-col gap-4 px-3">
           <NavSection title="Work" items={workNavItems} pathname={pathname} />
           <div className="mx-3 border-t border-border/30" />
+          <NavSection title="Clinical mode" items={clinicalNavItems} pathname={pathname} />
+          <div className="mx-3 border-t border-border/30" />
           <NavSection title="Business" items={businessNavItems} pathname={pathname} />
           <div className="mx-3 border-t border-border/30" />
           <NavSection title="Configure" items={settingsNavItems} pathname={pathname} />
@@ -253,6 +260,13 @@ export function MobileAdminNav({ pendingCount: _pendingCount = 0 }: { pendingCou
           <NavSection
             title="Work"
             items={workNavItems}
+            pathname={pathname}
+            onNavigate={() => setOpen(false)}
+          />
+          <div className="border-t border-border/30" />
+          <NavSection
+            title="Clinical mode"
+            items={clinicalNavItems}
             pathname={pathname}
             onNavigate={() => setOpen(false)}
           />

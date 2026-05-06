@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 
 import { AdminSidebar, MobileAdminNav } from "@/components/admin/admin-sidebar"
 import { requireRole } from "@/lib/auth/helpers"
+import { getStaffDisplayRole } from "@/lib/auth/staff-capabilities"
 
 export const metadata: Metadata = {
   title: "Admin Dashboard",
@@ -26,7 +27,7 @@ export default async function AdminLayout({
     <div className="flex min-h-screen bg-background">
       <AdminSidebar
         userName={authUser.profile.full_name}
-        userRole="Admin"
+        userRole={getStaffDisplayRole(authUser.profile)}
       />
       <main className="flex-1 min-w-0 py-8 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">

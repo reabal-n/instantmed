@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { Suspense } from "react"
 
 import { selectGuestProfileForAuthLink } from "@/lib/auth/guest-profile-linking"
+import { hasAdminAccess, hasDoctorAccess } from "@/lib/auth/staff-capabilities"
 import { createLogger } from "@/lib/observability/logger"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -329,9 +330,9 @@ export default async function PostSignInPage({
   } else if (params.intake_id) {
     destination = `/patient/intakes/success?intake_id=${params.intake_id}`
   } else {
-    if (profile.role === "admin") {
+    if (hasAdminAccess(profile)) {
       destination = "/admin"
-    } else if (profile.role === "doctor") {
+    } else if (hasDoctorAccess(profile)) {
       destination = "/doctor/dashboard"
     } else {
       destination = profile.onboarding_completed ? "/patient" : "/patient/onboarding"

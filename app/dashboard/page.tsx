@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { redirect } from 'next/navigation'
 
 import { getAuthenticatedUserWithProfile } from '@/lib/auth/helpers'
+import { hasAdminAccess, hasDoctorAccess } from '@/lib/auth/staff-capabilities'
 
 export const metadata: Metadata = {
   robots: {
@@ -17,12 +18,11 @@ export default async function DashboardRedirect() {
     redirect('/sign-in')
   }
 
-  const role = authUser.profile.role
-  if (role === "admin") {
+  if (hasAdminAccess(authUser.profile)) {
     redirect("/admin")
   }
 
-  if (role === 'doctor') {
+  if (hasDoctorAccess(authUser.profile)) {
     redirect('/doctor/dashboard')
   }
 

@@ -35,7 +35,7 @@ describe("resolvePostAuthDestination", () => {
   it("keeps sign-in redirects role-aware after session creation", () => {
     expect(signInSource).toContain("buildPostSignInHref")
     expect(signInSource).toContain("window.location.assign(buildPostSignInHref(redirectUrl))")
-    expect(postSignInSource).toContain('profile.role === "admin"')
+    expect(postSignInSource).toContain("hasAdminAccess(profile)")
     expect(postSignInSource).toContain('destination = "/admin"')
   })
 

@@ -5,6 +5,7 @@ import { Suspense } from "react"
 import { DoctorOnboardingBanner } from "@/components/doctor"
 import { DashboardSidebar } from "@/components/shared"
 import { requireRole } from "@/lib/auth/helpers"
+import { getStaffDisplayRole, hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import { getDoctorDashboardStats } from "@/lib/data/intakes"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
@@ -53,7 +54,8 @@ export default async function DoctorLayout({
   // Require doctor or admin role for all doctor routes
   const authUser = await requireRole(["doctor", "admin"])
 
-  const isAdmin = authUser.profile.role === "admin"
+  const isAdmin = hasAdminAccess(authUser.profile)
+  const staffRoleLabel = getStaffDisplayRole(authUser.profile)
 
   return (
     <DoctorShell isAdmin={isAdmin}>
@@ -62,7 +64,7 @@ export default async function DoctorLayout({
         <Suspense fallback={<div className="hidden lg:block w-[260px] shrink-0" />}>
           <DoctorSidebarWithStats
             userName={authUser.profile.full_name}
-            userRole={isAdmin ? "Admin" : "Doctor"}
+            userRole={staffRoleLabel}
             isAdmin={isAdmin}
           />
         </Suspense>

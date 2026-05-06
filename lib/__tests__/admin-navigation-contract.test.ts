@@ -88,12 +88,15 @@ describe("admin navigation contract", () => {
     expect(labels).toEqual([
       "Dashboard",
       "Intake ledger",
+      "Doctor queue",
       "Analytics",
       "Finance",
       "Operations",
       "Settings",
     ])
-    expect(sidebarSource).not.toContain('href: "/doctor/dashboard"')
+    expect(sidebarSource).toContain("clinicalNavItems")
+    expect(sidebarSource).toContain("Clinical mode")
+    expect(sidebarSource).toContain('href: "/doctor/dashboard"')
     expect(sidebarSource).not.toContain('href: "/doctor/patients"')
     expect(sidebarSource).not.toContain('href: "/doctor/scripts"')
     expect(sidebarSource).toContain("prefetch={false}")
@@ -205,9 +208,9 @@ describe("admin navigation contract", () => {
   })
 
   it("routes the generic dashboard entrypoint to the admin dashboard for admin users", () => {
-    expect(dashboardRedirectSource).toContain('role === "admin"')
+    expect(dashboardRedirectSource).toContain("hasAdminAccess(authUser.profile)")
     expect(dashboardRedirectSource).toContain('redirect("/admin")')
-    expect(dashboardRedirectSource).toContain("role === 'doctor'")
+    expect(dashboardRedirectSource).toContain("hasDoctorAccess(authUser.profile)")
     expect(dashboardRedirectSource).toContain("redirect('/doctor/dashboard')")
   })
 

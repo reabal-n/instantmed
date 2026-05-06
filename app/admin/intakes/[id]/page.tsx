@@ -314,7 +314,7 @@ export default async function AdminIntakeDetailPage({
         <div>
           <p className="font-semibold">Need to make a clinical decision?</p>
           <p className="text-sm text-muted-foreground">
-            Approvals, declines, certificates, and prescribing stay in Doctor mode.
+            Approvals, declines, certificates, and prescribing stay in your Doctor mode.
           </p>
         </div>
         <Button asChild>
