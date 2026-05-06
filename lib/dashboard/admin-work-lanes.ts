@@ -1,11 +1,11 @@
 import type { DisplayIntakeStatus, IntakeStatus } from "@/types/intake"
 
-export type AdminWorkLane = "doctor" | "admin" | "done" | "other"
+export type AdminWorkLane = "clinical" | "admin" | "done" | "other"
 
 export const ADMIN_WORK_LANE_FILTER_OPTIONS = [
   { value: "all", label: "All" },
-  { value: "doctor", label: "Doctor" },
-  { value: "admin", label: "Admin" },
+  { value: "clinical", label: "Clinical handoff" },
+  { value: "admin", label: "Admin ops" },
   { value: "done", label: "Done" },
 ] as const
 
@@ -25,7 +25,7 @@ export const ADMIN_INTAKE_STATUS_FILTER_OPTIONS = [
 export type AdminIntakeStatusFilterValue =
   (typeof ADMIN_INTAKE_STATUS_FILTER_OPTIONS)[number]["value"]
 
-export const DOCTOR_WORK_STATUSES = [
+export const CLINICAL_HANDOFF_STATUSES = [
   "awaiting_script",
   "paid",
   "in_review",
@@ -65,14 +65,14 @@ export const ADMIN_STATUS_PRIORITY: Record<string, number> = {
   expired: 13,
 }
 
-const doctorWorkStatusSet = new Set<string>(DOCTOR_WORK_STATUSES)
+const clinicalHandoffStatusSet = new Set<string>(CLINICAL_HANDOFF_STATUSES)
 const adminWorkStatusSet = new Set<string>(ADMIN_WORK_STATUSES)
 const doneWorkStatusSet = new Set<string>(DONE_WORK_STATUSES)
 
 export function getAdminWorkLaneForStatus(
   status: IntakeStatus | DisplayIntakeStatus | string,
 ): AdminWorkLane {
-  if (doctorWorkStatusSet.has(status)) return "doctor"
+  if (clinicalHandoffStatusSet.has(status)) return "clinical"
   if (adminWorkStatusSet.has(status)) return "admin"
   if (doneWorkStatusSet.has(status)) return "done"
   return "other"

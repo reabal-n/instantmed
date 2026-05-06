@@ -216,7 +216,7 @@ export function AdminDashboardClient({
 }: AdminDashboardClientProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [workLaneFilter, setWorkLaneFilter] = useState<AdminWorkLaneFilterValue>(() =>
-    allIntakes.some((intake) => getAdminWorkLaneForStatus(intake.status) === "doctor") ? "doctor" : "all",
+    allIntakes.some((intake) => getAdminWorkLaneForStatus(intake.status) === "clinical") ? "clinical" : "all",
   )
   const [statusFilter, setStatusFilter] = useState<AdminIntakeStatusFilterValue>("all")
   const [serviceFilter, setServiceFilter] = useState<string>("all")
@@ -251,9 +251,9 @@ export function AdminDashboardClient({
       })
   }, [allIntakes, searchQuery, statusFilter, serviceFilter, workLaneFilter])
 
-  const doctorWorkIntakes = useMemo(
+  const clinicalHandoffIntakes = useMemo(
     () => sortByWorkPriority(
-      allIntakes.filter((intake) => getAdminWorkLaneForStatus(intake.status) === "doctor"),
+      allIntakes.filter((intake) => getAdminWorkLaneForStatus(intake.status) === "clinical"),
     ),
     [allIntakes],
   )
@@ -278,7 +278,7 @@ export function AdminDashboardClient({
   ]
   const workLaneCounts = useMemo(() => ({
     all: allIntakes.length,
-    doctor: allIntakes.filter((intake) => getAdminWorkLaneForStatus(intake.status) === "doctor").length,
+    clinical: allIntakes.filter((intake) => getAdminWorkLaneForStatus(intake.status) === "clinical").length,
     admin: allIntakes.filter((intake) => getAdminWorkLaneForStatus(intake.status) === "admin").length,
     done: allIntakes.filter((intake) => getAdminWorkLaneForStatus(intake.status) === "done").length,
   }), [allIntakes])
@@ -307,19 +307,19 @@ export function AdminDashboardClient({
         <CardContent className="px-4 py-4">
           <div className="mb-4 grid gap-3 lg:grid-cols-2">
             <WorkLane
-              title="Doctor work"
-              subtitle="Clinical review, prescriptions, and requests waiting on medical judgement."
+              title="Clinical handoff"
+              subtitle="Read-only queue awareness. Review, prescribe, approve, or decline in Doctor mode."
               icon={Stethoscope}
-              intakes={doctorWorkIntakes}
-              empty="No clinical work waiting."
+              intakes={clinicalHandoffIntakes}
+              empty="No clinical handoffs waiting."
               getStatusBadge={getStatusBadge}
             />
             <WorkLane
-              title="Admin work"
-              subtitle="Payment friction, patient follow-up, disputes, and the small stuff that blocks flow."
+              title="Admin operations"
+              subtitle="Payments, patient follow-up, disputes, delivery failures, and anything blocking flow outside clinical review."
               icon={ClipboardList}
               intakes={adminWorkIntakes}
-              empty="No admin loose ends."
+              empty="No admin operations waiting."
               getStatusBadge={getStatusBadge}
             />
           </div>

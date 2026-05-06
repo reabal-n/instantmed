@@ -59,7 +59,7 @@ describe("admin pulse dashboard", () => {
     expect(ledger).not.toContain("`/admin/intakes/${intake.id}`")
   })
 
-  it("splits the admin ledger into doctor work and admin work before the full table", () => {
+  it("splits the admin ledger into clinical handoff and admin operations before the full table", () => {
     const ledger = readProjectFile("app/admin/admin-dashboard-client.tsx")
 
     expect(ledger).toContain("getAdminWorkLaneForStatus")
@@ -69,11 +69,12 @@ describe("admin pulse dashboard", () => {
     expect(ledger).toContain("matchesAdminStatusFilter")
     expect(ledger).toContain("getServicePresentation")
     expect(ledger).toContain("matchesAdminServiceFilter")
-    expect(ledger).toContain("Doctor work")
-    expect(ledger).toContain("Admin work")
+    expect(ledger).toContain("Clinical handoff")
+    expect(ledger).toContain("Admin operations")
+    expect(ledger).not.toContain("Doctor work")
     expect(ledger).toContain('AdminWorkLaneFilterValue>(() =>')
-    expect(ledger).toContain('"doctor" : "all"')
-    expect(ledger.indexOf("Doctor work")).toBeLessThan(ledger.indexOf("Search by name"))
+    expect(ledger).toContain('"clinical" : "all"')
+    expect(ledger.indexOf("Clinical handoff")).toBeLessThan(ledger.indexOf("Search by name"))
   })
 
   it("prioritises the clinical next action before soft admin work", () => {
@@ -87,7 +88,7 @@ describe("admin pulse dashboard", () => {
 
     expect(resolveAdminPulseMood(input)).toBe("busy")
     expect(resolveAdminPulseAction(input)).toMatchObject({
-      label: "Send the scripts waiting on you",
+      label: "Switch to doctor mode for scripts",
       href: buildDoctorDashboardHref({ status: "scripts" }),
       tone: "warning",
     })

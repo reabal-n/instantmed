@@ -271,7 +271,7 @@ export default async function AdminPatientDetailPage({
             </Button>
             <Button asChild>
               <Link href={`/doctor/patients/${patient.id}`}>
-                Open doctor file
+                Switch to doctor file
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -401,7 +401,7 @@ export default async function AdminPatientDetailPage({
             <h2 className="text-lg font-semibold">Prescriptions</h2>
           </div>
           <Button variant="outline" asChild>
-            <Link href={`/doctor/patients/${patient.id}`}>Prescribe as doctor</Link>
+            <Link href={`/doctor/patients/${patient.id}`}>Switch to doctor mode</Link>
           </Button>
         </div>
         {prescriptions.length > 0 ? (
@@ -504,7 +504,7 @@ export default async function AdminPatientDetailPage({
         <div>
           <p className="font-semibold">Need to prescribe or update clinical history?</p>
           <p className="text-sm text-muted-foreground">
-            Use the doctor file for prescribing, clinical notes, and patient-facing actions.
+            Prescribing, clinical notes, and patient-facing clinical actions stay in Doctor mode.
           </p>
         </div>
         <Button asChild>

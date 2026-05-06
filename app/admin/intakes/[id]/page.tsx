@@ -134,7 +134,7 @@ export default async function AdminIntakeDetailPage({
             </Button>
             <Button asChild>
               <Link href={`/doctor/intakes/${intake.id}`}>
-                Open doctor workflow
+                Switch to doctor mode
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -314,7 +314,7 @@ export default async function AdminIntakeDetailPage({
         <div>
           <p className="font-semibold">Need to make a clinical decision?</p>
           <p className="text-sm text-muted-foreground">
-            Use the doctor workflow for approvals, declines, refunds, certificates, and prescribing.
+            Approvals, declines, certificates, and prescribing stay in Doctor mode.
           </p>
         </div>
         <Button asChild>

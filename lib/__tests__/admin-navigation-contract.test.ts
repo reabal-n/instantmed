@@ -163,8 +163,11 @@ describe("admin navigation contract", () => {
 
     expect(adminIntakeDetailSource).not.toContain("DoctorIntakeDetailPage")
     expect(adminPatientDetailSource).not.toContain("DoctorPatientDetailPage")
-    expect(adminIntakeDetailSource).toContain("Open doctor workflow")
-    expect(adminPatientDetailSource).toContain("Open doctor file")
+    expect(adminIntakeDetailSource).toContain("Switch to doctor mode")
+    expect(adminPatientDetailSource).toContain("Switch to doctor file")
+    expect(adminPatientDetailSource).toContain("Switch to doctor mode")
+    expect(adminIntakeDetailSource).not.toContain("Open doctor workflow")
+    expect(adminPatientDetailSource).not.toContain("Prescribe as doctor")
     expect(adminIntakeDetailSource).toContain('requireRole(["admin"]')
     expect(adminPatientDetailSource).toContain('requireRole(["admin"]')
   })

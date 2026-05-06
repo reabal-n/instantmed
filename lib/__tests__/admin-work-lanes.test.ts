@@ -10,9 +10,9 @@ import {
 } from "@/lib/dashboard/admin-work-lanes"
 
 describe("admin work lanes", () => {
-  it("routes statuses into doctor, admin, done, and other lanes", () => {
-    expect(getAdminWorkLaneForStatus("awaiting_script")).toBe("doctor")
-    expect(getAdminWorkLaneForStatus("paid")).toBe("doctor")
+  it("routes statuses into clinical, admin, done, and other lanes", () => {
+    expect(getAdminWorkLaneForStatus("awaiting_script")).toBe("clinical")
+    expect(getAdminWorkLaneForStatus("paid")).toBe("clinical")
     expect(getAdminWorkLaneForStatus("pending_info")).toBe("admin")
     expect(getAdminWorkLaneForStatus("checkout_failed")).toBe("admin")
     expect(getAdminWorkLaneForStatus("completed")).toBe("done")
@@ -22,12 +22,18 @@ describe("admin work lanes", () => {
   it("exposes compact filter options and matches by lane", () => {
     expect(ADMIN_WORK_LANE_FILTER_OPTIONS.map((option) => option.value)).toEqual([
       "all",
-      "doctor",
+      "clinical",
       "admin",
       "done",
     ])
+    expect(ADMIN_WORK_LANE_FILTER_OPTIONS.map((option) => option.label)).toEqual([
+      "All",
+      "Clinical handoff",
+      "Admin ops",
+      "Done",
+    ])
 
-    expect(matchesAdminWorkLaneFilter("awaiting_script", "doctor")).toBe(true)
+    expect(matchesAdminWorkLaneFilter("awaiting_script", "clinical")).toBe(true)
     expect(matchesAdminWorkLaneFilter("pending_info", "admin")).toBe(true)
     expect(matchesAdminWorkLaneFilter("completed", "done")).toBe(true)
     expect(matchesAdminWorkLaneFilter("draft", "all")).toBe(true)
@@ -51,7 +57,7 @@ describe("admin work lanes", () => {
     expect(matchesAdminStatusFilter("paid", "completed")).toBe(false)
   })
 
-  it("keeps urgent doctor/admin work above old completed history", () => {
+  it("keeps urgent clinical/admin work above old completed history", () => {
     const ordered = [
       { status: "completed", created_at: "2026-05-05T00:00:00.000Z" },
       { status: "awaiting_script", created_at: "2026-05-04T00:00:00.000Z" },
