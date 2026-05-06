@@ -9,11 +9,11 @@
  * Certificates capped at 3 days max.
  */
 
-import { ArrowRight,Briefcase, GraduationCap, Heart, Shield } from "lucide-react"
+import { ArrowRight,Briefcase, GraduationCap, Heart } from "lucide-react"
 import { useCallback, useEffect, useRef,useState } from "react"
 
 import { usePostHog } from "@/components/providers/posthog-provider"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
 import { Button } from "@/components/ui/button"
 import { MED_CERT_DURATIONS } from "@/lib/constants"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
@@ -261,158 +261,150 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
   // ── Render ────────────────────────────────────────────────────────────
 
   return (
-    <div className="space-y-5">
-      {/* Trust indicator */}
-      <Alert variant="default" className="border-primary/20 bg-primary/5">
-        <Shield className="w-4 h-4" />
-        <AlertDescription className="text-xs">
-          All certificates are reviewed by AHPRA-registered Australian doctors
-        </AlertDescription>
-      </Alert>
+    <div className="space-y-4">
+      <IntakeStepIntro
+        title="What do you need covered?"
+        description="Pick the certificate type, dates, and duration."
+      />
 
       {/* Certificate type */}
-      <FormField
-        label="Certificate type"
-        required
-        error={touched.certType ? errors.certType : undefined}
-        hint="Choose the type that matches your situation"
-        helpContent={{
-          title: "Which type should I choose?",
-          content:
-            "Work: for your employer. Study: for university or school. Carer's leave: when caring for a family member.",
-        }}
-      >
-        <div
-          className="relative flex rounded-xl bg-muted dark:bg-white/5 p-1 gap-1 mt-2"
-          role="radiogroup"
-          aria-label="Certificate type"
-        >
-          {CERT_TYPES.map((type) => {
-            const isSelected = certType === type.id
-            const Icon = type.icon
-            return (
-              <button
-                key={type.id}
-                type="button"
-                role="radio"
-                aria-checked={isSelected}
-                onClick={() => handleCertTypeClick(type.id)}
-                className={cn(
-                  "relative flex-1 flex flex-col items-center gap-1 py-3 rounded-lg text-sm font-medium transition-[background-color,color] duration-200 touch-manipulation",
-                  isSelected
-                    ? "bg-white dark:bg-white/10 text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <Icon
-                  className={cn(
-                    "w-4 h-4 transition-colors duration-200",
-                    isSelected ? "text-primary" : "text-muted-foreground/60"
-                  )}
-                />
-                <span>{type.label}</span>
-              </button>
-            )
-          })}
-        </div>
-      </FormField>
-
-      {/* How many days? */}
-      <div ref={durationRef}>
+      <QuestionCard compact>
         <FormField
-          label="How many days?"
+          id="certificate-type"
+          label="Certificate type"
           required
-          error={touched.duration ? errors.duration : undefined}
-          helpContent={{
-            title: "Which duration do I need?",
-            content:
-              "Select the number of days you were unable to work or study. Certificates are capped at 3 days - for longer periods, please see your GP.",
-          }}
+          error={touched.certType ? errors.certType : undefined}
+          hint="Choose the type that matches your situation"
         >
           <div
-            className="flex gap-2 mt-2"
+            className="relative mt-2 grid grid-cols-3 gap-2"
             role="radiogroup"
-            aria-label="Certificate duration in days"
+            aria-label="Certificate type"
           >
-            {DURATION_OPTIONS.map((days) => {
-              const p = MED_CERT_DURATIONS.prices[days]
-              const isSelected = selectedDays === days
+            {CERT_TYPES.map((type) => {
+              const isSelected = certType === type.id
+              const Icon = type.icon
               return (
                 <button
-                  key={days}
+                  key={type.id}
                   type="button"
                   role="radio"
                   aria-checked={isSelected}
-                  onClick={() => handleDaysClick(days)}
+                  onClick={() => handleCertTypeClick(type.id)}
                   className={cn(
-                    "flex-1 flex flex-col items-center gap-0.5 py-3 rounded-xl text-sm font-medium border transition-[background-color,border-color,color] duration-150 touch-manipulation",
+                    "relative flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border px-2 py-3 text-sm font-medium transition-[background-color,border-color,color] duration-150 touch-manipulation",
+                    "outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                     isSelected
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-background text-foreground border-border/60 hover:border-primary/50 hover:bg-primary/5"
+                      ? "border-primary bg-primary/5 text-foreground ring-1 ring-primary/30"
+                      : "border-border/60 bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
                   )}
                 >
-                  <span>
-                    {days} {days === 1 ? "day" : "days"}
-                  </span>
-                  <span
+                  <Icon
                     className={cn(
-                      "text-xs",
-                      isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
+                      "w-4 h-4 transition-colors duration-150",
+                      isSelected ? "text-primary" : "text-muted-foreground/60"
                     )}
-                  >
-                    ${p}
-                  </span>
+                  />
+                  <span>{type.label}</span>
                 </button>
               )
             })}
           </div>
         </FormField>
+      </QuestionCard>
+
+      {/* How many days? */}
+      <div ref={durationRef}>
+        <QuestionCard compact>
+          <FormField
+            id="certificate-duration"
+            label="How many days?"
+            required
+            error={touched.duration ? errors.duration : undefined}
+          >
+            <div
+              className="mt-2 grid grid-cols-3 gap-2"
+              role="radiogroup"
+              aria-label="Certificate duration in days"
+            >
+              {DURATION_OPTIONS.map((days) => {
+                const p = MED_CERT_DURATIONS.prices[days]
+                const isSelected = selectedDays === days
+                return (
+                  <button
+                    key={days}
+                    type="button"
+                    role="radio"
+                    aria-checked={isSelected}
+                    onClick={() => handleDaysClick(days)}
+                    className={cn(
+                      "flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-xl border px-2 py-2 text-sm font-medium transition-[background-color,border-color,color] duration-150 touch-manipulation",
+                      isSelected
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-foreground border-border/60 hover:border-primary/50 hover:bg-primary/5"
+                    )}
+                  >
+                    <span>
+                      {days} {days === 1 ? "day" : "days"}
+                    </span>
+                    <span
+                      className={cn(
+                        "text-xs",
+                        isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
+                      )}
+                    >
+                      ${p}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </FormField>
+        </QuestionCard>
       </div>
 
       {/* Starting from? */}
       <div ref={startDateRef}>
-        <FormField
-          label="Starting from?"
-          required
-          error={touched.startDate ? errors.startDate : undefined}
-          helpContent={{
-            title: "Can I include future dates?",
-            content:
-              "Yes - if you're already unwell but need to cover tomorrow too, select today as the start date. A doctor reviews your dates based on your symptoms.",
-          }}
-        >
-          <div
-            className="flex gap-1.5 mt-2"
-            role="radiogroup"
-            aria-label="Certificate start date"
+        <QuestionCard compact>
+          <FormField
+            id="certificate-start-date"
+            label="Starting from?"
+            required
+            error={touched.startDate ? errors.startDate : undefined}
           >
-            {START_OFFSETS.map((offset) => {
-              const isSelected = startOffset === offset
-              return (
-                <button
-                  key={offset}
-                  type="button"
-                  role="radio"
-                  aria-checked={isSelected}
-                  onClick={() => handleStartOffsetClick(offset)}
-                  className={cn(
-                    "flex-1 py-2.5 text-xs font-medium rounded-xl border transition-[background-color,border-color,color] duration-150 touch-manipulation",
-                    isSelected
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-background text-foreground border-border/60 hover:border-primary/50 hover:bg-primary/5"
-                  )}
-                >
-                  {chipLabel(offset)}
-                </button>
-              )
-            })}
-          </div>
-        </FormField>
+            <div
+              className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4"
+              role="radiogroup"
+              aria-label="Certificate start date"
+            >
+              {START_OFFSETS.map((offset) => {
+                const isSelected = startOffset === offset
+                return (
+                  <button
+                    key={offset}
+                    type="button"
+                    role="radio"
+                    aria-checked={isSelected}
+                    onClick={() => handleStartOffsetClick(offset)}
+                    className={cn(
+                      "min-h-12 rounded-xl border px-2 py-2.5 text-sm font-medium transition-[background-color,border-color,color] duration-150 touch-manipulation",
+                      isSelected
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-foreground border-border/60 hover:border-primary/50 hover:bg-primary/5"
+                    )}
+                  >
+                    {chipLabel(offset)}
+                  </button>
+                )
+              })}
+            </div>
+          </FormField>
+        </QuestionCard>
       </div>
 
       {/* Live summary card */}
       {selectedDays !== null && startOffset !== null && endOffset !== null && price && (
-        <div className="flex items-center justify-between px-3 py-2.5 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06]">
+        <div className="hidden items-center justify-between px-3 py-2.5 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] sm:flex">
           <div>
             <p className="text-xs font-medium text-foreground">
               {selectedDays === 1
@@ -428,12 +420,12 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
       )}
 
       {/* GP note - longer absences */}
-      <p className="text-xs text-muted-foreground">
+      <p className="hidden px-1 text-xs text-muted-foreground sm:block">
         Need more than 3 days off? Please visit your GP for an extended certificate.
       </p>
 
       {/* Continue */}
-      <Button onClick={handleNext} className="w-full h-12" disabled={!canContinue}>
+      <Button data-intake-primary-action="true" data-intake-primary-label="Continue" onClick={handleNext} className="w-full h-12 max-sm:hidden" disabled={!canContinue}>
         {canContinue ? (
           <>
             Continue

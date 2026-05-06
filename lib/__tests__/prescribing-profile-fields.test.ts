@@ -72,7 +72,7 @@ describe("buildCheckoutIdentityProfileUpdates", () => {
     })
   })
 
-  it("does not overwrite existing profile identity fields", () => {
+  it("syncs changed identity fields collected in the request flow", () => {
     expect(buildCheckoutIdentityProfileUpdates({
       full_name: "Pat Existing",
       date_of_birth: "1980-01-01",
@@ -81,6 +81,10 @@ describe("buildCheckoutIdentityProfileUpdates", () => {
       fullName: "Different Name",
       dateOfBirth: "1985-04-01",
       phone: "0412 345 678",
-    })).toEqual({})
+    })).toEqual({
+      full_name: "Different Name",
+      date_of_birth: "1985-04-01",
+      phone: "0412 345 678",
+    })
   })
 })

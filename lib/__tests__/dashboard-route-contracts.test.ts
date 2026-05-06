@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  buildAdminIntakeHref,
   buildDoctorDashboardHref,
   buildDoctorQueueRedirectHref,
   DOCTOR_DASHBOARD_HREF,
@@ -19,6 +20,11 @@ describe("dashboard route contracts", () => {
     expect(DOCTOR_QUEUE_REVIEW_HREF).toBe("/doctor/dashboard?status=review")
     expect(buildDoctorDashboardHref({ status: "review" })).toBe("/doctor/dashboard?status=review")
     expect(buildDoctorDashboardHref({ status: "all" })).toBe("/doctor/dashboard")
+  })
+
+  it("builds admin intake detail links from the shared route helper", () => {
+    expect(buildAdminIntakeHref("intake-123")).toBe("/admin/intakes/intake-123")
+    expect(buildAdminIntakeHref("intake 123")).toBe("/admin/intakes/intake%20123")
   })
 
   it("preserves queue redirect intent and allowed pagination params", () => {

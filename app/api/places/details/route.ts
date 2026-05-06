@@ -5,6 +5,7 @@ import {
   mapAddressFinderMetadataToParsedAddress,
   parseAddressFinderPlaceId,
 } from "@/lib/google-places/addressfinder"
+import { getPlaceIdProvider, trackAddressProviderLookup } from "@/lib/google-places/provider-telemetry"
 import { normalizePlaceId } from "@/lib/google-places/request"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 
@@ -19,13 +20,33 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url)
   const placeId = normalizePlaceId(searchParams.get("place_id"))
+  const startedAt = Date.now()
+  const placeIdProvider = getPlaceIdProvider(placeId)
 
   if (!placeId) {
+    trackAddressProviderLookup({
+      operation: "details",
+      provider: "none",
+      outcome: "invalid_request",
+      durationMs: Date.now() - startedAt,
+      detailsFailed: true,
+      placeIdProvider,
+      reason: "missing_place_id",
+    })
     return NextResponse.json({ status: "INVALID_REQUEST" })
   }
 
   if (isAddressFinderPlaceId(placeId)) {
     if (!ADDRESSFINDER_KEY) {
+      trackAddressProviderLookup({
+        operation: "details",
+        provider: "addressfinder",
+        outcome: "not_configured",
+        durationMs: Date.now() - startedAt,
+        detailsFailed: true,
+        placeIdProvider,
+        reason: "addressfinder_key_missing",
+      })
       return NextResponse.json({ status: "ERROR", error: "Address provider not configured" })
     }
 
@@ -49,16 +70,53 @@ export async function GET(request: NextRequest) {
       const address = mapAddressFinderMetadataToParsedAddress(data)
 
       if (!response.ok || !address) {
+        trackAddressProviderLookup({
+          operation: "details",
+          provider: "addressfinder",
+          outcome: "details_failure",
+          statusCode: response.status,
+          durationMs: Date.now() - startedAt,
+          detailsFailed: true,
+          placeIdProvider,
+          reason: response.ok ? "addressfinder_metadata_empty" : "addressfinder_response_not_ok",
+        })
         return NextResponse.json({ status: "ZERO_RESULTS" })
       }
 
+      trackAddressProviderLookup({
+        operation: "details",
+        provider: "addressfinder",
+        outcome: "success",
+        statusCode: response.status,
+        durationMs: Date.now() - startedAt,
+        detailsFailed: false,
+        placeIdProvider,
+      })
       return NextResponse.json({ status: "OK", address, provider: "addressfinder" })
     } catch {
+      trackAddressProviderLookup({
+        operation: "details",
+        provider: "addressfinder",
+        outcome: "provider_error",
+        durationMs: Date.now() - startedAt,
+        detailsFailed: true,
+        placeIdProvider,
+        reason: "addressfinder_fetch_failed",
+      })
       return NextResponse.json({ status: "ERROR" })
     }
   }
 
   if (!GOOGLE_API_KEY) {
+    trackAddressProviderLookup({
+      operation: "details",
+      provider: "google",
+      outcome: "not_configured",
+      durationMs: Date.now() - startedAt,
+      detailsFailed: true,
+      placeIdProvider,
+      reason: "google_places_key_missing",
+    })
     return NextResponse.json({ status: "ERROR", error: "API key not configured" })
   }
 
@@ -79,8 +137,28 @@ export async function GET(request: NextRequest) {
       `https://maps.googleapis.com/maps/api/place/details/json?${params}`
     )
     const data = await response.json()
+    const isSuccess = data.status === "OK" && Boolean(data.result)
+    trackAddressProviderLookup({
+      operation: "details",
+      provider: "google",
+      outcome: isSuccess ? "success" : "details_failure",
+      statusCode: response.status,
+      durationMs: Date.now() - startedAt,
+      detailsFailed: !isSuccess,
+      placeIdProvider,
+      reason: typeof data.status === "string" ? data.status : undefined,
+    })
     return NextResponse.json(data)
   } catch {
+    trackAddressProviderLookup({
+      operation: "details",
+      provider: "google",
+      outcome: "provider_error",
+      durationMs: Date.now() - startedAt,
+      detailsFailed: true,
+      placeIdProvider,
+      reason: "google_fetch_failed",
+    })
     return NextResponse.json({ status: "ERROR" })
   }
 }

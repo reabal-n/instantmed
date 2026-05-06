@@ -38,6 +38,13 @@ describe("mapServiceParam", () => {
       expect(mapServiceParam("cert")).toBeNull()
       expect(mapServiceParam("script")).toBeNull()
     })
+
+    it("does not expose referral or pathology as standalone request services", () => {
+      expect(mapServiceParam("referral")).toBeNull()
+      expect(mapServiceParam("referrals")).toBeNull()
+      expect(mapServiceParam("pathology")).toBeNull()
+      expect(mapServiceParam("blood-test")).toBeNull()
+    })
   })
 
   describe("medical certificate mappings", () => {
@@ -104,6 +111,9 @@ describe("mapServiceParam", () => {
       expect(SUPPORTED_SERVICE_SLUGS).toContain("repeat-rx")
       expect(SUPPORTED_SERVICE_SLUGS).toContain("consult")
       expect(SUPPORTED_SERVICE_SLUGS).toContain("consultation")
+      expect(SUPPORTED_SERVICE_SLUGS).not.toContain("referral")
+      expect(SUPPORTED_SERVICE_SLUGS).not.toContain("referrals")
+      expect(SUPPORTED_SERVICE_SLUGS).not.toContain("pathology")
     })
 
     it("all supported slugs map to valid service types", () => {
@@ -125,5 +135,16 @@ describe("service catalog hub routing", () => {
 
     expect(consultServices.map((service) => service.id)).toContain("general-consult")
     expect(servicesMissingSubtype).toEqual([])
+  })
+
+  it("does not publish referral or pathology as active checkout cards", () => {
+    const activeServices = getActiveServices()
+    const activeIds = activeServices.map((service) => service.id)
+    const activeSlugs = activeServices.map((service) => service.slug)
+
+    expect(activeIds).not.toContain("referral")
+    expect(activeIds).not.toContain("pathology")
+    expect(activeSlugs).not.toContain("referrals")
+    expect(activeSlugs).not.toContain("pathology")
   })
 })

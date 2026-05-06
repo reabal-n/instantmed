@@ -11,6 +11,7 @@ import { motion } from "framer-motion"
 import { ArrowRight,Heart, Shield, Sparkles, Stethoscope, Target } from "lucide-react"
 
 import { usePostHog } from "@/components/providers/posthog-provider"
+import { IntakeStepIntro, QuestionCard, SegmentedChoiceGroup } from "@/components/request/shared/intake-step-primitives"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { useReducedMotion } from "@/components/ui/motion"
@@ -68,9 +69,9 @@ export default function EdGoalsStep({ onNext }: EdGoalsStepProps) {
   })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Age gate */}
-      <div className="flex items-start gap-3 p-4 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06]">
+      <QuestionCard compact className="flex flex-row items-start gap-3">
         <Switch
           id="edAgeConfirmed"
           checked={edAgeConfirmed === true}
@@ -79,20 +80,16 @@ export default function EdGoalsStep({ onNext }: EdGoalsStepProps) {
         <Label htmlFor="edAgeConfirmed" className="text-sm leading-relaxed cursor-pointer">
           I confirm I am 18 years or older
         </Label>
-      </div>
+      </QuestionCard>
 
       {/* Header */}
-      <div className="space-y-1">
-        <h2 className="text-lg font-semibold tracking-tight">
-          Let&apos;s start with what matters to you
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Your answers help our doctor tailor the right approach. Everything is confidential.
-        </p>
-      </div>
+      <IntakeStepIntro
+        title="What matters most right now?"
+        description="Discreet answers help the doctor choose a safe approach."
+      />
 
       {/* Goal selection - chip grid */}
-      <div className="space-y-3">
+      <QuestionCard compact>
         <Label className="text-sm font-medium">
           What&apos;s your main goal?
           <span className="text-destructive ml-0.5">*</span>
@@ -140,48 +137,30 @@ export default function EdGoalsStep({ onNext }: EdGoalsStepProps) {
             )
           })}
         </motion.div>
-      </div>
+      </QuestionCard>
 
       {/* Duration - segmented selector */}
-      <div className="space-y-3">
+      <QuestionCard compact>
         <Label className="text-sm font-medium">
           How long has this been a concern?
           <span className="text-destructive ml-0.5">*</span>
         </Label>
-        <div
-          className="flex gap-1 p-1 rounded-full bg-muted/50"
-          role="radiogroup"
-          aria-label="How long this has been a concern"
-        >
-          {DURATION_OPTIONS.map((option) => {
-            const isSelected = edDuration === option.value
-            return (
-              <button
-                key={option.value}
-                type="button"
-                role="radio"
-                aria-checked={isSelected}
-                aria-label={option.label}
-                onClick={() => setAnswer("edDuration", option.value)}
-                className={cn(
-                  "flex-1 px-2 py-2 text-xs font-medium rounded-full text-center transition-[background-color,color] cursor-pointer",
-                  isSelected
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {option.label}
-              </button>
-            )
-          })}
-        </div>
-      </div>
+        <SegmentedChoiceGroup
+          options={DURATION_OPTIONS}
+          value={edDuration}
+          onChange={(value) => setAnswer("edDuration", value)}
+          ariaLabel="How long this has been a concern"
+          columns="two"
+        />
+      </QuestionCard>
 
       {/* Continue button */}
       <Button
+        data-intake-primary-action="true"
+        data-intake-primary-label="Continue"
         onClick={handleNext}
         disabled={!isComplete}
-        className="w-full h-12 text-base font-medium"
+        className="w-full h-12 text-base font-medium max-sm:hidden"
       >
         {isComplete ? (
           <>

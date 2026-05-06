@@ -171,9 +171,11 @@ export default function WeightLossCallStep({ onNext }: WeightLossCallStepProps) 
 
       {/* Continue button */}
       <Button
+        data-intake-primary-action="true"
+        data-intake-primary-label="Continue"
         onClick={handleNext}
         disabled={!isComplete}
-        className="w-full h-12 text-base font-medium"
+        className="w-full h-12 text-base font-medium max-sm:hidden"
       >
         Continue
       </Button>

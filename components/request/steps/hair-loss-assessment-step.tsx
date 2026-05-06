@@ -5,6 +5,7 @@ import { AlertCircle, ArrowRight } from "lucide-react"
 import { useEffect,useRef, useState } from "react"
 
 import { usePostHog } from "@/components/providers/posthog-provider"
+import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
 import { MedicalHistoryToggles } from "@/components/request/shared/medical-history-toggles"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -182,30 +183,26 @@ export default function HairLossAssessmentStep({
 
   return (
     <motion.div
-      className="space-y-6"
+      className="space-y-4"
       variants={containerVariants}
       initial="initial"
       animate="animate"
     >
-      {/* Header */}
-      <motion.div variants={itemVariants} className="space-y-1">
-        <h2 className="text-lg font-semibold tracking-tight">
-          Tell us about your hair loss
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Select the pattern that best matches what you see. This helps the
-          doctor understand your situation.
-        </p>
+      <motion.div variants={itemVariants}>
+        <IntakeStepIntro
+          title="Which pattern looks closest?"
+          description="Choose the closest match. It does not need to be perfect."
+        />
       </motion.div>
 
       {/* Norwood pattern selector */}
-      <motion.div variants={itemVariants} className="space-y-3">
+      <QuestionCard compact>
         <Label className="text-sm font-medium">
           Which pattern best describes your hair loss?
           <span className="text-destructive ml-0.5">*</span>
         </Label>
         <div
-          className="grid grid-cols-2 sm:grid-cols-3 gap-3"
+          className="grid grid-cols-2 gap-2 sm:grid-cols-3"
           role="radiogroup"
           aria-label="Hair loss pattern"
         >
@@ -223,7 +220,7 @@ export default function HairLossAssessmentStep({
                 aria-checked={isSelected}
                 aria-label={`${option.label} - ${option.badge}`}
                 className={cn(
-                  "flex flex-col items-center gap-2 p-3 rounded-xl border text-center cursor-pointer transition-[background-color,border-color]",
+                  "flex flex-col items-center gap-1.5 p-2.5 rounded-xl border text-center cursor-pointer transition-[background-color,border-color]",
                   "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
                   isSelected
                     ? "border-primary bg-primary/5 ring-1 ring-primary/30"
@@ -232,7 +229,7 @@ export default function HairLossAssessmentStep({
               >
                 <Icon
                   className={cn(
-                    "w-12 h-12 transition-colors",
+                    "w-10 h-10 transition-colors",
                     isSelected
                       ? "text-primary"
                       : "text-muted-foreground"
@@ -263,7 +260,7 @@ export default function HairLossAssessmentStep({
             {errors.hairPattern}
           </p>
         )}
-      </motion.div>
+      </QuestionCard>
 
       {/* Family history -- visible after pattern selected */}
       {showFamilyHistory && (
@@ -274,6 +271,7 @@ export default function HairLossAssessmentStep({
           className="space-y-3"
           ref={familyRef}
         >
+          <QuestionCard compact>
           <Label className="text-sm font-medium">
             Do you have a family history of hair loss?
             <span className="text-destructive ml-0.5">*</span>
@@ -309,6 +307,7 @@ export default function HairLossAssessmentStep({
               {errors.hairFamilyHistory}
             </p>
           )}
+          </QuestionCard>
         </motion.div>
       )}
 
@@ -321,6 +320,7 @@ export default function HairLossAssessmentStep({
           className="space-y-3"
           ref={treatmentsRef}
         >
+          <QuestionCard compact>
           <Label className="text-sm font-medium">
             Which treatments have you tried before?
           </Label>
@@ -332,15 +332,18 @@ export default function HairLossAssessmentStep({
             values={answers}
             onChange={(key, checked) => setAnswer(key, checked)}
           />
+          </QuestionCard>
         </motion.div>
       )}
 
       {/* Continue button */}
       <motion.div variants={itemVariants}>
         <Button
+          data-intake-primary-action="true"
+          data-intake-primary-label="Continue"
           onClick={handleNext}
           disabled={!isComplete}
-          className="w-full h-12 text-base font-medium"
+          className="w-full h-12 text-base font-medium max-sm:hidden"
         >
           {isComplete ? (
             <>

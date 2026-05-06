@@ -14,7 +14,7 @@ import { ArrowRight } from "lucide-react"
 import { useCallback,useState } from "react"
 
 import { usePostHog } from "@/components/providers/posthog-provider"
-import { EnhancedSelectionButton } from "@/components/shared"
+import { BinaryChoice, IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
@@ -65,24 +65,13 @@ function YesNoQuestion({
         </p>
         <p className="text-xs text-muted-foreground mt-0.5">{helpText}</p>
       </div>
-      <div className="flex gap-2" role="radiogroup" aria-labelledby={`${questionId}-label`}>
-        <EnhancedSelectionButton
-          variant="chip"
-          selected={value === false}
-          onClick={() => onSelect(false)}
-          className="flex-1 touch-manipulation"
-        >
-          {noLabel}
-        </EnhancedSelectionButton>
-        <EnhancedSelectionButton
-          variant="chip"
-          selected={value === true}
-          onClick={() => onSelect(true)}
-          className="flex-1 touch-manipulation"
-        >
-          {yesLabel}
-        </EnhancedSelectionButton>
-      </div>
+      <BinaryChoice
+        value={value}
+        onChange={onSelect}
+        ariaLabel={label}
+        noLabel={noLabel}
+        yesLabel={yesLabel}
+      />
       {value === true && onDetailChange && (
         <Textarea
           value={detail || ""}
@@ -176,6 +165,10 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
     ))
   const hasNoErrors = Object.keys(errors).length === 0
   const canContinue = isComplete && hasNoErrors
+  const clinicalHistoryComplete =
+    hasAllergies !== undefined && (!hasAllergies || allergies.trim()) &&
+    hasConditions !== undefined && (!hasConditions || conditions.trim()) &&
+    hasOtherMedications !== undefined && (!hasOtherMedications || otherMedications.trim())
 
   // Keyboard navigation
   useKeyboardNavigation({
@@ -185,8 +178,15 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
 
   return (
     <div className="space-y-4">
+      <IntakeStepIntro
+        eyebrow={requiresMedicationSafety ? (clinicalHistoryComplete ? "Health 2 of 2" : "Health 1 of 2") : undefined}
+        title={clinicalHistoryComplete && requiresMedicationSafety ? "Medication safety" : "Anything the doctor should know?"}
+        description={clinicalHistoryComplete && requiresMedicationSafety ? "Two final safety checks for the doctor." : "Clear answers here make the review safer and faster."}
+      />
+
       {/* Clinical questions - required */}
-      <div className="rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] p-4 space-y-5">
+      {(!requiresMedicationSafety || !clinicalHistoryComplete) && (
+      <QuestionCard className="space-y-5">
         <YesNoQuestion
           label="Any allergies?"
           helpText="Drug, food, or environmental allergies"
@@ -238,41 +238,45 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
           detailPlaceholder="e.g., Metformin 500mg twice daily, Vitamin D 1000IU"
           error={touched.otherMedications ? errors.otherMedications : undefined}
         />
-      </div>
+      </QuestionCard>
+      )}
 
-      {/* Safety screening - same format as above */}
-      <div className="rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] p-4 space-y-5">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          Safety screening
-        </p>
+      {requiresMedicationSafety && clinicalHistoryComplete && (
+        <QuestionCard className="space-y-5">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            Safety screening
+          </p>
 
-        <YesNoQuestion
-          label="Currently pregnant or breastfeeding?"
-          helpText="Important for medication safety"
-          noLabel="No"
-          yesLabel="Yes"
-          value={isPregnantOrBreastfeeding}
-          onSelect={(val) => setAnswer('isPregnantOrBreastfeeding', val)}
-          error={touched.isPregnantOrBreastfeeding ? errors.isPregnantOrBreastfeeding : undefined}
-        />
+          <YesNoQuestion
+            label="Currently pregnant or breastfeeding?"
+            helpText="Important for medication safety"
+            noLabel="No"
+            yesLabel="Yes"
+            value={isPregnantOrBreastfeeding}
+            onSelect={(val) => setAnswer('isPregnantOrBreastfeeding', val)}
+            error={touched.isPregnantOrBreastfeeding ? errors.isPregnantOrBreastfeeding : undefined}
+          />
 
-        <div className="border-t border-border/40" />
+          <div className="border-t border-border/40" />
 
-        <YesNoQuestion
-          label="Previous adverse reactions to medications?"
-          helpText="Allergic reactions, side effects, intolerances"
-          noLabel="No reactions"
-          yesLabel="Yes"
-          value={hasAdverseMedicationReactions}
-          onSelect={(val) => setAnswer('hasAdverseMedicationReactions', val)}
-          error={touched.hasAdverseMedicationReactions ? errors.hasAdverseMedicationReactions : undefined}
-        />
-      </div>
+          <YesNoQuestion
+            label="Previous adverse reactions to medications?"
+            helpText="Allergic reactions, side effects, intolerances"
+            noLabel="No reactions"
+            yesLabel="Yes"
+            value={hasAdverseMedicationReactions}
+            onSelect={(val) => setAnswer('hasAdverseMedicationReactions', val)}
+            error={touched.hasAdverseMedicationReactions ? errors.hasAdverseMedicationReactions : undefined}
+          />
+        </QuestionCard>
+      )}
 
       {/* Continue button */}
       <Button
+        data-intake-primary-action="true"
+        data-intake-primary-label="Continue"
         onClick={handleNext}
-        className="w-full h-12"
+        className="w-full h-12 max-sm:hidden"
         disabled={!canContinue}
       >
         {canContinue ? (

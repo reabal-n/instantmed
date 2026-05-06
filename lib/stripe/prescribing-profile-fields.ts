@@ -128,9 +128,9 @@ export function buildCheckoutIdentityProfileUpdates(
   const dateOfBirth = identity.dateOfBirth?.trim()
   const phone = identity.phone?.trim()
 
-  if (fullName && !profile.full_name?.trim()) updates.full_name = fullName
-  if (dateOfBirth && !profile.date_of_birth) updates.date_of_birth = dateOfBirth
-  if (phone && !profile.phone?.trim()) updates.phone = phone
+  if (fullName && fullName !== profile.full_name?.trim()) updates.full_name = fullName
+  if (dateOfBirth && dateOfBirth !== profile.date_of_birth) updates.date_of_birth = dateOfBirth
+  if (phone && phone !== profile.phone?.trim()) updates.phone = phone
 
   return updates
 }

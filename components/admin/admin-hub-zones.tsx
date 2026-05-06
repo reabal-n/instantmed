@@ -8,7 +8,13 @@ import Link from "next/link"
 import type { ComponentType } from "react"
 
 import { DashboardCard } from "@/components/dashboard"
-import { ADMIN_INTAKE_LEDGER_HREF } from "@/lib/dashboard/routes"
+import {
+  ADMIN_EMAIL_HUB_HREF,
+  ADMIN_INTAKE_LEDGER_HREF,
+  ADMIN_OPS_HREF,
+  ADMIN_PARCHMENT_OPS_HREF,
+  ADMIN_WEBHOOK_DLQ_HREF,
+} from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 
 interface ZoneStat {
@@ -84,10 +90,10 @@ export function AdminHubZones({
       subtitle: "Vendor, webhook, and communication exceptions",
       icon: Activity,
       links: [
-        { label: "Open operations", href: "/admin/ops" },
-        { label: "Parchment ops", href: "/admin/ops/parchment" },
-        { label: "Webhook DLQ", href: "/admin/webhook-dlq" },
-        { label: "Email queue", href: "/admin/emails/hub" },
+        { label: "Open operations", href: ADMIN_OPS_HREF },
+        { label: "Parchment ops", href: ADMIN_PARCHMENT_OPS_HREF },
+        { label: "Webhook DLQ", href: ADMIN_WEBHOOK_DLQ_HREF },
+        { label: "Email queue", href: ADMIN_EMAIL_HUB_HREF },
       ],
     },
   ]

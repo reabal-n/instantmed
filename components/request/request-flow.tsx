@@ -18,9 +18,9 @@
  */
 
 import { AnimatePresence,motion } from "framer-motion"
-import { ArrowLeft, X } from "lucide-react"
+import { ArrowLeft, ArrowRight, CheckCircle2, X } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useEffect, useMemo, useRef,useState } from "react"
+import { useCallback, useEffect, useMemo, useRef,useState } from "react"
 
 import { AutoSaveIndicator } from "@/components/request/auto-save-indicator"
 import { DraftRestorationBanner } from "@/components/request/draft-restoration-banner"
@@ -43,6 +43,7 @@ import {
   type UnifiedStepId,
 } from "@/lib/request/step-registry"
 import { type SafetyEvaluationResult } from "@/lib/safety"
+import { cn } from "@/lib/utils"
 
 import { ConnectionBanner } from "./connection-banner"
 import { FlowErrorScreen } from "./flow-error-screen"
@@ -59,6 +60,25 @@ interface HealthProfilePrefill {
   allergies?: string[]
   conditions?: string[]
   current_medications?: string[]
+}
+
+interface MobilePrimaryActionState {
+  available: boolean
+  disabled: boolean
+  label: string
+}
+
+const PRIMARY_ACTION_SELECTOR = "[data-intake-primary-action='true']"
+
+function getMobilePrimaryAction() {
+  if (typeof document === "undefined") return null
+  return document.querySelector<HTMLButtonElement>(PRIMARY_ACTION_SELECTOR)
+}
+
+function getPrimaryActionLabel(action: HTMLButtonElement | null) {
+  if (!action) return "Continue"
+  const label = action.dataset.intakePrimaryLabel || action.textContent || "Continue"
+  return label.replace(/\s+/g, " ").trim()
 }
 
 interface RequestFlowProps {
@@ -135,6 +155,11 @@ export function RequestFlow({
   const [showSubtypeMismatch, setShowSubtypeMismatch] = useState(false)
   const [draftSubtype, setDraftSubtype] = useState<string | null>(null)
   const [safetyBlock, setSafetyBlock] = useState<SafetyEvaluationResult | null>(null)
+  const [mobilePrimaryAction, setMobilePrimaryAction] = useState<MobilePrimaryActionState>({
+    available: false,
+    disabled: true,
+    label: "Continue",
+  })
   const contentRef = useRef<HTMLDivElement>(null)
   
   const {
@@ -438,6 +463,46 @@ export function RequestFlow({
     enabled: !showExitConfirm,
   })
 
+  useEffect(() => {
+    if (currentStepId === 'checkout') {
+      setMobilePrimaryAction({
+        available: false,
+        disabled: true,
+        label: "Continue",
+      })
+      return
+    }
+
+    const syncPrimaryAction = () => {
+      const action = getMobilePrimaryAction()
+      setMobilePrimaryAction({
+        available: Boolean(action),
+        disabled: action ? action.disabled : true,
+        label: getPrimaryActionLabel(action),
+      })
+    }
+
+    syncPrimaryAction()
+
+    const observer = new MutationObserver(syncPrimaryAction)
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["disabled", "data-intake-primary-label"],
+      childList: true,
+      characterData: true,
+      subtree: true,
+    })
+
+    return () => observer.disconnect()
+  }, [currentStepId])
+
+  const handleMobilePrimaryAction = useCallback(() => {
+    getMobilePrimaryAction()?.click()
+  }, [])
+
+  const mobileActionReady = mobilePrimaryAction.available && !mobilePrimaryAction.disabled
+  const showMobileSavedCue = mobileActionReady && Boolean(lastSavedAt) && !hasUnsavedChanges
+
   // Service name for display
   const serviceName = useMemo(() => {
     const names: Record<UnifiedServiceType, string> = {
@@ -518,7 +583,7 @@ export function RequestFlow({
 
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 border-b">
-        <div className="max-w-lg mx-auto px-4 h-14 sm:h-14 flex items-center justify-between">
+        <div className="max-w-lg mx-auto px-4 h-12 sm:h-14 flex items-center justify-between">
           <Button 
             variant="ghost" 
             size="icon" 
@@ -551,9 +616,9 @@ export function RequestFlow({
         </div>
         
         {/* Progress bar + indicators row */}
-        <div className="max-w-lg mx-auto px-4 pb-3">
+        <div className="max-w-lg mx-auto px-4 pb-2 sm:pb-3">
           {/* Time remaining + Auto-save indicator */}
-          <div className="flex items-center justify-between mb-2">
+          <div className="hidden sm:flex items-center justify-between mb-2">
             <TimeRemaining 
               steps={activeSteps.map(s => ({ id: s.id }))} 
               currentIndex={currentStepIndex} 
@@ -575,8 +640,8 @@ export function RequestFlow({
       {/* Content with swipe gestures */}
       <motion.main 
         ref={contentRef}
-        className={`max-w-lg mx-auto px-4 py-6 sm:pb-6 touch-pan-y ${
-          currentStepId === 'checkout' || currentStepId === 'review' ? 'pb-6' : 'pb-[calc(5rem+env(safe-area-inset-bottom))]'
+        className={`max-w-lg mx-auto px-4 py-4 sm:py-6 sm:pb-6 touch-pan-y ${
+          currentStepId === 'checkout' ? 'pb-6' : 'pb-[calc(4.25rem+env(safe-area-inset-bottom))]'
         }`}
         drag="x"
         dragConstraints={dragConstraints}
@@ -630,26 +695,55 @@ export function RequestFlow({
         </AnimatePresence>
       </motion.main>
 
-      {/* Sticky bottom CTA bar for mobile - hidden on checkout/review which have their own CTAs */}
-      {currentStepId !== 'checkout' && currentStepId !== 'review' && (
-        <div className="fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t p-4 sm:hidden safe-area-bottom">
-          <div className="container max-w-lg mx-auto flex items-center gap-3">
+      {/* Sticky bottom CTA bar for mobile */}
+      {currentStepId !== 'checkout' && (
+        <div
+          data-intake-mobile-action-bar="true"
+          className="fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t px-4 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:hidden"
+        >
+          <div className={`max-w-lg mx-auto grid items-center gap-3 ${
+            currentStepIndex > 0 ? "grid-cols-[3rem_minmax(0,1fr)]" : "grid-cols-1"
+          }`}>
             {currentStepIndex > 0 && (
               <Button
                 variant="outline"
-                size="lg"
+                size="icon"
                 onClick={handleBack}
-                className="h-12 px-5"
+                className="h-12 w-12"
                 aria-label="Go back"
               >
                 <ArrowLeft className="w-4 h-4" />
               </Button>
             )}
-            <div className="flex-1 text-center">
-              <p className="text-xs text-muted-foreground">
-                Step {currentStepIndex + 1} of {activeSteps.length}
-              </p>
-            </div>
+            <Button
+              size="lg"
+              onClick={handleMobilePrimaryAction}
+              disabled={!mobileActionReady}
+              data-intake-mobile-action-ready={mobileActionReady ? "true" : "false"}
+              className={cn(
+                "h-12 min-w-0 gap-2 text-base font-medium transition-[transform,box-shadow,background-color,opacity] duration-200 ease-out active:scale-[0.98]",
+                mobileActionReady && "shadow-md shadow-primary/20",
+                !mobileActionReady && "shadow-none opacity-70",
+              )}
+            >
+              <AnimatePresence initial={false}>
+                {showMobileSavedCue && (
+                  <motion.span
+                    key="saved"
+                    aria-hidden="true"
+                    initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.92 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={prefersReducedMotion ? {} : { opacity: 0, scale: 0.92 }}
+                    transition={{ duration: prefersReducedMotion ? 0 : 0.16, ease: [0.16, 1, 0.3, 1] }}
+                    className="flex shrink-0"
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                  </motion.span>
+                )}
+              </AnimatePresence>
+              <span className="truncate">{mobilePrimaryAction.label}</span>
+              <ArrowRight className="h-4 w-4 shrink-0" />
+            </Button>
           </div>
         </div>
       )}

@@ -151,6 +151,7 @@ export default function RootLayout({
     <SupabaseAuthProvider>
       <html
         lang="en-AU"
+        data-scroll-behavior="smooth"
         className={`${sourceSans.variable} ${plusJakarta.variable} ${jetbrainsMono.variable}`}
         suppressHydrationWarning
         style={{ backgroundColor: '#f8f7f4' }}

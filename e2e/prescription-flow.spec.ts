@@ -176,10 +176,7 @@ async function completeDetailsStep(page: Page) {
   await page.locator('input[placeholder="Smith"]').fill("Patient")
   await page.locator('input[placeholder="jane@example.com"]').fill("test@instantmed.com.au")
 
-  // DOB - 25 years ago
-  const dob = new Date()
-  dob.setFullYear(dob.getFullYear() - 25)
-  await page.locator('input[type="date"]').first().fill(dob.toISOString().split("T")[0])
+  await page.locator('input[placeholder="DD/MM/YYYY"]').fill("01/01/1990")
 
   // Phone - required for prescriptions
   await page.locator('input[placeholder="0412 345 678"]').fill("0412345678")

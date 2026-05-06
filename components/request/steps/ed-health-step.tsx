@@ -3,22 +3,16 @@
 /**
  * ED Health Step - Step 3 of 4 in the ED intake flow
  *
- * Consolidated safety + medical history in 6 collapsible accordion sections.
- * Merges the old ed-safety-step (sequential questions) and medical-history-step
- * into one scrollable page. This is the biggest UX win - competitors spread
- * this across 8-12 screens, we do it in one page.
+ * Consolidated safety + medical history with progressive mobile panels.
+ * Keeps clinical screening complete without turning the step into a long form.
  *
  * Sections:
  * 1. Heart & blood pressure (nitrate hard block, cardiac soft blocks + GP clearance)
- * 2. Blood pressure & diabetes
- * 3. Current medications
- * 4. Allergies
- * 5. Other conditions
- * 6. Previous ED treatment
+ * 2. Current medications, allergies, and conditions
+ * 3. Previous ED treatment
  */
 
 import {
-  Activity,
   AlertTriangle,
   ArrowRight,
   CheckCircle2,
@@ -27,11 +21,10 @@ import {
   XCircle,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useCallback, useEffect, useMemo, useRef,useState } from "react"
+import { useCallback, useMemo, useRef,useState } from "react"
 
 import { usePostHog } from "@/components/providers/posthog-provider"
-import { SwitchField } from "@/components/request/shared/medical-history-toggles"
-import { EnhancedSelectionButton } from "@/components/shared"
+import { BinaryChoice, IntakeStepIntro, QuestionCard, StringBinaryChoice } from "@/components/request/shared/intake-step-primitives"
 import {
   Accordion,
   AccordionContent,
@@ -86,7 +79,6 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
 
   // Controlled accordion state for auto-expand
   const [topAccordionValue, setTopAccordionValue] = useState<string[]>(["heart"])
-  const [bottomAccordionValue, setBottomAccordionValue] = useState<string[]>([])
 
   // Hard block state
   const [isBlocked, setIsBlocked] = useState(false)
@@ -103,21 +95,16 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
   const edSevereHeart = answers.edSevereHeart as boolean | undefined
   const edGpCleared = answers.edGpCleared as boolean | undefined
 
-  // Section 2: Blood pressure & diabetes
-  const edHypertension = answers.edHypertension as boolean | undefined
-  const edDiabetes = answers.edDiabetes as boolean | undefined
-  const edBpMedication = answers.edBpMedication as boolean | undefined
-
   // Section 3: Current medications
-  const takesMedications = answers.takes_medications as string | undefined
+  const takesMedications = answers.takes_medications as "yes" | "no" | undefined
   const currentMedications = (answers.current_medications as string) || ""
 
   // Section 4: Allergies
-  const hasAllergies = answers.has_allergies as string | undefined
+  const hasAllergies = answers.has_allergies as "yes" | "no" | undefined
   const knownAllergies = (answers.known_allergies as string) || ""
 
   // Section 5: Other conditions
-  const hasConditions = answers.has_conditions as string | undefined
+  const hasConditions = answers.has_conditions as "yes" | "no" | undefined
   const existingConditions = (answers.existing_conditions as string) || ""
 
   // Section 6: Previous ED treatment
@@ -163,11 +150,6 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
     return true
   }, [edNitrates, edAlphaBlockers, edRecentHeartEvent, edSevereHeart, edGpCleared])
 
-  const bpComplete = useMemo(
-    () => edHypertension !== undefined || edDiabetes !== undefined || edBpMedication !== undefined,
-    [edHypertension, edDiabetes, edBpMedication],
-  )
-
   const medicationsComplete = useMemo(() => {
     if (takesMedications === undefined) return false
     if (takesMedications === "yes" && !currentMedications.trim()) return false
@@ -195,23 +177,7 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
     return true
   }, [previousEdMeds, edPreviousTreatment, edPreviousEffectiveness])
 
-  // ---------------------------------------------------------------------------
-  // Auto-expand next section when current completes
-  // ---------------------------------------------------------------------------
-
-  // Heart complete -> open BP
-  useEffect(() => {
-    if (heartComplete && !topAccordionValue.includes("bp")) {
-      setTopAccordionValue((prev) => [...prev, "bp"])
-    }
-  }, [heartComplete]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // All inline chips complete -> open previous treatment
-  useEffect(() => {
-    if (medicationsComplete && allergiesComplete && conditionsComplete && !bottomAccordionValue.includes("previous")) {
-      setBottomAccordionValue(["previous"])
-    }
-  }, [medicationsComplete, allergiesComplete, conditionsComplete]) // eslint-disable-line react-hooks/exhaustive-deps
+  const coreHistoryComplete = medicationsComplete && allergiesComplete && conditionsComplete
 
   // ---------------------------------------------------------------------------
   // Can continue?
@@ -225,8 +191,6 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
     // Soft block without GP clearance
     if (gpClearanceRequired) return false
     // All required sections must be complete
-    // NOTE: bpComplete is intentionally excluded - BP/diabetes fields are
-    // informational (optional). bpComplete only drives the section checkmark.
     return heartComplete &&
       medicationsComplete &&
       allergiesComplete &&
@@ -319,32 +283,38 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="space-y-1.5">
-        <h2 className="text-lg font-semibold tracking-tight">A quick health check</h2>
-        <p className="text-sm text-muted-foreground">
-          We need to make sure treatment is safe for you. Most people finish this in under 2 minutes.
-        </p>
-      </div>
+      <IntakeStepIntro
+        eyebrow={!heartComplete ? "Safety 1 of 3" : !coreHistoryComplete ? "Safety 2 of 3" : "Safety 3 of 3"}
+        title={!heartComplete ? "A quick safety check" : !coreHistoryComplete ? "Medical basics" : "Previous treatment"}
+        description={
+          !heartComplete
+            ? "Start with the heart safety questions."
+            : !coreHistoryComplete
+              ? "Answer the basics the doctor needs."
+              : "One last question before preferences."
+        }
+      />
 
       {/* Accordion sections */}
-      <Accordion
-        type="multiple"
-        value={topAccordionValue}
-        className="space-y-3"
-        onValueChange={(openSections: string[]) => {
-          setTopAccordionValue(openSections)
-          const newlyOpened = openSections.filter((s) => !prevOpenSections.current.has(s))
-          if (newlyOpened.length > 0) {
-            posthog?.capture("ed_health_sections_viewed", {
-              opened_sections: newlyOpened,
-              total_open: openSections.length,
-            })
-          }
-          prevOpenSections.current = new Set(openSections)
-        }}
-      >
+      {!heartComplete && (
+        <Accordion
+          type="multiple"
+          value={topAccordionValue}
+          className="space-y-3"
+          onValueChange={(openSections: string[]) => {
+            setTopAccordionValue(openSections)
+            const newlyOpened = openSections.filter((s) => !prevOpenSections.current.has(s))
+            if (newlyOpened.length > 0) {
+              posthog?.capture("ed_health_sections_viewed", {
+                opened_sections: newlyOpened,
+                total_open: openSections.length,
+              })
+            }
+            prevOpenSections.current = new Set(openSections)
+          }}
+        >
         {/* ----------------------------------------------------------------- */}
         {/* Section 1: Heart & blood pressure */}
         {/* ----------------------------------------------------------------- */}
@@ -358,38 +328,46 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
           </AccordionTrigger>
           <AccordionContent className="px-4 space-y-3">
             {/* Nitrate toggle */}
-            <SwitchField
-              id="ed-nitrates"
-              label="Do you take nitrates?"
-              helpText="e.g., GTN spray, Anginine, Imdur, or any medication for chest pain"
-              checked={edNitrates === true}
-              onChange={handleNitrateChange}
-            />
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Do you take nitrates?</p>
+              <p className="text-xs text-muted-foreground">e.g., GTN spray, Anginine, Imdur, or medication for chest pain</p>
+              <BinaryChoice
+                value={edNitrates}
+                onChange={handleNitrateChange}
+                ariaLabel="Do you take nitrates?"
+              />
+            </div>
 
             {/* Alpha-blocker toggle */}
-            <SwitchField
-              id="ed-alpha-blockers"
-              label="Do you take alpha-blockers?"
-              helpText="e.g., tamsulosin (Flomaxtra), prazosin, doxazosin - used for blood pressure or prostate"
-              checked={edAlphaBlockers === true}
-              onChange={(checked) => setAnswer("edAlphaBlockers", checked)}
-            />
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Do you take alpha-blockers?</p>
+              <p className="text-xs text-muted-foreground">e.g., tamsulosin, prazosin, or doxazosin</p>
+              <BinaryChoice
+                value={edAlphaBlockers}
+                onChange={(checked) => setAnswer("edAlphaBlockers", checked)}
+                ariaLabel="Do you take alpha-blockers?"
+              />
+            </div>
 
             {/* Recent cardiac event */}
-            <SwitchField
-              id="ed-recent-heart-event"
-              label="Heart attack, stroke, or unstable angina in the last 6 months?"
-              checked={edRecentHeartEvent === true}
-              onChange={(checked) => setAnswer("edRecentHeartEvent", checked)}
-            />
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Heart attack, stroke, or unstable angina in the last 6 months?</p>
+              <BinaryChoice
+                value={edRecentHeartEvent}
+                onChange={(checked) => setAnswer("edRecentHeartEvent", checked)}
+                ariaLabel="Heart attack, stroke, or unstable angina in the last 6 months?"
+              />
+            </div>
 
             {/* Severe heart condition */}
-            <SwitchField
-              id="ed-severe-heart"
-              label="Severe or uncontrolled heart disease, very low blood pressure, or HOCM?"
-              checked={edSevereHeart === true}
-              onChange={(checked) => setAnswer("edSevereHeart", checked)}
-            />
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Severe heart disease, very low blood pressure, or HOCM?</p>
+              <BinaryChoice
+                value={edSevereHeart}
+                onChange={(checked) => setAnswer("edSevereHeart", checked)}
+                ariaLabel="Severe heart disease, very low blood pressure, or HOCM?"
+              />
+            </div>
 
             {/* Warning when soft block is active */}
             {softBlockActive && (
@@ -417,44 +395,12 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
             )}
           </AccordionContent>
         </AccordionItem>
-
-        {/* ----------------------------------------------------------------- */}
-        {/* Section 2: Blood pressure & diabetes */}
-        {/* ----------------------------------------------------------------- */}
-        <AccordionItem value="bp" className="border rounded-xl overflow-hidden">
-          <AccordionTrigger className="px-4 hover:no-underline">
-            <div className="flex items-center gap-2 flex-1">
-              <Activity className="w-4 h-4 text-blue-500 shrink-0" />
-              <span>Blood pressure &amp; diabetes</span>
-            </div>
-            <SectionComplete complete={bpComplete} />
-          </AccordionTrigger>
-          <AccordionContent className="px-4 space-y-3">
-            <SwitchField
-              id="ed-hypertension"
-              label="Do you have high blood pressure?"
-              checked={edHypertension === true}
-              onChange={(checked) => setAnswer("edHypertension", checked)}
-            />
-            <SwitchField
-              id="ed-diabetes"
-              label="Do you have diabetes?"
-              checked={edDiabetes === true}
-              onChange={(checked) => setAnswer("edDiabetes", checked)}
-            />
-            <SwitchField
-              id="ed-bp-medication"
-              label="Currently taking blood pressure medication?"
-              checked={edBpMedication === true}
-              onChange={(checked) => setAnswer("edBpMedication", checked)}
-            />
-          </AccordionContent>
-        </AccordionItem>
-
-      </Accordion>
+        </Accordion>
+      )}
 
       {/* ── Medical history (inline chip cards) ─────────────────────── */}
-      <div className="rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] p-4 space-y-5">
+      {heartComplete && !coreHistoryComplete && (
+      <QuestionCard className="space-y-5">
         {/* Medications */}
         <div className="space-y-2.5">
           <div>
@@ -463,24 +409,14 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">Prescriptions, over-the-counter, vitamins, supplements</p>
           </div>
-          <div className="flex gap-2">
-            <EnhancedSelectionButton
-              variant="chip"
-              selected={takesMedications === "no"}
-              onClick={() => setAnswer("takes_medications", "no")}
-              className="flex-1 touch-manipulation"
-            >
-              No medications
-            </EnhancedSelectionButton>
-            <EnhancedSelectionButton
-              variant="chip"
-              selected={takesMedications === "yes"}
-              onClick={() => setAnswer("takes_medications", "yes")}
-              className="flex-1 touch-manipulation"
-            >
-              Yes
-            </EnhancedSelectionButton>
-          </div>
+          <StringBinaryChoice
+            value={takesMedications}
+            noValue="no"
+            yesValue="yes"
+            onChange={(value) => setAnswer("takes_medications", value)}
+            ariaLabel="Taking any medications?"
+            noLabel="No medications"
+          />
           {takesMedications === "yes" && (
             <Textarea
               value={currentMedications}
@@ -501,24 +437,14 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">Drug, food, or environmental allergies</p>
           </div>
-          <div className="flex gap-2">
-            <EnhancedSelectionButton
-              variant="chip"
-              selected={hasAllergies === "no"}
-              onClick={() => setAnswer("has_allergies", "no")}
-              className="flex-1 touch-manipulation"
-            >
-              No allergies
-            </EnhancedSelectionButton>
-            <EnhancedSelectionButton
-              variant="chip"
-              selected={hasAllergies === "yes"}
-              onClick={() => setAnswer("has_allergies", "yes")}
-              className="flex-1 touch-manipulation"
-            >
-              Yes
-            </EnhancedSelectionButton>
-          </div>
+          <StringBinaryChoice
+            value={hasAllergies}
+            noValue="no"
+            yesValue="yes"
+            onChange={(value) => setAnswer("has_allergies", value)}
+            ariaLabel="Any allergies?"
+            noLabel="No allergies"
+          />
           {hasAllergies === "yes" && (
             <Textarea
               value={knownAllergies}
@@ -537,63 +463,45 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
             <p className="text-sm font-medium">
               Any other medical conditions? <span className="text-destructive">*</span>
             </p>
-            <p className="text-xs text-muted-foreground mt-0.5">Chronic illness, past surgeries, ongoing issues</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Including blood pressure, diabetes, chronic illness, or surgeries</p>
           </div>
-          <div className="flex gap-2">
-            <EnhancedSelectionButton
-              variant="chip"
-              selected={hasConditions === "no"}
-              onClick={() => setAnswer("has_conditions", "no")}
-              className="flex-1 touch-manipulation"
-            >
-              No conditions
-            </EnhancedSelectionButton>
-            <EnhancedSelectionButton
-              variant="chip"
-              selected={hasConditions === "yes"}
-              onClick={() => setAnswer("has_conditions", "yes")}
-              className="flex-1 touch-manipulation"
-            >
-              Yes
-            </EnhancedSelectionButton>
-          </div>
+          <StringBinaryChoice
+            value={hasConditions}
+            noValue="no"
+            yesValue="yes"
+            onChange={(value) => setAnswer("has_conditions", value)}
+            ariaLabel="Any other medical conditions?"
+            noLabel="No conditions"
+          />
           {hasConditions === "yes" && (
             <Textarea
               value={existingConditions}
               onChange={(e) => setAnswer("existing_conditions", e.target.value)}
-              placeholder="e.g., Asthma, Type 2 Diabetes, High blood pressure"
+              placeholder="e.g., Asthma, diabetes, high blood pressure"
               className="min-h-[60px] text-sm"
             />
           )}
         </div>
-      </div>
+      </QuestionCard>
+      )}
 
       {/* ── Previous treatment (accordion) ──────────────────────────── */}
-      <Accordion
-        type="multiple"
-        value={bottomAccordionValue}
-        onValueChange={setBottomAccordionValue}
-        className="space-y-3"
-      >
-
-        {/* ----------------------------------------------------------------- */}
-        {/* Section 6: Previous ED treatment */}
-        {/* ----------------------------------------------------------------- */}
-        <AccordionItem value="previous" className="border rounded-xl overflow-hidden">
-          <AccordionTrigger className="px-4 hover:no-underline">
-            <div className="flex items-center gap-2 flex-1">
-              <Pill className="w-4 h-4 text-indigo-500 shrink-0" />
-              <span>Previous ED treatment</span>
-            </div>
+      {heartComplete && coreHistoryComplete && (
+        <QuestionCard compact>
+          <div className="flex items-center gap-2">
+            <Pill className="w-4 h-4 text-indigo-500 shrink-0" />
+            <p className="text-sm font-medium">Previous ED treatment</p>
             <SectionComplete complete={previousTreatmentComplete} />
-          </AccordionTrigger>
-          <AccordionContent className="px-4 space-y-3">
-            <SwitchField
-              id="ed-previous-meds"
-              label="Have you tried ED treatment before?"
-              checked={previousEdMeds === true}
-              onChange={(checked) => setAnswer("previousEdMeds", checked)}
-            />
+          </div>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Have you tried ED treatment before?</p>
+              <BinaryChoice
+                value={previousEdMeds}
+                onChange={(checked) => setAnswer("previousEdMeds", checked)}
+                ariaLabel="Have you tried ED treatment before?"
+              />
+            </div>
             {previousEdMeds === true && (
               <>
                 <Textarea
@@ -635,14 +543,16 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
                 </div>
               </>
             )}
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+          </div>
+        </QuestionCard>
+      )}
 
       {/* Continue button */}
       <Button
+        data-intake-primary-action="true"
+        data-intake-primary-label="Continue"
         onClick={handleNext}
-        className="w-full h-12"
+        className="w-full h-12 max-sm:hidden"
         disabled={!canContinue}
       >
         {canContinue ? (

@@ -1,8 +1,66 @@
 import { describe, expect, it } from "vitest"
 
-import { buildPrescribingIdentityProfileUpdates } from "@/lib/doctor/prescribing-identity-update"
+import {
+  buildPrescribingIdentityProfileUpdates,
+  resolvePrescribingIdentityFormValues,
+} from "@/lib/doctor/prescribing-identity-update"
 
 describe("buildPrescribingIdentityProfileUpdates", () => {
+  it("prefills the prescribing edit form from active intake answers before stale profile values", () => {
+    const values = resolvePrescribingIdentityFormValues({
+      date_of_birth: "1980-01-01",
+      sex: "M",
+      phone: "0400000000",
+      medicare_number: "1111111111",
+      medicare_irn: 1,
+      medicare_expiry: "2029-05-01",
+      address_line1: "1 Old Street",
+      suburb: "Oldtown",
+      state: "VIC",
+      postcode: "3000",
+    }, {
+      dateOfBirth: "1991-06-14",
+      sex: "F",
+      phone: "0412 345 678",
+      medicareNumber: "2123456701",
+      medicareIrn: "4",
+      medicareExpiry: "2030-06",
+      addressLine1: "Unit 2, 21 Kent Road",
+      suburb: "Dapto",
+      state: "NSW",
+      postcode: "2530",
+    })
+
+    expect(values).toEqual({
+      dateOfBirth: "1991-06-14",
+      sex: "F",
+      phone: "0412 345 678",
+      medicareNumber: "2123456701",
+      medicareIrn: "4",
+      medicareExpiry: "2030-06",
+      addressLine1: "Unit 2, 21 Kent Road",
+      suburb: "Dapto",
+      state: "NSW",
+      postcode: "2530",
+    })
+  })
+
+  it("does not prefill stale profile address fragments after a partial intake address edit", () => {
+    const values = resolvePrescribingIdentityFormValues({
+      address_line1: "1 Old Street",
+      suburb: "Oldtown",
+      state: "VIC",
+      postcode: "3000",
+    }, {
+      addressLine1: "Unit 2, 21 Kent Road",
+    })
+
+    expect(values.addressLine1).toBe("Unit 2, 21 Kent Road")
+    expect(values.suburb).toBe("")
+    expect(values.state).toBe("")
+    expect(values.postcode).toBe("")
+  })
+
   it("normalizes complete prescribing identity into profile updates", () => {
     const result = buildPrescribingIdentityProfileUpdates({
       dateOfBirth: "1988-01-01",

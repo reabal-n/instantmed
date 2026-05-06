@@ -89,12 +89,13 @@ function answerString(
   if (!intakeAnswers) return null
   for (const key of keys) {
     const value = intakeAnswers[key]
+    if (typeof value === "number" && Number.isFinite(value)) return String(value)
     if (typeof value === "string" && value.trim()) return value.trim()
   }
   return null
 }
 
-function profileOrAnswer(
+function answerOrProfile(
   profileValue: string | number | null | undefined,
   intakeAnswers: Record<string, unknown> | undefined,
   answerKeys: string[],
@@ -102,7 +103,49 @@ function profileOrAnswer(
   const profileString = profileValue === null || profileValue === undefined
     ? null
     : String(profileValue).trim()
-  return profileString || answerString(intakeAnswers, answerKeys)
+  return answerString(intakeAnswers, answerKeys) || profileString || null
+}
+
+const ADDRESS_LINE1_ANSWER_KEYS = ["address_line1", "addressLine1", "address_line_1", "street_address"]
+const ADDRESS_SUBURB_ANSWER_KEYS = ["suburb"]
+const ADDRESS_STATE_ANSWER_KEYS = ["state"]
+const ADDRESS_POSTCODE_ANSWER_KEYS = ["postcode"]
+const ADDRESS_ANSWER_KEY_GROUPS = [
+  ADDRESS_LINE1_ANSWER_KEYS,
+  ADDRESS_SUBURB_ANSWER_KEYS,
+  ADDRESS_STATE_ANSWER_KEYS,
+  ADDRESS_POSTCODE_ANSWER_KEYS,
+]
+
+function hasAddressAnswer(intakeAnswers: Record<string, unknown> | undefined): boolean {
+  return ADDRESS_ANSWER_KEY_GROUPS.some((keys) => answerString(intakeAnswers, keys) !== null)
+}
+
+function resolveParchmentAddressComponents(
+  profile: PatientProfile,
+  intakeAnswers?: Record<string, unknown>,
+): {
+  addressLine1: string | null
+  suburb: string | null
+  state: string | undefined
+  postcode: string | null
+} {
+  const useAnswerAddress = hasAddressAnswer(intakeAnswers)
+
+  return {
+    addressLine1: useAnswerAddress
+      ? answerString(intakeAnswers, ADDRESS_LINE1_ANSWER_KEYS)
+      : answerOrProfile(profile.address_line1, intakeAnswers, ADDRESS_LINE1_ANSWER_KEYS),
+    suburb: useAnswerAddress
+      ? answerString(intakeAnswers, ADDRESS_SUBURB_ANSWER_KEYS)
+      : answerOrProfile(profile.suburb, intakeAnswers, ADDRESS_SUBURB_ANSWER_KEYS),
+    state: mapState((useAnswerAddress
+      ? answerString(intakeAnswers, ADDRESS_STATE_ANSWER_KEYS)
+      : answerOrProfile(profile.state, intakeAnswers, ADDRESS_STATE_ANSWER_KEYS)) ?? null),
+    postcode: useAnswerAddress
+      ? answerString(intakeAnswers, ADDRESS_POSTCODE_ANSWER_KEYS)
+      : answerOrProfile(profile.postcode, intakeAnswers, ADDRESS_POSTCODE_ANSWER_KEYS),
+  }
 }
 
 function mapSex(rawSex: unknown): "M" | "F" | "N" | "I" {
@@ -176,16 +219,8 @@ function buildParchmentAddress(
   profile: PatientProfile,
   intakeAnswers?: Record<string, unknown>,
 ): CreatePatientRequest["australian_street_address"] {
-  const addressLine1 = profileOrAnswer(profile.address_line1, intakeAnswers, [
-    "address_line1",
-    "addressLine1",
-    "address_line_1",
-    "street_address",
-  ])
+  const { addressLine1, suburb, state, postcode } = resolveParchmentAddressComponents(profile, intakeAnswers)
   const parsed = parseStreetAddress(addressLine1)
-  const suburb = profileOrAnswer(profile.suburb, intakeAnswers, ["suburb"]) || undefined
-  const state = mapState(profileOrAnswer(profile.state, intakeAnswers, ["state"]))
-  const postcode = profileOrAnswer(profile.postcode, intakeAnswers, ["postcode"]) || undefined
 
   if (!parsed.street_number && !parsed.street_name && !suburb && !state && !postcode) {
     return undefined
@@ -194,9 +229,9 @@ function buildParchmentAddress(
   return {
     street_number: parsed.street_number,
     street_name: parsed.street_name,
-    suburb,
+    suburb: suburb || undefined,
     state,
-    postcode,
+    postcode: postcode || undefined,
   }
 }
 
@@ -212,21 +247,21 @@ function resolveParchmentSex(
   profile: PatientProfile,
   intakeAnswers?: Record<string, unknown>,
 ): "M" | "F" | "N" | "I" {
-  return mapSex(profile.sex || intakeAnswers?.sex || intakeAnswers?.gender)
+  return mapSex(answerOrProfile(profile.sex, intakeAnswers, ["sex", "gender"]))
 }
 
 function resolveDateOfBirth(
   profile: PatientProfile,
   intakeAnswers?: Record<string, unknown>,
 ): string | null {
-  return profileOrAnswer(profile.date_of_birth, intakeAnswers, ["date_of_birth", "dateOfBirth", "dob"])
+  return answerOrProfile(profile.date_of_birth, intakeAnswers, ["date_of_birth", "dateOfBirth", "dob"])
 }
 
 function resolveRawSex(
   profile: PatientProfile,
   intakeAnswers?: Record<string, unknown>,
 ): string | null {
-  return profileOrAnswer(profile.sex, intakeAnswers, ["sex", "gender"])
+  return answerOrProfile(profile.sex, intakeAnswers, ["sex", "gender"])
 }
 
 export function getParchmentPatientIdentityIssues(
@@ -236,19 +271,11 @@ export function getParchmentPatientIdentityIssues(
   const issues: string[] = []
   const dateOfBirth = resolveDateOfBirth(profile, intakeAnswers)
   const rawSex = resolveRawSex(profile, intakeAnswers)
-  const phone = normalizePhone(profileOrAnswer(profile.phone, intakeAnswers, ["phone", "mobile", "mobilePhone"]))
-  const medicareNumber = normalizeDigits(profileOrAnswer(profile.medicare_number, intakeAnswers, ["medicare_number", "medicareNumber"]))
-  const medicareIrn = normalizeDigits(profileOrAnswer(profile.medicare_irn, intakeAnswers, ["medicare_irn", "medicareIrn"]))
-  const medicareExpiry = normalizeMedicareExpiry(profileOrAnswer(profile.medicare_expiry, intakeAnswers, ["medicare_expiry", "medicareExpiry"]))
-  const addressLine1 = profileOrAnswer(profile.address_line1, intakeAnswers, [
-    "address_line1",
-    "addressLine1",
-    "address_line_1",
-    "street_address",
-  ])
-  const suburb = profileOrAnswer(profile.suburb, intakeAnswers, ["suburb"])
-  const state = mapState(profileOrAnswer(profile.state, intakeAnswers, ["state"]))
-  const postcode = profileOrAnswer(profile.postcode, intakeAnswers, ["postcode"])
+  const phone = normalizePhone(answerOrProfile(profile.phone, intakeAnswers, ["phone", "mobile", "mobilePhone"]))
+  const medicareNumber = normalizeDigits(answerOrProfile(profile.medicare_number, intakeAnswers, ["medicare_number", "medicareNumber"]))
+  const medicareIrn = normalizeDigits(answerOrProfile(profile.medicare_irn, intakeAnswers, ["medicare_irn", "medicareIrn"]))
+  const medicareExpiry = normalizeMedicareExpiry(answerOrProfile(profile.medicare_expiry, intakeAnswers, ["medicare_expiry", "medicareExpiry"]))
+  const { addressLine1, suburb, state, postcode } = resolveParchmentAddressComponents(profile, intakeAnswers)
 
   if (!dateOfBirth) issues.push("DOB")
   if (!rawSex) issues.push("Sex")
@@ -279,11 +306,11 @@ export function buildCreatePatientRequest(
 ): CreatePatientRequest {
   const { givenName, familyName } = splitFullName(profile.full_name)
   const address = buildParchmentAddress(profile, intakeAnswers)
-  const email = profileOrAnswer(profile.email, intakeAnswers, ["email"])
-  const phone = normalizePhone(profileOrAnswer(profile.phone, intakeAnswers, ["phone", "mobile", "mobilePhone"]))
-  const medicareNumber = profileOrAnswer(profile.medicare_number, intakeAnswers, ["medicare_number", "medicareNumber"])
-  const medicareIrn = profileOrAnswer(profile.medicare_irn, intakeAnswers, ["medicare_irn", "medicareIrn"])
-  const medicareExpiry = normalizeMedicareExpiry(profileOrAnswer(profile.medicare_expiry, intakeAnswers, ["medicare_expiry", "medicareExpiry"]))
+  const email = answerOrProfile(profile.email, intakeAnswers, ["email"])
+  const phone = normalizePhone(answerOrProfile(profile.phone, intakeAnswers, ["phone", "mobile", "mobilePhone"]))
+  const medicareNumber = answerOrProfile(profile.medicare_number, intakeAnswers, ["medicare_number", "medicareNumber"])
+  const medicareIrn = answerOrProfile(profile.medicare_irn, intakeAnswers, ["medicare_irn", "medicareIrn"])
+  const medicareExpiry = normalizeMedicareExpiry(answerOrProfile(profile.medicare_expiry, intakeAnswers, ["medicare_expiry", "medicareExpiry"]))
   const dateOfBirth = resolveDateOfBirth(profile, intakeAnswers)
 
   return {
@@ -307,11 +334,11 @@ export function buildUpdatePatientRequest(
 ): UpdatePatientRequest {
   const { givenName, familyName } = splitFullName(profile.full_name)
   const address = buildParchmentAddress(profile, intakeAnswers)
-  const email = profileOrAnswer(profile.email, intakeAnswers, ["email"])
-  const phone = normalizePhone(profileOrAnswer(profile.phone, intakeAnswers, ["phone", "mobile", "mobilePhone"]))
-  const medicareNumber = profileOrAnswer(profile.medicare_number, intakeAnswers, ["medicare_number", "medicareNumber"])
-  const medicareIrn = profileOrAnswer(profile.medicare_irn, intakeAnswers, ["medicare_irn", "medicareIrn"])
-  const medicareExpiry = normalizeMedicareExpiry(profileOrAnswer(profile.medicare_expiry, intakeAnswers, ["medicare_expiry", "medicareExpiry"]))
+  const email = answerOrProfile(profile.email, intakeAnswers, ["email"])
+  const phone = normalizePhone(answerOrProfile(profile.phone, intakeAnswers, ["phone", "mobile", "mobilePhone"]))
+  const medicareNumber = answerOrProfile(profile.medicare_number, intakeAnswers, ["medicare_number", "medicareNumber"])
+  const medicareIrn = answerOrProfile(profile.medicare_irn, intakeAnswers, ["medicare_irn", "medicareIrn"])
+  const medicareExpiry = normalizeMedicareExpiry(answerOrProfile(profile.medicare_expiry, intakeAnswers, ["medicare_expiry", "medicareExpiry"]))
   const dateOfBirth = resolveDateOfBirth(profile, intakeAnswers)
 
   return {

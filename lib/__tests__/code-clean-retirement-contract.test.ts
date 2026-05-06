@@ -43,7 +43,12 @@ describe("code-clean retirement contracts", () => {
   it("keeps repeat-Rx subscriptions dormant and out of patient acquisition paths", () => {
     expect(existsSync(join(root, "app/api/cron/subscription-nudge/route.ts"))).toBe(false)
     expect(existsSync(join(root, "lib/email/subscription-nudge.ts"))).toBe(false)
-    expect(existsSync(join(root, "lib/email/components/templates/subscription-nudge.tsx"))).toBe(false)
+    expect(existsSync(join(root, "components/email/templates/subscription-nudge.tsx"))).toBe(false)
+
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+    expect(orphanCheck).toContain("app/api/cron/subscription-nudge/route.ts")
+    expect(orphanCheck).toContain("lib/email/subscription-nudge.ts")
+    expect(orphanCheck).toContain("components/email/templates/subscription-nudge.tsx")
 
     const vercelConfig = JSON.parse(read("vercel.json")) as {
       crons?: Array<{ path?: string }>
@@ -82,6 +87,21 @@ describe("code-clean retirement contracts", () => {
       expect(source, surface).not.toContain("STRIPE_PRICE_REPEAT_RX_MONTHLY")
       expect(source, surface).not.toContain("REPEAT_RX_MONTHLY")
       expect(source, surface).not.toMatch(/optional monthly repeat (script|prescription) subscription/i)
+    }
+  })
+
+  it("keeps superseded intake engines out of the runtime tree", () => {
+    const retiredIntakeModules = [
+      "lib/intake/flow-configs.ts",
+      "lib/intake/flow-engine.ts",
+      "lib/intake/chat-flow-v2.ts",
+    ]
+
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+
+    for (const modulePath of retiredIntakeModules) {
+      expect(existsSync(join(root, modulePath)), modulePath).toBe(false)
+      expect(orphanCheck).toContain(modulePath)
     }
   })
 })

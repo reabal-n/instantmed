@@ -26,7 +26,10 @@ import { RequestFlow } from "@/components/request"
 | `/request?service=prescription` | New prescription request |
 | `/request?service=repeat-script` | Repeat prescription |
 | `/request?service=consult` | Doctor consultation |
-| `/request?service=referral` | Specialist referral |
+
+Supported service params are defined by `SUPPORTED_SERVICE_SLUGS` and
+`mapServiceParam` in `lib/request/step-registry.ts`. Referral and pathology
+requests are not standalone `/request` checkout services.
 
 ## Architecture
 
@@ -38,17 +41,19 @@ components/request/
 ├── store.ts              # Zustand state management
 ├── index.ts              # Barrel exports
 └── steps/                # Individual step components
-    ├── safety-step.tsx
     ├── certificate-step.tsx
     ├── symptoms-step.tsx
     ├── medication-step.tsx
     ├── medication-history-step.tsx
     ├── medical-history-step.tsx
     ├── consult-reason-step.tsx
+    ├── ed-*-step.tsx
+    ├── hair-loss-*-step.tsx
+    ├── womens-health-*-step.tsx
+    ├── weight-loss-*-step.tsx
     ├── patient-details-step.tsx
     ├── review-step.tsx
     ├── checkout-step.tsx
-    └── referral-reason-step.tsx
 ```
 
 ## Features
@@ -107,10 +112,14 @@ export default function MyNewStep({ serviceType, onNext, onBack }: StepProps) {
 }
 ```
 
-2. Add to lazy loader in `step-router.tsx`:
+2. Import and register it in `step-router.tsx`:
 
 ```ts
-'my-new-step': lazy(() => import('./steps/my-new-step')),
+import MyNewStep from "./steps/my-new-step"
+
+const stepComponents = {
+  "my-new-step": MyNewStep,
+}
 ```
 
 3. Add step definition to `lib/request/step-registry.ts`:
@@ -130,5 +139,5 @@ export default function MyNewStep({ serviceType, onNext, onBack }: StepProps) {
 E2E tests in `e2e/unified-request-flow.spec.ts`:
 
 ```bash
-pnpm test:e2e -- unified-request-flow
+pnpm e2e -- unified-request-flow
 ```

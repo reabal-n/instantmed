@@ -1,6 +1,6 @@
 "use client"
 
-import { AnimatePresence,motion } from "framer-motion"
+import { AnimatePresence, motion } from "framer-motion"
 import {
   AlertTriangle,
   ArrowLeft, 
@@ -18,7 +18,7 @@ import { useState } from "react"
 import { DataSecurityStrip, OnboardingTrustFooter } from "@/components/checkout/trust-badges"
 import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
 import { Button } from "@/components/ui/button"
-import { FormActions,FormGroup, FormSection } from "@/components/ui/form-section"
+import { FormActions, FormGroup, FormSection } from "@/components/ui/form-section"
 import { FormStepper, type Step } from "@/components/ui/form-stepper"
 import { Input } from "@/components/ui/input"
 import { useReducedMotion } from "@/components/ui/motion"
@@ -26,9 +26,9 @@ import { PageShell } from "@/components/ui/page-shell"
 import { ButtonSpinner } from "@/components/ui/skeleton"
 import { spring } from "@/lib/motion"
 import { cn } from "@/lib/utils"
-import { validatePostcodeState } from "@/lib/validation/australian-address"
+import { suggestStateFromPostcode, validatePostcodeState } from "@/lib/validation/australian-address"
 import { validateAustralianPhone } from "@/lib/validation/australian-phone"
-import { validateMedicareExpiry,validateMedicareNumber } from "@/lib/validation/medicare"
+import { validateMedicareExpiry, validateMedicareNumber } from "@/lib/validation/medicare"
 import type { AustralianState } from "@/types/db"
 
 import { completeOnboardingAction } from "./actions"
@@ -93,6 +93,42 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
   const [step2Errors, setStep2Errors] = useState<Record<string, string>>({})
 
   const firstName = fullName.split(" ")[0]
+
+  const clearStep1Errors = (...fields: string[]) => {
+    setStep1Errors((prev) => {
+      const next = { ...prev }
+      fields.forEach((field) => {
+        delete next[field]
+      })
+      return next
+    })
+  }
+
+  const handleAddressLineChange = (value: string) => {
+    setAddressLine1(value)
+    clearStep1Errors("addressLine1")
+
+    if (!value.trim()) {
+      setSuburb("")
+      setState(null)
+      setPostcode("")
+      clearStep1Errors("suburb", "state", "postcode")
+    }
+  }
+
+  const handlePostcodeChange = (value: string) => {
+    const nextPostcode = value.replace(/\D/g, "").slice(0, 4)
+    setPostcode(nextPostcode)
+    clearStep1Errors("postcode")
+
+    if (!state && nextPostcode.length === 4) {
+      const suggestedState = suggestStateFromPostcode(nextPostcode)
+      if (suggestedState) {
+        setState(suggestedState)
+        clearStep1Errors("state")
+      }
+    }
+  }
 
   const validateStep1 = () => {
     const errors: Record<string, string> = {}
@@ -274,12 +310,13 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
               >
                 <AddressAutocomplete
                   value={addressLine1}
-                  onChange={setAddressLine1}
+                  onChange={handleAddressLineChange}
                   onAddressSelect={(address: AddressComponents) => {
                     setAddressLine1(address.addressLine1 || address.fullAddress)
                     setSuburb(address.suburb)
                     setState(address.state as AustralianState)
                     setPostcode(address.postcode)
+                    clearStep1Errors("addressLine1", "suburb", "state", "postcode")
                   }}
                   placeholder="Start typing your address..."
                   className="h-12 rounded-xl"
@@ -318,7 +355,10 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                     <button
                       key={s}
                       type="button"
-                      onClick={() => setState(s)}
+                      onClick={() => {
+                        setState(s)
+                        clearStep1Errors("state")
+                      }}
                       className={cn(
                         "py-2.5 px-3 rounded-xl text-sm font-medium transition-[transform,box-shadow] duration-300",
                         state === s
@@ -344,7 +384,9 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                   placeholder="2000"
                   maxLength={4}
                   value={postcode}
-                  onChange={(e) => setPostcode(e.target.value)}
+                  onChange={(e) => handlePostcodeChange(e.target.value)}
+                  inputMode="numeric"
+                  autoComplete="postal-code"
                   className={cn(
                     "h-12 rounded-xl w-32",
                     step1Errors.postcode && "input-error"

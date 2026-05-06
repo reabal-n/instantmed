@@ -258,6 +258,11 @@ export function PatientDetailClient({
     requireMedicareDetails: true,
     validateMedicare: true,
   })
+  const addressVerificationVariant = snapshot.address.verificationTone === "success"
+    ? "success"
+    : snapshot.address.verificationTone === "warning"
+      ? "warning"
+      : "outline"
 
   const getStatusColor = (status: string) => {
     return INTAKE_STATUS[status as IntakeStatus]?.color ?? "bg-muted text-muted-foreground"
@@ -589,6 +594,11 @@ export function PatientDetailClient({
                   <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
                   <span>{snapshot.address.label}</span>
                 </div>
+                {snapshot.address.verificationLabel && (
+                  <Badge variant={addressVerificationVariant} size="sm" className="w-fit">
+                    {snapshot.address.verificationLabel}
+                  </Badge>
+                )}
               </div>
             </div>
 

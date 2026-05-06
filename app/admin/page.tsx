@@ -2,10 +2,12 @@ import { Suspense } from "react"
 
 import { AdminDashboardClient } from "@/app/admin/admin-dashboard-client"
 import { AdminHubZones } from "@/components/admin/admin-hub-zones"
+import { AdminPulse } from "@/components/admin/admin-pulse"
 import { YesterdayWidget } from "@/components/admin/yesterday-widget"
 import { DashboardPageHeader } from "@/components/dashboard"
 import { Card, CardContent } from "@/components/ui/card"
 import { requireRole } from "@/lib/auth/helpers"
+import { getAdminPulseData, getAdminPulseFallback } from "@/lib/data/admin-pulse"
 import { getAllIntakesForAdmin, getDoctorDashboardStats } from "@/lib/data/intakes"
 import type { IntakeWithPatient } from "@/types/db"
 
@@ -23,6 +25,7 @@ export default async function AdminPage({
   const results = await Promise.allSettled([
     getAllIntakesForAdmin({ page: 1, pageSize: 50 }),
     getDoctorDashboardStats(),
+    getAdminPulseData(),
   ])
 
   const intakesResult = results[0].status === "fulfilled"
@@ -31,25 +34,19 @@ export default async function AdminPage({
   const stats = results[1].status === "fulfilled"
     ? results[1].value
     : { total: 0, in_queue: 0, approved: 0, declined: 0, pending_info: 0, scripts_pending: 0 }
+  const pulse = results[2].status === "fulfilled"
+    ? results[2].value
+    : getAdminPulseFallback()
 
   return (
     <div className="space-y-6">
       <DashboardPageHeader
         title="Admin Dashboard"
-        description="Operational control for intakes, patients, finance, and exception handling."
+        description="A light founder/doctor control room for the queue, patient progress, and the few loose ends worth your focus."
         className="mb-0"
       />
 
-      {/* Mirrors the 8am AEST digest email — so the admin view is never
-          out of sync with the inbox summary. Streamed via Suspense so the
-          rest of the dashboard paints before Stripe/Supabase complete. */}
-      <Suspense fallback={
-        <Card className="rounded-xl border-border/50">
-          <CardContent className="p-6 h-48 animate-pulse" />
-        </Card>
-      }>
-        <YesterdayWidget window={digestWindow} />
-      </Suspense>
+      <AdminPulse pulse={pulse} />
 
       <AdminHubZones
         inQueue={stats.in_queue}
@@ -57,6 +54,16 @@ export default async function AdminPage({
         totalIntakes={stats.total}
         pendingInfo={stats.pending_info}
       />
+
+      {/* Mirrors the 8am AEST digest email as a secondary detail view, not
+          the primary dashboard story. Streamed so the page paints first. */}
+      <Suspense fallback={
+        <Card className="rounded-xl border-border/50">
+          <CardContent className="p-6 h-48 animate-pulse" />
+        </Card>
+      }>
+        <YesterdayWidget window={digestWindow} />
+      </Suspense>
 
       <div id="intakes">
         <AdminDashboardClient

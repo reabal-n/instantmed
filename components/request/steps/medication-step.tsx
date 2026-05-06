@@ -10,10 +10,11 @@
  * - Keyboard navigation
  */
 
-import { ArrowRight,Info, Plus, ShieldAlert, X } from "lucide-react"
+import { ArrowRight, Plus, ShieldAlert, X } from "lucide-react"
 import { useCallback,useEffect, useState } from "react"
 
 import { usePostHog } from "@/components/providers/posthog-provider"
+import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
 import { MedicationSearch, type SelectedPBSProduct } from "@/components/shared"
 import { Alert, AlertDescription,AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -231,14 +232,11 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
   })
 
   return (
-    <div className="space-y-5">
-      {/* Info alert */}
-      <Alert variant="default" className="border-primary/20 bg-primary/5">
-        <Info className="w-4 h-4" />
-        <AlertDescription className="text-xs">
-          Search using the PBS database. If you can&apos;t find your exact medication, type the name manually.
-        </AlertDescription>
-      </Alert>
+    <div className="space-y-4">
+      <IntakeStepIntro
+        title="Which medication do you need?"
+        description="Search first. If the exact item is not listed, enter it manually."
+      />
 
       {/* Controlled substance block */}
       {controlledBlock && (
@@ -254,7 +252,7 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
 
       {/* Recent medications suggestion */}
       {recentMeds.length > 0 && !medications.some(m => m.product || m.name) && (
-        <div className="p-3 rounded-lg border bg-muted/30">
+        <div className="rounded-2xl border border-border/50 bg-white p-3 shadow-md shadow-primary/[0.06] dark:bg-card dark:shadow-none">
           <p className="text-xs text-muted-foreground mb-2">Previously requested:</p>
           <div className="flex flex-wrap gap-1.5">
             {recentMeds.slice(0, 3).map((med) => (
@@ -272,12 +270,12 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
 
       {/* Medication search slots */}
       {medications.map((med, index) => (
-        <div key={index} className="space-y-2">
+        <QuestionCard key={index} compact>
           <FormField
             label={medications.length > 1 ? `Medication ${index + 1}` : "Medication name"}
             required={index === 0}
             error={index === 0 ? errors.medication : undefined}
-            hint={index === 0 ? "If you know the name, start typing to help us locate it" : undefined}
+            hint={index === 0 ? "Start typing the name on your box or label" : undefined}
             helpContent={index === 0 ? {
               title: "Why do we ask this?",
               content: "This is for reference only. The doctor will review and confirm the correct medication. All prescribing decisions are made by the clinician."
@@ -349,11 +347,11 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
               </div>
             </div>
           )}
-        </div>
+        </QuestionCard>
       ))}
 
       {/* Add another medication button */}
-      {medications.length < 5 && (
+      {activeMedications.length > 0 && medications.length < 5 && (
         <Button
           type="button"
           variant="outline"
@@ -368,8 +366,10 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
 
       {/* Continue button */}
       <Button
+        data-intake-primary-action="true"
+        data-intake-primary-label="Continue"
         onClick={handleNext}
-        className="w-full h-12"
+        className="w-full h-12 max-sm:hidden"
         disabled={!canContinue}
       >
         {canContinue ? (

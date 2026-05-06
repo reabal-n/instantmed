@@ -1,4 +1,6 @@
 import { calculateAge, formatShortDateSafe } from "@/lib/format"
+import { getAddressReviewSummary } from "@/lib/request/address-metadata"
+import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing-identity"
 import { validateMedicareExpiry, validateMedicareNumber } from "@/lib/validation/medicare"
 import type { AustralianState } from "@/types/db"
 
@@ -29,6 +31,13 @@ export interface PatientSnapshotField {
   detailsLabel?: string
 }
 
+export interface PatientSnapshotAddressField extends PatientSnapshotField {
+  verificationLabel?: string
+  verificationTone?: "success" | "warning" | "outline"
+  verificationProviderLabel?: string
+  verified?: boolean
+}
+
 export interface PatientSnapshot {
   id: string
   name: string
@@ -39,7 +48,7 @@ export interface PatientSnapshot {
   medicare: PatientSnapshotField
   phone: PatientSnapshotField
   email: PatientSnapshotField
-  address: PatientSnapshotField
+  address: PatientSnapshotAddressField
   profileHref: string
   missingCriticalFields: string[]
   completenessLabel: string
@@ -65,24 +74,12 @@ export interface PatientSnapshotCaseContext {
   subtype?: string | null
 }
 
-const PRESCRIBING_CONSULT_SUBTYPES = new Set(["ed", "hair_loss"])
-
 export function requiresPrescribingIdentityForCase({
   category,
   serviceType,
   subtype,
 }: PatientSnapshotCaseContext): boolean {
-  const normalizedServiceType = serviceType ?? ""
-  const normalizedCategory = category ?? ""
-
-  return (
-    normalizedCategory === "prescription" ||
-    normalizedServiceType === "common_scripts" ||
-    normalizedServiceType === "repeat_rx" ||
-    normalizedServiceType === "prescription" ||
-    normalizedServiceType === "repeat-script" ||
-    (normalizedCategory === "consult" && PRESCRIBING_CONSULT_SUBTYPES.has(subtype ?? ""))
-  )
+  return requiresPrescribingIdentityForRequest({ category, serviceType, subtype })
 }
 
 export function getPatientSnapshotOptionsForCase(
@@ -152,12 +149,40 @@ function presentAnswer(
   if (!answers) return null
   for (const key of keys) {
     const value = answers[key]
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return String(value)
+    }
     if (typeof value === "string") {
       const trimmed = value.trim()
       if (trimmed) return trimmed
     }
   }
   return null
+}
+
+function answerOrProfile(
+  answers: Record<string, unknown> | null | undefined,
+  answerKeys: string[],
+  profileValue: string | number | null | undefined,
+): string | null {
+  return presentAnswer(answers, answerKeys) ?? presentScalar(profileValue)
+}
+
+const ADDRESS_LINE1_ANSWER_KEYS = ["address_line1", "addressLine1", "address_line_1", "street_address"]
+const ADDRESS_LINE2_ANSWER_KEYS = ["address_line2", "addressLine2", "address_line_2"]
+const ADDRESS_SUBURB_ANSWER_KEYS = ["suburb"]
+const ADDRESS_STATE_ANSWER_KEYS = ["state"]
+const ADDRESS_POSTCODE_ANSWER_KEYS = ["postcode"]
+const ADDRESS_ANSWER_KEY_GROUPS = [
+  ADDRESS_LINE1_ANSWER_KEYS,
+  ADDRESS_LINE2_ANSWER_KEYS,
+  ADDRESS_SUBURB_ANSWER_KEYS,
+  ADDRESS_STATE_ANSWER_KEYS,
+  ADDRESS_POSTCODE_ANSWER_KEYS,
+]
+
+function hasAddressAnswer(answers: Record<string, unknown> | null | undefined): boolean {
+  return ADDRESS_ANSWER_KEY_GROUPS.some((keys) => presentAnswer(answers, keys) !== null)
 }
 
 function normalize(value: string | null | undefined): string {
@@ -242,13 +267,22 @@ function resolveAddressComponents(
   label: string | null
   complete: boolean
 } {
-  const line1 = present(patient.address_line1)
-    ?? presentAnswer(answers, ["address_line1", "addressLine1", "address_line_1", "street_address"])
-  const line2 = present(patient.address_line2)
-    ?? presentAnswer(answers, ["address_line2", "addressLine2", "address_line_2"])
-  const suburb = present(patient.suburb) ?? presentAnswer(answers, ["suburb"])
-  const state = present(patient.state) ?? presentAnswer(answers, ["state"])
-  const postcode = present(patient.postcode) ?? presentAnswer(answers, ["postcode"])
+  const useAnswerAddress = hasAddressAnswer(answers)
+  const line1 = useAnswerAddress
+    ? presentAnswer(answers, ADDRESS_LINE1_ANSWER_KEYS)
+    : presentScalar(patient.address_line1)
+  const line2 = useAnswerAddress
+    ? presentAnswer(answers, ADDRESS_LINE2_ANSWER_KEYS)
+    : presentScalar(patient.address_line2)
+  const suburb = useAnswerAddress
+    ? presentAnswer(answers, ADDRESS_SUBURB_ANSWER_KEYS)
+    : presentScalar(patient.suburb)
+  const state = useAnswerAddress
+    ? presentAnswer(answers, ADDRESS_STATE_ANSWER_KEYS)
+    : presentScalar(patient.state)
+  const postcode = useAnswerAddress
+    ? presentAnswer(answers, ADDRESS_POSTCODE_ANSWER_KEYS)
+    : presentScalar(patient.postcode)
   const parts = [line1, line2, suburb, state, postcode].filter(Boolean)
 
   return {
@@ -266,19 +300,18 @@ export function buildPatientSnapshot(
   patient: PatientSnapshotInput,
   options?: PatientSnapshotOptions,
 ): PatientSnapshot {
-  const age = options?.now && patient.date_of_birth
-    ? calculateAgeAt(patient.date_of_birth, options.now)
-    : calculateAge(patient.date_of_birth)
-  const dobLabel = formatShortDateSafe(patient.date_of_birth) ?? "DOB not collected"
-  const ageDobLabel = patient.date_of_birth
+  const dateOfBirth = answerOrProfile(options?.answers, ["date_of_birth", "dateOfBirth", "dob"], patient.date_of_birth)
+  const age = options?.now && dateOfBirth
+    ? calculateAgeAt(dateOfBirth, options.now)
+    : calculateAge(dateOfBirth)
+  const dobLabel = formatShortDateSafe(dateOfBirth) ?? "DOB not collected"
+  const ageDobLabel = dateOfBirth
     ? `${age != null ? `${age}y` : "Age unknown"} / ${dobLabel}`
     : "DOB not collected"
-  const medicare = present(patient.medicare_number)
-    ?? presentAnswer(options?.answers, ["medicare_number", "medicareNumber"])
-  const medicareIrn = presentScalar(patient.medicare_irn)
-    ?? presentAnswer(options?.answers, ["medicare_irn", "medicareIrn"])
+  const medicare = answerOrProfile(options?.answers, ["medicare_number", "medicareNumber"], patient.medicare_number)
+  const medicareIrn = answerOrProfile(options?.answers, ["medicare_irn", "medicareIrn"], patient.medicare_irn)
   const medicareExpiry = normalizeMedicareExpiry(
-    present(patient.medicare_expiry) ?? presentAnswer(options?.answers, ["medicare_expiry", "medicareExpiry"]),
+    answerOrProfile(options?.answers, ["medicare_expiry", "medicareExpiry"], patient.medicare_expiry),
   )
   const medicareValidation = medicare && options?.validateMedicare
     ? validateMedicareNumber(medicare)
@@ -295,12 +328,15 @@ export function buildPatientSnapshot(
     medicareExpiry ? `Exp ${formatShortDateSafe(medicareExpiry) ?? medicareExpiry}` : null,
   ].filter(Boolean).join(" / ")
   const sexValue = normalizeSexValue(
-    present(patient.sex) ?? presentAnswer(options?.answers, ["sex", "gender"]),
+    answerOrProfile(options?.answers, ["sex", "gender"], patient.sex),
   )
   const sexLabel = resolveSexLabel(sexValue)
-  const phone = present(patient.phone)
-  const email = present(patient.email)
+  const phone = answerOrProfile(options?.answers, ["phone", "mobile", "mobilePhone"], patient.phone)
+  const email = answerOrProfile(options?.answers, ["email"], patient.email)
   const address = resolveAddressComponents(patient, options?.answers)
+  const addressReviewSummary = options?.answers
+    ? getAddressReviewSummary(options.answers)
+    : null
   const addressIsCritical = options?.requireStructuredAddress ? address.complete : Boolean(address.label)
 
   const requireMedicare = options?.requireMedicare ?? true
@@ -308,18 +344,25 @@ export function buildPatientSnapshot(
   const requireAddress = options?.requireAddress ?? true
 
   const missingCriticalFields = [
-    patient.date_of_birth ? null : "DOB",
+    dateOfBirth ? null : "DOB",
     options?.requireSex && !sexValue ? "Sex" : null,
     requireMedicare ? (medicareIsCritical ? null : medicare ? "Valid Medicare" : "Medicare") : null,
     options?.requireMedicareDetails && medicare && !medicareIrnIsCritical ? "Medicare IRN" : null,
     options?.requireMedicareDetails && medicare && medicareExpiry && !medicareExpiryValidation?.valid ? "Valid Medicare expiry" : null,
     requirePhone ? (phone ? null : "Phone") : null,
-    requireAddress ? (addressIsCritical ? null : "Address") : null,
+    requireAddress && options?.requireStructuredAddress && !address.line1 ? "Address street" : null,
+    requireAddress && options?.requireStructuredAddress && !address.suburb ? "Address suburb" : null,
+    requireAddress && options?.requireStructuredAddress && !address.state ? "Address state" : null,
+    requireAddress && options?.requireStructuredAddress && !address.postcode ? "Address postcode" : null,
+    requireAddress && !options?.requireStructuredAddress ? (addressIsCritical ? null : "Address") : null,
   ].filter(Boolean) as string[]
 
+  const missingAddressComponent = missingCriticalFields.some((field) => field.startsWith("Address "))
+  const missingGroupCount = missingCriticalFields.filter((field) => !field.startsWith("Address ")).length
+    + (missingAddressComponent ? 1 : 0)
   const completenessTone = missingCriticalFields.length === 0
     ? "complete"
-    : missingCriticalFields.length >= 3
+    : missingGroupCount >= 3
       ? "missing"
       : "partial"
 
@@ -355,6 +398,22 @@ export function buildPatientSnapshot(
       present: Boolean(address.label),
       value: address.label ?? undefined,
       complete: address.complete,
+      verificationLabel: addressReviewSummary
+        ? addressReviewSummary.isVerified
+          ? `Verified via ${addressReviewSummary.providerLabel}`
+          : "Manual address"
+        : address.label
+          ? "Profile address"
+          : undefined,
+      verificationTone: addressReviewSummary
+        ? addressReviewSummary.isVerified
+          ? "success"
+          : "warning"
+        : address.label
+          ? "outline"
+          : undefined,
+      verificationProviderLabel: addressReviewSummary?.providerLabel,
+      verified: addressReviewSummary?.isVerified,
     },
     profileHref: `/doctor/patients/${patient.id}`,
     missingCriticalFields,

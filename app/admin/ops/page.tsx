@@ -1,3 +1,4 @@
+import { buildOperationalFailureOverview } from "@/lib/admin/ops-failures"
 import { requireRole } from "@/lib/auth/helpers"
 import {
   getDuplicatePatientProfileSummary,
@@ -50,6 +51,12 @@ export default async function OpsDashboardPage() {
     systemHealthResult,
     patientIdentityResult,
     prescribingIdentityResult,
+    emailFailuresResult,
+    checkoutFailuresResult,
+    incompleteRequestsResult,
+    certificateFailuresResult,
+    prescriptionWebhookFailuresResult,
+    staleScriptIntakesResult,
   ] = await Promise.all([
     // Failed webhooks (DLQ)
     supabase
@@ -94,6 +101,63 @@ export default async function OpsDashboardPage() {
     getDuplicatePatientProfileSummary(supabase),
 
     getPrescribingIdentityBlockerReport(supabase),
+
+    supabase
+      .from("email_outbox")
+      .select("id, email_type, status, error_message, delivery_status, created_at")
+      .or("status.eq.failed,delivery_status.eq.bounced,delivery_status.eq.complained")
+      .gte("created_at", weekAgo.toISOString())
+      .order("created_at", { ascending: false })
+      .limit(20)
+      .then(r => r.error ? { data: [] } : r),
+
+    supabase
+      .from("intakes")
+      .select("id, created_at, updated_at, category, subtype, checkout_error")
+      .eq("status", "checkout_failed")
+      .gte("updated_at", weekAgo.toISOString())
+      .order("updated_at", { ascending: false })
+      .limit(20)
+      .then(r => r.error ? { data: [] } : r),
+
+    supabase
+      .from("intakes")
+      .select("id, created_at, updated_at, category, subtype")
+      .eq("status", "pending_payment")
+      .neq("payment_status", "paid")
+      .lt("updated_at", new Date(now.getTime() - 30 * 60 * 1000).toISOString())
+      .gte("created_at", weekAgo.toISOString())
+      .order("updated_at", { ascending: true })
+      .limit(20)
+      .then(r => r.error ? { data: [] } : r),
+
+    supabase
+      .from("issued_certificates")
+      .select("id, intake_id, updated_at, email_failed_at, email_failure_reason")
+      .not("email_failed_at", "is", null)
+      .gte("email_failed_at", weekAgo.toISOString())
+      .order("email_failed_at", { ascending: false })
+      .limit(20)
+      .then(r => r.error ? { data: [] } : r),
+
+    supabase
+      .from("audit_logs")
+      .select("id, action, created_at, metadata")
+      .eq("action", "webhook_failed")
+      .gte("created_at", weekAgo.toISOString())
+      .order("created_at", { ascending: false })
+      .limit(50)
+      .then(r => r.error ? { data: [] } : r),
+
+    supabase
+      .from("intakes")
+      .select("id, created_at, updated_at, category, subtype")
+      .eq("status", "awaiting_script")
+      .eq("payment_status", "paid")
+      .lt("updated_at", new Date(now.getTime() - 48 * 60 * 60 * 1000).toISOString())
+      .order("updated_at", { ascending: true })
+      .limit(20)
+      .then(r => r.error ? { data: [] } : r),
   ])
 
   // Process email stats
@@ -111,6 +175,18 @@ export default async function OpsDashboardPage() {
   // Stale intakes (paid but not reviewed in 2+ hours)
   const staleIntakes = systemHealthResult.data || []
   const recentErrors = filterNonActionableOpsErrors((recentErrorsResult.data || []) as AuditErrorRow[])
+  const prescriptionWebhookFailures = filterNonActionableOpsErrors(
+    (prescriptionWebhookFailuresResult.data || []) as AuditErrorRow[],
+  ).filter((row) => getMetadataString(row.metadata, "eventType") === "parchment:prescription.created")
+  const failureOverview = buildOperationalFailureOverview({
+    stripeDlq: webhookDlqResult.data || [],
+    emailFailures: emailFailuresResult.data || [],
+    checkoutFailures: checkoutFailuresResult.data || [],
+    incompleteRequests: incompleteRequestsResult.data || [],
+    certificateFailures: certificateFailuresResult.data || [],
+    prescriptionWebhookFailures,
+    staleScriptIntakes: staleScriptIntakesResult.data || [],
+  })
 
   const ops = {
     webhooks: {
@@ -140,12 +216,14 @@ export default async function OpsDashboardPage() {
         .map(([label, count]) => ({ label, count })),
     },
     staleIntakes: staleIntakes.length,
+    failureOverview,
     systemStatus: {
       webhooksHealthy: (webhookDlqResult.count || 0) < 5,
       emailsHealthy: emailStats.failed < 3,
       intakesHealthy: staleIntakes.length < 3,
       patientIdentityHealthy: patientIdentityResult.duplicateProfileCount === 0,
       prescribingIdentityHealthy: prescribingIdentityResult.blockedCount === 0,
+      failureOverviewHealthy: failureOverview.openCount === 0,
     },
   }
 

@@ -23,6 +23,10 @@ const legacyWebhooksPageSource = readFileSync(
   join(process.cwd(), "app/admin/webhooks/page.tsx"),
   "utf8",
 )
+const dashboardRoutesSource = readFileSync(
+  join(process.cwd(), "lib/dashboard/routes.ts"),
+  "utf8",
+)
 
 describe("ops dashboard data contract", () => {
   it("reads the real Stripe webhook dead-letter table", () => {
@@ -52,8 +56,9 @@ describe("ops dashboard data contract", () => {
     expect(opsClientSource).not.toContain("Audit and identity")
   })
 
-  it("keeps payment webhook recovery on the canonical DLQ surface", () => {
-    expect(adminHubZonesSource).toContain('href: "/admin/webhook-dlq"')
+  it("keeps webhook recovery on the canonical Stripe DLQ surface", () => {
+    expect(adminHubZonesSource).toContain("ADMIN_WEBHOOK_DLQ_HREF")
+    expect(dashboardRoutesSource).toContain('ADMIN_WEBHOOK_DLQ_HREF = "/admin/webhook-dlq"')
     expect(opsClientSource).toContain('href="/admin/webhook-dlq"')
     expect(adminHubZonesSource).not.toContain('href: "/admin/webhooks"')
     expect(adminSidebarSource).not.toContain('href: "/admin/webhooks"')

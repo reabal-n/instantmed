@@ -9,12 +9,13 @@
  * - Keyboard navigation
  */
 
-import { ArrowLeft, ArrowRight,History, Stethoscope } from "lucide-react"
+import { ArrowLeft, ArrowRight, Stethoscope } from "lucide-react"
 import { useCallback,useState } from "react"
 
 import { usePostHog } from "@/components/providers/posthog-provider"
+import { IntakeStepIntro, QuestionCard, SegmentedChoiceGroup } from "@/components/request/shared/intake-step-primitives"
 import { EnhancedSelectionButton } from "@/components/shared"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -87,6 +88,9 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
   const isComplete = prescriptionHistory && !isNeverPrescribed && currentDose.trim() && (hasSideEffects === false || (hasSideEffects && sideEffects.trim()))
   const hasNoErrors = Object.keys(errors).length === 0
   const canContinue = isComplete && hasNoErrors
+  const hasPrescriptionHistory = Boolean(prescriptionHistory)
+  const needsDose = hasPrescriptionHistory && !isNeverPrescribed
+  const needsSideEffects = needsDose && Boolean(currentDose.trim())
 
   // Keyboard navigation
   useKeyboardNavigation({
@@ -95,39 +99,32 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
   })
 
   return (
-    <div className="space-y-5">
-      {/* Info alert */}
-      <Alert variant="default" className="border-primary/20 bg-primary/5">
-        <History className="w-4 h-4" />
-        <AlertDescription className="text-xs">
-          This helps our doctors verify this is a safe repeat prescription for you.
-        </AlertDescription>
-      </Alert>
+    <div className="space-y-4">
+      <IntakeStepIntro
+        eyebrow={!hasPrescriptionHistory ? "History 1 of 3" : !currentDose.trim() ? "History 2 of 3" : "History 3 of 3"}
+        title={!hasPrescriptionHistory ? "Confirm your prescription history" : !currentDose.trim() ? "Current dose" : "Side effects"}
+        description={!hasPrescriptionHistory ? "This helps the doctor check this is a safe repeat request." : "Keep it short and copy your label if you can."}
+      />
 
       {/* Prescription history */}
-      <FormField
-        label="When were you last prescribed this medication?"
-        required
-        error={touched.prescriptionHistory ? errors.prescriptionHistory : undefined}
-        helpContent={{ 
-          title: "Why do we ask this?", 
-          content: "Repeat prescriptions are only available for medications you've been prescribed before by another doctor. This ensures continuity of care." 
-        }}
-      >
-        <div className="flex flex-wrap gap-2 mt-2">
-          {PRESCRIPTION_HISTORY_OPTIONS.map((option) => (
-            <EnhancedSelectionButton
-              key={option.value}
-              variant="chip"
-              selected={prescriptionHistory === option.value}
-              onClick={() => setAnswer("prescriptionHistory", option.value)}
-              className="touch-manipulation"
-            >
-              {option.label}
-            </EnhancedSelectionButton>
-          ))}
-        </div>
-      </FormField>
+      {(!hasPrescriptionHistory || isNeverPrescribed) && (
+        <QuestionCard compact>
+          <FormField
+            label="When were you last prescribed this medication?"
+            required
+            error={touched.prescriptionHistory ? errors.prescriptionHistory : undefined}
+          >
+            <SegmentedChoiceGroup
+              options={PRESCRIPTION_HISTORY_OPTIONS}
+              value={prescriptionHistory}
+              onChange={(value) => setAnswer("prescriptionHistory", value)}
+              ariaLabel="When were you last prescribed this medication?"
+              columns="one"
+              className="mt-2"
+            />
+          </FormField>
+        </QuestionCard>
+      )}
 
       {/* New medication detected - friendly upsell to consult flow */}
       {isNeverPrescribed && (
@@ -172,84 +169,94 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
 
       {/* Who prescribed */}
       {!isNeverPrescribed && prescriptionHistory && (
-        <FormField
-          label="Who prescribed it last?"
-          hint="Optional - helps verify your prescription history"
-        >
-          <Input
-            value={lastPrescribedBy}
-            onChange={(e) => setAnswer("lastPrescribedBy", e.target.value)}
-            placeholder="e.g., Dr Smith at ABC Medical Centre"
-            className="h-11 mt-2"
-          />
-        </FormField>
+        <div className="hidden sm:block">
+        <QuestionCard compact>
+          <FormField
+            label="Who prescribed it last?"
+            hint="Optional, but useful if you remember"
+          >
+            <Input
+              value={lastPrescribedBy}
+              onChange={(e) => setAnswer("lastPrescribedBy", e.target.value)}
+              placeholder="e.g., Dr Smith at ABC Medical Centre"
+              className="h-11 mt-2"
+            />
+          </FormField>
+        </QuestionCard>
+        </div>
       )}
 
       {/* Current dose */}
-      {!isNeverPrescribed && prescriptionHistory && (
-        <FormField
-          label="What dose do you currently take?"
-          required
-          error={touched.currentDose ? errors.currentDose : undefined}
-          hint="Write what is on your label, e.g. 1 puff twice daily or 1 tablet each morning"
-        >
-          <Textarea
-            value={currentDose}
-            onChange={(e) => {
-              setAnswer("currentDose", e.target.value)
-              setAnswer("dosageInstructions", e.target.value)
-            }}
-            onBlur={() => setTouched((prev) => ({ ...prev, currentDose: true }))}
-            placeholder="e.g., 2 puffs twice daily"
-            className="min-h-[80px] mt-2"
-          />
-        </FormField>
+      {needsDose && (
+        <QuestionCard compact>
+          <FormField
+            label="What dose do you currently take?"
+            required
+            error={touched.currentDose ? errors.currentDose : undefined}
+            hint="Copy the wording from your label if you can"
+          >
+            <Textarea
+              value={currentDose}
+              onChange={(e) => {
+                setAnswer("currentDose", e.target.value)
+                setAnswer("dosageInstructions", e.target.value)
+              }}
+              onBlur={() => setTouched((prev) => ({ ...prev, currentDose: true }))}
+              placeholder="e.g., 2 puffs twice daily"
+              className="min-h-[72px] mt-2"
+            />
+          </FormField>
+        </QuestionCard>
       )}
 
       {/* Side effects */}
-      {!isNeverPrescribed && prescriptionHistory && (
-        <FormField
-          label="Have you experienced any side effects with this medication?"
-          required
-          error={errors.sideEffects}
-        >
-          <div className="flex gap-2 mt-2">
-            <EnhancedSelectionButton
-              variant="chip"
-              selected={hasSideEffects === false}
-              onClick={() => {
-                setAnswer("hasSideEffects", false)
-                setAnswer("sideEffects", "")
-              }}
-              className="flex-1 touch-manipulation"
-            >
-              No side effects
-            </EnhancedSelectionButton>
-            <EnhancedSelectionButton
-              variant="chip"
-              selected={hasSideEffects === true}
-              onClick={() => setAnswer("hasSideEffects", true)}
-              className="flex-1 touch-manipulation"
-            >
-              Yes, I have
-            </EnhancedSelectionButton>
-          </div>
-          
-          {hasSideEffects && (
-            <Textarea
-              value={sideEffects}
-              onChange={(e) => setAnswer("sideEffects", e.target.value)}
-              placeholder="Please describe the side effects you experienced..."
-              className="min-h-[80px] mt-3"
-            />
-          )}
-        </FormField>
+      {needsSideEffects && (
+        <QuestionCard compact>
+          <FormField
+            label="Any side effects with this medication?"
+            required
+            error={errors.sideEffects}
+          >
+            <div className="flex gap-2 mt-2">
+              <EnhancedSelectionButton
+                variant="chip"
+                selected={hasSideEffects === false}
+                onClick={() => {
+                  setAnswer("hasSideEffects", false)
+                  setAnswer("sideEffects", "")
+                }}
+                className="flex-1 touch-manipulation"
+              >
+                No side effects
+              </EnhancedSelectionButton>
+              <EnhancedSelectionButton
+                variant="chip"
+                selected={hasSideEffects === true}
+                onClick={() => setAnswer("hasSideEffects", true)}
+                className="flex-1 touch-manipulation"
+              >
+                Yes
+              </EnhancedSelectionButton>
+            </div>
+
+            {hasSideEffects && (
+              <Textarea
+                value={sideEffects}
+                onChange={(e) => setAnswer("sideEffects", e.target.value)}
+                placeholder="Briefly describe what happened"
+                className="min-h-[72px] mt-3"
+              />
+            )}
+          </FormField>
+        </QuestionCard>
       )}
 
       {/* Continue button */}
       <Button
+        data-intake-primary-action="true"
+        data-intake-primary-label="Continue"
         onClick={handleNext}
-        className="w-full h-12"
+        className="w-full h-12 max-sm:hidden"
         disabled={!canContinue}
       >
         {canContinue ? (

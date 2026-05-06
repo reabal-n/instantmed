@@ -11,6 +11,7 @@ import { motion } from "framer-motion"
 import { ArrowRight,Search, Shield, Sprout, Target } from "lucide-react"
 
 import { usePostHog } from "@/components/providers/posthog-provider"
+import { IntakeStepIntro, QuestionCard, SegmentedChoiceGroup } from "@/components/request/shared/intake-step-primitives"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { useReducedMotion } from "@/components/ui/motion"
@@ -66,19 +67,15 @@ export default function HairLossGoalsStep({ onNext }: HairLossGoalsStepProps) {
   })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="space-y-1">
-        <h2 className="text-lg font-semibold tracking-tight">
-          Let&apos;s start with what matters to you
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Your answers help our doctor recommend the right approach. Everything is confidential.
-        </p>
-      </div>
+      <IntakeStepIntro
+        title="What matters most right now?"
+        description="A few discreet answers help the doctor understand your pattern."
+      />
 
       {/* Goal selection - chip grid */}
-      <div className="space-y-3">
+      <QuestionCard compact>
         <Label className="text-sm font-medium">
           What&apos;s your main goal?
           <span className="text-destructive ml-0.5">*</span>
@@ -126,47 +123,31 @@ export default function HairLossGoalsStep({ onNext }: HairLossGoalsStepProps) {
             )
           })}
         </motion.div>
-      </div>
+      </QuestionCard>
 
       {/* Onset timing - segmented selector */}
-      <div className="space-y-3">
+      <QuestionCard compact>
         <Label className="text-sm font-medium">
           When did you first notice changes?
           <span className="text-destructive ml-0.5">*</span>
         </Label>
-        <div
-          className="flex gap-1 p-1 rounded-full bg-muted/50"
-          role="radiogroup"
-          aria-label="When did you first notice changes"
-        >
-          {ONSET_OPTIONS.map((option) => {
-            const isSelected = hairOnset === option.value
-            return (
-              <button
-                key={option.value}
-                type="button"
-                role="radio"
-                onClick={() => setAnswer("hairOnset", option.value)}
-                aria-checked={isSelected}
-                className={cn(
-                  "flex-1 px-2 py-2 text-xs font-medium rounded-full text-center transition-[background-color,color] cursor-pointer",
-                  isSelected
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {option.label}
-              </button>
-            )
-          })}
-        </div>
-      </div>
+        <SegmentedChoiceGroup
+          options={ONSET_OPTIONS}
+          value={hairOnset}
+          onChange={(value) => setAnswer("hairOnset", value)}
+          ariaLabel="When did you first notice changes"
+          columns="auto"
+          className="sm:grid-cols-5"
+        />
+      </QuestionCard>
 
       {/* Continue button */}
       <Button
+        data-intake-primary-action="true"
+        data-intake-primary-label="Continue"
         onClick={handleNext}
         disabled={!isComplete}
-        className="w-full h-12 text-base font-medium"
+        className="w-full h-12 text-base font-medium max-sm:hidden"
       >
         {isComplete ? (
           <>

@@ -8,18 +8,17 @@
  * the category selector is hidden - only details + urgency are shown.
  */
 
-import { AlertTriangle, ArrowRight, Info, MessageSquare, Stethoscope } from "lucide-react"
+import { AlertTriangle, ArrowRight, Info, MessageSquare } from "lucide-react"
 import { useCallback,useEffect, useMemo, useState } from "react"
 
 import { usePostHog } from "@/components/providers/posthog-provider"
+import { BinaryChoice, IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
 import { EnhancedSelectionButton } from "@/components/shared"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
-import { CONSULT_SUBTYPE_LABELS, type ConsultSubtype } from "@/lib/request/step-registry"
 
 import { useRequestStore } from "../store"
 
@@ -107,6 +106,11 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
     () => (answers.general_associated_symptoms as string[] | undefined) || [],
     [answers.general_associated_symptoms],
   )
+  const redFlagsPresent = generalAssociatedSymptoms.includes("none")
+    ? false
+    : generalAssociatedSymptoms.length > 0
+      ? true
+      : undefined
 
   // If user already selected a subtype from the service hub, category is pre-determined
   // and should not be shown again (fixes redundant type selection)
@@ -159,6 +163,18 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
     )
   }, [generalAssociatedSymptoms, setAnswer])
 
+  const handleRedFlagPresenceChange = useCallback((present: boolean) => {
+    const next = present
+      ? generalAssociatedSymptoms.filter((item) => item !== "none")
+      : ["none"]
+
+    setAnswer("general_associated_symptoms", next)
+    setAnswer(
+      "emergency_symptoms",
+      next.filter((item) => EMERGENCY_RED_FLAGS.has(item)),
+    )
+  }, [generalAssociatedSymptoms, setAnswer])
+
   const handleNext = useCallback(() => {
     if (validate()) {
       posthog?.capture('step_completed', { step: 'consult-reason', category: consultCategory, urgency: consultUrgency })
@@ -173,31 +189,16 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
     enabled: Boolean(isComplete),
   })
 
-  // Friendly label for pre-selected subtype
-  const subtypeLabel = consultSubtype
-    ? CONSULT_SUBTYPE_LABELS[consultSubtype as ConsultSubtype] || consultSubtype
-    : null
-
   return (
-    <div className="space-y-5">
-      {/* Info alert */}
-      <Alert variant="default" className="border-primary/20 bg-primary/5">
-        <Stethoscope className="w-4 h-4" />
-        <AlertDescription className="text-xs">
-          Submit any time. A doctor will review your request and respond when available.
-        </AlertDescription>
-      </Alert>
+    <div className="space-y-3">
+      <IntakeStepIntro
+        title="What do you need help with?"
+        description="Give the doctor the short version first."
+      />
 
       {/* Category selection - hidden when subtype was pre-selected from the service hub */}
-      {subtypePreSelected ? (
-        <div className="space-y-1">
-          <Label className="text-sm font-medium text-muted-foreground">
-            Consultation type
-          </Label>
-          <p className="text-sm font-medium">{subtypeLabel}</p>
-        </div>
-      ) : (
-        <div className="space-y-2">
+      {subtypePreSelected ? null : (
+        <QuestionCard compact>
           <Label className="text-sm font-medium">
             What would you like help with?
             <span className="text-destructive ml-0.5">*</span>
@@ -217,38 +218,47 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
           {errors.consultCategory && (
             <p className="text-xs text-destructive" role="alert" aria-live="polite">{errors.consultCategory}</p>
           )}
-        </div>
+        </QuestionCard>
       )}
 
       {/* Red flag selection */}
-      <div className="space-y-2">
+      <QuestionCard compact>
         <div className="flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-muted-foreground" />
           <Label className="text-sm font-medium">
-            Are any of these happening now?
+            Any severe symptoms right now?
             <span className="text-destructive ml-0.5">*</span>
           </Label>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {GENERAL_RED_FLAGS.map((symptom) => (
-            <EnhancedSelectionButton
-              key={symptom.value}
-              variant="chip"
-              selected={generalAssociatedSymptoms.includes(symptom.value)}
-              onClick={() => handleRedFlagToggle(symptom.value)}
-              className="justify-center"
-            >
-              {symptom.label}
-            </EnhancedSelectionButton>
-          ))}
-        </div>
+        <BinaryChoice
+          value={redFlagsPresent}
+          onChange={handleRedFlagPresenceChange}
+          ariaLabel="Any severe symptoms right now?"
+          noLabel="No"
+          yesLabel="Yes"
+        />
+        {redFlagsPresent === true && (
+          <div className="grid grid-cols-2 gap-2">
+            {GENERAL_RED_FLAGS.filter((symptom) => symptom.value !== "none").map((symptom) => (
+              <EnhancedSelectionButton
+                key={symptom.value}
+                variant="chip"
+                selected={generalAssociatedSymptoms.includes(symptom.value)}
+                onClick={() => handleRedFlagToggle(symptom.value)}
+                className="justify-center"
+              >
+                {symptom.label}
+              </EnhancedSelectionButton>
+            ))}
+          </div>
+        )}
         {errors.general_associated_symptoms && (
           <p className="text-xs text-destructive" role="alert" aria-live="polite">{errors.general_associated_symptoms}</p>
         )}
-      </div>
+      </QuestionCard>
 
       {/* Details textarea */}
-      <div className="space-y-2">
+      <QuestionCard compact>
         <div className="flex items-center gap-2">
           <MessageSquare className="w-4 h-4 text-muted-foreground" />
           <Label className="text-sm font-medium">
@@ -256,7 +266,7 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
             <span className="text-destructive ml-0.5">*</span>
           </Label>
         </div>
-        <p className="text-xs text-muted-foreground">
+        <p className="hidden text-xs text-muted-foreground sm:block">
           {consultCategory && CATEGORY_GUIDANCE[consultCategory]
             ? CATEGORY_GUIDANCE[consultCategory].helperText
             : "Include symptoms, duration, and any relevant history. The more detail, the better we can help."}
@@ -264,7 +274,7 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
         
         {/* Suggested topics for the selected category */}
         {consultCategory && CATEGORY_GUIDANCE[consultCategory] && (
-          <div className="flex flex-wrap gap-1.5">
+          <div className="hidden flex-wrap gap-1.5 sm:flex">
             {CATEGORY_GUIDANCE[consultCategory].suggestedTopics.map((topic) => (
               <span
                 key={topic}
@@ -284,7 +294,7 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
               ? CATEGORY_GUIDANCE[consultCategory].placeholder
               : "Describe your concern in detail..."
           }
-          className="min-h-[120px] resize-none"
+          className="min-h-[80px] resize-none"
         />
         <div className="flex justify-between text-xs">
           {errors.consultDetails ? (
@@ -296,10 +306,9 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
             {consultDetails.length} characters
           </p>
         </div>
-      </div>
 
-      {/* Urgency selection */}
-      <div className="space-y-2">
+        <div className="border-t border-border/40" />
+
         <div className="flex items-center gap-2">
           <Info className="w-4 h-4 text-muted-foreground" />
           <Label className="text-sm font-medium">How urgent is this?</Label>
@@ -333,12 +342,14 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
         {errors.consultUrgency && (
           <p className="text-xs text-destructive" role="alert" aria-live="polite">{errors.consultUrgency}</p>
         )}
-      </div>
+      </QuestionCard>
 
       {/* Continue button */}
       <Button
+        data-intake-primary-action="true"
+        data-intake-primary-label="Continue"
         onClick={handleNext}
-        className="w-full h-12"
+        className="w-full h-12 max-sm:hidden"
         disabled={!isComplete}
       >
         {isComplete ? (

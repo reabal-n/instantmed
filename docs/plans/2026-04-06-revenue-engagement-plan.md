@@ -1,5 +1,11 @@
 # Revenue & Engagement Implementation Plan
 
+> **Status: Partially superseded. Do not execute directly.** The review request
+> work exists in the current codebase, but the repeat Rx subscription nudge in
+> Task 6 is no longer aligned with the current one-off prescription checkout
+> strategy. Treat this as historical context unless a fresh product decision
+> reactivates subscription acquisition.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Implement 5 revenue/engagement features: GSC fix, abandoned checkout sequence, referral CTA in emails, review request system, Rx subscription nudge.
@@ -401,6 +407,9 @@ git commit -m "feat: add review request system — day-2 ask + day-7 followup"
 ---
 
 ### Task 6: Repeat Rx Subscription Nudge (Day 30)
+
+> **Superseded.** Do not implement this task unless subscription acquisition is
+> explicitly reactivated.
 
 **Files:**
 - Create: `components/email/templates/subscription-nudge.tsx`

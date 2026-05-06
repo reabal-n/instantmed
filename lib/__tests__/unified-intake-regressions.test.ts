@@ -31,6 +31,16 @@ const sharedMedicalHistory = {
   hasAdverseMedicationReactions: false,
 }
 
+const sharedPrescribingIdentity = {
+  medicareNumber: "1111111111",
+  medicareIrn: "2",
+  addressLine1: "12 Manual Entry Road",
+  suburb: "Sydney",
+  state: "NSW",
+  postcode: "2000",
+  sex: "M",
+}
+
 describe("unified intake regressions", () => {
   it("validates ED consults against ED fields instead of general consult fields", () => {
     const answers = {
@@ -52,6 +62,7 @@ describe("unified intake regressions", () => {
       has_conditions: "no",
       previousEdMeds: false,
       edPreference: "doctor_recommendation",
+      ...sharedPrescribingIdentity,
     }
 
     expect(validateAnswersServerSide("consult", answers, identity)).toBeNull()
@@ -73,6 +84,7 @@ describe("unified intake regressions", () => {
       has_conditions: "no",
       takes_medications: "no",
       hairMedicationPreference: "doctor_recommendation",
+      ...sharedPrescribingIdentity,
     }
 
     expect(validateAnswersServerSide("consult", answers, identity)).toBeNull()
@@ -128,6 +140,64 @@ describe("unified intake regressions", () => {
     expect(withoutPhone).toContain("details")
     expect(withPhone).not.toContain("details")
     expect(validateAnswersServerSide("consult", {}, { ...identity, phone: undefined })).toContain("Phone number is required")
+  })
+
+  it("does not skip ED or hair loss details unless prescribing identity is complete", () => {
+    const baseContext: StepContext = {
+      isAuthenticated: true,
+      hasProfile: true,
+      hasCompleteIdentity: true,
+      hasMedicare: true,
+      hasAddress: false,
+      hasPhone: true,
+      hasSex: false,
+      serviceType: "consult",
+      answers: {
+        consultSubtype: "ed",
+      },
+    }
+
+    expect(getStepsForService("consult", baseContext).map((step) => step.id)).toContain("details")
+    expect(getStepsForService("consult", {
+      ...baseContext,
+      hasAddress: true,
+      hasSex: true,
+    }).map((step) => step.id)).not.toContain("details")
+  })
+
+  it("blocks prescribing consult checkout when prescribing identity is incomplete", () => {
+    const edAnswers = {
+      consultSubtype: "ed",
+      edGoal: "improve_erections",
+      edDuration: "months",
+      edAgeConfirmed: true,
+      iief1: 3,
+      iief2: 3,
+      iief3: 3,
+      iief4: 3,
+      iief5: 3,
+      edNitrates: false,
+      edAlphaBlockers: false,
+      edRecentHeartEvent: false,
+      edSevereHeart: false,
+      takes_medications: "no",
+      has_allergies: "no",
+      has_conditions: "no",
+      previousEdMeds: false,
+      edPreference: "doctor_recommendation",
+      medicareNumber: "1111111111",
+      addressLine1: "12 Manual Entry Road",
+      suburb: "Sydney",
+      state: "NSW",
+      postcode: "2000",
+      sex: "M",
+    }
+
+    expect(validateAnswersServerSide("consult", edAnswers, identity)).toContain("IRN")
+    expect(validateAnswersServerSide("consult", {
+      ...edAnswers,
+      medicareIrn: "2",
+    }, identity)).toBeNull()
   })
 
   it("does not skip prescription details unless prescribing sex is already on profile", () => {

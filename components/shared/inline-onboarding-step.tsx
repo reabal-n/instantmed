@@ -1,8 +1,8 @@
 "use client"
-import { AlertTriangle, ArrowLeft, CreditCard, HelpCircle,Loader2, MapPin } from "lucide-react"
+import { AlertTriangle, ArrowLeft, CreditCard, HelpCircle, Loader2, MapPin } from "lucide-react"
 import { useRouter } from "next/navigation"
 import type React from "react"
-import { useRef,useState } from "react"
+import { useRef, useState } from "react"
 
 import { DataSecurityStrip } from "@/components/checkout/trust-badges"
 import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
@@ -13,11 +13,11 @@ import { Label } from "@/components/ui/label"
 import { SegmentedRadioGroup } from "@/components/ui/segmented-radio-group"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { createClient } from "@/lib/supabase/client"
-import { validatePostcodeState } from "@/lib/validation/australian-address"
+import { suggestStateFromPostcode, validatePostcodeState } from "@/lib/validation/australian-address"
 import { validateAustralianPhone } from "@/lib/validation/australian-phone"
-import { validateMedicareExpiry,validateMedicareNumber } from "@/lib/validation/medicare"
+import { validateMedicareExpiry, validateMedicareNumber } from "@/lib/validation/medicare"
 
-const STATES = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"]
+const STATES = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"] as const
 const IRNS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 const MONTHS = [
   { value: "01", label: "Jan" },
@@ -53,7 +53,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
   const [addressLine1, setAddressLine1] = useState("")
   const [addressLine2, setAddressLine2] = useState("")
   const [suburb, setSuburb] = useState("")
-  const [state, setState] = useState<string | null>(null)
+  const [state, setState] = useState<(typeof STATES)[number] | null>(null)
   const [postcode, setPostcode] = useState("")
 
   const [medicareNumber, setMedicareNumber] = useState("")
@@ -68,6 +68,43 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
   const [error, setError] = useState<string | null>(null)
 
   const firstName = userName.split(" ")[0] || "there"
+
+  const clearStepErrors = (...fields: string[]) => {
+    setErrors((prev) => {
+      const next = { ...prev }
+      fields.forEach((field) => {
+        delete next[field]
+      })
+      return next
+    })
+  }
+
+  const handleAddressLineChange = (value: string) => {
+    setAddressLine1(value)
+    clearStepErrors("addressLine1")
+
+    if (!value.trim()) {
+      setAddressLine2("")
+      setSuburb("")
+      setState(null)
+      setPostcode("")
+      clearStepErrors("suburb", "state", "postcode")
+    }
+  }
+
+  const handlePostcodeChange = (value: string) => {
+    const nextPostcode = value.replace(/\D/g, "").slice(0, 4)
+    setPostcode(nextPostcode)
+    clearStepErrors("postcode")
+
+    if (!state && nextPostcode.length === 4) {
+      const suggestedState = suggestStateFromPostcode(nextPostcode)
+      if (suggestedState) {
+        setState(suggestedState)
+        clearStepErrors("state")
+      }
+    }
+  }
 
   const validateStep1 = () => {
     const newErrors: Record<string, string> = {}
@@ -224,12 +261,13 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
             <Label className="text-sm font-medium">Address</Label>
             <AddressAutocomplete
               value={addressLine1}
-              onChange={setAddressLine1}
+              onChange={handleAddressLineChange}
               onAddressSelect={(address: AddressComponents) => {
                 setAddressLine1(address.addressLine1 || address.fullAddress)
                 setSuburb(address.suburb)
-                setState(address.state)
+                setState(address.state as (typeof STATES)[number])
                 setPostcode(address.postcode)
+                clearStepErrors("addressLine1", "suburb", "state", "postcode")
               }}
               placeholder="Start typing your address..."
               className="h-11 rounded-xl bg-white dark:bg-card border-border/40"
@@ -261,7 +299,9 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
                 placeholder="2000"
                 maxLength={4}
                 value={postcode}
-                onChange={(e) => setPostcode(e.target.value)}
+                onChange={(e) => handlePostcodeChange(e.target.value)}
+                inputMode="numeric"
+                autoComplete="postal-code"
                 className={`h-11 rounded-xl bg-white dark:bg-card border-border/40 ${errors.postcode ? "border-red-400" : ""}`}
               />
               {errors.postcode && <p className="text-xs text-red-500">{errors.postcode}</p>}
@@ -275,7 +315,10 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
                 <button
                   key={s}
                   type="button"
-                  onClick={() => setState(s)}
+                  onClick={() => {
+                    setState(s)
+                    clearStepErrors("state")
+                  }}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-[background-color,color,border-color] duration-300 ${
                     state === s
                       ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"

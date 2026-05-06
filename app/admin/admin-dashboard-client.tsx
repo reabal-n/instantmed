@@ -1,11 +1,15 @@
 "use client"
 
 import {
+  ArrowRight,
+  ClipboardList,
   Eye,
+  type LucideIcon,
   Search,
+  Stethoscope,
 } from "lucide-react"
 import Link from "next/link"
-import { useMemo,useState } from "react"
+import { useMemo, useState } from "react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -14,6 +18,12 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { UserCard } from "@/components/uix"
+import {
+  ADMIN_STATUS_PRIORITY,
+  compareAdminWorkItems,
+  getAdminWorkLaneForStatus,
+} from "@/lib/dashboard/admin-work-lanes"
+import { buildAdminIntakeHref } from "@/lib/dashboard/routes"
 import { INTAKE_STATUS, type IntakeStatus } from "@/lib/data/status"
 import { formatDate } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -34,17 +44,6 @@ function formatIntakeStatus(status: string): string {
   return labels[status] || status
 }
 
-const STATUS_PRIORITY: Record<string, number> = {
-  awaiting_script: 0,
-  pending_info: 1,
-  paid: 2,
-  in_review: 3,
-  pending_payment: 4,
-  declined: 5,
-  approved: 6,
-  completed: 7,
-}
-
 interface AdminDashboardClientProps {
   allIntakes: IntakeWithPatient[]
   totalIntakes?: number
@@ -56,6 +55,97 @@ interface AdminDashboardClientProps {
     pending_info: number
     scripts_pending: number
   }
+}
+
+function getPatient(intake: IntakeWithPatient) {
+  return intake.patient as { full_name?: string; suburb?: string; state?: string } | undefined
+}
+
+function getService(intake: IntakeWithPatient) {
+  return intake.service as { name?: string; short_name?: string; type?: string } | undefined
+}
+
+function sortByWorkPriority(intakes: IntakeWithPatient[]) {
+  return [...intakes].sort(compareAdminWorkItems)
+}
+
+function WorkLane({
+  title,
+  subtitle,
+  icon: Icon,
+  intakes,
+  empty,
+  getStatusBadge,
+}: {
+  title: string
+  subtitle: string
+  icon: LucideIcon
+  intakes: IntakeWithPatient[]
+  empty: string
+  getStatusBadge: (status: string) => string
+}) {
+  return (
+    <div className="rounded-xl border border-border/50 bg-muted/15 p-3.5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-start gap-3">
+          <span
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-primary shadow-sm shadow-primary/[0.04] dark:bg-card"
+            aria-hidden
+          >
+            <Icon className="h-4 w-4" />
+          </span>
+          <div className="min-w-0">
+            <h3 className="text-sm font-semibold tracking-tight text-foreground">{title}</h3>
+            <p className="mt-0.5 text-xs leading-5 text-muted-foreground">{subtitle}</p>
+          </div>
+        </div>
+        <span className="rounded-full border border-border/50 bg-white px-2.5 py-1 text-xs font-semibold tabular-nums text-foreground dark:bg-card">
+          {intakes.length}
+        </span>
+      </div>
+
+      <div className="mt-3 overflow-hidden rounded-lg border border-border/50 bg-white dark:bg-card">
+        {intakes.length > 0 ? (
+          <div className="divide-y divide-border/50">
+            {intakes.slice(0, 5).map((intake) => {
+              const patient = getPatient(intake)
+              const service = getService(intake)
+
+              return (
+                <Link
+                  key={intake.id}
+                  href={buildAdminIntakeHref(intake.id)}
+                  className="group flex items-center justify-between gap-3 px-3 py-2.5 transition-colors hover:bg-muted/35"
+                >
+                  <div className="min-w-0">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {patient?.full_name || "Unknown patient"}
+                      </p>
+                      <Badge className={cn("shrink-0 text-[11px]", getStatusBadge(intake.status))}>
+                        {formatIntakeStatus(intake.status)}
+                      </Badge>
+                    </div>
+                    <p className="mt-1 truncate text-xs text-muted-foreground">
+                      {service?.short_name || service?.name || "Request"} - {formatDate(intake.created_at)}
+                    </p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground opacity-60 transition-[opacity,transform] group-hover:translate-x-0.5 group-hover:opacity-100" />
+                </Link>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="px-4 py-8 text-center">
+            <p className="text-sm font-medium text-foreground">{empty}</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Nothing waiting here. Take the win.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }
 
 export function AdminDashboardClient({
@@ -86,11 +176,24 @@ export function AdminDashboardClient({
       })
       .sort((a, b) => {
         const priorityDelta =
-          (STATUS_PRIORITY[a.status] ?? 99) - (STATUS_PRIORITY[b.status] ?? 99)
+          (ADMIN_STATUS_PRIORITY[a.status] ?? 99) - (ADMIN_STATUS_PRIORITY[b.status] ?? 99)
         if (priorityDelta !== 0) return priorityDelta
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       })
   }, [allIntakes, searchQuery, statusFilter, serviceFilter])
+
+  const doctorWorkIntakes = useMemo(
+    () => sortByWorkPriority(
+      allIntakes.filter((intake) => getAdminWorkLaneForStatus(intake.status) === "doctor"),
+    ),
+    [allIntakes],
+  )
+  const adminWorkIntakes = useMemo(
+    () => sortByWorkPriority(
+      allIntakes.filter((intake) => getAdminWorkLaneForStatus(intake.status) === "admin"),
+    ),
+    [allIntakes],
+  )
 
   const getStatusBadge = (status: string) => {
     return INTAKE_STATUS[status as IntakeStatus]?.color ?? "bg-muted text-foreground"
@@ -127,6 +230,25 @@ export function AdminDashboardClient({
           </div>
         </CardHeader>
         <CardContent className="px-4 py-4">
+          <div className="mb-4 grid gap-3 lg:grid-cols-2">
+            <WorkLane
+              title="Doctor work"
+              subtitle="Clinical review, prescriptions, and requests waiting on medical judgement."
+              icon={Stethoscope}
+              intakes={doctorWorkIntakes}
+              empty="No clinical work waiting."
+              getStatusBadge={getStatusBadge}
+            />
+            <WorkLane
+              title="Admin work"
+              subtitle="Payment friction, patient follow-up, disputes, and the small stuff that blocks flow."
+              icon={ClipboardList}
+              intakes={adminWorkIntakes}
+              empty="No admin loose ends."
+              getStatusBadge={getStatusBadge}
+            />
+          </div>
+
           <div className="mb-4 grid gap-3 md:flex md:flex-wrap">
             <div className="min-w-0 md:min-w-[200px] md:flex-1">
               <Input
@@ -173,7 +295,7 @@ export function AdminDashboardClient({
                   return (
                     <Link
                       key={intake.id}
-                      href={`/admin/intakes/${intake.id}`}
+                      href={buildAdminIntakeHref(intake.id)}
                       className="block bg-card p-3 transition-colors hover:bg-muted/35"
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -257,7 +379,7 @@ export function AdminDashboardClient({
                         </TableCell>
                         <TableCell className="text-right">
                           <Button variant="ghost" size="sm" asChild>
-                            <Link href={`/admin/intakes/${intake.id}`}>
+                            <Link href={buildAdminIntakeHref(intake.id)}>
                               <Eye className="h-4 w-4 mr-1" />
                               View
                             </Link>

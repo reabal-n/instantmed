@@ -7,7 +7,7 @@
 export interface PlaceSuggestion {
   /** Human-readable address string */
   description: string
-  /** Google Place ID for detail lookup */
+  /** Provider-specific place/address ID for detail lookup */
   place_id: string
   /** Main text (street address) */
   main_text: string
@@ -176,8 +176,8 @@ function parseGooglePlaceResult(result: {
 }
 
 /**
- * Generate a session token for Google Places billing optimization.
- * A session groups autocomplete + detail requests into one billing event.
+ * Generate a session token for address provider billing/session optimization.
+ * A session groups autocomplete + detail requests into one lookup flow.
  */
 export function generateSessionToken(): string {
   return crypto.randomUUID()

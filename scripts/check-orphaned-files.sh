@@ -5,6 +5,8 @@
 #   1. Intake step files not registered in step-registry.ts
 #   2. Files under deleted route groups (/flow/)
 #   3. @deprecated modules with zero imports
+#   4. Superseded legacy intake engines that should not return
+#   5. Retired subscription acquisition files
 #
 # Exit 1 if any orphans found.
 
@@ -78,7 +80,31 @@ while IFS= read -r deprecated_file; do
   fi
 done < <(grep -rl --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.worktrees "@deprecated" --include="*.ts" --include="*.tsx" . 2>/dev/null)
 
-# ── 4. Stale worktree directories ────────────────────────────────────────
+# ── 4. Superseded intake engines ──────────────────────────────────────────
+for legacy_intake_module in \
+  "lib/intake/flow-configs.ts" \
+  "lib/intake/flow-engine.ts" \
+  "lib/intake/chat-flow-v2.ts"
+do
+  if [[ -e "$legacy_intake_module" ]]; then
+    echo "ORPHAN: $legacy_intake_module still exists (superseded by lib/request/step-registry.ts and current AI intake routes)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 5. Retired subscription acquisition files ─────────────────────────────
+for retired_subscription_file in \
+  "app/api/cron/subscription-nudge/route.ts" \
+  "lib/email/subscription-nudge.ts" \
+  "components/email/templates/subscription-nudge.tsx"
+do
+  if [[ -e "$retired_subscription_file" ]]; then
+    echo "ORPHAN: $retired_subscription_file still exists (repeat-Rx subscription acquisition is retired)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 6. Stale worktree directories ────────────────────────────────────────
 if [[ -d ".worktrees" ]]; then
   # registered = total git worktrees (includes main worktree, so subtract 1 for linked count)
   registered_total=$(git worktree list --porcelain 2>/dev/null | grep "^worktree " | wc -l | tr -d ' ')

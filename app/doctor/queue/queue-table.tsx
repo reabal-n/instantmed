@@ -43,7 +43,6 @@ import { buildPatientSnapshot, getPatientSnapshotOptionsForCase } from "@/lib/do
 import { getQueueEnteredAt, getQueueStatusMeta } from "@/lib/doctor/queue-utils"
 import { prefetchReviewData } from "@/lib/doctor/review-data-cache"
 import { SERVICE_TYPES } from "@/lib/doctor/service-types"
-import { calculateAge } from "@/lib/format"
 import { formatServiceType } from "@/lib/format/intake"
 import { cn } from "@/lib/utils"
 import type { IntakeWithPatient } from "@/types/db"
@@ -195,14 +194,16 @@ export function QueueTable({
             const isFocused = expandedId === intake.id
             const queueEnteredAt = getQueueEnteredAt(intake)
             const waitSeverity = getWaitTimeSeverity(queueEnteredAt, intake.sla_deadline)
-            const patientAge = calculateAge(intake.patient.date_of_birth)
             const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
+            const answers = (intake.answers as Array<{ answers: Record<string, unknown> }> | null | undefined)?.[0]?.answers
             const patientSnapshot = buildPatientSnapshot(intake.patient, {
               ...getPatientSnapshotOptionsForCase({
+                answers,
                 category: intake.category,
                 serviceType: service?.type,
                 subtype: intake.subtype,
               }),
+              answers,
             })
             const statusMeta = getQueueStatusMeta(intake.status)
             const paidAt = formatQueueTimestamp(intake.paid_at)
@@ -242,7 +243,7 @@ export function QueueTable({
                 <div className="col-start-1 row-start-1 min-w-0 sm:shrink-0">
                   <UserCard
                     name={patientSnapshot.name}
-                    description={patientAge != null ? `${patientAge}y` : "DOB missing"}
+                    description={patientSnapshot.age != null ? `${patientSnapshot.age}y` : "DOB missing"}
                     size="sm"
                   />
                   {chiefComplaint && (

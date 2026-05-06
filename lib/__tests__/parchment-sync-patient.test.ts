@@ -109,4 +109,51 @@ describe("getParchmentPatientIdentityIssues", () => {
     expect(payload.email).toBe("fallback@example.com")
     expect(payload.phone).toBe("0412074190")
   })
+
+  it("uses active intake answers before stale profile fields in Parchment payloads", () => {
+    const payload = buildUpdatePatientRequest(baseProfile, {
+      email: "current@example.com",
+      mobilePhone: "04 1207 4190",
+      medicareNumber: "2123456701",
+      medicareIrn: "4",
+      medicareExpiry: "2030-06-01",
+      sex: "F",
+      addressLine1: "Unit 2, 21 Kent Road",
+      suburb: "Dapto",
+      state: "NSW",
+      postcode: "2530",
+    })
+
+    expect(payload.email).toBe("current@example.com")
+    expect(payload.phone).toBe("0412074190")
+    expect(payload.sex).toBe("F")
+    expect(payload.medicare_card_number).toBe("2123456701")
+    expect(payload.medicare_irn).toBe("4")
+    expect(payload.medicare_valid_to).toBe("2030-06-01")
+    expect(payload.australian_address).toMatchObject({
+      street_number: "2/21",
+      street_name: "Kent Road",
+      suburb: "Dapto",
+      state: "NSW",
+      postcode: "2530",
+    })
+  })
+
+  it("does not mix a partial intake address with stale profile address fragments before Parchment sync", () => {
+    expect(getParchmentPatientIdentityIssues(baseProfile, {
+      addressLine1: "Unit 2, 21 Kent Road",
+    })).toEqual(["Address suburb", "Address state", "Address postcode"])
+
+    const payload = buildUpdatePatientRequest(baseProfile, {
+      addressLine1: "Unit 2, 21 Kent Road",
+    })
+
+    expect(payload.australian_address).toMatchObject({
+      street_number: "2/21",
+      street_name: "Kent Road",
+    })
+    expect(payload.australian_address?.suburb).toBeUndefined()
+    expect(payload.australian_address?.state).toBeUndefined()
+    expect(payload.australian_address?.postcode).toBeUndefined()
+  })
 })

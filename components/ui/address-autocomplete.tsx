@@ -1,7 +1,7 @@
 "use client"
 
-import { AlertTriangle, CheckCircle,Loader2, MapPin } from "lucide-react"
-import { useCallback, useEffect,useRef, useState } from "react"
+import { AlertTriangle, CheckCircle, Loader2, MapPin } from "lucide-react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import { Input } from "@/components/ui/input"
 import {
@@ -23,10 +23,12 @@ export interface AddressComponents {
   fullAddress: string
   addressLine1?: string
   addressLine2?: string | null
-  /** True if address was selected from Google Places */
+  /** True if address was selected from a verified address provider */
   isVerified?: boolean
-  /** Google Place ID for audit trail */
+  /** Provider place/address ID for audit trail */
   pxid?: string
+  /** Provider place/address ID for audit trail */
+  providerPlaceId?: string
 }
 
 interface AddressAutocompleteProps {
@@ -41,6 +43,8 @@ interface AddressAutocompleteProps {
   requireVerified?: boolean
   /** Callback when verification status changes */
   onVerificationChange?: (isVerified: boolean) => void
+  /** Called when the patient explicitly chooses to enter a manual address */
+  onManualEntry?: () => void
 }
 
 export function AddressAutocomplete({
@@ -53,17 +57,22 @@ export function AddressAutocomplete({
   disabled,
   requireVerified = false,
   onVerificationChange,
+  onManualEntry,
 }: AddressAutocompleteProps) {
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([])
   const [isSearching, setIsSearching] = useState(false)
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const [isVerified, setIsVerified] = useState(false)
   const [lastSelectedPlaceId, setLastSelectedPlaceId] = useState<string | null>(null)
+  const [isManualEntry, setIsManualEntry] = useState(false)
+  const [lookupMessage, setLookupMessage] = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const lastSearchRef = useRef<string>("")
   const sessionTokenRef = useRef<string>(generateSessionToken())
+  const listboxIdRef = useRef(`address-suggestions-${generateSessionToken()}`)
 
   const debouncedValue = useDebounce(value, 300)
   const shouldSearch = debouncedValue && debouncedValue.length >= 3
@@ -74,6 +83,7 @@ export function AddressAutocomplete({
       setSuggestions([])
       setIsOpen(false)
       setIsSearching(false)
+      setLookupMessage(null)
       return
     }
 
@@ -81,6 +91,7 @@ export function AddressAutocomplete({
     lastSearchRef.current = searchValue
 
     setIsSearching(true)
+    setLookupMessage(null)
     const results = await searchAddresses(searchValue, {
       sessionToken: sessionTokenRef.current,
     })
@@ -111,17 +122,14 @@ export function AddressAutocomplete({
     })()
   }, [debouncedValue, shouldSearch, doSearch])
 
-  // Handle selection from Google Places
+  // Handle selection from the configured address provider.
   const handleSelect = useCallback(
     async (suggestion: PlaceSuggestion) => {
       setIsOpen(false)
       setSuggestions([])
       onChange(suggestion.description)
-
-      // Mark as verified since user selected from Google Places
-      setIsVerified(true)
-      setLastSelectedPlaceId(suggestion.place_id)
-      onVerificationChange?.(true)
+      setIsLoadingDetails(true)
+      setLookupMessage(null)
 
       // Fetch full place details (this completes the session for billing)
       const details = await getPlaceDetails(
@@ -131,8 +139,13 @@ export function AddressAutocomplete({
 
       // Generate a new session token for the next autocomplete flow
       sessionTokenRef.current = generateSessionToken()
+      setIsLoadingDetails(false)
 
       if (details) {
+        setIsVerified(true)
+        setIsManualEntry(false)
+        setLastSelectedPlaceId(suggestion.place_id)
+        onVerificationChange?.(true)
         onAddressSelect({
           streetNumber: "",
           streetName: "",
@@ -145,8 +158,16 @@ export function AddressAutocomplete({
           addressLine2: details.addressLine2,
           isVerified: true,
           pxid: suggestion.place_id,
+          providerPlaceId: suggestion.place_id,
         })
+        return
       }
+
+      setIsVerified(false)
+      setIsManualEntry(true)
+      setLastSelectedPlaceId(null)
+      setLookupMessage("We could not confirm that address. Enter it manually below.")
+      onVerificationChange?.(false)
     },
     [onChange, onAddressSelect, onVerificationChange]
   )
@@ -170,7 +191,7 @@ export function AddressAutocomplete({
         case "Enter":
           e.preventDefault()
           if (highlightedIndex >= 0 && highlightedIndex < suggestions.length) {
-            handleSelect(suggestions[highlightedIndex])
+            void handleSelect(suggestions[highlightedIndex])
           }
           break
         case "Escape":
@@ -202,6 +223,10 @@ export function AddressAutocomplete({
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value
       onChange(newValue)
+      setLookupMessage(null)
+      if (!newValue.trim()) {
+        setIsManualEntry(false)
+      }
 
       // If user is manually editing after selecting, invalidate verification
       if (isVerified && lastSelectedPlaceId) {
@@ -213,9 +238,26 @@ export function AddressAutocomplete({
     [onChange, isVerified, lastSelectedPlaceId, onVerificationChange]
   )
 
+  const handleManualEntry = useCallback(() => {
+    setIsOpen(false)
+    setHasSearched(false)
+    setSuggestions([])
+    setHighlightedIndex(-1)
+    setIsVerified(false)
+    setIsManualEntry(true)
+    setLastSelectedPlaceId(null)
+    setLookupMessage("Manual address entry is ready below.")
+    onVerificationChange?.(false)
+    onManualEntry?.()
+  }, [onManualEntry, onVerificationChange])
+
   // Determine if we should show verification warning
   const showVerificationWarning =
-    requireVerified && value.length > 0 && !isVerified && !isSearching
+    requireVerified && value.length > 0 && !isVerified && !isManualEntry && !isSearching && !isLoadingDetails
+  const activeDescendant =
+    highlightedIndex >= 0 && suggestions[highlightedIndex]
+      ? `${listboxIdRef.current}-${suggestions[highlightedIndex].place_id}`
+      : undefined
 
   return (
     <div ref={containerRef} className="relative">
@@ -236,10 +278,12 @@ export function AddressAutocomplete({
         autoComplete="off"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
+        aria-controls={listboxIdRef.current}
+        aria-activedescendant={activeDescendant}
         role="combobox"
         startContent={<MapPin className="h-4 w-4 text-muted-foreground" />}
         endContent={
-          isSearching ? (
+          isSearching || isLoadingDetails ? (
             <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
           ) : isVerified ? (
             <CheckCircle className="h-4 w-4 text-green-500" />
@@ -256,25 +300,36 @@ export function AddressAutocomplete({
           Please select an address from the suggestions
         </p>
       )}
+      {lookupMessage && (
+        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+          <AlertTriangle className="h-3 w-3 text-amber-500" />
+          {lookupMessage}
+        </p>
+      )}
 
       {/* Suggestions dropdown */}
       {isOpen && suggestions.length > 0 && (
         <ul
+          id={listboxIdRef.current}
           role="listbox"
-          className="absolute z-50 w-full mt-1 bg-card/95 dark:bg-white/10 backdrop-blur-xl border border-border/50 dark:border-white/10 rounded-xl shadow-lg max-h-60 overflow-auto"
+          className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-border/50 bg-white shadow-lg shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none"
         >
           {suggestions.map((suggestion, index) => (
             <li
+              id={`${listboxIdRef.current}-${suggestion.place_id}`}
               key={suggestion.place_id}
               role="option"
               aria-selected={index === highlightedIndex}
               className={cn(
-                "px-4 py-3 cursor-pointer text-sm transition-colors",
+                "cursor-pointer px-4 py-3 text-sm transition-colors",
                 index === highlightedIndex
                   ? "bg-primary/10 text-primary"
                   : "hover:bg-muted"
               )}
-              onClick={() => handleSelect(suggestion)}
+              onMouseDown={(event) => {
+                event.preventDefault()
+                void handleSelect(suggestion)
+              }}
               onMouseEnter={() => setHighlightedIndex(index)}
             >
               <div className="flex items-start gap-2">
@@ -297,23 +352,36 @@ export function AddressAutocomplete({
       {/* No results state */}
       {!isOpen &&
         !isSearching &&
+        !isLoadingDetails &&
         hasSearched &&
         suggestions.length === 0 &&
         value.length >= 3 &&
         !isVerified && (
-          <div className="absolute z-50 w-full mt-1 bg-card/95 dark:bg-white/10 backdrop-blur-xl border border-border/50 dark:border-white/10 rounded-xl shadow-lg px-4 py-3">
-        <p className="text-sm text-muted-foreground text-center">
-          No verified match found. Enter the address manually below.
-        </p>
+          <div className="absolute z-50 mt-1 w-full rounded-xl border border-border/50 bg-white px-4 py-3 shadow-lg shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none">
+            <div className="space-y-2 text-center">
+              <p className="text-sm text-muted-foreground">
+                No verified match found.
+              </p>
+              <button
+                type="button"
+                className="inline-flex h-9 items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                onMouseDown={(event) => {
+                  event.preventDefault()
+                  handleManualEntry()
+                }}
+              >
+                Use manual address
+              </button>
+            </div>
           </div>
         )}
 
       {/* Loading state during search */}
-      {isSearching && value.length >= 3 && (
-        <div className="absolute z-50 w-full mt-1 bg-card/95 dark:bg-white/10 backdrop-blur-xl border border-border/50 dark:border-white/10 rounded-xl shadow-lg px-4 py-3">
+      {(isSearching || isLoadingDetails) && value.length >= 3 && (
+        <div className="absolute z-50 mt-1 w-full rounded-xl border border-border/50 bg-white px-4 py-3 shadow-lg shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
-            <span>Searching addresses...</span>
+            <span>{isLoadingDetails ? "Confirming address..." : "Searching addresses..."}</span>
           </div>
         </div>
       )}

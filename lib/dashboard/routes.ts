@@ -2,8 +2,20 @@ export const PATIENT_DASHBOARD_HREF = "/patient" as const
 export const DOCTOR_DASHBOARD_HREF = "/doctor/dashboard" as const
 export const ADMIN_DASHBOARD_HREF = "/admin" as const
 export const ADMIN_INTAKE_LEDGER_HREF = "/admin#intakes" as const
+export const ADMIN_ANALYTICS_HREF = "/admin/analytics" as const
+export const ADMIN_FINANCE_HREF = "/admin/finance" as const
+export const ADMIN_OPS_HREF = "/admin/ops" as const
+export const ADMIN_SETTINGS_HREF = "/admin/settings" as const
+export const ADMIN_EMAIL_HUB_HREF = "/admin/emails/hub" as const
+export const ADMIN_REFUNDS_HREF = "/admin/refunds" as const
+export const ADMIN_WEBHOOK_DLQ_HREF = "/admin/webhook-dlq" as const
+export const ADMIN_PARCHMENT_OPS_HREF = "/admin/ops/parchment" as const
 export const ADMIN_STALE_INTAKES_HREF = "/admin/ops/intakes-stuck" as const
 export const ADMIN_PATIENT_MERGE_AUDIT_HREF = "/admin/ops/patient-merge-audit" as const
+
+export function buildAdminIntakeHref(intakeId: string): string {
+  return `/admin/intakes/${encodeURIComponent(intakeId)}`
+}
 
 export const QUEUE_STATUS_FILTERS = ["all", "review", "pending_info", "scripts"] as const
 export type QueueStatusFilter = (typeof QUEUE_STATUS_FILTERS)[number]

@@ -103,9 +103,11 @@ export default function WomensHealthTypeStep({ onNext }: WomensHealthTypeStepPro
 
       {/* Continue button */}
       <Button
+        data-intake-primary-action="true"
+        data-intake-primary-label="Continue"
         onClick={handleNext}
         disabled={!womensHealthOption}
-        className="w-full h-12 text-base font-medium"
+        className="w-full h-12 text-base font-medium max-sm:hidden"
       >
         Continue
       </Button>

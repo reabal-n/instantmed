@@ -23,9 +23,9 @@ import { ButtonSpinner } from "@/components/ui/skeleton"
 import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/uix"
 import { cn } from "@/lib/utils"
-import { validatePostcodeState } from "@/lib/validation/australian-address"
+import { suggestStateFromPostcode, validatePostcodeState } from "@/lib/validation/australian-address"
 import { validateAustralianPhone } from "@/lib/validation/australian-phone"
-import { validateMedicareExpiry,validateMedicareNumber } from "@/lib/validation/medicare"
+import { validateMedicareExpiry, validateMedicareNumber } from "@/lib/validation/medicare"
 import type { AustralianState } from "@/types/db"
 
 import type { ProfileData } from "./profile-todo-card"
@@ -173,6 +173,42 @@ export function AddressDrawerContent({ profileData }: AddressDrawerProps) {
     return Object.keys(errs).length === 0
   }
 
+  const clearFieldErrors = (...fields: string[]) => {
+    setErrors((prev) => {
+      const next = { ...prev }
+      fields.forEach((field) => {
+        delete next[field]
+      })
+      return next
+    })
+  }
+
+  const handleAddressLineChange = (value: string) => {
+    setAddressLine1(value)
+    clearFieldErrors("addressLine1", "general")
+
+    if (!value.trim()) {
+      setSuburb("")
+      setState(null)
+      setPostcode("")
+      clearFieldErrors("suburb", "state", "postcode")
+    }
+  }
+
+  const handlePostcodeChange = (value: string) => {
+    const nextPostcode = value.replace(/\D/g, "").slice(0, 4)
+    setPostcode(nextPostcode)
+    clearFieldErrors("postcode", "general")
+
+    if (!state && nextPostcode.length === 4) {
+      const suggestedState = suggestStateFromPostcode(nextPostcode)
+      if (suggestedState) {
+        setState(suggestedState)
+        clearFieldErrors("state")
+      }
+    }
+  }
+
   const handleSave = async () => {
     if (!validate() || !state) return
 
@@ -221,7 +257,7 @@ export function AddressDrawerContent({ profileData }: AddressDrawerProps) {
         </label>
         <AddressAutocomplete
           value={addressLine1}
-          onChange={setAddressLine1}
+          onChange={handleAddressLineChange}
           onAddressSelect={(address: AddressComponents) => {
             setAddressLine1(address.addressLine1 || address.fullAddress)
             setSuburb(address.suburb)
@@ -291,7 +327,9 @@ export function AddressDrawerContent({ profileData }: AddressDrawerProps) {
           placeholder="2000"
           maxLength={4}
           value={postcode}
-          onChange={(e) => setPostcode(e.target.value)}
+          onChange={(e) => handlePostcodeChange(e.target.value)}
+          inputMode="numeric"
+          autoComplete="postal-code"
           className={cn("h-12 w-32", errors.postcode && "input-error")}
         />
         {errors.postcode && (

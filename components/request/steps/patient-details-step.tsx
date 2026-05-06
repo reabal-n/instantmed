@@ -11,10 +11,11 @@
  * - Keyboard navigation (Enter to continue)
  */
 
-import { ArrowRight,Calendar, CreditCard, EyeOff, Lock, Mail, MapPin, Phone, Sparkles, User, Users } from "lucide-react"
-import { useCallback, useEffect, useMemo,useState } from "react"
+import { ArrowRight, Calendar, CreditCard, EyeOff, Lock, Mail, MapPin, Phone, Sparkles, User, Users } from "lucide-react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { usePostHog } from "@/components/providers/posthog-provider"
+import { IntakeStepIntro } from "@/components/request/shared/intake-step-primitives"
 import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -24,13 +25,72 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { setEnhancedConversionsData } from "@/lib/analytics/conversion-tracking"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { getSavedIdentity, saveIdentity } from "@/lib/request/preferences"
+import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing-identity"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
-import { validateDOB, validateEmail, validateName,validatePhone } from "@/lib/request/validation"
+import { validateDOB, validateEmail, validateName, validatePhone } from "@/lib/request/validation"
 import { cn } from "@/lib/utils"
+import { suggestStateFromPostcode, validatePostcodeState } from "@/lib/validation/australian-address"
 import { formatMedicareNumber, validateMedicareNumber } from "@/lib/validation/medicare"
 
 import { FormField } from "../form-field"
 import { useRequestStore } from "../store"
+
+const DATE_OF_BIRTH_PLACEHOLDER = "DD/MM/YYYY"
+const AU_DATE_PATTERN = /^(\d{2})\/(\d{2})\/(\d{4})$/
+const ISO_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/
+const AUSTRALIAN_STATES = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"] as const
+
+function formatIsoDateToAu(isoDate: string) {
+  const match = ISO_DATE_PATTERN.exec(isoDate)
+  if (!match) return isoDate
+  const [, year, month, day] = match
+  return `${day}/${month}/${year}`
+}
+
+function normaliseDateOfBirthInput(value: string) {
+  const trimmed = value.trim()
+  const isoMatch = ISO_DATE_PATTERN.exec(trimmed)
+  if (isoMatch) {
+    return formatIsoDateToAu(trimmed)
+  }
+
+  const digits = trimmed.replace(/\D/g, "").slice(0, 8)
+  const day = digits.slice(0, 2)
+  const month = digits.slice(2, 4)
+  const year = digits.slice(4, 8)
+  return [day, month, year].filter(Boolean).join("/")
+}
+
+function parseDateOfBirthInput(value: string) {
+  const match = AU_DATE_PATTERN.exec(value)
+  if (!match) return null
+
+  const [, dayString, monthString, yearString] = match
+  const day = Number(dayString)
+  const month = Number(monthString)
+  const year = Number(yearString)
+  const date = new Date(Date.UTC(year, month - 1, day))
+
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    return null
+  }
+
+  return `${yearString}-${monthString}-${dayString}`
+}
+
+function validateDateOfBirthInput(displayValue: string, isoValue: string | undefined) {
+  const value = displayValue.trim()
+  if (!value) return "Date of birth is required"
+  if (value.length < DATE_OF_BIRTH_PLACEHOLDER.length) return `Enter your date of birth as ${DATE_OF_BIRTH_PLACEHOLDER}`
+
+  const parsed = parseDateOfBirthInput(value)
+  if (!parsed) return "Please enter a valid date of birth"
+  return validateDOB(isoValue || parsed)
+}
 
 interface PatientDetailsStepProps {
   serviceType: UnifiedServiceType
@@ -46,6 +106,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [showAutofillBanner, setShowAutofillBanner] = useState(false)
   const [savedData, setSavedData] = useState<ReturnType<typeof getSavedIdentity>>(undefined)
+  const [dobInput, setDobInput] = useState(() => formatIsoDateToAu(dob))
   
   // Address state from answers
   const addressLine1 = (answers.addressLine1 as string) || ""
@@ -71,6 +132,12 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       setAnswer("bmi", bmi ?? "")
     }
   }, [bmi, consultSubtype, setAnswer])
+
+  useEffect(() => {
+    if (dob) {
+      setDobInput(formatIsoDateToAu(dob))
+    }
+  }, [dob])
 
   // Check for saved identity on mount
   useEffect(() => {
@@ -112,17 +179,60 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   
   const handleAddressSelect = (address: AddressComponents) => {
     setAnswer("addressLine1", address.addressLine1 || address.fullAddress)
+    setAnswer("addressLine2", address.addressLine2 || "")
     setAnswer("suburb", address.suburb)
     setAnswer("state", address.state)
     setAnswer("postcode", address.postcode)
     setAnswer("addressVerified", address.isVerified || false)
+    setAnswer("addressProviderPlaceId", address.providerPlaceId || address.pxid || "")
+    setErrors((prev) => {
+      const {
+        addressLine1: _addressLine1,
+        suburb: _suburb,
+        state: _state,
+        postcode: _postcode,
+        ...rest
+      } = prev
+      return rest
+    })
+  }
+
+  const handleAddressLineChange = (value: string) => {
+    setAnswer("addressLine1", value)
+    setAnswer("addressVerified", false)
+    setAnswer("addressProviderPlaceId", "")
+
+    if (!value.trim()) {
+      setAnswer("addressLine2", "")
+      setAnswer("suburb", "")
+      setAnswer("state", "")
+      setAnswer("postcode", "")
+    }
+  }
+
+  const handleManualAddressEntry = () => {
+    setAnswer("addressVerified", false)
+    setAnswer("addressProviderPlaceId", "")
+    setTouched((prev) => ({
+      ...prev,
+      addressLine1: true,
+      suburb: true,
+      state: true,
+      postcode: true,
+    }))
   }
 
   const needsPhone = serviceType === 'prescription' || serviceType === 'repeat-script' || serviceType === 'consult'
-  const needsPrescriptionDetails = serviceType === 'prescription' || serviceType === 'repeat-script'
+  const needsPrescriptionDetails = requiresPrescribingIdentityForRequest({
+    serviceType,
+    subtype: consultSubtype,
+  })
   // Show address for prescriptions (required by prescribing software) and consults
   const showAddress = serviceType !== 'med-cert'
   const addressRequired = needsPrescriptionDetails
+  const addressStarted = Boolean(addressLine1.trim() || suburb.trim() || state || postcode.trim())
+  const addressNeedsCompletion = addressRequired || addressStarted
+  const showManualAddressFields = addressRequired || addressStarted
 
   // Real-time validation on blur
   const validateField = useCallback((field: string, value: string | undefined) => {
@@ -139,7 +249,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         error = validateEmail(value)
         break
       case 'dob':
-        error = validateDOB(value)
+        error = validateDateOfBirthInput(dobInput, value)
         break
       case 'phone':
         error = validatePhone(value, needsPhone)
@@ -158,23 +268,26 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         }
         break
       case 'addressLine1':
-        if (addressRequired && !value?.trim()) {
-          error = 'Your address is needed to issue the prescription'
+        if (addressNeedsCompletion && !value?.trim()) {
+          error = addressRequired ? 'Your address is needed to issue the prescription' : 'Street address is required'
         }
         break
       case 'suburb':
-        if (addressRequired && !value?.trim()) {
-          error = 'Suburb is required to issue the prescription'
+        if (addressNeedsCompletion && !value?.trim()) {
+          error = 'Suburb is required'
         }
         break
       case 'state':
-        if (addressRequired && !value?.trim()) {
-          error = 'State is required to issue the prescription'
+        if (addressNeedsCompletion && !value?.trim()) {
+          error = 'State is required'
         }
         break
       case 'postcode':
-        if (addressRequired && !/^\d{4}$/.test(value || "")) {
+        if (addressNeedsCompletion && !/^\d{4}$/.test(value || "")) {
           error = 'Enter a valid 4-digit postcode'
+        } else if (addressNeedsCompletion && value && state) {
+          const result = validatePostcodeState(value, state as (typeof AUSTRALIAN_STATES)[number])
+          error = result.valid ? null : (result.error || "Postcode does not match state")
         }
         break
     }
@@ -188,11 +301,40 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
     })
 
     return error === null
-  }, [needsPhone, needsPrescriptionDetails, addressRequired])
+  }, [dobInput, needsPhone, needsPrescriptionDetails, addressNeedsCompletion, addressRequired, state])
   
   const handleBlur = (field: string, value: string | undefined) => {
     setTouched(prev => ({ ...prev, [field]: true }))
     validateField(field, value)
+  }
+
+  const handleDateOfBirthChange = (value: string) => {
+    const nextValue = normaliseDateOfBirthInput(value)
+    setDobInput(nextValue)
+
+    const parsedDate = parseDateOfBirthInput(nextValue)
+    setIdentity({ dob: parsedDate || "" })
+
+    if (touched.dob) {
+      const error = validateDateOfBirthInput(nextValue, parsedDate || undefined)
+      setErrors((prev) => {
+        if (error) return { ...prev, dob: error }
+        const { dob: _, ...rest } = prev
+        return rest
+      })
+    }
+  }
+
+  const focusFirstError = () => {
+    requestAnimationFrame(() => {
+      const firstError = document.querySelector<HTMLElement>(
+        '[aria-invalid="true"], [data-error="true"]'
+      )
+      if (!firstError) return
+
+      firstError.scrollIntoView({ block: "center", behavior: "smooth" })
+      firstError.focus({ preventScroll: true })
+    })
   }
 
   const validate = () => {
@@ -207,13 +349,16 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
     const emailError = validateEmail(email)
     if (emailError) newErrors.email = emailError
     
-    const dobError = validateDOB(dob)
+    const dobError = validateDateOfBirthInput(dobInput, dob)
     if (dobError) newErrors.dob = dobError
     
     const phoneError = validatePhone(phone, needsPhone)
     if (phoneError) newErrors.phone = phoneError
 
     if (needsPrescriptionDetails) {
+      if (!sex) {
+        newErrors.sex = 'Select your sex'
+      }
       if (!medicareNumber.trim()) {
         newErrors.medicareNumber = 'Your Medicare number is needed to issue the prescription'
       } else {
@@ -223,17 +368,25 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       if (!/^[1-9]$/.test(medicareIrn)) {
         newErrors.medicareIrn = 'Select your Medicare IRN'
       }
+    }
+
+    if (addressNeedsCompletion) {
       if (!addressLine1.trim()) {
-        newErrors.addressLine1 = 'Your address is needed to issue the prescription'
+        newErrors.addressLine1 = addressRequired ? 'Your address is needed to issue the prescription' : 'Street address is required'
       }
       if (!suburb.trim()) {
-        newErrors.suburb = 'Suburb is required to issue the prescription'
+        newErrors.suburb = 'Suburb is required'
       }
       if (!state.trim()) {
-        newErrors.state = 'State is required to issue the prescription'
+        newErrors.state = 'State is required'
       }
       if (!/^\d{4}$/.test(postcode)) {
         newErrors.postcode = 'Enter a valid 4-digit postcode'
+      } else if (state) {
+        const result = validatePostcodeState(postcode, state as (typeof AUSTRALIAN_STATES)[number])
+        if (!result.valid) {
+          newErrors.postcode = result.error || "Postcode does not match state"
+        }
       }
     }
 
@@ -252,7 +405,9 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       postcode: true,
       sex: true,
     })
-    return Object.keys(newErrors).length === 0
+    const isValid = Object.keys(newErrors).length === 0
+    if (!isValid) focusFirstError()
+    return isValid
   }
 
   const handleNext = () => {
@@ -284,24 +439,17 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       }
       posthog?.capture('step_completed', { step: 'details', service_type: serviceType })
       onNext()
-    } else {
-      // Move AT focus to the first invalid field so screen readers announce
-      // it and keyboard users don't have to re-tab. focus() scrolls into view
-      // by default, so no separate scroll call needed.
-      requestAnimationFrame(() => {
-        const firstError = document.querySelector<HTMLElement>(
-          '[aria-invalid="true"], [data-error="true"]'
-        )
-        firstError?.focus({ preventScroll: false })
-      })
     }
   }
 
-  const addressComplete = !addressRequired || (addressLine1 && suburb && state && postcode)
+  const addressComplete = !addressNeedsCompletion || (addressLine1 && suburb && state && postcode)
   const medicareComplete = !needsPrescriptionDetails || (medicareNumber && medicareIrn)
-  const isComplete = firstName && lastName && email && dob && (!needsPhone || phone) && (!needsPrescriptionDetails || (medicareComplete && addressComplete && sex))
+  const isComplete = firstName && lastName && email && dob && (!needsPhone || phone) && (!needsPrescriptionDetails || (medicareComplete && sex)) && addressComplete
   const hasNoErrors = Object.keys(errors).length === 0
   const canContinue = isComplete && hasNoErrors
+  const primaryActionLabel = canContinue
+    ? serviceType === "med-cert" ? "Continue to payment" : "Review your request"
+    : "Continue"
   
   // Keyboard navigation
   useKeyboardNavigation({
@@ -310,7 +458,12 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   })
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
+      <IntakeStepIntro
+        title="Your details"
+        description={needsPrescriptionDetails ? "Needed for your medical record, eScript, and identity match." : "Needed for your medical record and result delivery."}
+      />
+
       {/* Autofill banner */}
       {showAutofillBanner && savedData && (
         <Alert variant="default" className="border-primary/20 bg-primary/5">
@@ -339,15 +492,6 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           </AlertDescription>
         </Alert>
       )}
-
-      {/* Info alert */}
-      <Alert variant="default" className="border-primary/20 bg-primary/5">
-        <User className="w-4 h-4" />
-        <AlertDescription className="text-xs">
-          We need these details to create your medical record and send you your result.
-        </AlertDescription>
-      </Alert>
-
       {/* Name fields */}
       <div className="grid grid-cols-2 gap-3">
         <FormField
@@ -417,31 +561,44 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         helpContent={{ title: "Why do we need your date of birth?", content: "Required for your medical record. Our services are only available to patients aged 18+." }}
       >
         <Input
-          type="date"
-          value={dob}
-          onChange={(e) => setIdentity({ dob: e.target.value })}
-          onBlur={() => handleBlur('dob', dob)}
           autoComplete="bday"
           aria-invalid={touched.dob && !!errors.dob}
           data-error={touched.dob && errors.dob ? "true" : undefined}
-          className={cn("h-11", touched.dob && errors.dob && "border-destructive")}
-          max={new Date(Date.now() - 18 * 365.25 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+          className={cn("h-11 tabular-nums", touched.dob && errors.dob && "border-destructive")}
+          type="text"
+          inputMode="numeric"
+          maxLength={10}
+          placeholder={DATE_OF_BIRTH_PLACEHOLDER}
+          value={dobInput}
+          onChange={(e) => handleDateOfBirthChange(e.target.value)}
+          onBlur={() => handleBlur('dob', dob)}
         />
       </FormField>
 
-      {/* Sex - required for prescriptions (eScript generation) */}
+      {/* Sex - required for eScript generation */}
       {needsPrescriptionDetails && (
         <FormField
           label="Sex"
           required
           icon={Users}
           id="sex-select-trigger"
-          helpContent={{ title: "Why do we ask this?", content: "Required by Australian prescribing regulations for eScript generation. Select the option that matches your Medicare record." }}
+          error={touched.sex ? errors.sex : undefined}
+          helpContent={{ title: "Why do we ask this?", content: "Required for eScript generation. Select the option that matches your Medicare record." }}
         >
-          <Select value={sex} onValueChange={(val) => setAnswer("sex", val)}>
+          <Select
+            value={sex}
+            onValueChange={(val) => {
+              setAnswer("sex", val)
+              setErrors((prev) => {
+                const { sex: _sex, ...rest } = prev
+                return rest
+              })
+            }}
+          >
             <SelectTrigger
               id="sex-select-trigger"
               aria-invalid={touched.sex && !sex ? true : undefined}
+              data-error={touched.sex && errors.sex ? "true" : undefined}
               className={cn("h-11", touched.sex && !sex && "border-destructive")}
             >
               <SelectValue placeholder="Select..." />
@@ -456,7 +613,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         </FormField>
       )}
 
-      {/* Phone - required for prescriptions */}
+      {/* Phone - required for prescriptions and consults */}
       <FormField
         label="Mobile phone"
         required={needsPhone}
@@ -479,12 +636,12 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         {needsPhone && (
           <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1.5">
             <span className="inline-block w-1 h-1 rounded-full bg-primary" />
-            Your prescription will be sent to this number as a text message
+            Your doctor can contact you here if needed
           </p>
         )}
       </FormField>
 
-      {/* Medicare number - required for prescriptions */}
+      {/* Medicare number - required for prescribing pathways */}
       {needsPrescriptionDetails && (
         <div className="space-y-3">
           <FormField
@@ -552,23 +709,28 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         </div>
       )}
 
-      {/* Address - required for prescriptions, optional for consults */}
+      {/* Address - required for prescribing pathways, optional for general consults */}
       {showAddress && (
         <FormField
           label="Address"
           required={addressRequired}
           error={touched.addressLine1 ? errors.addressLine1 : undefined}
-          hint={addressRequired ? undefined : "Optional - required if you need a prescription"}
+          hint={addressRequired ? undefined : "Optional - needed only if your doctor prescribes"}
           icon={MapPin}
         >
           <AddressAutocomplete
             value={addressLine1}
-            onChange={(val) => setAnswer("addressLine1", val)}
+            onChange={handleAddressLineChange}
             onAddressSelect={handleAddressSelect}
+            onVerificationChange={(verified) => {
+              setAnswer("addressVerified", verified)
+              if (!verified) setAnswer("addressProviderPlaceId", "")
+            }}
+            onManualEntry={handleManualAddressEntry}
             placeholder="Start typing your address..."
             className={cn("h-11", touched.addressLine1 && errors.addressLine1 && "border-destructive")}
           />
-          {addressRequired && (
+          {showManualAddressFields && (
             <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_120px_120px]">
               <div className="space-y-1.5">
                 <Label htmlFor="suburb" className="text-xs">Suburb</Label>
@@ -588,7 +750,13 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="state-select-trigger" className="text-xs">State</Label>
-                <Select value={state} onValueChange={(val) => setAnswer("state", val)}>
+                <Select
+                  value={state}
+                  onValueChange={(val) => {
+                    setAnswer("state", val)
+                    setTouched((prev) => ({ ...prev, state: true }))
+                  }}
+                >
                   <SelectTrigger
                     id="state-select-trigger"
                     aria-invalid={touched.state && !!errors.state}
@@ -598,7 +766,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
                     <SelectValue placeholder="State" />
                   </SelectTrigger>
                   <SelectContent>
-                    {["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"].map((item) => (
+                    {AUSTRALIAN_STATES.map((item) => (
                       <SelectItem key={item} value={item}>{item}</SelectItem>
                     ))}
                   </SelectContent>
@@ -612,7 +780,14 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
                 <Input
                   id="postcode"
                   value={postcode}
-                  onChange={(e) => setAnswer("postcode", e.target.value.replace(/\D/g, "").slice(0, 4))}
+                  onChange={(e) => {
+                    const nextPostcode = e.target.value.replace(/\D/g, "").slice(0, 4)
+                    setAnswer("postcode", nextPostcode)
+                    if (!state && nextPostcode.length === 4) {
+                      const suggestedState = suggestStateFromPostcode(nextPostcode)
+                      if (suggestedState) setAnswer("state", suggestedState)
+                    }
+                  }}
                   onBlur={() => handleBlur('postcode', postcode)}
                   inputMode="numeric"
                   autoComplete="postal-code"
@@ -704,17 +879,19 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
 
       {/* Continue button - always clickable so validate() fires and surfaces errors */}
       <Button
+        data-intake-primary-action="true"
+        data-intake-primary-label={primaryActionLabel}
         onClick={handleNext}
         variant={canContinue ? "default" : "secondary"}
-        className="w-full h-12"
+        className="w-full h-12 max-sm:hidden"
       >
         {canContinue ? (
           <>
-            {serviceType === "med-cert" ? "Continue to payment" : "Review your request"}
+            {primaryActionLabel}
             <ArrowRight className="w-4 h-4" />
           </>
         ) : (
-          "Continue"
+          primaryActionLabel
         )}
       </Button>
     </div>

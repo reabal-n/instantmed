@@ -43,6 +43,11 @@ export function PatientInfoCard() {
     ...getPatientSnapshotOptionsForCase(snapshotContext),
     answers,
   })
+  const addressVerificationVariant = snapshot.address.verificationTone === "success"
+    ? "success"
+    : snapshot.address.verificationTone === "warning"
+      ? "warning"
+      : "outline"
   const requiresPrescribingIdentity = requiresPrescribingIdentityForCase(snapshotContext)
   const previousCount = data.previousIntakeCount ?? data.previousIntakes?.length ?? 0
 
@@ -175,9 +180,14 @@ export function PatientInfoCard() {
           </div>
           <div className="flex items-start gap-2 rounded-lg bg-muted/40 p-3 sm:col-span-2">
             <MapPin className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Address</p>
               <p className={cn("font-medium", !snapshot.address.present && "text-warning")}>{snapshot.address.label}</p>
+              {snapshot.address.verificationLabel && (
+                <Badge variant={addressVerificationVariant} size="sm" className="mt-1 w-fit">
+                  {snapshot.address.verificationLabel}
+                </Badge>
+              )}
             </div>
           </div>
         </div>

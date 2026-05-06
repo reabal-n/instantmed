@@ -189,7 +189,7 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
         <Textarea value={contraceptionDetails} onChange={(e) => setAnswer("contraceptionDetails", e.target.value)} placeholder="Optional: specific concerns, brand preferences..." className="min-h-[80px] resize-none" />
       </div>
 
-      <Button onClick={handleNext} disabled={!isComplete} className="w-full h-12 text-base font-medium">Continue</Button>
+      <Button data-intake-primary-action="true" data-intake-primary-label="Continue" onClick={handleNext} disabled={!isComplete} className="w-full h-12 text-base font-medium max-sm:hidden">Continue</Button>
     </div>
   )
 }
@@ -287,7 +287,7 @@ function MorningAfterAssessment({ onNext, onBack, answers, setAnswer, errors, se
         <Textarea value={mapDetails} onChange={(e) => setAnswer("mapDetails", e.target.value)} placeholder="Optional: contraception normally used, any concerns..." className="min-h-[80px] resize-none" />
       </div>
 
-      <Button onClick={handleNext} disabled={!isComplete} className="w-full h-12 text-base font-medium">Continue</Button>
+      <Button data-intake-primary-action="true" data-intake-primary-label="Continue" onClick={handleNext} disabled={!isComplete} className="w-full h-12 text-base font-medium max-sm:hidden">Continue</Button>
     </div>
   )
 }
@@ -450,7 +450,7 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
         <Textarea value={utiDetails} onChange={(e) => setAnswer("utiDetails", e.target.value)} placeholder="Optional: how long symptoms, previous UTIs..." className="min-h-[80px] resize-none" />
       </div>
 
-      <Button onClick={handleNext} disabled={!isComplete} className="w-full h-12 text-base font-medium">Continue</Button>
+      <Button data-intake-primary-action="true" data-intake-primary-label="Continue" onClick={handleNext} disabled={!isComplete} className="w-full h-12 text-base font-medium max-sm:hidden">Continue</Button>
     </div>
   )
 }
@@ -601,7 +601,7 @@ function PeriodPainAssessment({ onNext, answers, setAnswer, errors, setErrors }:
         <Textarea value={periodPainDetails} onChange={(e) => setAnswer("periodPainDetails", e.target.value)} placeholder="Optional: associated symptoms (nausea, bloating), suspected endometriosis, cycle regularity..." className="min-h-[80px] resize-none" />
       </div>
 
-      <Button onClick={handleNext} disabled={!isComplete} className="w-full h-12 text-base font-medium">Continue</Button>
+      <Button data-intake-primary-action="true" data-intake-primary-label="Continue" onClick={handleNext} disabled={!isComplete} className="w-full h-12 text-base font-medium max-sm:hidden">Continue</Button>
     </div>
   )
 }
@@ -649,7 +649,7 @@ function GeneralWomensAssessment({ onNext, answers, setAnswer, errors, setErrors
         <p className="text-xs text-muted-foreground">{womensDetails.length}/20 characters minimum</p>
       </div>
 
-      <Button onClick={handleNext} disabled={!isComplete} className="w-full h-12 text-base font-medium">Continue</Button>
+      <Button data-intake-primary-action="true" data-intake-primary-label="Continue" onClick={handleNext} disabled={!isComplete} className="w-full h-12 text-base font-medium max-sm:hidden">Continue</Button>
     </div>
   )
 }

@@ -1,8 +1,13 @@
 # Revenue & Engagement Improvements
 
 **Date:** 2026-04-06
-**Status:** Approved
+**Status:** Partially superseded
 **Scope:** GSC fix, abandoned checkout sequence, referral visibility, review request system, Rx subscription nudge
+
+> **Do not execute directly.** The review request work exists in the current
+> codebase, but the repeat Rx subscription nudge is no longer aligned with the
+> current one-off prescription checkout strategy. Treat that section as
+> historical context unless subscription acquisition is explicitly reactivated.
 
 ---
 
@@ -80,6 +85,9 @@ Pattern: below `GoogleReviewCTA`, add referral link with $5 credit offer.
 ---
 
 ## 5. Repeat Rx Subscription Nudge (day 30)
+
+> **Superseded.** Do not build this without a fresh product decision to restart
+> subscription acquisition.
 
 **Target:** Patients who completed a one-off repeat script (not subscribed).
 

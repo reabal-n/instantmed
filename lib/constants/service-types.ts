@@ -1,13 +1,15 @@
 /**
- * Centralized Service Type Definitions
+ * Centralized DB Service Type Definitions
  * 
  * CANONICAL NAMING CONVENTION:
  * - Database/API: snake_case (e.g., "med_certs", "common_scripts")
  * - URL slugs: kebab-case (e.g., "medical-certificate", "repeat-prescription")
  * - Display: Title Case (e.g., "Medical Certificate", "Repeat Prescription")
  * 
- * This file is the single source of truth for service type mappings.
- * Import from here instead of defining service types inline.
+ * This file maps Supabase `services.type` values used by admin and draft
+ * generation paths. It is not the public /request checkout catalog.
+ * Public checkout services live in lib/services/service-catalog.ts and
+ * lib/request/step-registry.ts.
  */
 
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
@@ -26,6 +28,22 @@ export const SERVICE_TYPES = {
   REFERRALS: "referrals",
   PATHOLOGY: "pathology",
 } as const satisfies Record<string, ServiceType>
+
+// ============================================================================
+// SERVICE LIFECYCLE
+// ============================================================================
+
+export type ServiceLifecycle = "active" | "future" | "compatibility_only"
+
+export const SERVICE_LIFECYCLE: Record<ServiceType, ServiceLifecycle> = {
+  med_certs: "active",
+  common_scripts: "active",
+  mens_health: "active",
+  womens_health: "future",
+  weight_loss: "future",
+  referrals: "compatibility_only",
+  pathology: "compatibility_only",
+}
 
 // ============================================================================
 // URL SLUG MAPPINGS (for routing)
@@ -157,6 +175,8 @@ export const SERVICE_METADATA: Record<ServiceType, ServiceMetadata> = {
     requiresConsult: true,
     icon: "Heart",
   },
+  // Legacy/compatibility service rows only. These are not standalone public
+  // /request checkout services unless a fresh product decision reactivates them.
   referrals: {
     type: "referrals",
     displayName: "Specialist Referral",
@@ -265,6 +285,22 @@ export function getServiceMetadata(serviceType: ServiceType): ServiceMetadata {
  */
 export function serviceRequiresConsult(serviceType: ServiceType): boolean {
   return SERVICE_METADATA[serviceType]?.requiresConsult ?? true
+}
+
+export function getServiceLifecycle(serviceType: ServiceType): ServiceLifecycle {
+  return SERVICE_LIFECYCLE[serviceType]
+}
+
+export function isActivePatientServiceType(serviceType: ServiceType): boolean {
+  return getServiceLifecycle(serviceType) === "active"
+}
+
+export function isFuturePatientServiceType(serviceType: ServiceType): boolean {
+  return getServiceLifecycle(serviceType) === "future"
+}
+
+export function isCompatibilityOnlyServiceType(serviceType: ServiceType): boolean {
+  return getServiceLifecycle(serviceType) === "compatibility_only"
 }
 
 // ============================================================================

@@ -16,7 +16,14 @@ import { usePathname } from "next/navigation"
 import type { ComponentType } from "react"
 import { useEffect, useState } from "react"
 
-import { ADMIN_DASHBOARD_HREF, ADMIN_INTAKE_LEDGER_HREF } from "@/lib/dashboard/routes"
+import {
+  ADMIN_ANALYTICS_HREF,
+  ADMIN_DASHBOARD_HREF,
+  ADMIN_FINANCE_HREF,
+  ADMIN_INTAKE_LEDGER_HREF,
+  ADMIN_OPS_HREF,
+  ADMIN_SETTINGS_HREF,
+} from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 
 interface AdminSidebarProps {
@@ -38,13 +45,13 @@ const workNavItems: NavItem[] = [
 ]
 
 const businessNavItems: NavItem[] = [
-  { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/admin/finance", label: "Finance", icon: DollarSign },
-  { href: "/admin/ops", label: "Operations", icon: Activity },
+  { href: ADMIN_ANALYTICS_HREF, label: "Analytics", icon: BarChart3 },
+  { href: ADMIN_FINANCE_HREF, label: "Finance", icon: DollarSign },
+  { href: ADMIN_OPS_HREF, label: "Operations", icon: Activity },
 ]
 
 const settingsNavItems: NavItem[] = [
-  { href: "/admin/settings", label: "Settings", icon: Settings },
+  { href: ADMIN_SETTINGS_HREF, label: "Settings", icon: Settings },
 ]
 
 const ACTIVE_NAV_LINK = "bg-primary/5 text-blue-700 dark:bg-primary/20 dark:text-blue-200"

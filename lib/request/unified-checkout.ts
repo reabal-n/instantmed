@@ -1,3 +1,5 @@
+import { buildAddressAuditMetadata } from "@/lib/request/address-metadata"
+import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing-identity"
 import {
   validateCertificateStep,
   validateConsultReasonStep,
@@ -115,7 +117,10 @@ function normalizeMedicareExpiry(value: string | undefined): string | null {
   return null
 }
 
-function validatePrescriptionIdentityAnswers(answers: Record<string, unknown>): string | null {
+function validatePrescriptionIdentityAnswers(
+  answers: Record<string, unknown>,
+  requestLabel = "prescription requests",
+): string | null {
   const medicare = firstStringAnswer(answers, ["medicare_number", "medicareNumber"])
   const medicareIrn = firstScalarAnswer(answers, ["medicare_irn", "medicareIrn"])
   const rawMedicareExpiry = firstScalarAnswer(answers, ["medicare_expiry", "medicareExpiry"])
@@ -126,13 +131,13 @@ function validatePrescriptionIdentityAnswers(answers: Record<string, unknown>): 
   const postcode = firstStringAnswer(answers, ["postcode"])
   const sex = firstStringAnswer(answers, ["sex", "gender"])
 
-  if (!medicare) return "Medicare number is required for prescription requests."
+  if (!medicare) return `Medicare number is required for ${requestLabel}.`
   const medicareResult = validateMedicareNumber(medicare)
   if (!medicareResult.valid) {
     return medicareResult.error || "Invalid Medicare number."
   }
   if (!medicareIrn || !/^[1-9]$/.test(medicareIrn)) {
-    return "Medicare IRN is required for prescription requests."
+    return `Medicare IRN is required for ${requestLabel}.`
   }
   if (rawMedicareExpiry) {
     if (!medicareExpiry) {
@@ -143,18 +148,18 @@ function validatePrescriptionIdentityAnswers(answers: Record<string, unknown>): 
       return expiryResult.error || "Medicare card expiry is invalid."
     }
   }
-  if (!addressLine1) return "Street address is required for prescription requests."
+  if (!addressLine1) return `Street address is required for ${requestLabel}.`
   if (!suburb || !state || !postcode) {
-    return "Address suburb, state, and postcode are required for prescription requests."
+    return `Address suburb, state, and postcode are required for ${requestLabel}.`
   }
   if (!AUSTRALIAN_STATES.has(state.toUpperCase())) {
-    return "A valid Australian state is required for prescription requests."
+    return `A valid Australian state is required for ${requestLabel}.`
   }
   if (!/^\d{4}$/.test(postcode)) {
-    return "A valid 4-digit postcode is required for prescription requests."
+    return `A valid 4-digit postcode is required for ${requestLabel}.`
   }
   if (!sex || !PRESCRIBING_SEX_VALUES.has(sex.toUpperCase())) {
-    return "Sex is required for prescription requests."
+    return `Sex is required for ${requestLabel}.`
   }
 
   return null
@@ -225,6 +230,7 @@ export function transformAnswersForUnifiedCheckout(
   copyStringAnswer(transformed, "state", answers, ["state"])
   copyStringAnswer(transformed, "postcode", answers, ["postcode"])
   copyStringAnswer(transformed, "sex", answers, ["sex", "gender"])
+  Object.assign(transformed, buildAddressAuditMetadata(answers))
 
   const explicitEmergencySymptoms = asStringArray(answers.emergency_symptoms)
   const associatedEmergencySymptoms = asStringArray(answers.general_associated_symptoms)
@@ -276,6 +282,13 @@ export function validateAnswersServerSide(
 
   if (serviceType === "consult") {
     const consultSubtype = String(answers.consultSubtype || "general")
+    const prescriptionIdentityError = requiresPrescribingIdentityForRequest({
+      serviceType,
+      subtype: consultSubtype,
+    })
+      ? validatePrescriptionIdentityAnswers(answers, "prescribing consults")
+      : null
+    if (prescriptionIdentityError) return prescriptionIdentityError
 
     if (consultSubtype === "ed") {
       return firstValidationError(

@@ -10,7 +10,7 @@
  */
 
 import { AnimatePresence,motion } from "framer-motion"
-import { ChevronRight, MessageSquare,RotateCcw, Star, Trash2 } from "lucide-react"
+import { ChevronRight, RotateCcw, Star, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useCallback,useEffect, useState } from "react"
 
@@ -134,23 +134,23 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
     <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border/50">
-        <div className="max-w-xl mx-auto px-4 py-4">
-          <h1 className="text-xl font-semibold text-center text-foreground">
+        <div className="max-w-xl mx-auto px-4 py-3">
+          <h1 className="text-lg font-semibold text-center text-foreground sm:text-xl">
             What brings you in today?
           </h1>
         </div>
       </header>
 
-      <main className="flex-1 max-w-xl mx-auto w-full px-4 py-6 space-y-6">
+      <main className="flex-1 max-w-xl mx-auto w-full px-4 py-4 space-y-4 sm:py-6 sm:space-y-6">
         {/* Social proof strip */}
-        <div className="flex items-center justify-center gap-2.5 text-xs text-muted-foreground">
-          <span className="font-medium text-foreground">
+        <div className="flex flex-nowrap items-center justify-center gap-1.5 text-[11px] text-muted-foreground sm:gap-2.5 sm:text-xs">
+          <span className="whitespace-nowrap font-medium text-foreground">
             {patientCount.toLocaleString()}+ Australians
           </span>
           <span className="text-border-em">·</span>
-          <span>AHPRA doctors</span>
+          <span className="whitespace-nowrap">AHPRA doctors</span>
           <span className="text-border-em">·</span>
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-0.5 whitespace-nowrap">
             {[1, 2, 3, 4, 5].map((i) => (
               <Star
                 key={i}
@@ -235,23 +235,6 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
           )}
         </AnimatePresence>
 
-        {/* Trust signal badges */}
-        <div className="flex items-center justify-center gap-3">
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-success">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full motion-safe:animate-ping rounded-full bg-success opacity-60" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
-            </span>
-            Form-first
-          </span>
-          <span className="text-border-em">·</span>
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
-            <MessageSquare className="w-3 h-3 text-muted-foreground/70" />
-            Doctor reviewed
-            <span className="inline-block w-[1px] h-3 bg-muted-foreground/40 animate-pulse" />
-          </span>
-        </div>
-
         {/* ── Active service cards ────────────────────────────────────── */}
         <motion.div
           className="rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] overflow-hidden divide-y divide-border/40"
@@ -270,44 +253,43 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
         </motion.div>
 
         {/* ── Coming soon ────────────────────────────────────────────── */}
-        <div className="pt-1">
-          <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-3">
+        <div
+          data-coming-soon-strip="true"
+          className="rounded-2xl border border-border/40 bg-muted/20 px-3.5 py-2.5 dark:bg-white/[0.04]"
+        >
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
             Coming soon
           </p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1.5">
             {COMING_SOON.map((svc) => (
-              <div
+              <span
                 key={svc.id}
-                className="rounded-xl bg-muted/30 border border-border/30 px-4 py-3.5"
+                aria-disabled="true"
+                aria-label={`${svc.title}: not taking requests yet`}
+                className="inline-flex min-w-0 items-baseline gap-1.5 text-xs text-muted-foreground"
               >
-                <div className="flex items-center gap-2.5">
-                  <ServiceIconTile
-                    iconKey={svc.iconKey}
-                    color={svc.colorToken}
-                    size="sm"
-                    className="opacity-60 grayscale"
-                  />
-                  <div>
-                    <h4 className="text-sm font-medium text-muted-foreground">
-                      {svc.title}
-                    </h4>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {svc.subtitle}
-                    </p>
-                  </div>
-                </div>
-              </div>
+                <span className="font-medium text-foreground/65">
+                  {svc.title}
+                </span>
+                <span className="text-muted-foreground/80">
+                  Not taking requests yet
+                </span>
+              </span>
             ))}
           </div>
         </div>
 
         {/* ── Trust footer ───────────────────────────────────────────── */}
-        <div className="flex flex-col items-center gap-3 pt-3 pb-2">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col items-center gap-2 pt-1 pb-2">
+          <div
+            data-request-hub-cert-footer="true"
+            className="flex items-center justify-center gap-2 rounded-2xl border border-border/50 bg-white px-3 py-2 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none"
+          >
             <LegitScriptSeal size="sm" />
+            <span className="h-6 w-px bg-border/70" aria-hidden="true" />
             <GoogleAdsCert size="sm" />
           </div>
-          <p className="text-xs text-muted-foreground text-center">
+          <p className="text-center text-[11px] leading-snug text-muted-foreground">
             All requests are reviewed by Australian-registered doctors.
           </p>
         </div>
@@ -342,8 +324,9 @@ function CompactServiceRow({
         onClick={onClick}
         className={cn(
           "w-full text-left group px-4 py-3.5",
-          "hover:bg-muted/50 dark:hover:bg-white/[0.08]",
-          "transition-colors duration-150",
+          "hover:bg-muted/50 active:scale-[0.99] active:bg-muted/60 dark:hover:bg-white/[0.08]",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+          "transition-[background-color,transform] duration-150",
         )}
       >
         <div className="flex items-center gap-3.5">
@@ -352,8 +335,8 @@ function CompactServiceRow({
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-sm text-foreground truncate">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <h3 className="font-semibold text-base leading-tight text-foreground">
                 {title}
               </h3>
               {popular && (
@@ -362,7 +345,7 @@ function CompactServiceRow({
                 </span>
               )}
             </div>
-            <p className="text-xs text-muted-foreground mt-0.5 truncate">
+            <p className="text-sm leading-snug text-muted-foreground mt-0.5">
               {subtitle}
               <span className="text-border-em mx-1.5">·</span>
               {effort}
@@ -370,14 +353,14 @@ function CompactServiceRow({
           </div>
 
           {/* Price + chevron */}
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="text-right">
+          <div className="flex w-[4.5rem] shrink-0 items-center justify-end gap-1.5 sm:w-20">
+            <div className="min-w-0 text-right tabular-nums">
               {pricePrefix && (
-                <span className="text-[10px] text-muted-foreground">
+                <span className="block text-[10px] leading-none text-muted-foreground">
                   {pricePrefix}{" "}
                 </span>
               )}
-              <span className="text-sm font-semibold text-foreground">
+              <span className="text-base font-semibold leading-none text-foreground">
                 {price}
               </span>
             </div>

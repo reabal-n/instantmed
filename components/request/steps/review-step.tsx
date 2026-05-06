@@ -21,6 +21,7 @@ import { Switch } from "@/components/ui/switch"
 import { getAttribution } from "@/lib/analytics/attribution"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 import { PRICING as APP_PRICING, PRICING_DISPLAY } from "@/lib/constants"
+import { getAddressReviewSummary } from "@/lib/request/address-metadata"
 import { CONSULT_SUBTYPE_DISPLAY_LABELS,getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
@@ -53,6 +54,7 @@ const SYMPTOM_DURATION_LABELS: Record<string, string> = {
 }
 
 const TRUNCATE_THRESHOLD = 60
+type ReviewItem = { label: string; value: string; badge?: { label: string; tone: "success" | "warning" } }
 
 function ExpandableValue({ value }: { value: string }) {
   const [expanded, setExpanded] = useState(false)
@@ -88,7 +90,7 @@ function ReviewSection({
   onEdit
 }: {
   title: string
-  items: { label: string; value: string }[]
+  items: ReviewItem[]
   onEdit?: () => void
 }) {
   return (
@@ -107,8 +109,19 @@ function ReviewSection({
           {items.map((item, i) => (
             <div key={i} className="flex justify-between text-sm">
               <dt className="text-muted-foreground">{item.label}</dt>
-              <dd className="font-medium text-right max-w-[60%]">
-                {item.value ? <ExpandableValue value={item.value} /> : '-'}
+              <dd className="flex max-w-[64%] flex-col items-end gap-1 text-right font-medium">
+                <span>{item.value ? <ExpandableValue value={item.value} /> : '-'}</span>
+                {item.badge && (
+                  <span
+                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                      item.badge.tone === "success"
+                        ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/20"
+                        : "bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/20"
+                    }`}
+                  >
+                    {item.badge.label}
+                  </span>
+                )}
               </dd>
             </div>
           ))}
@@ -225,7 +238,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
   }
 
   // Build review sections based on service type
-  const sections: { title: string; items: { label: string; value: string }[]; stepId?: string }[] = []
+  const sections: { title: string; items: ReviewItem[]; stepId?: string }[] = []
 
   // Service info
   const consultSubtypeForLabel = answers.consultSubtype as string | undefined
@@ -631,7 +644,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
 
   // Patient details - compact
   const dobDisplay = dob ? new Date(dob).toLocaleDateString('en-AU') : ''
-  const detailItems = [
+  const detailItems: ReviewItem[] = [
     { label: 'Name', value: `${firstName} ${lastName}`.trim() },
     { label: 'Email', value: email },
     { label: 'Date of birth', value: dobDisplay || '-' },
@@ -641,13 +654,16 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
   // Show Medicare and address for prescriptions
   const medicareNumber = answers.medicareNumber as string | undefined
   if (medicareNumber) detailItems.push({ label: 'Medicare', value: medicareNumber.replace(/(\d{4})(\d{5})(\d)/, '$1 $2 $3') })
-  const addressLine1 = answers.addressLine1 as string | undefined
-  const suburb = answers.suburb as string | undefined
-  const addressState = answers.state as string | undefined
-  const postcode = answers.postcode as string | undefined
-  if (addressLine1) {
-    const addressParts = [addressLine1, suburb, addressState, postcode].filter(Boolean)
-    detailItems.push({ label: 'Address', value: addressParts.join(', ') })
+  const addressSummary = getAddressReviewSummary(answers)
+  if (addressSummary) {
+    detailItems.push({
+      label: 'Address',
+      value: addressSummary.compact,
+      badge: {
+        label: `${addressSummary.statusLabel} - ${addressSummary.providerLabel}`,
+        tone: addressSummary.isVerified ? "success" : "warning",
+      },
+    })
   }
   sections.push({
     title: 'Your Details',
@@ -777,8 +793,10 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
           state to screen readers; disabled={false} keeps the event handlers live.
         */}
         <Button
+          data-intake-primary-action="true"
+          data-intake-primary-label={isPrescriptionCheckout ? `Pay $${totalDue.toFixed(2)}` : "Continue to payment"}
           onClick={safetyConfirmed ? (isPrescriptionCheckout ? handlePayment : handleContinue) : handleDisabledClick}
-          className={`w-full h-12 ${safetyConfirmed ? '' : 'opacity-60 hover:opacity-70'}`}
+          className={`w-full h-12 max-sm:hidden ${safetyConfirmed ? '' : 'opacity-60 hover:opacity-70'}`}
           aria-disabled={!safetyConfirmed || isProcessing}
           aria-describedby={!safetyConfirmed ? 'safety-consent-warning' : undefined}
           disabled={isProcessing}

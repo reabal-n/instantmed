@@ -1,5 +1,11 @@
 # Blood Test Referral Implementation Plan
 
+> **Status: Superseded. Do not execute directly.** This plan describes a
+> standalone `pathology` checkout service that is not part of the current
+> canonical `/request` service model. Use it only as historical product context
+> unless a fresh clinical, product, Stripe, and operations decision reactivates
+> pathology as a paid intake.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Add a "Blood Test Referral" service type (`pathology`) to the unified `/request` intake flow, allowing patients to select pre-built pathology panels or individual tests, complete a clinical reason questionnaire, pay $29.95, and receive a doctor-approved pathology request PDF they can take to any Australian pathology collection centre.

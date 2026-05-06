@@ -2,9 +2,10 @@
 
 import { AnimatePresence,motion } from "framer-motion"
 import { ArrowRight,Info, TrendingUp } from "lucide-react"
-import { useCallback, useEffect, useMemo, useRef } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { usePostHog } from "@/components/providers/posthog-provider"
+import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
@@ -168,10 +169,10 @@ function ScalePicker({
                 aria-label={`${n} out of 5`}
                 onClick={() => onChange(n)}
                 className={cn(
-                  "w-11 h-11 rounded-full border-2 flex items-center justify-center text-sm font-semibold transition-[background-color,border-color,color] shrink-0",
+                  "flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 text-sm font-semibold transition-[background-color,border-color,color,box-shadow]",
                   "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
                   isSelected
-                    ? "border-primary bg-primary text-primary-foreground scale-110"
+                    ? "border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/20"
                     : "border-border/50 bg-white dark:bg-card text-muted-foreground hover:border-primary/40"
                 )}
               >
@@ -205,6 +206,7 @@ export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepPro
   const posthog = usePostHog()
   const prefersReducedMotion = useReducedMotion()
   const preSeeded = useRef(false)
+  const [activeQuestionIndex, setActiveQuestionIndex] = useState(0)
 
   // Pre-seed from hook quiz (landing page) - confidence → iief1, satisfaction → iief5
   useEffect(() => {
@@ -255,6 +257,16 @@ export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepPro
   }, [iiefTotal, setAnswer])
 
   const interpretation = iiefTotal !== null ? getInterpretation(iiefTotal) : null
+  const answeredCount = [iief1, iief2, iief3, iief4, iief5].filter((value) => value !== null).length
+  const activeQuestion = IIEF_QUESTIONS[activeQuestionIndex]
+  const activeValue = (answers[activeQuestion.id] as number | undefined) ?? null
+
+  const handleScaleChange = useCallback((questionId: IIEFQuestion["id"], value: number, index: number) => {
+    setAnswer(questionId, value)
+    if (index < IIEF_QUESTIONS.length - 1) {
+      window.setTimeout(() => setActiveQuestionIndex(index + 1), 120)
+    }
+  }, [setAnswer])
 
   const handleNext = useCallback(() => {
     if (allAnswered && iiefTotal !== null) {
@@ -276,45 +288,66 @@ export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepPro
 
   return (
     <motion.div
-      className="space-y-5"
+      className="space-y-4"
       variants={containerVariants}
       initial="initial"
       animate="animate"
     >
-      {/* Header */}
-      <motion.div variants={itemVariants} className="space-y-1.5">
-        <h2 className="text-lg font-semibold tracking-tight">
-          A few questions about your experience
-        </h2>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          These are standard questions doctors use worldwide. There are no wrong
-          answers.
-        </p>
+      <motion.div variants={itemVariants}>
+        <IntakeStepIntro
+          title="A few questions about your experience"
+          description="One question at a time. There are no wrong answers."
+        />
       </motion.div>
 
-      {/* IIEF-5 Questions */}
-      {IIEF_QUESTIONS.map((q) => {
-        const currentValue =
-          (answers[q.id] as number | undefined) ?? null
-        return (
-          <motion.div
-            key={q.id}
-            variants={itemVariants}
-            className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-xl p-4 space-y-3"
-          >
-            <p className="text-[15px] font-medium leading-snug">
-              {q.question}
+      <motion.div variants={itemVariants}>
+        <QuestionCard className="space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs font-medium text-muted-foreground">
+              Question {activeQuestionIndex + 1} of {IIEF_QUESTIONS.length}
+            </p>
+            <p className="text-xs tabular-nums text-muted-foreground">
+              {answeredCount}/{IIEF_QUESTIONS.length} answered
+            </p>
+          </div>
+
+          <div className="flex gap-1.5" aria-label="Assessment progress">
+            {IIEF_QUESTIONS.map((question, index) => {
+              const answered = answers[question.id] !== undefined
+              const current = index === activeQuestionIndex
+              return (
+                <button
+                  key={question.id}
+                  type="button"
+                  onClick={() => setActiveQuestionIndex(index)}
+                  aria-label={`Go to question ${index + 1}`}
+                  className={cn(
+                    "h-1.5 flex-1 rounded-full transition-colors",
+                    current
+                      ? "bg-primary"
+                      : answered
+                        ? "bg-primary/40"
+                        : "bg-muted",
+                  )}
+                />
+              )
+            })}
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-base font-medium leading-snug">
+              {activeQuestion.question}
             </p>
             <ScalePicker
-              value={currentValue}
-              onChange={(v) => setAnswer(q.id, v)}
-              lowLabel={q.lowLabel}
-              highLabel={q.highLabel}
-              questionId={q.id}
+              value={activeValue}
+              onChange={(value) => handleScaleChange(activeQuestion.id, value, activeQuestionIndex)}
+              lowLabel={activeQuestion.lowLabel}
+              highLabel={activeQuestion.highLabel}
+              questionId={activeQuestion.id}
             />
-          </motion.div>
-        )
-      })}
+          </div>
+        </QuestionCard>
+      </motion.div>
 
       {/* Score interpretation */}
       <AnimatePresence>
@@ -325,7 +358,7 @@ export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepPro
             animate="animate"
             exit="exit"
             className={cn(
-              "bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-xl p-4",
+              "bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-2xl p-4",
               "flex items-start gap-3"
             )}
           >
@@ -376,9 +409,11 @@ export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepPro
       {/* Continue button */}
       <motion.div variants={itemVariants}>
         <Button
+          data-intake-primary-action="true"
+          data-intake-primary-label="Continue"
           onClick={handleNext}
           disabled={!allAnswered}
-          className="w-full h-12 text-base font-medium"
+          className="w-full h-12 text-base font-medium max-sm:hidden"
         >
           {allAnswered ? (
             <>

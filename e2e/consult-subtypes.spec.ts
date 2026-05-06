@@ -398,9 +398,7 @@ async function completeDetailsStep(page: Page) {
   await page.locator('input[placeholder="Jane"]').fill("Test")
   await page.locator('input[placeholder="Smith"]').fill("Patient")
   await page.locator('input[placeholder="jane@example.com"]').fill("test@instantmed.com.au")
-  const dob = new Date()
-  dob.setFullYear(dob.getFullYear() - 30)
-  await page.locator('input[type="date"]').first().fill(dob.toISOString().split("T")[0])
+  await page.locator('input[placeholder="DD/MM/YYYY"]').fill("01/01/1990")
   await page.locator('input[placeholder="0412 345 678"]').fill("0412345678")
   await clickContinue(page)
 }

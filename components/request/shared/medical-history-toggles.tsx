@@ -41,8 +41,8 @@ export function SwitchField({
   helpText,
 }: SwitchFieldProps) {
   return (
-    <div className="flex items-center justify-between gap-3 p-3 rounded-xl border bg-muted/30">
-      <Label htmlFor={id} className="text-sm cursor-pointer leading-snug flex-1">
+    <div className="flex min-h-12 items-center justify-between gap-3 rounded-xl border border-border/60 bg-white p-3 shadow-sm shadow-primary/[0.03] dark:bg-card dark:shadow-none">
+      <Label htmlFor={id} className="flex-1 cursor-pointer text-sm leading-snug">
         {label}
         {helpText && (
           <span className="block text-xs text-muted-foreground mt-0.5">{helpText}</span>
@@ -71,9 +71,9 @@ export function MedicalHistoryToggles({
       {items.map((item) => (
         <div
           key={item.key}
-          className="flex items-center justify-between gap-3 p-3 rounded-xl border bg-muted/30"
+          className="flex min-h-12 items-center justify-between gap-3 rounded-xl border border-border/60 bg-white p-3 shadow-sm shadow-primary/[0.03] dark:bg-card dark:shadow-none"
         >
-          <Label htmlFor={item.key} className="text-sm cursor-pointer leading-snug flex-1">
+          <Label htmlFor={item.key} className="flex-1 cursor-pointer text-sm leading-snug">
             {item.label}
           </Label>
           <Switch

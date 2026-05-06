@@ -13,6 +13,7 @@ import type { LucideIcon } from "lucide-react"
 import { ArrowRight,CalendarDays, Clock, ShieldCheck, Stethoscope } from "lucide-react"
 
 import { usePostHog } from "@/components/providers/posthog-provider"
+import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
@@ -40,23 +41,23 @@ interface PreferenceOption {
 const PREFERENCE_OPTIONS: PreferenceOption[] = [
   {
     value: "daily",
-    label: "Daily \u2014 always ready",
+    label: "Daily routine",
     icon: CalendarDays,
     description:
-      "One small tablet each day. No planning needed \u2014 be ready whenever the moment happens.",
-    chips: ["No timing pressure", "Consistent results", "Suits regular activity"],
+      "A daily option with less timing around activity.",
+    chips: ["Routine", "Less planning", "Regular activity"],
   },
   {
     value: "prn",
-    label: "As-needed \u2014 use when you want",
+    label: "As-needed",
     icon: Clock,
     description:
-      "Take a tablet 30\u201360 minutes before. Use only when you need it.",
-    chips: ["Flexible", "Lower cost", "Suits occasional use"],
+      "A planned-use option. The doctor will confirm whether it suits your health profile.",
+    chips: ["Flexible", "Occasional use"],
   },
   {
     value: "doctor_decides",
-    label: "Not sure \u2014 let the doctor decide",
+    label: "Let the doctor decide",
     icon: Stethoscope,
     description:
       "Your doctor will recommend the best option based on your assessment.",
@@ -86,21 +87,16 @@ export default function EdPreferencesStep({ onNext }: EdPreferencesStepProps) {
   })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="space-y-1">
-        <h2 className="text-lg font-semibold tracking-tight">
-          How would you like treatment to fit your life?
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Your doctor will prescribe the most appropriate medication based on
-          your health profile.
-        </p>
-      </div>
+      <IntakeStepIntro
+        title="How should treatment fit your life?"
+        description="Tell the doctor your preference. They will prescribe only if it is clinically appropriate."
+      />
 
       {/* Treatment preference cards */}
       <motion.div
-        className="flex flex-col gap-3"
+        className="flex flex-col gap-2.5"
         variants={prefersReducedMotion ? undefined : stagger.container}
         initial="initial"
         animate="animate"
@@ -115,7 +111,7 @@ export default function EdPreferencesStep({ onNext }: EdPreferencesStepProps) {
               variants={prefersReducedMotion ? undefined : stagger.item}
               onClick={() => setAnswer("edPreference", option.value)}
               className={cn(
-                "w-full text-left p-4 rounded-2xl border cursor-pointer transition-[background-color,border-color]",
+                "w-full text-left p-3 rounded-2xl border cursor-pointer transition-[background-color,border-color]",
                 "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
                 isSelected
                   ? "border-primary ring-2 ring-primary shadow-lg shadow-primary/[0.1] bg-white dark:bg-card"
@@ -165,19 +161,21 @@ export default function EdPreferencesStep({ onNext }: EdPreferencesStepProps) {
       </motion.div>
 
       {/* Trust text */}
-      <div className="flex items-start gap-2 px-1">
+      <QuestionCard compact className="flex flex-row items-start gap-2">
         <ShieldCheck className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
         <p className="text-xs text-muted-foreground">
           Your doctor will review your full health profile and prescribe the
-          safest, most effective option for you.
+          most clinically appropriate option for you.
         </p>
-      </div>
+      </QuestionCard>
 
       {/* Continue button */}
       <Button
+        data-intake-primary-action="true"
+        data-intake-primary-label="Continue"
         onClick={handleNext}
         disabled={!isComplete}
-        className="w-full h-12 text-base font-medium"
+        className="w-full h-12 text-base font-medium max-sm:hidden"
       >
         {isComplete ? (
           <>

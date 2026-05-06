@@ -54,6 +54,7 @@ function presentAnswer(
   if (!answers) return ""
   for (const key of keys) {
     const value = answers[key]
+    if (typeof value === "number" && Number.isFinite(value)) return String(value)
     const trimmed = asTrimmedString(value)
     if (trimmed) return trimmed
   }
@@ -63,6 +64,21 @@ function presentAnswer(
 function presentPatientValue(value: string | number | null | undefined): string {
   if (value === null || value === undefined) return ""
   return String(value).trim()
+}
+
+const ADDRESS_LINE1_ANSWER_KEYS = ["address_line1", "addressLine1", "address_line_1", "street_address"]
+const ADDRESS_SUBURB_ANSWER_KEYS = ["suburb"]
+const ADDRESS_STATE_ANSWER_KEYS = ["state"]
+const ADDRESS_POSTCODE_ANSWER_KEYS = ["postcode"]
+const ADDRESS_ANSWER_KEY_GROUPS = [
+  ADDRESS_LINE1_ANSWER_KEYS,
+  ADDRESS_SUBURB_ANSWER_KEYS,
+  ADDRESS_STATE_ANSWER_KEYS,
+  ADDRESS_POSTCODE_ANSWER_KEYS,
+]
+
+function hasAddressAnswer(answers: Record<string, unknown> | null | undefined): boolean {
+  return ADDRESS_ANSWER_KEY_GROUPS.some((keys) => Boolean(presentAnswer(answers, keys)))
 }
 
 function normalizeSex(value: string): Profile["sex"] | null {
@@ -132,17 +148,27 @@ export function resolvePrescribingIdentityFormValues(
   },
   answers?: Record<string, unknown> | null,
 ): PrescribingIdentityFormValues {
+  const useAnswerAddress = hasAddressAnswer(answers)
+
   return {
-    dateOfBirth: presentPatientValue(patient.date_of_birth) || presentAnswer(answers, ["date_of_birth", "dateOfBirth", "dob"]),
-    sex: presentPatientValue(patient.sex) || presentAnswer(answers, ["sex", "gender"]),
-    phone: presentPatientValue(patient.phone) || presentAnswer(answers, ["phone", "mobile", "mobilePhone"]),
-    medicareNumber: presentPatientValue(patient.medicare_number) || presentAnswer(answers, ["medicare_number", "medicareNumber"]),
-    medicareIrn: presentPatientValue(patient.medicare_irn) || presentAnswer(answers, ["medicare_irn", "medicareIrn"]),
-    medicareExpiry: presentPatientValue(patient.medicare_expiry) || presentAnswer(answers, ["medicare_expiry", "medicareExpiry"]),
-    addressLine1: presentPatientValue(patient.address_line1) || presentAnswer(answers, ["address_line1", "addressLine1", "address_line_1", "street_address"]),
-    suburb: presentPatientValue(patient.suburb) || presentAnswer(answers, ["suburb"]),
-    state: presentPatientValue(patient.state) || presentAnswer(answers, ["state"]),
-    postcode: presentPatientValue(patient.postcode) || presentAnswer(answers, ["postcode"]),
+    dateOfBirth: presentAnswer(answers, ["date_of_birth", "dateOfBirth", "dob"]) || presentPatientValue(patient.date_of_birth),
+    sex: presentAnswer(answers, ["sex", "gender"]) || presentPatientValue(patient.sex),
+    phone: presentAnswer(answers, ["phone", "mobile", "mobilePhone"]) || presentPatientValue(patient.phone),
+    medicareNumber: presentAnswer(answers, ["medicare_number", "medicareNumber"]) || presentPatientValue(patient.medicare_number),
+    medicareIrn: presentAnswer(answers, ["medicare_irn", "medicareIrn"]) || presentPatientValue(patient.medicare_irn),
+    medicareExpiry: presentAnswer(answers, ["medicare_expiry", "medicareExpiry"]) || presentPatientValue(patient.medicare_expiry),
+    addressLine1: useAnswerAddress
+      ? presentAnswer(answers, ADDRESS_LINE1_ANSWER_KEYS)
+      : presentPatientValue(patient.address_line1),
+    suburb: useAnswerAddress
+      ? presentAnswer(answers, ADDRESS_SUBURB_ANSWER_KEYS)
+      : presentPatientValue(patient.suburb),
+    state: useAnswerAddress
+      ? presentAnswer(answers, ADDRESS_STATE_ANSWER_KEYS)
+      : presentPatientValue(patient.state),
+    postcode: useAnswerAddress
+      ? presentAnswer(answers, ADDRESS_POSTCODE_ANSWER_KEYS)
+      : presentPatientValue(patient.postcode),
   }
 }
 

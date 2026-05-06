@@ -7,6 +7,7 @@
 
 import type { ComponentType as _ComponentType } from 'react'
 
+import { requiresPrescribingIdentityForRequest } from '@/lib/request/prescribing-identity'
 import type { ConsultSubtype,UnifiedServiceType, UnifiedStepId } from '@/types/services'
 
 // Re-export from canonical location for backward compatibility
@@ -174,7 +175,18 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
       shortLabel: 'Details',
       componentPath: 'patient-details-step',
       validateFn: 'validateDetailsStep',
-      canSkip: (ctx) => ctx.isAuthenticated && (ctx.hasCompleteIdentity ?? ctx.hasProfile) && ctx.hasMedicare && ctx.hasPhone === true,
+      canSkip: (ctx) => {
+        const needsPrescribingIdentity = requiresPrescribingIdentityForRequest({
+          serviceType: ctx.serviceType,
+          subtype: ctx.answers.consultSubtype as string | undefined,
+        })
+
+        return ctx.isAuthenticated
+          && (ctx.hasCompleteIdentity ?? ctx.hasProfile)
+          && ctx.hasMedicare
+          && ctx.hasPhone === true
+          && (!needsPrescribingIdentity || (ctx.hasAddress && ctx.hasSex === true))
+      },
       required: true,
     },
     {
@@ -206,7 +218,18 @@ const CONSULT_REVIEW_TAIL: StepDefinition[] = [
     shortLabel: 'Details',
     componentPath: 'patient-details-step',
     validateFn: 'validateDetailsStep',
-    canSkip: (ctx) => ctx.isAuthenticated && (ctx.hasCompleteIdentity ?? ctx.hasProfile) && ctx.hasMedicare && ctx.hasPhone === true,
+    canSkip: (ctx) => {
+      const needsPrescribingIdentity = requiresPrescribingIdentityForRequest({
+        serviceType: ctx.serviceType,
+        subtype: ctx.answers.consultSubtype as string | undefined,
+      })
+
+      return ctx.isAuthenticated
+        && (ctx.hasCompleteIdentity ?? ctx.hasProfile)
+        && ctx.hasMedicare
+        && ctx.hasPhone === true
+        && (!needsPrescribingIdentity || (ctx.hasAddress && ctx.hasSex === true))
+    },
     required: true,
   },
   {

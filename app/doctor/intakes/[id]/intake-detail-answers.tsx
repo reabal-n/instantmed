@@ -58,6 +58,11 @@ export function IntakeDetailAnswers({
     serviceType: service?.type,
     subtype: intake.subtype,
   }))
+  const addressVerificationVariant = snapshot.address.verificationTone === "success"
+    ? "success"
+    : snapshot.address.verificationTone === "warning"
+      ? "warning"
+      : "outline"
 
   return (
     <>
@@ -116,9 +121,14 @@ export function IntakeDetailAnswers({
               <Phone className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate">{snapshot.phone.label}</span>
             </div>
-            <div className="flex items-center gap-2 min-w-0 text-muted-foreground">
+            <div className="flex min-w-0 items-center gap-2 text-muted-foreground md:col-span-3 xl:col-span-1">
               <MapPin className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate">{snapshot.address.label}</span>
+              {snapshot.address.verificationLabel && (
+                <Badge variant={addressVerificationVariant} size="sm" className="shrink-0">
+                  {snapshot.address.verificationLabel}
+                </Badge>
+              )}
             </div>
           </div>
         </CardContent>

@@ -9,7 +9,7 @@
  * Sections:
  * 1. Reproductive safety (hard block if partner is pregnant/trying to conceive)
  * 2. Scalp conditions (informational toggles)
- * 3. Blood pressure & heart (informational - minoxidil safety)
+ * 3. Blood pressure & heart (informational - topical treatment safety)
  * 4. Medications, allergies & conditions (shared answer keys with common tail)
  */
 
@@ -27,8 +27,8 @@ import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { usePostHog } from "@/components/providers/posthog-provider"
-import { MedicalHistoryToggles, SwitchField } from "@/components/request/shared/medical-history-toggles"
-import { EnhancedSelectionButton } from "@/components/shared"
+import { BinaryChoice, IntakeStepIntro, QuestionCard, StringBinaryChoice } from "@/components/request/shared/intake-step-primitives"
+import { MedicalHistoryToggles } from "@/components/request/shared/medical-history-toggles"
 import {
   Accordion,
   AccordionContent,
@@ -111,8 +111,6 @@ export default function HairLossHealthStep({
   const [topAccordionValue, setTopAccordionValue] = useState<string[]>([
     "reproductive",
   ])
-  const [bottomAccordionValue, setBottomAccordionValue] = useState<string[]>([])
-
   // ---------------------------------------------------------------------------
   // Read answers from store
   // ---------------------------------------------------------------------------
@@ -132,11 +130,11 @@ export default function HairLossHealthStep({
   const hairHeartConditions = answers.hairHeartConditions as boolean | undefined
 
   // Shared medical history (same keys as common tail medical-history-step)
-  const takesMedications = answers.takes_medications as string | undefined
+  const takesMedications = answers.takes_medications as "yes" | "no" | undefined
   const currentMedications = (answers.current_medications as string) || ""
-  const hasAllergies = answers.has_allergies as string | undefined
+  const hasAllergies = answers.has_allergies as "yes" | "no" | undefined
   const knownAllergies = (answers.known_allergies as string) || ""
-  const hasConditions = answers.has_conditions as string | undefined
+  const hasConditions = answers.has_conditions as "yes" | "no" | undefined
   const existingConditions = (answers.existing_conditions as string) || ""
 
   // ---------------------------------------------------------------------------
@@ -200,16 +198,6 @@ export default function HairLossHealthStep({
     () => medicationsComplete && allergiesComplete && conditionsComplete,
     [medicationsComplete, allergiesComplete, conditionsComplete]
   )
-
-  // ---------------------------------------------------------------------------
-  // Auto-expand next sections when reproductive completes (not blocked)
-  // ---------------------------------------------------------------------------
-
-  useEffect(() => {
-    if (reproductiveComplete && !isBlocked && bottomAccordionValue.length === 0) {
-      setBottomAccordionValue(["scalp", "bp", "medical"])
-    }
-  }, [reproductiveComplete, isBlocked]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ---------------------------------------------------------------------------
   // Can continue?
@@ -279,7 +267,7 @@ export default function HairLossHealthStep({
             We can&apos;t prescribe hair loss medication right now
           </AlertTitle>
           <AlertDescription className="mt-2 text-sm leading-relaxed">
-            Hair loss medications like finasteride can cause serious birth
+            Some prescription hair loss medicines can cause serious birth
             defects and cannot be prescribed when a partner is pregnant or
             trying to conceive. We&apos;d recommend speaking with your GP about
             alternative options such as topical treatments available from any
@@ -313,178 +301,159 @@ export default function HairLossHealthStep({
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="space-y-1">
-        <h2 className="text-lg font-semibold tracking-tight">
-          A quick health check
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          We need to make sure treatment is safe for you. Most people finish
-          this in under 2 minutes.
-        </p>
-      </div>
+      <IntakeStepIntro
+        eyebrow={
+          !reproductiveComplete
+            ? "Safety 1 of 4"
+            : !scalpComplete
+              ? "Safety 2 of 4"
+              : !bpComplete
+                ? "Safety 3 of 4"
+                : "Safety 4 of 4"
+        }
+        title={
+          !reproductiveComplete
+            ? "A quick safety check"
+            : !scalpComplete
+              ? "Scalp health"
+              : !bpComplete
+                ? "Blood pressure & heart"
+                : "Medical basics"
+        }
+        description={
+          !reproductiveComplete
+            ? "Start with the pregnancy safety question."
+            : "Answer only what applies."
+        }
+      />
 
       {/* ── Top accordion: Reproductive safety ──────────────────────── */}
-      <Accordion
-        type="multiple"
-        value={topAccordionValue}
-        className="space-y-3"
-        onValueChange={(openSections: string[]) => {
-          setTopAccordionValue(openSections)
-          const newlyOpened = openSections.filter(
-            (s) => !prevOpenSections.current.has(s)
-          )
-          if (newlyOpened.length > 0) {
-            posthog?.capture("hair_loss_health_sections_viewed", {
-              opened_sections: newlyOpened,
-              total_open: openSections.length,
-            })
-          }
-          prevOpenSections.current = new Set(openSections)
-        }}
-      >
-        <AccordionItem
-          value="reproductive"
-          className="border rounded-xl overflow-hidden"
+      {!reproductiveComplete && (
+        <Accordion
+          type="multiple"
+          value={topAccordionValue}
+          className="space-y-3"
+          onValueChange={(openSections: string[]) => {
+            setTopAccordionValue(openSections)
+            const newlyOpened = openSections.filter(
+              (s) => !prevOpenSections.current.has(s)
+            )
+            if (newlyOpened.length > 0) {
+              posthog?.capture("hair_loss_health_sections_viewed", {
+                opened_sections: newlyOpened,
+                total_open: openSections.length,
+              })
+            }
+            prevOpenSections.current = new Set(openSections)
+          }}
         >
-          <AccordionTrigger className="px-4 hover:no-underline">
-            <div className="flex items-center gap-2 flex-1">
-              <Baby className="w-4 h-4 text-rose-500 shrink-0" />
-              <span>Reproductive safety</span>
-            </div>
-            <SectionComplete complete={reproductiveComplete} />
-          </AccordionTrigger>
-          <AccordionContent className="px-4 space-y-3">
-            <div className="space-y-2.5">
-              <p className="text-sm font-medium">
-                Is your partner currently pregnant or trying to conceive?{" "}
-                <span className="text-destructive">*</span>
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Some hair loss medications can cause birth defects through skin
-                contact with tablets. This applies even if you are not trying to
-                conceive yourself.
-              </p>
-              <div
-                className="flex flex-col gap-2"
-                role="radiogroup"
-                aria-label="Partner pregnancy or conception status"
-              >
-                {REPRODUCTIVE_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    role="radio"
-                    onClick={() =>
-                      setAnswer("hairReproductive", option.value)
-                    }
-                    aria-checked={hairReproductive === option.value}
-                    className={cn(
-                      "w-full px-4 py-3 text-sm rounded-xl border-2 transition-colors text-left",
-                      "hover:bg-accent hover:text-accent-foreground",
-                      "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
-                      hairReproductive === option.value
-                        ? option.value === "yes"
-                          ? "border-rose-300 bg-rose-50 dark:border-rose-700 dark:bg-rose-950/50 text-rose-800 dark:text-rose-200 font-medium"
-                          : "border-sky-300/60 bg-sky-50 dark:border-sky-600/40 dark:bg-sky-500/10 text-sky-800 dark:text-sky-200 font-medium"
-                        : "border-border/50 bg-white dark:bg-card text-foreground"
-                    )}
-                  >
-                    {option.label}
-                  </button>
-                ))}
+          <AccordionItem
+            value="reproductive"
+            className="border rounded-xl overflow-hidden"
+          >
+            <AccordionTrigger className="px-4 hover:no-underline">
+              <div className="flex items-center gap-2 flex-1">
+                <Baby className="w-4 h-4 text-rose-500 shrink-0" />
+                <span>Reproductive safety</span>
               </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+              <SectionComplete complete={reproductiveComplete} />
+            </AccordionTrigger>
+            <AccordionContent className="px-4 space-y-3">
+              <div className="space-y-2.5">
+                <p className="text-sm font-medium">
+                  Is your partner currently pregnant or trying to conceive?{" "}
+                  <span className="text-destructive">*</span>
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Some hair loss medicines are not suitable around pregnancy.
+                </p>
+                <div
+                  className="flex flex-col gap-2"
+                  role="radiogroup"
+                  aria-label="Partner pregnancy or conception status"
+                >
+                  {REPRODUCTIVE_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      role="radio"
+                      onClick={() =>
+                        setAnswer("hairReproductive", option.value)
+                      }
+                      aria-checked={hairReproductive === option.value}
+                      className={cn(
+                        "w-full px-4 py-3 text-sm rounded-xl border-2 transition-colors text-left",
+                        "hover:bg-accent hover:text-accent-foreground",
+                        "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
+                        hairReproductive === option.value
+                          ? option.value === "yes"
+                            ? "border-rose-300 bg-rose-50 dark:border-rose-700 dark:bg-rose-950/50 text-rose-800 dark:text-rose-200 font-medium"
+                            : "border-sky-300/60 bg-sky-50 dark:border-sky-600/40 dark:bg-sky-500/10 text-sky-800 dark:text-sky-200 font-medium"
+                          : "border-border/50 bg-white dark:bg-card text-foreground"
+                      )}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )}
 
-      {/* ── Bottom accordion: Scalp, BP, Medical ───────────────────── */}
-      <Accordion
-        type="multiple"
-        value={bottomAccordionValue}
-        onValueChange={setBottomAccordionValue}
-        className="space-y-3"
-      >
-        {/* ─────────────────────────────────────────────────────────── */}
-        {/* Scalp conditions                                           */}
-        {/* ─────────────────────────────────────────────────────────── */}
-        <AccordionItem
-          value="scalp"
-          className="border rounded-xl overflow-hidden"
-        >
-          <AccordionTrigger className="px-4 hover:no-underline">
-            <div className="flex items-center gap-2 flex-1">
-              <Activity className="w-4 h-4 text-amber-500 shrink-0" />
-              <span>Scalp conditions</span>
-            </div>
+      {reproductiveComplete && !isBlocked && !scalpComplete && (
+        <QuestionCard compact>
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-amber-500 shrink-0" />
+            <p className="text-sm font-medium">Any scalp conditions?</p>
             <SectionComplete complete={scalpComplete} />
-          </AccordionTrigger>
-          <AccordionContent className="px-4 space-y-3">
-            <p className="text-xs text-muted-foreground">
-              Let us know about any scalp issues. This helps the doctor choose
-              the right treatment approach.
-            </p>
-            <MedicalHistoryToggles
-              items={SCALP_CONDITIONS}
-              values={answers}
-              onChange={handleScalpChange}
-            />
-          </AccordionContent>
-        </AccordionItem>
+          </div>
+          <MedicalHistoryToggles
+            items={SCALP_CONDITIONS}
+            values={answers}
+            onChange={handleScalpChange}
+          />
+        </QuestionCard>
+      )}
 
-        {/* ─────────────────────────────────────────────────────────── */}
-        {/* Blood pressure & heart                                     */}
-        {/* ─────────────────────────────────────────────────────────── */}
-        <AccordionItem
-          value="bp"
-          className="border rounded-xl overflow-hidden"
-        >
-          <AccordionTrigger className="px-4 hover:no-underline">
-            <div className="flex items-center gap-2 flex-1">
-              <HeartPulse className="w-4 h-4 text-blue-500 shrink-0" />
-              <span>Blood pressure &amp; heart</span>
-            </div>
+      {reproductiveComplete && scalpComplete && !bpComplete && (
+        <QuestionCard compact>
+          <div className="flex items-center gap-2">
+            <HeartPulse className="w-4 h-4 text-blue-500 shrink-0" />
+            <p className="text-sm font-medium">Blood pressure &amp; heart</p>
             <SectionComplete complete={bpComplete} />
-          </AccordionTrigger>
-          <AccordionContent className="px-4 space-y-3">
-            <p className="text-xs text-muted-foreground">
-              Some topical treatments can affect blood pressure. This helps the
-              doctor assess minoxidil suitability.
-            </p>
-            <SwitchField
-              id="hair-low-bp"
-              label="Do you have low blood pressure or dizziness on standing?"
-              checked={hairLowBP === true}
-              onChange={(checked) => setAnswer("hairLowBP", checked)}
-            />
-            <SwitchField
-              id="hair-heart-conditions"
-              label="Any heart conditions or taking heart medication?"
-              checked={hairHeartConditions === true}
-              onChange={(checked) =>
-                setAnswer("hairHeartConditions", checked)
-              }
-            />
-          </AccordionContent>
-        </AccordionItem>
-
-        {/* ─────────────────────────────────────────────────────────── */}
-        {/* Medications, allergies & conditions                        */}
-        {/* ─────────────────────────────────────────────────────────── */}
-        <AccordionItem
-          value="medical"
-          className="border rounded-xl overflow-hidden"
-        >
-          <AccordionTrigger className="px-4 hover:no-underline">
-            <div className="flex items-center gap-2 flex-1">
-              <Pill className="w-4 h-4 text-indigo-500 shrink-0" />
-              <span>Medications, allergies &amp; conditions</span>
+          </div>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Low blood pressure or dizziness on standing?</p>
+              <BinaryChoice
+                value={hairLowBP}
+                onChange={(checked) => setAnswer("hairLowBP", checked)}
+                ariaLabel="Low blood pressure or dizziness on standing?"
+              />
             </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Any heart conditions or heart medication?</p>
+              <BinaryChoice
+                value={hairHeartConditions}
+                onChange={(checked) => setAnswer("hairHeartConditions", checked)}
+                ariaLabel="Any heart conditions or heart medication?"
+              />
+            </div>
+          </div>
+        </QuestionCard>
+      )}
+
+      {reproductiveComplete && scalpComplete && bpComplete && !medicalComplete && (
+        <QuestionCard className="space-y-5">
+          <div className="flex items-center gap-2">
+            <Pill className="w-4 h-4 text-indigo-500 shrink-0" />
+            <p className="text-sm font-medium">Medications, allergies &amp; conditions</p>
             <SectionComplete complete={medicalComplete} />
-          </AccordionTrigger>
-          <AccordionContent className="px-4 space-y-5">
+          </div>
             {/* Medications */}
             <div className="space-y-2.5">
               <div>
@@ -496,24 +465,14 @@ export default function HairLossHealthStep({
                   Prescriptions, over-the-counter, vitamins, supplements
                 </p>
               </div>
-              <div className="flex gap-2">
-                <EnhancedSelectionButton
-                  variant="chip"
-                  selected={takesMedications === "no"}
-                  onClick={() => setAnswer("takes_medications", "no")}
-                  className="flex-1 touch-manipulation"
-                >
-                  No medications
-                </EnhancedSelectionButton>
-                <EnhancedSelectionButton
-                  variant="chip"
-                  selected={takesMedications === "yes"}
-                  onClick={() => setAnswer("takes_medications", "yes")}
-                  className="flex-1 touch-manipulation"
-                >
-                  Yes
-                </EnhancedSelectionButton>
-              </div>
+              <StringBinaryChoice
+                value={takesMedications}
+                noValue="no"
+                yesValue="yes"
+                onChange={(value) => setAnswer("takes_medications", value)}
+                ariaLabel="Taking any medications?"
+                noLabel="No medications"
+              />
               {takesMedications === "yes" && (
                 <Textarea
                   value={currentMedications}
@@ -539,24 +498,14 @@ export default function HairLossHealthStep({
                   Drug, food, or environmental allergies
                 </p>
               </div>
-              <div className="flex gap-2">
-                <EnhancedSelectionButton
-                  variant="chip"
-                  selected={hasAllergies === "no"}
-                  onClick={() => setAnswer("has_allergies", "no")}
-                  className="flex-1 touch-manipulation"
-                >
-                  No allergies
-                </EnhancedSelectionButton>
-                <EnhancedSelectionButton
-                  variant="chip"
-                  selected={hasAllergies === "yes"}
-                  onClick={() => setAnswer("has_allergies", "yes")}
-                  className="flex-1 touch-manipulation"
-                >
-                  Yes
-                </EnhancedSelectionButton>
-              </div>
+              <StringBinaryChoice
+                value={hasAllergies}
+                noValue="no"
+                yesValue="yes"
+                onChange={(value) => setAnswer("has_allergies", value)}
+                ariaLabel="Any allergies?"
+                noLabel="No allergies"
+              />
               {hasAllergies === "yes" && (
                 <Textarea
                   value={knownAllergies}
@@ -582,24 +531,14 @@ export default function HairLossHealthStep({
                   Chronic illness, past surgeries, ongoing issues
                 </p>
               </div>
-              <div className="flex gap-2">
-                <EnhancedSelectionButton
-                  variant="chip"
-                  selected={hasConditions === "no"}
-                  onClick={() => setAnswer("has_conditions", "no")}
-                  className="flex-1 touch-manipulation"
-                >
-                  No conditions
-                </EnhancedSelectionButton>
-                <EnhancedSelectionButton
-                  variant="chip"
-                  selected={hasConditions === "yes"}
-                  onClick={() => setAnswer("has_conditions", "yes")}
-                  className="flex-1 touch-manipulation"
-                >
-                  Yes
-                </EnhancedSelectionButton>
-              </div>
+              <StringBinaryChoice
+                value={hasConditions}
+                noValue="no"
+                yesValue="yes"
+                onChange={(value) => setAnswer("has_conditions", value)}
+                ariaLabel="Any other medical conditions?"
+                noLabel="No conditions"
+              />
               {hasConditions === "yes" && (
                 <Textarea
                   value={existingConditions}
@@ -611,14 +550,15 @@ export default function HairLossHealthStep({
                 />
               )}
             </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+        </QuestionCard>
+      )}
 
       {/* Continue button */}
       <Button
+        data-intake-primary-action="true"
+        data-intake-primary-label="Continue"
         onClick={handleNext}
-        className="w-full h-12"
+        className="w-full h-12 max-sm:hidden"
         disabled={!canContinue}
       >
         {canContinue ? (

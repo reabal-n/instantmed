@@ -320,6 +320,7 @@ export async function getDoctorQueue(
       ai_approved_at,
       script_sent,
       parchment_reference,
+      answers:intake_answers(id, answers, answers_encrypted),
       patient:profiles!patient_id (id, full_name, email, date_of_birth, sex, medicare_number, medicare_irn, medicare_expiry, phone, address_line1, suburb, state, postcode),
       service:services!service_id (id, name, short_name, type, slug)
     `)
@@ -337,10 +338,21 @@ export async function getDoctorQueue(
     return { data: [], total: countResult.count, page, pageSize, degraded: true }
   }
 
-  const unwrapped = (data || []).map(row => ({
-    ...row,
-    patient: Array.isArray(row.patient) ? row.patient[0] : row.patient,
-    service: Array.isArray(row.service) ? row.service[0] : row.service,
+  const unwrapped = await Promise.all((data || []).map(async (row) => {
+    const rawAnswers = Array.isArray(row.answers) ? row.answers[0] : null
+    const answers = rawAnswers
+      ? await readAnswers({
+          answers: rawAnswers.answers as Record<string, unknown> | null,
+          answers_enc: rawAnswers.answers_encrypted as never,
+        })
+      : null
+
+    return {
+      ...row,
+      answers: rawAnswers && answers ? [{ id: rawAnswers.id, answers }] : null,
+      patient: Array.isArray(row.patient) ? row.patient[0] : row.patient,
+      service: Array.isArray(row.service) ? row.service[0] : row.service,
+    }
   }))
   const validData = unwrapped.filter((r) => r.patient !== null)
   return {

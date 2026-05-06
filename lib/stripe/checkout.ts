@@ -24,6 +24,8 @@ import { createLogger } from "@/lib/observability/logger"
 import { isAtCapacity } from "@/lib/operational-controls/config"
 import { getMedicationBlocklistCandidate } from "@/lib/operational-controls/medication-blocklist"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
+import { buildAddressAuditMetadata } from "@/lib/request/address-metadata"
+import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing-identity"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
 import { runFraudChecks, saveFraudFlags } from "@/lib/security/fraud-detector"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -321,7 +323,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       patientId = profileId
     }
 
-    if (input.category === "prescription") {
+    if (requiresPrescribingIdentityForRequest({ category: input.category, subtype: input.subtype })) {
       const prescribingUpdates = buildPrescribingProfileUpdates(input.answers)
       if (Object.keys(prescribingUpdates).length > 0) {
         const updatedProfile = await updateProfile(patientId, prescribingUpdates)
@@ -586,6 +588,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
     await logRequestCreated(intake.id, requestType, patientId, {
       category: input.category,
       subtype: input.subtype,
+      ...buildAddressAuditMetadata(input.answers),
     })
     // Per-episode consent evidence (CLINICAL.md)
     await Promise.all([

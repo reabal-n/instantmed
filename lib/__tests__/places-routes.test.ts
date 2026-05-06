@@ -4,9 +4,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 const rateLimitMocks = vi.hoisted(() => ({
   applyRateLimit: vi.fn(),
 }))
+const telemetryMocks = vi.hoisted(() => ({
+  trackAddressProviderLookup: vi.fn(),
+}))
 
 vi.mock("@/lib/rate-limit/redis", () => ({
   applyRateLimit: rateLimitMocks.applyRateLimit,
+}))
+vi.mock("@/lib/google-places/provider-telemetry", () => ({
+  getPlaceIdProvider: (placeId: string | null | undefined) => placeId?.startsWith("af:") ? "addressfinder" : "google",
+  trackAddressProviderLookup: telemetryMocks.trackAddressProviderLookup,
 }))
 
 const ORIGINAL_ENV = {
@@ -112,6 +119,61 @@ describe("/api/places/autocomplete", () => {
     expect(body.predictions).toHaveLength(1)
     expect(vi.mocked(fetch).mock.calls[0]?.[0]).toContain("api.addressfinder.io")
     expect(vi.mocked(fetch).mock.calls[1]?.[0]).toContain("maps.googleapis.com")
+    expect(telemetryMocks.trackAddressProviderLookup).toHaveBeenCalledWith(expect.objectContaining({
+      operation: "autocomplete",
+      provider: "addressfinder",
+      outcome: "zero_results",
+      resultCount: 0,
+      usedGoogleFallback: true,
+    }))
+    expect(telemetryMocks.trackAddressProviderLookup).toHaveBeenCalledWith(expect.objectContaining({
+      operation: "autocomplete",
+      provider: "google",
+      outcome: "success",
+      resultCount: 1,
+      usedGoogleFallback: true,
+    }))
+  })
+
+  it("returns Addressfinder matches without calling Google Places", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(Response.json({
+      completions: [
+        {
+          full_address: "Unit 2, 21 Kent Road, DAPTO NSW 2530",
+          id: "address-id",
+        },
+      ],
+      success: true,
+    }))
+    const GET = await loadAutocompleteRoute()
+
+    const response = await GET(new NextRequest("https://instantmed.test/api/places/autocomplete?input=21%20Kent"))
+    const body = await response.json()
+
+    expect(body).toEqual({
+      status: "OK",
+      provider: "addressfinder",
+      predictions: [
+        {
+          description: "Unit 2, 21 Kent Road, DAPTO NSW 2530",
+          place_id: "af:address-id",
+          structured_formatting: {
+            main_text: "Unit 2, 21 Kent Road",
+            secondary_text: "DAPTO NSW 2530",
+          },
+        },
+      ],
+    })
+    expect(fetch).toHaveBeenCalledOnce()
+    expect(vi.mocked(fetch).mock.calls[0]?.[0]).toContain("api.addressfinder.io")
+    expect(vi.mocked(fetch).mock.calls[0]?.[0]).toContain("secret=af-test-secret")
+    expect(telemetryMocks.trackAddressProviderLookup).toHaveBeenCalledWith(expect.objectContaining({
+      operation: "autocomplete",
+      provider: "addressfinder",
+      outcome: "success",
+      resultCount: 1,
+      usedGoogleFallback: false,
+    }))
   })
 })
 
@@ -137,5 +199,72 @@ describe("/api/places/details", () => {
     expect(response.status).toBe(429)
     expect(rateLimitMocks.applyRateLimit).toHaveBeenCalledWith(expect.any(NextRequest), "addressSearch")
     expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it("normalizes Addressfinder metadata into prescribing address fields", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(Response.json({
+      id: "address-id",
+      full_address: "Unit 2, 21 Kent Road, DAPTO NSW 2530",
+      address_line_1: "Unit 2",
+      address_line_2: "21 Kent Road",
+      address_line_combined: "Unit 2, 21 Kent Road",
+      locality_name: "DAPTO",
+      state_territory: "NSW",
+      postcode: "2530",
+      latitude: "-34.4929",
+      longitude: "150.7932",
+      success: true,
+    }))
+    const GET = await loadDetailsRoute()
+
+    const response = await GET(new NextRequest("https://instantmed.test/api/places/details?place_id=af%3Aaddress-id"))
+    const body = await response.json()
+
+    expect(body).toEqual({
+      status: "OK",
+      provider: "addressfinder",
+      address: {
+        addressLine1: "Unit 2, 21 Kent Road",
+        addressLine2: null,
+        suburb: "DAPTO",
+        state: "NSW",
+        postcode: "2530",
+        fullAddress: "Unit 2, 21 Kent Road, DAPTO NSW 2530",
+        placeId: "af:address-id",
+        coordinates: {
+          lat: -34.4929,
+          lng: 150.7932,
+        },
+      },
+    })
+    expect(fetch).toHaveBeenCalledOnce()
+    expect(vi.mocked(fetch).mock.calls[0]?.[0]).toContain("api.addressfinder.io")
+    expect(vi.mocked(fetch).mock.calls[0]?.[0]).toContain("id=address-id")
+    expect(telemetryMocks.trackAddressProviderLookup).toHaveBeenCalledWith(expect.objectContaining({
+      operation: "details",
+      provider: "addressfinder",
+      outcome: "success",
+      detailsFailed: false,
+    }))
+  })
+
+  it("tracks address detail lookup failures without leaking address text", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(Response.json(
+      { success: false },
+      { status: 502 },
+    ))
+    const GET = await loadDetailsRoute()
+
+    const response = await GET(new NextRequest("https://instantmed.test/api/places/details?place_id=af%3Aaddress-id"))
+    const body = await response.json()
+
+    expect(body).toEqual({ status: "ZERO_RESULTS" })
+    expect(telemetryMocks.trackAddressProviderLookup).toHaveBeenCalledWith(expect.objectContaining({
+      operation: "details",
+      provider: "addressfinder",
+      outcome: "details_failure",
+      detailsFailed: true,
+      placeIdProvider: "addressfinder",
+    }))
   })
 })

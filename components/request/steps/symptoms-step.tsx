@@ -8,6 +8,7 @@ import { AlertTriangle, ArrowRight } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 
 import { usePostHog } from "@/components/providers/posthog-provider"
+import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
 import { EnhancedSelectionButton } from "@/components/shared"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -121,78 +122,79 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
 
   return (
     <div className="space-y-4">
-      <FormField
-        label={isCarer ? "What is happening for the person you're caring for?" : "What is stopping you from work or study?"}
-        required
-        error={touched.symptomDetails ? errors.symptomDetails : undefined}
-        hint="One clear sentence is enough if it explains the symptoms."
-        helpContent={{
-          title: "What should I include?",
-          content: "Say what symptoms started, when they started, and how they affect work or study.",
-        }}
-      >
-        <Textarea
-          value={symptomDetails}
-          onChange={(e) => setAnswer("symptomDetails", e.target.value)}
-          onBlur={() => setTouched((prev) => ({ ...prev, symptomDetails: true }))}
-          placeholder={
-            isCarer
-              ? "e.g., They have fever, sore throat, and fatigue since yesterday."
-              : "e.g., Fever, sore throat, and fatigue since yesterday."
-          }
-          className={`mt-2 min-h-[96px] resize-none ${touched.symptomDetails && errors.symptomDetails ? "border-destructive" : ""}`}
-        />
-        <div className="mt-1.5 flex items-center justify-between gap-2">
-          <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
-            <div
-              className={`h-full rounded-full transition-[width] duration-300 ${
-                detailsQuality.valid ? "bg-primary" : "bg-primary/50"
-              }`}
-              style={{ width: `${Math.min((detailsWordCount / WORD_TARGET) * 100, 100)}%` }}
-            />
-          </div>
-          <p
-            className={`shrink-0 text-xs tabular-nums ${
-              detailsQuality.valid ? "text-primary" : "text-muted-foreground"
-            }`}
-            aria-live="polite"
-          >
-            {detailsQuality.valid ? `${detailsWordCount} words` : `${detailsWordCount}/${WORD_TARGET} words`}
-          </p>
-        </div>
-      </FormField>
+      <IntakeStepIntro
+        title={isCarer ? "What is happening?" : "What is stopping you today?"}
+        description="A short, specific sentence is enough for the doctor to review."
+      />
 
-      <FormField
-        label={isCarer ? "How long have they felt unwell?" : "How long have you felt unwell?"}
-        required
-        error={touched.symptomDuration ? errors.symptomDuration : undefined}
-        helpContent={{
-          title: "Why does duration matter?",
-          content: "Duration helps the doctor assess whether the certificate dates are clinically reasonable.",
-        }}
-      >
-        <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4" role="group" aria-label="How long have symptoms been present">
-          {SYMPTOM_DURATION_OPTIONS.map((option) => (
-            <EnhancedSelectionButton
-              key={option.value}
-              variant="chip"
-              selected={symptomDuration === option.value}
-              onClick={() => {
-                setAnswer("symptomDuration", option.value)
-                setTouched((prev) => ({ ...prev, symptomDuration: true }))
-              }}
-              className="touch-manipulation"
+      <QuestionCard compact>
+        <FormField
+          label={isCarer ? "Describe the symptoms" : "Describe your symptoms"}
+          required
+          error={touched.symptomDetails ? errors.symptomDetails : undefined}
+          hint="Include what started, when it started, and how it affects work or study."
+        >
+          <Textarea
+            value={symptomDetails}
+            onChange={(e) => setAnswer("symptomDetails", e.target.value)}
+            onBlur={() => setTouched((prev) => ({ ...prev, symptomDetails: true }))}
+            placeholder={
+              isCarer
+                ? "e.g., Fever, sore throat, and fatigue since yesterday."
+                : "e.g., Fever, sore throat, and fatigue since yesterday."
+            }
+            className={`mt-2 min-h-[88px] resize-none ${touched.symptomDetails && errors.symptomDetails ? "border-destructive" : ""}`}
+          />
+          <div className="mt-1.5 flex items-center justify-between gap-2">
+            <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
+              <div
+                className={`h-full rounded-full transition-[width] duration-300 ${
+                  detailsQuality.valid ? "bg-primary" : "bg-primary/50"
+                }`}
+                style={{ width: `${Math.min((detailsWordCount / WORD_TARGET) * 100, 100)}%` }}
+              />
+            </div>
+            <p
+              className={`shrink-0 text-xs tabular-nums ${
+                detailsQuality.valid ? "text-primary" : "text-muted-foreground"
+              }`}
+              aria-live="polite"
             >
-              {option.label}
-            </EnhancedSelectionButton>
-          ))}
-        </div>
-        {symptomDuration === "week_plus" && (
-          <div className="mt-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
-            Symptoms lasting more than a week may need an in-person GP review. You can still submit this request.
+              {detailsQuality.valid ? `${detailsWordCount} words` : `${detailsWordCount}/${WORD_TARGET} words`}
+            </p>
           </div>
-        )}
-      </FormField>
+        </FormField>
+      </QuestionCard>
+
+      <QuestionCard compact>
+        <FormField
+          label={isCarer ? "How long have they felt unwell?" : "How long have you felt unwell?"}
+          required
+          error={touched.symptomDuration ? errors.symptomDuration : undefined}
+        >
+          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4" role="group" aria-label="How long have symptoms been present">
+            {SYMPTOM_DURATION_OPTIONS.map((option) => (
+              <EnhancedSelectionButton
+                key={option.value}
+                variant="chip"
+                selected={symptomDuration === option.value}
+                onClick={() => {
+                  setAnswer("symptomDuration", option.value)
+                  setTouched((prev) => ({ ...prev, symptomDuration: true }))
+                }}
+                className="touch-manipulation"
+              >
+                {option.label}
+              </EnhancedSelectionButton>
+            ))}
+          </div>
+          {symptomDuration === "week_plus" && (
+            <div className="mt-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
+              Symptoms lasting more than a week may need an in-person GP review. You can still submit this request.
+            </div>
+          )}
+        </FormField>
+      </QuestionCard>
 
       {emergencyWarning.isEmergency && (
         <Alert variant="destructive" className="border-destructive-border" role="alert">
@@ -229,7 +231,7 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
         </Alert>
       )}
 
-      <Button onClick={handleNext} className="h-12 w-full" disabled={!canContinue}>
+      <Button data-intake-primary-action="true" data-intake-primary-label="Continue" onClick={handleNext} className="h-12 w-full max-sm:hidden" disabled={!canContinue}>
         {canContinue ? (
           <>
             Continue

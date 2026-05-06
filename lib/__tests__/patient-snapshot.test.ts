@@ -82,8 +82,110 @@ describe("buildPatientSnapshot", () => {
     expect(snapshot.address.label).toBe("12 Manual Entry Road")
     expect(snapshot.address.present).toBe(true)
     expect(snapshot.address.complete).toBe(false)
-    expect(snapshot.missingCriticalFields).toEqual(["Address"])
+    expect(snapshot.address.verificationLabel).toBe("Manual address")
+    expect(snapshot.address.verificationTone).toBe("warning")
+    expect(snapshot.missingCriticalFields).toEqual(["Address suburb", "Address state", "Address postcode"])
     expect(snapshot.completenessTone).toBe("partial")
+  })
+
+  it("uses active intake answers before stale profile fields for case review", () => {
+    const snapshot = buildPatientSnapshot({
+      id: "patient-stale-profile",
+      full_name: "Stale Profile",
+      date_of_birth: "1980-01-01",
+      medicare_number: "1111111111",
+      medicare_irn: 1,
+      phone: "0400 000 000",
+      email: "old@example.com",
+      address_line1: "1 Old Street",
+      suburb: "Oldtown",
+      state: "VIC",
+      postcode: "3000",
+      sex: "M",
+    }, {
+      now,
+      answers: {
+        dateOfBirth: "1991-06-14",
+        medicareNumber: "2123456701",
+        medicareIrn: "4",
+        phone: "0412 345 678",
+        email: "current@example.com",
+        addressLine1: "Unit 2, 21 Kent Road",
+        suburb: "Dapto",
+        state: "NSW",
+        postcode: "2530",
+        sex: "F",
+      },
+      requireStructuredAddress: true,
+      requireSex: true,
+      requireMedicareDetails: true,
+    })
+
+    expect(snapshot.ageDobLabel).toBe("34y / 14/06/1991")
+    expect(snapshot.sex.label).toBe("Female")
+    expect(snapshot.phone.label).toBe("0412 345 678")
+    expect(snapshot.email.label).toBe("current@example.com")
+    expect(snapshot.medicare.label).toBe("2123456701")
+    expect(snapshot.medicare.detailsLabel).toBe("IRN 4")
+    expect(snapshot.address.label).toBe("Unit 2, 21 Kent Road, Dapto, NSW, 2530")
+    expect(snapshot.missingCriticalFields).toEqual([])
+  })
+
+  it("does not mix partial intake address edits with stale profile address fragments", () => {
+    const snapshot = buildPatientSnapshot({
+      id: "patient-partial-address",
+      full_name: "Partial Address",
+      date_of_birth: "1991-06-14",
+      medicare_number: "1111111111",
+      phone: "0412 345 678",
+      email: "partial@example.com",
+      address_line1: "1 Old Street",
+      suburb: "Oldtown",
+      state: "VIC",
+      postcode: "3000",
+    }, {
+      now,
+      answers: {
+        addressLine1: "Unit 2, 21 Kent Road",
+      },
+      requireStructuredAddress: true,
+    })
+
+    expect(snapshot.address.label).toBe("Unit 2, 21 Kent Road")
+    expect(snapshot.address.complete).toBe(false)
+    expect(snapshot.missingCriticalFields).toEqual(["Address suburb", "Address state", "Address postcode"])
+  })
+
+  it("surfaces verified address metadata for clinical review", () => {
+    const snapshot = buildPatientSnapshot({
+      id: "patient-verified-address",
+      full_name: "Verified Address",
+      date_of_birth: "1991-06-14",
+      medicare_number: "1111111111",
+      phone: "0412 345 678",
+      email: "verified@example.com",
+      address_line1: null,
+      suburb: null,
+      state: null,
+      postcode: null,
+    }, {
+      now,
+      answers: {
+        addressLine1: "Unit 2, 21 Kent Road",
+        suburb: "Dapto",
+        state: "NSW",
+        postcode: "2530",
+        addressVerified: true,
+        addressProviderPlaceId: "af:abc-123",
+      },
+      requireStructuredAddress: true,
+    })
+
+    expect(snapshot.address.label).toBe("Unit 2, 21 Kent Road, Dapto, NSW, 2530")
+    expect(snapshot.address.complete).toBe(true)
+    expect(snapshot.address.verificationLabel).toBe("Verified via Addressfinder")
+    expect(snapshot.address.verificationTone).toBe("success")
+    expect(snapshot.address.verified).toBe(true)
   })
 
   it("surfaces prescribing sex from profile or intake answers when required", () => {
