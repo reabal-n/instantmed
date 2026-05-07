@@ -24,8 +24,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Check stack pins (Next/React/Tailwind/Framer Motion)
+      - name: Check stack pins (Next + tooling/React/Tailwind/Framer Motion)
         run: bash scripts/check-stack-pins.sh
+
+      - name: Check dependency dedupe
+        run: pnpm dedupe --check
 
       - name: Supabase schema lint
         env:

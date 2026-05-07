@@ -1,5 +1,6 @@
 #!/bin/bash
-# Stack pin guard: hard-fail if any framework dep drifts from the locked version.
+# Stack pin guard: hard-fail if any framework dep or framework-adjacent tool
+# drifts from the locked version.
 #
 # Why: Next.js 16 / React 19 / Turbopack / Framer Motion 12 caused recurring
 # dev-server crashes and required local workarounds. We pinned the stable stack
@@ -17,11 +18,16 @@ set -euo pipefail
 # ─── EXPECTED PINNED VERSIONS ──────────────────────────────────────────────
 # Update these in lockstep with package.json + pnpm.overrides.
 EXPECTED_NEXT="15.5.15"
+EXPECTED_NEXT_TOOLING="15.5.15"
 EXPECTED_REACT="18.3.1"
 EXPECTED_REACT_DOM="18.3.1"
+EXPECTED_TYPES_REACT="18.3.12"
+EXPECTED_TYPES_REACT_DOM="18.3.1"
 EXPECTED_FRAMER_MOTION="11.18.2"
 EXPECTED_TAILWIND="4.2.2"
 EXPECTED_TAILWIND_POSTCSS="4.2.2"
+EXPECTED_NODE_ENGINE="20.x"
+EXPECTED_PACKAGE_MANAGER="pnpm@10.23.0"
 # ───────────────────────────────────────────────────────────────────────────
 
 PKG="package.json"
@@ -91,21 +97,93 @@ check_pin() {
   echo "ok:   $name = $actual ($source)"
 }
 
+check_package_field() {
+  local field="$1"
+  local expected="$2"
+
+  local actual
+  actual=$(node -e "
+    const pkg = require('./$PKG');
+    const value = '$field'.split('.').reduce((current, key) => current && current[key], pkg) || '';
+    process.stdout.write(value);
+  ")
+
+  if [[ "$actual" != "$expected" ]]; then
+    echo "FAIL: $field = '$actual', expected '$expected'"
+    errors=$((errors + 1))
+    return
+  fi
+
+  echo "ok:   $field = $actual"
+}
+
+check_no_duplicate_dependencies() {
+  local duplicates
+  duplicates=$(node -e "
+    const pkg = require('./$PKG');
+    const deps = Object.keys(pkg.dependencies || {});
+    const devDeps = new Set(Object.keys(pkg.devDependencies || {}));
+    process.stdout.write(deps.filter((name) => devDeps.has(name)).join(', '));
+  ")
+
+  if [[ -n "$duplicates" ]]; then
+    echo "FAIL: packages listed in both dependencies and devDependencies: $duplicates"
+    errors=$((errors + 1))
+    return
+  fi
+
+  echo "ok:   no duplicate dependency declarations"
+}
+
+check_no_turbopack_flags() {
+  local matches
+  matches=$(node -e "
+    const pkg = require('./$PKG');
+    const scripts = Object.entries(pkg.scripts || {});
+    const flagged = scripts
+      .filter(([, command]) => /--turbo\\b|--turbopack\\b/.test(command))
+      .map(([name, command]) => name + '=' + command);
+    process.stdout.write(flagged.join(' | '));
+  ")
+
+  if [[ -n "$matches" ]]; then
+    echo "FAIL: Turbopack flags are not allowed in package scripts: $matches"
+    errors=$((errors + 1))
+    return
+  fi
+
+  echo "ok:   package scripts use webpack, not Turbopack flags"
+}
+
 echo "── Stack pin check ──"
 check_pin "next"                  "$EXPECTED_NEXT"             "deps"
+check_pin "@next/bundle-analyzer" "$EXPECTED_NEXT_TOOLING"     "deps"
+check_pin "@next/eslint-plugin-next" "$EXPECTED_NEXT_TOOLING"  "deps"
 check_pin "react"                 "$EXPECTED_REACT"            "deps"
 check_pin "react-dom"             "$EXPECTED_REACT_DOM"        "deps"
+check_pin "@types/react"          "$EXPECTED_TYPES_REACT"      "deps"
+check_pin "@types/react-dom"      "$EXPECTED_TYPES_REACT_DOM"  "deps"
 check_pin "framer-motion"         "$EXPECTED_FRAMER_MOTION"    "deps"
 check_pin "tailwindcss"           "$EXPECTED_TAILWIND"         "deps"
 check_pin "@tailwindcss/postcss"  "$EXPECTED_TAILWIND_POSTCSS" "deps"
 
 echo "── pnpm.overrides check ──"
 check_pin "next"                  "$EXPECTED_NEXT"             "override"
+check_pin "@next/bundle-analyzer" "$EXPECTED_NEXT_TOOLING"     "override"
+check_pin "@next/eslint-plugin-next" "$EXPECTED_NEXT_TOOLING"  "override"
 check_pin "react"                 "$EXPECTED_REACT"            "override"
 check_pin "react-dom"             "$EXPECTED_REACT_DOM"        "override"
+check_pin "@types/react"          "$EXPECTED_TYPES_REACT"      "override"
+check_pin "@types/react-dom"      "$EXPECTED_TYPES_REACT_DOM"  "override"
 check_pin "framer-motion"         "$EXPECTED_FRAMER_MOTION"    "override"
 check_pin "tailwindcss"           "$EXPECTED_TAILWIND"         "override"
 check_pin "@tailwindcss/postcss"  "$EXPECTED_TAILWIND_POSTCSS" "override"
+
+echo "── Runtime/tooling consistency check ──"
+check_package_field "engines.node" "$EXPECTED_NODE_ENGINE"
+check_package_field "packageManager" "$EXPECTED_PACKAGE_MANAGER"
+check_no_duplicate_dependencies
+check_no_turbopack_flags
 
 if [[ $errors -gt 0 ]]; then
   echo ""
@@ -120,4 +198,4 @@ if [[ $errors -gt 0 ]]; then
 fi
 
 echo ""
-echo "✓ All framework versions pinned correctly."
+echo "✓ All framework versions and stack tooling are pinned consistently."
