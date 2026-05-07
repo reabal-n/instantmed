@@ -115,6 +115,7 @@ export default async function PatientMessagesPage({
       messages={messagesForClient || []}
       messagesByIntake={messagesByIntake}
       unreadCount={unreadCount}
+      initialSelectedIntakeId={initialIntakeId}
       error={fetchError}
       initialIntakeId={initialIntakeId}
     />

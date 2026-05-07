@@ -676,6 +676,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
   const {
     webhooks,
     emails,
+    authEmails,
     safetyBlocks,
     errors,
     auditVolume,
@@ -827,6 +828,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
             <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-1">
               <StatusIndicator healthy={systemStatus.webhooksHealthy} label="Payment webhooks" />
               <StatusIndicator healthy={systemStatus.emailsHealthy} label="Email delivery" />
+              <StatusIndicator healthy={systemStatus.authEmailsHealthy} label="Auth Email" />
               <StatusIndicator healthy={systemStatus.intakesHealthy} label="Intake processing" />
               <StatusIndicator healthy={systemStatus.patientIdentityHealthy} label="Patient identity" />
               <StatusIndicator healthy={systemStatus.prescribingIdentityHealthy} label="Prescribing identity" />
@@ -975,6 +977,13 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
             >
               <EmailTestControl configured={emails.configured} missingVars={emails.missingVars} />
             </OpsSignalCard>
+            <OpsSignalCard
+              icon={MailOpen}
+              label="Auth Email"
+              value={`${authEmails.successRate}%`}
+              detail={`${authEmails.recentFailures.length} recent auth send failures`}
+              tone={authEmails.unavailable || authEmails.failed > 0 ? "warning" : "success"}
+            />
             <OpsSignalCard
               icon={Clock}
               label="Stale intakes"

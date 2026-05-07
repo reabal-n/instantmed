@@ -1,11 +1,11 @@
+import { collectRepeatMedicationEntries } from "@/lib/clinical/repeat-medications"
 import { checkEmergencySymptoms } from "@/lib/clinical/triage-rules-engine"
 import { buildAddressAuditMetadata } from "@/lib/request/address-metadata"
-import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing-identity"
 import {
   isConsultSubtypeAvailable,
   isConsultSubtypeKey,
 } from "@/lib/request/consult-subtypes"
-import { collectRepeatMedicationEntries } from "@/lib/clinical/repeat-medications"
+import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing-identity"
 import {
   validateCertificateStep,
   validateConsultReasonStep,

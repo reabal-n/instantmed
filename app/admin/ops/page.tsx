@@ -1,8 +1,6 @@
 import { buildOperationalFailureOverview } from "@/lib/admin/ops-failures"
 import { requireRole } from "@/lib/auth/helpers"
 import { getMissingTelegramAlertEnv } from "@/lib/config/env"
-import { getAuthEmailHealth } from "@/lib/data/auth-email-events"
-import { getStuckIntakes } from "@/lib/data/intake-ops"
 import {
   ADMIN_AUDIT_HREF,
   ADMIN_EMAIL_HUB_HREF,
@@ -10,6 +8,8 @@ import {
   ADMIN_WEBHOOK_DLQ_HREF,
   buildAdminIntakeHref,
 } from "@/lib/dashboard/routes"
+import { getAuthEmailHealth } from "@/lib/data/auth-email-events"
+import { getStuckIntakes } from "@/lib/data/intake-ops"
 import {
   getDuplicatePatientProfileSummary,
   getPrescribingIdentityBlockerReport,

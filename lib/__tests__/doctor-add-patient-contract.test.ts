@@ -115,8 +115,8 @@ describe("doctor add patient Parchment contract", () => {
   it("displays Parchment-synced prescriptions on the doctor patient record", () => {
     expect(detailPageSource).toContain(".from(\"prescriptions\")")
     expect(detailPageSource).toContain("parchment_reference")
-    expect(detailPageSource).toContain("prescriptions={data.prescriptions}")
-    expect(detailSource).toContain("interface PatientPrescription")
+    expect(detailPageSource).toContain("medications={data.medications}")
+    expect(detailSource).toContain("interface PatientMedication")
     expect(detailSource).toContain("Active Prescriptions")
     expect(detailSource).toContain("parchment_reference")
   })

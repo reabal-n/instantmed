@@ -30,9 +30,10 @@ export default async function EmailHubPage() {
   const yesterdayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
   const yesterdayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate())
 
-  const [statsResult, activityResult, outboxResult, templateCountResult, yesterdayCountResult] = await Promise.all([
+  const [statsResult, activityResult, issueResult, outboxResult, templateCountResult, yesterdayCountResult] = await Promise.all([
     getEmailStats(),
     getRecentEmailActivity(20),
+    getRecentEmailIssues(25),
     getEmailOutboxList({ page: 1, pageSize: 50 }),
     supabase.from("email_templates").select("id, is_active", { count: "exact" }),
     supabase
@@ -58,6 +59,7 @@ export default async function EmailHubPage() {
       <EmailHubClient
         initialStats={statsResult.stats}
         initialActivity={activityResult.activity}
+        issueActivity={issueResult.activity}
         outboxRows={outboxResult.data}
         outboxTotal={outboxResult.total}
         templateCounts={{ active: activeTemplates, total: totalTemplates }}

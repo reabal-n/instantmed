@@ -557,11 +557,11 @@ async function mutateUser({
 
   if (!res.ok) {
     if (res.status === 401) clearTokenCache(callerUserId)
-    const responseBody = await res.text().catch(() => "")
+    const bodyText = await res.text().catch(() => "")
     const err = new Error(`Parchment ${operation} failed: ${res.status}`)
-    log.error("User mutation failed", { operation, status: res.status, responseBytes: responseBody.length }, err)
+    log.error("User mutation failed", { operation, status: res.status, responseBytes: bodyText.length }, err)
     Sentry.captureException(err, {
-      extra: { operation, status: res.status, responseBytes: responseBody.length },
+      extra: { operation, status: res.status, responseBytes: bodyText.length },
     })
     throw err
   }

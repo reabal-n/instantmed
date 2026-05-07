@@ -96,7 +96,8 @@ done
 for retired_subscription_file in \
   "app/api/cron/subscription-nudge/route.ts" \
   "lib/email/subscription-nudge.ts" \
-  "components/email/templates/subscription-nudge.tsx"
+  "components/email/templates/subscription-nudge.tsx" \
+  "lib/email/components/templates/subscription-nudge.tsx"
 do
   if [[ -e "$retired_subscription_file" ]]; then
     echo "ORPHAN: $retired_subscription_file still exists (repeat-Rx subscription acquisition is retired)"

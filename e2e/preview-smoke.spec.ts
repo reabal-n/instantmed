@@ -53,7 +53,7 @@ test.describe("Preview Smoke Tests", () => {
     })
 
     if (response.status() === 410) {
-      // Vercel preview deployments intentionally block /api/test/* unless
+      // Vercel preview deployments intentionally blocks /api/test/login unless
       // PLAYWRIGHT=1 is configured on the deployed app, not just in the runner.
       return
     }

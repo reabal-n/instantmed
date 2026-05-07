@@ -24,10 +24,12 @@ describe("email reconstruction contract", () => {
     }
   })
 
-  it("persists enough payment retry metadata for dispatcher reconstruction", () => {
-    expect(retryPaymentRouteSource).toContain("emailType: \"payment_retry\"")
-    expect(retryPaymentRouteSource).toContain("request_type: invoice.description")
-    expect(retryPaymentRouteSource).toContain("amount_cents: invoice.amount_cents")
-    expect(retryPaymentRouteSource).toContain("payment_url: paymentUrl")
+  it("returns patients to the owned checkout retry path without sending a second email", () => {
+    expect(retryPaymentRouteSource).toContain("getRetryablePaymentIntakeId")
+    expect(retryPaymentRouteSource).toContain("paymentUrl: `${env.appUrl}/patient/intakes/${intakeId}?retry=true`")
+    expect(retryPaymentRouteSource).not.toContain("emailType: \"payment_retry\"")
+    expect(retryPaymentRouteSource).not.toContain("PaymentRetryEmail")
+    expect(retryPaymentRouteSource).not.toContain("payment_url: paymentUrl")
+    expect(retryPaymentRouteSource).not.toContain("sendEmail")
   })
 })

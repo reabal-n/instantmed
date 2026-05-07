@@ -655,10 +655,10 @@ export function PatientDetailClient({
         <CardHeader className="py-3 px-4">
           <CardTitle className="flex items-center gap-2 text-base">
             <Pill className="h-4 w-4" />
-            Medication history
+            Active Prescriptions
           </CardTitle>
           <p className="mt-1 text-sm text-muted-foreground">
-            Parchment prescriptions and previous InstantMed prescription requests.
+            Medication history includes Parchment prescriptions and previous InstantMed prescription requests.
           </p>
         </CardHeader>
         <CardContent className="px-4 py-3">

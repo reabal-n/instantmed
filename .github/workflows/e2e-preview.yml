@@ -59,10 +59,7 @@ jobs:
           for i in {1..30}; do
             curl_args=(-sS --connect-timeout 5 --max-time 10 -o /dev/null -w "%{http_code}")
             if [ -n "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
-              curl_args+=(
-                -H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET"
-                -H "x-vercel-set-bypass-cookie: true"
-              )
+              curl_args+=(-H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET" -H "x-vercel-set-bypass-cookie: true")
             fi
             status="$(curl "${curl_args[@]}" "${{ steps.url.outputs.PREVIEW_URL }}" || true)"
             if [ "$status" = "401" ] && [ -z "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then

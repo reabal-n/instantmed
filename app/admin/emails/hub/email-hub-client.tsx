@@ -69,6 +69,7 @@ function sanitizeEmail(email: string): string {
 interface EmailHubClientProps {
   initialStats: EmailStats
   initialActivity: RecentEmailActivity[]
+  issueActivity: RecentEmailActivity[]
   outboxRows: EmailOutboxLedgerRow[]
   outboxTotal: number
   templateCounts: { active: number; total: number }
@@ -129,6 +130,7 @@ function EmailStatusPill({
 export function EmailHubClient({
   initialStats,
   initialActivity,
+  issueActivity,
   outboxRows,
   outboxTotal,
   templateCounts,
@@ -145,11 +147,7 @@ export function EmailHubClient({
   const router = useRouter()
   const stats = initialStats
   const activity = initialActivity
-  const emailIssues = activity.filter((item) =>
-    ["failed", "pending", "sending"].includes(item.status)
-      || item.deliveryStatus === "bounced"
-      || item.deliveryStatus === "complained",
-  )
+  const emailIssues = issueActivity
 
   const handleRefresh = () => {
     startRefresh(() => {

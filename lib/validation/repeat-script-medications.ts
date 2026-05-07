@@ -79,7 +79,7 @@ export function extractRepeatScriptMedications(answers: Record<string, unknown>)
     : []
 
   const legacy = legacyMedicationEntry(answers)
-  if (legacy) entries.push(legacy)
+  if (entries.length === 0 && legacy) entries.push(legacy)
 
   const seen = new Set<string>()
   return entries.filter((entry) => {

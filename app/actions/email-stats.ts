@@ -180,7 +180,7 @@ export async function getRecentEmailIssues(limit = 25): Promise<{
   error?: string
 }> {
   try {
-    await requireRole(["admin", "doctor"])
+    await requireRole(["admin"])
     const supabase = createServiceRoleClient()
 
     const { data, error } = await supabase
