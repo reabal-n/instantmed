@@ -5,7 +5,7 @@
  *
  * Date model: two-question layout.
  * 1. How many days? (1/2/3 chips with prices)
- * 2. Starting from? (4 chips: day before yesterday, yesterday, today, tomorrow)
+ * 2. Starting from? (3 chips: day before yesterday, yesterday, today)
  * Certificates capped at 3 days max.
  */
 
@@ -54,9 +54,9 @@ function parseDuration(value: unknown): Duration | null {
 // ─── Date helpers ─────────────────────────────────────────────────────────
 
 const WIN_MIN = -2
-const WIN_MAX = 1
+const WIN_MAX = 0
 
-const START_OFFSETS = [-2, -1, 0, 1] as const
+const START_OFFSETS = [-2, -1, 0] as const
 
 function offsetToDate(offset: number): Date {
   const d = new Date()
@@ -83,7 +83,6 @@ function isoToOffset(iso: string): number | null {
 function chipLabel(offset: number): string {
   if (offset === -1) return "Yesterday"
   if (offset === 0) return "Today"
-  if (offset === 1) return "Tomorrow"
   const d = offsetToDate(offset)
   return d.toLocaleDateString("en-AU", { weekday: "short", day: "numeric" })
 }
@@ -91,7 +90,6 @@ function chipLabel(offset: number): string {
 function summaryLabel(offset: number): string {
   if (offset === -1) return "Yesterday"
   if (offset === 0) return "Today"
-  if (offset === 1) return "Tomorrow"
   const d = offsetToDate(offset)
   return d.toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short" })
 }

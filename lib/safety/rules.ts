@@ -70,6 +70,19 @@ const emergencyRules: SafetyRule[] = [
     doctorNote: 'Patient reported thoughts of self-harm - provided crisis resources',
     priority: 1000,
   },
+  {
+    id: 'emergency_free_text',
+    name: 'Emergency Free Text',
+    description: 'Patient free-text symptom details matched emergency keywords',
+    conditions: [
+      { fieldId: 'emergency_symptoms', operator: 'includes_any', value: ['emergency_free_text'] },
+    ],
+    outcome: 'DECLINE',
+    riskTier: 'critical',
+    patientMessage: 'Your symptoms may require urgent medical attention. Please call 000 or go to your nearest emergency department immediately.',
+    doctorNote: 'Patient symptom details matched emergency keywords - directed to emergency services',
+    priority: 1000,
+  },
 ]
 
 // ============================================
