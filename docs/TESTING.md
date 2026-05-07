@@ -192,6 +192,7 @@ The certificate pipeline has strict idempotency and security requirements. These
 jobs:
   build:
     steps:
+      - official GitHub actions pinned to Node 24-compatible releases
       - actions/setup-node with node-version-file: .nvmrc
       - pnpm install --frozen-lockfile
       - bash scripts/check-stack-pins.sh  # Fails if Next + tooling/React/Tailwind/FM/runtime drift

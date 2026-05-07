@@ -29,6 +29,9 @@ EXPECTED_TAILWIND_POSTCSS="4.2.2"
 EXPECTED_NODE_ENGINE="20.x"
 EXPECTED_NVMRC="20"
 EXPECTED_PACKAGE_MANAGER="pnpm@10.23.0"
+EXPECTED_CHECKOUT_ACTION="actions/checkout@v6.0.2"
+EXPECTED_SETUP_NODE_ACTION="actions/setup-node@v6.4.0"
+EXPECTED_PNPM_ACTION="pnpm/action-setup@v6.0.5"
 # ───────────────────────────────────────────────────────────────────────────
 
 PKG="package.json"
@@ -212,6 +215,52 @@ check_workflow_node_runtime_source() {
   echo "ok:   GitHub workflows read Node runtime from .nvmrc"
 }
 
+check_workflow_action_pins() {
+  local violations
+  violations=$(node -e "
+    const fs = require('fs');
+    const path = require('path');
+    const dir = '.github/workflows';
+    const expected = new Map([
+      ['actions/checkout', '$EXPECTED_CHECKOUT_ACTION'],
+      ['actions/setup-node', '$EXPECTED_SETUP_NODE_ACTION'],
+      ['pnpm/action-setup', '$EXPECTED_PNPM_ACTION'],
+    ]);
+    if (!fs.existsSync(dir)) {
+      process.exit(0);
+    }
+    const files = fs.readdirSync(dir)
+      .filter((name) => /\\.ya?ml$/.test(name))
+      .map((name) => path.join(dir, name));
+    const failures = [];
+    for (const file of files) {
+      const lines = fs.readFileSync(file, 'utf8').split(/\\r?\\n/);
+      lines.forEach((line, index) => {
+        const match = line.match(/uses:\\s*([^\\s#]+)/);
+        if (!match) return;
+        for (const [prefix, wanted] of expected) {
+          if (match[1].startsWith(prefix + '@') && match[1] !== wanted) {
+            failures.push(file + ':' + (index + 1) + ' uses ' + match[1] + ', expected ' + wanted);
+          }
+        }
+      });
+    }
+    process.stdout.write(failures.join('\\n'));
+  ")
+
+  if [[ -n "$violations" ]]; then
+    echo "FAIL: GitHub workflow action pins drifted:"
+    while IFS= read -r line; do
+      [[ -z "$line" ]] && continue
+      echo "  $line"
+    done <<< "$violations"
+    errors=$((errors + 1))
+    return
+  fi
+
+  echo "ok:   GitHub workflow actions are pinned to Node 24-compatible versions"
+}
+
 check_file_content() {
   local file="$1"
   local expected="$2"
@@ -265,6 +314,7 @@ check_package_field "packageManager" "$EXPECTED_PACKAGE_MANAGER"
 check_no_duplicate_dependencies
 check_no_turbopack_flags
 check_workflow_node_runtime_source
+check_workflow_action_pins
 
 if [[ $errors -gt 0 ]]; then
   echo ""
