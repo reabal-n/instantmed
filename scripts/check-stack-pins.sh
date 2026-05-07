@@ -27,6 +27,7 @@ EXPECTED_FRAMER_MOTION="11.18.2"
 EXPECTED_TAILWIND="4.2.2"
 EXPECTED_TAILWIND_POSTCSS="4.2.2"
 EXPECTED_NODE_ENGINE="20.x"
+EXPECTED_NVMRC="20"
 EXPECTED_PACKAGE_MANAGER="pnpm@10.23.0"
 # ───────────────────────────────────────────────────────────────────────────
 
@@ -155,6 +156,28 @@ check_no_turbopack_flags() {
   echo "ok:   package scripts use webpack, not Turbopack flags"
 }
 
+check_file_content() {
+  local file="$1"
+  local expected="$2"
+
+  if [[ ! -f "$file" ]]; then
+    echo "FAIL: $file is missing"
+    errors=$((errors + 1))
+    return
+  fi
+
+  local actual
+  actual=$(tr -d '\r\n' < "$file")
+
+  if [[ "$actual" != "$expected" ]]; then
+    echo "FAIL: $file = '$actual', expected '$expected'"
+    errors=$((errors + 1))
+    return
+  fi
+
+  echo "ok:   $file = $actual"
+}
+
 echo "── Stack pin check ──"
 check_pin "next"                  "$EXPECTED_NEXT"             "deps"
 check_pin "@next/bundle-analyzer" "$EXPECTED_NEXT_TOOLING"     "deps"
@@ -181,6 +204,7 @@ check_pin "@tailwindcss/postcss"  "$EXPECTED_TAILWIND_POSTCSS" "override"
 
 echo "── Runtime/tooling consistency check ──"
 check_package_field "engines.node" "$EXPECTED_NODE_ENGINE"
+check_file_content ".nvmrc" "$EXPECTED_NVMRC"
 check_package_field "packageManager" "$EXPECTED_PACKAGE_MANAGER"
 check_no_duplicate_dependencies
 check_no_turbopack_flags
