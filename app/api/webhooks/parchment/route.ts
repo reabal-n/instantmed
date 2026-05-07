@@ -342,7 +342,21 @@ export async function POST(request: Request) {
         const existingPrescriberId = selectParchmentWebhookPrescriberId(existing, prescriberProfileIds)
         const existingSyncSuccess = await syncPrescription(existing.id, existingPrescriberId)
         if (!existingSyncSuccess) {
-          return NextResponse.json({ error: "Failed to sync prescription" }, { status: 500 })
+          await recordParchmentWebhookSuccess({
+            actionType: "parchment_webhook_already_processed",
+            eventId: payload.event_id,
+            intakeId: existing.id,
+            partnerPatientId: partner_patient_id,
+            parchmentPatientId: patient_id,
+            patientProfileId,
+            prescriberProfileId: existingPrescriberId,
+            prescriberUserId: user_id,
+            prescriptionSynced: false,
+            scid,
+            scriptSent: true,
+          })
+          log.warn("Webhook already processed; prescription PMS sync still pending", { eventId: payload.event_id })
+          return NextResponse.json({ received: true, syncPending: true })
         }
         await recordParchmentWebhookSuccess({
           actionType: "parchment_webhook_already_processed",
@@ -390,7 +404,21 @@ export async function POST(request: Request) {
         }
         await logWebhookPrescribingBoundary(existing.id, resumePrescriberId, scid, payload.event_id)
         if (!resumeSyncSuccess) {
-          return NextResponse.json({ error: "Failed to sync prescription" }, { status: 500 })
+          await recordParchmentWebhookSuccess({
+            actionType: "parchment_webhook_script_sent",
+            eventId: payload.event_id,
+            intakeId: existing.id,
+            partnerPatientId: partner_patient_id,
+            parchmentPatientId: patient_id,
+            patientProfileId,
+            prescriberProfileId: resumePrescriberId,
+            prescriberUserId: user_id,
+            prescriptionSynced: false,
+            scid,
+            scriptSent: true,
+          })
+          log.warn("Webhook resumed script completion; prescription PMS sync still pending", { eventId: payload.event_id })
+          return NextResponse.json({ received: true, resumed: true, syncPending: true })
         }
         await recordParchmentWebhookSuccess({
           actionType: "parchment_webhook_script_sent",
@@ -441,7 +469,7 @@ export async function POST(request: Request) {
           prescriberProfileId: standalonePrescriberId,
         }),
       )
-      return NextResponse.json({ error: "Failed to sync prescription" }, { status: 500 })
+      return NextResponse.json({ received: true, warning: "No awaiting_script intake found", syncPending: true })
     }
 
     const intake = claimed
@@ -510,7 +538,21 @@ export async function POST(request: Request) {
     }
 
     if (!prescriptionSyncSuccess) {
-      return NextResponse.json({ error: "Failed to sync prescription" }, { status: 500 })
+      await recordParchmentWebhookSuccess({
+        actionType: "parchment_webhook_script_sent",
+        eventId: payload.event_id,
+        intakeId: intake.id,
+        partnerPatientId: partner_patient_id,
+        parchmentPatientId: patient_id,
+        patientProfileId,
+        prescriberProfileId: webhookPrescriberId,
+        prescriberUserId: user_id,
+        prescriptionSynced: false,
+        scid,
+        scriptSent: true,
+      })
+      log.warn("Webhook marked script sent; prescription PMS sync still pending", { eventId: payload.event_id })
+      return NextResponse.json({ received: true, scriptSent: true, syncPending: true })
     }
 
     const duration = Date.now() - startTime

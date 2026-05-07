@@ -907,6 +907,7 @@ export async function deleteEmailOutboxForIntake(intakeId: string): Promise<void
 export interface SeedTestIntakeOptions {
   status?: string
   payment_status?: string
+  payment_id?: string
   category?: string
   service_id?: string
   refund_status?: string
@@ -968,6 +969,7 @@ export async function seedTestIntake(options: SeedTestIntakeOptions = {}): Promi
         reference_number: refNum,
         status: "pending_payment",
         payment_status: options.payment_status || "paid",
+        payment_id: options.payment_id || null,
         category: options.category || "medical_certificate",
         refund_status: options.refund_status || null,
         refund_error: options.refund_error || null,

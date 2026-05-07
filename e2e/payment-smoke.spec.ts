@@ -39,6 +39,7 @@ function generateStripeSignature(payload: string, secret: string): string {
 }
 
 function buildCheckoutCompletedEvent(overrides: {
+  sessionId?: string
   intakeId?: string
   patientId?: string
   amount: number
@@ -53,7 +54,7 @@ function buildCheckoutCompletedEvent(overrides: {
     type: "checkout.session.completed",
     data: {
       object: {
-        id: `cs_smoke_${randomUUID()}`,
+        id: overrides.sessionId || `cs_smoke_${randomUUID()}`,
         object: "checkout.session",
         amount_total: overrides.amount,
         payment_status: "paid",
@@ -178,12 +179,19 @@ test.describe("Smoke: Webhook processes all service price points", () => {
 
   for (const { label, amountCents, serviceSlug, category, subtype } of serviceAmounts) {
     test(`${label} (${amountCents}¢) webhook transitions intake to paid`, async ({ request }) => {
+      const sessionId = `cs_smoke_${randomUUID()}`
       // Seed intake
-      const seed = await seedTestIntake({ status: "pending_payment", payment_status: "pending", category })
+      const seed = await seedTestIntake({
+        status: "pending_payment",
+        payment_status: "pending",
+        payment_id: sessionId,
+        category,
+      })
       expect(seed.success, `Seed failed: ${seed.error}`).toBe(true)
       createdIntakeIds.push(seed.intakeId!)
 
       const event = buildCheckoutCompletedEvent({
+        sessionId,
         intakeId: seed.intakeId!,
         amount: amountCents,
         serviceSlug,

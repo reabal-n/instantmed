@@ -245,15 +245,19 @@ describe("Parchment webhook route", () => {
     )
   })
 
-  it("alerts operators and retries when a standalone Parchment prescription cannot be synced", async () => {
+  it("alerts operators when a standalone Parchment prescription cannot be synced", async () => {
     mocks.state.candidateRows = []
     mocks.getPatientPrescriptions.mockRejectedValue(new Error("Parchment read failed"))
 
     const response = await POST(makeWebhookRequest())
     const body = await response.json()
 
-    expect(response.status).toBe(500)
-    expect(body).toEqual({ error: "Failed to sync prescription" })
+    expect(response.status).toBe(200)
+    expect(body).toEqual({
+      received: true,
+      warning: "No awaiting_script intake found",
+      syncPending: true,
+    })
     expect(mocks.updateScriptSent).not.toHaveBeenCalled()
     expect(mocks.captureMessage).toHaveBeenCalledWith(
       "Parchment prescription could not be synced to PMS",

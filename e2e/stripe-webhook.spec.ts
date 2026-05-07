@@ -214,10 +214,13 @@ test.describe("Stripe Webhook: checkout.session.completed", () => {
     test.skip(!STRIPE_WEBHOOK_SECRET, "STRIPE_WEBHOOK_SECRET required")
     test.skip(!isDbAvailable(), "Supabase credentials required for DB assertions")
 
+    const sessionId = `cs_test_${randomUUID()}`
+
     // Seed a test intake with pending payment status
     const seed = await seedTestIntake({
       status: "pending_payment",
       payment_status: "pending",
+      payment_id: sessionId,
     })
     expect(seed.success, `Seed should succeed: ${seed.error}`).toBe(true)
     testIntakeIds.push(seed.intakeId!)
@@ -227,6 +230,7 @@ test.describe("Stripe Webhook: checkout.session.completed", () => {
 
     // Build and send the webhook event
     const event = buildCheckoutCompletedEvent({
+      sessionId,
       intakeId: seed.intakeId!,
       patientId: "e2e00000-0000-0000-0000-000000000001", // E2E patient
       amount: 1995,
@@ -299,10 +303,13 @@ test.describe("Stripe Webhook: checkout.session.completed", () => {
     test.skip(!STRIPE_WEBHOOK_SECRET, "STRIPE_WEBHOOK_SECRET required")
     test.skip(!isDbAvailable(), "Supabase credentials required for DB assertions")
 
+    const sessionId = `cs_test_${randomUUID()}`
+
     // Seed a test intake
     const seed = await seedTestIntake({
       status: "pending_payment",
       payment_status: "pending",
+      payment_id: sessionId,
     })
     expect(seed.success).toBe(true)
     testIntakeIds.push(seed.intakeId!)
@@ -310,6 +317,7 @@ test.describe("Stripe Webhook: checkout.session.completed", () => {
     const fixedEventId = `evt_idempotent_${randomUUID()}`
     const event = buildCheckoutCompletedEvent({
       eventId: fixedEventId,
+      sessionId,
       intakeId: seed.intakeId!,
       patientId: "e2e00000-0000-0000-0000-000000000001",
     })
