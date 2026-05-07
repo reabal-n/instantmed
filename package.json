@@ -14,7 +14,7 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest --watch",
-    "ci": "pnpm install --frozen-lockfile && pnpm lint && pnpm test run && pnpm build",
+    "ci": "pnpm install --frozen-lockfile && pnpm lint && pnpm typecheck && pnpm test run && pnpm build",
     "blog:images": "node scripts/update-blog-images.mjs",
     "blog:generate-visual-images": "tsx scripts/generate-blog-visual-images.ts",
     "blog:apply-visual-assets": "tsx scripts/apply-blog-visual-assets.ts",

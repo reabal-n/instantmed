@@ -56,6 +56,9 @@ jobs:
       - name: Voice guard (banned phrases + em-dashes in marketing surfaces)
         run: pnpm vitest run lib/__tests__/voice-guard.test.ts
 
+      - name: Type-check
+        run: pnpm typecheck
+
       - name: Run unit tests with coverage
         run: pnpm test --run --coverage
 
@@ -268,6 +271,40 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           NEXT_PUBLIC_APP_URL: http://localhost:3001
         run: pnpm exec playwright test --project=chromium e2e/admin.ops-index.spec.ts
+
+      - name: Verify paid-flow E2E secrets
+        env:
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          PARCHMENT_WEBHOOK_SECRET: ${{ secrets.PARCHMENT_WEBHOOK_SECRET }}
+        run: |
+          missing=0
+          for name in STRIPE_WEBHOOK_SECRET PARCHMENT_WEBHOOK_SECRET; do
+            if [ -z "${!name}" ]; then
+              echo "::error::$name is required for the paid-flow E2E gate"
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+      - name: Run paid critical E2E flows (Chromium)
+        env:
+          PLAYWRIGHT: '1'
+          NEXT_PUBLIC_PLAYWRIGHT: '1'
+          E2E_SECRET: ${{ secrets.E2E_SECRET }}
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NEXT_PUBLIC_APP_URL: http://localhost:3001
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          PARCHMENT_WEBHOOK_SECRET: ${{ secrets.PARCHMENT_WEBHOOK_SECRET }}
+          PARCHMENT_ORGANIZATION_ID: ${{ secrets.PARCHMENT_ORGANIZATION_ID }}
+          PARCHMENT_PARTNER_ID: ${{ secrets.PARCHMENT_PARTNER_ID }}
+        run: >
+          pnpm exec playwright test --project=chromium
+          e2e/payment-smoke.spec.ts
+          e2e/stripe-webhook.spec.ts
+          e2e/parchment-webhook.spec.ts
 
       - name: Upload test results
         uses: actions/upload-artifact@v4

@@ -78,6 +78,7 @@ interface EmailResult {
   success: boolean
   id?: string
   error?: string
+  skipped?: boolean
 }
 
 // P1 FIX: Retry configuration
@@ -196,6 +197,11 @@ export async function sendViaResend(params: ResendEmailParams): Promise<EmailRes
   if (!isValidEmail(to)) {
     logger.warn("[Resend] Invalid email format", { to: sanitizeEmailForLog(to) })
     return { success: false, error: "Invalid email address format" }
+  }
+
+  if (process.env.PLAYWRIGHT === "1" || process.env.E2E === "true") {
+    logger.info("[Resend] E2E mode - skipping external send", { to: sanitizeEmailForLog(to), subject })
+    return { success: true, id: `e2e-${Date.now()}`, skipped: true }
   }
 
   // Check bounce suppression list (skip in dev mode)
@@ -347,5 +353,4 @@ export async function sendCriticalEmail(
   
   return result
   }
-
 

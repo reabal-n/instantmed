@@ -40,6 +40,7 @@ const DOCTOR_PROFILE_ID = "e2e00000-0000-0000-0000-000000000003"
 const PATIENT_PROFILE_ID = "e2e00000-0000-0000-0000-000000000002"
 const INTAKE_ID = "e2e00000-0000-0000-0000-000000000010"
 const SERVICE_ID = "e2e00000-0000-0000-0000-000000000020"
+const SCRIPT_SERVICE_ID = "e2e00000-0000-0000-0000-000000000021"
 const CLINIC_IDENTITY_ID = "e2e00000-0000-0000-0000-000000000030"
 const DRAFT_ID = "e2e00000-0000-0000-0000-000000000040"
 const TEMPLATE_ID = "e2e00000-0000-0000-0000-000000000051"
@@ -57,7 +58,7 @@ async function getE2EIntakeIds(): Promise<string[]> {
     supabase.from("intakes").select("id").in("reviewed_by", E2E_PROFILE_IDS),
     supabase.from("intakes").select("id").in("reviewing_doctor_id", E2E_PROFILE_IDS),
     supabase.from("intakes").select("id").in("assigned_admin_id", E2E_PROFILE_IDS),
-    supabase.from("intakes").select("id").eq("service_id", SERVICE_ID),
+    supabase.from("intakes").select("id").in("service_id", [SERVICE_ID, SCRIPT_SERVICE_ID]),
   ])
 
   for (const query of queries) {
@@ -293,7 +294,7 @@ async function deleteService() {
   const { error } = await supabase
     .from("services")
     .delete()
-    .eq("id", SERVICE_ID)
+    .in("id", [SERVICE_ID, SCRIPT_SERVICE_ID])
 
   if (error && !error.message.includes("0 rows")) {
     console.warn("⚠️  Failed to delete service:", error.message)

@@ -126,7 +126,7 @@ export async function handleChargeRefunded(ctx: WebhookContext): Promise<Handler
 
             if (patient?.email) {
               const amountFormatted = `$${(refundAmountCents / 100).toFixed(2)}`
-              await sendRefundEmail({
+              const emailResult = await sendRefundEmail({
                 to: patient.email,
                 patientName: patient.full_name || "there",
                 amount: amountFormatted,
@@ -134,7 +134,14 @@ export async function handleChargeRefunded(ctx: WebhookContext): Promise<Handler
                 intakeId: refundIntakeId,
                 patientId: patient.id,
               })
-              log.info("Refund notification email sent", { intakeId: refundIntakeId })
+              if (emailResult.success) {
+                log.info("Refund notification email sent", { intakeId: refundIntakeId })
+              } else {
+                log.error("Refund notification email failed", {
+                  intakeId: refundIntakeId,
+                  error: emailResult.error,
+                })
+              }
             }
           }
         } catch (emailError) {

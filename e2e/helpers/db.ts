@@ -210,6 +210,7 @@ export async function updateClinicIdentity(
 export const INTAKE_ID = "e2e00000-0000-0000-0000-000000000010"
 const E2E_PATIENT_ID = "e2e00000-0000-0000-0000-000000000002"
 const E2E_SERVICE_ID = "e2e00000-0000-0000-0000-000000000020"
+const E2E_SCRIPT_SERVICE_ID = "e2e00000-0000-0000-0000-000000000021"
 const E2E_CLINICAL_NOTE = "E2E baseline clinical note. Patient history reviewed. Medical certificate request requires doctor review before approval."
 
 /**
@@ -907,9 +908,25 @@ export interface SeedTestIntakeOptions {
   status?: string
   payment_status?: string
   category?: string
+  service_id?: string
   refund_status?: string
   refund_error?: string
   claimed_by?: string
+}
+
+function resolveSeedServiceId(options: SeedTestIntakeOptions): string {
+  if (options.service_id) return options.service_id
+
+  const category = options.category || ""
+  if (
+    category === "prescription" ||
+    category === "common_scripts" ||
+    options.status === "awaiting_script"
+  ) {
+    return E2E_SCRIPT_SERVICE_ID
+  }
+
+  return E2E_SERVICE_ID
 }
 
 /**
@@ -926,7 +943,7 @@ export async function seedTestIntake(options: SeedTestIntakeOptions = {}): Promi
     
     // Use E2E patient ID (from seed.ts)
     const E2E_PATIENT_ID = "e2e00000-0000-0000-0000-000000000002"
-    const E2E_SERVICE_ID = "e2e00000-0000-0000-0000-000000000020"
+    const serviceId = resolveSeedServiceId(options)
     
     // Check if patient exists
     const { data: patient, error: patientError } = await supabase
@@ -947,7 +964,7 @@ export async function seedTestIntake(options: SeedTestIntakeOptions = {}): Promi
       .from("intakes")
       .insert({
         patient_id: E2E_PATIENT_ID,
-        service_id: E2E_SERVICE_ID,
+        service_id: serviceId,
         reference_number: refNum,
         status: "pending_payment",
         payment_status: options.payment_status || "paid",

@@ -60,6 +60,7 @@ export const PATIENT_PROFILE_ID = "e2e00000-0000-0000-0000-000000000002"
 export const PATIENT_AUTH_USER_ID = PATIENT_PROFILE_ID
 export const INTAKE_ID = "e2e00000-0000-0000-0000-000000000010"
 export const SERVICE_ID = "e2e00000-0000-0000-0000-000000000020"
+export const SCRIPT_SERVICE_ID = "e2e00000-0000-0000-0000-000000000021"
 export const CLINIC_IDENTITY_ID = "e2e00000-0000-0000-0000-000000000030"
 export const DRAFT_ID = "e2e00000-0000-0000-0000-000000000040"
 export const TEMPLATE_ID = "e2e00000-0000-0000-0000-000000000051"
@@ -314,6 +315,45 @@ async function seedService() {
   }
 
   console.log("   ↳ Created new E2E service")
+  return data
+}
+
+async function seedScriptService() {
+  console.log("🔧 Seeding common_scripts service...")
+
+  const { data: existingById } = await supabase
+    .from("services")
+    .select("id, slug, name, short_name, description, type, price_cents, is_active, created_at")
+    .eq("id", SCRIPT_SERVICE_ID)
+    .single()
+
+  if (existingById) {
+    console.log("   ↳ Reusing existing E2E common_scripts service")
+    return existingById
+  }
+
+  const { data, error } = await supabase
+    .from("services")
+    .insert({
+      id: SCRIPT_SERVICE_ID,
+      slug: "common-scripts-e2e",
+      name: "Common Scripts (E2E)",
+      short_name: "E2E Scripts",
+      description: "E2E test repeat prescription service",
+      type: "common_scripts",
+      price_cents: 2995,
+      is_active: true,
+      created_at: new Date().toISOString(),
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error("❌ Failed to seed common_scripts service:", error.message)
+    throw error
+  }
+
+  console.log("   ↳ Created new E2E common_scripts service")
   return data
 }
 
@@ -858,6 +898,7 @@ async function main() {
     await seedDoctorProfile()
     await seedPatientProfile()
     const service = await seedService()
+    await seedScriptService()
     await seedClinicIdentity()
     await seedCertificateTemplate()
     await seedPaidIntake(service.id)
