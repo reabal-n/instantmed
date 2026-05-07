@@ -39,6 +39,7 @@ describe("ClinicalSummary - ED subtype (camelCase keys)", () => {
     edNitrates: "no",
     edRecentHeartEvent: "no",
     edSevereHeart: "no",
+    edAlphaBlockers: true,
     previousEdMeds: "yes",
   }
 
@@ -62,6 +63,7 @@ describe("ClinicalSummary - ED subtype (camelCase keys)", () => {
     expect(html).toContain("Nitrate Use")
     expect(html).toContain("Recent Heart Event")
     expect(html).toContain("Severe Heart Condition")
+    expect(html).toContain("Alpha Blocker Use")
     expect(html).toContain("Previous ED Medication Use")
   })
 
@@ -119,6 +121,36 @@ describe("ClinicalSummary - hair loss subtype (camelCase keys)", () => {
     expect(html).toContain("Tried Minoxidil")
     expect(html).toContain("Tried Biotin")
     expect(html).toContain("Scalp Dandruff")
+  })
+
+  it("renders current hair-loss goal, onset, safety, and medical-history fields in the subtype panel", () => {
+    const currentHairLossAnswers = {
+      hairGoal: "both",
+      hairOnset: "1_2_years",
+      hairPattern: "noticeable_thinning",
+      hairFamilyHistory: "yes_father",
+      hairMedicationPreference: "combination",
+      hairReproductive: "no",
+      hairLowBP: true,
+      hairHeartConditions: false,
+      scalpNone: true,
+      has_allergies: "yes",
+      known_allergies: "Penicillin rash",
+      has_conditions: "yes",
+      existing_conditions: "Asthma",
+      takes_medications: "yes",
+      current_medications: "Salbutamol as needed",
+    }
+
+    const html = render(<ClinicalSummary answers={currentHairLossAnswers} consultSubtype="hair_loss" />)
+
+    expect(html).toContain("Hair Loss Goal")
+    expect(html).toContain("Hair Loss Onset")
+    expect(html).toContain("Reproductive Safety")
+    expect(html).toContain("Low BP/Dizziness")
+    expect(html).toContain("Heart Conditions/Palpitations")
+    expect(html).toContain("Current medications")
+    expect(html).not.toContain("No intake data available")
   })
 
   it("does NOT auto-format camelCase keys to 'Hair Pattern' or 'Tried Minoxidil'-style fallbacks", () => {

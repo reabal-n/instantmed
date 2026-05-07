@@ -1,6 +1,6 @@
 # CLAUDE.md — InstantMed
 
-> Australian telehealth platform for specialised one-off services: medical certificates, repeat prescriptions, hair loss, ED, women's health, and weight loss. Patients start with a secure clinical form. A doctor reviews, approves/declines, contacts the patient if clinically needed, and delivers documents or eScript tokens digitally.
+> Australian telehealth platform for specialised one-off services: medical certificates, repeat prescriptions, hair loss, ED, and general consult fallback. Women's health and weight loss are reserved future subtypes and are gated off until launch readiness is explicitly changed. Patients start with a secure clinical form. A doctor reviews, approves/declines, contacts the patient if clinically needed, and delivers documents or eScript tokens digitally.
 
 > **This file is the project brain.** Always load first. Satellite docs below for deep dives.
 
@@ -55,7 +55,7 @@ pnpm e2e              # Playwright E2E (needs PLAYWRIGHT=1)
 pnpm ci               # Full CI: install → lint → test → build
 ```
 
-- Unit tests: `lib/__tests__/**/*.test.ts` — Node environment, not jsdom. Coverage: 80% statements, 70% branches, 80% functions, 80% lines (scoped to `lib/clinical/`, `lib/state-machine/`, `lib/security/`).
+- Unit tests: `lib/__tests__/**/*.test.ts` — Node environment, not jsdom. Coverage: 80% statements, 70% branches, 80% functions, 80% lines (scoped to `lib/clinical/` and `lib/security/`; `lib/state-machine/` was removed 2026-04-08).
 - E2E tests: `e2e/**/*.spec.ts` — auto-seeds/tears down test data. Auth bypass: `PLAYWRIGHT=1` + `__e2e_auth_user_id` cookie.
 
 ## Tech Stack
@@ -204,8 +204,8 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 | General consult | $49.95 | `STRIPE_PRICE_CONSULT` |
 | ED consult | $49.95 | `STRIPE_PRICE_CONSULT_ED` |
 | Hair loss | $49.95 | `STRIPE_PRICE_CONSULT_HAIR_LOSS` |
-| Women's health | $59.95 | `STRIPE_PRICE_CONSULT_WOMENS_HEALTH` |
-| Weight loss | $89.95 | `STRIPE_PRICE_CONSULT_WEIGHT_LOSS` |
+| Women's health (gated future subtype) | $59.95 reserved | `STRIPE_PRICE_CONSULT_WOMENS_HEALTH` |
+| Weight loss (gated future subtype) | $89.95 reserved | `STRIPE_PRICE_CONSULT_WEIGHT_LOSS` |
 | Priority fee (Express Review) | $9.95 | `STRIPE_PRICE_PRIORITY_FEE` |
 | Referral letter | $29.95 | — (display only, not yet Stripe-mapped) |
 | Pathology request | $29.95 | — (display only, not yet Stripe-mapped) |

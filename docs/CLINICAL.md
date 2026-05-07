@@ -9,16 +9,20 @@
 
 InstantMed is **not a broad online GP clinic** and **not a prescribing system**. It is a specialised-service intake, triage, and documentation platform that supports clinician decision-making. All prescribing decisions occur outside the platform.
 
-**Current service scope (2026-04-28):**
+**Active service scope (2026-05-01):**
 
 - medical certificates
 - repeat prescriptions
 - hair loss
 - erectile dysfunction
-- women's health
-- weight loss
+- general consult fallback
 
-General consults are a fallback pathway, not the primary business positioning.
+**Gated future scope:** women's health and weight loss have reserved intake
+subtypes and draft step definitions, but they are not currently accepting paid
+requests. Entry and server checkout validation are blocked by
+`lib/request/consult-subtypes.ts` until launch readiness is explicitly changed.
+
+General consults remain a fallback pathway, not the primary business positioning.
 
 **Audit narrative (must always remain true):**
 
@@ -167,8 +171,8 @@ Prescribing is framed as: "a possible outcome of clinician review, occurring sep
 | Repeat prescriptions | One-off eScript review for existing, stable medication only. Call/message if stability, medication history, monitoring, contraindications, or usual-prescriber context is unclear. |
 | Hair loss | One-off form-first doctor assessment. No subscription or outcome guarantee. Avoid drug names in acquisition copy. |
 | Erectile dysfunction | One-off form-first doctor assessment with strict contraindication screening. Cardiac history, nitrate/alpha-blocker use, uncertain medication history, or clinical discomfort requires contact or decline. |
-| Women's health | Narrow, protocol-led service only. Complex symptoms, pregnancy risk, STI risk, pelvic pain, heavy bleeding, or safety concerns require contact or in-person redirection. |
-| Weight loss | Manual review only in the solo-doctor phase. No automated approval. No ongoing monitoring promise unless operational capacity exists. |
+| Women's health | Gated future service. When launched, keep it narrow and protocol-led. Complex symptoms, pregnancy risk, STI risk, pelvic pain, heavy bleeding, or safety concerns require contact or in-person redirection. |
+| Weight loss | Gated future service. Manual review only in the solo-doctor phase. No automated approval. No ongoing monitoring promise unless operational capacity exists. |
 
 Subscriptions, monthly prescribing, pharmacy fulfilment, and ongoing check-in programs are not part of the current operating model.
 

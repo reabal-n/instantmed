@@ -31,6 +31,10 @@ Supported service params are defined by `SUPPORTED_SERVICE_SLUGS` and
 `mapServiceParam` in `lib/request/step-registry.ts`. Referral and pathology
 requests are not standalone `/request` checkout services.
 
+Coming-soon consult subtypes (`womens_health`, `weight_loss`) are defined in
+`lib/request/consult-subtypes.ts` and are blocked before checkout even if a
+client route is bypassed.
+
 ## Architecture
 
 ```
@@ -70,6 +74,7 @@ components/request/
 ### Step Registry
 
 Steps are defined in `lib/request/step-registry.ts`:
+Consult subtype launch state is defined in `lib/request/consult-subtypes.ts`.
 
 ```ts
 import { STEP_REGISTRY, getStepsForService } from "@/lib/request/step-registry"

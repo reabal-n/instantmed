@@ -40,6 +40,62 @@ describe("buildClinicalCaseSummary", () => {
     expect(summary.draftNote).toContain("Plan:")
   })
 
+  it("hard-blocks ED prescribing when current boolean nitrate screen is positive", () => {
+    const summary = buildClinicalCaseSummary({
+      category: "consult",
+      subtype: "ed",
+      serviceType: "consult",
+      patientName: "ED Patient",
+      answers: {
+        edGoal: "improve_erections",
+        edDuration: "6_12_months",
+        edAgeConfirmed: true,
+        iiefTotal: 11,
+        edNitrates: true,
+        edRecentHeartEvent: false,
+        edSevereHeart: false,
+        edAlphaBlockers: false,
+        edPreference: "prn",
+      },
+    })
+
+    expect(summary.recommendedPlan.action).toBe("decline")
+    expect(summary.prescriptionIntent).toBeUndefined()
+    expect(summary.safetyItems).toContainEqual(
+      expect.objectContaining({ severity: "block", label: "Nitrate use" }),
+    )
+  })
+
+  it("removes the ED Parchment shortcut when cardiac or alpha-blocker history needs live review", () => {
+    const summary = buildClinicalCaseSummary({
+      category: "consult",
+      subtype: "ed",
+      serviceType: "consult",
+      patientName: "ED Patient",
+      answers: {
+        edGoal: "improve_erections",
+        edDuration: "6_12_months",
+        edAgeConfirmed: true,
+        iiefTotal: 11,
+        edNitrates: false,
+        edRecentHeartEvent: true,
+        edSevereHeart: false,
+        edAlphaBlockers: true,
+        edGpCleared: true,
+        edPreference: "prn",
+      },
+    })
+
+    expect(summary.recommendedPlan.action).toBe("needs_call")
+    expect(summary.prescriptionIntent).toBeUndefined()
+    expect(summary.safetyItems).toContainEqual(
+      expect.objectContaining({ severity: "caution", label: "Recent cardiac event" }),
+    )
+    expect(summary.safetyItems).toContainEqual(
+      expect.objectContaining({ severity: "caution", label: "Alpha blocker use" }),
+    )
+  })
+
   it("hard-blocks hair loss prescribing when reproductive contraindication is present", () => {
     const summary = buildClinicalCaseSummary({
       category: "consult",
@@ -174,5 +230,56 @@ describe("buildClinicalCaseSummary", () => {
     expect(summary.recommendedPlan.action).toBe("approve")
     expect(summary.recommendedPlan.title).toMatch(/async/i)
     expect(summary.prescriptionIntent).toBeUndefined()
+  })
+
+  it("surfaces current general-consult medical history keys in the doctor summary", () => {
+    const summary = buildClinicalCaseSummary({
+      category: "consult",
+      subtype: "general",
+      serviceType: "consult",
+      patientName: "General Patient",
+      answers: {
+        consultCategory: "general",
+        consultDetails: "I have ongoing reflux symptoms and would like advice on the safest next step.",
+        consultUrgency: "routine",
+        general_associated_symptoms: ["none"],
+        hasAllergies: true,
+        allergies: "Penicillin rash",
+        hasConditions: true,
+        conditions: "Asthma",
+        hasOtherMedications: true,
+        otherMedications: "Salbutamol as needed",
+        isPregnantOrBreastfeeding: true,
+        hasAdverseMedicationReactions: false,
+      },
+    })
+
+    expect(summary.keyFacts).toContainEqual({ label: "Allergies", value: "Penicillin rash" })
+    expect(summary.keyFacts).toContainEqual({ label: "Conditions", value: "Asthma" })
+    expect(summary.keyFacts).toContainEqual({ label: "Current medications", value: "Salbutamol as needed" })
+    expect(summary.keyFacts).toContainEqual({ label: "Pregnant/breastfeeding", value: "Yes" })
+    expect(summary.recommendedPlan.action).toBe("needs_call")
+  })
+
+  it("does not recommend async completion when a general consult has emergency red flags", () => {
+    const summary = buildClinicalCaseSummary({
+      category: "consult",
+      subtype: "general",
+      serviceType: "consult",
+      patientName: "General Patient",
+      answers: {
+        consultCategory: "general",
+        consultDetails: "I am reporting symptoms that include chest pain today and need advice.",
+        consultUrgency: "soon",
+        general_associated_symptoms: ["chest_pain"],
+        hasAllergies: false,
+        hasConditions: false,
+      },
+    })
+
+    expect(summary.recommendedPlan.action).toBe("decline")
+    expect(summary.safetyItems).toContainEqual(
+      expect.objectContaining({ severity: "block", label: "Emergency red flag" }),
+    )
   })
 })
