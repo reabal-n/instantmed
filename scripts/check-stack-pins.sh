@@ -32,6 +32,7 @@ EXPECTED_PACKAGE_MANAGER="pnpm@10.23.0"
 EXPECTED_CHECKOUT_ACTION="actions/checkout@v6.0.2"
 EXPECTED_SETUP_NODE_ACTION="actions/setup-node@v6.4.0"
 EXPECTED_PNPM_ACTION="pnpm/action-setup@v6.0.5"
+EXPECTED_UPLOAD_ARTIFACT_ACTION="actions/upload-artifact@v7.0.1"
 # ───────────────────────────────────────────────────────────────────────────
 
 PKG="package.json"
@@ -224,6 +225,7 @@ check_workflow_action_pins() {
     const expected = new Map([
       ['actions/checkout', '$EXPECTED_CHECKOUT_ACTION'],
       ['actions/setup-node', '$EXPECTED_SETUP_NODE_ACTION'],
+      ['actions/upload-artifact', '$EXPECTED_UPLOAD_ARTIFACT_ACTION'],
       ['pnpm/action-setup', '$EXPECTED_PNPM_ACTION'],
     ]);
     if (!fs.existsSync(dir)) {
