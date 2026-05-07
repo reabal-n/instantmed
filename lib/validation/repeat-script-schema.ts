@@ -3,6 +3,13 @@
  * Single source of truth for repeat-script answers stored in request_answers.answers
  */
 
+import {
+  buildRepeatScriptMedicationValidationText,
+  countRepeatScriptMedicationRows,
+  extractRepeatScriptMedications,
+  MAX_REPEAT_SCRIPT_MEDICATIONS,
+} from "@/lib/validation/repeat-script-medications"
+
 // Canonical keys for repeat script medication data
 export interface RepeatScriptMedicationPayload {
   // Required fields
@@ -173,70 +180,20 @@ export interface ValidationResult {
 export function validateRepeatScriptPayload(
   answers: Record<string, unknown>
 ): ValidationResult {
-  // Accept either pbs_code or amt_code - PBS is from medication search, AMT is legacy
-  const medicationCode = answers.pbs_code || answers.amt_code
-  // Accept either medication_name or medication_display
-  const medicationName = answers.medication_name || answers.medication_display
-  const medicationDisplay = answers.medication_display || answers.medication_name
-  const medicationStrength = answers.medication_strength || answers.medicationStrength || answers.strength
-  const medicationForm = answers.medication_form || answers.medicationForm || answers.form
-
-  // Allow "MANUAL" code for manual text entries when search doesn't find the medication
-  const isManualEntry = medicationCode === "MANUAL"
-  const isUnknownEntry = typeof medicationCode === "string" && medicationCode.toUpperCase() === "UNKNOWN"
-
-  if (isUnknownEntry) {
+  if (countRepeatScriptMedicationRows(answers) > MAX_REPEAT_SCRIPT_MEDICATIONS) {
     return {
       valid: false,
-      error: "Please enter the medication name, strength, and form.",
+      error: `Please request no more than ${MAX_REPEAT_SCRIPT_MEDICATIONS} medications at a time.`,
       requiresConsult: false,
     }
   }
 
-  if (!isManualEntry && (!medicationCode || typeof medicationCode !== "string" || medicationCode.trim() === "")) {
+  const medications = extractRepeatScriptMedications(answers)
+
+  if (medications.length === 0) {
     return {
       valid: false,
       error: "Please enter or select a medication name.",
-      requiresConsult: false,
-    }
-  }
-
-  if (!medicationName || typeof medicationName !== "string" || medicationName.trim() === "") {
-    return {
-      valid: false,
-      error: "Please enter a medication name.",
-      requiresConsult: false,
-    }
-  }
-
-  if (!medicationDisplay || typeof medicationDisplay !== "string" || medicationDisplay.trim() === "") {
-    return {
-      valid: false,
-      error: "Please enter a medication name.",
-      requiresConsult: false,
-    }
-  }
-
-  if (String(medicationName).toLowerCase().includes("unknown - doctor")) {
-    return {
-      valid: false,
-      error: "Please enter the medication name, strength, and form.",
-      requiresConsult: false,
-    }
-  }
-
-  if (!medicationStrength || typeof medicationStrength !== "string" || medicationStrength.trim() === "") {
-    return {
-      valid: false,
-      error: "Please enter the medication strength.",
-      requiresConsult: false,
-    }
-  }
-
-  if (!medicationForm || typeof medicationForm !== "string" || medicationForm.trim() === "") {
-    return {
-      valid: false,
-      error: "Please enter the medication form.",
       requiresConsult: false,
     }
   }
@@ -277,22 +234,58 @@ export function validateRepeatScriptPayload(
     }
   }
 
-  // Defense in depth: block S8 medications via PBS code AND name matching with fuzzy detection
-  // 1. Check PBS code directly (bypasses typo attempts when using search)
-  if (isPBSCodeBlocked(medicationCode as string)) {
-    return {
-      valid: false,
-      error: "Schedule 8 and controlled substances cannot be prescribed through this service. Please see your regular doctor.",
-      requiresConsult: false,
+  for (const medication of medications) {
+    const medicationCode = medication.pbsCode
+    const isManualEntry = medicationCode === "MANUAL"
+    const isUnknownEntry = typeof medicationCode === "string" && medicationCode.toUpperCase() === "UNKNOWN"
+
+    if (isUnknownEntry || medication.name.toLowerCase().includes("unknown - doctor")) {
+      return {
+        valid: false,
+        error: "Please enter the medication name, strength, and form.",
+        requiresConsult: false,
+      }
     }
-  }
-  
-  // 2. Check medication name with fuzzy matching (catches typo bypass attempts)
-  if (containsBlockedSubstance(String(medicationDisplay)) || containsBlockedSubstance(String(medicationName))) {
-    return {
-      valid: false,
-      error: "Schedule 8 and controlled substances cannot be prescribed through this service. Please see your regular doctor.",
-      requiresConsult: false,
+
+    if (!isManualEntry && (!medicationCode || medicationCode.trim() === "")) {
+      return {
+        valid: false,
+        error: "Please enter or select a medication name.",
+        requiresConsult: false,
+      }
+    }
+
+    if (!medication.strength || medication.strength.trim() === "") {
+      return {
+        valid: false,
+        error: "Please enter the medication strength.",
+        requiresConsult: false,
+      }
+    }
+
+    if (!medication.form || medication.form.trim() === "") {
+      return {
+        valid: false,
+        error: "Please enter the medication form.",
+        requiresConsult: false,
+      }
+    }
+
+    // Defense in depth: block controlled medications via PBS code and fuzzy name matching.
+    if (isPBSCodeBlocked(medicationCode)) {
+      return {
+        valid: false,
+        error: "Controlled substances cannot be prescribed through this service. Please see your regular doctor.",
+        requiresConsult: false,
+      }
+    }
+
+    if (containsBlockedSubstance(buildRepeatScriptMedicationValidationText(medication))) {
+      return {
+        valid: false,
+        error: "Controlled substances cannot be prescribed through this service. Please see your regular doctor.",
+        requiresConsult: false,
+      }
     }
   }
 
@@ -361,28 +354,15 @@ export function extractMedicationFromAnswers(
   answers: Record<string, unknown>
 ): RepeatScriptMedicationPayload | null {
   const mapped = mapLegacyAnswers(answers)
-
-  // Accept either pbs_code or amt_code
-  const medicationCode = mapped.amt_code || answers.pbs_code
-  // Accept either medication_name or medication_display
-  const medicationName = mapped.medication_name || answers.medication_name
-  const medicationDisplay = mapped.medication_display || answers.medication_name
-
-  // Must have at least a code (or MANUAL) and a name
-  const isManualEntry = medicationCode === "MANUAL"
-  if (!isManualEntry && !medicationCode) {
-    return null
-  }
-  if (!medicationName && !medicationDisplay) {
-    return null
-  }
+  const medication = extractRepeatScriptMedications(mapped)[0]
+  if (!medication) return null
 
   return {
-    amt_code: String(medicationCode || "MANUAL"),
-    medication_display: String(medicationDisplay || medicationName || ""),
-    medication_name: String(medicationName || medicationDisplay || ""),
-    medication_strength: mapped.medication_strength != null ? String(mapped.medication_strength) : (answers.strength != null ? String(answers.strength) : null),
-    medication_form: mapped.medication_form != null ? String(mapped.medication_form) : (answers.form != null ? String(answers.form) : null),
+    amt_code: medication.pbsCode || "MANUAL",
+    medication_display: medication.displayName || medication.name,
+    medication_name: medication.name,
+    medication_strength: medication.strength ?? null,
+    medication_form: medication.form ?? null,
     prescribed_before: mapped.prescribed_before === true || answers.prescribed_before === true,
     dose_changed: mapped.dose_changed === true || answers.dose_changed === true,
   }

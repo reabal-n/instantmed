@@ -21,6 +21,8 @@ const log = createLogger("pbs-search")
 interface MedicationSearchResult {
   pbs_code: string
   drug_name: string
+  brand_name: string | null
+  active_ingredient: string | null
   form: string | null
   strength: string | null
   manufacturer: string | null
@@ -51,6 +53,8 @@ export async function GET(request: NextRequest) {
     const results: MedicationSearchResult[] = pbsResults.map((item) => ({
       pbs_code: item.pbs_code,
       drug_name: item.drug_name,
+      brand_name: item.brand_name,
+      active_ingredient: item.active_ingredient,
       form: item.form,
       strength: item.strength,
       manufacturer: item.manufacturer,

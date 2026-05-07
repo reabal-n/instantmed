@@ -1,7 +1,7 @@
 "use client"
 
 import { Check, Loader2, Search, X } from "lucide-react"
-import { useCallback,useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import { cn } from "@/lib/utils"
 
@@ -18,6 +18,8 @@ import { cn } from "@/lib/utils"
 export interface PBSProduct {
   pbs_code: string
   drug_name: string
+  brand_name: string | null
+  active_ingredient: string | null
   form: string | null
   strength: string | null
   manufacturer: string | null
@@ -26,6 +28,8 @@ export interface PBSProduct {
 export interface SelectedPBSProduct {
   pbs_code: string
   drug_name: string
+  brand_name?: string | null
+  active_ingredient?: string | null
   form: string | null
   strength: string | null
 }
@@ -49,8 +53,6 @@ export function MedicationSearch({
   const [options, setOptions] = useState<PBSProduct[]>([])
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const [announcement, setAnnouncement] = useState("")
-  const [correctedQuery, setCorrectedQuery] = useState<string | null>(null)
-  const [isAiAssisted, setIsAiAssisted] = useState(false)
 
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLUListElement>(null)
@@ -72,8 +74,6 @@ export function MedicationSearch({
     if (query.length < 2) {
       setOptions([])
       setIsOpen(false)
-      setCorrectedQuery(null)
-      setIsAiAssisted(false)
       return
     }
 
@@ -84,18 +84,19 @@ export function MedicationSearch({
       const response = await fetch(
         `/api/medications/search?q=${encodeURIComponent(query)}&limit=15`
       )
+      if (!response.ok) {
+        throw new Error("Medication search request failed")
+      }
       const data = await response.json()
 
       if (data.error) {
         setOptions([])
-        setCorrectedQuery(null)
-        setIsAiAssisted(false)
+        setIsOpen(true)
+        setAnnouncement("Medication search is temporarily unavailable")
       } else {
         const results = data.results || []
         setOptions(results)
-        setIsOpen(results.length > 0)
-        setCorrectedQuery(null)
-        setIsAiAssisted(false)
+        setIsOpen(true)
         if (results.length > 0) {
           setAnnouncement(`${results.length} medication${results.length === 1 ? '' : 's'} found`)
         } else {
@@ -104,8 +105,8 @@ export function MedicationSearch({
       }
     } catch {
       setOptions([])
-      setCorrectedQuery(null)
-      setIsAiAssisted(false)
+      setIsOpen(true)
+      setAnnouncement("Medication search is temporarily unavailable")
     } finally {
       setIsLoading(false)
     }
@@ -134,6 +135,8 @@ export function MedicationSearch({
     const selected: SelectedPBSProduct = {
       pbs_code: option.pbs_code,
       drug_name: option.drug_name,
+      brand_name: option.brand_name,
+      active_ingredient: option.active_ingredient,
       form: option.form,
       strength: option.strength,
     }
@@ -175,6 +178,8 @@ export function MedicationSearch({
         const manualEntry: SelectedPBSProduct = {
           pbs_code: "MANUAL",
           drug_name: sanitizedName,
+          brand_name: null,
+          active_ingredient: null,
           form: null,
           strength: null,
         }
@@ -267,7 +272,7 @@ export function MedicationSearch({
             "placeholder:text-muted-foreground placeholder:text-sm",
             "focus:outline-none focus:border-primary",
             "transition-[border-color,background-color] duration-200",
-            hasSelection && "border-green-500/50 bg-green-50/30",
+            hasSelection && "border-primary/50 bg-primary/5",
             disabled && "opacity-50 cursor-not-allowed"
           )}
           aria-label="Medication name search"
@@ -284,7 +289,7 @@ export function MedicationSearch({
           )}
           {hasSelection && !isLoading && (
             <>
-              <Check className="h-4 w-4 text-green-500" />
+              <Check className="h-4 w-4 text-primary" />
               <button
                 type="button"
                 onClick={handleClear}
@@ -305,17 +310,6 @@ export function MedicationSearch({
           role="listbox"
           id="pbs-listbox"
         >
-          {/* Typo correction or AI assistance indicator */}
-          {(correctedQuery || isAiAssisted) && (
-            <li className="px-4 py-2 bg-primary/5 border-b text-xs text-muted-foreground">
-              {correctedQuery && (
-                <span>Showing results for <strong className="text-primary">{correctedQuery}</strong></span>
-              )}
-              {isAiAssisted && !correctedQuery && (
-                <span>✨ Smart search active</span>
-              )}
-            </li>
-          )}
           {options.map((option, index) => (
             <li
               key={option.pbs_code}
@@ -331,9 +325,9 @@ export function MedicationSearch({
               data-highlighted={highlightedIndex === index || undefined}
             >
               <p className="text-sm font-medium">{option.drug_name}</p>
-              {option.strength && (
+              {option.active_ingredient && option.active_ingredient.toLowerCase() !== option.drug_name.toLowerCase() && (
                 <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                  {option.strength}
+                  Active ingredient: {option.active_ingredient}
                 </p>
               )}
               {option.form && (
@@ -362,6 +356,8 @@ export function MedicationSearch({
                   const manualEntry: SelectedPBSProduct = {
                     pbs_code: "MANUAL",
                     drug_name: sanitizedName,
+                    brand_name: null,
+                    active_ingredient: null,
                     form: null,
                     strength: null,
                   }
