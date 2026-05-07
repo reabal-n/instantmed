@@ -71,7 +71,7 @@ Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (2
 
 ## Ship checklist (before you call it done)
 
-- [ ] Use Node 20 (`.nvmrc` is the local source of truth; GitHub Actions reads it too)
+- [ ] Use Node 24 (`.nvmrc` is the local source of truth; GitHub Actions reads it too)
 - [ ] `pnpm release:check` passes (stack pins, dedupe, high-severity audit, lint, typecheck, tests, build, bundle gate)
 - [ ] Visual check in BOTH light and dark mode at desktop AND mobile
 - [ ] Reduced-motion toggle exercised on any new motion

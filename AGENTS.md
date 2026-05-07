@@ -60,7 +60,7 @@ pnpm ci               # Full CI: install → lint → test → build
 
 ## Tech Stack
 
-Next.js 15.5 App Router (webpack) · React 18.3 · TypeScript 5.9 (strict) · Tailwind v4 · Supabase PostgreSQL + Auth · Node 20 · Vercel Pro · Stripe v22 payments · Resend email · PostHog analytics · Sentry errors · Upstash Redis rate limiting · AI SDK (Anthropic + OpenAI) · Framer Motion v11
+Next.js 15.5 App Router (webpack) · React 18.3 · TypeScript 5.9 (strict) · Tailwind v4 · Supabase PostgreSQL + Auth · Node 24 LTS · Vercel Pro · Stripe v22 payments · Resend email · PostHog analytics · Sentry errors · Upstash Redis rate limiting · AI SDK (Anthropic + OpenAI) · Framer Motion v11
 
 ---
 
@@ -78,7 +78,7 @@ The following versions are **hard-pinned** in `package.json` (exact versions, no
 | `framer-motion` | **11.18.2** | v12 requires React 19. |
 | `tailwindcss` / `@tailwindcss/postcss` | **4.2.2** | CSS-first config is working; don't risk a re-migration. |
 | Bundler | **Webpack** (NOT Turbopack) | Turbopack still has gaps in our codebase (module factory race conditions, framer-motion chunk bugs). |
-| Node | **20 LTS** | Stable; consider Node 22 LTS post-launch. |
+| Node | **24 LTS** | Active LTS on Vercel with support through April 2028. Runtime-only upgrade from Node 20 after Node 20 reached EOL; do not bundle this with Next/React/Turbopack changes. |
 
 ### Rules for Codex / any AI assistant working on this repo
 
