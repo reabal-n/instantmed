@@ -89,6 +89,16 @@ const INCOMPLETE_PROFILE: ProfileData = {
 }
 
 describe("DashboardHero · resolveHeroState", () => {
+  it("does not hard-promise no-call service delivery across the mixed service grid", () => {
+    expect(dashboardHeroSource).not.toContain("No call, no waiting room.")
+    expect(dashboardHeroSource).toContain("doctor contacts you only if clinically needed")
+  })
+
+  it("routes doctor-question replies directly to the message thread", () => {
+    expect(dashboardHeroSource).toContain("/patient/messages?intakeId=")
+    expect(dashboardHeroSource).not.toContain('Link href={`/patient/intakes/${intake.id}`}>\n                  Reply now')
+  })
+
   it("empty: no intakes and no prescriptions", () => {
     const result = resolveHeroState({ intakes: [], prescriptions: [] })
     expect(result.state).toBe("empty")

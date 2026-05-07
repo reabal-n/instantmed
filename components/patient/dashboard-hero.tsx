@@ -429,7 +429,7 @@ export function DashboardHero({
         <HeroShell
           pill={{ icon: <CheckCircle2 className="h-3 w-3" />, label: "Welcome", tone: "primary" }}
           title={`Pick a service, ${firstName}.`}
-          subtitle="A doctor reviews your request, and we email you the result. No call, no waiting room."
+          subtitle="A doctor contacts you only if clinically needed, and we email you the result."
         >
           <div className="pt-2">
             <ServiceGrid />
