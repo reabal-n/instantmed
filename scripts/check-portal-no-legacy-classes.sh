@@ -86,6 +86,13 @@ for target in "${TARGETS[@]}"; do
           if [[ "$line" == *'portal-shim:allow'* ]]; then
             continue
           fi
+          # Import/export paths can legitimately reference canonical primitive
+          # filenames such as `components/dashboard/dashboard-card`; those are
+          # not raw legacy class names in rendered JSX.
+          line_text="${line#*:}"
+          if [[ "$line_text" =~ ^[[:space:]]*(import|export)[[:space:]] ]]; then
+            continue
+          fi
           # Previous line marker?
           line_no="${line%%:*}"
           prev_line_no=$((line_no - 1))
