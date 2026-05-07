@@ -219,7 +219,9 @@ jobs:
           #
           # FCP and CLS remain "error" so genuine load/shift regressions still
           # fail CI. TBT remains tracked here and is still stricter in the
-          # scheduled production Lighthouse workflow.
+          # scheduled production Lighthouse workflow. Mobile marketing
+          # performance is tracked separately and should not block
+          # clinical/admin safety fixes without a dedicated perf pass.
           #
           # Config + URLs live in `lighthouserc.json` (root). lhci picks it
           # up automatically — `lhci autorun` with no flags reads it. We

@@ -262,4 +262,9 @@ describe("doctor queue production contract", () => {
     expect(requestMoreInfoSource).toContain("claimed_by")
     expect(requestMoreInfoSource).toContain("reviewing_doctor_id")
   })
+
+  it("blocks awaiting-script transitions when prescribing identity is incomplete", () => {
+    expect(queueActionsSource).toContain("getParchmentPatientIdentityIssues")
+    expect(queueActionsSource).toContain("Cannot approve for prescribing until patient identity is complete")
+  })
 })

@@ -57,10 +57,14 @@ jobs:
         run: |
           echo "Waiting for ${{ steps.url.outputs.PREVIEW_URL }} to be ready..."
           for i in {1..30}; do
-            status=$(curl -s -o /dev/null -w "%{http_code}" \
-              -H "x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}" \
-              -H "x-vercel-set-bypass-cookie: true" \
-              "${{ steps.url.outputs.PREVIEW_URL }}")
+            curl_args=(-sS --connect-timeout 5 --max-time 10 -o /dev/null -w "%{http_code}")
+            if [ -n "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
+              curl_args+=(
+                -H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET"
+                -H "x-vercel-set-bypass-cookie: true"
+              )
+            fi
+            status="$(curl "${curl_args[@]}" "${{ steps.url.outputs.PREVIEW_URL }}" || true)"
             if [ "$status" = "401" ] && [ -z "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
               echo "::error::Missing GitHub secret VERCEL_AUTOMATION_BYPASS_SECRET for protected Vercel preview E2E."
               exit 1
@@ -69,7 +73,7 @@ jobs:
               echo "Preview is ready!"
               exit 0
             fi
-            echo "Attempt $i/30 - HTTP $status, waiting 10s..."
+            echo "Attempt $i/30 - got HTTP ${status:-curl-error}; waiting 10s..."
             sleep 10
           done
           echo "Preview not ready after 5 minutes"

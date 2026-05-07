@@ -1,11 +1,4 @@
-/**
- * E2E Tests for Ops Navigation Visibility
- * 
- * Verifies that sensitive ops links (Email Outbox, Reconciliation, Doctor Ops)
- * are only visible to admin users, not regular doctors.
- */
-
-import { expect,test } from "@playwright/test"
+import { expect, test } from "@playwright/test"
 
 import { loginAsDoctor, loginAsOperator, logoutTestUser } from "./helpers/auth"
 
@@ -14,75 +7,44 @@ test.describe("Ops Navigation Visibility", () => {
     await logoutTestUser(page)
   })
 
-  test("admin user sees all ops links in sidebar", async ({ page }) => {
-    // Login as admin (operator)
+  test("admin doctor sees admin handoff links in the doctor sidebar", async ({ page }) => {
     const loginResult = await loginAsOperator(page)
     expect(loginResult.success).toBe(true)
 
-    // Navigate to doctor dashboard
     await page.goto("/doctor/dashboard")
     await page.waitForLoadState("networkidle")
 
-    // Wait for sidebar to load
-    const opsSection = page.getByTestId("ops-nav-section")
-    await expect(opsSection).toBeVisible({ timeout: 10000 })
-
-    // Admin should see all ops links
-    await expect(page.getByTestId("ops-nav-ops")).toBeVisible()
-    await expect(page.getByTestId("ops-nav-intakes-stuck")).toBeVisible()
-    
-    // Admin-only links should be visible
-    await expect(page.getByTestId("ops-nav-email-outbox")).toBeVisible()
-    await expect(page.getByTestId("ops-nav-reconciliation")).toBeVisible()
-    await expect(page.getByTestId("ops-nav-doctors")).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Review Queue" })).toBeVisible({ timeout: 10000 })
+    await expect(page.getByRole("navigation").filter({ hasText: "Admin Panel" })).toBeVisible()
+    await expect(page.getByRole("link", { name: "Admin Panel" })).toHaveAttribute("href", "/admin")
+    await expect(page.getByRole("link", { name: "Email Suppression" })).toHaveAttribute("href", "/doctor/email-suppression")
   })
 
-  test("non-admin doctor sees only base ops links in sidebar", async ({ page }) => {
-    // Login as doctor (NOT admin)
+  test("non-admin doctor does not see admin handoff links", async ({ page }) => {
     const loginResult = await loginAsDoctor(page)
     expect(loginResult.success).toBe(true)
 
-    // Navigate to doctor dashboard
     await page.goto("/doctor/dashboard")
     await page.waitForLoadState("networkidle")
 
-    // Wait for sidebar to load
-    const opsSection = page.getByTestId("ops-nav-section")
-    await expect(opsSection).toBeVisible({ timeout: 10000 })
-
-    // Doctor should see base ops links
-    await expect(page.getByTestId("ops-nav-ops")).toBeVisible()
-    await expect(page.getByTestId("ops-nav-intakes-stuck")).toBeVisible()
-    
-    // Admin-only links should NOT be visible
-    await expect(page.getByTestId("ops-nav-email-outbox")).not.toBeVisible()
-    await expect(page.getByTestId("ops-nav-reconciliation")).not.toBeVisible()
-    await expect(page.getByTestId("ops-nav-doctors")).not.toBeVisible()
+    await expect(page.getByRole("heading", { name: "Review Queue" })).toBeVisible({ timeout: 10000 })
+    await expect(page.getByRole("link", { name: "Admin Panel" })).not.toBeVisible()
+    await expect(page.getByRole("link", { name: "Email Suppression" })).not.toBeVisible()
   })
 
-  test("ops page shows external tool links", async ({ page }) => {
-    // Login as admin
+  test("ops dashboard exposes current recovery links", async ({ page }) => {
     const loginResult = await loginAsOperator(page)
     expect(loginResult.success).toBe(true)
 
-    // Navigate to ops page
     await page.goto("/admin/ops")
     await page.waitForLoadState("networkidle")
 
-    // Verify external tools section exists
-    await expect(page.getByText("External Tools")).toBeVisible({ timeout: 10000 })
-
-    // Resend link should always be visible
-    await expect(page.getByTestId("external-link-resend")).toBeVisible()
-
-    // Sentry and Vercel may show as "not configured" if env vars not set
-    // Just verify the section renders without error
-    const sentryLink = page.getByTestId("external-link-sentry")
-    const sentryNotConfigured = page.getByText("Sentry Issues (not configured)")
-    await expect(sentryLink.or(sentryNotConfigured)).toBeVisible()
-
-    const vercelLink = page.getByTestId("external-link-vercel")
-    const vercelNotConfigured = page.getByText("Vercel Logs (not configured)")
-    await expect(vercelLink.or(vercelNotConfigured)).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Operations Dashboard" })).toBeVisible({ timeout: 10000 })
+    await expect(page.getByRole("heading", { name: "Quick Actions" })).toBeVisible()
+    await expect(page.getByRole("link", { name: "Webhook DLQ" })).toHaveAttribute("href", "/admin/webhook-dlq")
+    await expect(page.getByRole("link", { name: "Email Queue" })).toHaveAttribute("href", "/admin/emails/hub")
+    await expect(page.getByRole("link", { name: "Audit Logs" })).toHaveAttribute("href", "/admin/audit")
+    await expect(page.getByRole("link", { name: "Doctor Queue" })).toHaveAttribute("href", "/doctor/dashboard?status=review")
+    await expect(page.getByRole("link", { name: "Rx Identity Blocks" })).toHaveAttribute("href", "/admin/ops/prescribing-identity")
   })
 })
