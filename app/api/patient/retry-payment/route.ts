@@ -110,7 +110,12 @@ export async function POST(request: NextRequest) {
         }),
         emailType: "payment_retry",
         patientId: authResult.profile.id,
-        metadata: { invoice_id: invoiceId },
+        metadata: {
+          invoice_id: invoiceId,
+          request_type: invoice.description || "service",
+          amount_cents: invoice.amount_cents || 0,
+          payment_url: paymentUrl,
+        },
         tags: [
           { name: "category", value: "payment_retry" },
           { name: "invoice_id", value: invoiceId },

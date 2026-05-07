@@ -100,6 +100,8 @@ function mockOutboxSelect(
   // so we need a mock that supports both select (the fetch query) and update.
   const updateChain: Record<string, unknown> = {}
   updateChain.eq = vi.fn(() => updateChain)
+  updateChain.lt = vi.fn(() => updateChain)
+  updateChain.select = vi.fn().mockResolvedValue({ data: [], error: null })
   updateChain.update = vi.fn(() => updateChain)
 
   mockSupabaseFrom.mockImplementation(() => ({
@@ -171,17 +173,46 @@ describe("email-dispatcher", () => {
   // Daily send limit
   // -----------------------------------------------------------------------
   describe("daily send limit", () => {
-    it("returns early when limit reached", async () => {
+    it("continues processing transactional email when marketing warmup limit is reached", async () => {
       mockCheckDailySendLimit.mockResolvedValue({ allowed: false, current: 200, limit: 200 })
+
+      const transactional = makeCandidate({ email_type: "med_cert_patient" })
+      const marketing = makeCandidate({
+        id: "outbox-marketing",
+        email_type: "review_request",
+        certificate_id: null,
+      })
+      mockOutboxSelect([transactional, marketing])
+      mockClaimOutboxRow.mockResolvedValue({ claimed: true, row: transactional })
+      mockSendFromOutboxRow.mockResolvedValue({ success: true })
+
+      const result = await processEmailDispatch()
+
+      expect(result.processed).toBe(1)
+      expect(result.sent).toBe(1)
+      expect(mockClaimOutboxRow).toHaveBeenCalledWith("outbox-1")
+      expect(mockClaimOutboxRow).not.toHaveBeenCalledWith("outbox-marketing")
+      expect(mockIncrementDailySendCount).not.toHaveBeenCalled()
+    })
+
+    it("reports marketing pause when no transactional emails are eligible", async () => {
+      mockCheckDailySendLimit.mockResolvedValue({ allowed: false, current: 200, limit: 200 })
+
+      mockOutboxSelect([
+        makeCandidate({
+          id: "outbox-marketing",
+          email_type: "review_request",
+          certificate_id: null,
+        }),
+      ])
 
       const result = await processEmailDispatch()
 
       expect(result.processed).toBe(0)
       expect(result.sent).toBe(0)
-      expect(result.message).toContain("Daily send limit reached")
+      expect(result.message).toContain("Daily marketing email limit reached")
       expect(result.message).toContain("200/200")
-      // Should NOT have queried the outbox at all
-      expect(mockSupabaseFrom).not.toHaveBeenCalled()
+      expect(mockClaimOutboxRow).not.toHaveBeenCalled()
     })
   })
 
@@ -323,6 +354,21 @@ describe("email-dispatcher", () => {
 
       expect(mockClaimOutboxRow).toHaveBeenCalledWith("outbox-1")
       expect(mockSendFromOutboxRow).toHaveBeenCalledWith(candidate)
+      expect(mockIncrementDailySendCount).not.toHaveBeenCalled()
+    })
+
+    it("increments warmup count for marketing email sends only", async () => {
+      const candidate = makeCandidate({
+        email_type: "review_request",
+        certificate_id: null,
+      })
+      mockOutboxSelect([candidate])
+      mockClaimOutboxRow.mockResolvedValue({ claimed: true, row: candidate })
+      mockSendFromOutboxRow.mockResolvedValue({ success: true })
+
+      const result = await processEmailDispatch()
+
+      expect(result.sent).toBe(1)
       expect(mockIncrementDailySendCount).toHaveBeenCalled()
     })
 
@@ -397,6 +443,30 @@ describe("email-dispatcher", () => {
   // Unsupported email type
   // -----------------------------------------------------------------------
   describe("unsupported email type", () => {
+    it("treats payment_retry and still_reviewing as supported retryable types", async () => {
+      const paymentRetry = makeCandidate({
+        id: "payment-retry",
+        email_type: "payment_retry",
+        certificate_id: null,
+      })
+      const stillReviewing = makeCandidate({
+        id: "still-reviewing",
+        email_type: "still_reviewing",
+        certificate_id: null,
+      })
+      mockOutboxSelect([paymentRetry, stillReviewing])
+      mockClaimOutboxRow
+        .mockResolvedValueOnce({ claimed: true, row: paymentRetry })
+        .mockResolvedValueOnce({ claimed: true, row: stillReviewing })
+      mockSendFromOutboxRow.mockResolvedValue({ success: true })
+
+      const result = await processEmailDispatch()
+
+      expect(result.sent).toBe(2)
+      expect(mockSendFromOutboxRow).toHaveBeenCalledWith(paymentRetry)
+      expect(mockSendFromOutboxRow).toHaveBeenCalledWith(stillReviewing)
+    })
+
     it("permanently fails rows with unsupported email_type", async () => {
       const candidate = makeCandidate({ email_type: "some_unknown_type" })
       mockOutboxSelect([candidate])

@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 import { Webhook } from "svix"
 
+import { sanitizeEmailForLog } from "@/lib/email/send/helpers"
 import { updateDeliveryStatus } from "@/lib/monitoring/delivery-tracking"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -258,10 +259,12 @@ export async function POST(request: NextRequest) {
 
     const { type: eventType, data } = event
 
+    const recipientForLog = sanitizeEmailForLog(data.to?.[0] ?? "")
+
     log.info("Received event", {
       type: eventType,
       providerId: data.email_id,
-      to: data.to?.[0],
+      to: recipientForLog,
     })
 
     const supabase = createServiceRoleClient()
@@ -270,7 +273,7 @@ export async function POST(request: NextRequest) {
     const eventKey = `${data.email_id}:${eventType}`
     const { data: existingRow } = await supabase
       .from("email_outbox")
-      .select("metadata")
+      .select("metadata, patient_id")
       .eq("provider_message_id", data.email_id)
       .maybeSingle()
 
@@ -341,10 +344,9 @@ export async function POST(request: NextRequest) {
       log.error("Email bounced", {
         providerId: data.email_id,
         bounceType: data.bounce.type,
-        subject: data.subject,
       })
 
-      Sentry.captureMessage(`Email bounce: ${data.bounce.type} - ${data.bounce.message}`, {
+      Sentry.captureMessage("Email bounced", {
         level: "warning",
         tags: {
           source: "resend-webhook",
@@ -353,9 +355,8 @@ export async function POST(request: NextRequest) {
         },
         extra: {
           emailId: data.email_id,
-          to: data.to?.[0],
-          subject: data.subject,
-          bounce: data.bounce,
+          recipient: recipientForLog,
+          bounceType: data.bounce.type,
         },
       })
     }
@@ -364,8 +365,7 @@ export async function POST(request: NextRequest) {
     if (eventType === "email.complained") {
       log.warn("Email complaint received", {
         providerId: data.email_id,
-        to: data.to?.[0],
-        subject: data.subject,
+        to: recipientForLog,
       })
 
       // Treat complaints the same as bounces for suppression
@@ -389,8 +389,7 @@ export async function POST(request: NextRequest) {
     if (eventType === "email.delivery_delayed") {
       log.warn("Email delivery delayed", {
         providerId: data.email_id,
-        to: data.to?.[0],
-        subject: data.subject,
+        to: recipientForLog,
       })
     }
 
@@ -427,14 +426,14 @@ export async function POST(request: NextRequest) {
         : null
 
       if (posthogEvent) {
-        const patientId = (existingRow?.metadata as Record<string, unknown>)?.patient_id as string | undefined
+        const patientId = existingRow?.patient_id
+          || ((existingRow?.metadata as Record<string, unknown> | null)?.patient_id as string | undefined)
         getPostHogClient().capture({
-          distinctId: patientId || data.to?.[0] || "unknown",
+          distinctId: patientId || `email-message:${data.email_id}`,
           event: posthogEvent,
           properties: {
             provider_message_id: data.email_id,
             email_type: emailLog ? (emailLog as Record<string, unknown>).email_type : undefined,
-            subject: data.subject,
             ...(eventType === "email.bounced" && data.bounce ? { bounce_type: data.bounce.type } : {}),
             ...(eventType === "email.clicked" && data.click ? { click_link: data.click.link } : {}),
           },

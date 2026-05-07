@@ -3,6 +3,7 @@ export type EmailAnalyticsRow = {
   email_type: string | null
   to_email: string | null
   status: string | null
+  created_at?: string | null
   sent_at: string | null
   error_message: string | null
   delivery_status: string | null
@@ -138,7 +139,7 @@ export function buildEmailAnalytics(rows: EmailAnalyticsRow[]): EmailAnalytics {
       recipient: row.to_email || "",
       status: row.status || "unknown",
       deliveryStatus: row.delivery_status,
-      sentAt: row.sent_at || row.delivery_status_updated_at || "",
+      sentAt: row.sent_at || row.delivery_status_updated_at || row.created_at || "",
       error: row.error_message,
     })),
   }

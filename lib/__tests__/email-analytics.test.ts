@@ -76,4 +76,28 @@ describe("email analytics", () => {
       failed: 0,
     })
   })
+
+  it("keeps unsent failed rows visible in recent activity", () => {
+    const analytics = buildEmailAnalytics([
+      {
+        id: "failed-before-send",
+        email_type: "payment_retry",
+        to_email: "patient@example.com",
+        status: "failed",
+        created_at: "2026-05-01T00:00:00.000Z",
+        sent_at: null,
+        error_message: "Recovered from stale sending claim",
+        delivery_status: null,
+        delivery_status_updated_at: null,
+      },
+    ])
+
+    expect(analytics.summary.totalFailed).toBe(1)
+    expect(analytics.recentEmails[0]).toMatchObject({
+      id: "failed-before-send",
+      status: "failed",
+      sentAt: "2026-05-01T00:00:00.000Z",
+      error: "Recovered from stale sending claim",
+    })
+  })
 })

@@ -60,7 +60,7 @@ export async function getEmailStats(): Promise<{ stats: EmailStats; error?: stri
     // Email activity this week, including delivery webhook status.
     const { data: weekRows, error: weekError } = await supabase
       .from("email_outbox")
-      .select("id, email_type, to_email, status, sent_at, error_message, delivery_status, delivery_status_updated_at")
+      .select("id, email_type, to_email, status, created_at, sent_at, error_message, delivery_status, delivery_status_updated_at")
       .gte("created_at", weekAgo)
 
     if (weekError) {

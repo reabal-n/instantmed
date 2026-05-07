@@ -51,9 +51,9 @@ PLAYWRIGHT=1 STRIPE_WEBHOOK_SECRET=whsec_test_... pnpm e2e e2e/stripe-webhook.sp
 **Symptoms:** Emails stuck "pending" in `email_outbox`, email dispatcher cron reporting high failure counts.
 
 1. Check Resend status: https://resend-status.com
-2. Check `/admin/ops/email-outbox` for stuck emails and `/admin/ops/email-queue` for retry queue
-3. Manual retry: click "Retry" on individual emails in admin
-4. If Resend is completely down: emails auto-retry via the `email-dispatcher` cron
+2. Check `/admin/emails/hub` for failed or pending outbox rows; use `/admin/emails/analytics` for delivery status and recent queue activity.
+3. Manual retry: click "Retry" on individual failed rows in the email hub, or trigger `/api/ops/email-dispatcher` with `OPS_CRON_SECRET`.
+4. If Resend is completely down: emails auto-retry via the `email-dispatcher` cron; stale `sending` claims are recovered back to retryable `failed` rows.
 
 ### Database Connection Issues
 
@@ -341,7 +341,7 @@ All crons use `verifyCronRequest()` from `lib/api/cron-auth.ts` for authenticati
 | Job | Endpoint | Schedule | Purpose |
 |-----|----------|----------|---------|
 | Health Check | `/api/cron/health-check` | Every 5 min | Queue health, doctor activity, delivery health, AI metrics |
-| Email Dispatcher | `/api/cron/email-dispatcher` | Every 5 min | Process pending/failed emails from `email_outbox` with atomic claiming |
+| Email Dispatcher | `/api/cron/email-dispatcher` | Every 5 min | Process pending/failed emails from `email_outbox` with atomic claiming; recovers stale `sending` claims and applies `DAILY_EMAIL_LIMIT` only to marketing/engagement sends |
 | Release Stale Claims | `/api/cron/release-stale-claims` | Every 5 min | Release doctor intake claims that have gone stale to prevent queue stalls |
 | Retry Drafts | `/api/cron/retry-drafts` | Every 5 min | Retry failed AI draft generation with exponential backoff |
 | Business Alerts | `/api/cron/business-alerts` | Every 30 min | Aggregates business metrics: failed payments, email failures, SLA breaches |

@@ -22,15 +22,20 @@ export async function createPendingOutbox(entry: Omit<OutboxEntry, "status">): P
     // Idempotency guard: skip if an identical email was created in the last 5 minutes
     // Prevents duplicate outbox rows from double-submissions or race conditions
     const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
-    const { data: existing } = await supabase
+    let existingQuery = supabase
       .from("email_outbox")
       .select("id")
       .eq("email_type", entry.email_type)
       .eq("to_email", entry.to_email)
-      .eq("intake_id", entry.intake_id || "")
       .gte("created_at", fiveMinAgo)
       .in("status", ["pending", "sent", "sending"])
       .limit(1)
+
+    existingQuery = entry.intake_id
+      ? existingQuery.eq("intake_id", entry.intake_id)
+      : existingQuery.is("intake_id", null)
+
+    const { data: existing } = await existingQuery
       .maybeSingle()
 
     if (existing) {
