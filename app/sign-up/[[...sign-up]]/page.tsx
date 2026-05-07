@@ -10,6 +10,7 @@ import { Suspense, useCallback,useState } from 'react'
 import { GoogleIcon } from "@/components/icons/google-icon"
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { getPostAuthRedirectParam } from '@/lib/auth/redirects'
 import { getPatientCount } from '@/lib/social-proof'
 import { createClient } from '@/lib/supabase/client'
 
@@ -21,7 +22,11 @@ type FormState = 'idle' | 'loading' | 'success' | 'error'
 
 function SignUpForm() {
   const searchParams = useSearchParams()
-  const redirectUrl = searchParams.get('redirect_url') || searchParams.get('redirect') || ''
+  const redirectUrl = getPostAuthRedirectParam(
+    searchParams,
+    '',
+    typeof window !== 'undefined' ? window.location.origin : undefined,
+  )
   const shouldReduceMotion = useReducedMotion()
 
   const [email, setEmail] = useState('')

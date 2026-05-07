@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { Suspense } from "react"
 
 import { selectGuestProfileForAuthLink } from "@/lib/auth/guest-profile-linking"
+import { normalizePostAuthRedirect } from "@/lib/auth/redirects"
 import { hasAdminAccess, hasDoctorAccess } from "@/lib/auth/staff-capabilities"
 import { createLogger } from "@/lib/observability/logger"
 import { createClient } from "@/lib/supabase/server"
@@ -329,9 +330,9 @@ export default async function PostSignInPage({
   let destination: string
 
   if (params.redirect) {
-    const decodedRedirect = decodeURIComponent(params.redirect)
-    if (decodedRedirect.startsWith('/') && !decodedRedirect.startsWith('//')) {
-      destination = decodedRedirect
+    const safeRedirect = normalizePostAuthRedirect(params.redirect, "")
+    if (safeRedirect && !safeRedirect.startsWith("/auth/")) {
+      destination = safeRedirect
     } else {
       destination = profile.onboarding_completed ? "/patient" : "/patient/onboarding"
     }

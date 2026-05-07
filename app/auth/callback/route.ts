@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Successful auth - redirect through post-signin for profile linking
-  const destination = resolvePostAuthDestination(next)
+  const destination = resolvePostAuthDestination(next, origin)
   log.info("Supabase auth success, redirecting", { destinationKind: destinationKind(destination) })
   return NextResponse.redirect(`${origin}${destination}`)
 }

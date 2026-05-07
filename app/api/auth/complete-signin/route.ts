@@ -1,24 +1,20 @@
 import { NextRequest, NextResponse } from "next/server"
 
+import { normalizePostAuthRedirect } from "@/lib/auth/redirects"
+
 /**
  * Trampoline route: sets the `profile_linked` cookie and redirects to the
- * final destination. Used by /auth/post-signin because Server Components
- * cannot set cookies directly in Next.js 15.
- *
- * The middleware safety net checks for this cookie on protected routes - if
- * it's missing, the user is bounced back through /auth/post-signin.
+ * final destination. Kept as a compatibility route for older auth handoffs.
  */
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url)
-  const destination = searchParams.get("destination") || "/patient"
+  const requestUrl = new URL(req.url)
+  const destination = normalizePostAuthRedirect(
+    requestUrl.searchParams.get("destination"),
+    "/patient",
+    requestUrl.origin,
+  )
 
-  // Validate: must be a safe relative path (no open redirect)
-  const safeDest =
-    destination.startsWith("/") && !destination.startsWith("//")
-      ? destination
-      : "/patient"
-
-  const response = NextResponse.redirect(new URL(safeDest, req.url))
+  const response = NextResponse.redirect(new URL(destination, requestUrl))
 
   response.cookies.set("profile_linked", "1", {
     path: "/",

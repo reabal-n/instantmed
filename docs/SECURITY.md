@@ -298,6 +298,7 @@ All webhooks use signature verification (not CSRF).
 | `requireRole()` / `requireRoleOrNull()` | Admin/doctor layouts, server actions |
 | Passwordless sign-in | `/sign-in` supports `signInWithOtp({ shouldCreateUser: false })` so existing magic-link-only accounts can access the portal without creating duplicate auth users. |
 | Password recovery | `/auth/forgot-password` calls `resetPasswordForEmail()` and redirects recovery links through `/auth/callback?next=/auth/reset-password` so the reset page updates from an established Supabase recovery session. |
+| `normalizePostAuthRedirect()` / `getPostAuthRedirectParam()` | Post-login redirects. Accepts same-origin relative paths, preserves query strings, normalizes trusted same-origin absolute URLs, and rejects external/protocol-relative targets. |
 | Guest profile linking | `/auth/post-signin`, `/api/profile/ensure`, and `handle_new_user()` link a single deterministic unlinked patient profile: return-intake profile first, then profiles with paid intake history, then newest guest profile. Never bulk-update duplicate email matches. |
 
 ### Input Validation

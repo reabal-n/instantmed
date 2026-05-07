@@ -1,13 +1,12 @@
-export function resolvePostAuthDestination(next: string | null): string {
-  if (!next) return "/auth/post-signin"
+import { normalizePostAuthRedirect } from "./redirects"
 
-  if (next.startsWith("/auth/post-signin") && !next.startsWith("//")) {
-    return next
+export function resolvePostAuthDestination(next: string | null, currentOrigin?: string): string {
+  const safeNext = normalizePostAuthRedirect(next, "", currentOrigin)
+  if (!safeNext) return "/auth/post-signin"
+
+  if (safeNext.startsWith("/auth/post-signin")) {
+    return safeNext
   }
 
-  if (next.startsWith("/") && !next.startsWith("//")) {
-    return `/auth/post-signin?redirect=${encodeURIComponent(next)}`
-  }
-
-  return "/auth/post-signin"
+  return `/auth/post-signin?redirect=${encodeURIComponent(safeNext)}`
 }

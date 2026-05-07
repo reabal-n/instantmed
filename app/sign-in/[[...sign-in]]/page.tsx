@@ -10,6 +10,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react"
 import { GoogleIcon } from "@/components/icons/google-icon"
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { getPostAuthRedirectParam } from '@/lib/auth/redirects'
 import { getPatientCount } from '@/lib/social-proof'
 import { createClient } from '@/lib/supabase/client'
 
@@ -35,7 +36,11 @@ function buildPostSignInHref(redirectUrl: string) {
 
 function SignInForm() {
   const searchParams = useSearchParams()
-  const redirectUrl = searchParams.get('redirect_url') || searchParams.get('redirect') || ''
+  const redirectUrl = getPostAuthRedirectParam(
+    searchParams,
+    '',
+    typeof window !== 'undefined' ? window.location.origin : undefined,
+  )
   const authError = searchParams.get('auth_error')
   const linkExpired = authError === 'link_expired'
   const shouldReduceMotion = useReducedMotion()

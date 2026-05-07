@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 
 import { getOrCreateAuthenticatedUser } from "@/lib/auth/helpers"
+import { normalizePostAuthRedirect } from "@/lib/auth/redirects"
 
 import { OnboardingFlow } from "./onboarding-flow"
 
@@ -14,9 +15,13 @@ export default async function PatientOnboardingPage({
 }) {
   const authUser = await getOrCreateAuthenticatedUser()
   const { redirect: redirectTo } = await searchParams
+  const safeRedirectTo = normalizePostAuthRedirect(redirectTo, "")
 
   if (!authUser) {
-    redirect("/sign-in?redirect=/patient/onboarding")
+    const target = safeRedirectTo
+      ? `/patient/onboarding?redirect=${encodeURIComponent(safeRedirectTo)}`
+      : "/patient/onboarding"
+    redirect(`/sign-in?redirect=${encodeURIComponent(target)}`)
   }
 
   if (authUser.profile.role !== "patient") {
@@ -25,10 +30,10 @@ export default async function PatientOnboardingPage({
 
   // If already completed onboarding, redirect to intended destination or dashboard
   if (authUser.profile.onboarding_completed) {
-    redirect(redirectTo || "/patient")
+    redirect(safeRedirectTo || "/patient")
   }
 
   return (
-    <OnboardingFlow profileId={authUser.profile.id} fullName={authUser.profile.full_name} redirectTo={redirectTo} />
+    <OnboardingFlow profileId={authUser.profile.id} fullName={authUser.profile.full_name} redirectTo={safeRedirectTo} />
   )
 }
