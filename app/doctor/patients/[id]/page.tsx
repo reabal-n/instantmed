@@ -506,7 +506,7 @@ async function getPatientWithHistory(patientId: string) {
       status: prescription.status,
       recorded_at: prescription.issued_date || prescription.created_at,
       parchment_reference: prescription.parchment_reference,
-      request_id: null,
+      request_id: prescription.intake_id,
     })),
     ...buildRequestedMedicationHistory((intakes || []) as Array<Record<string, unknown>>),
   ].sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())
