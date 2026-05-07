@@ -71,9 +71,8 @@ Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (2
 
 ## Ship checklist (before you call it done)
 
-- [ ] `pnpm typecheck` clean
-- [ ] `pnpm lint` clean
-- [ ] `pnpm test` passes
+- [ ] Use Node 20 (`.nvmrc` is the local source of truth; GitHub Actions reads it too)
+- [ ] `pnpm release:check` passes (stack pins, dedupe, high-severity audit, lint, typecheck, tests, build, bundle gate)
 - [ ] Visual check in BOTH light and dark mode at desktop AND mobile
 - [ ] Reduced-motion toggle exercised on any new motion
 - [ ] `docs/ADVERTISING_COMPLIANCE.md` checked for any public acquisition copy, metadata, schema, or SEO change
@@ -83,4 +82,4 @@ Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (2
 
 ---
 
-**Last updated:** 2026-04-28 (design system v1.1.0 + marketing-page sweep complete). Updates should be co-commited with any meaningful design-system change.
+**Last updated:** 2026-05-07 (runtime source-of-truth and release gate refresh). Updates should be co-commited with any meaningful design-system change.

@@ -192,8 +192,9 @@ The certificate pipeline has strict idempotency and security requirements. These
 jobs:
   build:
     steps:
+      - actions/setup-node with node-version-file: .nvmrc
       - pnpm install --frozen-lockfile
-      - bash scripts/check-stack-pins.sh  # Fails if Next + tooling/React/Tailwind/FM drift
+      - bash scripts/check-stack-pins.sh  # Fails if Next + tooling/React/Tailwind/FM/runtime drift
       - pnpm dedupe --check               # Fails if the lockfile can be collapsed
       - pnpm audit --audit-level=high     # Was: critical (tightened 2026-04-08)
       - pnpm lint

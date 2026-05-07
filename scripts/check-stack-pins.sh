@@ -156,6 +156,62 @@ check_no_turbopack_flags() {
   echo "ok:   package scripts use webpack, not Turbopack flags"
 }
 
+check_workflow_node_runtime_source() {
+  local result
+  result=$(node -e "
+    const fs = require('fs');
+    const path = require('path');
+    const dir = '.github/workflows';
+    if (!fs.existsSync(dir)) {
+      process.stdout.write(JSON.stringify({ missingDir: true, hardcoded: [], missingNvmrc: [] }));
+      process.exit(0);
+    }
+    const files = fs.readdirSync(dir)
+      .filter((name) => /\\.ya?ml$/.test(name))
+      .map((name) => path.join(dir, name));
+    const hardcoded = [];
+    const missingNvmrc = [];
+    for (const file of files) {
+      const content = fs.readFileSync(file, 'utf8');
+      if (!content.includes('actions/setup-node')) continue;
+      const lines = content.split(/\\r?\\n/);
+      lines.forEach((line, index) => {
+        if (/\\bnode-version\\s*:/.test(line)) {
+          hardcoded.push(file + ':' + (index + 1));
+        }
+      });
+      if (!/node-version-file\\s*:\\s*['\\\"]?\\.nvmrc['\\\"]?/.test(content)) {
+        missingNvmrc.push(file);
+      }
+    }
+    process.stdout.write(JSON.stringify({ missingDir: false, hardcoded, missingNvmrc }));
+  ")
+
+  local missing_dir hardcoded missing_nvmrc
+  missing_dir=$(node -e "const r = $result; process.stdout.write(String(r.missingDir));")
+  hardcoded=$(node -e "const r = $result; process.stdout.write(r.hardcoded.join(', '));")
+  missing_nvmrc=$(node -e "const r = $result; process.stdout.write(r.missingNvmrc.join(', '));")
+
+  if [[ "$missing_dir" == "true" ]]; then
+    echo "ok:   no GitHub workflow directory to check"
+    return
+  fi
+
+  if [[ -n "$hardcoded" ]]; then
+    echo "FAIL: GitHub workflows must use node-version-file: .nvmrc, not hardcoded node-version: $hardcoded"
+    errors=$((errors + 1))
+    return
+  fi
+
+  if [[ -n "$missing_nvmrc" ]]; then
+    echo "FAIL: GitHub setup-node steps missing node-version-file: .nvmrc in $missing_nvmrc"
+    errors=$((errors + 1))
+    return
+  fi
+
+  echo "ok:   GitHub workflows read Node runtime from .nvmrc"
+}
+
 check_file_content() {
   local file="$1"
   local expected="$2"
@@ -208,6 +264,7 @@ check_file_content ".nvmrc" "$EXPECTED_NVMRC"
 check_package_field "packageManager" "$EXPECTED_PACKAGE_MANAGER"
 check_no_duplicate_dependencies
 check_no_turbopack_flags
+check_workflow_node_runtime_source
 
 if [[ $errors -gt 0 ]]; then
   echo ""
