@@ -24,6 +24,7 @@ async function getPatients(page: number) {
       date_of_birth, date_of_birth_encrypted, role, phone, phone_encrypted,
       address_line1, suburb, state, postcode,
       medicare_number, medicare_number_encrypted, medicare_irn, medicare_expiry,
+      parchment_patient_id,
       onboarding_completed,
       email_verified, email_verified_at,
       avatar_url, stripe_customer_id, parchment_patient_id,

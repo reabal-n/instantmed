@@ -53,6 +53,8 @@ import { formatDate, formatDateLong, formatDateTime } from "@/lib/format"
 import { formatIntakeStatus } from "@/lib/format/intake"
 import type { Profile } from "@/types/db"
 
+import { EditPatientDialog } from "./edit-patient-dialog"
+
 interface IntakeWithService {
   id: string
   status: string
@@ -330,6 +332,7 @@ export function PatientDetailClient({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+          <EditPatientDialog patient={patient} />
           <Button
             type="button"
             variant="outline"

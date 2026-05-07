@@ -40,6 +40,34 @@ import {
 } from "./types"
 
 const log = createLogger("parchment")
+const PARCHMENT_REQUEST_TIMEOUT_MS = 15_000
+
+export class ParchmentApiError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message)
+    this.name = "ParchmentApiError"
+  }
+}
+
+async function fetchParchment(input: string, init: RequestInit): Promise<Response> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), PARCHMENT_REQUEST_TIMEOUT_MS)
+
+  try {
+    return await fetch(input, { ...init, signal: controller.signal })
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      const err = new Error("Parchment request timed out")
+      log.error("Parchment request timed out", { timeoutMs: PARCHMENT_REQUEST_TIMEOUT_MS }, err)
+      Sentry.captureException(err, { extra: { timeoutMs: PARCHMENT_REQUEST_TIMEOUT_MS } })
+      throw err
+    }
+
+    throw error
+  } finally {
+    clearTimeout(timeout)
+  }
+}
 
 // ============================================================================
 // CONFIGURATION
@@ -126,7 +154,7 @@ async function getToken(userId: string, scopes: string[]): Promise<string> {
 
   const config = getConfig()
 
-  const res = await fetch(`${config.apiUrl}/v1/token`, {
+  const res = await fetchParchment(`${config.apiUrl}/v1/token`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -191,7 +219,7 @@ export async function validateIntegration(
     PARCHMENT_SCOPES.READ_PATIENT,
   ])
 
-  const res = await fetch(`${config.apiUrl}/v1/organizations/${config.organizationId}/validate`, {
+  const res = await fetchParchment(`${config.apiUrl}/v1/organizations/${config.organizationId}/validate`, {
     method: "GET",
     headers: {
       "Authorization": `Bearer ${token}`,
@@ -242,7 +270,7 @@ export async function createPatient(
 
   const url = `${config.apiUrl}/v1/organizations/${config.organizationId}/users/${userId}/patients`
 
-  const res = await fetch(url, {
+  const res = await fetchParchment(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -255,7 +283,7 @@ export async function createPatient(
   if (!res.ok) {
     if (res.status === 401) clearTokenCache(userId)
     const body = await res.text().catch(() => "")
-    const err = new Error(`Parchment create patient failed: ${res.status}`)
+    const err = new ParchmentApiError(`Parchment create patient failed: ${res.status}`, res.status)
     log.error("Create patient failed", { status: res.status, responseBytes: body.length }, err)
     Sentry.captureException(err, { extra: { status: res.status, responseBytes: body.length } })
     throw err
@@ -286,7 +314,7 @@ export async function updatePatient(
 
   const url = `${config.apiUrl}/v1/organizations/${config.organizationId}/users/${userId}/patients/${patientId}`
 
-  const res = await fetch(url, {
+  const res = await fetchParchment(url, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -299,7 +327,7 @@ export async function updatePatient(
   if (!res.ok) {
     if (res.status === 401) clearTokenCache(userId)
     const body = await res.text().catch(() => "")
-    const err = new Error(`Parchment update patient failed: ${res.status}`)
+    const err = new ParchmentApiError(`Parchment update patient failed: ${res.status}`, res.status)
     log.error("Update patient failed", { status: res.status, responseBytes: body.length }, err)
     Sentry.captureException(err, { extra: { status: res.status, responseBytes: body.length } })
     throw err
@@ -340,7 +368,7 @@ export async function getPatientPrescriptions({
 
   const url = `${config.apiUrl}/v1/organizations/${config.organizationId}/users/${userId}/patients/${patientId}/prescriptions?${params.toString()}`
 
-  const res = await fetch(url, {
+  const res = await fetchParchment(url, {
     method: "GET",
     headers: {
       "Authorization": `Bearer ${token}`,
@@ -388,7 +416,7 @@ export async function getSsoUrl(
 ): Promise<ParchmentSsoResponse["data"]> {
   const config = getConfig()
 
-  const res = await fetch(`${config.apiUrl}/v1/sso`, {
+  const res = await fetchParchment(`${config.apiUrl}/v1/sso`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -445,7 +473,7 @@ export async function listUsers(callerUserId?: string): Promise<ListUsersRespons
 
     const url = `${config.apiUrl}/v1/organizations/${config.organizationId}/users?${params.toString()}`
 
-    const res = await fetch(url, {
+    const res = await fetchParchment(url, {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,

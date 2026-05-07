@@ -8,6 +8,8 @@ import {
   disableUser,
   enableUser,
   getPatientPrescriptions,
+  getSsoUrl,
+  ParchmentApiError,
   updatePatient,
   updateUser,
   updateUserRoles,
@@ -401,6 +403,54 @@ describe("Parchment client workflows", () => {
       7,
       `${env.PARCHMENT_API_URL}/v1/organizations/${env.PARCHMENT_ORGANIZATION_ID}/users/parchment-user-new/enable`,
       expect.objectContaining({ method: "PUT" }),
+    )
+  })
+
+  it("throws a typed API error with status so stale patient ids can be recovered", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        success: true,
+        statusCode: 200,
+        data: { accessToken: "token-for-update", expiresIn: 21600 },
+      }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        error: "Patient was not found",
+      }), { status: 404 }))
+
+    vi.stubGlobal("fetch", fetchMock)
+
+    await expect(updatePatient("parchment-user-1", "stale-patient-id", {
+      given_name: "Jane",
+      family_name: "Smith",
+    })).rejects.toMatchObject({
+      name: "ParchmentApiError",
+      status: 404,
+      message: "Parchment update patient failed: 404",
+    } satisfies Partial<ParchmentApiError>)
+  })
+
+  it("bounds SSO generation with an abort signal so prescribing does not hang indefinitely", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      success: true,
+      statusCode: 200,
+      data: {
+        sso_token: "sso-token",
+        redirect_url: "https://sandbox.parchmenthealth.io/sso/session",
+        expires_in: 300,
+      },
+    }), { status: 200 }))
+
+    vi.stubGlobal("fetch", fetchMock)
+
+    await getSsoUrl("parchment-user-1", "/embed/patients/parchment-patient-1/prescriptions")
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${env.PARCHMENT_API_URL}/v1/sso`,
+      expect.objectContaining({
+        signal: expect.objectContaining({
+          aborted: false,
+        }),
+      }),
     )
   })
 })
