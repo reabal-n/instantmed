@@ -74,6 +74,7 @@ describe("password reset flow contract", () => {
 
     expect(resetClient).toContain("getUser()")
     expect(resetClient).toContain("updateUser")
+    expect(resetClient).toContain("Request a new reset link")
     expect(resetClient).not.toContain('searchParams?.get("code")')
   })
 

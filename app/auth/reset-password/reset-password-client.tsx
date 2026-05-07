@@ -22,6 +22,7 @@ export function ResetPasswordClient() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const isExpiredResetLink = error.includes("Invalid or expired reset link")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -85,7 +86,14 @@ export function ResetPasswordClient() {
             </div>
 
             {error && (
-              <div className="p-4 rounded-xl bg-destructive-light border border-destructive-border text-destructive text-sm mb-6">{error}</div>
+              <div className="p-4 rounded-xl bg-destructive-light border border-destructive-border text-destructive text-sm mb-6">
+                <p>{error}</p>
+                {isExpiredResetLink && (
+                  <Link href="/auth/forgot-password" className="inline-flex mt-2 font-medium hover:underline">
+                    Request a new reset link
+                  </Link>
+                )}
+              </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">

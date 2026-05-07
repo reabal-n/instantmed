@@ -82,6 +82,21 @@ interface OpsData {
       href: string
     }>
   }
+  authEmails: {
+    total: number
+    sent: number
+    failed: number
+    successRate: number
+    unavailable: boolean
+    recentFailures: Array<{
+      id: string
+      createdAt: string
+      actionType: string
+      recipientDomain: string | null
+      httpStatus: number | null
+      errorMessage: string | null
+    }>
+  }
   errors: {
     count: number
     recent: Array<{
@@ -141,6 +156,7 @@ interface OpsData {
   systemStatus: {
     webhooksHealthy: boolean
     emailsHealthy: boolean
+    authEmailsHealthy: boolean
     intakesHealthy: boolean
     patientIdentityHealthy: boolean
     prescribingIdentityHealthy: boolean
@@ -661,6 +677,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
 
   const allHealthy = systemStatus.webhooksHealthy
     && systemStatus.emailsHealthy
+    && systemStatus.authEmailsHealthy
     && systemStatus.intakesHealthy
     && systemStatus.patientIdentityHealthy
     && systemStatus.prescribingIdentityHealthy

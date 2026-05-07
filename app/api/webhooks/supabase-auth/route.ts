@@ -16,6 +16,7 @@ import { NextResponse } from "next/server"
 import React from "react"
 import { Webhook } from "svix"
 
+import { recordAuthEmailEvent } from "@/lib/data/auth-email-events"
 import { MagicLinkEmail, magicLinkEmailSubject } from "@/lib/email/components/templates/magic-link"
 import { renderEmailToHtml } from "@/lib/email/react-renderer-server"
 import { toError } from "@/lib/errors"
@@ -155,6 +156,12 @@ export async function POST(req: Request) {
       )
     } catch (err) {
       log.error("Email render failed", {}, toError(err))
+      await recordAuthEmailEvent({
+        actionType: emailData.email_action_type,
+        to: user.email,
+        status: "failed",
+        errorMessage: "Email render failed",
+      })
       return NextResponse.json({ error: "Email render failed" }, { status: 500 })
     }
 
@@ -179,12 +186,32 @@ export async function POST(req: Request) {
       if (!response.ok) {
         const resBody = await response.text().catch(() => "")
         log.error("Resend API error", { status: response.status, body: resBody.slice(0, 200) })
+        await recordAuthEmailEvent({
+          actionType: emailData.email_action_type,
+          to: user.email,
+          status: "failed",
+          httpStatus: response.status,
+          errorMessage: resBody,
+        })
         return NextResponse.json({ error: "Email delivery failed" }, { status: 500 })
       }
 
+      const responseBody = (await response.json().catch(() => null)) as { id?: string } | null
+      await recordAuthEmailEvent({
+        actionType: emailData.email_action_type,
+        to: user.email,
+        status: "sent",
+        providerMessageId: responseBody?.id ?? null,
+      })
       log.info("Auth email sent", { action: emailData.email_action_type, hasRecipient: true })
     } catch (err) {
       log.error("Resend fetch failed", {}, toError(err))
+      await recordAuthEmailEvent({
+        actionType: emailData.email_action_type,
+        to: user.email,
+        status: "failed",
+        errorMessage: err instanceof Error ? err.message : "Resend fetch failed",
+      })
       return NextResponse.json({ error: "Email delivery failed" }, { status: 500 })
     }
 

@@ -176,6 +176,7 @@ function SignInForm() {
       return
     }
 
+    setFormState('idle')
     setEmailLinkSent(true)
     setLastMagicLinkSentAt(Date.now())
     setEmailLinkErrorMessage('')

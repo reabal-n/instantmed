@@ -288,6 +288,7 @@ export default async function OpsDashboardPage() {
         href: row.intake_id ? buildAdminIntakeHref(row.intake_id) : `${ADMIN_EMAIL_HUB_HREF}?tab=queue`,
       })),
     },
+    authEmails: authEmailHealthResult,
     errors: {
       count: recentErrors.length,
       recent: recentErrors,
