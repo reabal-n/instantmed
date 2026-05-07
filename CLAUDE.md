@@ -68,7 +68,7 @@ Next.js 15.5 App Router (webpack) · React 18.3 · TypeScript 5.9 (strict) · Ta
 
 > **Read this before touching `package.json`, `pnpm-lock.yaml`, or running `pnpm add` / `pnpm update` on any framework dep.**
 
-The following versions are **hard-pinned** in `package.json` (exact versions, no `^`) and `pnpm.overrides`. CI enforces them via `scripts/check-stack-pins.sh` — the build will fail if any drift.
+The following versions are **hard-pinned** in `package.json` (exact versions, no `^`) and `pnpm.overrides`. CI enforces them via `scripts/check-stack-pins.sh` — the build will fail if any drift. Active runtime drift is checked separately by `scripts/check-node-runtime.sh`; local release checks and CI must run on Node 24 + pnpm 10.23.0, not Node 25.
 
 | Package | Pinned | Why this version |
 |---|---|---|
@@ -92,7 +92,7 @@ The following versions are **hard-pinned** in `package.json` (exact versions, no
 
 ### Process for an intentional upgrade (when the user approves one)
 
-1. **One major upgrade per PR.** Never bundle Next + React + framer-motion in a single PR. (This is exactly how we got into the mess that took a week to undo.)
+1. **One major upgrade per PR.** Never bundle Next + React + framer-motion in a single PR. Runtime, framework, and bundler upgrades are separate workstreams; a Node bump is not permission to bump Next, React, Tailwind, Framer Motion, or switch bundlers. (This is exactly how we got into the mess that took a week to undo.)
 2. **6-month soak rule.** A new major version doesn't enter the stack until it's been GA for 6+ months **and** the framework above it (e.g. Next) ships it as the default.
 3. Update **all of these in lockstep**:
    - `package.json` `dependencies` / `devDependencies`

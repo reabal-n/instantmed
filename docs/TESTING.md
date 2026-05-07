@@ -194,6 +194,7 @@ jobs:
     steps:
       - official GitHub actions pinned to Node 24-compatible releases
       - actions/setup-node with node-version-file: .nvmrc
+      - bash scripts/check-node-runtime.sh  # Fails if the active executable is not Node 24 + pinned pnpm
       - pnpm install --frozen-lockfile
       - bash scripts/check-stack-pins.sh  # Fails if Next + tooling/React/Tailwind/FM/runtime drift
       - pnpm dedupe --check               # Fails if the lockfile can be collapsed
@@ -202,7 +203,7 @@ jobs:
       - pnpm typecheck                    # Explicit TypeScript gate
       - pnpm test --run --coverage        # Unit tests + coverage check
       - bash scripts/check-route-conflicts.sh
-      - pnpm build                        # Production build (includes typecheck, 8GB heap)
+      - pnpm build:release                # Production build, captured output, build-time budget warning
   lighthouse:
     needs: build
     steps:
@@ -221,7 +222,9 @@ steps:
   - playwright test --config=playwright.preview.config.ts e2e/preview-smoke.spec.ts
 ```
 
-**E2E runs in two places:** (1) `ci.yml` on push/PR to main, gated by `vars.E2E_ENABLED == 'true'` (Chromium ops smoke); (2) `e2e-preview.yml` against Vercel preview deployments for deploy health plus an active `/request` route smoke. Protected Vercel preview E2E requires the GitHub secret `VERCEL_AUTOMATION_BYPASS_SECRET`; without it, the preview readiness check fails fast on the expected `401`. Preview smoke accepts `410 Gone` from `/api/test/login` because `/api/test/*` is intentionally blocked on Vercel production/preview unless `PLAYWRIGHT=1` is configured on the deployed app itself. Unit tests and lint run on every push to main and all PRs.
+**E2E runs in two places:** (1) `ci.yml` on push/PR to main, gated by `vars.E2E_ENABLED == 'true'` (Chromium ops smoke plus blocking paid critical flows); (2) `e2e-preview.yml` against Vercel preview deployments for deploy health plus an active `/request` route smoke. Protected Vercel preview E2E requires the GitHub secret `VERCEL_AUTOMATION_BYPASS_SECRET`; without it, the preview readiness check fails fast on the expected `401`. Preview smoke accepts `410 Gone` from `/api/test/login` because `/api/test/*` is intentionally blocked on Vercel production/preview unless `PLAYWRIGHT=1` is configured on the deployed app itself. Unit tests and lint run on every push to main and all PRs.
+
+**Monthly stack health:** `.github/workflows/stack-drift.yml` runs on the first day of each month and can be triggered manually. It verifies active Node 24, stack pins, lockfile dedupe, high-severity audit, and writes a non-blocking outdated-package report to the workflow summary. Framework upgrades remain separate planned windows, not opportunistic dependency bumps.
 
 **Lighthouse gates** (commit `99fc1c843`, updated 2026-05-02): PR CI blocks on accessibility, SEO, FCP, and CLS. LCP and TBT are warning-only in PR CI because simulated throttling on GitHub runners is too noisy for untouched marketing pages. The scheduled production Lighthouse workflow remains stricter for performance, including TBT.
 

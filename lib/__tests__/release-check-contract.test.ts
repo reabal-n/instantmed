@@ -10,9 +10,12 @@ describe("release check contract", () => {
     const packageJson = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as {
       scripts: Record<string, string>
     }
+    const buildWrapper = readFileSync(join(root, "scripts/build-release.sh"), "utf8")
 
-    expect(packageJson.scripts["build:release"]).toContain("pnpm build")
-    expect(packageJson.scripts["build:release"]).toContain("tee /tmp/next-build-output.txt")
+    expect(packageJson.scripts["build:release"]).toBe("bash scripts/build-release.sh")
+    expect(buildWrapper).toContain("pnpm build")
+    expect(buildWrapper).toContain("tee \"$BUILD_OUT\"")
+    expect(buildWrapper).toContain("/tmp/next-build-output.txt")
     expect(packageJson.scripts["release:check"]).toContain("pnpm build:release")
     expect(packageJson.scripts["release:check"]).toContain("bash scripts/check-bundle-size.sh")
   })

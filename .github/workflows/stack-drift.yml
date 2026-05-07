@@ -1,4 +1,4 @@
-name: Stack Drift
+name: Stack Health Audit
 
 on:
   schedule:
@@ -21,6 +21,9 @@ jobs:
           node-version-file: ".nvmrc"
           cache: "pnpm"
 
+      - name: Check active Node runtime
+        run: bash scripts/check-node-runtime.sh
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -32,3 +35,24 @@ jobs:
 
       - name: Security audit
         run: pnpm audit --audit-level=high
+
+      - name: Dependency drift report
+        run: |
+          echo "## Monthly stack health" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Node: $(node -v)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- pnpm: $(pnpm -v)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Framework pins: checked" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Dedupe: checked" >> "$GITHUB_STEP_SUMMARY"
+          echo "- High-severity audit: checked" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Outdated packages (review only)" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          pnpm outdated --format long > /tmp/instantmed-outdated.txt || true
+          if [ -s /tmp/instantmed-outdated.txt ]; then
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            sed -n '1,120p' /tmp/instantmed-outdated.txt >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No outdated packages reported." >> "$GITHUB_STEP_SUMMARY"
+          fi

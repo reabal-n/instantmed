@@ -4,7 +4,8 @@ Use this checklist before promoting dashboard, payment, clinical, or patient-flo
 
 ## 1. Quality Gates
 
-- Use Node 24 from `.nvmrc` for local release checks.
+- Use Node 24 from `.nvmrc` / `.node-version` for local release checks.
+- `pnpm check:node`
 - `pnpm release:check`
 - `PLAYWRIGHT=1 pnpm exec playwright test e2e/payment-smoke.spec.ts e2e/stripe-webhook.spec.ts e2e/parchment-webhook.spec.ts --project=chromium --workers=1 --reporter=list`
 - `PLAYWRIGHT=1 pnpm exec playwright test e2e/dashboard-audit.spec.ts --project=chromium --workers=1 --reporter=list`

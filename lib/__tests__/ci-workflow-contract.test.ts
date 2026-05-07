@@ -9,9 +9,19 @@ const ciWorkflowSource = readFileSync(
 )
 
 describe("CI workflow contract", () => {
+  it("checks the active Node runtime before install and build", () => {
+    expect(ciWorkflowSource).toContain("Check active Node runtime")
+    expect(ciWorkflowSource).toContain("run: bash scripts/check-node-runtime.sh")
+  })
+
   it("runs an explicit TypeScript gate before build", () => {
     expect(ciWorkflowSource).toContain("Type-check")
     expect(ciWorkflowSource).toContain("run: pnpm typecheck")
+  })
+
+  it("uses the shared release build wrapper so CI and local release checks match", () => {
+    expect(ciWorkflowSource).toContain("Type-check and build (budget: 180s)")
+    expect(ciWorkflowSource).toContain("run: pnpm build:release")
   })
 
   it("passes the field-encryption key into ops E2E runs", () => {
@@ -33,5 +43,18 @@ describe("CI workflow contract", () => {
     expect(ciWorkflowSource).toContain("STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}")
     expect(ciWorkflowSource).toContain("PARCHMENT_WEBHOOK_SECRET: ${{ secrets.PARCHMENT_WEBHOOK_SECRET }}")
     expect(ciWorkflowSource).toContain("is required for the paid-flow E2E gate")
+  })
+
+  it("keeps paid critical E2E blocking instead of warning-only", () => {
+    const paidStepStart = ciWorkflowSource.indexOf("Run paid critical E2E flows (Chromium)")
+    const uploadStepStart = ciWorkflowSource.indexOf("Upload test results")
+    const paidStep = ciWorkflowSource.slice(paidStepStart, uploadStepStart)
+
+    expect(paidStepStart).toBeGreaterThan(-1)
+    expect(uploadStepStart).toBeGreaterThan(paidStepStart)
+    expect(paidStep).toContain("e2e/payment-smoke.spec.ts")
+    expect(paidStep).toContain("e2e/stripe-webhook.spec.ts")
+    expect(paidStep).toContain("e2e/parchment-webhook.spec.ts")
+    expect(paidStep).not.toContain("continue-on-error")
   })
 })

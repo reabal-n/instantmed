@@ -21,6 +21,9 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
 
+      - name: Check active Node runtime
+        run: bash scripts/check-node-runtime.sh
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -95,14 +98,7 @@ jobs:
           STRIPE_PRICE_CONSULT_WEIGHT_LOSS: price_placeholder_consult_weight_loss
           STRIPE_PRICE_PRIORITY_FEE: price_placeholder_priority_fee
           STRIPE_PRICE_REPEAT_RX_MONTHLY: price_placeholder_repeat_rx_monthly
-        run: |
-          START=$(date +%s)
-          pnpm build 2>&1 | tee /tmp/next-build-output.txt
-          ELAPSED=$(( $(date +%s) - START ))
-          echo "Build completed in ${ELAPSED}s"
-          if [ "$ELAPSED" -gt 180 ]; then
-            echo "::warning::Build exceeded 180s budget (${ELAPSED}s) -- check for bundle bloat"
-          fi
+        run: pnpm build:release
 
       - name: Bundle size gate (shared first-load JS)
         run: bash scripts/check-bundle-size.sh

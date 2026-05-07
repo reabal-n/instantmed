@@ -686,7 +686,11 @@ WHERE i.status = 'approved'
 
 **CI gate:** PR LHCI blocks on FCP ≤ 3s, CLS ≤ 0.1, accessibility ≥ 0.9, and SEO ≥ 0.9. LCP and TBT are warning-only in PR CI because simulated throttling on GitHub runners has produced 600ms-1s TBT outliers and 7s+ LCP on untouched marketing pages. The scheduled production Lighthouse workflow remains the stricter performance signal, including TBT ≤ 300ms.
 
-**Bundle-size gate:** shared first-load JS ≤ 160 KB (current: 129 KB). Enforced by `scripts/check-bundle-size.sh` after every build.
+**Bundle-size gate:** shared first-load JS ≤ 160 KB (current: 129 KB). Enforced by `scripts/check-bundle-size.sh` after every release build.
+
+**Build-time budget:** release builds run through `scripts/build-release.sh`, which captures Next output for the bundle gate and warns above 180s. The budget is warning-only because GitHub runner CPU variance can move build time materially; repeated warnings should trigger a focused route-count/static-generation pass, not a framework upgrade.
+
+**Monthly stack health:** `.github/workflows/stack-drift.yml` runs on the first day of each month and checks active Node 24, framework pins, lockfile dedupe, high-severity audit status, and an outdated-package report. Outdated framework packages are not automatic upgrade instructions; use the Stack Pin Policy first.
 
 ### Reliability SLOs
 
