@@ -12,12 +12,24 @@
  * full DOM rendering would require jsdom + RTL setup that isn't currently
  * wired for this project's vitest config.
  */
+import { existsSync, readFileSync } from "node:fs"
+import { join } from "node:path"
+
 import { describe, expect, it } from "vitest"
 
 import { resolveHeroState } from "@/components/patient/dashboard-hero"
 import type { FollowupRow } from "@/components/patient/followup-tracker-card"
 import type { Intake } from "@/components/patient/intake-types"
 import type { ProfileData } from "@/components/patient/profile-todo-card"
+
+function readProjectFile(path: string): string {
+  const fullPath = join(process.cwd(), path)
+  return existsSync(fullPath) ? readFileSync(fullPath, "utf8") : ""
+}
+
+const dashboardHeroSource = readProjectFile("components/patient/dashboard-hero.tsx")
+const intakeDetailSource = readProjectFile("app/patient/intakes/[id]/client.tsx")
+const supportSummarySource = readProjectFile("components/patient/support-summary-button.tsx")
 
 const NOW = Date.now()
 const TWO_HOURS_AGO = new Date(NOW - 2 * 60 * 60 * 1000).toISOString()
@@ -190,6 +202,15 @@ describe("DashboardHero · resolveHeroState", () => {
 
       expect(result.state).toBe("stale-payment")
       expect(result.intake?.id).toBe("i-failed")
+    })
+
+    it("uses one copyable support summary from the hero and request detail", () => {
+      expect(dashboardHeroSource).toContain("CopySupportSummaryButton")
+      expect(dashboardHeroSource).toContain('reason="payment"')
+      expect(intakeDetailSource).toContain("CopySupportSummaryButton")
+      expect(intakeDetailSource).not.toContain("function buildSupportSummary")
+      expect(supportSummarySource).toContain("buildSupportSummary")
+      expect(supportSummarySource).toContain("support_summary_copied")
     })
 
     it.each([

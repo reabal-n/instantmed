@@ -2,22 +2,27 @@ import {
   AlertTriangle,
   ArrowRight,
   CalendarClock,
+  CreditCard,
   FileText,
+  type LucideIcon,
   Mail,
   MapPin,
   Phone,
+  RefreshCw,
   Stethoscope,
   User,
 } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
+import { AdminRequestSummaryButton } from "@/components/admin/admin-request-summary-button"
 import { DashboardCard, DashboardPageHeader, StatusBadge } from "@/components/dashboard"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { requireRole } from "@/lib/auth/helpers"
 import { getIntakeWithDetails, getPatientIntakes } from "@/lib/data/intakes"
 import { getCertDeliveryStatus } from "@/lib/data/issued-certificates"
+import { getPatientMessagesForIntake } from "@/lib/data/patient-messages"
 import { calculateAge, formatCurrency, formatDateLong, formatDateTime } from "@/lib/format"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format/intake"
 import type { IntakeWithPatient } from "@/types/db"
@@ -83,6 +88,21 @@ function previousIntakeHref(intake: IntakeWithPatient): string {
   return `/admin/intakes/${intake.id}`
 }
 
+interface AdminRecentEvent {
+  label: string
+  detail: string
+  at: string
+  icon: LucideIcon
+  tone: "neutral" | "success" | "warning" | "error"
+}
+
+function eventToneClass(tone: AdminRecentEvent["tone"]): string {
+  if (tone === "success") return "border-success-border bg-success-light/30 text-success"
+  if (tone === "warning") return "border-warning-border bg-warning-light/30 text-warning"
+  if (tone === "error") return "border-destructive-border bg-destructive-light/30 text-destructive"
+  return "border-border/60 bg-muted/25 text-muted-foreground"
+}
+
 export default async function AdminIntakeDetailPage({
   params,
 }: {
@@ -94,9 +114,10 @@ export default async function AdminIntakeDetailPage({
   const intake = await getIntakeWithDetails(id)
   if (!intake) notFound()
 
-  const [{ data: patientHistory }, certDelivery] = await Promise.all([
+  const [{ data: patientHistory }, certDelivery, recentMessages] = await Promise.all([
     getPatientIntakes(intake.patient.id, { pageSize: 6 }),
     getCertDeliveryStatus(id),
+    getPatientMessagesForIntake(id, 3, "desc"),
   ])
   const previousIntakes = patientHistory
     .filter((row: { id: string }) => row.id !== id)
@@ -118,6 +139,46 @@ export default async function AdminIntakeDetailPage({
     ["Script sent", intake.script_sent_at || intake.prescription_sent_at],
     ["Completed", intake.completed_at],
   ].filter(([, date]) => Boolean(date)) as Array<[string, string]>
+  const recentEvents: AdminRecentEvent[] = [
+    intake.payment_status === "failed" && {
+      label: "Payment failed",
+      detail: "Patient can retry checkout from their request.",
+      at: intake.updated_at || intake.created_at,
+      icon: CreditCard,
+      tone: "error",
+    },
+    intake.paid_at && {
+      label: "Payment confirmed",
+      detail: "Request is paid and visible to doctor review.",
+      at: intake.paid_at,
+      icon: CreditCard,
+      tone: "success",
+    },
+    intake.refund_status === "failed" && {
+      label: "Refund failed",
+      detail: "Needs admin recovery in refunds.",
+      at: intake.refunded_at || intake.updated_at || intake.created_at,
+      icon: RefreshCw,
+      tone: "error",
+    },
+    intake.refund_status === "succeeded" && {
+      label: "Refund processed",
+      detail: "Refund completed.",
+      at: intake.refunded_at || intake.updated_at || intake.created_at,
+      icon: RefreshCw,
+      tone: "success",
+    },
+    ...recentMessages.map((message) => ({
+      label: `${message.sender_type === "doctor" ? "Doctor" : message.sender_type === "patient" ? "Patient" : "System"} message`,
+      detail: "Message activity recorded. Open Doctor mode to view the thread.",
+      at: message.created_at,
+      icon: Mail,
+      tone: "neutral" as const,
+    })),
+  ]
+    .filter((event): event is AdminRecentEvent => Boolean(event))
+    .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
+    .slice(0, 4)
 
   return (
     <div className="space-y-6">
@@ -132,6 +193,13 @@ export default async function AdminIntakeDetailPage({
             <Button variant="outline" asChild>
               <Link href={`/admin/patients/${intake.patient.id}`}>Patient record</Link>
             </Button>
+            <AdminRequestSummaryButton
+              intake={intake}
+              serviceLabel={service?.name || formatServiceType(service?.type || intake.category || "request")}
+              patientLabel={intake.patient.full_name || "Patient"}
+              buttonLabel="Copy admin summary"
+              summaryTitle="Admin request summary"
+            />
             <Button asChild>
               <Link href={`/doctor/intakes/${intake.id}`}>
                 Switch to doctor mode
@@ -169,6 +237,37 @@ export default async function AdminIntakeDetailPage({
           )}
         </DashboardCard>
       </div>
+
+      {recentEvents.length > 0 && (
+        <DashboardCard className="space-y-3">
+          <div>
+            <h2 className="text-lg font-semibold">Recent events</h2>
+            <p className="text-sm text-muted-foreground">
+              Payment, refund, and message signals only. Clinical content stays in Doctor mode.
+            </p>
+          </div>
+          <div className="grid gap-2 md:grid-cols-2">
+            {recentEvents.map((event) => {
+              const Icon = event.icon
+              return (
+                <div
+                  key={`${event.label}-${event.at}`}
+                  className={`flex items-start gap-3 rounded-xl border px-3 py-2 ${eventToneClass(event.tone)}`}
+                >
+                  <Icon className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-foreground">{event.label}</p>
+                    <p className="text-xs text-muted-foreground">{event.detail}</p>
+                  </div>
+                  <span className="shrink-0 text-right text-xs font-medium text-muted-foreground">
+                    {formatDateTime(event.at)}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </DashboardCard>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
         <DashboardCard className="space-y-4">

@@ -41,6 +41,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
 import { INTAKE_STATUS, type IntakeStatus as StatusType } from "@/lib/data/status"
+import { MIN_CLINICAL_NOTES_LENGTH } from "@/lib/doctor/clinical-notes"
 // Re-export so existing consumers (intake-decline-dialog) don't have to change import paths.
 import { DECLINE_REASONS } from "@/lib/doctor/decline-reasons"
 import { isConsultServiceType, isKnownDoctorServiceType, SERVICE_TYPES } from "@/lib/doctor/service-types"
@@ -90,6 +91,7 @@ interface IntakeDetailHeaderProps {
   onReissueCertificate: () => void
   onReissueConfirm: (data: CertificatePreviewData, notifyPatient?: boolean) => void
   certDelivery?: CertDeliveryStatus | null
+  doctorNotes: string
 }
 
 export function IntakeDetailHeader({
@@ -122,9 +124,18 @@ export function IntakeDetailHeader({
   onReissueCertificate,
   onReissueConfirm,
   certDelivery,
+  doctorNotes,
 }: IntakeDetailHeaderProps) {
   const service = intake.service as { type?: string } | undefined
   const isPrescribingConsult = intake.category === "consult" && ["ed", "hair_loss"].includes(intake.subtype || "")
+  const approvalNeedsClinicalNotes =
+    (service?.type === SERVICE_TYPES.MED_CERTS && ["paid", "in_review"].includes(intake.status)) ||
+    (isConsultServiceType(service?.type) && intake.status === "paid" && !isPrescribingConsult) ||
+    (!isKnownDoctorServiceType(service?.type) && intake.status === "paid")
+  const approveDisabledReason =
+    approvalNeedsClinicalNotes && doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH
+      ? `Add clinical notes (${doctorNotes.trim().length}/${MIN_CLINICAL_NOTES_LENGTH} chars) before approving.`
+      : null
 
   const getStatusColor = (status: string) => {
     return INTAKE_STATUS[status as StatusType]?.color ?? "bg-primary/10 text-primary"
@@ -252,7 +263,12 @@ export function IntakeDetailHeader({
           <div className="flex flex-wrap gap-3">
             {/* For med certs - preview then approve: shows preview dialog first */}
             {service?.type === SERVICE_TYPES.MED_CERTS && ["paid", "in_review"].includes(intake.status) && (
-              <Button onClick={onMedCertApprove} className="bg-emerald-600 hover:bg-emerald-700" disabled={isPending || isLoadingPreview}>
+              <Button
+                onClick={onMedCertApprove}
+                className="bg-emerald-600 hover:bg-emerald-700"
+                disabled={isPending || isLoadingPreview || Boolean(approveDisabledReason)}
+                title={approveDisabledReason || undefined}
+              >
                 {(isPending || isLoadingPreview) ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
                 {isLoadingPreview ? "Loading Preview..." : isPending ? "Generating Certificate..." : "Approve & Send Certificate"}
               </Button>
@@ -295,7 +311,12 @@ export function IntakeDetailHeader({
 
             {/* For consults - approve after call with notes */}
             {isConsultServiceType(service?.type) && intake.status === "paid" && !isPrescribingConsult && (
-              <Button onClick={() => onStatusChange("approved")} className="bg-primary hover:bg-primary/90" disabled={isPending}>
+              <Button
+                onClick={() => onStatusChange("approved")}
+                className="bg-primary hover:bg-primary/90"
+                disabled={isPending || Boolean(approveDisabledReason)}
+                title={approveDisabledReason || undefined}
+              >
                 {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
                 {isPending ? "Completing..." : "Complete Consultation"}
               </Button>
@@ -303,7 +324,12 @@ export function IntakeDetailHeader({
 
             {/* Generic approve for other services */}
             {!isKnownDoctorServiceType(service?.type) && intake.status === "paid" && (
-              <Button onClick={() => onStatusChange("approved")} className="bg-primary hover:bg-primary/90" disabled={isPending}>
+              <Button
+                onClick={() => onStatusChange("approved")}
+                className="bg-primary hover:bg-primary/90"
+                disabled={isPending || Boolean(approveDisabledReason)}
+                title={approveDisabledReason || undefined}
+              >
                 {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
                 {isPending ? "Approving..." : "Approve"}
               </Button>
@@ -344,6 +370,9 @@ export function IntakeDetailHeader({
               </>
             )}
           </div>
+          {approveDisabledReason && (
+            <p className="mt-3 text-xs font-medium text-warning">{approveDisabledReason}</p>
+          )}
         </CardContent>
       </Card>
 

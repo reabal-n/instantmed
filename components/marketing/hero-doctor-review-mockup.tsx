@@ -14,6 +14,7 @@ import Image from "next/image"
 import { useEffect, useState } from "react"
 
 import { useReducedMotion } from "@/components/ui/motion"
+import { PRICING_DISPLAY } from "@/lib/constants"
 import { cn } from "@/lib/utils"
 
 const REVIEW_STEPS = [
@@ -71,7 +72,7 @@ const FLOATS: FloatingCard[] = [
     iconClass: "text-sky-600 dark:text-sky-400",
     bgClass: "bg-sky-50 dark:bg-sky-950/40",
     title: "Repeat Rx",
-    status: "$19.95 / mo",
+    status: `One-off ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
     statusClass: "text-sky-600 dark:text-sky-400",
     position: "bottom-left",
   },

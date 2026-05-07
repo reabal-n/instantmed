@@ -66,9 +66,18 @@ describe("operational failure overview", () => {
           subtype: "repeat",
         },
       ],
+      refundFailures: [
+        {
+          id: "payment-1",
+          intake_id: "intake-5",
+          created_at: "2026-05-06T06:00:00.000Z",
+          updated_at: "2026-05-06T06:01:00.000Z",
+          refund_reason: "Stripe refund failed",
+        },
+      ],
     })
 
-    expect(overview.openCount).toBe(7)
+    expect(overview.openCount).toBe(8)
     expect(overview.categories.map((category) => category.id)).toEqual([
       "stripe_webhooks",
       "email_delivery",
@@ -77,11 +86,12 @@ describe("operational failure overview", () => {
       "certificate_delivery",
       "prescription_delivery",
       "stale_scripts",
+      "refund_failures",
     ])
     expect(overview.recent[0]).toMatchObject({
-      id: "audit-1",
-      title: "Prescription webhook failed",
-      href: "/admin/ops/parchment",
+      id: "payment-1",
+      title: "Refund failed",
+      href: "/admin/intakes/intake-5",
       severity: "critical",
     })
     expect(overview.categories.find((category) => category.id === "stripe_webhooks")).toMatchObject({
@@ -103,6 +113,7 @@ describe("operational failure overview", () => {
       certificateFailures: [],
       prescriptionWebhookFailures: [],
       staleScriptIntakes: [],
+      refundFailures: [],
     })
 
     expect(overview.openCount).toBe(0)

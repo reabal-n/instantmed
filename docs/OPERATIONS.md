@@ -405,11 +405,12 @@ Operational rules:
 ### Email
 
 1. Verify sending domain in Resend; update `RESEND_FROM_EMAIL`
-2. Test each email type; check spam behavior
+2. Configure the Supabase Auth > Hooks > Send Email hook to `https://<domain>/api/webhooks/supabase-auth`; set `SUPABASE_AUTH_WEBHOOK_HOOK_SECRET` in Vercel so magic link, signup, and recovery emails use the branded React Email template instead of Supabase defaults
+3. Test each email type; check spam behavior
 
 ### Vercel Env Vars
 
-**Required:** `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY` (live), `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `INTERNAL_API_SECRET`
+**Required:** `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY` (live), `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `SUPABASE_AUTH_WEBHOOK_HOOK_SECRET`, `INTERNAL_API_SECRET`
 
 **Recommended:** `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `SENTRY_DSN`
 
@@ -610,12 +611,12 @@ After every rollback, within 24 hours:
 
 | Condition | Threshold | Reason Code |
 |-----------|-----------|-------------|
-| Paid but not picked up | > 5 minutes in the admin stuck-intake viewer; stale-queue alerts use configurable hour thresholds | `paid_no_review` |
+| Paid but not picked up | > 5 minutes in the admin stuck-intake viewer; stale-queue monitoring uses the patient delay threshold | `paid_no_review` |
 | In review or pending info | > 60 minutes | `review_timeout` |
 | Approved but no delivery email | > 10 minutes | `delivery_pending` |
 | Approved but delivery email failed | Any | `delivery_failed` |
 
-**Escalation:** The `stale-queue` cron monitors paid requests still waiting for review. Doctor alerts use `doctor_alert_threshold_hours` (default 1h), patient delay emails use `patient_delay_email_hours` (default 2h), and Sentry severity becomes critical when 5+ intakes breach the configured patient-delay threshold.
+**Escalation:** The `stale-queue` cron monitors paid requests still waiting for review through PostHog and Sentry. Telegram is intentionally reserved for new paid request notifications only. Patient delay emails use `patient_delay_email_hours` (default 2h), and Sentry severity becomes critical when 5+ intakes breach that threshold.
 
 **Kill switches:** `DISABLE_INTAKE_EVENTS=true` (disable event logging), `DISABLE_STUCK_INTAKE_SENTRY=true` (disable stuck intake Sentry warnings), `DISABLE_RECONCILIATION_SENTRY=true` (disable reconciliation mismatch Sentry warnings).
 

@@ -45,6 +45,7 @@ describe("email suppression navigation contract", () => {
 
   it("keeps the email hub focused on hub work instead of duplicating section tabs", () => {
     const hubSource = readProjectFile("app/admin/emails/hub/email-hub-client.tsx")
+    const hubPageSource = readProjectFile("app/admin/emails/hub/page.tsx")
 
     expect(hubSource).toContain('<TabsTrigger value="overview">Overview</TabsTrigger>')
     expect(hubSource).toContain('<TabsTrigger value="queue">Queue</TabsTrigger>')
@@ -53,5 +54,30 @@ describe("email suppression navigation contract", () => {
     expect(hubSource).not.toContain('<TabsTrigger value="settings">')
     expect(hubSource).not.toContain('href="/admin/emails/hub"')
     expect(hubSource).not.toContain("Template Settings")
+    expect(hubSource).toContain("Auth recovery health")
+    expect(hubSource).toContain("/email-preview/verification-code")
+    expect(hubSource).toContain("/email-preview/magic-link")
+    expect(hubSource).toContain("/email-preview/magic-link-recovery")
+    expect(hubPageSource).toContain("authEmailHookStatus")
+    expect(hubPageSource).toContain("SUPABASE_AUTH_WEBHOOK_HOOK_SECRET")
+  })
+
+  it("keeps branded magic-link and password-reset templates previewable", () => {
+    const previewSource = readProjectFile("app/(dev)/email-preview/[template]/page.tsx")
+
+    expect(previewSource).toContain('"magic-link"')
+    expect(previewSource).toContain('"magic-link-recovery"')
+    expect(previewSource).toContain('actionType="recovery"')
+    expect(previewSource).not.toContain("Reset your password with this link:")
+  })
+
+  it("keeps the verification-code auth template previewable from the email hub", () => {
+    const hubSource = readProjectFile("app/admin/emails/hub/email-hub-client.tsx")
+    const previewSource = readProjectFile("app/(dev)/email-preview/[template]/page.tsx")
+
+    expect(hubSource).toContain("Verification code template")
+    expect(hubSource).toContain("Preview verification code")
+    expect(previewSource).toContain('"verification-code"')
+    expect(previewSource).toContain("VerificationCodeEmail")
   })
 })

@@ -1,10 +1,12 @@
-import { readFileSync } from "node:fs"
+import { readdirSync, readFileSync } from "node:fs"
+import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
 const ATTRIBUTION_COLUMNS = [
   "utm_source",
   "utm_medium",
+  "utm_id",
   "utm_campaign",
   "utm_content",
   "utm_term",
@@ -14,6 +16,13 @@ const ATTRIBUTION_COLUMNS = [
   "gclid",
   "gbraid",
   "wbraid",
+  "campaignid",
+  "adgroupid",
+  "keyword",
+  "creative",
+  "matchtype",
+  "device",
+  "network",
 ]
 
 function read(path: string): string {
@@ -36,16 +45,16 @@ describe("attribution persistence contract", () => {
 
   it("keeps webhook attribution select and schema migration aligned with stored checkout fields", () => {
     const webhook = read("app/api/stripe/webhook/handlers/checkout-session-completed.ts")
-    const migration = read("supabase/migrations/20260503000100_persist_full_intake_attribution.sql")
+    const migrations = readdirSync("supabase/migrations")
+      .filter((file) => file.endsWith(".sql"))
+      .map((file) => read(join("supabase/migrations", file)))
+      .join("\n")
     const dbTypes = read("types/db.ts")
 
     for (const column of ATTRIBUTION_COLUMNS) {
       expect(webhook).toContain(column)
       expect(dbTypes).toContain(`${column}: string | null`)
-    }
-
-    for (const column of ["utm_content", "utm_term", "referrer", "landing_page", "attribution_captured_at"]) {
-      expect(migration).toContain(column)
+      expect(migrations).toContain(column)
     }
   })
 })

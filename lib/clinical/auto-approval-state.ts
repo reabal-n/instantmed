@@ -5,14 +5,13 @@
  * Uses CAS (compare-and-swap) pattern: UPDATE ... WHERE state = expected.
  * If 0 rows updated, someone else transitioned first - return false.
  *
- * Observability (Sentry, PostHog, Telegram) is centralized here.
+ * Observability (Sentry and PostHog) is centralized here.
  */
 
 import * as Sentry from "@sentry/nextjs"
 
 import { getPostHogClient } from "@/lib/analytics/posthog-server"
 import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
-import { escapeMarkdownValue,sendTelegramAlert } from "@/lib/notifications/telegram"
 import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("auto-approval-state")
@@ -188,9 +187,6 @@ export async function markNeedsDoctor(
       fingerprint: ["cert-pipeline", "needs-doctor", reason.split(":")[0]],
     })
 
-    const alertMsg = `*Intake Needs Doctor*\n\nIntake ${intakeId.slice(0, 8)}\\.\\.\\. dropped to queue\\.\nReason: ${escapeMarkdownValue(reason)}`
-    // Intake dropped to manual queue is expected — not urgent. Silenced.
-    sendTelegramAlert(alertMsg, { severity: "warning" }).catch(() => {})
   }
 
   return result

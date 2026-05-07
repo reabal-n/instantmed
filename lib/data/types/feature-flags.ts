@@ -278,11 +278,11 @@ export function getFlagInfo(key: FlagKey): { label: string; description: string 
     },
     telegram_notifications_enabled: {
       label: "Telegram Notifications",
-      description: "Master toggle for all Telegram alerts - doctor stale-queue pings and new intake notifications.",
+      description: "Master toggle for new paid request Telegram notifications only.",
     },
     doctor_alert_threshold_hours: {
-      label: "Doctor Alert Threshold (hours)",
-      description: "Hours a paid intake must wait before the doctor receives a Telegram stale-queue alert.",
+      label: "Legacy Doctor Alert Threshold (hours)",
+      description: "Legacy setting retained for migration compatibility. Stale queue Telegram pings are disabled.",
     },
     patient_delay_email_hours: {
       label: "Patient Delay Email (hours)",

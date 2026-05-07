@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import {
   buildClinicalCaseSummary,
   type ClinicalPlanAction,
+  type PrescriptionIntent,
 } from "@/lib/clinical/case-summary"
 import { cn } from "@/lib/utils"
 
@@ -42,6 +43,16 @@ function actionLabel(action: ClinicalPlanAction): string {
   return labels[action]
 }
 
+function getPrescriptionCopyLabel(intent: PrescriptionIntent): string {
+  const medicationLabel = [
+    intent.medicationName,
+    intent.strength,
+    intent.form,
+  ].filter(Boolean).join(" ")
+
+  return medicationLabel || intent.presetLabel || "medicine"
+}
+
 export function ClinicalCaseReview({
   category,
   subtype,
@@ -66,9 +77,19 @@ export function ClinicalCaseReview({
     if (!summary.prescriptionIntent?.clipboardText) return
     try {
       await navigator.clipboard.writeText(summary.prescriptionIntent.clipboardText)
-      toast.success("Parchment preset copied")
+      toast.success(`Copied ${getPrescriptionCopyLabel(summary.prescriptionIntent)} for Parchment`)
     } catch {
       toast.error("Could not copy preset")
+    }
+  }
+
+  const copySearchHint = async () => {
+    if (!summary.prescriptionIntent?.medicationSearchHint) return
+    try {
+      await navigator.clipboard.writeText(summary.prescriptionIntent.medicationSearchHint)
+      toast.success("Copied Parchment search term")
+    } catch {
+      toast.error("Could not copy search term")
     }
   }
 
@@ -180,9 +201,19 @@ export function ClinicalCaseReview({
                     </p>
                   )}
                   {summary.prescriptionIntent.medicationSearchHint && (
-                    <p className="text-sm text-blue-900">
-                      Search: {summary.prescriptionIntent.medicationSearchHint}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-2 text-sm text-blue-900">
+                      <span>Search: {summary.prescriptionIntent.medicationSearchHint}</span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 bg-white px-2 text-xs"
+                        onClick={copySearchHint}
+                      >
+                        <Clipboard className="mr-1 h-3 w-3" />
+                        Copy search
+                      </Button>
+                    </div>
                   )}
                   <p className="text-sm text-blue-900">
                     {summary.prescriptionIntent.directionsTemplate}

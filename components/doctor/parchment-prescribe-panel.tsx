@@ -25,6 +25,12 @@ type ParchmentPrescribePanelProps = {
   | { patientId: string; intakeId?: never }
 )
 
+const PARCHMENT_IFRAME_SLOW_LOAD_MS = 8000
+
+function getCopiedMedicineLabel(context: ParchmentPrescriptionContext | null | undefined): string {
+  return context?.medicationLabel || context?.presetLabel || "medicine"
+}
+
 /**
  * Embedded Parchment prescribing panel.
  *
@@ -48,8 +54,9 @@ export function ParchmentPrescribePanel({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [iframeLoaded, setIframeLoaded] = useState(false)
+  const [iframeSlowToLoad, setIframeSlowToLoad] = useState(false)
+  const [iframeReloadKey, setIframeReloadKey] = useState(0)
   const [canUseIframe, setCanUseIframe] = useState(true)
-  const [_ssoExpired, setSsoExpired] = useState(false)
   const ssoExpiryTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const closeAndRefresh = useCallback(() => {
@@ -78,28 +85,42 @@ export function ParchmentPrescribePanel({
     if (!prescriptionContext?.clipboardText) return
     try {
       await navigator.clipboard.writeText(prescriptionContext.clipboardText)
-      toast.success("Prescription details copied")
+      toast.success(`Copied ${getCopiedMedicineLabel(prescriptionContext)} to Parchment`)
     } catch {
       toast.error("Could not copy prescription details")
     }
   }, [prescriptionContext])
 
+  const copyPrescriptionSearchHint = useCallback(async () => {
+    if (!prescriptionContext?.searchHint) return
+    try {
+      await navigator.clipboard.writeText(prescriptionContext.searchHint)
+      toast.success("Copied Parchment search term")
+    } catch {
+      toast.error("Could not copy search term")
+    }
+  }, [prescriptionContext])
+
+  const retryIframeOnly = useCallback(() => {
+    setIframeLoaded(false)
+    setIframeSlowToLoad(false)
+    setIframeReloadKey((key) => key + 1)
+  }, [])
+
   const loadPrescribingUrl = useCallback(async () => {
     setLoading(true)
     setError(null)
-    setSsoExpired(false)
 
     const result = await loadFreshParchmentUrl()
 
     if (result.success && result.ssoUrl) {
       setSsoUrl(result.ssoUrl)
       setIframeLoaded(false)
+      setIframeSlowToLoad(false)
 
       // SSO tokens expire in 300s - auto-refresh at 270s (30s safety margin)
       if (ssoExpiryTimer.current) clearTimeout(ssoExpiryTimer.current)
       ssoExpiryTimer.current = setTimeout(() => {
-        setSsoExpired(true)
-        toast.warning("Parchment session expiring - refreshing...", { duration: 3000 })
         loadPrescribingUrl()
       }, 270_000) // 4.5 minutes
     } else {
@@ -121,6 +142,19 @@ export function ParchmentPrescribePanel({
   useEffect(() => {
     setCanUseIframe(canEmbedParchmentForHost(window.location.hostname))
   }, [])
+
+  useEffect(() => {
+    if (!ssoUrl || iframeLoaded || error || !canUseIframe) {
+      setIframeSlowToLoad(false)
+      return
+    }
+
+    const slowLoadTimer = setTimeout(() => {
+      setIframeSlowToLoad(true)
+    }, PARCHMENT_IFRAME_SLOW_LOAD_MS)
+
+    return () => clearTimeout(slowLoadTimer)
+  }, [canUseIframe, error, iframeLoaded, ssoUrl])
 
   // Prevent body scroll
   useEffect(() => {
@@ -187,9 +221,21 @@ export function ParchmentPrescribePanel({
                         {prescriptionContext.medicationLabel || prescriptionContext.presetLabel}
                       </p>
                       {prescriptionContext.searchHint && (
-                        <p className="truncate text-xs text-muted-foreground">
-                          Search in Parchment: {prescriptionContext.searchHint}
-                        </p>
+                        <div className="mt-0.5 flex min-w-0 items-center gap-2">
+                          <p className="truncate text-xs text-muted-foreground">
+                            Search in Parchment: {prescriptionContext.searchHint}
+                          </p>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 shrink-0 px-2 text-[11px]"
+                            onClick={copyPrescriptionSearchHint}
+                          >
+                            <Clipboard className="mr-1 h-3 w-3" />
+                            Copy search
+                          </Button>
+                        </div>
                       )}
                     </div>
                     <Button type="button" variant="outline" size="sm" onClick={copyPrescriptionContext}>
@@ -259,14 +305,40 @@ export function ParchmentPrescribePanel({
             <>
               {canUseIframe && !iframeLoaded && !error && (
                 <div className="absolute inset-0 flex items-center justify-center bg-background z-10">
-                  <div className="text-center space-y-3">
+                  <div className="max-w-sm px-6 text-center space-y-3">
                     <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-                    <p className="text-sm text-muted-foreground">Loading Parchment...</p>
+                    {iframeSlowToLoad ? (
+                      <>
+                        <p className="text-sm font-medium text-foreground">Parchment is taking a little longer</p>
+                        <p className="text-sm text-muted-foreground">
+                          You can keep waiting, open it in a new tab, or copy the requested medicine and continue there.
+                        </p>
+                        <div className="flex flex-wrap justify-center gap-2">
+                          <Button type="button" variant="outline" size="sm" onClick={retryIframeOnly}>
+                            <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+                            Retry iframe
+                          </Button>
+                          <Button type="button" variant="outline" size="sm" onClick={openInNewTab}>
+                            <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+                            Open in new tab
+                          </Button>
+                          {prescriptionContext?.clipboardText && (
+                            <Button type="button" variant="ghost" size="sm" onClick={copyPrescriptionContext}>
+                              <Clipboard className="mr-1.5 h-3.5 w-3.5" />
+                              Copy medicine
+                            </Button>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Loading Parchment...</p>
+                    )}
                   </div>
                 </div>
               )}
               {canUseIframe ? (
                 <iframe
+                  key={iframeReloadKey}
                   src={ssoUrl}
                   className="w-full h-full border-0"
                   onLoad={() => setIframeLoaded(true)}

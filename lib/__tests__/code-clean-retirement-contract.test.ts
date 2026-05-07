@@ -74,6 +74,7 @@ describe("code-clean retirement contracts", () => {
     }
 
     const publicAcquisitionSurfaces = [
+      "components/marketing/hero-doctor-review-mockup.tsx",
       "components/marketing/prescriptions-landing.tsx",
       "lib/seo/data/competitor-comparisons.ts",
       "docs/REVENUE_MODEL.md",
@@ -84,6 +85,7 @@ describe("code-clean retirement contracts", () => {
       const source = read(surface)
       expect(source, surface).not.toContain("Subscribe & Save")
       expect(source, surface).not.toContain("$19.95/mo")
+      expect(source, surface).not.toMatch(/\$19\.95\s*\/\s*mo\b/i)
       expect(source, surface).not.toContain("STRIPE_PRICE_REPEAT_RX_MONTHLY")
       expect(source, surface).not.toContain("REPEAT_RX_MONTHLY")
       expect(source, surface).not.toMatch(/optional monthly repeat (script|prescription) subscription/i)

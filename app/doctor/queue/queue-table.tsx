@@ -41,6 +41,7 @@ import { Pagination, UserCard } from "@/components/uix"
 import { capture } from "@/lib/analytics/capture"
 import { buildPatientHandoffSummary } from "@/lib/doctor/patient-handoff"
 import { buildPatientSnapshot, getPatientSnapshotOptionsForCase } from "@/lib/doctor/patient-snapshot"
+import { LAST_OPENED_DOCTOR_CASE_KEY } from "@/lib/doctor/queue-focus"
 import { getQueueEnteredAt, getQueueStatusMeta } from "@/lib/doctor/queue-utils"
 import { prefetchReviewData } from "@/lib/doctor/review-data-cache"
 import { SERVICE_TYPES } from "@/lib/doctor/service-types"
@@ -82,6 +83,16 @@ function getConsultSubtypeLabel(subtype: string | null | undefined): string | nu
   return labels[subtype] ?? null
 }
 
+const REVIEW_TARGET_MINUTES = 120
+const REVIEW_TARGET_STATUSES = new Set(["paid", "in_review", "pending_info", "awaiting_script"])
+
+export function isPastReviewTarget(queueEnteredAt: string | null | undefined, now = Date.now()): boolean {
+  if (!queueEnteredAt) return false
+  const enteredAt = new Date(queueEnteredAt).getTime()
+  if (!Number.isFinite(enteredAt)) return false
+  return now - enteredAt >= REVIEW_TARGET_MINUTES * 60 * 1000
+}
+
 export interface QueueTableProps {
   filteredIntakes: IntakeWithPatient[]
   intakes?: IntakeWithPatient[]
@@ -98,6 +109,8 @@ export interface QueueTableProps {
   openIntakeId: string | null
   doctorId: string
   readIds: Set<string>
+  lastOpenedIntakeId: string | null
+  onRememberOpenedCase: (intakeId: string) => void
   dialogs: QueueDialogState
 
   // Extra sections
@@ -122,6 +135,8 @@ export function QueueTable({
   openIntakeId,
   doctorId,
   readIds,
+  lastOpenedIntakeId,
+  onRememberOpenedCase,
   dialogs: {
     declineDialog,
     setDeclineDialog,
@@ -176,6 +191,15 @@ export function QueueTable({
     })
   }
 
+  const rememberOpenedCase = (intakeId: string) => {
+    onRememberOpenedCase(intakeId)
+    try {
+      sessionStorage.setItem(LAST_OPENED_DOCTOR_CASE_KEY, intakeId)
+    } catch {
+      // Best-effort visual memory only.
+    }
+  }
+
   return (
     <>
       {/* Queue List — flat rows, single click opens review panel */}
@@ -215,9 +239,14 @@ export function QueueTable({
                 ? "Claimed by you"
                 : "Claimed"
               : null
+            const overReviewTarget =
+              intake.payment_status === "paid" &&
+              REVIEW_TARGET_STATUSES.has(intake.status) &&
+              isPastReviewTarget(queueEnteredAt)
 
             const isOpen = openIntakeId === intake.id
             const isRead = readIds.has(intake.id)
+            const isLastOpened = lastOpenedIntakeId === intake.id && !isOpen
             const isReturning = returningPatientIds.has(intake.patient_id)
             const chiefComplaint = getChiefComplaint(intake)
             return (
@@ -229,10 +258,12 @@ export function QueueTable({
                   "hover:bg-muted/40",
                   index < filteredIntakes.length - 1 && "border-b border-border/40",
                   isFocused && "bg-primary/[0.04] ring-1 ring-inset ring-primary/20",
-                  isOpen && "bg-primary/[0.06]"
+                  isOpen && "bg-primary/[0.06]",
+                  isLastOpened && "bg-muted/35 ring-1 ring-inset ring-border/60"
                 )}
                 onMouseEnter={() => prefetchReviewData(intake.id)}
                 onClick={() => {
+                  rememberOpenedCase(intake.id)
                   capture("doctor_case_opened", {
                     intake_id: intake.id,
                     service_type: service?.type,
@@ -307,6 +338,11 @@ export function QueueTable({
                       {claimLabel}
                     </Badge>
                   )}
+                  {overReviewTarget && (
+                    <Badge className="bg-amber-50 text-amber-700 border-amber-200 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300">
+                      <Clock className="w-3 h-3 mr-1" />Over review target
+                    </Badge>
+                  )}
                   {handoffSummary.tone !== "success" && (
                     <Badge
                       variant={handoffSummary.tone === "critical" ? "destructive" : "warning"}
@@ -324,6 +360,11 @@ export function QueueTable({
                       Open
                     </Badge>
                   )}
+                  {isLastOpened && (
+                    <Badge variant="outline" className="text-xs text-muted-foreground border-border/60">
+                      Last opened
+                    </Badge>
+                  )}
                 </div>
 
                 {/* Quick actions */}
@@ -334,6 +375,7 @@ export function QueueTable({
                     className="h-8 px-3 text-xs"
                     onClick={(e) => {
                       e.stopPropagation()
+                      rememberOpenedCase(intake.id)
                       openReviewPanel(intake.id)
                     }}
                     disabled={isPending}
@@ -569,10 +611,14 @@ export function QueueTable({
                   tabIndex={0}
                   aria-label={`View completed case for ${intake.patient.full_name}`}
                   className="flex cursor-pointer flex-col justify-between gap-2 rounded-lg border border-border/40 bg-muted/20 p-2.5 transition-colors hover:bg-muted/45 sm:flex-row sm:items-center sm:gap-3"
-                  onClick={() => router.push(`/doctor/intakes/${intake.id}`)}
+                  onClick={() => {
+                    rememberOpenedCase(intake.id)
+                    router.push(`/doctor/intakes/${intake.id}`)
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault()
+                      rememberOpenedCase(intake.id)
                       router.push(`/doctor/intakes/${intake.id}`)
                     }
                   }}

@@ -10,6 +10,7 @@ import {
 import Link from "next/link"
 import type { ComponentType } from "react"
 
+import { GoogleAccountLinkCard } from "@/components/account/google-account-link-card"
 import { DashboardPageHeader } from "@/components/dashboard"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { requireRole } from "@/lib/auth/helpers"
@@ -101,6 +102,24 @@ export default async function AdminSettingsPage() {
         description="Clinic, service, doctor, template, and content configuration."
         className="mb-0"
       />
+
+      <div id="account-security" className="scroll-mt-24">
+        <Card className="rounded-xl border-border/50">
+          <CardHeader className="px-5 py-4">
+            <CardTitle className="text-base">Account access</CardTitle>
+            <CardDescription>
+              Keep admin login tied to the same InstantMed account across email and Google.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="px-5 pb-5">
+            <GoogleAccountLinkCard
+              accountLabel="admin"
+              redirectPath="/admin/settings#account-security"
+              className="rounded-xl border border-border/40 bg-white p-4 dark:bg-card"
+            />
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         {settingsGroups.map((group) => (

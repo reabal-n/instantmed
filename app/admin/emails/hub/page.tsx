@@ -46,6 +46,12 @@ export default async function EmailHubPage() {
   const totalTemplates = templateCountResult.count || 0
   const activeTemplates = templateCountResult.data?.filter(t => t.is_active).length || 0
   const yesterdayEmails = yesterdayCountResult.count || 0
+  const authEmailHookStatus = {
+    configured: Boolean(process.env.SUPABASE_AUTH_WEBHOOK_HOOK_SECRET && process.env.RESEND_API_KEY),
+    hasResendKey: Boolean(process.env.RESEND_API_KEY),
+    hasSupabaseHookSecret: Boolean(process.env.SUPABASE_AUTH_WEBHOOK_HOOK_SECRET),
+    devPreviewAvailable: process.env.NODE_ENV !== "production",
+  }
 
   return (
     <Suspense fallback={<Skeleton className="h-[600px] rounded-lg" />}>
@@ -56,6 +62,7 @@ export default async function EmailHubPage() {
         outboxTotal={outboxResult.total}
         templateCounts={{ active: activeTemplates, total: totalTemplates }}
         yesterdayEmailCount={yesterdayEmails}
+        authEmailHookStatus={authEmailHookStatus}
       />
     </Suspense>
   )

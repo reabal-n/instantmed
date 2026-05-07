@@ -53,7 +53,17 @@ export interface Intake {
   live_consult_reason: string | null
   // Payment
   payment_id: string | null
-  payment_status: "unpaid" | "pending" | "paid" | "refunded" | "failed"
+  payment_status:
+    | "unpaid"
+    | "pending"
+    | "paid"
+    | "failed"
+    | "expired"
+    | "refunded"
+    | "partially_refunded"
+    | "refund_processing"
+    | "refund_failed"
+    | "disputed"
   amount_cents: number | null
   refund_amount_cents: number
   stripe_payment_intent_id: string | null // For refund traceability
@@ -63,6 +73,7 @@ export interface Intake {
   // First-touch attribution captured before checkout
   utm_source: string | null
   utm_medium: string | null
+  utm_id: string | null
   utm_campaign: string | null
   utm_content: string | null
   utm_term: string | null
@@ -72,8 +83,22 @@ export interface Intake {
   gclid: string | null
   gbraid: string | null
   wbraid: string | null
+  campaignid: string | null
+  adgroupid: string | null
+  keyword: string | null
+  creative: string | null
+  matchtype: string | null
+  device: string | null
+  network: string | null
   // Refund tracking
-  refund_status: "none" | "pending" | "processed" | "failed" | null
+  refund_status:
+    | "not_applicable"
+    | "not_eligible"
+    | "pending"
+    | "succeeded"
+    | "failed"
+    | "skipped_e2e"
+    | null
   refund_stripe_id: string | null
   refund_error: string | null
   refunded_at: string | null
@@ -526,10 +551,26 @@ export interface PrescriptionDraftData {
 }
 
 // Payment status type
-export type PaymentStatus = "pending_payment" | "paid" | "failed" | "refunded"
+export type PaymentStatus =
+  | "unpaid"
+  | "pending"
+  | "paid"
+  | "failed"
+  | "expired"
+  | "refunded"
+  | "partially_refunded"
+  | "refund_processing"
+  | "refund_failed"
+  | "disputed"
 
 // Refund status type
-export type RefundStatus = "not_applicable" | "eligible" | "processing" | "refunded" | "failed" | "not_eligible"
+export type RefundStatus =
+  | "not_applicable"
+  | "not_eligible"
+  | "pending"
+  | "succeeded"
+  | "failed"
+  | "skipped_e2e"
 
 // Payment type
 export interface Payment {

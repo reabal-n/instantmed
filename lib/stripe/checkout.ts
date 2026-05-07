@@ -59,9 +59,17 @@ interface CreateCheckoutInput {
     wbraid?: string
     utm_source?: string
     utm_medium?: string
+    utm_id?: string
     utm_campaign?: string
     utm_content?: string
     utm_term?: string
+    campaignid?: string
+    adgroupid?: string
+    keyword?: string
+    creative?: string
+    matchtype?: string
+    device?: string
+    network?: string
     referrer?: string
     landing_page?: string
     captured_at?: string
@@ -481,6 +489,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       // Attribution: store UTM params for payment attribution in PostHog
       utm_source: attribution.utm_source,
       utm_medium: attribution.utm_medium,
+      utm_id: attribution.utm_id,
       utm_campaign: attribution.utm_campaign,
       utm_content: attribution.utm_content,
       utm_term: attribution.utm_term,
@@ -493,6 +502,15 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       gclid: attribution.gclid,
       gbraid: attribution.gbraid,
       wbraid: attribution.wbraid,
+      // Google Ads ValueTrack fields used to debug campaign/ad group/keyword
+      // quality when click IDs are missing or conversion upload is delayed.
+      campaignid: attribution.campaignid,
+      adgroupid: attribution.adgroupid,
+      keyword: attribution.keyword,
+      creative: attribution.creative,
+      matchtype: attribution.matchtype,
+      device: attribution.device,
+      network: attribution.network,
     }
 
     const { data: intake, error: intakeError } = await supabase
@@ -649,7 +667,15 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       ...(attribution.wbraid ? { wbraid: attribution.wbraid } : {}),
       ...(attribution.utm_source ? { utm_source: attribution.utm_source } : {}),
       ...(attribution.utm_medium ? { utm_medium: attribution.utm_medium } : {}),
+      ...(attribution.utm_id ? { utm_id: attribution.utm_id } : {}),
       ...(attribution.utm_campaign ? { utm_campaign: attribution.utm_campaign } : {}),
+      ...(attribution.campaignid ? { campaignid: attribution.campaignid } : {}),
+      ...(attribution.adgroupid ? { adgroupid: attribution.adgroupid } : {}),
+      ...(attribution.keyword ? { keyword: attribution.keyword } : {}),
+      ...(attribution.creative ? { creative: attribution.creative } : {}),
+      ...(attribution.matchtype ? { matchtype: attribution.matchtype } : {}),
+      ...(attribution.device ? { device: attribution.device } : {}),
+      ...(attribution.network ? { network: attribution.network } : {}),
     }
     const paymentIntentMetadata = buildPaymentIntentMetadata(sessionMetadata)
 
@@ -964,7 +990,7 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
       ],
       ...(referralCoupon ? { discounts: [{ coupon: referralCoupon.couponId }] } : {}),
       mode: "payment" as const,
-      success_url: `${baseUrl}/patient/intakes/success?intake_id=${intake.id}&session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${baseUrl}/patient/intakes/success?intake_id=${intake.id}&session_id={CHECKOUT_SESSION_ID}&payment_retry=1`,
       cancel_url: `${baseUrl}/patient/intakes/cancelled?intake_id=${intake.id}`,
       metadata: retrySessionMetadata,
       payment_intent_data: {

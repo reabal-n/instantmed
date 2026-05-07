@@ -27,6 +27,11 @@ interface StatusConfig {
   icon: LucideIcon
 }
 
+export interface PatientStatusNextStep {
+  message: string
+  actionLabel?: string
+}
+
 /**
  * Unified status config for all patient-facing pages.
  * Colors use the pattern: bg-{color}-100 dark:bg-{color}-950/40 text-{color}-700 dark:text-{color}-300
@@ -131,6 +136,66 @@ export const PAYMENT_STATUS: Record<PaymentStatus, StatusConfig> = {
     color: "bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300",
     icon: XCircle,
   },
+}
+
+export const PATIENT_STATUS_NEXT_STEP: Partial<Record<IntakeStatus, PatientStatusNextStep>> = {
+  draft: {
+    message: "Finish the request when you're ready. Nothing has been sent to the doctor yet.",
+    actionLabel: "Continue request",
+  },
+  pending_payment: {
+    message: "Your details are saved. Complete payment to send this to a doctor.",
+    actionLabel: "Complete payment",
+  },
+  checkout_failed: {
+    message: "Your details are still saved. Try payment again, no need to restart.",
+    actionLabel: "Try payment again",
+  },
+  paid: {
+    message: "A doctor will review your request shortly. We'll email you as soon as it moves.",
+  },
+  in_review: {
+    message: "A doctor is reviewing your request now. Hang tight, shouldn't be long.",
+  },
+  pending_info: {
+    message: "The doctor has a quick question. Reply in messages so the request goes back for review.",
+    actionLabel: "Reply now",
+  },
+  escalated: {
+    message: "Your request needs extra clinical review. We'll update you as soon as there's a decision.",
+  },
+  approved: {
+    message: "All approved. Your document or next step is ready below.",
+    actionLabel: "View details",
+  },
+  awaiting_script: {
+    message: "Your prescription has been approved. The doctor is preparing the script now.",
+  },
+  completed: {
+    message: "This request is complete. Your documents or delivery details are available below.",
+    actionLabel: "View documents",
+  },
+  declined: {
+    message: "This request wasn't approved. You can view the reason and support options below.",
+    actionLabel: "View details",
+  },
+  cancelled: {
+    message: "This request was cancelled. No further action is needed.",
+  },
+  expired: {
+    message: "This request expired before it could be completed. Start a new request if you still need help.",
+    actionLabel: "Start again",
+  },
+  refunded: {
+    message: "Your refund has been processed. Keep this request ID if you contact support.",
+  },
+  disputed: {
+    message: "This payment needs admin review. Support will follow up if anything else is needed.",
+  },
+}
+
+export function getPatientStatusNextStep(status: string): PatientStatusNextStep | null {
+  return PATIENT_STATUS_NEXT_STEP[status as IntakeStatus] ?? null
 }
 
 /** Get status badge classes. Falls back to gray for unknown statuses. */

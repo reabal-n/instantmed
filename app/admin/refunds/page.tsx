@@ -5,11 +5,17 @@ import { RefundsClient } from "./refunds-client"
 
 export const dynamic = "force-dynamic"
 
-export default async function RefundsPage() {
+export default async function RefundsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>
+}) {
   await requireRole(["admin"], { redirectTo: "/admin" })
+  const params = await searchParams
+  const initialStatusFilter = params.status === "failed" ? "failed" : undefined
 
   const results = await Promise.allSettled([
-    getPaymentsWithRefundsAction({}, 1, 50),
+    getPaymentsWithRefundsAction({ status: initialStatusFilter }, 1, 50),
     getRefundStatsAction(),
   ])
 
@@ -25,6 +31,7 @@ export default async function RefundsPage() {
       initialPayments={paymentsResult.data || []}
       initialTotal={paymentsResult.total || 0}
       stats={stats}
+      initialStatusFilter={initialStatusFilter}
     />
   )
 }

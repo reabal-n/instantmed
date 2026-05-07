@@ -122,7 +122,7 @@ export async function processRefund(
     await supabase
       .from("intakes")
       .update({
-        payment_status: "refunded",
+        payment_status: isPartial ? "partially_refunded" : "refunded",
         refund_status: "succeeded",
         refund_stripe_id: refund.id,
         refund_amount_cents: refund.amount,

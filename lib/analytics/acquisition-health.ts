@@ -9,17 +9,39 @@ interface GoogleAdsSummary {
   error?: string
 }
 
+interface PaidIntakeAttributionRow {
+  amount_cents: number | null
+  adgroupid: string | null
+  campaignid: string | null
+  creative: string | null
+  device: string | null
+  gclid: string | null
+  gbraid: string | null
+  keyword: string | null
+  landing_page: string | null
+  matchtype: string | null
+  network: string | null
+  referrer: string | null
+  utm_medium: string | null
+  utm_source: string | null
+  wbraid: string | null
+}
+
 export interface AcquisitionHealthResult {
   windowDays: number
   paidIntakes: number
   paidRevenue: number
   paidWithGoogleClickId: number
   paidWithUtmSource: number
+  paidWithReferrerOrLandingPage: number
+  paidLikelyGoogleWithoutClickId: number
   unknownPaidIntakes: number
   googleAds?: GoogleAdsSummary
   healthy: boolean
   alerts: string[]
 }
+
+const DEFAULT_GOOGLE_ADS_API_VERSION = "v24"
 
 function hasGoogleAdsReportingConfig(): boolean {
   return Boolean(
@@ -62,7 +84,7 @@ async function fetchGoogleAdsSummary(since: Date): Promise<GoogleAdsSummary | un
     const customerId = process.env.GOOGLE_ADS_CUSTOMER_ID
     const loginCustomerId = process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID
     const quotaProjectId = process.env.GOOGLE_ADS_QUOTA_PROJECT_ID
-    const apiVersion = process.env.GOOGLE_ADS_API_VERSION || "v22"
+    const apiVersion = process.env.GOOGLE_ADS_API_VERSION || DEFAULT_GOOGLE_ADS_API_VERSION
     const startDate = since.toISOString().slice(0, 10)
     const endDate = new Date().toISOString().slice(0, 10)
 
@@ -118,6 +140,50 @@ async function fetchGoogleAdsSummary(since: Date): Promise<GoogleAdsSummary | un
   }
 }
 
+function hasGoogleClickId(row: PaidIntakeAttributionRow): boolean {
+  return Boolean(row.gclid || row.gbraid || row.wbraid)
+}
+
+function hasGoogleValueTrack(row: PaidIntakeAttributionRow): boolean {
+  return Boolean(
+    row.campaignid ||
+      row.adgroupid ||
+      row.keyword ||
+      row.creative ||
+      row.matchtype ||
+      row.device ||
+      row.network,
+  )
+}
+
+function hasAnyStoredAttribution(row: PaidIntakeAttributionRow): boolean {
+  return Boolean(
+    hasGoogleClickId(row) ||
+      hasGoogleValueTrack(row) ||
+      row.utm_source ||
+      row.utm_medium ||
+      row.referrer ||
+      row.landing_page,
+  )
+}
+
+function isLikelyGooglePaidRow(row: PaidIntakeAttributionRow): boolean {
+  const source = row.utm_source?.toLowerCase() ?? ""
+  const medium = row.utm_medium?.toLowerCase() ?? ""
+  const referrer = row.referrer?.toLowerCase() ?? ""
+
+  return (
+    hasGoogleValueTrack(row) ||
+    source.includes("google") ||
+    source.includes("adwords") ||
+    medium === "cpc" ||
+    medium === "paid_search" ||
+    referrer.includes("google.") ||
+    referrer.includes("googleadservices.com") ||
+    referrer.includes("doubleclick.net")
+  )
+}
+
 export async function getAcquisitionHealth(windowDays = 7): Promise<AcquisitionHealthResult> {
   const supabase = createServiceRoleClient()
   const since = new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000)
@@ -125,7 +191,7 @@ export async function getAcquisitionHealth(windowDays = 7): Promise<AcquisitionH
   const [{ data: paidIntakes, error }, googleAds] = await Promise.all([
     supabase
       .from("intakes")
-      .select("amount_cents, utm_source, gclid, gbraid, wbraid")
+      .select("amount_cents, utm_source, utm_medium, referrer, landing_page, gclid, gbraid, wbraid, campaignid, adgroupid, keyword, creative, matchtype, device, network")
       .not("paid_at", "is", null)
       .gte("paid_at", since.toISOString()),
     fetchGoogleAdsSummary(since),
@@ -135,15 +201,20 @@ export async function getAcquisitionHealth(windowDays = 7): Promise<AcquisitionH
     throw new Error(`acquisition_health_query_failed:${error.message}`)
   }
 
-  const rows = paidIntakes ?? []
-  const paidWithGoogleClickId = rows.filter((row) => row.gclid || row.gbraid || row.wbraid).length
+  const rows = (paidIntakes ?? []) as PaidIntakeAttributionRow[]
+  const paidWithGoogleClickId = rows.filter(hasGoogleClickId).length
   const paidWithUtmSource = rows.filter((row) => row.utm_source).length
-  const unknownPaidIntakes = rows.filter(
-    (row) => !row.utm_source && !row.gclid && !row.gbraid && !row.wbraid,
+  const paidWithReferrerOrLandingPage = rows.filter((row) => row.referrer || row.landing_page).length
+  const paidLikelyGoogleWithoutClickId = rows.filter(
+    (row) => isLikelyGooglePaidRow(row) && !hasGoogleClickId(row),
   ).length
+  const unknownPaidIntakes = rows.filter((row) => !hasAnyStoredAttribution(row)).length
   const paidRevenue = rows.reduce((sum, row) => sum + (row.amount_cents ?? 0), 0) / 100
 
   const alerts: string[] = []
+  if (paidLikelyGoogleWithoutClickId > 0) {
+    alerts.push("paid_google_attribution_missing_click_ids")
+  }
   if (googleAds && !googleAds.error && googleAds.clicks > 0 && rows.length > 0 && paidWithGoogleClickId === 0) {
     alerts.push("google_ads_clicks_but_no_paid_click_ids")
   }
@@ -160,6 +231,8 @@ export async function getAcquisitionHealth(windowDays = 7): Promise<AcquisitionH
     paidRevenue,
     paidWithGoogleClickId,
     paidWithUtmSource,
+    paidWithReferrerOrLandingPage,
+    paidLikelyGoogleWithoutClickId,
     unknownPaidIntakes,
     googleAds,
     healthy: alerts.length === 0,

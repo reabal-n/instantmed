@@ -57,7 +57,7 @@ beforeEach(() => {
 describe("attribution capture", () => {
   it("persists Google click IDs to session storage and a first-party cookie", () => {
     locationState = {
-      search: "?gclid=test-click&utm_source=google&utm_campaign=med-cert",
+      search: "?gclid=test-click&utm_source=google&utm_id=123456&utm_campaign=med-cert&campaignid=111&adgroupid=222&keyword=medical%20certificate&creative=333&matchtype=e&device=m&network=g",
       pathname: "/medical-certificate",
       protocol: "https:",
     }
@@ -71,7 +71,15 @@ describe("attribution capture", () => {
     expect(getAttribution()).toMatchObject({
       gclid: "test-click",
       utm_source: "google",
+      utm_id: "123456",
       utm_campaign: "med-cert",
+      campaignid: "111",
+      adgroupid: "222",
+      keyword: "medical certificate",
+      creative: "333",
+      matchtype: "e",
+      device: "m",
+      network: "g",
       landing_page: "/medical-certificate",
       referrer: "https://www.google.com/",
     })

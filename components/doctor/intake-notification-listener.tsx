@@ -9,6 +9,8 @@ import { createClient } from "@/lib/supabase/client"
 // Module-level dedup — survives component remounts (soft nav, hot reload).
 // Only clears on a full page reload, which is acceptable.
 const notifiedIds = new Set<string>()
+const PAID_REQUEST_TOAST_WINDOW_MS = 10 * 60 * 1000
+const PAYMENT_WRITE_DRIFT_MS = 30 * 1000
 
 // Play the two-tone notification chime, respecting the doctor's mute preference.
 function playNotificationSound() {
@@ -32,13 +34,25 @@ function playNotificationSound() {
   }
 }
 
-// Only fire notifications for intakes paid within the last 10 minutes.
-// This prevents spurious toasts when doctor notes are saved on old paid
-// intakes (every UPDATE on a paid row re-fires the filter).
-function isRecentlyPaid(intake: Record<string, unknown>): boolean {
-  const paidAt = intake.paid_at as string | null | undefined
-  if (!paidAt) return true // No timestamp — assume new, don't suppress
-  return Date.now() - new Date(paidAt).getTime() < 10 * 60 * 1000
+function parseDate(value: unknown): Date | null {
+  if (typeof value !== "string") return null
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+// Supabase replays every update on a paid row. Only notify when the paid_at
+// write is fresh and the row update happened at the same time as payment.
+function isFreshPaidRequestNotification(intake: Record<string, unknown>): boolean {
+  const paidAt = parseDate(intake.paid_at)
+  if (!paidAt) return false
+
+  const ageMs = Date.now() - paidAt.getTime()
+  if (ageMs < -PAYMENT_WRITE_DRIFT_MS || ageMs > PAID_REQUEST_TOAST_WINDOW_MS) return false
+
+  const updatedAt = parseDate(intake.updated_at)
+  if (!updatedAt) return true
+
+  return Math.abs(updatedAt.getTime() - paidAt.getTime()) <= PAYMENT_WRITE_DRIFT_MS
 }
 
 export function IntakeNotificationListener() {
@@ -47,46 +61,25 @@ export function IntakeNotificationListener() {
   useEffect(() => {
     const supabase = createClient()
 
-    // We subscribe ONLY to INSERT and UPDATE filtered to status=paid.
-    //
-    // WHY UPDATE and not INSERT: intakes are created as draft and
-    // transition to paid via the Stripe webhook, so the paid state
-    // arrives as an UPDATE, not an INSERT.
-    //
-    // WHY recency check: Supabase sends UPDATE events for EVERY column
-    // change on a paid row (notes saved, lock extended, etc.). Without
-    // the recency guard, saving doctor notes on an existing paid intake
-    // fires a spurious "New request ready" toast.
+    // Intakes are created as draft and become reviewable when Stripe marks
+    // them paid, so the useful signal is the fresh paid-row update.
     const channel = supabase
       .channel("doctor-intake-notifications")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "intakes", filter: "status=eq.paid" },
-        (payload) => {
-          const intake = payload.new as Record<string, unknown>
-          if (notifiedIds.has(intake.id as string)) return
-          if (!isRecentlyPaid(intake)) return
-          notifiedIds.add(intake.id as string)
-          playNotificationSound()
-          toast.info("New request received", {
-            description: `${intake.category || "Medical"} request is ready for review`,
-            duration: 10000,
-          })
-          router.refresh()
-        },
-      )
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "intakes", filter: "status=eq.paid" },
         (payload) => {
           const intake = payload.new as Record<string, unknown>
-          if (notifiedIds.has(intake.id as string)) return
-          if (!isRecentlyPaid(intake)) return
-          notifiedIds.add(intake.id as string)
+          const intakeId = typeof intake.id === "string" ? intake.id : null
+          if (!intakeId || notifiedIds.has(intakeId)) return
+          if (!isFreshPaidRequestNotification(intake)) return
+
+          notifiedIds.add(intakeId)
           playNotificationSound()
           toast.info("New request ready", {
-            description: `${intake.category || "Medical"} request payment completed`,
-            duration: 10000,
+            id: `doctor-new-request-${intakeId}`,
+            description: `${intake.category || "Medical"} request is ready for review`,
+            duration: 8000,
           })
           router.refresh()
         },

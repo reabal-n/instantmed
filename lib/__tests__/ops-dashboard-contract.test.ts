@@ -59,6 +59,26 @@ const dashboardRoutesSource = readFileSync(
   join(process.cwd(), "lib/dashboard/routes.ts"),
   "utf8",
 )
+const opsFailuresSource = readFileSync(
+  join(process.cwd(), "lib/admin/ops-failures.ts"),
+  "utf8",
+)
+const refundsPageSource = readFileSync(
+  join(process.cwd(), "app/admin/refunds/page.tsx"),
+  "utf8",
+)
+const refundsClientSource = readFileSync(
+  join(process.cwd(), "app/admin/refunds/refunds-client.tsx"),
+  "utf8",
+)
+const adminIntakeDetailSource = readFileSync(
+  join(process.cwd(), "app/admin/intakes/[id]/page.tsx"),
+  "utf8",
+)
+const patientMessagesDataSource = readFileSync(
+  join(process.cwd(), "lib/data/patient-messages.ts"),
+  "utf8",
+)
 
 describe("ops dashboard data contract", () => {
   it("reads the real Stripe webhook dead-letter table", () => {
@@ -180,5 +200,51 @@ describe("ops dashboard data contract", () => {
     expect(opsClientSource).toContain("Production health timeline")
     expect(opsClientSource).toContain("Recovery palette")
     expect(opsClientSource).toContain("ADMIN_PARCHMENT_OPS_HREF")
+  })
+
+  it("surfaces failed refunds in ops without adding a broad finance dashboard", () => {
+    expect(opsPageSource).toContain("refundFailuresResult")
+    expect(opsPageSource).toContain('.eq("refund_status", "failed")')
+    expect(opsFailuresSource).toContain("refund_failures")
+    expect(opsFailuresSource).toContain("Refund failures")
+    expect(opsClientSource).toContain("Resolve refund")
+    expect(refundsPageSource).toContain("initialStatusFilter")
+    expect(refundsClientSource).toContain("Failed refunds")
+    expect(refundsClientSource).toContain("Only showing failed refund rows")
+    expect(refundsClientSource).toContain("Open intake")
+    expect(refundsClientSource).toContain("payment.intake?.id")
+    expect(refundsClientSource).toContain('payment.refund_status === "failed"')
+  })
+
+  it("shows auth recovery health inside email ops instead of a vague hook card", () => {
+    expect(emailHubClientSource).toContain("Auth recovery health")
+    expect(emailHubClientSource).toContain("Forgot password route")
+    expect(emailHubClientSource).toContain("Magic link template")
+    expect(emailHubClientSource).toContain("Password reset template")
+    expect(emailHubClientSource).not.toContain("Auth email hook")
+  })
+
+  it("keeps noisy doctor dashboard toast controls visible as a simple ops guard", () => {
+    expect(opsClientSource).toContain("Doctor dashboard toasts")
+    expect(opsClientSource).toContain("new requests only")
+    expect(opsClientSource).not.toContain("All doctor toasts")
+  })
+
+  it("lets admin copy an operations-safe request summary from intake detail", () => {
+    expect(adminIntakeDetailSource).toContain("AdminRequestSummaryButton")
+    expect(adminIntakeDetailSource).toContain("Copy admin summary")
+    expect(adminIntakeDetailSource).toContain("Admin request summary")
+    expect(adminIntakeDetailSource).not.toContain("copy full clinical answers")
+  })
+
+  it("shows a PHI-light recent events strip on admin intake detail", () => {
+    expect(adminIntakeDetailSource).toContain("Recent events")
+    expect(adminIntakeDetailSource).toContain("Payment, refund, and message signals only")
+    expect(adminIntakeDetailSource).toContain("getPatientMessagesForIntake(id, 3, \"desc\")")
+    expect(adminIntakeDetailSource).toContain("Payment failed")
+    expect(adminIntakeDetailSource).toContain("Refund failed")
+    expect(adminIntakeDetailSource).toContain("Message activity recorded")
+    expect(adminIntakeDetailSource).not.toContain("message.content")
+    expect(patientMessagesDataSource).toContain('direction: "asc" | "desc" = "asc"')
   })
 })

@@ -58,7 +58,7 @@ Zustand store with `persist` middleware. Key: `instantmed-request-draft`, expiry
 
 ### Attribution
 
-First-touch attribution is captured client-side by `lib/analytics/attribution.ts` into `sessionStorage` and passed through `app/actions/unified-checkout.ts` to both authenticated and guest Stripe checkout paths. The checkout actions normalize attribution via `lib/analytics/attribution-storage.ts` before persisting to `intakes`: `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term`, sanitized `referrer`, sanitized `landing_page`, `attribution_captured_at`, `gclid`, `gbraid`, and `wbraid`.
+First-touch attribution is captured client-side by `lib/analytics/attribution.ts` into `sessionStorage` and passed through `app/actions/unified-checkout.ts` to both authenticated and guest Stripe checkout paths. The checkout actions normalize attribution via `lib/analytics/attribution-storage.ts` before persisting to `intakes`: `utm_source`, `utm_medium`, `utm_id`, `utm_campaign`, `utm_content`, `utm_term`, sanitized `referrer`, sanitized `landing_page`, `attribution_captured_at`, `gclid`, `gbraid`, `wbraid`, and Google Ads ValueTrack diagnostics (`campaignid`, `adgroupid`, `keyword`, `creative`, `matchtype`, `device`, `network`).
 
 The Stripe webhook reads the persisted intake attribution when payment completes, sends click IDs to the server-side Google Ads Conversion API, and mirrors attribution to PostHog. Admin source reporting in `/admin/analytics` and Business KPIs uses UTM first, then persisted referrer, then direct landing-page fallback.
 
@@ -161,12 +161,12 @@ Prescribing cases require the structured fields before checkout. They are normal
 | `draft` | `pending_payment`, `cancelled` |
 | `pending_payment` | `paid`, `checkout_failed`, `cancelled`, `expired` |
 | `checkout_failed` | `pending_payment`, `cancelled` |
-| `paid` | `in_review`, `approved`, `cancelled` |
-| `in_review` | `approved`, `declined`, `pending_info`, `escalated`, `cancelled` |
-| `pending_info` | `in_review`, `paid`, `cancelled`, `expired` |
+| `paid` | `in_review`, `approved`, `awaiting_script`, `declined`, `pending_info`, `escalated`, `cancelled` |
+| `in_review` | `approved`, `awaiting_script`, `declined`, `pending_info`, `escalated`, `cancelled` |
+| `pending_info` | `in_review`, `paid`, `declined`, `cancelled`, `expired` |
 | `approved` | `completed`, `awaiting_script`, `cancelled` |
-| `awaiting_script` | `completed`, `cancelled` |
-| `escalated` | `in_review`, `declined`, `cancelled` |
+| `awaiting_script` | `completed`, `declined`, `cancelled` |
+| `escalated` | `in_review`, `approved`, `declined`, `cancelled` |
 | `declined` | *(terminal)* |
 | `completed` | *(terminal)* |
 | `cancelled` | *(terminal)* |
@@ -223,7 +223,7 @@ On Postgres 23505 (duplicate key), returns existing intake. If already paid, red
 
 **DLQ:** Missing intake -> `addToDeadLetterQueue()` + 500 (Stripe retries). Max 3 retries then 200 (stops retry storm). 5 items/hour -> Sentry FATAL. Admin UI at `/admin/webhook-dlq` with `X-Admin-Replay` replay. Daily cron: `cron/dlq-monitor/route.ts`.
 
-**Retry payment** (`retryPaymentForIntakeAction`): auth + ownership + status guard (pending_payment only) + safety re-validation + expire old session + create fresh session.
+**Retry payment** (`retryPaymentForIntakeAction`): auth + ownership + status guard (`pending_payment` or `checkout_failed` with unpaid/pending/failed payment state) + safety re-validation + expire old session + create fresh session.
 
 ### Decline & Refund Flow
 
@@ -255,9 +255,9 @@ Entry points (doctor queue | admin panel | API)
 
 **Senders:** `lib/email/send-email.ts` (React templates via Resend), `lib/email/template-sender.ts` (DB templates with merge tags).
 
-**Template types:** `med_cert_patient`, `med_cert_employer`, `welcome`, `script_sent`, `request_declined`.
+**Template types:** `med_cert_patient`, `med_cert_employer`, `welcome`, `script_sent`, `request_declined`, plus Supabase Auth send-email templates for `magiclink`, `signup`, and `recovery` via `app/api/webhooks/supabase-auth/route.ts`.
 
-**Admin hub:** `/admin/email-hub` links to editor (`/admin/emails`), preview (`/admin/emails/preview`), analytics (`/admin/emails/analytics`). Test studio at `/admin/email-test`.
+**Admin hub:** `/admin/email-hub` links to editor (`/admin/emails`), preview (`/admin/emails/preview`), analytics (`/admin/emails/analytics`), suppression recovery, and a compact auth-email hook health card. In development, it links straight to `/email-preview/magic-link` for Supabase auth email QA. Test studio at `/admin/email-test`.
 
 ### Retry & Delivery
 

@@ -15,6 +15,7 @@ export const maxDuration = 60
 
 const MAX_ATTEMPTS = 6
 const BATCH_SIZE = 20
+const RETRY_WINDOW_MINUTES = 30
 
 type PendingPaidTelegramIntake = {
   id: string
@@ -28,12 +29,14 @@ type PendingPaidTelegramIntake = {
 
 async function processPendingPaidTelegramNotifications() {
   const supabase = createServiceRoleClient()
+  const retryWindowStart = new Date(Date.now() - RETRY_WINDOW_MINUTES * 60 * 1000)
 
   const { data, error } = await supabase
     .from("intakes")
     .select("id, patient_id, amount_cents, category, subtype, payment_status, paid_request_telegram_attempts")
     .eq("payment_status", "paid")
     .not("paid_at", "is", null)
+    .gt("paid_at", retryWindowStart.toISOString())
     .gt("amount_cents", 0)
     .is("paid_request_telegram_sent_at", null)
     .lt("paid_request_telegram_attempts", MAX_ATTEMPTS)

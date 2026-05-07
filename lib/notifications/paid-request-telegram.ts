@@ -3,6 +3,7 @@ import "server-only"
 import * as Sentry from "@sentry/nextjs"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
+import { getFeatureFlags } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 
 import { notifyNewIntakeViaTelegram } from "./telegram"
@@ -30,7 +31,7 @@ type ClaimRow = {
 
 export type PaidRequestTelegramResult =
   | { sent: true }
-  | { sent: false; skipped: "not_paid" | "missing_intake" | "invalid_intake" | "already_sent_or_claimed" }
+  | { sent: false; skipped: "not_paid" | "missing_intake" | "invalid_intake" | "disabled" | "already_sent_or_claimed" }
 
 type SendPaidRequestTelegramInput = {
   supabase: Pick<SupabaseClient, "from" | "rpc">
@@ -181,6 +182,11 @@ export async function sendPaidRequestTelegramNotification(
 
   if (!UUID_RE.test(input.intakeId)) {
     return { sent: false, skipped: "invalid_intake" }
+  }
+
+  const flags = await getFeatureFlags()
+  if (!flags.telegram_notifications_enabled) {
+    return { sent: false, skipped: "disabled" }
   }
 
   const now = new Date()

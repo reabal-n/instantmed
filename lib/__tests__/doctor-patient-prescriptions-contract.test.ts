@@ -11,6 +11,14 @@ const detailPageSource = readFileSync(
   join(process.cwd(), "app/doctor/patients/[id]/page.tsx"),
   "utf8",
 )
+const panelSource = readFileSync(
+  join(process.cwd(), "components/doctor/parchment-prescribe-panel.tsx"),
+  "utf8",
+)
+const clinicalCaseReviewSource = readFileSync(
+  join(process.cwd(), "components/doctor/clinical-case-review.tsx"),
+  "utf8",
+)
 
 describe("doctor patient medication history contract", () => {
   it("shows Parchment prescriptions and prior InstantMed medication requests on the patient record", () => {
@@ -97,13 +105,53 @@ describe("doctor patient medication history contract", () => {
   })
 
   it("refreshes patient prescriptions when the embedded Parchment panel closes", () => {
-    const panelSource = readFileSync(
-      join(process.cwd(), "components/doctor/parchment-prescribe-panel.tsx"),
-      "utf8",
-    )
-
     expect(panelSource).toContain("closeAndRefresh")
     expect(panelSource).toContain("onPrescriptionsRefresh()")
+  })
+
+  it("keeps automatic Parchment session refreshes out of top-level doctor toasts", () => {
+    expect(panelSource).toContain("loadPrescribingUrl()")
+    expect(panelSource).not.toContain("Parchment session expiring")
+    expect(panelSource).not.toContain("toast.warning")
+  })
+
+  it("gives doctors a slow-iframe recovery state without blocking prescribing", () => {
+    expect(panelSource).toContain("PARCHMENT_IFRAME_SLOW_LOAD_MS")
+    expect(panelSource).toContain("iframeSlowToLoad")
+    expect(panelSource).toContain("Parchment is taking a little longer")
+    expect(panelSource).toContain("Open in new tab")
+    expect(panelSource).toContain("copyPrescriptionContext")
+  })
+
+  it("lets doctors retry only the embedded iframe without refreshing the SSO session", () => {
+    expect(panelSource).toContain("iframeReloadKey")
+    expect(panelSource).toContain("retryIframeOnly")
+    expect(panelSource).toContain("setIframeReloadKey((key) => key + 1)")
+    expect(panelSource).toContain("Retry iframe")
+    expect(panelSource).toContain("key={iframeReloadKey}")
+  })
+
+  it("names the copied medicine in Parchment copy feedback", () => {
+    expect(panelSource).toContain("getCopiedMedicineLabel")
+    expect(panelSource).toContain("Copied")
+    expect(panelSource).toContain("to Parchment")
+    expect(panelSource).not.toContain('toast.success("Prescription details copied")')
+
+    expect(clinicalCaseReviewSource).toContain("getPrescriptionCopyLabel")
+    expect(clinicalCaseReviewSource).toContain("Copied")
+    expect(clinicalCaseReviewSource).toContain("for Parchment")
+    expect(clinicalCaseReviewSource).not.toContain('toast.success("Parchment preset copied")')
+  })
+
+  it("lets doctors copy only the Parchment search term when needed", () => {
+    expect(panelSource).toContain("copyPrescriptionSearchHint")
+    expect(panelSource).toContain("Copied Parchment search term")
+    expect(panelSource).toContain("Copy search")
+    expect(panelSource).toContain("prescriptionContext.searchHint")
+
+    expect(clinicalCaseReviewSource).toContain("copySearchHint")
+    expect(clinicalCaseReviewSource).toContain("medicationSearchHint")
+    expect(clinicalCaseReviewSource).toContain("Copy search")
   })
 
   it("does not pass raw intake answers into the client props", () => {

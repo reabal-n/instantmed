@@ -19,6 +19,10 @@ interface IntakeDetailDraftsProps {
   doctorNotes: string
   setDoctorNotes: (val: string) => void
   noteSaved: boolean
+  notesAutoSaving: boolean
+  notesAutoSaveError: string | null
+  lastSavedDoctorNotesAt: string | null
+  noteDirty: boolean
   isAiPrefilled: boolean
   isPending: boolean
   isRegenerating: boolean
@@ -34,6 +38,10 @@ export function IntakeDetailDrafts({
   doctorNotes,
   setDoctorNotes,
   noteSaved,
+  notesAutoSaving,
+  notesAutoSaveError,
+  lastSavedDoctorNotesAt,
+  noteDirty,
   isAiPrefilled,
   isPending,
   isRegenerating,
@@ -128,6 +136,12 @@ export function IntakeDetailDrafts({
                   className="min-h-[120px] text-sm"
                 />
               )}
+              {notesAutoSaveError && (
+                <div role="status" className="rounded-lg border border-warning-border bg-warning-light/40 px-3 py-2 text-xs text-warning">
+                  <span className="font-medium">Autosave is having trouble.</span>{" "}
+                  Use Save Notes before approving.
+                </div>
+              )}
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <Button onClick={onSaveNotes} disabled={isPending || isRegenerating} variant="outline" size="sm">
@@ -151,7 +165,18 @@ export function IntakeDetailDrafts({
                         ? "Regenerate AI draft"
                         : "Generate AI draft"}
                   </Button>
-                  {noteSaved && <span className="text-xs text-success">Saved!</span>}
+                  {notesAutoSaving && (
+                    <span className="text-xs text-muted-foreground">Auto-saving...</span>
+                  )}
+                  {!notesAutoSaving && noteSaved && <span className="text-xs text-success">Saved!</span>}
+                  {!notesAutoSaving && !noteSaved && noteDirty && !isPending && (
+                    <span className="text-xs text-warning">Unsaved clinical notes</span>
+                  )}
+                  {!notesAutoSaving && !noteDirty && lastSavedDoctorNotesAt && (
+                    <span className="text-xs text-muted-foreground">
+                      Last saved {formatDateTime(lastSavedDoctorNotesAt)}
+                    </span>
+                  )}
                 </div>
                 {/* Minimum-length hint for AHPRA defensibility */}
                 <span

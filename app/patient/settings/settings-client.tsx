@@ -3,6 +3,7 @@
 import {
   ArrowRight,
   Bell,
+  CheckCircle,
   CreditCard,
   Download,
   Eye,
@@ -14,13 +15,14 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { changePassword, deleteAccount } from "@/app/actions/account"
 import { type EmailPreferences,updateEmailPreferences } from "@/app/actions/email-preferences"
 import { exportPatientData } from "@/app/actions/export-data"
 import { updateMedicareAction } from "@/app/actions/profile-todo"
+import { GoogleAccountLinkCard } from "@/components/account/google-account-link-card"
 import { DashboardCard, DashboardPageHeader } from "@/components/dashboard"
 import { MedicareCapture } from "@/components/intake/medicare-capture"
 import {
@@ -35,6 +37,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { AvatarPicker } from "@/components/ui/avatar-picker"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -42,6 +45,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AUSTRALIAN_STATES } from "@/lib/constants"
+import { useAuth } from "@/lib/supabase/auth-provider"
+import { createClient } from "@/lib/supabase/client"
 import { formatMedicareNumber } from "@/lib/validation/medicare"
 import type { Profile } from "@/types/db"
 
@@ -54,9 +59,24 @@ interface PatientSettingsClientProps {
 type SettingsTab = "personal" | "medical" | "preferences"
 const VALID_TABS: readonly SettingsTab[] = ["personal", "medical", "preferences"] as const
 
+function serializeSettingsPart(value: unknown): string {
+  return JSON.stringify(value)
+}
+
+function expiryToMmYy(iso: string | null) {
+  if (!iso) return ""
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return ""
+  const month = String(d.getMonth() + 1).padStart(2, "0")
+  const year = String(d.getFullYear()).slice(-2)
+  return `${month}/${year}`
+}
+
 export function PatientSettingsClient({ profile, email, emailPreferences }: PatientSettingsClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { user } = useAuth()
+  const supabase = useMemo(() => createClient(), [])
   const requestedTab = searchParams?.get("tab")
   const initialTab: SettingsTab =
     requestedTab && (VALID_TABS as readonly string[]).includes(requestedTab)
@@ -72,29 +92,18 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
   const [isSavingEmailPrefs, setIsSavingEmailPrefs] = useState(false)
   const [isSavingMedicare, setIsSavingMedicare] = useState(false)
 
-  // Convert ISO date (YYYY-MM-DD) to MM/YY for form display
-  const expiryToMmYy = (iso: string | null) => {
-    if (!iso) return ""
-    const d = new Date(iso)
-    if (isNaN(d.getTime())) return ""
-    const month = String(d.getMonth() + 1).padStart(2, "0")
-    const year = String(d.getFullYear()).slice(-2)
-    return `${month}/${year}`
-  }
-
-  const [medicareForm, setMedicareForm] = useState({
+  const initialMedicareForm = useMemo(() => ({
     number: profile.medicare_number ? formatMedicareNumber(profile.medicare_number.replace(/\s/g, "")) : "",
     irn: profile.medicare_irn as number | null,
     expiry: expiryToMmYy(profile.medicare_expiry),
-  })
-  const [consentMyhr, setConsentMyhr] = useState(profile.consent_myhr ?? false)
+  }), [profile.medicare_expiry, profile.medicare_irn, profile.medicare_number])
 
-  const [emailPrefs, setEmailPrefs] = useState({
+  const initialEmailPrefs = useMemo(() => ({
     marketing_emails: emailPreferences?.marketing_emails ?? true,
     abandoned_checkout_emails: emailPreferences?.abandoned_checkout_emails ?? true,
-  })
+  }), [emailPreferences?.abandoned_checkout_emails, emailPreferences?.marketing_emails])
 
-  const [formData, setFormData] = useState({
+  const initialFormData = useMemo(() => ({
     full_name: profile.full_name,
     phone: profile.phone || "",
     date_of_birth: profile.date_of_birth || "",
@@ -102,13 +111,129 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
     suburb: profile.suburb || "",
     state: profile.state || "",
     postcode: profile.postcode || "",
-  })
+  }), [
+    profile.address_line1,
+    profile.date_of_birth,
+    profile.full_name,
+    profile.phone,
+    profile.postcode,
+    profile.state,
+    profile.suburb,
+  ])
+
+  const [accountEmail, setAccountEmail] = useState(email)
+  const [pendingAccountEmail, setPendingAccountEmail] = useState<string | null>(null)
+  const [isUpdatingEmail, setIsUpdatingEmail] = useState(false)
+  const [medicareForm, setMedicareForm] = useState(initialMedicareForm)
+  const [consentMyhr, setConsentMyhr] = useState(profile.consent_myhr ?? false)
+
+  const [emailPrefs, setEmailPrefs] = useState(initialEmailPrefs)
+
+  const [formData, setFormData] = useState(initialFormData)
 
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   })
+
+  const personalSnapshot = serializeSettingsPart(formData)
+  const medicalSnapshot = serializeSettingsPart({ medicareForm, consentMyhr })
+  const emailPrefsSnapshot = serializeSettingsPart(emailPrefs)
+  const savedPersonalSnapshotRef = useRef(serializeSettingsPart(initialFormData))
+  const savedMedicalSnapshotRef = useRef(serializeSettingsPart({
+    medicareForm: initialMedicareForm,
+    consentMyhr: profile.consent_myhr ?? false,
+  }))
+  const savedEmailPrefsSnapshotRef = useRef(serializeSettingsPart(initialEmailPrefs))
+  const savedAccountEmailRef = useRef(email)
+  const patientSettingsDirty =
+    personalSnapshot !== savedPersonalSnapshotRef.current ||
+    medicalSnapshot !== savedMedicalSnapshotRef.current ||
+    emailPrefsSnapshot !== savedEmailPrefsSnapshotRef.current ||
+    accountEmail.trim().toLowerCase() !== savedAccountEmailRef.current.toLowerCase()
+
+  useEffect(() => {
+    savedPersonalSnapshotRef.current = serializeSettingsPart(initialFormData)
+  }, [initialFormData])
+
+  useEffect(() => {
+    savedMedicalSnapshotRef.current = serializeSettingsPart({
+      medicareForm: initialMedicareForm,
+      consentMyhr: profile.consent_myhr ?? false,
+    })
+  }, [initialMedicareForm, profile.consent_myhr])
+
+  useEffect(() => {
+    savedEmailPrefsSnapshotRef.current = serializeSettingsPart(initialEmailPrefs)
+  }, [initialEmailPrefs])
+
+  useEffect(() => {
+    savedAccountEmailRef.current = email
+    setAccountEmail(email)
+    setPendingAccountEmail((pendingEmail) =>
+      pendingEmail && pendingEmail.toLowerCase() === email.toLowerCase() ? null : pendingEmail
+    )
+  }, [email])
+
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!patientSettingsDirty) return
+      event.preventDefault()
+      event.returnValue = ""
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload)
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload)
+  }, [patientSettingsDirty])
+
+  const linkedAuthProviders = useMemo(() => {
+    const providers = new Set<string>()
+    const appProviders = user?.app_metadata?.providers
+    if (Array.isArray(appProviders)) {
+      appProviders.forEach((provider) => {
+        if (typeof provider === "string") providers.add(provider)
+      })
+    }
+    user?.identities?.forEach((identity) => {
+      if (identity.provider) providers.add(identity.provider)
+    })
+    if (providers.size === 0 && email) providers.add("email")
+    return Array.from(providers).sort()
+  }, [email, user?.app_metadata?.providers, user?.identities])
+
+  const googleLinked = linkedAuthProviders.includes("google")
+  const linkedProviderLabels = linkedAuthProviders.map((provider) =>
+    provider === "email"
+      ? "Email"
+      : provider === "google"
+        ? "Google"
+        : provider.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase())
+  )
+  const lastSignInLabel = user?.last_sign_in_at
+    ? new Date(user.last_sign_in_at).toLocaleString("en-AU", {
+        day: "numeric",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "Not recorded"
+
+  const patientSettingsCompletionItems = [
+    { label: "Phone", complete: formData.phone.trim() !== "" },
+    { label: "Date of birth", complete: formData.date_of_birth.trim() !== "" },
+    {
+      label: "Home address",
+      complete:
+        formData.address_line1.trim() !== "" &&
+        formData.suburb.trim() !== "" &&
+        formData.state.trim() !== "" &&
+        formData.postcode.trim() !== "",
+    },
+    { label: "Medicare", complete: medicareForm.number.replace(/\s/g, "").length === 10 },
+    { label: "Google sign-in", complete: googleLinked },
+  ]
+  const patientSettingsCompletionCount = patientSettingsCompletionItems.filter((item) => item.complete).length
 
   const handleSave = async () => {
     setIsSaving(true)
@@ -121,10 +246,39 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
 
       if (!response.ok) throw new Error("Failed to update")
       toast.success("Profile updated successfully")
+      savedPersonalSnapshotRef.current = personalSnapshot
     } catch {
       toast.error("Failed to update profile")
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleEmailChange = async () => {
+    const nextEmail = accountEmail.trim().toLowerCase()
+    if (!nextEmail || !nextEmail.includes("@")) {
+      toast.error("Enter a valid email address")
+      return
+    }
+
+    if (nextEmail === savedAccountEmailRef.current) return
+
+    setIsUpdatingEmail(true)
+    try {
+      const { error } = await supabase.auth.updateUser({ email: nextEmail })
+      if (error) {
+        toast.error(error.message || "Failed to update email")
+        return
+      }
+
+      savedAccountEmailRef.current = nextEmail
+      setAccountEmail(nextEmail)
+      setPendingAccountEmail(nextEmail)
+      toast.success("Email changes need confirmation. Check your inbox to finish the change.")
+    } catch {
+      toast.error("Failed to update email")
+    } finally {
+      setIsUpdatingEmail(false)
     }
   }
 
@@ -151,6 +305,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
       })
       if (result.success) {
         toast.success("Medicare details saved")
+        savedMedicalSnapshotRef.current = medicalSnapshot
         router.refresh()
       } else {
         toast.error(result.error || "Failed to save Medicare details")
@@ -168,6 +323,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
       const result = await updateEmailPreferences(emailPrefs)
       if (result.success) {
         toast.success("Email preferences saved")
+        savedEmailPrefsSnapshotRef.current = emailPrefsSnapshot
       } else {
         toast.error(result.error || "Failed to save email preferences")
       }
@@ -255,6 +411,45 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
         description="Manage your profile and preferences"
       />
 
+      {patientSettingsDirty && (
+        <div className="inline-flex items-center gap-2 rounded-full border border-warning-border bg-warning-light px-3 py-1.5 text-xs font-medium text-warning">
+          <Save className="h-3.5 w-3.5" aria-hidden="true" />
+          Unsaved settings changes
+        </div>
+      )}
+
+      <DashboardCard tier="standard" padding="none" className="p-4 sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-sm font-semibold text-foreground">Account completion</h2>
+            <p className="text-xs text-muted-foreground">
+              The basics that keep requests, scripts, and account recovery smooth.
+            </p>
+          </div>
+          <Badge
+            variant={patientSettingsCompletionCount === patientSettingsCompletionItems.length ? "success" : "warning"}
+            shape="pill"
+          >
+            {patientSettingsCompletionCount}/{patientSettingsCompletionItems.length} ready
+          </Badge>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {patientSettingsCompletionItems.map((item) => (
+            <span
+              key={item.label}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${
+                item.complete
+                  ? "border-success-border bg-success-light text-success"
+                  : "border-border bg-muted/50 text-muted-foreground"
+              }`}
+            >
+              {item.complete && <CheckCircle className="h-3.5 w-3.5" aria-hidden="true" />}
+              {item.label}
+            </span>
+          ))}
+        </div>
+      </DashboardCard>
+
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as SettingsTab)}>
         <TabsList className="w-full flex-wrap">
           <TabsTrigger value="personal" className="flex-1 gap-2">
@@ -298,8 +493,40 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" value={email} disabled className="rounded-xl bg-muted/50" />
-                    <p className="text-xs text-muted-foreground">Contact support to change your email</p>
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <Input
+                        id="email"
+                        type="email"
+                        value={accountEmail}
+                        onChange={(e) => setAccountEmail(e.target.value)}
+                        className="rounded-xl bg-white dark:bg-card"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleEmailChange}
+                        disabled={isUpdatingEmail || accountEmail.trim().toLowerCase() === savedAccountEmailRef.current}
+                        className="rounded-xl sm:w-auto"
+                      >
+                        {isUpdatingEmail ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Updating...
+                          </>
+                        ) : (
+                          "Update email"
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Email changes need confirmation before sign-in moves across.
+                    </p>
+                    {pendingAccountEmail && (
+                      <div className="rounded-xl border border-info-border bg-info-light/40 px-3 py-2 text-xs text-info">
+                        <p className="font-medium">Email change pending</p>
+                        <p>Check that inbox to confirm: {pendingAccountEmail}</p>
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone</Label>
@@ -548,6 +775,35 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
               </div>
             </div>
             </DashboardCard>
+
+            <div id="account-security" className="scroll-mt-24">
+              <DashboardCard tier="elevated" padding="none" className="p-6 space-y-6">
+                <div>
+                  <h3 className="font-medium text-foreground mb-4">Sign-in options</h3>
+                  <div className="mb-4 grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-xl border border-border/40 bg-muted/25 p-4">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Linked providers
+                      </p>
+                      <p className="mt-1 text-sm font-medium text-foreground">
+                        {linkedProviderLabels.length > 0 ? linkedProviderLabels.join(", ") : "Email"}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-border/40 bg-muted/25 p-4">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Last sign-in
+                      </p>
+                      <p className="mt-1 text-sm font-medium text-foreground">{lastSignInLabel}</p>
+                    </div>
+                  </div>
+                  <GoogleAccountLinkCard
+                    accountLabel="patient"
+                    redirectPath="/patient/settings?tab=preferences#account-security"
+                    className="rounded-xl border border-border/40 bg-white p-5 dark:bg-card"
+                  />
+                </div>
+              </DashboardCard>
+            </div>
 
             <DashboardCard tier="elevated" padding="none" className="p-6 space-y-6">
               <div>

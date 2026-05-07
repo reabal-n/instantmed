@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest"
 import { resolvePostAuthDestination } from "@/lib/auth/post-auth-destination"
 
 const authCallbackSource = readFileSync(join(process.cwd(), "app/auth/callback/route.ts"), "utf8")
+const postSignInLoadingSource = readFileSync(join(process.cwd(), "app/auth/post-signin/loading.tsx"), "utf8")
 const postSignInSource = readFileSync(join(process.cwd(), "app/auth/post-signin/page.tsx"), "utf8")
 const signInSource = readFileSync(join(process.cwd(), "app/sign-in/[[...sign-in]]/page.tsx"), "utf8")
 
@@ -44,5 +45,14 @@ describe("resolvePostAuthDestination", () => {
     expect(signInSource).toContain("link_expired")
     expect(signInSource).toContain("That sign-in link expired")
     expect(signInSource).toContain("Email me a sign-in link")
+    expect(signInSource).toContain("sessionStorage.getItem(LAST_MAGIC_LINK_EMAIL_KEY)")
+  })
+
+  it("uses calm account-checking copy while the magic-link session settles", () => {
+    expect(postSignInLoadingSource).toContain("Finishing secure sign-in")
+    expect(postSignInLoadingSource).toContain("Checking your account")
+    expect(postSignInSource).toContain("Finishing secure sign-in")
+    expect(postSignInSource).toContain("Checking your account")
+    expect(postSignInSource).not.toContain("Loading...")
   })
 })

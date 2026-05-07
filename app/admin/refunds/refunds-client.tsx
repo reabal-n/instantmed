@@ -7,6 +7,7 @@ import {
   Clock,
   CreditCard,
   DollarSign,
+  Eye,
   Loader2,
   RefreshCw,
   Search,
@@ -59,6 +60,7 @@ import { formatAmount,formatRefundStatus, getRefundStatuses } from "@/lib/data/t
 interface RefundsClientProps {
   initialPayments: PaymentWithRefund[]
   initialTotal: number
+  initialStatusFilter?: string
   stats: {
     eligible: number
     processing: number
@@ -70,7 +72,7 @@ interface RefundsClientProps {
 
 const REFUND_STATUSES = getRefundStatuses()
 
-export function RefundsClient({ initialPayments, initialTotal, stats }: RefundsClientProps) {
+export function RefundsClient({ initialPayments, initialTotal, initialStatusFilter, stats }: RefundsClientProps) {
   const router = useRouter()
   const [payments, setPayments] = useState(initialPayments)
   const [total, setTotal] = useState(initialTotal)
@@ -84,8 +86,9 @@ export function RefundsClient({ initialPayments, initialTotal, stats }: RefundsC
   const pageSize = 50
 
   const [filters, setFilters] = useState<RefundFilters>({
-    status: undefined,
+    status: initialStatusFilter,
   })
+  const failedRefundsOnly = filters.status === "failed"
 
   const fetchPayments = useCallback(async (newFilters: RefundFilters, newPage: number) => {
     setIsLoading(true)
@@ -192,11 +195,17 @@ export function RefundsClient({ initialPayments, initialTotal, stats }: RefundsC
               Refunds Manager
             </Heading>
             <p className="text-sm text-muted-foreground mt-1">
-              Process refunds and manage payment disputes
+              {failedRefundsOnly ? "Failed refunds" : "Process refunds and manage payment disputes"}
             </p>
           </div>
         </div>
       </div>
+
+      {failedRefundsOnly && (
+        <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          <strong>Only showing failed refund rows.</strong> Open these first, then return to all statuses when clear.
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-5">
@@ -372,6 +381,14 @@ export function RefundsClient({ initialPayments, initialTotal, stats }: RefundsC
                           <span className="text-xs text-muted-foreground">
                             {new Date(payment.refunded_at).toLocaleDateString("en-AU")}
                           </span>
+                        )}
+                        {payment.refund_status === "failed" && payment.intake?.id && (
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link href={`/admin/intakes/${payment.intake.id}`}>
+                              <Eye className="h-4 w-4 mr-1" />
+                              Open intake
+                            </Link>
+                          </Button>
                         )}
                       </TableCell>
                     </TableRow>

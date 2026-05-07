@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
+
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
@@ -127,6 +130,15 @@ vi.mock("@/lib/stripe/referral-coupon", () => ({
 
 import { retryPaymentForIntakeAction } from "@/lib/stripe/checkout"
 
+const successPageSource = readFileSync(
+  join(process.cwd(), "app/patient/intakes/success/page.tsx"),
+  "utf8",
+)
+const successClientSource = readFileSync(
+  join(process.cwd(), "app/patient/intakes/success/success-client.tsx"),
+  "utf8",
+)
+
 interface UpdateRecord {
   filters: Array<{
     column: string
@@ -237,6 +249,7 @@ describe("retryPaymentForIntakeAction", () => {
     ]))
     expect(mocks.stripeSessionCreate).toHaveBeenCalledWith(
       expect.objectContaining({
+        success_url: "https://instantmed.example/patient/intakes/success?intake_id=intake-1&session_id={CHECKOUT_SESSION_ID}&payment_retry=1",
         metadata: expect.objectContaining({
           intake_id: "intake-1",
           is_retry: "true",
@@ -244,6 +257,22 @@ describe("retryPaymentForIntakeAction", () => {
       }),
       { idempotencyKey: "retry_intake-1_cs_previous" },
     )
+  })
+
+  it("hands retry-payment return state into the success screen copy", () => {
+    expect(successPageSource).toContain("payment_retry")
+    expect(successPageSource).toContain("paymentRetry={paymentRetry}")
+    expect(successClientSource).toContain("paymentRetry")
+    expect(successClientSource).toContain("Payment retry confirmed")
+    expect(successClientSource).toContain("No need to fill the form out again")
+  })
+
+  it("logs a lightweight retry-return audit event from the success page", () => {
+    expect(successPageSource).toContain("logPaymentRetryReturn")
+    expect(successPageSource).toContain("payment_retry_return")
+    expect(successPageSource).toContain('action: "payment_completed"')
+    expect(successPageSource).toContain("retry_landing")
+    expect(successPageSource).toContain("paymentRetry")
   })
 
   it("fails retry checkout before Stripe when legacy pricing cannot be resolved", async () => {

@@ -250,6 +250,7 @@ All webhooks use signature verification (not CSRF).
 |----------|---------|-------------|
 | **Stripe** | `app/api/stripe/webhook/route.ts` | `stripe.webhooks.constructEvent(body, sig, secret)` — raw body via `request.text()` before any parsing. `STRIPE_WEBHOOK_SECRET` is server-only and must be present in production; point-of-use access fails if it is missing. |
 | **Resend** | `app/api/webhooks/resend/route.ts` | Svix: `new Webhook(RESEND_WEBHOOK_SECRET).verify(payload, headers)` |
+| **Supabase Auth Send Email** | `app/api/webhooks/supabase-auth/route.ts` | Svix-compatible Standard Webhooks verification with `SUPABASE_AUTH_WEBHOOK_HOOK_SECRET`; sends branded auth emails through Resend. |
 | **Parchment** | `app/api/webhooks/parchment/route.ts` | HMAC-SHA256: `X-Webhook-Signature: t=timestamp,v1=signature`. Signed payload: `{timestamp}.{rawBody}`. 5-min replay window. Timing-safe comparison via `crypto.timingSafeEqual`. `PARCHMENT_WEBHOOK_SECRET` from env. |
 
 **Stripe admin replay path:** The webhook handler also accepts replays from the DLQ admin UI (`X-Admin-Replay: true` + `X-Admin-Replay-Secret` header). Replays are authenticated with `crypto.timingSafeEqual` against `INTERNAL_API_SECRET` and bypass signature verification (the payload was already verified on first receipt). This is intentional and audited.

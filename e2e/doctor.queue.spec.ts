@@ -82,8 +82,8 @@ test.describe("Doctor Queue", () => {
     await page.goto("/doctor/dashboard")
     await waitForPageLoad(page)
 
-    // Should see Review Queue heading
-    await expect(page.getByRole("heading", { name: /review queue/i })).toBeVisible({ timeout: 15000 })
+    // Should see the current doctor queue heading.
+    await expect(page.getByRole("heading", { level: 1, name: /^queue$/i })).toBeVisible({ timeout: 15000 })
 
     // Should NOT see error banners
     const errorBanners = [
@@ -109,7 +109,7 @@ test.describe("Doctor Queue", () => {
     await waitForPageLoad(page)
 
     // Wait for queue to load
-    await expect(page.getByRole("heading", { name: /review queue/i })).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole("heading", { level: 1, name: /^queue$/i })).toBeVisible({ timeout: 15000 })
 
     // Look for the seeded patient in the queue
     // The patient name should appear in the queue list
@@ -133,7 +133,7 @@ test.describe("Doctor Queue", () => {
     await waitForPageLoad(page)
 
     // Wait for queue to load
-    await expect(page.getByRole("heading", { name: /review queue/i })).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole("heading", { level: 1, name: /^queue$/i })).toBeVisible({ timeout: 15000 })
 
     // Find and click on the seeded patient row to expand it
     const patientRow = page.getByText(SEEDED_PATIENT_NAME).first()
@@ -203,7 +203,7 @@ test.describe("Doctor Queue - Edge Cases", () => {
     await waitForPageLoad(page)
 
     // Should load without crashing
-    await expect(page.getByRole("heading", { name: /review queue/i })).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole("heading", { level: 1, name: /^queue$/i })).toBeVisible({ timeout: 15000 })
 
     // If queue is empty, should show empty state (not an error)
     const emptyState = page.getByText(/queue is clear|no pending/i)
@@ -219,7 +219,7 @@ test.describe("Doctor Queue - Edge Cases", () => {
     await waitForPageLoad(page)
 
     // Wait for queue to load
-    await expect(page.getByRole("heading", { name: /review queue/i })).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole("heading", { level: 1, name: /^queue$/i })).toBeVisible({ timeout: 15000 })
 
     // Look for search input
     const searchInput = page.getByPlaceholder(/search/i)

@@ -9,6 +9,7 @@ import { IntakeReviewPanel } from "@/components/doctor"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
 import { DOCTOR_DASHBOARD_HREF, parseQueueStatusFilter, type QueueStatusFilter } from "@/lib/dashboard/routes"
+import { DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY, LAST_OPENED_DOCTOR_CASE_KEY } from "@/lib/doctor/queue-focus"
 import { removeCompletedIntakeFromQueue } from "@/lib/doctor/queue-state"
 import { calculateSlaCountdown,calculateWaitTime, getQueueEnteredAt, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
 import { SERVICE_TYPES } from "@/lib/doctor/service-types"
@@ -40,6 +41,7 @@ export function QueueClient({
   const searchParams = useSearchParams()
   const { openPanel, activePanel } = usePanel()
   const explicitStatusFilterRef = useRef(hasExplicitStatusFilter)
+  const queueRegionRef = useRef<HTMLDivElement>(null)
 
   const openIntakeId = activePanel?.id.startsWith("intake-review-")
     ? activePanel.id.replace("intake-review-", "")
@@ -56,6 +58,14 @@ export function QueueClient({
   }, [initialIntakes])
 
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [lastOpenedIntakeId, setLastOpenedIntakeId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null
+    try {
+      return sessionStorage.getItem(LAST_OPENED_DOCTOR_CASE_KEY)
+    } catch {
+      return null
+    }
+  })
   const [readIds, setReadIds] = useState<Set<string>>(() => {
     if (typeof window === "undefined") return new Set()
     try {
@@ -72,6 +82,10 @@ export function QueueClient({
       try { sessionStorage.setItem("instantmed:queue-read-ids", JSON.stringify([...next])) } catch { /* ignore */ }
       return next
     })
+  }, [])
+
+  const rememberOpenedCase = useCallback((intakeId: string) => {
+    setLastOpenedIntakeId(intakeId)
   }, [])
 
   const [searchQuery, setSearchQuery] = useState("")
@@ -109,6 +123,17 @@ export function QueueClient({
 
   useEffect(() => {
     setLastQueueRefreshAt(new Date())
+  }, [])
+
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem(DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY)) {
+        sessionStorage.removeItem(DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY)
+        requestAnimationFrame(() => queueRegionRef.current?.focus())
+      }
+    } catch {
+      // Focus restore is a convenience only; queue rendering should never depend on storage.
+    }
   }, [])
 
   useEffect(() => {
@@ -453,7 +478,13 @@ export function QueueClient({
     : null
 
   return (
-    <div className="space-y-6">
+    <div
+      ref={queueRegionRef}
+      role="region"
+      tabIndex={-1}
+      aria-label="Doctor request queue"
+      className="space-y-6 focus:outline-none"
+    >
       {/* Daily stats strip */}
       {(reviewedToday > 0 || queueSize > 0 || todayEarnings) && (
         <div
@@ -583,6 +614,8 @@ export function QueueClient({
         openIntakeId={openIntakeId}
         doctorId={doctorId}
         readIds={readIds}
+        lastOpenedIntakeId={lastOpenedIntakeId}
+        onRememberOpenedCase={rememberOpenedCase}
         isPending={dialogs.isPending || isApprovePending}
         identityComplete={identityComplete}
         onApprove={handleApprove}

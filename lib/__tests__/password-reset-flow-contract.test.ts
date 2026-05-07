@@ -16,16 +16,35 @@ describe("password reset flow contract", () => {
     expect(signInPage).toContain("signInWithPassword")
     expect(signInPage).toContain("signInWithOtp")
     expect(signInPage).toContain("Email me a sign-in link")
+    expect(signInPage).toContain("Send another sign-in link")
+    expect(signInPage).toContain("Use the newest link if a few arrive.")
+    expect(signInPage).toContain("We couldn't send that link. Try again.")
+    expect(signInPage).toContain("emailLinkErrorMessage")
+    expect(signInPage).toContain("LAST_MAGIC_LINK_EMAIL_KEY")
+    expect(signInPage).toContain("MAGIC_LINK_RESEND_COOLDOWN_MS")
+    expect(signInPage).toContain("lastMagicLinkSentAt")
+    expect(signInPage).toContain("Give it 30 seconds before sending another link.")
+    expect(signInPage).toContain("sessionStorage.setItem(LAST_MAGIC_LINK_EMAIL_KEY")
+    expect(signInPage).toContain("sessionStorage.getItem(LAST_MAGIC_LINK_EMAIL_KEY)")
+    expect(signInPage).toContain("Wrong email?")
+    expect(signInPage).toContain("emailInputRef.current?.focus()")
+    expect(signInPage).toContain("googleErrorMessage")
   })
 
   it("keeps the forgot-password and reset-password routes reachable", () => {
     const forgotPage = readRepoFile("app/auth/forgot-password/page.tsx")
+    const forgotClient = readRepoFile("app/auth/forgot-password/forgot-password-client.tsx")
     const resetPage = readRepoFile("app/auth/reset-password/page.tsx")
 
     expect(forgotPage).toContain("ForgotPasswordClient")
     expect(forgotPage).not.toContain("redirect('/sign-in')")
     expect(resetPage).toContain("ResetPasswordClient")
     expect(resetPage).not.toContain("redirect('/sign-in')")
+    expect(forgotClient).toContain("PASSWORD_RESET_RESEND_COOLDOWN_MS")
+    expect(forgotClient).toContain("lastResetLinkSentAt")
+    expect(forgotClient).toContain("Give it 30 seconds before sending another reset email.")
+    expect(forgotClient).toContain("Send another reset email")
+    expect(forgotClient).not.toContain("glass-card")
   })
 
   it("uses Supabase recovery emails instead of generating an unsent magic link", () => {
@@ -36,6 +55,18 @@ describe("password reset flow contract", () => {
     expect(accountActions).toContain("/auth/reset-password")
     expect(accountActions).not.toContain('type: "magiclink"')
     expect(accountActions).not.toContain("generateLink")
+  })
+
+  it("keeps the branded Supabase auth email hook documented for production", () => {
+    const webhookRoute = readRepoFile("app/api/webhooks/supabase-auth/route.ts")
+    const envExample = readRepoFile(".env.example")
+    const operations = readRepoFile("docs/OPERATIONS.md")
+
+    expect(webhookRoute).toContain("MagicLinkEmail")
+    expect(webhookRoute).toContain("SUPABASE_AUTH_WEBHOOK_HOOK_SECRET")
+    expect(envExample).toContain("SUPABASE_AUTH_WEBHOOK_HOOK_SECRET")
+    expect(operations).toContain("/api/webhooks/supabase-auth")
+    expect(operations).toContain("Send Email hook")
   })
 
   it("updates the password from an established recovery session, not a raw code parameter", () => {

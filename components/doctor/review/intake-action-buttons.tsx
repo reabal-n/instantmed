@@ -6,6 +6,7 @@ import { useMemo } from "react"
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
 import { Button } from "@/components/ui/button"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
+import { MIN_CLINICAL_NOTES_LENGTH } from "@/lib/doctor/clinical-notes"
 import { isConsultServiceType, isKnownDoctorServiceType } from "@/lib/doctor/service-types"
 
 export function IntakeActionButtons() {
@@ -13,6 +14,7 @@ export function IntakeActionButtons() {
     intake,
     service,
     answers,
+    doctorNotes,
     isPending,
     isLoadingPreview,
     handleMedCertApprove,
@@ -48,15 +50,25 @@ export function IntakeActionButtons() {
   const isRepeatScript = service?.type === "repeat_rx" || service?.type === "common_scripts"
   const isPrescribingConsult = intake.category === "consult" && ["ed", "hair_loss"].includes(intake.subtype || "")
   const shouldPrescribeFromConsult = isPrescribingConsult && hasPrescriptionIntent
+  const needsClinicalNotes = doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH
+  const approvalNeedsClinicalNotes =
+    (service?.type === "med_certs" && ["paid", "in_review"].includes(intake.status)) ||
+    (isConsultServiceType(service?.type) && intake.status === "paid" && !shouldPrescribeFromConsult) ||
+    (!isKnownDoctorServiceType(service?.type) && intake.status === "paid")
+  const approveDisabledReason = approvalNeedsClinicalNotes && needsClinicalNotes
+    ? `Add clinical notes (${doctorNotes.trim().length}/${MIN_CLINICAL_NOTES_LENGTH} chars) before approving.`
+    : null
 
   return (
-    <div className="sticky bottom-0 bg-background border-t border-border pt-3 pb-1 flex flex-wrap gap-2">
+    <div className="sticky bottom-0 bg-background border-t border-border pt-3 pb-1">
+      <div className="flex flex-wrap gap-2">
       {/* Med cert: preview then approve */}
       {service?.type === "med_certs" && ["paid", "in_review"].includes(intake.status) && (
         <Button
           onClick={handleMedCertApprove}
           className="bg-emerald-600 hover:bg-emerald-700"
-          disabled={isPending || isLoadingPreview}
+          disabled={isPending || isLoadingPreview || Boolean(approveDisabledReason)}
+          title={approveDisabledReason || undefined}
           size="sm"
         >
           {isPending || isLoadingPreview ? (
@@ -122,7 +134,8 @@ export function IntakeActionButtons() {
         <Button
           onClick={() => handleStatusChange("approved")}
           className="bg-primary hover:bg-primary/90"
-          disabled={isPending}
+          disabled={isPending || Boolean(approveDisabledReason)}
+          title={approveDisabledReason || undefined}
           size="sm"
         >
           {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
@@ -136,7 +149,8 @@ export function IntakeActionButtons() {
           <Button
             onClick={() => handleStatusChange("approved")}
             className="bg-primary hover:bg-primary/90"
-            disabled={isPending}
+            disabled={isPending || Boolean(approveDisabledReason)}
+            title={approveDisabledReason || undefined}
             size="sm"
           >
             {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
@@ -155,6 +169,10 @@ export function IntakeActionButtons() {
           <XCircle className="h-4 w-4 mr-1.5" />
           Decline
         </Button>
+      )}
+      </div>
+      {approveDisabledReason && (
+        <p className="mt-2 text-xs font-medium text-warning">{approveDisabledReason}</p>
       )}
     </div>
   )

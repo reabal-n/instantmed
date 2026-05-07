@@ -13,6 +13,11 @@ const realtimeSource = readFileSync(
   "utf8",
 )
 
+const intakeNotificationListenerSource = readFileSync(
+  join(process.cwd(), "components/doctor/intake-notification-listener.tsx"),
+  "utf8",
+)
+
 const declineSource = readFileSync(
   join(process.cwd(), "app/actions/decline-intake.ts"),
   "utf8",
@@ -20,6 +25,26 @@ const declineSource = readFileSync(
 
 const queueClientSource = readFileSync(
   join(process.cwd(), "app/doctor/queue/queue-client.tsx"),
+  "utf8",
+)
+const queueTableSource = readFileSync(
+  join(process.cwd(), "app/doctor/queue/queue-table.tsx"),
+  "utf8",
+)
+const queueFocusSource = readFileSync(
+  join(process.cwd(), "lib/doctor/queue-focus.ts"),
+  "utf8",
+)
+const intakeDetailActionsSource = readFileSync(
+  join(process.cwd(), "app/doctor/intakes/[id]/use-intake-actions.tsx"),
+  "utf8",
+)
+const intakeDetailClientSource = readFileSync(
+  join(process.cwd(), "app/doctor/intakes/[id]/intake-detail-client.tsx"),
+  "utf8",
+)
+const intakeDetailDraftsSource = readFileSync(
+  join(process.cwd(), "app/doctor/intakes/[id]/intake-detail-drafts.tsx"),
   "utf8",
 )
 
@@ -71,6 +96,17 @@ describe("doctor queue production contract", () => {
     expect(realtimeSource).toContain("router.refresh()")
   })
 
+  it("keeps in-dashboard doctor toasts limited to fresh paid request transitions", () => {
+    expect(intakeNotificationListenerSource).toContain("PAID_REQUEST_TOAST_WINDOW_MS")
+    expect(intakeNotificationListenerSource).toContain("PAYMENT_WRITE_DRIFT_MS")
+    expect(intakeNotificationListenerSource).toContain("isFreshPaidRequestNotification")
+    expect(intakeNotificationListenerSource).toContain("if (!paidAt) return false")
+    expect(intakeNotificationListenerSource).toContain('event: "UPDATE"')
+    expect(intakeNotificationListenerSource).not.toContain('event: "INSERT"')
+    expect(intakeNotificationListenerSource).not.toContain("payment completed")
+    expect(intakeNotificationListenerSource).not.toContain("New request received")
+  })
+
   it("keeps queue refreshes throttled and runs a refresh after successful decisions", () => {
     expect(queueClientSource).toContain("lastQueueRefreshAtRef")
     expect(queueClientSource).toContain("lastQueueRefreshLabel")
@@ -109,5 +145,78 @@ describe("doctor queue production contract", () => {
     expect(existsSync(join(process.cwd(), "lib/stripe/refunds.ts"))).toBe(false)
     expect(queueActionsSource).toContain("declineIntakeCanonical")
     expect(queueActionsSource).not.toContain("refundIfEligible")
+  })
+
+  it("returns focus to the queue after the final detail-page action navigates back", () => {
+    expect(intakeDetailActionsSource).toContain("DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY")
+    expect(intakeDetailActionsSource).toContain("sessionStorage.setItem(DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY")
+    expect(queueClientSource).toContain("DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY")
+    expect(queueClientSource).toContain("queueRegionRef.current?.focus()")
+    expect(queueClientSource).toContain('aria-label="Doctor request queue"')
+  })
+
+  it("warns before leaving full-page case review with unsaved clinical notes", () => {
+    expect(intakeDetailActionsSource).toContain("lastSavedDoctorNotesRef")
+    expect(intakeDetailActionsSource).toContain("noteDirty")
+    expect(intakeDetailActionsSource).toContain("noteDirtyRef.current")
+    expect(intakeDetailActionsSource).toContain("event.returnValue")
+    expect(intakeDetailClientSource).toContain("noteDirty={actions.noteDirty}")
+    expect(intakeDetailDraftsSource).toContain("Unsaved clinical notes")
+  })
+
+  it("autosaves full-page clinical notes and shows the last saved state", () => {
+    expect(intakeDetailActionsSource).toContain("FULL_PAGE_NOTE_AUTOSAVE_MS")
+    expect(intakeDetailActionsSource).toContain("autoSaveNotesTimerRef")
+    expect(intakeDetailActionsSource).toContain("lastSavedDoctorNotesAt")
+    expect(intakeDetailActionsSource).toContain("notesAutoSaving")
+    expect(intakeDetailClientSource).toContain("lastSavedDoctorNotesAt={actions.lastSavedDoctorNotesAt}")
+    expect(intakeDetailDraftsSource).toContain("Auto-saving")
+    expect(intakeDetailDraftsSource).toContain("Last saved")
+  })
+
+  it("surfaces repeated clinical-note autosave failures inline with manual recovery", () => {
+    expect(intakeDetailActionsSource).toContain("notesAutoSaveError")
+    expect(intakeDetailActionsSource).toContain("autoSaveFailureCountRef")
+    expect(intakeDetailActionsSource).toContain("setNotesAutoSaveError")
+    expect(intakeDetailClientSource).toContain("notesAutoSaveError={actions.notesAutoSaveError}")
+    expect(intakeDetailDraftsSource).toContain("Autosave is having trouble")
+    expect(intakeDetailDraftsSource).toContain("Use Save Notes before approving")
+  })
+
+  it("remembers the last opened queue case after returning from detail", () => {
+    expect(queueFocusSource).toContain("LAST_OPENED_DOCTOR_CASE_KEY")
+    expect(queueClientSource).toContain("lastOpenedIntakeId")
+    expect(queueClientSource).toContain("sessionStorage.getItem(LAST_OPENED_DOCTOR_CASE_KEY)")
+    expect(queueTableSource).toContain("LAST_OPENED_DOCTOR_CASE_KEY")
+    expect(queueTableSource).toContain("sessionStorage.setItem(LAST_OPENED_DOCTOR_CASE_KEY")
+    expect(queueTableSource).toContain("Last opened")
+  })
+
+  it("visually marks paid queue cases that have passed the review target", () => {
+    expect(queueTableSource).toContain("REVIEW_TARGET_MINUTES = 120")
+    expect(queueTableSource).toContain("isPastReviewTarget")
+    expect(queueTableSource).toContain("Over review target")
+    expect(queueTableSource).toContain('intake.payment_status === "paid"')
+  })
+
+  it("explains disabled approval buttons when clinical notes are missing", () => {
+    const detailHeaderSource = readFileSync(
+      join(process.cwd(), "app/doctor/intakes/[id]/intake-detail-header.tsx"),
+      "utf8",
+    )
+    const reviewButtonsSource = readFileSync(
+      join(process.cwd(), "components/doctor/review/intake-action-buttons.tsx"),
+      "utf8",
+    )
+
+    expect(detailHeaderSource).toContain("approveDisabledReason")
+    expect(detailHeaderSource).toContain("Add clinical notes")
+    expect(detailHeaderSource).toContain("doctorNotes.trim().length")
+    expect(detailHeaderSource).toContain("title={approveDisabledReason || undefined}")
+
+    expect(reviewButtonsSource).toContain("approveDisabledReason")
+    expect(reviewButtonsSource).toContain("MIN_CLINICAL_NOTES_LENGTH")
+    expect(reviewButtonsSource).toContain("Add clinical notes")
+    expect(reviewButtonsSource).toContain("title={approveDisabledReason || undefined}")
   })
 })

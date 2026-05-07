@@ -120,6 +120,8 @@ function acquisitionHealthFallback(windowDays: number): AcquisitionHealthResult 
     paidRevenue: 0,
     paidWithGoogleClickId: 0,
     paidWithUtmSource: 0,
+    paidWithReferrerOrLandingPage: 0,
+    paidLikelyGoogleWithoutClickId: 0,
     unknownPaidIntakes: 0,
     googleAds: {
       clicks: 0,

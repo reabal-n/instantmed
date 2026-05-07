@@ -8,6 +8,7 @@ import {
   Check,
   CheckCircle,
   Clock,
+  Copy,
   Download,
   FileText,
   HelpCircle,
@@ -34,6 +35,7 @@ import {
   IntakeStatusTracker,
   SendToEmployerDialog,
 } from "@/components/patient"
+import { CopySupportSummaryButton } from "@/components/patient/support-summary-button"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -50,7 +52,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { capture } from "@/lib/analytics/capture"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
-import { INTAKE_STATUS, type IntakeStatus as StatusKey } from "@/lib/data/status"
+import { getPatientStatusNextStep, INTAKE_STATUS, type IntakeStatus as StatusKey } from "@/lib/data/status"
 import { formatIntakeStatus } from "@/lib/format/intake"
 import { COPY } from "@/lib/microcopy/universal"
 import { retryPaymentForIntakeAction } from "@/lib/stripe/checkout"
@@ -191,6 +193,62 @@ function TimelineEntry({
   )
 }
 
+function PaymentEventTimeline({ intake }: { intake: IntakeWithPatient }) {
+  const hasPaymentOrRefund =
+    Boolean(intake.payment_status) ||
+    Boolean(intake.paid_at) ||
+    Boolean(intake.refunded_at) ||
+    Boolean(intake.refund_status) ||
+    Boolean(intake.refund_error)
+
+  if (!hasPaymentOrRefund) return null
+
+  return (
+    <div className="rounded-xl border border-border/50 bg-muted/25 p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Payment and refund
+      </p>
+      <ol className="mt-2 space-y-1.5 text-sm">
+        <li className="flex items-center justify-between gap-3">
+          <span className="text-muted-foreground">Payment started</span>
+          <span className="text-right font-medium">
+            {new Date(intake.created_at).toLocaleDateString("en-AU", DATE_FORMAT)}
+          </span>
+        </li>
+        {intake.paid_at && (
+          <li className="flex items-center justify-between gap-3">
+            <span className="text-muted-foreground">Payment confirmed</span>
+            <span className="text-right font-medium text-success">
+              {new Date(intake.paid_at).toLocaleDateString("en-AU", DATE_FORMAT)}
+            </span>
+          </li>
+        )}
+        {intake.refund_status && intake.refund_status !== "not_applicable" && (
+          <li className="flex items-center justify-between gap-3">
+            <span className="text-muted-foreground">Refund status</span>
+            <span className="text-right font-medium">
+              {intake.refund_status.replace(/_/g, " ")}
+            </span>
+          </li>
+        )}
+        {intake.refunded_at && (
+          <li className="flex items-center justify-between gap-3">
+            <span className="text-muted-foreground">Refund processed</span>
+            <span className="text-right font-medium text-success">
+              {new Date(intake.refunded_at).toLocaleDateString("en-AU", DATE_FORMAT)}
+            </span>
+          </li>
+        )}
+        {intake.refund_error && (
+          <li className="rounded-lg border border-destructive-border bg-destructive-light/30 px-3 py-2 text-xs text-destructive">
+            {intake.refund_error}
+          </li>
+        )}
+      </ol>
+    </div>
+  )
+}
+
 function CopyVerifyLinkButton({ verificationCode }: { verificationCode: string }) {
   const [copied, setCopied] = useState(false)
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
@@ -236,6 +294,49 @@ function CopyVerifyLinkButton({ verificationCode }: { verificationCode: string }
   )
 }
 
+function CopyRequestIdButton({ requestId }: { requestId: string }) {
+  const [copied, setCopied] = useState(false)
+  const displayId = requestId.slice(0, 8).toUpperCase()
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(requestId)
+      capture("request_id_copied", { intake_id: requestId })
+    } catch {
+      const input = document.createElement("input")
+      input.value = requestId
+      document.body.appendChild(input)
+      input.select()
+      document.execCommand("copy")
+      document.body.removeChild(input)
+    }
+
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      className="h-8 gap-2 px-2 font-mono text-xs font-semibold"
+      onClick={handleCopy}
+      aria-label={copied ? "Request ID copied" : "Copy request ID"}
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      {copied ? (
+        <Check className="h-3.5 w-3.5 text-success" aria-hidden="true" />
+      ) : (
+        <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+      )}
+      <span>{copied ? "Copied" : displayId}</span>
+      <span className="sr-only">Copy request ID</span>
+    </Button>
+  )
+}
+
 // ─── Main client ───────────────────────────────────────────────────────────
 
 export function IntakeDetailClient({
@@ -253,6 +354,8 @@ export function IntakeDetailClient({
 
   const service = intake.service as { name?: string; short_name?: string; type?: string } | undefined
   const isMedCert = (service?.type || "").toLowerCase().includes("cert")
+  const serviceLabel = service?.short_name || service?.name || "Request"
+  const statusNextStep = getPatientStatusNextStep(intake.status)
 
   const handleStatusChange = (newStatus: IntakeStatus) => {
     setIntake((prev) => ({ ...prev, status: newStatus }))
@@ -334,6 +437,9 @@ export function IntakeDetailClient({
     intake.answers && intake.answers.length > 0 && intake.answers[0]?.answers
   const showSupportLink = intake.status === "declined" || intake.status === "pending_info" || intake.status === "escalated"
   const showLiveTracker = ["paid", "in_review", "pending_info", "awaiting_script", "escalated"].includes(intake.status)
+  const showSupportSummary =
+    intake.status === "checkout_failed" ||
+    ["refunded", "partially_refunded", "refund_processing", "refund_failed"].includes(intake.payment_status || "")
 
   const getStatusIcon = (status: string) => {
     const config = INTAKE_STATUS[status as StatusKey]
@@ -374,6 +480,24 @@ export function IntakeDetailClient({
             <span className="ml-1">{formatIntakeStatus(intake.status)}</span>
           </Badge>
         </div>
+
+        {statusNextStep && (
+          <div className="rounded-xl border border-border/50 bg-muted/30 p-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  What happens next
+                </p>
+                <p className="mt-1 text-sm text-foreground">{statusNextStep.message}</p>
+              </div>
+              {intake.updated_at && (
+                <p className="shrink-0 text-xs text-muted-foreground">
+                  Last update {new Date(intake.updated_at).toLocaleDateString("en-AU", DATE_FORMAT)}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Pending payment retry */}
         {intake.status === "pending_payment" && (
@@ -420,19 +544,22 @@ export function IntakeDetailClient({
                     Your information has been saved. Try again with the same or a different card, no need to re-enter your details.
                   </p>
                 </div>
-                <Button onClick={handleRetryPayment} disabled={isPending} className="w-full sm:w-auto">
-                  {isPending ? (
-                    <>
-                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Try payment again
-                    </>
-                  )}
-                </Button>
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                  <Button onClick={handleRetryPayment} disabled={isPending} className="w-full sm:w-auto">
+                    {isPending ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Try payment again
+                      </>
+                    )}
+                  </Button>
+                  <CopySupportSummaryButton intake={intake} serviceLabel={serviceLabel} reason="payment" />
+                </div>
               </div>
             </div>
           </div>
@@ -542,11 +669,25 @@ export function IntakeDetailClient({
         {/* Refund badge */}
         {intake.payment_status === "refunded" && (
           <div className="rounded-xl bg-warning-light/30 border border-warning-border p-3">
-            <div className="flex items-center gap-2 text-sm text-warning">
-              <RefreshCw className="h-4 w-4" />
-              <span>
-                <strong>Refund processed</strong> — your payment has been refunded.
-              </span>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2 text-sm text-warning">
+                <RefreshCw className="h-4 w-4" />
+                <span>
+                  <strong>Refund processed</strong> — your payment has been refunded.
+                </span>
+              </div>
+              <CopySupportSummaryButton intake={intake} serviceLabel={serviceLabel} reason="refund" />
+            </div>
+          </div>
+        )}
+
+        {showSupportSummary && intake.status !== "checkout_failed" && intake.payment_status !== "refunded" && (
+          <div className="rounded-xl bg-muted/30 border border-border/50 p-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-muted-foreground">
+                Need help with this payment or refund? Copy the support summary so we can find it fast.
+              </p>
+              <CopySupportSummaryButton intake={intake} serviceLabel={serviceLabel} reason="refund" />
             </div>
           </div>
         )}
@@ -726,6 +867,7 @@ export function IntakeDetailClient({
         <Heading level="h3" id="intake-timeline-heading">
           Timeline
         </Heading>
+        <PaymentEventTimeline intake={intake} />
         <ol aria-labelledby="intake-timeline-heading" className="space-y-2">
           <TimelineEntry icon={Calendar} label="Submitted" date={intake.created_at} />
           {intake.paid_at && (
@@ -758,9 +900,7 @@ export function IntakeDetailClient({
         </ol>
         <div className="pt-3 border-t border-border/50 flex items-center justify-between gap-3 flex-wrap">
           <span className="text-xs text-muted-foreground">Reference</span>
-          <span className="font-mono text-xs font-semibold text-foreground">
-            {intake.id.slice(0, 8).toUpperCase()}
-          </span>
+          <CopyRequestIdButton requestId={intake.id} />
         </div>
       </DashboardCard>
 

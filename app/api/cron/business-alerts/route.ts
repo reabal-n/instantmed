@@ -160,7 +160,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // SLA queue monitoring is handled by the stale-queue cron (Telegram reminders to doctor)
+    // SLA queue monitoring is handled by the stale-queue cron (Sentry/PostHog only).
 
     // Fire Sentry alerts for critical items
     const criticalAlerts = alerts.filter((a) => a.severity === "critical")

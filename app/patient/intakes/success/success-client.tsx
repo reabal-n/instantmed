@@ -26,6 +26,7 @@ interface SuccessClientProps {
   queuePosition?: number | null
   isNewCustomer?: boolean
   waitState?: WaitState
+  paymentRetry?: boolean
 }
 
 export function SuccessClient({
@@ -39,6 +40,7 @@ export function SuccessClient({
   queuePosition: initialQueuePosition,
   isNewCustomer,
   waitState,
+  paymentRetry = false,
 }: SuccessClientProps) {
   const prefersReducedMotion = useReducedMotion()
   const posthog = usePostHog()
@@ -372,6 +374,14 @@ export function SuccessClient({
         initialQueuePosition={initialQueuePosition}
         waitState={waitState}
       />
+      {paymentRetry && (
+        <div className="rounded-xl border border-success-border bg-success-light/40 px-4 py-3 text-sm text-success">
+          <p className="font-medium">Payment retry confirmed</p>
+          <p className="mt-1 text-success/80">
+            No need to fill the form out again. Your saved request is back with the doctor queue.
+          </p>
+        </div>
+      )}
       {patientId && (
         <div>
           <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 font-medium">

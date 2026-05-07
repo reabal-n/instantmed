@@ -105,9 +105,9 @@ async function sendGenericNotification(
   const reviewUrl = `${appUrl}/doctor/intakes/${opts.intakeId}`
 
   const message = [
-    `💰 *New request received*`,
+    `*New request ready*`,
     ``,
-    `*${escapeMarkdown(opts.serviceName)}* \\- ${escapeMarkdown(opts.amount)}`,
+    `*${escapeMarkdown(opts.serviceName)}*`,
     `Ref: \`${refId}\``,
     ``,
     `[Review now →](${reviewUrl})`,
@@ -155,9 +155,9 @@ async function sendMedCertNotification(
   }
 
   const message = [
-    `💰 *New med cert request*`,
+    `*New med cert ready*`,
     ``,
-    `*${escapeMarkdown(opts.serviceName)}* \\- ${escapeMarkdown(opts.amount)}`,
+    `*${escapeMarkdown(opts.serviceName)}*`,
     `Ref: \`${refId}\``,
   ].join("\n")
 
@@ -251,32 +251,24 @@ export async function answerCallbackQuery(
 }
 
 /**
- * Telegram severity tiers. Only `critical` reaches the phone by default.
- * Everything else is silenced by this channel and must route through Sentry +
- * the daily digest email instead.
+ * Telegram system alerts are disabled by default. The doctor-facing phone
+ * channel should stay reserved for new paid request notifications sent via
+ * notifyNewIntakeViaTelegram().
  *
- * Why: after the 2026-04-21 audit, Telegram was firing for stuck intakes,
- * date-correction requests, auto-approval warnings, email SLA blips — i.e.
- * any time the founder wasn't actively looking, half a dozen pings would
- * arrive overnight. Noise kills signal. This gate collapses the channel
- * to two things only: "code is on fire" and "new paid order".
- *
- * To re-enable non-critical Telegram alerts set `TELEGRAM_ALL_LEVELS=1`.
+ * Temporary ops override: set TELEGRAM_SYSTEM_ALERTS_ENABLED=1.
  */
 export type TelegramSeverity = "critical" | "warning" | "info"
 
 function isSeverityAllowed(severity: TelegramSeverity): boolean {
-  if (severity === "critical") return true
-  return process.env.TELEGRAM_ALL_LEVELS === "1"
+  void severity
+  return process.env.TELEGRAM_SYSTEM_ALERTS_ENABLED === "1"
 }
 
 /**
  * Send a plain text alert (for system events, errors, etc.).
  *
- * Only `critical` severity fires by default — see TelegramSeverity. Callers
- * that want quieter signals should still call with the correct severity
- * (never silently change to `critical` to force delivery; the daily digest
- * is the right home for warning/info).
+ * Disabled unless TELEGRAM_SYSTEM_ALERTS_ENABLED=1. New request alerts use
+ * notifyNewIntakeViaTelegram() directly and are not affected by this gate.
  */
 export async function sendTelegramAlert(
   message: string,

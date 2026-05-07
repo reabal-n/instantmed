@@ -5,6 +5,13 @@ vi.mock("@/lib/notifications/telegram", () => ({
   notifyNewIntakeViaTelegram: vi.fn(),
 }))
 
+const { mockGetFeatureFlags } = vi.hoisted(() => ({
+  mockGetFeatureFlags: vi.fn(async () => ({ telegram_notifications_enabled: true })),
+}))
+vi.mock("@/lib/feature-flags", () => ({
+  getFeatureFlags: () => mockGetFeatureFlags(),
+}))
+
 import { notifyNewIntakeViaTelegram } from "@/lib/notifications/telegram"
 
 const INTAKE_ID = "11111111-1111-4111-8111-111111111111"
@@ -50,6 +57,7 @@ function createSupabaseStub(claimRows: Array<Record<string, unknown>>, profileNa
 describe("paid request Telegram notification ledger", () => {
   afterEach(() => {
     vi.clearAllMocks()
+    mockGetFeatureFlags.mockResolvedValue({ telegram_notifications_enabled: true })
   })
 
   it("claims a paid intake before sending and marks Telegram delivery as sent without fetching patient PHI", async () => {
@@ -182,6 +190,34 @@ describe("paid request Telegram notification ledger", () => {
     })
 
     expect(result).toEqual({ sent: false, skipped: "already_sent_or_claimed" })
+    expect(notifyNewIntakeViaTelegram).not.toHaveBeenCalled()
+  })
+
+  it("respects the new-request Telegram feature flag before claiming a row", async () => {
+    mockGetFeatureFlags.mockResolvedValueOnce({ telegram_notifications_enabled: false })
+    const { sendPaidRequestTelegramNotification } = await import("@/lib/notifications/paid-request-telegram")
+    const { supabase } = createSupabaseStub([
+      {
+        id: INTAKE_ID,
+        patient_id: PATIENT_ID,
+        amount_cents: 2995,
+        category: "med_certs",
+        subtype: null,
+        paid_request_telegram_attempts: 1,
+      },
+    ])
+
+    const result = await sendPaidRequestTelegramNotification({
+      supabase: supabase as never,
+      intakeId: INTAKE_ID,
+      paymentStatus: "paid",
+      amountCents: 2995,
+      category: "med_certs",
+      subtype: null,
+    })
+
+    expect(result).toEqual({ sent: false, skipped: "disabled" })
+    expect(supabase.rpc).not.toHaveBeenCalled()
     expect(notifyNewIntakeViaTelegram).not.toHaveBeenCalled()
   })
 })

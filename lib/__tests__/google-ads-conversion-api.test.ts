@@ -1,7 +1,8 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 import {
   buildGoogleAdsClickConversionRequest,
+  fireGoogleAdsPurchaseConversion,
   getGoogleAdsUploadClickConversionsUrl,
   selectGoogleAdsClickIdentifier,
 } from "@/lib/analytics/google-ads-conversion-api"
@@ -71,5 +72,42 @@ describe("google ads conversion api", () => {
       { orderId: "intake_123", value: 49.95 },
       { customerId: "1234567890", conversionActionId: "9876543210" },
     )).toBeNull()
+  })
+
+  it("treats Google Ads partial failures as failed uploads", async () => {
+    const originalFetch = global.fetch
+    const originalEnv = { ...process.env }
+
+    global.fetch = vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ access_token: "access-token", expires_in: 3600 }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        text: async () => JSON.stringify({
+          partialFailureError: { message: "The click id could not be found" },
+        }),
+      }) as typeof fetch
+
+    process.env.GOOGLE_ADS_CUSTOMER_ID = "1234567890"
+    process.env.GOOGLE_ADS_DEVELOPER_TOKEN = "developer-token"
+    process.env.GOOGLE_ADS_CLIENT_ID = "client-id"
+    process.env.GOOGLE_ADS_CLIENT_SECRET = "client-secret"
+    process.env.GOOGLE_ADS_REFRESH_TOKEN = "refresh-token"
+    process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE = "9876543210"
+
+    await expect(fireGoogleAdsPurchaseConversion({
+      orderId: "intake_123",
+      gclid: "gclid-value",
+      value: 49.95,
+    })).resolves.toMatchObject({
+      attempted: true,
+      ok: false,
+      error: "partial_failure",
+    })
+
+    global.fetch = originalFetch
+    process.env = originalEnv
   })
 })

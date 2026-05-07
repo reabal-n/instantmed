@@ -1015,13 +1015,16 @@ describe("Email Templates", () => {
     it("magic-link renders", () => {
       const html = render(
         <MagicLinkEmail
-          loginUrl="https://example.com/auth/v1/verify?token=abc&type=magiclink"
+          loginUrl="https://example.com/auth/v1/verify-token-abc"
           appUrl={APP_URL}
         />
       )
       expectBaseEmailStructure(html)
       expectContains(html, "Your sign-in link is ready", "No password. No waiting room.", "Open InstantMed", "60 minutes")
       expectContains(html, "Faster than your GP.", "Button playing up?", "No stress.")
+      expectContains(html, "Copy this secure link", "https://example.com/auth/v1/verify-token-abc")
+      expect(html).not.toContain("{{ .ConfirmationURL }}")
+      expect(html).not.toContain("Confirm your signup")
     })
 
     it("renders signup confirmation copy", () => {

@@ -878,7 +878,7 @@ export function NotificationsSection({
           Notifications
         </CardTitle>
         <CardDescription>
-          Controls Telegram doctor alerts and patient delay emails. The master toggle disables all notification sends without affecting other features.
+          Controls the doctor&apos;s new-request Telegram alert. Stale queue and system alerts stay in ops/Sentry so the phone stays quiet.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5 px-6 pb-6">
@@ -892,8 +892,8 @@ export function NotificationsSection({
               <p className="font-medium">Telegram Notifications</p>
               <p className="text-sm text-muted-foreground">
                 {flags.telegram_notifications_enabled
-                  ? "Doctor alerts and patient emails are active"
-                  : "All notification sends are disabled"}
+                  ? "New request alerts are active"
+                  : "New request alerts are disabled"}
               </p>
             </div>
           </div>
@@ -909,30 +909,9 @@ export function NotificationsSection({
           </div>
         </div>
 
-        {/* Threshold settings */}
+        {/* Delay settings */}
         <div className="space-y-4 p-5 rounded-lg border">
-          <p className="text-sm font-medium">Alert Thresholds</p>
-
-          {/* Doctor alert */}
-          <div className="flex flex-wrap items-center gap-3">
-            <label className="text-sm text-muted-foreground w-48">Doctor Alert (hours)</label>
-            <div className="flex items-center gap-2">
-              <Input
-                type="number"
-                min={1}
-                max={24}
-                value={flags.doctor_alert_threshold_hours}
-                onChange={(e) => onSetFlags(prev => ({ ...prev, doctor_alert_threshold_hours: Math.min(24, Math.max(1, parseInt(e.target.value, 10) || 1)) }))}
-                onBlur={() => {
-                  if (flags.doctor_alert_threshold_hours !== initialFlags.doctor_alert_threshold_hours) {
-                    onSaveFlag(FLAG_KEYS.DOCTOR_ALERT_THRESHOLD_HOURS, flags.doctor_alert_threshold_hours)
-                  }
-                }}
-                className="w-20"
-              />
-              <span className="text-sm text-muted-foreground">hours before Telegram alert fires</span>
-            </div>
-          </div>
+          <p className="text-sm font-medium">Delay email threshold</p>
 
           {/* Patient delay email */}
           <div className="flex flex-wrap items-center gap-3">

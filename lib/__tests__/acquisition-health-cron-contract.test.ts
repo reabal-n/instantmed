@@ -22,8 +22,10 @@ describe("acquisition health cron contract", () => {
   it("alerts on the exact failure where Google Ads clicks exist but paid intakes have no click IDs", () => {
     const source = readFileSync(join(process.cwd(), "lib/analytics/acquisition-health.ts"), "utf8")
     expect(source).toContain("google_ads_clicks_but_no_paid_click_ids")
+    expect(source).toContain("paid_google_attribution_missing_click_ids")
     expect(source).toContain("paid_attribution_unknown_over_50_percent")
     expect(source).toContain("google_ads_reporting_not_configured")
-    expect(source).toContain("(row) => !row.utm_source && !row.gclid && !row.gbraid && !row.wbraid")
+    expect(source).toContain("utm_source, utm_medium, referrer, landing_page, gclid, gbraid, wbraid, campaignid, adgroupid, keyword, creative")
+    expect(source).toContain("isLikelyGooglePaidRow(row) && !hasGoogleClickId(row)")
   })
 })

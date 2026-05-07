@@ -11,6 +11,10 @@ const identityPageSource = readFileSync(
   join(process.cwd(), "app/doctor/settings/identity/page.tsx"),
   "utf8",
 )
+const googleAccountLinkCardSource = readFileSync(
+  join(process.cwd(), "components/account/google-account-link-card.tsx"),
+  "utf8",
+)
 
 describe("doctor settings security contract", () => {
   it("routes Parchment patient-profile blockers to the exact prescriber linking section", () => {
@@ -26,8 +30,9 @@ describe("doctor settings security contract", () => {
     expect(identitySettingsSource).toContain("Change Password")
     expect(identitySettingsSource).toContain("supabase.auth.mfa.enroll")
     expect(identitySettingsSource).toContain("supabase.auth.mfa.challengeAndVerify")
-    expect(identitySettingsSource).toContain("supabase.auth.linkIdentity")
-    expect(identitySettingsSource).toContain("Link Google")
+    expect(identitySettingsSource).toContain("GoogleAccountLinkCard")
+    expect(googleAccountLinkCardSource).toContain("supabase.auth.linkIdentity")
+    expect(googleAccountLinkCardSource).toContain("Link Google")
   })
 
   it("keeps certificate identity and signature in one certificate workflow", () => {
@@ -44,5 +49,15 @@ describe("doctor settings security contract", () => {
     expect(identitySettingsSource).toContain("Production and Sandbox Parchment user IDs are separate")
     expect(identitySettingsSource).toContain("Paste ${parchmentEnvironment.label} Parchment user_id")
     expect(identitySettingsSource).toContain("Validate {parchmentEnvironmentDisplayLabel} Integration")
+  })
+
+  it("shows a compact doctor settings completion strip without adding another settings page", () => {
+    expect(identitySettingsSource).toContain("settingsCompletionItems")
+    expect(identitySettingsSource).toContain("Settings completion")
+    expect(identitySettingsSource).toContain("Provider number")
+    expect(identitySettingsSource).toContain("AHPRA")
+    expect(identitySettingsSource).toContain("Signature")
+    expect(identitySettingsSource).toContain("Parchment")
+    expect(identitySettingsSource).toContain("MFA")
   })
 })

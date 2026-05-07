@@ -14,7 +14,6 @@ import { getPostHogClient } from "@/lib/analytics/posthog-server"
 import { executeCertApproval } from "@/lib/clinical/execute-cert-approval"
 import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
 import { getFeatureFlags } from "@/lib/feature-flags"
-import { escapeMarkdownValue,sendTelegramAlert } from "@/lib/notifications/telegram"
 import { createLogger } from "@/lib/observability/logger"
 import { checkRateLimit, recordRateLimitedAction } from "@/lib/rate-limit/doctor"
 import { prepareDoctorNotesWrite } from "@/lib/security/phi-field-wrappers"
@@ -625,11 +624,6 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       durationMs,
     })
     await markFailedRetrying(supabase, intakeId, `pipeline_error: ${approvalResult.error}`)
-
-    const alertMsg = `*Auto\\-Approval Failed*\n\nIntake ${intakeId.slice(0, 8)}\\.\\.\\. fell to queue\\.\nError: ${escapeMarkdownValue(approvalResult.error || "Unknown")}`
-    // Auto-approval fallback is expected behaviour (design intent: fall to
-    // manual queue on any uncertainty). Not urgent; silenced from Telegram.
-    sendTelegramAlert(alertMsg, { severity: "warning" }).catch(() => {})
 
     trackOutcome("failed", "pipeline_error", { error: approvalResult.error })
     return {

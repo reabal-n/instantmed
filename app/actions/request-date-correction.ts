@@ -3,7 +3,6 @@
 import { z } from "zod"
 
 import { getApiAuth } from "@/lib/auth/helpers"
-import { escapeMarkdownValue,sendTelegramAlert } from "@/lib/notifications/telegram"
 import { createLogger } from "@/lib/observability/logger"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -33,7 +32,7 @@ export async function requestDateCorrection(
     return { success: false, error: "Please sign in" }
   }
 
-  // Rate limit: prevent Telegram alert spam (3 corrections per hour per patient)
+  // Rate limit: prevent correction request spam (3 corrections per hour per patient)
   const rateLimit = await checkServerActionRateLimit(authResult.profile.id, "sensitive")
   if (!rateLimit.success) {
     return { success: false, error: "Too many correction requests. Please try again later." }
@@ -97,12 +96,6 @@ export async function requestDateCorrection(
   }
 
   logger.info("Date correction requested", { intakeId, requestedStartDate, requestedEndDate })
-
-  // Notify doctor via Telegram (fire-and-forget)
-  const msg = `*Date Correction Request*\n\nPatient: ${escapeMarkdownValue(authResult.profile.full_name || "Unknown")}\nIntake: ${intakeId.slice(0, 8)}\\.\\.\\.\nNew dates: ${escapeMarkdownValue(requestedStartDate)} → ${escapeMarkdownValue(requestedEndDate)}\nReason: ${escapeMarkdownValue(reason)}`
-  // Patient-initiated date correction — not urgent. Silenced from Telegram
-  // by default; surfaces via the daily digest. Override with TELEGRAM_ALL_LEVELS=1.
-  sendTelegramAlert(msg, { severity: "warning" }).catch(() => {})
 
   return { success: true }
 }

@@ -131,6 +131,34 @@ export function MagicLinkEmail({
         </p>
       </Box>
 
+      <Box>
+        <p
+          style={{
+            margin: "0 0 8px 0",
+            fontSize: "13px",
+            fontWeight: 600,
+            color: colors.text,
+            lineHeight: "1.5",
+          }}
+        >
+          Copy this secure link
+        </p>
+        <a
+          href={loginUrl}
+          style={{
+            display: "block",
+            color: colors.accent,
+            fontSize: "12px",
+            lineHeight: "1.5",
+            textDecoration: "none",
+            wordBreak: "break-all",
+            overflowWrap: "anywhere",
+          }}
+        >
+          {loginUrl}
+        </a>
+      </Box>
+
       <Text small muted style={{ textAlign: "center" as const }}>
         Didn't ask for this? No stress. Ignore this email and nothing changes on your account.
       </Text>

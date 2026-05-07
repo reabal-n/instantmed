@@ -12,6 +12,7 @@ import { AnimatedNavLink } from "@/components/shared/navbar/animated-nav-link"
 import { MobileMenuContent } from "@/components/shared/navbar/mobile-menu-content"
 import { ResourcesDropdown } from "@/components/shared/navbar/resources-dropdown"
 import { ServicesDropdown } from "@/components/shared/navbar/services-dropdown"
+import { ThemeSwitch } from "@/components/shared/navbar/theme-switch"
 import { UserMenu } from "@/components/shared/navbar/user-menu"
 import { AnimatedMobileMenu, MenuToggle } from "@/components/ui/animated-mobile-menu"
 import { Button } from "@/components/uix"
@@ -60,6 +61,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             scrolled
               ? "bg-background/95 backdrop-blur-xl border-border/60 shadow-xl"
               : "bg-linear-to-b from-background/80 to-background/40 backdrop-blur-lg border-border/40",
+            mobileMenuOpen && "max-md:border-transparent max-md:bg-transparent max-md:shadow-none max-md:backdrop-blur-none",
           )}
           role="navigation"
           aria-label="Main navigation"
@@ -76,7 +78,13 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
           />
           <div className="relative z-10 flex items-center justify-between px-3 py-1">
             {/* Logo */}
-            <BrandLogo size="md" className="relative z-10" />
+            <BrandLogo
+              size="md"
+              className={cn(
+                "relative z-10",
+                mobileMenuOpen && "max-md:opacity-0"
+              )}
+            />
 
             {/* Desktop Navigation */}
             <div className="relative z-10 hidden items-center gap-1 md:flex">
@@ -129,6 +137,8 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   user={user}
                 />
               )}
+
+              <ThemeSwitch className="ml-1" />
             </div>
 
             {/* Mobile Menu Toggle */}
@@ -148,6 +158,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
         }
         footer={
           <div className="space-y-3">
+            <ThemeSwitch variant="mobile" />
             {variant === "marketing" && (
               <>
                 {isLoaded && user ? (

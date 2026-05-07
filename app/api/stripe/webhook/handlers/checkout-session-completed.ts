@@ -390,24 +390,83 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
     // Fetch attribution data stored on the intake at checkout time
     const { data: intakeAttribution } = await supabase
       .from("intakes")
-      .select("utm_source, utm_medium, utm_campaign, utm_content, utm_term, referrer, landing_page, attribution_captured_at, category, subtype, gclid, gbraid, wbraid, amount_cents")
+      .select("utm_source, utm_medium, utm_id, utm_campaign, utm_content, utm_term, referrer, landing_page, attribution_captured_at, category, subtype, gclid, gbraid, wbraid, campaignid, adgroupid, keyword, creative, matchtype, device, network, amount_cents")
       .eq("id", intakeId)
       .maybeSingle()
+
+    // Use auth_user_id as primary distinctId (matches client-side posthog.identify)
+    // Fall back to patientId for guest checkouts without authenticated accounts
+    const posthogDistinctId = phProfile?.auth_user_id || patientId || intakeId
+
+    const hasGoogleClickId = Boolean(
+      intakeAttribution?.gclid ||
+        intakeAttribution?.gbraid ||
+        intakeAttribution?.wbraid,
+    )
+    const googleSourceHint = [
+      intakeAttribution?.utm_source,
+      intakeAttribution?.utm_medium,
+      intakeAttribution?.referrer,
+      intakeAttribution?.campaignid,
+      intakeAttribution?.adgroupid,
+      intakeAttribution?.creative,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase()
+    const likelyGoogleAttributed =
+      googleSourceHint.includes("google") ||
+      googleSourceHint.includes("adwords") ||
+      googleSourceHint.includes("cpc") ||
+      googleSourceHint.includes("paid_search") ||
+      googleSourceHint.includes("doubleclick")
 
     // Server-side Google Ads Conversion API. Recovers attribution lost to
     // iOS Safari ITP. Browser-side gtag also fires from /patient/intakes/success
     // - Google deduplicates on orderId (intakeId) so duplicates are safe.
-    // No-ops cleanly when env vars or click ids are missing.
-    if (intakeId && intakeAttribution && (intakeAttribution.gclid || intakeAttribution.gbraid || intakeAttribution.wbraid)) {
+    // No-ops cleanly when env vars or click ids are missing, but records a
+    // non-PHI diagnostic event when a Google-looking paid row lacks a click id.
+    if (intakeId && intakeAttribution && (hasGoogleClickId || likelyGoogleAttributed)) {
       after(async () => {
+        let conversionResult: { attempted: boolean; ok?: boolean; error?: string } = {
+          attempted: false,
+          error: "missing_click_id",
+        }
         try {
-          const { fireGoogleAdsPurchaseConversion } = await import("@/lib/analytics/google-ads-conversion-api")
-          await fireGoogleAdsPurchaseConversion({
-            orderId: intakeId,
-            gclid: intakeAttribution.gclid as string | null,
-            gbraid: intakeAttribution.gbraid as string | null,
-            wbraid: intakeAttribution.wbraid as string | null,
-            value: typeof session.amount_total === "number" ? session.amount_total / 100 : (intakeAttribution.amount_cents as number) / 100,
+          if (hasGoogleClickId) {
+            const { fireGoogleAdsPurchaseConversion } = await import("@/lib/analytics/google-ads-conversion-api")
+            conversionResult = await fireGoogleAdsPurchaseConversion({
+              orderId: intakeId,
+              gclid: intakeAttribution.gclid as string | null,
+              gbraid: intakeAttribution.gbraid as string | null,
+              wbraid: intakeAttribution.wbraid as string | null,
+              value: typeof session.amount_total === "number" ? session.amount_total / 100 : (intakeAttribution.amount_cents as number) / 100,
+            })
+          }
+
+          const posthog = getPostHogClient()
+          posthog.capture({
+            distinctId: posthogDistinctId,
+            event: "google_ads_server_conversion",
+            properties: {
+              intake_id: intakeId,
+              attempted: conversionResult.attempted,
+              ok: conversionResult.ok ?? false,
+              error: conversionResult.error ?? null,
+              has_gclid: Boolean(intakeAttribution.gclid),
+              has_gbraid: Boolean(intakeAttribution.gbraid),
+              has_wbraid: Boolean(intakeAttribution.wbraid),
+              campaignid: intakeAttribution.campaignid || null,
+              adgroupid: intakeAttribution.adgroupid || null,
+              keyword: intakeAttribution.keyword || null,
+              creative: intakeAttribution.creative || null,
+              matchtype: intakeAttribution.matchtype || null,
+              device: intakeAttribution.device || null,
+              network: intakeAttribution.network || null,
+              likely_google_attributed: likelyGoogleAttributed,
+              service_category: intakeAttribution.category || session.metadata?.category,
+              amount_cents: session.amount_total,
+            },
           })
         } catch (err) {
           log.warn("Server-side Google Ads conversion fire failed", {
@@ -416,10 +475,6 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
         }
       })
     }
-
-    // Use auth_user_id as primary distinctId (matches client-side posthog.identify)
-    // Fall back to patientId for guest checkouts without authenticated accounts
-    const posthogDistinctId = phProfile?.auth_user_id || patientId || intakeId
 
     trackIntakeFunnelStep({
       step: "payment_completed",
@@ -471,9 +526,17 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
           // Attribution - how this customer found us
           utm_source: intakeAttribution?.utm_source || null,
           utm_medium: intakeAttribution?.utm_medium || null,
+          utm_id: intakeAttribution?.utm_id || null,
           utm_campaign: intakeAttribution?.utm_campaign || null,
           utm_content: intakeAttribution?.utm_content || null,
           utm_term: intakeAttribution?.utm_term || null,
+          campaignid: intakeAttribution?.campaignid || null,
+          adgroupid: intakeAttribution?.adgroupid || null,
+          keyword: intakeAttribution?.keyword || null,
+          creative: intakeAttribution?.creative || null,
+          matchtype: intakeAttribution?.matchtype || null,
+          device: intakeAttribution?.device || null,
+          network: intakeAttribution?.network || null,
           referrer: intakeAttribution?.referrer || null,
           landing_page: intakeAttribution?.landing_page || null,
           attribution_captured_at: intakeAttribution?.attribution_captured_at || null,

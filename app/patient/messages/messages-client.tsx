@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  ArrowLeft,
   CheckCheck,
   Clock,
   Inbox,
@@ -65,6 +66,9 @@ export function MessagesClient({
   const [selectedIntake, setSelectedIntake] = useState<string | null>(null)
   const [newMessage, setNewMessage] = useState("")
   const [sending, setSending] = useState(false)
+  const [failedMessage, setFailedMessage] = useState<{ intakeId: string; content: string } | null>(null)
+  const [replyReceived, setReplyReceived] = useState<string | null>(null)
+  const [retrySent, setRetrySent] = useState<string | null>(null)
 
   const conversations = Object.entries(messagesByIntake).map(([intakeId, msgs]) => {
     const lastMessage = msgs[0]
@@ -81,8 +85,16 @@ export function MessagesClient({
 
   const selectedMessages = selectedIntake ? messagesByIntake[selectedIntake] || [] : []
 
-  const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedIntake) return
+  const sendPatientMessage = async ({
+    intakeId,
+    content,
+    retry = false,
+  }: {
+    intakeId: string
+    content: string
+    retry?: boolean
+  }) => {
+    if (!content.trim()) return
 
     setSending(true)
     try {
@@ -90,22 +102,44 @@ export function MessagesClient({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          intakeId: selectedIntake,
-          content: newMessage.trim(),
+          intakeId,
+          content: content.trim(),
         }),
       })
+      const data = (await response.json().catch(() => null)) as {
+        message?: { restored_status?: string | null } | null
+      } | null
 
       if (!response.ok) throw new Error("Failed to send message")
 
-      toast.success("Message sent")
+      const restoredStatus = data?.message?.restored_status
+      setFailedMessage(null)
+      setReplyReceived(restoredStatus ? intakeId : null)
+      setRetrySent(retry ? intakeId : null)
       setNewMessage("")
-      // Refresh to show the new message immediately
+      toast.success(retry ? "Retry sent" : restoredStatus ? "Reply received" : "Message sent")
       router.refresh()
     } catch {
-      toast.error("Failed to send message. Please try again.")
+      setFailedMessage({ intakeId, content: content.trim() })
+      setRetrySent(null)
+      toast.error("Reply not sent")
     } finally {
       setSending(false)
     }
+  }
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !selectedIntake) return
+    await sendPatientMessage({ intakeId: selectedIntake, content: newMessage })
+  }
+
+  const retryFailedMessage = async () => {
+    if (!failedMessage) return
+    await sendPatientMessage({
+      intakeId: failedMessage.intakeId,
+      content: failedMessage.content,
+      retry: true,
+    })
   }
 
   return (
@@ -132,7 +166,11 @@ export function MessagesClient({
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Conversation List */}
-              <div role="listbox" aria-label="Conversations" className="space-y-2">
+              <div
+                role="listbox"
+                aria-label="Conversations"
+                className={cn("space-y-2", selectedIntake && "hidden md:block")}
+              >
                 <p className="text-sm font-medium text-muted-foreground px-2">Conversations</p>
                 {conversations.map((conv) => (
                   <button
@@ -166,10 +204,21 @@ export function MessagesClient({
               </div>
 
               {/* Message Thread */}
-              <div className="md:col-span-2">
+              <div className={cn("md:col-span-2", !selectedIntake && "hidden md:block")}>
                 {selectedIntake ? (
-                  <Card className="h-[calc(100vh-16rem)] min-h-[300px] max-h-[600px] flex flex-col">
-                    <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
+                  <div className="space-y-3 md:space-y-0">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="-ml-2 h-8 gap-1.5 md:hidden"
+                      onClick={() => setSelectedIntake(null)}
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      Conversations
+                    </Button>
+                    <Card className="h-[calc(100vh-16rem)] min-h-[300px] max-h-[600px] flex flex-col">
+                      <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
                       {selectedMessages
                         .slice()
                         .reverse()
@@ -228,9 +277,39 @@ export function MessagesClient({
                             </div>
                           </div>
                         ))}
-                    </CardContent>
-                    <div className="border-t p-4">
-                      <div className="flex gap-2">
+                      </CardContent>
+                      <div className="border-t p-4">
+                      <div className="space-y-3">
+                        {replyReceived === selectedIntake && (
+                          <div role="status" className="rounded-lg border border-success-border bg-success-light/30 px-3 py-2 text-xs text-success">
+                            <span className="font-medium">Reply received.</span>{" "}
+                            Your request is back with the doctor.
+                          </div>
+                        )}
+                        {retrySent === selectedIntake && (
+                          <div role="status" className="rounded-lg border border-success-border bg-success-light/30 px-3 py-2 text-xs text-success">
+                            Retry sent.
+                          </div>
+                        )}
+                        {failedMessage?.intakeId === selectedIntake && (
+                          <div role="alert" className="flex flex-col gap-2 rounded-lg border border-destructive-border bg-destructive-light/30 px-3 py-2 text-xs text-destructive sm:flex-row sm:items-center sm:justify-between">
+                            <span>
+                              <span className="font-medium">Reply not sent.</span>{" "}
+                              Your message is still here.
+                            </span>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={retryFailedMessage}
+                              disabled={sending}
+                              className="h-8 border-destructive/30 text-destructive hover:text-destructive"
+                            >
+                              Try again
+                            </Button>
+                          </div>
+                        )}
+                        <div className="flex gap-2">
                         <Textarea
                           placeholder="Type your message..."
                           value={newMessage}
@@ -251,9 +330,11 @@ export function MessagesClient({
                         >
                           <Send className="w-4 h-4" />
                         </Button>
+                        </div>
                       </div>
-                    </div>
-                  </Card>
+                      </div>
+                    </Card>
+                  </div>
                 ) : (
                   <Card className="h-[calc(100vh-16rem)] min-h-[300px] max-h-[600px] flex items-center justify-center">
                     <CardContent className="text-center">

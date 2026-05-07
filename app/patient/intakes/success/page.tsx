@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { getWaitState } from "@/lib/brand/wait-counter"
+import { logAuditEvent } from "@/lib/security/audit-log"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { SuccessClient } from "./success-client"
@@ -14,13 +15,43 @@ export const metadata = {
   description: "Your request has been submitted and is being reviewed by our medical team.",
 }
 
+async function logPaymentRetryReturn({
+  intakeId,
+  patientId,
+  amountCents,
+  stripeSessionId,
+}: {
+  intakeId: string
+  patientId: string
+  amountCents?: number
+  stripeSessionId?: string
+}) {
+  try {
+    await logAuditEvent({
+      action: "payment_completed",
+      actorId: patientId,
+      actorType: "patient",
+      intakeId,
+      metadata: {
+        action_type: "payment_retry_return",
+        source: "retry_landing",
+        amount_cents: amountCents ?? null,
+        stripe_session_id: stripeSessionId ?? null,
+      },
+    })
+  } catch {
+    // Audit logging owns its own critical alert path. Do not break the patient landing page.
+  }
+}
+
 export default async function PaymentSuccessPage({
   searchParams,
 }: {
-  searchParams: Promise<{ intake_id?: string; session_id?: string }>
+  searchParams: Promise<{ intake_id?: string; session_id?: string; payment_retry?: string }>
 }) {
   const params = await searchParams
   const intakeId = params.intake_id
+  const paymentRetry = params.payment_retry === "1"
 
   // Fetch initial status and intake details server-side
   let initialStatus: string | undefined
@@ -62,7 +93,8 @@ export default async function PaymentSuccessPage({
       }
     } else if (data?.patient_id && !authUser) {
       // Intake exists but user is not authenticated - redirect to sign in
-      redirect(`/sign-in?redirect_url=${encodeURIComponent(`/patient/intakes/success?intake_id=${intakeId}`)}`)
+      const retryParam = paymentRetry ? "&payment_retry=1" : ""
+      redirect(`/sign-in?redirect_url=${encodeURIComponent(`/patient/intakes/success?intake_id=${intakeId}${retryParam}`)}`)
     }
 
     initialStatus = data?.status
@@ -80,7 +112,16 @@ export default async function PaymentSuccessPage({
         .eq("patient_id", data.patient_id)
         .not("status", "in", "(pending_payment,declined)")
         .neq("id", intakeId)
-      isNewCustomer = (count ?? 0) === 0
+       isNewCustomer = (count ?? 0) === 0
+    }
+
+    if (paymentRetry && authUser?.profile?.id) {
+      await logPaymentRetryReturn({
+        intakeId,
+        patientId: authUser.profile.id,
+        amountCents,
+        stripeSessionId: params.session_id,
+      })
     }
   }
 
@@ -106,6 +147,7 @@ export default async function PaymentSuccessPage({
           queuePosition={queuePosition}
           isNewCustomer={isNewCustomer}
           waitState={waitState}
+          paymentRetry={paymentRetry}
         />
       </div>
     </div>

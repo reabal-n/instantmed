@@ -3,10 +3,8 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
-import { DOCTOR_QUEUE_REVIEW_HREF } from "@/lib/dashboard/routes"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
-import { escapeMarkdown,sendTelegramAlert } from "@/lib/notifications/telegram"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -25,11 +23,9 @@ function formatServiceType(category: string | null): string {
  * Stale Queue Monitor
  *
  * Runs every hour via Vercel Cron (configured in vercel.json).
- * - Sends a Telegram queue summary to the doctor if any requests have been waiting
- *   `doctor_alert_threshold_hours` (default 1h), once per intake
  * - Sends a "still reviewing" email to patients waiting `patient_delay_email_hours`
  *   (default 2h), once per intake
- * Thresholds are read from feature flags so they can be adjusted without a deploy.
+ * - Tracks stale queue pressure through PostHog and Sentry without paging Telegram.
  */
 export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
@@ -42,7 +38,6 @@ export async function GET(request: NextRequest) {
     const now = new Date()
 
     const flags = await getFeatureFlags()
-    const doctorAlertThresholdHours = flags.doctor_alert_threshold_hours ?? 1
     const patientDelayEmailHours = flags.patient_delay_email_hours ?? 2
 
     const patientEmailThreshold = new Date(now.getTime() - patientDelayEmailHours * 60 * 60 * 1000)
@@ -76,46 +71,6 @@ export async function GET(request: NextRequest) {
           extra: { stale_count: totalStale },
         },
       )
-    }
-
-    // ── Doctor Telegram Alert (1h+ wait, once per intake) ───────────────────
-    if (flags.telegram_notifications_enabled) {
-      const doctorAlertThreshold = new Date(now.getTime() - doctorAlertThresholdHours * 60 * 60 * 1000)
-
-      const { data: staleDoctorAlerts } = await supabase
-        .from("intakes")
-        .select(`id, category, paid_at, patient:profiles!patient_id(full_name)`)
-        .eq("status", "paid")
-        .lt("paid_at", doctorAlertThreshold.toISOString())
-        .is("doctor_telegram_alert_sent_at", null)
-        .limit(10)
-
-      if (staleDoctorAlerts?.length) {
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
-        const lines = staleDoctorAlerts.map((intake) => {
-          const patient = Array.isArray(intake.patient) ? intake.patient[0] : intake.patient
-          const firstName = escapeMarkdown((patient?.full_name as string || "Patient").split(" ")[0])
-          const waitMins = Math.round((now.getTime() - new Date(intake.paid_at as string).getTime()) / 60000)
-          const refId = intake.id.slice(0, 8).toUpperCase()
-          const label = formatServiceType(intake.category as string | null)
-          return `• [${refId}](${appUrl}/doctor/intakes/${intake.id}) - ${firstName} - ${escapeMarkdown(label)} - ${waitMins}min`
-        }).join("\n")
-
-        const count = staleDoctorAlerts.length
-        const msg = `⏰ *${count} request${count > 1 ? "s" : ""} waiting ${doctorAlertThresholdHours}h\\+*\n\n${lines}\n\n[Open queue →](${appUrl}${DOCTOR_QUEUE_REVIEW_HREF})`
-        // Stuck-queue reminder is workload pressure, not an outage. Sentry
-        // captures it for trend analysis; daily digest surfaces the count.
-        // Override with TELEGRAM_ALL_LEVELS=1 if you want the live pings back.
-        await sendTelegramAlert(msg, { severity: "warning" })
-
-        // Mark alerted - prevents repeat notifications per intake
-        await supabase
-          .from("intakes")
-          .update({ doctor_telegram_alert_sent_at: now.toISOString() })
-          .in("id", staleDoctorAlerts.map((i) => i.id))
-
-        logger.info("Doctor Telegram alert sent", { count })
-      }
     }
 
     // ── Patient delay emails ─────────────────────────────────────────────────

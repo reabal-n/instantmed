@@ -20,7 +20,7 @@ describe("Telegram request notifications", () => {
     process.env = { ...originalEnv }
   })
 
-  it("escapes the paid-request MarkdownV2 separator so Telegram accepts the message", async () => {
+  it("sends new-request copy without making it feel like a payment alert", async () => {
     fetchMock.mockResolvedValue({ ok: true })
 
     const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
@@ -35,8 +35,10 @@ describe("Telegram request notifications", () => {
 
     const requestBody = JSON.parse(fetchMock.mock.calls[0][1].body)
     expect(requestBody.parse_mode).toBe("MarkdownV2")
-    expect(requestBody.text).toContain("*Medical Certificate* \\- $29\\.95")
-    expect(requestBody.text).not.toContain("*Medical Certificate* - $29\\.95")
+    expect(requestBody.text).toContain("*New med cert ready*")
+    expect(requestBody.text).toContain("*Medical Certificate*")
+    expect(requestBody.text).not.toContain("$29")
+    expect(requestBody.text).not.toContain("💰")
   })
 
   it("surfaces Telegram API failures to webhook callers for Sentry capture", async () => {
@@ -142,5 +144,20 @@ describe("Telegram request notifications", () => {
     })).rejects.toThrow("Telegram notification is not configured")
 
     expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it("keeps system Telegram alerts off unless explicitly re-enabled", async () => {
+    fetchMock.mockResolvedValue({ ok: true })
+    process.env.TELEGRAM_ALL_LEVELS = "1"
+    delete process.env.TELEGRAM_SYSTEM_ALERTS_ENABLED
+
+    const { sendTelegramAlert } = await import("@/lib/notifications/telegram")
+
+    await sendTelegramAlert("*Critical test*", { severity: "critical" })
+    expect(fetchMock).not.toHaveBeenCalled()
+
+    process.env.TELEGRAM_SYSTEM_ALERTS_ENABLED = "1"
+    await sendTelegramAlert("*Critical test*", { severity: "critical" })
+    expect(fetchMock).toHaveBeenCalledOnce()
   })
 })

@@ -34,6 +34,7 @@ import {
   listParchmentUsersAction,
   validateParchmentIntegrationAction,
 } from "@/app/actions/parchment"
+import { GoogleAccountLinkCard } from "@/components/account/google-account-link-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -123,7 +124,6 @@ export function IdentitySettingsClient({
   const [mfaVerifying, setMfaVerifying] = useState(false)
   const [mfaEnrollment, setMfaEnrollment] = useState<MfaEnrollment | null>(null)
   const [mfaCode, setMfaCode] = useState("")
-  const [googleLinking, setGoogleLinking] = useState(false)
 
   // Parchment linking state
   const [parchmentUserId, setParchmentUserId] = useState(initialParchmentUserId || "")
@@ -144,20 +144,6 @@ export function IdentitySettingsClient({
 
   // Check if identity is complete
   const isComplete = providerNumber.trim() !== "" && ahpraNumber.trim() !== ""
-  const linkedProviders = useMemo(() => {
-    const providers = new Set<string>()
-    const appProviders = user?.app_metadata?.providers
-    if (Array.isArray(appProviders)) {
-      appProviders.forEach((provider) => {
-        if (typeof provider === "string") providers.add(provider)
-      })
-    }
-    user?.identities?.forEach((identity) => {
-      if (identity.provider) providers.add(identity.provider)
-    })
-    return providers
-  }, [user?.app_metadata?.providers, user?.identities])
-  const googleLinked = linkedProviders.has("google")
   const verifiedMfaFactors = mfaFactors.filter((factor) => factor.status === "verified")
   const parchmentEnvironmentLabel =
     parchmentEnvironment.environment === "unknown" ? "configured Parchment" : `${parchmentEnvironment.label} Parchment`
@@ -174,6 +160,14 @@ export function IdentitySettingsClient({
       : "Confirm the configured Parchment environment before linking a prescriber user_id."
   const parchmentEnvironmentBadgeVariant: "warning" | "info" | "secondary" =
     parchmentEnvironment.isSandbox ? "warning" : parchmentEnvironment.isProduction ? "info" : "secondary"
+  const settingsCompletionItems = [
+    { label: "Provider number", complete: providerNumber.trim() !== "" && !providerError },
+    { label: "AHPRA", complete: ahpraNumber.trim() !== "" && !ahpraError },
+    { label: "Signature", complete: signaturePath.trim() !== "" },
+    { label: "Parchment", complete: parchmentUserId.trim() !== "" },
+    { label: "MFA", complete: verifiedMfaFactors.length > 0 },
+  ]
+  const settingsCompletionCount = settingsCompletionItems.filter((item) => item.complete).length
 
   const getAccountRedirectUrl = useCallback(() => {
     if (typeof window === "undefined") return undefined
@@ -341,18 +335,6 @@ export function IdentitySettingsClient({
     setMessage({ type: "success", text: "MFA factor removed." })
   }, [loadMfaFactors, supabase.auth])
 
-  const handleLinkGoogle = useCallback(async () => {
-    setGoogleLinking(true)
-    const { error } = await supabase.auth.linkIdentity({
-      provider: "google",
-      options: { redirectTo: getAccountRedirectUrl() },
-    })
-    if (error) {
-      setGoogleLinking(false)
-      setMessage({ type: "error", text: error.message || "Could not start Google linking." })
-    }
-  }, [getAccountRedirectUrl, supabase.auth])
-
   // Save handler
   const handleSave = useCallback(() => {
     // Validate before saving
@@ -510,6 +492,45 @@ export function IdentitySettingsClient({
           </Button>
         </div>
       </div>
+
+      {/* Completion strip */}
+      <Card className="rounded-xl border-border/50">
+        <CardContent className="px-4 py-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-foreground">Settings completion</p>
+              <p className="text-xs text-muted-foreground">
+                The essentials for secure sign-in, certificates, and prescribing.
+              </p>
+            </div>
+            <Badge
+              variant={settingsCompletionCount === settingsCompletionItems.length ? "success" : "warning"}
+              shape="pill"
+            >
+              {settingsCompletionCount}/{settingsCompletionItems.length} ready
+            </Badge>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {settingsCompletionItems.map((item) => (
+              <span
+                key={item.label}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${
+                  item.complete
+                    ? "border-success-border bg-success-light text-success"
+                    : "border-border bg-muted/50 text-muted-foreground"
+                }`}
+              >
+                {item.complete ? (
+                  <CheckCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                ) : (
+                  <AlertCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                )}
+                {item.label}
+              </span>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Availability */}
       <Card>
@@ -746,30 +767,10 @@ export function IdentitySettingsClient({
               )}
             </div>
 
-            <div className="space-y-3 rounded-lg bg-muted/35 p-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <Link2 className="h-4 w-4 text-muted-foreground" />
-                  <p className="text-sm font-medium text-foreground">Connected login providers</p>
-                </div>
-                <Badge variant={googleLinked ? "success" : "outline"} size="sm">
-                  {googleLinked ? "Google linked" : "Google not linked"}
-                </Badge>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Link Google so the same doctor account can sign in with Google or email without creating duplicate profiles.
-              </p>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={handleLinkGoogle}
-                disabled={googleLinked || googleLinking}
-              >
-                {googleLinking ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Link2 className="h-4 w-4 mr-2" />}
-                {googleLinked ? "Google Connected" : "Link Google"}
-              </Button>
-            </div>
+            <GoogleAccountLinkCard
+              accountLabel="doctor"
+              redirectPath="/doctor/settings/identity#account-security"
+            />
           </div>
         </CardContent>
       </Card>

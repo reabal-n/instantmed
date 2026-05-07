@@ -3,21 +3,9 @@ import Link from "next/link"
 
 import { type Intake, resolveStatusConfig } from "@/components/patient/intake-types"
 import { Button } from "@/components/ui/button"
+import { getPatientStatusNextStep } from "@/lib/data/status"
 import { formatDate, formatRelative } from "@/lib/format"
 import { cn } from "@/lib/utils"
-
-/** What's Next guidance - moved from card to drawer for cleaner list view */
-const WHATS_NEXT: Record<string, { message: string; actionLabel?: string }> = {
-  paid: { message: "A doctor will review your request shortly. We'll email you when it's done." },
-  in_review: { message: "A doctor is reviewing your request now. Hang tight, shouldn't be long." },
-  pending_info: { message: "The doctor has a question for you. Please respond so we can keep things moving.", actionLabel: "Respond now" },
-  escalated: { message: "Your request needs additional review. We'll update you as soon as there is a decision." },
-  approved: { message: "All approved. Your document is ready to download.", actionLabel: "View & download" },
-  declined: { message: "This request wasn't approved. You can view the reason below.", actionLabel: "View details" },
-  awaiting_script: { message: "Your prescription is being prepared. We'll let you know when it's ready." },
-  completed: { message: "This request is complete. Your documents are available.", actionLabel: "View documents" },
-  cancelled: { message: "This request was cancelled. No charge was made." },
-}
 
 export function IntakeDetailDrawer({ intake }: { intake: Intake }) {
   const config = resolveStatusConfig(intake.status)
@@ -25,7 +13,7 @@ export function IntakeDetailDrawer({ intake }: { intake: Intake }) {
 
   const serviceName = intake.service?.name || intake.service?.short_name || "Request"
   const refId = intake.id.slice(0, 8).toUpperCase()
-  const whatsNext = WHATS_NEXT[intake.status]
+  const whatsNext = getPatientStatusNextStep(intake.status)
 
   return (
     <div className="p-6 space-y-6">

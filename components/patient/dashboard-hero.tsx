@@ -17,6 +17,7 @@ import { ServiceIconTile } from "@/components/icons/service-icons"
 import { type FollowupRow } from "@/components/patient/followup-tracker-card"
 import { type Intake } from "@/components/patient/intake-types"
 import { type ProfileData } from "@/components/patient/profile-todo-card"
+import { CopySupportSummaryButton } from "@/components/patient/support-summary-button"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 import { needsRenewalSoon } from "@/lib/prescriptions"
@@ -348,6 +349,15 @@ export function DashboardHero({
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
+            )
+          }
+          secondaryCta={
+            intake && (
+              <CopySupportSummaryButton
+                intake={intake}
+                serviceLabel={getServiceName(intake)}
+                reason="payment"
+              />
             )
           }
         />

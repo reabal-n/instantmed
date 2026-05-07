@@ -271,6 +271,14 @@ export async function fireGoogleAdsPurchaseConversion(
         orderId: input.orderId,
         message: partialFailure.message,
       })
+      Sentry.captureMessage("Google Ads Conversion API partial failure", {
+        level: "warning",
+        extra: {
+          orderId: input.orderId,
+          message: partialFailure.message,
+        },
+      })
+      return { attempted: true, ok: false, error: "partial_failure" }
     } else {
       logger.info("Google Ads Conversion API success", { orderId: input.orderId })
     }

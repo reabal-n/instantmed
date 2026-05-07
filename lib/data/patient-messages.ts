@@ -17,6 +17,7 @@ export interface PatientThreadMessage {
 export async function getPatientMessagesForIntake(
   intakeId: string,
   limit = 30,
+  direction: "asc" | "desc" = "asc",
 ): Promise<PatientThreadMessage[]> {
   const supabase = createServiceRoleClient()
 
@@ -24,7 +25,7 @@ export async function getPatientMessagesForIntake(
     .from("patient_messages")
     .select("id, sender_type, content, read_at, created_at")
     .eq("intake_id", intakeId)
-    .order("created_at", { ascending: true })
+    .order("created_at", { ascending: direction === "asc" })
     .limit(Math.min(Math.max(limit, 1), 100))
 
   if (error) {

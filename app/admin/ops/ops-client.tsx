@@ -166,6 +166,7 @@ const categoryActionById: Record<string, string> = {
   certificate_delivery: "Resend cert",
   prescription_delivery: "Retry Parchment",
   stale_scripts: "Send script",
+  refund_failures: "Resolve refund",
 }
 
 function getSeverityTone(severity: FailureSeverity) {
@@ -674,6 +675,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
     certificate_delivery: FileWarning,
     prescription_delivery: Pill,
     stale_scripts: Clock,
+    refund_failures: ReceiptText,
   }
   const attentionCategories = failureOverview.categories.filter((category) => category.count > 0)
   const prescriptionFailures = failureOverview.categories.find(
@@ -800,6 +802,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
               <StatusIndicator healthy={systemStatus.prescribingIdentityHealthy} label="Prescribing identity" />
               <StatusIndicator healthy={systemStatus.failureOverviewHealthy} label="Recovery inbox" />
               <StatusIndicator healthy={systemStatus.telegramAlertsHealthy} label="Telegram alerts" />
+              <StatusIndicator healthy label="Doctor dashboard toasts: new requests only" />
             </div>
           </div>
         </section>

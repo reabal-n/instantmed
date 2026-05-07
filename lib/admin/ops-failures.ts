@@ -2,6 +2,7 @@ import {
   ADMIN_EMAIL_HUB_HREF,
   ADMIN_INTAKE_LEDGER_HREF,
   ADMIN_PARCHMENT_OPS_HREF,
+  ADMIN_REFUNDS_HREF,
   ADMIN_STALE_INTAKES_HREF,
   ADMIN_WEBHOOK_DLQ_HREF,
   buildAdminIntakeHref,
@@ -64,6 +65,14 @@ type StaleScriptIntakeRow = {
   subtype?: string | null
 }
 
+type RefundFailureRow = {
+  id: string
+  created_at: string
+  updated_at?: string | null
+  intake_id?: string | null
+  refund_reason?: string | null
+}
+
 export interface OperationalFailureOverviewInput {
   stripeDlq: StripeDlqRow[]
   emailFailures: EmailFailureRow[]
@@ -72,6 +81,7 @@ export interface OperationalFailureOverviewInput {
   certificateFailures: CertificateFailureRow[]
   prescriptionWebhookFailures: AuditFailureRow[]
   staleScriptIntakes: StaleScriptIntakeRow[]
+  refundFailures: RefundFailureRow[]
 }
 
 export interface OperationalFailureCategory {
@@ -83,6 +93,7 @@ export interface OperationalFailureCategory {
     | "certificate_delivery"
     | "prescription_delivery"
     | "stale_scripts"
+    | "refund_failures"
   label: string
   count: number
   href: string
@@ -173,6 +184,14 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
       severity: "warning",
       emptyLabel: "No stale script tasks",
     },
+    {
+      id: "refund_failures",
+      label: "Refund failures",
+      count: input.refundFailures.length,
+      href: `${ADMIN_REFUNDS_HREF}?status=failed`,
+      severity: "critical",
+      emptyLabel: "No failed refunds",
+    },
   ]
 
   const recent: OperationalFailureItem[] = [
@@ -238,6 +257,15 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
       occurredAt: row.updated_at || row.created_at,
       href: buildAdminIntakeHref(row.id),
       severity: "warning" as const,
+    })),
+    ...input.refundFailures.map((row) => ({
+      id: row.id,
+      categoryId: "refund_failures" as const,
+      title: "Refund failed",
+      detail: row.refund_reason || "Stripe refund needs review",
+      occurredAt: row.updated_at || row.created_at,
+      href: row.intake_id ? buildAdminIntakeHref(row.intake_id) : `${ADMIN_REFUNDS_HREF}?status=failed`,
+      severity: "critical" as const,
     })),
   ]
 

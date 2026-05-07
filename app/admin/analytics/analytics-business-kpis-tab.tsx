@@ -146,7 +146,7 @@ export function AnalyticsBusinessKPIsTab({ data }: { data: BusinessKPIData }) {
           )}
         </div>
 
-        <div className="mt-5 grid gap-5 border-t pt-5 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="mt-5 grid gap-5 border-t pt-5 sm:grid-cols-2 lg:grid-cols-6">
           <AcquisitionStat
             label="Paid intakes"
             value={data.acquisition.paidIntakes.toLocaleString()}
@@ -162,6 +162,15 @@ export function AnalyticsBusinessKPIsTab({ data }: { data: BusinessKPIData }) {
           <AcquisitionStat
             label="UTM sourced"
             value={data.acquisition.paidWithUtmSource.toLocaleString()}
+          />
+          <AcquisitionStat
+            label="Stored source"
+            value={data.acquisition.paidWithReferrerOrLandingPage.toLocaleString()}
+          />
+          <AcquisitionStat
+            label="Google missing IDs"
+            value={data.acquisition.paidLikelyGoogleWithoutClickId.toLocaleString()}
+            tone={data.acquisition.paidLikelyGoogleWithoutClickId > 0 ? "risk" : "normal"}
           />
           <AcquisitionStat
             label="Unknown paid"
@@ -630,6 +639,8 @@ function formatAcquisitionAlert(alert: string) {
     acquisition_health_unavailable: "Acquisition health unavailable",
     google_ads_clicks_but_no_paid_click_ids:
       "Google Ads clicks missing paid click IDs",
+    paid_google_attribution_missing_click_ids:
+      "Google-sourced paid rows missing click IDs",
     google_ads_reporting_not_configured: "Google Ads reporting not configured",
     google_ads_reporting_unavailable: "Google Ads reporting unavailable",
     paid_attribution_unknown_over_50_percent:

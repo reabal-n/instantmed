@@ -3,7 +3,7 @@
 > Canonical advertising rules for InstantMed marketing, Google Ads, landing pages, metadata, schema, and reusable copy.
 > Read this before changing any public acquisition surface.
 
-**Last updated:** 2026-04-28
+**Last updated:** 2026-05-07
 
 ---
 
@@ -19,7 +19,15 @@
 
 Certification is not blanket approval for all wording. Every ad, asset, keyword, landing page, destination URL, schema field, and audience setting still needs to comply with Google, AHPRA/Medical Board, TGA, privacy, and consumer-law rules.
 
-## 2. Core Rule
+## 2. Measurement Requirements
+
+Paid Google traffic must keep Google Ads auto-tagging on and use an account-level or campaign-level final URL suffix with non-clinical diagnostics:
+
+`utm_source=google&utm_medium=cpc&utm_id={campaignid}&campaignid={campaignid}&adgroupid={adgroupid}&keyword={keyword}&creative={creative}&matchtype={matchtype}&device={device}&network={network}`
+
+Do not put prescription medicine names, diagnoses, or patient-specific terms into manual URL parameters. If a tracking template is required later, it must preserve the landing URL with `{lpurl}`.
+
+## 3. Core Rule
 
 InstantMed can advertise telehealth services. It must not advertise prescription-only medicines to the public.
 
@@ -33,7 +41,7 @@ This applies to:
 - paid campaign destinations
 - remarketing and audience setup
 
-## 3. Source Policies
+## 4. Source Policies
 
 | Source | Operational rule |
 |--------|------------------|
@@ -43,7 +51,7 @@ This applies to:
 | [Medical Board advertising guidance](https://www.medicalboard.gov.au/Codes-Guidelines-Policies/Advertising-a-regulated-health-service/) | Health advertising must not be misleading, use testimonials, create unreasonable expectations, or encourage unnecessary use. |
 | [TGA health service advertising guidance](https://www.tga.gov.au/resources/guidance/advertising-health-service) | Do not directly or indirectly promote prescription-only medicines. Health-service ads should focus on consultations, not medicine access. |
 
-## 4. Approved Acquisition Positioning
+## 5. Approved Acquisition Positioning
 
 ### Platform
 
@@ -74,7 +82,7 @@ Also safe:
 - "eScript token sent if approved"
 - "Collect from any Australian pharmacy"
 
-## 5. Prohibited Marketing Claims
+## 6. Prohibited Marketing Claims
 
 Do not use:
 
@@ -95,7 +103,7 @@ Do not use:
 - "clinically proven medication" in public acquisition copy
 - prescription-only medicine prices
 
-## 6. Drug Terms
+## 7. Drug Terms
 
 ### Paid Ads And Paid Landing Pages
 
@@ -133,7 +141,7 @@ Educational prescription SEO pages may mention medicine names if they follow `do
 
 They must not be used as paid ad destinations.
 
-## 7. URL Rules
+## 8. URL Rules
 
 Do not include medicine names in URLs used by paid traffic or checkout routing.
 
@@ -151,7 +159,7 @@ Use:
 
 Medication details should be collected inside the secure intake, not in URL params.
 
-## 8. Campaign Structure
+## 9. Campaign Structure
 
 | Campaign type | Allowed approach |
 |---------------|------------------|
@@ -162,7 +170,7 @@ Medication details should be collected inside the secure intake, not in URL para
 | Weight loss search | Weight management assessment. Avoid injection/drug references, guaranteed weight loss, and body-shaming language. |
 | Women's health search | Narrow condition/service terms. Avoid sensitive targeting and guaranteed outcomes. |
 
-## 9. Audience Rules
+## 10. Audience Rules
 
 Do not use for health campaigns:
 
@@ -182,7 +190,7 @@ Prefer:
 - broad match only after conversion data is stable
 - non-sensitive predefined Google audiences where permitted
 
-## 10. Resubmission SOP
+## 11. Resubmission SOP
 
 When an ad is disapproved or stuck after certification:
 
@@ -194,7 +202,7 @@ When an ad is disapproved or stuck after certification:
 6. Save and wait for review.
 7. If still restricted, appeal with: Google Ads customer ID 920-501-0513, support ticket 4-3698000041178, LegitScript Cert ID 48400566, and the exact destination URL.
 
-## 11. Engineering Guardrails
+## 12. Engineering Guardrails
 
 Future implementation should add:
 
@@ -204,4 +212,3 @@ Future implementation should add:
 - URL-param scanner for medication names
 - screenshot/export of current ad landing pages before campaign launch
 - weekly crawl of production for compliance drift
-

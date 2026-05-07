@@ -36,9 +36,17 @@ interface UnifiedCheckoutInput {
     wbraid?: string
     utm_source?: string
     utm_medium?: string
+    utm_id?: string
     utm_campaign?: string
     utm_content?: string
     utm_term?: string
+    campaignid?: string
+    adgroupid?: string
+    keyword?: string
+    creative?: string
+    matchtype?: string
+    device?: string
+    network?: string
     referrer?: string
     landing_page?: string
     captured_at?: string

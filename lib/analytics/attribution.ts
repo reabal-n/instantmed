@@ -2,9 +2,10 @@
  * Attribution capture and persistence.
  *
  * Captures Google Ads click IDs (gclid, gbraid, wbraid), UTM params,
- * referrer, and landing page on first page load. Stores in sessionStorage and
- * a first-party cookie so the data survives navigation from landing pages
- * (e.g. /medical-certificate) through to checkout at /request.
+ * Google Ads ValueTrack params, referrer, and landing page on first page load.
+ * Stores in sessionStorage and a first-party cookie so the data survives
+ * navigation from landing pages (e.g. /medical-certificate) through to checkout
+ * at /request.
  *
  * Usage:
  *   captureAttribution()  - call once on app load (GoogleTags useEffect)
@@ -15,9 +16,19 @@ const CLICK_IDS = ["gclid", "gbraid", "wbraid"] as const
 const UTM_PARAMS = [
   "utm_source",
   "utm_medium",
+  "utm_id",
   "utm_campaign",
   "utm_content",
   "utm_term",
+] as const
+const GOOGLE_ADS_VALUE_TRACK_PARAMS = [
+  "campaignid",
+  "adgroupid",
+  "keyword",
+  "creative",
+  "matchtype",
+  "device",
+  "network",
 ] as const
 export const ATTRIBUTION_STORAGE_KEY = "instantmed_attribution"
 export const ATTRIBUTION_COOKIE_KEY = "instantmed_attribution"
@@ -30,9 +41,17 @@ export interface AttributionData {
   wbraid?: string
   utm_source?: string
   utm_medium?: string
+  utm_id?: string
   utm_campaign?: string
   utm_content?: string
   utm_term?: string
+  campaignid?: string
+  adgroupid?: string
+  keyword?: string
+  creative?: string
+  matchtype?: string
+  device?: string
+  network?: string
   referrer?: string
   landing_page?: string
   captured_at?: string
@@ -81,9 +100,17 @@ function hasPaidOrCampaignData(data: AttributionData): boolean {
       data.wbraid ||
       data.utm_source ||
       data.utm_medium ||
+      data.utm_id ||
       data.utm_campaign ||
       data.utm_content ||
-      data.utm_term,
+      data.utm_term ||
+      data.campaignid ||
+      data.adgroupid ||
+      data.keyword ||
+      data.creative ||
+      data.matchtype ||
+      data.device ||
+      data.network,
   )
 }
 
@@ -99,7 +126,7 @@ export function captureAttribution(): void {
   const params = new URLSearchParams(window.location.search)
   const current: AttributionData = {}
 
-  for (const key of [...CLICK_IDS, ...UTM_PARAMS]) {
+  for (const key of [...CLICK_IDS, ...UTM_PARAMS, ...GOOGLE_ADS_VALUE_TRACK_PARAMS]) {
     const val = params.get(key)
     if (val) {
       current[key] = val

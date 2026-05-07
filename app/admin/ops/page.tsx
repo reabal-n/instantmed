@@ -73,6 +73,7 @@ export default async function OpsDashboardPage() {
     certificateFailuresResult,
     prescriptionWebhookFailuresResult,
     staleScriptIntakesResult,
+    refundFailuresResult,
     opsAuditActionsResult,
     recentOutgoingEmailsResult,
     latestPaidIntakeResult,
@@ -180,6 +181,14 @@ export default async function OpsDashboardPage() {
       .then(r => r.error ? { data: [] } : r),
 
     supabase
+      .from("payments")
+      .select("id, intake_id, created_at, updated_at, refund_reason")
+      .eq("refund_status", "failed")
+      .order("updated_at", { ascending: false })
+      .limit(20)
+      .then(r => r.error ? { data: [] } : r),
+
+    supabase
       .from("audit_logs")
       .select("id, action, created_at, metadata")
       .eq("action", "admin_action")
@@ -256,6 +265,7 @@ export default async function OpsDashboardPage() {
     certificateFailures: certificateFailuresResult.data || [],
     prescriptionWebhookFailures,
     staleScriptIntakes: staleScriptIntakesResult.data || [],
+    refundFailures: refundFailuresResult.data || [],
   })
 
   const ops = {

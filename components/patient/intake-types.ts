@@ -3,6 +3,7 @@ import { INTAKE_STATUS, type IntakeStatus } from "@/lib/data/status"
 export interface Intake {
   id: string
   status: string
+  payment_status?: string | null
   created_at: string
   updated_at: string
   service?: { id: string; name?: string; short_name?: string; type?: string; slug?: string } | null

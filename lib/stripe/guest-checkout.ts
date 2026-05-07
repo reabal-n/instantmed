@@ -58,9 +58,17 @@ interface GuestCheckoutInput {
     wbraid?: string
     utm_source?: string
     utm_medium?: string
+    utm_id?: string
     utm_campaign?: string
     utm_content?: string
     utm_term?: string
+    campaignid?: string
+    adgroupid?: string
+    keyword?: string
+    creative?: string
+    matchtype?: string
+    device?: string
+    network?: string
     referrer?: string
     landing_page?: string
     captured_at?: string
@@ -533,6 +541,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         // Attribution: store UTM params for payment attribution in PostHog
         utm_source: attribution.utm_source,
         utm_medium: attribution.utm_medium,
+        utm_id: attribution.utm_id,
         utm_campaign: attribution.utm_campaign,
         utm_content: attribution.utm_content,
         utm_term: attribution.utm_term,
@@ -545,6 +554,15 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         gclid: attribution.gclid,
         gbraid: attribution.gbraid,
         wbraid: attribution.wbraid,
+        // Google Ads ValueTrack fields used to debug campaign/ad group/keyword
+        // quality when click IDs are missing or conversion upload is delayed.
+        campaignid: attribution.campaignid,
+        adgroupid: attribution.adgroupid,
+        keyword: attribution.keyword,
+        creative: attribution.creative,
+        matchtype: attribution.matchtype,
+        device: attribution.device,
+        network: attribution.network,
       })
       .select("id")
       .single()
@@ -674,7 +692,15 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         ...(attribution.wbraid ? { wbraid: attribution.wbraid } : {}),
         ...(attribution.utm_source ? { utm_source: attribution.utm_source } : {}),
         ...(attribution.utm_medium ? { utm_medium: attribution.utm_medium } : {}),
+        ...(attribution.utm_id ? { utm_id: attribution.utm_id } : {}),
         ...(attribution.utm_campaign ? { utm_campaign: attribution.utm_campaign } : {}),
+        ...(attribution.campaignid ? { campaignid: attribution.campaignid } : {}),
+        ...(attribution.adgroupid ? { adgroupid: attribution.adgroupid } : {}),
+        ...(attribution.keyword ? { keyword: attribution.keyword } : {}),
+        ...(attribution.creative ? { creative: attribution.creative } : {}),
+        ...(attribution.matchtype ? { matchtype: attribution.matchtype } : {}),
+        ...(attribution.device ? { device: attribution.device } : {}),
+        ...(attribution.network ? { network: attribution.network } : {}),
       })
       // Use intake ID as idempotency key to prevent duplicate sessions on double-click
       session = await stripe.checkout.sessions.create({

@@ -159,6 +159,7 @@ export function IntakeDetailClient({
         onReissueCertificate={actions.handleReissueCertificate}
         onReissueConfirm={actions.handleReissueConfirm}
         certDelivery={certDelivery}
+        doctorNotes={actions.doctorNotes}
       />
 
       <IntakeDetailAnswers
@@ -187,6 +188,10 @@ export function IntakeDetailClient({
         doctorNotes={actions.doctorNotes}
         setDoctorNotes={actions.setDoctorNotes}
         noteSaved={actions.noteSaved}
+        notesAutoSaving={actions.notesAutoSaving}
+        notesAutoSaveError={actions.notesAutoSaveError}
+        lastSavedDoctorNotesAt={actions.lastSavedDoctorNotesAt}
+        noteDirty={actions.noteDirty}
         isAiPrefilled={actions.isAiPrefilled}
         isPending={actions.isPending}
         isRegenerating={actions.isRegenerating}

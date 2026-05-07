@@ -20,9 +20,12 @@ import { usePanel } from "@/components/panels/panel-provider"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import { resolveClinicalDecisionNote } from "@/lib/doctor/clinical-notes"
 import { buildParchmentPrescriptionContext } from "@/lib/doctor/parchment-prescribing-context"
+import { DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY } from "@/lib/doctor/queue-focus"
 import type { IntakeStatus,IntakeWithDetails } from "@/types/db"
 
 import type { IntakeDialogState } from "./use-intake-dialogs"
+
+const FULL_PAGE_NOTE_AUTOSAVE_MS = 2500
 
 /**
  * Format AI draft content into SOAP clinical note text.
@@ -69,6 +72,11 @@ export function useIntakeActions({
   const [isPending, startTransition] = useTransition()
   const [doctorNotes, setDoctorNotes] = useState(intake.doctor_notes || "")
   const [noteSaved, setNoteSaved] = useState(false)
+  const [notesAutoSaving, setNotesAutoSaving] = useState(false)
+  const [notesAutoSaveError, setNotesAutoSaveError] = useState<string | null>(null)
+  const [lastSavedDoctorNotesAt, setLastSavedDoctorNotesAt] = useState<string | null>(
+    intake.doctor_notes ? (intake.updated_at || intake.reviewed_at || intake.created_at) : null,
+  )
   const [isAiPrefilled, setIsAiPrefilled] = useState(false)
   const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
   const [showCertPreview, setShowCertPreview] = useState(false)
@@ -79,6 +87,12 @@ export function useIntakeActions({
   const [certPdfUrl, setCertPdfUrl] = useState<string | null>(null)
 
   const notesRef = useRef<HTMLTextAreaElement>(null)
+  const lastSavedDoctorNotesRef = useRef(intake.doctor_notes || "")
+  const latestDoctorNotesRef = useRef(intake.doctor_notes || "")
+  const autoSaveNotesTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const autoSaveFailureCountRef = useRef(0)
+  const noteDirty = doctorNotes !== lastSavedDoctorNotesRef.current
+  const noteDirtyRef = useRef(false)
   const viewStartTime = useRef<number>(Date.now())
   const hasLoggedView = useRef(false)
   const autoAppliedDraft = useRef(false)
@@ -86,6 +100,64 @@ export function useIntakeActions({
 
   const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
   const hasClinicalDraft = !!findClinicalNoteDraft(aiDrafts)
+
+  useEffect(() => {
+    noteDirtyRef.current = noteDirty
+  }, [noteDirty])
+
+  useEffect(() => {
+    latestDoctorNotesRef.current = doctorNotes
+  }, [doctorNotes])
+
+  const updateDoctorNotes = useCallback((value: string) => {
+    setDoctorNotes(value)
+    setIsAiPrefilled(false)
+  }, [])
+
+  useEffect(() => {
+    const canAutosave = !["approved", "completed", "awaiting_script"].includes(intake.status)
+
+    if (!canAutosave || !noteDirty || isAiPrefilled) {
+      if (autoSaveNotesTimerRef.current) {
+        clearTimeout(autoSaveNotesTimerRef.current)
+        autoSaveNotesTimerRef.current = null
+      }
+      return
+    }
+
+    if (autoSaveNotesTimerRef.current) clearTimeout(autoSaveNotesTimerRef.current)
+
+    autoSaveNotesTimerRef.current = setTimeout(async () => {
+      const notesToSave = latestDoctorNotesRef.current
+      if (notesToSave === lastSavedDoctorNotesRef.current) return
+
+      setNotesAutoSaving(true)
+      const result = await saveDoctorNotesAction(intake.id, notesToSave)
+      setNotesAutoSaving(false)
+
+      if (!result.success) {
+        autoSaveFailureCountRef.current += 1
+        if (autoSaveFailureCountRef.current >= 2) {
+          setNotesAutoSaveError("Autosave is having trouble. Use Save Notes before approving.")
+        }
+        return
+      }
+
+      autoSaveFailureCountRef.current = 0
+      setNotesAutoSaveError(null)
+      lastSavedDoctorNotesRef.current = notesToSave
+      setLastSavedDoctorNotesAt(new Date().toISOString())
+      setNoteSaved(true)
+      setTimeout(() => setNoteSaved(false), 3000)
+    }, FULL_PAGE_NOTE_AUTOSAVE_MS)
+
+    return () => {
+      if (autoSaveNotesTimerRef.current) {
+        clearTimeout(autoSaveNotesTimerRef.current)
+        autoSaveNotesTimerRef.current = null
+      }
+    }
+  }, [doctorNotes, intake.id, intake.status, isAiPrefilled, noteDirty])
 
   const getClinicalCaseSummary = useCallback(() => {
     const answers = (intake.answers?.answers || {}) as Record<string, unknown>
@@ -141,13 +213,18 @@ export function useIntakeActions({
       extendIntakeLockAction(intake.id)
     }, 5 * 60 * 1000)
 
-    const handleUnload = () => {
+    const handleUnload = (event: BeforeUnloadEvent) => {
       const duration = Date.now() - viewStartTime.current
       navigator.sendBeacon?.(
         '/api/doctor/log-view-duration',
         JSON.stringify({ intakeId: intake.id, durationMs: duration })
       )
       releaseIntakeLockAction(intake.id)
+
+      if (noteDirtyRef.current) {
+        event.preventDefault()
+        event.returnValue = ""
+      }
     }
 
     window.addEventListener('beforeunload', handleUnload)
@@ -181,6 +258,11 @@ export function useIntakeActions({
     if (nextIntakeId) {
       router.push(`/doctor/intakes/${nextIntakeId}`)
     } else {
+      try {
+        sessionStorage.setItem(DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY, "1")
+      } catch {
+        // Best effort only. Navigation still works if storage is unavailable.
+      }
       router.push("/doctor/dashboard")
     }
     router.refresh()
@@ -214,6 +296,9 @@ export function useIntakeActions({
   const handleCertPreviewConfirm = useCallback(async (editedData: CertificatePreviewData) => {
     startTransition(async () => {
       await saveDoctorNotesAction(intake.id, doctorNotes)
+      lastSavedDoctorNotesRef.current = doctorNotes
+      latestDoctorNotesRef.current = doctorNotes
+      setLastSavedDoctorNotesAt(new Date().toISOString())
 
       const pendingDrafts = aiDrafts.filter(d => d.status === "ready" && !d.approved_at && !d.rejected_at)
       for (const draft of pendingDrafts) {
@@ -263,6 +348,9 @@ export function useIntakeActions({
           toast.error(saveResult.error || "Failed to save clinical notes")
           return
         }
+        lastSavedDoctorNotesRef.current = doctorNotes
+        latestDoctorNotesRef.current = doctorNotes
+        setLastSavedDoctorNotesAt(new Date().toISOString())
       }
 
       if (status === "awaiting_script" && decisionNote) {
@@ -272,6 +360,9 @@ export function useIntakeActions({
           return
         }
         setDoctorNotes(decisionNote)
+        lastSavedDoctorNotesRef.current = decisionNote
+        latestDoctorNotesRef.current = decisionNote
+        setLastSavedDoctorNotesAt(new Date().toISOString())
         setNoteSaved(true)
         setIsAiPrefilled(false)
       }
@@ -337,10 +428,20 @@ export function useIntakeActions({
   }, [intake.id, hasClinicalDraft, router])
 
   const handleSaveNotes = useCallback(async () => {
+    if (autoSaveNotesTimerRef.current) {
+      clearTimeout(autoSaveNotesTimerRef.current)
+      autoSaveNotesTimerRef.current = null
+    }
+
     startTransition(async () => {
       const result = await saveDoctorNotesAction(intake.id, doctorNotes)
       if (result.success) {
         setNoteSaved(true)
+        autoSaveFailureCountRef.current = 0
+        setNotesAutoSaveError(null)
+        lastSavedDoctorNotesRef.current = doctorNotes
+        latestDoctorNotesRef.current = doctorNotes
+        setLastSavedDoctorNotesAt(new Date().toISOString())
         setIsAiPrefilled(false)
         setTimeout(() => setNoteSaved(false), 3000)
       } else {
@@ -401,6 +502,9 @@ export function useIntakeActions({
       const result = await updateStatusAction(intake.id, "awaiting_script")
       if (result.success) {
         setDoctorNotes(decisionNote)
+        lastSavedDoctorNotesRef.current = decisionNote
+        latestDoctorNotesRef.current = decisionNote
+        setLastSavedDoctorNotesAt(new Date().toISOString())
         setNoteSaved(true)
         setIsAiPrefilled(false)
         toast.success("Approved. Opening Parchment.")
@@ -516,8 +620,12 @@ export function useIntakeActions({
   return {
     isPending,
     doctorNotes,
-    setDoctorNotes,
+    setDoctorNotes: updateDoctorNotes,
     noteSaved,
+    notesAutoSaving,
+    notesAutoSaveError,
+    lastSavedDoctorNotesAt,
+    noteDirty,
     isAiPrefilled,
     actionMessage,
     showCertPreview,

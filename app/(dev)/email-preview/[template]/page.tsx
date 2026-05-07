@@ -115,6 +115,18 @@ const templates: Record<string, {
       />
     ),
   },
+  "magic-link-recovery": {
+    name: "Magic Link Recovery",
+    subject: "Reset your InstantMed access",
+    render: () => (
+      <MagicLinkEmail
+        loginUrl={`${mock.appUrl}/auth/callback?next=%2Fauth%2Freset-password`}
+        appUrl={mock.appUrl}
+        firstName="Sarah"
+        actionType="recovery"
+      />
+    ),
+  },
 
   // Request flow
   "intake-submitted": {
