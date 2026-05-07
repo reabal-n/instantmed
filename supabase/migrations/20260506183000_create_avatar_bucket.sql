@@ -1,5 +1,5 @@
 -- Private profile avatar uploads.
--- Path convention: avatars/{auth_user_id}/avatar-{uuid}.{ext}
+-- Object path convention inside the avatars bucket: {auth_user_id}/avatar-{uuid}.{ext}
 
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 VALUES (

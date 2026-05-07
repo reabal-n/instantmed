@@ -1,10 +1,9 @@
-import * as dotenv from "dotenv"
-import * as path from "path"
-
-// Load .env.local so webServer and tests get Supabase, E2E_SECRET, etc.
-dotenv.config({ path: path.join(__dirname, ".env.local") })
-
 import { defineConfig, devices } from "@playwright/test"
+
+import { loadE2EEnv } from "./e2e/load-env"
+
+// Load env from this checkout first, then the primary checkout for git worktrees.
+loadE2EEnv()
 
 /**
  * Playwright E2E Test Configuration

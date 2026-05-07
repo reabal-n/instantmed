@@ -1,4 +1,5 @@
 import { getEmailPreferences } from "@/app/actions/email-preferences"
+import { resolveProfileAvatarUrl } from "@/lib/account/avatar-storage"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { decryptIfNeeded } from "@/lib/security/encryption"
 
@@ -33,12 +34,16 @@ export default async function PatientSettingsPage() {
   }
 
   // Fetch email preferences
-  const emailPreferences = await getEmailPreferences()
+  const [emailPreferences, avatarUrl] = await Promise.all([
+    getEmailPreferences(),
+    resolveProfileAvatarUrl(authUser.profile.avatar_url),
+  ])
 
   return (
     <PatientSettingsClient
       profile={profileWithDecryptedFields}
       email={authUser.user.email || ""}
+      avatarUrl={avatarUrl}
       emailPreferences={emailPreferences}
     />
   )

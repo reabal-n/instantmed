@@ -34,7 +34,10 @@ import {
   listParchmentUsersAction,
   validateParchmentIntegrationAction,
 } from "@/app/actions/parchment"
+import { setProfileAvatarPresetAction } from "@/app/actions/profile-avatar"
 import { GoogleAccountLinkCard } from "@/components/account/google-account-link-card"
+import { ProfileAvatarUpload } from "@/components/settings/profile-avatar-upload"
+import { AvatarPicker } from "@/components/ui/avatar-picker"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -48,6 +51,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { getAvatarPresetId } from "@/lib/account/avatar-presets"
 import {
   type DoctorIdentity,
   validateAhpraNumber,
@@ -58,6 +62,7 @@ import { createClient } from "@/lib/supabase/client"
 
 interface IdentitySettingsClientProps {
   initialData: DoctorIdentity
+  avatarUrl?: string | null
   parchmentUserId?: string | null
   parchmentEnvironment: ParchmentEnvironmentDescriptor
 }
@@ -85,6 +90,7 @@ type MfaEnrollment = {
 
 export function IdentitySettingsClient({
   initialData,
+  avatarUrl,
   parchmentUserId: initialParchmentUserId,
   parchmentEnvironment: initialParchmentEnvironment,
 }: IdentitySettingsClientProps) {
@@ -95,6 +101,8 @@ export function IdentitySettingsClient({
     type: "success" | "error"
     text: string
   } | null>(null)
+  const [avatarDisplayUrl, setAvatarDisplayUrl] = useState(avatarUrl || null)
+  const [avatarSaving, setAvatarSaving] = useState(false)
 
   // Form state
   const [nominals, setNominals] = useState(initialData.nominals || "")
@@ -463,6 +471,20 @@ export function IdentitySettingsClient({
     }
   }, [])
 
+  const handleAvatarPresetSelect = useCallback(async (avatarId: number) => {
+    setAvatarSaving(true)
+    const result = await setProfileAvatarPresetAction(avatarId)
+    setAvatarSaving(false)
+
+    if (!result.success || !result.avatarUrl) {
+      setMessage({ type: "error", text: result.error || "Could not save avatar." })
+      return
+    }
+
+    setAvatarDisplayUrl(result.avatarUrl)
+    setMessage({ type: "success", text: "Avatar saved." })
+  }, [])
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -775,6 +797,34 @@ export function IdentitySettingsClient({
         </CardContent>
       </Card>
       </div>
+
+      <Card className="rounded-xl border-border/50">
+        <CardHeader className="py-3 px-4">
+          <CardTitle className="text-base flex items-center gap-2">
+            <User className="h-4 w-4" />
+            Profile and avatar
+          </CardTitle>
+          <CardDescription>
+            Choose a preset or upload a photo for your doctor portal identity.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4 px-4 py-3">
+          <ProfileAvatarUpload
+            userName={initialData.full_name}
+            avatarUrl={avatarDisplayUrl}
+            onUploaded={(avatar) => setAvatarDisplayUrl(avatar.avatarUrl || avatar.avatarValue)}
+          />
+          <AvatarPicker
+            selectedAvatarId={getAvatarPresetId(avatarDisplayUrl)}
+            customAvatarUrl={getAvatarPresetId(avatarDisplayUrl) ? null : avatarDisplayUrl}
+            userName={initialData.full_name}
+            onSelect={(avatarId) => void handleAvatarPresetSelect(avatarId)}
+          />
+          {avatarSaving && (
+            <p className="text-center text-xs text-muted-foreground">Saving avatar...</p>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Professional Details */}
       <div id="certificate-identity" className="scroll-mt-24">

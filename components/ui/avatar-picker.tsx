@@ -1,8 +1,9 @@
 "use client"
 
 import { motion, type Variants } from "framer-motion"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
+import { Avatar as ProfileAvatar } from "@/components/ui/avatar"
 import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 
@@ -335,17 +336,23 @@ const selectedVariants: Variants = {
 }
 
 interface AvatarPickerProps {
-  selectedAvatarId?: number
+  selectedAvatarId?: number | null
+  customAvatarUrl?: string | null
   onSelect?: (avatarId: number) => void
   userName?: string
 }
 
-export function AvatarPicker({ selectedAvatarId = 1, onSelect, userName = "Me" }: AvatarPickerProps) {
+export function AvatarPicker({ selectedAvatarId = 1, customAvatarUrl = null, onSelect, userName = "Me" }: AvatarPickerProps) {
   const prefersReducedMotion = useReducedMotion()
   const [selectedAvatar, setSelectedAvatar] = useState<Avatar>(
     avatars.find((a) => a.id === selectedAvatarId) || avatars[0]
   )
   const [rotationCount, setRotationCount] = useState(0)
+  const hasCustomAvatar = !selectedAvatarId && Boolean(customAvatarUrl)
+
+  useEffect(() => {
+    setSelectedAvatar(avatars.find((a) => a.id === selectedAvatarId) || avatars[0])
+  }, [selectedAvatarId])
 
   const handleAvatarSelect = (avatar: Avatar) => {
     setRotationCount((prev) => prev + 1080)
@@ -387,7 +394,15 @@ export function AvatarPicker({ selectedAvatarId = 1, onSelect, userName = "Me" }
                 ease: [0.4, 0, 0.2, 1],
               }}
             >
-              {selectedAvatar.svg}
+              {hasCustomAvatar ? (
+                <ProfileAvatar
+                  src={customAvatarUrl || undefined}
+                  name={userName}
+                  className="h-12 w-12 ring-0"
+                />
+              ) : (
+                selectedAvatar.svg
+              )}
             </motion.div>
           </motion.div>
 
@@ -406,7 +421,7 @@ export function AvatarPicker({ selectedAvatarId = 1, onSelect, userName = "Me" }
               animate={{ opacity: 1 }}
               transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.4 }}
             >
-              Select your avatar
+              {hasCustomAvatar ? "Using uploaded photo" : "Select your avatar"}
             </motion.p>
           </motion.div>
 
@@ -422,7 +437,7 @@ export function AvatarPicker({ selectedAvatarId = 1, onSelect, userName = "Me" }
                   className={cn(
                     "relative w-11 h-11 rounded-full overflow-hidden border-2",
                     "transition-[transform,box-shadow] duration-300",
-                    selectedAvatar.id === avatar.id
+                    !hasCustomAvatar && selectedAvatar.id === avatar.id
                       ? "border-primary"
                       : "border-transparent hover:border-muted-foreground/30"
                   )}
@@ -441,7 +456,7 @@ export function AvatarPicker({ selectedAvatarId = 1, onSelect, userName = "Me" }
                   <div className="w-full h-full flex items-center justify-center">
                     {avatar.svg}
                   </div>
-                  {selectedAvatar.id === avatar.id && (
+                  {!hasCustomAvatar && selectedAvatar.id === avatar.id && (
                     <motion.div
                       className="absolute inset-0 bg-primary/20 ring-2 ring-primary ring-offset-2 ring-offset-background rounded-full"
                       variants={selectedVariants}

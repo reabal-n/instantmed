@@ -21,10 +21,12 @@ import { toast } from "sonner"
 import { changePassword, deleteAccount } from "@/app/actions/account"
 import { type EmailPreferences,updateEmailPreferences } from "@/app/actions/email-preferences"
 import { exportPatientData } from "@/app/actions/export-data"
+import { setProfileAvatarPresetAction } from "@/app/actions/profile-avatar"
 import { updateMedicareAction } from "@/app/actions/profile-todo"
 import { GoogleAccountLinkCard } from "@/components/account/google-account-link-card"
 import { DashboardCard, DashboardPageHeader } from "@/components/dashboard"
 import { MedicareCapture } from "@/components/intake/medicare-capture"
+import { ProfileAvatarUpload } from "@/components/settings/profile-avatar-upload"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,7 +46,9 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { getAvatarPresetId } from "@/lib/account/avatar-presets"
 import { AUSTRALIAN_STATES } from "@/lib/constants"
+import { fetchWithCsrf } from "@/lib/security/csrf-client"
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { createClient } from "@/lib/supabase/client"
 import { formatMedicareNumber } from "@/lib/validation/medicare"
@@ -53,6 +57,7 @@ import type { Profile } from "@/types/db"
 interface PatientSettingsClientProps {
   profile: Profile
   email: string
+  avatarUrl?: string | null
   emailPreferences?: EmailPreferences | null
 }
 
@@ -72,7 +77,7 @@ function expiryToMmYy(iso: string | null) {
   return `${month}/${year}`
 }
 
-export function PatientSettingsClient({ profile, email, emailPreferences }: PatientSettingsClientProps) {
+export function PatientSettingsClient({ profile, email, avatarUrl, emailPreferences }: PatientSettingsClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user } = useAuth()
@@ -91,6 +96,8 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [isSavingEmailPrefs, setIsSavingEmailPrefs] = useState(false)
   const [isSavingMedicare, setIsSavingMedicare] = useState(false)
+  const [avatarDisplayUrl, setAvatarDisplayUrl] = useState(avatarUrl || profile.avatar_url || null)
+  const [isSavingAvatarPreset, setIsSavingAvatarPreset] = useState(false)
 
   const initialMedicareForm = useMemo(() => ({
     number: profile.medicare_number ? formatMedicareNumber(profile.medicare_number.replace(/\s/g, "")) : "",
@@ -238,7 +245,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
   const handleSave = async () => {
     setIsSaving(true)
     try {
-      const response = await fetch("/api/patient/profile", {
+      const response = await fetchWithCsrf("/api/patient/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -251,6 +258,24 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
       toast.error("Failed to update profile")
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleAvatarPresetSelect = async (avatarId: number) => {
+    setIsSavingAvatarPreset(true)
+    try {
+      const result = await setProfileAvatarPresetAction(avatarId)
+      if (!result.success || !result.avatarUrl) {
+        toast.error(result.error || "Could not save avatar")
+        return
+      }
+      setAvatarDisplayUrl(result.avatarUrl)
+      toast.success("Avatar saved")
+      router.refresh()
+    } catch {
+      toast.error("Could not save avatar")
+    } finally {
+      setIsSavingAvatarPreset(false)
     }
   }
 
@@ -468,14 +493,22 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
 
         <TabsContent value="personal" className="mt-8">
           <div className="space-y-8">
-            {/* Avatar Picker */}
-            <AvatarPicker
-              selectedAvatarId={1}
-              userName={formData.full_name || "Me"}
-              onSelect={(avatarId) => {
-                toast.success(`Avatar ${avatarId} selected`)
-              }}
-            />
+            <div className="space-y-4">
+              <ProfileAvatarUpload
+                userName={formData.full_name || "Me"}
+                avatarUrl={avatarDisplayUrl}
+                onUploaded={(avatar) => setAvatarDisplayUrl(avatar.avatarUrl || avatar.avatarValue)}
+              />
+              <AvatarPicker
+                selectedAvatarId={getAvatarPresetId(avatarDisplayUrl)}
+                customAvatarUrl={getAvatarPresetId(avatarDisplayUrl) ? null : avatarDisplayUrl}
+                userName={formData.full_name || "Me"}
+                onSelect={(avatarId) => void handleAvatarPresetSelect(avatarId)}
+              />
+              {isSavingAvatarPreset && (
+                <p className="text-center text-xs text-muted-foreground">Saving avatar...</p>
+              )}
+            </div>
 
             {/* Personal Information */}
             <DashboardCard tier="elevated" padding="none" className="p-6 sm:p-8 space-y-6">

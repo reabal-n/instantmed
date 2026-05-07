@@ -7,11 +7,11 @@
  */
 
 import { createClient, SupabaseClient } from "@supabase/supabase-js"
-import * as dotenv from "dotenv"
 import * as path from "path"
 
-// Load .env.local for Supabase credentials
-dotenv.config({ path: path.join(__dirname, "..", "..", ".env.local") })
+import { loadE2EEnv } from "../load-env"
+
+loadE2EEnv(path.join(__dirname, "..", ".."))
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY

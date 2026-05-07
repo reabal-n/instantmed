@@ -2,6 +2,7 @@ import { Loader2 } from "lucide-react"
 import { Suspense } from "react"
 
 import { loadDoctorIdentityAction } from "@/app/actions/doctor-identity"
+import { resolveProfileAvatarUrl } from "@/lib/account/avatar-storage"
 import { requireRole } from "@/lib/auth/helpers"
 import { getParchmentEnvironment } from "@/lib/parchment/client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -44,9 +45,12 @@ async function IdentitySettingsLoader() {
     // Non-fatal - just won't show linked status
   }
 
+  const avatarUrl = await resolveProfileAvatarUrl(authUser.profile.avatar_url)
+
   return (
     <IdentitySettingsClient
       initialData={result.data}
+      avatarUrl={avatarUrl}
       parchmentUserId={parchmentUserId}
       parchmentEnvironment={getParchmentEnvironment()}
     />

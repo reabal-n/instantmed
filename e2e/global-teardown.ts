@@ -7,12 +7,12 @@
  */
 
 import { execSync } from "child_process"
-import * as dotenv from "dotenv"
 import * as fs from "fs"
 import * as path from "path"
 
-// Load .env.local for Supabase credentials
-dotenv.config({ path: path.join(__dirname, "..", ".env.local") })
+import { loadE2EEnv } from "./load-env"
+
+loadE2EEnv(path.join(__dirname, ".."))
 
 // File where global setup stored the E2E_RUN_ID
 const RUN_ID_FILE = path.join(__dirname, ".e2e-run-id")

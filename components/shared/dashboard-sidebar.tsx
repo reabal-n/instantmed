@@ -20,6 +20,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 
+import { Avatar } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { cn } from "@/lib/utils"
@@ -40,6 +41,7 @@ interface DashboardSidebarProps {
   variant: "patient" | "doctor"
   userName?: string
   userRole?: string
+  userAvatar?: string
   isAdmin?: boolean
   pendingCount?: number
   requestCount?: number
@@ -180,6 +182,7 @@ export function DashboardSidebar({
   variant,
   userName = "User",
   userRole,
+  userAvatar,
   isAdmin = false,
   pendingCount = 0,
   requestCount = 0
@@ -274,9 +277,7 @@ export function DashboardSidebar({
         {/* User Profile + Sign Out */}
         <div className="px-4 mt-auto">
           <div className="flex items-center gap-2.5 px-2 py-2.5 rounded-lg">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-foreground text-xs font-semibold shrink-0">
-              {initials}
-            </div>
+            <Avatar src={userAvatar} name={userName} size="sm" fallback={initials} />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground truncate leading-tight">{userName}</p>
               <p className="text-xs text-muted-foreground capitalize leading-tight">{userRole || variant}</p>

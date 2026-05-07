@@ -4,6 +4,7 @@ import { Suspense } from "react"
 
 import { DoctorOnboardingBanner } from "@/components/doctor"
 import { DashboardSidebar } from "@/components/shared"
+import { resolveProfileAvatarUrl } from "@/lib/account/avatar-storage"
 import { requireRole } from "@/lib/auth/helpers"
 import { getStaffDisplayRole, hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import { getDoctorDashboardStats } from "@/lib/data/intakes"
@@ -22,10 +23,12 @@ const log = createLogger("doctor-layout")
 async function DoctorSidebarWithStats({
   userName,
   userRole,
+  userAvatar,
   isAdmin,
 }: {
   userName: string
   userRole: string
+  userAvatar?: string
   isAdmin: boolean
 }) {
   let stats = { in_queue: 0, total: 0, approved: 0, declined: 0, pending_info: 0, scripts_pending: 0 }
@@ -40,6 +43,7 @@ async function DoctorSidebarWithStats({
       variant="doctor"
       userName={userName}
       userRole={userRole}
+      userAvatar={userAvatar}
       isAdmin={isAdmin}
       pendingCount={stats.in_queue}
     />
@@ -56,6 +60,7 @@ export default async function DoctorLayout({
 
   const isAdmin = hasAdminAccess(authUser.profile)
   const staffRoleLabel = getStaffDisplayRole(authUser.profile)
+  const avatarUrl = await resolveProfileAvatarUrl(authUser.profile.avatar_url)
 
   return (
     <DoctorShell isAdmin={isAdmin}>
@@ -65,6 +70,7 @@ export default async function DoctorLayout({
           <DoctorSidebarWithStats
             userName={authUser.profile.full_name}
             userRole={staffRoleLabel}
+            userAvatar={avatarUrl ?? undefined}
             isAdmin={isAdmin}
           />
         </Suspense>

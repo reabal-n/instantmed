@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import type React from "react"
 
+import { resolveProfileAvatarUrl } from "@/lib/account/avatar-storage"
 import { requireRole } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -40,7 +41,10 @@ export default async function PatientLayout({
   modal: React.ReactNode
 }) {
   const authUser = await requireRole(["patient"])
-  const unreadNotifications = await getUnreadNotificationCount(authUser.profile.id)
+  const [unreadNotifications, avatarUrl] = await Promise.all([
+    getUnreadNotificationCount(authUser.profile.id),
+    resolveProfileAvatarUrl(authUser.profile.avatar_url),
+  ])
 
   return (
     <PatientShell
@@ -48,7 +52,7 @@ export default async function PatientLayout({
         id: authUser.profile.id,
         name: authUser.profile.full_name,
         email: authUser.user.email ?? '',
-        avatar: undefined,
+        avatar: avatarUrl ?? undefined,
       }}
       unreadNotifications={unreadNotifications}
     >

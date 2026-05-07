@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest"
 
 const MIGRATION_PATH = join(
   process.cwd(),
-  "supabase/migrations/20260501060000_restrict_feature_flag_updates_to_admins.sql",
+  "supabase/migrations/20260507033000_restrict_feature_flag_updates_to_admins.sql",
 )
 
 describe("feature flag RLS contract", () => {
