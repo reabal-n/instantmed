@@ -31,7 +31,17 @@ export type IntakeStatus =
   | "expired"
   | "awaiting_script"
 
-export type PaymentStatus = "unpaid" | "pending" | "paid" | "refunded" | "failed"
+export type PaymentStatus =
+  | "unpaid"
+  | "pending"
+  | "paid"
+  | "refunded"
+  | "failed"
+  | "expired"
+  | "disputed"
+  | "partially_refunded"
+  | "refund_processing"
+  | "refund_failed"
 
 /**
  * Display-layer intake status type.
@@ -66,4 +76,4 @@ export type DisplayIntakeStatus =
  * Display-layer payment status type.
  * Used for badge rendering in patient/admin UI.
  */
-export type DisplayPaymentStatus = "paid" | "pending" | "failed"
+export type DisplayPaymentStatus = PaymentStatus

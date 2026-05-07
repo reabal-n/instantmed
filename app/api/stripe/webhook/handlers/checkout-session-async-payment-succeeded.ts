@@ -81,6 +81,16 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
       return NextResponse.json({ error: "Intake not found" }, { status: 500 })
     }
 
+    if (currentIntake.payment_id && currentIntake.payment_id !== session.id) {
+      log.warn("checkout.session.async_payment_succeeded ignored because session is no longer current", {
+        currentPaymentId: currentIntake.payment_id,
+        eventId: event.id,
+        intakeId,
+        sessionId: session.id,
+      })
+      return NextResponse.json({ received: true, skipped: true, reason: "stale_checkout_session" })
+    }
+
     if (currentIntake.payment_status === "paid") {
       log.info("Intake already paid, skipping async payment update", { intakeId })
       await startPostPaymentReviewWork({

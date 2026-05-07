@@ -64,7 +64,7 @@ InstantMed's commercial moat is no booked appointment, no waiting room, and a se
 | **Med cert validity** | Certificates do not expire. Once issued, they remain authentic indefinitely. Only `revoked` status invalidates a cert; DB trigger from migration `20260428000001_lock_cert_status.sql` rejects any other transition. The retired expiry cron must not exist in Vercel cron config, heartbeat monitoring, routes, or tests. |
 | **Med cert use cases — refused at intake** | Exam deferral, special consideration, court / tribunal / summons / jury, family law / custody / AVO, fitness-for-driving / firearm / aviation, workers comp / NDIS / TAC / insurance claims. `checkHighStakesUseCase` in `lib/clinical/intake-validation.ts` blocks these at submission; `HIGH_STAKES_USE_CASE_KEYWORDS` in `lib/clinical/auto-approval.ts` is the auto-approval fallback if anything bypasses the intake guard |
 | **Med cert language** | Conservative consultation-statement only. PDF body says "consulted me on X and reported / indicated [reason] consistent with a need to be absent from [duties]". No "medically unfit", no fitness-for-X, no exam-deferral support, no modality disclosure on the cert body. Locked in `lib/pdf/template-renderer.ts` |
-| **Refund on decline** | Med certs + prescriptions: **full auto-refund**. Consults: **50% partial auto-refund** via `decline-intake.ts` `PARTIAL_REFUND_PERCENT` = 0.5 (acknowledges doctor review time while honoring money-back guarantee). Updated 2026-04-08 — unit tested in `lib/__tests__/decline-intake.test.ts`. |
+| **Refund on decline** | Med certs + prescriptions: **full auto-refund** (`payment_status = refunded`). Consults: **50% partial auto-refund** (`payment_status = partially_refunded`) via `decline-intake.ts` `PARTIAL_REFUND_PERCENT` = 0.5 (acknowledges doctor review time while honoring money-back guarantee). Unit tested in `lib/__tests__/decline-intake.test.ts`. |
 | **Follow-up** | `flagged_for_followup` field exists. Decline triggers refund + redirection. No automated follow-up |
 
 ---
@@ -178,6 +178,8 @@ Prescribing is framed as: "a possible outcome of clinician review, occurring sep
 | Weight loss | Gated future service. Manual review only in the solo-doctor phase. No automated approval. No ongoing monitoring promise unless operational capacity exists. |
 
 Subscriptions, monthly prescribing, pharmacy fulfilment, and ongoing check-in programs are not part of the current operating model.
+
+Repeat-prescription intake is server-enforced as prior-prescription only. If the patient indicates the medicine has never been prescribed before, checkout must be blocked or routed to a consult/regular GP pathway; it must not be normalized into a repeat request.
 
 ---
 

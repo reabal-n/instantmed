@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest"
 
 import { formatIntakeStatus } from "@/lib/data/intakes/format"
 import { getPatientStatusNextStep, INTAKE_STATUS, PATIENT_STATUS_NEXT_STEP } from "@/lib/data/status"
+import { PAYMENT_STATUS } from "@/lib/data/status"
 
 const CANONICAL_INTAKE_STATUSES = [
   "draft",
@@ -20,6 +21,19 @@ const CANONICAL_INTAKE_STATUSES = [
   "cancelled",
   "expired",
   "awaiting_script",
+] as const
+
+const CANONICAL_PAYMENT_STATUSES = [
+  "unpaid",
+  "pending",
+  "paid",
+  "refunded",
+  "failed",
+  "expired",
+  "disputed",
+  "partially_refunded",
+  "refund_processing",
+  "refund_failed",
 ] as const
 
 const patientIntakeClientSource = readFileSync(
@@ -81,6 +95,13 @@ describe("intake status source of truth", () => {
       expect(INTAKE_STATUS[status], status).toBeDefined()
       expect(INTAKE_STATUS[status]?.label, status).toBeTruthy()
       expect(formatIntakeStatus(status), status).not.toBe("Unknown")
+    }
+  })
+
+  it("has display metadata for every canonical payment status", () => {
+    for (const status of CANONICAL_PAYMENT_STATUSES) {
+      expect(PAYMENT_STATUS[status], status).toBeDefined()
+      expect(PAYMENT_STATUS[status]?.label, status).toBeTruthy()
     }
   })
 

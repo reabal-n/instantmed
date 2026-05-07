@@ -289,6 +289,16 @@ export function validateRepeatScriptPayload(
     }
   }
 
+  for (const medication of medications) {
+    if (isPBSCodeBlocked(medication.pbsCode) || containsBlockedSubstance(medication.name)) {
+      return {
+        valid: false,
+        error: "Schedule 8 and controlled substances cannot be prescribed through this service. Please see your regular doctor.",
+        requiresConsult: false,
+      }
+    }
+  }
+
   // P1: lastPrescribed is required for repeat scripts (clinical risk)
   const lastPrescribed = answers.last_prescribed || answers.lastPrescribed
   if (!lastPrescribed || typeof lastPrescribed !== "string" || lastPrescribed.trim() === "") {

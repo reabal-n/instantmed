@@ -80,6 +80,13 @@ function getRefundCall(index = 0): [RefundCallParams, RefundCallOpts] {
   return [calls[index][0] as RefundCallParams, (calls[index][1] || {}) as RefundCallOpts]
 }
 
+function getSupabaseUpdatePayloads(): Array<Record<string, unknown>> {
+  return mockSupabaseFrom.mock.results.flatMap((result) => {
+    const chain = result.value as { update?: { mock?: { calls: unknown[][] } } }
+    return chain.update?.mock?.calls.map((call) => call[0] as Record<string, unknown>) || []
+  })
+}
+
 // ============================================================================
 // HELPERS
 // ============================================================================
@@ -299,6 +306,11 @@ describe("declineIntake", () => {
       // Partial refund uses a distinct idempotency key so a future full-refund
       // retry isn't blocked by the partial-refund key.
       expect(refundOpts).toEqual({ idempotencyKey: "refund_decline_partial_intake-consult" })
+      expect(getSupabaseUpdatePayloads()).toContainEqual(expect.objectContaining({
+        payment_status: "partially_refunded",
+        refund_amount_cents: 2497,
+        refund_status: "succeeded",
+      }))
     })
 
     it("consult with $89.95 (weight loss) → 4497 cents partial refund", async () => {

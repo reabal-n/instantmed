@@ -5,6 +5,7 @@ import {
   isConsultSubtypeAvailable,
   isConsultSubtypeKey,
 } from "@/lib/request/consult-subtypes"
+import { collectRepeatMedicationEntries } from "@/lib/clinical/repeat-medications"
 import {
   validateCertificateStep,
   validateConsultReasonStep,
@@ -29,7 +30,6 @@ import {
   type ValidationResult,
 } from "@/lib/request/validation"
 import { validateMedicareExpiry, validateMedicareNumber } from "@/lib/validation/medicare"
-import { extractRepeatScriptMedications } from "@/lib/validation/repeat-script-medications"
 import type { UnifiedServiceType } from "@/types/services"
 
 export interface UnifiedCheckoutIdentity {
@@ -254,11 +254,10 @@ export function transformAnswersForUnifiedCheckout(
   }
 
   if (serviceType === "prescription" || serviceType === "repeat-script") {
-    const primaryMedication = extractRepeatScriptMedications(answers)[0]
+    const primaryMedication = collectRepeatMedicationEntries(answers)[0]
     const medicationName = firstStringAnswer(answers, ["medicationName", "medication_name", "medicationDisplay", "medication_display"])
       || primaryMedication?.name
     const medicationDisplay = firstStringAnswer(answers, ["medicationDisplay", "medication_display", "medicationName", "medication_name"])
-      || primaryMedication?.displayName
       || primaryMedication?.name
     const medicationStrength = firstStringAnswer(answers, ["medicationStrength", "medication_strength", "strength"])
       || primaryMedication?.strength
@@ -279,7 +278,9 @@ export function transformAnswersForUnifiedCheckout(
     transformed.current_dose = answers.currentDose || answers.current_dose
     transformed.dosage_instructions = answers.currentDose || answers.dosageInstructions || answers.dosage_instructions
     transformed.side_effects = answers.sideEffects
-    transformed.prescribed_before = answers.prescribedBefore ?? true
+    transformed.prescribed_before = typeof answers.prescribedBefore === "boolean"
+      ? answers.prescribedBefore
+      : String(answers.prescriptionHistory || "").trim().toLowerCase() !== "never"
     transformed.dose_changed = answers.doseChanged ?? false
   }
 

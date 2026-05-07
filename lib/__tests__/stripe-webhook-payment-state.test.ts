@@ -4,15 +4,24 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
   after: vi.fn(),
+  generateDraftsForIntake: vi.fn(),
+  getPostHogClient: vi.fn(() => ({
+    alias: vi.fn(),
+    capture: vi.fn(),
+  })),
   logger: {
     debug: vi.fn(),
     error: vi.fn(),
     info: vi.fn(),
     warn: vi.fn(),
   },
+  notifyPaymentReceived: vi.fn(),
   sendPaymentFailedEmail: vi.fn(),
+  sendPaidRequestTelegramNotification: vi.fn(),
   sendSessionExpiredEmail: vi.fn(),
+  startPostPaymentReviewWork: vi.fn(),
   trackBusinessMetric: vi.fn(),
+  trackIntakeFunnelStep: vi.fn(),
 }))
 
 vi.mock("next/server", async () => {
@@ -24,7 +33,13 @@ vi.mock("next/server", async () => {
 })
 
 vi.mock("@/lib/analytics/posthog-server", () => ({
+  getPostHogClient: mocks.getPostHogClient,
   trackBusinessMetric: mocks.trackBusinessMetric,
+  trackIntakeFunnelStep: mocks.trackIntakeFunnelStep,
+}))
+
+vi.mock("@/app/actions/generate-drafts", () => ({
+  generateDraftsForIntake: mocks.generateDraftsForIntake,
 }))
 
 vi.mock("@/lib/email/template-sender", () => ({
@@ -32,15 +47,31 @@ vi.mock("@/lib/email/template-sender", () => ({
   sendSessionExpiredEmail: mocks.sendSessionExpiredEmail,
 }))
 
+vi.mock("@/lib/notifications/paid-request-telegram", () => ({
+  sendPaidRequestTelegramNotification: mocks.sendPaidRequestTelegramNotification,
+  shouldSendPaidRequestTelegramNotification: vi.fn(),
+}))
+
+vi.mock("@/lib/notifications/service", () => ({
+  notifyPaymentReceived: mocks.notifyPaymentReceived,
+}))
+
 vi.mock("@/lib/observability/logger", () => ({
   createLogger: () => mocks.logger,
 }))
 
+vi.mock("@/lib/stripe/post-payment", () => ({
+  startPostPaymentReviewWork: mocks.startPostPaymentReviewWork,
+}))
+
 vi.mock("@sentry/nextjs", () => ({
+  addBreadcrumb: vi.fn(),
   captureMessage: vi.fn(),
 }))
 
 import { handleAsyncPaymentFailed } from "@/app/api/stripe/webhook/handlers/checkout-session-async-payment-failed"
+import { handleAsyncPaymentSucceeded } from "@/app/api/stripe/webhook/handlers/checkout-session-async-payment-succeeded"
+import { handleCheckoutSessionCompleted } from "@/app/api/stripe/webhook/handlers/checkout-session-completed"
 import { handleCheckoutSessionExpired } from "@/app/api/stripe/webhook/handlers/checkout-session-expired"
 import { handlePaymentIntentFailed } from "@/app/api/stripe/webhook/handlers/payment-intent-payment-failed"
 
@@ -71,11 +102,75 @@ function createUpdateChain(record: UpdateRecord, result: UpdateResult = { data: 
     }),
     select: vi.fn(() => ({
       maybeSingle: vi.fn(async () => result),
+      single: vi.fn(async () => result),
     })),
     then: (resolve: (value: typeof result) => void) => Promise.resolve(result).then(resolve),
   }
 
   return chain
+}
+
+function createPaymentSuccessSupabaseMock() {
+  const updates: UpdateRecord[] = []
+  const intakeId = "11111111-1111-1111-1111-111111111111"
+
+  function makeSelectResult(table: string, selected?: string) {
+    return {
+      eq: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          maybeSingle: vi.fn(async () => ({ data: null, error: null })),
+          single: vi.fn(async () => ({ data: null, error: null })),
+        })),
+        maybeSingle: vi.fn(async () => {
+          if (table === "intakes" && selected?.includes("utm_source")) {
+            return {
+              data: {
+                amount_cents: 3900,
+                category: "medical_certificate",
+                gbraid: null,
+                gclid: null,
+                subtype: "work",
+                utm_campaign: null,
+                utm_medium: null,
+                utm_source: null,
+                wbraid: null,
+              },
+              error: null,
+            }
+          }
+          return { data: null, error: null }
+        }),
+        single: vi.fn(async () => {
+          if (table === "intakes" && (selected?.includes("payment_id") || selected?.includes("payment_status"))) {
+            return {
+              data: {
+                id: intakeId,
+                payment_id: "cs_current",
+                payment_status: "pending",
+                status: "pending_payment",
+              },
+              error: null,
+            }
+          }
+          return { data: null, error: null }
+        }),
+      })),
+    }
+  }
+
+  const supabase = {
+    from: vi.fn((table: string) => ({
+      select: vi.fn((selected?: string) => makeSelectResult(table, selected)),
+      update: vi.fn((payload: Record<string, unknown>) => {
+        const record: UpdateRecord = { filters: [], payload, table }
+        updates.push(record)
+        return createUpdateChain(record, { data: { id: "intake-1" }, error: null })
+      }),
+    })),
+    rpc: vi.fn(async () => ({ data: true, error: null })),
+  }
+
+  return { intakeId, supabase, updates }
 }
 
 function createSelectChain() {
@@ -278,5 +373,78 @@ describe("Stripe webhook payment state transitions", () => {
 
     expect(supabase.from).toHaveBeenCalledTimes(1)
     expect(mocks.sendPaymentFailedEmail).not.toHaveBeenCalled()
+  })
+
+  it("marks completed checkout sessions paid only when the session is still current", async () => {
+    const { intakeId, supabase, updates } = createPaymentSuccessSupabaseMock()
+
+    await handleCheckoutSessionCompleted({
+      event: makeEvent("checkout.session.completed", {
+        amount_total: 3900,
+        customer: "cus_test",
+        id: "cs_current",
+        metadata: {
+          category: "medical_certificate",
+          intake_id: intakeId,
+          patient_id: "patient-1",
+          service_slug: "med-cert-sick",
+        },
+        payment_intent: "pi_current",
+        payment_status: "paid",
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect(updates[0]).toMatchObject({
+      payload: {
+        payment_status: "paid",
+        status: "paid",
+        stripe_payment_intent_id: "pi_current",
+      },
+      table: "intakes",
+    })
+    expect(updates[0].filters).toEqual(expect.arrayContaining([
+      { column: "id", method: "eq", value: intakeId },
+      { column: "payment_id", method: "eq", value: "cs_current" },
+      { column: "status", method: "in", value: ["pending_payment", "checkout_failed"] },
+      { column: "payment_status", method: "in", value: ["pending", "unpaid", "failed"] },
+    ]))
+  })
+
+  it("marks async succeeded checkout sessions paid only when the session is still current", async () => {
+    const { intakeId, supabase, updates } = createPaymentSuccessSupabaseMock()
+
+    await handleAsyncPaymentSucceeded({
+      event: makeEvent("checkout.session.async_payment_succeeded", {
+        amount_total: 3900,
+        customer: "cus_test",
+        id: "cs_current",
+        metadata: {
+          category: "medical_certificate",
+          intake_id: intakeId,
+          patient_id: "patient-1",
+          service_slug: "med-cert-sick",
+        },
+        payment_intent: "pi_current",
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect(updates[0]).toMatchObject({
+      payload: {
+        payment_status: "paid",
+        status: "paid",
+        stripe_payment_intent_id: "pi_current",
+      },
+      table: "intakes",
+    })
+    expect(updates[0].filters).toEqual(expect.arrayContaining([
+      { column: "id", method: "eq", value: intakeId },
+      { column: "payment_id", method: "eq", value: "cs_current" },
+      { column: "status", method: "in", value: ["pending_payment", "checkout_failed"] },
+      { column: "payment_status", method: "in", value: ["pending", "unpaid", "failed"] },
+    ]))
   })
 })

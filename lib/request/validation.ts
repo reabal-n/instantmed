@@ -212,10 +212,20 @@ export const medicationStepSchema = z
     })
   })
 
-export const medicationHistoryStepSchema = z.object({
-  prescriptionHistory: nonEmptyString("Please indicate when you last had this prescribed"),
-  currentDose: nonEmptyString("Please enter the dose you currently take"),
-})
+export const medicationHistoryStepSchema = z
+  .object({
+    prescriptionHistory: nonEmptyString("Please indicate when you last had this prescribed"),
+    currentDose: nonEmptyString("Please enter the dose you currently take"),
+  })
+  .superRefine((data, ctx) => {
+    if (data.prescriptionHistory.trim().toLowerCase() === "never") {
+      ctx.addIssue({
+        code: "custom",
+        path: ["prescriptionHistory"],
+        message: "This repeat prescription service is only for medicines prescribed before.",
+      })
+    }
+  })
 
 export const medicalHistoryStepSchema = z
   .object({
