@@ -3,7 +3,10 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 import { Suspense } from "react"
 
-import { selectGuestProfileForAuthLink } from "@/lib/auth/guest-profile-linking"
+import {
+  buildGuestProfileAuthLinkUpdate,
+  selectGuestProfileForAuthLink,
+} from "@/lib/auth/guest-profile-linking"
 import { normalizePostAuthRedirect } from "@/lib/auth/redirects"
 import { hasAdminAccess, hasDoctorAccess } from "@/lib/auth/staff-capabilities"
 import { createLogger } from "@/lib/observability/logger"
@@ -194,25 +197,17 @@ export default async function PostSignInPage({
     if (primaryEmail) {
       const preferredProfileId = await getPreferredGuestProfileIdForIntake(supabase, params.intake_id, primaryEmail)
       const guestProfiles = await getGuestProfileLinkCandidates(supabase, primaryEmail, preferredProfileId)
-      const guestProfile = selectGuestProfileForAuthLink(guestProfiles, preferredProfileId)
+      const guestProfile = selectGuestProfileForAuthLink(guestProfiles, primaryEmail, preferredProfileId)
 
       if (guestProfile) {
-        const fullName = user.user_metadata?.full_name
-          || user.user_metadata?.name
-          || primaryEmail.split('@')[0]
-
         const { data: linkedProfile, error: linkError } = await supabase
           .from("profiles")
-          .update({
-            auth_user_id: userId,
-            email: primaryEmail,
-            full_name: fullName,
-            first_name: user.user_metadata?.first_name || null,
-            last_name: user.user_metadata?.last_name || null,
-            avatar_url: user.user_metadata?.avatar_url || null,
-            email_verified: true,
-            email_verified_at: new Date().toISOString(),
-          })
+          .update(buildGuestProfileAuthLinkUpdate({
+            profile: guestProfile,
+            userId,
+            primaryEmail,
+            userMetadata: user.user_metadata,
+          }))
           .eq("id", guestProfile.id)
           .eq("role", "patient")
           .is("auth_user_id", null)

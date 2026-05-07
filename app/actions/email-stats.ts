@@ -33,6 +33,32 @@ export interface RecentEmailActivity {
   retryCount: number
 }
 
+type EmailActivityRow = {
+  id: string
+  email_type: string | null
+  to_email: string
+  status: string
+  delivery_status: string | null
+  created_at: string
+  intake_id: string | null
+  error_message: string | null
+  retry_count: number | null
+}
+
+function mapEmailActivity(rows: EmailActivityRow[]): RecentEmailActivity[] {
+  return rows.map((row) => ({
+    id: row.id,
+    emailType: row.email_type || "unknown",
+    toEmail: row.to_email,
+    status: row.status,
+    deliveryStatus: row.delivery_status,
+    createdAt: row.created_at,
+    intakeId: row.intake_id,
+    errorMessage: row.error_message,
+    retryCount: row.retry_count ?? 0,
+  }))
+}
+
 /**
  * Fetch email statistics from email_outbox table
  */
@@ -137,21 +163,41 @@ export async function getRecentEmailActivity(limit = 10): Promise<{
       return { activity: [], error: error.message }
     }
 
-    const activity: RecentEmailActivity[] = (data || []).map((row) => ({
-      id: row.id,
-      emailType: row.email_type || "unknown",
-      toEmail: row.to_email,
-      status: row.status,
-      deliveryStatus: row.delivery_status,
-      createdAt: row.created_at,
-      intakeId: row.intake_id,
-      errorMessage: row.error_message,
-      retryCount: row.retry_count ?? 0,
-    }))
-
-    return { activity }
+    return { activity: mapEmailActivity((data || []) as EmailActivityRow[]) }
   } catch (error) {
     log.error("Failed to fetch recent email activity", { error })
     return { activity: [], error: "Failed to fetch recent activity" }
+  }
+}
+
+/**
+ * Fetch recent failed or pending email rows for ops remediation.
+ * This intentionally does not derive from the general activity feed, because
+ * successful sends can push actionable failures out of a small recent sample.
+ */
+export async function getRecentEmailIssues(limit = 25): Promise<{
+  activity: RecentEmailActivity[]
+  error?: string
+}> {
+  try {
+    await requireRole(["admin", "doctor"])
+    const supabase = createServiceRoleClient()
+
+    const { data, error } = await supabase
+      .from("email_outbox")
+      .select("id, email_type, to_email, status, delivery_status, created_at, intake_id, error_message, retry_count")
+      .in("status", ["failed", "pending"])
+      .order("created_at", { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      log.error("Failed to fetch email issue activity", { error })
+      return { activity: [], error: error.message }
+    }
+
+    return { activity: mapEmailActivity((data || []) as EmailActivityRow[]) }
+  } catch (error) {
+    log.error("Failed to fetch email issue activity", { error })
+    return { activity: [], error: "Failed to fetch email issues" }
   }
 }

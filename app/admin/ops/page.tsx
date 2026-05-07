@@ -64,7 +64,7 @@ export default async function OpsDashboardPage() {
     emailQueueResult,
     recentErrorsResult,
     auditLogsResult,
-    systemHealthResult,
+    stuckIntakesResult,
     patientIdentityResult,
     prescribingIdentityResult,
     emailFailuresResult,
@@ -110,14 +110,7 @@ export default async function OpsDashboardPage() {
       .select("id", { count: "exact", head: true })
       .gte("created_at", dayAgo.toISOString()),
     
-    // System health check (intakes processing)
-    supabase
-      .from("intakes")
-      .select("id, status, paid_at, updated_at")
-      .eq("status", "paid")
-      .eq("payment_status", "paid")
-      .lt("paid_at", new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString())
-      .limit(10),
+    getStuckIntakes({}),
 
     getDuplicatePatientProfileSummary(supabase),
 

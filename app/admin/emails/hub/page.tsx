@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 
-import { getEmailStats, getRecentEmailActivity } from "@/app/actions/email-stats"
+import { getEmailStats, getRecentEmailActivity, getRecentEmailIssues } from "@/app/actions/email-stats"
 import { Skeleton } from "@/components/ui/skeleton"
 import { requireRole } from "@/lib/auth/helpers"
 import { getEmailOutboxList } from "@/lib/data/email-outbox"
