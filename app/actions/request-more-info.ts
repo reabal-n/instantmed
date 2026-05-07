@@ -1,14 +1,15 @@
 "use server"
 
+import { revalidatePath } from "next/cache"
+
 import { requireRole } from "@/lib/auth/helpers"
+import { getDoctorCaseActionError } from "@/lib/doctor/case-action-guard"
+import { NeedsMoreInfoEmail } from "@/lib/email/components/templates/needs-more-info"
+import { sendEmail } from "@/lib/email/send-email"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("request-more-info")
-import { revalidatePath } from "next/cache"
-
-import { NeedsMoreInfoEmail } from "@/lib/email/components/templates/needs-more-info"
-import { sendEmail } from "@/lib/email/send-email"
 
 interface InfoRequestTemplate {
   code: string
@@ -74,6 +75,9 @@ export async function requestMoreInfoAction(
         status,
         patient_id,
         category,
+        claimed_by,
+        reviewing_doctor_id,
+        reviewed_by,
         patient:profiles!patient_id(
           id,
           full_name,
@@ -85,6 +89,18 @@ export async function requestMoreInfoAction(
 
     if (fetchError || !intake) {
       return { success: false, error: "Request not found" }
+    }
+
+    const actionError = getDoctorCaseActionError({
+      actorId: profile.id,
+      actorRole: profile.role,
+      claimed_by: intake.claimed_by,
+      reviewing_doctor_id: intake.reviewing_doctor_id,
+      reviewed_by: intake.reviewed_by,
+    })
+
+    if (actionError) {
+      return { success: false, error: actionError }
     }
 
     // Check status allows info request

@@ -18,6 +18,7 @@ import {
   updateIntakeStatus,
   updateScriptSent,
 } from "@/lib/data/intakes"
+import { getDoctorCaseActionError } from "@/lib/doctor/case-action-guard"
 import { isClinicalNoteSufficient, MIN_CLINICAL_NOTES_LENGTH } from "@/lib/doctor/clinical-notes"
 import {
   getParchmentScriptCompletionEligibility,
@@ -36,6 +37,7 @@ function isValidUUID(id: string): boolean {
 }
 
 type ServiceRelation = { type?: string | null } | { type?: string | null }[] | null
+type QueueActionProfile = { id: string; role?: string | null }
 
 function getServiceType(service: ServiceRelation | undefined): string | null {
   return Array.isArray(service) ? service[0]?.type ?? null : service?.type ?? null
@@ -55,6 +57,38 @@ function getScriptCompletionRequestType(category: string | null, serviceType?: s
   return "intake"
 }
 
+async function ensureDoctorCaseActionAllowed(
+  intakeId: string,
+  profile: QueueActionProfile,
+): Promise<{ success: true } | { success: false; error: string }> {
+  if (profile.role === "admin") return { success: true }
+
+  const supabase = createServiceRoleClient()
+  const { data: intake, error } = await supabase
+    .from("intakes")
+    .select("claimed_by, reviewing_doctor_id, reviewed_by")
+    .eq("id", intakeId)
+    .single()
+
+  if (error || !intake) {
+    return { success: false, error: "Intake not found" }
+  }
+
+  const actionError = getDoctorCaseActionError({
+    actorId: profile.id,
+    actorRole: profile.role,
+    claimed_by: intake.claimed_by,
+    reviewing_doctor_id: intake.reviewing_doctor_id,
+    reviewed_by: intake.reviewed_by,
+  })
+
+  if (actionError) {
+    return { success: false, error: actionError }
+  }
+
+  return { success: true }
+}
+
 export async function updateStatusAction(
   intakeId: string,
   status: IntakeStatus,
@@ -68,9 +102,13 @@ export async function updateStatusAction(
     return { success: false, error: "Unauthorized" }
   }
 
+  const ownership = await ensureDoctorCaseActionAllowed(intakeId, profile)
+  if (!ownership.success) {
+    return { success: false, error: ownership.error, code: "CASE_NOT_CLAIMED" }
+  }
+
   // Validate clinical notes exist for approval/script statuses
   if (status === "approved" || status === "awaiting_script") {
-    const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
     const supabase = createServiceRoleClient()
     const { data: intake } = await supabase
       .from("intakes")
@@ -91,7 +129,6 @@ export async function updateStatusAction(
   // CRITICAL GUARD: Block direct approval of med certs - they MUST go through document builder
   // Med certs require PDF generation and email sending via approveAndSendCert
   if (status === "approved") {
-    const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
     const supabase = createServiceRoleClient()
     const { data: intake } = await supabase
       .from("intakes")
@@ -123,7 +160,6 @@ export async function updateStatusAction(
     // Phase 3: create follow-up rows for ED/hair-loss consults on approval
     if (status === "approved") {
       try {
-        const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
         const supabase = createServiceRoleClient()
         const { data: intakeRow } = await supabase
           .from("intakes")
@@ -206,6 +242,11 @@ export async function saveDoctorNotesAction(
     return { success: false, error: "Unauthorized" }
   }
 
+  const ownership = await ensureDoctorCaseActionAllowed(intakeId, profile)
+  if (!ownership.success) {
+    return { success: false, error: ownership.error }
+  }
+
   const success = await saveDoctorNotes(intakeId, notes)
   if (!success) {
     return { success: false, error: "Failed to save notes" }
@@ -221,6 +262,16 @@ export async function declineIntakeAction(
 ): Promise<{ success: boolean; error?: string; refund?: { status: string } }> {
   if (!isValidUUID(intakeId)) {
     return { success: false, error: "Invalid intake ID" }
+  }
+
+  const { profile } = await requireRole(["doctor", "admin"])
+  if (!profile) {
+    return { success: false, error: "Unauthorized" }
+  }
+
+  const ownership = await ensureDoctorCaseActionAllowed(intakeId, profile)
+  if (!ownership.success) {
+    return { success: false, error: ownership.error }
   }
 
   // Use canonical decline action - handles refund + email + audit consistently
@@ -256,6 +307,11 @@ export async function flagForFollowupAction(
   const { profile } = await requireRole(["doctor", "admin"])
   if (!profile) {
     return { success: false, error: "Unauthorized" }
+  }
+
+  const ownership = await ensureDoctorCaseActionAllowed(intakeId, profile)
+  if (!ownership.success) {
+    return { success: false, error: ownership.error }
   }
 
   const success = await flagForFollowup(intakeId, reason)
@@ -446,11 +502,6 @@ export async function claimIntakeAction(
     })
 
     if (error) {
-      // If RPC doesn't exist (migration not run), return graceful message
-      if (error.message?.includes("function") || error.code === "42883") {
-        logger.info("[ClaimIntake] RPC not available, fallback to success", { intakeId })
-        return { success: true }
-      }
       logger.error("[ClaimIntake] RPC failed", { intakeId, error: error.message })
       Sentry.captureMessage("Intake claim RPC failed", {
         level: "error",
@@ -520,17 +571,12 @@ export async function releaseIntakeClaimAction(
     })
 
     if (error) {
-      // If RPC doesn't exist (migration not run), return graceful success
-      if (error.message?.includes("function") || error.code === "42883") {
-        return { success: true }
-      }
       return { success: false, error: "Failed to release claim" }
     }
 
     return { success: true }
   } catch {
-    // Graceful fallback if function doesn't exist
-    return { success: true }
+    return { success: false, error: "Failed to release claim" }
   }
 }
 

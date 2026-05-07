@@ -62,6 +62,21 @@ const reviewActionsSource = readFileSync(
   "utf8",
 )
 
+const caseActionGuardSource = readFileSync(
+  join(process.cwd(), "lib/doctor/case-action-guard.ts"),
+  "utf8",
+)
+
+const intakeLockSource = readFileSync(
+  join(process.cwd(), "lib/data/intake-lock.ts"),
+  "utf8",
+)
+
+const requestMoreInfoSource = readFileSync(
+  join(process.cwd(), "app/actions/request-more-info.ts"),
+  "utf8",
+)
+
 const queueHealthSource = readFileSync(
   join(process.cwd(), "lib/monitoring/queue-health.ts"),
   "utf8",
@@ -69,11 +84,6 @@ const queueHealthSource = readFileSync(
 
 const e2eResetMigrationSource = readFileSync(
   join(process.cwd(), "supabase/migrations/20260501124500_harden_e2e_intake_reset.sql"),
-  "utf8",
-)
-
-const queueHealthSource = readFileSync(
-  join(process.cwd(), "lib/monitoring/queue-health.ts"),
   "utf8",
 )
 
@@ -229,5 +239,27 @@ describe("doctor queue production contract", () => {
     expect(reviewButtonsSource).toContain("MIN_CLINICAL_NOTES_LENGTH")
     expect(reviewButtonsSource).toContain("Add clinical notes")
     expect(reviewButtonsSource).toContain("title={approveDisabledReason || undefined}")
+  })
+
+  it("does not fail open when the doctor claim RPC is missing or unavailable", () => {
+    expect(queueActionsSource).not.toContain("fallback to success")
+    expect(queueActionsSource).not.toContain("return { success: true } // Graceful fallback")
+    expect(queueActionsSource).not.toContain("return { success: true }\\n      }")
+  })
+
+  it("requires claimed case ownership before mutable doctor queue actions", () => {
+    expect(queueActionsSource).toContain("ensureDoctorCaseActionAllowed")
+    expect(caseActionGuardSource).toContain("Claim this case before taking action.")
+  })
+
+  it("uses the atomic claim RPC for panel lock acquisition", () => {
+    expect(intakeLockSource).toContain('rpc("claim_intake_for_review"')
+    expect(intakeLockSource).not.toContain("claimed_by: doctorId")
+  })
+
+  it("requires case ownership before requesting more patient information", () => {
+    expect(requestMoreInfoSource).toContain("getDoctorCaseActionError")
+    expect(requestMoreInfoSource).toContain("claimed_by")
+    expect(requestMoreInfoSource).toContain("reviewing_doctor_id")
   })
 })

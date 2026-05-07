@@ -7,10 +7,10 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 const LOCKABLE_STATUSES = ["paid", "in_review", "pending_info", "awaiting_script"] as const
 
 /**
- * Soft Session Lock for Intake Review
- * 
- * P1 EFFICIENCY: Prevents two doctors from reviewing the same case simultaneously.
- * Uses a soft lock with auto-expiry - does not block, only warns.
+ * Review claim for intake review.
+ *
+ * Prevents two doctors from mutating the same case simultaneously.
+ * The database claim is the enforcement boundary; reviewing fields are UI context.
  */
 
 const LOCK_TIMEOUT_MS = 10 * 60 * 1000 // 10 minutes
@@ -30,8 +30,8 @@ export interface LockResult {
 }
 
 /**
- * Attempt to acquire a soft lock on an intake for review
- * Returns success if no active lock exists, or if the lock is expired
+ * Attempt to acquire the review claim for an intake.
+ * The claim itself is atomic in Postgres; reviewing fields are just UI context.
  */
 export async function acquireIntakeLock(
   intakeId: string,
@@ -41,82 +41,54 @@ export async function acquireIntakeLock(
   const supabase = createServiceRoleClient()
   const now = new Date()
   try {
-    // Check for existing active lock (check both reviewing_doctor_id and claimed_by)
-    const { data: intake } = await supabase
-      .from("intakes")
-      .select("status, payment_status, reviewing_doctor_id, reviewing_doctor_name, review_started_at, claimed_by, claimed_at")
-      .eq("id", intakeId)
-      .single()
+    const { data: claimResult, error: claimError } = await supabase.rpc("claim_intake_for_review", {
+      p_intake_id: intakeId,
+      p_doctor_id: doctorId,
+      p_force: false,
+    })
 
-    if (
-      !intake ||
-      intake.payment_status !== "paid" ||
-      !LOCKABLE_STATUSES.includes(intake.status as (typeof LOCKABLE_STATUSES)[number])
-    ) {
-      return { acquired: true }
-    }
+    const claim = Array.isArray(claimResult) ? claimResult[0] : claimResult
 
-    // Check reviewing lock
-    if (intake?.reviewing_doctor_id && intake.review_started_at) {
-      const lockExpiry = new Date(new Date(intake.review_started_at).getTime() + LOCK_TIMEOUT_MS)
-      
-      // Check if lock is still active (not expired) and by a different doctor
-      if (lockExpiry > now && intake.reviewing_doctor_id !== doctorId) {
-        return {
-          acquired: false,
-          existingLock: {
-            intakeId,
-            lockedBy: intake.reviewing_doctor_id,
-            lockedByName: intake.reviewing_doctor_name || "Another doctor",
-            lockedAt: intake.review_started_at,
-            expiresAt: lockExpiry.toISOString(),
-          },
-          warning: `This case is currently being reviewed by ${intake.reviewing_doctor_name || "another doctor"}. You may still proceed, but be aware of potential duplicate work.`,
-        }
-      }
-    }
-    
-    // Also check claimed_by if reviewing_doctor_id not set (handles edge cases)
-    if (!intake?.reviewing_doctor_id && intake?.claimed_by && intake.claimed_at) {
-      const claimExpiry = new Date(new Date(intake.claimed_at).getTime() + LOCK_TIMEOUT_MS)
-      if (claimExpiry > now && intake.claimed_by !== doctorId) {
-        return {
-          acquired: false,
-          existingLock: {
-            intakeId,
-            lockedBy: intake.claimed_by,
-            lockedByName: "Another doctor",
-            lockedAt: intake.claimed_at,
-            expiresAt: claimExpiry.toISOString(),
-          },
-          warning: `This case is currently claimed by another doctor. You may still proceed, but be aware of potential duplicate work.`,
-        }
+    if (claimError || !claim?.success) {
+      const lockedByName = claim?.current_claimant || "another doctor"
+      const lockedAt = now.toISOString()
+      const expiresAt = new Date(now.getTime() + LOCK_TIMEOUT_MS).toISOString()
+      return {
+        acquired: false,
+        existingLock: {
+          intakeId,
+          lockedBy: "unknown",
+          lockedByName,
+          lockedAt,
+          expiresAt,
+        },
+        warning: claim?.error_message || "This case could not be claimed for review.",
       }
     }
 
-    // Acquire the lock - set BOTH reviewing fields AND claimed_by for approval flow
-    // The approval flow checks claimed_by, so we must set it here
     const { error } = await supabase
       .from("intakes")
       .update({
         reviewing_doctor_id: doctorId,
         reviewing_doctor_name: doctorName,
         review_started_at: now.toISOString(),
-        claimed_by: doctorId,
-        claimed_at: now.toISOString(),
         updated_at: now.toISOString(),
       })
       .eq("id", intakeId)
+      .eq("claimed_by", doctorId)
+      .in("status", LOCKABLE_STATUSES)
 
     if (error) {
-      logger.error("Failed to acquire intake lock", { intakeId, doctorId }, error)
-      return { acquired: true } // Fail open - allow review
+      logger.error("Failed to write intake review context after claim", { intakeId, doctorId }, error)
     }
 
     return { acquired: true }
   } catch (err) {
     logger.error("Error in acquireIntakeLock", { intakeId, doctorId }, toError(err))
-    return { acquired: true } // Fail open
+    return {
+      acquired: false,
+      warning: "This case could not be claimed for review.",
+    }
   }
 }
 
@@ -130,17 +102,21 @@ export async function releaseIntakeLock(
   const supabase = createServiceRoleClient()
 
   try {
-    // Only release if this doctor holds the lock
-    // Also clear claimed_by to match - but only if intake is still in reviewable state
-    // (don't clear if already approved/declined)
+    const { error: releaseError } = await supabase.rpc("release_intake_claim", {
+      p_intake_id: intakeId,
+      p_doctor_id: doctorId,
+    })
+
+    if (releaseError) {
+      logger.error("Failed to release intake claim", { intakeId, doctorId }, releaseError)
+    }
+
     const { error } = await supabase
       .from("intakes")
       .update({
         reviewing_doctor_id: null,
         reviewing_doctor_name: null,
         review_started_at: null,
-        claimed_by: null,
-        claimed_at: null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", intakeId)
