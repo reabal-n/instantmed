@@ -507,7 +507,7 @@ const instantmedVsQoctor: ComparisonEntry = {
         title: "Hours of Operation and Why They Matter",
         paragraphs: [
           "24/7 availability isn't a marketing gimmick when the thing you need is a medical certificate for a shift that starts in four hours. Most Australians needing urgent certificates don't plan for it - they wake up unwell at 5am and need evidence of illness before 8am. A service that only operates during business hours can't help with that.",
-          "InstantMed runs 24/7 for medical certificates specifically because this is the most time-sensitive common service. Prescriptions and consults run on extended hours (8am-10pm AEST) because those cases are generally less time-critical and benefit from a well-rested doctor making clinical decisions. This isn't a criticism of services with different hours - different trade-offs for different use cases.",
+          "InstantMed accepts requests 24/7. Medical certificates are the fastest 24/7 pathway; prescriptions and consults can still be submitted at any time, with doctor review usually handled during extended review hours (8am-10pm AEST). This isn't a criticism of services with different hours - different trade-offs for different use cases.",
           "If you only ever need a certificate during business hours, the hours difference doesn't matter. If you regularly need one at odd times, it genuinely does.",
         ],
       },

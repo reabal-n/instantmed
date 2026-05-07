@@ -79,14 +79,15 @@ export function IntakeActionButtons() {
   const prescribingActionLabel = hasPrescribingIdentityBlocker ? "Complete patient identity" : null
 
   return (
-    <div className="sticky bottom-0 bg-background border-t border-border pt-3 pb-1 flex flex-wrap gap-2">
+    <div className="sticky bottom-0 bg-background border-t border-border pt-3 pb-1">
       {hasPrescribingIdentityBlocker && (
         <div className="w-full rounded-md border border-warning-border bg-warning-light px-3 py-2 text-xs font-medium text-warning">
           Complete patient identity before prescribing: {missingPrescribingIdentityFields.join(", ")}
         </div>
       )}
-      {/* Med cert: preview then approve */}
-      {service?.type === "med_certs" && ["paid", "in_review"].includes(intake.status) && (
+      <div className="flex flex-wrap gap-2">
+        {/* Med cert: preview then approve */}
+        {service?.type === "med_certs" && ["paid", "in_review"].includes(intake.status) && (
         <Button
           onClick={handleMedCertApprove}
           className="bg-emerald-600 hover:bg-emerald-700"

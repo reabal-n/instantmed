@@ -78,7 +78,7 @@ A small live counter on hero pages: *"Average med cert today: 14 minutes from fo
 
 **Graceful degradation rules:**
 - Cap displayed queue length at "6+" (don't display "47 ahead of yours" — backfires)
-- Pre-6am / post-10pm AEST for Rx/consults: show "On standby. First review at 6am." (or relevant hours)
+- Pre-6am / post-10pm AEST for Rx/consults: keep submission open and show "Request submitted. First review at 6am." (or relevant hours)
 - If a doctor is actively reviewing: show "Doctor reviewing now" rather than a count
 - If no data in last 24h: hide the counter entirely (don't fake a number)
 

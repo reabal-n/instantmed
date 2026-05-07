@@ -41,7 +41,7 @@ const SHARED_SYMPTOM_FAQS: Array<{ q: string; a: string }> = [
   },
   {
     q: "How long does the doctor's review take?",
-    a: "Medical certificates are typically issued in about 20 minutes, available 24/7. Other requests are reviewed within 1–2 hours during operating hours (8am–10pm AEST, 7 days). You'll receive an email notification once your request has been reviewed.",
+    a: "Medical certificates are typically issued in about 20 minutes, available 24/7. Other requests can be submitted 24/7 and are usually reviewed within 1–2 hours during review hours (8am–10pm AEST, 7 days). You'll receive an email notification once your request has been reviewed.",
   },
   {
     q: "What happens if the doctor thinks I need in-person care?",

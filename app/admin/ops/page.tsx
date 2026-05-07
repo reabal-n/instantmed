@@ -1,6 +1,8 @@
 import { buildOperationalFailureOverview } from "@/lib/admin/ops-failures"
 import { requireRole } from "@/lib/auth/helpers"
 import { getMissingTelegramAlertEnv } from "@/lib/config/env"
+import { getAuthEmailHealth } from "@/lib/data/auth-email-events"
+import { getStuckIntakes } from "@/lib/data/intake-ops"
 import {
   ADMIN_AUDIT_HREF,
   ADMIN_EMAIL_HUB_HREF,
@@ -64,7 +66,9 @@ export default async function OpsDashboardPage() {
     emailQueueResult,
     recentErrorsResult,
     auditLogsResult,
+    safetyBlocksResult,
     stuckIntakesResult,
+    authEmailHealthResult,
     patientIdentityResult,
     prescribingIdentityResult,
     emailFailuresResult,
@@ -109,8 +113,19 @@ export default async function OpsDashboardPage() {
       .from("audit_logs")
       .select("id", { count: "exact", head: true })
       .gte("created_at", dayAgo.toISOString()),
+
+    supabase
+      .from("safety_audit_log")
+      .select("id, evaluated_at, service_slug, outcome, risk_tier, triggered_rule_ids, request_id", { count: "exact" })
+      .neq("outcome", "ALLOW")
+      .gte("evaluated_at", dayAgo.toISOString())
+      .order("evaluated_at", { ascending: false })
+      .limit(10)
+      .then(r => r.error ? { data: [], count: 0 } : r),
     
     getStuckIntakes({}),
+
+    getAuthEmailHealth(dayAgo),
 
     getDuplicatePatientProfileSummary(supabase),
 
@@ -228,7 +243,7 @@ export default async function OpsDashboardPage() {
     : "100"
 
   // Stale intakes (paid but not reviewed in 2+ hours)
-  const staleIntakes = systemHealthResult.data || []
+  const staleIntakes = stuckIntakesResult.data || []
   const recentErrors = filterNonActionableOpsErrors((recentErrorsResult.data || []) as AuditErrorRow[])
   const prescriptionWebhookFailures = filterNonActionableOpsErrors(
     (prescriptionWebhookFailuresResult.data || []) as AuditErrorRow[],
@@ -294,6 +309,10 @@ export default async function OpsDashboardPage() {
       recent: recentErrors,
     },
     auditVolume: auditLogsResult.count || 0,
+    safetyBlocks: {
+      count: safetyBlocksResult.count || 0,
+      recent: safetyBlocksResult.data || [],
+    },
     patientIdentity: patientIdentityResult,
     prescribingIdentity: {
       totalActive: prescribingIdentityResult.totalActive,
@@ -302,7 +321,7 @@ export default async function OpsDashboardPage() {
       topBlockers: Object.entries(prescribingIdentityResult.blockerCounts)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 3)
-        .map(([label, count]) => ({ label, count })),
+        .map(([label, count]) => ({ label, count: Number(count) || 0 })),
     },
     staleIntakes: staleIntakes.length,
     failureOverview,
@@ -356,6 +375,7 @@ export default async function OpsDashboardPage() {
     systemStatus: {
       webhooksHealthy: (webhookDlqResult.count || 0) < 5,
       emailsHealthy: emailStats.failed < 3 && missingEmailDeliveryEnv.length === 0,
+      authEmailsHealthy: !authEmailHealthResult.unavailable && authEmailHealthResult.failed === 0,
       intakesHealthy: staleIntakes.length < 3,
       patientIdentityHealthy: patientIdentityResult.duplicateProfileCount === 0,
       prescribingIdentityHealthy: prescribingIdentityResult.blockedCount === 0,

@@ -58,7 +58,7 @@ InstantMed's commercial moat is no booked appointment, no waiting room, and a se
 | **Age** | 18+ minimum. Parental/guardian consent for minors (Terms section 2) |
 | **Medicare** | Optional for med certs. Required for prescriptions and consultations |
 | **Identity** | Name + DOB + address. No photo ID verification. Medicare Luhn check when provided |
-| **Hours** | Med certs: 24/7. Rx/Consults: 8am–10pm AEST, 7 days. Target 1-2h review, 24h max. No guaranteed response time |
+| **Hours** | Requests submit 24/7 for every pathway. Rx/consult review timing is 8am–10pm AEST, 7 days. Target 1-2h review, 24h max. No guaranteed response time. Never hard-block checkout by time of day |
 | **Med cert duration** | Hard cap 3 days. Constant: `MAX_MED_CERT_DURATION_DAYS` in `lib/clinical/intake-validation.ts`. Auto-approval flags `duration_too_long` for anything above. No override |
 | **Med cert start date** | Start date must be today or in the past, never future-dated. Shared policy lives in `lib/medical-certificates/date-policy.ts` and is enforced across checkout validation, approval, in-place reissue/date correction, render/preview routes, and DB constraint `issued_certificates_start_date_not_future`. |
 | **Med cert validity** | Certificates do not expire. Once issued, they remain authentic indefinitely. Only `revoked` status invalidates a cert; DB trigger from migration `20260428000001_lock_cert_status.sql` rejects any other transition. The retired expiry cron must not exist in Vercel cron config, heartbeat monitoring, routes, or tests. |
@@ -111,6 +111,7 @@ The platform may apply deterministic (non-AI) rules to assist triage:
 - Escalation markers disable async completion
 - All rules are logic-based, server-side, fully logged, and explainable
 - Rules assist but never replace clinician judgment
+- Checkout and retry-payment paths must reject missing safety-critical answers before payment. Missing-answer outcomes are `REQUEST_MORE_INFO`, not clinician declines.
 
 ---
 

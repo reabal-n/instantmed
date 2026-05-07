@@ -145,7 +145,11 @@ export function EmailHubClient({
   const router = useRouter()
   const stats = initialStats
   const activity = initialActivity
-  const emailIssues = issueActivity
+  const emailIssues = activity.filter((item) =>
+    ["failed", "pending", "sending"].includes(item.status)
+      || item.deliveryStatus === "bounced"
+      || item.deliveryStatus === "complained",
+  )
 
   const handleRefresh = () => {
     startRefresh(() => {

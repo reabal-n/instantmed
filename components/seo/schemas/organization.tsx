@@ -99,8 +99,8 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
     openingHoursSpecification: {
       "@type": "OpeningHoursSpecification",
       dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-      opens: "08:00",
-      closes: "22:00"
+      opens: "00:00",
+      closes: "23:59"
     },
     contactPoint: [{
       "@type": "ContactPoint",

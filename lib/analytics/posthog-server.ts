@@ -135,7 +135,8 @@ export function trackIntakeFunnelStep(event: {
 }
 
 /**
- * Track when a request is blocked by operational controls (business hours, capacity)
+ * Track when a request is blocked by operational controls.
+ * Business-hours events are legacy analytics/reference only; checkout is never time-blocked.
  */
 export function trackOperationalBlock(event: {
   blockType: "business_hours" | "capacity_limit"

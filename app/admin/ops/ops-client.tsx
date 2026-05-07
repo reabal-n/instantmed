@@ -107,6 +107,18 @@ interface OpsData {
     }>
   }
   auditVolume: number
+  safetyBlocks: {
+    count: number
+    recent: Array<{
+      id: string
+      evaluated_at: string
+      service_slug: string
+      outcome: string
+      risk_tier: string
+      triggered_rule_ids: string[] | null
+      request_id: string | null
+    }>
+  }
   patientIdentity: {
     rawProfileCount: number
     uniqueProfileCount: number
@@ -664,6 +676,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
   const {
     webhooks,
     emails,
+    safetyBlocks,
     errors,
     auditVolume,
     patientIdentity,
@@ -818,6 +831,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
               <StatusIndicator healthy={systemStatus.patientIdentityHealthy} label="Patient identity" />
               <StatusIndicator healthy={systemStatus.prescribingIdentityHealthy} label="Prescribing identity" />
               <StatusIndicator healthy={systemStatus.failureOverviewHealthy} label="Recovery inbox" />
+              <StatusIndicator healthy={safetyBlocks.count === 0} label="Safety checkout blocks" />
               <StatusIndicator healthy={systemStatus.telegramAlertsHealthy} label="Telegram alerts" />
               <StatusIndicator healthy label="Doctor dashboard toasts: new requests only" />
             </div>
@@ -987,6 +1001,13 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
               tone={patientIdentity.duplicateProfileCount > 0 ? "warning" : "success"}
               href={patientIdentity.duplicateProfileCount > 0 ? ADMIN_PATIENT_MERGE_AUDIT_HREF : undefined}
               actionLabel={patientIdentity.duplicateProfileCount > 0 ? "Review duplicate profiles" : undefined}
+            />
+            <OpsSignalCard
+              icon={AlertTriangle}
+              label="Safety blocks"
+              value={safetyBlocks.count}
+              detail="Checkout safety stops in the last 24h"
+              tone={safetyBlocks.count > 0 ? "warning" : "success"}
             />
             <OpsSignalCard
               icon={Pill}

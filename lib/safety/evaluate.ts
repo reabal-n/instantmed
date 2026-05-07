@@ -461,35 +461,62 @@ export function validateSafetyFieldsPresent(
   const config = getSafetyConfig(serviceSlug)
   if (!config) return { valid: true, missingFields: [] }
 
-  // Safety rules are designed to TRIGGER on dangerous conditions. When a field
-  // is missing, the condition evaluates to false and the rule doesn't fire.
-  // This is safe behavior - it means the patient isn't blocked or flagged.
-  //
-  // Field presence is already enforced by step validation (each step has its own
-  // validateFn that prevents progression without answering required questions).
-  //
-  // This function only flags fields that are explicitly marked as required for
-  // safety evaluation via the `requiredForSafety` flag on the condition.
-  const missingFields: string[] = []
-
-  for (const rule of config.rules) {
-    if (rule.outcome !== 'DECLINE' && rule.outcome !== 'REQUIRES_CALL') continue
-
-    for (const condition of rule.conditions) {
-      if (condition.derivedFrom) continue
-      if (!condition.requiredForSafety) continue
-      const fieldId = condition.fieldId
-      const value = answers[fieldId]
-      if (value === null || value === undefined || value === '') {
-        if (!missingFields.includes(fieldId)) {
-          missingFields.push(fieldId)
-        }
-      }
-    }
-  }
+  const missingFields = getRequiredSafetyFields(serviceSlug, answers).filter(
+    (fieldId) => !hasAnsweredField(answers[fieldId]),
+  )
 
   return {
     valid: missingFields.length === 0,
     missingFields,
   }
+}
+
+function hasAnsweredField(value: unknown): boolean {
+  if (value === null || value === undefined) return false
+  if (typeof value === 'string') return value.trim().length > 0
+  return true
+}
+
+function getRequiredSafetyFields(
+  serviceSlug: string,
+  answers: Record<string, unknown>
+): string[] {
+  const fields = new Set<string>(['emergency_symptoms'])
+
+  if (
+    serviceSlug === 'medical-certificate' ||
+    serviceSlug === 'med-cert' ||
+    serviceSlug === 'med-cert-sick' ||
+    serviceSlug === 'med-cert-carer' ||
+    serviceSlug === 'med-cert-fitness' ||
+    serviceSlug === 'sick-certificate'
+  ) {
+    fields.add('start_date')
+  }
+
+  if (serviceSlug === 'consult' || serviceSlug === 'gp-consult' || serviceSlug === 'consultation') {
+    const subtype = String(answers.consultSubtype || answers.consult_subtype || '')
+    const category = String(answers.consultCategory || answers.consult_category || '')
+
+    if (subtype === 'ed') {
+      fields.add('edNitrates')
+      fields.add('edRecentHeartEvent')
+      fields.add('edSevereHeart')
+    } else if (!subtype || subtype === 'general' || category === 'general') {
+      fields.add('general_associated_symptoms')
+      fields.add('consultUrgency')
+    }
+  }
+
+  if (
+    serviceSlug === 'weight-management' ||
+    serviceSlug === 'weight' ||
+    serviceSlug === 'weight-loss'
+  ) {
+    fields.add('currentWeight')
+    fields.add('currentHeight')
+    fields.add('eatingDisorderHistory')
+  }
+
+  return Array.from(fields)
 }

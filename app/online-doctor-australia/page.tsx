@@ -33,7 +33,7 @@ const CANONICAL = "https://instantmed.com.au/online-doctor-australia"
 
 export const metadata: Metadata = {
   title: "Online Doctor Australia | AHPRA-Registered GPs, Reviewed Same Day",
-  description: `See an online doctor in Australia without the waiting room. AHPRA-registered GPs review medical certificates, prescriptions, and consultations same-day. ${PRICING_DISPLAY.FROM_MED_CERT}, 24/7 for med certs, 8am\u201310pm AEST for Rx and consults.`,
+  description: `See an online doctor in Australia without the waiting room. AHPRA-registered GPs review medical certificates, prescriptions, and consultations same-day. ${PRICING_DISPLAY.FROM_MED_CERT}, requests open 24/7.`,
   keywords: [
     "online doctor australia",
     "online doctor au",
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
 const STATS = [
   { value: "AHPRA", label: "Registered GPs", context: "Every review by an Australian-registered doctor" },
   { value: `~${SOCIAL_PROOF.certTurnaroundMinutes} min`, label: "Med cert turnaround", context: "Typical same-day timing" },
-  { value: "24/7", label: "Med cert availability", context: "Rx + consults 8am–10pm AEST" },
+  { value: "24/7", label: "Request submission", context: "Rx + consult review follows when available" },
   { value: `${PRICING_DISPLAY.MED_CERT}`, label: "From", context: "Full refund if we can't help" },
 ]
 
@@ -130,7 +130,7 @@ const FAQS = [
   {
     question: "How fast will I actually hear back from the doctor?",
     answer:
-      "Medical certificates are typically reviewed within around 30 minutes, 24 hours a day. Prescriptions and consultations are reviewed within 1–2 hours during our operating hours (8am–10pm AEST, seven days a week), and within 24 hours at the maximum. We don't publish a customer-facing SLA guarantee, but the vast majority of requests are cleared same-day.",
+      "Medical certificates are typically reviewed within around 30 minutes, 24 hours a day. Prescription and consultation requests can be submitted 24/7 and are usually reviewed within 1–2 hours during review hours (8am–10pm AEST, seven days a week), and within 24 hours at the maximum. We don't publish a customer-facing SLA guarantee, but the vast majority of requests are cleared same-day.",
   },
   {
     question: "Can I use an online doctor for my children?",
@@ -176,7 +176,7 @@ const medicalBusinessSchema = {
       opens: "00:00",
       closes: "23:59",
       description:
-        "Medical certificates available 24/7. Prescription and consultation reviews 08:00–22:00 AEST.",
+        "Requests accepted 24/7. Prescription and consultation reviews usually occur 08:00–22:00 AEST.",
     },
   ],
   medicalSpecialty: "General Practice",

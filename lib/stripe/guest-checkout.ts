@@ -23,6 +23,7 @@ import { getMedicationBlocklistCandidate } from "@/lib/operational-controls/medi
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { buildAddressAuditMetadata } from "@/lib/request/address-metadata"
 import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing-identity"
+import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { validateMedCertPayload } from "@/lib/validation/med-cert-schema"
@@ -302,6 +303,19 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         serviceSlug: serviceSlugForSafety,
         missingFields: fieldCheck.missingFields,
       })
+      await recordSafetyEvaluationForOperators({
+        answers: input.answers,
+        context: "checkout",
+        result: {
+          isAllowed: false,
+          outcome: "REQUEST_MORE_INFO",
+          riskTier: "high",
+          blockReason: "Required medical information is missing.",
+          requiresCall: false,
+          triggeredRuleIds: ["missing_safety_fields"],
+        },
+        serviceSlug: serviceSlugForSafety,
+      })
       return {
         success: false,
         error: `Required medical information is missing. Please go back and complete all questions. Missing: ${fieldCheck.missingFields.join(", ")}`,
@@ -332,6 +346,12 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         outcome: safetyCheck.outcome,
         blockReason: safetyCheck.blockReason || "Unknown reason",
         triggeredRuleIds: safetyCheck.triggeredRuleIds,
+      })
+      await recordSafetyEvaluationForOperators({
+        answers: input.answers,
+        context: "checkout",
+        result: safetyCheck,
+        serviceSlug: serviceSlugForSafety,
       })
       
       if (safetyCheck.outcome === 'DECLINE') {
@@ -656,6 +676,26 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       await supabase.from("intakes").delete().eq("id", intake.id)
       return { success: false, error: "Failed to save your clinical information. Please try again." }
     }
+
+    await Promise.all([
+      recordSafetyEvaluationForOperators({
+        answers: input.answers,
+        context: "checkout",
+        requestId: intake.id,
+        result: safetyCheck,
+        serviceSlug: serviceSlugForSafety,
+      }),
+      supabase
+        .from("intakes")
+        .update({
+          risk_tier: safetyCheck.riskTier,
+          triage_result: "allow",
+          triage_reasons: safetyCheck.triggeredRuleIds,
+          requires_live_consult: safetyCheck.requiresCall,
+          live_consult_reason: safetyCheck.blockReason || null,
+        })
+        .eq("id", intake.id),
+    ])
 
     // Compliance audit: log request creation and consent for LegitScript/AHPRA defensibility
     // Placed after answers insert so these records never orphan if the intake is rolled back.
