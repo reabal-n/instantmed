@@ -7,6 +7,7 @@ import { env } from "@/lib/config/env"
 import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/lib/email/components/templates"
 import { sendEmail } from "@/lib/email/send-email"
 import { createLogger } from "@/lib/observability/logger"
+import { getPatientIntakeDetailHref } from "@/lib/patient/certificate-download"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("resend-certificate-admin")
@@ -89,20 +90,7 @@ export async function resendCertificateAdmin(intakeId: string): Promise<ResendCe
       }
 
       // Send email using the same approach as initial approval
-      const dashboardUrl = `${env.appUrl}/track/${intakeId}`
-
-      // Generate signed download URL (72h expiry) so patient can download without login
-      let downloadUrl: string | undefined
-      if (certificate.storage_path) {
-        try {
-          const { data: signedUrlData } = await supabase.storage
-            .from("documents")
-            .createSignedUrl(certificate.storage_path, 3 * 24 * 60 * 60)
-          downloadUrl = signedUrlData?.signedUrl ?? undefined
-        } catch {
-          log.warn("Resend cert admin: failed to generate signed URL", { intakeId })
-        }
-      }
+      const dashboardUrl = `${env.appUrl}${getPatientIntakeDetailHref(intakeId)}`
 
       const emailResult = await sendEmail({
         to: patient.email,
@@ -110,7 +98,6 @@ export async function resendCertificateAdmin(intakeId: string): Promise<ResendCe
         subject: `${medCertPatientEmailSubject(patient.full_name?.split(" ")[0])} (Resent)`,
         template: MedCertPatientEmail({
           patientName: patient.full_name,
-          downloadUrl,
           dashboardUrl,
           verificationCode: certificate.verification_code,
           certType: certificate.certificate_type === "study" ? "study" : certificate.certificate_type === "carer" ? "carer" : "work",

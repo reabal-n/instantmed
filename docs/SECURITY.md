@@ -159,7 +159,7 @@ Closed profiles are rejected by the central auth helpers (`getAuthenticatedUserW
 | Bucket | Visibility | Patient | Doctor | Delete |
 |--------|-----------|---------|--------|--------|
 | `attachments` | Private | Upload/view own | View all | Draft intakes only |
-| `documents` | Private (signed URLs) | Via signed URL | INSERT | No one (immutable) |
+| `documents` | Private (server-streamed signed URLs) | Via authenticated app download route | INSERT | No one (immutable) |
 | `intake-photos` | Private | Upload/view own folder (`{patient_id}/`) | View all | No one |
 
 ### Public Asset Security — Resolved

@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { resolveInitialPatientConversation } from "@/lib/patient/messages"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { MessagesClient } from "./messages-client"
@@ -12,9 +13,14 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic"
 
-export default async function PatientMessagesPage() {
+export default async function PatientMessagesPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ intakeId?: string }>
+}) {
   // Layout enforces patient role - use cached profile
   const authUser = (await getAuthenticatedUserWithProfile())!
+  const requestedIntakeId = (await searchParams)?.intakeId ?? null
 
   const supabase = createServiceRoleClient()
   const patientId = authUser.profile.id
@@ -63,17 +69,21 @@ export default async function PatientMessagesPage() {
     }
   })
 
-  // Get unread count
-  const { count: unreadCount } = await supabase
+  const readAt = new Date().toISOString()
+  await supabase
     .from("patient_messages")
-    .select("id", { count: "exact", head: true })
+    .update({ read_at: readAt })
     .eq("patient_id", patientId)
     .eq("sender_type", "doctor")
     .is("read_at", null)
 
+  const messagesForClient = messages.map((msg) =>
+    msg.sender_type === "doctor" && !msg.read_at ? { ...msg, read_at: readAt } : msg,
+  )
+
   // Group messages by intake
-  const messagesByIntake: Record<string, typeof messages> = {}
-  for (const msg of messages || []) {
+  const messagesByIntake: Record<string, typeof messagesForClient> = {}
+  for (const msg of messagesForClient || []) {
     const intakeId = msg.intake_id || "general"
     if (!messagesByIntake[intakeId]) {
       messagesByIntake[intakeId] = []
@@ -81,12 +91,18 @@ export default async function PatientMessagesPage() {
     messagesByIntake[intakeId]!.push(msg)
   }
 
+  const initialIntakeId = resolveInitialPatientConversation(
+    Object.keys(messagesByIntake),
+    requestedIntakeId,
+  )
+
   return (
     <MessagesClient
-      messages={messages || []}
+      messages={messagesForClient || []}
       messagesByIntake={messagesByIntake}
-      unreadCount={unreadCount || 0}
+      unreadCount={0}
       error={fetchError}
+      initialIntakeId={initialIntakeId}
     />
   )
 }

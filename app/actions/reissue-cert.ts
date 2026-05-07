@@ -24,6 +24,7 @@ import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/lib/email/com
 import { sendEmail } from "@/lib/email/send-email"
 import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
 import { createLogger } from "@/lib/observability/logger"
+import { getPatientIntakeDetailHref } from "@/lib/patient/certificate-download"
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import { prepareCertificatePatientNameWrite } from "@/lib/security/phi-field-wrappers"
 import { getAbsenceDays } from "@/lib/stripe/price-mapping"
@@ -277,17 +278,7 @@ export async function reissueCertificateAction(
         const patient = Array.isArray(rawPatient) ? rawPatient[0] : rawPatient
 
         if (patient?.email && patient?.full_name) {
-          const dashboardUrl = `${env.appUrl}/track/${intakeId}`
-
-          let downloadUrl: string | undefined
-          try {
-            const { data: signedUrlData } = await supabase.storage
-              .from("documents")
-              .createSignedUrl(cert.storage_path, 3 * 24 * 60 * 60)
-            downloadUrl = signedUrlData?.signedUrl ?? undefined
-          } catch {
-            logger.warn("[ReissueCert] Failed to generate signed URL for notification", { intakeId })
-          }
+          const dashboardUrl = `${env.appUrl}${getPatientIntakeDetailHref(intakeId)}`
 
           await sendEmail({
             to: patient.email,
@@ -295,7 +286,6 @@ export async function reissueCertificateAction(
             subject: `${medCertPatientEmailSubject(patient.full_name?.split(" ")[0])} (Updated)`,
             template: MedCertPatientEmail({
               patientName: patient.full_name,
-              downloadUrl,
               dashboardUrl,
               verificationCode: cert.verification_code,
               certType:

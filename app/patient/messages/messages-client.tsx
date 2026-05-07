@@ -45,6 +45,7 @@ interface MessagesClientProps {
   messagesByIntake: Record<string, Message[]>
   unreadCount: number
   error?: string | null
+  initialIntakeId?: string | null
 }
 
 function formatServiceType(type: string): string {
@@ -61,9 +62,10 @@ export function MessagesClient({
   messagesByIntake,
   unreadCount,
   error,
+  initialIntakeId = null,
 }: MessagesClientProps) {
   const router = useRouter()
-  const [selectedIntake, setSelectedIntake] = useState<string | null>(null)
+  const [selectedIntake, setSelectedIntake] = useState<string | null>(initialIntakeId)
   const [newMessage, setNewMessage] = useState("")
   const [sending, setSending] = useState(false)
   const [failedMessage, setFailedMessage] = useState<{ intakeId: string; content: string } | null>(null)

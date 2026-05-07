@@ -2,7 +2,7 @@
  * Medical Certificate Patient Email Template
  *
  * Sent to patient when their medical certificate is approved and ready.
- * Primary CTA: direct signed download link (works for guests & auth users).
+ * Primary CTA: authenticated request tracking/dashboard link.
  */
 
 import * as React from "react"
@@ -18,7 +18,6 @@ import {
 
 export interface MedCertPatientEmailProps {
   patientName: string
-  downloadUrl?: string
   dashboardUrl: string
   verificationCode?: string
   certType?: "work" | "study" | "carer"
@@ -27,7 +26,6 @@ export interface MedCertPatientEmailProps {
 
 export function MedCertPatientEmail({
   patientName,
-  downloadUrl,
   dashboardUrl,
   verificationCode,
   certType: _certType = "work",
@@ -60,8 +58,8 @@ export function MedCertPatientEmail({
         .
       </Text>
 
-      <Button href={downloadUrl || dashboardUrl}>
-        Download Certificate
+      <Button href={dashboardUrl}>
+        View Certificate
       </Button>
 
       {verificationCode && (

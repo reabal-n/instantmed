@@ -5,6 +5,7 @@ import { env } from "@/lib/config/env"
 import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/lib/email/components/templates"
 import { sendEmail } from "@/lib/email/send-email"
 import { createLogger } from "@/lib/observability/logger"
+import { getPatientIntakeDetailHref } from "@/lib/patient/certificate-download"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("resend-certificate")
@@ -80,21 +81,7 @@ export async function resendCertificate(intakeId: string): Promise<ResendCertifi
     const certificate = await getCertificateForIntake(intakeId)
     
     if (certificate) {
-      // Use centralized email system
-      const dashboardUrl = `${env.appUrl}/track/${intakeId}`
-
-      // Generate signed download URL (7-day expiry) so patient can download without login
-      let downloadUrl: string | undefined
-      if (certificate.storage_path) {
-        try {
-          const { data: signedUrlData } = await supabase.storage
-            .from("documents")
-            .createSignedUrl(certificate.storage_path, 3 * 24 * 60 * 60) // 72 hours
-          downloadUrl = signedUrlData?.signedUrl ?? undefined
-        } catch {
-          log.warn("Resend certificate: failed to generate signed URL", { intakeId })
-        }
-      }
+      const dashboardUrl = `${env.appUrl}${getPatientIntakeDetailHref(intakeId)}`
 
       const emailResult = await sendEmail({
         to: patient.email,
@@ -102,7 +89,6 @@ export async function resendCertificate(intakeId: string): Promise<ResendCertifi
         subject: `${medCertPatientEmailSubject(patient.full_name?.split(" ")[0])} (Resent)`,
         template: MedCertPatientEmail({
           patientName: patient.full_name,
-          downloadUrl,
           dashboardUrl,
           verificationCode: certificate.verification_code,
           certType: certificate.certificate_type === "study" ? "study" : certificate.certificate_type === "carer" ? "carer" : "work",
@@ -128,7 +114,7 @@ export async function resendCertificate(intakeId: string): Promise<ResendCertifi
         return { success: false, error: "Failed to send email. Please try again." }
       }
 
-      log.info("Certificate resent successfully", { intakeId, to: patient.email })
+      log.info("Certificate resent successfully", { intakeId })
       return { success: true }
     }
 

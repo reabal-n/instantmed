@@ -19,6 +19,7 @@ import { sendEmail } from "@/lib/email/send-email"
 import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
 import { createNotification } from "@/lib/notifications/service"
 import { logger } from "@/lib/observability/logger"
+import { getPatientIntakeDetailHref } from "@/lib/patient/certificate-download"
 import { generateCertificateNumber, generateCertificateRef,generateVerificationCode } from "@/lib/pdf/cert-identifiers"
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import { getAbsenceDays } from "@/lib/stripe/price-mapping"
@@ -488,25 +489,10 @@ export async function executeCertApproval(
     }
   }
 
-  // 7. Generate signed download URL
-  Sentry.addBreadcrumb({ category: "cert.flow", message: "Generating signed download URL", level: "info", data: { intakeId, storagePath } })
-  let downloadUrl: string | undefined
-  try {
-    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-      .from("documents")
-      .createSignedUrl(storagePath, 3 * 24 * 60 * 60) // 72 hours
-    if (signedUrlError || !signedUrlData?.signedUrl) {
-      logger.warn("Failed to generate signed download URL", { intakeId, storagePath, error: signedUrlError?.message })
-    } else {
-      downloadUrl = signedUrlData.signedUrl
-    }
-  } catch (signedUrlErr) {
-    logger.warn("Exception generating signed download URL", { intakeId, error: signedUrlErr })
-  }
-
-  // 8. Send email notification
-  Sentry.addBreadcrumb({ category: "cert.flow", message: "Sending patient email", level: "info", data: { intakeId, certificateId, hasDownloadUrl: !!downloadUrl } })
-  const dashboardUrl = `${env.appUrl}/track/${intakeId}`
+  // 7. Send email notification. The email routes patients back through the
+  // app so certificate downloads stay ownership-checked and audit-logged.
+  Sentry.addBreadcrumb({ category: "cert.flow", message: "Sending patient email", level: "info", data: { intakeId, certificateId } })
+  const dashboardUrl = `${env.appUrl}${getPatientIntakeDetailHref(intakeId)}`
 
   const emailResult = await sendEmail({
     to: patient.email,
@@ -514,7 +500,6 @@ export async function executeCertApproval(
     subject: medCertPatientEmailSubject(patient.full_name?.split(" ")[0]),
     template: MedCertPatientEmail({
       patientName: patient.full_name,
-      downloadUrl,
       dashboardUrl,
       verificationCode,
       certType: certificateType === "study" ? "study" : certificateType === "carer" ? "carer" : "work",
@@ -533,10 +518,8 @@ export async function executeCertApproval(
       { name: "intake_id", value: intakeId },
       { name: "cert_type", value: certificateType },
     ],
-    // No PDF attachment. Patients download the cert via signed URL (72h) or
-    // their dashboard. Reasons: (1) PHI in mailbox increases breach blast
-    // radius; (2) Resend attachments eat quota + delay delivery; (3) signed
-    // URL lets us audit views and expire links.
+    // No PDF attachment and no storage signed URL in email. Patients download
+    // through the app route so auth, ownership checks, and audit logging stay intact.
   })
 
   // Track email status
