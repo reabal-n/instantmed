@@ -7,6 +7,7 @@ import { getPostHogClient, trackIntakeFunnelStep } from "@/lib/analytics/posthog
 import { sendPaidRequestTelegramNotification } from "@/lib/notifications/paid-request-telegram"
 import { notifyPaymentReceived } from "@/lib/notifications/service"
 import { createLogger } from "@/lib/observability/logger"
+import { canRetryPaymentForIntake } from "@/lib/stripe/payment-integrity"
 import { startPostPaymentReviewWork } from "@/lib/stripe/post-payment"
 
 import type { HandlerResult, WebhookContext } from "./types"
@@ -159,7 +160,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
     // STEP 1: Check current intake state BEFORE updating
     const { data: currentIntake, error: fetchError } = await supabase
       .from("intakes")
-      .select("id, status, payment_status")
+      .select("id, status, payment_status, payment_id")
       .eq("id", intakeId)
       .single()
 
@@ -230,6 +231,35 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
       return NextResponse.json({ received: true, already_paid: true })
     }
 
+    if (!canRetryPaymentForIntake(currentIntake.status, currentIntake.payment_status)) {
+      const errorMsg = `Payment success received for non-retryable intake state: ${currentIntake.status}/${currentIntake.payment_status}`
+      log.error("Payment success refused for non-retryable intake state", {
+        eventId: event.id,
+        intakeId,
+        paymentStatus: currentIntake.payment_status,
+        sessionId: session.id,
+        status: currentIntake.status,
+      })
+      await recordEventError(supabase, event.id, errorMsg)
+      await addToDeadLetterQueue(
+        supabase,
+        event.id,
+        event.type,
+        session.id,
+        intakeId,
+        errorMsg,
+        "NON_RETRYABLE_PAYMENT_SUCCESS",
+        {
+          amount: session.amount_total,
+          current_payment_id: currentIntake.payment_id,
+          current_payment_status: currentIntake.payment_status,
+          current_status: currentIntake.status,
+          payment_intent: session.payment_intent,
+        },
+      )
+      return NextResponse.json({ received: true, skipped: true, dlq: true })
+    }
+
     // STEP 3: Update intake to paid status with Stripe identifiers for refund traceability
     const paymentIntentId = typeof session.payment_intent === "string"
       ? session.payment_intent
@@ -257,6 +287,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
         stripe_customer_id: stripeCustomerId,
       })
       .eq("id", intakeId)
+      .in("status", ["pending_payment", "checkout_failed"])
       .in("payment_status", ["pending", "unpaid", "failed"]) // Allow successful retries after failed attempts
       .select("id, status")
       .single()
@@ -286,6 +317,28 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
         return NextResponse.json({ received: true, concurrent_update: true })
       }
 
+      if (recheckIntake && !canRetryPaymentForIntake(recheckIntake.status, recheckIntake.payment_status)) {
+        const errorMsg = `Payment success update skipped after state changed to ${recheckIntake.status}/${recheckIntake.payment_status}`
+        log.error("Payment success refused after state recheck", {
+          intakeId,
+          paymentStatus: recheckIntake.payment_status,
+          sessionId: session.id,
+          status: recheckIntake.status,
+        })
+        await recordEventError(supabase, event.id, errorMsg)
+        await addToDeadLetterQueue(
+          supabase,
+          event.id,
+          event.type,
+          session.id,
+          intakeId,
+          errorMsg,
+          "NON_RETRYABLE_PAYMENT_SUCCESS",
+          { amount: session.amount_total, payment_intent: session.payment_intent },
+        )
+        return NextResponse.json({ received: true, skipped: true, dlq: true })
+      }
+
       // If the update failed but intake exists with wrong status, try force update
       // Uses .neq("payment_status", "paid") as optimistic lock to prevent double-processing
       if (recheckIntake && recheckIntake.payment_status !== "paid") {
@@ -305,6 +358,8 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
             stripe_customer_id: stripeCustomerId,
           })
           .eq("id", intakeId)
+          .in("status", ["pending_payment", "checkout_failed"])
+          .in("payment_status", ["pending", "unpaid", "failed"])
           .neq("payment_status", "paid")
           .select("id, status")
 

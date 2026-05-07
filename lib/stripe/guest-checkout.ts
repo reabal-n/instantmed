@@ -146,6 +146,21 @@ function getServiceSlug(category: ServiceCategory, subtype: string): string {
   return slugMap[`${category}:${subtype}`] || categoryFallback[category] || "consult"
 }
 
+async function markGuestCheckoutFailed(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  intakeId: string,
+  checkoutError: string,
+) {
+  await supabase
+    .from("intakes")
+    .update({
+      checkout_error: checkoutError,
+      status: "checkout_failed",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", intakeId)
+}
+
 /**
  * Create a guest checkout session without requiring authentication
  * Creates a minimal guest profile, intake, and Stripe checkout
@@ -662,7 +677,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
     // 5. Validate price ID (already fetched above)
     if (!priceId) {
-      await supabase.from("intakes").delete().eq("id", intake.id)
+      await markGuestCheckoutFailed(supabase, intake.id, "Missing Stripe price ID")
       return { success: false, error: "Unable to determine pricing. Please contact support." }
     }
 
@@ -729,8 +744,8 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         hasUrl: !!session.url 
       })
     } catch (stripeError: unknown) {
-      await supabase.from("intakes").delete().eq("id", intake.id)
       const errorMessage = stripeError instanceof Error ? stripeError.message : String(stripeError)
+      await markGuestCheckoutFailed(supabase, intake.id, errorMessage)
       logger.error("Stripe checkout session creation failed", { 
         error: errorMessage, 
         intakeId: intake.id,
@@ -751,7 +766,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
     if (!session.url) {
       logger.error("Stripe session created but no URL returned", { sessionId: session.id })
-      await supabase.from("intakes").delete().eq("id", intake.id)
+      await markGuestCheckoutFailed(supabase, intake.id, "No checkout URL returned from Stripe")
       return { success: false, error: "Failed to create checkout session. Please try again." }
     }
 

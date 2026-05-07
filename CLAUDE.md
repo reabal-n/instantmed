@@ -232,7 +232,7 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 
 **Safety/payment consent:** Not a standalone step. Med cert collects final consent in `checkout`; prescription/repeat flows collect it in the combined review/pay step; consult flows use review then checkout.
 
-**Guest checkout:** Creates profile without `auth_user_id` → Stripe checkout → redirects to `/auth/complete-account` for account linking.
+**Guest checkout:** Creates profile without `auth_user_id` → Stripe checkout → redirects to `/auth/complete-account` for account linking. After clinical answers are persisted, Stripe setup failures must keep an operator-visible `checkout_failed` intake instead of deleting the record.
 
 **Referrals:** $5 credit to both parties. Patient shares `?ref=` link. UI: `components/patient/referral-card.tsx`.
 

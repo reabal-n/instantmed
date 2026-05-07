@@ -84,7 +84,8 @@ function setupSupabase(overrides: {
   }
   const intakeUpdate = {
     eq: vi.fn(() => intakeUpdate),
-    in: vi.fn(async () => ({ error: null })),
+    in: vi.fn(() => intakeUpdate),
+    then: (resolve: (value: { error: null }) => void) => Promise.resolve({ error: null }).then(resolve),
   }
 
   const supabase = {
@@ -218,5 +219,39 @@ describe("POST /api/stripe/verify-payment", () => {
       stripe_payment_intent_id: "pi_retry_paid",
     })
     expect(intakeUpdate.in).toHaveBeenCalledWith("payment_status", ["pending", "unpaid", "failed"])
+  })
+
+  it("does not resurrect a cancelled intake during fallback verification", async () => {
+    const { updates } = setupSupabase({
+      intake: {
+        id: "intake-1",
+        amount_cents: 1995,
+        payment_id: "cs_stored",
+        payment_status: "pending",
+        status: "cancelled",
+      },
+    })
+    mocks.retrieveCheckoutSession.mockResolvedValue({
+      id: "cs_stored",
+      customer: "cus_test",
+      metadata: { intake_id: "intake-1" },
+      payment_intent: "pi_paid",
+      payment_status: "paid",
+    })
+
+    const response = await POST(makeRequest({
+      intakeId: "intake-1",
+      sessionId: "cs_stored",
+    }))
+    const body = await response.json()
+
+    expect(response.status).toBe(409)
+    expect(body).toEqual({
+      error: "This request is not awaiting payment",
+      status: "cancelled",
+      success: false,
+    })
+    expect(updates).toHaveLength(0)
+    expect(mocks.startPostPaymentReviewWork).not.toHaveBeenCalled()
   })
 })

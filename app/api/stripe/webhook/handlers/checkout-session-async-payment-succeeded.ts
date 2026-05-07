@@ -6,10 +6,11 @@ import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
 import { sendGuestCompleteAccountEmail } from "@/lib/email/template-sender"
 import { sendPaidRequestTelegramNotification } from "@/lib/notifications/paid-request-telegram"
 import { createLogger } from "@/lib/observability/logger"
+import { canRetryPaymentForIntake } from "@/lib/stripe/payment-integrity"
 import { startPostPaymentReviewWork } from "@/lib/stripe/post-payment"
 
 import type { HandlerResult, WebhookContext } from "./types"
-import { tryClaimEvent } from "./utils"
+import { addToDeadLetterQueue, recordEventError, tryClaimEvent } from "./utils"
 
 const log = createLogger("stripe-webhook:async-payment-succeeded")
 
@@ -71,7 +72,7 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
   try {
     const { data: currentIntake } = await supabase
       .from("intakes")
-      .select("id, status, payment_status")
+      .select("id, status, payment_status, payment_id")
       .eq("id", intakeId)
       .single()
 
@@ -94,6 +95,43 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
       return NextResponse.json({ received: true, already_paid: true })
     }
 
+    if (
+      !canRetryPaymentForIntake(currentIntake.status, currentIntake.payment_status) ||
+      currentIntake.payment_id !== session.id
+    ) {
+      const errorMsg = currentIntake.payment_id !== session.id
+        ? `Async payment success received for stale checkout session: ${session.id}`
+        : `Async payment success received for non-retryable intake state: ${currentIntake.status}/${currentIntake.payment_status}`
+      log.error("Async payment success refused", {
+        currentPaymentId: currentIntake.payment_id,
+        eventId: event.id,
+        intakeId,
+        paymentStatus: currentIntake.payment_status,
+        sessionId: session.id,
+        status: currentIntake.status,
+      })
+      await recordEventError(supabase, event.id, errorMsg)
+      await addToDeadLetterQueue(
+        supabase,
+        event.id,
+        event.type,
+        session.id,
+        intakeId,
+        errorMsg,
+        currentIntake.payment_id !== session.id
+          ? "STALE_ASYNC_PAYMENT_SUCCESS"
+          : "NON_RETRYABLE_ASYNC_PAYMENT_SUCCESS",
+        {
+          amount: session.amount_total,
+          current_payment_id: currentIntake.payment_id,
+          current_payment_status: currentIntake.payment_status,
+          current_status: currentIntake.status,
+          payment_intent: session.payment_intent,
+        },
+      )
+      return NextResponse.json({ received: true, skipped: true, dlq: true })
+    }
+
     const paymentIntentId = typeof session.payment_intent === "string"
       ? session.payment_intent
       : session.payment_intent?.id || null
@@ -101,7 +139,7 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
       ? session.customer
       : session.customer?.id || null
 
-    const { error: updateError } = await supabase
+    const { data: updatedIntake, error: updateError } = await supabase
       .from("intakes")
       .update({
         payment_status: "paid",
@@ -112,10 +150,32 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
         stripe_customer_id: stripeCustomerId,
       })
       .eq("id", intakeId)
+      .eq("payment_id", session.id)
+      .in("status", ["pending_payment", "checkout_failed"])
+      .in("payment_status", ["pending", "unpaid", "failed"])
+      .select("id")
+      .maybeSingle()
 
     if (updateError) {
       log.error("Failed to update intake for async payment", { intakeId, error: updateError.message })
       return NextResponse.json({ error: "Update failed" }, { status: 500 })
+    }
+
+    if (!updatedIntake) {
+      const errorMsg = "Async payment success update matched no current retryable intake"
+      log.error(errorMsg, { eventId: event.id, intakeId, sessionId: session.id })
+      await recordEventError(supabase, event.id, errorMsg)
+      await addToDeadLetterQueue(
+        supabase,
+        event.id,
+        event.type,
+        session.id,
+        intakeId,
+        errorMsg,
+        "ASYNC_PAYMENT_SUCCESS_UPDATE_MISSED",
+        { amount: session.amount_total, payment_intent: session.payment_intent },
+      )
+      return NextResponse.json({ received: true, skipped: true, dlq: true })
     }
 
     // Save Stripe customer ID to profile
