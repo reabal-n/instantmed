@@ -44,11 +44,13 @@ describe("code-clean retirement contracts", () => {
     expect(existsSync(join(root, "app/api/cron/subscription-nudge/route.ts"))).toBe(false)
     expect(existsSync(join(root, "lib/email/subscription-nudge.ts"))).toBe(false)
     expect(existsSync(join(root, "components/email/templates/subscription-nudge.tsx"))).toBe(false)
+    expect(existsSync(join(root, "lib/email/components/templates/subscription-nudge.tsx"))).toBe(false)
 
     const orphanCheck = read("scripts/check-orphaned-files.sh")
     expect(orphanCheck).toContain("app/api/cron/subscription-nudge/route.ts")
     expect(orphanCheck).toContain("lib/email/subscription-nudge.ts")
     expect(orphanCheck).toContain("components/email/templates/subscription-nudge.tsx")
+    expect(orphanCheck).toContain("lib/email/components/templates/subscription-nudge.tsx")
 
     const vercelConfig = JSON.parse(read("vercel.json")) as {
       crons?: Array<{ path?: string }>
