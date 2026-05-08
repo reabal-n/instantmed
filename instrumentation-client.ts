@@ -2,6 +2,7 @@
 // The added config here will be used whenever a users loads a page in their browser.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
+import { onFirstInteraction } from "@/lib/browser/first-interaction";
 import { scrubSentryBreadcrumb, scrubSentryEvent } from "@/lib/observability/scrub-phi";
 
 // Sentry module reference — populated after lazy load.
@@ -102,26 +103,8 @@ async function loadAndInitSentry() {
 
 }
 
-// Gate telemetry (Sentry + PostHog) behind first user interaction OR a 4s
-// hard fallback. Keeps ~250 KB of Sentry + PostHog chunks off the initial
-// load path — real users interact within a second or two (scroll is enough),
-// so telemetry-latency impact is negligible, and bouncers who never engage
-// are already counted by Vercel Analytics. 10s was tested and gave the same
-// Lighthouse score as 4s, so 4s is the right tradeoff.
-function onFirstInteraction(cb: () => void) {
-  let fired = false;
-  const fire = () => {
-    if (fired) return;
-    fired = true;
-    events.forEach(e => window.removeEventListener(e, fire));
-    if (timer) clearTimeout(timer);
-    cb();
-  };
-  const events = ["pointerdown", "keydown", "scroll", "touchstart"] as const;
-  events.forEach(e => window.addEventListener(e, fire, { once: true, passive: true }));
-  const timer = setTimeout(fire, 4000);
-}
-
+// Gate telemetry behind first user interaction. Passive bounces should not pay
+// the parse/compile cost for Sentry, PostHog, or session replay on /request.
 onFirstInteraction(() => loadAndInitSentry());
 
 // PostHog Analytics initialization (single source of truth - do not duplicate in provider)
@@ -155,7 +138,7 @@ if (!isPlaywrightMode && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
       debug: process.env.NODE_ENV === "development",
     });
 
-    // Defer session recording until after the page is interactive.
+    // Defer session recording until after first interaction and browser idle.
     // Saves ~51KB + 550ms from the critical path (posthog-recorder.js).
     const startRecording = () => {
       posthog.startSessionRecording();

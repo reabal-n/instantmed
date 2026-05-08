@@ -154,6 +154,13 @@ const nextConfig = {
         destination: "/medical-certificate/:suburb",
         permanent: true,
       },
+      // Top commercial city certificate intent now lives under /intent/* to avoid
+      // splitting sitemap and internal-link signals across duplicate city pages.
+      {
+        source: "/medical-certificate/:city(sydney|melbourne|brisbane|perth|adelaide|gold-coast)",
+        destination: "/intent/medical-certificate-online-:city",
+        permanent: true
+      },
       {
         source: "/repeat-prescription",
         destination: "/prescriptions",
@@ -280,6 +287,13 @@ const nextConfig = {
       { source: "/general-consult", destination: "/consult", permanent: true },
       // Blog cannibalization consolidation -- duplicate articles merged into canonical versions
       { source: "/blog/are-online-medical-certificates-valid", destination: "/blog/are-online-medical-certificates-valid-australia", permanent: true },
+      // Commercial intent consolidation -- drug-led and lower-fit intent pages retired in favour of top-25 service pages
+      { source: "/intent/work-certificate-online", destination: "/intent/medical-certificate-for-work", permanent: true },
+      { source: "/intent/flu-certificate-online", destination: "/intent/medical-certificate-for-cold-and-flu", permanent: true },
+      { source: "/intent/after-hours-doctor", destination: "/intent/after-hours-repeat-prescription", permanent: true },
+      { source: "/intent/hair-loss-treatment-online", destination: "/hair-loss", permanent: true },
+      { source: "/intent/uti-treatment-online", destination: "/consult", permanent: true },
+      { source: "/intent/emergency-contraception-online", destination: "/consult", permanent: true },
       // antibiotic-prescription-online-australia and can-you-get-antibiotics-online-australia target
       // identical queries -- the latter is already indexed with 1,000+ impressions, consolidate traffic
       { source: "/blog/antibiotic-prescription-online-australia", destination: "/blog/can-you-get-antibiotics-online-australia", permanent: true },
@@ -379,12 +393,15 @@ const nextConfig = {
         },
         // Report-Only CSP: production only — dev generates too many false violations
         // from Turbopack HMR (eval), PostHog workers (blob), and inline dev tooling.
+        // Keep inline handling aligned with the enforced policy. Next's App Router
+        // emits required inline scripts/styles; reporting those on every page load
+        // floods /api/csp-report and adds avoidable network work to /request.
         ...(isDev ? [] : [{
           key: "Content-Security-Policy-Report-Only",
           value: [
             "default-src 'self'",
-            "script-src 'self' https://js.stripe.com https://www.googletagmanager.com https://*.googletagmanager.com https://www.google-analytics.com https://www.googleadservices.com https://www.google.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://*.doubleclick.net https://challenges.cloudflare.com https://va.vercel-scripts.com",
-            "style-src 'self' https://fonts.googleapis.com",
+            "script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com https://*.googletagmanager.com https://www.google-analytics.com https://www.googleadservices.com https://www.google.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://*.doubleclick.net https://challenges.cloudflare.com https://va.vercel-scripts.com",
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
             "font-src 'self' https://fonts.gstatic.com data:",
             "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://api.dicebear.com https://*.googleusercontent.com https://www.googletagmanager.com https://*.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://googleads.g.doubleclick.net https://*.doubleclick.net https://www.googleadservices.com https://www.google.com https://google.com https://www.google.com.au",
             "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.google.com https://google.com https://*.google.com.au https://www.googletagmanager.com https://*.googletagmanager.com https://www.googleadservices.com https://*.googleadservices.com https://googleads.g.doubleclick.net https://*.doubleclick.net https://*.sentry.io https://*.posthog.com https://us.i.posthog.com https://accounts.google.com https://pagead2.googlesyndication.com https://*.vercel-insights.com https://va.vercel-scripts.com",

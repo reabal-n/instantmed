@@ -1,10 +1,10 @@
 "use client"
 
 import Script from "next/script"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 
-import { captureAttribution } from "@/lib/analytics/attribution"
 import { GOOGLE_ADS_ID, GOOGLE_ANALYTICS_ID } from "@/lib/analytics/google-tag-ids"
+import { onFirstInteraction } from "@/lib/browser/first-interaction"
 
 // Only load Google tags on Vercel production - skip preview deployments and local dev.
 // NEXT_PUBLIC_VERCEL_ENV is set automatically by Vercel: 'production' | 'preview' | 'development'
@@ -29,30 +29,43 @@ gtag("consent","default",{
 /**
  * Loads Google Tag (AW-17795889471) with Consent Mode v2.
  *
- * Uses next/script so the gtag.js src appears in the initial SSR HTML,
- * making it detectable by Google's tag coverage crawler. The earlier
- * useEffect+DOM approach caused Google to report /medical-certificate
- * as "Not tagged" because the script was only injected after JS executed.
- *
- * Consent defaults are set via a beforeInteractive inline script so they
- * are in the dataLayer before gtag.js loads (required for Consent Mode v2).
+ * Remote Google scripts wait until first interaction to protect mobile LCP/TBT
+ * on acquisition pages and /request. Local click-ID capture lives in
+ * AttributionCapture so it can stay tiny and critical.
  */
 export function GoogleTags() {
+  const [canLoadTags, setCanLoadTags] = useState(false)
+
   useEffect(() => {
-    captureAttribution()
+    if (!IS_PROD) return
+
+    let cancelIdleLoad: (() => void) | undefined
+    const cancelInteraction = onFirstInteraction(() => {
+      const showTags = () => setCanLoadTags(true)
+
+      if (typeof requestIdleCallback !== "undefined") {
+        const id = requestIdleCallback(showTags, { timeout: 1500 })
+        cancelIdleLoad = () => cancelIdleCallback(id)
+        return
+      }
+
+      const id = setTimeout(showTags, 0)
+      cancelIdleLoad = () => clearTimeout(id)
+    })
+
+    return () => {
+      cancelInteraction()
+      cancelIdleLoad?.()
+    }
   }, [])
 
-  if (!IS_PROD) return null
+  if (!IS_PROD || !canLoadTags) return null
 
   return (
     <>
-      {/* beforeInteractive is intentional: consent defaults must be in dataLayer
-          before gtag.js loads (Consent Mode v2 requirement). The lint rule targets
-          pages/_document.js usage but this pattern works correctly in App Router. */}
-      {/* eslint-disable-next-line @next/next/no-before-interactive-script-outside-document */}
       <Script
         id="google-consent-init"
-        strategy="beforeInteractive"
+        strategy="afterInteractive"
         dangerouslySetInnerHTML={{ __html: CONSENT_INIT }}
       />
       <Script

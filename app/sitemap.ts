@@ -102,8 +102,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   const medCertLocationSlugs = [
-    "sydney", "parramatta", "melbourne", "brisbane", "perth",
-    "adelaide", "gold-coast", "canberra", "hobart", "darwin",
+    "parramatta", "canberra", "hobart", "darwin",
   ]
 
   return [

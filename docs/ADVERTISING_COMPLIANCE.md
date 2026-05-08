@@ -81,6 +81,7 @@ Also safe:
 - "Prescription only if clinically appropriate"
 - "eScript token sent if approved"
 - "Collect from any Australian pharmacy"
+- assessment/review language for ED, hair loss, weight management, and women's health
 
 ## 6. Prohibited Marketing Claims
 
@@ -102,6 +103,8 @@ Do not use:
 - before/after outcomes
 - "clinically proven medication" in public acquisition copy
 - prescription-only medicine prices
+- treatment menus, injection references, or copy that implies medicine access before doctor review
+- prescription medicine names or obvious substitutes in schema, FAQ copy, mockups, navigation, metadata, or URL params
 
 ## 7. Drug Terms
 
@@ -119,6 +122,7 @@ Do not use prescription drug names, brand names, drug classes, or obvious substi
 - paid landing page metadata
 - paid landing page schema
 - URLs or query params
+- public page mockups, navigation labels, FAQ schema, and structured data
 
 Examples to avoid on paid destinations:
 

@@ -9,18 +9,14 @@
  *   Women's health · Weight management
  */
 
-import { AnimatePresence,motion } from "framer-motion"
 import { ChevronRight, RotateCcw, Star, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useCallback,useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 import { ServiceIconTile } from "@/components/icons/service-icons"
-import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
-import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
-import { usePostHog } from "@/components/providers/posthog-provider"
-import { Button } from "@/components/ui/button"
-import { useReducedMotion } from "@/components/ui/motion"
-import { stagger } from "@/lib/motion"
+import { RequestButton } from "@/components/request/request-button"
+import { requestCx } from "@/components/request/request-cx"
+import { usePostHog } from "@/lib/analytics/posthog-context"
 import { getConsultDraftResumeHref } from "@/lib/request/consult-flow"
 import {
   type CanonicalServiceType,
@@ -36,7 +32,6 @@ import {
   type ServiceDef as CanonicalServiceDef,
 } from "@/lib/services/service-catalog"
 import { getPatientCount } from "@/lib/social-proof"
-import { cn } from "@/lib/utils"
 
 // ─── Service definitions ──────────────────────────────────────────────────
 //
@@ -72,7 +67,6 @@ interface ServiceHubScreenProps {
 export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
   const router = useRouter()
   const posthog = usePostHog()
-  const prefersReducedMotion = useReducedMotion()
   const [drafts, setDrafts] = useState<DraftData[]>([])
   const [lastServiceType, setLastServiceType] = useState<string | null>(null)
   const [lastConsultSubtype, setLastConsultSubtype] = useState<string | null>(null)
@@ -164,93 +158,76 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
         </div>
 
         {/* Draft banners - compact inline bars */}
-        <AnimatePresence>
-          {drafts.map((draft) => (
-            <motion.div
-              key={draft.serviceType}
-              initial={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-            >
-              <div className="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl bg-primary/5 border border-primary/20 mb-2">
-                <span className="text-sm text-foreground truncate">
-                  Continue your{" "}
-                  {SERVICE_NAMES[draft.serviceType as string] ?? "request"}?
-                </span>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => handleClearDraft(draft.serviceType)}
-                    className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-                    aria-label="Discard draft"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                  <Button
-                    size="sm"
-                    onClick={() => handleResumeDraft(draft)}
-                    className="h-7 px-3 text-xs gap-1"
-                  >
-                    <RotateCcw className="w-3 h-3" />
-                    Resume
-                  </Button>
-                </div>
+        {drafts.map((draft) => (
+          <div key={draft.serviceType}>
+            <div className="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl bg-primary/5 border border-primary/20 mb-2">
+              <span className="text-sm text-foreground truncate">
+                Continue your{" "}
+                {SERVICE_NAMES[draft.serviceType as string] ?? "request"}?
+              </span>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleClearDraft(draft.serviceType)}
+                  className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                  aria-label="Discard draft"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+                <RequestButton
+                  size="sm"
+                  onClick={() => handleResumeDraft(draft)}
+                  className="h-7 px-3 text-xs gap-1"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  Resume
+                </RequestButton>
               </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+            </div>
+          </div>
+        ))}
 
         {/* Request Again - compact row for returning users */}
-        <AnimatePresence>
-          {lastServiceType && drafts.length === 0 && (
-            <motion.div
-              initial={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
+        {lastServiceType && drafts.length === 0 && (
+          <div>
+            <button
+              type="button"
+              onClick={() =>
+                handleSelectService(
+                  lastServiceType as UnifiedServiceType,
+                  lastServiceType === "consult" ? (lastConsultSubtype ?? undefined) : undefined,
+                )
+              }
+              className="w-full text-left group mb-2"
             >
-              <button
-                type="button"
-                onClick={() =>
-                  handleSelectService(
-                    lastServiceType as UnifiedServiceType,
-                    lastServiceType === 'consult' ? (lastConsultSubtype ?? undefined) : undefined,
-                  )
-                }
-                className="w-full text-left group mb-2"
-              >
-                <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-primary/5 border border-primary/20 group-hover:bg-primary/8 transition-colors duration-150">
-                  <div className="flex items-center gap-2.5">
-                    <RotateCcw className="w-3.5 h-3.5 text-primary shrink-0" />
-                    <span className="text-sm font-medium text-foreground">
-                      Request another{" "}
-                      {lastServiceType === 'consult' && lastConsultSubtype
-                        ? (CONSULT_SUBTYPE_NAMES[lastConsultSubtype] ?? SERVICE_NAMES[lastServiceType] ?? "request")
-                        : (SERVICE_NAMES[lastServiceType] ?? "request")}
-                    </span>
-                  </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+              <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-primary/5 border border-primary/20 group-hover:bg-primary/8 transition-colors duration-150">
+                <div className="flex items-center gap-2.5">
+                  <RotateCcw className="w-3.5 h-3.5 text-primary shrink-0" />
+                  <span className="text-sm font-medium text-foreground">
+                    Request another{" "}
+                    {lastServiceType === "consult" && lastConsultSubtype
+                      ? (CONSULT_SUBTYPE_NAMES[lastConsultSubtype] ?? SERVICE_NAMES[lastServiceType] ?? "request")
+                      : (SERVICE_NAMES[lastServiceType] ?? "request")}
+                  </span>
                 </div>
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+              </div>
+            </button>
+          </div>
+        )}
 
         {/* ── Active service cards ────────────────────────────────────── */}
-        <motion.div
+        <div
           className="rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] overflow-hidden divide-y divide-border/40"
-          variants={prefersReducedMotion ? undefined : stagger.container}
-          initial={prefersReducedMotion ? undefined : "initial"}
-          animate={prefersReducedMotion ? undefined : "animate"}
         >
           {SERVICES.map((svc) => (
             <CompactServiceRow
               key={svc.id}
               {...svc}
               onClick={() => handleSelectService(svc.serviceRoute, svc.subtype)}
-              prefersReducedMotion={prefersReducedMotion}
             />
           ))}
-        </motion.div>
+        </div>
 
         {/* ── Coming soon ────────────────────────────────────────────── */}
         <div
@@ -283,11 +260,11 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
         <div className="flex flex-col items-center gap-2 pt-1 pb-2">
           <div
             data-request-hub-cert-footer="true"
-            className="flex items-center justify-center gap-2 rounded-2xl border border-border/50 bg-white px-3 py-2 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none"
+            className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-2xl border border-border/50 bg-white px-3 py-2 text-[11px] font-medium text-muted-foreground shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none"
           >
-            <LegitScriptSeal size="sm" />
-            <span className="h-6 w-px bg-border/70" aria-hidden="true" />
-            <GoogleAdsCert size="sm" />
+            <span>LegitScript certified</span>
+            <span className="h-1 w-1 rounded-full bg-border-em" aria-hidden="true" />
+            <span>Google healthcare certified</span>
           </div>
           <p className="text-center text-[11px] leading-snug text-muted-foreground">
             All requests are reviewed by Australian-registered doctors.
@@ -302,7 +279,6 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
 
 interface CompactRowProps extends ServiceDef {
   onClick: () => void
-  prefersReducedMotion: boolean | null
 }
 
 function CompactServiceRow({
@@ -315,14 +291,13 @@ function CompactServiceRow({
   colorToken,
   popular,
   onClick,
-  prefersReducedMotion,
 }: CompactRowProps) {
   return (
-    <motion.div variants={prefersReducedMotion ? undefined : stagger.item}>
+    <div>
       <button
         type="button"
         onClick={onClick}
-        className={cn(
+        className={requestCx(
           "w-full text-left group px-4 py-3.5",
           "hover:bg-muted/50 active:scale-[0.99] active:bg-muted/60 dark:hover:bg-white/[0.08]",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
@@ -365,7 +340,7 @@ function CompactServiceRow({
               </span>
             </div>
             <ChevronRight
-              className={cn(
+              className={requestCx(
                 "w-4 h-4 text-muted-foreground/40",
                 "transition-[transform,color] duration-150",
                 "group-hover:text-muted-foreground group-hover:translate-x-0.5",
@@ -374,6 +349,6 @@ function CompactServiceRow({
           </div>
         </div>
       </button>
-    </motion.div>
+    </div>
   )
 }

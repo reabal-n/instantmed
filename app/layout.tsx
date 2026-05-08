@@ -1,24 +1,18 @@
 import "./globals.css"
 
-import { Analytics } from "@vercel/analytics/next"
 import type { Metadata, Viewport } from "next"
 import { JetBrains_Mono, Plus_Jakarta_Sans, Source_Sans_3 } from "next/font/google"
 // SkyBackground, NightSkyBackground, ScrollProgress moved to marketing pages only (perf)
 import { ThemeProvider } from "next-themes"
 import type React from "react"
 
-import { GoogleTags } from "@/components/providers/google-tags"
-import { MotionProvider } from "@/components/providers/motion-provider"
-import { PostHogProvider } from "@/components/providers/posthog-provider"
+import { AttributionCapture } from "@/components/providers/attribution-capture"
+import { GlobalDeferredClients } from "@/components/providers/global-deferred-clients"
+import { PostHogLoader } from "@/components/providers/posthog-loader"
 import { ServiceAvailabilityProvider } from "@/components/providers/service-availability-provider"
-import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration"
-import { OrganizationSchema, WebSiteSchema } from "@/components/seo"
-import { CookieBanner, LazyOverlays, PageTransitionProvider,ReferralCapture, SkipToContent, UrgentNoticeBanner } from "@/components/shared"
-import { DeferredMount } from "@/components/ui/deferred-mount"
-import { NetworkStatus } from "@/components/ui/error-recovery"
-import { NavigationProgress } from "@/components/ui/morning/navigation-progress"
-import { Toaster } from "@/components/ui/sonner"
-import { WebVitalsReporter } from "@/lib/analytics/web-vitals"
+import { OrganizationSchema } from "@/components/seo/schemas/organization"
+import { WebSiteSchema } from "@/components/seo/schemas/website"
+import { SkipToContent } from "@/components/shared/skip-to-content"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { SupabaseAuthProvider } from "@/lib/supabase/auth-provider"
 
@@ -37,6 +31,7 @@ const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-display",
   display: "swap",
   weight: ["500", "600", "700"],
+  preload: false,
 })
 
 const jetbrainsMono = JetBrains_Mono({
@@ -82,6 +77,7 @@ export const metadata: Metadata = {
   authors: [{ name: "InstantMed" }],
   creator: "InstantMed",
   publisher: "InstantMed",
+  manifest: "/manifest.webmanifest",
   metadataBase: new URL("https://instantmed.com.au"),
   alternates: {
     canonical: "/",
@@ -157,53 +153,28 @@ export default function RootLayout({
         style={{ backgroundColor: '#f8f7f4' }}
       >
         <head>
-          {/* Preconnect to critical third-party origins.
-              crossOrigin="anonymous" is required for CORS resources — without it the
-              browser opens an extra non-CORS connection and the preconnect is wasted.
-              Budget: ≤3 preconnects. More than that starves the main connection pool
-              and actively hurts LCP. Keep only origins hit during the initial load;
-              DNS-prefetch is cheap and fine for "maybe later" origins. */}
-          <link rel="preconnect" href="https://o4510623218860032.ingest.us.sentry.io" crossOrigin="anonymous" />
-          <link rel="preconnect" href="https://us.posthog.com" crossOrigin="anonymous" />
-          <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+          {/* Analytics and replay are interaction-gated; keep only non-analytics
+              DNS hints that may be needed after the patient reaches payment. */}
           <link rel="dns-prefetch" href="https://js.stripe.com" />
           <link rel="dns-prefetch" href="https://api.stripe.com" />
           <link rel="dns-prefetch" href="https://api.dicebear.com" />
-          <link rel="manifest" href="/manifest.webmanifest" />
 
         </head>
         <body className="font-sans antialiased text-foreground">
           <OrganizationSchema />
           <WebSiteSchema />
-          <GoogleTags />
-          <PostHogProvider>
-          <MotionProvider>
+          <AttributionCapture />
+          <PostHogLoader>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
                 <ServiceAvailabilityProvider>
-                <UrgentNoticeBanner />
-                <NavigationProgress />
-                <NetworkStatus />
+                <GlobalDeferredClients />
                 <SkipToContent />
                 <div id="main-content" className="relative z-10">
-                  <PageTransitionProvider>
-                    {children}
-                  </PageTransitionProvider>
+                  {children}
                 </div>
-                <Toaster position="top-center" richColors />
-                <LazyOverlays />
-                <DeferredMount>
-                  <Analytics />
-                  <WebVitalsReporter />
-                  <ServiceWorkerRegistration />
-                </DeferredMount>
-                <ReferralCapture />
-                <DeferredMount timeout={3000}>
-                  <CookieBanner />
-                </DeferredMount>
                 </ServiceAvailabilityProvider>
           </ThemeProvider>
-          </MotionProvider>
-          </PostHogProvider>
+          </PostHogLoader>
         </body>
       </html>
     </SupabaseAuthProvider>

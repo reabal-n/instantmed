@@ -12,71 +12,33 @@
  */
 
 import type { ComponentType } from "react"
-import { useMemo } from "react"
+import { useEffect, useState } from "react"
 
-import type { UnifiedServiceType, UnifiedStepId } from "@/lib/request/step-registry"
+import type { UnifiedStepId } from "@/lib/request/step-registry"
 
 import { StepErrorBoundary } from "./step-error-boundary"
-import CertificateStep from "./steps/certificate-step"
-import CheckoutStep from "./steps/checkout-step"
-import ConsultReasonStep from "./steps/consult-reason-step"
-import EdAssessmentStep from "./steps/ed-assessment-step"
-import EdGoalsStep from "./steps/ed-goals-step"
-import EdHealthStep from "./steps/ed-health-step"
-import EdPreferencesStep from "./steps/ed-preferences-step"
-import HairLossAssessmentStep from "./steps/hair-loss-assessment-step"
-import HairLossGoalsStep from "./steps/hair-loss-goals-step"
-import HairLossHealthStep from "./steps/hair-loss-health-step"
-import HairLossPreferencesStep from "./steps/hair-loss-preferences-step"
-import MedicalHistoryStep from "./steps/medical-history-step"
-import MedicationHistoryStep from "./steps/medication-history-step"
-import MedicationStep from "./steps/medication-step"
-import PatientDetailsStep from "./steps/patient-details-step"
-import ReviewStep from "./steps/review-step"
-import SymptomsStep from "./steps/symptoms-step"
-import WeightLossAssessmentStep from "./steps/weight-loss-assessment-step"
-import WeightLossCallStep from "./steps/weight-loss-call-step"
-import WomensHealthAssessmentStep from "./steps/womens-health-assessment-step"
-import WomensHealthTypeStep from "./steps/womens-health-type-step"
+import type { StepComponentProps } from "./step-loaders"
 
-interface StepComponentProps {
-  serviceType: UnifiedServiceType
-  onNext: () => void
-  onBack: () => void
-  onComplete: () => void
-  initialDuration?: string
+function StepLoading() {
+  return (
+    <div className="space-y-4" aria-live="polite" aria-busy="true">
+      <div className="space-y-2">
+        <div className="h-5 w-2/3 rounded-full bg-muted" />
+        <div className="h-4 w-full rounded-full bg-muted/70" />
+      </div>
+      <div className="rounded-2xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] dark:bg-card">
+        <div className="space-y-3">
+          <div className="h-11 rounded-xl bg-muted/70" />
+          <div className="h-11 rounded-xl bg-muted/60" />
+          <div className="h-11 rounded-xl bg-muted/50" />
+        </div>
+      </div>
+    </div>
+  )
 }
 
-const stepComponents = {
-  'certificate-step': CertificateStep,
-  'symptoms-step': SymptomsStep,
-  'medication-step': MedicationStep,
-  'medication-history-step': MedicationHistoryStep,
-  'medical-history-step': MedicalHistoryStep,
-  'consult-reason-step': ConsultReasonStep,
-  'patient-details-step': PatientDetailsStep,
-  'review-step': ReviewStep,
-  'checkout-step': CheckoutStep,
-  // Consult subtype-specific steps - ED
-  'ed-goals-step': EdGoalsStep,
-  'ed-assessment-step': EdAssessmentStep,
-  'ed-health-step': EdHealthStep,
-  'ed-preferences-step': EdPreferencesStep,
-  // Consult subtype-specific steps - Hair loss
-  'hair-loss-goals-step': HairLossGoalsStep,
-  'hair-loss-assessment-step': HairLossAssessmentStep,
-  'hair-loss-health-step': HairLossHealthStep,
-  'hair-loss-preferences-step': HairLossPreferencesStep,
-  'womens-health-type-step': WomensHealthTypeStep,
-  'womens-health-assessment-step': WomensHealthAssessmentStep,
-  'weight-loss-assessment-step': WeightLossAssessmentStep,
-  'weight-loss-call-step': WeightLossCallStep,
-} satisfies Record<string, ComponentType<StepComponentProps>>
-
-type StepComponentKey = keyof typeof stepComponents
-
 export interface StepRouterProps {
-  serviceType: UnifiedServiceType
+  serviceType: StepComponentProps["serviceType"]
   currentStepId: UnifiedStepId
   componentPath: string
   onNext: () => void
@@ -104,14 +66,56 @@ export function StepRouter({
   onComplete,
   initialDuration,
 }: StepRouterProps) {
-  const StepComponent = useMemo(() => {
-    const key = componentPath as StepComponentKey
-    return stepComponents[key] || null
+  const [loadedStep, setLoadedStep] = useState<{
+    componentPath: string
+    Component: ComponentType<StepComponentProps>
+  } | null>(null)
+  const [loadFailed, setLoadFailed] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoadFailed(false)
+    setLoadedStep((current) => current?.componentPath === componentPath ? current : null)
+
+    import("./step-loaders")
+      .then((mod) => mod.loadStepComponent(componentPath))
+      .then((Component) => {
+        if (!Component) {
+          if (!cancelled) {
+            setLoadedStep(null)
+            setLoadFailed(true)
+          }
+          return
+        }
+        if (!cancelled) {
+          setLoadedStep({ componentPath, Component })
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setLoadedStep(null)
+          setLoadFailed(true)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [componentPath])
 
-  if (!StepComponent) {
+  if (loadFailed) {
     return <StepNotFound componentPath={componentPath} />
   }
+
+  if (!loadedStep || loadedStep.componentPath !== componentPath) {
+    return (
+      <StepErrorBoundary stepId={currentStepId}>
+        <StepLoading />
+      </StepErrorBoundary>
+    )
+  }
+
+  const { Component: StepComponent } = loadedStep
 
   return (
     <StepErrorBoundary stepId={currentStepId}>

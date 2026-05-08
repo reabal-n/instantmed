@@ -1,10 +1,37 @@
 'use client'
 
-import type { Session,User } from '@supabase/supabase-js'
+import type { Session, User } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef,useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 
-import { createClient } from '@/lib/supabase/client'
+import { onFirstInteraction } from '@/lib/browser/first-interaction'
+
+const AUTH_IMMEDIATE_PATH_PREFIXES = [
+  '/account',
+  '/admin',
+  '/auth',
+  '/dashboard',
+  '/doctor',
+  '/patient',
+  '/sign-in',
+  '/sign-up',
+]
+
+function shouldLoadAuthImmediately(pathname: string) {
+  return AUTH_IMMEDIATE_PATH_PREFIXES.some((prefix) =>
+    pathname === prefix || pathname.startsWith(`${prefix}/`)
+  )
+}
+
+function scheduleIdle(callback: () => void, timeout = 1500) {
+  if (typeof requestIdleCallback !== 'undefined') {
+    const id = requestIdleCallback(callback, { timeout })
+    return () => cancelIdleCallback(id)
+  }
+
+  const id = setTimeout(callback, 0)
+  return () => clearTimeout(id)
+}
 
 // ─── Types ────────────────────────────────────────────────────────────
 
@@ -34,12 +61,12 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
   const [session, setSession] = useState<Session | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
   const router = useRouter()
-  const supabase = useMemo(() => createClient(), [])
-  const initializedRef = useRef(false)
 
   useEffect(() => {
-    if (initializedRef.current) return
-    initializedRef.current = true
+    let cancelled = false
+    let subscription: { unsubscribe: () => void } | null = null
+    let cancelInteraction: (() => void) | null = null
+    let cancelIdleLoad: (() => void) | null = null
 
     // E2E bypass: __e2e_auth_role cookie is readable client-side (non-httpOnly).
     // Skip Supabase session check to prevent SIGNED_OUT → router.refresh() redirect chain.
@@ -48,31 +75,60 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
       return
     }
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
-      setSession(initialSession)
-      setUser(initialSession?.user ?? null)
-      setIsLoaded(true)
-    })
+    const loadAuth = () => {
+      void import('@/lib/supabase/client')
+        .then(async ({ createClient }) => {
+          if (cancelled) return
 
-    // Listen for auth state changes (sign in, sign out, token refresh)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, newSession) => {
-        setSession(newSession)
-        setUser(newSession?.user ?? null)
-        setIsLoaded(true)
+          const supabase = createClient()
+          const { data } = supabase.auth.onAuthStateChange(
+            (_event, newSession) => {
+              setSession(newSession)
+              setUser(newSession?.user ?? null)
+              setIsLoaded(true)
 
-        // Refresh server-side state when auth changes
-        if (_event === 'SIGNED_IN' || _event === 'SIGNED_OUT' || _event === 'TOKEN_REFRESHED') {
-          router.refresh()
-        }
-      }
-    )
+              // Refresh server-side state when auth changes
+              if (_event === 'SIGNED_IN' || _event === 'SIGNED_OUT' || _event === 'TOKEN_REFRESHED') {
+                router.refresh()
+              }
+            }
+          )
+
+          if (cancelled) {
+            data.subscription.unsubscribe()
+            return
+          }
+
+          subscription = data.subscription
+
+          const { data: { session: initialSession } } = await supabase.auth.getSession()
+          if (cancelled) return
+
+          setSession(initialSession)
+          setUser(initialSession?.user ?? null)
+          setIsLoaded(true)
+        })
+        .catch(() => {
+          if (!cancelled) setIsLoaded(true)
+        })
+    }
+
+    const pathname = typeof window !== 'undefined' ? window.location.pathname : ''
+    if (shouldLoadAuthImmediately(pathname)) {
+      loadAuth()
+    } else {
+      cancelInteraction = onFirstInteraction(() => {
+        cancelIdleLoad = scheduleIdle(loadAuth)
+      })
+    }
 
     return () => {
-      subscription.unsubscribe()
+      cancelled = true
+      cancelInteraction?.()
+      cancelIdleLoad?.()
+      subscription?.unsubscribe()
     }
-  }, [supabase, router])
+  }, [router])
 
   const signOut = useCallback(async () => {
     // Always clear local state and navigate, even if the network revoke fails.
@@ -84,6 +140,9 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
     //   with onAuthStateChange's router.refresh() that would otherwise trip
     //   middleware into redirecting to /sign-in?redirect=/patient.
     try {
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
+
       await Promise.allSettled([
         supabase.auth.signOut({ scope: 'local' }),
         fetch('/api/auth/sign-out', { method: 'POST', credentials: 'same-origin' }),
@@ -96,7 +155,7 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
         router.refresh()
       }
     }
-  }, [supabase, router])
+  }, [router])
 
   const value = useMemo<AuthContext>(() => ({
     user,

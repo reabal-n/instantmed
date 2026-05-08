@@ -7,9 +7,11 @@ import { StickerIcon } from "@/components/icons/stickers"
 import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
 import { RegulatoryPartners } from "@/components/marketing/regulatory-partners"
 import { DataDrivenGuideSection, type GuideSectionData } from "@/components/marketing/sections"
+import { CommercialIntentLinksSection } from "@/components/marketing/sections/commercial-intent-links-section"
 import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
 import { InformationalPageShell } from "@/components/marketing/shared/informational-page-shell"
 import { CTABanner,FAQSection, FeatureGrid, Timeline } from "@/components/sections"
+import { commercialComparisonLinks } from "@/lib/seo/commercial-links"
 import { getPatientCount } from "@/lib/social-proof"
 
 /* ────────────────────────────── Data ────────────────────────────── */
@@ -244,6 +246,12 @@ export function HowItWorksContent() {
             </div>
           </div>
         </section>
+
+        <CommercialIntentLinksSection
+          title="Choose the right online pathway"
+          body="Comparison pages for patients deciding between online certificates, GP visits, bulk-billed telehealth, and focused private requests."
+          links={commercialComparisonLinks}
+        />
 
         {/* Doctor Credibility */}
         <DoctorCredibility

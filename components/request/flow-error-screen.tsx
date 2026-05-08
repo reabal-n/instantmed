@@ -3,7 +3,7 @@
 import { X } from "lucide-react"
 import { useRouter } from "next/navigation"
 
-import { Button } from "@/components/ui/button"
+import { RequestButton } from "./request-button"
 
 interface FlowErrorScreenProps {
   /** The raw service param from the URL that was not recognised */
@@ -28,12 +28,12 @@ export function FlowErrorScreen({ invalidService }: FlowErrorScreenProps) {
           The requested service &ldquo;{invalidService}&rdquo; is not available.
         </p>
         <div className="flex flex-col gap-2 pt-4">
-          <Button onClick={() => router.push("/request")}>
+          <RequestButton onClick={() => router.push("/request")}>
             Choose a service
-          </Button>
-          <Button variant="outline" onClick={() => router.push("/")}>
+          </RequestButton>
+          <RequestButton variant="outline" onClick={() => router.push("/")}>
             Return home
-          </Button>
+          </RequestButton>
         </div>
       </div>
     </div>

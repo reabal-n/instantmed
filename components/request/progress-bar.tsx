@@ -1,11 +1,8 @@
 "use client"
 
-import { motion } from "framer-motion"
 import { Check } from "lucide-react"
 
-import { useReducedMotion } from "@/components/ui/motion"
-import { easing } from "@/lib/motion"
-import { cn } from "@/lib/utils"
+import { requestCx } from "./request-cx"
 
 interface ProgressBarProps {
   steps: { id: string; shortLabel: string }[]
@@ -14,7 +11,6 @@ interface ProgressBarProps {
 }
 
 export function ProgressBar({ steps, currentIndex, onStepClick }: ProgressBarProps) {
-  const prefersReducedMotion = useReducedMotion()
   const progressPercent =
     steps.length <= 1 ? 100 : (currentIndex / (steps.length - 1)) * 100
 
@@ -22,18 +18,13 @@ export function ProgressBar({ steps, currentIndex, onStepClick }: ProgressBarPro
     <nav className="w-full" aria-label="Request progress">
       <div className="relative h-10 sm:h-[3.35rem]">
         <div className="absolute left-3 right-3 top-4 h-1.5 overflow-hidden rounded-full bg-muted/70 sm:top-3.5">
-          <motion.div
-            className="h-full rounded-full"
+          <div
+            className="h-full rounded-full transition-[width] duration-300 ease-out motion-reduce:transition-none"
             style={{
+              width: `${progressPercent}%`,
               background:
                 "linear-gradient(90deg, oklch(0.62 0.18 246), oklch(0.7 0.13 190), oklch(0.74 0.13 150))",
               boxShadow: "0 0 18px oklch(0.7 0.13 190 / 0.28)",
-            }}
-            initial={prefersReducedMotion ? {} : { width: 0 }}
-            animate={{ width: `${progressPercent}%` }}
-            transition={{
-              duration: prefersReducedMotion ? 0 : 0.32,
-              ease: easing.panel,
             }}
           />
         </div>
@@ -53,7 +44,7 @@ export function ProgressBar({ steps, currentIndex, onStepClick }: ProgressBarPro
                 type="button"
                 onClick={() => isClickable && onStepClick(step.id, i)}
                 disabled={!isClickable}
-                className={cn(
+                className={requestCx(
                   "group flex min-h-10 flex-col items-center outline-none",
                   isClickable ? "cursor-pointer" : "cursor-default",
                 )}
@@ -61,33 +52,19 @@ export function ProgressBar({ steps, currentIndex, onStepClick }: ProgressBarPro
                 aria-label={`${step.shortLabel}${isCompleted ? " completed" : isCurrent ? " current" : ""}`}
               >
                 <span className="relative flex h-9 w-full items-center justify-center">
-                  {isCurrent && !prefersReducedMotion && (
-                    <motion.span
+                  {isCurrent && (
+                    <span
                       aria-hidden="true"
-                      className="absolute h-8 w-8 rounded-full bg-primary/15"
-                      animate={{ scale: [0.82, 1.18], opacity: [0.5, 0] }}
-                      transition={{
-                        duration: 1.4,
-                        ease: "easeOut",
-                        repeat: Infinity,
-                        repeatDelay: 0.35,
-                      }}
+                      className="absolute h-8 w-8 animate-ping rounded-full bg-primary/15 motion-reduce:hidden"
                     />
                   )}
 
-                  <motion.div
-                    layoutId={isCurrent ? "request-progress-current" : undefined}
-                    initial={prefersReducedMotion ? {} : { scale: isCompleted ? 0.9 : 1 }}
-                    animate={{ scale: isCurrent ? 1.08 : 1, opacity: 1 }}
-                    transition={{
-                      duration: prefersReducedMotion ? 0 : 0.22,
-                      ease: easing.panel,
-                    }}
-                    className={cn(
-                      "relative flex items-center justify-center rounded-full border transition-[background-color,border-color,box-shadow,transform] duration-200",
+                  <div
+                    className={requestCx(
+                      "relative flex items-center justify-center rounded-full border transition-[background-color,border-color,box-shadow,transform] duration-200 motion-reduce:transition-none",
                       "focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2",
                       isCurrent &&
-                        "h-5 w-5 border-primary bg-background shadow-md shadow-primary/20 ring-4 ring-sky-200/50",
+                        "h-5 w-5 scale-105 border-primary bg-background shadow-md shadow-primary/20 ring-4 ring-sky-200/50",
                       isCompleted &&
                         "h-5 w-5 border-transparent text-primary-foreground shadow-sm",
                       !isCompleted &&
@@ -113,11 +90,11 @@ export function ProgressBar({ steps, currentIndex, onStepClick }: ProgressBarPro
                         }}
                       />
                     )}
-                  </motion.div>
+                  </div>
                 </span>
 
                 <span
-                  className={cn(
+                  className={requestCx(
                     "hidden max-w-[4.8rem] truncate text-center text-[11px] font-medium leading-none transition-colors sm:block",
                     isCurrent
                       ? "text-foreground"

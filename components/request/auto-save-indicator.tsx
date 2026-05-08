@@ -1,10 +1,7 @@
 "use client"
 
-import { AnimatePresence,motion } from "framer-motion"
 import { Cloud, CloudOff } from "lucide-react"
 import { useEffect, useState } from "react"
-
-import { useReducedMotion } from "@/components/ui/motion"
 
 interface AutoSaveIndicatorProps {
   lastSavedAt: string | null
@@ -12,7 +9,6 @@ interface AutoSaveIndicatorProps {
 }
 
 export function AutoSaveIndicator({ lastSavedAt, hasUnsavedChanges }: AutoSaveIndicatorProps) {
-  const prefersReducedMotion = useReducedMotion()
   const [showSaved, setShowSaved] = useState(false)
 
   useEffect(() => {
@@ -24,32 +20,18 @@ export function AutoSaveIndicator({ lastSavedAt, hasUnsavedChanges }: AutoSaveIn
   }, [lastSavedAt])
 
   if (!lastSavedAt && !hasUnsavedChanges) return null
+  if (!hasUnsavedChanges && !showSaved) return null
 
   return (
-    <AnimatePresence mode="wait">
-      {hasUnsavedChanges ? (
-        <motion.div
-          key="unsaved"
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          className="flex items-center gap-1.5 text-xs text-muted-foreground"
-        >
-          <CloudOff className="w-3 h-3" />
-          <span>Unsaved</span>
-        </motion.div>
-      ) : showSaved ? (
-        <motion.div
-          key="saved"
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          className="flex items-center gap-1.5 text-xs text-success"
-        >
-          <Cloud className="w-3 h-3" />
-          <span>Saved</span>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
+    <div
+      className={
+        hasUnsavedChanges
+          ? "flex items-center gap-1.5 text-xs text-muted-foreground"
+          : "flex items-center gap-1.5 text-xs text-success"
+      }
+    >
+      {hasUnsavedChanges ? <CloudOff className="w-3 h-3" /> : <Cloud className="w-3 h-3" />}
+      <span>{hasUnsavedChanges ? "Unsaved" : "Saved"}</span>
+    </div>
   )
 }

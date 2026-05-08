@@ -7,62 +7,57 @@ import { AccordionSection } from "@/components/sections"
 import { BreadcrumbSchema, FAQSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared"
 import { Button } from "@/components/ui/button"
+import {
+  type CommercialIntentCluster,
+  intentPages,
+} from "@/lib/seo/intents"
 
 export const metadata: Metadata = {
-  title: "Find What You Need | Online Doctor Services",
-  description: "Looking for a specific telehealth service? Same-day medical certificates, UTI treatment, after-hours doctor, ongoing medication reviews, and more - all reviewed by Australian doctors.",
+  title: "Commercial Telehealth Pages | InstantMed",
+  description: "Find InstantMed's highest-intent service pages: medical certificates, repeat prescription review, city pages, and service comparisons.",
   openGraph: {
-    title: "Find What You Need | InstantMed",
-    description: "Same-day medical certificates, prescriptions, and consultations reviewed by Australian doctors.",
+    title: "Commercial Telehealth Pages | InstantMed",
+    description: "Medical certificate, repeat prescription, city, and comparison pages reviewed for compliant commercial intent.",
   },
   alternates: {
     canonical: "https://instantmed.com.au/intent",
   },
 }
 
-const intents = [
-  { slug: "same-day-medical-certificate", name: "Same Day Medical Certificate", description: "Get a valid certificate issued and emailed in about 20 minutes, 24/7" },
-  { slug: "work-certificate-online", name: "Work Certificate Online", description: "Doctor-issued sick leave certificate for workplace evidence" },
-  { slug: "flu-certificate-online", name: "Cold & Flu Certificate", description: "Too sick to work? Get a certificate from your couch" },
-  { slug: "uti-treatment-online", name: "UTI Treatment Online", description: "Doctor-assessed UTI treatment with same-day eScript" },
-  { slug: "repeat-prescription-online", name: "Medication Review Online", description: "Ongoing medication management without a clinic visit" },
-  { slug: "after-hours-doctor", name: "After Hours Doctor", description: "Submit any request 24/7 · Doctor review follows when available" },
-  { slug: "hair-loss-treatment-online", name: "Hair Loss Treatment", description: "Doctor-reviewed treatment plans for hair thinning" },
-  { slug: "emergency-contraception-online", name: "Emergency Contraception", description: "Confidential doctor assessment with same-day eScript" },
+const clusterLabels: Record<CommercialIntentCluster, string> = {
+  "medical-certificate": "Medical certificates",
+  "repeat-prescription": "Repeat prescriptions",
+  location: "City and state pages",
+  comparison: "Service comparisons",
+}
+
+const clusterOrder: CommercialIntentCluster[] = [
+  "medical-certificate",
+  "location",
+  "repeat-prescription",
+  "comparison",
 ]
 
 const intentFaqs = [
   {
-    question: "How do I know which service I need?",
-    answer: "If you're unsure, start with a general consultation. An AHPRA-registered doctor will assess your situation and point you toward the right service - whether that's a medical certificate, a prescription, or something else entirely.",
+    question: "Why only 25 pages?",
+    answer: "These pages target high-commercial-intent searches where InstantMed can answer clearly, show price upfront, and route patients into the right service without publishing thin health content.",
   },
   {
-    question: "Can I switch services after starting?",
-    answer: "If you start a request and realise you need a different service, you can begin a new request for the right one. The reviewing doctor may also suggest a different service if they think it's more appropriate for your situation.",
+    question: "Why avoid drug-led SEO pages?",
+    answer: "Prescription-only medicine suitability belongs inside a private clinical request. Public prescription pages stay service-level to reduce TGA advertising risk.",
   },
   {
-    question: "What if I'm not sure what's wrong?",
-    answer: "That's perfectly fine - you don't need a self-diagnosis. Describe your symptoms and concerns, and the reviewing doctor will work through it with you. That's literally what they're trained for.",
+    question: "Do these replace guides?",
+    answer: "No. Guides can still exist for education, but acquisition should be led by focused service pages that answer the commercial question immediately.",
   },
   {
-    question: "How long does it take to get a response?",
-    answer: "Medical certificates are typically issued in about 20 minutes, available 24/7. Prescription and consultation requests can be submitted 24/7 and are usually reviewed within 1–2 hours during review hours (8am–10pm AEST, 7 days).",
+    question: "What must every page include?",
+    answer: "Each page needs an answer in the first screen, clear price, compliant CTA, source references, local visual, and internal links into service or related commercial pages.",
   },
   {
-    question: "Is my information kept private?",
-    answer: "Yes. All health information is encrypted and stored in compliance with Australian privacy legislation. We follow the Australian Privacy Principles and never share your data with third parties without your consent.",
-  },
-  {
-    question: "Do I need to see a doctor in person?",
-    answer: "Most requests don't require an in-person visit. The reviewing doctor assesses everything online. If they determine you need a physical examination or specialist referral, they'll let you know.",
-  },
-  {
-    question: "How does payment work?",
-    answer: "You pay when you submit your request. We accept Visa, Mastercard, Amex, Apple Pay, and Google Pay via Stripe. If the doctor can't help with your situation, you'll receive a full refund.",
-  },
-  {
-    question: "Can I use InstantMed from anywhere in Australia?",
-    answer: "Yes. As long as you're in Australia and have an internet connection, you can use InstantMed. Our AHPRA-registered clinicians can practise across all states and territories.",
+    question: "Can these pages be expanded later?",
+    answer: "Yes, but only after the top 25 prove traction in Search Console. Expansion should follow query evidence, not a generic content calendar.",
   },
 ]
 
@@ -90,27 +85,54 @@ export default function IntentPage() {
                   What Can We Help With?
                 </h1>
                 <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                  Whether you need a certificate, a prescription, or just to speak with a doctor - find the right service below.
-                  All reviewed by AHPRA-registered Australian doctors.
+                  The top 25 pages worth ranking for: clear price, answer in the first screen,
+                  compliant CTA, sources, and service-level prescription language.
                 </p>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                {intents.map((intent) => (
-                  <Link
-                    key={intent.slug}
-                    href={`/intent/${intent.slug}`}
-                    className="group p-5 rounded-xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none hover:border-primary/30 transition-[border-color,box-shadow]"
-                  >
-                    <h2 className="font-semibold text-foreground group-hover:text-primary transition-colors mb-1">
-                      {intent.name}
-                    </h2>
-                    <p className="text-sm text-muted-foreground mb-3">{intent.description}</p>
-                    <span className="text-xs text-primary font-medium flex items-center gap-1">
-                      Learn more <ArrowRight className="h-3 w-3" />
-                    </span>
-                  </Link>
-                ))}
+              <div className="space-y-10">
+                {clusterOrder.map((cluster) => {
+                  const pages = intentPages
+                    .filter((intent) => intent.commercial.cluster === cluster)
+                    .sort((a, b) => a.commercial.priority - b.commercial.priority)
+
+                  return (
+                    <section key={cluster}>
+                      <div className="mb-4 flex items-end justify-between gap-4">
+                        <h2 className="text-xl font-semibold tracking-tight text-foreground">
+                          {clusterLabels[cluster]}
+                        </h2>
+                        <span className="text-sm text-muted-foreground">
+                          {pages.length} pages
+                        </span>
+                      </div>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        {pages.map((intent) => (
+                          <Link
+                            key={intent.slug}
+                            href={`/intent/${intent.slug}`}
+                            className="group rounded-lg border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] transition-colors hover:border-primary/35 dark:border-white/15 dark:bg-card dark:shadow-none"
+                          >
+                            <div className="mb-3 flex items-start justify-between gap-3">
+                              <h3 className="font-semibold text-foreground transition-colors group-hover:text-primary">
+                                {intent.h1}
+                              </h3>
+                              <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                                {intent.commercial.price}
+                              </span>
+                            </div>
+                            <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                              {intent.commercial.answer}
+                            </p>
+                            <span className="mt-4 flex items-center gap-1 text-xs font-medium text-primary">
+                              Open page <ArrowRight className="h-3 w-3" />
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                    </section>
+                  )
+                })}
               </div>
 
               {/* FAQ Section */}
@@ -124,7 +146,7 @@ export default function IntentPage() {
 
               <div className="mt-12 text-center">
                 <p className="text-sm text-muted-foreground mb-4">
-                  Not sure what you need? Start here and a doctor will guide you.
+                  Need the service rather than the research page?
                 </p>
                 <Button asChild size="lg" className="rounded-full shadow-lg shadow-primary/20">
                   <Link href="/request">

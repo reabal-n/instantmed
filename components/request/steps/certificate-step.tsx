@@ -9,17 +9,17 @@
  * Certificates capped at 3 days max.
  */
 
-import { ArrowRight,Briefcase, GraduationCap, Heart } from "lucide-react"
-import { useCallback, useEffect, useRef,useState } from "react"
+import { ArrowRight, Briefcase, GraduationCap, Heart } from "lucide-react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
-import { usePostHog } from "@/components/providers/posthog-provider"
+import { RequestButton } from "@/components/request/request-button"
+import { requestCx } from "@/components/request/request-cx"
 import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
-import { Button } from "@/components/ui/button"
+import { usePostHog } from "@/lib/analytics/posthog-context"
 import { MED_CERT_DURATIONS } from "@/lib/constants"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { getSmartDefaults, recordStepCompletion, savePreferences } from "@/lib/request/preferences"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
-import { cn } from "@/lib/utils"
 
 import { FormField } from "../form-field"
 import { useRequestStore } from "../store"
@@ -289,7 +289,7 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
                   role="radio"
                   aria-checked={isSelected}
                   onClick={() => handleCertTypeClick(type.id)}
-                  className={cn(
+                  className={requestCx(
                     "relative flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border px-2 py-3 text-sm font-medium transition-[background-color,border-color,color] duration-150 touch-manipulation",
                     "outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                     isSelected
@@ -298,7 +298,7 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
                   )}
                 >
                   <Icon
-                    className={cn(
+                    className={requestCx(
                       "w-4 h-4 transition-colors duration-150",
                       isSelected ? "text-primary" : "text-muted-foreground/60"
                     )}
@@ -335,7 +335,7 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
                     role="radio"
                     aria-checked={isSelected}
                     onClick={() => handleDaysClick(days)}
-                    className={cn(
+                    className={requestCx(
                       "flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-xl border px-2 py-2 text-sm font-medium transition-[background-color,border-color,color] duration-150 touch-manipulation",
                       isSelected
                         ? "bg-primary text-primary-foreground border-primary"
@@ -346,7 +346,7 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
                       {days} {days === 1 ? "day" : "days"}
                     </span>
                     <span
-                      className={cn(
+                      className={requestCx(
                         "text-xs",
                         isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
                       )}
@@ -384,7 +384,7 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
                     role="radio"
                     aria-checked={isSelected}
                     onClick={() => handleStartOffsetClick(offset)}
-                    className={cn(
+                    className={requestCx(
                       "min-h-12 rounded-xl border px-2 py-2.5 text-sm font-medium transition-[background-color,border-color,color] duration-150 touch-manipulation",
                       isSelected
                         ? "bg-primary text-primary-foreground border-primary"
@@ -423,7 +423,7 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
       </p>
 
       {/* Continue */}
-      <Button data-intake-primary-action="true" data-intake-primary-label="Continue" onClick={handleNext} className="w-full h-12 max-sm:hidden" disabled={!canContinue}>
+      <RequestButton data-intake-primary-action="true" data-intake-primary-label="Continue" onClick={handleNext} className="w-full h-12 max-sm:hidden" disabled={!canContinue}>
         {canContinue ? (
           <>
             Continue
@@ -432,7 +432,7 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
         ) : (
           "Continue"
         )}
-      </Button>
+      </RequestButton>
       {canContinue && (
         <p className="text-[11px] text-muted-foreground text-center hidden sm:block">
           Press Enter to continue

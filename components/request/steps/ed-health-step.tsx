@@ -23,7 +23,6 @@ import {
 import { useRouter } from "next/navigation"
 import { useCallback, useMemo, useRef,useState } from "react"
 
-import { usePostHog } from "@/components/providers/posthog-provider"
 import { BinaryChoice, IntakeStepIntro, QuestionCard, StringBinaryChoice } from "@/components/request/shared/intake-step-primitives"
 import {
   Accordion,
@@ -36,6 +35,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { cn } from "@/lib/utils"
@@ -121,7 +121,7 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
     if (checked) {
       setIsBlocked(true)
       setBlockReason(
-        "ED medications can cause a dangerous drop in blood pressure when combined with nitrates. Please see your GP or cardiologist."
+        "Some ED prescription options can cause a dangerous drop in blood pressure when combined with nitrates. Please see your GP or cardiologist."
       )
     }
   }, [setAnswer])
@@ -375,7 +375,7 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
                 <AlertTriangle className="w-4 h-4 text-warning" />
                 <AlertDescription className="text-sm">
                   {edAlphaBlockers
-                    ? "Alpha-blockers can interact with ED medication, causing a drop in blood pressure. Your GP should confirm it\u2019s safe to combine them."
+                    ? "Alpha-blockers can interact with ED prescription options, causing a drop in blood pressure. Your GP should confirm it\u2019s safe to combine them."
                     : "This condition requires clearance from your GP before we can prescribe."}
                 </AlertDescription>
               </Alert>

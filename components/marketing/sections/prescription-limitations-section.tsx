@@ -15,8 +15,8 @@ export function PrescriptionLimitationsSection() {
           </p>
           <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-2">
             {[
-              "Schedule 8 drugs (opioids, stimulants)",
-              "Benzodiazepines (Valium, Xanax, etc.)",
+              "Controlled medicines that require in-person care",
+              "Sedative or dependence-forming medicines",
               "New medications you haven\u2019t taken before",
               "Medications requiring blood test monitoring",
               "Patients under 18 (parental consent required)",

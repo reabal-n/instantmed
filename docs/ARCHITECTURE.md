@@ -543,7 +543,7 @@ Single source of truth for service icons across the entire UI. Import from `@/co
 **Sizes:** `sm` → `w-8 h-8 rounded-lg` · `md` → `w-10 h-10 rounded-xl` · `lg` → `w-12 h-12 rounded-xl`
 
 **Color → service mapping** (canonical, matches `services-dropdown.tsx`):
-- `emerald` = Medical Certificates · `cyan` = Repeat Medication · `blue` = ED Treatment · `violet` = Hair Loss
+- `emerald` = Medical Certificates · `cyan` = Repeat Medication · `blue` = ED Assessment · `violet` = Hair Loss
 
 **Used in:** `services-dropdown.tsx`, `mobile-menu-content.tsx`, `user-menu.tsx`, `service-cards.tsx`, `service-picker.tsx`. Do not create local icon containers — always use `ServiceIconTile`.
 
@@ -589,7 +589,7 @@ Use when: the page is not a standard service funnel — it has a unique layout, 
 /symptoms/[slug]        Symptom-based landing pages
 /guides/[slug]          How-to health guides
 /compare/[slug]         Service comparison pages
-/medications/[slug]     Medication information pages
+/medications/[slug]     Retired. `/medications/*` and `/prescriptions/med/*` redirect to service-level prescription pages.
 /for/[audience]         Audience segment pages (students, parents, tradies, etc.)
 /locations/[city]       Australian city pages
 /intent/[slug]          High-intent search query landing pages
@@ -879,7 +879,7 @@ Models in `lib/ai/provider.ts`. Routed through Vercel AI Gateway in production (
 | `/symptoms/[slug]` | Symptom pages |
 | `/guides/[slug]` | How-to health guides |
 | `/compare/[slug]` | Service comparison pages |
-| `/medications/[slug]` | Medication information pages |
+| `/medications/[slug]` | Retired medication information pages. Redirect-only. |
 | `/intent/[slug]` | High-intent search query landing pages |
 | `/for/[audience]` | Audience segment pages (students, parents, etc.) |
 | `/locations/[city]` | Location-based pages |

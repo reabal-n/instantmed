@@ -15,6 +15,7 @@ import { StickerIcon } from "@/components/icons/stickers"
 import { Hero } from "@/components/marketing/hero"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
 import { EScriptHeroMockup } from "@/components/marketing/mockups/escript-hero-mockup"
+import { CommercialIntentLinksSection } from "@/components/marketing/sections/commercial-intent-links-section"
 import { TimeComparisonViz } from "@/components/marketing/sections/time-comparison-viz"
 import {
   type LandingPageConfig,
@@ -32,6 +33,7 @@ import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING } from "@/lib/constants"
 import { PRESCRIPTION_FAQ } from "@/lib/data/prescription-faq"
+import { commercialPrescriptionLinks } from "@/lib/seo/commercial-links"
 import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 import { cn } from "@/lib/utils"
 
@@ -358,6 +360,13 @@ export function PrescriptionsLanding() {
 
           {/* PBS callout strip — addresses pharmacy cost anxiety right after pricing */}
           <PBSCalloutStrip />
+
+          <CommercialIntentLinksSection
+            title="Repeat prescription routes"
+            body="Service-level information for repeat requests, after-hours timing, weekend access, and urgent-but-not-emergency prescription review."
+            links={commercialPrescriptionLinks}
+            className="bg-muted/30 dark:bg-white/[0.02]"
+          />
 
           {/* 3. How It Works */}
           <HowItWorksInline

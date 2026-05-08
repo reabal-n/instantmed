@@ -117,7 +117,7 @@ export function EScriptHeroMockup({ compact = false }: EScriptHeroMockupProps) {
             <p className="text-[12px] font-mono font-semibold text-primary tracking-wider mb-1.5">
               ABCD-1234-EFGH
             </p>
-            <p className="text-[10px] font-medium text-foreground/80">Atorvastatin 40mg</p>
+            <p className="text-[10px] font-medium text-foreground/80">Regular medication</p>
             <p className="text-[10px] text-muted-foreground">Qty: 30 &middot; Repeats: 5</p>
           </div>
         </div>

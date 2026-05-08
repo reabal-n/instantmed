@@ -10,11 +10,11 @@
 import { motion } from "framer-motion"
 import { ArrowRight,Search, Shield, Sprout, Target } from "lucide-react"
 
-import { usePostHog } from "@/components/providers/posthog-provider"
 import { IntakeStepIntro, QuestionCard, SegmentedChoiceGroup } from "@/components/request/shared/intake-step-primitives"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { useReducedMotion } from "@/components/ui/motion"
+import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { stagger } from "@/lib/motion"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"

@@ -17,20 +17,17 @@
  * - Flow completion
  */
 
-import { AnimatePresence,motion } from "framer-motion"
 import { ArrowLeft, ArrowRight, CheckCircle2, X } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useCallback, useEffect, useMemo, useRef,useState } from "react"
+import { type ComponentType, useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { AutoSaveIndicator } from "@/components/request/auto-save-indicator"
 import { DraftRestorationBanner } from "@/components/request/draft-restoration-banner"
-import { ExitConfirmDialog } from "@/components/request/exit-confirm-dialog"
 import { ProgressBar } from "@/components/request/progress-bar"
-import { SafetyBlockDialog } from "@/components/request/safety-block-dialog"
+import { RequestButton } from "@/components/request/request-button"
+import { requestCx } from "@/components/request/request-cx"
 import { SubtypeMismatchBanner } from "@/components/request/subtype-mismatch-banner"
 import { TimeRemaining } from "@/components/request/time-remaining"
-import { Button } from "@/components/ui/button"
-import { useReducedMotion } from "@/components/ui/motion"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { isValidCertCategory, isValidCertDuration } from "@/lib/marketing/med-cert-selector"
 import {
@@ -42,16 +39,13 @@ import {
   type UnifiedServiceType,
   type UnifiedStepId,
 } from "@/lib/request/step-registry"
-import { type SafetyEvaluationResult } from "@/lib/safety"
-import { cn } from "@/lib/utils"
+import { type SafetyEvaluationResult } from "@/lib/safety/types"
 
-import { ConnectionBanner } from "./connection-banner"
 import { FlowErrorScreen } from "./flow-error-screen"
 import { useFlowAnalytics } from "./hooks/use-flow-analytics"
 import { useFlowNavigation } from "./hooks/use-flow-navigation"
 import { useSwipeNavigation } from "./hooks/use-swipe-navigation"
 import { useUnsavedChanges } from "./hooks/use-unsaved-changes"
-import { ServiceHubScreen } from "./service-hub-screen"
 import { StepRouter } from "./step-router"
 import { useRequestStore } from "./store"
 
@@ -69,6 +63,168 @@ interface MobilePrimaryActionState {
 }
 
 const PRIMARY_ACTION_SELECTOR = "[data-intake-primary-action='true']"
+
+type ServiceHubComponent = ComponentType<{
+  onSelectService: (service: UnifiedServiceType, consultSubtype?: string) => void
+}>
+
+type ExitConfirmDialogComponent = ComponentType<{
+  open: boolean
+  onClose: () => void
+  onConfirmExit: () => void
+}>
+
+type SafetyBlockDialogComponent = ComponentType<{
+  safetyBlock: SafetyEvaluationResult | null
+  onDismiss: () => void
+  onReturnHome: () => void
+  onContactUs: () => void
+}>
+
+type ConnectionBannerComponent = ComponentType
+
+function ServiceHubLoading() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="w-full max-w-xl space-y-4">
+        <div className="mx-auto h-5 w-56 rounded-full bg-muted" />
+        <div className="overflow-hidden rounded-2xl border border-border/50 bg-white shadow-sm shadow-primary/[0.04] dark:bg-card">
+          {[0, 1, 2, 3, 4].map((item) => (
+            <div key={item} className="flex items-center gap-3 border-b border-border/40 px-4 py-3.5 last:border-0">
+              <div className="h-11 w-11 rounded-2xl bg-muted/70" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <div className="h-4 w-2/5 rounded-full bg-muted" />
+                <div className="h-3 w-4/5 rounded-full bg-muted/60" />
+              </div>
+              <div className="h-4 w-12 rounded-full bg-muted/70" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function LazyServiceHub({ onSelectService }: { onSelectService: (service: UnifiedServiceType, consultSubtype?: string) => void }) {
+  const [ServiceHubScreen, setServiceHubScreen] = useState<ServiceHubComponent | null>(null)
+
+  useEffect(() => {
+    let mounted = true
+    import("./service-hub-screen")
+      .then((mod) => {
+        if (mounted) setServiceHubScreen(() => mod.ServiceHubScreen)
+      })
+      .catch(() => {})
+
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  if (!ServiceHubScreen) return <ServiceHubLoading />
+  return <ServiceHubScreen onSelectService={onSelectService} />
+}
+
+function LazyConnectionBanner() {
+  const [ConnectionBanner, setConnectionBanner] = useState<ConnectionBannerComponent | null>(null)
+
+  useEffect(() => {
+    let mounted = true
+    const load = () => {
+      import("./connection-banner")
+        .then((mod) => {
+          if (mounted) setConnectionBanner(() => mod.ConnectionBanner)
+        })
+        .catch(() => {})
+    }
+
+    if (typeof requestIdleCallback !== "undefined") {
+      const id = requestIdleCallback(load, { timeout: 1200 })
+      return () => {
+        mounted = false
+        cancelIdleCallback(id)
+      }
+    }
+
+    const id = setTimeout(load, 0)
+    return () => {
+      mounted = false
+      clearTimeout(id)
+    }
+  }, [])
+
+  if (!ConnectionBanner) return null
+  return <ConnectionBanner />
+}
+
+function LazyExitConfirmDialog({
+  open,
+  onClose,
+  onConfirmExit,
+}: {
+  open: boolean
+  onClose: () => void
+  onConfirmExit: () => void
+}) {
+  const [DialogComponent, setDialogComponent] = useState<ExitConfirmDialogComponent | null>(null)
+
+  useEffect(() => {
+    if (!open || DialogComponent) return
+
+    let mounted = true
+    import("./exit-confirm-dialog")
+      .then((mod) => {
+        if (mounted) setDialogComponent(() => mod.ExitConfirmDialog)
+      })
+      .catch(() => {})
+
+    return () => {
+      mounted = false
+    }
+  }, [DialogComponent, open])
+
+  if (!open || !DialogComponent) return null
+  return <DialogComponent open={open} onClose={onClose} onConfirmExit={onConfirmExit} />
+}
+
+function LazySafetyBlockDialog({
+  safetyBlock,
+  onDismiss,
+  onReturnHome,
+  onContactUs,
+}: {
+  safetyBlock: SafetyEvaluationResult | null
+  onDismiss: () => void
+  onReturnHome: () => void
+  onContactUs: () => void
+}) {
+  const [DialogComponent, setDialogComponent] = useState<SafetyBlockDialogComponent | null>(null)
+
+  useEffect(() => {
+    if (!safetyBlock || DialogComponent) return
+
+    let mounted = true
+    import("./safety-block-dialog")
+      .then((mod) => {
+        if (mounted) setDialogComponent(() => mod.SafetyBlockDialog)
+      })
+      .catch(() => {})
+
+    return () => {
+      mounted = false
+    }
+  }, [DialogComponent, safetyBlock])
+
+  if (!safetyBlock || !DialogComponent) return null
+  return (
+    <DialogComponent
+      safetyBlock={safetyBlock}
+      onDismiss={onDismiss}
+      onReturnHome={onReturnHome}
+      onContactUs={onContactUs}
+    />
+  )
+}
 
 function getMobilePrimaryAction() {
   if (typeof document === "undefined") return null
@@ -88,8 +244,6 @@ interface RequestFlowProps {
   rawServiceParam?: string
   /** Canonical consult subtype from URL, already normalized by app/request/page.tsx */
   initialSubtype?: string
-  /** Medication context from URL (for consult handoff from prescription flow) */
-  initialMedication?: string
   /** Certificate type from URL (pre-seeded from landing page selector) */
   initialCertType?: string
   /** Certificate duration from URL (pre-seeded from landing page selector) */
@@ -129,7 +283,6 @@ export function RequestFlow({
   initialService,
   rawServiceParam,
   initialSubtype,
-  initialMedication,
   initialCertType,
   initialDuration,
   isAuthenticated,
@@ -150,7 +303,6 @@ export function RequestFlow({
   healthProfile,
 }: RequestFlowProps) {
   const router = useRouter()
-  const prefersReducedMotion = useReducedMotion()
   const [showDraftBanner, setShowDraftBanner] = useState(false)
   const [showSubtypeMismatch, setShowSubtypeMismatch] = useState(false)
   const [draftSubtype, setDraftSubtype] = useState<string | null>(null)
@@ -165,7 +317,6 @@ export function RequestFlow({
   const {
     serviceType,
     currentStepId,
-    direction,
     setServiceType,
     prevStep,
     goToStep,
@@ -272,11 +423,6 @@ export function RequestFlow({
       // No mismatch or no existing draft - apply URL subtype
       setAnswer('consultSubtype', initialSubtype)
       
-      // If medication context is provided, prefill consult details
-      if (initialMedication && !answers.consultDetails) {
-        const decodedMedication = decodeURIComponent(initialMedication)
-        setAnswer('consultDetails', `I would like to discuss getting a prescription for ${decodedMedication}.`)
-      }
     }
   // Only run on mount - URL params are the source of truth
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -414,7 +560,7 @@ export function RequestFlow({
     posthog,
   })
 
-  const { dragX, handleDragEnd, dragConstraints } = useSwipeNavigation({
+  const { handleTouchStart, handleTouchEnd } = useSwipeNavigation({
     onSwipeBack: () => {
       if (currentStepIndex > 0) prevStep()
     },
@@ -516,13 +662,13 @@ export function RequestFlow({
 
   // No service param provided - show service hub
   if (initialService === null && !rawServiceParam) {
-    return <ServiceHubScreen onSelectService={handleSelectService} />
+    return <LazyServiceHub onSelectService={handleSelectService} />
   }
 
   // Consult without subtype → redirect to service hub (no general consult)
   // Active subtypes: ed, hair_loss. Coming soon: womens_health, weight_loss.
   if (initialService === 'consult' && !initialSubtype) {
-    return <ServiceHubScreen onSelectService={handleSelectService} />
+    return <LazyServiceHub onSelectService={handleSelectService} />
   }
 
   // Invalid service param provided - show error screen
@@ -539,36 +685,20 @@ export function RequestFlow({
     )
   }
 
-  // Slide animation variants
-  const slideVariants = {
-    enter: (dir: number) => (prefersReducedMotion
-      ? { opacity: 0 }
-      : { x: dir > 0 ? 40 : -40, opacity: 0 }
-    ),
-    center: {
-      x: 0,
-      opacity: 1,
-    },
-    exit: (dir: number) => (prefersReducedMotion
-      ? { opacity: 0 }
-      : { x: dir > 0 ? -40 : 40, opacity: 0 }
-    ),
-  }
-
   return (
     <div className="min-h-screen bg-background">
       {/* Connection status banner */}
-      <ConnectionBanner />
+      <LazyConnectionBanner />
 
       {/* Exit confirmation dialog */}
-      <ExitConfirmDialog
+      <LazyExitConfirmDialog
         open={showExitConfirm}
         onClose={() => setShowExitConfirm(false)}
         onConfirmExit={confirmExit}
       />
 
       {/* Safety pre-check block dialog */}
-      <SafetyBlockDialog
+      <LazySafetyBlockDialog
         safetyBlock={safetyBlock}
         onDismiss={() => setSafetyBlock(null)}
         onReturnHome={() => {
@@ -584,7 +714,7 @@ export function RequestFlow({
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 border-b">
         <div className="max-w-lg mx-auto px-4 h-12 sm:h-14 flex items-center justify-between">
-          <Button 
+          <RequestButton
             variant="ghost" 
             size="icon" 
             onClick={handleBack}
@@ -592,7 +722,7 @@ export function RequestFlow({
             className="h-11 w-11 sm:h-10 sm:w-10"
           >
             <ArrowLeft className="w-5 h-5" />
-          </Button>
+          </RequestButton>
           
           {/* Center: Step label + count */}
           <div className="flex flex-col items-center">
@@ -604,7 +734,7 @@ export function RequestFlow({
             </span>
           </div>
           
-          <Button 
+          <RequestButton
             variant="ghost" 
             size="icon" 
             onClick={handleExitWithConfirm}
@@ -612,7 +742,7 @@ export function RequestFlow({
             className="h-11 w-11 sm:h-10 sm:w-10"
           >
             <X className="w-5 h-5" />
-          </Button>
+          </RequestButton>
         </div>
         
         {/* Progress bar + indicators row */}
@@ -638,16 +768,13 @@ export function RequestFlow({
       </header>
 
       {/* Content with swipe gestures */}
-      <motion.main 
+      <main
         ref={contentRef}
         className={`max-w-lg mx-auto px-4 py-4 sm:py-6 sm:pb-6 touch-pan-y ${
           currentStepId === 'checkout' ? 'pb-6' : 'pb-[calc(4.25rem+env(safe-area-inset-bottom))]'
         }`}
-        drag="x"
-        dragConstraints={dragConstraints}
-        dragElastic={0.2}
-        onDragEnd={handleDragEnd}
-        style={{ x: dragX }}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         {/* Draft restoration banner */}
         {showDraftBanner && (
@@ -668,32 +795,19 @@ export function RequestFlow({
           />
         )}
 
-        {/* Step content with animated transitions */}
-        <AnimatePresence mode="wait" custom={direction}>
-          <motion.div
-            key={currentStepId}
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{
-              x: { duration: prefersReducedMotion ? 0 : 0.2, ease: [0.16, 1, 0.3, 1] },
-              opacity: { duration: prefersReducedMotion ? 0 : 0.15 },
-            }}
-          >
-            <StepRouter
-              serviceType={effectiveService}
-              currentStepId={currentStepId}
-              componentPath={currentStep.componentPath}
-              initialDuration={initialDuration}
-              onNext={handleNext}
-              onBack={handleBack}
-              onComplete={handleComplete}
-            />
-          </motion.div>
-        </AnimatePresence>
-      </motion.main>
+        {/* Step content */}
+        <div key={currentStepId}>
+          <StepRouter
+            serviceType={effectiveService}
+            currentStepId={currentStepId}
+            componentPath={currentStep.componentPath}
+            initialDuration={initialDuration}
+            onNext={handleNext}
+            onBack={handleBack}
+            onComplete={handleComplete}
+          />
+        </div>
+      </main>
 
       {/* Sticky bottom CTA bar for mobile */}
       {currentStepId !== 'checkout' && (
@@ -705,7 +819,7 @@ export function RequestFlow({
             currentStepIndex > 0 ? "grid-cols-[3rem_minmax(0,1fr)]" : "grid-cols-1"
           }`}>
             {currentStepIndex > 0 && (
-              <Button
+              <RequestButton
                 variant="outline"
                 size="icon"
                 onClick={handleBack}
@@ -713,37 +827,27 @@ export function RequestFlow({
                 aria-label="Go back"
               >
                 <ArrowLeft className="w-4 h-4" />
-              </Button>
+              </RequestButton>
             )}
-            <Button
+            <RequestButton
               size="lg"
               onClick={handleMobilePrimaryAction}
               disabled={!mobileActionReady}
               data-intake-mobile-action-ready={mobileActionReady ? "true" : "false"}
-              className={cn(
+              className={requestCx(
                 "h-12 min-w-0 gap-2 text-base font-medium transition-[transform,box-shadow,background-color,opacity] duration-200 ease-out active:scale-[0.98]",
                 mobileActionReady && "shadow-md shadow-primary/20",
                 !mobileActionReady && "shadow-none opacity-70",
               )}
             >
-              <AnimatePresence initial={false}>
-                {showMobileSavedCue && (
-                  <motion.span
-                    key="saved"
-                    aria-hidden="true"
-                    initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.92 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={prefersReducedMotion ? {} : { opacity: 0, scale: 0.92 }}
-                    transition={{ duration: prefersReducedMotion ? 0 : 0.16, ease: [0.16, 1, 0.3, 1] }}
-                    className="flex shrink-0"
-                  >
-                    <CheckCircle2 className="h-4 w-4" />
-                  </motion.span>
-                )}
-              </AnimatePresence>
+              {showMobileSavedCue && (
+                <span aria-hidden="true" className="flex shrink-0">
+                  <CheckCircle2 className="h-4 w-4" />
+                </span>
+              )}
               <span className="truncate">{mobilePrimaryAction.label}</span>
               <ArrowRight className="h-4 w-4 shrink-0" />
-            </Button>
+            </RequestButton>
           </div>
         </div>
       )}

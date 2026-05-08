@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowRight, CheckCircle2, Pill, Sparkles } from "lucide-react"
+import { ArrowRight, CheckCircle2, ClipboardCheck, Sparkles } from "lucide-react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
 
@@ -38,10 +38,6 @@ const RegulatoryPartners = dynamic(
   () => import("@/components/marketing/regulatory-partners").then((m) => m.RegulatoryPartners),
   { loading: () => <div className="min-h-[120px]" /> },
 )
-const HairLossGuideSection = dynamic(
-  () => import("@/components/marketing/sections/hair-loss-guide-section").then((m) => m.HairLossGuideSection),
-  { loading: () => <div className="min-h-[400px]" /> },
-)
 const FAQSection = dynamic(
   () => import("@/components/sections").then((m) => ({ default: m.FAQSection })),
   { loading: () => <div className="min-h-[400px]" /> },
@@ -67,15 +63,15 @@ const HOW_IT_WORKS_STEPS = [
     sticker: "stethoscope" as const,
     step: 2,
     title: "A real GP reviews it",
-    description: "An AHPRA-registered doctor reviews your assessment and recommends the right treatment approach.",
+    description: "An AHPRA-registered doctor reviews your assessment and decides the next step.",
     time: `~${SOCIAL_PROOF.averageResponseMinutes} min`,
   },
   {
     sticker: "pill-bottle" as const,
     step: 3,
-    title: "Treatment plan delivered",
-    description: "Your prescription is sent via SMS. Collect treatment from any Australian pharmacy.",
-    time: "Same day",
+    title: "Outcome sent to you",
+    description: "If clinically appropriate, an eScript is sent by SMS and can be used at an Australian pharmacy.",
+    time: "After review",
   },
 ]
 
@@ -87,41 +83,41 @@ const PRICING_BULLETS = [
   "Full refund if we can't help",
 ]
 
-const TREATMENT_OPTIONS = [
+const ASSESSMENT_AREAS = [
   {
-    id: "oral",
-    name: "Daily oral tablet",
-    brand: "Prescription treatment",
+    id: "pattern",
+    name: "Hair-loss pattern",
+    brand: "Assessment factor",
     description:
-      "Doctor-prescribed oral treatment taken once daily. Addresses the hormonal factors that drive hair follicle miniaturisation at the source.",
-    type: "Oral tablet",
-    frequency: "Once daily",
-    results: "Visible results typically 3-6 months",
-    bestFor: "Hair loss at the crown and mid-scalp",
-    popular: true,
+      "The doctor reviews where thinning started, how quickly it has changed, and whether the pattern fits online assessment.",
+    type: "Pattern",
+    frequency: "Timing",
+    results: "Photos",
+    bestFor: "Next step",
+    popular: false,
   },
   {
-    id: "combination",
-    name: "Combination approach",
-    brand: "Prescription + over-the-counter",
+    id: "history",
+    name: "Health history",
+    brand: "Safety check",
     description:
-      "Your doctor prescribes oral treatment and recommends a complementary over-the-counter scalp treatment available from any pharmacy. Two mechanisms working together for maximum results.",
-    type: "Oral Rx + OTC scalp treatment",
-    frequency: "As directed by your doctor",
-    results: "Often more effective than either alone",
-    bestFor: "Moderate to advanced hair loss",
-    popular: true,
+      "Your answers help the doctor check medical history, current medications, and reasons online care may not be suitable.",
+    type: "History",
+    frequency: "Current meds",
+    results: "Suitability",
+    bestFor: "Safety",
+    popular: false,
   },
   {
-    id: "doctor_decides",
-    name: "Let the doctor decide",
-    brand: "Expert recommendation",
+    id: "preference",
+    name: "Your preference",
+    brand: "Shared decision",
     description:
-      "Your doctor reviews your assessment and recommends the best approach based on your pattern, severity, and medical history.",
-    type: "Personalised plan",
-    frequency: "As prescribed",
-    results: "Tailored to your situation",
-    bestFor: "Not sure where to start",
+      "You can explain what you want help with. The doctor decides what is clinically appropriate after review.",
+    type: "Goals",
+    frequency: "Questions",
+    results: "Advice",
+    bestFor: "Clarity",
     popular: false,
   },
 ] as const
@@ -143,20 +139,20 @@ const LANDING_CONFIG: LandingPageConfig = {
 
 function TreatmentOptions() {
   return (
-    <section id="treatments" aria-label="Hair loss treatment options" className="py-16 lg:py-20">
+    <section id="assessment" aria-label="Hair loss assessment focus" className="py-16 lg:py-20">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         <Reveal className="text-center mb-8">
-          <SectionPill>Treatment options</SectionPill>
+          <SectionPill>Assessment</SectionPill>
           <Heading level="h2" className="mt-4 mb-2">
-            Doctor-assessed options
+            What the doctor checks
           </Heading>
           <p className="text-sm text-muted-foreground">
-            Your doctor reviews your assessment and decides what is clinically appropriate.
+            The service starts with clinical review, not a menu of medicines.
           </p>
         </Reveal>
 
         <div className="space-y-4">
-          {TREATMENT_OPTIONS.map((treatment, i) => (
+          {ASSESSMENT_AREAS.map((treatment, i) => (
             <Reveal
               key={treatment.id}
               delay={i * 0.1}
@@ -174,7 +170,7 @@ function TreatmentOptions() {
                   </div>
                   <p className="text-xs text-muted-foreground">{treatment.brand}</p>
                 </div>
-                <Pill className="h-5 w-5 text-primary/60 shrink-0" aria-hidden="true" />
+                <ClipboardCheck className="h-5 w-5 text-primary/60 shrink-0" aria-hidden="true" />
               </div>
 
               <p className="text-sm text-muted-foreground mb-4">{treatment.description}</p>
@@ -209,10 +205,10 @@ function HairLossComparisonViz() {
     <div className="bg-muted/30 dark:bg-white/[0.02]">
       <TimeComparisonViz
         pill="Why go online?"
-        heading="Start treatment the same day."
+        heading="Start the review from home."
         ours={{ label: "InstantMed", value: "~1", unit: "hr" }}
         theirs={{ label: "GP clinic", value: "2", valueSuffix: "+", unit: "hrs" }}
-        ourSteps={["2-min health form", "Doctor reviews same day", "Treatment plan by SMS"]}
+        ourSteps={["2-min health form", "Doctor reviews privately", "Outcome by SMS"]}
         theirSteps={["Book appointment", "Travel + wait in clinic", "Face-to-face consult"]}
         primaryFillPercent={30}
       />
@@ -230,7 +226,7 @@ function HairLossPricingSection({ isDisabled }: { isDisabled?: boolean }) {
             One flat fee. No hidden costs.
           </Heading>
           <p className="text-muted-foreground max-w-xl mx-auto text-balance">
-            You only pay if the doctor approves treatment.
+            You only pay if the doctor can help.
           </p>
         </Reveal>
 
@@ -245,7 +241,7 @@ function HairLossPricingSection({ isDisabled }: { isDisabled?: boolean }) {
               </div>
 
               <Heading level="h3" className="mb-1">Hair Loss Assessment</Heading>
-              <p className="text-sm text-muted-foreground mb-5">Private online consult + eScript if approved</p>
+              <p className="text-sm text-muted-foreground mb-5">Private online consult + eScript if appropriate</p>
 
               <div className="mb-5">
                 <span className="text-4xl font-semibold tracking-tight text-foreground">
@@ -298,7 +294,7 @@ export function HairLossLanding() {
               evidence-based reassurance line, and the hair-loss product mockup.
               Bespoke HairLossHeroSection retired in Pass 2. */}
           <Hero
-            title="Hair loss treatment, doctor-reviewed."
+            title="Hair loss assessment, doctor-reviewed."
             primaryCta={{
               text: `Start assessment · $${PRICING.HAIR_LOSS.toFixed(2)}`,
               href: "/request?service=consult&subtype=hair_loss",
@@ -325,9 +321,7 @@ export function HairLossLanding() {
           {/* Live wait time */}
           <LiveWaitTime variant="strip" services={["consult-hair-loss"]} />
 
-          {/* Service claim — hair-loss superpower is clinical legitimacy
-              (TGA-approved, same as a GP would prescribe). Mirrors ED page's
-              discretion claim and other service-page elevation patterns. */}
+          {/* Service claim — clinical legitimacy without drug-led promotion. */}
           <ServiceClaimSection
             eyebrow="Clinical, not cosmetic"
             headline={
@@ -335,7 +329,7 @@ export function HairLossLanding() {
                 Clinical hair loss assessment. <span className="text-primary">Reviewed by a doctor.</span>
               </>
             }
-            body="A structured doctor review for hair loss concerns. If prescription treatment is clinically appropriate, your eScript is sent by SMS and can be used at any Australian pharmacy."
+            body="A structured doctor review for hair loss concerns. If a prescription option is clinically appropriate, your eScript is sent by SMS and can be used at any Australian pharmacy."
           />
 
           {/* 2. How It Works */}
@@ -349,7 +343,7 @@ export function HairLossLanding() {
           {/* 3. Time comparison */}
           <HairLossComparisonViz />
 
-          {/* 4. Treatment options - unique to hair loss */}
+          {/* 4. Assessment focus - unique to hair loss */}
           <TreatmentOptions />
 
           {/* 5. Doctor profile */}
@@ -366,16 +360,13 @@ export function HairLossLanding() {
           <FAQSection
             pill="FAQ"
             title="Frequently asked questions"
-            subtitle="Everything you need to know about hair loss treatment online."
+            subtitle="Everything you need to know before starting."
             items={HAIR_LOSS_FAQ}
             initialCount={4}
             onFAQOpen={handleFAQOpen}
             viewAllHref="/faq"
             className="bg-muted/30 dark:bg-white/[0.02]"
           />
-
-          {/* Guide - deep E-E-A-T content for organic search */}
-          <HairLossGuideSection />
 
           {/* Referral strip */}
           <ReferralStrip contextText="dealing with hair loss" />

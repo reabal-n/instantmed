@@ -7,7 +7,7 @@ import { faqItems } from "@/lib/marketing/homepage"
 
 const root = process.cwd()
 const voiceSource = readFileSync(join(root, "lib/marketing/voice.ts"), "utf8")
-const homePageSource = readFileSync(join(root, "app/page.tsx"), "utf8")
+const homePageSource = readFileSync(join(root, "app/(marketing)/page.tsx"), "utf8")
 const homepageMarketingSource = readFileSync(join(root, "lib/marketing/homepage.ts"), "utf8")
 const homeServiceCardsSource = readFileSync(join(root, "components/marketing/service-cards.tsx"), "utf8")
 const marketingIndexSource = readFileSync(join(root, "components/marketing/index.ts"), "utf8")
@@ -28,7 +28,6 @@ const employerEvidenceSource = readFileSync(join(root, "app/medical-certificate/
 const medCertIntentSource = readFileSync(join(root, "lib/marketing/med-cert-intent-config.ts"), "utf8")
 const trustBadgesSource = readFileSync(join(root, "lib/marketing/trust-badges.ts"), "utf8")
 const howItWorksContentSource = readFileSync(join(root, "components/marketing/how-it-works-content.tsx"), "utf8")
-const edGuideSource = readFileSync(join(root, "components/marketing/sections/ed-guide-section.tsx"), "utf8")
 const workplaceClaimSources = [
   medCertIntentSource,
   employerEvidenceSource,
@@ -162,8 +161,5 @@ describe("marketing copy contracts", () => {
     expect(howItWorksContentSource).not.toContain("fully async")
     expect(howItWorksContentSource).not.toContain("legally valid under the Fair Work Act")
 
-    expect(edGuideSource).toContain("What the doctor checks before deciding")
-    expect(edGuideSource).toContain("Related ED resources")
-    expect(edGuideSource).not.toContain("scalp")
   })
 })

@@ -40,6 +40,9 @@ describe("Google tag CSP contract", () => {
     const enforcedCsp = getHeaderValue(headers, "Content-Security-Policy")
     const reportOnlyCsp = getHeaderValue(headers, "Content-Security-Policy-Report-Only")
 
+    expect(reportOnlyCsp).toContain("script-src 'self' 'unsafe-inline'")
+    expect(reportOnlyCsp).toContain("style-src 'self' 'unsafe-inline'")
+
     for (const csp of [enforcedCsp, reportOnlyCsp]) {
       expect(csp).toContain("script-src")
       expect(csp).toContain("https://www.googletagmanager.com")

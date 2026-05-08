@@ -14,18 +14,18 @@ import { HAIR_LOSS_FAQ } from "@/lib/data/hair-loss-faq"
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: { absolute: "Hair Loss Treatment | Online, No GP Visit | InstantMed" },
+  title: { absolute: "Hair Loss Assessment | Online, No GP Visit | InstantMed" },
   description: `Hair loss assessment from an Australian doctor. Fill out a secure form, no booked appointment or clinic visit. From $${PRICING.HAIR_LOSS.toFixed(2)}.`,
   keywords: [
-    "hair loss treatment australia",
-    "hair loss treatment online",
+    "hair loss assessment australia",
+    "hair loss assessment online",
     "telehealth hair loss consultation",
     "hair loss doctor online",
-    "male pattern baldness treatment",
-    "androgenetic alopecia treatment",
+    "male pattern hair loss assessment",
+    "androgenetic alopecia assessment",
   ],
   openGraph: {
-    title: "Hair Loss Treatment | Online, No GP Visit | InstantMed",
+    title: "Hair Loss Assessment | Online, No GP Visit | InstantMed",
     description:
       "Hair loss assessment online. Fill out a secure form, no booked appointment or clinic visit. Reviewed by an Australian doctor.",
     url: "https://instantmed.com.au/hair-loss",
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Hair Loss Treatment Online Australia | InstantMed",
+    title: "Hair Loss Assessment Online Australia | InstantMed",
     description: "Doctor-reviewed hair loss assessment, form-first and private.",
   },
   alternates: {
@@ -47,7 +47,7 @@ export default function HairLossPage() {
   return (
     <>
       <SpeakableSchema
-        name="Hair Loss Treatment Online Australia"
+        name="Hair Loss Assessment Online Australia"
         description={`Discreet, doctor-led hair loss assessment from an AHPRA-registered Australian doctor. From $${PRICING.HAIR_LOSS.toFixed(2)}. The doctor contacts you if clinically needed.`}
         url="/hair-loss"
       />
@@ -55,16 +55,16 @@ export default function HairLossPage() {
       <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://instantmed.com.au" },
-          { name: "Hair Loss Treatment", url: "https://instantmed.com.au/hair-loss" },
+          { name: "Hair Loss Assessment", url: "https://instantmed.com.au/hair-loss" },
         ]}
       />
       <MedicalServiceSchema
-        name="Online Hair Loss Treatment"
-        description="Discreet hair loss assessment from an AHPRA-registered Australian doctor. Prescription only if clinically appropriate."
+        name="Online Hair Loss Assessment"
+        description="Discreet hair loss assessment from an AHPRA-registered Australian doctor. Next steps are decided after clinical review."
         price={PRICING.HAIR_LOSS.toFixed(2)}
       />
       <HealthArticleSchema
-        title="Hair Loss Treatment Online Australia"
+        title="Hair Loss Assessment Online Australia"
         description={`Doctor-led hair loss assessment from an AHPRA-registered Australian doctor. Discreet form-first review. From $${PRICING.HAIR_LOSS.toFixed(2)}.`}
         url="/hair-loss"
       />

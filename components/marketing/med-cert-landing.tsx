@@ -18,6 +18,7 @@ import { IntakeResumeChip } from "@/components/marketing/intake-resume-chip"
 import { MedCertHeroMockup } from "@/components/marketing/mockups/med-cert-hero-mockup"
 import { RegulatoryPartners } from "@/components/marketing/regulatory-partners"
 import { CertificateTypeSelector } from "@/components/marketing/sections/certificate-type-selector"
+import { CommercialIntentLinksSection } from "@/components/marketing/sections/commercial-intent-links-section"
 import { HowItWorksInline } from "@/components/marketing/sections/how-it-works-inline"
 import { LimitationsSection } from "@/components/marketing/sections/limitations-section"
 import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
@@ -34,6 +35,7 @@ import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
 import { usePatientCount } from "@/lib/hooks/use-patient-count"
 import { useSectionVisibilityFunnel } from "@/lib/hooks/use-section-visibility-funnel"
 import { buildMedCertRequestHref } from "@/lib/marketing/med-cert-selector"
+import { commercialCertificateLinks, commercialLocationLinks } from "@/lib/seo/commercial-links"
 import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 
 // =============================================================================
@@ -262,6 +264,17 @@ export function MedCertLanding() {
 
             {/* 4. Time comparison - anchors the value prop before explaining the process */}
             <CertComparisonViz />
+
+            <CommercialIntentLinksSection
+              title="Common certificate searches"
+              body="Useful routes for patients comparing same-day, work, carer, student, and local certificate options before starting a request."
+              links={commercialCertificateLinks.slice(0, 6)}
+              compactLinks={[
+                ...commercialCertificateLinks.slice(6),
+                ...commercialLocationLinks,
+              ]}
+              className="bg-muted/30 dark:bg-white/[0.02]"
+            />
 
             {/* 5. How It Works */}
             <div data-track-section="how_it_works">

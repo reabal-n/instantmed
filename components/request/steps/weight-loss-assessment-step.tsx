@@ -1,6 +1,6 @@
 "use client"
 
-import { AlertCircle, AlertTriangle, Pill,Scale, Syringe } from "lucide-react"
+import { Activity, AlertCircle, AlertTriangle, ClipboardCheck, Scale } from "lucide-react"
 import { useState } from "react"
 
 import { MedicalHistoryToggles } from "@/components/request/shared/medical-history-toggles"
@@ -98,7 +98,7 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
       newErrors.eatingDisorderHistory = "Please answer this question"
     }
     if (!weightLossMedPreference) {
-      newErrors.weightLossMedPreference = "Please select your preferred medication type"
+      newErrors.weightLossMedPreference = "Please select the option you want the doctor to consider"
     }
     if (!wlAdverseReactions) {
       newErrors.wlAdverseReactions = "Please answer this question"
@@ -240,14 +240,13 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
         )}
       </div>
 
-      {/* Preferred medication type - styled option cards */}
+      {/* Preferred clinical support type - styled option cards */}
       <div className="space-y-3">
         <Label className="text-sm font-medium">
-          Which type of medication interests you?
+          What kind of support would you like the doctor to consider?
           <span className="text-destructive ml-0.5">*</span>
         </Label>
         <div className="grid gap-3 sm:grid-cols-2">
-          {/* GLP-1 card */}
           <button
             type="button"
             onClick={() => setAnswer("weightLossMedPreference", "glp1")}
@@ -264,17 +263,16 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
                 ? "bg-primary/10 text-primary"
                 : "bg-muted text-muted-foreground"
             )}>
-              <Syringe className="w-5 h-5" />
+              <Activity className="w-5 h-5" />
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-semibold">GLP-1 (Ozempic / Mounjaro)</p>
+              <p className="text-sm font-semibold">Longer-term appetite support</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Weekly injection. Reduces appetite and slows gastric emptying.
+                For people who may need ongoing clinical support alongside lifestyle changes.
               </p>
             </div>
           </button>
 
-          {/* Duromine card */}
           <button
             type="button"
             onClick={() => setAnswer("weightLossMedPreference", "duromine")}
@@ -291,12 +289,12 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
                 ? "bg-primary/10 text-primary"
                 : "bg-muted text-muted-foreground"
             )}>
-              <Pill className="w-5 h-5" />
+              <ClipboardCheck className="w-5 h-5" />
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-semibold">Duromine (Phentermine)</p>
+              <p className="text-sm font-semibold">Short-term supervised support</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Daily capsule. Appetite suppressant for short-term use.
+                For short, doctor-supervised courses where clinically appropriate.
               </p>
             </div>
           </button>
@@ -425,7 +423,7 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
             <Textarea
               value={wlAdverseReactionsDetails}
               onChange={(e) => setAnswer("wlAdverseReactionsDetails", e.target.value)}
-              placeholder="e.g., Severe nausea with Ozempic, heart palpitations with Duromine..."
+              placeholder="Tell us what happened and which option it involved, if you remember."
               className="min-h-[80px] resize-none"
             />
             {errors.wlAdverseReactionsDetails && (

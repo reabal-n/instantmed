@@ -127,7 +127,7 @@ export function EDHeroMockup({ compact = false }: EDHeroMockupProps) {
             <p className="text-[12px] font-mono font-semibold text-primary tracking-wider mb-1.5">
               XKCD-5829-MNOP
             </p>
-            <p className="text-[10px] font-medium text-foreground/80">ED Treatment</p>
+            <p className="text-[10px] font-medium text-foreground/80">ED assessment</p>
             <p className="text-[10px] text-muted-foreground">Qty: 8 &middot; Repeats: 2</p>
           </div>
         </div>

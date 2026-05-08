@@ -6,7 +6,6 @@
  */
 
 import { Check, ChevronDown, ChevronUp, Clock, CreditCard, Edit2, Loader2, Lock, MessageSquare, RefreshCw,ShieldCheck, Smartphone } from "lucide-react"
-import { usePostHog } from "posthog-js/react"
 import { useRef,useState } from "react"
 
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
@@ -20,6 +19,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { getAttribution } from "@/lib/analytics/attribution"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
+import { usePostHog } from "@/lib/analytics/posthog-context"
 import { PRICING as APP_PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { getAddressReviewSummary } from "@/lib/request/address-metadata"
 import { CONSULT_SUBTYPE_DISPLAY_LABELS,getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
@@ -553,8 +553,8 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
         ? (parseFloat(String(answers.currentWeight)) / Math.pow(parseFloat(String(answers.currentHeight)) / 100, 2)).toFixed(1)
         : null
       const WL_MED_LABELS: Record<string, string> = {
-        glp1: 'GLP-1 (e.g., Ozempic)',
-        duromine: 'Duromine (Phentermine)',
+        glp1: 'Longer-term appetite support',
+        duromine: 'Short-term supervised support',
       }
       const PREV_ATTEMPTS_LABELS: Record<string, string> = {
         none: 'No previous attempts',

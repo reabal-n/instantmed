@@ -223,7 +223,7 @@ export const commonScriptsConfig: ServiceConfig = {
   ],
   notEligibleFor: [
     'Schedule 8 medications (opioids, stimulants)',
-    'Benzodiazepines (Valium, etc.)',
+    'Sedative or dependence-forming medicines',
     'Medications requiring regular blood tests (new scripts)',
     'Antibiotics (without infection assessment)',
     'First-time prescriptions for complex conditions',

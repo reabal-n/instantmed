@@ -3,7 +3,8 @@
 import { RotateCcw } from "lucide-react"
 
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
+
+import { RequestButton } from "./request-button"
 
 interface DraftRestorationBannerProps {
   onRestore: () => void
@@ -20,12 +21,12 @@ export function DraftRestorationBanner({ onRestore, onDiscard, serviceName }: Dr
           You have an unfinished {serviceName} request. Continue where you left off?
         </span>
         <div className="flex gap-2 shrink-0">
-          <Button size="sm" variant="outline" onClick={onDiscard}>
+          <RequestButton size="sm" variant="outline" onClick={onDiscard}>
             Start fresh
-          </Button>
-          <Button size="sm" onClick={onRestore}>
+          </RequestButton>
+          <RequestButton size="sm" onClick={onRestore}>
             Continue
-          </Button>
+          </RequestButton>
         </div>
       </AlertDescription>
     </Alert>

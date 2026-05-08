@@ -82,7 +82,7 @@ export function EScriptExplainerSection({ accentImage, className }: EScriptExpla
                   ABCD-1234-EFGH
                 </div>
                 <div className="mt-2 pt-2 border-t border-border/30">
-                  <p className="text-[10px] text-muted-foreground">Atorvastatin 40mg</p>
+                  <p className="text-[10px] text-muted-foreground">Regular medication</p>
                   <p className="text-[10px] text-muted-foreground">
                     Qty: 30 &middot; Repeats: 5
                   </p>

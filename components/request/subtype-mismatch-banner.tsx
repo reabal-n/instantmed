@@ -3,7 +3,8 @@
 import { AlertTriangle } from "lucide-react"
 
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
+
+import { RequestButton } from "./request-button"
 
 const SUBTYPE_LABELS: Record<string, string> = {
   general: 'General consultation',
@@ -39,12 +40,12 @@ export function SubtypeMismatchBanner({
           You selected <strong>{urlLabel}</strong>.
         </span>
         <div className="flex gap-2">
-          <Button size="sm" variant="outline" onClick={onStartFresh}>
+          <RequestButton size="sm" variant="outline" onClick={onStartFresh}>
             Start {urlLabel}
-          </Button>
-          <Button size="sm" onClick={onResumeDraft}>
+          </RequestButton>
+          <RequestButton size="sm" onClick={onResumeDraft}>
             Resume {draftLabel}
-          </Button>
+          </RequestButton>
         </div>
       </AlertDescription>
     </Alert>

@@ -145,7 +145,7 @@ describe("business KPI control plane", () => {
     const data = await getBusinessKPIData()
 
     expect(selectCalls[0]).toMatchObject({
-      columns: "amount_cents, paid_at, category, patient_id",
+      columns: "id, amount_cents, paid_at, category, subtype, patient_id, status, script_sent_at, prescription_sent_at",
       table: "intakes",
     })
     expect(selectCalls.find((call) => call.table === "support_tickets")).toMatchObject({
@@ -154,7 +154,7 @@ describe("business KPI control plane", () => {
     expect(selectCalls.find((call) => call.table === "stripe_disputes")).toMatchObject({
       columns: "id, status",
     })
-    expect(selectCalls.find((call) => call.columns === "utm_source, referrer, landing_page")).toMatchObject({
+    expect(selectCalls.find((call) => call.columns === "utm_source, utm_medium, utm_campaign, referrer, landing_page, gclid, gbraid, wbraid")).toMatchObject({
       operations: expect.arrayContaining(["not:paid_at:is:null"]),
     })
 
@@ -178,6 +178,23 @@ describe("business KPI control plane", () => {
       paidOrders: 1,
       repeatPaidOrders: 1,
       repeatRate: 100,
+    })
+    expect(data.scorecard.scaleReadiness.gates).toMatchObject({
+      aov: { passed: false, target: 35, value: 33.3 },
+      chargebackRate: { passed: false, target: 0.5, value: 66.7 },
+      grossRevenue: { passed: false, target: 10000, value: 99.85 },
+      refundRate: { passed: false, target: 8, value: 33.3 },
+      unknownAttributionRate: { passed: true, target: 20, value: 0 },
+    })
+    expect(data.scorecard.repeatCustomers).toMatchObject({
+      currentCustomers: 2,
+      repeatCustomerRate: 50,
+      repeatCustomers: 1,
+    })
+    expect(data.scorecard.reviewTime).toMatchObject({
+      medianMinutes: 2880,
+      p95Minutes: 2880,
+      reviewedOrders: 1,
     })
     expect(data.referrals).toEqual([
       { source: "google", count: 1 },

@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 
-import { RequestFlow } from "@/components/request"
+import { RequestFlow } from "@/components/request/request-flow"
 import { trackOperationalBlock } from "@/lib/analytics/posthog-server"
 import { getCurrentUser, getUserProfile } from "@/lib/auth/helpers"
 import { CONTACT_EMAIL_HELLO, PRICING_DISPLAY } from "@/lib/constants"
@@ -19,6 +19,15 @@ export const metadata: Metadata = {
   title: "Get Started",
   description:
     `Medical certificates from $19. Repeat medication from ${PRICING_DISPLAY.REPEAT_SCRIPT}, doctor consultations from ${PRICING_DISPLAY.CONSULT}. Reviewed by Australian doctors.`,
+  manifest: null,
+  icons: {
+    shortcut: "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32", type: "image/x-icon" },
+      { url: "/favicon.ico", sizes: "any", type: "image/x-icon" },
+    ],
+    apple: [],
+  },
   openGraph: {
     title: "Get Started | InstantMed",
     description: "Medical certificates, medication renewals, and consultations online. Reviewed by Australian doctors.",
@@ -31,7 +40,6 @@ export default async function RequestPage({
   searchParams: Promise<{
     service?: string
     subtype?: string
-    medication?: string
     certType?: string
     duration?: string
   }>
@@ -215,7 +223,6 @@ export default async function RequestPage({
       initialService={initialService}
       rawServiceParam={params.service}
       initialSubtype={initialSubtype}
-      initialMedication={params.medication}
       initialCertType={params.certType}
       initialDuration={params.duration}
       isAuthenticated={!!user}

@@ -17,11 +17,11 @@ export const ED_FAQ = [
   },
   {
     question: "Which treatments can I be prescribed?",
-    answer: "Our doctors can assess you for a class of prescription oral treatments based on your individual health profile. The specific treatment and dose is determined by the doctor after reviewing your assessment.",
+    answer: "The doctor can assess your individual health profile and decide what, if anything, is clinically appropriate. The specific option and dose are determined only after review.",
   },
   {
-    question: "Is it safe to take ED medication with my current medications?",
-    answer: "Our safety screening checks for common contraindications including nitrates (e.g. GTN spray), alpha-blockers (e.g. tamsulosin, prazosin), and certain cardiac conditions. The reviewing doctor performs a final check of your full medication list before approving any treatment, per TGA prescribing guidelines.",
+    question: "Is this safe with my current medications?",
+    answer: "Our safety screening checks for medication interactions and certain cardiac conditions. The reviewing doctor performs a final check of your full medication list before deciding whether online care is appropriate.",
   },
   {
     question: "Can I get this treatment without a Medicare card?",
@@ -29,6 +29,6 @@ export const ED_FAQ = [
   },
   {
     question: "How much does it cost?",
-    answer: "Our flat fee is $49.95 for the doctor consultation and eScript. Medication cost is separate and paid at the pharmacy. There are no subscriptions or ongoing fees.",
+    answer: "Our flat fee is $49.95 for the doctor consultation. Pharmacy costs, if relevant, are separate. There are no subscriptions or ongoing fees.",
   },
 ] as const

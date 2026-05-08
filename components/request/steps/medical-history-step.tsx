@@ -13,10 +13,10 @@
 import { ArrowRight } from "lucide-react"
 import { useCallback,useState } from "react"
 
-import { usePostHog } from "@/components/providers/posthog-provider"
 import { BinaryChoice, IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 

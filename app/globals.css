@@ -1,8 +1,101 @@
-@import url("./print.css") print;
 @import "tailwindcss";
-@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+
+/* Minimal Radix/shadcn animation utilities.
+   Replaces the broad tw-animate-css import so every route does not pay for
+   unused animation utilities. Keep this list aligned with rg "animate-in|slide-in-from". */
+@keyframes enter {
+  from {
+    opacity: var(--tw-enter-opacity, 1);
+    transform:
+      translate3d(var(--tw-enter-translate-x, 0), var(--tw-enter-translate-y, 0), 0)
+      scale3d(var(--tw-enter-scale, 1), var(--tw-enter-scale, 1), var(--tw-enter-scale, 1));
+  }
+}
+
+@keyframes exit {
+  to {
+    opacity: var(--tw-exit-opacity, 1);
+    transform:
+      translate3d(var(--tw-exit-translate-x, 0), var(--tw-exit-translate-y, 0), 0)
+      scale3d(var(--tw-exit-scale, 1), var(--tw-exit-scale, 1), var(--tw-exit-scale, 1));
+  }
+}
+
+@utility animate-in {
+  animation: enter var(--tw-animation-duration, var(--tw-duration, 0.15s)) var(--tw-ease, ease) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
+}
+
+@utility animate-out {
+  animation: exit var(--tw-animation-duration, var(--tw-duration, 0.15s)) var(--tw-ease, ease) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1) var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
+}
+
+@utility fade-in {
+  --tw-enter-opacity: 0;
+}
+
+@utility fade-in-* {
+  --tw-enter-opacity: calc(--value(number) / 100);
+}
+
+@utility fade-out-* {
+  --tw-exit-opacity: calc(--value(number) / 100);
+}
+
+@utility zoom-in {
+  --tw-enter-scale: 0;
+}
+
+@utility zoom-in-* {
+  --tw-enter-scale: calc(--value(number) * 1%);
+  --tw-enter-scale: calc(--value(ratio));
+}
+
+@utility zoom-out-* {
+  --tw-exit-scale: calc(--value(number) * 1%);
+  --tw-exit-scale: calc(--value(ratio));
+}
+
+@utility slide-in-from-top {
+  --tw-enter-translate-y: -100%;
+}
+
+@utility slide-in-from-top-* {
+  --tw-enter-translate-y: calc(--value(integer) * var(--spacing) * -1);
+  --tw-enter-translate-y: calc(--value(ratio) * -100%);
+  --tw-enter-translate-y: calc(--value([percentage], [length]) * -1);
+}
+
+@utility slide-in-from-bottom-* {
+  --tw-enter-translate-y: calc(--value(integer) * var(--spacing));
+  --tw-enter-translate-y: calc(--value(ratio) * 100%);
+  --tw-enter-translate-y: --value([percentage], [length]);
+}
+
+@utility slide-in-from-left-* {
+  --tw-enter-translate-x: calc(--value(integer) * var(--spacing) * -1);
+  --tw-enter-translate-x: calc(--value(ratio) * -100%);
+  --tw-enter-translate-x: calc(--value([percentage], [length]) * -1);
+}
+
+@utility slide-in-from-right-* {
+  --tw-enter-translate-x: calc(--value(integer) * var(--spacing));
+  --tw-enter-translate-x: calc(--value(ratio) * 100%);
+  --tw-enter-translate-x: --value([percentage], [length]);
+}
+
+@utility slide-out-to-left-* {
+  --tw-exit-translate-x: calc(--value(integer) * var(--spacing) * -1);
+  --tw-exit-translate-x: calc(--value(ratio) * -100%);
+  --tw-exit-translate-x: calc(--value([percentage], [length]) * -1);
+}
+
+@utility slide-out-to-top-* {
+  --tw-exit-translate-y: calc(--value(integer) * var(--spacing) * -1);
+  --tw-exit-translate-y: calc(--value(ratio) * -100%);
+  --tw-exit-translate-y: calc(--value([percentage], [length]) * -1);
+}
 
 /* ================================
    SEAMLESS SCROLLING
@@ -3256,6 +3349,168 @@ button:not(.no-micro):active:not(:disabled),
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
+}
+
+@media print {
+  header,
+  footer,
+  nav,
+  aside,
+  .no-print,
+  .bottom-tab-bar,
+  .pwa-install-prompt,
+  .toast-container,
+  button:not(.print-visible),
+  [role="dialog"],
+  [role="alertdialog"] {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+
+  .container,
+  main,
+  .print-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .certificate-container {
+    page-break-inside: avoid;
+    border: 2px solid #000 !important;
+    padding: 2rem !important;
+    margin: 1rem 0 !important;
+  }
+
+  .certificate-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .certificate-logo {
+    max-width: 150px;
+    height: auto;
+  }
+
+  .certificate-title {
+    font-size: 24pt;
+    font-weight: bold;
+    margin: 1rem 0;
+  }
+
+  .certificate-body {
+    font-size: 12pt;
+    line-height: 1.8;
+  }
+
+  .certificate-field {
+    margin: 0.5rem 0;
+  }
+
+  .certificate-field-label {
+    display: inline-block;
+    min-width: 150px;
+    font-weight: bold;
+  }
+
+  .certificate-signature {
+    width: 250px;
+    margin-top: 3rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #000;
+  }
+
+  .certificate-footer {
+    margin-top: 2rem;
+    color: #666 !important;
+    font-size: 10pt;
+    text-align: center;
+  }
+
+  .qr-code {
+    page-break-inside: avoid;
+  }
+
+  .qr-code img,
+  .qr-code svg {
+    max-width: 150px !important;
+  }
+
+  a[href]:after {
+    color: #666;
+    content: " (" attr(href) ")";
+    font-size: 10pt;
+  }
+
+  a[href^="#"]:after,
+  a[href^="javascript"]:after,
+  a.no-print-url:after,
+  button a:after {
+    content: "";
+  }
+
+  .page-break-before {
+    page-break-before: always;
+  }
+
+  .page-break-after {
+    page-break-after: always;
+  }
+
+  .avoid-break {
+    page-break-inside: avoid;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    padding: 8px !important;
+    text-align: left;
+    border: 1px solid #000 !important;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tr {
+    page-break-inside: avoid;
+  }
+
+  img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+
+  * {
+    color: #000 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  .print-preserve-color {
+    color: inherit !important;
+  }
+
+  @page {
+    margin: 2cm;
+  }
+
+  @page :first {
+    margin-top: 1cm;
+  }
 }
 
 /* ==========================================================================

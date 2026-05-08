@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils"
 interface MedCategory {
   icon: LucideIcon
   name: string
-  examples: string
+  scope: string
   accent: string
   iconBg: string
   iconColor: string
@@ -31,7 +31,7 @@ const CATEGORIES: MedCategory[] = [
   {
     icon: Heart,
     name: "Blood pressure",
-    examples: "Amlodipine, Ramipril, Perindopril",
+    scope: "Stable repeat requests already prescribed by your usual doctor",
     accent: "border-t-rose-400/60",
     iconBg: "bg-rose-50 dark:bg-rose-500/10",
     iconColor: "text-rose-500",
@@ -39,7 +39,7 @@ const CATEGORIES: MedCategory[] = [
   {
     icon: Droplets,
     name: "Cholesterol",
-    examples: "Atorvastatin, Rosuvastatin",
+    scope: "Regular cholesterol medicines that do not need urgent review",
     accent: "border-t-amber-400/60",
     iconBg: "bg-amber-50 dark:bg-amber-500/10",
     iconColor: "text-amber-500",
@@ -47,7 +47,7 @@ const CATEGORIES: MedCategory[] = [
   {
     icon: Shield,
     name: "Contraceptives",
-    examples: "Combined pill, mini pill",
+    scope: "Ongoing contraception reviews where online care is suitable",
     accent: "border-t-pink-400/60",
     iconBg: "bg-pink-50 dark:bg-pink-500/10",
     iconColor: "text-pink-500",
@@ -55,7 +55,7 @@ const CATEGORIES: MedCategory[] = [
   {
     icon: Wind,
     name: "Asthma & COPD",
-    examples: "Ventolin, Seretide, Symbicort",
+    scope: "Maintenance inhaler reviews for stable, non-urgent symptoms",
     accent: "border-t-sky-400/60",
     iconBg: "bg-sky-50 dark:bg-sky-500/10",
     iconColor: "text-sky-500",
@@ -63,7 +63,7 @@ const CATEGORIES: MedCategory[] = [
   {
     icon: Thermometer,
     name: "Reflux & gut",
-    examples: "Omeprazole, Pantoprazole, Esomeprazole",
+    scope: "Repeat requests for stable reflux or gut symptom management",
     accent: "border-t-orange-400/60",
     iconBg: "bg-orange-50 dark:bg-orange-500/10",
     iconColor: "text-orange-500",
@@ -71,7 +71,7 @@ const CATEGORIES: MedCategory[] = [
   {
     icon: Sun,
     name: "Skin conditions",
-    examples: "Topical steroids, tretinoin",
+    scope: "Ongoing skin-care prescriptions already used safely",
     accent: "border-t-lime-400/60",
     iconBg: "bg-lime-50 dark:bg-lime-500/10",
     iconColor: "text-lime-500",
@@ -79,7 +79,7 @@ const CATEGORIES: MedCategory[] = [
   {
     icon: Brain,
     name: "Thyroid",
-    examples: "Levothyroxine, Thyroxine",
+    scope: "Stable thyroid medicine reviews with recent monitoring where needed",
     accent: "border-t-teal-400/60",
     iconBg: "bg-teal-50 dark:bg-teal-500/10",
     iconColor: "text-teal-500",
@@ -87,7 +87,7 @@ const CATEGORIES: MedCategory[] = [
   {
     icon: Pill,
     name: "Other regular meds",
-    examples: "Antihistamines, iron, metformin",
+    scope: "Other stable repeat medicines assessed case by case",
     accent: "border-t-slate-400/60",
     iconBg: "bg-slate-50 dark:bg-slate-500/10",
     iconColor: "text-slate-500",
@@ -98,20 +98,19 @@ const CATEGORIES: MedCategory[] = [
 // COMPONENT
 // =============================================================================
 
-/** Medication categories grid with color-coded accent borders and hover effects */
+/** Repeat medication categories grid with no drug-name examples on ad destinations. */
 export function SupportedMedicationsSection() {
   return (
-    <section aria-label="Supported medications" className="py-12 lg:py-16">
+    <section aria-label="Repeat medication review scope" className="py-12 lg:py-16">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <Reveal className="text-center mb-10">
-          <SectionPill>Medications</SectionPill>
+          <SectionPill>Review scope</SectionPill>
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mt-4 mb-3 tracking-tight">
-            Common medications we can renew
+            Common areas we can review
           </h2>
           <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-            For medications you already take. If your medication isn&apos;t
-            listed, submit a request and the doctor will let you know.
+            For medicines you already take. Details are collected securely inside the request form.
           </p>
         </Reveal>
 
@@ -139,7 +138,7 @@ export function SupportedMedicationsSection() {
                   {cat.name}
                 </p>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  {cat.examples}
+                  {cat.scope}
                 </p>
               </div>
             </Reveal>

@@ -6,12 +6,10 @@
  * Provides user-friendly error UI with retry and reset options.
  */
 
-import * as Sentry from "@sentry/nextjs"
 import { AlertTriangle, Home,RefreshCw } from "lucide-react"
 import { Component, type ReactNode } from "react"
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
+import { RequestButton } from "./request-button"
 
 /** PostHog client shape injected by the SDK's script tag */
 interface PostHogClient {
@@ -48,7 +46,9 @@ export class StepErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    Sentry.captureException(error, { extra: { errorInfo } })
+    void import("@sentry/nextjs").then((Sentry) => {
+      Sentry.captureException(error, { extra: { errorInfo } })
+    })
     // Log error to monitoring service in development
     if (process.env.NODE_ENV === 'development') {
       // eslint-disable-next-line no-console
@@ -82,10 +82,12 @@ export class StepErrorBoundary extends Component<
     if (this.state.hasError) {
       return (
         <div className="space-y-4 animate-in fade-in">
-          <Alert variant="destructive">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Something went wrong</AlertTitle>
-            <AlertDescription className="mt-2">
+          <div role="alert" className="relative rounded-lg border border-danger bg-danger/10 p-3 text-danger">
+            <AlertTriangle className="absolute left-3 top-3 h-4 w-4" />
+            <h5 className="mb-1 pl-6 font-medium leading-none tracking-tight">
+              Something went wrong
+            </h5>
+            <div className="mt-2 pl-6 text-sm">
               <p className="text-sm mb-4">
                 We encountered an issue loading this step. Your progress has been saved.
               </p>
@@ -102,7 +104,7 @@ export class StepErrorBoundary extends Component<
               )}
               
               <div className="flex gap-2">
-                <Button
+                <RequestButton
                   size="sm"
                   variant="outline"
                   onClick={this.handleRetry}
@@ -110,8 +112,8 @@ export class StepErrorBoundary extends Component<
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   Try again
-                </Button>
-                <Button
+                </RequestButton>
+                <RequestButton
                   size="sm"
                   variant="ghost"
                   onClick={() => window.location.href = '/'}
@@ -119,10 +121,10 @@ export class StepErrorBoundary extends Component<
                 >
                   <Home className="w-3.5 h-3.5" />
                   Go home
-                </Button>
+                </RequestButton>
               </div>
-            </AlertDescription>
-          </Alert>
+            </div>
+          </div>
         </div>
       )
     }

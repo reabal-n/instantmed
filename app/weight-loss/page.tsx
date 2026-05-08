@@ -3,9 +3,9 @@ import type { Metadata } from "next"
 import { WeightLossClient } from "./weight-loss-client"
 
 export const metadata: Metadata = {
-  title: { absolute: "Weight Loss Treatment | Online, No Clinic | InstantMed" },
+  title: { absolute: "Weight Management Assessment | Online, No Clinic | InstantMed" },
   description:
-    "Doctor-supported weight loss online. Start with a confidential assessment. No clinic visit, no in-person appointment.",
+    "Doctor-reviewed weight management assessment online. Start with a confidential form. No clinic visit, no in-person appointment.",
   keywords: [
     "weight management australia",
     "doctor supervised weight management",
@@ -14,15 +14,15 @@ export const metadata: Metadata = {
     "healthy weight support",
   ],
   openGraph: {
-    title: "Weight Loss Treatment | Online, No Clinic | InstantMed",
+    title: "Weight Management Assessment | Online, No Clinic | InstantMed",
     description:
-      "Doctor-supported weight loss. Start with an online assessment, no clinic visit needed.",
+      "Doctor-reviewed weight management assessment. Start online, no clinic visit needed.",
     url: "https://instantmed.com.au/weight-loss",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Weight Loss Treatment | Online, No Clinic | InstantMed",
-    description: "Doctor-supported weight loss online. No clinic, no in-person appointment.",
+    title: "Weight Management Assessment | Online, No Clinic | InstantMed",
+    description: "Doctor-reviewed weight management assessment online. No clinic, no in-person appointment.",
   },
   alternates: {
     canonical: "https://instantmed.com.au/weight-loss",

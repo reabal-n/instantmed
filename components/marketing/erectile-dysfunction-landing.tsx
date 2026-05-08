@@ -37,10 +37,6 @@ const RegulatoryPartners = dynamic(
   () => import("@/components/marketing/regulatory-partners").then((m) => m.RegulatoryPartners),
   { loading: () => <div className="min-h-[120px]" /> },
 )
-const EDGuideSection = dynamic(
-  () => import("@/components/marketing/sections/ed-guide-section").then((m) => m.EDGuideSection),
-  { loading: () => <div className="min-h-[400px]" /> },
-)
 const FAQSection = dynamic(
   () => import("@/components/sections").then((m) => ({ default: m.FAQSection })),
   { loading: () => <div className="min-h-[400px]" /> },
@@ -66,15 +62,15 @@ const HOW_IT_WORKS_STEPS = [
     sticker: "stethoscope" as const,
     step: 2,
     title: "A real GP reviews it",
-    description: "An AHPRA-registered doctor reviews your assessment, same standards as in-person.",
-    time: "Within 1 hour",
+    description: "An AHPRA-registered doctor reviews your assessment and decides the next step.",
+    time: "Reviewed when available",
   },
   {
     sticker: "sent" as const,
     step: 3,
-    title: "eScript sent to your phone",
-    description: "Your prescription is sent via SMS. Collect treatment from any Australian pharmacy.",
-    time: "Same day",
+    title: "Outcome sent to your phone",
+    description: "If clinically appropriate, an eScript is sent by SMS and can be used at an Australian pharmacy.",
+    time: "After review",
   },
 ]
 
@@ -107,10 +103,10 @@ function EDComparisonViz() {
     <div className="bg-muted/30 dark:bg-white/[0.02]">
       <TimeComparisonViz
         pill="Why go online?"
-        heading="Doctor-reviewed in under an hour."
+        heading="Doctor-reviewed without the waiting room."
         ours={{ label: "InstantMed", value: "~1", unit: "hr" }}
         theirs={{ label: "GP clinic", value: "2", valueSuffix: "+", unit: "hrs" }}
-        ourSteps={["2-min health form", "Doctor reviews privately", "eScript sent by SMS"]}
+        ourSteps={["2-min health form", "Doctor reviews privately", "Outcome sent by SMS"]}
         theirSteps={["Book appointment", "Travel + wait in clinic", "Face-to-face consult"]}
         primaryFillPercent={30}
       />
@@ -128,7 +124,7 @@ function EDPricingSection({ isDisabled }: { isDisabled?: boolean }) {
             One flat fee. No hidden costs.
           </Heading>
           <p className="text-muted-foreground max-w-xl mx-auto text-balance">
-            You only pay if the doctor approves treatment.
+            You only pay if the doctor can help.
           </p>
         </Reveal>
 
@@ -195,7 +191,7 @@ export function ErectileDysfunctionLanding() {
           {/* 1. Hero — canonical <Hero> with ED-specific title, CTA, and the
               discreet ED hero mockup. Bespoke EDHeroSection retired in Pass 2. */}
           <Hero
-            title="ED medication, without the GP visit."
+            title="Private ED assessment, without the GP visit."
             primaryCta={{
               text: `Start assessment · $${PRICING.MENS_HEALTH.toFixed(2)}`,
               href: "/request?service=consult&subtype=ed",
@@ -231,7 +227,7 @@ export function ErectileDysfunctionLanding() {
                 Private ED assessment. <span className="text-primary">Without the waiting room.</span>
               </>
             }
-            body="Doctor-reviewed online assessment. If prescription treatment is clinically appropriate, your eScript is sent by SMS and can be used at any Australian pharmacy."
+            body="Doctor-reviewed online assessment. If a prescription option is clinically appropriate, your eScript is sent by SMS and can be used at any Australian pharmacy."
           />
 
           {/* 2. How It Works */}
@@ -260,16 +256,13 @@ export function ErectileDysfunctionLanding() {
           <FAQSection
             pill="FAQ"
             title="Frequently asked questions"
-            subtitle="Everything you need to know about ED treatment online."
+            subtitle="Everything you need to know before starting an ED assessment online."
             items={ED_FAQ}
             initialCount={4}
             onFAQOpen={handleFAQOpen}
             viewAllHref="/faq"
             className="bg-muted/30 dark:bg-white/[0.02]"
           />
-
-          {/* Guide - deep E-E-A-T content for organic search */}
-          <EDGuideSection />
 
           {/* Referral strip */}
           <ReferralStrip contextText="dealing with ED" />

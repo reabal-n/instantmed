@@ -9,6 +9,7 @@ import { StatsHero } from "@/components/heroes"
 import { ServiceIconTile } from "@/components/icons/service-icons"
 import { DoctorCredibility, RegulatoryPartners } from "@/components/marketing"
 import { CompetitorLinksSection, PricingGuideSection } from "@/components/marketing/sections"
+import { CommercialIntentLinksSection } from "@/components/marketing/sections/commercial-intent-links-section"
 import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
 import { ComparisonBar, InformationalPageShell } from "@/components/marketing/shared"
 import { ComparisonTable, CTABanner,FAQSection } from "@/components/sections"
@@ -19,6 +20,7 @@ import { Heading } from "@/components/ui/heading"
 import { useReducedMotion } from "@/components/ui/motion"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
+import { priorityCommercialLinks } from "@/lib/seo/commercial-links"
 import { getPatientCount,SOCIAL_PROOF } from "@/lib/social-proof"
 import { cn } from "@/lib/utils"
 
@@ -333,6 +335,13 @@ export function PricingClient() {
             </div>
           </div>
         </section>
+
+        <CommercialIntentLinksSection
+          title="Compare common request types"
+          body="Quick links into the highest-intent certificate, repeat prescription, and comparison pages with price and review boundaries stated before checkout."
+          links={priorityCommercialLinks.slice(0, 6)}
+          compactLinks={priorityCommercialLinks.slice(6)}
+        />
 
         {/* Doctor Credibility */}
         <DoctorCredibility

@@ -3,10 +3,9 @@
 import { useRouter } from "next/navigation"
 import { useCallback } from "react"
 
-import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 import { getConsultSubtypeFirstStep, getConsultSubtypeResetKeys } from "@/lib/request/consult-flow"
 import type { StepDefinition, UnifiedServiceType } from "@/lib/request/step-registry"
-import { evaluateSafety, type SafetyEvaluationResult } from "@/lib/safety"
+import type { SafetyEvaluationResult } from "@/lib/safety/types"
 
 import { useRequestStore } from "../store"
 
@@ -120,7 +119,7 @@ export function useFlowNavigation({
     }
   }, [currentStepIndex, currentStepId, analyticsServiceType, prevStep, router, posthog])
 
-  const handleNext = useCallback(() => {
+  const handleNext = useCallback(async () => {
     trackStepCompleted()
 
     // Run safety pre-check when leaving key clinical steps.
@@ -129,6 +128,7 @@ export function useFlowNavigation({
     // runs at checkout as a backstop.
     if (effectiveService && SAFETY_PRE_CHECK_STEPS.has(currentStepId)) {
       const slug = getSafetySlug(effectiveService, answers)
+      const { evaluateSafety } = await import("@/lib/safety/evaluate")
       const result = evaluateSafety(slug, answers)
 
       if (result.outcome === 'DECLINE' || result.outcome === 'REQUIRES_CALL') {
@@ -153,7 +153,9 @@ export function useFlowNavigation({
       total_steps: activeSteps.length,
       is_authenticated: isAuthenticated,
     })
-    void trackFunnelStep('intake_complete', analyticsServiceType, patientEmail)
+    void import("@/lib/analytics/conversion-tracking").then(({ trackFunnelStep }) => {
+      void trackFunnelStep('intake_complete', analyticsServiceType, patientEmail)
+    })
     router.push('/patient/intakes/success')
   }, [analyticsServiceType, activeSteps.length, isAuthenticated, router, posthog, patientEmail])
 

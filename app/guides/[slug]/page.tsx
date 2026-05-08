@@ -17,6 +17,11 @@ import { BreadcrumbSchema, FAQSchema, HealthArticleSchema, HowToSchema, MedicalD
 import { Footer,Navbar } from "@/components/shared"
 import { Button } from "@/components/ui/button"
 import { PageBreadcrumbs } from "@/components/uix"
+import {
+  commercialCertificateLinks,
+  commercialComparisonLinks,
+  commercialPrescriptionLinks,
+} from "@/lib/seo/commercial-links"
 import { GUIDE_INDEX,guides } from "@/lib/seo/data/guides"
 
 interface PageProps {
@@ -234,19 +239,24 @@ export default async function GuidePage({ params }: PageProps) {
             // Map categories to relevant service/condition links
             const categoryLinks: Record<string, Array<{ href: string; label: string }>> = {
               "Medical Certificates": [
+                commercialCertificateLinks[0],
+                commercialCertificateLinks[1],
+                commercialCertificateLinks[2],
+                commercialCertificateLinks[7],
                 { href: "/medical-certificate", label: "Medical certificate service" },
-                { href: "/conditions/cold-and-flu", label: "Cold & flu certificates" },
-                { href: "/conditions/back-pain", label: "Back pain certificates" },
               ],
               "Prescriptions": [
+                commercialPrescriptionLinks[0],
+                commercialPrescriptionLinks[1],
+                commercialPrescriptionLinks[2],
                 { href: "/prescriptions", label: "Prescription service" },
-                { href: "/conditions/hay-fever", label: "Hay fever treatment" },
-                { href: "/conditions/uti", label: "UTI treatment" },
               ],
               "Telehealth": [
+                commercialComparisonLinks[0],
+                commercialComparisonLinks[1],
+                commercialComparisonLinks[4],
                 { href: "/consult", label: "Online consultations" },
                 { href: "/how-it-works", label: "How InstantMed works" },
-                { href: "/trust", label: "Trust & safety" },
               ],
             }
 

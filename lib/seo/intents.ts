@@ -1,24 +1,52 @@
 /**
- * Intent Pages Data
- * High-intent search queries mapped to conversion pages
- * 
- * Examples:
- * - "same day medical certificate"
- * - "doctor's certificate online"
- * - "UTI script online"
- * - "after hours telehealth"
+ * Commercial Intent Pages
+ *
+ * This is the curated top-25 organic acquisition set. These are not blog posts
+ * or average guides: each page has a first-screen answer, price, compliant CTA,
+ * local visual, source references, and internal links.
  */
 
-import type { SEOPage } from './registry'
+import { PRICING_DISPLAY } from "@/lib/constants"
+import { commercialSeoVisuals } from "@/lib/seo/commercial-visuals"
 
-export interface IntentPage extends Omit<SEOPage, 'type'> {
-  type: 'intent'
+import type { ContentBlock, FAQ, RelatedLink, SEOPage } from "./registry"
+
+export type CommercialIntentCluster =
+  | "medical-certificate"
+  | "repeat-prescription"
+  | "location"
+  | "comparison"
+
+export interface CommercialIntentSource {
+  label: string
+  href: string
+}
+
+export interface CommercialIntentMeta {
+  priority: number
+  cluster: CommercialIntentCluster
+  price: string
+  answer: string
+  visual: {
+    src: string
+    alt: string
+    caption: string
+  }
+  sources: CommercialIntentSource[]
+  internalLinks: Array<{
+    label: string
+    href: string
+  }>
+}
+
+export interface IntentPage extends Omit<SEOPage, "type"> {
+  type: "intent"
   intent: {
-    searchQuery: string // Primary search term
-    alternateQueries: string[] // Variations
-    userNeed: string // What the user actually wants
-    urgency: 'immediate' | 'same-day' | 'flexible'
-    serviceType: 'medical-certificate' | 'prescription' | 'consult' | 'multiple'
+    searchQuery: string
+    alternateQueries: string[]
+    userNeed: string
+    urgency: "immediate" | "same-day" | "flexible"
+    serviceType: "medical-certificate" | "prescription" | "consult" | "multiple"
   }
   conversion: {
     primaryCTA: string
@@ -26,920 +54,1171 @@ export interface IntentPage extends Omit<SEOPage, 'type'> {
     secondaryCTA?: string
     secondaryCTAUrl?: string
   }
+  commercial: CommercialIntentMeta
 }
 
-export const intentPages: IntentPage[] = [
-  {
-    slug: 'same-day-medical-certificate',
-    type: 'intent',
-    title: 'Same Day Medical Certificate Online | Doctor Reviewed',
-    description: 'Need a medical certificate today? Reviewed by Australian doctors, valid for employers and universities. From $19.95.',
-    h1: 'Same Day Medical Certificate - Reviewed & Valid',
-    content: {
-      intro: 'Feeling unwell and need a medical certificate for work or uni today? Submit from home, get reviewed by an Australian doctor, and receive your certificate by email after approval. No waiting rooms.',
-      uniqueBlocks: [
-        {
-          id: 'how-fast',
-          type: 'text',
-          content: 'Medical certificate requests are available 24/7. Your certificate is emailed as a PDF after doctor approval.',
-        },
-        {
-          id: 'what-employers-accept',
-          type: 'text',
-          content: 'Our medical certificates are issued by AHPRA-registered GPs and include standard workplace and study evidence details: your name, dates of absence, doctor details with AHPRA number, and clinic information. Employer and institution policies may vary.',
-        },
-        {
-          id: 'process',
-          type: 'list',
-          content: [
-            'Answer a few questions about your symptoms (takes 2-3 minutes)',
-            'Pay $19.95 via secure payment',
-            'Australian doctor reviews your case',
-            'Certificate emailed to you after doctor approval',
-            'Forward to your employer or upload to your HR system',
-          ],
-        },
-        {
-          id: 'when-to-use',
-          type: 'callout',
-          content: 'Perfect for: cold/flu, gastro, migraine, injury, mental health day, medical appointments. NOT for emergencies - if you\'re experiencing chest pain, difficulty breathing, or other serious symptoms, call 000.',
-        },
-        {
-          id: 'employer-acceptance',
-          type: 'text',
-          content: 'Under the Fair Work Act 2009, employers can request evidence of illness or injury for personal/carer\'s leave. Certificates issued by AHPRA-registered doctors via telehealth can support those evidence requirements. Specific workplace policies and circumstances may vary.',
-        },
-        {
-          id: 'what-doctors-assess',
-          type: 'text',
-          content: 'When you submit a medical certificate request, the reviewing doctor assesses several things: the nature and severity of your reported symptoms, whether those symptoms are consistent with being unfit for work, how many days off are medically reasonable, and whether your situation needs further investigation or in-person care. Doctors use their clinical judgement - the same standard applied in any GP consultation. They may decline to issue a certificate if your symptoms don\'t support time off work, or if they believe you need a physical examination instead.',
-        },
-        {
-          id: 'evidence-rules',
-          type: 'list',
-          content: [
-            'Under Fair Work, employers can request evidence for absences of a single day if it\'s a pattern or repeated occurrence',
-            'For absences over two consecutive days, employers can require a medical certificate as "reasonable evidence"',
-            'Statutory declarations are accepted as an alternative to medical certificates under section 107(3)',
-            'Enterprise agreements or employment contracts may have stricter evidence requirements - check your specific agreement',
-            'Casual employees don\'t accumulate paid sick leave but may still need certificates if their contract requires it',
-          ],
-        },
-        {
-          id: 'backdating-rules',
-          type: 'text',
-          content: 'Backdating a medical certificate means the certificate covers days before the consultation. Our doctors can backdate certificates up to 3 days at no additional cost - this covers common situations where you were too unwell to seek a certificate on the day itself. Beyond 3 days, backdating requires a brief phone consultation so the doctor can verify the details of your illness. This isn\'t a bureaucratic hurdle - it\'s a clinical governance requirement. AHPRA guidelines require doctors to exercise reasonable clinical judgement when certifying retrospective unfitness, and a conversation helps them do that responsibly.',
-        },
-        {
-          id: 'certificate-details',
-          type: 'callout',
-          content: 'Every certificate includes: your full name, dates of unfitness for work or study, the issuing doctor\'s name and AHPRA registration number, the practice name and address, a unique certificate ID for verification, and a digital signature. These details satisfy Fair Work requirements and most enterprise agreement clauses.',
-        },
-      ],
-    },
-    metadata: {
-      keywords: [
-        'same day medical certificate',
-        'medical certificate today',
-        'urgent medical certificate',
-        'fast medical certificate online',
-        'medical certificate within hours',
-      ],
-      lastModified: new Date('2026-01-03'),
-    },
-    structured: {
-      faqs: [
-        {
-          question: 'How quickly can I get a medical certificate?',
-          answer: 'Medical certificate requests are available 24/7. Your certificate is emailed as a PDF as soon as it\u0027s approved.',
-        },
-        {
-          question: 'Will my employer accept an online medical certificate?',
-          answer: 'Our certificates are issued by AHPRA-registered Australian GPs and include standard workplace evidence details. Employer policies may vary.',
-        },
-        {
-          question: 'Can I backdate a medical certificate?',
-          answer: 'Yes, certificates can be backdated up to 3 days at no extra charge. Backdating beyond 3 days may require a phone consultation with the doctor to verify details.',
-        },
-        {
-          question: 'What if I need a certificate for multiple days?',
-          answer: 'You can request certificates for up to 5 consecutive days through our standard process. Longer durations may require additional information or follow-up.',
-        },
-      ],
-    },
-    links: {
-      related: [
-        { type: 'condition', slug: 'cold-and-flu', title: 'Cold & Flu Medical Certificates' },
-        { type: 'audience', slug: 'students', title: 'Medical Certificates for Students' },
-        { type: 'audience', slug: 'shift-workers', title: 'Certificates for Shift Workers' },
-      ],
-    },
-    intent: {
-      searchQuery: 'same day medical certificate',
-      alternateQueries: [
-        'medical certificate today',
-        'urgent medical certificate',
-        'fast medical certificate',
-        'medical certificate within hours',
-        'last minute medical certificate',
-      ],
-      userNeed: 'Get a valid medical certificate quickly for work/uni',
-      urgency: 'immediate',
-      serviceType: 'medical-certificate',
-    },
-    conversion: {
-      primaryCTA: 'Get Started',
-      ctaUrl: '/request?service=med-cert',
-      secondaryCTA: 'Learn More About Our Service',
-      secondaryCTAUrl: '/medical-certificate',
-    },
-  },
+type IntentInput = {
+  priority: number
+  cluster: CommercialIntentCluster
+  slug: string
+  title: string
+  description: string
+  h1: string
+  answer: string
+  intro: string
+  price: string
+  visual: CommercialIntentMeta["visual"]
+  searchQuery: string
+  alternateQueries: string[]
+  userNeed: string
+  urgency: IntentPage["intent"]["urgency"]
+  serviceType: IntentPage["intent"]["serviceType"]
+  keywords: string[]
+  blocks: ContentBlock[]
+  faqs: FAQ[]
+  related: RelatedLink[]
+  internalLinks: CommercialIntentMeta["internalLinks"]
+  sources: CommercialIntentSource[]
+  primaryCTA: string
+  ctaUrl: string
+  secondaryCTA?: string
+  secondaryCTAUrl?: string
+}
 
-  {
-    slug: 'uti-treatment-online',
-    type: 'intent',
-    title: 'UTI Treatment Online Australia | Doctor Assessed',
-    description: 'Burning when you pee? Get assessed for UTI treatment online by Australian doctors. Doctor-reviewed, same-day where appropriate. From $29.95.',
-    h1: 'UTI Treatment Online - Relief When You Need It',
-    content: {
-      intro: 'Urinary tract infections are uncomfortable, urgent, and need quick treatment. Our Australian doctors can assess your symptoms online and prescribe antibiotics if appropriate, with your e-script sent to your phone within hours.',
-      uniqueBlocks: [
-        {
-          id: 'symptoms-we-treat',
-          type: 'list',
-          content: [
-            'Burning or stinging when urinating',
-            'Urgent need to pee frequently',
-            'Cloudy, dark, or strong-smelling urine',
-            'Lower abdominal pain or discomfort',
-            'Mild fever (not high fever)',
-          ],
-        },
-        {
-          id: 'how-it-works',
-          type: 'text',
-          content: 'Complete a quick symptom questionnaire, answer questions about your health history, and our doctor will review your case. If your symptoms are consistent with a straightforward UTI and there are no red flags, we can prescribe appropriate antibiotics. Your e-script is sent via SMS and can be filled at any Australian pharmacy.',
-        },
-        {
-          id: 'when-to-see-gp',
-          type: 'callout',
-          content: 'See a GP in person if you have: blood in urine, high fever/chills, severe back pain, vomiting, are pregnant, or have recurrent UTIs (3+ per year). These require physical examination or further testing.',
-        },
-        {
-          id: 'uti-prevalence-australia',
-          type: 'text',
-          content: 'Urinary tract infections are one of the most common bacterial infections in Australia, particularly among women. Around 50% of Australian women will experience at least one UTI in their lifetime, and roughly one in three will have one before age 24. UTIs account for a significant proportion of after-hours GP presentations and emergency department visits - many of which could be managed through telehealth. The condition is well-suited to remote assessment because diagnosis is primarily symptom-based for uncomplicated cases, and treatment guidelines are well-established through Therapeutic Guidelines (eTG).',
-        },
-        {
-          id: 'telehealth-vs-ed',
-          type: 'text',
-          content: 'Not every UTI needs an emergency department visit, and knowing the difference matters. A straightforward UTI - burning when you urinate, frequent urination, lower abdominal discomfort, no fever - can usually be assessed and treated via telehealth. An ED visit is appropriate when you have a high fever (over 38.5°C), severe flank or back pain, rigors or chills, persistent vomiting, or if you\'re pregnant. These symptoms may suggest the infection has spread to the kidneys (pyelonephritis), which requires in-person assessment and potentially IV treatment. If you\'re unsure, a telehealth consultation can help you decide whether you need emergency care.',
-        },
-        {
-          id: 'recurrent-utis',
-          type: 'text',
-          content: 'If you experience three or more UTIs in a year, or two in six months, you may have recurrent UTIs. While we can treat individual episodes, recurrent infections typically need further investigation - including urine cultures, imaging, and sometimes specialist referral. Your GP may consider prophylactic strategies such as post-coital prevention, low-dose continuous therapy, or non-antibiotic approaches. We\'ll flag recurrent UTIs during your assessment and recommend appropriate follow-up with your regular GP or a urologist.',
-        },
-        {
-          id: 'pregnancy-considerations',
-          type: 'callout',
-          content: 'UTIs during pregnancy require careful management. Untreated UTIs in pregnancy carry risks including preterm labour and low birth weight. Even asymptomatic bacteriuria (bacteria in urine without symptoms) is routinely screened for and treated during pregnancy. If you\'re pregnant and suspect a UTI, we recommend seeing your GP or midwife in person for a urine culture and tailored treatment. Our doctors will not prescribe UTI treatment to pregnant patients via telehealth - this is a clinical safety boundary.',
-        },
-      ],
-    },
-    metadata: {
-      keywords: [
-        'UTI treatment online',
-        'UTI antibiotics online',
-        'urinary tract infection online doctor',
-        'uti prescription online',
-        'uti treatment australia',
-      ],
-      lastModified: new Date('2026-01-03'),
-    },
-    structured: {
-      faqs: [
-        {
-          question: 'Can you prescribe antibiotics for a UTI online?',
-          answer: 'Yes - if your symptoms are consistent with a straightforward UTI and you don\'t have any red flags (like fever, blood in urine, pregnancy), our doctors can prescribe appropriate antibiotics.',
-        },
-        {
-          question: 'Do I need a urine test?',
-          answer: 'For typical UTI symptoms in otherwise healthy women, treatment can often begin based on symptoms alone. If your case is unclear, recurrent, or complicated, we may recommend a urine culture before prescribing.',
-        },
-        {
-          question: 'How quickly will the antibiotics work?',
-          answer: 'Most people start feeling relief within 24-48 hours of starting antibiotics. Always complete the full course even if you feel better.',
-        },
-      ],
-    },
-    links: {
-      related: [
-        { type: 'condition', slug: 'uti', title: 'UTI Information & Treatment' },
-      ],
-    },
-    intent: {
-      searchQuery: 'uti treatment online',
-      alternateQueries: [
-        'uti antibiotics online',
-        'online doctor for uti',
-        'uti prescription online',
-        'treat uti online',
-        'uti telehealth',
-      ],
-      userNeed: 'Get antibiotics for UTI symptoms quickly',
-      urgency: 'same-day',
-      serviceType: 'prescription',
-    },
-    conversion: {
-      primaryCTA: 'Get UTI Treatment',
-      ctaUrl: '/prescriptions?condition=uti',
-      secondaryCTA: 'Learn About UTI Treatment',
-      secondaryCTAUrl: '/conditions/uti',
-    },
-  },
+const LAST_MODIFIED = new Date("2026-05-08")
 
-  {
-    slug: 'after-hours-doctor',
-    type: 'intent',
-    title: 'After Hours Doctor Online | Evenings & Weekends',
-    description: 'Need a doctor after hours? Get medical certificates and medication renewals evenings and weekends. Australian doctors available 7 days, 7am-10pm.',
-    h1: 'After Hours Doctor - Available When You Need Us',
-    content: {
-      intro: 'Sick on the weekend or after work? Our Australian doctors are available 7 days a week, 7am-10pm AEST. Get medical certificates, medication renewals, and consultations outside traditional clinic hours.',
-      uniqueBlocks: [
-        {
-          id: 'availability',
-          type: 'text',
-          content: 'We know illness doesn\'t follow a 9-5 schedule. That\'s why our doctors review requests 7 days a week, from 7am to 10pm AEST. Submit your request anytime - even at 2am - and it will be reviewed when our doctors are next available.',
-        },
-        {
-          id: 'what-we-can-help',
-          type: 'list',
-          content: [
-            'Medical certificates for Monday morning (submitted Sunday night)',
-            'Repeat prescriptions when your regular GP is closed',
-            'UTI treatment on weekends',
-            'Cold/flu certificates for shift workers',
-            'Urgent medication refills',
-          ],
-        },
-        {
-          id: 'turnaround',
-          type: 'text',
-          content: 'Standard requests are reviewed within 24 hours, usually much faster during business hours and weekends. Priority requests are reviewed within 30-60 minutes during service hours. Requests submitted overnight are reviewed first thing in the morning.',
-        },
-        {
-          id: 'what-constitutes-after-hours',
-          type: 'text',
-          content: 'In the Australian healthcare system, "after hours" generally refers to times outside standard GP clinic operating hours - typically before 8am and after 6pm on weekdays, after 12pm on Saturdays, and all day Sundays and public holidays. Many GP clinics close by 5pm or 6pm on weekdays and don\'t open on weekends at all, leaving significant gaps in access. After-hours GP services, bulk-billing clinics, and hospital EDs fill some of that gap, but wait times can be substantial - 2-4 hours at an after-hours clinic and considerably longer in ED. For non-urgent needs like medical certificates and medication renewals, telehealth is often the most practical option.',
-        },
-        {
-          id: 'emergency-decision-tree',
-          type: 'list',
-          content: [
-            'Call 000 or go to ED: chest pain, difficulty breathing, signs of stroke, severe bleeding, anaphylaxis, loss of consciousness, suspected fracture, poisoning',
-            'Consider after-hours GP clinic: moderate pain, worsening infection, persistent vomiting, wounds needing stitches, ear infections in children',
-            'Suitable for telehealth: medical certificates for illness, repeat medication renewals, UTI symptoms, cold and flu assessment, minor skin concerns, mental health support',
-            'Can wait until morning: routine medication reviews, non-urgent referrals, follow-up appointments, general health questions',
-          ],
-        },
-        {
-          id: 'cost-comparison',
-          type: 'text',
-          content: 'After-hours healthcare in Australia varies significantly in cost. Hospital emergency departments are free for Medicare card holders, but involve long waits and are designed for genuine emergencies - not certificates or scripts. After-hours GP home visit services typically cost $80-$150 out of pocket after Medicare rebate, and availability is limited in regional areas. After-hours walk-in clinics may bulk-bill but often have 1-3 hour waits. Our telehealth service is a flat fee with no hidden costs - $19.95 for medical certificates, $29.95 for medication renewals, and $49.95 for consultations - regardless of what time you submit.',
-        },
-        {
-          id: 'regional-access',
-          type: 'text',
-          content: 'After-hours access is a particular challenge in regional and rural Australia. Many country towns have limited or no after-hours GP services, and the nearest hospital may be over an hour away. Telehealth bridges this gap - all you need is an internet connection. Our service covers all Australian states and territories, and our doctors understand the unique healthcare access challenges faced by regional communities. Whether you\'re on a remote station in Queensland or in a small coastal town in Tasmania, you can access the same standard of care.',
-        },
-      ],
-    },
-    metadata: {
-      keywords: [
-        'after hours doctor online',
-        'weekend doctor online',
-        'online doctor evenings',
-        'telehealth after hours',
-        'doctor available weekends',
-      ],
-      lastModified: new Date('2026-01-03'),
-    },
-    structured: {
-      faqs: [
-        {
-          question: 'Are doctors available 24/7?',
-          answer: 'Doctors are available 7 days a week from 7am-10pm AEST. Requests submitted outside these hours are reviewed first thing in the morning.',
-        },
-        {
-          question: 'Is it more expensive after hours?',
-          answer: 'No - our pricing is the same regardless of when you submit your request. Medical certificates are $19.95, medication renewals are $29.95, and consultations are $49.95.',
-        },
-        {
-          question: 'What if I have an emergency after hours?',
-          answer: 'For medical emergencies (chest pain, difficulty breathing, severe injury), call 000 or go to your nearest emergency department. We\'re for non-urgent medical needs.',
-        },
-      ],
-    },
-    links: {
-      related: [
-        { type: 'audience', slug: 'shift-workers', title: 'Telehealth for Shift Workers' },
-        { type: 'intent', slug: 'same-day-medical-certificate', title: 'Same Day Medical Certificates' },
-      ],
-    },
-    intent: {
-      searchQuery: 'after hours doctor online',
-      alternateQueries: [
-        'weekend doctor',
-        'online doctor evenings',
-        'doctor available weekends',
-        'telehealth after hours',
-        'online doctor sundays',
-      ],
-      userNeed: 'Access medical services outside business hours',
-      urgency: 'flexible',
-      serviceType: 'multiple',
-    },
-    conversion: {
-      primaryCTA: 'Get Started',
-      ctaUrl: '/request',
-    },
+const SOURCES = {
+  fairWorkSickLeave: {
+    label: "Fair Work Ombudsman: Sick and carer's leave",
+    href: "https://www.fairwork.gov.au/leave/sick-and-carers-leave",
   },
+  medicalBoardTelehealth: {
+    label: "Medical Board of Australia: Telehealth consultations",
+    href: "https://www.medicalboard.gov.au/Codes-Guidelines-Policies/Telehealth-consultations-with-patients.aspx",
+  },
+  ahpraRegister: {
+    label: "Ahpra: Public register of practitioners",
+    href: "https://www.ahpra.gov.au/registration/registers-of-practitioners/tips-for-using-the-public-register.aspx",
+  },
+  tgaHealthServiceAds: {
+    label: "TGA: Advertising a health service",
+    href: "https://www.tga.gov.au/resources/guidance/advertising-health-service",
+  },
+  electronicPrescriptions: {
+    label: "Australian Digital Health Agency: Electronic prescriptions",
+    href: "https://www.digitalhealth.gov.au/initiatives-and-programs/electronic-prescriptions",
+  },
+} satisfies Record<string, CommercialIntentSource>
 
-  {
-    slug: 'repeat-prescription-online',
-    type: 'intent',
-    title: 'Repeat Medication Online Australia | Doctor Review',
-    description: 'Need repeat medication? Get your medication renewed online from Australian doctors. Same medication, reviewed by a doctor. From $29.95.',
-    h1: 'Repeat Medication Online - Simple Doctor-Reviewed Renewal',
-    content: {
-      intro: 'Running low on your regular medication? Get your repeat medication renewed online from home. Our Australian doctors can review and renew ongoing medications you\'re already taking.',
-      uniqueBlocks: [
-        {
-          id: 'what-we-can-renew',
-          type: 'list',
-          content: [
-            'Blood pressure medications (if stable)',
-            'Cholesterol medications (statins)',
-            'Contraceptive pill (same brand)',
-            'Thyroid medications (if stable)',
-            'Chronic condition medications',
-            'Regular medications you\'ve been taking for months',
-          ],
-        },
-        {
-          id: 'what-we-need',
-          type: 'text',
-          content: 'To renew your medication, we need to know: what medication you\'re taking (name and dose), how long you\'ve been on it, when you last saw a doctor about it, and if you\'ve had any problems or side effects. If your condition is stable and you\'re due for a routine repeat, we can usually help.',
-        },
-        {
-          id: 'when-see-gp',
-          type: 'callout',
-          content: 'See your regular GP if: you need a dose change, you\'re experiencing side effects, your condition has changed, you\'re due for blood tests or reviews, or you haven\'t seen a doctor about this condition in over 12 months.',
-        },
-        {
-          id: 'pbs-vs-private',
-          type: 'text',
-          content: 'In Australia, medications are either subsidised through the Pharmaceutical Benefits Scheme (PBS) or dispensed at full private cost. Most common medications for chronic conditions - blood pressure, cholesterol, thyroid, contraception - are PBS-listed, meaning you pay a capped amount (currently $31.60 for general patients, or $7.70 with a concession card). Our doctors can issue PBS prescriptions where clinically appropriate. Private prescriptions may be needed for medications not on the PBS or when PBS criteria aren\'t met. Your pharmacist will let you know the cost when you present your e-script.',
-        },
-        {
-          id: 'escript-workflow',
-          type: 'text',
-          content: 'When your medication renewal is approved, you receive an electronic prescription (e-script) via SMS. This is a QR code-based token that any Australian pharmacy can scan to dispense your medication. E-scripts are the standard in Australia since 2020 and are accepted at all pharmacies including Chemist Warehouse, Priceline, TerryWhite, and independent pharmacies. You can also save your e-script token in compatible apps for future use. If your prescription includes repeats, each repeat generates a new token sent to the same phone number.',
-        },
-        {
-          id: 'suitable-for-telehealth',
-          type: 'list',
-          content: [
-            'Blood pressure medications (ACE inhibitors, ARBs, calcium channel blockers) - stable patients with recent blood pressure readings',
-            'Cholesterol-lowering medications (statins) - stable patients with recent lipid panel results',
-            'Oral contraceptive pill - same brand you\'ve been taking, with recent blood pressure check',
-            'Thyroid replacement - stable patients with recent thyroid function tests',
-            'Reflux and heartburn medications (proton pump inhibitors) - ongoing use',
-            'Asthma preventers - stable, well-controlled asthma with current management plan',
-          ],
-        },
-        {
-          id: 'what-doctors-check',
-          type: 'text',
-          content: 'Our doctors don\'t just rubber-stamp renewals. They review your medication history, check for potential interactions, confirm the medication is still appropriate for your condition, and assess whether you\'re overdue for monitoring. For blood pressure medications, they\'ll ask about recent readings. For cholesterol medications, they\'ll check when you last had blood tests. For contraceptives, they\'ll confirm your blood pressure and screen for risk factors. This is the same clinical due diligence your regular GP would perform - it\'s just done online.',
-        },
-        {
-          id: 'controlled-substances',
-          type: 'callout',
-          content: 'We cannot prescribe Schedule 8 controlled substances (opioids, benzodiazepines, stimulants) or medications requiring specialist oversight. This is a firm clinical boundary aligned with TGA and state health department regulations. If your regular medication falls into these categories, you\'ll need to see your prescribing doctor in person for renewals.',
-        },
-      ],
-    },
-    metadata: {
-      keywords: [
-        'repeat prescription online',
-        'renew prescription online',
-        'online script renewal',
-        'prescription refill online australia',
-        'repeat script online',
-      ],
-      lastModified: new Date('2026-01-03'),
-    },
-    structured: {
-      faqs: [
-        {
-          question: 'Can you renew any prescription online?',
-          answer: 'We can renew most regular medications for stable conditions. We cannot prescribe new medications, Schedule 8 controlled substances, or medications that require physical examination or blood tests.',
-        },
-        {
-          question: 'Do I need to provide previous scripts?',
-          answer: 'Not necessarily, but it helps if you know the exact medication name, strength, and your current dosing schedule. Having a photo of your current medication is useful.',
-        },
-        {
-          question: 'How long does a repeat medication request take?',
-          answer: 'Most repeat medication requests are reviewed within 1-3 hours. Priority review is available for urgent needs. Your e-script is sent via SMS.',
-        },
-      ],
-    },
-    links: {
-      related: [
-        { type: 'condition', slug: 'high-blood-pressure', title: 'Blood Pressure Medication Repeats' },
-        { type: 'condition', slug: 'high-cholesterol', title: 'Cholesterol Medication Repeats' },
-        { type: 'category', slug: 'prescriptions', title: 'Prescription Services' },
-      ],
-    },
-    intent: {
-      searchQuery: 'repeat prescription online',
-      alternateQueries: [
-        'renew prescription online',
-        'online script renewal',
-        'prescription refill online',
-        'repeat script online',
-        'renew script online',
-      ],
-      userNeed: 'Renew existing medication without GP visit',
-      urgency: 'same-day',
-      serviceType: 'prescription',
-    },
-    conversion: {
-      primaryCTA: 'Renew Medication',
-      ctaUrl: '/prescriptions',
-    },
-  },
-
-  {
-    slug: 'work-certificate-online',
-    type: 'intent',
-    title: 'Work Certificate Online Australia | Sick Leave',
-    description: 'Need a work certificate for sick leave? Get one online within hours from Australian doctors. Employer-ready. From $19.95.',
-    h1: 'Work Certificate Online - Valid for Sick Leave',
-    content: {
-      intro: 'Feeling too unwell to work? Get a medical certificate for sick leave without visiting a clinic. Our certificates are issued by AHPRA-registered doctors and meet Fair Work requirements.',
-      uniqueBlocks: [
-        {
-          id: 'fair-work-compliant',
-          type: 'text',
-          content: 'Under Fair Work regulations, medical certificates from telehealth doctors are just as valid as certificates from physical clinics. Our certificates include all required information: your name, dates of absence, doctor\'s details with AHPRA registration number, and medical practice information. Employers can assess them under workplace policy.',
-        },
-        {
-          id: 'common-reasons',
-          type: 'list',
-          content: [
-            'Cold, flu, or respiratory infection',
-            'Gastroenteritis (stomach bug)',
-            'Migraine or severe headache',
-            'Back pain or injury',
-            'Mental health day',
-            'Medical appointment',
-          ],
-        },
-        {
-          id: 'what-employers-need',
-          type: 'text',
-          content: 'Most employers require a medical certificate if you\'re absent for more than 2-3 days, or if you\'ve used all casual sick leave. Our certificates clearly state: dates you were unfit for work, that you were assessed by a registered doctor, and doctor\'s registration details. You can forward the PDF directly to your employer.',
-        },
-        {
-          id: 'legal-validity',
-          type: 'text',
-          content: 'Online medical certificates can support workplace evidence requirements when issued by an AHPRA-registered doctor. The Medical Board of Australia recognises telehealth as a legitimate mode of healthcare delivery when clinically appropriate. Employer policies and circumstances may vary.',
-        },
-        {
-          id: 'enterprise-agreements',
-          type: 'text',
-          content: 'Some enterprise agreements and workplace policies have specific clauses about medical evidence. Common variations include: requiring a certificate after a single day of absence (stricter than the Fair Work minimum), specifying that certificates must come from a "registered medical practitioner" (which our doctors are), or requiring certificates to state specific information like fitness for particular duties. Our certificates are designed to satisfy the most common enterprise agreement requirements. If your workplace has unusual requirements - such as a specific form or additional details - let us know in the notes section of your request.',
-        },
-        {
-          id: 'employer-obligations',
-          type: 'list',
-          content: [
-            'Employers can assess medical certificates from AHPRA-registered medical practitioners under their workplace evidence policy',
-            'Employers cannot contact your doctor for more information without your written consent (Privacy Act 1988, Australian Privacy Principle 3)',
-            'Employers must provide paid personal/carer\'s leave - 10 days per year for full-time employees under the National Employment Standards',
-            'Employers can request evidence for leave under their workplace policy',
-            'Employees should check their workplace policy, award, enterprise agreement, or HR guidance',
-          ],
-        },
-        {
-          id: 'shift-workers-note',
-          type: 'text',
-          content: 'Shift workers face particular challenges with medical certificates. If you work evenings, nights, or rotating rosters, getting to a GP during business hours isn\'t always practical - especially when you\'re genuinely unwell. Our service is designed with shift workers in mind. Submit your request at any time, and a doctor will review it during our operating hours (7am-10pm AEST, 7 days). If you need a certificate for a shift that starts in a few hours, choose priority review for faster turnaround.',
-        },
-      ],
-    },
-    metadata: {
-      keywords: [
-        'work certificate online',
-        'sick leave certificate',
-        'medical certificate for work',
-        'work sick certificate online',
-        'employer medical certificate',
-      ],
-      lastModified: new Date('2026-01-03'),
-    },
-    structured: {
-      faqs: [
-        {
-          question: 'Will my employer accept an online medical certificate?',
-          answer: 'Our certificates are issued by AHPRA-registered Australian doctors and include standard workplace evidence details. Employer policies may vary.',
-        },
-        {
-          question: 'Can I get a certificate for today?',
-          answer: 'Yes - we can issue certificates for the current day if you\'re currently unwell. Standard review is 1-3 hours, or choose priority for 30-60 minute turnaround.',
-        },
-        {
-          question: 'Can I backdate a work certificate?',
-          answer: 'Certificates can be backdated up to 3 days at no extra charge. Beyond 3 days may require a phone consultation to verify details.',
-        },
-      ],
-    },
-    links: {
-      related: [
-        { type: 'intent', slug: 'same-day-medical-certificate', title: 'Same Day Medical Certificates' },
-        { type: 'audience', slug: 'shift-workers', title: 'Certificates for Shift Workers' },
-        { type: 'condition', slug: 'cold-and-flu', title: 'Cold & Flu Certificates' },
-      ],
-    },
-    intent: {
-      searchQuery: 'work certificate online',
-      alternateQueries: [
-        'sick leave certificate',
-        'work sick certificate',
-        'medical certificate for work',
-        'employer medical certificate online',
-      ],
-      userNeed: 'Get valid sick leave certificate for employer',
-      urgency: 'same-day',
-      serviceType: 'medical-certificate',
-    },
-    conversion: {
-      primaryCTA: 'Get Work Certificate',
-      ctaUrl: '/request?service=med-cert',
-    },
-  },
-
-  {
-    slug: 'emergency-contraception-online',
-    type: 'intent',
-    title: 'Emergency Contraception Online Australia',
-    description: 'Need emergency contraception? Get assessed and prescribed online by Australian doctors. E-script sent to your phone.',
-    h1: 'Emergency Contraception - Online Doctor Assessment',
-    content: {
-      intro: 'Emergency contraception (the "morning after pill") can prevent pregnancy after unprotected sex or contraceptive failure. Time is critical - it\'s most effective when taken as soon as possible.',
-      uniqueBlocks: [
-        {
-          id: 'how-it-works',
-          type: 'text',
-          content: 'Emergency contraceptive pills work by delaying or preventing ovulation. There are two main types - one works best within 72 hours, and a more effective option works up to 120 hours (5 days) after unprotected sex. Your doctor will recommend the most appropriate option. The sooner you take it, the more effective it is.',
-        },
-        {
-          id: 'what-we-need-to-know',
-          type: 'list',
-          content: [
-            'When did unprotected sex occur? (time is critical)',
-            'Are you currently using any contraception?',
-            'When was your last period?',
-            'Any chance you might already be pregnant?',
-            'Any medications or health conditions?',
-          ],
-        },
-        {
-          id: 'important',
-          type: 'callout',
-          content: 'Emergency contraception is NOT an abortion pill - it won\'t work if you\'re already pregnant. It\'s also not suitable for regular use. If you need ongoing contraception, ask about regular contraceptive options.',
-        },
-        {
-          id: 'time-sensitivity',
-          type: 'text',
-          content: 'With emergency contraception, every hour counts. Effectiveness drops significantly with delay - the sooner you act, the better the outcome. Within 24 hours of unprotected sex, effectiveness is highest. By 72 hours, one common option has reduced effectiveness, and the alternative option remains effective up to 120 hours but still works better when taken earlier. This is why we prioritise emergency contraception requests - our doctors understand the urgency and aim to review these cases as quickly as possible during operating hours.',
-        },
-        {
-          id: 'pharmacist-vs-doctor',
-          type: 'text',
-          content: 'In Australia, one type of emergency contraceptive pill is available over the counter from pharmacists without a prescription. However, there are situations where a doctor\'s involvement is beneficial or necessary. The more effective option (which works up to 120 hours) requires a prescription. A doctor can also assess whether emergency contraception is appropriate given your medical history, current medications, and individual circumstances. Some people prefer the privacy of an online consultation rather than discussing their situation at a pharmacy counter. Our telehealth assessment provides that privacy while ensuring you receive the most appropriate option.',
-        },
-        {
-          id: 'privacy-and-confidentiality',
-          type: 'text',
-          content: 'We understand that seeking emergency contraception can feel sensitive. Your consultation is completely confidential and protected under Australian privacy law (Privacy Act 1988). Your records are encrypted and will not be shared with anyone - not partners, parents, or employers. If you\'re under 18 and seeking emergency contraception, we follow the Gillick competence framework: if you understand the treatment and its implications, you can consent independently. Our doctors are experienced in providing non-judgemental care for reproductive health needs.',
-        },
-        {
-          id: 'what-happens-after',
-          type: 'list',
-          content: [
-            'Take the medication as directed - one dose, as soon as possible after receiving it from the pharmacy',
-            'You may experience nausea, headache, fatigue, or irregular bleeding - these are common and temporary',
-            'If you vomit within 2-3 hours of taking the tablet, you may need another dose - contact us or your pharmacist',
-            'Your next period may come earlier or later than expected - if it\'s more than 7 days late, take a pregnancy test',
-            'Emergency contraception does not protect against STIs - consider testing if there\'s a risk of exposure',
-            'Speak with a doctor about regular contraception to avoid needing emergency options in future',
-          ],
-        },
-      ],
-    },
-    metadata: {
-      keywords: [
-        'emergency contraception online',
-        'morning after pill online',
-        'emergency contraceptive pill online',
-        'emergency contraception australia',
-        'morning after pill doctor online',
-      ],
-      lastModified: new Date('2026-01-03'),
-    },
-    structured: {
-      faqs: [
-        {
-          question: 'How quickly can I get emergency contraception?',
-          answer: 'Priority review is available for emergency contraception requests. E-script is typically sent within 30-60 minutes. You can then pick up from most pharmacies immediately.',
-        },
-        {
-          question: 'Is it too late if it\'s been 3 days?',
-          answer: 'No - one option works up to 72 hours and another up to 120 hours (5 days). However, effectiveness decreases with time, so seek assessment as soon as possible. Your doctor will advise which option is appropriate.',
-        },
-        {
-          question: 'Will emergency contraception affect my period?',
-          answer: 'Your next period may be earlier, later, or heavier than usual. If your period is more than 7 days late, take a pregnancy test.',
-        },
-      ],
-    },
-    links: {
-      related: [
-        { type: 'condition', slug: 'contraception', title: 'Regular Contraception Options' },
-      ],
-    },
-    intent: {
-      searchQuery: 'emergency contraception online',
-      alternateQueries: [
-        'morning after pill online',
-        'emergency contraceptive pill',
-        'emergency contraception australia',
-        'morning after pill doctor',
-      ],
-      userNeed: 'Get emergency contraception fast to prevent pregnancy',
-      urgency: 'immediate',
-      serviceType: 'prescription',
-    },
-    conversion: {
-      primaryCTA: 'Get Emergency Contraception',
-      ctaUrl: '/request?service=consult',
-    },
-  },
-
-  {
-    slug: 'hair-loss-treatment-online',
-    type: 'intent',
-    title: 'Hair Loss Treatment Online Australia',
-    description: 'Get hair loss treatment online from Australian doctors. Doctor-reviewed treatment options available. From $34.95.',
-    h1: 'Hair Loss Treatment Online - Stop Thinning, Start Regrowing',
-    content: {
-      intro: 'Experiencing hair thinning or male pattern baldness? Get evidence-based hair loss treatment online. Our Australian doctors can recommend clinically appropriate treatment options for anyone experiencing pattern hair loss.',
-      uniqueBlocks: [
-        {
-          id: 'treatment-options',
-          type: 'list',
-          content: [
-            'Oral treatment options (men): Doctor-reviewed options that can help slow hair loss and promote regrowth.',
-            'Topical treatment options (men & women): Doctor-reviewed options that can improve hair growth.',
-            'Combination therapy: Many men use both together for best results.',
-            'Works best when started early, before significant loss',
-            'Results take 6-12 months - hair grows slowly',
-          ],
-        },
-        {
-          id: 'online-process',
-          type: 'text',
-          content: 'Complete a quick questionnaire about your hair loss pattern, health history, and expectations. Upload photos of your hair (top and crown views helpful). Our doctor reviews and assesses whether treatment is appropriate. If suitable, treatment options are discussed and recommended.',
-        },
-        {
-          id: 'realistic-expectations',
-          type: 'callout',
-          content: 'Hair loss treatment requires commitment. Results take 6-12 months of daily use. Treatment must continue indefinitely - benefits reverse if you stop. Best results when started early. Not everyone responds, but most see at least some benefit.',
-        },
-        {
-          id: 'types-of-hair-loss',
-          type: 'text',
-          content: 'Not all hair loss is the same, and understanding the type matters for treatment. Androgenetic alopecia (male or female pattern hair loss) is by far the most common - it\'s genetic, progressive, and follows predictable patterns. In men, it typically starts with a receding hairline and thinning at the crown. In women, it usually presents as diffuse thinning across the top of the scalp. Other types of hair loss include alopecia areata (autoimmune, causing patchy loss), telogen effluvium (temporary shedding from stress, illness, or hormonal changes), and traction alopecia (from tight hairstyles). Telehealth treatment is most appropriate for androgenetic alopecia - other types may require in-person investigation.',
-        },
-        {
-          id: 'telehealth-assessment',
-          type: 'text',
-          content: 'Our telehealth assessment for hair loss involves a detailed questionnaire about your hair loss pattern, onset, family history, diet, stress levels, and overall health. We ask you to upload clear photos of your scalp from multiple angles - top, crown, hairline, and sides. The doctor uses these to assess the pattern and severity using established classification scales (Norwood for men, Ludwig for women). While this approach works well for pattern hair loss, there are limitations. Telehealth cannot replace dermoscopy (a specialised scalp examination), blood tests for iron, thyroid, or hormonal causes, or scalp biopsy for uncertain diagnoses. If your doctor suspects something other than pattern hair loss, they\'ll recommend in-person follow-up.',
-        },
-        {
-          id: 'treatment-expectations',
-          type: 'list',
-          content: [
-            'Months 1-3: You may notice increased shedding initially - this is a normal part of the treatment cycle and not a sign it isn\'t working',
-            'Months 3-6: Shedding typically stabilises. You may notice fewer hairs falling out, but visible regrowth isn\'t common yet',
-            'Months 6-12: Gradual improvement in hair density and thickness. This is when most people start noticing meaningful changes',
-            'Beyond 12 months: Continued improvement, with maximum benefit usually reached at 2 years of consistent daily use',
-            'Stopping treatment: Hair loss resumes within 3-6 months of discontinuation. Treatment is ongoing, not a cure',
-          ],
-        },
-        {
-          id: 'when-to-see-dermatologist',
-          type: 'callout',
-          content: 'See a dermatologist or hair loss specialist if: your hair loss is patchy or sudden, you have scalp pain, itching, or scarring, you\'re a woman with signs of hormonal imbalance (irregular periods, acne, excess facial hair), treatment hasn\'t shown any improvement after 12 months, or you\'re considering surgical options like hair transplantation. A dermatologist can perform specialised investigations and offer treatments beyond what\'s available through telehealth.',
-        },
-      ],
-    },
-    metadata: {
-      keywords: [
-        'hair loss treatment online',
-        'hair loss treatment online australia',
-        'hair loss doctor online',
-        'male pattern baldness treatment',
-        'online hair loss prescription',
-      ],
-      lastModified: new Date('2026-01-03'),
-    },
-    structured: {
-      faqs: [
-        {
-          question: 'Can I get hair loss treatment online?',
-          answer: 'Yes - our Australian doctors can recommend clinically appropriate treatment options online after assessing your suitability. We discuss how treatment works, potential considerations, and realistic expectations.',
-        },
-        {
-          question: 'Do hair loss treatments really work?',
-          answer: 'Yes - clinically proven treatments can help slow hair loss and promote regrowth. Results vary, but many people see benefit when treatment is started early and used consistently.',
-        },
-        {
-          question: 'How long until I see results?',
-          answer: 'Most people notice reduced shedding within 3 months. Visible regrowth typically appears after 6-12 months. Maximum benefit is usually seen after 2 years of consistent use.',
-        },
-      ],
-    },
-    links: {
-      related: [
-        { type: 'condition', slug: 'hair-loss', title: 'Hair Loss Treatment' },
-        { type: 'symptom', slug: 'hair-thinning', title: 'Hair Thinning Causes' },
-      ],
-    },
-    intent: {
-      searchQuery: 'hair loss treatment online',
-      alternateQueries: [
-        'hair loss treatment online',
-        'hair loss doctor online',
-        'male pattern baldness treatment',
-        'online hair loss prescription',
-        'hair loss treatment online',
-      ],
-      userNeed: 'Get prescription hair loss treatment conveniently',
-      urgency: 'flexible',
-      serviceType: 'prescription',
-    },
-    conversion: {
-      primaryCTA: 'Get Hair Loss Treatment',
-      ctaUrl: '/request?service=consult',
-    },
-  },
-
-  {
-    slug: 'flu-certificate-online',
-    type: 'intent',
-    title: 'Flu Certificate Online Australia | Medical Certificate',
-    description: 'Need a medical certificate for flu or cold? Request one online, 24/7. Australian doctors. Employer evidence details included. From $19.95.',
-    h1: 'Flu & Cold Certificate Online - Too Sick to Work',
-    content: {
-      intro: 'Got the flu or a bad cold and need to stay home? Get a medical certificate online without dragging yourself to a clinic. Our AHPRA-registered doctors issue valid certificates for work or uni, delivered straight to your email.',
-      uniqueBlocks: [
-        {
-          id: 'common-symptoms',
-          type: 'text',
-          content: 'Flu and cold symptoms include fever, sore throat, cough, runny nose, body aches, headache, and fatigue. If you\'re experiencing these symptoms and aren\'t fit for work, our doctors can assess you online and issue a medical certificate. Most colds need 2-3 days rest, while flu can require 5-7 days recovery.',
-        },
-        {
-          id: 'what-we-need',
-          type: 'list',
-          content: [
-            'Description of your symptoms (fever, cough, etc.)',
-            'When symptoms started',
-            'How many days off work you need',
-            'Any complications (chest pain, difficulty breathing)',
-            'Photos not required for straightforward flu/cold',
-          ],
-        },
-        {
-          id: 'when-to-see-gp',
-          type: 'callout',
-          content: 'Seek in-person care if you have: severe difficulty breathing, chest pain, confusion, blue lips, severe dehydration, or symptoms lasting >10 days without improvement. These may indicate complications like pneumonia.',
-        },
-        {
-          id: 'flu-vs-cold',
-          type: 'text',
-          content: 'Understanding the difference between influenza and the common cold helps determine how long you\'ll need off work. A cold typically comes on gradually - runny nose, sore throat, mild cough - and most people feel functional (if miserable) within 3-4 days. Influenza hits harder and faster: sudden onset of high fever, severe body aches, exhaustion, and dry cough. Flu can leave you bedridden for 3-5 days and fatigued for up to two weeks. When you request a certificate, describing your symptoms accurately helps the doctor determine an appropriate duration. Don\'t downplay how you\'re feeling - a doctor would rather give you adequate recovery time than have you return to work too early and relapse.',
-        },
-        {
-          id: 'when-to-stay-home',
-          type: 'list',
-          content: [
-            'You have a fever (38°C or above) - you\'re contagious and should stay home until fever-free for at least 24 hours without medication',
-            'You\'re coughing or sneezing frequently - respiratory droplets are the primary transmission route for both cold and flu viruses',
-            'You work in healthcare, aged care, childcare, or food handling - these industries have stricter fitness-for-work requirements for good reason',
-            'Your symptoms affect your ability to concentrate, drive safely, or perform physical tasks - working while genuinely unwell isn\'t productive and risks mistakes',
-            'You\'ve tested positive for influenza or COVID-19 - follow current public health guidelines for isolation periods',
-          ],
-        },
-        {
-          id: 'public-health',
-          type: 'text',
-          content: 'Presenteeism - going to work while sick - costs the Australian economy an estimated $34 billion annually, significantly more than absenteeism. When you stay home with the flu, you\'re not just recovering - you\'re protecting your colleagues, customers, and the broader community. This is particularly important during flu season (typically June to September in Australia) and in workplaces with vulnerable populations. A medical certificate legitimises your absence and removes the pressure to "push through." Getting a certificate online means you don\'t need to sit in a waiting room spreading the virus to other patients, either.',
-        },
-        {
-          id: 'vaccination-note',
-          type: 'text',
-          content: 'Annual influenza vaccination remains the most effective preventive measure, reducing your risk of catching the flu by 40-60% in well-matched seasons. In Australia, the flu vaccine is free under the National Immunisation Program for people aged 65 and over, pregnant women, Aboriginal and Torres Strait Islander people aged 6 months and over, and those with chronic medical conditions. For everyone else, the vaccine typically costs $15-$25 at a pharmacy. Even if you\'ve been vaccinated, you can still catch the flu - but symptoms are usually milder and shorter in duration.',
-        },
-        {
-          id: 'returning-to-work',
-          type: 'callout',
-          content: 'Most employers don\'t require a "fitness to return" certificate after a cold or flu - your original medical certificate covering specific dates is sufficient. However, some workplaces (particularly healthcare and aged care) may require clearance before you return. If your employer needs a return-to-work certificate, you can request one through our service once you\'ve recovered.',
-        },
-      ],
-    },
-    metadata: {
-      keywords: [
-        'flu certificate online',
-        'cold certificate online',
-        'sick certificate flu',
-        'medical certificate for flu',
-        'flu sick leave certificate',
-      ],
-      lastModified: new Date('2026-01-03'),
-    },
-    structured: {
-      faqs: [
-        {
-          question: 'Can I get a certificate if I just have a cold?',
-          answer: 'Yes - if you\'re too unwell to work, you can get a certificate for a cold. Many employers request certificates when illness prevents you from working safely.',
-        },
-        {
-          question: 'How many days can I get certified off for flu?',
-          answer: 'Typically 2-3 days for a cold, 5-7 days for flu. Your doctor will determine appropriate duration based on your symptoms and job requirements.',
-        },
-        {
-          question: 'Do I need a doctor\'s note for flu?',
-          answer: 'Many employers require a medical certificate if you\'re absent for more than 2-3 days or if you\'ve used all casual sick leave. Check your workplace policy.',
-        },
-      ],
-    },
-    links: {
-      related: [
-        { type: 'condition', slug: 'cold-and-flu', title: 'Cold & Flu Information' },
-        { type: 'intent', slug: 'same-day-medical-certificate', title: 'Same Day Medical Certificates' },
-      ],
-    },
-    intent: {
-      searchQuery: 'flu certificate online',
-      alternateQueries: [
-        'cold certificate online',
-        'sick certificate flu',
-        'medical certificate for flu',
-        'flu sick leave online',
-      ],
-      userNeed: 'Get medical certificate for flu/cold without clinic visit',
-      urgency: 'same-day',
-      serviceType: 'medical-certificate',
-    },
-    conversion: {
-      primaryCTA: 'Get Flu Certificate',
-      ctaUrl: '/request?service=med-cert&condition=cold-flu',
-    },
-  },
+const medCertSources = [
+  SOURCES.fairWorkSickLeave,
+  SOURCES.medicalBoardTelehealth,
+  SOURCES.ahpraRegister,
 ]
 
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
+const repeatScriptSources = [
+  SOURCES.medicalBoardTelehealth,
+  SOURCES.electronicPrescriptions,
+  SOURCES.tgaHealthServiceAds,
+]
+
+const comparisonSources = [
+  SOURCES.fairWorkSickLeave,
+  SOURCES.medicalBoardTelehealth,
+  SOURCES.tgaHealthServiceAds,
+]
+
+const VISUALS = {
+  medCert: {
+    src: commercialSeoVisuals["same-day-certificate-review"].assetPath,
+    alt: "Educational diagram of the same-day medical certificate review pathway",
+    caption: "Certificate pathway: symptoms and dates, scope check, doctor review, secure PDF if approved.",
+  },
+  medCertAlt: {
+    src: commercialSeoVisuals["work-certificate-evidence"].assetPath,
+    alt: "Educational diagram of work medical certificate evidence requirements",
+    caption: "Work evidence map: absence period, doctor details, privacy boundary, employer policy variation.",
+  },
+  prescription: {
+    src: commercialSeoVisuals["repeat-prescription-review-pathway"].assetPath,
+    alt: "Educational diagram of the repeat prescription review pathway",
+    caption: "Repeat request pathway: existing medicine details, safety checks, doctor decision, eScript if suitable.",
+  },
+  prescriptionAlt: {
+    src: commercialSeoVisuals["after-hours-repeat-request-pathway"].assetPath,
+    alt: "Educational diagram of after-hours repeat prescription review",
+    caption: "After-hours pathway: submit online, triage missed-dose risk, doctor review, safe next step.",
+  },
+  consult: {
+    src: commercialSeoVisuals["telehealth-certificate-comparison"].assetPath,
+    alt: "Educational comparison of telehealth certificate, GP visit, and urgent care pathways",
+    caption: "Care pathway comparison: telehealth for simple short absences, GP or urgent care when safer.",
+  },
+} satisfies Record<string, CommercialIntentMeta["visual"]>
+
+const medCertLinks = [
+  { label: "Medical certificate service", href: "/medical-certificate" },
+  { label: "Start a certificate request", href: "/request?service=med-cert" },
+  { label: "How InstantMed works", href: "/how-it-works" },
+  { label: "Pricing", href: "/pricing" },
+]
+
+const repeatScriptLinks = [
+  { label: "Prescription service", href: "/prescriptions" },
+  { label: "Start a repeat request", href: "/request?service=repeat-script" },
+  { label: "How InstantMed works", href: "/how-it-works" },
+  { label: "Clinical governance", href: "/clinical-governance" },
+]
+
+const comparisonLinks = [
+  { label: "Medical certificate service", href: "/medical-certificate" },
+  { label: "Prescription service", href: "/prescriptions" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "Start a request", href: "/request" },
+]
+
+function page(input: IntentInput): IntentPage {
+  return {
+    slug: input.slug,
+    type: "intent",
+    title: input.title,
+    description: input.description,
+    h1: input.h1,
+    content: {
+      intro: input.intro,
+      uniqueBlocks: input.blocks,
+    },
+    metadata: {
+      keywords: input.keywords,
+      lastModified: LAST_MODIFIED,
+    },
+    structured: {
+      faqs: input.faqs,
+    },
+    links: {
+      related: input.related,
+    },
+    intent: {
+      searchQuery: input.searchQuery,
+      alternateQueries: input.alternateQueries,
+      userNeed: input.userNeed,
+      urgency: input.urgency,
+      serviceType: input.serviceType,
+    },
+    conversion: {
+      primaryCTA: input.primaryCTA,
+      ctaUrl: input.ctaUrl,
+      secondaryCTA: input.secondaryCTA,
+      secondaryCTAUrl: input.secondaryCTAUrl,
+    },
+    commercial: {
+      priority: input.priority,
+      cluster: input.cluster,
+      price: input.price,
+      answer: input.answer,
+      visual: input.visual,
+      sources: input.sources,
+      internalLinks: input.internalLinks,
+    },
+  }
+}
+
+function medCertPage(input: Omit<IntentInput, "cluster" | "price" | "sources" | "primaryCTA" | "ctaUrl">): IntentPage {
+  return page({
+    ...input,
+    cluster: "medical-certificate",
+    price: PRICING_DISPLAY.FROM_MED_CERT,
+    sources: medCertSources,
+    primaryCTA: "Start certificate request",
+    ctaUrl: "/request?service=med-cert",
+  })
+}
+
+function cityMedCertPage(input: Omit<IntentInput, "cluster" | "price" | "sources" | "primaryCTA" | "ctaUrl">): IntentPage {
+  return page({
+    ...input,
+    cluster: "location",
+    price: PRICING_DISPLAY.FROM_MED_CERT,
+    sources: medCertSources,
+    primaryCTA: "Start certificate request",
+    ctaUrl: "/request?service=med-cert",
+  })
+}
+
+function repeatScriptPage(input: Omit<IntentInput, "cluster" | "price" | "sources" | "primaryCTA" | "ctaUrl">): IntentPage {
+  return page({
+    ...input,
+    cluster: "repeat-prescription",
+    price: PRICING_DISPLAY.FROM_SCRIPT,
+    sources: repeatScriptSources,
+    primaryCTA: "Start repeat request",
+    ctaUrl: "/request?service=repeat-script",
+  })
+}
+
+function comparisonPage(input: Omit<IntentInput, "cluster" | "sources">): IntentPage {
+  return page({
+    ...input,
+    cluster: "comparison",
+    sources: comparisonSources,
+  })
+}
+
+const medCertRelated: RelatedLink[] = [
+  { type: "category", slug: "medical-certificate", title: "Medical certificate service" },
+  { type: "intent", slug: "medical-certificate-for-work", title: "Medical certificate for work" },
+  { type: "intent", slug: "online-sick-certificate", title: "Online sick certificate" },
+]
+
+const repeatScriptRelated: RelatedLink[] = [
+  { type: "category", slug: "prescriptions", title: "Prescription service" },
+  { type: "intent", slug: "after-hours-repeat-prescription", title: "After-hours repeat prescription" },
+  { type: "intent", slug: "weekend-repeat-prescription", title: "Weekend repeat prescription" },
+]
+
+export const intentPages: IntentPage[] = [
+  medCertPage({
+    priority: 1,
+    slug: "same-day-medical-certificate",
+    title: "Same Day Medical Certificate Online | InstantMed",
+    description: `Request a same day medical certificate online from ${PRICING_DISPLAY.MED_CERT}. Doctor reviewed, secure PDF delivery after approval.`,
+    h1: "Same day medical certificate online",
+    answer: "Yes. You can request a same day medical certificate online for short illness or carer leave. A doctor reviews the information before any certificate is issued.",
+    intro: "Start with a short secure form, confirm your absence dates, then a doctor reviews whether a certificate is clinically appropriate.",
+    searchQuery: "same day medical certificate",
+    alternateQueries: ["medical certificate today", "online medical certificate same day", "urgent medical certificate online"],
+    userNeed: "Get short-absence evidence without waiting for a clinic slot",
+    urgency: "immediate",
+    serviceType: "medical-certificate",
+    keywords: ["same day medical certificate", "medical certificate today", "online medical certificate"],
+    visual: VISUALS.medCert,
+    internalLinks: medCertLinks,
+    related: medCertRelated,
+    blocks: [
+      {
+        id: "best-fit",
+        title: "Best fit",
+        type: "list",
+        content: [
+          "Short illness or carer leave where telehealth review is appropriate.",
+          "One, two, or three day certificate requests.",
+          "Workplace or study evidence that needs doctor details and a verification path.",
+        ],
+      },
+      {
+        id: "doctor-check",
+        title: "What the doctor checks",
+        type: "text",
+        content: "The doctor reviews your symptoms, onset, requested dates, role or study demands, and whether your situation needs in-person care instead.",
+      },
+      {
+        id: "boundary",
+        title: "Clinical boundary",
+        type: "callout",
+        content: "A certificate is not automatic. If your symptoms suggest an emergency, a physical exam, or a high-stakes certificate type, the request may be declined or redirected.",
+      },
+    ],
+    faqs: [
+      { question: "Can I request it today?", answer: "Yes. The form can be started any time and a doctor reviews the request before a certificate is issued." },
+      { question: "What does it cost?", answer: `Medical certificates start at ${PRICING_DISPLAY.MED_CERT}. Longer durations and optional priority review are shown before payment.` },
+      { question: "Is it suitable for serious symptoms?", answer: "No. Chest pain, trouble breathing, severe pain, or other urgent symptoms need emergency or in-person care." },
+    ],
+  }),
+  medCertPage({
+    priority: 2,
+    slug: "medical-certificate-for-work",
+    title: "Medical Certificate for Work Online | InstantMed",
+    description: `Request a doctor reviewed medical certificate for work online from ${PRICING_DISPLAY.MED_CERT}. Clear price, secure PDF after approval.`,
+    h1: "Medical certificate for work",
+    answer: "You can request a work medical certificate online when you are unwell and need evidence for personal or carer leave. Employer policies can still vary.",
+    intro: "This page is for employees who need practical evidence for a short absence without turning a minor illness into a clinic trip.",
+    searchQuery: "medical certificate for work",
+    alternateQueries: ["work medical certificate online", "doctor certificate for work", "sick leave certificate for work"],
+    userNeed: "Provide workplace evidence for a short illness or carer absence",
+    urgency: "same-day",
+    serviceType: "medical-certificate",
+    keywords: ["medical certificate for work", "work medical certificate online", "sick leave certificate"],
+    visual: VISUALS.medCertAlt,
+    internalLinks: medCertLinks,
+    related: medCertRelated,
+    blocks: [
+      {
+        id: "workplace-evidence",
+        title: "Workplace evidence",
+        type: "text",
+        content: "Fair Work says employers can ask for reasonable evidence when an employee takes sick or carer leave. A doctor issued certificate can support that evidence requirement.",
+      },
+      {
+        id: "certificate-includes",
+        title: "Certificate details",
+        type: "list",
+        content: [
+          "Your name and certified absence dates.",
+          "Doctor and clinic details.",
+          "A certificate reference that can be checked online.",
+        ],
+      },
+      {
+        id: "privacy",
+        title: "Privacy",
+        type: "callout",
+        content: "The certificate does not need to disclose your diagnosis to your employer. Clinical details stay inside the medical record.",
+      },
+    ],
+    faqs: [
+      { question: "Will my employer decide whether it is enough?", answer: "Your employer can assess evidence under workplace policy. InstantMed provides doctor reviewed documentation, not a promise about every workplace rule." },
+      { question: "Can I use it for carer leave?", answer: "Yes, if the doctor considers the carer leave request clinically appropriate for the circumstances described." },
+      { question: "Can I request multiple days?", answer: "You can request one, two, or three days. The doctor decides what is clinically appropriate." },
+    ],
+  }),
+  medCertPage({
+    priority: 3,
+    slug: "online-sick-certificate",
+    title: "Online Sick Certificate Australia | InstantMed",
+    description: `Request an online sick certificate from ${PRICING_DISPLAY.MED_CERT}. Doctor reviewed, Australia only, secure delivery after approval.`,
+    h1: "Online sick certificate",
+    answer: "An online sick certificate is a medical certificate requested through telehealth. It is still reviewed by a doctor and only issued when clinically appropriate.",
+    intro: "Use this option when you are too unwell to attend work or study and need a short certificate pathway that is simple and private.",
+    searchQuery: "online sick certificate",
+    alternateQueries: ["sick certificate online", "sick note online australia", "online doctor sick certificate"],
+    userNeed: "Request illness evidence from home",
+    urgency: "same-day",
+    serviceType: "medical-certificate",
+    keywords: ["online sick certificate", "sick certificate online", "online doctor certificate"],
+    visual: VISUALS.medCert,
+    internalLinks: medCertLinks,
+    related: medCertRelated,
+    blocks: [
+      {
+        id: "how-it-works",
+        title: "How it works",
+        type: "list",
+        content: [
+          "Answer symptom and absence questions.",
+          "Confirm identity and payment details.",
+          "A doctor reviews and issues a secure PDF if approved.",
+        ],
+      },
+      {
+        id: "not-a-template",
+        title: "Not a template",
+        type: "text",
+        content: "The certificate is generated only after review. It is not a downloadable blank note or self-declared form.",
+      },
+      {
+        id: "red-flags",
+        title: "Red flags",
+        type: "callout",
+        content: "Use urgent care for severe symptoms, sudden deterioration, dehydration, breathing difficulty, or anything that feels unsafe to manage online.",
+      },
+    ],
+    faqs: [
+      { question: "Is this just a form?", answer: "No. The form collects clinical details for doctor review before any certificate is issued." },
+      { question: "How much is the first day?", answer: `A one day certificate request starts at ${PRICING_DISPLAY.MED_CERT}.` },
+      { question: "Can I submit outside business hours?", answer: "Yes. Medical certificate requests can be started online 24/7." },
+    ],
+  }),
+  medCertPage({
+    priority: 4,
+    slug: "one-day-medical-certificate",
+    title: "One Day Medical Certificate Online | InstantMed",
+    description: `Need a one day certificate? Request a doctor reviewed medical certificate online from ${PRICING_DISPLAY.MED_CERT}.`,
+    h1: "One day medical certificate online",
+    answer: `A one day medical certificate request is the simplest InstantMed certificate option and costs ${PRICING_DISPLAY.MED_CERT}. The doctor still reviews clinical suitability first.`,
+    intro: "This is for short, clear absences where you need evidence for a single day away from work or study.",
+    searchQuery: "one day medical certificate",
+    alternateQueries: ["1 day medical certificate", "single day medical certificate", "medical certificate for one day"],
+    userNeed: "Cover a single day of illness or carer leave",
+    urgency: "same-day",
+    serviceType: "medical-certificate",
+    keywords: ["one day medical certificate", "1 day medical certificate", "single day sick certificate"],
+    visual: VISUALS.medCertAlt,
+    internalLinks: medCertLinks,
+    related: medCertRelated,
+    blocks: [
+      {
+        id: "when-to-use",
+        title: "When to use it",
+        type: "list",
+        content: [
+          "A short illness that affected one rostered day.",
+          "A carer responsibility that prevented attendance.",
+          "A minor flare-up where in-person care is not needed.",
+        ],
+      },
+      {
+        id: "specific-dates",
+        title: "Specific dates matter",
+        type: "text",
+        content: "Your request asks for the exact date. The doctor decides whether that date is supported by the information provided.",
+      },
+      {
+        id: "not-for-high-stakes",
+        title: "Not for high-stakes evidence",
+        type: "callout",
+        content: "Court, exam, fitness-to-drive, compensation, and similar high-stakes requests need a different pathway and may be declined online.",
+      },
+    ],
+    faqs: [
+      { question: "Can I request only one day?", answer: "Yes. One day is the lowest certificate duration option." },
+      { question: "Can the doctor decline it?", answer: "Yes. The doctor may decline if the request is not clinically supported." },
+      { question: "Is the price shown before payment?", answer: "Yes. The certificate duration and price are shown before checkout." },
+    ],
+  }),
+  medCertPage({
+    priority: 5,
+    slug: "two-day-medical-certificate",
+    title: "Two Day Medical Certificate Online | InstantMed",
+    description: `Request a two day medical certificate online from ${PRICING_DISPLAY.MED_CERT_2DAY}. Doctor reviewed before issue.`,
+    h1: "Two day medical certificate online",
+    answer: `You can request a two day medical certificate online for ${PRICING_DISPLAY.MED_CERT_2DAY}. The doctor reviews whether two days is clinically reasonable.`,
+    intro: "This page is for short illnesses that need more than one day of recovery but do not require emergency or in-person care.",
+    searchQuery: "two day medical certificate",
+    alternateQueries: ["2 day medical certificate", "medical certificate for two days", "two days sick certificate"],
+    userNeed: "Request evidence for two days away from work or study",
+    urgency: "same-day",
+    serviceType: "medical-certificate",
+    keywords: ["two day medical certificate", "2 day medical certificate", "medical certificate two days"],
+    visual: VISUALS.medCert,
+    internalLinks: medCertLinks,
+    related: medCertRelated,
+    blocks: [
+      {
+        id: "duration",
+        title: "Duration",
+        type: "text",
+        content: "Two days can be appropriate for short respiratory, stomach, migraine, injury, or carer situations, depending on severity and your duties.",
+      },
+      {
+        id: "doctor-review",
+        title: "Doctor review",
+        type: "list",
+        content: [
+          "When symptoms started.",
+          "Whether symptoms are improving or worsening.",
+          "Whether the requested duration fits the clinical picture.",
+        ],
+      },
+      {
+        id: "seek-care",
+        title: "Seek care sooner",
+        type: "callout",
+        content: "If you are getting worse, cannot keep fluids down, have severe pain, or feel unsafe, do not wait for an online certificate review.",
+      },
+    ],
+    faqs: [
+      { question: "What does two days cost?", answer: `A two day certificate request is ${PRICING_DISPLAY.MED_CERT_2DAY}.` },
+      { question: "Can I request three days instead?", answer: `Yes. The three day option is ${PRICING_DISPLAY.MED_CERT_3DAY} and is also doctor reviewed.` },
+      { question: "Can this cover yesterday and today?", answer: "You can provide the relevant dates. The doctor assesses whether retrospective coverage is clinically appropriate." },
+    ],
+  }),
+  medCertPage({
+    priority: 6,
+    slug: "medical-certificate-for-cold-and-flu",
+    title: "Medical Certificate for Cold and Flu | InstantMed",
+    description: `Request a medical certificate for cold or flu symptoms online from ${PRICING_DISPLAY.MED_CERT}. Doctor reviewed.`,
+    h1: "Medical certificate for cold and flu",
+    answer: "Cold and flu symptoms can be suitable for an online medical certificate request when symptoms are mild to moderate and no red flags are present.",
+    intro: "Use this page when a respiratory illness has kept you away from work or study and you need a simple doctor reviewed evidence pathway.",
+    searchQuery: "medical certificate for cold and flu",
+    alternateQueries: ["flu certificate online", "cold medical certificate", "sick certificate flu"],
+    userNeed: "Request a certificate for respiratory illness",
+    urgency: "same-day",
+    serviceType: "medical-certificate",
+    keywords: ["medical certificate for flu", "cold certificate online", "flu certificate online"],
+    visual: VISUALS.medCertAlt,
+    internalLinks: medCertLinks,
+    related: medCertRelated,
+    blocks: [
+      {
+        id: "common-details",
+        title: "Details requested",
+        type: "list",
+        content: [
+          "Main symptoms such as fever, cough, sore throat, fatigue, or body aches.",
+          "When symptoms started and whether they are changing.",
+          "Your requested absence dates and work or study demands.",
+        ],
+      },
+      {
+        id: "stay-home",
+        title: "Why evidence helps",
+        type: "text",
+        content: "A certificate can help document a genuine short absence while you recover and reduce avoidable spread in workplaces or classrooms.",
+      },
+      {
+        id: "respiratory-red-flags",
+        title: "Respiratory red flags",
+        type: "callout",
+        content: "Trouble breathing, chest pain, confusion, blue lips, severe dehydration, or a very unwell child needs urgent in-person care.",
+      },
+    ],
+    faqs: [
+      { question: "Do I need a test result?", answer: "Usually no for a straightforward certificate request, but the doctor may ask follow-up questions if the story is unclear." },
+      { question: "Can this cover a shift I missed?", answer: "You can request the relevant date. The doctor decides whether the absence is clinically supported." },
+      { question: "What if symptoms last longer?", answer: "Persistent or worsening symptoms should be assessed by a GP or urgent care service." },
+    ],
+  }),
+  medCertPage({
+    priority: 7,
+    slug: "medical-certificate-for-mental-health-day",
+    title: "Medical Certificate for Mental Health Day | InstantMed",
+    description: `Request a short medical certificate for mental health-related absence online from ${PRICING_DISPLAY.MED_CERT}. Doctor reviewed.`,
+    h1: "Medical certificate for a mental health day",
+    answer: "You can request a short certificate for mental health-related absence online, but the doctor may recommend in-person or ongoing care if the situation needs more support.",
+    intro: "This pathway is for short-term stress, burnout, anxiety, grief, or similar concerns that have affected your ability to attend work or study.",
+    searchQuery: "medical certificate for mental health day",
+    alternateQueries: ["stress leave certificate online", "mental health medical certificate online", "burnout certificate online"],
+    userNeed: "Document a short mental health-related absence",
+    urgency: "same-day",
+    serviceType: "medical-certificate",
+    keywords: ["mental health medical certificate", "stress leave certificate online", "burnout certificate"],
+    visual: VISUALS.consult,
+    internalLinks: medCertLinks,
+    related: medCertRelated,
+    blocks: [
+      {
+        id: "suitable",
+        title: "Suitable situations",
+        type: "list",
+        content: [
+          "Short-term stress or burnout affecting one to three days.",
+          "Anxiety or low mood where you are safe and not in crisis.",
+          "Grief or acute stress where you need brief time away.",
+        ],
+      },
+      {
+        id: "doctor-boundary",
+        title: "Doctor boundary",
+        type: "text",
+        content: "The reviewing doctor may ask for more information or recommend your regular GP, psychologist, or urgent support if the risk profile is higher.",
+      },
+      {
+        id: "crisis",
+        title: "Crisis support",
+        type: "callout",
+        content: "If you might harm yourself or someone else, call 000 or a crisis service now. Do not use an online certificate request as the first step.",
+      },
+    ],
+    faqs: [
+      { question: "Will my diagnosis be shown?", answer: "No diagnosis is usually needed on the certificate. Clinical details stay in the health record." },
+      { question: "Can I request more than three days?", answer: "InstantMed certificate requests are capped at short durations. Longer or ongoing mental health leave needs continuity of care." },
+      { question: "Can a doctor decline?", answer: "Yes. The doctor may decline or redirect if online certificate review is not suitable." },
+    ],
+  }),
+  medCertPage({
+    priority: 8,
+    slug: "carers-leave-certificate-online",
+    title: "Carer's Leave Certificate Online | InstantMed",
+    description: `Request a carer's leave certificate online from ${PRICING_DISPLAY.MED_CERT}. Doctor reviewed evidence for short carer absence.`,
+    h1: "Carer's leave certificate online",
+    answer: "You can request a carer's leave certificate online when you need time away to care for an immediate family or household member and the situation is clinically appropriate.",
+    intro: "This pathway is for short carer absences where a doctor can assess the care need remotely.",
+    searchQuery: "carers leave certificate online",
+    alternateQueries: ["carer certificate online", "medical certificate for carer leave", "carer's leave evidence online"],
+    userNeed: "Document a short carer leave absence",
+    urgency: "same-day",
+    serviceType: "medical-certificate",
+    keywords: ["carers leave certificate online", "carer certificate", "medical certificate carer leave"],
+    visual: VISUALS.medCert,
+    internalLinks: medCertLinks,
+    related: medCertRelated,
+    blocks: [
+      {
+        id: "fair-work",
+        title: "Fair Work context",
+        type: "text",
+        content: "Fair Work describes carer's leave as leave to care for an immediate family or household member who is sick, injured, or affected by an unexpected emergency.",
+      },
+      {
+        id: "details",
+        title: "Details requested",
+        type: "list",
+        content: [
+          "Who you are caring for in general relationship terms.",
+          "What care was needed and when.",
+          "Whether the situation required you to miss work or study.",
+        ],
+      },
+      {
+        id: "privacy",
+        title: "Privacy",
+        type: "callout",
+        content: "The certificate should not disclose unnecessary private health details about the person you care for.",
+      },
+    ],
+    faqs: [
+      { question: "Can this cover a child being unwell?", answer: "Yes, if the situation fits carer leave and the doctor considers online review suitable." },
+      { question: "Can this cover an unexpected emergency?", answer: "You can describe the circumstances. The doctor assesses whether a certificate is appropriate." },
+      { question: "Does the other person need an account?", answer: "No. The request is made by the patient seeking carer leave evidence." },
+    ],
+  }),
+  medCertPage({
+    priority: 9,
+    slug: "student-medical-certificate-online",
+    title: "Student Medical Certificate Online | InstantMed",
+    description: `Request a student medical certificate online from ${PRICING_DISPLAY.MED_CERT}. Doctor reviewed short illness evidence.`,
+    h1: "Student medical certificate online",
+    answer: "Students can request a short online medical certificate for illness or carer responsibilities, but each school, TAFE, or university can set its own evidence process.",
+    intro: "Use this when illness has affected attendance or participation and you need doctor reviewed documentation.",
+    searchQuery: "student medical certificate online",
+    alternateQueries: ["uni medical certificate online", "student sick certificate online", "school medical certificate online"],
+    userNeed: "Request study-related absence evidence",
+    urgency: "same-day",
+    serviceType: "medical-certificate",
+    keywords: ["student medical certificate online", "uni medical certificate", "student sick certificate"],
+    visual: VISUALS.medCertAlt,
+    internalLinks: medCertLinks,
+    related: medCertRelated,
+    blocks: [
+      {
+        id: "student-fit",
+        title: "Student fit",
+        type: "list",
+        content: [
+          "Short illness affecting attendance.",
+          "Carer responsibilities affecting attendance.",
+          "Study days missed because symptoms made participation unrealistic.",
+        ],
+      },
+      {
+        id: "policy-check",
+        title: "Check your institution",
+        type: "text",
+        content: "Some institutions have specific forms or deadlines. Check those rules before submitting so you know what evidence format is needed.",
+      },
+      {
+        id: "not-for-complex-claims",
+        title: "Boundary",
+        type: "callout",
+        content: "Complex academic, legal, disability, or long-term support requests usually need continuity of care and are not the right fit for a short online certificate.",
+      },
+    ],
+    faqs: [
+      { question: "Can I request a certificate as a student?", answer: "Yes, if you are in Australia and the clinical situation is suitable for telehealth review." },
+      { question: "Will it include private medical details?", answer: "No unnecessary diagnosis details are included on the certificate." },
+      { question: "What if my institution has its own form?", answer: "Use the institution's process where required. InstantMed issues its own certificate format." },
+    ],
+  }),
+  medCertPage({
+    priority: 10,
+    slug: "medical-certificate-for-shift-workers",
+    title: "Medical Certificate for Shift Workers | InstantMed",
+    description: `Shift worker unwell? Request a doctor reviewed medical certificate online from ${PRICING_DISPLAY.MED_CERT}.`,
+    h1: "Medical certificate for shift workers",
+    answer: "Shift workers can request an online medical certificate when illness affects a rostered shift and attending a clinic during business hours is impractical.",
+    intro: "This page is built for nurses, hospitality workers, transport workers, retail staff, security, and anyone whose roster does not match clinic hours.",
+    searchQuery: "medical certificate for shift workers",
+    alternateQueries: ["sick certificate for shift work", "medical certificate night shift", "online certificate for rostered shift"],
+    userNeed: "Document illness around non-standard work hours",
+    urgency: "same-day",
+    serviceType: "medical-certificate",
+    keywords: ["medical certificate shift workers", "sick certificate night shift", "rostered shift medical certificate"],
+    visual: VISUALS.medCert,
+    internalLinks: medCertLinks,
+    related: medCertRelated,
+    blocks: [
+      {
+        id: "shift-context",
+        title: "Roster context",
+        type: "text",
+        content: "The form lets you describe the affected date and why symptoms made the rostered shift unsuitable, even if the shift fell overnight or on a weekend.",
+      },
+      {
+        id: "use-cases",
+        title: "Common cases",
+        type: "list",
+        content: [
+          "Night shift missed after acute symptoms started.",
+          "Weekend shift affected by illness.",
+          "Early start missed because symptoms escalated overnight.",
+        ],
+      },
+      {
+        id: "safety",
+        title: "Safety roles",
+        type: "callout",
+        content: "Safety-critical duties may need in-person assessment or employer-specific clearance. A short certificate is not a fitness-for-duty assessment.",
+      },
+    ],
+    faqs: [
+      { question: "Can I submit after missing the shift?", answer: "You can provide the relevant dates. The doctor decides whether the timeline is clinically supported." },
+      { question: "Does the time of my shift matter?", answer: "Yes. Add shift timing in the notes if it explains why a clinic visit was not practical." },
+      { question: "Can this clear me for safety-sensitive work?", answer: "No. Fitness-for-duty clearance is a separate, higher-stakes assessment." },
+    ],
+  }),
+  cityMedCertPage({
+    priority: 11,
+    slug: "medical-certificate-online-sydney",
+    title: "Medical Certificate Online Sydney | InstantMed",
+    description: `Sydney medical certificate request online from ${PRICING_DISPLAY.MED_CERT}. Doctor reviewed, Australia only.`,
+    h1: "Medical certificate online in Sydney",
+    answer: "Sydney patients can request an online medical certificate for short illness or carer leave without travelling to a clinic, if telehealth review is suitable.",
+    intro: "Useful for inner-city, suburban, and shift-work patients who need short evidence and do not need urgent in-person care.",
+    searchQuery: "medical certificate online sydney",
+    alternateQueries: ["sydney online medical certificate", "sick certificate online sydney", "doctor certificate online sydney"],
+    userNeed: "Request a certificate in Sydney without clinic travel",
+    urgency: "same-day",
+    serviceType: "medical-certificate",
+    keywords: ["medical certificate online sydney", "sick certificate online sydney", "doctor certificate sydney"],
+    visual: VISUALS.medCertAlt,
+    internalLinks: medCertLinks,
+    related: medCertRelated,
+    blocks: [
+      { id: "local-fit", title: "Sydney fit", type: "text", content: "Telehealth is useful when a minor illness makes commuting, waiting rooms, or same-day clinic slots unrealistic." },
+      { id: "areas", title: "Who uses it", type: "list", content: ["CBD and inner suburbs.", "Western Sydney and commuter corridors.", "Students, shift workers, and carers."] },
+      { id: "not-emergency", title: "Urgent care", type: "callout", content: "Use urgent local care or 000 for severe symptoms. InstantMed is for non-emergency requests." },
+    ],
+    faqs: [
+      { question: "Can I use this from anywhere in Sydney?", answer: "Yes, if you are physically in Australia and meet the service criteria." },
+      { question: "Do I need Medicare for a certificate?", answer: "Medicare is optional for medical certificates." },
+      { question: "Can I request after work?", answer: "Yes. You can start the request online at any time." },
+    ],
+  }),
+  cityMedCertPage({
+    priority: 12,
+    slug: "medical-certificate-online-melbourne",
+    title: "Medical Certificate Online Melbourne | InstantMed",
+    description: `Melbourne medical certificate request online from ${PRICING_DISPLAY.MED_CERT}. Doctor reviewed short absence evidence.`,
+    h1: "Medical certificate online in Melbourne",
+    answer: "Melbourne patients can request a short online medical certificate when a clinic visit is unnecessary or impractical for a minor illness.",
+    intro: "The pathway is designed for short absences, clear pricing, and doctor review before certificate issue.",
+    searchQuery: "medical certificate online melbourne",
+    alternateQueries: ["melbourne online medical certificate", "sick certificate online melbourne", "doctor certificate online melbourne"],
+    userNeed: "Request a Melbourne certificate without a waiting room",
+    urgency: "same-day",
+    serviceType: "medical-certificate",
+    keywords: ["medical certificate online melbourne", "sick certificate online melbourne", "doctor certificate melbourne"],
+    visual: VISUALS.medCert,
+    internalLinks: medCertLinks,
+    related: medCertRelated,
+    blocks: [
+      { id: "local-fit", title: "Melbourne fit", type: "text", content: "Telehealth can be practical when illness, weather, transport, or roster timing makes a clinic visit harder than it needs to be." },
+      { id: "doctor-review", title: "Review scope", type: "list", content: ["Short illness or carer leave.", "One to three day certificate requests.", "Online review where symptoms are not urgent."] },
+      { id: "policy", title: "Policy check", type: "callout", content: "Your workplace or institution may have its own evidence rules, so check them before relying on any certificate." },
+    ],
+    faqs: [
+      { question: "Is this Melbourne-only?", answer: "No. InstantMed is Australia-wide; this page is for Melbourne search intent." },
+      { question: "Can I use it for a public holiday shift?", answer: "You can request the relevant date. Doctor review still applies." },
+      { question: "How is it delivered?", answer: "If approved, the certificate is delivered as a secure PDF." },
+    ],
+  }),
+  cityMedCertPage({
+    priority: 13,
+    slug: "medical-certificate-online-brisbane",
+    title: "Medical Certificate Online Brisbane | InstantMed",
+    description: `Request a Brisbane medical certificate online from ${PRICING_DISPLAY.MED_CERT}. Doctor reviewed before issue.`,
+    h1: "Medical certificate online in Brisbane",
+    answer: "Brisbane patients can request an online medical certificate for suitable short absences, with doctor review and clear pricing before payment.",
+    intro: "Use this when your symptoms are non-urgent and you need evidence without arranging a same-day clinic visit.",
+    searchQuery: "medical certificate online brisbane",
+    alternateQueries: ["brisbane online medical certificate", "sick certificate online brisbane", "doctor certificate online brisbane"],
+    userNeed: "Request a Brisbane certificate online",
+    urgency: "same-day",
+    serviceType: "medical-certificate",
+    keywords: ["medical certificate online brisbane", "sick certificate online brisbane", "doctor certificate brisbane"],
+    visual: VISUALS.medCertAlt,
+    internalLinks: medCertLinks,
+    related: medCertRelated,
+    blocks: [
+      { id: "local-fit", title: "Brisbane fit", type: "text", content: "Online certificate review is best suited to clear short absences where you do not need a physical examination." },
+      { id: "steps", title: "Steps", type: "list", content: ["Choose certificate duration.", "Complete symptom and date questions.", "Receive a secure PDF if the doctor approves."] },
+      { id: "boundary", title: "Boundary", type: "callout", content: "Severe heat illness, breathing problems, chest pain, or rapid deterioration needs urgent care." },
+    ],
+    faqs: [
+      { question: "Can I start on a weekend?", answer: "Yes. Certificate requests can be started online 24/7." },
+      { question: "Is the price different in Brisbane?", answer: "No. Pricing is national." },
+      { question: "Can this replace a GP visit?", answer: "Only for suitable non-urgent certificate requests. The doctor may redirect you to in-person care." },
+    ],
+  }),
+  cityMedCertPage({
+    priority: 14,
+    slug: "medical-certificate-online-perth",
+    title: "Medical Certificate Online Perth | InstantMed",
+    description: `Request a Perth medical certificate online from ${PRICING_DISPLAY.MED_CERT}. Doctor reviewed, secure PDF if approved.`,
+    h1: "Medical certificate online in Perth",
+    answer: "Perth patients can request a medical certificate online for short illness or carer leave, with doctor review before any certificate is issued.",
+    intro: "A practical option for non-urgent short absences where local appointment timing or travel is the main friction.",
+    searchQuery: "medical certificate online perth",
+    alternateQueries: ["perth online medical certificate", "sick certificate online perth", "doctor certificate online perth"],
+    userNeed: "Request a Perth certificate online",
+    urgency: "same-day",
+    serviceType: "medical-certificate",
+    keywords: ["medical certificate online perth", "sick certificate online perth", "doctor certificate perth"],
+    visual: VISUALS.medCert,
+    internalLinks: medCertLinks,
+    related: medCertRelated,
+    blocks: [
+      { id: "timezone", title: "WA timing", type: "text", content: "Requests can be started any time. Review timing is shown as service information, not as an automatic outcome promise." },
+      { id: "best-fit", title: "Best fit", type: "list", content: ["Short illness.", "Carer leave.", "Minor symptoms where in-person care is not needed."] },
+      { id: "limits", title: "Limits", type: "callout", content: "InstantMed does not issue high-stakes certificates through this short online pathway." },
+    ],
+    faqs: [
+      { question: "Can I use this in Western Australia?", answer: "Yes, if you are in Australia and meet the service requirements." },
+      { question: "Can I request a three day certificate?", answer: `Yes. Three day requests are ${PRICING_DISPLAY.MED_CERT_3DAY} and require doctor approval.` },
+      { question: "Can I add notes about my roster?", answer: "Yes. Add relevant roster or workplace context in the request." },
+    ],
+  }),
+  cityMedCertPage({
+    priority: 15,
+    slug: "medical-certificate-online-adelaide",
+    title: "Medical Certificate Online Adelaide | InstantMed",
+    description: `Request an Adelaide medical certificate online from ${PRICING_DISPLAY.MED_CERT}. Short absence evidence, doctor reviewed.`,
+    h1: "Medical certificate online in Adelaide",
+    answer: "Adelaide patients can request a short online medical certificate for suitable illness or carer leave, with a doctor deciding whether to issue it.",
+    intro: "The service keeps the request focused: symptoms, dates, price, review, and secure delivery if approved.",
+    searchQuery: "medical certificate online adelaide",
+    alternateQueries: ["adelaide online medical certificate", "sick certificate online adelaide", "doctor certificate online adelaide"],
+    userNeed: "Request an Adelaide certificate online",
+    urgency: "same-day",
+    serviceType: "medical-certificate",
+    keywords: ["medical certificate online adelaide", "sick certificate online adelaide", "doctor certificate adelaide"],
+    visual: VISUALS.medCertAlt,
+    internalLinks: medCertLinks,
+    related: medCertRelated,
+    blocks: [
+      { id: "simple-path", title: "Simple path", type: "text", content: "The online form captures the key details a doctor needs for a short certificate decision." },
+      { id: "common-reasons", title: "Common reasons", type: "list", content: ["Respiratory illness.", "Gastro symptoms.", "Migraine, stress, injury, or carer responsibilities."] },
+      { id: "in-person", title: "In-person care", type: "callout", content: "If the doctor cannot safely assess the request online, they may recommend a GP, urgent care, or emergency pathway." },
+    ],
+    faqs: [
+      { question: "Is this available after hours?", answer: "You can submit after hours. Doctor review follows the service operating model." },
+      { question: "Can it be used for study?", answer: "It can support short study absence evidence, subject to your institution's process." },
+      { question: "Is payment secure?", answer: "Yes. Checkout uses Stripe and shows the amount before payment." },
+    ],
+  }),
+  cityMedCertPage({
+    priority: 16,
+    slug: "medical-certificate-online-gold-coast",
+    title: "Medical Certificate Online Gold Coast | InstantMed",
+    description: `Gold Coast medical certificate requests online from ${PRICING_DISPLAY.MED_CERT}. Doctor reviewed before issue.`,
+    h1: "Medical certificate online on the Gold Coast",
+    answer: "Gold Coast patients can request a short medical certificate online when symptoms are non-urgent and telehealth review is clinically suitable.",
+    intro: "A focused pathway for tourism, hospitality, healthcare, retail, and office workers who need evidence without a waiting room.",
+    searchQuery: "medical certificate online gold coast",
+    alternateQueries: ["gold coast online medical certificate", "sick certificate online gold coast", "doctor certificate online gold coast"],
+    userNeed: "Request a Gold Coast certificate online",
+    urgency: "same-day",
+    serviceType: "medical-certificate",
+    keywords: ["medical certificate online gold coast", "sick certificate online gold coast", "doctor certificate gold coast"],
+    visual: VISUALS.medCert,
+    internalLinks: medCertLinks,
+    related: medCertRelated,
+    blocks: [
+      { id: "local-fit", title: "Local fit", type: "text", content: "Telehealth can reduce friction for short, clear absences across shift-heavy local industries." },
+      { id: "certificate-options", title: "Options", type: "list", content: ["One day certificate request.", "Two day certificate request.", "Three day certificate request."] },
+      { id: "urgent", title: "Urgent symptoms", type: "callout", content: "Use urgent local care for severe symptoms, serious injury, or rapid deterioration." },
+    ],
+    faqs: [
+      { question: "Is the Gold Coast covered?", answer: "Yes. InstantMed is available to eligible patients in Australia." },
+      { question: "Can I request for a weekend shift?", answer: "Yes. Provide the affected date and relevant shift context." },
+      { question: "What happens after approval?", answer: "If approved, the certificate is delivered securely as a PDF." },
+    ],
+  }),
+  repeatScriptPage({
+    priority: 17,
+    slug: "repeat-prescription-online",
+    title: "Repeat Prescription Online Australia | InstantMed",
+    description: `Request a repeat prescription online from ${PRICING_DISPLAY.REPEAT_SCRIPT}. Doctor reviewed, service-level prescription pathway, no drug-led advertising.`,
+    h1: "Repeat prescription online",
+    answer: "You can request a repeat prescription online for an existing regular medicine. A doctor reviews suitability and may issue an eScript if approved.",
+    intro: "This page is for stable, ongoing medicines where you are requesting a repeat, not a new diagnosis or a medicine selected from an advertisement.",
+    searchQuery: "repeat prescription online",
+    alternateQueries: ["repeat script online", "renew prescription online", "online prescription renewal australia"],
+    userNeed: "Renew an existing regular prescription without a routine clinic visit",
+    urgency: "same-day",
+    serviceType: "prescription",
+    keywords: ["repeat prescription online", "repeat script online", "online prescription renewal"],
+    visual: VISUALS.prescription,
+    internalLinks: repeatScriptLinks,
+    related: repeatScriptRelated,
+    blocks: [
+      {
+        id: "service-level",
+        title: "Service-level request",
+        type: "text",
+        content: "InstantMed collects your current medicine details inside the secure request flow. Public pages stay service-level to avoid promoting prescription-only medicines.",
+      },
+      {
+        id: "doctor-checks",
+        title: "Doctor checks",
+        type: "list",
+        content: [
+          "Your current medicine, dose, and how long you have used it.",
+          "Recent review or monitoring details where relevant.",
+          "Safety concerns, side effects, interactions, and red flags.",
+        ],
+      },
+      {
+        id: "not-automatic",
+        title: "Not automatic",
+        type: "callout",
+        content: "A repeat request can be declined if it is unsafe, overdue for review, outside scope, or better handled by your regular GP.",
+      },
+    ],
+    faqs: [
+      { question: "Can I enter my medicine name?", answer: "Yes, inside the secure request flow. Public pages do not advertise specific prescription medicine names." },
+      { question: "What does it cost?", answer: `Repeat prescription requests start at ${PRICING_DISPLAY.REPEAT_SCRIPT}.` },
+      { question: "How is the script sent?", answer: "If approved, the doctor can issue an electronic prescription token by SMS or email." },
+    ],
+  }),
+  repeatScriptPage({
+    priority: 18,
+    slug: "after-hours-repeat-prescription",
+    title: "After-Hours Repeat Prescription Online | InstantMed",
+    description: `Running low after hours? Request a repeat prescription online from ${PRICING_DISPLAY.REPEAT_SCRIPT}. Doctor reviewed before any eScript.`,
+    h1: "After-hours repeat prescription",
+    answer: "You can submit a repeat prescription request after hours. Doctor review follows the service operating hours and prescribing is never automatic.",
+    intro: "Use this when your regular GP is closed and you need a safe pathway for an existing regular medicine.",
+    searchQuery: "after hours repeat prescription",
+    alternateQueries: ["after hours prescription repeat", "repeat script after hours", "online script after hours"],
+    userNeed: "Submit a repeat request outside clinic hours",
+    urgency: "immediate",
+    serviceType: "prescription",
+    keywords: ["after hours repeat prescription", "after hours prescription repeat", "repeat script after hours"],
+    visual: VISUALS.prescriptionAlt,
+    internalLinks: repeatScriptLinks,
+    related: repeatScriptRelated,
+    blocks: [
+      { id: "timing", title: "Timing", type: "text", content: "The form can be submitted at any time. Review timing depends on doctor availability and whether follow-up is needed." },
+      { id: "good-fit", title: "Good fit", type: "list", content: ["Existing regular medicine.", "Stable condition.", "Enough details for safe doctor review."] },
+      { id: "urgent-medicine-risk", title: "Urgent risk", type: "callout", content: "If missing a medicine dose could be dangerous, contact an urgent care service, pharmacist, or emergency service rather than waiting online." },
+    ],
+    faqs: [
+      { question: "Can I submit at night?", answer: "Yes. You can submit the form after hours and it will be reviewed according to doctor availability." },
+      { question: "Is after-hours pricing higher?", answer: "The repeat prescription request price is shown before payment. Optional priority fees are separate where offered." },
+      { question: "Can I request a new medicine?", answer: "This page is for repeat requests. New symptoms or new treatment decisions need a broader consultation." },
+    ],
+  }),
+  repeatScriptPage({
+    priority: 19,
+    slug: "weekend-repeat-prescription",
+    title: "Weekend Repeat Prescription Online | InstantMed",
+    description: `Need a repeat script on the weekend? Submit online from ${PRICING_DISPLAY.REPEAT_SCRIPT}. Doctor reviewed before approval.`,
+    h1: "Weekend repeat prescription online",
+    answer: "You can submit a weekend repeat prescription request for an existing regular medicine. A doctor reviews whether an eScript is appropriate.",
+    intro: "A practical option when you notice the issue on Saturday or Sunday and your usual clinic is closed.",
+    searchQuery: "weekend repeat prescription",
+    alternateQueries: ["repeat script weekend", "weekend prescription renewal", "online prescription weekend"],
+    userNeed: "Request a regular medicine repeat during the weekend",
+    urgency: "same-day",
+    serviceType: "prescription",
+    keywords: ["weekend repeat prescription", "repeat script weekend", "weekend prescription renewal"],
+    visual: VISUALS.prescription,
+    internalLinks: repeatScriptLinks,
+    related: repeatScriptRelated,
+    blocks: [
+      { id: "weekend-context", title: "Weekend context", type: "text", content: "Weekend requests are common when pharmacy stock checks, travel, or roster patterns reveal a repeat is needed sooner than expected." },
+      { id: "details", title: "Details to prepare", type: "list", content: ["Medicine label or prior prescription details.", "Dose and timing.", "Recent GP review or monitoring history."] },
+      { id: "doctor-call", title: "Follow-up", type: "callout", content: "The doctor may message or call if the request needs clarification before a decision." },
+    ],
+    faqs: [
+      { question: "Can I use any pharmacy?", answer: "Most Australian pharmacies can dispense electronic prescription tokens. Check with your chosen pharmacy if unsure." },
+      { question: "Can I get repeats as well?", answer: "The doctor decides the quantity and repeats based on clinical suitability and prescribing rules." },
+      { question: "Can controlled medicines be requested?", answer: "InstantMed does not use this public pathway for high-risk or tightly controlled prescribing." },
+    ],
+  }),
+  repeatScriptPage({
+    priority: 20,
+    slug: "urgent-repeat-prescription-online",
+    title: "Urgent Repeat Prescription Online | InstantMed",
+    description: `Request an urgent repeat prescription review online from ${PRICING_DISPLAY.REPEAT_SCRIPT}. Existing regular medicines only, doctor reviewed.`,
+    h1: "Urgent repeat prescription online",
+    answer: "If you are running low on an existing regular medicine, you can request urgent repeat review online. If missing doses is dangerous, seek urgent local care.",
+    intro: "This page separates genuine time pressure from medical emergencies. The request is still reviewed by a doctor before any prescription is issued.",
+    searchQuery: "urgent repeat prescription online",
+    alternateQueries: ["urgent repeat script online", "emergency repeat prescription online", "need repeat prescription today"],
+    userNeed: "Avoid running out of an existing regular medicine",
+    urgency: "immediate",
+    serviceType: "prescription",
+    keywords: ["urgent repeat prescription online", "urgent repeat script online", "repeat prescription today"],
+    visual: VISUALS.prescriptionAlt,
+    internalLinks: repeatScriptLinks,
+    related: repeatScriptRelated,
+    blocks: [
+      { id: "urgent-not-emergency", title: "Urgent, not emergency", type: "text", content: "Use InstantMed when the request is time-sensitive but safe for telehealth review. Use urgent care when the health risk is immediate." },
+      { id: "prepare", title: "Prepare before checkout", type: "list", content: ["Current medicine details.", "Last prescriber or pharmacy details if known.", "Reason you cannot access your usual GP in time."] },
+      { id: "safety", title: "Safety first", type: "callout", content: "The doctor may decline and direct you elsewhere if the request cannot be handled safely online." },
+    ],
+    faqs: [
+      { question: "Can priority review help?", answer: "Priority options may be shown in checkout where available, but clinical review still determines the outcome." },
+      { question: "Will I definitely get a prescription?", answer: "No. A prescription is issued only if the doctor decides it is safe and appropriate." },
+      { question: "Can I use this while travelling in Australia?", answer: "Yes, if you are physically in Australia and can provide enough information for review." },
+    ],
+  }),
+  comparisonPage({
+    priority: 21,
+    slug: "online-doctor-certificate-australia",
+    title: "Online Doctor Certificate Australia | InstantMed",
+    description: `Compare online doctor certificate options in Australia. InstantMed starts at ${PRICING_DISPLAY.MED_CERT} with doctor review before issue.`,
+    h1: "Online doctor certificate in Australia",
+    answer: "An online doctor certificate is a medical certificate issued after telehealth review. It is best for short, non-urgent absences where online assessment is clinically suitable.",
+    intro: "This page explains the practical difference between an online certificate request, a clinic appointment, and higher-stakes medical evidence.",
+    price: PRICING_DISPLAY.FROM_MED_CERT,
+    searchQuery: "online doctor certificate australia",
+    alternateQueries: ["doctor certificate online australia", "online medical certificate australia", "telehealth doctor certificate"],
+    userNeed: "Understand online doctor certificate options",
+    urgency: "flexible",
+    serviceType: "medical-certificate",
+    keywords: ["online doctor certificate australia", "doctor certificate online", "telehealth certificate australia"],
+    visual: VISUALS.consult,
+    internalLinks: comparisonLinks,
+    related: medCertRelated,
+    primaryCTA: "Start certificate request",
+    ctaUrl: "/request?service=med-cert",
+    blocks: [
+      { id: "what-it-is", title: "What it is", type: "text", content: "The doctor reviews your clinical information remotely and decides whether a short certificate is appropriate." },
+      { id: "compare", title: "Compare options", type: "list", content: ["Online: fastest for simple short absences.", "Clinic: better for physical exams or complex symptoms.", "Urgent care: appropriate for severe or unsafe symptoms."] },
+      { id: "limits", title: "Limits", type: "callout", content: "Online doctor certificates are not suitable for every context and do not replace employer, institution, or legal processes." },
+    ],
+    faqs: [
+      { question: "Is it a real doctor review?", answer: "Yes. An AHPRA-registered doctor reviews the request before issue." },
+      { question: "How much does InstantMed cost?", answer: `Medical certificate requests start at ${PRICING_DISPLAY.MED_CERT}.` },
+      { question: "Can it be used outside Australia?", answer: "InstantMed is for patients physically located in Australia." },
+    ],
+  }),
+  comparisonPage({
+    priority: 22,
+    slug: "telehealth-medical-certificate-vs-gp",
+    title: "Telehealth Medical Certificate vs GP Visit | InstantMed",
+    description: `Telehealth medical certificate or GP visit? Compare fit, cost, and safety. InstantMed starts at ${PRICING_DISPLAY.MED_CERT}.`,
+    h1: "Telehealth medical certificate vs GP visit",
+    answer: "Use telehealth for simple short certificate requests. Use a GP visit when you need examination, continuity, complex care, or longer-term support.",
+    intro: "This comparison helps patients choose the safer and more efficient path, not just the fastest one.",
+    price: PRICING_DISPLAY.FROM_MED_CERT,
+    searchQuery: "telehealth medical certificate vs gp",
+    alternateQueries: ["online medical certificate vs doctor", "telehealth certificate or gp", "medical certificate online or clinic"],
+    userNeed: "Choose between telehealth and a clinic appointment",
+    urgency: "flexible",
+    serviceType: "medical-certificate",
+    keywords: ["telehealth medical certificate", "online certificate vs gp", "medical certificate comparison"],
+    visual: VISUALS.consult,
+    internalLinks: comparisonLinks,
+    related: medCertRelated,
+    primaryCTA: "Start certificate request",
+    ctaUrl: "/request?service=med-cert",
+    blocks: [
+      { id: "telehealth-fit", title: "Telehealth fit", type: "list", content: ["Short non-urgent illness.", "No physical exam needed.", "Clear absence dates and symptoms."] },
+      { id: "gp-fit", title: "GP fit", type: "list", content: ["Worsening symptoms.", "Longer or repeated absence.", "Need for tests, examination, or ongoing care."] },
+      { id: "safety", title: "Safety", type: "callout", content: "The Medical Board expects telehealth to meet safe standards and to redirect patients when online care is not appropriate." },
+    ],
+    faqs: [
+      { question: "Is telehealth always enough?", answer: "No. It is suitable only where the doctor can safely assess the request remotely." },
+      { question: "Is a GP better for ongoing problems?", answer: "Usually yes. Ongoing or recurrent issues need continuity of care." },
+      { question: "Can I start online and be redirected?", answer: "Yes. The doctor may recommend in-person care if needed." },
+    ],
+  }),
+  comparisonPage({
+    priority: 23,
+    slug: "online-medical-certificate-comparison",
+    title: "Online Medical Certificate Comparison | InstantMed",
+    description: `Compare online medical certificate services by price, doctor review, privacy, and evidence quality. InstantMed starts at ${PRICING_DISPLAY.MED_CERT}.`,
+    h1: "Online medical certificate comparison",
+    answer: "The best online certificate service is transparent about price, doctor review, clinical limits, privacy, and what happens if the request is declined.",
+    intro: "This page gives patients a practical buying checklist instead of a generic list of providers.",
+    price: PRICING_DISPLAY.FROM_MED_CERT,
+    searchQuery: "online medical certificate comparison",
+    alternateQueries: ["best online medical certificate", "compare medical certificate online", "online doctor certificate comparison"],
+    userNeed: "Compare certificate services before paying",
+    urgency: "flexible",
+    serviceType: "medical-certificate",
+    keywords: ["online medical certificate comparison", "compare medical certificate online", "best online medical certificate"],
+    visual: VISUALS.medCertAlt,
+    internalLinks: comparisonLinks,
+    related: medCertRelated,
+    primaryCTA: "Start certificate request",
+    ctaUrl: "/request?service=med-cert",
+    blocks: [
+      { id: "checklist", title: "Buying checklist", type: "list", content: ["Clear price before checkout.", "AHPRA-registered doctor review.", "No unsupported employer outcome promises.", "Secure certificate delivery and verification."] },
+      { id: "watch-outs", title: "Watch-outs", type: "text", content: "Avoid services that promise certificate outcomes without review, hide prices until late, or blur the line between doctor review and self-declaration." },
+      { id: "instantmed-position", title: "InstantMed position", type: "callout", content: "InstantMed optimises for short, clear, doctor reviewed requests and keeps clinical boundaries visible before payment." },
+    ],
+    faqs: [
+      { question: "What should I compare first?", answer: "Price, doctor review, refund/decline handling, privacy, and certificate verification." },
+      { question: "Should the cheapest option always win?", answer: "No. A slightly better clinical and privacy process matters more than saving a few dollars." },
+      { question: "What is InstantMed's starting price?", answer: `Medical certificate requests start at ${PRICING_DISPLAY.MED_CERT}.` },
+    ],
+  }),
+  comparisonPage({
+    priority: 24,
+    slug: "instant-scripts-alternative-medical-certificate",
+    title: "Instant Scripts Alternative for Medical Certificates | InstantMed",
+    description: `Looking for an Instant Scripts alternative for medical certificates? Compare service fit, price, and doctor review. InstantMed starts at ${PRICING_DISPLAY.MED_CERT}.`,
+    h1: "Instant Scripts alternative for medical certificates",
+    answer: "If you are comparing certificate services, focus on doctor review, clear price, privacy, and evidence format rather than brand familiarity alone.",
+    intro: "InstantMed is a focused alternative for short online medical certificate requests and service-level repeat prescription review.",
+    price: PRICING_DISPLAY.FROM_MED_CERT,
+    searchQuery: "instant scripts alternative medical certificate",
+    alternateQueries: ["instant scripts alternative", "instant scripts medical certificate alternative", "alternative to instant scripts certificate"],
+    userNeed: "Compare InstantMed against a known telehealth brand",
+    urgency: "flexible",
+    serviceType: "multiple",
+    keywords: ["instant scripts alternative", "medical certificate alternative", "telehealth certificate alternative"],
+    visual: VISUALS.consult,
+    internalLinks: comparisonLinks,
+    related: [
+      { type: "intent", slug: "online-medical-certificate-comparison", title: "Online medical certificate comparison" },
+      { type: "category", slug: "medical-certificate", title: "Medical certificate service" },
+      { type: "category", slug: "prescriptions", title: "Prescription service" },
+    ],
+    primaryCTA: "View InstantMed services",
+    ctaUrl: "/request",
+    blocks: [
+      { id: "compare-on", title: "Compare on", type: "list", content: ["Service scope.", "Upfront pricing.", "Clinical review model.", "Privacy and certificate verification."] },
+      { id: "positioning", title: "InstantMed positioning", type: "text", content: "InstantMed is built around focused, one-off requests with clear pricing and doctor review rather than a broad pharmacy-led marketplace experience." },
+      { id: "compliance", title: "Compliance boundary", type: "callout", content: "Prescription pages stay service-level. Specific medicine suitability belongs inside a private clinical request, not public advertising copy." },
+    ],
+    faqs: [
+      { question: "Is this page drug-led?", answer: "No. It compares service pathways and does not advertise prescription-only medicines." },
+      { question: "Can I request a certificate here?", answer: "Yes. Start with the certificate service if your need is short absence evidence." },
+      { question: "Can I request a repeat prescription too?", answer: "Yes, through the repeat prescription pathway if it is an existing regular medicine and doctor review supports it." },
+    ],
+  }),
+  comparisonPage({
+    priority: 25,
+    slug: "bulk-billed-telehealth-vs-instantmed",
+    title: "Bulk-Billed Telehealth vs InstantMed | Clear Price Comparison",
+    description: `Compare bulk-billed telehealth and InstantMed private online requests. Certificates start at ${PRICING_DISPLAY.MED_CERT}; repeat requests start at ${PRICING_DISPLAY.REPEAT_SCRIPT}.`,
+    h1: "Bulk-billed telehealth vs InstantMed",
+    answer: "Bulk-billed telehealth can be the right choice when available and suitable. InstantMed is a private, fixed-price option for focused one-off requests.",
+    intro: "The tradeoff is simple: bulk billing may reduce out-of-pocket cost, while InstantMed optimises for a narrow, clear, paid pathway.",
+    price: PRICING_DISPLAY.RANGE,
+    searchQuery: "bulk billed telehealth vs instantmed",
+    alternateQueries: ["bulk billed telehealth medical certificate", "private telehealth medical certificate", "online doctor price comparison"],
+    userNeed: "Choose between no-gap telehealth and private fixed-price service",
+    urgency: "flexible",
+    serviceType: "multiple",
+    keywords: ["bulk billed telehealth vs private", "online doctor price comparison", "telehealth medical certificate price"],
+    visual: VISUALS.consult,
+    internalLinks: comparisonLinks,
+    related: [
+      { type: "intent", slug: "same-day-medical-certificate", title: "Same day medical certificate" },
+      { type: "intent", slug: "repeat-prescription-online", title: "Repeat prescription online" },
+      { type: "category", slug: "pricing", title: "InstantMed pricing" },
+    ],
+    primaryCTA: "View request options",
+    ctaUrl: "/request",
+    blocks: [
+      { id: "bulk-billed-fit", title: "Bulk-billed fit", type: "list", content: ["You have an available GP or eligible telehealth provider.", "You need continuity of care.", "You can wait for an appointment that suits the provider."] },
+      { id: "instantmed-fit", title: "InstantMed fit", type: "list", content: ["You need a focused one-off request.", "You want price shown before payment.", "You are comfortable with private fixed-fee care."] },
+      { id: "honest-tradeoff", title: "Honest tradeoff", type: "callout", content: "InstantMed is not the cheapest possible healthcare pathway. It is built for clarity, speed, and narrow-scope requests when that tradeoff is worth it." },
+    ],
+    faqs: [
+      { question: "Is InstantMed bulk billed?", answer: "No. InstantMed is a private fixed-fee service." },
+      { question: "When should I choose my regular GP?", answer: "Choose your regular GP for ongoing problems, complex history, medication changes, or anything needing continuity." },
+      { question: "Are prices shown upfront?", answer: "Yes. Service prices are shown before payment." },
+    ],
+  }),
+]
 
 export function getIntentPageBySlug(slug: string): IntentPage | undefined {
-  return intentPages.find(p => p.slug === slug)
+  return intentPages.find((p) => p.slug === slug)
 }
 
 export function getAllIntentSlugs(): string[] {
-  return intentPages.map(p => p.slug)
+  return intentPages.map((p) => p.slug)
 }
 
-export function getIntentPagesByUrgency(urgency: 'immediate' | 'same-day' | 'flexible'): IntentPage[] {
-  return intentPages.filter(p => p.intent.urgency === urgency)
+export function getIntentPagesByUrgency(urgency: "immediate" | "same-day" | "flexible"): IntentPage[] {
+  return intentPages.filter((p) => p.intent.urgency === urgency)
 }
-
-// NEW INTENT PAGES - TO BE PROPERLY IMPLEMENTED
-// The following pages need to be restructured to match the IntentPage interface before being added

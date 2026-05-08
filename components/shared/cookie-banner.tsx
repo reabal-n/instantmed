@@ -4,7 +4,6 @@ import { X } from "lucide-react"
 import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
 
-import { Button } from "@/components/ui/button"
 import { updateConsent } from "@/lib/analytics/conversion-tracking"
 import { cn } from "@/lib/utils"
 
@@ -240,21 +239,20 @@ export function CookieBanner() {
             </div>
 
             <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-border/50">
-              <Button
-                variant="ghost"
-                size="sm"
+              <button
+                type="button"
                 onClick={handleOptOutNonEssential}
-                className="text-xs h-8 px-3 text-muted-foreground"
+                className="inline-flex h-8 items-center justify-center rounded-md px-3 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dawn-300 focus-visible:ring-offset-2"
               >
                 Essential only
-              </Button>
-              <Button
-                size="sm"
+              </button>
+              <button
+                type="button"
                 onClick={handleSavePreferences}
-                className="h-8 px-4 bg-foreground hover:bg-foreground/90 text-background font-medium shadow-sm"
+                className="inline-flex h-8 items-center justify-center rounded-md bg-foreground px-4 text-xs font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dawn-300 focus-visible:ring-offset-2"
               >
                 Save
-              </Button>
+              </button>
             </div>
           </div>
         )}

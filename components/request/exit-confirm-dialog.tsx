@@ -1,6 +1,5 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -9,6 +8,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+
+import { RequestButton } from "./request-button"
 
 interface ExitConfirmDialogProps {
   open: boolean
@@ -27,19 +28,19 @@ export function ExitConfirmDialog({ open, onClose, onConfirmExit }: ExitConfirmD
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex gap-3 sm:gap-3 sm:justify-stretch">
-          <Button
+          <RequestButton
             variant="outline"
             className="flex-1"
             onClick={onClose}
           >
             Keep going
-          </Button>
-          <Button
+          </RequestButton>
+          <RequestButton
             className="flex-1"
             onClick={onConfirmExit}
           >
             Save &amp; exit
-          </Button>
+          </RequestButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>

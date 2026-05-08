@@ -2,7 +2,6 @@
 
 import { useCallback,useEffect, useState } from 'react'
 
-import { createLogger } from '@/lib/observability/logger'
 import {
   createConnectionListener,
   dequeueAction,
@@ -13,9 +12,20 @@ import {
   type QueuedAction
 } from '@/lib/offline/queue'
 
-const logger = createLogger('use-connection-status')
-
 const MAX_RETRIES = 3
+
+function logConnectionEvent(
+  level: 'info' | 'warn' | 'error',
+  message: string,
+  context?: Record<string, unknown>,
+  error?: Error
+) {
+  void import('@/lib/observability/logger')
+    .then(({ createLogger }) => {
+      createLogger('use-connection-status')[level](message, context, error)
+    })
+    .catch(() => {})
+}
 
 interface UseConnectionStatusReturn {
   isOnline: boolean
@@ -54,7 +64,7 @@ export function useConnectionStatus(
     setIsSyncing(true)
     markSyncAttempt()
     
-    logger.info('Starting offline queue sync', { actionCount: actions.length })
+    logConnectionEvent('info', 'Starting offline queue sync', { actionCount: actions.length })
     
     for (const action of actions) {
       try {
@@ -63,12 +73,12 @@ export function useConnectionStatus(
           const success = await onSync(action)
           if (success) {
             dequeueAction(action.id)
-            logger.info('Action synced successfully', { actionId: action.id, type: action.type })
+            logConnectionEvent('info', 'Action synced successfully', { actionId: action.id, type: action.type })
           } else {
             const retries = incrementRetry(action.id)
             if (retries >= MAX_RETRIES) {
               dequeueAction(action.id)
-              logger.warn('Action dropped after max retries', { actionId: action.id, type: action.type })
+              logConnectionEvent('warn', 'Action dropped after max retries', { actionId: action.id, type: action.type })
             }
           }
         } else {
@@ -76,7 +86,7 @@ export function useConnectionStatus(
           dequeueAction(action.id)
         }
       } catch (error) {
-        logger.error('Failed to sync action', { actionId: action.id }, error instanceof Error ? error : undefined)
+        logConnectionEvent('error', 'Failed to sync action', { actionId: action.id }, error instanceof Error ? error : undefined)
         incrementRetry(action.id)
       }
     }

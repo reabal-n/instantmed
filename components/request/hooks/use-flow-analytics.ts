@@ -2,12 +2,39 @@
 
 import { useEffect, useMemo,useRef } from "react"
 
-import { usePostHog } from "@/components/providers/posthog-provider"
-import { trackFunnelStep, trackStepEvent } from "@/lib/analytics/conversion-tracking"
+import { usePostHog } from "@/lib/analytics/posthog-context"
+import { onFirstInteraction } from "@/lib/browser/first-interaction"
 import { canonicalizeServiceType } from "@/lib/request/draft-storage"
 import type { StepDefinition, UnifiedServiceType } from "@/lib/request/step-registry"
 
 import { useRequestStore } from "../store"
+
+function trackStepEventDeferred(input: {
+  stepName: string
+  stepIndex: number
+  serviceType: string
+  totalSteps: number
+}) {
+  onFirstInteraction(() => {
+    void import("@/lib/analytics/conversion-tracking")
+      .then(({ trackStepEvent }) => trackStepEvent(input))
+      .catch(() => {})
+  })
+}
+
+function trackFunnelStepDeferred(
+  step: "landing" | "start" | "intake_complete" | "checkout",
+  serviceType: string,
+  email?: string
+) {
+  onFirstInteraction(() => {
+    void import("@/lib/analytics/conversion-tracking")
+      .then(({ trackFunnelStep }) => {
+        void trackFunnelStep(step, serviceType, email)
+      })
+      .catch(() => {})
+  })
+}
 
 interface UseFlowAnalyticsOptions {
   serviceType: UnifiedServiceType | null
@@ -81,7 +108,7 @@ export function useFlowAnalytics({
 
       // Fire gtag funnel_step event for every step transition.
       // Enables Google Ads remarketing audiences (e.g. "reached step 3 but didn't check out").
-      trackStepEvent({
+      trackStepEventDeferred({
         stepName: currentStep.id,
         stepIndex: currentStepIndex,
         serviceType: analyticsServiceType,
@@ -101,17 +128,17 @@ export function useFlowAnalytics({
     const tracked = trackedFunnelEventsRef.current
 
     if (!tracked.has("landing")) {
-      void trackFunnelStep("landing", analyticsServiceType, patientEmail)
+      trackFunnelStepDeferred("landing", analyticsServiceType, patientEmail)
       tracked.add("landing")
     }
 
     if (currentStepIndex === 0 && !tracked.has("start")) {
-      void trackFunnelStep("start", analyticsServiceType, patientEmail)
+      trackFunnelStepDeferred("start", analyticsServiceType, patientEmail)
       tracked.add("start")
     }
 
     if (currentStepId === "checkout" && !tracked.has("intake_complete")) {
-      void trackFunnelStep("intake_complete", analyticsServiceType, patientEmail)
+      trackFunnelStepDeferred("intake_complete", analyticsServiceType, patientEmail)
       tracked.add("intake_complete")
     }
   }, [currentStep, serviceType, currentStepIndex, currentStepId, analyticsServiceType, patientEmail])

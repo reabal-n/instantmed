@@ -133,7 +133,7 @@ export function HealthProfileClient({ initialProfile, patientId: _patientId }: H
       <div className="space-y-6 rounded-xl border border-border/50 bg-card p-6">
         {renderListSection("Allergies", allergies, "allergy", "e.g. Penicillin")}
         {renderListSection("Medical Conditions", conditions, "condition", "e.g. Asthma")}
-        {renderListSection("Current Medications", medications, "medication", "e.g. Ventolin 100mcg")}
+        {renderListSection("Current Medications", medications, "medication", "e.g. regular inhaler 100mcg")}
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>

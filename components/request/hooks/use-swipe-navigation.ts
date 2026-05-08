@@ -1,7 +1,7 @@
 "use client"
 
-import { type PanInfo,useMotionValue } from "framer-motion"
-import { useCallback } from "react"
+import type { TouchEvent } from "react"
+import { useCallback, useRef } from "react"
 
 const SWIPE_DISTANCE_THRESHOLD = 100
 const SWIPE_VELOCITY_THRESHOLD = 500
@@ -14,34 +14,49 @@ interface UseSwipeNavigationOptions {
 /**
  * Provides horizontal swipe-to-go-back gesture handling for mobile.
  *
- * Returns the motion value, drag-end handler, and constraint config
- * to spread onto a Framer Motion `motion.main` element.
- *
  * Swiping left (forward) is intentionally a no-op - users must
  * explicitly complete each step.
  */
 export function useSwipeNavigation({ onSwipeBack, canGoBack }: UseSwipeNavigationOptions) {
-  const dragX = useMotionValue(0)
+  const startXRef = useRef<number | null>(null)
+  const startTimeRef = useRef<number | null>(null)
 
-  const handleDragEnd = useCallback(
-    (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-      if (
-        canGoBack &&
-        (info.offset.x > SWIPE_DISTANCE_THRESHOLD || info.velocity.x > SWIPE_VELOCITY_THRESHOLD)
-      ) {
-        // Swiped right - go back
-        onSwipeBack()
-      }
-      // Swiped left - cannot go forward via swipe (must complete step)
-      // This is intentional - users must explicitly complete steps
-
-      // Reset drag position
-      dragX.set(0)
+  const handleTouchStart = useCallback(
+    (event: TouchEvent<HTMLElement>) => {
+      if (!canGoBack) return
+      const touch = event.changedTouches[0]
+      if (!touch) return
+      startXRef.current = touch.clientX
+      startTimeRef.current = performance.now()
     },
-    [canGoBack, onSwipeBack, dragX],
+    [canGoBack],
   )
 
-  const dragConstraints = { left: 0, right: 0 } as const
+  const handleTouchEnd = useCallback(
+    (event: TouchEvent<HTMLElement>) => {
+      const startX = startXRef.current
+      const startTime = startTimeRef.current
+      startXRef.current = null
+      startTimeRef.current = null
 
-  return { dragX, handleDragEnd, dragConstraints }
+      if (!canGoBack || startX === null || startTime === null) return
+
+      const touch = event.changedTouches[0]
+      if (!touch) return
+
+      const offsetX = touch.clientX - startX
+      const elapsedMs = Math.max(performance.now() - startTime, 1)
+      const velocityX = (offsetX / elapsedMs) * 1000
+
+      if (
+        canGoBack &&
+        (offsetX > SWIPE_DISTANCE_THRESHOLD || velocityX > SWIPE_VELOCITY_THRESHOLD)
+      ) {
+        onSwipeBack()
+      }
+    },
+    [canGoBack, onSwipeBack],
+  )
+
+  return { handleTouchStart, handleTouchEnd }
 }

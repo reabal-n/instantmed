@@ -13,12 +13,12 @@
 import { ArrowRight, Plus, ShieldAlert, X } from "lucide-react"
 import { useCallback,useEffect, useState } from "react"
 
-import { usePostHog } from "@/components/providers/posthog-provider"
 import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
 import { MedicationSearch, type SelectedPBSProduct } from "@/components/shared"
 import { Alert, AlertDescription,AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { usePostHog } from "@/lib/analytics/posthog-context"
 import { CONTROLLED_SUBSTANCE_DISCLAIMER,isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { addRecentMedication,getSmartDefaults } from "@/lib/request/preferences"

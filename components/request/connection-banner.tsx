@@ -7,12 +7,11 @@
  * Appears at top of request flow when offline.
  */
 
-import { AnimatePresence,motion } from "framer-motion"
 import { CloudOff, RefreshCw,WifiOff } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
-import { useReducedMotion } from "@/components/ui/motion"
 import { useConnectionStatus } from "@/lib/hooks/use-connection-status"
+
+import { RequestButton } from "./request-button"
 
 interface ConnectionBannerProps {
   className?: string
@@ -20,74 +19,65 @@ interface ConnectionBannerProps {
 
 export function ConnectionBanner({ className }: ConnectionBannerProps) {
   const { isOnline, pendingCount, isSyncing, syncPending } = useConnectionStatus()
-  const prefersReducedMotion = useReducedMotion()
 
-  return (
-    <AnimatePresence>
-      {!isOnline && (
-        <motion.div
-          initial={prefersReducedMotion ? {} : { opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          exit={{ opacity: 0, height: 0 }}
-          className={className}
-        >
-          <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-warning-light border-b border-warning-border">
-            <div className="flex items-center gap-2">
-              <WifiOff className="w-4 h-4 text-warning" />
-              <span className="text-sm font-medium text-warning">
-                You&apos;re offline
+  if (!isOnline) {
+    return (
+      <div className={className}>
+        <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-warning-light border-b border-warning-border">
+          <div className="flex items-center gap-2">
+            <WifiOff className="w-4 h-4 text-warning" />
+            <span className="text-sm font-medium text-warning">
+              You&apos;re offline
+            </span>
+            {pendingCount > 0 && (
+              <span className="text-xs text-warning">
+                • {pendingCount} change{pendingCount !== 1 ? 's' : ''} saved locally
               </span>
-              {pendingCount > 0 && (
-                <span className="text-xs text-warning">
-                  • {pendingCount} change{pendingCount !== 1 ? 's' : ''} saved locally
-                </span>
-              )}
-            </div>
-            <span className="text-xs text-warning">
-              Changes will sync when back online
+            )}
+          </div>
+          <span className="text-xs text-warning">
+            Changes will sync when back online
+          </span>
+        </div>
+      </div>
+    )
+  }
+
+  if (pendingCount > 0) {
+    return (
+      <div className={className}>
+        <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-info-light border-b border-info-border">
+          <div className="flex items-center gap-2">
+            <CloudOff className="w-4 h-4 text-info" />
+            <span className="text-sm font-medium text-info">
+              {pendingCount} pending change{pendingCount !== 1 ? 's' : ''}
             </span>
           </div>
-        </motion.div>
-      )}
-      
-      {isOnline && pendingCount > 0 && (
-        <motion.div
-          initial={prefersReducedMotion ? {} : { opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          exit={{ opacity: 0, height: 0 }}
-          className={className}
-        >
-          <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-info-light border-b border-info-border">
-            <div className="flex items-center gap-2">
-              <CloudOff className="w-4 h-4 text-info" />
-              <span className="text-sm font-medium text-info">
-                {pendingCount} pending change{pendingCount !== 1 ? 's' : ''}
-              </span>
-            </div>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-7 gap-1.5 text-info hover:text-info hover:bg-info-light"
-              onClick={syncPending}
-              disabled={isSyncing}
-            >
-              {isSyncing ? (
-                <>
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  Syncing...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  Sync now
-                </>
-              )}
-            </Button>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  )
+          <RequestButton
+            size="sm"
+            variant="ghost"
+            className="h-7 gap-1.5 text-info hover:text-info hover:bg-info-light"
+            onClick={syncPending}
+            disabled={isSyncing}
+          >
+            {isSyncing ? (
+              <>
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                Syncing...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="w-3.5 h-3.5" />
+                Sync now
+              </>
+            )}
+          </RequestButton>
+        </div>
+      </div>
+    )
+  }
+
+  return null
 }
 
 /**

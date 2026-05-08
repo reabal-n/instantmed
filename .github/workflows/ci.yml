@@ -229,6 +229,28 @@ jobs:
           # assertion regardless of the embedded `maxNumericValue` key.
           lhci autorun
 
+      - name: Run mobile intake Lighthouse gate
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+        run: |
+          # Dedicated paid-intake gate. This intentionally audits /request
+          # separately from the heavier desktop marketing LHCI config because
+          # paid traffic lives or dies on mobile intake speed.
+          #
+          # Hard gates:
+          #   mobile performance >= 85
+          #   FCP <= 2.0s
+          #   TBT <= 200ms
+          #   CLS <= 0.05
+          #
+          # Simulated LCP remains warn-only until the global CSS/root-layout
+          # split is done safely; the current bottleneck is render-blocking
+          # CSS shared across the app, not route JS.
+          lhci autorun --config=./lighthouserc.request.json
+
       - name: Upload Lighthouse results
         uses: actions/upload-artifact@v7.0.1
         if: always()

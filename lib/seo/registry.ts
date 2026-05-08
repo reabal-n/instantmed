@@ -143,6 +143,7 @@ export type PageType =
 
 export interface ContentBlock {
   id: string
+  title?: string
   type: 'text' | 'list' | 'callout' | 'faq' | 'pricing' | 'disclaimer'
   content: string | string[]
   metadata?: {

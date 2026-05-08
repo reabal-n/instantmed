@@ -47,6 +47,9 @@
     "test:templates": "npx tsx scripts/test-all-templates.ts",
     "seo:generate": "npx tsx scripts/seo-generator.ts",
     "seo:gsc-index-audit": "node tools/gsc-mcp-server/gsc-index-audit.mjs",
+    "seo:commercial-pulse": "node tools/gsc-mcp-server/commercial-intent-pulse.mjs",
+    "seo:commercial-inspect": "node tools/gsc-mcp-server/commercial-intent-inspect.mjs",
+    "seo:generate-commercial-visuals": "tsx scripts/generate-commercial-seo-visual-images.ts",
     "verify:tokens": "bash scripts/verify-tokens.sh"
   },
   "dependencies": {

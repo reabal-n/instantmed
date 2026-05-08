@@ -10,7 +10,7 @@
  * It catches the highest-risk phrases that previously drifted into public
  * pages, including programmatic SEO surfaces.
  */
-import { readdirSync, readFileSync, statSync } from "node:fs"
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs"
 import path from "node:path"
 
 import { describe, expect, it } from "vitest"
@@ -34,7 +34,6 @@ const NON_MEDCERT_FORM_FIRST_SURFACES = [
   "components/marketing/hair-loss-landing.tsx",
   "components/shared/navbar/services-dropdown.tsx",
   "components/marketing/mockups/ed-hero-mockup.tsx",
-  "components/marketing/sections/ed-guide-section.tsx",
   "components/marketing/sections/how-it-works-inline.tsx",
   "components/marketing/blog-cta-card.tsx",
   "components/marketing/how-it-works.tsx",
@@ -73,6 +72,27 @@ const URL_PRIVACY_SURFACES = [
   "content/blog",
 ]
 
+const PAID_PRESCRIPTION_DESTINATION_SURFACES = [
+  "app/erectile-dysfunction/page.tsx",
+  "app/hair-loss/page.tsx",
+  "app/weight-loss/page.tsx",
+  "app/weight-loss/weight-loss-client.tsx",
+  "app/prescriptions/page.tsx",
+  "components/marketing/erectile-dysfunction-landing.tsx",
+  "components/marketing/hair-loss-landing.tsx",
+  "components/marketing/prescriptions-landing.tsx",
+  "components/marketing/mockups/ed-hero-mockup.tsx",
+  "components/marketing/mockups/escript-hero-mockup.tsx",
+  "components/marketing/sections/escript-explainer-section.tsx",
+  "components/marketing/sections/prescription-limitations-section.tsx",
+  "components/marketing/sections/supported-medications-section.tsx",
+  "components/shared/navbar/services-dropdown.tsx",
+  "lib/data/ed-faq.ts",
+  "lib/data/hair-loss-faq.ts",
+  "lib/data/prescription-faq.ts",
+  "lib/marketing/homepage.ts",
+]
+
 const NO_CALL_PATTERNS = [
   /\bno call needed\b/i,
   /\bno call required\b/i,
@@ -107,6 +127,15 @@ const MED_CERT_ACCEPTANCE_PATTERNS = [
 const MEDICATION_QUERY_PATTERNS = [
   /[?&]medication=/i,
   /[?&]drug=/i,
+]
+
+const PUBLIC_PRESCRIPTION_DRUG_TERM_PATTERNS = [
+  /\b(sildenafil|tadalafil|viagra|cialis|finasteride|dutasteride|minoxidil|ozempic|wegovy|mounjaro|duromine|phentermine|semaglutide|tirzepatide|atorvastatin|amlodipine|ramipril|perindopril|rosuvastatin|ventolin|seretide|symbicort|valium|xanax)\b/i,
+  /\bED medication\b/i,
+  /\bweight loss injections?\b/i,
+  /\bTGA-approved (?:treatments?|medications?)\b/i,
+  /\bclinically proven (?:approach|treatment|medication)\b/i,
+  /\bdoctor-prescribed treatment\b/i,
 ]
 
 function toFullPath(relative: string): string {
@@ -210,6 +239,30 @@ describe("advertising compliance guard", () => {
     }
 
     expect(hits).toEqual([])
+  })
+
+  it("keeps paid prescription destinations service-level instead of drug-led", () => {
+    const hits = findHits(
+      collectFiles(PAID_PRESCRIPTION_DESTINATION_SURFACES),
+      PUBLIC_PRESCRIPTION_DRUG_TERM_PATTERNS,
+    )
+    if (hits.length > 0) {
+      failWithReport("Prescription drug-term guard failed", hits)
+    }
+
+    expect(hits).toEqual([])
+  })
+
+  it("keeps drug-detail pages retired and the request URL service-only", () => {
+    expect(existsSync(toFullPath("app/prescriptions/med/[slug]/page.tsx"))).toBe(false)
+    expect(existsSync(toFullPath("app/hair-loss/hair-loss-client.tsx"))).toBe(false)
+
+    const requestPageSource = readFileSync(toFullPath("app/request/page.tsx"), "utf8")
+    const requestFlowSource = readFileSync(toFullPath("components/request/request-flow.tsx"), "utf8")
+
+    expect(requestPageSource).not.toContain("medication?: string")
+    expect(requestPageSource).not.toContain("params.medication")
+    expect(requestFlowSource).not.toContain("initialMedication")
   })
 
   it("keeps no-call badges out of non-medcert presets", () => {

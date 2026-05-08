@@ -3,7 +3,7 @@
 import { Check } from "lucide-react"
 import type { ElementType, ReactNode } from "react"
 
-import { cn } from "@/lib/utils"
+import { requestCx } from "@/components/request/request-cx"
 
 interface StepIntroProps {
   title: string
@@ -19,7 +19,7 @@ export function IntakeStepIntro({
   className,
 }: StepIntroProps) {
   return (
-    <div className={cn("space-y-1.5", className)} data-intake-step-intro="true">
+    <div className={requestCx("space-y-1.5", className)} data-intake-step-intro="true">
       {eyebrow && (
         <p className="text-xs font-medium text-muted-foreground">
           {eyebrow}
@@ -51,7 +51,7 @@ export function QuestionCard({
   return (
     <section
       data-intake-question-card="true"
-      className={cn(
+      className={requestCx(
         "rounded-2xl border border-border/50 bg-white shadow-md shadow-primary/[0.06] dark:bg-card dark:shadow-none",
         compact ? "space-y-3 p-3" : "space-y-4 p-4",
         className,
@@ -80,7 +80,7 @@ export function QuestionPrompt({
   className,
 }: QuestionPromptProps) {
   return (
-    <div className={cn("space-y-1", className)}>
+    <div className={requestCx("space-y-1", className)}>
       <div className="flex items-start gap-2">
         {Icon && (
           <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -92,7 +92,7 @@ export function QuestionPrompt({
         </p>
       </div>
       {hint && (
-        <p className={cn("text-xs leading-relaxed text-muted-foreground", Icon && "pl-6")}>
+        <p className={requestCx("text-xs leading-relaxed text-muted-foreground", Icon && "pl-6")}>
           {hint}
         </p>
       )}
@@ -127,7 +127,7 @@ export function SegmentedChoiceGroup<T extends string>({
     <div
       role="radiogroup"
       aria-label={ariaLabel}
-      className={cn(
+      className={requestCx(
         "grid gap-2",
         columns === "one" && "grid-cols-1",
         columns === "two" && "grid-cols-2",
@@ -144,7 +144,7 @@ export function SegmentedChoiceGroup<T extends string>({
             role="radio"
             aria-checked={selected}
             onClick={() => onChange(option.value)}
-            className={cn(
+            className={requestCx(
               "flex min-h-12 items-center justify-center rounded-xl border px-3 py-2.5 text-center text-sm font-medium leading-tight transition-[background-color,border-color,color,box-shadow]",
               "touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
               selected
@@ -187,7 +187,7 @@ export function BinaryChoice({
       data-intake-binary-choice="true"
       role="radiogroup"
       aria-label={ariaLabel}
-      className={cn("grid grid-cols-2 gap-2", className)}
+      className={requestCx("grid grid-cols-2 gap-2", className)}
     >
       {options.map((option) => {
         const selected = value === option.value
@@ -198,7 +198,7 @@ export function BinaryChoice({
             role="radio"
             aria-checked={selected}
             onClick={() => onChange(option.value)}
-            className={cn(
+            className={requestCx(
               "flex min-h-12 items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition-[background-color,border-color,color,box-shadow]",
               "touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
               selected

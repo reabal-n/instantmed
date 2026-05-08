@@ -4,9 +4,9 @@
  */
 export const PRESCRIPTION_FAQ = [
   {
-    question: "What medications can you prescribe?",
+    question: "What can the doctor review?",
     answer:
-      "We can prescribe most common repeat medications including blood pressure, cholesterol, contraceptives, asthma inhalers, reflux, thyroid, and more. We cannot prescribe Schedule 8 medications (opioids, stimulants) or benzodiazepines.",
+      "The doctor can review common repeat medicine requests for stable, ongoing care. We do not handle controlled, dependence-forming, emergency, or complex monitoring requests through this pathway.",
   },
   {
     question: "Is the eScript accepted at any pharmacy?",
@@ -26,7 +26,7 @@ export const PRESCRIPTION_FAQ = [
   {
     question: "What if the doctor can't prescribe my medication?",
     answer:
-      "If your medication isn't suitable for online prescribing (e.g. you need blood tests first), we'll explain why and refund your payment in full.",
+      "If your request isn't suitable for online prescribing, such as when monitoring or in-person care is needed, we'll explain why and refund your payment in full.",
   },
   {
     question: "How do I receive the eScript?",
