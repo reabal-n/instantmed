@@ -10,7 +10,7 @@ import {
   validateDoctorPatientCreateInput,
 } from "@/lib/doctor/doctor-patient-create"
 import { createLogger } from "@/lib/observability/logger"
-import { getSsoUrl } from "@/lib/parchment/client"
+import { getSsoUrl, validateIntegration } from "@/lib/parchment/client"
 import {
   ParchmentPatientIdentityError,
   ParchmentPatientSyncError,
@@ -77,6 +77,16 @@ function patientSavedButParchmentFailed(patientId: string, error: unknown): Doct
     success: false,
     patientId,
     error: "Patient saved, but Parchment could not be opened. Open the patient record and retry.",
+  }
+}
+
+function parchmentValidationFailure(patientId?: string): DoctorPatientParchmentActionResult {
+  return {
+    success: false,
+    ...(patientId ? { patientId } : {}),
+    error: patientId
+      ? "Patient saved, but Parchment integration validation failed. Revalidate the Parchment account in Doctor Settings and retry."
+      : "Parchment integration validation failed. Revalidate the Parchment account in Doctor Settings and retry.",
   }
 }
 
@@ -173,6 +183,17 @@ export async function createDoctorPatientAndOpenParchmentAction(
   }
 
   try {
+    try {
+      await validateIntegration(doctorProfile.parchment_user_id)
+    } catch (validationError) {
+      log.warn(
+        "Parchment integration validation failed before doctor-entered patient handoff",
+        {},
+        validationError instanceof Error ? validationError : new Error(String(validationError)),
+      )
+      return parchmentValidationFailure(patient.id)
+    }
+
     const parchmentPatientId = await syncPatientToParchment(patient.id, doctorProfile.parchment_user_id)
     const ssoData = await getSsoUrl(
       doctorProfile.parchment_user_id,
@@ -242,6 +263,17 @@ export async function openPatientInParchmentAction(
 
     if (!patient?.id) {
       return { success: false, error: "Patient not found" }
+    }
+
+    try {
+      await validateIntegration(doctorProfile.parchment_user_id)
+    } catch (validationError) {
+      log.warn(
+        "Parchment integration validation failed before existing patient handoff",
+        {},
+        validationError instanceof Error ? validationError : new Error(String(validationError)),
+      )
+      return parchmentValidationFailure(patient.id)
     }
 
     const parchmentPatientId = await syncPatientToParchment(patient.id, doctorProfile.parchment_user_id)
@@ -380,6 +412,17 @@ export async function updateDoctorPatientAndSyncParchmentAction(
   }
 
   try {
+    try {
+      await validateIntegration(doctorProfile.parchment_user_id)
+    } catch (validationError) {
+      log.warn(
+        "Parchment integration validation failed before doctor-managed patient sync",
+        {},
+        validationError instanceof Error ? validationError : new Error(String(validationError)),
+      )
+      return parchmentValidationFailure(patient.id)
+    }
+
     const parchmentPatientId = await syncPatientToParchment(patient.id, doctorProfile.parchment_user_id)
 
     revalidatePath("/doctor/patients")

@@ -13,7 +13,7 @@ import {
 } from "@/lib/doctor/manual-patient"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
-import { getSsoUrl } from "@/lib/parchment/client"
+import { getSsoUrl, validateIntegration } from "@/lib/parchment/client"
 import { ParchmentPatientIdentityError, ParchmentPatientSyncError, syncPatientToParchment } from "@/lib/parchment/sync-patient"
 import { syncParchmentPrescriptionListToPms } from "@/lib/parchment/sync-prescription"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
@@ -193,6 +193,20 @@ export async function createManualPatientAction(
           error: "Prescriber account not linked. Link your Parchment user in Doctor Settings > Parchment Prescribing Account, or create the patient without immediate sync.",
         }
       }
+
+      try {
+        await validateIntegration(callerParchmentUserId)
+      } catch (validationError) {
+        log.warn(
+          "Parchment integration validation failed before manual patient sync",
+          {},
+          validationError instanceof Error ? validationError : new Error(String(validationError)),
+        )
+        return {
+          success: false,
+          error: "Parchment integration validation failed. Revalidate the Parchment account in Doctor Settings and retry.",
+        }
+      }
     }
 
     const duplicatePatient = await findDuplicatePatient(supabase, input)
@@ -315,6 +329,20 @@ export async function getPatientParchmentPrescribeUrlAction(
       return { success: false, error: "Patient profile not found." }
     }
 
+    try {
+      await validateIntegration(callerParchmentUserId)
+    } catch (validationError) {
+      log.warn(
+        "Parchment integration validation failed before patient profile prescribing handoff",
+        {},
+        validationError instanceof Error ? validationError : new Error(String(validationError)),
+      )
+      return {
+        success: false,
+        error: "Parchment integration validation failed. Revalidate the Parchment account in Doctor Settings and retry.",
+      }
+    }
+
     const parchmentPatientId = await syncPatientToParchment(patientId, callerParchmentUserId)
     const ssoData = await getSsoUrl(
       callerParchmentUserId,
@@ -400,6 +428,20 @@ export async function syncPatientParchmentProfileAction(
       return { success: false, error: "Patient profile not found." }
     }
 
+    try {
+      await validateIntegration(callerParchmentUserId)
+    } catch (validationError) {
+      log.warn(
+        "Parchment integration validation failed before patient profile sync",
+        {},
+        validationError instanceof Error ? validationError : new Error(String(validationError)),
+      )
+      return {
+        success: false,
+        error: "Parchment integration validation failed. Revalidate the Parchment account in Doctor Settings and retry.",
+      }
+    }
+
     const parchmentPatientId = await syncPatientToParchment(patientId, callerParchmentUserId)
 
     await logAuditEvent({
@@ -472,6 +514,20 @@ export async function refreshPatientParchmentPrescriptionsAction(
 
     if (!patient || patient.role !== "patient" || patient.merged_into_profile_id) {
       return { success: false, error: "Patient profile not found." }
+    }
+
+    try {
+      await validateIntegration(callerParchmentUserId)
+    } catch (validationError) {
+      log.warn(
+        "Parchment integration validation failed before prescription refresh",
+        {},
+        validationError instanceof Error ? validationError : new Error(String(validationError)),
+      )
+      return {
+        success: false,
+        error: "Parchment integration validation failed. Revalidate the Parchment account in Doctor Settings and retry.",
+      }
     }
 
     const parchmentPatientId = patient.parchment_patient_id

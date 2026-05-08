@@ -66,9 +66,13 @@ describe("doctor add patient Parchment contract", () => {
 
     expect(body).toContain(".from(\"profiles\")")
     expect(body).toContain(".insert(insertPayload)")
+    expect(body).toContain("await validateIntegration(doctorProfile.parchment_user_id)")
     expect(body).toContain("syncPatientToParchment(patient.id, doctorProfile.parchment_user_id)")
     expect(body).toContain("`/embed/patients/${parchmentPatientId}/prescriptions`")
     expect(body.indexOf(".insert(insertPayload)")).toBeLessThan(
+      body.indexOf("await validateIntegration(doctorProfile.parchment_user_id)"),
+    )
+    expect(body.indexOf("await validateIntegration(doctorProfile.parchment_user_id)")).toBeLessThan(
       body.indexOf("syncPatientToParchment(patient.id, doctorProfile.parchment_user_id)"),
     )
   })
@@ -80,8 +84,12 @@ describe("doctor add patient Parchment contract", () => {
     expect(detailSource).toContain("ParchmentPrescribePanel")
     expect(detailSource).toContain("handleOpenParchmentPrescribe")
     expect(detailSource).toContain("patientId={patient.id}")
+    expect(body).toContain("await validateIntegration(doctorProfile.parchment_user_id)")
     expect(body).toContain("syncPatientToParchment(patient.id, doctorProfile.parchment_user_id)")
     expect(body).toContain("getSsoUrl(")
+    expect(body.indexOf("await validateIntegration(doctorProfile.parchment_user_id)")).toBeLessThan(
+      body.indexOf("syncPatientToParchment(patient.id, doctorProfile.parchment_user_id)"),
+    )
   })
 
   it("does not open placeholder blank tabs before a real Parchment SSO URL exists", () => {
@@ -106,8 +114,12 @@ describe("doctor add patient Parchment contract", () => {
     expect(body).toContain("validateDoctorPatientCreateInput(input)")
     expect(body).toContain(".from(\"profiles\")")
     expect(body).toContain(".update(updatePayload)")
+    expect(body).toContain("await validateIntegration(doctorProfile.parchment_user_id)")
     expect(body).toContain("syncPatientToParchment(patient.id, doctorProfile.parchment_user_id)")
     expect(body.indexOf(".update(updatePayload)")).toBeLessThan(
+      body.indexOf("await validateIntegration(doctorProfile.parchment_user_id)"),
+    )
+    expect(body.indexOf("await validateIntegration(doctorProfile.parchment_user_id)")).toBeLessThan(
       body.indexOf("syncPatientToParchment(patient.id, doctorProfile.parchment_user_id)"),
     )
   })

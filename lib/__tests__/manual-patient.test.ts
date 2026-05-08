@@ -97,15 +97,29 @@ describe("manual patient creation", () => {
   })
 
   it("keeps patient-profile Parchment sync and prescription refresh guarded", () => {
+    const createBody = actionBody("createManualPatientAction")
+    const prescribeBody = actionBody("getPatientParchmentPrescribeUrlAction")
     const syncBody = actionBody("syncPatientParchmentProfileAction")
     const refreshBody = actionBody("refreshPatientParchmentPrescriptionsAction")
 
+    expect(createBody).toContain("await validateIntegration(callerParchmentUserId)")
+    expect(createBody.indexOf("await validateIntegration(callerParchmentUserId)")).toBeLessThan(
+      createBody.indexOf(".insert(encryptProfilePhi({"),
+    )
+
+    expect(prescribeBody).toContain("await validateIntegration(callerParchmentUserId)")
+    expect(prescribeBody.indexOf("await validateIntegration(callerParchmentUserId)")).toBeLessThan(
+      prescribeBody.indexOf("syncPatientToParchment("),
+    )
+
     expect(syncBody).toContain('requireRoleOrNull(["doctor", "admin"])')
     expect(syncBody).toContain("checkServerActionRateLimit(")
+    expect(syncBody).toContain("await validateIntegration(callerParchmentUserId)")
     expect(syncBody).toContain("syncPatientToParchment(")
 
     expect(refreshBody).toContain('requireRoleOrNull(["doctor", "admin"])')
     expect(refreshBody).toContain("checkServerActionRateLimit(")
+    expect(refreshBody).toContain("await validateIntegration(callerParchmentUserId)")
     expect(refreshBody).toContain("syncParchmentPrescriptionListToPms(")
     expect(refreshBody).toContain("overwriteNullableLinks: false")
   })

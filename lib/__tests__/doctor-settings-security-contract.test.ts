@@ -48,7 +48,8 @@ describe("doctor settings security contract", () => {
     expect(identitySettingsSource).toContain("production website is configured for sandbox testing")
     expect(identitySettingsSource).toContain("Production and Sandbox Parchment user IDs are separate")
     expect(identitySettingsSource).toContain("Paste ${parchmentEnvironment.label} Parchment user_id")
-    expect(identitySettingsSource).toContain("Validate {parchmentEnvironmentDisplayLabel} Integration")
+    expect(identitySettingsSource).toContain("Validation runs automatically when you link this user and before prescribing.")
+    expect(identitySettingsSource).toContain("Revalidate {parchmentEnvironmentDisplayLabel} Integration")
   })
 
   it("shows a compact doctor settings completion strip without adding another settings page", () => {

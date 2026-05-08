@@ -431,7 +431,8 @@ export function IdentitySettingsClient({
     setParchmentLinking(false)
     if (result.success) {
       setParchmentUserId(selectedParchmentUser.trim())
-      setMessage({ type: "success", text: `${parchmentEnvironmentLabel} account linked successfully` })
+      setParchmentValidated(true)
+      setMessage({ type: "success", text: `${parchmentEnvironmentLabel} account linked and validation handshake completed` })
       setTimeout(() => setMessage(null), 5000)
     } else {
       setMessage({ type: "error", text: result.error || "Failed to link account" })
@@ -1005,6 +1006,10 @@ export function IdentitySettingsClient({
               <div className="space-y-1">
                 <Label className="text-muted-foreground text-xs">Linked {parchmentEnvironmentDisplayLabel} Parchment User ID</Label>
                 <p className="text-sm font-mono">{parchmentUserId}</p>
+                <p className="text-xs text-muted-foreground">
+                  Validation runs automatically when you link this user and before prescribing.
+                  Use revalidation when you need a fresh audit request ID.
+                </p>
               </div>
               <Button
                 variant="outline"
@@ -1017,7 +1022,7 @@ export function IdentitySettingsClient({
                 ) : (
                   <CheckCircle className="h-4 w-4 mr-2" />
                 )}
-                Validate {parchmentEnvironmentDisplayLabel} Integration
+                Revalidate {parchmentEnvironmentDisplayLabel} Integration
               </Button>
             </div>
           ) : (

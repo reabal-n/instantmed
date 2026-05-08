@@ -70,6 +70,18 @@ describe("Parchment action production contract", () => {
     )
   })
 
+  it("validates the linked Parchment user before intake prescribing handoff", () => {
+    const body = functionBody("getParchmentPrescribeUrlAction")
+
+    expect(body).toContain("await validateIntegration(doctorProfile.parchment_user_id)")
+    expect(body.indexOf("await validateIntegration(doctorProfile.parchment_user_id)")).toBeLessThan(
+      body.indexOf("syncPatientToParchment("),
+    )
+    expect(body.indexOf("await validateIntegration(doctorProfile.parchment_user_id)")).toBeLessThan(
+      body.indexOf("getSsoUrl("),
+    )
+  })
+
   it("keeps the prescribing identity blocker report aligned with sync retry eligibility", () => {
     expect(prescribingIdentityReportSource).toContain("PARCHMENT_PATIENT_SYNC_STATUSES")
     expect(prescribingIdentityReportSource).toContain(".in(\"status\", [...PARCHMENT_PATIENT_SYNC_STATUSES])")
@@ -110,5 +122,14 @@ describe("Parchment action production contract", () => {
     expect(body).toContain(".maybeSingle()")
     expect(body).toContain("already linked to another InstantMed profile")
     expect(body).toContain("Could not validate this user_id")
+  })
+
+  it("does not fall back to a setup user when listing Parchment users", () => {
+    const body = functionBody("listParchmentUsersAction")
+
+    expect(body).toContain("authResult.profile.parchment_user_id?.trim()")
+    expect(body).toContain("Link your Parchment user_id manually before loading the organization user list.")
+    expect(body).toContain("listUsers(callerParchmentUserId)")
+    expect(body).not.toContain("listUsers(authResult.profile.parchment_user_id ?? undefined)")
   })
 })

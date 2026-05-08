@@ -453,12 +453,11 @@ export async function getSsoUrl(
  * Auto-paginates through all results using `lastKey` cursor.
  * Used for linking a doctor's InstantMed account to their Parchment user.
  */
-export async function listUsers(callerUserId?: string): Promise<ListUsersResponse["data"]> {
+export async function listUsers(callerUserId: string): Promise<ListUsersResponse["data"]> {
   const config = getConfig()
-  // For org-level operations, use provided userId or fall back to any known user
-  const userId = callerUserId || process.env.PARCHMENT_DEFAULT_USER_ID || ""
+  const userId = callerUserId.trim()
   if (!userId) {
-    throw new Error("No Parchment user ID available for token generation. Set PARCHMENT_DEFAULT_USER_ID or pass callerUserId.")
+    throw new Error("No Parchment user ID available for token generation.")
   }
   const token = await getToken(userId, [PARCHMENT_SCOPES.READ_USERS])
 

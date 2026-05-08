@@ -185,6 +185,20 @@ export async function getParchmentPrescribeUrlAction(
       }
     }
 
+    try {
+      await validateIntegration(doctorProfile.parchment_user_id)
+    } catch (validationError) {
+      log.warn(
+        "Parchment integration validation failed before prescribing handoff",
+        {},
+        validationError instanceof Error ? validationError : new Error(String(validationError)),
+      )
+      return {
+        success: false,
+        error: "Parchment integration validation failed. Revalidate the Parchment account in Doctor Settings and retry.",
+      }
+    }
+
     const { data: answerRow } = await supabase
       .from("intake_answers")
       .select("answers, answers_encrypted")
@@ -390,9 +404,17 @@ export async function listParchmentUsersAction(): Promise<{
   }
 
   const environment = getParchmentEnvironment()
+  const callerParchmentUserId = authResult.profile.parchment_user_id?.trim()
+  if (!callerParchmentUserId) {
+    return {
+      success: false,
+      error: "Link your Parchment user_id manually before loading the organization user list.",
+      environment,
+    }
+  }
 
   try {
-    const data = await listUsers(authResult.profile.parchment_user_id ?? undefined)
+    const data = await listUsers(callerParchmentUserId)
     return {
       success: true,
       environment,
