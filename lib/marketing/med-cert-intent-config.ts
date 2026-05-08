@@ -388,43 +388,43 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
 
   "return-to-work": {
     slug: "return-to-work",
-    h1: "Return to work certificate.",
+    h1: "Return-to-work clearances need the right pathway.",
     heroSubheadline:
-      "Your employer asked for clearance before you return. A doctor reviews your request. From $19.95.",
+      "InstantMed's short certificate pathway is for routine sick leave. Return-to-work, site medical, and fitness-for-duty clearances need in-person or employer-directed assessment.",
     explainerTitle: "When employers ask for clearance",
-    explainerSubtitle: "Some employers require a certificate before you return after sick leave.",
+    explainerSubtitle: "Some employer requests are not simple sick-leave certificates.",
     explainerParagraphs: [
-      "If your employer has asked for a return-to-work certificate, we can help. Our doctors assess your recovery based on the information you provide and may issue a certificate if clinically appropriate.",
-      "This is a clinical assessment. The doctor considers your symptoms, recovery, and any ongoing limitations. For safety-critical roles (e.g. driving, heavy machinery, operating equipment), we may recommend an in-person assessment. The doctor will advise. Employer policies vary; some may require additional documentation.",
+      "If your employer has asked for clearance before you return, check whether they need a site medical, capacity statement, fit-for-duty clearance, or return-to-work form. Those requests usually need in-person or occupational-health assessment.",
+      "InstantMed can help with routine short sick-leave evidence only when online review is clinically appropriate. It does not issue fitness-for-duty, safety-critical, or return-to-work clearance documents.",
     ],
-    recognitionTitle: "Doctor's assessment of recovery",
+    recognitionTitle: "Not a clearance pathway",
     recognitionSubtitle:
-      "Certificates document that a doctor has assessed your recovery. This is not occupational fitness-for-duty certification. Employer policies vary. Check yours.",
+      "Routine sick certificates document an absence period. They do not certify capacity, restrictions, or safe return to a role.",
     recognitionBadges: [
       { label: "Office & general work", sub: "Desk-based roles" },
       { label: "AHPRA doctors", sub: "Clinical assessment" },
       { label: "Employer policies vary", sub: "Check requirements" },
     ],
-    ctaTitle: "Clearance when you need it",
+    ctaTitle: "Need routine sick-leave evidence instead?",
     ctaSubtitle:
-      "Quick form, doctor assessment. Certificate to your inbox, usually within the hour.",
+      "Use the main certificate pathway only for simple sick, study, or carer's leave.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: "Return to Work Certificate | Doctor Assessment $19.95",
       description:
         "Return to work certificate from AHPRA-registered doctors. Doctor assesses your recovery and may issue a certificate if appropriate. From $19.95. Employer policies vary.",
       keywords: [
-        "return to work certificate",
-        "fitness to return certificate",
-        "back to work certificate",
-        "return to work medical certificate australia",
+        "return to work medical evidence",
+        "fitness for duty medical pathway",
+        "site medical assessment",
+        "return to work clearance requirements",
       ],
     },
     faqs: [
       {
-        question: "What is a return to work certificate?",
+        question: "What is a return-to-work clearance?",
         answer:
-          "A certificate from a doctor documenting their assessment of your recovery from illness. Some employers require this before you return to work. It reflects the doctor's clinical assessment based on the information you provide.",
+          "It is a document requested by some employers before a worker returns after illness or injury. It may involve capacity, restrictions, safety-critical duties, or occupational-health requirements, which are different from a simple sick-leave certificate.",
       },
       {
         question: "When might an employer require a return to work certificate?",
@@ -434,7 +434,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "Can you provide certificates for safety-critical roles?",
         answer:
-          "We can provide return-to-work certificates for most roles based on your self-reported recovery. For safety-critical roles (e.g. driving, heavy machinery), we may recommend an in-person assessment. The doctor will advise based on your situation.",
+          "No. Safety-critical roles, driving, heavy machinery, site medicals, and fit-for-duty requests need the employer's own pathway or in-person assessment.",
       },
       {
         question: "Will my employer accept it?",
@@ -446,31 +446,31 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
 
   centrelink: {
     slug: "centrelink",
-    h1: "Medical certificate for Centrelink.",
+    h1: "Centrelink medical evidence usually needs specific forms.",
     heroSubheadline:
-      "Centrelink requires medical evidence for certain claims. A doctor reviews your request. From $19.95.",
+      "InstantMed's short certificate pathway is for routine sick leave, not Services Australia forms or functional-capacity reports.",
     explainerTitle: "When Centrelink needs medical evidence",
-    explainerSubtitle: "Centrelink may require a medical certificate for sickness allowance, disability support, or other claims.",
+    explainerSubtitle: "Services Australia requirements vary by payment type and circumstance.",
     explainerParagraphs: [
-      "If you're applying for Centrelink payments that require medical evidence (such as Sickness Allowance, Disability Support Pension, or exemptions from mutual obligations), you may need a medical certificate. Our certificates are issued by AHPRA-registered doctors and include the standard details Centrelink expects.",
-      "Check Centrelink's requirements for your specific claim. Some claims need a different form (e.g. SU684). We can issue a standard medical certificate that documents your unfitness for work or study. For Centrelink-specific forms, you may need to see a GP in person.",
+      "If Services Australia has asked for medical evidence, check the requested form or document type before booking. JobSeeker, DSP, Carer Payment, and participation matters often need specific forms, functional-capacity detail, or a treating-practitioner report.",
+      "InstantMed can help with routine short sick-leave evidence only. It does not complete Centrelink-specific forms or government-program capacity reports through the short certificate pathway.",
     ],
-    recognitionTitle: "Commonly used for Centrelink claims",
+    recognitionTitle: "Use the right evidence pathway",
     recognitionSubtitle:
-      "Standard medical certificates are used for some Centrelink documentation purposes. For claims requiring specific Centrelink forms (e.g. SU684), check with Centrelink or your GP.",
+      "Specific Services Australia forms should go through your regular GP or treating practitioner.",
     recognitionBadges: [
-      { label: "Sickness Allowance", sub: "Medical evidence" },
-      { label: "Mutual obligation exemptions", sub: "When unfit" },
+      { label: "Services Australia", sub: "Specific forms may apply" },
+      { label: "Capacity reports", sub: "Treating-practitioner pathway" },
       { label: "AHPRA doctors", sub: "Doctor-issued" },
     ],
-    ctaTitle: "Documentation when you need it",
+    ctaTitle: "Need routine sick-leave evidence instead?",
     ctaSubtitle:
       "Quick form, doctor review. Certificate to your inbox, usually within the hour.",
     ctaButtonText: "Get your certificate",
     metadata: {
-      title: "Medical Certificate for Centrelink | Sickness Allowance $19.95",
+      title: "Centrelink Medical Evidence | Check Requirements First",
       description:
-        "Medical certificate for Centrelink claims. AHPRA-registered doctors review your request. From $19.95. Commonly used for Sickness Allowance and mutual obligation exemptions.",
+        "Centrelink and Services Australia medical evidence often needs specific forms or functional-capacity details. InstantMed's short certificate pathway is for routine sick leave only.",
       keywords: [
         "medical certificate for centrelink",
         "centrelink medical certificate",
@@ -482,17 +482,17 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "Will Centrelink accept an online medical certificate?",
         answer:
-          "Our certificates are issued by AHPRA-registered doctors and are often used for Centrelink documentation purposes. Some claims require specific Centrelink forms (e.g. SU684). Check Centrelink's requirements for your claim.",
+          "Do not assume so. Services Australia may require specific forms, functional-capacity details, or a report from your regular treating practitioner.",
       },
       {
         question: "What if Centrelink needs a specific form?",
         answer:
-          "Some Centrelink claims require their own forms (e.g. SU684 for medical evidence). We can issue a standard medical certificate; for Centrelink-specific forms, you may need to see a GP in person.",
+          "Some Centrelink claims require their own forms. Use your regular GP or treating practitioner for Centrelink-specific forms and capacity reports.",
       },
       {
         question: "How quickly can I get it?",
         answer:
-          "Most requests are reviewed within 30–60 minutes during operating hours. Plan ahead for Centrelink deadlines. Submit your claim as soon as you have the certificate.",
+          "Plan ahead for Centrelink deadlines. If a specific form is requested, book with your regular GP or treating practitioner rather than using the short sick-certificate pathway.",
       },
     ],
   },
@@ -622,12 +622,12 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     explainerTitle: "When employers need medical justification for WFH",
     explainerSubtitle: "Some employers require a medical certificate before approving temporary work from home arrangements due to illness.",
     explainerParagraphs: [
-      "If you're unwell but able to work from home, some employers require a medical certificate before approving a temporary WFH arrangement. Our AHPRA-registered doctors can document that you were assessed as fit to work remotely but unfit to attend the workplace.",
-      "This covers scenarios like mild illness (contagious but functional), post-op recovery, mobility issues, or other conditions where being in the office isn't appropriate. The certificate documents the situation. The doctor determines clinical appropriateness.",
+      "If you're unwell and your employer needs a record for a short absence or temporary arrangement, a routine sick certificate may help. Employer WFH policies still apply.",
+      "InstantMed does not certify fitness for remote work, workplace restrictions, or capacity. The doctor can only issue routine sick-leave evidence when the online assessment is clinically appropriate.",
     ],
     recognitionTitle: "Workplace documentation",
     recognitionSubtitle:
-      "Certificates document your assessed fitness for remote work. Employer WFH policies vary. Check yours before applying.",
+      "Certificates document a routine absence period. Employer WFH policies vary. Check yours before applying.",
     recognitionBadges: [
       { label: "Contagious illness", sub: "Fit for WFH, not office" },
       { label: "Recovery periods", sub: "Post-illness or procedure" },
@@ -640,7 +640,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     metadata: {
       title: "Medical Certificate Work From Home | WFH Documentation $19.95",
       description:
-        "Get a medical certificate for working from home. AHPRA-registered doctors document your fitness for remote work. From $19.95. Employer WFH policies vary.",
+        "Get a routine sick certificate for work-from-home situations. AHPRA-registered doctors review your request. From $19.95. Employer WFH policies vary.",
       keywords: [
         "medical certificate work from home",
         "wfh medical certificate australia",
@@ -653,7 +653,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "Can I get a certificate saying I should work from home?",
         answer:
-          "Yes. Our doctors can document that you were assessed as fit for remote work but unfit to attend the workplace. For example, if you're contagious but able to function, or recovering from an illness. The doctor makes the clinical determination.",
+          "Not as a fitness or capacity certificate. If you are unwell, the doctor may issue routine sick-leave evidence for the relevant absence period if clinically appropriate.",
       },
       {
         question: "Will my employer accept this?",
@@ -668,7 +668,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "Is this different from a sick leave certificate?",
         answer:
-          "Yes. A sick leave certificate documents unfitness for work entirely. A WFH certificate documents fitness for remote work but unfitness for in-person attendance. Both are available through InstantMed.",
+          "InstantMed issues routine sick-leave certificates only. It does not certify fitness for remote work, workplace restrictions, or capacity.",
       },
     ],
   },

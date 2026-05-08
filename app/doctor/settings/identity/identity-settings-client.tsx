@@ -861,7 +861,7 @@ export function IdentitySettingsClient({
               id="nominals"
               value={nominals}
               onChange={(e) => setNominals(e.target.value)}
-              placeholder="e.g., MBBS, FRACGP"
+              placeholder="e.g., MBBS"
             />
             <p className="text-xs text-muted-foreground">
               Professional qualifications displayed after your name

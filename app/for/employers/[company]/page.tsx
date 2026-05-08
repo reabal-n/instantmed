@@ -75,7 +75,7 @@ function getFaqs(name: string) {
     },
     {
       question: `Are telehealth certificates the same as GP certificates for ${name}?`,
-      answer: "Yes. The Medical Board of Australia recognises telehealth as a legitimate healthcare delivery method. Certificates issued via telehealth carry identical legal weight.",
+      answer: "The Medical Board of Australia recognises telehealth as a legitimate healthcare delivery method when clinically appropriate. Certificates should still be reviewed under your workplace policy and the Fair Work evidence standard.",
     },
     {
       question: "What if the certificate doesn't verify?",
@@ -106,7 +106,7 @@ export default async function EmployerCompanyPage({ params }: { params: Promise<
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: "https://instantmed.com.au" },
-      { "@type": "ListItem", position: 2, name: "For Employers", item: "https://instantmed.com.au/for/employers" },
+      { "@type": "ListItem", position: 2, name: "For Employers", item: "https://instantmed.com.au/employers" },
       { "@type": "ListItem", position: 3, name: employer.name, item: `https://instantmed.com.au/for/employers/${company}` },
     ],
   }
@@ -163,7 +163,7 @@ export default async function EmployerCompanyPage({ params }: { params: Promise<
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="rounded-full bg-transparent">
-                <Link href="/for/employers">
+                <Link href="/employers">
                   Learn More for Employers
                 </Link>
               </Button>
@@ -200,9 +200,9 @@ export default async function EmployerCompanyPage({ params }: { params: Promise<
                 <div className="w-12 h-12 rounded-full bg-success-light flex items-center justify-center mx-auto mb-3">
                   <CheckCircle className="w-6 h-6 text-success" />
                 </div>
-                <h3 className="font-semibold text-foreground mb-1 text-sm">Tamper-Proof</h3>
+                <h3 className="font-semibold text-foreground mb-1 text-sm">Secure Verification</h3>
                 <p className="text-xs text-muted-foreground">
-                  Digital certificates with unique IDs. Our system detects any alterations or duplications automatically.
+                  Digital certificates include unique IDs that can be checked against InstantMed records.
                 </p>
               </div>
             </div>
@@ -259,7 +259,7 @@ export default async function EmployerCompanyPage({ params }: { params: Promise<
                 </Link>
               ))}
               <Link
-                href="/for/employers"
+                href="/employers"
                 className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs text-primary font-medium hover:bg-primary/10 transition-colors"
               >
                 View all employers

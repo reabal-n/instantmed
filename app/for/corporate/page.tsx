@@ -197,8 +197,6 @@ export default function CorporatePage() {
               </div>
             </div>
           </section>
-
-          {/* Testimonials */}
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">

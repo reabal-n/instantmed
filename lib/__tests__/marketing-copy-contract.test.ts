@@ -26,9 +26,12 @@ const employerMarqueeSource = readFileSync(join(root, "components/shared/employe
 const medCertPageSource = readFileSync(join(root, "app/medical-certificate/page.tsx"), "utf8")
 const employerEvidenceSource = readFileSync(join(root, "app/medical-certificate/employer-acceptance/page.tsx"), "utf8")
 const medCertIntentSource = readFileSync(join(root, "lib/marketing/med-cert-intent-config.ts"), "utf8")
+const nextConfigSource = readFileSync(join(root, "next.config.mjs"), "utf8")
 const trustBadgesSource = readFileSync(join(root, "lib/marketing/trust-badges.ts"), "utf8")
 const howItWorksContentSource = readFileSync(join(root, "components/marketing/how-it-works-content.tsx"), "utf8")
 const workplaceClaimSources = [
+  readFileSync(join(root, "app/employers/page.tsx"), "utf8"),
+  readFileSync(join(root, "components/employers/bulk-verification-panel.tsx"), "utf8"),
   medCertIntentSource,
   employerEvidenceSource,
   readFileSync(join(root, "components/marketing/med-cert-intent-page.tsx"), "utf8"),
@@ -49,7 +52,10 @@ const workplaceClaimSources = [
 describe("marketing copy contracts", () => {
   it("keeps the homepage hero kicker calm and clinically grounded", () => {
     expect(voiceSource).not.toContain("Three minutes. Done.")
-    expect(voiceSource).toContain('export const ICONIC_HOOK = "Start with a secure form. Takes about 3 minutes."')
+    expect(voiceSource).toContain('export const ICONIC_HOOK = getApprovedClaim("iconic_hook")')
+    expect(readFileSync(join(root, "lib/marketing/approved-claims.ts"), "utf8")).toContain(
+      'text: "Start with a secure form. Takes about 3 minutes."',
+    )
     expect(homePageSource).toContain("text-foreground/70")
     expect(homePageSource).not.toContain("text-[color:var(--brand-coral)]")
   })
@@ -127,7 +133,18 @@ describe("marketing copy contracts", () => {
     expect(workplaceClaimSources).not.toContain("Fair Work compliant")
     expect(workplaceClaimSources).not.toContain("legal validity")
     expect(workplaceClaimSources).not.toContain("identical legal")
+    expect(workplaceClaimSources).not.toContain("Tamper-Proof")
     expect(trustBadgesSource).toContain("AHPRA GP review")
+  })
+
+  it("routes employer guidance to the canonical employer verification hub", () => {
+    expect(nextConfigSource).toContain('source: "/for/employers"')
+    expect(nextConfigSource).toContain('destination: "/employers"')
+    expect(readFileSync(join(root, "app/for/employers/page.tsx"), "utf8")).toContain('redirect("/employers")')
+    expect(workplaceClaimSources).toContain("BulkVerificationPanel")
+    expect(workplaceClaimSources).toContain("/api/employer/verify-bulk")
+    expect(workplaceClaimSources).toContain("No diagnosis shown")
+    expect(workplaceClaimSources).not.toContain('href="/for/employers"')
   })
 
   it("keeps the medical certificate landing flow compact and price-consistent", () => {

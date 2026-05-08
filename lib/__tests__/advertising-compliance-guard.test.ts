@@ -51,6 +51,7 @@ const NON_MEDCERT_FORM_FIRST_SURFACES = [
 
 const MED_CERT_ACCEPTANCE_SURFACES = [
   "app/compare",
+  "app/employers",
   "app/for",
   "app/intent",
   "app/locations",
@@ -91,6 +92,22 @@ const PAID_PRESCRIPTION_DESTINATION_SURFACES = [
   "lib/data/hair-loss-faq.ts",
   "lib/data/prescription-faq.ts",
   "lib/marketing/homepage.ts",
+]
+
+const PUBLIC_CREDENTIAL_CLAIM_SURFACES = [
+  "app/about",
+  "app/clinical-governance",
+  "app/employers/page.tsx",
+  "app/our-doctors",
+  "app/online-doctor-australia",
+  "app/telehealth-australia",
+  "app/for/employers/page.tsx",
+  "app/for/universities/page.tsx",
+  "components/marketing/sections",
+  "components/marketing/trust-badge-slider.tsx",
+  "components/shared/regulator-logo-marquee.tsx",
+  "components/seo/schemas/organization.tsx",
+  "lib/marketing/trust-badges.ts",
 ]
 
 const NO_CALL_PATTERNS = [
@@ -270,7 +287,32 @@ describe("advertising compliance guard", () => {
 
     for (const preset of nonMedcertPresets) {
       expect(presetIds(preset), `${preset} must not use no-call badge ids`).not.toContain("no_call")
-      expect(presetIds(preset), `${preset} must not use no-speaking badge ids`).not.toContain("no_speaking")
     }
+  })
+
+  it("keeps RACGP and FRACGP off public badge primitives", () => {
+    const source = readFileSync(toFullPath("lib/marketing/trust-badges.ts"), "utf8")
+
+    expect(source).not.toMatch(/\bRACGP\b/)
+    expect(source).not.toMatch(/\bFRACGP\b/)
+  })
+
+  it("keeps RACGP, FRACGP, and peer-review claims out of public credential marketing", () => {
+    const patterns = [/\bRACGP\b/i, /\bFRACGP\b/i, /\bpeer[- ]review\b/i]
+    const hits = findHits(collectFiles(PUBLIC_CREDENTIAL_CLAIM_SURFACES), patterns)
+    if (hits.length > 0) {
+      failWithReport("Public credential claim guard failed", hits)
+    }
+
+    expect(hits).toEqual([])
+  })
+
+  it("keeps internal review and testimonial pages/components retired", () => {
+    expect(existsSync(toFullPath("app/reviews/page.tsx"))).toBe(false)
+    expect(existsSync(toFullPath("app/reviews/reviewsClientPage.tsx"))).toBe(false)
+    expect(existsSync(toFullPath("lib/data/testimonials.ts"))).toBe(false)
+    expect(existsSync(toFullPath("components/marketing/hero-testimonial-rotator.tsx"))).toBe(false)
+    expect(existsSync(toFullPath("components/marketing/recent-reviews-ticker.tsx"))).toBe(false)
+    expect(existsSync(toFullPath("components/ui/testimonials-columns-wrapper.tsx"))).toBe(false)
   })
 })

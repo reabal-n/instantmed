@@ -61,7 +61,7 @@ const HOW_IT_WORKS_STEPS = [
     sticker: "certificate" as const,
     step: 3,
     title: "Certificate sent to you",
-    description: "Your medical certificate is emailed to you as a PDF. Valid under the Fair Work Act 2009.",
+    description: "If approved, your medical certificate is emailed to you as a PDF with verification details.",
     time: "Same day",
   },
 ]
@@ -107,7 +107,7 @@ const LANDING_CONFIG: LandingPageConfig = {
  * endorsement, partnership, or guaranteed acceptance.
  *
  * Wraps the shared <ServiceClaimSection> primitive with med-cert-specific
- * footer links to /for/employers and /verify.
+ * footer links to /employers and /verify.
  */
 function WorkplaceProofPanel({ onEmployerClick, onVerifyClick }: { onEmployerClick?: () => void; onVerifyClick?: () => void }) {
   return (
@@ -126,7 +126,7 @@ function WorkplaceProofPanel({ onEmployerClick, onVerifyClick }: { onEmployerCli
         </div>
         <div className="pt-5 flex items-center justify-center gap-4 text-xs text-muted-foreground">
           <Link
-            href="/for/employers"
+            href="/employers"
             onClick={onEmployerClick}
             className="inline-flex items-center gap-1.5 font-medium text-primary hover:text-primary/80 transition-colors"
           >
@@ -310,7 +310,7 @@ export function MedCertLanding() {
             {/* Clinical references */}
             <div className="mx-auto max-w-3xl px-4 sm:px-6 py-4">
               <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
-                The Fair Work Act 2009 (Cth), s 107 allows employers to request medical evidence for personal leave. Telehealth consultations achieve equivalent clinical accuracy to in-person assessments for common presentations (Snoswell et al., <em>J Telemed Telecare</em>, 2023). All certificates are issued by AHPRA-registered practitioners.
+                The Fair Work Act 2009 (Cth), s 107 allows employers to request evidence for personal leave. Fair Work guidance says the evidence should satisfy a reasonable person. All InstantMed certificates are issued by AHPRA-registered practitioners.
               </p>
             </div>
 

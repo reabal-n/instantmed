@@ -76,7 +76,7 @@ export function MedCertHowToSchema({ baseUrl = "https://instantmed.com.au" }: { 
   return (
     <HowToSchema
       name="How to Get a Medical Certificate Online in Australia"
-      description="Get a valid medical certificate from an AHPRA-registered doctor online. No appointment needed. Most requests reviewed within 1-2 hours."
+      description="Request a routine sick, study, or carer's leave certificate from an AHPRA-registered doctor online. No appointment needed. Most requests reviewed within 1-2 hours."
       totalTime="PT120M"
       estimatedCost="19.95"
       baseUrl={baseUrl}
@@ -99,7 +99,7 @@ export function MedCertHowToSchema({ baseUrl = "https://instantmed.com.au" }: { 
         },
         {
           name: "Receive your certificate",
-          text: "Your medical certificate is emailed to you as a PDF. It's valid for work, university, and other institutions."
+          text: "If approved, your medical certificate is emailed to you as a secure PDF."
         }
       ]}
     />
@@ -136,7 +136,7 @@ export function PrescriptionHowToSchema({ baseUrl = "https://instantmed.com.au" 
         },
         {
           name: "Doctor reviews your request",
-          text: "An AHPRA-registered Australian doctor reviews your request and medical history. They may contact you if they need more information."
+          text: "An AHPRA-registered Australian doctor reviews your request and medical history. They may ask for one more detail before making a decision."
         },
         {
           name: "Receive your eScript",

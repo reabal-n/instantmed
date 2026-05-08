@@ -233,6 +233,8 @@ describe("admin navigation contract", () => {
 
   it("routes vendor and money recovery links through their owning dashboards", () => {
     expect(opsParchmentSource).toContain('href="/admin/parchment-conformance"')
+    expect(opsParchmentSource).toContain("Production prescribing gate")
+    expect(opsParchmentSource).toContain("getParchmentProductionReadiness")
     expect(financeClientSource).toContain('href="/admin/refunds"')
   })
 

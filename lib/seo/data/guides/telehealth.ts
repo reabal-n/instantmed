@@ -73,7 +73,7 @@ export const telehealthGuides: Record<string, GuideData> = {
       },
       {
         q: "Are telehealth prescriptions legitimate?",
-        a: "Yes. Prescriptions from telehealth doctors are legally valid. They're typically sent as e-prescriptions (electronic tokens) that you can use at any pharmacy in Australia."
+        a: "Yes. Prescriptions from telehealth doctors can be used as evidence. They're typically sent as e-prescriptions (electronic tokens) that you can use at any pharmacy in Australia."
       },
       {
         q: "Can I get a medical certificate through telehealth?",
@@ -157,7 +157,7 @@ export const telehealthGuides: Record<string, GuideData> = {
     ],
     importantNotes: [
       "Not all conditions can be assessed online - the doctor will advise",
-      "Telehealth is legally equivalent to in-person for appropriate conditions",
+      "Telehealth is held to the same clinical standard when used for appropriate conditions",
       "Your privacy is protected by the same laws as in-person care"
     ],
     faqs: [

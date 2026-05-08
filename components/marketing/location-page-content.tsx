@@ -35,7 +35,6 @@ interface LocationPageContentProps {
     name: string
     state: string
     population: string
-    localTestimonial?: { name: string; quote: string }
   }
   cityContent?: string
   deepContent?: DeepCityContent
@@ -178,7 +177,7 @@ export function LocationPageContent({
             </div>
             <div className="flex items-center gap-1.5">
               <Star className="h-4 w-4 fill-dawn-400 text-dawn-400" />
-              <span>4.9 &middot; 200+ patients</span>
+              <span>Google star rating</span>
             </div>
           </motion.div>
         </div>
@@ -302,25 +301,6 @@ export function LocationPageContent({
           </motion.div>
         </div>
       </section>
-
-      {/* Local Testimonial */}
-      {cityData.localTestimonial && (
-        <section className="px-4 py-12 bg-muted/30">
-          <motion.div {...fu(0)} className="mx-auto max-w-2xl text-center">
-            <div className="flex justify-center gap-1 mb-4">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="h-5 w-5 fill-dawn-400 text-dawn-400" />
-              ))}
-            </div>
-            <blockquote className="text-lg mb-4">
-              &quot;{cityData.localTestimonial.quote}&quot;
-            </blockquote>
-            <p className="text-sm text-muted-foreground">
-              {cityData.localTestimonial.name}, {cityData.name}
-            </p>
-          </motion.div>
-        </section>
-      )}
 
       {/* How It Works */}
       <section className="px-4 py-12">

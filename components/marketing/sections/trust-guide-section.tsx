@@ -39,8 +39,8 @@ const GUIDE_SECTIONS: Array<{
     sticker: "stethoscope",
     title: "Our clinical governance framework",
     paragraphs: [
-      "Clinical governance isn't a buzzword we put on our website and forget about. Our Medical Director oversees all clinical operations, reviews adverse events, and ensures that every doctor on the platform operates within evidence-based guidelines. Clinical decisions are audited regularly - not to second-guess doctors, but to maintain consistently high standards across every consultation.",
-      "Our protocols are aligned with RACGP (Royal Australian College of General Practitioners) standards for telehealth delivery. We maintain clear scope of practice limitations: we don't prescribe Schedule 8 medications, we don't issue certificates for workers' compensation claims requiring physical examination, and we don't treat conditions that require hands-on assessment. Knowing what we shouldn't do is as important as knowing what we can.",
+      "Clinical governance isn't a buzzword we put on our website and forget about. Clinical protocols, adverse events, complaints, and edge cases are reviewed through a documented governance framework so clinical decisions stay accountable.",
+      "We maintain clear scope-of-practice limitations: we don't prescribe Schedule 8 medications, we don't issue certificates for workers' compensation claims requiring physical examination, and we don't treat conditions that require hands-on assessment. Knowing what we shouldn't do is as important as knowing what we can.",
       "When a patient's condition falls outside our scope - or when a doctor identifies something that warrants further investigation - we refer to in-person care. We provide clear guidance on where to seek help, whether that's a GP clinic, emergency department, or specialist. Adverse events are documented, reviewed by the Medical Director, and used to improve our processes. We treat mistakes as system problems to solve, not individual failures to hide.",
     ],
   },
@@ -59,8 +59,8 @@ const GUIDE_SECTIONS: Array<{
     sticker: "certificate",
     title: "Regulatory compliance and standards",
     paragraphs: [
-      "Electronic prescriptions issued through InstantMed are generated via official PBS (Pharmaceutical Benefits Scheme) channels and comply with the Therapeutic Goods Act 1989. Our eScripts work at any Australian pharmacy - they're the same format used by every GP clinic that has adopted electronic prescribing, which is now the national standard. The days of losing a paper script in your back pocket are, mercifully, numbered.",
-      "Our medical certificates carry the same legal weight as certificates issued during an in-person consultation. This has been confirmed by the Fair Work Commission in multiple decisions since 2020. Each certificate includes the doctor's full name, AHPRA registration number, date of assessment, and a unique verification ID that employers can check online. Under the Fair Work Act 2009, there is no requirement that a medical certificate come from a face-to-face consultation.",
+      "Electronic prescriptions issued through InstantMed use Australia's electronic prescribing infrastructure and comply with Therapeutic Goods Administration requirements. Once approved, an eScript can be dispensed by an Australian pharmacy using the token sent to the patient.",
+      "Medical certificates issued through InstantMed include the doctor's name, AHPRA registration number, date of assessment, and a unique verification ID that employers can check online. Employer and institution policies can vary, so we keep the document clear and verifiable rather than promising universal acceptance.",
       "We operate under Australian telehealth regulations, which require that consultations be conducted by practitioners registered in Australia, that appropriate clinical records are maintained, and that patients are informed about the nature and limitations of telehealth. Medicare-eligible services are billed through proper Medicare channels where applicable. We don't cut corners on compliance because the consequences - for you and for us - aren't worth it.",
     ],
   },
@@ -82,7 +82,7 @@ export function TrustGuideSection() {
         <Reveal className="text-center mb-12">
           <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/20 text-xs font-medium text-primary mb-4">
             <BadgeCheck className="h-3.5 w-3.5" />
-            Medically reviewed by AHPRA-registered GPs
+            AHPRA-registered clinical review
           </div>
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight mb-3">
             How we earn and maintain your trust

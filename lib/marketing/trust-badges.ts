@@ -1,12 +1,14 @@
 import type { LucideIcon } from 'lucide-react'
 import {
-  BadgeCheck, BookOpen,   CalendarX, CreditCard, DoorOpen,
+  BadgeCheck,   CalendarX, CreditCard, DoorOpen,
 Eye,
 FileCheck, FileText,   Lock, MessageSquareOff, PhoneOff, Send, Server, ShieldCheck, Smartphone, Timer, UserCheck, Users,
 VideoOff, } from 'lucide-react'
 
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
+
 export type BadgeId =
-  | 'ahpra' | 'tga' | 'racgp' | 'medical_director' | 'refund' | 'privacy'
+  | 'ahpra' | 'tga' | 'documented_protocols' | 'medical_director' | 'refund' | 'privacy'
   | 'stripe' | 'ssl' | 'pci' | 'au_data'
   | 'no_call' | 'no_speaking' | 'form_only' | 'no_waiting_room' | 'no_appointment'
   | 'from_your_phone' | 'no_face_to_face' | 'fast_form' | 'same_day'
@@ -46,15 +48,15 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
     iconColor: 'text-blue-600', pillClass: null, hasStyledTier: false,
     tooltip: 'Prescribing and processes meet TGA regulatory requirements',
   },
-  racgp: {
-    id: 'racgp', label: 'RACGP protocols', icon: BookOpen,
+  documented_protocols: {
+    id: 'documented_protocols', label: 'Documented protocols', icon: FileText,
     iconColor: 'text-indigo-600', pillClass: null, hasStyledTier: false,
-    tooltip: 'Clinical protocols aligned with RACGP Standards for General Practices',
+    tooltip: 'Clear service scope, clinical checks, and review rules are documented before a request reaches the doctor',
   },
   medical_director: {
-    id: 'medical_director', label: 'Medical Director oversight', icon: UserCheck,
+    id: 'medical_director', label: 'Clinical oversight', icon: UserCheck,
     iconColor: 'text-violet-600', pillClass: null, hasStyledTier: false,
-    tooltip: 'FRACGP-qualified Medical Director reviews all clinical protocols',
+    tooltip: 'AHPRA-registered medical leadership maintains the clinical governance framework',
   },
   refund: {
     id: 'refund', label: 'Full refund if declined', icon: ShieldCheck,
@@ -97,39 +99,39 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
 
   // ── Friction-free ─────────────────────────────────────────────────────
   no_call: {
-    id: 'no_call', label: 'No call required', icon: PhoneOff,
+    id: 'no_call', label: getApprovedClaim("trust_simple_cert_label"), icon: PhoneOff,
     iconColor: 'text-green-600',
     pillClass: 'bg-green-50 border-green-200 text-green-800 dark:bg-green-950/40 dark:border-green-800 dark:text-green-300',
     hasStyledTier: true,
-    tooltip: 'Med-cert requests can be reviewed without a call when clinically appropriate',
+    tooltip: getApprovedClaim("trust_simple_cert_tooltip"),
   },
   no_speaking: {
-    id: 'no_speaking', label: 'Contact only if needed', icon: MessageSquareOff,
+    id: 'no_speaking', label: getApprovedClaim("trust_talk_if_needed_label"), icon: MessageSquareOff,
     iconColor: 'text-green-600',
     pillClass: 'bg-green-50 border-green-200 text-green-800 dark:bg-green-950/40 dark:border-green-800 dark:text-green-300',
     hasStyledTier: true,
-    tooltip: 'Form-first review - the doctor contacts you if more information is clinically needed',
+    tooltip: getApprovedClaim("trust_talk_if_needed_tooltip"),
   },
   form_only: {
-    id: 'form_only', label: 'Just fill out a form', icon: FileText,
+    id: 'form_only', label: getApprovedClaim("trust_form_first_label"), icon: FileText,
     iconColor: 'text-sky-600',
     pillClass: 'bg-sky-50 border-sky-200 text-sky-800 dark:bg-sky-950/40 dark:border-sky-800 dark:text-sky-300',
     hasStyledTier: true,
-    tooltip: "Answer a few questions about your situation - that's the entire process",
+    tooltip: getApprovedClaim("trust_form_first_tooltip"),
   },
   no_waiting_room: {
-    id: 'no_waiting_room', label: 'No waiting room', icon: DoorOpen,
+    id: 'no_waiting_room', label: getApprovedClaim("trust_no_waiting_room_label"), icon: DoorOpen,
     iconColor: 'text-amber-600',
     pillClass: 'bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-300',
     hasStyledTier: true,
-    tooltip: 'No clinic, no queue, no 45-minute wait',
+    tooltip: getApprovedClaim("trust_no_waiting_room_tooltip"),
   },
   no_appointment: {
-    id: 'no_appointment', label: 'No appointment needed', icon: CalendarX,
+    id: 'no_appointment', label: getApprovedClaim("trust_no_appointment_label"), icon: CalendarX,
     iconColor: 'text-orange-600',
     pillClass: 'bg-orange-50 border-orange-200 text-orange-800 dark:bg-orange-950/40 dark:border-orange-800 dark:text-orange-300',
     hasStyledTier: true,
-    tooltip: 'Submit any time - no booking, no scheduling',
+    tooltip: getApprovedClaim("trust_no_appointment_tooltip"),
   },
   from_your_phone: {
     id: 'from_your_phone', label: 'Done from your phone', icon: Smartphone,
@@ -139,7 +141,7 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
     tooltip: 'Complete the entire process from your phone in minutes',
   },
   no_face_to_face: {
-    id: 'no_face_to_face', label: 'No face-to-face needed', icon: VideoOff,
+    id: 'no_face_to_face', label: 'No video appointment', icon: VideoOff,
     iconColor: 'text-slate-500', pillClass: null, hasStyledTier: false,
     tooltip: 'No video consultation required - all assessments are text-based',
   },
@@ -149,20 +151,20 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
     tooltip: 'Most intake forms take under 2 minutes to complete',
   },
   same_day: {
-    id: 'same_day', label: 'Same-day delivery', icon: Send,
+    id: 'same_day', label: getApprovedClaim("trust_digital_delivery_label"), icon: Send,
     iconColor: 'text-cyan-600',
     pillClass: 'bg-cyan-50 border-cyan-200 text-cyan-800 dark:bg-cyan-950/40 dark:border-cyan-800 dark:text-cyan-300',
     hasStyledTier: true,
-    tooltip: '94% of certificates delivered same day',
+    tooltip: getApprovedClaim("trust_digital_delivery_tooltip"),
   },
 
   // ── Outcome ───────────────────────────────────────────────────────────
   legally_valid: {
-    id: 'legally_valid', label: 'Legally valid certificate', icon: ShieldCheck,
+    id: 'legally_valid', label: getApprovedClaim("trust_doctor_issued_label"), icon: ShieldCheck,
     iconColor: 'text-indigo-600',
     pillClass: 'bg-indigo-50 border-indigo-200 text-indigo-800 dark:bg-indigo-950/40 dark:border-indigo-800 dark:text-indigo-300',
     hasStyledTier: true,
-    tooltip: 'Issued by an AHPRA-registered doctor. Employer policies may vary',
+    tooltip: getApprovedClaim("trust_doctor_issued_tooltip"),
   },
   no_medicare: {
     id: 'no_medicare', label: 'No Medicare required', icon: CreditCard,
@@ -225,26 +227,26 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
 export const BADGE_PRESETS: Record<string, PresetEntry[]> = {
   // Hero rows - 2 styled, rest plain
   hero_medcert: [
-    { id: 'social_proof', variant: 'styled' },
+    { id: 'no_appointment', variant: 'styled' },
     { id: 'no_call', variant: 'styled' },
     'refund',
     'ahpra',
   ],
   hero_rx: [
-    { id: 'social_proof', variant: 'styled' },
     { id: 'no_appointment', variant: 'styled' },
+    { id: 'no_speaking', variant: 'styled' },
     'refund',
-    'ahpra',
+    'google_pharmacy',
   ],
   hero_consult: [
-    { id: 'social_proof', variant: 'styled' },
     { id: 'form_only', variant: 'styled' },
+    { id: 'no_speaking', variant: 'styled' },
     'refund',
     'no_face_to_face',
   ],
   hero_generic: [
-    { id: 'social_proof', variant: 'styled' },
     { id: 'no_waiting_room', variant: 'styled' },
+    { id: 'no_speaking', variant: 'styled' },
     'refund',
     'ahpra',
   ],
@@ -258,6 +260,7 @@ export const BADGE_PRESETS: Record<string, PresetEntry[]> = {
   // Pre-CTA - friction removal
   pre_cta: [
     { id: 'no_appointment', variant: 'styled' },
+    'no_speaking',
     'form_only',
     'from_your_phone',
   ],
@@ -299,14 +302,14 @@ export const BADGE_PRESETS: Record<string, PresetEntry[]> = {
   trust_ribbon: [
     { id: 'ahpra', variant: 'styled' },
     { id: 'legitscript', variant: 'styled' },
+    'documented_protocols',
     'privacy',
-    'ssl',
   ],
 
   // Sticky float sidebar
   float: [
     { id: 'no_appointment', variant: 'styled' },
-    'ahpra',
+    'no_speaking',
   ],
 }
 

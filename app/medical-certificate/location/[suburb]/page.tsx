@@ -1,4 +1,4 @@
-import { ArrowRight, Building2, CheckCircle2, Clock, GraduationCap, HardHat,Shield, Star, Zap } from "lucide-react"
+import { ArrowRight, Building2, CheckCircle2, Clock, GraduationCap, HardHat,Shield, Zap } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -21,7 +21,6 @@ const suburbs: Record<
     region?: string
     population?: string
     localFlair: string
-    testimonial?: { name: string; quote: string; occupation: string }
   }
 > = {
   // NSW
@@ -31,11 +30,6 @@ const suburbs: Record<
     stateShort: "NSW",
     population: "5.3 million",
     localFlair: "From Bondi to Parramatta",
-    testimonial: {
-      name: "Marcus T.",
-      quote: "Got my cert sorted on the train to work. Certificate in my inbox before I reached Central.",
-      occupation: "Project Manager",
-    },
   },
   parramatta: {
     name: "Parramatta",
@@ -43,11 +37,6 @@ const suburbs: Record<
     stateShort: "NSW",
     region: "Western Sydney",
     localFlair: "Serving all of Western Sydney",
-    testimonial: {
-      name: "Priya S.",
-      quote: "So much easier than trying to find a bulk-billing GP in Parra. Done in 15 minutes.",
-      occupation: "Retail Manager",
-    },
   },
   "bondi-beach": {
     name: "Bondi Beach",
@@ -62,11 +51,6 @@ const suburbs: Record<
     stateShort: "NSW",
     population: "320,000",
     localFlair: "Hunter region covered",
-    testimonial: {
-      name: "Jake R.",
-      quote: "Woke up crook, had my med cert before smoko. Legend service.",
-      occupation: "Sparky",
-    },
   },
   wollongong: {
     name: "Wollongong",
@@ -82,11 +66,6 @@ const suburbs: Record<
     stateShort: "VIC",
     population: "5.1 million",
     localFlair: "From St Kilda to the outer suburbs",
-    testimonial: {
-      name: "Sarah L.",
-      quote: "Way easier than waiting 3 weeks for a GP appointment in the inner north.",
-      occupation: "Marketing Coordinator",
-    },
   },
   geelong: {
     name: "Geelong",
@@ -109,11 +88,6 @@ const suburbs: Record<
     stateShort: "QLD",
     population: "2.5 million",
     localFlair: "From the Valley to the bayside",
-    testimonial: {
-      name: "Emma T.",
-      quote: "Perfect for when you need something quick without leaving Fortitude Valley.",
-      occupation: "Hospitality Worker",
-    },
   },
   "gold-coast": {
     name: "Gold Coast",
@@ -121,11 +95,6 @@ const suburbs: Record<
     stateShort: "QLD",
     population: "700,000",
     localFlair: "Surfers to Coolangatta",
-    testimonial: {
-      name: "Chris D.",
-      quote: "Got my script while at Surfers. Picked it up from the pharmacy an hour later.",
-      occupation: "Tradie",
-    },
   },
   "sunshine-coast": {
     name: "Sunshine Coast",
@@ -155,11 +124,6 @@ const suburbs: Record<
     stateShort: "WA",
     population: "2.1 million",
     localFlair: "Fremantle to Joondalup",
-    testimonial: {
-      name: "Michael K.",
-      quote: "Finally a service that understands WA time zone! Certificate in my inbox by lunch.",
-      occupation: "FIFO Worker",
-    },
   },
   fremantle: {
     name: "Fremantle",
@@ -175,11 +139,6 @@ const suburbs: Record<
     stateShort: "SA",
     population: "1.4 million",
     localFlair: "From Glenelg to the hills",
-    testimonial: {
-      name: "Lisa R.",
-      quote: "Quick, easy, and the doctors actually take their time to read your symptoms.",
-      occupation: "Nurse",
-    },
   },
   // TAS
   hobart: {
@@ -188,11 +147,6 @@ const suburbs: Record<
     stateShort: "TAS",
     population: "240,000",
     localFlair: "Serving all of Tasmania",
-    testimonial: {
-      name: "Amy S.",
-      quote: "Great option when you can't get in to see anyone locally.",
-      occupation: "Teacher",
-    },
   },
   launceston: {
     name: "Launceston",
@@ -208,11 +162,6 @@ const suburbs: Record<
     stateShort: "NT",
     population: "150,000",
     localFlair: "Top End telehealth",
-    testimonial: {
-      name: "Tom B.",
-      quote: "Works perfectly even in the Top End. Fast service despite the distance.",
-      occupation: "Mine Worker",
-    },
   },
   // ACT
   canberra: {
@@ -221,11 +170,6 @@ const suburbs: Record<
     stateShort: "ACT",
     population: "460,000",
     localFlair: "Serving the capital",
-    testimonial: {
-      name: "Nicole W.",
-      quote: "Better than waiting weeks for a bulk-billing appointment in the ACT.",
-      occupation: "Public Servant",
-    },
   },
 }
 
@@ -415,23 +359,6 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
               </div>
             </div>
           </section>
-
-          {/* Local Testimonial */}
-          {data.testimonial && (
-            <section className="px-4 py-12 bg-muted/30">
-              <div className="mx-auto max-w-2xl text-center">
-                <div className="flex justify-center gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 fill-amber-400 text-amber-400" />
-                  ))}
-                </div>
-                <blockquote className="text-lg mb-4">&quot;{data.testimonial.quote}&quot;</blockquote>
-                <p className="text-sm text-muted-foreground">
-                  - {data.testimonial.name}, {data.testimonial.occupation} in {data.name}
-                </p>
-              </div>
-            </section>
-          )}
 
           {/* How It Works */}
           <section className="px-4 py-12">

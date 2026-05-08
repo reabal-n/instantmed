@@ -40,6 +40,9 @@ const readinessLabels: Record<string, string> = {
   supportLoadHealthy: "Support load <= 5/100 orders",
 }
 
+const ANNUAL_GROSS_TARGET = 1_000_000
+const MONTHLY_GROSS_TARGET = Math.round(ANNUAL_GROSS_TARGET / 12)
+
 const scaleGateLabels: Record<
   keyof BusinessKPIData["scorecard"]["scaleReadiness"]["gates"],
   {
@@ -140,9 +143,77 @@ export function AnalyticsBusinessKPIsTab({ data }: { data: BusinessKPIData }) {
       : data.launchReadiness.score >= 60
         ? "bg-warning-light border-warning-border/40"
         : "bg-destructive/10 border-destructive/30"
+  const annualizedGrossRunRate = data.revenue.thisMonth * 12
+  const runRateProgress = Math.min(
+    100,
+    Math.round((annualizedGrossRunRate / ANNUAL_GROSS_TARGET) * 100),
+  )
+  const monthlyGap = Math.max(0, MONTHLY_GROSS_TARGET - data.revenue.thisMonth)
+  const targetStatus =
+    annualizedGrossRunRate >= ANNUAL_GROSS_TARGET
+      ? "On $1M+ run-rate"
+      : annualizedGrossRunRate >= ANNUAL_GROSS_TARGET * 0.6
+        ? "Closing the gap"
+        : "Too early to scale hard"
 
   return (
     <div className="space-y-6">
+      <DashboardCard id="one-million-run-rate" tier="elevated" padding="lg">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant={runRateProgress >= 100 ? "success" : "warning"}>
+                Founder target
+              </Badge>
+              <span className="text-sm font-medium text-muted-foreground">
+                $1M annual gross run-rate
+              </span>
+            </div>
+            <div className="mt-4 flex flex-wrap items-end gap-x-5 gap-y-2">
+              <p className="text-4xl font-semibold tracking-tight text-foreground">
+                {formatAUD(annualizedGrossRunRate)}
+              </p>
+              <p className="pb-1 text-sm text-muted-foreground">
+                annualized from the last 30 days
+              </p>
+            </div>
+            <div className="mt-5 h-3 overflow-hidden rounded-full bg-secondary">
+              <div
+                className={cn(
+                  "h-full rounded-full transition-[width]",
+                  runRateProgress >= 100 ? "bg-success" : "bg-primary",
+                )}
+                style={{ width: `${Math.max(runRateProgress, 2)}%` }}
+              />
+            </div>
+            <p className="mt-3 text-sm text-muted-foreground">
+              {targetStatus}. Current 30-day gross is {formatAUD(data.revenue.thisMonth)}.
+              Monthly target is {formatAUD(MONTHLY_GROSS_TARGET)}.
+            </p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+            <RunRateMetric
+              label="Run-rate progress"
+              value={`${runRateProgress}%`}
+              detail="Against $1M annual gross"
+              tone={runRateProgress >= 100 ? "success" : "normal"}
+            />
+            <RunRateMetric
+              label="Monthly gap"
+              value={formatAUD(monthlyGap)}
+              detail={monthlyGap === 0 ? "Target covered" : "More 30-day gross needed"}
+              tone={monthlyGap === 0 ? "success" : "risk"}
+            />
+            <RunRateMetric
+              label="Orders this month"
+              value={data.unitEconomics.paidOrdersMonth.toLocaleString()}
+              detail={`AOV ${formatCurrency(Math.round(data.unitEconomics.aov * 100))}`}
+            />
+          </div>
+        </div>
+      </DashboardCard>
+
       <DashboardCard
         id="business-scorecard"
         tier="elevated"
@@ -951,6 +1022,39 @@ function ScorecardMetric({
     <div className="min-w-0">
       <p className="text-sm text-muted-foreground">{label}</p>
       <p className="mt-1 truncate text-xl font-semibold tabular-nums tracking-tight text-foreground">
+        {value}
+      </p>
+      <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
+    </div>
+  )
+}
+
+function RunRateMetric({
+  detail,
+  label,
+  tone = "normal",
+  value,
+}: {
+  detail: string
+  label: string
+  tone?: "normal" | "risk" | "success"
+  value: string
+}) {
+  return (
+    <div className="rounded-xl border border-border/60 bg-muted/30 px-4 py-3 dark:bg-white/[0.04]">
+      <p className="text-xs font-medium uppercase text-muted-foreground">
+        {label}
+      </p>
+      <p
+        className={cn(
+          "mt-1 text-2xl font-semibold tabular-nums tracking-tight",
+          tone === "risk"
+            ? "text-destructive"
+            : tone === "success"
+              ? "text-success"
+              : "text-foreground",
+        )}
+      >
         {value}
       </p>
       <p className="mt-1 text-xs text-muted-foreground">{detail}</p>

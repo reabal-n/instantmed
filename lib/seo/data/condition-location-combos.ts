@@ -168,7 +168,7 @@ export const CONDITION_LOCATION_COMBOS: ConditionLocationCombo[] = [
     localFaqs: [
       {
         q: "Can I get an anxiety certificate in Sydney confidentially?",
-        a: "Yes. InstantMed assessments start with a secure online form. A doctor contacts you only if more information is clinically needed, and your information is confidential and encrypted.",
+        a: "Yes. InstantMed assessments start with a secure online form. We only interrupt you if something important is missing, and your information is confidential and encrypted.",
       },
       {
         q: "Will Sydney employers accept a stress leave certificate?",

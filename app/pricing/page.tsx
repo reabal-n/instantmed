@@ -44,7 +44,7 @@ export default function PricingPage() {
       ]} />
       <MedicalServiceSchema
         name="Medical Certificate"
-        description="Get a valid medical certificate for work or study reviewed by an Australian registered doctor"
+        description="Request a routine sick or study certificate reviewed by an Australian registered doctor"
         price={PRICING.MED_CERT.toFixed(2)}
       />
       <MedicalServiceSchema

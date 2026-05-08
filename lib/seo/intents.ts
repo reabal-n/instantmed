@@ -1010,7 +1010,7 @@ export const intentPages: IntentPage[] = [
     blocks: [
       { id: "weekend-context", title: "Weekend context", type: "text", content: "Weekend requests are common when pharmacy stock checks, travel, or roster patterns reveal a repeat is needed sooner than expected." },
       { id: "details", title: "Details to prepare", type: "list", content: ["Medicine label or prior prescription details.", "Dose and timing.", "Recent GP review or monitoring history."] },
-      { id: "doctor-call", title: "Follow-up", type: "callout", content: "The doctor may message or call if the request needs clarification before a decision." },
+      { id: "doctor-call", title: "Follow-up", type: "callout", content: "We ask for the missing detail before a decision if the request needs clarification." },
     ],
     faqs: [
       { question: "Can I use any pharmacy?", answer: "Most Australian pharmacies can dispense electronic prescription tokens. Check with your chosen pharmacy if unsure." },

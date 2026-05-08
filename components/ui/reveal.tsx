@@ -4,6 +4,8 @@ import { useEffect, useRef } from "react"
 
 import { cn } from "@/lib/utils"
 
+const REVEAL_FALLBACK_MS = 1200
+
 interface RevealProps {
   children: React.ReactNode
   className?: string
@@ -40,11 +42,30 @@ export function Reveal({ children, className, delay = 0, instant = false }: Reve
     const el = ref.current
     if (!el) return
 
+    const makeVisible = () => {
+      if (delay) el.style.animationDelay = `${delay}s`
+      if (el.classList.contains("reveal-hidden")) {
+        el.classList.replace("reveal-hidden", "reveal-visible")
+      } else {
+        el.classList.add("reveal-visible")
+      }
+    }
+
+    if (typeof IntersectionObserver === "undefined") {
+      makeVisible()
+      return
+    }
+
+    const fallback = window.setTimeout(
+      makeVisible,
+      REVEAL_FALLBACK_MS + delay * 1000,
+    )
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          if (delay) el.style.animationDelay = `${delay}s`
-          el.classList.replace("reveal-hidden", "reveal-visible")
+          window.clearTimeout(fallback)
+          makeVisible()
           observer.disconnect()
         }
       },
@@ -52,7 +73,10 @@ export function Reveal({ children, className, delay = 0, instant = false }: Reve
     )
 
     observer.observe(el)
-    return () => observer.disconnect()
+    return () => {
+      window.clearTimeout(fallback)
+      observer.disconnect()
+    }
   }, [delay, instant])
 
   if (instant) {

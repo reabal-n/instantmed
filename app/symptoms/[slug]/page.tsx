@@ -25,7 +25,7 @@ const SHARED_SYMPTOM_FAQS: Array<{ q: string; a: string }> = [
   },
   {
     q: "Can I get a medical certificate without seeing a doctor in person?",
-    a: "Yes. Australian-registered doctors can assess your symptoms and issue valid medical certificates via telehealth. You fill in a detailed health questionnaire, a doctor reviews it, and if appropriate, your certificate is delivered digitally. No waiting room required.",
+    a: "Yes, when online assessment is clinically appropriate. Australian-registered doctors can assess your symptoms and may issue a routine certificate via telehealth. You fill in a detailed health questionnaire, a doctor reviews it, and if appropriate, your certificate is delivered digitally.",
   },
   {
     q: "How does a doctor assess my symptoms through telehealth?",

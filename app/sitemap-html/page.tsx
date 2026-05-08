@@ -47,7 +47,6 @@ function buildSections(): SitemapSection[] {
       { label: "FAQs", href: "/faq" },
       { label: "Contact", href: "/contact" },
       { label: "About Us", href: "/about" },
-      { label: "Reviews", href: "/reviews" },
       { label: "Blog", href: "/blog" },
       { label: "Trust & Safety", href: "/trust" },
       { label: "Clinical Governance", href: "/clinical-governance" },

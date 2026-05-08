@@ -80,9 +80,9 @@ const honestyLimits: ChecklistItem[] = [
       "Speed is a side effect of removing booking friction, not of removing review. Every outcome is a human decision recorded in the patient record.",
   },
   {
-    text: "We won't bury bad reviews.",
+    text: "We won't fake trust signals.",
     subtext:
-      "Our public reviews include the bad ones. If we ever ask you to leave a review, the request is the same regardless of how your experience went.",
+      "We use verifiable badges and plain clinical explanations. We do not publish invented patient quotes or hide behind polished social proof.",
   },
 ]
 

@@ -11,7 +11,7 @@ export const medCertGuides: Record<string, GuideData> = {
   "how-to-get-medical-certificate-for-work": {
     title: "How to Get a Medical Certificate for Work in Australia",
     slug: "how-to-get-medical-certificate-for-work",
-    description: "A complete guide to getting a valid medical certificate for work in Australia. Learn your options, what employers accept, and the fastest ways to get one.",
+    description: "A complete guide to getting routine sick-leave evidence for work in Australia. Learn your options, what employers review, and the fastest ways to request one.",
     lastUpdated: "April 2026",
     readTime: "6 min read",
     intro: "Need time off work due to illness? In Australia, employers can request a medical certificate for sick leave, especially for absences of more than 2 days. This guide explains all your options for getting one - from your regular GP to telehealth services that can have you sorted in under an hour.",
@@ -82,7 +82,7 @@ export const medCertGuides: Record<string, GuideData> = {
       },
       {
         q: "Can my employer refuse my medical certificate?",
-        a: "Generally, no. A valid medical certificate from a registered doctor is evidence that you were unfit for work. However, employers can request additional information in some circumstances or ask you to see a company-appointed doctor for extended absences."
+        a: "Employers assess evidence under workplace policy and Fair Work guidance. A certificate from a registered doctor can support routine sick leave, but employers can request additional information in some circumstances or ask you to see a company-appointed doctor for extended absences."
       }
     ],
     cta: {
@@ -162,12 +162,12 @@ export const medCertGuides: Record<string, GuideData> = {
     }
   },
   "medical-certificate-centrelink": {
-    title: "How to Get a Medical Certificate for Centrelink",
+    title: "Centrelink Medical Evidence: Forms and Limits",
     slug: "medical-certificate-centrelink",
-    description: "Need a medical certificate for Centrelink or a government agency? Learn what's required for each payment type, how to get one, and avoid common mistakes.",
+    description: "Need medical evidence for Centrelink or a government agency? Learn what's required for each payment type, when specific forms matter, and when a short certificate is not enough.",
     lastUpdated: "April 2026",
     readTime: "7 min read",
-    intro: "Centrelink and Services Australia require medical certificates in a range of situations - from meeting mutual obligation requirements on JobSeeker to supporting Disability Support Pension claims. The requirements differ by payment type, and getting the wrong certificate can delay your payments. This guide covers what each situation needs and the fastest way to get compliant documentation.",
+    intro: "Centrelink and Services Australia can require medical evidence in a range of situations, from participation requirements on JobSeeker to supporting Disability Support Pension claims. The requirements differ by payment type, and a short sick-leave certificate is often not enough. This guide explains the evidence pathways and when to use your regular GP or treating practitioner.",
     steps: [
       {
         title: "Identify which Centrelink situation applies to you",
@@ -191,9 +191,9 @@ export const medCertGuides: Record<string, GuideData> = {
       },
       {
         title: "See a doctor who can assess your condition",
-        content: "For straightforward short-term exemptions (e.g. you have the flu and can't attend an appointment), a telehealth doctor can assess and issue an appropriate certificate. For ongoing or complex claims - DSP applications, long-term exemptions, functional assessments - Centrelink typically expects evidence from a doctor who knows your history. Your regular GP is usually the best option for these. If you don't have a regular GP, a telehealth service can provide initial documentation while you establish ongoing care.",
+        content: "For straightforward short-term illness, a telehealth doctor may be able to assess you and provide routine absence evidence. For Centrelink-specific requests, ongoing or complex claims, DSP applications, long-term exemptions, and functional assessments, Centrelink typically expects evidence from a doctor who knows your history. Your regular GP is usually the best option for these.",
         tips: [
-          "Telehealth works for: short-term exemptions, acute illness, straightforward certificates",
+          "Telehealth may work for: straightforward acute illness and routine absence evidence",
           "Your regular GP is better for: DSP applications, long-term conditions, functional assessments",
           "The doctor must have assessed you - pre-dated or backdated certificates have limits",
           "If you need a Centrelink-specific form completed, confirm the doctor can do this before your appointment"
@@ -228,7 +228,7 @@ export const medCertGuides: Record<string, GuideData> = {
       "If you're having trouble getting the right documentation, community legal centres can help for free"
     ],
     faqs: [
-      { q: "Can I get a Centrelink medical certificate online?", a: "Yes, for short-term exemptions and acute illness. A telehealth doctor can assess your condition and issue a certificate that meets Centrelink requirements for temporary exemptions. For complex claims like DSP, you'll likely need your regular GP." },
+      { q: "Can I get a Centrelink medical certificate online?", a: "Usually not through this short certificate pathway. Centrelink and Services Australia often require specific forms or functional-capacity details. Use your regular GP or treating practitioner for those forms." },
       { q: "What if Centrelink rejects my certificate?", a: "Ask Centrelink specifically what's missing. Common issues: not enough detail about functional capacity, wrong date range, or needing a Centrelink-specific form instead of a standard certificate. Take their feedback to your doctor and get a revised certificate." },
       { q: "How long is a Centrelink medical certificate valid?", a: "It depends on the situation. Short-term exemptions typically cover 1–13 weeks. For ongoing conditions, Centrelink may request updated evidence every 3–6 months. DSP evidence is assessed as part of the claim process and may need updating at reviews." },
       { q: "Do I need a certificate to defer a Centrelink appointment?", a: "If you're too unwell to attend a Centrelink appointment, you should call them beforehand to reschedule. A medical certificate can support your reason but calling ahead is usually sufficient for a single missed appointment." },
@@ -332,7 +332,7 @@ export const medCertGuides: Record<string, GuideData> = {
       "You have a right to medical privacy"
     ],
     faqs: [
-      { q: "Can my employer reject my medical certificate?", a: "Generally no, if it's from a registered doctor and covers the relevant dates. They can't reject it because it's from telehealth." },
+      { q: "Can my employer reject my medical certificate?", a: "Generally no, if it's from a registered doctor and covers the relevant dates. They should assess it under policy rather than only because it's from telehealth." },
       { q: "Do I have to tell my employer why I'm sick?", a: "No. You only need to provide a certificate stating you were unfit. The certificate doesn't need to specify your condition." },
       { q: "Can they ask for a certificate from day one?", a: "Employers can have policies requiring certificates from the first day. Check your employment contract or workplace policy." }
     ],
@@ -369,7 +369,7 @@ export const medCertGuides: Record<string, GuideData> = {
       "In crisis? Call Lifeline 13 11 14 or Beyond Blue 1300 22 4636"
     ],
     faqs: [
-      { q: "Can my employer refuse a mental health day?", a: "No. If you have available personal leave, your employer can assess a valid medical certificate under workplace policy regardless of the type of illness." },
+      { q: "Can my employer question a mental health day?", a: "Employers can ask for reasonable evidence under workplace policy. A certificate does not need to disclose the diagnosis, and mental health conditions can be a reason for personal leave." },
       { q: "Will the certificate say it's for mental health?", a: "No. Medical certificates state that you were unfit for work on specific dates. No diagnosis or reason is included." },
       { q: "How often can I take mental health days?", a: "As often as needed, within your leave balance. If you're frequently needing time off, consider discussing ongoing support with a GP." },
       { q: "Do I need to see a psychologist to get a mental health certificate?", a: "No. A GP (including via telehealth) can issue a medical certificate for a mental health day. You don't need a specialist." }
@@ -423,7 +423,7 @@ export const medCertGuides: Record<string, GuideData> = {
     steps: [
       {
         title: "What a medical certificate must include",
-        content: "A valid Australian medical certificate only needs to include: the patient's name, the dates of unfitness, the doctor's name and registration details, and a statement that you were unfit for work. That's it. No diagnosis, no symptoms, no treatment details are required.",
+        content: "A standard Australian sick-leave certificate usually includes: the patient's name, the dates of unfitness, the doctor's name and registration details, and a statement that you were unfit for work. That's it. No diagnosis, no symptoms, no treatment details are required.",
         tips: ["Certificates state 'unfit for work' - not why", "The doctor's AHPRA registration number should be on it", "Telehealth certificates are equally valid"]
       },
       {

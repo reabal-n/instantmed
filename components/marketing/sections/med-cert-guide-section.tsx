@@ -37,9 +37,11 @@ const GUIDE_ITEMS: readonly GuideItem[] = [
     content: (
       <div className="space-y-3">
         <p>
-          A medical certificate is an official document issued by a registered
-          medical practitioner confirming that a patient has been assessed and
-          is - or was - unfit for their normal duties due to illness or injury.
+          A medical certificate is a document issued by a registered medical
+          practitioner after assessing a patient&apos;s reported illness or caring
+          responsibilities. For routine sick leave, it records the absence
+          period the doctor considered appropriate from the information
+          available.
           In Australia, these are sometimes called &ldquo;sick notes&rdquo; or
           &ldquo;doctor&apos;s certificates,&rdquo; but the correct term is
           medical certificate.
@@ -47,8 +49,8 @@ const GUIDE_ITEMS: readonly GuideItem[] = [
         <p>
           The certificate doesn&apos;t need to disclose your specific diagnosis.
           Under Australian privacy law, your employer is entitled to know that
-          you were unfit for work and for how long - not what was wrong with
-          you. A valid certificate states the doctor&apos;s name, AHPRA
+          you needed absence evidence and for how long - not what was wrong
+          with you. A routine certificate states the doctor&apos;s name, AHPRA
           registration number, the date of assessment, and the recommended
           period of absence.
         </p>
@@ -72,16 +74,15 @@ const GUIDE_ITEMS: readonly GuideItem[] = [
         <p>
           Importantly, the Fair Work Act does not require a face-to-face
           consultation. Certificates issued by AHPRA-registered doctors via
-          telehealth carry the same legal weight as those from an in-person GP
-          visit. This is consistent with the{" "}
-          <em>RACGP Standards for general practices</em> (5th edition, 2024)
-          and multiple Fair Work Commission decisions since 2020 accepting
-          telehealth-issued certificates.
+          telehealth can support workplace evidence requirements when the
+          employer&apos;s policy accepts the evidence provided. Each certificate
+          includes doctor details and a verification ID so the document can be
+          checked online.
         </p>
         <p>
           Casual employees don&apos;t accrue paid sick leave (unless
-          they&apos;re long-term regular casuals), but a medical certificate
-          still protects your working relationship and demonstrates good faith.
+          they&apos;re long-term regular casuals), but a medical certificate can
+          still help explain an absence and demonstrate good faith.
           Some enterprise agreements and awards have specific requirements -
           check yours if you&apos;re unsure.
         </p>
@@ -103,12 +104,12 @@ const GUIDE_ITEMS: readonly GuideItem[] = [
           history - the same information available via telehealth.
         </p>
         <p>
-          For a standard 1-3 day absence, a telehealth certificate is
-          clinically equivalent to an in-person one. The doctor reviews your
-          symptoms, asks follow-up questions if needed, and makes a clinical
-          judgement about whether a certificate is appropriate. If they&apos;re
-          not satisfied that a certificate is clinically justified, they
-          won&apos;t issue one - same as a GP clinic.
+          For a standard 1-3 day absence, telehealth can be suitable when the
+          issue is straightforward and does not need a physical examination.
+          The doctor reviews your symptoms, asks follow-up questions if needed,
+          and makes a clinical judgement about whether a certificate is
+          appropriate. If they&apos;re not satisfied that a certificate is
+          clinically justified, they won&apos;t issue one.
         </p>
       </div>
     ),
@@ -120,8 +121,9 @@ const GUIDE_ITEMS: readonly GuideItem[] = [
       <div className="space-y-3">
         <p>
           Some situations genuinely require an in-person consultation.
-          Workplace injuries requiring WorkCover documentation need a physical
-          examination and specific forms. Conditions requiring blood tests,
+          Workplace injuries, compensation claims, insurance matters,
+          fitness-to-drive, academic assessment requests, court matters, and NDIS evidence
+          need a different pathway. Conditions requiring blood tests,
           imaging, or physical assessment (suspicious moles, joint injuries,
           chest pain) should be seen face-to-face. Extended absences beyond 3-5
           days may benefit from an in-person assessment, and we&apos;ll
@@ -143,15 +145,11 @@ const GUIDE_ITEMS: readonly GuideItem[] = [
     content: (
       <div className="space-y-3">
         <p>
-          Under the{" "}
-          <em>Health Practitioner Regulation National Law Act 2009</em>, a
-          legally valid medical certificate must include: the practitioner&apos;s
-          full name and AHPRA registration number, the date of the
-          consultation, the patient&apos;s name and date of birth, the period
-          the patient is certified as unfit for duties, and the
-          practitioner&apos;s signature (digital signatures are accepted per
-          the <em>Electronic Transactions Act 1999</em>). InstantMed
-          certificates include all of these elements.
+          Routine sick-leave evidence should include the practitioner&apos;s full
+          name and AHPRA registration number, the date of consultation, the
+          patient&apos;s name and date of birth, the stated absence period, and
+          the practitioner&apos;s signature. InstantMed certificates include these
+          standard document details.
         </p>
         <p>
           Every certificate issued by InstantMed has a unique verification ID.
@@ -232,9 +230,8 @@ export function MedCertGuideSection() {
             >
               our clinical governance framework
             </Link>
-            , aligned with{" "}
-            <em>RACGP Standards for general practices</em> (5th ed.) and{" "}
-            <em>TGA prescribing guidelines</em>. We never automate clinical
+            , documented scope limits, and relevant Australian clinical,
+            prescribing, and privacy requirements. We never automate clinical
             decisions.
           </p>
         </div>

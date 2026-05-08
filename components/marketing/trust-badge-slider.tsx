@@ -11,7 +11,14 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
     <section className={cn('py-10 lg:py-14 relative', className)}>
       <DottedGrid />
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 relative">
-        <TrustBadgeGrid badges={['ahpra', 'racgp', 'medical_director', 'tga']} />
+        <TrustBadgeGrid
+          badges={[
+            { id: 'no_appointment', variant: 'styled' },
+            { id: 'no_speaking', variant: 'styled' },
+            { id: 'legitscript', variant: 'styled' },
+            { id: 'google_pharmacy', variant: 'styled' },
+          ]}
+        />
       </div>
     </section>
   )

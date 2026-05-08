@@ -37,10 +37,10 @@ const GUIDE_SECTIONS: Array<{
   {
     id: "telehealth-qualifications",
     sticker: "laptop",
-    title: "Telehealth qualifications and training",
+    title: "Telehealth-specific judgement",
     paragraphs: [
       "Telehealth is a specific clinical skillset, not just general practice conducted over the internet. Remote assessment techniques differ from in-person consultations - doctors need to gather clinical information differently, ask more targeted questions, and make careful judgements about when a condition can be safely managed remotely versus when it requires a physical examination.",
-      "The Royal Australian College of General Practitioners (RACGP) has published specific telehealth guidelines that our doctors follow. These cover patient identification, informed consent for remote consultations, clinical documentation standards, and the appropriate scope of telehealth consultations. Our doctors are trained in asynchronous consultation models, which require particular attention to thorough history-taking since there's no real-time back-and-forth.",
+      "Our telehealth model is built around patient identification, informed consent, clinical documentation, and the appropriate scope of remote consultations. Asynchronous review requires particular attention to thorough history-taking because there is no real-time back-and-forth unless the doctor needs more information.",
       "Communication skills for asynchronous consultations are genuinely different from face-to-face medicine. Doctors need to be clear about what information they need, explain their reasoning when declining a request, and know when a situation warrants picking up the phone rather than relying on written communication alone.",
     ],
   },
@@ -49,8 +49,8 @@ const GUIDE_SECTIONS: Array<{
     sticker: "stethoscope",
     title: "Clinical governance and oversight",
     paragraphs: [
-      "Clinical governance isn't a buzzword we use to sound impressive - it's the framework that ensures consistent, safe clinical decisions across our consulting team. A Medical Director with RACGP Fellowship provides oversight of all clinical protocols and guidelines. Clinical protocols are reviewed quarterly and updated when evidence, regulations, or best practice changes.",
-      "Clinical decisions are independently audited through a peer review process. This means a proportion of completed consultations are reviewed by another doctor to ensure the original decision was clinically appropriate, adequately documented, and consistent with our protocols. If patterns emerge - too many declines for a particular condition, or approvals that should have been escalated - they're identified and addressed.",
+      "Clinical governance isn't a buzzword we use to sound impressive. It is the framework that keeps clinical decisions consistent, documented, and inside the service scope. Protocols are reviewed on a regular cadence and updated when evidence, regulations, or operating risk changes.",
+      "Clinical decisions are audited through structured review of approvals, declines, escalations, complaints, and outcome patterns. If a pattern emerges - too many declines for a particular condition, or approvals that should have been escalated - it is identified and addressed.",
       "We maintain an incident reporting system where doctors can flag clinical concerns, near-misses, or situations where protocols didn't adequately cover a clinical scenario. These reports feed into protocol improvements. The goal is a learning system, not a punitive one - we want doctors to report freely so the whole team benefits.",
     ],
   },
@@ -82,7 +82,7 @@ export function DoctorsGuideSection() {
         <Reveal className="text-center mb-12">
           <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/20 text-xs font-medium text-primary mb-4">
             <BadgeCheck className="h-3.5 w-3.5" />
-            Medically reviewed by AHPRA-registered GPs
+            AHPRA-registered clinical review
           </div>
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight mb-3">
             How we credential and support our doctors

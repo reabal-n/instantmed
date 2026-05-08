@@ -88,10 +88,10 @@ export function CertificateShowcaseMockup() {
           <motion.div variants={fadeUp} className="space-y-2.5">
             <p className="text-[9px] italic text-gray-500">To whom it may concern,</p>
             <p className="text-[9px] text-gray-600 leading-[1.6]">
-              This is to certify that <span className="inline-block w-20 h-2.5 rounded bg-gray-200/70 align-middle" /> (DOB: <span className="inline-block w-14 h-2.5 rounded bg-gray-200/70 align-middle" />) has been reviewed and assessed on {dateLong}. In my clinical opinion, they are medically unfit to attend work or fulfil their usual occupational duties on {dateLong}.
+              This is to certify that <span className="inline-block w-20 h-2.5 rounded bg-gray-200/70 align-middle" /> (DOB: <span className="inline-block w-14 h-2.5 rounded bg-gray-200/70 align-middle" />) was reviewed on {dateLong} and reported symptoms consistent with needing to be absent from usual work or study duties on {dateLong}.
             </p>
             <p className="text-[9px] text-gray-600 leading-[1.6]">
-              They are advised to rest and recover and are expected to return to work the following day.
+              This certificate includes a secure verification ID so the document can be checked online.
             </p>
           </motion.div>
 
@@ -99,7 +99,6 @@ export function CertificateShowcaseMockup() {
           <motion.div variants={fadeUp} className="flex items-end justify-between pt-6">
             <div className="space-y-0.5">
               <p className="text-[10px] font-semibold text-gray-700 flex items-center gap-1">Dr. <span className="inline-block w-16 h-2.5 rounded bg-gray-200/70 align-middle" /></p>
-              <p className="text-[8px] text-gray-400">MBBS, FRACGP</p>
               <p className="text-[8px] text-gray-400">Medical Practitioner</p>
               <p className="text-[8px] text-gray-400">AHPRA: MED00XXXXXXXX</p>
               {/* Signature scribble */}
@@ -150,7 +149,7 @@ export function CertificateShowcaseMockup() {
         transition={{ duration: 0.3, delay: 0.6 }}
       >
         <BadgeCheck className="w-3.5 h-3.5 text-emerald-500" />
-        <span className="text-[10px] font-medium text-foreground">Accepted everywhere</span>
+        <span className="text-[10px] font-medium text-foreground">Secure verification</span>
       </motion.div>
 
       <motion.div

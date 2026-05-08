@@ -53,7 +53,7 @@ export const respiratoryConditions: Record<string, ConditionData> = {
     commonQuestions: [
       {
         q: "Can I get a medical certificate for cold and flu?",
-        a: "Yes. If you're unwell with cold or flu symptoms and need time off work or study, our doctors can assess your situation and provide a valid medical certificate if appropriate.",
+        a: "Yes. If you're unwell with cold or flu symptoms and need time off work or study, our doctors can assess your situation and may provide a routine certificate if appropriate.",
       },
       {
         q: "How long should I stay home with the flu?",

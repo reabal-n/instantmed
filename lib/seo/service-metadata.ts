@@ -30,14 +30,14 @@ export const serviceSEO: Record<string, ServiceSEO> = {
           "You can submit a request 24/7. After approval, you'll receive the certificate via email as a PDF.",
       },
       {
-        question: "Is an online medical certificate valid for work?",
+        question: "Can an online medical certificate be used for work?",
         answer:
           "Certificates issued by AHPRA-registered doctors can support workplace, university, and institution evidence requirements. Employer and institution policies may vary.",
       },
       {
         question: "Do I need to make a phone call?",
         answer:
-          "You submit your information online and a doctor reviews it. The doctor may contact you if they need more information.",
+          "You submit your information online and a doctor reviews it. We only interrupt you if something important is missing.",
       },
       {
         question: "What does it cost?",
@@ -76,7 +76,7 @@ export const serviceSEO: Record<string, ServiceSEO> = {
       {
         question: "Do I need to speak to a doctor?",
         answer:
-          "You start with a secure online form. The doctor may contact you if they need more information to make a clinical decision.",
+          "You start with a secure online form. We only interrupt you if something important is missing before the doctor can decide.",
       },
     ],
   },

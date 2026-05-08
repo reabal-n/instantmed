@@ -81,7 +81,7 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
           </p>
 
           {/* Feature checkmarks — capped to VISIBLE_BENEFITS (2). Per-card
-              testimonials removed in Pass 2 so service cards stay scannable. */}
+              social proof removed so service cards stay scannable. */}
           {service.benefits && (
             <ul className="space-y-1.5 mb-4 flex-1">
               {service.benefits.slice(0, VISIBLE_BENEFITS).map((benefit, idx) => (
@@ -178,7 +178,7 @@ export function ServiceCards() {
           </p>
           <p className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
             <Clock className="w-3.5 h-3.5 text-primary" />
-            Med certs typically ready in under 20 minutes
+            Med cert requests stay open 24/7
           </p>
         </Reveal>
 

@@ -27,8 +27,8 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Medical Certificates for WA Workers",
         paragraphs: [
-          "Western Australian workers have the same Fair Work Act entitlements as employees in other states. However, WA also retains its own state industrial relations system for some employees (those covered by the WA Industrial Relations Act). Under both systems, medical certificates from AHPRA-registered doctors are valid evidence for leave purposes.",
-          "WA's mining and resources sector has its own expectations around medical documentation. Many mining companies require medical certificates for any absence, even single days, as part of their fitness-for-duty protocols. InstantMed certificates meet these requirements - they're issued by AHPRA-registered doctors and include all the details employers need.",
+          "Western Australian workers have the same Fair Work Act entitlements as employees in other states. However, WA also retains its own state industrial relations system for some employees (those covered by the WA Industrial Relations Act). Under both systems, medical certificates from AHPRA-registered doctors are evidence for leave purposes.",
+          "WA's mining and resources sector has its own expectations around medical documentation. Many mining companies require evidence for any absence, even single days. InstantMed certificates are for routine short sick leave and include standard document details employers can review; site medicals, return-to-work clearances, and fitness-for-duty decisions need the employer's own pathway.",
           "Perth's time zone (AWST, UTC+8) means WA is 2–3 hours behind the eastern states. InstantMed operates 8am–10pm AEST, which translates to approximately 6am–8pm AWST (or 5am–7pm during daylight saving in the east). For most Perth residents, this covers the entire working day and evening. If you submit a request during WA business hours, you'll typically have your certificate well before the next working day.",
         ],
       },
@@ -52,7 +52,7 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
       paragraphs: [
         "Western Australia's telehealth framework follows national AHPRA and Medical Board of Australia guidelines. The WA Department of Health has been a proponent of telehealth expansion, recognising the state's unique geographic challenges. WA Health's digital health strategy includes telehealth as a critical component for both metropolitan and regional healthcare delivery.",
         "Prescribing via telehealth in WA follows national TGA regulations. All PBS-listed medications available via telehealth in other states are equally available in WA. The eScript system is fully operational across Western Australian pharmacies. Schedule 8 medications (controlled substances) require WA Department of Health authority and typically an in-person assessment.",
-        "WA's state-based industrial relations system, which covers some WA workers not under the federal Fair Work system, also recognises medical certificates from AHPRA-registered practitioners. Whether you're covered by the Fair Work Act or the WA Industrial Relations Act, telehealth-issued certificates are legally valid.",
+        "WA's state-based industrial relations system, which covers some WA workers not under the federal Fair Work system, also recognises medical certificates from AHPRA-registered practitioners. Whether you're covered by the Fair Work Act or the WA Industrial Relations Act, telehealth-issued certificates can be used as evidence.",
       ],
     },
     additionalFaqs: [
@@ -60,7 +60,7 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
       { q: "Can FIFO workers use InstantMed from site?", a: "Yes, as long as you have internet access. Many mine sites and remote camps have wifi or mobile coverage. If you need a medical certificate while on site, you can submit your request and receive the certificate via email. Employer policies may vary, including at mining companies." },
       { q: "Are Perth GPs really that expensive?", a: "Perth has some of the lowest bulk-billing rates in Australia. Many GPs charge gap fees of $50–$100 per standard consultation. For a straightforward medical certificate, InstantMed offers a more affordable flat-fee alternative without compromising on clinical quality." },
       { q: "Can I use InstantMed in regional WA?", a: "Yes. InstantMed works anywhere in Western Australia with an internet connection - Perth, Geraldton, Kalgoorlie, Karratha, Broome, or anywhere in between. The service and pricing are the same regardless of your location." },
-      { q: "Do WA mining companies assess telehealth certificates under their own policies?", a: "Yes. Mining companies operating in Australia set their own policies for medical certificates from AHPRA-registered doctors. The method of consultation (in-person vs telehealth) doesn't affect the certificate's validity. Our certificates include all required details for fitness-for-duty documentation." },
+      { q: "Do WA mining companies assess telehealth certificates under their own policies?", a: "Yes. Mining companies operating in Australia set their own policies for medical certificates from AHPRA-registered doctors. The method of consultation (in-person vs telehealth) doesn't affect the certificate's validity. Our certificates include standard document details for workplace absence documentation." },
     ],
   },
   bunbury: {
@@ -91,7 +91,7 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
         title: "Medical Certificates and WA Industrial Law",
         paragraphs: [
           "Western Australia has a dual industrial relations system. Most private-sector workers in Bunbury and the South-West are covered by the federal Fair Work Act, but some WA-specific employers fall under the state Industrial Relations Act. Both systems accept medical certificates from AHPRA-registered practitioners, and neither specifies that certificates must come from face-to-face consultations.",
-          "Mining and resources employers - particularly those with fitness-for-duty protocols - often have stricter internal documentation requirements, but they are bound by the same legal framework. A telehealth certificate from an AHPRA-registered doctor meets these requirements and includes all the standard details: doctor's name, AHPRA registration number, consultation date, and recommended period of absence.",
+          "Mining and resources employers often have stricter internal documentation requirements. A telehealth certificate from an AHPRA-registered doctor can support routine sick-leave review and includes standard details: doctor's name, AHPRA registration number, consultation date, and recommended period of absence. Fitness-for-duty, site medical, and compensation requests need a different pathway.",
           "Perth operates on Australian Western Standard Time (AWST, UTC+8), two hours behind the eastern states. InstantMed's operating window of 8am–10pm AEST translates to roughly 6am–8pm AWST. For Bunbury residents, that covers the entire working day and well into the evening - plenty of time to submit a request and receive your certificate before the next shift.",
         ],
       },
@@ -130,7 +130,7 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
     additionalFaqs: [
       { q: "Does InstantMed cover Busselton, Margaret River, and the Capes?", a: "Yes. Busselton, Dunsborough, Yallingup, Margaret River, Augusta, and all the smaller Capes-region communities. Any location in the South-West with internet access is covered." },
       { q: "Does InstantMed operate on WA time?", a: "Our operating window is 8am–10pm AEST, which is 6am–8pm AWST - so most of the Western Australian working day is covered. Submissions made early in the WA morning are typically reviewed almost immediately." },
-      { q: "Can Alcoa Wagerup and South32 workers use InstantMed?", a: "Yes. Our certificates include AHPRA registration details for workplace documentation and include the AHPRA registration details needed for fitness-for-duty documentation." },
+      { q: "Can Alcoa Wagerup and South32 workers use InstantMed?", a: "Yes. Our certificates include AHPRA registration details for workplace documentation and include the AHPRA registration details needed for workplace absence documentation." },
       { q: "Is InstantMed cheaper than seeing a GP in Bunbury?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Bunbury's bulk-billing rate around 62% and typical gap fees of $40–$80, InstantMed is often more affordable for straightforward certificates and scripts.` },
     ],
   },
@@ -161,7 +161,7 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Medical Certificates for WA Workers",
         paragraphs: [
-          "Western Australian workers are covered by either the federal Fair Work Act or the WA Industrial Relations Act, depending on their employer. Under both systems, medical certificates from AHPRA-registered doctors are legally valid evidence for leave purposes. The consultation method - telehealth or face-to-face - is not a factor.",
+          "Western Australian workers are covered by either the federal Fair Work Act or the WA Industrial Relations Act, depending on their employer. Under both systems, medical certificates from AHPRA-registered doctors can be used as evidence evidence for leave purposes. The consultation method - telehealth or face-to-face - is not a factor.",
           "WA's time zone (AWST, UTC+8) means Fremantle is 2-3 hours behind the eastern states. InstantMed operates 8am-10pm AEST, which translates to approximately 6am-8pm AWST. For Fremantle residents, this covers the entire working day and evening. Requests submitted in the late WA evening may be reviewed the following morning.",
           "Notre Dame University Fremantle and Murdoch University both assess telehealth-issued medical certificates under their own policies from AHPRA-registered doctors for academic support, coursework documentation, and missed assessment documentation. The same applies to South Metropolitan TAFE and all other educational institutions in the Fremantle area.",
         ],
@@ -179,7 +179,7 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
       paragraphs: [
         "Western Australia follows national AHPRA and Medical Board of Australia guidelines for telehealth. The WA Department of Health has supported telehealth expansion as part of its digital health strategy, recognising the state's unique geographic challenges. All telehealth consultations must be provided by AHPRA-registered practitioners.",
         "Prescribing via telehealth in WA follows national TGA regulations. PBS-listed medications can be prescribed electronically, with the eScript system fully operational across all Western Australian pharmacies. Schedule 8 controlled substances require WA Department of Health authority and in-person assessment.",
-        "Medical certificates issued via telehealth carry the same legal weight in Western Australia as those from in-person consultations. WA employers are legally required to set their own policies for certificates from AHPRA-registered doctors under both the Fair Work Act and the WA Industrial Relations Act.",
+        "Medical certificates issued via telehealth in Western Australia are reviewed under the same national practitioner framework as other doctor-issued certificates. WA employers set their own policies under the Fair Work Act or WA Industrial Relations Act, and high-risk clearance or compensation matters need their own assessment pathway.",
       ],
     },
     additionalFaqs: [

@@ -154,6 +154,21 @@ const nextConfig = {
         destination: "/medical-certificate/:suburb",
         permanent: true,
       },
+      {
+        source: "/medical-certificate/centrelink",
+        destination: "/medical-certificate/not-suitable/centrelink",
+        permanent: true,
+      },
+      {
+        source: "/medical-certificate/return-to-work",
+        destination: "/medical-certificate/not-suitable/return-to-work",
+        permanent: true,
+      },
+      {
+        source: "/for/employers",
+        destination: "/employers",
+        permanent: true,
+      },
       // Top commercial city certificate intent now lives under /intent/* to avoid
       // splitting sitemap and internal-link signals across duplicate city pages.
       {

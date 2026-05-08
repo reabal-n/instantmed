@@ -47,7 +47,7 @@ export default function Page() {
     <>
       <SpeakableSchema
         name="ED Assessment Online Australia"
-        description={`Discreet, doctor-reviewed ED assessment from an AHPRA-registered Australian doctor. From $${PRICING.MENS_HEALTH.toFixed(2)}. The doctor contacts you if clinically needed.`}
+        description={`Discreet, doctor-reviewed ED assessment from an AHPRA-registered Australian doctor. From $${PRICING.MENS_HEALTH.toFixed(2)}. We reach out only if one more detail is needed.`}
         url="/erectile-dysfunction"
       />
       <FAQSchema faqs={[...ED_FAQ]} />

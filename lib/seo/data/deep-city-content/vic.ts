@@ -189,7 +189,7 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
     },
     additionalFaqs: [
       { q: "Does InstantMed serve Castlemaine and Kyneton?", a: "Yes. We serve all of regional Victoria - Castlemaine, Kyneton, Heathcote, Echuca, and everywhere in between." },
-      { q: "Is telehealth adequate for a medical certificate?", a: "For straightforward illnesses (cold, flu, gastro, migraine), yes. Telehealth medical certificates have the same legal validity as in-person ones. If physical examination is needed, we'll recommend an in-person visit - and you won't be charged." },
+      { q: "Is telehealth adequate for a medical certificate?", a: "For straightforward illnesses (cold, flu, gastro, migraine), yes. Telehealth medical certificates have the same workplace evidence status as in-person ones. If physical examination is needed, we'll recommend an in-person visit - and you won't be charged." },
       { q: "Can La Trobe Bendigo students use InstantMed?", a: "Yes. La Trobe and Victorian universities set their own policies for certificates from AHPRA-registered doctors for academic support and academic support requests." },
     ],
   },

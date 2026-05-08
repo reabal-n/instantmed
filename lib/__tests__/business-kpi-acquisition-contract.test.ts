@@ -22,6 +22,8 @@ describe("business KPI acquisition health", () => {
 
   it("renders acquisition tracking in the admin analytics business KPIs tab", () => {
     expect(analyticsTabSource).toContain("Daily Business Scorecard")
+    expect(analyticsTabSource).toContain("$1M annual gross run-rate")
+    expect(analyticsTabSource).toContain("ANNUAL_GROSS_TARGET")
     expect(analyticsTabSource).toContain("30-day growth gates")
     expect(analyticsTabSource).toContain("Paid orders by service")
     expect(analyticsTabSource).toContain("Attribution quality")

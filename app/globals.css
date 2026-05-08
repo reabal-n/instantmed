@@ -3150,19 +3150,6 @@ button:not(.no-micro):active:not(:disabled),
   border: 1px solid rgba(59, 130, 246, 0.15);
 }
 
-/* Testimonial card with authentic feel */
-.testimonial-authentic {
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-  transition: all 0.3s ease;
-}
-
-.testimonial-authentic:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-}
-
 .text-premium-glow {
   text-shadow: 
     0 0 20px rgba(37, 99, 235, 0.3),
@@ -3335,15 +3322,6 @@ button:not(.no-micro):active:not(:disabled),
     filter: none !important;
     animation: none !important;
   }
-}
-
-@keyframes testimonial-scroll {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-50%); }
-}
-
-.animate-testimonial-scroll {
-  animation: testimonial-scroll linear infinite;
 }
 
 @keyframes blink {

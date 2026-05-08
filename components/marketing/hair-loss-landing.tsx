@@ -70,16 +70,16 @@ const HOW_IT_WORKS_STEPS = [
     sticker: "pill-bottle" as const,
     step: 3,
     title: "Outcome sent to you",
-    description: "If clinically appropriate, an eScript is sent by SMS and can be used at an Australian pharmacy.",
+    description: "Once approved, your eScript is sent by SMS and can be used at an Australian pharmacy.",
     time: "After review",
   },
 ]
 
 const PRICING_BULLETS = [
   "AHPRA-registered Australian doctor reviews your form",
-  "eScript sent to your phone via SMS",
+  "eScript sent to your phone once approved",
   "Collect from any Australian pharmacy",
-  "Doctor contacts you if more information is needed",
+  "We'll reach out only if one more detail is needed",
   "Full refund if we can't help",
 ]
 
@@ -314,7 +314,7 @@ export function HairLossLanding() {
             mockup={<HairLossHeroMockup />}
           >
             <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-7 leading-relaxed text-balance">
-              Fill a short health form. A doctor reviews it privately and contacts you only if more information is clinically needed.
+              Fill a short health form. A doctor reviews it privately. We&apos;ll only interrupt you if something important is missing.
             </p>
           </Hero>
 
@@ -329,7 +329,7 @@ export function HairLossLanding() {
                 Clinical hair loss assessment. <span className="text-primary">Reviewed by a doctor.</span>
               </>
             }
-            body="A structured doctor review for hair loss concerns. If a prescription option is clinically appropriate, your eScript is sent by SMS and can be used at any Australian pharmacy."
+            body="A structured doctor review for hair loss concerns. Once approved, your eScript is sent by SMS and can be used at any Australian pharmacy."
           />
 
           {/* 2. How It Works */}
@@ -377,7 +377,7 @@ export function HairLossLanding() {
               now be deleted. */}
           <CTABanner
             title="Start a hair loss assessment."
-            subtitle="A doctor reviews your assessment and prescribes only if clinically appropriate."
+            subtitle="A doctor reviews your assessment and prescribes only when it is appropriate."
             ctaText="Start assessment"
             ctaHref="/request?service=consult&subtype=hair_loss"
             onCtaClick={handleFinalCTA}

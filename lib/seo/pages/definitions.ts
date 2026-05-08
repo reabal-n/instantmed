@@ -61,7 +61,7 @@ export const conditionPages: ConditionPage[] = [
     faqs: [
       {
         q: "Will a medical certificate from InstantMed be usable by my employer as evidence?",
-        a: "Yes. Our certificates are issued by AHPRA-registered Australian doctors and are legally valid. Employers can assess them under workplace policy.",
+        a: "Yes. Our certificates are issued by AHPRA-registered Australian doctors and can be used as evidence. Employers can assess them under workplace policy.",
       },
       {
         q: "Can I get a certificate if I'm not actually sick?",
@@ -84,7 +84,7 @@ export const conditionPages: ConditionPage[] = [
     name: "Gastroenteritis (Gastro)",
     title: "Gastro Symptoms | Medical Certificate | InstantMed",
     description:
-      "Get a medical certificate for gastroenteritis. Online assessment for vomiting, diarrhoea, nausea. Valid for work and uni.",
+      "Get a routine sick certificate for gastroenteritis. Online assessment for vomiting, diarrhoea, and nausea.",
     h1: "Gastro got you down? Get your certificate online",
     heroText:
       "Stomach bug causing problems? Get a medical certificate without leaving the bathroom, plus advice on staying hydrated.",
@@ -1060,7 +1060,7 @@ export const benefitPages: BenefitPage[] = [
       {
         title: "Legitimacy",
         content:
-          "Our doctors are AHPRA-registered. Certificates are legally valid. They include standard details employers can use as evidence; employer policies may vary.",
+          "Our doctors are AHPRA-registered. Certificates can be used as evidence. They include standard details employers can use as evidence; employer policies may vary.",
       },
       {
         title: "Affordability",
@@ -1075,8 +1075,8 @@ export const benefitPages: BenefitPage[] = [
     ],
     faqs: [
       {
-        q: "Is an online medical certificate as valid as one from my GP?",
-        a: "Completely. It's issued by a registered doctor and has the same legal standing. Employers can assess it under workplace policy.",
+        q: "Can an online medical certificate be used like one from my GP?",
+        a: "For routine sick-leave evidence, yes, when online assessment is clinically appropriate. It is issued by a registered doctor and employers assess it under workplace policy.",
       },
       {
         q: "Will my GP know I used an online service?",

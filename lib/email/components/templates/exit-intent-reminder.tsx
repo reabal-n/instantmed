@@ -48,7 +48,7 @@ export function ExitIntentReminderEmail({
 
       <Text muted small>
         From {price}. Full refund if we can&apos;t help. No appointment to book;
-        the doctor follows up if clinically needed.
+        follow-up only if something important is missing.
       </Text>
     </BaseEmail>
   )

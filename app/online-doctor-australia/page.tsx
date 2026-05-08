@@ -110,7 +110,7 @@ const FAQS = [
   {
     question: "Are InstantMed's doctors registered with AHPRA?",
     answer:
-      "Yes. Every doctor reviewing requests on InstantMed holds current general registration with the Australian Health Practitioner Regulation Agency (AHPRA) and practises under RACGP-aligned clinical protocols. You can verify any Australian doctor on the public AHPRA register at ahpra.gov.au/Registration.",
+      "Yes. Doctors reviewing requests on InstantMed hold current registration with the Australian Health Practitioner Regulation Agency (AHPRA) and work from documented clinical protocols. You can verify Australian doctors on the public AHPRA register at ahpra.gov.au/Registration.",
   },
   {
     question: "Can I see an online doctor without a Medicare card?",
@@ -314,7 +314,7 @@ export default function OnlineDoctorAustraliaPage() {
                   At InstantMed, the majority of requests fall into three buckets: a medical
                   certificate for a brief illness, a repeat prescription for a medication you&apos;ve
                   already been stable on, or a consultation about a new or ongoing symptom. Each one
-                  is handled by a doctor who reads your history, applies RACGP-aligned clinical
+                  is handled by a doctor who reads your history, applies documented clinical
                   reasoning, and either issues what you need or writes back explaining why they
                   can&apos;t. If they decline, you get a full refund - we would rather lose a fee
                   than issue something that isn&apos;t clinically appropriate.
@@ -505,9 +505,9 @@ export default function OnlineDoctorAustraliaPage() {
                   from your local GP.
                 </p>
                 <p>
-                  Clinical protocols follow RACGP (Royal Australian College of General Practitioners)
-                  guidance. InstantMed&apos;s internal triage rules, question sets, and decision
-                  support are all anchored to current RACGP standards. We maintain clinical
+                  Clinical protocols are documented and reviewed against relevant Australian
+                  medical, prescribing, privacy, and telehealth requirements. InstantMed&apos;s
+                  internal triage rules, question sets, and decision support are versioned. We maintain clinical
                   governance oversight, audit a sample of clinical decisions, and log every
                   consultation for the full period required by each state&apos;s health records
                   legislation. This isn&apos;t unique to us - it&apos;s the baseline every telehealth

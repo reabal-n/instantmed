@@ -27,7 +27,7 @@ export const GUIDE_INDEX: GuideIndexEntry[] = [
   {
     slug: "how-to-get-medical-certificate-for-work",
     title: "How to Get a Medical Certificate for Work",
-    description: "A complete guide to getting a valid medical certificate for work in Australia. Learn your options, what employers accept, and the fastest ways to get one.",
+    description: "A complete guide to getting routine sick-leave evidence for work in Australia. Learn your options, what employers review, and the fastest ways to request one.",
     readTime: "6 min read",
     category: "Medical Certificates",
   },
@@ -47,8 +47,8 @@ export const GUIDE_INDEX: GuideIndexEntry[] = [
   },
   {
     slug: "medical-certificate-centrelink",
-    title: "How to Get a Medical Certificate for Centrelink",
-    description: "Need a medical certificate for Centrelink? Learn what each payment type requires, avoid common mistakes, and get compliant documentation fast.",
+    title: "Centrelink Medical Evidence: Forms and Limits",
+    description: "Need medical evidence for Centrelink? Learn what each payment type may require, when specific forms matter, and when a short certificate is not enough.",
     readTime: "7 min read",
     category: "Medical Certificates",
   },

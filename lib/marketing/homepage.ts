@@ -75,10 +75,6 @@ export const serviceCategories = [
       "Delivered to your inbox same-day",
       "AHPRA-registered doctor on every cert",
     ],
-    testimonial: {
-      quote: "Doctor-reviewed certificate request, no waiting room.",
-      author: "Sarah, Sydney"
-    },
   },
   {
     id: "scripts",
@@ -98,10 +94,6 @@ export const serviceCategories = [
       "Repeats included where appropriate",
       "Sent to your phone via SMS"
     ],
-    testimonial: {
-      quote: "Script on my phone in 30 minutes. Took it to the chemist that afternoon.",
-      author: "David, Melbourne"
-    },
   },
   {
     id: "consult",
@@ -121,10 +113,6 @@ export const serviceCategories = [
       "Medication and referrals if needed",
       "Full refund if we can't help",
     ],
-    testimonial: {
-      quote: "Spoke to a doctor within the hour. Got a referral sorted without leaving work.",
-      author: "Tom, Adelaide"
-    },
   },
   {
     id: "ed",
@@ -144,10 +132,6 @@ export const serviceCategories = [
       "eScript sent if approved",
       "Prescription only if appropriate",
     ],
-    testimonial: {
-      quote: "Private, structured assessment reviewed by a doctor.",
-      author: "James, Brisbane"
-    },
   },
   {
     id: "hair-loss",
@@ -167,10 +151,6 @@ export const serviceCategories = [
       "No waiting room",
       "eScript sent straight to your phone",
     ],
-    testimonial: {
-      quote: "Private assessment with doctor review.",
-      author: "Mark, Perth"
-    },
   },
   {
     id: "womens-health",
@@ -312,7 +292,7 @@ export const faqItems = [
   },
   {
     question: "How fast is it really?",
-    answer: "Medical certificates are typically issued in under 20 minutes, available 24/7. Prescription and consultation requests can be submitted 24/7 and are usually reviewed within 1–2 hours during review hours. You'll get email updates as things progress, so you're not left wondering.",
+    answer: "Medical certificate requests are open 24/7. Prescription and consultation requests can be submitted any time and are reviewed during clinical review hours. You'll get email updates as things progress, so you're not left wondering.",
   },
   {
     question: "Is my information private?",
@@ -343,7 +323,6 @@ export const footerLinks = {
   company: [
     { label: "About Us", href: "/about" },
     { label: "Pricing", href: "/pricing" },
-    { label: "Reviews", href: "/reviews" },
     { label: "Health Guides", href: "/blog" },
     { label: "Your Options", href: "/alternatives" },
     { label: "What we won't do", href: "/what-we-wont-do" },

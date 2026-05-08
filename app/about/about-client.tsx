@@ -29,12 +29,12 @@ const ABOUT_FAQS = [
   {
     question: "Is InstantMed a real medical practice?",
     answer:
-      "Yes. InstantMed is operated by registered medical practitioners with AHPRA oversight and Medical Director governance. Certificates and prescriptions issued through InstantMed carry the same legal standing as those from any other medical practice in Australia.",
+      "Yes. InstantMed is operated under AHPRA-registered clinical governance. Certificates include the reviewing doctor's details and a secure verification ID; prescriptions are handled through Australia's eScript infrastructure.",
   },
   {
     question: "Where is InstantMed based?",
     answer:
-      "InstantMed is based at Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010. All doctors on the platform are Australian-based and AHPRA-registered.",
+      "InstantMed is based at Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010. Clinical reviews are handled by Australian-based AHPRA-registered doctors.",
   },
   {
     question: "Is InstantMed covered by Medicare?",
@@ -44,7 +44,7 @@ const ABOUT_FAQS = [
   {
     question: "What services does InstantMed offer?",
     answer:
-      "We offer medical certificates (for work, university, and carer's leave), repeat prescriptions for stable medications, general consultations, and specialised pathways for hair loss, weight management, and men's and women's health.",
+      "We offer medical certificates, repeat prescriptions, general consultations, and specialised pathways for ED and hair loss. Weight management and women's health are planned, but not open yet.",
   },
   {
     question: "How does InstantMed protect my privacy?",
@@ -58,7 +58,7 @@ const VALUES = [
     icon: <StickerIcon name="security-shield" size={48} />,
     title: "Clinical rigour",
     description:
-      "Every request is reviewed by an AHPRA-registered GP following evidence-based protocols. We never automate clinical decisions.",
+      "AHPRA-registered doctor review, documented protocols, and hard safety boundaries. We never automate clinical decisions.",
   },
   {
     icon: <StickerIcon name="lock" size={48} />,
@@ -70,7 +70,7 @@ const VALUES = [
     icon: <StickerIcon name="accessibility" size={48} />,
     title: "Accessible care",
     description:
-      "24/7 medical certificates, plus form-first specialty services where a doctor contacts you only if clinically needed.",
+      "24/7 medical certificate requests, plus form-first prescription and specialty pathways. We only interrupt you when a key detail is missing.",
   },
   {
     icon: <StickerIcon name="eye" size={48} />,
@@ -82,7 +82,6 @@ const VALUES = [
 
 const REGULATORY_LOGOS = [
   { name: "AHPRA", src: "/logos/ahpra.svg" },
-  { name: "RACGP", src: "/logos/racgp.svg" },
   { name: "TGA", src: "/logos/tga.svg" },
   { name: "LegitScript", src: "/logos/legitscript.svg" },
 ]
@@ -250,8 +249,8 @@ export function AboutClient() {
 
           {/* CTA */}
           <CTABanner
-            title="Ready to experience better healthcare?"
-            subtitle={`Join ${patientCount.toLocaleString()}+ Australians who trust InstantMed for their healthcare.`}
+            title="Ready to start?"
+            subtitle="Secure form first. No appointment, no waiting room, and a doctor reviews before anything is issued."
             ctaText="Start a request"
             ctaHref="/request"
           />

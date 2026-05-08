@@ -420,7 +420,7 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
                 id="nominals"
                 value={formData.nominals || ""}
                 onChange={(e) => handleInputChange("nominals", e.target.value || null)}
-                placeholder="MBBS, FRACGP"
+                placeholder="MBBS"
               />
               <p className="text-xs text-muted-foreground">
                 Professional qualifications shown after name on certificates

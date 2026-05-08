@@ -86,7 +86,7 @@ export const prescriptionGuides: Record<string, GuideData> = {
       },
       {
         title: "When you might still encounter paper",
-        content: "While eScripts are now the default, some situations may still involve paper prescriptions. A small number of very old prescribing systems haven't transitioned yet. Some patients prefer paper - you can ask your doctor for a printed version. Certain hospital discharge prescriptions may still be on paper. And some compounding pharmacies prefer paper for complex preparations. In all cases, paper scripts remain legally valid alongside eScripts.",
+        content: "While eScripts are now the default, some situations may still involve paper prescriptions. A small number of very old prescribing systems haven't transitioned yet. Some patients prefer paper - you can ask your doctor for a printed version. Certain hospital discharge prescriptions may still be on paper. And some compounding pharmacies prefer paper for complex preparations. In all cases, paper scripts remain doctor-issued alongside eScripts.",
         tips: [
           "You can request a paper script if you prefer - just ask your doctor",
           "Some hospital discharge scripts may still be paper",

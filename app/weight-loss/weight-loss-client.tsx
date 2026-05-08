@@ -221,7 +221,7 @@ export function WeightLossClient() {
                 <span className="text-primary">Doctor-supervised</span> weight management.
               </>
             }
-            body="Not a meal-plan subscription. Not a wellness program. A structured doctor review for adults with BMI 30+ (or 27+ with related conditions), with follow-up if clinically needed. The clinical framing matters. Your doctor checks suitability, safety, and whether online care is appropriate."
+            body="Not a meal-plan subscription. Not a wellness program. A structured doctor review for adults with BMI 30+ (or 27+ with related conditions), with follow-up only when something important is missing. The clinical framing matters. Your doctor checks suitability, safety, and whether online care is appropriate."
           />
 
           {/* Hero image */}

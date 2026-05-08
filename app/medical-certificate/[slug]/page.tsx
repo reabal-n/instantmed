@@ -1,7 +1,7 @@
-import { ArrowRight, CheckCircle2, Shield, Star, Zap } from "lucide-react"
+import { ArrowRight, CheckCircle2, Shield, Zap } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
-import { notFound, redirect } from "next/navigation"
+import { notFound, permanentRedirect, redirect } from "next/navigation"
 
 import { MedCertIntentPage } from "@/components/marketing"
 import { BreadcrumbSchema, FAQSchema, MedicalServiceSchema } from "@/components/seo"
@@ -12,9 +12,12 @@ import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import {
   isMedCertIntentSlug,
-  MED_CERT_INTENT_SLUGS,
   medCertIntentConfigs,
 } from "@/lib/marketing/med-cert-intent-config"
+import {
+  getSupportedMedCertIntentSlugs,
+  unsupportedMedCertRedirectPath,
+} from "@/lib/medical-cert/unsupported-use-cases"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 export const revalidate = 3600 // ISR: revalidate every hour
@@ -32,7 +35,6 @@ const suburbs: Record<
     region?: string
     population?: string
     localFlair: string
-    testimonial?: { name: string; quote: string; occupation: string }
   }
 > = {
   sydney: {
@@ -41,11 +43,6 @@ const suburbs: Record<
     stateShort: "NSW",
     population: "5.3 million",
     localFlair: "From Bondi to Parramatta",
-    testimonial: {
-      name: "Marcus T.",
-      quote: "Got my cert sorted on the train to work. Certificate in my inbox before I reached Central.",
-      occupation: "Project Manager",
-    },
   },
   parramatta: {
     name: "Parramatta",
@@ -60,11 +57,6 @@ const suburbs: Record<
     stateShort: "VIC",
     population: "5.1 million",
     localFlair: "From St Kilda to the outer suburbs",
-    testimonial: {
-      name: "Sarah L.",
-      quote: "Way easier than waiting 3 weeks for a GP appointment in the inner north.",
-      occupation: "Marketing Coordinator",
-    },
   },
   brisbane: {
     name: "Brisbane",
@@ -72,11 +64,6 @@ const suburbs: Record<
     stateShort: "QLD",
     population: "2.5 million",
     localFlair: "From the Valley to the bayside",
-    testimonial: {
-      name: "Emma T.",
-      quote: "Perfect for when you need something quick without leaving Fortitude Valley.",
-      occupation: "Hospitality Worker",
-    },
   },
   perth: {
     name: "Perth",
@@ -138,6 +125,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return {}
   }
 
+  const unsupportedRedirect = unsupportedMedCertRedirectPath(slug)
+  if (unsupportedRedirect) {
+    return {
+      title: "Unsupported medical certificate request | InstantMed",
+      description:
+        "Some medical certificate requests need a different pathway, including Centrelink-specific forms, return-to-work clearances, site medicals, and fitness-for-duty requests.",
+      robots: { index: false, follow: false },
+    }
+  }
+
   // Intent pages
   if (isMedCertIntentSlug(slug)) {
     const config = medCertIntentConfigs[slug]
@@ -197,7 +194,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 // ============================================
 
 export async function generateStaticParams() {
-  const intentParams = MED_CERT_INTENT_SLUGS.map((slug) => ({ slug }))
+  const intentParams = getSupportedMedCertIntentSlugs().map((slug) => ({ slug }))
   const suburbParams = Object.keys(suburbs).map((slug) => ({ slug }))
   return [...intentParams, ...suburbParams]
 }
@@ -212,6 +209,8 @@ export default async function MedCertSlugPage({ params }: PageProps) {
   // Redirect legacy slugs to canonical intent pages
   if (slug === "uni") redirect("/medical-certificate/university")
   if (slug === "carers") redirect("/medical-certificate/carer")
+  const unsupportedRedirect = unsupportedMedCertRedirectPath(slug)
+  if (unsupportedRedirect) permanentRedirect(unsupportedRedirect)
 
   // =========== INTENT PAGES (work, study, carer, sick-leave, university, school, return-to-work) ===========
   if (isMedCertIntentSlug(slug)) {
@@ -291,8 +290,8 @@ export default async function MedCertSlugPage({ params }: PageProps) {
               </h1>
 
               <p className="text-lg text-background/70 mb-8 max-w-2xl mx-auto">
-                Get a valid medical certificate from AHPRA-registered doctors. No waiting rooms, no
-                appointments. Reviewed in ~15 minutes.
+                Request a routine sick, study, or carer&apos;s leave certificate from AHPRA-registered
+                doctors. No waiting rooms, no appointments.
               </p>
 
               <div className="flex flex-wrap justify-center gap-4 mb-8">
@@ -317,27 +316,9 @@ export default async function MedCertSlugPage({ params }: PageProps) {
                 </Button>
               </Link>
 
-              <p className="mt-4 text-sm text-background/60">{PRICING_DISPLAY.FROM_MED_CERT} • No phone call required</p>
+              <p className="mt-4 text-sm text-background/60">{PRICING_DISPLAY.FROM_MED_CERT} • No appointment, no waiting room</p>
             </div>
           </section>
-
-          {data.testimonial && (
-            <section className="px-4 py-12 bg-white/5">
-              <div className="mx-auto max-w-2xl text-center">
-                <div className="flex justify-center gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <blockquote className="text-lg text-background/80 mb-4">
-                  &ldquo;{data.testimonial.quote}&rdquo;
-                </blockquote>
-                <p className="text-sm text-background/60">
-                  - {data.testimonial.name}, {data.testimonial.occupation}
-                </p>
-              </div>
-            </section>
-          )}
 
           <section className="px-4 py-16">
             <div className="mx-auto max-w-4xl">

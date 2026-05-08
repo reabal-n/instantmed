@@ -56,7 +56,7 @@ export const SOCIAL_PROOF = {
   // SINGLE SOURCE OF TRUTH for ratings - lib/constants REVIEW_AGGREGATE derives from these.
   // Update values here only; never edit REVIEW_AGGREGATE directly.
   averageRating: 5.0,
-  /** Verified reviews count - must match GOOGLE_REVIEWS.count. Update here only. */
+  /** Verified Google rating count - must match GOOGLE_REVIEWS.count. Update here only. */
   reviewCount: 3,
 
   // ── Response Times ──

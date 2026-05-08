@@ -701,13 +701,14 @@ export function TrustBadgeGrid({ preset, badges, className }: TrustBadgeGridProp
           return (
             <Tooltip key={id}>
               <TooltipTrigger asChild>
-                <div className="flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-card border border-border/30 shadow-md shadow-primary/[0.06] hover:shadow-lg hover:-translate-y-0.5 transition-[transform,box-shadow] duration-300 cursor-help">
-                  <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center shrink-0',
+                <div className="group relative overflow-hidden flex items-center gap-3 p-4 rounded-2xl bg-white/95 dark:bg-card border border-border/40 shadow-sm shadow-primary/[0.04] hover:border-primary/25 hover:shadow-lg hover:shadow-primary/[0.07] hover:-translate-y-0.5 transition-[transform,box-shadow,border-color] duration-300 cursor-help">
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
+                  <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ring-1 ring-black/[0.03] dark:ring-white/10',
                     config.pillClass ? config.pillClass.split(' ').slice(0, 2).join(' ') : 'bg-muted'
                   )}>
                     <Icon className={cn('w-5 h-5', config.iconColor)} aria-hidden="true" />
                   </div>
-                  <p className="text-sm font-semibold text-foreground leading-tight">{config.label}</p>
+                  <p className="text-sm font-semibold text-foreground leading-tight tracking-normal">{config.label}</p>
                 </div>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-[200px] text-xs">

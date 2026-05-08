@@ -35,7 +35,6 @@ export { GoogleAdsCert } from "./google-ads-cert"
 export { GoogleReviewsBadge } from "./google-reviews-badge"
 export { GUARANTEE_HREF,GuaranteeBadge } from "./guarantee-badge"
 export { LegitScriptSeal } from "./legitscript-seal"
-export { RecentReviewsTicker } from "./recent-reviews-ticker"
 export { RegulatoryPartners } from "./regulatory-partners"
 export { TrustBadgeSlider } from "./trust-badge-slider"
 

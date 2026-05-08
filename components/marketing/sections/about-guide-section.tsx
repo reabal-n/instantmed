@@ -31,7 +31,7 @@ const GUIDE_SECTIONS: Array<{
     paragraphs: [
       "Most telehealth services in Australia use video or phone consultations - essentially replicating a GP waiting room, but on a screen. InstantMed takes a different approach. Our model is asynchronous: you fill in a structured clinical form at a time that suits you, and a doctor reviews your request and supporting information when they're ready to give it proper attention. No scheduling, no hold music, no awkward video calls from your car park.",
       "This works because for many common presentations - gastro, cold and flu, back pain, period pain, stable repeat prescriptions - the clinical information a doctor needs is primarily history-based. What are your symptoms? How long have you had them? What medications are you on? Do you have any relevant medical conditions? A well-designed intake form collects this information more systematically than a rushed five-minute appointment ever could.",
-      "The doctor reviewing your request has access to the same clinical information they would in a consultation: your symptoms, medical history, current medications, and any relevant context. If they need more information, they'll ask. If they're not satisfied that your request is clinically appropriate, they won't approve it. The standard of care is the same - only the delivery mechanism is different. Most requests don't require a phone call, but if a doctor determines one is necessary, they'll arrange it.",
+      "The doctor reviewing your request has access to the same clinical information they would in a consultation: your symptoms, medical history, current medications, and any relevant context. If something important is missing, we'll ask. If the request is not suitable, it won't be approved. The standard of care is the same - only the delivery mechanism is different. Most requests do not need a booked appointment.",
     ],
   },
   {
@@ -39,8 +39,8 @@ const GUIDE_SECTIONS: Array<{
     sticker: "security-shield",
     title: "Our commitment to clinical standards",
     paragraphs: [
-      "Every doctor on InstantMed is registered with the Australian Health Practitioner Regulation Agency (AHPRA) and holds a current, unrestricted medical licence. Our clinical operations are overseen by a Medical Director with Fellowship of the Royal Australian College of General Practitioners (FRACGP), who is responsible for clinical governance, protocol development, and quality assurance.",
-      "Our clinical protocols are aligned with RACGP Standards for General Practices and the RACGP guide to providing telephone and video consultations. We conduct regular clinical audits - peer review of decisions, consistency checks, and outcome tracking. Every doctor on the platform follows the same evidence-based protocols, and we maintain a clear scope of practice: we focus on low-complexity, high-frequency presentations where telehealth is clinically appropriate.",
+      "Clinical review on InstantMed is handled by AHPRA-registered doctors working from documented protocols, hard scope limits, and an audit trail that records the reasoning behind each decision.",
+      "We track approvals, declines, escalations, refunds, complaints, and protocol changes so the service can improve without loosening its boundaries. The platform is built around a clear scope of practice: low-complexity, high-frequency presentations where telehealth can be handled safely.",
       "When something falls outside our scope - symptoms that suggest the need for a physical examination, conditions requiring imaging or blood work, workplace injuries needing WorkCover documentation - we refer patients to in-person care. We're not trying to replace your regular GP. We fill a specific gap in primary care access, and we know exactly where that gap ends.",
     ],
   },
@@ -82,7 +82,7 @@ export function AboutGuideSection() {
         <Reveal className="text-center mb-12">
           <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/20 text-xs font-medium text-primary mb-4">
             <BadgeCheck className="h-3.5 w-3.5" />
-            Medically reviewed by AHPRA-registered GPs
+            AHPRA-registered clinical review
           </div>
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight mb-3">
             Who we are and how we work

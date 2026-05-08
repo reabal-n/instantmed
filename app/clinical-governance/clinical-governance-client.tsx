@@ -25,16 +25,16 @@ import { Heading } from "@/components/ui/heading"
 
 const heroStats: StatItem[] = [
   { value: 100, suffix: "%", label: "AHPRA-registered doctors" },
-  { value: 5, suffix: "th ed.", label: "RACGP Standards aligned" },
+  { value: 13, label: "Privacy principles covered" },
   { value: 0, prefix: "S", suffix: " substances", label: "Controlled drugs prescribed" },
 ]
 
 const standardsChecklist: ChecklistItem[] = [
-  { text: "RACGP Standards for General Practices (5th edition)" },
+  { text: "AHPRA registration and technology-based consultation guidance" },
   { text: "Therapeutic Goods Administration (TGA) prescribing regulations" },
   { text: "Pharmaceutical Benefits Scheme (PBS) guidelines" },
   { text: "Australian Privacy Principles (APP)" },
-  { text: "AHPRA Telehealth Guidelines" },
+  { text: "Documented scope-of-practice and escalation rules" },
 ]
 
 const reviewProcess: TimelineStep[] = [
@@ -51,7 +51,7 @@ const reviewProcess: TimelineStep[] = [
   {
     title: "Continuous Improvement",
     description:
-      "Quarterly protocol reviews, post-incident reviews and process updates, integration of new RACGP/TGA guidelines, and ongoing CPD in line with AHPRA requirements.",
+      "Quarterly protocol reviews, post-incident reviews and process updates, relevant regulatory updates, and ongoing CPD in line with AHPRA requirements.",
   },
 ]
 
@@ -84,13 +84,13 @@ const safeguards: FeatureItem[] = [
     icon: <StickerIcon name="synchronize" size={44} />,
     title: "Continuous Improvement",
     description:
-      "Quarterly protocol reviews, post-incident reviews, integration of new RACGP/TGA guidelines, and ongoing CPD.",
+      "Quarterly protocol reviews, post-incident reviews, regulatory updates, and ongoing CPD.",
   },
   {
     icon: <StickerIcon name="medical-history" size={44} />,
     title: "Evidence-Based Protocols",
     description:
-      "Clinical processes align with RACGP Standards, TGA regulations, PBS guidelines, and AHPRA Telehealth Guidelines.",
+      "Clinical processes align with AHPRA guidance, TGA regulations, PBS requirements, privacy law, and documented service boundaries.",
   },
 ]
 
@@ -104,7 +104,7 @@ const guideSections: GuideSectionData[] = [
     paragraphs: [
       "Clinical governance is the framework that ensures healthcare organisations deliver safe, effective, and accountable care. In a traditional GP clinic, governance happens partly by proximity - doctors work alongside colleagues, practice managers observe workflows, and patients interact face-to-face with their care team. Telehealth removes that proximity, which means governance has to be more deliberate, more structured, and more transparent.",
       "At InstantMed, patients submit health information through structured intake forms rather than describing symptoms in a consulting room. A doctor reviews that information asynchronously - there is no physical examination, no visual cues from body language, and no opportunity to ask follow-up questions in real time. This makes the quality of the intake process, the clinical decision-making framework, and the audit trail significantly more important than they might be in a face-to-face setting.",
-      "Our governance framework exists to answer a straightforward question: how do we ensure that every clinical decision made on this platform meets the same standard a patient would expect from a well-run general practice? The answer involves structured protocols, peer review, defined scope boundaries, and continuous improvement - none of which are optional, and all of which are documented here.",
+      "Our governance framework exists to answer a straightforward question: how do we ensure that every clinical decision made on this platform is consistent, documented, and inside scope? The answer involves structured protocols, audit trails, defined boundaries, and continuous improvement - none of which are optional, and all of which are documented here.",
     ],
   },
   {
@@ -147,7 +147,7 @@ const guideSections: GuideSectionData[] = [
     paragraphs: [
       "InstantMed operates within the regulatory framework established by several Australian bodies. The Australian Health Practitioner Regulation Agency (AHPRA) registers and regulates all health practitioners in Australia - every doctor on our platform holds current, unrestricted AHPRA registration, which can be independently verified on the public register. AHPRA's codes of conduct and guidelines for technology-based consultations inform our clinical protocols directly.",
       "The Therapeutic Goods Administration (TGA) regulates the prescription and supply of therapeutic goods in Australia. Our prescribing protocols comply with TGA scheduling requirements, and our scope exclusions (particularly around Schedule 8 substances) reflect both TGA regulations and our own clinical risk assessment. The Pharmaceutical Benefits Scheme (PBS) guidelines inform our approach to repeat prescriptions, ensuring that subsidised medications are prescribed in accordance with PBS requirements.",
-      "Our clinical standards align with the Royal Australian College of General Practitioners (RACGP) Standards for General Practices, 5th edition. While these standards were primarily designed for traditional general practice, their principles - clinical governance, patient safety, continuous improvement, and professional development - are directly applicable to telehealth. We apply them as a benchmark for our own processes.",
+      "Our clinical governance is built around Australian medical regulation, privacy law, prescribing rules, documented scope boundaries, and the realities of asynchronous telehealth. We do not claim third-party college accreditation unless it has been formally granted.",
       "Patient privacy is governed by the Australian Privacy Principles (APPs) under the Privacy Act 1988. We collect only the health information necessary to provide the requested service, store it with field-level encryption, and do not share it with third parties except where required for clinical care or by law. Our privacy practices are documented in our Privacy Policy, and patients can request access to their health information at any time. The Fair Work Act 2009 is also relevant to our medical certificate service - certificates issued through InstantMed comply with the evidentiary requirements for workplace absence documentation.",
     ],
   },
@@ -158,11 +158,11 @@ const guideSections: GuideSectionData[] = [
 const clinicalGovernanceFaqs = [
   {
     question: "Who reviews clinical protocols at InstantMed?",
-    answer: "Our Medical Director - an AHPRA-registered practising GP - designs and reviews all clinical protocols. Protocols are updated quarterly, or sooner when new clinical guidelines are published by RACGP, TGA, or other relevant bodies. Protocol changes are version-controlled, documented with rationale, and audited for compliance.",
+    answer: "AHPRA-registered medical leadership designs and reviews the clinical protocols. Protocols are updated quarterly, or sooner when TGA, AHPRA, PBS, privacy, or other relevant requirements change. Protocol changes are version-controlled, documented with rationale, and audited for compliance.",
   },
   {
     question: "What are the practitioner qualifications?",
-    answer: "InstantMed currently operates with a single AHPRA-registered general practitioner who serves as both the treating doctor and Medical Director. Registration is current, unrestricted, and independently verifiable on the AHPRA public register. All clinical work is conducted within the Medical Director's scope of training and against written protocols.",
+    answer: "Clinical reviews are performed by Australian AHPRA-registered doctors. Registration is current, independently verifiable on the AHPRA public register, and clinical work is conducted within the doctor's scope of training and against written protocols.",
   },
   {
     question: "How are clinical decisions audited?",
@@ -178,7 +178,7 @@ const clinicalGovernanceFaqs = [
   },
   {
     question: "Do you follow the same standards as regular GP clinics?",
-    answer: "Our clinical standards align with the RACGP Standards for General Practices (5th edition), which is the same framework used to accredit traditional general practices. The key difference is context - telehealth requires additional governance around the intake process, the limitations of remote assessment, and the criteria for referring patients to in-person care. We apply the same clinical principles with additional safeguards specific to asynchronous consultation.",
+    answer: "We use clinical governance, patient-safety, privacy, escalation, and documentation standards appropriate to asynchronous telehealth. We do not claim third-party college accreditation unless it has been formally granted. The key difference is context: telehealth needs extra governance around intake quality, remote-assessment limits, and when to send someone to in-person care.",
   },
   {
     question: "How do you ensure prescribing safety?",
@@ -190,11 +190,11 @@ const clinicalGovernanceFaqs = [
   },
   {
     question: "How often are your protocols updated?",
-    answer: "Clinical protocols are formally reviewed quarterly by our Medical Director. However, updates occur more frequently when triggered by new clinical guidelines from RACGP or TGA, post-incident reviews, emerging evidence relevant to our scope of practice, or regulatory changes. All protocol changes are version-controlled and documented with rationale before implementation.",
+    answer: "Clinical protocols are formally reviewed quarterly. Updates occur sooner when triggered by TGA or AHPRA changes, post-incident reviews, emerging evidence relevant to our scope of practice, or regulatory changes. All protocol changes are version-controlled and documented with rationale before implementation.",
   },
   {
     question: "Is there a Medical Director overseeing care?",
-    answer: "Yes. Our Medical Director is an AHPRA-registered practising GP who provides clinical oversight across all services. This includes designing and reviewing protocols, auditing clinical decisions, managing incident investigations, and ensuring alignment with RACGP, AHPRA, and TGA requirements. Medical Director oversight is not a marketing claim - it is a structural requirement of our clinical governance framework.",
+    answer: "Yes. AHPRA-registered medical leadership provides clinical oversight across services. This includes protocol review, clinical audit, incident review, and alignment with AHPRA, TGA, PBS, privacy, and service-scope requirements.",
   },
   {
     question: "How do you handle conflicts of interest?",
@@ -278,9 +278,9 @@ export default function ClinicalGovernanceClient() {
               Independent verification
             </Heading>
             <p className="text-muted-foreground mb-6">
-              Our Medical Director&apos;s registration can be independently verified on
-              the AHPRA public register. Our clinical standards align with RACGP
-              guidelines for general practice.
+              The treating doctor&apos;s registration can be independently verified on
+              the AHPRA public register. Clinical governance is documented through
+              written protocols, audits, incident review, and escalation rules.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button
@@ -295,20 +295,6 @@ export default function ClinicalGovernanceClient() {
                 >
                   <ExternalLink className="w-4 h-4 mr-2" />
                   AHPRA Register
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="rounded-full bg-transparent"
-              >
-                <Link
-                  href="https://www.racgp.org.au/running-a-practice/practice-standards"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  RACGP Standards
                 </Link>
               </Button>
             </div>

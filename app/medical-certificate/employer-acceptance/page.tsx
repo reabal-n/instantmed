@@ -39,8 +39,8 @@ const faqs = [
     answer: "Yes. Medical certificates issued by AHPRA-registered doctors via telehealth can support workplace evidence requirements. Employer policies may vary.",
   },
   {
-    question: "What makes a medical certificate valid for employers?",
-    answer: "A valid certificate must be issued by a registered medical practitioner and include: the doctor's name, their AHPRA registration or provider number, the dates the patient was unfit for work, and the doctor's signature. InstantMed certificates include all of these.",
+    question: "What should workplace certificate evidence include?",
+    answer: "Routine workplace evidence is usually strongest when it includes the doctor's name, AHPRA registration or provider number, stated absence dates, and the doctor's signature. InstantMed certificates include those standard details.",
   },
   {
     question: "Can my employer refuse an online medical certificate?",
@@ -112,7 +112,7 @@ export default function EmployerAcceptancePage() {
           {/* What Makes It Valid */}
           <section className="px-4 py-16 bg-muted/30 dark:bg-card/40">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-semibold text-center mb-4">What makes a certificate legitimate</h2>
+              <h2 className="text-2xl font-semibold text-center mb-4">What makes certificate evidence useful</h2>
               <p className="text-center text-muted-foreground mb-10 max-w-2xl mx-auto">
                 InstantMed certificates include the details workplaces commonly review.
               </p>
@@ -148,7 +148,7 @@ export default function EmployerAcceptancePage() {
                     <div>
                       <h3 className="font-semibold mb-1">Australian-based practice</h3>
                       <p className="text-sm text-muted-foreground">
-                        Our clinicians and operations are 100% based in Australia. We&apos;re not an offshore service or certificate mill.
+                        Our operations are based in Australia, with certificate verification handled through InstantMed records.
                       </p>
                     </div>
                   </div>
@@ -174,7 +174,7 @@ export default function EmployerAcceptancePage() {
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-semibold text-center mb-4">What the Fair Work Act says</h2>
               <p className="text-center text-muted-foreground mb-10">
-                Australian workplace law supports the use of medical certificates from registered practitioners.
+                Fair Work guidance focuses on evidence that would satisfy a reasonable person.
               </p>
 
               <div className="rounded-xl border border-border/50 bg-white p-6 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none">
@@ -187,9 +187,9 @@ export default function EmployerAcceptancePage() {
                       satisfy a reasonable person, such as a medical certificate from a registered health practitioner.
                     </p>
                     <p className="text-sm">
-                      A certificate from an AHPRA-registered doctor, whether issued in person or via telehealth,
-                      can be used for this purpose. The <strong>Medical Board of Australia</strong> recognises telehealth as a
-                      legitimate mode of healthcare delivery when clinically appropriate.
+                      A certificate from an AHPRA-registered doctor can be used as evidence for this purpose.
+                      The <strong>Medical Board of Australia</strong> recognises telehealth as a mode of healthcare delivery
+                      when clinically appropriate, while also making clear that not every request is suitable online.
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Note: This is general information, not legal advice. Specific workplace policies may vary.
@@ -205,7 +205,7 @@ export default function EmployerAcceptancePage() {
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-semibold text-center mb-4">What your certificate includes</h2>
               <p className="text-center text-muted-foreground mb-10">
-                Every certificate contains the information employers need.
+                Each certificate includes standard document details for workplace review.
               </p>
 
               <div className="rounded-xl border border-border/50 bg-white p-6 shadow-sm shadow-primary/[0.04] space-y-4 dark:border-white/15 dark:bg-card dark:shadow-none">

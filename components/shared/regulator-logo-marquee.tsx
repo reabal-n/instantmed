@@ -9,7 +9,6 @@ const REGULATOR_LOGOS = [
   { name: 'AHPRA', src: '/logos/AHPRA.png', width: 120, height: 40 },
   { name: 'TGA', src: '/logos/TGA.png', width: 80, height: 40 },
   { name: 'Medicare', src: '/logos/medicare.png', width: 110, height: 40 },
-  { name: 'RACGP', src: '/logos/RACGP.png', width: 90, height: 40 },
   { name: 'NATA', src: '/logos/NATA.png', width: 80, height: 40 },
   { name: 'ADHA', src: '/logos/adha.png', width: 110, height: 40 },
 ]
@@ -21,7 +20,7 @@ interface RegulatorLogoMarqueeProps {
 
 export function RegulatorLogoMarquee({
   className,
-  label = 'Compliant with',
+  label = 'Compliance stack',
 }: RegulatorLogoMarqueeProps) {
   const prefersReducedMotion = useReducedMotion()
 

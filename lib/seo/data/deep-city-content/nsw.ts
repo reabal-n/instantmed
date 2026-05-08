@@ -35,7 +35,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Understanding Medical Certificates in NSW",
         paragraphs: [
-          "Under the Fair Work Act 2009, Australian employees are entitled to personal/carer's leave (10 days per year for full-time workers). Employers can request evidence for absences, but the Act doesn't specify that a certificate must come from a face-to-face consultation. A certificate from an AHPRA-registered doctor via telehealth carries the same legal weight as one from your local clinic.",
+          "Under the Fair Work Act 2009, Australian employees are entitled to personal/carer's leave (10 days per year for full-time workers). Employers can request evidence for absences, and the Act uses an evidence standard rather than a consultation-format rule. A certificate from an AHPRA-registered doctor via telehealth can support routine absence review.",
           "NSW employers, including state government agencies, assess telehealth-issued medical certificates under their own policies. The certificate must include the doctor's name and AHPRA registration, the date of consultation, and the recommended period of absence. InstantMed certificates include all required elements and are formatted identically to what you'd receive from a GP clinic.",
           "For university students in Sydney - whether at USYD, UNSW, UTS, Macquarie, or WSU - our certificates are used as supporting documentation for academic support requests, coursework documentation, and missed assessment documentation. Each university has slightly different requirements, but all set their own policies for certificates from AHPRA-registered doctors regardless of consultation method.",
         ],
@@ -91,7 +91,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Medical Certificates in NSW",
         paragraphs: [
-          "Newcastle employers - from BHP to the University of Newcastle, from Hunter New England Health to local cafes in Darby Street - all fall under the Fair Work Act 2009. Certificates from AHPRA-registered doctors are valid regardless of consultation method. The mining sector, which often has stricter internal policies, is bound by the same legal framework.",
+          "Newcastle employers - from BHP to the University of Newcastle, from Hunter New England Health to local cafes in Darby Street - all fall under the Fair Work Act 2009. Certificates from AHPRA-registered doctors can support routine absence evidence, and employer policies still apply. The mining sector often has stricter internal processes for clearances and site medicals.",
           "NSW education institutions provide channels for medical documentation. UoN's academic support policy requires documentation from a 'registered health practitioner' - which includes doctors providing telehealth consultations. Hunter TAFE follows the same approach.",
           "For workers in the Hunter coal industry, enterprise agreements typically require medical certificates for absences of more than one day. These certificates must come from a registered practitioner but do not specify that the consultation must be in person. Telehealth certificates meet these requirements.",
         ],
@@ -141,7 +141,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "The University of Wollongong (UOW) has over 30,000 students, including a large international student cohort. UOW's campus medical service handles high volumes, particularly during assessment periods. Wait times for on-campus GP appointments can stretch to several days during exam season - exactly when students most need certificates for academic support.",
           "TAFE Illawarra campuses serve additional students who need medical documentation for course requirements. For students living in share houses across Fairy Meadow, Gwynneville, and Keiraville, getting to a GP when you're unwell can mean a bus trip or asking a housemate for a ride. Telehealth removes the transport barrier.",
-          "International students face particular challenges - they may be unfamiliar with the Australian healthcare system, lack an established GP relationship, and be uncertain about certificate requirements for their university. Telehealth provides a straightforward path to a valid medical certificate without navigating a system they may not understand.",
+          "International students face particular challenges - they may be unfamiliar with the Australian healthcare system, lack an established GP relationship, and be uncertain about certificate requirements for their university. Telehealth can provide a straightforward path to routine absence evidence without navigating a system they may not understand.",
         ],
       },
     ],
@@ -156,7 +156,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in the Illawarra",
       paragraphs: [
         "Wollongong and the Illawarra fall under NSW state regulations and national AHPRA standards for telehealth. The Illawarra Shoalhaven Local Health District has embraced telehealth as part of its service delivery model, recognising its value in reducing pressure on local hospital emergency departments.",
-        "Prescribing and certification requirements follow the same national framework as the rest of NSW. Medical certificates from AHPRA-registered telehealth doctors carry identical legal weight to those from in-person consultations. All Illawarra employers can assess them under workplace policy under the Fair Work Act.",
+        "Prescribing and certification requirements follow the same national practitioner framework as the rest of NSW. Medical certificates from AHPRA-registered telehealth doctors can support routine absence review. Illawarra employers assess them under workplace policy and Fair Work evidence rules.",
       ],
     },
     additionalFaqs: [
@@ -281,7 +281,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Medical Certificates and NSW Employment Law",
         paragraphs: [
-          "Penrith employers - from logistics giants on the M4 corridor to NSW Health, from construction firms to local cafes along High Street - all operate under the Fair Work Act 2009 or NSW-specific industrial instruments. The Act refers to certificates from 'registered health practitioners' and does not specify consultation method. A telehealth certificate from an AHPRA-registered doctor carries the same legal weight as one issued across a desk.",
+          "Penrith employers - from logistics giants on the M4 corridor to NSW Health, from construction firms to local cafes along High Street - all operate under the Fair Work Act 2009 or NSW-specific industrial instruments. The Act refers to evidence from registered health practitioners and does not set a video-call requirement. A telehealth certificate from an AHPRA-registered doctor can support routine sick-leave review.",
           "For casual retail and hospitality workers at Westfield Penrith, Nepean Village, or the Panthers precinct, a medical certificate can protect your shifts and demonstrate good faith to your employer even when you don't accrue sick leave. Telehealth is particularly useful for this demographic: same-day turnaround, no gap fees, no time off work to see a doctor about why you cannot come to work.",
           "We never issue a certificate when the clinical situation is inappropriate for telehealth. If your symptoms suggest you need a physical examination - suspected chest infection, suspicious skin lesion, possible fracture - the doctor will refer you to in-person care and you will not be charged. The same filter applies whether you are in Penrith or anywhere else in the country.",
         ],
@@ -689,7 +689,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Under the Fair Work Act 2009, all Australian employers must set their own policies for medical certificates from AHPRA-registered doctors. There is no requirement that the certificate come from a face-to-face consultation. This applies equally to the Bondi RSL, a Campbell Parade cafe, Westfield Bondi Junction retailers, and any other Eastern Suburbs employer.",
           "For casual workers - a large portion of Bondi's workforce - a medical certificate serves as professional documentation even when formal sick leave doesn't apply. It demonstrates good faith to your employer, protects your shift arrangements, and provides a record if any dispute arises about the absence.",
-          "Bondi's international workforce (working holiday makers, student visa holders) sometimes face confusion about Australian medical certificate requirements. The rules are straightforward: any certificate from an AHPRA-registered doctor is valid. Your visa status doesn't affect the certificate's validity. Telehealth certificates carry the same legal weight as those from a walk-in clinic.",
+          "Bondi's international workforce (working holiday makers, student visa holders) sometimes face confusion about Australian medical certificate requirements. Routine absence evidence is assessed by the employer or institution under its own policy. Your visa status does not change the certificate details required for a simple sick-leave record.",
         ],
       },
     ],

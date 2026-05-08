@@ -1,37 +1,18 @@
 'use client'
 
 import { ArrowRight, Star } from 'lucide-react'
-import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 
 import { GoogleAdsCert } from '@/components/marketing/google-ads-cert'
 import { GoogleReviewsBadge } from '@/components/marketing/google-reviews-badge'
+import { HeroDoctorReviewMockup } from '@/components/marketing/hero-doctor-review-mockup'
 import { LastReviewedSignal } from '@/components/marketing/last-reviewed-signal'
 import { LegitScriptSeal } from '@/components/marketing/legitscript-seal'
 import { WaitCounter } from '@/components/marketing/wait-counter'
 import { Button } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import type { WaitState } from '@/lib/brand/wait-counter'
-
-// Hero mockup is decorative below the fold of LCP. ssr:false keeps the
-// framer-motion bundle off the critical path. A skeleton placeholder of
-// equivalent dimensions prevents CLS while the chunk loads.
-const HeroDoctorReviewMockup = dynamic(
-  () =>
-    import('@/components/marketing/hero-doctor-review-mockup').then((m) => ({
-      default: m.HeroDoctorReviewMockup,
-    })),
-  {
-    ssr: false,
-    loading: () => (
-      <div
-        aria-hidden="true"
-        className="w-[260px] sm:w-[280px] lg:w-[320px] xl:w-[340px] aspect-[4/5] rounded-2xl border border-border/30"
-      />
-    ),
-  },
-)
 
 interface CtaConfig {
   text: string
@@ -191,7 +172,7 @@ export function Hero({
             <div className="hero-subheadline-enter">
               {children ?? (
                 <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed text-balance">
-                  AHPRA-registered Australian doctors. Reviewed in minutes.
+                  AHPRA-registered Australian doctors. Secure form-first review.
                 </p>
               )}
             </div>

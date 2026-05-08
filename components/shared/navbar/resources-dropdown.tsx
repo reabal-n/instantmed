@@ -25,10 +25,9 @@ const resourceLinks: Array<{ title: string; href: string; description: string; s
 
 const companyLinks: Array<{ title: string; href: string; sticker: StickerIconName }> = [
   { title: "About Us",           href: "/about",                sticker: "people"          },
-  { title: "Reviews",            href: "/reviews",              sticker: "verified-badge"  },
   { title: "Trust & Safety",     href: "/trust",                sticker: "security-shield" },
   { title: "Clinical Governance",href: "/clinical-governance",  sticker: "stethoscope"     },
-  { title: "For Employers",      href: "/for/employers",        sticker: "briefcase"       },
+  { title: "For Employers",      href: "/employers",            sticker: "briefcase"       },
   { title: "Locations",          href: "/locations",            sticker: "map-pin"         },
 ]
 
@@ -46,10 +45,9 @@ export function ResourcesDropdown({ isActivePath }: ResourcesDropdownProps) {
     isActivePath("/blog") ||
     isActivePath("/faq") ||
     isActivePath("/about") ||
-    isActivePath("/reviews") ||
     isActivePath("/trust") ||
     isActivePath("/clinical-governance") ||
-    isActivePath("/for/employers") ||
+    isActivePath("/employers") ||
     isActivePath("/locations")
 
   const handleTriggerMouseEnter = () => {

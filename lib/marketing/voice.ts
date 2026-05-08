@@ -11,6 +11,8 @@
  *  - docs/BRAND.md (brand thesis, devices, photography, do/don't)
  */
 
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
+
 // ── Brand thesis ──────────────────────────────────────────────────────
 
 /**
@@ -19,7 +21,7 @@
  * One sentence captures what InstantMed is and how it feels.
  */
 export const BRAND_THESIS =
-  "Telehealth without the small talk. A real doctor, ready in the time it takes to make a coffee."
+  getApprovedClaim("brand_thesis")
 
 // ── Brand system (4 distinct layers, 4 distinct jobs) ─────────────────
 
@@ -28,7 +30,7 @@ export const BRAND_THESIS =
  * Refreshed 2026-04-29 from "A doctor without the wait." to lock the
  * confident speed hook the brand was built for.
  */
-export const TAGLINE = "Faster than your GP."
+export const TAGLINE = getApprovedClaim("tagline")
 
 /**
  * Google-Ads-safe variant of TAGLINE. Healthcare ad review can flag
@@ -36,7 +38,7 @@ export const TAGLINE = "Faster than your GP."
  * (rather than the practitioner directly) is substantiable and lower-risk.
  * Use on paid search and display creative; brand surfaces use TAGLINE.
  */
-export const TAGLINE_PAID_SAFE = "Faster than the wait at your GP."
+export const TAGLINE_PAID_SAFE = getApprovedClaim("tagline_paid_safe")
 
 /**
  * Category mechanism. Default platform wedge for broad surfaces.
@@ -46,21 +48,21 @@ export const TAGLINE_PAID_SAFE = "Faster than the wait at your GP."
  * secure clinical form. It does not promise that prescription pathways never
  * need doctor contact.
  */
-export const WEDGE = "No appointment. No waiting room. Start with a secure clinical form."
+export const WEDGE = getApprovedClaim("platform_wedge")
 
 /**
  * Med-cert-specific wedge. Safe to use only on medical certificate surfaces
  * where the clinical protocol supports no-call completion for suitable
  * administrative documentation requests.
  */
-export const MED_CERT_WEDGE = "No video. No call. No appointment."
+export const MED_CERT_WEDGE = getApprovedClaim("med_cert_wedge")
 
 /**
  * Prescribing and specialty-service wedge. Use for repeat prescriptions, ED,
  * hair loss, women's health, and weight management.
  */
 export const FORM_FIRST_WEDGE =
-  "Complete a secure clinical form. A doctor contacts you only if more information is clinically needed."
+  getApprovedClaim("form_first_wedge")
 
 /**
  * Voice signature line. Doubles as the homepage H2 under the TAGLINE H1
@@ -71,7 +73,7 @@ export const FORM_FIRST_WEDGE =
  * Refreshed 2026-04-29 from "A GP, the way it should've been." to align
  * with the new brand: the line patients actually remember.
  */
-export const PROP_PHRASE = "Telehealth without the small talk."
+export const PROP_PHRASE = getApprovedClaim("prop_phrase")
 
 /**
  * Iconic hook. The conversion-proximate kicker. Use next to primary CTAs,
@@ -83,7 +85,7 @@ export const PROP_PHRASE = "Telehealth without the small talk."
  * The original doctor-is-in line is preserved in OWNED_PHRASES for
  * legacy/alternative use.
  */
-export const ICONIC_HOOK = "Start with a secure form. Takes about 3 minutes."
+export const ICONIC_HOOK = getApprovedClaim("iconic_hook")
 
 /**
  * Outcome guarantee. Above checkout CTA, inline on heros, on /guarantee.
@@ -100,7 +102,7 @@ export const ICONIC_HOOK = "Start with a secure form. Takes about 3 minutes."
  * Service-agnostic phrasing — applies to certificates, scripts, consults
  * and specialty pathways alike.
  */
-export const GUARANTEE = "Full refund if our doctor can't help."
+export const GUARANTEE = getApprovedClaim("refund_guarantee")
 
 // ── Phrases you own (use freely) ──────────────────────────────────────
 

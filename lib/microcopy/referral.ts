@@ -116,7 +116,7 @@ export const REFERRAL_COPY = {
       body: "Based on your answers, we recommend you visit your nearest emergency department or call 000.",
       cta: "Call 000",
     },
-    ctAdvice: "CT and MRI requests require clear clinical indication. A GP may contact you for additional information.",
+    ctAdvice: "CT and MRI requests require clear clinical indication. We may ask for one more detail before the GP can decide.",
   },
 
   // Step: Medicare

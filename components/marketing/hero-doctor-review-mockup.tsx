@@ -15,6 +15,7 @@ import { useEffect, useState } from "react"
 
 import { useReducedMotion } from "@/components/ui/motion"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { cn } from "@/lib/utils"
 
 const REVIEW_STEPS = [
@@ -63,7 +64,7 @@ const FLOATS: FloatingCard[] = [
     iconClass: "text-primary",
     bgClass: "bg-primary/10 dark:bg-primary/15",
     title: "eScript",
-    status: "Sent to phone",
+    status: getApprovedClaim("prescription_escript_sent"),
     statusClass: "text-primary/80",
     position: "top-right",
   },
@@ -80,8 +81,8 @@ const FLOATS: FloatingCard[] = [
     icon: Stethoscope,
     iconClass: "text-amber-600 dark:text-amber-400",
     bgClass: "bg-amber-50 dark:bg-amber-950/40",
-    title: "Treatment plan",
-    status: "Ready",
+    title: "Doctor plan",
+    status: "Reviewed",
     statusClass: "text-amber-600 dark:text-amber-400",
     position: "bottom-right",
   },
@@ -230,7 +231,7 @@ export function HeroDoctorReviewMockup() {
 
         {/* Footer hairline */}
         <div className="px-5 py-3 bg-muted/30 dark:bg-white/[0.03] border-t border-border/30 flex items-center justify-between">
-          <span className="text-[10px] text-muted-foreground">Decision in minutes</span>
+          <span className="text-[10px] text-muted-foreground">Doctor review</span>
           <span className="text-[10px] font-mono text-muted-foreground tracking-wider">IM-2026</span>
         </div>
       </motion.div>
@@ -242,7 +243,8 @@ export function HeroDoctorReviewMockup() {
           <motion.div
             key={card.title}
             className={cn(
-              "z-10 inline-flex items-center gap-2.5 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-lg shadow-primary/[0.06] dark:shadow-none px-3 py-2",
+              "absolute z-10 inline-flex items-center gap-2.5 whitespace-nowrap rounded-xl bg-white px-3 py-2 shadow-lg shadow-primary/[0.06] pointer-events-none",
+              "border border-border/50 dark:border-white/15 dark:bg-card dark:shadow-none",
               FLOATING_POSITIONS[card.position],
             )}
             initial={animate ? { opacity: 0, scale: 0.92, y: 4 } : false}

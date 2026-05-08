@@ -70,7 +70,7 @@ export const statesData: Record<StateSlug, StateData> = {
     localContext: [
       {
         title: "NSW public holidays & leave documentation",
-        body: "Under the Fair Work Act and NSW employment law, employers can request medical evidence for sick leave. NSW-issued certificates from AHPRA-registered telehealth doctors meet the same evidentiary standard as in-person consultations. They include the doctor's name, provider number, dates of illness, and signature - valid for work, study, carer's leave, and Centrelink reporting.",
+        body: "Under the Fair Work Act and NSW employment law, employers can request medical evidence for sick leave. Certificates from AHPRA-registered telehealth doctors can support routine work, study, and carer's-leave absence records. Centrelink and Services Australia reporting usually requires its own forms or functional-capacity details.",
       },
       {
         title: "University & TAFE certificates",
@@ -135,11 +135,11 @@ export const statesData: Record<StateSlug, StateData> = {
     localContext: [
       {
         title: "Victoria employment & sick leave law",
-        body: "Victoria follows the national Fair Work Act for employer-side sick leave documentation. Telehealth certificates from AHPRA-registered doctors are reviewed under Victorian public-sector and private employer policies. For WorkCover matters, an in-person assessment is required - InstantMed does not issue WorkCover certificates.",
+        body: "Victoria follows the national Fair Work Act for employer-side sick leave documentation. Telehealth certificates from AHPRA-registered doctors are reviewed under Victorian public-sector and private employer policies. For WorkCover matters, use the WorkCover process and an in-person assessment.",
       },
       {
         title: "University of Melbourne & Monash acceptance",
-        body: "The University of Melbourne, Monash, RMIT, Deakin, La Trobe, Swinburne, and Victoria University all assess telehealth medical certificates under their own policies for academic support requests, academic support requests, and absence documentation. The certificate meets their requirement for a 'medical practitioner' - no distinction is made between telehealth and in-person certificates.",
+        body: "The University of Melbourne, Monash, RMIT, Deakin, La Trobe, Swinburne, and Victoria University all assess telehealth medical certificates under their own policies for routine study-absence documentation. Assessment-specific requests may need institution forms or in-person assessment.",
       },
       {
         title: "Regional Victoria locum gaps",
@@ -153,8 +153,8 @@ export const statesData: Record<StateSlug, StateData> = {
         a: "Yes. Every Victorian postcode - metropolitan Melbourne, Geelong, Ballarat, Bendigo, Shepparton, Mildura, and everywhere in between - has access to the same AHPRA-registered doctors with the same turnaround times. There are no geographic restrictions.",
       },
       {
-        q: "Are Victorian telehealth certificates valid for Centrelink?",
-        a: "Yes. Telehealth certificates from AHPRA-registered doctors meet Services Australia requirements for Centrelink medical evidence, including JobSeeker, DSP, and Carer Payment reporting. The certificate will include the doctor's name, provider number, and clinical assessment.",
+        q: "Are Victorian telehealth certificates suitable for Centrelink?",
+        a: "Usually not through this short certificate pathway. Services Australia may require specific forms or functional-capacity details for JobSeeker, DSP, and Carer Payment reporting. Use your regular GP or treating practitioner for those forms.",
       },
       {
         q: "Can I use InstantMed for my Monash or UniMelb academic support request?",

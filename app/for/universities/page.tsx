@@ -61,7 +61,7 @@ export default function UniversitiesPage() {
     {
       question: "Can students get backdated certificates?",
       answer:
-        "Certificates can cover absences up to 48 hours prior if clinically appropriate. The doctor makes this determination based on the student's reported symptoms. This is particularly relevant for students who fall ill during exams or assessments and are unable to see a doctor on the day.",
+        "Certificates can cover routine study absences up to 48 hours prior if clinically appropriate. The doctor makes this determination based on the student's reported symptoms. Assessment-specific requests may need institution forms or in-person assessment.",
     },
     {
       question: "What information is on the certificate?",
@@ -74,7 +74,7 @@ export default function UniversitiesPage() {
         "Enter the unique verification code at instantmed.com.au/verify. This confirms the certificate was genuinely issued by our practice, the dates match, and the doctor is AHPRA-registered. This is more robust than paper certificates which typically have no verification mechanism.",
     },
     {
-      question: "Do certificates meet university requirements?",
+      question: "What document details are included?",
       answer:
         "Our certificates contain standard supporting-documentation details: registered practitioner information, AHPRA registration number, dates of unfitness, practitioner signature, and practice details. Institutions should assess each certificate under their own policy.",
     },
@@ -143,7 +143,7 @@ export default function UniversitiesPage() {
                   with AHPRA-registered doctors.
                 </p>
                 <p className="text-muted-foreground">
-                  Every request is reviewed by a qualified Australian GP who makes an
+                  Every request is reviewed by an AHPRA-registered doctor who makes an
                   independent clinical decision. Each case is assessed individually
                   based on the information provided.
                 </p>
@@ -291,10 +291,9 @@ export default function UniversitiesPage() {
                   <div className="w-14 h-14 rounded-full bg-success-light flex items-center justify-center mx-auto mb-4">
                     <Lock className="w-7 h-7 text-success" />
                   </div>
-                  <h3 className="font-semibold text-foreground mb-2">Secure &amp; Tamper-Proof</h3>
+                  <h3 className="font-semibold text-foreground mb-2">Secure Verification</h3>
                   <p className="text-sm text-muted-foreground">
-                    Each certificate has a unique verification code. Our system detects
-                    any alterations or duplications.
+                    Each certificate has a unique verification code that can be checked against our records.
                   </p>
                 </div>
 
@@ -304,8 +303,8 @@ export default function UniversitiesPage() {
                   </div>
                   <h3 className="font-semibold text-foreground mb-2">Clinical Standards</h3>
                   <p className="text-sm text-muted-foreground">
-                    Our protocols align with RACGP Standards and AHPRA Telehealth Guidelines,
-                    and are maintained by our Medical Director.
+                    Our protocols are documented, reviewed, and maintained under
+                    AHPRA-registered clinical governance.
                   </p>
                   <Link
                     href="/clinical-governance"
@@ -364,7 +363,7 @@ export default function UniversitiesPage() {
                 </div>
                 <div className="space-y-3 text-sm text-muted-foreground">
                   <p>
-                    A valid Australian medical certificate should include: the practitioner&apos;s full name, their AHPRA registration number (verifiable at{" "}
+                    A standard Australian medical certificate should include: the practitioner&apos;s full name, their AHPRA registration number (verifiable at{" "}
                     <a href="https://www.ahpra.gov.au/registration/registers-of-practitioners.aspx" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                       ahpra.gov.au
                     </a>

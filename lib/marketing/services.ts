@@ -71,8 +71,8 @@ export const medicalCertificatesConfig: ServiceConfig = {
   flowSlug: 'medical-certificate',
   name: 'Medical Certificates',
   shortName: 'Med Certs',
-  tagline: 'Sick leave, carer\'s leave, or fitness-to-work certificates',
-  description: 'Get a valid medical certificate for work, university, or official purposes. Reviewed by AHPRA-registered doctors, delivered same-day.',
+  tagline: 'Sick leave, carer\'s leave, or study absence certificates',
+  description: 'Request a routine sick, carer, or study absence certificate. Reviewed by AHPRA-registered doctors, delivered same-day when approved.',
   
   heroTitle: 'Get a medical certificate without the waiting room',
   heroSubtitle: 'Complete a quick questionnaire, and an Australian doctor reviews your request. If approved, your certificate is delivered directly to your email, typically within an hour.',

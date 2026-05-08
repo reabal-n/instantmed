@@ -18,8 +18,6 @@ interface FinalCtaSectionProps {
   ctaText?: string
   ctaHref?: string
   price?: number
-  /** Optional testimonial mini-quote below the CTA */
-  testimonial?: { quote: string; name: string }
 }
 
 /** Section 7: Final CTA */
@@ -30,7 +28,6 @@ export function FinalCtaSection({
   ctaText = "Get your certificate",
   ctaHref = "/request?service=med-cert",
   price = PRICING.MED_CERT,
-  testimonial,
 }: FinalCtaSectionProps) {
   return (
     <section aria-label="Get started" className="py-20 lg:py-24 bg-linear-to-br from-primary/5 via-primary/10 to-sky-100/50 dark:from-primary/10 dark:via-primary/5 dark:to-card">
@@ -60,16 +57,6 @@ export function FinalCtaSection({
             Takes about 2 minutes &middot; Full refund if we can&apos;t help
           </p>
 
-          {testimonial && (
-            <div className="mt-8 pt-6 border-t border-border/20 max-w-md mx-auto">
-              <p className="text-sm text-foreground/70 italic leading-relaxed">
-                &ldquo;{testimonial.quote}&rdquo;
-              </p>
-              <p className="mt-2 text-xs text-muted-foreground font-medium">
-                {testimonial.name}
-              </p>
-            </div>
-          )}
         </Reveal>
       </div>
     </section>

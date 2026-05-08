@@ -137,7 +137,7 @@ export const MED_CERT_COPY = {
     },
     
     // Note
-    note: "The doctor may contact you if they need more information",
+    note: "We only ask for more if something important is missing",
     editButton: "Edit",
   },
 

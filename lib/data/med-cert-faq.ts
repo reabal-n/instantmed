@@ -16,7 +16,7 @@ export const MED_CERT_FAQ = [
   {
     question: "Can I use this for uni or TAFE?",
     answer:
-      'Absolutely. We issue certificates for university, TAFE, and other educational institutions. Just select "study" when you start your request.',
+      'Yes, for routine study absences where your institution accepts medical certificates as supporting evidence. We do not issue assessment-specific certificates through this short online pathway.',
   },
   {
     question: "What happens after I submit?",
@@ -61,7 +61,7 @@ export const MED_CERT_FAQ = [
   {
     question: "Is a telehealth medical certificate legal?",
     answer:
-      "Yes. The Fair Work Act refers to evidence from registered health practitioners and does not require an in-person consultation. Employer and institution policies may vary.",
+      "Telehealth is a recognised way to provide care when clinically suitable. Fair Work guidance refers to evidence that would satisfy a reasonable person. Employer and institution policies may vary.",
   },
   {
     question: "What if I need more than 3 days off?",

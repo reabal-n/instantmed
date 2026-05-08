@@ -21,7 +21,7 @@ import { checkEmergencySymptoms, checkRedFlagPatterns } from "./triage-rules-eng
  *
  * Format: MAJOR.MINOR (major = structural changes, minor = keyword/threshold updates)
  */
-export const ELIGIBILITY_ENGINE_VERSION = "2.3"
+export const ELIGIBILITY_ENGINE_VERSION = "2.4"
 
 /**
  * Human-readable manifest of all checks the engine applies.
@@ -42,6 +42,7 @@ export const ELIGIBILITY_CHECK_MANIFEST = [
   "chronic_condition_soft_block",
   "pregnancy_keyword_block",
   "duration_within_limit",
+  "high_stakes_use_case_hard_block",
   "symptom_text_substantive",
   "ai_clinical_note_exists_and_ready",
   "ai_draft_review_flag_soft_only",
@@ -123,9 +124,18 @@ const HIGH_STAKES_USE_CASE_KEYWORDS = [
   // Driving / transport / firearms — fitness-to-X determinations
   "driving", "drive", "license", "licence", "rta", "service nsw",
   "firearm", "gun licence", "gun license", "shooting",
-  "fitness to fly", "flight", "airline",
+  "fitness to fly", "fitness to drive", "flight", "airline",
+  "commercial driver", "forklift", "heavy machinery",
+  "fitness for duty", "fit for duty", "fitness to work", "fit to work",
+  "return to work clearance", "pre-employment", "pre employment",
+  "site medical", "mine site medical", "safety-critical", "safety critical",
   // Workers comp / insurance / claim
-  "insurance claim", "ndis", "tac",
+  "workers compensation", "worker compensation", "certificate of capacity",
+  "capacity certificate", "work capacity", "insurance claim",
+  "income protection", "ndis", "tac",
+  // Government program evidence
+  "centrelink", "services australia", "mutual obligation", "jobseeker",
+  "disability support pension", "dsp",
   // (note: "workers comp" / "workcover" / "work injury" already in INJURY_KEYWORDS)
 ]
 

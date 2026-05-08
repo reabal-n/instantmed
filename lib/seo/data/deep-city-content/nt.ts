@@ -97,7 +97,7 @@ export const NT_CITIES: Record<string, DeepCityContent> = {
       paragraphs: [
         "The Northern Territory follows national AHPRA and Medical Board of Australia guidelines for telehealth. The NT Government has been one of the strongest advocates for telehealth in Australia, recognising the Territory's vast distances and dispersed population make it essential for equitable healthcare access. NT Health's digital health strategy explicitly includes telehealth as a primary care modality for both urban and remote communities.",
         "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any NT pharmacy. Schedule 8 controlled substances require NT Health authority and in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
-        "Medical certificates from telehealth consultations carry the same legal weight in the Northern Territory as those from in-person consultations. NT Government employers, tourism operators, mining companies, pastoral employers, and all Fair Work-covered businesses set their own policies for certificates from AHPRA-registered doctors.",
+        "Medical certificates from telehealth consultations in the Northern Territory are reviewed under the same national practitioner framework as other doctor-issued certificates. NT Government employers, tourism operators, mining companies, pastoral employers, and Fair Work-covered businesses set their own policies for certificates from AHPRA-registered doctors.",
       ],
     },
     additionalFaqs: [

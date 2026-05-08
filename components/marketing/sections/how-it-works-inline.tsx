@@ -31,7 +31,7 @@ export function HowItWorksInline({
   onCTAClick,
   isDisabled,
   heading = "Three steps. Completely private.",
-  subheading = "No booked appointment or waiting room. The doctor contacts you if more information is clinically needed.",
+  subheading = "No booked appointment or waiting room. We only interrupt you if something important is missing.",
   ctaText,
 }: HowItWorksInlineProps) {
   return (

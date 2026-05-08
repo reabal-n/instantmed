@@ -199,7 +199,7 @@ const instantmedVsDoctorsOnDemand: ComparisonEntry = {
   ],
   whenInstantMedBetter: [
     "You want a medical certificate without scheduling a video call",
-    "You're looking for the lowest-cost path to a valid Australian medical certificate",
+    "You're looking for the lowest-cost path to a routine Australian medical certificate",
     "You don't have a quiet, private space for a video consultation right now",
     "Your issue is straightforward and doesn't require face-to-face assessment",
     "You want 24/7 availability for medical certificates",
@@ -221,7 +221,7 @@ const instantmedVsDoctorsOnDemand: ComparisonEntry = {
     },
     {
       q: "Is an async medical certificate as valid as one from a video consult?",
-      a: "Yes. The Fair Work Act requires a medical certificate from a registered health practitioner. An AHPRA-registered doctor issuing a certificate based on an async clinical assessment is legally identical to one issuing it after a video consult. Your employer can't reject a valid certificate based on the consultation format.",
+      a: "Yes, when clinically appropriate. Fair Work guidance refers to evidence that would satisfy a reasonable person. A certificate from an AHPRA-registered doctor with clear dates and verification details can support that review; employer policies may vary.",
     },
     {
       q: "When should I choose a video consult over an async request?",
@@ -350,7 +350,7 @@ const instantmedVsCleanbill: ComparisonEntry = {
     },
     {
       q: "Can InstantMed issue the same medical certificates a bulk-billed GP would?",
-      a: `Yes. Medical certificates from InstantMed are issued by AHPRA-registered Australian doctors and are legally identical to certificates from an in-person GP visit. The Fair Work Act doesn't distinguish between certificates from telehealth and those from clinic visits. The main trade-off is cost: InstantMed charges ${PRICING_DISPLAY.FROM_MED_CERT}; a bulk-billed GP is free but may have longer wait times.`,
+      a: `Yes, for routine absence evidence when online assessment is clinically appropriate. Medical certificates from InstantMed are issued by AHPRA-registered Australian doctors, and employer policies may vary. The main trade-off is cost: InstantMed charges ${PRICING_DISPLAY.FROM_MED_CERT}; a bulk-billed GP is free but may have longer wait times.`,
     },
     {
       q: "Is it worth paying for telehealth when bulk billing is free?",

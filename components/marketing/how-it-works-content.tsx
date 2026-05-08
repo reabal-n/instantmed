@@ -92,7 +92,7 @@ const howItWorksGuide: GuideSectionData[] = [
     title: "What happens when you submit a request",
     paragraphs: [
       "When you fill in our questionnaire, you're providing the same information you'd give a GP in a face-to-face consultation: your symptoms, how long you've had them, relevant medical history, and any medications you're taking. The form is structured to capture the clinical details a doctor needs to make an informed assessment.",
-      "This isn't a rubber-stamp process. The doctor reads your responses, reviews your history if you've used the service before, and applies the same clinical judgement they would in a consulting room. If something doesn't add up or they need more information, they'll message you through the platform. If they determine your situation requires in-person care, they'll say so, and you get a full refund.",
+      "This isn't a rubber-stamp process. The doctor reads your responses, reviews your history if you've used the service before, and applies the same clinical judgement they would in a consulting room. If something doesn't add up, we'll ask for the missing detail through the platform. If your situation needs in-person care, we'll say so, and you get a full refund.",
     ],
   },
   {
@@ -101,7 +101,7 @@ const howItWorksGuide: GuideSectionData[] = [
     title: "The clinical standards behind the screen",
     paragraphs: [
       "Every doctor on InstantMed is registered with the Australian Health Practitioner Regulation Agency (AHPRA) and holds current medical registration. Telehealth changes the channel, not the professional duty: the doctor still needs enough information to make a safe decision, keep appropriate records, and decline requests that are not suitable for online care.",
-      "Our clinical governance framework includes auditing, peer review, and documented service limits. Doctors can decline to issue a certificate or prescription if it is not clinically appropriate, and they do. An approval rate below 100% is a feature, not a bug. It means the clinical judgement is genuine.",
+      "Our clinical governance framework includes structured audit, documented service limits, and clear escalation rules. Doctors can decline to issue a certificate or prescription if it is not clinically appropriate, and they do. An approval rate below 100% is a feature, not a bug. It means the clinical judgement is genuine.",
     ],
   },
   {
@@ -137,7 +137,7 @@ const HOW_IT_WORKS_FAQ = [
   { question: "Is this a real doctor?", answer: "Yes. Every request is reviewed by an AHPRA-registered Australian GP. They're real doctors with real medical degrees and current registration, the same doctors who work in clinics and hospitals." },
   { question: "How long does it take?", answer: "Requests can be submitted any time. Medical certificates are typically issued quickly, and prescriptions or consultations are reviewed when a doctor is available." },
   { question: "Will my employer accept an online medical certificate?", answer: "Certificates from AHPRA-registered doctors can support workplace evidence requirements. Employer policies and individual circumstances may vary." },
-  { question: "Do I need to be available for a call?", answer: "Usually no booked appointment is needed. You submit your form, the doctor reviews it, and they may message or call if more information is clinically needed." },
+  { question: "Do I need to be available for a call?", answer: "Usually no booked appointment is needed. You submit your form, the doctor reviews it, and we only interrupt you if something important is missing." },
   { question: "Do I need a Medicare card?", answer: "For medical certificates, no. For prescriptions and consultations, Medicare details are requested for identity and prescribing history verification, but this is a private service." },
   { question: "What if the doctor can't help me?", answer: "You get a full refund. If your situation requires in-person care or falls outside telehealth scope, the doctor will recommend appropriate next steps." },
   { question: "Is my information private?", answer: "Completely. Your health data is encrypted with bank-level security and never shared with employers, insurers, or anyone else without your consent." },

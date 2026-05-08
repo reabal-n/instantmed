@@ -7,7 +7,7 @@ import ClinicalGovernanceClient from "./clinical-governance-client"
 export const metadata: Metadata = {
   title: "Clinical Governance | Medical Standards",
   description:
-    "Medical Director oversight, RACGP-aligned protocols, and regular clinical audits. How InstantMed maintains Australian healthcare standards.",
+    "AHPRA-registered clinical oversight, documented protocols, and regular clinical audits. How InstantMed maintains Australian healthcare standards.",
   openGraph: {
     title: "Clinical Governance | Medical Standards | InstantMed",
     description:

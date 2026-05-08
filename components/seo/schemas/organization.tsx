@@ -22,7 +22,7 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
     url: baseUrl,
     logo: `${baseUrl}/branding/logo.png`,
     image: `${baseUrl}/branding/logo.png`,
-    description: "Australian telehealth service providing medical certificates and prescriptions reviewed by AHPRA-registered doctors with Medical Director oversight and RACGP-aligned clinical protocols.",
+    description: "Australian telehealth service providing medical certificates and prescription requests reviewed by AHPRA-registered doctors under documented clinical governance.",
     slogan: "Healthcare that fits your schedule",
     foundingDate: "2025",
     taxID: "64694559334",
@@ -40,14 +40,6 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
         recognizedBy: {
           "@type": "Organization",
           name: "Australian Health Practitioner Regulation Agency"
-        }
-      },
-      {
-        "@type": "EducationalOccupationalCredential",
-        credentialCategory: "RACGP Standards Alignment",
-        recognizedBy: {
-          "@type": "Organization",
-          name: "Royal Australian College of General Practitioners"
         }
       },
       {
@@ -129,7 +121,7 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
           itemOffered: {
             "@type": "MedicalService",
             name: "Medical Certificate",
-            description: "Get a valid medical certificate for work or study reviewed by an Australian registered doctor"
+            description: "Request a routine sick or study certificate reviewed by an Australian registered doctor"
           }
         },
         {

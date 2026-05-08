@@ -78,7 +78,7 @@ export default async function Image() {
             marginBottom: '40px',
           }}
         >
-          Valid for work, uni, or carer&apos;s leave - reviewed by an Australian GP
+          Routine sick, study, and carer&apos;s leave certificates
         </div>
 
         {/* Key points */}

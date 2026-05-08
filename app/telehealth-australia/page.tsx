@@ -73,7 +73,7 @@ export const metadata: Metadata = {
 const STATS = [
   { value: "2011", label: "Telehealth legal in AU", context: "Federally recognised since the MBS reform" },
   { value: `~${SOCIAL_PROOF.certTurnaroundMinutes} min`, label: "Med cert turnaround", context: "Reviewed around the clock" },
-  { value: "AHPRA", label: "Clinical governance", context: "RACGP-aligned standards" },
+  { value: "AHPRA", label: "Clinical governance", context: "Documented standards" },
   { value: `${PRICING_DISPLAY.MED_CERT}`, label: "From", context: "Private fee, refund if declined" },
 ]
 
@@ -144,7 +144,7 @@ const medicalBusinessSchema = {
   "@id": `${CANONICAL}#business`,
   name: "InstantMed - Telehealth Australia",
   description:
-    "Private telehealth service operating across Australia, delivering medical certificates, prescriptions, and consultations through AHPRA-registered doctors under RACGP-aligned clinical governance.",
+    "Private telehealth service operating across Australia, delivering medical certificates, prescriptions, and consultations through AHPRA-registered doctors under documented clinical governance.",
   url: CANONICAL,
   logo: "https://instantmed.com.au/branding/logo.png",
   image: "https://instantmed.com.au/branding/logo.png",
@@ -246,7 +246,7 @@ export default function TelehealthAustraliaPage() {
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Shield className="w-4 h-4 text-primary" />
-                  RACGP-aligned protocols
+                  Documented protocols
                 </span>
               </div>
             </div>
@@ -662,7 +662,7 @@ export default function TelehealthAustraliaPage() {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground mt-4">
-                From {PRICING_DISPLAY.MED_CERT} · AHPRA-registered doctors · RACGP-aligned protocols
+                From {PRICING_DISPLAY.MED_CERT} · AHPRA-registered doctors · Documented protocols
               </p>
             </div>
           </section>

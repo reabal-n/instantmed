@@ -56,8 +56,8 @@ export function ExitIntentSocialProofEmail({
       </Text>
 
       <Text muted small>
-        No appointment to book. Start with a secure form; the doctor follows up
-        if clinically needed.
+        No appointment to book. Start with a secure form; follow-up only if
+        something important is missing.
       </Text>
 
       <Button href={ctaUrl}>Get your {service.toLowerCase()}, {price}</Button>

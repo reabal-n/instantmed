@@ -40,7 +40,7 @@ const MarketingFooter = dynamic(
 )
 // Quiet trust strip between hero and services. Demoted from inside the hero
 // composition (was crowding above-the-fold). Renders the four regulatory
-// logos (AHPRA, TGA, Medicare, RACGP) as a single subdued line.
+// logos (AHPRA, TGA, Medicare) as a single subdued line.
 const RegulatoryPartners = dynamic(
   () => import('@/components/marketing/regulatory-partners').then(m => ({ default: m.RegulatoryPartners })),
 )
@@ -121,7 +121,7 @@ export default async function HomePage() {
       <FAQSchema faqs={faqSchemaData} />
       <SpeakableSchema
         name="InstantMed - Online Doctor Australia"
-        description={`Get medical certificates in under 20 minutes, 24/7. Repeat medication and discreet treatment for ED and hair loss from AHPRA-registered Australian doctors. ${PRICING_DISPLAY.FROM_MED_CERT}.`}
+        description={`Start with a secure clinical form. AHPRA-registered Australian doctors review medical certificates, repeat medication, and discreet treatment requests. ${PRICING_DISPLAY.FROM_MED_CERT}.`}
         url="/"
       />
 
@@ -162,7 +162,7 @@ export default async function HomePage() {
             {PROP_PHRASE}
           </h2>
           <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed text-balance">
-            AHPRA-registered Australian doctors. Reviewed in minutes. {WEDGE}
+            AHPRA-registered Australian doctors. Secure form-first review. {WEDGE}
           </p>
         </Hero>
 

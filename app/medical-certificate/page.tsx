@@ -56,13 +56,13 @@ export default function Page() {
       />
       <MedicalServiceSchema
         name="Online Medical Certificate"
-        description="Get a valid medical certificate for work or study reviewed by an Australian registered doctor. Available same day."
+        description="Get routine sick-leave or study-absence evidence reviewed by an Australian registered doctor. Employer and institution policies may vary."
         price={PRICING.MED_CERT.toFixed(2)}
       />
       <ReviewAggregateSchema ratingValue={REVIEW_AGGREGATE.ratingValue} reviewCount={REVIEW_AGGREGATE.reviewCount} />
       <HealthArticleSchema
         title="Online Medical Certificate Australia"
-        description="Get a valid medical certificate for work or study reviewed by an AHPRA-registered Australian doctor."
+        description="Get routine absence evidence for work or study reviewed by an AHPRA-registered Australian doctor."
         url="/medical-certificate"
       />
       <MedCertLanding />

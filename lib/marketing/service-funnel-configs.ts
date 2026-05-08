@@ -104,7 +104,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
         number: '2',
         icon: 'Stethoscope',
         title: 'Doctor assessment',
-        description: 'A doctor reviews your information and will often call you to discuss further. This ensures a proper clinical assessment.',
+        description: 'A doctor reviews your information and follows up only when something important is missing.',
         time: 'Within 2 hours',
       },
       {
@@ -172,7 +172,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
       {
         icon: 'Building2',
         title: 'Australian-based',
-        description: 'Our doctors and team are 100% based in Australia',
+        description: 'Australian-based operations with AHPRA-registered doctor review',
       },
       {
         icon: 'Lock',
@@ -216,7 +216,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
 
   finalCta: {
     headline: 'Talk to a doctor from home',
-    subheadline: 'Start with a quick questionnaire. A doctor reviews and typically calls within 2 hours.',
+    subheadline: 'Start with a quick questionnaire. A doctor reviews and follows up only if something important is missing.',
     ctaText: 'Talk to a doctor today',
   },
 

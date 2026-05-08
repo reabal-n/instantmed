@@ -3,10 +3,6 @@
 import {
   ArrowRight,
   CheckCircle2,
-  Clock,
-  ShieldCheck,
-  Star,
-  Users,
 } from "lucide-react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
@@ -20,13 +16,11 @@ import { TimeComparisonViz } from "@/components/marketing/sections/time-comparis
 import {
   type LandingPageConfig,
   LandingPageShell,
-  RecentActivityTicker,
   ReferralStrip,
-  type SocialProofStat,
-  SocialProofStrip,
 } from "@/components/marketing/shared"
 import { RelatedArticles } from "@/components/marketing/shared/related-articles"
 import { ContentHubLinks } from "@/components/seo"
+import { TrustBadgeRow } from "@/components/shared"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 import { Reveal } from "@/components/ui/reveal"
@@ -79,24 +73,6 @@ const CTABanner = dynamic(
 // DATA
 // =============================================================================
 
-const SOCIAL_PROOF_STATS: SocialProofStat[] = [
-  { icon: Users, value: SOCIAL_PROOF.scriptFulfillmentPercent, suffix: "%", label: "fulfilled same day", color: "text-success" },
-  { icon: Clock, value: SOCIAL_PROOF.averageResponseMinutes, suffix: " min", label: "avg response", color: "text-primary" },
-  { icon: Star, value: SOCIAL_PROOF.averageRating, suffix: "/5", label: "patient rating", color: "text-amber-500", decimals: 1 },
-  { icon: ShieldCheck, value: 100, suffix: "%", label: "refund guarantee", color: "text-success" },
-]
-
-const RECENT_ACTIVITY_ENTRIES = [
-  { name: "David", city: "Gold Coast", minutesAgo: 15 },
-  { name: "Jessica", city: "Adelaide", minutesAgo: 28 },
-  { name: "Ryan", city: "Darwin", minutesAgo: 8 },
-  { name: "Michelle", city: "Sydney", minutesAgo: 42 },
-  { name: "Daniel", city: "Melbourne", minutesAgo: 19 },
-  { name: "Karen", city: "Brisbane", minutesAgo: 35 },
-  { name: "Ben", city: "Perth", minutesAgo: 11 },
-  { name: "Sophia", city: "Canberra", minutesAgo: 51 },
-]
-
 const RELATED_ARTICLES_DATA = [
   { title: "Understanding eScripts in Australia", href: "/blog/understanding-escripts-australia" },
   { title: "How to Get a Repeat Prescription Online", href: "/blog/repeat-prescription-online" },
@@ -122,7 +98,7 @@ const HOW_IT_WORKS_STEPS = [
     sticker: "sent" as const,
     step: 3,
     title: "eScript sent to your phone",
-    description: "Your electronic prescription is sent via SMS. Take it to any pharmacy.",
+    description: "Once approved, your electronic prescription is sent by SMS. Take it to any pharmacy.",
     time: "Instant",
   },
 ]
@@ -339,21 +315,24 @@ export function PrescriptionsLanding() {
             mockup={<EScriptHeroMockup />}
           >
             <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-7 leading-relaxed text-balance">
-              An AHPRA-registered GP reviews your request and sends an eScript to your phone. Any pharmacy in Australia, same day.
+              Tell us what you already take. A doctor reviews the details, and once it&apos;s approved your eScript is sent to your phone for any Australian pharmacy.
             </p>
           </Hero>
 
           {/* Live wait time */}
           <LiveWaitTime variant="strip" services={["scripts"]} />
 
-          {/* Recent activity ticker */}
-          <RecentActivityTicker
-            entries={RECENT_ACTIVITY_ENTRIES}
-            messageTemplate="{name} from {city} received their eScript {minutesAgo} min ago"
-          />
-
-          {/* Social proof stats */}
-          <SocialProofStrip stats={SOCIAL_PROOF_STATS} />
+          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-5">
+            <TrustBadgeRow
+              badges={[
+                { id: "no_appointment", variant: "styled" },
+                { id: "no_speaking", variant: "styled" },
+                { id: "google_pharmacy", variant: "styled" },
+                "refund",
+              ]}
+              className="gap-3"
+            />
+          </div>
 
           {/* 2. Service comparison — repeat vs new Rx, pricing up front */}
           <ServiceComparisonSection isDisabled={isDisabled} />
@@ -435,7 +414,7 @@ export function PrescriptionsLanding() {
               props (was bespoke ServiceFinalCTA, retired in Pass 2). */}
           <CTABanner
             title="Your regular medication, renewed from home."
-            subtitle="Answer a few questions, a doctor reviews it, and your script is sent same day."
+            subtitle="Answer a few questions, a doctor reviews it, and your eScript is sent once approved."
             ctaText="Renew your medication"
             ctaHref="/request?service=prescription"
             onCtaClick={handleFinalCTA}

@@ -42,7 +42,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
       { feature: "Available after hours", instantmed: "Yes, extended hours", competitor: "Limited (after-hours clinics)", winner: "instantmed" },
       { feature: "Physical examination", instantmed: "Not available", competitor: "Full examination possible", winner: "competitor" },
       { feature: "Blood tests & procedures", instantmed: "Referrals only", competitor: "On-site or nearby", winner: "competitor" },
-      { feature: "Medical certificates", instantmed: "Yes - legally valid", competitor: "Yes", winner: "tie" },
+      { feature: "Medical certificates", instantmed: "Routine certificates only", competitor: "Yes", winner: "tie" },
       { feature: "Prescriptions", instantmed: "E-prescriptions for suitable conditions", competitor: "Full prescribing", winner: "competitor" },
       { feature: "Cost with Medicare", instantmed: `${PRICING_DISPLAY.FROM_MED_CERT} (no Medicare rebate)`, competitor: "Free if bulk-billed", winner: "competitor" },
       { feature: "Continuity of care", instantmed: "Records available, different doctors", competitor: "Same GP can follow your history", winner: "competitor" },
@@ -115,7 +115,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
         a: "Most telehealth services, including InstantMed, are designed for patients aged 18 and over. Some services offer paediatric telehealth, but for children, an in-person GP is generally the better option - kids are harder to assess remotely and often need physical examination."
       },
       {
-        q: "Is a medical certificate from telehealth valid for work?",
+        q: "Can a telehealth medical certificate be used for work?",
         a: "A medical certificate issued by an AHPRA-registered doctor through telehealth can be used as workplace evidence. The Fair Work Act does not require the consultation to be in person, but employer policies may vary."
       }
     ],
@@ -211,7 +211,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
       },
       {
         q: "Can my employer tell if my certificate is from a telehealth service?",
-        a: "Certificates will show the doctor's details. Some employers can tell it's from a telehealth service, but this doesn't affect validity. Telehealth certificates are legally equivalent to in-person ones."
+        a: "Certificates show the doctor's details and the issuing practice. Employers assess evidence under their workplace policy, so the safest wording is simple: the document is issued by an AHPRA-registered doctor and includes verification details."
       },
       {
         q: "Are online medical certificates accepted under the Fair Work Act?",
@@ -254,8 +254,8 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
           id: "legitimacy",
           title: "What Makes an Online Certificate Legitimate",
           paragraphs: [
-            "The legitimacy of a medical certificate comes from who issues it, not how. Under Australian law, a valid medical certificate must be issued by a registered health practitioner - in most cases, an AHPRA-registered doctor. Whether that doctor assessed you in a clinic or through a telehealth platform is irrelevant to the certificate's legal standing.",
-            "The certificate itself should include the doctor's name, AHPRA registration number (or provider number), the date of assessment, the period of unfitness, and the doctor's signature or digital equivalent. If a service issues certificates missing any of these elements, that's a problem. If it issues them without any clinical assessment at all, that's a bigger problem.",
+            "The reliability of a medical certificate starts with who issued it and whether there was a real clinical assessment. For routine sick-leave evidence, an AHPRA-registered doctor should assess the request and document the absence period they consider appropriate from the information available.",
+            "The certificate itself should include the doctor's name, AHPRA registration number (or provider number), the date of assessment, the stated absence period, and the doctor's signature or digital equivalent. If a service issues certificates missing those elements, that's a problem. If it issues them without any clinical assessment at all, that's a bigger problem.",
             "Worth noting: your employer can verify a doctor's registration on the AHPRA website. They can also contact the issuing doctor to confirm a certificate is genuine. Services that use real, registered doctors have nothing to hide here."
           ]
         },
@@ -271,9 +271,9 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
           id: "employer-acceptance",
           title: "Employer Acceptance and Your Rights",
           paragraphs: [
-            "Some employers raise eyebrows at online medical certificates. They shouldn't - and legally, they can't reject a valid certificate simply because it came from a telehealth service. The Fair Work Act requires employees to provide 'evidence that would satisfy a reasonable person,' and a certificate from a registered doctor meets that standard regardless of the consultation format.",
-            "That said, some enterprise agreements or company policies have specific wording about acceptable evidence. If your employer has a policy that specifically requires an in-person GP visit, that policy may be unenforceable under the Fair Work Act, but it's worth knowing about before a dispute arises. The Fair Work Ombudsman has guidance on this.",
-            "If an employer rejects a legitimate telehealth certificate, the employee can file a complaint with the Fair Work Commission. In practice, most employers accept them without question - particularly since COVID normalised telehealth across Australia."
+            "Some employers raise eyebrows at online medical certificates. The Fair Work Ombudsman frames the test as evidence that would satisfy a reasonable person, and employer policies can still matter. A certificate from an AHPRA-registered doctor with clear dates and verification details is designed to support that review.",
+            "Some enterprise agreements or company policies have specific wording about acceptable evidence. If your employer requires something more specific than a routine sick-leave certificate, check that before you apply.",
+            "If an employer questions a certificate, start by using the verification link and the AHPRA registration details on the document. For workplace disputes, use the Fair Work Ombudsman or appropriate workplace advice channels."
           ]
         },
         {
@@ -368,7 +368,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
       },
       {
         q: "What technology do I need for a telehealth consultation?",
-        a: "For asynchronous telehealth services like InstantMed, you just need a device with a web browser and an internet connection. You fill in a secure form, a doctor reviews it, and they contact you if more information is clinically needed. Simpler than most people expect."
+        a: "For asynchronous telehealth services like InstantMed, you just need a device with a web browser and an internet connection. You fill in a secure form, a doctor reviews it, and we only interrupt you if something important is missing. Simpler than most people expect."
       },
       {
         q: "Is telehealth covered by private health insurance?",

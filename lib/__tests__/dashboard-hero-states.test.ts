@@ -91,7 +91,7 @@ const INCOMPLETE_PROFILE: ProfileData = {
 describe("DashboardHero · resolveHeroState", () => {
   it("does not hard-promise no-call service delivery across the mixed service grid", () => {
     expect(dashboardHeroSource).not.toContain("No call, no waiting room.")
-    expect(dashboardHeroSource).toContain("doctor contacts you only if clinically needed")
+    expect(dashboardHeroSource).toContain("We only interrupt you if something important is missing")
   })
 
   it("routes doctor-question replies directly to the message thread", () => {

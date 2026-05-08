@@ -28,7 +28,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "Medical Certificates for Queensland Workers",
         paragraphs: [
           "Queensland's economy has a significant proportion of shift workers, FIFO (fly-in, fly-out) workers, and casual employees. Mining, construction, hospitality, and healthcare are all major employers - and all involve work schedules that don't align with standard GP clinic hours. Getting a medical certificate shouldn't require taking an additional day off.",
-          "Under the Fair Work Act, Queensland employees have the same leave entitlements as workers in other states. Employers can request a medical certificate for any personal/carer's leave absence, and certificates from AHPRA-registered doctors via telehealth are legally valid. Queensland government departments, local councils, and all major employers assess telehealth-issued certificates under their own policies.",
+          "Under the Fair Work Act, Queensland employees have the same leave entitlements as workers in other states. Employers can request a medical certificate for any personal/carer's leave absence, and certificates from AHPRA-registered doctors via telehealth can be used as evidence. Queensland government departments, local councils, and all major employers assess telehealth-issued certificates under their own policies.",
           "For FIFO workers based in Brisbane but working in remote Queensland, telehealth is particularly valuable. If you're on R&R in Brisbane and fall ill, you may need documentation for an employer based in Perth or elsewhere. InstantMed certificates are issued by AHPRA-registered doctors and employer policies may vary across Australia.",
         ],
       },
@@ -36,7 +36,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "Students and Young Workers in Brisbane",
         paragraphs: [
           "Brisbane's universities - UQ, QUT, Griffith, JCU (Townsville campus with Brisbane presence) - collectively serve over 200,000 students. University health services exist but are often oversubscribed, with wait times of several days during semester. For academic support requests, students need timely medical certificates - something telehealth delivers reliably.",
-          "Brisbane also has a large casual and gig economy workforce. Uber drivers, Menulog riders, hospitality staff, and retail workers often lack traditional sick leave entitlements. While they may not need a certificate for their employer, having medical documentation is important for their own records and for accessing Centrelink's sickness allowance if needed. InstantMed provides this documentation at a fraction of the cost of a private GP consultation in Brisbane.",
+          "Brisbane also has a large casual and gig economy workforce. Uber drivers, Menulog riders, hospitality staff, and retail workers often lack traditional sick leave entitlements. While they may not need a certificate for an employer, routine absence evidence can still help them keep a clean personal record. Centrelink, Services Australia, and insurance matters usually require their own forms or treating-practitioner reports.",
         ],
       },
     ],
@@ -57,7 +57,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
     },
     additionalFaqs: [
       { q: "Does InstantMed cover the Gold Coast and Sunshine Coast?", a: "Yes. InstantMed covers all of South-East Queensland, including Brisbane, Gold Coast, Sunshine Coast, Ipswich, Logan, Redlands, and Moreton Bay. It's an online service - your location doesn't matter as long as you have internet access." },
-      { q: "Are telehealth certificates suitable for Queensland government employer documentation?", a: "Yes. Queensland government departments, local councils, and statutory bodies all set their own policies for medical certificates from AHPRA-registered doctors, including those issued via telehealth. The method of consultation doesn't affect the certificate's legal validity." },
+      { q: "Are telehealth certificates suitable for Queensland government employer documentation?", a: "Yes. Queensland government departments, local councils, and statutory bodies all set their own policies for medical certificates from AHPRA-registered doctors, including those issued via telehealth. The method of consultation doesn't affect the certificate's workplace evidence status." },
       { q: "Can I get a medical certificate for heat-related illness in Brisbane?", a: "Yes. Heat exhaustion, heat-related fatigue, and dehydration are valid reasons for a medical certificate. Our doctors assess whether your symptoms are appropriate for telehealth management. If you're experiencing severe symptoms (confusion, loss of consciousness), call 000 - that's an emergency." },
       { q: "Is InstantMed available during Queensland school holidays?", a: "Yes. We operate 8am–10pm AEST, 7 days a week, including all public holidays and school holiday periods. Demand for GP appointments typically increases during school holidays - telehealth avoids the queue." },
       { q: "Can FIFO workers use InstantMed?", a: "Yes. FIFO workers are some of our most common users. Whether you're on site in the Bowen Basin or on R&R in Brisbane, our doctors can provide medical certificates and prescriptions. Certificates are issued by AHPRA-registered doctors and employer policies may vary." },
@@ -108,7 +108,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       paragraphs: [
         "Queensland follows national AHPRA and Medical Board of Australia guidelines for telehealth. Queensland Health has been a strong advocate for telehealth expansion, recognising its importance for the state's vast geography - from the Gold Coast to Cape York. The QLD Government's digital health strategy explicitly supports telehealth as a mainstream healthcare delivery method.",
         "Prescribing via telehealth in Queensland follows the TGA national framework. Most medications can be prescribed remotely, with eScripts accepted at all Queensland pharmacies. Schedule 8 controlled substances require Queensland Health authority and typically an in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
-        "Medical certificates issued via telehealth in Queensland are legally identical to those from in-person consultations. There is no Queensland legislation distinguishing between consultation methods for the purpose of medical certification.",
+        "Medical certificates issued via telehealth in Queensland are reviewed under the same national practitioner framework as other doctor-issued certificates. Employers and institutions still assess routine absence evidence under their own policies.",
       ],
     },
     additionalFaqs: [
@@ -354,9 +354,9 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Shift Workers, FIFO Rosters, and Mining Industry Documentation",
         paragraphs: [
-          "Mining companies operating in the Bowen Basin - BHP, Glencore, Peabody, Anglo American, and smaller contractors - have some of the strictest medical documentation requirements in the country. Fitness-for-duty protocols typically require a certificate from a registered medical practitioner for any unplanned absence, and the documentation bar for returning to site after illness is high. Our certificates include the doctor's name, AHPRA registration number, consultation date, and the recommended period of absence - everything a mining HR team needs.",
+          "Mining companies operating in the Bowen Basin - BHP, Glencore, Peabody, Anglo American, and smaller contractors - have strict absence-documentation policies. Some site medical, return-to-work, or fitness-for-duty matters need the employer's own pathway or an in-person assessment. For routine short sick leave, our certificates include the doctor's name, AHPRA registration number, consultation date, and the recommended absence period for HR to review.",
           "For workers on 7/7 or 14/7 rosters, getting to a Mackay GP during their one week off - when they are also trying to see family and rest - is a logistical headache. Telehealth lets you handle the documentation in 20–30 minutes from home, on a Saturday morning, without burning a full day of downtime. If you fall ill mid-swing at camp and have internet, you can start the intake from site and have a certificate ready for your supervisor before your next shift.",
-          "Beyond mining, Mackay's sugarcane industry, the Port of Mackay, and marine tourism businesses in the Whitsundays all contribute to a heavily shift-based local workforce. The Fair Work Act covers all of these workers equally, and none of the relevant industrial instruments require that certificates come from face-to-face consultations. A telehealth certificate from an AHPRA-registered doctor is legally identical to one from a clinic down the road.",
+          "Beyond mining, Mackay's sugarcane industry, the Port of Mackay, and marine tourism businesses in the Whitsundays all contribute to a heavily shift-based local workforce. The Fair Work Act uses an evidence standard rather than a video-call requirement, and employer policies may vary. A telehealth certificate from an AHPRA-registered doctor can be used as routine sick-leave evidence when online assessment is clinically suitable.",
         ],
       },
       {
@@ -389,11 +389,11 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       paragraphs: [
         "Queensland follows national AHPRA and Medical Board of Australia standards for telehealth practice. Queensland Health has been one of the strongest state-level advocates for telehealth expansion, specifically because the state's geography makes traditional face-to-face primary care impractical for a large share of its population. Central and North Queensland are explicitly identified in Queensland Health's rural and remote strategy as priority regions for digital healthcare delivery.",
         "Prescribing follows the national TGA framework. Most PBS-listed medications can be prescribed via telehealth and dispensed at any Queensland pharmacy using the eScript system. Schedule 8 controlled substances (strong opioids, stimulants) require Queensland Health authority and typically in-person assessment - these are not prescribed by InstantMed under any circumstances.",
-        "Medical certificates issued via telehealth in Queensland are legally identical to those from face-to-face consultations. There is no Queensland legislation that creates a distinction, and Queensland government departments, mining companies, and private employers all accept them under the Fair Work Act.",
+        "Medical certificates issued via telehealth in Queensland are reviewed under the same national practitioner framework as other doctor-issued certificates. Employer policies still apply, and high-risk site medicals, return-to-work clearances, and compensation matters need the relevant in-person or employer-directed pathway.",
       ],
     },
     additionalFaqs: [
-      { q: "Do Bowen Basin mining companies assess telehealth certificates under their own policies?", a: "Yes. Mining companies operating in Australia are bound by the Fair Work Act and set their own policies for certificates from AHPRA-registered doctors regardless of consultation method. Our certificates include all the details - AHPRA number, consultation date, recommended period of absence - that mining HR and site medics need for fitness-for-duty documentation." },
+      { q: "Do Bowen Basin mining companies assess telehealth certificates under their own policies?", a: "Yes. Mining companies set their own documentation rules. Our certificates include the AHPRA number, consultation date, and recommended absence period for routine sick-leave review; site medicals and return-to-work clearances need the employer's own pathway." },
       { q: "Can I use InstantMed from a mine camp in Moranbah or Dysart?", a: "Yes, as long as you have internet or mobile data. Many camps have WiFi, and those that don't usually have mobile coverage. You can start and finish the intake from site, and receive your certificate or eScript while still on your swing." },
       { q: "Does InstantMed work during cyclone season in Mackay?", a: "Yes. Telehealth is actually more useful during severe weather - when clinics close, roads flood, or you simply cannot safely drive into town. As long as the mobile network is operational, InstantMed works." },
       { q: "Is InstantMed available in the Whitsundays?", a: `Yes. Airlie Beach, Proserpine, Cannonvale, Bowen - anywhere in the Whitsundays with internet access. Pricing is identical regardless of location. Medical certificates start from ${PRICING_DISPLAY.MED_CERT}.` },
@@ -460,7 +460,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       paragraphs: [
         "Queensland's telehealth framework follows the same national AHPRA and Medical Board of Australia standards that apply everywhere in Australia. Queensland Health has been particularly active in promoting telehealth in Central Queensland, where distance and workforce shortages make traditional face-to-face primary care impractical for a substantial share of the population.",
         "Prescribing via telehealth in Queensland follows TGA national rules. PBS-listed medications can be prescribed and dispensed via eScript at any Queensland pharmacy. Schedule 8 controlled substances - strong opioids, stimulants - require Queensland Health authority and typically in-person assessment, and are not prescribed through InstantMed.",
-        "Certificates issued via telehealth carry the same legal weight in Queensland as those issued in person. There is no legislation creating a distinction, and Queensland government employers, mining companies, universities, and private businesses all accept them under the Fair Work Act.",
+        "Certificates issued via telehealth in Queensland are reviewed under the same national practitioner framework as other doctor-issued certificates. Employers and institutions set their own policies, and routine sick-leave certificates are different from site medicals, return-to-work clearances, or compensation documents.",
       ],
     },
     additionalFaqs: [
@@ -532,7 +532,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       paragraphs: [
         "Queensland follows the national AHPRA and Medical Board of Australia framework for telehealth. Queensland Health has been a strong advocate for telehealth expansion, specifically because the state's vast geography makes face-to-face primary care impractical for a substantial share of its population. The Wide Bay–Burnett region is explicitly recognised in Queensland Health's regional strategy as an area benefiting from digital healthcare delivery.",
         "Prescribing via telehealth in Queensland follows the national TGA framework. Most PBS-listed medications can be prescribed and dispensed via eScript at any Queensland pharmacy. Schedule 8 controlled substances (strong opioids, stimulants) require Queensland Health authority and typically in-person assessment - InstantMed does not prescribe these.",
-        "Medical certificates issued via telehealth are legally identical to those from face-to-face consultations in Queensland. There is no legislation that creates a distinction, and Queensland government departments, agricultural businesses, and private employers all accept them under the Fair Work Act.",
+        "Medical certificates issued via telehealth in Queensland are reviewed under the same national practitioner framework as other doctor-issued certificates. Employer policies still apply, and compensation, insurance, fitness, and clearance matters need their own assessment pathway.",
       ],
     },
     additionalFaqs: [
@@ -633,9 +633,9 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Industrial Workers and Medical Certificates in Gladstone",
         paragraphs: [
-          "Gladstone's industrial employers - Santos, Origin Energy, ConocoPhillips, Rio Tinto (QAL and Boyne Smelters), GPC - typically require medical certificates for any absence, often as part of fitness-for-duty protocols. These are large, safety-critical operations where unplanned absences affect shift coverage and production. Workers need certificates quickly to maintain their standing with supervisors and HR.",
+          "Gladstone's industrial employers - Santos, Origin Energy, ConocoPhillips, Rio Tinto (QAL and Boyne Smelters), GPC - typically require evidence for routine absences. These are large, safety-critical operations where unplanned absences affect shift coverage and production. Site medicals, return-to-work clearances, and fitness-for-duty decisions need the employer's own pathway.",
           "Many Gladstone workers are employed through labour hire companies (Programmed, Chandler Macleod, Hays) or on contractor arrangements. These workers often face stricter documentation requirements than permanent employees - a missing certificate can mean losing future shifts. Telehealth's same-day turnaround is particularly valuable for this workforce.",
-          "FIFO and DIDO (drive-in, drive-out) workers who commute to Gladstone from Rockhampton, Bundaberg, or further afield face additional challenges. If they fall ill during their swing, they may not have a local GP. Telehealth provides access to a doctor regardless of where the worker's home base is located. Certificates are nationally valid and industrial employer policies may vary.",
+          "FIFO and DIDO (drive-in, drive-out) workers who commute to Gladstone from Rockhampton, Bundaberg, or further afield face additional challenges. If they fall ill during their swing, they may not have a local GP. Telehealth provides access to a doctor regardless of where the worker's home base is located. Routine certificates can be reviewed by employers under their own policies.",
         ],
       },
       {
@@ -643,7 +643,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Gladstone is more than its industrial base. The city serves as a service hub for the surrounding Gladstone Regional Council area, including Calliope, Tannum Sands, Boyne Island, Agnes Water, and the Town of 1770. These coastal and semi-rural communities have limited local healthcare, and residents often travel to Gladstone for GP appointments.",
           "CQUniversity's Gladstone campus and TAFE Queensland's Gladstone campus serve local and regional students. Both set their own policies for medical certificates from AHPRA-registered doctors for academic support requests. The consultation method is not a factor in documentation review.",
-          "Under the Fair Work Act 2009, all Gladstone employers must set their own policies for certificates from AHPRA-registered doctors. Queensland-specific industrial instruments, including resources sector enterprise agreements, do not distinguish between telehealth and face-to-face certificates. The certificate must include the doctor's AHPRA registration, consultation date, and recommended absence period - all of which InstantMed certificates provide.",
+          "Under the Fair Work Act 2009, Gladstone employers assess absence evidence under their own policies. Queensland-specific industrial instruments, including resources sector enterprise agreements, may add internal process requirements. InstantMed certificates include the doctor's AHPRA registration, consultation date, and recommended absence period for routine sick-leave review.",
         ],
       },
     ],
@@ -659,13 +659,13 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       paragraphs: [
         "Queensland follows national AHPRA and Medical Board of Australia guidelines for telehealth. Queensland Health has been a strong advocate for telehealth expansion, driven by the state's geographic spread and the healthcare access challenges faced by regional and industrial communities like Gladstone.",
         "Prescribing via telehealth in Queensland follows national TGA regulations. PBS-listed medications can be prescribed electronically, with eScripts accepted at all Queensland pharmacies. Schedule 8 controlled substances require Queensland Health authority and typically an in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
-        "Medical certificates from telehealth consultations carry the same legal weight as face-to-face certificates in Queensland. Resources sector enterprise agreements, state government employment conditions, and the Fair Work Act all set their own policies for certificates from AHPRA-registered doctors regardless of consultation method.",
+        "Medical certificates from telehealth consultations are reviewed under the same national practitioner framework as other doctor-issued certificates. Resources sector enterprise agreements, state government employment conditions, and Fair Work evidence rules still leave room for employer policy and document review.",
       ],
     },
     additionalFaqs: [
       { q: "Can LNG and alumina workers use InstantMed?", a: "Yes. Industrial workers across Gladstone's LNG plants, QAL, Boyne Smelters, and the port can get medical certificates via telehealth. Certificates are subject to employer policies, including those under resources sector enterprise agreements." },
       { q: "Does InstantMed cover Tannum Sands and Agnes Water?", a: "Yes. Tannum Sands, Boyne Island, Calliope, Agnes Water, Town of 1770, and all surrounding communities are covered. Anywhere with internet access in the Gladstone region." },
-      { q: "Can labour hire workers use InstantMed?", a: "Yes. Medical certificates from AHPRA-registered doctors are subject to labour-hire company policies. The certificate meets documentation requirements for Programmed, Chandler Macleod, Hays, and all other agencies." },
+      { q: "Can labour hire workers use InstantMed?", a: "Yes. Medical certificates from AHPRA-registered doctors are subject to labour-hire company policies. The certificate includes standard absence details those agencies can review under their own rules." },
       { q: "Is InstantMed cheaper than a Gladstone GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Gladstone bulk-billing around 60% and typical gap fees of $40–$60, InstantMed is often more affordable for straightforward certificates.` },
     ],
   },

@@ -70,9 +70,9 @@ export default function VerifyPage() {
                   <div className="w-12 h-12 rounded-full bg-success-light flex items-center justify-center mx-auto mb-3">
                     <Lock className="w-6 h-6 text-success" />
                   </div>
-                  <h3 className="font-medium text-foreground mb-1">Tamper-Proof</h3>
+                  <h3 className="font-medium text-foreground mb-1">Verification Code</h3>
                   <p className="text-sm text-muted-foreground">
-                    Each certificate has a unique code that cannot be duplicated or altered.
+                    Each certificate has a unique code that can be checked against our records.
                   </p>
                 </div>
                 <div className="text-center">
@@ -91,7 +91,7 @@ export default function VerifyPage() {
                   Need more information about our verification process?
                 </p>
                 <Link
-                  href="/for/employers"
+                  href="/employers"
                   className="inline-flex items-center text-sm text-primary hover:underline"
                 >
                   Employer verification guide

@@ -169,7 +169,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             { name: 'Doctor reviews your request', text: 'An AHPRA-registered doctor reviews your request. Most reviewed within 1-2 hours.' },
             { name: 'Receive your document', text: slug.includes('prescription')
               ? 'If approved, your eScript is sent via SMS to your phone. Take it to any pharmacy.'
-              : 'Your medical certificate is emailed as a PDF, valid for work and institutions.'
+              : 'If approved, your medical certificate is emailed as a secure PDF.'
             }
           ]}
         />

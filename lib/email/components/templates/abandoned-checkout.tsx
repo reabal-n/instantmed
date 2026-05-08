@@ -53,7 +53,7 @@ export function AbandonedCheckoutEmail({
           items={[
             "A doctor reviews your request (usually within an hour)",
             "You'll receive your document via email",
-            "Form-first review, with follow-up if clinically needed",
+            "Form-first review, with follow-up only if something important is missing",
           ]}
         />
       </Box>

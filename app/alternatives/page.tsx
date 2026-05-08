@@ -208,13 +208,13 @@ export default function AlternativesPage() {
         <section className="pb-10 px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto rounded-2xl bg-success/[0.04] dark:bg-success/[0.08] border border-success/20 p-6 sm:p-8">
             <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-3">
-              All medical certificates carry the same legal weight
+              Routine absence evidence, reviewed under workplace policy
             </h2>
             <p className="text-sm text-foreground/80 leading-relaxed mb-2">
-              Under the Fair Work Act 2009 (Cth), s 107, a medical certificate from any AHPRA-registered medical practitioner is acceptable evidence for paid personal or carer&apos;s leave. The legal validity does not depend on whether the consultation was in person or via telehealth.
+              Under the Fair Work Act 2009 (Cth), s 107, employees may be asked for evidence that would satisfy a reasonable person. A certificate from an AHPRA-registered medical practitioner can support that evidence review.
             </p>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              An online certificate from an AHPRA-registered GP is accepted on the same basis as one from your regular family GP. The format of the consultation does not change the legal weight of the document.
+              Employer policies may vary. High-stakes requests such as compensation, return-to-work clearance, court, or exam-deferral documents need their own assessment pathway.
             </p>
           </div>
         </section>

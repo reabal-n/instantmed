@@ -10,7 +10,7 @@ interface ComplianceMarqueeProps {
 }
 
 const complianceItems = [
-  { icon: FileCheck, text: 'Legally Valid Certificates' },
+  { icon: FileCheck, text: 'Doctor-Issued Certificates' },
   { icon: Stethoscope, text: 'Real Australian Doctors' },
   { icon: Building2, text: 'Australian Owned & Operated' },
   { icon: Shield, text: 'AHPRA Registered Doctors', highlight: true },

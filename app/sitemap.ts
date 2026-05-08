@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next"
 
+import { getSupportedMedCertIntentSlugs } from "@/lib/medical-cert/unsupported-use-cases"
+
 const ROOT_SITEMAP_LAST_MODIFIED = new Date("2026-04-30")
 const SERVICE_PAGES_LAST_MODIFIED = new Date("2026-04-28")
 const MED_CERT_LOCATION_LAST_MODIFIED = new Date("2026-04-24")
@@ -30,7 +32,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/how-it-works",
     "/faq",
     "/contact",
-    "/reviews",
     "/privacy",
     "/terms",
     "/about",
@@ -42,6 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/conditions",
     "/symptoms",
     "/for",
+    "/employers",
     "/intent",
     "/sitemap-html",
     "/clinical-governance",
@@ -54,18 +56,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/cookie-policy",
   ]
 
+  const medCertIntentPages = getSupportedMedCertIntentSlugs().map(
+    (slug) => `/medical-certificate/${slug}`,
+  )
+
   const servicePages = [
     "/consult",
     "/weight-loss",
-    "/medical-certificate/work",
-    "/medical-certificate/study",
-    "/medical-certificate/carer",
-    "/medical-certificate/sick-leave",
-    "/medical-certificate/university",
-    "/medical-certificate/school",
-    "/medical-certificate/return-to-work",
+    ...medCertIntentPages,
     "/medical-certificate/employer-acceptance",
-    "/medical-certificate/centrelink",
   ]
 
   // Audience-specific landing pages
@@ -78,7 +77,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Employer verification pages - high-intent long-tail SEO
   const employerPages = [
-    "/for/employers",
     "/for/universities",
     "/for/employers/woolworths",
     "/for/employers/coles",

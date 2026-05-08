@@ -91,6 +91,11 @@ const LAYOUT = {
   bodyWidth: 450,
   /** Certificate ID Y - below footer text, near bottom edge */
   certIdY: 820,
+  /** Footer proofing text replaces the old template-baked footer claim. */
+  footerX: 72,
+  footerY: 735,
+  footerLineHeight: 9,
+  footerWidth: 350,
   /** Right margin */
   rightMargin: 50,
   /** Maximum Y before body text would collide with doctor block (~700pt).
@@ -107,8 +112,16 @@ const LAYOUT = {
     salutation: 11,
     issueDate: 10,
     certId: 8,
+    footer: 7.5,
   },
 }
+
+const FOOTER_TEXT = [
+  "To check this certificate, visit instantmed.com.au/verify or scan the QR code.",
+  "For questions, contact support@instantmed.com.au.",
+] as const
+
+const TEMPLATE_BACKGROUND = rgb(247 / 255, 248 / 255, 250 / 255)
 
 // ---------------------------------------------------------------------------
 // Helpers: name capitalisation
@@ -142,40 +155,27 @@ function getDatePhrase(input: TemplatePdfInput): string {
   return `from ${input.startDate} to ${input.endDate} inclusive`
 }
 
-function getBodyText(input: TemplatePdfInput): string {
+export function getBodyText(input: TemplatePdfInput): string {
   const displayName = toTitleCase(input.patientName)
   const nameWithDob = input.patientDateOfBirth
     ? `${displayName} (DOB: ${input.patientDateOfBirth})`
     : displayName
   const datePart = getDatePhrase(input)
-  // Language follows RACGP guidance for asynchronous telehealth consultations:
-  // statement of the consultation and the patient's reported condition, not an
-  // absolute clinical declaration of unfitness from a non-physical exam.
+  // Conservative certificate wording: routine absence evidence only.
+  // This is not a capacity, clearance, exam, compensation, insurance, or
+  // fitness-for-X document.
   switch (input.certificateType) {
     case "work":
-      return `This is to certify that ${nameWithDob} consulted me on ${input.consultationDate} and reported being unwell with symptoms that, on the information provided, are consistent with a need to be absent from their usual occupational duties ${datePart}.`
+      return `This is to certify that ${nameWithDob} consulted me on ${input.consultationDate} and reported being unwell. Based on the information provided, this certificate is issued as routine sick-leave evidence for absence from usual work duties ${datePart}.`
     case "study":
-      return `This is to certify that ${nameWithDob} consulted me on ${input.consultationDate} and reported being unwell with symptoms that, on the information provided, are consistent with a need to be absent from their usual academic activities ${datePart}.`
+      return `This is to certify that ${nameWithDob} consulted me on ${input.consultationDate} and reported being unwell. Based on the information provided, this certificate is issued as routine study-absence evidence for absence from usual study activities ${datePart}.`
     case "carer":
-      return `This is to certify that ${nameWithDob} consulted me on ${input.consultationDate} and indicated they are required to provide care for an immediate family or household member who is unwell, and on that basis are unable to attend their usual duties ${datePart}.`
+      return `This is to certify that ${nameWithDob} consulted me on ${input.consultationDate} and reported a need to care for an immediate family or household member who is unwell. Based on the information provided, this certificate is issued as routine carer's-leave evidence for absence from usual duties ${datePart}.`
   }
 }
 
-function getReturnText(input: TemplatePdfInput): string {
-  const isSingleDay = input.startDate === input.endDate
-  const periodRef = isSingleDay ? "this date" : "this period"
-  // Conservative, non-absolute language. We do NOT volunteer support for
-  // exam deferrals, special consideration, court matters, fitness-to-drive
-  // or similar high-stakes determinations — those require a face-to-face
-  // assessment and the institution should arrange one if needed.
-  switch (input.certificateType) {
-    case "work":
-      return `Rest and recovery is advised, with a return to usual duties expected once ${periodRef} has concluded or earlier if symptoms resolve.`
-    case "study":
-      return `Rest and recovery is advised, with a return to usual academic activities expected once ${periodRef} has concluded or earlier if symptoms resolve.`
-    case "carer":
-      return `A return to usual duties is expected once ${periodRef} has concluded, subject to the dependent's recovery.`
-  }
+export function getReturnText(_input: TemplatePdfInput): string {
+  return "This certificate documents the absence period above only. It does not include a diagnosis, workplace restrictions, or a capacity assessment."
 }
 
 // ---------------------------------------------------------------------------
@@ -269,6 +269,32 @@ export async function renderTemplatePdf(input: TemplatePdfInput): Promise<Templa
       return currentY
     }
 
+    const drawFooterText = () => {
+      // Covers the legacy footer area in older templates before drawing the
+      // current conservative verification copy.
+      page.drawRectangle({
+        x: LAYOUT.footerX - 2,
+        y: ty(LAYOUT.footerY + 38),
+        width: LAYOUT.footerWidth + 10,
+        height: 42,
+        color: TEMPLATE_BACKGROUND,
+      })
+
+      let footerY = LAYOUT.footerY
+      for (const line of FOOTER_TEXT) {
+        footerY = drawWrappedParagraph(
+          line,
+          LAYOUT.footerX,
+          footerY,
+          fontRegular,
+          LAYOUT.fontSize.footer,
+          LAYOUT.footerLineHeight,
+          LAYOUT.footerWidth,
+          rgb(0.38, 0.42, 0.5),
+        )
+      }
+    }
+
     // ---- Title (centered, bold) ----
     const title = getTitle(sanitisedInput.certificateType)
     const titleWidth = fontBold.widthOfTextAtSize(title, LAYOUT.fontSize.title)
@@ -298,6 +324,8 @@ export async function renderTemplatePdf(input: TemplatePdfInput): Promise<Templa
     if (endY > LAYOUT.maxBodyY) {
       return { success: false, error: "Certificate body text is too long - it would overlap the doctor information block." }
     }
+
+    drawFooterText()
 
     // ---- Certificate ID (centered, dark navy, monospace, below footer) ----
     const certIdLabel = `CERTIFICATE ID: ${sanitisedInput.certificateRef}`

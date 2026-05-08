@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { requireRole } from "@/lib/auth/helpers"
 import { getParchmentOpsDashboard } from "@/lib/parchment/ops"
+import { getParchmentProductionReadiness } from "@/lib/parchment/readiness"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { CopyTokenButton } from "./copy-token-button"
@@ -64,7 +65,14 @@ export default async function ParchmentOpsPage() {
   await requireRole(["admin"], { redirectTo: "/admin" })
 
   const dashboard = await getParchmentOpsDashboard(createServiceRoleClient())
+  const readiness = getParchmentProductionReadiness()
   const degraded = dashboard.stats.retryableFailures > 0 || dashboard.stats.unlinkedPrescribers > 0
+  const readinessTone =
+    readiness.status === "ready"
+      ? "success"
+      : readiness.status === "sandbox_only" || readiness.status === "awaiting_production_keys"
+        ? "warning"
+        : "destructive"
 
   return (
     <div className="space-y-6">
@@ -87,6 +95,55 @@ export default async function ParchmentOpsPage() {
           </>
         }
       />
+
+      <div className="rounded-xl border border-border/50 bg-card p-5 shadow-sm shadow-primary/[0.04] dark:shadow-none">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-2xl">
+            <div className="flex items-center gap-2">
+              {readiness.status === "ready" ? (
+                <CheckCircle className="h-5 w-5 text-success" aria-hidden />
+              ) : (
+                <AlertTriangle className="h-5 w-5 text-warning" aria-hidden />
+              )}
+              <h2 className="text-base font-semibold text-foreground">
+                Production prescribing gate
+              </h2>
+              <Badge variant={readinessTone} size="sm">
+                {readiness.label}
+              </Badge>
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {readiness.message}
+            </p>
+          </div>
+          <div className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-3 lg:min-w-[420px]">
+            <div className="rounded-lg border border-border/50 bg-muted/30 px-3 py-2">
+              <p className="font-medium text-foreground">Environment</p>
+              <p className="mt-1 capitalize">{readiness.environment}</p>
+            </div>
+            <div className="rounded-lg border border-border/50 bg-muted/30 px-3 py-2">
+              <p className="font-medium text-foreground">API host</p>
+              <p className="mt-1 truncate">{readiness.apiHost}</p>
+            </div>
+            <div className="rounded-lg border border-border/50 bg-muted/30 px-3 py-2">
+              <p className="font-medium text-foreground">Iframe hosts</p>
+              <p className="mt-1">
+                {readiness.iframeHosts.filter((host) => host.allowed).length}/
+                {readiness.iframeHosts.length} allowed
+              </p>
+            </div>
+          </div>
+        </div>
+        {readiness.missingProductionKeys.length > 0 && readiness.status !== "sandbox_only" && (
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-border/60 pt-4">
+            {readiness.missingProductionKeys.map((key) => (
+              <Badge key={key} variant="outline" size="sm">
+                {key}
+              </Badge>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard

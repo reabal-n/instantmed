@@ -81,8 +81,10 @@ const HIGH_STAKES_PATTERNS: ReadonlyArray<{ pattern: RegExp; reason: string }> =
   { pattern: /\b(exam|examination|deferral|defer|deferred|special\s+consideration|supplementary)\b/i, reason: "Exam deferrals and special consideration require a face-to-face assessment your university or institution can arrange." },
   { pattern: /\b(court|hearing|tribunal|summons|subpoena|jury)\b/i, reason: "Certificates for court matters require an in-person assessment." },
   { pattern: /\b(custody|family\s+law|intervention\s+order|avo)\b/i, reason: "Family law matters require an in-person assessment." },
-  { pattern: /\b(driving|drive|licence|license|rta|firearm|gun\s+licence|gun\s+license|shooting|fitness\s+to\s+fly)\b/i, reason: "Fitness-for-driving, firearm or aviation determinations require an in-person assessment by an accredited assessor." },
-  { pattern: /\b(workers?\s*comp|workcover|insurance\s+claim|ndis|tac)\b/i, reason: "Certificates for workers' compensation or insurance claims require an in-person assessment." },
+  { pattern: /\b(driving|drive|licence|license|rta|firearm|gun\s+licence|gun\s+license|shooting|fitness\s+to\s+fly|fitness\s+to\s+drive|commercial\s+driver|forklift|heavy\s+machinery)\b/i, reason: "Fitness-for-driving, firearm, machinery, or aviation determinations require an in-person assessment by an accredited assessor." },
+  { pattern: /\b(workers?\s*comp|workers?\s*compensation|workcover|certificate\s+of\s+capacity|capacity\s+certificate|work\s+capacity|insurance\s+claim|income\s+protection|ndis|tac)\b/i, reason: "Certificates for workers' compensation, NDIS, or insurance claims require a different assessment pathway." },
+  { pattern: /\b(centrelink|services\s+australia|mutual\s+obligation|jobseeker|dsp|disability\s+support\s+pension)\b/i, reason: "Centrelink and government-program medical evidence usually needs specific forms or a treating-practitioner report." },
+  { pattern: /\b(fit\s+for\s+duty|fitness\s+for\s+duty|fitness\s+to\s+work|fit\s+to\s+work|return\s+to\s+work\s+clearance|pre[-\s]?employment|site\s+medical|mine\s+site\s+medical|safety[-\s]?critical)\b/i, reason: "Fitness-for-duty, return-to-work, and safety-critical clearances require in-person assessment." },
 ]
 
 export interface HighStakesCheck {

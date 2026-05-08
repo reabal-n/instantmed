@@ -75,23 +75,18 @@ export function MobileMenuContent({ variant, onClose }: MobileMenuContentProps) 
           onClose={onClose}
         />
         <AnimatedMobileMenu.Item
-          item={{ label: "Reviews", href: "/reviews", icon: <ShieldCheck className="h-5 w-5" /> }}
+          item={{ label: "Trust & Safety", href: "/trust", icon: <ShieldCheck className="h-5 w-5" /> }}
           index={services.length + 5}
           onClose={onClose}
         />
         <AnimatedMobileMenu.Item
-          item={{ label: "Trust & Safety", href: "/trust", icon: <ShieldCheck className="h-5 w-5" /> }}
+          item={{ label: "Clinical Governance", href: "/clinical-governance", icon: <Stethoscope className="h-5 w-5" /> }}
           index={services.length + 6}
           onClose={onClose}
         />
         <AnimatedMobileMenu.Item
-          item={{ label: "Clinical Governance", href: "/clinical-governance", icon: <Stethoscope className="h-5 w-5" /> }}
+          item={{ label: "For Employers", href: "/employers", icon: <Building2 className="h-5 w-5" /> }}
           index={services.length + 7}
-          onClose={onClose}
-        />
-        <AnimatedMobileMenu.Item
-          item={{ label: "For Employers", href: "/for/employers", icon: <Building2 className="h-5 w-5" /> }}
-          index={services.length + 8}
           onClose={onClose}
         />
       </>

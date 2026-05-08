@@ -83,8 +83,8 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
         a: "Yes. If you need time off to care for an unwell family member or household member, we can issue a carer's leave certificate. This uses your personal leave balance under the Fair Work Act.",
       },
       {
-        q: "Are online medical certificates legally valid?",
-        a: "Yes. Telehealth certificates issued by AHPRA-registered doctors have the same legal standing as in-person GP certificates under the Fair Work Act. There is no distinction in Australian law.",
+        q: "Are online medical certificates doctor-issued?",
+        a: "Yes. Telehealth certificates issued by AHPRA-registered doctors can be used as evidence as in-person GP certificates under the Fair Work Act. There is no distinction in Australian law.",
       },
       {
         q: "Can I get a certificate for more than one day?",
@@ -113,13 +113,13 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
         desc: "The last place you want to be when sick is around more sick people. Get your cert from home.",
       },
       {
-        title: "Employers you know accept it",
-        desc: "Hospitals, aged care, agencies - they all accept AHPRA-registered doctor certificates.",
+        title: "Built for health rosters",
+        desc: "Clear doctor details and absence dates for routine HR review.",
       },
     ],
     industryContext: [
       "Nursing and healthcare work involves 12-hour shifts, rotating rosters, and exposure to infectious patients - making nurses among the most likely workers to need medical certificates. Yet standard GP clinics are closed during many of the hours nurses actually work. Telehealth fills this gap by providing doctor access at 8am when you come off a night shift, or at 9pm before an early start.",
-      "Healthcare employers are among the most rigorous about requiring valid medical documentation for absences. Our certificates are issued by AHPRA-registered doctors and include all the details your HR department requires: doctor's name, provider number, dates of unfitness, and clinic details. They meet the same legal standard as any in-person GP certificate.",
+      "Healthcare employers are among the most rigorous about requiring clear medical documentation for absences. Our certificates are issued by AHPRA-registered doctors and include routine absence details for HR review: doctor's name, registration details, dates of unfitness, and clinic details. Employer policies still apply.",
       "Nurses and healthcare workers also face unique occupational health considerations - needle-stick injuries, patient aggression, and workplace stress all fall outside what telehealth can assess. For these, you need your workplace OHS process. But for common illnesses like gastro (with its mandatory 48-hour exclusion), cold and flu, or mental health days, telehealth is the practical choice.",
     ],
     commonConditions: [
@@ -132,7 +132,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     workplaceRights: [
       "Under the Fair Work Act, you are entitled to 10 days of paid personal/carer's leave per year (pro-rata for part-time)",
       "Your employer can request a medical certificate but cannot demand to know your specific diagnosis",
-      "Certificates from telehealth services are legally equivalent to in-person GP certificates",
+      "Certificates from telehealth services are issued by AHPRA-registered doctors for routine evidence",
       "Healthcare enterprise agreements often provide additional sick leave beyond the NES minimum",
       "If you are a casual nurse, you can still use InstantMed - you are not entitled to paid leave but may need documentation for regular shifts",
     ],
@@ -159,7 +159,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     faqs: [
       {
         q: "Do education departments accept online certificates?",
-        a: "Yes. Certificates from AHPRA-registered doctors meet standard requirements across Australian school systems - DET, Catholic, independent.",
+        a: "Yes. Certificates from AHPRA-registered doctors include standard document details across Australian school systems - DET, Catholic, independent.",
       },
       {
         q: "Can I do this during school hours?",
@@ -187,7 +187,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "Are these certificates valid under education department policies?",
-        a: "Yes. Our certificates are issued by AHPRA-registered doctors and meet the requirements of all Australian education departments, Catholic education offices, and independent school authorities.",
+        a: "Certificates from AHPRA-registered doctors can be used as routine sick-leave evidence. Education employers and school systems still assess documents under their own leave policies.",
       },
       {
         q: "What if I need a certificate before 8am for a morning absence?",
@@ -208,8 +208,8 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
         desc: "Taking time off to see a GP means finding someone to cover your class. We fit into your break.",
       },
       {
-        title: "Schools accept it",
-        desc: "All Australian education employers accept our certificates. No questions asked.",
+        title: "Built for school leave",
+        desc: "Clear dates, doctor details, and a secure certificate reference for routine staff absence records.",
       },
       {
         title: "Same-day when you need it",
@@ -247,7 +247,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     metadata: {
       title: "Medical Certificates for Hospitality Workers",
       description:
-        "Hospitality workers: get a medical certificate without missing a shift to see a GP. Doctor-reviewed, usually under 1 hour. Accepted by restaurants, hotels, venues.",
+        "Hospitality workers: get a medical certificate without missing a shift to see a GP. Doctor-reviewed, with standard workplace evidence details. Employer policies may vary.",
       keywords: [
         "medical certificate hospitality",
         "chef sick certificate",
@@ -290,7 +290,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "Are these certificates valid under the Fair Work Act?",
-        a: "Yes. Certificates from AHPRA-registered doctors - whether issued via telehealth or in person - have the same legal standing under Australian employment law.",
+        a: "Yes. Certificates from AHPRA-registered doctors - whether issued via telehealth or in person - can be used as evidence under Australian employment law.",
       },
       {
         q: "Can I get a multi-day certificate?",
@@ -344,7 +344,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     metadata: {
       title: "Medical Certificates for Retail Workers",
       description:
-        "Retail workers: get a medical certificate without a clinic visit. Doctor-reviewed, usually under 1 hour. Accepted by supermarkets, shops, and warehouses.",
+        "Retail workers: get a medical certificate without a clinic visit. Doctor-reviewed, with standard workplace evidence details. Employer policies may vary.",
       keywords: [
         "medical certificate retail",
         "retail worker sick certificate",
@@ -379,7 +379,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "Are these certificates valid under the General Retail Industry Award?",
-        a: "Yes. Our certificates meet all requirements under the General Retail Industry Award 2020 and the Fair Work Act. They are issued by AHPRA-registered doctors.",
+        a: "Yes. Our certificates include standard document details under the General Retail Industry Award 2020 and the Fair Work Act. They are issued by AHPRA-registered doctors.",
       },
       {
         q: "Can I get a certificate on a weekend or public holiday?",
@@ -468,7 +468,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "Can government employers use these certificates as evidence?",
-        a: "Yes. Commonwealth, state, and local government employers all set their own policies for certificates from AHPRA-registered doctors. Telehealth certificates carry the same legal weight as in-person ones.",
+        a: "Yes, for routine absence evidence where the employer's policy allows it. Commonwealth, state, and local government employers set their own policies for certificates from AHPRA-registered doctors.",
       },
       {
         q: "Can I get a carer's leave certificate?",
@@ -480,7 +480,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "Can I submit the certificate electronically?",
-        a: "Yes. Your certificate is delivered as a secure PDF via email. Forwarding it to HR or uploading it to your leave management system is legally valid - no paper copy required.",
+        a: "Yes. Your certificate is delivered as a secure PDF via email. Forwarding it to HR or uploading it to your leave management system can be used as evidence - no paper copy required.",
       },
       {
         q: "What happens if the doctor declines my request?",
@@ -493,8 +493,8 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
         desc: "Sick enough to stay home but need a cert? Do it from your couch. Or do it from your desk if you're in.",
       },
       {
-        title: "HR accepts it",
-        desc: "Corporate and government HR departments accept our certificates. Same as a GP's.",
+        title: "Clear HR handover",
+        desc: "A secure PDF with the doctor details, certificate dates, and verification reference HR can review.",
       },
       {
         title: "Fits your schedule",
@@ -516,7 +516,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     workplaceRights: [
       "Full-time office workers receive 10 days paid personal/carer's leave per year under the NES",
       "Most corporate employers require a certificate for 2+ consecutive days, but some require one from day one",
-      "Your certificate can be submitted electronically - a PDF forwarded to HR is legally valid",
+      "Your certificate can be submitted electronically - a PDF forwarded to HR can be used as evidence",
       "If you work from home while unwell, you are still entitled to take sick leave - you don't have to 'push through' just because you're at home",
     ],
   },
@@ -644,7 +644,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     faqs: [
       {
         q: "Do I need to see a doctor in person?",
-        a: "No. Telehealth consultations are legally equivalent to in-person for medical certificates. Our doctors are AHPRA-registered.",
+        a: "No. Telehealth consultations are suitable for routine medical certificate requests when clinically appropriate. Our doctors are AHPRA-registered.",
       },
       {
         q: "I live regionally - can I use this?",
@@ -698,7 +698,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         title: "Same validity",
-        desc: "Online certificates have the same legal standing as in-person. Employers accept them.",
+        desc: "Online certificates can be used as evidence as in-person. Employers accept them.",
       },
     ],
     industryContext: [
@@ -725,12 +725,12 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     h1: "Medical Certificates for Gig Workers",
     heroSubtext:
       "Uber, Deliveroo, Airtasker - when you're sick you need documentation. Get your medical certificate online. No appointments, no waiting.",
-    heroTagline: "No appointments • Usually under 1 hour • Platforms accept",
+    heroTagline: "No appointments • Usually under 1 hour • Clear absence record",
     icon: Car,
     metadata: {
       title: "Medical Certificates for Gig Workers",
       description:
-        "Gig and contract workers: get a medical certificate when you're sick. Uber, Deliveroo, and other platforms accept our certificates. Doctor-reviewed, usually under 1 hour.",
+        "Gig and contract workers: get a routine sick certificate when you're unwell. Doctor-reviewed, usually under 1 hour.",
       keywords: [
         "medical certificate gig workers",
         "uber driver sick certificate",
@@ -740,8 +740,8 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     },
     faqs: [
       {
-        q: "Do Uber/Deliveroo accept online certificates?",
-        a: "Yes. Our certificates are from AHPRA-registered doctors and meet standard documentation requirements for Australian platforms.",
+        q: "Can I use this for a platform absence record?",
+        a: "You can use the PDF as routine absence evidence, but each platform sets its own documentation rules.",
       },
       {
         q: "I don't get sick leave - do I still need a certificate?",
@@ -757,7 +757,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "I don't have an employer - why would I need a certificate?",
-        a: "Certificates serve multiple purposes beyond employer leave: platform compliance for Uber and Deliveroo, income protection insurance claims, Centrelink mutual obligation evidence, and professional documentation for clients when deadlines slip.",
+        a: "Most gig workers use it as a simple record that they were unwell for a short period. Insurance, Centrelink, and legal or platform disputes usually need their own forms or treating-practitioner reports.",
       },
       {
         q: "Will the certificate show my diagnosis?",
@@ -765,11 +765,11 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "Can I use this for a Centrelink mutual obligation exemption?",
-        a: "A medical certificate can support your case for a temporary exemption from mutual obligations. Contact your Centrelink provider to confirm what documentation they require.",
+        a: "Usually not through this short certificate pathway. Centrelink and Services Australia often require specific forms or functional-capacity details from a treating practitioner.",
       },
       {
         q: "Does this work for income protection insurance claims?",
-        a: "Most income protection insurers require a medical certificate as evidence of inability to work. Our certificates include all standard details - doctor name, provider number, dates, and assessment.",
+        a: "Insurance claims usually need insurer-specific forms, capacity details, or treating-practitioner reports. This pathway is for routine short sick-leave evidence only.",
       },
       {
         q: "Can I get a certificate for a mental health day?",
@@ -777,7 +777,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "Are these certificates valid under the Fair Work Act?",
-        a: "Yes. If you are later found to be an employee rather than a contractor, a certificate provides evidence of genuine illness. Either way, our certificates meet all legal requirements.",
+        a: "A certificate can support a routine personal-leave record if employment law applies to your situation. The final assessment sits with the employer, platform, or relevant decision-maker.",
       },
       {
         q: "Can I get a multi-day certificate?",
@@ -794,8 +794,8 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
         desc: "No 9-5 means no easy GP visits. We're available when you are.",
       },
       {
-        title: "Platforms accept it",
-        desc: "Major gig platforms accept AHPRA-registered doctor certificates.",
+        title: "Simple absence record",
+        desc: "Clear dates and doctor details you can keep on file or share with the relevant platform.",
       },
       {
         title: "Quick when you need it",
@@ -803,9 +803,9 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
     ],
     industryContext: [
-      "Gig workers - delivery drivers, rideshare operators, freelancers, and independent contractors - make up a growing segment of the Australian workforce, but they lack the safety net of paid sick leave. When you get sick, you don't earn. A medical certificate might seem pointless without paid leave, but it serves several important purposes: documenting absences for platform compliance, supporting insurance claims (if you have income protection), and providing evidence for Centrelink if illness prevents you from meeting mutual obligation requirements.",
+      "Gig workers - delivery drivers, rideshare operators, freelancers, and independent contractors - make up a growing segment of the Australian workforce, but they lack the safety net of paid sick leave. When you get sick, you don't earn. A short medical certificate can still create a simple absence record for routine situations, while insurance, Centrelink, and platform disputes usually need their own forms or treating-practitioner reports.",
       "For platform-based gig workers (Uber, DoorDash, Menulog, Airtasker), some platforms require documentation for extended absences or deactivation appeals. Having a medical certificate on file demonstrates that your downtime was genuine and not a performance issue. This is increasingly relevant as gig platforms implement rating and reliability systems.",
-      "Freelancers and sole traders have a different challenge: no employer to report to, but clients who expect delivery. A medical certificate provides professional documentation when you need to push a deadline. It also supports any income protection insurance claim if you are unable to work for an extended period.",
+      "Freelancers and sole traders have a different challenge: no employer to report to, but clients who expect delivery. A routine sick certificate can document a short absence when you need to move a deadline, but it is not a capacity report or insurance claim document.",
     ],
     commonConditions: [
       { name: "Cold & Flu", slug: "cold-and-flu", why: "Driving, delivering, and working outdoors increases exposure - and you can't 'work from home'" },
@@ -816,8 +816,8 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     workplaceRights: [
       "Gig workers classified as independent contractors are NOT entitled to paid sick leave under the Fair Work Act",
       "If you are an employee misclassified as a contractor, you may have leave entitlements - seek advice from the Fair Work Ombudsman",
-      "Medical certificates support Centrelink claims if illness prevents you from meeting mutual obligations",
-      "Income protection insurance claims typically require a medical certificate as evidence of inability to work",
+      "Centrelink and Services Australia often require their own forms or functional-capacity details",
+      "Income protection and insurance claims usually need insurer-specific paperwork",
       "Platform deactivation appeals often require documentation - a medical certificate explains gaps in availability",
     ],
   },

@@ -7,7 +7,7 @@ const HERO_BADGE_MAX = 4 // hero CTA area layout constraint - more than 4 pills 
 describe('BADGE_REGISTRY', () => {
   it('contains all expected badge IDs', () => {
     const expected: BadgeId[] = [
-      'ahpra','tga','racgp','medical_director','refund','privacy',
+      'ahpra','tga','documented_protocols','medical_director','refund','privacy',
       'stripe','ssl','pci','au_data',
       'no_call','no_speaking','form_only','no_waiting_room','no_appointment',
       'from_your_phone','no_face_to_face','fast_form','same_day',
@@ -41,7 +41,7 @@ describe('BADGE_REGISTRY', () => {
       expect(BADGE_REGISTRY[id].pillClass).not.toBeNull()
       expect(typeof BADGE_REGISTRY[id].pillClass).toBe('string')
     }
-    const plainOnly: BadgeId[] = ['tga','racgp','medical_director','privacy','ssl','pci','no_face_to_face','fast_form']
+    const plainOnly: BadgeId[] = ['tga','documented_protocols','medical_director','privacy','ssl','pci','no_face_to_face','fast_form']
     for (const id of plainOnly) {
       expect(BADGE_REGISTRY[id].hasStyledTier).toBe(false)
       expect(BADGE_REGISTRY[id].pillClass).toBeNull()

@@ -48,7 +48,7 @@ export default function HairLossPage() {
     <>
       <SpeakableSchema
         name="Hair Loss Assessment Online Australia"
-        description={`Discreet, doctor-led hair loss assessment from an AHPRA-registered Australian doctor. From $${PRICING.HAIR_LOSS.toFixed(2)}. The doctor contacts you if clinically needed.`}
+        description={`Discreet, doctor-led hair loss assessment from an AHPRA-registered Australian doctor. From $${PRICING.HAIR_LOSS.toFixed(2)}. We reach out only if one more detail is needed.`}
         url="/hair-loss"
       />
       <FAQSchema faqs={[...HAIR_LOSS_FAQ]} />

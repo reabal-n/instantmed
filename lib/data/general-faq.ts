@@ -91,7 +91,7 @@ export const GENERAL_FAQ: FAQGroup[] = [
       {
         question: 'What happens after my consultation?',
         answer:
-          "Depends on the outcome. If the doctor approves a prescription, you\u2019ll receive an eScript via SMS. If they issue a certificate or referral, it\u2019ll appear in your patient dashboard. If they need more information or recommend in-person care, they\u2019ll let you know directly.",
+          "Depends on the outcome. If the doctor approves a prescription, you\u2019ll receive an eScript via SMS. If they issue a certificate or referral, it\u2019ll appear in your patient dashboard. If something important is missing or in-person care is a better fit, we\u2019ll tell you directly.",
       },
       {
         question: 'Can I use InstantMed for mental health concerns?',

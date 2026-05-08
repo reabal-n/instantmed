@@ -29,7 +29,7 @@ export function GoogleReviewsBadge({ className }: { className?: string }) {
       href={GOOGLE_REVIEWS.reviewsUrl}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label={`Read our Google reviews, ${rating.toFixed(1)} of 5`}
+      aria-label="Read our Google reviews"
       className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-sm hover:shadow-md hover:border-border transition-[box-shadow,border-color] duration-200 no-underline ${className ?? ''}`}
     >
       {/* Google G mark */}

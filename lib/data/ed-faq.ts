@@ -1,7 +1,7 @@
 export const ED_FAQ = [
   {
     question: "Do I need a video consultation?",
-    answer: "No. Fill out our structured health form, and an AHPRA-registered Australian doctor reviews your submission. If further clarification is needed, the doctor may contact you by message, but most patients are reviewed without a call.",
+    answer: "No booked appointment. Fill out our structured health form, and an AHPRA-registered Australian doctor reviews your submission. We only interrupt you if something important is missing.",
   },
   {
     question: "How fast will I hear back?",
