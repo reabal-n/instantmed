@@ -3,7 +3,9 @@
 > Canonical advertising rules for InstantMed marketing, Google Ads, landing pages, metadata, schema, and reusable copy.
 > Read this before changing any public acquisition surface.
 
-**Last updated:** 2026-05-07
+**Last updated:** 2026-05-10
+
+> **In an active complaint?** Stop and load the runbook before doing anything else: [`docs/runbooks/comparative-tagline-complaint.md`](runbooks/comparative-tagline-complaint.md). It covers AHPRA notifications, TGA notices, Medical Board letters, Google Ads disapprovals, competitor cease-and-desists, patient complaints about ad copy, and media inquiries.
 
 ---
 

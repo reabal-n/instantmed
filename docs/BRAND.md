@@ -164,7 +164,7 @@ Illustration system: 12-piece set, soft hand-drawn line-and-fill, warm coral as 
 
 ## 10. Compliance notes
 
-- **TGA / AHPRA on `Faster than your GP.`** — comparative health-service advertising. Defensible because it compares process speed (booking + appointment time) not clinical outcome and is substantiable. May trigger Google Ads healthcare review — switch paid creative to `TAGLINE_PAID_SAFE` ("Faster than the wait at your GP.") which is lower-risk.
+- **TGA / AHPRA on `Faster than your GP.`** — comparative health-service advertising. Defensible because it compares process speed (booking + appointment time) not clinical outcome and is substantiable. May trigger Google Ads healthcare review — switch paid creative to `TAGLINE_PAID_SAFE` ("Faster than the wait at your GP.") which is lower-risk. **Active complaint? Use the runbook:** [`docs/runbooks/comparative-tagline-complaint.md`](runbooks/comparative-tagline-complaint.md).
 - **Substantiation page** — `/why-instant` (or merged into `/about`) shows the math: median GP wait per ABS / RACGP source vs. our median delivery time. Required if we keep the comparative tagline as the brand spine.
 - **Identity rule** — no individual doctor name on marketing pages (CLAUDE.md). Cert PDFs, decline messages, dashboard, and email signoff use the full name; marketing pages use the stylised signature mark only.
 
