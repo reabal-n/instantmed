@@ -110,8 +110,8 @@ describe("marketing copy contracts", () => {
   it("does not imply employer endorsement or guaranteed acceptance in the logo marquee", () => {
     expect(employerMarqueeSource).not.toMatch(/\baccept(?:ed|s)?\b/i)
     expect(employerMarqueeSource).not.toMatch(/\bendors(?:ed|ement)\b/i)
-    expect(employerMarqueeSource).toContain("Used by employees at")
-    expect(employerMarqueeSource).toContain("Employer and institution policies may vary.")
+    expect(employerMarqueeSource).toContain("Workplace policy context")
+    expect(employerMarqueeSource).toContain("No employer relationship is implied.")
     expect(employerMarqueeSource).toContain("group-focus-within/marquee:[animation-play-state:paused]")
   })
 
@@ -134,7 +134,7 @@ describe("marketing copy contracts", () => {
     expect(workplaceClaimSources).not.toContain("legal validity")
     expect(workplaceClaimSources).not.toContain("identical legal")
     expect(workplaceClaimSources).not.toContain("Tamper-Proof")
-    expect(trustBadgesSource).toContain("AHPRA GP review")
+    expect(trustBadgesSource).toContain("AHPRA doctor review")
   })
 
   it("routes employer guidance to the canonical employer verification hub", () => {

@@ -68,7 +68,7 @@ export const metadata: Metadata = {
 // ============================================================================
 
 const STATS = [
-  { value: "AHPRA", label: "Registered GPs", context: "Every review by an Australian-registered doctor" },
+  { value: "AHPRA", label: "Registered doctors", context: "Every review by an Australian-registered doctor" },
   { value: `~${SOCIAL_PROOF.certTurnaroundMinutes} min`, label: "Med cert turnaround", context: "Typical same-day timing" },
   { value: "24/7", label: "Request submission", context: "Rx + consult review follows when available" },
   { value: `${PRICING_DISPLAY.MED_CERT}`, label: "From", context: "Full refund if we can't help" },
@@ -78,7 +78,7 @@ const SERVICES = [
   {
     icon: FileText,
     title: "Medical certificates",
-    body: "AHPRA GP review for work, study, and other evidence needs. Employer, institution, and agency policies may vary.",
+    body: "AHPRA-registered doctor review for work, study, and other evidence needs. Employer, institution, and agency policies may vary.",
     href: "/medical-certificate",
     cta: "Request a medical certificate",
     priceLabel: `From ${PRICING_DISPLAY.MED_CERT}`,

@@ -101,7 +101,7 @@ const howItWorksGuide: GuideSectionData[] = [
     title: "The clinical standards behind the screen",
     paragraphs: [
       "Every doctor on InstantMed is registered with the Australian Health Practitioner Regulation Agency (AHPRA) and holds current medical registration. Telehealth changes the channel, not the professional duty: the doctor still needs enough information to make a safe decision, keep appropriate records, and decline requests that are not suitable for online care.",
-      "Our clinical governance framework includes structured audit, documented service limits, and clear escalation rules. Doctors can decline to issue a certificate or prescription if it is not clinically appropriate, and they do. An approval rate below 100% is a feature, not a bug. It means the clinical judgement is genuine.",
+      "Our clinical governance framework includes structured audit, documented service limits, and clear escalation rules. Doctors can decline to issue a certificate or prescription if it is not clinically appropriate, and they do. A real decline path is a feature, not a bug. It means the clinical judgement is genuine.",
     ],
   },
   {

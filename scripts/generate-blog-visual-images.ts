@@ -96,6 +96,19 @@ function hasFlag(name: string): boolean {
   return process.argv.includes(`--${name}`)
 }
 
+function getSlugFilters(): Set<string> | null {
+  const singleSlug = getArg("slug")
+  const slugList = getArg("slugs")
+  const values = [
+    ...(singleSlug ? [singleSlug] : []),
+    ...(slugList ? slugList.split(",") : []),
+  ]
+    .map((slug) => slug.trim())
+    .filter(Boolean)
+
+  return values.length > 0 ? new Set(values) : null
+}
+
 function getRenderer(): Renderer {
   const renderer = getArg("renderer")
   if (!renderer) return hasFlag("gateway") ? "gpt-image-2" : "deterministic"
@@ -925,7 +938,7 @@ async function saveGatewayCompositeInfographic(
 }
 
 async function main() {
-  const slugFilter = getArg("slug")
+  const slugFilters = getSlugFilters()
   const visualFilter = getArg("visual")
   const limit = Number(getArg("limit") ?? "0")
   const styleShift = Number(getArg("style-shift") ?? "0")
@@ -940,15 +953,16 @@ async function main() {
 
   const visualsBySlug = getAllTopArticleVisuals()
   const jobs = TOP_VISUAL_ARTICLE_SLUGS
-    .filter((slug) => !slugFilter || slug === slugFilter)
+    .filter((slug) => !slugFilters || slugFilters.has(slug))
     .flatMap((slug) =>
       visualsBySlug[slug].filter((visual) => !visualFilter || visual.id === visualFilter).map((visual) => ({ slug, visual })),
     )
     .slice(0, limit > 0 ? limit : undefined)
 
   if (jobs.length === 0) {
+    const slugMessage = slugFilters ? ` for ${Array.from(slugFilters).join(", ")}` : ""
     throw new Error(
-      `No visual jobs found${slugFilter ? ` for --slug=${slugFilter}` : ""}${visualFilter ? ` and --visual=${visualFilter}` : ""}.`,
+      `No visual jobs found${slugMessage}${visualFilter ? ` and --visual=${visualFilter}` : ""}.`,
     )
   }
 

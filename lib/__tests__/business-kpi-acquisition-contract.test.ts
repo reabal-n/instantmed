@@ -16,6 +16,8 @@ describe("business KPI acquisition health", () => {
   it("pulls acquisition health into the launch readiness score", () => {
     expect(businessKpiSource).toContain("getAcquisitionHealth(7)")
     expect(businessKpiSource).toContain("acquisition: AcquisitionHealthResult")
+    expect(businessKpiSource).toContain("classifyAttributionSource")
+    expect(businessKpiSource).toContain("sourceGroups")
     expect(businessKpiSource).toContain("acquisitionTracked: acquisition.healthy")
     expect(analyticsTabSource).toContain("System health aggregation across operator scale indicators")
   })
@@ -33,6 +35,9 @@ describe("business KPI acquisition health", () => {
     expect(analyticsTabSource).toContain("Review P95")
     expect(analyticsTabSource).toContain("Google Ads clicks")
     expect(analyticsTabSource).toContain("Unknown paid")
+    expect(analyticsTabSource).toContain("AOV lift plan")
+    expect(analyticsTabSource).toContain("Known source")
+    expect(analyticsTabSource).toContain("Direct")
     expect(analyticsTabSource).toContain("formatAcquisitionAlert")
   })
 })

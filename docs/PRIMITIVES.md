@@ -10,8 +10,8 @@ Single source of truth for all platform metrics shown on marketing pages.
 
 | Export | Type | What it provides |
 |--------|------|-----------------|
-| `SOCIAL_PROOF` | `const object` | Raw service metrics: `certTurnaroundMinutes`, `averageResponseMinutes`, `certApprovalPercent`, `scriptFulfillmentPercent`, `sameDayDeliveryPercent`, `refundPercent`, etc. Review counts, testimonial counts, and public numeric ratings are not public primitives. |
-| `SOCIAL_PROOF_DISPLAY` | `const object` | Pre-formatted strings: `responseTime`, `certTurnaround`, `operatingHours`, `refundGuarantee`, `sameDayDelivery`, etc. |
+| `SOCIAL_PROOF` | `const object` | Raw operational metrics: `certTurnaroundMinutes`, `averageResponseMinutes`, `refundPercent`, operating hours, and internal historical counters. Review counts, testimonials, public numeric ratings, employer acceptance rates, approval rates, and fulfilment-rate claims are not public primitives. |
+| `SOCIAL_PROOF_DISPLAY` | `const object` | Pre-formatted strings: `responseTime`, `certTurnaround`, `operatingHours`, `refundGuarantee`, and non-outcome trust phrasing. |
 | `GOOGLE_REVIEWS` | `object` | Google Business Profile star-badge config. Gates the visual Google mark + stars badge only; do not expose review counts, numeric rating text, testimonial copy, or aggregate-rating schema. |
 | `getPatientCount()` | `function` | Server-safe interpolated patient count. Client hook: `usePatientCount()` from `lib/use-patient-count.ts`. |
 
@@ -25,7 +25,7 @@ Centralized badge definitions with icon, color, tooltip, and styled/plain tiers.
 
 | Export | Type | What it provides |
 |--------|------|-----------------|
-| `BADGE_REGISTRY` | `Record<BadgeId, BadgeConfig>` | 26 badges across 6 categories: Credential (ahpra, tga, racgp, medical_director, refund, privacy), Payment/Security (stripe, ssl, pci, au_data), Friction-free (no_call, no_speaking, form_only, no_waiting_room, no_appointment, from_your_phone, no_face_to_face, fast_form, same_day), Outcome (legally_valid, no_medicare, real_gp, instant_pdf), Social proof (social_proof), **Certifications (legitscript, google_pharmacy)**. |
+| `BADGE_REGISTRY` | `Record<BadgeId, BadgeConfig>` | 26 badges across 6 categories: Credential (ahpra, tga advertising-aware, documented_protocols, medical_director, refund, privacy), Payment/Security (stripe, ssl, pci, au_data), Friction-free (no_call, no_speaking, form_only, no_waiting_room, no_appointment, from_your_phone, no_face_to_face, fast_form, same_day), Outcome (legally_valid, no_medicare, real_gp, instant_pdf), Social proof (social_proof), **Certifications (legitscript, google healthcare ads)**. |
 | `BADGE_PRESETS` | `Record<string, PresetEntry[]>` | Pre-configured badge sets: `hero_medcert`, `hero_rx`, `hero_consult`, `hero_generic`, `doctor_credibility`, `pre_cta`, `medcert_pricing`, `medcert_outcome`, `checkout`, `footer`, `float`, **`trust_certifications`**. |
 | `resolveEntry()` | `function` | Normalizes `PresetEntry` (string or `{id, variant}`) to `{id, variant}`. |
 
@@ -46,7 +46,7 @@ Service-specific stat configurations for social proof strips.
 | `StatEntry` | `interface` | `{ icon: LucideIcon, value: number, suffix: string, label: string, color: string, decimals?: number }` |
 | `STAT_PRESETS` | `Record<string, readonly StatEntry[]>` | 3 presets: `med-cert` (approval%, turnaround, refund, same-day delivery), `prescription` (fulfillment%, response time, refund guarantee, days a week), `consult` (review time, approval%, refund guarantee, days a week). All values sourced from `SOCIAL_PROOF`. |
 | `TotalPatientsCounter` | `component` | Variants: `inline`, `card`, `hero`, `badge`. Uses `usePatientCount()` + `NumberFlow`. |
-| `StatsStrip` | `component` | Compact strip showing patients served, approval rate, and refund guarantee. |
+| `StatsStrip` | `component` | Compact strip showing patients served and refund/operations proof. It must not show public approval-rate or fulfilment-rate claims. |
 
 **Usage:** Import `STAT_PRESETS['med-cert']` and render with an `AnimatedStat` component or map directly.
 

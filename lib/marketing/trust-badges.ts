@@ -44,9 +44,9 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
     tooltipHref: 'https://www.ahpra.gov.au/Registration/Registers-of-Practitioners.aspx',
   },
   tga: {
-    id: 'tga', label: 'TGA compliant', icon: FileCheck,
+    id: 'tga', label: 'TGA advertising-aware', icon: FileCheck,
     iconColor: 'text-blue-600', pillClass: null, hasStyledTier: false,
-    tooltip: 'Prescribing and processes meet TGA regulatory requirements',
+    tooltip: 'Public prescription-medicine promotion is restricted; prescribing is handled only after doctor review',
   },
   documented_protocols: {
     id: 'documented_protocols', label: 'Documented protocols', icon: FileText,
@@ -55,7 +55,7 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
   },
   medical_director: {
     id: 'medical_director', label: 'Clinical oversight', icon: UserCheck,
-    iconColor: 'text-violet-600', pillClass: null, hasStyledTier: false,
+    iconColor: 'text-primary', pillClass: null, hasStyledTier: false,
     tooltip: 'AHPRA-registered medical leadership maintains the clinical governance framework',
   },
   refund: {
@@ -174,11 +174,11 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
     tooltip: 'Medicare card optional for medical certificates - pay privately',
   },
   real_gp: {
-    id: 'real_gp', label: 'AHPRA GP review', icon: BadgeCheck,
+    id: 'real_gp', label: 'AHPRA doctor review', icon: BadgeCheck,
     iconColor: 'text-teal-600',
     pillClass: 'bg-teal-50 border-teal-200 text-teal-800 dark:bg-teal-950/40 dark:border-teal-800 dark:text-teal-300',
     hasStyledTier: true,
-    tooltip: 'Every request is assessed by a human AHPRA-registered GP - no AI makes clinical decisions',
+    tooltip: 'Every request is assessed by a human AHPRA-registered doctor - no AI makes clinical decisions',
   },
   instant_pdf: {
     id: 'instant_pdf', label: 'Instant PDF to your inbox', icon: Send,
@@ -207,17 +207,17 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
     iconColor: 'text-[#00A651]',
     pillClass: 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300',
     hasStyledTier: true,
-    tooltip: 'LegitScript certified healthcare merchant - the global verification standard used by Google, Bing, Meta, and major payment processors for online pharmacies and telehealth providers',
+    tooltip: 'Independent healthcare merchant certification used for advertising and payment platform eligibility, not a clinical endorsement',
     tooltipHref: 'https://www.legitscript.com/websites/?checker_keywords=instantmed.com.au',
   },
   google_pharmacy: {
     id: 'google_pharmacy',
-    label: 'Google certified',
+    label: 'Google healthcare ads certified',
     icon: ShieldCheck,
     iconColor: 'text-[#4285F4]',
     pillClass: 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-300',
     hasStyledTier: true,
-    tooltip: 'Google Ads Online Pharmacy Certification - approved to advertise healthcare services on Google Search (Account: 920-501-0513)',
+    tooltip: 'Google healthcare advertising certification for ad eligibility. It is not a clinical endorsement',
   },
 }
 
@@ -234,19 +234,19 @@ export const BADGE_PRESETS: Record<string, PresetEntry[]> = {
   ],
   hero_rx: [
     { id: 'no_appointment', variant: 'styled' },
-    { id: 'no_speaking', variant: 'styled' },
+    { id: 'form_only', variant: 'styled' },
     'refund',
     'google_pharmacy',
   ],
   hero_consult: [
     { id: 'form_only', variant: 'styled' },
-    { id: 'no_speaking', variant: 'styled' },
+    { id: 'no_waiting_room', variant: 'styled' },
     'refund',
     'no_face_to_face',
   ],
   hero_generic: [
     { id: 'no_waiting_room', variant: 'styled' },
-    { id: 'no_speaking', variant: 'styled' },
+    { id: 'form_only', variant: 'styled' },
     'refund',
     'ahpra',
   ],
@@ -260,7 +260,7 @@ export const BADGE_PRESETS: Record<string, PresetEntry[]> = {
   // Pre-CTA - friction removal
   pre_cta: [
     { id: 'no_appointment', variant: 'styled' },
-    'no_speaking',
+    'no_waiting_room',
     'form_only',
     'from_your_phone',
   ],
@@ -309,7 +309,7 @@ export const BADGE_PRESETS: Record<string, PresetEntry[]> = {
   // Sticky float sidebar
   float: [
     { id: 'no_appointment', variant: 'styled' },
-    'no_speaking',
+    'form_only',
   ],
 }
 

@@ -14,7 +14,7 @@ import { HAIR_LOSS_FAQ } from "@/lib/data/hair-loss-faq"
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: { absolute: "Hair Loss Assessment | Online, No GP Visit | InstantMed" },
+  title: { absolute: "Hair Loss Assessment | Doctor Review | InstantMed" },
   description: `Hair loss assessment from an Australian doctor. Fill out a secure form, no booked appointment or clinic visit. From $${PRICING.HAIR_LOSS.toFixed(2)}.`,
   keywords: [
     "hair loss assessment australia",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     "androgenetic alopecia assessment",
   ],
   openGraph: {
-    title: "Hair Loss Assessment | Online, No GP Visit | InstantMed",
+    title: "Hair Loss Assessment | Doctor Review | InstantMed",
     description:
       "Hair loss assessment online. Fill out a secure form, no booked appointment or clinic visit. Reviewed by an Australian doctor.",
     url: "https://instantmed.com.au/hair-loss",

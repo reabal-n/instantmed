@@ -4,47 +4,36 @@ import {
   type AcquisitionHealthResult,
   getAcquisitionHealth,
 } from "@/lib/analytics/acquisition-health"
+import {
+  ATTRIBUTION_SOURCE_LABELS,
+  ATTRIBUTION_SOURCE_ORDER,
+  type AttributionSourceGroup,
+  classifyAttributionSource,
+} from "@/lib/analytics/source-classification"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 type AttributionSourceRow = {
+  adgroupid?: string | null
+  amount_cents?: number | null
+  campaignid?: string | null
+  creative?: string | null
+  device?: string | null
   gbraid?: string | null
   gclid?: string | null
+  keyword?: string | null
   landing_page: string | null
+  matchtype?: string | null
+  network?: string | null
   referrer: string | null
   utm_campaign?: string | null
   utm_medium?: string | null
   utm_source: string | null
+  utm_term?: string | null
   wbraid?: string | null
 }
 
-const AI_REFERRER_PATTERNS: Array<[string, string]> = [
-  ["chatgpt", "ai:chatgpt"],
-  ["perplexity", "ai:perplexity"],
-  ["claude", "ai:claude"],
-  ["gemini", "ai:gemini"],
-  ["copilot", "ai:copilot"],
-]
-
 export function deriveAttributionSource(row: AttributionSourceRow): string {
-  const utmSource = row.utm_source?.trim()
-  if (utmSource) return utmSource
-
-  const referrer = row.referrer?.trim()
-  if (referrer) {
-    const lowerReferrer = referrer.toLowerCase()
-    const aiSource = AI_REFERRER_PATTERNS.find(([pattern]) =>
-      lowerReferrer.includes(pattern)
-    )
-    if (aiSource) return aiSource[1]
-
-    try {
-      return new URL(referrer).hostname.replace(/^www\./, "")
-    } catch {
-      return referrer
-    }
-  }
-
-  return row.landing_page ? "direct" : "unknown"
+  return classifyAttributionSource(row).source
 }
 
 // ============================================================================
@@ -80,11 +69,33 @@ export interface BusinessKPIData {
     }>
     attribution: {
       clickIdOrders: number
+      coverageRate: number
+      directPaidOrders: number
+      knownPaidOrders: number
+      knownRate: number
+      sourceGroups: Array<{
+        action: string
+        grossRevenue: number
+        group: AttributionSourceGroup
+        known: boolean
+        label: string
+        paidOrders: number
+        share: number
+      }>
       topLandingPages: Array<{ landingPage: string; paidOrders: number }>
       topSources: Array<{ paidOrders: number; source: string }>
       unknownPaidOrders: number
       unknownRate: number
       utmSourcedOrders: number
+    }
+    aovLift: {
+      gapToTarget: number
+      highAovPaidOrders: number
+      highAovShare: number
+      lowAovPaidOrders: number
+      lowAovShare: number
+      recommendedAction: string
+      targetAov: number
     }
     fulfillment: {
       eligiblePaidOrders: number
@@ -171,10 +182,6 @@ export interface BusinessKPIData {
 
 function hasClickId(row: AttributionSourceRow): boolean {
   return Boolean(row.gclid || row.gbraid || row.wbraid)
-}
-
-function isUnknownAttribution(row: AttributionSourceRow): boolean {
-  return !row.utm_source?.trim() && !row.referrer?.trim() && !row.landing_page?.trim() && !hasClickId(row)
 }
 
 function round1(value: number): number {
@@ -311,11 +318,11 @@ export async function getBusinessKPIData(): Promise<BusinessKPIData> {
       .gte("created_at", monthAgo.toISOString())
       .eq("status", "approved"),
 
-    // [11] Top paid referral sources (UTM first, then persisted referrer/direct)
+    // [11] Paid attribution diagnostics aligned to the 30-day paid window
     supabase
       .from("intakes")
-      .select("utm_source, utm_medium, utm_campaign, referrer, landing_page, gclid, gbraid, wbraid")
-      .gte("created_at", monthAgo.toISOString())
+      .select("amount_cents, utm_source, utm_medium, utm_campaign, utm_term, referrer, landing_page, gclid, gbraid, wbraid, campaignid, adgroupid, keyword, creative, matchtype, device, network")
+      .gte("paid_at", monthAgo.toISOString())
       .not("paid_at", "is", null),
 
     // [12] Page views / sessions from audit_logs
@@ -501,7 +508,8 @@ export async function getBusinessKPIData(): Promise<BusinessKPIData> {
   const utmData = get<AttributionSourceRow[]>(11, [])
   const sourceCounts: Record<string, number> = {}
   for (const item of utmData) {
-    const src = deriveAttributionSource(item)
+    const classification = classifyAttributionSource(item)
+    const src = classification.label
     sourceCounts[src] = (sourceCounts[src] || 0) + 1
   }
   const referralSources = Object.entries(sourceCounts)
@@ -626,12 +634,60 @@ export async function getBusinessKPIData(): Promise<BusinessKPIData> {
     }))
     .sort((a, b) => b.grossRevenue - a.grossRevenue)
 
-  const unknownPaidOrders = utmData.filter(isUnknownAttribution).length
+  const attributionClassifications = utmData.map((row) => ({
+    classification: classifyAttributionSource(row),
+    row,
+  }))
+  const unknownPaidOrders = attributionClassifications.filter(
+    ({ classification }) => classification.group === "unknown",
+  ).length
+  const directPaidOrders = attributionClassifications.filter(
+    ({ classification }) => classification.group === "direct",
+  ).length
+  const knownPaidOrders = attributionClassifications.filter(
+    ({ classification }) => classification.known,
+  ).length
   const unknownAttributionRate = paidOrdersMonth > 0
     ? round1((unknownPaidOrders / paidOrdersMonth) * 100)
     : 0
+  const attributionCoverageRate = paidOrdersMonth > 0
+    ? round1(((paidOrdersMonth - unknownPaidOrders) / paidOrdersMonth) * 100)
+    : 0
+  const knownAttributionRate = paidOrdersMonth > 0
+    ? round1((knownPaidOrders / paidOrdersMonth) * 100)
+    : 0
   const utmSourcedOrders = utmData.filter((row) => Boolean(row.utm_source?.trim())).length
   const clickIdOrders = utmData.filter(hasClickId).length
+
+  const sourceGroupMap = new Map<AttributionSourceGroup, {
+    action: string
+    grossRevenue: number
+    group: AttributionSourceGroup
+    known: boolean
+    label: string
+    paidOrders: number
+  }>()
+  for (const { classification, row } of attributionClassifications) {
+    const existing = sourceGroupMap.get(classification.group) || {
+      action: classification.action,
+      grossRevenue: 0,
+      group: classification.group,
+      known: classification.known,
+      label: ATTRIBUTION_SOURCE_LABELS[classification.group],
+      paidOrders: 0,
+    }
+    existing.paidOrders += 1
+    existing.grossRevenue += (Number(row.amount_cents) || 0) / 100
+    sourceGroupMap.set(classification.group, existing)
+  }
+  const sourceGroups = ATTRIBUTION_SOURCE_ORDER
+    .map((group) => sourceGroupMap.get(group))
+    .filter((group): group is NonNullable<typeof group> => Boolean(group))
+    .map((group) => ({
+      ...group,
+      grossRevenue: round1(group.grossRevenue),
+      share: paidOrdersMonth > 0 ? round1((group.paidOrders / paidOrdersMonth) * 100) : 0,
+    }))
 
   const landingPageCounts: Record<string, number> = {}
   for (const row of utmData) {
@@ -646,6 +702,22 @@ export async function getBusinessKPIData(): Promise<BusinessKPIData> {
   const topSources = referralSources
     .slice(0, 5)
     .map(({ count, source }) => ({ paidOrders: count, source }))
+
+  const lowAovPaidOrders = revenueData.filter(
+    (order) => ((order.amount_cents || 0) / 100) < 35,
+  ).length
+  const highAovPaidOrders = Math.max(paidOrdersMonth - lowAovPaidOrders, 0)
+  const lowAovShare = paidOrdersMonth > 0
+    ? round1((lowAovPaidOrders / paidOrdersMonth) * 100)
+    : 0
+  const highAovShare = paidOrdersMonth > 0
+    ? round1((highAovPaidOrders / paidOrdersMonth) * 100)
+    : 0
+  const targetAov = 35
+  const gapToTarget = round1(Math.max(targetAov - aov, 0))
+  const recommendedAovAction = gapToTarget > 0
+    ? "Lift mix toward repeat scripts, consults, specialty pathways, and Express Review before adding paid spend."
+    : "AOV gate is passing. Keep service mix stable while testing acquisition."
 
   const paidMedCertIds = revenueData
     .filter((order) => order.category === "medical_certificate" && order.id)
@@ -696,8 +768,8 @@ export async function getBusinessKPIData(): Promise<BusinessKPIData> {
 
   const scaleReadinessGates = {
     unknownAttributionRate: {
-      passed: paidOrdersMonth > 0 && unknownAttributionRate <= 20,
-      target: 20,
+      passed: paidOrdersMonth > 0 && unknownAttributionRate <= 10,
+      target: 10,
       value: unknownAttributionRate,
     },
     refundRate: {
@@ -759,11 +831,25 @@ export async function getBusinessKPIData(): Promise<BusinessKPIData> {
       paidOrdersByService,
       attribution: {
         clickIdOrders,
+        coverageRate: attributionCoverageRate,
+        directPaidOrders,
+        knownPaidOrders,
+        knownRate: knownAttributionRate,
+        sourceGroups,
         topLandingPages,
         topSources,
         unknownPaidOrders,
         unknownRate: unknownAttributionRate,
         utmSourcedOrders,
+      },
+      aovLift: {
+        gapToTarget,
+        highAovPaidOrders,
+        highAovShare,
+        lowAovPaidOrders,
+        lowAovShare,
+        recommendedAction: recommendedAovAction,
+        targetAov,
       },
       fulfillment: {
         eligiblePaidOrders: eligibleFulfillmentOrders,

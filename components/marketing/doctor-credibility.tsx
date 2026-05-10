@@ -5,7 +5,7 @@ import { CheckCircle2, Clock, ShieldCheck, Stethoscope,Users } from 'lucide-reac
 
 import { TrustBadgeRow } from '@/components/shared/trust-badge'
 import { useReducedMotion } from '@/components/ui/motion'
-import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from '@/lib/social-proof'
+import { SOCIAL_PROOF_DISPLAY } from '@/lib/social-proof'
 import { cn } from '@/lib/utils'
 
 interface DoctorCredibilityProps {
@@ -24,22 +24,22 @@ const STAT_CONFIG = {
   },
   approval: {
     icon: CheckCircle2,
-    value: `${SOCIAL_PROOF.certApprovalPercent}%`,
-    label: 'Approval rate',
+    value: 'Doctor review',
+    label: 'before issue',
     color: 'text-success',
     bg: 'bg-success-light',
   },
   sameDay: {
     icon: Clock,
-    value: `${SOCIAL_PROOF.sameDayDeliveryPercent}%`,
-    label: 'Delivered same day',
+    value: 'Digital delivery',
+    label: 'after approval',
     color: 'text-primary',
     bg: 'bg-primary/10',
   },
   returnRate: {
     icon: Users,
-    value: `${SOCIAL_PROOF.patientReturnPercent}%`,
-    label: 'Come back again',
+    value: 'Secure messages',
+    label: 'after review',
     color: 'text-primary',
     bg: 'bg-primary/10',
   },
@@ -120,7 +120,7 @@ export function DoctorCredibility({
             {SOCIAL_PROOF_DISPLAY.doctorExperience}
           </h2>
           <p className="text-muted-foreground mt-2">
-            Every request reviewed by a qualified, AHPRA-registered Australian GP.
+            Every request reviewed by a qualified, AHPRA-registered Australian doctor.
           </p>
         </motion.div>
 

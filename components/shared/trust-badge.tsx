@@ -483,7 +483,7 @@ function LegitScriptBadge({ config, className }: { config: BadgeConfig; classNam
           />
           <div className="leading-tight">
             <p className="text-xs font-semibold text-foreground">LegitScript</p>
-            <p className="text-[10px] text-muted-foreground">Certified</p>
+            <p className="text-[10px] text-muted-foreground">Verified</p>
           </div>
         </a>
       </TooltipTrigger>
@@ -504,7 +504,7 @@ function LegitScriptBadge({ config, className }: { config: BadgeConfig; classNam
   )
 }
 
-// google_pharmacy - Google "G" logo + Online Pharmacy Certified
+// google_pharmacy - Google "G" logo + healthcare ads certification
 function GooglePharmacyBadge({ config, className }: { config: BadgeConfig; className?: string }) {
   return (
     <Tooltip>
@@ -538,7 +538,7 @@ function GooglePharmacyBadge({ config, className }: { config: BadgeConfig; class
           </svg>
           <div className="leading-tight">
             <p className="text-xs font-semibold text-foreground">Google</p>
-            <p className="text-[10px] text-muted-foreground">Pharmacy Certified</p>
+            <p className="text-[10px] text-muted-foreground">Healthcare Ads</p>
           </div>
         </div>
       </TooltipTrigger>

@@ -19,10 +19,17 @@ const SEVERITY = {
   seo: "P3 seo",
 }
 
+const SEVERITY_RANK = {
+  P0: 0,
+  P1: 1,
+  P2: 2,
+  P3: 3,
+}
+
 const CTA_PATTERNS = [
-  /\/consult\b/i,
-  /\/medical-certificate\b/i,
-  /\/prescriptions\b/i,
+  /(?<!\/blog)\/consult\b/i,
+  /(?<!\/blog)\/medical-certificate\b/i,
+  /(?<!\/blog)\/prescriptions\b/i,
   /start a consultation/i,
   /get your certificate/i,
   /request your script/i,
@@ -116,6 +123,30 @@ function addIssue(issues, severity, message) {
   issues.push({ severity, message })
 }
 
+function parseFailOnArg() {
+  const arg = process.argv.find((item) => item.startsWith("--fail-on="))
+  if (!arg) return null
+
+  const value = arg.split("=")[1]?.toUpperCase()
+  if (!value || value === "NONE") return null
+  if (!Object.prototype.hasOwnProperty.call(SEVERITY_RANK, value)) {
+    throw new Error(`Unsupported --fail-on value "${value}". Use P0, P1, P2, P3, or none.`)
+  }
+  return value
+}
+
+function parseFailOnImageArg() {
+  return process.argv.includes("--fail-on-image")
+}
+
+function issuePrefix(issue) {
+  return issue.severity.split(" ")[0]
+}
+
+function isImageIssue(issue) {
+  return issue.severity === SEVERITY.image
+}
+
 function auditFile(file) {
   const filePath = path.join(CONTENT_DIR, file)
   const raw = fs.readFileSync(filePath, "utf-8")
@@ -202,6 +233,8 @@ function auditFile(file) {
 }
 
 function main() {
+  const failOn = parseFailOnArg()
+  const failOnImage = parseFailOnImageArg()
   const rows = getFiles().map(auditFile)
   const rowsWithIssues = rows.filter((row) => row.issues.length > 0)
   const issueCounts = rowsWithIssues.reduce((counts, row) => {
@@ -223,6 +256,42 @@ function main() {
     for (const issue of row.issues) {
       console.log(`  - ${issue.severity}: ${issue.message}`)
     }
+  }
+
+  const blockingRows = failOn
+    ? rowsWithIssues.filter((row) =>
+      row.issues.some((issue) =>
+        SEVERITY_RANK[issuePrefix(issue)] <= SEVERITY_RANK[failOn],
+      ),
+    )
+    : []
+
+  if (blockingRows.length > 0) {
+    console.log(`\nBlocking content failures at ${failOn} or higher:`)
+    for (const row of blockingRows.sort((a, b) => b.viewCount - a.viewCount).slice(0, 20)) {
+      console.log(`\n${row.viewCount.toString().padStart(6)}  ${row.slug}  (${row.category})`)
+      for (const issue of row.issues.filter((item) =>
+        SEVERITY_RANK[issuePrefix(item)] <= SEVERITY_RANK[failOn],
+      )) {
+        console.log(`  - ${issue.severity}: ${issue.message}`)
+      }
+    }
+    process.exitCode = 1
+  }
+
+  const imageBlockingRows = failOnImage
+    ? rowsWithIssues.filter((row) => row.issues.some(isImageIssue))
+    : []
+
+  if (imageBlockingRows.length > 0) {
+    console.log("\nBlocking image failures:")
+    for (const row of imageBlockingRows.sort((a, b) => b.viewCount - a.viewCount).slice(0, 20)) {
+      console.log(`\n${row.viewCount.toString().padStart(6)}  ${row.slug}  (${row.category})`)
+      for (const issue of row.issues.filter(isImageIssue)) {
+        console.log(`  - ${issue.severity}: ${issue.message}`)
+      }
+    }
+    process.exitCode = 1
   }
 }
 

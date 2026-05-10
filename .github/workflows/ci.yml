@@ -62,6 +62,9 @@ jobs:
       - name: Voice guard (banned phrases + em-dashes in marketing surfaces)
         run: pnpm vitest run lib/__tests__/voice-guard.test.ts
 
+      - name: Health guide image audit
+        run: pnpm content:audit:images
+
       - name: Type-check
         run: pnpm typecheck
 

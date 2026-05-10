@@ -61,11 +61,11 @@ export default async function AnalyticsDashboardPage() {
       .select("category")
       .gte("created_at", monthAgo.toISOString()),
 
-    // [6] Intakes by paid source: UTM first, then persisted referrer/direct
+    // [6] Intakes by paid source: classified by board-level acquisition group
     supabase
       .from("intakes")
-      .select("utm_source, utm_medium, utm_campaign, referrer, landing_page")
-      .gte("created_at", monthAgo.toISOString())
+      .select("utm_source, utm_medium, utm_campaign, utm_term, referrer, landing_page, gclid, gbraid, wbraid, campaignid, adgroupid, keyword, creative, matchtype, device, network")
+      .gte("paid_at", monthAgo.toISOString())
       .not("paid_at", "is", null),
 
     // [7] Revenue data - paid intakes with amount
@@ -159,7 +159,20 @@ export default async function AnalyticsDashboardPage() {
       const source = deriveAttributionSource({
         landing_page: intake.landing_page || null,
         referrer: intake.referrer || null,
+        gbraid: intake.gbraid || null,
+        gclid: intake.gclid || null,
+        wbraid: intake.wbraid || null,
+        adgroupid: intake.adgroupid || null,
+        campaignid: intake.campaignid || null,
+        creative: intake.creative || null,
+        device: intake.device || null,
+        keyword: intake.keyword || null,
+        matchtype: intake.matchtype || null,
+        network: intake.network || null,
+        utm_campaign: intake.utm_campaign || null,
+        utm_medium: intake.utm_medium || null,
         utm_source: intake.utm_source || null,
+        utm_term: intake.utm_term || null,
       })
       sourceCounts[source] = (sourceCounts[source] || 0) + 1
     }

@@ -257,7 +257,7 @@ export const entConditions: Record<string, ConditionData> = {
           drugClass: "Topical fluoroquinolone antibiotic + corticosteroid",
           typicalDose: "4 drops into the affected ear twice daily for 7 days (otitis externa)",
           pbsListed: true,
-          pbsNote: "PBS listed for otitis externa; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed for otitis externa; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [
@@ -273,7 +273,7 @@ export const entConditions: Record<string, ConditionData> = {
           drugClass: "Aminopenicillin antibiotic",
           typicalDose: "500mg three times daily for 5 days (acute otitis media in adults)",
           pbsListed: true,
-          pbsNote: "PBS listed for otitis media; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed for otitis media; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [
@@ -414,7 +414,7 @@ export const entConditions: Record<string, ConditionData> = {
           drugClass: "Penicillin antibiotic",
           typicalDose: "500mg twice daily for 10 days (streptococcal pharyngitis)",
           pbsListed: true,
-          pbsNote: "PBS listed for streptococcal throat infections; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed for streptococcal throat infections; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [
@@ -800,7 +800,7 @@ export const entConditions: Record<string, ConditionData> = {
           drugClass: "Dopamine antagonist antiemetic / vestibular suppressant",
           typicalDose: "5-10mg orally every 8 hours for acute vertigo; maximum 3 days; 25mg buccal tablet (Buccastem) available",
           pbsListed: true,
-          pbsNote: "PBS listed for vertigo and nausea; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed for vertigo and nausea; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [
@@ -816,7 +816,7 @@ export const entConditions: Record<string, ConditionData> = {
           drugClass: "Histamine H1 agonist / vestibular vasodilator",
           typicalDose: "16mg three times daily; or 24mg twice daily; taken with food",
           pbsListed: true,
-          pbsNote: "PBS listed for Meniere's disease; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed for Meniere's disease; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [
@@ -832,7 +832,7 @@ export const entConditions: Record<string, ConditionData> = {
           drugClass: "First-generation antihistamine / vestibular suppressant",
           typicalDose: "25mg at night for acute vertigo with nausea and insomnia",
           pbsListed: true,
-          pbsNote: "PBS listed; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [

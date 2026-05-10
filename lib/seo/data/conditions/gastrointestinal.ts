@@ -118,7 +118,7 @@ export const gastrointestinalConditions: Record<string, ConditionData> = {
           drugClass: "5-HT3 antagonist antiemetic",
           typicalDose: "4mg orally every 8 hours for adults; 4mg wafer dissolved under the tongue if swallowing is difficult",
           pbsListed: true,
-          pbsNote: "PBS listed for chemotherapy-induced nausea; used off-label for gastroenteritis (general authority or private script); $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed for chemotherapy-induced nausea; used off-label for gastroenteritis (general authority or private script); $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [
@@ -381,7 +381,7 @@ export const gastrointestinalConditions: Record<string, ConditionData> = {
           drugClass: "5-HT3 antagonist antiemetic",
           typicalDose: "4mg orally every 8 hours; wafer formulation available if swallowing tablets is difficult",
           pbsListed: true,
-          pbsNote: "PBS listed; typically prescribed off-label for food poisoning; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed; typically prescribed off-label for food poisoning; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [
@@ -395,7 +395,7 @@ export const gastrointestinalConditions: Record<string, ConditionData> = {
           drugClass: "Nitroimidazole antibiotic / antiparasitic",
           typicalDose: "400mg three times daily for 7 days (Giardia treatment); 2g as single dose alternative",
           pbsListed: true,
-          pbsNote: "PBS listed for giardiasis and other parasitic infections; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed for giardiasis and other parasitic infections; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [
@@ -505,7 +505,7 @@ export const gastrointestinalConditions: Record<string, ConditionData> = {
           drugClass: "Proton pump inhibitor (PPI)",
           typicalDose: "20mg once daily, 30 minutes before breakfast; 14-day OTC course; 4-8 weeks for gastritis",
           pbsListed: true,
-          pbsNote: "OTC 20mg (14-day course) available without prescription since 2021; longer courses PBS listed at $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "OTC 20mg (14-day course) available without prescription since 2021; longer courses PBS listed at $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: false,
           availableOnline: false,
           keyPoints: [
@@ -521,7 +521,7 @@ export const gastrointestinalConditions: Record<string, ConditionData> = {
           drugClass: "Proton pump inhibitor (PPI)",
           typicalDose: "40mg once daily, 30 minutes before breakfast",
           pbsListed: true,
-          pbsNote: "PBS listed; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [
@@ -676,7 +676,7 @@ export const gastrointestinalConditions: Record<string, ConditionData> = {
           drugClass: "Tricyclic antidepressant (neuromodulator at low dose)",
           typicalDose: "10-25mg at night; dose titrated based on response and tolerability",
           pbsListed: true,
-          pbsNote: "PBS listed for IBS and pain modulation; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed for IBS and pain modulation; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [
@@ -784,7 +784,7 @@ export const gastrointestinalConditions: Record<string, ConditionData> = {
           drugClass: "Osmotic laxative",
           typicalDose: "1-3 sachets (13.7g each) dissolved in 125ml water, once or twice daily; adjust to achieve comfortable stools",
           pbsListed: true,
-          pbsNote: "PBS listed for chronic constipation; $31.60 general / $7.70 concession (Services Australia, 2025-26). Also available OTC as Osmolax",
+          pbsNote: "PBS listed for chronic constipation; $25.00 general / $7.70 concession (PBS, 2026). Also available OTC as Osmolax",
           prescriptionRequired: false,
           availableOnline: false,
           keyPoints: [
@@ -815,7 +815,7 @@ export const gastrointestinalConditions: Record<string, ConditionData> = {
           drugClass: "Selective serotonin type 4 (5-HT4) receptor agonist prokinetic",
           typicalDose: "2mg once daily (1mg in elderly); trial for 4 weeks",
           pbsListed: true,
-          pbsNote: "PBS listed for chronic constipation unresponsive to laxatives; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed for chronic constipation unresponsive to laxatives; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [
@@ -892,7 +892,7 @@ export const gastrointestinalConditions: Record<string, ConditionData> = {
           drugClass: "Osmotic laxative",
           typicalDose: "1-2 sachets daily dissolved in water; adjust to achieve soft, easy-to-pass stools",
           pbsListed: true,
-          pbsNote: "PBS listed; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: false,
           availableOnline: false,
           keyPoints: [
@@ -997,7 +997,7 @@ export const gastrointestinalConditions: Record<string, ConditionData> = {
           drugClass: "Topical corticosteroid",
           typicalDose: "Apply a thin film directly to the ulcer 2-3 times daily after meals; do not rub in",
           pbsListed: true,
-          pbsNote: "PBS listed for recurrent aphthous stomatitis; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed for recurrent aphthous stomatitis; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [

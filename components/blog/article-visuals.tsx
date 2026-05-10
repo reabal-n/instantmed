@@ -11,10 +11,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import type { ArticleVisual, ArticleVisualItem } from "@/lib/blog/visuals"
+import type { ArticleVisualItem, RenderableArticleVisual } from "@/lib/blog/visuals"
 import { cn } from "@/lib/utils"
 
-const accentStyles: Record<ArticleVisual["accent"], { border: string; bg: string; text: string; soft: string }> = {
+const accentStyles: Record<RenderableArticleVisual["accent"], { border: string; bg: string; text: string; soft: string }> = {
   amber: {
     border: "border-amber-200 dark:border-amber-800",
     bg: "bg-amber-50 dark:bg-amber-950/20",
@@ -54,7 +54,7 @@ const toneStyles: Record<NonNullable<ArticleVisualItem["tone"]>, string> = {
   urgent: "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300",
 }
 
-function VisualGlyph({ visual }: { visual: ArticleVisual }) {
+function VisualGlyph({ visual }: { visual: RenderableArticleVisual }) {
   const styles = accentStyles[visual.accent]
   const Icon = visual.kind === "warning" ? AlertTriangle : visual.kind === "timeline" ? Clock3 : Layers3
 
@@ -65,7 +65,15 @@ function VisualGlyph({ visual }: { visual: ArticleVisual }) {
   )
 }
 
-function VisualItemRow({ item, index, visual }: { item: ArticleVisualItem; index: number; visual: ArticleVisual }) {
+function VisualItemRow({
+  item,
+  index,
+  visual,
+}: {
+  item: ArticleVisualItem
+  index: number
+  visual: RenderableArticleVisual
+}) {
   const styles = accentStyles[visual.accent]
   const toneClass = toneStyles[item.tone ?? "neutral"]
 
@@ -110,7 +118,7 @@ function VisualItemRow({ item, index, visual }: { item: ArticleVisualItem; index
   )
 }
 
-function ArticleVisualPanel({ visual }: { visual: ArticleVisual }) {
+function ArticleVisualPanel({ visual }: { visual: RenderableArticleVisual }) {
   const styles = accentStyles[visual.accent]
 
   if (visual.assetPath) {
@@ -200,7 +208,7 @@ function ArticleVisualPanel({ visual }: { visual: ArticleVisual }) {
   )
 }
 
-export function ArticleVisuals({ visuals }: { visuals: ArticleVisual[] }) {
+export function ArticleVisuals({ visuals }: { visuals: RenderableArticleVisual[] }) {
   if (visuals.length === 0) return null
 
   return (

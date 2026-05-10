@@ -27,17 +27,18 @@ import { TableOfContents } from "@/components/blog/table-of-contents"
 import { Badge } from "@/components/ui/badge"
 import { slugifyHeading } from "@/lib/blog/heading"
 import type { Article, ArticleFAQ, ArticleLink, ArticleSection } from "@/lib/blog/types"
-import { getArticleVisuals } from "@/lib/blog/visuals"
+import type { RenderableArticleVisual } from "@/lib/blog/visuals"
 import { cn } from "@/lib/utils"
 
 interface ArticleTemplateProps {
   article: Article
   relatedArticles?: Article[]
   allArticles?: Article[]
+  articleVisuals?: RenderableArticleVisual[]
 }
 
-function getBodyArticleVisuals(article: Article) {
-  return getArticleVisuals(article.slug).filter((visual) => visual.assetPath !== article.heroImage)
+function getBodyArticleVisuals(article: Article, articleVisuals: RenderableArticleVisual[]) {
+  return articleVisuals.filter((visual) => visual.assetPath !== article.heroImage)
 }
 
 function getVisualPlacements(content: ArticleSection[], visualCount: number) {
@@ -346,7 +347,12 @@ function FAQSection({ faqs }: { faqs: ArticleFAQ[] }) {
   )
 }
 
-export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: ArticleTemplateProps) {
+export function ArticleTemplate({
+  article,
+  relatedArticles,
+  allArticles = [],
+  articleVisuals = [],
+}: ArticleTemplateProps) {
   const [readingProgress, setReadingProgress] = useState(0)
   const articleRef = useRef<HTMLElement>(null)
 
@@ -373,8 +379,8 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
   const seriesArticles = article.series
     ? allArticles.filter(a => a.series?.id === article.series?.id)
     : []
-  const articleVisuals = getBodyArticleVisuals(article)
-  const visualPlacements = getVisualPlacements(article.content, articleVisuals.length)
+  const bodyArticleVisuals = getBodyArticleVisuals(article, articleVisuals)
+  const visualPlacements = getVisualPlacements(article.content, bodyArticleVisuals.length)
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -504,8 +510,8 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
             <ContentSection section={section} />
             {visualPlacements.get(i)?.map((visualIndex) => (
               <ArticleVisuals
-                key={articleVisuals[visualIndex].id}
-                visuals={[articleVisuals[visualIndex]]}
+                key={bodyArticleVisuals[visualIndex].id}
+                visuals={[bodyArticleVisuals[visualIndex]]}
               />
             ))}
           </div>

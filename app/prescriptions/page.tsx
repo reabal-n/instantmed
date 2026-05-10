@@ -15,7 +15,7 @@ import { PRICING } from '@/lib/constants'
 import { PRESCRIPTION_FAQ } from '@/lib/data/prescription-faq'
 
 export const metadata: Metadata = {
-  title: 'Get a Prescription Online | No GP Visit Required',
+  title: 'Repeat Prescription Online | Doctor Review',
   description: `Renew your regular medications or get a new prescription online. Fill out a form, no appointment needed, no waiting room. eScript sent to your phone. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`,
   keywords: [
     'online prescription australia',
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     'new prescription online australia',
   ],
   openGraph: {
-    title: 'Get a Prescription Online | No GP Visit | InstantMed',
+    title: 'Repeat Prescription Online | Doctor Review | InstantMed',
     description: `Fill out a form, no appointment needed. eScript sent to your phone, valid at any pharmacy. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`,
     type: 'website',
     url: 'https://instantmed.com.au/prescriptions',
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Get a Prescription Online | No GP Visit | InstantMed',
+    title: 'Repeat Prescription Online | Doctor Review | InstantMed',
     description: `Online prescription, no appointment, no waiting room. eScript to your phone. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`,
   },
   alternates: {

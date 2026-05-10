@@ -14,7 +14,7 @@ export function TrustBadgeSlider({ className }: TrustBadgeSliderProps) {
         <TrustBadgeGrid
           badges={[
             { id: 'no_appointment', variant: 'styled' },
-            { id: 'no_speaking', variant: 'styled' },
+            { id: 'form_only', variant: 'styled' },
             { id: 'legitscript', variant: 'styled' },
             { id: 'google_pharmacy', variant: 'styled' },
           ]}

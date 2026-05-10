@@ -115,7 +115,7 @@ export const dermatologyConditions: Record<string, ConditionData> = {
           drugClass: "Moderately potent topical corticosteroid",
           typicalDose: "Apply thinly to affected area once or twice daily; avoid using on face; 4-week course maximum for intermittent use",
           pbsListed: true,
-          pbsNote: "PBS listed for inflammatory dermatoses; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed for inflammatory dermatoses; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [
@@ -284,7 +284,7 @@ export const dermatologyConditions: Record<string, ConditionData> = {
           drugClass: "Moderately potent topical corticosteroid",
           typicalDose: "Apply thinly to affected area once or twice daily during active inflammation; reduce to alternate days as rash improves",
           pbsListed: true,
-          pbsNote: "PBS listed; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [
@@ -300,7 +300,7 @@ export const dermatologyConditions: Record<string, ConditionData> = {
           drugClass: "Systemic corticosteroid",
           typicalDose: "0.5-1mg/kg/day (typically 25-50mg daily) for 5-7 days for severe acute flares; no taper needed for short courses",
           pbsListed: true,
-          pbsNote: "PBS listed for inflammatory conditions; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed for inflammatory conditions; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [
@@ -714,7 +714,7 @@ export const dermatologyConditions: Record<string, ConditionData> = {
           drugClass: "Systemic corticosteroid",
           typicalDose: "25-50mg daily for 3-5 days for severe acute urticaria flares",
           pbsListed: true,
-          pbsNote: "PBS listed; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [

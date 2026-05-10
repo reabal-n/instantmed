@@ -446,7 +446,7 @@ export const mentalHealthConditions: Record<string, ConditionData> = {
           drugClass: "Selective serotonin reuptake inhibitor (SSRI)",
           typicalDose: "25mg daily for 1-2 weeks (start low to reduce initial side effects), then increase to 50mg daily; therapeutic range 50-200mg daily",
           pbsListed: true,
-          pbsNote: "PBS listed for panic disorder; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed for panic disorder; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [
@@ -462,7 +462,7 @@ export const mentalHealthConditions: Record<string, ConditionData> = {
           drugClass: "Selective serotonin reuptake inhibitor (SSRI)",
           typicalDose: "5mg daily for 1 week, then 10mg daily; maximum 20mg daily",
           pbsListed: true,
-          pbsNote: "PBS listed for panic disorder; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed for panic disorder; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [
@@ -478,7 +478,7 @@ export const mentalHealthConditions: Record<string, ConditionData> = {
           drugClass: "Non-selective beta-blocker",
           typicalDose: "10-40mg taken 30-60 minutes before a known triggering situation (situational use)",
           pbsListed: true,
-          pbsNote: "PBS listed for various indications; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed for various indications; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [
@@ -601,7 +601,7 @@ export const mentalHealthConditions: Record<string, ConditionData> = {
           drugClass: "Selective serotonin reuptake inhibitor (SSRI)",
           typicalDose: "25mg daily for 1-2 weeks, then 50mg daily; titrate to response up to 200mg",
           pbsListed: true,
-          pbsNote: "PBS listed for depression and anxiety disorders; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed for depression and anxiety disorders; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [
@@ -723,7 +723,7 @@ export const mentalHealthConditions: Record<string, ConditionData> = {
           drugClass: "Selective serotonin reuptake inhibitor (SSRI)",
           typicalDose: "25mg daily for 1-2 weeks, then 50mg daily; maximum 200mg",
           pbsListed: true,
-          pbsNote: "PBS listed when burnout has progressed to clinical depression or anxiety; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed when burnout has progressed to clinical depression or anxiety; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [

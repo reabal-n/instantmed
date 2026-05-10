@@ -133,7 +133,7 @@ export const musculoskeletalConditions: Record<string, ConditionData> = {
           drugClass: "NSAID (non-steroidal anti-inflammatory drug)",
           typicalDose: "250-500mg twice daily with food; maximum 1000mg per day",
           pbsListed: true,
-          pbsNote: "PBS listed for musculoskeletal pain; $31.60 general / $7.70 concession per script (Services Australia, 2025-26)",
+          pbsNote: "PBS listed for musculoskeletal pain; $25.00 general / $7.70 concession per script (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [
@@ -348,7 +348,7 @@ export const musculoskeletalConditions: Record<string, ConditionData> = {
           drugClass: "NSAID",
           typicalDose: "500mg twice daily with food",
           pbsListed: true,
-          pbsNote: "PBS listed; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [
@@ -363,7 +363,7 @@ export const musculoskeletalConditions: Record<string, ConditionData> = {
           drugClass: "Serotonin-norepinephrine reuptake inhibitor (SNRI)",
           typicalDose: "30mg daily for 1 week, then 60mg daily; titrate to response",
           pbsListed: true,
-          pbsNote: "PBS listed for chronic low back pain; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed for chronic low back pain; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [
@@ -561,7 +561,7 @@ export const musculoskeletalConditions: Record<string, ConditionData> = {
           drugClass: "NSAID",
           typicalDose: "500mg twice daily with food; review after 2 weeks",
           pbsListed: true,
-          pbsNote: "PBS listed; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [
@@ -592,7 +592,7 @@ export const musculoskeletalConditions: Record<string, ConditionData> = {
           drugClass: "Alpha-2-delta ligand / neuropathic analgesic",
           typicalDose: "75mg twice daily, increasing to 150mg twice daily after 1 week if tolerated; maximum 300mg twice daily",
           pbsListed: true,
-          pbsNote: "PBS listed for neuropathic pain; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed for neuropathic pain; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [

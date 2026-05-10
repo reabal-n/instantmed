@@ -327,7 +327,7 @@ export function PrescriptionsLanding() {
             <TrustBadgeRow
               badges={[
                 { id: "no_appointment", variant: "styled" },
-                { id: "no_speaking", variant: "styled" },
+                { id: "form_only", variant: "styled" },
                 { id: "google_pharmacy", variant: "styled" },
                 "refund",
               ]}

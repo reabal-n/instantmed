@@ -154,7 +154,7 @@ describe("business KPI control plane", () => {
     expect(selectCalls.find((call) => call.table === "stripe_disputes")).toMatchObject({
       columns: "id, status",
     })
-    expect(selectCalls.find((call) => call.columns === "utm_source, utm_medium, utm_campaign, referrer, landing_page, gclid, gbraid, wbraid")).toMatchObject({
+    expect(selectCalls.find((call) => call.columns === "amount_cents, utm_source, utm_medium, utm_campaign, utm_term, referrer, landing_page, gclid, gbraid, wbraid, campaignid, adgroupid, keyword, creative, matchtype, device, network")).toMatchObject({
       operations: expect.arrayContaining(["not:paid_at:is:null"]),
     })
 
@@ -184,7 +184,14 @@ describe("business KPI control plane", () => {
       chargebackRate: { passed: false, target: 0.5, value: 66.7 },
       grossRevenue: { passed: false, target: 10000, value: 99.85 },
       refundRate: { passed: false, target: 8, value: 33.3 },
-      unknownAttributionRate: { passed: true, target: 20, value: 0 },
+      unknownAttributionRate: { passed: true, target: 10, value: 0 },
+    })
+    expect(data.scorecard.aovLift).toMatchObject({
+      gapToTarget: 1.7,
+      highAovPaidOrders: 1,
+      highAovShare: 33.3,
+      lowAovPaidOrders: 2,
+      lowAovShare: 66.7,
     })
     expect(data.scorecard.repeatCustomers).toMatchObject({
       currentCustomers: 2,
@@ -197,9 +204,9 @@ describe("business KPI control plane", () => {
       reviewedOrders: 1,
     })
     expect(data.referrals).toEqual([
-      { source: "google", count: 1 },
-      { source: "ai:chatgpt", count: 1 },
-      { source: "direct", count: 1 },
+      { source: "Organic non-brand", count: 1 },
+      { source: "AI referral", count: 1 },
+      { source: "Direct", count: 1 },
     ])
     expect(data.launchReadiness.checks).toMatchObject({
       chargebackRateLow: false,

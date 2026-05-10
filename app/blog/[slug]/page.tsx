@@ -9,6 +9,7 @@ import { BreadcrumbSchema, HowToSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared"
 import { PageBreadcrumbs } from "@/components/uix"
 import { allArticles, getAllArticleSlugs, getArticleBySlug, getRelatedArticles } from "@/lib/blog/articles"
+import { getArticleVisualsForRender } from "@/lib/blog/visuals"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
@@ -24,9 +25,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const article = getArticleBySlug(slug)
   if (!article) return {}
 
-  const ogImage = article.heroImage.startsWith("http")
-    ? article.heroImage
-    : `${baseUrl}${article.heroImage.startsWith("/") ? "" : "/"}${article.heroImage}`
+  const socialVisual = getArticleVisualsForRender(slug).find((visual) => visual.assetPath)?.assetPath
+  const ogParams = new URLSearchParams({
+    type: "blog",
+    title: article.title,
+    subtitle: article.excerpt,
+    image: socialVisual ?? article.heroImage,
+  })
+  const ogImage = `${baseUrl}/api/og?${ogParams.toString()}`
 
   return {
     title: { absolute: article.seo.title },
@@ -46,9 +52,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           url: ogImage,
           width: 1200,
           height: 630,
-          alt: article.heroImageAlt || article.title,
+          alt: article.title,
         },
       ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: article.title,
+      description: article.excerpt,
+      images: [ogImage],
     },
     alternates: {
       canonical: article.canonical ?? `${baseUrl}/blog/${slug}`,
@@ -65,6 +77,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   const article = getArticleBySlug(slug)
   if (!article) notFound()
+  const articleVisuals = getArticleVisualsForRender(slug)
 
   // Build FAQ schema data if FAQs exist
   const faqSchemaData = article.faqs?.map(faq => ({
@@ -195,7 +208,12 @@ export default async function BlogPostPage({ params }: PageProps) {
                 showHome
               />
             </div>
-            <ArticleTemplate article={article} relatedArticles={getRelatedArticles(slug, 3)} allArticles={allArticles} />
+            <ArticleTemplate
+              article={article}
+              articleVisuals={articleVisuals}
+              relatedArticles={getRelatedArticles(slug, 3)}
+              allArticles={allArticles}
+            />
           </div>
         </main>
 

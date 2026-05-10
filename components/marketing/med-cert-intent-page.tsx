@@ -38,14 +38,14 @@ import { cn } from '@/lib/utils'
 
 const trustBadges = [
   { name: 'AHPRA Registered', description: 'Australian doctors only', icon: BadgeCheck, color: 'text-success' },
-  { name: 'TGA Compliant', description: 'Meets all regulations', icon: FileCheck, color: 'text-primary' },
+  { name: 'Policy aware', description: 'Clear clinical boundaries', icon: FileCheck, color: 'text-primary' },
   { name: '256-bit SSL', description: 'Bank-level encryption', icon: Lock, color: 'text-primary' },
   { name: 'Australian-based', description: 'Sydney HQ', icon: Building2, color: 'text-primary' },
 ]
 
 const steps = [
   { number: 1, title: 'Answer a few questions', description: "Tell us what's going on. Takes about 2 minutes." },
-  { number: 2, title: 'Doctor reviews your request', description: 'A real GP reviews your request and makes a clinical decision.' },
+  { number: 2, title: 'Doctor reviews your request', description: 'An AHPRA-registered doctor reviews your request and makes a clinical decision.' },
   { number: 3, title: 'Certificate in your inbox', description: 'Done. Forward it to your employer or uni.' },
 ]
 

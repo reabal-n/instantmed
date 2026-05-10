@@ -220,7 +220,7 @@ export const metabolicConditions: Record<string, ConditionData> = {
           drugClass: "Synthetic thyroid hormone (T4 replacement)",
           typicalDose: "Initial: 25-50 mcg daily for elderly or cardiac patients; 50-100 mcg daily for others. Titrate by 25-50 mcg every 6-8 weeks to achieve TSH in target range (0.4-4.0 mIU/L for most adults)",
           pbsListed: true,
-          pbsNote: "PBS listed for hypothyroidism; $31.60 general / $7.70 concession per script (Services Australia, 2025-26)",
+          pbsNote: "PBS listed for hypothyroidism; $25.00 general / $7.70 concession per script (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: true,
           keyPoints: [
@@ -237,7 +237,7 @@ export const metabolicConditions: Record<string, ConditionData> = {
           drugClass: "Thionamide antithyroid agent",
           typicalDose: "20-40mg daily initially (divided doses); reduced to maintenance 5-15mg daily once euthyroid -- under specialist guidance",
           pbsListed: true,
-          pbsNote: "PBS listed for hyperthyroidism; $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed for hyperthyroidism; $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: true,
           availableOnline: false,
           keyPoints: [

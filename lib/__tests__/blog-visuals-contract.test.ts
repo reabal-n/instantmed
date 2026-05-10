@@ -3,7 +3,7 @@ import path from "node:path"
 
 import { describe, expect, it } from "vitest"
 
-import { getArticleVisuals, TOP_VISUAL_ARTICLE_SLUGS } from "@/lib/blog/visuals"
+import { getArticleVisuals, getArticleVisualsForRender, TOP_VISUAL_ARTICLE_SLUGS } from "@/lib/blog/visuals"
 
 describe("blog article visual system", () => {
   it("gives each top-priority article at least two informative visuals", () => {
@@ -47,5 +47,23 @@ describe("blog article visual system", () => {
         ).toBe(true)
       }
     }
+  })
+
+  it("does not send generation prompts through the article render payload", () => {
+    const slug = "repeat-prescription-online-australia"
+    const generationVisuals = getArticleVisuals(slug)
+    const renderVisuals = getArticleVisualsForRender(slug)
+    const renderPayload = JSON.stringify(renderVisuals)
+
+    expect(renderVisuals).toHaveLength(generationVisuals.length)
+    expect(renderPayload).not.toContain("imagePrompt")
+    expect(renderPayload).not.toContain(generationVisuals[0]?.imagePrompt.slice(0, 48))
+
+    const articleTemplateSource = fs.readFileSync(
+      path.join(process.cwd(), "components", "blog", "article-template.tsx"),
+      "utf8",
+    )
+    expect(articleTemplateSource).not.toContain("getArticleVisuals(")
+    expect(articleTemplateSource).toContain("RenderableArticleVisual")
   })
 })

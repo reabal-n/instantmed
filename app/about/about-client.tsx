@@ -146,8 +146,8 @@ export function AboutClient() {
               },
               {
                 type: "stat-callout",
-                value: `${SOCIAL_PROOF.certApprovalPercent}%`,
-                label: "Request approval rate",
+                value: `${SOCIAL_PROOF.refundPercent}%`,
+                label: "Refund if a request is declined",
               },
               {
                 type: "stat-callout",
@@ -180,8 +180,8 @@ export function AboutClient() {
                 <div className="grid sm:grid-cols-2 gap-8 items-center">
                   <div className="flex justify-center">
                     <AnimatedDonutChart
-                      value={SOCIAL_PROOF.certApprovalPercent}
-                      label="Request approval rate"
+                      value={SOCIAL_PROOF.refundPercent}
+                      label="Refund if declined"
                       size={140}
                       strokeWidth={12}
                     />

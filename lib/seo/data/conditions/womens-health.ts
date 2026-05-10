@@ -98,7 +98,7 @@ export const womensHealthConditions: Record<string, ConditionData> = {
           drugClass: "NSAID (non-steroidal anti-inflammatory drug)",
           typicalDose: "500mg twice daily, starting 1-2 days before expected period onset and continuing for 2-3 days; maximum 1000mg per day",
           pbsListed: true,
-          pbsNote: "PBS listed; Naprogesic 275mg OTC available without prescription for dysmenorrhoea; prescription strength $31.60 general / $7.70 concession (Services Australia, 2025-26)",
+          pbsNote: "PBS listed; Naprogesic 275mg OTC available without prescription for dysmenorrhoea; prescription strength $25.00 general / $7.70 concession (PBS, 2026)",
           prescriptionRequired: false,
           availableOnline: false,
           keyPoints: [
@@ -129,7 +129,7 @@ export const womensHealthConditions: Record<string, ConditionData> = {
           drugClass: "Hormonal intrauterine device (progestogen-releasing IUD)",
           typicalDose: "Inserted by a clinician; provides continuous localised progestogen release for 5-8 years (device-dependent)",
           pbsListed: true,
-          pbsNote: "PBS listed for heavy menstrual bleeding; $31.60 general / $7.70 concession (Services Australia, 2025-26); device and insertion costs separate",
+          pbsNote: "PBS listed for heavy menstrual bleeding; $25.00 general / $7.70 concession (PBS, 2026); device and insertion costs separate",
           prescriptionRequired: true,
           availableOnline: false,
           keyPoints: [

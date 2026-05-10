@@ -36,7 +36,7 @@ const EMPLOYER_LOGOS = [
 
 interface EmployerLogoMarqueeProps {
   className?: string
-  /** Hide the "Used by employees at" heading */
+  /** Hide the workplace-policy context heading */
   hideHeading?: boolean
 }
 
@@ -61,7 +61,7 @@ function LogoRow({ logos, className }: { logos: typeof EMPLOYER_LOGOS; className
               />
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">
-              Used by {logo.name} employees
+              {logo.name} policies vary by role and workplace
             </TooltipContent>
           </Tooltip>
         ))}
@@ -100,7 +100,7 @@ export function EmployerLogoMarquee({ className, hideHeading }: EmployerLogoMarq
       <div ref={sectionRef} className={cn('py-8', className)}>
         {!hideHeading && (
           <p className="text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-6">
-            Used by employees at
+            Workplace policy context
           </p>
         )}
         <div className="flex flex-wrap justify-center items-center gap-6 px-4 max-w-4xl mx-auto">
@@ -118,7 +118,7 @@ export function EmployerLogoMarquee({ className, hideHeading }: EmployerLogoMarq
           ))}
         </div>
         <p className="mt-5 text-center text-xs text-muted-foreground">
-          Employer and institution policies may vary.
+          Common Australian workplace examples only. No employer relationship is implied.
         </p>
       </div>
     )
@@ -128,11 +128,11 @@ export function EmployerLogoMarquee({ className, hideHeading }: EmployerLogoMarq
     <div ref={sectionRef} className={cn('py-8', className)}>
       {!hideHeading && (
         <p className="text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-6">
-          Used by employees at
+          Workplace policy context
         </p>
       )}
       {/* #1 - Two parallel tracks for seamless infinite loop */}
-      <div className="relative overflow-hidden group/marquee" role="marquee" aria-label="Workplace logo marquee">
+      <div className="relative overflow-hidden group/marquee" role="marquee" aria-label="Workplace policy logo context">
         <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-background to-transparent z-10" />
         <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent z-10" />
 
@@ -142,7 +142,7 @@ export function EmployerLogoMarquee({ className, hideHeading }: EmployerLogoMarq
         </div>
       </div>
       <p className="mt-5 text-center text-xs text-muted-foreground">
-        Employer and institution policies may vary.
+        Common Australian workplace examples only. No employer relationship is implied.
       </p>
     </div>
   )

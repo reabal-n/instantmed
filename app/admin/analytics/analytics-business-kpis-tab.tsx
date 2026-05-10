@@ -56,7 +56,7 @@ const scaleGateLabels: Record<
     actionHref: "#scorecard-attribution",
     actionLabel: "Review attribution",
     label: "Unknown attribution",
-    target: "<= 20%",
+    target: "<= 10%",
   },
   refundRate: {
     actionHref: "/admin/refunds",
@@ -360,62 +360,131 @@ export function AnalyticsBusinessKPIsTab({ data }: { data: BusinessKPIData }) {
         </div>
 
         <div className="mt-6 grid gap-6 border-t border-border/60 pt-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.9fr)]">
-          <ScorecardPanel title="Paid orders by service">
-            {data.scorecard.paidOrdersByService.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No paid orders in the current window.
-              </p>
-            ) : (
-              <div className="divide-y divide-border/50">
-                {data.scorecard.paidOrdersByService.slice(0, 6).map((service) => (
-                  <div
-                    key={`${service.category}:${service.subtype || ""}`}
-                    className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 py-3 text-sm first:pt-0 last:pb-0"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate font-medium capitalize text-foreground">
-                        {formatServiceLabel(service.category, service.subtype)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Today {service.paidOrdersToday} paid · AOV{" "}
-                        {formatCurrency(Math.round(service.aov * 100))}
-                      </p>
+          <div className="space-y-6">
+            <ScorecardPanel title="Paid orders by service">
+              {data.scorecard.paidOrdersByService.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No paid orders in the current window.
+                </p>
+              ) : (
+                <div className="divide-y divide-border/50">
+                  {data.scorecard.paidOrdersByService.slice(0, 6).map((service) => (
+                    <div
+                      key={`${service.category}:${service.subtype || ""}`}
+                      className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 py-3 text-sm first:pt-0 last:pb-0"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate font-medium capitalize text-foreground">
+                          {formatServiceLabel(service.category, service.subtype)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Today {service.paidOrdersToday} paid · AOV{" "}
+                          {formatCurrency(Math.round(service.aov * 100))}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold tabular-nums text-foreground">
+                          {service.paidOrders}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatAUD(service.grossRevenue)}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold tabular-nums text-foreground">
-                        {service.paidOrders}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatAUD(service.grossRevenue)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              )}
+            </ScorecardPanel>
+
+            <ScorecardPanel title="AOV lift plan">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <MiniMetric
+                  label="Target AOV"
+                  value={formatCurrency(Math.round(data.scorecard.aovLift.targetAov * 100))}
+                />
+                <MiniMetric
+                  label="Gap"
+                  value={formatCurrency(Math.round(data.scorecard.aovLift.gapToTarget * 100))}
+                  tone={data.scorecard.aovLift.gapToTarget > 0 ? "risk" : "normal"}
+                />
+                <MiniMetric
+                  label="Low-AOV mix"
+                  value={`${data.scorecard.aovLift.lowAovShare}%`}
+                  tone={data.scorecard.aovLift.lowAovShare > 50 ? "risk" : "normal"}
+                />
+                <MiniMetric
+                  label="High-AOV mix"
+                  value={`${data.scorecard.aovLift.highAovShare}%`}
+                />
               </div>
-            )}
-          </ScorecardPanel>
+              <p className="mt-3 text-xs text-muted-foreground">
+                {data.scorecard.aovLift.recommendedAction}
+              </p>
+            </ScorecardPanel>
+          </div>
 
           <div className="space-y-6">
             <ScorecardPanel title="Attribution quality" id="scorecard-attribution">
-              <div className="grid grid-cols-3 gap-4 text-sm">
+              <div className="grid grid-cols-2 gap-4 text-sm">
                 <MiniMetric
-                  label="Unknown"
-                  value={`${data.scorecard.attribution.unknownRate}%`}
+                  label="Known source"
+                  value={`${data.scorecard.attribution.knownRate}%`}
                   tone={
-                    data.scorecard.attribution.unknownRate > 20
+                    data.scorecard.attribution.knownRate < 70
                       ? "risk"
                       : "normal"
                   }
                 />
                 <MiniMetric
-                  label="UTM"
-                  value={data.scorecard.attribution.utmSourcedOrders.toLocaleString()}
+                  label="Direct"
+                  value={data.scorecard.attribution.directPaidOrders.toLocaleString()}
+                  tone={
+                    data.scorecard.attribution.directPaidOrders > data.scorecard.attribution.knownPaidOrders
+                      ? "risk"
+                      : "normal"
+                  }
+                />
+                <MiniMetric
+                  label="Unknown"
+                  value={`${data.scorecard.attribution.unknownRate}%`}
+                  tone={
+                    data.scorecard.attribution.unknownRate > 10
+                      ? "risk"
+                      : "normal"
+                  }
                 />
                 <MiniMetric
                   label="Click IDs"
                   value={data.scorecard.attribution.clickIdOrders.toLocaleString()}
                 />
               </div>
+              {data.scorecard.attribution.sourceGroups.length > 0 && (
+                <div className="mt-4 divide-y divide-border/50">
+                  {data.scorecard.attribution.sourceGroups.map((group) => (
+                    <div
+                      key={group.group}
+                      className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 py-2 text-sm first:pt-0 last:pb-0"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-foreground">
+                          {group.label}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {group.share}% of paid orders · {group.action}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold tabular-nums text-foreground">
+                          {group.paidOrders}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatAUD(group.grossRevenue)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="mt-4 space-y-3">
                 <p className="text-xs font-medium text-muted-foreground">Top source</p>
                 <p className="truncate text-sm font-medium text-foreground">

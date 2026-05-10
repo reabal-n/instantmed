@@ -162,7 +162,23 @@ const PUBLIC_SOCIAL_PROOF_SURFACES = [
   "lib/social-proof",
 ]
 
+const PUBLIC_OUTCOME_STAT_SURFACES = PUBLIC_SOCIAL_PROOF_SURFACES.filter(
+  (surface) => surface !== "lib/social-proof",
+)
+
+const PUBLIC_TRUST_LOGO_SURFACES = [
+  "app/about",
+  "app/consult",
+  "app/hair-loss",
+  "app/prescriptions",
+  "components/marketing",
+  "components/shared/employer-logo-marquee.tsx",
+  "components/shared/trust-badge.tsx",
+  "lib/marketing/trust-badges.ts",
+]
+
 const NO_CALL_PATTERNS = [
+  /\bno call\b/i,
   /\bno call needed\b/i,
   /\bno call required\b/i,
   /\bno phone call\b/i,
@@ -240,6 +256,23 @@ const PUBLIC_FAKE_PROOF_AVATAR_PATTERNS = [
   /\bAishaPatel\b/,
   /\bTomBrennan\b/,
   /\bDoctor[0-9]\b/,
+]
+
+const PUBLIC_RISKY_TRUST_LOGO_PATTERNS = [
+  /\bTGA compliant\b/i,
+  /\bPharmacy Certified\b/i,
+  /\bUsed by employees at\b/i,
+  /\bemployer endorsement\b/i,
+  /\bemployer acceptance\b/i,
+  /\bGoogle certified\b/i,
+]
+
+const PUBLIC_RISKY_OUTCOME_STAT_PATTERNS = [
+  /SOCIAL_PROOF\.(certApprovalPercent|scriptFulfillmentPercent|sameDayDeliveryPercent|patientReturnPercent|employerAcceptancePercent|doctorCount)\b/,
+  /\bapproval rate\b/i,
+  /\bfulfilled same day\b/i,
+  /\bdelivered same day\b/i,
+  /\bpatients return\b/i,
 ]
 
 function toFullPath(relative: string): string {
@@ -395,7 +428,20 @@ describe("advertising compliance guard", () => {
 
     for (const preset of nonMedcertPresets) {
       expect(presetIds(preset), `${preset} must not use no-call badge ids`).not.toContain("no_call")
+      expect(presetIds(preset), `${preset} must not use no-speaking badge ids`).not.toContain("no_speaking")
     }
+  })
+
+  it("keeps trust logos framed as verification rather than endorsement or approval", () => {
+    const hits = findHits(
+      collectFiles(PUBLIC_TRUST_LOGO_SURFACES),
+      PUBLIC_RISKY_TRUST_LOGO_PATTERNS,
+    )
+    if (hits.length > 0) {
+      failWithReport("Public trust-logo claim guard failed", hits)
+    }
+
+    expect(hits).toEqual([])
   })
 
   it("keeps RACGP and FRACGP off public badge primitives", () => {
@@ -419,6 +465,18 @@ describe("advertising compliance guard", () => {
     const hits = findHits(collectFiles(PUBLIC_SOCIAL_PROOF_SURFACES), PUBLIC_REVIEW_ADVERTISING_PATTERNS)
     if (hits.length > 0) {
       failWithReport("Public review advertising guard failed", hits)
+    }
+
+    expect(hits).toEqual([])
+  })
+
+  it("keeps public social proof away from unsupported outcome-rate claims", () => {
+    const hits = findHits(
+      collectFiles(PUBLIC_OUTCOME_STAT_SURFACES),
+      PUBLIC_RISKY_OUTCOME_STAT_PATTERNS,
+    )
+    if (hits.length > 0) {
+      failWithReport("Public outcome-rate proof guard failed", hits)
     }
 
     expect(hits).toEqual([])

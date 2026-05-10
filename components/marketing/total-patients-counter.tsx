@@ -23,21 +23,21 @@ export interface StatEntry {
 
 export const STAT_PRESETS: Record<string, readonly StatEntry[]> = {
   'med-cert': [
-    { icon: Users, value: SOCIAL_PROOF.certApprovalPercent, suffix: '%', label: 'requests approved', color: 'text-success' },
     { icon: Clock, value: SOCIAL_PROOF.certTurnaroundMinutes, suffix: ' min', label: 'avg turnaround', color: 'text-primary' },
     { icon: ShieldCheck, value: SOCIAL_PROOF.refundPercent, suffix: '%', label: 'refund if declined', color: 'text-success' },
-    { icon: Send, value: SOCIAL_PROOF.sameDayDeliveryPercent, suffix: '%', label: 'same-day delivery', color: 'text-cyan-600' },
+    { icon: TrendingUp, value: SOCIAL_PROOF.operatingDays, suffix: '', label: 'days a week', color: 'text-primary' },
+    { icon: Send, value: SOCIAL_PROOF.averageResponseMinutes, suffix: ' min', label: 'avg response', color: 'text-cyan-600' },
   ],
   'prescription': [
-    { icon: Users, value: SOCIAL_PROOF.scriptFulfillmentPercent, suffix: '%', label: 'fulfilled same day', color: 'text-success' },
     { icon: Clock, value: SOCIAL_PROOF.averageResponseMinutes, suffix: ' min', label: 'avg response', color: 'text-primary' },
     { icon: TrendingUp, value: SOCIAL_PROOF.operatingDays, suffix: '', label: 'days a week', color: 'text-primary' },
     { icon: ShieldCheck, value: SOCIAL_PROOF.refundPercent, suffix: '%', label: 'refund guarantee', color: 'text-success' },
+    { icon: Users, value: SOCIAL_PROOF.ahpraVerifiedPercent, suffix: '%', label: 'doctor reviewed', color: 'text-success' },
   ],
   'consult': [
-    { icon: Clock, value: SOCIAL_PROOF.certTurnaroundMinutes, suffix: ' min', label: 'avg review time', color: 'text-primary' },
+    { icon: Clock, value: SOCIAL_PROOF.averageResponseMinutes, suffix: ' min', label: 'avg response', color: 'text-primary' },
     { icon: TrendingUp, value: SOCIAL_PROOF.operatingDays, suffix: '', label: 'days a week', color: 'text-primary' },
-    { icon: ShieldCheck, value: SOCIAL_PROOF.certApprovalPercent, suffix: '%', label: 'approval rate', color: 'text-success' },
+    { icon: ShieldCheck, value: SOCIAL_PROOF.ahpraVerifiedPercent, suffix: '%', label: 'doctor reviewed', color: 'text-success' },
     { icon: CheckCircle2, value: SOCIAL_PROOF.refundPercent, suffix: '%', label: "refund if we can't help", color: 'text-success' },
   ],
 } as const
@@ -240,8 +240,8 @@ export function StatsStrip({
         <div className="flex items-center gap-2 text-sm">
           <CheckCircle2 className="w-4 h-4 text-emerald-500" />
           <span>
-            <span className="font-semibold text-foreground">{SOCIAL_PROOF.certApprovalPercent}%</span>
-            <span className="text-muted-foreground ml-1">approval rate</span>
+            <span className="font-semibold text-foreground">{SOCIAL_PROOF.refundPercent}%</span>
+            <span className="text-muted-foreground ml-1">refund if declined</span>
           </span>
         </div>
       )}

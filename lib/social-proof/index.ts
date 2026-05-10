@@ -98,11 +98,11 @@ export const SOCIAL_PROOF_DISPLAY = {
   adminFee: `$${SOCIAL_PROOF.adminFee.toFixed(2)}`,
   gpComparison: `Typically ${SOCIAL_PROOF.gpPriceStandard} at a GP`,
   gpComparisonComplex: `Typically ${SOCIAL_PROOF.gpPriceComplex} at a GP`,
-  doctorExperience: "Experienced AHPRA-registered GPs",
-  sameDayDelivery: `${SOCIAL_PROOF.sameDayDeliveryPercent}% delivered same day`,
-  certApproval: `${SOCIAL_PROOF.certApprovalPercent}% approval rate`,
-  scriptFulfillment: `${SOCIAL_PROOF.scriptFulfillmentPercent}% fulfilled same day`,
-  patientReturn: `${SOCIAL_PROOF.patientReturnPercent}% of patients return`,
+  doctorExperience: "AHPRA-registered doctors",
+  sameDayDelivery: "Digital delivery after approval",
+  certApproval: "Doctor review before issue",
+  scriptFulfillment: "eScript after doctor approval",
+  patientReturn: "Secure follow-up messages",
 } as const
 
 // ─── Google Reviews ────────────────────────────────────────────────

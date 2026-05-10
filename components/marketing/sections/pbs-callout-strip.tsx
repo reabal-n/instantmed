@@ -1,5 +1,4 @@
 import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 /**
  * PBS subsidy callout — the prescriptions page's superpower claim.
@@ -18,7 +17,7 @@ export function PBSCalloutStrip() {
       }
       body={
         <>
-          You only pay the standard PBS co-payment for eligible medications. Same subsidy you would get at any GP-issued script. {SOCIAL_PROOF.scriptFulfillmentPercent}% of our scripts are fulfilled same day.
+          You only pay the standard PBS co-payment for eligible medications. Same subsidy you would get with any eligible GP-issued eScript. The pharmacy still dispenses and prices the medicine.
         </>
       }
     />
