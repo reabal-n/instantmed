@@ -31,14 +31,19 @@ function read(path: string): string {
 
 describe("attribution persistence contract", () => {
   it("persists the same attribution columns in authenticated and guest checkout", () => {
-    const authenticated = read("lib/stripe/checkout.ts")
+    // Authenticated checkout was carved (2026-05-10) into modules under
+    // `lib/stripe/checkout/`. The orchestrator still calls
+    // `normalizeAttributionForStorage`; the column->attribution literals
+    // live in the persistence module that runs the intake insert.
+    const authenticatedOrchestrator = read("lib/stripe/checkout.ts")
+    const authenticatedPersistence = read("lib/stripe/checkout/persistence.ts")
     const guest = read("lib/stripe/guest-checkout.ts")
 
-    expect(authenticated).toContain("normalizeAttributionForStorage(resolvedAttribution)")
+    expect(authenticatedOrchestrator).toContain("normalizeAttributionForStorage(resolvedAttribution)")
     expect(guest).toContain("normalizeAttributionForStorage(resolvedAttribution)")
 
     for (const column of ATTRIBUTION_COLUMNS) {
-      expect(authenticated).toContain(`${column}: attribution.`)
+      expect(authenticatedPersistence).toContain(`${column}: attribution.`)
       expect(guest).toContain(`${column}: attribution.`)
     }
   })
