@@ -25,12 +25,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const article = getArticleBySlug(slug)
   if (!article) return {}
 
-  const socialVisual = getArticleVisualsForRender(slug).find((visual) => visual.assetPath)?.assetPath
   const ogParams = new URLSearchParams({
     type: "blog",
     title: article.title,
     subtitle: article.excerpt,
-    image: socialVisual ?? article.heroImage,
+    variant: "stable-card-v2",
   })
   const ogImage = `${baseUrl}/api/og?${ogParams.toString()}`
 

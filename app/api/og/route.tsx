@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 import { ImageResponse } from "next/og"
 import { type NextRequest } from "next/server"
 
@@ -31,34 +30,11 @@ const TYPE_CONFIG: Record<string, { label: string; icon: string; color: string }
 
 const DEFAULT_CONFIG = { label: "InstantMed", icon: "IM", color: "#3B82F6" }
 
-function resolveSafeImageUrl(image: string | null, origin: string) {
-  if (!image) return null
-
-  if (image.startsWith("/")) {
-    return `${origin}${image}`
-  }
-
-  try {
-    const parsed = new URL(image)
-    const allowedHost =
-      parsed.hostname === "instantmed.com.au" ||
-      parsed.hostname === "www.instantmed.com.au" ||
-      parsed.hostname === "localhost" ||
-      parsed.hostname === "127.0.0.1" ||
-      parsed.hostname.endsWith(".vercel.app")
-
-    return allowedHost ? parsed.toString() : null
-  } catch {
-    return null
-  }
-}
-
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
   const type = searchParams.get("type") || "default"
   const title = searchParams.get("title") || "InstantMed"
   const subtitle = searchParams.get("subtitle") || ""
-  const imageUrl = resolveSafeImageUrl(searchParams.get("image"), request.nextUrl.origin)
 
   const config = TYPE_CONFIG[type] || DEFAULT_CONFIG
 
@@ -66,7 +42,7 @@ export async function GET(request: NextRequest) {
   const displayTitle = title.length > 60 ? title.slice(0, 57) + "..." : title
   const displaySubtitle = subtitle.length > 100 ? subtitle.slice(0, 97) + "..." : subtitle
 
-  if (type === "blog" && imageUrl) {
+  if (type === "blog") {
     return new ImageResponse(
       (
         <div
@@ -168,24 +144,62 @@ export async function GET(request: NextRequest) {
               style={{
                 width: "46%",
                 display: "flex",
+                flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
                 background: "#F8FAFC",
                 padding: "28px",
+                gap: "18px",
               }}
             >
-              <img
-                src={imageUrl}
-                alt=""
+              {[
+                ["What this guide covers", "#DBEAFE"],
+                ["When online care fits", "#DCFCE7"],
+                ["When to seek urgent care", "#FEE2E2"],
+              ].map(([label, background]) => (
+                <div
+                  key={label}
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "16px",
+                    padding: "18px 20px",
+                    borderRadius: "18px",
+                    background,
+                    border: "1px solid rgba(15, 23, 42, 0.08)",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "12px",
+                      height: "52px",
+                      borderRadius: "999px",
+                      background: "#2563EB",
+                    }}
+                  />
+                  <div style={{ fontSize: "25px", fontWeight: "720", color: "#0F172A", lineHeight: 1.12 }}>
+                    {label}
+                  </div>
+                </div>
+              ))}
+
+              <div
                 style={{
-                  height: "100%",
                   width: "100%",
-                  objectFit: "contain",
-                  borderRadius: "20px",
-                  background: "white",
-                  boxShadow: "0 18px 48px rgba(15, 23, 42, 0.12)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "16px 18px",
+                  borderRadius: "18px",
+                  background: "rgba(255, 255, 255, 0.86)",
+                  fontSize: "18px",
+                  fontWeight: "650",
+                  color: "#475569",
                 }}
-              />
+              >
+                Doctor-reviewed educational article
+              </div>
             </div>
           </div>
         </div>
