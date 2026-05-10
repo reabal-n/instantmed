@@ -6,6 +6,7 @@ node_modules 2
 coverage/
 test-results/
 playwright-report/
+playwright-report*/
 *.tsbuildinfo
 .DS_Store
 .env*

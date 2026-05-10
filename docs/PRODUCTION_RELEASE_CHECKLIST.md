@@ -6,18 +6,20 @@ Use this checklist before promoting dashboard, payment, clinical, or patient-flo
 
 - Use Node 24 from `.nvmrc` / `.node-version` for local release checks.
 - `pnpm check:node`
-- `pnpm release:check`
+- `pnpm release:check` (Node, stack pins, route conflicts, orphaned files, audit, lint, typecheck, unit tests, production build, bundle budget)
 - `PLAYWRIGHT=1 pnpm exec playwright test e2e/payment-smoke.spec.ts e2e/stripe-webhook.spec.ts e2e/parchment-webhook.spec.ts --project=chromium --workers=1 --reporter=list`
-- `PLAYWRIGHT=1 pnpm exec playwright test e2e/dashboard-audit.spec.ts --project=chromium --workers=1 --reporter=list`
+- `PLAYWRIGHT=1 pnpm exec playwright test e2e/operator.viewport.spec.ts e2e/operator.visual.spec.ts --project=chromium --workers=1 --reporter=list`
 - `PLAYWRIGHT=1 pnpm exec playwright test e2e/medical-certificate.spec.ts --project=chromium --workers=1 --reporter=list`
 
 ## 2. Dashboard Gates
 
 - Admin, doctor, and patient dashboard audit passes without retries.
+- Staff cockpit pages stay bounded and scannable at 1440x900: `/admin`, `/admin/ops`, `/admin/intakes`, and the review panel.
 - Dashboard axe checks pass for authenticated admin, doctor, and patient surfaces.
 - Mobile dashboard screenshots match the committed baselines.
 - No console errors, page errors, 404s, or generic error states appear in dashboard audit output.
 - Legacy `/doctor/queue` links redirect to `/doctor/dashboard` with review filters preserved.
+- Admin-doctor operators are not forced through separate admin/doctor mode switching.
 
 ## 3. Clinical Safety Gates
 

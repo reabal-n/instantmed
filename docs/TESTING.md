@@ -8,14 +8,15 @@
 
 | Layer | Framework | Location | Count |
 |-------|-----------|----------|-------|
-| Unit tests | Vitest | `**/*.test.ts` / `lib/__tests__/**/*.test.ts` | **1,855** passing (148 Vitest files, local 2026-05-03; 144 under `lib/__tests__`) |
-| E2E tests | Playwright | `e2e/**/*.spec.ts` | 50 specs — blocking CI currently runs ops smoke plus focused paid critical flows |
+| Unit tests | Vitest | `**/*.test.ts` / `lib/__tests__/**/*.test.ts` | **2,308** passing (231 Vitest files, local `pnpm release:check` 2026-05-10) |
+| E2E tests | Playwright | `e2e/**/*.spec.ts` | 54 specs — blocking CI currently runs ops smoke plus focused paid critical flows |
 
 **Coverage threshold:** 80% statements / 70% branches / 80% functions / 80% lines (enforced by Vitest config, scoped to `lib/clinical/` and `lib/security/`). **Note:** `lib/state-machine/` was removed from the include list 2026-04-08 because the directory no longer exists — the state-machine logic was consolidated into `lib/clinical/auto-approval-state.ts`.
 
 **Recent additions (2026-04-08 audit sweep):**
 - `lib/__tests__/decline-intake.test.ts` — 19 tests covering `app/actions/decline-intake.ts` (actor gate, idempotency, **refund amount math per category** including 50% partial refund for consults, E2E short-circuit, skipRefund flag)
 - `lib/__tests__/doctor-queue-contract.test.ts` — contract coverage for canonical doctor queue actions and retired duplicate doctor decision APIs.
+- `e2e/operator.viewport.spec.ts` and `e2e/operator.visual.spec.ts` — compact staff cockpit visual/viewport guardrails for `/admin`, `/admin/ops`, `/admin/intakes`, and the intake review panel at 1440x900.
 
 Prior to these, the canonical refund code had **zero unit coverage** — only the e2e suite exercised it, which gave slow feedback and no per-branch visibility.
 
@@ -150,6 +151,7 @@ Critical paths only — every flow that touches money, auth, or clinical data:
 | Auth flows | Sign in, sign up, guest checkout → account link |
 | Document download | Auth required, ownership verified, app-streamed PDF |
 | Patient portal | Dashboard, intake detail, prescription history |
+| Staff cockpit | Admin/doctor operator pages stay compact, navigable, and visually stable at desktop staff viewport |
 
 ### What NOT to E2E Test
 

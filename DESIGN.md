@@ -647,6 +647,7 @@ All ambient and scroll-triggered animations fully disabled under reduced motion.
 - `transition-colors duration-150` only, for state changes (loading, active, error).
 - Lottie animations for empty states and feedback are still permitted.
 - Reason: doctors use the portal under time pressure. Animation is friction, not delight.
+- Admin-doctor staff work uses the unified `OperatorShell` pattern. Do not create separate "admin mode" and "doctor mode" experiences for the same operator. Put admin actions above the clinical cockpit and keep case details in panes/drawers.
 
 ### Performance Budget
 
@@ -711,8 +712,11 @@ className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6"
 // Pricing cards
 className="grid md:grid-cols-2 gap-6"
 
-// Dashboard sidebar
+// Doctor dashboard sidebar
 className="grid grid-cols-[240px_1fr] min-h-screen"
+
+// Operator/admin shell
+className="flex min-h-screen bg-background"
 ```
 
 ### Hero Layout
@@ -724,7 +728,9 @@ className="grid grid-cols-[240px_1fr] min-h-screen"
 ### Layout Rules
 
 - **Patient forms:** single column, max-w-md (480px), min 48px tap targets
-- **Dashboard sidebar:** 240px, surface bg, right border
+- **Doctor dashboard sidebar:** 240px, surface bg, right border
+- **Operator/admin sidebar:** 260px, surface bg, right border
+- **Staff cockpit pages:** bounded desktop height with internal scroll panes; avoid whole-page dashboard scroll for primary admin/doctor work
 - **Certificate preview:** centered card, max-w-xl
 - **All critical flows must work at 375px viewport**
 

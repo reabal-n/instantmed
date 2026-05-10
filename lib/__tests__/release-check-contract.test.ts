@@ -16,8 +16,22 @@ describe("release check contract", () => {
     expect(buildWrapper).toContain("pnpm build")
     expect(buildWrapper).toContain("tee \"$BUILD_OUT\"")
     expect(buildWrapper).toContain("/tmp/next-build-output.txt")
+    expect(packageJson.scripts["release:check"]).toContain("bash scripts/check-route-conflicts.sh")
+    expect(packageJson.scripts["release:check"]).toContain("bash scripts/check-orphaned-files.sh")
     expect(packageJson.scripts["release:check"]).toContain("pnpm build:release")
     expect(packageJson.scripts["release:check"]).toContain("bash scripts/check-bundle-size.sh")
+  })
+
+  it("blocks copied local artifacts before packaging a release", () => {
+    const orphanCheck = readFileSync(join(root, "scripts/check-orphaned-files.sh"), "utf8")
+    const vercelIgnore = readFileSync(join(root, ".vercelignore"), "utf8")
+    const gitIgnore = readFileSync(join(root, ".gitignore"), "utf8")
+
+    expect(orphanCheck).toContain('"node_modules 2"')
+    expect(orphanCheck).toContain('"playwright-report 2"')
+    expect(orphanCheck).toContain("copied local artifact")
+    expect(vercelIgnore).toContain("playwright-report*/")
+    expect(gitIgnore).toContain("/playwright-report*/")
   })
 
   it("keeps /request under route and first-load bundle budgets", () => {

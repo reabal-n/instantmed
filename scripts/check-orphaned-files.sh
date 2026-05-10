@@ -7,6 +7,8 @@
 #   3. @deprecated modules with zero imports
 #   4. Superseded legacy intake engines that should not return
 #   5. Retired subscription acquisition files
+#   6. Stale worktree directories
+#   7. Copied local artifact directories that confuse deploy/package scans
 #
 # Exit 1 if any orphans found.
 
@@ -73,10 +75,12 @@ while IFS= read -r deprecated_file; do
   matches=$(grep -rl \
     --exclude-dir=.git \
     --exclude-dir=node_modules \
+    --exclude-dir="node_modules 2" \
     --exclude-dir=.next \
     --exclude-dir=.next-stale-* \
     --exclude-dir=.worktrees \
     --exclude-dir=playwright-report \
+    --exclude-dir="playwright-report 2" \
     --exclude-dir=test-results \
     "$import_path" \
     --include="*.ts" \
@@ -92,10 +96,12 @@ while IFS= read -r deprecated_file; do
 done < <(grep -rl \
   --exclude-dir=.git \
   --exclude-dir=node_modules \
+  --exclude-dir="node_modules 2" \
   --exclude-dir=.next \
   --exclude-dir=.next-stale-* \
   --exclude-dir=.worktrees \
   --exclude-dir=playwright-report \
+  --exclude-dir="playwright-report 2" \
   --exclude-dir=test-results \
   "@deprecated" \
   --include="*.ts" \
@@ -138,6 +144,19 @@ if [[ -d ".worktrees" ]]; then
     orphans=$((orphans + 1))
   fi
 fi
+
+# ── 7. Copied local artifacts ─────────────────────────────────────────────
+for generated_artifact in \
+  "node_modules 2" \
+  "playwright-report 2" \
+  "test-results 2" \
+  "coverage 2"
+do
+  if [[ -e "$generated_artifact" ]]; then
+    echo "ORPHAN: $generated_artifact exists (copied local artifact; remove it before deploy)"
+    orphans=$((orphans + 1))
+  fi
+done
 
 # ── Results ──────────────────────────────────────────────────────────────
 if [[ $orphans -gt 0 ]]; then

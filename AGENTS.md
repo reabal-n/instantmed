@@ -1,6 +1,6 @@
 # AGENTS.md — InstantMed
 
-> Australian telehealth platform for specialised one-off services: medical certificates, repeat prescriptions, hair loss, ED, women's health, and weight loss. Patients start with a secure clinical form. A doctor reviews, approves/declines, contacts the patient if clinically needed, and delivers documents or eScript tokens digitally.
+> Australian telehealth platform for specialised one-off services: medical certificates, repeat prescriptions, hair loss, ED, and general consult fallback. Women's health and weight loss are reserved future subtypes and are gated off until launch readiness is explicitly changed. Patients start with a secure clinical form. A doctor reviews, approves/declines, contacts the patient if clinically needed, and delivers documents or eScript tokens digitally.
 
 > **This file is the project brain.** Always load first. Satellite docs below for deep dives.
 
@@ -15,7 +15,7 @@
 | Support | support@instantmed.com.au · 0450 722 549 |
 | Complaints | complaints@instantmed.com.au · 24h ack · 14-day clinical SLA · canonical page at `/complaints` · linked from footer + Terms §13. Escalation: AHPRA + 8 state HCCC bodies + OAIC (privacy). |
 | Doctor model | Supports multiple doctors. Currently operates with **one** AHPRA-registered GP who serves as both treating practitioner and Medical Director (disclosed in Terms §5, `/clinical-governance`, `/complaints` §4). Never advertise FRACGP, peer review across a cohort, or team training — marketing surfaces use "AHPRA-registered Medical Director" only. Do not expose individual doctor names on marketing pages. |
-| Hours | Med certs: 24/7. Rx/Consults: 8am–10pm AEST, 7 days. Target 1-2h review, 24h max. No customer-facing SLA guarantee. |
+| Hours | Requests submit 24/7 for every pathway. Rx/consult review timing is 8am-10pm AEST, 7 days. Target 1-2h review, 24h max. No customer-facing SLA guarantee. Never hard-block checkout by time of day. |
 | Eligibility | Australia only · 18+ (parental consent for minors) · Medicare optional for med certs, required for Rx/consults |
 
 ## Satellite Documentation
@@ -195,6 +195,8 @@ Any message touching UI / UX / styling / animation / component review: scan avai
 
 All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/price-mapping.ts`.
 
+**Stripe payment-state invariant:** Webhook and fallback payment confirmation must never mark an intake paid from a stale Checkout Session. Paid transitions are guarded by the current stored `intakes.payment_id`, retryable intake status, and unpaid/failed `payment_status`. Expiry and async failure handlers already use the same current-session guard. Partial refunds must use `payment_status = partially_refunded`, not `refunded`.
+
 | Service | Price | Stripe Env Var |
 |---------|-------|----------------|
 | Med cert (1 day) | $19.95 | `STRIPE_PRICE_MEDCERT` |
@@ -205,8 +207,8 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 | General consult | $49.95 | `STRIPE_PRICE_CONSULT` |
 | ED consult | $49.95 | `STRIPE_PRICE_CONSULT_ED` |
 | Hair loss | $49.95 | `STRIPE_PRICE_CONSULT_HAIR_LOSS` |
-| Women's health | $59.95 | `STRIPE_PRICE_CONSULT_WOMENS_HEALTH` |
-| Weight loss | $89.95 | `STRIPE_PRICE_CONSULT_WEIGHT_LOSS` |
+| Women's health (gated future subtype) | $59.95 reserved | `STRIPE_PRICE_CONSULT_WOMENS_HEALTH` |
+| Weight loss (gated future subtype) | $89.95 reserved | `STRIPE_PRICE_CONSULT_WEIGHT_LOSS` |
 | Priority fee (Express Review) | $9.95 | `STRIPE_PRICE_PRIORITY_FEE` |
 | Referral letter | $29.95 | — (display only, not yet Stripe-mapped) |
 | Pathology request | $29.95 | — (display only, not yet Stripe-mapped) |
@@ -215,13 +217,17 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 
 **Intake flow:** Step-based wizard at `/request?service=<type>`. Managed by `lib/request/step-registry.ts`. Steps are React components in `components/request/steps/`. See docs/ARCHITECTURE.md for full step sequences.
 
+**Staff cockpit:** Admin and doctor work are intentionally unified. `/admin` is the primary combined operator cockpit for an admin doctor; it sits on `OperatorShell`, surfaces the next clinical/admin actions, and should not push the user through separate "admin mode" vs "doctor mode" switching. Staff pages should use `components/operator/*`, shared navigation from `lib/dashboard/staff-navigation.ts`, and compact case summaries from `lib/doctor/case-summary.ts`. Keep dashboards bounded and scannable: primary desktop staff pages should avoid whole-page scrolling by using split panes, short action lists, and detail drawers/panels.
+
 **Health guide workflow:** Public article guides live in `content/blog/*.mdx` and render through `components/blog/article-template.tsx`. Guide bodies are education-only: no mid-article consultation CTA, no service CTA card, no related-service acquisition panel, and no location SEO cross-link block. Use `pnpm content:audit` before shipping guide/content changes. Every rewritten guide needs at least two GPT-generated local visuals, ideally three for high-intent or clinical topics. Article visuals are registered in `lib/blog/visuals.ts`, rendered by `components/blog/article-visuals.tsx`, and generated as local WebP assets under `public/images/blog/<slug>/` via `pnpm blog:generate-visual-images -- --renderer=gpt-image-2`. The generation script adds a deterministic `InstantMed` wordmark after image generation; do not ask the image model to draw the brand mark itself. Controlled short copy may appear inside the GPT-generated visual only when it comes from the registry; the same labels and clinical distinctions must also render in React/HTML for accessibility, review, and indexing. **Visual quality bar:** every generated article image must be an educational asset, not decoration. It must teach through labelled panels, anatomical callouts, comparison matrices, warning hierarchies, step pathways, body maps, lab explainers, or other concrete instructional structure. Reject and regenerate any output that is mostly a blank phone, blank document, blank certificate, medicine box, inhaler still life, balance scale, shield/pill card, abstract icon row, beige tabletop, generic desk flat lay, decorative hero image, or any low-information metaphor that could be reused on another article. Baseline rewritten guides should answer the practical question in the first screen, have at least six H2 sections unless genuinely narrow, target 1,200+ words, include a visible sources/references section, and show red flags or care boundaries when clinically relevant.
 
 **Specialty services (ED, Hair Loss):** Dedicated landing pages at `/erectile-dysfunction` and `/hair-loss` are the top-level marketing surfaces for these pathways (alongside `/medical-certificate` and `/prescriptions`). Both CTAs route into `/request?service=consult&subtype=ed` and `/request?service=consult&subtype=hair_loss` respectively. They share the `consult` service type but use subtype-specific step sequences in `CONSULT_SUBTYPE_STEPS` (see `lib/request/step-registry.ts`). ED and hair-loss collect medical history inside their subtype health screens, so they do not add the generic `medical-history` step again. Current positioning is **form-first doctor review**: patient completes the structured form, the doctor reviews, and the doctor calls/messages only if clinically needed. Do not hard-promise "no call needed" for prescribing pathways. Service hub (`/request`) shows 5 active cards (med-cert, repeat prescriptions, ED, hair loss, general consult) + 2 coming-soon (women's health, weight management); the services dropdown and footer match. `/general-consult` was retired in commit `542ae8119` as an SEO cannibalization fix and now 301s to `/consult`, which remains a fallback pathway rather than the brand centre. **ED intake uses 4-step flow:** ed-goals (goal + duration) → ed-assessment (visual IIEF-5, validated 5-question instrument producing `iiefTotal` 5–25) → ed-health (6 collapsible accordion sections consolidating safety screening + medical history — nitrate hard block, cardiac soft blocks with GP clearance) → ed-preferences (lifestyle framing: daily/as-needed/doctor-decides, **no Schedule 4 drug names** per TGA). Common tail adds height/weight/BMI for ED subtype. IIEF-5 score persisted for followup delta tracking. **Follow-up tracker:** Follow-up infrastructure exists, but subscriptions/monthly prescribing and staff-heavy follow-up are not part of the current solo-doctor business model unless `docs/BUSINESS_PLAN.md` is updated.
 
-**Prescription workflow:** Patient submits → Doctor reviews in portal → Doctor clicks "Prescribe" → Parchment iframe opens in slide-over panel → Doctor writes eScript inside InstantMed → Parchment webhook (`prescription.created`) auto-marks script sent with SCID → Patient notified via email. Feature flag: `parchment_embedded_prescribing` (DB toggle). Fallback: "Mark Sent Manually" button for external prescribing. Parchment confirmed custom-domain iframe whitelist for `https://instantmed.com.au` and `https://www.instantmed.com.au` on 2026-05-01; `lib/parchment/embed-policy.ts` defaults must continue to allow those hosts plus local/Vercel preview hosts. Key files: `lib/parchment/client.ts`, `lib/parchment/sync-patient.ts`, `lib/parchment/embed-policy.ts`, `components/doctor/parchment-prescribe-panel.tsx`, `app/api/webhooks/parchment/route.ts`, `app/actions/parchment.ts`.
+**Prescription workflow:** Patient submits -> Doctor reviews in portal -> Doctor approves for prescribing -> Parchment iframe opens in slide-over panel -> Doctor writes eScript inside InstantMed -> Parchment webhook (`prescription.created`) auto-marks script sent with SCID -> Patient notified via email. Approval into `awaiting_script` and Parchment launch are gated on complete prescribing identity (DOB, sex, Medicare details, phone, structured address) using the same patient snapshot rules that power `/admin/ops/prescribing-identity`; incomplete cases must be fixed before prescribing. Feature flag: `parchment_embedded_prescribing` (DB toggle). Fallback: "Mark Sent Manually" button for external prescribing. Patient medication search is PBS reference lookup only: do not present it as MIMS, prescribing advice, or Parchment preselection; the doctor still selects the medicine inside Parchment/MIMS. Parchment confirmed custom-domain iframe whitelist for `https://instantmed.com.au` and `https://www.instantmed.com.au` on 2026-05-01; `lib/parchment/embed-policy.ts` defaults must continue to allow those hosts plus local/Vercel preview hosts. Key files: `lib/parchment/client.ts`, `lib/parchment/sync-patient.ts`, `lib/parchment/embed-policy.ts`, `components/doctor/parchment-prescribe-panel.tsx`, `app/api/webhooks/parchment/route.ts`, `app/actions/parchment.ts`.
 
 **Operational controls:** Admin control surface lives at `/admin/features`; DB-backed mutation path is `app/actions/admin-config.ts` → `lib/feature-flags.ts`. Runtime enforcement lives under `lib/operational-controls/`: capacity limits fail closed when enabled but the count RPC fails, and medication blocklist extraction is shared across authenticated and guest checkout. Business hours are review-timing reference only, not a checkout blocker.
+
+**Checkout safety enforcement:** Authenticated, guest, and retry-payment checkout paths must call `validateSafetyFieldsPresent()` before `checkSafetyForServer()`. Missing safety-critical answers return `REQUEST_MORE_INFO` and are written to `safety_audit_log` via the service role with sanitized metadata only. Allowed checkout outcomes update intake triage fields (`risk_tier`, `triage_result`, `triage_reasons`, `requires_live_consult`, `live_consult_reason`) after `intake_answers` has been saved.
 
 **Repeat Rx subscription:** Dormant/future strategy. Patient-facing checkout, nudge cron, email template, env requirement, and display price were retired; the current business model is one-off transactions only. Historical subscription webhook/account support may remain for compatibility. Do not market, default, or expand subscriptions until `docs/BUSINESS_PLAN.md` and `docs/REVENUE_MODEL.md` are explicitly updated.
 
@@ -233,7 +239,7 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 
 **Safety/payment consent:** Not a standalone step. Med cert collects final consent in `checkout`; prescription/repeat flows collect it in the combined review/pay step; consult flows use review then checkout.
 
-**Guest checkout:** Creates profile without `auth_user_id` → Stripe checkout → redirects to `/auth/complete-account` for account linking.
+**Guest checkout:** Creates profile without `auth_user_id` -> Stripe checkout -> redirects to `/auth/complete-account` for account linking. After clinical answers are persisted, Stripe setup failures must keep an operator-visible `checkout_failed` intake instead of deleting the record.
 
 **Referrals:** $5 credit to both parties. Patient shares `?ref=` link. UI: `components/patient/referral-card.tsx`.
 
@@ -266,12 +272,12 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 - **Post-deploy smoke test**: `.github/workflows/post-deploy-smoke.yml` runs on every successful production deployment. Hits a canary cert (`IM-STUDY-20260426-06236622`) plus `/sign-in`, `/auth/forgot-password`, `/auth/reset-password`, `/api/auth/sign-out`, `/patient`. If the canary cert is rotated, update the workflow's `CANARY_CERT_REF` env var.
 - **Tailwind v4**: CSS-first config. Custom morning spectrum colors (sky, dawn, ivory)
 - **Route group conflicts**: Never place `page.tsx` inside a route group `(name)/` if the parent dir also has `page.tsx` — both resolve to the same URL and Vercel's build tracer will fail with ENOENT. CI runs `scripts/check-route-conflicts.sh` to catch this
-- **Canonical intake flow**: `/request` is the **sole** canonical intake. The `/flow` parallel system was deleted in 2026-04-08 (commit `18e26f0b7`). `/flow` and `/flow/:path*` now 301 to `/request` via `next.config.mjs`. Do not add any new logic under a `/flow/*` path, and do not reference `lib/flow/*` — safety engine lives at `lib/safety/` and offline queue at `lib/offline-queue.ts`.
+- **Canonical intake flow**: `/request` is the **sole** canonical intake. `/start` is a compatibility handoff for old marketing/email links and must 307 redirect into `/request` while mapping legacy `service` values and preserving attribution/query params. The `/flow` parallel system was deleted in 2026-04-08 (commit `18e26f0b7`). `/flow` and `/flow/:path*` now 301 to `/request` via `next.config.mjs`. Do not add any new logic under a `/flow/*` path, and do not reference `lib/flow/*` — safety engine lives at `lib/safety/` and offline queue at `lib/offline-queue.ts`.
 - **Redirect-only pages**: `/prescriptions/request`, `/prescriptions/new`, `/prescriptions/repeat`, `/consult/request`, `/medical-certificate/request`, `/medical-certificates/*`, `/medications/*`, `/login`, and `/auth/login` redirect to canonical routes via `next.config.mjs`. The duplicate `page.tsx` trees were removed; do not recreate local client/action files for those aliases.
 - **Google indexing triage**: Use `pnpm seo:gsc-index-audit -- --inspect-limit=20` for read-only Search Console URL Inspection audits. Ignore expected blocked/not-indexed noise for `_next/static`, fonts, favicon/manifest, auth/account, Clerk, and redirect-only aliases. Depth work belongs only on public canonical URLs that should rank; IndexNow submits every robots-advertised sitemap URL for Bing/Yandex discovery only and does not fix Google indexing.
 - **Stack pin check regex**: `scripts/check-stack-pins.sh` uses glob `[[ == *"^"* ]]` substring tests, NOT bash regex bracket classes (`[[ =~ [\^~\>*x] ]]`). The regex form is bash-version-dependent and produces false positives on bash 5 (Ubuntu CI). Fixed in commit `1e54d69ee` — don't revert it.
 - **Orphaned file check**: `scripts/check-orphaned-files.sh` detects dead intake steps not in the step registry, stale `/flow/` routes, `@deprecated` modules with zero imports, and orphaned worktree directories. Run it before deploying.
-- **CI runs a blocking ops E2E smoke** (`e2e/admin.ops-index.spec.ts`) via `.github/workflows/ci.yml` when repo variable `E2E_ENABLED=true`. Requires repo secret `ENCRYPTION_KEY`; ops/admin pages can decrypt PHI-backed fields during E2E. The older broad Playwright suite is currently non-blocking debt because it contains stale routes/product assumptions and timeouts.
+- **CI runs blocking focused E2E smoke** via `.github/workflows/ci.yml` when repo variable `E2E_ENABLED=true`: ops (`e2e/admin.ops-index.spec.ts`) plus paid critical flows (`e2e/payment-smoke.spec.ts`, `e2e/stripe-webhook.spec.ts`, `e2e/parchment-webhook.spec.ts`). Requires repo secrets `ENCRYPTION_KEY`, `STRIPE_WEBHOOK_SECRET`, and `PARCHMENT_WEBHOOK_SECRET`; CI fails fast if paid-flow webhook secrets are missing. The older broad Playwright suite is currently non-blocking debt because it contains stale routes/product assumptions and timeouts.
 
 ---
 
@@ -302,11 +308,11 @@ Technical co-founder, 15+ years in health/medtech startups (AU + international).
 | New auth pattern | `docs/SECURITY.md` | Auth Patterns table |
 | New clinical rule | `docs/CLINICAL.md` | Relevant section |
 | Consent or privacy change | `docs/CLINICAL.md` | Consent Requirements or APP table |
-| New service type or pricing | `AGENTS.md` | Pricing table + Key Workflows |
+| New service type or pricing | `AGENTS.md` + `CLAUDE.md` | Pricing table + Key Workflows |
 | New intake step | `docs/ARCHITECTURE.md` | Intake System step table |
 | New E2E helper / test seam | `docs/TESTING.md` | E2E Seams or relevant section |
 | New component pattern | `docs/ARCHITECTURE.md` | Component Patterns section |
-| Supabase migration applied | `AGENTS.md` | Increment migration count |
+| Supabase migration applied | `AGENTS.md` + `CLAUDE.md` | Increment migration count |
 | AI model or temperature change | `docs/ARCHITECTURE.md` | AI Configuration table |
 | Refund or billing logic change | `docs/ARCHITECTURE.md` | Decline & Refund Flow |
 | New third-party processor | `docs/CLINICAL.md` | Third-Party Data Processors table |

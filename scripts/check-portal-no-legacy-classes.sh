@@ -1,9 +1,9 @@
 #!/bin/bash
 # Portal design-system compliance smoke check.
 #
-# Asserts that the patient portal source tree (`app/patient/**` and
-# `components/patient/**`) contains zero references to legacy classes
-# and patterns that contradict Morning Canvas (DESIGN.md):
+# Asserts that patient, doctor, and admin portal source trees contain zero
+# references to legacy classes and patterns that contradict Morning Canvas
+# (DESIGN.md):
 #
 #   - glass-card                     (legacy 21st.dev glass-forward shim, banned)
 #   - dashboard-card / dashboard-bg  (raw className use; route through <DashboardCard>)

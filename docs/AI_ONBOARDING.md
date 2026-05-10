@@ -20,10 +20,11 @@ Read (or re-read) these before touching any `.tsx` / `.css` in `app/` or `compon
 12. **`components/marketing/sections/time-comparison-viz.tsx`** — `<TimeComparisonViz>` race-track primitive (us-vs-GP-clinic time saved). Used by every service page that has a time-comparison moment.
 13. **`components/marketing/sections/service-claim-section.tsx`** — `<ServiceClaimSection>` page claim anchor. Claims must be evidence-backed and compliant with `docs/ADVERTISING_COMPLIANCE.md`.
 14. **`components/sections/section-header.tsx`** — `SectionHeader` (title + pill + animated WordReveal entrance). Title className is kept in lockstep with Heading h1 spec. Used by FeatureGrid / ProcessSteps / FAQSection / IconChecklist / Timeline / ComparisonTable / AccordionSection — and through them, most marketing pages.
+15. **`components/operator/`** — `OperatorShell`, bounded staff pages, split panes, panels, and `StaffCommandPalette`. All admin/operator pages that combine admin and clinical work use this pattern; do not rebuild separate admin/doctor mode shells.
 
 Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (2.0.1 as of 2026-05-01). Bump and update `docs/DESIGN_SYSTEM_CHANGELOG.md` on breaking changes.
 
-## Top 10 rules of thumb
+## Top 11 rules of thumb
 
 1. **Use tokens, not arbitraries.** `shadow-md shadow-primary/[0.06]` not `shadow-[0_4px_20px_rgba(0,0,0,0.06)]`.
 2. **No black shadows.** Ever. Sky-toned (`shadow-primary/[0.0X]`) only. Applies to light AND dark mode equivalents.
@@ -35,6 +36,7 @@ Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (2
 8. **Portal exception:** doctor portal (`app/doctor/`) and admin portal (`app/admin/`) get NO decorative motion. Time-pressure surfaces. `transition-colors` only.
 9. **16px min body on patient flows.** Non-negotiable. Patients are often anxious.
 10. **Service definitions:** update `lib/services/service-catalog.ts`, not consumers. If you're adding a new service, update the catalog AND these consumers: home (`lib/marketing/homepage.ts`), intake hub (`service-hub-screen.tsx`), pricing (`pricing-client.tsx`), nav dropdown, mobile menu.
+11. **Staff cockpit:** admin-doctor work is one product. Keep `/admin` as the combined operator cockpit, keep pages bounded/scannable, and use `components/operator/*` instead of inventing a new staff shell.
 
 ## Common gotchas (already-tripped mines)
 
