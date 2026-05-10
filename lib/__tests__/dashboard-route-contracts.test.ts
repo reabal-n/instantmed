@@ -8,9 +8,11 @@ import {
   ADMIN_INTAKE_LEDGER_HREF,
   ADMIN_PARCHMENT_OPS_HREF,
   ADMIN_PATIENT_MERGE_AUDIT_HREF,
+  ADMIN_PATIENTS_HREF,
   ADMIN_PRESCRIBING_IDENTITY_HREF,
   ADMIN_STALE_INTAKES_HREF,
   ADMIN_WEBHOOK_DLQ_HREF,
+  buildAdminDashboardHref,
   buildAdminIntakeHref,
   buildDoctorDashboardHref,
   buildDoctorQueueRedirectHref,
@@ -36,6 +38,10 @@ describe("dashboard route contracts", () => {
     expect(ADMIN_DASHBOARD_HREF).toBe("/admin")
     expect(ADMIN_INTAKE_LEDGER_HREF).toBe("/admin/intakes")
     expect(ADMIN_DOCTOR_QUEUE_HREF).toBe("/admin#doctor-queue")
+    expect(ADMIN_PATIENTS_HREF).toBe("/admin/patients")
+    expect(buildAdminDashboardHref({ status: "scripts", anchor: "doctor-queue" })).toBe(
+      "/admin?status=scripts#doctor-queue",
+    )
     expect(buildAdminIntakeHref("intake-123")).toBe("/admin/intakes/intake-123")
     expect(buildAdminIntakeHref("intake 123")).toBe("/admin/intakes/intake%20123")
   })

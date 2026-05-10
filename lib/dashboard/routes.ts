@@ -3,6 +3,7 @@ export const DOCTOR_DASHBOARD_HREF = "/doctor/dashboard" as const
 export const ADMIN_DASHBOARD_HREF = "/admin" as const
 export const ADMIN_INTAKE_LEDGER_HREF = "/admin/intakes" as const
 export const ADMIN_DOCTOR_QUEUE_HREF = "/admin#doctor-queue" as const
+export const ADMIN_PATIENTS_HREF = "/admin/patients" as const
 export const ADMIN_ANALYTICS_HREF = "/admin/analytics" as const
 export const ADMIN_FINANCE_HREF = "/admin/finance" as const
 export const ADMIN_OPS_HREF = "/admin/ops" as const
@@ -73,6 +74,26 @@ export function buildDoctorDashboardHref(options: {
 }
 
 export const DOCTOR_QUEUE_REVIEW_HREF = buildDoctorDashboardHref({ status: "review" })
+
+export function buildAdminDashboardHref(options: {
+  status?: string | string[] | QueueStatusFilter | null
+  page?: string | string[] | number
+  pageSize?: string | string[] | number
+  anchor?: string
+} = {}): string {
+  const params = new URLSearchParams()
+  const status = parseQueueStatusFilter(options.status)
+  const page = getPositiveIntegerParam(options.page)
+  const pageSize = getPageSizeParam(options.pageSize)
+
+  if (status !== "all") params.set("status", status)
+  if (page) params.set("page", page)
+  if (pageSize) params.set("pageSize", pageSize)
+
+  const query = params.toString()
+  const hash = options.anchor ? `#${options.anchor}` : ""
+  return `${ADMIN_DASHBOARD_HREF}${query ? `?${query}` : ""}${hash}`
+}
 
 export function buildDoctorQueueRedirectHref(
   searchParams: Record<string, string | string[] | undefined>,

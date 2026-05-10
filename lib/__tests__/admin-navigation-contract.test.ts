@@ -124,6 +124,7 @@ describe("admin navigation contract", () => {
       "Dashboard",
       "Intake ledger",
       "Queue",
+      "Patients",
       "Analytics",
       "Finance",
       "Operations",
@@ -133,6 +134,7 @@ describe("admin navigation contract", () => {
     expect(sidebarSource).not.toContain("clinicalNavItems")
     expect(sidebarSource).not.toContain("Clinical mode")
     expect(operatorNavSource).toContain("ADMIN_DOCTOR_QUEUE_HREF")
+    expect(operatorNavSource).toContain("ADMIN_PATIENTS_HREF")
     expect(operatorNavSource).not.toContain('href: "/doctor/dashboard"')
     expect(sidebarSource).not.toContain('href: "/doctor/patients"')
     expect(sidebarSource).not.toContain('href: "/doctor/scripts"')
@@ -153,6 +155,7 @@ describe("admin navigation contract", () => {
     expect(dashboardRoutesSource).toContain('ADMIN_PARCHMENT_OPS_HREF = "/admin/ops/parchment"')
     expect(dashboardRoutesSource).toContain('ADMIN_WEBHOOK_DLQ_HREF = "/admin/webhook-dlq"')
     expect(dashboardRoutesSource).toContain('ADMIN_EMAIL_HUB_HREF = "/admin/emails/hub"')
+    expect(dashboardRoutesSource).toContain('ADMIN_PATIENTS_HREF = "/admin/patients"')
     expect(adminHubSource).not.toContain('href: "/doctor')
     expect(adminHubSource).not.toContain("DOCTOR_QUEUE_REVIEW_HREF")
     expect(adminHubSource).not.toContain("configuration exceptions")
@@ -193,6 +196,7 @@ describe("admin navigation contract", () => {
       opsParchmentSource,
       readFileSync(join(process.cwd(), "app/admin/ops/sla/page.tsx"), "utf8"),
       readFileSync(join(process.cwd(), "app/admin/ops/patient-merge-audit/page.tsx"), "utf8"),
+      readFileSync(join(process.cwd(), "app/admin/patients/page.tsx"), "utf8"),
       readFileSync(join(process.cwd(), "components/shared/ops/reconciliation-client.tsx"), "utf8"),
       readFileSync(join(process.cwd(), "components/shared/ops/intakes-stuck-client.tsx"), "utf8"),
     ].join("\n")
@@ -210,6 +214,7 @@ describe("admin navigation contract", () => {
     expect(adminIntakeDetailSource).toContain("PanelProvider")
     expect(adminIntakeDetailSource).toContain("compact")
     expect(adminIntakeDetailSource).toContain("Back to work")
+    expect(adminPatientDetailSource).toContain("Back to patients")
     expect(adminIntakeDetailSource).toContain("Copy summary")
     expect(adminIntakeDetailSource).toContain("Operator request summary")
     expect(adminIntakeDetailSource).not.toContain("Switch to doctor mode")

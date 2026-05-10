@@ -272,7 +272,7 @@ export default async function AdminPatientDetailPage({
         <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
           <div className="min-w-0">
             <Button variant="ghost" size="sm" asChild className="-ml-2 mb-1 text-muted-foreground">
-              <Link href="/admin#intakes">Back to work</Link>
+              <Link href="/admin/patients">Back to patients</Link>
             </Button>
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="truncate text-2xl font-semibold tracking-tight text-foreground">

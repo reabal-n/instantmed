@@ -98,8 +98,8 @@ function getCompactPatientDescription(patient: {
 
 function getCompactNextActionLabel(status: IntakeWithPatient["status"], serviceType?: string | null): string {
   if (status === "pending_info") return "Reply"
-  if (status === "awaiting_script") return "Script"
-  if (serviceType === SERVICE_TYPES.COMMON_SCRIPTS || serviceType === SERVICE_TYPES.REPEAT_RX) return "Script"
+  if (status === "awaiting_script") return "Write script"
+  if (serviceType === SERVICE_TYPES.COMMON_SCRIPTS || serviceType === SERVICE_TYPES.REPEAT_RX) return "Review script"
   return serviceType === SERVICE_TYPES.MED_CERTS ? "Review" : "Open"
 }
 

@@ -91,12 +91,17 @@ describe("doctor patient medication history contract", () => {
       join(process.cwd(), "app/doctor/patients/page.tsx"),
       "utf8",
     )
+    const patientDirectorySource = readFileSync(
+      join(process.cwd(), "lib/data/patient-directory.ts"),
+      "utf8",
+    )
     const patientsListSource = readFileSync(
       join(process.cwd(), "app/doctor/patients/patients-list-client.tsx"),
       "utf8",
     )
 
-    expect(patientsPageSource).toContain("parchment_patient_id")
+    expect(patientsPageSource).toContain("getPatientDirectoryPage")
+    expect(patientDirectorySource).toContain("parchment_patient_id")
     expect(patientsListSource).toContain("Parchment sync")
     expect(patientsListSource).toContain("Ready in Parchment")
     expect(patientsListSource).toContain("Not synced")

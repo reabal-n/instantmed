@@ -19,6 +19,7 @@ import {
   ADMIN_FINANCE_HREF,
   ADMIN_INTAKE_LEDGER_HREF,
   ADMIN_OPS_HREF,
+  ADMIN_PATIENTS_HREF,
   ADMIN_SETTINGS_HREF,
 } from "@/lib/dashboard/routes"
 
@@ -41,6 +42,7 @@ export const operatorNavSections: StaffNavSection[] = [
       { href: ADMIN_DASHBOARD_HREF, label: "Dashboard", icon: LayoutDashboard },
       { href: ADMIN_INTAKE_LEDGER_HREF, label: "Intake ledger", icon: ListOrdered },
       { href: ADMIN_DOCTOR_QUEUE_HREF, label: "Queue", icon: Stethoscope },
+      { href: ADMIN_PATIENTS_HREF, label: "Patients", icon: Users },
     ],
   },
   {

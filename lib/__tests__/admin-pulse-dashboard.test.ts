@@ -3,7 +3,7 @@ import path from "node:path"
 
 import { describe, expect, it } from "vitest"
 
-import { buildDoctorDashboardHref } from "@/lib/dashboard/routes"
+import { buildAdminDashboardHref } from "@/lib/dashboard/routes"
 import {
   type AdminPulseDecisionInput,
   resolveAdminPulseAction,
@@ -33,7 +33,7 @@ describe("admin pulse dashboard", () => {
 
     expect(page).toContain("OperatorPage")
     expect(page).toContain('title="Staff cockpit"')
-    expect(page).toContain("Admin blockers on top. Clinical queue directly below.")
+    expect(page).toContain("Approve requests, write scripts, and open patient profiles from one place.")
     expect(page).toContain("getDoctorDashboardStats")
     expect(page).toContain("getDoctorQueue")
     expect(page).toContain("<AdminHubZones")
@@ -68,6 +68,7 @@ describe("admin pulse dashboard", () => {
     expect(staffNavigation).toContain("ADMIN_FINANCE_HREF")
     expect(staffNavigation).toContain("ADMIN_OPS_HREF")
     expect(staffNavigation).toContain("ADMIN_DOCTOR_QUEUE_HREF")
+    expect(staffNavigation).toContain("ADMIN_PATIENTS_HREF")
     expect(sidebar).not.toContain('href: "/admin/analytics"')
     expect(sidebar).not.toContain('href: "/admin/finance"')
     expect(sidebar).not.toContain('href: "/admin/ops"')
@@ -108,7 +109,7 @@ describe("admin pulse dashboard", () => {
     expect(ledger).not.toContain("Doctor work")
     expect(ledger).toContain('AdminWorkLaneFilterValue>(() =>')
     expect(ledger).toContain('"clinical" : "all"')
-    expect(ledger.indexOf("Find anything")).toBeLessThan(ledger.indexOf("Search patient"))
+    expect(ledger.indexOf("Find anything")).toBeLessThan(ledger.indexOf('placeholder="Search patient'))
   })
 
   it("keeps the embedded clinical queue compact and action-first", () => {
@@ -125,12 +126,15 @@ describe("admin pulse dashboard", () => {
     const requestInfoCard = readProjectFile("components/doctor/review/request-info-card.tsx")
     const clinicalCaseReview = readProjectFile("components/doctor/clinical-case-review.tsx")
 
-    expect(queueFilters).toContain("Clinical queue")
-    expect(queueFilters).toContain("Review next")
-    expect(queueFilters).toContain("Search patient, ref, Medicare, email, phone")
+    expect(queueFilters).toContain("Review and scripts")
+    expect(queueFilters).toContain("Open next case")
+    expect(queueFilters).toContain("Search patient, profile, ref, Medicare, email, phone")
+    expect(queueFilters).toContain("Scripts to write")
     expect(queueFilters).toContain("!compactShell &&")
     expect(queueTable).toContain("getCompactPatientDescription")
     expect(queueTable).toContain("getCompactNextActionLabel")
+    expect(queueTable).toContain("Write script")
+    expect(queueTable).toContain("Review script")
     expect(queueTable).toContain('compactShell ? "Risk" : "Flagged"')
     expect(queueTable).toContain("!compactShell && isReturning")
     expect(queueClient).toContain("handleReviewNext")
@@ -202,7 +206,7 @@ describe("admin pulse dashboard", () => {
     expect(resolveAdminPulseMood(input)).toBe("busy")
     expect(resolveAdminPulseAction(input)).toMatchObject({
       label: "Open scripts queue",
-      href: buildDoctorDashboardHref({ status: "scripts" }),
+      href: buildAdminDashboardHref({ status: "scripts", anchor: "doctor-queue" }),
       tone: "warning",
     })
   })

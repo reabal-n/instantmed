@@ -31,7 +31,11 @@ import {
   matchesAdminStatusFilter,
   matchesAdminWorkLaneFilter,
 } from "@/lib/dashboard/admin-work-lanes"
-import { buildAdminIntakeHref } from "@/lib/dashboard/routes"
+import {
+  ADMIN_PATIENTS_HREF,
+  buildAdminDashboardHref,
+  buildAdminIntakeHref,
+} from "@/lib/dashboard/routes"
 import { INTAKE_STATUS, type IntakeStatus } from "@/lib/data/status"
 import { buildStaffCaseSummary } from "@/lib/doctor/case-summary"
 import type { PatientHandoffSummary } from "@/lib/doctor/patient-handoff"
@@ -291,10 +295,18 @@ export function AdminDashboardClient({
     return [
       ...caseItems,
       {
+        id: "patients",
+        title: "Patients",
+        detail: "Search patient profiles and prescribing identity",
+        href: ADMIN_PATIENTS_HREF,
+        keywords: "patients patient profile directory medicare phone identity parchment",
+        label: "Go",
+      },
+      {
         id: "doctor-queue",
-        title: "Doctor queue",
-        detail: "Clinical review list",
-        href: "/doctor/queue",
+        title: "Review queue",
+        detail: "Open clinical reviews in this cockpit",
+        href: buildAdminDashboardHref({ status: "review", anchor: "doctor-queue" }),
         keywords: [
           "doctor queue clinical approve prescribe",
           "review patient decision action",
@@ -303,9 +315,9 @@ export function AdminDashboardClient({
       },
       {
         id: "scripts",
-        title: "Scripts",
-        detail: "Prescription delivery follow-up",
-        href: "/doctor/scripts",
+        title: "Scripts to write",
+        detail: "Open script-ready cases in this cockpit",
+        href: buildAdminDashboardHref({ status: "scripts", anchor: "doctor-queue" }),
         keywords: "scripts prescriptions parchment delivery",
         label: "Go",
       },

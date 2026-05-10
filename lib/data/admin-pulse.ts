@@ -5,7 +5,7 @@ import {
   ADMIN_FINANCE_HREF,
   ADMIN_INTAKE_LEDGER_HREF,
   ADMIN_OPS_HREF,
-  buildDoctorDashboardHref,
+  buildAdminDashboardHref,
 } from "@/lib/dashboard/routes"
 import {
   getDoctorDashboardStats,
@@ -194,7 +194,7 @@ export function resolveAdminPulseAction(input: AdminPulseDecisionInput): AdminPu
     return {
       label: "Open scripts queue",
       description: "Prescribing work is waiting in the same operator workflow.",
-      href: buildDoctorDashboardHref({ status: "scripts" }),
+      href: buildAdminDashboardHref({ status: "scripts", anchor: "doctor-queue" }),
       tone: "warning",
     }
   }
@@ -203,7 +203,7 @@ export function resolveAdminPulseAction(input: AdminPulseDecisionInput): AdminPu
     return {
       label: "Open oldest clinical request",
       description: "The queue has work waiting for a clinical decision.",
-      href: buildDoctorDashboardHref({ status: "review" }),
+      href: buildAdminDashboardHref({ status: "review", anchor: "doctor-queue" }),
       tone: "info",
     }
   }

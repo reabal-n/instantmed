@@ -15,6 +15,10 @@ const pageSource = readFileSync(
   join(process.cwd(), "app/doctor/patients/page.tsx"),
   "utf8",
 )
+const patientDirectorySource = readFileSync(
+  join(process.cwd(), "lib/data/patient-directory.ts"),
+  "utf8",
+)
 const detailSource = readFileSync(
   join(process.cwd(), "app/doctor/patients/[id]/patient-detail-client.tsx"),
   "utf8",
@@ -42,10 +46,12 @@ function functionBody(name: string): string {
 
 describe("doctor add patient Parchment contract", () => {
   it("exposes an Add patient CTA on the patient directory and selects Parchment sync state", () => {
-    expect(listSource).toContain("actions={<AddPatientDialog />}")
+    expect(listSource).toContain("showAddPatientAction")
+    expect(listSource).toContain("actions={showAddPatientAction ? <AddPatientDialog /> : undefined}")
     expect(listSource).toContain("AddPatientDialog")
     expect(listSource).toContain("Parchment synced")
-    expect(pageSource).toContain("parchment_patient_id")
+    expect(pageSource).toContain("getPatientDirectoryPage")
+    expect(patientDirectorySource).toContain("parchment_patient_id")
   })
 
   it("requires doctor/admin auth and rate limits before creating a patient", () => {

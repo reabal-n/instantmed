@@ -80,7 +80,7 @@ export function QueueFilters({
             )}
             data-testid="queue-heading"
           >
-            {compactShell ? "Clinical queue" : `${filteredCount} case${filteredCount !== 1 ? "s" : ""} waiting`}
+            {compactShell ? "Review and scripts" : `${filteredCount} case${filteredCount !== 1 ? "s" : ""} waiting`}
           </h2>
           {compactShell && (
             <span className="rounded-md border border-border/50 bg-muted/30 px-2 py-0.5 text-xs font-medium text-muted-foreground">
@@ -111,14 +111,14 @@ export function QueueFilters({
               onClick={onReviewNext}
               disabled={filteredCount === 0 || !onReviewNext}
             >
-              Review next
+              Open next case
               <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
             </Button>
           )}
           <div className="relative flex flex-1 items-center sm:flex-none">
             <Input
               ref={searchRef}
-              placeholder={compactShell ? "Search patient, ref, Medicare, email, phone" : "Search… or / to focus"}
+              placeholder={compactShell ? "Search patient, profile, ref, Medicare, email, phone" : "Search… or / to focus"}
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               className={cn("w-full h-9 text-sm", compactShell ? "sm:w-80" : "sm:w-56")}
@@ -199,7 +199,7 @@ export function QueueFilters({
           { key: "all", label: "All" },
           { key: "review", label: compactShell ? "Review" : "Needs Review" },
           { key: "pending_info", label: compactShell ? "Info" : "Pending Info" },
-          { key: "scripts", label: "Scripts" },
+          { key: "scripts", label: compactShell ? "Scripts to write" : "Scripts" },
         ] as const).map((tab) => {
           const count =
             tab.key === "all"

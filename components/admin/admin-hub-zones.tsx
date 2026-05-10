@@ -14,7 +14,9 @@ import {
   ADMIN_INTAKE_LEDGER_HREF,
   ADMIN_OPS_HREF,
   ADMIN_PARCHMENT_OPS_HREF,
+  ADMIN_PATIENTS_HREF,
   ADMIN_WEBHOOK_DLQ_HREF,
+  buildAdminDashboardHref,
 } from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 
@@ -62,20 +64,20 @@ export function AdminHubZones({
               Admin layer
             </h2>
             <p className="text-xs text-muted-foreground">
-              Exceptions, ledgers, and recovery paths above the clinical queue.
+              Profiles, ledgers, and recovery paths above the clinical queue.
             </p>
           </div>
         </div>
         <div className="grid gap-2 lg:grid-cols-[1fr_1fr_1.25fr]">
           <CompactZone
-            title="Clinical blockers"
+            title="Clinical work"
             icon={ListOrdered}
             stats={[
-              { label: "Ready", value: inQueue, href: ADMIN_INTAKE_LEDGER_HREF },
+              { label: "Review queue", value: inQueue, href: buildAdminDashboardHref({ status: "review", anchor: "doctor-queue" }) },
               {
-                label: "Scripts",
+                label: "Scripts to write",
                 value: scriptsPending,
-                href: ADMIN_INTAKE_LEDGER_HREF,
+                href: buildAdminDashboardHref({ status: "scripts", anchor: "doctor-queue" }),
                 attentionWhenNonZero: true,
               },
             ]}
@@ -87,11 +89,11 @@ export function AdminHubZones({
               {
                 label: "Needs info",
                 value: pendingInfo,
-                href: ADMIN_INTAKE_LEDGER_HREF,
+                href: buildAdminDashboardHref({ status: "pending_info", anchor: "doctor-queue" }),
                 attentionWhenNonZero: true,
               },
             ]}
-            action={{ label: "Open ledger", href: ADMIN_INTAKE_LEDGER_HREF }}
+            action={{ label: "Open patients", href: ADMIN_PATIENTS_HREF }}
           />
           <DashboardCard tier="standard" padding="sm">
             <details className="group">
@@ -139,11 +141,11 @@ export function AdminHubZones({
       subtitle: "Cases that need clinical attention",
       icon: ListOrdered,
       stats: [
-        { label: "In queue", value: inQueue, href: ADMIN_INTAKE_LEDGER_HREF },
+        { label: "In queue", value: inQueue, href: buildAdminDashboardHref({ status: "review", anchor: "doctor-queue" }) },
         {
           label: "Scripts pending",
           value: scriptsPending,
-          href: ADMIN_INTAKE_LEDGER_HREF,
+          href: buildAdminDashboardHref({ status: "scripts", anchor: "doctor-queue" }),
           attentionWhenNonZero: true,
         },
       ],
@@ -160,11 +162,12 @@ export function AdminHubZones({
         {
           label: "Needs info",
           value: pendingInfo,
-          href: ADMIN_INTAKE_LEDGER_HREF,
+          href: buildAdminDashboardHref({ status: "pending_info", anchor: "doctor-queue" }),
           attentionWhenNonZero: true,
         },
       ],
       links: [
+        { label: "Open patients", href: ADMIN_PATIENTS_HREF },
         { label: "Search intake ledger", href: ADMIN_INTAKE_LEDGER_HREF },
       ],
     },

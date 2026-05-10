@@ -417,9 +417,9 @@ Config-driven, immutably versioned. Template config stored as JSONB in `certific
 
 **Access:** `admin` role only (set via `profiles.role = 'admin'` in Supabase). In the current solo-doctor operating model, the same person can be both admin and treating doctor, so admin surfaces are designed as an operator cockpit rather than a separate mode.
 
-Admin capabilities span the `/admin` route group and include: operations dashboard, analytics, compliance audit logs, feature flag management (kill switches, operational controls), finance (fraud flags, Stripe disputes), clinic identity configuration, and doctor management.
+Admin capabilities span the `/admin` route group and include: operator cockpit, patient directory/profile lookup, operations dashboard, analytics, compliance audit logs, feature flag management (kill switches, operational controls), finance (fraud flags, Stripe disputes), clinic identity configuration, and doctor management.
 
-**Staff cockpit architecture:** `/admin` is the primary combined operator surface. It uses `OperatorShell`, shared navigation from `lib/dashboard/staff-navigation.ts`, `StaffCommandPalette` for fast jumps, and compact summaries from `lib/doctor/case-summary.ts`. `/admin/intakes/[id]` and `/doctor/intakes/[id]` share the same cockpit mental model: patient detail, request summary, blockers, and decision actions stay together instead of forcing a manual switch between admin and doctor views.
+**Staff cockpit architecture:** `/admin` is the primary combined operator surface. It uses `OperatorShell`, shared navigation from `lib/dashboard/staff-navigation.ts`, `StaffCommandPalette` for fast jumps, and compact summaries from `lib/doctor/case-summary.ts`. `/admin/intakes/[id]`, `/admin/patients`, `/admin/patients/[id]`, and `/doctor/intakes/[id]` share the same cockpit mental model: patient detail, request summary, blockers, and decision actions stay together instead of forcing a manual switch between admin and doctor views.
 
 **Operational controls** (`/admin/features`): Review timing reference (open/close, timezone), capacity limit (max intakes/day), urgent notice banner, scheduled maintenance (start/end datetime). Runtime helpers live in `lib/operational-controls/`; admin writes go through `lib/feature-flags.ts` with server-side key/value validation. Cron `scheduled-maintenance` syncs `maintenance_mode` with the scheduled window every 5 min, but will not disable manually enabled maintenance mode from an admin incident response.
 
@@ -679,7 +679,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | Directory | Purpose | Key files |
 |-----------|---------|-----------|
 | `app/actions/` | Server actions | `unified-checkout.ts` (checkout bridge), `generate-drafts.ts` (AI), `ensure-profile.ts` |
-| `app/admin/` | Admin dashboard | `email-hub/`, `features/`, `settings/`, `ops/`, `analytics/` |
+| `app/admin/` | Admin dashboard | `patients/`, `intakes/`, `email-hub/`, `features/`, `settings/`, `ops/`, `analytics/` |
 | `app/doctor/` | Doctor portal | `queue/` (intake queue), `intakes/[id]/` (review), `scripts/` (Rx tasks), `patients/` |
 | `app/patient/` | Patient dashboard | `intakes/` (history + success), `settings/`, `onboarding/`, `documents/` |
 | `app/api/` | API routes | `stripe/webhook/`, `cron/`, `ai/`, `health/`, `certificates/`, `intakes/` |

@@ -68,7 +68,7 @@ export default async function AdminPage({
       <OperatorPage>
         <OperatorPageHeader
           title="Staff cockpit"
-          description="Admin blockers on top. Clinical queue directly below."
+          description="Approve requests, write scripts, and open patient profiles from one place."
           actions={<DoctorAvailabilityToggle initialAvailable={doctorAvailable} compact />}
         />
 

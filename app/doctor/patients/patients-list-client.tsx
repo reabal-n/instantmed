@@ -13,15 +13,11 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { UserCard } from "@/components/uix"
+import type { PatientDirectoryProfile } from "@/lib/data/patient-directory"
 import { findPotentialDuplicatePatients } from "@/lib/doctor/patient-snapshot"
 import { calculateAge, formatDate } from "@/lib/format"
-import type { Profile } from "@/types/db"
 
 import { AddPatientDialog } from "./add-patient-dialog"
-
-type PatientDirectoryProfile = Profile & {
-  duplicate_profile_ids?: string[]
-}
 
 interface PatientsListClientProps {
   patients: PatientDirectoryProfile[]
@@ -30,6 +26,12 @@ interface PatientsListClientProps {
   totalPatients: number
   rawPatientProfiles: number
   collapsedDuplicateProfiles: number
+  baseHref?: string
+  patientHrefBase?: string
+  showHeader?: boolean
+  showAddPatientAction?: boolean
+  title?: string
+  description?: string
 }
 
 export function PatientsListClient({
@@ -39,6 +41,12 @@ export function PatientsListClient({
   totalPatients,
   rawPatientProfiles,
   collapsedDuplicateProfiles,
+  baseHref = "/doctor/patients",
+  patientHrefBase = "/doctor/patients",
+  showHeader = true,
+  showAddPatientAction = true,
+  title = "Patient Directory",
+  description = "View and manage all registered patients",
 }: PatientsListClientProps) {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
@@ -110,11 +118,13 @@ export function PatientsListClient({
 
   return (
     <div className="space-y-6">
-      <DashboardPageHeader
-        title="Patient Directory"
-        description="View and manage all registered patients"
-        actions={<AddPatientDialog />}
-      />
+      {showHeader && (
+        <DashboardPageHeader
+          title={title}
+          description={description}
+          actions={showAddPatientAction ? <AddPatientDialog /> : undefined}
+        />
+      )}
 
       {/* Directory controls */}
       <Card className="rounded-xl border-border/50">
@@ -216,6 +226,7 @@ export function PatientsListClient({
                 filteredPatients.map((patient) => {
                   const age = calculateAge(patient.date_of_birth)
                   const linkedProfileCount = patient.duplicate_profile_ids?.length ?? 0
+                  const patientHref = `${patientHrefBase}/${patient.id}`
 
                   return (
                     <TableRow
@@ -223,7 +234,7 @@ export function PatientsListClient({
                       className="hover:bg-muted/50 transition-colors duration-200 cursor-pointer group"
                     >
                       <TableCell>
-                        <Link href={`/doctor/patients/${patient.id}`} className="block">
+                        <Link href={patientHref} className="block">
                           <UserCard
                             name={patient.full_name}
                             description={age !== null ? `${age} years old` : "Age N/A"}
@@ -302,7 +313,7 @@ export function PatientsListClient({
                         </span>
                       </TableCell>
                       <TableCell>
-                        <Link href={`/doctor/patients/${patient.id}`}>
+                        <Link href={patientHref}>
                           <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-primary transition-colors" />
                         </Link>
                       </TableCell>
@@ -336,7 +347,7 @@ export function PatientsListClient({
               variant="outline"
               size="sm"
               disabled={currentPage <= 1}
-              onClick={() => router.push(`/doctor/patients?page=${currentPage - 1}`)}
+              onClick={() => router.push(`${baseHref}?page=${currentPage - 1}`)}
             >
               <ChevronLeft className="h-4 w-4 mr-1" />
               Previous
@@ -345,7 +356,7 @@ export function PatientsListClient({
               variant="outline"
               size="sm"
               disabled={currentPage >= totalPages}
-              onClick={() => router.push(`/doctor/patients?page=${currentPage + 1}`)}
+              onClick={() => router.push(`${baseHref}?page=${currentPage + 1}`)}
             >
               Next
               <ChevronRight className="h-4 w-4 ml-1" />
