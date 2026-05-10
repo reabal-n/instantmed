@@ -49,12 +49,6 @@ const steps = [
   { number: 3, title: 'Certificate in your inbox', description: 'Done. Forward it to your employer or uni.' },
 ]
 
-const doctorAvatars = [
-  'https://api.dicebear.com/7.x/notionists/svg?seed=Doctor1',
-  'https://api.dicebear.com/7.x/notionists/svg?seed=Doctor2',
-  'https://api.dicebear.com/7.x/notionists/svg?seed=Doctor3',
-]
-
 const recognitionIcons: Record<string, typeof Briefcase> = {
   'Workplace evidence': Briefcase,
   'Policy dependent': Shield,
@@ -318,9 +312,9 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
               >
                 <div className="flex items-center gap-2">
                   <div className="flex -space-x-2">
-                    {doctorAvatars.map((src, i) => (
-                      <div key={i} className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-background bg-muted">
-                        <Image src={src} alt="" fill sizes="32px" className="object-cover" unoptimized loading="lazy" />
+                    {["bg-primary/10 text-primary", "bg-success-light text-success", "bg-brand-coral/10 text-brand-coral"].map((className, i) => (
+                      <div key={i} className={`grid h-8 w-8 place-items-center rounded-full ring-2 ring-background ${className}`}>
+                        <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
                       </div>
                     ))}
                   </div>

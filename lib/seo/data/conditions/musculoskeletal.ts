@@ -71,7 +71,7 @@ export const musculoskeletalConditions: Record<string, ConditionData> = {
     serviceType: "both",
     ctaText: "Get a medical certificate",
     ctaHref: "/request?service=med-cert&condition=back-pain",
-    stats: { avgTime: "50 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "50 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Back pain is the leading cause of disability worldwide, yet most episodes resolve without any imaging or specialist intervention. What I look for when assessing back pain remotely is whether there are 'red flags' - signs that suggest something more serious than a simple muscle or ligament strain. These include loss of bladder or bowel control, numbness in the groin area (cauda equina syndrome, a surgical emergency), progressive leg weakness, or back pain with fever. In the absence of these red flags, the evidence is clear: staying gently active recovers faster than bed rest. A medical certificate allowing modified duties or a few days' rest is often the most practical step, especially for physically demanding work. Most back pain peaks in the first 48-72 hours and improves steadily over 2-4 weeks.",
     auStats: [
       "Back pain is the leading cause of disability in Australia, affecting 1 in 6 Australians (AIHW)",
@@ -213,7 +213,7 @@ export const musculoskeletalConditions: Record<string, ConditionData> = {
     serviceType: "med-cert",
     ctaText: "Get a certificate",
     ctaHref: "/request?service=med-cert",
-    stats: { avgTime: "30 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "30 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Muscle strains are among the most common workplace injuries, and they are well-suited to telehealth assessment because the diagnosis is almost entirely history-based. I ask about the mechanism (what were you doing when it happened?), the location, the severity (can you still move the affected area?), and whether there was an audible pop or snap. Most strains are mild to moderate and recover fully with conservative management - rest, ice, gentle movement, and over-the-counter pain relief. The key distinction I make is between a simple strain and a potential tear or fracture. Red flags include inability to bear weight, significant swelling, visible deformity, or numbness below the injury. For workplace injuries, I document the mechanism clearly for WorkCover purposes if needed, though WorkCover claims require an in-person assessment. A medical certificate for a muscle strain is entirely appropriate, particularly for physical work.",
     auStats: [
       "Musculoskeletal conditions are the leading cause of workplace injury claims in Australia (Safe Work Australia)",
@@ -307,7 +307,7 @@ export const musculoskeletalConditions: Record<string, ConditionData> = {
     serviceType: "both",
     ctaText: "Get a medical certificate",
     ctaHref: "/request?service=med-cert&condition=back-pain",
-    stats: { avgTime: "40 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "40 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Lower back pain is the single most common musculoskeletal complaint in general practice, and it is both over-investigated and under-treated. Over-investigated because imaging is ordered far too early and too often - MRI findings of disc degeneration, bulges, and protrusions are present in up to 50% of pain-free adults. These findings often cause unnecessary alarm and can lead patients toward invasive treatments they don't need. Under-treated because the most effective interventions - staying active, targeted exercise, and cognitive approaches to pain management - are underutilised compared to passive treatments. The vast majority of lower back pain is 'mechanical' (muscle/ligament strain, normal disc wear) and resolves within 6 weeks. My role in telehealth assessment is triaging: ruling out the rare serious causes (cauda equina, fracture, infection, cancer) and providing practical guidance for the far more common mechanical pain.",
     auStats: [
       "Lower back pain is the leading cause of disability in Australia and worldwide (AIHW)",
@@ -398,7 +398,7 @@ export const musculoskeletalConditions: Record<string, ConditionData> = {
     serviceType: "both",
     ctaText: "Get a certificate",
     ctaHref: "/request?service=med-cert",
-    stats: { avgTime: "35 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "35 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Tennis elbow is a tendinopathy - not an inflammation (despite the '-itis' suffix). This distinction matters because anti-inflammatory treatments like cortisone injections, while providing short-term relief, are now known to worsen long-term outcomes. The current best evidence supports progressive tendon-loading exercises as the primary treatment. The condition is caused by repetitive microtrauma to the common extensor tendon at the lateral epicondyle - from typing, mouse use, tool handling, painting, or any repetitive gripping activity. Via telehealth, I can assess the symptom pattern, recommend evidence-based management, provide a medical certificate for work modification, and refer to physiotherapy for a structured exercise program. Most patients recover fully without any procedures.",
     auStats: [
       "Tennis elbow affects 1-3% of the adult population, most commonly between ages 35-54",
@@ -531,7 +531,7 @@ export const musculoskeletalConditions: Record<string, ConditionData> = {
     serviceType: "both",
     ctaText: "Get a medical certificate",
     ctaHref: "/request?service=med-cert&condition=sciatica",
-    stats: { avgTime: "50 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "50 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Sciatica describes a pattern of pain caused by irritation of the sciatic nerve - typically from a disc herniation compressing a nerve root in the lower spine. The diagnosis is clinical: pain radiating below the knee in a specific nerve distribution is the hallmark. What I assess remotely is whether the pattern is consistent with simple sciatica (pain only, no weakness, no bladder issues) or whether red flags suggest something requiring urgent investigation. The most critical red flag is cauda equina syndrome - compression of the nerve bundle at the base of the spine causing bilateral leg symptoms, saddle numbness, and bladder dysfunction. This is a surgical emergency. In the vast majority of cases, sciatica resolves with conservative management: staying active, pain relief, and time. The evidence does not support early MRI unless symptoms are worsening or not improving after 6 weeks.",
     auStats: [
       "Sciatica affects 5-10% of people with low back pain - approximately 1-3% of the Australian population",
@@ -668,7 +668,7 @@ export const musculoskeletalConditions: Record<string, ConditionData> = {
     serviceType: "both",
     ctaText: "Get assessed",
     ctaHref: "/request?service=consult&condition=gout",
-    stats: { avgTime: "45 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "45 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Gout is one of the most painful conditions I see in practice, and it is frequently mismanaged. An acute gout attack causes sudden, excruciating joint pain - most commonly in the big toe - with swelling, redness, and heat. The pain is so severe that even a bedsheet touching the joint can be unbearable. The good news is that gout is one of the most treatable forms of arthritis. The priority during an acute attack is anti-inflammatory treatment (typically NSAIDs or colchicine), started as early as possible. The longer-term conversation is about urate-lowering therapy (allopurinol) to prevent future attacks - this is underused in Australia. Contrary to outdated advice, gout is not simply caused by 'eating too much rich food.' It is a metabolic condition driven primarily by genetics, kidney function, and medication use. Diet plays a smaller role than most patients believe.",
     auStats: [
       "Gout affects approximately 1.7% of Australians - around 430,000 people",

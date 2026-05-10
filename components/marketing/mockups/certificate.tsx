@@ -32,7 +32,7 @@ export function CertificateMockup() {
         {/* Certificate body */}
         <div className="space-y-1.5 pt-1 border-t border-border/20">
           <p className="text-[8px] text-foreground/70 leading-relaxed">
-            This is to certify that the above patient was assessed and is unfit for work/study for the period of:
+            This certificate is issued as routine absence evidence for the date below:
           </p>
           <div className="flex items-center gap-2 bg-primary/5 dark:bg-primary/10 rounded-md px-2 py-1">
             <span className="text-[8px] font-semibold text-primary">1 day</span>

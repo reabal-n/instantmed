@@ -8,6 +8,7 @@ import {
   MessageSquareText,
   RotateCcw,
   Search,
+  Star,
 } from "lucide-react"
 import Link from "next/link"
 import { useCallback } from "react"
@@ -35,6 +36,7 @@ import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
 import { usePatientCount } from "@/lib/hooks/use-patient-count"
 import { useSectionVisibilityFunnel } from "@/lib/hooks/use-section-visibility-funnel"
 import { buildMedCertRequestHref } from "@/lib/marketing/med-cert-selector"
+import { GUARANTEE, MED_CERT_WEDGE } from "@/lib/marketing/voice"
 import { commercialCertificateLinks, commercialLocationLinks } from "@/lib/seo/commercial-links"
 import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 
@@ -67,6 +69,31 @@ const HOW_IT_WORKS_STEPS = [
 ]
 
 const MED_CERT_START_HREF = buildMedCertRequestHref({ duration: "1" })
+
+const MED_CERT_PILL = (
+  <div className="inline-flex items-center gap-2.5 rounded-full px-3 py-1.5 text-xs font-medium bg-white dark:bg-card border border-border/60 shadow-sm shadow-primary/[0.04]">
+    <span
+      className="inline-flex items-center gap-0.5 text-amber-400"
+      role="img"
+      aria-label="Google star rating"
+    >
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Star key={i} className="w-3 h-3 fill-current" aria-hidden="true" />
+      ))}
+    </span>
+    <span className="text-border/70" aria-hidden="true">&middot;</span>
+    <span className="text-muted-foreground">No Medicare needed</span>
+    <span className="text-border/70 hidden sm:inline" aria-hidden="true">&middot;</span>
+    <span className="hidden sm:inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
+      <span
+        className="w-1.5 h-1.5 rounded-full bg-emerald-500"
+        style={{ animation: "pulse 3s ease-in-out infinite" }}
+        aria-hidden="true"
+      />
+      Open now
+    </span>
+  </div>
+)
 
 const FEE_DETAILS = [
   {
@@ -231,6 +258,7 @@ export function MedCertLanding() {
                 cert mockup. Bespoke MedCertHeroSection retired in Pass 2. */}
             <Hero
               title="Medical certificate. From your bed."
+              pill={MED_CERT_PILL}
               primaryCta={{
                 text: `Get your certificate · $${PRICING.MED_CERT.toFixed(2)}`,
                 href: MED_CERT_START_HREF,
@@ -250,7 +278,7 @@ export function MedCertLanding() {
               mockup={<MedCertHeroMockup />}
             >
               <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-7 leading-relaxed text-balance">
-                AHPRA-registered Australian GP reviews every request. PDF in your inbox, ready to forward.
+                {MED_CERT_WEDGE} AHPRA-registered Australian doctors review every request. PDF in your inbox, ready to forward. {GUARANTEE}
               </p>
             </Hero>
 

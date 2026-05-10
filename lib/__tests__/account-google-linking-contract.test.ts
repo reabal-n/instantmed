@@ -25,7 +25,8 @@ describe("account Google linking UX contract", () => {
     expect(googleLinkCardSource).toContain("Google connected")
 
     expect(doctorSettingsSource).toContain("GoogleAccountLinkCard")
-    expect(doctorSettingsSource).toContain('redirectPath="/doctor/settings/identity#account-security"')
+    expect(doctorSettingsSource).toContain('settingsPath = "/doctor/settings/identity"')
+    expect(doctorSettingsSource).toContain('redirectPath={`${settingsPath}#account-security`}')
 
     expect(patientSettingsSource).toContain("GoogleAccountLinkCard")
     expect(patientSettingsSource).toContain('redirectPath="/patient/settings?tab=preferences#account-security"')

@@ -21,7 +21,7 @@ const levelStyles: Record<HeadingLevel, string> = {
   // 36 → 48 → 60. Matches DESIGN.md §2 (display = 48px) and steps
   // up to 60px on lg for premium hero impact.
   display:
-    "text-4xl sm:text-5xl lg:text-6xl font-light tracking-[-0.03em] leading-[1.05]",
+    "font-display text-4xl sm:text-5xl lg:text-6xl font-light tracking-[-0.03em] leading-[1.05]",
   // 30 → 36. Page titles, also used (via `as="h2"`) for hero-style section
   // headings that need extra weight on the home page.
   h1: "text-3xl sm:text-4xl font-semibold tracking-[-0.025em] leading-[1.15]",

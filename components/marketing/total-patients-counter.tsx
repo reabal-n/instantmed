@@ -3,7 +3,7 @@
 import NumberFlow from '@number-flow/react'
 import { motion } from 'framer-motion'
 import type { LucideIcon } from 'lucide-react'
-import { CheckCircle2, Clock, Send,ShieldCheck, Star, TrendingUp, Users } from 'lucide-react'
+import { CheckCircle2, Clock, Send,ShieldCheck, TrendingUp, Users } from 'lucide-react'
 import { useSyncExternalStore } from 'react'
 
 import { useReducedMotion } from '@/components/ui/motion'
@@ -25,18 +25,18 @@ export const STAT_PRESETS: Record<string, readonly StatEntry[]> = {
   'med-cert': [
     { icon: Users, value: SOCIAL_PROOF.certApprovalPercent, suffix: '%', label: 'requests approved', color: 'text-success' },
     { icon: Clock, value: SOCIAL_PROOF.certTurnaroundMinutes, suffix: ' min', label: 'avg turnaround', color: 'text-primary' },
-    { icon: Star, value: SOCIAL_PROOF.averageRating, suffix: '/5', label: 'patient rating', color: 'text-amber-500', decimals: 1 },
+    { icon: ShieldCheck, value: SOCIAL_PROOF.refundPercent, suffix: '%', label: 'refund if declined', color: 'text-success' },
     { icon: Send, value: SOCIAL_PROOF.sameDayDeliveryPercent, suffix: '%', label: 'same-day delivery', color: 'text-cyan-600' },
   ],
   'prescription': [
     { icon: Users, value: SOCIAL_PROOF.scriptFulfillmentPercent, suffix: '%', label: 'fulfilled same day', color: 'text-success' },
     { icon: Clock, value: SOCIAL_PROOF.averageResponseMinutes, suffix: ' min', label: 'avg response', color: 'text-primary' },
-    { icon: Star, value: SOCIAL_PROOF.averageRating, suffix: '/5', label: 'patient rating', color: 'text-amber-500', decimals: 1 },
+    { icon: TrendingUp, value: SOCIAL_PROOF.operatingDays, suffix: '', label: 'days a week', color: 'text-primary' },
     { icon: ShieldCheck, value: SOCIAL_PROOF.refundPercent, suffix: '%', label: 'refund guarantee', color: 'text-success' },
   ],
   'consult': [
     { icon: Clock, value: SOCIAL_PROOF.certTurnaroundMinutes, suffix: ' min', label: 'avg review time', color: 'text-primary' },
-    { icon: Star, value: SOCIAL_PROOF.averageRating, suffix: '/5', label: 'patient rating', color: 'text-amber-500', decimals: 1 },
+    { icon: TrendingUp, value: SOCIAL_PROOF.operatingDays, suffix: '', label: 'days a week', color: 'text-primary' },
     { icon: ShieldCheck, value: SOCIAL_PROOF.certApprovalPercent, suffix: '%', label: 'approval rate', color: 'text-success' },
     { icon: CheckCircle2, value: SOCIAL_PROOF.refundPercent, suffix: '%', label: "refund if we can't help", color: 'text-success' },
   ],
@@ -198,14 +198,12 @@ interface StatsStripProps {
   className?: string
   showPatients?: boolean
   showReviews?: boolean
-  showRating?: boolean
 }
 
 export function StatsStrip({
   className,
   showPatients = true,
   showReviews = true,
-  showRating = true,
 }: StatsStripProps) {
   const mounted = useHasMounted()
   const patientCount = usePatientCount()
@@ -248,15 +246,6 @@ export function StatsStrip({
         </div>
       )}
 
-      {showRating && (
-        <div className="flex items-center gap-2 text-sm">
-          <span className="text-amber-500">★</span>
-          <span>
-            <span className="font-semibold text-foreground">{SOCIAL_PROOF.averageRating}</span>
-            <span className="text-muted-foreground ml-1">avg rating</span>
-          </span>
-        </div>
-      )}
     </motion.div>
   )
 }

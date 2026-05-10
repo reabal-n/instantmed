@@ -10,9 +10,9 @@ Single source of truth for all platform metrics shown on marketing pages.
 
 | Export | Type | What it provides |
 |--------|------|-----------------|
-| `SOCIAL_PROOF` | `const object` | Raw numbers: `averageRating`, `certTurnaroundMinutes`, `averageResponseMinutes`, `certApprovalPercent`, `scriptFulfillmentPercent`, `sameDayDeliveryPercent`, `refundPercent`, `reviewCount`, etc. |
-| `SOCIAL_PROOF_DISPLAY` | `const object` | Pre-formatted strings: `rating`, `ratingWithStar`, `responseTime`, `certTurnaround`, `operatingHours`, `refundGuarantee`, `sameDayDelivery`, etc. |
-| `GOOGLE_REVIEWS` | `object` | Google Business Profile config: `enabled`, `placeId`, `reviewsUrl`, `rating`, `count`. Gates `GoogleReviewsBadge` and `OrganizationSchema`. |
+| `SOCIAL_PROOF` | `const object` | Raw service metrics: `certTurnaroundMinutes`, `averageResponseMinutes`, `certApprovalPercent`, `scriptFulfillmentPercent`, `sameDayDeliveryPercent`, `refundPercent`, etc. Review counts, testimonial counts, and public numeric ratings are not public primitives. |
+| `SOCIAL_PROOF_DISPLAY` | `const object` | Pre-formatted strings: `responseTime`, `certTurnaround`, `operatingHours`, `refundGuarantee`, `sameDayDelivery`, etc. |
+| `GOOGLE_REVIEWS` | `object` | Google Business Profile star-badge config. Gates the visual Google mark + stars badge only; do not expose review counts, numeric rating text, testimonial copy, or aggregate-rating schema. |
 | `getPatientCount()` | `function` | Server-safe interpolated patient count. Client hook: `usePatientCount()` from `lib/use-patient-count.ts`. |
 
 **Rule:** Never hardcode a social proof number on a marketing page. Import from `SOCIAL_PROOF` or `SOCIAL_PROOF_DISPLAY`.
@@ -44,9 +44,9 @@ Service-specific stat configurations for social proof strips.
 | Export | Type | What it provides |
 |--------|------|-----------------|
 | `StatEntry` | `interface` | `{ icon: LucideIcon, value: number, suffix: string, label: string, color: string, decimals?: number }` |
-| `STAT_PRESETS` | `Record<string, readonly StatEntry[]>` | 3 presets: `med-cert` (approval%, turnaround, rating, same-day delivery), `prescription` (fulfillment%, response time, rating, refund guarantee), `consult` (review time, rating, approval%, refund guarantee). All values sourced from `SOCIAL_PROOF`. |
+| `STAT_PRESETS` | `Record<string, readonly StatEntry[]>` | 3 presets: `med-cert` (approval%, turnaround, refund, same-day delivery), `prescription` (fulfillment%, response time, refund guarantee, days a week), `consult` (review time, approval%, refund guarantee, days a week). All values sourced from `SOCIAL_PROOF`. |
 | `TotalPatientsCounter` | `component` | Variants: `inline`, `card`, `hero`, `badge`. Uses `usePatientCount()` + `NumberFlow`. |
-| `StatsStrip` | `component` | Compact strip showing patients served, approval rate, avg rating. |
+| `StatsStrip` | `component` | Compact strip showing patients served, approval rate, and refund guarantee. |
 
 **Usage:** Import `STAT_PRESETS['med-cert']` and render with an `AnimatedStat` component or map directly.
 
@@ -56,7 +56,7 @@ Service-specific stat configurations for social proof strips.
 
 | Export | Type | What it provides |
 |--------|------|-----------------|
-| `PRICING` | `const object` | Raw prices: `MED_CERT` ($19.95), `MED_CERT_2DAY` ($29.95), `MED_CERT_3DAY` ($39.95), `REPEAT_SCRIPT` ($29.95), `NEW_SCRIPT` ($49.95), `CONSULT` ($49.95), `MENS_HEALTH` ($49.95), `WOMENS_HEALTH` ($59.95), `HAIR_LOSS` ($49.95), `WEIGHT_LOSS` ($89.95), `REFERRAL` ($29.95), `PATHOLOGY` ($29.95), `PRIORITY_FEE` ($9.95). |
+| `PRICING` | `const object` | Raw prices: `MED_CERT` ($19.95), `MED_CERT_2DAY` ($29.95), `MED_CERT_3DAY` ($39.95), `REPEAT_SCRIPT` ($29.95), `NEW_SCRIPT` ($49.95), `CONSULT` ($49.95), `MENS_HEALTH` ($49.95), `HAIR_LOSS` ($49.95), `REFERRAL` ($29.95), `PATHOLOGY` ($29.95), `PRIORITY_FEE` ($9.95). Women's health and weight-loss prices are reserved future values only and must not render publicly until launch readiness is explicitly changed. |
 | `PRICING_DISPLAY` | `const object` | Formatted strings: `MED_CERT` ("$19.95"), `FROM_MED_CERT` ("From $19.95"), `RANGE` ("$19.95 - $49.95"), etc. |
 
 **Rule:** Never hardcode a price. Stripe price IDs are mapped separately in `lib/stripe/price-mapping.ts`.
@@ -69,7 +69,7 @@ Service-specific stat configurations for social proof strips.
 
 | Export | Type | What it provides |
 |--------|------|-----------------|
-| `TAGLINE` | `string` | Logo-adjacent promise: "A doctor without the wait." |
+| `TAGLINE` | `string` | Logo-adjacent promise: "Faster than your GP." |
 | `WEDGE` | `string` | Default platform wedge: no appointment, no waiting room, secure clinical form. |
 | `MED_CERT_WEDGE` | `string` | Med-cert-only wedge: "No video. No call. No appointment." |
 | `FORM_FIRST_WEDGE` | `string` | Prescribing/specialty wedge: doctor contacts the patient only if clinically needed. |
@@ -117,7 +117,7 @@ Med-cert wait time reads from `SOCIAL_PROOF.certTurnaroundMinutes` (currently 20
 
 ## 7. Service Funnel Configs — `lib/marketing/service-funnel-configs.ts`
 
-Full-page configuration objects for the generic service funnel template (`service-funnel-page.tsx`). Each config defines hero, how-it-works, pricing, trust, testimonials, FAQ, and CTA content.
+Full-page configuration objects for the generic service funnel template (`service-funnel-page.tsx`). Each config defines hero, how-it-works, pricing, trust, FAQ, and CTA content. Public testimonial modules are retired for regulated-health advertising surfaces.
 
 Type: `ServiceFunnelConfig` (from `components/marketing/funnel/funnel-types.ts`).
 

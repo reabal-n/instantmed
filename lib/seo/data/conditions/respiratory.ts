@@ -72,7 +72,7 @@ export const respiratoryConditions: Record<string, ConditionData> = {
     serviceType: "both",
     ctaText: "Get a medical certificate",
     ctaHref: "/request?service=med-cert&condition=cold-flu",
-    stats: { avgTime: "45 mins", satisfaction: "4.9/5" },
+    stats: { avgTime: "45 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Most cold and flu cases are straightforward viral infections that resolve on their own within 7-10 days. What we look for during an assessment is whether your symptoms suggest something that needs more attention - a secondary bacterial infection like sinusitis or pneumonia, or an underlying condition that makes you more vulnerable. The key distinction between a cold and influenza matters clinically: true influenza tends to hit suddenly with high fever, severe body aches, and profound fatigue, while colds build gradually and stay mostly above the neck. If your symptoms improved and then suddenly worsened - especially with a new fever or worsening cough - that's a pattern that warrants reassessment, as it can indicate a secondary infection.",
     auStats: [
       "Influenza causes an estimated 3,500 hospitalisations in Australia each year (AIHW)",
@@ -214,7 +214,7 @@ export const respiratoryConditions: Record<string, ConditionData> = {
     serviceType: "med-cert",
     ctaText: "Get a certificate",
     ctaHref: "/request?service=med-cert",
-    stats: { avgTime: "25 mins", satisfaction: "4.9/5" },
+    stats: { avgTime: "25 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "COVID-19 in 2026 remains an ongoing respiratory illness, though the severity profile has changed significantly with widespread vaccination and prior infection. Most cases now present like a moderate cold or flu - sore throat, fatigue, cough, muscle aches - and resolve within 5-10 days. The main role of telehealth for COVID is providing medical certificates (you do not need a positive RAT for a certificate - clinical assessment of symptoms is sufficient) and identifying patients at higher risk who may benefit from antiviral treatment. Antivirals like Paxlovid are most effective when started within 5 days of symptom onset, so early assessment matters for eligible patients (over 70, immunocompromised, or with significant comorbidities). Long COVID - persistent symptoms beyond 12 weeks - affects a smaller proportion of cases now but remains a real condition requiring ongoing management.",
     auStats: [
       "COVID-19 remains one of Australia's leading notifiable diseases, with seasonal peaks in winter",
@@ -340,7 +340,7 @@ export const respiratoryConditions: Record<string, ConditionData> = {
     serviceType: "both",
     ctaText: "Get assessed",
     ctaHref: "/request?service=consult",
-    stats: { avgTime: "40 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "40 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Chest infections encompass both acute bronchitis (the most common) and pneumonia. The vast majority of chest infections in otherwise healthy adults are acute bronchitis - a viral infection causing a persistent cough (often producing mucus), chest tightness, and mild fever. It does NOT usually need antibiotics. Antibiotics are the most over-prescribed treatment for chest infections in Australia. The cough from bronchitis commonly persists for 2-3 weeks, which causes many patients to seek antibiotics 'because it's not getting better.' This duration is normal. What I assess via telehealth is whether features suggest pneumonia rather than bronchitis: high fever, rapid breathing, feeling significantly unwell, pleuritic chest pain (sharp pain on breathing in), and confusion - particularly in the elderly. These need in-person assessment and possibly a chest X-ray. Smokers and people with underlying lung disease also warrant closer assessment.",
     auStats: [
       "Acute bronchitis is one of the most common respiratory conditions seen in Australian general practice",
@@ -479,7 +479,7 @@ export const respiratoryConditions: Record<string, ConditionData> = {
     serviceType: "both",
     ctaText: "Get assessed",
     ctaHref: "/request?service=consult&condition=hay-fever",
-    stats: { avgTime: "45 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "45 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Hay fever is remarkably undertreated in Australia given how common it is. Many people assume they just have to put up with it, or they self-treat with over-the-counter antihistamines that may not be the most effective option. Modern intranasal corticosteroid sprays (available over the counter in Australia) are actually more effective than oral antihistamines for moderate-to-severe hay fever - but most people do not use them correctly. The spray needs to be aimed toward the outer wall of each nostril, not straight up, and it takes 1-2 weeks of daily use to reach full effect. If you are finding that hay fever is significantly affecting your work, sleep, or quality of life despite over-the-counter treatment, a doctor can discuss prescription options including combination sprays, immunotherapy referrals, and strategies for managing peak pollen seasons.",
     auStats: [
       "Hay fever affects approximately 4.6 million Australians - around 19% of the population",
@@ -589,7 +589,7 @@ export const respiratoryConditions: Record<string, ConditionData> = {
     serviceType: "both",
     ctaText: "Get assessed",
     ctaHref: "/request?service=consult&condition=allergic-rhinitis",
-    stats: { avgTime: "35 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "35 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Allergic rhinitis is massively undertreated in Australia. Many patients self-treat with oral antihistamines and think that's all there is. In reality, intranasal corticosteroid sprays are significantly more effective for moderate-to-severe symptoms - but they need to be used correctly (aim away from the septum, use daily for 2+ weeks) and consistently. The newest combination sprays (azelastine/fluticasone) are even more effective but require a prescription. What I assess in a telehealth consultation is whether current treatment is adequate, whether symptoms suggest a specific allergen pattern (seasonal vs perennial), and whether the patient might benefit from specialist referral for immunotherapy - the only treatment that actually modifies the underlying allergic disease rather than just suppressing symptoms.",
     auStats: [
       "Allergic rhinitis affects approximately 19% of Australians - one of the highest rates in the world",
@@ -682,7 +682,7 @@ export const respiratoryConditions: Record<string, ConditionData> = {
     serviceType: "both",
     ctaText: "Get assessed",
     ctaHref: "/request?service=consult&condition=sinusitis",
-    stats: { avgTime: "35 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "35 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "The most important thing I tell patients about sinus headaches is that most of them aren't actually sinus headaches - they're migraines. Research consistently shows that 80-90% of self-diagnosed 'sinus headaches' are actually migraines with associated nasal congestion and tearing, which is a well-documented autonomic feature of migraine. This matters because the treatments are completely different: sinus headaches respond to decongestants and nasal steroids, while migraines respond to triptans, which are far more effective for true migraine. True sinus headaches are associated with acute sinusitis: persistent thick nasal discharge, facial tenderness over the sinuses, and symptoms that follow a cold. If your 'sinus headaches' are recurrent, one-sided, throbbing, or associated with nausea and light sensitivity, please consider that migraine may be the real diagnosis.",
     auStats: [
       "Up to 90% of self-diagnosed 'sinus headaches' are actually migraines (multiple international studies)",
@@ -770,7 +770,7 @@ export const respiratoryConditions: Record<string, ConditionData> = {
     serviceType: "both",
     ctaText: "Get assessed",
     ctaHref: "/request?service=consult&condition=asthma",
-    stats: { avgTime: "40 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "40 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Asthma is one of the most common chronic conditions in Australia, and it is both undertreated and over-relied upon with reliever inhalers. The critical insight most patients miss is that reliever inhalers (Ventolin/salbutamol) treat symptoms but do nothing to address the underlying airway inflammation. If you are using your reliever more than twice a week, you need a preventer. Many Australians carry a blue inhaler and nothing else - this is suboptimal management. For stable, well-characterised asthma, telehealth is well-suited for prescription renewals and management reviews because the assessment is largely history-based: how often do you use your reliever? Do you wake at night? Can you exercise? These questions tell me whether your current treatment is adequate. What telehealth cannot replace is an in-person assessment during an acute exacerbation - if you are struggling to breathe, speak in full sentences, or your reliever is not providing relief, that is a 000 situation or an emergency department, not a telehealth form.",
     auStats: [
       "Approximately 2.8 million Australians have asthma - about 1 in 9 people (AIHW)",
@@ -936,7 +936,7 @@ export const respiratoryConditions: Record<string, ConditionData> = {
     serviceType: "both",
     ctaText: "Get assessed",
     ctaHref: "/request?service=consult&condition=sinusitis",
-    stats: { avgTime: "45 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "45 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Sinusitis is one of the most over-prescribed conditions in general practice - most cases are viral and resolve without antibiotics. The key clinical question is whether the infection is bacterial or viral. Viral sinusitis typically follows a cold pattern: symptoms peak around day 3-5 and gradually improve over 7-10 days. Bacterial sinusitis is suspected when symptoms either persist beyond 10 days without improvement, or when there is a 'double worsening' pattern - you start to improve, then get significantly worse again. Green or yellow nasal discharge alone does not indicate bacterial infection (this is a common misconception). When antibiotics are needed, a 5-day course is as effective as a 10-day course for uncomplicated cases. Saline irrigation is genuinely effective and underused - it physically flushes mucus and irritants from the sinuses.",
     auStats: [
       "Sinusitis affects approximately 1.9 million Australians each year",

@@ -67,16 +67,15 @@ Generate a professional medical certificate statement based on the patient infor
 
 IMPORTANT RULES:
 - This is a DRAFT for doctor review only
-- Use standard Australian medical certificate language
+- Mirror the locked PDF wording used by lib/pdf/template-renderer.ts
 - Be factual and professional
 - Do not include specific diagnoses (just indicate "medical condition")
-- The certificate attests that the patient is/was unfit for work/study
+- Do not use capacity-assessment phrasing or telehealth-modality wording
 - For carer's certificates, indicate the patient is required to care for someone
 
 CERTIFICATE TEXT FORMAT:
-"This is to certify that [Patient Name] attended a telehealth consultation on [Date].
-
-In my opinion, [he/she/they] [is/was] suffering from a medical condition and [is/was] unfit for [work/normal duties/study] from [Start Date] to [End Date] inclusive ([X] day[s]).
+"This is to certify that [Patient Name] consulted me on [Date] and reported being unwell.
+Based on the information provided, this certificate is issued as routine sick-leave evidence for absence from usual [work or study] duties from [Start Date] to [End Date] inclusive ([X] day[s]).
 
 [For carer's certificate only: This is to certify that [Patient Name] is required to provide care for [Person Name] ([Relationship]) who is suffering from a medical condition.]"
 
@@ -178,9 +177,9 @@ export const FALLBACK_RESPONSES = {
 ---
 *AI unavailable - manual note required*`,
 
-  medCertDraft: `This is to certify that [Patient Name] attended a telehealth consultation on [Date].
+  medCertDraft: `This is to certify that [Patient Name] consulted me on [Date] and reported being unwell.
 
-In my opinion, they were suffering from a medical condition and were unfit for [work/normal duties] from [Start Date] to [End Date] inclusive.
+Based on the information provided, this certificate is issued as routine sick-leave evidence for absence from usual duties from [Start Date] to [End Date] inclusive.
 
 ---
 *Template only - requires clinician completion*`,

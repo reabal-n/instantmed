@@ -5,12 +5,15 @@ import {
   CheckCircle,
   Edit,
   FileSignature,
+  KeyRound,
   Loader2,
+  Pill,
   Save,
   Search,
   Shield,
   Stethoscope,
   Upload,
+  UserPlus,
   Users,
   XCircle,
 } from "lucide-react"
@@ -107,6 +110,15 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
       doctor.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       doctor.provider_number?.toLowerCase().includes(searchQuery.toLowerCase())
   )
+
+  const onboardingChecklist = [
+    { label: "Create doctor profile", detail: "Role stays doctor, not admin", icon: UserPlus },
+    { label: "AHPRA", detail: "Registration number captured", icon: Shield },
+    { label: "Provider number", detail: "Medicare provider number stored", icon: Stethoscope },
+    { label: "Signature", detail: "Certificate signature uploaded", icon: FileSignature },
+    { label: "Parchment", detail: "Prescriber user linked before eScripts", icon: Pill },
+    { label: "MFA", detail: "Set up in the doctor identity screen", icon: KeyRound },
+  ]
 
   const handleEditDoctor = useCallback(async (doctor: DoctorProfile) => {
     setSelectedDoctor(doctor)
@@ -307,6 +319,38 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-foreground">Doctor onboarding checklist</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                No admin controls for future doctors. They get identity, queue, scripts, patients, and analytics only.
+              </p>
+            </div>
+            <Badge variant="outline" className="text-xs">
+              Admin-only setup
+            </Badge>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {onboardingChecklist.map((item) => {
+              const Icon = item.icon
+              return (
+                <div key={item.label} className="flex items-center gap-2 rounded-lg border border-border/60 bg-background px-3 py-2">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                    <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-semibold text-foreground">{item.label}</p>
+                    <p className="truncate text-[11px] text-muted-foreground">{item.detail}</p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Search and Table */}
       <Card>

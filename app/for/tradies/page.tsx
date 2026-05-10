@@ -1,4 +1,4 @@
-import { ArrowRight, Building,Clock, Shield, Smartphone, Star, Wrench, Zap } from "lucide-react"
+import { ArrowRight, Building,Clock, Shield, Smartphone, Wrench, Zap } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 
@@ -172,50 +172,6 @@ export default function TradiesPage() {
               </div>
             </div>
           </section>
-          <section className="px-4 py-12 sm:px-6">
-            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-semibold text-center mb-6">What tradies say</h2>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {[
-                    {
-                      name: "Jake R.",
-                      trade: "Electrician, Newcastle",
-                      quote: "Woke up crook, had my cert sorted before smoko. Absolute legend service.",
-                    },
-                    {
-                      name: "Mick S.",
-                      trade: "Plumber, Melbourne",
-                      quote: "Boss was asking for a cert - got it done on my phone in the car. No dramas.",
-                    },
-                    {
-                      name: "Chris D.",
-                      trade: "Carpenter, Gold Coast",
-                      quote: "Way easier than trying to get a GP appointment. Sorted in 15 mins flat.",
-                    },
-                    {
-                      name: "Tom B.",
-                      trade: "FIFO Worker, Perth",
-                      quote: "Works even in remote WA. Had my cert before I could drive to a doctor.",
-                    },
-                  ].map((item) => (
-                    <div key={item.name} className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
-                      <div className="flex gap-1 mb-2">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="h-3.5 w-3.5 fill-dawn-400 text-dawn-400" />
-                        ))}
-                      </div>
-                      <p className="text-xs mb-2">&quot;{item.quote}&quot;</p>
-                      <p className="text-xs text-muted-foreground">
-                        - {item.name}, {item.trade}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-
           {/* What You Can Get */}
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">

@@ -22,6 +22,10 @@ interface ServiceCardProps {
 }
 
 function ServiceCard({ service, disabled }: ServiceCardProps) {
+  const priceLabel = "priceFrom" in service && typeof service.priceFrom === "number"
+    ? `From $${service.priceFrom.toFixed(2)}`
+    : null
+
   return (
     <Link
       href={service.href || `/${service.slug}/request`}
@@ -71,9 +75,11 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
           <h3 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors duration-200 mb-0.5">
             {service.title}
           </h3>
-          <p className="text-sm text-muted-foreground mb-2">
-            From ${service.priceFrom.toFixed(2)}
-          </p>
+          {priceLabel && (
+            <p className="text-sm text-muted-foreground mb-2">
+              {priceLabel}
+            </p>
+          )}
 
           {/* Description */}
           <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
@@ -143,8 +149,6 @@ function ComingSoonCard({ service }: ComingSoonCardProps) {
             </span>
           </div>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-            From ${service.priceFrom.toFixed(2)}
-            <span className="mx-1.5 text-border-em">&middot;</span>
             {service.description}
           </p>
         </div>
@@ -174,7 +178,7 @@ export function ServiceCards() {
           <p className="text-base text-muted-foreground max-w-2xl mx-auto mb-1">
             From {' '}
             <span className="font-semibold text-foreground">$19.95</span>
-            {' '}&middot; No Medicare needed &middot; Paid once, documents yours
+            {' '}&middot; No Medicare needed for medical certificates &middot; Pay once
           </p>
           <p className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
             <Clock className="w-3.5 h-3.5 text-primary" />

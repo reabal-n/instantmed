@@ -108,8 +108,11 @@ export function ServicePicker() {
           viewport={{ once: true, amount: 0 }}
         >
           {serviceCategories.map((service) => {
-            const displayPrice = service.priceFrom
-            const disabled = isServiceDisabled(service.id as ServiceId)
+            const isComingSoon = 'comingSoon' in service && service.comingSoon
+            const displayPrice = "priceFrom" in service && typeof service.priceFrom === "number"
+              ? service.priceFrom
+              : null
+            const disabled = isComingSoon || isServiceDisabled(service.id as ServiceId)
             const ServiceMockup = mockupMap[service.id]
 
             const cardContent = (
@@ -155,12 +158,14 @@ export function ServicePicker() {
                         {/* Icon + title row */}
                         <div className="flex items-center gap-2.5 mb-2">
                           <ServiceIconTile iconKey={service.icon} color={service.color} size="sm" variant="sticker" />
-                          <div>
-                            <h3 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
-                              {service.title}
-                            </h3>
-                            <p className="text-sm text-muted-foreground">From ${displayPrice.toFixed(2)}</p>
-                          </div>
+	                          <div>
+	                            <h3 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
+	                              {service.title}
+	                            </h3>
+	                            <p className="text-sm text-muted-foreground">
+                                {isComingSoon ? "Planned" : displayPrice ? `From $${displayPrice.toFixed(2)}` : "Available now"}
+                              </p>
+	                          </div>
                         </div>
 
                         {/* Benefits list */}
@@ -178,12 +183,16 @@ export function ServicePicker() {
 
                       {/* CTA footer */}
                       <div className="px-4 pb-4">
-                        {disabled ? (
-                          <Button size="sm" variant="outline" className="w-full gap-1" asChild>
-                            <Link href="/contact">
-                              Contact us
-                              <ArrowRight className="h-3 w-3" />
-                            </Link>
+	                        {isComingSoon ? (
+                            <Button size="sm" variant="outline" className="w-full gap-1" disabled>
+                              Coming soon
+                            </Button>
+                          ) : disabled ? (
+	                          <Button size="sm" variant="outline" className="w-full gap-1" asChild>
+	                            <Link href="/contact">
+	                              Contact us
+	                              <ArrowRight className="h-3 w-3" />
+	                            </Link>
                           </Button>
                         ) : (
                           <Button size="sm" className="w-full gap-1">

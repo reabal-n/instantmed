@@ -11,7 +11,7 @@
 import * as React from "react"
 
 import { ABN, COMPANY_ADDRESS_SHORT,COMPANY_NAME } from "@/lib/constants"
-import { getPatientCount, GOOGLE_REVIEWS } from "@/lib/social-proof"
+import { getPatientCount } from "@/lib/social-proof"
 
 import { colors, fontFamily } from "./email-primitives"
 import { GoogleReviewCTA, ReferralCTA } from "./review-cta"
@@ -278,7 +278,7 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                                     fontFamily,
                                   }}
                                 >
-                                  Made with care in Australia {"\u{1F324}\uFE0F"} · Trusted by {patientFloor.toLocaleString()}+ Australians · {GOOGLE_REVIEWS.rating} ★ on Google
+                                  Made with care in Australia {"\u{1F324}\uFE0F"} · Trusted by {patientFloor.toLocaleString()}+ Australians
                                 </p>
                                 <p
                                   style={{

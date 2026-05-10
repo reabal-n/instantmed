@@ -93,7 +93,7 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
               JOHN SMITH
             </p>
             <p className="text-[11px] text-foreground/80 dark:text-white/70 leading-relaxed">
-              was unfit for work on the date below due to a medical condition.
+              consulted a doctor and reported being unwell. This certificate is issued as routine sick-leave evidence.
             </p>
           </div>
 

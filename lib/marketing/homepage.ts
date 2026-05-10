@@ -161,7 +161,6 @@ export const serviceCategories = [
     description: "Contraception, UTIs, and more, reviewed by an Australian doctor. No waiting room.",
     icon: "Heart",
     color: "pink",
-    priceFrom: 59.95,
     href: "/womens-health",
     popular: false,
     comingSoon: true,
@@ -181,7 +180,6 @@ export const serviceCategories = [
     description: "Doctor-led weight loss assessment with evidence-based treatment options.",
     icon: "Flame",
     color: "rose",
-    priceFrom: 89.95,
     href: "/weight-loss",
     popular: false,
     comingSoon: true,
@@ -270,7 +268,6 @@ export const featuredServices = [
   {
     title: "Women's Health",
     description: "Contraception, UTIs, and hormonal health. Reviewed by an Australian doctor, no waiting room required.",
-    priceFrom: 59.95,
     href: "/womens-health",
     comingSoon: true,
     features: ["Contraception", "UTI treatment", "Hormonal health", "Doctor-reviewed"],
@@ -278,7 +275,6 @@ export const featuredServices = [
   {
     title: "Weight Loss",
     description: "Doctor-led weight loss assessment with evidence-based treatment options. Ongoing support available.",
-    priceFrom: 89.95,
     href: "/weight-loss",
     comingSoon: true,
     features: ["Manual review", "Doctor-reviewed", "Safety screening", "No waiting room"],
@@ -304,7 +300,7 @@ export const faqItems = [
   },
   {
     question: "Does Medicare cover InstantMed?",
-    answer: "Not currently. InstantMed is a private telehealth service, so there's no Medicare rebate. The upside: no Medicare card required for medical certificates, no bulk-billing lottery, and no 45-minute wait for a 6-minute appointment.",
+    answer: "Not currently. InstantMed is a private telehealth service, so there's no Medicare rebate. Medical certificates do not require a Medicare card. Prescriptions and consultations require Medicare details for identity, prescribing records, and pharmacy continuity.",
   },
   {
     question: "How do prescriptions work?",

@@ -140,6 +140,13 @@ export interface QueueTableProps {
   recentlyCompleted: IntakeWithPatient[]
   pagination?: PaginationInfo
   baseHref?: string
+  emptyState?: {
+    title: string
+    description: string
+    tone: "success" | "warning" | "neutral"
+    actionHref?: string
+    actionLabel?: string
+  }
   compactShell?: boolean
 }
 
@@ -194,6 +201,11 @@ export function QueueTable({
   recentlyCompleted,
   pagination,
   baseHref = "/doctor/dashboard",
+  emptyState = {
+    title: "No review cases right now",
+    description: "Paid clinical work, pending replies, and scripts will appear here automatically.",
+    tone: "success",
+  },
   compactShell = false,
 }: QueueTableProps) {
   const router = useRouter()
@@ -237,13 +249,29 @@ export function QueueTable({
             compactShell ? "min-h-0 flex-1 py-8" : "py-16",
           )}
         >
-          <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl border border-success-border bg-success-light">
-            <CheckCircle className="h-5 w-5 text-success" aria-hidden="true" />
+          <div
+            className={cn(
+              "mb-3 flex h-11 w-11 items-center justify-center rounded-xl border",
+              emptyState.tone === "warning"
+                ? "border-warning-border bg-warning-light"
+                : "border-success-border bg-success-light",
+            )}
+          >
+            {emptyState.tone === "warning" ? (
+              <AlertTriangle className="h-5 w-5 text-warning" aria-hidden="true" />
+            ) : (
+              <CheckCircle className="h-5 w-5 text-success" aria-hidden="true" />
+            )}
           </div>
-          <h3 className="text-base font-semibold text-foreground mb-1">Queue is clear!</h3>
+          <h3 className="text-base font-semibold text-foreground mb-1">{emptyState.title}</h3>
           <p className="text-sm text-muted-foreground max-w-xs">
-            All caught up. New requests will appear here automatically.
+            {emptyState.description}
           </p>
+          {emptyState.actionHref && (
+            <Button asChild variant="outline" size="sm" className="mt-4">
+              <Link href={emptyState.actionHref}>{emptyState.actionLabel ?? "Open"}</Link>
+            </Button>
+          )}
         </div>
       ) : (
         <div

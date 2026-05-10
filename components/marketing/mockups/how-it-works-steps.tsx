@@ -1,5 +1,4 @@
-import { CheckCircle2, Clock, Download, FileText, Mail } from "lucide-react"
-import Image from "next/image"
+import { CheckCircle2, Clock, Download, FileText, Mail, Stethoscope } from "lucide-react"
 
 /** Step 1: Patient filling in the intake form */
 export function StepOneMockup() {
@@ -37,18 +36,12 @@ export function StepTwoMockup() {
   return (
     <div className="p-4 space-y-3">
       <div className="flex items-center gap-2">
-        <Image
-          src="https://api.dicebear.com/7.x/notionists/svg?seed=DrReview"
-          alt=""
-          width={28}
-          height={28}
-          className="w-7 h-7 rounded-full bg-muted/30"
-          unoptimized
-          loading="lazy"
-        />
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/8 text-primary" aria-hidden="true">
+          <Stethoscope className="h-3.5 w-3.5" />
+        </span>
         <div>
           <p className="text-[10px] font-semibold text-foreground leading-tight">
-            Your GP
+            Doctor review
           </p>
           <p className="text-[8px] text-emerald-500">Reviewing</p>
         </div>

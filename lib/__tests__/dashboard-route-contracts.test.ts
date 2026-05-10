@@ -38,7 +38,7 @@ describe("dashboard route contracts", () => {
   it("builds admin intake detail links from the shared route helper", () => {
     expect(ADMIN_DASHBOARD_HREF).toBe("/admin")
     expect(ADMIN_INTAKE_LEDGER_HREF).toBe("/admin/intakes")
-    expect(ADMIN_DOCTOR_QUEUE_HREF).toBe("/admin#doctor-queue")
+    expect(ADMIN_DOCTOR_QUEUE_HREF).toBe("/admin?status=review#doctor-queue")
     expect(ADMIN_SCRIPTS_HREF).toBe("/admin?status=scripts#doctor-queue")
     expect(ADMIN_PATIENTS_HREF).toBe("/admin/patients")
     expect(buildAdminDashboardHref({ status: "scripts", anchor: "doctor-queue" })).toBe(

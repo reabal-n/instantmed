@@ -137,14 +137,13 @@ export default function ComplaintsPage() {
 
                 <LegalSection number="4" title="Clinical governance">
                   <p>
-                    InstantMed currently operates with a single AHPRA-registered Australian GP who serves as both the
-                    treating practitioner and the Medical Director. This is an honest disclosure of scale, not a
-                    limitation on accountability. Having a named, registered, identifiable clinician responsible for
-                    every clinical decision is a feature - it means there is no diffusion of responsibility, no handoff,
-                    and no anonymous team behind a logo.
+                    InstantMed clinical reviews are performed by AHPRA-registered Australian doctors working under
+                    documented clinical governance. A named, registered, identifiable clinician is responsible for
+                    each clinical decision, and the treating practitioner&apos;s AHPRA registration can be independently
+                    verified on the public register.
                   </p>
                   <p>
-                    The Medical Director:
+                    Clinical leadership:
                   </p>
                   <ul>
                     <li>Holds current, unrestricted AHPRA registration (independently verifiable on the AHPRA public register)</li>

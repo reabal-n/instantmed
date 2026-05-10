@@ -1,8 +1,5 @@
 import type { Metadata } from "next"
 
-import { ReviewAggregateSchema } from "@/components/seo"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
-
 import TrustPage from "./trust-client"
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
@@ -43,13 +40,5 @@ export const metadata: Metadata = {
 // FAQ + Breadcrumb schemas are rendered in layout.tsx to avoid duplication
 
 export default function Page() {
-  return (
-    <>
-      <TrustPage />
-      <ReviewAggregateSchema
-        ratingValue={SOCIAL_PROOF.averageRating}
-        reviewCount={SOCIAL_PROOF.reviewCount}
-      />
-    </>
-  )
+  return <TrustPage />
 }

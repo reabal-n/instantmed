@@ -23,6 +23,7 @@ import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING } from "@/lib/constants"
 import { HAIR_LOSS_FAQ } from "@/lib/data/hair-loss-faq"
+import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 // Below-fold lazy loads
@@ -294,7 +295,7 @@ export function HairLossLanding() {
               evidence-based reassurance line, and the hair-loss product mockup.
               Bespoke HairLossHeroSection retired in Pass 2. */}
           <Hero
-            title="Hair loss assessment, doctor-reviewed."
+            title="Hair loss assessment, without the waiting room."
             primaryCta={{
               text: `Start assessment · $${PRICING.HAIR_LOSS.toFixed(2)}`,
               href: "/request?service=consult&subtype=hair_loss",
@@ -314,7 +315,7 @@ export function HairLossLanding() {
             mockup={<HairLossHeroMockup />}
           >
             <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-7 leading-relaxed text-balance">
-              Fill a short health form. A doctor reviews it privately. We&apos;ll only interrupt you if something important is missing.
+              {FORM_FIRST_WEDGE} A doctor reviews the pattern, history, and next step. {GUARANTEE}
             </p>
           </Hero>
 

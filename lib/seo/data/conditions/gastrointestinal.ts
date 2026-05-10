@@ -72,7 +72,7 @@ export const gastrointestinalConditions: Record<string, ConditionData> = {
     serviceType: "both",
     ctaText: "Get assessed now",
     ctaHref: "/request?service=med-cert&condition=gastro",
-    stats: { avgTime: "40 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "40 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Gastro is one of the most common reasons people need a medical certificate, and for good reason - it is genuinely debilitating and highly contagious. The 48-hour rule after your last episode of vomiting or diarrhoea exists because you remain infectious even after feeling better. This is particularly important for anyone working in food preparation, healthcare, childcare, or aged care, where workplace exclusion policies are strict. What we assess is whether your symptoms are consistent with simple viral gastro (the vast majority of cases) or whether there are red flags - blood in the stool, severe dehydration, prolonged high fever, or recent travel - that would warrant in-person assessment. Most gastro resolves in 1-3 days with fluid replacement alone. The biggest risk in otherwise healthy adults is dehydration, which is why oral rehydration solutions are more effective than plain water.",
     auStats: [
       "Gastroenteritis causes approximately 1.3 million GP visits in Australia per year",
@@ -196,7 +196,7 @@ export const gastrointestinalConditions: Record<string, ConditionData> = {
     serviceType: "consult",
     ctaText: "Get assessed",
     ctaHref: "/request?service=consult&condition=acid-reflux",
-    stats: { avgTime: "45 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "45 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Acid reflux (GORD) is extremely common and usually manageable, but I see two problems in practice: people who self-treat with antacids for years without addressing the underlying cause, and people who assume chest discomfort is 'just reflux' when it could be something more serious. Classic reflux symptoms - burning behind the breastbone after meals, worse when lying down, with acid taste - are usually straightforward. However, if you are experiencing chest pain with exertion, shortness of breath, or pain radiating to the arm or jaw, this needs urgent assessment to rule out cardiac causes, regardless of your reflux history. For ongoing reflux, lifestyle modifications are genuinely effective: eating smaller meals, not eating within 3 hours of bed, elevating the head of the bed, losing weight if overweight, and identifying trigger foods. Proton pump inhibitors (PPIs) are effective but should be reviewed periodically - long-term use warrants a conversation about whether they are still necessary.",
     auStats: [
       "GORD affects approximately 15% of Australians on a weekly basis",
@@ -336,7 +336,7 @@ export const gastrointestinalConditions: Record<string, ConditionData> = {
     serviceType: "both",
     ctaText: "Get assessed",
     ctaHref: "/request?service=med-cert&condition=gastro",
-    stats: { avgTime: "40 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "40 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Food poisoning and gastro present very similarly, but the distinction matters. Food poisoning typically has a shorter incubation period (2-6 hours for staphylococcal toxin, 12-48 hours for Salmonella) and can often be linked to a specific meal. Gastroenteritis has a longer incubation and spreads person-to-person. For most cases, the treatment is the same: fluid replacement and rest. What I assess is whether there are features suggesting a more serious foodborne illness - bloody diarrhoea (possible E. coli, Campylobacter, or Shigella), high fever, severe abdominal pain, or recent overseas travel. Notifiable diseases like Salmonella require reporting to public health authorities. Food handlers have specific workplace exclusion requirements: 48 hours symptom-free before returning to work. For a medical certificate, food poisoning is entirely legitimate - you should not be at work while symptomatic.",
     auStats: [
       "There are an estimated 4.1 million cases of foodborne gastroenteritis in Australia each year",
@@ -475,7 +475,7 @@ export const gastrointestinalConditions: Record<string, ConditionData> = {
     serviceType: "both",
     ctaText: "Get assessed",
     ctaHref: "/request?service=consult",
-    stats: { avgTime: "35 mins", satisfaction: "4.7/5" },
+    stats: { avgTime: "35 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Gastritis - inflammation of the stomach lining - is common and has multiple causes. The two most frequent are Helicobacter pylori infection and NSAID use (ibuprofen, aspirin). Alcohol, stress, and autoimmune conditions can also contribute. What I assess is whether symptoms suggest simple gastritis or something that needs further investigation. Red flags include vomiting blood, black tarry stools, unintentional weight loss, difficulty swallowing, or persistent symptoms despite treatment - these warrant endoscopy. For uncomplicated gastritis, a trial of proton pump inhibitor (PPI) therapy for 4-8 weeks is appropriate. If H. pylori is suspected (particularly with a history of peptic ulcer disease or if initial PPI treatment fails), a breath test or stool antigen test can confirm the diagnosis. H. pylori eradication involves a specific antibiotic combination for 7-14 days and has a high cure rate.",
     auStats: [
       "H. pylori infection affects approximately 15-20% of Australians, with higher rates in older adults",
@@ -614,7 +614,7 @@ export const gastrointestinalConditions: Record<string, ConditionData> = {
     serviceType: "both",
     ctaText: "Get assessed",
     ctaHref: "/request?service=consult&condition=ibs",
-    stats: { avgTime: "50 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "50 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "IBS is one of the most common gastrointestinal conditions in Australia, and it is frequently misunderstood by both patients and some clinicians. It is a genuine medical condition involving altered gut-brain communication, not 'just stress' or 'all in your head.' The diagnostic criteria (Rome IV) are well-established: recurrent abdominal pain at least 1 day per week over 3 months, related to defecation, with a change in stool frequency or form. What I assess in a telehealth consultation is whether your symptoms are consistent with IBS or whether red flags suggest something else - unexplained weight loss, blood in the stool, onset after age 50, or a family history of bowel cancer. The most effective evidence-based treatments include the low-FODMAP diet (best done with a dietitian), fibre supplementation, antispasmodics, and psychological therapies like gut-directed hypnotherapy, which has strong evidence for IBS specifically.",
     auStats: [
       "IBS affects approximately 1 in 5 Australians at some point in their lives",
@@ -754,7 +754,7 @@ export const gastrointestinalConditions: Record<string, ConditionData> = {
     serviceType: "consult",
     ctaText: "Get assessed",
     ctaHref: "/request?service=consult&condition=constipation",
-    stats: { avgTime: "40 mins", satisfaction: "4.7/5" },
+    stats: { avgTime: "40 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Constipation is incredibly common and usually straightforward to manage, but it is often undertreated because people are embarrassed to discuss it. The vast majority of constipation is functional - caused by inadequate fibre intake, insufficient water, sedentary lifestyle, or medication side effects (opioids, iron, some antidepressants are major culprits). The clinical concern is when constipation represents a change from normal - particularly new-onset constipation in someone over 50, which warrants investigation to exclude bowel cancer. I also look for 'alarm features': blood in the stool, unintentional weight loss, family history of bowel cancer, or constipation alternating with diarrhoea. In the absence of these, dietary and lifestyle changes resolve the majority of cases. For chronic constipation, osmotic laxatives (macrogol) are safe for long-term use and significantly improve quality of life.",
     auStats: [
       "Constipation affects approximately 1 in 4 Australians at some point in their lives",
@@ -850,7 +850,7 @@ export const gastrointestinalConditions: Record<string, ConditionData> = {
     serviceType: "consult",
     ctaText: "Get assessed",
     ctaHref: "/request?service=consult&condition=haemorrhoids",
-    stats: { avgTime: "35 mins", satisfaction: "4.7/5" },
+    stats: { avgTime: "35 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Haemorrhoids are one of the most common conditions I see, yet patients are often embarrassed to discuss them. They are caused by increased pressure in the rectal veins - from straining during bowel movements, chronic constipation, pregnancy, prolonged sitting, or heavy lifting. The most important thing I assess is whether symptoms are consistent with haemorrhoids or whether further investigation is needed. Bright red blood on the toilet paper or in the bowl, associated with a known lump, is classic for haemorrhoids. However, any rectal bleeding in someone over 50, or bleeding associated with a change in bowel habits, weight loss, or dark stools, needs investigation to exclude bowel cancer. For straightforward haemorrhoids, the treatment is addressing the underlying cause (constipation) and symptom management with topical preparations.",
     auStats: [
       "Haemorrhoids affect approximately 50% of Australian adults by age 50",
@@ -941,7 +941,7 @@ export const gastrointestinalConditions: Record<string, ConditionData> = {
     serviceType: "consult",
     ctaText: "Get assessed",
     ctaHref: "/request?service=consult&condition=mouth-ulcers",
-    stats: { avgTime: "25 mins", satisfaction: "4.7/5" },
+    stats: { avgTime: "25 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Mouth ulcers (aphthous ulcers) are one of the most common oral conditions - affecting about 20% of the population at any time. Most are minor, self-limiting, and resolve in 7-14 days without treatment. What I assess is whether the ulcer pattern is typical (small, round, heals within 2 weeks) or atypical (large, persistent, multiple, or associated with other symptoms). The critical red flag is any mouth ulcer that persists beyond 3 weeks - this can be an early sign of oral cancer, particularly in smokers and heavy drinkers. I also screen for nutritional deficiencies that cause recurrent ulcers: iron, B12, and folate deficiency are treatable causes that many patients don't realise. Coeliac disease is another underdiagnosed cause of recurrent mouth ulcers.",
     auStats: [
       "Mouth ulcers affect approximately 20% of Australians at any given time",

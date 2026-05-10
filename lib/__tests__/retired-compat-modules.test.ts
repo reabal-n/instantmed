@@ -65,4 +65,11 @@ describe("retired compatibility modules", () => {
       expect(source, path).not.toContain('from "./footer"')
     }
   })
+
+  it("keeps the retired dev cert-preview route out of the app tree", () => {
+    expect(existsSync(join(root, "app/(dev)/cert-preview/route.ts"))).toBe(false)
+
+    const middleware = readFileSync(join(root, "middleware.ts"), "utf8")
+    expect(middleware).toContain('pathname.startsWith("/cert-preview")')
+  })
 })

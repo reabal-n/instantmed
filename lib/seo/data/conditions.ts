@@ -25,7 +25,7 @@ export interface ConditionData {
   ctaHref: string
   stats: {
     avgTime: string
-    satisfaction: string
+    reviewModel: string
   }
   /** Clinical perspective - 2-3 paragraphs of doctor-level insight unique to this condition */
   doctorPerspective?: string

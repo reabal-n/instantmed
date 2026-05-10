@@ -25,7 +25,7 @@ export const metabolicConditions: Record<string, ConditionData> = {
     serviceType: "consult",
     ctaText: "Get assessed",
     ctaHref: "/request?service=consult&condition=iron-deficiency",
-    stats: { avgTime: "40 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "40 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Iron deficiency is the most common nutritional deficiency in Australia, and it is significantly underdiagnosed. Many people - particularly menstruating women - live with chronic fatigue for years without realising that low iron is the cause. The diagnosis is straightforward with a blood test (serum ferritin below 30 mcg/L indicates depleted stores), but the investigation doesn't stop there. In premenopausal women, heavy periods are the most common cause and should be addressed alongside supplementation. In men and postmenopausal women, iron deficiency is a red flag for gastrointestinal blood loss - even microscopic - and may warrant investigation for coeliac disease, peptic ulcers, or colorectal pathology. Via telehealth, I can assess symptoms, order the appropriate blood tests, initiate supplementation, and determine whether further investigation is needed.",
     auStats: [
       "Iron deficiency affects approximately 1 in 5 Australian women of reproductive age",
@@ -117,7 +117,7 @@ export const metabolicConditions: Record<string, ConditionData> = {
     serviceType: "consult",
     ctaText: "Get assessed",
     ctaHref: "/request?service=consult",
-    stats: { avgTime: "35 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "35 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Vitamin D deficiency is one of the great paradoxes of Australian health - we live in one of the sunniest countries on earth, yet 1 in 4 adults are deficient. The explanation is our (very successful) sun protection messaging combined with modern indoor lifestyles. Many of my patients spend their daylight hours in offices and apply sunscreen religiously before any outdoor activity. Vitamin D is crucial for bone health, immune function, and mood regulation. Deficiency contributes to osteoporosis, muscle weakness, fatigue, and depression. The diagnosis is a simple blood test (25-hydroxyvitamin D). Treatment is straightforward: supplementation at the appropriate dose for the level of deficiency. I routinely check vitamin D in patients presenting with fatigue, bone pain, recurrent infections, or depression - it is a treatable cause that is frequently overlooked.",
     auStats: [
       "1 in 4 Australian adults (23%) are vitamin D deficient (below 50 nmol/L)",
@@ -194,7 +194,7 @@ export const metabolicConditions: Record<string, ConditionData> = {
     serviceType: "consult",
     ctaText: "Get assessed",
     ctaHref: "/request?service=consult",
-    stats: { avgTime: "40 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "40 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Thyroid disease is one of the most common endocrine conditions in Australia, and hypothyroidism in particular is frequently diagnosed late because its symptoms - fatigue, weight gain, cold intolerance, constipation, low mood - are vague and overlap with many other conditions. I routinely include thyroid function tests when investigating unexplained fatigue, weight changes, or mood disturbance. The test is simple: TSH is the primary screening marker, with free T4 added if TSH is abnormal. Hypothyroidism is treated with levothyroxine (a daily tablet that replaces the thyroid hormone your body isn't making enough of). Once established on the correct dose, it is a straightforward repeat prescription - well-suited to telehealth management. The dose needs monitoring with blood tests every 6-12 months, as requirements can change with age, weight, pregnancy, or other medications.",
     auStats: [
       "Hypothyroidism affects approximately 1 in 33 Australians (about 750,000 people)",
@@ -314,7 +314,7 @@ export const metabolicConditions: Record<string, ConditionData> = {
     serviceType: "consult",
     ctaText: "Get assessed",
     ctaHref: "/request?service=consult&condition=high-cholesterol",
-    stats: { avgTime: "45 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "45 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "The conversation about cholesterol has evolved significantly. We no longer focus solely on the cholesterol number -- the critical question is your overall cardiovascular risk. Two people with the same cholesterol level may have very different treatment recommendations based on their age, blood pressure, smoking status, diabetes, kidney function, and family history. The absolute cardiovascular risk calculator (used in Australian guidelines) determines whether lifestyle alone is appropriate or whether statin therapy is warranted. Statins remain one of the most evidence-based medications in all of medicine -- the data from large randomised trials is overwhelming. However, I also see many patients who are prescribed statins when lifestyle modification alone would be sufficient, and others who refuse statins based on misinformation about side effects. Muscle aches occur in a minority of patients and almost always resolve with dose adjustment or switching to a different statin.",
     auStats: [
       "Approximately 7.1 million Australians have high cholesterol (1 in 3 adults over 18)",
@@ -458,7 +458,7 @@ export const metabolicConditions: Record<string, ConditionData> = {
     serviceType: "consult",
     ctaText: "Get assessed",
     ctaHref: "/request?service=consult&condition=type-2-diabetes",
-    stats: { avgTime: "50 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "50 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Type 2 diabetes management has been transformed in the last decade. We have moved beyond simply lowering blood sugar to medications that also protect the heart and kidneys. SGLT2 inhibitors (empagliflozin, dapagliflozin) and GLP-1 receptor agonists (semaglutide, dulaglutide) have proven cardiovascular and renal benefits independent of their glucose-lowering effect. This means the choice of second-line medication now depends on whether a patient has cardiovascular disease or kidney disease, not just their HbA1c. Metformin remains the foundation of treatment -- it is effective, cheap, well-tolerated (after initial GI adjustment), and has decades of safety data. The biggest gap I see in diabetes care is not medication -- it is self-management education. Patients who work with a diabetes educator and accredited practising dietitian consistently achieve better outcomes than those managed by medication alone.",
     auStats: [
       "Over 1.3 million Australians have type 2 diabetes, with approximately 45,000 new diagnoses per year",
@@ -601,7 +601,7 @@ export const metabolicConditions: Record<string, ConditionData> = {
     serviceType: "consult",
     ctaText: "Get assessed",
     ctaHref: "/request?service=consult&condition=hypothyroidism",
-    stats: { avgTime: "40 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "40 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Hypothyroidism is one of the most common endocrine conditions I manage, and levothyroxine is straightforward -- but getting the dose right requires patience. TSH changes take 6-8 weeks to stabilise after a dose adjustment, so checking levels too early leads to unnecessary dose changes and a 'chasing the number' pattern. The most common reasons for persistent symptoms despite treatment are: incorrect dose (check TSH), poor medication absorption (taking with food or coffee), iron or vitamin D deficiency (screen for these), and concurrent depression. I also see many patients requesting 'natural thyroid' preparations (desiccated thyroid extract). While some patients prefer these, they contain variable T3/T4 ratios and are harder to dose consistently. Levothyroxine is synthetic but identical to human T4 and is the standard of care endorsed by all major endocrine societies.",
     auStats: [
       "Hypothyroidism affects approximately 1 in 33 Australians, with women 5-8 times more likely to be affected",
@@ -724,9 +724,9 @@ export const metabolicConditions: Record<string, ConditionData> = {
     ],
     relatedConditions: ["type-2-diabetes", "hypertension", "high-cholesterol", "acid-reflux", "anxiety", "depression", "insomnia"],
     serviceType: "consult",
-    ctaText: "Get assessed",
-    ctaHref: "/request?service=consult&subtype=weight_loss",
-    stats: { avgTime: "50 mins", satisfaction: "4.8/5" },
+    ctaText: "View available services",
+    ctaHref: "/request",
+    stats: { avgTime: "50 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Weight management is one of the most complex areas of medicine. The evidence is clear that obesity is a chronic, relapsing condition driven by neurobiological and hormonal factors -- not simply a lack of willpower. The discovery of GLP-1 receptor agonists has transformed the field, providing medications that address the biological drivers of weight gain for the first time. However, medication is one part of a comprehensive approach that includes dietary modification (a sustainable caloric deficit, not crash dieting), regular physical activity (both aerobic and resistance training), behavioural strategies, and addressing psychological factors. I assess every patient holistically: what is their metabolic profile? Are there contributing medications (antidepressants, steroids, insulin)? Are there untreated conditions (hypothyroidism, sleep apnoea, PCOS)? The goal is not a number on the scale -- it is reducing cardiovascular risk and improving quality of life. A 5-10% weight loss produces significant metabolic benefits.",
     auStats: [
       "Two in three Australian adults (67%) are overweight or obese (ABS 2022)",
@@ -867,7 +867,7 @@ export const metabolicConditions: Record<string, ConditionData> = {
     serviceType: "consult",
     ctaText: "Get assessed",
     ctaHref: "/request?service=consult&condition=hypertension",
-    stats: { avgTime: "45 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "45 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Hypertension is the single most common modifiable risk factor for cardiovascular disease, stroke, and kidney failure in Australia. The challenge is that it rarely causes symptoms until significant organ damage has occurred -- which is why regular monitoring is so important. When I assess blood pressure, I look at the overall cardiovascular risk profile, not just the number: age, smoking status, cholesterol, diabetes, kidney function, and family history all influence treatment decisions. The absolute cardiovascular risk score determines whether medication is warranted or whether lifestyle modification alone is appropriate. For most patients with established hypertension, medication is a long-term commitment -- but the evidence for its benefit is overwhelming. A 10 mmHg reduction in systolic blood pressure reduces stroke risk by approximately 27% and heart attack risk by 17%. Home blood pressure monitoring is more accurate than clinic readings and is the gold standard for ongoing management.",
     auStats: [
       "Hypertension affects approximately 6 million Australians (1 in 3 adults)",

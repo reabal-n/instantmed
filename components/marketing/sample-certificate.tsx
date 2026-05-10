@@ -97,10 +97,9 @@ export function SampleCertificate({ className = '', animate = true }: SampleCert
               Medical Statement
             </h4>
             <p className="text-sm text-gray-700 leading-relaxed">
-              This is to certify that the above-named patient attended a telehealth 
-              consultation and, in my professional medical opinion, was unfit for 
-              their usual work duties for the period specified above due to a 
-              medical condition.
+              This is to certify that the above-named patient consulted a doctor
+              and reported being unwell. This certificate is issued as routine
+              sick-leave evidence for the period specified above.
             </p>
           </div>
 

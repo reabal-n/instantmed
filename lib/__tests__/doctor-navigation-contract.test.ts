@@ -203,6 +203,9 @@ describe("doctor navigation contract", () => {
 
   it("keeps legacy doctor routes as redirects to canonical surfaces", () => {
     expect(doctorQueuePageSource).toContain("buildDoctorQueueRedirectHref")
+    expect(doctorSettingsPageSource).toContain('requireRole(["doctor", "admin"]')
+    expect(doctorSettingsPageSource).toContain('profile.role === "admin"')
+    expect(doctorSettingsPageSource).toContain('redirect("/admin/settings/doctor-identity")')
     expect(doctorSettingsPageSource).toContain('redirect("/doctor/settings/identity")')
     expect(legacyDoctorEmailSuppressionSource).toContain('redirect("/admin/emails/suppression")')
     expect(legacyDoctorEmailSuppressionSource).not.toContain("Email Suppression | InstantMed")
@@ -218,6 +221,23 @@ describe("doctor navigation contract", () => {
     expect(portalSource).not.toContain("transition-[width] duration-500")
     expect(portalSource).not.toContain("transition-[width] duration-300")
     expect(portalSource).not.toContain("bg-amber-400 animate-pulse")
+  })
+
+  it("keeps legacy doctor dashboard setup prompts compact enough for a bounded viewport", () => {
+    const dashboardPageSource = readFileSync(
+      join(process.cwd(), "app/doctor/dashboard/page.tsx"),
+      "utf8",
+    )
+    const doctorLayoutSource = readFileSync(
+      join(process.cwd(), "app/doctor/layout.tsx"),
+      "utf8",
+    )
+
+    expect(onboardingBannerSource).toContain('data-testid="doctor-onboarding-banner"')
+    expect(onboardingBannerSource).toContain("sm:grid-cols-[auto_minmax(0,1fr)_auto]")
+    expect(onboardingBannerSource).not.toContain("mx-4 mb-4")
+    expect(dashboardPageSource).toContain('className="space-y-3"')
+    expect(doctorLayoutSource).toContain("lg:py-5")
   })
 
   it("requires doctor or admin role for clinical detail pages", () => {

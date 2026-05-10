@@ -1,4 +1,4 @@
-import { ArrowRight, Briefcase, Clock, Lock,Mail, Shield, Star, Zap } from "lucide-react"
+import { ArrowRight, Briefcase, Clock, Lock,Mail, Shield, Zap } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 
@@ -197,50 +197,6 @@ export default function CorporatePage() {
               </div>
             </div>
           </section>
-          <section className="px-4 py-12 sm:px-6">
-            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-semibold text-center mb-6">What professionals say</h2>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {[
-                    {
-                      name: "Sarah M.",
-                      role: "Marketing Manager, Sydney",
-                      quote: "Had a migraine and couldn&apos;t look at screens. Got my cert from bed, forwarded to HR, done.",
-                    },
-                    {
-                      name: "David K.",
-                      role: "Consultant, Melbourne",
-                      quote: "So much easier than trying to find a GP appointment between client meetings.",
-                    },
-                    {
-                      name: "Rachel T.",
-                      role: "Finance Analyst, Brisbane",
-                      quote: "Professional certificate, quick turnaround. HR didn't bat an eye.",
-                    },
-                    {
-                      name: "James L.",
-                      role: "Software Engineer, Perth",
-                      quote: "WFH with a cold. Got my cert in 10 minutes while still in my pyjamas.",
-                    },
-                  ].map((item) => (
-                    <div key={item.name} className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
-                      <div className="flex gap-1 mb-2">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="h-3.5 w-3.5 fill-dawn-400 text-dawn-400" />
-                        ))}
-                      </div>
-                      <p className="text-xs mb-2">&quot;{item.quote}&quot;</p>
-                      <p className="text-xs text-muted-foreground">
-                        - {item.name}, {item.role}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-
           {/* Other Services */}
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -250,7 +206,7 @@ export default function CorporatePage() {
                   {[
                     { title: "Repeat Scripts", desc: "Blood pressure, reflux, contraceptive", price: PRICING_DISPLAY.FROM_SCRIPT, href: "/prescriptions" },
                     { title: "Hair Loss", desc: "Discreet treatment options", price: `From ${PRICING_DISPLAY.HAIR_LOSS}`, href: "/hair-loss" },
-                    { title: "Weight Loss", desc: "Doctor-guided programs", price: `From ${PRICING_DISPLAY.WEIGHT_LOSS}`, href: "/weight-loss" },
+                    { title: "Online Consults", desc: "General health concerns", price: PRICING_DISPLAY.FROM_CONSULT, href: "/consult" },
                   ].map((item) => (
                     <Link key={item.title} href={item.href}>
                       <div className="glass-card rounded-xl p-4 h-full hover:border-border transition-[border-color]">

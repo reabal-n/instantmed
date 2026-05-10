@@ -62,7 +62,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const servicePages = [
     "/consult",
-    "/weight-loss",
     ...medCertIntentPages,
     "/medical-certificate/employer-acceptance",
   ]

@@ -156,7 +156,7 @@ export default function TrustPage() {
         <StatStrip
           stats={[
             { value: mounted ? patientCount : 420, suffix: "+", label: "Patients served" },
-            { value: mounted ? SOCIAL_PROOF.averageRating : 4.8, suffix: "/5", label: "Patient rating" },
+            { value: mounted ? SOCIAL_PROOF.refundPercent : 100, suffix: "%", label: "Refund if declined" },
             { value: mounted ? SOCIAL_PROOF.averageResponseMinutes : 47, suffix: " min", label: "Avg response" },
             { value: mounted ? SOCIAL_PROOF.operatingDays : 7, suffix: " days/wk", label: "Available" },
           ]}

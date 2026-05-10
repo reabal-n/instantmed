@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react"
 import { StatsHero } from "@/components/heroes"
 import { ServiceIconTile } from "@/components/icons/service-icons"
 import { DoctorCredibility, RegulatoryPartners } from "@/components/marketing"
+import { GoogleReviewsBadge } from "@/components/marketing/google-reviews-badge"
 import { CompetitorLinksSection, PricingGuideSection } from "@/components/marketing/sections"
 import { CommercialIntentLinksSection } from "@/components/marketing/sections/commercial-intent-links-section"
 import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
@@ -71,13 +72,13 @@ const services = [
     name: "Consultation",
     price: PRICING.HAIR_LOSS,
     priceLabel: `From $${PRICING.HAIR_LOSS}`,
-    priceSubtext: `Hair loss: $${PRICING.HAIR_LOSS} · Weight loss: $${PRICING.WEIGHT_LOSS}`,
-    description: "New scripts, specialist areas",
+    priceSubtext: `ED and hair loss assessments: $${PRICING.HAIR_LOSS}`,
+    description: "New scripts, ED, and hair loss",
     features: [
-      "Hair loss & weight management",
+      "Hair loss and ED assessments",
       "New medication prescribing",
-      "Doctor-led treatment plans",
-      "Ongoing support available",
+      "Doctor-led treatment advice",
+      "No subscription",
     ],
     popular: false,
     href: "/consult",
@@ -121,9 +122,9 @@ const pricingFaqs = [
           "Yes. You\u2019ll receive a tax invoice via email after payment. Whether your health insurer reimburses telehealth consultations depends on your policy and fund - check with your insurer directly. We provide the documentation either way.",
       },
       {
-        question: "Why isn\u2019t this covered by Medicare?",
+        question: "Is InstantMed bulk billed?",
         answer:
-          "Most asynchronous telehealth services in Australia operate outside of Medicare. Medicare item numbers are structured around real-time consultations with an established provider-patient relationship. Our service (where a doctor reviews your request without a scheduled appointment) doesn\u2019t fit existing Medicare billing categories. This is standard across the telehealth industry, not specific to us.",
+          "No. InstantMed is a private telehealth service, so we do not claim Medicare rebates or bulk-bill. Medical certificates can be requested without a Medicare card. Prescriptions and consultations require Medicare details for identity, prescribing records, and pharmacy continuity.",
       },
       {
         question: "Do I need a Medicare card to use InstantMed?",
@@ -203,6 +204,14 @@ export function PricingClient() {
             { value: SOCIAL_PROOF.operatingDays, label: "Days a week" },
           ]}
         />
+
+        <div className="mx-auto -mt-10 flex max-w-5xl justify-center px-4 sm:px-6 lg:-mt-12">
+          <GoogleReviewsBadge />
+        </div>
+
+        <p className="mx-auto mt-4 max-w-2xl px-4 text-center text-xs leading-relaxed text-muted-foreground sm:text-sm">
+          Not for medical certificates: no Medicare needed there. For prescriptions and consultations, Medicare details are required for identity, prescribing records, and pharmacy continuity.
+        </p>
 
         {/* Page superpower — transparent flat-fee positioning anchored against
             the typical $80-$120 GP gap fee. Same Morning Canvas elevation
@@ -346,7 +355,7 @@ export function PricingClient() {
         {/* Doctor Credibility */}
         <DoctorCredibility
           variant="inline"
-          stats={["experience", "approval", "reviews"]}
+          stats={["experience", "approval", "sameDay"]}
           className="max-w-3xl mx-auto px-4 sm:px-6 pb-8"
         />
 

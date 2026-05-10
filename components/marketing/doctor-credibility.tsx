@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { CheckCircle2, Clock, ShieldCheck, Stethoscope, TrendingUp,Users } from 'lucide-react'
+import { CheckCircle2, Clock, ShieldCheck, Stethoscope,Users } from 'lucide-react'
 
 import { TrustBadgeRow } from '@/components/shared/trust-badge'
 import { useReducedMotion } from '@/components/ui/motion'
@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 
 interface DoctorCredibilityProps {
   variant?: 'inline' | 'card' | 'section'
-  stats?: ('experience' | 'approval' | 'sameDay' | 'returnRate' | 'reviews')[]
+  stats?: ('experience' | 'approval' | 'sameDay' | 'returnRate')[]
   className?: string
 }
 
@@ -43,18 +43,11 @@ const STAT_CONFIG = {
     color: 'text-primary',
     bg: 'bg-primary/10',
   },
-  reviews: {
-    icon: TrendingUp,
-    value: `${SOCIAL_PROOF.averageRating}/5`,
-    label: 'patient rating',
-    color: 'text-warning',
-    bg: 'bg-amber-500/10',
-  },
 } as const
 
 export function DoctorCredibility({
   variant = 'inline',
-  stats = ['experience', 'approval', 'sameDay', 'reviews'],
+  stats = ['experience', 'approval', 'sameDay'],
   className,
 }: DoctorCredibilityProps) {
   const prefersReducedMotion = useReducedMotion()

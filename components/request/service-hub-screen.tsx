@@ -144,16 +144,13 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
           <span className="text-border-em">·</span>
           <span className="whitespace-nowrap">AHPRA doctors</span>
           <span className="text-border-em">·</span>
-          <div className="flex items-center gap-0.5 whitespace-nowrap">
+          <div className="flex items-center gap-0.5 whitespace-nowrap" aria-label="Google star rating">
             {[1, 2, 3, 4, 5].map((i) => (
               <Star
                 key={i}
                 className="w-2.5 h-2.5 fill-amber-400 text-amber-400"
               />
             ))}
-            <span className="text-xs font-medium text-foreground ml-0.5">
-              4.8
-            </span>
           </div>
         </div>
 
@@ -268,6 +265,9 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
           </div>
           <p className="text-center text-[11px] leading-snug text-muted-foreground">
             All requests are reviewed by Australian-registered doctors.
+          </p>
+          <p className="text-center text-[11px] leading-snug text-muted-foreground">
+            No Medicare needed for medical certificates. Medicare details are required for prescriptions and consults.
           </p>
         </div>
       </main>

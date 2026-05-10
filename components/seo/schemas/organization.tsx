@@ -1,5 +1,4 @@
 import { CONTACT_EMAIL_HELLO,PRICING_DISPLAY } from "@/lib/constants"
-import { GOOGLE_REVIEWS } from "@/lib/social-proof"
 
 import { JsonLdScript } from "./json-ld-script"
 
@@ -101,17 +100,8 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
       availableLanguage: ["English"]
     }],
     // sameAs omitted - no verified social profiles yet
-    // aggregateRating: only injected once Google reviews are live
-    ...(GOOGLE_REVIEWS.enabled && GOOGLE_REVIEWS.count > 0 ? {
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: GOOGLE_REVIEWS.rating.toFixed(1),
-        reviewCount: GOOGLE_REVIEWS.count,
-        bestRating: "5",
-        worstRating: "1",
-        url: GOOGLE_REVIEWS.reviewsUrl,
-      }
-    } : {}),
+    // aggregateRating intentionally omitted: public surfaces use a stars-only
+    // Google badge and do not expose review counts/testimonial schema.
     hasOfferCatalog: {
       "@type": "OfferCatalog",
       name: "InstantMed Services",

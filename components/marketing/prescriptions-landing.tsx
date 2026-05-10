@@ -27,6 +27,7 @@ import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING } from "@/lib/constants"
 import { PRESCRIPTION_FAQ } from "@/lib/data/prescription-faq"
+import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
 import { commercialPrescriptionLinks } from "@/lib/seo/commercial-links"
 import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 import { cn } from "@/lib/utils"
@@ -315,7 +316,7 @@ export function PrescriptionsLanding() {
             mockup={<EScriptHeroMockup />}
           >
             <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-7 leading-relaxed text-balance">
-              Tell us what you already take. A doctor reviews the details, and once it&apos;s approved your eScript is sent to your phone for any Australian pharmacy.
+              {FORM_FIRST_WEDGE} Tell us what you already take. Once approved, your eScript is sent to your phone for any Australian pharmacy. {GUARANTEE}
             </p>
           </Hero>
 

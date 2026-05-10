@@ -73,7 +73,7 @@ const instantmedVsHubHealth: ComparisonEntry = {
     { feature: "Medical certificate available", instantmed: PRICING_DISPLAY.FROM_MED_CERT, competitor: "Not a core focus", winner: "instantmed" },
     { feature: "Repeat prescription", instantmed: PRICING_DISPLAY.REPEAT_SCRIPT, competitor: "Included in program fees", winner: "tie" },
     { feature: "Hair loss treatment", instantmed: PRICING_DISPLAY.HAIR_LOSS, competitor: "Program-based, ongoing", winner: "tie" },
-    { feature: "Weight management", instantmed: PRICING_DISPLAY.WEIGHT_LOSS, competitor: "Subscription program", winner: "tie" },
+    { feature: "Weight management", instantmed: "Not currently available", competitor: "Subscription program", winner: "competitor" },
     { feature: "Ongoing nurse/coach support", instantmed: "Doctor messaging per request", competitor: "Program care team", winner: "competitor" },
     { feature: "Commitment required", instantmed: "None - one-off", competitor: "Ongoing subscription", winner: "instantmed" },
     { feature: "Median doctor response", instantmed: "~20 min for med certs", competitor: "Varies by program", winner: "instantmed" },
@@ -107,7 +107,7 @@ const instantmedVsHubHealth: ComparisonEntry = {
     },
     {
       q: "Does InstantMed offer the same treatment programs as Hub Health?",
-      a: "InstantMed offers one-off consults for hair loss, weight management, and men's and women's health. Hub Health's model is more structured around ongoing programs with a care team. If you want a single doctor review and an eScript, InstantMed will handle that. If you want a multi-month coached program, Hub Health is purpose-built for that.",
+      a: "InstantMed currently offers active one-off services such as medical certificates, repeat prescriptions, ED, hair loss, and general consults. Hub Health's model is more structured around ongoing programs with a care team. If you want a one-off doctor review and an eScript for an active InstantMed service, InstantMed will handle that. If you want a multi-month coached program, Hub Health is purpose-built for that.",
     },
     {
       q: "Are both services legitimate and AHPRA-registered?",

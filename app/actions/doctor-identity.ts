@@ -4,6 +4,11 @@ import { revalidatePath } from "next/cache"
 
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import {
+  ADMIN_DASHBOARD_HREF,
+  ADMIN_DOCTOR_IDENTITY_HREF,
+  DOCTOR_DASHBOARD_HREF,
+} from "@/lib/dashboard/routes"
+import {
   type DoctorIdentity,
   type DoctorIdentityInput,
   getDoctorIdentity,
@@ -75,7 +80,9 @@ export async function saveDoctorIdentityAction(
 
     if (result.success) {
       revalidatePath("/doctor/settings/identity")
-      revalidatePath("/doctor/dashboard")
+      revalidatePath(ADMIN_DOCTOR_IDENTITY_HREF)
+      revalidatePath(DOCTOR_DASHBOARD_HREF)
+      revalidatePath(ADMIN_DASHBOARD_HREF)
       revalidatePath("/doctor/queue")
       log.info("Doctor identity saved", { doctorId: profile.id })
     }
@@ -114,6 +121,9 @@ export async function uploadSignatureAction(
       })
 
       revalidatePath("/doctor/settings/identity")
+      revalidatePath(ADMIN_DOCTOR_IDENTITY_HREF)
+      revalidatePath(DOCTOR_DASHBOARD_HREF)
+      revalidatePath(ADMIN_DASHBOARD_HREF)
       log.info("Signature uploaded and saved", { path: result.path, doctorId: profile.id })
     }
 

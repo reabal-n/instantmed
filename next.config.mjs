@@ -276,14 +276,14 @@ const nextConfig = {
         permanent: true
       },
       // Canonical service route consolidation
-      { source: "/weight-management", destination: "/weight-loss", permanent: true },
-      { source: "/weight-management/:path*", destination: "/weight-loss/:path*", permanent: true },
+      { source: "/weight-management", destination: "/request", permanent: false },
+      { source: "/weight-management/:path*", destination: "/request", permanent: false },
       // Redirect-only pages moved to edge — no React rendering cost
       { source: "/gp-consult", destination: "/consult", permanent: true },
       // Legacy doctor repeat-rx queue retired; canonical paid intakes live in /doctor/dashboard.
       { source: "/doctor/repeat-rx", destination: "/doctor/dashboard", permanent: false },
       { source: "/doctor/repeat-rx/:path*", destination: "/doctor/dashboard", permanent: false },
-      { source: "/womens-health", destination: "/request?service=consult&subtype=womens_health", permanent: false },
+      { source: "/womens-health", destination: "/request", permanent: false },
       { source: "/request/med-cert", destination: "/request?service=med-cert", permanent: true },
       { source: "/request/consult", destination: "/request?service=consult", permanent: true },
       { source: "/medical-certificate/request", destination: "/request?service=med-cert", permanent: true },
@@ -320,7 +320,6 @@ const nextConfig = {
       { source: "/blog/can-you-get-prescription-without-seeing-doctor", destination: "/blog/online-prescription-australia", permanent: true },
       { source: "/blog/telehealth-vs-gp-when-to-use-each", destination: "/blog/telehealth-vs-gp-australia", permanent: true },
       { source: "/admin/studio", destination: "/admin/settings/templates", permanent: true },
-      { source: "/admin/settings", destination: "/admin/features", permanent: true },
       // Public image path migration — old root paths redirected
       { source: "/:filename(asian-australian-woman-professional-headshot-smili.jpg)", destination: "/images/people/:filename", permanent: true },
       { source: "/:filename(asian-woman-professional-headshot-warm-smile.jpg)", destination: "/images/people/:filename", permanent: true },

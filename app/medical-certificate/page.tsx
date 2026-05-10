@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 
 import { MedCertLanding } from "@/components/marketing"
-import { BreadcrumbSchema, FAQSchema, HealthArticleSchema,MedCertHowToSchema, MedicalServiceSchema, ReviewAggregateSchema, SpeakableSchema } from "@/components/seo"
-import { PRICING, REVIEW_AGGREGATE } from "@/lib/constants"
+import { BreadcrumbSchema, FAQSchema, HealthArticleSchema,MedCertHowToSchema, MedicalServiceSchema, SpeakableSchema } from "@/components/seo"
+import { PRICING } from "@/lib/constants"
 import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
 
 export const revalidate = 86400
@@ -59,7 +59,6 @@ export default function Page() {
         description="Get routine sick-leave or study-absence evidence reviewed by an Australian registered doctor. Employer and institution policies may vary."
         price={PRICING.MED_CERT.toFixed(2)}
       />
-      <ReviewAggregateSchema ratingValue={REVIEW_AGGREGATE.ratingValue} reviewCount={REVIEW_AGGREGATE.reviewCount} />
       <HealthArticleSchema
         title="Online Medical Certificate Australia"
         description="Get routine absence evidence for work or study reviewed by an AHPRA-registered Australian doctor."

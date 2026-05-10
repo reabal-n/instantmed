@@ -212,7 +212,7 @@ export function ContactClient() {
         {/* Doctor Credibility */}
         <DoctorCredibility
           variant="inline"
-          stats={["experience", "approval", "reviews"]}
+          stats={["experience", "approval", "sameDay"]}
           className="max-w-3xl mx-auto px-4 sm:px-6 py-8"
         />
 
@@ -224,7 +224,7 @@ export function ContactClient() {
         {/* CTA Banner */}
         <CTABanner
           title="Looking for a medical certificate or repeat medication?"
-          subtitle={`Join ${getPatientCount().toLocaleString()}+ Australians who trust InstantMed. Fill in a quick form and a real GP reviews your request, most done within the hour.`}
+          subtitle={`Join ${getPatientCount().toLocaleString()}+ Australians who trust InstantMed. Fill in a quick form and an AHPRA-registered doctor reviews your request, most done within the hour.`}
           ctaText="Get started"
           ctaHref="/request"
           secondaryText="See how it works"

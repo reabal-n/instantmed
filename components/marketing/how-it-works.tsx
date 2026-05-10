@@ -1,14 +1,13 @@
-'use client'
+"use client"
 
-import { ArrowRight, CheckCircle2, Clock, FileText, Mail } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
+import { ArrowRight, CheckCircle2, Clock, FileText, Mail, Stethoscope } from "lucide-react"
+import Link from "next/link"
 
-import { FloatingCard } from '@/components/marketing/floating-card'
-import { Button } from '@/components/ui/button'
-import { Heading } from '@/components/ui/heading'
-import { Reveal } from '@/components/ui/reveal'
-import { SectionPill } from '@/components/ui/section-pill'
+import { FloatingCard } from "@/components/marketing/floating-card"
+import { Button } from "@/components/ui/button"
+import { Heading } from "@/components/ui/heading"
+import { Reveal } from "@/components/ui/reveal"
+import { SectionPill } from "@/components/ui/section-pill"
 
 function StepOneMockup() {
   return (
@@ -40,17 +39,11 @@ function StepTwoMockup() {
     <div className="p-4 space-y-3">
       {/* Doctor header */}
       <div className="flex items-center gap-2">
-        <Image
-          src="https://api.dicebear.com/7.x/notionists/svg?seed=DrReview"
-          alt=""
-          width={28}
-          height={28}
-          className="w-7 h-7 rounded-full bg-muted/30"
-          unoptimized
-          loading="lazy"
-        />
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/8 text-primary" aria-hidden="true">
+          <Stethoscope className="h-3.5 w-3.5" />
+        </span>
         <div>
-          <p className="text-[10px] font-semibold text-foreground leading-tight">Your GP</p>
+          <p className="text-[10px] font-semibold text-foreground leading-tight">Doctor review</p>
           <p className="text-[10px] text-emerald-500">Reviewing</p>
         </div>
       </div>

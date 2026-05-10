@@ -102,13 +102,15 @@ export function DoctorOnboardingBanner() {
   const incompleteSteps = data.steps.filter((s) => !s.completed && s.required)
   const nextStep = incompleteSteps[0]
   const pct = data.summary.completion_percentage
-  const isAlmostThere = pct >= 80
   const completedCount = data.steps.filter((s) => s.completed).length
   const requiredRemaining = data.summary.required_total - data.summary.required_completed
 
   return (
-    <div className="mx-4 mb-4 rounded-xl border border-border/60 bg-white shadow-sm shadow-primary/[0.04] dark:bg-card dark:border-white/10">
-      <div className="flex items-start gap-3 p-3 sm:items-center sm:p-4">
+    <div
+      data-testid="doctor-onboarding-banner"
+      className="mb-3 rounded-xl border border-border/60 bg-white shadow-sm shadow-primary/[0.04] dark:bg-card dark:border-white/10"
+    >
+      <div className="grid gap-3 p-3 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center">
         <div
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
           aria-hidden
@@ -116,27 +118,17 @@ export function DoctorOnboardingBanner() {
           <CheckCircle2 className="h-4 w-4" />
         </div>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
             <h3 className="text-sm font-semibold tracking-tight text-foreground">
-              {isAlmostThere ? "Almost there" : "Welcome, finish setup"}
+              Finish doctor setup
             </h3>
-            <div className="flex items-center gap-3">
-              <span className="shrink-0 text-xs font-medium tabular-nums text-muted-foreground">
-                {completedCount} of {data.steps.length}
-              </span>
-              {nextStep?.href && (
-                <Button asChild size="sm" className="hidden h-8 sm:inline-flex">
-                  <Link href={nextStep.href}>
-                    Continue setup
-                    <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                  </Link>
-                </Button>
-              )}
-            </div>
+            <span className="shrink-0 text-xs font-medium tabular-nums text-muted-foreground">
+              {completedCount} of {data.steps.length} complete
+            </span>
           </div>
 
-          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+          <div className="mt-2 h-1.5 w-full max-w-xl overflow-hidden rounded-full bg-muted">
             <div
               className="h-full rounded-full bg-primary"
               style={{ width: `${Math.max(pct, 4)}%` }}
@@ -144,17 +136,16 @@ export function DoctorOnboardingBanner() {
             />
           </div>
 
-          <p className="mt-2 text-xs text-muted-foreground">
-            {isAlmostThere
-              ? "One or two setup items remain before approvals are available."
-              : `${requiredRemaining} required setup ${requiredRemaining === 1 ? "item" : "items"} remaining.`}
-          </p>
-
-          {nextStep && (
-            <p className="mt-1 text-xs text-foreground">
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+            <span className="text-muted-foreground">
+              {requiredRemaining} required setup {requiredRemaining === 1 ? "item" : "items"} remaining
+            </span>
+            {nextStep && (
+              <span className="text-foreground">
               Next: <span className="font-medium">{nextStep.label}</span>
-            </p>
-          )}
+              </span>
+            )}
+          </div>
 
           {nextStep?.href && (
             <div className="mt-3 sm:hidden">
@@ -168,15 +159,25 @@ export function DoctorOnboardingBanner() {
           )}
         </div>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleDismiss}
-          className="h-7 w-7 shrink-0 text-muted-foreground hover:text-foreground"
-          aria-label="Dismiss onboarding banner"
-        >
-          <X className="h-3.5 w-3.5" />
-        </Button>
+        <div className="flex items-center gap-2 justify-self-end">
+          {nextStep?.href && (
+            <Button asChild size="sm" className="hidden h-8 sm:inline-flex">
+              <Link href={nextStep.href}>
+                Continue setup
+                <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+              </Link>
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleDismiss}
+            className="h-7 w-7 shrink-0 text-muted-foreground hover:text-foreground"
+            aria-label="Dismiss onboarding banner"
+          >
+            <X className="h-3.5 w-3.5" />
+          </Button>
+        </div>
       </div>
     </div>
   )

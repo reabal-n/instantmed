@@ -60,7 +60,6 @@ function buildSections(): SitemapSection[] {
       { label: "Medical Certificates", href: "/medical-certificate" },
       { label: "Prescriptions", href: "/prescriptions" },
       { label: "Erectile Dysfunction", href: "/erectile-dysfunction" },
-      { label: "Weight Loss", href: "/weight-loss" },
       { label: "Hair Loss", href: "/hair-loss" },
       { label: "Consult", href: "/consult" },
     ],

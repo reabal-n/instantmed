@@ -94,6 +94,7 @@ async function DoctorQueueSection({
   hasExplicitStatusFilter,
   doctorIdentity,
   todayEarnings,
+  doctorAvailable,
 }: {
   profileId: string
   page: number
@@ -102,6 +103,7 @@ async function DoctorQueueSection({
   hasExplicitStatusFilter: boolean
   doctorIdentity: DoctorIdentity | null
   todayEarnings: number
+  doctorAvailable: boolean
 }) {
   const results = await Promise.allSettled([
     getDoctorQueue({ page, pageSize, doctorId: profileId }),
@@ -144,6 +146,7 @@ async function DoctorQueueSection({
         todayEarnings={todayEarnings}
         initialStatusFilter={initialStatusFilter}
         hasExplicitStatusFilter={hasExplicitStatusFilter}
+        doctorAvailable={doctorAvailable}
       />
     </DashboardErrorBoundary>
   )
@@ -243,7 +246,7 @@ export default async function DoctorDashboardPage({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <DashboardHeader initialAvailable={doctorAvailable} />
 
       {/* Stats - streams in independently */}
@@ -261,6 +264,7 @@ export default async function DoctorDashboardPage({
           hasExplicitStatusFilter={hasExplicitStatusFilter}
           doctorIdentity={doctorIdentity}
           todayEarnings={todayEarnings}
+          doctorAvailable={doctorAvailable}
         />
       </Suspense>
     </div>

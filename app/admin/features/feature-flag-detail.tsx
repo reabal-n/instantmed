@@ -6,12 +6,10 @@ import {
   Calendar,
   CheckCircle2,
   Clock,
-  FileText,
   Loader2,
   Megaphone,
   Pill,
   Plus,
-  Shield,
   SkipForward,
   Stethoscope,
   TrendingUp,
@@ -40,29 +38,6 @@ import type {
 } from "./use-feature-flags"
 
 // ============================================================================
-// Kill Switch Warning Banner
-// ============================================================================
-
-export function KillSwitchWarning() {
-  return (
-    <Card className="border-warning-border bg-warning-light/50">
-      <CardContent className="p-6">
-        <div className="flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 text-warning mt-0.5" />
-          <div>
-            <p className="font-medium text-amber-900">Service Kill Switches</p>
-            <p className="text-sm text-warning mt-1">
-              Disabling a service will immediately prevent patients from creating new requests.
-              Existing requests will continue processing. Changes take effect within 30 seconds.
-            </p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-// ============================================================================
 // Maintenance Mode Section
 // ============================================================================
 
@@ -77,8 +52,11 @@ export function MaintenanceModeSection({
   onSetPendingToggle,
 }: MaintenanceSectionProps) {
   return (
-    <Card className={flags.maintenance_mode ? "border-destructive-border bg-destructive-light/50" : ""}>
-      <CardHeader className="px-6 pt-6">
+    <Card
+      data-testid="feature-flag-maintenance-panel"
+      className={flags.maintenance_mode ? "border-destructive-border bg-destructive-light/50" : ""}
+    >
+      <CardHeader className="px-4 pt-4 pb-2">
         <CardTitle className="text-base flex items-center gap-2">
           <Wrench className="h-4 w-4" />
           Maintenance Mode
@@ -90,14 +68,14 @@ export function MaintenanceModeSection({
           Temporarily pause the intake form for planned maintenance or a real outage.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-5 px-6 pb-6">
-        <div className="flex items-center justify-between p-5 rounded-lg border">
+      <CardContent className="space-y-3 px-4 pb-4">
+        <div className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5">
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${flags.maintenance_mode ? "bg-destructive-light" : "bg-muted"}`}>
-              <Wrench className={`h-5 w-5 ${flags.maintenance_mode ? "text-destructive" : "text-muted-foreground"}`} />
+            <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${flags.maintenance_mode ? "bg-destructive-light" : "bg-muted"}`}>
+              <Wrench className={`h-4 w-4 ${flags.maintenance_mode ? "text-destructive" : "text-muted-foreground"}`} />
             </div>
             <div>
-              <p className="font-medium">Platform Status</p>
+              <p className="text-sm font-medium">Platform Status</p>
               <p className="text-sm text-muted-foreground">
                 {flags.maintenance_mode
                   ? "Platform is CLOSED - no new requests accepted"
@@ -127,7 +105,7 @@ export function MaintenanceModeSection({
             value={maintenanceMessage}
             onChange={(e) => onSetMaintenanceMessage(e.target.value)}
             placeholder="We're currently performing scheduled maintenance..."
-            rows={3}
+            rows={2}
             className="resize-none"
           />
           <div className="flex justify-end">
@@ -148,106 +126,6 @@ export function MaintenanceModeSection({
 }
 
 // ============================================================================
-// Service Kill Switches Section
-// ============================================================================
-
-export function ServiceKillSwitchesSection({
-  flags,
-  isSaving,
-  onToggleFlag,
-}: Pick<FlagActionProps, "flags" | "isSaving" | "onToggleFlag">) {
-  return (
-    <Card>
-      <CardHeader className="px-6 pt-6">
-        <CardTitle className="text-base flex items-center gap-2">
-          <Shield className="h-4 w-4" />
-          Service Controls
-        </CardTitle>
-        <CardDescription>
-          Quickly disable services during incidents or maintenance
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-5 px-6 pb-6">
-        {/* Medical Certificates */}
-        <div className="flex items-center justify-between p-5 rounded-lg border">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-info-light">
-              <FileText className="h-5 w-5 text-info" />
-            </div>
-            <div>
-              <p className="font-medium">Medical Certificates</p>
-              <p className="text-sm text-muted-foreground">
-                {flags.disable_med_cert ? "Currently disabled" : "Accepting new requests"}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            {flags.disable_med_cert && (
-              <Badge variant="destructive">Disabled</Badge>
-            )}
-            <Switch
-              checked={!flags.disable_med_cert}
-              onCheckedChange={() => onToggleFlag(FLAG_KEYS.DISABLE_MED_CERT, flags.disable_med_cert)}
-              disabled={isSaving === FLAG_KEYS.DISABLE_MED_CERT}
-            />
-          </div>
-        </div>
-
-        {/* Repeat Prescriptions */}
-        <div className="flex items-center justify-between p-5 rounded-lg border">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-success-light">
-              <Pill className="h-5 w-5 text-success" />
-            </div>
-            <div>
-              <p className="font-medium">Repeat Prescriptions</p>
-              <p className="text-sm text-muted-foreground">
-                {flags.disable_repeat_scripts ? "Currently disabled" : "Accepting new requests"}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            {flags.disable_repeat_scripts && (
-              <Badge variant="destructive">Disabled</Badge>
-            )}
-            <Switch
-              checked={!flags.disable_repeat_scripts}
-              onCheckedChange={() => onToggleFlag(FLAG_KEYS.DISABLE_REPEAT_SCRIPTS, flags.disable_repeat_scripts)}
-              disabled={isSaving === FLAG_KEYS.DISABLE_REPEAT_SCRIPTS}
-            />
-          </div>
-        </div>
-
-        {/* Consults */}
-        <div className="flex items-center justify-between p-5 rounded-lg border">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-info-light">
-              <Stethoscope className="h-5 w-5 text-info" />
-            </div>
-            <div>
-              <p className="font-medium">Consultations</p>
-              <p className="text-sm text-muted-foreground">
-                {flags.disable_consults ? "Currently disabled" : "Accepting new requests"}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            {flags.disable_consults && (
-              <Badge variant="destructive">Disabled</Badge>
-            )}
-            <Switch
-              checked={!flags.disable_consults}
-              onCheckedChange={() => onToggleFlag(FLAG_KEYS.DISABLE_CONSULTS, flags.disable_consults)}
-              disabled={isSaving === FLAG_KEYS.DISABLE_CONSULTS}
-            />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-// ============================================================================
 // Operational Controls Section
 // ============================================================================
 
@@ -260,8 +138,8 @@ export function OperationalControlsSection({
   onSaveFlag,
 }: FlagActionProps) {
   return (
-    <Card>
-      <CardHeader className="px-6 pt-6">
+    <Card data-testid="feature-flag-operations-panel">
+      <CardHeader className="px-4 pt-4 pb-2">
         <CardTitle className="text-base flex items-center gap-2">
           <Clock className="h-4 w-4" />
           Operational Controls
@@ -270,11 +148,11 @@ export function OperationalControlsSection({
           Review timing reference, capacity limits, urgent notices, and scheduled maintenance
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6 px-6 pb-6">
+      <CardContent className="space-y-3 px-4 pb-4">
         {/* Review Timing Reference */}
-        <div className="space-y-3 p-5 rounded-lg border">
-          <p className="font-medium">Review Timing Reference</p>
-          <div className="flex flex-wrap items-center gap-4">
+        <div className="space-y-2 rounded-lg border px-3 py-2.5">
+          <p className="text-sm font-medium">Review Timing Reference</p>
+          <div className="flex flex-wrap items-center gap-3">
             <Switch
               checked={flags.business_hours_enabled}
               onCheckedChange={() => onToggleFlag(FLAG_KEYS.BUSINESS_HOURS_ENABLED, flags.business_hours_enabled)}
@@ -309,9 +187,9 @@ export function OperationalControlsSection({
         </div>
 
         {/* Capacity Limit */}
-        <div className="space-y-3 p-5 rounded-lg border">
-          <p className="font-medium">Capacity Limit</p>
-          <div className="flex flex-wrap items-center gap-4">
+        <div className="space-y-2 rounded-lg border px-3 py-2.5">
+          <p className="text-sm font-medium">Capacity Limit</p>
+          <div className="flex flex-wrap items-center gap-3">
             <Switch
               checked={flags.capacity_limit_enabled}
               onCheckedChange={() => onToggleFlag(FLAG_KEYS.CAPACITY_LIMIT_ENABLED, flags.capacity_limit_enabled)}
@@ -335,8 +213,8 @@ export function OperationalControlsSection({
         </div>
 
         {/* Urgent Notice */}
-        <div className="space-y-3 p-5 rounded-lg border">
-          <p className="font-medium flex items-center gap-2">
+        <div className="space-y-2 rounded-lg border px-3 py-2.5">
+          <p className="text-sm font-medium flex items-center gap-2">
             <Megaphone className="h-4 w-4" />
             Urgent Notice
           </p>
@@ -366,8 +244,8 @@ export function OperationalControlsSection({
         </div>
 
         {/* Scheduled Maintenance */}
-        <div className="space-y-3 p-5 rounded-lg border">
-          <p className="font-medium flex items-center gap-2">
+        <div className="space-y-2 rounded-lg border px-3 py-2.5">
+          <p className="text-sm font-medium flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             Scheduled Maintenance
           </p>

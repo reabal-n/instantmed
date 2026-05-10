@@ -9,10 +9,9 @@ import {
   HealthArticleSchema,
   MedicalServiceSchema,
   PrescriptionHowToSchema,
-  ReviewAggregateSchema,
   SpeakableSchema,
 } from '@/components/seo/healthcare-schema'
-import { PRICING, REVIEW_AGGREGATE } from '@/lib/constants'
+import { PRICING } from '@/lib/constants'
 import { PRESCRIPTION_FAQ } from '@/lib/data/prescription-faq'
 
 export const metadata: Metadata = {
@@ -69,10 +68,6 @@ export default function PrescriptionsPage() {
         url="/prescriptions"
       />
       <FAQSchema faqs={[...PRESCRIPTION_FAQ]} />
-      <ReviewAggregateSchema
-        ratingValue={REVIEW_AGGREGATE.ratingValue}
-        reviewCount={REVIEW_AGGREGATE.reviewCount}
-      />
       <HealthArticleSchema
         title="Online Prescription Australia"
         description={`Renew your regular medications or get a new prescription online. AHPRA-registered Australian doctors send an eScript to your phone. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`}

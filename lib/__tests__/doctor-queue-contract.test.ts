@@ -153,6 +153,18 @@ describe("doctor queue production contract", () => {
     expect(queueClientSource).toContain("Queue data may be incomplete")
   })
 
+  it("explains why an embedded staff queue is empty instead of showing a generic success state", () => {
+    expect(queueTypesSource).toContain("doctorAvailable?: boolean")
+    expect(queueClientSource).toContain("buildQueueEmptyState")
+    expect(queueClientSource).toContain("Availability is paused")
+    expect(queueClientSource).toContain("No matches for this filter")
+    expect(queueClientSource).toContain("No review cases right now")
+    expect(queueClientSource).toContain("doctorAvailable = true")
+    expect(queueTableSource).toContain("emptyState")
+    expect(queueTableSource).toContain("emptyState.actionHref")
+    expect(queueTableSource).not.toContain("Queue is clear!")
+  })
+
   it("keeps queue health monitoring aligned with the paid doctor queue", () => {
     expect(queueHealthSource).toContain("QUEUE_REVIEW_STATUSES")
     expect(queueHealthSource).toContain('.in("status", QUEUE_REVIEW_STATUSES)')

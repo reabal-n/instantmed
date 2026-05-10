@@ -37,7 +37,7 @@ interface HeroProps {
   title?: ReactNode
   /**
    * Announcement pill content above the H1. Defaults to the canonical
-   * stars + No Medicare + Open now pill. Pass `null` to suppress.
+   * stars + doctor-review + Open now pill. Pass `null` to suppress.
    */
   pill?: ReactNode | null
   /**
@@ -98,14 +98,14 @@ function buildDefaultPill(liveWait?: WaitState) {
       <span
         className="inline-flex items-center gap-0.5 text-amber-400"
         role="img"
-        aria-label="5 out of 5 rating"
+        aria-label="Google star rating"
       >
         {[1, 2, 3, 4, 5].map((i) => (
           <Star key={i} className="w-3 h-3 fill-current" aria-hidden="true" />
         ))}
       </span>
       <span className="text-border/70" aria-hidden="true">·</span>
-      <span className="text-muted-foreground">No Medicare needed</span>
+      <span className="text-muted-foreground">AHPRA-registered doctors</span>
       <span className="text-border/70 hidden sm:inline" aria-hidden="true">·</span>
       {liveWait ? (
         <span className="hidden sm:inline-flex">
@@ -162,6 +162,13 @@ export function Hero({
                 {resolvedPill}
               </div>
             )}
+
+            <div
+              className="hero-availability-enter mb-4 flex justify-center lg:justify-start"
+              aria-hidden="true"
+            >
+              <span className="h-1.5 w-10 rounded-full bg-brand-coral" />
+            </div>
 
             {/* Headline — LCP element. Display scale: 36 / 48 / 60. */}
             <Heading level="display" className="mb-5 sm:mb-7">

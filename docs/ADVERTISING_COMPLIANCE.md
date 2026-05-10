@@ -100,6 +100,7 @@ Do not use:
 - "98% accepted"
 - "Doctor approves in 2 hours or your money back"
 - patient testimonials or purported testimonials about a regulated health service
+- public review-count, numeric-rating, testimonial, or aggregate-rating schema claims on regulated-health advertising surfaces
 - before/after outcomes
 - "clinically proven medication" in public acquisition copy
 - prescription-only medicine prices

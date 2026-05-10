@@ -2,13 +2,14 @@ export const PATIENT_DASHBOARD_HREF = "/patient" as const
 export const DOCTOR_DASHBOARD_HREF = "/doctor/dashboard" as const
 export const ADMIN_DASHBOARD_HREF = "/admin" as const
 export const ADMIN_INTAKE_LEDGER_HREF = "/admin/intakes" as const
-export const ADMIN_DOCTOR_QUEUE_HREF = "/admin#doctor-queue" as const
+export const ADMIN_DOCTOR_QUEUE_HREF = "/admin?status=review#doctor-queue" as const
 export const ADMIN_SCRIPTS_HREF = "/admin?status=scripts#doctor-queue" as const
 export const ADMIN_PATIENTS_HREF = "/admin/patients" as const
 export const ADMIN_ANALYTICS_HREF = "/admin/analytics" as const
 export const ADMIN_FINANCE_HREF = "/admin/finance" as const
 export const ADMIN_OPS_HREF = "/admin/ops" as const
 export const ADMIN_SETTINGS_HREF = "/admin/settings" as const
+export const ADMIN_DOCTOR_IDENTITY_HREF = "/admin/settings/doctor-identity" as const
 export const ADMIN_AUDIT_HREF = "/admin/audit" as const
 export const ADMIN_EMAIL_HUB_HREF = "/admin/emails/hub" as const
 export const ADMIN_REFUNDS_HREF = "/admin/refunds" as const

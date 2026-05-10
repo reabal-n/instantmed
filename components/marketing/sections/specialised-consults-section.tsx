@@ -32,22 +32,6 @@ const consults: Array<{
     price: PRICING_DISPLAY.HAIR_LOSS,
     href: "/hair-loss",
   },
-  {
-    icon: 'stethoscope',
-    title: "Women\u2019s Health",
-    description:
-      "Contraception, hormonal concerns, and general women\u2019s health. Compassionate, confidential care.",
-    price: PRICING_DISPLAY.WOMENS_HEALTH,
-    href: "/request?service=consult&subtype=womens-health",
-  },
-  {
-    icon: 'medical-history',
-    title: "Weight Management",
-    description:
-      "Doctor-guided weight management plans. Medication options discussed if clinically appropriate.",
-    price: PRICING_DISPLAY.WEIGHT_LOSS,
-    href: "/request?service=consult&subtype=weight-loss",
-  },
 ]
 
 // =============================================================================

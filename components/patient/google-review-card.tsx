@@ -13,7 +13,7 @@ const RE_PROMPT_DAYS = 90
 
 /**
  * Google Review prompt card - shown on patient dashboard after first approved request.
- * Google-branded pill design with multicolor G icon, star rating, and CTA.
+ * Google-branded pill design with multicolor G icon, stars-only badge, and CTA.
  * Dismissible with localStorage persistence. Re-prompts after 90 days.
  * Shows with a 500ms entrance delay to avoid competing with primary content.
  */
@@ -89,7 +89,6 @@ export function GoogleReviewCard() {
                 <Star key={i} className="h-3 w-3 fill-amber-400 text-amber-400" />
               ))}
             </div>
-            <span className="text-sm font-semibold text-foreground">5.0</span>
             <span className="text-xs text-muted-foreground">on Google</span>
           </div>
           <p className="text-xs text-muted-foreground">

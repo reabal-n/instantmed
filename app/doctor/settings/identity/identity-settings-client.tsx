@@ -65,6 +65,9 @@ interface IdentitySettingsClientProps {
   avatarUrl?: string | null
   parchmentUserId?: string | null
   parchmentEnvironment: ParchmentEnvironmentDescriptor
+  settingsPath?: string
+  backHref?: string
+  backLabel?: string
 }
 
 type ParchmentEnvironmentDescriptor = {
@@ -93,6 +96,9 @@ export function IdentitySettingsClient({
   avatarUrl,
   parchmentUserId: initialParchmentUserId,
   parchmentEnvironment: initialParchmentEnvironment,
+  settingsPath = "/doctor/settings/identity",
+  backHref = "/doctor/dashboard",
+  backLabel = "Back to doctor dashboard",
 }: IdentitySettingsClientProps) {
   const { user } = useAuth()
   const supabase = useMemo(() => createClient(), [])
@@ -179,8 +185,8 @@ export function IdentitySettingsClient({
 
   const getAccountRedirectUrl = useCallback(() => {
     if (typeof window === "undefined") return undefined
-    return `${window.location.origin}/auth/callback?next=${encodeURIComponent("/doctor/settings/identity#account-security")}`
-  }, [])
+    return `${window.location.origin}/auth/callback?next=${encodeURIComponent(`${settingsPath}#account-security`)}`
+  }, [settingsPath])
 
   const loadMfaFactors = useCallback(async (showLoading = true) => {
     if (showLoading) setMfaLoading(true)
@@ -492,7 +498,7 @@ export function IdentitySettingsClient({
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex items-start gap-4">
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/doctor/dashboard" aria-label="Back to doctor dashboard">
+            <Link href={backHref} aria-label={backLabel}>
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
@@ -792,7 +798,7 @@ export function IdentitySettingsClient({
 
             <GoogleAccountLinkCard
               accountLabel="doctor"
-              redirectPath="/doctor/settings/identity#account-security"
+              redirectPath={`${settingsPath}#account-security`}
             />
           </div>
         </CardContent>
@@ -1097,7 +1103,7 @@ export function IdentitySettingsClient({
       {/* Save Button */}
       <div className="flex justify-end gap-3">
         <Button variant="outline" asChild>
-          <Link href="/doctor/dashboard">Cancel</Link>
+          <Link href={backHref}>Cancel</Link>
         </Button>
         <Button
           onClick={handleSave}

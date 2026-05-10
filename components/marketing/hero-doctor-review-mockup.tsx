@@ -10,7 +10,6 @@ import {
   ShieldCheck,
   Stethoscope,
 } from "lucide-react"
-import Image from "next/image"
 import { useEffect, useState } from "react"
 
 import { useReducedMotion } from "@/components/ui/motion"
@@ -155,15 +154,12 @@ export function HeroDoctorReviewMockup() {
         {/* Header */}
         <div className="px-5 pt-5 pb-4 flex items-center gap-3 border-b border-border/40">
           <div className="relative shrink-0">
-            <Image
-              src="https://api.dicebear.com/7.x/notionists/svg?seed=AU-GP-001"
-              alt=""
-              width={40}
-              height={40}
-              className="w-10 h-10 rounded-full bg-muted/40 dark:bg-white/5 ring-2 ring-white dark:ring-card"
-              unoptimized
-              loading="lazy"
-            />
+            <span
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/8 text-primary ring-2 ring-white dark:ring-card"
+              aria-hidden="true"
+            >
+              <Stethoscope className="h-5 w-5" />
+            </span>
             <span
               aria-hidden="true"
               className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-card"
@@ -171,7 +167,7 @@ export function HeroDoctorReviewMockup() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-foreground leading-tight">
-              Your GP
+              Doctor review
             </p>
             <p className="text-[11px] text-muted-foreground flex items-center gap-1 leading-tight mt-0.5">
               <ShieldCheck className="w-3 h-3 text-primary" aria-hidden="true" />

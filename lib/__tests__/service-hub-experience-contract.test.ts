@@ -10,7 +10,8 @@ describe("service hub experience contract", () => {
   it("keeps the service hub compact without a duplicate trust-card strip", () => {
     expect(serviceHubSource).toContain("{patientCount.toLocaleString()}+ Australians")
     expect(serviceHubSource).toContain("AHPRA doctors")
-    expect(serviceHubSource).toContain("4.8")
+    expect(serviceHubSource).toContain("Google star rating")
+    expect(serviceHubSource).not.toContain(">4.8<")
     expect(serviceHubSource).toContain("flex-nowrap")
     expect(serviceHubSource).toContain("whitespace-nowrap")
     expect(serviceHubSource).not.toContain("REQUEST_HUB_TRUST_SIGNALS")

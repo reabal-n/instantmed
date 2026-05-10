@@ -41,20 +41,6 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
         price: PRICING_DISPLAY.HAIR_LOSS,
         href: '/hair-loss',
       },
-      {
-        icon: 'Stethoscope',
-        title: 'Women\'s Health',
-        description: 'Contraception, hormonal concerns, and general women\'s health. Compassionate, confidential care.',
-        price: PRICING_DISPLAY.WOMENS_HEALTH,
-        href: '/request?service=consult',
-      },
-      {
-        icon: 'ClipboardList',
-        title: 'Weight Management',
-        description: 'Doctor-guided weight management plans. Medication options discussed if clinically appropriate.',
-        price: PRICING_DISPLAY.WEIGHT_LOSS,
-        href: '/request?service=consult',
-      },
     ],
   },
 

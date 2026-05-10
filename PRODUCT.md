@@ -12,7 +12,7 @@ Repeat prescription users. Less anxious, more routine-minded. Slightly older. Wa
 High privacy concern. Do not want to discuss this in a clinic. Expect discretion, clinical seriousness, no bro-marketing vibes.
 
 **Portal users - operator doctors and admin:**
-AHPRA-registered GPs and admin operators reviewing cases, usually with one person wearing both hats in the current solo-doctor phase. The dashboard should feel like one staff cockpit, not separate admin and doctor products. Put the next clinical/admin action first, keep patient identity and summary clear, and move secondary detail into panes/drawers so staff do not scroll through a wall of low-value data. No decorative motion. `transition-colors` only in portal surfaces.
+AHPRA-registered doctors and admin operators reviewing cases, with role overlap expected during lean operating phases. The dashboard should feel like one staff cockpit, not separate admin and doctor products. Put the next clinical/admin action first, keep patient identity and summary clear, and move secondary detail into panes/drawers so staff do not scroll through a wall of low-value data. No decorative motion. `transition-colors` only in portal surfaces.
 
 ### Brand Personality
 

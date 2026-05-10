@@ -21,15 +21,16 @@ Generate a professional medical certificate draft based on the patient informati
 
 IMPORTANT RULES:
 - This is a DRAFT for doctor review only
-- Use standard Australian medical certificate language
+- Mirror the locked PDF wording used by lib/pdf/template-renderer.ts
 - Do not include specific diagnoses - just "medical condition"
 - Do not mention specific disease names (covid, influenza, etc.)
 - Do not recommend or mention any medications
+- Do not use capacity-assessment phrasing or telehealth-modality wording
 - Set requiresReview to true if duration > 3 days OR backdated > 3 days
 
 OUTPUT: Return ONLY valid JSON (no markdown, no explanation) matching this exact structure:
 {
-  "certificateStatement": "This is to certify that [Patient Name] attended a telehealth consultation on [Date]. In my opinion, they were suffering from a medical condition and were unfit for [work/study] from [Start Date] to [End Date] inclusive ([X] days).",
+  "certificateStatement": "This is to certify that [Patient Name] consulted me on [Date] and reported being unwell. Based on the information provided, this certificate is issued as routine sick-leave evidence for absence from usual [work or study] duties from [Start Date] to [End Date] inclusive ([X] days).",
   "symptomsSummary": "2-3 word general symptom category (e.g., 'Upper respiratory symptoms')",
   "clinicalNotes": "1-2 sentence clinical observation based on intake",
   "startDate": "YYYY-MM-DD",

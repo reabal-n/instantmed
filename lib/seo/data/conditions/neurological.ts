@@ -71,7 +71,7 @@ export const neurologicalConditions: Record<string, ConditionData> = {
     serviceType: "both",
     ctaText: "Speak with a doctor",
     ctaHref: "/request?service=consult&condition=migraine",
-    stats: { avgTime: "55 mins", satisfaction: "4.9/5" },
+    stats: { avgTime: "55 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Migraines are a neurological condition, not just a bad headache, and this distinction matters for both treatment and workplace legitimacy. A true migraine involves changes in brain chemistry and blood flow that can produce visual disturbances (aura), nausea, and extreme sensitivity to light and sound - making work genuinely impossible for many people during an attack. When I assess someone for a migraine-related certificate, I am looking at the pattern: how frequent, how severe, whether their current management is adequate. If someone is having more than 4 migraine days per month, they should be discussing preventive treatment with their regular GP. Telehealth is well-suited for migraine management discussions because the diagnosis is primarily history-based - we do not need to examine you during an attack. Triptans (prescription migraine-specific medications) can be life-changing for people who have been relying on paracetamol and ibuprofen alone.",
     auStats: [
       "Migraines affect approximately 4.9 million Australians - about 20% of the population",

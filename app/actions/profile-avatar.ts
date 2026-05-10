@@ -13,6 +13,7 @@ import {
   toUploadedAvatarValue,
 } from "@/lib/account/avatar-storage"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { ADMIN_DOCTOR_IDENTITY_HREF } from "@/lib/dashboard/routes"
 import { updateProfile } from "@/lib/data/profiles"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -39,6 +40,7 @@ function revalidateAvatarSurfaces() {
   revalidatePath("/patient/settings")
   revalidatePath("/doctor/dashboard")
   revalidatePath("/doctor/settings/identity")
+  revalidatePath(ADMIN_DOCTOR_IDENTITY_HREF)
 }
 
 async function removePreviousUploadedAvatar(previousValue: string | null | undefined, authUserId: string) {

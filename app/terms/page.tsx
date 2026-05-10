@@ -111,17 +111,15 @@ export default function TermsPage() {
 
                 <LegalSection number="5" title="Clinical Governance Model" id="governance">
                   <p>
-                    InstantMed currently operates with a single AHPRA-registered Australian GP who serves as
-                    both the treating practitioner and the Medical Director. This is an honest disclosure of
-                    scale. You are not being reviewed by an anonymous team behind a logo - you are being
-                    reviewed by a named, registered, identifiable clinician whose AHPRA status you can verify
-                    independently on the public register.
+                    InstantMed clinical reviews are performed by AHPRA-registered Australian doctors working
+                    under documented clinical governance. You are reviewed by a named, registered, identifiable
+                    clinician whose AHPRA status you can verify independently on the public register.
                   </p>
                   <p>
-                    The Medical Director holds current, unrestricted AHPRA registration, maintains professional
-                    indemnity insurance, and is subject to the same regulatory oversight and professional
-                    obligations as any other registered GP in Australia. The treating practitioner&apos;s name
-                    and AHPRA registration number are disclosed on every medical certificate and prescription
+                    Our clinical leadership holds current, unrestricted AHPRA registration, maintains
+                    professional indemnity insurance, and is subject to the same regulatory oversight and
+                    professional obligations as any other registered GP in Australia. The treating practitioner&apos;s
+                    name and AHPRA registration number are disclosed on every medical certificate and prescription
                     issued, and are available on request for any consultation via{" "}
                     <a href={`mailto:${CONTACT_EMAIL_COMPLAINTS}`}>{CONTACT_EMAIL_COMPLAINTS}</a>.
                   </p>

@@ -508,7 +508,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       return { success: false, autoApproved: false, reason: "No doctor available", error: reason }
     }
 
-    // If only one doctor, use them directly
+    // If the eligible pool has a single profile, use it directly.
     let doctor = doctors[0]
     if (doctors.length > 1) {
       // Pick the doctor with fewest approvals in the last 24 hours

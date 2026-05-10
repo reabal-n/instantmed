@@ -6,6 +6,7 @@ import {
   Settings,
   Stethoscope,
   ToggleLeft,
+  UserCog,
 } from "lucide-react"
 import Link from "next/link"
 import type { ComponentType } from "react"
@@ -14,6 +15,7 @@ import { GoogleAccountLinkCard } from "@/components/account/google-account-link-
 import { DashboardPageHeader } from "@/components/dashboard"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { requireRole } from "@/lib/auth/helpers"
+import { ADMIN_DOCTOR_IDENTITY_HREF } from "@/lib/dashboard/routes"
 
 export const dynamic = "force-dynamic"
 
@@ -51,6 +53,12 @@ const settingsGroups: SettingsGroup[] = [
         description: "Doctor records, provider numbers, and operational availability.",
         href: "/admin/doctors",
         icon: Stethoscope,
+      },
+      {
+        label: "Your doctor identity",
+        description: "Account security, availability, signature, and Parchment prescribing setup.",
+        href: ADMIN_DOCTOR_IDENTITY_HREF,
+        icon: UserCog,
       },
       {
         label: "Services",

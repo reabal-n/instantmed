@@ -68,7 +68,7 @@ test.describe("operator viewport contract", () => {
       { path: "/admin/webhook-dlq", heading: /payment webhooks/i },
       { path: "/admin/refunds?status=failed", heading: /^refunds$/i },
       { path: "/admin/emails/hub?tab=queue", heading: /email delivery/i },
-      { path: "/admin/features", heading: /feature flags/i },
+      { path: "/admin/features", heading: /feature flags/i, boundedConsole: true },
       { path: "/admin/settings/templates", heading: /template studio/i },
     ]
 
@@ -77,7 +77,12 @@ test.describe("operator viewport contract", () => {
       await waitForPageLoad(page)
       await expect(page.getByRole("heading", { name: pageConfig.heading })).toBeVisible({ timeout: 15000 })
       await expect(page.getByTestId("operator-page")).toBeVisible()
-      await expect(page.getByTestId("operator-scroll-area")).toBeVisible()
+      if ("boundedConsole" in pageConfig) {
+        await expect(page.getByTestId("feature-flags-bounded-console")).toBeVisible()
+        await expect(page.getByTestId("feature-flag-critical-strip")).toBeVisible()
+      } else {
+        await expect(page.getByTestId("operator-scroll-area")).toBeVisible()
+      }
       await expect(page.getByText(/switch to doctor|doctor mode|continue as doctor/i)).toHaveCount(0)
       await expectNoDesktopPageScroll(page)
     }

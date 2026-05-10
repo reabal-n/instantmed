@@ -16,6 +16,7 @@ import path from "node:path"
 import { describe, expect, it } from "vitest"
 
 import { BADGE_PRESETS } from "@/lib/marketing/trust-badges"
+import { getActiveServices, getComingSoonServices, SERVICE_CATALOG } from "@/lib/services/service-catalog"
 
 const ROOT = path.resolve(__dirname, "../..")
 
@@ -66,6 +67,27 @@ const MED_CERT_ACCEPTANCE_SURFACES = [
   "lib/seo",
 ]
 
+const MED_CERT_VISIBLE_CERTIFICATE_MOCKUP_SURFACES = [
+  "components/marketing/mockups/med-cert-hero-mockup.tsx",
+  "components/marketing/mockups/certificate.tsx",
+  "components/marketing/sample-certificate.tsx",
+]
+
+const MED_CERT_DRAFT_LANGUAGE_SURFACES = [
+  "app/actions/drafts/generate-med-cert.ts",
+  "lib/ai/prompts/index.ts",
+  "components/admin/certificate-preview.tsx",
+]
+
+const PUBLIC_FAKE_PROOF_AVATAR_SURFACES = [
+  "app/sign-in",
+  "app/sign-up",
+  "components/marketing/med-cert-intent-page.tsx",
+  "components/marketing/hero-doctor-review-mockup.tsx",
+  "components/marketing/how-it-works.tsx",
+  "components/marketing/mockups/how-it-works-steps.tsx",
+]
+
 const URL_PRIVACY_SURFACES = [
   "app",
   "components",
@@ -110,6 +132,36 @@ const PUBLIC_CREDENTIAL_CLAIM_SURFACES = [
   "lib/marketing/trust-badges.ts",
 ]
 
+const PUBLIC_SOCIAL_PROOF_SURFACES = [
+  "app/about",
+  "app/contact",
+  "app/conditions",
+  "app/erectile-dysfunction",
+  "app/for",
+  "app/hair-loss",
+  "app/how-it-works",
+  "app/locations",
+  "app/medical-certificate",
+  "app/online-doctor-australia",
+  "app/prescriptions",
+  "app/pricing",
+  "app/request",
+  "app/sign-in",
+  "app/sign-up",
+  "app/telehealth-australia",
+  "app/trust",
+  "app/weight-loss",
+  "components/marketing",
+  "components/request/help-tooltip.tsx",
+  "components/request/service-hub-screen.tsx",
+  "components/seo",
+  "components/shared/navbar",
+  "lib/marketing",
+  "lib/seo",
+  "lib/services/service-catalog.ts",
+  "lib/social-proof",
+]
+
 const NO_CALL_PATTERNS = [
   /\bno call needed\b/i,
   /\bno call required\b/i,
@@ -146,6 +198,15 @@ const MEDICATION_QUERY_PATTERNS = [
   /[?&]drug=/i,
 ]
 
+const LOCKED_CERTIFICATE_LANGUAGE_PATTERNS = [
+  /\bunfit for\b/i,
+  /\bfit for\b/i,
+  /\bfitness for\b/i,
+  /\btelehealth consultation\b/i,
+  /\basynchronous telehealth\b/i,
+  /\bwork\/study\b/i,
+]
+
 const PUBLIC_PRESCRIPTION_DRUG_TERM_PATTERNS = [
   /\b(sildenafil|tadalafil|viagra|cialis|finasteride|dutasteride|minoxidil|ozempic|wegovy|mounjaro|duromine|phentermine|semaglutide|tirzepatide|atorvastatin|amlodipine|ramipril|perindopril|rosuvastatin|ventolin|seretide|symbicort|valium|xanax)\b/i,
   /\bED medication\b/i,
@@ -153,6 +214,32 @@ const PUBLIC_PRESCRIPTION_DRUG_TERM_PATTERNS = [
   /\bTGA-approved (?:treatments?|medications?)\b/i,
   /\bclinically proven (?:approach|treatment|medication)\b/i,
   /\bdoctor-prescribed treatment\b/i,
+]
+
+const PUBLIC_REVIEW_ADVERTISING_PATTERNS = [
+  /\baggregateRating\b/,
+  /\bReviewAggregateSchema\b/,
+  /\breviewCount\b/,
+  /\bratingCount\b/,
+  /\bratingValue\b/,
+  /\bratingWithStar\b/,
+  /\bGOOGLE_REVIEWS\.count\b/,
+  /\bSOCIAL_PROOF_DISPLAY\.rating\b/,
+  /\bsatisfaction:\s*["'][0-9.]+\/5["']/,
+  /\b[0-9]\.[0-9]\s*\/\s*5\b/,
+  /\b[0-9]\.[0-9]\s*★/,
+  /\b[0-9]\.[0-9]\s*stars?\b/i,
+  /\b[0-9][0-9,]*\+?\s+reviews?\b/i,
+]
+
+const PUBLIC_FAKE_PROOF_AVATAR_PATTERNS = [
+  /api\.dicebear\.com/i,
+  /\bnotionists\b/i,
+  /\bSophiaChen\b/,
+  /\bMarcusWilliams\b/,
+  /\bAishaPatel\b/,
+  /\bTomBrennan\b/,
+  /\bDoctor[0-9]\b/,
 ]
 
 function toFullPath(relative: string): string {
@@ -249,6 +336,27 @@ describe("advertising compliance guard", () => {
     expect(hits).toEqual([])
   })
 
+  it("keeps visible certificate mockups aligned with locked PDF wording", () => {
+    const hits = findHits(
+      collectFiles(MED_CERT_VISIBLE_CERTIFICATE_MOCKUP_SURFACES),
+      LOCKED_CERTIFICATE_LANGUAGE_PATTERNS,
+    )
+    if (hits.length > 0) {
+      failWithReport("Visible certificate mockup language guard failed", hits)
+    }
+
+    expect(hits).toEqual([])
+  })
+
+  it("keeps med-cert draft prompts aligned with locked PDF wording", () => {
+    const hits = findHits(collectFiles(MED_CERT_DRAFT_LANGUAGE_SURFACES), LOCKED_CERTIFICATE_LANGUAGE_PATTERNS)
+    if (hits.length > 0) {
+      failWithReport("Med-cert draft language guard failed", hits)
+    }
+
+    expect(hits).toEqual([])
+  })
+
   it("does not pass medicine names into URLs", () => {
     const hits = findHits(collectFiles(URL_PRIVACY_SURFACES), MEDICATION_QUERY_PATTERNS)
     if (hits.length > 0) {
@@ -305,6 +413,48 @@ describe("advertising compliance guard", () => {
     }
 
     expect(hits).toEqual([])
+  })
+
+  it("keeps public social proof stars-only without aggregate ratings, review counts, or testimonials", () => {
+    const hits = findHits(collectFiles(PUBLIC_SOCIAL_PROOF_SURFACES), PUBLIC_REVIEW_ADVERTISING_PATTERNS)
+    if (hits.length > 0) {
+      failWithReport("Public review advertising guard failed", hits)
+    }
+
+    expect(hits).toEqual([])
+  })
+
+  it("keeps public auth and marketing proof free of fake people avatars", () => {
+    const hits = findHits(collectFiles(PUBLIC_FAKE_PROOF_AVATAR_SURFACES), PUBLIC_FAKE_PROOF_AVATAR_PATTERNS)
+    if (hits.length > 0) {
+      failWithReport("Public fake-proof avatar guard failed", hits)
+    }
+
+    expect(hits).toEqual([])
+  })
+
+  it("keeps weight management future-scaffolded but not publicly purchasable", () => {
+    expect(existsSync(toFullPath("app/weight-loss/page.tsx"))).toBe(true)
+    expect(existsSync(toFullPath("app/weight-loss/weight-loss-client.tsx"))).toBe(true)
+
+    expect(SERVICE_CATALOG["weight-loss"]).toMatchObject({
+      comingSoon: true,
+      price: "Planned",
+      priceFrom: 0,
+      slug: "weight-loss",
+      subtype: "weight_loss",
+    })
+    expect(getComingSoonServices().map((service) => service.id)).toContain("weight-loss")
+    expect(getActiveServices().map((service) => service.id)).not.toContain("weight-loss")
+
+    const weightLossPageSource = readFileSync(toFullPath("app/weight-loss/page.tsx"), "utf8")
+    expect(weightLossPageSource).toContain('redirect("/request")')
+    expect(weightLossPageSource).toContain("index: false")
+
+    const sitemapSource = readFileSync(toFullPath("app/sitemap.ts"), "utf8")
+    const htmlSitemapSource = readFileSync(toFullPath("app/sitemap-html/page.tsx"), "utf8")
+    expect(sitemapSource).not.toContain("weight-loss")
+    expect(htmlSitemapSource).not.toContain("weight-loss")
   })
 
   it("keeps internal review and testimonial pages/components retired", () => {

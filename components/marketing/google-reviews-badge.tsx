@@ -5,32 +5,28 @@ import { Star } from 'lucide-react'
 import { GOOGLE_REVIEWS } from '@/lib/social-proof'
 
 /**
- * Google Reviews Badge — stars-only.
+ * Google stars badge.
  *
  * Renders the Google G mark followed by 5 stars filled to the current
  * GBP rating. Deliberately omits the numeric rating and review count;
- * leading with a small N (currently 3 reviews) reads as anaemic in a
- * hero/trust context, but the multicolour Google mark + 5 stars carries
- * the trust signal cleanly. Links through to the GBP reviews page.
+ * the multicolour Google mark + 5 stars carries the trust signal cleanly
+ * without surfacing testimonial or review-count advertising copy.
  *
  * Gates on GOOGLE_REVIEWS.enabled — renders nothing until the flag is
  * flipped on `lib/social-proof/index.ts`.
  *
- * Usage: trust strips, social-proof sections. Do not render in portals.
+ * Usage: trust strips. Do not render in portals.
  */
 export function GoogleReviewsBadge({ className }: { className?: string }) {
-  if (!GOOGLE_REVIEWS.enabled || GOOGLE_REVIEWS.count === 0) return null
+  if (!GOOGLE_REVIEWS.enabled) return null
 
   const rating = GOOGLE_REVIEWS.rating
   const filled = Math.round(rating)
 
   return (
-    <a
-      href={GOOGLE_REVIEWS.reviewsUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label="Read our Google reviews"
-      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-sm hover:shadow-md hover:border-border transition-[box-shadow,border-color] duration-200 no-underline ${className ?? ''}`}
+    <div
+      aria-label="Google star rating"
+      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-sm ${className ?? ''}`}
     >
       {/* Google G mark */}
       <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
@@ -61,6 +57,6 @@ export function GoogleReviewsBadge({ className }: { className?: string }) {
           />
         ))}
       </span>
-    </a>
+    </div>
   )
 }

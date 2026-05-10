@@ -1,4 +1,4 @@
-import { CheckCircle2, Lock, Smartphone } from "lucide-react"
+import { CheckCircle2, Lock, Smartphone, Stethoscope } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -64,7 +64,7 @@ function QRCode({ className }: { className?: string }) {
 }
 
 /**
- * ED hero mockup — treatment approval card with eScript token + progress timeline.
+ * ED hero mockup — discreet doctor-review card with conditional eScript token.
  * CSS animations only — no framer-motion — SSR-safe.
  */
 export function EDHeroMockup({ compact = false }: EDHeroMockupProps) {
@@ -86,30 +86,29 @@ export function EDHeroMockup({ compact = false }: EDHeroMockupProps) {
 
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-semibold text-foreground">Treatment Approved</span>
+          <span className="text-sm font-semibold text-foreground">Doctor Review</span>
           <span className="inline-flex items-center gap-1 text-[10px] font-medium text-success px-2 py-0.5 rounded-full bg-success/10 border border-success/20">
-            Active
+            Reviewed
           </span>
         </div>
 
         {/* Doctor reviewer */}
         <div className="flex items-center gap-2 rounded-lg bg-muted/30 border border-border/40 px-2.5 py-2 mb-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="https://api.dicebear.com/7.x/notionists/svg?seed=instantmed-gp&backgroundColor=b6e3f4"
-            alt=""
-            className="w-6 h-6 rounded-full bg-muted border border-border/50 shrink-0"
+          <span
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/8 text-primary"
             aria-hidden="true"
-          />
+          >
+            <Stethoscope className="h-3.5 w-3.5" />
+          </span>
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-semibold text-foreground leading-tight">Reviewed by Dr. J.M.</p>
-            <p className="text-[9px] text-muted-foreground">AHPRA-registered GP</p>
+            <p className="text-[10px] font-semibold text-foreground leading-tight">Reviewed by a doctor</p>
+            <p className="text-[9px] text-muted-foreground">AHPRA-registered Australian doctor</p>
           </div>
           <CheckCircle2 className="w-3 h-3 text-success shrink-0" />
         </div>
 
         <p className="text-[11px] text-foreground/60 leading-relaxed mb-3">
-          Your treatment plan has been reviewed and approved. Show this eScript at any pharmacy.
+          If approved, your eScript appears here and can be used at any Australian pharmacy.
         </p>
 
         {/* QR code + token info */}
@@ -122,13 +121,13 @@ export function EDHeroMockup({ compact = false }: EDHeroMockupProps) {
           {/* Token details */}
           <div className="min-w-0 flex-1">
             <p className="text-[9px] uppercase tracking-widest text-muted-foreground mb-0.5 font-medium">
-              Prescription Token
+              eScript token
             </p>
             <p className="text-[12px] font-mono font-semibold text-primary tracking-wider mb-1.5">
               XKCD-5829-MNOP
             </p>
             <p className="text-[10px] font-medium text-foreground/80">ED assessment</p>
-            <p className="text-[10px] text-muted-foreground">Qty: 8 &middot; Repeats: 2</p>
+            <p className="text-[10px] text-muted-foreground">Sent after approval</p>
           </div>
         </div>
 

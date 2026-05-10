@@ -7,6 +7,7 @@ const settingsSource = readFileSync(
   join(process.cwd(), "app/admin/settings/page.tsx"),
   "utf8",
 )
+const nextConfigSource = readFileSync(join(process.cwd(), "next.config.mjs"), "utf8")
 const sidebarSource = readFileSync(
   join(process.cwd(), "components/admin/admin-sidebar.tsx"),
   "utf8",
@@ -45,6 +46,10 @@ const parchmentConformanceSource = readFileSync(
 )
 const dashboardRoutesSource = readFileSync(
   join(process.cwd(), "lib/dashboard/routes.ts"),
+  "utf8",
+)
+const adminDoctorIdentityPageSource = readFileSync(
+  join(process.cwd(), "app/admin/settings/doctor-identity/page.tsx"),
   "utf8",
 )
 const dashboardRedirectSource = readFileSync(
@@ -97,8 +102,11 @@ function findAdminPageFiles(dir = join(process.cwd(), "app/admin")): string[] {
 describe("admin navigation contract", () => {
   it("keeps settings focused on configuration instead of incident response", () => {
     expect(settingsSource).not.toContain('redirect("/admin/features")')
+    expect(nextConfigSource).not.toContain('source: "/admin/settings", destination: "/admin/features"')
     expect(settingsSource).toContain('href: "/admin/features"')
     expect(settingsSource).toContain('href: "/admin/settings/templates"')
+    expect(settingsSource).toContain("ADMIN_DOCTOR_IDENTITY_HREF")
+    expect(settingsSource).toContain("Your doctor identity")
     expect(settingsSource).toContain('href: "/admin/content"')
     expect(settingsSource).not.toContain("Operational controls")
     expect(settingsSource).not.toContain('href: "/admin/webhook-dlq"')
@@ -135,6 +143,7 @@ describe("admin navigation contract", () => {
     expect(sidebarSource).not.toContain("clinicalNavItems")
     expect(sidebarSource).not.toContain("Clinical mode")
     expect(operatorNavSource).toContain("ADMIN_DOCTOR_QUEUE_HREF")
+    expect(dashboardRoutesSource).toContain('ADMIN_DOCTOR_QUEUE_HREF = "/admin?status=review#doctor-queue"')
     expect(operatorNavSource).toContain("ADMIN_SCRIPTS_HREF")
     expect(operatorNavSource).toContain("ADMIN_PATIENTS_HREF")
     expect(operatorNavSource).toContain('badgeKey: "scriptsToWrite"')
@@ -301,6 +310,31 @@ describe("admin navigation contract", () => {
       expect(source, pageFile).toContain('requireRole(["admin"]')
       expect(source, pageFile).not.toContain('requireRole(["doctor", "admin"]')
     }
+  })
+
+  it("keeps doctor identity settings available inside the admin shell for owner-operators", () => {
+    expect(dashboardRoutesSource).toContain('ADMIN_DOCTOR_IDENTITY_HREF = "/admin/settings/doctor-identity"')
+    expect(adminDoctorIdentityPageSource).toContain('requireRole(["admin"]')
+    expect(adminDoctorIdentityPageSource).toContain("IdentitySettingsClient")
+    expect(adminDoctorIdentityPageSource).toContain('settingsPath="/admin/settings/doctor-identity"')
+    expect(adminDoctorIdentityPageSource).toContain('backHref="/admin/settings"')
+    expect(adminDoctorIdentityPageSource).not.toContain("DoctorShell")
+    expect(adminDoctorIdentityPageSource).not.toContain('redirect("/doctor/settings/identity")')
+  })
+
+  it("keeps future doctor setup as an admin checklist without leaking admin controls", () => {
+    const doctorsClientSource = readFileSync(
+      join(process.cwd(), "app/admin/doctors/doctors-client.tsx"),
+      "utf8",
+    )
+
+    expect(doctorsClientSource).toContain("Doctor onboarding checklist")
+    expect(doctorsClientSource).toContain("No admin controls")
+    expect(doctorsClientSource).toContain("AHPRA")
+    expect(doctorsClientSource).toContain("Provider number")
+    expect(doctorsClientSource).toContain("Signature")
+    expect(doctorsClientSource).toContain("Parchment")
+    expect(doctorsClientSource).toContain("MFA")
   })
 
   it("routes vendor and money recovery links through their owning dashboards", () => {

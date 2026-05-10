@@ -8,7 +8,7 @@ import { toast } from "sonner"
 import { IntakeReviewPanel } from "@/components/doctor"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
-import { DOCTOR_DASHBOARD_HREF, parseQueueStatusFilter, type QueueStatusFilter } from "@/lib/dashboard/routes"
+import { ADMIN_DOCTOR_IDENTITY_HREF, DOCTOR_DASHBOARD_HREF, parseQueueStatusFilter, type QueueStatusFilter } from "@/lib/dashboard/routes"
 import { DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY, LAST_OPENED_DOCTOR_CASE_KEY } from "@/lib/doctor/queue-focus"
 import { removeCompletedIntakeFromQueue } from "@/lib/doctor/queue-state"
 import { calculateSlaCountdown,calculateWaitTime, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
@@ -26,6 +26,54 @@ import { QueueTable } from "./queue-table"
 import type { QueueClientProps } from "./types"
 import { useQueueDialogs } from "./use-queue-dialogs"
 
+interface QueueEmptyState {
+  title: string
+  description: string
+  tone: "success" | "warning" | "neutral"
+  actionHref?: string
+  actionLabel?: string
+}
+
+function buildQueueEmptyState({
+  doctorAvailable,
+  totalCount,
+  statusFilter,
+  searchQuery,
+  baseHref,
+}: {
+  doctorAvailable: boolean
+  totalCount: number
+  statusFilter: QueueStatusFilter
+  searchQuery: string
+  baseHref: string
+}): QueueEmptyState {
+  if (!doctorAvailable && totalCount === 0) {
+    return {
+      title: "Availability is paused",
+      description: "Your queue can look empty while review availability is off. Turn availability back on before relying on this view.",
+      tone: "warning",
+      actionHref: ADMIN_DOCTOR_IDENTITY_HREF,
+      actionLabel: "Open availability",
+    }
+  }
+
+  if (searchQuery.trim() || statusFilter !== "all") {
+    return {
+      title: "No matches for this filter",
+      description: "Cases may still exist in another status or outside the current search. Clear filters to see the whole queue.",
+      tone: "neutral",
+      actionHref: baseHref,
+      actionLabel: "Clear filters",
+    }
+  }
+
+  return {
+    title: "No review cases right now",
+    description: "Paid clinical work, pending replies, and scripts will appear here automatically.",
+    tone: "success",
+  }
+}
+
 export function QueueClient({
   intakes: initialIntakes,
   doctorId,
@@ -38,6 +86,7 @@ export function QueueClient({
   initialStatusFilter = "all",
   hasExplicitStatusFilter = false,
   baseHref = DOCTOR_DASHBOARD_HREF,
+  doctorAvailable = true,
   compactShell = false,
 }: QueueClientProps) {
   const router = useRouter()
@@ -414,6 +463,14 @@ export function QueueClient({
   // Keep ref in sync for panel navigation callbacks
   filteredIntakesRef.current = filteredIntakes
 
+  const queueEmptyState = useMemo(() => buildQueueEmptyState({
+    doctorAvailable,
+    totalCount: intakes.length,
+    statusFilter,
+    searchQuery: debouncedSearch,
+    baseHref,
+  }), [baseHref, debouncedSearch, doctorAvailable, intakes.length, statusFilter])
+
   const handleReviewNext = useCallback(() => {
     const next = filteredIntakesRef.current[0]
     if (!next) return
@@ -648,6 +705,7 @@ export function QueueClient({
         recentlyCompleted={recentlyCompleted}
         pagination={pagination}
         baseHref={baseHref}
+        emptyState={queueEmptyState}
         compactShell={compactShell}
       />
     </div>

@@ -22,6 +22,7 @@ import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING } from "@/lib/constants"
 import { ED_FAQ } from "@/lib/data/ed-faq"
+import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
 import { SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 
 // Below-fold lazy loads
@@ -191,7 +192,7 @@ export function ErectileDysfunctionLanding() {
           {/* 1. Hero — canonical <Hero> with ED-specific title, CTA, and the
               discreet ED hero mockup. Bespoke EDHeroSection retired in Pass 2. */}
           <Hero
-            title="Private ED assessment, without the GP visit."
+            title="Private ED assessment, without the awkward GP visit."
             primaryCta={{
               text: `Start assessment · $${PRICING.MENS_HEALTH.toFixed(2)}`,
               href: "/request?service=consult&subtype=ed",
@@ -211,7 +212,7 @@ export function ErectileDysfunctionLanding() {
             mockup={<EDHeroMockup />}
           >
             <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-7 leading-relaxed text-balance">
-              Fill a short health form. A doctor reviews it privately. We&apos;ll only interrupt you if something important is missing.
+              {FORM_FIRST_WEDGE} A doctor reviews it privately and decides what is clinically appropriate. {GUARANTEE}
             </p>
           </Hero>
 

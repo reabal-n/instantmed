@@ -3,7 +3,7 @@
  *
  * Patient counter uses linear interpolation. Anchors recalibrated 2026-04-28
  * to a defensible early-stage range — previous 3,000 → 8,000 read inflated
- * against a 3-review GBP base. Update both anchors when real Supabase counts
+ * against early Google Business Profile maturity. Update both anchors when real Supabase counts
  * exceed the floor; the DB query in ./server.ts returns Math.max(real, interpolated).
  *
  *   Anchor: April 11, 2026 → 500 patients (launch baseline)
@@ -20,7 +20,7 @@
  * set ANCHOR_DATE to today, and adjust TARGET_COUNT if needed.
  *
  * Use `getPatientCount()` for server-side, `usePatientCount()` for client.
- * All social proof stats (rating, response time) live here.
+ * All public platform stats, response times, and badge state live here.
  *
  * This file is SERVER-SAFE - no React hooks. Client hook is in ./use-patient-count.ts
  */
@@ -52,12 +52,9 @@ const TOTAL_MS = TARGET_DATE.getTime() - ANCHOR_DATE.getTime()
  * Update here when real analytics data becomes available.
  */
 export const SOCIAL_PROOF = {
-  // ── Ratings & Reviews ──
-  // SINGLE SOURCE OF TRUTH for ratings - lib/constants REVIEW_AGGREGATE derives from these.
-  // Update values here only; never edit REVIEW_AGGREGATE directly.
+  // ── Google star badge state ──
+  // Stars are rendered visually only; do not surface review counts or testimonials.
   averageRating: 5.0,
-  /** Verified Google rating count - must match GOOGLE_REVIEWS.count. Update here only. */
-  reviewCount: 3,
 
   // ── Response Times ──
   /** Average response in minutes (used for stat displays) */
@@ -93,9 +90,6 @@ export const SOCIAL_PROOF = {
  * Avoids scattering template literals and `.toFixed()` calls everywhere.
  */
 export const SOCIAL_PROOF_DISPLAY = {
-  rating: `${SOCIAL_PROOF.averageRating}`,
-  ratingWithStar: `${SOCIAL_PROOF.averageRating}★`,
-  ratingOutOf5: `${SOCIAL_PROOF.averageRating}/5`,
   responseTime: `~${SOCIAL_PROOF.averageResponseMinutes} min`,
   certTurnaround: `${SOCIAL_PROOF.certTurnaroundMinutes} min`,
   operatingHours: `${SOCIAL_PROOF.operatingHoursStart}am–${SOCIAL_PROOF.operatingHoursEnd > 12 ? SOCIAL_PROOF.operatingHoursEnd - 12 : SOCIAL_PROOF.operatingHoursEnd}pm`,
@@ -109,31 +103,29 @@ export const SOCIAL_PROOF_DISPLAY = {
   certApproval: `${SOCIAL_PROOF.certApprovalPercent}% approval rate`,
   scriptFulfillment: `${SOCIAL_PROOF.scriptFulfillmentPercent}% fulfilled same day`,
   patientReturn: `${SOCIAL_PROOF.patientReturnPercent}% of patients return`,
-  reviewSummary: `${SOCIAL_PROOF.reviewCount} verified reviews`,
 } as const
 
 // ─── Google Reviews ────────────────────────────────────────────────
 
 /**
- * Google Business Profile reviews config.
+ * Google Business Profile star-badge config.
  *
- * Set `enabled: true` once the Google Business Profile is verified and
- * has real reviews. Update `placeId`, `rating`, and `count` from the
- * Google Business dashboard.
+ * Set `enabled: true` once the Google Business Profile is verified. Keep
+ * the visible badge to the Google mark + stars only; do not surface review
+ * counts, review snippets, testimonial copy, or aggregateRating schema.
  *
- * The `GoogleReviewsBadge` component and `OrganizationSchema` aggregateRating
- * both gate on `enabled` - nothing shows until you flip this flag.
+ * The `GoogleReviewsBadge` component gates on `enabled` - nothing shows until
+ * you flip this flag.
  */
 export const GOOGLE_REVIEWS: {
   enabled: boolean
   placeId: string
   reviewsUrl: string
   rating: number
-  count: number
 } = {
   /**
-   * Flip to true once you have real Google reviews.
-   * Update rating + count from the Google Business dashboard first.
+   * Flip to true once the Google Business Profile is verified.
+   * Update rating from the Google Business dashboard first.
    */
   enabled: true,
   placeId: "7941901494114695128",
@@ -141,8 +133,6 @@ export const GOOGLE_REVIEWS: {
   reviewsUrl: "https://g.page/r/CWqy3A7IKcX6EAE/review",
   /** Real rating from Google dashboard */
   rating: 5.0,
-  /** Real review count from Google dashboard */
-  count: 3,
 }
 
 // ─── Counter Logic ─────────────────────────────────────────────────

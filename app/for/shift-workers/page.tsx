@@ -201,50 +201,6 @@ export default function ShiftWorkersPage() {
               </div>
             </div>
           </section>
-          <section className="px-4 py-12 sm:px-6">
-            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-semibold text-center mb-6">What shift workers say</h2>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {[
-                    {
-                      name: "Lisa R.",
-                      role: "Nurse, Adelaide",
-                      quote: "Finished night shift feeling terrible. Got my cert at 7am before I even tried to sleep. Sorted.",
-                    },
-                    {
-                      name: "Marcus P.",
-                      role: "Chef, Melbourne",
-                      quote: "Hospitality hours mean I can&apos;t see a GP during the week. This saved me so much hassle.",
-                    },
-                    {
-                      name: "Emma T.",
-                      role: "Retail Manager, Brisbane",
-                      quote: "Got sick on a Sunday. Had my cert to HR before Monday morning. No stress.",
-                    },
-                    {
-                      name: "Dave K.",
-                      role: "Security, Sydney",
-                      quote: "Night shift life makes doctor appointments impossible. This is exactly what I needed.",
-                    },
-                  ].map((item) => (
-                    <div key={item.name} className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
-                      <div className="flex gap-1 mb-2">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="h-3.5 w-3.5 fill-dawn-400 text-dawn-400" />
-                        ))}
-                      </div>
-                      <p className="text-xs mb-2">&quot;{item.quote}&quot;</p>
-                      <p className="text-xs text-muted-foreground">
-                        - {item.name}, {item.role}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-
           {/* How It Works */}
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">

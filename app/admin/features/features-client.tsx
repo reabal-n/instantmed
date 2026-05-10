@@ -6,7 +6,7 @@ import { toast } from "sonner"
 
 import type { AutoApproveStats } from "@/app/actions/admin-config"
 import { updateFeatureFlagAction } from "@/app/actions/admin-config"
-import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
+import { OperatorPage, OperatorPageHeader } from "@/components/operator"
 import type { FeatureFlags, FlagKey } from "@/lib/data/types/feature-flags"
 import { FLAG_KEYS } from "@/lib/data/types/feature-flags"
 
@@ -108,28 +108,26 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [], autoApproveSt
         backHref="/admin/settings"
       />
 
-      <OperatorScrollArea>
-        <FeaturesList
-          flags={flags}
-          initialFlags={initialFlags}
-          isSaving={isSaving}
-          isSavingMessage={isSavingMessage}
-          maintenanceMessage={maintenanceMessage}
-          newBlockedTerm={newBlockedTerm}
-          newSafetySymptom={newSafetySymptom}
-          auditLogs={auditLogs}
-          autoApproveStats={autoApproveStats}
-          onSetFlags={setFlags}
-          onSetMaintenanceMessage={setMaintenanceMessage}
-          onSetNewBlockedTerm={setNewBlockedTerm}
-          onSetNewSafetySymptom={setNewSafetySymptom}
-          onToggleFlag={handleToggleFlag}
-          onExecuteToggle={executeToggle}
-          onSaveMaintenanceMessage={handleSaveMaintenanceMessage}
-          onSaveFlag={handleSaveFlag}
-          onSetPendingToggle={setPendingToggle}
-        />
-      </OperatorScrollArea>
+      <FeaturesList
+        flags={flags}
+        initialFlags={initialFlags}
+        isSaving={isSaving}
+        isSavingMessage={isSavingMessage}
+        maintenanceMessage={maintenanceMessage}
+        newBlockedTerm={newBlockedTerm}
+        newSafetySymptom={newSafetySymptom}
+        auditLogs={auditLogs}
+        autoApproveStats={autoApproveStats}
+        onSetFlags={setFlags}
+        onSetMaintenanceMessage={setMaintenanceMessage}
+        onSetNewBlockedTerm={setNewBlockedTerm}
+        onSetNewSafetySymptom={setNewSafetySymptom}
+        onToggleFlag={handleToggleFlag}
+        onExecuteToggle={executeToggle}
+        onSaveMaintenanceMessage={handleSaveMaintenanceMessage}
+        onSaveFlag={handleSaveFlag}
+        onSetPendingToggle={setPendingToggle}
+      />
 
       <KillSwitchConfirmDialog
         pendingToggle={pendingToggle}

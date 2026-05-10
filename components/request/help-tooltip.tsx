@@ -111,7 +111,7 @@ export const FIELD_HELP = {
   },
   address: {
     title: "Why do we need your address?",
-    content: "Some certificates may require your address. This is also used for Medicare claims if applicable.",
+    content: "Some certificates may require your address. For prescriptions and consultations, address details also support identity checks and safe prescribing records.",
   },
   allergies: {
     title: "Why do we need allergy information?",
@@ -127,7 +127,7 @@ export const FIELD_HELP = {
   },
   medicare: {
     title: "Why do we ask about Medicare?",
-    content: "With Medicare details, we can process bulk-billed services where available and submit claims on your behalf.",
+    content: "Prescriptions and consultations require Medicare details for identity, prescribing records, and pharmacy continuity. Medical certificates can be requested without Medicare.",
   },
   symptoms: {
     title: "Why such detail about symptoms?",
@@ -138,7 +138,7 @@ export const FIELD_HELP = {
 // Medical jargon explainer
 export const MEDICAL_TERMS = {
   eScript: "An electronic prescription sent to your phone. Take it to any pharmacy to get your medication.",
-  bulkBilled: "Medicare covers the cost - you pay nothing out of pocket.",
+  bulkBilled: "A Medicare-funded appointment where the clinic bills Medicare directly. InstantMed is currently private-billed.",
   telehealth: "A consultation done remotely via video, phone, or messaging instead of in-person.",
   PBS: "Pharmaceutical Benefits Scheme - government subsidies that reduce medication costs.",
   S4: "Schedule 4 - prescription-only medications that require a doctor's approval.",

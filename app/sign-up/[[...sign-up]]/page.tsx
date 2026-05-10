@@ -15,6 +15,11 @@ import { getPatientCount } from '@/lib/social-proof'
 import { createClient } from '@/lib/supabase/client'
 
 export const dynamic = "force-dynamic"
+const trustMarks = [
+  { icon: Shield, className: "bg-primary/10 text-primary" },
+  { icon: CheckCircle, className: "bg-success-light text-success" },
+  { icon: Lock, className: "bg-brand-coral/10 text-brand-coral" },
+] as const
 
 // ─── Sign Up Form ─────────────────────────────────────────────────────
 
@@ -156,22 +161,20 @@ function SignUpForm() {
               {/* Mobile-only social proof inline with form */}
               <div className="lg:hidden flex items-center justify-center gap-2 mt-3">
                 <div className="flex -space-x-1.5">
-                  {["SophiaChen", "MarcusWilliams", "AishaPatel"].map((seed) => (
-                    <Image
-                      key={seed}
-                      src={`https://api.dicebear.com/7.x/notionists/svg?seed=${seed}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc`}
-                      alt=""
-                      width={22}
-                      height={22}
-                      className="rounded-full border-2 border-white dark:border-card bg-muted"
-                      unoptimized
-                    />
+                  {trustMarks.map(({ icon: Icon, className }, index) => (
+                    <span
+                      key={index}
+                      className={`grid h-5.5 w-5.5 place-items-center rounded-full border-2 border-white dark:border-card ${className}`}
+                      aria-hidden="true"
+                    >
+                      <Icon className="h-2.5 w-2.5" />
+                    </span>
                   ))}
                 </div>
                 <span className="text-xs text-muted-foreground">
                   {getPatientCount().toLocaleString()}+ Australians
                 </span>
-                <div className="flex items-center gap-0.5 text-amber-500">
+                <div className="flex items-center gap-0.5 text-amber-500" role="img" aria-label="Google star rating">
                   {[1,2,3,4,5].map(i => <Star key={i} className="w-2.5 h-2.5 fill-current" />)}
                 </div>
               </div>
@@ -327,27 +330,24 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            {/* Social proof - real avatars + patient count */}
+            {/* Social proof */}
             <div className="flex items-center gap-4 p-4 rounded-2xl bg-white dark:bg-card border border-border/50">
               <div className="flex -space-x-2 shrink-0">
-                {["SophiaChen", "MarcusWilliams", "AishaPatel", "TomBrennan"].map((seed) => (
-                  <Image
-                    key={seed}
-                    src={`https://api.dicebear.com/7.x/notionists/svg?seed=${seed}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc`}
-                    alt=""
-                    width={32}
-                    height={32}
-                    className="rounded-full border-2 border-white dark:border-card bg-muted"
-                    unoptimized
-                  />
+                {trustMarks.map(({ icon: Icon, className }, index) => (
+                  <span
+                    key={index}
+                    className={`grid h-8 w-8 place-items-center rounded-full border-2 border-white dark:border-card ${className}`}
+                    aria-hidden="true"
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                  </span>
                 ))}
               </div>
               <div>
-                <div className="flex items-center gap-1 text-amber-500 mb-0.5">
+                <div className="flex items-center gap-1 text-amber-500 mb-0.5" role="img" aria-label="Google star rating">
                   {[1, 2, 3, 4, 5].map((i) => (
                     <Star key={i} className="w-3 h-3 fill-current" />
                   ))}
-                  <span className="text-xs font-medium text-foreground ml-1">4.8</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Trusted by <span className="font-medium text-foreground">{getPatientCount().toLocaleString()}+</span> Australians

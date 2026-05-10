@@ -313,14 +313,13 @@ All webhooks use signature verification (not CSRF).
 
 | Route | Path | Middleware block | Runtime guard |
 |-------|------|-----------------|---------------|
-| `app/(dev)/cert-preview/route.ts` | `/cert-preview` | Yes — 404 in production/preview | None (route handler, no redirect) |
 | `app/(dev)/email-preview/page.tsx` | `/email-preview` | Yes — 302 to `/` in production/preview | `NODE_ENV === "production"` redirect |
 | `app/(dev)/email-preview/[template]/page.tsx` | `/email-preview/:template` | Yes — covered by `/email-preview` prefix | `NODE_ENV === "production"` redirect |
 | `app/(dev)/sentry-test/page.tsx` | `/sentry-test` | Yes — 404 in production/preview | `NODE_ENV !== "development"` renders locked UI |
 
-None of these routes expose real PHI — all use hardcoded mock data or generate static layout-calibration PDFs. The middleware block is the primary control; runtime guards are defence-in-depth.
+None of these routes expose real PHI — all use hardcoded mock data. The middleware block is the primary control; runtime guards are defence-in-depth.
 
-**2026-04-09 audit fix:** `/cert-preview` was missing a middleware block. Added to `middleware.ts` alongside `/sentry-test`.
+**2026-05-10 cleanup:** the legacy `/cert-preview` route handler was retired because the doctor-only `/api/med-cert/preview` endpoint now uses the production renderer for certificate preview. The middleware deny rule for `/cert-preview` remains fail-closed so the path cannot be accidentally reintroduced without an explicit review.
 
 ### E2E Test Auth Bypass
 

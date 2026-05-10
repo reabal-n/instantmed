@@ -372,7 +372,7 @@ function sortDoctorMetrics(
 // ============================================================================
 
 /**
- * Get detailed metrics for a single doctor.
+ * Get detailed metrics for an individual doctor.
  */
 export async function getDoctorDetail(
   doctorId: string,

@@ -16,5 +16,6 @@ export interface QueueClientProps {
   initialStatusFilter?: QueueStatusFilter
   hasExplicitStatusFilter?: boolean
   baseHref?: string
+  doctorAvailable?: boolean
   compactShell?: boolean
 }

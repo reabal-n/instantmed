@@ -71,7 +71,7 @@ export const entConditions: Record<string, ConditionData> = {
     serviceType: "both",
     ctaText: "Get assessed",
     ctaHref: "/request?service=consult",
-    stats: { avgTime: "40 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "40 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Tonsillitis is overwhelmingly viral in origin - around 70-80% of cases - which means antibiotics will not help in most instances. The clinical challenge is distinguishing viral tonsillitis from Group A Streptococcal (GAS) infection, which does benefit from antibiotic treatment. Classic GAS features include sudden onset, severe throat pain, high fever, tonsillar exudate (white patches), tender anterior cervical lymph nodes, and absence of cough. The Centor criteria help quantify the probability. Even without antibiotics, most viral tonsillitis resolves in 5-7 days. Recurrent tonsillitis (7+ episodes in a year, or 5+ per year for 2 years) may warrant tonsillectomy referral. Via telehealth, I can assess the history pattern and decide whether antibiotics are appropriate or whether symptomatic management is the better approach.",
     auStats: [
       "Tonsillitis is one of the most common ENT presentations in Australian general practice",
@@ -212,7 +212,7 @@ export const entConditions: Record<string, ConditionData> = {
     serviceType: "both",
     ctaText: "Get assessed",
     ctaHref: "/request?service=consult",
-    stats: { avgTime: "35 mins", satisfaction: "4.7/5" },
+    stats: { avgTime: "35 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Ear infections are very common, particularly in children, and can be assessed effectively via telehealth using a detailed symptom history. In adults, the most common presentation is otitis externa (outer ear infection or 'swimmer's ear') - pain that worsens when you tug the earlobe, with possible discharge. This is usually treated with antibiotic-steroid ear drops. Otitis media (middle ear infection) causes deep ear pain, sometimes with fever and hearing changes, and often follows a cold. In adults, most middle ear infections are viral and resolve without antibiotics in 2-3 days. Antibiotics are reserved for severe symptoms, bilateral infection, or symptoms persisting beyond 48 hours. The key red flag I screen for is mastoiditis - pain and swelling behind the ear - which requires urgent in-person assessment. I also ask about hearing changes, as sudden hearing loss needs prompt investigation.",
     auStats: [
       "Ear infections are the most common reason for antibiotic prescriptions in Australian children",
@@ -354,7 +354,7 @@ export const entConditions: Record<string, ConditionData> = {
     serviceType: "med-cert",
     ctaText: "Get a certificate",
     ctaHref: "/request?service=med-cert",
-    stats: { avgTime: "25 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "25 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "A sore throat is one of the most common reasons people seek medical attention, and the overwhelming majority are viral - caused by the same viruses that cause colds and flu. The clinical question is whether antibiotics are warranted, and for most sore throats, the answer is no. I use the modified Centor criteria to assess the probability of Group A Strep infection: fever, tonsillar exudate, tender cervical lymph nodes, absence of cough, and age. A score of 3 or more suggests possible strep and may warrant antibiotics. What patients often do not realise is that even untreated strep throat resolves on its own in most cases - the primary reason we treat with antibiotics is to prevent rheumatic fever (rare in non-Indigenous Australians) and to reduce the duration and severity of symptoms. For viral sore throats, the best treatment is pain management: paracetamol, ibuprofen, and warm salt water gargles.",
     auStats: [
       "Sore throat accounts for approximately 5% of all GP consultations in Australia",
@@ -492,7 +492,7 @@ export const entConditions: Record<string, ConditionData> = {
     serviceType: "both",
     ctaText: "Get assessed",
     ctaHref: "/request?service=consult&condition=conjunctivitis",
-    stats: { avgTime: "40 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "40 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Conjunctivitis is common and almost always straightforward, but the type matters for treatment. Viral conjunctivitis - the most common form - causes watery discharge, often starts in one eye and spreads to the other, and resolves on its own in 1-2 weeks. There is no effective treatment; antibiotics do not help. Bacterial conjunctivitis causes thick, yellow-green discharge that crusts the eyelids overnight and may benefit from antibiotic eye drops. Allergic conjunctivitis causes intense itching with clear, watery discharge and often occurs alongside hay fever. The key thing I assess remotely is whether the presentation is consistent with simple conjunctivitis or whether there are warning signs - significant pain (not just irritation), sensitivity to light, blurred vision, or a history of contact lens wear with a red eye. These need same-day in-person assessment to rule out more serious conditions like keratitis or uveitis.",
     auStats: [
       "Conjunctivitis accounts for approximately 1% of all GP consultations in Australia",
@@ -632,7 +632,7 @@ export const entConditions: Record<string, ConditionData> = {
     serviceType: "med-cert",
     ctaText: "Get a certificate",
     ctaHref: "/request?service=med-cert",
-    stats: { avgTime: "25 mins", satisfaction: "4.7/5" },
+    stats: { avgTime: "25 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Pink eye and conjunctivitis are the same condition - the term 'pink eye' is simply the colloquial name. This page exists because many Australians search for 'pink eye' rather than 'conjunctivitis.' The clinical assessment is identical: I determine whether the presentation is viral (watery discharge, often bilateral, following a cold), bacterial (thick yellow-green discharge, crusting overnight, often unilateral), or allergic (intense itch, clear discharge, often seasonal). The most common mistake is treating viral pink eye with antibiotic drops - this does nothing except expose you to potential side effects and contribute to antibiotic resistance. Simple viral pink eye resolves on its own in 1-2 weeks. The key warning signs I screen for are pain (not just irritation), light sensitivity, blurred vision that does not clear with blinking, or contact lens wear with a red eye - all of which need in-person ophthalmological assessment.",
     auStats: [
       "Conjunctivitis (pink eye) is one of the most common eye conditions seen in Australian general practice",
@@ -770,7 +770,7 @@ export const entConditions: Record<string, ConditionData> = {
     serviceType: "both",
     ctaText: "Get assessed",
     ctaHref: "/request?service=consult&condition=vertigo",
-    stats: { avgTime: "50 mins", satisfaction: "4.8/5" },
+    stats: { avgTime: "50 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Vertigo is one of the most distressing symptoms patients describe - the sensation that the room is spinning can be genuinely terrifying. The most important distinction I make during assessment is between peripheral vertigo (inner ear causes, generally benign) and central vertigo (brain causes, potentially serious). Benign Paroxysmal Positional Vertigo (BPPV) is by far the most common cause - it is triggered by specific head movements, lasts seconds to minutes, and is caused by calcium crystals dislodging in the inner ear. It can be treated very effectively with specific head positioning exercises (the Epley manoeuvre). Vestibular neuritis causes prolonged vertigo lasting days and is usually viral. The red flags I screen for are vertigo with neurological symptoms - slurred speech, weakness on one side, difficulty walking, severe headache, or double vision - which require urgent assessment to rule out stroke.",
     auStats: [
       "Vertigo affects approximately 10% of the Australian population at some point in their lives",

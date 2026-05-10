@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock, Smartphone, TrendingUp } from "lucide-react"
+import { CheckCircle2, ClipboardCheck, Clock, Smartphone } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -8,30 +8,30 @@ interface HairLossHeroMockupProps {
 
 const TIMELINE = [
   {
-    month: "Month 1",
-    label: "Treatment starts",
-    description: "eScript sent to your phone",
+    month: "Step 1",
+    label: "Assessment submitted",
+    description: "Pattern and history captured",
     done: true,
     active: false,
   },
   {
-    month: "Month 3",
-    label: "Reduced shedding",
-    description: "Most patients notice less loss",
-    done: true,
-    active: false,
-  },
-  {
-    month: "Month 6",
-    label: "Visible regrowth",
-    description: "Evidence-based results",
+    month: "Step 2",
+    label: "Doctor review",
+    description: "Suitability and safety checked",
     done: false,
     active: true,
+  },
+  {
+    month: "Step 3",
+    label: "Outcome sent",
+    description: "Advice or eScript if appropriate",
+    done: false,
+    active: false,
   },
 ]
 
 /**
- * Hair loss hero mockup — treatment progress timeline card.
+ * Hair loss hero mockup — clinical review timeline card.
  * CSS animations only — no framer-motion — SSR-safe.
  */
 export function HairLossHeroMockup({ compact = false }: HairLossHeroMockupProps) {
@@ -53,14 +53,14 @@ export function HairLossHeroMockup({ compact = false }: HairLossHeroMockupProps)
 
         {/* Header */}
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-semibold text-foreground">Treatment Plan</span>
+          <span className="text-sm font-semibold text-foreground">Hair Loss Review</span>
           <span className="inline-flex items-center gap-1 text-[10px] font-medium text-success px-2 py-0.5 rounded-full bg-success/10 border border-success/20">
-            Active
+            In review
           </span>
         </div>
 
         <p className="text-[11px] text-foreground/60 leading-relaxed mb-4">
-          Your personalised hair loss treatment has been approved by an AHPRA-registered doctor.
+          Your assessment is reviewed by an AHPRA-registered doctor before any eScript decision.
         </p>
 
         {/* Progress timeline */}
@@ -82,7 +82,7 @@ export function HairLossHeroMockup({ compact = false }: HairLossHeroMockupProps)
                   {step.done ? (
                     <CheckCircle2 className="w-3 h-3 text-white" />
                   ) : step.active ? (
-                    <TrendingUp className="w-2.5 h-2.5 text-white" />
+                    <ClipboardCheck className="w-2.5 h-2.5 text-white" />
                   ) : (
                     <Clock className="w-2.5 h-2.5 text-muted-foreground" />
                   )}
@@ -108,7 +108,7 @@ export function HairLossHeroMockup({ compact = false }: HairLossHeroMockupProps)
 
         {/* Footer */}
         <p className="text-[10px] text-muted-foreground text-center border-t border-border/40 pt-2.5">
-          Discreet packaging &middot; Shipped to your door
+          Private review &middot; eScript by SMS if approved
         </p>
       </div>
 
@@ -127,8 +127,8 @@ export function HairLossHeroMockup({ compact = false }: HairLossHeroMockupProps)
             className="absolute -top-3 -left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
             style={{ animation: "hero-fade-up 0.4s ease-out 0.65s both" }}
           >
-            <TrendingUp className="w-3.5 h-3.5 text-primary" />
-            Evidence-based
+            <ClipboardCheck className="w-3.5 h-3.5 text-primary" />
+            Clinical review
           </div>
         </>
       )}
@@ -152,18 +152,18 @@ export function HairLossHeroMockup({ compact = false }: HairLossHeroMockupProps)
               className="flex items-center gap-2"
               style={{ animation: "hero-fade-up 0.3s ease-out 1.1s both" }}
             >
-              <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" />
-              <span className="text-[11px] text-foreground/60">Doctor reviewed</span>
-              <span className="text-[9px] text-muted-foreground ml-auto">Just now</span>
+              <ClipboardCheck className="w-3.5 h-3.5 text-primary shrink-0" />
+              <span className="text-[11px] text-foreground/60">Doctor reviewing</span>
+              <span className="text-[9px] text-muted-foreground ml-auto">Now</span>
             </div>
             <div
               className="flex items-center gap-2"
               style={{ animation: "hero-fade-up 0.3s ease-out 1.3s both" }}
             >
               <Smartphone className="w-3.5 h-3.5 text-primary shrink-0" />
-              <span className="text-[11px] font-medium text-foreground">eScript sent</span>
-              <span className="inline-flex items-center gap-0.5 ml-auto px-1.5 py-0.5 rounded-full bg-success/10 text-[9px] font-medium text-success">
-                Done
+              <span className="text-[11px] font-medium text-foreground">Outcome sent</span>
+              <span className="inline-flex items-center gap-0.5 ml-auto px-1.5 py-0.5 rounded-full bg-primary/10 text-[9px] font-medium text-primary">
+                If approved
               </span>
             </div>
           </div>
