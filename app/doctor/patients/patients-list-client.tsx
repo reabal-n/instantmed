@@ -1,6 +1,20 @@
 "use client"
 
-import { AlertTriangle, Calendar, CheckCircle, ChevronLeft, ChevronRight, MapPin, Phone, Pill, Search, Users, XCircle } from "lucide-react"
+import {
+  AlertTriangle,
+  Calendar,
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardList,
+  FileText,
+  MapPin,
+  Phone,
+  Pill,
+  Search,
+  Users,
+  XCircle,
+} from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
@@ -13,9 +27,10 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { UserCard } from "@/components/uix"
-import type { PatientDirectoryProfile } from "@/lib/data/patient-directory"
+import type { PatientDirectoryProfile, PatientDirectorySort } from "@/lib/data/patient-directory"
 import { findPotentialDuplicatePatients } from "@/lib/doctor/patient-snapshot"
 import { calculateAge, formatDate } from "@/lib/format"
+import { formatIntakeStatus } from "@/lib/format/intake"
 
 import { AddPatientDialog } from "./add-patient-dialog"
 
@@ -26,6 +41,7 @@ interface PatientsListClientProps {
   totalPatients: number
   rawPatientProfiles: number
   collapsedDuplicateProfiles: number
+  currentSort?: PatientDirectorySort
   baseHref?: string
   patientHrefBase?: string
   showHeader?: boolean
@@ -41,6 +57,7 @@ export function PatientsListClient({
   totalPatients,
   rawPatientProfiles,
   collapsedDuplicateProfiles,
+  currentSort = "recent_request",
   baseHref = "/doctor/patients",
   patientHrefBase = "/doctor/patients",
   showHeader = true,
@@ -52,6 +69,18 @@ export function PatientsListClient({
   const [searchQuery, setSearchQuery] = useState("")
   const [stateFilter, setStateFilter] = useState<string>("all")
   const [onboardingFilter, setOnboardingFilter] = useState<string>("all")
+
+  const buildDirectoryHref = (page: number, sort: PatientDirectorySort = currentSort) => {
+    const params = new URLSearchParams()
+    if (page > 1) params.set("page", String(page))
+    if (sort !== "recent_request") params.set("sort", sort)
+    const query = params.toString()
+    return query ? `${baseHref}?${query}` : baseHref
+  }
+
+  const handleSortChange = (value: PatientDirectorySort) => {
+    router.push(buildDirectoryHref(1, value))
+  }
 
   const filteredPatients = useMemo(() => {
     return patients.filter((patient) => {
@@ -75,6 +104,13 @@ export function PatientsListClient({
 
 
   const states = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
+  const sortOptions: Array<{ value: PatientDirectorySort; label: string }> = [
+    { value: "recent_request", label: "Most recent request" },
+    { value: "request_type", label: "Request type" },
+    { value: "recent_script", label: "Last script" },
+    { value: "name", label: "Name" },
+    { value: "joined", label: "Joined" },
+  ]
   const parchmentSyncedPatients = patients.filter((p) => p.parchment_patient_id).length
   const onboardedPatients = patients.filter((p) => p.onboarding_completed).length
   const incompletePatients = patients.length - onboardedPatients
@@ -139,7 +175,23 @@ export function PatientsListClient({
               />
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
+              <Select value={currentSort} onValueChange={(value) => handleSortChange(value as PatientDirectorySort)}>
+                <SelectTrigger
+                  className="w-[190px] rounded-xl bg-white dark:bg-card border-border/50"
+                  aria-label="Sort patients"
+                >
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sortOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
               <Select value={stateFilter} onValueChange={setStateFilter}>
                 <SelectTrigger className="w-[120px] rounded-xl bg-white dark:bg-card border-border/50">
                   <SelectValue placeholder="State" />
@@ -215,6 +267,8 @@ export function PatientsListClient({
                 <TableHead scope="col">Patient</TableHead>
                 <TableHead scope="col">Contact</TableHead>
                 <TableHead scope="col">Location</TableHead>
+                <TableHead scope="col">Last request</TableHead>
+                <TableHead scope="col">Last script</TableHead>
                 <TableHead scope="col">Status</TableHead>
                 <TableHead scope="col">Parchment</TableHead>
                 <TableHead scope="col">Joined</TableHead>
@@ -281,6 +335,40 @@ export function PatientsListClient({
                         )}
                       </TableCell>
                       <TableCell>
+                        {patient.lastRequest ? (
+                          <div className="min-w-[150px] space-y-1">
+                            <div className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                              <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                              {patient.lastRequest.serviceShortLabel}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                              <span>{formatIntakeStatus(patient.lastRequest.status)}</span>
+                              <span>·</span>
+                              <span>{formatDate(patient.lastRequest.createdAt)}</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">No requests</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {patient.lastScript ? (
+                          <div className="min-w-[145px] space-y-1">
+                            <div className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                              <ClipboardList className="h-3.5 w-3.5 text-muted-foreground" />
+                              <span className="max-w-[130px] truncate">{patient.lastScript.label}</span>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                              <span>{patient.lastScript.status.replace("_", " ")}</span>
+                              <span>·</span>
+                              <span>{formatDate(patient.lastScript.sentAt ?? patient.lastScript.createdAt)}</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">No script</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
                         {patient.onboarding_completed ? (
                           <Badge variant="outline" className="bg-success-light text-success border-success-border">
                             <CheckCircle className="mr-1 h-3 w-3" />
@@ -322,7 +410,7 @@ export function PatientsListClient({
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-32 text-center">
+                  <TableCell colSpan={9} className="h-32 text-center">
                     <div className="flex flex-col items-center gap-2 text-muted-foreground">
                       <Users className="h-8 w-8 opacity-50" />
                       <p>No patients found matching your filters</p>
@@ -347,7 +435,7 @@ export function PatientsListClient({
               variant="outline"
               size="sm"
               disabled={currentPage <= 1}
-              onClick={() => router.push(`${baseHref}?page=${currentPage - 1}`)}
+              onClick={() => router.push(buildDirectoryHref(currentPage - 1))}
             >
               <ChevronLeft className="h-4 w-4 mr-1" />
               Previous
@@ -356,7 +444,7 @@ export function PatientsListClient({
               variant="outline"
               size="sm"
               disabled={currentPage >= totalPages}
-              onClick={() => router.push(`${baseHref}?page=${currentPage + 1}`)}
+              onClick={() => router.push(buildDirectoryHref(currentPage + 1))}
             >
               Next
               <ChevronRight className="h-4 w-4 ml-1" />

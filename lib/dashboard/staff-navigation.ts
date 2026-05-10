@@ -20,14 +20,27 @@ import {
   ADMIN_INTAKE_LEDGER_HREF,
   ADMIN_OPS_HREF,
   ADMIN_PATIENTS_HREF,
+  ADMIN_SCRIPTS_HREF,
   ADMIN_SETTINGS_HREF,
 } from "@/lib/dashboard/routes"
+
+export interface StaffNavCounts {
+  prescribingIdentityPatients: number
+  scriptsToWrite: number
+}
+
+export const EMPTY_STAFF_NAV_COUNTS: StaffNavCounts = {
+  prescribingIdentityPatients: 0,
+  scriptsToWrite: 0,
+}
 
 export interface StaffNavItem {
   href: string
   label: string
   icon: LucideIcon
   badge?: boolean
+  badgeKey?: keyof StaffNavCounts
+  badgeTone?: "primary" | "warning"
 }
 
 export interface StaffNavSection {
@@ -42,7 +55,8 @@ export const operatorNavSections: StaffNavSection[] = [
       { href: ADMIN_DASHBOARD_HREF, label: "Dashboard", icon: LayoutDashboard },
       { href: ADMIN_INTAKE_LEDGER_HREF, label: "Intake ledger", icon: ListOrdered },
       { href: ADMIN_DOCTOR_QUEUE_HREF, label: "Queue", icon: Stethoscope },
-      { href: ADMIN_PATIENTS_HREF, label: "Patients", icon: Users },
+      { href: ADMIN_SCRIPTS_HREF, label: "Scripts", icon: ClipboardList, badgeKey: "scriptsToWrite", badgeTone: "primary" },
+      { href: ADMIN_PATIENTS_HREF, label: "Patients", icon: Users, badgeKey: "prescribingIdentityPatients", badgeTone: "warning" },
     ],
   },
   {

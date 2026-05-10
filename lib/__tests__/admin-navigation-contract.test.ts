@@ -124,6 +124,7 @@ describe("admin navigation contract", () => {
       "Dashboard",
       "Intake ledger",
       "Queue",
+      "Scripts",
       "Patients",
       "Analytics",
       "Finance",
@@ -134,7 +135,12 @@ describe("admin navigation contract", () => {
     expect(sidebarSource).not.toContain("clinicalNavItems")
     expect(sidebarSource).not.toContain("Clinical mode")
     expect(operatorNavSource).toContain("ADMIN_DOCTOR_QUEUE_HREF")
+    expect(operatorNavSource).toContain("ADMIN_SCRIPTS_HREF")
     expect(operatorNavSource).toContain("ADMIN_PATIENTS_HREF")
+    expect(operatorNavSource).toContain('badgeKey: "scriptsToWrite"')
+    expect(operatorNavSource).toContain('badgeKey: "prescribingIdentityPatients"')
+    expect(sidebarSource).toContain("useLiveStaffNavCounts")
+    expect(sidebarSource).toContain("/api/admin/staff-nav-counts")
     expect(operatorNavSource).not.toContain('href: "/doctor/dashboard"')
     expect(sidebarSource).not.toContain('href: "/doctor/patients"')
     expect(sidebarSource).not.toContain('href: "/doctor/scripts"')

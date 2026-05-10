@@ -1,4 +1,5 @@
 import { decryptProfilePhi } from "@/lib/data/profiles"
+import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
 import {
   PARCHMENT_PATIENT_SYNC_STATUSES,
   PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES,
@@ -70,9 +71,10 @@ export async function getPrescribingIdentityBlockerReport(
   supabase: ServiceRoleClient,
 ): Promise<PrescribingIdentityBlockerReport> {
   const prescribingConsultSubtypeFilter = PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES.join(",")
-  const { data, error } = await supabase
-    .from("intakes")
-    .select(`
+  const { data, error } = await filterSeededE2EIntakes(
+    supabase
+      .from("intakes")
+      .select(`
       id,
       reference_number,
       status,
@@ -92,11 +94,12 @@ export async function getPrescribingIdentityBlockerReport(
         answers_encrypted
       )
     `)
-    .eq("payment_status", "paid")
-    .or(`category.eq.prescription,and(category.eq.consult,subtype.in.(${prescribingConsultSubtypeFilter}))`)
-    .in("status", [...PARCHMENT_PATIENT_SYNC_STATUSES])
-    .order("paid_at", { ascending: true, nullsFirst: false })
-    .limit(100)
+      .eq("payment_status", "paid")
+      .or(`category.eq.prescription,and(category.eq.consult,subtype.in.(${prescribingConsultSubtypeFilter}))`)
+      .in("status", [...PARCHMENT_PATIENT_SYNC_STATUSES])
+      .order("paid_at", { ascending: true, nullsFirst: false })
+      .limit(100),
+  )
 
   if (error || !data) {
     return buildPrescribingIdentityBlockerReport([])

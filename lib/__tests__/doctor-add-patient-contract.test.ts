@@ -50,8 +50,14 @@ describe("doctor add patient Parchment contract", () => {
     expect(listSource).toContain("actions={showAddPatientAction ? <AddPatientDialog /> : undefined}")
     expect(listSource).toContain("AddPatientDialog")
     expect(listSource).toContain("Parchment synced")
+    expect(listSource).toContain("Sort patients")
+    expect(listSource).toContain("Last request")
+    expect(listSource).toContain("Last script")
     expect(pageSource).toContain("getPatientDirectoryPage")
+    expect(pageSource).toContain("parsePatientDirectorySort")
     expect(patientDirectorySource).toContain("parchment_patient_id")
+    expect(patientDirectorySource).toContain("lastRequest")
+    expect(patientDirectorySource).toContain("lastScript")
   })
 
   it("requires doctor/admin auth and rate limits before creating a patient", () => {

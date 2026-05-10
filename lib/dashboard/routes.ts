@@ -3,6 +3,7 @@ export const DOCTOR_DASHBOARD_HREF = "/doctor/dashboard" as const
 export const ADMIN_DASHBOARD_HREF = "/admin" as const
 export const ADMIN_INTAKE_LEDGER_HREF = "/admin/intakes" as const
 export const ADMIN_DOCTOR_QUEUE_HREF = "/admin#doctor-queue" as const
+export const ADMIN_SCRIPTS_HREF = "/admin?status=scripts#doctor-queue" as const
 export const ADMIN_PATIENTS_HREF = "/admin/patients" as const
 export const ADMIN_ANALYTICS_HREF = "/admin/analytics" as const
 export const ADMIN_FINANCE_HREF = "/admin/finance" as const

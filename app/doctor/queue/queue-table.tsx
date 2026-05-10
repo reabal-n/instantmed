@@ -13,6 +13,7 @@ import {
   Sparkles,
   Zap,
 } from "lucide-react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
@@ -41,6 +42,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Pagination, UserCard } from "@/components/uix"
 import { capture } from "@/lib/analytics/capture"
+import { ADMIN_PRESCRIBING_IDENTITY_HREF } from "@/lib/dashboard/routes"
 import { buildPatientHandoffSummary } from "@/lib/doctor/patient-handoff"
 import { buildPatientSnapshot, getPatientSnapshotOptionsForCase } from "@/lib/doctor/patient-snapshot"
 import { LAST_OPENED_DOCTOR_CASE_KEY } from "@/lib/doctor/queue-focus"
@@ -279,6 +281,11 @@ export function QueueTable({
               REVIEW_TARGET_STATUSES.has(intake.status) &&
               isPastReviewTarget(queueEnteredAt)
             const nextActionLabel = getCompactNextActionLabel(intake.status, service?.type)
+            const showIdentityFix =
+              compactShell &&
+              intake.status === "awaiting_script" &&
+              patientSnapshot.missingCriticalFields.length > 0
+            const identityFixHref = `${ADMIN_PRESCRIBING_IDENTITY_HREF}#identity-${intake.id}`
 
             const isOpen = openIntakeId === intake.id
             const isRead = readIds.has(intake.id)
@@ -416,6 +423,24 @@ export function QueueTable({
 
                 {/* Quick actions */}
                 <div className="col-start-2 row-start-1 flex shrink-0 items-center justify-end gap-1 sm:col-start-3">
+                  {showIdentityFix && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 border-warning-border bg-warning-light px-2.5 text-xs text-warning hover:bg-warning-light/80"
+                      asChild
+                    >
+                      <Link
+                        href={identityFixHref}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                        }}
+                        aria-label={`Fix prescribing identity for ${intake.patient.full_name}`}
+                      >
+                        Fix identity
+                      </Link>
+                    </Button>
+                  )}
                   <Button
                     variant={compactShell ? "default" : "outline"}
                     size="sm"

@@ -6,33 +6,107 @@ import {
   X,
 } from "lucide-react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { useEffect, useState } from "react"
+import { usePathname, useSearchParams } from "next/navigation"
+import { useCallback, useEffect, useState } from "react"
 
-import { operatorNavSections, type StaffNavItem } from "@/lib/dashboard/staff-navigation"
+import {
+  EMPTY_STAFF_NAV_COUNTS,
+  operatorNavSections,
+  type StaffNavCounts,
+  type StaffNavItem,
+} from "@/lib/dashboard/staff-navigation"
 import { cn } from "@/lib/utils"
 
 interface AdminSidebarProps {
   userName: string
   userRole?: string
-  pendingCount?: number
+  navCounts?: StaffNavCounts
 }
 
 const ACTIVE_NAV_LINK = "bg-primary/5 text-blue-700 dark:bg-primary/20 dark:text-blue-200"
 const ACTIVE_NAV_ICON = "text-blue-700 dark:text-blue-200"
 
-function getIsActive(pathname: string | null, href: string) {
-  if (href === "/admin") return pathname === "/admin"
-  return pathname === href || Boolean(pathname?.startsWith(`${href}/`))
+function getHrefPath(href: string) {
+  return href.split(/[?#]/)[0]
+}
+
+function getHrefStatus(href: string) {
+  const query = href.split("?")[1]?.split("#")[0]
+  if (!query) return null
+  return new URLSearchParams(query).get("status")
+}
+
+function getIsActive(pathname: string | null, href: string, currentStatus: string | null) {
+  const hrefPath = getHrefPath(href)
+  const hrefStatus = getHrefStatus(href)
+
+  if (href === "/admin") return pathname === "/admin" && !currentStatus
+  if (hrefPath === "/admin" && hrefStatus) return pathname === "/admin" && currentStatus === hrefStatus
+  return pathname === hrefPath || Boolean(pathname?.startsWith(`${hrefPath}/`))
+}
+
+function NavBadge({
+  count,
+  tone = "primary",
+}: {
+  count: number
+  tone?: StaffNavItem["badgeTone"]
+}) {
+  if (count <= 0) return null
+
+  return (
+    <span
+      className={cn(
+        "inline-flex min-w-5 shrink-0 items-center justify-center rounded-full border px-1.5 py-0.5 text-[11px] font-semibold tabular-nums",
+        tone === "warning"
+          ? "border-warning-border bg-warning-light text-warning"
+          : "border-primary/20 bg-primary/10 text-primary",
+      )}
+    >
+      {count > 99 ? "99+" : count}
+    </span>
+  )
+}
+
+function useLiveStaffNavCounts(initialCounts?: StaffNavCounts) {
+  const [counts, setCounts] = useState<StaffNavCounts>(initialCounts ?? EMPTY_STAFF_NAV_COUNTS)
+
+  const refreshCounts = useCallback(async () => {
+    try {
+      const response = await fetch("/api/admin/staff-nav-counts", { cache: "no-store" })
+      if (!response.ok) return
+      const nextCounts = await response.json() as StaffNavCounts
+      setCounts({
+        prescribingIdentityPatients: Number(nextCounts.prescribingIdentityPatients) || 0,
+        scriptsToWrite: Number(nextCounts.scriptsToWrite) || 0,
+      })
+    } catch {
+      // Count badges are advisory; keep the last good values if polling fails.
+    }
+  }, [])
+
+  useEffect(() => {
+    setCounts(initialCounts ?? EMPTY_STAFF_NAV_COUNTS)
+  }, [initialCounts])
+
+  useEffect(() => {
+    refreshCounts()
+    const interval = window.setInterval(refreshCounts, 45_000)
+    return () => window.clearInterval(interval)
+  }, [refreshCounts])
+
+  return counts
 }
 
 function NavLink({
   item,
   active,
+  count,
   onClick,
 }: {
   item: StaffNavItem
   active: boolean
+  count?: number
   onClick?: () => void
 }) {
   return (
@@ -56,9 +130,12 @@ function NavLink({
         />
         {item.label}
       </span>
-      {active && (
-        <ChevronRight className="h-3.5 w-3.5 text-primary/50" />
-      )}
+      <span className="ml-2 flex shrink-0 items-center gap-1.5">
+        <NavBadge count={count ?? 0} tone={item.badgeTone} />
+        {active && (
+          <ChevronRight className="h-3.5 w-3.5 text-primary/50" />
+        )}
+      </span>
     </Link>
   )
 }
@@ -67,11 +144,15 @@ function NavSection({
   title,
   items,
   pathname,
+  counts,
+  currentStatus,
   onNavigate,
 }: {
   title: string
   items: StaffNavItem[]
   pathname: string | null
+  counts: StaffNavCounts
+  currentStatus: string | null
   onNavigate?: () => void
 }) {
   return (
@@ -83,7 +164,8 @@ function NavSection({
         <NavLink
           key={item.href}
           item={item}
-          active={getIsActive(pathname, item.href)}
+          active={getIsActive(pathname, item.href, currentStatus)}
+          count={item.badgeKey ? counts[item.badgeKey] : 0}
           onClick={onNavigate}
         />
       ))}
@@ -128,8 +210,11 @@ function UserSummary({ userName, userRole }: { userName: string; userRole: strin
   )
 }
 
-export function AdminSidebar({ userName, userRole = "Operator" }: AdminSidebarProps) {
+export function AdminSidebar({ userName, userRole = "Operator", navCounts }: AdminSidebarProps) {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const counts = useLiveStaffNavCounts(navCounts)
+  const currentStatus = searchParams.get("status")
 
   return (
     <aside className="hidden w-[260px] shrink-0 flex-col lg:flex" aria-label="Operator sidebar">
@@ -142,7 +227,13 @@ export function AdminSidebar({ userName, userRole = "Operator" }: AdminSidebarPr
           {operatorNavSections.map((section, index) => (
             <div key={section.title} className="contents">
               {index > 0 ? <div className="mx-3 border-t border-border/30" /> : null}
-              <NavSection title={section.title} items={section.items} pathname={pathname} />
+              <NavSection
+                title={section.title}
+                items={section.items}
+                pathname={pathname}
+                counts={counts}
+                currentStatus={currentStatus}
+              />
             </div>
           ))}
         </nav>
@@ -157,9 +248,12 @@ export function AdminSidebar({ userName, userRole = "Operator" }: AdminSidebarPr
   )
 }
 
-export function MobileAdminNav({ pendingCount: _pendingCount = 0 }: { pendingCount?: number }) {
+export function MobileAdminNav({ navCounts }: { navCounts?: StaffNavCounts }) {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const counts = useLiveStaffNavCounts(navCounts)
+  const currentStatus = searchParams.get("status")
 
   useEffect(() => {
     setOpen(false)
@@ -212,6 +306,8 @@ export function MobileAdminNav({ pendingCount: _pendingCount = 0 }: { pendingCou
                 title={section.title}
                 items={section.items}
                 pathname={pathname}
+                counts={counts}
+                currentStatus={currentStatus}
                 onNavigate={() => setOpen(false)}
               />
             </div>

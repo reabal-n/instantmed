@@ -110,7 +110,11 @@ export default async function PrescribingIdentityOpsPage() {
         ) : (
           <div className="divide-y divide-border/60">
             {report.items.map((item) => (
-              <div key={item.intakeId} className="grid gap-4 px-5 py-4 lg:grid-cols-[1.3fr_1.4fr_auto] lg:items-center">
+              <div
+                key={item.intakeId}
+                id={`identity-${item.intakeId}`}
+                className="grid scroll-mt-24 gap-4 px-5 py-4 lg:grid-cols-[1.3fr_1.4fr_auto] lg:items-center"
+              >
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-medium">{item.referenceNumber || "Prescription request"}</p>

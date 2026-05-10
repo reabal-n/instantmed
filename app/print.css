@@ -1,0 +1,187 @@
+/**
+ * Print Styles for InstantMed
+ * 
+ * Optimizes certificate and document printing.
+ * Imported in globals.css with @import url('./print.css') print;
+ */
+
+@media print {
+  /* Hide non-essential elements */
+  header,
+  footer,
+  nav,
+  aside,
+  .no-print,
+  .bottom-tab-bar,
+  .pwa-install-prompt,
+  .toast-container,
+  button:not(.print-visible),
+  [role="dialog"],
+  [role="alertdialog"] {
+    display: none !important;
+  }
+
+  /* Reset backgrounds for printing */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+
+  /* Ensure full width */
+  .container,
+  main,
+  .print-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Certificate specific styles */
+  .certificate-container {
+    page-break-inside: avoid;
+    border: 2px solid #000 !important;
+    padding: 2rem !important;
+    margin: 1rem 0 !important;
+  }
+
+  .certificate-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .certificate-logo {
+    max-width: 150px;
+    height: auto;
+  }
+
+  .certificate-title {
+    font-size: 24pt;
+    font-weight: bold;
+    margin: 1rem 0;
+  }
+
+  .certificate-body {
+    font-size: 12pt;
+    line-height: 1.8;
+  }
+
+  .certificate-field {
+    margin: 0.5rem 0;
+  }
+
+  .certificate-field-label {
+    font-weight: bold;
+    display: inline-block;
+    min-width: 150px;
+  }
+
+  .certificate-signature {
+    margin-top: 3rem;
+    border-top: 1px solid #000;
+    padding-top: 0.5rem;
+    width: 250px;
+  }
+
+  .certificate-footer {
+    margin-top: 2rem;
+    font-size: 10pt;
+    color: #666 !important;
+    text-align: center;
+  }
+
+  /* QR codes should print clearly */
+  .qr-code {
+    page-break-inside: avoid;
+  }
+
+  .qr-code img,
+  .qr-code svg {
+    max-width: 150px !important;
+  }
+
+  /* Links show URL in print */
+  a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 10pt;
+    color: #666;
+  }
+
+  /* Don't show URL for internal/button links */
+  a[href^="#"]:after,
+  a[href^="javascript"]:after,
+  a.no-print-url:after,
+  button a:after {
+    content: "";
+  }
+
+  /* Page breaks */
+  .page-break-before {
+    page-break-before: always;
+  }
+
+  .page-break-after {
+    page-break-after: always;
+  }
+
+  .avoid-break {
+    page-break-inside: avoid;
+  }
+
+  /* Tables */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  th,
+  td {
+    border: 1px solid #000 !important;
+    padding: 8px !important;
+    text-align: left;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tr {
+    page-break-inside: avoid;
+  }
+
+  /* Images */
+  img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+
+  /* Ensure text is readable */
+  * {
+    color: #000 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Preserve some colors for status badges */
+  .print-preserve-color {
+    color: inherit !important;
+  }
+
+  /* Footer with page numbers */
+  @page {
+    margin: 2cm;
+    
+    @bottom-center {
+      content: "Page " counter(page) " of " counter(pages);
+      font-size: 10pt;
+    }
+  }
+
+  /* First page no margin top for letterhead */
+  @page :first {
+    margin-top: 1cm;
+  }
+}
