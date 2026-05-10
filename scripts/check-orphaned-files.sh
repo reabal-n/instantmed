@@ -70,7 +70,18 @@ while IFS= read -r deprecated_file; do
   import_path="${deprecated_file%.ts}"
   import_path="${import_path%.tsx}"
   # Check if anything imports from this file (excluding the file itself)
-  matches=$(grep -rl --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.worktrees "$import_path" --include="*.ts" --include="*.tsx" . 2>/dev/null || true)
+  matches=$(grep -rl \
+    --exclude-dir=.git \
+    --exclude-dir=node_modules \
+    --exclude-dir=.next \
+    --exclude-dir=.next-stale-* \
+    --exclude-dir=.worktrees \
+    --exclude-dir=playwright-report \
+    --exclude-dir=test-results \
+    "$import_path" \
+    --include="*.ts" \
+    --include="*.tsx" \
+    . 2>/dev/null || true)
   import_count=$(printf "%s\n" "$matches" \
     | grep -vF "$deprecated_file" || true)
   import_count=$(printf "%s\n" "$import_count" | sed '/^$/d' | wc -l | tr -d ' ')
@@ -78,7 +89,18 @@ while IFS= read -r deprecated_file; do
     echo "ORPHAN: $deprecated_file is @deprecated with 0 imports"
     orphans=$((orphans + 1))
   fi
-done < <(grep -rl --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.worktrees "@deprecated" --include="*.ts" --include="*.tsx" . 2>/dev/null)
+done < <(grep -rl \
+  --exclude-dir=.git \
+  --exclude-dir=node_modules \
+  --exclude-dir=.next \
+  --exclude-dir=.next-stale-* \
+  --exclude-dir=.worktrees \
+  --exclude-dir=playwright-report \
+  --exclude-dir=test-results \
+  "@deprecated" \
+  --include="*.ts" \
+  --include="*.tsx" \
+  . 2>/dev/null)
 
 # ── 4. Superseded intake engines ──────────────────────────────────────────
 for legacy_intake_module in \

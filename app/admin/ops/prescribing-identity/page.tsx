@@ -1,7 +1,8 @@
 import { AlertTriangle, CheckCircle, CreditCard, ExternalLink } from "lucide-react"
 import Link from "next/link"
 
-import { DashboardPageHeader, StatusBadge } from "@/components/dashboard"
+import { StatusBadge } from "@/components/dashboard"
+import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { requireRole } from "@/lib/auth/helpers"
@@ -36,9 +37,9 @@ export default async function PrescribingIdentityOpsPage() {
     .slice(0, 6)
 
   return (
-    <div className="space-y-6">
-      <DashboardPageHeader
-        title="Prescribing Identity Blocks"
+    <OperatorPage>
+      <OperatorPageHeader
+        title="Prescribing identity blocks"
         description="Paid prescription requests that are not ready for Parchment because identity data is incomplete."
         backHref="/admin/ops"
         backLabel="Operations"
@@ -49,6 +50,7 @@ export default async function PrescribingIdentityOpsPage() {
         }
       />
 
+      <OperatorScrollArea>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-xl border border-border/50 bg-card p-5 shadow-sm shadow-primary/[0.04] dark:shadow-none">
           <div className="flex items-center gap-3">
@@ -152,6 +154,7 @@ export default async function PrescribingIdentityOpsPage() {
           </div>
         )}
       </div>
-    </div>
+      </OperatorScrollArea>
+    </OperatorPage>
   )
 }

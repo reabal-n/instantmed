@@ -35,6 +35,7 @@ interface RepeatPrescriptionChecklistProps {
   scriptSentAt: string | null
   scriptSentChannel?: string | null
   doctorName?: string
+  compact?: boolean
 }
 
 export function RepeatPrescriptionChecklist({
@@ -45,6 +46,7 @@ export function RepeatPrescriptionChecklist({
   scriptSentAt,
   scriptSentChannel,
   doctorName,
+  compact = false,
 }: RepeatPrescriptionChecklistProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -94,14 +96,14 @@ export function RepeatPrescriptionChecklist({
   }
 
   return (
-    <Card className="border-primary/20 bg-primary/5 dark:bg-primary/5">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-foreground">
-          <ClipboardList className="h-5 w-5 text-primary" />
+    <Card className="border-primary/20 bg-primary/5 dark:bg-primary/5" hoverable={false}>
+      <CardHeader className={compact ? "px-4 py-2.5" : "pb-3"}>
+        <CardTitle className="flex items-center gap-2 text-base text-foreground">
+          <ClipboardList className="h-4 w-4 text-primary" />
           Repeat Prescription Checklist
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className={compact ? "space-y-2 px-4 pb-3" : "space-y-4"}>
         {/* Item 1: EMR Note Drafted */}
         <div className="flex items-start gap-3 p-3 rounded-xl bg-card border border-border/50">
           <Checkbox

@@ -2,10 +2,7 @@
 
 import { useEffect, useRef } from "react"
 
-import {
-  logViewedIntakeAnswersAction,
-  logViewedSafetyFlagsAction,
-} from "@/app/actions/clinician-audit"
+import { fetchWithCsrf } from "@/lib/security/csrf-client"
 
 interface UseAuditTrailOptions {
   /** Service type string (e.g. "med_certs", "repeat_rx") for audit categorization. */
@@ -37,17 +34,17 @@ export function useAuditTrail(
     hasFired.current = true
 
     const { serviceType, answers } = options
-
-    // Log clinician viewed intake answers
-    logViewedIntakeAnswersAction(intakeId, serviceType)
-
-    // Log safety flags view if present
-    if (
+    const hasSafetyFlags = Boolean(
       answers?.red_flags_detected ||
       answers?.yellow_flags_detected ||
-      answers?.emergency_symptoms
-    ) {
-      logViewedSafetyFlagsAction(intakeId, serviceType)
-    }
+      answers?.emergency_symptoms,
+    )
+
+    void fetchWithCsrf(`/api/doctor/intakes/${intakeId}/audit-view`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ serviceType, hasSafetyFlags }),
+      keepalive: true,
+    }).catch(() => undefined)
   }, [intakeId, active, options])
 }

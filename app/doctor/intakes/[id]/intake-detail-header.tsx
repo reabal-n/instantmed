@@ -14,6 +14,7 @@ import {
   XCircle,
 } from "lucide-react"
 import Link from "next/link"
+import type { ReactNode } from "react"
 
 import { type CertificatePreviewData, CertificatePreviewDialog, PdfViewerDialog } from "@/components/doctor"
 import {
@@ -98,6 +99,10 @@ interface IntakeDetailHeaderProps {
   onReissueConfirm: (data: CertificatePreviewData, notifyPatient?: boolean) => void
   certDelivery?: CertDeliveryStatus | null
   doctorNotes: string
+  backHref?: string
+  backLabel?: string
+  supplementaryActions?: ReactNode
+  compact?: boolean
 }
 
 export function IntakeDetailHeader({
@@ -132,6 +137,10 @@ export function IntakeDetailHeader({
   onReissueConfirm,
   certDelivery,
   doctorNotes,
+  backHref = "/doctor/dashboard",
+  backLabel = "Back to queue",
+  supplementaryActions,
+  compact = false,
 }: IntakeDetailHeaderProps) {
   const service = intake.service as { type?: string } | undefined
   const answers = (intake.answers?.answers ?? {}) as Record<string, unknown>
@@ -163,15 +172,16 @@ export function IntakeDetailHeader({
   const getStatusColor = (status: string) => {
     return INTAKE_STATUS[status as StatusType]?.color ?? "bg-primary/10 text-primary"
   }
+  const actionButtonSize = compact ? "sm" : "default"
 
   return (
     <>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        <Button variant="ghost" asChild className="self-start">
-          <Link href="/doctor/dashboard">
+      <div className="flex shrink-0 flex-col gap-2 rounded-xl border border-border/50 bg-white px-3 py-2.5 shadow-sm shadow-primary/[0.04] dark:bg-card dark:shadow-none sm:flex-row sm:items-center sm:justify-between">
+        <Button variant="ghost" size="sm" asChild className="self-start">
+          <Link href={backHref}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Queue
+            {backLabel}
           </Link>
         </Button>
         <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
@@ -208,8 +218,9 @@ export function IntakeDetailHeader({
                   : certDelivery.emailSentAt
                     ? "Sent"
                     : "Pending"}
-            </Badge>
+              </Badge>
           )}
+          {supplementaryActions}
         </div>
       </div>
 
@@ -281,9 +292,9 @@ export function IntakeDetailHeader({
       )}
 
       {/* Actions */}
-      <Card>
-        <CardContent className="px-4 py-4">
-          <div className="flex flex-wrap gap-3">
+      <Card className="shrink-0" data-testid="operator-action-rail">
+        <CardContent className={compact ? "px-3 py-3" : "px-4 py-4"}>
+          <div className={compact ? "flex flex-wrap gap-2" : "flex flex-wrap gap-3"}>
             {hasPrescribingIdentityBlocker && (
               <div className="w-full rounded-md border border-warning-border bg-warning-light px-3 py-2 text-sm font-medium text-warning">
                 Complete patient identity before prescribing: {missingPrescribingIdentityFields.join(", ")}
@@ -293,6 +304,7 @@ export function IntakeDetailHeader({
             {/* For med certs - preview then approve: shows preview dialog first */}
             {service?.type === SERVICE_TYPES.MED_CERTS && ["paid", "in_review"].includes(intake.status) && (
               <Button
+                size={actionButtonSize}
                 onClick={onMedCertApprove}
                 className="bg-emerald-600 hover:bg-emerald-700"
                 disabled={isPending || isLoadingPreview || Boolean(approveDisabledReason)}
@@ -306,6 +318,7 @@ export function IntakeDetailHeader({
             {/* For repeat scripts - approve then mark sent externally */}
             {(service?.type === SERVICE_TYPES.REPEAT_RX || service?.type === SERVICE_TYPES.COMMON_SCRIPTS) && intake.status === "paid" && (
               <Button
+                size={actionButtonSize}
                 onClick={() => onStatusChange("awaiting_script")}
                 className="bg-primary hover:bg-primary/90"
                 disabled={isPending || hasPrescribingIdentityBlocker}
@@ -321,6 +334,7 @@ export function IntakeDetailHeader({
               <>
                 {onOpenParchmentPrescribe && (
                   <Button
+                    size={actionButtonSize}
                     onClick={onOpenParchmentPrescribe}
                     className="bg-blue-600 hover:bg-blue-700"
                     disabled={isPending || hasPrescribingIdentityBlocker}
@@ -331,6 +345,7 @@ export function IntakeDetailHeader({
                   </Button>
                 )}
                 <Button
+                  size={actionButtonSize}
                   variant={onOpenParchmentPrescribe ? "outline" : "default"}
                   onClick={dialogs.openScriptDialog}
                   className={onOpenParchmentPrescribe ? "" : "bg-blue-600 hover:bg-blue-700"}
@@ -343,6 +358,7 @@ export function IntakeDetailHeader({
 
             {shouldPrescribeFromConsult && ["paid", "in_review"].includes(intake.status) && onApproveAndOpenParchment && (
               <Button
+                size={actionButtonSize}
                 onClick={onApproveAndOpenParchment}
                 className="bg-primary hover:bg-primary/90"
                 disabled={isPending || hasPrescribingIdentityBlocker}
@@ -356,6 +372,7 @@ export function IntakeDetailHeader({
             {/* For consults - approve after call with notes */}
             {isConsultServiceType(service?.type) && intake.status === "paid" && !shouldPrescribeFromConsult && (
               <Button
+                size={actionButtonSize}
                 onClick={() => onStatusChange("approved")}
                 className="bg-primary hover:bg-primary/90"
                 disabled={isPending || Boolean(approveDisabledReason)}
@@ -369,6 +386,7 @@ export function IntakeDetailHeader({
             {/* Generic approve for other services */}
             {!isKnownDoctorServiceType(service?.type) && intake.status === "paid" && (
               <Button
+                size={actionButtonSize}
                 onClick={() => onStatusChange("approved")}
                 className="bg-primary hover:bg-primary/90"
                 disabled={isPending || Boolean(approveDisabledReason)}
@@ -381,7 +399,7 @@ export function IntakeDetailHeader({
 
             {/* Decline */}
             {!["approved", "declined", "completed"].includes(intake.status) && (
-              <Button variant="destructive" onClick={dialogs.openDeclineDialog} disabled={isPending}>
+              <Button size={actionButtonSize} variant="destructive" onClick={dialogs.openDeclineDialog} disabled={isPending}>
                 <XCircle className="h-4 w-4 mr-2" />
                 Decline
               </Button>
@@ -389,7 +407,7 @@ export function IntakeDetailHeader({
 
             {/* Refund - show for paid intakes that haven't been refunded */}
             {intake.payment_status === "paid" && (
-              <Button variant="outline" onClick={dialogs.openRefundDialog} disabled={isPending} className="text-warning border-warning-border hover:bg-warning-light">
+              <Button size={actionButtonSize} variant="outline" onClick={dialogs.openRefundDialog} disabled={isPending} className="text-warning border-warning-border hover:bg-warning-light">
                 <CreditCard className="h-4 w-4 mr-2" />
                 Issue Refund
               </Button>
@@ -399,15 +417,15 @@ export function IntakeDetailHeader({
             {["approved", "completed"].includes(intake.status) &&
              (intake.category === "medical_certificate" || intake.category === "med_certs") && (
               <>
-                <Button variant="outline" onClick={onViewCertificate} disabled={isPending || isViewingCert}>
+                <Button size={actionButtonSize} variant="outline" onClick={onViewCertificate} disabled={isPending || isViewingCert}>
                   {isViewingCert ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileText className="h-4 w-4 mr-2" />}
                   View Certificate
                 </Button>
-                <Button variant="outline" onClick={onReissueCertificate} disabled={isPending || isLoadingPreview}>
+                <Button size={actionButtonSize} variant="outline" onClick={onReissueCertificate} disabled={isPending || isLoadingPreview}>
                   {isLoadingPreview ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                   Edit & Reissue
                 </Button>
-                <Button variant="outline" onClick={onResendCertificate} disabled={isPending}>
+                <Button size={actionButtonSize} variant="outline" onClick={onResendCertificate} disabled={isPending}>
                   {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Mail className="h-4 w-4 mr-2" />}
                   Resend Email
                 </Button>

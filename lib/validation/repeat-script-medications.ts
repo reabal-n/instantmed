@@ -10,6 +10,12 @@ export interface RepeatScriptMedicationEntry {
   activeIngredient?: string
 }
 
+export interface RepeatScriptMedicationDisplayParts {
+  name: string
+  strength?: string
+  form?: string
+}
+
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)
     ? value as Record<string, unknown>
@@ -100,6 +106,48 @@ export function formatRepeatScriptMedicationLabel(entry: RepeatScriptMedicationE
     ? `${entry.name} (${entry.activeIngredient})`
     : entry.name
   return [name, entry.strength, entry.form].filter(Boolean).join(" ")
+}
+
+function stripContainingClause(value: string | undefined): string | undefined {
+  if (!value) return undefined
+  return value
+    .replace(/\s+containing\s+.+$/i, "")
+    .replace(/\s+/g, " ")
+    .trim()
+}
+
+function extractStrength(value: string | undefined): string | undefined {
+  if (!value) return undefined
+  const match = value.match(/\b\d+(?:\.\d+)?\s*(?:micrograms?|mcg|milligrams?|mg|grams?|g|units?|iu|%)\b/i)
+  return match?.[0]?.replace(/\s+/g, " ").trim()
+}
+
+function stripFormFromName(value: string): string {
+  const knownFormPattern = /\b(tablet|capsule|caplet|solution|suspension|cream|ointment|gel|patch|inhaler|injection|drops?|spray|pessary|suppository|liquid)\b/i
+  const match = value.match(knownFormPattern)
+  return match?.index && match.index > 0
+    ? value.slice(0, match.index).trim()
+    : value.trim()
+}
+
+export function getRepeatScriptMedicationDisplayParts(
+  entry: RepeatScriptMedicationEntry,
+): RepeatScriptMedicationDisplayParts {
+  const normalizedName = stripContainingClause(entry.activeIngredient || entry.name) || entry.name
+  const name = stripFormFromName(normalizedName)
+  const strength = extractStrength(entry.strength) || extractStrength(entry.displayName) || stripContainingClause(entry.strength)
+  const form = stripContainingClause(entry.form)
+
+  return {
+    name,
+    strength,
+    form: form && form.toLowerCase() !== name.toLowerCase() ? form : undefined,
+  }
+}
+
+export function formatRepeatScriptMedicationCompactLabel(entry: RepeatScriptMedicationEntry): string {
+  const parts = getRepeatScriptMedicationDisplayParts(entry)
+  return [parts.name, parts.strength, parts.form].filter(Boolean).join(" ")
 }
 
 export function buildRepeatScriptMedicationValidationText(entry: RepeatScriptMedicationEntry): string {

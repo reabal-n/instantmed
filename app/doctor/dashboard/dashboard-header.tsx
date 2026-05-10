@@ -1,13 +1,10 @@
 "use client"
 
 import { AlertTriangle } from "lucide-react"
-import { useState, useTransition } from "react"
-import { toast } from "sonner"
+import { useState } from "react"
 
-import { setDoctorAvailabilityAction } from "@/app/actions/doctor-availability"
 import { DashboardPageHeader } from "@/components/dashboard"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
+import { DoctorAvailabilityToggle } from "@/components/doctor/doctor-availability-toggle"
 
 interface DashboardHeaderProps {
   initialAvailable: boolean
@@ -15,18 +12,6 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ initialAvailable }: DashboardHeaderProps) {
   const [available, setAvailable] = useState(initialAvailable)
-  const [isPending, startTransition] = useTransition()
-
-  const handleToggle = (checked: boolean) => {
-    setAvailable(checked)
-    startTransition(async () => {
-      const result = await setDoctorAvailabilityAction(checked)
-      if (!result.success) {
-        setAvailable(!checked) // revert
-        toast.error(result.error || "Failed to update availability")
-      }
-    })
-  }
 
   return (
     <>
@@ -34,20 +19,10 @@ export function DashboardHeader({ initialAvailable }: DashboardHeaderProps) {
         title="Queue"
         description="Clinical cases awaiting review"
         actions={
-          <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-card px-3 py-2">
-            <Switch
-              id="availability"
-              checked={available}
-              onCheckedChange={handleToggle}
-              disabled={isPending}
-            />
-            <Label
-              htmlFor="availability"
-              className={`text-sm ${available ? "text-success" : "text-muted-foreground"}`}
-            >
-              {available ? "Available" : "Unavailable"}
-            </Label>
-          </div>
+          <DoctorAvailabilityToggle
+            initialAvailable={initialAvailable}
+            onAvailabilityChange={setAvailable}
+          />
         }
       />
 

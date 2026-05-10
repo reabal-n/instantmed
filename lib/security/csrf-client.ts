@@ -34,6 +34,10 @@ async function getClientCsrfToken(): Promise<string> {
   return csrfTokenPromise
 }
 
+export function preloadCsrfToken(): Promise<string> {
+  return getClientCsrfToken()
+}
+
 /**
  * Add CSRF headers to fetch requests
  */

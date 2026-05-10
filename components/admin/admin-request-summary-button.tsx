@@ -54,8 +54,8 @@ export function AdminRequestSummaryButton({
   intake,
   serviceLabel,
   patientLabel,
-  buttonLabel = "Copy admin summary",
-  summaryTitle = "Admin request summary",
+  buttonLabel = "Copy summary",
+  summaryTitle = "Operator request summary",
 }: {
   intake: AdminSummaryIntake
   serviceLabel: string

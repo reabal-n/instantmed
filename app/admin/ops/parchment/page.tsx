@@ -1,11 +1,16 @@
-import { AlertTriangle, CheckCircle, ExternalLink, Pill, RefreshCw, UserCheck, Users, Webhook } from "lucide-react"
+import { AlertTriangle, CheckCircle, ExternalLink, LinkIcon, ServerCrash, Webhook } from "lucide-react"
 import Link from "next/link"
 
-import { DashboardPageHeader, StatusBadge } from "@/components/dashboard"
+import { StatusBadge, type StatusBadgeStatus } from "@/components/dashboard"
+import { OperatorPage, OperatorPageHeader, OperatorPanel, OperatorScrollArea } from "@/components/operator"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { requireRole } from "@/lib/auth/helpers"
-import { getParchmentOpsDashboard } from "@/lib/parchment/ops"
+import {
+  getParchmentOpsDashboard,
+  type ParchmentFailedWebhook,
+  type ParchmentOpsEvent,
+} from "@/lib/parchment/ops"
 import { getParchmentProductionReadiness } from "@/lib/parchment/readiness"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -18,43 +23,100 @@ export const metadata = {
   title: "Parchment Ops",
 }
 
-function formatDateTime(value: string | null): string {
+function formatDateTime(value: string | null | undefined): string {
   if (!value) return "Not recorded"
   return new Date(value).toLocaleString("en-AU", {
     day: "2-digit",
-    month: "short",
     hour: "2-digit",
     minute: "2-digit",
+    month: "short",
   })
 }
 
-function StatCard({
-  label,
-  value,
-  tone = "neutral",
-  icon: Icon,
-}: {
-  label: string
-  value: number
-  tone?: "neutral" | "success" | "warning" | "destructive"
-  icon: typeof Webhook
-}) {
-  const toneClass = {
-    neutral: "bg-info-light text-info",
-    success: "bg-success-light text-success",
-    warning: "bg-warning-light text-warning",
-    destructive: "bg-destructive-light text-destructive",
-  }[tone]
+function isUuid(value: string | null | undefined): value is string {
+  if (!value) return false
+
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+}
+
+function mapEventStatus(status: ParchmentOpsEvent["status"]): StatusBadgeStatus {
+  if (status === "destructive") return "error"
+  return status
+}
+
+function PatientLink({ patientProfileId }: { patientProfileId: string | null }) {
+  if (!isUuid(patientProfileId)) {
+    return <span className="text-xs text-muted-foreground">Patient not linked</span>
+  }
 
   return (
-    <div className="rounded-xl border border-border/50 bg-card p-5 shadow-sm shadow-primary/[0.04] dark:shadow-none">
-      <div className="flex items-center gap-3">
-        <div className={`rounded-lg p-3 ${toneClass}`}>
-          <Icon className="h-5 w-5" />
-        </div>
+    <Button variant="link" size="sm" className="h-auto p-0 text-xs" asChild>
+      <Link href={`/admin/patients/${patientProfileId}`}>
+        <ExternalLink className="h-3 w-3" />
+        Patient
+      </Link>
+    </Button>
+  )
+}
+
+function IntakeLink({ intakeId }: { intakeId: string | null }) {
+  if (!isUuid(intakeId)) return null
+
+  return (
+    <Button variant="link" size="sm" className="h-auto p-0 text-xs" asChild>
+      <Link href={`/admin/intakes/${intakeId}`}>
+        <ExternalLink className="h-3 w-3" />
+        Intake
+      </Link>
+    </Button>
+  )
+}
+
+function EvidenceItem({ event }: { event: ParchmentOpsEvent }) {
+  return (
+    <div className="rounded-lg border border-border/70 bg-white px-3 py-3">
+      <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-semibold text-foreground">{event.label}</p>
+            <StatusBadge status={mapEventStatus(event.status)} size="sm">
+              {event.status}
+            </StatusBadge>
+          </div>
+          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{event.detail}</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">{formatDateTime(event.createdAt)}</p>
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          {event.eventId ? <CopyTokenButton label="Event" value={event.eventId} /> : null}
+          {event.scid ? <CopyTokenButton label="SCID" value={event.scid} /> : null}
+        </div>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-3">
+        <PatientLink patientProfileId={event.patientProfileId} />
+        <IntakeLink intakeId={event.intakeId} />
+      </div>
+    </div>
+  )
+}
+
+function FailureItem({ failure }: { failure: ParchmentFailedWebhook }) {
+  return (
+    <div className="rounded-lg border border-red-200 bg-red-50/70 px-3 py-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge status={failure.retryable ? "warning" : "error"} size="sm">
+              {failure.retryable ? "Retryable" : "Needs context"}
+            </StatusBadge>
+            <p className="text-sm font-semibold text-red-950">{failure.reason}</p>
+          </div>
+          <p className="mt-1 line-clamp-2 text-xs text-red-800">{failure.description}</p>
+          <p className="mt-2 text-[11px] text-red-700">{formatDateTime(failure.createdAt)}</p>
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <RetryParchmentWebhookButton auditLogId={failure.id} disabled={!failure.retryable} />
+          <PatientLink patientProfileId={failure.patientProfileId} />
+          <IntakeLink intakeId={failure.intakeId} />
         </div>
       </div>
     </div>
@@ -66,337 +128,258 @@ export default async function ParchmentOpsPage() {
 
   const dashboard = await getParchmentOpsDashboard(createServiceRoleClient())
   const readiness = getParchmentProductionReadiness()
-  const degraded = dashboard.stats.retryableFailures > 0 || dashboard.stats.unlinkedPrescribers > 0
-  const readinessTone =
+  const actionableFailures = dashboard.failedWebhooks
+  const recentEvidence = dashboard.recentEvents.slice(0, 5)
+  const readinessTone: StatusBadgeStatus =
     readiness.status === "ready"
       ? "success"
-      : readiness.status === "sandbox_only" || readiness.status === "awaiting_production_keys"
-        ? "warning"
-        : "destructive"
+      : readiness.status === "misconfigured"
+        ? "error"
+        : "warning"
+  const degraded = actionableFailures.length > 0 || dashboard.stats.unlinkedPrescribers > 0
 
   return (
-    <div className="space-y-6">
-      <DashboardPageHeader
-        title="Parchment Ops"
-        description="Parchment prescribing health, failed prescription webhooks, and sync recovery."
+    <OperatorPage className="bg-background">
+      <OperatorPageHeader
+        title="Parchment ops"
+        description="Prescribing integration recovery, current blockers, and production-readiness evidence."
         backHref="/admin/ops"
-        backLabel="Operations"
         actions={
-          <>
-            <Button variant="outline" asChild>
-              <Link href="/admin/parchment-conformance">
-                <ExternalLink className="h-4 w-4" />
-                Conformance helper
-              </Link>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/admin/parchment-conformance">Recording evidence</Link>
             </Button>
-            <StatusBadge status={degraded ? "warning" : "success"}>
+            <StatusBadge status={degraded ? "warning" : "success"} size="sm">
               {degraded ? "Needs attention" : "Healthy"}
             </StatusBadge>
-          </>
+          </div>
         }
       />
 
-      <div className="rounded-xl border border-border/50 bg-card p-5 shadow-sm shadow-primary/[0.04] dark:shadow-none">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="max-w-2xl">
-            <div className="flex items-center gap-2">
-              {readiness.status === "ready" ? (
-                <CheckCircle className="h-5 w-5 text-success" aria-hidden />
+      <OperatorScrollArea>
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(340px,0.95fr)]">
+          <div className="space-y-4">
+            <OperatorPanel>
+              <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <ServerCrash className="h-4 w-4 text-muted-foreground" />
+                    <h2 className="text-base font-semibold">Actionable failures</h2>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Only webhooks that still need staff attention appear here.
+                  </p>
+                </div>
+                <Badge variant={actionableFailures.length > 0 ? "warning" : "success"} size="sm">
+                  {actionableFailures.length} open
+                </Badge>
+              </div>
+
+              {actionableFailures.length > 0 ? (
+                <div className="space-y-3">
+                  {actionableFailures.map((failure) => (
+                    <FailureItem key={failure.id} failure={failure} />
+                  ))}
+                </div>
               ) : (
-                <AlertTriangle className="h-5 w-5 text-warning" aria-hidden />
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-3 text-sm text-emerald-900">
+                  <div className="flex items-center gap-2 font-semibold">
+                    <CheckCircle className="h-4 w-4" />
+                    No failed Parchment webhooks need recovery.
+                  </div>
+                  <p className="mt-1 text-xs text-emerald-800">
+                    Recent prescribing events are processing without staff intervention.
+                  </p>
+                </div>
               )}
-              <h2 className="text-base font-semibold text-foreground">
-                Production prescribing gate
-              </h2>
-              <Badge variant={readinessTone} size="sm">
-                {readiness.label}
-              </Badge>
-            </div>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {readiness.message}
-            </p>
-          </div>
-          <div className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-3 lg:min-w-[420px]">
-            <div className="rounded-lg border border-border/50 bg-muted/30 px-3 py-2">
-              <p className="font-medium text-foreground">Environment</p>
-              <p className="mt-1 capitalize">{readiness.environment}</p>
-            </div>
-            <div className="rounded-lg border border-border/50 bg-muted/30 px-3 py-2">
-              <p className="font-medium text-foreground">API host</p>
-              <p className="mt-1 truncate">{readiness.apiHost}</p>
-            </div>
-            <div className="rounded-lg border border-border/50 bg-muted/30 px-3 py-2">
-              <p className="font-medium text-foreground">Iframe hosts</p>
-              <p className="mt-1">
-                {readiness.iframeHosts.filter((host) => host.allowed).length}/
-                {readiness.iframeHosts.length} allowed
-              </p>
-            </div>
-          </div>
-        </div>
-        {readiness.missingProductionKeys.length > 0 && readiness.status !== "sandbox_only" && (
-          <div className="mt-4 flex flex-wrap gap-2 border-t border-border/60 pt-4">
-            {readiness.missingProductionKeys.map((key) => (
-              <Badge key={key} variant="outline" size="sm">
-                {key}
-              </Badge>
-            ))}
-          </div>
-        )}
-      </div>
+            </OperatorPanel>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Linked prescribers"
-          value={dashboard.stats.linkedPrescribers}
-          tone={dashboard.stats.linkedPrescribers > 0 ? "success" : "warning"}
-          icon={UserCheck}
-        />
-        <StatCard
-          label="Not synced yet"
-          value={dashboard.stats.unsyncedPatients}
-          tone="neutral"
-          icon={Users}
-        />
-        <StatCard
-          label="Actionable failures 7d"
-          value={dashboard.stats.failedWebhooks7d}
-          tone={dashboard.stats.retryableFailures > 0 ? "destructive" : "success"}
-          icon={Webhook}
-        />
-        <StatCard
-          label="Synced scripts 7d"
-          value={dashboard.stats.syncedPrescriptions7d}
-          tone="neutral"
-          icon={Pill}
-        />
-      </div>
-
-      <div className="rounded-xl border border-border/50 bg-card shadow-sm shadow-primary/[0.04] dark:shadow-none">
-        <div className="flex flex-col gap-3 border-b border-border/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-base font-semibold">Recent webhook evidence</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Copy event IDs or SCIDs when Parchment asks for proof of delivery, retries, or sync status.
-            </p>
-          </div>
-          <Badge variant={dashboard.recentEvents.length > 0 ? "info" : "outline"} size="sm">
-            {dashboard.recentEvents.length} event{dashboard.recentEvents.length === 1 ? "" : "s"}
-          </Badge>
-        </div>
-
-        {dashboard.recentEvents.length === 0 ? (
-          <div className="px-5 py-10 text-center text-muted-foreground">
-            <Webhook className="mx-auto mb-2 h-8 w-8 opacity-50" />
-            <p>No Parchment webhook evidence in the last 7 days.</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-border/60">
-            {dashboard.recentEvents.map((event) => (
-              <div key={event.id} className="grid gap-4 px-5 py-4 lg:grid-cols-[1.2fr_1fr_auto] lg:items-center">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-medium">{event.label}</p>
-                    <Badge variant={event.status} size="sm">{event.status}</Badge>
+            <OperatorPanel>
+              <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Webhook className="h-4 w-4 text-muted-foreground" />
+                    <h2 className="text-base font-semibold">Recent webhook evidence</h2>
                   </div>
-                  <p className="mt-1 text-sm text-muted-foreground">{event.detail}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{formatDateTime(event.createdAt)}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Latest processed events that prove the integration is alive.
+                  </p>
                 </div>
+                <Badge variant={recentEvidence.length > 0 ? "info" : "outline"} size="sm">
+                  {recentEvidence.length} shown
+                </Badge>
+              </div>
 
-                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                  {event.scid && <Badge variant="outline" size="sm">SCID {event.scid}</Badge>}
-                  {event.eventId && <Badge variant="outline" size="sm">Event {event.eventId}</Badge>}
-                  {event.intakeId && (
-                    <Button variant="link" size="sm" className="h-auto p-0 text-xs" asChild>
-                      <Link href={`/admin/intakes/${event.intakeId}`}>
-                        <ExternalLink className="h-3 w-3" />
-                        Intake
-                      </Link>
-                    </Button>
-                  )}
-                  {event.patientProfileId && (
-                    <Button variant="link" size="sm" className="h-auto p-0 text-xs" asChild>
-                      <Link href={`/admin/patients/${event.patientProfileId}`}>
-                        <ExternalLink className="h-3 w-3" />
-                        Patient
-                      </Link>
-                    </Button>
-                  )}
+              {recentEvidence.length > 0 ? (
+                <div className="space-y-2">
+                  {recentEvidence.map((event) => (
+                    <EvidenceItem key={event.id} event={event} />
+                  ))}
                 </div>
+              ) : (
+                <div className="rounded-lg border border-border/70 bg-muted/30 px-3 py-3 text-sm text-muted-foreground">
+                  No recent Parchment webhook events found.
+                </div>
+              )}
+            </OperatorPanel>
+          </div>
 
-                <div className="flex flex-wrap justify-start gap-2 lg:justify-end">
-                  {event.eventId && <CopyTokenButton label="Event" value={event.eventId} />}
-                  {event.scid && <CopyTokenButton label="SCID" value={event.scid} />}
+          <div className="space-y-4">
+            <OperatorPanel>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    {readiness.status === "ready" ? (
+                      <CheckCircle className="h-4 w-4 text-success" />
+                    ) : (
+                      <AlertTriangle className="h-4 w-4 text-warning" />
+                    )}
+                    <h2 className="text-base font-semibold">Production prescribing gate</h2>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">{readiness.message}</p>
+                </div>
+                <StatusBadge status={readinessTone} size="sm">
+                  {readiness.label}
+                </StatusBadge>
+              </div>
+
+              <div className="mt-3 grid gap-2 text-xs text-muted-foreground sm:grid-cols-3">
+                <div className="rounded-lg border border-border/50 bg-muted/30 px-3 py-2">
+                  <p className="font-medium text-foreground">Environment</p>
+                  <p className="mt-1 capitalize">{readiness.environment}</p>
+                </div>
+                <div className="rounded-lg border border-border/50 bg-muted/30 px-3 py-2">
+                  <p className="font-medium text-foreground">API host</p>
+                  <p className="mt-1 truncate">{readiness.apiHost}</p>
+                </div>
+                <div className="rounded-lg border border-border/50 bg-muted/30 px-3 py-2">
+                  <p className="font-medium text-foreground">Iframe hosts</p>
+                  <p className="mt-1">
+                    {readiness.iframeHosts.filter((host) => host.allowed).length}/
+                    {readiness.iframeHosts.length} allowed
+                  </p>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
 
-      <div className="rounded-xl border border-border/50 bg-card shadow-sm shadow-primary/[0.04] dark:shadow-none">
-        <div className="flex flex-col gap-3 border-b border-border/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-base font-semibold">Actionable webhook failures</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Current failures that still need admin review or retry metadata.
-            </p>
-          </div>
-          <Badge variant={dashboard.stats.retryableFailures > 0 ? "warning" : "success"} size="sm">
-            {dashboard.stats.retryableFailures} retryable
-          </Badge>
-        </div>
-
-        {dashboard.failedWebhooks.length === 0 ? (
-          <div className="px-5 py-10 text-center text-muted-foreground">
-            <CheckCircle className="mx-auto mb-2 h-8 w-8 text-success" />
-            <p>No actionable Parchment webhook failures in the last 7 days.</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-border/60">
-            {dashboard.failedWebhooks.map((failure) => (
-              <div key={failure.id} className="grid gap-4 px-5 py-4 lg:grid-cols-[1.2fr_1.3fr_auto] lg:items-center">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-medium">{failure.reason}</p>
-                    <Badge variant={failure.retryable ? "warning" : "outline"} size="sm">
-                      {failure.retryable ? "Retryable" : "Needs context"}
-                    </Badge>
+              {readiness.missingProductionKeys.length > 0 && readiness.status !== "sandbox_only" ? (
+                <details className="mt-3 rounded-lg border border-border/70 bg-white px-3 py-2">
+                  <summary className="cursor-pointer text-xs font-semibold text-muted-foreground">
+                    Missing production keys
+                  </summary>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {readiness.missingProductionKeys.map((key) => (
+                      <Badge key={key} variant="outline" size="sm">
+                        {key}
+                      </Badge>
+                    ))}
                   </div>
-                  <p className="mt-1 text-sm text-muted-foreground">{failure.description}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{formatDateTime(failure.createdAt)}</p>
-                </div>
+                </details>
+              ) : null}
+            </OperatorPanel>
 
-                <div className="flex flex-wrap gap-2 text-xs">
-                  {failure.scid && <Badge variant="outline" size="sm">SCID {failure.scid}</Badge>}
-                  {failure.eventId && <Badge variant="outline" size="sm">Event {failure.eventId}</Badge>}
-                  {failure.intakeId && (
-                    <Button variant="link" size="sm" className="h-auto p-0 text-xs" asChild>
-                      <Link href={`/admin/intakes/${failure.intakeId}`}>
-                        <ExternalLink className="h-3 w-3" />
-                        Intake
-                      </Link>
-                    </Button>
-                  )}
-                  {failure.patientProfileId && (
-                    <Button variant="link" size="sm" className="h-auto p-0 text-xs" asChild>
-                      <Link href={`/admin/patients/${failure.patientProfileId}`}>
-                        <ExternalLink className="h-3 w-3" />
-                        Patient
-                      </Link>
-                    </Button>
-                  )}
+            <OperatorPanel>
+              <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <LinkIcon className="h-4 w-4 text-muted-foreground" />
+                    <h2 className="text-base font-semibold">Prescriber links</h2>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Only linkage gaps are shown by default.
+                  </p>
                 </div>
-
-                <div className="flex justify-start lg:justify-end">
-                  <RetryParchmentWebhookButton auditLogId={failure.id} disabled={!failure.retryable} />
-                </div>
+                <StatusBadge status={dashboard.stats.unlinkedPrescribers > 0 ? "warning" : "success"} size="sm">
+                  {dashboard.stats.unlinkedPrescribers} unlinked
+                </StatusBadge>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
 
-      {dashboard.historicalWebhookFailures.length > 0 && (
-        <div className="rounded-xl border border-border/50 bg-card shadow-sm shadow-primary/[0.04] dark:shadow-none">
-          <div className="flex flex-col gap-3 border-b border-border/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-base font-semibold">Historical sandbox webhook failures</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Kept for audit history only. These do not block recording when current webhook evidence is successful.
-              </p>
-            </div>
-            <Badge variant="outline" size="sm">
-              {dashboard.stats.historicalWebhookFailures7d} archived
-            </Badge>
-          </div>
-          <div className="divide-y divide-border/60">
-            {dashboard.historicalWebhookFailures.slice(0, 4).map((failure) => (
-              <div key={failure.id} className="grid gap-3 px-5 py-3 sm:grid-cols-[1fr_auto] sm:items-center">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-foreground">{failure.reason}</p>
-                  <p className="mt-1 truncate text-xs text-muted-foreground">{failure.description}</p>
+              {dashboard.stats.unlinkedPrescribers > 0 ? (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-900">
+                  {dashboard.stats.unlinkedPrescribers} doctor/admin profile
+                  {dashboard.stats.unlinkedPrescribers === 1 ? "" : "s"} still need a Parchment user ID.
                 </div>
-                <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-                  <Badge variant="outline" size="sm">{formatDateTime(failure.createdAt)}</Badge>
-                  {failure.eventId && <CopyTokenButton label="Event" value={failure.eventId} />}
+              ) : (
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-3 text-sm text-emerald-900">
+                  All active prescribers are linked.
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+              )}
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-xl border border-border/50 bg-card shadow-sm shadow-primary/[0.04] dark:shadow-none">
-          <div className="border-b border-border/60 px-5 py-4">
-            <h2 className="text-base font-semibold">Linked Parchment prescribers</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {dashboard.stats.unlinkedPrescribers} doctor/admin profile{dashboard.stats.unlinkedPrescribers === 1 ? "" : "s"} still unlinked.
-            </p>
-          </div>
-          {dashboard.linkedPrescribers.length === 0 ? (
-            <div className="px-5 py-10 text-center text-muted-foreground">
-              <AlertTriangle className="mx-auto mb-2 h-8 w-8 text-warning" />
-              <p>No linked Parchment prescribers.</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-border/60">
-              {dashboard.linkedPrescribers.slice(0, 8).map((prescriber) => (
-                <div key={prescriber.id} className="flex items-center justify-between gap-3 px-5 py-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{prescriber.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">{prescriber.email || prescriber.role}</p>
-                  </div>
-                  <Badge variant="outline" size="sm">{prescriber.parchmentUserId}</Badge>
+              <details className="mt-3 rounded-lg border border-border/70 bg-white px-3 py-2">
+                <summary className="cursor-pointer text-xs font-semibold text-muted-foreground">
+                  Show linked prescriber evidence
+                </summary>
+                <div className="mt-3 space-y-2">
+                  {dashboard.linkedPrescribers.length > 0 ? (
+                    dashboard.linkedPrescribers.slice(0, 8).map((prescriber) => (
+                      <div
+                        key={prescriber.id}
+                        className="flex items-center justify-between gap-3 rounded-md border border-border/70 bg-muted/20 px-3 py-2"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate text-xs font-semibold text-foreground">{prescriber.name}</p>
+                          <p className="truncate text-[11px] text-muted-foreground">
+                            {prescriber.email || prescriber.role}
+                          </p>
+                        </div>
+                        <CopyTokenButton label="User" value={prescriber.parchmentUserId} />
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-muted-foreground">No linked prescriber profiles found.</p>
+                  )}
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              </details>
+            </OperatorPanel>
 
-        <div className="rounded-xl border border-border/50 bg-card shadow-sm shadow-primary/[0.04] dark:shadow-none">
-          <div className="flex items-center justify-between border-b border-border/60 px-5 py-4">
-            <div>
-              <h2 className="text-base font-semibold">Recent synced prescriptions</h2>
-              <p className="mt-1 text-sm text-muted-foreground">Latest local PMS records created from Parchment.</p>
-            </div>
-            <RefreshCw className="h-4 w-4 text-muted-foreground" />
-          </div>
-          {dashboard.recentPrescriptions.length === 0 ? (
-            <div className="px-5 py-10 text-center text-muted-foreground">
-              <Pill className="mx-auto mb-2 h-8 w-8 opacity-50" />
-              <p>No synced prescriptions yet.</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-border/60">
-              {dashboard.recentPrescriptions.map((prescription) => (
-                <div key={prescription.id} className="px-5 py-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">{prescription.medicationName}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {prescription.patientName}
-                        {prescription.prescriberName ? ` · ${prescription.prescriberName}` : ""}
-                      </p>
-                    </div>
-                    <Badge variant="outline" size="sm">{prescription.status}</Badge>
-                  </div>
-                  <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                    {prescription.parchmentReference && <span>SCID {prescription.parchmentReference}</span>}
-                    <span>{formatDateTime(prescription.updatedAt)}</span>
-                    {prescription.intakeId && (
-                      <Link href={`/admin/intakes/${prescription.intakeId}`} className="text-primary hover:underline">
-                        Intake
-                      </Link>
+            <details className="rounded-xl border border-border/70 bg-white p-4 shadow-sm">
+              <summary className="cursor-pointer text-sm font-semibold text-foreground">
+                More evidence
+              </summary>
+              <div className="mt-4 space-y-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                    Historical sandbox failures
+                  </p>
+                  <div className="mt-2 space-y-2">
+                    {dashboard.historicalWebhookFailures.length > 0 ? (
+                      dashboard.historicalWebhookFailures.slice(0, 4).map((failure) => (
+                        <div key={failure.id} className="rounded-lg border border-border/70 bg-muted/20 px-3 py-2">
+                          <p className="text-xs font-semibold text-foreground">{failure.reason}</p>
+                          <p className="mt-1 line-clamp-1 text-[11px] text-muted-foreground">
+                            {failure.description}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-xs text-muted-foreground">No sandbox failures found.</p>
                     )}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                    Synced prescriptions
+                  </p>
+                  <div className="mt-2 space-y-2">
+                    {dashboard.recentPrescriptions.length > 0 ? (
+                      dashboard.recentPrescriptions.slice(0, 4).map((prescription) => (
+                        <div key={prescription.id} className="rounded-lg border border-border/70 bg-muted/20 px-3 py-2">
+                          <p className="text-xs font-semibold text-foreground">{prescription.patientName}</p>
+                          <p className="mt-1 line-clamp-1 text-[11px] text-muted-foreground">
+                            {prescription.medicationName} - {formatDateTime(prescription.updatedAt)}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-xs text-muted-foreground">No synced prescriptions found.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </details>
+          </div>
         </div>
-      </div>
-    </div>
+      </OperatorScrollArea>
+    </OperatorPage>
   )
 }

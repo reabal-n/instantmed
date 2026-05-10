@@ -1,6 +1,6 @@
 "use client"
 
-import { HelpCircle, RefreshCw, Search, Volume2, VolumeOff } from "lucide-react"
+import { ArrowRight, HelpCircle, RefreshCw, Search, Volume2, VolumeOff } from "lucide-react"
 import { useEffect, useRef } from "react"
 
 import { KeyboardShortcutsModal } from "@/components/doctor/keyboard-shortcuts-modal"
@@ -25,6 +25,8 @@ export interface QueueFiltersProps {
   isReconnecting: boolean
   isRefreshing?: boolean
   lastUpdatedLabel?: string
+  compactShell?: boolean
+  onReviewNext?: () => void
 }
 
 const SEARCH_TOKENS = [
@@ -49,6 +51,8 @@ export function QueueFilters({
   isReconnecting,
   isRefreshing = false,
   lastUpdatedLabel,
+  compactShell = false,
+  onReviewNext,
 }: QueueFiltersProps) {
   const searchRef = useRef<HTMLInputElement>(null)
 
@@ -69,9 +73,20 @@ export function QueueFilters({
       {/* Header + Search */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2" data-testid="queue-header">
         <div className="flex items-center gap-3">
-          <h2 className="text-xl font-semibold tracking-tight text-foreground font-sans" data-testid="queue-heading">
-            {filteredCount} case{filteredCount !== 1 ? "s" : ""} waiting
+          <h2
+            className={cn(
+              "font-semibold tracking-tight text-foreground font-sans",
+              compactShell ? "text-base" : "text-xl",
+            )}
+            data-testid="queue-heading"
+          >
+            {compactShell ? "Clinical queue" : `${filteredCount} case${filteredCount !== 1 ? "s" : ""} waiting`}
           </h2>
+          {compactShell && (
+            <span className="rounded-md border border-border/50 bg-muted/30 px-2 py-0.5 text-xs font-medium text-muted-foreground">
+              {filteredCount} ready
+            </span>
+          )}
           {/* Live connection indicator */}
           {!isStale && !isReconnecting && (
             <span className="inline-flex items-center gap-1.5 text-xs text-success font-medium">
@@ -89,13 +104,24 @@ export function QueueFilters({
           )}
         </div>
         <div className="flex w-full items-center gap-2 sm:w-auto">
+          {compactShell && (
+            <Button
+              size="sm"
+              className="h-9 shrink-0 px-3 text-xs"
+              onClick={onReviewNext}
+              disabled={filteredCount === 0 || !onReviewNext}
+            >
+              Review next
+              <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+            </Button>
+          )}
           <div className="relative flex flex-1 items-center sm:flex-none">
             <Input
               ref={searchRef}
-              placeholder="Search… or / to focus"
+              placeholder={compactShell ? "Search patient, ref, Medicare, email, phone" : "Search… or / to focus"}
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full sm:w-56 h-9 text-sm"
+              className={cn("w-full h-9 text-sm", compactShell ? "sm:w-80" : "sm:w-56")}
               startContent={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
             />
             <Popover>
@@ -126,16 +152,18 @@ export function QueueFilters({
               </PopoverContent>
             </Popover>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 shrink-0"
-            onClick={onToggleSound}
-            aria-label={soundMuted ? "Unmute notifications" : "Mute notifications"}
-            title={soundMuted ? "Unmute notifications" : "Mute notifications"}
-          >
-            {soundMuted ? <VolumeOff className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
-          </Button>
+          {!compactShell && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0"
+              onClick={onToggleSound}
+              aria-label={soundMuted ? "Unmute notifications" : "Mute notifications"}
+              title={soundMuted ? "Unmute notifications" : "Mute notifications"}
+            >
+              {soundMuted ? <VolumeOff className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
@@ -147,19 +175,21 @@ export function QueueFilters({
           >
             <RefreshCw className={cn("h-3.5 w-3.5", isRefreshing && "animate-spin")} />
           </Button>
-          <KeyboardShortcutsModal
-            trigger={
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
-                title="Keyboard shortcuts (?)"
-                aria-label="Show keyboard shortcuts"
-              >
-                <kbd className="text-xs font-mono font-semibold">?</kbd>
-              </Button>
-            }
-          />
+          {!compactShell && (
+            <KeyboardShortcutsModal
+              trigger={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+                  title="Keyboard shortcuts (?)"
+                  aria-label="Show keyboard shortcuts"
+                >
+                  <kbd className="text-xs font-mono font-semibold">?</kbd>
+                </Button>
+              }
+            />
+          )}
         </div>
       </div>
 
@@ -167,8 +197,8 @@ export function QueueFilters({
       <div className="flex w-full gap-1 overflow-x-auto rounded-lg bg-muted/50 p-1 sm:w-fit sm:flex-wrap">
         {([
           { key: "all", label: "All" },
-          { key: "review", label: "Needs Review" },
-          { key: "pending_info", label: "Pending Info" },
+          { key: "review", label: compactShell ? "Review" : "Needs Review" },
+          { key: "pending_info", label: compactShell ? "Info" : "Pending Info" },
           { key: "scripts", label: "Scripts" },
         ] as const).map((tab) => {
           const count =

@@ -7,7 +7,8 @@ import { isControlledSubstance } from "@/lib/clinical/intake-validation"
 import {
   buildRepeatScriptMedicationValidationText,
   extractRepeatScriptMedications,
-  formatRepeatScriptMedicationLabel,
+  formatRepeatScriptMedicationCompactLabel,
+  getRepeatScriptMedicationDisplayParts,
 } from "@/lib/validation/repeat-script-medications"
 
 type Answers = Record<string, unknown>
@@ -395,18 +396,21 @@ function scalpSummary(answers: Answers): string {
 function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const { answers } = input
   const medications = extractRepeatScriptMedications(answers)
-  const medicationLabels = medications.map(formatRepeatScriptMedicationLabel)
+  const medicationLabels = medications.map(formatRepeatScriptMedicationCompactLabel)
   const primaryMedication = medications[0]
+  const primaryMedicationParts = primaryMedication
+    ? getRepeatScriptMedicationDisplayParts(primaryMedication)
+    : null
   const hasMultipleMedications = medicationLabels.length > 1
   const medicationName = hasMultipleMedications
     ? medicationLabels.join("; ")
-    : primaryMedication?.name || str(answers, "medicationName") || str(answers, "medication_name") || "Requested medication"
+    : primaryMedicationParts?.name || str(answers, "medicationName") || str(answers, "medication_name") || "Requested medication"
   const strength = hasMultipleMedications
     ? undefined
-    : primaryMedication?.strength || str(answers, "medicationStrength") || str(answers, "medication_strength")
+    : primaryMedicationParts?.strength || str(answers, "medicationStrength") || str(answers, "medication_strength")
   const form = hasMultipleMedications
     ? undefined
-    : primaryMedication?.form || str(answers, "medicationForm") || str(answers, "medication_form")
+    : primaryMedicationParts?.form || str(answers, "medicationForm") || str(answers, "medication_form")
   const requestedMedicationValue = medicationLabels.length > 0
     ? medicationLabels.join("; ")
     : medicationName

@@ -18,6 +18,7 @@ e2e/.e2e-run-id
 
 # next.js
 /.next/
+/.next-stale-*/
 /out/
 
 # production
@@ -74,6 +75,7 @@ storybook-static
 !public/branding/*.png
 !public/logos/*.png
 !public/images/**/*.png
+!e2e/**/*-snapshots/*.png
 !app/icon.png
 !app/apple-icon.png
 

@@ -2,11 +2,7 @@
 
 import { useCallback, useEffect, useRef,useState } from "react"
 
-import {
-  acquireIntakeLockAction,
-  extendIntakeLockAction,
-  releaseIntakeLockAction,
-} from "@/app/actions/intake-lock"
+import { fetchWithCsrf } from "@/lib/security/csrf-client"
 
 const LOCK_EXTEND_INTERVAL_MS = 5 * 60 * 1000
 
@@ -25,26 +21,46 @@ export function useIntakeLock(intakeId: string, active = true) {
   useEffect(() => {
     if (!active || hasAcquired.current) return
     hasAcquired.current = true
+    let cancelled = false
 
-    acquireIntakeLockAction(intakeId).then((result) => {
-      if (result.data?.warning) {
-        setLockWarning(result.data.warning)
-      }
+    fetchWithCsrf(`/api/doctor/intakes/${intakeId}/lock`, {
+      method: "POST",
+      keepalive: true,
     })
+      .then(async (response) => {
+        if (!response.ok) return null
+        return response.json() as Promise<{ warning?: string | null }>
+      })
+      .then((result) => {
+        if (!cancelled && result?.warning) {
+          setLockWarning(result.warning)
+        }
+      })
+      .catch(() => undefined)
 
     const lockInterval = setInterval(() => {
-      extendIntakeLockAction(intakeId)
+      void fetchWithCsrf(`/api/doctor/intakes/${intakeId}/lock`, {
+        method: "PATCH",
+        keepalive: true,
+      }).catch(() => undefined)
     }, LOCK_EXTEND_INTERVAL_MS)
 
     return () => {
+      cancelled = true
       clearInterval(lockInterval)
-      releaseIntakeLockAction(intakeId)
+      void fetchWithCsrf(`/api/doctor/intakes/${intakeId}/lock`, {
+        method: "DELETE",
+        keepalive: true,
+      }).catch(() => undefined)
     }
   }, [intakeId, active])
 
   // Explicit release for use in close handlers (e.g. before sendBeacon)
   const releaseLock = useCallback(() => {
-    releaseIntakeLockAction(intakeId)
+    void fetchWithCsrf(`/api/doctor/intakes/${intakeId}/lock`, {
+      method: "DELETE",
+      keepalive: true,
+    }).catch(() => undefined)
   }, [intakeId])
 
   return { lockWarning, releaseLock }

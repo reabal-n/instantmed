@@ -19,6 +19,38 @@ const opsClientSource = readFileSync(
   join(process.cwd(), "app/admin/ops/ops-client.tsx"),
   "utf8",
 )
+const operatorPageSource = readFileSync(
+  join(process.cwd(), "components/operator/operator-page.tsx"),
+  "utf8",
+)
+const parchmentOpsPageSource = readFileSync(
+  join(process.cwd(), "app/admin/ops/parchment/page.tsx"),
+  "utf8",
+)
+const prescribingIdentityOpsPageSource = readFileSync(
+  join(process.cwd(), "app/admin/ops/prescribing-identity/page.tsx"),
+  "utf8",
+)
+const patientMergeAuditPageSource = readFileSync(
+  join(process.cwd(), "app/admin/ops/patient-merge-audit/page.tsx"),
+  "utf8",
+)
+const slaOpsPageSource = readFileSync(
+  join(process.cwd(), "app/admin/ops/sla/page.tsx"),
+  "utf8",
+)
+const stuckIntakesClientSource = readFileSync(
+  join(process.cwd(), "components/shared/ops/intakes-stuck-client.tsx"),
+  "utf8",
+)
+const doctorOpsClientSource = readFileSync(
+  join(process.cwd(), "components/shared/ops/doctor-ops-client.tsx"),
+  "utf8",
+)
+const reconciliationClientSource = readFileSync(
+  join(process.cwd(), "components/shared/ops/reconciliation-client.tsx"),
+  "utf8",
+)
 const telegramOpsActionsSource = readFileSync(
   join(process.cwd(), "app/actions/telegram-ops.ts"),
   "utf8",
@@ -81,6 +113,33 @@ const patientMessagesDataSource = readFileSync(
 )
 
 describe("ops dashboard data contract", () => {
+  it("renders ops screens inside the shared operator workspace", () => {
+    expect(operatorPageSource).toContain("data-testid=\"operator-page\"")
+    expect(operatorPageSource).toContain("data-testid=\"operator-scroll-area\"")
+    expect(operatorPageSource).toContain("lg:h-[calc(100vh-4rem)]")
+
+    const opsSurfaceSources = [
+      opsClientSource,
+      parchmentOpsPageSource,
+      prescribingIdentityOpsPageSource,
+      patientMergeAuditPageSource,
+      slaOpsPageSource,
+      stuckIntakesClientSource,
+      doctorOpsClientSource,
+      reconciliationClientSource,
+    ]
+
+    for (const source of opsSurfaceSources) {
+      expect(source).toContain("OperatorPage")
+      expect(source).toContain("OperatorPageHeader")
+      expect(source).toContain("OperatorScrollArea")
+    }
+
+    expect(opsClientSource).toContain('title="Operations"')
+    expect(opsClientSource).not.toContain('title="Operations Dashboard"')
+    expect(opsClientSource).not.toContain("p-6 space-y-6")
+  })
+
   it("reads the real Stripe webhook dead-letter table", () => {
     expect(opsPageSource).toContain('.from("stripe_webhook_dead_letter")')
     expect(opsPageSource).not.toContain('.from("webhook_dlq")')
@@ -109,6 +168,15 @@ describe("ops dashboard data contract", () => {
     expect(opsClientSource).not.toContain("Audit and identity")
   })
 
+  it("keeps Parchment ops focused on recovery instead of a metrics wall", () => {
+    expect(parchmentOpsPageSource).toContain("Actionable failures")
+    expect(parchmentOpsPageSource).toContain("Only webhooks that still need staff attention")
+    expect(parchmentOpsPageSource).toContain("Production prescribing gate")
+    expect(parchmentOpsPageSource).toContain("More evidence")
+    expect(parchmentOpsPageSource).not.toContain("StatCard")
+    expect(parchmentOpsPageSource).not.toContain("syncedPrescriptions7d")
+  })
+
   it("keeps webhook recovery on the canonical Stripe DLQ surface", () => {
     expect(adminHubZonesSource).toContain("ADMIN_WEBHOOK_DLQ_HREF")
     expect(dashboardRoutesSource).toContain('ADMIN_WEBHOOK_DLQ_HREF = "/admin/webhook-dlq"')
@@ -132,10 +200,10 @@ describe("ops dashboard data contract", () => {
   })
 
   it("lets admins send an audited Telegram test alert from ops", () => {
-    expect(opsClientSource).toContain("sendTelegramTestAlertAction")
-    expect(opsClientSource).toContain("Live alert check")
-    expect(opsClientSource).toContain("Send test")
-    expect(opsClientSource).toContain("Telegram test alert sent")
+    expect(opsClientSource).not.toContain("sendTelegramTestAlertAction")
+    expect(opsClientSource).not.toContain("Live alert check")
+    expect(opsClientSource).not.toContain("Telegram test alert sent")
+    expect(opsClientSource).toContain("Telegram alerts")
 
     expect(telegramOpsActionsSource).toContain('requireRoleOrNull(["admin"])')
     expect(telegramOpsActionsSource).toContain("checkServerActionRateLimit")
@@ -161,9 +229,8 @@ describe("ops dashboard data contract", () => {
   })
 
   it("lets admins send an audited PHI-free email delivery test", () => {
-    expect(opsClientSource).toContain("sendOpsTestEmailAction")
-    expect(opsClientSource).toContain("Live email check")
-    expect(opsClientSource).toContain("Test email sent")
+    expect(opsClientSource).not.toContain("sendOpsTestEmailAction")
+    expect(opsClientSource).not.toContain("Live email check")
     expect(emailHubClientSource).toContain("sendOpsTestEmailAction")
     expect(emailHubClientSource).toContain("Send test")
 
@@ -193,14 +260,45 @@ describe("ops dashboard data contract", () => {
   it("surfaces outgoing email status and recovery actions in admin", () => {
     expect(emailHubPageSource).toContain("getEmailOutboxList")
     expect(emailHubPageSource).toContain("outboxRows")
+    expect(emailHubClientSource).toContain("OperatorPage")
+    expect(emailHubClientSource).toContain("OperatorScrollArea")
     expect(emailHubClientSource).toContain("Outgoing email ledger")
     expect(emailHubClientSource).toContain("EmailStatusPill")
     expect(emailHubClientSource).toContain("retryOutboxEmail")
     expect(emailHubClientSource).toContain('params.set("tab", "queue")')
-    expect(opsClientSource).toContain("Outgoing emails")
-    expect(opsClientSource).toContain("Production health timeline")
+    expect(opsClientSource).toContain("Email delivery")
+    expect(opsClientSource).not.toContain("Outgoing emails")
+    expect(opsClientSource).not.toContain("Production health timeline")
     expect(opsClientSource).toContain("Recovery palette")
     expect(opsClientSource).toContain("ADMIN_PARCHMENT_OPS_HREF")
+  })
+
+  it("keeps core ops pages as recovery rows instead of dense tables", () => {
+    expect(opsClientSource).toContain("StaffCommandPalette")
+    expect(opsClientSource).not.toContain("OpsCommandPalette")
+    expect(opsClientSource).toContain("clearCategories")
+    expect(opsClientSource).toContain("Clear paths")
+
+    expect(stuckIntakesClientSource).toContain('data-testid="stuck-intakes-task-list"')
+    expect(stuckIntakesClientSource).toContain("Summary chips")
+    expect(stuckIntakesClientSource).toContain("<details")
+    expect(stuckIntakesClientSource).toContain("SLA thresholds")
+    expect(stuckIntakesClientSource).not.toContain("<Table")
+    expect(stuckIntakesClientSource).not.toContain("stuck-intakes-table")
+
+    expect(reconciliationClientSource).toContain('data-testid="reconciliation-task-list"')
+    expect(reconciliationClientSource).toContain("Summary chips")
+    expect(reconciliationClientSource).toContain("<details")
+    expect(reconciliationClientSource).toContain("Delivery status guide")
+    expect(reconciliationClientSource).not.toContain("<Table")
+    expect(reconciliationClientSource).not.toContain("reconciliation-table")
+
+    expect(doctorOpsClientSource).toContain('data-testid="doctor-ops-task-list"')
+    expect(doctorOpsClientSource).toContain("Summary chips")
+    expect(doctorOpsClientSource).toContain("<details")
+    expect(doctorOpsClientSource).toContain("Metrics guide")
+    expect(doctorOpsClientSource).not.toContain("<Table")
+    expect(doctorOpsClientSource).not.toContain("doctor-ops-table")
   })
 
   it("surfaces failed refunds in ops without adding a broad finance dashboard", () => {
@@ -208,13 +306,13 @@ describe("ops dashboard data contract", () => {
     expect(opsPageSource).toContain('.eq("refund_status", "failed")')
     expect(opsFailuresSource).toContain("refund_failures")
     expect(opsFailuresSource).toContain("Refund failures")
-    expect(opsClientSource).toContain("Resolve refund")
+    expect(opsClientSource).toContain("Open refunds")
     expect(refundsPageSource).toContain("initialStatusFilter")
-    expect(refundsClientSource).toContain("Failed refunds")
+    expect(refundsClientSource).toContain("Refund work")
     expect(refundsClientSource).toContain("Only showing failed refund rows")
     expect(refundsClientSource).toContain("Open intake")
-    expect(refundsClientSource).toContain("payment.intake?.id")
-    expect(refundsClientSource).toContain('payment.refund_status === "failed"')
+    expect(refundsClientSource).toContain("selectedPayment.intake?.id")
+    expect(refundsClientSource).toContain('selectedPayment.refund_status === "failed"')
   })
 
   it("shows auth recovery health inside email ops instead of a vague hook card", () => {
@@ -225,26 +323,27 @@ describe("ops dashboard data contract", () => {
     expect(emailHubClientSource).not.toContain("Auth email hook")
   })
 
-  it("keeps noisy doctor dashboard toast controls visible as a simple ops guard", () => {
-    expect(opsClientSource).toContain("Doctor dashboard toasts")
-    expect(opsClientSource).toContain("new requests only")
+  it("keeps noisy doctor dashboard toast controls off the simplified ops dashboard", () => {
+    expect(opsClientSource).not.toContain("Doctor dashboard toasts")
+    expect(opsClientSource).not.toContain("new requests only")
     expect(opsClientSource).not.toContain("All doctor toasts")
   })
 
   it("lets admin copy an operations-safe request summary from intake detail", () => {
     expect(adminIntakeDetailSource).toContain("AdminRequestSummaryButton")
-    expect(adminIntakeDetailSource).toContain("Copy admin summary")
-    expect(adminIntakeDetailSource).toContain("Admin request summary")
+    expect(adminIntakeDetailSource).toContain("Copy summary")
+    expect(adminIntakeDetailSource).toContain("Operator request summary")
     expect(adminIntakeDetailSource).not.toContain("copy full clinical answers")
   })
 
-  it("shows a PHI-light recent events strip on admin intake detail", () => {
-    expect(adminIntakeDetailSource).toContain("Recent events")
-    expect(adminIntakeDetailSource).toContain("Payment, refund, and message signals only")
-    expect(adminIntakeDetailSource).toContain("getPatientMessagesForIntake(id, 3, \"desc\")")
-    expect(adminIntakeDetailSource).toContain("Payment failed")
-    expect(adminIntakeDetailSource).toContain("Refund failed")
-    expect(adminIntakeDetailSource).toContain("Message activity recorded")
+  it("uses the compact operator intake detail instead of a duplicate admin detail page", () => {
+    expect(adminIntakeDetailSource).toContain("IntakeDetailClient")
+    expect(adminIntakeDetailSource).toContain("PanelProvider")
+    expect(adminIntakeDetailSource).toContain("compact")
+    expect(adminIntakeDetailSource).toContain("backLabel=\"Back to work\"")
+    expect(adminIntakeDetailSource).toContain("getPatientMessagesForIntake(id)")
+    expect(adminIntakeDetailSource).not.toContain("Recent events")
+    expect(adminIntakeDetailSource).not.toContain("Payment, refund, and message signals only")
     expect(adminIntakeDetailSource).not.toContain("message.content")
     expect(patientMessagesDataSource).toContain('direction: "asc" | "desc" = "asc"')
   })

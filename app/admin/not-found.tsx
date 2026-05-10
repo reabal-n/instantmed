@@ -11,12 +11,12 @@ export default function AdminNotFound() {
       </div>
       <h1 className="text-2xl font-semibold text-foreground mb-2">Page not found</h1>
       <p className="text-muted-foreground mb-8 max-w-md">
-        This page doesn&apos;t exist in the admin portal.
+        This page doesn&apos;t exist in the operator dashboard.
       </p>
       <Button asChild className="rounded-xl">
         <Link href="/admin">
           <LayoutDashboard className="mr-2 h-4 w-4" />
-          Admin Dashboard
+          Operator Dashboard
         </Link>
       </Button>
     </div>

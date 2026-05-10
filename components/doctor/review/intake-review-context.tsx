@@ -1,10 +1,10 @@
 "use client"
 
-import { createContext, type RefObject,useContext } from "react"
+import { createContext, type RefObject, useContext } from "react"
 
 import type { AIDraft } from "@/app/actions/draft-approval"
 import type { PatientThreadMessage } from "@/lib/data/patient-messages"
-import type { DeclineReasonCode,IntakeStatus, IntakeWithDetails, IntakeWithPatient } from "@/types/db"
+import type { DeclineReasonCode, IntakeStatus, IntakeWithDetails, IntakeWithPatient, PatientNote } from "@/types/db"
 
 export interface ReviewData {
   intake: IntakeWithDetails
@@ -14,10 +14,13 @@ export interface ReviewData {
   nextIntakeId: string | null
   previousIntakes?: IntakeWithPatient[]
   previousIntakeCount?: number
+  patientNotes?: PatientNote[]
   draftId: string | null
   certificate?: {
     id: string
     email_sent_at: string | null
+    email_failed_at?: string | null
+    email_failure_reason?: string | null
     email_opened_at: string | null
     resend_count: number
   } | null
@@ -52,6 +55,8 @@ export interface IntakeReviewContextValue {
 
   // Pending state
   isPending: boolean
+  isResending?: boolean
+  isViewingCert?: boolean
 
   // Actions
   handleMedCertApprove: () => Promise<void>
@@ -61,6 +66,8 @@ export interface IntakeReviewContextValue {
   handleGenerateOrRegenerateNote: () => Promise<void>
   handleOpenParchmentPrescribe: () => void
   handleApproveAndOpenParchment: () => Promise<void>
+  handleResend?: () => Promise<void>
+  handleViewCertificate?: () => Promise<void>
 
   // Decline dialog
   showDeclineDialog: boolean

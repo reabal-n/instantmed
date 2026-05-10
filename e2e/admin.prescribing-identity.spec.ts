@@ -90,7 +90,7 @@ test.describe("Prescribing Identity Ops Page", () => {
     await page.goto("/admin/ops/prescribing-identity")
     await page.waitForLoadState("networkidle")
 
-    await expect(page.getByRole("heading", { name: "Prescribing Identity Blocks" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Prescribing identity blocks" })).toBeVisible()
     await expect(page.getByText(REFERENCE_NUMBER)).toBeVisible()
 
     const blockedItem = page.getByText(REFERENCE_NUMBER).locator("xpath=ancestor::div[contains(@class, 'grid')][1]")

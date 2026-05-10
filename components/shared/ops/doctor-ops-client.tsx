@@ -9,24 +9,17 @@
  * Shared component - use basePath to control URL prefix.
  */
 
-import { ArrowDown, ArrowLeft,ArrowUp, ArrowUpDown, RefreshCcw, Users } from "lucide-react"
-import Link from "next/link"
+import { ArrowDown, ArrowUp, ArrowUpDown, RefreshCcw, Users } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useState } from "react"
 
+import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { Card, CardContent } from "@/components/ui/card"
 import type { DateRange, DoctorMetrics, SortDirection,SortField } from "@/lib/data/doctor-ops"
 import { formatMinutes } from "@/lib/format"
+import { cn } from "@/lib/utils"
 
 // ============================================================================
 // PROPS
@@ -100,41 +93,28 @@ export function DoctorOpsClient({
       : <ArrowDown className="ml-1 h-3 w-3" />
   }
 
-  const SortableHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
-    <TableHead>
-      <button
-        className="flex items-center font-medium hover:text-foreground transition-colors"
-        onClick={() => handleSort(field)}
-      >
-        {children}
-        <SortIcon field={field} />
-      </button>
-    </TableHead>
-  )
-
   // Summary stats
   const totalDoctors = initialData.length
   const totalPending = initialData.reduce((sum, d) => sum + d.pending_count + d.in_review_count, 0)
   const totalDecisions = initialData.reduce((sum, d) => sum + d.total_decisions, 0)
   const totalBreaches = initialData.reduce((sum, d) => sum + d.sla_breaches, 0)
+  const sortControls: Array<{ field: SortField; label: string }> = [
+    { field: "doctor_name", label: "Doctor" },
+    { field: "pending_count", label: "Pending" },
+    { field: "median_time_to_first_action_minutes", label: "First action" },
+    { field: "median_time_to_decision_minutes", label: "Decision" },
+    { field: "total_decisions", label: "Decisions" },
+    { field: "sla_breaches", label: "Breaches" },
+  ]
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <Link
-            href={basePath}
-            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-1"
-          >
-            <ArrowLeft className="h-3 w-3 mr-1" />
-            Back to Ops
-          </Link>
-          <h1 className="text-2xl font-semibold tracking-tight">Doctor Ops</h1>
-          <p className="text-muted-foreground">
-            Operational metrics per doctor
-          </p>
-        </div>
+    <OperatorPage>
+      <OperatorPageHeader
+        title="Doctor ops"
+        description="Workload and review timing without leaderboards or gamification."
+        backHref={basePath}
+        backLabel="Operations"
+        actions={
         <div className="flex items-center gap-2">
           {/* Date Range Toggle */}
           <div className="flex rounded-md border">
@@ -165,8 +145,10 @@ export function DoctorOpsClient({
             Refresh
           </Button>
         </div>
-      </div>
+        }
+      />
 
+      <OperatorScrollArea>
       {/* Error state */}
       {error && (
         <Card className="border-destructive">
@@ -176,149 +158,107 @@ export function DoctorOpsClient({
         </Card>
       )}
 
-      {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Doctors</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-semibold">{totalDoctors}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Pending</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-semibold">{totalPending}</div>
-            <p className="text-xs text-muted-foreground">Across all doctors</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Decisions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-semibold">{totalDecisions}</div>
-            <p className="text-xs text-muted-foreground">Last {dateRange === "7d" ? "7" : "30"} days</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">SLA Breaches</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-semibold ${totalBreaches > 0 ? "text-destructive" : ""}`}>
-              {totalBreaches}
-            </div>
-            <p className="text-xs text-muted-foreground">Last {dateRange === "7d" ? "7" : "30"} days</p>
-          </CardContent>
-        </Card>
+      {/* Summary chips */}
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border/50 bg-card px-3 py-2 shadow-sm shadow-primary/[0.03]">
+        {[
+          { label: "Doctors", value: totalDoctors, icon: <Users className="h-3.5 w-3.5" /> },
+          { label: "Pending", value: totalPending, icon: null },
+          { label: `Decisions ${dateRange}`, value: totalDecisions, icon: null },
+          { label: "Breaches", value: totalBreaches, icon: null, alert: totalBreaches > 0 },
+        ].map((item) => (
+          <span
+            key={item.label}
+            className={cn(
+              "inline-flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-xs font-semibold",
+              item.alert
+                ? "border-destructive/30 bg-destructive/10 text-destructive"
+                : "border-border/50 bg-background text-muted-foreground",
+            )}
+          >
+            {item.icon}
+            {item.label}
+            <span className="tabular-nums text-foreground">{item.value}</span>
+          </span>
+        ))}
       </div>
 
-      {/* Data Table */}
+      {/* Doctor task rows */}
       <Card>
         <CardContent className="p-0">
-          <Table data-testid="doctor-ops-table">
-            <TableHeader>
-              <TableRow>
-                <SortableHeader field="doctor_name">Doctor</SortableHeader>
-                <SortableHeader field="pending_count">Pending</SortableHeader>
-                <SortableHeader field="median_time_to_first_action_minutes">
-                  Median First Action
-                </SortableHeader>
-                <SortableHeader field="median_time_to_decision_minutes">
-                  Median Decision
-                </SortableHeader>
-                <SortableHeader field="total_decisions">Decisions</SortableHeader>
-                <SortableHeader field="sla_breaches">SLA Breaches</SortableHeader>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {initialData.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">
-                    <div className="flex flex-col items-center gap-2">
-                      <Users className="h-8 w-8 text-muted-foreground" />
-                      <span className="text-muted-foreground">
-                        No doctor data available
-                      </span>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                initialData.map((doctor) => (
-                  <TableRow key={doctor.doctor_id}>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{doctor.doctor_name}</span>
-                        {doctor.doctor_email && (
-                          <span className="text-xs text-muted-foreground">
-                            {doctor.doctor_email}
-                          </span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">
-                          {doctor.pending_count + doctor.in_review_count}
-                        </span>
-                        {doctor.pending_count > 0 && (
-                          <Badge variant="secondary" className="text-xs">
-                            {doctor.pending_count} new
-                          </Badge>
-                        )}
-                        {doctor.in_review_count > 0 && (
-                          <Badge variant="outline" className="text-xs">
-                            {doctor.in_review_count} in review
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className={getTimeColor(doctor.median_time_to_first_action_minutes, 5)}>
+          <div className="flex flex-wrap items-center gap-2 border-b border-border/50 px-3 py-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sort</span>
+            {sortControls.map((control) => (
+              <button
+                key={control.field}
+                type="button"
+                className={cn(
+                  "inline-flex h-8 items-center gap-1 rounded-md px-2.5 text-xs font-semibold transition-colors",
+                  sortField === control.field
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                )}
+                onClick={() => handleSort(control.field)}
+              >
+                {control.label}
+                <SortIcon field={control.field} />
+              </button>
+            ))}
+          </div>
+          <div data-testid="doctor-ops-task-list" className="divide-y divide-border/50">
+            {initialData.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
+                <Users className="h-8 w-8 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">No doctor data available</span>
+              </div>
+            ) : (
+              initialData.map((doctor) => (
+                <div
+                  key={doctor.doctor_id}
+                  className="grid gap-3 px-3 py-3 transition-colors hover:bg-muted/35 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-center"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-foreground">{doctor.doctor_name}</p>
+                    {doctor.doctor_email && (
+                      <p className="mt-1 truncate text-xs text-muted-foreground">{doctor.doctor_email}</p>
+                    )}
+                  </div>
+                  <div className="flex min-w-0 flex-wrap items-center gap-2 text-sm">
+                    <Badge variant={doctor.pending_count > 0 ? "warning" : "outline"} className="text-xs">
+                      {doctor.pending_count + doctor.in_review_count} pending
+                    </Badge>
+                    {doctor.pending_count > 0 && <Badge variant="secondary" className="text-xs">{doctor.pending_count} new</Badge>}
+                    {doctor.in_review_count > 0 && <Badge variant="outline" className="text-xs">{doctor.in_review_count} in review</Badge>}
+                    {doctor.sla_breaches > 0 && <Badge variant="destructive" className="text-xs">{doctor.sla_breaches} breach</Badge>}
+                  </div>
+                  <div className="grid gap-1 text-xs text-muted-foreground sm:grid-cols-3 lg:min-w-[360px]">
+                    <span>
+                      First <strong className={getTimeColor(doctor.median_time_to_first_action_minutes, 5)}>
                         {formatMinutes(doctor.median_time_to_first_action_minutes)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className={getTimeColor(doctor.median_time_to_decision_minutes, 30)}>
+                      </strong>
+                    </span>
+                    <span>
+                      Decision <strong className={getTimeColor(doctor.median_time_to_decision_minutes, 30)}>
                         {formatMinutes(doctor.median_time_to_decision_minutes)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{doctor.total_decisions}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {doctor.approvals} approved, {doctor.declines} declined
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className={doctor.sla_breaches > 0 ? "text-destructive font-medium" : ""}>
-                        {doctor.sla_breaches}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                      </strong>
+                    </span>
+                    <span>
+                      {doctor.total_decisions} decisions
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </CardContent>
       </Card>
 
       {/* Legend */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Metrics Guide</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 text-sm">
+      <details className="rounded-xl border border-border/50 bg-card shadow-sm shadow-primary/[0.03]">
+        <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-muted-foreground">
+          Metrics guide
+        </summary>
+        <div className="border-t border-border/50 px-4 py-3">
+          <div className="grid gap-3 text-sm md:grid-cols-2">
             <div>
               <div className="font-medium">Pending</div>
               <div className="text-muted-foreground">
@@ -344,8 +284,9 @@ export function DoctorOpsClient({
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </details>
+      </OperatorScrollArea>
+    </OperatorPage>
   )
 }

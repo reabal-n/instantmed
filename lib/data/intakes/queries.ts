@@ -298,6 +298,7 @@ export async function getDoctorQueue(
     .from("intakes")
     .select(`
       id,
+      reference_number,
       patient_id,
       service_id,
       category,

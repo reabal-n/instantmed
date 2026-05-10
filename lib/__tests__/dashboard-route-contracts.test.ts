@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest"
 
 import {
   ADMIN_AUDIT_HREF,
+  ADMIN_DASHBOARD_HREF,
+  ADMIN_DOCTOR_QUEUE_HREF,
   ADMIN_EMAIL_HUB_HREF,
+  ADMIN_INTAKE_LEDGER_HREF,
   ADMIN_PARCHMENT_OPS_HREF,
   ADMIN_PATIENT_MERGE_AUDIT_HREF,
   ADMIN_PRESCRIBING_IDENTITY_HREF,
@@ -30,6 +33,9 @@ describe("dashboard route contracts", () => {
   })
 
   it("builds admin intake detail links from the shared route helper", () => {
+    expect(ADMIN_DASHBOARD_HREF).toBe("/admin")
+    expect(ADMIN_INTAKE_LEDGER_HREF).toBe("/admin/intakes")
+    expect(ADMIN_DOCTOR_QUEUE_HREF).toBe("/admin#doctor-queue")
     expect(buildAdminIntakeHref("intake-123")).toBe("/admin/intakes/intake-123")
     expect(buildAdminIntakeHref("intake 123")).toBe("/admin/intakes/intake%20123")
   })

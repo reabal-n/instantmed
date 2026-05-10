@@ -19,6 +19,7 @@ import { MIN_CLINICAL_NOTES_LENGTH } from "@/components/doctor/review/utils"
 import { usePanel } from "@/components/panels/panel-provider"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import { resolveClinicalDecisionNote } from "@/lib/doctor/clinical-notes"
+import { logIntakeViewDuration, preloadViewDurationLogging } from "@/lib/doctor/log-view-duration-client"
 import { buildParchmentPrescriptionContext } from "@/lib/doctor/parchment-prescribing-context"
 import { DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY } from "@/lib/doctor/queue-focus"
 import type { IntakeStatus,IntakeWithDetails } from "@/types/db"
@@ -186,6 +187,7 @@ export function useIntakeActions({
   useEffect(() => {
     if (hasLoggedView.current) return
     hasLoggedView.current = true
+    preloadViewDurationLogging()
 
     logViewedIntakeAnswersAction(intake.id, service?.type)
 
@@ -214,11 +216,7 @@ export function useIntakeActions({
     }, 5 * 60 * 1000)
 
     const handleUnload = (event: BeforeUnloadEvent) => {
-      const duration = Date.now() - viewStartTime.current
-      navigator.sendBeacon?.(
-        '/api/doctor/log-view-duration',
-        JSON.stringify({ intakeId: intake.id, durationMs: duration })
-      )
+      logIntakeViewDuration(intake.id, viewStartTime.current)
       releaseIntakeLockAction(intake.id)
 
       if (noteDirtyRef.current) {

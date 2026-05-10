@@ -1,4 +1,5 @@
 import { getPaymentsWithRefundsAction, getRefundStatsAction } from "@/app/actions/admin-config"
+import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
 import { requireRole } from "@/lib/auth/helpers"
 
 import { RefundsClient } from "./refunds-client"
@@ -27,11 +28,20 @@ export default async function RefundsPage({
     : { eligible: 0, processing: 0, refunded: 0, failed: 0, totalRefunded: 0 }
 
   return (
-    <RefundsClient
-      initialPayments={paymentsResult.data || []}
-      initialTotal={paymentsResult.total || 0}
-      stats={stats}
-      initialStatusFilter={initialStatusFilter}
-    />
+    <OperatorPage>
+      <OperatorPageHeader
+        title="Refunds"
+        description={initialStatusFilter === "failed" ? "Failed refunds first." : "Refund decisions and payment follow-up."}
+        backHref="/admin/ops"
+      />
+      <OperatorScrollArea>
+        <RefundsClient
+          initialPayments={paymentsResult.data || []}
+          initialTotal={paymentsResult.total || 0}
+          stats={stats}
+          initialStatusFilter={initialStatusFilter}
+        />
+      </OperatorScrollArea>
+    </OperatorPage>
   )
 }

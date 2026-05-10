@@ -17,7 +17,7 @@ import { ClinicalCaseReview } from "@/components/doctor"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { buildPatientSnapshot, getPatientSnapshotOptionsForCase } from "@/lib/doctor/patient-snapshot"
-import { formatDate,formatDateLong } from "@/lib/format"
+import { formatDate, formatDateLong } from "@/lib/format"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format/intake"
 import type { IntakeWithDetails, IntakeWithPatient } from "@/types/db"
 
@@ -40,6 +40,8 @@ interface IntakeDetailAnswersProps {
   previousIntakes: IntakeWithPatient[]
   hasRedFlags: boolean
   redFlagDetails: string[]
+  compact?: boolean
+  section?: "all" | "patient" | "request" | "history"
 }
 
 export function IntakeDetailAnswers({
@@ -49,6 +51,8 @@ export function IntakeDetailAnswers({
   previousIntakes,
   hasRedFlags,
   redFlagDetails,
+  compact = false,
+  section = "all",
 }: IntakeDetailAnswersProps) {
   const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
   const answers = intake.answers?.answers || {}
@@ -63,6 +67,11 @@ export function IntakeDetailAnswers({
     : snapshot.address.verificationTone === "warning"
       ? "warning"
       : "outline"
+  const showPatient = section === "all" || section === "patient"
+  const showRequest = section === "all" || section === "request"
+  const showHistory = section === "all" || section === "history"
+  const serviceLabel = service?.name || formatServiceType(service?.type || "")
+  const shortServiceLabel = service?.short_name || serviceLabel
 
   return (
     <>
@@ -70,12 +79,16 @@ export function IntakeDetailAnswers({
           the clinical identifier the doctor scans second, contact info is
           tertiary. Previously all six tiles had identical visual weight which
           forced the doctor's eye to parse each tile independently. */}
-      <Card>
-        <CardContent className="px-5 py-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      {showPatient && (
+      <Card hoverable={false}>
+        <CardContent className={compact ? "px-4 py-3" : "px-5 py-4"}>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
             <div>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                Patient details
+              </p>
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <h2 className="text-xl font-semibold leading-tight text-foreground">
+                <h2 className={compact ? "text-lg font-semibold leading-tight text-foreground" : "text-xl font-semibold leading-tight text-foreground"}>
                   {snapshot.name}
                 </h2>
                 <span className="text-sm text-muted-foreground">{snapshot.ageDobLabel}</span>
@@ -133,13 +146,20 @@ export function IntakeDetailAnswers({
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* Request Info */}
-      <Card>
-        <CardHeader className="py-3 px-4">
+      {showRequest && (
+      <Card hoverable={false}>
+        <CardHeader className={compact ? "px-4 py-2.5" : "py-3 px-4"}>
           <CardTitle className="flex items-center gap-2 text-base">
             <FileText className="h-4 w-4" />
-            {service?.name || formatServiceType(service?.type || "")}
+            {compact ? "Request summary" : serviceLabel}
+            {compact && (
+              <Badge variant="secondary" className="ml-1 text-xs font-normal">
+                {shortServiceLabel}
+              </Badge>
+            )}
             {/* Display consult subtype for consult service */}
             {intake.category === 'consult' && intake.subtype && intake.subtype !== 'general' && (
               <Badge variant="secondary" className="ml-2 text-xs font-normal">
@@ -148,7 +168,7 @@ export function IntakeDetailAnswers({
             )}
           </CardTitle>
         </CardHeader>
-        <CardContent className="px-4 py-3 space-y-3">
+        <CardContent className={compact ? "px-4 pb-3 space-y-2" : "px-4 py-3 space-y-3"}>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4 shrink-0" />
@@ -173,18 +193,61 @@ export function IntakeDetailAnswers({
               riskTier={intake.risk_tier}
               requiresLiveConsult={intake.requires_live_consult}
               className="border-0 shadow-none p-0"
+              compact={compact}
             />
           )}
         </CardContent>
       </Card>
+      )}
 
       {/* Patient History */}
-      {previousIntakes.length > 0 && (
-        <Card>
-          <CardHeader className="py-3 px-4">
-            <CardTitle className="text-base">Previous Requests</CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 py-3">
+      {showHistory && previousIntakes.length > 0 && (
+        <Card hoverable={false}>
+          {compact ? (
+            <details>
+              <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-foreground">
+                Previous requests ({previousIntakes.length})
+              </summary>
+              <div className="border-t border-border/50 px-4 py-3">
+                <div className="space-y-2">
+                  {previousIntakes.map((prev) => {
+                    const prevService = prev.service as { short_name?: string } | undefined
+                    const hasNotes = Boolean(prev.doctor_notes)
+                    return (
+                      <Link
+                        key={prev.id}
+                        href={`/doctor/intakes/${prev.id}`}
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2 p-2 bg-muted/50 rounded hover:bg-muted transition-colors"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-sm truncate">{prevService?.short_name || "Request"}</span>
+                          {hasNotes && (
+                            <Badge variant="outline" className="text-xs h-4 px-1 bg-info-light text-info border-info-border">
+                              <FileText className="h-2.5 w-2.5 mr-0.5" />
+                              Note
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs">
+                            {formatIntakeStatus(prev.status)}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {formatDate(prev.created_at)}
+                          </span>
+                        </div>
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
+            </details>
+          ) : (
+            <>
+              <CardHeader className="py-3 px-4">
+                <CardTitle className="text-base">Previous Requests</CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 py-3">
             <div className="space-y-2">
               {previousIntakes.map((prev) => {
                 const prevService = prev.service as { short_name?: string } | undefined
@@ -216,12 +279,14 @@ export function IntakeDetailAnswers({
                 )
               })}
             </div>
-          </CardContent>
+              </CardContent>
+            </>
+          )}
         </Card>
       )}
 
       {/* Safety Flags - informational only (auto-approve already validated eligibility) */}
-      {hasRedFlags && (
+      {showHistory && hasRedFlags && (
         <Card className="border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10">
           <CardHeader className="py-3 px-4">
             <CardTitle className="text-amber-700 dark:text-amber-400 flex items-center gap-2 text-base">

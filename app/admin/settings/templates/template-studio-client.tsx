@@ -24,6 +24,7 @@ import {
   CertificatePreview,
   generatePreviewData,
 } from "@/components/admin/certificate-preview"
+import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -226,72 +227,64 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      {/* Header */}
-      <div className="border-b bg-background sticky top-0 z-10">
-        <div className="max-w-[1800px] mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-semibold">Template Studio</h1>
-              <p className="text-sm text-muted-foreground">
-                Configure medical certificate templates
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              {activeTemplate && (
-                <span className="text-sm text-muted-foreground">
-                  Active version: v{activeTemplate.version}
-                </span>
-              )}
-              {hasChanges && (
-                <span className="text-sm text-warning font-medium">
-                  Unsaved changes
-                </span>
-              )}
-              <Button
-                variant="outline"
-                onClick={handleDiscard}
-                disabled={isPending || !hasChanges}
-              >
-                <RotateCcw className="h-4 w-4 mr-2" />
-                Discard
-              </Button>
-              <Button
-                onClick={handleSave}
-                disabled={isPending || !hasChanges}
-              >
-                {isPending ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4 mr-2" />
-                )}
-                Save Changes
-              </Button>
-            </div>
-          </div>
-
-          {/* Message */}
-          {message && (
-            <div
-              className={`mt-3 p-3 rounded-lg flex items-center gap-2 ${
-                message.type === "success"
-                  ? "bg-success-light text-success"
-                  : "bg-destructive-light text-destructive"
-              }`}
+    <OperatorPage>
+      <OperatorPageHeader
+        title="Template studio"
+        description="Clinic identity and certificate preview."
+        backHref="/admin/settings"
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            {activeTemplate && (
+              <span className="text-sm text-muted-foreground">
+                Active version: v{activeTemplate.version}
+              </span>
+            )}
+            {hasChanges && (
+              <span className="text-sm font-medium text-warning">
+                Unsaved changes
+              </span>
+            )}
+            <Button
+              variant="outline"
+              onClick={handleDiscard}
+              disabled={isPending || !hasChanges}
             >
-              {message.type === "success" ? (
-                <CheckCircle className="h-4 w-4" />
+              <RotateCcw className="mr-2 h-4 w-4" />
+              Discard
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={isPending || !hasChanges}
+            >
+              {isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
-                <AlertCircle className="h-4 w-4" />
+                <Save className="mr-2 h-4 w-4" />
               )}
-              {message.text}
-            </div>
-          )}
-        </div>
-      </div>
+              Save Changes
+            </Button>
+          </div>
+        }
+      />
 
-      {/* Main Content - Two Column Layout */}
-      <div className="max-w-[1800px] mx-auto px-6 py-6">
+      <OperatorScrollArea>
+        {message && (
+          <div
+            className={`rounded-lg p-3 flex items-center gap-2 ${
+              message.type === "success"
+                ? "bg-success-light text-success"
+                : "bg-destructive-light text-destructive"
+            }`}
+          >
+            {message.type === "success" ? (
+              <CheckCircle className="h-4 w-4" />
+            ) : (
+              <AlertCircle className="h-4 w-4" />
+            )}
+            {message.text}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column: Settings Form */}
           <div className="space-y-6">
@@ -731,7 +724,7 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
             {/* Version history removed - templates are static PDFs */}
           </div>
         </div>
-      </div>
-    </div>
+      </OperatorScrollArea>
+    </OperatorPage>
   )
 }

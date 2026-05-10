@@ -8,14 +8,15 @@
  * Shared component - use basePath to control URL prefix.
  */
 
-import { AlertTriangle, ArrowLeft,CheckCircle2, Clock, ExternalLink, Mail, RefreshCcw } from "lucide-react"
+import { AlertTriangle, CheckCircle2, Clock, ExternalLink, Mail, RefreshCcw } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useState } from "react"
 
+import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import {
   Select,
   SelectContent,
@@ -23,17 +24,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Snippet } from "@/components/uix"
 import type { StuckCounts, StuckIntake, StuckReason } from "@/lib/data/intake-ops"
 import { formatAge } from "@/lib/format"
+import { cn } from "@/lib/utils"
 
 // ============================================================================
 // PROPS
@@ -92,6 +85,10 @@ function getReasonBadgeVariant(reason: StuckReason): "default" | "secondary" | "
   }
 }
 
+function getReasonCount(counts: StuckCounts, reason: StuckReason): number {
+  return counts[reason]
+}
+
 // ============================================================================
 // COMPONENT
 // ============================================================================
@@ -128,23 +125,16 @@ export function IntakesStuckClient({
     router.push(`${basePath}/intakes-stuck`)
   }
 
+  const summaryReasons: StuckReason[] = ["paid_no_review", "review_timeout", "delivery_pending", "delivery_failed"]
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <Link
-            href={basePath}
-            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-1"
-          >
-            <ArrowLeft className="h-3 w-3 mr-1" />
-            Back to Ops
-          </Link>
-          <h1 className="text-2xl font-semibold tracking-tight">Stuck Intakes</h1>
-          <p className="text-muted-foreground">
-            Monitor intakes that are stuck in SLA-breaching states
-          </p>
-        </div>
+    <OperatorPage>
+      <OperatorPageHeader
+        title="Stuck intakes"
+        description="Paid requests that need recovery before they become patient-facing issues."
+        backHref={basePath}
+        backLabel="Operations"
+        actions={
         <Button
           variant="outline"
           size="sm"
@@ -154,8 +144,10 @@ export function IntakesStuckClient({
           <RefreshCcw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
           Refresh
         </Button>
-      </div>
+        }
+      />
 
+      <OperatorScrollArea>
       {/* Error state */}
       {error && (
         <Card className="border-destructive">
@@ -165,255 +157,152 @@ export function IntakesStuckClient({
         </Card>
       )}
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-5">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Stuck</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-semibold">{counts.total}</div>
-          </CardContent>
-        </Card>
-
-        <button
-          type="button"
-          className={`text-left w-full transition-colors ${filters.reason === "paid_no_review" ? "ring-2 ring-primary rounded-lg" : ""}`}
-          onClick={() => handleFilterChange("reason", filters.reason === "paid_no_review" ? "all" : "paid_no_review")}
-          aria-pressed={filters.reason === "paid_no_review"}
-        >
-          <Card className="cursor-pointer hover:bg-muted/50">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Paid, No Review</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold">{counts.paid_no_review}</div>
-              <p className="text-xs text-muted-foreground">&gt; 5 min</p>
-            </CardContent>
-          </Card>
-        </button>
-
-        <button
-          type="button"
-          className={`text-left w-full transition-colors ${filters.reason === "review_timeout" ? "ring-2 ring-primary rounded-lg" : ""}`}
-          onClick={() => handleFilterChange("reason", filters.reason === "review_timeout" ? "all" : "review_timeout")}
-          aria-pressed={filters.reason === "review_timeout"}
-        >
-          <Card className="cursor-pointer hover:bg-muted/50">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Review Timeout</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-warning" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold">{counts.review_timeout}</div>
-              <p className="text-xs text-muted-foreground">&gt; 60 min</p>
-            </CardContent>
-          </Card>
-        </button>
-
-        <button
-          type="button"
-          className={`text-left w-full transition-colors ${filters.reason === "delivery_pending" ? "ring-2 ring-primary rounded-lg" : ""}`}
-          onClick={() => handleFilterChange("reason", filters.reason === "delivery_pending" ? "all" : "delivery_pending")}
-          aria-pressed={filters.reason === "delivery_pending"}
-        >
-          <Card className="cursor-pointer hover:bg-muted/50">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Delivery Pending</CardTitle>
-              <Mail className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold">{counts.delivery_pending}</div>
-              <p className="text-xs text-muted-foreground">&gt; 10 min</p>
-            </CardContent>
-          </Card>
-        </button>
-
-        <button
-          type="button"
-          className={`text-left w-full transition-colors ${filters.reason === "delivery_failed" ? "ring-2 ring-primary rounded-lg" : ""}`}
-          onClick={() => handleFilterChange("reason", filters.reason === "delivery_failed" ? "all" : "delivery_failed")}
-          aria-pressed={filters.reason === "delivery_failed"}
-        >
-          <Card className="cursor-pointer hover:bg-muted/50">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Delivery Failed</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-destructive" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold text-destructive">{counts.delivery_failed}</div>
-              <p className="text-xs text-muted-foreground">Email failed</p>
-            </CardContent>
-          </Card>
-        </button>
+      {/* Summary chips */}
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border/50 bg-card px-3 py-2 shadow-sm shadow-primary/[0.03]">
+        <Badge variant={counts.total > 0 ? "warning" : "success"} className="h-8 px-3">
+          {counts.total > 0 ? `${counts.total} stuck` : "Clear"}
+        </Badge>
+        {summaryReasons.map((reason) => {
+          const active = filters.reason === reason
+          const count = getReasonCount(counts, reason)
+          return (
+            <button
+              key={reason}
+              type="button"
+              className={cn(
+                "inline-flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-xs font-semibold transition-colors",
+                active
+                  ? "border-primary/35 bg-primary/10 text-primary"
+                  : "border-border/50 bg-background text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+              )}
+              onClick={() => handleFilterChange("reason", active ? "all" : reason)}
+              aria-pressed={active}
+            >
+              {REASON_ICONS[reason]}
+              {REASON_LABELS[reason]}
+              <span className="tabular-nums">{count}</span>
+            </button>
+          )
+        })}
       </div>
 
-      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border/50 bg-card px-3 py-2 shadow-sm shadow-primary/[0.03]">
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Filters</span>
+        <Select
+          value={filters.reason || "all"}
+          onValueChange={(v) => handleFilterChange("reason", v)}
+        >
+          <SelectTrigger className="h-8 w-[168px] text-xs">
+            <SelectValue placeholder="All reasons" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All reasons</SelectItem>
+            <SelectItem value="paid_no_review">Paid, No Review</SelectItem>
+            <SelectItem value="review_timeout">Review Timeout</SelectItem>
+            <SelectItem value="delivery_pending">Delivery Pending</SelectItem>
+            <SelectItem value="delivery_failed">Delivery Failed</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={filters.service_type || "all"}
+          onValueChange={(v) => handleFilterChange("service_type", v)}
+        >
+          <SelectTrigger className="h-8 w-[168px] text-xs">
+            <SelectValue placeholder="All services" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All services</SelectItem>
+            {serviceTypes.map((type) => (
+              <SelectItem key={type} value={type}>
+                {type.replace(/_/g, " ")}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={filters.status || "all"}
+          onValueChange={(v) => handleFilterChange("status", v)}
+        >
+          <SelectTrigger className="h-8 w-[150px] text-xs">
+            <SelectValue placeholder="All statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All statuses</SelectItem>
+            <SelectItem value="paid">Paid</SelectItem>
+            <SelectItem value="in_review">In Review</SelectItem>
+            <SelectItem value="pending_info">Pending Info</SelectItem>
+            <SelectItem value="approved">Approved</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {(filters.reason || filters.service_type || filters.status) && (
+          <Button variant="ghost" size="sm" onClick={clearFilters}>
+            Clear
+          </Button>
+        )}
+      </div>
+
+      {/* Task rows */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Filters</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-4">
-            <div className="w-48">
-              <label className="text-sm font-medium mb-1.5 block">Reason</label>
-              <Select
-                value={filters.reason || "all"}
-                onValueChange={(v) => handleFilterChange("reason", v)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All reasons" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All reasons</SelectItem>
-                  <SelectItem value="paid_no_review">Paid, No Review</SelectItem>
-                  <SelectItem value="review_timeout">Review Timeout</SelectItem>
-                  <SelectItem value="delivery_pending">Delivery Pending</SelectItem>
-                  <SelectItem value="delivery_failed">Delivery Failed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="w-48">
-              <label className="text-sm font-medium mb-1.5 block">Service Type</label>
-              <Select
-                value={filters.service_type || "all"}
-                onValueChange={(v) => handleFilterChange("service_type", v)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All services" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All services</SelectItem>
-                  {serviceTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type.replace(/_/g, " ")}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="w-48">
-              <label className="text-sm font-medium mb-1.5 block">Status</label>
-              <Select
-                value={filters.status || "all"}
-                onValueChange={(v) => handleFilterChange("status", v)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All statuses</SelectItem>
-                  <SelectItem value="paid">Paid</SelectItem>
-                  <SelectItem value="in_review">In Review</SelectItem>
-                  <SelectItem value="pending_info">Pending Info</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {(filters.reason || filters.service_type || filters.status) && (
-              <div className="flex items-end">
-                <Button variant="ghost" size="sm" onClick={clearFilters}>
-                  Clear filters
-                </Button>
+        <CardContent className="p-0">
+          <div data-testid="stuck-intakes-task-list" className="divide-y divide-border/50">
+            {initialData.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
+                <CheckCircle2 className="h-8 w-8 text-success" />
+                <span className="text-sm text-muted-foreground">No stuck intakes found</span>
               </div>
+            ) : (
+              initialData.map((intake) => (
+                <div
+                  key={intake.id}
+                  className="grid gap-3 px-3 py-3 transition-colors hover:bg-muted/35 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)_auto] lg:items-center"
+                >
+                  <div className="min-w-0">
+                    <div className="flex min-w-0 flex-wrap items-center gap-2">
+                      <span className="truncate font-mono text-sm font-semibold text-foreground">
+                        {intake.reference_number}
+                      </span>
+                      <Badge variant={getReasonBadgeVariant(intake.stuck_reason)}>
+                        <span className="mr-1">{REASON_ICONS[intake.stuck_reason]}</span>
+                        {REASON_LABELS[intake.stuck_reason]}
+                      </Badge>
+                      <Badge variant="outline">{intake.status}</Badge>
+                    </div>
+                    <p className="mt-1 truncate text-sm text-muted-foreground">
+                      {intake.patient_name || "Unknown patient"} · {intake.patient_email || "No email"}
+                    </p>
+                  </div>
+                  <div className="min-w-0 text-sm">
+                    <p className="truncate font-medium text-foreground">
+                      {intake.service_name || intake.category}
+                      {intake.subtype ? ` · ${intake.subtype}` : ""}
+                    </p>
+                    <p className={cn("mt-1 text-xs font-medium", intake.stuck_age_minutes > 60 ? "text-destructive" : "text-muted-foreground")}>
+                      Stuck for {formatAge(intake.stuck_age_minutes)}
+                    </p>
+                  </div>
+                  <Button asChild variant="ghost" size="sm" className="justify-self-start lg:justify-self-end">
+                    <Link href={`/admin/intakes/${intake.id}`}>
+                      <ExternalLink className="h-4 w-4" />
+                      Open intake
+                    </Link>
+                  </Button>
+                </div>
+              ))
             )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Data Table */}
-      <Card>
-        <CardContent className="p-0">
-          <Table data-testid="stuck-intakes-table">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Reference</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Reason</TableHead>
-                <TableHead>Age</TableHead>
-                <TableHead>Service</TableHead>
-                <TableHead>Patient</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {initialData.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center">
-                    <div className="flex flex-col items-center gap-2">
-                      <CheckCircle2 className="h-8 w-8 text-success" />
-                      <span className="text-muted-foreground">
-                        No stuck intakes found
-                      </span>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                initialData.map((intake) => (
-                  <TableRow key={intake.id}>
-                    <TableCell>
-                      <Snippet symbol="" size="sm" variant="flat" className="bg-transparent">
-                        {intake.reference_number}
-                      </Snippet>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{intake.status}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={getReasonBadgeVariant(intake.stuck_reason)}>
-                        <span className="mr-1">{REASON_ICONS[intake.stuck_reason]}</span>
-                        {REASON_LABELS[intake.stuck_reason]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <span className={intake.stuck_age_minutes > 60 ? "text-destructive font-medium" : ""}>
-                        {formatAge(intake.stuck_age_minutes)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="text-sm">{intake.service_name || intake.category}</span>
-                        {intake.subtype && (
-                          <span className="text-xs text-muted-foreground">{intake.subtype}</span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="text-sm">{intake.patient_name || "Unknown"}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {intake.patient_email || "No email"}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Link href={`/admin/intakes/${intake.id}`}>
-                        <Button variant="ghost" size="sm">
-                          <ExternalLink className="h-4 w-4 mr-1" />
-                          Open
-                        </Button>
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
       {/* Legend */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">SLA Thresholds</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2">
+      <details className="rounded-xl border border-border/50 bg-card shadow-sm shadow-primary/[0.03]">
+        <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-muted-foreground">
+          SLA thresholds
+        </summary>
+        <div className="border-t border-border/50 px-4 py-3">
+          <div className="grid gap-3 md:grid-cols-2">
             {(Object.keys(REASON_LABELS) as StuckReason[]).map((reason) => (
               <div key={reason} className="flex items-start gap-3">
                 <div className="mt-0.5">{REASON_ICONS[reason]}</div>
@@ -426,8 +315,9 @@ export function IntakesStuckClient({
               </div>
             ))}
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </details>
+      </OperatorScrollArea>
+    </OperatorPage>
   )
 }

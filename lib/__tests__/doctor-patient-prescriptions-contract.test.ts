@@ -77,8 +77,9 @@ describe("doctor patient medication history contract", () => {
   })
 
   it("hides empty secondary patient sections instead of rendering full empty cards", () => {
-    expect(detailSource).toContain("{intakes.length > 0 && (")
-    expect(detailSource).toContain("{(showNoteForm || notes.length > 0) && (")
+    expect(detailSource).toContain("<PatientTimeline")
+    expect(detailSource).toContain("emptyLabel=\"No requests or staff notes recorded yet.\"")
+    expect(detailSource).toContain("{showNoteForm && (")
     expect(detailSource).toContain("{emailLogs.length > 0 && (")
     expect(detailSource).not.toContain("No requests from this patient yet")
     expect(detailSource).not.toContain("No emails sent to this patient yet")

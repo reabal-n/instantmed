@@ -51,9 +51,39 @@ const dashboardRedirectSource = readFileSync(
   join(process.cwd(), "app/dashboard/page.tsx"),
   "utf8",
 )
+const adminLayoutSource = readFileSync(
+  join(process.cwd(), "app/admin/layout.tsx"),
+  "utf8",
+)
+const operatorShellSource = readFileSync(
+  join(process.cwd(), "components/operator/operator-shell.tsx"),
+  "utf8",
+)
+const staffNavigationSource = readFileSync(
+  join(process.cwd(), "lib/dashboard/staff-navigation.ts"),
+  "utf8",
+)
+const intakeDetailClientSource = readFileSync(
+  join(process.cwd(), "app/doctor/intakes/[id]/intake-detail-client.tsx"),
+  "utf8",
+)
+const intakeDetailAnswersSource = readFileSync(
+  join(process.cwd(), "app/doctor/intakes/[id]/intake-detail-answers.tsx"),
+  "utf8",
+)
+const intakeDetailDraftsSource = readFileSync(
+  join(process.cwd(), "app/doctor/intakes/[id]/intake-detail-drafts.tsx"),
+  "utf8",
+)
 
 function navLabels(source: string): string[] {
   return Array.from(source.matchAll(/label:\s*"([^"]+)"/g)).map((match) => match[1])
+}
+
+function navSourceBlock(source: string, start: string, end?: string): string {
+  const startIndex = source.indexOf(start)
+  const endIndex = end ? source.indexOf(end) : source.length
+  return source.slice(startIndex, endIndex > startIndex ? endIndex : source.length)
 }
 
 function findAdminPageFiles(dir = join(process.cwd(), "app/admin")): string[] {
@@ -79,7 +109,12 @@ describe("admin navigation contract", () => {
   })
 
   it("keeps the sidebar focused and avoids duplicate or vendor-specific labels", () => {
-    const labels = navLabels(sidebarSource)
+    const operatorNavSource = navSourceBlock(
+      staffNavigationSource,
+      "export const operatorNavSections",
+      "export const doctorNavSections",
+    )
+    const labels = navLabels(operatorNavSource)
 
     expect(labels.filter((label) => label === "Analytics")).toHaveLength(1)
     expect(sidebarSource).not.toContain("emailNavItems")
@@ -88,18 +123,23 @@ describe("admin navigation contract", () => {
     expect(labels).toEqual([
       "Dashboard",
       "Intake ledger",
-      "Doctor queue",
+      "Queue",
       "Analytics",
       "Finance",
       "Operations",
       "Settings",
     ])
-    expect(sidebarSource).toContain("clinicalNavItems")
-    expect(sidebarSource).toContain("Clinical mode")
-    expect(sidebarSource).toContain('href: "/doctor/dashboard"')
+    expect(sidebarSource).toContain("operatorNavSections")
+    expect(sidebarSource).not.toContain("clinicalNavItems")
+    expect(sidebarSource).not.toContain("Clinical mode")
+    expect(operatorNavSource).toContain("ADMIN_DOCTOR_QUEUE_HREF")
+    expect(operatorNavSource).not.toContain('href: "/doctor/dashboard"')
     expect(sidebarSource).not.toContain('href: "/doctor/patients"')
     expect(sidebarSource).not.toContain('href: "/doctor/scripts"')
     expect(sidebarSource).toContain("prefetch={false}")
+    expect(adminLayoutSource).toContain("OperatorShell")
+    expect(operatorShellSource).toContain("AdminSidebar")
+    expect(operatorShellSource).toContain("MobileAdminNav")
   })
 
   it("keeps the admin dashboard hub focused on operational next actions", () => {
@@ -166,13 +206,34 @@ describe("admin navigation contract", () => {
 
     expect(adminIntakeDetailSource).not.toContain("DoctorIntakeDetailPage")
     expect(adminPatientDetailSource).not.toContain("DoctorPatientDetailPage")
-    expect(adminIntakeDetailSource).toContain("Switch to doctor mode")
-    expect(adminPatientDetailSource).toContain("Switch to doctor file")
-    expect(adminPatientDetailSource).toContain("Switch to doctor mode")
+    expect(adminIntakeDetailSource).toContain("IntakeDetailClient")
+    expect(adminIntakeDetailSource).toContain("PanelProvider")
+    expect(adminIntakeDetailSource).toContain("compact")
+    expect(adminIntakeDetailSource).toContain("Back to work")
+    expect(adminIntakeDetailSource).toContain("Copy summary")
+    expect(adminIntakeDetailSource).toContain("Operator request summary")
+    expect(adminIntakeDetailSource).not.toContain("Switch to doctor mode")
+    expect(adminPatientDetailSource).toContain("Open clinical file")
+    expect(adminPatientDetailSource).toContain("operator-action-rail")
+    expect(adminPatientDetailSource).toContain("formatPrescriptionLabel")
+    expect(adminPatientDetailSource).not.toContain("Switch to doctor file")
+    expect(adminPatientDetailSource).not.toContain("Switch to doctor mode")
+    expect(adminPatientDetailSource).not.toContain("Continue as doctor")
     expect(adminIntakeDetailSource).not.toContain("Open doctor workflow")
     expect(adminPatientDetailSource).not.toContain("Prescribe as doctor")
     expect(adminIntakeDetailSource).toContain('requireRole(["admin"]')
     expect(adminPatientDetailSource).toContain('requireRole(["admin"]')
+  })
+
+  it("keeps compact intake review as a three-lane decision cockpit", () => {
+    expect(intakeDetailClientSource).toContain('section="patient"')
+    expect(intakeDetailClientSource).toContain('section="request"')
+    expect(intakeDetailClientSource).toContain('section="history"')
+    expect(intakeDetailClientSource).toContain("xl:grid-cols-[minmax(270px,0.72fr)_minmax(0,1.14fr)_minmax(320px,0.84fr)]")
+    expect(intakeDetailAnswersSource).toContain("Patient details")
+    expect(intakeDetailAnswersSource).toContain("Request summary")
+    expect(intakeDetailDraftsSource).toContain("AI drafts")
+    expect(intakeDetailDraftsSource).toContain("Repeat prescription checklist")
   })
 
   it("keeps nested admin ops pages admin-only", () => {
@@ -235,6 +296,9 @@ describe("admin navigation contract", () => {
     expect(opsParchmentSource).toContain('href="/admin/parchment-conformance"')
     expect(opsParchmentSource).toContain("Production prescribing gate")
     expect(opsParchmentSource).toContain("getParchmentProductionReadiness")
+    expect(opsParchmentSource).toContain("function isUuid")
+    expect(opsParchmentSource).toContain("PatientLink patientProfileId={event.patientProfileId}")
+    expect(opsParchmentSource).toContain("PatientLink patientProfileId={failure.patientProfileId}")
     expect(financeClientSource).toContain('href="/admin/refunds"')
   })
 
@@ -245,8 +309,10 @@ describe("admin navigation contract", () => {
     )
 
     expect(opsClientSource).toContain("Payment webhooks")
-    expect(opsClientSource).toContain("Payment DLQ")
-    expect(opsClientSource).toContain("Recent payment DLQ events")
+    expect(opsClientSource).not.toContain("Payment DLQ")
+    expect(opsClientSource).not.toContain("Recent payment DLQ events")
+    expect(opsClientSource).toContain("Recovery paths")
+    expect(opsClientSource).toContain("Detailed logs stay inside their owning pages")
     expect(opsClientSource).not.toContain("Stripe Webhooks")
     expect(opsClientSource).not.toContain("Stripe DLQ")
     expect(opsClientSource).not.toContain("animate-pulse")

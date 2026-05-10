@@ -1,0 +1,144 @@
+"use client"
+
+import { AlertTriangle, CheckCircle2, FileText, Mail, ShieldAlert, Truck } from "lucide-react"
+
+import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
+import { Badge } from "@/components/ui/badge"
+import { MIN_CLINICAL_NOTES_LENGTH } from "@/lib/doctor/clinical-notes"
+import {
+  buildPatientSnapshot,
+  getPatientSnapshotOptionsForCase,
+  requiresPrescribingIdentityForCase,
+} from "@/lib/doctor/patient-snapshot"
+import { isConsultServiceType, isKnownDoctorServiceType } from "@/lib/doctor/service-types"
+import { cn } from "@/lib/utils"
+
+interface BlockerItem {
+  id: string
+  label: string
+  detail: string
+  icon: typeof AlertTriangle
+  tone: "warning" | "destructive"
+}
+
+export function ReviewBlockersStrip() {
+  const { intake, service, answers, data, doctorNotes } = useIntakeReview()
+  const snapshotContext = {
+    answers,
+    category: intake.category,
+    serviceType: service?.type,
+    subtype: intake.subtype,
+  }
+  const snapshot = buildPatientSnapshot(intake.patient, {
+    ...getPatientSnapshotOptionsForCase(snapshotContext),
+    answers,
+  })
+  const requiresPrescribingIdentity = requiresPrescribingIdentityForCase(snapshotContext)
+  const noteTooShort = doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH
+  const approvalNeedsClinicalNotes =
+    (service?.type === "med_certs" && ["paid", "in_review"].includes(intake.status)) ||
+    (isConsultServiceType(service?.type) && intake.status === "paid") ||
+    (service?.type && !isKnownDoctorServiceType(service.type) && intake.status === "paid") ||
+    (!service?.type && intake.status === "paid")
+  const patientReplyCount = data.patientMessages?.filter((message) => message.sender_type === "patient").length ?? 0
+  const certificateDeliveryPending = Boolean(
+    data.certificate &&
+    ["approved", "completed"].includes(intake.status) &&
+    !data.certificate.email_sent_at &&
+    !data.certificate.email_opened_at,
+  )
+  const scriptDeliveryPending = intake.status === "awaiting_script" && !intake.script_sent
+
+  const blockers: BlockerItem[] = [
+    ...(snapshot.missingCriticalFields.length > 0 && requiresPrescribingIdentity
+      ? [{
+          id: "identity",
+          label: "Identity missing",
+          detail: snapshot.missingCriticalFields.join(", "),
+          icon: ShieldAlert,
+          tone: "destructive" as const,
+        }]
+      : []),
+    ...(intake.status === "pending_info" && !intake.info_request_message
+      ? [{
+          id: "message-needed",
+          label: "Message needed",
+          detail: "Case is waiting for info, but no patient prompt is recorded.",
+          icon: Mail,
+          tone: "warning" as const,
+        }]
+      : []),
+    ...(intake.status === "pending_info" && intake.info_request_message && patientReplyCount === 0
+      ? [{
+          id: "waiting-patient",
+          label: "Waiting for patient",
+          detail: "Info request sent. No patient reply yet.",
+          icon: Mail,
+          tone: "warning" as const,
+        }]
+      : []),
+    ...(approvalNeedsClinicalNotes && noteTooShort
+      ? [{
+          id: "notes",
+          label: "Note too short",
+          detail: `${doctorNotes.trim().length}/${MIN_CLINICAL_NOTES_LENGTH} chars`,
+          icon: FileText,
+          tone: "warning" as const,
+        }]
+      : []),
+    ...(certificateDeliveryPending || scriptDeliveryPending
+      ? [{
+          id: "delivery",
+          label: "Delivery pending",
+          detail: certificateDeliveryPending ? "Certificate email not sent yet." : "Script not marked sent yet.",
+          icon: Truck,
+          tone: "warning" as const,
+        }]
+      : []),
+  ]
+
+  return (
+    <section className="rounded-xl border border-border/60 bg-card p-3" aria-label="Case blockers">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          {blockers.length > 0 ? (
+            <AlertTriangle className="h-4 w-4 text-warning" aria-hidden />
+          ) : (
+            <CheckCircle2 className="h-4 w-4 text-success" aria-hidden />
+          )}
+          <h3 className="text-sm font-semibold text-foreground">Blockers only</h3>
+        </div>
+        <Badge variant={blockers.length > 0 ? "warning" : "success"} size="sm">
+          {blockers.length > 0 ? `${blockers.length} open` : "Clear"}
+        </Badge>
+      </div>
+
+      {blockers.length === 0 ? (
+        <p className="mt-2 text-sm text-muted-foreground">No blocking admin or clinical setup issues.</p>
+      ) : (
+        <div className="mt-3 space-y-2">
+          {blockers.map((blocker) => {
+            const Icon = blocker.icon
+            return (
+              <div
+                key={blocker.id}
+                className={cn(
+                  "flex items-start gap-2 rounded-lg border px-3 py-2 text-sm",
+                  blocker.tone === "destructive"
+                    ? "border-destructive/30 bg-destructive/10 text-destructive"
+                    : "border-warning-border bg-warning-light text-warning",
+                )}
+              >
+                <Icon className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                <div className="min-w-0">
+                  <p className="font-semibold">{blocker.label}</p>
+                  <p className="mt-0.5 break-words text-xs opacity-90">{blocker.detail}</p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </section>
+  )
+}

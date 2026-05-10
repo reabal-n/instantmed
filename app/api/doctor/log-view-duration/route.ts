@@ -9,11 +9,16 @@ import { requireValidCsrf } from "@/lib/security/csrf"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("log-view-duration")
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 const logViewDurationSchema = z.object({
-  intakeId: z.string().uuid(),
-  durationMs: z.number().int().min(0).max(86400000), // max 24 hours
+  intakeId: z.string().regex(UUID_RE),
+  durationMs: z.coerce.number().int().min(0).max(86400000), // max 24 hours
 })
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,8 +33,15 @@ export async function POST(request: NextRequest) {
     const csrfError = await requireValidCsrf(request)
     if (csrfError) return csrfError
 
-    const body = await request.json()
-    const parsed = logViewDurationSchema.safeParse(body)
+    const queryPayload = {
+      intakeId: request.nextUrl.searchParams.get("intakeId"),
+      durationMs: request.nextUrl.searchParams.get("durationMs"),
+    }
+    const body = await request.json().catch(() => ({}))
+    const parsed = logViewDurationSchema.safeParse({
+      ...queryPayload,
+      ...(isRecord(body) ? body : {}),
+    })
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 })
     }

@@ -36,7 +36,7 @@ export function hasDoctorAccess(profile: Pick<Profile, "role">): boolean {
 
 export function getStaffDisplayRole(profile: Pick<Profile, "role">): string {
   if (hasAdminAccess(profile) && hasDoctorAccess(profile)) {
-    return "Doctor + admin"
+    return "Operator"
   }
 
   if (hasDoctorAccess(profile)) {

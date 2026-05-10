@@ -11,7 +11,8 @@ import { Button } from "@/components/ui/button"
 import { DOCTOR_DASHBOARD_HREF, parseQueueStatusFilter, type QueueStatusFilter } from "@/lib/dashboard/routes"
 import { DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY, LAST_OPENED_DOCTOR_CASE_KEY } from "@/lib/doctor/queue-focus"
 import { removeCompletedIntakeFromQueue } from "@/lib/doctor/queue-state"
-import { calculateSlaCountdown,calculateWaitTime, getQueueEnteredAt, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
+import { calculateSlaCountdown,calculateWaitTime, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
+import { hasReviewNextRisk, sortForReviewNext } from "@/lib/doctor/review-next"
 import { SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
 import { formatServiceType } from "@/lib/format/intake"
@@ -36,10 +37,13 @@ export function QueueClient({
   todayEarnings,
   initialStatusFilter = "all",
   hasExplicitStatusFilter = false,
+  baseHref = DOCTOR_DASHBOARD_HREF,
+  compactShell = false,
 }: QueueClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { openPanel, activePanel } = usePanel()
+  const panelOpenRef = useRef(Boolean(activePanel))
   const explicitStatusFilterRef = useRef(hasExplicitStatusFilter)
   const queueRegionRef = useRef<HTMLDivElement>(null)
 
@@ -106,12 +110,17 @@ export function QueueClient({
   })
 
   useEffect(() => {
+    panelOpenRef.current = Boolean(activePanel)
+  }, [activePanel])
+
+  useEffect(() => {
     const nextStatus = parseQueueStatusFilter(searchParams.get("status"))
     explicitStatusFilterRef.current = searchParams.has("status") && nextStatus !== "all"
     setStatusFilter(nextStatus)
   }, [searchParams])
 
   const refreshQueue = useCallback((force = false) => {
+    if (!force && panelOpenRef.current) return
     const now = Date.now()
     if (!force && now - lastQueueRefreshAtRef.current < 5000) return
     lastQueueRefreshAtRef.current = now
@@ -122,7 +131,9 @@ export function QueueClient({
   }, [router])
 
   useEffect(() => {
-    setLastQueueRefreshAt(new Date())
+    const now = Date.now()
+    lastQueueRefreshAtRef.current = now
+    setLastQueueRefreshAt(new Date(now))
   }, [])
 
   useEffect(() => {
@@ -165,8 +176,8 @@ export function QueueClient({
     params.delete("page")
 
     const query = params.toString()
-    router.replace(query ? `${DOCTOR_DASHBOARD_HREF}?${query}` : DOCTOR_DASHBOARD_HREF, { scroll: false })
-  }, [router, searchParams])
+    router.replace(query ? `${baseHref}?${query}` : baseHref, { scroll: false })
+  }, [baseHref, router, searchParams])
 
   // Auto-activate priority mode when SLA-breached cases exist
   useEffect(() => {
@@ -258,6 +269,7 @@ export function QueueClient({
 
   // Open intake review in a slide-over panel (stays on queue)
   const openReviewPanel = useCallback((intakeId: string) => {
+    panelOpenRef.current = true
     markAsRead(intakeId)
     const getAdjacentId = (direction: "next" | "prev"): string | null => {
       const list = filteredIntakesRef.current
@@ -284,7 +296,11 @@ export function QueueClient({
             })
             refreshQueue(true)
             if (options?.advance !== false && nextIntake) {
-              setTimeout(() => openReviewPanel(nextIntake.id), 150)
+              rememberOpenedCase(nextIntake.id)
+              toast.success("Case done. Opening next.")
+              setTimeout(() => openReviewPanel(nextIntake.id), 90)
+            } else if (options?.advance !== false) {
+              toast.success("Case done. Queue clear.")
             }
           }}
           onNextCase={() => {
@@ -298,7 +314,7 @@ export function QueueClient({
         />
       ),
     })
-  }, [openPanel, refreshQueue, markAsRead])
+  }, [openPanel, refreshQueue, markAsRead, rememberOpenedCase])
 
   const handleApprove = useCallback(async (intakeId: string, serviceType?: string | null) => {
     if (serviceType === SERVICE_TYPES.MED_CERTS) {
@@ -347,30 +363,12 @@ export function QueueClient({
   }, [openReviewPanel, startTransition, intakes, refreshQueue])
 
 
-  const hasRedFlags = useCallback((intake: IntakeWithPatient): boolean => {
-    if (intake.flagged_for_followup) return true
-    if (intake.risk_tier === "high" || intake.risk_tier === "critical") return true
-    if (intake.risk_flags && Array.isArray(intake.risk_flags) && intake.risk_flags.length > 0) return true
-    if (intake.risk_score >= 7) return true
-    if (intake.requires_live_consult) return true
-    return false
-  }, [])
+  const hasRedFlags = useCallback((intake: IntakeWithPatient): boolean => hasReviewNextRisk(intake), [])
 
-  // Sort: priority → flagged → SLA deadline → wait time
+  // Sort: risk -> scripts waiting -> priority -> oldest paid/requested -> pending-info age.
   const sortedIntakes = useMemo(() => {
-    return [...intakes].sort((a, b) => {
-      if (a.is_priority && !b.is_priority) return -1
-      if (!a.is_priority && b.is_priority) return 1
-      const aFlagged = hasRedFlags(a)
-      const bFlagged = hasRedFlags(b)
-      if (aFlagged && !bFlagged) return -1
-      if (!aFlagged && bFlagged) return 1
-      const aSla = a.sla_deadline ? new Date(a.sla_deadline).getTime() : Infinity
-      const bSla = b.sla_deadline ? new Date(b.sla_deadline).getTime() : Infinity
-      if (aSla !== bSla) return aSla - bSla
-      return new Date(getQueueEnteredAt(a)).getTime() - new Date(getQueueEnteredAt(b)).getTime()
-    })
-  }, [intakes, hasRedFlags])
+    return sortForReviewNext(intakes)
+  }, [intakes])
 
   const filteredIntakes = sortedIntakes.filter((r) => {
     // Status filter
@@ -405,13 +403,23 @@ export function QueueClient({
     if (!plainQuery) return true
     return (
       r.patient.full_name.toLowerCase().includes(plainQuery) ||
+      r.reference_number?.toLowerCase().includes(plainQuery) ||
       r.patient.medicare_number?.includes(plainQuery) ||
+      r.patient.email?.toLowerCase().includes(plainQuery) ||
+      r.patient.phone?.replace(/\s+/g, "").includes(plainQuery.replace(/\s+/g, "")) ||
       formatServiceType(service?.type || "").toLowerCase().includes(plainQuery)
     )
   })
 
   // Keep ref in sync for panel navigation callbacks
   filteredIntakesRef.current = filteredIntakes
+
+  const handleReviewNext = useCallback(() => {
+    const next = filteredIntakesRef.current[0]
+    if (!next) return
+    rememberOpenedCase(next.id)
+    openReviewPanel(next.id)
+  }, [openReviewPanel, rememberOpenedCase])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -483,10 +491,13 @@ export function QueueClient({
       role="region"
       tabIndex={-1}
       aria-label="Doctor request queue"
-      className="space-y-6 focus:outline-none"
+      className={cn(
+        compactShell ? "flex h-full min-h-0 flex-col gap-3" : "space-y-6",
+        "focus:outline-none",
+      )}
     >
       {/* Daily stats strip */}
-      {(reviewedToday > 0 || queueSize > 0 || todayEarnings) && (
+      {!compactShell && (reviewedToday > 0 || queueSize > 0 || todayEarnings) && (
         <div
           className="flex flex-wrap items-center gap-x-5 gap-y-1 px-0.5 text-xs text-muted-foreground"
           aria-live="polite"
@@ -584,7 +595,13 @@ export function QueueClient({
         </div>
       )}
 
-      <div className="-mx-4 bg-background px-4 pb-3 pt-1 sm:-mx-6 sm:px-6 lg:sticky lg:top-0 lg:z-10 lg:-mx-8 lg:px-8 lg:shadow-[inset_0_-1px_0_0_hsl(var(--border)/0.4)]">
+      <div
+        className={cn(
+          compactShell
+            ? "shrink-0 rounded-xl border border-border/50 bg-card px-3 py-3"
+            : "-mx-4 bg-background px-4 pb-3 pt-1 sm:-mx-6 sm:px-6 lg:sticky lg:top-0 lg:z-10 lg:-mx-8 lg:px-8 lg:shadow-[inset_0_-1px_0_0_hsl(var(--border)/0.4)]",
+        )}
+      >
         <QueueFilters
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
@@ -603,6 +620,8 @@ export function QueueClient({
           isReconnecting={isReconnecting}
           isRefreshing={isQueueRefreshPending}
           lastUpdatedLabel={lastQueueRefreshLabel}
+          compactShell={compactShell}
+          onReviewNext={handleReviewNext}
         />
       </div>
 
@@ -628,6 +647,8 @@ export function QueueClient({
         aiApprovedIntakes={aiApprovedIntakes}
         recentlyCompleted={recentlyCompleted}
         pagination={pagination}
+        baseHref={baseHref}
+        compactShell={compactShell}
       />
     </div>
   )

@@ -1,6 +1,8 @@
 import { AlertTriangle, ArrowUpRight, CheckCircle2, Clock, Timer } from "lucide-react"
 import Link from "next/link"
 
+import { StatusBadge } from "@/components/dashboard"
+import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
 import { Button } from "@/components/ui/button"
 import { requireRole } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -8,7 +10,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 export const dynamic = "force-dynamic"
 
 export default async function SLAMonitoringPage() {
-  await requireRole(["admin"])
+  await requireRole(["admin"], { redirectTo: "/admin" })
 
   const supabase = createServiceRoleClient()
   const now = new Date()
@@ -48,22 +50,27 @@ export default async function SLAMonitoringPage() {
   const onTrack = intakes.filter((i) => !i.slaBreached && i.hoursWaiting <= 2)
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center gap-3">
-        <div
-          className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400"
-          aria-hidden="true"
-        >
-          <Timer className="h-5 w-5" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-semibold">SLA Monitoring</h1>
-          <p className="text-sm text-muted-foreground">
-            Real-time compliance across active intakes
-          </p>
-        </div>
-      </div>
+    <OperatorPage>
+      <OperatorPageHeader
+        title="SLA monitor"
+        description="Real-time compliance across active paid requests."
+        backHref="/admin/ops"
+        backLabel="Operations"
+        actions={
+          <StatusBadge
+            status={breached.length > 0 ? "error" : atRisk.length > 0 ? "warning" : "success"}
+            icon={<Timer className="h-3.5 w-3.5" aria-hidden />}
+          >
+            {breached.length > 0
+              ? `${breached.length} breached`
+              : atRisk.length > 0
+                ? `${atRisk.length} at risk`
+                : "On track"}
+          </StatusBadge>
+        }
+      />
 
+      <OperatorScrollArea>
       <div
         className="grid grid-cols-1 gap-4 sm:grid-cols-3"
         aria-label="SLA status summary"
@@ -206,6 +213,7 @@ export default async function SLAMonitoringPage() {
           </div>
         </div>
       )}
-    </div>
+      </OperatorScrollArea>
+    </OperatorPage>
   )
 }

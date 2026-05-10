@@ -1,9 +1,3 @@
-import { Mail } from "lucide-react"
-
-import { Heading } from "@/components/ui/heading"
-
-import { EmailTabsNav } from "./email-tabs-nav"
-
 export const metadata = {
   title: "Emails",
 }
@@ -32,28 +26,5 @@ export default function EmailsLayout({
 }: {
   children: React.ReactNode
 }) {
-  return (
-    <div className="space-y-6">
-      <div className="flex items-start gap-3">
-        <div
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
-          aria-hidden
-        >
-          <Mail className="h-5 w-5" />
-        </div>
-        <div>
-          <Heading level="h1" className="!text-2xl">
-            Emails
-          </Heading>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Templates, delivery recovery, suppression, and 30-day metrics
-          </p>
-        </div>
-      </div>
-
-      <EmailTabsNav />
-
-      <div>{children}</div>
-    </div>
-  )
+  return children
 }

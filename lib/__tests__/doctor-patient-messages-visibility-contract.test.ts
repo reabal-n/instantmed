@@ -13,6 +13,10 @@ describe("doctor patient-message visibility contract", () => {
       join(process.cwd(), "components/doctor/intake-review-panel.tsx"),
       "utf8",
     )
+    const reviewCockpitSource = readFileSync(
+      join(process.cwd(), "components/doctor/review/intake-review-cockpit.tsx"),
+      "utf8",
+    )
     const detailPageSource = readFileSync(
       join(process.cwd(), "app/doctor/intakes/[id]/page.tsx"),
       "utf8",
@@ -24,8 +28,9 @@ describe("doctor patient-message visibility contract", () => {
 
     expect(reviewRouteSource).toContain("getPatientMessagesForIntake(intakeId)")
     expect(reviewRouteSource).toContain("patientMessages")
-    expect(reviewPanelSource).toContain("<PatientMessageThread")
+    expect(reviewPanelSource).toContain("<IntakeReviewCockpit")
+    expect(reviewCockpitSource).toContain("<PatientMessageThread")
     expect(detailPageSource).toContain("getPatientMessagesForIntake(id)")
-    expect(detailClientSource).toContain("<PatientMessageThread")
+    expect(detailClientSource).toContain("<IntakeReviewCockpit")
   })
 })

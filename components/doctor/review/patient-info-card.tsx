@@ -31,7 +31,7 @@ import { cn } from "@/lib/utils"
 
 export function PatientInfoCard() {
   const { intake, data, answers, service } = useIntakeReview()
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useState(false)
   const [medicarecopied, setMedicareCopied] = useState(false)
   const snapshotContext = {
     answers,

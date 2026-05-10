@@ -15,4 +15,6 @@ export interface QueueClientProps {
   todayEarnings?: number
   initialStatusFilter?: QueueStatusFilter
   hasExplicitStatusFilter?: boolean
+  baseHref?: string
+  compactShell?: boolean
 }

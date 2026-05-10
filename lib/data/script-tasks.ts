@@ -9,6 +9,7 @@ export type ScriptTaskStatus = "pending_send" | "sent" | "confirmed"
 export interface ScriptTask {
   id: string
   intake_id: string | null
+  patient_id: string | null
   doctor_id: string
   patient_name: string
   patient_email: string | null
@@ -21,6 +22,15 @@ export interface ScriptTask {
   confirmed_at: string | null
   created_at: string
   updated_at: string
+}
+
+type ScriptTaskRow = Omit<ScriptTask, "patient_id"> & {
+  intake?: { patient_id?: string | null } | Array<{ patient_id?: string | null }> | null
+}
+
+function getPatientIdFromScriptTaskRow(row: ScriptTaskRow): string | null {
+  const intake = Array.isArray(row.intake) ? row.intake[0] : row.intake
+  return intake?.patient_id ?? null
 }
 
 export async function getScriptTasks(filters?: {
@@ -42,7 +52,7 @@ export async function getScriptTasks(filters?: {
     operation: async () => {
       let query = supabase
         .from("script_tasks")
-        .select("id, intake_id, doctor_id, patient_name, patient_email, medication_name, medication_strength, medication_form, status, notes, sent_at, confirmed_at, created_at, updated_at", { count: "exact" })
+        .select("id, intake_id, doctor_id, patient_name, patient_email, medication_name, medication_strength, medication_form, status, notes, sent_at, confirmed_at, created_at, updated_at, intake:intakes(patient_id)", { count: "exact" })
         .order("created_at", { ascending: false })
         .range(from, to)
 
@@ -54,8 +64,12 @@ export async function getScriptTasks(filters?: {
       }
 
       const { data, error, count } = await query
+      const tasks = ((data || []) as ScriptTaskRow[]).map(({ intake: _intake, ...row }) => ({
+        ...row,
+        patient_id: getPatientIdFromScriptTaskRow({ ...row, intake: _intake }),
+      }))
       return {
-        data: error ? null : { tasks: (data || []) as ScriptTask[], total: count ?? 0 },
+        data: error ? null : { tasks, total: count ?? 0 },
         error,
       }
     },

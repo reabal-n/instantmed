@@ -10,16 +10,26 @@ import { getQueueEnteredAt } from "@/lib/doctor/queue-utils"
 import { formatServiceType } from "@/lib/format/intake"
 import { cn } from "@/lib/utils"
 
-export function RequestInfoCard() {
+interface RequestInfoCardProps {
+  compact?: boolean
+  defaultOpen?: boolean
+  hideFullAnswers?: boolean
+}
+
+export function RequestInfoCard({
+  compact = false,
+  defaultOpen = true,
+  hideFullAnswers = false,
+}: RequestInfoCardProps) {
   const { intake, service, answers, formatDate } = useIntakeReview()
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useState(defaultOpen)
   const submittedAt = intake.submitted_at ?? intake.created_at
   const queueEnteredAt = getQueueEnteredAt(intake)
 
   return (
     <Card>
       <CardHeader
-        className="py-4 px-5 cursor-pointer select-none"
+        className={cn("cursor-pointer select-none", compact ? "px-4 py-3" : "px-5 py-4")}
         onClick={() => setOpen((v) => !v)}
       >
         <CardTitle className="flex items-center gap-2 text-sm">
@@ -29,7 +39,7 @@ export function RequestInfoCard() {
         </CardTitle>
       </CardHeader>
       {open && (
-        <CardContent className="px-5 py-4 space-y-4">
+        <CardContent className={cn("space-y-4", compact ? "px-4 py-3" : "px-5 py-4")}>
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
             <div className="flex items-center gap-1">
               <Clock className="h-3.5 w-3.5" />
@@ -51,6 +61,8 @@ export function RequestInfoCard() {
             patientName={intake.patient.full_name}
             riskTier={intake.risk_tier}
             requiresLiveConsult={intake.requires_live_consult}
+            compact={compact}
+            showFullAnswers={!hideFullAnswers}
           />
         </CardContent>
       )}

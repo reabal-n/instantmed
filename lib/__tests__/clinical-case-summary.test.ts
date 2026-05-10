@@ -218,6 +218,38 @@ describe("buildClinicalCaseSummary", () => {
     expect(summary.prescriptionIntent?.clipboardText).toContain("Metformin 500 mg tablet")
   })
 
+  it("condenses verbose AMT repeat-script medicine strings for operator scanning", () => {
+    const summary = buildClinicalCaseSummary({
+      category: "prescription",
+      serviceType: "repeat-script",
+      patientName: "Pat Script",
+      answers: {
+        medications: [
+          {
+            name: "Metformin Tablet (extended release) containing metformin hydrochloride 1 g",
+            strength: "Tablet (extended release) containing metformin hydrochloride 1 g",
+            form: "Tablet (extended release) containing metformin hydrochloride 1 g",
+            pbsCode: "13847T",
+          },
+        ],
+        prescriptionHistory: "over_12_months",
+        currentDose: "1 tablet daily",
+        hasAllergies: false,
+        hasConditions: false,
+        hasOtherMedications: false,
+        isPregnantOrBreastfeeding: false,
+        hasAdverseMedicationReactions: false,
+      },
+    })
+
+    expect(summary.keyFacts).toContainEqual({
+      label: "Requested medication",
+      value: "Metformin 1 g Tablet (extended release)",
+    })
+    expect(summary.patientStory).toContain("Metformin 1 g Tablet (extended release)")
+    expect(summary.prescriptionIntent?.clipboardText).toContain("Metformin 1 g Tablet (extended release)")
+  })
+
   it("builds a medical certificate summary without falling back to general consult copy", () => {
     const summary = buildClinicalCaseSummary({
       serviceType: "med_certs",

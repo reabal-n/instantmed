@@ -40,8 +40,8 @@ describe("auth email operational visibility contract", () => {
 
     expect(opsPage).toContain("getAuthEmailHealth")
     expect(opsPage).toContain("authEmailsHealthy")
-    expect(opsClient).toContain("Auth Email")
+    expect(opsClient).toContain("Auth email")
     expect(opsClient).toContain("authEmailsHealthy")
-    expect(opsClient).toContain("authEmails.recentFailures")
+    expect(opsClient).toContain("recentFailures: Array")
   })
 })

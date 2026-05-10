@@ -23,6 +23,7 @@ type IconComponent = ComponentType<SVGProps<SVGSVGElement>>
 
 interface AdminPulseProps {
   pulse: AdminPulseData
+  compact?: boolean
 }
 
 const moodCopy: Record<AdminPulseMood, {
@@ -106,7 +107,7 @@ function MetricTile({
   )
 }
 
-export function AdminPulse({ pulse }: AdminPulseProps) {
+export function AdminPulse({ pulse, compact = false }: AdminPulseProps) {
   const copy = moodCopy[pulse.mood]
   const oldestWait = formatMinutes(pulse.queue.oldestInQueueMinutes)
   const avgReview = formatMinutes(pulse.queue.avgReviewTimeMinutes)
@@ -114,6 +115,69 @@ export function AdminPulse({ pulse }: AdminPulseProps) {
     pulse.risks.failedEmails24h +
     pulse.risks.openSupportTickets +
     pulse.risks.activeDisputes
+
+  if (compact) {
+    return (
+      <DashboardCard padding="sm" className="shrink-0 overflow-hidden">
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge
+                variant={copy.badgeVariant}
+                shape="pill"
+                icon={<Activity className="h-3.5 w-3.5" aria-hidden />}
+              >
+                {copy.eyebrow}
+              </Badge>
+              <p className="text-sm font-semibold text-foreground">{copy.heading}</p>
+            </div>
+            <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">{copy.body}</p>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="grid grid-cols-4 gap-2 text-center text-xs text-muted-foreground sm:min-w-[360px]">
+              <div className="rounded-lg border border-border/50 bg-muted/20 px-2 py-2">
+                <p className="font-semibold tabular-nums text-foreground">{pulse.queue.size}</p>
+                <p>Queue</p>
+              </div>
+              <div className="rounded-lg border border-border/50 bg-muted/20 px-2 py-2">
+                <p className="font-semibold tabular-nums text-foreground">{oldestWait}</p>
+                <p>Oldest</p>
+              </div>
+              <div className="rounded-lg border border-border/50 bg-muted/20 px-2 py-2">
+                <p className="font-semibold tabular-nums text-foreground">{pulse.today.paidOrders}</p>
+                <p>Paid</p>
+              </div>
+              <div className="rounded-lg border border-border/50 bg-muted/20 px-2 py-2">
+                <p className="font-semibold tabular-nums text-foreground">{riskCount}</p>
+                <p>Risks</p>
+              </div>
+            </div>
+
+            <div
+              className={cn(
+                "min-w-[220px] rounded-xl border border-border/50 px-3 py-2",
+                copy.panelClassName,
+              )}
+            >
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] opacity-80">
+                Best next move
+              </p>
+              <div className="mt-1 flex items-center justify-between gap-3">
+                <p className="truncate text-sm font-semibold text-foreground">{pulse.action.label}</p>
+                <Button asChild size="sm" className="h-8 shrink-0">
+                  <Link href={pulse.action.href}>
+                    Open
+                    <ArrowRight className="h-4 w-4" aria-hidden />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </DashboardCard>
+    )
+  }
 
   return (
     <DashboardCard tier="elevated" padding="lg" className="overflow-hidden">

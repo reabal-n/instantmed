@@ -1,7 +1,8 @@
 import { CheckCircle, ExternalLink, GitMerge, History, Users } from "lucide-react"
 import Link from "next/link"
 
-import { DashboardPageHeader, StatusBadge } from "@/components/dashboard"
+import { StatusBadge } from "@/components/dashboard"
+import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { requireRole } from "@/lib/auth/helpers"
@@ -30,9 +31,9 @@ export default async function PatientMergeAuditPage() {
   const movedReferenceCount = entries.reduce((sum, entry) => sum + entry.referenceSummary.total, 0)
 
   return (
-    <div className="space-y-6">
-      <DashboardPageHeader
-        title="Patient Merge Audit"
+    <OperatorPage>
+      <OperatorPageHeader
+        title="Patient merge audit"
         description="Immutable history of duplicate patient profile merges and the records moved into the canonical profile."
         backHref="/admin/ops"
         backLabel="Operations"
@@ -43,6 +44,7 @@ export default async function PatientMergeAuditPage() {
         }
       />
 
+      <OperatorScrollArea>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-xl border border-border/50 bg-card p-5 shadow-sm shadow-primary/[0.04] dark:shadow-none">
           <div className="flex items-center gap-3">
@@ -145,6 +147,7 @@ export default async function PatientMergeAuditPage() {
           </div>
         )}
       </div>
-    </div>
+      </OperatorScrollArea>
+    </OperatorPage>
   )
 }

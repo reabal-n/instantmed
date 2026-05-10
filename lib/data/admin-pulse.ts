@@ -192,8 +192,8 @@ export function resolveAdminPulseAction(input: AdminPulseDecisionInput): AdminPu
 
   if (input.scriptsPending > 0) {
     return {
-      label: "Switch to doctor mode for scripts",
-      description: "Admin spots the bottleneck; your Doctor mode handles prescribing.",
+      label: "Open scripts queue",
+      description: "Prescribing work is waiting in the same operator workflow.",
       href: buildDoctorDashboardHref({ status: "scripts" }),
       tone: "warning",
     }
@@ -201,8 +201,8 @@ export function resolveAdminPulseAction(input: AdminPulseDecisionInput): AdminPu
 
   if ((input.oldestInQueueMinutes ?? 0) >= 90 || input.queueSize > 0) {
     return {
-      label: "Switch to doctor mode for oldest request",
-      description: "Admin shows what is waiting. Your Doctor mode handles the clinical decision.",
+      label: "Open oldest clinical request",
+      description: "The queue has work waiting for a clinical decision.",
       href: buildDoctorDashboardHref({ status: "review" }),
       tone: "info",
     }

@@ -5,7 +5,7 @@ import { getPendingDateCorrection } from "@/app/actions/request-date-correction"
 import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
 import { requireRole } from "@/lib/auth/helpers"
 import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
-import { getIntakeWithDetails, getNextQueueIntakeId,getPatientIntakes } from "@/lib/data/intakes"
+import { getIntakeWithDetails, getNextQueueIntakeId, getPatientIntakes, getPatientNotes } from "@/lib/data/intakes"
 import { getCertDeliveryStatus } from "@/lib/data/issued-certificates"
 import { getPatientMessagesForIntake } from "@/lib/data/patient-messages"
 import { isConsultServiceType } from "@/lib/doctor/service-types"
@@ -48,7 +48,7 @@ export default async function DoctorIntakeDetailPage({
   const previousIntakes = patientHistory.filter((r: { id: string }) => r.id !== id).slice(0, 5)
 
   // Fetch AI drafts, next intake, cert delivery status in parallel
-  const [aiDrafts, nextIntakeId, medCertDraft, pendingCorrection, certDelivery, featureFlags, patientMessages] = await Promise.all([
+  const [aiDrafts, nextIntakeId, medCertDraft, pendingCorrection, certDelivery, featureFlags, patientMessages, patientNotes] = await Promise.all([
     getAIDraftsForIntake(id),
     getNextQueueIntakeId(id),
     (intake.service as { type?: string } | undefined)?.type === "med_certs"
@@ -58,6 +58,7 @@ export default async function DoctorIntakeDetailPage({
     getCertDeliveryStatus(id),
     getFeatureFlags(),
     getPatientMessagesForIntake(id),
+    getPatientNotes(intake.patient.id, undefined, 5),
   ])
 
   // Phase 3: fetch follow-ups for ED/hair-loss consults
@@ -96,6 +97,8 @@ export default async function DoctorIntakeDetailPage({
       certDelivery={certDelivery}
       parchmentEnabled={featureFlags.parchment_embedded_prescribing}
       patientMessages={patientMessages}
+      patientNotes={patientNotes}
+      compact
     />
   )
 }

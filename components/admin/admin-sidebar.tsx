@@ -1,30 +1,15 @@
 "use client"
 
 import {
-  Activity,
-  BarChart3,
   ChevronRight,
-  DollarSign,
-  LayoutDashboard,
-  ListOrdered,
   Menu,
-  Settings,
-  Stethoscope,
   X,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import type { ComponentType } from "react"
 import { useEffect, useState } from "react"
 
-import {
-  ADMIN_ANALYTICS_HREF,
-  ADMIN_DASHBOARD_HREF,
-  ADMIN_FINANCE_HREF,
-  ADMIN_INTAKE_LEDGER_HREF,
-  ADMIN_OPS_HREF,
-  ADMIN_SETTINGS_HREF,
-} from "@/lib/dashboard/routes"
+import { operatorNavSections, type StaffNavItem } from "@/lib/dashboard/staff-navigation"
 import { cn } from "@/lib/utils"
 
 interface AdminSidebarProps {
@@ -32,32 +17,6 @@ interface AdminSidebarProps {
   userRole?: string
   pendingCount?: number
 }
-
-interface NavItem {
-  href: string
-  label: string
-  icon: ComponentType<{ className?: string }>
-  badge?: number
-}
-
-const workNavItems: NavItem[] = [
-  { href: ADMIN_DASHBOARD_HREF, label: "Dashboard", icon: LayoutDashboard },
-  { href: ADMIN_INTAKE_LEDGER_HREF, label: "Intake ledger", icon: ListOrdered },
-]
-
-const clinicalNavItems: NavItem[] = [
-  { href: "/doctor/dashboard", label: "Doctor queue", icon: Stethoscope },
-]
-
-const businessNavItems: NavItem[] = [
-  { href: ADMIN_ANALYTICS_HREF, label: "Analytics", icon: BarChart3 },
-  { href: ADMIN_FINANCE_HREF, label: "Finance", icon: DollarSign },
-  { href: ADMIN_OPS_HREF, label: "Operations", icon: Activity },
-]
-
-const settingsNavItems: NavItem[] = [
-  { href: ADMIN_SETTINGS_HREF, label: "Settings", icon: Settings },
-]
 
 const ACTIVE_NAV_LINK = "bg-primary/5 text-blue-700 dark:bg-primary/20 dark:text-blue-200"
 const ACTIVE_NAV_ICON = "text-blue-700 dark:text-blue-200"
@@ -72,7 +31,7 @@ function NavLink({
   active,
   onClick,
 }: {
-  item: NavItem
+  item: StaffNavItem
   active: boolean
   onClick?: () => void
 }) {
@@ -97,17 +56,7 @@ function NavLink({
         />
         {item.label}
       </span>
-      {item.badge !== undefined && item.badge > 0 && (
-        <span
-          className={cn(
-            "flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-xs font-semibold",
-            active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
-          )}
-        >
-          {item.badge}
-        </span>
-      )}
-      {!item.badge && active && (
+      {active && (
         <ChevronRight className="h-3.5 w-3.5 text-primary/50" />
       )}
     </Link>
@@ -121,7 +70,7 @@ function NavSection({
   onNavigate,
 }: {
   title: string
-  items: NavItem[]
+  items: StaffNavItem[]
   pathname: string | null
   onNavigate?: () => void
 }) {
@@ -152,7 +101,7 @@ function Brand() {
         <span className="text-base font-semibold tracking-tight text-foreground">
           InstantMed
         </span>
-        <p className="mt-1 text-xs leading-none text-muted-foreground">Admin</p>
+        <p className="mt-1 text-xs leading-none text-muted-foreground">Operator</p>
       </div>
     </div>
   )
@@ -179,24 +128,23 @@ function UserSummary({ userName, userRole }: { userName: string; userRole: strin
   )
 }
 
-export function AdminSidebar({ userName, userRole = "Admin" }: AdminSidebarProps) {
+export function AdminSidebar({ userName, userRole = "Operator" }: AdminSidebarProps) {
   const pathname = usePathname()
 
   return (
-    <aside className="hidden w-[260px] shrink-0 flex-col lg:flex" aria-label="Admin sidebar">
+    <aside className="hidden w-[260px] shrink-0 flex-col lg:flex" aria-label="Operator sidebar">
       <div className="sticky top-6 flex flex-col gap-1 pb-6">
         <div className="mb-2 px-4 py-5">
           <Brand />
         </div>
 
         <nav className="flex flex-col gap-4 px-3">
-          <NavSection title="Work" items={workNavItems} pathname={pathname} />
-          <div className="mx-3 border-t border-border/30" />
-          <NavSection title="Clinical mode" items={clinicalNavItems} pathname={pathname} />
-          <div className="mx-3 border-t border-border/30" />
-          <NavSection title="Business" items={businessNavItems} pathname={pathname} />
-          <div className="mx-3 border-t border-border/30" />
-          <NavSection title="Configure" items={settingsNavItems} pathname={pathname} />
+          {operatorNavSections.map((section, index) => (
+            <div key={section.title} className="contents">
+              {index > 0 ? <div className="mx-3 border-t border-border/30" /> : null}
+              <NavSection title={section.title} items={section.items} pathname={pathname} />
+            </div>
+          ))}
         </nav>
 
         <div className="min-h-4 flex-1" />
@@ -222,7 +170,7 @@ export function MobileAdminNav({ pendingCount: _pendingCount = 0 }: { pendingCou
       <button
         onClick={() => setOpen(true)}
         className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/50 bg-background text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
-        aria-label="Open admin navigation"
+        aria-label="Open operator navigation"
         type="button"
       >
         <Menu className="h-5 w-5" />
@@ -242,7 +190,7 @@ export function MobileAdminNav({ pendingCount: _pendingCount = 0 }: { pendingCou
           "fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col border-r border-border bg-background shadow-xl transition-transform duration-200 ease-out",
           open ? "translate-x-0" : "-translate-x-full",
         )}
-        aria-label="Admin navigation"
+        aria-label="Operator navigation"
       >
         <div className="flex items-center justify-between border-b border-border/40 px-4 py-4">
           <Brand />
@@ -257,33 +205,17 @@ export function MobileAdminNav({ pendingCount: _pendingCount = 0 }: { pendingCou
         </div>
 
         <div className="flex-1 space-y-4 overflow-y-auto px-3 py-3">
-          <NavSection
-            title="Work"
-            items={workNavItems}
-            pathname={pathname}
-            onNavigate={() => setOpen(false)}
-          />
-          <div className="border-t border-border/30" />
-          <NavSection
-            title="Clinical mode"
-            items={clinicalNavItems}
-            pathname={pathname}
-            onNavigate={() => setOpen(false)}
-          />
-          <div className="border-t border-border/30" />
-          <NavSection
-            title="Business"
-            items={businessNavItems}
-            pathname={pathname}
-            onNavigate={() => setOpen(false)}
-          />
-          <div className="border-t border-border/30" />
-          <NavSection
-            title="Configure"
-            items={settingsNavItems}
-            pathname={pathname}
-            onNavigate={() => setOpen(false)}
-          />
+          {operatorNavSections.map((section, index) => (
+            <div key={section.title} className="space-y-4">
+              {index > 0 ? <div className="border-t border-border/30" /> : null}
+              <NavSection
+                title={section.title}
+                items={section.items}
+                pathname={pathname}
+                onNavigate={() => setOpen(false)}
+              />
+            </div>
+          ))}
         </div>
       </nav>
     </div>

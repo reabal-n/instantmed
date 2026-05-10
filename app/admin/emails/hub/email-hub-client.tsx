@@ -10,7 +10,6 @@ import {
   Edit,
   Eye,
   Loader2,
-  Mail,
   MailCheck,
   MailOpen,
   RefreshCw,
@@ -26,10 +25,10 @@ import { toast } from "sonner"
 import { sendOpsTestEmailAction } from "@/app/actions/email-ops"
 import { retryOutboxEmail } from "@/app/actions/email-retry"
 import type { EmailStats, RecentEmailActivity } from "@/app/actions/email-stats"
+import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Heading } from "@/components/ui/heading"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { formatTimeAgo } from "@/lib/format"
@@ -225,19 +224,13 @@ export function EmailHubClient({
   }, [outboxQuery, outboxRows, outboxStatus])
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <Heading level="h2" className="!text-xl flex items-center gap-2">
-            <Mail className="h-5 w-5 text-primary" />
-            Hub
-          </Heading>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Operational dashboard for email volume, delivery, and recent activity
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
+    <OperatorPage>
+      <OperatorPageHeader
+        title="Email delivery"
+        description="Queue recovery, template tools, and delivery checks."
+        backHref="/admin/ops"
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" onClick={handleSendOpsTestEmail} disabled={isSendingTest}>
             {isSendingTest ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
             Send test
@@ -252,10 +245,12 @@ export function EmailHubClient({
               Manage Templates
             </Button>
           </Link>
-        </div>
-      </div>
+          </div>
+        }
+      />
 
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+      <OperatorScrollArea>
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="queue">Queue</TabsTrigger>
@@ -799,6 +794,7 @@ export function EmailHubClient({
           </div>
         </TabsContent>
       </Tabs>
-    </div>
+      </OperatorScrollArea>
+    </OperatorPage>
   )
 }

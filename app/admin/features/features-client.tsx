@@ -1,15 +1,12 @@
 "use client"
 
-import { ArrowLeft, ToggleLeft } from "lucide-react"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useCallback,useState } from "react"
 import { toast } from "sonner"
 
 import type { AutoApproveStats } from "@/app/actions/admin-config"
 import { updateFeatureFlagAction } from "@/app/actions/admin-config"
-import { Button } from "@/components/ui/button"
-import { Heading } from "@/components/ui/heading"
+import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
 import type { FeatureFlags, FlagKey } from "@/lib/data/types/feature-flags"
 import { FLAG_KEYS } from "@/lib/data/types/feature-flags"
 
@@ -104,47 +101,35 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [], autoApproveSt
   }, [router])
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/admin">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div>
-            <Heading level="h1" className="!text-2xl flex items-center gap-2">
-              <ToggleLeft className="h-6 w-6 text-primary" />
-              Feature Flags
-            </Heading>
-            <p className="text-sm text-muted-foreground mt-1">
-              Kill switches and configuration toggles
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <FeaturesList
-        flags={flags}
-        initialFlags={initialFlags}
-        isSaving={isSaving}
-        isSavingMessage={isSavingMessage}
-        maintenanceMessage={maintenanceMessage}
-        newBlockedTerm={newBlockedTerm}
-        newSafetySymptom={newSafetySymptom}
-        auditLogs={auditLogs}
-        autoApproveStats={autoApproveStats}
-        onSetFlags={setFlags}
-        onSetMaintenanceMessage={setMaintenanceMessage}
-        onSetNewBlockedTerm={setNewBlockedTerm}
-        onSetNewSafetySymptom={setNewSafetySymptom}
-        onToggleFlag={handleToggleFlag}
-        onExecuteToggle={executeToggle}
-        onSaveMaintenanceMessage={handleSaveMaintenanceMessage}
-        onSaveFlag={handleSaveFlag}
-        onSetPendingToggle={setPendingToggle}
+    <OperatorPage>
+      <OperatorPageHeader
+        title="Feature flags"
+        description="Kill switches and operational controls."
+        backHref="/admin/settings"
       />
+
+      <OperatorScrollArea>
+        <FeaturesList
+          flags={flags}
+          initialFlags={initialFlags}
+          isSaving={isSaving}
+          isSavingMessage={isSavingMessage}
+          maintenanceMessage={maintenanceMessage}
+          newBlockedTerm={newBlockedTerm}
+          newSafetySymptom={newSafetySymptom}
+          auditLogs={auditLogs}
+          autoApproveStats={autoApproveStats}
+          onSetFlags={setFlags}
+          onSetMaintenanceMessage={setMaintenanceMessage}
+          onSetNewBlockedTerm={setNewBlockedTerm}
+          onSetNewSafetySymptom={setNewSafetySymptom}
+          onToggleFlag={handleToggleFlag}
+          onExecuteToggle={executeToggle}
+          onSaveMaintenanceMessage={handleSaveMaintenanceMessage}
+          onSaveFlag={handleSaveFlag}
+          onSetPendingToggle={setPendingToggle}
+        />
+      </OperatorScrollArea>
 
       <KillSwitchConfirmDialog
         pendingToggle={pendingToggle}
@@ -152,6 +137,6 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [], autoApproveSt
         onConfirm={executeToggle}
         onClose={() => setPendingToggle(null)}
       />
-    </div>
+    </OperatorPage>
   )
 }

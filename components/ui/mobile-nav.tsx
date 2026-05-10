@@ -1,9 +1,10 @@
 "use client"
 
-import { Activity, BarChart3, Bell, ClipboardList, CreditCard, FileText, FolderOpen, Home, LogOut, MessageSquare, MoreHorizontal, Settings, Shield, User, X } from "lucide-react"
+import { Activity, Bell, ClipboardList, CreditCard, FileText, FolderOpen, Home, LogOut, MessageSquare, MoreHorizontal, User, X } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
 
+import { doctorNavSections, doctorOperatorNavItems } from "@/lib/dashboard/staff-navigation"
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { cn } from "@/lib/utils"
 
@@ -79,21 +80,11 @@ const moreItems: NavItem[] = [
 ]
 
 const doctorItems: NavItem[] = [
-  {
-    label: "Queue",
-    icon: FileText,
-    href: "/doctor/dashboard",
-  },
-  {
-    label: "Scripts",
-    icon: ClipboardList,
-    href: "/doctor/scripts",
-  },
-  {
-    label: "Patients",
-    icon: User,
-    href: "/doctor/patients",
-  },
+  ...doctorNavSections[0].items.map((item) => ({
+    label: item.label,
+    icon: item.icon,
+    href: item.href,
+  })),
   {
     label: "More",
     icon: MoreHorizontal,
@@ -101,29 +92,22 @@ const doctorItems: NavItem[] = [
   },
 ]
 
-const doctorMoreItems: NavItem[] = [
-  {
-    label: "Analytics",
-    icon: BarChart3,
-    href: "/doctor/analytics",
-  },
-  {
-    label: "Identity",
-    icon: Settings,
-    href: "/doctor/settings/identity",
-  },
-]
+const doctorMoreItems: NavItem[] = doctorNavSections[1].items.map((item) => ({
+  label: item.label,
+  icon: item.icon,
+  href: item.href,
+}))
 
 /** Doctor-specific mobile navigation with doctor routes pre-configured */
 export function DoctorMobileNav({ className, isAdmin = false }: { className?: string; isAdmin?: boolean }) {
   const moreMenuItems = isAdmin
     ? [
         ...doctorMoreItems,
-        {
-          label: "Admin dashboard",
-          icon: Shield,
-          href: "/admin",
-        },
+        ...doctorOperatorNavItems.map((item) => ({
+          label: item.label,
+          icon: item.icon,
+          href: item.href,
+        })),
       ]
     : doctorMoreItems
 

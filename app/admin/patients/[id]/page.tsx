@@ -1,7 +1,6 @@
 import {
   ArrowRight,
   Clock,
-  FileText,
   Mail,
   MapPin,
   Phone,
@@ -12,14 +11,15 @@ import {
 import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
 
-import { DashboardCard, DashboardPageHeader, StatusBadge } from "@/components/dashboard"
+import { DashboardCard, StatusBadge } from "@/components/dashboard"
+import { PatientTimeline } from "@/components/doctor/patient-timeline"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { requireRole } from "@/lib/auth/helpers"
 import { decryptProfilePhi } from "@/lib/data/profiles"
 import { calculateAge, formatDateLong, formatDateTime } from "@/lib/format"
-import { formatIntakeStatus } from "@/lib/format/intake"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { formatRepeatScriptMedicationCompactLabel } from "@/lib/validation/repeat-script-medications"
 import { asProfile, type Profile } from "@/types/db"
 
 export const metadata = { title: "Admin Patient Detail" }
@@ -125,6 +125,14 @@ function latestDate(...dates: Array<string | null | undefined>): string | null {
     .filter(Number.isFinite)
   if (timestamps.length === 0) return null
   return new Date(Math.max(...timestamps)).toISOString()
+}
+
+function formatPrescriptionLabel(prescription: AdminPrescription): string {
+  return formatRepeatScriptMedicationCompactLabel({
+    name: prescription.medication_name,
+    displayName: prescription.medication_name,
+    strength: prescription.medication_strength ?? undefined,
+  })
 }
 
 async function loadAdminPatientDetail(patientId: string) {
@@ -254,266 +262,210 @@ export default async function AdminPatientDetailPage({
     emailLogs[0]?.sent_at || emailLogs[0]?.created_at,
   )
   const approvedCount = intakes.filter((intake) => ["approved", "completed"].includes(intake.status)).length
-  const scriptCount = prescriptions.length
 
   return (
-    <div className="space-y-6">
-      <DashboardPageHeader
-        title={patient.full_name || "Patient detail"}
-        description={`${patientAge !== null ? `${patientAge}y` : "Age N/A"} · ${valueOrMissing(patient.date_of_birth)} · ${formatAddress(patient)}`}
-        backHref="/admin#intakes"
-        backLabel="Admin dashboard"
-        badge={<StatusBadge status={completeness.tone}>{completeness.label}</StatusBadge>}
-        actions={
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" asChild>
+    <div className="flex flex-col gap-3 lg:h-[calc(100vh-4rem)] lg:min-h-0 lg:overflow-hidden">
+      <div
+        className="shrink-0 rounded-xl border border-border/50 bg-white px-4 py-3 shadow-sm shadow-primary/[0.04] dark:bg-card dark:shadow-none"
+        data-testid="operator-action-rail"
+      >
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+          <div className="min-w-0">
+            <Button variant="ghost" size="sm" asChild className="-ml-2 mb-1 text-muted-foreground">
+              <Link href="/admin#intakes">Back to work</Link>
+            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="truncate text-2xl font-semibold tracking-tight text-foreground">
+                {patient.full_name || "Patient detail"}
+              </h1>
+              <StatusBadge status={completeness.tone}>{completeness.label}</StatusBadge>
+              <Badge variant={patient.parchment_patient_id ? "success" : "warning"} size="sm">
+                {patient.parchment_patient_id ? "Parchment synced" : "Parchment pending"}
+              </Badge>
+            </div>
+            <p className="mt-1 truncate text-sm text-muted-foreground">
+              {patientAge !== null ? `${patientAge}y` : "Age N/A"} | {valueOrMissing(patient.date_of_birth)} | {formatAddress(patient)}
+            </p>
+          </div>
+
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <Button variant="outline" size="sm" asChild>
               <Link href="/admin/ops/patient-merge-audit">Merge audit</Link>
             </Button>
-            <Button asChild>
+            <Button size="sm" asChild>
               <Link href={`/doctor/patients/${patient.id}`}>
-                Switch to doctor file
+                Open clinical file
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </div>
-        }
-      />
+        </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <DashboardCard>
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Requests</p>
-          <p className="mt-2 text-2xl font-semibold">{intakes.length}</p>
-          <p className="text-sm text-muted-foreground">{approvedCount} approved</p>
-        </DashboardCard>
-        <DashboardCard>
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Prescriptions</p>
-          <p className="mt-2 text-2xl font-semibold">{scriptCount}</p>
-          <p className="text-sm text-muted-foreground">{latestPrescription?.medication_name || "None recorded"}</p>
-        </DashboardCard>
-        <DashboardCard>
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Parchment</p>
-          <p className="mt-2 text-2xl font-semibold">{patient.parchment_patient_id ? "Synced" : "Not synced"}</p>
-          {patient.parchment_patient_id && (
-            <p className="truncate font-mono text-sm text-muted-foreground">{patient.parchment_patient_id}</p>
-          )}
-        </DashboardCard>
-        <DashboardCard>
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Latest activity</p>
-          <p className="mt-2 text-lg font-semibold">{latestActivity ? formatDateLong(latestActivity) : "No activity"}</p>
-        </DashboardCard>
+        <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-lg border border-border/50 bg-muted/20 px-3 py-2">
+            <p className="text-xs text-muted-foreground">Requests</p>
+            <p className="font-semibold tabular-nums text-foreground">{intakes.length} total, {approvedCount} approved</p>
+          </div>
+          <div className="rounded-lg border border-border/50 bg-muted/20 px-3 py-2">
+            <p className="text-xs text-muted-foreground">Prescriptions</p>
+            <p className="truncate font-semibold text-foreground">
+              {latestPrescription ? formatPrescriptionLabel(latestPrescription) : "None recorded"}
+            </p>
+          </div>
+          <div className="rounded-lg border border-border/50 bg-muted/20 px-3 py-2">
+            <p className="text-xs text-muted-foreground">Latest activity</p>
+            <p className="font-semibold text-foreground">{latestActivity ? formatDateLong(latestActivity) : "No activity"}</p>
+          </div>
+          <div className="rounded-lg border border-border/50 bg-muted/20 px-3 py-2">
+            <p className="text-xs text-muted-foreground">Parchment patient</p>
+            <p className="truncate font-mono text-xs font-semibold text-foreground">
+              {patient.parchment_patient_id || "Not synced"}
+            </p>
+          </div>
+        </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_0.85fr]">
-        <DashboardCard className="space-y-4">
-          <div className="flex items-center gap-2">
-            <User className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold">Identity</h2>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Name</p>
-              <p className="mt-1 text-lg font-semibold">{valueOrMissing(patient.full_name)}</p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Date of birth</p>
-              <p className="mt-1 text-lg font-semibold">{valueOrMissing(patient.date_of_birth)}</p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sex</p>
-              <p className="mt-1 text-lg font-semibold">{valueOrMissing(patient.sex)}</p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Medicare</p>
-              <p className="mt-1 font-mono text-lg">{valueOrMissing(patient.medicare_number)}</p>
-              <p className="text-sm text-muted-foreground">IRN {valueOrMissing(patient.medicare_irn)}</p>
-            </div>
-          </div>
-        </DashboardCard>
-
-        <DashboardCard className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Mail className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold">Contact</h2>
-          </div>
-          <div className="space-y-3 text-sm">
+      <div className="grid gap-3 lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_minmax(360px,0.78fr)] lg:overflow-hidden">
+        <div className="space-y-3 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
+          <DashboardCard padding="md" className="space-y-3">
             <div className="flex items-center gap-2">
-              <Mail className="h-4 w-4 text-muted-foreground" />
-              <span className="truncate">{valueOrMissing(patient.email)}</span>
+              <User className="h-4 w-4 text-primary" />
+              <h2 className="text-base font-semibold">Identity and contact</h2>
             </div>
-            <div className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-muted-foreground" />
-              <span>{valueOrMissing(patient.phone)}</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
-              <span>{formatAddress(patient)}</span>
-            </div>
-          </div>
-          <div className="rounded-xl border border-border/60 bg-muted/30 p-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Joined</p>
-            <p className="mt-1 text-sm">{formatDateTime(patient.created_at)}</p>
-          </div>
-        </DashboardCard>
-      </div>
-
-      <DashboardCard className="space-y-4">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold">Requests</h2>
-          </div>
-          <Badge variant="outline">{intakes.length} total</Badge>
-        </div>
-        {intakes.length > 0 ? (
-          <div className="overflow-hidden rounded-xl border border-border/60">
-            {intakes.map((intake) => {
-              const service = intake.service
-              return (
-                <Link
-                  key={intake.id}
-                  href={`/admin/intakes/${intake.id}`}
-                  className="grid gap-2 border-b border-border/60 px-4 py-3 text-sm transition-colors last:border-0 hover:bg-muted/40 md:grid-cols-[1.2fr_0.8fr_0.8fr_auto]"
-                >
-                  <div>
-                    <p className="font-semibold">{service?.short_name || service?.name || intake.category || "Request"}</p>
-                    <p className="text-muted-foreground">{formatDateLong(intake.created_at)}</p>
-                  </div>
-                  <div>
-                    <StatusBadge status={statusTone(intake.status)} size="sm">
-                      {formatIntakeStatus(intake.status)}
-                    </StatusBadge>
-                  </div>
-                  <div className="text-muted-foreground">{valueOrMissing(intake.payment_status)}</div>
-                  <div className="text-right text-primary">Open</div>
-                </Link>
-              )
-            })}
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">No requests recorded for this patient.</p>
-        )}
-      </DashboardCard>
-
-      <DashboardCard className="space-y-4">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Pill className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold">Prescriptions</h2>
-          </div>
-          <Button variant="outline" asChild>
-            <Link href={`/doctor/patients/${patient.id}`}>Switch to doctor mode</Link>
-          </Button>
-        </div>
-        {prescriptions.length > 0 ? (
-          <div className="space-y-3">
-            {prescriptions.map((prescription) => (
-              <div key={prescription.id} className="rounded-xl border border-border/60 bg-muted/20 p-4">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <p className="font-semibold">
-                      {prescription.medication_name}
-                      {prescription.medication_strength ? ` ${prescription.medication_strength}` : ""}
-                    </p>
-                    {prescription.dosage_instructions && (
-                      <p className="text-sm text-muted-foreground">{prescription.dosage_instructions}</p>
-                    )}
-                    <p className="mt-2 font-mono text-xs text-muted-foreground">
-                      Qty {valueOrMissing(prescription.quantity_prescribed)} · Repeats {valueOrMissing(prescription.repeats_allowed)}
-                      {prescription.parchment_reference ? ` · SCID ${prescription.parchment_reference}` : ""}
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-start gap-2 sm:items-end">
-                    <StatusBadge status={statusTone(prescription.status)} size="sm">
-                      {valueOrMissing(prescription.status)}
-                    </StatusBadge>
-                    <span className="text-xs text-muted-foreground">
-                      {formatDateLong(prescription.issued_date || prescription.created_at)}
-                    </span>
-                  </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="rounded-lg bg-muted/30 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Prescribing identity</p>
+                <p className="mt-1 font-semibold text-foreground">{valueOrMissing(patient.full_name)}</p>
+                <p className="text-sm text-muted-foreground">{valueOrMissing(patient.sex)} | {valueOrMissing(patient.date_of_birth)}</p>
+                <p className="mt-2 font-mono text-sm text-foreground">{valueOrMissing(patient.medicare_number)}</p>
+                <p className="text-xs text-muted-foreground">IRN {valueOrMissing(patient.medicare_irn)}</p>
+              </div>
+              <div className="space-y-2 rounded-lg bg-muted/30 p-3 text-sm">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Contact</p>
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <span className="truncate">{valueOrMissing(patient.email)}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <span>{valueOrMissing(patient.phone)}</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
+                  <span>{formatAddress(patient)}</span>
                 </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">No prescriptions recorded yet.</p>
-        )}
-      </DashboardCard>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <DashboardCard className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Webhook className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold">Webhook and audit evidence</h2>
-          </div>
-          {auditRows.length > 0 ? (
-            <div className="space-y-2">
-              {auditRows.map((row) => (
-                <div key={row.id} className="rounded-xl border border-border/60 px-3 py-2 text-sm">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="font-semibold">{row.action.replace(/_/g, " ")}</p>
-                    <span className="text-xs text-muted-foreground">{formatDateTime(row.created_at)}</span>
-                  </div>
-                  {row.intake_id && (
-                    <Link href={`/admin/intakes/${row.intake_id}`} className="text-xs text-primary hover:underline">
-                      Intake {row.intake_id}
-                    </Link>
-                  )}
-                </div>
-              ))}
             </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">No webhook or audit evidence attached to this patient yet.</p>
-          )}
-        </DashboardCard>
+          </DashboardCard>
 
-        <DashboardCard className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold">Recent notes and emails</h2>
-          </div>
-          {notes.length > 0 || emailLogs.length > 0 ? (
-            <div className="space-y-3">
-              {notes.slice(0, 4).map((note) => (
-                <div key={note.id} className="rounded-xl border border-border/60 bg-muted/20 p-3 text-sm">
-                  <p className="font-semibold">{note.note_type}</p>
-                  <p className="mt-1 text-muted-foreground">{note.content}</p>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    {note.created_by_name || "InstantMed"} · {formatDateTime(note.created_at)}
-                  </p>
-                </div>
-              ))}
-              {emailLogs.slice(0, 4).map((email) => (
-                <div key={email.id} className="flex items-center justify-between gap-3 rounded-xl border border-border/60 px-3 py-2 text-sm">
-                  <div>
-                    <p className="font-semibold">{email.subject || email.email_type}</p>
-                    <p className="text-xs text-muted-foreground">{formatDateTime(email.sent_at || email.created_at)}</p>
-                  </div>
-                  <StatusBadge status={statusTone(email.delivery_status || email.status)} size="sm">
-                    {email.delivery_status || email.status}
-                  </StatusBadge>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">No notes or emails recorded yet.</p>
-          )}
-        </DashboardCard>
-      </div>
-
-      <DashboardCard className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="font-semibold">Need to prescribe or update clinical history?</p>
-          <p className="text-sm text-muted-foreground">
-            Prescribing, clinical notes, and patient-facing clinical actions stay in your Doctor mode.
-          </p>
+          <PatientTimeline
+            requests={intakes}
+            notes={notes}
+            admin
+            maxItems={12}
+            title="Patient timeline"
+            emptyLabel="No requests or staff notes recorded yet."
+          />
         </div>
-        <Button asChild>
-          <Link href={`/doctor/patients/${patient.id}`}>
-            Continue as doctor
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Link>
-        </Button>
-      </DashboardCard>
+
+        <div className="space-y-3 lg:min-h-0 lg:overflow-y-auto lg:pl-1">
+          <DashboardCard padding="md" className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Pill className="h-4 w-4 text-primary" />
+                <h2 className="text-base font-semibold">Prescriptions</h2>
+              </div>
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/doctor/patients/${patient.id}`}>Clinical file</Link>
+              </Button>
+            </div>
+            {prescriptions.length > 0 ? (
+              <div className="space-y-2">
+                {prescriptions.map((prescription) => (
+                  <div key={prescription.id} className="rounded-lg border border-border/60 bg-muted/20 p-3 text-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-foreground">{formatPrescriptionLabel(prescription)}</p>
+                        {prescription.dosage_instructions && (
+                          <p className="mt-1 text-muted-foreground">{prescription.dosage_instructions}</p>
+                        )}
+                        <p className="mt-2 font-mono text-xs text-muted-foreground">
+                          Qty {valueOrMissing(prescription.quantity_prescribed)} | Repeats {valueOrMissing(prescription.repeats_allowed)}
+                          {prescription.parchment_reference ? ` | SCID ${prescription.parchment_reference}` : ""}
+                        </p>
+                      </div>
+                      <StatusBadge status={statusTone(prescription.status)} size="sm">
+                        {valueOrMissing(prescription.status)}
+                      </StatusBadge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No prescriptions recorded yet.</p>
+            )}
+          </DashboardCard>
+
+          <DashboardCard padding="md" className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Webhook className="h-4 w-4 text-primary" />
+              <h2 className="text-base font-semibold">Audit evidence</h2>
+            </div>
+            {auditRows.length > 0 ? (
+              <div className="space-y-2">
+                {auditRows.map((row) => (
+                  <div key={row.id} className="rounded-lg border border-border/60 px-3 py-2 text-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="truncate font-semibold text-foreground">{row.action.replace(/_/g, " ")}</p>
+                      <span className="shrink-0 text-xs text-muted-foreground">{formatDateTime(row.created_at)}</span>
+                    </div>
+                    {row.intake_id && (
+                      <Link href={`/admin/intakes/${row.intake_id}`} className="text-xs text-primary hover:underline">
+                        Open intake
+                      </Link>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No webhook or audit evidence attached yet.</p>
+            )}
+          </DashboardCard>
+
+          <DashboardCard padding="md" className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-primary" />
+              <h2 className="text-base font-semibold">Notes and emails</h2>
+            </div>
+            {notes.length > 0 || emailLogs.length > 0 ? (
+              <div className="space-y-2">
+                {notes.slice(0, 3).map((note) => (
+                  <div key={note.id} className="rounded-lg border border-border/60 bg-muted/20 p-3 text-sm">
+                    <p className="font-semibold text-foreground">{note.note_type}</p>
+                    <p className="mt-1 line-clamp-2 text-muted-foreground">{note.content}</p>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      {note.created_by_name || "InstantMed"} | {formatDateTime(note.created_at)}
+                    </p>
+                  </div>
+                ))}
+                {emailLogs.slice(0, 4).map((email) => (
+                  <div key={email.id} className="flex items-center justify-between gap-3 rounded-lg border border-border/60 px-3 py-2 text-sm">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-foreground">{email.subject || email.email_type}</p>
+                      <p className="text-xs text-muted-foreground">{formatDateTime(email.sent_at || email.created_at)}</p>
+                    </div>
+                    <StatusBadge status={statusTone(email.delivery_status || email.status)} size="sm">
+                      {email.delivery_status || email.status}
+                    </StatusBadge>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No notes or emails recorded yet.</p>
+            )}
+          </DashboardCard>
+        </div>
+      </div>
     </div>
   )
 }

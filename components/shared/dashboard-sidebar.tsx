@@ -1,20 +1,15 @@
 "use client"
 
 import {
-  BarChart3,
   ChevronRight,
-  ClipboardList,
   FileText,
   FolderOpen,
   Heart,
   LayoutDashboard,
-  ListOrdered,
   LogOut,
   MessageSquare,
   Pill,
   Settings,
-  Shield,
-  Users,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -22,20 +17,15 @@ import { useState } from "react"
 
 import { Avatar } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import {
+  doctorNavSections,
+  doctorOperatorNavItems,
+  type StaffNavItem,
+} from "@/lib/dashboard/staff-navigation"
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { cn } from "@/lib/utils"
 
-interface NavItem {
-  href: string
-  label: string
-  icon: React.ComponentType<{ className?: string }>
-  badge?: boolean
-}
-
-interface NavSection {
-  title: string
-  items: NavItem[]
-}
+type NavItem = StaffNavItem
 
 interface DashboardSidebarProps {
   variant: "patient" | "doctor"
@@ -47,24 +37,6 @@ interface DashboardSidebarProps {
   requestCount?: number
 }
 
-const doctorNavSections: NavSection[] = [
-  {
-    title: "Work",
-    items: [
-      { href: "/doctor/dashboard", label: "Queue", icon: ListOrdered, badge: true },
-      { href: "/doctor/scripts", label: "Scripts", icon: ClipboardList },
-      { href: "/doctor/patients", label: "Patients", icon: Users },
-    ],
-  },
-  {
-    title: "Practice",
-    items: [
-      { href: "/doctor/analytics", label: "Analytics", icon: BarChart3 },
-      { href: "/doctor/settings/identity", label: "Identity", icon: Settings },
-    ],
-  },
-]
-
 const patientNavItems: NavItem[] = [
   { href: "/patient", label: "Dashboard", icon: LayoutDashboard },
   { href: "/patient/intakes", label: "My Requests", icon: FileText, badge: true },
@@ -73,10 +45,6 @@ const patientNavItems: NavItem[] = [
   { href: "/patient/messages", label: "Messages", icon: MessageSquare },
   { href: "/patient/health-summary", label: "Health Summary", icon: Heart },
   { href: "/patient/settings", label: "Settings", icon: Settings },
-]
-
-const adminNavItems: NavItem[] = [
-  { href: "/admin", label: "Admin dashboard", icon: Shield },
 ]
 
 const ACTIVE_NAV_LINK = "bg-primary/5 text-blue-700 dark:bg-primary/20 dark:text-blue-200"
@@ -220,7 +188,9 @@ export function DashboardSidebar({
               <span className="text-base font-semibold tracking-tight text-foreground">
                 InstantMed
               </span>
-              <p className="text-xs text-muted-foreground capitalize leading-none mt-0.5">{variant} Portal</p>
+              <p className="text-xs text-muted-foreground capitalize leading-none mt-0.5">
+                {variant === "doctor" && isAdmin ? "Operator" : `${variant} Portal`}
+              </p>
             </div>
           </div>
         </div>
@@ -244,8 +214,8 @@ export function DashboardSidebar({
         {/* Admin Navigation */}
         {variant === "doctor" && isAdmin && (
           <nav className="flex flex-col gap-0.5 px-3 mt-4">
-            <p className="px-3 mb-1.5 text-xs font-medium text-warning uppercase tracking-wider">Admin</p>
-            {adminNavItems.map((item) => {
+            <p className="px-3 mb-1.5 text-xs font-medium text-warning uppercase tracking-wider">Operator</p>
+            {doctorOperatorNavItems.map((item) => {
               const isActive = getIsNavItemActive(pathname, item.href, "/admin")
               return (
                 <NavLink key={item.href} item={item} isActive={!!isActive} />

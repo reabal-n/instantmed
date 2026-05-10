@@ -4,9 +4,6 @@ import {
   AlertTriangle,
   ArrowLeft,
   CheckCircle,
-  ChevronRight,
-  Clock,
-  FileText,
   GitMerge,
   Loader2,
   Mail,
@@ -15,7 +12,6 @@ import {
   Pill,
   Plus,
   RefreshCw,
-  StickyNote,
   User,
   Webhook,
   XCircle,
@@ -32,6 +28,7 @@ import {
 import { addPatientNoteAction } from "@/app/actions/patient-notes"
 import { mergePatientProfilesAction } from "@/app/actions/patient-profile-merge"
 import { ParchmentPrescribePanel, PatientCommunicationHistory } from "@/components/doctor"
+import { PatientTimeline } from "@/components/doctor/patient-timeline"
 import { usePanel } from "@/components/panels/panel-provider"
 import {
   AlertDialog,
@@ -722,64 +719,19 @@ export function PatientDetailClient({
         </CardContent>
       </Card>
 
-      {/* Request History */}
-      {intakes.length > 0 && (
-        <Card className="rounded-xl border-border/50">
-          <CardHeader className="py-3 px-4">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Clock className="h-4 w-4" />
-              Request History
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 py-3">
-            <div className="space-y-3">
-              {intakes.map((intake) => (
-                <Link
-                  key={intake.id}
-                  href={`/doctor/intakes/${intake.id}`}
-                  className="flex items-center justify-between p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors group"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <FileText className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium">
-                        {intake.service?.short_name || intake.service?.name || intake.category || "Request"}
-                      </p>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>{formatDateTime(intake.created_at)}</span>
-                        {intake.paid_at && (
-                          <>
-                            <span>•</span>
-                            <span className="text-success">Paid</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Badge variant="outline" className={getStatusColor(intake.status)}>
-                      {formatIntakeStatus(intake.status)}
-                    </Badge>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-primary transition-colors" />
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <PatientTimeline
+        requests={intakes}
+        notes={notes}
+        maxItems={12}
+        title="Patient timeline"
+        emptyLabel="No requests or staff notes recorded yet."
+      />
 
-      {/* Patient Notes */}
-      {(showNoteForm || notes.length > 0) && (
+      {showNoteForm && (
         <Card className="rounded-xl border-border/50">
           <CardHeader className="py-3 px-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <StickyNote className="h-4 w-4" />
-                Patient Notes
-              </CardTitle>
+              <CardTitle className="text-base">Add patient note</CardTitle>
               <Button
                 variant="outline"
                 size="sm"
@@ -791,39 +743,23 @@ export function PatientDetailClient({
             </div>
           </CardHeader>
           <CardContent className="px-4 py-3">
-            {showNoteForm && (
-              <div className="mb-4 p-4 bg-muted/50 rounded-lg space-y-3">
-                <Textarea
-                  placeholder="Add a note about this patient (internal only, not visible to patient)..."
-                  value={newNote}
-                  onChange={(e) => setNewNote(e.target.value)}
-                  className="min-h-[80px]"
-                />
-                <div className="flex justify-end gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => { setShowNoteForm(false); setNewNote("") }}>
-                    Cancel
-                  </Button>
-                  <Button size="sm" onClick={handleAddNote} disabled={isNotePending || !newNote.trim()}>
-                    {isNotePending && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
-                    Save Note
-                  </Button>
-                </div>
+            <div className="space-y-3 rounded-lg bg-muted/50 p-4">
+              <Textarea
+                placeholder="Add a note about this patient (internal only, not visible to patient)..."
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+                className="min-h-[80px]"
+              />
+              <div className="flex justify-end gap-2">
+                <Button variant="ghost" size="sm" onClick={() => { setShowNoteForm(false); setNewNote("") }}>
+                  Cancel
+                </Button>
+                <Button size="sm" onClick={handleAddNote} disabled={isNotePending || !newNote.trim()}>
+                  {isNotePending && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
+                  Save note
+                </Button>
               </div>
-            )}
-            {notes.length > 0 && (
-              <div className="space-y-3">
-                {notes.map((note) => (
-                  <div key={note.id} className="p-3 bg-muted/50 rounded-lg">
-                    <p className="text-sm whitespace-pre-wrap">{note.content}</p>
-                    <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                      <span>{note.created_by_name || "Staff"}</span>
-                      <span>•</span>
-                      <span>{formatDateTime(note.created_at)}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            </div>
           </CardContent>
         </Card>
       )}

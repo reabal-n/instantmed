@@ -1,16 +1,20 @@
 "use client"
 
-import { CheckCircle2, Clock, Filter, RotateCcw,Send } from "lucide-react"
-import { useRef,useState, useTransition } from "react"
+import { CheckCircle2, Clock, RotateCcw, Send, UserRound } from "lucide-react"
+import { useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { DashboardPageHeader } from "@/components/dashboard"
+import { PatientProfilePanel } from "@/components/doctor/patient-profile-panel"
+import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
 import { Pagination } from "@/components/uix"
 import { capture } from "@/lib/analytics/capture"
 import type { ScriptTask, ScriptTaskStatus } from "@/lib/data/script-tasks"
+import type { PatientSnapshotInput } from "@/lib/doctor/patient-snapshot"
 import { formatDateTime } from "@/lib/format"
 import { fetchWithCsrf } from "@/lib/security/csrf-client"
+import { cn } from "@/lib/utils"
 
 const PAGE_SIZE = 25
 
@@ -31,7 +35,27 @@ const STATUS_CONFIG: Record<ScriptTaskStatus, { label: string; color: string; ic
   confirmed: { label: "Confirmed", color: "bg-success-light text-success", icon: CheckCircle2 },
 }
 
+function getTaskPatientSnapshot(task: ScriptTask): PatientSnapshotInput {
+  return {
+    id: task.patient_id ?? task.intake_id ?? task.id,
+    full_name: task.patient_name,
+    email: task.patient_email,
+    date_of_birth: null,
+    sex: null,
+    phone: null,
+    address_line1: null,
+    address_line2: null,
+    suburb: null,
+    state: null,
+    postcode: null,
+    medicare_number: null,
+    medicare_irn: null,
+    medicare_expiry: null,
+  }
+}
+
 export function ScriptsClient({ initialTasks, initialCounts, initialTotal }: ScriptsClientProps) {
+  const { openPanel } = usePanel()
   const [filter, setFilter] = useState<ScriptTaskStatus | "all">("all")
   const [tasks, setTasks] = useState(initialTasks)
   const [counts, setCounts] = useState(initialCounts)
@@ -99,8 +123,24 @@ export function ScriptsClient({ initialTasks, initialCounts, initialTotal }: Scr
     }
   }
 
+  function openPatientProfile(task: ScriptTask) {
+    openPanel({
+      id: `script-patient-profile-${task.patient_id ?? task.id}`,
+      type: "drawer",
+      component: (
+        <PatientProfilePanel
+          patient={getTaskPatientSnapshot(task)}
+          serviceContext={{ serviceType: "common_scripts" }}
+          sourceLabel={task.intake_id ? "Script task" : "Script task without linked intake"}
+          fullRecordHref={task.patient_id ? `/doctor/patients/${task.patient_id}` : null}
+          loadHistory={Boolean(task.patient_id)}
+        />
+      ),
+    })
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <DashboardPageHeader
         title="Scripts"
         description="Prescriptions waiting for Parchment send confirmation"
@@ -116,57 +156,67 @@ export function ScriptsClient({ initialTasks, initialCounts, initialTotal }: Scr
         }
       />
 
-      {/* Status summary cards */}
+      {/* Task filter */}
       {hasScriptActivity && (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {(["pending_send", "sent", "confirmed"] as const).map((status) => {
-          const config = STATUS_CONFIG[status]
-          const Icon = config.icon
-          return (
-            <button
-              key={status}
-              onClick={() => {
-                const newFilter = filter === status ? "all" : status
-                setFilter(newFilter)
-                fetchPage(1, newFilter)
-              }}
-              className={`flex items-center gap-4 rounded-xl border border-border/50 p-5 transition-[background-color,border-color] duration-200 ${
-                filter === status
-                  ? "border-sky-300 bg-sky-50/50 dark:border-sky-700 dark:bg-sky-950/30"
-                  : "border-border/50 bg-card hover:border-border"
-              }`}
-              aria-label={`Filter by ${config.label}`}
-            >
-              <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${config.color}`}>
-                <Icon className="h-4 w-4" />
-              </div>
-              <div className="text-left">
-                <p className="text-2xl font-semibold tabular-nums">{counts[status]}</p>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mt-0.5">{config.label}</p>
-              </div>
-            </button>
-          )
-        })}
-      </div>
+        <div
+          className="flex gap-1 overflow-x-auto rounded-lg border border-border/50 bg-muted/30 p-1"
+          aria-label="Filter script tasks"
+        >
+          {([
+            { value: "all" as const, label: "All", count: counts.total },
+            ...(["pending_send", "sent", "confirmed"] as const).map((status) => ({
+              value: status,
+              label: STATUS_CONFIG[status].label,
+              count: counts[status],
+            })),
+          ]).map((option) => {
+            const active = filter === option.value
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => {
+                  setFilter(option.value)
+                  fetchPage(1, option.value)
+                }}
+                className={cn(
+                  "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-3 text-xs font-semibold transition-colors",
+                  active
+                    ? "bg-card text-foreground shadow-sm shadow-primary/[0.04]"
+                    : "text-muted-foreground hover:bg-card/70 hover:text-foreground",
+                )}
+                aria-pressed={active}
+              >
+                {option.label}
+                {option.count > 0 && <span className="tabular-nums">({option.count})</span>}
+              </button>
+            )
+          })}
+        </div>
       )}
 
-      {/* Filter indicator */}
+      {!hasScriptActivity && (
+        <div className="rounded-lg border border-border/50 bg-muted/20 px-3 py-2 text-sm text-muted-foreground">
+          No script send work right now.
+        </div>
+      )}
+
       {filter !== "all" && (
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
+        <div className="flex items-center justify-between gap-2 rounded-lg border border-border/50 bg-muted/20 px-3 py-2">
           <span className="text-sm text-muted-foreground">
-            Showing: {STATUS_CONFIG[filter].label}
+            Showing {STATUS_CONFIG[filter].label.toLowerCase()} tasks
           </span>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => {
               setFilter("all")
               fetchPage(1, "all")
             }}
-            className="text-sm text-sky-600 hover:underline"
-            aria-label="Clear filter"
+            aria-label="Clear script task filter"
           >
-            Clear filter
-          </button>
+            Clear
+          </Button>
         </div>
       )}
 
@@ -177,7 +227,7 @@ export function ScriptsClient({ initialTasks, initialCounts, initialTotal }: Scr
             <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl border border-success-border bg-success-light">
               <CheckCircle2 className="h-5 w-5 text-success" aria-hidden="true" />
             </div>
-            <h3 className="text-base font-semibold text-foreground mb-1">All caught up!</h3>
+            <h3 className="text-base font-semibold text-foreground mb-1">All caught up</h3>
             <p className="text-sm text-muted-foreground max-w-xs">
               No pending script tasks right now. New tasks will appear here as patients request scripts.
             </p>
@@ -212,6 +262,16 @@ export function ScriptsClient({ initialTasks, initialCounts, initialTotal }: Scr
                 </div>
 
                 <div className="flex items-center gap-2 sm:shrink-0">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-9 px-2.5 text-xs"
+                    onClick={() => openPatientProfile(task)}
+                    aria-label={`Open patient profile for ${task.patient_name}`}
+                  >
+                    <UserRound className="h-3.5 w-3.5" />
+                    Profile
+                  </Button>
                   {task.status === "pending_send" && (
                     <Button
                       size="sm"

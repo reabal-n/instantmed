@@ -22,6 +22,8 @@ interface ClinicalCaseReviewProps {
   riskTier?: string | null
   requiresLiveConsult?: boolean | null
   className?: string
+  compact?: boolean
+  showFullAnswers?: boolean
 }
 
 const ACTION_STYLES: Record<ClinicalPlanAction, string> = {
@@ -62,6 +64,8 @@ export function ClinicalCaseReview({
   riskTier,
   requiresLiveConsult,
   className,
+  compact = false,
+  showFullAnswers = true,
 }: ClinicalCaseReviewProps) {
   const summary = buildClinicalCaseSummary({
     category,
@@ -92,11 +96,13 @@ export function ClinicalCaseReview({
       toast.error("Could not copy search term")
     }
   }
+  const visibleFacts = compact ? summary.keyFacts.slice(0, 4) : summary.keyFacts
+  const hiddenFactCount = Math.max(summary.keyFacts.length - visibleFacts.length, 0)
 
   return (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn(compact ? "space-y-2" : "space-y-4", className)}>
       <div className="rounded-lg border border-border/60 bg-background">
-        <div className="border-b border-border/60 px-4 py-3">
+        <div className={cn("border-b border-border/60", compact ? "px-3 py-2" : "px-4 py-3")}>
           <div className="flex flex-wrap items-center gap-2">
             <Stethoscope className="h-4 w-4 text-primary" />
             <h3 className="text-sm font-semibold text-foreground">{summary.title}</h3>
@@ -106,27 +112,46 @@ export function ClinicalCaseReview({
           </div>
         </div>
 
-        <div className="grid gap-4 p-4">
-          <section className="space-y-1.5">
+        <div className={cn("grid", compact ? "gap-2 p-3" : "gap-4 p-4")}>
+          <section className={compact ? "space-y-1" : "space-y-1.5"}>
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Patient story
             </p>
-            <p className="text-sm leading-relaxed text-foreground">
+            <p className={compact ? "max-h-12 overflow-hidden text-sm leading-6 text-foreground" : "text-sm leading-relaxed text-foreground"}>
               {summary.patientStory}
             </p>
           </section>
 
-          <section className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {summary.keyFacts.map((fact) => (
+          <section className={compact ? "grid grid-cols-1 gap-1.5 sm:grid-cols-2" : "grid grid-cols-1 sm:grid-cols-2 gap-2"}>
+            {visibleFacts.map((fact) => (
               <div key={`${fact.label}:${fact.value}`} className="rounded-md bg-muted/35 px-3 py-2">
                 <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                   {fact.label}
                 </p>
-                <p className="mt-0.5 text-sm font-medium text-foreground">
+                <p className={cn("mt-0.5 text-sm font-medium text-foreground", compact && "max-h-10 overflow-hidden")}>
                   {fact.value}
                 </p>
               </div>
             ))}
+            {hiddenFactCount > 0 && (
+              <details className="rounded-md bg-muted/35 px-3 py-2 sm:col-span-2">
+                <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
+                  {hiddenFactCount} more facts
+                </summary>
+                <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
+                  {summary.keyFacts.slice(visibleFacts.length).map((fact) => (
+                    <div key={`${fact.label}:${fact.value}`} className="rounded-md bg-background px-3 py-2">
+                      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                        {fact.label}
+                      </p>
+                      <p className="mt-0.5 text-sm font-medium text-foreground">
+                        {fact.value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            )}
           </section>
 
           {summary.safetyItems.length > 0 && (
@@ -176,11 +201,24 @@ export function ClinicalCaseReview({
                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                   {summary.recommendedPlan.rationale}
                 </p>
-                <ul className="mt-2 space-y-1 text-sm text-foreground">
-                  {summary.recommendedPlan.nextSteps.map((step) => (
-                    <li key={step} className="leading-relaxed">- {step}</li>
-                  ))}
-                </ul>
+                {compact ? (
+                  <details className="mt-2">
+                    <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
+                      Decision checks
+                    </summary>
+                    <ul className="mt-2 space-y-1 text-sm text-foreground">
+                      {summary.recommendedPlan.nextSteps.map((step) => (
+                        <li key={step} className="leading-relaxed">- {step}</li>
+                      ))}
+                    </ul>
+                  </details>
+                ) : (
+                  <ul className="mt-2 space-y-1 text-sm text-foreground">
+                    {summary.recommendedPlan.nextSteps.map((step) => (
+                      <li key={step} className="leading-relaxed">- {step}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </div>
           </section>
@@ -227,32 +265,32 @@ export function ClinicalCaseReview({
             </section>
           )}
 
-          <section className="space-y-2">
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-muted-foreground" />
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Draft note
-              </p>
-            </div>
-            <pre className="whitespace-pre-wrap rounded-md bg-muted/35 px-3 py-2 text-sm font-sans leading-relaxed text-foreground">
+          <details className="rounded-md border border-border/60 bg-muted/25">
+            <summary className="flex cursor-pointer items-center gap-2 px-3 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              <FileText className="h-4 w-4" />
+              Draft note
+            </summary>
+            <pre className="whitespace-pre-wrap border-t border-border/60 px-3 py-2 text-sm font-sans leading-relaxed text-foreground">
               {summary.draftNote}
             </pre>
-          </section>
+          </details>
         </div>
       </div>
 
-      <details className="rounded-lg border border-border/60 bg-background">
-        <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-muted-foreground">
-          Full answers
-        </summary>
-        <div className="border-t border-border/60 p-4">
-          <ClinicalSummary
-            answers={answers}
-            consultSubtype={category === "consult" && subtype ? subtype : undefined}
-            className="border-0 shadow-none p-0"
-          />
-        </div>
-      </details>
+      {showFullAnswers && (
+        <details className="rounded-lg border border-border/60 bg-background">
+          <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-muted-foreground">
+            Full answers
+          </summary>
+          <div className="border-t border-border/60 p-4">
+            <ClinicalSummary
+              answers={answers}
+              consultSubtype={category === "consult" && subtype ? subtype : undefined}
+              className="border-0 shadow-none p-0"
+            />
+          </div>
+        </details>
+      )}
     </div>
   )
 }

@@ -4,7 +4,7 @@ import { getAIDraftsForIntake } from "@/app/actions/drafts/draft-retrieval"
 import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
 import { requireApiRole } from "@/lib/auth/helpers"
 import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
-import { getIntakeWithDetails, getNextQueueIntakeId, getPatientIntakes } from "@/lib/data/intakes"
+import { getIntakeWithDetails, getNextQueueIntakeId, getPatientIntakes, getPatientNotes } from "@/lib/data/intakes"
 import { getCertificateForIntake } from "@/lib/data/issued-certificates"
 import { getPatientMessagesForIntake } from "@/lib/data/patient-messages"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -50,7 +50,7 @@ export async function GET(
   const serviceType = (intake.service as { type?: string } | undefined)?.type
 
   // Parallel fetches
-  const [aiDrafts, nextIntakeId, medCertDraft, certificate, patientHistory, patientMessages] = await Promise.all([
+  const [aiDrafts, nextIntakeId, medCertDraft, certificate, patientHistory, patientMessages, patientNotes] = await Promise.all([
     getAIDraftsForIntake(intakeId),
     getNextQueueIntakeId(intakeId),
     serviceType === "med_certs"
@@ -61,6 +61,7 @@ export async function GET(
       : Promise.resolve(null),
     getPatientIntakes(intake.patient.id, { pageSize: 6 }),
     getPatientMessagesForIntake(intakeId),
+    getPatientNotes(intake.patient.id, undefined, 5),
   ])
 
   const previousIntakes = patientHistory.data.filter((row) => row.id !== intakeId).slice(0, 5)
@@ -87,6 +88,7 @@ export async function GET(
     nextIntakeId,
     previousIntakes,
     previousIntakeCount: previousIntakes.length,
+    patientNotes,
     patientMessages,
     draftId: medCertDraft?.id || null,
     certificate: certificate ? {

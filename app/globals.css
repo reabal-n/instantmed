@@ -1,4 +1,9 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+@source "../app";
+@source "../components";
+@source "../content";
+@source "../hooks";
+@source "../lib";
 
 @custom-variant dark (&:is(.dark *));
 

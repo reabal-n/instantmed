@@ -27,6 +27,10 @@ const dashboardHeaderSource = readFileSync(
   join(process.cwd(), "app/doctor/dashboard/dashboard-header.tsx"),
   "utf8",
 )
+const doctorAvailabilityToggleSource = readFileSync(
+  join(process.cwd(), "components/doctor/doctor-availability-toggle.tsx"),
+  "utf8",
+)
 const doctorQueuePageSource = readFileSync(
   join(process.cwd(), "app/doctor/queue/page.tsx"),
   "utf8",
@@ -71,9 +75,19 @@ const legacyDoctorEmailSuppressionSource = readFileSync(
   join(process.cwd(), "app/doctor/email-suppression/page.tsx"),
   "utf8",
 )
+const staffNavigationSource = readFileSync(
+  join(process.cwd(), "lib/dashboard/staff-navigation.ts"),
+  "utf8",
+)
 
 function navLabels(source: string): string[] {
   return Array.from(source.matchAll(/label:\s*"([^"]+)"/g)).map((match) => match[1])
+}
+
+function navSourceBlock(source: string, start: string, end?: string): string {
+  const startIndex = source.indexOf(start)
+  const endIndex = end ? source.indexOf(end) : source.length
+  return source.slice(startIndex, endIndex > startIndex ? endIndex : source.length)
 }
 
 function findDoctorPageFiles(dir = join(process.cwd(), "app/doctor")): string[] {
@@ -86,7 +100,16 @@ function findDoctorPageFiles(dir = join(process.cwd(), "app/doctor")): string[] 
 
 describe("doctor navigation contract", () => {
   it("keeps the doctor sidebar task-first and free of admin-only operational links", () => {
-    const labels = navLabels(sidebarSource)
+    const doctorNavSource = navSourceBlock(
+      staffNavigationSource,
+      "export const doctorNavSections",
+      "export const doctorOperatorNavItems",
+    )
+    const operatorNavSource = navSourceBlock(
+      staffNavigationSource,
+      "export const doctorOperatorNavItems",
+    )
+    const labels = navLabels(`${doctorNavSource}\n${operatorNavSource}`)
 
     expect(sidebarSource).toContain("doctorNavSections")
     expect(labels).toContain("Queue")
@@ -94,7 +117,8 @@ describe("doctor navigation contract", () => {
     expect(labels).toContain("Patients")
     expect(labels).toContain("Analytics")
     expect(labels).toContain("Identity")
-    expect(labels).toContain("Admin dashboard")
+    expect(labels).toContain("Operations")
+    expect(sidebarSource).toContain("Operator")
     expect(labels).not.toContain("Review Queue")
     expect(labels).not.toContain("Email Suppression")
     expect(labels).not.toContain("Shortcuts")
@@ -106,11 +130,26 @@ describe("doctor navigation contract", () => {
   })
 
   it("uses the same doctor labels on mobile", () => {
-    expect(mobileNavSource).toContain('label: "Queue"')
-    expect(mobileNavSource).toContain('label: "Scripts"')
-    expect(mobileNavSource).toContain('label: "Patients"')
-    expect(mobileNavSource).toContain('label: "Identity"')
-    expect(mobileNavSource).toContain('label: "Admin dashboard"')
+    const doctorNavSource = navSourceBlock(
+      staffNavigationSource,
+      "export const doctorNavSections",
+      "export const doctorOperatorNavItems",
+    )
+    const operatorNavSource = navSourceBlock(
+      staffNavigationSource,
+      "export const doctorOperatorNavItems",
+    )
+
+    expect(mobileNavSource).toContain("doctorNavSections")
+    expect(mobileNavSource).toContain("doctorOperatorNavItems")
+    expect(navLabels(`${doctorNavSource}\n${operatorNavSource}`)).toEqual([
+      "Queue",
+      "Scripts",
+      "Patients",
+      "Analytics",
+      "Identity",
+      "Operations",
+    ])
     expect(mobileNavSource).toContain("isAdmin")
     expect(mobileNavSource).not.toContain('label: "Certificates"')
     expect(mobileNavSource).not.toContain('label: "Settings"')
@@ -123,8 +162,9 @@ describe("doctor navigation contract", () => {
     expect(dashboardHeaderSource).not.toContain('href="/doctor/scripts"')
     expect(dashboardHeaderSource).not.toContain('href="/doctor/patients"')
     expect(dashboardHeaderSource).not.toContain('href="/doctor/settings/identity"')
-    expect(dashboardHeaderSource).toContain("setDoctorAvailabilityAction")
-    expect(dashboardHeaderSource).toContain("Available")
+    expect(dashboardHeaderSource).toContain("DoctorAvailabilityToggle")
+    expect(doctorAvailabilityToggleSource).toContain("setDoctorAvailabilityAction")
+    expect(doctorAvailabilityToggleSource).toContain("Available")
     expect(dashboardHeaderSource).not.toContain("<kbd")
     expect(dashboardHeaderSource).not.toContain("navigate")
     expect(dashboardHeaderSource).not.toContain("approve")
@@ -155,6 +195,10 @@ describe("doctor navigation contract", () => {
     expect(scriptsClientSource).toContain("const PAGE_SIZE = 25")
     expect(scriptsClientSource).toContain("hasScriptActivity")
     expect(scriptsClientSource).toContain("{hasScriptActivity && (")
+    expect(scriptsClientSource).toContain('aria-label="Filter script tasks"')
+    expect(scriptsClientSource).toContain("No script send work right now.")
+    expect(scriptsClientSource).toContain("Showing {STATUS_CONFIG[filter].label.toLowerCase()} tasks")
+    expect(scriptsClientSource).not.toContain("text-2xl font-semibold tabular-nums")
   })
 
   it("keeps legacy doctor routes as redirects to canonical surfaces", () => {
