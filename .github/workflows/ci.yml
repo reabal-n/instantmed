@@ -80,6 +80,9 @@ jobs:
       - name: Check for orphaned files
         run: bash scripts/check-orphaned-files.sh
 
+      - name: AGENTS.md is in sync with CLAUDE.md
+        run: bash scripts/sync-agent-doc.sh --check
+
       - name: Portal design-system compliance (no legacy classes)
         run: bash scripts/check-portal-no-legacy-classes.sh
 
