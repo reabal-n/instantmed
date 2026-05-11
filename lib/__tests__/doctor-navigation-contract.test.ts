@@ -3,8 +3,16 @@ import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
+// Phase 1.2 of dashboard remaster (2026-05-11): the doctor sidebar is now
+// `components/admin/admin-sidebar.tsx` (via OperatorShell + getStaffNav),
+// not the retired `components/shared/dashboard-sidebar.tsx`. Doctor-side
+// contract assertions read admin-sidebar.tsx.
 const sidebarSource = readFileSync(
-  join(process.cwd(), "components/shared/dashboard-sidebar.tsx"),
+  join(process.cwd(), "components/admin/admin-sidebar.tsx"),
+  "utf8",
+)
+const doctorLayoutSource = readFileSync(
+  join(process.cwd(), "app/doctor/layout.tsx"),
   "utf8",
 )
 const sharedIndexSource = readFileSync(
@@ -105,20 +113,30 @@ describe("doctor navigation contract", () => {
       "export const doctorNavSections",
       "export const doctorOperatorNavItems",
     )
+    // Phase 1 of dashboard remaster (2026-05-11) added the role-aware
+    // `getStaffNav`/`supportNavSections` block after `doctorOperatorNavItems`.
+    // Stop the doctor-side slice at the new section marker so doctor-nav
+    // assertions don't accidentally pick up support labels.
     const operatorNavSource = navSourceBlock(
       staffNavigationSource,
       "export const doctorOperatorNavItems",
+      "// ── Canonical role-aware nav",
     )
     const labels = navLabels(`${doctorNavSource}\n${operatorNavSource}`)
 
-    expect(sidebarSource).toContain("doctorNavSections")
+    // Doctor layout renders the unified AdminSidebar with role-aware nav from
+    // getStaffNav(profile). Verify the wiring is intact.
+    expect(doctorLayoutSource).toContain("OperatorShell")
+    expect(doctorLayoutSource).toContain("getStaffNav")
+    expect(doctorLayoutSource).toContain("hideMobileHamburger")
+    expect(sidebarSource).toContain("operatorNavSections")
+    expect(sidebarSource).toContain("navSections")
     expect(labels).toContain("Queue")
     expect(labels).toContain("Scripts")
     expect(labels).toContain("Patients")
     expect(labels).toContain("Analytics")
     expect(labels).toContain("Identity")
     expect(labels).toContain("Operations")
-    expect(sidebarSource).toContain("Operator")
     expect(labels).not.toContain("Review Queue")
     expect(labels).not.toContain("Email Suppression")
     expect(labels).not.toContain("Shortcuts")
@@ -127,6 +145,8 @@ describe("doctor navigation contract", () => {
     expect(sidebarSource).not.toContain("/api/doctor/export")
     expect(sidebarSource).not.toContain("KeyboardShortcutsModal")
     expect(sharedIndexSource).not.toContain("MobileDashboardNav")
+    // Phase 1.2: legacy patient-only DashboardSidebar export is retired.
+    expect(sharedIndexSource).not.toContain('from "./dashboard-sidebar"')
   })
 
   it("uses the same doctor labels on mobile", () => {
@@ -138,6 +158,7 @@ describe("doctor navigation contract", () => {
     const operatorNavSource = navSourceBlock(
       staffNavigationSource,
       "export const doctorOperatorNavItems",
+      "// ── Canonical role-aware nav",
     )
 
     expect(mobileNavSource).toContain("doctorNavSections")

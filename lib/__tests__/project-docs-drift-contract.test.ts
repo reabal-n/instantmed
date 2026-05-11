@@ -26,15 +26,18 @@ const product = readProjectFile("PRODUCT.md")
 const testing = readProjectFile("docs/TESTING.md")
 
 describe("project docs drift contract", () => {
-  it("keeps root assistant docs aligned on hours, gated services, and staff cockpit rules", () => {
+  it("keeps root assistant docs aligned on hours, gated services, and staff dashboard rules", () => {
     for (const source of [agents, claude]) {
       expect(source).toContain("Requests submit 24/7 for every pathway")
       expect(source).toContain("Never hard-block checkout by time of day")
       expect(source).toContain("Women's health (gated future subtype)")
       expect(source).toContain("Weight loss (gated future subtype)")
-      expect(source).toContain("**Staff cockpit:**")
-      expect(source).toContain("`/admin` is the primary combined operator cockpit")
-      expect(source).toContain("should not push the user through separate \"admin mode\" vs \"doctor mode\" switching")
+      // Phase 1 of dashboard remaster (2026-05-11) renamed the "Staff cockpit"
+      // workflow heading to "Staff dashboard" and introduced `/dashboard` as the
+      // canonical staff URL. The unified-shell rule still holds.
+      expect(source).toContain("**Staff dashboard:**")
+      expect(source).toContain("`/dashboard` is the canonical URL")
+      expect(source).toContain("OperatorShell")
       expect(source).toContain("`components/operator/*`")
       expect(source).toContain("`AGENTS.md` + `CLAUDE.md`")
     }

@@ -1,3 +1,30 @@
+// ── Canonical staff routes (Phase 1 of dashboard remaster, 2026-05-11) ──────
+// These are the source of truth going forward. Legacy ADMIN_*/DOCTOR_* aliases
+// are kept below until Phase 2 finishes the surface consolidation.
+
+export const STAFF_DASHBOARD_HREF = "/dashboard" as const
+export const STAFF_LEDGER_HREF = "/dashboard/ledger" as const
+export const STAFF_PATIENTS_HREF = "/patients" as const
+export const STAFF_SCRIPTS_HREF = "/dashboard?status=scripts" as const
+export const STAFF_QUEUE_HREF = "/dashboard?status=review" as const
+export const STAFF_OPS_HREF = "/ops" as const
+export const STAFF_ANALYTICS_HREF = "/analytics" as const
+export const STAFF_FINANCE_HREF = "/finance" as const
+export const STAFF_EMAILS_HREF = "/emails" as const
+export const STAFF_SETTINGS_HREF = "/settings" as const
+export const STAFF_IDENTITY_HREF = "/settings/identity" as const
+
+export function buildStaffCaseHref(intakeId: string): string {
+  return `/cases/${encodeURIComponent(intakeId)}`
+}
+
+export function buildStaffPatientHref(patientId: string): string {
+  return `/patients/${encodeURIComponent(patientId)}`
+}
+
+// ── Legacy aliases (kept until Phase 2 swaps the actual page locations) ─────
+// New callers should use the STAFF_* names above.
+
 export const PATIENT_DASHBOARD_HREF = "/patient" as const
 export const DOCTOR_DASHBOARD_HREF = "/doctor/dashboard" as const
 export const ADMIN_DASHBOARD_HREF = "/admin" as const

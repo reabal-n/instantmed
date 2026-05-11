@@ -292,7 +292,10 @@ describe("admin navigation contract", () => {
     expect(dashboardRedirectSource).toContain("hasAdminAccess(authUser.profile)")
     expect(dashboardRedirectSource).toContain('redirect("/admin")')
     expect(dashboardRedirectSource).toContain("hasDoctorAccess(authUser.profile)")
-    expect(dashboardRedirectSource).toContain("redirect('/doctor/dashboard')")
+    // Phase 1 of dashboard remaster (2026-05-11) rewrote app/dashboard/page.tsx
+    // to use double-quoted strings consistently and added a support-role branch.
+    expect(dashboardRedirectSource).toContain('redirect("/doctor/dashboard")')
+    expect(dashboardRedirectSource).toContain("hasSupportAccess(authUser.profile)")
   })
 
   it("keeps admin data pages explicitly admin-gated at page level", () => {

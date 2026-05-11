@@ -413,6 +413,18 @@ Config-driven, immutably versioned. Template config stored as JSONB in `certific
 
 ---
 
+## Staff Portal (Admin · Doctor · Support)
+
+**Roles:** Three staff role values on `profiles.role` (Phase 1 of dashboard remaster, 2026-05-11):
+
+- `admin` — owner-operator. Holds both admin and doctor capabilities via role inheritance (`getRoleCapabilities("admin") = ["admin", "doctor"]`). Single admin per platform; future doctor hires are `doctor` role only.
+- `doctor` — clinical only. Holds the `doctor` capability.
+- `support` — non-clinical operations. Holds the `support` capability. Reserved for future hires; payment recovery, webhook retries, identity chase-ups, masked PHI only. No clinical answers, approvals, or prescribing access.
+
+Capability helpers in `lib/auth/staff-capabilities.ts`. Per-doctor capability flags on `profiles` (`can_review_med_certs`, `can_review_repeat_rx`, `can_review_consults`, `can_review_ed`, `can_review_hair_loss`, `can_prescribe_s4`, `can_prescribe_s8`) scope future doctor hires before their service-line verification completes; owner-operator is unrestricted by default.
+
+**Canonical URL:** `/dashboard`. Today it forwards by role to `/admin`, `/doctor/dashboard`, or `/admin/ops`. Phase 2 of the remaster lands the unified queue surface at `/dashboard` and reverses the redirects. New code should reference `STAFF_*_HREF` constants from `lib/dashboard/routes.ts`; legacy `ADMIN_*_HREF` / `DOCTOR_*_HREF` aliases stay until Phase 2 consolidates the file tree.
+
 ## Admin Portal
 
 **Access:** `admin` role only (set via `profiles.role = 'admin'` in Supabase). In the current solo-doctor operating model, the same person can be both admin and treating doctor, so admin surfaces are designed as an operator cockpit rather than a separate mode.

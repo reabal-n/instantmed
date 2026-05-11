@@ -11,7 +11,7 @@ const log = createLogger("staff-nav-counts")
 export async function getStaffNavCounts(): Promise<StaffNavCounts> {
   const supabase = createServiceRoleClient()
 
-  const [scriptsResult, identityResult] = await Promise.allSettled([
+  const [scriptsResult, identityResult, queueResult] = await Promise.allSettled([
     filterSeededE2EIntakes(
       supabase
         .from("intakes")
@@ -20,6 +20,13 @@ export async function getStaffNavCounts(): Promise<StaffNavCounts> {
         .eq("status", "awaiting_script"),
     ),
     getPrescribingIdentityBlockerReport(supabase),
+    filterSeededE2EIntakes(
+      supabase
+        .from("intakes")
+        .select("id", { count: "exact", head: true })
+        .eq("payment_status", "paid")
+        .in("status", ["paid", "in_review", "pending_info"]),
+    ),
   ])
 
   if (scriptsResult.status === "rejected") {
@@ -32,6 +39,12 @@ export async function getStaffNavCounts(): Promise<StaffNavCounts> {
     log.warn("Failed to count prescribing identity blockers", {}, identityResult.reason)
   }
 
+  if (queueResult.status === "rejected") {
+    log.warn("Failed to count queue depth", {}, queueResult.reason)
+  } else if (queueResult.value.error) {
+    log.warn("Failed to count queue depth", { error: queueResult.value.error.message })
+  }
+
   const identityPatients = identityResult.status === "fulfilled"
     ? new Set(identityResult.value.items.map((item) => item.patientId)).size
     : 0
@@ -39,5 +52,6 @@ export async function getStaffNavCounts(): Promise<StaffNavCounts> {
   return {
     prescribingIdentityPatients: identityPatients,
     scriptsToWrite: scriptsResult.status === "fulfilled" ? scriptsResult.value.count ?? 0 : 0,
+    inQueue: queueResult.status === "fulfilled" ? queueResult.value.count ?? 0 : 0,
   }
 }

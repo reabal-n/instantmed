@@ -4,7 +4,16 @@ import type { IntakeStatus } from "@/types/intake"
 
 export type { IntakeStatus }
 
-export type UserRole = "patient" | "doctor" | "admin"
+export type UserRole = "patient" | "doctor" | "admin" | "support"
+
+/**
+ * Roles allowed on staff surfaces (dashboard, patients, cases, ops).
+ * 'support' is non-clinical operations staff: patient identity chase-ups,
+ * payment recovery, webhook retries. No clinical answers, no approvals.
+ */
+export type StaffRole = Extract<UserRole, "doctor" | "admin" | "support">
+
+export const STAFF_ROLES: readonly StaffRole[] = ["admin", "doctor", "support"] as const
 
 // ============================================
 // INTAKE TYPES (Canonical case object)
@@ -423,6 +432,15 @@ export interface Profile {
   ahpra_next_review_at?: string | null // When registration needs next review
   provider_number?: string | null // Medicare provider number for doctors
   nominals?: string | null // Doctor credentials/qualifications (e.g. "BHSc, MD, AFHEA")
+  // Per-doctor capability flags (added Phase 1 of dashboard remaster 2026-05-11).
+  // Owner-operator defaults true on every flag; future hires can be scoped per service line.
+  can_review_med_certs?: boolean | null
+  can_review_repeat_rx?: boolean | null
+  can_review_consults?: boolean | null
+  can_review_ed?: boolean | null
+  can_review_hair_loss?: boolean | null
+  can_prescribe_s4?: boolean | null
+  can_prescribe_s8?: boolean | null
   // Consent and onboarding
   consent_myhr: boolean
   onboarding_completed: boolean

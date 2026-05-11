@@ -6,7 +6,10 @@ export type { CheckoutButtonProps } from "./checkout-button"
 export { CheckoutButton, CheckoutSection } from "./checkout-button"
 export type { CookiePreferences } from "./cookie-banner"
 export { CookieBanner, isCookieAllowed,useCookieConsent } from "./cookie-banner"
-export { DashboardSidebar } from "./dashboard-sidebar"
+// `DashboardSidebar` retired in Phase 1.2 of the dashboard remaster
+// (2026-05-11). Staff portals now render through `OperatorShell` +
+// `AdminSidebar` with role-aware nav from `getStaffNav(profile)`. The
+// patient portal renders through `PatientShell` -> `AuthenticatedShell`.
 export { EmergencyDisclaimer,SAFETY_COPY } from "./emergency-disclaimer"
 export { EmergencyGate } from "./emergency-gate"
 export { EmployerLogoMarquee } from "./employer-logo-marquee"

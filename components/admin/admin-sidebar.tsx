@@ -14,6 +14,7 @@ import {
   operatorNavSections,
   type StaffNavCounts,
   type StaffNavItem,
+  type StaffNavSection,
 } from "@/lib/dashboard/staff-navigation"
 import { cn } from "@/lib/utils"
 
@@ -21,6 +22,10 @@ interface AdminSidebarProps {
   userName: string
   userRole?: string
   navCounts?: StaffNavCounts
+  /** Override the nav sections. Defaults to `operatorNavSections`. */
+  navSections?: StaffNavSection[]
+  /** Brand subtitle under "InstantMed". Defaults to "Operator". */
+  brandLabel?: string
 }
 
 const ACTIVE_NAV_LINK = "bg-primary/5 text-blue-700 dark:bg-primary/20 dark:text-blue-200"
@@ -79,6 +84,7 @@ function useLiveStaffNavCounts(initialCounts?: StaffNavCounts) {
       setCounts({
         prescribingIdentityPatients: Number(nextCounts.prescribingIdentityPatients) || 0,
         scriptsToWrite: Number(nextCounts.scriptsToWrite) || 0,
+        inQueue: Number(nextCounts.inQueue) || 0,
       })
     } catch {
       // Count badges are advisory; keep the last good values if polling fails.
@@ -173,7 +179,7 @@ function NavSection({
   )
 }
 
-function Brand() {
+function Brand({ label = "Operator" }: { label?: string }) {
   return (
     <div className="flex items-center gap-3">
       <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -183,7 +189,7 @@ function Brand() {
         <span className="text-base font-semibold tracking-tight text-foreground">
           InstantMed
         </span>
-        <p className="mt-1 text-xs leading-none text-muted-foreground">Operator</p>
+        <p className="mt-1 text-xs leading-none text-muted-foreground">{label}</p>
       </div>
     </div>
   )
@@ -210,21 +216,28 @@ function UserSummary({ userName, userRole }: { userName: string; userRole: strin
   )
 }
 
-export function AdminSidebar({ userName, userRole = "Operator", navCounts }: AdminSidebarProps) {
+export function AdminSidebar({
+  userName,
+  userRole = "Operator",
+  navCounts,
+  navSections,
+  brandLabel,
+}: AdminSidebarProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const counts = useLiveStaffNavCounts(navCounts)
   const currentStatus = searchParams.get("status")
+  const sections = navSections ?? operatorNavSections
 
   return (
-    <aside className="hidden w-[260px] shrink-0 flex-col lg:flex" aria-label="Operator sidebar">
+    <aside className="hidden w-[260px] shrink-0 flex-col lg:flex" aria-label="Staff sidebar">
       <div className="sticky top-6 flex flex-col gap-1 pb-6">
         <div className="mb-2 px-4 py-5">
-          <Brand />
+          <Brand label={brandLabel} />
         </div>
 
         <nav className="flex flex-col gap-4 px-3">
-          {operatorNavSections.map((section, index) => (
+          {sections.map((section, index) => (
             <div key={section.title} className="contents">
               {index > 0 ? <div className="mx-3 border-t border-border/30" /> : null}
               <NavSection
@@ -248,12 +261,19 @@ export function AdminSidebar({ userName, userRole = "Operator", navCounts }: Adm
   )
 }
 
-export function MobileAdminNav({ navCounts }: { navCounts?: StaffNavCounts }) {
+interface MobileAdminNavProps {
+  navCounts?: StaffNavCounts
+  navSections?: StaffNavSection[]
+  brandLabel?: string
+}
+
+export function MobileAdminNav({ navCounts, navSections, brandLabel }: MobileAdminNavProps) {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const counts = useLiveStaffNavCounts(navCounts)
   const currentStatus = searchParams.get("status")
+  const sections = navSections ?? operatorNavSections
 
   useEffect(() => {
     setOpen(false)
@@ -264,7 +284,7 @@ export function MobileAdminNav({ navCounts }: { navCounts?: StaffNavCounts }) {
       <button
         onClick={() => setOpen(true)}
         className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/50 bg-background text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
-        aria-label="Open operator navigation"
+        aria-label="Open staff navigation"
         type="button"
       >
         <Menu className="h-5 w-5" />
@@ -274,7 +294,7 @@ export function MobileAdminNav({ navCounts }: { navCounts?: StaffNavCounts }) {
         <button
           className="fixed inset-0 z-40 bg-black/40"
           onClick={() => setOpen(false)}
-          aria-label="Close admin navigation"
+          aria-label="Close staff navigation"
           type="button"
         />
       )}
@@ -284,10 +304,10 @@ export function MobileAdminNav({ navCounts }: { navCounts?: StaffNavCounts }) {
           "fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col border-r border-border bg-background shadow-xl transition-transform duration-200 ease-out",
           open ? "translate-x-0" : "-translate-x-full",
         )}
-        aria-label="Operator navigation"
+        aria-label="Staff navigation"
       >
         <div className="flex items-center justify-between border-b border-border/40 px-4 py-4">
-          <Brand />
+          <Brand label={brandLabel} />
           <button
             onClick={() => setOpen(false)}
             className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
@@ -299,7 +319,7 @@ export function MobileAdminNav({ navCounts }: { navCounts?: StaffNavCounts }) {
         </div>
 
         <div className="flex-1 space-y-4 overflow-y-auto px-3 py-3">
-          {operatorNavSections.map((section, index) => (
+          {sections.map((section, index) => (
             <div key={section.title} className="space-y-4">
               {index > 0 ? <div className="border-t border-border/30" /> : null}
               <NavSection

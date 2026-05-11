@@ -1,14 +1,12 @@
 import type { Metadata } from "next"
 import type React from "react"
-import { Suspense } from "react"
 
 import { DoctorOnboardingBanner } from "@/components/doctor"
-import { DashboardSidebar } from "@/components/shared"
-import { resolveProfileAvatarUrl } from "@/lib/account/avatar-storage"
+import { OperatorShell } from "@/components/operator"
 import { requireRole } from "@/lib/auth/helpers"
 import { getStaffDisplayRole, hasAdminAccess } from "@/lib/auth/staff-capabilities"
-import { getDoctorDashboardStats } from "@/lib/data/intakes"
-import { toError } from "@/lib/errors"
+import { EMPTY_STAFF_NAV_COUNTS, getStaffNav } from "@/lib/dashboard/staff-navigation"
+import { getStaffNavCounts } from "@/lib/data/staff-nav-counts"
 import { createLogger } from "@/lib/observability/logger"
 
 import { DoctorShell } from "./doctor-shell"
@@ -19,68 +17,47 @@ export const metadata: Metadata = {
 
 const log = createLogger("doctor-layout")
 
-/** AUDIT FIX: Async sidebar wrapper to prevent blocking layout render */
-async function DoctorSidebarWithStats({
-  userName,
-  userRole,
-  userAvatar,
-  isAdmin,
-}: {
-  userName: string
-  userRole: string
-  userAvatar?: string
-  isAdmin: boolean
-}) {
-  let stats = { in_queue: 0, total: 0, approved: 0, declined: 0, pending_info: 0, scripts_pending: 0 }
-  try {
-    stats = await getDoctorDashboardStats()
-  } catch (error) {
-    log.error("Failed to load dashboard stats for sidebar", {}, toError(error))
-  }
-
-  return (
-    <DashboardSidebar
-      variant="doctor"
-      userName={userName}
-      userRole={userRole}
-      userAvatar={userAvatar}
-      isAdmin={isAdmin}
-      pendingCount={stats.in_queue}
-    />
-  )
-}
-
+/**
+ * Phase 1.2 of dashboard remaster (2026-05-11): doctor portal now renders
+ * through the unified `OperatorShell` with role-aware nav via `getStaffNav`.
+ * `DashboardSidebar variant="doctor"` was retired; `DoctorShell` continues to
+ * supply the panel provider, intake notification listener, and bottom-tab
+ * mobile nav. The OperatorShell's hamburger mobile nav is suppressed because
+ * `DoctorMobileNav` (inside `DoctorShell`) already covers mobile clinical use.
+ */
 export default async function DoctorLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  // Require doctor or admin role for all doctor routes
+  // Require doctor or admin role for all doctor routes.
   const authUser = await requireRole(["doctor", "admin"])
 
   const isAdmin = hasAdminAccess(authUser.profile)
   const staffRoleLabel = getStaffDisplayRole(authUser.profile)
-  const avatarUrl = await resolveProfileAvatarUrl(authUser.profile.avatar_url)
+  const navSections = getStaffNav(authUser.profile)
+  const navCounts = await getStaffNavCounts().catch((error) => {
+    log.error("Failed to load nav counts for doctor layout", {}, error)
+    return EMPTY_STAFF_NAV_COUNTS
+  })
 
   return (
-    <DoctorShell isAdmin={isAdmin}>
-      <div className="flex min-h-screen bg-background">
-        {/* Suspense for async stats - invisible fallback preserves layout width without skeleton flash */}
-        <Suspense fallback={<div className="hidden lg:block w-[260px] shrink-0" />}>
-          <DoctorSidebarWithStats
-            userName={authUser.profile.full_name}
-            userRole={staffRoleLabel}
-            userAvatar={avatarUrl ?? undefined}
-            isAdmin={isAdmin}
-          />
-        </Suspense>
-        <main className="flex-1 min-w-0 lg:border-l border-border/40 py-5 px-4 sm:px-6 lg:px-8 pb-[calc(7rem+env(safe-area-inset-bottom))] lg:py-5" data-testid="doctor-main">
-          <div className="mx-auto max-w-5xl" data-testid="dashboard-container">
-            <DoctorOnboardingBanner />
-            {children}
-          </div>
-        </main>
-      </div>
-    </DoctorShell>
+    <OperatorShell
+      userName={authUser.profile.full_name}
+      userRole={staffRoleLabel}
+      navCounts={navCounts}
+      navSections={navSections}
+      brandLabel={staffRoleLabel}
+      hideMobileHamburger
+      mainClassName="lg:border-l border-border/40 py-5 lg:py-5 pb-[calc(7rem+env(safe-area-inset-bottom))]"
+      contentMaxWidth="wide"
+    >
+      <DoctorShell isAdmin={isAdmin}>
+        <div className="mx-auto max-w-5xl" data-testid="dashboard-container">
+          <DoctorOnboardingBanner />
+          <div data-testid="doctor-main">{children}</div>
+        </div>
+      </DoctorShell>
+    </OperatorShell>
   )
 }

@@ -283,11 +283,25 @@ All webhooks use signature verification (not CSRF).
 | Path Pattern | Required Role |
 |--------------|---------------|
 | `/patient/*` | patient |
-| `/doctor/*` | doctor |
+| `/doctor/*` | doctor (or admin via capability inheritance) |
 | `/admin/*`, `/api/admin/*` | admin |
+| `/dashboard` | admin, doctor, or support (staff role) |
 | `/api/health` | None (health check) |
 | `/api/cron/*` | Vercel cron auth |
 | `/api/webhooks/*` | Signature verification |
+
+### Staff Roles (Phase 1 of dashboard remaster, 2026-05-11)
+
+| Role | Capability inheritance | Surface access |
+|------|------------------------|----------------|
+| `admin` | admin + doctor (owner-operator) | Everything |
+| `doctor` | doctor | Clinical surfaces only (queue, cases, patient profiles, identity) |
+| `support` | support | Non-clinical ops only (payment recovery, webhook retries, identity chase-ups, masked PHI). Phase 7 of the remaster wires the RLS hardening; until then the role exists on the enum but has no surface guards beyond the application-layer helpers. |
+| `patient` | patient | Patient portal only |
+
+Capability helpers live in `lib/auth/staff-capabilities.ts`:
+- `hasAdminAccess(profile)`, `hasDoctorAccess(profile)`, `hasSupportAccess(profile)`, `hasStaffAccess(profile)` — role-level checks
+- `doctorHasCapability(profile, "review_ed" | "prescribe_s8" | ...)` — per-doctor service-line scoping (7 boolean columns on `profiles`)
 
 ### Auth Patterns
 
@@ -295,7 +309,8 @@ All webhooks use signature verification (not CSRF).
 |---------|-------|
 | `auth()` from `@/lib/auth` | Most API routes (20+ files) |
 | `getApiAuth()` | Document download, med-cert routes |
-| `requireRole()` / `requireRoleOrNull()` | Admin/doctor layouts, server actions |
+| `requireRole()` / `requireRoleOrNull()` | Admin/doctor/support layouts, server actions. Accepts any `RoleCapability` (`patient` \| `doctor` \| `admin` \| `support`). |
+| `revalidateStaff({ intakeId?, patientId?, ops?, identity? })` | Central staff-surface cache busting from `lib/dashboard/revalidate-staff.ts`. Replaces ad-hoc `revalidatePath("/doctor/...")` strings; survives URL rename to `/dashboard` in Phase 2. |
 | Passwordless sign-in | `/sign-in` supports `signInWithOtp({ shouldCreateUser: false })` so existing magic-link-only accounts can access the portal without creating duplicate auth users. |
 | Password recovery | `/auth/forgot-password` calls `resetPasswordForEmail()` and redirects recovery links through `/auth/callback?next=/auth/reset-password` so the reset page updates from an established Supabase recovery session. |
 | `normalizePostAuthRedirect()` / `getPostAuthRedirectParam()` | Post-login redirects. Accepts same-origin relative paths, preserves query strings, normalizes trusted same-origin absolute URLs, and rejects external/protocol-relative targets. |

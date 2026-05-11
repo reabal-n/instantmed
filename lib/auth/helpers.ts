@@ -16,7 +16,7 @@ import {
   buildGuestProfileAuthLinkUpdate,
   selectGuestProfileForAuthLink,
 } from "@/lib/auth/guest-profile-linking"
-import { hasAdminAccess, hasDoctorAccess, roleHasAnyCapability } from "@/lib/auth/staff-capabilities"
+import { hasAdminAccess, hasDoctorAccess, hasSupportAccess, type RoleCapability, roleHasAnyCapability } from "@/lib/auth/staff-capabilities"
 import { createLogger } from "@/lib/observability/logger"
 import { decryptField } from "@/lib/security/encryption"
 import { createClient } from "@/lib/supabase/server"
@@ -43,6 +43,8 @@ const PROFILE_COLUMNS = `
   phi_encrypted_at,
   ahpra_number, ahpra_verified, ahpra_verified_at, ahpra_verified_by,
   ahpra_verification_notes, ahpra_next_review_at, provider_number, nominals,
+  can_review_med_certs, can_review_repeat_rx, can_review_consults,
+  can_review_ed, can_review_hair_loss, can_prescribe_s4, can_prescribe_s8,
   consent_myhr, onboarding_completed,
   account_closed_at, account_closure_reason,
   email_verified, email_verified_at, email_bounced, email_bounced_at,
@@ -431,7 +433,7 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
  * Redirects to sign-in if not authenticated, or appropriate dashboard if wrong role.
  */
 export async function requireRole(
-  allowedRoles: Array<"patient" | "doctor" | "admin">,
+  allowedRoles: RoleCapability[],
   options?: {
     allowIncompleteOnboarding?: boolean
     redirectTo?: string
@@ -461,6 +463,10 @@ export async function requireRole(
       redirect("/admin")
     } else if (hasDoctorAccess(authUser.profile)) {
       redirect("/doctor/dashboard")
+    } else if (hasSupportAccess(authUser.profile)) {
+      // Support staff land on /admin once Phase 2 lands /dashboard.
+      // Until then, send them to the homepage rather than sign-in.
+      redirect("/")
     } else {
       redirect("/sign-in")
     }
@@ -474,7 +480,7 @@ export async function requireRole(
  * Returns null instead of throwing redirect() on auth failure.
  */
 export async function requireRoleOrNull(
-  allowedRoles: Array<"patient" | "doctor" | "admin">
+  allowedRoles: RoleCapability[]
 ): Promise<AuthenticatedUser | null> {
   const authUser = await getAuthenticatedUserWithProfile()
 
@@ -653,7 +659,7 @@ export async function requireApiAuth(): Promise<{ userId: string; profile: Profi
  * Returns null if not authenticated or role doesn't match.
  */
 export async function requireApiRole(
-  allowedRoles: Array<"patient" | "doctor" | "admin">
+  allowedRoles: RoleCapability[]
 ): Promise<{ userId: string; profile: Profile } | null> {
   const result = await getApiAuth()
   if (!result) return null

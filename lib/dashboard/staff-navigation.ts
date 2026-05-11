@@ -13,6 +13,12 @@ import {
 } from "lucide-react"
 
 import {
+  hasAdminAccess,
+  hasDoctorAccess,
+  hasStaffAccess,
+  hasSupportAccess,
+} from "@/lib/auth/staff-capabilities"
+import {
   ADMIN_ANALYTICS_HREF,
   ADMIN_DASHBOARD_HREF,
   ADMIN_DOCTOR_QUEUE_HREF,
@@ -23,15 +29,18 @@ import {
   ADMIN_SCRIPTS_HREF,
   ADMIN_SETTINGS_HREF,
 } from "@/lib/dashboard/routes"
+import type { Profile } from "@/types/db"
 
 export interface StaffNavCounts {
   prescribingIdentityPatients: number
   scriptsToWrite: number
+  inQueue: number
 }
 
 export const EMPTY_STAFF_NAV_COUNTS: StaffNavCounts = {
   prescribingIdentityPatients: 0,
   scriptsToWrite: 0,
+  inQueue: 0,
 }
 
 export interface StaffNavItem {
@@ -79,8 +88,8 @@ export const doctorNavSections: StaffNavSection[] = [
   {
     title: "Work",
     items: [
-      { href: "/doctor/dashboard", label: "Queue", icon: ListOrdered, badge: true },
-      { href: "/doctor/scripts", label: "Scripts", icon: ClipboardList },
+      { href: "/doctor/dashboard", label: "Queue", icon: ListOrdered, badge: true, badgeKey: "inQueue", badgeTone: "primary" },
+      { href: "/doctor/scripts", label: "Scripts", icon: ClipboardList, badgeKey: "scriptsToWrite", badgeTone: "primary" },
       { href: "/doctor/patients", label: "Patients", icon: Users },
     ],
   },
@@ -96,3 +105,45 @@ export const doctorNavSections: StaffNavSection[] = [
 export const doctorOperatorNavItems: StaffNavItem[] = [
   { href: ADMIN_DASHBOARD_HREF, label: "Operations", icon: Shield },
 ]
+
+// ── Canonical role-aware nav (Phase 1 of dashboard remaster, 2026-05-11) ────
+// `getStaffNav(profile)` is the single source of truth going forward. The
+// legacy exports above stay for back-compat until Phase 2 finishes the surface
+// consolidation; new sidebars and command palettes should call this function.
+//
+// Support staff get a deliberately minimal nav: patient directory and the
+// operations recovery surface. No clinical entry points.
+
+export const supportNavSections: StaffNavSection[] = [
+  {
+    title: "Work",
+    items: [
+      { href: ADMIN_PATIENTS_HREF, label: "Patients", icon: Users },
+      { href: ADMIN_OPS_HREF, label: "Operations", icon: Activity },
+    ],
+  },
+  {
+    title: "Configure",
+    items: [
+      { href: ADMIN_SETTINGS_HREF, label: "My settings", icon: Settings },
+    ],
+  },
+]
+
+export function getStaffNav(profile: Pick<Profile, "role">): StaffNavSection[] {
+  if (hasAdminAccess(profile)) {
+    return operatorNavSections
+  }
+  if (hasDoctorAccess(profile)) {
+    return doctorNavSections
+  }
+  if (hasSupportAccess(profile)) {
+    return supportNavSections
+  }
+  return []
+}
+
+/** Whether this profile should see ANY staff-shell nav at all. */
+export function shouldShowStaffNav(profile: Pick<Profile, "role">): boolean {
+  return hasStaffAccess(profile)
+}

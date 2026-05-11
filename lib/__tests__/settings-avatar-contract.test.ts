@@ -31,9 +31,13 @@ describe("settings avatar contract", () => {
   })
 
   it("resolves private uploaded avatars before rendering authenticated shells", () => {
+    // Patient portal still passes a signed avatar URL through PatientShell.
     expect(read("app/patient/layout.tsx")).toContain("resolveProfileAvatarUrl")
-    expect(read("app/doctor/layout.tsx")).toContain("resolveProfileAvatarUrl")
-    expect(read("components/shared/dashboard-sidebar.tsx")).toContain("userAvatar")
+    // Phase 1.2 of dashboard remaster (2026-05-11): the doctor portal now
+    // renders through OperatorShell + AdminSidebar (initials-only UserSummary).
+    // DashboardSidebar was retired. The avatar resolution path lives in the
+    // doctor settings page where the profile photo is actually edited.
+    expect(read("app/doctor/settings/identity/page.tsx")).toContain("resolveProfileAvatarUrl")
   })
 
   it("keeps patient profile PATCH protected with the CSRF fetch helper", () => {
