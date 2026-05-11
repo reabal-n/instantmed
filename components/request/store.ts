@@ -151,8 +151,8 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-function normalizePersistedState(state: Partial<RequestState> | undefined): Partial<RequestState> | undefined {
-  if (!state) return state
+function normalizePersistedState(state: Partial<RequestState> | undefined): Partial<RequestState> {
+  if (!state) return {}
 
   const persisted = state as PersistedRequestState
 

@@ -101,6 +101,7 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
   const posthog = usePostHog()
   const initialUrlDurationRef = useRef<Duration | null>(parseDuration(initialDuration))
   const urlDurationAppliedRef = useRef(false)
+  const storedDurationAppliedRef = useRef(false)
 
   const certType = answers.certType as CertType | undefined
   // Default to 2 days - most common selection, pre-checked per UX intent.
@@ -132,11 +133,16 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
   // Restore persisted duration after store hydration when there is no explicit
   // URL duration. Price-specific CTA params should win the initial handoff.
   useEffect(() => {
-    if (!canSyncSelection || initialUrlDurationRef.current) {
+    if (!canSyncSelection || initialUrlDurationRef.current || storedDurationAppliedRef.current) {
       return
     }
 
     const storedDuration = parseDuration(answers.duration)
+    if (!storedDuration) {
+      return
+    }
+
+    storedDurationAppliedRef.current = true
     if (storedDuration && storedDuration !== selectedDays) {
       setSelectedDays(storedDuration)
     }
@@ -163,10 +169,16 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
   useEffect(() => {
     if (!canSyncSelection) return
     if (startOffset !== null && selectedDays !== null) {
-      setAnswer("startDate", offsetToISO(startOffset))
-      setAnswer("duration", String(selectedDays))
+      const nextStartDate = offsetToISO(startOffset)
+      const nextDuration = String(selectedDays)
+      if (answers.startDate !== nextStartDate) {
+        setAnswer("startDate", nextStartDate)
+      }
+      if (answers.duration !== nextDuration) {
+        setAnswer("duration", nextDuration)
+      }
     }
-  }, [canSyncSelection, startOffset, selectedDays, setAnswer])
+  }, [answers.duration, answers.startDate, canSyncSelection, startOffset, selectedDays, setAnswer])
 
   // Derived
   const price = selectedDays ? MED_CERT_DURATIONS.prices[selectedDays] : null
@@ -195,6 +207,7 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
   const handleDaysClick = useCallback(
     (days: Duration) => {
       setSelectedDays(days)
+      setAnswer("duration", String(days))
       setErrors((prev) => {
         const e = { ...prev }
         delete e.duration
@@ -206,19 +219,20 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
         }, 300)
       }
     },
-    [startOffset]
+    [setAnswer, startOffset]
   )
 
   // ── Start date click ──────────────────────────────────────────────────
 
   const handleStartOffsetClick = useCallback((offset: number) => {
     setStartOffset(offset)
+    setAnswer("startDate", offsetToISO(offset))
     setErrors((prev) => {
       const e = { ...prev }
       delete e.startDate
       return e
     })
-  }, [])
+  }, [setAnswer])
 
   // ── Validation + submit ───────────────────────────────────────────────
 
