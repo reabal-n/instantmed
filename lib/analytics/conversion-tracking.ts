@@ -39,10 +39,12 @@ interface ConversionData {
   transaction_id?: string
   service?: string
   new_customer?: boolean
+  // GA4 Enhanced Ecommerce items[] schema (item_id/item_name/price/quantity).
   items?: Array<{
-    id: string
-    name: string
+    item_id: string
+    item_name: string
     price: number
+    quantity: number
   }>
 }
 
@@ -247,10 +249,13 @@ export async function trackPurchase(params: {
     currency: 'AUD',
     service: params.service,
     new_customer: params.isNewCustomer,
+    // GA4 Enhanced Ecommerce schema: item_id + item_name + price + quantity.
+    // Sending {id, name} silently drops the row from GA4 ecommerce reports.
     items: [{
-      id: params.service,
-      name: params.serviceName,
+      item_id: params.service,
+      item_name: params.serviceName,
       price: params.value,
+      quantity: 1,
     }],
   })
 

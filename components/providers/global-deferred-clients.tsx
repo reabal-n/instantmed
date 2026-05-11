@@ -40,6 +40,22 @@ function shouldLoadVercelAnalytics() {
 }
 
 /**
+ * Post-conversion pages where measurement matters more than mobile LCP. We
+ * cannot wait for first-interaction here because a user who lands and
+ * immediately leaves still needs to fire the gtag purchase event.
+ */
+const POST_CONVERSION_PATH_PREFIXES = [
+  "/patient/intakes/success",
+  "/auth/complete-account",
+] as const
+
+function isPostConversionPath() {
+  if (typeof window === "undefined") return false
+  const path = window.location.pathname
+  return POST_CONVERSION_PATH_PREFIXES.some((prefix) => path.startsWith(prefix))
+}
+
+/**
  * Keeps global non-critical clients out of first-load route chunks.
  *
  * These widgets either observe the page, show late overlays, or support post-click
@@ -101,7 +117,13 @@ export function GlobalDeferredClients() {
       )
     }
 
-    cleanup.push(onFirstInteraction(loadClients))
+    // Post-conversion pages bypass the first-interaction gate so gtag
+    // purchase events fire even for users who leave without scrolling.
+    if (isPostConversionPath()) {
+      loadClients()
+    } else {
+      cleanup.push(onFirstInteraction(loadClients))
+    }
 
     return () => {
       cancelled = true
