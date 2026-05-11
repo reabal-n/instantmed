@@ -162,6 +162,30 @@ test.describe("Unified Request Flow - Error Handling", () => {
     await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
   })
 
+  test("recovers from a legacy draft with null answers", async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem(
+        "instantmed-request-draft",
+        JSON.stringify({
+          state: {
+            serviceType: "med-cert",
+            currentStepId: "certificate",
+            answers: null,
+            lastSavedAt: new Date().toISOString(),
+          },
+          version: 0,
+        })
+      )
+    })
+
+    await page.goto("/request?service=med-cert")
+    await waitForPageLoad(page)
+
+    await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
+    await expect(page.getByText("Something went wrong")).toHaveCount(0)
+    await expect(page.getByRole("button", { name: /Work/i })).toBeVisible()
+  })
+
   test("handles missing service param gracefully", async ({ page }) => {
     await page.goto("/request")
     await waitForPageLoad(page)
