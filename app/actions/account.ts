@@ -4,6 +4,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { revalidatePath } from "next/cache"
 
 import { auth, getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { revalidatePatient } from "@/lib/dashboard/revalidate-staff"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { logAuditEvent } from "@/lib/security/audit-log"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -215,6 +216,6 @@ export async function updateNotificationPreferences(
     return { success: false, error: error.message }
   }
 
-  revalidatePath("/patient/settings")
+  revalidatePatient({ settings: true })
   return { success: true, error: null }
 }

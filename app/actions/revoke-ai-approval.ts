@@ -9,10 +9,10 @@
  */
 
 import * as Sentry from "@sentry/nextjs"
-import { revalidatePath } from "next/cache"
 
 import { revokeCertificateAction } from "@/app/actions/revoke-cert"
 import { withServerAction } from "@/lib/actions/with-server-action"
+import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { createNotification } from "@/lib/notifications/service"
 import type { ActionResult } from "@/types/shared"
 
@@ -112,9 +112,8 @@ export const revokeAIApproval = withServerAction<RevokeAIApprovalInput>(
       reason: reason.trim(),
     })
 
-    revalidatePath("/doctor/queue")
-    revalidatePath("/doctor/dashboard")
-    revalidatePath(`/patient/intakes/${intakeId}`)
+    revalidateStaff({ intakeId })
+    revalidatePatient({ intakeId })
 
     return { success: true }
   }

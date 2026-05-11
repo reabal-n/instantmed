@@ -17,12 +17,12 @@
  */
 
 import * as Sentry from "@sentry/nextjs"
-import { revalidatePath } from "next/cache"
 
 import { trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
 import type { RequestType } from "@/lib/audit/compliance-audit"
 import { logTriageDeclined } from "@/lib/audit/compliance-audit"
 import { requireRoleOrNull } from "@/lib/auth/helpers"
+import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { logStatusChange } from "@/lib/data/intake-events"
 import { sendRequestDeclinedEmail } from "@/lib/email/senders"
 import { createLogger } from "@/lib/observability/logger"
@@ -303,7 +303,8 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
       logger.warn("[Decline] Failed to log compliance event", { intakeId }, auditError instanceof Error ? auditError : undefined)
     }
 
-    revalidatePath("/doctor")
+    revalidateStaff({ intakeId })
+    revalidatePatient({ intakeId, patientId: patient?.id })
 
     return {
       success: true,

@@ -1,8 +1,7 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
-
 import { withServerAction } from "@/lib/actions/with-server-action"
+import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import type { ActionResult } from "@/types/shared"
 
 const UUID_REGEX =
@@ -35,7 +34,7 @@ export const markFollowupReviewed = withServerAction<string>(
       return { success: false, error: "Failed to update" }
     }
 
-    revalidatePath(`/doctor/intakes/${row.intake_id}`)
+    revalidateStaff({ intakeId: row.intake_id })
     return { success: true }
   }
 )

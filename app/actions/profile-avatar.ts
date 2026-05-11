@@ -2,8 +2,6 @@
 
 import { randomUUID } from "node:crypto"
 
-import { revalidatePath } from "next/cache"
-
 import { getAvatarPresetUrl } from "@/lib/account/avatar-presets"
 import {
   AVATAR_SIGNED_URL_TTL_SECONDS,
@@ -13,7 +11,7 @@ import {
   toUploadedAvatarValue,
 } from "@/lib/account/avatar-storage"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
-import { ADMIN_DOCTOR_IDENTITY_HREF } from "@/lib/dashboard/routes"
+import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { updateProfile } from "@/lib/data/profiles"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -35,12 +33,10 @@ type ProfileAvatarResult = {
 }
 
 function revalidateAvatarSurfaces() {
-  revalidatePath("/account")
-  revalidatePath("/patient")
-  revalidatePath("/patient/settings")
-  revalidatePath("/doctor/dashboard")
-  revalidatePath("/doctor/settings/identity")
-  revalidatePath(ADMIN_DOCTOR_IDENTITY_HREF)
+  // Avatar appears on patient header, doctor identity, and admin doctor
+  // identity surfaces.
+  revalidatePatient({ account: true, settings: true })
+  revalidateStaff({ identity: true })
 }
 
 async function removePreviousUploadedAvatar(previousValue: string | null | undefined, authUserId: string) {

@@ -8,9 +8,8 @@
  * within 24 hours. This action records the review timestamp and doctor ID.
  */
 
-import { revalidatePath } from "next/cache"
-
 import { requireRoleOrNull } from "@/lib/auth/helpers"
+import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -48,7 +47,7 @@ export async function markBatchReviewed(intakeId: string): Promise<BatchReviewRe
     return { success: false, error: error.message }
   }
 
-  revalidatePath("/doctor/dashboard")
+  revalidateStaff({ intakeId })
   return { success: true, reviewedCount: 1 }
 }
 
@@ -83,6 +82,6 @@ export async function markAllBatchReviewed(): Promise<BatchReviewResult> {
   const count = data?.length ?? 0
   log.info("Batch review completed", { doctorId: user.profile.id, reviewedCount: count })
 
-  revalidatePath("/doctor/dashboard")
+  revalidateStaff()
   return { success: true, reviewedCount: count }
 }

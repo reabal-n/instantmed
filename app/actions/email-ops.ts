@@ -1,9 +1,9 @@
 "use server"
 
 import { randomUUID } from "crypto"
-import { revalidatePath } from "next/cache"
 
 import { requireRoleOrNull } from "@/lib/auth/helpers"
+import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { OpsTestEmail, opsTestEmailSubject } from "@/lib/email/components/templates"
 import { sendEmail } from "@/lib/email/send-email"
 import { createLogger } from "@/lib/observability/logger"
@@ -95,8 +95,7 @@ export async function sendOpsTestEmailAction(): Promise<ActionResult<OpsTestEmai
       },
     })
 
-    revalidatePath("/admin/ops")
-    revalidatePath("/admin/emails/hub")
+    revalidateStaff({ ops: true, emails: true })
 
     if (!result.success) {
       return {

@@ -1,9 +1,9 @@
 "use server"
 
 import * as Sentry from "@sentry/nextjs"
-import { revalidatePath } from "next/cache"
 
 import { requireRoleOrNull } from "@/lib/auth/helpers"
+import { revalidatePatient } from "@/lib/dashboard/revalidate-staff"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { type SubmitFollowupInput,submitFollowupSchema } from "@/lib/validation/followup-schema"
@@ -110,8 +110,7 @@ export async function submitFollowup(
     }
   }
 
-  revalidatePath("/patient")
-  revalidatePath(`/patient/followups/${parsed.data.followupId}`)
+  revalidatePatient({ followupId: parsed.data.followupId })
   return { success: true }
 }
 
@@ -145,6 +144,6 @@ export async function skipFollowup(
     return { success: false, error: "Failed to update" }
   }
 
-  revalidatePath("/patient")
+  revalidatePatient()
   return { success: true }
 }

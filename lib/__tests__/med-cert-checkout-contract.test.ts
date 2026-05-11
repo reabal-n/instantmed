@@ -34,10 +34,13 @@ describe("medical certificate checkout contract", () => {
   })
 
   it("accepts completed certificate checkout answers without allergy fields or symptom chips", () => {
+    // Use today's date so the test does not drift past the 7-day backdating
+    // limit enforced by validateCertificateDateRange.
+    const today = new Date().toISOString().slice(0, 10)
     const answers = {
       certType: "work",
       duration: "1",
-      startDate: "2026-05-04",
+      startDate: today,
       symptomDetails: "Fever and sore throat since yesterday.",
       symptomDuration: "1 day",
       agreedToTerms: true,

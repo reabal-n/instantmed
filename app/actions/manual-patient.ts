@@ -1,9 +1,9 @@
 "use server"
 
 import * as Sentry from "@sentry/nextjs"
-import { revalidatePath } from "next/cache"
 
 import { requireRoleOrNull } from "@/lib/auth/helpers"
+import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { encryptProfilePhi } from "@/lib/data/profiles"
 import {
   buildManualPatientDuplicateLookup,
@@ -259,8 +259,7 @@ export async function createManualPatientAction(
           extra: { context: "manual_patient_parchment_sync", patientId: created.id },
         })
 
-        revalidatePath("/doctor/patients")
-        revalidatePath(`/doctor/patients/${created.id}`)
+        revalidateStaff({ patientId: created.id })
 
         return {
           success: true,
@@ -271,8 +270,7 @@ export async function createManualPatientAction(
       }
     }
 
-    revalidatePath("/doctor/patients")
-    revalidatePath(`/doctor/patients/${created.id}`)
+    revalidateStaff({ patientId: created.id })
 
     return {
       success: true,
@@ -359,7 +357,7 @@ export async function getPatientParchmentPrescribeUrlAction(
       },
     })
 
-    revalidatePath(`/doctor/patients/${patientId}`)
+    revalidateStaff({ patientId })
 
     return {
       success: true,
@@ -455,8 +453,7 @@ export async function syncPatientParchmentProfileAction(
       },
     })
 
-    revalidatePath("/doctor/patients")
-    revalidatePath(`/doctor/patients/${patientId}`)
+    revalidateStaff({ patientId })
 
     return {
       success: true,
@@ -558,7 +555,7 @@ export async function refreshPatientParchmentPrescriptionsAction(
       },
     })
 
-    revalidatePath(`/doctor/patients/${patientId}`)
+    revalidateStaff({ patientId })
 
     return {
       success: result.success,

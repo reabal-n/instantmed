@@ -10,9 +10,8 @@
  * app/actions/drafts/. This file re-exports them for backward compatibility.
  */
 
-import { revalidatePath } from "next/cache"
-
 import { requireRoleOrNull } from "@/lib/auth/helpers"
+import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { createLogger } from "@/lib/observability/logger"
 import { prepareDocumentDraftEditedContentWrite } from "@/lib/security/phi-field-wrappers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -157,7 +156,7 @@ export async function approveDraft(
     syncedToIntake: draft.type === "clinical_note",
   })
 
-  revalidatePath(`/doctor/intakes/${draft.intake_id}`)
+  revalidateStaff({ intakeId: draft.intake_id })
 
   return { success: true, draftId }
 }
@@ -251,7 +250,7 @@ export async function rejectDraft(
     reason: reason.trim(),
   })
 
-  revalidatePath(`/doctor/intakes/${draft.intake_id}`)
+  revalidateStaff({ intakeId: draft.intake_id })
 
   return { success: true, draftId }
 }
@@ -347,7 +346,7 @@ export async function regenerateDrafts(intakeId: string): Promise<DraftApprovalR
       newVersion: maxVersion + 1,
     })
 
-    revalidatePath(`/doctor/intakes/${intakeId}`)
+    revalidateStaff({ intakeId })
 
     return { success: true }
   } catch (error) {

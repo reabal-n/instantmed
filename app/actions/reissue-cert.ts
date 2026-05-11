@@ -14,10 +14,10 @@
 
 import * as Sentry from "@sentry/nextjs"
 import crypto from "crypto"
-import { revalidatePath } from "next/cache"
 
 import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { env } from "@/lib/config/env"
+import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { getDoctorIdentity } from "@/lib/data/doctor-identity"
 import { getCertificateForIntake, logCertificateEvent } from "@/lib/data/issued-certificates"
 import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/lib/email/components/templates"
@@ -325,10 +325,8 @@ export async function reissueCertificateAction(
     }
 
     // 14. REVALIDATE PATHS
-    revalidatePath("/doctor/dashboard")
-    revalidatePath("/doctor/queue")
-    revalidatePath(`/patient/intakes/${intakeId}`)
-    revalidatePath(`/doctor/intakes/${intakeId}`)
+    revalidateStaff({ intakeId })
+    revalidatePatient({ intakeId })
 
     // 15. RETURN SUCCESS
     return { success: true, certificateId: cert.id }

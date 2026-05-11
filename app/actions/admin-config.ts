@@ -5,9 +5,8 @@
  * Handles email templates, content blocks, audit logs, feature flags, and refunds
  */
 
-import { revalidatePath } from "next/cache"
-
 import { requireRole } from "@/lib/auth/helpers"
+import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import {
   type AuditLogFilters,
   getAuditLogs,
@@ -98,7 +97,7 @@ export async function createEmailTemplateAction(input: EmailTemplateInput) {
   const admin = await requireAdminWithRateLimit()
   const result = await createEmailTemplate(input, admin.id)
   if (result.success) {
-    revalidatePath("/admin/emails")
+    revalidateStaff({ emails: true })
     log.info("Email template created", { adminId: admin.id, slug: input.slug })
   }
   return result
@@ -108,7 +107,7 @@ export async function updateEmailTemplateAction(id: string, input: Partial<Email
   const admin = await requireAdminWithRateLimit()
   const result = await updateEmailTemplate(id, input, admin.id)
   if (result.success) {
-    revalidatePath("/admin/emails")
+    revalidateStaff({ emails: true })
     log.info("Email template updated", { adminId: admin.id, templateId: id })
   }
   return result
@@ -118,7 +117,7 @@ export async function toggleEmailTemplateActiveAction(id: string, isActive: bool
   const admin = await requireAdminWithRateLimit()
   const result = await toggleEmailTemplateActive(id, isActive)
   if (result.success) {
-    revalidatePath("/admin/emails")
+    revalidateStaff({ emails: true })
     log.info("Email template toggled", { adminId: admin.id, templateId: id, isActive })
   }
   return result
@@ -142,7 +141,7 @@ export async function createContentBlockAction(input: ContentBlockInput) {
   const admin = await requireAdminWithRateLimit()
   const result = await createContentBlock(input, admin.id)
   if (result.success) {
-    revalidatePath("/admin/content")
+    revalidateStaff({ content: true })
     log.info("Content block created", { adminId: admin.id, key: input.key })
   }
   return result
@@ -152,7 +151,7 @@ export async function updateContentBlockAction(id: string, input: Partial<Conten
   const admin = await requireAdminWithRateLimit()
   const result = await updateContentBlock(id, input, admin.id)
   if (result.success) {
-    revalidatePath("/admin/content")
+    revalidateStaff({ content: true })
     log.info("Content block updated", { adminId: admin.id, blockId: id })
   }
   return result
@@ -162,7 +161,7 @@ export async function deleteContentBlockAction(id: string) {
   const admin = await requireAdminWithRateLimit()
   const result = await deleteContentBlock(id)
   if (result.success) {
-    revalidatePath("/admin/content")
+    revalidateStaff({ content: true })
     log.info("Content block deleted", { adminId: admin.id, blockId: id })
   }
   return result
@@ -214,7 +213,7 @@ export async function updateFeatureFlagAction(key: FlagKey, value: boolean | str
   const admin = await requireAdminWithRateLimit()
   const result = await updateFeatureFlag(key, value, admin.id)
   if (result.success) {
-    revalidatePath("/admin/features")
+    revalidateStaff({ settings: true })
     log.info("Feature flag updated", { adminId: admin.id, key, value })
   }
   return result
@@ -348,7 +347,7 @@ export async function markRefundEligibleAction(paymentId: string, reason: string
   const admin = await requireAdminWithRateLimit()
   const result = await markRefundEligible(paymentId, reason)
   if (result.success) {
-    revalidatePath("/admin/refunds")
+    revalidateStaff({ content: true })
     log.info("Refund marked eligible", { adminId: admin.id, paymentId, reason })
   }
   return result
@@ -450,7 +449,7 @@ export async function processRefundAction(
         stripeRefundId: stripeRefund.id,
       },
     })
-    revalidatePath("/admin/refunds")
+    revalidateStaff({ content: true })
     log.info("Refund processed", { adminId: admin.id, paymentId, stripeRefundId: stripeRefund.id, refundAmount: stripeRefund.amount })
   } else {
     await logAuditEvent({
@@ -475,7 +474,7 @@ export async function markRefundNotEligibleAction(paymentId: string, reason: str
   const admin = await requireAdminWithRateLimit()
   const result = await markRefundNotEligible(paymentId, reason)
   if (result.success) {
-    revalidatePath("/admin/refunds")
+    revalidateStaff({ content: true })
     log.info("Refund marked not eligible", { adminId: admin.id, paymentId, reason })
   }
   return result

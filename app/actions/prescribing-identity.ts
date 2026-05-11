@@ -1,9 +1,9 @@
 "use server"
 
 import * as Sentry from "@sentry/nextjs"
-import { revalidatePath } from "next/cache"
 
 import { requireRoleOrNull } from "@/lib/auth/helpers"
+import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { updateProfile } from "@/lib/data/profiles"
 import {
   buildPrescribingIdentityProfileUpdates,
@@ -84,12 +84,7 @@ export async function updatePrescribingIdentityAction(
       },
     })
 
-    revalidatePath("/admin/ops")
-    revalidatePath("/admin/ops/prescribing-identity")
-    revalidatePath(`/doctor/patients/${profileId}`)
-    if (intakeId) {
-      revalidatePath(`/doctor/intakes/${intakeId}`)
-    }
+    revalidateStaff({ ops: true, patientId: profileId, intakeId: intakeId ?? undefined })
 
     return { success: true }
   } catch (error) {

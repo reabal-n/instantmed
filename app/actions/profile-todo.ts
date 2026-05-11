@@ -1,8 +1,7 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
-
 import { auth } from "@/lib/auth/helpers"
+import { revalidatePatient } from "@/lib/dashboard/revalidate-staff"
 import { verifyAddress } from "@/lib/google-places/geocoding"
 import { encryptField } from "@/lib/security/encryption"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -77,7 +76,7 @@ export async function updatePhoneAction(
     return { success: false, error: "Failed to save your phone number. Please try again." }
   }
 
-  revalidatePath("/patient")
+  revalidatePatient()
   return { success: true }
 }
 
@@ -159,7 +158,7 @@ export async function updateAddressAction(
     return { success: false, error: "Failed to save your address. Please try again." }
   }
 
-  revalidatePath("/patient")
+  revalidatePatient()
   return { success: true }
 }
 
@@ -227,7 +226,6 @@ export async function updateMedicareAction(
     return { success: false, error: "Failed to save your Medicare details. Please try again." }
   }
 
-  revalidatePath("/patient")
-  revalidatePath("/patient/settings")
+  revalidatePatient({ settings: true })
   return { success: true }
 }

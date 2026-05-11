@@ -8,6 +8,7 @@
 import { revalidatePath } from "next/cache"
 
 import { requireRole } from "@/lib/auth/helpers"
+import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import {
   getClinicIdentityHistory,
   getClinicLogoUrl,
@@ -82,8 +83,7 @@ export async function saveClinicIdentityAction(input: ClinicIdentityInput) {
   const result = await saveClinicIdentity(input, profile.id)
 
   if (result.success) {
-    revalidatePath("/admin/clinic")
-    revalidatePath("/admin")
+    revalidateStaff({ settings: true })
     log.info("Clinic identity updated by admin", { adminId: profile.id })
   }
 
@@ -171,8 +171,7 @@ export async function updateDoctorIdentityAction(
   const result = await updateDoctorIdentity(profileId, input)
 
   if (result.success) {
-    revalidatePath("/admin/doctors")
-    revalidatePath("/admin")
+    revalidateStaff({ settings: true })
     log.info("Doctor identity updated by admin", { adminId: admin.id, doctorId: profileId })
     
     // Audit log for compliance
@@ -240,7 +239,7 @@ export async function createServiceAction(input: ServiceInput) {
   const result = await createService(input)
 
   if (result.success) {
-    revalidatePath("/admin/services")
+    revalidateStaff({ settings: true })
     revalidatePath("/request")
     log.info("Service created by admin", { adminId: admin.id, slug: input.slug })
     
@@ -265,7 +264,7 @@ export async function updateServiceAction(id: string, input: Partial<ServiceInpu
   const result = await updateService(id, input)
 
   if (result.success) {
-    revalidatePath("/admin/services")
+    revalidateStaff({ settings: true })
     revalidatePath("/request")
     log.info("Service updated by admin", { adminId: admin.id, serviceId: id })
     
@@ -290,7 +289,7 @@ export async function toggleServiceActiveAction(id: string, isActive: boolean) {
   const result = await toggleServiceActive(id, isActive)
 
   if (result.success) {
-    revalidatePath("/admin/services")
+    revalidateStaff({ settings: true })
     revalidatePath("/request")
     log.info("Service toggled by admin", { adminId: admin.id, serviceId: id, isActive })
     
@@ -315,7 +314,7 @@ export async function updateServiceOrderAction(orderedIds: string[]) {
   const result = await updateServiceOrder(orderedIds)
 
   if (result.success) {
-    revalidatePath("/admin/services")
+    revalidateStaff({ settings: true })
     revalidatePath("/request")
     log.info("Service order updated by admin", { adminId: admin.id })
   }
@@ -329,7 +328,7 @@ export async function deleteServiceAction(id: string) {
   const result = await deleteService(id)
 
   if (result.success) {
-    revalidatePath("/admin/services")
+    revalidateStaff({ settings: true })
     revalidatePath("/request")
     log.info("Service deleted by admin", { adminId: admin.id, serviceId: id })
     

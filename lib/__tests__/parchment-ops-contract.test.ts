@@ -66,7 +66,11 @@ describe("Parchment ops dashboard and retry contract", () => {
     )
     expect(body).toContain("syncParchmentPrescriptionToPms(")
     expect(body).toContain('action_type: "parchment_webhook_retry"')
-    expect(body).toContain("revalidatePath(\"/admin/ops/parchment\")")
+    // Phase 1.3 of dashboard remaster (2026-05-11): hardcoded revalidatePath
+    // calls were migrated to the central revalidateStaff helper. Ops surfaces
+    // (including /admin/ops/parchment) are invalidated via { ops: true }.
+    expect(body).toContain("revalidateStaff(")
+    expect(body).toMatch(/revalidateStaff\([\s\S]*ops:\s*true/)
   })
 
   it("stores enough non-PHI webhook metadata for future Parchment prescription retries", () => {

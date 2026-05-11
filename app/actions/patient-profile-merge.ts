@@ -1,9 +1,9 @@
 "use server"
 
 import * as Sentry from "@sentry/nextjs"
-import { revalidatePath } from "next/cache"
 
 import { requireRoleOrNull } from "@/lib/auth/helpers"
+import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import {
   buildPatientProfileMergeRequest,
   validatePatientProfileMergeProfiles,
@@ -130,11 +130,9 @@ export async function mergePatientProfilesAction(
 
     const result = (data || {}) as PatientProfileMergeRpcResult
 
-    revalidatePath("/admin/ops")
-    revalidatePath("/doctor/patients")
-    revalidatePath(`/doctor/patients/${request.canonicalPatientId}`)
+    revalidateStaff({ ops: true, patientId: request.canonicalPatientId })
     request.duplicatePatientIds.forEach((profileId) => {
-      revalidatePath(`/doctor/patients/${profileId}`)
+      revalidateStaff({ patientId: profileId })
     })
 
     return {

@@ -1,13 +1,13 @@
 "use server"
 
 import * as Sentry from "@sentry/nextjs"
-import { revalidatePath } from "next/cache"
 
 import {
   logNoPrescribingInPlatform,
   type RequestType,
 } from "@/lib/audit/compliance-audit"
 import { requireRoleOrNull } from "@/lib/auth/helpers"
+import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { acquireIntakeLock } from "@/lib/data/intake-lock"
 import {
   getParchmentPatientSyncEligibility,
@@ -360,10 +360,7 @@ export async function retryParchmentPatientSyncAction(
 
     await syncPatientToParchment(intake.patient_id, parchmentUserId, answers)
 
-    revalidatePath("/admin/ops")
-    revalidatePath("/admin/ops/prescribing-identity")
-    revalidatePath(`/doctor/intakes/${intakeId}`)
-    revalidatePath(`/doctor/patients/${intake.patient_id}`)
+    revalidateStaff({ ops: true, intakeId, patientId: intake.patient_id })
 
     log.info("Parchment patient sync retried")
     return { success: true }

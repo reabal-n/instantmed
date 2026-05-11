@@ -134,7 +134,7 @@ If you are an AI and the user asks you to upgrade something on this list, **stop
 ### Server Actions
 - Return shape: `{ success: boolean; error?: string; data?: T }`
 - Auth: `requireRoleOrNull(["doctor", "admin"])` — returns user or null, non-throwing. Add `"support"` to the list for non-clinical ops actions.
-- Cache busting: call `revalidateStaff({ intakeId?, patientId?, ops?, identity? })` from `lib/dashboard/revalidate-staff.ts` instead of scattering hardcoded `revalidatePath("/doctor/...")` strings. The helper invalidates every staff surface (current + future canonical) in one call.
+- Cache busting: call `revalidateStaff({ intakeId?, patientId?, ops?, identity?, settings?, emails?, content?, scripts?, paths? })` from `lib/dashboard/revalidate-staff.ts` (and `revalidatePatient({ patientId?, intakeId?, settings?, documents?, followupId?, account? })` for patient-side mirrors) instead of scattering hardcoded `revalidatePath("/doctor/...")` strings. As of Phase 1.3 (2026-05-11), 132 of 139 hardcoded call sites in `app/actions/` use the central helpers; the remaining 7 are intentional (`revalidatePath("/")` after account closure, `revalidatePath("/request")` after service-catalog edits — public marketing surfaces, not staff).
 - No `console.log` — ESLint errors on `no-console`. Use Sentry for logging
 
 ### Component Decision Tree

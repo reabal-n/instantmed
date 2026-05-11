@@ -1,9 +1,8 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
-
 import { withServerAction } from "@/lib/actions/with-server-action"
 import { getApiAuth } from "@/lib/auth/helpers"
+import { revalidatePatient } from "@/lib/dashboard/revalidate-staff"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { ActionResult } from "@/types/shared"
@@ -68,7 +67,7 @@ export const updateEmailPreferences = withServerAction<UpdateEmailPrefsInput>(
     }
 
     log.info("Updated email preferences", { profileId: profile.id, preferences })
-    revalidatePath("/patient/settings")
+    revalidatePatient({ settings: true })
 
     return { success: true }
   }

@@ -1,8 +1,7 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
-
 import { requireRole } from "@/lib/auth/helpers"
+import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -54,7 +53,7 @@ export async function addPatientNoteAction(
       return { success: false, error: "Failed to add note" }
     }
 
-    revalidatePath("/doctor")
+    revalidateStaff({ patientId })
     log.info("Patient note added", { patientId, noteId: data.id, by: profile.id })
     return { success: true, note: data as PatientNote }
   } catch (error) {
@@ -111,7 +110,7 @@ export async function deletePatientNoteAction(noteId: string): Promise<{ success
       return { success: false }
     }
 
-    revalidatePath("/doctor")
+    revalidateStaff()
     log.info("Patient note deleted", { noteId, by: profile.id })
     return { success: true }
   } catch {

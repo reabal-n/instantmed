@@ -1,9 +1,9 @@
 "use server"
 
 import * as Sentry from "@sentry/nextjs"
-import { revalidatePath } from "next/cache"
 
 import { requireRoleOrNull } from "@/lib/auth/helpers"
+import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { updateScriptSent } from "@/lib/data/intakes"
 import { createLogger } from "@/lib/observability/logger"
 import { syncParchmentPrescriptionToPms } from "@/lib/parchment/sync-prescription"
@@ -201,10 +201,11 @@ export async function retryParchmentWebhookFailureAction(
       },
     })
 
-    revalidatePath("/admin/ops")
-    revalidatePath("/admin/ops/parchment")
-    revalidatePath(`/doctor/patients/${patientProfileId}`)
-    if (failure.intake_id) revalidatePath(`/doctor/intakes/${failure.intake_id}`)
+    revalidateStaff({
+      ops: true,
+      patientId: patientProfileId,
+      intakeId: failure.intake_id ?? undefined,
+    })
 
     return {
       success: true,

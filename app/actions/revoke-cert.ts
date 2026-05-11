@@ -15,9 +15,8 @@
  * 6. Revalidate doctor/patient cache
  */
 
-import { revalidatePath } from "next/cache"
-
 import { requireRoleOrNull } from "@/lib/auth/helpers"
+import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -120,9 +119,8 @@ export async function revokeCertificateAction(
       .then(() => {}, () => {})
 
     // 6. REVALIDATE
-    revalidatePath("/doctor")
-    revalidatePath(`/patient/intakes/${intakeId}`)
-    revalidatePath(`/patient/documents`)
+    revalidateStaff({ intakeId })
+    revalidatePatient({ intakeId, documents: true })
 
     return { success: true }
   } catch (error) {

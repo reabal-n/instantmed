@@ -1,8 +1,7 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
-
 import { requireRole } from "@/lib/auth/helpers"
+import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import {
   getActiveTemplate,
 } from "@/lib/data/certificate-templates"
@@ -76,7 +75,7 @@ export async function saveClinicIdentityAction(
     const result = await saveClinicIdentity(input, profile.id)
 
     if (result.success) {
-      revalidatePath("/admin/settings/templates")
+      revalidateStaff({ emails: true, settings: true })
       log.info("Clinic identity saved by admin", { adminId: profile.id })
     }
 

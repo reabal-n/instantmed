@@ -1,8 +1,7 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
-
 import { withServerAction } from "@/lib/actions/with-server-action"
+import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { canCancelUnpaidCheckoutIntake } from "@/lib/stripe/payment-integrity"
 import type { ActionResult } from "@/types/shared"
@@ -79,8 +78,8 @@ export const cancelIntake = withServerAction<string>(
     log.info("Intake cancelled successfully", { intakeId, userId: profile.id })
 
     // Revalidate paths
-    revalidatePath("/patient")
-    revalidatePath(`/patient/intakes/${intakeId}`)
+    revalidatePatient({ intakeId })
+    revalidateStaff({ intakeId })
 
     return { success: true }
   }

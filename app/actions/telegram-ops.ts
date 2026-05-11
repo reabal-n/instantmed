@@ -1,10 +1,10 @@
 "use server"
 
 import { createHmac, randomUUID } from "crypto"
-import { revalidatePath } from "next/cache"
 
 import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { getMissingTelegramAlertEnv } from "@/lib/config/env"
+import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { sendTelegramTestAlert } from "@/lib/notifications/telegram"
 import { createLogger } from "@/lib/observability/logger"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
@@ -91,7 +91,7 @@ export async function sendTelegramTestAlertAction(): Promise<ActionResult<Telegr
       },
     })
 
-    revalidatePath("/admin/ops")
+    revalidateStaff({ ops: true })
 
     return {
       success: true,

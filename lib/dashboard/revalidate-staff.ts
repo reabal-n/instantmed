@@ -23,6 +23,29 @@ export interface RevalidateStaffOptions {
   ops?: boolean
   /** Also bust the doctor identity surfaces. */
   identity?: boolean
+  /**
+   * Also bust the admin settings surfaces (clinic, doctors, services,
+   * features, settings landing). Use for clinic identity, doctor profile, or
+   * feature-flag mutations.
+   */
+  settings?: boolean
+  /**
+   * Also bust the email console surfaces (templates, hub, analytics,
+   * suppression). Use for template edits or email-outbox actions.
+   */
+  emails?: boolean
+  /**
+   * Also bust the admin content surfaces (content blocks, refunds, audit).
+   * Use for content/refund/audit mutations.
+   */
+  content?: boolean
+  /**
+   * Bypass: invalidate a specific set of additional paths. Useful when the
+   * mutation touches a surface that isn't covered by the named buckets above.
+   * Avoid where possible — prefer a named option so the helper keeps the
+   * single-source-of-truth property.
+   */
+  paths?: readonly string[]
 }
 
 const STAFF_LANDING_PATHS = [
@@ -46,6 +69,8 @@ const STAFF_OPS_PATHS = [
   "/admin/ops/parchment",
   "/admin/ops/reconciliation",
   "/admin/ops/sla",
+  "/admin/ops/prescribing-identity",
+  "/admin/ops/patient-merge-audit",
   "/admin/webhook-dlq",
 ] as const
 
@@ -53,6 +78,35 @@ const STAFF_IDENTITY_PATHS = [
   "/settings/identity",
   "/admin/settings/doctor-identity",
   "/doctor/settings/identity",
+  "/doctor/settings",
+] as const
+
+const STAFF_SETTINGS_PATHS = [
+  "/settings",
+  "/admin/settings",
+  "/admin/clinic",
+  "/admin/doctors",
+  "/admin/services",
+  "/admin/features",
+] as const
+
+const STAFF_EMAILS_PATHS = [
+  "/emails",
+  "/admin/emails",
+  "/admin/emails/hub",
+  "/admin/emails/analytics",
+  "/admin/emails/suppression",
+  "/admin/settings/templates",
+] as const
+
+const STAFF_CONTENT_PATHS = [
+  "/admin/content",
+  "/admin/refunds",
+  "/admin/audit",
+] as const
+
+const STAFF_SCRIPTS_PATHS = [
+  "/doctor/scripts",
 ] as const
 
 export function revalidateStaff(options: RevalidateStaffOptions = {}): void {
@@ -88,18 +142,73 @@ export function revalidateStaff(options: RevalidateStaffOptions = {}): void {
       revalidatePath(path)
     }
   }
+
+  if (options.settings) {
+    for (const path of STAFF_SETTINGS_PATHS) {
+      revalidatePath(path)
+    }
+  }
+
+  if (options.emails) {
+    for (const path of STAFF_EMAILS_PATHS) {
+      revalidatePath(path)
+    }
+  }
+
+  if (options.content) {
+    for (const path of STAFF_CONTENT_PATHS) {
+      revalidatePath(path)
+    }
+  }
+
+  if (options.scripts) {
+    for (const path of STAFF_SCRIPTS_PATHS) {
+      revalidatePath(path)
+    }
+  }
+
+  if (options.paths) {
+    for (const path of options.paths) {
+      revalidatePath(path)
+    }
+  }
 }
 
 /**
  * Patient-side revalidation. Kept here so action sites don't need a second
  * import to invalidate both a staff surface and the patient's own view.
  */
-export function revalidatePatient(options: { patientId?: string; intakeId?: string } = {}): void {
+export interface RevalidatePatientOptions {
+  patientId?: string
+  intakeId?: string
+  /** Bust /patient/settings. */
+  settings?: boolean
+  /** Bust /patient/documents. */
+  documents?: boolean
+  /** Bust /patient/followups/{id}. */
+  followupId?: string
+  /** Bust /account (auth-state-aware landing). */
+  account?: boolean
+}
+
+export function revalidatePatient(options: RevalidatePatientOptions = {}): void {
   revalidatePath("/patient")
   if (options.intakeId) {
     revalidatePath(`/patient/intakes/${options.intakeId}`)
   }
   if (options.patientId) {
     revalidatePath(`/patient/profile`)
+  }
+  if (options.settings) {
+    revalidatePath("/patient/settings")
+  }
+  if (options.documents) {
+    revalidatePath("/patient/documents")
+  }
+  if (options.followupId) {
+    revalidatePath(`/patient/followups/${options.followupId}`)
+  }
+  if (options.account) {
+    revalidatePath("/account")
   }
 }

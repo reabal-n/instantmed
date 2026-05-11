@@ -1,8 +1,7 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
-
 import { requireRole } from "@/lib/auth/helpers"
+import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { getDoctorCaseActionError } from "@/lib/doctor/case-action-guard"
 import { NeedsMoreInfoEmail } from "@/lib/email/components/templates/needs-more-info"
 import { sendEmail } from "@/lib/email/send-email"
@@ -175,10 +174,8 @@ export async function requestMoreInfoAction(
     }
 
     // Revalidate paths
-    revalidatePath("/doctor/dashboard")
-    revalidatePath("/doctor/queue")
-    revalidatePath(`/doctor/intakes/${intakeId}`)
-    revalidatePath(`/patient/intakes/${intakeId}`)
+    revalidateStaff({ intakeId })
+    revalidatePatient({ intakeId })
 
     return { success: true }
   } catch (error) {
