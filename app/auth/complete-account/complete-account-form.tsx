@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation"
 import type React from "react"
 import { useEffect, useRef, useState } from "react"
 
+import { usePostHog } from "@/components/providers/posthog-provider"
 import { Button } from "@/components/ui/button"
 import { Confetti } from "@/components/ui/confetti"
+import { getAttribution } from "@/lib/analytics/attribution"
 import { trackPurchase } from "@/lib/analytics/conversion-tracking"
 import { useAuth } from "@/lib/supabase/auth-provider"
 
@@ -27,6 +29,7 @@ export function CompleteAccountForm({
 }) {
   const router = useRouter()
   const { isSignedIn, isLoaded } = useAuth()
+  const posthog = usePostHog()
 
   const [showConfetti, setShowConfetti] = useState(false)
   const purchaseTrackedRef = useRef(false)
@@ -49,7 +52,33 @@ export function CompleteAccountForm({
       email,
       isNewCustomer: isNewCustomer ?? true,
     })
-  }, [intakeId, amountCents, serviceSlug, serviceName, email, isNewCustomer])
+
+    // PostHog parity with /patient/intakes/success. Guest checkouts land here,
+    // not on the success page, so without this capture our funnel sees only
+    // ~5% of real purchases. Cookie fallback covers cases where the Stripe
+    // redirect dropped sessionStorage on mobile Safari.
+    const attribution = getAttribution()
+    posthog?.capture('purchase_completed', {
+      intake_id: intakeId,
+      service: serviceSlug || "unknown",
+      value: valueDollars,
+      currency: 'AUD',
+      guest_checkout: true,
+      utm_source: attribution.utm_source,
+      utm_medium: attribution.utm_medium,
+      utm_campaign: attribution.utm_campaign,
+      utm_content: attribution.utm_content,
+      gclid: attribution.gclid,
+      gbraid: attribution.gbraid,
+      wbraid: attribution.wbraid,
+      campaignid: attribution.campaignid,
+      keyword: attribution.keyword,
+      landing_page: attribution.landing_page,
+      has_gclid: Boolean(attribution.gclid),
+      has_utm_source: Boolean(attribution.utm_source),
+      has_campaignid: Boolean(attribution.campaignid),
+    })
+  }, [intakeId, amountCents, serviceSlug, serviceName, email, isNewCustomer, posthog])
 
   useEffect(() => {
     // If already signed in, redirect through post-signin to ensure profile is linked

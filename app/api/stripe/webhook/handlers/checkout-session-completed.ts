@@ -3,7 +3,7 @@ import { after, NextResponse } from "next/server"
 import type Stripe from "stripe"
 
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
-import { getPostHogClient, trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
+import { getPostHogBaselineProperties, getPostHogClient, trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
 import { sendPaidRequestTelegramNotification } from "@/lib/notifications/paid-request-telegram"
 import { notifyPaymentReceived } from "@/lib/notifications/service"
 import { createLogger } from "@/lib/observability/logger"
@@ -538,6 +538,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
             distinctId: posthogDistinctId,
             event: "google_ads_server_conversion",
             properties: {
+              ...getPostHogBaselineProperties(),
               intake_id: intakeId,
               attempted: conversionResult.attempted,
               ok: conversionResult.ok ?? false,
@@ -607,6 +608,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
         distinctId: posthogDistinctId,
         event: "webhook_payment_confirmed",
         properties: {
+          ...getPostHogBaselineProperties(),
           intake_id: intakeId,
           amount_cents: session.amount_total,
           payment_method: session.payment_method_types?.[0],
@@ -629,6 +631,24 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
           referrer: intakeAttribution?.referrer || null,
           landing_page: intakeAttribution?.landing_page || null,
           attribution_captured_at: intakeAttribution?.attribution_captured_at || null,
+          // Capture-rate telemetry so we can detect attribution drops fast
+          // without having to grep through optional fields. has_gclid being
+          // false on a `google` utm_source is a strong signal that auto-
+          // tagging is off in the Ads account.
+          has_gclid: Boolean(intakeAttribution?.gclid),
+          has_gbraid: Boolean(intakeAttribution?.gbraid),
+          has_wbraid: Boolean(intakeAttribution?.wbraid),
+          has_utm_source: Boolean(intakeAttribution?.utm_source),
+          has_utm_campaign: Boolean(intakeAttribution?.utm_campaign),
+          has_campaignid: Boolean(intakeAttribution?.campaignid),
+          has_any_attribution: Boolean(
+            intakeAttribution?.gclid ||
+            intakeAttribution?.gbraid ||
+            intakeAttribution?.wbraid ||
+            intakeAttribution?.utm_source ||
+            intakeAttribution?.campaignid ||
+            intakeAttribution?.referrer
+          ),
           // Person properties: $set_once for first-touch, $set for last-touch
           $set_once: {
             initial_utm_source: intakeAttribution?.utm_source || undefined,

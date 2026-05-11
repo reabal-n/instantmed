@@ -9,6 +9,7 @@ import { usePostHog } from "@/components/providers/posthog-provider"
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
 import { PulseSpinner } from "@/components/ui/spinner"
+import { getAttribution } from "@/lib/analytics/attribution"
 import { trackPurchase } from "@/lib/analytics/conversion-tracking"
 import type { WaitState } from "@/lib/brand/wait-counter"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
@@ -201,15 +202,9 @@ export function SuccessClient({
     // PostHog purchase event - completes the funnel: step_viewed → step_completed → purchase_completed
     // Surface persisted attribution (UTMs + gclid) onto the event so we can
     // attribute purchases back to recovery emails, ad campaigns, referrers.
-    let attribution: Record<string, unknown> = {}
-    try {
-      // Lazy-loaded so the success page doesn't pull this into the SSR bundle
-      const stored = sessionStorage.getItem('instantmed_attribution')
-      attribution = stored ? JSON.parse(stored) : {}
-    } catch {
-      // sessionStorage blocked - skip enrichment
-    }
-
+    // getAttribution() falls back to the first-party cookie when sessionStorage
+    // was cleared by the Stripe redirect or by privacy-restricted browsers.
+    const attribution = getAttribution()
     const cameFromRecoveryEmail = attribution.utm_source === 'recovery_email'
 
     posthog?.capture('purchase_completed', {
@@ -223,7 +218,14 @@ export function SuccessClient({
       utm_campaign: attribution.utm_campaign,
       utm_content: attribution.utm_content,
       gclid: attribution.gclid,
+      gbraid: attribution.gbraid,
+      wbraid: attribution.wbraid,
+      campaignid: attribution.campaignid,
+      keyword: attribution.keyword,
       landing_page: attribution.landing_page,
+      has_gclid: Boolean(attribution.gclid),
+      has_utm_source: Boolean(attribution.utm_source),
+      has_campaignid: Boolean(attribution.campaignid),
     })
 
     // Dedicated event for the recovery-email funnel measurement. Keeps the

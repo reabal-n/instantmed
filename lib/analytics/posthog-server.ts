@@ -1,5 +1,7 @@
 import { PostHog } from 'posthog-node';
 
+import { shouldIncludeSeededE2EData } from "@/lib/data/seeded-e2e-data"
+
 let posthogClient: PostHog | null = null;
 
 export function getPostHogClient() {
@@ -20,6 +22,19 @@ export async function shutdownPostHog() {
   if (posthogClient) {
     await posthogClient.shutdown();
   }
+}
+
+/**
+ * Baseline properties merged into every server-side PostHog capture so we
+ * can filter E2E / test pollution out of real funnel reporting.
+ *
+ * Why: the canonical seed patient (`e2e00000-...`) is filtered from doctor
+ * queue + ops reads (lib/data/seeded-e2e-data.ts), but PostHog had no
+ * equivalent filter. CI runs were inflating webhook_payment_confirmed by
+ * ~3x and showing up as production paid intakes in the funnel.
+ */
+export function getPostHogBaselineProperties(): { is_e2e: boolean } {
+  return { is_e2e: shouldIncludeSeededE2EData() }
 }
 
 // ============================================
@@ -50,6 +65,7 @@ export function trackSafetyOutcome(event: SafetyOutcomeEvent) {
       distinctId,
       event: 'safety_evaluation_completed',
       properties: {
+        ...getPostHogBaselineProperties(),
         service_slug: event.serviceSlug,
         outcome: event.outcome,
         risk_tier: event.riskTier,
@@ -85,6 +101,7 @@ export function trackSafetyBlock(event: {
       distinctId,
       event: 'safety_block',
       properties: {
+        ...getPostHogBaselineProperties(),
         service_slug: event.serviceSlug,
         outcome: event.outcome,
         block_reason: event.blockReason,
@@ -122,6 +139,7 @@ export function trackIntakeFunnelStep(event: {
       distinctId,
       event: `intake_funnel_${event.step}`,
       properties: {
+        ...getPostHogBaselineProperties(),
         intake_id: event.intakeId,
         service_slug: event.serviceSlug,
         service_type: event.serviceType,
@@ -153,6 +171,7 @@ export function trackOperationalBlock(event: {
       distinctId,
       event: "operational_block",
       properties: {
+        ...getPostHogBaselineProperties(),
         block_type: event.blockType,
         source: event.source ?? "request_page",
         ...event.metadata,
@@ -180,6 +199,7 @@ export function trackBusinessMetric(event: {
       distinctId,
       event: `business_alert_${event.metric}`,
       properties: {
+        ...getPostHogBaselineProperties(),
         metric: event.metric,
         severity: event.severity,
         ...event.metadata,

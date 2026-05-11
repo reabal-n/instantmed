@@ -176,6 +176,17 @@ test.describe("Unified Request Flow - Error Handling", () => {
           version: 0,
         })
       )
+
+      const originalSetItem = Storage.prototype.setItem
+      let blockedMigrationWrite = false
+      Storage.prototype.setItem = function setItemWithOneBlockedDraftWrite(key, value) {
+        if (!blockedMigrationWrite && key === "instantmed-draft-med-cert") {
+          blockedMigrationWrite = true
+          throw new DOMException("Draft storage migration blocked", "QuotaExceededError")
+        }
+
+        return originalSetItem.call(this, key, value)
+      }
     })
 
     await page.goto("/request?service=med-cert")
@@ -183,7 +194,7 @@ test.describe("Unified Request Flow - Error Handling", () => {
 
     await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
     await expect(page.getByText("Something went wrong")).toHaveCount(0)
-    await expect(page.getByRole("button", { name: /Work/i })).toBeVisible()
+    await expect(page.getByRole("radio", { name: /Work/i })).toBeVisible()
   })
 
   test("handles missing service param gracefully", async ({ page }) => {

@@ -10,6 +10,20 @@ import { onFirstInteraction } from "@/lib/browser/first-interaction"
 // NEXT_PUBLIC_VERCEL_ENV is set automatically by Vercel: 'production' | 'preview' | 'development'
 const IS_PROD = process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
 
+// Post-conversion paths where the purchase fire MUST land before the user
+// leaves the tab. The first-interaction protection exists for acquisition
+// pages and /request; it actively breaks measurement here.
+const POST_CONVERSION_PATH_PREFIXES = [
+  "/patient/intakes/success",
+  "/auth/complete-account",
+] as const
+
+function isPostConversionPath() {
+  if (typeof window === "undefined") return false
+  const path = window.location.pathname
+  return POST_CONVERSION_PATH_PREFIXES.some((prefix) => path.startsWith(prefix))
+}
+
 const CONSENT_INIT = `
 window.dataLayer=window.dataLayer||[];
 function gtag(){dataLayer.push(arguments);}
@@ -38,6 +52,14 @@ export function GoogleTags() {
 
   useEffect(() => {
     if (!IS_PROD) return
+
+    // On post-conversion pages we cannot afford to wait for user interaction.
+    // Drop straight into the tag load so the purchase fire reaches Google
+    // before a fast bouncer kills the tab.
+    if (isPostConversionPath()) {
+      setCanLoadTags(true)
+      return
+    }
 
     let cancelIdleLoad: (() => void) | undefined
     const cancelInteraction = onFirstInteraction(() => {
