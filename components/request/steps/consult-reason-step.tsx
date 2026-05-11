@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
+import { stringAnswer, stringArrayAnswer } from "@/lib/request/intake-answer-normalizers"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 import { useRequestStore } from "../store"
@@ -98,12 +99,12 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Pre-fill from hub subtype selection
-  const consultSubtype = answers.consultSubtype as string | undefined
-  const consultCategory = answers.consultCategory as string | undefined
-  const consultDetails = (answers.consultDetails as string) || ""
-  const consultUrgency = answers.consultUrgency as string | undefined
+  const consultSubtype = stringAnswer(answers.consultSubtype) || undefined
+  const consultCategory = stringAnswer(answers.consultCategory) || undefined
+  const consultDetails = stringAnswer(answers.consultDetails)
+  const consultUrgency = stringAnswer(answers.consultUrgency) || undefined
   const generalAssociatedSymptoms = useMemo(
-    () => (answers.general_associated_symptoms as string[] | undefined) || [],
+    () => stringArrayAnswer(answers.general_associated_symptoms),
     [answers.general_associated_symptoms],
   )
   const redFlagsPresent = generalAssociatedSymptoms.includes("none")

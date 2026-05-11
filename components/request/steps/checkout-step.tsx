@@ -23,6 +23,7 @@ import { usePostHog } from "@/lib/analytics/posthog-context"
 import { PRICING as APP_PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { stagger } from "@/lib/motion"
 import { getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
+import { normalizeMedicationEntriesAnswer, stringAnswer } from "@/lib/request/intake-answer-normalizers"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 // getConsultSubtypePrice from @/lib/stripe/price-mapping available if needed
@@ -223,14 +224,15 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
               <ReviewItem label="Service" value={displayLabel} />
 
               {(serviceType === 'prescription' || serviceType === 'repeat-script') && (() => {
-                const meds = answers.medications as Array<{ name: string }> | undefined
-                if (meds && meds.length > 1) {
+                const meds = normalizeMedicationEntriesAnswer(answers.medications).filter((med) => med.name)
+                if (meds.length > 1) {
                   return meds.map((med, i) => (
                     <ReviewItem key={i} label={`Medication ${i + 1}`} value={med.name} />
                   ))
                 }
-                return answers.medicationName ? (
-                  <ReviewItem label="Medication" value={String(answers.medicationName)} />
+                const medicationName = stringAnswer(answers.medicationName)
+                return medicationName ? (
+                  <ReviewItem label="Medication" value={medicationName} />
                 ) : null
               })()}
             </>

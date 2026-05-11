@@ -23,6 +23,7 @@ import { usePostHog } from "@/lib/analytics/posthog-context"
 import { PRICING as APP_PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { getAddressReviewSummary } from "@/lib/request/address-metadata"
 import { CONSULT_SUBTYPE_DISPLAY_LABELS,getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
+import { normalizeMedicationEntriesAnswer, stringAnswer, stringArrayAnswer } from "@/lib/request/intake-answer-normalizers"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 import { useRequestStore } from "../store"
@@ -241,7 +242,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
   const sections: { title: string; items: ReviewItem[]; stepId?: string }[] = []
 
   // Service info
-  const consultSubtypeForLabel = answers.consultSubtype as string | undefined
+  const consultSubtypeForLabel = stringAnswer(answers.consultSubtype) || undefined
   const serviceLabel = getServiceDisplayLabel(serviceType, consultSubtypeForLabel)
 
   sections.push({
@@ -253,9 +254,9 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
 
   // Med-cert specific sections
   if (serviceType === 'med-cert') {
-    const certType = answers.certType as string
-    const duration = answers.duration as string
-    const startDate = answers.startDate as string
+    const certType = stringAnswer(answers.certType)
+    const duration = stringAnswer(answers.duration)
+    const startDate = stringAnswer(answers.startDate)
     
     sections.push({
       title: 'Certificate Details',
@@ -267,14 +268,14 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       stepId: 'certificate',
     })
 
-    const symptoms = answers.symptoms as string[] | undefined
-    const symptomDetails = answers.symptomDetails as string
-    const symptomDuration = answers.symptomDuration as string
+    const symptoms = stringArrayAnswer(answers.symptoms)
+    const symptomDetails = stringAnswer(answers.symptomDetails)
+    const symptomDuration = stringAnswer(answers.symptomDuration)
     
     sections.push({
       title: 'Symptoms',
       items: [
-        { label: 'Symptoms', value: symptoms?.join(', ') || '' },
+        { label: 'Symptoms', value: symptoms.join(', ') || '' },
         { label: 'Duration', value: SYMPTOM_DURATION_LABELS[symptomDuration] || symptomDuration || '' },
         { label: 'Details', value: symptomDetails || '' },
       ],
@@ -284,13 +285,14 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
 
   // Prescription specific sections - combined Medication + History into one card
   if (serviceType === 'prescription' || serviceType === 'repeat-script') {
-    const medications = answers.medications as Array<{ product: unknown; name: string; strength?: string; form?: string }> | undefined
-    const medicationName = answers.medicationName as string
-    const medicationStrength = answers.medicationStrength as string
-    const prescriptionHistory = answers.prescriptionHistory as string | undefined
-    const currentDose = answers.currentDose as string | undefined
+    const medications = normalizeMedicationEntriesAnswer(answers.medications)
+    const primaryMedication = medications[0]
+    const medicationName = stringAnswer(answers.medicationName) || primaryMedication?.name || ""
+    const medicationStrength = stringAnswer(answers.medicationStrength) || primaryMedication?.strength || ""
+    const prescriptionHistory = stringAnswer(answers.prescriptionHistory) || undefined
+    const currentDose = stringAnswer(answers.currentDose) || undefined
     const hasSideEffects = answers.hasSideEffects as boolean | undefined
-    const sideEffects = answers.sideEffects as string | undefined
+    const sideEffects = stringAnswer(answers.sideEffects) || undefined
 
     const PRESCRIPTION_HISTORY_LABELS: Record<string, string> = {
       less_than_3_months: 'Less than 3 months ago',
@@ -299,7 +301,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       over_12_months: 'Over 12 months ago',
     }
 
-    if (medications && medications.length > 1) {
+    if (medications.length > 1) {
       // Multi-medication mode
       const items = medications.flatMap((med, i) => [
         { label: `Medication ${i + 1}`, value: med.name || '' },
@@ -335,9 +337,9 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
 
   // Consult-specific sections
   if (serviceType === 'consult') {
-    const consultSubtype = answers.consultSubtype as string | undefined
-    const consultCategory = answers.consultCategory as string | undefined
-    const consultDetails = answers.consultDetails as string | undefined
+    const consultSubtype = stringAnswer(answers.consultSubtype) || undefined
+    const consultCategory = stringAnswer(answers.consultCategory) || undefined
+    const consultDetails = stringAnswer(answers.consultDetails) || undefined
 
     // General / new medication consult
     if (consultCategory || consultDetails) {
@@ -531,7 +533,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
 
       // UTI details
       if (whOption === 'uti') {
-        const utiSymptoms = answers.utiSymptoms as string[] | undefined
+        const utiSymptoms = stringArrayAnswer(answers.utiSymptoms)
         if (utiSymptoms?.length) whItems.push({ label: 'Symptoms', value: utiSymptoms.join(', ') })
       }
 

@@ -21,6 +21,11 @@ import { Input } from "@/components/ui/input"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { CONTROLLED_SUBSTANCE_DISCLAIMER,isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
+import {
+  normalizeMedicationEntriesAnswer,
+  normalizeMedicationProductAnswer,
+  stringAnswer,
+} from "@/lib/request/intake-answer-normalizers"
 import { addRecentMedication,getSmartDefaults } from "@/lib/request/preferences"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
@@ -54,12 +59,12 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
   const posthog = usePostHog()
 
   // Support both single (legacy) and multi-medication modes
-  const existingMedications = answers.medications as MedicationEntry[] | undefined
-  const selectedMedication = answers.selectedMedication as SelectedPBSProduct | null
-  const medicationName = (answers.medicationName as string) || ""
-  const medicationStrength = (answers.medicationStrength as string) || ""
-  const medicationForm = (answers.medicationForm as string) || ""
-  const pbsCode = (answers.pbsCode as string) || ""
+  const existingMedications = normalizeMedicationEntriesAnswer(answers.medications) as MedicationEntry[]
+  const selectedMedication = normalizeMedicationProductAnswer(answers.selectedMedication) as SelectedPBSProduct | null
+  const medicationName = stringAnswer(answers.medicationName)
+  const medicationStrength = stringAnswer(answers.medicationStrength)
+  const medicationForm = stringAnswer(answers.medicationForm)
+  const pbsCode = stringAnswer(answers.pbsCode)
 
   // Initialize medications array from existing data
   const [medications, setMedications] = useState<MedicationEntry[]>(() => {
@@ -83,8 +88,14 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
   // Load recent medications on mount
   useEffect(() => {
     const defaults = getSmartDefaults('medication')
-    if (defaults.recentMedications) {
-      setRecentMeds(defaults.recentMedications as RecentMedication[])
+    const recentMedications = normalizeMedicationEntriesAnswer(defaults.recentMedications)
+    if (recentMedications.length > 0) {
+      setRecentMeds(recentMedications.map((med) => ({
+        name: med.name,
+        strength: med.strength,
+        form: med.form,
+        pbsCode: med.pbsCode,
+      })))
     }
   }, [])
 
