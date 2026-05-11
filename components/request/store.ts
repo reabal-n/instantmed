@@ -143,6 +143,35 @@ const initialState: RequestState = {
   lastSavedAt: null,
 }
 
+type PersistedRequestState = Partial<RequestState> & {
+  answers?: unknown
+}
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function normalizePersistedState(state: Partial<RequestState> | undefined): Partial<RequestState> | undefined {
+  if (!state) return state
+
+  const persisted = state as PersistedRequestState
+
+  return {
+    ...state,
+    answers: isPlainRecord(persisted.answers) ? persisted.answers : {},
+    firstName: typeof state.firstName === 'string' ? state.firstName : '',
+    lastName: typeof state.lastName === 'string' ? state.lastName : '',
+    email: typeof state.email === 'string' ? state.email : '',
+    phone: typeof state.phone === 'string' ? state.phone : '',
+    dob: typeof state.dob === 'string' ? state.dob : '',
+    safetyConfirmed: typeof state.safetyConfirmed === 'boolean' ? state.safetyConfirmed : false,
+    safetyTimestamp: typeof state.safetyTimestamp === 'string' ? state.safetyTimestamp : null,
+    agreedToTerms: typeof state.agreedToTerms === 'boolean' ? state.agreedToTerms : false,
+    confirmedAccuracy: typeof state.confirmedAccuracy === 'boolean' ? state.confirmedAccuracy : false,
+    telehealthConsent: typeof state.telehealthConsent === 'boolean' ? state.telehealthConsent : false,
+  }
+}
+
 export const useRequestStore = create<RequestState & RequestActions>()(
   persist(
     (set, get) => ({
@@ -241,13 +270,29 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         safetyTimestamp: confirmed ? new Date().toISOString() : null,
       }),
 
-      setAnswer: (key, value) => set((state) => ({
-        answers: { ...state.answers, [key]: value },
-      })),
+      setAnswer: (key, value) => set((state) => {
+        const answers = isPlainRecord(state.answers) ? state.answers : {}
+        if (Object.is(answers[key], value)) {
+          return state
+        }
 
-      setAnswers: (answers) => set((state) => ({
-        answers: { ...state.answers, ...answers },
-      })),
+        return {
+          answers: { ...answers, [key]: value },
+        }
+      }),
+
+      setAnswers: (nextAnswers) => set((state) => {
+        const answers = isPlainRecord(state.answers) ? state.answers : {}
+        const entries = Object.entries(nextAnswers)
+        const hasChanged = entries.some(([key, value]) => !Object.is(answers[key], value))
+        if (!hasChanged) {
+          return state
+        }
+
+        return {
+          answers: { ...answers, ...nextAnswers },
+        }
+      }),
 
       setIdentity: (data) => set((state) => ({
         ...state,
@@ -316,6 +361,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
 
           try {
             const parsed = JSON.parse(stored) as StorageValue<Partial<RequestState>>
+            parsed.state = normalizePersistedState(parsed.state)
 
             // Validate currentStepId against the actual step list BEFORE hydration.
             // Subtypes (e.g. ED, hair loss) change the step sequence, so a persisted
@@ -330,7 +376,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
                   hasMedicare: false,
                   hasAddress: false,
                   serviceType: st.serviceType,
-                  answers: st.answers ?? {},
+                  answers: isPlainRecord(st.answers) ? st.answers : {},
                 }
                 const steps = _getStepsForService(st.serviceType, context)
                 if (steps.length > 0 && !steps.some(s => s.id === st.currentStepId)) {

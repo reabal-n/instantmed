@@ -92,6 +92,10 @@ function isStorageAvailable(): boolean {
   }
 }
 
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
 /**
  * Get draft for a specific service type.
  * Returns null if no draft exists or if expired.
@@ -110,6 +114,8 @@ export function getDraft(service: CanonicalServiceType): DraftData | null {
     if (!draft.serviceType || !draft.lastSavedAt) {
       return null
     }
+
+    draft.answers = isPlainRecord(draft.answers) ? draft.answers : {}
     
     // Check expiry
     if (isExpired(draft.lastSavedAt)) {
@@ -140,6 +146,7 @@ export function saveDraft(service: CanonicalServiceType, data: Omit<DraftData, '
     const key = getStorageKey(service)
     const draft: DraftData = {
       ...data,
+      answers: isPlainRecord(data.answers) ? data.answers : {},
       serviceType: service,
       lastSavedAt: new Date().toISOString(),
     }
@@ -155,7 +162,7 @@ export function saveDraft(service: CanonicalServiceType, data: Omit<DraftData, '
       saveServerDraftDebounced({
         serviceType: service,
         currentStepId: data.currentStepId,
-        answers: data.answers,
+        answers: isPlainRecord(data.answers) ? data.answers : {},
         identity: {
           email: data.email,
           firstName: data.firstName,
@@ -257,7 +264,7 @@ export function migrateLegacyDraft(): DraftData | null {
     const draft: DraftData = {
       serviceType: canonical,
       currentStepId: legacyState.currentStepId || 'review',
-      answers: legacyState.answers || {},
+      answers: isPlainRecord(legacyState.answers) ? legacyState.answers : {},
       lastSavedAt: legacyState.lastSavedAt,
       firstName: legacyState.firstName,
       lastName: legacyState.lastName,
