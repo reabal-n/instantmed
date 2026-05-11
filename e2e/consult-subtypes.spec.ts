@@ -2,7 +2,7 @@ import { expect, type Page, test } from "@playwright/test"
 
 import { waitForPageLoad } from "./helpers/test-utils"
 
-const ACTIVE_CONSULT_SUBTYPES = ["general", "new_medication", "ed", "hair_loss"] as const
+const ACTIVE_CONSULT_SUBTYPES = ["general", "ed", "hair_loss"] as const
 
 async function clearDrafts(page: Page) {
   await page.addInitScript(() => {
@@ -34,10 +34,12 @@ test.describe("Consult Sub-Services", () => {
     await page.goto("/request")
     await waitForPageLoad(page)
 
+    const comingSoonStrip = page.locator("[data-coming-soon-strip='true']")
+
     await expect(page.getByRole("button", { name: /Women's health/i })).not.toBeVisible()
     await expect(page.getByRole("button", { name: /Weight management/i })).not.toBeVisible()
-    await expect(page.getByRole("heading", { name: "Women's health" })).toBeVisible()
-    await expect(page.getByRole("heading", { name: "Weight management" })).toBeVisible()
+    await expect(comingSoonStrip.getByText("Women's health")).toBeVisible()
+    await expect(comingSoonStrip.getByText("Weight management")).toBeVisible()
   })
 
   test("hub rows route to current active consult subtypes", async ({ page }) => {

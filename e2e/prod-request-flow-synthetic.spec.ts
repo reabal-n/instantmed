@@ -49,7 +49,12 @@ test.describe("Production request-flow synthetic", () => {
     await todayRadio.click()
     await expect(todayRadio).toHaveAttribute("aria-checked", "true", { timeout: 5000 })
 
-    await expect(page.getByRole("button", { name: /Review my certificate/i }).last()).toBeEnabled({ timeout: 5000 })
+    const primaryAction = page.getByRole("button", { name: /^Continue$/i }).last()
+    await expect(primaryAction).toBeVisible({ timeout: 5000 })
+    await expect(primaryAction).toBeEnabled({ timeout: 5000 })
+    await primaryAction.click()
+
+    await expect(page.getByText(/What is stopping you today|What is happening/i).first()).toBeVisible({ timeout: 15000 })
     await expectNoRequestCrash(page)
   })
 
@@ -57,9 +62,9 @@ test.describe("Production request-flow synthetic", () => {
     const pathways = [
       { path: "/request?service=prescription", text: /Which medication do you need/i },
       { path: "/request?service=repeat-script", text: /Which medication do you need/i },
-      { path: "/request?service=consult&subtype=general", text: /Consultation type|What would you like help with/i },
+      { path: "/request?service=consult&subtype=general", text: /What do you need help with/i },
       { path: "/request?service=consult&subtype=ed", text: /What matters most right now/i },
-      { path: "/request?service=consult&subtype=hair_loss", text: /Which pattern looks closest|Which pattern best describes/i },
+      { path: "/request?service=consult&subtype=hair_loss", text: /What's your main goal|Hair loss goal/i },
     ]
 
     for (const { path, text } of pathways) {

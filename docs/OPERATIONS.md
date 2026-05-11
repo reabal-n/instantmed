@@ -727,7 +727,7 @@ Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_
 
 - **RUM**: `WebVitalsReporter` in `app/layout.tsx` fires `web_vital` events to PostHog. Build a PostHog Insight grouping by `$pathname` + `device_type` for p50/p75/p95.
 - **CI-Lab**: `@lhci/cli` on every push to `main` + every PR. Results retained 14 days as GH artifact.
-- **Synthetic**: TBD (Checkly / BetterStack / Vercel built-in checks). Until wired, rely on RUM lag — slower feedback.
+- **Synthetic**: GitHub Actions runs `e2e/prod-request-flow-synthetic.spec.ts` against `https://instantmed.com.au` every 5 minutes. It clicks the med-cert certificate type, duration, and start-date controls and smoke-checks repeat script, prescription, general consult, ED, and hair-loss request paths.
 - **Error tracking**: Sentry captures + custom tags (see `lib/observability/sentry.ts`).
 
 ---
@@ -746,6 +746,7 @@ Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_
 | Error | AI failure rate | > 10% | `lib/monitoring/ai-health.ts` |
 | Error | Email bounce rate | > 5% | `lib/monitoring/delivery-tracking.ts` |
 | Error | 5xx rate | > 1% | `lib/observability/sentry.ts` |
+| Error | Request step crash | Any event | Sentry tag `boundary:request-step` |
 | Saturation | Doctor utilization | Queue > 5x active doctors | `lib/monitoring/doctor-activity.ts` |
 | Saturation | DLQ depth | > 5 unresolved | `/api/cron/dlq-monitor` |
 | Saturation | Retry queue depth | > 10 pending | `lib/email/retry-queue.ts` |
@@ -762,6 +763,7 @@ Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_
 | Email Bounce Spike | Bounce rate > 5% | Sentry (email alert) |
 | Business Alerts | Failed payments, SLA breaches | Telegram (`lib/notifications/telegram.ts`) |
 | Payment Notifications | Successful checkout | Telegram (real-time) |
+| Request Flow Synthetic | Any production request-path render/click failure | GitHub Actions failure |
 
 **Telegram alerts** require `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` env vars. If missing, alerts are silently skipped. Used by `business-alerts` cron, payment webhook, and health-check cron.
 
@@ -778,6 +780,7 @@ Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_
 |--------|-------|
 | Production Errors | `environment:production level:error` |
 | Payment Issues | `source:webhook OR tags[alert_type]:stripe*` |
+| Request Step Crashes | `boundary:request-step route:/request` |
 | SLA Breaches | `tags[alert_type]:sla_breach OR tags[alert_type]:sla_warning` |
 | AI Degradation | `tags[alert_type]:ai_degradation` |
 | Email Failures | `tags[alert_type]:email_bounce` |
