@@ -169,7 +169,7 @@ export default function RootLayout({
                 <ServiceAvailabilityProvider>
                 <GlobalDeferredClients />
                 <SkipToContent />
-                <div id="main-content" className="relative z-10">
+                <div id="main-content" tabIndex={-1} className="relative z-10 focus:outline-none">
                   {children}
                 </div>
                 </ServiceAvailabilityProvider>

@@ -12,7 +12,6 @@ import { useRouter } from "next/navigation"
 
 import { ServiceIconTile } from "@/components/icons/service-icons"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
-import { AppSignInButton } from "@/components/shared/app-sign-in-button"
 import { AnimatedNavLink } from "@/components/shared/navbar/animated-nav-link"
 import { services } from "@/components/shared/navbar/services-dropdown"
 import { NotificationBell } from "@/components/shared/notification-bell"
@@ -71,11 +70,12 @@ export function UserMenu({
           <TooltipProvider delayDuration={400}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <AppSignInButton>
-                  <button className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-muted/50">
-                    Log in
-                  </button>
-                </AppSignInButton>
+                <Link
+                  href="/sign-in"
+                  className="inline-flex min-h-8 items-center rounded-md px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+                >
+                  Log in
+                </Link>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="text-xs">
                 Already have an account?

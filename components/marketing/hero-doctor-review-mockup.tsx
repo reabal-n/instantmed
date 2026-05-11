@@ -55,7 +55,7 @@ const FLOATS: FloatingCard[] = [
     bgClass: "bg-emerald-50 dark:bg-emerald-950/40",
     title: "Medical certificate",
     status: "Approved",
-    statusClass: "text-emerald-600 dark:text-emerald-400",
+    statusClass: "text-emerald-700 dark:text-emerald-300",
     position: "top-left",
   },
   {
@@ -64,7 +64,7 @@ const FLOATS: FloatingCard[] = [
     bgClass: "bg-primary/10 dark:bg-primary/15",
     title: "eScript",
     status: getApprovedClaim("prescription_escript_sent"),
-    statusClass: "text-primary/80",
+    statusClass: "text-primary",
     position: "top-right",
   },
   {
@@ -73,7 +73,7 @@ const FLOATS: FloatingCard[] = [
     bgClass: "bg-sky-50 dark:bg-sky-950/40",
     title: "Repeat Rx",
     status: `One-off ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
-    statusClass: "text-sky-600 dark:text-sky-400",
+    statusClass: "text-sky-700 dark:text-sky-300",
     position: "bottom-left",
   },
   {
@@ -82,7 +82,7 @@ const FLOATS: FloatingCard[] = [
     bgClass: "bg-amber-50 dark:bg-amber-950/40",
     title: "Doctor plan",
     status: "Reviewed",
-    statusClass: "text-amber-600 dark:text-amber-400",
+    statusClass: "text-amber-700 dark:text-amber-300",
     position: "bottom-right",
   },
 ]
@@ -174,7 +174,7 @@ export function HeroDoctorReviewMockup() {
               AHPRA registered
             </p>
           </div>
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-300">
             <span
               className="w-1.5 h-1.5 rounded-full bg-emerald-500"
               style={{ animation: animate ? "pulse 2.5s ease-in-out infinite" : undefined }}

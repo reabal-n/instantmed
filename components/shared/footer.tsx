@@ -31,12 +31,12 @@ export function Footer({ variant = "marketing" }: FooterProps) {
               See a doctor from bed. Most requests reviewed within 1–2 hours.
             </p>
             {isMarketing && (
-              <div className="flex flex-col gap-1.5 mt-3 text-xs text-muted-foreground">
-                <a href={`mailto:${CONTACT_EMAIL}`} className="flex items-center gap-1.5 hover:text-foreground transition-colors">
+              <div className="mt-3 flex flex-col gap-1 text-xs text-muted-foreground">
+                <a href={`mailto:${CONTACT_EMAIL}`} className="flex min-h-6 items-center gap-1.5 py-1 hover:text-foreground transition-colors">
                   <Mail className="w-3 h-3 shrink-0" />
                   {CONTACT_EMAIL}
                 </a>
-                <a href={`tel:${CONTACT_PHONE.replace(/\s/g, '')}`} className="flex items-center gap-1.5 hover:text-foreground transition-colors">
+                <a href={`tel:${CONTACT_PHONE.replace(/\s/g, '')}`} className="flex min-h-6 items-center gap-1.5 py-1 hover:text-foreground transition-colors">
                   <Phone className="w-3 h-3 shrink-0" />
                   {CONTACT_PHONE}
                 </a>

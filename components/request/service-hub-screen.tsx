@@ -144,7 +144,7 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
           <span className="text-border-em">·</span>
           <span className="whitespace-nowrap">AHPRA doctors</span>
           <span className="text-border-em">·</span>
-          <div className="flex items-center gap-0.5 whitespace-nowrap" aria-label="Google star rating">
+          <div className="flex items-center gap-0.5 whitespace-nowrap" role="img" aria-label="Google star rating">
             {[1, 2, 3, 4, 5].map((i) => (
               <Star
                 key={i}
