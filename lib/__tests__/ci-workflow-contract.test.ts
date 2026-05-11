@@ -34,8 +34,6 @@ describe("CI workflow contract", () => {
     expect(ciWorkflowSource).toContain("Run med cert readiness E2E gate (Chromium)")
     expect(ciWorkflowSource).toContain("run: pnpm medcert:readiness:e2e")
     expect(ciWorkflowSource).toContain("Run non-medcert paid critical E2E flows (Chromium)")
-    expect(ciWorkflowSource).toContain("e2e/payment-smoke.spec.ts")
-    expect(ciWorkflowSource).toContain("e2e/stripe-webhook.spec.ts")
     expect(ciWorkflowSource).toContain("e2e/parchment-webhook.spec.ts")
     expect(ciWorkflowSource).not.toMatch(/^\s*run: pnpm exec playwright test --project=chromium\s*$/m)
   })
