@@ -31,7 +31,9 @@ describe("CI workflow contract", () => {
 
   it("uses focused E2E gates instead of the stale broad Playwright suite", () => {
     expect(ciWorkflowSource).toContain("e2e/admin.ops-index.spec.ts")
-    expect(ciWorkflowSource).toContain("Run paid critical E2E flows (Chromium)")
+    expect(ciWorkflowSource).toContain("Run med cert readiness E2E gate (Chromium)")
+    expect(ciWorkflowSource).toContain("run: pnpm medcert:readiness:e2e")
+    expect(ciWorkflowSource).toContain("Run non-medcert paid critical E2E flows (Chromium)")
     expect(ciWorkflowSource).toContain("e2e/payment-smoke.spec.ts")
     expect(ciWorkflowSource).toContain("e2e/stripe-webhook.spec.ts")
     expect(ciWorkflowSource).toContain("e2e/parchment-webhook.spec.ts")
@@ -46,14 +48,17 @@ describe("CI workflow contract", () => {
   })
 
   it("keeps paid critical E2E blocking instead of warning-only", () => {
-    const paidStepStart = ciWorkflowSource.indexOf("Run paid critical E2E flows (Chromium)")
+    const medCertStepStart = ciWorkflowSource.indexOf("Run med cert readiness E2E gate (Chromium)")
+    const paidStepStart = ciWorkflowSource.indexOf("Run non-medcert paid critical E2E flows (Chromium)")
     const uploadStepStart = ciWorkflowSource.indexOf("Upload test results")
+    const medCertStep = ciWorkflowSource.slice(medCertStepStart, paidStepStart)
     const paidStep = ciWorkflowSource.slice(paidStepStart, uploadStepStart)
 
+    expect(medCertStepStart).toBeGreaterThan(-1)
     expect(paidStepStart).toBeGreaterThan(-1)
     expect(uploadStepStart).toBeGreaterThan(paidStepStart)
-    expect(paidStep).toContain("e2e/payment-smoke.spec.ts")
-    expect(paidStep).toContain("e2e/stripe-webhook.spec.ts")
+    expect(medCertStep).toContain("pnpm medcert:readiness:e2e")
+    expect(medCertStep).not.toContain("continue-on-error")
     expect(paidStep).toContain("e2e/parchment-webhook.spec.ts")
     expect(paidStep).not.toContain("continue-on-error")
   })
