@@ -45,6 +45,8 @@
     "e2e:functional": "PLAYWRIGHT=1 playwright test --project=chromium e2e/operator.journey.spec.ts e2e/medcert.approval.spec.ts e2e/doctor.queue.spec.ts e2e/admin.studio.spec.ts e2e/admin.clinic.spec.ts",
     "e2e:a11y": "PLAYWRIGHT=1 playwright test --project=chromium e2e/accessibility.spec.ts",
     "e2e:prod-synthetic": "E2E_BASE_URL=https://instantmed.com.au playwright test --config=playwright.preview.config.ts --project=chromium e2e/prod-request-flow-synthetic.spec.ts",
+    "medcert:readiness": "bash scripts/check-medcert-readiness.sh",
+    "medcert:readiness:e2e": "MEDCERT_READINESS_STATIC=0 bash scripts/check-medcert-readiness.sh",
     "smoke:stripe": "npx tsx scripts/stripe-smoke-test.ts",
     "keys:rotate": "npx tsx scripts/rotate-keys.ts",
     "test:templates": "npx tsx scripts/test-all-templates.ts",

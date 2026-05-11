@@ -12,35 +12,38 @@
  * - Set E2E_SECRET and SUPABASE_SERVICE_ROLE_KEY env vars
  */
 
-import { expect,test } from "@playwright/test"
-import { createClient } from "@supabase/supabase-js"
+import { expect,type Page,test } from "@playwright/test"
 
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
+import {
+  getSupabaseClient,
+  INTAKE_ID,
+  isDbAvailable,
+  resetIntakeForRetest,
+  storageObjectExists,
+} from "./helpers/db"
 import { waitForPageLoad } from "./helpers/test-utils"
 
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
 
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || ""
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-
 // Seeded intake ID from scripts/e2e/seed.ts
-const SEEDED_INTAKE_ID = "e2e00000-0000-0000-0000-000000000010"
-
-// Create Supabase client for DB assertions
-function getSupabaseClient() {
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY for DB assertions")
-  }
-  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-    auth: { persistSession: false },
-  })
-}
+const SEEDED_INTAKE_ID = INTAKE_ID
 
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
+
+async function waitForApprovalOutcome(page: Page) {
+  if (page.url().includes("/doctor/dashboard")) return
+
+  const outcomeMessage = page.locator('[data-testid="success-message"], [data-testid="warning-message"]')
+  await Promise.race([
+    outcomeMessage.waitFor({ state: "visible", timeout: 30000 }),
+    page.waitForURL("**/doctor/dashboard", { timeout: 30000 }),
+  ])
+}
 
 async function getIntakeStatus(intakeId: string): Promise<string | null> {
   const supabase = getSupabaseClient()
@@ -104,57 +107,6 @@ async function getIntakeDocument(intakeId: string) {
   return data
 }
 
-async function checkStorageObjectExists(storagePath: string): Promise<boolean> {
-  const supabase = getSupabaseClient()
-  
-  // Parse bucket and path from storage path
-  // Format: bucket/path/to/file.pdf
-  const parts = storagePath.split("/")
-  const bucket = parts[0]
-  const filePath = parts.slice(1).join("/")
-  
-  try {
-    const { data, error } = await supabase.storage
-      .from(bucket)
-      .list(filePath.split("/").slice(0, -1).join("/"), {
-        search: filePath.split("/").pop(),
-      })
-    
-    if (error) return false
-    return data && data.length > 0
-  } catch {
-    return false
-  }
-}
-
-async function resetIntakeForRetest(intakeId: string) {
-  const supabase = getSupabaseClient()
-
-  // Delete any existing issued certificates
-  await supabase
-    .from("issued_certificates")
-    .delete()
-    .eq("intake_id", intakeId)
-
-  // Delete any existing intake documents
-  await supabase
-    .from("intake_documents")
-    .delete()
-    .eq("intake_id", intakeId)
-
-  // Force-reset intake status to 'paid' using the E2E bypass RPC.
-  // The direct UPDATE approach is blocked by the validate_intake_status_transition
-  // trigger when the intake is in a terminal state (cancelled, approved, etc.).
-  // The RPC sets a transaction-local flag that bypasses the trigger.
-  const { error: resetError } = await supabase.rpc("e2e_reset_intake_status", {
-    p_intake_id: intakeId,
-    p_status: "paid",
-  })
-  if (resetError) {
-    throw new Error(`resetIntakeForRetest failed: ${resetError.message}`)
-  }
-}
-
 // ============================================================================
 // TESTS
 // ============================================================================
@@ -175,7 +127,7 @@ test.describe("Medical Certificate Approval Flow", () => {
 
   test("doctor can approve medical certificate and verify DB outcomes", async ({ page }) => {
     // Skip if no Supabase credentials for DB assertions
-    test.skip(!SUPABASE_SERVICE_ROLE_KEY, "SUPABASE_SERVICE_ROLE_KEY required for DB assertions")
+    test.skip(!isDbAvailable(), "Database required for DB assertions")
 
     // 1. Navigate to the document builder for the seeded intake
     await page.goto(`/doctor/intakes/${SEEDED_INTAKE_ID}/document`)
@@ -211,13 +163,9 @@ test.describe("Medical Certificate Approval Flow", () => {
     
     await approveButton.click()
 
-    // 4. Wait for approval outcome message.
-    // The component shows "success-message" when email sends, "warning-message"
-    // when email fails (expected in E2E - Resend isn't wired to test inboxes).
-    // Both indicate the certificate was approved successfully.
-    const outcomeMessage = page.locator('[data-testid="success-message"], [data-testid="warning-message"]')
-    await expect(outcomeMessage).toBeVisible({ timeout: 30000 })
-    await expect(outcomeMessage).toContainText(/certificate|approved|sent|email/i)
+    // 4. Wait for approval to finish. The component shows a short-lived banner
+    // then redirects back to the queue, so either signal is acceptable here.
+    await waitForApprovalOutcome(page)
 
     // 5. Verify database outcomes
     // Wait a moment for DB writes to complete
@@ -259,13 +207,8 @@ test.describe("Medical Certificate Approval Flow", () => {
 
     // 6. Verify storage object exists (if storage_path is set)
     if (document?.storage_path) {
-      const storageExists = await checkStorageObjectExists(document.storage_path)
-      // Note: Storage check may fail in some test environments
-      // We log but don't fail the test as storage may be mocked
-      if (!storageExists) {
-        // eslint-disable-next-line no-console
-        console.warn(`Storage object not found at: ${document.storage_path}`)
-      }
+      const exists = await storageObjectExists(document.storage_path)
+      expect(exists, `Storage object should exist at documents/${document.storage_path}`).toBe(true)
     }
   })
 

@@ -209,7 +209,8 @@ test.describe("Medical Certificate Idempotency", () => {
     }
 
     // Wait for completion
-    await waitForIntakeStatus(INTAKE_ID, "approved", 30000)
+    const statusUpdated = await waitForIntakeStatus(INTAKE_ID, "approved", 30000)
+    expect(statusUpdated, "Intake should be approved").toBe(true)
 
     // Final idempotency check
     const certCount = await countIssuedCertificatesForIntake(INTAKE_ID)

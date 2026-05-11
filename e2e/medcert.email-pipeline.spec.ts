@@ -10,7 +10,7 @@
  * Run with: PLAYWRIGHT=1 pnpm e2e --grep "email-pipeline"
  */
 
-import { expect,test } from "@playwright/test"
+import { expect,type Page,test } from "@playwright/test"
 
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
 import { 
@@ -20,6 +20,7 @@ import {
   INTAKE_ID,
   isDbAvailable,
   resetIntakeForRetest,
+  storageObjectExists,
   testEmailOutboxInsertSelect,
   verifyEmailOutboxTable,
   waitForEmailOutboxEntry,
@@ -38,27 +39,14 @@ const SEEDED_INTAKE_ID = INTAKE_ID
 // HELPER FUNCTIONS
 // ============================================================================
 
-async function checkStorageObjectExists(storagePath: string): Promise<boolean> {
-  const supabase = getSupabaseClient()
-  
-  // Parse bucket and path from storage path
-  // Format: bucket/path/to/file.pdf
-  const parts = storagePath.split("/")
-  const bucket = parts[0]
-  const filePath = parts.slice(1).join("/")
-  
-  try {
-    const { data, error } = await supabase.storage
-      .from(bucket)
-      .list(filePath.split("/").slice(0, -1).join("/"), {
-        search: filePath.split("/").pop(),
-      })
-    
-    if (error) return false
-    return data && data.length > 0
-  } catch {
-    return false
-  }
+async function waitForApprovalOutcome(page: Page) {
+  if (page.url().includes("/doctor/dashboard")) return
+
+  const outcomeMessage = page.locator('[data-testid="success-message"], [data-testid="warning-message"]')
+  await Promise.race([
+    outcomeMessage.waitFor({ state: "visible", timeout: 30000 }),
+    page.waitForURL("**/doctor/dashboard", { timeout: 30000 }),
+  ])
 }
 
 // ============================================================================
@@ -137,9 +125,8 @@ test.describe("Doctor Approval Email Pipeline", () => {
     await expect(approveButton).toBeEnabled()
     await approveButton.click()
 
-    // 4. Wait for success message
-    const successMessage = page.locator('[data-testid="success-message"]')
-    await expect(successMessage).toBeVisible({ timeout: 30000 })
+    // 4. Wait for completion. The UI redirects shortly after showing success.
+    await waitForApprovalOutcome(page)
 
     // 5. Verify database outcomes
     
@@ -158,12 +145,8 @@ test.describe("Doctor Approval Email Pipeline", () => {
 
     // 5d. Verify storage object exists (if storage_path is set)
     if (document?.storage_path) {
-      const storageExists = await checkStorageObjectExists(document.storage_path)
-      // Log but don't fail - storage may be mocked in some environments
-      if (!storageExists) {
-        // eslint-disable-next-line no-console
-        console.warn(`[E2E] Storage object not found at: ${document.storage_path}`)
-      }
+      const exists = await storageObjectExists(document.storage_path)
+      expect(exists, `Storage object should exist at documents/${document.storage_path}`).toBe(true)
     }
 
     // 5e. CRITICAL: Verify email_outbox has entry for med_cert_patient
@@ -215,7 +198,7 @@ test.describe("Doctor Approval Email Pipeline", () => {
     await approveButton.click()
 
     // Wait for approval to complete
-    await page.locator('[data-testid="success-message"]').waitFor({ timeout: 30000 })
+    await waitForApprovalOutcome(page)
 
     // Check email_outbox for the entry
     const emailEntry = await waitForEmailOutboxEntry(SEEDED_INTAKE_ID, "med_cert_patient", 15000)
@@ -264,7 +247,7 @@ test.describe("PDF Attachment Integrity", () => {
     await expect(approveButton).toBeVisible()
     await expect(approveButton).toBeEnabled()
     await approveButton.click()
-    await page.locator('[data-testid="success-message"], [data-testid="warning-message"]').waitFor({ timeout: 30000 })
+    await waitForApprovalOutcome(page)
 
     // 2. Fetch the issued certificate record
     const certificate = await waitForIssuedCertificate(SEEDED_INTAKE_ID, 15000)
@@ -273,10 +256,10 @@ test.describe("PDF Attachment Integrity", () => {
     const storagePath = certificate!.storage_path
     expect(storagePath, "Certificate must have a storage_path").toBeTruthy()
 
-    // 3. Filename must match expected pattern: Medical_Certificate_<REF>.pdf
+    // 3. Storage filename must use the canonical certificate reference format.
     const filename = storagePath.split("/").pop()!
-    expect(filename, `Filename should match Medical_Certificate_*.pdf, got: ${filename}`)
-      .toMatch(/^Medical_Certificate_[A-Z0-9-]+\.pdf$/i)
+    expect(filename, `Filename should match IM-<TYPE>-<DATE>-<RANDOM>.pdf, got: ${filename}`)
+      .toMatch(/^IM-(WORK|STUDY|CARER)-\d{8}-\d{8}\.pdf$/)
 
     // 4. Create a short-lived signed URL
     const supabase = getSupabaseClient()
@@ -337,7 +320,7 @@ test.describe("Email Outbox Data Integrity", () => {
     await expect(approveButton).toBeVisible()
     await approveButton.click()
     
-    await page.locator('[data-testid="success-message"]').waitFor({ timeout: 30000 })
+    await waitForApprovalOutcome(page)
 
     const emailEntry = await waitForEmailOutboxEntry(SEEDED_INTAKE_ID, "med_cert_patient", 15000)
     expect(emailEntry).not.toBeNull()

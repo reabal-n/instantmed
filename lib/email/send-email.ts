@@ -144,7 +144,6 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       subject,
       status: "skipped_e2e",
       provider: "resend",
-      provider_message_id: `e2e-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       intake_id: intakeId,
       patient_id: patientId,
       certificate_id: certificateId,

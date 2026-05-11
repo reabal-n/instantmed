@@ -1,19 +1,61 @@
 /**
- * Email Outbox Admin Viewer E2E Smoke Test
- * 
- * Verifies the email outbox admin page loads and renders correctly.
- * 
- * Run with: PLAYWRIGHT=1 pnpm e2e --grep "email-outbox"
+ * Email Delivery Hub E2E Smoke Test
+ *
+ * Verifies ops can see med_cert_patient outbox rows in the current
+ * /admin/emails/hub delivery ledger without needing database access.
  */
 
 import { expect,test } from "@playwright/test"
 
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
+import { getSupabaseClient, INTAKE_ID, isDbAvailable } from "./helpers/db"
 import { waitForPageLoad } from "./helpers/test-utils"
 
-test.describe("Email Outbox Admin Viewer", () => {
+async function seedMedCertPatientOutboxRow(): Promise<{ id: string; subject: string }> {
+  const subject = `E2E med cert delivery ledger ${Date.now()}`
+  const { data, error } = await getSupabaseClient()
+    .from("email_outbox")
+    .insert({
+      email_type: "med_cert_patient",
+      to_email: "auto.medcert.e2e@example.test",
+      to_name: "E2E Test Patient",
+      subject,
+      status: "skipped_e2e",
+      provider: "resend",
+      provider_message_id: null,
+      retry_count: 0,
+      intake_id: INTAKE_ID,
+      metadata: {
+        e2e: true,
+        source: "admin.email-outbox.spec",
+      },
+      sent_at: new Date().toISOString(),
+    })
+    .select("id")
+    .single()
+
+  if (error || !data) {
+    throw new Error(`Failed to seed med_cert_patient outbox row: ${error?.message || "missing row"}`)
+  }
+
+  return { id: data.id, subject }
+}
+
+async function deleteOutboxRow(id: string | null): Promise<void> {
+  if (!id) return
+
+  const { error } = await getSupabaseClient()
+    .from("email_outbox")
+    .delete()
+    .eq("id", id)
+
+  if (error) {
+    throw new Error(`Failed to delete E2E outbox row: ${error.message}`)
+  }
+}
+
+test.describe("Email Delivery Hub", () => {
   test.beforeEach(async ({ page }) => {
-    // Login as operator (admin+doctor role)
     const result = await loginAsOperator(page)
     expect(result.success, `E2E login should succeed: ${result.error}`).toBe(true)
   })
@@ -22,115 +64,57 @@ test.describe("Email Outbox Admin Viewer", () => {
     await logoutTestUser(page)
   })
 
-  test("email outbox page loads and renders table", async ({ page }) => {
-    // Navigate to the email outbox admin page
-    await page.goto("/admin/email-hub")
+  test("email delivery hub loads current overview and queue controls", async ({ page }) => {
+    await page.goto("/admin/emails/hub")
     await waitForPageLoad(page)
 
-    // Verify page title/heading is visible
-    const heading = page.getByRole("heading", { name: /email outbox/i })
-    await expect(heading).toBeVisible({ timeout: 10000 })
+    await expect(page.getByRole("heading", { name: /email delivery/i })).toBeVisible({ timeout: 10000 })
+    await expect(page.getByRole("tab", { name: /overview/i })).toBeVisible()
+    await expect(page.getByRole("tab", { name: /queue/i })).toBeVisible()
+    await expect(page.getByRole("button", { name: /send test/i })).toBeVisible()
 
-    // Verify table is rendered with headers
-    const table = page.locator('[data-testid="email-outbox-table"]')
-    await expect(table).toBeVisible()
+    await page.goto("/admin/emails/hub?tab=queue")
+    await waitForPageLoad(page)
 
-    // Verify table headers exist
-    await expect(page.getByRole("columnheader", { name: /created/i })).toBeVisible()
-    await expect(page.getByRole("columnheader", { name: /status/i })).toBeVisible()
-    await expect(page.getByRole("columnheader", { name: /type/i })).toBeVisible()
-    await expect(page.getByRole("columnheader", { name: /to/i })).toBeVisible()
-    await expect(page.getByRole("columnheader", { name: /subject/i })).toBeVisible()
+    await expect(page.getByText(/outgoing email ledger/i)).toBeVisible()
+    await expect(page.getByPlaceholder(/search recipient, subject, intake/i)).toBeVisible()
+    await expect(page.getByRole("button", { name: /^failed$/i })).toBeVisible()
+    await expect(page.getByRole("button", { name: /^pending$/i })).toBeVisible()
+    await expect(page.getByRole("button", { name: /^sent$/i })).toBeVisible()
   })
 
-  test("email outbox shows stats cards", async ({ page }) => {
-    await page.goto("/admin/email-hub")
-    await waitForPageLoad(page)
+  test("med_cert_patient delivery row is visible in the ops ledger", async ({ page }) => {
+    test.skip(!isDbAvailable(), "Database not available")
 
-    // Stats cards should be visible
-    await expect(page.getByText(/total/i)).toBeVisible()
-    await expect(page.getByText(/sent/i)).toBeVisible()
-    await expect(page.getByText(/failed/i)).toBeVisible()
-  })
+    const seeded = await seedMedCertPatientOutboxRow()
 
-  test("email outbox filter controls are present", async ({ page }) => {
-    await page.goto("/admin/email-hub")
-    await waitForPageLoad(page)
+    try {
+      await page.goto("/admin/emails/hub?tab=queue")
+      await waitForPageLoad(page)
 
-    // Filter section should be visible
-    await expect(page.getByText(/filters/i)).toBeVisible()
+      const searchInput = page.getByPlaceholder(/search recipient, subject, intake/i)
+      await searchInput.fill(seeded.subject)
 
-    // Search input should be present
-    const searchInput = page.getByPlaceholder(/email address/i)
-    await expect(searchInput).toBeVisible()
-
-    // Status filter should be present
-    await expect(page.getByText(/status/i).first()).toBeVisible()
-  })
-
-  test("email outbox handles empty state", async ({ page }) => {
-    // Navigate with a filter that likely returns no results
-    await page.goto("/admin/email-hub?intake_id=00000000-0000-0000-0000-000000000000")
-    await waitForPageLoad(page)
-
-    // Should show "No emails found" or similar empty state
-    const emptyState = page.getByText(/no emails found/i)
-    await expect(emptyState).toBeVisible({ timeout: 10000 })
-  })
-
-  test("clicking row opens detail modal", async ({ page }) => {
-    await page.goto("/admin/email-hub")
-    await waitForPageLoad(page)
-
-    // Wait for table to load
-    const table = page.locator('[data-testid="email-outbox-table"]')
-    await expect(table).toBeVisible()
-
-    // Check if there are any rows
-    const rows = page.locator('[data-testid="email-outbox-table"] tbody tr')
-    const rowCount = await rows.count()
-
-    if (rowCount > 0) {
-      // Click first data row
-      await rows.first().click()
-
-      // Modal should open with "Email Details" title
-      const modalTitle = page.getByRole("heading", { name: /email details/i })
-      await expect(modalTitle).toBeVisible({ timeout: 5000 })
-
-      // Close modal
-      const closeButton = page.getByRole("button", { name: /close/i }).or(
-        page.locator('[data-state="open"] button[aria-label*="close" i]')
-      ).or(
-        page.locator('button:has(svg.lucide-x)')
-      )
-      
-      if (await closeButton.first().isVisible()) {
-        await closeButton.first().click()
-      } else {
-        // Press escape to close
-        await page.keyboard.press("Escape")
-      }
-    } else {
-      // No rows - skip this part of the test
-      // eslint-disable-next-line no-console
-      console.log("[E2E] No email outbox rows found - skipping row click test")
+      await expect(page.getByText("Medical Certificate - Patient")).toBeVisible({ timeout: 10000 })
+      await expect(page.getByText(seeded.subject)).toBeVisible()
+      await expect(page.getByText("sent (test)")).toBeVisible()
+      await expect(page.getByText(`Intake ${INTAKE_ID.slice(0, 8)}`)).toBeVisible()
+      await expect(page.getByRole("link", { name: /open/i })).toBeVisible()
+    } finally {
+      await deleteOutboxRow(seeded.id)
     }
   })
+})
 
+test.describe("Email Delivery Hub Access Control", () => {
   test("unauthenticated access is blocked", async ({ page, context }) => {
-    // Clear cookies to simulate logged out state
     await context.clearCookies()
 
-    // Try to access the page directly
-    const response = await page.goto("/admin/email-hub")
-
-    // Should redirect to sign-in or return 401/403
-    // Check if we're redirected away from the admin page
+    const response = await page.goto("/admin/emails/hub")
     const currentUrl = page.url()
-    
+
     expect(
-      currentUrl.includes("sign-in") || 
+      currentUrl.includes("sign-in") ||
       currentUrl.includes("login") ||
       response?.status() === 401 ||
       response?.status() === 403

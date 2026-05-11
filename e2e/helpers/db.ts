@@ -208,7 +208,6 @@ export async function updateClinicIdentity(
 
 // Seeded intake ID from scripts/e2e/seed.ts
 export const INTAKE_ID = "e2e00000-0000-0000-0000-000000000010"
-const E2E_PATIENT_ID = "e2e00000-0000-0000-0000-000000000002"
 const E2E_SERVICE_ID = "e2e00000-0000-0000-0000-000000000020"
 const E2E_SCRIPT_SERVICE_ID = "e2e00000-0000-0000-0000-000000000021"
 const E2E_CLINICAL_NOTE = "E2E baseline clinical note. Patient history reviewed. Medical certificate request requires doctor review before approval."
@@ -343,22 +342,101 @@ export async function getIntakeDocumentForIntake(intakeId: string): Promise<Inta
 }
 
 /**
+ * Verify a private document object exists in Supabase Storage.
+ * Certificate storage_path values are paths inside the "documents" bucket,
+ * not "bucket/path" strings.
+ */
+export async function storageObjectExists(storagePath: string): Promise<boolean> {
+  const supabase = getSupabaseClient()
+  const pathParts = storagePath.split("/").filter(Boolean)
+  const fileName = pathParts.pop()
+
+  if (!fileName) {
+    return false
+  }
+
+  const folder = pathParts.join("/")
+  const { data, error } = await supabase.storage
+    .from("documents")
+    .list(folder, { search: fileName })
+
+  if (error) {
+    throw new Error(`Failed to check storage object ${storagePath}: ${error.message}`)
+  }
+
+  return Boolean(data?.some(file => file.name === fileName))
+}
+
+async function deleteCertificateApprovalArtifactsForIntake(
+  supabase: SupabaseClient,
+  intakeId: string
+): Promise<void> {
+  const { data: certs, error: certSelectError } = await supabase
+    .from("issued_certificates")
+    .select("id")
+    .eq("intake_id", intakeId)
+
+  if (certSelectError) {
+    throw new Error(`Failed to fetch issued certificates for reset: ${certSelectError.message}`)
+  }
+
+  const certIds = (certs || []).map(cert => cert.id)
+
+  if (certIds.length > 0) {
+    const { error: auditDeleteError } = await supabase
+      .from("certificate_audit_log")
+      .delete()
+      .in("certificate_id", certIds)
+
+    if (auditDeleteError) {
+      throw new Error(`Failed to delete certificate audit logs for reset: ${auditDeleteError.message}`)
+    }
+  }
+
+  const { error: documentDeleteError } = await supabase
+    .from("intake_documents")
+    .delete()
+    .eq("intake_id", intakeId)
+
+  if (documentDeleteError) {
+    throw new Error(`Failed to delete intake documents for reset: ${documentDeleteError.message}`)
+  }
+
+  const { error: emailDeleteError } = await supabase
+    .from("email_outbox")
+    .delete()
+    .eq("intake_id", intakeId)
+
+  if (emailDeleteError) {
+    throw new Error(`Failed to delete email outbox rows for reset: ${emailDeleteError.message}`)
+  }
+
+  const { error: aiAuditDeleteError } = await supabase
+    .from("ai_audit_log")
+    .delete()
+    .eq("intake_id", intakeId)
+
+  if (aiAuditDeleteError) {
+    throw new Error(`Failed to delete AI audit rows for reset: ${aiAuditDeleteError.message}`)
+  }
+
+  const { error: certDeleteError } = await supabase
+    .from("issued_certificates")
+    .delete()
+    .eq("intake_id", intakeId)
+
+  if (certDeleteError) {
+    throw new Error(`Failed to delete issued certificates for reset: ${certDeleteError.message}`)
+  }
+}
+
+/**
  * Reset intake status to paid for re-testing
  */
 export async function resetIntakeForRetest(intakeId: string): Promise<void> {
   const supabase = getSupabaseClient()
-  
-  // Delete any existing issued certificates
-  await supabase
-    .from("issued_certificates")
-    .delete()
-    .eq("intake_id", intakeId)
-  
-  // Delete any existing intake documents
-  await supabase
-    .from("intake_documents")
-    .delete()
-    .eq("intake_id", intakeId)
+
+  await deleteCertificateApprovalArtifactsForIntake(supabase, intakeId)
 
   await supabase
     .from("document_drafts")
@@ -375,11 +453,18 @@ export async function resetIntakeForRetest(intakeId: string): Promise<void> {
     .delete()
     .eq("intake_id", intakeId)
   
-  // Reset intake status to paid
-  const { error } = await supabase
+  const { error: resetError } = await supabase.rpc("e2e_reset_intake_status", {
+    p_intake_id: intakeId,
+    p_status: "paid",
+  })
+
+  if (resetError) {
+    throw new Error(`Failed to reset intake status for retest: ${resetError.message}`)
+  }
+
+  const { data: intake, error: updateError } = await supabase
     .from("intakes")
     .update({ 
-      status: "paid",
       payment_status: "paid",
       claimed_by: null,
       claimed_at: null,
@@ -390,58 +475,26 @@ export async function resetIntakeForRetest(intakeId: string): Promise<void> {
       decided_at: null,
       reviewed_by: null,
       reviewed_at: null,
+      ai_approved: false,
+      ai_approved_at: null,
+      auto_approval_attempts: 0,
+      auto_approval_state: null,
+      auto_approval_state_reason: null,
+      auto_approval_state_updated_at: null,
       doctor_notes: E2E_CLINICAL_NOTE,
       updated_at: new Date().toISOString(),
     })
     .eq("id", intakeId)
+    .select("id")
+    .maybeSingle()
 
-  if (!error) return
-
-  if (!error.message.includes("terminal state") || intakeId !== INTAKE_ID) {
-    console.error("Error resetting intake:", error.message)
-    return
+  if (updateError) {
+    throw new Error(`Failed to reset intake metadata for retest: ${updateError.message}`)
   }
 
-  await supabase.from("intakes").delete().eq("id", intakeId)
-
-  const referenceNumber = `E2E-${Date.now().toString(36).toUpperCase()}`
-  const { error: insertError } = await supabase.from("intakes").insert({
-    id: INTAKE_ID,
-    patient_id: E2E_PATIENT_ID,
-    service_id: E2E_SERVICE_ID,
-    reference_number: referenceNumber,
-    status: "draft",
-    payment_status: "unpaid",
-    amount_cents: 2500,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  })
-
-  if (insertError) {
-    console.error("Error recreating intake:", insertError.message)
-    return
+  if (!intake) {
+    throw new Error(`Failed to reset intake for retest: intake ${intakeId} was not found`)
   }
-
-  await supabase
-    .from("intakes")
-    .update({
-      status: "pending_payment",
-      submitted_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", INTAKE_ID)
-
-  await supabase
-    .from("intakes")
-    .update({
-      status: "paid",
-      payment_status: "paid",
-      payment_id: `pi_e2e_${Date.now().toString(36)}`,
-      paid_at: new Date().toISOString(),
-      doctor_notes: E2E_CLINICAL_NOTE,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", INTAKE_ID)
 }
 
 /**
@@ -535,11 +588,24 @@ export async function countCertificateAuditLogs(
   eventType?: string
 ): Promise<number> {
   const supabase = getSupabaseClient()
+
+  const { data: certs, error: certError } = await supabase
+    .from("issued_certificates")
+    .select("id")
+    .eq("intake_id", intakeId)
+
+  if (certError) {
+    console.error("Error fetching issued certificates for audit count:", certError.message)
+    return 0
+  }
+
+  const certIds = (certs || []).map(cert => cert.id)
+  if (certIds.length === 0) return 0
   
   let query = supabase
     .from("certificate_audit_log")
     .select("id", { count: "exact", head: true })
-    .eq("intake_id", intakeId)
+    .in("certificate_id", certIds)
   
   if (eventType) {
     query = query.eq("event_type", eventType)
@@ -1040,8 +1106,9 @@ export async function cleanupTestIntake(intakeId: string): Promise<void> {
     
     // Delete related records first (foreign key constraints)
     await supabase.from("intake_events").delete().eq("intake_id", intakeId)
-    await supabase.from("intake_documents").delete().eq("intake_id", intakeId)
-    await supabase.from("issued_certificates").delete().eq("intake_id", intakeId)
+    await deleteCertificateApprovalArtifactsForIntake(supabase, intakeId)
+    await supabase.from("document_drafts").delete().eq("intake_id", intakeId)
+    await supabase.from("document_drafts").delete().eq("request_id", intakeId)
     await supabase.from("email_outbox").delete().eq("intake_id", intakeId)
     await supabase.from("intake_answers").delete().eq("intake_id", intakeId)
     

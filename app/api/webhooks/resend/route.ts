@@ -110,6 +110,8 @@ function mapEventToEmailStatus(eventType: ResendEventType): string | null {
       return "sent"
     case "email.bounced":
       return "failed"
+    case "email.complained":
+      return "failed"
     default:
       return null
   }
@@ -285,7 +287,7 @@ export async function POST(request: NextRequest) {
     // 4. Find the email_outbox row by provider_message_id
     const { data: emailLog, error: findError } = await supabase
       .from("email_outbox")
-      .select("id, status, delivery_status, certificate_id")
+      .select("id, status, delivery_status, certificate_id, email_type")
       .eq("provider_message_id", data.email_id)
       .maybeSingle()
 

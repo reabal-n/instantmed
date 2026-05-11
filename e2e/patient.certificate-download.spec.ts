@@ -57,15 +57,10 @@ async function ensureIntakeIsApproved(intakeId: string): Promise<boolean> {
 
 async function getSignedDownloadUrl(storagePath: string): Promise<string | null> {
   const supabase = getSupabaseClient()
-  
-  // Parse bucket and path
-  const parts = storagePath.split("/")
-  const bucket = parts[0]
-  const filePath = parts.slice(1).join("/")
-  
+
   const { data, error } = await supabase.storage
-    .from(bucket)
-    .createSignedUrl(filePath, 3600) // 1 hour expiry
+    .from("documents")
+    .createSignedUrl(storagePath, 3600) // 1 hour expiry
   
   if (error) {
     // eslint-disable-next-line no-console
@@ -98,16 +93,23 @@ test.describe("Patient Certificate Download", () => {
   })
 
   test("patient can view approved certificate on intake page", async ({ page }) => {
+    const certificate = await getIssuedCertificateForIntake(SEEDED_INTAKE_ID)
+    test.skip(!certificate, "No issued certificate available")
+
     // Navigate to the intake detail page
     await page.goto(`/patient/intakes/${SEEDED_INTAKE_ID}`)
     await waitForPageLoad(page)
-    
-    // Should see the certificate card or document section
-    const documentSection = page.locator('[data-testid="document-card"]').or(
-      page.getByText(/certificate|document ready/i)
+
+    const downloadAction = page.locator('[data-testid="download-certificate"]').or(
+      page.getByRole("link", { name: /download/i })
+    ).or(
+      page.getByRole("button", { name: /download/i })
     )
-    
-    await expect(documentSection.first()).toBeVisible({ timeout: 10000 })
+
+    await expect(downloadAction.first()).toBeVisible({ timeout: 10000 })
+    if (certificate?.verification_code) {
+      await expect(page.getByText(certificate.verification_code)).toBeVisible({ timeout: 10000 })
+    }
   })
 
   test("certificate download link returns 200", async ({ page }) => {

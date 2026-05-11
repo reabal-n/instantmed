@@ -315,7 +315,20 @@ jobs:
           done
           exit "$missing"
 
-      - name: Run paid critical E2E flows (Chromium)
+      - name: Run med cert readiness E2E gate (Chromium)
+        env:
+          PLAYWRIGHT: '1'
+          NEXT_PUBLIC_PLAYWRIGHT: '1'
+          E2E_SECRET: ${{ secrets.E2E_SECRET }}
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NEXT_PUBLIC_APP_URL: http://localhost:3001
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+        run: pnpm medcert:readiness:e2e
+
+      - name: Run non-medcert paid critical E2E flows (Chromium)
         env:
           PLAYWRIGHT: '1'
           NEXT_PUBLIC_PLAYWRIGHT: '1'
@@ -333,9 +346,6 @@ jobs:
           pnpm exec playwright test --project=chromium
           e2e/unified-request-flow.spec.ts
           e2e/consult-subtypes.spec.ts
-          e2e/prod-request-flow-synthetic.spec.ts
-          e2e/payment-smoke.spec.ts
-          e2e/stripe-webhook.spec.ts
           e2e/parchment-webhook.spec.ts
 
       - name: Upload test results
