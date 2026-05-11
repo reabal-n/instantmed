@@ -46,8 +46,19 @@ export class StepErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    const pathname = typeof window !== "undefined" ? window.location.pathname : "unknown"
     void import("@sentry/nextjs").then((Sentry) => {
-      Sentry.captureException(error, { extra: { errorInfo } })
+      Sentry.captureException(error, {
+        level: "error",
+        tags: {
+          boundary: "request-step",
+          route: pathname,
+          step_id: this.props.stepId,
+        },
+        extra: {
+          componentStack: errorInfo.componentStack,
+        },
+      })
     })
     // Log error to monitoring service in development
     if (process.env.NODE_ENV === 'development') {
@@ -61,6 +72,7 @@ export class StepErrorBoundary extends Component<
       if (ph) {
         ph.capture('step_error', {
           step_id: this.props.stepId,
+          route: pathname,
           error_message: error.message,
           error_stack: error.stack,
         })

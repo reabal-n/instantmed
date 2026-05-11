@@ -1,0 +1,45 @@
+name: Production Request Flow Synthetic
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  request-flow-synthetic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6.0.5
+
+      - name: Use Node.js from .nvmrc
+        uses: actions/setup-node@v6.4.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run production request-flow synthetic
+        env:
+          E2E_BASE_URL: https://instantmed.com.au
+        run: >
+          pnpm exec playwright test
+          --config=playwright.preview.config.ts
+          --project=chromium
+          e2e/prod-request-flow-synthetic.spec.ts
+
+      - name: Upload synthetic traces
+        uses: actions/upload-artifact@v7.0.1
+        if: failure()
+        with:
+          name: prod-request-flow-synthetic-traces
+          path: test-results/
+          retention-days: 7
