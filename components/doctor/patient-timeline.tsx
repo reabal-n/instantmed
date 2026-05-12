@@ -31,7 +31,7 @@ import {
   XCircle,
 } from "lucide-react"
 import Link from "next/link"
-import { useMemo, useState } from "react"
+import { memo, useMemo, useState } from "react"
 
 import { Badge, type BadgeProps } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -197,12 +197,20 @@ interface PatientTimelineProps {
   className?: string
 }
 
+// Module-frozen empties so default-prop omissions don't mint a fresh array
+// identity per render, which would invalidate the merge memo's deps.
+const EMPTY_REQUESTS: PatientTimelineRequest[] = []
+const EMPTY_NOTES: PatientTimelineNote[] = []
+const EMPTY_PRESCRIPTIONS: PatientTimelinePrescription[] = []
+const EMPTY_EMAILS: PatientTimelineEmail[] = []
+const EMPTY_AUDIT: PatientTimelineAudit[] = []
+
 export function PatientTimeline({
-  requests = [],
-  notes = [],
-  prescriptions = [],
-  emails = [],
-  audit = [],
+  requests = EMPTY_REQUESTS,
+  notes = EMPTY_NOTES,
+  prescriptions = EMPTY_PRESCRIPTIONS,
+  emails = EMPTY_EMAILS,
+  audit = EMPTY_AUDIT,
   admin = false,
   initialPageSize,
   pageStep = 25,
@@ -221,18 +229,43 @@ export function PatientTimeline({
   const [visibleCount, setVisibleCount] = useState(resolvedInitial)
 
   const allItems = useMemo<TimelineItem[]>(() => {
-    const merged: TimelineItem[] = [
-      ...requests.map((data) => ({ kind: "request" as const, date: data.created_at, data })),
-      ...prescriptions.map((data) => ({ kind: "prescription" as const, date: data.recorded_at, data })),
-      ...notes.map((data) => ({ kind: "note" as const, date: data.created_at, data })),
+    // Parse each row's date to a numeric `ts` once during the merge, then
+    // sort numerically. Before: `new Date(date).getTime()` ran twice per
+    // comparator call (O(N log N) Date constructions). Now: O(N) parses +
+    // a pure-number sort. Matters on long-lived patients with 200+ events.
+    const merged: Array<TimelineItem & { ts: number }> = [
+      ...requests.map((data) => ({
+        kind: "request" as const,
+        date: data.created_at,
+        ts: Date.parse(data.created_at),
+        data,
+      })),
+      ...prescriptions.map((data) => ({
+        kind: "prescription" as const,
+        date: data.recorded_at,
+        ts: Date.parse(data.recorded_at),
+        data,
+      })),
+      ...notes.map((data) => ({
+        kind: "note" as const,
+        date: data.created_at,
+        ts: Date.parse(data.created_at),
+        data,
+      })),
       ...emails.map((data) => ({
         kind: "email" as const,
         date: data.sent_at || data.created_at,
+        ts: Date.parse(data.sent_at || data.created_at),
         data,
       })),
-      ...audit.map((data) => ({ kind: "audit" as const, date: data.occurred_at, data })),
+      ...audit.map((data) => ({
+        kind: "audit" as const,
+        date: data.occurred_at,
+        ts: Date.parse(data.occurred_at),
+        data,
+      })),
     ]
-    return merged.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    return merged.sort((a, b) => b.ts - a.ts)
   }, [requests, prescriptions, notes, emails, audit])
 
   const totalsByKind = useMemo(() => {
@@ -350,7 +383,10 @@ export function PatientTimeline({
 // Internal: row renderer per kind
 // ---------------------------------------------------------------------------
 
-function TimelineRow({ item, admin }: { item: TimelineItem; admin: boolean }) {
+// React.memo so filter clicks and "Show older" don't re-render every row.
+// The merge memo above keeps `item` identity stable across these state
+// changes, so shallow equality is enough.
+const TimelineRow = memo(function TimelineRow({ item, admin }: { item: TimelineItem; admin: boolean }) {
   const baseClass = "flex min-w-0 items-start gap-3 px-4 py-3"
   const Icon = ICONS[item.kind]
 
@@ -490,7 +526,7 @@ function TimelineRow({ item, admin }: { item: TimelineItem; admin: boolean }) {
       )
     }
   }
-}
+})
 
 const ICONS: Record<TimelineItem["kind"], LucideIcon> = {
   request: FileText,

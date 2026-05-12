@@ -18,6 +18,7 @@ import { SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
 import { formatServiceType } from "@/lib/format/intake"
 import { useDebounce } from "@/lib/hooks/use-debounce"
+import { useIsDesktop } from "@/lib/hooks/use-media-query"
 import { cn } from "@/lib/utils"
 import type { IntakeStatus, IntakeWithPatient } from "@/types/db"
 
@@ -94,6 +95,10 @@ export function QueueClient({
   const searchParams = useSearchParams()
   const { openPanel, activePanel } = usePanel()
   const panelOpenRef = useRef(Boolean(activePanel))
+  // `/dashboard` two-pane is desktop-only. On mobile we fall back to the
+  // slide-over (`openPanel`) so the operator isn't asked to scroll past
+  // the queue to reach the inline review pane.
+  const isDesktop = useIsDesktop()
   const explicitStatusFilterRef = useRef(hasExplicitStatusFilter)
   const queueRegionRef = useRef<HTMLDivElement>(null)
 
@@ -362,15 +367,17 @@ export function QueueClient({
     [refreshQueue, rememberOpenedCase],
   )
 
-  // Click / Enter handler. In compactShell mode this is a NO-SHEET path:
-  // it just sets selection (`expandedId`), which drives the inline right
-  // pane. In legacy mode it opens the slide-over.
+  // Click / Enter handler. In compactShell mode this is a NO-SHEET path
+  // on desktop: it just sets selection (`expandedId`), which drives the
+  // inline right pane. On mobile (`!isDesktop`) compactShell falls back
+  // to the slide-over so the detail doesn't stack below the queue. In
+  // legacy non-compact mode it always opens the slide-over.
   const openReviewPanel = useCallback((intakeId: string) => {
     markAsRead(intakeId)
     setExpandedId(intakeId)
 
-    if (compactShell) {
-      // Two-pane mode. Detail renders inline; no slide-over.
+    if (compactShell && isDesktop) {
+      // Desktop two-pane mode. Detail renders inline; no slide-over.
       panelOpenRef.current = false
       return
     }
@@ -414,7 +421,7 @@ export function QueueClient({
         />
       ),
     })
-  }, [openPanel, markAsRead, compactShell, handleIntakeActionComplete])
+  }, [openPanel, markAsRead, compactShell, isDesktop, handleIntakeActionComplete])
 
   const handleApprove = useCallback(async (intakeId: string, serviceType?: string | null) => {
     if (serviceType === SERVICE_TYPES.MED_CERTS) {
@@ -795,7 +802,7 @@ export function QueueClient({
         />
       </div>
 
-      {compactShell ? (
+      {compactShell && isDesktop ? (
         <OperatorSplitPane
           className="min-h-0 flex-1"
           listClassName="min-h-0"
@@ -883,10 +890,11 @@ export function QueueClient({
 
       {/* Keyboard hint strip. Renders only when the queue has rows AND
           nothing is focused, so it teaches the shortcut without screaming
-          at the operator mid-triage. Disappears after first arrow press. */}
+          at the operator mid-triage. Disappears after first arrow press.
+          `hidden lg:flex` because touch devices have no keyboard. */}
       {compactShell && filteredIntakes.length > 0 && !expandedId ? (
         <div
-          className="flex shrink-0 items-center gap-1.5 px-1 pb-1 text-[11px] text-muted-foreground/70"
+          className="hidden shrink-0 items-center gap-1.5 px-1 pb-1 text-[11px] text-muted-foreground/70 lg:flex"
           aria-hidden
         >
           <kbd className="rounded border border-border/60 bg-muted/40 px-1.5 py-0.5 font-sans text-[10px] font-semibold">↓</kbd>
