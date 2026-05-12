@@ -31,7 +31,19 @@ const log = createLogger("ai-clinical-note")
 
 interface IntakeAnswers {
   certificate_type?: string
+  /**
+   * Legacy multi-select symptom array. The retired multi-select UI used
+   * to populate this; the current symptoms-step is a free-text textarea
+   * (see `components/request/steps/symptoms-step.tsx`). New writers
+   * populate `symptomDetails` (or the legacy aliases below). Both are
+   * read into the prompt so older intake rows still render.
+   */
   symptoms?: string[]
+  symptomDetails?: string
+  symptom_details?: string
+  symptoms_description?: string
+  symptomDuration?: string
+  symptom_duration?: string
   other_symptom_details?: string
   start_date?: string
   end_date?: string
@@ -48,6 +60,35 @@ interface IntakeAnswers {
   medicalConditions?: string
   medical_conditions?: string
   [key: string]: unknown
+}
+
+const SYMPTOM_DURATION_LABELS: Record<string, string> = {
+  today: "Started today",
+  "1_2_days": "1–2 days",
+  "3_5_days": "3–5 days",
+  week_plus: "A week or more",
+  "1_day": "1 day",
+  "2_days": "2 days",
+  "3_days": "3 days",
+  less_than_24h: "Less than 24 hours",
+  "1_week_plus": "A week or more",
+}
+
+function getSymptomReport(answers: IntakeAnswers): string | null {
+  if (Array.isArray(answers.symptoms) && answers.symptoms.length > 0) {
+    return answers.symptoms.filter((s) => typeof s === "string" && s.trim()).join(", ")
+  }
+  const text =
+    answers.symptoms_description ||
+    answers.symptom_details ||
+    answers.symptomDetails
+  return typeof text === "string" && text.trim() ? text.trim() : null
+}
+
+function getSymptomDurationLabel(answers: IntakeAnswers): string | null {
+  const raw = (answers.symptom_duration || answers.symptomDuration) as string | undefined
+  if (!raw) return null
+  return SYMPTOM_DURATION_LABELS[raw] || raw
 }
 
 export async function POST(request: NextRequest) {
@@ -238,8 +279,19 @@ function formatIntakeForPrompt(answers: IntakeAnswers): string {
     lines.push(`Certificate Type: ${answers.certificate_type}`)
   }
 
-  if (answers.symptoms && answers.symptoms.length > 0) {
-    lines.push(`Symptoms: ${answers.symptoms.join(", ")}`)
+  // Phase: AI prompt drift fix (2026-05-12). The med cert symptoms-step
+  // UI writes `symptomDetails` (free text) + `symptomDuration` (chip),
+  // not the legacy `symptoms` array. Older intake rows may still have
+  // the array; both shapes are read so historical + new rows both
+  // populate the prompt.
+  const symptomReport = getSymptomReport(answers)
+  if (symptomReport) {
+    lines.push(`Symptoms: ${symptomReport}`)
+  }
+
+  const symptomDuration = getSymptomDurationLabel(answers)
+  if (symptomDuration) {
+    lines.push(`Duration of Symptoms: ${symptomDuration}`)
   }
 
   if (answers.other_symptom_details) {

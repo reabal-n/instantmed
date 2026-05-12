@@ -83,15 +83,27 @@ export function formatIntakeContext(
   parts.push(`Request Date: ${new Date().toISOString().split("T")[0]}`)
   parts.push(`Service Type: ${serviceType}`)
 
-  // Common fields across all service types (support both camelCase and snake_case)
-  const symptoms = answers.symptoms ?? answers.symptom_list
-  if (symptoms && Array.isArray(symptoms)) {
-    const sanitizedSymptoms = symptoms.map(s => sanitizeAnswerValue(s, intakeId))
+  // Common fields across all service types (support both camelCase and snake_case).
+  // The legacy multi-select symptoms array is rarely populated by current intake
+  // UIs (the med cert symptoms-step is a textarea); historical intake rows may
+  // still have it. Always check the array first, then fall back to the text
+  // description writers (`symptomDetails` / `symptom_details` /
+  // `symptoms_description`). Phase: AI prompt drift fix, 2026-05-12.
+  const legacySymptoms = answers.symptoms ?? answers.symptom_list
+  if (legacySymptoms && Array.isArray(legacySymptoms) && legacySymptoms.length > 0) {
+    const sanitizedSymptoms = legacySymptoms.map(s => sanitizeAnswerValue(s, intakeId))
     parts.push(`Symptoms: ${sanitizedSymptoms.join(", ")}`)
+  } else {
+    const textReport = answers.symptoms_description || answers.symptom_details || answers.symptomDetails
+    if (typeof textReport === "string" && textReport.trim()) {
+      parts.push(`Symptoms: ${sanitizeAnswerValue(textReport, intakeId)}`)
+    }
   }
 
-  if (answers.otherSymptomDetails || answers.other_symptom_details || answers.symptom_details) {
-    const detail = answers.otherSymptomDetails || answers.other_symptom_details || answers.symptom_details
+  // `Additional Symptoms` is the old "anything else?" field; current UI does
+  // not collect it but historical rows may.
+  if (answers.otherSymptomDetails || answers.other_symptom_details) {
+    const detail = answers.otherSymptomDetails || answers.other_symptom_details
     parts.push(`Additional Symptoms: ${sanitizeAnswerValue(detail, intakeId)}`)
   }
 

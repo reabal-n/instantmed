@@ -27,7 +27,23 @@ const log = createLogger("ai-med-cert-draft")
 
 interface IntakeAnswers {
   certificate_type?: string
+  /**
+   * Legacy multi-select symptom array. The retired multi-select UI used
+   * to populate this; the current symptoms-step is a free-text textarea
+   * (see `components/request/steps/symptoms-step.tsx`). New writers
+   * populate `symptomDetails` (or the legacy aliases below). Both are
+   * read into the prompt so older intake rows still render.
+   */
   symptoms?: string[]
+  /** Free-text symptom description from the symptoms-step textarea. */
+  symptomDetails?: string
+  /** snake_case aliases for older payloads. */
+  symptom_details?: string
+  symptoms_description?: string
+  /** Symptom duration chip (today / 1_2_days / 3_5_days / week_plus). */
+  symptomDuration?: string
+  symptom_duration?: string
+  /** Legacy "other symptom details" field — kept for older intake rows. */
   other_symptom_details?: string
   start_date?: string
   end_date?: string
@@ -35,6 +51,40 @@ interface IntakeAnswers {
   carer_person_name?: string
   carer_relationship?: string
   [key: string]: unknown
+}
+
+/**
+ * Extract the patient's symptom description in the order writers
+ * actually populate it. Returns null if nothing was provided.
+ */
+function getSymptomReport(answers: IntakeAnswers): string | null {
+  if (Array.isArray(answers.symptoms) && answers.symptoms.length > 0) {
+    return answers.symptoms.filter((s) => typeof s === "string" && s.trim()).join(", ")
+  }
+  const text =
+    answers.symptoms_description ||
+    answers.symptom_details ||
+    answers.symptomDetails
+  return typeof text === "string" && text.trim() ? text.trim() : null
+}
+
+const SYMPTOM_DURATION_LABELS: Record<string, string> = {
+  today: "Started today",
+  "1_2_days": "1–2 days",
+  "3_5_days": "3–5 days",
+  week_plus: "A week or more",
+  // Legacy values from older payloads.
+  "1_day": "1 day",
+  "2_days": "2 days",
+  "3_days": "3 days",
+  less_than_24h: "Less than 24 hours",
+  "1_week_plus": "A week or more",
+}
+
+function getSymptomDurationLabel(answers: IntakeAnswers): string | null {
+  const raw = (answers.symptom_duration || answers.symptomDuration) as string | undefined
+  if (!raw) return null
+  return SYMPTOM_DURATION_LABELS[raw] || raw
 }
 
 interface PatientInfo {
@@ -233,8 +283,18 @@ function formatMedCertContext(answers: IntakeAnswers, patient: PatientInfo): str
     lines.push(`Duration: ${answers.duration_days} day(s)`)
   }
 
-  if (answers.symptoms && answers.symptoms.length > 0) {
-    lines.push(`Reported Symptoms: ${answers.symptoms.join(", ")}`)
+  // Phase: AI prompt drift fix (2026-05-12). The current symptoms-step
+  // UI writes `symptomDetails` (free text) + `symptomDuration` (chip),
+  // not the legacy `symptoms` array. Older intake rows may still have
+  // the array; check both so historical rows + new rows both render.
+  const symptomReport = getSymptomReport(answers)
+  if (symptomReport) {
+    lines.push(`Reported Symptoms: ${symptomReport}`)
+  }
+
+  const symptomDuration = getSymptomDurationLabel(answers)
+  if (symptomDuration) {
+    lines.push(`Duration of Symptoms: ${symptomDuration}`)
   }
 
   if (answers.other_symptom_details) {
