@@ -6,6 +6,7 @@ import { useCallback,useEffect, useMemo, useRef, useState, useTransition } from 
 import { toast } from "sonner"
 
 import { IntakeReviewPanel } from "@/components/doctor"
+import { OperatorSplitPane } from "@/components/operator"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
 import { ADMIN_DOCTOR_IDENTITY_HREF, DOCTOR_DASHBOARD_HREF, parseQueueStatusFilter, type QueueStatusFilter } from "@/lib/dashboard/routes"
@@ -316,10 +317,42 @@ export function QueueClient({
     playNotificationSound,
   })
 
-  // Open intake review in a slide-over panel (stays on queue)
+  // Shared action-complete handler. Removes the case from the live queue,
+  // refreshes data, and advances selection / opens the next case.
+  // Inline mode (`/dashboard` two-pane) and slide-over mode share this.
+  const handleIntakeActionComplete = useCallback(
+    (intakeId: string, options?: { advance?: boolean }) => {
+      const { nextIntake } = removeCompletedIntakeFromQueue(filteredIntakesRef.current, intakeId)
+      setIntakes((prev) => removeCompletedIntakeFromQueue(prev, intakeId).remaining)
+      refreshQueue(true)
+      if (options?.advance !== false && nextIntake) {
+        rememberOpenedCase(nextIntake.id)
+        setExpandedId(nextIntake.id)
+        toast.success("Case done. Opening next.")
+      } else if (options?.advance !== false) {
+        setExpandedId(null)
+        toast.success("Case done. Queue clear.")
+      }
+    },
+    [refreshQueue, rememberOpenedCase],
+  )
+
+  // Click / Enter handler. In compactShell mode this is a NO-SHEET path:
+  // it just sets selection (`expandedId`), which drives the inline right
+  // pane. In legacy mode it opens the slide-over.
   const openReviewPanel = useCallback((intakeId: string) => {
-    panelOpenRef.current = true
     markAsRead(intakeId)
+    setExpandedId(intakeId)
+
+    if (compactShell) {
+      // Two-pane mode. Detail renders inline; no slide-over.
+      panelOpenRef.current = false
+      return
+    }
+
+    // Legacy slide-over mode (admin patient drawer, doctor intake detail
+    // page entry points). Kept identical behaviour.
+    panelOpenRef.current = true
     const getAdjacentId = (direction: "next" | "prev"): string | null => {
       const list = filteredIntakesRef.current
       const idx = list.findIndex((r) => r.id === intakeId)
@@ -339,17 +372,10 @@ export function QueueClient({
           caseIndex={caseIndex >= 0 ? caseIndex : undefined}
           totalCases={list.length > 0 ? list.length : undefined}
           onActionComplete={(options) => {
+            handleIntakeActionComplete(intakeId, options)
             const { nextIntake } = removeCompletedIntakeFromQueue(filteredIntakesRef.current, intakeId)
-            setIntakes((prev) => {
-              return removeCompletedIntakeFromQueue(prev, intakeId).remaining
-            })
-            refreshQueue(true)
             if (options?.advance !== false && nextIntake) {
-              rememberOpenedCase(nextIntake.id)
-              toast.success("Case done. Opening next.")
               setTimeout(() => openReviewPanel(nextIntake.id), 90)
-            } else if (options?.advance !== false) {
-              toast.success("Case done. Queue clear.")
             }
           }}
           onNextCase={() => {
@@ -363,7 +389,7 @@ export function QueueClient({
         />
       ),
     })
-  }, [openPanel, refreshQueue, markAsRead, rememberOpenedCase])
+  }, [openPanel, markAsRead, compactShell, handleIntakeActionComplete])
 
   const handleApprove = useCallback(async (intakeId: string, serviceType?: string | null) => {
     if (serviceType === SERVICE_TYPES.MED_CERTS) {
@@ -695,32 +721,90 @@ export function QueueClient({
         />
       </div>
 
-      <QueueTable
-        filteredIntakes={filteredIntakes}
-        intakes={intakes}
-        expandedId={expandedId}
-        onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)}
-        openIntakeId={openIntakeId}
-        doctorId={doctorId}
-        readIds={readIds}
-        lastOpenedIntakeId={lastOpenedIntakeId}
-        onRememberOpenedCase={rememberOpenedCase}
-        isPending={dialogs.isPending || isApprovePending}
-        identityComplete={identityComplete}
-        onApprove={handleApprove}
-        hasRedFlags={hasRedFlags}
-        calculateWaitTime={calculateStableWaitTime}
-        getWaitTimeSeverity={getStableWaitTimeSeverity}
-        calculateSlaCountdown={calculateStableSlaCountdown}
-        openReviewPanel={openReviewPanel}
-        dialogs={dialogs}
-        aiApprovedIntakes={aiApprovedIntakes}
-        recentlyCompleted={recentlyCompleted}
-        pagination={pagination}
-        baseHref={baseHref}
-        emptyState={queueEmptyState}
-        compactShell={compactShell}
-      />
+      {compactShell ? (
+        <OperatorSplitPane
+          className="min-h-0 flex-1"
+          listClassName="min-h-0"
+          detailClassName="min-h-0"
+          list={(
+            <div className="flex h-full min-h-0 flex-col overflow-hidden">
+              <QueueTable
+                filteredIntakes={filteredIntakes}
+                intakes={intakes}
+                expandedId={expandedId}
+                onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)}
+                openIntakeId={openIntakeId}
+                doctorId={doctorId}
+                readIds={readIds}
+                lastOpenedIntakeId={lastOpenedIntakeId}
+                onRememberOpenedCase={rememberOpenedCase}
+                isPending={dialogs.isPending || isApprovePending}
+                identityComplete={identityComplete}
+                onApprove={handleApprove}
+                hasRedFlags={hasRedFlags}
+                calculateWaitTime={calculateStableWaitTime}
+                getWaitTimeSeverity={getStableWaitTimeSeverity}
+                calculateSlaCountdown={calculateStableSlaCountdown}
+                openReviewPanel={openReviewPanel}
+                dialogs={dialogs}
+                aiApprovedIntakes={aiApprovedIntakes}
+                recentlyCompleted={recentlyCompleted}
+                pagination={pagination}
+                baseHref={baseHref}
+                emptyState={queueEmptyState}
+                compactShell={compactShell}
+              />
+            </div>
+          )}
+          detail={(
+            expandedId ? (
+              // `key={expandedId}` forces remount on selection change so
+              // the lock + audit + view-duration effects re-run cleanly
+              // for the new case (releases the old lock automatically).
+              <IntakeReviewPanel
+                key={expandedId}
+                inline
+                intakeId={expandedId}
+                onActionComplete={(options) => handleIntakeActionComplete(expandedId, options)}
+              />
+            ) : (
+              <div className="flex h-full min-h-0 flex-col items-center justify-center gap-2 px-6 text-center">
+                <p className="text-sm font-medium text-foreground">No case selected.</p>
+                <p className="max-w-xs text-xs text-muted-foreground">
+                  Pick a row on the left, or press <kbd className="rounded border border-border/60 bg-muted/40 px-1.5 py-0.5 font-sans text-[10px] font-semibold text-foreground/80">↓</kbd> to start.
+                </p>
+              </div>
+            )
+          )}
+        />
+      ) : (
+        <QueueTable
+          filteredIntakes={filteredIntakes}
+          intakes={intakes}
+          expandedId={expandedId}
+          onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)}
+          openIntakeId={openIntakeId}
+          doctorId={doctorId}
+          readIds={readIds}
+          lastOpenedIntakeId={lastOpenedIntakeId}
+          onRememberOpenedCase={rememberOpenedCase}
+          isPending={dialogs.isPending || isApprovePending}
+          identityComplete={identityComplete}
+          onApprove={handleApprove}
+          hasRedFlags={hasRedFlags}
+          calculateWaitTime={calculateStableWaitTime}
+          getWaitTimeSeverity={getStableWaitTimeSeverity}
+          calculateSlaCountdown={calculateStableSlaCountdown}
+          openReviewPanel={openReviewPanel}
+          dialogs={dialogs}
+          aiApprovedIntakes={aiApprovedIntakes}
+          recentlyCompleted={recentlyCompleted}
+          pagination={pagination}
+          baseHref={baseHref}
+          emptyState={queueEmptyState}
+          compactShell={compactShell}
+        />
+      )}
 
       {/* Keyboard hint strip. Renders only when the queue has rows AND
           nothing is focused, so it teaches the shortcut without screaming

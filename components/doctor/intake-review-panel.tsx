@@ -34,6 +34,47 @@ import { consumePrefetchedData } from "@/lib/doctor/review-data-cache"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format/intake"
 import { useAuth } from "@/lib/supabase/auth-provider"
 
+/**
+ * Shell wrappers. `SheetShell` is the slide-over chrome (used everywhere
+ * IntakeReviewPanel is opened via `openPanel`). `InlineShell` is the
+ * inline-pane chrome (used on `/dashboard` for the two-pane layout).
+ */
+function SheetShell({
+  title,
+  description,
+  onClose,
+  children,
+}: {
+  title: string
+  description?: string
+  onClose?: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <SheetPanel title={title} description={description} width={1040} onClose={onClose}>
+      {children}
+    </SheetPanel>
+  )
+}
+
+function InlineShell({
+  children,
+}: {
+  title: string
+  description?: string
+  onClose?: () => void
+  children: React.ReactNode
+}) {
+  // No chrome — the queue's split-pane already supplies the right-side
+  // container, border, and overflow management. `onClose` is a no-op
+  // inline because j/k in the queue replaces it (selection drives detail).
+  return (
+    <div className="h-full min-h-0 overflow-y-auto p-5">
+      {children}
+    </div>
+  )
+}
+
 interface IntakeReviewPanelProps {
   intakeId: string
   onActionComplete?: (options?: { advance?: boolean }) => void
@@ -42,9 +83,17 @@ interface IntakeReviewPanelProps {
   caseIndex?: number
   totalCases?: number
   profileMode?: "doctor" | "admin"
+  /**
+   * Render inline (no SheetPanel chrome) for the `/dashboard` two-pane layout.
+   * Skips the slide-over wrapper, hides the case-nav top arrows (j/k drives
+   * navigation from the queue itself), and keeps a slim top bar with status
+   * + Patient profile / Full case actions. Lock + audit still release on
+   * unmount, so the parent should force-remount via `key={intakeId}`.
+   */
+  inline?: boolean
 }
 
-export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPrevCase, caseIndex, totalCases, profileMode = "doctor" }: IntakeReviewPanelProps) {
+export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPrevCase, caseIndex, totalCases, profileMode = "doctor", inline = false }: IntakeReviewPanelProps) {
   useAuth()
   const { closePanel, openPanel } = usePanel()
   const [data, setData] = useState<ReviewData | null>(null)
@@ -180,35 +229,39 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
 
   // --- Render ---
 
+  // Conditional shell. Inline mode = plain `<div>` so the panel renders
+  // inside the parent's right pane without slide-over chrome. Sheet mode
+  // = the existing slide-over experience (admin patient drawer, doctor
+  // intake-detail page, anywhere the panel is opened via `openPanel`).
+  const Shell = inline ? InlineShell : SheetShell
+
   // Loading skeleton
   if (isLoading) {
     return (
-      <SheetPanel
-        title="Loading case..."
-        width={1040}
-        onClose={handlePanelClose}
-      >
+      <Shell title="Loading case..." onClose={handlePanelClose}>
         <div className="space-y-5">
           <Skeleton className="h-6 w-48" />
           <Skeleton className="h-36 w-full" />
           <Skeleton className="h-52 w-full" />
           <Skeleton className="h-36 w-full" />
         </div>
-      </SheetPanel>
+      </Shell>
     )
   }
 
   // Error state
   if (error || !intake) {
     return (
-      <SheetPanel title="Error" width={1040} onClose={handlePanelClose}>
+      <Shell title="Error" onClose={handlePanelClose}>
         <div className="text-center py-12">
           <p className="text-destructive font-medium">{error || "Intake not found"}</p>
-          <Button variant="outline" className="mt-4" onClick={closePanel}>
-            Close
-          </Button>
+          {!inline ? (
+            <Button variant="outline" className="mt-4" onClick={closePanel}>
+              Close
+            </Button>
+          ) : null}
         </div>
-      </SheetPanel>
+      </Shell>
     )
   }
 
@@ -260,14 +313,13 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
 
   return (
     <>
-      <SheetPanel
+      <Shell
         title={intake.patient.full_name}
         description={[
           service?.short_name || formatServiceType(service?.type || ""),
           formatIntakeStatus(intake.status),
           caseIndex != null && totalCases != null ? `Case ${caseIndex + 1} of ${totalCases}` : null,
         ].filter(Boolean).join(" · ")}
-        width={1040}
         onClose={handlePanelClose}
       >
         <IntakeReviewProvider value={contextValue}>
@@ -275,6 +327,11 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
             {/* Top bar: status, case navigation, and profile links */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-wrap items-center gap-2">
+                {inline ? (
+                  <h2 className="truncate text-base font-semibold tracking-tight text-foreground">
+                    {intake.patient.full_name}
+                  </h2>
+                ) : null}
                 <Badge className={getStatusColor(intake.status)}>
                   {formatIntakeStatus(intake.status)}
                 </Badge>
@@ -283,7 +340,9 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
                 )}
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                {(onPrevCase || onNextCase) && (
+                {/* Inline mode: j/k in the queue is the canonical case navigator,
+                    so the in-panel ↑/↓ buttons are hidden. */}
+                {!inline && (onPrevCase || onNextCase) && (
                   <div className="flex items-center gap-1">
                     <Button
                       variant="outline"
@@ -333,7 +392,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
                   Patient profile
                 </Button>
                 <Button asChild variant="ghost" size="sm">
-                  <Link href={fullCaseHref} onClick={() => closePanel()}>
+                  <Link href={fullCaseHref} onClick={inline ? undefined : () => closePanel()}>
                     <ExternalLink className="h-3.5 w-3.5" />
                     Full case
                   </Link>
@@ -358,7 +417,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
             <IntakeReviewCockpit showDecisionStrip={false} />
           </div>
         </IntakeReviewProvider>
-      </SheetPanel>
+      </Shell>
 
       <IntakeReviewProvider value={contextValue}>
         <DeclineIntakeDialog />
