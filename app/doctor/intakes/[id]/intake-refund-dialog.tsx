@@ -1,17 +1,6 @@
 "use client"
 
-import { Loader2 } from "lucide-react"
-
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+import { TypedConfirmDialog } from "@/components/ui/typed-confirm-dialog"
 
 interface IntakeRefundDialogProps {
   open: boolean
@@ -20,6 +9,12 @@ interface IntakeRefundDialogProps {
   isPending: boolean
 }
 
+/**
+ * Refund confirmation dialog. Wraps the reusable `TypedConfirmDialog`
+ * primitive — the operator must type `REFUND` before the Issue refund
+ * button enables. This is a real-money, hard-to-undo action; the typed
+ * gate is intentional friction.
+ */
 export function IntakeRefundDialog({
   open,
   onOpenChange,
@@ -27,22 +22,15 @@ export function IntakeRefundDialog({
   isPending,
 }: IntakeRefundDialogProps) {
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Issue Refund</AlertDialogTitle>
-          <AlertDialogDescription>
-            This will automatically process a full refund via Stripe and notify the patient by email. This action cannot be undone.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirmRefund} disabled={isPending} className="bg-amber-600 hover:bg-amber-700">
-            {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            Issue Refund
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <TypedConfirmDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Issue refund"
+      description="This processes a full Stripe refund and emails the patient. The charge is reversed on the patient's card and cannot be re-collected without a new checkout."
+      requiredText="REFUND"
+      confirmLabel="Issue refund"
+      onConfirm={onConfirmRefund}
+      isPending={isPending}
+    />
   )
 }
