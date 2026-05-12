@@ -22,12 +22,16 @@ import {
   ADMIN_ANALYTICS_HREF,
   ADMIN_DASHBOARD_HREF,
   ADMIN_DOCTOR_QUEUE_HREF,
+  ADMIN_EMAIL_HUB_HREF,
   ADMIN_FINANCE_HREF,
   ADMIN_INTAKE_LEDGER_HREF,
   ADMIN_OPS_HREF,
+  ADMIN_PARCHMENT_OPS_HREF,
   ADMIN_PATIENTS_HREF,
+  ADMIN_PRESCRIBING_IDENTITY_HREF,
   ADMIN_SCRIPTS_HREF,
   ADMIN_SETTINGS_HREF,
+  ADMIN_WEBHOOK_DLQ_HREF,
 } from "@/lib/dashboard/routes"
 import type { Profile } from "@/types/db"
 
@@ -111,15 +115,24 @@ export const doctorOperatorNavItems: StaffNavItem[] = [
 // legacy exports above stay for back-compat until Phase 2 finishes the surface
 // consolidation; new sidebars and command palettes should call this function.
 //
-// Support staff get a deliberately minimal nav: patient directory and the
-// operations recovery surface. No clinical entry points.
+// Support staff get a deliberately minimal nav: operations recovery
+// surfaces only. No patient directory (full PHI), no clinical queue,
+// no prescriptions. The links here all target pages that either show
+// masked PHI (prescribing identity) or no PHI at all (ops, webhooks,
+// email queue counts). Phase 7 of dashboard remaster (2026-05-12)
+// removed the legacy `/admin/patients` entry — it was a misleading
+// link, since `requireRole(["admin"])` on that page would have
+// rejected support anyway.
 
 export const supportNavSections: StaffNavSection[] = [
   {
-    title: "Work",
+    title: "Operations",
     items: [
-      { href: ADMIN_PATIENTS_HREF, label: "Patients", icon: Users },
       { href: ADMIN_OPS_HREF, label: "Operations", icon: Activity },
+      { href: ADMIN_PRESCRIBING_IDENTITY_HREF, label: "Identity chase-ups", icon: Users },
+      { href: ADMIN_EMAIL_HUB_HREF, label: "Email queue", icon: ClipboardList },
+      { href: ADMIN_WEBHOOK_DLQ_HREF, label: "Webhook retries", icon: Shield },
+      { href: ADMIN_PARCHMENT_OPS_HREF, label: "Parchment recovery", icon: Stethoscope },
     ],
   },
   {
