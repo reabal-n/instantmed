@@ -722,7 +722,12 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
                   />
                 </div>
                 <div className="text-sm font-medium leading-tight">Express review</div>
-                <div className="mt-1 text-xs text-muted-foreground">+{PRICING_DISPLAY.PRIORITY_FEE}</div>
+                <div className="mt-0.5 text-xs text-muted-foreground">
+                  Skip the queue — your case is reviewed first.
+                </div>
+                <div className="mt-1 text-xs font-medium text-muted-foreground">
+                  +{PRICING_DISPLAY.PRIORITY_FEE}
+                </div>
               </label>
             </div>
 

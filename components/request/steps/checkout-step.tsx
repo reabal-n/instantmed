@@ -318,11 +318,16 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             className="shrink-0"
             aria-label="Enable express review"
           />
-          <div className="flex-1 flex items-center justify-between gap-2">
-            <span className="text-sm text-muted-foreground">
-              Express Review
+          <div className="flex-1 flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-foreground">Express review</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Skip the queue — your case is reviewed first.
+              </p>
+            </div>
+            <span className="text-xs font-medium text-muted-foreground shrink-0">
+              +{PRICING_DISPLAY.PRIORITY_FEE}
             </span>
-            <span className="text-xs text-muted-foreground">+{PRICING_DISPLAY.PRIORITY_FEE}</span>
           </div>
         </label>
       </div>
