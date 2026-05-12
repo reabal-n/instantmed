@@ -3,6 +3,7 @@
 import * as Sentry from "@sentry/nextjs"
 
 import { requireRoleOrNull } from "@/lib/auth/helpers"
+import { doctorHasCapability } from "@/lib/auth/staff-capabilities"
 import { type ApproveCertResult, executeCertApproval } from "@/lib/clinical/execute-cert-approval"
 import { createLogger } from "@/lib/observability/logger"
 import { checkCertificateRateLimit } from "@/lib/rate-limit/doctor"
@@ -29,6 +30,21 @@ export async function approveAndSendCert(
       return { success: false, error: "Unauthorized or session expired" }
     }
     const doctorProfile = authResult.profile
+
+    // Phase 7 of dashboard remaster (2026-05-12): per-doctor capability gate.
+    // Owner-operator (admin role) has `can_review_med_certs` defaulted true so
+    // this is a no-op today; future doctor hires get scoped via this flag
+    // before they are verified for the medical certificate service line.
+    if (!doctorHasCapability(doctorProfile, "review_med_certs")) {
+      log.warn("Doctor lacks medical certificate capability", {
+        doctorId: doctorProfile.id,
+        intakeId,
+      })
+      return {
+        success: false,
+        error: "Your account is not configured to review medical certificates. Contact the medical director.",
+      }
+    }
 
     // P0 SECURITY: Rate limiting to prevent mass-approval attacks
     const rateLimitResult = await checkCertificateRateLimit(doctorProfile.id)

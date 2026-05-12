@@ -10,6 +10,10 @@ import {
   type RequestType,
 } from "@/lib/audit/compliance-audit"
 import { requireRole } from "@/lib/auth/helpers"
+import {
+  describeServiceCapability,
+  doctorCanReviewService,
+} from "@/lib/auth/staff-capabilities"
 import { IntakeLifecycleError } from "@/lib/data/intake-lifecycle"
 import {
   flagForFollowup,
@@ -140,21 +144,41 @@ export async function updateStatusAction(
   }
 
   // CRITICAL GUARD: Block direct approval of med certs - they MUST go through document builder
-  // Med certs require PDF generation and email sending via approveAndSendCert
-  if (status === "approved") {
+  // Med certs require PDF generation and email sending via approveAndSendCert.
+  // Phase 7 of dashboard remaster (2026-05-12): also gate on per-doctor
+  // capability flags here so a doctor without `can_review_consults` /
+  // `can_review_ed` etc cannot move an intake to approved or awaiting_script.
+  if (status === "approved" || status === "awaiting_script") {
     const supabase = createServiceRoleClient()
     const { data: intake } = await supabase
       .from("intakes")
-      .select("service:services(type)")
+      .select("subtype, service:services(type)")
       .eq("id", intakeId)
       .single()
-    
+
     const serviceType = (intake?.service as { type?: string } | null)?.type
-    if (serviceType === "med_certs") {
-      return { 
-        success: false, 
+    const subtype = intake?.subtype ?? null
+
+    if (status === "approved" && serviceType === "med_certs") {
+      return {
+        success: false,
         error: "Medical certificates must be approved through the document builder to generate PDFs and send emails.",
-        code: "MED_CERT_REQUIRES_DOCUMENT_BUILDER"
+        code: "MED_CERT_REQUIRES_DOCUMENT_BUILDER",
+      }
+    }
+
+    if (!doctorCanReviewService(profile, serviceType, subtype)) {
+      logger.warn("Doctor lacks capability for service", {
+        doctorId: profile.id,
+        intakeId,
+        serviceType,
+        subtype,
+        status,
+      })
+      return {
+        success: false,
+        error: `Your account is not configured to review ${describeServiceCapability(serviceType, subtype)}. Contact the medical director.`,
+        code: "DOCTOR_CAPABILITY_DENIED",
       }
     }
   }
@@ -356,6 +380,35 @@ export async function declineIntakeAction(
   const ownership = await ensureDoctorCaseActionAllowed(intakeId, profile)
   if (!ownership.success) {
     return { success: false, error: ownership.error }
+  }
+
+  // Phase 7 of dashboard remaster (2026-05-12): per-doctor capability gate.
+  // Declining is a clinical decision; a doctor without the matching service
+  // capability shouldn't be the one closing the case. Look up the intake
+  // service so the error message can name the gated capability.
+  {
+    const supabase = createServiceRoleClient()
+    const { data: intake } = await supabase
+      .from("intakes")
+      .select("subtype, service:services(type)")
+      .eq("id", intakeId)
+      .single()
+
+    const serviceType = (intake?.service as { type?: string } | null)?.type ?? null
+    const subtype = intake?.subtype ?? null
+
+    if (!doctorCanReviewService(profile, serviceType, subtype)) {
+      logger.warn("Doctor lacks capability to decline service", {
+        doctorId: profile.id,
+        intakeId,
+        serviceType,
+        subtype,
+      })
+      return {
+        success: false,
+        error: `Your account is not configured to review ${describeServiceCapability(serviceType, subtype)}. Contact the medical director.`,
+      }
+    }
   }
 
   // Use canonical decline action - handles refund + email + audit consistently

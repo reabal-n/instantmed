@@ -137,3 +137,66 @@ export function doctorHasCapability(
   if (typeof value === "boolean") return value
   return DOCTOR_CAPABILITY_DEFAULT[capability]
 }
+
+// ── Service routing ──────────────────────────────────────────────────────────
+// Maps an intake's service type + subtype to the capability flag a reviewing
+// doctor must hold. Phase 7 of dashboard remaster (2026-05-12).
+
+/**
+ * The capability a doctor must hold to review / approve / decline an intake
+ * for a given service. Returns null when the mapping isn't known (an unknown
+ * service falls open — capability gating only blocks recognized service
+ * lines).
+ */
+export function requiredCapabilityForService(
+  serviceType: string | null | undefined,
+  subtype: string | null | undefined,
+): DoctorCapability | null {
+  if (!serviceType) return null
+  if (serviceType === "med_certs") return "review_med_certs"
+  if (serviceType === "repeat_script" || serviceType === "prescription") {
+    return "review_repeat_rx"
+  }
+  if (serviceType === "consult") {
+    if (subtype === "ed") return "review_ed"
+    if (subtype === "hair_loss") return "review_hair_loss"
+    return "review_consults"
+  }
+  return null
+}
+
+/**
+ * Whether the given doctor profile is allowed to review the given service.
+ * Unknown service types fall open so we don't accidentally block legacy or
+ * not-yet-mapped pathways; explicit service lines we DO recognize check the
+ * specific capability flag.
+ */
+export function doctorCanReviewService(
+  profile: Pick<Profile, "role"> & Partial<DoctorCapabilityFields>,
+  serviceType: string | null | undefined,
+  subtype: string | null | undefined,
+): boolean {
+  if (!hasDoctorAccess(profile)) return false
+  const capability = requiredCapabilityForService(serviceType, subtype)
+  if (!capability) return true
+  return doctorHasCapability(profile, capability)
+}
+
+/**
+ * Friendly label used in capability-denied error messages.
+ */
+export function describeServiceCapability(
+  serviceType: string | null | undefined,
+  subtype: string | null | undefined,
+): string {
+  if (serviceType === "med_certs") return "medical certificates"
+  if (serviceType === "repeat_script" || serviceType === "prescription") {
+    return "repeat prescriptions"
+  }
+  if (serviceType === "consult") {
+    if (subtype === "ed") return "ED consults"
+    if (subtype === "hair_loss") return "hair loss consults"
+    return "consults"
+  }
+  return "this service"
+}
