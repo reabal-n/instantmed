@@ -1,10 +1,25 @@
 "use client"
 
-import { CheckCircle, Loader2, Send, XCircle } from "lucide-react"
-import { useMemo } from "react"
+import { CheckCircle, ClipboardCheck, Loader2, Send, XCircle } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useMemo, useState, useTransition } from "react"
+import { toast } from "sonner"
 
+import { markScriptSentAction } from "@/app/doctor/queue/actions"
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import { MIN_CLINICAL_NOTES_LENGTH } from "@/lib/doctor/clinical-notes"
 import {
@@ -145,16 +160,28 @@ export function IntakeActionButtons() {
       )}
 
       {hasPrescriptionIntent && intake.status === "awaiting_script" && (
-        <Button
-          onClick={handleOpenParchmentPrescribe}
-          className="bg-blue-600 hover:bg-blue-700"
-          disabled={isPending || hasPrescribingIdentityBlocker}
-          title={prescribingIdentityTitle}
-          size="sm"
-        >
-          <Send className="h-4 w-4 mr-1.5" />
-          {prescribingActionLabel ?? "Open Parchment"}
-        </Button>
+        <>
+          <Button
+            onClick={handleOpenParchmentPrescribe}
+            className="bg-blue-600 hover:bg-blue-700"
+            disabled={isPending || hasPrescribingIdentityBlocker}
+            title={prescribingIdentityTitle}
+            size="sm"
+          >
+            <Send className="h-4 w-4 mr-1.5" />
+            {prescribingActionLabel ?? "Open Parchment"}
+          </Button>
+          {/*
+            Mark Sent Manually fallback (added 2026-05-12).
+            Used when prescribing happened outside InstantMed (e.g. real
+            Parchment when only the sandbox is wired, or any other
+            external prescribing path). Without this the slide-over
+            traps the operator on the Parchment iframe — the
+            full-page case header has the same button but the slide-over
+            was missing it.
+          */}
+          <MarkSentManuallyButton intakeId={intake.id} />
+        </>
       )}
 
       {/* Consults: complete */}
@@ -203,5 +230,98 @@ export function IntakeActionButtons() {
         <p className="mt-2 text-xs font-medium text-warning">{approveDisabledReason}</p>
       )}
     </div>
+  )
+}
+
+/**
+ * Self-contained "Mark Sent Manually" button + confirmation dialog for the
+ * intake-review slide-over. Added 2026-05-12 to mirror the full-page case
+ * header's fallback path. Without it, an operator stuck on a broken
+ * Parchment iframe (sandbox connected, real prescribing done externally)
+ * cannot clear the request from the queue or trigger the patient email.
+ *
+ * Kept local to this file so the slide-over's existing action-rail
+ * `useTransition` is not disturbed. On success, `router.refresh()` reloads
+ * the page state and the slide-over re-fetches the intake (now in
+ * `script_sent` status) so the operator can close it / advance.
+ */
+function MarkSentManuallyButton({ intakeId }: { intakeId: string }) {
+  const router = useRouter()
+  const [open, setOpen] = useState(false)
+  const [parchmentReference, setParchmentReference] = useState("")
+  const [isPending, startTransition] = useTransition()
+
+  const handleConfirm = () => {
+    startTransition(async () => {
+      const result = await markScriptSentAction(
+        intakeId,
+        undefined,
+        parchmentReference.trim() || undefined,
+      )
+      if (result.success) {
+        toast.success("Script marked as sent. Patient email queued.")
+        setOpen(false)
+        setParchmentReference("")
+        router.refresh()
+      } else {
+        toast.error(result.error || "Failed to mark script sent")
+      }
+    })
+  }
+
+  return (
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setOpen(true)}
+        disabled={isPending}
+      >
+        <ClipboardCheck className="h-4 w-4 mr-1.5" />
+        Mark sent manually
+      </Button>
+      <AlertDialog
+        open={open}
+        onOpenChange={(next) => {
+          if (!next && isPending) return
+          if (!next) setParchmentReference("")
+          setOpen(next)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark script as sent</AlertDialogTitle>
+            <AlertDialogDescription>
+              Confirm that you have sent the prescription via Parchment or
+              another channel. The case will leave the queue and the patient
+              will be emailed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2 py-2">
+            <Label htmlFor="mark-sent-parchment-reference">
+              Parchment reference (optional)
+            </Label>
+            <Input
+              id="mark-sent-parchment-reference"
+              placeholder="e.g., PAR-12345"
+              value={parchmentReference}
+              onChange={(event) => setParchmentReference(event.target.value)}
+              disabled={isPending}
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirm}
+              disabled={isPending}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Confirm sent
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }
