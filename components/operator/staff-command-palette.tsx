@@ -113,22 +113,32 @@ export function StaffCommandPalette({
     }
   }, [])
 
+  // Pre-compute each item's searchable text once when `items` changes.
+  // Was rebuilding the joined-and-lowercased string per item per keystroke.
+  const indexedItems = useMemo(
+    () => items.map((item) => ({
+      item,
+      searchText: [item.title, item.detail, item.keywords].filter(Boolean).join(" ").toLowerCase(),
+    })),
+    [items],
+  )
+
   const filteredItems = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
     if (!normalizedQuery) return items
     // When the remote search is wired and has results for this query, merge
     // them in front of local nav-item matches so the operator sees patients/
     // intakes first (the most likely intent) followed by navigation hits.
-    const localHits = items.filter((item) =>
-      [item.title, item.detail, item.keywords].filter(Boolean).join(" ").toLowerCase().includes(normalizedQuery),
-    )
+    const localHits = indexedItems
+      .filter(({ searchText }) => searchText.includes(normalizedQuery))
+      .map(({ item }) => item)
     if (remoteResults && remoteResults.length > 0) {
       const seen = new Set(remoteResults.map((r) => r.id))
       const localUnique = localHits.filter((item) => !seen.has(item.id))
       return [...remoteResults, ...localUnique]
     }
     return localHits
-  }, [items, query, remoteResults])
+  }, [items, indexedItems, query, remoteResults])
 
   useEffect(() => {
     setSelectedIndex(0)
