@@ -24,7 +24,10 @@ describe("legacy prescription routes", () => {
 
     expect(nextConfig).toContain('source: "/doctor/repeat-rx"')
     expect(nextConfig).toContain('source: "/doctor/repeat-rx/:path*"')
-    expect(nextConfig).toContain('destination: "/doctor/dashboard"')
+    // Phase 2 of dashboard remaster (2026-05-12): /doctor/dashboard 307s
+    // to /dashboard. The repeat-rx redirect now points at /dashboard
+    // directly to skip the double-hop.
+    expect(nextConfig).toContain('destination: "/dashboard"')
     expect(existsSync(path.join(root, "app/doctor/repeat-rx/page.tsx"))).toBe(false)
     expect(existsSync(path.join(root, "app/doctor/repeat-rx/[id]/page.tsx"))).toBe(false)
     expect(existsSync(path.join(root, "app/api/repeat-rx/submit/route.ts"))).toBe(false)

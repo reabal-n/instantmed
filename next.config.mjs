@@ -280,9 +280,10 @@ const nextConfig = {
       { source: "/weight-management/:path*", destination: "/request", permanent: false },
       // Redirect-only pages moved to edge — no React rendering cost
       { source: "/gp-consult", destination: "/consult", permanent: true },
-      // Legacy doctor repeat-rx queue retired; canonical paid intakes live in /doctor/dashboard.
-      { source: "/doctor/repeat-rx", destination: "/doctor/dashboard", permanent: false },
-      { source: "/doctor/repeat-rx/:path*", destination: "/doctor/dashboard", permanent: false },
+      // Legacy doctor repeat-rx queue retired; canonical paid intakes live in /dashboard
+      // (Phase 2 of dashboard remaster, 2026-05-12; was /doctor/dashboard which now 307s here).
+      { source: "/doctor/repeat-rx", destination: "/dashboard", permanent: false },
+      { source: "/doctor/repeat-rx/:path*", destination: "/dashboard", permanent: false },
       { source: "/womens-health", destination: "/request", permanent: false },
       { source: "/request/med-cert", destination: "/request?service=med-cert", permanent: true },
       { source: "/request/consult", destination: "/request?service=consult", permanent: true },
