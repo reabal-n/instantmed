@@ -470,49 +470,62 @@ export function QueueClient({
     return sortForReviewNext(intakes)
   }, [intakes])
 
-  const filteredIntakes = sortedIntakes.filter((r) => {
-    // Status filter
-    if (statusFilter === "review" && !["paid", "in_review"].includes(r.status)) return false
-    if (statusFilter === "pending_info" && r.status !== "pending_info") return false
-    if (statusFilter === "scripts" && r.status !== "awaiting_script") return false
+  // Memoized filter. Previously this chained `.filter` lived bare in the
+  // render body, parsing the search query and walking `rawTokens` for every
+  // row on every render — including 30s clock ticks, hover prefetches, and
+  // every `expandedId` change. The query parsing now happens ONCE per
+  // search-or-filter change, and the row callback only does cheap
+  // attribute checks. Saves the dominant slice of jank on long queues.
+  const filteredIntakes = useMemo(() => {
+    const trimmed = debouncedSearch.trim().toLowerCase()
+    const rawTokens = trimmed ? (trimmed.match(/\w+:\S+/g) ?? []) : []
+    const plainQuery = trimmed ? trimmed.replace(/\w+:\S+/g, "").trim() : ""
+    const plainQueryStripped = plainQuery.replace(/\s+/g, "")
 
-    // Search filter — supports smart tokens: risk:high type:ed status:scripts priority:true
-    if (!debouncedSearch.trim()) return true
-    const service = r.service as { name?: string; type?: string } | undefined
+    return sortedIntakes.filter((r) => {
+      // Status filter
+      if (statusFilter === "review" && !["paid", "in_review"].includes(r.status)) return false
+      if (statusFilter === "pending_info" && r.status !== "pending_info") return false
+      if (statusFilter === "scripts" && r.status !== "awaiting_script") return false
 
-    // Extract tokens from search query
-    const rawTokens = debouncedSearch.toLowerCase().match(/\w+:\S+/g) ?? []
-    const plainQuery = debouncedSearch.toLowerCase().replace(/\w+:\S+/g, "").trim()
+      if (!trimmed) return true
+      const service = r.service as { name?: string; type?: string } | undefined
 
-    for (const token of rawTokens) {
-      const [key, val] = token.split(":") as [string, string]
-      if (key === "risk" || key === "risk_tier") {
-        if ((r.risk_tier ?? "low") !== val && !(val === "high" && hasRedFlags(r))) return false
-      } else if (key === "type") {
-        if (!service?.type?.toLowerCase().includes(val)) return false
-      } else if (key === "status") {
-        if (r.status !== val) return false
-      } else if (key === "priority") {
-        if (val === "true" && !r.is_priority) return false
-        if (val === "false" && r.is_priority) return false
-      } else if (key === "flag" || key === "flags") {
-        if (!hasRedFlags(r)) return false
+      for (const token of rawTokens) {
+        const [key, val] = token.split(":") as [string, string]
+        if (key === "risk" || key === "risk_tier") {
+          if ((r.risk_tier ?? "low") !== val && !(val === "high" && hasRedFlags(r))) return false
+        } else if (key === "type") {
+          if (!service?.type?.toLowerCase().includes(val)) return false
+        } else if (key === "status") {
+          if (r.status !== val) return false
+        } else if (key === "priority") {
+          if (val === "true" && !r.is_priority) return false
+          if (val === "false" && r.is_priority) return false
+        } else if (key === "flag" || key === "flags") {
+          if (!hasRedFlags(r)) return false
+        }
       }
-    }
 
-    if (!plainQuery) return true
-    return (
-      r.patient.full_name.toLowerCase().includes(plainQuery) ||
-      r.reference_number?.toLowerCase().includes(plainQuery) ||
-      r.patient.medicare_number?.includes(plainQuery) ||
-      r.patient.email?.toLowerCase().includes(plainQuery) ||
-      r.patient.phone?.replace(/\s+/g, "").includes(plainQuery.replace(/\s+/g, "")) ||
-      formatServiceType(service?.type || "").toLowerCase().includes(plainQuery)
-    )
-  })
+      if (!plainQuery) return true
+      return (
+        r.patient.full_name.toLowerCase().includes(plainQuery) ||
+        r.reference_number?.toLowerCase().includes(plainQuery) ||
+        r.patient.medicare_number?.includes(plainQuery) ||
+        r.patient.email?.toLowerCase().includes(plainQuery) ||
+        r.patient.phone?.replace(/\s+/g, "").includes(plainQueryStripped) ||
+        formatServiceType(service?.type || "").toLowerCase().includes(plainQuery)
+      )
+    })
+  }, [sortedIntakes, statusFilter, debouncedSearch, hasRedFlags])
 
-  // Keep ref in sync for panel navigation callbacks
-  filteredIntakesRef.current = filteredIntakes
+  // Keep the ref in sync — used by panel navigation callbacks that need
+  // the latest filtered list without re-rendering. Effect rather than a
+  // bare assignment so React Strict Mode + concurrent rendering can't
+  // observe a torn state.
+  useEffect(() => {
+    filteredIntakesRef.current = filteredIntakes
+  }, [filteredIntakes])
 
   const queueEmptyState = useMemo(() => buildQueueEmptyState({
     doctorAvailable,
@@ -589,22 +602,35 @@ export function QueueClient({
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [expandedId, filteredIntakes, openReviewPanel, handleApprove, dialogs])
 
-  // Auto-scroll the keyboard-focused row into view. Uses the row's `data-testid`
-  // attribute (set by QueueTable) to locate the element without prop-drilling
-  // refs. `nearest` block keeps the row in view without snapping the page.
+  // Auto-scroll the keyboard-focused row into view. Uses the row's
+  // `data-testid` attribute (set by QueueTable) to locate the element
+  // without prop-drilling refs. `nearest` block keeps the row in view
+  // without snapping the page.
+  //
+  // `behavior: "auto"` not "smooth": when the operator holds j or k the
+  // smooth animations queue and lag behind the keypresses, making the
+  // cursor feel sluggish. Instant snap matches Linear / Slack / Gmail
+  // keyboard nav.
   useEffect(() => {
     if (!expandedId) return
     const row = queueRegionRef.current?.querySelector<HTMLElement>(
       `[data-testid="queue-row-${expandedId}"]`,
     )
-    row?.scrollIntoView({ block: "nearest", behavior: "smooth" })
+    row?.scrollIntoView({ block: "nearest", behavior: "auto" })
   }, [expandedId])
 
   const reviewedToday = recentlyCompleted.length
   const queueSize = intakes.length
-  const approvalRate = recentlyCompleted.length > 0
-    ? Math.round((recentlyCompleted.filter((r) => r.status === "approved" || r.status === "completed").length / recentlyCompleted.length) * 100)
-    : null
+  // Memoised so the clock tick / search input / hover doesn't recompute
+  // this on every render. Only depends on the (rarely-changing) recent
+  // completions prop.
+  const approvalRate = useMemo(() => {
+    if (recentlyCompleted.length === 0) return null
+    const approved = recentlyCompleted.filter(
+      (r) => r.status === "approved" || r.status === "completed",
+    ).length
+    return Math.round((approved / recentlyCompleted.length) * 100)
+  }, [recentlyCompleted])
 
   // Live median wait from real queue data. Brand spec (docs/BRAND.md §6.1)
   // says median(paid_at → reviewed_at). Rolling 4-hour window per spec,

@@ -15,7 +15,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState, useTransition } from "react"
+import { useMemo, useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { revokeAIApproval } from "@/app/actions/revoke-ai-approval"
@@ -108,6 +108,24 @@ function getCompactNextActionLabel(status: IntakeWithPatient["status"], serviceT
 
 const REVIEW_TARGET_MINUTES = 120
 const REVIEW_TARGET_STATUSES = new Set(["paid", "in_review", "pending_info", "awaiting_script"])
+
+// Soft-claim lock timeout — matches the server-side claim TTL in
+// `lib/data/intake-lock.ts`. Hoisted to module scope so the row render
+// loop doesn't re-allocate the constant on every map iteration.
+const SOFT_CLAIM_TIMEOUT_MS = 10 * 60 * 1000
+
+// AEST short timestamp formatter used by the queue row. Hoisted to module
+// scope so we don't redefine the closure on every render of `QueueTable`.
+const QUEUE_TS_FORMATTER = new Intl.DateTimeFormat("en-AU", {
+  day: "numeric",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+})
+function formatQueueTimestamp(value: string | null | undefined): string | null {
+  if (!value) return null
+  return QUEUE_TS_FORMATTER.format(new Date(value))
+}
 
 export function isPastReviewTarget(queueEnteredAt: string | null | undefined, now = Date.now()): boolean {
   if (!queueEnteredAt) return false
@@ -224,18 +242,13 @@ export function QueueTable({
   const totalPages = pagination ? Math.ceil(pagination.total / pagination.pageSize) : 1
   const currentPage = pagination?.page ?? 1
 
-  // A patient is "returning" if they have a recently completed case — derived from recentlyCompleted prop
-  const returningPatientIds = new Set(recentlyCompleted.map((r) => r.patient_id))
-
-  const formatQueueTimestamp = (value: string | null | undefined) => {
-    if (!value) return null
-    return new Date(value).toLocaleString("en-AU", {
-      day: "numeric",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-    })
-  }
+  // A patient is "returning" if they have a recently completed case.
+  // Memoised so the Set isn't rebuilt on every render — the queue
+  // re-renders on every 30s clock tick + every search keystroke.
+  const returningPatientIds = useMemo(
+    () => new Set(recentlyCompleted.map((r) => r.patient_id)),
+    [recentlyCompleted],
+  )
 
   const rememberOpenedCase = (intakeId: string) => {
     onRememberOpenedCase(intakeId)
@@ -315,12 +328,11 @@ export function QueueTable({
             // lock timeout that `lib/data/intake-lock.ts` enforces. Only show
             // active claims (within timeout). If `reviewing_doctor_name` is
             // populated we use that; otherwise we fall back to "Another doctor".
-            const LOCK_TIMEOUT_MS = 10 * 60 * 1000
             const claimMsSinceAcquired = intake.claimed_at
               ? Date.now() - new Date(intake.claimed_at).getTime()
               : null
             const claimActive =
-              claimMsSinceAcquired != null && claimMsSinceAcquired < LOCK_TIMEOUT_MS
+              claimMsSinceAcquired != null && claimMsSinceAcquired < SOFT_CLAIM_TIMEOUT_MS
             const claimedByOther =
               claimActive && intake.claimed_by != null && intake.claimed_by !== doctorId
             const claimedByMe =
