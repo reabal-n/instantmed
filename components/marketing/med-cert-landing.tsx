@@ -10,6 +10,7 @@ import {
   Search,
   Star,
 } from "lucide-react"
+import dynamic from "next/dynamic"
 import Link from "next/link"
 import { useCallback } from "react"
 
@@ -17,19 +18,51 @@ import { StripePaymentLogos } from "@/components/checkout/payment-logos"
 import { Hero } from "@/components/marketing/hero"
 import { IntakeResumeChip } from "@/components/marketing/intake-resume-chip"
 import { MedCertHeroMockup } from "@/components/marketing/mockups/med-cert-hero-mockup"
-import { RegulatoryPartners } from "@/components/marketing/regulatory-partners"
+// Above-the-fold sections stay statically imported.
+// Below-the-fold sections are code-split via `next/dynamic` so the
+// landing's initial JS payload is smaller. SSR is left on
+// (default for `next/dynamic`) so SEO crawlers still see the markup.
+// Saves several hundred KB of parse cost on first paint — directly
+// addresses the audit finding of 10.9s cold load on Slow 3G-ish networks.
 import { CertificateTypeSelector } from "@/components/marketing/sections/certificate-type-selector"
-import { CommercialIntentLinksSection } from "@/components/marketing/sections/commercial-intent-links-section"
-import { HowItWorksInline } from "@/components/marketing/sections/how-it-works-inline"
-import { LimitationsSection } from "@/components/marketing/sections/limitations-section"
 import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
 import { TimeComparisonViz } from "@/components/marketing/sections/time-comparison-viz"
 import {
   type LandingPageConfig,
   LandingPageShell,
 } from "@/components/marketing/shared"
-import { CTABanner, FAQSection } from "@/components/sections"
 import { EmployerLogoMarquee } from "@/components/shared/employer-logo-marquee"
+
+const RegulatoryPartners = dynamic(
+  () =>
+    import("@/components/marketing/regulatory-partners").then(
+      (mod) => mod.RegulatoryPartners,
+    ),
+)
+const CommercialIntentLinksSection = dynamic(
+  () =>
+    import(
+      "@/components/marketing/sections/commercial-intent-links-section"
+    ).then((mod) => mod.CommercialIntentLinksSection),
+)
+const HowItWorksInline = dynamic(
+  () =>
+    import("@/components/marketing/sections/how-it-works-inline").then(
+      (mod) => mod.HowItWorksInline,
+    ),
+)
+const LimitationsSection = dynamic(
+  () =>
+    import("@/components/marketing/sections/limitations-section").then(
+      (mod) => mod.LimitationsSection,
+    ),
+)
+const CTABanner = dynamic(
+  () => import("@/components/sections").then((mod) => mod.CTABanner),
+)
+const FAQSection = dynamic(
+  () => import("@/components/sections").then((mod) => mod.FAQSection),
+)
 import { Heading } from "@/components/ui/heading"
 import { PRICING } from "@/lib/constants"
 import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
