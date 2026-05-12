@@ -668,6 +668,41 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
           },
         },
       })
+
+      // Server-side mirror of the client `purchase_completed` event. Client
+      // captures are blocked by adblockers and privacy browsers on roughly
+      // 70-80% of real purchases (see 2026-05-12 PostHog audit: 6 client
+      // purchase_completed vs 28 paid intakes in 30d). This fires from the
+      // Stripe webhook so the ground-truth conversion line is always
+      // captured, regardless of client tracker state.
+      //
+      // Naming: matches the client event name so a single PostHog insight
+      // can union the two streams via `purchase_completed OR
+      // purchase_completed_server` and dedupe on `intake_id`. AUD value
+      // mirrors the client capture for revenue dashboards.
+      posthog.capture({
+        distinctId: posthogDistinctId,
+        event: "purchase_completed_server",
+        properties: {
+          ...getPostHogBaselineProperties(),
+          intake_id: intakeId,
+          value: session.amount_total != null ? session.amount_total / 100 : null,
+          amount_cents: session.amount_total,
+          currency: (session.currency || "aud").toUpperCase(),
+          service_category: intakeAttribution?.category || session.metadata?.category,
+          service_subtype: intakeAttribution?.subtype || session.metadata?.service_slug,
+          utm_source: intakeAttribution?.utm_source || null,
+          utm_medium: intakeAttribution?.utm_medium || null,
+          utm_campaign: intakeAttribution?.utm_campaign || null,
+          utm_content: intakeAttribution?.utm_content || null,
+          gclid: intakeAttribution?.gclid || null,
+          gbraid: intakeAttribution?.gbraid || null,
+          wbraid: intakeAttribution?.wbraid || null,
+          campaignid: intakeAttribution?.campaignid || null,
+          has_gclid: Boolean(intakeAttribution?.gclid),
+          source: "stripe_webhook",
+        },
+      })
     } catch { /* non-blocking */ }
 
     // STEP 4: Save Stripe customer ID to profile (non-critical)

@@ -138,6 +138,15 @@ if (!isPlaywrightMode && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
       debug: process.env.NODE_ENV === "development",
     });
 
+    // Tag every client capture with `is_e2e: false` so dashboards can filter
+    // out test traffic the same way `lib/analytics/posthog-server.ts` already
+    // does for server captures. Playwright runs never reach this branch
+    // (init is gated on `!isPlaywrightMode` above), so registering `false`
+    // unconditionally here is correct for real-user sessions.
+    // Without this, the only way to exclude E2E noise was on server events,
+    // and any client-side funnel chart silently mixed seed traffic with real.
+    posthog.register({ is_e2e: false });
+
     // Defer session recording until after first interaction and browser idle.
     // Saves ~51KB + 550ms from the critical path (posthog-recorder.js).
     const startRecording = () => {

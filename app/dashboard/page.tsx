@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { QueueClient } from "@/app/doctor/queue/queue-client"
 import { AdminHubZones } from "@/components/admin/admin-hub-zones"
 import { OwnerOperatorSetupCard } from "@/components/admin/owner-operator-setup-card"
+import { ConversionSnapshotCard } from "@/components/dashboard/conversion-snapshot"
 import { DoctorAvailabilityToggle } from "@/components/doctor/doctor-availability-toggle"
 import {
   OperatorPage,
@@ -26,6 +27,7 @@ import {
   type QueueStatusFilter,
   STAFF_DASHBOARD_HREF,
 } from "@/lib/dashboard/routes"
+import { getConversionSnapshot } from "@/lib/data/conversion-snapshot"
 import {
   type DoctorIdentity,
   getDoctorIdentity,
@@ -108,6 +110,9 @@ export default async function StaffDashboardPage({
     getTodayEarnings(),
     import("@/app/actions/doctor-availability").then((m) => m.getDoctorAvailabilityAction()),
     getSystemHealth(),
+    // Admin-only snapshot. Fetched unconditionally to keep the array shape
+    // stable; the render is gated on `isAdmin` below.
+    isAdmin ? getConversionSnapshot() : Promise.resolve(null),
   ])
 
   const stats = results[0].status === "fulfilled"
@@ -122,6 +127,7 @@ export default async function StaffDashboardPage({
   const todayEarnings = results[5].status === "fulfilled" ? results[5].value : 0
   const doctorAvailable = results[6].status === "fulfilled" ? results[6].value.available : true
   const systemHealth = results[7].status === "fulfilled" ? results[7].value : EMPTY_SYSTEM_HEALTH
+  const conversionSnapshot = results[8].status === "fulfilled" ? results[8].value : null
 
   const parchmentUserId = typeof profile.parchment_user_id === "string" && profile.parchment_user_id.trim()
     ? profile.parchment_user_id.trim()
@@ -138,6 +144,7 @@ export default async function StaffDashboardPage({
         "earnings",
         "availability",
         "system-health",
+        "conversion-snapshot",
       ]
       log.error(`Failed to fetch staff dashboard ${names[index]}`, { profileId: profile.id }, result.reason)
     }
@@ -208,6 +215,10 @@ export default async function StaffDashboardPage({
                 doctorAvailable={doctorAvailable}
                 parchmentUserId={parchmentUserId}
               />
+
+              {conversionSnapshot ? (
+                <ConversionSnapshotCard data={conversionSnapshot} />
+              ) : null}
             </>
           ) : null}
 
