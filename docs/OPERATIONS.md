@@ -351,6 +351,7 @@ All crons use `verifyCronRequest()` from `lib/api/cron-auth.ts` for authenticati
 | Scheduled Maintenance | `/api/cron/scheduled-maintenance` | Every 5 min | Sync `maintenance_mode` with `maintenance_scheduled_start`/`end` window; auto-enable/disable banner |
 | AHPRA Re-verification | `/api/cron/ahpra-reverification` | Daily (6 AM AEST) | Flag overdue AHPRA verifications; disable approval for 30+ days overdue |
 | Daily Reconciliation | `/api/cron/daily-reconciliation` | Daily (7 AM AEST) | Identify mismatches: paid without delivery, failed refunds, failed deliveries |
+| PostHog Reconciliation | `/api/cron/posthog-reconciliation` | Hourly (:15) | Compare last 24h `intakes.payment_status='paid'` count (Supabase) vs `purchase_completed_server` event count (PostHog, `is_e2e=false`). Sentry alerts on >10% drift; "critical" past 30%. Requires `POSTHOG_PROJECT_API_KEY` (PostHog personal API key with `query:read` scope) + `POSTHOG_PROJECT_ID` (numeric, `277439`). Noops with `skipped: true` if either is missing. |
 | Repeat Rx Reminders | `/api/cron/repeat-rx-reminders` | Daily (8 AM AEST) | Enqueue reminder emails for repeat scripts completed ~30 days ago |
 | DLQ Monitor | `/api/cron/dlq-monitor` | Daily (9 AM UTC) | Alert on unprocessed Stripe webhook dead letter queue items > 24h old |
 | QA Sampling | `/api/cron/qa-sampling` | Weekly (Mon 6 AM UTC) | Sample 10% of approved intakes from last week for quality review |
