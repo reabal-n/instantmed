@@ -278,16 +278,19 @@ export async function resendCertificateAsStaff(intakeId: string): Promise<Resend
         certificateId: anyCert.id,
         status: anyCert.status,
       })
+      const guidance = anyCert.status === "superseded"
+        ? "A newer certificate has already replaced this one. Resend the current valid certificate instead."
+        : "Re-approve the intake from the doctor queue to issue a new certificate."
       return {
         success: false,
-        error: `Certificate exists but has status "${anyCert.status}". Use "Replace certificate" to issue a new one.`,
+        error: `Certificate exists but has status "${anyCert.status}". ${guidance}`,
       }
     }
 
     log.warn("Resend certificate (staff): no certificate record found", { intakeId })
     return {
       success: false,
-      error: "No certificate exists for this intake. Use \"Replace certificate\" to create one.",
+      error: "No certificate exists for this intake. Approve the intake from the doctor queue to issue one.",
     }
   } catch (error) {
     log.error("Resend certificate (staff): unexpected error", {
