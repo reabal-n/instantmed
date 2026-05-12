@@ -71,17 +71,19 @@ export function validateMedCertPayload(
     }
   }
 
-  // Symptoms are required
-  const symptoms = answers.symptoms
-  if (!symptoms || !Array.isArray(symptoms) || symptoms.length === 0) {
-    return {
-      valid: false,
-      error: "Please select at least one symptom.",
-    }
-  }
-
-  // Symptom details are required with minimum length
-  const symptomDetails = answers.symptoms_description || answers.symptom_details || answers.symptomDetails
+  // Symptom details are the clinically meaningful field. The med cert
+  // symptoms step (`components/request/steps/symptoms-step.tsx`) is a
+  // free-text description + duration only — it does not collect a
+  // discrete `symptoms` array. The legacy `answers.symptoms` array
+  // requirement here was dead code from a retired multi-select UI; it
+  // blocked every med cert checkout with "Please select at least one
+  // symptom." because no writer ever set the field. Validate the
+  // textarea content (with aliases for older payloads) instead.
+  const symptomDetails =
+    answers.symptoms_description ||
+    answers.symptom_details ||
+    answers.symptomDetails ||
+    answers.symptomsDescription
   if (!symptomDetails || typeof symptomDetails !== "string" || symptomDetails.trim().length < 20) {
     return {
       valid: false,
