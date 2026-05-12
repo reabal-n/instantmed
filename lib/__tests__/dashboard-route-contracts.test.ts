@@ -59,11 +59,15 @@ describe("dashboard route contracts", () => {
   })
 
   it("preserves queue redirect intent and allowed pagination params", () => {
+    // Phase 2 of dashboard remaster + dashboard-audit follow-up (2026-05-12):
+    // `/doctor/queue` now redirects straight to `/dashboard` instead of the
+    // legacy `/doctor/dashboard` alias (which 307s to the same target).
+    // Avoids a redirect chain on every queue bookmark.
     expect(buildDoctorQueueRedirectHref({ status: "review", page: "2", pageSize: "25" })).toBe(
-      "/doctor/dashboard?status=review&page=2&pageSize=25",
+      "/dashboard?status=review&page=2&pageSize=25",
     )
     expect(buildDoctorQueueRedirectHref({ status: "bad", page: "0", pageSize: "999", noise: "x" })).toBe(
-      "/doctor/dashboard",
+      "/dashboard",
     )
   })
 

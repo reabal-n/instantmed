@@ -152,7 +152,11 @@ export function buildStaffDashboardHref(options: {
 export function buildDoctorQueueRedirectHref(
   searchParams: Record<string, string | string[] | undefined>,
 ): string {
-  return buildDoctorDashboardHref({
+  // Resolve directly to the unified `STAFF_DASHBOARD_HREF` instead of the
+  // legacy `DOCTOR_DASHBOARD_HREF` alias — the alias itself 307s to the
+  // same target, so going through it adds a redirect hop on every
+  // `/doctor/queue` bookmark click.
+  return buildStaffDashboardHref({
     status: searchParams.status,
     page: searchParams.page,
     pageSize: searchParams.pageSize,

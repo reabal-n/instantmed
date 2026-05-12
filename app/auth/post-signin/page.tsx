@@ -334,10 +334,13 @@ export default async function PostSignInPage({
   } else if (params.intake_id) {
     destination = `/patient/intakes/success?intake_id=${params.intake_id}`
   } else {
-    if (hasAdminAccess(profile)) {
-      destination = "/admin"
-    } else if (hasDoctorAccess(profile)) {
-      destination = "/doctor/dashboard"
+    // Staff routes go straight to the unified `/dashboard` instead of the
+    // legacy aliases `/admin` and `/doctor/dashboard` (both 307 to
+    // `/dashboard` themselves). Saves an extra round-trip on every staff
+    // login. The aliases stay registered as redirects for bookmarks +
+    // back-button.
+    if (hasAdminAccess(profile) || hasDoctorAccess(profile)) {
+      destination = "/dashboard"
     } else {
       destination = profile.onboarding_completed ? "/patient" : "/patient/onboarding"
     }

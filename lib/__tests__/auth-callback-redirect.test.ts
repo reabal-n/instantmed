@@ -38,7 +38,12 @@ describe("resolvePostAuthDestination", () => {
     expect(signInSource).toContain("buildPostSignInHref")
     expect(signInSource).toContain("window.location.assign(buildPostSignInHref(redirectUrl))")
     expect(postSignInSource).toContain("hasAdminAccess(profile)")
-    expect(postSignInSource).toContain('destination = "/admin"')
+    // Phase 2 of dashboard remaster + dashboard-audit follow-up (2026-05-12):
+    // staff (admin + doctor) login goes straight to the unified `/dashboard`
+    // instead of the legacy aliases `/admin` and `/doctor/dashboard` which
+    // 307 to the same target. Saves one round-trip per login.
+    expect(postSignInSource).toContain('destination = "/dashboard"')
+    expect(postSignInSource).toContain("hasDoctorAccess(profile)")
   })
 
   it("gives expired magic-link users a recoverable sign-in state", () => {

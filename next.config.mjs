@@ -208,20 +208,23 @@ const nextConfig = {
         destination: "/prescriptions/:path*",
         permanent: true
       },
-      // Admin redirect consolidation — replaced redirect-only page.tsx files
+      // Admin redirect consolidation — replaced redirect-only page.tsx files.
+      // All three point straight to the canonical `/admin/emails/hub` to
+      // avoid chaining through the legacy `/admin/email-hub` alias (which
+      // is itself a redirect to `/admin/emails/hub`).
       {
         source: "/admin/email-outbox",
-        destination: "/admin/email-hub",
+        destination: "/admin/emails/hub",
         permanent: true
       },
       {
         source: "/admin/email-queue",
-        destination: "/admin/email-hub",
+        destination: "/admin/emails/hub",
         permanent: true
       },
       {
         source: "/admin/ops/email-outbox",
-        destination: "/admin/email-hub",
+        destination: "/admin/emails/hub",
         permanent: true
       },
       // Malformed URL — redirect /& (broken links, typos) to homepage
@@ -291,8 +294,9 @@ const nextConfig = {
       { source: "/gp-consult", destination: "/consult", permanent: true },
       // Legacy doctor repeat-rx queue retired; canonical paid intakes live in /dashboard
       // (Phase 2 of dashboard remaster, 2026-05-12; was /doctor/dashboard which now 307s here).
-      { source: "/doctor/repeat-rx", destination: "/dashboard", permanent: false },
-      { source: "/doctor/repeat-rx/:path*", destination: "/dashboard", permanent: false },
+      // `permanent: true` (308) so crawlers + bookmarks drop the legacy URL.
+      { source: "/doctor/repeat-rx", destination: "/dashboard", permanent: true },
+      { source: "/doctor/repeat-rx/:path*", destination: "/dashboard", permanent: true },
       { source: "/womens-health", destination: "/request", permanent: false },
       { source: "/request/med-cert", destination: "/request?service=med-cert", permanent: true },
       { source: "/request/consult", destination: "/request?service=consult", permanent: true },
