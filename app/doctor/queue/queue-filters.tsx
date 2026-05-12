@@ -1,12 +1,11 @@
 "use client"
 
-import { ArrowRight, HelpCircle, RefreshCw, Search, Volume2, VolumeOff } from "lucide-react"
+import { ArrowRight, RefreshCw, Search, Volume2, VolumeOff } from "lucide-react"
 import { useEffect, useRef } from "react"
 
 import { KeyboardShortcutsModal } from "@/components/doctor/keyboard-shortcuts-modal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import type { QueueStatusFilter } from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 import type { IntakeWithPatient } from "@/types/db"
@@ -24,18 +23,11 @@ export interface QueueFiltersProps {
   isStale: boolean
   isReconnecting: boolean
   isRefreshing?: boolean
+  /** No longer rendered (kept on the type for back-compat). */
   lastUpdatedLabel?: string
   compactShell?: boolean
   onReviewNext?: () => void
 }
-
-const SEARCH_TOKENS = [
-  { token: "risk:high", desc: "High-risk or flagged cases" },
-  { token: "priority:true", desc: "Express / priority cases" },
-  { token: "type:ed", desc: "Filter by service type (ed, certs, rx…)" },
-  { token: "status:paid", desc: "Filter by exact status" },
-  { token: "flags:true", desc: "Any red-flag cases" },
-]
 
 export function QueueFilters({
   searchQuery,
@@ -50,7 +42,8 @@ export function QueueFilters({
   isStale,
   isReconnecting,
   isRefreshing = false,
-  lastUpdatedLabel,
+  // lastUpdatedLabel is no longer rendered; kept on props for back-compat.
+  lastUpdatedLabel: _lastUpdatedLabel,
   compactShell = false,
   onReviewNext,
 }: QueueFiltersProps) {
@@ -82,24 +75,12 @@ export function QueueFilters({
           >
             {compactShell ? "Review and scripts" : `${filteredCount} case${filteredCount !== 1 ? "s" : ""} waiting`}
           </h2>
-          {compactShell && (
-            <span className="rounded-md border border-border/50 bg-muted/30 px-2 py-0.5 text-xs font-medium text-muted-foreground">
-              {filteredCount} ready
-            </span>
-          )}
-          {/* Live connection indicator */}
-          {!isStale && !isReconnecting && (
-            <span className="inline-flex items-center gap-1.5 text-xs text-success font-medium">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-              </span>
-              Live
-            </span>
-          )}
-          {lastUpdatedLabel && (
-            <span className="text-xs text-muted-foreground tabular-nums">
-              {isRefreshing ? "Refreshing..." : lastUpdatedLabel}
+          {/* Status dot only when stale/reconnecting. Healthy state is implicit; */}
+          {/* the per-tab counts already say how many cases are in play. */}
+          {(isStale || isReconnecting) && (
+            <span className="inline-flex items-center gap-1.5 text-xs text-warning font-medium">
+              <span className="h-1.5 w-1.5 rounded-full bg-warning" />
+              {isReconnecting ? "Reconnecting" : "Stale"}
             </span>
           )}
         </div>
@@ -118,39 +99,12 @@ export function QueueFilters({
           <div className="relative flex flex-1 items-center sm:flex-none">
             <Input
               ref={searchRef}
-              placeholder={compactShell ? "Search patient, profile, ref, Medicare, email, phone" : "Search… or / to focus"}
+              placeholder={compactShell ? "Search patients" : "Search… or / to focus"}
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className={cn("w-full h-9 text-sm", compactShell ? "sm:w-80" : "sm:w-56")}
+              className={cn("w-full h-9 text-sm", compactShell ? "sm:w-72" : "sm:w-56")}
               startContent={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
             />
-            <Popover>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  className="absolute right-2.5 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
-                  aria-label="Search token help"
-                >
-                  <HelpCircle className="h-3 w-3" />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent side="bottom" align="end" className="w-72 p-3">
-                <p className="text-xs font-medium text-foreground mb-2">Smart search tokens</p>
-                <div className="space-y-1.5">
-                  {SEARCH_TOKENS.map(({ token, desc }) => (
-                    <div key={token} className="flex items-baseline gap-2">
-                      <code className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded text-foreground shrink-0">
-                        {token}
-                      </code>
-                      <span className="text-xs text-muted-foreground">{desc}</span>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-xs text-muted-foreground mt-2.5 pt-2 border-t border-border/40">
-                  Combine with a name or Medicare number.
-                </p>
-              </PopoverContent>
-            </Popover>
           </div>
           {!compactShell && (
             <Button

@@ -11,14 +11,18 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
+// Match the page's dynamic mode so the layout doesn't try to statically
+// render while the page is forced dynamic.
+export const dynamic = "force-dynamic"
+
 /**
  * `/dashboard` layout wrap.
  *
  * Missing from Phase 2 of the dashboard remaster: without this file, the
  * page rendered without sidebar, padding, or any of the operator chrome.
- * Mirrors `app/doctor/layout.tsx` and `app/admin/layout.tsx`: role-aware
- * nav via `getStaffNav(profile)`, shared `OperatorShell`, sidebar visible
- * on every staff session.
+ *
+ * Auth: page.tsx will also call requireRole, which is intentional (defence
+ * in depth). The layout's call is the one that gates sidebar rendering.
  */
 export default async function DashboardLayout({
   children,
@@ -33,11 +37,10 @@ export default async function DashboardLayout({
 
   return (
     <OperatorShell
-      userName={authUser.profile.full_name}
+      userName={authUser.profile.full_name ?? "Staff"}
       userRole={staffRoleLabel}
       navCounts={navCounts}
       navSections={navSections}
-      brandLabel={staffRoleLabel}
     >
       {children}
     </OperatorShell>

@@ -1,6 +1,6 @@
 "use client"
 
-import { AlertCircle, CheckCircle2, ChevronDown, RefreshCw } from "lucide-react"
+import { AlertCircle, ChevronDown, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 
@@ -97,7 +97,13 @@ export function SystemHealthPill({ initial }: { initial?: SystemHealth }) {
   }
 
   const total = health.totalIssues
-  const tone: "ok" | "warning" | "danger" = total === 0 ? "ok" : total > 5 ? "danger" : "warning"
+  const tone: "warning" | "danger" = total > 5 ? "danger" : "warning"
+
+  // Self-hide when everything is healthy. The all-clear state was permanent
+  // header noise the operator learned to ignore. Absence is the signal: if
+  // nothing is showing, nothing is broken. The pill reappears the moment a
+  // recovery surface hits a non-zero issue count.
+  if (total === 0) return null
 
   return (
     <Popover>
@@ -109,35 +115,20 @@ export function SystemHealthPill({ initial }: { initial?: SystemHealth }) {
             "gap-2 transition-colors",
             tone === "danger" && "border-destructive/40 text-destructive hover:bg-destructive/5",
             tone === "warning" && "border-warning-border text-warning hover:bg-warning-light/50",
-            tone === "ok" && "border-border/60 text-muted-foreground hover:text-foreground",
           )}
-          aria-label={
-            tone === "ok"
-              ? "System health: all clear"
-              : `System health: ${total} issue${total === 1 ? "" : "s"} need attention`
-          }
+          aria-label={`System health: ${total} issue${total === 1 ? "" : "s"} need attention`}
         >
           <span
             className={cn(
               "h-2 w-2 rounded-full",
-              tone === "ok" && "bg-success",
               tone === "warning" && "bg-warning",
               tone === "danger" && "bg-destructive",
             )}
             aria-hidden
           />
-          {tone === "ok" ? (
-            <>
-              <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
-              <span className="hidden sm:inline">All clear</span>
-            </>
-          ) : (
-            <>
-              <AlertCircle className="h-3.5 w-3.5" aria-hidden />
-              <span className="tabular-nums">{total}</span>
-              <span className="hidden sm:inline">{total === 1 ? "issue" : "issues"}</span>
-            </>
-          )}
+          <AlertCircle className="h-3.5 w-3.5" aria-hidden />
+          <span className="tabular-nums">{total}</span>
+          <span className="hidden sm:inline">{total === 1 ? "issue" : "issues"}</span>
           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground/70" aria-hidden />
         </Button>
       </PopoverTrigger>
