@@ -17,7 +17,27 @@ const AUTH_IMMEDIATE_PATH_PREFIXES = [
   '/sign-up',
 ]
 
+// Public marketing routes also need a fast auth check so the nav can show
+// "Dashboard" instead of "Log in" for already-signed-in users. The cost is
+// one Supabase session read (~100ms typical) that runs in the background;
+// the gain is no auth flicker on the homepage / service pages. Anonymous
+// users hit the same call but the provider resolves to `isLoaded=true`
+// with `user=null` and the nav settles on "Log in".
+const AUTH_IMMEDIATE_ROOT_PATHS = new Set([
+  '/',
+  '/medical-certificate',
+  '/prescriptions',
+  '/consult',
+  '/erectile-dysfunction',
+  '/hair-loss',
+  '/about',
+  '/pricing',
+  '/contact',
+  '/request',
+])
+
 function shouldLoadAuthImmediately(pathname: string) {
+  if (AUTH_IMMEDIATE_ROOT_PATHS.has(pathname)) return true
   return AUTH_IMMEDIATE_PATH_PREFIXES.some((prefix) =>
     pathname === prefix || pathname.startsWith(`${prefix}/`)
   )

@@ -56,7 +56,24 @@ export function UserMenu({
             Start a request
           </Link>
         </Button>
-        {isLoaded && user ? (
+        {/*
+          Auth-aware link. Renders nothing until the client provider has
+          resolved the session (the auth load fires on mount for marketing
+          routes — see `AUTH_IMMEDIATE_ROOT_PATHS` in auth-provider.tsx).
+          A fixed-width invisible placeholder reserves layout space so the
+          nav doesn't reflow when the real link appears.
+
+          Previously: rendered "Log in" by default while loading, then
+          flipped to "Dashboard" once auth resolved. That produced the
+          user-reported flicker where clicking the link changed it to
+          "Dashboard" before navigating.
+        */}
+        {!isLoaded ? (
+          <span
+            aria-hidden
+            className="inline-block h-7 w-[88px] rounded-lg border border-border/30 bg-transparent"
+          />
+        ) : user ? (
           <Link
             href="/dashboard"
             className="flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors border border-border/40"
