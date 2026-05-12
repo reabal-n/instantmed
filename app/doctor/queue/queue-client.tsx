@@ -487,7 +487,8 @@ export function QueueClient({
       const currentIndex = expandedId ? filteredIntakes.findIndex((r) => r.id === expandedId) : -1
 
       switch (e.key) {
-        case "j": // Next case
+        case "j": // Next case (vim-style)
+        case "ArrowDown": // Same as j, for discoverability
           e.preventDefault()
           if (currentIndex < filteredIntakes.length - 1) {
             setExpandedId(filteredIntakes[currentIndex + 1].id)
@@ -495,7 +496,8 @@ export function QueueClient({
             setExpandedId(filteredIntakes[0].id)
           }
           break
-        case "k": // Previous case
+        case "k": // Previous case (vim-style)
+        case "ArrowUp": // Same as k, for discoverability
           e.preventDefault()
           if (currentIndex > 0) {
             setExpandedId(filteredIntakes[currentIndex - 1].id)
@@ -535,6 +537,17 @@ export function QueueClient({
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [expandedId, filteredIntakes, openReviewPanel, handleApprove, dialogs])
+
+  // Auto-scroll the keyboard-focused row into view. Uses the row's `data-testid`
+  // attribute (set by QueueTable) to locate the element without prop-drilling
+  // refs. `nearest` block keeps the row in view without snapping the page.
+  useEffect(() => {
+    if (!expandedId) return
+    const row = queueRegionRef.current?.querySelector<HTMLElement>(
+      `[data-testid="queue-row-${expandedId}"]`,
+    )
+    row?.scrollIntoView({ block: "nearest", behavior: "smooth" })
+  }, [expandedId])
 
   const reviewedToday = recentlyCompleted.length
   const queueSize = intakes.length
@@ -708,6 +721,29 @@ export function QueueClient({
         emptyState={queueEmptyState}
         compactShell={compactShell}
       />
+
+      {/* Keyboard hint strip. Renders only when the queue has rows AND
+          nothing is focused, so it teaches the shortcut without screaming
+          at the operator mid-triage. Disappears after first arrow press. */}
+      {compactShell && filteredIntakes.length > 0 && !expandedId ? (
+        <div
+          className="flex shrink-0 items-center gap-1.5 px-1 pb-1 text-[11px] text-muted-foreground/70"
+          aria-hidden
+        >
+          <kbd className="rounded border border-border/60 bg-muted/40 px-1.5 py-0.5 font-sans text-[10px] font-semibold">↓</kbd>
+          <kbd className="rounded border border-border/60 bg-muted/40 px-1.5 py-0.5 font-sans text-[10px] font-semibold">↑</kbd>
+          <span>navigate</span>
+          <span className="mx-1 text-border">·</span>
+          <kbd className="rounded border border-border/60 bg-muted/40 px-1.5 py-0.5 font-sans text-[10px] font-semibold">Enter</kbd>
+          <span>open</span>
+          <span className="mx-1 text-border">·</span>
+          <kbd className="rounded border border-border/60 bg-muted/40 px-1.5 py-0.5 font-sans text-[10px] font-semibold">A</kbd>
+          <span>approve</span>
+          <span className="mx-1 text-border">·</span>
+          <kbd className="rounded border border-border/60 bg-muted/40 px-1.5 py-0.5 font-sans text-[10px] font-semibold">D</kbd>
+          <span>decline</span>
+        </div>
+      ) : null}
     </div>
   )
 }

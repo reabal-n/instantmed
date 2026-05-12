@@ -325,8 +325,10 @@ export function QueueTable({
                 key={intake.id}
                 data-testid={`queue-row-${intake.id}`}
                 className={cn(
-                  "group grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-2 px-3 transition-colors sm:grid-cols-[minmax(0,auto)_minmax(0,1fr)_auto_auto_auto] sm:items-center sm:px-4",
-                  compactShell ? "py-2.5" : "py-3",
+                  "group grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1.5 px-3 transition-colors duration-150 sm:grid-cols-[minmax(0,auto)_minmax(0,1fr)_auto_auto_auto] sm:items-center sm:px-4",
+                  // Linear-tier density: compact rows breathe at 8px vertical
+                  // padding so 12-15 cases fit in one viewport at 1440px.
+                  compactShell ? "py-2" : "py-3",
                   "hover:bg-muted/40",
                   index < filteredIntakes.length - 1 && "border-b border-border/40",
                   isFocused && "bg-primary/[0.04] ring-1 ring-inset ring-primary/20",
