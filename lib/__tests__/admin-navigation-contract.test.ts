@@ -235,20 +235,21 @@ describe("admin navigation contract", () => {
     expect(adminIntakeDetailSource).toContain("PanelProvider")
     expect(adminIntakeDetailSource).toContain("compact")
     expect(adminIntakeDetailSource).toContain("Back to work")
-    expect(adminPatientDetailSource).toContain("Back to patients")
     expect(adminIntakeDetailSource).toContain("Copy summary")
     expect(adminIntakeDetailSource).toContain("Operator request summary")
     expect(adminIntakeDetailSource).not.toContain("Switch to doctor mode")
-    expect(adminPatientDetailSource).toContain("Open clinical file")
-    expect(adminPatientDetailSource).toContain("operator-action-rail")
-    expect(adminPatientDetailSource).toContain("formatPrescriptionLabel")
+    expect(adminIntakeDetailSource).not.toContain("Open doctor workflow")
+    expect(adminIntakeDetailSource).toContain('requireRole(["admin"]')
+    // Phase 4 of dashboard remaster (2026-05-12): /admin/patients/[id] is
+    // now a redirect to /doctor/patients/[id]. The duplicate 471-line admin
+    // patient detail page (4-stat tile row + 3-card layout) was retired.
+    // The audit's "Open clinical file" CTA effectively became the whole page.
+    expect(adminPatientDetailSource).toContain("redirect")
+    expect(adminPatientDetailSource).toContain("/doctor/patients/")
     expect(adminPatientDetailSource).not.toContain("Switch to doctor file")
     expect(adminPatientDetailSource).not.toContain("Switch to doctor mode")
     expect(adminPatientDetailSource).not.toContain("Continue as doctor")
-    expect(adminIntakeDetailSource).not.toContain("Open doctor workflow")
     expect(adminPatientDetailSource).not.toContain("Prescribe as doctor")
-    expect(adminIntakeDetailSource).toContain('requireRole(["admin"]')
-    expect(adminPatientDetailSource).toContain('requireRole(["admin"]')
   })
 
   it("keeps compact intake review as a three-lane decision cockpit", () => {
@@ -324,6 +325,8 @@ describe("admin navigation contract", () => {
       join(process.cwd(), "app/admin/webhooks/page.tsx"),
       // Phase 2: /admin itself is now a redirect to /dashboard.
       join(process.cwd(), "app/admin/page.tsx"),
+      // Phase 4: /admin/patients/[id] is now a redirect to /doctor/patients/[id].
+      join(process.cwd(), "app/admin/patients/[id]/page.tsx"),
     ])
 
     for (const pageFile of findAdminPageFiles()) {
