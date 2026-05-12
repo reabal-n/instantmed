@@ -64,7 +64,7 @@ describe("test-data toggle contract", () => {
   it("threads allowSeeded through getDoctorQueue options", () => {
     const source = read("lib/data/intakes/queries.ts")
     // Function signature accepts the option.
-    expect(source).toMatch(/allowSeeded\?\: boolean/)
+    expect(source).toMatch(/allowSeeded\?: boolean/)
     // Both filter call sites in getDoctorQueue forward the option via the
     // shared `allowSeeded` local. (Counting `{ allowSeeded }` is enough —
     // the filter wraps a multi-line query so regex-matching the whole
