@@ -1,12 +1,54 @@
 "use client"
 
-import { useMemo } from "react"
+import { useCallback, useMemo } from "react"
 
 import {
   type StaffCommandItem,
   StaffCommandPalette,
 } from "@/components/operator/staff-command-palette"
 import type { StaffNavSection } from "@/lib/dashboard/staff-navigation"
+
+interface PaletteSearchResult {
+  id: string
+  kind: "patient" | "intake"
+  title: string
+  detail: string
+  href: string
+  badge: string
+}
+
+interface PaletteSearchResponse {
+  results?: PaletteSearchResult[]
+  error?: string
+}
+
+/**
+ * Server-backed fuzzy search across patients + intakes.
+ * Mounted once in `OperatorShell` so every staff route shares the same
+ * Cmd+K experience.
+ */
+async function fetchPaletteSearch(query: string, signal: AbortSignal): Promise<StaffCommandItem[]> {
+  try {
+    const response = await fetch(`/api/admin/palette-search?q=${encodeURIComponent(query)}`, {
+      signal,
+      cache: "no-store",
+    })
+    if (!response.ok) return []
+    const payload = (await response.json()) as PaletteSearchResponse
+    if (!payload.results) return []
+    return payload.results.map<StaffCommandItem>((result) => ({
+      id: result.id,
+      title: result.title,
+      detail: result.detail,
+      keywords: `${result.title} ${result.detail}`,
+      href: result.href,
+      label: result.badge,
+      tone: "neutral",
+    }))
+  } catch {
+    return []
+  }
+}
 
 interface StaffPaletteHostProps {
   navSections: StaffNavSection[]
@@ -29,6 +71,10 @@ interface StaffPaletteHostProps {
  * `hidden` keeps a single source of truth for behavior.
  */
 export function StaffPaletteHost({ navSections }: StaffPaletteHostProps) {
+  const searchFn = useCallback(
+    (query: string, signal: AbortSignal) => fetchPaletteSearch(query, signal),
+    [],
+  )
   const items = useMemo<StaffCommandItem[]>(() => {
     const navItems: StaffCommandItem[] = navSections.flatMap((section) =>
       section.items.map((item) => ({
@@ -74,7 +120,8 @@ export function StaffPaletteHost({ navSections }: StaffPaletteHostProps) {
         items={items}
         buttonLabel="Staff palette"
         title="Staff palette"
-        placeholder="Patient, intake, script, refund, webhook..."
+        placeholder="Search a patient, case reference, or jump to..."
+        searchFn={searchFn}
       />
     </div>
   )

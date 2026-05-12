@@ -47,6 +47,13 @@ interface StaffCommandPaletteProps {
   description?: string
   placeholder?: string
   emptyLabel?: string
+  /**
+   * Optional async search hook. When provided AND the query has 2+ chars,
+   * results from this function REPLACE the local-filtered `items` so the
+   * palette behaves as a search bar over patients / intakes / etc.
+   * Debounced 120ms client-side before the fetch fires.
+   */
+  searchFn?: (query: string, signal: AbortSignal) => Promise<StaffCommandItem[]>
 }
 
 function CommandToneBadge({ item }: { item: StaffCommandItem }) {
@@ -76,11 +83,14 @@ export function StaffCommandPalette({
   description = "Search patients, cases, scripts, and recovery paths. Use arrow keys and Enter to open.",
   placeholder = "Patient, intake, script, refund, webhook...",
   emptyLabel = "No staff action matches that search.",
+  searchFn,
 }: StaffCommandPaletteProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [selectedIndex, setSelectedIndex] = useState(0)
+  const [remoteResults, setRemoteResults] = useState<StaffCommandItem[] | null>(null)
+  const [isRemoteLoading, setIsRemoteLoading] = useState(false)
 
   useEffect(() => {
     function handleGlobalKeydown(event: globalThis.KeyboardEvent) {
@@ -106,14 +116,51 @@ export function StaffCommandPalette({
   const filteredItems = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
     if (!normalizedQuery) return items
-    return items.filter((item) =>
+    // When the remote search is wired and has results for this query, merge
+    // them in front of local nav-item matches so the operator sees patients/
+    // intakes first (the most likely intent) followed by navigation hits.
+    const localHits = items.filter((item) =>
       [item.title, item.detail, item.keywords].filter(Boolean).join(" ").toLowerCase().includes(normalizedQuery),
     )
-  }, [items, query])
+    if (remoteResults && remoteResults.length > 0) {
+      const seen = new Set(remoteResults.map((r) => r.id))
+      const localUnique = localHits.filter((item) => !seen.has(item.id))
+      return [...remoteResults, ...localUnique]
+    }
+    return localHits
+  }, [items, query, remoteResults])
 
   useEffect(() => {
     setSelectedIndex(0)
   }, [query])
+
+  // Debounced remote search. Aborts in-flight requests on each keystroke.
+  useEffect(() => {
+    if (!searchFn) return
+    const trimmed = query.trim()
+    if (trimmed.length < 2) {
+      setRemoteResults(null)
+      setIsRemoteLoading(false)
+      return
+    }
+    const controller = new AbortController()
+    const handle = window.setTimeout(async () => {
+      setIsRemoteLoading(true)
+      try {
+        const results = await searchFn(trimmed, controller.signal)
+        if (!controller.signal.aborted) {
+          setRemoteResults(results)
+          setIsRemoteLoading(false)
+        }
+      } catch {
+        if (!controller.signal.aborted) setIsRemoteLoading(false)
+      }
+    }, 120)
+    return () => {
+      window.clearTimeout(handle)
+      controller.abort()
+    }
+  }, [query, searchFn])
 
   function openCommand(item: StaffCommandItem) {
     setOpen(false)
@@ -156,6 +203,11 @@ export function StaffCommandPalette({
               onChange={(event) => setQuery(event.target.value)}
               placeholder={placeholder}
               startContent={<Search className="h-4 w-4" />}
+              endContent={isRemoteLoading ? (
+                <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                  Searching…
+                </span>
+              ) : null}
             />
             <div className="mt-3 max-h-[360px] overflow-y-auto rounded-lg border border-border/60">
               {filteredItems.length === 0 ? (
