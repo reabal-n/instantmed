@@ -20,6 +20,7 @@ import { toast } from "sonner"
 
 import { revokeAIApproval } from "@/app/actions/revoke-ai-approval"
 import { PatientProfilePanel } from "@/components/doctor/patient-profile-panel"
+import { QueueRowPeek } from "@/components/doctor/queue/queue-row-peek"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -338,8 +339,15 @@ export function QueueTable({
             const isReturning = returningPatientIds.has(intake.patient_id)
             const chiefComplaint = getChiefComplaint(intake)
             return (
-              <div
+              <QueueRowPeek
                 key={intake.id}
+                intakeId={intake.id}
+                // Suppress the peek when the row is the active/open case —
+                // the detail pane is already showing the full content; an
+                // additional popover overlay would be noise.
+                suppressed={isFocused || isOpen}
+              >
+              <div
                 data-testid={`queue-row-${intake.id}`}
                 className={cn(
                   "group grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1.5 px-3 transition-colors duration-150 sm:grid-cols-[minmax(0,auto)_minmax(0,1fr)_auto_auto_auto] sm:items-center sm:px-4",
@@ -630,6 +638,7 @@ export function QueueTable({
                   <AlertTriangle className="col-start-2 row-start-3 h-3.5 w-3.5 shrink-0 justify-self-end text-destructive sm:col-start-5 sm:row-start-1" aria-label="Critical" />
                 )}
               </div>
+              </QueueRowPeek>
             )
           })}
         </div>
