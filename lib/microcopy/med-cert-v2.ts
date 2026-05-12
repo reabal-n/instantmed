@@ -186,7 +186,7 @@ export const MED_CERT_COPY = {
     whatNext: {
       heading: "What happens next?",
       steps: [
-        "A GP will review your request (usually within 1 hour)",
+        "A GP will review your request (most within 1–2 hours)",
         "If approved, your certificate will be emailed to you",
         "You can also download it from your account",
       ],
