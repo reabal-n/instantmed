@@ -16,6 +16,19 @@ import {
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 
+/**
+ * Custom event name fired to open the staff command palette from anywhere
+ * (sidebar `⌘K` hint, deep-links, error surfaces). Centralising avoids
+ * prop-drilling and keeps the open-from-static-context contract one symbol.
+ */
+export const STAFF_PALETTE_OPEN_EVENT = "instantmed:staff-palette:open"
+
+/** Programmatic open. Safe in client components only. */
+export function openStaffPalette() {
+  if (typeof window === "undefined") return
+  window.dispatchEvent(new CustomEvent(STAFF_PALETTE_OPEN_EVENT))
+}
+
 export interface StaffCommandItem {
   id: string
   title: string
@@ -76,9 +89,18 @@ export function StaffCommandPalette({
         setOpen(true)
       }
     }
+    // Custom event so the sidebar (and any other static surface) can open
+    // the palette without prop-drilling. Fires from `openStaffPalette()`.
+    function handleOpenEvent() {
+      setOpen(true)
+    }
 
     window.addEventListener("keydown", handleGlobalKeydown)
-    return () => window.removeEventListener("keydown", handleGlobalKeydown)
+    window.addEventListener(STAFF_PALETTE_OPEN_EVENT, handleOpenEvent)
+    return () => {
+      window.removeEventListener("keydown", handleGlobalKeydown)
+      window.removeEventListener(STAFF_PALETTE_OPEN_EVENT, handleOpenEvent)
+    }
   }, [])
 
   const filteredItems = useMemo(() => {

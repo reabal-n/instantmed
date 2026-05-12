@@ -1,7 +1,8 @@
 import type { ReactNode } from "react"
 
 import { AdminSidebar, MobileAdminNav } from "@/components/admin/admin-sidebar"
-import type { StaffNavCounts, StaffNavSection } from "@/lib/dashboard/staff-navigation"
+import { StaffPaletteHost } from "@/components/operator/staff-palette-host"
+import { operatorNavSections, type StaffNavCounts, type StaffNavSection } from "@/lib/dashboard/staff-navigation"
 import { cn } from "@/lib/utils"
 
 interface OperatorShellProps {
@@ -35,15 +36,17 @@ export function OperatorShell({
   contentMaxWidth = "default",
   children,
 }: OperatorShellProps) {
+  const resolvedSections = navSections ?? operatorNavSections
   return (
     <div className="flex min-h-screen bg-background">
       <AdminSidebar
         userName={userName}
         userRole={userRole}
         navCounts={navCounts}
-        navSections={navSections}
+        navSections={resolvedSections}
         brandLabel={brandLabel}
       />
+      <StaffPaletteHost navSections={resolvedSections} />
       <main className={cn("flex-1 min-w-0 py-8 px-4 sm:px-6 lg:px-8", mainClassName)}>
         <div
           className={cn(

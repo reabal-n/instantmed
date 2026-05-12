@@ -9,7 +9,7 @@ import {
   OperatorPage,
   OperatorPageHeader,
   OperatorScrollArea,
-  StaffCommandPalette,
+  StaffSearchTrigger,
   SystemHealthPill,
   TestDataBanner,
   TestDataToggleButton,
@@ -114,9 +114,11 @@ export default async function StaffDashboardPage({
     isAdmin ? getConversionSnapshot() : Promise.resolve(null),
   ])
 
-  const stats = results[0].status === "fulfilled"
-    ? results[0].value
-    : { total: 0, in_queue: 0, approved: 0, declined: 0, pending_info: 0, scripts_pending: 0 }
+  // Stats fetch kept (counts feed sidebar nav-counts indirectly via
+  // getStaffNavCounts in the layout). The local `stats` value is no longer
+  // surfaced on the dashboard now that AdminHubZones is gone and the
+  // command palette derives shortcuts from the nav itself.
+  void results[0]
   const queueResult = results[1].status === "fulfilled"
     ? results[1].value
     : { data: [] as IntakeWithPatient[], total: 0, page: 1, pageSize, degraded: true }
@@ -149,13 +151,6 @@ export default async function StaffDashboardPage({
     }
   })
 
-  const buildStatusHref = (status: QueueStatusFilter) => {
-    const search = new URLSearchParams()
-    if (status !== "all") search.set("status", status)
-    const qs = search.toString()
-    return qs ? `${STAFF_DASHBOARD_HREF}?${qs}#doctor-queue` : `${STAFF_DASHBOARD_HREF}#doctor-queue`
-  }
-
   return (
     <PanelProvider>
       <OperatorPage>
@@ -165,32 +160,7 @@ export default async function StaffDashboardPage({
             <div className="flex flex-wrap items-center justify-end gap-2">
               {isAdmin && <TestDataToggleButton active={showTestData} />}
               <SystemHealthPill initial={systemHealth} />
-              <StaffCommandPalette
-                buttonLabel="Staff palette"
-                placeholder="Resume reviewing, scripts, patient, case..."
-                items={[
-                  {
-                    id: "resume-reviewing",
-                    title: "Resume reviewing",
-                    detail: stats.in_queue > 0
-                      ? `${stats.in_queue} review case${stats.in_queue === 1 ? "" : "s"} waiting`
-                      : "Open the clinical review queue",
-                    href: buildStatusHref("review"),
-                    keywords: "resume reviewing continue doctor queue clinical review next case",
-                    tone: stats.in_queue > 0 ? "warning" : "neutral",
-                    label: "Queue",
-                  },
-                  {
-                    id: "scripts",
-                    title: "Open scripts",
-                    detail: `${stats.scripts_pending} script${stats.scripts_pending === 1 ? "" : "s"} waiting for send confirmation`,
-                    href: buildStatusHref("scripts"),
-                    keywords: "script eScript prescribing Parchment awaiting_script",
-                    tone: stats.scripts_pending > 0 ? "warning" : "neutral",
-                    label: "Scripts",
-                  },
-                ]}
-              />
+              <StaffSearchTrigger compact />
               <DoctorAvailabilityToggle initialAvailable={doctorAvailable} compact />
             </div>
           )}
