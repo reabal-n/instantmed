@@ -127,8 +127,13 @@ describe("manual patient creation", () => {
   it("surfaces patient-profile Parchment sync and refresh controls", () => {
     expect(patientDetailClientSource).toContain("syncPatientParchmentProfileAction")
     expect(patientDetailClientSource).toContain("refreshPatientParchmentPrescriptionsAction")
-    expect(patientDetailClientSource).toContain("Prescriber account not linked")
+    // Phase 4 of dashboard remaster (2026-05-12): the "Prescriber account
+    // not linked" warning + "Refresh prescriptions" CTA moved out of the
+    // standalone Prescribing Workspace card. Equivalent affordances live
+    // in the compact Prescribing strip (`Prescriber not linked` chip +
+    // `Refresh` button) and link to the same identity-settings anchor.
+    expect(patientDetailClientSource).toContain("Prescriber not linked")
     expect(patientDetailClientSource).toContain("/doctor/settings/identity#parchment-account")
-    expect(patientDetailClientSource).toContain("Refresh prescriptions")
+    expect(patientDetailClientSource).toContain("Refresh")
   })
 })

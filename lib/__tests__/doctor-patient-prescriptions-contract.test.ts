@@ -45,29 +45,40 @@ describe("doctor patient medication history contract", () => {
     expect(timelineSource).toContain("Parchment")
   })
 
+  // Phase 4 of dashboard remaster (2026-05-12): patient profile became an
+  // entity page. The "Prescribing workspace" card collapsed into a thin
+  // strip; the "Delivery evidence" card was retired (its content lives in
+  // the unified timeline's Audit tab); the "Patient summary" card became
+  // a single bounded label/value strip.
   it("keeps patient-profile prescribing actions visible with clear blocked states", () => {
-    expect(detailSource).toContain("Prescribing workspace")
+    // Prescribing strip — the primary CTA + the four blocked states must
+    // still be reachable on the entity page.
     expect(detailSource).toContain("Prescribe in Parchment")
     expect(detailSource).not.toContain("Add prescription")
-    expect(detailSource.match(/Refresh prescriptions/g)?.length ?? 0).toBe(1)
-    expect(detailSource).toContain("Verify delivery")
+    // Refresh / Sync controls live in the strip, not in a big card.
+    expect(detailSource).toContain("Refresh")
+    expect(detailSource).toContain("Sync")
     expect(detailSource).toContain("Prescriber not linked")
     expect(detailSource).toContain("/doctor/settings/identity#parchment-account")
     expect(detailSource).toContain("Parchment integration disabled")
-    expect(detailSource).toContain("Sync patient")
   })
 
-  it("organizes the profile around clinically relevant sections", () => {
-    expect(detailSource).toContain("Patient summary")
-    expect(detailSource).toContain("Prescribing identity")
-    expect(detailSource).toContain("Last prescription")
-    expect(detailSource).toContain("Delivery evidence")
-    expect(detailSource).toContain("Webhook confirmed script sent")
+  it("organizes the profile around the unified timeline as primary content", () => {
+    // Identity / Prescribing identity / Parchment cards collapsed into one
+    // bounded `<dl>` strip. The compact identity row keeps Email/Phone/
+    // Address/DOB/Medicare/Member-since but drops the "Patient summary"
+    // header that hosted them.
+    expect(detailSource).toContain("Address")
+    expect(detailSource).toContain("DOB")
+    expect(detailSource).toContain("Medicare")
+    expect(detailSource).toContain("Member since")
+    // Old card titles must NOT come back.
+    expect(detailSource).not.toContain("Patient summary")
+    expect(detailSource).not.toContain("Prescribing identity")
+    // Audit / delivery evidence is the timeline's job now.
+    expect(detailSource).not.toContain("Delivery evidence")
     expect(detailPageSource).toContain("Prescription synced to PMS")
-    // Phase 4b: the dedicated "Active Prescriptions" card was retired in
-    // favor of the unified PatientTimeline, which uses its own paging
-    // (`initialPageSize` + "Show older") instead of `visibleMedications`
-    // / `hiddenMedicationCount`. Pin the new behavior.
+    // Phase 4b: PatientTimeline is the canonical history surface.
     expect(detailSource).toContain("<PatientTimeline")
     expect(detailSource).toContain("prescriptions={medications}")
     expect(timelineSource).toContain("initialPageSize")
@@ -75,21 +86,27 @@ describe("doctor patient medication history contract", () => {
   })
 
   it("surfaces Parchment webhook and sync activity without exposing raw PHI", () => {
+    // The audit-row mapping (page.tsx) feeds the timeline; the timeline
+    // renders these without exposing raw PHI.
     expect(detailPageSource).toContain("getPatientParchmentAuditRows")
     expect(detailPageSource).toContain("parchment_webhook_script_sent")
     expect(detailPageSource).toContain("metadata->>patient_id")
     expect(detailPageSource).toContain("metadata->>partner_patient_id")
     expect(detailSource).toContain("parchmentActivity")
-    expect(detailSource).toContain("Waiting for webhook")
-    expect(detailSource).toContain("Verifying Parchment delivery evidence")
+    // The audit-event labels live on the timeline now.
+    expect(timelineSource.toLowerCase()).toContain("webhook")
   })
 
-  it("keeps the Parchment delivery panel consolidated instead of duplicating prescription history rows", () => {
-    expect(detailPageSource).toContain(".slice(0, 1)")
-    expect(detailSource).toContain("Latest delivery update")
-    expect(detailSource).toContain("secondaryParchmentActivity")
-    expect(detailSource).toContain("earlier delivery event")
-    expect(detailSource).not.toContain("parchmentActivity.slice(1, 5)")
+  it("does not re-add a separate Delivery Evidence card", () => {
+    // Phase 4 deliberately retired the "Delivery evidence" card because
+    // the timeline's Audit tab shows the same webhook events with the
+    // same SCID/event-id deep links. A regression that brings it back
+    // would re-duplicate ~150px of vertical surface.
+    expect(detailSource).not.toContain("Latest delivery update")
+    expect(detailSource).not.toContain("secondaryParchmentActivity")
+    expect(detailSource).not.toContain("earlier delivery event")
+    expect(detailSource).not.toContain("Verifying Parchment delivery evidence")
+    expect(detailSource).not.toContain("Waiting for webhook")
   })
 
   it("hides empty secondary patient sections instead of rendering full empty cards", () => {

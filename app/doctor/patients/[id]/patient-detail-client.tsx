@@ -12,8 +12,6 @@ import {
   Pill,
   Plus,
   RefreshCw,
-  User,
-  Webhook,
   XCircle,
 } from "lucide-react"
 import Link from "next/link"
@@ -36,7 +34,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { TypedConfirmDialog } from "@/components/ui/typed-confirm-dialog"
 import { buildPatientSnapshot } from "@/lib/doctor/patient-snapshot"
-import { formatDate, formatDateLong, formatDateTime } from "@/lib/format"
+import { formatDate, formatDateLong } from "@/lib/format"
 import { formatIntakeStatus } from "@/lib/format/intake"
 import type { Profile } from "@/types/db"
 
@@ -203,10 +201,6 @@ export function PatientDetailClient({
     refreshParchmentDeliveryEvidence("refresh")
   }
 
-  const handleVerifyParchmentDelivery = () => {
-    refreshParchmentDeliveryEvidence("verify")
-  }
-
   const handleAddNote = () => {
     if (!newNote.trim()) return
     startNoteTransition(async () => {
@@ -254,7 +248,6 @@ export function PatientDetailClient({
       : "outline"
 
   const canUseParchment = parchmentEnabled && parchmentUserLinked
-  const latestMedication = medications[0] ?? null
   const latestRequest = intakes[0] ?? null
   const parchmentStatusLabel = !parchmentEnabled
     ? "Parchment integration disabled"
@@ -266,24 +259,6 @@ export function PatientDetailClient({
   const parchmentStatusTone = canUseParchment
     ? patient.parchment_patient_id ? "success" : "warning"
     : "destructive"
-  const latestMedicationName = latestMedication
-    ? [latestMedication.medication_name, latestMedication.medication_strength].filter(Boolean).join(" ")
-    : "No prescriptions yet"
-  const latestParchmentActivity = parchmentActivity[0] ?? null
-  const secondaryParchmentActivity = parchmentActivity
-    .slice(1)
-    .filter((activity, index, activities) => {
-      if (latestParchmentActivity && activity.label === latestParchmentActivity.label && activity.detail === latestParchmentActivity.detail) {
-        return false
-      }
-
-      return activities.findIndex((candidate) => (
-        candidate.label === activity.label &&
-        candidate.detail === activity.detail &&
-        candidate.status === activity.status
-      )) === index
-    })
-    .slice(0, 4)
 
   return (
     <div className="space-y-5">
@@ -337,300 +312,161 @@ export function PatientDetailClient({
         </div>
       </div>
 
-      <Card className="rounded-xl border-primary/15 bg-primary/5 shadow-sm shadow-primary/[0.04]">
-        <CardContent className="p-4">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="text-sm font-semibold text-foreground">Prescribing workspace</p>
-                <Badge variant={parchmentStatusTone} size="sm">
-                  {parchmentStatusLabel}
-                </Badge>
-              </div>
-              <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-                Create the prescription in Parchment from this patient profile. InstantMed keeps the patient record, Parchment handles prescribing, and prescriptions sync back into medication history.
-              </p>
-              <div className="mt-3 grid gap-2 text-sm sm:grid-cols-3">
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Parchment patient</p>
-                  <p className="mt-1 truncate font-mono text-xs text-foreground">
-                    {patient.parchment_patient_id || "Not synced yet"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Last prescription</p>
-                  <p className="mt-1 truncate text-foreground">{latestMedicationName}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Last request</p>
-                  <p className="mt-1 truncate text-foreground">
-                    {latestRequest
-                      ? `${latestRequest.service?.short_name || latestRequest.service?.name || latestRequest.category || "Request"} · ${formatIntakeStatus(latestRequest.status)}`
-                      : "No InstantMed requests"}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="flex shrink-0 flex-col gap-2 sm:flex-row xl:items-center">
+      {/* Prescribing workspace — Linear-tier strip. The old card carried four
+          big metadata blocks that duplicated the patient-summary row below
+          AND the timeline's Audit / Prescriptions tabs. Now a single bounded
+          row: status chip, latest prescription/request as one inline line,
+          and a primary "Prescribe" CTA. The rest of the parchment actions
+          (sync, refresh, link prescriber) live in the Actions menu. */}
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-primary/15 bg-primary/5 px-4 py-2.5 text-sm">
+        <Pill className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+        <span className="text-sm font-medium text-foreground">Prescribing</span>
+        <Badge variant={parchmentStatusTone} size="sm">{parchmentStatusLabel}</Badge>
+        <span className="hidden text-muted-foreground sm:inline" aria-hidden>·</span>
+        <span className="hidden truncate text-xs text-muted-foreground sm:inline">
+          {latestRequest
+            ? `Last request: ${latestRequest.service?.short_name || latestRequest.service?.name || latestRequest.category || "Request"} · ${formatIntakeStatus(latestRequest.status)}`
+            : "No InstantMed requests yet"}
+        </span>
+        <div className="ml-auto flex shrink-0 flex-wrap items-center gap-2">
+          {parchmentEnabled && !parchmentUserLinked ? (
+            <Button type="button" variant="outline" size="sm" asChild>
+              <Link href="/doctor/settings/identity#parchment-account">Link prescriber</Link>
+            </Button>
+          ) : null}
+          {canUseParchment && !patient.parchment_patient_id ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isParchmentSyncPending}
+              onClick={handleSyncPatientToParchment}
+              title="Sync this patient to Parchment"
+            >
+              {isParchmentSyncPending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="h-3.5 w-3.5" />
+              )}
+              Sync
+            </Button>
+          ) : null}
+          {canUseParchment ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isPrescriptionRefreshPending}
+              onClick={handleRefreshParchmentPrescriptions}
+              title="Refresh prescriptions from Parchment"
+            >
+              {isPrescriptionRefreshPending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="h-3.5 w-3.5" />
+              )}
+              Refresh
+            </Button>
+          ) : null}
+          <Button
+            type="button"
+            size="sm"
+            disabled={!canUseParchment}
+            onClick={handleOpenParchmentPrescribe}
+          >
+            <Pill className="h-4 w-4" />
+            Prescribe in Parchment
+          </Button>
+        </div>
+      </div>
+
+      {/* Phase 4 entity-page cleanup (2026-05-12): the standalone Delivery
+          Evidence card was duplicate surface area. Every Parchment webhook
+          and manual refresh event is rendered in `<PatientTimeline>` below
+          under the Audit filter tab, with the same SCID + event-id + "View
+          request" deep links. The "Verify delivery" action moves into the
+          Prescribing strip's Refresh button (same RPC, same intent).
+          Removing the card returns ~150 vertical pixels above the timeline. */}
+      {/* Compact patient identity strip. Phase 4 entity-page pass: the
+          previous summary card had a 3-column grid that triple-printed
+          details already in the header (name/age/sex/address) and the
+          prescribing strip above (parchment patient id). Compressed into
+          one bounded row of label / value pairs grouped by purpose. Saves
+          ~120 vertical px and pushes the timeline up into the fold. */}
+      <div className="rounded-xl border border-border/50 bg-card">
+        {stats.linkedProfiles > 1 ? (
+          <div className="flex flex-col gap-2 border-b border-border/40 bg-info-light/40 px-4 py-2.5 text-xs text-info sm:flex-row sm:items-center sm:justify-between">
+            <span>History from {stats.linkedProfiles} linked patient profiles.</span>
+            {canMergeLinkedProfiles ? (
               <Button
                 type="button"
-                disabled={!canUseParchment}
-                onClick={handleOpenParchmentPrescribe}
-                className="sm:min-w-[190px]"
+                size="sm"
+                variant="outline"
+                className="self-start border-info text-info hover:bg-info/10"
+                onClick={() => setShowMergeDialog(true)}
               >
-                <Pill className="h-4 w-4" />
-                Prescribe in Parchment
+                <GitMerge className="mr-1 h-3.5 w-3.5" />
+                Merge
               </Button>
-              {parchmentEnabled && !parchmentUserLinked && (
-                <Button type="button" variant="outline" asChild>
-                  <Link href="/doctor/settings/identity#parchment-account">Link prescriber</Link>
-                </Button>
-              )}
-              {canUseParchment && !patient.parchment_patient_id && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={isParchmentSyncPending}
-                  onClick={handleSyncPatientToParchment}
-                >
-                  {isParchmentSyncPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4" />
-                  )}
-                  Sync patient
-                </Button>
-              )}
-              {canUseParchment && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={isPrescriptionRefreshPending}
-                  onClick={handleRefreshParchmentPrescriptions}
-                >
-                  {isPrescriptionRefreshPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4" />
-                  )}
-                  Refresh prescriptions
-                </Button>
-              )}
+            ) : null}
+          </div>
+        ) : null}
+        {snapshot.missingCriticalFields.length > 0 ? (
+          <div className="border-b border-warning-border bg-warning-light/45 px-4 py-2 text-xs text-warning">
+            <span className="inline-flex items-start gap-2">
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              {snapshot.completenessLabel}. Check the active intake before relying on this profile.
+            </span>
+          </div>
+        ) : null}
+        <dl className="grid gap-x-6 gap-y-3 p-4 text-sm sm:grid-cols-2 xl:grid-cols-3">
+          <div className="flex items-start gap-2 min-w-0">
+            <Mail className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
+            <div className="min-w-0">
+              <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Email</dt>
+              <dd className="truncate text-sm">{snapshot.email.label}</dd>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card className="rounded-xl border-border/50">
-        <CardHeader className="px-4 py-3">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Webhook className="h-4 w-4" />
-                Delivery evidence
-              </CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Latest Parchment webhook or manual prescription refresh.
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant={latestParchmentActivity?.status ?? "warning"} size="sm">
-                {latestParchmentActivity ? latestParchmentActivity.label : "Waiting for webhook"}
-              </Badge>
-              {canUseParchment && (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  disabled={isPrescriptionRefreshPending}
-                  onClick={handleVerifyParchmentDelivery}
-                >
-                  {isPrescriptionRefreshPending ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-3.5 w-3.5" />
-                  )}
-                  {isPrescriptionRefreshPending ? "Verifying Parchment delivery evidence" : "Verify delivery"}
-                </Button>
-              )}
+          <div className="flex items-start gap-2 min-w-0">
+            <Phone className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
+            <div className="min-w-0">
+              <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Phone</dt>
+              <dd className="text-sm tabular-nums">{snapshot.phone.label}</dd>
             </div>
           </div>
-        </CardHeader>
-        <CardContent className="px-4 py-3">
-          {latestParchmentActivity ? (
-            <div className="space-y-3">
-              <div className="rounded-lg border border-border/60 bg-muted/30 p-3">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Latest delivery update</p>
-                    <p className="mt-1 text-sm font-semibold text-foreground">{latestParchmentActivity.label}</p>
-                    <p className="mt-1 max-w-4xl text-sm text-muted-foreground">{latestParchmentActivity.detail}</p>
-                  </div>
-                  <p className="shrink-0 text-xs text-muted-foreground">
-                    {formatDateTime(latestParchmentActivity.occurred_at)}
-                  </p>
-                </div>
-                <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                  {latestParchmentActivity.scid && (
-                    <span className="font-mono">SCID {latestParchmentActivity.scid}</span>
-                  )}
-                  {latestParchmentActivity.event_id && (
-                    <span className="font-mono">Event {latestParchmentActivity.event_id}</span>
-                  )}
-                  {latestParchmentActivity.request_id && (
-                    <Link href={`/doctor/intakes/${latestParchmentActivity.request_id}`} className="text-primary hover:underline">
-                      View request
-                    </Link>
-                  )}
-                </div>
-              </div>
-              {secondaryParchmentActivity.length > 0 && (
-                <details className="rounded-lg border border-border/60 bg-background px-3 py-2">
-                  <summary className="cursor-pointer text-sm font-medium text-muted-foreground">
-                    Show {secondaryParchmentActivity.length} earlier delivery event{secondaryParchmentActivity.length === 1 ? "" : "s"}
-                  </summary>
-                  <div className="mt-3 grid gap-2 lg:grid-cols-2">
-                    {secondaryParchmentActivity.map((activity) => (
-                      <div key={activity.id} className="rounded-lg border border-border/60 px-3 py-2">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="truncate text-sm font-medium text-foreground">{activity.label}</p>
-                          <Badge variant={activity.status} size="sm">{activity.status}</Badge>
-                        </div>
-                        <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{activity.detail}</p>
-                      </div>
-                    ))}
-                  </div>
-                </details>
-              )}
-            </div>
-          ) : (
-            <div className="rounded-lg border border-warning-border bg-warning-light px-3 py-3 text-sm text-warning">
-              No Parchment webhook has been recorded for this patient yet. After you submit a prescription in the iframe, this panel should change to “Webhook confirmed script sent” or “Webhook synced prescription”.
-            </div>
-          )}
-        </CardContent>
-      </Card>
-      <Card className="rounded-xl border-border/50">
-        <CardHeader className="py-3 px-4">
-          <CardTitle className="flex flex-wrap items-center gap-2 text-base">
-            <User className="h-4 w-4" />
-            Patient summary
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-4 py-3">
-          {stats.linkedProfiles > 1 && (
-            <div className="mb-4 rounded-lg border border-info-border bg-info-light px-3 py-2 text-sm text-info">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <span>This view includes request history from {stats.linkedProfiles} linked patient profiles.</span>
-                {canMergeLinkedProfiles && (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    className="w-full border-info text-info hover:bg-info/10 sm:w-auto"
-                    onClick={() => setShowMergeDialog(true)}
-                  >
-                    <GitMerge className="mr-1 h-3.5 w-3.5" />
-                    Merge
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
-          {snapshot.missingCriticalFields.length > 0 && (
-            <div className="mb-4 rounded-lg border border-warning-border bg-warning-light px-3 py-2 text-sm text-warning">
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>{snapshot.completenessLabel}. Check the active intake before relying on this profile.</span>
-              </div>
-            </div>
-          )}
-          {parchmentEnabled && !parchmentUserLinked && (
-            <div className="mb-4 rounded-lg border border-warning-border bg-warning-light px-3 py-2 text-sm text-warning">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                  <span>Prescriber account not linked. Link your Parchment user once, then synced patients can be prescribed from this profile.</span>
-                </div>
-                <Button type="button" size="sm" variant="outline" asChild>
-                  <Link href="/doctor/settings/identity#parchment-account">Link prescriber</Link>
-                </Button>
-              </div>
-            </div>
-          )}
-          <div className="grid gap-4 xl:grid-cols-3">
-            <div className="space-y-3 rounded-lg bg-muted/35 p-3">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Identity</p>
-              <div>
-                <p className="text-sm font-medium text-foreground">{snapshot.name}</p>
-                <p className="text-sm text-muted-foreground">{snapshot.ageDobLabel}</p>
-              </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="truncate">{snapshot.email.label}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span>{snapshot.phone.label}</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
-                  <span>{snapshot.address.label}</span>
-                </div>
-                {snapshot.address.verificationLabel && (
-                  <Badge variant={addressVerificationVariant} size="sm" className="w-fit">
-                    {snapshot.address.verificationLabel}
-                  </Badge>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-3 rounded-lg bg-muted/35 p-3">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Prescribing identity</p>
-              <div className="grid grid-cols-2 gap-3 text-sm xl:grid-cols-1">
-                <div>
-                  <p className="text-xs text-muted-foreground">Date of birth</p>
-                  <p className="font-medium text-foreground">
-                    {patient.date_of_birth ? formatDateLong(patient.date_of_birth) : "Not collected"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Sex</p>
-                  <p className="font-medium text-foreground">{snapshot.sex.label}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Medicare</p>
-                  <p className="font-mono text-sm font-medium text-foreground">
-                    {snapshot.medicare.present ? snapshot.medicare.label : "Not collected"}
-                  </p>
-                  {snapshot.medicare.detailsLabel && (
-                    <p className="text-xs text-muted-foreground">{snapshot.medicare.detailsLabel}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-3 rounded-lg bg-muted/35 p-3">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Parchment</p>
-              <div className="space-y-2">
-                <Badge variant={parchmentStatusTone} size="sm">
-                  {parchmentStatusLabel}
+          <div className="flex items-start gap-2 min-w-0">
+            <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
+            <div className="min-w-0">
+              <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Address</dt>
+              <dd className="truncate text-sm">{snapshot.address.label}</dd>
+              {snapshot.address.verificationLabel ? (
+                <Badge variant={addressVerificationVariant} size="sm" className="mt-1 w-fit text-[10px]">
+                  {snapshot.address.verificationLabel}
                 </Badge>
-                <div>
-                  <p className="text-xs text-muted-foreground">Patient ID</p>
-                  <p className="break-all font-mono text-xs text-foreground">
-                    {patient.parchment_patient_id || "Will be created on sync"}
-                  </p>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Member since {formatDate(patient.created_at)}
-                </p>
-              </div>
+              ) : null}
             </div>
           </div>
-        </CardContent>
-      </Card>
+          <div className="min-w-0">
+            <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">DOB</dt>
+            <dd className="text-sm tabular-nums">
+              {patient.date_of_birth ? formatDateLong(patient.date_of_birth) : "Not collected"}
+            </dd>
+          </div>
+          <div className="min-w-0">
+            <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Medicare</dt>
+            <dd className="font-mono text-sm tabular-nums">
+              {snapshot.medicare.present ? snapshot.medicare.label : "Not collected"}
+            </dd>
+            {snapshot.medicare.detailsLabel ? (
+              <p className="text-[11px] text-muted-foreground">{snapshot.medicare.detailsLabel}</p>
+            ) : null}
+          </div>
+          <div className="min-w-0">
+            <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Member since</dt>
+            <dd className="text-sm tabular-nums">{formatDate(patient.created_at)}</dd>
+          </div>
+        </dl>
+      </div>
 
       {/*
         Phase 4b of dashboard remaster (2026-05-12): the patient profile used
