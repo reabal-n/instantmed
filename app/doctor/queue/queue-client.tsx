@@ -294,12 +294,37 @@ export function QueueClient({
     }
   }, [soundMuted])
 
+  // Track row IDs that just arrived via realtime so the queue can flash a
+  // calm border on the row for ~1.5s (decays via `transition-colors`).
+  // Honours `prefers-reduced-motion` by skipping the timer entirely; the
+  // row still renders but without the colour state change.
+  const [newlyArrivedIds, setNewlyArrivedIds] = useState<Set<string>>(() => new Set())
+
   // Real-time subscription with exponential backoff reconnection
   const handleInsert = useCallback((newRow: IntakeWithPatient) => {
     setIntakes((prev) => {
       if (prev.some((r) => r.id === newRow.id)) return prev
       return [newRow, ...prev]
     })
+
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+    if (prefersReducedMotion) return
+
+    setNewlyArrivedIds((prev) => {
+      const next = new Set(prev)
+      next.add(newRow.id)
+      return next
+    })
+    window.setTimeout(() => {
+      setNewlyArrivedIds((prev) => {
+        if (!prev.has(newRow.id)) return prev
+        const next = new Set(prev)
+        next.delete(newRow.id)
+        return next
+      })
+    }, 1500)
   }, [])
 
   const handleUpdate = useCallback((updated: Partial<IntakeWithPatient> & { id: string }) => {
@@ -581,6 +606,28 @@ export function QueueClient({
     ? Math.round((recentlyCompleted.filter((r) => r.status === "approved" || r.status === "completed").length / recentlyCompleted.length) * 100)
     : null
 
+  // Live median wait from real queue data. Brand spec (docs/BRAND.md §6.1)
+  // says median(paid_at → reviewed_at). Rolling 4-hour window per spec,
+  // computed client-side from the `recentlyCompleted` prop the server
+  // already sends. Returns null when there's no recent data.
+  const liveMedianMinutes = useMemo(() => {
+    const fourHoursAgo = Date.now() - 4 * 60 * 60 * 1000
+    const samples: number[] = []
+    for (const intake of recentlyCompleted) {
+      const reviewedAt = intake.reviewed_at ? new Date(intake.reviewed_at).getTime() : null
+      const paidAt = intake.paid_at ? new Date(intake.paid_at).getTime() : null
+      if (!reviewedAt || !paidAt || reviewedAt < paidAt) continue
+      if (reviewedAt < fourHoursAgo) continue
+      samples.push((reviewedAt - paidAt) / 60000)
+    }
+    if (samples.length === 0) return null
+    samples.sort((a, b) => a - b)
+    const mid = Math.floor(samples.length / 2)
+    return samples.length % 2 === 0
+      ? Math.round((samples[mid - 1] + samples[mid]) / 2)
+      : Math.round(samples[mid])
+  }, [recentlyCompleted])
+
   return (
     <div
       ref={queueRegionRef}
@@ -718,6 +765,7 @@ export function QueueClient({
           lastUpdatedLabel={lastQueueRefreshLabel}
           compactShell={compactShell}
           onReviewNext={handleReviewNext}
+          liveMedianMinutes={liveMedianMinutes}
         />
       </div>
 
@@ -753,6 +801,7 @@ export function QueueClient({
                 baseHref={baseHref}
                 emptyState={queueEmptyState}
                 compactShell={compactShell}
+                newlyArrivedIds={newlyArrivedIds}
               />
             </div>
           )}

@@ -149,6 +149,11 @@ export interface QueueTableProps {
     actionLabel?: string
   }
   compactShell?: boolean
+  /**
+   * Set of row IDs that just arrived via realtime. Rendered with a calm
+   * left border for ~1.5s, then removed (managed by the parent).
+   */
+  newlyArrivedIds?: Set<string>
 }
 
 export function QueueTable({
@@ -208,6 +213,7 @@ export function QueueTable({
     tone: "success",
   },
   compactShell = false,
+  newlyArrivedIds,
 }: QueueTableProps) {
   const router = useRouter()
   const { openPanel } = usePanel()
@@ -338,6 +344,7 @@ export function QueueTable({
             const isLastOpened = lastOpenedIntakeId === intake.id && !isOpen
             const isReturning = returningPatientIds.has(intake.patient_id)
             const chiefComplaint = getChiefComplaint(intake)
+            const justArrived = newlyArrivedIds?.has(intake.id) ?? false
             return (
               <QueueRowPeek
                 key={intake.id}
@@ -350,7 +357,7 @@ export function QueueTable({
               <div
                 data-testid={`queue-row-${intake.id}`}
                 className={cn(
-                  "group grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1.5 px-3 transition-colors duration-150 sm:grid-cols-[minmax(0,auto)_minmax(0,1fr)_auto_auto_auto] sm:items-center sm:px-4",
+                  "group grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1.5 px-3 transition-colors duration-500 sm:grid-cols-[minmax(0,auto)_minmax(0,1fr)_auto_auto_auto] sm:items-center sm:px-4",
                   // Linear-tier density: compact rows breathe at 8px vertical
                   // padding so 12-15 cases fit in one viewport at 1440px.
                   compactShell ? "py-2" : "py-3",
@@ -358,7 +365,13 @@ export function QueueTable({
                   index < filteredIntakes.length - 1 && "border-b border-border/40",
                   isFocused && "bg-primary/[0.04] ring-1 ring-inset ring-primary/20",
                   isOpen && "bg-primary/[0.06]",
-                  isLastOpened && "bg-muted/35 ring-1 ring-inset ring-border/60"
+                  isLastOpened && "bg-muted/35 ring-1 ring-inset ring-border/60",
+                  // Phase 10: subtle left border on a row that just arrived
+                  // via realtime. Decays via the row's `transition-colors`
+                  // (500ms tween) when the parent removes the row from the
+                  // `newlyArrivedIds` set after ~1.5s. The parent skips this
+                  // entirely under `prefers-reduced-motion`.
+                  justArrived && "border-l-2 border-l-primary/60 bg-primary/[0.025]"
                 )}
                 onMouseEnter={() => prefetchReviewData(intake.id)}
                 onClick={() => {

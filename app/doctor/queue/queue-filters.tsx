@@ -27,6 +27,12 @@ export interface QueueFiltersProps {
   lastUpdatedLabel?: string
   compactShell?: boolean
   onReviewNext?: () => void
+  /**
+   * Live median wait in minutes, computed from `recentlyCompleted` over a
+   * rolling 4-hour window. Brand spec (docs/BRAND.md §6.1). Null when
+   * there's no recent data; the readout self-hides in that case.
+   */
+  liveMedianMinutes?: number | null
 }
 
 export function QueueFilters({
@@ -46,6 +52,7 @@ export function QueueFilters({
   lastUpdatedLabel: _lastUpdatedLabel,
   compactShell = false,
   onReviewNext,
+  liveMedianMinutes,
 }: QueueFiltersProps) {
   const searchRef = useRef<HTMLInputElement>(null)
 
@@ -81,6 +88,20 @@ export function QueueFilters({
             <span className="inline-flex items-center gap-1.5 text-xs text-warning font-medium">
               <span className="h-1.5 w-1.5 rounded-full bg-warning" />
               {isReconnecting ? "Reconnecting" : "Stale"}
+            </span>
+          )}
+          {/* Live wait readout (Phase 10). Brand-spec signature device #1
+              applied to the staff surface: median paid→reviewed minutes
+              over the last 4 hours, computed client-side from
+              `recentlyCompleted`. Self-hides when no recent data. */}
+          {typeof liveMedianMinutes === "number" && liveMedianMinutes > 0 && (
+            <span
+              className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground"
+              title={`Median paid → reviewed over the last 4 hours: ${liveMedianMinutes} minute${liveMedianMinutes === 1 ? "" : "s"}.`}
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden />
+              <span className="tabular-nums">{liveMedianMinutes}m</span>
+              <span className="text-muted-foreground/80">median today</span>
             </span>
           )}
         </div>
