@@ -304,6 +304,23 @@ export function QueueTable({
                 ? "Claimed by you"
                 : "Claimed"
               : null
+            // Soft-claim presence — derived from `claimed_at` + the 10-minute
+            // lock timeout that `lib/data/intake-lock.ts` enforces. Only show
+            // active claims (within timeout). If `reviewing_doctor_name` is
+            // populated we use that; otherwise we fall back to "Another doctor".
+            const LOCK_TIMEOUT_MS = 10 * 60 * 1000
+            const claimMsSinceAcquired = intake.claimed_at
+              ? Date.now() - new Date(intake.claimed_at).getTime()
+              : null
+            const claimActive =
+              claimMsSinceAcquired != null && claimMsSinceAcquired < LOCK_TIMEOUT_MS
+            const claimedByOther =
+              claimActive && intake.claimed_by != null && intake.claimed_by !== doctorId
+            const claimedByMe =
+              claimActive && intake.claimed_by != null && intake.claimed_by === doctorId
+            const claimantName =
+              (intake as IntakeWithPatient & { reviewing_doctor_name?: string | null })
+                .reviewing_doctor_name ?? null
             const overReviewTarget =
               intake.payment_status === "paid" &&
               REVIEW_TARGET_STATUSES.has(intake.status) &&
@@ -417,7 +434,34 @@ export function QueueTable({
                       Returning
                     </Badge>
                   )}
-                  {!compactShell && claimLabel && (
+                  {/* Soft-claim presence (Phase 7). Two-doctor model: surface
+                      who's reviewing a paid case before another doctor opens
+                      the same one and races on Approve. The DB-level claim
+                      is enforced by `claim_intake_for_review`; this chip is
+                      the visual layer that prevents wasted clicks. */}
+                  {claimedByOther && (
+                    <Badge
+                      variant="outline"
+                      className="border-warning-border bg-warning-light text-warning text-xs"
+                      title={`${claimantName ?? "Another doctor"} is reviewing this case. The DB lock will release after 10 minutes of inactivity.`}
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      {compactShell
+                        ? (claimantName ?? "Reviewing")
+                        : `Reviewing: ${claimantName ?? "Another doctor"}`}
+                    </Badge>
+                  )}
+                  {claimedByMe && (
+                    <Badge
+                      variant="outline"
+                      className="border-primary/30 bg-primary/10 text-primary text-xs"
+                      title="You're holding the review claim on this case."
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      You
+                    </Badge>
+                  )}
+                  {!compactShell && claimLabel && !claimActive && (
                     <Badge variant="outline" className="text-xs text-muted-foreground border-border/50">
                       {claimLabel}
                     </Badge>
