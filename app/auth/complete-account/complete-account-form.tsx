@@ -42,8 +42,18 @@ export function CompleteAccountForm({
   // separately from the Stripe webhook; Google deduplicates on transactionId.
   useEffect(() => {
     if (!intakeId || purchaseTrackedRef.current) return
+    // Don't fire the Google Ads conversion until we have a real
+    // amount_cents from the database. The complete-account-page query
+    // filters on `payment_status = "paid"` so this should almost always
+    // be present, but if a race still slips through, the old code
+    // defaulted to $1 — that's worse than no conversion at all because
+    // Smart Bidding trains on a fake low-value purchase. Skip the
+    // browser fire when amount is unknown; the server-side Google Ads
+    // CAPI fires separately from the Stripe webhook with the real
+    // amount, so we don't lose attribution either way.
+    if (amountCents == null) return
     purchaseTrackedRef.current = true
-    const valueDollars = amountCents != null ? amountCents / 100 : 1
+    const valueDollars = amountCents / 100
     void trackPurchase({
       transactionId: intakeId,
       value: valueDollars,

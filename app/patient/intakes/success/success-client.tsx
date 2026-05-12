@@ -52,6 +52,14 @@ export function SuccessClient({
   const [resendingEmail, setResendingEmail] = useState(false)
   const [emailResent, setEmailResent] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
+  // Track amountCents in state so polling can update it when the server
+  // value lands after the page mounts. Conversion firing reads this state
+  // (NOT the initial prop) so payments that resolve during the polling
+  // window report the real $ value to Google Ads instead of the legacy
+  // $1 fallback.
+  const [resolvedAmountCents, setResolvedAmountCents] = useState<number | undefined>(
+    amountCents,
+  )
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const purchaseTrackedRef = useRef(false)
 
@@ -108,6 +116,14 @@ export function SuccessClient({
       try {
         const res = await fetch(`/api/patient/intake-status?id=${intakeId}`)
         const data = res.ok ? await res.json() : null
+
+        // Refresh resolved amountCents whenever the API returns it,
+        // regardless of status. Webhook updates `amount_cents` either at
+        // the same time as status flips OR a beat later; capturing it
+        // here keeps the conversion-value source current.
+        if (typeof data?.amount_cents === "number") {
+          setResolvedAmountCents(data.amount_cents)
+        }
 
         if (data?.status && data.status !== "pending_payment") {
           setStatus(data.status)
@@ -184,12 +200,21 @@ export function SuccessClient({
   useEffect(() => {
     if (!intakeId || purchaseTrackedRef.current) return
 
+    // Don't fire the conversion until we have a real amount_cents from
+    // the database. When a patient lands on this page DURING the Stripe
+    // webhook-processing window, the server render can complete before
+    // `intakes.amount_cents` is set; the old code defaulted that to $1
+    // and fired the Google Ads conversion at $1 instead of the real
+    // $19.95-$89.95 price, dragging campaign optimization toward
+    // low-value clicks. The polling loop above now refreshes
+    // `resolvedAmountCents` from the API; wait for it.
+    if (resolvedAmountCents == null) return
+
     purchaseTrackedRef.current = true
 
-    // Fire conversion immediately on success page load.
-    // Stripe only redirects here after successful payment.
-    // trackPurchase includes Enhanced Conversions (hashed email) and value.
-    const valueDollars = amountCents != null ? amountCents / 100 : 1
+    // Stripe only redirects here after successful payment. trackPurchase
+    // includes Enhanced Conversions (hashed email) and value.
+    const valueDollars = resolvedAmountCents / 100
     void trackPurchase({
       transactionId: intakeId,
       value: valueDollars,
@@ -239,7 +264,7 @@ export function SuccessClient({
         currency: 'AUD',
       })
     }
-  }, [intakeId, serviceName, amountCents, patientEmail, posthog, isNewCustomer])
+  }, [intakeId, serviceName, resolvedAmountCents, patientEmail, posthog, isNewCustomer])
 
   // Show loading state while verifying payment
   if (isVerifying) {
