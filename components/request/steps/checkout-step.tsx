@@ -21,7 +21,6 @@ import { getAttribution } from "@/lib/analytics/attribution"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { PRICING as APP_PRICING, PRICING_DISPLAY } from "@/lib/constants"
-import { stagger } from "@/lib/motion"
 import { getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
 import { normalizeMedicationEntriesAnswer, stringAnswer } from "@/lib/request/intake-answer-normalizers"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
@@ -173,24 +172,29 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
   }
 
   return (
-    <motion.div
-      className="space-y-5"
-      variants={stagger.containerFast}
-      initial="initial"
-      animate="animate"
-    >
+    // Phase 4b prod hotfix (2026-05-12): the Pay step used to wrap the
+    // summary card / Express Review / consent rows in framer-motion
+    // `stagger.item` variants with `initial="initial"`. On cold loads
+    // where the framer-motion stagger animation booted slowly, the
+    // entire content stayed at opacity:0 for several seconds, leaving
+    // the user staring at an empty page above a disabled Pay button.
+    // Decorative entrance is not worth that blank-state risk on a
+    // price-critical view — replaced with plain divs so the form
+    // renders the instant React hydrates. The deliberate success
+    // checkmark animation (further down) keeps its own motion wrapper.
+    <div className="space-y-5">
       {/* Guest badge - only for unauthenticated users */}
       {!authContext.isAuthenticated && (
-        <motion.div variants={stagger.item} className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
           <UserX className="w-4 h-4 text-primary" aria-hidden="true" />
           <span>No account required - pay as a guest</span>
-        </motion.div>
+        </div>
       )}
 
       {/* Regulator badges - pinned to the top of checkout so they stay visible
           when the sticky footer is compressed on small viewports. */}
       {!isMedCertCheckout && (
-        <motion.div variants={stagger.item}>
+        <div>
         <TrustBadgeRow
           badges={[
             { id: "ahpra", variant: "styled" },
@@ -198,12 +202,11 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
           ]}
           className="justify-center gap-3"
         />
-        </motion.div>
+        </div>
       )}
 
       {/* Summary card */}
-      <motion.div
-        variants={stagger.item}
+      <div
         className={`rounded-2xl border border-border/50 bg-white shadow-md shadow-primary/[0.06] dark:bg-card ${
           isMedCertCheckout ? "space-y-2 p-3.5" : "space-y-3 p-4"
         }`}
@@ -268,7 +271,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
               : "One-time fee. Your doctor reviews right after."}
           </p>
         </div>
-      </motion.div>
+      </div>
 
 
       {/* What you'll get - prescription specific */}
@@ -296,7 +299,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
       )}
 
       {/* Express review toggle - opt-in, understated */}
-      <motion.div variants={stagger.item}>
+      <div>
         <label
           htmlFor="express-review-toggle"
           className={`w-full px-3.5 py-3 rounded-xl border text-left transition-[background-color,border-color] duration-200 flex items-center gap-3 cursor-pointer ${
@@ -322,10 +325,10 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             <span className="text-xs text-muted-foreground">+{PRICING_DISPLAY.PRIORITY_FEE}</span>
           </div>
         </label>
-      </motion.div>
+      </div>
 
       {/* Single combined consent - Checkbox (not Switch) for legal acknowledgment semantics */}
-      <motion.div variants={stagger.item}>
+      <div>
         <label
           htmlFor="consent-checkbox"
           className={`w-full p-3.5 rounded-xl border-2 text-left transition-[background-color,border-color] duration-200 flex items-start gap-3 cursor-pointer ${
@@ -352,7 +355,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             </a>
           </span>
         </label>
-      </motion.div>
+      </div>
 
       {/* Inline trust strip */}
       <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
@@ -460,6 +463,6 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
           </motion.div>
         </motion.div>
       )}
-    </motion.div>
+    </div>
   )
 }
