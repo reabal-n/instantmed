@@ -1,11 +1,19 @@
+import { ChevronLeft } from "lucide-react"
+import Link from "next/link"
 import type { ReactNode } from "react"
 
-import {
-  DashboardCard,
-  DashboardPageHeader,
-  type DashboardPageHeaderProps,
-} from "@/components/dashboard"
+import { DashboardCard } from "@/components/dashboard"
 import { cn } from "@/lib/utils"
+
+export interface OperatorPageHeaderProps {
+  title: string
+  description?: string
+  badge?: ReactNode
+  backHref?: string
+  backLabel?: string
+  actions?: ReactNode
+  className?: string
+}
 
 interface OperatorPageProps {
   children: ReactNode
@@ -32,17 +40,57 @@ export function OperatorPage({
   )
 }
 
+/**
+ * OperatorPageHeader — Linear-tier portal page header.
+ *
+ * Replaces the marketing-sized DashboardPageHeader (which still uses
+ * Heading h1 at text-3xl/4xl). Portal pages need a tighter, calmer h1
+ * because the page is dense and the title is reference, not hero copy.
+ *
+ * Renders a 20px (text-xl) h1 with tracking-tight + negative weight,
+ * a 13px back-breadcrumb chevron, and a single-line action cluster
+ * right. Total chrome ≈ 48px tall vs the previous ~120px.
+ */
 export function OperatorPageHeader({
-  className,
+  title,
+  description,
+  badge,
+  backHref,
   backLabel = "Operations",
-  ...props
-}: DashboardPageHeaderProps) {
+  actions,
+  className,
+}: OperatorPageHeaderProps) {
   return (
-    <DashboardPageHeader
-      backLabel={backLabel}
-      className={cn("mb-0 shrink-0", className)}
-      {...props}
-    />
+    <header
+      className={cn(
+        "mb-0 shrink-0 flex flex-wrap items-center gap-3 sm:flex-nowrap",
+        className,
+      )}
+    >
+      <div className="min-w-0 flex-1">
+        {backHref ? (
+          <Link
+            href={backHref}
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground"
+          >
+            <ChevronLeft className="h-3 w-3" aria-hidden />
+            {backLabel}
+          </Link>
+        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          <h1 className="truncate text-xl font-semibold tracking-tight text-foreground">
+            {title}
+          </h1>
+          {badge}
+        </div>
+        {description ? (
+          <p className="mt-1 max-w-2xl text-xs text-muted-foreground">{description}</p>
+        ) : null}
+      </div>
+      {actions ? (
+        <div className="flex shrink-0 items-center gap-2">{actions}</div>
+      ) : null}
+    </header>
   )
 }
 
