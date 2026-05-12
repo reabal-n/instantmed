@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { regenerateDrafts } from "@/app/actions/draft-approval"
-import { resendCertificateAdmin } from "@/app/actions/resend-certificate-admin"
+import { resendCertificateAsStaff } from "@/app/actions/resend-certificate"
 import {
   approveWithPreviewDataAction,
   fetchCertPreviewDataAction,
@@ -444,7 +444,7 @@ export function useReviewActions({
   const handleResend = async () => {
     if (!intake) return
     setIsResending(true)
-    const result = await resendCertificateAdmin(intake.id)
+    const result = await resendCertificateAsStaff(intake.id)
     setIsResending(false)
     if (result.success) {
       toast.success("Certificate email resent to patient")

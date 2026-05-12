@@ -16,7 +16,7 @@ import {
 import Link from "next/link"
 import type { ReactNode } from "react"
 
-import { type CertificatePreviewData, CertificatePreviewDialog, PdfViewerDialog } from "@/components/doctor"
+import { CertHealthChip, type CertificatePreviewData, CertificatePreviewDialog, PdfViewerDialog } from "@/components/doctor"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -188,38 +188,8 @@ export function IntakeDetailHeader({
           <Badge className={getStatusColor(intake.status)}>
             {formatIntakeStatus(intake.status)}
           </Badge>
-          {certDelivery && (
-            <Badge
-              variant="outline"
-              className={
-                certDelivery.emailOpenedAt
-                  ? "border-emerald-300 text-emerald-700 dark:border-emerald-700 dark:text-emerald-400"
-                  : certDelivery.emailFailedAt
-                    ? "border-destructive/50 text-destructive"
-                    : certDelivery.emailSentAt
-                      ? "border-blue-300 text-blue-700 dark:border-blue-700 dark:text-blue-400"
-                      : "border-amber-300 text-amber-700 dark:border-amber-700 dark:text-amber-400"
-              }
-              title={
-                certDelivery.emailFailedAt
-                  ? `Failed: ${certDelivery.emailFailureReason || "Unknown error"}`
-                  : certDelivery.emailOpenedAt
-                    ? "Patient opened the certificate email"
-                    : certDelivery.emailSentAt
-                      ? "Certificate email sent, awaiting open"
-                      : "Certificate email pending"
-              }
-            >
-              <Mail className="h-3 w-3 mr-1" />
-              {certDelivery.emailOpenedAt
-                ? "Opened"
-                : certDelivery.emailFailedAt
-                  ? "Failed"
-                  : certDelivery.emailSentAt
-                    ? "Sent"
-                    : "Pending"}
-              </Badge>
-          )}
+          {/* Phase 3 of dashboard remaster (2026-05-12): consolidated badge */}
+          <CertHealthChip certificate={certDelivery ?? null} intakeId={intake.id} />
           {supplementaryActions}
         </div>
       </div>
@@ -423,11 +393,11 @@ export function IntakeDetailHeader({
                 </Button>
                 <Button size={actionButtonSize} variant="outline" onClick={onReissueCertificate} disabled={isPending || isLoadingPreview}>
                   {isLoadingPreview ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                  Edit & Reissue
+                  Correct certificate
                 </Button>
                 <Button size={actionButtonSize} variant="outline" onClick={onResendCertificate} disabled={isPending}>
                   {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Mail className="h-4 w-4 mr-2" />}
-                  Resend Email
+                  Resend email
                 </Button>
               </>
             )}

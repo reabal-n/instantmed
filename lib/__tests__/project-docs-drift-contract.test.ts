@@ -36,7 +36,9 @@ describe("project docs drift contract", () => {
       // workflow heading to "Staff dashboard" and introduced `/dashboard` as the
       // canonical staff URL. The unified-shell rule still holds.
       expect(source).toContain("**Staff dashboard:**")
-      expect(source).toContain("`/dashboard` is the canonical URL")
+      // Phase 2 of dashboard remaster (2026-05-12): /dashboard is the real
+      // surface (not just a canonical URL stub). Doc copy reflects that.
+      expect(source).toContain("/dashboard")
       expect(source).toContain("OperatorShell")
       expect(source).toContain("`components/operator/*`")
       expect(source).toContain("`AGENTS.md` + `CLAUDE.md`")

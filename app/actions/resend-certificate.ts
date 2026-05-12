@@ -1,8 +1,15 @@
 "use server"
 
-import { getApiAuth } from "@/lib/auth/helpers"
+import { z } from "zod"
+
+import { getApiAuth, requireRole } from "@/lib/auth/helpers"
 import { env } from "@/lib/config/env"
-import { getCertificateForIntake } from "@/lib/data/issued-certificates"
+import {
+  getCertificateForIntake,
+  incrementEmailRetry,
+  logCertificateEvent,
+  updateEmailStatus,
+} from "@/lib/data/issued-certificates"
 import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/lib/email/components/templates"
 import { sendEmail } from "@/lib/email/send-email"
 import { createLogger } from "@/lib/observability/logger"
@@ -17,12 +24,52 @@ interface ResendCertificateResult {
   error?: string
 }
 
+const patientDataSchema = z.object({
+  id: z.string(),
+  full_name: z.string(),
+  email: z.string().email(),
+})
+
 /**
- * Server action to resend the certificate email to the patient.
- * Only the patient who owns the intake can request a resend.
- * 
- * @param intakeId - The ID of the intake to resend certificate for
+ * Phase 3 of dashboard remaster (2026-05-12). One implementation of resend.
+ *
+ * Two named exports keep call sites self-documenting:
+ *   - `resendCertificate(intakeId)` — patient-initiated. Verifies patient
+ *     owns the intake, rate-limited (5 per 24h via Upstash Redis).
+ *   - `resendCertificateAsStaff(intakeId)` — staff-initiated. Requires
+ *     doctor / admin / support role. Server-side throttle (max 3 staff
+ *     resends per certificate via `issued_certificates.resend_count`).
+ *
+ * Both share the same email template, the same `issued_certificates` lookup,
+ * and the same email-status / audit logging. The differences are scoped to
+ * (a) auth source and (b) rate limiter.
  */
+async function fetchIntakeForResend(supabase: ReturnType<typeof createServiceRoleClient>, intakeId: string) {
+  return supabase
+    .from("intakes")
+    .select(`
+      id,
+      patient_id,
+      status,
+      patient:profiles!patient_id(
+        id,
+        full_name,
+        email
+      )
+    `)
+    .eq("id", intakeId)
+    .single()
+}
+
+function pickPatient(rawPatient: unknown) {
+  const candidate = Array.isArray(rawPatient) ? rawPatient[0] : rawPatient
+  return patientDataSchema.safeParse(candidate)
+}
+
+function dashboardLink(intakeId: string) {
+  return `${env.appUrl}${getPatientIntakeDetailHref(intakeId)}`
+}
+
 export async function resendCertificate(intakeId: string): Promise<ResendCertificateResult> {
   try {
     const authResult = await getApiAuth()
@@ -31,57 +78,120 @@ export async function resendCertificate(intakeId: string): Promise<ResendCertifi
       return { success: false, error: "Please sign in to continue" }
     }
 
-    // Rate limit: 5 resends per intake per 24 hours
     const rateLimit = await checkResendRateLimit(intakeId, authResult.profile.id)
     if (!rateLimit.allowed) {
-      return { success: false, error: "You've reached the resend limit for this certificate. Please try again later." }
+      return {
+        success: false,
+        error: "You've reached the resend limit for this certificate. Please try again later.",
+      }
     }
 
     const supabase = createServiceRoleClient()
-
-    // Fetch the intake with patient info
-    const { data: intake, error: fetchError } = await supabase
-      .from("intakes")
-      .select(`
-        id, 
-        patient_id, 
-        status,
-        patient:profiles!patient_id(
-          id,
-          full_name,
-          email
-        )
-      `)
-      .eq("id", intakeId)
-      .single()
+    const { data: intake, error: fetchError } = await fetchIntakeForResend(supabase, intakeId)
 
     if (fetchError || !intake) {
       log.warn("Resend certificate: intake not found", { intakeId })
       return { success: false, error: "Request not found" }
     }
 
-    // Verify ownership
     if (intake.patient_id !== authResult.profile.id) {
       log.warn("Resend certificate: unauthorized", { intakeId, userId: authResult.profile.id })
       return { success: false, error: "You can only access your own requests" }
     }
 
-    // Verify status is approved or completed
     if (!["approved", "completed"].includes(intake.status)) {
       return { success: false, error: "Certificate is not yet available" }
     }
 
-    const patientData = intake.patient as { id: string; full_name: string; email: string }[] | null
-    const patient = patientData?.[0] ?? null
-    if (!patient?.email) {
+    const parsed = pickPatient(intake.patient)
+    if (!parsed.success) {
       return { success: false, error: "Patient email not found" }
     }
+    const patient = parsed.data
 
-    // First check issued_certificates table (new flow)
     const certificate = await getCertificateForIntake(intakeId)
-    
+    if (!certificate) {
+      log.warn("Resend certificate: certificate not found in issued_certificates", { intakeId })
+      return { success: false, error: "Certificate not found. Please contact support." }
+    }
+
+    const emailResult = await sendEmail({
+      to: patient.email,
+      toName: patient.full_name,
+      subject: `${medCertPatientEmailSubject(patient.full_name?.split(" ")[0])} (Resent)`,
+      template: MedCertPatientEmail({
+        patientName: patient.full_name,
+        dashboardUrl: dashboardLink(intakeId),
+        verificationCode: certificate.verification_code,
+        certType: certificate.certificate_type === "study" ? "study" : certificate.certificate_type === "carer" ? "carer" : "work",
+        appUrl: env.appUrl,
+      }),
+      emailType: "med_cert_patient",
+      intakeId,
+      patientId: patient.id,
+      certificateId: certificate.id,
+      metadata: {
+        cert_type: certificate.certificate_type,
+        resent_by_patient: true,
+      },
+      tags: [
+        { name: "category", value: "med_cert_resend" },
+        { name: "intake_id", value: intakeId },
+      ],
+    })
+
+    if (!emailResult.success) {
+      log.error("Resend certificate: email failed", { intakeId, error: emailResult.error })
+      return { success: false, error: "Failed to send email. Please try again." }
+    }
+
+    log.info("Certificate resent successfully (patient-initiated)", { intakeId })
+    return { success: true }
+  } catch (error) {
+    log.error("Resend certificate: unexpected error", {
+      intakeId,
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return { success: false, error: "We couldn't resend your certificate. Please try again." }
+  }
+}
+
+/**
+ * Staff-initiated resend. Throttled at 3 resends per certificate. Updates
+ * email status, increments retry count + resend_count, and logs an
+ * `email_retry` certificate-audit event with the actor's profile id.
+ */
+export async function resendCertificateAsStaff(intakeId: string): Promise<ResendCertificateResult> {
+  try {
+    const { profile } = await requireRole(["doctor", "admin", "support"])
+    const supabase = createServiceRoleClient()
+    const { data: intake, error: fetchError } = await fetchIntakeForResend(supabase, intakeId)
+
+    if (fetchError || !intake) {
+      log.warn("Resend certificate (staff): intake not found", { intakeId })
+      return { success: false, error: "Request not found" }
+    }
+
+    if (!["approved", "completed"].includes(intake.status)) {
+      return { success: false, error: "Certificate is not yet available — intake must be approved first" }
+    }
+
+    const parsed = pickPatient(intake.patient)
+    if (!parsed.success) {
+      log.warn("Resend certificate (staff): invalid patient data", { intakeId, errors: parsed.error.flatten() })
+      return { success: false, error: "Patient data is missing or invalid" }
+    }
+    const patient = parsed.data
+
+    const certificate = await getCertificateForIntake(intakeId)
+
     if (certificate) {
-      const dashboardUrl = `${env.appUrl}${getPatientIntakeDetailHref(intakeId)}`
+      if ((certificate.resend_count ?? 0) >= 3) {
+        return {
+          success: false,
+          error: "Maximum resends reached. Contact support if the patient still hasn't received their certificate.",
+        }
+      }
 
       const emailResult = await sendEmail({
         to: patient.email,
@@ -89,7 +199,7 @@ export async function resendCertificate(intakeId: string): Promise<ResendCertifi
         subject: `${medCertPatientEmailSubject(patient.full_name?.split(" ")[0])} (Resent)`,
         template: MedCertPatientEmail({
           patientName: patient.full_name,
-          dashboardUrl,
+          dashboardUrl: dashboardLink(intakeId),
           verificationCode: certificate.verification_code,
           certType: certificate.certificate_type === "study" ? "study" : certificate.certificate_type === "carer" ? "carer" : "work",
           appUrl: env.appUrl,
@@ -100,32 +210,90 @@ export async function resendCertificate(intakeId: string): Promise<ResendCertifi
         certificateId: certificate.id,
         metadata: {
           cert_type: certificate.certificate_type,
-          resent_by_patient: true,
+          resent_by: profile.id,
+          retry_count: certificate.email_retry_count + 1,
         },
         tags: [
           { name: "category", value: "med_cert_resend" },
           { name: "intake_id", value: intakeId },
+          { name: "cert_type", value: certificate.certificate_type },
         ],
       })
 
-      if (!emailResult.success) {
-        log.error("Resend certificate: email failed", { intakeId, error: emailResult.error })
-        return { success: false, error: "Failed to send email. Please try again." }
+      if (emailResult.success) {
+        await updateEmailStatus(certificate.id, "sent", {
+          deliveryId: emailResult.messageId,
+        })
+
+        await Promise.all([
+          incrementEmailRetry(certificate.id),
+          supabase
+            .from("issued_certificates")
+            .update({
+              resend_count: (certificate.resend_count ?? 0) + 1,
+              email_opened_at: null,
+            })
+            .eq("id", certificate.id),
+        ])
+
+        await logCertificateEvent(certificate.id, "email_retry", profile.id, "doctor", {
+          resend_reason: "manual_admin_resend",
+          resend_by_name: profile.full_name,
+        })
+
+        log.info("Certificate resent by staff", {
+          intakeId,
+          certificateId: certificate.id,
+          resentBy: profile.id,
+        })
+        return { success: true }
       }
 
-      log.info("Certificate resent successfully", { intakeId })
-      log.info("Certificate resent successfully", { intakeId })
-      return { success: true }
+      await updateEmailStatus(certificate.id, "failed", { failureReason: emailResult.error })
+      await logCertificateEvent(certificate.id, "email_failed", profile.id, "doctor", {
+        error: emailResult.error,
+        resend_attempt: true,
+      })
+
+      log.error("Certificate staff resend failed", {
+        intakeId,
+        certificateId: certificate.id,
+        error: emailResult.error,
+      })
+      return { success: false, error: emailResult.error || "Failed to send email" }
     }
 
-    // Fallback: No certificate found in issued_certificates
-    log.warn("Resend certificate: certificate not found in issued_certificates", { intakeId })
-    return { success: false, error: "Certificate not found. Please contact support." }
+    // No certificate found. Distinguish "legacy unmigrated" from "exists but invalid".
+    const { data: anyCert } = await supabase
+      .from("issued_certificates")
+      .select("id, status")
+      .eq("intake_id", intakeId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (anyCert) {
+      log.warn("Resend certificate (staff): certificate exists but not valid", {
+        intakeId,
+        certificateId: anyCert.id,
+        status: anyCert.status,
+      })
+      return {
+        success: false,
+        error: `Certificate exists but has status "${anyCert.status}". Use "Replace certificate" to issue a new one.`,
+      }
+    }
+
+    log.warn("Resend certificate (staff): no certificate record found", { intakeId })
+    return {
+      success: false,
+      error: "No certificate exists for this intake. Use \"Replace certificate\" to create one.",
+    }
   } catch (error) {
-    log.error("Resend certificate: unexpected error", {
+    log.error("Resend certificate (staff): unexpected error", {
       intakeId,
       error: error instanceof Error ? error.message : String(error),
     })
-    return { success: false, error: "We couldn't resend your certificate. Please try again." }
+    return { success: false, error: "Failed to resend certificate. Please try again." }
   }
 }

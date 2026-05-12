@@ -52,12 +52,14 @@ describe("medical certificate policy contract", () => {
   })
 
   it("does not send certificate credentials or patient email values to analytics/log metadata", () => {
+    // Phase 3 of dashboard remaster (2026-05-12): resend-certificate-admin
+    // was merged into resend-certificate (one file, two named exports:
+    // resendCertificate + resendCertificateAsStaff).
     const sensitiveSurfaces = [
       "components/patient/certificate-credentials.tsx",
       "app/verify/verify-client.tsx",
       "app/patient/intakes/[id]/client.tsx",
       "app/actions/resend-certificate.ts",
-      "app/actions/resend-certificate-admin.ts",
       "app/actions/reissue-cert.ts",
     ]
 

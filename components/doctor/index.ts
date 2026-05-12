@@ -1,3 +1,4 @@
+export { CertHealthChip, type CertHealthChipProps } from "./cert-health-chip"
 export type { CertificatePreviewData } from "./certificate-preview-dialog"
 export { CertificatePreviewDialog } from "./certificate-preview-dialog"
 export { ClinicalCaseReview } from "./clinical-case-review"

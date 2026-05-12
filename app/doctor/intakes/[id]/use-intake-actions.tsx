@@ -10,7 +10,7 @@ import { approveDraft, regenerateDrafts } from "@/app/actions/draft-approval"
 import { acquireIntakeLockAction, extendIntakeLockAction,releaseIntakeLockAction } from "@/app/actions/intake-lock"
 import { reissueCertificateAction } from "@/app/actions/reissue-cert"
 import { approveDateCorrection } from "@/app/actions/request-date-correction"
-import { resendCertificateAdmin } from "@/app/actions/resend-certificate-admin"
+import { resendCertificateAsStaff } from "@/app/actions/resend-certificate"
 import { approveWithPreviewDataAction,fetchCertPreviewDataAction } from "@/app/doctor/intakes/[id]/document/actions"
 import { declineIntakeAction, issueRefundAction,markScriptSentAction, saveDoctorNotesAction, updateStatusAction } from "@/app/doctor/queue/actions"
 import type { CertificatePreviewData } from "@/components/doctor"
@@ -543,7 +543,7 @@ export function useIntakeActions({
 
   const handleResendCertificate = useCallback(() => {
     startTransition(async () => {
-      const result = await resendCertificateAdmin(intake.id)
+      const result = await resendCertificateAsStaff(intake.id)
       if (result.success) {
         toast.success("Certificate email resent to patient")
       } else {
