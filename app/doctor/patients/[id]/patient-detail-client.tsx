@@ -27,24 +27,14 @@ import {
 } from "@/app/actions/manual-patient"
 import { addPatientNoteAction } from "@/app/actions/patient-notes"
 import { mergePatientProfilesAction } from "@/app/actions/patient-profile-merge"
-import { ParchmentPrescribePanel, PatientCommunicationHistory } from "@/components/doctor"
+import { ParchmentPrescribePanel } from "@/components/doctor"
 import { PatientTimeline } from "@/components/doctor/patient-timeline"
 import { usePanel } from "@/components/panels/panel-provider"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
-import { INTAKE_STATUS, type IntakeStatus } from "@/lib/data/status"
+import { TypedConfirmDialog } from "@/components/ui/typed-confirm-dialog"
 import { buildPatientSnapshot } from "@/lib/doctor/patient-snapshot"
 import { formatDate, formatDateLong, formatDateTime } from "@/lib/format"
 import { formatIntakeStatus } from "@/lib/format/intake"
@@ -263,10 +253,6 @@ export function PatientDetailClient({
       ? "warning"
       : "outline"
 
-  const getStatusColor = (status: string) => {
-    return INTAKE_STATUS[status as IntakeStatus]?.color ?? "bg-muted text-muted-foreground"
-  }
-
   const canUseParchment = parchmentEnabled && parchmentUserLinked
   const latestMedication = medications[0] ?? null
   const latestRequest = intakes[0] ?? null
@@ -283,8 +269,6 @@ export function PatientDetailClient({
   const latestMedicationName = latestMedication
     ? [latestMedication.medication_name, latestMedication.medication_strength].filter(Boolean).join(" ")
     : "No prescriptions yet"
-  const visibleMedications = medications.slice(0, 6)
-  const hiddenMedicationCount = Math.max(0, medications.length - visibleMedications.length)
   const latestParchmentActivity = parchmentActivity[0] ?? null
   const secondaryParchmentActivity = parchmentActivity
     .slice(1)
@@ -648,104 +632,37 @@ export function PatientDetailClient({
         </CardContent>
       </Card>
 
-      <Card className="rounded-xl border-border/50">
-        <CardHeader className="py-3 px-4">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Pill className="h-4 w-4" />
-            Active Prescriptions
-          </CardTitle>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Medication history includes Parchment prescriptions and previous InstantMed prescription requests.
-          </p>
-        </CardHeader>
-        <CardContent className="px-4 py-3">
-          {medications.length > 0 ? (
-            <div className="space-y-3">
-              {visibleMedications.map((medication) => (
-                <div key={medication.id} className="rounded-lg bg-muted/35 px-3 py-3">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="min-w-0">
-                      <p className="font-medium text-foreground">
-                        {[medication.medication_name, medication.medication_strength].filter(Boolean).join(" ")}
-                      </p>
-                      {medication.dosage_instructions && (
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {medication.dosage_instructions}
-                        </p>
-                      )}
-                      <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                        {medication.quantity_prescribed !== null && (
-                          <span>Qty {medication.quantity_prescribed}</span>
-                        )}
-                        {medication.repeats_allowed !== null && (
-                          <span>Repeats {medication.repeats_allowed}</span>
-                        )}
-                        {medication.parchment_reference && (
-                          <span className="font-mono">SCID {medication.parchment_reference}</span>
-                        )}
-                        {medication.request_id && (
-                          <Link href={`/doctor/intakes/${medication.request_id}`} className="text-primary hover:underline">
-                            View request
-                          </Link>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-start gap-2 sm:items-end">
-                      <Badge variant="outline">
-                        {medication.source === "parchment" ? "Parchment" : "InstantMed request"}
-                      </Badge>
-                      <Badge variant="outline" className={medication.source === "parchment" ? "bg-success-light text-success border-success-border" : getStatusColor(medication.status)}>
-                        {formatIntakeStatus(medication.status)}
-                      </Badge>
-                      <p className="text-xs text-muted-foreground">
-                        {medication.source === "parchment" ? "Issued" : "Requested"} {formatDate(medication.recorded_at)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {hiddenMedicationCount > 0 && (
-                <p className="text-sm text-muted-foreground">
-                  Showing the latest {visibleMedications.length} prescriptions. {hiddenMedicationCount} older record{hiddenMedicationCount === 1 ? "" : "s"} hidden to keep this profile readable.
-                </p>
-              )}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <Pill className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No medication history yet</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
+      {/*
+        Phase 4b of dashboard remaster (2026-05-12): the patient profile used
+        to render four separate scroll-heavy cards under the patient summary
+        (Active Prescriptions, PatientTimeline-requests-only, an inline note
+        composer, and PatientCommunicationHistory). They are now all folded
+        into one chronological `PatientTimeline` with channel filter tabs so
+        the doctor reads the patient's history top-to-bottom in one stream.
+      */}
       <PatientTimeline
         requests={intakes}
+        prescriptions={medications}
         notes={notes}
-        maxItems={12}
+        emails={emailLogs}
+        audit={parchmentActivity}
+        admin={canMergePatientProfiles}
         title="Patient timeline"
-        emptyLabel="No requests or staff notes recorded yet."
+        emptyLabel="No requests, prescriptions, notes, emails, or webhook events recorded for this patient yet."
       />
 
       {showNoteForm && (
         <Card className="rounded-xl border-border/50">
           <CardHeader className="py-3 px-4">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Add patient note</CardTitle>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowNoteForm(!showNoteForm)}
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                Add Note
-              </Button>
-            </div>
+            <CardTitle className="text-base">Add patient note</CardTitle>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Internal only. Not visible to the patient.
+            </p>
           </CardHeader>
           <CardContent className="px-4 py-3">
             <div className="space-y-3 rounded-lg bg-muted/50 p-4">
               <Textarea
-                placeholder="Add a note about this patient (internal only, not visible to patient)..."
+                placeholder="Add a note about this patient..."
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
                 className="min-h-[80px]"
@@ -764,43 +681,16 @@ export function PatientDetailClient({
         </Card>
       )}
 
-      {/* Communication History */}
-      {emailLogs.length > 0 && (
-        <PatientCommunicationHistory
-          emails={emailLogs.map(log => ({
-            id: log.id,
-            email_type: log.email_type,
-            recipient_email: log.to_email,
-            subject: log.subject,
-            status: log.status,
-            sent_at: log.sent_at,
-            delivered_at: log.delivery_status === "delivered" ? log.sent_at : null,
-            opened_at: null,
-            clicked_at: null,
-            bounced_at: log.delivery_status === "bounced" ? log.sent_at : null,
-            error_message: null,
-            metadata: null,
-          }))}
-        />
-      )}
-
-      <AlertDialog open={showMergeDialog} onOpenChange={setShowMergeDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Merge Linked Patient Profiles</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will move request history, certificates, email logs, notes, consents, follow-ups, repeat Rx requests, and referral credits from {duplicateProfileIds.length} guest duplicate profile{duplicateProfileIds.length === 1 ? "" : "s"} into this canonical patient profile. The duplicate profile row{duplicateProfileIds.length === 1 ? "" : "s"} will stay archived for audit history.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isMergePending}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleMergeLinkedProfiles} disabled={isMergePending}>
-              {isMergePending && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
-              Merge Profiles
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <TypedConfirmDialog
+        open={showMergeDialog}
+        onOpenChange={setShowMergeDialog}
+        title="Merge linked patient profiles"
+        description={`This moves request history, certificates, email logs, notes, consents, follow-ups, repeat Rx requests, and referral credits from ${duplicateProfileIds.length} guest duplicate profile${duplicateProfileIds.length === 1 ? "" : "s"} into this canonical patient profile. The duplicate profile row${duplicateProfileIds.length === 1 ? "" : "s"} stays archived for audit history. This action cannot be undone.`}
+        requiredText="MERGE"
+        confirmLabel="Merge profiles"
+        onConfirm={handleMergeLinkedProfiles}
+        isPending={isMergePending}
+      />
     </div>
   )
 }

@@ -11,6 +11,13 @@ const detailPageSource = readFileSync(
   join(process.cwd(), "app/doctor/patients/[id]/page.tsx"),
   "utf8",
 )
+// Phase 4b of dashboard remaster (2026-05-12): medication history,
+// communication history, and audit events were folded into the
+// unified `PatientTimeline`. Most user-facing labels live there now.
+const timelineSource = readFileSync(
+  join(process.cwd(), "components/doctor/patient-timeline.tsx"),
+  "utf8",
+)
 const panelSource = readFileSync(
   join(process.cwd(), "components/doctor/parchment-prescribe-panel.tsx"),
   "utf8",
@@ -29,10 +36,13 @@ describe("doctor patient medication history contract", () => {
     expect(detailPageSource).toContain("medications={data.medications}")
 
     expect(detailSource).toContain("interface PatientMedication")
-    expect(detailSource).toContain("Medication history")
-    expect(detailSource).toContain("Parchment prescriptions and previous InstantMed prescription requests")
-    expect(detailSource).toContain("InstantMed request")
-    expect(detailSource).toContain("SCID")
+    // Phase 4b: prescriptions stream into the unified `PatientTimeline`
+    // instead of a separate "Medication history" card. The labels
+    // moved into `patient-timeline.tsx`.
+    expect(detailSource).toContain("prescriptions={medications}")
+    expect(timelineSource).toContain("InstantMed request")
+    expect(timelineSource).toContain("SCID")
+    expect(timelineSource).toContain("Parchment")
   })
 
   it("keeps patient-profile prescribing actions visible with clear blocked states", () => {
@@ -54,8 +64,14 @@ describe("doctor patient medication history contract", () => {
     expect(detailSource).toContain("Delivery evidence")
     expect(detailSource).toContain("Webhook confirmed script sent")
     expect(detailPageSource).toContain("Prescription synced to PMS")
-    expect(detailSource).toContain("visibleMedications")
-    expect(detailSource).toContain("hiddenMedicationCount")
+    // Phase 4b: the dedicated "Active Prescriptions" card was retired in
+    // favor of the unified PatientTimeline, which uses its own paging
+    // (`initialPageSize` + "Show older") instead of `visibleMedications`
+    // / `hiddenMedicationCount`. Pin the new behavior.
+    expect(detailSource).toContain("<PatientTimeline")
+    expect(detailSource).toContain("prescriptions={medications}")
+    expect(timelineSource).toContain("initialPageSize")
+    expect(timelineSource).toContain("Show ")
   })
 
   it("surfaces Parchment webhook and sync activity without exposing raw PHI", () => {
@@ -77,10 +93,21 @@ describe("doctor patient medication history contract", () => {
   })
 
   it("hides empty secondary patient sections instead of rendering full empty cards", () => {
+    // Phase 4b: requests, prescriptions, notes, emails, and audit events
+    // all flow through one PatientTimeline. The legacy
+    // `{emailLogs.length > 0 && <PatientCommunicationHistory ...>}` block
+    // is gone — the timeline handles the empty state itself.
     expect(detailSource).toContain("<PatientTimeline")
-    expect(detailSource).toContain("emptyLabel=\"No requests or staff notes recorded yet.\"")
+    expect(detailSource).toContain("emails={emailLogs}")
+    expect(detailSource).toContain("audit={parchmentActivity}")
+    expect(detailSource).toContain("notes={notes}")
+    expect(detailSource).toContain("emptyLabel=")
     expect(detailSource).toContain("{showNoteForm && (")
-    expect(detailSource).toContain("{emailLogs.length > 0 && (")
+    // No more `PatientCommunicationHistory` import or rendering — emails
+    // are absorbed into the timeline. (A comment in the file may still
+    // mention the retired component for historical context.)
+    expect(detailSource).not.toContain('import { ParchmentPrescribePanel, PatientCommunicationHistory }')
+    expect(detailSource).not.toContain("<PatientCommunicationHistory")
     expect(detailSource).not.toContain("No requests from this patient yet")
     expect(detailSource).not.toContain("No emails sent to this patient yet")
     expect(detailSource).not.toContain("No notes yet")
