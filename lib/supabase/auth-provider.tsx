@@ -111,6 +111,22 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
               if (_event === 'SIGNED_IN' || _event === 'SIGNED_OUT' || _event === 'TOKEN_REFRESHED') {
                 router.refresh()
               }
+
+              // Sentry user context. Signed-out clears, signed-in tags
+              // future events with the user id so the next portal error
+              // is attributable. Email + role kept out of the tag set —
+              // role is read server-side in Sentry beforeSend if needed,
+              // and email would expand the user-data fingerprint past
+              // what we want to ship to Sentry per PHI policy.
+              void import('@sentry/nextjs')
+                .then((Sentry) => {
+                  if (newSession?.user) {
+                    Sentry.setUser({ id: newSession.user.id })
+                  } else {
+                    Sentry.setUser(null)
+                  }
+                })
+                .catch(() => undefined)
             }
           )
 

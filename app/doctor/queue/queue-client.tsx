@@ -425,45 +425,77 @@ export function QueueClient({
 
   const handleApprove = useCallback(async (intakeId: string, serviceType?: string | null) => {
     if (serviceType === SERVICE_TYPES.MED_CERTS) {
-      // Open review panel - doctor uses the certificate preview dialog there
+      // Med certs go through the review panel because the doctor confirms
+      // via the certificate preview dialog. No optimistic path here.
       openReviewPanel(intakeId)
       return
     }
+    // Optimistic remove: yank the row from the queue the moment the
+    // doctor clicks Approve, fire the server action in the background,
+    // and roll back if it fails. Saves 200-800ms of perceived latency on
+    // every approval. The Undo toast pattern stays the same — the
+    // success path doesn't need to re-remove the row because we already
+    // removed it.
+    const removedIntake = intakes.find((r) => r.id === intakeId)
+    if (!removedIntake) return
+    const removedIndex = intakes.findIndex((r) => r.id === intakeId)
+    setIntakes((prev) => prev.filter((r) => r.id !== intakeId))
+
     startTransition(async () => {
       const newStatus: IntakeStatus = serviceType === SERVICE_TYPES.COMMON_SCRIPTS || serviceType === SERVICE_TYPES.REPEAT_RX
         ? "awaiting_script"
         : "approved"
       const result = await updateStatusAction(intakeId, newStatus)
       if (result.success) {
-        const removedIntake = intakes.find((r) => r.id === intakeId)
-        setIntakes((prev) => prev.filter((r) => r.id !== intakeId))
         refreshQueue(true)
         if (serviceType === SERVICE_TYPES.COMMON_SCRIPTS || serviceType === SERVICE_TYPES.REPEAT_RX) {
           openReviewPanel(intakeId)
         } else {
           toast.success("Request approved", {
-            action: removedIntake ? {
+            action: {
               label: "Undo",
               onClick: async () => {
                 const revert = await updateStatusAction(intakeId, "paid")
                 if (revert.success) {
-                  setIntakes((prev) => [removedIntake, ...prev])
+                  setIntakes((prev) => {
+                    // Re-insert at the original position when possible
+                    // so the queue ordering after Undo matches what the
+                    // doctor saw before clicking Approve.
+                    const safeIndex = Math.min(removedIndex, prev.length)
+                    const next = prev.slice()
+                    next.splice(Math.max(0, safeIndex), 0, removedIntake)
+                    return next
+                  })
                   refreshQueue(true)
                   toast.success("Approval undone")
                 } else {
                   toast.error("Couldn't undo approval")
                 }
               },
-            } : undefined,
+            },
             duration: 5000,
           })
         }
       } else if (result.code === "INSUFFICIENT_CLINICAL_NOTES") {
+        // Optimistic rollback. Restore the row at its original position.
+        setIntakes((prev) => {
+          const safeIndex = Math.min(removedIndex, prev.length)
+          const next = prev.slice()
+          next.splice(Math.max(0, safeIndex), 0, removedIntake)
+          return next
+        })
         toast.error("Add clinical notes (50+ chars) in the case review before approving.", {
           action: { label: "Open case", onClick: () => openReviewPanel(intakeId) },
           duration: 6000,
         })
       } else {
+        // Generic server failure — same rollback path.
+        setIntakes((prev) => {
+          const safeIndex = Math.min(removedIndex, prev.length)
+          const next = prev.slice()
+          next.splice(Math.max(0, safeIndex), 0, removedIntake)
+          return next
+        })
         toast.error(result.error || "Failed to approve")
       }
     })
