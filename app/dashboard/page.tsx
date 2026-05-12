@@ -11,6 +11,8 @@ import {
   OperatorScrollArea,
   StaffCommandPalette,
   SystemHealthPill,
+  TestDataBanner,
+  TestDataToggleButton,
 } from "@/components/operator"
 import { PanelProvider } from "@/components/panels/panel-provider"
 import { requireRole } from "@/lib/auth/helpers"
@@ -69,7 +71,12 @@ export const dynamic = "force-dynamic"
 export default async function StaffDashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; pageSize?: string; status?: string | string[] }>
+  searchParams: Promise<{
+    page?: string
+    pageSize?: string
+    status?: string | string[]
+    showTestData?: string
+  }>
 }) {
   const auth = await requireRole(["admin", "doctor", "support"], { redirectTo: "/sign-in" })
   const { profile } = auth
@@ -85,10 +92,16 @@ export default async function StaffDashboardPage({
   const pageSize = Math.min(100, Math.max(10, parseInt(params.pageSize || "50", 10)))
   const initialStatusFilter: QueueStatusFilter = parseQueueStatusFilter(params.status)
   const hasExplicitStatusFilter = typeof params.status !== "undefined"
+  // Test-data toggle (admin-only). `?showTestData=1` opts this page in to
+  // seeing the seeded E2E patient in the queue. Gated on `hasAdminAccess`
+  // so a doctor with a copy-pasted URL cannot flip the visibility. Banner
+  // renders below the header when active so the operator never forgets
+  // they're looking at mixed data.
+  const showTestData = isAdmin && params.showTestData === "1"
 
   const results = await Promise.allSettled([
     getDoctorDashboardStats(),
-    getDoctorQueue({ page, pageSize, doctorId: profile.id }),
+    getDoctorQueue({ page, pageSize, doctorId: profile.id, allowSeeded: showTestData }),
     getAIApprovedIntakes({ limit: 20 }),
     getRecentlyCompletedIntakes({ limit: 8 }),
     getDoctorIdentity(profile.id),
@@ -145,6 +158,7 @@ export default async function StaffDashboardPage({
           description="Approve requests, write scripts, and open patient profiles from one place."
           actions={(
             <div className="flex flex-wrap items-center justify-end gap-2">
+              {isAdmin && <TestDataToggleButton active={showTestData} />}
               <SystemHealthPill initial={systemHealth} />
               <StaffCommandPalette
                 buttonLabel="Staff palette"
@@ -178,6 +192,7 @@ export default async function StaffDashboardPage({
         />
 
         <OperatorScrollArea className="flex flex-col gap-3 space-y-0">
+          {showTestData && <TestDataBanner />}
           {isAdmin ? (
             <>
               <AdminHubZones

@@ -256,12 +256,13 @@ export async function getAllIntakesByStatus(
  * so paused doctors do not see new intakes.
  */
 export async function getDoctorQueue(
-  options?: { page?: number; pageSize?: number; doctorId?: string }
+  options?: { page?: number; pageSize?: number; doctorId?: string; allowSeeded?: boolean }
 ): Promise<{ data: IntakeWithPatient[]; total: number; page: number; pageSize: number; degraded?: boolean }> {
   const supabase = createServiceRoleClient()
   const page = options?.page ?? 1
   const pageSize = Math.min(options?.pageSize ?? 50, 100) // Cap at 100
   const offset = (page - 1) * pageSize
+  const allowSeeded = options?.allowSeeded ?? false
 
   // If doctor is paused (doctor_available=false), return empty queue
   if (options?.doctorId) {
@@ -286,7 +287,7 @@ export async function getDoctorQueue(
         .from("intakes")
         .select("id", { count: "exact", head: true })
         .in("status", QUEUE_REVIEW_STATUSES)
-        .eq("payment_status", "paid"))
+        .eq("payment_status", "paid"), { allowSeeded })
 
       return { data: error ? null : { count: count ?? 0, degraded: false }, error }
     },
@@ -329,7 +330,7 @@ export async function getDoctorQueue(
       service:services!service_id (id, name, short_name, type, slug)
     `)
     .in("status", QUEUE_REVIEW_STATUSES)
-    .eq("payment_status", "paid"))
+    .eq("payment_status", "paid"), { allowSeeded })
     .order("is_priority", { ascending: false })
     .order("sla_deadline", { ascending: true, nullsFirst: false })
     .order("paid_at", { ascending: true, nullsFirst: false })
