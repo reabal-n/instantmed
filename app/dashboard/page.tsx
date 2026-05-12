@@ -2,7 +2,6 @@ import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 
 import { QueueClient } from "@/app/doctor/queue/queue-client"
-import { AdminHubZones } from "@/components/admin/admin-hub-zones"
 import { OwnerOperatorSetupCard } from "@/components/admin/owner-operator-setup-card"
 import { ConversionSnapshotCard } from "@/components/dashboard/conversion-snapshot"
 import { DoctorAvailabilityToggle } from "@/components/doctor/doctor-availability-toggle"
@@ -162,7 +161,6 @@ export default async function StaffDashboardPage({
       <OperatorPage>
         <OperatorPageHeader
           title="Dashboard"
-          description="Approve requests, write scripts, and open patient profiles from one place."
           actions={(
             <div className="flex flex-wrap items-center justify-end gap-2">
               {isAdmin && <TestDataToggleButton active={showTestData} />}
@@ -200,26 +198,14 @@ export default async function StaffDashboardPage({
 
         <OperatorScrollArea className="flex flex-col gap-3 space-y-0">
           {showTestData && <TestDataBanner />}
+
+          {/* Owner setup card self-hides when complete (no blocking items). */}
           {isAdmin ? (
-            <>
-              <AdminHubZones
-                compact
-                inQueue={stats.in_queue}
-                scriptsPending={stats.scripts_pending}
-                totalIntakes={stats.total}
-                pendingInfo={stats.pending_info}
-              />
-
-              <OwnerOperatorSetupCard
-                doctorIdentity={doctorIdentity}
-                doctorAvailable={doctorAvailable}
-                parchmentUserId={parchmentUserId}
-              />
-
-              {conversionSnapshot ? (
-                <ConversionSnapshotCard data={conversionSnapshot} />
-              ) : null}
-            </>
+            <OwnerOperatorSetupCard
+              doctorIdentity={doctorIdentity}
+              doctorAvailable={doctorAvailable}
+              parchmentUserId={parchmentUserId}
+            />
           ) : null}
 
           <section id="doctor-queue" className="min-h-0 flex-1">
@@ -243,6 +229,12 @@ export default async function StaffDashboardPage({
               compactShell
             />
           </section>
+
+          {/* Conversion analytics anchored at the bottom of scroll — reference
+              info, not primary action. Admin-only. */}
+          {isAdmin && conversionSnapshot ? (
+            <ConversionSnapshotCard data={conversionSnapshot} />
+          ) : null}
         </OperatorScrollArea>
       </OperatorPage>
     </PanelProvider>

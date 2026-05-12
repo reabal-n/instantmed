@@ -97,6 +97,14 @@ export function OwnerOperatorSetupCard({
   ]
   const blockingItems = setupItems.filter((item) => item.complete === false)
 
+  // Auto-hide when setup is complete. The "Ready" badge state was dashboard
+  // noise once everything was set up — operator already knew, didn't need a
+  // permanent card recapping it. Identity settings stay one click away in
+  // the sidebar if anything needs editing later.
+  if (blockingItems.length === 0 && doctorAvailable) {
+    return null
+  }
+
   return (
     <Card className="shrink-0 border-border/60 bg-card px-4 py-3 shadow-sm shadow-primary/[0.03]">
       <div className="flex flex-wrap items-center justify-between gap-3">

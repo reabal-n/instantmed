@@ -3,7 +3,6 @@
 import { FileText, Loader2, RefreshCw } from "lucide-react"
 
 import { PatientDecisionStrip } from "@/components/doctor/patient-decision-strip"
-import { PatientTimeline } from "@/components/doctor/patient-timeline"
 import { ClinicalNotesEditor } from "@/components/doctor/review/clinical-notes-editor"
 import { IntakeActionButtons } from "@/components/doctor/review/intake-action-buttons"
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
@@ -133,18 +132,15 @@ export function IntakeReviewCockpit({
         </div>
 
         <aside className="min-w-0 space-y-4 xl:sticky xl:top-0">
+          {/* ReviewBlockersStrip self-hides when there are no blockers. */}
           <ReviewBlockersStrip />
           <ClinicalNotesEditor />
           <IntakeActionButtons />
+          {/* CertificateDeliveryCard self-hides for non-approved cases. */}
           <CertificateDeliveryCard />
-          <PatientTimeline
-            requests={data.previousIntakes ?? []}
-            notes={data.patientNotes ?? []}
-            compact
-            maxItems={4}
-            title="Patient timeline"
-            emptyLabel="No previous patient activity."
-          />
+          {/* PatientTimeline removed from slide-over (was scroll bloat).
+              "Full case" button in the slide-over header opens the full
+              patient profile where the unified timeline lives. */}
         </aside>
       </div>
     </div>

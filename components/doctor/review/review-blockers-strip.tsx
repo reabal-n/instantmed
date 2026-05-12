@@ -1,6 +1,6 @@
 "use client"
 
-import { AlertTriangle, CheckCircle2, FileText, Mail, ShieldAlert, Truck } from "lucide-react"
+import { AlertTriangle, FileText, Mail, ShieldAlert, Truck } from "lucide-react"
 
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
 import { Badge } from "@/components/ui/badge"
@@ -97,48 +97,44 @@ export function ReviewBlockersStrip() {
       : []),
   ]
 
+  // Self-hide when there's nothing to surface. "No blocking issues" filler
+  // copy on every case was scroll bloat; absence is the all-clear signal.
+  if (blockers.length === 0) return null
+
   return (
-    <section className="rounded-xl border border-border/60 bg-card p-3" aria-label="Case blockers">
+    <section className="rounded-xl border border-warning-border bg-warning-light/30 p-3" aria-label="Case blockers">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          {blockers.length > 0 ? (
-            <AlertTriangle className="h-4 w-4 text-warning" aria-hidden />
-          ) : (
-            <CheckCircle2 className="h-4 w-4 text-success" aria-hidden />
-          )}
-          <h3 className="text-sm font-semibold text-foreground">Blockers only</h3>
+          <AlertTriangle className="h-4 w-4 text-warning" aria-hidden />
+          <h3 className="text-sm font-semibold text-foreground">Blockers</h3>
         </div>
-        <Badge variant={blockers.length > 0 ? "warning" : "success"} size="sm">
-          {blockers.length > 0 ? `${blockers.length} open` : "Clear"}
+        <Badge variant="warning" size="sm">
+          {blockers.length} open
         </Badge>
       </div>
 
-      {blockers.length === 0 ? (
-        <p className="mt-2 text-sm text-muted-foreground">No blocking admin or clinical setup issues.</p>
-      ) : (
-        <div className="mt-3 space-y-2">
-          {blockers.map((blocker) => {
-            const Icon = blocker.icon
-            return (
-              <div
-                key={blocker.id}
-                className={cn(
-                  "flex items-start gap-2 rounded-lg border px-3 py-2 text-sm",
-                  blocker.tone === "destructive"
-                    ? "border-destructive/30 bg-destructive/10 text-destructive"
-                    : "border-warning-border bg-warning-light text-warning",
-                )}
-              >
-                <Icon className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-                <div className="min-w-0">
-                  <p className="font-semibold">{blocker.label}</p>
-                  <p className="mt-0.5 break-words text-xs opacity-90">{blocker.detail}</p>
-                </div>
+      <div className="mt-3 space-y-2">
+        {blockers.map((blocker) => {
+          const Icon = blocker.icon
+          return (
+            <div
+              key={blocker.id}
+              className={cn(
+                "flex items-start gap-2 rounded-lg border px-3 py-2 text-sm",
+                blocker.tone === "destructive"
+                  ? "border-destructive/30 bg-destructive/10 text-destructive"
+                  : "border-warning-border bg-warning-light text-warning",
+              )}
+            >
+              <Icon className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+              <div className="min-w-0">
+                <p className="font-semibold">{blocker.label}</p>
+                <p className="mt-0.5 break-words text-xs opacity-90">{blocker.detail}</p>
               </div>
-            )
-          })}
-        </div>
-      )}
+            </div>
+          )
+        })}
+      </div>
     </section>
   )
 }
