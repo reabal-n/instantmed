@@ -7,6 +7,7 @@ import {
   Mail,
   MessageCircle,
   RefreshCw,
+  Users,
   WifiOff,
 } from "lucide-react"
 import Link from "next/link"
@@ -18,6 +19,14 @@ import { ErrorRefChip } from "@/components/ui/error-ref-chip"
 import { Heading } from "@/components/ui/heading"
 import { CONTACT_EMAIL } from "@/lib/constants"
 
+/**
+ * Error boundary for `/dashboard`, the canonical staff cockpit
+ * (Phase 2 of dashboard remaster, 2026-05-12). Mirrors the doctor and
+ * admin error boundaries so a thrown error in `getStaffNavCounts`,
+ * `getSystemHealth`, or any other dashboard data fetch lands the
+ * operator on a recoverable surface instead of the Next default
+ * error screen.
+ */
 function getErrorInfo(error: Error & { digest?: string }) {
   const message = error.message?.toLowerCase() || ""
 
@@ -41,13 +50,13 @@ function getErrorInfo(error: Error & { digest?: string }) {
 
   return {
     type: "unknown" as const,
-    title: "Failed to load certificates",
-    description: "The certificates page encountered an error. Patient data is safe.",
+    title: "Error loading dashboard",
+    description: "The staff dashboard encountered an error. Patient data is safe.",
     icon: AlertTriangle,
   }
 }
 
-export default function CertificatesError({
+export default function DashboardError({
   error,
   reset,
 }: {
@@ -64,13 +73,13 @@ export default function CertificatesError({
   useEffect(() => {
     import("@sentry/nextjs").then((Sentry) => {
       Sentry.captureException(error, {
-        tags: { boundary: "doctor-certificates", errorType: errorInfo.type },
+        tags: { boundary: "staff-dashboard", errorType: errorInfo.type },
         extra: { digest: error.digest },
       })
     })
   }, [error, errorInfo.type])
 
-  const handleRetry = () => {
+  const handleRetry = async () => {
     if (retryCount.current >= maxRetries) return
     retryCount.current += 1
     setIsRetrying(true)
@@ -88,14 +97,17 @@ export default function CertificatesError({
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4">
       <div className="text-center max-w-md">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-destructive-light mb-6" aria-hidden="true">
+        <div
+          className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-destructive-light mb-6"
+          aria-hidden="true"
+        >
           <IconComponent className="h-8 w-8 text-destructive" />
         </div>
 
-        <Heading level="h1" className="!text-2xl mb-2">{errorInfo.title}</Heading>
-        <p className="text-muted-foreground mb-6">
-          {errorInfo.description}
-        </p>
+        <Heading level="h1" className="!text-2xl mb-2">
+          {errorInfo.title}
+        </Heading>
+        <p className="text-muted-foreground mb-6">{errorInfo.description}</p>
 
         <ErrorRefChip digest={error.digest} />
 
@@ -112,18 +124,30 @@ export default function CertificatesError({
               className="w-full sm:w-auto"
             >
               <RefreshCw className={`mr-2 h-4 w-4 ${isRetrying ? "animate-spin" : ""}`} />
-              {isRetrying ? "Retrying..." : retryCount.current >= maxRetries ? "Please contact support" : "Try again"}
+              {isRetrying
+                ? "Retrying..."
+                : retryCount.current >= maxRetries
+                  ? "Please contact support"
+                  : "Try again"}
             </Button>
           )}
           <Button variant="outline" asChild className="w-full sm:w-auto">
             <Link href="/dashboard">
               <LayoutDashboard className="mr-2 h-4 w-4" />
-              Dashboard
+              Reload dashboard
             </Link>
           </Button>
         </div>
 
         <div className="mt-6 pt-6 border-t border-border/50 space-y-3">
+          <Link
+            href="/admin/patients"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Users className="h-4 w-4" />
+            View patients list
+          </Link>
+
           <div className="block">
             <Link
               href="/contact"

@@ -113,7 +113,7 @@ export default function DoctorPatientError({
             </Button>
           )}
           <Button variant="outline" asChild className="w-full sm:w-auto">
-            <Link href="/doctor/dashboard">
+            <Link href="/dashboard">
               <LayoutDashboard className="mr-2 h-4 w-4" />
               Dashboard
             </Link>
