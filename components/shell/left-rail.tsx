@@ -75,7 +75,9 @@ export function LeftRail({
   }
 
   // LeftRail is only used by the patient layout (AuthenticatedShell).
-  // Doctor layout uses DashboardSidebar instead.
+  // Staff layouts (admin/doctor) use OperatorShell + DoctorShell instead
+  // (the legacy DashboardSidebar was retired in Phase 1.2 of the dashboard
+  // remaster on 2026-05-11).
   // Sentence case throughout — matches design system §16 voice.
   const navItems = [
     { icon: Home, label: 'Overview', href: '/patient' },

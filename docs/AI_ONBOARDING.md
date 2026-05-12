@@ -39,7 +39,7 @@ Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (2
 8. **Portal exception:** doctor portal (`app/doctor/`) and admin portal (`app/admin/`) get NO decorative motion. Time-pressure surfaces. `transition-colors` only.
 9. **16px min body on patient flows.** Non-negotiable. Patients are often anxious.
 10. **Service definitions:** update `lib/services/service-catalog.ts`, not consumers. If you're adding a new service, update the catalog AND these consumers: home (`lib/marketing/homepage.ts`), intake hub (`service-hub-screen.tsx`), pricing (`pricing-client.tsx`), nav dropdown, mobile menu.
-11. **Staff cockpit:** admin-doctor work is one product. Keep `/admin` as the combined operator cockpit, keep pages bounded/scannable, and use `components/operator/*` instead of inventing a new staff shell.
+11. **Staff cockpit:** admin-doctor-support work is one product. `/dashboard` is the canonical staff URL (Phase 2 of dashboard remaster, 2026-05-12); `/admin` and `/doctor/dashboard` 307-redirect there. Keep pages bounded/scannable and use `components/operator/*` instead of inventing a new staff shell.
 
 ## Common gotchas (already-tripped mines)
 
