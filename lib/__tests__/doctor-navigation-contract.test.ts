@@ -31,8 +31,11 @@ const mobileNavSource = readFileSync(
   join(process.cwd(), "components/ui/mobile-nav.tsx"),
   "utf8",
 )
+// Phase 2 of dashboard remaster (2026-05-12): the doctor dashboard moved to
+// the canonical /dashboard surface. The legacy /doctor/dashboard route is
+// now a redirect-only stub; its dashboard-header.tsx was retired.
 const dashboardHeaderSource = readFileSync(
-  join(process.cwd(), "app/doctor/dashboard/dashboard-header.tsx"),
+  join(process.cwd(), "app/dashboard/page.tsx"),
   "utf8",
 )
 const doctorAvailabilityToggleSource = readFileSync(
@@ -177,19 +180,20 @@ describe("doctor navigation contract", () => {
   })
 
   it("keeps the dashboard header focused on queue state, not duplicated sidebar routes", () => {
-    expect(dashboardHeaderSource).toContain('title="Queue"')
-    expect(dashboardHeaderSource).toContain('description="Clinical cases awaiting review"')
+    // Phase 2 contract: the unified dashboard header surfaces availability +
+    // system health + the command palette. It does not re-render the sidebar
+    // routes inline.
+    expect(dashboardHeaderSource).toContain('title="Dashboard"')
     expect(dashboardHeaderSource).not.toContain('title="Review Queue"')
     expect(dashboardHeaderSource).not.toContain('href="/doctor/scripts"')
     expect(dashboardHeaderSource).not.toContain('href="/doctor/patients"')
     expect(dashboardHeaderSource).not.toContain('href="/doctor/settings/identity"')
     expect(dashboardHeaderSource).toContain("DoctorAvailabilityToggle")
+    expect(dashboardHeaderSource).toContain("SystemHealthPill")
     expect(doctorAvailabilityToggleSource).toContain("setDoctorAvailabilityAction")
     expect(doctorAvailabilityToggleSource).toContain("Available")
+    // No big keyboard hint card on the header — keep it quiet.
     expect(dashboardHeaderSource).not.toContain("<kbd")
-    expect(dashboardHeaderSource).not.toContain("navigate")
-    expect(dashboardHeaderSource).not.toContain("approve")
-    expect(dashboardHeaderSource).not.toContain("decline")
   })
 
   it("keeps legacy shared doctor menus aligned with the current doctor sitemap", () => {
@@ -244,9 +248,12 @@ describe("doctor navigation contract", () => {
     expect(portalSource).not.toContain("bg-amber-400 animate-pulse")
   })
 
-  it("keeps legacy doctor dashboard setup prompts compact enough for a bounded viewport", () => {
+  it("keeps the dashboard onboarding prompts compact enough for a bounded viewport", () => {
+    // Phase 2 of dashboard remaster (2026-05-12): the doctor dashboard moved
+    // to /dashboard. The legacy /doctor/dashboard route is now redirect-only.
+    // Compactness assertions apply to the new surface.
     const dashboardPageSource = readFileSync(
-      join(process.cwd(), "app/doctor/dashboard/page.tsx"),
+      join(process.cwd(), "app/dashboard/page.tsx"),
       "utf8",
     )
     const doctorLayoutSource = readFileSync(
@@ -257,7 +264,9 @@ describe("doctor navigation contract", () => {
     expect(onboardingBannerSource).toContain('data-testid="doctor-onboarding-banner"')
     expect(onboardingBannerSource).toContain("sm:grid-cols-[auto_minmax(0,1fr)_auto]")
     expect(onboardingBannerSource).not.toContain("mx-4 mb-4")
-    expect(dashboardPageSource).toContain('className="space-y-3"')
+    // Bounded layout via OperatorPage + OperatorScrollArea.
+    expect(dashboardPageSource).toContain("OperatorPage")
+    expect(dashboardPageSource).toContain("OperatorScrollArea")
     expect(doctorLayoutSource).toContain("lg:py-5")
   })
 
@@ -275,6 +284,9 @@ describe("doctor navigation contract", () => {
       join(process.cwd(), "app/doctor/queue/page.tsx"),
       join(process.cwd(), "app/doctor/settings/page.tsx"),
       join(process.cwd(), "app/doctor/email-suppression/page.tsx"),
+      // Phase 2 of dashboard remaster (2026-05-12): /doctor/dashboard is now
+      // a thin redirect to the canonical /dashboard URL.
+      join(process.cwd(), "app/doctor/dashboard/page.tsx"),
     ])
 
     for (const pageFile of findDoctorPageFiles()) {

@@ -1,0 +1,225 @@
+"use client"
+
+import { AlertCircle, CheckCircle2, ChevronDown, RefreshCw } from "lucide-react"
+import Link from "next/link"
+import { useEffect, useState } from "react"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
+
+/**
+ * SystemHealthPill — single glance at the recovery surfaces.
+ *
+ * Phase 2 of dashboard remaster (2026-05-12). Replaces the operator's habit of
+ * pre-emptively opening `/admin/ops` to check whether anything is on fire.
+ * Renders a colored dot + count in the header; clicking opens a popover with
+ * the breakdown and deep links to the relevant ops surface.
+ *
+ * Polls /api/admin/system-health every 45s. Failure-tolerant: if the endpoint
+ * is unreachable, the pill stays at last-known state rather than flashing red.
+ */
+export interface SystemHealth {
+  stuckIntakes: number
+  webhookFailures: number
+  parchmentFailures: number
+  emailFailures: number
+  /** Total of all the above. Server-computed so we don't drift. */
+  totalIssues: number
+}
+
+const EMPTY_HEALTH: SystemHealth = {
+  stuckIntakes: 0,
+  webhookFailures: 0,
+  parchmentFailures: 0,
+  emailFailures: 0,
+  totalIssues: 0,
+}
+
+const POLL_INTERVAL_MS = 45_000
+
+export function SystemHealthPill({ initial }: { initial?: SystemHealth }) {
+  const [health, setHealth] = useState<SystemHealth>(initial ?? EMPTY_HEALTH)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function refresh() {
+      try {
+        const res = await fetch("/api/admin/system-health", { cache: "no-store" })
+        if (!res.ok || cancelled) return
+        const next = (await res.json()) as SystemHealth
+        setHealth({
+          stuckIntakes: Number(next.stuckIntakes) || 0,
+          webhookFailures: Number(next.webhookFailures) || 0,
+          parchmentFailures: Number(next.parchmentFailures) || 0,
+          emailFailures: Number(next.emailFailures) || 0,
+          totalIssues: Number(next.totalIssues) || 0,
+        })
+      } catch {
+        // Advisory; keep last known state.
+      }
+    }
+
+    refresh()
+    const interval = window.setInterval(refresh, POLL_INTERVAL_MS)
+    return () => {
+      cancelled = true
+      window.clearInterval(interval)
+    }
+  }, [])
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true)
+    try {
+      const res = await fetch("/api/admin/system-health", { cache: "no-store" })
+      if (res.ok) {
+        const next = (await res.json()) as SystemHealth
+        setHealth({
+          stuckIntakes: Number(next.stuckIntakes) || 0,
+          webhookFailures: Number(next.webhookFailures) || 0,
+          parchmentFailures: Number(next.parchmentFailures) || 0,
+          emailFailures: Number(next.emailFailures) || 0,
+          totalIssues: Number(next.totalIssues) || 0,
+        })
+      }
+    } catch {
+      // Advisory.
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
+
+  const total = health.totalIssues
+  const tone: "ok" | "warning" | "danger" = total === 0 ? "ok" : total > 5 ? "danger" : "warning"
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className={cn(
+            "gap-2 transition-colors",
+            tone === "danger" && "border-destructive/40 text-destructive hover:bg-destructive/5",
+            tone === "warning" && "border-warning-border text-warning hover:bg-warning-light/50",
+            tone === "ok" && "border-border/60 text-muted-foreground hover:text-foreground",
+          )}
+          aria-label={
+            tone === "ok"
+              ? "System health: all clear"
+              : `System health: ${total} issue${total === 1 ? "" : "s"} need attention`
+          }
+        >
+          <span
+            className={cn(
+              "h-2 w-2 rounded-full",
+              tone === "ok" && "bg-success",
+              tone === "warning" && "bg-warning",
+              tone === "danger" && "bg-destructive",
+            )}
+            aria-hidden
+          />
+          {tone === "ok" ? (
+            <>
+              <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
+              <span className="hidden sm:inline">All clear</span>
+            </>
+          ) : (
+            <>
+              <AlertCircle className="h-3.5 w-3.5" aria-hidden />
+              <span className="tabular-nums">{total}</span>
+              <span className="hidden sm:inline">{total === 1 ? "issue" : "issues"}</span>
+            </>
+          )}
+          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground/70" aria-hidden />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-72 p-3">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-semibold text-foreground">System health</p>
+          <button
+            type="button"
+            onClick={handleManualRefresh}
+            disabled={isRefreshing}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground disabled:opacity-50"
+            aria-label="Refresh system health"
+          >
+            <RefreshCw className={cn("h-3.5 w-3.5", isRefreshing && "animate-spin")} aria-hidden />
+          </button>
+        </div>
+
+        <p className="mt-1 text-xs text-muted-foreground">
+          Polls every 45 seconds. Click a row to investigate.
+        </p>
+
+        <div className="mt-3 space-y-1">
+          <HealthRow
+            label="Stuck intakes"
+            count={health.stuckIntakes}
+            href="/admin/ops/intakes-stuck"
+          />
+          <HealthRow
+            label="Webhook failures"
+            count={health.webhookFailures}
+            href="/admin/webhook-dlq"
+          />
+          <HealthRow
+            label="Parchment failures"
+            count={health.parchmentFailures}
+            href="/admin/ops/parchment"
+          />
+          <HealthRow
+            label="Email failures"
+            count={health.emailFailures}
+            href="/admin/emails/hub"
+          />
+        </div>
+
+        <div className="mt-3 border-t border-border/50 pt-3">
+          <Button asChild variant="outline" size="sm" className="w-full justify-center">
+            <Link href="/admin/ops">Open operations</Link>
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+function HealthRow({
+  label,
+  count,
+  href,
+}: {
+  label: string
+  count: number
+  href: string
+}) {
+  const ok = count === 0
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "flex items-center justify-between gap-3 rounded-md border border-transparent px-2 py-1.5 text-sm transition-colors",
+        ok
+          ? "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+          : "border-border/40 bg-warning-light/40 hover:border-warning-border hover:bg-warning-light/60",
+      )}
+    >
+      <span>{label}</span>
+      {ok ? (
+        <span className="text-xs text-success">clear</span>
+      ) : (
+        <Badge variant="warning" className="tabular-nums">
+          {count > 99 ? "99+" : count}
+        </Badge>
+      )}
+    </Link>
+  )
+}

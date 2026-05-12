@@ -124,6 +124,31 @@ export function buildAdminDashboardHref(options: {
   return `${ADMIN_DASHBOARD_HREF}${query ? `?${query}` : ""}${hash}`
 }
 
+/**
+ * Canonical staff dashboard href builder (Phase 2 of dashboard remaster).
+ * New code should call this; the admin alias above remains for back-compat
+ * until every consumer migrates.
+ */
+export function buildStaffDashboardHref(options: {
+  status?: string | string[] | QueueStatusFilter | null
+  page?: string | string[] | number
+  pageSize?: string | string[] | number
+  anchor?: string
+} = {}): string {
+  const params = new URLSearchParams()
+  const status = parseQueueStatusFilter(options.status)
+  const page = getPositiveIntegerParam(options.page)
+  const pageSize = getPageSizeParam(options.pageSize)
+
+  if (status !== "all") params.set("status", status)
+  if (page) params.set("page", page)
+  if (pageSize) params.set("pageSize", pageSize)
+
+  const query = params.toString()
+  const hash = options.anchor ? `#${options.anchor}` : ""
+  return `${STAFF_DASHBOARD_HREF}${query ? `?${query}` : ""}${hash}`
+}
+
 export function buildDoctorQueueRedirectHref(
   searchParams: Record<string, string | string[] | undefined>,
 ): string {

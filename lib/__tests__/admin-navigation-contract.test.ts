@@ -160,7 +160,10 @@ describe("admin navigation contract", () => {
   })
 
   it("keeps the admin dashboard hub focused on operational next actions", () => {
-    expect(adminHubSource).toContain("Operational focus")
+    // Phase 2 of dashboard remaster (2026-05-12) trimmed AdminHubZones to the
+    // compact-only layout. Heading is "Admin layer"; the legacy non-compact
+    // "Operational focus" branch was deleted.
+    expect(adminHubSource).toContain("Admin layer")
     expect(adminHubSource).not.toContain("Quick navigation")
     expect(adminHubSource).not.toContain("Doctor analytics")
     expect(adminHubSource).not.toContain("Feature flags")
@@ -171,6 +174,9 @@ describe("admin navigation contract", () => {
     expect(dashboardRoutesSource).toContain('ADMIN_WEBHOOK_DLQ_HREF = "/admin/webhook-dlq"')
     expect(dashboardRoutesSource).toContain('ADMIN_EMAIL_HUB_HREF = "/admin/emails/hub"')
     expect(dashboardRoutesSource).toContain('ADMIN_PATIENTS_HREF = "/admin/patients"')
+    // Status-filter links now go to the canonical `/dashboard` via
+    // buildStaffDashboardHref; the literal `/doctor/...` hrefs are gone.
+    expect(adminHubSource).toContain("buildStaffDashboardHref")
     expect(adminHubSource).not.toContain('href: "/doctor')
     expect(adminHubSource).not.toContain("DOCTOR_QUEUE_REVIEW_HREF")
     expect(adminHubSource).not.toContain("configuration exceptions")
@@ -270,7 +276,6 @@ describe("admin navigation contract", () => {
   it("does not send failed admin role checks back into the doctor portal", () => {
     const adminPageSources = [
       "app/admin/audit/page.tsx",
-      "app/admin/page.tsx",
       "app/admin/compliance/page.tsx",
       "app/admin/emails/suppression/page.tsx",
       "app/admin/features/page.tsx",
@@ -284,18 +289,31 @@ describe("admin navigation contract", () => {
 
     expect(adminPageSources).not.toContain('redirectTo: "/doctor/dashboard"')
     expect(adminPageSources).toContain('redirectTo: "/admin"')
-    expect(adminPageSource).toContain('requireRole(["admin"]')
+    // Phase 2 of dashboard remaster (2026-05-12): /admin/page.tsx is a thin
+    // redirect to /dashboard; it does not run a role check itself (the
+    // dashboard does that). Its only job is to preserve search params.
+    expect(adminPageSource).toContain('redirect(')
+    expect(adminPageSource).toContain('"/dashboard"')
     expect(adminPageSource).not.toContain("getAuthenticatedUserWithProfile")
   })
 
-  it("routes the generic dashboard entrypoint to the admin dashboard for admin users", () => {
-    expect(dashboardRedirectSource).toContain("hasAdminAccess(authUser.profile)")
-    expect(dashboardRedirectSource).toContain('redirect("/admin")')
-    expect(dashboardRedirectSource).toContain("hasDoctorAccess(authUser.profile)")
-    // Phase 1 of dashboard remaster (2026-05-11) rewrote app/dashboard/page.tsx
-    // to use double-quoted strings consistently and added a support-role branch.
-    expect(dashboardRedirectSource).toContain('redirect("/doctor/dashboard")')
-    expect(dashboardRedirectSource).toContain("hasSupportAccess(authUser.profile)")
+  it("routes the generic dashboard entrypoint to the canonical /dashboard surface", () => {
+    // Phase 2 of dashboard remaster (2026-05-12) made /dashboard the real
+    // staff dashboard (no longer a role-aware redirect stub). The redirects
+    // moved up to /admin and /doctor/dashboard which 307 here.
+    expect(dashboardRedirectSource).toContain("StaffDashboardPage")
+    expect(dashboardRedirectSource).toContain('requireRole(["admin", "doctor", "support"]')
+    expect(dashboardRedirectSource).toContain("hasAdminAccess")
+    expect(dashboardRedirectSource).toContain("hasSupportAccess")
+    expect(dashboardRedirectSource).toContain("SystemHealthPill")
+    expect(dashboardRedirectSource).toContain("QueueClient")
+    // Legacy URLs forward to /dashboard.
+    expect(adminPageSource).toContain('"/dashboard"')
+    const doctorDashboardLegacy = readFileSync(
+      join(process.cwd(), "app/doctor/dashboard/page.tsx"),
+      "utf8",
+    )
+    expect(doctorDashboardLegacy).toContain('"/dashboard"')
   })
 
   it("keeps admin data pages explicitly admin-gated at page level", () => {
@@ -304,6 +322,8 @@ describe("admin navigation contract", () => {
       join(process.cwd(), "app/admin/email-hub/page.tsx"),
       join(process.cwd(), "app/admin/studio/page.tsx"),
       join(process.cwd(), "app/admin/webhooks/page.tsx"),
+      // Phase 2: /admin itself is now a redirect to /dashboard.
+      join(process.cwd(), "app/admin/page.tsx"),
     ])
 
     for (const pageFile of findAdminPageFiles()) {
