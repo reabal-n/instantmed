@@ -2,7 +2,6 @@ import {
   Building2,
   FileText,
   Mail,
-  PenTool,
   Settings,
   Stethoscope,
   ToggleLeft,
@@ -76,7 +75,7 @@ const settingsGroups: SettingsGroup[] = [
   },
   {
     title: "Communications",
-    description: "Template and content controls for patient-facing communication.",
+    description: "Template controls for patient-facing communication.",
     links: [
       {
         label: "Email templates",
@@ -90,12 +89,6 @@ const settingsGroups: SettingsGroup[] = [
         href: "/admin/settings/templates",
         icon: FileText,
       },
-      {
-        label: "Content",
-        description: "Published content controls and editorial operations.",
-        href: "/admin/content",
-        icon: PenTool,
-      },
     ],
   },
 ]
@@ -107,7 +100,7 @@ export default async function AdminSettingsPage() {
     <div className="space-y-6">
       <DashboardPageHeader
         title="Admin Settings"
-        description="Clinic, service, doctor, template, and content configuration."
+        description="Clinic, service, doctor, and template configuration."
         className="mb-0"
       />
 

@@ -29,9 +29,8 @@ const ADMIN_PAGES = [
   "/admin/refunds",
   "/admin/errors",
   "/admin/webhook-dlq",
-  "/admin/content",
   "/admin/emails/hub",
-  "/admin/settings", // redirects to /admin/features
+  "/admin/settings",
   "/admin/settings/templates",
   // Nested
   "/admin/ops/sla",

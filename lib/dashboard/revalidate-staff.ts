@@ -34,10 +34,7 @@ export interface RevalidateStaffOptions {
    * suppression). Use for template edits or email-outbox actions.
    */
   emails?: boolean
-  /**
-   * Also bust the admin content surfaces (content blocks, refunds, audit).
-   * Use for content/refund/audit mutations.
-   */
+  /** Also bust refund/audit admin surfaces. */
   content?: boolean
   /**
    * Bypass: invalidate a specific set of additional paths. Useful when the
@@ -96,7 +93,6 @@ const STAFF_EMAILS_PATHS = [
 ] as const
 
 const STAFF_CONTENT_PATHS = [
-  "/admin/content",
   "/admin/refunds",
   "/admin/audit",
 ] as const

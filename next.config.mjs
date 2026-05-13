@@ -263,6 +263,11 @@ const nextConfig = {
         permanent: true
       },
       {
+        source: "/admin/content",
+        destination: "/admin/settings",
+        permanent: true
+      },
+      {
         source: "/admin/webhooks",
         destination: "/admin/webhook-dlq",
         permanent: true

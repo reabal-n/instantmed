@@ -69,6 +69,12 @@ describe("email sequence ownership contract", () => {
     expect(schedules.get("/api/cron/recover-partial-intakes")).toBe("15 * * * *")
   })
 
+  it("prevents abandoned checkout followup from becoming eligible in the same cron run as the first nudge", () => {
+    expect(abandonedCheckoutSource).toContain('.gte("abandoned_email_sent_at", seventyTwoHoursAgo)')
+    expect(abandonedCheckoutSource).toContain('.lte("abandoned_email_sent_at", twentyFourHoursAgo)')
+    expect(abandonedCheckoutSource).toContain("prevents a boundary case")
+  })
+
   it("suppresses duplicate sends once the outbox idempotency guard finds a matching row", () => {
     expect(outboxSource).toContain("duplicate: true")
     expect(sendEmailSource).toContain("Duplicate send suppressed by outbox guard")

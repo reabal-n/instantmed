@@ -2,7 +2,7 @@
 
 /**
  * Admin Configuration Server Actions
- * Handles email templates, content blocks, audit logs, feature flags, and refunds
+ * Handles email templates, audit logs, feature flags, and refunds
  */
 
 import { requireRole } from "@/lib/auth/helpers"
@@ -12,14 +12,6 @@ import {
   getAuditLogs,
   getAuditLogStats,
 } from "@/lib/data/audit-logs"
-import {
-  type ContentBlockInput,
-  createContentBlock,
-  deleteContentBlock,
-  getAllContentBlocks,
-  getContentBlockByKey,
-  updateContentBlock,
-} from "@/lib/data/content-blocks"
 import {
   createEmailTemplate,
   type EmailTemplateInput,
@@ -119,50 +111,6 @@ export async function toggleEmailTemplateActiveAction(id: string, isActive: bool
   if (result.success) {
     revalidateStaff({ emails: true })
     log.info("Email template toggled", { adminId: admin.id, templateId: id, isActive })
-  }
-  return result
-}
-
-// ============================================================================
-// CONTENT BLOCK ACTIONS
-// ============================================================================
-
-export async function getAllContentBlocksAction() {
-  await requireAdmin()
-  return getAllContentBlocks()
-}
-
-export async function getContentBlockByKeyAction(key: string) {
-  await requireAdmin()
-  return getContentBlockByKey(key)
-}
-
-export async function createContentBlockAction(input: ContentBlockInput) {
-  const admin = await requireAdminWithRateLimit()
-  const result = await createContentBlock(input, admin.id)
-  if (result.success) {
-    revalidateStaff({ content: true })
-    log.info("Content block created", { adminId: admin.id, key: input.key })
-  }
-  return result
-}
-
-export async function updateContentBlockAction(id: string, input: Partial<ContentBlockInput>) {
-  const admin = await requireAdminWithRateLimit()
-  const result = await updateContentBlock(id, input, admin.id)
-  if (result.success) {
-    revalidateStaff({ content: true })
-    log.info("Content block updated", { adminId: admin.id, blockId: id })
-  }
-  return result
-}
-
-export async function deleteContentBlockAction(id: string) {
-  const admin = await requireAdminWithRateLimit()
-  const result = await deleteContentBlock(id)
-  if (result.success) {
-    revalidateStaff({ content: true })
-    log.info("Content block deleted", { adminId: admin.id, blockId: id })
   }
   return result
 }

@@ -140,13 +140,15 @@ export async function sendAbandonedCheckoutEmail(intake: AbandonedIntake): Promi
 
 /**
  * Find intakes that received the 1h nudge but not the 24h followup
- * Targets intakes 24-48 hours old
+ * Targets intakes whose first nudge was sent 24-72 hours ago. Using the first
+ * send timestamp, not created_at, prevents a boundary case where a newly sent
+ * 1h nudge can become eligible for the followup in the same cron run.
  */
 export async function findAbandonedFollowups(): Promise<AbandonedIntake[]> {
   const supabase = createServiceRoleClient()
 
   const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-  const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
+  const seventyTwoHoursAgo = new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString()
 
   const { data, error } = await supabase
     .from("intakes")
@@ -161,8 +163,8 @@ export async function findAbandonedFollowups(): Promise<AbandonedIntake[]> {
     `)
     .eq("status", "pending_payment")
     .or("payment_status.eq.pending,payment_status.is.null")
-    .gte("created_at", fortyEightHoursAgo)
-    .lte("created_at", twentyFourHoursAgo)
+    .gte("abandoned_email_sent_at", seventyTwoHoursAgo)
+    .lte("abandoned_email_sent_at", twentyFourHoursAgo)
     .not("abandoned_email_sent_at", "is", null)
     .is("abandoned_followup_sent_at", null)
 

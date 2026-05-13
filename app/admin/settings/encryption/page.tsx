@@ -1,10 +1,13 @@
-import { AlertTriangle, CheckCircle2,Lock, Shield, Unlock } from "lucide-react"
+import { AlertTriangle, CheckCircle2, Lock, Shield, Unlock } from "lucide-react"
 
 import { requireRole } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export const dynamic = "force-dynamic"
 
+// Incident-only diagnostic route. Intentionally omitted from admin nav/settings:
+// day-to-day PHI posture belongs in system health, while this page is for
+// encryption rollout checks and incident response.
 export default async function EncryptionDashboardPage() {
   await requireRole(["admin"], { redirectTo: "/admin" })
 

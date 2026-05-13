@@ -9,10 +9,6 @@
 export type { AuditLog, AuditLogFilters, AuditLogStats } from "./audit-logs"
 export { formatActorType,formatEventType, getAuditEventTypes } from "./audit-logs"
 
-// Content Blocks
-export type { ContentBlock, ContentBlockInput } from "./content-blocks"
-export { formatCategory,getContentCategories } from "./content-blocks"
-
 // Refunds
 export type { PaymentWithRefund, RefundFilters, RefundStats,RefundStatus } from "./refunds"
 export { formatAmount,formatRefundStatus, getRefundStatuses } from "./refunds"

@@ -97,19 +97,29 @@ function findAdminPageFiles(dir = join(process.cwd(), "app/admin")): string[] {
 
 describe("admin navigation contract", () => {
   it("keeps settings focused on configuration instead of incident response", () => {
+    const encryptionPageSource = readFileSync(
+      join(process.cwd(), "app/admin/settings/encryption/page.tsx"),
+      "utf8",
+    )
+
     expect(settingsSource).not.toContain('redirect("/admin/features")')
     expect(nextConfigSource).not.toContain('source: "/admin/settings", destination: "/admin/features"')
     expect(settingsSource).toContain('href: "/admin/features"')
     expect(settingsSource).toContain('href: "/admin/settings/templates"')
     expect(settingsSource).toContain("ADMIN_DOCTOR_IDENTITY_HREF")
     expect(settingsSource).toContain("Your doctor identity")
-    expect(settingsSource).toContain('href: "/admin/content"')
+    expect(settingsSource).toContain('href: "/admin/clinic"')
+    expect(settingsSource).toContain('href: "/admin/doctors"')
+    expect(settingsSource).toContain('href: "/admin/services"')
+    expect(settingsSource).not.toContain('href: "/admin/content"')
     expect(settingsSource).not.toContain("Operational controls")
     expect(settingsSource).not.toContain('href: "/admin/webhook-dlq"')
     expect(settingsSource).not.toContain('href: "/admin/audit"')
     expect(settingsSource).not.toContain('href: "/admin/errors"')
     expect(settingsSource).not.toContain('href: "/admin/refunds"')
     expect(settingsSource).not.toContain('href: "/admin/parchment-conformance"')
+    expect(settingsSource).not.toContain('href: "/admin/settings/encryption"')
+    expect(encryptionPageSource).toContain("Incident-only diagnostic route")
   })
 
   it("keeps the sidebar focused and avoids duplicate or vendor-specific labels", () => {
@@ -330,7 +340,6 @@ describe("admin navigation contract", () => {
       "app/admin/analytics/page.tsx",
       "app/admin/audit/page.tsx",
       "app/admin/clinic/page.tsx",
-      "app/admin/content/page.tsx",
       "app/admin/doctors/page.tsx",
       "app/admin/emails/analytics/page.tsx",
       "app/admin/emails/hub/page.tsx",
@@ -396,6 +405,8 @@ describe("admin navigation contract", () => {
     expect(opsParchmentSource).not.toContain('href="/admin/parchment-conformance"')
     expect(nextConfigSource).toContain('source: "/admin/parchment-conformance"')
     expect(nextConfigSource).toContain('destination: "/admin/ops/parchment"')
+    expect(nextConfigSource).toContain('source: "/admin/content"')
+    expect(nextConfigSource).toContain('destination: "/admin/settings"')
     expect(nextConfigSource).toContain('source: "/admin/finance/revenue"')
     expect(nextConfigSource).toContain('destination: "/admin/finance"')
     expect(nextConfigSource).toContain('source: "/admin/doctors/performance"')
@@ -430,6 +441,7 @@ describe("admin navigation contract", () => {
     expect(adminPages).not.toContain("app/admin/email-test/page.tsx")
     expect(adminPages).not.toContain("app/admin/compliance/page.tsx")
     expect(adminPages).not.toContain("app/admin/parchment-conformance/page.tsx")
+    expect(adminPages).not.toContain("app/admin/content/page.tsx")
     expect(adminPages).not.toContain("app/admin/doctors/performance/page.tsx")
     expect(adminPages).not.toContain("app/admin/finance/revenue/page.tsx")
     expect(nextConfigSource).toContain('source: "/admin/compliance"')

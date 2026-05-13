@@ -46,6 +46,24 @@ test.describe("staff nav crawler", () => {
     await crawlVisibleStaffNav(page, "/dashboard")
   })
 
+  test("owner admin doctor can open clinical and admin data surfaces", async ({ page }) => {
+    const result = await loginAsOperator(page)
+    expect(result.success, result.error).toBe(true)
+
+    for (const path of [
+      "/dashboard?status=review#doctor-queue",
+      "/doctor/scripts",
+      "/doctor/patients",
+      "/admin/patients",
+      "/admin/intakes",
+    ]) {
+      const response = await page.goto(path, { waitUntil: "domcontentloaded" })
+      expect(response?.status(), `${path} should not hard-fail`).toBeLessThan(500)
+      await expect(page.getByRole("main")).toBeVisible({ timeout: 15_000 })
+      await assertNoGenericError(page)
+    }
+  })
+
   test("doctor-only nav links all load", async ({ page }) => {
     const result = await loginAsDoctor(page)
     expect(result.success, result.error).toBe(true)
