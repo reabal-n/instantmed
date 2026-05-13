@@ -48,7 +48,6 @@ const DOCTOR_PAGES = [
   "/doctor/scripts",
   "/doctor/patients",
   "/admin",
-  "/doctor/analytics",
   "/doctor/settings",
   "/doctor/settings/identity",
 ]

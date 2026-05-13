@@ -130,9 +130,9 @@ describe("doctor navigation contract", () => {
     expect(labels).toContain("Queue")
     expect(labels).toContain("Scripts")
     expect(labels).toContain("Patients")
-    expect(labels).toContain("Analytics")
     expect(labels).toContain("Identity")
     expect(labels).toContain("Operations")
+    expect(labels).not.toContain("Analytics")
     expect(labels).not.toContain("Review Queue")
     expect(labels).not.toContain("Email Suppression")
     expect(labels).not.toContain("Shortcuts")
@@ -163,7 +163,6 @@ describe("doctor navigation contract", () => {
       "Queue",
       "Scripts",
       "Patients",
-      "Analytics",
       "Identity",
       "Operations",
     ])

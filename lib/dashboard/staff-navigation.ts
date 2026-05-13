@@ -97,9 +97,8 @@ export const doctorNavSections: StaffNavSection[] = [
     ],
   },
   {
-    title: "Practice",
+    title: "Setup",
     items: [
-      { href: "/doctor/analytics", label: "Analytics", icon: "analytics" },
       { href: "/doctor/settings/identity", label: "Identity", icon: "settings" },
     ],
   },
