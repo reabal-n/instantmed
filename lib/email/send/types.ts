@@ -23,7 +23,6 @@ export type EmailType =
   | "guest_complete_account"
   | "payment_confirmed"
   // Cron-enqueued email types
-  | "repeat_rx_reminder"
   | "abandoned_checkout"
   // Status transition emails (migrated from send-status.ts)
   | "request_approved"
@@ -46,6 +45,8 @@ export type EmailType =
   | "payment_retry"
   | "subscription_cancelled"
   | "ops_test"
+  | "ops_daily_digest"
+  | "ops_email_digest"
 
 // Email types that are marketing/engagement - get auto List-Unsubscribe headers
 export const MARKETING_EMAIL_TYPES: ReadonlySet<EmailType> = new Set([
@@ -55,7 +56,6 @@ export const MARKETING_EMAIL_TYPES: ReadonlySet<EmailType> = new Set([
   "follow_up_reminder",
   "review_request",
   "review_followup",
-  "repeat_rx_reminder",
   "decline_reengagement",
   "treatment_followup",
   "referral_credit",
@@ -80,6 +80,7 @@ export interface SendEmailParams {
   headers?: Record<string, string>
   // Optional file attachments (base64-encoded)
   attachments?: { filename: string; content: string; contentType?: string }[]
+  idempotencyKey?: string
 }
 
 export interface SendEmailResult {
@@ -106,6 +107,7 @@ export interface OutboxEntry {
   sent_at?: string
   last_attempt_at?: string
   retry_count?: number
+  idempotency_key?: string
 }
 
 export interface OutboxRow {

@@ -11,7 +11,6 @@ import {
   OperatorPage,
   OperatorPageHeader,
   OperatorScrollArea,
-  StaffSearchTrigger,
   SystemHealthPill,
   TestDataBanner,
   TestDataToggleButton,
@@ -24,9 +23,7 @@ import {
   hasSupportAccess,
 } from "@/lib/auth/staff-capabilities"
 import {
-  parseQueueSavedView,
   parseQueueStatusFilter,
-  type QueueSavedView,
   type QueueStatusFilter,
   STAFF_DASHBOARD_HREF,
 } from "@/lib/dashboard/routes"
@@ -65,7 +62,7 @@ export const dynamic = "force-dynamic"
  * URLs 307 here.
  *
  * Layout (admin or doctor):
- *   - Header: title + system health pill + command palette + availability toggle
+ *   - Header: title + system health pill + availability toggle
  *   - Compact 3-zone KPI strip (review queue, scripts, recovery) for admin
  *     only; doctor sees the queue header directly.
  *   - Owner-operator setup card if admin and setup is incomplete.
@@ -81,7 +78,6 @@ export default async function StaffDashboardPage({
     page?: string
     pageSize?: string
     status?: string | string[]
-    view?: string | string[]
     showTestData?: string
   }>
 }) {
@@ -98,7 +94,6 @@ export default async function StaffDashboardPage({
   const page = Math.max(1, parseInt(params.page || "1", 10))
   const pageSize = Math.min(100, Math.max(10, parseInt(params.pageSize || "50", 10)))
   const initialStatusFilter: QueueStatusFilter = parseQueueStatusFilter(params.status)
-  const initialSavedView: QueueSavedView = parseQueueSavedView(params.view)
   const hasExplicitStatusFilter = typeof params.status !== "undefined"
   // Test-data toggle (admin-only). `?showTestData=1` opts this page in to
   // seeing the seeded E2E patient in the queue. Gated on `hasAdminAccess`
@@ -122,7 +117,7 @@ export default async function StaffDashboardPage({
   // Stats fetch kept (counts feed sidebar nav-counts indirectly via
   // getStaffNavCounts in the layout). The local `stats` value is no longer
   // surfaced on the dashboard now that AdminHubZones is gone and the
-  // command palette derives shortcuts from the nav itself.
+  // dashboard now focuses on the clinical queue and essential admin warnings.
   void results[0]
   const queueResult = results[1].status === "fulfilled"
     ? results[1].value
@@ -165,7 +160,6 @@ export default async function StaffDashboardPage({
             <div className="flex flex-wrap items-center justify-end gap-2">
               {isAdmin && <TestDataToggleButton active={showTestData} />}
               <SystemHealthPill initial={systemHealth} />
-              <StaffSearchTrigger compact />
               <DoctorAvailabilityToggle initialAvailable={doctorAvailable} compact />
             </div>
           )}
@@ -202,7 +196,6 @@ export default async function StaffDashboardPage({
               recentlyCompleted={recentlyCompleted}
               todayEarnings={todayEarnings}
               initialStatusFilter={initialStatusFilter}
-              initialSavedView={initialSavedView}
               hasExplicitStatusFilter={hasExplicitStatusFilter}
               baseHref={STAFF_DASHBOARD_HREF}
               doctorAvailable={doctorAvailable}

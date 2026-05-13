@@ -124,13 +124,8 @@ describe("support nav contract", () => {
     expect(parchmentSource).toContain("Support view")
   })
 
-  it("blocks support from global patient/intake palette search", () => {
-    const paletteSearchSource = readFileSync(join(root, "app/api/admin/palette-search/route.ts"), "utf8")
-
-    expect(paletteSearchSource).toContain("hasAdminAccess(auth.profile)")
-    expect(paletteSearchSource).toContain("hasDoctorAccess(auth.profile)")
-    expect(paletteSearchSource).not.toContain("hasStaffAccess(auth.profile)")
-    expect(paletteSearchSource).toContain("Support staff get the local nav-only")
+  it("does not ship a global patient/intake palette search endpoint", () => {
+    expect(() => readFileSync(join(root, "app/api/admin/palette-search/route.ts"), "utf8")).toThrow()
   })
 
   it("keeps support sidebar counts operational-only", () => {

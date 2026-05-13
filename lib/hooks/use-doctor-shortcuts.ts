@@ -132,16 +132,14 @@ export const DOCTOR_SHORTCUTS = [
   { keys: ["⌘", "→"], label: "Next (alt)", description: "Go to next case" },
   { keys: ["⌘", "←"], label: "Previous (alt)", description: "Go to previous case" },
   { keys: ["⌘", "N"], label: "Note", description: "Focus clinical notes" },
-  { keys: ["⌘", "K"], label: "Commands", description: "Open command palette" },
   { keys: ["⌘", "Enter"], label: "Submit", description: "Submit current action" },
   { keys: ["Esc"], label: "Close", description: "Close dialogs" },
 ] as const
 
 /**
- * Extended shortcuts hook with command palette support
+ * Extended shortcuts hook with submit support.
  */
 interface ExtendedShortcutHandlers extends ShortcutHandlers {
-  onCommandPalette?: () => void
   onSubmit?: () => void
 }
 
@@ -152,7 +150,6 @@ export function useDoctorShortcutsExtended({
   onPrevious,
   onNote,
   onEscape,
-  onCommandPalette,
   onSubmit,
   disabled = false,
 }: ExtendedShortcutHandlers) {
@@ -167,13 +164,6 @@ export function useDoctorShortcutsExtended({
         target.isContentEditable
 
       const isMod = event.metaKey || event.ctrlKey
-
-      // ⌘/Ctrl + K: Command palette (always available)
-      if (isMod && event.key === "k") {
-        event.preventDefault()
-        onCommandPalette?.()
-        return
-      }
 
       // ⌘/Ctrl + Enter: Submit (works in inputs)
       if (isMod && event.key === "Enter") {
@@ -240,7 +230,7 @@ export function useDoctorShortcutsExtended({
         }
       }
     },
-    [disabled, onApprove, onDecline, onNext, onPrevious, onNote, onEscape, onCommandPalette, onSubmit]
+    [disabled, onApprove, onDecline, onNext, onPrevious, onNote, onEscape, onSubmit]
   )
 
   useEffect(() => {

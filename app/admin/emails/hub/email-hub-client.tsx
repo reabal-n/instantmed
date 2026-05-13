@@ -31,6 +31,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { EMAIL_SEQUENCES } from "@/lib/email/sequence-registry"
 import { formatTimeAgo } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
@@ -46,7 +47,6 @@ const emailTypeLabels: Record<string, string> = {
   payment_received: "Payment Received",
   payment_failed: "Payment Failed",
   refund_notification: "Refund Notification",
-  repeat_rx_reminder: "Repeat Rx Reminder",
   prescription_approved: "Prescription Approved",
   ed_approved: "ED Treatment Approved",
   hair_loss_approved: "Hair Loss Treatment Approved",
@@ -56,6 +56,8 @@ const emailTypeLabels: Record<string, string> = {
   guest_complete_account: "Complete Account (Guest)",
   generic: "Generic Email",
   ops_test: "Ops Test",
+  ops_daily_digest: "Daily Ops Digest",
+  ops_email_digest: "Weekly Email Digest",
 }
 
 // Sanitize email for display
@@ -311,6 +313,51 @@ export function EmailHubClient({
               </CardContent>
             </Card>
           </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MailCheck className="h-5 w-5" />
+                Sequence ownership
+              </CardTitle>
+              <CardDescription>
+                Active email automations and retired sequences. This is intentionally small: one owner, one trigger, one guard.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-2 lg:grid-cols-2">
+                {EMAIL_SEQUENCES.map((sequence) => (
+                  <div
+                    key={sequence.id}
+                    className={cn(
+                      "rounded-lg border px-3 py-2.5",
+                      sequence.status === "active"
+                        ? "border-border/60 bg-background"
+                        : "border-dashed border-muted-foreground/25 bg-muted/30",
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-semibold text-foreground">{sequence.name}</p>
+                          <Badge variant={sequence.status === "active" ? "default" : "secondary"} className="text-[10px] uppercase">
+                            {sequence.status}
+                          </Badge>
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {sequence.owner} · {sequence.cadence}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
+                      <p><span className="font-medium text-foreground">Trigger:</span> {sequence.trigger}</p>
+                      <p><span className="font-medium text-foreground">Guard:</span> {sequence.guard}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Quick Actions */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

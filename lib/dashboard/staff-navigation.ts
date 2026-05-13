@@ -112,7 +112,7 @@ export const doctorOperatorNavItems: StaffNavItem[] = [
 // ── Canonical role-aware nav (Phase 1 of dashboard remaster, 2026-05-11) ────
 // `getStaffNav(profile)` is the single source of truth going forward. The
 // legacy exports above stay for back-compat until Phase 2 finishes the surface
-// consolidation; new sidebars and command palettes should call this function.
+// consolidation; new sidebars should call this function.
 //
 // Support staff get a deliberately minimal nav: operations recovery
 // surfaces only. No patient directory (full PHI), no email hub, no settings,

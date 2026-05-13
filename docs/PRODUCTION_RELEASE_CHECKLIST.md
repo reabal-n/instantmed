@@ -13,7 +13,7 @@ Use this checklist before promoting dashboard, payment, clinical, or patient-flo
 - `PLAYWRIGHT=1 pnpm exec playwright test e2e/payment-smoke.spec.ts e2e/stripe-webhook.spec.ts e2e/parchment-webhook.spec.ts --project=chromium --workers=1 --reporter=list`
 - `PLAYWRIGHT=1 pnpm exec playwright test e2e/operator.viewport.spec.ts e2e/operator.visual.spec.ts --project=chromium --workers=1 --reporter=list`
 - `PLAYWRIGHT=1 pnpm exec playwright test e2e/medical-certificate.spec.ts --project=chromium --workers=1 --reporter=list`
-- `DASHBOARD_SMOKE_COOKIE_HEADER='...' pnpm e2e:prod-dashboard` after deployment (authenticated owner-admin dashboard render smoke)
+- After deployment, sign in once as the owner-admin and open `/dashboard` before walking away from dashboard or clinical-ops changes.
 
 ## 2. Dashboard Gates
 

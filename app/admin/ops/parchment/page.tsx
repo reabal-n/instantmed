@@ -211,13 +211,7 @@ export default async function ParchmentOpsPage() {
         backHref="/admin/ops"
         actions={
           <div className="flex items-center gap-2">
-            {isSupportOnly ? (
-              <Badge variant="outline" size="sm">Support view</Badge>
-            ) : (
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/admin/parchment-conformance">Recording evidence</Link>
-              </Button>
-            )}
+            {isSupportOnly ? <Badge variant="outline" size="sm">Support view</Badge> : null}
             <StatusBadge status={degraded ? "warning" : "success"} size="sm">
               {degraded ? "Needs attention" : "Healthy"}
             </StatusBadge>

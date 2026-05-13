@@ -30,7 +30,6 @@ import { PaymentRetryEmail } from "@/lib/email/components/templates/payment-retr
 import { PrescriptionApprovedEmail } from "@/lib/email/components/templates/prescription-approved"
 import { ReferralCreditEmail } from "@/lib/email/components/templates/referral-credit"
 import { RefundIssuedEmail } from "@/lib/email/components/templates/refund-issued"
-import { RepeatRxReminderEmail } from "@/lib/email/components/templates/repeat-rx-reminder"
 import { RequestDeclinedEmail } from "@/lib/email/components/templates/request-declined"
 import { RequestReceivedEmail } from "@/lib/email/components/templates/request-received"
 import { ReviewFollowupEmail } from "@/lib/email/components/templates/review-followup"
@@ -391,18 +390,6 @@ const templates: Record<string, {
         serviceName="medical certificate"
         resumeUrl={`${mock.appUrl}/request?resume=${mock.requestId}`}
         hoursAgo={2}
-        appUrl={mock.appUrl}
-      />
-    ),
-  },
-  "repeat-rx-reminder": {
-    name: "Repeat Rx Reminder",
-    subject: "Time to reorder your Amoxicillin?",
-    render: () => (
-      <RepeatRxReminderEmail
-        patientName={mock.patientName}
-        medicationName="Amoxicillin 500mg"
-        reorderUrl={`${mock.appUrl}/request?service=repeat-prescription`}
         appUrl={mock.appUrl}
       />
     ),

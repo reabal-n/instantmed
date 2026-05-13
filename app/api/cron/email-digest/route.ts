@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { CONTACT_EMAIL } from "@/lib/constants"
-import { sendViaResend } from "@/lib/email/resend"
+import { sendHtmlEmailWithOutbox } from "@/lib/email/send/html-outbox"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -113,12 +113,23 @@ ${(bouncedAddresses || []).length > 0 ? `<h2 style="font-size:16px;margin:0 0 8p
 <p style="font-size:12px;color:#A8A29E;">Automated digest from InstantMed email system. <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"}/admin/emails/suppression">View suppression list</a></p>
 </body></html>`
 
-    await sendViaResend({
+    const periodEnd = now.toISOString()
+    const digestResult = await sendHtmlEmailWithOutbox({
       to: CONTACT_EMAIL,
       subject: `Email Digest: ${sent} sent, ${deliveryRate}% delivered (${weekLabel})`,
       html,
+      emailType: "ops_email_digest",
+      idempotencyKey: `ops-email-digest:${weekAgo.slice(0, 10)}:${periodEnd.slice(0, 10)}:${CONTACT_EMAIL.toLowerCase()}`,
+      metadata: {
+        period_start: weekAgo,
+        period_end: periodEnd,
+      },
       tags: [{ name: "category", value: "email_digest" }],
     })
+
+    if (!digestResult.success) {
+      throw new Error(digestResult.error || "Failed to send email digest")
+    }
 
     logger.info("Weekly email digest sent", { sent, failed, bounced, complained, delivered, opened })
 

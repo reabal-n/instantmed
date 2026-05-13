@@ -20,7 +20,7 @@
     },
     {
       "path": "/api/cron/recover-partial-intakes",
-      "schedule": "0 * * * *"
+      "schedule": "15 * * * *"
     },
     {
       "path": "/api/cron/cleanup-intake-drafts",
@@ -79,10 +79,6 @@
       "schedule": "0 2 * * *"
     },
     {
-      "path": "/api/cron/repeat-rx-reminders",
-      "schedule": "0 22 * * *"
-    },
-    {
       "path": "/api/cron/ahpra-reverification",
       "schedule": "0 20 * * *"
     },
@@ -105,14 +101,6 @@
     {
       "path": "/api/cron/follow-up-reminder",
       "schedule": "0 1 * * *"
-    },
-    {
-      "path": "/api/cron/exit-intent-nurture",
-      "schedule": "30 * * * *"
-    },
-    {
-      "path": "/api/cron/indexnow",
-      "schedule": "0 6 * * *"
     },
     {
       "path": "/api/cron/decline-reengagement",

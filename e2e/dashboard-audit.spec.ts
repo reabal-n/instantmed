@@ -39,11 +39,9 @@ const ADMIN_PAGES = [
   "/admin/ops/intakes-stuck",
   "/admin/ops/doctors",
   "/admin/ops/reconciliation",
-  "/admin/finance/revenue",
   "/admin/emails/analytics",
   "/admin/emails/preview",
   "/admin/settings/encryption",
-  "/admin/doctors/performance",
 ]
 
 const DOCTOR_PAGES = [

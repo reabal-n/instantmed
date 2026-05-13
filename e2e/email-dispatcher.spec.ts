@@ -8,7 +8,7 @@ import { getSupabaseClient } from "./helpers/db"
  * Tests for the eventual delivery system:
  * 1. Cron route requires authentication
  * 2. Email failure during approval still creates certificate
- * 3. Dispatcher route retries failed emails
+ * 3. Canonical cron dispatcher retries failed emails
  */
 
 test.describe("Email Dispatcher", () => {
@@ -121,39 +121,8 @@ test.describe("Email Dispatcher", () => {
     expect(fetchedRow?.retry_count).toBe(0)
   })
 
-  test("dispatcher endpoint requires authentication", async ({ request }) => {
-    // Call without secret - should get 401
-    const response = await request.post("/api/ops/email-dispatcher", {
-      headers: {},
-    })
-
-    expect(response.status()).toBe(401)
-    const body = await response.json()
-    expect(body.error).toBe("Unauthorized")
-  })
-
-  test("dispatcher endpoint returns queue stats on GET", async ({ request }) => {
-    const cronSecret = process.env.OPS_CRON_SECRET || "test-secret"
-    
-    const response = await request.get("/api/ops/email-dispatcher", {
-      headers: {
-        "x-ops-cron-secret": cronSecret,
-      },
-    })
-
-    // May be 401 if secret doesn't match in test env, or 200 if it does
-    if (response.status() === 200) {
-      const body = await response.json()
-      expect(body.queue).toBeDefined()
-      expect(body.config).toBeDefined()
-      expect(body.config.maxRetries).toBe(10)
-    } else {
-      expect(response.status()).toBe(401)
-    }
-  })
-
   test("dispatcher processes eligible failed emails", async ({ request }) => {
-    const cronSecret = process.env.OPS_CRON_SECRET
+    const cronSecret = process.env.CRON_SECRET
     
     // Skip if no cron secret configured
     if (!cronSecret) {
@@ -185,9 +154,9 @@ test.describe("Email Dispatcher", () => {
     expect(testEmail?.id).toBeDefined()
 
     // Call dispatcher
-    const response = await request.post("/api/ops/email-dispatcher", {
+    const response = await request.get("/api/cron/email-dispatcher", {
       headers: {
-        "x-ops-cron-secret": cronSecret,
+        Authorization: `Bearer ${cronSecret}`,
       },
     })
 

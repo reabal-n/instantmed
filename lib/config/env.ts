@@ -95,7 +95,6 @@ const serverEnvSchema = z.object({
 
   // Cron job authentication
   CRON_SECRET: z.string().optional(),
-  OPS_CRON_SECRET: z.string().optional(),
 
   // Parchment ePrescribing
   PARCHMENT_API_URL: z.string().url().optional(),

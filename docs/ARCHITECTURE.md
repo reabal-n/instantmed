@@ -262,7 +262,7 @@ Entry points (doctor queue | admin panel | API)
 
 **Template types:** Core transactional and lifecycle types are reconstructed from source records for retry, including `med_cert_patient`, `med_cert_employer`, `script_sent`, `request_declined`, `prescription_approved`, `still_reviewing`, and `payment_retry`. Supabase Auth send-email templates cover `magiclink`, `signup`, and `recovery` via `app/api/webhooks/supabase-auth/route.ts`. Marketing/engagement types are capped by warmup limits; transactional clinical/payment sends are not.
 
-**Admin hub:** `/admin/emails/hub` links to editor (`/admin/emails`), preview (`/admin/emails/preview`), analytics (`/admin/emails/analytics`), suppression recovery, and a compact auth-email hook health card. In development, it links straight to `/email-preview/magic-link` for Supabase auth email QA. Test studio at `/admin/email-test`; legacy `/admin/email-hub` redirects to the hub.
+**Admin hub:** `/admin/emails/hub` links to editor (`/admin/emails`), preview (`/admin/emails/preview`), analytics (`/admin/emails/analytics`), suppression recovery, and a compact auth-email hook health card. In development, `/email-preview/magic-link` covers Supabase auth email QA. Legacy `/admin/email-hub`, `/admin/email-test`, `/admin/email-outbox`, `/admin/email-queue`, and `/admin/ops/email-outbox` redirect to the owning email surfaces.
 
 ### Retry & Delivery
 
@@ -272,11 +272,11 @@ All sends logged to `email_outbox`: `status` (pending | sending | sent | failed 
 
 **E2E seam:** `PLAYWRIGHT=1` skips Resend sends, logs as `skipped_e2e`.
 
-**Observability:** Sentry (`action:send_email`, dispatcher exhaustion, stale sending recovery), Vercel logs, Resend dashboard, `/admin/emails/analytics`, `/admin/emails/hub`, `/api/ops/email-dispatcher`, and `email_outbox` queries. Resend webhook lifecycle events update `delivery_status`; raw recipient addresses must be masked in logs/analytics.
+**Observability:** Sentry (`action:send_email`, dispatcher exhaustion, stale sending recovery), Vercel logs, Resend dashboard, `/admin/emails/analytics`, `/admin/emails/hub`, the canonical `/api/cron/email-dispatcher`, and `email_outbox` queries. Resend webhook lifecycle events update `delivery_status`; raw recipient addresses must be masked in logs/analytics.
 
 ### Email Test Studio
 
-Admin interface at `/admin/email-test`. 4 themes (Modern, Sleek, Premium, Minimal), desktop/mobile preview, code view, test sends via Resend. Component: `EmailTestClient` at `app/admin/email-test/email-test-client.tsx`, API: `/api/admin/test-email/route.ts`.
+Email preview lives at `/admin/emails/preview` for admin review and `/email-preview/*` for development template QA. Direct test-send tooling remains behind `/api/admin/test-email/route.ts`; there is no separate `/admin/email-test` page.
 
 ---
 
@@ -423,7 +423,7 @@ Config-driven, immutably versioned. Template config stored as JSONB in `certific
 
 Capability helpers in `lib/auth/staff-capabilities.ts`. Per-doctor capability flags on `profiles` (`can_review_med_certs`, `can_review_repeat_rx`, `can_review_consults`, `can_review_ed`, `can_review_hair_loss`, `can_prescribe_s4`, `can_prescribe_s8`) scope future doctor hires before their service-line verification completes; owner-operator is unrestricted by default. Parchment prescribing actions call `checkParchmentPrescribingCapability(...)` before external handoff: `prescribe_s4` is required for every embedded prescribing launch, and `prescribe_s8` is required when repeat-script intake answers include a controlled-medication name.
 
-**Canonical URL:** `/dashboard`. As of Phase 2 of the dashboard remaster (2026-05-12), `/dashboard` is the real staff surface: role-aware content (admin gets the full Admin layer + setup card + queue; doctor gets the queue; support is redirected to the bounded support ops cockpit at `/admin/ops`), 3-tile KPI strip, `SystemHealthPill` in the header, staff command palette, and doctor availability toggle. Legacy `/admin`, `/doctor`, `/doctor/dashboard`, and `/doctor/queue` 307-redirect here and preserve query params. New code references `STAFF_*_HREF` constants from `lib/dashboard/routes.ts`; legacy `ADMIN_*_HREF` / `DOCTOR_*_HREF` aliases stay until a later remaster phase consolidates the file tree.
+**Canonical URL:** `/dashboard`. As of Phase 2 of the dashboard remaster (2026-05-12), `/dashboard` is the real staff surface: role-aware content (admin gets the full Admin layer + setup card + queue; doctor gets the queue; support is redirected to the bounded support ops cockpit at `/admin/ops`), `SystemHealthPill` in the header, and doctor availability toggle. Legacy `/admin`, `/doctor`, `/doctor/dashboard`, and `/doctor/queue` 307-redirect here and preserve query params. New code references `STAFF_*_HREF` constants from `lib/dashboard/routes.ts`; legacy `ADMIN_*_HREF` / `DOCTOR_*_HREF` aliases stay until a later remaster phase consolidates the file tree.
 
 ## Admin Portal
 
@@ -431,7 +431,7 @@ Capability helpers in `lib/auth/staff-capabilities.ts`. Per-doctor capability fl
 
 Admin capabilities span the `/admin` route group and include: operator cockpit, patient directory/profile lookup, operations dashboard, analytics, compliance audit logs, feature flag management (kill switches, operational controls), finance (fraud flags, Stripe disputes), clinic identity configuration, and doctor management.
 
-**Staff cockpit architecture:** `/dashboard` is the primary combined operator surface (Phase 2 of dashboard remaster, 2026-05-12). It uses `OperatorShell`, shared navigation from `lib/dashboard/staff-navigation.ts` (`getStaffNav(profile)`), `StaffCommandPalette` for fast jumps, live sidebar counts from `lib/data/staff-nav-counts.ts`, compact summaries from `lib/doctor/case-summary.ts`, and the `SystemHealthPill` in the header (45s poll on `/api/admin/system-health`). Dedicated Queue navigation deep-links to `/dashboard?status=review#doctor-queue`, Scripts navigation deep-links to `/dashboard?status=scripts#doctor-queue`, and Patients deep-links to `/admin/patients` with the active prescribing-identity blocker count. Owner-operator doctor setup lives inside the admin shell at `/admin/settings/doctor-identity`, reusing the doctor identity client for MFA, availability, certificate identity, signature, avatar, and Parchment linking without requiring a switch to the doctor portal. `/admin/intakes/[id]` (admin) and `/doctor/intakes/[id]` (doctor) share the same `IntakeDetailClient`. Phase 4a (2026-05-12) collapsed `/admin/patients/[id]` to a redirect; the canonical patient profile is `/doctor/patients/[id]`. The patient directory is sortable by most recent request, request type, last script, name, or joined date.
+**Staff cockpit architecture:** `/dashboard` is the primary combined operator surface (Phase 2 of dashboard remaster, 2026-05-12). It uses `OperatorShell`, shared navigation from `lib/dashboard/staff-navigation.ts` (`getStaffNav(profile)`), live sidebar counts from `lib/data/staff-nav-counts.ts`, compact summaries from `lib/doctor/case-summary.ts`, and the `SystemHealthPill` in the header (45s poll on `/api/admin/system-health`). Dedicated Queue navigation deep-links to `/dashboard?status=review#doctor-queue`, Scripts navigation deep-links to `/dashboard?status=scripts#doctor-queue`, and Patients deep-links to `/admin/patients` with the active prescribing-identity blocker count. Owner-operator doctor setup lives inside the admin shell at `/admin/settings/doctor-identity`, reusing the doctor identity client for MFA, availability, certificate identity, signature, avatar, and Parchment linking without requiring a switch to the doctor portal. `/admin/intakes/[id]` (admin) and `/doctor/intakes/[id]` (doctor) share the same `IntakeDetailClient`. Phase 4a (2026-05-12) collapsed `/admin/patients/[id]` to a redirect; the canonical patient profile is `/doctor/patients/[id]`. The patient directory is sortable by most recent request, request type, last script, name, or joined date.
 
 **Operational controls** (`/admin/features`): Bounded operator console for platform/service kill switches, review timing reference (open/close, timezone), capacity limit (max intakes/day), urgent notice banner, scheduled maintenance (start/end datetime), safety libraries, automation, and recent changes. The critical strip keeps platform, med cert, repeat Rx, and consult kill switches visible without scrolling; lower-priority controls sit in compact tabs with internal pane scrolling only. Runtime helpers live in `lib/operational-controls/`; admin writes go through `lib/feature-flags.ts` with server-side key/value validation. Cron `scheduled-maintenance` syncs `maintenance_mode` with the scheduled window every 5 min, but will not disable manually enabled maintenance mode from an admin incident response.
 
@@ -537,7 +537,7 @@ Also re-exports selected shadcn/Radix primitives: `Button`, `Card`, `Input`, `Ba
 
 **Component decision tree:** See CLAUDE.md for quick-reference selection guide (shadcn vs UIX vs solid-depth components).
 
-**File organization:** `components/ui/` (67 primitives), `components/shared/` (39 shared), `components/uix/` (UIX wrappers), `components/operator/` (staff cockpit shell/page/split-pane/command palette), plus domain directories (`admin/`, `doctor/`, `patient/`, `request/`, `marketing/`).
+**File organization:** `components/ui/` (67 primitives), `components/shared/` (39 shared), `components/uix/` (UIX wrappers), `components/operator/` (staff cockpit shell/page/split-pane/local action palettes), plus domain directories (`admin/`, `doctor/`, `patient/`, `request/`, `marketing/`).
 
 ### Operator Components
 
@@ -554,7 +554,7 @@ Use `components/operator/` for staff pages that combine admin and clinical work.
 
 Do not build new bespoke admin shells or mode-switching pages. If a staff page needs a new layout primitive, add it under `components/operator/` and document it here in the same commit.
 
-**Future doctor data boundary:** Admin uses broad operator data. Non-admin doctors are scoped through `lib/doctor/patient-access.ts` for patient directory, patient detail, patient drawer APIs, command-palette search, and doctor analytics. The relationship sources are intake claim/review/reviewer fields, script-task ownership, issued certificates, and patient notes; the global unclaimed queue is not enough to place a patient in a doctor's directory/search/analytics history.
+**Future doctor data boundary:** Admin uses broad operator data. Non-admin doctors are scoped through `lib/doctor/patient-access.ts` for patient directory, patient detail, patient drawer APIs, and doctor analytics. The relationship sources are intake claim/review/reviewer fields, script-task ownership, issued certificates, and patient notes; the global unclaimed queue is not enough to place a patient in a doctor's directory/search/analytics history.
 
 ### Service Icon Tiles (`ServiceIconTile`)
 
@@ -634,7 +634,7 @@ Use when: the page is not a standard service funnel — it has a unique layout, 
 
 **Sitemap/robots:** `app/sitemap.ts` and `app/robots.ts` auto-update from the page data layer. No manual updates needed.
 
-**IndexNow:** Daily scheduled submission to Bing (and Yandex/other IndexNow participants), with an optional protected manual endpoint. `lib/seo/indexnow.ts` reads every sitemap listed in `robots.txt`, dedupes URLs, and is used by `/api/cron/indexnow/route.ts` (scheduled) plus `/api/indexnow/route.ts` (manual only when `INDEXNOW_SECRET` is configured). `INDEXNOW_KEY` is optional only while it matches the public verification file fallback. No Google support — Google has its own crawl pipeline.
+**IndexNow:** Manual protected submission to Bing (and Yandex/other IndexNow participants) only. `lib/seo/indexnow.ts` reads every sitemap listed in `robots.txt`, dedupes URLs, and is used by `/api/indexnow/route.ts` when `INDEXNOW_SECRET` is configured. `INDEXNOW_KEY` is optional only while it matches the public verification file fallback. No Google support — Google has its own crawl pipeline. The scheduled cron was retired because it is not required for clinical operations, payment recovery, or compliance.
 
 **Internal linking:** Use explicit, page-owned links or `ContentHubLinks` for service-to-content cross-linking. Do not reintroduce null-rendering SEO compatibility wrappers.
 
@@ -719,7 +719,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `ui/` | 67 | shadcn/Radix primitives (Button, Input, Dialog, etc.) |
 | `uix/` | 11 | Thin shared wrappers and re-exports (UserCard, PageBreadcrumbs, DatePickerField, Pagination, Snippet, etc.) |
 | `shared/` | 39 | Header, Footer, InlineAuthStep, CheckoutButton, LazyOverlays |
-| `operator/` | — | OperatorShell, bounded staff pages, split panes, staff command palette |
+| `operator/` | — | OperatorShell, bounded staff pages, split panes, local action palettes |
 | `request/` | 32 | Intake flow: `request-flow.tsx` (orchestrator), `steps/` (per-step components), `store.ts` (Zustand) |
 | `marketing/` | 20 | Landing pages, ServiceFunnelPage, testimonials, exit intent |
 | `blog/` | 12 | Guide article template, TOC, visuals, related reading, share controls |

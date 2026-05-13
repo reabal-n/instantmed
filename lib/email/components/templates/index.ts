@@ -77,10 +77,6 @@ export { WomensHealthApprovedEmail, womensHealthApprovedSubject } from "./womens
 export type { PrescriptionApprovedEmailProps } from "./prescription-approved"
 export { PrescriptionApprovedEmail, prescriptionApprovedSubject } from "./prescription-approved"
 
-// --- Repeat Rx Reminder ---
-export type { RepeatRxReminderEmailProps } from "./repeat-rx-reminder"
-export { RepeatRxReminderEmail, repeatRxReminderSubject } from "./repeat-rx-reminder"
-
 // --- Referral Credit ---
 export type { ReferralCreditEmailProps } from "./referral-credit"
 export { ReferralCreditEmail, referralCreditSubject } from "./referral-credit"

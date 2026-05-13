@@ -26,6 +26,7 @@ const SERVICE_NAMES: Record<string, string> = {
 // rescue rate and we don't want to feel like spam to occasional visitors.
 const MIN_IDLE_MINUTES = 60
 const MAX_IDLE_HOURS = 6
+const PAYMENT_STAGE_DRAFT_STEPS = ["review", "checkout"] as const
 
 interface PartialDraft {
   session_id: string
@@ -41,6 +42,7 @@ interface PartialDraft {
  * Eligibility:
  *   - email is captured (otherwise we have nothing to send to)
  *   - converted_to_intake_id is null (real intake not yet submitted)
+ *   - current_step_id is not review/checkout (payment-stage recovery is owned by abandoned checkout)
  *   - recovery_email_sent_at is null (one email per draft, ever)
  *   - updated_at is between MIN_IDLE_MINUTES and MAX_IDLE_HOURS old
  */
@@ -55,6 +57,7 @@ async function findEligibleDrafts(): Promise<PartialDraft[]> {
     .select("session_id, service_type, email, first_name, updated_at")
     .not("email", "is", null)
     .is("converted_to_intake_id", null)
+    .not("current_step_id", "in", `(${PAYMENT_STAGE_DRAFT_STEPS.join(",")})`)
     .is("recovery_email_sent_at", null)
     .lte("updated_at", idleSince)
     .gte("updated_at", tooOld)

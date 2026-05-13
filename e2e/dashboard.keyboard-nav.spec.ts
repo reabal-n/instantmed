@@ -24,16 +24,13 @@ test.describe("Staff dashboard keyboard navigation", () => {
     await logoutTestUser(page)
   })
 
-  test("queue exposes keyboard-hint strip when rows are present", async ({ page }) => {
+  test("queue keeps shortcuts functional without a persistent hint strip", async ({ page }) => {
     await page.goto("/dashboard?showTestData=1")
     await page.waitForLoadState("networkidle")
 
-    // The hint strip teaches the shortcuts and only renders on desktop
-    // (lg+) with rows present and no row focused. Playwright's default
-    // viewport is desktop-sized so the strip should render.
-    await expect(page.getByText("navigate", { exact: true })).toBeVisible({ timeout: 10_000 })
-    await expect(page.getByText("approve", { exact: true })).toBeVisible()
-    await expect(page.getByText("decline", { exact: true })).toBeVisible()
+    await expect(page.getByText("navigate", { exact: true })).toHaveCount(0)
+    await expect(page.getByText("approve", { exact: true })).toHaveCount(0)
+    await expect(page.getByText("decline", { exact: true })).toHaveCount(0)
   })
 
   test("ArrowDown focuses the first row and ArrowUp moves selection back", async ({ page }) => {
@@ -59,26 +56,6 @@ test.describe("Staff dashboard keyboard navigation", () => {
     // ArrowUp at the top is a no-op; the same row stays focused.
     await page.keyboard.press("ArrowUp")
     await expect(firstRow).toHaveClass(/ring-primary/)
-  })
-
-  test("Cmd+K opens the staff command palette", async ({ page }) => {
-    await page.goto("/dashboard")
-    await page.waitForLoadState("networkidle")
-
-    // Cmd+K (or Ctrl+K on Linux/Windows). Playwright runs on Linux in
-    // CI by default, so Control matches.
-    await page.keyboard.press("Control+k")
-
-    // The palette renders inside a Dialog with a "Staff palette" title.
-    await expect(page.getByRole("dialog", { name: /staff palette/i })).toBeVisible({ timeout: 3_000 })
-    // The search input is auto-focused.
-    await expect(
-      page.getByPlaceholder(/search a patient, case reference, or jump to/i),
-    ).toBeFocused()
-
-    // Escape closes the palette.
-    await page.keyboard.press("Escape")
-    await expect(page.getByRole("dialog", { name: /staff palette/i })).toBeHidden({ timeout: 3_000 })
   })
 
   test("Escape clears the keyboard selection on the queue", async ({ page }) => {

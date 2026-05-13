@@ -233,6 +233,26 @@ const nextConfig = {
         permanent: true
       },
       {
+        source: "/admin/email-test",
+        destination: "/admin/emails/preview",
+        permanent: true
+      },
+      {
+        source: "/admin/parchment-conformance",
+        destination: "/admin/ops/parchment",
+        permanent: true
+      },
+      {
+        source: "/admin/doctors/performance",
+        destination: "/admin/doctors",
+        permanent: true
+      },
+      {
+        source: "/admin/finance/revenue",
+        destination: "/admin/finance",
+        permanent: true
+      },
+      {
         source: "/admin/business-kpi",
         destination: "/admin/analytics?tab=business-kpis",
         permanent: true

@@ -6,11 +6,9 @@ import { useEffect, useRef } from "react"
 import { KeyboardShortcutsModal } from "@/components/doctor/keyboard-shortcuts-modal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import type { QueueSavedView, QueueStatusFilter } from "@/lib/dashboard/routes"
+import type { QueueStatusFilter } from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 import type { IntakeWithPatient } from "@/types/db"
-
-export type QueueSavedViewCounts = Record<QueueSavedView, number>
 
 export interface QueueFiltersProps {
   searchQuery: string
@@ -20,9 +18,6 @@ export interface QueueFiltersProps {
   onRefresh: () => void
   statusFilter: QueueStatusFilter
   onStatusFilterChange: (value: QueueStatusFilter) => void
-  savedView: QueueSavedView
-  onSavedViewChange: (value: QueueSavedView) => void
-  savedViewCounts: QueueSavedViewCounts
   intakes: IntakeWithPatient[]
   filteredCount: number
   isStale: boolean
@@ -48,9 +43,6 @@ export function QueueFilters({
   onRefresh,
   statusFilter,
   onStatusFilterChange,
-  savedView,
-  onSavedViewChange,
-  savedViewCounts,
   intakes,
   filteredCount,
   isStale,
@@ -174,37 +166,6 @@ export function QueueFilters({
             />
           )}
         </div>
-      </div>
-
-      {/* Saved views */}
-      <div className="flex w-full gap-1 overflow-x-auto rounded-lg bg-muted/50 p-1 sm:w-fit sm:flex-wrap">
-        {([
-          { key: "all", label: "All" },
-          { key: "priority", label: "Priority" },
-          { key: "scripts", label: "Scripts" },
-          { key: "pending_info", label: compactShell ? "Info" : "Pending info" },
-          { key: "stale", label: "Stale" },
-          { key: "mine", label: "Mine" },
-        ] as const).map((tab) => {
-          const count = savedViewCounts[tab.key]
-          return (
-            <button
-              key={tab.key}
-              type="button"
-              aria-pressed={savedView === tab.key}
-              onClick={() => onSavedViewChange(tab.key)}
-              className={cn(
-                "px-3 py-1.5 text-xs font-medium rounded-md transition-colors",
-                savedView === tab.key
-                  ? "bg-white dark:bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {tab.label}
-              {count > 0 && <span className="ml-1.5 tabular-nums">({count})</span>}
-            </button>
-          )
-        })}
       </div>
 
       {/* Status Filter Tabs */}

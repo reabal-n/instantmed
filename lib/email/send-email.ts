@@ -74,6 +74,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     tags = [],
     headers,
     attachments,
+    idempotencyKey,
   } = params
 
   // Add Sentry context
@@ -275,7 +276,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
   // TWO-PHASE WRITE: Create pending outbox row BEFORE attempting send
   // This ensures we have a record for the dispatcher to retry if process crashes
   // Body is NOT stored - dispatcher reconstructs from intake/certificate data
-  const outboxId = await createPendingOutbox({
+  const outboxResult = await createPendingOutbox({
     email_type: emailType,
     to_email: to,
     to_name: toName,
@@ -285,7 +286,24 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     patient_id: patientId,
     certificate_id: certificateId,
     metadata,
+    idempotency_key: idempotencyKey,
   })
+  const outboxId = outboxResult.id
+
+  if (outboxResult.duplicate) {
+    logger.info("[Email] Duplicate send suppressed by outbox guard", {
+      outboxId,
+      emailType,
+      certificateId,
+      intakeId,
+    })
+    return {
+      success: true,
+      messageId: outboxId ? `duplicate-outbox-${outboxId}` : undefined,
+      outboxId: outboxId || undefined,
+      skipped: true,
+    }
+  }
 
   // DEBUG: Log outbox write result - critical for diagnosing missing outbox rows
   if (outboxId) {

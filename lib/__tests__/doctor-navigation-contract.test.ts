@@ -178,8 +178,7 @@ describe("doctor navigation contract", () => {
 
   it("keeps the dashboard header focused on queue state, not duplicated sidebar routes", () => {
     // Phase 2 contract: the unified dashboard header surfaces availability +
-    // system health + the command palette. It does not re-render the sidebar
-    // routes inline.
+    // system health. It does not re-render the sidebar routes inline.
     expect(dashboardHeaderSource).toContain('title="Dashboard"')
     expect(dashboardHeaderSource).not.toContain('title="Review Queue"')
     expect(dashboardHeaderSource).not.toContain('href="/doctor/scripts"')

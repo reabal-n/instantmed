@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
@@ -6,22 +6,15 @@ import { describe, expect, it } from "vitest"
 describe("staff release gates", () => {
   const read = (file: string) => readFileSync(join(process.cwd(), file), "utf8")
 
-  it("ships executable ops checks for staff roles, Sentry, and production dashboard smoke", () => {
+  it("ships executable ops checks for staff roles and Sentry without GitHub dashboard smoke", () => {
     const pkg = JSON.parse(read("package.json")) as { scripts: Record<string, string> }
 
     expect(pkg.scripts["check:staff-roles"]).toBe("tsx scripts/check-staff-role-readiness.ts")
     expect(pkg.scripts["fix:staff-roles"]).toBe("tsx scripts/fix-staff-admin-roles.ts")
     expect(pkg.scripts["check:sentry"]).toBe("tsx scripts/check-sentry-access.ts")
-    expect(pkg.scripts["e2e:prod-dashboard"]).toContain("e2e/prod-dashboard-auth-smoke.spec.ts")
-  })
-
-  it("runs the authenticated production dashboard smoke after deploys and on a schedule", () => {
-    const workflow = read(".github/workflows/prod-dashboard-auth-smoke.yml")
-
-    expect(workflow).toContain("deployment_status")
-    expect(workflow).toContain("*/15 * * * *")
-    expect(workflow).toContain("secrets.DASHBOARD_SMOKE_COOKIE_HEADER")
-    expect(workflow).toContain("pnpm e2e:prod-dashboard")
+    expect(pkg.scripts["e2e:prod-dashboard"]).toBeUndefined()
+    expect(existsSync(join(process.cwd(), ".github/workflows/prod-dashboard-auth-smoke.yml"))).toBe(false)
+    expect(existsSync(join(process.cwd(), "e2e/prod-dashboard-auth-smoke.spec.ts"))).toBe(false)
   })
 
   it("keeps the staff role readiness gate read-only and aligned to the owner-admin model", () => {
@@ -38,15 +31,6 @@ describe("staff release gates", () => {
     expect(source).not.toContain(".delete(")
     expect(source).not.toContain(".insert(")
     expect(source).not.toContain(".upsert(")
-  })
-
-  it("requires an authenticated production cookie before claiming /dashboard is healthy", () => {
-    const source = read("e2e/prod-dashboard-auth-smoke.spec.ts")
-
-    expect(source).toContain("DASHBOARD_SMOKE_COOKIE_HEADER is required")
-    expect(source).toContain("/dashboard should return 200")
-    expect(source).toContain("Something went wrong")
-    expect(source).toContain("Error loading dashboard")
   })
 
   it("requires an explicit apply flag before staff role normalization writes to production", () => {

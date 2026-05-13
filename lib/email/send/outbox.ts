@@ -8,16 +8,40 @@
 import { logger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
+import { buildEmailOutboxIdempotencyKey } from "./idempotency"
 import type { OutboxEntry, OutboxRow } from "./types"
+
+export interface CreatePendingOutboxResult {
+  id: string | null
+  duplicate: boolean
+}
 
 /**
  * Create a pending outbox row BEFORE attempting to send.
  * This ensures we have a record even if the process crashes mid-send.
  * Does NOT store email body - dispatcher will reconstruct from intake/certificate data.
  */
-export async function createPendingOutbox(entry: Omit<OutboxEntry, "status">): Promise<string | null> {
+export async function createPendingOutbox(entry: Omit<OutboxEntry, "status">): Promise<CreatePendingOutboxResult> {
   try {
     const supabase = createServiceRoleClient()
+    const idempotencyKey = buildEmailOutboxIdempotencyKey(entry)
+
+    if (idempotencyKey) {
+      const { data: existing } = await supabase
+        .from("email_outbox")
+        .select("id")
+        .eq("idempotency_key", idempotencyKey)
+        .limit(1)
+        .maybeSingle()
+
+      if (existing) {
+        logger.info("[Email] DB idempotency guard: duplicate outbox row skipped", {
+          existingId: existing.id,
+          emailType: entry.email_type,
+        })
+        return { id: existing.id, duplicate: true }
+      }
+    }
 
     // Idempotency guard: skip if an identical email was created in the last 5 minutes
     // Prevents duplicate outbox rows from double-submissions or race conditions
@@ -43,7 +67,7 @@ export async function createPendingOutbox(entry: Omit<OutboxEntry, "status">): P
         existingId: existing.id,
         emailType: entry.email_type,
       })
-      return existing.id
+      return { id: existing.id, duplicate: true }
     }
 
     const { data, error } = await supabase
@@ -59,6 +83,7 @@ export async function createPendingOutbox(entry: Omit<OutboxEntry, "status">): P
         patient_id: entry.patient_id,
         certificate_id: entry.certificate_id,
         metadata: entry.metadata || {},
+        idempotency_key: idempotencyKey,
         last_attempt_at: new Date().toISOString(),
         retry_count: 0,
       })
@@ -66,13 +91,29 @@ export async function createPendingOutbox(entry: Omit<OutboxEntry, "status">): P
       .single()
 
     if (error) {
+      if (error.code === "23505" && idempotencyKey) {
+        const { data: existing } = await supabase
+          .from("email_outbox")
+          .select("id")
+          .eq("idempotency_key", idempotencyKey)
+          .limit(1)
+          .maybeSingle()
+
+        if (existing) {
+          logger.info("[Email] DB idempotency guard: duplicate insert raced and was suppressed", {
+            existingId: existing.id,
+            emailType: entry.email_type,
+          })
+          return { id: existing.id, duplicate: true }
+        }
+      }
       logger.error("[Email] Failed to create pending outbox", { error: error.message })
-      return null
+      return { id: null, duplicate: false }
     }
-    return data?.id || null
+    return { id: data?.id || null, duplicate: false }
   } catch (err) {
     logger.error("[Email] Pending outbox error", { error: err })
-    return null
+    return { id: null, duplicate: false }
   }
 }
 
@@ -184,6 +225,7 @@ export async function logToOutbox(entry: OutboxEntry): Promise<string | null> {
         patient_id: entry.patient_id,
         certificate_id: entry.certificate_id,
         metadata: entry.metadata || {},
+        idempotency_key: entry.idempotency_key,
         sent_at: entry.sent_at,
         last_attempt_at: entry.last_attempt_at || new Date().toISOString(),
         retry_count: entry.retry_count || 0,

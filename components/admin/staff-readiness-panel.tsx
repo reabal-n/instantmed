@@ -75,7 +75,7 @@ export function StaffReadinessPanel({ snapshot }: { snapshot: StaffReadinessSnap
             </Badge>
           </div>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Admin-only guardrail for staff roles, owner doctor setup, Sentry, and authenticated dashboard smoke.
+            Admin-only guardrail for staff roles, owner doctor setup, future doctors, and runtime Sentry.
           </p>
         </div>
         <div className="grid grid-cols-3 gap-2 text-right text-xs text-muted-foreground">

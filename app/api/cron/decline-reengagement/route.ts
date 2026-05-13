@@ -52,13 +52,16 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ sent: 0, message: "No eligible intakes" })
   }
 
-  // Check which intakes already have a re-engagement email in the email log
+  // Check which intakes already have a re-engagement email in the active outbox.
+  // The legacy email_logs table was retired; duplicate suppression must read
+  // the same table that sendEmail() writes to.
   const intakeIds = declinedIntakes.map((i) => i.id)
   const { data: alreadySent } = await supabase
-    .from("email_log")
+    .from("email_outbox")
     .select("intake_id")
     .in("intake_id", intakeIds)
     .eq("email_type", "decline_reengagement")
+    .in("status", ["pending", "sending", "sent", "skipped_e2e"])
 
   const sentSet = new Set((alreadySent || []).map((r) => r.intake_id))
 

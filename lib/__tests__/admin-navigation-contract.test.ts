@@ -40,10 +40,6 @@ const financeClientSource = readFileSync(
   join(process.cwd(), "app/admin/finance/finance-client.tsx"),
   "utf8",
 )
-const parchmentConformanceSource = readFileSync(
-  join(process.cwd(), "app/admin/parchment-conformance/parchment-conformance-client.tsx"),
-  "utf8",
-)
 const dashboardRoutesSource = readFileSync(
   join(process.cwd(), "lib/dashboard/routes.ts"),
   "utf8",
@@ -278,7 +274,6 @@ describe("admin navigation contract", () => {
       "app/admin/emails/suppression/page.tsx",
       "app/admin/features/page.tsx",
       "app/admin/finance/page.tsx",
-      "app/admin/finance/revenue/page.tsx",
       "app/admin/refunds/page.tsx",
       "app/admin/settings/page.tsx",
       "app/admin/settings/encryption/page.tsx",
@@ -331,6 +326,49 @@ describe("admin navigation contract", () => {
     }
   })
 
+  it("keeps active admin routes intentionally owned by nav, settings, or ops", () => {
+    const allowedAdminPages = [
+      "app/admin/analytics/page.tsx",
+      "app/admin/audit/page.tsx",
+      "app/admin/clinic/page.tsx",
+      "app/admin/compliance/page.tsx",
+      "app/admin/content/page.tsx",
+      "app/admin/doctors/page.tsx",
+      "app/admin/emails/analytics/page.tsx",
+      "app/admin/emails/hub/page.tsx",
+      "app/admin/emails/page.tsx",
+      "app/admin/emails/preview/page.tsx",
+      "app/admin/emails/suppression/page.tsx",
+      "app/admin/errors/page.tsx",
+      "app/admin/features/page.tsx",
+      "app/admin/finance/page.tsx",
+      "app/admin/intakes/[id]/page.tsx",
+      "app/admin/intakes/page.tsx",
+      "app/admin/ops/doctors/page.tsx",
+      "app/admin/ops/intakes-stuck/page.tsx",
+      "app/admin/ops/page.tsx",
+      "app/admin/ops/parchment/page.tsx",
+      "app/admin/ops/patient-merge-audit/page.tsx",
+      "app/admin/ops/prescribing-identity/page.tsx",
+      "app/admin/ops/reconciliation/page.tsx",
+      "app/admin/ops/sla/page.tsx",
+      "app/admin/page.tsx",
+      "app/admin/patients/page.tsx",
+      "app/admin/refunds/page.tsx",
+      "app/admin/services/page.tsx",
+      "app/admin/settings/doctor-identity/page.tsx",
+      "app/admin/settings/encryption/page.tsx",
+      "app/admin/settings/page.tsx",
+      "app/admin/settings/templates/page.tsx",
+      "app/admin/webhook-dlq/page.tsx",
+    ]
+    const adminPages = findAdminPageFiles()
+      .map((file) => file.replace(process.cwd() + "/", ""))
+      .sort()
+
+    expect(adminPages).toEqual([...allowedAdminPages].sort())
+  })
+
   it("keeps doctor identity settings available inside the admin shell for owner-operators", () => {
     expect(dashboardRoutesSource).toContain('ADMIN_DOCTOR_IDENTITY_HREF = "/admin/settings/doctor-identity"')
     expect(adminDoctorIdentityPageSource).toContain('requireRole(["admin"]')
@@ -357,7 +395,13 @@ describe("admin navigation contract", () => {
   })
 
   it("routes vendor and money recovery links through their owning dashboards", () => {
-    expect(opsParchmentSource).toContain('href="/admin/parchment-conformance"')
+    expect(opsParchmentSource).not.toContain('href="/admin/parchment-conformance"')
+    expect(nextConfigSource).toContain('source: "/admin/parchment-conformance"')
+    expect(nextConfigSource).toContain('destination: "/admin/ops/parchment"')
+    expect(nextConfigSource).toContain('source: "/admin/finance/revenue"')
+    expect(nextConfigSource).toContain('destination: "/admin/finance"')
+    expect(nextConfigSource).toContain('source: "/admin/doctors/performance"')
+    expect(nextConfigSource).toContain('destination: "/admin/doctors"')
     expect(opsParchmentSource).toContain("Production prescribing gate")
     expect(opsParchmentSource).toContain("getParchmentProductionReadiness")
     expect(opsParchmentSource).toContain("function isUuid")
@@ -382,13 +426,14 @@ describe("admin navigation contract", () => {
     expect(opsClientSource).not.toContain("animate-pulse")
   })
 
-  it("makes Parchment recording evidence boundaries explicit", () => {
-    expect(parchmentConformanceSource).toContain("Record Prescriber/Admin in Parchment")
-    expect(parchmentConformanceSource).toContain("Record iframe in InstantMed")
-    expect(parchmentConformanceSource).toContain("Record webhook across both systems")
-    expect(parchmentConformanceSource).toContain("supporting evidence")
-    expect(parchmentConformanceSource).not.toContain(
-      "Use this admin-only helper for the remaining Parchment user-management videos",
-    )
+  it("keeps pruned admin pages out of the active route tree", () => {
+    const adminPages = findAdminPageFiles().map((file) => file.replace(process.cwd() + "/", ""))
+
+    expect(adminPages).not.toContain("app/admin/email-test/page.tsx")
+    expect(adminPages).not.toContain("app/admin/parchment-conformance/page.tsx")
+    expect(adminPages).not.toContain("app/admin/doctors/performance/page.tsx")
+    expect(adminPages).not.toContain("app/admin/finance/revenue/page.tsx")
+    expect(nextConfigSource).toContain('source: "/admin/email-test"')
+    expect(nextConfigSource).toContain('destination: "/admin/emails/preview"')
   })
 })

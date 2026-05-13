@@ -37,16 +37,6 @@ describe("future doctor scope contract", () => {
     expect(healthProfileSource).toContain('NextResponse.json({ error: "Not found" }, { status: 404 })')
   })
 
-  it("keeps command-palette search admin-broad but doctor-scoped", () => {
-    const source = read("app/api/admin/palette-search/route.ts")
-
-    expect(source).toContain("const isAdmin = hasAdminAccess(auth.profile)")
-    expect(source).toContain("getDoctorAccessiblePatientIds(auth.profile.id, supabase)")
-    expect(source).toContain('patientQuery.in("id", accessiblePatientIds)')
-    expect(source).toContain('intakeQuery.in("patient_id", accessiblePatientIds)')
-    expect(source).toContain("!isAdmin && accessiblePatientIds?.length === 0")
-  })
-
   it("scopes doctor analytics without reducing owner-operator admin analytics", () => {
     const source = read("app/doctor/analytics/page.tsx")
 

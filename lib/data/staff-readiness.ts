@@ -187,8 +187,6 @@ export async function getStaffReadinessSnapshot(): Promise<StaffReadinessSnapsho
   maybeAlertAdminCount(humanAdmins.length, ownerEmail)
 
   const sentryRuntimeReady = Boolean(env("SENTRY_DSN") || env("NEXT_PUBLIC_SENTRY_DSN"))
-  const sentryReleaseReady = Boolean(env("SENTRY_AUTH_TOKEN") && env("SENTRY_ORG") && env("SENTRY_PROJECT"))
-  const dashboardSmokeReady = Boolean(env("DASHBOARD_SMOKE_COOKIE_HEADER") || env("DASHBOARD_SMOKE_ENABLED") === "1")
 
   const checks: StaffReadinessCheck[] = [
     {
@@ -221,23 +219,12 @@ export async function getStaffReadinessSnapshot(): Promise<StaffReadinessSnapsho
     },
     {
       id: "sentry",
-      label: "Sentry release signal",
-      status: sentryRuntimeReady && sentryReleaseReady ? "pass" : sentryRuntimeReady ? "warn" : "fail",
-      detail: sentryRuntimeReady && sentryReleaseReady
-        ? "Runtime DSN and release/project token env are present."
-        : sentryRuntimeReady
-          ? "Runtime capture is configured, but release/project token env is incomplete."
-          : "Runtime Sentry DSN is missing.",
+      label: "Sentry runtime",
+      status: sentryRuntimeReady ? "pass" : "fail",
+      detail: sentryRuntimeReady
+        ? "Runtime error capture is configured."
+        : "Runtime Sentry DSN is missing.",
       href: "/admin/errors",
-    },
-    {
-      id: "prod-dashboard-smoke",
-      label: "Prod dashboard smoke",
-      status: dashboardSmokeReady ? "pass" : "warn",
-      detail: dashboardSmokeReady
-        ? "Authenticated dashboard smoke is marked configured."
-        : "Set the dashboard smoke cookie secret before relying on post-deploy auth checks.",
-      href: "/dashboard",
     },
   ]
 

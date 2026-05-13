@@ -166,12 +166,6 @@ const templates = [
     category: "engagement",
   },
   {
-    slug: "repeat-rx-reminder",
-    name: "Repeat Rx Reminder",
-    description: "Reminder to reorder a repeat prescription",
-    category: "engagement",
-  },
-  {
     slug: "referral-credit",
     name: "Referral Credit",
     description: "Notification of earned referral credit",

@@ -2,7 +2,7 @@
 
 import { AlertTriangle, RefreshCw } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback,useEffect, useMemo, useRef, useState, useTransition } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { IntakeReviewPanel } from "@/components/doctor"
@@ -11,15 +11,13 @@ import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
 import {
   ADMIN_DOCTOR_IDENTITY_HREF,
-  parseQueueSavedView,
   parseQueueStatusFilter,
-  type QueueSavedView,
   type QueueStatusFilter,
   STAFF_DASHBOARD_HREF,
 } from "@/lib/dashboard/routes"
 import { DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY, LAST_OPENED_DOCTOR_CASE_KEY } from "@/lib/doctor/queue-focus"
 import { removeCompletedIntakeFromQueue } from "@/lib/doctor/queue-state"
-import { calculateSlaCountdown,calculateWaitTime, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
+import { calculateSlaCountdown, calculateWaitTime, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
 import { hasReviewNextRisk, sortForReviewNext } from "@/lib/doctor/review-next"
 import { SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
@@ -30,7 +28,7 @@ import { cn } from "@/lib/utils"
 import type { IntakeStatus, IntakeWithPatient } from "@/types/db"
 
 import { updateStatusAction } from "./actions"
-import { QueueFilters, type QueueSavedViewCounts } from "./queue-filters"
+import { QueueFilters } from "./queue-filters"
 import { QueueTable } from "./queue-table"
 import type { QueueClientProps } from "./types"
 import { useQueueDialogs } from "./use-queue-dialogs"
@@ -47,14 +45,12 @@ function buildQueueEmptyState({
   doctorAvailable,
   totalCount,
   statusFilter,
-  savedView,
   searchQuery,
   baseHref,
 }: {
   doctorAvailable: boolean
   totalCount: number
   statusFilter: QueueStatusFilter
-  savedView: QueueSavedView
   searchQuery: string
   baseHref: string
 }): QueueEmptyState {
@@ -68,10 +64,10 @@ function buildQueueEmptyState({
     }
   }
 
-  if (searchQuery.trim() || statusFilter !== "all" || savedView !== "all") {
+  if (searchQuery.trim() || statusFilter !== "all") {
     return {
       title: "No matches for this filter",
-      description: "Cases may still exist in another status, saved view, or outside the current search. Clear filters to see the whole queue.",
+      description: "Cases may still exist in another status or outside the current search. Clear filters to see the whole queue.",
       tone: "neutral",
       actionHref: baseHref,
       actionLabel: "Clear filters",
@@ -85,40 +81,6 @@ function buildQueueEmptyState({
   }
 }
 
-function isStaleQueueCase(intake: IntakeWithPatient, now: Date): boolean {
-  if (intake.sla_deadline && new Date(intake.sla_deadline).getTime() < now.getTime()) return true
-  if (!["paid", "in_review", "awaiting_script"].includes(intake.status)) return false
-
-  const queueEnteredAt = intake.paid_at || intake.created_at
-  if (!queueEnteredAt) return false
-  const ageMs = now.getTime() - new Date(queueEnteredAt).getTime()
-  return ageMs > 2 * 60 * 60 * 1000
-}
-
-function matchesSavedView({
-  intake,
-  savedView,
-  doctorId,
-  now,
-  hasRedFlags,
-}: {
-  intake: IntakeWithPatient
-  savedView: QueueSavedView
-  doctorId: string
-  now: Date
-  hasRedFlags: (intake: IntakeWithPatient) => boolean
-}): boolean {
-  if (savedView === "all") return true
-  if (savedView === "priority") return Boolean(intake.is_priority) || hasRedFlags(intake)
-  if (savedView === "scripts") return intake.status === "awaiting_script"
-  if (savedView === "pending_info") return intake.status === "pending_info"
-  if (savedView === "stale") return isStaleQueueCase(intake, now)
-  if (savedView === "mine") {
-    return intake.claimed_by === doctorId || intake.reviewing_doctor_id === doctorId
-  }
-  return true
-}
-
 export function QueueClient({
   intakes: initialIntakes,
   doctorId,
@@ -129,7 +91,6 @@ export function QueueClient({
   recentlyCompleted = [],
   todayEarnings,
   initialStatusFilter = "all",
-  initialSavedView = "all",
   hasExplicitStatusFilter = false,
   baseHref = STAFF_DASHBOARD_HREF,
   doctorAvailable = true,
@@ -194,7 +155,6 @@ export function QueueClient({
   const [searchQuery, setSearchQuery] = useState("")
   const debouncedSearch = useDebounce(searchQuery, 200)
   const [statusFilter, setStatusFilter] = useState<QueueStatusFilter>(initialStatusFilter)
-  const [savedView, setSavedView] = useState<QueueSavedView>(initialSavedView)
   const [priorityModeActive, setPriorityModeActive] = useState(false)
   const [isApprovePending, startTransition] = useTransition()
   const [isQueueRefreshPending, startQueueRefreshTransition] = useTransition()
@@ -217,10 +177,6 @@ export function QueueClient({
     const nextStatus = parseQueueStatusFilter(searchParams.get("status"))
     explicitStatusFilterRef.current = searchParams.has("status") && nextStatus !== "all"
     setStatusFilter(nextStatus)
-  }, [searchParams])
-
-  useEffect(() => {
-    setSavedView(parseQueueSavedView(searchParams.get("view")))
   }, [searchParams])
 
   const refreshQueue = useCallback((force = false) => {
@@ -276,24 +232,6 @@ export function QueueClient({
       params.delete("status")
     } else {
       params.set("status", value)
-    }
-    params.delete("page")
-
-    const query = params.toString()
-    router.replace(query ? `${baseHref}?${query}` : baseHref, { scroll: false })
-  }, [baseHref, router, searchParams])
-
-  const handleSavedViewChange = useCallback((value: QueueSavedView) => {
-    setSavedView(value)
-
-    const params = new URLSearchParams(searchParams.toString())
-    if (value === "all") {
-      params.delete("view")
-    } else {
-      params.set("view", value)
-      params.delete("status")
-      explicitStatusFilterRef.current = false
-      setStatusFilter("all")
     }
     params.delete("page")
 
@@ -587,11 +525,7 @@ export function QueueClient({
     const rawTokens = trimmed ? (trimmed.match(/\w+:\S+/g) ?? []) : []
     const plainQuery = trimmed ? trimmed.replace(/\w+:\S+/g, "").trim() : ""
     const plainQueryStripped = plainQuery.replace(/\s+/g, "")
-    const now = clockNow ?? new Date()
-
     return sortedIntakes.filter((r) => {
-      if (!matchesSavedView({ intake: r, savedView, doctorId, now, hasRedFlags })) return false
-
       // Status filter
       if (statusFilter === "review" && !["paid", "in_review"].includes(r.status)) return false
       if (statusFilter === "pending_info" && r.status !== "pending_info") return false
@@ -626,31 +560,7 @@ export function QueueClient({
         formatServiceType(service?.type || "").toLowerCase().includes(plainQuery)
       )
     })
-  }, [sortedIntakes, clockNow, debouncedSearch, doctorId, hasRedFlags, savedView, statusFilter])
-
-  const savedViewCounts = useMemo<QueueSavedViewCounts>(() => {
-    const now = clockNow ?? new Date()
-    return {
-      all: sortedIntakes.length,
-      priority: sortedIntakes.filter((intake) => matchesSavedView({
-        intake,
-        savedView: "priority",
-        doctorId,
-        now,
-        hasRedFlags,
-      })).length,
-      scripts: sortedIntakes.filter((intake) => intake.status === "awaiting_script").length,
-      pending_info: sortedIntakes.filter((intake) => intake.status === "pending_info").length,
-      stale: sortedIntakes.filter((intake) => isStaleQueueCase(intake, now)).length,
-      mine: sortedIntakes.filter((intake) => matchesSavedView({
-        intake,
-        savedView: "mine",
-        doctorId,
-        now,
-        hasRedFlags,
-      })).length,
-    }
-  }, [clockNow, doctorId, hasRedFlags, sortedIntakes])
+  }, [sortedIntakes, debouncedSearch, hasRedFlags, statusFilter])
 
   // Keep the ref in sync — used by panel navigation callbacks that need
   // the latest filtered list without re-rendering. Effect rather than a
@@ -664,10 +574,9 @@ export function QueueClient({
     doctorAvailable,
     totalCount: intakes.length,
     statusFilter,
-    savedView,
     searchQuery: debouncedSearch,
     baseHref,
-  }), [baseHref, debouncedSearch, doctorAvailable, intakes.length, savedView, statusFilter])
+  }), [baseHref, debouncedSearch, doctorAvailable, intakes.length, statusFilter])
 
   const handleReviewNext = useCallback(() => {
     const next = filteredIntakesRef.current[0]
@@ -681,6 +590,8 @@ export function QueueClient({
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't capture when typing in inputs
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      // Preserve global browser/app chords such as Cmd/Ctrl+K for the staff palette.
+      if (e.metaKey || e.ctrlKey || e.altKey) return
 
       const currentIndex = expandedId ? filteredIntakes.findIndex((r) => r.id === expandedId) : -1
 
@@ -917,9 +828,6 @@ export function QueueClient({
           onRefresh={() => refreshQueue(true)}
           statusFilter={statusFilter}
           onStatusFilterChange={handleStatusFilterChange}
-          savedView={savedView}
-          onSavedViewChange={handleSavedViewChange}
-          savedViewCounts={savedViewCounts}
           intakes={intakes}
           filteredCount={filteredIntakes.length}
           isStale={isStale}
@@ -1018,29 +926,6 @@ export function QueueClient({
         />
       )}
 
-      {/* Keyboard hint strip. Renders only when the queue has rows AND
-          nothing is focused, so it teaches the shortcut without screaming
-          at the operator mid-triage. Disappears after first arrow press.
-          `hidden lg:flex` because touch devices have no keyboard. */}
-      {compactShell && filteredIntakes.length > 0 && !expandedId ? (
-        <div
-          className="hidden shrink-0 items-center gap-1.5 px-1 pb-1 text-[11px] text-muted-foreground/70 lg:flex"
-          aria-hidden
-        >
-          <kbd className="rounded border border-border/60 bg-muted/40 px-1.5 py-0.5 font-sans text-[10px] font-semibold">↓</kbd>
-          <kbd className="rounded border border-border/60 bg-muted/40 px-1.5 py-0.5 font-sans text-[10px] font-semibold">↑</kbd>
-          <span>navigate</span>
-          <span className="mx-1 text-border">·</span>
-          <kbd className="rounded border border-border/60 bg-muted/40 px-1.5 py-0.5 font-sans text-[10px] font-semibold">Enter</kbd>
-          <span>open</span>
-          <span className="mx-1 text-border">·</span>
-          <kbd className="rounded border border-border/60 bg-muted/40 px-1.5 py-0.5 font-sans text-[10px] font-semibold">A</kbd>
-          <span>approve</span>
-          <span className="mx-1 text-border">·</span>
-          <kbd className="rounded border border-border/60 bg-muted/40 px-1.5 py-0.5 font-sans text-[10px] font-semibold">D</kbd>
-          <span>decline</span>
-        </div>
-      ) : null}
     </div>
   )
 }

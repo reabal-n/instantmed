@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { CONTACT_EMAIL, CONTACT_EMAIL_NOREPLY } from "@/lib/constants"
 import { getDuplicatePatientProfileSummary } from "@/lib/doctor/patient-identity-report"
-import { sendViaResend } from "@/lib/email/resend"
+import { sendHtmlEmailWithOutbox } from "@/lib/email/send/html-outbox"
 import { createLogger } from "@/lib/observability/logger"
 import { captureCronError } from "@/lib/observability/sentry"
 import { stripe } from "@/lib/stripe/client"
@@ -327,15 +327,33 @@ export async function GET(request: NextRequest) {
 
     // ─── Send ────────────────────────────────────────────────────────────────
     const subject = `Overnight · ${revenueDisplay} · ${paidCount} order${paidCount === 1 ? "" : "s"}${attentionItems.length ? ` · ${attentionItems.length} ⚠️` : ""}`
+    const sydneyDateParts = new Intl.DateTimeFormat("en-AU", {
+      day: "2-digit",
+      month: "2-digit",
+      timeZone: "Australia/Sydney",
+      year: "numeric",
+    }).formatToParts(now)
+    const digestDate = [
+      sydneyDateParts.find((part) => part.type === "year")?.value,
+      sydneyDateParts.find((part) => part.type === "month")?.value,
+      sydneyDateParts.find((part) => part.type === "day")?.value,
+    ].filter(Boolean).join("-")
 
     const results = await Promise.allSettled(
       recipients.map(to =>
-        sendViaResend({
+        sendHtmlEmailWithOutbox({
           to,
           subject,
           html,
           text: plainText,
+          emailType: "ops_daily_digest",
           from: `InstantMed Ops <${CONTACT_EMAIL_NOREPLY}>`,
+          idempotencyKey: `ops-daily-digest:${digestDate}:${to.toLowerCase()}`,
+          metadata: {
+            digest_date: digestDate,
+            period_start: since.toISOString(),
+            period_end: now.toISOString(),
+          },
         })
       )
     )

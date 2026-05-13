@@ -25,7 +25,6 @@ import { PaymentRetryEmail } from "@/lib/email/components/templates/payment-retr
 import { PrescriptionApprovedEmail } from "@/lib/email/components/templates/prescription-approved"
 import { ReferralCreditEmail } from "@/lib/email/components/templates/referral-credit"
 import { RefundIssuedEmail } from "@/lib/email/components/templates/refund-issued"
-import { RepeatRxReminderEmail } from "@/lib/email/components/templates/repeat-rx-reminder"
 import { RequestDeclinedEmail } from "@/lib/email/components/templates/request-declined"
 import { RequestReceivedEmail } from "@/lib/email/components/templates/request-received"
 import { ScriptSentEmail } from "@/lib/email/components/templates/script-sent"
@@ -375,19 +374,6 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       serviceName: d.serviceName,
       resumeUrl: `${APP_URL}/request?resume=abc-123`,
       hoursAgo: 2,
-      appUrl: APP_URL,
-    }),
-  },
-  {
-    slug: "repeat_rx_reminder",
-    name: "Repeat Rx Reminder",
-    subject: "Time to reorder your medication?",
-    availableTags: ["patientName", "medicationName"],
-    sampleData: { patientName: "Sarah Johnson", medicationName: "Amoxicillin 500mg" },
-    render: (d) => React.createElement(RepeatRxReminderEmail, {
-      patientName: d.patientName,
-      medicationName: d.medicationName,
-      reorderUrl: `${APP_URL}/request?service=repeat-prescription`,
       appUrl: APP_URL,
     }),
   },

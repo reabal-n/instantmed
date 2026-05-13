@@ -1,7 +1,6 @@
 import type { ReactNode } from "react"
 
 import { AdminSidebar, MobileAdminNav } from "@/components/admin/admin-sidebar"
-import { StaffPaletteHost } from "@/components/operator/staff-palette-host"
 import { operatorNavSections, type StaffNavCounts, type StaffNavSection } from "@/lib/dashboard/staff-navigation"
 import { cn } from "@/lib/utils"
 
@@ -46,7 +45,6 @@ export function OperatorShell({
         navSections={resolvedSections}
         brandLabel={brandLabel}
       />
-      <StaffPaletteHost navSections={resolvedSections} />
       <main className={cn("flex-1 min-w-0 py-8 px-4 sm:px-6 lg:px-8", mainClassName)}>
         <div
           className={cn(

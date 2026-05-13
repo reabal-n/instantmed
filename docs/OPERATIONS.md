@@ -52,7 +52,7 @@ PLAYWRIGHT=1 STRIPE_WEBHOOK_SECRET=whsec_test_... pnpm e2e e2e/stripe-webhook.sp
 
 1. Check Resend status: https://resend-status.com
 2. Check `/admin/emails/hub` for failed or pending outbox rows; use `/admin/emails/analytics` for delivery status and recent queue activity.
-3. Manual retry: click "Retry" on individual failed rows in the email hub, or trigger `/api/ops/email-dispatcher` with `OPS_CRON_SECRET`.
+3. Manual retry: click "Retry" on individual failed rows in the email hub.
 4. If Resend is completely down: emails auto-retry via the `email-dispatcher` cron; stale `sending` claims are recovered back to retryable `failed` rows.
 
 ### Database Connection Issues
@@ -346,25 +346,24 @@ All crons use `verifyCronRequest()` from `lib/api/cron-auth.ts` for authenticati
 | Retry Drafts | `/api/cron/retry-drafts` | Every 5 min | Retry failed AI draft generation with exponential backoff |
 | Business Alerts | `/api/cron/business-alerts` | Every 30 min | Aggregates business metrics: failed payments, email failures, SLA breaches |
 | Stale Queue | `/api/cron/stale-queue` | Hourly | Alerts on paid intakes waiting > 4h (warning) or > 8h (critical) |
-| Abandoned Checkouts | `/api/cron/abandoned-checkouts` | Hourly | Send recovery emails for abandoned checkout sessions |
+| Abandoned Checkouts | `/api/cron/abandoned-checkouts` | Hourly (:00) | Payment-stage recovery for submitted intakes stuck at checkout |
+| Partial Intake Recovery | `/api/cron/recover-partial-intakes` | Hourly (:15) | Pre-checkout draft recovery only; excludes review/checkout drafts so it does not overlap abandoned-checkout recovery |
 | Emergency Flags | `/api/cron/emergency-flags` | Hourly | SMS emergency resources to patients who abandoned intakes with red flags |
 | Scheduled Maintenance | `/api/cron/scheduled-maintenance` | Every 5 min | Sync `maintenance_mode` with `maintenance_scheduled_start`/`end` window; auto-enable/disable banner |
 | AHPRA Re-verification | `/api/cron/ahpra-reverification` | Daily (6 AM AEST) | Flag overdue AHPRA verifications; disable approval for 30+ days overdue |
 | Daily Reconciliation | `/api/cron/daily-reconciliation` | Daily (7 AM AEST) | Identify mismatches: paid without delivery, failed refunds, failed deliveries |
 | PostHog Reconciliation | `/api/cron/posthog-reconciliation` | Hourly (:15) | Compare last 24h `intakes.payment_status='paid'` count (Supabase) vs `purchase_completed_server` event count (PostHog, `is_e2e=false`). Sentry alerts on >10% drift; "critical" past 30%. Requires `POSTHOG_PROJECT_API_KEY` (PostHog personal API key with `query:read` scope) + `POSTHOG_PROJECT_ID` (numeric, `277439`). Noops with `skipped: true` if either is missing. |
-| Repeat Rx Reminders | `/api/cron/repeat-rx-reminders` | Daily (8 AM AEST) | Enqueue reminder emails for repeat scripts completed ~30 days ago |
 | DLQ Monitor | `/api/cron/dlq-monitor` | Daily (9 AM UTC) | Alert on unprocessed Stripe webhook dead letter queue items > 24h old |
 | QA Sampling | `/api/cron/qa-sampling` | Weekly (Mon 6 AM UTC) | Sample 10% of approved intakes from last week for quality review |
 | Data Retention | `/api/cron/data-retention` | Daily (2 AM UTC) | Enforce AU health records retention (see CLINICAL.md → Data Retention Schedule); clean rate limit records |
-| Exit Intent Nurture | `/api/cron/exit-intent-nurture` | Hourly (:30) | Send nurture emails (emails 2 & 3) to exit-intent captured visitors |
 | Follow-Up Reminder | `/api/cron/follow-up-reminder` | Daily (1 AM UTC) | Day-3 follow-up emails to med cert patients |
 | Treatment Follow-Up | `/api/cron/treatment-followup` | Daily (23:00 UTC = 09:00 AEST) | ED/hair-loss treatment follow-up reminder emails (max 3 per milestone, ≥3 days apart) |
-| IndexNow | `/api/cron/indexnow` | Daily (6 AM UTC) | Submit every robots-advertised sitemap URL to IndexNow for Bing/Yandex indexing |
 | Retry Auto-Approval | `/api/cron/retry-auto-approval` | Every 3 min | Retry auto-approval via `auto_approval_state` enum (pending/failed_retrying). Includes timeout recovery for stale `attempting` intakes (>10 min). Feature-flagged. |
-| Decline Re-engagement | `/api/cron/decline-reengagement` | Hourly | Send re-engagement email 2-3h after intake decline; deduped via email_log |
+| Decline Re-engagement | `/api/cron/decline-reengagement` | Hourly | Send re-engagement email 2-3h after intake decline; deduped via `email_outbox` |
 | Cleanup Orphaned Storage | `/api/cron/cleanup-orphaned-storage` | Weekly (Sun 3 AM UTC) | Delete storage files with no DB record after 7-day grace period (max 50/run) |
 | Outbox Archival | `/api/cron/outbox-archival` | Daily (4 AM UTC) | Delete delivered emails >90 days old and exhausted-failed emails >180 days old from `email_outbox` (batch 500) |
 | Email Digest | `/api/cron/email-digest` | Weekly (Sun 22:00 UTC / Mon 08:00 AEST) | Sends weekly email ops summary to support@instantmed.com.au — sent/failed/bounced/complained counts, delivery rate, top types, bounced addresses |
+| Daily Digest | `/api/cron/daily-digest` | Daily (22:00 UTC / 08:00 AEST) | Sends the daily ops summary through `email_outbox` with a stable idempotency key |
 
 **Timezone note:** All cron schedules in `vercel.json` are UTC. "AEST" times above are UTC+10 (standard time). During AEDT (daylight saving, Oct–Apr), these shift 1 hour later in local time (e.g., "6 AM AEST" runs at 7 AM AEDT).
 
@@ -383,8 +382,8 @@ This command requires Google application-default credentials with access to the 
 Operational rules:
 
 - Treat `_next/static`, font, CSS/JS, favicon, manifest, auth/account, Clerk, and redirect-only alias rows as expected noise unless they expose a broken canonical redirect.
-- For Google issues, verify live canonicals, robots, sitemap inclusion, and last crawl before changing content. IndexNow submits every sitemap listed in `robots.txt`, but only supports Bing/Yandex discovery and does not repair Google indexing.
-- `/api/cron/indexnow` is the primary production path. `/api/indexnow` is only for manual/on-demand submissions when `INDEXNOW_SECRET` is deliberately configured.
+- For Google issues, verify live canonicals, robots, sitemap inclusion, and last crawl before changing content. IndexNow only supports Bing/Yandex discovery and does not repair Google indexing.
+- `/api/indexnow` is a manual/on-demand endpoint only when `INDEXNOW_SECRET` is deliberately configured. It is not scheduled as a production cron because it is not required for clinical operations, payment recovery, or compliance.
 - Add content depth only to public canonical pages that should rank and convert. Do not create duplicate route trees for redirect aliases.
 - For selected priority URLs, use Search Console inspection/request indexing manually after deploy and recrawl validation. Do not use Google's Indexing API for ordinary website pages; Google Search Central scopes it to `JobPosting` and livestream `BroadcastEvent` pages.
 
@@ -766,7 +765,6 @@ Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_
 | Payment Notifications | Successful checkout | Telegram (real-time) |
 | Request Flow Synthetic | Any production request-path render/click failure | GitHub Actions failure |
 | Staff Role Gate | More than one auth-linked human admin, owner-admin missing doctor identity, or doctor missing required prescribing/certificate identity | `pnpm check:staff-roles` release failure |
-| Dashboard Auth Smoke | Owner-admin `/dashboard` returns non-200, redirects away, throws client errors, or shows the generic error shell | `DASHBOARD_SMOKE_COOKIE_HEADER='...' pnpm e2e:prod-dashboard` failure |
 
 **Telegram alerts** require `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` env vars. If missing, alerts are silently skipped. Used by `business-alerts` cron, payment webhook, and health-check cron.
 
@@ -784,7 +782,6 @@ Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_
 | `pnpm check:staff-roles` | Read-only Supabase check for the one-human-admin model and doctor readiness | Defaults owner admin to `me@reabal.ai`; override with `OWNER_ADMIN_EMAIL`. Set `ALLOW_OWNER_ADMIN_PAUSED=1` only when releasing intentionally paused. |
 | `DEMOTE_ADMIN_EMAILS='old-admin@example.com' DEMOTE_ADMIN_ROLE=patient pnpm fix:staff-roles` | Dry-run demotion for extra human admin profiles | Add `-- --apply` only after reviewing the target list. Writes go through `admin_change_profile_role`, which refuses to remove the last auth-linked human admin and resets clinical capability flags on demotion. |
 | `pnpm check:sentry` | Verifies `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT` can read the configured Sentry project | Does not print the token. 401 means rotate the token; 404 usually means wrong org/project slug. |
-| `DASHBOARD_SMOKE_COOKIE_HEADER='...' pnpm e2e:prod-dashboard` | Authenticated production smoke for `/dashboard` | Use a short-lived owner-admin browser cookie header from the production domain. Do not commit or paste the cookie into logs. |
 
 ### Sentry Saved Searches
 
@@ -821,7 +818,7 @@ Required env vars validated at startup via Zod in `lib/env.ts`:
 - **Security**: `PHI_MASTER_KEY`, `ENCRYPTION_KEY`, `PHI_ENCRYPTION_ENABLED`, `INTERNAL_API_SECRET`
 - **Redis**: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
 - **AI**: `ANTHROPIC_API_KEY`, `VERCEL_AI_GATEWAY_API_KEY`
-- **Cron**: `CRON_SECRET`, `OPS_CRON_SECRET`
+- **Cron**: `CRON_SECRET`
 - **Monitoring**: `SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`
 - **Analytics**: `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`
 - **Alerts**: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `TELEGRAM_WEBHOOK_SECRET` (optional)

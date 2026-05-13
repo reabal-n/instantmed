@@ -126,14 +126,6 @@ const TEMPLATE_REGISTRY: Record<
       return { component: PaymentReceiptEmail as EmailComponent, subject: paymentReceiptEmailSubject }
     },
   },
-  repeat_rx_reminder: {
-    async load() {
-      const { RepeatRxReminderEmail } = await import(
-        "@/lib/email/components/templates/repeat-rx-reminder"
-      )
-      return { component: RepeatRxReminderEmail as EmailComponent, subject: "Time to renew your prescription" }
-    },
-  },
   payment_confirmed: {
     async load() {
       const { PaymentConfirmedEmail } = await import(

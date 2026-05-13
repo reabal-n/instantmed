@@ -61,7 +61,6 @@ const SUPPORTED_EMAIL_TYPES = [
   // Engagement & retention
   "abandoned_checkout",
   "abandoned_checkout_followup",
-  "repeat_rx_reminder",
   "follow_up_reminder",
   "referral_credit",
   "review_request",

@@ -157,7 +157,7 @@ Critical paths only — every flow that touches money, auth, or clinical data:
 
 - Marketing pages (no auth, no data — snapshot test if needed)
 - Broad admin UI browsing (keep E2E to critical operational recovery paths)
-- Email template rendering (use `/admin/email-test` in dev)
+- Email template rendering (use `/admin/emails/preview` for admin review or `/email-preview/*` in dev)
 
 ---
 

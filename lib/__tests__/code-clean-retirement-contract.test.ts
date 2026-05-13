@@ -56,6 +56,12 @@ describe("code-clean retirement contracts", () => {
       crons?: Array<{ path?: string }>
     }
     expect(vercelConfig.crons?.map((cron) => cron.path)).not.toContain("/api/cron/subscription-nudge")
+    expect(vercelConfig.crons?.map((cron) => cron.path)).not.toContain("/api/cron/repeat-rx-reminders")
+    expect(existsSync(join(root, "app/api/cron/repeat-rx-reminders/route.ts"))).toBe(false)
+    expect(vercelConfig.crons?.every((cron) => existsSync(join(root, `app${cron.path}/route.ts`)))).toBe(true)
+    expect(existsSync(join(root, "app/api/ops/email-dispatcher/route.ts"))).toBe(false)
+    expect(read("lib/config/env.ts")).not.toContain("OPS_CRON_SECRET")
+    expect(read(".env.example")).not.toContain("OPS_CRON_SECRET")
 
     expect(read("lib/config/env.ts")).not.toContain("Production requires STRIPE_PRICE_REPEAT_RX_MONTHLY")
     expect(read("lib/config/env.ts")).not.toContain("STRIPE_PRICE_REPEAT_RX_MONTHLY")

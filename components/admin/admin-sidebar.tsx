@@ -5,7 +5,6 @@ import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
 
-import { openStaffPalette } from "@/components/operator/staff-command-palette"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import {
   EMPTY_STAFF_NAV_COUNTS,
@@ -26,18 +25,14 @@ interface AdminSidebarProps {
   navSections?: StaffNavSection[]
   /** Brand subtitle under "InstantMed". Defaults to "Operator". */
   brandLabel?: string
-  /** Surface a "press Cmd+K" hint at the top. The palette is the primary nav. */
-  onOpenPalette?: () => void
 }
 
 /**
  * AdminSidebar — Linear-tier icon rail.
  *
- * Phase 1 of dashboard-remaster pass 2 (2026-05-12): the staff cockpit moves
- * to a Cmd+K-first navigation model. The sidebar collapses to a 60px icon
- * rail; every label lives in a hover/focus tooltip, and the command palette
- * indexes every nav item so keyboard navigation is the spine. This matches
- * how operator-tier dashboards (Linear, Vercel, Stripe) shape primary nav.
+ * Phase 1 of dashboard-remaster pass 2 (2026-05-12): the sidebar collapses
+ * to a 60px icon rail; every label lives in a hover/focus tooltip. The
+ * dashboard stays task-first without adding a second command surface.
  *
  * Why icon-only by default: PRODUCT.md describes the staff users as
  * "doctors under time pressure"; they want one cockpit and the next action
@@ -177,31 +172,6 @@ function Brand() {
   )
 }
 
-/**
- * Persistent palette hint. Renders a `⌘K` kbd badge that doubles as a button.
- * Indicates the keyboard shortcut is the primary nav, and clicks open the palette.
- */
-function PaletteHint({ onOpenPalette }: { onOpenPalette?: () => void }) {
-  if (!onOpenPalette) return null
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button
-          type="button"
-          onClick={onOpenPalette}
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/60 bg-background text-[10px] font-semibold tabular-nums text-muted-foreground transition-colors duration-150 hover:border-primary/40 hover:bg-muted/60 hover:text-foreground"
-          aria-label="Open command palette (Cmd+K)"
-        >
-          <kbd className="font-sans">⌘K</kbd>
-        </button>
-      </TooltipTrigger>
-      <TooltipContent side="right" sideOffset={8}>
-        <span className="text-xs font-medium text-foreground">Command palette</span>
-      </TooltipContent>
-    </Tooltip>
-  )
-}
-
 function UserInitials({ userName, userRole }: { userName: string; userRole: string }) {
   const displayName = userName.trim() || "Staff"
   const initials = displayName
@@ -237,16 +207,12 @@ export function AdminSidebar({
   userRole = "Operator",
   navCounts,
   navSections,
-  onOpenPalette,
 }: AdminSidebarProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const counts = useLiveStaffNavCounts(navCounts)
   const currentStatus = searchParams.get("status")
   const sections = navSections ?? operatorNavSections
-  // Default the palette trigger to the global `openStaffPalette()` event,
-  // which any mounted `<StaffCommandPalette />` instance listens for.
-  const triggerPalette = onOpenPalette ?? openStaffPalette
 
   return (
     <TooltipProvider>
@@ -256,7 +222,6 @@ export function AdminSidebar({
       >
         <div className="sticky top-0 flex h-screen flex-col items-center gap-3 py-4">
           <Brand />
-          <PaletteHint onOpenPalette={triggerPalette} />
           <div className="h-px w-6 bg-border/50" aria-hidden />
 
           <nav className="flex flex-col items-center gap-1" aria-label="Primary">

@@ -35,7 +35,6 @@ abandonedCheckoutSubject,
   PrescriptionApprovedEmail, prescriptionApprovedSubject,
   ReferralCreditEmail, referralCreditSubject,
   RefundIssuedEmail, refundIssuedEmailSubject,
-  RepeatRxReminderEmail, repeatRxReminderSubject,
   RequestDeclinedEmail, requestDeclinedEmailSubject,
   RequestReceivedEmail, requestReceivedSubject,
   ReviewFollowupEmail, reviewFollowupSubject,
@@ -697,32 +696,6 @@ describe("Email Templates", () => {
     })
   })
 
-  describe("RepeatRxReminderEmail", () => {
-    it("renders with medication and reorder link", () => {
-      const html = render(
-        <RepeatRxReminderEmail
-          patientName="Sage Murphy"
-          medicationName="Salbutamol"
-          reorderUrl="https://instantmed.com.au/request?service=prescription"
-          appUrl={APP_URL}
-        />
-      )
-      expectBaseEmailStructure(html)
-      expectContains(html, "Sage", "Salbutamol")
-    })
-
-    it("subject is non-empty", () => {
-      expect(repeatRxReminderSubject).toBeTruthy()
-    })
-
-    it("matches snapshot", () => {
-      const html = render(
-        <RepeatRxReminderEmail patientName="Test Patient" medicationName="Salbutamol" appUrl={APP_URL} />
-      )
-      expect(html).toMatchSnapshot()
-    })
-  })
-
   describe("ReferralCreditEmail", () => {
     it("renders with credit amount and friend name", () => {
       const html = render(
@@ -1081,7 +1054,6 @@ describe("Email Template Cross-Checks", () => {
       <WeightLossApprovedEmail key="16" patientName="Test" medicationName="Semaglutide" requestId="R8" appUrl={APP_URL} />,
       <WomensHealthApprovedEmail key="17" patientName="Test" medicationName="Levonorgestrel" requestId="R9" appUrl={APP_URL} />,
       <PrescriptionApprovedEmail key="18" patientName="Test" medicationName="Amoxicillin" intakeId="i2" appUrl={APP_URL} />,
-      <RepeatRxReminderEmail key="19" patientName="Test" medicationName="Salbutamol" appUrl={APP_URL} />,
       <ReferralCreditEmail key="20" patientName="Test" creditAmount="$5" appUrl={APP_URL} />,
       <IntakeSubmittedEmail key="21" patientName="Test" requestType="Med Cert" requestId="R10" appUrl={APP_URL} />,
       <RequestReceivedEmail key="22" patientName="Test" requestType="Med Cert" amount="$19.95" requestId="R11" appUrl={APP_URL} />,
@@ -1300,14 +1272,6 @@ describe("Link validation", () => {
         patientName="Test Patient"
         medicationName="Amoxicillin 500mg"
         intakeId="intake-456"
-        appUrl={APP_URL}
-      />
-    ),
-    RepeatRxReminderEmail: (
-      <RepeatRxReminderEmail
-        patientName="Test Patient"
-        medicationName="Salbutamol"
-        reorderUrl="https://instantmed.com.au/request?service=prescription"
         appUrl={APP_URL}
       />
     ),
