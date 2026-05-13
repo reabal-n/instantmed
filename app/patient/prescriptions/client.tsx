@@ -55,6 +55,7 @@ export function PrescriptionsClient({
   error,
 }: PrescriptionsClientProps) {
   const [activeTab, setActiveTab] = useState("all")
+  const repeatScriptHref = "/request?service=repeat-script"
   
   // Filter intakes by status
   const pendingIntakes = prescriptionIntakes.filter(i => 
@@ -93,10 +94,10 @@ export function PrescriptionsClient({
         title="My prescriptions"
         description="View your prescription history and manage renewals"
         actions={
-          <Link href="/request?service=prescription">
+          <Link href={repeatScriptHref}>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              Request prescription
+              Request repeat prescription
             </Button>
           </Link>
         }
@@ -123,7 +124,7 @@ export function PrescriptionsClient({
                     Renews in {getDaysUntilExpiry(rx.expiry_date)} days
                   </p>
                 </div>
-                <Link href="/request?service=prescription">
+                <Link href={repeatScriptHref}>
                   <Button size="sm">
                     Renew
                   </Button>
@@ -175,7 +176,7 @@ export function PrescriptionsClient({
                   ? "You haven't made any prescription requests yet."
                   : `No ${activeTab} prescription requests.`
               }
-              action={activeTab === "all" ? { label: "Request a prescription", href: "/request?service=prescription" } : undefined}
+              action={activeTab === "all" ? { label: "Request a repeat prescription", href: repeatScriptHref } : undefined}
             />
           ) : (
             <div className="space-y-3">

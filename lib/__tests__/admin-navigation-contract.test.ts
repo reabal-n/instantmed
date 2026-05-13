@@ -126,13 +126,13 @@ describe("admin navigation contract", () => {
     expect(sidebarSource).not.toContain("systemNavItems")
     expect(labels).toEqual([
       "Dashboard",
-      "Intake ledger",
-      "Queue",
+      "All requests",
+      "Review queue",
       "Scripts",
       "Patients",
       "Analytics",
-      "Finance",
-      "Operations",
+      "Payments",
+      "Recovery",
       "Settings",
     ])
     expect(sidebarSource).toContain("operatorNavSections")

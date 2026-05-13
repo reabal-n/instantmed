@@ -338,6 +338,7 @@ const nextConfig = {
       { source: "/doctor", destination: "/dashboard", permanent: false },
       { source: "/doctor/dashboard", destination: "/dashboard", permanent: false },
       { source: "/doctor/queue", destination: "/dashboard", permanent: false },
+      { source: "/doctor/certificates", destination: "/dashboard", permanent: false },
       { source: "/doctor/repeat-rx", destination: "/dashboard", permanent: true },
       { source: "/doctor/repeat-rx/:path*", destination: "/dashboard", permanent: true },
       { source: "/womens-health", destination: "/request", permanent: false },
@@ -345,7 +346,7 @@ const nextConfig = {
       { source: "/request/consult", destination: "/request?service=consult", permanent: true },
       { source: "/medical-certificate/request", destination: "/request?service=med-cert", permanent: true },
       { source: "/consult/request", destination: "/request?service=consult", permanent: true },
-      { source: "/prescriptions/request", destination: "/request?service=prescription", permanent: true },
+      { source: "/prescriptions/request", destination: "/request?service=repeat-script", permanent: true },
       { source: "/prescriptions/repeat", destination: "/request?service=repeat-script", permanent: true },
       { source: "/prescriptions/new", destination: "/request?service=consult", permanent: true },
       // /flow was the deprecated parallel intake system — deleted in 2026-04-08.

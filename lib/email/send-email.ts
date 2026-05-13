@@ -297,6 +297,17 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       certificateId,
       intakeId,
     })
+    Sentry.addBreadcrumb({
+      category: "email.outbox",
+      message: "Duplicate send suppressed by outbox guard",
+      level: "info",
+      data: {
+        emailType,
+        outboxId,
+        hasCertificateId: Boolean(certificateId),
+        hasIntakeId: Boolean(intakeId),
+      },
+    })
     return {
       success: true,
       messageId: outboxId ? `duplicate-outbox-${outboxId}` : undefined,

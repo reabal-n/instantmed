@@ -173,6 +173,7 @@ function PrescriptionCard({ prescription }: { prescription: PrescriptionRecord }
 
 export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
   const [activeTab, setActiveTab] = useState("overview")
+  const repeatScriptHref = "/request?service=repeat-script"
   
   const memberSinceDate = new Date(summary.memberSince).toLocaleDateString("en-AU", {
     month: "long",
@@ -322,8 +323,8 @@ export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
                 <div className="text-center py-12">
                   <Pill className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
                   <p className="text-muted-foreground">No prescriptions yet</p>
-                  <Link href="/request?service=prescription">
-                    <Button className="mt-4">Request a prescription</Button>
+                  <Link href={repeatScriptHref}>
+                    <Button className="mt-4">Request a repeat prescription</Button>
                   </Link>
                 </div>
               ) : (
@@ -356,7 +357,7 @@ export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
             </Card>
           </Link>
 
-          <Link href="/request?service=prescription">
+          <Link href={repeatScriptHref}>
             <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full">
               <CardContent className="p-6 flex items-center gap-4">
                 <div className="p-3 bg-info-light rounded-xl">

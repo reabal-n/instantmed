@@ -62,25 +62,25 @@ export interface StaffNavSection {
 
 export const operatorNavSections: StaffNavSection[] = [
   {
-    title: "Work",
+    title: "Today",
     items: [
       { href: ADMIN_DASHBOARD_HREF, label: "Dashboard", icon: "dashboard" },
-      { href: ADMIN_INTAKE_LEDGER_HREF, label: "Intake ledger", icon: "intakeLedger" },
-      { href: ADMIN_DOCTOR_QUEUE_HREF, label: "Queue", icon: "queue" },
+      { href: ADMIN_INTAKE_LEDGER_HREF, label: "All requests", icon: "intakeLedger" },
+      { href: ADMIN_DOCTOR_QUEUE_HREF, label: "Review queue", icon: "queue" },
       { href: ADMIN_SCRIPTS_HREF, label: "Scripts", icon: "scripts", badgeKey: "scriptsToWrite", badgeTone: "primary" },
       { href: ADMIN_PATIENTS_HREF, label: "Patients", icon: "users", badgeKey: "prescribingIdentityPatients", badgeTone: "warning" },
     ],
   },
   {
-    title: "Business",
+    title: "Run",
     items: [
       { href: ADMIN_ANALYTICS_HREF, label: "Analytics", icon: "analytics" },
-      { href: ADMIN_FINANCE_HREF, label: "Finance", icon: "dollar" },
-      { href: ADMIN_OPS_HREF, label: "Operations", icon: "activity" },
+      { href: ADMIN_FINANCE_HREF, label: "Payments", icon: "dollar" },
+      { href: ADMIN_OPS_HREF, label: "Recovery", icon: "activity" },
     ],
   },
   {
-    title: "Configure",
+    title: "Setup",
     items: [
       { href: ADMIN_SETTINGS_HREF, label: "Settings", icon: "settings" },
     ],

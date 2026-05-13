@@ -1,5 +1,7 @@
 import "server-only"
 
+import * as Sentry from "@sentry/nextjs"
+
 import { logger } from "@/lib/observability/logger"
 
 import { sendViaResend } from "../resend"
@@ -39,6 +41,15 @@ export async function sendHtmlEmailWithOutbox(params: SendHtmlEmailWithOutboxPar
     logger.info("[Email] Duplicate HTML send suppressed by outbox guard", {
       emailType: params.emailType,
       outboxId: outboxResult.id,
+    })
+    Sentry.addBreadcrumb({
+      category: "email.outbox",
+      message: "Duplicate HTML send suppressed by outbox guard",
+      level: "info",
+      data: {
+        emailType: params.emailType,
+        outboxId: outboxResult.id,
+      },
     })
     return {
       success: true,

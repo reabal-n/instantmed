@@ -26,6 +26,10 @@ const outboxSource = readFileSync(
   join(process.cwd(), "lib/email/send/outbox.ts"),
   "utf8",
 )
+const htmlOutboxSource = readFileSync(
+  join(process.cwd(), "lib/email/send/html-outbox.ts"),
+  "utf8",
+)
 const idempotencyMigrationSource = readFileSync(
   join(process.cwd(), "supabase/migrations/20260513161000_email_outbox_idempotency_key.sql"),
   "utf8",
@@ -68,6 +72,9 @@ describe("email sequence ownership contract", () => {
   it("suppresses duplicate sends once the outbox idempotency guard finds a matching row", () => {
     expect(outboxSource).toContain("duplicate: true")
     expect(sendEmailSource).toContain("Duplicate send suppressed by outbox guard")
+    expect(sendEmailSource).toContain("Sentry.addBreadcrumb")
+    expect(htmlOutboxSource).toContain("Duplicate HTML send suppressed by outbox guard")
+    expect(htmlOutboxSource).toContain("Sentry.addBreadcrumb")
     expect(sendEmailSource).toContain("outboxResult.duplicate")
     expect(sendEmailSource).toContain("skipped: true")
   })

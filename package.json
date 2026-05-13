@@ -30,6 +30,7 @@
     "content:audit:images": "node scripts/audit-health-guides.mjs --fail-on-image",
     "content:audit:strict": "node scripts/audit-health-guides.mjs --fail-on=P1",
     "smoke:backend": "npx tsx scripts/smoke-backend.ts",
+    "smoke:prod-dashboard": "node scripts/smoke-dashboard-production.mjs",
     "smoke:parchment": "npx tsx scripts/parchment-smoke.ts",
     "db:lint:linked": "supabase db lint --linked --schema public,extensions --fail-on error",
     "db:check-migrations": "node scripts/check-supabase-migration-history.mjs",

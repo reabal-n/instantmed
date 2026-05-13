@@ -16,7 +16,7 @@ export default function NewRequestModal() {
     if (service === "medical-certificate") {
       router.push("/request?service=med-cert")
     } else if (service === "prescription") {
-      router.push("/request?service=prescription")
+      router.push("/request?service=repeat-script")
     } else if (service === "consultation") {
       router.push("/request?service=consult")
     }

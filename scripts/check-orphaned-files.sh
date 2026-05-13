@@ -49,6 +49,7 @@ for legacy_route in \
   "app/login" \
   "app/consult/request" \
   "app/medical-certificate/request" \
+  "app/doctor/certificates" \
   "app/prescriptions/new" \
   "app/prescriptions/repeat" \
   "app/prescriptions/request"

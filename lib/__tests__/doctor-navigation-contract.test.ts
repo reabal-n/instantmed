@@ -226,6 +226,7 @@ describe("doctor navigation contract", () => {
     expect(nextConfigSource).toContain('source: "/doctor", destination: "/dashboard"')
     expect(nextConfigSource).toContain('source: "/doctor/dashboard", destination: "/dashboard"')
     expect(nextConfigSource).toContain('source: "/doctor/queue", destination: "/dashboard"')
+    expect(nextConfigSource).toContain('source: "/doctor/certificates", destination: "/dashboard"')
     expect(doctorSettingsPageSource).toContain('requireRole(["doctor", "admin"]')
     expect(doctorSettingsPageSource).toContain("hasAdminAccess(profile)")
     expect(doctorSettingsPageSource).toContain('redirect("/admin/settings/doctor-identity")')

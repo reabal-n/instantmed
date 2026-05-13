@@ -12,9 +12,11 @@ describe("staff release gates", () => {
     expect(pkg.scripts["check:staff-roles"]).toBe("tsx scripts/check-staff-role-readiness.ts")
     expect(pkg.scripts["fix:staff-roles"]).toBe("tsx scripts/fix-staff-admin-roles.ts")
     expect(pkg.scripts["check:sentry"]).toBe("tsx scripts/check-sentry-access.ts")
+    expect(pkg.scripts["smoke:prod-dashboard"]).toBe("node scripts/smoke-dashboard-production.mjs")
     expect(pkg.scripts["e2e:prod-dashboard"]).toBeUndefined()
     expect(existsSync(join(process.cwd(), ".github/workflows/prod-dashboard-auth-smoke.yml"))).toBe(false)
     expect(existsSync(join(process.cwd(), "e2e/prod-dashboard-auth-smoke.spec.ts"))).toBe(false)
+    expect(existsSync(join(process.cwd(), "scripts/smoke-dashboard-production.mjs"))).toBe(true)
   })
 
   it("keeps the staff role readiness gate read-only and aligned to the owner-admin model", () => {
