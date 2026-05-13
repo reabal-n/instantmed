@@ -1,3 +1,4 @@
+import { buildDoctorIntakeHref } from "@/lib/dashboard/routes"
 import { buildPatientSnapshot, type PatientSnapshotInput } from "@/lib/doctor/patient-snapshot"
 import {
   type PrescribingIdentityFormValues,
@@ -73,7 +74,7 @@ export function buildPrescribingIdentityBlockerReport(
       paidAt: row.paid_at ?? null,
       blockers: snapshot.missingCriticalFields,
       identity: resolvePrescribingIdentityFormValues(row.patient, row.answers),
-      intakeHref: `/doctor/intakes/${row.id}`,
+      intakeHref: buildDoctorIntakeHref(row.id),
       profileHref: snapshot.profileHref,
     })
   }

@@ -36,11 +36,9 @@ describe("email suppression navigation contract", () => {
     expect(statsSource).not.toContain('requireRole(["admin", "doctor"])')
   })
 
-  it("points automated digest recovery links at the admin email section", () => {
-    const digestSource = readProjectFile("app/api/cron/email-digest/route.ts")
-
-    expect(digestSource).toContain("/admin/emails/suppression")
-    expect(digestSource).not.toContain("/doctor/email-suppression")
+  it("keeps retired digest routes out of the active cron surface", () => {
+    expect(existsSync(join(root, "app/api/cron/email-digest/route.ts"))).toBe(false)
+    expect(existsSync(join(root, "app/api/cron/daily-digest/route.ts"))).toBe(false)
   })
 
   it("keeps the email hub focused on hub work instead of duplicating section tabs", () => {

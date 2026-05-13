@@ -51,7 +51,7 @@ PLAYWRIGHT=1 STRIPE_WEBHOOK_SECRET=whsec_test_... pnpm e2e e2e/stripe-webhook.sp
 **Symptoms:** Emails stuck "pending" in `email_outbox`, email dispatcher cron reporting high failure counts.
 
 1. Check Resend status: https://resend-status.com
-2. Check `/admin/emails/hub` for failed or pending outbox rows; use `/admin/emails/analytics` for delivery status and recent queue activity.
+2. Check `/admin/emails/hub` for failed or pending outbox rows, delivery status, and recent queue activity.
 3. Manual retry: click "Retry" on individual failed rows in the email hub.
 4. If Resend is completely down: emails auto-retry via the `email-dispatcher` cron; stale `sending` claims are recovered back to retryable `failed` rows.
 
@@ -77,7 +77,7 @@ PLAYWRIGHT=1 STRIPE_WEBHOOK_SECRET=whsec_test_... pnpm e2e e2e/stripe-webhook.sp
 
 ### Duplicate Patient Profiles
 
-**Symptoms:** `/doctor/patients` shows linked profiles, `/admin/ops` flags patient identity risk, or the daily digest reports duplicate profiles.
+**Symptoms:** `/doctor/patients` shows linked profiles or `/admin/ops` flags patient identity risk.
 
 **Triage:**
 
@@ -362,8 +362,6 @@ All crons use `verifyCronRequest()` from `lib/api/cron-auth.ts` for authenticati
 | Decline Re-engagement | `/api/cron/decline-reengagement` | Hourly | Send re-engagement email 2-3h after intake decline; deduped via `email_outbox` |
 | Cleanup Orphaned Storage | `/api/cron/cleanup-orphaned-storage` | Weekly (Sun 3 AM UTC) | Delete storage files with no DB record after 7-day grace period (max 50/run) |
 | Outbox Archival | `/api/cron/outbox-archival` | Daily (4 AM UTC) | Delete delivered emails >90 days old and exhausted-failed emails >180 days old from `email_outbox` (batch 500) |
-| Email Digest | `/api/cron/email-digest` | Weekly (Sun 22:00 UTC / Mon 08:00 AEST) | Sends weekly email ops summary to support@instantmed.com.au — sent/failed/bounced/complained counts, delivery rate, top types, bounced addresses |
-| Daily Digest | `/api/cron/daily-digest` | Daily (22:00 UTC / 08:00 AEST) | Sends the daily ops summary through `email_outbox` with a stable idempotency key |
 
 **Timezone note:** All cron schedules in `vercel.json` are UTC. "AEST" times above are UTC+10 (standard time). During AEDT (daylight saving, Oct–Apr), these shift 1 hour later in local time (e.g., "6 AM AEST" runs at 7 AM AEDT).
 

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { auth } from "@/lib/auth/helpers"
 import { hasDoctorAccess } from "@/lib/auth/staff-capabilities"
-import { buildStaffPatientHref } from "@/lib/dashboard/routes"
+import { buildDoctorIntakeHref, buildStaffPatientHref } from "@/lib/dashboard/routes"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
               title: patientData?.full_name || "Unknown Patient",
               subtitle: intake.category || "Service",
               status: intake.status,
-              href: `/doctor/intakes/${intake.id}`,
+              href: buildDoctorIntakeHref(intake.id),
             })
           }
         }

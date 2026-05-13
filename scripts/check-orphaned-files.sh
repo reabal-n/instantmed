@@ -50,6 +50,10 @@ for legacy_route in \
   "app/consult/request" \
   "app/medical-certificate/request" \
   "app/admin/compliance" \
+  "app/admin/email-test" \
+  "app/admin/emails/page.tsx" \
+  "app/admin/emails/analytics" \
+  "app/admin/emails/preview" \
   "app/admin/page.tsx" \
   "app/admin/ops/doctors" \
   "app/admin/ops/sla" \
@@ -74,6 +78,19 @@ for legacy_staff_api in \
 do
   if [[ -e "$legacy_staff_api" ]]; then
     echo "ORPHAN: $legacy_staff_api still exists (superseded by server actions or current staff health surfaces)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 2c. Retired non-operational cron surfaces ────────────────────────────
+for retired_cron_surface in \
+  "app/api/cron/acquisition-health/route.ts" \
+  "app/api/cron/daily-digest/route.ts" \
+  "app/api/cron/email-digest/route.ts" \
+  "lib/analytics/acquisition-health.ts"
+do
+  if [[ -e "$retired_cron_surface" ]]; then
+    echo "ORPHAN: $retired_cron_surface still exists (retired from lean staff operations)"
     orphans=$((orphans + 1))
   fi
 done

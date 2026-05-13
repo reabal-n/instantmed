@@ -233,8 +233,13 @@ const nextConfig = {
         permanent: true
       },
       {
+        source: "/admin/emails",
+        destination: "/admin/emails/hub",
+        permanent: true
+      },
+      {
         source: "/admin/email-test",
-        destination: "/admin/emails",
+        destination: "/admin/emails/hub",
         permanent: true
       },
       {
@@ -244,17 +249,17 @@ const nextConfig = {
       },
       {
         source: "/admin/emails/preview",
-        destination: "/admin/emails",
+        destination: "/admin/emails/templates",
         permanent: true
       },
       {
         source: "/admin/emails/edit",
-        destination: "/admin/emails",
+        destination: "/admin/emails/templates",
         permanent: true
       },
       {
         source: "/admin/emails/edit/:path*",
-        destination: "/admin/emails",
+        destination: "/admin/emails/templates",
         permanent: true
       },
       {

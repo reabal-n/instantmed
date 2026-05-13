@@ -71,10 +71,6 @@
       "schedule": "*/30 * * * *"
     },
     {
-      "path": "/api/cron/acquisition-health",
-      "schedule": "0 */6 * * *"
-    },
-    {
       "path": "/api/cron/data-retention",
       "schedule": "0 2 * * *"
     },
@@ -113,14 +109,6 @@
     {
       "path": "/api/cron/outbox-archival",
       "schedule": "0 4 * * *"
-    },
-    {
-      "path": "/api/cron/email-digest",
-      "schedule": "0 22 * * 0"
-    },
-    {
-      "path": "/api/cron/daily-digest",
-      "schedule": "0 22 * * *"
     }
   ]
 }

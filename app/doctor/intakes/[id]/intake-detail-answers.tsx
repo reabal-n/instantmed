@@ -16,6 +16,7 @@ import Link from "next/link"
 import { ClinicalCaseReview } from "@/components/doctor"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { buildDoctorIntakeHref } from "@/lib/dashboard/routes"
 import { buildPatientSnapshot, getPatientSnapshotOptionsForCase } from "@/lib/doctor/patient-snapshot"
 import { formatDate, formatDateLong } from "@/lib/format"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format/intake"
@@ -216,7 +217,7 @@ export function IntakeDetailAnswers({
                     return (
                       <Link
                         key={prev.id}
-                        href={`/doctor/intakes/${prev.id}`}
+                        href={buildDoctorIntakeHref(prev.id)}
                         className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2 p-2 bg-muted/50 rounded hover:bg-muted transition-colors"
                       >
                         <div className="flex items-center gap-2 min-w-0">
@@ -255,7 +256,7 @@ export function IntakeDetailAnswers({
                 return (
                   <Link
                     key={prev.id}
-                    href={`/doctor/intakes/${prev.id}`}
+                    href={buildDoctorIntakeHref(prev.id)}
                     className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2 p-2 bg-muted/50 rounded hover:bg-muted transition-colors"
                   >
                     <div className="flex items-center gap-2 min-w-0">

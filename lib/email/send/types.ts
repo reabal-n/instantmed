@@ -45,8 +45,6 @@ export type EmailType =
   | "payment_retry"
   | "subscription_cancelled"
   | "ops_test"
-  | "ops_daily_digest"
-  | "ops_email_digest"
 
 // Email types that are marketing/engagement - get auto List-Unsubscribe headers
 export const MARKETING_EMAIL_TYPES: ReadonlySet<EmailType> = new Set([

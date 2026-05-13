@@ -1,7 +1,7 @@
 import { getAllEmailTemplatesAction } from "@/app/actions/admin-config"
 import { requireRole } from "@/lib/auth/helpers"
 
-import { EmailTemplateEditorClient } from "./edit/email-template-editor-client"
+import { EmailTemplateEditorClient } from "../edit/email-template-editor-client"
 
 export const dynamic = "force-dynamic"
 

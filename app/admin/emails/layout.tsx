@@ -11,8 +11,9 @@ export const metadata = {
  * three jobs here:
  *
  * Routes consolidated under /admin/emails:
- *   /admin/emails -> Templates (edit, preview, test)
+ *   /admin/emails -> Redirect to delivery hub
  *   /admin/emails/hub -> Delivery hub (queue recovery + health)
+ *   /admin/emails/templates -> Templates (edit, preview, test)
  *   /admin/emails/suppression -> Suppression (blocked recipient recovery)
  *
  * Legacy preview/analytics/bookmark routes redirect into these canonical

@@ -45,7 +45,7 @@ export const ADMIN_TEMPLATE_STUDIO_HREF = "/admin/settings/templates" as const
 export const ADMIN_ENCRYPTION_HREF = "/admin/settings/encryption" as const
 export const ADMIN_AUDIT_HREF = "/admin/audit" as const
 export const ADMIN_EMAIL_HUB_HREF = "/admin/emails/hub" as const
-export const ADMIN_EMAIL_TEMPLATE_EDITOR_HREF = "/admin/emails" as const
+export const ADMIN_EMAIL_TEMPLATE_EDITOR_HREF = "/admin/emails/templates" as const
 export const ADMIN_EMAIL_SUPPRESSION_HREF = "/admin/emails/suppression" as const
 export const ADMIN_REFUNDS_HREF = "/admin/refunds" as const
 export const ADMIN_WEBHOOK_DLQ_HREF = "/admin/webhook-dlq" as const
@@ -63,6 +63,34 @@ export function buildAdminIntakeLedgerHref(options: { status?: string | null } =
 
 export function buildAdminIntakeHref(intakeId: string): string {
   return `/admin/intakes/${encodeURIComponent(intakeId)}`
+}
+
+export function buildAdminEmailHubHref(options: {
+  tab?: "queue" | null
+  intakeId?: string | null
+} = {}): string {
+  const params = new URLSearchParams()
+  if (options.tab) params.set("tab", options.tab)
+  if (options.intakeId) params.set("intake_id", options.intakeId)
+  const query = params.toString()
+  return query ? `${ADMIN_EMAIL_HUB_HREF}?${query}` : ADMIN_EMAIL_HUB_HREF
+}
+
+export function buildAdminAuditHref(options: { search?: string | null } = {}): string {
+  const params = new URLSearchParams()
+  if (options.search) params.set("search", options.search)
+  const query = params.toString()
+  return query ? `${ADMIN_AUDIT_HREF}?${query}` : ADMIN_AUDIT_HREF
+}
+
+export const DOCTOR_INTAKE_DETAIL_BASE_HREF = "/doctor/intakes" as const
+
+export function buildDoctorIntakeHref(intakeId: string): string {
+  return `${DOCTOR_INTAKE_DETAIL_BASE_HREF}/${encodeURIComponent(intakeId)}`
+}
+
+export function buildDoctorDocumentBuilderHref(intakeId: string): string {
+  return `${buildDoctorIntakeHref(intakeId)}/document`
 }
 
 export const QUEUE_STATUS_FILTERS = ["all", "review", "pending_info", "scripts"] as const

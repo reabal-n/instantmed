@@ -54,7 +54,7 @@ Use this checklist before promoting dashboard, payment, clinical, or patient-flo
 - Dashboard degraded-read monitor is active in production.
 - Authenticated `/dashboard` production smoke runs after deploy with the owner-admin session cookie and does not show the generic error shell.
 - `/admin/ops` shows no auth email failures for recent `magiclink` or `recovery` sends.
-- Cron jobs for stale queue, retry auto-approval, daily digest, and reconciliation are enabled.
+- Cron jobs for stale queue, retry auto-approval, email dispatcher, and reconciliation are enabled.
 - Supabase backups and PITR status are confirmed.
 - Rollback target is known before promotion.
 

@@ -79,8 +79,8 @@ const STAFF_SETTINGS_PATHS = [
 ] as const
 
 const STAFF_EMAILS_PATHS = [
-  "/admin/emails",
   "/admin/emails/hub",
+  "/admin/emails/templates",
   "/admin/emails/suppression",
   "/admin/settings/templates",
 ] as const

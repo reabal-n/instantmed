@@ -33,6 +33,7 @@ import {
   ADMIN_EMAIL_HUB_HREF,
   ADMIN_EMAIL_SUPPRESSION_HREF,
   ADMIN_EMAIL_TEMPLATE_EDITOR_HREF,
+  buildAdminIntakeHref,
   STAFF_OPS_HREF,
 } from "@/lib/dashboard/routes"
 import { EMAIL_SEQUENCES } from "@/lib/email/sequence-registry"
@@ -60,8 +61,6 @@ const emailTypeLabels: Record<string, string> = {
   guest_complete_account: "Complete Account (Guest)",
   generic: "Generic Email",
   ops_test: "Ops Test",
-  ops_daily_digest: "Daily Ops Digest",
-  ops_email_digest: "Weekly Email Digest",
 }
 
 // Sanitize email for display
@@ -77,6 +76,7 @@ interface EmailHubClientProps {
   issueActivity: RecentEmailActivity[]
   outboxRows: EmailOutboxLedgerRow[]
   outboxTotal: number
+  initialOutboxQuery?: string
   templateCounts: { active: number; total: number }
   yesterdayEmailCount: number
   authEmailHookStatus: {
@@ -138,6 +138,7 @@ export function EmailHubClient({
   issueActivity,
   outboxRows,
   outboxTotal,
+  initialOutboxQuery = "",
   templateCounts,
   yesterdayEmailCount,
   authEmailHookStatus,
@@ -145,7 +146,7 @@ export function EmailHubClient({
   const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") === "queue" ? "queue" : "overview")
   const [retryingId, setRetryingId] = useState<string | null>(null)
-  const [outboxQuery, setOutboxQuery] = useState("")
+  const [outboxQuery, setOutboxQuery] = useState(initialOutboxQuery)
   const [outboxStatus, setOutboxStatus] = useState<"all" | EmailOutboxLedgerRow["status"]>("all")
   const [isRefreshing, startRefresh] = useTransition()
   const [isSendingTest, startTestEmail] = useTransition()
@@ -713,7 +714,7 @@ export function EmailHubClient({
                             </Button>
                           ) : row.intake_id ? (
                             <Button size="sm" variant="ghost" className="h-8 gap-1.5 px-2.5 text-xs" asChild>
-                              <Link href={`/admin/intakes/${row.intake_id}`}>
+                              <Link href={buildAdminIntakeHref(row.intake_id)}>
                                 Open
                                 <ArrowRight className="h-3.5 w-3.5" />
                               </Link>

@@ -45,9 +45,8 @@ export async function GET(request: NextRequest) {
     if (staleCount > 0) {
       // Only Sentry-alert for genuine emergencies — 5+ stale items indicates
       // a systemic processing failure worth interrupting for. A single stuck
-      // item is normal operational drift; it surfaces in the daily digest's
-      // "needs attention" block at 8am AEST and via the `SystemHealthPill`
-      // on `/dashboard` (Phase 2 of dashboard remaster, 2026-05-12), so
+      // item is normal operational drift; it surfaces via the
+      // `SystemHealthPill` on `/dashboard`, so
       // low-volume warnings don't need their own email ping.
       if (staleCount >= 5) {
         Sentry.captureMessage(`Dead Letter Queue Alert: ${staleCount} unresolved items older than ${ALERT_THRESHOLD_HOURS}h`, {

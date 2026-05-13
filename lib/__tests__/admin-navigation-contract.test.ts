@@ -180,6 +180,7 @@ describe("admin navigation contract", () => {
     expect(dashboardRoutesSource).toContain('ADMIN_PARCHMENT_OPS_HREF = "/admin/ops/parchment"')
     expect(dashboardRoutesSource).toContain('ADMIN_WEBHOOK_DLQ_HREF = "/admin/webhook-dlq"')
     expect(dashboardRoutesSource).toContain('ADMIN_EMAIL_HUB_HREF = "/admin/emails/hub"')
+    expect(dashboardRoutesSource).toContain('ADMIN_EMAIL_TEMPLATE_EDITOR_HREF = "/admin/emails/templates"')
     expect(dashboardRoutesSource).toContain('ADMIN_PATIENTS_HREF = "/admin/patients"')
     // Status-filter links now go to the canonical `/dashboard` via
     // buildStaffDashboardHref; the literal `/doctor/...` hrefs are gone.
@@ -236,7 +237,7 @@ describe("admin navigation contract", () => {
       readFileSync(join(process.cwd(), "components/shared/ops/intakes-stuck-client.tsx"), "utf8"),
     ].join("\n")
 
-    expect(adminRouteSources).toContain("/admin/intakes")
+    expect(adminRouteSources).toContain("buildAdminIntakeHref")
     expect(adminRouteSources).toContain("ADMIN_PATIENTS_HREF")
     expect(adminRouteSources).toContain("buildStaffPatientHref")
     expect(adminRouteSources).not.toContain("/doctor/intakes")
@@ -346,8 +347,8 @@ describe("admin navigation contract", () => {
       "app/admin/clinic/page.tsx",
       "app/admin/doctors/page.tsx",
       "app/admin/emails/hub/page.tsx",
-      "app/admin/emails/page.tsx",
       "app/admin/emails/suppression/page.tsx",
+      "app/admin/emails/templates/page.tsx",
       "app/admin/features/page.tsx",
       "app/admin/finance/page.tsx",
       "app/admin/intakes/[id]/page.tsx",
@@ -410,6 +411,7 @@ describe("admin navigation contract", () => {
     expect(nextConfigSource).toContain('source: "/admin/emails/analytics"')
     expect(nextConfigSource).toContain('destination: "/admin/emails/hub"')
     expect(nextConfigSource).toContain('source: "/admin/emails/preview"')
+    expect(nextConfigSource).toContain('destination: "/admin/emails/templates"')
     expect(nextConfigSource).toContain('source: "/admin/emails/outbox"')
     expect(nextConfigSource).toContain('destination: "/admin/emails/hub?tab=queue"')
     expect(nextConfigSource).toContain('source: "/admin/finance/revenue"')
@@ -450,12 +452,14 @@ describe("admin navigation contract", () => {
     expect(adminPages).not.toContain("app/admin/errors/page.tsx")
     expect(adminPages).not.toContain("app/admin/emails/analytics/page.tsx")
     expect(adminPages).not.toContain("app/admin/emails/preview/page.tsx")
+    expect(adminPages).not.toContain("app/admin/emails/page.tsx")
     expect(adminPages).not.toContain("app/admin/doctors/performance/page.tsx")
     expect(adminPages).not.toContain("app/admin/finance/revenue/page.tsx")
     expect(nextConfigSource).toContain('source: "/admin/compliance"')
     expect(nextConfigSource).toContain('destination: "/admin/audit"')
     expect(nextConfigSource).toContain('source: "/admin/email-test"')
-    expect(nextConfigSource).toContain('destination: "/admin/emails"')
+    expect(nextConfigSource).toContain('destination: "/admin/emails/hub"')
+    expect(nextConfigSource).toContain('source: "/admin/emails"')
     expect(nextConfigSource).toContain('source: "/admin/ops/doctors"')
     expect(nextConfigSource).toContain('destination: "/admin/doctors"')
     expect(nextConfigSource).toContain('source: "/admin/ops/sla"')

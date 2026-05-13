@@ -1,6 +1,7 @@
 import { notFound,redirect } from "next/navigation"
 
 import { requireRole } from "@/lib/auth/helpers"
+import { buildDoctorIntakeHref } from "@/lib/dashboard/routes"
 import { getDoctorIdentity, isDoctorIdentityComplete } from "@/lib/data/doctor-identity"
 import { getAIDraftsForIntake,getLatestDocumentForIntake, getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { getIntakeWithDetails } from "@/lib/data/intakes"
@@ -36,14 +37,14 @@ export default async function IntakeDocumentBuilderPage({
 
   // Only allow document building for med certs
   if (service?.type !== "med_certs") {
-    redirect(`/doctor/intakes/${id}`)
+    redirect(buildDoctorIntakeHref(id))
   }
 
   // Get or create draft (will be seeded from AI draft if one exists)
   const draft = await getOrCreateMedCertDraftForIntake(id)
 
   if (!draft) {
-    redirect(`/doctor/intakes/${id}`)
+    redirect(buildDoctorIntakeHref(id))
   }
 
   // Fetch AI-generated clinical intelligence (clinical note + flags) in parallel

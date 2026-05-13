@@ -8,6 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { buildAdminEmailHubHref } from "@/lib/dashboard/routes"
 import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
 import { cn } from "@/lib/utils"
 
@@ -24,7 +25,7 @@ import { cn } from "@/lib/utils"
  *   - Sent (not yet opened): blue `Send` + when.
  *   - No cert / not yet issued: neutral `Clock`.
  *
- * The chip links to `/admin/emails/hub?intake=<id>` for the full email
+ * The chip links to the email hub queue for the full email
  * audit if the operator needs the bounce reason / message id.
  */
 export interface CertHealthChipProps {
@@ -117,7 +118,7 @@ function computeChipState(certificate: CertDeliveryStatus | null): ChipState {
 export function CertHealthChip({ certificate, intakeId, className }: CertHealthChipProps) {
   const state = computeChipState(certificate)
   const Icon = state.icon
-  const href = `/admin/emails/hub?intake=${encodeURIComponent(intakeId)}`
+  const href = buildAdminEmailHubHref({ tab: "queue", intakeId })
 
   return (
     <TooltipProvider delayDuration={200}>

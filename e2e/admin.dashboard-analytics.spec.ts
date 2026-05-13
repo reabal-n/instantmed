@@ -4,7 +4,7 @@
  * Tests the admin analytics dashboard, finance page, and email management:
  * - Analytics page loads with charts
  * - Finance page loads with revenue data
- * - Email preview and editor pages load
+ * - Email hub and template editor pages load
  * - Email template management works
  */
 
@@ -122,12 +122,20 @@ test.describe("Admin - Email Management", () => {
     await page.goto("/admin/emails/preview")
     await waitForPageLoad(page)
 
-    await expect(page).toHaveURL(/\/admin\/emails$/)
+    await expect(page).toHaveURL(/\/admin\/emails\/templates$/)
     await expect(page.getByRole("heading", { name: /edit template/i })).toBeVisible({ timeout: 15000 })
   })
 
-  test("email editor page loads", async ({ page }) => {
+  test("email section root redirects to the delivery hub", async ({ page }) => {
     await page.goto("/admin/emails")
+    await waitForPageLoad(page)
+
+    await expect(page).toHaveURL(/\/admin\/emails\/hub$/)
+    await expect(page.getByRole("heading", { name: /email delivery/i })).toBeVisible({ timeout: 15000 })
+  })
+
+  test("email editor page loads", async ({ page }) => {
+    await page.goto("/admin/emails/templates")
     await waitForPageLoad(page)
 
     // Should show editor UI

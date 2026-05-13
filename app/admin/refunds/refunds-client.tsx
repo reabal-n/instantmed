@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Pagination, Skeleton } from "@/components/uix"
+import { buildAdminIntakeHref } from "@/lib/dashboard/routes"
 import type { PaymentWithRefund, RefundFilters } from "@/lib/data/types/refunds"
 import { formatAmount, formatRefundStatus, getRefundStatuses } from "@/lib/data/types/refunds"
 import { cn } from "@/lib/utils"
@@ -331,7 +332,7 @@ export function RefundsClient({
                 ) : null}
                 {selectedPayment.refund_status === "failed" && selectedPayment.intake?.id ? (
                   <Button type="button" size="sm" variant="outline" asChild>
-                    <Link href={`/admin/intakes/${selectedPayment.intake.id}`}>
+                    <Link href={buildAdminIntakeHref(selectedPayment.intake.id)}>
                       <Eye className="mr-1.5 h-3.5 w-3.5" />
                       Open intake
                     </Link>

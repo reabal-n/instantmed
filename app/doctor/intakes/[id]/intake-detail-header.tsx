@@ -40,6 +40,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { buildDoctorDocumentBuilderHref } from "@/lib/dashboard/routes"
 import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
 import { INTAKE_STATUS, type IntakeStatus as StatusType } from "@/lib/data/status"
@@ -223,7 +224,7 @@ export function IntakeDetailHeader({
                 {isPending ? "Approving..." : "Approve & Update Dates"}
               </Button>
               <Button size="sm" variant="outline" asChild>
-                <Link href={`/doctor/intakes/${intake.id}/document`}>
+                <Link href={buildDoctorDocumentBuilderHref(intake.id)}>
                   Edit & Resend
                 </Link>
               </Button>

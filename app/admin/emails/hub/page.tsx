@@ -13,15 +13,19 @@ export const dynamic = "force-dynamic"
 /**
  * Email Hub — operational dashboard for the /admin/emails section.
  *
- * Phase 6 of the doctor + admin portal rebuild (2026-04-29). Moved
- * from /admin/email-hub so all three email surfaces (Templates, Hub,
- * Analytics) live under /admin/emails behind a shared tab nav.
+ * Canonical email ops surface. Template editing lives at
+ * /admin/emails/templates; legacy email aliases redirect here.
  *
- * /admin/email-hub still exists as a redirect for bookmarks + email
- * digest links.
+ * /admin/email-hub still exists as a redirect for bookmarks.
  */
-export default async function EmailHubPage() {
+export default async function EmailHubPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ intake_id?: string; intake?: string }>
+}) {
   await requireRole(["admin"], { redirectTo: "/admin" })
+  const params = await searchParams
+  const intakeId = params?.intake_id || params?.intake || undefined
 
   const supabase = createServiceRoleClient()
 
@@ -34,7 +38,7 @@ export default async function EmailHubPage() {
     getEmailStats(),
     getRecentEmailActivity(20),
     getRecentEmailIssues(25),
-    getEmailOutboxList({ page: 1, pageSize: 50 }),
+    getEmailOutboxList({ page: 1, pageSize: 50, filters: intakeId ? { intake_id: intakeId } : undefined }),
     supabase.from("email_templates").select("id, is_active", { count: "exact" }),
     supabase
       .from("email_outbox")
@@ -62,6 +66,7 @@ export default async function EmailHubPage() {
         issueActivity={issueResult.activity}
         outboxRows={outboxResult.data}
         outboxTotal={outboxResult.total}
+        initialOutboxQuery={intakeId ?? ""}
         templateCounts={{ active: activeTemplates, total: totalTemplates }}
         yesterdayEmailCount={yesterdayEmails}
         authEmailHookStatus={authEmailHookStatus}

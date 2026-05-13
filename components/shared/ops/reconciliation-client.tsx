@@ -33,6 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { buildAdminEmailHubHref, buildAdminIntakeHref } from "@/lib/dashboard/routes"
 import type { DeliveryStatus,ReconciliationRecord } from "@/lib/data/reconciliation"
 import { formatAge } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -292,13 +293,13 @@ export function ReconciliationClient({
                     </div>
                     <div className="flex flex-wrap gap-2 lg:justify-end">
                       <Button asChild variant="ghost" size="sm">
-                        <Link href={`/admin/intakes/${record.intake_id}`}>
+                        <Link href={buildAdminIntakeHref(record.intake_id)}>
                           <ExternalLink className="h-4 w-4" />
                           Intake
                         </Link>
                       </Button>
                       <Button asChild variant="ghost" size="sm">
-                        <Link href={`/admin/emails/hub?intake_id=${record.intake_id}`}>
+                        <Link href={buildAdminEmailHubHref({ tab: "queue", intakeId: record.intake_id })}>
                           Emails
                         </Link>
                       </Button>

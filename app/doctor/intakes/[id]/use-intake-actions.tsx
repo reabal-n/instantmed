@@ -18,7 +18,7 @@ import { ParchmentPrescribePanel } from "@/components/doctor"
 import { MIN_CLINICAL_NOTES_LENGTH } from "@/components/doctor/review/utils"
 import { usePanel } from "@/components/panels/panel-provider"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
-import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
+import { buildDoctorIntakeHref, STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import { resolveClinicalDecisionNote } from "@/lib/doctor/clinical-notes"
 import { logIntakeViewDuration, preloadViewDurationLogging } from "@/lib/doctor/log-view-duration-client"
 import { buildParchmentPrescriptionContext } from "@/lib/doctor/parchment-prescribing-context"
@@ -255,7 +255,7 @@ export function useIntakeActions({
 
   const advanceToNext = useCallback(() => {
     if (nextIntakeId) {
-      router.push(`/doctor/intakes/${nextIntakeId}`)
+      router.push(buildDoctorIntakeHref(nextIntakeId))
     } else {
       try {
         sessionStorage.setItem(DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY, "1")

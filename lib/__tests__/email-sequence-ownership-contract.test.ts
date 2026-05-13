@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
@@ -32,14 +32,6 @@ const htmlOutboxSource = readFileSync(
 )
 const idempotencyMigrationSource = readFileSync(
   join(process.cwd(), "supabase/migrations/20260513161000_email_outbox_idempotency_key.sql"),
-  "utf8",
-)
-const dailyDigestSource = readFileSync(
-  join(process.cwd(), "app/api/cron/daily-digest/route.ts"),
-  "utf8",
-)
-const emailDigestSource = readFileSync(
-  join(process.cwd(), "app/api/cron/email-digest/route.ts"),
   "utf8",
 )
 const emailHubSource = readFileSync(
@@ -108,13 +100,16 @@ describe("email sequence ownership contract", () => {
     expect(first).toMatch(/^email:partial_intake_recovery:/)
   })
 
-  it("keeps internal digest sends inside the active outbox audit trail", () => {
-    expect(dailyDigestSource).toContain("sendHtmlEmailWithOutbox")
-    expect(dailyDigestSource).toContain('emailType: "ops_daily_digest"')
-    expect(dailyDigestSource).toContain("ops-daily-digest:")
-    expect(emailDigestSource).toContain("sendHtmlEmailWithOutbox")
-    expect(emailDigestSource).toContain('emailType: "ops_email_digest"')
-    expect(emailDigestSource).toContain("ops-email-digest:")
+  it("keeps internal digest emails retired in favor of dashboard-led operations", () => {
+    const schedules = new Map(vercelConfig.crons.map((cron) => [cron.path, cron.schedule]))
+    const ids = EMAIL_SEQUENCES.map((sequence) => sequence.id)
+
+    expect(existsSync(join(process.cwd(), "app/api/cron/daily-digest/route.ts"))).toBe(false)
+    expect(existsSync(join(process.cwd(), "app/api/cron/email-digest/route.ts"))).toBe(false)
+    expect(schedules.has("/api/cron/daily-digest")).toBe(false)
+    expect(schedules.has("/api/cron/email-digest")).toBe(false)
+    expect(ids).not.toContain("ops_daily_digest")
+    expect(ids).not.toContain("ops_email_digest")
   })
 
   it("uses the active outbox table for sequence duplicate checks", () => {

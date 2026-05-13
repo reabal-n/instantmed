@@ -262,7 +262,7 @@ Entry points (doctor queue | admin panel | API)
 
 **Template types:** Core transactional and lifecycle types are reconstructed from source records for retry, including `med_cert_patient`, `med_cert_employer`, `script_sent`, `request_declined`, `prescription_approved`, `still_reviewing`, and `payment_retry`. Supabase Auth send-email templates cover `magiclink`, `signup`, and `recovery` via `app/api/webhooks/supabase-auth/route.ts`. Marketing/engagement types are capped by warmup limits; transactional clinical/payment sends are not.
 
-**Admin hub:** `/admin/emails/hub` links to editor (`/admin/emails`), preview (`/admin/emails/preview`), analytics (`/admin/emails/analytics`), suppression recovery, and a compact auth-email hook health card. In development, `/email-preview/magic-link` covers Supabase auth email QA. Legacy `/admin/email-hub`, `/admin/email-test`, `/admin/email-outbox`, `/admin/email-queue`, and `/admin/ops/email-outbox` redirect to the owning email surfaces.
+**Admin hub:** `/admin/emails/hub` is the single delivery operations surface: outbox recovery, delivery status, suppression recovery, and a compact auth-email hook health card. Template editing lives at `/admin/emails/templates`. In development, `/email-preview/magic-link` covers Supabase auth email QA. Legacy `/admin/email-hub`, `/admin/email-test`, `/admin/email-outbox`, `/admin/email-queue`, `/admin/ops/email-outbox`, `/admin/emails/preview`, and `/admin/emails/analytics` redirect to the owning email surfaces.
 
 ### Retry & Delivery
 
@@ -272,11 +272,11 @@ All sends logged to `email_outbox`: `status` (pending | sending | sent | failed 
 
 **E2E seam:** `PLAYWRIGHT=1` skips Resend sends, logs as `skipped_e2e`.
 
-**Observability:** Sentry (`action:send_email`, dispatcher exhaustion, stale sending recovery), Vercel logs, Resend dashboard, `/admin/emails/analytics`, `/admin/emails/hub`, the canonical `/api/cron/email-dispatcher`, and `email_outbox` queries. Resend webhook lifecycle events update `delivery_status`; raw recipient addresses must be masked in logs/analytics.
+**Observability:** Sentry (`action:send_email`, dispatcher exhaustion, stale sending recovery), Vercel logs, Resend dashboard, `/admin/emails/hub`, the canonical `/api/cron/email-dispatcher`, and `email_outbox` queries. Resend webhook lifecycle events update `delivery_status`; raw recipient addresses must be masked in logs/analytics.
 
 ### Email Test Studio
 
-Email preview lives at `/admin/emails/preview` for admin review and `/email-preview/*` for development template QA. Test sends use the admin email server action from the template editor; there is no separate `/admin/email-test` page or direct test-send API.
+Email preview lives inside `/admin/emails/templates` for admin review and `/email-preview/*` for development template QA. Test sends use the admin email server action from the template editor or email hub; there is no separate `/admin/email-test` page or direct test-send API.
 
 ---
 

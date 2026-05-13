@@ -28,7 +28,7 @@ import { SheetPanel } from "@/components/panels/sheet-panel"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { buildAdminIntakeHref } from "@/lib/dashboard/routes"
+import { buildAdminIntakeHref, buildDoctorIntakeHref } from "@/lib/dashboard/routes"
 import { logIntakeViewDuration, preloadViewDurationLogging } from "@/lib/doctor/log-view-duration-client"
 import { consumePrefetchedData } from "@/lib/doctor/review-data-cache"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format/intake"
@@ -309,7 +309,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
   }
   const fullCaseHref = profileMode === "admin"
     ? buildAdminIntakeHref(intake.id)
-    : `/doctor/intakes/${intake.id}`
+    : buildDoctorIntakeHref(intake.id)
 
   return (
     <>

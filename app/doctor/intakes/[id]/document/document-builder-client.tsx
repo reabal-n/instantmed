@@ -25,7 +25,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { DatePickerField } from "@/components/uix"
-import { STAFF_DASHBOARD_HREF, STAFF_IDENTITY_HREF } from "@/lib/dashboard/routes"
+import { buildDoctorIntakeHref, STAFF_DASHBOARD_HREF, STAFF_IDENTITY_HREF } from "@/lib/dashboard/routes"
 import type { DocumentDraft, GeneratedDocument, IntakeWithDetails, MedCertDraftData } from "@/types/db"
 
 import { generateMedCertPdfAndApproveAction, generatePreviewPdfAction, saveMedCertDraftAction } from "./actions"
@@ -220,7 +220,7 @@ export function DocumentBuilderClient({
       {/* Header */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" asChild>
-          <Link href={`/doctor/intakes/${intake.id}`}>
+          <Link href={buildDoctorIntakeHref(intake.id)}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Case
           </Link>

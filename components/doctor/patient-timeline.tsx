@@ -35,7 +35,7 @@ import { memo, useMemo, useState } from "react"
 
 import { Badge, type BadgeProps } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { buildAdminIntakeHref } from "@/lib/dashboard/routes"
+import { buildAdminIntakeHref, buildDoctorIntakeHref } from "@/lib/dashboard/routes"
 import { formatDateTime } from "@/lib/format"
 import { formatIntakeStatus } from "@/lib/format/intake"
 import { cn } from "@/lib/utils"
@@ -163,7 +163,7 @@ function requestLabel(request: PatientTimelineRequest): string {
 }
 
 function requestHref(request: PatientTimelineRequest, admin: boolean): string {
-  return admin ? buildAdminIntakeHref(request.id) : `/doctor/intakes/${request.id}`
+  return admin ? buildAdminIntakeHref(request.id) : buildDoctorIntakeHref(request.id)
 }
 
 // ---------------------------------------------------------------------------
@@ -445,7 +445,7 @@ const TimelineRow = memo(function TimelineRow({ item, admin }: { item: TimelineI
               ))}
               {rx.request_id && (
                 <Link
-                  href={admin ? buildAdminIntakeHref(rx.request_id) : `/doctor/intakes/${rx.request_id}`}
+                  href={admin ? buildAdminIntakeHref(rx.request_id) : buildDoctorIntakeHref(rx.request_id)}
                   className="text-primary hover:underline"
                 >
                   View request
@@ -511,7 +511,7 @@ const TimelineRow = memo(function TimelineRow({ item, admin }: { item: TimelineI
               {event.event_id && <span className="font-mono">Event {event.event_id}</span>}
               {event.request_id && (
                 <Link
-                  href={admin ? buildAdminIntakeHref(event.request_id) : `/doctor/intakes/${event.request_id}`}
+                  href={admin ? buildAdminIntakeHref(event.request_id) : buildDoctorIntakeHref(event.request_id)}
                   className="text-primary hover:underline"
                 >
                   View request

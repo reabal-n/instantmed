@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { buildAdminIntakeHref } from "@/lib/dashboard/routes"
 import type { StuckCounts, StuckIntake, StuckReason } from "@/lib/data/intake-ops"
 import { formatAge } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -284,7 +285,7 @@ export function IntakesStuckClient({
                     </p>
                   </div>
                   <Button asChild variant="ghost" size="sm" className="justify-self-start lg:justify-self-end">
-                    <Link href={`/admin/intakes/${intake.id}`}>
+                    <Link href={buildAdminIntakeHref(intake.id)}>
                       <ExternalLink className="h-4 w-4" />
                       Open intake
                     </Link>

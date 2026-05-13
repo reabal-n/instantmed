@@ -20,7 +20,6 @@ const ADMIN_PAGES = [
   "/admin/doctors",
   "/admin/services",
   "/admin/features",
-  "/admin/emails",
   "/admin/analytics",
   "/admin/finance",
   "/admin/ops",
@@ -30,6 +29,7 @@ const ADMIN_PAGES = [
   "/admin/emails/hub",
   "/admin/emails/hub?tab=queue",
   "/admin/emails/suppression",
+  "/admin/emails/templates",
   "/admin/settings",
   "/admin/settings/templates",
   // Nested

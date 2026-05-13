@@ -22,10 +22,14 @@ import {
   ADMIN_STALE_INTAKES_HREF,
   ADMIN_TEMPLATE_STUDIO_HREF,
   ADMIN_WEBHOOK_DLQ_HREF,
+  buildAdminAuditHref,
   buildAdminDashboardHref,
+  buildAdminEmailHubHref,
   buildAdminIntakeHref,
   buildAdminIntakeLedgerHref,
   buildDoctorDashboardHref,
+  buildDoctorDocumentBuilderHref,
+  buildDoctorIntakeHref,
   buildDoctorQueueRedirectHref,
   buildStaffPatientHref,
   DOCTOR_DASHBOARD_HREF,
@@ -77,7 +81,14 @@ describe("dashboard route contracts", () => {
     expect(ADMIN_FEATURES_HREF).toBe("/admin/features")
     expect(ADMIN_TEMPLATE_STUDIO_HREF).toBe("/admin/settings/templates")
     expect(ADMIN_EMAIL_HUB_HREF).toBe("/admin/emails/hub")
-    expect(ADMIN_EMAIL_TEMPLATE_EDITOR_HREF).toBe("/admin/emails")
+    expect(ADMIN_EMAIL_TEMPLATE_EDITOR_HREF).toBe("/admin/emails/templates")
+    expect(buildAdminEmailHubHref()).toBe("/admin/emails/hub")
+    expect(buildAdminEmailHubHref({ tab: "queue", intakeId: "intake 123" })).toBe(
+      "/admin/emails/hub?tab=queue&intake_id=intake+123",
+    )
+    expect(buildAdminAuditHref({ search: "merge 123" })).toBe("/admin/audit?search=merge+123")
+    expect(buildDoctorIntakeHref("intake 123")).toBe("/doctor/intakes/intake%20123")
+    expect(buildDoctorDocumentBuilderHref("intake 123")).toBe("/doctor/intakes/intake%20123/document")
     expect(ADMIN_WEBHOOK_DLQ_HREF).toBe("/admin/webhook-dlq")
     expect(ADMIN_PARCHMENT_OPS_HREF).toBe("/admin/ops/parchment")
     expect(ADMIN_STALE_INTAKES_HREF).toBe("/admin/ops/intakes-stuck")

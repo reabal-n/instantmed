@@ -12,8 +12,6 @@ export const DB_IDEMPOTENT_EMAIL_TYPES: ReadonlySet<EmailType> = new Set([
   "review_request",
   "review_followup",
   "decline_reengagement",
-  "ops_daily_digest",
-  "ops_email_digest",
 ])
 
 const METADATA_SCOPE_KEYS = [
@@ -22,9 +20,6 @@ const METADATA_SCOPE_KEYS = [
   "reminder_number",
   "milestone",
   "subtype",
-  "digest_date",
-  "period_start",
-  "period_end",
 ] as const
 
 type IdempotencyInput = Pick<

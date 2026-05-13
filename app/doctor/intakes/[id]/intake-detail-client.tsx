@@ -28,7 +28,7 @@ import { usePanel } from "@/components/panels/panel-provider"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
-import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
+import { buildDoctorIntakeHref, STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
 import type { PatientThreadMessage } from "@/lib/data/patient-messages"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format/intake"
@@ -151,7 +151,7 @@ function CockpitIntakeDetailClient({
         return
       }
       if (nextIntakeId) {
-        router.push(`/doctor/intakes/${nextIntakeId}`)
+        router.push(buildDoctorIntakeHref(nextIntakeId))
         return
       }
       router.push(STAFF_DASHBOARD_HREF)

@@ -43,7 +43,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Pagination, UserCard } from "@/components/uix"
 import { capture } from "@/lib/analytics/capture"
-import { ADMIN_PRESCRIBING_IDENTITY_HREF, STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
+import { ADMIN_PRESCRIBING_IDENTITY_HREF, buildDoctorIntakeHref, STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import { buildPatientHandoffSummary } from "@/lib/doctor/patient-handoff"
 import { buildPatientSnapshot, getPatientSnapshotOptionsForCase } from "@/lib/doctor/patient-snapshot"
 import { LAST_OPENED_DOCTOR_CASE_KEY } from "@/lib/doctor/queue-focus"
@@ -812,13 +812,13 @@ export function QueueTable({
                   className="flex cursor-pointer flex-col justify-between gap-2 rounded-lg border border-border/40 bg-muted/20 p-2.5 transition-colors hover:bg-muted/45 sm:flex-row sm:items-center sm:gap-3"
                   onClick={() => {
                     rememberOpenedCase(intake.id)
-                    router.push(`/doctor/intakes/${intake.id}`)
+                    router.push(buildDoctorIntakeHref(intake.id))
                   }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault()
                       rememberOpenedCase(intake.id)
-                      router.push(`/doctor/intakes/${intake.id}`)
+                      router.push(buildDoctorIntakeHref(intake.id))
                     }
                   }}
                 >
