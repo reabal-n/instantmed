@@ -53,12 +53,24 @@ export function buildAdminIntakeHref(intakeId: string): string {
 export const QUEUE_STATUS_FILTERS = ["all", "review", "pending_info", "scripts"] as const
 export type QueueStatusFilter = (typeof QUEUE_STATUS_FILTERS)[number]
 
+export const QUEUE_SAVED_VIEWS = ["all", "priority", "scripts", "pending_info", "stale", "mine"] as const
+export type QueueSavedView = (typeof QUEUE_SAVED_VIEWS)[number]
+
 export function parseQueueStatusFilter(
   value: string | string[] | null | undefined,
 ): QueueStatusFilter {
   const candidate = Array.isArray(value) ? value[0] : value
   return QUEUE_STATUS_FILTERS.includes(candidate as QueueStatusFilter)
     ? (candidate as QueueStatusFilter)
+    : "all"
+}
+
+export function parseQueueSavedView(
+  value: string | string[] | null | undefined,
+): QueueSavedView {
+  const candidate = Array.isArray(value) ? value[0] : value
+  return QUEUE_SAVED_VIEWS.includes(candidate as QueueSavedView)
+    ? (candidate as QueueSavedView)
     : "all"
 }
 
@@ -106,16 +118,19 @@ export const DOCTOR_QUEUE_REVIEW_HREF = buildDoctorDashboardHref({ status: "revi
 
 export function buildAdminDashboardHref(options: {
   status?: string | string[] | QueueStatusFilter | null
+  view?: string | string[] | QueueSavedView | null
   page?: string | string[] | number
   pageSize?: string | string[] | number
   anchor?: string
 } = {}): string {
   const params = new URLSearchParams()
   const status = parseQueueStatusFilter(options.status)
+  const view = parseQueueSavedView(options.view)
   const page = getPositiveIntegerParam(options.page)
   const pageSize = getPageSizeParam(options.pageSize)
 
   if (status !== "all") params.set("status", status)
+  if (view !== "all") params.set("view", view)
   if (page) params.set("page", page)
   if (pageSize) params.set("pageSize", pageSize)
 
@@ -131,16 +146,19 @@ export function buildAdminDashboardHref(options: {
  */
 export function buildStaffDashboardHref(options: {
   status?: string | string[] | QueueStatusFilter | null
+  view?: string | string[] | QueueSavedView | null
   page?: string | string[] | number
   pageSize?: string | string[] | number
   anchor?: string
 } = {}): string {
   const params = new URLSearchParams()
   const status = parseQueueStatusFilter(options.status)
+  const view = parseQueueSavedView(options.view)
   const page = getPositiveIntegerParam(options.page)
   const pageSize = getPageSizeParam(options.pageSize)
 
   if (status !== "all") params.set("status", status)
+  if (view !== "all") params.set("view", view)
   if (page) params.set("page", page)
   if (pageSize) params.set("pageSize", pageSize)
 

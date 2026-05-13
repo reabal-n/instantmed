@@ -1,8 +1,10 @@
 import type { Metadata } from "next"
 import { redirect } from "next/navigation"
+import { Suspense } from "react"
 
 import { QueueClient } from "@/app/doctor/queue/queue-client"
 import { OwnerOperatorSetupCard } from "@/components/admin/owner-operator-setup-card"
+import { StaffReadinessPanel } from "@/components/admin/staff-readiness-panel"
 import { ConversionSnapshotCard } from "@/components/dashboard/conversion-snapshot"
 import { DoctorAvailabilityToggle } from "@/components/doctor/doctor-availability-toggle"
 import {
@@ -22,7 +24,9 @@ import {
   hasSupportAccess,
 } from "@/lib/auth/staff-capabilities"
 import {
+  parseQueueSavedView,
   parseQueueStatusFilter,
+  type QueueSavedView,
   type QueueStatusFilter,
   STAFF_DASHBOARD_HREF,
 } from "@/lib/dashboard/routes"
@@ -39,6 +43,7 @@ import {
   getRecentlyCompletedIntakes,
   getTodayEarnings,
 } from "@/lib/data/intakes"
+import { getStaffReadinessSnapshot } from "@/lib/data/staff-readiness"
 import { EMPTY_SYSTEM_HEALTH, getSystemHealth } from "@/lib/data/system-health"
 import { createLogger } from "@/lib/observability/logger"
 import type { IntakeWithPatient } from "@/types/db"
@@ -76,6 +81,7 @@ export default async function StaffDashboardPage({
     page?: string
     pageSize?: string
     status?: string | string[]
+    view?: string | string[]
     showTestData?: string
   }>
 }) {
@@ -92,6 +98,7 @@ export default async function StaffDashboardPage({
   const page = Math.max(1, parseInt(params.page || "1", 10))
   const pageSize = Math.min(100, Math.max(10, parseInt(params.pageSize || "50", 10)))
   const initialStatusFilter: QueueStatusFilter = parseQueueStatusFilter(params.status)
+  const initialSavedView: QueueSavedView = parseQueueSavedView(params.view)
   const hasExplicitStatusFilter = typeof params.status !== "undefined"
   // Test-data toggle (admin-only). `?showTestData=1` opts this page in to
   // seeing the seeded E2E patient in the queue. Gated on `hasAdminAccess`
@@ -109,9 +116,7 @@ export default async function StaffDashboardPage({
     getTodayEarnings(),
     import("@/app/actions/doctor-availability").then((m) => m.getDoctorAvailabilityAction()),
     getSystemHealth(),
-    // Admin-only snapshot. Fetched unconditionally to keep the array shape
-    // stable; the render is gated on `isAdmin` below.
-    isAdmin ? getConversionSnapshot() : Promise.resolve(null),
+    isAdmin ? getStaffReadinessSnapshot() : Promise.resolve(null),
   ])
 
   // Stats fetch kept (counts feed sidebar nav-counts indirectly via
@@ -128,7 +133,7 @@ export default async function StaffDashboardPage({
   const todayEarnings = results[5].status === "fulfilled" ? results[5].value : 0
   const doctorAvailable = results[6].status === "fulfilled" ? results[6].value?.available !== false : true
   const systemHealth = results[7].status === "fulfilled" ? results[7].value : EMPTY_SYSTEM_HEALTH
-  const conversionSnapshot = results[8].status === "fulfilled" ? results[8].value : null
+  const staffReadiness = results[8].status === "fulfilled" ? results[8].value : null
 
   const parchmentUserId = typeof profile.parchment_user_id === "string" && profile.parchment_user_id.trim()
     ? profile.parchment_user_id.trim()
@@ -145,7 +150,7 @@ export default async function StaffDashboardPage({
         "earnings",
         "availability",
         "system-health",
-        "conversion-snapshot",
+        "staff-readiness",
       ]
       log.error(`Failed to fetch staff dashboard ${names[index]}`, { profileId: profile.id }, result.reason)
     }
@@ -178,6 +183,10 @@ export default async function StaffDashboardPage({
             />
           ) : null}
 
+          {isAdmin && staffReadiness ? (
+            <StaffReadinessPanel snapshot={staffReadiness} />
+          ) : null}
+
           <section id="doctor-queue" className="min-h-0 flex-1">
             <QueueClient
               intakes={queueResult.data}
@@ -193,6 +202,7 @@ export default async function StaffDashboardPage({
               recentlyCompleted={recentlyCompleted}
               todayEarnings={todayEarnings}
               initialStatusFilter={initialStatusFilter}
+              initialSavedView={initialSavedView}
               hasExplicitStatusFilter={hasExplicitStatusFilter}
               baseHref={STAFF_DASHBOARD_HREF}
               doctorAvailable={doctorAvailable}
@@ -201,12 +211,20 @@ export default async function StaffDashboardPage({
           </section>
 
           {/* Conversion analytics anchored at the bottom of scroll — reference
-              info, not primary action. Admin-only. */}
-          {isAdmin && conversionSnapshot ? (
-            <ConversionSnapshotCard data={conversionSnapshot} />
+              info, not primary action. Admin-only and lazy so the clinical
+              queue paints before analytics. */}
+          {isAdmin ? (
+            <Suspense fallback={null}>
+              <AdminConversionSnapshotSection />
+            </Suspense>
           ) : null}
         </OperatorScrollArea>
       </OperatorPage>
     </PanelProvider>
   )
+}
+
+async function AdminConversionSnapshotSection() {
+  const conversionSnapshot = await getConversionSnapshot()
+  return <ConversionSnapshotCard data={conversionSnapshot} />
 }

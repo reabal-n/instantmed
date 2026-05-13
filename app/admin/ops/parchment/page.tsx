@@ -10,6 +10,7 @@ import { hasAdminAccess, hasSupportAccess } from "@/lib/auth/staff-capabilities"
 import {
   getParchmentOpsDashboard,
   type ParchmentFailedWebhook,
+  type ParchmentHandoffRecoveryItem,
   type ParchmentOpsEvent,
 } from "@/lib/parchment/ops"
 import { getParchmentProductionReadiness } from "@/lib/parchment/readiness"
@@ -150,6 +151,39 @@ function FailureItem({ failure, supportMode = false }: { failure: ParchmentFaile
   )
 }
 
+function HandoffRecoveryItem({
+  item,
+  supportMode = false,
+}: {
+  item: ParchmentHandoffRecoveryItem
+  supportMode?: boolean
+}) {
+  return (
+    <div className="rounded-lg border border-amber-200 bg-amber-50/70 px-3 py-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge status={item.retryable ? "warning" : "info"} size="sm">
+              {item.kind === "failed_webhook" ? "Webhook" : "Handoff"}
+            </StatusBadge>
+            <p className="text-sm font-semibold text-amber-950">{item.reason}</p>
+          </div>
+          <p className="mt-1 line-clamp-2 text-xs text-amber-800">
+            {supportMode
+              ? "Parchment handoff needs admin or doctor review. Patient and intake details are hidden here."
+              : item.detail}
+          </p>
+          <p className="mt-2 text-[11px] text-amber-700">{formatDateTime(item.createdAt)}</p>
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <PatientLink patientProfileId={item.patientProfileId} supportMode={supportMode} />
+          <IntakeLink intakeId={item.intakeId} supportMode={supportMode} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default async function ParchmentOpsPage() {
   const authUser = await requireRole(["admin", "support"], { redirectTo: "/admin/ops" })
   const isSupportOnly = hasSupportAccess(authUser.profile) && !hasAdminAccess(authUser.profile)
@@ -157,6 +191,7 @@ export default async function ParchmentOpsPage() {
   const dashboard = await getParchmentOpsDashboard(createServiceRoleClient())
   const readiness = getParchmentProductionReadiness()
   const actionableFailures = dashboard.failedWebhooks
+  const handoffRecovery = dashboard.handoffRecovery
   const recentEvidence = dashboard.recentEvents.slice(0, 5)
   const readinessTone: StatusBadgeStatus =
     readiness.status === "ready"
@@ -164,7 +199,7 @@ export default async function ParchmentOpsPage() {
       : readiness.status === "misconfigured"
         ? "error"
         : "warning"
-  const degraded = actionableFailures.length > 0 || dashboard.stats.unlinkedPrescribers > 0
+  const degraded = handoffRecovery.length > 0 || dashboard.stats.unlinkedPrescribers > 0
 
   return (
     <OperatorPage className="bg-background">
@@ -193,6 +228,41 @@ export default async function ParchmentOpsPage() {
       <OperatorScrollArea>
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(340px,0.95fr)]">
           <div className="space-y-4">
+            <OperatorPanel>
+              <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+                    <h2 className="text-base font-semibold">Parchment handoff recovery</h2>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Failed SSO, patient sync, webhook, and stale script handoffs that need one clinical/admin action.
+                  </p>
+                </div>
+                <Badge variant={handoffRecovery.length > 0 ? "warning" : "success"} size="sm">
+                  {handoffRecovery.length} open
+                </Badge>
+              </div>
+
+              {handoffRecovery.length > 0 ? (
+                <div className="space-y-3">
+                  {handoffRecovery.map((item) => (
+                    <HandoffRecoveryItem key={item.id} item={item} supportMode={isSupportOnly} />
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-3 text-sm text-emerald-900">
+                  <div className="flex items-center gap-2 font-semibold">
+                    <CheckCircle className="h-4 w-4" />
+                    No Parchment handoffs need recovery.
+                  </div>
+                  <p className="mt-1 text-xs text-emerald-800">
+                    Embedded prescribing can fall back to the normal queue if a case still needs action.
+                  </p>
+                </div>
+              )}
+            </OperatorPanel>
+
             <OperatorPanel>
               <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
                 <div>

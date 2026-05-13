@@ -50,6 +50,16 @@ interface ProfileSummaryRow {
   parchment_user_id?: string | null
 }
 
+interface StaleScriptHandoffRow {
+  id: string
+  patient_id: string | null
+  reference_number: string | null
+  status: string
+  updated_at: string | null
+  created_at: string | null
+  paid_at: string | null
+}
+
 export interface ParchmentFailedWebhook {
   id: string
   eventId: string | null
@@ -63,6 +73,18 @@ export interface ParchmentFailedWebhook {
   prescriberUserId: string | null
   patientProfileId: string | null
   prescriberProfileId: string | null
+  retryable: boolean
+}
+
+export interface ParchmentHandoffRecoveryItem {
+  id: string
+  kind: "failed_webhook" | "stale_script_handoff"
+  label: string
+  reason: string
+  detail: string
+  createdAt: string
+  intakeId: string | null
+  patientProfileId: string | null
   retryable: boolean
 }
 
@@ -89,6 +111,7 @@ export interface ParchmentOpsDashboard {
     retryableFailures: number
     historicalWebhookFailures7d: number
     syncedPrescriptions7d: number
+    handoffRecovery: number
   }
   linkedPrescribers: Array<{
     id: string
@@ -98,6 +121,7 @@ export interface ParchmentOpsDashboard {
     parchmentUserId: string
   }>
   failedWebhooks: ParchmentFailedWebhook[]
+  handoffRecovery: ParchmentHandoffRecoveryItem[]
   historicalWebhookFailures: ParchmentFailedWebhook[]
   recentEvents: ParchmentOpsEvent[]
   recentPrescriptions: Array<{
@@ -112,6 +136,37 @@ export interface ParchmentOpsDashboard {
     parchmentReference: string | null
     intakeId: string | null
   }>
+}
+
+function mapFailedWebhookRecovery(failure: ParchmentFailedWebhook): ParchmentHandoffRecoveryItem {
+  return {
+    id: `webhook:${failure.id}`,
+    kind: "failed_webhook",
+    label: "Webhook retry",
+    reason: failure.reason,
+    detail: failure.retryable
+      ? "Parchment sent the prescription event, but InstantMed needs a retry to sync or complete the script."
+      : failure.description,
+    createdAt: failure.createdAt,
+    intakeId: failure.intakeId,
+    patientProfileId: failure.patientProfileId,
+    retryable: failure.retryable,
+  }
+}
+
+function mapStaleScriptHandoff(row: StaleScriptHandoffRow): ParchmentHandoffRecoveryItem {
+  const reference = row.reference_number ? ` ${row.reference_number}` : ""
+  return {
+    id: `stale:${row.id}`,
+    kind: "stale_script_handoff",
+    label: "Script handoff pending",
+    reason: `Awaiting script${reference}`,
+    detail: "The case is in awaiting_script without a Parchment reference or sent-script timestamp. Open it and complete the embedded prescribing handoff.",
+    createdAt: row.updated_at || row.paid_at || row.created_at || new Date(0).toISOString(),
+    intakeId: row.id,
+    patientProfileId: row.patient_id,
+    retryable: false,
+  }
 }
 
 function getString(metadata: Metadata, key: string): string | null {
@@ -319,6 +374,7 @@ export async function getParchmentOpsDashboard(
     recentEventsResult,
     recentPrescriptionsResult,
     syncedPrescriptions7dResult,
+    staleScriptHandoffsResult,
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -375,6 +431,16 @@ export async function getParchmentOpsDashboard(
       .select("id", { count: "exact", head: true })
       .not("parchment_reference", "is", null)
       .gte("updated_at", weekAgo),
+
+    supabase
+      .from("intakes")
+      .select("id, patient_id, reference_number, status, updated_at, created_at, paid_at")
+      .eq("status", "awaiting_script")
+      .eq("script_sent", false)
+      .is("parchment_reference", null)
+      .lt("updated_at", new Date(now - 45 * 60 * 1000).toISOString())
+      .order("updated_at", { ascending: true })
+      .limit(20),
   ])
 
   const failedWebhooks = ((failedWebhooksResult.data || []) as AuditFailureRow[])
@@ -382,6 +448,12 @@ export async function getParchmentOpsDashboard(
     .filter((failure): failure is ParchmentFailedWebhook => failure !== null)
   const historicalWebhookFailures = failedWebhooks.filter(isNonActionableSandboxFailure)
   const actionableFailures = failedWebhooks.filter((failure) => !isNonActionableSandboxFailure(failure))
+  const staleScriptHandoffs = ((staleScriptHandoffsResult.data || []) as StaleScriptHandoffRow[])
+    .map(mapStaleScriptHandoff)
+  const handoffRecovery = [
+    ...actionableFailures.map(mapFailedWebhookRecovery),
+    ...staleScriptHandoffs,
+  ].slice(0, 20)
   const recentEvents = ((recentEventsResult.data || []) as AuditFailureRow[])
     .map(mapParchmentOpsEvent)
     .filter((event): event is ParchmentOpsEvent => event !== null && event.status !== "destructive")
@@ -416,9 +488,11 @@ export async function getParchmentOpsDashboard(
       retryableFailures: actionableFailures.filter((failure) => failure.retryable).length,
       historicalWebhookFailures7d: historicalWebhookFailures.length,
       syncedPrescriptions7d: syncedPrescriptions7dResult.count || 0,
+      handoffRecovery: handoffRecovery.length,
     },
     linkedPrescribers,
     failedWebhooks: actionableFailures,
+    handoffRecovery,
     historicalWebhookFailures,
     recentEvents,
     recentPrescriptions: prescriptions.map((prescription) => ({

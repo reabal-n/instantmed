@@ -1,0 +1,49 @@
+name: Production Dashboard Auth Smoke
+
+on:
+  deployment_status:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  dashboard-auth-smoke:
+    if: |
+      github.event_name != 'deployment_status' ||
+      (
+        github.event.deployment_status.state == 'success' &&
+        github.event.deployment.environment == 'Production'
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6.0.5
+
+      - name: Use Node.js from .nvmrc
+        uses: actions/setup-node@v6.4.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run authenticated dashboard smoke
+        env:
+          DASHBOARD_SMOKE_COOKIE_HEADER: ${{ secrets.DASHBOARD_SMOKE_COOKIE_HEADER }}
+          E2E_BASE_URL: https://instantmed.com.au
+        run: pnpm e2e:prod-dashboard
+
+      - name: Upload dashboard smoke traces
+        uses: actions/upload-artifact@v7.0.1
+        if: failure()
+        with:
+          name: prod-dashboard-auth-smoke-traces
+          path: test-results/
+          retention-days: 7

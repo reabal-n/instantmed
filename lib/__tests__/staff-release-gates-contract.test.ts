@@ -15,6 +15,15 @@ describe("staff release gates", () => {
     expect(pkg.scripts["e2e:prod-dashboard"]).toContain("e2e/prod-dashboard-auth-smoke.spec.ts")
   })
 
+  it("runs the authenticated production dashboard smoke after deploys and on a schedule", () => {
+    const workflow = read(".github/workflows/prod-dashboard-auth-smoke.yml")
+
+    expect(workflow).toContain("deployment_status")
+    expect(workflow).toContain("*/15 * * * *")
+    expect(workflow).toContain("secrets.DASHBOARD_SMOKE_COOKIE_HEADER")
+    expect(workflow).toContain("pnpm e2e:prod-dashboard")
+  })
+
   it("keeps the staff role readiness gate read-only and aligned to the owner-admin model", () => {
     const source = read("scripts/check-staff-role-readiness.ts")
 

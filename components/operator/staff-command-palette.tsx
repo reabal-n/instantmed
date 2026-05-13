@@ -219,6 +219,24 @@ export function StaffCommandPalette({
                 </span>
               ) : null}
             />
+            <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
+              {[
+                ["⌘K", "open"],
+                ["/", "queue search"],
+                ["↑↓", "move"],
+                ["Enter", "open"],
+                ["A", "approve"],
+                ["D", "decline"],
+                ["Esc", "close"],
+              ].map(([key, label]) => (
+                <span key={`${key}-${label}`} className="inline-flex items-center gap-1">
+                  <kbd className="rounded border border-border/60 bg-muted/40 px-1.5 py-0.5 font-sans text-[10px] font-semibold text-foreground/80">
+                    {key}
+                  </kbd>
+                  <span>{label}</span>
+                </span>
+              ))}
+            </div>
             <div className="mt-3 max-h-[360px] overflow-y-auto rounded-lg border border-border/60">
               {filteredItems.length === 0 ? (
                 <div className="px-3 py-6 text-center text-sm text-muted-foreground">
