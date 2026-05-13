@@ -1,7 +1,7 @@
 /**
- * Admin Template Studio E2E Test
+ * Admin Certificate Templates E2E Test
  * 
- * Tests the admin template studio workflow:
+ * Tests the admin certificate template workflow:
  * - Login as operator
  * - Navigate to /admin/settings/templates
  * - Select a template type
@@ -20,7 +20,7 @@ import { loginAsOperator, logoutTestUser } from "./helpers/auth"
 import { getActiveTemplate, isDbAvailable } from "./helpers/db"
 import { waitForPageLoad } from "./helpers/test-utils"
 
-test.describe("Admin Template Studio", () => {
+test.describe("Admin Certificate Templates", () => {
   test.beforeEach(async ({ page }) => {
     const result = await loginAsOperator(page)
     expect(result.success, `Login should succeed: ${result.error}`).toBe(true)
@@ -30,12 +30,11 @@ test.describe("Admin Template Studio", () => {
     await logoutTestUser(page)
   })
 
-  test("can navigate to template studio", async ({ page }) => {
+  test("can navigate to certificate templates", async ({ page }) => {
     await page.goto("/admin/settings/templates")
     await waitForPageLoad(page)
 
-    // Should see Template Studio heading
-    await expect(page.getByRole("heading", { name: /template studio/i })).toBeVisible()
+    await expect(page.getByRole("heading", { name: /certificate templates/i })).toBeVisible()
     
     // Should see certificate type options
     await expect(page.getByText(/work/i).first()).toBeVisible()
@@ -52,7 +51,7 @@ test.describe("Admin Template Studio", () => {
     await waitForPageLoad(page)
 
     // Wait for page to fully load
-    await expect(page.getByRole("heading", { name: /template studio/i })).toBeVisible()
+    await expect(page.getByRole("heading", { name: /certificate templates/i })).toBeVisible()
 
     // Select Work template type (should be default, but click to ensure)
     const workButton = page.getByRole("button", { name: /work/i }).first()

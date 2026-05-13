@@ -139,8 +139,8 @@ test.describe("Admin Crash Diagnostics", () => {
     }
 
     // Check for expected content
-    const hasStudio = await page.locator('text="Template Studio"').isVisible().catch(() => false)
-    console.log(`[CHECK] Has "Template Studio" heading: ${hasStudio}`)
+    const hasStudio = await page.locator('text="Certificate templates"').isVisible().catch(() => false)
+    console.log(`[CHECK] Has "Certificate templates" heading: ${hasStudio}`)
 
     // This test is for diagnostics - we expect it might fail
     // The goal is to capture the error info

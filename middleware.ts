@@ -15,8 +15,19 @@ const PROTECTED_PATTERNS = [
   /^\/api\/admin/,
 ]
 
+const DEV_ONLY_ROUTE_PREFIXES = [
+  "/api/test",
+  "/email-preview",
+  "/sentry-test",
+  "/cert-preview",
+] as const
+
 function isProtectedRoute(pathname: string): boolean {
   return PROTECTED_PATTERNS.some(p => p.test(pathname))
+}
+
+function isDevOnlyRoute(pathname: string): boolean {
+  return DEV_ONLY_ROUTE_PREFIXES.some((prefix) => pathname.startsWith(prefix))
 }
 
 /**
@@ -54,16 +65,7 @@ export default async function middleware(req: NextRequest) {
   // A 404 means "might come back" — Google retries. A 410 means "stop wasting crawl budget."
   const isVercelProdOrPreview = process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview"
   const isE2ETest = process.env.PLAYWRIGHT === "1"
-  if (pathname.startsWith("/api/test") && isVercelProdOrPreview && !isE2ETest) {
-    return NextResponse.json({ error: "Gone" }, { status: 410 })
-  }
-  if (pathname.startsWith("/email-preview") && isVercelProdOrPreview && !isE2ETest) {
-    return NextResponse.json({ error: "Gone" }, { status: 410 })
-  }
-  if (pathname.startsWith("/sentry-test") && isVercelProdOrPreview && !isE2ETest) {
-    return NextResponse.json({ error: "Gone" }, { status: 410 })
-  }
-  if (pathname.startsWith("/cert-preview") && isVercelProdOrPreview && !isE2ETest) {
+  if (isDevOnlyRoute(pathname) && isVercelProdOrPreview && !isE2ETest) {
     return NextResponse.json({ error: "Gone" }, { status: 410 })
   }
 

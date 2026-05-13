@@ -106,10 +106,6 @@ export type { StillReviewingEmailProps } from "./still-reviewing"
 export { StillReviewingEmail, stillReviewingSubject } from "./still-reviewing"
 
 
-// --- Decline Re-Engagement (2h post-decline) ---
-export type { DeclineReengagementEmailProps } from "./decline-reengagement"
-export { DeclineReengagementEmail, declineReengagementSubject } from "./decline-reengagement"
-
 // --- Treatment Follow-Up (ED/hair-loss milestone check-ins) ---
 export type { FollowupMilestone,FollowupSubtype, TreatmentFollowupEmailProps } from "./treatment-followup"
 export { TreatmentFollowupEmail, treatmentFollowupSubject } from "./treatment-followup"

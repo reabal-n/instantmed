@@ -127,8 +127,7 @@ test.describe("Operator End-to-End Journey", () => {
       await page.goto("/admin/settings/templates")
       await waitForPageLoad(page)
 
-      // Wait for studio to load
-      await expect(page.getByRole("heading", { name: /template studio/i })).toBeVisible()
+      await expect(page.getByRole("heading", { name: /certificate templates/i })).toBeVisible()
 
       // Select Work template type
       const workButton = page.getByRole("button", { name: /work/i }).first()

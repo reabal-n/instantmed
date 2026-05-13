@@ -2,7 +2,7 @@
  * Individual Email Template Preview
  *
  * Renders a specific email template with mock props.
- * Dev-only route - all 27 React Email templates registered.
+ * Dev-only route for registered React Email templates.
  */
 
 import Link from "next/link"
@@ -13,7 +13,6 @@ import { COMPANY_NAME,CONTACT_EMAIL_NOREPLY } from "@/lib/constants"
 import { AbandonedCheckoutEmail } from "@/lib/email/components/templates/abandoned-checkout"
 import { AbandonedCheckoutFollowupEmail } from "@/lib/email/components/templates/abandoned-checkout-followup"
 import { ConsultApprovedEmail } from "@/lib/email/components/templates/consult-approved"
-import { DeclineReengagementEmail } from "@/lib/email/components/templates/decline-reengagement"
 import { EdApprovedEmail } from "@/lib/email/components/templates/ed-approved"
 import { FollowUpReminderEmail } from "@/lib/email/components/templates/follow-up-reminder"
 import { GuestCompleteAccountEmail } from "@/lib/email/components/templates/guest-complete-account"
@@ -435,17 +434,6 @@ const templates: Record<string, {
     render: () => (
       <ReviewFollowupEmail
         patientName={mock.patientName}
-        appUrl={mock.appUrl}
-      />
-    ),
-  },
-  "decline-reengagement": {
-    name: "Decline Re-Engagement",
-    subject: "We're still here to help - other options for you",
-    render: () => (
-      <DeclineReengagementEmail
-        patientName={mock.patientName}
-        declinedService="Repeat Prescription"
         appUrl={mock.appUrl}
       />
     ),

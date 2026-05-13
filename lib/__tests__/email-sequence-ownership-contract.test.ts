@@ -14,10 +14,6 @@ const abandonedCheckoutSource = readFileSync(
   join(process.cwd(), "lib/email/abandoned-checkout.ts"),
   "utf8",
 )
-const declineReengagementSource = readFileSync(
-  join(process.cwd(), "app/api/cron/decline-reengagement/route.ts"),
-  "utf8",
-)
 const sendEmailSource = readFileSync(
   join(process.cwd(), "lib/email/send-email.ts"),
   "utf8",
@@ -112,22 +108,28 @@ describe("email sequence ownership contract", () => {
     expect(ids).not.toContain("ops_email_digest")
   })
 
-  it("uses the active outbox table for sequence duplicate checks", () => {
-    expect(declineReengagementSource).toContain('.from("email_outbox")')
-    expect(declineReengagementSource).toContain('.eq("email_type", "decline_reengagement")')
-    expect(declineReengagementSource).not.toContain('.from("email_log")')
+  it("keeps declined clinical-request re-engagement retired", () => {
+    const schedules = new Map(vercelConfig.crons.map((cron) => [cron.path, cron.schedule]))
+    const ids = EMAIL_SEQUENCES.map((sequence) => sequence.id)
+    const sendersSource = readFileSync(join(process.cwd(), "lib/email/senders.ts"), "utf8")
+    const templateIndexSource = readFileSync(join(process.cwd(), "lib/email/components/templates/index.ts"), "utf8")
+
+    expect(existsSync(join(process.cwd(), "app/api/cron/decline-reengagement/route.ts"))).toBe(false)
+    expect(existsSync(join(process.cwd(), "lib/email/components/templates/decline-reengagement.tsx"))).toBe(false)
+    expect(schedules.has("/api/cron/decline-reengagement")).toBe(false)
+    expect(ids).not.toContain("decline_reengagement")
+    expect(DB_IDEMPOTENT_EMAIL_TYPES.has("decline_reengagement" as never)).toBe(false)
+    expect(sendersSource).not.toContain("sendDeclineReengagementEmail")
+    expect(templateIndexSource).not.toContain("DeclineReengagement")
   })
 
   it("surfaces active and retired sequences in one compact admin map", () => {
     const ids = EMAIL_SEQUENCES.map((sequence) => sequence.id)
-    const schedules = new Map(vercelConfig.crons.map((cron) => [cron.path, cron.schedule]))
 
     expect(ids).toContain("partial_intake_recovery")
     expect(ids).toContain("abandoned_checkout")
     expect(ids).toContain("repeat_rx_reminder")
     expect(EMAIL_SEQUENCES.find((sequence) => sequence.id === "repeat_rx_reminder")?.status).toBe("inactive")
-    expect(EMAIL_SEQUENCES.find((sequence) => sequence.id === "decline_reengagement")?.status).toBe("inactive")
-    expect(schedules.has("/api/cron/decline-reengagement")).toBe(false)
     expect(emailHubSource).toContain("EMAIL_SEQUENCES")
     expect(emailHubSource).toContain("Sequence ownership")
   })

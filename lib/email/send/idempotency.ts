@@ -11,7 +11,6 @@ export const DB_IDEMPOTENT_EMAIL_TYPES: ReadonlySet<EmailType> = new Set([
   "follow_up_reminder",
   "review_request",
   "review_followup",
-  "decline_reengagement",
 ])
 
 const METADATA_SCOPE_KEYS = [

@@ -300,7 +300,7 @@ test.describe("Operator Portal Access - Admin + Doctor", () => {
     expect(has404).toBe(false)
     expect(hasError).toBe(false)
 
-    // Should show studio UI (template studio heading or content)
+    // Should show certificate template UI.
     const hasStudioContent = await main.getByText(/template|studio|certificate/i).first().isVisible().catch(() => false)
     expect(hasStudioContent).toBe(true)
 

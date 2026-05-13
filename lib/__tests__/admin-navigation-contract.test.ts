@@ -101,7 +101,7 @@ describe("admin navigation contract", () => {
     expect(settingsSource).not.toContain('redirect("/admin/features")')
     expect(nextConfigSource).not.toContain('source: "/admin/settings", destination: "/admin/features"')
     expect(settingsSource).toContain("ADMIN_FEATURES_HREF")
-    expect(settingsSource).toContain("ADMIN_TEMPLATE_STUDIO_HREF")
+    expect(settingsSource).toContain("ADMIN_CERTIFICATE_TEMPLATES_HREF")
     expect(settingsSource).toContain("ADMIN_DOCTOR_IDENTITY_HREF")
     expect(settingsSource).toContain("Your doctor identity")
     expect(settingsSource).toContain("ADMIN_CLINIC_HREF")
@@ -181,6 +181,7 @@ describe("admin navigation contract", () => {
     expect(dashboardRoutesSource).toContain('ADMIN_WEBHOOK_DLQ_HREF = "/admin/webhook-dlq"')
     expect(dashboardRoutesSource).toContain('ADMIN_EMAIL_HUB_HREF = "/admin/emails/hub"')
     expect(dashboardRoutesSource).toContain('ADMIN_EMAIL_TEMPLATE_EDITOR_HREF = "/admin/emails/templates"')
+    expect(dashboardRoutesSource).toContain('ADMIN_CERTIFICATE_TEMPLATES_HREF = "/admin/settings/templates"')
     expect(dashboardRoutesSource).toContain('ADMIN_PATIENTS_HREF = "/admin/patients"')
     // Status-filter links now go to the canonical `/dashboard` via
     // buildStaffDashboardHref; the literal `/doctor/...` hrefs are gone.

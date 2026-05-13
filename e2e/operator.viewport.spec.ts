@@ -69,7 +69,7 @@ test.describe("operator viewport contract", () => {
       { path: "/admin/refunds?status=failed", heading: /^refunds$/i },
       { path: "/admin/emails/hub?tab=queue", heading: /email delivery/i },
       { path: "/admin/features", heading: /feature flags/i, boundedConsole: true },
-      { path: "/admin/settings/templates", heading: /template studio/i },
+      { path: "/admin/settings/templates", heading: /certificate templates/i },
     ]
 
     for (const pageConfig of pages) {

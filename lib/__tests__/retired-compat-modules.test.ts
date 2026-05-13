@@ -70,6 +70,18 @@ describe("retired compatibility modules", () => {
     expect(existsSync(join(root, "app/(dev)/cert-preview/route.ts"))).toBe(false)
 
     const middleware = readFileSync(join(root, "middleware.ts"), "utf8")
-    expect(middleware).toContain('pathname.startsWith("/cert-preview")')
+    expect(middleware).toContain('"/cert-preview"')
+  })
+
+  it("keeps dev-only surfaces fail-closed in production and preview", () => {
+    const middleware = readFileSync(join(root, "middleware.ts"), "utf8")
+
+    for (const prefix of ["/api/test", "/email-preview", "/sentry-test", "/cert-preview"]) {
+      expect(middleware).toContain(`"${prefix}"`)
+    }
+    expect(middleware).toContain("DEV_ONLY_ROUTE_PREFIXES")
+    expect(middleware).toContain("isVercelProdOrPreview")
+    expect(middleware).toContain('process.env.PLAYWRIGHT === "1"')
+    expect(middleware).toContain("status: 410")
   })
 })

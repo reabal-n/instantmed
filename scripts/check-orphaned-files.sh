@@ -86,7 +86,9 @@ done
 for retired_cron_surface in \
   "app/api/cron/acquisition-health/route.ts" \
   "app/api/cron/daily-digest/route.ts" \
+  "app/api/cron/decline-reengagement/route.ts" \
   "app/api/cron/email-digest/route.ts" \
+  "lib/email/components/templates/decline-reengagement.tsx" \
   "lib/analytics/acquisition-health.ts"
 do
   if [[ -e "$retired_cron_surface" ]]; then

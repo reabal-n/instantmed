@@ -15,13 +15,13 @@ import { DashboardPageHeader } from "@/components/dashboard"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { requireRole } from "@/lib/auth/helpers"
 import {
+  ADMIN_CERTIFICATE_TEMPLATES_HREF,
   ADMIN_CLINIC_HREF,
   ADMIN_DOCTOR_IDENTITY_HREF,
   ADMIN_DOCTORS_HREF,
   ADMIN_EMAIL_TEMPLATE_EDITOR_HREF,
   ADMIN_FEATURES_HREF,
   ADMIN_SERVICES_HREF,
-  ADMIN_TEMPLATE_STUDIO_HREF,
 } from "@/lib/dashboard/routes"
 
 export const dynamic = "force-dynamic"
@@ -94,7 +94,7 @@ const settingsGroups: SettingsGroup[] = [
       {
         label: "Certificate templates",
         description: "Medical certificate layout and template configuration.",
-        href: ADMIN_TEMPLATE_STUDIO_HREF,
+        href: ADMIN_CERTIFICATE_TEMPLATES_HREF,
         icon: FileText,
       },
     ],

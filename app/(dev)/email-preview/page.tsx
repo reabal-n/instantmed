@@ -190,12 +190,6 @@ const templates = [
     category: "engagement",
   },
   {
-    slug: "decline-reengagement",
-    name: "Decline Re-Engagement",
-    description: "Sent ~2h after decline suggesting alternative services",
-    category: "engagement",
-  },
-  {
     slug: "follow-up-reminder",
     name: "Follow-Up Reminder (Day 3)",
     description: "Gentle check-in sent 3 days after med cert approval",

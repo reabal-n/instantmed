@@ -65,7 +65,6 @@ const SUPPORTED_EMAIL_TYPES = [
   "referral_credit",
   "review_request",
   "review_followup",
-  "decline_reengagement",
   "treatment_followup",
 ] as const
 

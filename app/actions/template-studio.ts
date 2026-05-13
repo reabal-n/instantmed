@@ -54,7 +54,7 @@ export async function loadTemplateStudioData(): Promise<{
       data: { clinicIdentity, activeTemplate },
     }
   } catch (error) {
-    log.error("Failed to load template studio data", {}, error instanceof Error ? error : undefined)
+    log.error("Failed to load certificate template data", {}, error instanceof Error ? error : undefined)
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to load data",

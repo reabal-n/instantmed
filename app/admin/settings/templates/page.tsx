@@ -7,7 +7,7 @@ import { requireRole } from "@/lib/auth/helpers"
 import { TemplateStudioClient } from "./template-studio-client"
 
 export const metadata = {
-  title: "Template Studio | Admin",
+  title: "Certificate Templates | Admin",
   description: "Configure medical certificate templates",
 }
 

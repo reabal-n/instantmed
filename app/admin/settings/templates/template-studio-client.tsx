@@ -229,7 +229,7 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
   return (
     <OperatorPage>
       <OperatorPageHeader
-        title="Template studio"
+        title="Certificate templates"
         description="Clinic identity and certificate preview."
         backHref="/admin/settings"
         actions={

@@ -33,7 +33,6 @@ export type EmailType =
   | "referral_credit"
   | "refund_issued"
   | "still_reviewing"
-  | "decline_reengagement"
   | "treatment_followup"
   | "abandoned_checkout_followup"
   | "partial_intake_recovery"
@@ -54,7 +53,6 @@ export const MARKETING_EMAIL_TYPES: ReadonlySet<EmailType> = new Set([
   "follow_up_reminder",
   "review_request",
   "review_followup",
-  "decline_reengagement",
   "treatment_followup",
   "referral_credit",
 ])

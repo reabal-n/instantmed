@@ -57,15 +57,6 @@ export const EMAIL_SEQUENCES: readonly EmailSequenceDefinition[] = [
     guard: "Review sent timestamps on intake",
   },
   {
-    id: "decline_reengagement",
-    name: "Decline re-engagement",
-    status: "inactive",
-    owner: "Manual-only legacy marketing",
-    trigger: "None",
-    cadence: "Not scheduled",
-    guard: "Route remains cron-auth protected for audit compatibility",
-  },
-  {
     id: "treatment_followup",
     name: "Treatment follow-up",
     status: "active",

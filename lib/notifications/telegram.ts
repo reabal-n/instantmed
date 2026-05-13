@@ -2,6 +2,7 @@ import "server-only"
 
 import { createHmac, timingSafeEqual } from "crypto"
 
+import { buildDoctorIntakeHref } from "@/lib/dashboard/routes"
 import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("telegram")
@@ -102,7 +103,7 @@ async function sendGenericNotification(
 ): Promise<void> {
   const refId = opts.intakeId.slice(0, 8).toUpperCase()
   const appUrl = opts.appUrl || process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
-  const reviewUrl = `${appUrl}/doctor/intakes/${opts.intakeId}`
+  const reviewUrl = `${appUrl}${buildDoctorIntakeHref(opts.intakeId)}`
 
   const message = [
     `*New request ready*`,
@@ -145,7 +146,7 @@ async function sendMedCertNotification(
   const appUrl = opts.appUrl || process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
   const refId = opts.intakeId.slice(0, 8).toUpperCase()
 
-  const reviewUrl = `${appUrl}/doctor/intakes/${opts.intakeId}`
+  const reviewUrl = `${appUrl}${buildDoctorIntakeHref(opts.intakeId)}`
   const buttons: Array<{ text: string; callback_data?: string; url?: string }> = [
     { text: "📋 Review", url: reviewUrl },
   ]

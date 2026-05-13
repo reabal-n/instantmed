@@ -100,6 +100,21 @@ PLAYWRIGHT=1 STRIPE_WEBHOOK_SECRET=whsec_test_... pnpm e2e e2e/stripe-webhook.sp
 3. Check `/admin/audit` for `patient_profiles_merged`.
 4. If any merge fails, do not retry blindly. Read the returned blocker and resolve the conflicting record first.
 
+### Operator Workflow Map
+
+`/dashboard` is the staff cockpit. Use it first for the live queue, scripts-to-write, recovery prompts, and today-level operations. Admins inherit doctor capabilities, so the owner-operator should not need a separate "doctor mode".
+
+| Workflow | Primary surface | Supporting surface |
+|----------|-----------------|--------------------|
+| Review paid clinical work | `/dashboard?status=review#doctor-queue` | `/admin/intakes` for ledger/search |
+| Write or reconcile scripts | `/dashboard?status=scripts#doctor-queue` | `/doctor/scripts`, `/admin/ops/parchment` |
+| Patient lookup and duplicate review | `/admin/patients` | `/doctor/patients/[id]`, `/admin/ops/patient-merge-audit` |
+| Payment and webhook recovery | `/admin/finance`, `/admin/refunds` | `/admin/webhook-dlq` |
+| Email delivery recovery | `/admin/emails/hub` | `/admin/emails/templates`, `/admin/emails/suppression` |
+| Platform setup | `/admin/settings` | `/admin/features`, `/admin/settings/doctor-identity` |
+
+Pages outside this map should either be reachable from these surfaces, redirect to them, or be treated as cleanup candidates.
+
 ### Solo-Doctor Operating Model
 
 **Current phase:** one AHPRA-registered GP operates as treating doctor and Medical Director. The platform must protect clinical quality and doctor capacity before it optimises volume.
@@ -359,7 +374,6 @@ All crons use `verifyCronRequest()` from `lib/api/cron-auth.ts` for authenticati
 | Follow-Up Reminder | `/api/cron/follow-up-reminder` | Daily (1 AM UTC) | Day-3 follow-up emails to med cert patients |
 | Treatment Follow-Up | `/api/cron/treatment-followup` | Daily (23:00 UTC = 09:00 AEST) | ED/hair-loss treatment follow-up reminder emails (max 3 per milestone, ≥3 days apart) |
 | Retry Auto-Approval | `/api/cron/retry-auto-approval` | Every 3 min | Retry auto-approval via `auto_approval_state` enum (pending/failed_retrying). Includes timeout recovery for stale `attempting` intakes (>10 min). Feature-flagged. |
-| Decline Re-engagement | `/api/cron/decline-reengagement` | Hourly | Send re-engagement email 2-3h after intake decline; deduped via `email_outbox` |
 | Cleanup Orphaned Storage | `/api/cron/cleanup-orphaned-storage` | Weekly (Sun 3 AM UTC) | Delete storage files with no DB record after 7-day grace period (max 50/run) |
 | Outbox Archival | `/api/cron/outbox-archival` | Daily (4 AM UTC) | Delete delivered emails >90 days old and exhausted-failed emails >180 days old from `email_outbox` (batch 500) |
 
@@ -798,7 +812,7 @@ All previously identified gaps have been resolved:
 
 | Priority | Gap | Status |
 |----------|-----|--------|
-| ~~HIGH~~ | ~~Crons lack Sentry error capture~~ | ✅ All 21 crons have `Sentry.captureException` |
+| ~~HIGH~~ | ~~Crons lack Sentry error capture~~ | ✅ Scheduled crons have Sentry capture or route-level failure reporting |
 | ~~HIGH~~ | ~~`intake_id` not in Sentry tags~~ | ✅ In tags via `captureApiError`, `captureServerError`, `captureCheckoutError` |
 | ~~HIGH~~ | ~~No checkout latency tracking~~ | ✅ Latency tracked with >5s threshold alert in `lib/stripe/checkout.ts` |
 | ~~MEDIUM~~ | ~~Email send failures not in Sentry~~ | ✅ Captured in `lib/email/send-email.ts` (lines 376, 541, 585) |
