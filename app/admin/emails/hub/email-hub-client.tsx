@@ -4,11 +4,9 @@ import {
   Activity,
   AlertTriangle,
   ArrowRight,
-  BarChart3,
   CheckCircle,
   Clock,
   Edit,
-  Eye,
   Loader2,
   MailCheck,
   MailOpen,
@@ -229,7 +227,7 @@ export function EmailHubClient({
     <OperatorPage>
       <OperatorPageHeader
         title="Email delivery"
-        description="Queue recovery, template tools, and delivery checks."
+        description="Queue recovery, template edits, suppression, and delivery checks."
         backHref="/admin/ops"
         actions={
           <div className="flex flex-wrap items-center gap-2">
@@ -244,7 +242,7 @@ export function EmailHubClient({
           <Link href="/admin/emails">
             <Button size="sm">
               <Edit className="h-4 w-4 mr-2" />
-              Manage Templates
+              Templates
             </Button>
           </Link>
           </div>
@@ -384,28 +382,6 @@ export function EmailHubClient({
             </Card>
 
             <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <Link href="/admin/emails/preview">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Eye className="h-5 w-5" />
-                    Preview & Test
-                  </CardTitle>
-                  <CardDescription>
-                    Preview templates and send test emails
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Live preview available
-                    </span>
-                    <Badge variant="secondary">Test</Badge>
-                  </div>
-                </CardContent>
-              </Link>
-            </Card>
-
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
               <Link href="/admin/emails/suppression">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -494,28 +470,6 @@ export function EmailHubClient({
                   </div>
                 )}
               </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <Link href="/admin/emails/analytics">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5" />
-                    Email Analytics
-                  </CardTitle>
-                  <CardDescription>
-                    View email performance metrics
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      {stats.emailsSentWeek.toLocaleString()} sent this week
-                    </span>
-                    <Badge variant="secondary">Analyze</Badge>
-                  </div>
-                </CardContent>
-              </Link>
             </Card>
 
           </div>

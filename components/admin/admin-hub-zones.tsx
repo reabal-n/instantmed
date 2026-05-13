@@ -27,9 +27,9 @@ import { cn } from "@/lib/utils"
  * retained on the type for back-compat but ignored; this component now
  * always renders the compact layout.
  *
- * The three tiles surface the only ops links worth opening mid-shift:
+ * The three tiles surface the only links worth opening mid-shift:
  *   - Clinical work (review queue + scripts)
- *   - Patient follow-up (pending-info count)
+ *   - Patient records (pending-info count + patient directory)
  *   - Recovery (expandable: ops / parchment / webhooks / email)
  */
 interface ZoneStat {
@@ -90,7 +90,7 @@ export function AdminHubZones({
           ]}
         />
         <CompactZone
-          title="Patient follow-up"
+          title="Patient records"
           icon={Users}
           stats={[
             {
@@ -100,7 +100,7 @@ export function AdminHubZones({
               attentionWhenNonZero: true,
             },
           ]}
-          action={{ label: "Open patients", href: ADMIN_PATIENTS_HREF }}
+          action={{ label: "Open patient list", href: ADMIN_PATIENTS_HREF }}
         />
         <DashboardCard tier="standard" padding="sm">
           <details className="group">

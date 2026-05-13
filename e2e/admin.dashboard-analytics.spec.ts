@@ -110,29 +110,24 @@ test.describe("Admin - Email Management", () => {
   })
 
   test("email hub page loads", async ({ page }) => {
-    await page.goto("/admin/emails")
+    await page.goto("/admin/emails/hub")
     await waitForPageLoad(page)
 
     await expect(
-      page.getByRole("heading", { name: /email/i })
+      page.getByRole("heading", { name: /email delivery/i })
     ).toBeVisible({ timeout: 15000 })
   })
 
-  test("email preview page loads with template selector", async ({ page }) => {
+  test("legacy email preview redirects to the template editor", async ({ page }) => {
     await page.goto("/admin/emails/preview")
     await waitForPageLoad(page)
 
-    // Should show template selection or preview content
-    const hasPreview = await page
-      .getByText(/preview|template|select/i)
-      .first()
-      .isVisible({ timeout: 10000 })
-      .catch(() => false)
-    expect(hasPreview).toBe(true)
+    await expect(page).toHaveURL(/\/admin\/emails$/)
+    await expect(page.getByRole("heading", { name: /edit template/i })).toBeVisible({ timeout: 15000 })
   })
 
   test("email editor page loads", async ({ page }) => {
-    await page.goto("/admin/emails/edit")
+    await page.goto("/admin/emails")
     await waitForPageLoad(page)
 
     // Should show editor UI
@@ -144,21 +139,21 @@ test.describe("Admin - Email Management", () => {
     expect(hasEditor).toBe(true)
   })
 
-  test("email analytics page loads", async ({ page }) => {
+  test("legacy email analytics redirects to the delivery hub", async ({ page }) => {
     await page.goto("/admin/emails/analytics")
     await waitForPageLoad(page)
 
-    await expect(
-      page.getByRole("heading", { name: /email.*analytics|analytics/i })
-    ).toBeVisible({ timeout: 15000 })
+    await expect(page).toHaveURL(/\/admin\/emails\/hub$/)
+    await expect(page.getByRole("heading", { name: /email delivery/i })).toBeVisible({ timeout: 15000 })
   })
 
   test("email outbox page loads", async ({ page }) => {
     await page.goto("/admin/emails/outbox")
     await waitForPageLoad(page)
 
+    await expect(page).toHaveURL(/\/admin\/emails\/hub\?tab=queue$/)
     await expect(
-      page.getByRole("heading", { name: /outbox|sent/i })
+      page.getByText(/outgoing email ledger/i)
     ).toBeVisible({ timeout: 15000 })
   })
 })

@@ -14,11 +14,10 @@ describe("email suppression navigation contract", () => {
     expect(existsSync(join(root, "app/admin/emails/suppression/page.tsx"))).toBe(true)
     expect(existsSync(join(root, "app/doctor/email-suppression/page.tsx"))).toBe(false)
 
-    const tabsSource = readProjectFile("app/admin/emails/email-tabs-nav.tsx")
+    const hubSource = readProjectFile("app/admin/emails/hub/email-hub-client.tsx")
     const nextConfigSource = readProjectFile("next.config.mjs")
 
-    expect(tabsSource).toContain('href: "/admin/emails/suppression"')
-    expect(tabsSource).toContain('label: "Suppression"')
+    expect(hubSource).toContain('href="/admin/emails/suppression"')
     expect(nextConfigSource).toContain('source: "/doctor/email-suppression"')
     expect(nextConfigSource).toContain('destination: "/admin/emails/suppression"')
   })
@@ -53,6 +52,8 @@ describe("email suppression navigation contract", () => {
     expect(hubSource).not.toContain('<TabsTrigger value="templates">')
     expect(hubSource).not.toContain('<TabsTrigger value="analytics">')
     expect(hubSource).not.toContain('<TabsTrigger value="settings">')
+    expect(hubSource).not.toContain('href="/admin/emails/analytics"')
+    expect(hubSource).not.toContain('href="/admin/emails/preview"')
     expect(hubSource).not.toContain('href="/admin/emails/hub"')
     expect(hubSource).not.toContain("Template Settings")
     expect(hubSource).toContain("Auth recovery health")

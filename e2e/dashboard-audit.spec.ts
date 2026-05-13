@@ -27,9 +27,10 @@ const ADMIN_PAGES = [
   "/admin/ops",
   "/admin/audit",
   "/admin/refunds",
-  "/admin/errors",
   "/admin/webhook-dlq",
   "/admin/emails/hub",
+  "/admin/emails/hub?tab=queue",
+  "/admin/emails/suppression",
   "/admin/settings",
   "/admin/settings/templates",
   // Nested
@@ -37,8 +38,6 @@ const ADMIN_PAGES = [
   "/admin/ops/intakes-stuck",
   "/admin/ops/doctors",
   "/admin/ops/reconciliation",
-  "/admin/emails/analytics",
-  "/admin/emails/preview",
   "/admin/settings/encryption",
 ]
 

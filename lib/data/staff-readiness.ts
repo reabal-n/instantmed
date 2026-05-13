@@ -223,8 +223,7 @@ export async function getStaffReadinessSnapshot(): Promise<StaffReadinessSnapsho
       status: sentryRuntimeReady ? "pass" : "fail",
       detail: sentryRuntimeReady
         ? "Runtime error capture is configured."
-        : "Runtime Sentry DSN is missing.",
-      href: "/admin/errors",
+        : "Runtime Sentry DSN is missing. Configure Sentry in Vercel before relying on release telemetry.",
     },
   ]
 

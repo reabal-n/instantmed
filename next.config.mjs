@@ -234,7 +234,32 @@ const nextConfig = {
       },
       {
         source: "/admin/email-test",
-        destination: "/admin/emails/preview",
+        destination: "/admin/emails",
+        permanent: true
+      },
+      {
+        source: "/admin/emails/analytics",
+        destination: "/admin/emails/hub",
+        permanent: true
+      },
+      {
+        source: "/admin/emails/preview",
+        destination: "/admin/emails",
+        permanent: true
+      },
+      {
+        source: "/admin/emails/edit",
+        destination: "/admin/emails",
+        permanent: true
+      },
+      {
+        source: "/admin/emails/edit/:path*",
+        destination: "/admin/emails",
+        permanent: true
+      },
+      {
+        source: "/admin/emails/outbox",
+        destination: "/admin/emails/hub?tab=queue",
         permanent: true
       },
       {
@@ -265,6 +290,16 @@ const nextConfig = {
       {
         source: "/admin/content",
         destination: "/admin/settings",
+        permanent: true
+      },
+      {
+        source: "/admin/content/:path*",
+        destination: "/admin/settings",
+        permanent: true
+      },
+      {
+        source: "/admin/errors",
+        destination: "/admin/ops",
         permanent: true
       },
       {

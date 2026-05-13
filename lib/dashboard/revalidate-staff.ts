@@ -30,8 +30,8 @@ export interface RevalidateStaffOptions {
    */
   settings?: boolean
   /**
-   * Also bust the email console surfaces (templates, hub, analytics,
-   * suppression). Use for template edits or email-outbox actions.
+   * Also bust the email console surfaces (templates, hub, suppression). Use
+   * for template edits or email-outbox actions.
    */
   emails?: boolean
   /** Also bust refund/audit admin surfaces. */
@@ -87,7 +87,6 @@ const STAFF_EMAILS_PATHS = [
   "/emails",
   "/admin/emails",
   "/admin/emails/hub",
-  "/admin/emails/analytics",
   "/admin/emails/suppression",
   "/admin/settings/templates",
 ] as const

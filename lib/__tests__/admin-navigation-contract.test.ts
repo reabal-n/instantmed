@@ -341,12 +341,9 @@ describe("admin navigation contract", () => {
       "app/admin/audit/page.tsx",
       "app/admin/clinic/page.tsx",
       "app/admin/doctors/page.tsx",
-      "app/admin/emails/analytics/page.tsx",
       "app/admin/emails/hub/page.tsx",
       "app/admin/emails/page.tsx",
-      "app/admin/emails/preview/page.tsx",
       "app/admin/emails/suppression/page.tsx",
-      "app/admin/errors/page.tsx",
       "app/admin/features/page.tsx",
       "app/admin/finance/page.tsx",
       "app/admin/intakes/[id]/page.tsx",
@@ -407,6 +404,13 @@ describe("admin navigation contract", () => {
     expect(nextConfigSource).toContain('destination: "/admin/ops/parchment"')
     expect(nextConfigSource).toContain('source: "/admin/content"')
     expect(nextConfigSource).toContain('destination: "/admin/settings"')
+    expect(nextConfigSource).toContain('source: "/admin/errors"')
+    expect(nextConfigSource).toContain('destination: "/admin/ops"')
+    expect(nextConfigSource).toContain('source: "/admin/emails/analytics"')
+    expect(nextConfigSource).toContain('destination: "/admin/emails/hub"')
+    expect(nextConfigSource).toContain('source: "/admin/emails/preview"')
+    expect(nextConfigSource).toContain('source: "/admin/emails/outbox"')
+    expect(nextConfigSource).toContain('destination: "/admin/emails/hub?tab=queue"')
     expect(nextConfigSource).toContain('source: "/admin/finance/revenue"')
     expect(nextConfigSource).toContain('destination: "/admin/finance"')
     expect(nextConfigSource).toContain('source: "/admin/doctors/performance"')
@@ -442,11 +446,14 @@ describe("admin navigation contract", () => {
     expect(adminPages).not.toContain("app/admin/compliance/page.tsx")
     expect(adminPages).not.toContain("app/admin/parchment-conformance/page.tsx")
     expect(adminPages).not.toContain("app/admin/content/page.tsx")
+    expect(adminPages).not.toContain("app/admin/errors/page.tsx")
+    expect(adminPages).not.toContain("app/admin/emails/analytics/page.tsx")
+    expect(adminPages).not.toContain("app/admin/emails/preview/page.tsx")
     expect(adminPages).not.toContain("app/admin/doctors/performance/page.tsx")
     expect(adminPages).not.toContain("app/admin/finance/revenue/page.tsx")
     expect(nextConfigSource).toContain('source: "/admin/compliance"')
     expect(nextConfigSource).toContain('destination: "/admin/audit"')
     expect(nextConfigSource).toContain('source: "/admin/email-test"')
-    expect(nextConfigSource).toContain('destination: "/admin/emails/preview"')
+    expect(nextConfigSource).toContain('destination: "/admin/emails"')
   })
 })
