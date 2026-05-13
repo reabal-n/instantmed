@@ -18,16 +18,41 @@ const NAV_PATH_ALIASES: Record<string, string[]> = {
   "/admin/patients": ["/doctor/patients"],
 }
 
+function getEquivalentPaths(href: string): string[] {
+  const hrefPath = getStaffNavHrefPath(href)
+  return [hrefPath, ...(NAV_PATH_ALIASES[hrefPath] ?? [])]
+}
+
+function matchesPath(pathname: string, href: string): boolean {
+  return getEquivalentPaths(href).some((path) => pathname === path || pathname.startsWith(`${path}/`))
+}
+
+function hasMoreSpecificPathMatch(pathname: string, href: string, allHrefs: readonly string[]): boolean {
+  const hrefPath = getStaffNavHrefPath(href)
+  const hrefStatus = getStaffNavHrefStatus(href)
+
+  return allHrefs.some((candidateHref) => {
+    if (candidateHref === href) return false
+    if (getStaffNavHrefStatus(candidateHref) !== hrefStatus) return false
+    if (!matchesPath(pathname, candidateHref)) return false
+
+    const candidatePath = getStaffNavHrefPath(candidateHref)
+    return candidatePath !== hrefPath && candidatePath.startsWith(`${hrefPath}/`)
+  })
+}
+
 export function isStaffNavItemActive({
   pathname,
   href,
   currentStatus,
   statusFilteredDashboard,
+  allHrefs,
 }: {
   pathname: string | null
   href: string
   currentStatus: string | null
   statusFilteredDashboard?: boolean
+  allHrefs?: readonly string[]
 }): boolean {
   if (!pathname) return false
 
@@ -42,6 +67,7 @@ export function isStaffNavItemActive({
     return pathname === "/dashboard" && (!statusFilteredDashboard || !currentStatus)
   }
 
-  const equivalentPaths = [hrefPath, ...(NAV_PATH_ALIASES[hrefPath] ?? [])]
-  return equivalentPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`))
+  if (!matchesPath(pathname, href)) return false
+
+  return !allHrefs || !hasMoreSpecificPathMatch(pathname, href, allHrefs)
 }

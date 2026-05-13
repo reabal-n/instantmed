@@ -18,6 +18,7 @@ import {
   ADMIN_PATIENT_MERGE_AUDIT_HREF,
   ADMIN_PATIENTS_HREF,
   ADMIN_PRESCRIBING_IDENTITY_HREF,
+  ADMIN_RECONCILIATION_HREF,
   ADMIN_SCRIPTS_HREF,
   ADMIN_SERVICES_HREF,
   ADMIN_STALE_INTAKES_HREF,
@@ -94,6 +95,7 @@ describe("dashboard route contracts", () => {
     expect(ADMIN_WEBHOOK_DLQ_HREF).toBe("/admin/webhook-dlq")
     expect(ADMIN_PARCHMENT_OPS_HREF).toBe("/admin/ops/parchment")
     expect(ADMIN_STALE_INTAKES_HREF).toBe("/admin/ops/intakes-stuck")
+    expect(ADMIN_RECONCILIATION_HREF).toBe("/admin/ops/reconciliation")
     expect(ADMIN_PATIENT_MERGE_AUDIT_HREF).toBe("/admin/ops/patient-merge-audit")
     expect(ADMIN_PRESCRIBING_IDENTITY_HREF).toBe("/admin/ops/prescribing-identity")
     expect(STAFF_DOCTOR_PATIENTS_HREF).toBe("/doctor/patients")

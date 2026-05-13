@@ -279,10 +279,14 @@ export function AdminSidebar({
   const counts = useLiveStaffNavCounts(navCounts)
   const currentStatus = searchParams.get("status")
   const sections = navSections ?? operatorNavSections
+  const navHrefs = useMemo(
+    () => sections.flatMap((section) => section.items.map((item) => item.href)),
+    [sections],
+  )
   const [expanded, setExpanded] = useState(true)
   const statusFilteredDashboard = useMemo(
-    () => hasStatusFilteredDashboardItems(sections.flatMap((section) => section.items.map((item) => item.href))),
-    [sections],
+    () => hasStatusFilteredDashboardItems(navHrefs),
+    [navHrefs],
   )
   const toggleExpanded = useCallback(() => {
     setExpanded((value) => {
@@ -356,6 +360,7 @@ export function AdminSidebar({
                       href: item.href,
                       currentStatus,
                       statusFilteredDashboard,
+                      allHrefs: navHrefs,
                     })}
                     count={item.badgeKey ? counts[item.badgeKey] : 0}
                     expanded={expanded}
@@ -390,9 +395,13 @@ export function MobileAdminNav({ navCounts, navSections, brandLabel: _brandLabel
   const counts = useLiveStaffNavCounts(navCounts)
   const currentStatus = searchParams.get("status")
   const sections = navSections ?? operatorNavSections
-  const statusFilteredDashboard = useMemo(
-    () => hasStatusFilteredDashboardItems(sections.flatMap((section) => section.items.map((item) => item.href))),
+  const navHrefs = useMemo(
+    () => sections.flatMap((section) => section.items.map((item) => item.href)),
     [sections],
+  )
+  const statusFilteredDashboard = useMemo(
+    () => hasStatusFilteredDashboardItems(navHrefs),
+    [navHrefs],
   )
 
   useEffect(() => {
@@ -456,6 +465,7 @@ export function MobileAdminNav({ navCounts, navSections, brandLabel: _brandLabel
                   href: item.href,
                   currentStatus,
                   statusFilteredDashboard,
+                  allHrefs: navHrefs,
                 })
                 const count = item.badgeKey ? counts[item.badgeKey] : 0
                 const Icon = STAFF_NAV_ICONS[item.icon]

@@ -52,6 +52,7 @@ export const ADMIN_REFUNDS_HREF = "/admin/refunds" as const
 export const ADMIN_WEBHOOK_DLQ_HREF = "/admin/webhook-dlq" as const
 export const ADMIN_PARCHMENT_OPS_HREF = "/admin/ops/parchment" as const
 export const ADMIN_STALE_INTAKES_HREF = "/admin/ops/intakes-stuck" as const
+export const ADMIN_RECONCILIATION_HREF = "/admin/ops/reconciliation" as const
 export const ADMIN_PATIENT_MERGE_AUDIT_HREF = "/admin/ops/patient-merge-audit" as const
 export const ADMIN_PRESCRIBING_IDENTITY_HREF = "/admin/ops/prescribing-identity" as const
 

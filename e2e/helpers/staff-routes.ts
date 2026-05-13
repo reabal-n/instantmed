@@ -10,6 +10,7 @@ import {
   ADMIN_PARCHMENT_OPS_HREF,
   ADMIN_PATIENT_MERGE_AUDIT_HREF,
   ADMIN_PRESCRIBING_IDENTITY_HREF,
+  ADMIN_RECONCILIATION_HREF,
   ADMIN_REFUNDS_HREF,
   ADMIN_SERVICES_HREF,
   ADMIN_STALE_INTAKES_HREF,
@@ -48,7 +49,7 @@ export const STAFF_TEST_ROUTES = {
   adminPatients: STAFF_PATIENTS_HREF,
   adminPrescribingIdentity: ADMIN_PRESCRIBING_IDENTITY_HREF,
   // Reconciliation is still an ops sub-route, but not a primary nav item.
-  adminReconciliation: "/admin/ops/reconciliation",
+  adminReconciliation: ADMIN_RECONCILIATION_HREF,
   adminRefunds: ADMIN_REFUNDS_HREF,
   adminRefundFailures: `${ADMIN_REFUNDS_HREF}?status=failed`,
   adminServices: ADMIN_SERVICES_HREF,

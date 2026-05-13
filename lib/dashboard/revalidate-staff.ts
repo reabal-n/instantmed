@@ -1,5 +1,15 @@
 import { revalidatePath } from "next/cache"
 
+import {
+  ADMIN_PARCHMENT_OPS_HREF,
+  ADMIN_PATIENT_MERGE_AUDIT_HREF,
+  ADMIN_PRESCRIBING_IDENTITY_HREF,
+  ADMIN_RECONCILIATION_HREF,
+  ADMIN_STALE_INTAKES_HREF,
+  ADMIN_WEBHOOK_DLQ_HREF,
+  STAFF_OPS_HREF,
+} from "@/lib/dashboard/routes"
+
 /**
  * Central staff revalidation helper (Phase 1 of dashboard remaster, 2026-05-11).
  *
@@ -55,13 +65,13 @@ const STAFF_PATIENT_LIST_PATHS = [
 ] as const
 
 const STAFF_OPS_PATHS = [
-  "/admin/ops",
-  "/admin/ops/intakes-stuck",
-  "/admin/ops/parchment",
-  "/admin/ops/reconciliation",
-  "/admin/ops/prescribing-identity",
-  "/admin/ops/patient-merge-audit",
-  "/admin/webhook-dlq",
+  STAFF_OPS_HREF,
+  ADMIN_STALE_INTAKES_HREF,
+  ADMIN_PARCHMENT_OPS_HREF,
+  ADMIN_RECONCILIATION_HREF,
+  ADMIN_PRESCRIBING_IDENTITY_HREF,
+  ADMIN_PATIENT_MERGE_AUDIT_HREF,
+  ADMIN_WEBHOOK_DLQ_HREF,
 ] as const
 
 const STAFF_IDENTITY_PATHS = [

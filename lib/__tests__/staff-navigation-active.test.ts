@@ -60,6 +60,33 @@ describe("staff navigation active matching", () => {
     })).toBe(false)
   })
 
+  it("keeps only the most specific nested ops nav item active", () => {
+    const allHrefs = [
+      "/admin/ops",
+      "/admin/ops/parchment",
+      "/admin/ops/prescribing-identity",
+    ]
+
+    expect(isStaffNavItemActive({
+      pathname: "/admin/ops/parchment",
+      href: "/admin/ops",
+      currentStatus: null,
+      allHrefs,
+    })).toBe(false)
+    expect(isStaffNavItemActive({
+      pathname: "/admin/ops/parchment",
+      href: "/admin/ops/parchment",
+      currentStatus: null,
+      allHrefs,
+    })).toBe(true)
+    expect(isStaffNavItemActive({
+      pathname: "/admin/ops/prescribing-identity/blocked",
+      href: "/admin/ops/prescribing-identity",
+      currentStatus: null,
+      allHrefs,
+    })).toBe(true)
+  })
+
   it("keeps admin patient nav active on the shared clinical patient file", () => {
     expect(isStaffNavItemActive({
       pathname: "/doctor/patients/123",

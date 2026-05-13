@@ -78,6 +78,21 @@ describe("retired compatibility modules", () => {
     expect(existsSync(join(root, "e2e/admin-crash-diagnostic.spec.ts"))).toBe(false)
   })
 
+  it("keeps the /api/test surface explicit and limited to active e2e contracts", () => {
+    const testApiRoot = join(root, "app/api/test")
+    const routePaths = readSources(testApiRoot)
+      .map(({ path }) => path.replace(`${root}/`, ""))
+      .filter((path) => path.endsWith("/route.ts"))
+      .sort()
+
+    expect(routePaths).toEqual([
+      "app/api/test/boom-500/route.ts",
+      "app/api/test/boom/route.ts",
+      "app/api/test/login/route.ts",
+      "app/api/test/medcert-auto-approve/route.ts",
+    ])
+  })
+
   it("keeps dev-only surfaces fail-closed in production and preview", () => {
     const middleware = readFileSync(join(root, "middleware.ts"), "utf8")
 
