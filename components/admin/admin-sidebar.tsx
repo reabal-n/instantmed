@@ -41,6 +41,7 @@ interface AdminSidebarProps {
 
 const ACTIVE_NAV = "bg-primary/10 text-primary"
 const INACTIVE_NAV = "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+const STAFF_SIDEBAR_EXPANDED_STORAGE_KEY = "instantmed.staff.sidebar.expanded"
 
 function NavBadge({
   count,
@@ -283,6 +284,28 @@ export function AdminSidebar({
     () => hasStatusFilteredDashboardItems(sections.flatMap((section) => section.items.map((item) => item.href))),
     [sections],
   )
+  const toggleExpanded = useCallback(() => {
+    setExpanded((value) => {
+      const nextValue = !value
+      try {
+        window.localStorage.setItem(STAFF_SIDEBAR_EXPANDED_STORAGE_KEY, String(nextValue))
+      } catch {
+        // Sidebar preference is convenience-only; ignore storage failures.
+      }
+      return nextValue
+    })
+  }, [])
+
+  useEffect(() => {
+    try {
+      const storedValue = window.localStorage.getItem(STAFF_SIDEBAR_EXPANDED_STORAGE_KEY)
+      if (storedValue === "true" || storedValue === "false") {
+        setExpanded(storedValue === "true")
+      }
+    } catch {
+      // Keep the readable default if storage is unavailable.
+    }
+  }, [])
 
   return (
     <TooltipProvider>
@@ -303,7 +326,7 @@ export function AdminSidebar({
             <Brand expanded={expanded} brandLabel={brandLabel} />
             <button
               type="button"
-              onClick={() => setExpanded((value) => !value)}
+              onClick={toggleExpanded}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
               aria-label={expanded ? "Collapse staff navigation" : "Expand staff navigation"}
               aria-expanded={expanded}

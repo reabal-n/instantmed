@@ -148,6 +148,7 @@ describe("admin navigation contract", () => {
     expect(sidebarSource).toContain("operatorNavSections")
     expect(sidebarSource).toContain("Expand staff navigation")
     expect(sidebarSource).toContain("Collapse staff navigation")
+    expect(sidebarSource).toContain("STAFF_SIDEBAR_EXPANDED_STORAGE_KEY")
     expect(sidebarSource).toContain("isStaffNavItemActive")
     expect(sidebarSource).toContain("statusFilteredDashboard")
     expect(sidebarSource).not.toContain("clinicalNavItems")
