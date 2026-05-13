@@ -146,6 +146,10 @@ describe("admin navigation contract", () => {
       "Settings",
     ])
     expect(sidebarSource).toContain("operatorNavSections")
+    expect(sidebarSource).toContain("Expand staff navigation")
+    expect(sidebarSource).toContain("Collapse staff navigation")
+    expect(sidebarSource).toContain("isStaffNavItemActive")
+    expect(sidebarSource).toContain("statusFilteredDashboard")
     expect(sidebarSource).not.toContain("clinicalNavItems")
     expect(sidebarSource).not.toContain("Clinical mode")
     expect(operatorNavSource).toContain("ADMIN_DOCTOR_QUEUE_HREF")

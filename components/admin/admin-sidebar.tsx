@@ -1,9 +1,9 @@
 "use client"
 
-import { Menu, X } from "lucide-react"
+import { ChevronLeft, ChevronRight, Menu, X } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import {
@@ -13,6 +13,10 @@ import {
   type StaffNavItem,
   type StaffNavSection,
 } from "@/lib/dashboard/staff-navigation"
+import {
+  hasStatusFilteredDashboardItems,
+  isStaffNavItemActive,
+} from "@/lib/dashboard/staff-navigation-active"
 import { cn } from "@/lib/utils"
 
 import { STAFF_NAV_ICONS } from "./staff-nav-icons"
@@ -28,38 +32,15 @@ interface AdminSidebarProps {
 }
 
 /**
- * AdminSidebar — Linear-tier icon rail.
+ * AdminSidebar — the shared staff cockpit navigation.
  *
- * Phase 1 of dashboard-remaster pass 2 (2026-05-12): the sidebar collapses
- * to a 60px icon rail; every label lives in a hover/focus tooltip. The
- * dashboard stays task-first without adding a second command surface.
- *
- * Why icon-only by default: PRODUCT.md describes the staff users as
- * "doctors under time pressure"; they want one cockpit and the next action
- * surfaced first, not nine sidebar labels competing for attention.
+ * Desktop defaults to readable labels because the owner-operator uses the
+ * full admin surface daily. The rail can still collapse when the case review
+ * pane needs more width.
  */
 
 const ACTIVE_NAV = "bg-primary/10 text-primary"
 const INACTIVE_NAV = "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-
-function getHrefPath(href: string) {
-  return href.split(/[?#]/)[0]
-}
-
-function getHrefStatus(href: string) {
-  const query = href.split("?")[1]?.split("#")[0]
-  if (!query) return null
-  return new URLSearchParams(query).get("status")
-}
-
-function getIsActive(pathname: string | null, href: string, currentStatus: string | null) {
-  const hrefPath = getHrefPath(href)
-  const hrefStatus = getHrefStatus(href)
-
-  if (href === "/admin") return pathname === "/admin" && !currentStatus
-  if (hrefPath === "/admin" && hrefStatus) return pathname === "/admin" && currentStatus === hrefStatus
-  return pathname === hrefPath || Boolean(pathname?.startsWith(`${hrefPath}/`))
-}
 
 function NavBadge({
   count,
@@ -81,6 +62,30 @@ function NavBadge({
       aria-label={`${count} pending`}
     >
       {count > 9 ? "9+" : count}
+    </span>
+  )
+}
+
+function InlineNavBadge({
+  count,
+  tone = "primary",
+}: {
+  count: number
+  tone?: StaffNavItem["badgeTone"]
+}) {
+  if (count <= 0) return null
+
+  return (
+    <span
+      className={cn(
+        "ml-auto inline-flex min-w-5 items-center justify-center rounded-full border px-1.5 py-0.5 text-[11px] font-semibold tabular-nums leading-none",
+        tone === "warning"
+          ? "border-warning-border bg-warning-light text-warning"
+          : "border-primary/30 bg-primary/15 text-primary",
+      )}
+      aria-label={`${count} pending`}
+    >
+      {count > 99 ? "99+" : count}
     </span>
   )
 }
@@ -120,32 +125,49 @@ function NavIconLink({
   item,
   active,
   count,
+  expanded,
   onClick,
 }: {
   item: StaffNavItem
   active: boolean
   count?: number
+  expanded: boolean
   onClick?: () => void
 }) {
   const badgeCount = count ?? 0
   const Icon = STAFF_NAV_ICONS[item.icon] ?? STAFF_NAV_ICONS.dashboard
 
+  const link = (
+    <Link
+      href={item.href}
+      prefetch={false}
+      onClick={onClick}
+      className={cn(
+        "relative flex h-10 rounded-lg text-sm font-medium transition-colors duration-150",
+        expanded ? "w-full items-center justify-start gap-3 px-3" : "w-10 items-center justify-center",
+        active ? ACTIVE_NAV : INACTIVE_NAV,
+      )}
+      aria-label={item.label}
+      aria-current={active ? "page" : undefined}
+    >
+      <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden />
+      {expanded ? (
+        <>
+          <span className="truncate">{item.label}</span>
+          <InlineNavBadge count={badgeCount} tone={item.badgeTone} />
+        </>
+      ) : (
+        <NavBadge count={badgeCount} tone={item.badgeTone} />
+      )}
+    </Link>
+  )
+
+  if (expanded) return link
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Link
-          href={item.href}
-          prefetch={false}
-          onClick={onClick}
-          className={cn(
-            "relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors duration-150",
-            active ? ACTIVE_NAV : INACTIVE_NAV,
-          )}
-          aria-label={item.label}
-        >
-          <Icon className="h-[18px] w-[18px]" aria-hidden />
-          <NavBadge count={badgeCount} tone={item.badgeTone} />
-        </Link>
+        {link}
       </TooltipTrigger>
       <TooltipContent side="right" sideOffset={8} className="flex items-center gap-2">
         <span className="text-xs font-medium text-foreground">{item.label}</span>
@@ -159,20 +181,43 @@ function NavIconLink({
   )
 }
 
-function Brand() {
+function Brand({ expanded, brandLabel }: { expanded: boolean; brandLabel: string }) {
   return (
     <Link
       href="/dashboard"
       prefetch={false}
-      className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
+      className={cn(
+        "flex rounded-lg transition-colors",
+        expanded
+          ? "min-w-0 flex-1 items-center gap-3 hover:bg-muted/50"
+          : "h-10 w-10 items-center justify-center bg-primary text-primary-foreground hover:bg-primary/90",
+      )}
       aria-label="InstantMed home"
     >
-      <span className="text-sm font-semibold tracking-tight">IM</span>
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-semibold tracking-tight text-primary-foreground">
+        IM
+      </span>
+      {expanded ? (
+        <span className="min-w-0">
+          <span className="block truncate text-sm font-semibold tracking-tight text-foreground">InstantMed</span>
+          <span className="block truncate text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            {brandLabel}
+          </span>
+        </span>
+      ) : null}
     </Link>
   )
 }
 
-function UserInitials({ userName, userRole }: { userName: string; userRole: string }) {
+function UserInitials({
+  userName,
+  userRole,
+  expanded,
+}: {
+  userName: string
+  userRole: string
+  expanded: boolean
+}) {
   const displayName = userName.trim() || "Staff"
   const initials = displayName
     .split(" ")
@@ -181,16 +226,35 @@ function UserInitials({ userName, userRole }: { userName: string; userRole: stri
     .toUpperCase()
     .slice(0, 2)
 
+  const identity = (
+    <button
+      type="button"
+      className={cn(
+        "flex rounded-lg bg-muted text-foreground transition-colors hover:bg-muted/80",
+        expanded
+          ? "w-full items-center gap-3 px-3 py-2 text-left"
+          : "h-10 w-10 items-center justify-center text-[11px] font-semibold",
+      )}
+      aria-label={`Signed in as ${displayName}`}
+    >
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-background text-[11px] font-semibold">
+        {initials}
+      </span>
+      {expanded ? (
+        <span className="min-w-0">
+          <span className="block truncate text-sm font-medium text-foreground">{displayName}</span>
+          <span className="block truncate text-xs text-muted-foreground">{userRole}</span>
+        </span>
+      ) : null}
+    </button>
+  )
+
+  if (expanded) return identity
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <button
-          type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-[11px] font-semibold text-foreground transition-colors hover:bg-muted/80"
-          aria-label={`Signed in as ${displayName}`}
-        >
-          {initials}
-        </button>
+        {identity}
       </TooltipTrigger>
       <TooltipContent side="right" sideOffset={8}>
         <div className="flex flex-col gap-0.5">
@@ -207,35 +271,71 @@ export function AdminSidebar({
   userRole = "Operator",
   navCounts,
   navSections,
+  brandLabel = "Operator",
 }: AdminSidebarProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const counts = useLiveStaffNavCounts(navCounts)
   const currentStatus = searchParams.get("status")
   const sections = navSections ?? operatorNavSections
+  const [expanded, setExpanded] = useState(true)
+  const statusFilteredDashboard = useMemo(
+    () => hasStatusFilteredDashboardItems(sections.flatMap((section) => section.items.map((item) => item.href))),
+    [sections],
+  )
 
   return (
     <TooltipProvider>
       <aside
-        className="hidden w-[60px] shrink-0 flex-col border-r border-border/40 bg-background lg:flex"
+        className={cn(
+          "hidden shrink-0 flex-col border-r border-border/40 bg-background lg:flex",
+          expanded ? "w-64" : "w-[60px]",
+        )}
         aria-label="Staff sidebar"
       >
-        <div className="sticky top-0 flex h-screen flex-col items-center gap-3 py-4">
-          <Brand />
-          <div className="h-px w-6 bg-border/50" aria-hidden />
+        <div
+          className={cn(
+            "sticky top-0 flex h-screen flex-col gap-3 py-4",
+            expanded ? "px-3" : "items-center px-2",
+          )}
+        >
+          <div className={cn("flex w-full items-center", expanded ? "gap-2" : "flex-col gap-2")}>
+            <Brand expanded={expanded} brandLabel={brandLabel} />
+            <button
+              type="button"
+              onClick={() => setExpanded((value) => !value)}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+              aria-label={expanded ? "Collapse staff navigation" : "Expand staff navigation"}
+              aria-expanded={expanded}
+            >
+              {expanded ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </button>
+          </div>
+          <div className={cn("h-px bg-border/50", expanded ? "w-full" : "w-6")} aria-hidden />
 
-          <nav className="flex flex-col items-center gap-1" aria-label="Primary">
+          <nav className={cn("flex flex-col gap-1", expanded ? "w-full" : "items-center")} aria-label="Primary">
             {sections.map((section, sectionIndex) => (
-              <div key={section.title} className="flex flex-col items-center gap-1">
+              <div key={section.title} className={cn("flex flex-col gap-1", expanded ? "w-full" : "items-center")}>
                 {sectionIndex > 0 ? (
-                  <div className="my-1 h-px w-6 bg-border/50" aria-hidden />
+                  <div className={cn("my-1 h-px bg-border/50", expanded ? "w-full" : "w-6")} aria-hidden />
+                ) : null}
+                {expanded ? (
+                  <p className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {section.title}
+                  </p>
                 ) : null}
                 {section.items.map((item) => (
                   <NavIconLink
                     key={item.href}
                     item={item}
-                    active={getIsActive(pathname, item.href, currentStatus)}
+                    active={isStaffNavItemActive({
+                      pathname,
+                      href: item.href,
+                      currentStatus,
+                      statusFilteredDashboard,
+                    })}
                     count={item.badgeKey ? counts[item.badgeKey] : 0}
+                    expanded={expanded}
                   />
                 ))}
               </div>
@@ -243,7 +343,7 @@ export function AdminSidebar({
           </nav>
 
           <div className="flex-1" />
-          <UserInitials userName={userName} userRole={userRole} />
+          <UserInitials userName={userName} userRole={userRole} expanded={expanded} />
         </div>
       </aside>
     </TooltipProvider>
@@ -267,6 +367,10 @@ export function MobileAdminNav({ navCounts, navSections, brandLabel: _brandLabel
   const counts = useLiveStaffNavCounts(navCounts)
   const currentStatus = searchParams.get("status")
   const sections = navSections ?? operatorNavSections
+  const statusFilteredDashboard = useMemo(
+    () => hasStatusFilteredDashboardItems(sections.flatMap((section) => section.items.map((item) => item.href))),
+    [sections],
+  )
 
   useEffect(() => {
     setOpen(false)
@@ -324,7 +428,12 @@ export function MobileAdminNav({ navCounts, navSections, brandLabel: _brandLabel
                 {section.title}
               </p>
               {section.items.map((item) => {
-                const active = getIsActive(pathname, item.href, currentStatus)
+                const active = isStaffNavItemActive({
+                  pathname,
+                  href: item.href,
+                  currentStatus,
+                  statusFilteredDashboard,
+                })
                 const count = item.badgeKey ? counts[item.badgeKey] : 0
                 const Icon = STAFF_NAV_ICONS[item.icon]
                 return (

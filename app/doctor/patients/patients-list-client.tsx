@@ -31,6 +31,7 @@ import type { PatientDirectoryProfile, PatientDirectorySort } from "@/lib/data/p
 import { findPotentialDuplicatePatients } from "@/lib/doctor/patient-snapshot"
 import { calculateAge, formatDate } from "@/lib/format"
 import { formatIntakeStatus } from "@/lib/format/intake"
+import { cn } from "@/lib/utils"
 
 import { AddPatientDialog } from "./add-patient-dialog"
 
@@ -100,9 +101,6 @@ export function PatientsListClient({
     })
   }, [patients, searchQuery, stateFilter, onboardingFilter])
 
-
-
-
   const states = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
   const sortOptions: Array<{ value: PatientDirectorySort; label: string }> = [
     { value: "recent_request", label: "Most recent request" },
@@ -115,12 +113,17 @@ export function PatientsListClient({
   const onboardedPatients = patients.filter((p) => p.onboarding_completed).length
   const incompletePatients = patients.length - onboardedPatients
   const notSyncedOnPage = patients.length - parchmentSyncedPatients
-  const duplicateGroups = useMemo(() => findPotentialDuplicatePatients(patients), [patients])
+  const duplicateGroups = useMemo(() => findPotentialDuplicatePatients(filteredPatients), [filteredPatients])
   const duplicatePatientIds = useMemo(() => {
     const ids = new Set<string>()
     duplicateGroups.forEach((group) => group.patientIds.forEach((id) => ids.add(id)))
     return ids
   }, [duplicateGroups])
+  const firstDuplicatePatient = useMemo(
+    () => filteredPatients.find((patient) => duplicatePatientIds.has(patient.id)) ?? null,
+    [filteredPatients, duplicatePatientIds],
+  )
+  const firstDuplicateHref = firstDuplicatePatient ? `${patientHrefBase}/${firstDuplicatePatient.id}` : null
   const summaryItems = [
     {
       label: "Patients",
@@ -241,16 +244,34 @@ export function PatientsListClient({
 
           {duplicateGroups.length > 0 && (
             <div className="mt-4 rounded-lg border border-warning-border bg-warning-light px-3 py-2 text-sm text-warning">
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                <div>
-                  <p className="font-medium">
-                    {duplicateGroups.length} possible duplicate patient {duplicateGroups.length === 1 ? "group" : "groups"} on this page
-                  </p>
-                  <p className="mt-0.5 text-xs">
-                    Match source: {duplicateGroups.map((group) => group.reason.replace("_", " + ")).join(", ")}
-                  </p>
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <div>
+                    <p className="font-medium">
+                      {duplicateGroups.length} duplicate {duplicateGroups.length === 1 ? "group needs" : "groups need"} review
+                    </p>
+                    <p className="mt-0.5 text-xs">
+                      Open the flagged patient. Merge only when the patient file shows linked profiles; signed-in duplicates stay as manual review.
+                    </p>
+                    <p className="mt-0.5 text-xs">
+                      Match source: {duplicateGroups.map((group) => group.reason.replace("_", " + ")).join(", ")}
+                    </p>
+                  </div>
                 </div>
+                {firstDuplicateHref ? (
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="border-warning-border bg-white text-warning hover:bg-warning-light"
+                  >
+                    <Link href={firstDuplicateHref} prefetch={false}>
+                      Open flagged patient
+                      <ChevronRight className="h-4 w-4" aria-hidden />
+                    </Link>
+                  </Button>
+                ) : null}
               </div>
             </div>
           )}
@@ -260,8 +281,8 @@ export function PatientsListClient({
       {/* Table */}
       <Card className="rounded-xl border-border/50 overflow-hidden">
         <CardContent className="p-0 overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
+          <div className="overflow-x-auto">
+            <Table>
             <TableHeader>
               <TableRow className="bg-muted/50 hover:bg-muted/50">
                 <TableHead scope="col">Patient</TableHead>
@@ -281,11 +302,17 @@ export function PatientsListClient({
                   const age = calculateAge(patient.date_of_birth)
                   const linkedProfileCount = patient.duplicate_profile_ids?.length ?? 0
                   const patientHref = `${patientHrefBase}/${patient.id}`
+                  const isDuplicateCandidate = duplicatePatientIds.has(patient.id)
+                  const isFirstDuplicateCandidate = firstDuplicatePatient?.id === patient.id
 
                   return (
                     <TableRow
                       key={patient.id}
-                      className="hover:bg-muted/50 transition-colors duration-200 cursor-pointer group"
+                      id={isFirstDuplicateCandidate ? "patient-duplicate-row" : undefined}
+                      className={cn(
+                        "cursor-pointer group transition-colors duration-200 hover:bg-muted/50",
+                        isDuplicateCandidate && "bg-warning-light/25",
+                      )}
                     >
                       <TableCell>
                         <Link href={patientHref} className="block">
@@ -294,10 +321,10 @@ export function PatientsListClient({
                             description={age !== null ? `${age} years old` : "Age N/A"}
                             size="sm"
                           />
-                          {duplicatePatientIds.has(patient.id) && (
+                          {isDuplicateCandidate && (
                             <Badge variant="warning" size="sm" className="mt-1">
                               <AlertTriangle className="h-3 w-3" />
-                              Possible duplicate
+                              Review duplicate
                             </Badge>
                           )}
                           {linkedProfileCount > 0 && (
@@ -419,8 +446,8 @@ export function PatientsListClient({
                 </TableRow>
               )}
             </TableBody>
-          </Table>
-        </div>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
