@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
@@ -121,7 +121,6 @@ describe("doctor capability gating contract", () => {
     const manualPatientSource = read("app/actions/manual-patient.ts")
     const doctorIdentitySource = read("app/actions/doctor-identity.ts")
     const searchRouteSource = read("app/api/search/route.ts")
-    const assignRouteSource = read("app/api/doctor/assign-request/route.ts")
     const scriptsRouteSource = read("app/api/doctor/scripts/route.ts")
     const scriptUpdateRouteSource = read("app/api/doctor/scripts/[id]/route.ts")
     const draftApprovalSource = read("app/actions/draft-approval.ts")
@@ -137,7 +136,7 @@ describe("doctor capability gating contract", () => {
     expect(doctorIdentitySource).not.toContain('authUser.profile.role !== "doctor"')
 
     expect(searchRouteSource).toContain("hasDoctorAccess(callerProfile)")
-    expect(assignRouteSource).toContain("hasDoctorAccess(doctorProfile)")
+    expect(existsSync(join(root, "app/api/doctor/assign-request/route.ts"))).toBe(false)
 
     expect(scriptsRouteSource).toContain("hasAdminAccess(authResult.profile)")
     expect(scriptUpdateRouteSource).toContain("hasAdminAccess(profile)")

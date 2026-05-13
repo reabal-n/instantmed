@@ -1,7 +1,6 @@
 import { Suspense } from "react"
 
 import { requireRole } from "@/lib/auth/helpers"
-import { deriveAttributionSource, getBusinessKPIData } from "@/lib/data/business-kpi"
 import { getDoctorDashboardStats, getIntakeMonitoringStats } from "@/lib/data/intakes"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -19,7 +18,8 @@ export default async function AnalyticsDashboardPage() {
   const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
   const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
 
-  // Fetch all analytics data in parallel using allSettled for resilience
+  // Fetch only the operator analytics that are worth keeping: revenue,
+  // conversion, and queue health. Anything deeper belongs in PostHog or ops.
   const results = await Promise.allSettled([
     // [0] Page views / sessions from audit logs
     supabase
@@ -55,40 +55,27 @@ export default async function AnalyticsDashboardPage() {
       .gte("created_at", monthAgo.toISOString())
       .order("created_at", { ascending: true }),
 
-    // [5] Intakes by service type
-    supabase
-      .from("intakes")
-      .select("category")
-      .gte("created_at", monthAgo.toISOString()),
-
-    // [6] Intakes by paid source: classified by board-level acquisition group
-    supabase
-      .from("intakes")
-      .select("utm_source, utm_medium, utm_campaign, utm_term, referrer, landing_page, gclid, gbraid, wbraid, campaignid, adgroupid, keyword, creative, matchtype, device, network")
-      .gte("paid_at", monthAgo.toISOString())
-      .not("paid_at", "is", null),
-
-    // [7] Revenue data - paid intakes with amount
+    // [5] Revenue data - paid intakes with amount
     supabase
       .from("intakes")
       .select("amount_cents, paid_at, created_at")
       .not("paid_at", "is", null)
       .gte("paid_at", monthAgo.toISOString()),
 
-    // [8] Doctor dashboard stats
+    // [6] Doctor dashboard stats
     getDoctorDashboardStats(),
 
-    // [9] Monitoring stats (queue health, avg review time)
+    // [7] Monitoring stats (queue health, avg review time)
     getIntakeMonitoringStats(),
 
-    // [10] This week's paid intakes for weekly revenue
+    // [8] This week's paid intakes for weekly revenue
     supabase
       .from("intakes")
       .select("amount_cents")
       .not("paid_at", "is", null)
       .gte("paid_at", weekAgo.toISOString()),
 
-    // [11] Today's paid intakes for daily revenue
+    // [9] Today's paid intakes for daily revenue
     supabase
       .from("intakes")
       .select("amount_cents")
@@ -102,18 +89,16 @@ export default async function AnalyticsDashboardPage() {
   const paidIntakesResult = results[2].status === "fulfilled" ? results[2].value : { count: 0 }
   const completedIntakesResult = results[3].status === "fulfilled" ? results[3].value : { count: 0 }
   const intakesByDayResult = results[4].status === "fulfilled" ? results[4].value : { data: [] }
-  const intakesByServiceResult = results[5].status === "fulfilled" ? results[5].value : { data: [] }
-  const intakesBySourceResult = results[6].status === "fulfilled" ? results[6].value : { data: [] }
-  const revenueResult = results[7].status === "fulfilled" ? results[7].value : { data: [] }
-  const dashboardStats = results[8].status === "fulfilled" ? results[8].value : {
+  const revenueResult = results[5].status === "fulfilled" ? results[5].value : { data: [] }
+  const dashboardStats = results[6].status === "fulfilled" ? results[6].value : {
     total: 0, in_queue: 0, approved: 0, declined: 0, pending_info: 0, scripts_pending: 0
   }
-  const monitoringStats = results[9].status === "fulfilled" ? results[9].value : {
+  const monitoringStats = results[7].status === "fulfilled" ? results[7].value : {
     todaySubmissions: 0, queueSize: 0, paidCount: 0, pendingCount: 0,
     approvedToday: 0, declinedToday: 0, avgReviewTimeMinutes: null, oldestInQueueMinutes: null
   }
-  const weekRevenueResult = results[10].status === "fulfilled" ? results[10].value : { data: [] }
-  const todayRevenueResult = results[11].status === "fulfilled" ? results[11].value : { data: [] }
+  const weekRevenueResult = results[8].status === "fulfilled" ? results[8].value : { data: [] }
+  const todayRevenueResult = results[9].status === "fulfilled" ? results[9].value : { data: [] }
 
   // Process daily data
   const dailyData: Record<string, { visits: number; started: number; paid: number; completed: number; revenue: number }> = {}
@@ -143,41 +128,6 @@ export default async function AnalyticsDashboardPage() {
     }
   }
 
-  // Process service type data
-  const serviceTypeCounts: Record<string, number> = {}
-  if (intakesByServiceResult.data) {
-    for (const intake of intakesByServiceResult.data) {
-      const type = intake.category || "unknown"
-      serviceTypeCounts[type] = (serviceTypeCounts[type] || 0) + 1
-    }
-  }
-
-  // Process paid source data
-  const sourceCounts: Record<string, number> = {}
-  if (intakesBySourceResult.data) {
-    for (const intake of intakesBySourceResult.data) {
-      const source = deriveAttributionSource({
-        landing_page: intake.landing_page || null,
-        referrer: intake.referrer || null,
-        gbraid: intake.gbraid || null,
-        gclid: intake.gclid || null,
-        wbraid: intake.wbraid || null,
-        adgroupid: intake.adgroupid || null,
-        campaignid: intake.campaignid || null,
-        creative: intake.creative || null,
-        device: intake.device || null,
-        keyword: intake.keyword || null,
-        matchtype: intake.matchtype || null,
-        network: intake.network || null,
-        utm_campaign: intake.utm_campaign || null,
-        utm_medium: intake.utm_medium || null,
-        utm_source: intake.utm_source || null,
-        utm_term: intake.utm_term || null,
-      })
-      sourceCounts[source] = (sourceCounts[source] || 0) + 1
-    }
-  }
-
   // Calculate revenue totals
   const monthRevenue = (revenueResult.data || []).reduce(
     (sum: number, r: { amount_cents?: number | string | null }) => sum + (Number(r.amount_cents) || 0), 0
@@ -199,14 +149,6 @@ export default async function AnalyticsDashboardPage() {
     dailyData: Object.entries(dailyData).map(([date, data]) => ({
       date,
       ...data,
-    })),
-    serviceTypes: Object.entries(serviceTypeCounts).map(([type, count]) => ({
-      type,
-      count,
-    })),
-    sources: Object.entries(sourceCounts).map(([source, count]) => ({
-      source,
-      count,
     })),
     revenue: {
       today: todayRevenue,
@@ -231,17 +173,10 @@ export default async function AnalyticsDashboardPage() {
     },
   }
 
-  // Business KPIs land in the same Analytics Hub as the 5th tab.
-  // Phase 4 doctor + admin rebuild — /admin/business-kpi was a near-duplicate
-  // surface that drifted. Failing closed (null) keeps the rest of the analytics
-  // page rendering even if the KPI fetch errors.
-  const businessKpis = await getBusinessKPIData().catch(() => null)
-
   return (
     <Suspense fallback={null}>
       <AnalyticsDashboardClient
         analytics={analytics}
-        businessKpis={businessKpis}
       />
     </Suspense>
   )

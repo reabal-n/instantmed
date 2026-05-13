@@ -5,19 +5,26 @@ import { describe, expect, it } from "vitest"
 
 import {
   ADMIN_AUDIT_HREF,
+  ADMIN_CLINIC_HREF,
   ADMIN_DASHBOARD_HREF,
   ADMIN_DOCTOR_QUEUE_HREF,
+  ADMIN_DOCTORS_HREF,
   ADMIN_EMAIL_HUB_HREF,
+  ADMIN_EMAIL_TEMPLATE_EDITOR_HREF,
+  ADMIN_FEATURES_HREF,
   ADMIN_INTAKE_LEDGER_HREF,
   ADMIN_PARCHMENT_OPS_HREF,
   ADMIN_PATIENT_MERGE_AUDIT_HREF,
   ADMIN_PATIENTS_HREF,
   ADMIN_PRESCRIBING_IDENTITY_HREF,
   ADMIN_SCRIPTS_HREF,
+  ADMIN_SERVICES_HREF,
   ADMIN_STALE_INTAKES_HREF,
+  ADMIN_TEMPLATE_STUDIO_HREF,
   ADMIN_WEBHOOK_DLQ_HREF,
   buildAdminDashboardHref,
   buildAdminIntakeHref,
+  buildAdminIntakeLedgerHref,
   buildDoctorDashboardHref,
   buildDoctorQueueRedirectHref,
   buildStaffPatientHref,
@@ -25,6 +32,10 @@ import {
   DOCTOR_QUEUE_REVIEW_HREF,
   parseQueueStatusFilter,
   PATIENT_DASHBOARD_HREF,
+  STAFF_DOCTOR_PATIENTS_HREF,
+  STAFF_DOCTOR_SCRIPTS_HREF,
+  STAFF_DOCTOR_SETTINGS_HREF,
+  STAFF_IDENTITY_HREF,
 } from "@/lib/dashboard/routes"
 
 const root = process.cwd()
@@ -45,6 +56,8 @@ describe("dashboard route contracts", () => {
   it("builds admin intake detail links from the shared route helper", () => {
     expect(ADMIN_DASHBOARD_HREF).toBe("/dashboard")
     expect(ADMIN_INTAKE_LEDGER_HREF).toBe("/admin/intakes")
+    expect(buildAdminIntakeLedgerHref()).toBe("/admin/intakes")
+    expect(buildAdminIntakeLedgerHref({ status: "approved" })).toBe("/admin/intakes?status=approved")
     expect(ADMIN_DOCTOR_QUEUE_HREF).toBe("/dashboard?status=review#doctor-queue")
     expect(ADMIN_SCRIPTS_HREF).toBe("/dashboard?status=scripts#doctor-queue")
     expect(ADMIN_PATIENTS_HREF).toBe("/admin/patients")
@@ -58,12 +71,22 @@ describe("dashboard route contracts", () => {
 
   it("keeps ops recovery links on shared admin route constants", () => {
     expect(ADMIN_AUDIT_HREF).toBe("/admin/audit")
+    expect(ADMIN_CLINIC_HREF).toBe("/admin/clinic")
+    expect(ADMIN_DOCTORS_HREF).toBe("/admin/doctors")
+    expect(ADMIN_SERVICES_HREF).toBe("/admin/services")
+    expect(ADMIN_FEATURES_HREF).toBe("/admin/features")
+    expect(ADMIN_TEMPLATE_STUDIO_HREF).toBe("/admin/settings/templates")
     expect(ADMIN_EMAIL_HUB_HREF).toBe("/admin/emails/hub")
+    expect(ADMIN_EMAIL_TEMPLATE_EDITOR_HREF).toBe("/admin/emails")
     expect(ADMIN_WEBHOOK_DLQ_HREF).toBe("/admin/webhook-dlq")
     expect(ADMIN_PARCHMENT_OPS_HREF).toBe("/admin/ops/parchment")
     expect(ADMIN_STALE_INTAKES_HREF).toBe("/admin/ops/intakes-stuck")
     expect(ADMIN_PATIENT_MERGE_AUDIT_HREF).toBe("/admin/ops/patient-merge-audit")
     expect(ADMIN_PRESCRIBING_IDENTITY_HREF).toBe("/admin/ops/prescribing-identity")
+    expect(STAFF_DOCTOR_PATIENTS_HREF).toBe("/doctor/patients")
+    expect(STAFF_DOCTOR_SCRIPTS_HREF).toBe("/doctor/scripts")
+    expect(STAFF_DOCTOR_SETTINGS_HREF).toBe("/doctor/settings")
+    expect(STAFF_IDENTITY_HREF).toBe("/doctor/settings/identity")
   })
 
   it("preserves queue redirect intent and allowed pagination params", () => {
@@ -104,5 +127,7 @@ describe("dashboard route contracts", () => {
 
     expect(nextConfigSource).toContain('source: "/admin/compliance"')
     expect(nextConfigSource).toContain('destination: "/admin/audit"')
+    expect(nextConfigSource).toContain('source: "/admin"')
+    expect(nextConfigSource).toContain('destination: "/dashboard"')
   })
 })

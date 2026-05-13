@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button"
 import { ErrorRefChip } from "@/components/ui/error-ref-chip"
 import { Heading } from "@/components/ui/heading"
 import { CONTACT_EMAIL } from "@/lib/constants"
+import { ADMIN_PATIENTS_HREF, STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 
 /**
  * Error boundary for `/dashboard`, the canonical staff cockpit
@@ -132,7 +133,7 @@ export default function DashboardError({
             </Button>
           )}
           <Button variant="outline" asChild className="w-full sm:w-auto">
-            <Link href="/dashboard">
+            <Link href={STAFF_DASHBOARD_HREF}>
               <LayoutDashboard className="mr-2 h-4 w-4" />
               Reload dashboard
             </Link>
@@ -141,7 +142,7 @@ export default function DashboardError({
 
         <div className="mt-6 pt-6 border-t border-border/50 space-y-3">
           <Link
-            href="/admin/patients"
+            href={ADMIN_PATIENTS_HREF}
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <Users className="h-4 w-4" />

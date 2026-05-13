@@ -2,6 +2,7 @@ import { LayoutDashboard } from "lucide-react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
+import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 
 export default function AdminNotFound() {
   return (
@@ -14,7 +15,7 @@ export default function AdminNotFound() {
         This page doesn&apos;t exist in the operator dashboard.
       </p>
       <Button asChild className="rounded-xl">
-        <Link href="/admin">
+        <Link href={STAFF_DASHBOARD_HREF}>
           <LayoutDashboard className="mr-2 h-4 w-4" />
           Operator Dashboard
         </Link>

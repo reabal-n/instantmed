@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { CONTACT_EMAIL } from "@/lib/constants"
+import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { ClinicIdentity, ClinicIdentityInput } from "@/types/certificate-template"
 
 interface ClinicIdentityClientProps {
@@ -151,7 +152,7 @@ export function ClinicIdentityClient({ initialData, logoUrl }: ClinicIdentityCli
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/admin">
+            <Link href={STAFF_DASHBOARD_HREF}>
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>

@@ -4,7 +4,6 @@ import {
   CheckCircle,
   CreditCard,
   Eye,
-  Globe,
   MousePointer,
 } from "lucide-react"
 
@@ -20,10 +19,10 @@ import {
 } from "@/components/charts/lazy-charts"
 import { DashboardGrid, StatCard } from "@/components/dashboard"
 
-import { type AnalyticsData, COLORS } from "./analytics-helpers"
+import { type AnalyticsData } from "./analytics-helpers"
 
 export function AnalyticsFunnelTab({ analytics }: { analytics: AnalyticsData }) {
-  const { funnel, sources } = analytics
+  const { funnel } = analytics
 
   // Calculate conversion rates
   const startRate = funnel.visits > 0 ? ((funnel.started / funnel.visits) * 100).toFixed(1) : "0"
@@ -140,53 +139,6 @@ export function AnalyticsFunnelTab({ analytics }: { analytics: AnalyticsData }) 
         </div>
       </div>
 
-      {/* Traffic Sources */}
-      <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-base font-semibold text-foreground">Traffic Sources</h3>
-            <p className="text-sm text-muted-foreground">Where patients come from (UTM tracking)</p>
-          </div>
-          <Globe className="h-5 w-5 text-muted-foreground" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {sources.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8 col-span-2">
-              No UTM data available. Add UTM parameters to track traffic sources.
-            </p>
-          ) : (
-            sources
-              .sort((a, b) => b.count - a.count)
-              .slice(0, 8)
-              .map((source, index) => {
-                const percentage = funnel.started > 0 ? (source.count / funnel.started) * 100 : 0
-                return (
-                  <div key={source.source} className="flex items-center gap-3">
-                    <div
-                      className="w-3 h-3 rounded-full shrink-0"
-                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium truncate">{source.source}</span>
-                        <span className="text-sm text-muted-foreground ml-2">{source.count}</span>
-                      </div>
-                      <div className="mt-1 h-1.5 bg-muted rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-[width]"
-                          style={{
-                            width: `${Math.max(percentage, 2)}%`,
-                            backgroundColor: COLORS[index % COLORS.length],
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )
-              })
-          )}
-        </div>
-      </div>
     </div>
   )
 }

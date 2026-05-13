@@ -50,6 +50,9 @@ for legacy_route in \
   "app/consult/request" \
   "app/medical-certificate/request" \
   "app/admin/compliance" \
+  "app/admin/page.tsx" \
+  "app/admin/ops/doctors" \
+  "app/admin/ops/sla" \
   "app/doctor/certificates" \
   "app/doctor/email-suppression" \
   "app/prescriptions/new" \
@@ -58,6 +61,19 @@ for legacy_route in \
 do
   if [[ -e "$legacy_route" ]]; then
     echo "ORPHAN: $legacy_route still exists (handled by next.config.mjs redirects)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 2b. Staff APIs retired with the unified cockpit ──────────────────────
+for legacy_staff_api in \
+  "app/api/admin/test-email/route.ts" \
+  "app/api/doctor/assign-request/route.ts" \
+  "app/api/doctor/drafts/[intakeId]/route.ts" \
+  "app/api/health/dashboard/route.ts"
+do
+  if [[ -e "$legacy_staff_api" ]]; then
+    echo "ORPHAN: $legacy_staff_api still exists (superseded by server actions or current staff health surfaces)"
     orphans=$((orphans + 1))
   fi
 done

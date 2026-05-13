@@ -16,6 +16,9 @@ describe("code-clean retirement contracts", () => {
       "app/login",
       "app/consult/request",
       "app/medical-certificate/request",
+      "app/admin/page.tsx",
+      "app/admin/ops/doctors",
+      "app/admin/ops/sla",
       "app/prescriptions/new",
       "app/prescriptions/repeat",
       "app/prescriptions/request",
@@ -30,12 +33,33 @@ describe("code-clean retirement contracts", () => {
     expect(nextConfig).toContain('source: "/login"')
     expect(nextConfig).toContain('source: "/consult/request"')
     expect(nextConfig).toContain('source: "/medical-certificate/request"')
+    expect(nextConfig).toContain('source: "/admin"')
+    expect(nextConfig).toContain('destination: "/dashboard"')
+    expect(nextConfig).toContain('source: "/admin/ops/doctors"')
+    expect(nextConfig).toContain('destination: "/admin/doctors"')
+    expect(nextConfig).toContain('source: "/admin/ops/sla"')
+    expect(nextConfig).toContain('destination: "/admin/analytics?tab=queue"')
     expect(nextConfig).toContain('source: "/prescriptions/new"')
     expect(nextConfig).toContain('source: "/prescriptions/repeat"')
     expect(nextConfig).toContain('source: "/prescriptions/request"')
 
     const orphanCheck = read("scripts/check-orphaned-files.sh")
     for (const route of retiredRoutes) {
+      expect(orphanCheck).toContain(route)
+    }
+  })
+
+  it("keeps old dashboard-only APIs out of the route tree", () => {
+    const retiredApis = [
+      "app/api/admin/test-email/route.ts",
+      "app/api/doctor/assign-request/route.ts",
+      "app/api/doctor/drafts/[intakeId]/route.ts",
+      "app/api/health/dashboard/route.ts",
+    ]
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+
+    for (const route of retiredApis) {
+      expect(existsSync(join(root, route)), route).toBe(false)
       expect(orphanCheck).toContain(route)
     }
   })

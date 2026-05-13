@@ -4,6 +4,7 @@ import { AlertTriangle, ArrowRight } from "lucide-react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
+import { STAFF_IDENTITY_HREF } from "@/lib/dashboard/routes"
 
 interface IdentityIncompleteBannerProps {
   missingFields?: string[]
@@ -33,7 +34,7 @@ export function IdentityIncompleteBanner({
             className="mt-3 border-warning-border text-warning hover:bg-warning-light"
             asChild
           >
-            <Link href="/doctor/settings/identity">
+            <Link href={STAFF_IDENTITY_HREF}>
               Complete Setup
               <ArrowRight className="h-4 w-4 ml-2" />
             </Link>

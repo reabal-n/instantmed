@@ -23,7 +23,11 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Button } from "@/components/uix"
-import { STAFF_QUEUE_HREF } from "@/lib/dashboard/routes"
+import {
+  STAFF_DOCTOR_PATIENTS_HREF,
+  STAFF_DOCTOR_SCRIPTS_HREF,
+  STAFF_QUEUE_HREF,
+} from "@/lib/dashboard/routes"
 
 interface UserMenuProps {
   variant: "marketing" | "patient" | "doctor"
@@ -180,16 +184,16 @@ export function UserMenu({
           Queue
         </AnimatedNavLink>
         <AnimatedNavLink
-          href="/doctor/scripts"
+          href={STAFF_DOCTOR_SCRIPTS_HREF}
           icon={<ClipboardList className="h-4 w-4" aria-hidden="true" />}
-          isActive={isActivePath("/doctor/scripts")}
+          isActive={isActivePath(STAFF_DOCTOR_SCRIPTS_HREF)}
         >
           Scripts
         </AnimatedNavLink>
         <AnimatedNavLink
-          href="/doctor/patients"
+          href={STAFF_DOCTOR_PATIENTS_HREF}
           icon={<User className="h-4 w-4" aria-hidden="true" />}
-          isActive={isActivePath("/doctor/patients")}
+          isActive={isActivePath(STAFF_DOCTOR_PATIENTS_HREF)}
         >
           Patients
         </AnimatedNavLink>

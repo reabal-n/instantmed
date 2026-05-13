@@ -28,10 +28,6 @@ const patientHandoffSource = readFileSync(
   join(process.cwd(), "lib/doctor/patient-handoff.ts"),
   "utf8",
 )
-const adminPageSource = readFileSync(
-  join(process.cwd(), "app/admin/page.tsx"),
-  "utf8",
-)
 const opsParchmentSource = readFileSync(
   join(process.cwd(), "app/admin/ops/parchment/page.tsx"),
   "utf8",
@@ -104,13 +100,13 @@ describe("admin navigation contract", () => {
 
     expect(settingsSource).not.toContain('redirect("/admin/features")')
     expect(nextConfigSource).not.toContain('source: "/admin/settings", destination: "/admin/features"')
-    expect(settingsSource).toContain('href: "/admin/features"')
-    expect(settingsSource).toContain('href: "/admin/settings/templates"')
+    expect(settingsSource).toContain("ADMIN_FEATURES_HREF")
+    expect(settingsSource).toContain("ADMIN_TEMPLATE_STUDIO_HREF")
     expect(settingsSource).toContain("ADMIN_DOCTOR_IDENTITY_HREF")
     expect(settingsSource).toContain("Your doctor identity")
-    expect(settingsSource).toContain('href: "/admin/clinic"')
-    expect(settingsSource).toContain('href: "/admin/doctors"')
-    expect(settingsSource).toContain('href: "/admin/services"')
+    expect(settingsSource).toContain("ADMIN_CLINIC_HREF")
+    expect(settingsSource).toContain("ADMIN_DOCTORS_HREF")
+    expect(settingsSource).toContain("ADMIN_SERVICES_HREF")
     expect(settingsSource).not.toContain('href: "/admin/content"')
     expect(settingsSource).not.toContain("Operational controls")
     expect(settingsSource).not.toContain('href: "/admin/webhook-dlq"')
@@ -153,10 +149,10 @@ describe("admin navigation contract", () => {
     expect(sidebarSource).toContain("statusFilteredDashboard")
     expect(sidebarSource).not.toContain("clinicalNavItems")
     expect(sidebarSource).not.toContain("Clinical mode")
-    expect(operatorNavSource).toContain("ADMIN_DOCTOR_QUEUE_HREF")
+    expect(operatorNavSource).toContain("STAFF_QUEUE_HREF")
     expect(dashboardRoutesSource).toContain("ADMIN_DOCTOR_QUEUE_HREF = STAFF_QUEUE_HREF")
-    expect(operatorNavSource).toContain("ADMIN_SCRIPTS_HREF")
-    expect(operatorNavSource).toContain("ADMIN_PATIENTS_HREF")
+    expect(operatorNavSource).toContain("STAFF_SCRIPTS_HREF")
+    expect(operatorNavSource).toContain("STAFF_PATIENTS_HREF")
     expect(operatorNavSource).toContain('badgeKey: "scriptsToWrite"')
     expect(operatorNavSource).toContain('badgeKey: "prescribingIdentityPatients"')
     expect(sidebarSource).toContain("useLiveStaffNavCounts")
@@ -234,7 +230,6 @@ describe("admin navigation contract", () => {
     const adminRouteSources = [
       adminDashboardClientSource,
       opsParchmentSource,
-      readFileSync(join(process.cwd(), "app/admin/ops/sla/page.tsx"), "utf8"),
       readFileSync(join(process.cwd(), "app/admin/ops/patient-merge-audit/page.tsx"), "utf8"),
       readFileSync(join(process.cwd(), "app/admin/patients/page.tsx"), "utf8"),
       readFileSync(join(process.cwd(), "components/shared/ops/reconciliation-client.tsx"), "utf8"),
@@ -284,7 +279,6 @@ describe("admin navigation contract", () => {
     const nestedOpsSources = [
       readFileSync(join(process.cwd(), "app/admin/ops/reconciliation/page.tsx"), "utf8"),
       readFileSync(join(process.cwd(), "app/admin/ops/intakes-stuck/page.tsx"), "utf8"),
-      readFileSync(join(process.cwd(), "app/admin/ops/doctors/page.tsx"), "utf8"),
     ].join("\n")
 
     expect(nestedOpsSources).toContain('requireRole(["admin"]')
@@ -305,12 +299,9 @@ describe("admin navigation contract", () => {
 
     expect(adminPageSources).not.toContain('redirectTo: "/doctor/dashboard"')
     expect(adminPageSources).toContain('redirectTo: "/admin"')
-    // Phase 2 of dashboard remaster (2026-05-12): /admin/page.tsx is a thin
-    // redirect to /dashboard; it does not run a role check itself (the
-    // dashboard does that). Its only job is to preserve search params.
-    expect(adminPageSource).toContain('redirect(')
-    expect(adminPageSource).toContain('"/dashboard"')
-    expect(adminPageSource).not.toContain("getAuthenticatedUserWithProfile")
+    expect(nextConfigSource).toContain('source: "/admin"')
+    expect(nextConfigSource).toContain('destination: "/dashboard"')
+    expect(findAdminPageFiles()).not.toContain(join(process.cwd(), "app/admin/page.tsx"))
   })
 
   it("routes the generic dashboard entrypoint to the canonical /dashboard surface", () => {
@@ -324,14 +315,13 @@ describe("admin navigation contract", () => {
     expect(dashboardRedirectSource).toContain("SystemHealthPill")
     expect(dashboardRedirectSource).toContain("QueueClient")
     // Legacy URLs forward to /dashboard.
-    expect(adminPageSource).toContain('"/dashboard"')
+    expect(nextConfigSource).toContain('source: "/admin"')
+    expect(nextConfigSource).toContain('destination: "/dashboard"')
     expect(nextConfigSource).toContain('source: "/doctor/dashboard", destination: "/dashboard"')
   })
 
   it("keeps admin data pages explicitly admin-gated at page level", () => {
     const redirectOnlyPages = new Set([
-      // Phase 2: /admin itself is now a redirect to /dashboard.
-      join(process.cwd(), "app/admin/page.tsx"),
       // Phase 7: bounded support ops pages deliberately allow support through
       // the admin shell while keeping PHI-heavy admin data pages locked.
       join(process.cwd(), "app/admin/ops/page.tsx"),
@@ -362,15 +352,12 @@ describe("admin navigation contract", () => {
       "app/admin/finance/page.tsx",
       "app/admin/intakes/[id]/page.tsx",
       "app/admin/intakes/page.tsx",
-      "app/admin/ops/doctors/page.tsx",
       "app/admin/ops/intakes-stuck/page.tsx",
       "app/admin/ops/page.tsx",
       "app/admin/ops/parchment/page.tsx",
       "app/admin/ops/patient-merge-audit/page.tsx",
       "app/admin/ops/prescribing-identity/page.tsx",
       "app/admin/ops/reconciliation/page.tsx",
-      "app/admin/ops/sla/page.tsx",
-      "app/admin/page.tsx",
       "app/admin/patients/page.tsx",
       "app/admin/refunds/page.tsx",
       "app/admin/services/page.tsx",
@@ -434,7 +421,7 @@ describe("admin navigation contract", () => {
     expect(opsParchmentSource).toContain("function isUuid")
     expect(opsParchmentSource).toContain("PatientLink patientProfileId={event.patientProfileId}")
     expect(opsParchmentSource).toContain("PatientLink patientProfileId={failure.patientProfileId}")
-    expect(financeClientSource).toContain('href="/admin/refunds"')
+    expect(financeClientSource).toContain("ADMIN_REFUNDS_HREF")
   })
 
   it("keeps payment webhook recovery copy separate from Parchment recovery copy", () => {
@@ -469,5 +456,9 @@ describe("admin navigation contract", () => {
     expect(nextConfigSource).toContain('destination: "/admin/audit"')
     expect(nextConfigSource).toContain('source: "/admin/email-test"')
     expect(nextConfigSource).toContain('destination: "/admin/emails"')
+    expect(nextConfigSource).toContain('source: "/admin/ops/doctors"')
+    expect(nextConfigSource).toContain('destination: "/admin/doctors"')
+    expect(nextConfigSource).toContain('source: "/admin/ops/sla"')
+    expect(nextConfigSource).toContain('destination: "/admin/analytics?tab=queue"')
   })
 })

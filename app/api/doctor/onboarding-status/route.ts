@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { requireApiRole } from "@/lib/auth/helpers"
-import { DOCTOR_QUEUE_REVIEW_HREF } from "@/lib/dashboard/routes"
+import { STAFF_DOCTOR_SETTINGS_HREF, STAFF_IDENTITY_HREF, STAFF_QUEUE_HREF } from "@/lib/dashboard/routes"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
         label: "Complete your profile",
         description: "Add your name, email, and phone number",
         completed: !!(profile.full_name && profile.email && profile.phone),
-        href: "/doctor/settings",
+        href: STAFF_DOCTOR_SETTINGS_HREF,
         required: true,
       },
       {
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
         label: "Enter your AHPRA number",
         description: "Your AHPRA registration number (e.g., MED0002576546)",
         completed: !!profile.ahpra_number,
-        href: "/doctor/settings/identity",
+        href: STAFF_IDENTITY_HREF,
         required: true,
       },
       {
@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
         label: "Enter your provider number",
         description: "Your Medicare provider number for prescribing",
         completed: !!profile.provider_number,
-        href: "/doctor/settings/identity",
+        href: STAFF_IDENTITY_HREF,
         required: true,
       },
       {
@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
         label: "Upload your signature",
         description: "Optional - used on medical certificates. If not provided, 'Electronically signed' will be shown",
         completed: !!profile.signature_storage_path,
-        href: "/doctor/settings/identity",
+        href: STAFF_IDENTITY_HREF,
         required: false,
       },
       {
@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
         label: "Review your first request",
         description: "Familiarise yourself with the review workflow by reviewing a patient request",
         completed: hasReviewedIntake,
-        href: DOCTOR_QUEUE_REVIEW_HREF,
+        href: STAFF_QUEUE_HREF,
         required: false,
       },
     ]

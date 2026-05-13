@@ -17,7 +17,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect,useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -25,10 +25,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { DatePickerField } from "@/components/uix"
-import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
+import { STAFF_DASHBOARD_HREF, STAFF_IDENTITY_HREF } from "@/lib/dashboard/routes"
 import type { DocumentDraft, GeneratedDocument, IntakeWithDetails, MedCertDraftData } from "@/types/db"
 
-import { generateMedCertPdfAndApproveAction, generatePreviewPdfAction,saveMedCertDraftAction } from "./actions"
+import { generateMedCertPdfAndApproveAction, generatePreviewPdfAction, saveMedCertDraftAction } from "./actions"
 
 interface AIDrafts {
   clinicalNote: Record<string, unknown> | null
@@ -256,7 +256,7 @@ export function DocumentBuilderClient({
                 You need to set up your Provider Number and AHPRA Registration before issuing certificates.
               </p>
               <Button asChild variant="outline" size="sm" className="mt-2">
-                <Link href="/doctor/settings/identity">Configure Certificate Identity →</Link>
+                <Link href={STAFF_IDENTITY_HREF}>Configure Certificate Identity →</Link>
               </Button>
             </div>
           </CardContent>

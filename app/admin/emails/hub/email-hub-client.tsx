@@ -29,6 +29,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  ADMIN_EMAIL_HUB_HREF,
+  ADMIN_EMAIL_SUPPRESSION_HREF,
+  ADMIN_EMAIL_TEMPLATE_EDITOR_HREF,
+  STAFF_OPS_HREF,
+} from "@/lib/dashboard/routes"
 import { EMAIL_SEQUENCES } from "@/lib/email/sequence-registry"
 import { formatTimeAgo } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -162,7 +168,7 @@ export function EmailHubClient({
     } else {
       params.delete("tab")
     }
-    router.replace(params.toString() ? `/admin/emails/hub?${params}` : "/admin/emails/hub", { scroll: false })
+    router.replace(params.toString() ? `${ADMIN_EMAIL_HUB_HREF}?${params}` : ADMIN_EMAIL_HUB_HREF, { scroll: false })
   }
 
   const handleSendOpsTestEmail = () => {
@@ -228,7 +234,7 @@ export function EmailHubClient({
       <OperatorPageHeader
         title="Email delivery"
         description="Queue recovery, template edits, suppression, and delivery checks."
-        backHref="/admin/ops"
+        backHref={STAFF_OPS_HREF}
         actions={
           <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" onClick={handleSendOpsTestEmail} disabled={isSendingTest}>
@@ -239,7 +245,7 @@ export function EmailHubClient({
             {isRefreshing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
             Refresh
           </Button>
-          <Link href="/admin/emails">
+          <Link href={ADMIN_EMAIL_TEMPLATE_EDITOR_HREF}>
             <Button size="sm">
               <Edit className="h-4 w-4 mr-2" />
               Templates
@@ -360,7 +366,7 @@ export function EmailHubClient({
           {/* Quick Actions */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <Link href="/admin/emails">
+              <Link href={ADMIN_EMAIL_TEMPLATE_EDITOR_HREF}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Edit className="h-5 w-5" />
@@ -382,7 +388,7 @@ export function EmailHubClient({
             </Card>
 
             <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <Link href="/admin/emails/suppression">
+              <Link href={ADMIN_EMAIL_SUPPRESSION_HREF}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <ShieldAlert className="h-5 w-5" />
@@ -786,7 +792,7 @@ export function EmailHubClient({
               <MailOpen className="mr-2 h-4 w-4" />
               Back to overview
             </Button>
-            <Link href="/admin/emails/suppression">
+            <Link href={ADMIN_EMAIL_SUPPRESSION_HREF}>
               <Button variant="outline">
                 <ShieldAlert className="mr-2 h-4 w-4" />
                 Suppression List

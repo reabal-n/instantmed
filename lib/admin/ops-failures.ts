@@ -6,6 +6,7 @@ import {
   ADMIN_STALE_INTAKES_HREF,
   ADMIN_WEBHOOK_DLQ_HREF,
   buildAdminIntakeHref,
+  buildAdminIntakeLedgerHref,
 } from "@/lib/dashboard/routes"
 
 type Severity = "critical" | "warning"
@@ -164,7 +165,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
       id: "certificate_delivery",
       label: "Medical certificates",
       count: input.certificateFailures.length,
-      href: "/admin/intakes?status=approved",
+      href: buildAdminIntakeLedgerHref({ status: "approved" }),
       severity: "critical",
       emptyLabel: "No certificate send failures",
     },
@@ -237,7 +238,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
       title: "Certificate send failed",
       detail: row.email_failure_reason || "Certificate email needs retry",
       occurredAt: row.email_failed_at || row.updated_at || "",
-      href: row.intake_id ? buildAdminIntakeHref(row.intake_id) : "/admin/intakes?status=approved",
+      href: row.intake_id ? buildAdminIntakeHref(row.intake_id) : buildAdminIntakeLedgerHref({ status: "approved" }),
       severity: "critical" as const,
     })),
     ...input.prescriptionWebhookFailures.map((row) => ({

@@ -44,6 +44,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Pagination, ScrollShadow,Skeleton, Tooltip } from "@/components/uix"
+import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { AuditLog, AuditLogFilters } from "@/lib/data/types/audit-logs"
 import { formatActorType,formatEventType, getAuditEventTypes } from "@/lib/data/types/audit-logs"
 
@@ -146,7 +147,7 @@ export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogCli
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/admin">
+            <Link href={STAFF_DASHBOARD_HREF}>
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>

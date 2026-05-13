@@ -59,7 +59,7 @@ describe("doctor patient medication history contract", () => {
     expect(detailSource).toContain("Refresh")
     expect(detailSource).toContain("Sync")
     expect(detailSource).toContain("Prescriber not linked")
-    expect(detailSource).toContain("/doctor/settings/identity#parchment-account")
+    expect(detailSource).toContain("`${STAFF_IDENTITY_HREF}#parchment-account`")
     expect(detailSource).toContain("Parchment integration disabled")
   })
 

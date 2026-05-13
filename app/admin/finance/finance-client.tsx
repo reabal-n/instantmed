@@ -30,6 +30,7 @@ import {
 } from "@/components/charts/lazy-charts"
 import { DashboardGrid, DashboardPageHeader, StatCard } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
+import { ADMIN_REFUNDS_HREF, STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import { formatCurrency } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
@@ -118,12 +119,12 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
         <DashboardPageHeader
           title="Finance Dashboard"
           description="Revenue, refunds, and financial metrics"
-          backHref="/admin"
-          backLabel="Admin"
+          backHref={STAFF_DASHBOARD_HREF}
+          backLabel="Staff cockpit"
           actions={
             <>
               <Button variant="outline" asChild>
-                <Link href="/admin/refunds">
+                <Link href={ADMIN_REFUNDS_HREF}>
                   <RotateCcw className="h-4 w-4" />
                   Refunds
                 </Link>

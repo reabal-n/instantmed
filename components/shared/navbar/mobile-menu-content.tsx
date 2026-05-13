@@ -18,7 +18,12 @@ import { ServiceIconTile } from "@/components/icons/service-icons"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { services } from "@/components/shared/navbar/services-dropdown"
 import { AnimatedMobileMenu } from "@/components/ui/animated-mobile-menu"
-import { STAFF_QUEUE_HREF } from "@/lib/dashboard/routes"
+import {
+  STAFF_DOCTOR_PATIENTS_HREF,
+  STAFF_DOCTOR_SCRIPTS_HREF,
+  STAFF_IDENTITY_HREF,
+  STAFF_QUEUE_HREF,
+} from "@/lib/dashboard/routes"
 
 interface MobileMenuContentProps {
   variant: "marketing" | "patient" | "doctor"
@@ -141,17 +146,17 @@ export function MobileMenuContent({ variant, onClose }: MobileMenuContentProps) 
           onClose={onClose}
         />
         <AnimatedMobileMenu.Item
-          item={{ label: "Scripts", href: "/doctor/scripts", icon: <ClipboardList className="h-5 w-5" /> }}
+          item={{ label: "Scripts", href: STAFF_DOCTOR_SCRIPTS_HREF, icon: <ClipboardList className="h-5 w-5" /> }}
           index={1}
           onClose={onClose}
         />
         <AnimatedMobileMenu.Item
-          item={{ label: "Patients", href: "/doctor/patients", icon: <User className="h-5 w-5" /> }}
+          item={{ label: "Patients", href: STAFF_DOCTOR_PATIENTS_HREF, icon: <User className="h-5 w-5" /> }}
           index={2}
           onClose={onClose}
         />
         <AnimatedMobileMenu.Item
-          item={{ label: "Identity", href: "/doctor/settings/identity", icon: <Settings className="h-5 w-5" /> }}
+          item={{ label: "Identity", href: STAFF_IDENTITY_HREF, icon: <Settings className="h-5 w-5" /> }}
           index={3}
           onClose={onClose}
         />

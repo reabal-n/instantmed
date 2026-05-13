@@ -35,6 +35,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { TypedConfirmDialog } from "@/components/ui/typed-confirm-dialog"
+import { STAFF_DOCTOR_PATIENTS_HREF, STAFF_IDENTITY_HREF } from "@/lib/dashboard/routes"
 import { buildPatientSnapshot } from "@/lib/doctor/patient-snapshot"
 import { formatDate, formatDateLong } from "@/lib/format"
 import { formatIntakeStatus } from "@/lib/format/intake"
@@ -315,7 +316,7 @@ export function PatientDetailClient({
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-3">
           <Button variant="ghost" className="px-0 text-muted-foreground hover:bg-transparent hover:text-foreground" asChild>
-            <Link href="/doctor/patients">
+            <Link href={STAFF_DOCTOR_PATIENTS_HREF}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Patients
             </Link>
@@ -394,7 +395,7 @@ export function PatientDetailClient({
         <div className="ml-auto flex shrink-0 flex-wrap items-center gap-2">
           {parchmentEnabled && !parchmentUserLinked ? (
             <Button type="button" variant="outline" size="sm" asChild>
-              <Link href="/doctor/settings/identity#parchment-account">Link prescriber</Link>
+              <Link href={`${STAFF_IDENTITY_HREF}#parchment-account`}>Link prescriber</Link>
             </Button>
           ) : null}
           {canUseParchment && !patient.parchment_patient_id ? (

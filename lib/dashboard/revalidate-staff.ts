@@ -59,7 +59,6 @@ const STAFF_OPS_PATHS = [
   "/admin/ops/intakes-stuck",
   "/admin/ops/parchment",
   "/admin/ops/reconciliation",
-  "/admin/ops/sla",
   "/admin/ops/prescribing-identity",
   "/admin/ops/patient-merge-audit",
   "/admin/webhook-dlq",

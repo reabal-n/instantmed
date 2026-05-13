@@ -16,6 +16,7 @@ import { ServiceFormDialog } from "@/app/admin/services/service-form-dialog"
 import { ServicesStats, ServicesTableCard, ToggleConfirmDialog } from "@/app/admin/services/services-table"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
+import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { Service, ServiceInput } from "@/lib/data/types/services"
 
 interface ServicesConfigClientProps {
@@ -219,7 +220,7 @@ export function ServicesConfigClient({ initialServices }: ServicesConfigClientPr
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/admin">
+            <Link href={STAFF_DASHBOARD_HREF}>
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>

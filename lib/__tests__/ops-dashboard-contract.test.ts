@@ -35,16 +35,8 @@ const patientMergeAuditPageSource = readFileSync(
   join(process.cwd(), "app/admin/ops/patient-merge-audit/page.tsx"),
   "utf8",
 )
-const slaOpsPageSource = readFileSync(
-  join(process.cwd(), "app/admin/ops/sla/page.tsx"),
-  "utf8",
-)
 const stuckIntakesClientSource = readFileSync(
   join(process.cwd(), "components/shared/ops/intakes-stuck-client.tsx"),
-  "utf8",
-)
-const doctorOpsClientSource = readFileSync(
-  join(process.cwd(), "components/shared/ops/doctor-ops-client.tsx"),
   "utf8",
 )
 const reconciliationClientSource = readFileSync(
@@ -120,9 +112,7 @@ describe("ops dashboard data contract", () => {
       parchmentOpsPageSource,
       prescribingIdentityOpsPageSource,
       patientMergeAuditPageSource,
-      slaOpsPageSource,
       stuckIntakesClientSource,
-      doctorOpsClientSource,
       reconciliationClientSource,
     ]
 
@@ -290,12 +280,10 @@ describe("ops dashboard data contract", () => {
     expect(reconciliationClientSource).not.toContain("<Table")
     expect(reconciliationClientSource).not.toContain("reconciliation-table")
 
-    expect(doctorOpsClientSource).toContain('data-testid="doctor-ops-task-list"')
-    expect(doctorOpsClientSource).toContain("Summary chips")
-    expect(doctorOpsClientSource).toContain("<details")
-    expect(doctorOpsClientSource).toContain("Metrics guide")
-    expect(doctorOpsClientSource).not.toContain("<Table")
-    expect(doctorOpsClientSource).not.toContain("doctor-ops-table")
+    expect(nextConfigSource).toContain('source: "/admin/ops/doctors"')
+    expect(nextConfigSource).toContain('destination: "/admin/doctors"')
+    expect(nextConfigSource).toContain('source: "/admin/ops/sla"')
+    expect(nextConfigSource).toContain('destination: "/admin/analytics?tab=queue"')
   })
 
   it("surfaces failed refunds in ops without adding a broad finance dashboard", () => {

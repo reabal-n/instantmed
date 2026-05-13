@@ -5,19 +5,21 @@ import {
   hasSupportAccess,
 } from "@/lib/auth/staff-capabilities"
 import {
-  ADMIN_ANALYTICS_HREF,
-  ADMIN_DASHBOARD_HREF,
-  ADMIN_DOCTOR_QUEUE_HREF,
-  ADMIN_FINANCE_HREF,
-  ADMIN_INTAKE_LEDGER_HREF,
-  ADMIN_OPS_HREF,
   ADMIN_PARCHMENT_OPS_HREF,
-  ADMIN_PATIENTS_HREF,
   ADMIN_PRESCRIBING_IDENTITY_HREF,
-  ADMIN_SCRIPTS_HREF,
-  ADMIN_SETTINGS_HREF,
   ADMIN_WEBHOOK_DLQ_HREF,
+  STAFF_ANALYTICS_HREF,
+  STAFF_DASHBOARD_HREF,
+  STAFF_DOCTOR_PATIENTS_HREF,
+  STAFF_DOCTOR_SCRIPTS_HREF,
+  STAFF_FINANCE_HREF,
+  STAFF_IDENTITY_HREF,
+  STAFF_LEDGER_HREF,
+  STAFF_OPS_HREF,
+  STAFF_PATIENTS_HREF,
   STAFF_QUEUE_HREF,
+  STAFF_SCRIPTS_HREF,
+  STAFF_SETTINGS_HREF,
 } from "@/lib/dashboard/routes"
 import type { Profile } from "@/types/db"
 
@@ -64,25 +66,25 @@ export const operatorNavSections: StaffNavSection[] = [
   {
     title: "Today",
     items: [
-      { href: ADMIN_DASHBOARD_HREF, label: "Dashboard", icon: "dashboard" },
-      { href: ADMIN_INTAKE_LEDGER_HREF, label: "Requests", icon: "intakeLedger" },
-      { href: ADMIN_DOCTOR_QUEUE_HREF, label: "Review", icon: "queue" },
-      { href: ADMIN_SCRIPTS_HREF, label: "Scripts", icon: "scripts", badgeKey: "scriptsToWrite", badgeTone: "primary" },
-      { href: ADMIN_PATIENTS_HREF, label: "Patients", icon: "users", badgeKey: "prescribingIdentityPatients", badgeTone: "warning" },
+      { href: STAFF_DASHBOARD_HREF, label: "Dashboard", icon: "dashboard" },
+      { href: STAFF_LEDGER_HREF, label: "Requests", icon: "intakeLedger" },
+      { href: STAFF_QUEUE_HREF, label: "Review", icon: "queue" },
+      { href: STAFF_SCRIPTS_HREF, label: "Scripts", icon: "scripts", badgeKey: "scriptsToWrite", badgeTone: "primary" },
+      { href: STAFF_PATIENTS_HREF, label: "Patients", icon: "users", badgeKey: "prescribingIdentityPatients", badgeTone: "warning" },
     ],
   },
   {
     title: "Run",
     items: [
-      { href: ADMIN_ANALYTICS_HREF, label: "Analytics", icon: "analytics" },
-      { href: ADMIN_FINANCE_HREF, label: "Payments", icon: "dollar" },
-      { href: ADMIN_OPS_HREF, label: "Ops", icon: "activity" },
+      { href: STAFF_ANALYTICS_HREF, label: "Analytics", icon: "analytics" },
+      { href: STAFF_FINANCE_HREF, label: "Payments", icon: "dollar" },
+      { href: STAFF_OPS_HREF, label: "Ops", icon: "activity" },
     ],
   },
   {
     title: "Setup",
     items: [
-      { href: ADMIN_SETTINGS_HREF, label: "Settings", icon: "settings" },
+      { href: STAFF_SETTINGS_HREF, label: "Settings", icon: "settings" },
     ],
   },
 ]
@@ -92,20 +94,20 @@ export const doctorNavSections: StaffNavSection[] = [
     title: "Work",
     items: [
       { href: STAFF_QUEUE_HREF, label: "Queue", icon: "intakeLedger", badge: true, badgeKey: "inQueue", badgeTone: "primary" },
-      { href: "/doctor/scripts", label: "Scripts", icon: "scripts", badgeKey: "scriptsToWrite", badgeTone: "primary" },
-      { href: "/doctor/patients", label: "Patients", icon: "users" },
+      { href: STAFF_DOCTOR_SCRIPTS_HREF, label: "Scripts", icon: "scripts", badgeKey: "scriptsToWrite", badgeTone: "primary" },
+      { href: STAFF_DOCTOR_PATIENTS_HREF, label: "Patients", icon: "users" },
     ],
   },
   {
     title: "Setup",
     items: [
-      { href: "/doctor/settings/identity", label: "Identity", icon: "settings" },
+      { href: STAFF_IDENTITY_HREF, label: "Identity", icon: "settings" },
     ],
   },
 ]
 
 export const doctorOperatorNavItems: StaffNavItem[] = [
-  { href: ADMIN_DASHBOARD_HREF, label: "Operations", icon: "shield" },
+  { href: STAFF_DASHBOARD_HREF, label: "Operations", icon: "shield" },
 ]
 
 // ── Canonical role-aware nav (Phase 1 of dashboard remaster, 2026-05-11) ────
@@ -126,7 +128,7 @@ export const supportNavSections: StaffNavSection[] = [
   {
     title: "Operations",
     items: [
-      { href: ADMIN_OPS_HREF, label: "Operations", icon: "activity" },
+      { href: STAFF_OPS_HREF, label: "Operations", icon: "activity" },
       { href: ADMIN_WEBHOOK_DLQ_HREF, label: "Webhook retries", icon: "shield" },
       { href: ADMIN_PARCHMENT_OPS_HREF, label: "Parchment recovery", icon: "queue" },
       { href: ADMIN_PRESCRIBING_IDENTITY_HREF, label: "Identity chase-ups", icon: "users" },

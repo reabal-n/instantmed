@@ -59,7 +59,7 @@ export const dynamic = "force-dynamic"
  *
  * Phase 2 of dashboard remaster (2026-05-12). Renders one role-aware surface
  * for admin, doctor, and support roles. Old `/admin` and doctor entrypoints
- * URLs 307 here.
+ * redirect here from next.config.mjs.
  *
  * Layout (admin or doctor):
  *   - Header: title + system health pill + availability toggle

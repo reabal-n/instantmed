@@ -173,7 +173,9 @@ describe("doctor queue production contract", () => {
 
   it("retires duplicate doctor decision APIs in favour of canonical server actions", () => {
     expect(existsSync(join(process.cwd(), "app/api/doctor/update-request/route.ts"))).toBe(false)
+    expect(existsSync(join(process.cwd(), "app/api/doctor/assign-request/route.ts"))).toBe(false)
     expect(existsSync(join(process.cwd(), "app/api/doctor/bulk-action/route.ts"))).toBe(false)
+    expect(existsSync(join(process.cwd(), "app/api/doctor/drafts/[intakeId]/route.ts"))).toBe(false)
     expect(existsSync(join(process.cwd(), "app/api/doctor/export/route.ts"))).toBe(false)
     expect(existsSync(join(process.cwd(), "app/api/doctor/monitoring-stats/route.ts"))).toBe(false)
     expect(existsSync(join(process.cwd(), "app/api/intakes/[id]/approve/route.ts"))).toBe(false)

@@ -25,6 +25,6 @@ describe("navigation routing contracts", () => {
     expect(existsSync(path.join(root, "app/doctor/intakes/page.tsx"))).toBe(false)
     expect(existsSync(path.join(root, "app/doctor/scripts/page.tsx"))).toBe(true)
     expect(userMenu).not.toContain("href=\"/doctor/intakes\"")
-    expect(userMenu).toContain("href=\"/doctor/scripts\"")
+    expect(userMenu).toContain("STAFF_DOCTOR_SCRIPTS_HREF")
   })
 })

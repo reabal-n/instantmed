@@ -2,6 +2,7 @@ import { AdminDashboardClient } from "@/app/admin/admin-dashboard-client"
 import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
 import { PanelProvider } from "@/components/panels/panel-provider"
 import { requireRole } from "@/lib/auth/helpers"
+import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import { getAllIntakesForAdmin } from "@/lib/data/intakes"
 import type { IntakeWithPatient } from "@/types/db"
 
@@ -28,7 +29,7 @@ export default async function AdminIntakeLedgerPage() {
         <OperatorPageHeader
           title="Intake ledger"
           description="Search and filter all recent requests when the cockpit is not enough."
-          backHref="/admin"
+          backHref={STAFF_DASHBOARD_HREF}
           backLabel="Staff cockpit"
         />
 

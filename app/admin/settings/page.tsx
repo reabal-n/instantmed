@@ -14,7 +14,15 @@ import { GoogleAccountLinkCard } from "@/components/account/google-account-link-
 import { DashboardPageHeader } from "@/components/dashboard"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { requireRole } from "@/lib/auth/helpers"
-import { ADMIN_DOCTOR_IDENTITY_HREF } from "@/lib/dashboard/routes"
+import {
+  ADMIN_CLINIC_HREF,
+  ADMIN_DOCTOR_IDENTITY_HREF,
+  ADMIN_DOCTORS_HREF,
+  ADMIN_EMAIL_TEMPLATE_EDITOR_HREF,
+  ADMIN_FEATURES_HREF,
+  ADMIN_SERVICES_HREF,
+  ADMIN_TEMPLATE_STUDIO_HREF,
+} from "@/lib/dashboard/routes"
 
 export const dynamic = "force-dynamic"
 
@@ -44,13 +52,13 @@ const settingsGroups: SettingsGroup[] = [
       {
         label: "Clinic identity",
         description: "Provider details, clinic profile, and public-facing identity.",
-        href: "/admin/clinic",
+        href: ADMIN_CLINIC_HREF,
         icon: Building2,
       },
       {
         label: "Doctors",
         description: "Doctor records, provider numbers, and operational availability.",
-        href: "/admin/doctors",
+        href: ADMIN_DOCTORS_HREF,
         icon: Stethoscope,
       },
       {
@@ -62,13 +70,13 @@ const settingsGroups: SettingsGroup[] = [
       {
         label: "Services",
         description: "Service catalogue, pricing visibility, and request configuration.",
-        href: "/admin/services",
+        href: ADMIN_SERVICES_HREF,
         icon: Settings,
       },
       {
         label: "Feature flags",
         description: "Roll out operational features deliberately.",
-        href: "/admin/features",
+        href: ADMIN_FEATURES_HREF,
         icon: ToggleLeft,
       },
     ],
@@ -80,13 +88,13 @@ const settingsGroups: SettingsGroup[] = [
       {
         label: "Email templates",
         description: "Transactional email templates and copy.",
-        href: "/admin/emails",
+        href: ADMIN_EMAIL_TEMPLATE_EDITOR_HREF,
         icon: Mail,
       },
       {
         label: "Certificate templates",
         description: "Medical certificate layout and template configuration.",
-        href: "/admin/settings/templates",
+        href: ADMIN_TEMPLATE_STUDIO_HREF,
         icon: FileText,
       },
     ],

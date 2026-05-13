@@ -32,7 +32,9 @@ import {
   matchesAdminWorkLaneFilter,
 } from "@/lib/dashboard/admin-work-lanes"
 import {
+  ADMIN_OPS_HREF,
   ADMIN_PATIENTS_HREF,
+  ADMIN_REFUNDS_HREF,
   buildAdminDashboardHref,
   buildAdminIntakeHref,
 } from "@/lib/dashboard/routes"
@@ -325,7 +327,7 @@ export function AdminDashboardClient({
         id: "ops",
         title: "Ops",
         detail: "Webhook, email, script, and stale-request recovery",
-        href: "/admin/ops",
+        href: ADMIN_OPS_HREF,
         keywords: "operations recovery webhook email stale",
         label: "Go",
       },
@@ -333,7 +335,7 @@ export function AdminDashboardClient({
         id: "refunds",
         title: "Refunds",
         detail: "Refund decisions and failures",
-        href: "/admin/refunds",
+        href: ADMIN_REFUNDS_HREF,
         keywords: "refund finance payment",
         label: "Go",
       },

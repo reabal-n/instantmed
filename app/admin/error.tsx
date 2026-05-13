@@ -17,6 +17,7 @@ import { useEffect, useRef,useState } from "react"
 import { Button } from "@/components/ui/button"
 import { ErrorRefChip } from "@/components/ui/error-ref-chip"
 import { CONTACT_EMAIL } from "@/lib/constants"
+import { ADMIN_SETTINGS_HREF, STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 
 // Detect error type for better messaging
 function getErrorInfo(error: Error & { digest?: string }) {
@@ -117,7 +118,7 @@ export default function AdminError({
             </Button>
           )}
           <Button variant="outline" asChild className="w-full sm:w-auto">
-            <Link href="/admin">
+            <Link href={STAFF_DASHBOARD_HREF}>
               <Home className="mr-2 h-4 w-4" />
               Admin Home
             </Link>
@@ -126,7 +127,7 @@ export default function AdminError({
 
         <div className="mt-6 pt-6 border-t border-border/50 space-y-3">
           <Link
-            href="/admin/settings"
+            href={ADMIN_SETTINGS_HREF}
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <Settings className="h-4 w-4" />

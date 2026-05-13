@@ -12,12 +12,13 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useRef,useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { ErrorRefChip } from "@/components/ui/error-ref-chip"
 import { Heading } from "@/components/ui/heading"
 import { CONTACT_EMAIL } from "@/lib/constants"
+import { STAFF_DASHBOARD_HREF, STAFF_DOCTOR_PATIENTS_HREF } from "@/lib/dashboard/routes"
 
 // Detect error type for better messaging
 function getErrorInfo(error: Error & { digest?: string }) {
@@ -118,7 +119,7 @@ export default function DoctorError({
             </Button>
           )}
           <Button variant="outline" asChild className="w-full sm:w-auto">
-            <Link href="/dashboard">
+            <Link href={STAFF_DASHBOARD_HREF}>
               <LayoutDashboard className="mr-2 h-4 w-4" />
               Dashboard
             </Link>
@@ -127,7 +128,7 @@ export default function DoctorError({
 
         <div className="mt-6 pt-6 border-t border-border/50 space-y-3">
           <Link
-            href="/doctor/patients"
+            href={STAFF_DOCTOR_PATIENTS_HREF}
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <Users className="h-4 w-4" />

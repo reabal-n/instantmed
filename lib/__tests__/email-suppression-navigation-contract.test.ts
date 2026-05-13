@@ -17,7 +17,7 @@ describe("email suppression navigation contract", () => {
     const hubSource = readProjectFile("app/admin/emails/hub/email-hub-client.tsx")
     const nextConfigSource = readProjectFile("next.config.mjs")
 
-    expect(hubSource).toContain('href="/admin/emails/suppression"')
+    expect(hubSource).toContain("ADMIN_EMAIL_SUPPRESSION_HREF")
     expect(nextConfigSource).toContain('source: "/doctor/email-suppression"')
     expect(nextConfigSource).toContain('destination: "/admin/emails/suppression"')
   })

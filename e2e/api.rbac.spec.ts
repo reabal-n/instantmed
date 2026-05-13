@@ -11,7 +11,6 @@
  *
  * Routes exercised:
  * - GET  /api/doctor/onboarding-status   (doctor/admin only)
- * - POST /api/doctor/assign-request     (doctor/admin only, CSRF after auth)
  * - POST /api/med-cert/preview          (doctor/admin only, CSRF after auth)
  *
  * Notes on response codes:
@@ -26,7 +25,6 @@
 import { APIResponse, expect, test } from "@playwright/test"
 
 import { loginWithRequest } from "./helpers/auth"
-import { INTAKE_ID } from "./helpers/db"
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3001"
 
@@ -64,13 +62,6 @@ test.describe("API RBAC - Unauthenticated Requests", () => {
     expect(isDenied(response.status())).toBe(true)
   })
 
-  test("POST /api/doctor/assign-request is denied without auth", async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/api/doctor/assign-request`, {
-      data: { intake_id: INTAKE_ID, doctor_id: "00000000-0000-0000-0000-000000000000" },
-    })
-    expect(isDenied(response.status())).toBe(true)
-  })
-
   test("POST /api/med-cert/preview is denied without auth", async ({ request }) => {
     const response = await request.post(`${BASE_URL}/api/med-cert/preview`, {
       data: { draftData: { patient_full_name: "Test" } },
@@ -91,13 +82,6 @@ test.describe("API RBAC - Patient Role Restrictions", () => {
 
   test("patient cannot GET /api/doctor/onboarding-status", async ({ request }) => {
     const response = await request.get(`${BASE_URL}/api/doctor/onboarding-status`)
-    expect(isDenied(response.status())).toBe(true)
-  })
-
-  test("patient cannot POST /api/doctor/assign-request", async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/api/doctor/assign-request`, {
-      data: { intake_id: INTAKE_ID, doctor_id: "00000000-0000-0000-0000-000000000000" },
-    })
     expect(isDenied(response.status())).toBe(true)
   })
 
@@ -132,19 +116,6 @@ test.describe("API RBAC - Operator Role Access", () => {
       expect(body).toHaveProperty("steps")
       expect(body).toHaveProperty("summary")
     }
-  })
-
-  test("operator POST /api/doctor/assign-request - auth passes (CSRF may fail)", async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/api/doctor/assign-request`, {
-      data: {
-        intake_id: INTAKE_ID,
-        doctor_id: "e2e00000-0000-0000-0000-000000000001",
-      },
-    })
-    // Without a CSRF token, an authed operator hits CSRF and gets a handler 403
-    // ("Invalid or missing CSRF token"). The KEY assertion: NOT rejected by
-    // auth middleware (auth recognized).
-    expect(await wasRejectedByMiddleware(response)).toBe(false)
   })
 
   test("operator POST /api/med-cert/preview - auth passes (CSRF may fail)", async ({ request }) => {

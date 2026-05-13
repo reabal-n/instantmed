@@ -1,7 +1,11 @@
 import { PatientsListClient } from "@/components/admin/patient-directory-client"
 import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
 import { requireRole } from "@/lib/auth/helpers"
-import { ADMIN_PATIENTS_HREF, STAFF_PATIENT_DETAIL_BASE_HREF } from "@/lib/dashboard/routes"
+import {
+  ADMIN_PATIENTS_HREF,
+  STAFF_DASHBOARD_HREF,
+  STAFF_PATIENT_DETAIL_BASE_HREF,
+} from "@/lib/dashboard/routes"
 import { getPatientDirectoryPage, parsePatientDirectorySort } from "@/lib/data/patient-directory"
 
 const PAGE_SIZE = 50
@@ -32,7 +36,7 @@ export default async function AdminPatientsPage({
       <OperatorPageHeader
         title="Patients"
         description="Find a patient profile, prescribing identity, and request history."
-        backHref="/admin"
+        backHref={STAFF_DASHBOARD_HREF}
         backLabel="Staff cockpit"
       />
 

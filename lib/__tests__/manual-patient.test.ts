@@ -134,7 +134,7 @@ describe("manual patient creation", () => {
     // in the compact Prescribing strip (`Prescriber not linked` chip +
     // `Refresh` button) and link to the same identity-settings anchor.
     expect(patientDetailClientSource).toContain("Prescriber not linked")
-    expect(patientDetailClientSource).toContain("/doctor/settings/identity#parchment-account")
+    expect(patientDetailClientSource).toContain("`${STAFF_IDENTITY_HREF}#parchment-account`")
     expect(patientDetailClientSource).toContain("Refresh")
   })
 })

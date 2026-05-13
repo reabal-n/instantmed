@@ -64,7 +64,7 @@ test.describe("operator viewport contract", () => {
       { path: "/admin/ops/parchment", heading: /parchment ops/i },
       { path: "/admin/ops/patient-merge-audit", heading: /patient merge audit/i },
       { path: "/admin/ops/prescribing-identity", heading: /prescribing identity blocks/i },
-      { path: "/admin/ops/sla", heading: /sla monitor/i },
+      { path: "/admin/analytics?tab=queue", heading: /analytics/i },
       { path: "/admin/webhook-dlq", heading: /payment webhooks/i },
       { path: "/admin/refunds?status=failed", heading: /^refunds$/i },
       { path: "/admin/emails/hub?tab=queue", heading: /email delivery/i },

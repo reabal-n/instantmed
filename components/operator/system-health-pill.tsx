@@ -11,6 +11,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import {
+  ADMIN_EMAIL_HUB_HREF,
+  ADMIN_OPS_HREF,
+  ADMIN_PARCHMENT_OPS_HREF,
+  ADMIN_STALE_INTAKES_HREF,
+  ADMIN_WEBHOOK_DLQ_HREF,
+} from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 
 /**
@@ -154,28 +161,28 @@ export function SystemHealthPill({ initial }: { initial?: SystemHealth }) {
           <HealthRow
             label="Stuck intakes"
             count={health.stuckIntakes}
-            href="/admin/ops/intakes-stuck"
+            href={ADMIN_STALE_INTAKES_HREF}
           />
           <HealthRow
             label="Webhook failures"
             count={health.webhookFailures}
-            href="/admin/webhook-dlq"
+            href={ADMIN_WEBHOOK_DLQ_HREF}
           />
           <HealthRow
             label="Parchment failures"
             count={health.parchmentFailures}
-            href="/admin/ops/parchment"
+            href={ADMIN_PARCHMENT_OPS_HREF}
           />
           <HealthRow
             label="Email failures"
             count={health.emailFailures}
-            href="/admin/emails/hub"
+            href={ADMIN_EMAIL_HUB_HREF}
           />
         </div>
 
         <div className="mt-3 border-t border-border/50 pt-3">
           <Button asChild variant="outline" size="sm" className="w-full justify-center">
-            <Link href="/admin/ops">Open operations</Link>
+            <Link href={ADMIN_OPS_HREF}>Open operations</Link>
           </Button>
         </div>
       </PopoverContent>

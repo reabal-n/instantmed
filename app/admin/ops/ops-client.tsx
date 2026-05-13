@@ -16,7 +16,11 @@ import Link from "next/link"
 
 import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
 import { Button } from "@/components/ui/button"
-import { ADMIN_PATIENT_MERGE_AUDIT_HREF } from "@/lib/dashboard/routes"
+import {
+  ADMIN_PATIENT_MERGE_AUDIT_HREF,
+  ADMIN_PRESCRIBING_IDENTITY_HREF,
+  STAFF_DASHBOARD_HREF,
+} from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 
 interface OpsData {
@@ -260,7 +264,7 @@ export function OpsDashboardClient({ ops, supportMode = false }: OpsDashboardCli
         description={supportMode
           ? "Support view. Recovery summaries only; PHI-heavy logs stay behind admin review."
           : "Recovery paths only. Detailed logs stay inside their owning pages."}
-        backHref={supportMode ? undefined : "/admin"}
+        backHref={supportMode ? undefined : STAFF_DASHBOARD_HREF}
         backLabel="Dashboard"
         actions={
           <div className="flex flex-wrap items-center gap-2">
@@ -336,7 +340,7 @@ export function OpsDashboardClient({ ops, supportMode = false }: OpsDashboardCli
             </div>
             <Button asChild variant="outline" size="sm">
               {supportMode ? (
-                <Link href="/admin/ops/prescribing-identity">
+                <Link href={ADMIN_PRESCRIBING_IDENTITY_HREF}>
                   Identity chase-ups
                   <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
                 </Link>

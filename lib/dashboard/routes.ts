@@ -13,6 +13,9 @@ export const STAFF_FINANCE_HREF = "/admin/finance" as const
 export const STAFF_EMAILS_HREF = "/admin/emails/hub" as const
 export const STAFF_SETTINGS_HREF = "/admin/settings" as const
 export const STAFF_IDENTITY_HREF = "/doctor/settings/identity" as const
+export const STAFF_DOCTOR_SETTINGS_HREF = "/doctor/settings" as const
+export const STAFF_DOCTOR_SCRIPTS_HREF = "/doctor/scripts" as const
+export const STAFF_DOCTOR_PATIENTS_HREF = "/doctor/patients" as const
 export const STAFF_PATIENT_DETAIL_BASE_HREF = "/doctor/patients" as const
 
 export function buildStaffPatientHref(patientId: string): string {
@@ -33,15 +36,30 @@ export const ADMIN_ANALYTICS_HREF = "/admin/analytics" as const
 export const ADMIN_FINANCE_HREF = "/admin/finance" as const
 export const ADMIN_OPS_HREF = "/admin/ops" as const
 export const ADMIN_SETTINGS_HREF = "/admin/settings" as const
+export const ADMIN_CLINIC_HREF = "/admin/clinic" as const
+export const ADMIN_DOCTORS_HREF = "/admin/doctors" as const
+export const ADMIN_SERVICES_HREF = "/admin/services" as const
+export const ADMIN_FEATURES_HREF = "/admin/features" as const
 export const ADMIN_DOCTOR_IDENTITY_HREF = "/admin/settings/doctor-identity" as const
+export const ADMIN_TEMPLATE_STUDIO_HREF = "/admin/settings/templates" as const
+export const ADMIN_ENCRYPTION_HREF = "/admin/settings/encryption" as const
 export const ADMIN_AUDIT_HREF = "/admin/audit" as const
 export const ADMIN_EMAIL_HUB_HREF = "/admin/emails/hub" as const
+export const ADMIN_EMAIL_TEMPLATE_EDITOR_HREF = "/admin/emails" as const
+export const ADMIN_EMAIL_SUPPRESSION_HREF = "/admin/emails/suppression" as const
 export const ADMIN_REFUNDS_HREF = "/admin/refunds" as const
 export const ADMIN_WEBHOOK_DLQ_HREF = "/admin/webhook-dlq" as const
 export const ADMIN_PARCHMENT_OPS_HREF = "/admin/ops/parchment" as const
 export const ADMIN_STALE_INTAKES_HREF = "/admin/ops/intakes-stuck" as const
 export const ADMIN_PATIENT_MERGE_AUDIT_HREF = "/admin/ops/patient-merge-audit" as const
 export const ADMIN_PRESCRIBING_IDENTITY_HREF = "/admin/ops/prescribing-identity" as const
+
+export function buildAdminIntakeLedgerHref(options: { status?: string | null } = {}): string {
+  const params = new URLSearchParams()
+  if (options.status) params.set("status", options.status)
+  const query = params.toString()
+  return query ? `${ADMIN_INTAKE_LEDGER_HREF}?${query}` : ADMIN_INTAKE_LEDGER_HREF
+}
 
 export function buildAdminIntakeHref(intakeId: string): string {
   return `/admin/intakes/${encodeURIComponent(intakeId)}`
@@ -150,9 +168,8 @@ export function buildDoctorQueueRedirectHref(
   searchParams: Record<string, string | string[] | undefined>,
 ): string {
   // Resolve directly to the unified `STAFF_DASHBOARD_HREF` instead of the
-  // legacy `DOCTOR_DASHBOARD_HREF` alias — the alias itself 307s to the
-  // same target, so going through it adds a redirect hop on every
-  // `/doctor/queue` bookmark click.
+  // legacy `DOCTOR_DASHBOARD_HREF` alias so `/doctor/queue` bookmarks do not
+  // chain through another staff alias.
   return buildStaffDashboardHref({
     status: searchParams.status,
     page: searchParams.page,

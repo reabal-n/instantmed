@@ -22,7 +22,6 @@ const ADMIN_PAGES = [
   "/admin/features",
   "/admin/emails",
   "/admin/analytics",
-  "/admin/analytics?tab=business-kpis",
   "/admin/finance",
   "/admin/ops",
   "/admin/audit",
@@ -34,9 +33,7 @@ const ADMIN_PAGES = [
   "/admin/settings",
   "/admin/settings/templates",
   // Nested
-  "/admin/ops/sla",
   "/admin/ops/intakes-stuck",
-  "/admin/ops/doctors",
   "/admin/ops/reconciliation",
   "/admin/settings/encryption",
 ]
@@ -358,11 +355,10 @@ test.describe("Dashboard Audit - Link navigation", () => {
 
     // Click through key nav links
     const links = [
-      { href: "/admin/clinic" },
-      { href: "/admin/doctors" },
-      { href: "/admin/features" },
+      { href: "/admin/intakes" },
+      { href: "/admin/patients" },
       { href: "/admin/analytics", section: /analytics/i },
-      { href: "/admin/audit", section: /system/i },
+      { href: "/admin/ops", section: /ops/i },
     ]
 
     for (const { href, section } of links) {

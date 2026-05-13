@@ -59,6 +59,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Snippet,UserCard } from "@/components/uix"
+import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { DoctorIdentityInput } from "@/lib/data/doctor-identity.shared"
 import {
   validateAhpraNumber,
@@ -263,7 +264,7 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/admin">
+            <Link href={STAFF_DASHBOARD_HREF}>
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>

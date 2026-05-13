@@ -6,28 +6,22 @@ import { useEffect, useState } from "react"
 
 import { DashboardPageHeader } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
-import type { BusinessKPIData } from "@/lib/data/business-kpi"
+import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 
-import { AnalyticsBusinessKPIsTab } from "./analytics-business-kpis-tab"
 import { AnalyticsFunnelTab } from "./analytics-funnel-tab"
 import { type AnalyticsData, type TabKey } from "./analytics-helpers"
-import { AnalyticsOverviewTab } from "./analytics-overview-tab"
 import { AnalyticsQueueTab } from "./analytics-queue-tab"
 import { AnalyticsRevenueTab } from "./analytics-revenue-tab"
 
 interface AnalyticsDashboardClientProps {
   analytics: AnalyticsData
-  /** Optional KPI data; lets the Business KPIs tab degrade gracefully on fetch failure. */
-  businessKpis: BusinessKPIData | null
 }
 
 const VALID_TABS: TabKey[] = [
-  "overview",
-  "funnel",
   "revenue",
+  "funnel",
   "queue",
-  "business-kpis",
 ]
 
 function isValidTab(value: string | null): value is TabKey {
@@ -36,16 +30,14 @@ function isValidTab(value: string | null): value is TabKey {
 
 export function AnalyticsDashboardClient({
   analytics,
-  businessKpis,
 }: AnalyticsDashboardClientProps) {
   const searchParams = useSearchParams()
   const initial = searchParams.get("tab")
   const [activeTab, setActiveTab] = useState<TabKey>(
-    isValidTab(initial) ? initial : "overview",
+    isValidTab(initial) ? initial : "revenue",
   )
 
-  // Sync state when the URL ?tab= changes (back/forward navigation,
-  // /admin/business-kpi redirect landing here with ?tab=business-kpis).
+  // Sync state when the URL ?tab= changes (back/forward navigation).
   useEffect(() => {
     const next = searchParams.get("tab")
     if (isValidTab(next) && next !== activeTab) {
@@ -55,11 +47,9 @@ export function AnalyticsDashboardClient({
   }, [searchParams])
 
   const tabs: { key: TabKey; label: string }[] = [
-    { key: "overview", label: "Overview" },
-    { key: "funnel", label: "Conversion Funnel" },
     { key: "revenue", label: "Revenue" },
+    { key: "funnel", label: "Conversion" },
     { key: "queue", label: "Queue Health" },
-    { key: "business-kpis", label: "Business KPIs" },
   ]
 
   return (
@@ -67,10 +57,10 @@ export function AnalyticsDashboardClient({
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Header */}
         <DashboardPageHeader
-          title="Analytics Hub"
-          description="Comprehensive business intelligence and operational metrics"
-          backHref="/admin"
-          backLabel="Admin"
+          title="Analytics"
+          description="Revenue, conversion, and queue health only."
+          backHref={STAFF_DASHBOARD_HREF}
+          backLabel="Staff cockpit"
           actions={
             <Button variant="outline" asChild>
               <a href="https://app.posthog.com" target="_blank" rel="noopener noreferrer">
@@ -100,21 +90,9 @@ export function AnalyticsDashboardClient({
         </div>
 
         {/* Tab Content */}
-        {activeTab === "overview" && <AnalyticsOverviewTab analytics={analytics} />}
-        {activeTab === "funnel" && <AnalyticsFunnelTab analytics={analytics} />}
         {activeTab === "revenue" && <AnalyticsRevenueTab analytics={analytics} />}
+        {activeTab === "funnel" && <AnalyticsFunnelTab analytics={analytics} />}
         {activeTab === "queue" && <AnalyticsQueueTab analytics={analytics} />}
-        {activeTab === "business-kpis" && (
-          businessKpis ? (
-            <AnalyticsBusinessKPIsTab data={businessKpis} />
-          ) : (
-            <div className="rounded-xl border border-border/50 bg-muted/20 p-8 text-center">
-              <p className="text-sm text-muted-foreground">
-                Business KPIs are temporarily unavailable. Refresh in a moment.
-              </p>
-            </div>
-          )
-        )}
       </div>
     </div>
   )

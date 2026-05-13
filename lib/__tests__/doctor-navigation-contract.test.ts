@@ -186,9 +186,9 @@ describe("doctor navigation contract", () => {
   it("keeps legacy shared doctor menus aligned with the current doctor sitemap", () => {
     const sharedDoctorNav = [sharedUserMenuSource, sharedMobileMenuSource].join("\n")
 
-    expect(sharedDoctorNav).toContain("/doctor/scripts")
-    expect(sharedDoctorNav).toContain("/doctor/patients")
-    expect(sharedDoctorNav).toContain("/doctor/settings/identity")
+    expect(sharedDoctorNav).toContain("STAFF_DOCTOR_SCRIPTS_HREF")
+    expect(sharedDoctorNav).toContain("STAFF_DOCTOR_PATIENTS_HREF")
+    expect(sharedDoctorNav).toContain("STAFF_IDENTITY_HREF")
     expect(sharedDoctorNav).not.toContain("/doctor/intakes")
     expect(sharedMobileMenuSource).not.toContain('label: "Admin"')
   })
