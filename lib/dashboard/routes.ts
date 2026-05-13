@@ -13,13 +13,10 @@ export const STAFF_FINANCE_HREF = "/admin/finance" as const
 export const STAFF_EMAILS_HREF = "/admin/emails/hub" as const
 export const STAFF_SETTINGS_HREF = "/admin/settings" as const
 export const STAFF_IDENTITY_HREF = "/doctor/settings/identity" as const
-
-export function buildStaffCaseHref(intakeId: string): string {
-  return `/cases/${encodeURIComponent(intakeId)}`
-}
+export const STAFF_PATIENT_DETAIL_BASE_HREF = "/doctor/patients" as const
 
 export function buildStaffPatientHref(patientId: string): string {
-  return `/patients/${encodeURIComponent(patientId)}`
+  return `${STAFF_PATIENT_DETAIL_BASE_HREF}/${encodeURIComponent(patientId)}`
 }
 
 // ── Legacy aliases (kept until Phase 2 swaps the actual page locations) ─────

@@ -60,6 +60,19 @@ describe("staff navigation active matching", () => {
     })).toBe(false)
   })
 
+  it("keeps admin patient nav active on the shared clinical patient file", () => {
+    expect(isStaffNavItemActive({
+      pathname: "/doctor/patients/123",
+      href: "/admin/patients",
+      currentStatus: null,
+    })).toBe(true)
+    expect(isStaffNavItemActive({
+      pathname: "/doctor/patients/123",
+      href: "/admin/intakes",
+      currentStatus: null,
+    })).toBe(false)
+  })
+
   it("detects whether a nav set has dashboard status siblings", () => {
     expect(hasStatusFilteredDashboardItems([
       "/dashboard",

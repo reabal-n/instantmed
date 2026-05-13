@@ -34,6 +34,7 @@ describe("support nav contract", () => {
     // never appear here.
     expect(labels).not.toContain("Queue")
     expect(labels).not.toContain("Review queue")
+    expect(labels).not.toContain("Review")
     expect(labels).not.toContain("Scripts")
     expect(labels).not.toContain("Certificates")
     expect(labels).not.toContain("Patients")
@@ -49,20 +50,20 @@ describe("support nav contract", () => {
 
     expect(adminLabels).toEqual([
       "Dashboard",
-      "All requests",
-      "Review queue",
+      "Requests",
+      "Review",
       "Scripts",
       "Patients",
       "Analytics",
       "Payments",
-      "Recovery",
+      "Ops",
       "Settings",
     ])
     expect(doctorLabels).toEqual(["Queue", "Scripts", "Patients", "Identity"])
-    expect(doctorLabels).not.toContain("All requests")
+    expect(doctorLabels).not.toContain("Requests")
     expect(doctorLabels).not.toContain("Analytics")
     expect(doctorLabels).not.toContain("Payments")
-    expect(doctorLabels).not.toContain("Recovery")
+    expect(doctorLabels).not.toContain("Ops")
     expect(doctorLabels).not.toContain("Settings")
   })
 

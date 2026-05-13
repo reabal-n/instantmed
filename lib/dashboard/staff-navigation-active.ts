@@ -14,6 +14,10 @@ export function hasStatusFilteredDashboardItems(hrefs: string[]): boolean {
   )
 }
 
+const NAV_PATH_ALIASES: Record<string, string[]> = {
+  "/admin/patients": ["/doctor/patients"],
+}
+
 export function isStaffNavItemActive({
   pathname,
   href,
@@ -38,5 +42,6 @@ export function isStaffNavItemActive({
     return pathname === "/dashboard" && (!statusFilteredDashboard || !currentStatus)
   }
 
-  return pathname === hrefPath || pathname.startsWith(`${hrefPath}/`)
+  const equivalentPaths = [hrefPath, ...(NAV_PATH_ALIASES[hrefPath] ?? [])]
+  return equivalentPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`))
 }

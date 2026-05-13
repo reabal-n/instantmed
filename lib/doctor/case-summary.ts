@@ -1,3 +1,4 @@
+import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import { MIN_CLINICAL_NOTES_LENGTH } from "@/lib/doctor/clinical-notes"
 import {
   buildPatientSnapshot,
@@ -107,7 +108,7 @@ export function buildStaffCaseSummary({
     notesLabel: notesReady ? "Notes ready" : `${notesLength}/${MIN_CLINICAL_NOTES_LENGTH} notes`,
     previousLabel,
     profileHref: snapshot.profileHref,
-    adminProfileHref: `/admin/patients/${snapshot.id}`,
+    adminProfileHref: buildStaffPatientHref(snapshot.id),
     snapshot,
     isDone: DONE_STATUSES.has(intake.status),
     isLowPriority: !intake.is_priority && intake.risk_tier === "low",

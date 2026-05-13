@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs"
+import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
@@ -226,18 +226,10 @@ describe("doctor navigation contract", () => {
     expect(nextConfigSource).toContain('destination: "/admin/emails/suppression"')
   })
 
-  it("keeps doctor analytics as a compatibility redirect, not a second dashboard", () => {
-    const analyticsPageSource = readFileSync(
-      join(process.cwd(), "app/doctor/analytics/page.tsx"),
-      "utf8",
-    )
-
-    expect(analyticsPageSource).toContain('requireRole(["doctor", "admin"])')
-    expect(analyticsPageSource).toContain("hasAdminAccess(profile)")
-    expect(analyticsPageSource).toContain('redirect("/admin/analytics")')
-    expect(analyticsPageSource).toContain('redirect("/dashboard")')
-    expect(analyticsPageSource).not.toContain("createServiceRoleClient")
-    expect(analyticsPageSource).not.toContain("AnalyticsClient")
+  it("keeps doctor analytics pruned to a redirect, not a second dashboard", () => {
+    expect(existsSync(join(process.cwd(), "app/doctor/analytics/page.tsx"))).toBe(false)
+    expect(nextConfigSource).toContain('source: "/doctor/analytics", destination: "/dashboard"')
+    expect(nextConfigSource).not.toContain('destination: "/admin/analytics"')
   })
 
   it("keeps portal surfaces free of decorative progress motion", () => {

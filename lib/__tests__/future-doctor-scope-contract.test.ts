@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
@@ -38,13 +38,11 @@ describe("future doctor scope contract", () => {
   })
 
   it("keeps analytics out of the future-doctor operating surface", () => {
-    const source = read("app/doctor/analytics/page.tsx")
+    const nextConfigSource = read("next.config.mjs")
 
-    expect(source).toContain('requireRole(["doctor", "admin"])')
-    expect(source).toContain("hasAdminAccess(profile)")
-    expect(source).toContain('redirect("/admin/analytics")')
-    expect(source).toContain('redirect("/dashboard")')
-    expect(source).not.toContain("amount_cents")
+    expect(existsSync(join(root, "app/doctor/analytics/page.tsx"))).toBe(false)
+    expect(nextConfigSource).toContain('source: "/doctor/analytics", destination: "/dashboard"')
+    expect(nextConfigSource).not.toContain('source: "/doctor/analytics", destination: "/admin/analytics"')
   })
 
   it("defines concrete doctor-patient relationship sources and excludes the unclaimed queue", () => {

@@ -6,6 +6,7 @@ import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/componen
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { requireRole } from "@/lib/auth/helpers"
+import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import { getPatientProfileMergeAudit } from "@/lib/data/patient-profile-merge-audit"
 
 export const dynamic = "force-dynamic"
@@ -130,7 +131,7 @@ export default async function PatientMergeAuditPage() {
 
                 <div className="flex flex-wrap gap-2 lg:justify-end">
                   <Button variant="outline" size="sm" asChild>
-                    <Link href={`/admin/patients/${entry.canonicalProfileId}`}>
+                    <Link href={buildStaffPatientHref(entry.canonicalProfileId)}>
                       <ExternalLink className="h-3.5 w-3.5" />
                       Patient
                     </Link>

@@ -92,6 +92,11 @@ describe("doctor add patient Parchment contract", () => {
   it("lets doctors retry/open Parchment from an existing patient record", () => {
     const body = functionBody("openPatientInParchmentAction")
 
+    expect(detailSource).toContain('aria-label="Patient file status"')
+    expect(detailSource).toContain('label: "Identity"')
+    expect(detailSource).toContain('label: "Duplicate"')
+    expect(detailSource).toContain('label: "Parchment"')
+    expect(detailSource).toContain('label: "Last request"')
     expect(detailSource).toContain("Prescribe in Parchment")
     expect(detailSource).toContain("ParchmentPrescribePanel")
     expect(detailSource).toContain("handleOpenParchmentPrescribe")

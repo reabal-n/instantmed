@@ -136,13 +136,13 @@ describe("admin navigation contract", () => {
     expect(sidebarSource).not.toContain("systemNavItems")
     expect(labels).toEqual([
       "Dashboard",
-      "All requests",
-      "Review queue",
+      "Requests",
+      "Review",
       "Scripts",
       "Patients",
       "Analytics",
       "Payments",
-      "Recovery",
+      "Ops",
       "Settings",
     ])
     expect(sidebarSource).toContain("operatorNavSections")
@@ -234,7 +234,8 @@ describe("admin navigation contract", () => {
     ].join("\n")
 
     expect(adminRouteSources).toContain("/admin/intakes")
-    expect(adminRouteSources).toContain("/admin/patients")
+    expect(adminRouteSources).toContain("ADMIN_PATIENTS_HREF")
+    expect(adminRouteSources).toContain("buildStaffPatientHref")
     expect(adminRouteSources).not.toContain("/doctor/intakes")
     expect(adminRouteSources).not.toContain("/doctor/patients")
     const adminIntakeDetailSource = readFileSync(join(process.cwd(), "app/admin/intakes/[id]/page.tsx"), "utf8")

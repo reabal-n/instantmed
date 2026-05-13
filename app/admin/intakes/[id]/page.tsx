@@ -10,6 +10,7 @@ import { PanelProvider } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
 import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
 import { requireRole } from "@/lib/auth/helpers"
+import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { getIntakeWithDetails, getNextQueueIntakeId, getPatientIntakes, getPatientNotes } from "@/lib/data/intakes"
 import { getCertDeliveryStatus } from "@/lib/data/issued-certificates"
@@ -109,7 +110,7 @@ export default async function AdminIntakeDetailPage({
         supplementaryActions={
           <>
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/admin/patients/${intake.patient.id}`}>Patient record</Link>
+              <Link href={buildStaffPatientHref(intake.patient.id)}>Patient record</Link>
             </Button>
             <AdminRequestSummaryButton
               intake={intake}

@@ -4,8 +4,10 @@ import {
   AlertTriangle,
   ArrowLeft,
   CheckCircle,
+  FileText,
   GitMerge,
   Loader2,
+  type LucideIcon,
   Mail,
   MapPin,
   Phone,
@@ -101,6 +103,15 @@ interface ParchmentActivity {
 
 type PatientDetailProfile = Profile & {
   duplicate_profile_ids?: string[]
+}
+
+type PatientFileStatusTone = "success" | "warning" | "destructive" | "muted"
+
+const PATIENT_FILE_STATUS_TONE_CLASS: Record<PatientFileStatusTone, string> = {
+  success: "bg-success-light/55 text-success",
+  warning: "bg-warning-light/60 text-warning",
+  destructive: "bg-destructive/10 text-destructive",
+  muted: "bg-muted/45 text-muted-foreground",
 }
 
 interface PatientDetailClientProps {
@@ -259,6 +270,45 @@ export function PatientDetailClient({
   const parchmentStatusTone = canUseParchment
     ? patient.parchment_patient_id ? "success" : "warning"
     : "destructive"
+  const patientFileStatusItems: Array<{
+    label: string
+    value: string
+    tone: PatientFileStatusTone
+    icon: LucideIcon
+  }> = [
+    {
+      label: "Identity",
+      value: snapshot.completenessTone === "complete" ? "Ready" : snapshot.completenessLabel,
+      tone: snapshot.completenessTone === "complete"
+        ? "success"
+        : snapshot.completenessTone === "partial"
+          ? "warning"
+          : "destructive",
+      icon: snapshot.completenessTone === "complete" ? CheckCircle : AlertTriangle,
+    },
+    {
+      label: "Duplicate",
+      value: stats.linkedProfiles > 1
+        ? `${stats.linkedProfiles} linked${canMergeLinkedProfiles ? " · merge available" : ""}`
+        : "Single profile",
+      tone: stats.linkedProfiles > 1 ? "warning" : "muted",
+      icon: stats.linkedProfiles > 1 ? GitMerge : CheckCircle,
+    },
+    {
+      label: "Parchment",
+      value: patient.parchment_patient_id ? "Ready" : parchmentStatusLabel,
+      tone: parchmentStatusTone,
+      icon: patient.parchment_patient_id ? CheckCircle : Pill,
+    },
+    {
+      label: "Last request",
+      value: latestRequest
+        ? `${latestRequest.service?.short_name || latestRequest.service?.name || latestRequest.category || "Request"} · ${formatIntakeStatus(latestRequest.status)}`
+        : "No requests",
+      tone: "muted",
+      icon: FileText,
+    },
+  ]
 
   return (
     <div className="space-y-5">
@@ -312,6 +362,25 @@ export function PatientDetailClient({
         </div>
       </div>
 
+      <div
+        className="grid gap-2 rounded-xl border border-border/50 bg-card p-2 text-sm sm:grid-cols-2 xl:grid-cols-4"
+        aria-label="Patient file status"
+      >
+        {patientFileStatusItems.map((item) => (
+          <div key={item.label} className="flex min-w-0 items-center gap-2 rounded-lg bg-muted/25 px-3 py-2">
+            <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${PATIENT_FILE_STATUS_TONE_CLASS[item.tone]}`}>
+              <item.icon className="h-3.5 w-3.5" aria-hidden />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                {item.label}
+              </span>
+              <span className="block truncate text-sm font-medium text-foreground">{item.value}</span>
+            </span>
+          </div>
+        ))}
+      </div>
+
       {/* Prescribing workspace — Linear-tier strip. The old card carried four
           big metadata blocks that duplicated the patient-summary row below
           AND the timeline's Audit / Prescriptions tabs. Now a single bounded
@@ -322,12 +391,6 @@ export function PatientDetailClient({
         <Pill className="h-4 w-4 shrink-0 text-primary" aria-hidden />
         <span className="text-sm font-medium text-foreground">Prescribing</span>
         <Badge variant={parchmentStatusTone} size="sm">{parchmentStatusLabel}</Badge>
-        <span className="hidden text-muted-foreground sm:inline" aria-hidden>·</span>
-        <span className="hidden truncate text-xs text-muted-foreground sm:inline">
-          {latestRequest
-            ? `Last request: ${latestRequest.service?.short_name || latestRequest.service?.name || latestRequest.category || "Request"} · ${formatIntakeStatus(latestRequest.status)}`
-            : "No InstantMed requests yet"}
-        </span>
         <div className="ml-auto flex shrink-0 flex-wrap items-center gap-2">
           {parchmentEnabled && !parchmentUserLinked ? (
             <Button type="button" variant="outline" size="sm" asChild>

@@ -1,3 +1,4 @@
+import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import { calculateAge, formatShortDateSafe } from "@/lib/format"
 import { getAddressReviewSummary } from "@/lib/request/address-metadata"
 import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing-identity"
@@ -415,7 +416,7 @@ export function buildPatientSnapshot(
       verificationProviderLabel: addressReviewSummary?.providerLabel,
       verified: addressReviewSummary?.isVerified,
     },
-    profileHref: `/doctor/patients/${patient.id}`,
+    profileHref: buildStaffPatientHref(patient.id),
     missingCriticalFields,
     completenessLabel: missingCriticalFields.length > 0
       ? `Missing ${missingCriticalFields.join(", ")}`

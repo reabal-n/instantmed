@@ -384,6 +384,7 @@ const nextConfig = {
       { source: "/doctor/dashboard", destination: "/dashboard", permanent: false },
       { source: "/doctor/queue", destination: "/dashboard", permanent: false },
       { source: "/doctor/certificates", destination: "/dashboard", permanent: false },
+      { source: "/doctor/analytics", destination: "/dashboard", permanent: false },
       { source: "/doctor/email-suppression", destination: "/admin/emails/suppression", permanent: true },
       { source: "/doctor/repeat-rx", destination: "/dashboard", permanent: true },
       { source: "/doctor/repeat-rx/:path*", destination: "/dashboard", permanent: true },

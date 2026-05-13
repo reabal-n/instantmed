@@ -20,6 +20,7 @@ import {
   buildAdminIntakeHref,
   buildDoctorDashboardHref,
   buildDoctorQueueRedirectHref,
+  buildStaffPatientHref,
   DOCTOR_DASHBOARD_HREF,
   DOCTOR_QUEUE_REVIEW_HREF,
   parseQueueStatusFilter,
@@ -52,6 +53,7 @@ describe("dashboard route contracts", () => {
     )
     expect(buildAdminIntakeHref("intake-123")).toBe("/admin/intakes/intake-123")
     expect(buildAdminIntakeHref("intake 123")).toBe("/admin/intakes/intake%20123")
+    expect(buildStaffPatientHref("patient 123")).toBe("/doctor/patients/patient%20123")
   })
 
   it("keeps ops recovery links on shared admin route constants", () => {

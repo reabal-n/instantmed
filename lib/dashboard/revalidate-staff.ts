@@ -9,8 +9,8 @@ import { revalidatePath } from "next/cache"
  *
  * This helper is the single chokepoint. All server actions that mutate staff-
  * visible state should call revalidateStaff() instead of revalidatePath
- * directly. As surfaces consolidate (Phase 2+), the legacy paths drop out and
- * only the canonical /dashboard, /patients, /cases entries remain.
+ * directly. Keep this list limited to real staff routes; stale future aliases
+ * just add noise.
  */
 export interface RevalidateStaffOptions {
   /** Specific intake/case to invalidate. */
@@ -50,13 +50,11 @@ const STAFF_LANDING_PATHS = [
 ] as const
 
 const STAFF_PATIENT_LIST_PATHS = [
-  "/patients",
   "/admin/patients",
   "/doctor/patients",
 ] as const
 
 const STAFF_OPS_PATHS = [
-  "/ops",
   "/admin/ops",
   "/admin/ops/intakes-stuck",
   "/admin/ops/parchment",
@@ -68,14 +66,12 @@ const STAFF_OPS_PATHS = [
 ] as const
 
 const STAFF_IDENTITY_PATHS = [
-  "/settings/identity",
   "/admin/settings/doctor-identity",
   "/doctor/settings/identity",
   "/doctor/settings",
 ] as const
 
 const STAFF_SETTINGS_PATHS = [
-  "/settings",
   "/admin/settings",
   "/admin/clinic",
   "/admin/doctors",
@@ -84,7 +80,6 @@ const STAFF_SETTINGS_PATHS = [
 ] as const
 
 const STAFF_EMAILS_PATHS = [
-  "/emails",
   "/admin/emails",
   "/admin/emails/hub",
   "/admin/emails/suppression",
@@ -107,7 +102,6 @@ export function revalidateStaff(options: RevalidateStaffOptions = {}): void {
 
   if (options.intakeId) {
     const id = options.intakeId
-    revalidatePath(`/cases/${id}`)
     revalidatePath(`/admin/intakes/${id}`)
     revalidatePath(`/doctor/intakes/${id}`)
   }
@@ -117,7 +111,6 @@ export function revalidateStaff(options: RevalidateStaffOptions = {}): void {
       revalidatePath(path)
     }
     const id = options.patientId
-    revalidatePath(`/patients/${id}`)
     revalidatePath(`/admin/patients/${id}`)
     revalidatePath(`/doctor/patients/${id}`)
   }

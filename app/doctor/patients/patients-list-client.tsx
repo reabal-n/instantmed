@@ -347,15 +347,16 @@ export function PatientsListClient({
                               description={age !== null ? `${age} years old` : "Age N/A"}
                               size="sm"
                             />
-                            {isDuplicateCandidate && (
-                              <Badge variant="warning" size="sm" className="mt-1">
-                                <AlertTriangle className="h-3 w-3" />
-                                Review duplicate
-                              </Badge>
-                            )}
-                            {linkedProfileCount > 0 && (
-                              <Badge variant="secondary" size="sm" className="mt-1">
-                                {linkedProfileCount} linked profile{linkedProfileCount === 1 ? "" : "s"}
+                            {(isDuplicateCandidate || linkedProfileCount > 0) && (
+                              <Badge
+                                variant={isDuplicateCandidate ? "warning" : "secondary"}
+                                size="sm"
+                                className="mt-1"
+                              >
+                                {isDuplicateCandidate ? <AlertTriangle className="h-3 w-3" /> : null}
+                                {isDuplicateCandidate
+                                  ? `Duplicate review${linkedProfileCount > 0 ? ` · ${linkedProfileCount} linked` : ""}`
+                                  : `${linkedProfileCount} linked profile${linkedProfileCount === 1 ? "" : "s"}`}
                               </Badge>
                             )}
                             {patient.parchment_patient_id && (

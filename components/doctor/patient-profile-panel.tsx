@@ -19,6 +19,7 @@ import { PatientTimeline } from "@/components/doctor/patient-timeline"
 import { DrawerPanel } from "@/components/panels/drawer-panel"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import {
   buildPatientSnapshot,
   getPatientSnapshotOptionsForCase,
@@ -109,7 +110,7 @@ export function PatientProfilePanel({
   })
   let profileHref: string | null
   if (fullRecordHref === undefined) {
-    profileHref = admin ? `/admin/patients/${snapshot.id}` : snapshot.profileHref
+    profileHref = admin ? buildStaffPatientHref(snapshot.id) : snapshot.profileHref
   } else {
     profileHref = fullRecordHref
   }

@@ -65,8 +65,8 @@ export const operatorNavSections: StaffNavSection[] = [
     title: "Today",
     items: [
       { href: ADMIN_DASHBOARD_HREF, label: "Dashboard", icon: "dashboard" },
-      { href: ADMIN_INTAKE_LEDGER_HREF, label: "All requests", icon: "intakeLedger" },
-      { href: ADMIN_DOCTOR_QUEUE_HREF, label: "Review queue", icon: "queue" },
+      { href: ADMIN_INTAKE_LEDGER_HREF, label: "Requests", icon: "intakeLedger" },
+      { href: ADMIN_DOCTOR_QUEUE_HREF, label: "Review", icon: "queue" },
       { href: ADMIN_SCRIPTS_HREF, label: "Scripts", icon: "scripts", badgeKey: "scriptsToWrite", badgeTone: "primary" },
       { href: ADMIN_PATIENTS_HREF, label: "Patients", icon: "users", badgeKey: "prescribingIdentityPatients", badgeTone: "warning" },
     ],
@@ -76,7 +76,7 @@ export const operatorNavSections: StaffNavSection[] = [
     items: [
       { href: ADMIN_ANALYTICS_HREF, label: "Analytics", icon: "analytics" },
       { href: ADMIN_FINANCE_HREF, label: "Payments", icon: "dollar" },
-      { href: ADMIN_OPS_HREF, label: "Recovery", icon: "activity" },
+      { href: ADMIN_OPS_HREF, label: "Ops", icon: "activity" },
     ],
   },
   {

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { requireRole } from "@/lib/auth/helpers"
 import { hasAdminAccess, hasSupportAccess } from "@/lib/auth/staff-capabilities"
+import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import {
   getParchmentOpsDashboard,
   type ParchmentFailedWebhook,
@@ -63,7 +64,7 @@ function PatientLink({
 
   return (
     <Button variant="link" size="sm" className="h-auto p-0 text-xs" asChild>
-      <Link href={`/admin/patients/${patientProfileId}`}>
+      <Link href={buildStaffPatientHref(patientProfileId)}>
         <ExternalLink className="h-3 w-3" />
         Patient
       </Link>
