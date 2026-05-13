@@ -37,14 +37,14 @@ describe("future doctor scope contract", () => {
     expect(healthProfileSource).toContain('NextResponse.json({ error: "Not found" }, { status: 404 })')
   })
 
-  it("scopes doctor analytics without reducing owner-operator admin analytics", () => {
+  it("keeps analytics out of the future-doctor operating surface", () => {
     const source = read("app/doctor/analytics/page.tsx")
 
-    expect(source).toContain("async function getAnalytics(searchParams: AnalyticsSearchParams = {}, doctorId?: string)")
-    expect(source).toContain("query.or(`claimed_by.eq.${doctorId},reviewing_doctor_id.eq.${doctorId},reviewed_by.eq.${doctorId}`)")
-    expect(source).toContain("const isAdmin = hasAdminAccess(profile)")
-    expect(source).toContain("isAdmin ? undefined : profile.id")
-    expect(source).toContain("showRevenue={isAdmin}")
+    expect(source).toContain('requireRole(["doctor", "admin"])')
+    expect(source).toContain("hasAdminAccess(profile)")
+    expect(source).toContain('redirect("/admin/analytics")')
+    expect(source).toContain('redirect("/dashboard")')
+    expect(source).not.toContain("amount_cents")
   })
 
   it("defines concrete doctor-patient relationship sources and excludes the unclaimed queue", () => {

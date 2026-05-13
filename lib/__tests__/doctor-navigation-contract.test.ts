@@ -55,10 +55,6 @@ const scriptsPageSource = readFileSync(
   join(process.cwd(), "app/doctor/scripts/page.tsx"),
   "utf8",
 )
-const doctorAnalyticsSource = readFileSync(
-  join(process.cwd(), "app/doctor/analytics/analytics-client.tsx"),
-  "utf8",
-)
 const onboardingBannerSource = readFileSync(
   join(process.cwd(), "components/doctor/onboarding-banner.tsx"),
   "utf8",
@@ -230,22 +226,22 @@ describe("doctor navigation contract", () => {
     expect(nextConfigSource).toContain('destination: "/admin/emails/suppression"')
   })
 
-  it("keeps doctor analytics clinically scoped for future doctors", () => {
+  it("keeps doctor analytics as a compatibility redirect, not a second dashboard", () => {
     const analyticsPageSource = readFileSync(
       join(process.cwd(), "app/doctor/analytics/page.tsx"),
       "utf8",
     )
 
-    expect(analyticsPageSource).toContain("const isAdmin = hasAdminAccess(profile)")
-    expect(analyticsPageSource).toContain("isAdmin ? undefined : profile.id")
-    expect(analyticsPageSource).toContain("showRevenue={isAdmin}")
-    expect(doctorAnalyticsSource).toContain("showRevenue = false")
-    expect(doctorAnalyticsSource).toContain("{showRevenue && (")
+    expect(analyticsPageSource).toContain('requireRole(["doctor", "admin"])')
+    expect(analyticsPageSource).toContain("hasAdminAccess(profile)")
+    expect(analyticsPageSource).toContain('redirect("/admin/analytics")')
+    expect(analyticsPageSource).toContain('redirect("/dashboard")')
+    expect(analyticsPageSource).not.toContain("createServiceRoleClient")
+    expect(analyticsPageSource).not.toContain("AnalyticsClient")
   })
 
   it("keeps portal surfaces free of decorative progress motion", () => {
     const portalSource = [
-      doctorAnalyticsSource,
       onboardingBannerSource,
       clinicalNotesEditorSource,
     ].join("\n")
