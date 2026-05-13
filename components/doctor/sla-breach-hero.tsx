@@ -14,11 +14,8 @@ interface SlaBreachHeroProps {
 /**
  * Dashboard-level SLA breach alert.
  *
- * Promoted out of the IntakeMonitor stat cell (Phase 2 doctor portal
- * rebuild) so a missed deadline is the FIRST thing the doctor sees on
- * the dashboard, not a small pill below the stats grid. Doctor portal
- * is the bottleneck for patient turnaround time and SLA visibility is
- * the single highest-leverage UX investment we can make here.
+ * Promoted out of the retired monitor grid so missed deadlines stay visible
+ * on the dashboard instead of being buried inside low-value live stats.
  *
  * Renders nothing when there's no breach or approaching deadline so
  * the dashboard stays calm in the steady state.

@@ -4,7 +4,6 @@ import {
   AlertTriangle,
   ArrowRight,
   CheckCircle,
-  Clock,
   FileWarning,
   type LucideIcon,
   Mail,
@@ -14,18 +13,10 @@ import {
   Webhook,
 } from "lucide-react"
 import Link from "next/link"
-import { useMemo } from "react"
 
-import type { StaffCommandItem } from "@/components/operator"
-import { OperatorPage, OperatorPageHeader, OperatorScrollArea, StaffCommandPalette } from "@/components/operator"
+import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
 import { Button } from "@/components/ui/button"
-import {
-  ADMIN_EMAIL_HUB_HREF,
-  ADMIN_PARCHMENT_OPS_HREF,
-  ADMIN_PATIENT_MERGE_AUDIT_HREF,
-  ADMIN_STALE_INTAKES_HREF,
-  ADMIN_WEBHOOK_DLQ_HREF,
-} from "@/lib/dashboard/routes"
+import { ADMIN_PATIENT_MERGE_AUDIT_HREF } from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 
 interface OpsData {
@@ -167,10 +158,10 @@ const categoryIconById: Record<string, LucideIcon> = {
   stripe_webhooks: Webhook,
   email_delivery: Mail,
   checkout: ReceiptText,
-  incomplete_requests: Clock,
+  incomplete_requests: AlertTriangle,
   certificate_delivery: FileWarning,
   prescription_delivery: Pill,
-  stale_scripts: Clock,
+  stale_scripts: AlertTriangle,
   refund_failures: ReceiptText,
 }
 
@@ -247,9 +238,6 @@ function RecoveryLink({ category }: { category: FailureCategory }) {
 
 export function OpsDashboardClient({ ops, supportMode = false }: OpsDashboardClientProps) {
   const {
-    webhooks,
-    emails,
-    staleIntakes,
     failureOverview,
     systemStatus,
   } = ops
@@ -264,43 +252,6 @@ export function OpsDashboardClient({ ops, supportMode = false }: OpsDashboardCli
     && systemStatus.telegramAlertsHealthy
   const attentionCategories = failureOverview.categories.filter((category) => category.count > 0)
   const clearCategories = failureOverview.categories.filter((category) => category.count === 0)
-  const prescriptionFailures = failureOverview.categories.find(
-    (category) => category.id === "prescription_delivery",
-  )?.count || 0
-  const commandItems = useMemo<StaffCommandItem[]>(() => [
-    {
-      id: "retry-webhook",
-      title: "Payment webhooks",
-      detail: webhooks.failedCount > 0 ? "Payment webhook failures need review" : "Open webhook recovery",
-      href: ADMIN_WEBHOOK_DLQ_HREF,
-      tone: webhooks.failedCount > 0 ? "critical" : "neutral",
-      keywords: "stripe webhook payment checkout dead letter retry",
-    },
-    {
-      id: "resend-email",
-      title: "Email delivery",
-      detail: emails.failed > 0 || emails.pending > 0 ? "Email delivery has work" : "Open email queue",
-      href: supportMode ? "/admin/ops" : `${ADMIN_EMAIL_HUB_HREF}?tab=queue`,
-      tone: emails.failed > 0 || emails.pending > 0 ? "warning" : "neutral",
-      keywords: "email outbox delivery resend retry pending failed",
-    },
-    {
-      id: "open-stale-intake",
-      title: "Stale intakes",
-      detail: staleIntakes > 0 ? "Paid requests waiting too long" : "Open stale intake queue",
-      href: supportMode ? "/admin/ops" : ADMIN_STALE_INTAKES_HREF,
-      tone: staleIntakes > 0 ? "warning" : "neutral",
-      keywords: "stale intake paid request recovery queue",
-    },
-    {
-      id: "sync-script",
-      title: "Prescription delivery",
-      detail: prescriptionFailures > 0 ? "Prescription webhook failures need review" : "Open Parchment recovery",
-      href: ADMIN_PARCHMENT_OPS_HREF,
-      tone: prescriptionFailures > 0 ? "critical" : "neutral",
-      keywords: "parchment prescription script webhook sync retry",
-    },
-  ], [emails.failed, emails.pending, prescriptionFailures, staleIntakes, supportMode, webhooks.failedCount])
 
   return (
     <OperatorPage>
@@ -313,14 +264,6 @@ export function OpsDashboardClient({ ops, supportMode = false }: OpsDashboardCli
         backLabel="Dashboard"
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <StaffCommandPalette
-              items={commandItems}
-              buttonLabel="Recovery palette"
-              title="Recovery palette"
-              description="Search the operational fix paths. Use arrow keys and Enter to open."
-              placeholder="Webhook, email, stale intake, script..."
-              emptyLabel="No recovery action matches that search."
-            />
             <StatusPill tone={allHealthy ? "success" : "warning"}>
               System {allHealthy ? "clear" : "needs review"}
             </StatusPill>

@@ -10,6 +10,7 @@ import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
 import { Pagination } from "@/components/uix"
 import { capture } from "@/lib/analytics/capture"
+import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import type { ScriptTask, ScriptTaskStatus } from "@/lib/data/script-tasks"
 import type { PatientSnapshotInput } from "@/lib/doctor/patient-snapshot"
 import { formatDateTime } from "@/lib/format"
@@ -132,7 +133,7 @@ export function ScriptsClient({ initialTasks, initialCounts, initialTotal }: Scr
           patient={getTaskPatientSnapshot(task)}
           serviceContext={{ serviceType: "common_scripts" }}
           sourceLabel={task.intake_id ? "Script task" : "Script task without linked intake"}
-          fullRecordHref={task.patient_id ? `/doctor/patients/${task.patient_id}` : null}
+          fullRecordHref={task.patient_id ? buildStaffPatientHref(task.patient_id) : null}
           loadHistory={Boolean(task.patient_id)}
         />
       ),

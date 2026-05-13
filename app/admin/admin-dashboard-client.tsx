@@ -304,7 +304,7 @@ export function AdminDashboardClient({
       },
       {
         id: "doctor-queue",
-        title: "Review queue",
+        title: "Review",
         detail: "Open clinical reviews in this cockpit",
         href: buildAdminDashboardHref({ status: "review", anchor: "doctor-queue" }),
         keywords: [
@@ -315,7 +315,7 @@ export function AdminDashboardClient({
       },
       {
         id: "scripts",
-        title: "Scripts to write",
+        title: "Scripts",
         detail: "Open script-ready cases in this cockpit",
         href: buildAdminDashboardHref({ status: "scripts", anchor: "doctor-queue" }),
         keywords: "scripts prescriptions parchment delivery",
@@ -323,7 +323,7 @@ export function AdminDashboardClient({
       },
       {
         id: "ops",
-        title: "Operations",
+        title: "Ops",
         detail: "Webhook, email, script, and stale-request recovery",
         href: "/admin/ops",
         keywords: "operations recovery webhook email stale",

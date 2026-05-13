@@ -28,15 +28,11 @@ test.describe("Ops Index Page", () => {
     await expect(page.locator("span").filter({ hasText: /^Patient identity$/ })).toBeVisible()
     await expect(page.locator("span").filter({ hasText: /^Prescribing identity$/ })).toBeVisible()
     await expect(page.locator("span").filter({ hasText: /^Telegram alerts$/ })).toBeVisible()
-
-    await expect(page.getByRole("button", { name: "Recovery palette" })).toBeVisible()
   })
 
   test("routes ops recovery links to current destinations", async ({ page }) => {
     await page.goto("/admin/ops")
     await page.waitForLoadState("networkidle")
-
-    await expect(page.getByRole("button", { name: "Recovery palette" })).toBeVisible()
     await expect(page.getByRole("link", { name: /Payment webhooks/i }).first()).toHaveAttribute(
       "href",
       "/admin/webhook-dlq",
@@ -59,10 +55,10 @@ test.describe("Ops Index Page", () => {
     await page.goto("/admin/ops")
     await page.waitForLoadState("networkidle")
 
-    const sidebar = page.getByRole("complementary", { name: "Operator sidebar" })
+    const sidebar = page.getByRole("complementary", { name: "Staff sidebar" })
     await expect(sidebar).toBeVisible({ timeout: 10000 })
     await expect(sidebar.getByRole("link", { name: /Analytics/i })).toBeVisible()
-    await expect(sidebar.getByRole("link", { name: "Operations" })).toBeVisible()
-    await expect(sidebar.getByRole("link", { name: "Operations" })).toHaveAttribute("href", "/admin/ops")
+    await expect(sidebar.getByRole("link", { name: "Ops" })).toBeVisible()
+    await expect(sidebar.getByRole("link", { name: "Ops" })).toHaveAttribute("href", "/admin/ops")
   })
 })

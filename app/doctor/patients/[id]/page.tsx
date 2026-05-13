@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation"
 
 import { requireRole } from "@/lib/auth/helpers"
 import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
+import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import { decryptProfilePhi } from "@/lib/data/profiles"
 import { doctorCanAccessPatient } from "@/lib/doctor/patient-access"
 import { collapseDuplicatePatientProfiles } from "@/lib/doctor/patient-snapshot"
@@ -368,7 +369,7 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
   }
 
   if (patient.merged_into_profile_id) {
-    redirect(`/doctor/patients/${patient.merged_into_profile_id}`)
+    redirect(buildStaffPatientHref(patient.merged_into_profile_id))
   }
 
   const decryptedPatient = asProfile(decryptProfilePhi(patient as Record<string, unknown>))

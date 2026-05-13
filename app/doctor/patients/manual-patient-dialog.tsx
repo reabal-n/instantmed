@@ -22,6 +22,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 
 const STATES = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
 
@@ -92,7 +93,7 @@ export function ManualPatientDialog() {
       setOpen(false)
       resetState()
       if (result.patientId) {
-        router.push(`/doctor/patients/${result.patientId}`)
+        router.push(buildStaffPatientHref(result.patientId))
       } else {
         router.refresh()
       }
@@ -129,7 +130,7 @@ export function ManualPatientDialog() {
                   <span>{error}</span>
                   {duplicatePatient && (
                     <Button asChild variant="outline" size="sm">
-                      <Link href={`/doctor/patients/${duplicatePatient.id}`}>
+                      <Link href={buildStaffPatientHref(duplicatePatient.id)}>
                         <ExternalLink className="h-3.5 w-3.5" />
                         Open {duplicatePatient.fullName}
                       </Link>

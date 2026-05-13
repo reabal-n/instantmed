@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { auth } from "@/lib/auth/helpers"
 import { hasDoctorAccess } from "@/lib/auth/staff-capabilities"
+import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -120,7 +121,7 @@ export async function GET(request: NextRequest) {
               type: "patient",
               title: patient.full_name,
               subtitle: patient.medicare_number ? `Medicare: ${maskMedicare(patient.medicare_number)}` : "Patient",
-              href: `/doctor/patients/${patient.id}`,
+              href: buildStaffPatientHref(patient.id),
             })
           }
         }

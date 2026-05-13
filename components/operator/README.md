@@ -18,7 +18,7 @@ Use these components when a staff screen combines operations, clinical review, r
 | `OperatorScrollArea` | Internal scroll region inside bounded pages |
 | `OperatorPanel` | Solid-depth staff panel |
 | `OperatorSplitPane` | Recovery queue list plus detail panel |
-| `StaffCommandPalette` | Local quick-action lists on dense admin/ops pages |
+| `StaffCommandPalette` | Local quick-action lists on case-heavy staff pages |
 
 ## Rules
 

@@ -77,12 +77,12 @@ export function AdminHubZones({
           icon={ListOrdered}
           stats={[
             {
-              label: "Review queue",
+              label: "Review",
               value: inQueue,
               href: buildStaffDashboardHref({ status: "review", anchor: "doctor-queue" }),
             },
             {
-              label: "Scripts to write",
+              label: "Scripts",
               value: scriptsPending,
               href: buildStaffDashboardHref({ status: "scripts", anchor: "doctor-queue" }),
               attentionWhenNonZero: true,

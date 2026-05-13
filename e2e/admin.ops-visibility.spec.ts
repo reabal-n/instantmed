@@ -7,29 +7,45 @@ test.describe("Ops Navigation Visibility", () => {
     await logoutTestUser(page)
   })
 
-  test("admin doctor sees admin handoff links in the doctor sidebar", async ({ page }) => {
+  test("admin doctor sees the unified staff cockpit nav and queue", async ({ page }) => {
     const loginResult = await loginAsOperator(page)
     expect(loginResult.success).toBe(true)
 
     await page.goto("/dashboard")
     await page.waitForLoadState("networkidle")
 
-    await expect(page.getByRole("heading", { name: "Review Queue" })).toBeVisible({ timeout: 10000 })
-    await expect(page.getByRole("navigation").filter({ hasText: "Admin Panel" })).toBeVisible()
-    await expect(page.getByRole("link", { name: "Admin Panel" })).toHaveAttribute("href", "/admin")
-    await expect(page.getByRole("link", { name: "Email Suppression" })).toHaveAttribute("href", "/doctor/email-suppression")
+    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible({ timeout: 10000 })
+    await expect(page.getByRole("region", { name: "Doctor request queue" })).toBeVisible()
+
+    const sidebar = page.getByRole("complementary", { name: "Staff sidebar" })
+    await expect(sidebar.getByRole("link", { name: "Requests" })).toHaveAttribute("href", "/admin/intakes")
+    await expect(sidebar.getByRole("link", { name: "Review" })).toHaveAttribute(
+      "href",
+      "/dashboard?status=review#doctor-queue",
+    )
+    await expect(sidebar.getByRole("link", { name: "Ops" })).toHaveAttribute("href", "/admin/ops")
+    await expect(sidebar.getByRole("link", { name: "Admin Panel" })).not.toBeVisible()
+    await expect(sidebar.getByRole("link", { name: "Email Suppression" })).not.toBeVisible()
   })
 
-  test("non-admin doctor does not see admin handoff links", async ({ page }) => {
+  test("non-admin doctor keeps the clinical-only nav", async ({ page }) => {
     const loginResult = await loginAsDoctor(page)
     expect(loginResult.success).toBe(true)
 
     await page.goto("/dashboard")
     await page.waitForLoadState("networkidle")
 
-    await expect(page.getByRole("heading", { name: "Review Queue" })).toBeVisible({ timeout: 10000 })
-    await expect(page.getByRole("link", { name: "Admin Panel" })).not.toBeVisible()
-    await expect(page.getByRole("link", { name: "Email Suppression" })).not.toBeVisible()
+    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible({ timeout: 10000 })
+    await expect(page.getByRole("region", { name: "Doctor request queue" })).toBeVisible()
+
+    const sidebar = page.getByRole("complementary", { name: "Staff sidebar" })
+    await expect(sidebar.getByRole("link", { name: "Queue" })).toBeVisible()
+    await expect(sidebar.getByRole("link", { name: "Scripts" })).toBeVisible()
+    await expect(sidebar.getByRole("link", { name: "Patients" })).toBeVisible()
+    await expect(sidebar.getByRole("link", { name: "Identity" })).toBeVisible()
+    await expect(sidebar.getByRole("link", { name: "Requests" })).not.toBeVisible()
+    await expect(sidebar.getByRole("link", { name: "Analytics" })).not.toBeVisible()
+    await expect(sidebar.getByRole("link", { name: "Ops" })).not.toBeVisible()
   })
 
   test("ops dashboard exposes current recovery links", async ({ page }) => {
@@ -40,7 +56,6 @@ test.describe("Ops Navigation Visibility", () => {
     await page.waitForLoadState("networkidle")
 
     await expect(page.getByRole("heading", { name: "Operations" })).toBeVisible({ timeout: 10000 })
-    await expect(page.getByRole("button", { name: "Recovery palette" })).toBeVisible()
 
     await expect(page.getByRole("link", { name: /Payment webhooks/i }).first()).toHaveAttribute(
       "href",

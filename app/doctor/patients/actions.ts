@@ -1,9 +1,9 @@
 "use server"
 
 import * as Sentry from "@sentry/nextjs"
-import { revalidatePath } from "next/cache"
 
 import { requireRoleOrNull } from "@/lib/auth/helpers"
+import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import {
   type DoctorPatientCreateFieldErrors,
   type DoctorPatientCreateInput,
@@ -23,6 +23,10 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 const log = createLogger("doctor-patient-create")
+
+function revalidatePatientRecord(patientId: string): void {
+  revalidateStaff({ patientId })
+}
 
 export interface DoctorPatientParchmentActionResult {
   success: boolean
@@ -200,8 +204,7 @@ export async function createDoctorPatientAndOpenParchmentAction(
       `/embed/patients/${parchmentPatientId}/prescriptions`,
     )
 
-    revalidatePath("/doctor/patients")
-    revalidatePath(`/doctor/patients/${patient.id}`)
+    revalidatePatientRecord(patient.id)
 
     return {
       success: true,
@@ -214,8 +217,7 @@ export async function createDoctorPatientAndOpenParchmentAction(
       patientCreated: true,
     })
     Sentry.captureException(error, { extra: { context: "doctor_add_patient_parchment_sync" } })
-    revalidatePath("/doctor/patients")
-    revalidatePath(`/doctor/patients/${patient.id}`)
+    revalidatePatientRecord(patient.id)
     return patientSavedButParchmentFailed(patient.id, error)
   }
 }
@@ -282,8 +284,7 @@ export async function openPatientInParchmentAction(
       `/embed/patients/${parchmentPatientId}/prescriptions`,
     )
 
-    revalidatePath("/doctor/patients")
-    revalidatePath(`/doctor/patients/${patient.id}`)
+    revalidatePatientRecord(patient.id)
 
     return {
       success: true,
@@ -425,8 +426,7 @@ export async function updateDoctorPatientAndSyncParchmentAction(
 
     const parchmentPatientId = await syncPatientToParchment(patient.id, doctorProfile.parchment_user_id)
 
-    revalidatePath("/doctor/patients")
-    revalidatePath(`/doctor/patients/${patient.id}`)
+    revalidatePatientRecord(patient.id)
 
     return {
       success: true,
@@ -438,8 +438,7 @@ export async function updateDoctorPatientAndSyncParchmentAction(
       patientUpdated: true,
     })
     Sentry.captureException(error, { extra: { context: "doctor_update_patient_parchment_sync" } })
-    revalidatePath("/doctor/patients")
-    revalidatePath(`/doctor/patients/${patient.id}`)
+    revalidatePatientRecord(patient.id)
     return patientSavedButParchmentFailed(patient.id, error)
   }
 }

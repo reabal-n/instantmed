@@ -211,12 +211,20 @@ describe("admin navigation contract", () => {
       join(process.cwd(), "app/admin/ops/ops-client.tsx"),
       "utf8",
     )
+    const opsPageSource = readFileSync(
+      join(process.cwd(), "app/admin/ops/page.tsx"),
+      "utf8",
+    )
+    const opsFailuresSource = readFileSync(
+      join(process.cwd(), "lib/admin/ops-failures.ts"),
+      "utf8",
+    )
 
     expect(opsClientSource).not.toContain('href="/doctor')
     expect(opsClientSource).not.toContain("DOCTOR_QUEUE_REVIEW_HREF")
-    expect(opsClientSource).toContain("ADMIN_WEBHOOK_DLQ_HREF")
-    expect(opsClientSource).toContain("ADMIN_EMAIL_HUB_HREF")
-    expect(opsClientSource).toContain("ADMIN_STALE_INTAKES_HREF")
+    expect(opsPageSource).toContain("ADMIN_WEBHOOK_DLQ_HREF")
+    expect(opsPageSource).toContain("ADMIN_EMAIL_HUB_HREF")
+    expect(opsFailuresSource).toContain("ADMIN_STALE_INTAKES_HREF")
     expect(opsClientSource).toContain("ADMIN_PATIENT_MERGE_AUDIT_HREF")
     expect(dashboardRoutesSource).toContain('ADMIN_STALE_INTAKES_HREF = "/admin/ops/intakes-stuck"')
     expect(dashboardRoutesSource).toContain('ADMIN_PATIENT_MERGE_AUDIT_HREF = "/admin/ops/patient-merge-audit"')

@@ -177,7 +177,7 @@ describe("ops dashboard data contract", () => {
   it("keeps webhook recovery on the canonical Stripe DLQ surface", () => {
     expect(adminHubZonesSource).toContain("ADMIN_WEBHOOK_DLQ_HREF")
     expect(dashboardRoutesSource).toContain('ADMIN_WEBHOOK_DLQ_HREF = "/admin/webhook-dlq"')
-    expect(opsClientSource).toContain("ADMIN_WEBHOOK_DLQ_HREF")
+    expect(opsPageSource).toContain("ADMIN_WEBHOOK_DLQ_HREF")
     expect(adminHubZonesSource).not.toContain('href: "/admin/webhooks"')
     expect(adminSidebarSource).not.toContain('href: "/admin/webhooks"')
     expect(adminSidebarSource).not.toContain('href: "/admin/webhook-dlq"')
@@ -267,12 +267,11 @@ describe("ops dashboard data contract", () => {
     expect(opsClientSource).toContain("Email delivery")
     expect(opsClientSource).not.toContain("Outgoing emails")
     expect(opsClientSource).not.toContain("Production health timeline")
-    expect(opsClientSource).toContain("Recovery palette")
-    expect(opsClientSource).toContain("ADMIN_PARCHMENT_OPS_HREF")
+    expect(opsClientSource).not.toContain("Recovery palette")
   })
 
   it("keeps core ops pages as recovery rows instead of dense tables", () => {
-    expect(opsClientSource).toContain("StaffCommandPalette")
+    expect(opsClientSource).not.toContain("StaffCommandPalette")
     expect(opsClientSource).not.toContain("OpsCommandPalette")
     expect(opsClientSource).toContain("clearCategories")
     expect(opsClientSource).toContain("Clear paths")
