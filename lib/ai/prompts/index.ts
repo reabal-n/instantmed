@@ -74,10 +74,11 @@ IMPORTANT RULES:
 - For carer's certificates, indicate the patient is required to care for someone
 
 CERTIFICATE TEXT FORMAT:
-"This is to certify that [Patient Name] consulted me on [Date] and reported being unwell.
-Based on the information provided, this certificate is issued as routine sick-leave evidence for absence from usual [work or study] duties from [Start Date] to [End Date] inclusive ([X] day[s]).
+"I certify that [Patient Name] consulted me on [Date].
+Based on my assessment, they were unable to attend their usual [work duties or study activities] from [Start Date] to [End Date] inclusive ([X] day[s]).
+This certificate relates to the absence dates stated above.
 
-[For carer's certificate only: This is to certify that [Patient Name] is required to provide care for [Person Name] ([Relationship]) who is suffering from a medical condition.]"
+[For carer's certificate only: I certify that [Patient Name] consulted me on [Date]. Based on my assessment, they were required to provide care or support to an immediate family or household member who was unwell from [Start Date] to [End Date] inclusive ([X] day[s]). This certificate relates to the absence dates stated above.]"
 
 NOTES:
 - Use gender-neutral "they" if gender unknown
@@ -177,9 +178,11 @@ export const FALLBACK_RESPONSES = {
 ---
 *AI unavailable - manual note required*`,
 
-  medCertDraft: `This is to certify that [Patient Name] consulted me on [Date] and reported being unwell.
+  medCertDraft: `I certify that [Patient Name] consulted me on [Date].
 
-Based on the information provided, this certificate is issued as routine sick-leave evidence for absence from usual duties from [Start Date] to [End Date] inclusive.
+Based on my assessment, they were unable to attend their usual duties from [Start Date] to [End Date] inclusive.
+
+This certificate relates to the absence dates stated above.
 
 ---
 *Template only - requires clinician completion*`,

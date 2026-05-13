@@ -88,7 +88,7 @@ export function CertificateShowcaseMockup() {
           <motion.div variants={fadeUp} className="space-y-2.5">
             <p className="text-[9px] italic text-gray-500">To whom it may concern,</p>
             <p className="text-[9px] text-gray-600 leading-[1.6]">
-              This is to certify that <span className="inline-block w-20 h-2.5 rounded bg-gray-200/70 align-middle" /> (DOB: <span className="inline-block w-14 h-2.5 rounded bg-gray-200/70 align-middle" />) was reviewed on {dateLong} and reported symptoms consistent with needing to be absent from usual work or study duties on {dateLong}.
+              I certify that <span className="inline-block w-20 h-2.5 rounded bg-gray-200/70 align-middle" /> (DOB: <span className="inline-block w-14 h-2.5 rounded bg-gray-200/70 align-middle" />) consulted me on {dateLong}. Based on my assessment, they were unable to attend their usual work or study duties on {dateLong}.
             </p>
             <p className="text-[9px] text-gray-600 leading-[1.6]">
               This certificate includes a secure verification ID so the document can be checked online.

@@ -401,7 +401,7 @@ export function generatePreviewData(scenarios: Record<string, boolean>): Preview
     certificateNumber: "MC-2025-A1B2C3D4",
     issueDate: today.toISOString().split("T")[0],
     medicalStatement:
-      "This is to certify that the above-named patient consulted me and reported being unwell. Based on the information provided, this certificate is issued as routine sick-leave evidence for absence from usual work duties for the period specified above.",
+      "I certify that the above-named patient consulted me. Based on my assessment, they were unable to attend their usual work duties for the period specified above.",
     hasSignatureImage: !scenarios["no-signature"],
     employerName: scenarios["employer-present"] ? "Acme Corporation Pty Ltd" : undefined,
   }

@@ -166,16 +166,17 @@ export function getBodyText(input: TemplatePdfInput): string {
   // fitness-for-X document.
   switch (input.certificateType) {
     case "work":
-      return `This is to certify that ${nameWithDob} consulted me on ${input.consultationDate} and reported being unwell. Based on the information provided, this certificate is issued as routine sick-leave evidence for absence from usual work duties ${datePart}.`
+      return `I certify that ${nameWithDob} consulted me on ${input.consultationDate}. Based on my assessment, they were unable to attend their usual work duties ${datePart}.`
     case "study":
-      return `This is to certify that ${nameWithDob} consulted me on ${input.consultationDate} and reported being unwell. Based on the information provided, this certificate is issued as routine study-absence evidence for absence from usual study activities ${datePart}.`
+      return `I certify that ${nameWithDob} consulted me on ${input.consultationDate}. Based on my assessment, they were unable to attend their usual study activities ${datePart}.`
     case "carer":
-      return `This is to certify that ${nameWithDob} consulted me on ${input.consultationDate} and reported a need to care for an immediate family or household member who is unwell. Based on the information provided, this certificate is issued as routine carer's-leave evidence for absence from usual duties ${datePart}.`
+      return `I certify that ${nameWithDob} consulted me on ${input.consultationDate}. Based on my assessment, they were required to provide care or support to an immediate family or household member who was unwell ${datePart}.`
   }
 }
 
-export function getReturnText(_input: TemplatePdfInput): string {
-  return "This certificate documents the absence period above only. It does not include a diagnosis, workplace restrictions, or a capacity assessment."
+export function getReturnText(input: TemplatePdfInput): string {
+  const dateLabel = input.startDate === input.endDate ? "date" : "dates"
+  return `This certificate relates to the absence ${dateLabel} stated above.`
 }
 
 // ---------------------------------------------------------------------------

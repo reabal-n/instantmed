@@ -30,7 +30,7 @@ IMPORTANT RULES:
 
 OUTPUT: Return ONLY valid JSON (no markdown, no explanation) matching this exact structure:
 {
-  "certificateStatement": "This is to certify that [Patient Name] consulted me on [Date] and reported being unwell. Based on the information provided, this certificate is issued as routine sick-leave evidence for absence from usual [work or study] duties from [Start Date] to [End Date] inclusive ([X] days).",
+  "certificateStatement": "I certify that [Patient Name] consulted me on [Date]. Based on my assessment, they were unable to attend their usual [work duties or study activities] from [Start Date] to [End Date] inclusive ([X] days). This certificate relates to the absence dates stated above.",
   "symptomsSummary": "2-3 word general symptom category (e.g., 'Upper respiratory symptoms')",
   "clinicalNotes": "1-2 sentence clinical observation based on intake",
   "startDate": "YYYY-MM-DD",

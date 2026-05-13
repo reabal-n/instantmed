@@ -68,7 +68,7 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
         <div className={cn("relative px-6 py-5 space-y-4", compact && "px-5 py-4 space-y-3")}>
           {/* Title */}
           <div className="text-center">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-primary">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-primary">
               Medical Certificate
             </p>
             <div className="mt-1.5 h-px bg-gradient-to-r from-transparent via-[#d8d2c0] dark:via-white/15 to-transparent" />
@@ -83,7 +83,7 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
           {/* Certifying clause + patient */}
           <div className="space-y-2">
             <p className="text-[11px] text-foreground/80 dark:text-white/70 italic leading-relaxed">
-              This is to certify that
+              I certify that
             </p>
             <p className={cn(
               "text-base font-semibold tracking-[0.04em] text-foreground dark:text-white text-center py-2",
@@ -93,7 +93,7 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
               JOHN SMITH
             </p>
             <p className="text-[11px] text-foreground/80 dark:text-white/70 leading-relaxed">
-              consulted a doctor and reported being unwell. This certificate is issued as routine sick-leave evidence.
+              consulted me. Based on my assessment, they were unable to attend their usual work duties.
             </p>
           </div>
 

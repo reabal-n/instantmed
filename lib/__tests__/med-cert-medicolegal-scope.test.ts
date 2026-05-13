@@ -181,15 +181,38 @@ describe("medical certificate medicolegal scope", () => {
     expectNoPublicHits("High-stakes certificate claim", HIGH_STAKES_CLAIM_PATTERNS)
   })
 
-  it("renders certificate body text as simple sick-leave evidence, not a fitness clearance", () => {
+  it("renders certificate body text as simple absence evidence, not a fitness clearance", () => {
     const bodyText = getBodyText(baseCertificateInput)
     const returnText = getReturnText(baseCertificateInput)
     const combined = `${bodyText}\n${returnText}`
 
-    expect(bodyText).toContain("routine sick-leave evidence")
+    expect(bodyText).toContain("I certify that Sam Martin (DOB: 01/02/1990) consulted me on 8 May 2026.")
+    expect(bodyText).toContain("Based on my assessment")
+    expect(bodyText).toContain("unable to attend their usual work duties")
+    expect(returnText).toBe("This certificate relates to the absence date stated above.")
+    expect(combined).not.toMatch(/\broutine sick-leave evidence\b/i)
+    expect(combined).not.toMatch(/\b(?:workplace restrictions|capacity assessment)\b/i)
     expect(combined).not.toMatch(/\bfit(?:ness)?[- ]?for[- ]?(?:work|duty|drive|fly)\b/i)
     expect(combined).not.toMatch(/\breturn to (?:work|usual duties|usual academic activities)\b/i)
     expect(combined).not.toMatch(/\b(?:exam|deferr|NDIS|court|workers'? compensation|WorkCover|TAC|insurance|firearm|driving|aviation)\b/i)
+  })
+
+  it("uses warm doctor-owned wording for work, study, and carer certificates", () => {
+    const cases = [
+      ["work", "unable to attend their usual work duties"],
+      ["study", "unable to attend their usual study activities"],
+      ["carer", "required to provide care or support to an immediate family or household member who was unwell"],
+    ] as const
+
+    for (const [certificateType, expectedPhrase] of cases) {
+      const bodyText = getBodyText({ ...baseCertificateInput, certificateType })
+
+      expect(bodyText).toContain("I certify that Sam Martin (DOB: 01/02/1990) consulted me on 8 May 2026.")
+      expect(bodyText).toContain("Based on my assessment")
+      expect(bodyText).toContain(expectedPhrase)
+      expect(bodyText).not.toMatch(/\breported being unwell\b/i)
+      expect(bodyText).not.toMatch(/\broutine (?:sick|study|carer's)[- ]leave evidence\b/i)
+    }
   })
 
   it.runIf(hasPdfToText())("renders the real certificate PDF without clearance or high-stakes wording", async () => {
@@ -206,11 +229,14 @@ describe("medical certificate medicolegal scope", () => {
       const text = execFileSync("pdftotext", ["-layout", pdfPath, "-"], { encoding: "utf8" })
       const normalizedText = text.replace(/\s+/g, " ")
 
-      expect(normalizedText).toContain("routine sick-leave evidence")
-      expect(normalizedText).toContain("absence period above only")
+      expect(normalizedText).toContain("I certify that Sam Martin")
+      expect(normalizedText).toContain("Based on my assessment")
+      expect(normalizedText).toContain("This certificate relates to the absence date stated above")
       expect(normalizedText).toContain("To check this certificate")
       expect(normalizedText).not.toMatch(/\btelehealth consultation\b/i)
       expect(normalizedText).not.toMatch(/\bvalid for the purposes stated above\b/i)
+      expect(normalizedText).not.toMatch(/\broutine sick-leave evidence\b/i)
+      expect(normalizedText).not.toMatch(/\b(?:workplace restrictions|capacity assessment)\b/i)
       expect(normalizedText).not.toMatch(/\bfit(?:ness)?[- ]?for[- ]?(?:work|duty|drive|fly)\b/i)
       expect(normalizedText).not.toMatch(/\breturn to (?:work|usual duties|usual academic activities)\b/i)
       expect(normalizedText).not.toMatch(/\b(?:exam|deferr|NDIS|court|workers'? compensation|WorkCover|TAC|insurance|firearm|driving|aviation)\b/i)

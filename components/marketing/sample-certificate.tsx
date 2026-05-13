@@ -97,9 +97,9 @@ export function SampleCertificate({ className = '', animate = true }: SampleCert
               Medical Statement
             </h4>
             <p className="text-sm text-gray-700 leading-relaxed">
-              This is to certify that the above-named patient consulted a doctor
-              and reported being unwell. This certificate is issued as routine
-              sick-leave evidence for the period specified above.
+              I certify that the above-named patient consulted me. Based on my
+              assessment, they were unable to attend their usual work duties for
+              the period specified above.
             </p>
           </div>
 
