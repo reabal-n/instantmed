@@ -38,7 +38,7 @@ describe("code-clean retirement contracts", () => {
     expect(nextConfig).toContain('source: "/admin/ops/doctors"')
     expect(nextConfig).toContain('destination: "/admin/doctors"')
     expect(nextConfig).toContain('source: "/admin/ops/sla"')
-    expect(nextConfig).toContain('destination: "/admin/analytics?tab=queue"')
+    expect(nextConfig).toContain('destination: "/admin/analytics"')
     expect(nextConfig).toContain('source: "/prescriptions/new"')
     expect(nextConfig).toContain('source: "/prescriptions/repeat"')
     expect(nextConfig).toContain('source: "/prescriptions/request"')

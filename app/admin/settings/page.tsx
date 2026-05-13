@@ -1,7 +1,6 @@
 import {
   Building2,
   FileText,
-  Mail,
   Settings,
   Stethoscope,
   ToggleLeft,
@@ -19,7 +18,6 @@ import {
   ADMIN_CLINIC_HREF,
   ADMIN_DOCTOR_IDENTITY_HREF,
   ADMIN_DOCTORS_HREF,
-  ADMIN_EMAIL_TEMPLATE_EDITOR_HREF,
   ADMIN_FEATURES_HREF,
   ADMIN_SERVICES_HREF,
 } from "@/lib/dashboard/routes"
@@ -38,66 +36,42 @@ interface SettingsLink {
   icon: ComponentType<{ className?: string }>
 }
 
-interface SettingsGroup {
-  title: string
-  description: string
-  links: SettingsLink[]
-}
-
-const settingsGroups: SettingsGroup[] = [
+const settingsLinks: SettingsLink[] = [
   {
-    title: "Clinical setup",
-    description: "The small set of controls that shape how requests are reviewed and fulfilled.",
-    links: [
-      {
-        label: "Clinic identity",
-        description: "Provider details, clinic profile, and public-facing identity.",
-        href: ADMIN_CLINIC_HREF,
-        icon: Building2,
-      },
-      {
-        label: "Doctors",
-        description: "Doctor records, provider numbers, and operational availability.",
-        href: ADMIN_DOCTORS_HREF,
-        icon: Stethoscope,
-      },
-      {
-        label: "Your doctor identity",
-        description: "Account security, availability, signature, and Parchment prescribing setup.",
-        href: ADMIN_DOCTOR_IDENTITY_HREF,
-        icon: UserCog,
-      },
-      {
-        label: "Services",
-        description: "Service catalogue, pricing visibility, and request configuration.",
-        href: ADMIN_SERVICES_HREF,
-        icon: Settings,
-      },
-      {
-        label: "Feature flags",
-        description: "Roll out operational features deliberately.",
-        href: ADMIN_FEATURES_HREF,
-        icon: ToggleLeft,
-      },
-    ],
+    label: "Clinic identity",
+    description: "Provider details, clinic profile, and public-facing identity.",
+    href: ADMIN_CLINIC_HREF,
+    icon: Building2,
   },
   {
-    title: "Communications",
-    description: "Template controls for patient-facing communication.",
-    links: [
-      {
-        label: "Email templates",
-        description: "Transactional email templates and copy.",
-        href: ADMIN_EMAIL_TEMPLATE_EDITOR_HREF,
-        icon: Mail,
-      },
-      {
-        label: "Certificate templates",
-        description: "Medical certificate layout and template configuration.",
-        href: ADMIN_CERTIFICATE_TEMPLATES_HREF,
-        icon: FileText,
-      },
-    ],
+    label: "Doctors",
+    description: "Doctor records, provider numbers, and operational availability.",
+    href: ADMIN_DOCTORS_HREF,
+    icon: Stethoscope,
+  },
+  {
+    label: "Your doctor identity",
+    description: "Account security, availability, signature, and Parchment prescribing setup.",
+    href: ADMIN_DOCTOR_IDENTITY_HREF,
+    icon: UserCog,
+  },
+  {
+    label: "Services",
+    description: "Service catalogue, pricing visibility, and request configuration.",
+    href: ADMIN_SERVICES_HREF,
+    icon: Settings,
+  },
+  {
+    label: "Feature flags",
+    description: "Roll out operational features deliberately.",
+    href: ADMIN_FEATURES_HREF,
+    icon: ToggleLeft,
+  },
+  {
+    label: "Certificate templates",
+    description: "Medical certificate layout and template configuration.",
+    href: ADMIN_CERTIFICATE_TEMPLATES_HREF,
+    icon: FileText,
   },
 ]
 
@@ -108,7 +82,7 @@ export default async function AdminSettingsPage() {
     <div className="space-y-6">
       <DashboardPageHeader
         title="Admin Settings"
-        description="Clinic, service, doctor, and template configuration."
+        description="Clinic, service, doctor, certificate, and platform configuration."
         className="mb-0"
       />
 
@@ -130,40 +104,38 @@ export default async function AdminSettingsPage() {
         </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        {settingsGroups.map((group) => (
-          <Card key={group.title} className="rounded-xl border-border/50">
-            <CardHeader className="px-5 py-4">
-              <CardTitle className="text-base">{group.title}</CardTitle>
-              <CardDescription>{group.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2 px-5 pb-5">
-              {group.links.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="group flex items-start gap-3 rounded-lg border border-border/40 px-3 py-3 transition-[background-color,border-color] hover:border-primary/30 hover:bg-muted/35"
-                >
-                  <span
-                    className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
-                    aria-hidden
-                  >
-                    <item.icon className="h-4 w-4" />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-sm font-medium text-foreground group-hover:text-primary">
-                      {item.label}
-                    </span>
-                    <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">
-                      {item.description}
-                    </span>
-                  </span>
-                </Link>
-              ))}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <Card className="rounded-xl border-border/50">
+        <CardHeader className="px-5 py-4">
+          <CardTitle className="text-base">Configuration</CardTitle>
+          <CardDescription>
+            Email delivery and template operations live in the email hub, not settings.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-2 px-5 pb-5 md:grid-cols-2">
+          {settingsLinks.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="group flex items-start gap-3 rounded-lg border border-border/40 px-3 py-3 transition-[background-color,border-color] hover:border-primary/30 hover:bg-muted/35"
+            >
+              <span
+                className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
+                aria-hidden
+              >
+                <item.icon className="h-4 w-4" />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-sm font-medium text-foreground group-hover:text-primary">
+                  {item.label}
+                </span>
+                <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">
+                  {item.description}
+                </span>
+              </span>
+            </Link>
+          ))}
+        </CardContent>
+      </Card>
     </div>
   )
 }

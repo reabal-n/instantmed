@@ -36,6 +36,14 @@ const financeClientSource = readFileSync(
   join(process.cwd(), "app/admin/finance/finance-client.tsx"),
   "utf8",
 )
+const analyticsClientSource = readFileSync(
+  join(process.cwd(), "app/admin/analytics/analytics-client.tsx"),
+  "utf8",
+)
+const analyticsPageSource = readFileSync(
+  join(process.cwd(), "app/admin/analytics/page.tsx"),
+  "utf8",
+)
 const dashboardRoutesSource = readFileSync(
   join(process.cwd(), "lib/dashboard/routes.ts"),
   "utf8",
@@ -107,6 +115,8 @@ describe("admin navigation contract", () => {
     expect(settingsSource).toContain("ADMIN_CLINIC_HREF")
     expect(settingsSource).toContain("ADMIN_DOCTORS_HREF")
     expect(settingsSource).toContain("ADMIN_SERVICES_HREF")
+    expect(settingsSource).toContain("Email delivery and template operations live in the email hub")
+    expect(settingsSource).not.toContain("ADMIN_EMAIL_TEMPLATE_EDITOR_HREF")
     expect(settingsSource).not.toContain('href: "/admin/content"')
     expect(settingsSource).not.toContain("Operational controls")
     expect(settingsSource).not.toContain('href: "/admin/webhook-dlq"')
@@ -376,6 +386,20 @@ describe("admin navigation contract", () => {
     expect(adminPages).toEqual([...allowedAdminPages].sort())
   })
 
+  it("keeps analytics as a compact operator summary instead of a chart workspace", () => {
+    expect(analyticsClientSource).toContain("Revenue")
+    expect(analyticsClientSource).toContain("Conversion")
+    expect(analyticsClientSource).toContain("Queue health")
+    expect(analyticsClientSource).toContain("Deeper product analysis stays in PostHog")
+    expect(analyticsClientSource).not.toContain("useSearchParams")
+    expect(analyticsClientSource).not.toContain("LazyAreaChart")
+    expect(analyticsClientSource).not.toContain("LazyBarChart")
+    expect(analyticsClientSource).not.toContain("ResponsiveContainer")
+    expect(analyticsPageSource).not.toContain("dailyData")
+    expect(financeClientSource).toContain("href={ADMIN_ANALYTICS_HREF}")
+    expect(financeClientSource).not.toContain("?tab=revenue")
+  })
+
   it("keeps doctor identity settings available inside the admin shell for owner-operators", () => {
     expect(dashboardRoutesSource).toContain('ADMIN_DOCTOR_IDENTITY_HREF = "/admin/settings/doctor-identity"')
     expect(adminDoctorIdentityPageSource).toContain('requireRole(["admin"]')
@@ -418,6 +442,8 @@ describe("admin navigation contract", () => {
     expect(nextConfigSource).toContain('source: "/admin/finance/revenue"')
     expect(nextConfigSource).toContain('destination: "/admin/finance"')
     expect(nextConfigSource).toContain('source: "/admin/doctors/performance"')
+    expect(nextConfigSource).toContain('source: "/admin/business-kpi"')
+    expect(nextConfigSource).toContain('destination: "/admin/analytics"')
     expect(nextConfigSource).toContain('destination: "/admin/doctors"')
     expect(opsParchmentSource).toContain("Production prescribing gate")
     expect(opsParchmentSource).toContain("getParchmentProductionReadiness")
@@ -464,6 +490,6 @@ describe("admin navigation contract", () => {
     expect(nextConfigSource).toContain('source: "/admin/ops/doctors"')
     expect(nextConfigSource).toContain('destination: "/admin/doctors"')
     expect(nextConfigSource).toContain('source: "/admin/ops/sla"')
-    expect(nextConfigSource).toContain('destination: "/admin/analytics?tab=queue"')
+    expect(nextConfigSource).toContain('destination: "/admin/analytics"')
   })
 })

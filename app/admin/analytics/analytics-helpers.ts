@@ -5,14 +5,6 @@ export interface AnalyticsData {
     paid: number
     completed: number
   }
-  dailyData: {
-    date: string
-    visits: number
-    started: number
-    paid: number
-    completed: number
-    revenue: number
-  }[]
   revenue: {
     today: number
     thisWeek: number
@@ -35,8 +27,3 @@ export interface AnalyticsData {
     scriptsPending: number
   }
 }
-
-export type TabKey =
-  | "funnel"
-  | "revenue"
-  | "queue"

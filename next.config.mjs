@@ -284,7 +284,7 @@ const nextConfig = {
       },
       {
         source: "/admin/business-kpi",
-        destination: "/admin/analytics?tab=revenue",
+        destination: "/admin/analytics",
         permanent: true
       },
       {
@@ -329,7 +329,7 @@ const nextConfig = {
       },
       {
         source: "/admin/ops/sla",
-        destination: "/admin/analytics?tab=queue",
+        destination: "/admin/analytics",
         permanent: true
       },
       // Malformed URL — redirect /& (broken links, typos) to homepage

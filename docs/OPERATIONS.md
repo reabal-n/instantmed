@@ -111,10 +111,12 @@ PLAYWRIGHT=1 STRIPE_WEBHOOK_SECRET=whsec_test_... pnpm e2e e2e/stripe-webhook.sp
 | Patient lookup and duplicate review | `/admin/patients` | `/doctor/patients/[id]`, `/admin/ops/patient-merge-audit` |
 | Payment and webhook recovery | `/admin/finance`, `/admin/refunds` | `/admin/webhook-dlq` |
 | Email delivery recovery | `/admin/emails/hub` | `/admin/emails/templates`, `/admin/emails/suppression` |
-| Platform setup | `/admin/settings` | `/admin/features`, `/admin/settings/doctor-identity` |
+| Revenue and conversion review | `/admin/analytics` | PostHog for deeper product analysis |
+| Platform setup | `/admin/settings` | `/admin/features`, `/admin/settings/doctor-identity`, `/admin/settings/templates` |
 
 Pages outside this map should either be reachable from these surfaces, redirect to them, or be treated as cleanup candidates.
 Incident-only PHI encryption diagnostics live at `/admin/settings/encryption`; keep it out of routine nav and dashboard crawl, and use it only for key rotation or backfill incidents.
+Email delivery operations, suppression recovery, and email template editing stay under `/admin/emails/*`; do not duplicate them inside settings.
 
 ### Solo-Doctor Operating Model
 
@@ -354,6 +356,8 @@ Critical paths (Stripe, approvals, prescriptions) are always sampled at 1.0.
 
 All crons use `verifyCronRequest()` from `lib/api/cron-auth.ts` for authentication.
 
+Cron surface policy: every `app/api/cron/*/route.ts` must be scheduled in `vercel.json`, documented in this table, and operationally justified as one of: clinical queue safety, payment/intake recovery, delivery recovery, compliance retention, health monitoring, or explicit growth support. Dormant engagement jobs, dashboard digests, and future subscription nudges stay deleted rather than paused in production.
+
 | Job | Endpoint | Schedule | Purpose |
 |-----|----------|----------|---------|
 | Health Check | `/api/cron/health-check` | Every 5 min | Queue health, doctor activity, delivery health, AI metrics |
@@ -364,8 +368,10 @@ All crons use `verifyCronRequest()` from `lib/api/cron-auth.ts` for authenticati
 | Stale Queue | `/api/cron/stale-queue` | Hourly | Alerts on paid intakes waiting > 4h (warning) or > 8h (critical) |
 | Abandoned Checkouts | `/api/cron/abandoned-checkouts` | Hourly (:00) | Payment-stage recovery for submitted intakes stuck at checkout |
 | Partial Intake Recovery | `/api/cron/recover-partial-intakes` | Hourly (:15) | Pre-checkout draft recovery only; excludes review/checkout drafts so it does not overlap abandoned-checkout recovery |
+| Cleanup Intake Drafts | `/api/cron/cleanup-intake-drafts` | Daily (4 AM UTC) | Delete stale saved intake drafts so anonymous draft storage does not grow unbounded |
 | Emergency Flags | `/api/cron/emergency-flags` | Hourly | SMS emergency resources to patients who abandoned intakes with red flags |
 | Scheduled Maintenance | `/api/cron/scheduled-maintenance` | Every 5 min | Sync `maintenance_mode` with `maintenance_scheduled_start`/`end` window; auto-enable/disable banner |
+| Telegram Notifications | `/api/cron/telegram-notifications` | Every 5 min | Retry missed paid-request Telegram notifications when webhook-time sends fail |
 | AHPRA Re-verification | `/api/cron/ahpra-reverification` | Daily (6 AM AEST) | Flag overdue AHPRA verifications; disable approval for 30+ days overdue |
 | Daily Reconciliation | `/api/cron/daily-reconciliation` | Daily (7 AM AEST) | Identify mismatches: paid without delivery, failed refunds, failed deliveries |
 | PostHog Reconciliation | `/api/cron/posthog-reconciliation` | Hourly (:15) | Compare last 24h `intakes.payment_status='paid'` count (Supabase) vs `purchase_completed_server` event count (PostHog, `is_e2e=false`). Sentry alerts on >10% drift; "critical" past 30%. Requires `POSTHOG_PROJECT_API_KEY` (PostHog personal API key with `query:read` scope) + `POSTHOG_PROJECT_ID` (numeric, `277439`). Noops with `skipped: true` if either is missing. |
@@ -374,6 +380,7 @@ All crons use `verifyCronRequest()` from `lib/api/cron-auth.ts` for authenticati
 | Data Retention | `/api/cron/data-retention` | Daily (2 AM UTC) | Enforce AU health records retention (see CLINICAL.md → Data Retention Schedule); clean rate limit records |
 | Follow-Up Reminder | `/api/cron/follow-up-reminder` | Daily (1 AM UTC) | Day-3 follow-up emails to med cert patients |
 | Treatment Follow-Up | `/api/cron/treatment-followup` | Daily (23:00 UTC = 09:00 AEST) | ED/hair-loss treatment follow-up reminder emails (max 3 per milestone, ≥3 days apart) |
+| Review Request | `/api/cron/review-request` | Daily (10 AM UTC) | Explicit growth-support job for opted-in review request emails after completed care |
 | Retry Auto-Approval | `/api/cron/retry-auto-approval` | Every 3 min | Retry auto-approval via `auto_approval_state` enum (pending/failed_retrying). Includes timeout recovery for stale `attempting` intakes (>10 min). Feature-flagged. |
 | Cleanup Orphaned Storage | `/api/cron/cleanup-orphaned-storage` | Weekly (Sun 3 AM UTC) | Delete storage files with no DB record after 7-day grace period (max 50/run) |
 | Outbox Archival | `/api/cron/outbox-archival` | Daily (4 AM UTC) | Delete delivered emails >90 days old and exhausted-failed emails >180 days old from `email_outbox` (batch 500) |

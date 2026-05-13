@@ -283,7 +283,7 @@ describe("ops dashboard data contract", () => {
     expect(nextConfigSource).toContain('source: "/admin/ops/doctors"')
     expect(nextConfigSource).toContain('destination: "/admin/doctors"')
     expect(nextConfigSource).toContain('source: "/admin/ops/sla"')
-    expect(nextConfigSource).toContain('destination: "/admin/analytics?tab=queue"')
+    expect(nextConfigSource).toContain('destination: "/admin/analytics"')
   })
 
   it("surfaces failed refunds in ops without adding a broad finance dashboard", () => {

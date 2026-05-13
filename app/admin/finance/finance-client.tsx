@@ -154,7 +154,7 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
                 </a>
               </Button>
               <Button variant="outline" asChild>
-                <Link href={`${ADMIN_ANALYTICS_HREF}?tab=revenue`}>Revenue analytics</Link>
+                <Link href={ADMIN_ANALYTICS_HREF}>Revenue analytics</Link>
               </Button>
             </div>
           </section>

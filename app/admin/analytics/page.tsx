@@ -48,34 +48,27 @@ export default async function AnalyticsDashboardPage() {
       .gte("created_at", monthAgo.toISOString())
       .eq("status", "approved"),
 
-    // [4] Intakes by day (last 30 days) with payment data
-    supabase
-      .from("intakes")
-      .select("created_at, status, paid_at, amount_cents")
-      .gte("created_at", monthAgo.toISOString())
-      .order("created_at", { ascending: true }),
-
-    // [5] Revenue data - paid intakes with amount
+    // [4] Revenue data - paid intakes with amount
     supabase
       .from("intakes")
       .select("amount_cents, paid_at, created_at")
       .not("paid_at", "is", null)
       .gte("paid_at", monthAgo.toISOString()),
 
-    // [6] Doctor dashboard stats
+    // [5] Doctor dashboard stats
     getDoctorDashboardStats(),
 
-    // [7] Monitoring stats (queue health, avg review time)
+    // [6] Monitoring stats (queue health, avg review time)
     getIntakeMonitoringStats(),
 
-    // [8] This week's paid intakes for weekly revenue
+    // [7] This week's paid intakes for weekly revenue
     supabase
       .from("intakes")
       .select("amount_cents")
       .not("paid_at", "is", null)
       .gte("paid_at", weekAgo.toISOString()),
 
-    // [9] Today's paid intakes for daily revenue
+    // [8] Today's paid intakes for daily revenue
     supabase
       .from("intakes")
       .select("amount_cents")
@@ -88,45 +81,16 @@ export default async function AnalyticsDashboardPage() {
   const startedIntakesResult = results[1].status === "fulfilled" ? results[1].value : { count: 0 }
   const paidIntakesResult = results[2].status === "fulfilled" ? results[2].value : { count: 0 }
   const completedIntakesResult = results[3].status === "fulfilled" ? results[3].value : { count: 0 }
-  const intakesByDayResult = results[4].status === "fulfilled" ? results[4].value : { data: [] }
-  const revenueResult = results[5].status === "fulfilled" ? results[5].value : { data: [] }
-  const dashboardStats = results[6].status === "fulfilled" ? results[6].value : {
+  const revenueResult = results[4].status === "fulfilled" ? results[4].value : { data: [] }
+  const dashboardStats = results[5].status === "fulfilled" ? results[5].value : {
     total: 0, in_queue: 0, approved: 0, declined: 0, pending_info: 0, scripts_pending: 0
   }
-  const monitoringStats = results[7].status === "fulfilled" ? results[7].value : {
+  const monitoringStats = results[6].status === "fulfilled" ? results[6].value : {
     todaySubmissions: 0, queueSize: 0, paidCount: 0, pendingCount: 0,
     approvedToday: 0, declinedToday: 0, avgReviewTimeMinutes: null, oldestInQueueMinutes: null
   }
-  const weekRevenueResult = results[8].status === "fulfilled" ? results[8].value : { data: [] }
-  const todayRevenueResult = results[9].status === "fulfilled" ? results[9].value : { data: [] }
-
-  // Process daily data
-  const dailyData: Record<string, { visits: number; started: number; paid: number; completed: number; revenue: number }> = {}
-
-  for (let i = 29; i >= 0; i--) {
-    const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000)
-    const key = date.toISOString().split("T")[0]
-    dailyData[key] = { visits: 0, started: 0, paid: 0, completed: 0, revenue: 0 }
-  }
-
-  if (intakesByDayResult.data) {
-    for (const intake of intakesByDayResult.data) {
-      if (!intake.created_at) continue
-      const key = intake.created_at.split("T")[0]
-      if (dailyData[key]) {
-        dailyData[key].started++
-        if (intake.status === "approved") {
-          dailyData[key].completed++
-        }
-        if (intake.paid_at) {
-          dailyData[key].paid++
-        }
-        if (intake.amount_cents) {
-          dailyData[key].revenue += Number(intake.amount_cents) || 0
-        }
-      }
-    }
-  }
+  const weekRevenueResult = results[7].status === "fulfilled" ? results[7].value : { data: [] }
+  const todayRevenueResult = results[8].status === "fulfilled" ? results[8].value : { data: [] }
 
   // Calculate revenue totals
   const monthRevenue = (revenueResult.data || []).reduce(
@@ -146,10 +110,6 @@ export default async function AnalyticsDashboardPage() {
       paid: paidIntakesResult.count || 0,
       completed: completedIntakesResult.count || 0,
     },
-    dailyData: Object.entries(dailyData).map(([date, data]) => ({
-      date,
-      ...data,
-    })),
     revenue: {
       today: todayRevenue,
       thisWeek: weekRevenue,
