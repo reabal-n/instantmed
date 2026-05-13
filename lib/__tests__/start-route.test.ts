@@ -24,4 +24,14 @@ describe("/start legacy request handoff", () => {
       "https://instantmed.com.au/request?utm_campaign=brand",
     )
   })
+
+  it("maps legacy prescription aliases to the repeat-script request route", () => {
+    const response = GET(new NextRequest(
+      "https://instantmed.com.au/start?service=prescription&utm_source=shortcut",
+    ))
+
+    expect(response.headers.get("location")).toBe(
+      "https://instantmed.com.au/request?utm_source=shortcut&service=repeat-script",
+    )
+  })
 })

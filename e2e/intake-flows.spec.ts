@@ -477,7 +477,7 @@ test.describe("Intake: Certificate Step - defaults and date range", () => {
 test.describe("Intake: Repeat Prescription - full flow", () => {
   test("completes prescription from start to checkout", async ({ page }) => {
     // Navigate to prescription flow
-    await page.goto("/request?service=prescription")
+    await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
@@ -618,7 +618,7 @@ test.describe("Intake: Validation & edge cases", () => {
   })
 
   test("prescription medication-history 'never prescribed' shows warning", async ({ page }) => {
-    await page.goto("/request?service=prescription")
+    await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
     await dismissOverlays(page)
 

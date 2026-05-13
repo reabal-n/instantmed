@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils'
  * Calm, focused selection - no marketing hype
  */
 
-type ServiceType = 'medical-certificate' | 'prescription' | 'consultation'
+type ServiceType = 'medical-certificate' | 'repeat-prescription' | 'consultation'
 
 interface ServiceSelectorProps {
   onSelectService: (service: ServiceType) => void
@@ -30,10 +30,10 @@ const SERVICES = [
     iconColor: 'text-primary',
   },
   {
-    id: 'prescription' as const,
+    id: 'repeat-prescription' as const,
     icon: Pill,
-    label: 'Prescription',
-    description: 'New or repeat prescription',
+    label: 'Repeat prescription',
+    description: 'Renew an existing medicine',
     color: 'bg-emerald-50 dark:bg-emerald-950/30',
     iconColor: 'text-success',
   },

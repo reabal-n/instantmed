@@ -12,14 +12,15 @@ function readProjectFile(path: string): string {
 describe("email suppression navigation contract", () => {
   it("owns suppression inside admin emails instead of the doctor portal", () => {
     expect(existsSync(join(root, "app/admin/emails/suppression/page.tsx"))).toBe(true)
+    expect(existsSync(join(root, "app/doctor/email-suppression/page.tsx"))).toBe(false)
 
     const tabsSource = readProjectFile("app/admin/emails/email-tabs-nav.tsx")
-    const doctorPageSource = readProjectFile("app/doctor/email-suppression/page.tsx")
+    const nextConfigSource = readProjectFile("next.config.mjs")
 
     expect(tabsSource).toContain('href: "/admin/emails/suppression"')
     expect(tabsSource).toContain('label: "Suppression"')
-    expect(doctorPageSource).toContain('redirect("/admin/emails/suppression")')
-    expect(doctorPageSource).not.toContain("getSuppressedEmails")
+    expect(nextConfigSource).toContain('source: "/doctor/email-suppression"')
+    expect(nextConfigSource).toContain('destination: "/admin/emails/suppression"')
   })
 
   it("keeps suppression data and clearing admin-only", () => {

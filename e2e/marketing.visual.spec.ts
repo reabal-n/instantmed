@@ -194,7 +194,7 @@ test.describe("intake first-step visual regression", () => {
 
   const INTAKE_PATHS = [
     { slug: "intake-med-cert",     path: "/request?service=med-cert" },
-    { slug: "intake-prescription", path: "/request?service=prescription" },
+    { slug: "intake-prescription", path: "/request?service=repeat-script" },
     { slug: "intake-consult",      path: "/request?service=consult" },
   ] as const
 

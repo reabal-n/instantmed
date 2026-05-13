@@ -79,10 +79,6 @@ const reissueCertificateSource = readFileSync(
   join(process.cwd(), "app/actions/reissue-cert.ts"),
   "utf8",
 )
-const legacyDoctorEmailSuppressionSource = readFileSync(
-  join(process.cwd(), "app/doctor/email-suppression/page.tsx"),
-  "utf8",
-)
 const staffNavigationSource = readFileSync(
   join(process.cwd(), "lib/dashboard/staff-navigation.ts"),
   "utf8",
@@ -231,8 +227,21 @@ describe("doctor navigation contract", () => {
     expect(doctorSettingsPageSource).toContain("hasAdminAccess(profile)")
     expect(doctorSettingsPageSource).toContain('redirect("/admin/settings/doctor-identity")')
     expect(doctorSettingsPageSource).toContain('redirect("/doctor/settings/identity")')
-    expect(legacyDoctorEmailSuppressionSource).toContain('redirect("/admin/emails/suppression")')
-    expect(legacyDoctorEmailSuppressionSource).not.toContain("Email Suppression | InstantMed")
+    expect(nextConfigSource).toContain('source: "/doctor/email-suppression"')
+    expect(nextConfigSource).toContain('destination: "/admin/emails/suppression"')
+  })
+
+  it("keeps doctor analytics clinically scoped for future doctors", () => {
+    const analyticsPageSource = readFileSync(
+      join(process.cwd(), "app/doctor/analytics/page.tsx"),
+      "utf8",
+    )
+
+    expect(analyticsPageSource).toContain("const isAdmin = hasAdminAccess(profile)")
+    expect(analyticsPageSource).toContain("isAdmin ? undefined : profile.id")
+    expect(analyticsPageSource).toContain("showRevenue={isAdmin}")
+    expect(doctorAnalyticsSource).toContain("showRevenue = false")
+    expect(doctorAnalyticsSource).toContain("{showRevenue && (")
   })
 
   it("keeps portal surfaces free of decorative progress motion", () => {
@@ -280,7 +289,6 @@ describe("doctor navigation contract", () => {
   it("keeps doctor data pages explicitly gated for doctor or admin users", () => {
     const redirectOnlyPages = new Set([
       join(process.cwd(), "app/doctor/settings/page.tsx"),
-      join(process.cwd(), "app/doctor/email-suppression/page.tsx"),
     ])
 
     for (const pageFile of findDoctorPageFiles()) {

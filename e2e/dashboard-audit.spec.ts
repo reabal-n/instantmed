@@ -25,7 +25,6 @@ const ADMIN_PAGES = [
   "/admin/analytics?tab=business-kpis",
   "/admin/finance",
   "/admin/ops",
-  "/admin/compliance",
   "/admin/audit",
   "/admin/refunds",
   "/admin/errors",

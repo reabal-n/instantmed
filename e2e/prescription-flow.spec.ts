@@ -242,7 +242,7 @@ test.describe("Prescription: full flow - start to checkout", () => {
   test.setTimeout(90000) // generous timeout for CI
 
   test("completes repeat prescription from start to checkout", async ({ page }) => {
-    await page.goto("/request?service=prescription")
+    await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
@@ -275,7 +275,7 @@ test.describe("Prescription: repeat-script alias loads same flow", () => {
     await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
 
-    // Should land on medication search step (same as ?service=prescription)
+    // Should land on medication search step (same as ?service=repeat-script)
     await waitForStep(page, /Search using the PBS database/i)
     // Progress nav should be visible
     await expect(page.getByRole("navigation", { name: /Request progress/i })).toBeVisible()
@@ -290,7 +290,7 @@ test.describe("Prescription: medication-history gating", () => {
   test.setTimeout(60000)
 
   test("'never prescribed' shows repeat-only warning with consult CTA", async ({ page }) => {
-    await page.goto("/request?service=prescription")
+    await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
@@ -315,7 +315,7 @@ test.describe("Prescription: step validation", () => {
   test.setTimeout(60000)
 
   test("medication step blocks Continue without a selection", async ({ page }) => {
-    await page.goto("/request?service=prescription")
+    await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
@@ -326,7 +326,7 @@ test.describe("Prescription: step validation", () => {
   })
 
   test("patient details validates email format", async ({ page }) => {
-    await page.goto("/request?service=prescription")
+    await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
@@ -354,7 +354,7 @@ test.describe("Prescription: step validation", () => {
   })
 
   test("review step blocks Continue without safety consent", async ({ page }) => {
-    await page.goto("/request?service=prescription")
+    await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
@@ -379,7 +379,7 @@ test.describe("Prescription: checkout price verification", () => {
   test.setTimeout(90000)
 
   test("checkout shows $29.95 for repeat prescription", async ({ page }) => {
-    await page.goto("/request?service=prescription")
+    await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
@@ -407,7 +407,7 @@ test.describe("Prescription: checkout price verification", () => {
   })
 
   test("checkout button disabled without consent", async ({ page }) => {
-    await page.goto("/request?service=prescription")
+    await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
@@ -439,7 +439,7 @@ test.describe("Prescription: checkout price verification", () => {
 test.describe("Prescription: responsive design", () => {
   test("flow is usable at mobile viewport width", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 })
-    await page.goto("/request?service=prescription")
+    await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
 
     // Page should render with heading

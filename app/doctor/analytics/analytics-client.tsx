@@ -67,6 +67,7 @@ export interface AnalyticsData {
 interface AnalyticsClientProps {
   analytics: AnalyticsData
   doctorName: string
+  showRevenue?: boolean
 }
 
 function TrendBadge({ value, suffix = "%" }: { value: number; suffix?: string }) {
@@ -91,7 +92,7 @@ const DATE_RANGE_OPTIONS = [
   { value: "365", label: "Last year" },
 ]
 
-export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps) {
+export function AnalyticsClient({ analytics, doctorName, showRevenue = false }: AnalyticsClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const currentDays = analytics.pagination.days.toString()
@@ -215,46 +216,47 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
         </Card>
       </div>
 
-      {/* Revenue Section */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border-success-border">
-          <CardContent className="p-3 sm:p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-success uppercase tracking-wider">Today&apos;s Revenue</p>
-                <p className="text-2xl font-semibold tabular-nums text-success mt-0.5">${analytics.todayRevenue.toFixed(0)}</p>
+      {showRevenue && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Card className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border-success-border">
+            <CardContent className="p-3 sm:p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-success uppercase tracking-wider">Today&apos;s Revenue</p>
+                  <p className="text-2xl font-semibold tabular-nums text-success mt-0.5">${analytics.todayRevenue.toFixed(0)}</p>
+                </div>
+                <DollarSign className="h-8 w-8 text-emerald-400 shrink-0" />
               </div>
-              <DollarSign className="h-8 w-8 text-emerald-400 shrink-0" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card className="rounded-xl bg-blue-50 dark:bg-blue-950/30 border-info-border">
-          <CardContent className="p-3 sm:p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-info uppercase tracking-wider">This Week</p>
-                <p className="text-2xl font-semibold tabular-nums text-info mt-0.5">${analytics.thisWeekRevenue.toFixed(0)}</p>
-                <div className="mt-1"><TrendBadge value={analytics.revenueTrend} suffix="%" /></div>
+          <Card className="rounded-xl bg-blue-50 dark:bg-blue-950/30 border-info-border">
+            <CardContent className="p-3 sm:p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-info uppercase tracking-wider">This Week</p>
+                  <p className="text-2xl font-semibold tabular-nums text-info mt-0.5">${analytics.thisWeekRevenue.toFixed(0)}</p>
+                  <div className="mt-1"><TrendBadge value={analytics.revenueTrend} suffix="%" /></div>
+                </div>
+                <TrendingUp className="h-8 w-8 text-blue-400 shrink-0" />
               </div>
-              <TrendingUp className="h-8 w-8 text-blue-400 shrink-0" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card className="rounded-xl bg-amber-50 dark:bg-amber-950/30 border-warning-border">
-          <CardContent className="p-3 sm:p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-warning uppercase tracking-wider">All Time</p>
-                <p className="text-2xl font-semibold tabular-nums text-warning mt-0.5">${analytics.totalRevenue.toFixed(0)}</p>
-                <p className="text-xs text-warning mt-0.5">{analytics.totalIntakes} total intakes</p>
+          <Card className="rounded-xl bg-amber-50 dark:bg-amber-950/30 border-warning-border">
+            <CardContent className="p-3 sm:p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-warning uppercase tracking-wider">All Time</p>
+                  <p className="text-2xl font-semibold tabular-nums text-warning mt-0.5">${analytics.totalRevenue.toFixed(0)}</p>
+                  <p className="text-xs text-warning mt-0.5">{analytics.totalIntakes} total intakes</p>
+                </div>
+                <Users className="h-8 w-8 text-amber-400 shrink-0" />
               </div>
-              <Users className="h-8 w-8 text-amber-400 shrink-0" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

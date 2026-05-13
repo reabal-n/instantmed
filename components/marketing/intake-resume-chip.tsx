@@ -19,7 +19,7 @@ const SERVICE_LABELS: Record<ServiceKey, string> = {
 
 const SERVICE_ROUTES: Record<ServiceKey, string> = {
   'med-cert': '/request?service=med-cert',
-  'prescription': '/request?service=prescription',
+  'prescription': '/request?service=repeat-script',
   'consult': '/request?service=consult',
 }
 

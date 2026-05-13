@@ -96,4 +96,11 @@ describe("dashboard route contracts", () => {
     expect(conversionSnapshotSource).toContain("data.windows[window] ?? EMPTY_METRICS")
     expect(authHelperSource).toContain("Skipping unreadable optional staff PHI field during auth hydration")
   })
+
+  it("keeps retired admin compliance aliases on the audit route", () => {
+    const nextConfigSource = read("next.config.mjs")
+
+    expect(nextConfigSource).toContain('source: "/admin/compliance"')
+    expect(nextConfigSource).toContain('destination: "/admin/audit"')
+  })
 })

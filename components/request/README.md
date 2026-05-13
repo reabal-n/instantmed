@@ -23,8 +23,8 @@ import { RequestFlow } from "@/components/request"
 | Route | Description |
 |-------|-------------|
 | `/request?service=med-cert` | Medical certificate flow |
-| `/request?service=prescription` | New prescription request |
 | `/request?service=repeat-script` | Repeat prescription |
+| `/request?service=consult` | New prescription request via general consult |
 | `/request?service=consult` | Doctor consultation |
 
 Supported service params are defined by `SUPPORTED_SERVICE_SLUGS` and

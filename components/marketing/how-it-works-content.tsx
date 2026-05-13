@@ -300,7 +300,7 @@ export function HowItWorksContent() {
           ctaText="Get Med Cert"
           ctaHref="/request?service=med-cert"
           secondaryText="Renew medication"
-          secondaryHref="/request?service=prescription"
+          secondaryHref="/request?service=repeat-script"
         />
         </>
       )}

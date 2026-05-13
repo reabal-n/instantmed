@@ -109,7 +109,7 @@ const LANDING_CONFIG: LandingPageConfig = {
   analyticsId: "prescription",
   sticky: {
     ctaText: `Renew your medication · $${PRICING.REPEAT_SCRIPT.toFixed(2)}`,
-    ctaHref: "/request?service=prescription",
+    ctaHref: "/request?service=repeat-script",
     mobileSummary: `Need your medication? Open ${SOCIAL_PROOF_DISPLAY.operatingHours} AEST.`,
     responseTime: `Avg response: ${SOCIAL_PROOF_DISPLAY.responseTime}`,
   },
@@ -128,7 +128,7 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
       title: "Repeat prescription",
       subtitle: "Renewing a medication you already take",
       price: PRICING.REPEAT_SCRIPT,
-      href: "/request?service=prescription",
+      href: "/request?service=repeat-script",
       badge: "Most common",
       highlight: true,
       bullets: [
@@ -305,7 +305,7 @@ export function PrescriptionsLanding() {
               text: isDisabled
                 ? "Contact us"
                 : `Renew medication · $${PRICING.REPEAT_SCRIPT.toFixed(2)}`,
-              href: isDisabled ? "/contact" : "/request?service=prescription",
+              href: isDisabled ? "/contact" : "/request?service=repeat-script",
               onClick: handleHeroCTA,
               ref: heroCTARef,
             }}
@@ -351,7 +351,7 @@ export function PrescriptionsLanding() {
           {/* 3. How It Works */}
           <HowItWorksInline
             steps={HOW_IT_WORKS_STEPS}
-            ctaHref="/request?service=prescription"
+            ctaHref="/request?service=repeat-script"
             ctaText="Renew your medication"
             onCTAClick={handleHowItWorksCTA}
             isDisabled={isDisabled}
@@ -417,7 +417,7 @@ export function PrescriptionsLanding() {
             title="Your regular medication, renewed from home."
             subtitle="Answer a few questions, a doctor reviews it, and your eScript is sent once approved."
             ctaText="Renew your medication"
-            ctaHref="/request?service=prescription"
+            ctaHref="/request?service=repeat-script"
             onCtaClick={handleFinalCTA}
             isDisabled={isDisabled}
             price={PRICING.REPEAT_SCRIPT}

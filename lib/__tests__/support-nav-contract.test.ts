@@ -43,6 +43,28 @@ describe("support nav contract", () => {
     expect(labels).not.toContain("Intakes")
   })
 
+  it("keeps admin as the only role with the full clinical and operating nav", () => {
+    const adminLabels = allLabels(getStaffNav(adminProfile))
+    const doctorLabels = allLabels(getStaffNav(doctorProfile))
+
+    expect(adminLabels).toEqual([
+      "Dashboard",
+      "All requests",
+      "Review queue",
+      "Scripts",
+      "Patients",
+      "Analytics",
+      "Payments",
+      "Recovery",
+      "Settings",
+    ])
+    expect(doctorLabels).toEqual(["Queue", "Scripts", "Patients", "Analytics", "Identity"])
+    expect(doctorLabels).not.toContain("All requests")
+    expect(doctorLabels).not.toContain("Payments")
+    expect(doctorLabels).not.toContain("Recovery")
+    expect(doctorLabels).not.toContain("Settings")
+  })
+
   it("does not link to PHI-heavy admin surfaces", () => {
     const hrefs = allHrefs(supportNavSections)
     // The full patient directory shows un-redacted names; support must not

@@ -42,7 +42,9 @@ describe("future doctor scope contract", () => {
 
     expect(source).toContain("async function getAnalytics(searchParams: AnalyticsSearchParams = {}, doctorId?: string)")
     expect(source).toContain("query.or(`claimed_by.eq.${doctorId},reviewing_doctor_id.eq.${doctorId},reviewed_by.eq.${doctorId}`)")
-    expect(source).toContain("hasAdminAccess(profile) ? undefined : profile.id")
+    expect(source).toContain("const isAdmin = hasAdminAccess(profile)")
+    expect(source).toContain("isAdmin ? undefined : profile.id")
+    expect(source).toContain("showRevenue={isAdmin}")
   })
 
   it("defines concrete doctor-patient relationship sources and excludes the unclaimed queue", () => {

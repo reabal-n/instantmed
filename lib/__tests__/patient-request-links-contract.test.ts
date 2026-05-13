@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest"
 
 function collectSourceFiles(dir: string): string[] {
   if (!existsSync(dir)) return []
+  if (statSync(dir).isFile()) return /\.(ts|tsx)$/.test(dir) ? [dir] : []
 
   return readdirSync(dir).flatMap((entry) => {
     const fullPath = join(dir, entry)
@@ -14,11 +15,15 @@ function collectSourceFiles(dir: string): string[] {
   })
 }
 
-describe("patient request links", () => {
-  it("sends patient prescription CTAs to the canonical repeat-script intake", () => {
+describe("request links", () => {
+  it("sends prescription CTAs to the canonical repeat-script intake", () => {
     const source = [
       ...collectSourceFiles(join(process.cwd(), "app/patient")),
+      ...collectSourceFiles(join(process.cwd(), "app/manifest.ts")),
       ...collectSourceFiles(join(process.cwd(), "components/patient")),
+      ...collectSourceFiles(join(process.cwd(), "components/marketing")),
+      ...collectSourceFiles(join(process.cwd(), "lib/marketing")),
+      ...collectSourceFiles(join(process.cwd(), "lib/seo/data/guides")),
     ].map((file) => readFileSync(file, "utf8")).join("\n")
 
     expect(source).toContain("/request?service=repeat-script")

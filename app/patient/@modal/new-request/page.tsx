@@ -12,10 +12,10 @@ export default function NewRequestModal() {
     router.back()
   }
 
-  const handleSelectService = (service: "medical-certificate" | "prescription" | "consultation") => {
+  const handleSelectService = (service: "medical-certificate" | "repeat-prescription" | "consultation") => {
     if (service === "medical-certificate") {
       router.push("/request?service=med-cert")
-    } else if (service === "prescription") {
+    } else if (service === "repeat-prescription") {
       router.push("/request?service=repeat-script")
     } else if (service === "consultation") {
       router.push("/request?service=consult")

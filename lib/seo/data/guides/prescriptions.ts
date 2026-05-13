@@ -147,6 +147,6 @@ export const prescriptionGuides: Record<string, GuideData> = {
       { q: "Why can't some medications be prescribed online?", a: "Schedule 8 medications (strong painkillers, some stimulants) have regulatory restrictions requiring established doctor-patient relationships and sometimes in-person assessment." },
       { q: "Do I need Medicare for a telehealth prescription?", a: "For prescription renewals and consultations, Medicare eligibility affects rebates but you can still use telehealth services without Medicare." }
     ],
-    cta: { text: "Get a prescription", href: "/request?service=prescription", subtext: "eScripts sent to your phone. Accepted at any Australian pharmacy." }
+    cta: { text: "Get a repeat prescription", href: "/request?service=repeat-script", subtext: "eScripts sent to your phone. Accepted at any Australian pharmacy." }
   },
 }

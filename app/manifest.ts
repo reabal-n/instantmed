@@ -29,7 +29,7 @@ export default function manifest(): MetadataRoute.Manifest {
         name: "Repeat Prescription",
         short_name: "Prescription",
         description: "Refill your prescription",
-        url: "/request?service=prescription",
+        url: "/request?service=repeat-script",
       },
     ],
     // PWA icons - using apple-icon.png as fallback

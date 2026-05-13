@@ -270,7 +270,6 @@ describe("admin navigation contract", () => {
   it("does not send failed admin role checks back into the doctor portal", () => {
     const adminPageSources = [
       "app/admin/audit/page.tsx",
-      "app/admin/compliance/page.tsx",
       "app/admin/emails/suppression/page.tsx",
       "app/admin/features/page.tsx",
       "app/admin/finance/page.tsx",
@@ -331,7 +330,6 @@ describe("admin navigation contract", () => {
       "app/admin/analytics/page.tsx",
       "app/admin/audit/page.tsx",
       "app/admin/clinic/page.tsx",
-      "app/admin/compliance/page.tsx",
       "app/admin/content/page.tsx",
       "app/admin/doctors/page.tsx",
       "app/admin/emails/analytics/page.tsx",
@@ -430,9 +428,12 @@ describe("admin navigation contract", () => {
     const adminPages = findAdminPageFiles().map((file) => file.replace(process.cwd() + "/", ""))
 
     expect(adminPages).not.toContain("app/admin/email-test/page.tsx")
+    expect(adminPages).not.toContain("app/admin/compliance/page.tsx")
     expect(adminPages).not.toContain("app/admin/parchment-conformance/page.tsx")
     expect(adminPages).not.toContain("app/admin/doctors/performance/page.tsx")
     expect(adminPages).not.toContain("app/admin/finance/revenue/page.tsx")
+    expect(nextConfigSource).toContain('source: "/admin/compliance"')
+    expect(nextConfigSource).toContain('destination: "/admin/audit"')
     expect(nextConfigSource).toContain('source: "/admin/email-test"')
     expect(nextConfigSource).toContain('destination: "/admin/emails/preview"')
   })

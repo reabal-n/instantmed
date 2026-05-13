@@ -238,8 +238,9 @@ export default async function AnalyticsPage({ searchParams }: PageProps) {
   const auth = await requireRole(["doctor", "admin"])
   const { profile } = auth
   const params = await searchParams
+  const isAdmin = hasAdminAccess(profile)
 
-  const analytics = await getAnalytics(params, hasAdminAccess(profile) ? undefined : profile.id)
+  const analytics = await getAnalytics(params, isAdmin ? undefined : profile.id)
 
-  return <AnalyticsClient analytics={analytics} doctorName={profile.full_name} />
+  return <AnalyticsClient analytics={analytics} doctorName={profile.full_name} showRevenue={isAdmin} />
 }

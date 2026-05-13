@@ -86,7 +86,7 @@ export const serviceCategories = [
     icon: "Pill",
     color: "cyan",
     priceFrom: 29.95,
-    href: "/request?service=prescription",
+    href: "/request?service=repeat-script",
     popular: false,
     cta: "Renew medication",
     benefits: [
@@ -248,7 +248,7 @@ export const featuredServices = [
     title: "Repeat Medication",
     description: "Running low on your regular medication? A doctor reviews your request and sends to your phone. Any pharmacy, Australia-wide.",
     priceFrom: 29.95,
-    href: "/request?service=prescription",
+    href: "/request?service=repeat-script",
     features: ["Contraception", "Blood pressure", "Skin treatments", "Sent to your phone"],
   },
   {

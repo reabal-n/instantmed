@@ -258,6 +258,11 @@ const nextConfig = {
         permanent: true
       },
       {
+        source: "/admin/compliance",
+        destination: "/admin/audit",
+        permanent: true
+      },
+      {
         source: "/admin/webhooks",
         destination: "/admin/webhook-dlq",
         permanent: true
@@ -339,6 +344,7 @@ const nextConfig = {
       { source: "/doctor/dashboard", destination: "/dashboard", permanent: false },
       { source: "/doctor/queue", destination: "/dashboard", permanent: false },
       { source: "/doctor/certificates", destination: "/dashboard", permanent: false },
+      { source: "/doctor/email-suppression", destination: "/admin/emails/suppression", permanent: true },
       { source: "/doctor/repeat-rx", destination: "/dashboard", permanent: true },
       { source: "/doctor/repeat-rx/:path*", destination: "/dashboard", permanent: true },
       { source: "/womens-health", destination: "/request", permanent: false },

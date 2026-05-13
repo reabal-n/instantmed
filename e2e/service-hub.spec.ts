@@ -65,7 +65,7 @@ test.describe("Service Hub", () => {
     await waitForPageLoad(page)
     await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible()
 
-    await page.goto("/request?service=prescription")
+    await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
     await expect(page.getByRole("heading", { name: /What brings you in today/i })).not.toBeVisible()
 

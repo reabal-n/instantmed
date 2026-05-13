@@ -74,7 +74,7 @@ test.describe("Unified Request Flow - Medical Certificate", () => {
 
 test.describe("Unified Request Flow - Prescription", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/request?service=prescription")
+    await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
   })
 
@@ -107,18 +107,18 @@ test.describe("Unified Request Flow - Route Redirects", () => {
     await page.waitForURL(/\/request\?service=med-cert/, { timeout: 15000 })
   })
 
-  test("/start?service=prescription redirects correctly", async ({ page }) => {
-    await page.goto("/start?service=prescription", { waitUntil: "networkidle" })
+  test("/start?service=repeat-script redirects correctly", async ({ page }) => {
+    await page.goto("/start?service=repeat-script", { waitUntil: "networkidle" })
 
     // Should redirect to /request with mapped service param
-    await page.waitForURL(/\/request\?service=prescription/, { timeout: 15000 })
+    await page.waitForURL(/\/request\?service=repeat-script/, { timeout: 15000 })
   })
 
-  test("/start?service=repeat-rx maps to prescription", async ({ page }) => {
+  test("/start?service=repeat-rx maps to repeat-script", async ({ page }) => {
     await page.goto("/start?service=repeat-rx", { waitUntil: "networkidle" })
 
-    // Legacy repeat-rx should map to prescription
-    await page.waitForURL(/\/request\?service=prescription/, { timeout: 15000 })
+    // Legacy repeat-rx should map to repeat-script
+    await page.waitForURL(/\/request\?service=repeat-script/, { timeout: 15000 })
   })
 })
 
