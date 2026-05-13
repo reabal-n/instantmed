@@ -1,6 +1,7 @@
 import "server-only"
 
 import { decryptProfilePhi } from "@/lib/data/profiles"
+import { getDoctorAccessiblePatientIds } from "@/lib/doctor/patient-access"
 import { collapseDuplicatePatientProfiles } from "@/lib/doctor/patient-snapshot"
 import { createLogger } from "@/lib/observability/logger"
 import { getServicePresentation } from "@/lib/services/service-presentation"
@@ -62,10 +63,12 @@ export interface PatientDirectoryPage {
 }
 
 export async function getPatientDirectoryPage({
+  doctorId,
   page,
   pageSize = 50,
   sort = "recent_request",
 }: {
+  doctorId?: string
   page: number
   pageSize?: number
   sort?: PatientDirectorySort
@@ -75,7 +78,15 @@ export async function getPatientDirectoryPage({
   const from = (page - 1) * pageSize
   const to = from + pageSize - 1
 
-  const { data, error, count } = await supabase
+  const accessiblePatientIds = doctorId
+    ? Array.from(await getDoctorAccessiblePatientIds(doctorId, supabase))
+    : null
+
+  if (doctorId && accessiblePatientIds?.length === 0) {
+    return { patients: [], total: 0, rawTotal: 0, collapsedCount: 0 }
+  }
+
+  let query = supabase
     .from("profiles")
     .select(`
       id, auth_user_id, email, full_name, first_name, last_name,
@@ -92,6 +103,12 @@ export async function getPatientDirectoryPage({
     .eq("role", "patient")
     .is("merged_into_profile_id", null)
     .order("created_at", { ascending: false })
+
+  if (accessiblePatientIds) {
+    query = query.in("id", accessiblePatientIds)
+  }
+
+  const { data, error, count } = await query
 
   if (error) {
     log.error("Failed to fetch patient directory", { error: error.message, page: from })

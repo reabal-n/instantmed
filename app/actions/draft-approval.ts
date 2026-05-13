@@ -11,6 +11,7 @@
  */
 
 import { requireRoleOrNull } from "@/lib/auth/helpers"
+import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { createLogger } from "@/lib/observability/logger"
 import { prepareDocumentDraftEditedContentWrite } from "@/lib/security/phi-field-wrappers"
@@ -59,7 +60,7 @@ export async function approveDraft(
   }
 
   // Verify doctor is assigned to this intake (or is admin)
-  if (auth.profile.role === "doctor") {
+  if (!hasAdminAccess(auth.profile)) {
     const { data: intake } = await supabase
       .from("intakes")
       .select("assigned_doctor_id")
@@ -191,7 +192,7 @@ export async function rejectDraft(
   }
 
   // Verify doctor is assigned to this intake (or is admin)
-  if (auth.profile.role === "doctor") {
+  if (!hasAdminAccess(auth.profile)) {
     const { data: intake } = await supabase
       .from("intakes")
       .select("assigned_doctor_id")
@@ -268,7 +269,7 @@ export async function regenerateDrafts(intakeId: string): Promise<DraftApprovalR
   const supabase = createServiceRoleClient()
 
   // Verify doctor is assigned to this intake (or is admin)
-  if (auth.profile.role === "doctor") {
+  if (!hasAdminAccess(auth.profile)) {
     const { data: intake } = await supabase
       .from("intakes")
       .select("assigned_doctor_id")

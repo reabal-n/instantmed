@@ -335,7 +335,7 @@ export default async function PostSignInPage({
     destination = `/patient/intakes/success?intake_id=${params.intake_id}`
   } else {
     // Staff routes go straight to the unified `/dashboard` instead of the
-    // legacy aliases `/admin` and `/doctor/dashboard` (both 307 to
+    // legacy aliases such as `/admin` and `/doctor/dashboard` (both 307 to
     // `/dashboard` themselves). Saves an extra round-trip on every staff
     // login. The aliases stay registered as redirects for bookmarks +
     // back-button.

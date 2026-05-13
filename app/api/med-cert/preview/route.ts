@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { getApiAuth } from "@/lib/auth/helpers"
+import { hasDoctorAccess } from "@/lib/auth/staff-capabilities"
 import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
 import { validateCertificateDateRange } from "@/lib/medical-certificates/date-policy"
 import { createLogger } from "@/lib/observability/logger"
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest) {
   try {
     // Require doctor or admin role
     const authResult = await getApiAuth()
-    if (!authResult || !["doctor", "admin"].includes(authResult.profile.role)) {
+    if (!authResult || !hasDoctorAccess(authResult.profile)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 

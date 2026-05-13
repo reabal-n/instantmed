@@ -1,6 +1,7 @@
 "use server"
 
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { hasDoctorAccess } from "@/lib/auth/staff-capabilities"
 import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import {
   type DoctorIdentity,
@@ -25,7 +26,7 @@ async function requireDoctorAuth() {
     throw new Error("Not authenticated")
   }
 
-  if (authUser.profile.role !== "doctor" && authUser.profile.role !== "admin") {
+  if (!hasDoctorAccess(authUser.profile)) {
     throw new Error("Doctor access required")
   }
 

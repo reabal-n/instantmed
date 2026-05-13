@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 
 import { requireApiRole } from "@/lib/auth/helpers"
+import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import { getScriptTaskCounts, getScriptTasks } from "@/lib/data/script-tasks"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
 
     const page = pageSchema.parse(request.nextUrl.searchParams.get("page") ?? 1)
     const pageSize = pageSizeSchema.parse(request.nextUrl.searchParams.get("pageSize") ?? 50)
-    const doctorId = authResult.profile.role === "admin" ? undefined : authResult.profile.id
+    const doctorId = hasAdminAccess(authResult.profile) ? undefined : authResult.profile.id
     const baseFilters = doctorId ? { doctorId, page, pageSize } : { page, pageSize }
 
     const [{ tasks, total }, counts] = await Promise.all([

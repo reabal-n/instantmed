@@ -3,16 +3,16 @@
 // are kept below until Phase 2 finishes the surface consolidation.
 
 export const STAFF_DASHBOARD_HREF = "/dashboard" as const
-export const STAFF_LEDGER_HREF = "/dashboard/ledger" as const
-export const STAFF_PATIENTS_HREF = "/patients" as const
-export const STAFF_SCRIPTS_HREF = "/dashboard?status=scripts" as const
-export const STAFF_QUEUE_HREF = "/dashboard?status=review" as const
-export const STAFF_OPS_HREF = "/ops" as const
-export const STAFF_ANALYTICS_HREF = "/analytics" as const
-export const STAFF_FINANCE_HREF = "/finance" as const
-export const STAFF_EMAILS_HREF = "/emails" as const
-export const STAFF_SETTINGS_HREF = "/settings" as const
-export const STAFF_IDENTITY_HREF = "/settings/identity" as const
+export const STAFF_LEDGER_HREF = "/admin/intakes" as const
+export const STAFF_PATIENTS_HREF = "/admin/patients" as const
+export const STAFF_SCRIPTS_HREF = "/dashboard?status=scripts#doctor-queue" as const
+export const STAFF_QUEUE_HREF = "/dashboard?status=review#doctor-queue" as const
+export const STAFF_OPS_HREF = "/admin/ops" as const
+export const STAFF_ANALYTICS_HREF = "/admin/analytics" as const
+export const STAFF_FINANCE_HREF = "/admin/finance" as const
+export const STAFF_EMAILS_HREF = "/admin/emails/hub" as const
+export const STAFF_SETTINGS_HREF = "/admin/settings" as const
+export const STAFF_IDENTITY_HREF = "/doctor/settings/identity" as const
 
 export function buildStaffCaseHref(intakeId: string): string {
   return `/cases/${encodeURIComponent(intakeId)}`
@@ -26,11 +26,11 @@ export function buildStaffPatientHref(patientId: string): string {
 // New callers should use the STAFF_* names above.
 
 export const PATIENT_DASHBOARD_HREF = "/patient" as const
-export const DOCTOR_DASHBOARD_HREF = "/doctor/dashboard" as const
-export const ADMIN_DASHBOARD_HREF = "/admin" as const
+export const DOCTOR_DASHBOARD_HREF = STAFF_DASHBOARD_HREF
+export const ADMIN_DASHBOARD_HREF = STAFF_DASHBOARD_HREF
 export const ADMIN_INTAKE_LEDGER_HREF = "/admin/intakes" as const
-export const ADMIN_DOCTOR_QUEUE_HREF = "/admin?status=review#doctor-queue" as const
-export const ADMIN_SCRIPTS_HREF = "/admin?status=scripts#doctor-queue" as const
+export const ADMIN_DOCTOR_QUEUE_HREF = STAFF_QUEUE_HREF
+export const ADMIN_SCRIPTS_HREF = STAFF_SCRIPTS_HREF
 export const ADMIN_PATIENTS_HREF = "/admin/patients" as const
 export const ADMIN_ANALYTICS_HREF = "/admin/analytics" as const
 export const ADMIN_FINANCE_HREF = "/admin/finance" as const
@@ -121,7 +121,7 @@ export function buildAdminDashboardHref(options: {
 
   const query = params.toString()
   const hash = options.anchor ? `#${options.anchor}` : ""
-  return `${ADMIN_DASHBOARD_HREF}${query ? `?${query}` : ""}${hash}`
+  return `${STAFF_DASHBOARD_HREF}${query ? `?${query}` : ""}${hash}`
 }
 
 /**

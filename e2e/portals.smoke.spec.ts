@@ -152,7 +152,7 @@ test.describe("Portal Access Control - Unauthenticated", () => {
     const tracker = createConsoleErrorTracker()
     tracker.attach(page)
 
-    await gotoWithRetry(page, "/doctor/dashboard")
+    await gotoWithRetry(page, "/dashboard")
 
     // Should redirect to /sign-in (which itself bounces to the Account Portal),
     // /login, or accounts.instantmed.com.au directly.
@@ -186,11 +186,11 @@ test.describe("Portal Access Control - Unauthenticated", () => {
     tracker.assertNoErrors()
   })
 
-  test("unauthenticated user is redirected from /admin/studio", async ({ page }) => {
+  test("unauthenticated user is redirected from /admin/settings/templates", async ({ page }) => {
     const tracker = createConsoleErrorTracker()
     tracker.attach(page)
 
-    await gotoWithRetry(page, "/admin/studio")
+    await gotoWithRetry(page, "/admin/settings/templates")
 
     const url = page.url()
     const isRedirected =
@@ -233,7 +233,7 @@ test.describe("Operator Portal Access - Admin + Doctor", () => {
     const tracker = createConsoleErrorTracker()
     tracker.attach(page)
 
-    await gotoWithRetry(page, "/doctor/dashboard")
+    await gotoWithRetry(page, "/dashboard")
 
     // Wait for the page heading to stream in - domcontentloaded fires before
     // Suspense boundaries resolve in the dev server.
@@ -285,7 +285,7 @@ test.describe("Operator Portal Access - Admin + Doctor", () => {
     const tracker = createConsoleErrorTracker()
     tracker.attach(page)
 
-    await gotoWithRetry(page, "/admin/studio")
+    await gotoWithRetry(page, "/admin/settings/templates")
 
     // Scope error checks to <main> - the admin sidebar contains an "Errors"
     // nav link that produces a false positive against /error/i.
@@ -314,7 +314,7 @@ test.describe("Operator Portal Access - Admin + Doctor", () => {
     // Navigate to admin pages - domcontentloaded is enough; we only need to
     // verify the page didn't 404. Waiting for full `load` flakes in dev mode
     // because /admin/* sub-pages compile chunks lazily and chain redirects.
-    const adminPages = ["/admin", "/admin/studio", "/admin/audit", "/admin/settings"]
+    const adminPages = ["/admin", "/admin/settings/templates", "/admin/audit", "/admin/settings"]
     const main = page.locator("main")
 
     for (const adminPage of adminPages) {
@@ -335,7 +335,7 @@ test.describe("Operator Portal Access - Admin + Doctor", () => {
     // Same rationale as the admin nav test above.
     // /doctor/settings server-redirects to /doctor/settings/identity, which causes
     // ERR_ABORTED on goto with domcontentloaded - hit the destination directly.
-    const doctorPages = ["/doctor/dashboard", "/doctor/queue", "/doctor/settings/identity"]
+    const doctorPages = ["/dashboard", "/doctor/queue", "/doctor/settings/identity"]
     const main = page.locator("main")
 
     for (const doctorPage of doctorPages) {
@@ -372,7 +372,7 @@ test.describe("Role Restrictions - Patient User", () => {
     const tracker = createConsoleErrorTracker()
     tracker.attach(page)
 
-    await gotoWithRetry(page, "/doctor/dashboard")
+    await gotoWithRetry(page, "/dashboard")
 
     // The /doctor route streams loading.tsx before requireRole() in the layout
     // resolves the patient → /patient redirect, so the URL doesn't change until

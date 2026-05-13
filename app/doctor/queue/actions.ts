@@ -1,7 +1,6 @@
 "use server"
 
 import * as Sentry from "@sentry/nextjs"
-import { revalidatePath } from "next/cache"
 
 import { declineIntake as declineIntakeCanonical } from "@/app/actions/decline-intake"
 import { trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
@@ -13,7 +12,9 @@ import { requireRole } from "@/lib/auth/helpers"
 import {
   describeServiceCapability,
   doctorCanReviewService,
+  hasAdminAccess,
 } from "@/lib/auth/staff-capabilities"
+import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { IntakeLifecycleError } from "@/lib/data/intake-lifecycle"
 import {
   flagForFollowup,
@@ -33,7 +34,7 @@ import { createLogger } from "@/lib/observability/logger"
 import { getParchmentPatientIdentityIssues } from "@/lib/parchment/sync-patient"
 import { readAnswers } from "@/lib/security/phi-field-wrappers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import type { IntakeStatus } from "@/types/db"
+import type { IntakeStatus, Profile } from "@/types/db"
 
 const logger = createLogger("doctor-queue-actions")
 
@@ -44,7 +45,7 @@ function isValidUUID(id: string): boolean {
 }
 
 type ServiceRelation = { type?: string | null } | { type?: string | null }[] | null
-type QueueActionProfile = { id: string; role?: string | null }
+type QueueActionProfile = Pick<Profile, "id" | "role">
 type RelationValue<T> = T | T[] | null | undefined
 type PrescribingIdentityPatient = Parameters<typeof getParchmentPatientIdentityIssues>[0]
 type IntakeAnswersRow = {
@@ -78,7 +79,7 @@ async function ensureDoctorCaseActionAllowed(
   intakeId: string,
   profile: QueueActionProfile,
 ): Promise<{ success: true } | { success: false; error: string }> {
-  if (profile.role === "admin") return { success: true }
+  if (hasAdminAccess(profile)) return { success: true }
 
   const supabase = createServiceRoleClient()
   const { data: intake, error } = await supabase
@@ -299,9 +300,7 @@ export async function updateStatusAction(
       }
     }
 
-    revalidatePath("/doctor/dashboard")
-    revalidatePath("/doctor/queue")
-    revalidatePath(`/doctor/intakes/${intakeId}`)
+    revalidateStaff({ intakeId, scripts: true })
 
     return { success: true }
   } catch (error) {
@@ -422,10 +421,8 @@ export async function declineIntakeAction(
     return { success: false, error: result.error }
   }
 
-  revalidatePath("/doctor/dashboard")
-  revalidatePath("/doctor/queue")
-  revalidatePath(`/doctor/intakes/${intakeId}`)
-  revalidatePath(`/patient/intakes/${intakeId}`)
+  revalidateStaff({ intakeId })
+  revalidatePatient({ intakeId })
 
   return { 
     success: true,
@@ -495,7 +492,7 @@ export async function markScriptSentAction(
     return { success: true }
   }
 
-  if (profile.role !== "admin" && !isParchmentClaimSatisfied(intake, profile.id)) {
+  if (!hasAdminAccess(profile) && !isParchmentClaimSatisfied(intake, profile.id)) {
     return { success: false, error: "You must claim this intake before marking the script sent" }
   }
 
@@ -585,10 +582,8 @@ export async function markScriptSentAction(
     logger.warn("Failed to send script_sent email", { intakeId, error: emailErr })
   }
 
-  revalidatePath("/doctor/dashboard")
-  revalidatePath("/doctor/queue")
-  revalidatePath(`/doctor/intakes/${intakeId}`)
-  revalidatePath(`/patient/intakes/${intakeId}`)
+  revalidateStaff({ intakeId, scripts: true })
+  revalidatePatient({ intakeId })
 
   return { success: true }
 }
@@ -886,9 +881,8 @@ export async function issueRefundAction(
       logger.warn("[IssueRefund] Failed to send refund email", { intakeId })
     }
 
-    revalidatePath("/doctor/dashboard")
-    revalidatePath(`/doctor/intakes/${intakeId}`)
-    revalidatePath(`/patient/intakes/${intakeId}`)
+    revalidateStaff({ intakeId, content: true })
+    revalidatePatient({ intakeId })
 
     return { success: true, refundId: refund.id, amount: refund.amount }
   } catch (error) {

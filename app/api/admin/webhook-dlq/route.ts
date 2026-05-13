@@ -1,15 +1,48 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { getApiAuth } from "@/lib/auth/helpers"
+import { hasAdminAccess, hasSupportAccess } from "@/lib/auth/staff-capabilities"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
 import { logAdminAction } from "@/lib/security/audit-log"
 import { requireValidCsrf } from "@/lib/security/csrf"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import type { Profile } from "@/types/db"
 
 const logger = createLogger("admin-webhook-dlq")
 
 export const dynamic = "force-dynamic"
+
+type WebhookDlqEntry = {
+  id: string
+  event_id: string
+  event_type: string
+  intake_id: string | null
+  error_message: string
+  retry_count: number | null
+  payload: unknown
+  created_at: string
+  resolved_at: string | null
+  resolved_by: string | null
+  resolution_notes: string | null
+}
+
+function canUseWebhookDlq(profile: Pick<Profile, "role">): boolean {
+  return hasAdminAccess(profile) || hasSupportAccess(profile)
+}
+
+function redactWebhookDlqEntryForSupport(entry: WebhookDlqEntry): WebhookDlqEntry {
+  return {
+    ...entry,
+    payload: {
+      redacted: true,
+      event_id: entry.event_id,
+      event_type: entry.event_type,
+      intake_id: entry.intake_id,
+      retry_count: entry.retry_count ?? 0,
+    },
+  }
+}
 
 /**
  * GET /api/admin/webhook-dlq
@@ -17,12 +50,11 @@ export const dynamic = "force-dynamic"
  */
 export async function GET(request: NextRequest) {
   try {
-    // Require admin role directly
     const authResult = await getApiAuth()
-    if (!authResult || !["admin"].includes(authResult.profile.role)) {
+    if (!authResult || !canUseWebhookDlq(authResult.profile)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-    const { profile: _profile } = authResult
+    const isSupportOnly = hasSupportAccess(authResult.profile) && !hasAdminAccess(authResult.profile)
     const searchParams = request.nextUrl.searchParams
     const showResolved = searchParams.get("resolved") === "true"
     const limit = Math.min(parseInt(searchParams.get("limit") || "50"), 100)
@@ -69,7 +101,9 @@ export async function GET(request: NextRequest) {
       .select("id", { count: "exact", head: true })
 
     return NextResponse.json({
-      entries: data || [],
+      entries: isSupportOnly
+        ? ((data || []) as WebhookDlqEntry[]).map(redactWebhookDlqEntryForSupport)
+        : data || [],
       counts: {
         unresolved: unresolvedCount ?? 0,
         total: totalCount ?? 0,
@@ -87,9 +121,8 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Require admin role directly
     const authResult = await getApiAuth()
-    if (!authResult || !["admin"].includes(authResult.profile.role)) {
+    if (!authResult || !canUseWebhookDlq(authResult.profile)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
     const { profile } = authResult
@@ -112,7 +145,7 @@ export async function POST(request: NextRequest) {
         .update({
           resolved_at: new Date().toISOString(),
           resolved_by: profile.id,
-          resolution_notes: notes || "Manually resolved by admin",
+          resolution_notes: notes || "Manually resolved by staff",
         })
         .eq("id", entryId)
 
@@ -121,7 +154,7 @@ export async function POST(request: NextRequest) {
       }
 
       await logAdminAction(profile.id, "Resolved webhook DLQ entry", { entryId, notes })
-      logger.info("Webhook DLQ entry resolved", { entryId, adminId: profile.id })
+      logger.info("Webhook DLQ entry resolved", { entryId, staffId: profile.id })
 
       return NextResponse.json({ success: true, action: "resolved" })
     }
@@ -132,7 +165,7 @@ export async function POST(request: NextRequest) {
         .update({
           resolved_at: new Date().toISOString(),
           resolved_by: profile.id,
-          resolution_notes: notes || "Bulk resolved by admin",
+          resolution_notes: notes || "Bulk resolved by staff",
         })
         .is("resolved_at", null)
 
@@ -148,7 +181,7 @@ export async function POST(request: NextRequest) {
       }
 
       await logAdminAction(profile.id, "Bulk resolved webhook DLQ entries", { count, notes })
-      logger.info("Webhook DLQ bulk resolved", { count, adminId: profile.id })
+      logger.info("Webhook DLQ bulk resolved", { count, staffId: profile.id })
 
       return NextResponse.json({ success: true, action: "resolved_all", count })
     }

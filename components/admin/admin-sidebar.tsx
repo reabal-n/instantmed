@@ -16,6 +16,8 @@ import {
 } from "@/lib/dashboard/staff-navigation"
 import { cn } from "@/lib/utils"
 
+import { STAFF_NAV_ICONS } from "./staff-nav-icons"
+
 interface AdminSidebarProps {
   userName: string
   userRole?: string
@@ -131,6 +133,8 @@ function NavIconLink({
   onClick?: () => void
 }) {
   const badgeCount = count ?? 0
+  const Icon = STAFF_NAV_ICONS[item.icon] ?? STAFF_NAV_ICONS.dashboard
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -144,7 +148,7 @@ function NavIconLink({
           )}
           aria-label={item.label}
         >
-          <item.icon className="h-[18px] w-[18px]" aria-hidden />
+          <Icon className="h-[18px] w-[18px]" aria-hidden />
           <NavBadge count={badgeCount} tone={item.badgeTone} />
         </Link>
       </TooltipTrigger>
@@ -199,7 +203,8 @@ function PaletteHint({ onOpenPalette }: { onOpenPalette?: () => void }) {
 }
 
 function UserInitials({ userName, userRole }: { userName: string; userRole: string }) {
-  const initials = userName
+  const displayName = userName.trim() || "Staff"
+  const initials = displayName
     .split(" ")
     .map((namePart) => namePart.charAt(0))
     .join("")
@@ -212,14 +217,14 @@ function UserInitials({ userName, userRole }: { userName: string; userRole: stri
         <button
           type="button"
           className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-[11px] font-semibold text-foreground transition-colors hover:bg-muted/80"
-          aria-label={`Signed in as ${userName}`}
+          aria-label={`Signed in as ${displayName}`}
         >
           {initials}
         </button>
       </TooltipTrigger>
       <TooltipContent side="right" sideOffset={8}>
         <div className="flex flex-col gap-0.5">
-          <span className="text-xs font-medium text-foreground">{userName}</span>
+          <span className="text-xs font-medium text-foreground">{displayName}</span>
           <span className="text-[11px] text-muted-foreground">{userRole}</span>
         </div>
       </TooltipContent>
@@ -356,6 +361,7 @@ export function MobileAdminNav({ navCounts, navSections, brandLabel: _brandLabel
               {section.items.map((item) => {
                 const active = getIsActive(pathname, item.href, currentStatus)
                 const count = item.badgeKey ? counts[item.badgeKey] : 0
+                const Icon = STAFF_NAV_ICONS[item.icon]
                 return (
                   <Link
                     key={item.href}
@@ -368,7 +374,7 @@ export function MobileAdminNav({ navCounts, navSections, brandLabel: _brandLabel
                     )}
                   >
                     <span className="flex items-center gap-2.5">
-                      <item.icon className="h-[18px] w-[18px]" aria-hidden />
+                      <Icon className="h-[18px] w-[18px]" aria-hidden />
                       {item.label}
                     </span>
                     {count > 0 ? (

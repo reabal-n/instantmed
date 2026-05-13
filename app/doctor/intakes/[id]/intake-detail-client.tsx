@@ -28,6 +28,7 @@ import { usePanel } from "@/components/panels/panel-provider"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
+import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
 import type { PatientThreadMessage } from "@/lib/data/patient-messages"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format/intake"
@@ -110,7 +111,7 @@ function CockpitIntakeDetailClient({
   patientMessages = [],
   patientNotes = [],
   initialAction,
-  backHref = "/doctor/dashboard",
+  backHref = STAFF_DASHBOARD_HREF,
   backLabel = "Back to queue",
   supplementaryActions,
 }: IntakeDetailClientProps) {
@@ -153,7 +154,7 @@ function CockpitIntakeDetailClient({
         router.push(`/doctor/intakes/${nextIntakeId}`)
         return
       }
-      router.push("/doctor/dashboard")
+      router.push(STAFF_DASHBOARD_HREF)
     },
   })
 
@@ -331,7 +332,7 @@ function LegacyIntakeDetailClient({
   certDelivery,
   parchmentEnabled = false,
   patientMessages = [],
-  backHref = "/doctor/dashboard",
+  backHref = STAFF_DASHBOARD_HREF,
   backLabel = "Back to queue",
   supplementaryActions,
   compact = false,

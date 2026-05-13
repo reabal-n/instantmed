@@ -56,6 +56,8 @@ export const OPERATOR_PROFILE_ID = "e2e00000-0000-0000-0000-000000000001"
 export const OPERATOR_AUTH_USER_ID = OPERATOR_PROFILE_ID
 export const DOCTOR_PROFILE_ID = "e2e00000-0000-0000-0000-000000000003"
 export const DOCTOR_AUTH_USER_ID = DOCTOR_PROFILE_ID
+export const SUPPORT_PROFILE_ID = "e2e00000-0000-0000-0000-000000000004"
+export const SUPPORT_AUTH_USER_ID = SUPPORT_PROFILE_ID
 export const PATIENT_PROFILE_ID = "e2e00000-0000-0000-0000-000000000002"
 export const PATIENT_AUTH_USER_ID = PATIENT_PROFILE_ID
 export const INTAKE_ID = "e2e00000-0000-0000-0000-000000000010"
@@ -104,7 +106,7 @@ async function seedOperatorProfile() {
   // Check if already exists
   const { data: existing } = await supabase
     .from("profiles")
-    .select("id, auth_user_id, email, full_name, date_of_birth, role, onboarding_completed, email_verified, email_verified_at, provider_number, ahpra_number, nominals, certificate_identity_complete, address_line1, suburb, state, postcode, phone, created_at, updated_at")
+    .select("id, auth_user_id, email, full_name, date_of_birth, role, onboarding_completed, email_verified, email_verified_at, provider_number, ahpra_number, nominals, certificate_identity_complete, signature_storage_path, parchment_user_id, address_line1, suburb, state, postcode, phone, created_at, updated_at")
     .eq("id", OPERATOR_PROFILE_ID)
     .single()
 
@@ -130,6 +132,8 @@ async function seedOperatorProfile() {
       ahpra_number: "MED0001234567",
       nominals: "MBBS, FRACGP",
       certificate_identity_complete: true,
+      signature_storage_path: "e2e/signatures/operator.png",
+      parchment_user_id: "e2e-parchment-operator",
       // Address for certificate
       address_line1: "123 Test Medical Centre",
       suburb: "Sydney",
@@ -155,7 +159,7 @@ async function seedDoctorProfile() {
   // Check if already exists
   const { data: existing } = await supabase
     .from("profiles")
-    .select("id, auth_user_id, email, full_name, date_of_birth, role, onboarding_completed, email_verified, email_verified_at, provider_number, ahpra_number, nominals, certificate_identity_complete, address_line1, suburb, state, postcode, phone, created_at, updated_at")
+    .select("id, auth_user_id, email, full_name, date_of_birth, role, onboarding_completed, email_verified, email_verified_at, provider_number, ahpra_number, nominals, certificate_identity_complete, signature_storage_path, parchment_user_id, address_line1, suburb, state, postcode, phone, created_at, updated_at")
     .eq("id", DOCTOR_PROFILE_ID)
     .single()
 
@@ -197,6 +201,45 @@ async function seedDoctorProfile() {
   }
 
   console.log("   ↳ Created new doctor profile")
+  return data
+}
+
+async function seedSupportProfile() {
+  console.log("🔧 Seeding support profile (ops only)...")
+
+  const { data: existing } = await supabase
+    .from("profiles")
+    .select("id, auth_user_id, email, full_name, role, onboarding_completed, email_verified, email_verified_at, phone, created_at, updated_at")
+    .eq("id", SUPPORT_PROFILE_ID)
+    .single()
+
+  if (existing) {
+    console.log("   ↳ Reusing existing support profile")
+    return existing
+  }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .upsert({
+      id: SUPPORT_PROFILE_ID,
+      auth_user_id: null,
+      email: "e2e-support@test.instantmed.com.au",
+      full_name: "E2E Support",
+      role: "support",
+      onboarding_completed: true,
+      email_verified: true,
+      email_verified_at: new Date().toISOString(),
+      phone: "0434567890",
+    }, { onConflict: "id" })
+    .select()
+    .single()
+
+  if (error) {
+    console.error("❌ Failed to seed support profile:", error.message)
+    throw error
+  }
+
+  console.log("   ↳ Created new support profile")
   return data
 }
 
@@ -699,7 +742,7 @@ async function validateSeededData(): Promise<ValidationResult[]> {
   // 1. Operator profile exists with admin role
   const { data: operator } = await supabase
     .from("profiles")
-    .select("id, role, provider_number, ahpra_number, certificate_identity_complete")
+    .select("id, role, provider_number, ahpra_number, certificate_identity_complete, signature_storage_path, parchment_user_id")
     .eq("id", OPERATOR_PROFILE_ID)
     .single()
 
@@ -726,6 +769,30 @@ async function validateSeededData(): Promise<ValidationResult[]> {
     name: "Operator has ahpra_number",
     passed: !!operator?.ahpra_number,
     message: operator?.ahpra_number || "MISSING",
+  })
+
+  results.push({
+    name: "Operator has signature",
+    passed: !!operator?.signature_storage_path,
+    message: operator?.signature_storage_path || "MISSING",
+  })
+
+  results.push({
+    name: "Operator has linked Parchment prescriber",
+    passed: !!operator?.parchment_user_id,
+    message: operator?.parchment_user_id ? "linked" : "MISSING",
+  })
+
+  const { data: support } = await supabase
+    .from("profiles")
+    .select("id, role")
+    .eq("id", SUPPORT_PROFILE_ID)
+    .single()
+
+  results.push({
+    name: "Support profile exists",
+    passed: support?.role === "support",
+    message: support ? `role=${support.role}` : "NOT FOUND",
   })
 
   // 3. Certificate templates exist with valid config
@@ -858,6 +925,8 @@ function printSeedSummary() {
 │  Role:          admin (has doctor access)
 │  Provider #:    1234567A
 │  AHPRA #:       MED0001234567
+│  Signature:     e2e/signatures/operator.png
+│  Parchment:     e2e-parchment-operator
 │
 ├─ Doctor User (doctor only, NOT admin) ─────────────────────
 │  Profile ID:    ${DOCTOR_PROFILE_ID}
@@ -865,6 +934,11 @@ function printSeedSummary() {
 │  Role:          doctor (no admin access)
 │  Provider #:    7654321B
 │  AHPRA #:       MED0007654321
+│
+├─ Support User (ops only) ──────────────────────────────────
+│  Profile ID:    ${SUPPORT_PROFILE_ID}
+│  E2E Cookie ID: ${SUPPORT_AUTH_USER_ID}
+│  Role:          support (no clinical or admin data pages)
 │
 ├─ Patient User ──────────────────────────────────────────────
 │  Profile ID:    ${PATIENT_PROFILE_ID}
@@ -896,6 +970,7 @@ async function main() {
     // Seed in dependency order
     await seedOperatorProfile()
     await seedDoctorProfile()
+    await seedSupportProfile()
     await seedPatientProfile()
     const service = await seedService()
     await seedScriptService()

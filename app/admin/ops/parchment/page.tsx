@@ -6,6 +6,7 @@ import { OperatorPage, OperatorPageHeader, OperatorPanel, OperatorScrollArea } f
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { requireRole } from "@/lib/auth/helpers"
+import { hasAdminAccess, hasSupportAccess } from "@/lib/auth/staff-capabilities"
 import {
   getParchmentOpsDashboard,
   type ParchmentFailedWebhook,
@@ -44,7 +45,17 @@ function mapEventStatus(status: ParchmentOpsEvent["status"]): StatusBadgeStatus 
   return status
 }
 
-function PatientLink({ patientProfileId }: { patientProfileId: string | null }) {
+function PatientLink({
+  patientProfileId,
+  supportMode = false,
+}: {
+  patientProfileId: string | null
+  supportMode?: boolean
+}) {
+  if (supportMode) {
+    return <span className="text-xs text-muted-foreground">Patient hidden in support view</span>
+  }
+
   if (!isUuid(patientProfileId)) {
     return <span className="text-xs text-muted-foreground">Patient not linked</span>
   }
@@ -59,7 +70,17 @@ function PatientLink({ patientProfileId }: { patientProfileId: string | null }) 
   )
 }
 
-function IntakeLink({ intakeId }: { intakeId: string | null }) {
+function IntakeLink({
+  intakeId,
+  supportMode = false,
+}: {
+  intakeId: string | null
+  supportMode?: boolean
+}) {
+  if (supportMode) {
+    return <span className="text-xs text-muted-foreground">Intake hidden in support view</span>
+  }
+
   if (!isUuid(intakeId)) return null
 
   return (
@@ -72,7 +93,7 @@ function IntakeLink({ intakeId }: { intakeId: string | null }) {
   )
 }
 
-function EvidenceItem({ event }: { event: ParchmentOpsEvent }) {
+function EvidenceItem({ event, supportMode = false }: { event: ParchmentOpsEvent; supportMode?: boolean }) {
   return (
     <div className="rounded-lg border border-border/70 bg-white px-3 py-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -92,14 +113,14 @@ function EvidenceItem({ event }: { event: ParchmentOpsEvent }) {
         </div>
       </div>
       <div className="mt-3 flex flex-wrap gap-3">
-        <PatientLink patientProfileId={event.patientProfileId} />
-        <IntakeLink intakeId={event.intakeId} />
+        <PatientLink patientProfileId={event.patientProfileId} supportMode={supportMode} />
+        <IntakeLink intakeId={event.intakeId} supportMode={supportMode} />
       </div>
     </div>
   )
 }
 
-function FailureItem({ failure }: { failure: ParchmentFailedWebhook }) {
+function FailureItem({ failure, supportMode = false }: { failure: ParchmentFailedWebhook; supportMode?: boolean }) {
   return (
     <div className="rounded-lg border border-red-200 bg-red-50/70 px-3 py-3">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -110,13 +131,19 @@ function FailureItem({ failure }: { failure: ParchmentFailedWebhook }) {
             </StatusBadge>
             <p className="text-sm font-semibold text-red-950">{failure.reason}</p>
           </div>
-          <p className="mt-1 line-clamp-2 text-xs text-red-800">{failure.description}</p>
+          <p className="mt-1 line-clamp-2 text-xs text-red-800">
+            {supportMode
+              ? "Parchment webhook failed. Patient, intake, and retry details are held for admin/doctor review."
+              : failure.description}
+          </p>
           <p className="mt-2 text-[11px] text-red-700">{formatDateTime(failure.createdAt)}</p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
-          <RetryParchmentWebhookButton auditLogId={failure.id} disabled={!failure.retryable} />
-          <PatientLink patientProfileId={failure.patientProfileId} />
-          <IntakeLink intakeId={failure.intakeId} />
+          {supportMode ? null : (
+            <RetryParchmentWebhookButton auditLogId={failure.id} disabled={!failure.retryable} />
+          )}
+          <PatientLink patientProfileId={failure.patientProfileId} supportMode={supportMode} />
+          <IntakeLink intakeId={failure.intakeId} supportMode={supportMode} />
         </div>
       </div>
     </div>
@@ -124,7 +151,8 @@ function FailureItem({ failure }: { failure: ParchmentFailedWebhook }) {
 }
 
 export default async function ParchmentOpsPage() {
-  await requireRole(["admin"], { redirectTo: "/admin" })
+  const authUser = await requireRole(["admin", "support"], { redirectTo: "/admin/ops" })
+  const isSupportOnly = hasSupportAccess(authUser.profile) && !hasAdminAccess(authUser.profile)
 
   const dashboard = await getParchmentOpsDashboard(createServiceRoleClient())
   const readiness = getParchmentProductionReadiness()
@@ -142,13 +170,19 @@ export default async function ParchmentOpsPage() {
     <OperatorPage className="bg-background">
       <OperatorPageHeader
         title="Parchment ops"
-        description="Prescribing integration recovery, current blockers, and production-readiness evidence."
+        description={isSupportOnly
+          ? "Support view: current blockers and masked webhook evidence. PHI links, prescriber evidence, and retry actions stay admin-only."
+          : "Prescribing integration recovery, current blockers, and production-readiness evidence."}
         backHref="/admin/ops"
         actions={
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/admin/parchment-conformance">Recording evidence</Link>
-            </Button>
+            {isSupportOnly ? (
+              <Badge variant="outline" size="sm">Support view</Badge>
+            ) : (
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/admin/parchment-conformance">Recording evidence</Link>
+              </Button>
+            )}
             <StatusBadge status={degraded ? "warning" : "success"} size="sm">
               {degraded ? "Needs attention" : "Healthy"}
             </StatusBadge>
@@ -178,7 +212,7 @@ export default async function ParchmentOpsPage() {
               {actionableFailures.length > 0 ? (
                 <div className="space-y-3">
                   {actionableFailures.map((failure) => (
-                    <FailureItem key={failure.id} failure={failure} />
+                    <FailureItem key={failure.id} failure={failure} supportMode={isSupportOnly} />
                   ))}
                 </div>
               ) : (
@@ -213,7 +247,7 @@ export default async function ParchmentOpsPage() {
               {recentEvidence.length > 0 ? (
                 <div className="space-y-2">
                   {recentEvidence.map((event) => (
-                    <EvidenceItem key={event.id} event={event} />
+                    <EvidenceItem key={event.id} event={event} supportMode={isSupportOnly} />
                   ))}
                 </div>
               ) : (
@@ -304,31 +338,37 @@ export default async function ParchmentOpsPage() {
                 </div>
               )}
 
-              <details className="mt-3 rounded-lg border border-border/70 bg-white px-3 py-2">
-                <summary className="cursor-pointer text-xs font-semibold text-muted-foreground">
-                  Show linked prescriber evidence
-                </summary>
-                <div className="mt-3 space-y-2">
-                  {dashboard.linkedPrescribers.length > 0 ? (
-                    dashboard.linkedPrescribers.slice(0, 8).map((prescriber) => (
-                      <div
-                        key={prescriber.id}
-                        className="flex items-center justify-between gap-3 rounded-md border border-border/70 bg-muted/20 px-3 py-2"
-                      >
-                        <div className="min-w-0">
-                          <p className="truncate text-xs font-semibold text-foreground">{prescriber.name}</p>
-                          <p className="truncate text-[11px] text-muted-foreground">
-                            {prescriber.email || prescriber.role}
-                          </p>
-                        </div>
-                        <CopyTokenButton label="User" value={prescriber.parchmentUserId} />
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-xs text-muted-foreground">No linked prescriber profiles found.</p>
-                  )}
+              {isSupportOnly ? (
+                <div className="mt-3 rounded-lg border border-border/70 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+                  Linked prescriber names, emails, and user IDs are hidden in support view.
                 </div>
-              </details>
+              ) : (
+                <details className="mt-3 rounded-lg border border-border/70 bg-white px-3 py-2">
+                  <summary className="cursor-pointer text-xs font-semibold text-muted-foreground">
+                    Show linked prescriber evidence
+                  </summary>
+                  <div className="mt-3 space-y-2">
+                    {dashboard.linkedPrescribers.length > 0 ? (
+                      dashboard.linkedPrescribers.slice(0, 8).map((prescriber) => (
+                        <div
+                          key={prescriber.id}
+                          className="flex items-center justify-between gap-3 rounded-md border border-border/70 bg-muted/20 px-3 py-2"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-xs font-semibold text-foreground">{prescriber.name}</p>
+                            <p className="truncate text-[11px] text-muted-foreground">
+                              {prescriber.email || prescriber.role}
+                            </p>
+                          </div>
+                          <CopyTokenButton label="User" value={prescriber.parchmentUserId} />
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-xs text-muted-foreground">No linked prescriber profiles found.</p>
+                    )}
+                  </div>
+                </details>
+              )}
             </OperatorPanel>
 
             <details className="rounded-xl border border-border/70 bg-white p-4 shadow-sm">
@@ -361,7 +401,9 @@ export default async function ParchmentOpsPage() {
                     Synced prescriptions
                   </p>
                   <div className="mt-2 space-y-2">
-                    {dashboard.recentPrescriptions.length > 0 ? (
+                    {isSupportOnly ? (
+                      <p className="text-xs text-muted-foreground">Synced prescription details are hidden in support view.</p>
+                    ) : dashboard.recentPrescriptions.length > 0 ? (
                       dashboard.recentPrescriptions.slice(0, 4).map((prescription) => (
                         <div key={prescription.id} className="rounded-lg border border-border/70 bg-muted/20 px-3 py-2">
                           <p className="text-xs font-semibold text-foreground">{prescription.patientName}</p>

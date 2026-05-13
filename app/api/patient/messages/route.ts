@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 
 import { getApiAuth } from "@/lib/auth/helpers"
+import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -17,11 +18,9 @@ const messageSchema = z.object({
 })
 
 function revalidateMessageSurfaces(intakeId: string) {
-  revalidatePath("/doctor/dashboard")
-  revalidatePath("/doctor/queue")
-  revalidatePath(`/doctor/intakes/${intakeId}`)
+  revalidateStaff({ intakeId })
   revalidatePath("/patient/messages")
-  revalidatePath(`/patient/intakes/${intakeId}`)
+  revalidatePatient({ intakeId })
 }
 
 export async function POST(request: NextRequest) {

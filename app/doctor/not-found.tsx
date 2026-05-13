@@ -2,7 +2,7 @@ import { ArrowRight,LayoutDashboard } from "lucide-react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
-import { DOCTOR_QUEUE_REVIEW_HREF } from "@/lib/dashboard/routes"
+import { DOCTOR_QUEUE_REVIEW_HREF, STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 
 export default function DoctorNotFound() {
   return (
@@ -16,7 +16,7 @@ export default function DoctorNotFound() {
       </p>
       <div className="flex gap-3">
         <Button asChild className="rounded-xl">
-          <Link href="/doctor">
+          <Link href={STAFF_DASHBOARD_HREF}>
             <LayoutDashboard className="mr-2 h-4 w-4" />
             Doctor Portal
           </Link>

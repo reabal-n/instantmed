@@ -32,9 +32,9 @@ export async function approveAndSendCert(
     const doctorProfile = authResult.profile
 
     // Phase 7 of dashboard remaster (2026-05-12): per-doctor capability gate.
-    // Owner-operator (admin role) has `can_review_med_certs` defaulted true so
-    // this is a no-op today; future doctor hires get scoped via this flag
-    // before they are verified for the medical certificate service line.
+    // Owner-operator (admin role) bypasses these flags; future doctor hires
+    // get scoped before they are verified for the medical certificate service
+    // line.
     if (!doctorHasCapability(doctorProfile, "review_med_certs")) {
       log.warn("Doctor lacks medical certificate capability", {
         doctorId: doctorProfile.id,

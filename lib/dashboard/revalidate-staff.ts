@@ -50,10 +50,6 @@ export interface RevalidateStaffOptions {
 
 const STAFF_LANDING_PATHS = [
   "/dashboard",
-  "/admin",
-  "/doctor",
-  "/doctor/dashboard",
-  "/doctor/queue",
 ] as const
 
 const STAFF_PATIENT_LIST_PATHS = [

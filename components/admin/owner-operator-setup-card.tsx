@@ -122,7 +122,7 @@ export function OwnerOperatorSetupCard({
             )}
           </div>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Admin controls and doctor identity stay in this cockpit. No admin controls are exposed to future doctors.
+            This same profile is the admin and reviewing doctor. Capability flags only scope future doctor accounts.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">

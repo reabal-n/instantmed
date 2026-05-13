@@ -1,10 +1,10 @@
 import * as Sentry from "@sentry/nextjs"
 import crypto from "crypto"
-import { revalidatePath } from "next/cache"
 
 import { getPostHogClient, trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
 import { env } from "@/lib/config/env"
 import { ABN, COMPANY_ADDRESS, COMPANY_NAME, CONTACT_EMAIL,CONTACT_PHONE } from "@/lib/constants"
+import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { getDoctorIdentity } from "@/lib/data/doctor-identity"
 import {
   atomicApproveCertificate,
@@ -581,9 +581,8 @@ export async function executeCertApproval(
   }
 
   // 11. Revalidate cache
-  revalidatePath("/doctor/dashboard")
-  revalidatePath("/doctor/queue")
-  revalidatePath(`/patient/intakes/${intakeId}`)
+  revalidateStaff({ intakeId, patientId: patient.id })
+  revalidatePatient({ intakeId, patientId: patient.id, documents: true })
 
   return { success: true, certificateId, emailSent: emailResult.success }
 }

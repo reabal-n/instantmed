@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Button } from "@/components/uix"
+import { STAFF_QUEUE_HREF } from "@/lib/dashboard/routes"
 
 interface UserMenuProps {
   variant: "marketing" | "patient" | "doctor"
@@ -172,9 +173,9 @@ export function UserMenu({
     return (
       <>
         <AnimatedNavLink
-          href="/doctor/dashboard"
+          href={STAFF_QUEUE_HREF}
           icon={<LayoutDashboard className="h-4 w-4" aria-hidden="true" />}
-          isActive={pathname === "/doctor/dashboard"}
+          isActive={pathname === "/dashboard"}
         >
           Queue
         </AnimatedNavLink>

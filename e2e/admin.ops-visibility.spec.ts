@@ -11,7 +11,7 @@ test.describe("Ops Navigation Visibility", () => {
     const loginResult = await loginAsOperator(page)
     expect(loginResult.success).toBe(true)
 
-    await page.goto("/doctor/dashboard")
+    await page.goto("/dashboard")
     await page.waitForLoadState("networkidle")
 
     await expect(page.getByRole("heading", { name: "Review Queue" })).toBeVisible({ timeout: 10000 })
@@ -24,7 +24,7 @@ test.describe("Ops Navigation Visibility", () => {
     const loginResult = await loginAsDoctor(page)
     expect(loginResult.success).toBe(true)
 
-    await page.goto("/doctor/dashboard")
+    await page.goto("/dashboard")
     await page.waitForLoadState("networkidle")
 
     await expect(page.getByRole("heading", { name: "Review Queue" })).toBeVisible({ timeout: 10000 })

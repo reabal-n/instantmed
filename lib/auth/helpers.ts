@@ -62,13 +62,29 @@ async function wait(ms: number): Promise<void> {
 
 function decryptProfilePhiForAuth<T extends Record<string, unknown>>(profile: T): T {
   const decrypted: Record<string, unknown> = { ...profile }
+  const failClosedOnDecryptError = !isStaffRoleValue(profile.role)
+
+  const handleDecryptError = (field: "medicare_number" | "date_of_birth" | "phone", error: unknown) => {
+    if (failClosedOnDecryptError) {
+      log.error(`Failed to decrypt auth profile ${field} field`, {}, error)
+      throw new Error("Failed to decrypt patient identity")
+    }
+
+    // Staff profile PHI fields are not needed to render clinical/admin
+    // surfaces. If an old staff row contains a stale encrypted optional field,
+    // keep the staff dashboard available and drop only that optional value.
+    log.warn("Skipping unreadable optional staff PHI field during auth hydration", {
+      field,
+      role: typeof profile.role === "string" ? profile.role : "unknown",
+    }, error instanceof Error ? error : new Error(String(error)))
+    decrypted[field] = null
+  }
 
   if (profile.medicare_number_encrypted) {
     try {
       decrypted.medicare_number = decryptField<string>(profile.medicare_number_encrypted as string)
     } catch (error) {
-      log.error("Failed to decrypt auth profile Medicare field", {}, error)
-      throw new Error("Failed to decrypt patient identity")
+      handleDecryptError("medicare_number", error)
     }
   }
 
@@ -76,8 +92,7 @@ function decryptProfilePhiForAuth<T extends Record<string, unknown>>(profile: T)
     try {
       decrypted.date_of_birth = decryptField<string>(profile.date_of_birth_encrypted as string)
     } catch (error) {
-      log.error("Failed to decrypt auth profile DOB field", {}, error)
-      throw new Error("Failed to decrypt patient identity")
+      handleDecryptError("date_of_birth", error)
     }
   }
 
@@ -85,8 +100,7 @@ function decryptProfilePhiForAuth<T extends Record<string, unknown>>(profile: T)
     try {
       decrypted.phone = decryptField<string>(profile.phone_encrypted as string)
     } catch (error) {
-      log.error("Failed to decrypt auth profile phone field", {}, error)
-      throw new Error("Failed to decrypt patient identity")
+      handleDecryptError("phone", error)
     }
   }
 
@@ -100,6 +114,10 @@ function decryptProfilePhiForAuth<T extends Record<string, unknown>>(profile: T)
 function isClosedProfile(profile: Record<string, unknown> | Profile | null): boolean {
   const closedAt = profile?.account_closed_at
   return typeof closedAt === "string" && closedAt.length > 0
+}
+
+function isStaffRoleValue(role: unknown): boolean {
+  return role === "admin" || role === "doctor" || role === "support"
 }
 
 async function fetchProfileByColumn(
@@ -459,14 +477,10 @@ export async function requireRole(
       redirect(options.redirectTo)
     } else if (userRole === "patient") {
       redirect("/patient")
-    } else if (hasAdminAccess(authUser.profile)) {
-      redirect("/admin")
-    } else if (hasDoctorAccess(authUser.profile)) {
-      redirect("/doctor/dashboard")
+    } else if (hasAdminAccess(authUser.profile) || hasDoctorAccess(authUser.profile)) {
+      redirect("/dashboard")
     } else if (hasSupportAccess(authUser.profile)) {
-      // Support staff land on /admin once Phase 2 lands /dashboard.
-      // Until then, send them to the homepage rather than sign-in.
-      redirect("/")
+      redirect("/admin/ops")
     } else {
       redirect("/sign-in")
     }

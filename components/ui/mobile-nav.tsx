@@ -4,6 +4,7 @@ import { Activity, Bell, ClipboardList, CreditCard, FileText, FolderOpen, Home, 
 import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
 
+import { STAFF_NAV_ICONS } from "@/components/admin/staff-nav-icons"
 import { doctorNavSections, doctorOperatorNavItems } from "@/lib/dashboard/staff-navigation"
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { cn } from "@/lib/utils"
@@ -82,7 +83,7 @@ const moreItems: NavItem[] = [
 const doctorItems: NavItem[] = [
   ...doctorNavSections[0].items.map((item) => ({
     label: item.label,
-    icon: item.icon,
+    icon: STAFF_NAV_ICONS[item.icon],
     href: item.href,
   })),
   {
@@ -94,7 +95,7 @@ const doctorItems: NavItem[] = [
 
 const doctorMoreItems: NavItem[] = doctorNavSections[1].items.map((item) => ({
   label: item.label,
-  icon: item.icon,
+  icon: STAFF_NAV_ICONS[item.icon],
   href: item.href,
 }))
 
@@ -105,7 +106,7 @@ export function DoctorMobileNav({ className, isAdmin = false }: { className?: st
         ...doctorMoreItems,
         ...doctorOperatorNavItems.map((item) => ({
           label: item.label,
-          icon: item.icon,
+          icon: STAFF_NAV_ICONS[item.icon],
           href: item.href,
         })),
       ]

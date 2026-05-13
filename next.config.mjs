@@ -218,6 +218,11 @@ const nextConfig = {
         permanent: true
       },
       {
+        source: "/admin/email-hub",
+        destination: "/admin/emails/hub",
+        permanent: true
+      },
+      {
         source: "/admin/email-queue",
         destination: "/admin/emails/hub",
         permanent: true
@@ -226,6 +231,21 @@ const nextConfig = {
         source: "/admin/ops/email-outbox",
         destination: "/admin/emails/hub",
         permanent: true
+      },
+      {
+        source: "/admin/business-kpi",
+        destination: "/admin/analytics?tab=business-kpis",
+        permanent: true
+      },
+      {
+        source: "/admin/webhooks",
+        destination: "/admin/webhook-dlq",
+        permanent: true
+      },
+      {
+        source: "/admin/patients/:id",
+        destination: "/doctor/patients/:id",
+        permanent: false
       },
       // Malformed URL — redirect /& (broken links, typos) to homepage
       {
@@ -295,6 +315,9 @@ const nextConfig = {
       // Legacy doctor repeat-rx queue retired; canonical paid intakes live in /dashboard
       // (Phase 2 of dashboard remaster, 2026-05-12; was /doctor/dashboard which now 307s here).
       // `permanent: true` (308) so crawlers + bookmarks drop the legacy URL.
+      { source: "/doctor", destination: "/dashboard", permanent: false },
+      { source: "/doctor/dashboard", destination: "/dashboard", permanent: false },
+      { source: "/doctor/queue", destination: "/dashboard", permanent: false },
       { source: "/doctor/repeat-rx", destination: "/dashboard", permanent: true },
       { source: "/doctor/repeat-rx/:path*", destination: "/dashboard", permanent: true },
       { source: "/womens-health", destination: "/request", permanent: false },

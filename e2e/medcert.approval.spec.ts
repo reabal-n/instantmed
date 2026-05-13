@@ -36,12 +36,12 @@ const SEEDED_INTAKE_ID = INTAKE_ID
 // ============================================================================
 
 async function waitForApprovalOutcome(page: Page) {
-  if (page.url().includes("/doctor/dashboard")) return
+  if (page.url().includes("/dashboard")) return
 
   const outcomeMessage = page.locator('[data-testid="success-message"], [data-testid="warning-message"]')
   await Promise.race([
     outcomeMessage.waitFor({ state: "visible", timeout: 30000 }),
-    page.waitForURL("**/doctor/dashboard", { timeout: 30000 }),
+    page.waitForURL("**/dashboard", { timeout: 30000 }),
   ])
 }
 

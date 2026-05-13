@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { createLogger } from "@/lib/observability/logger"
-const log = createLogger("route")
 import { auth } from "@/lib/auth/helpers"
+import { hasDoctorAccess } from "@/lib/auth/staff-capabilities"
+import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+const log = createLogger("route")
 
 /** Escape ILIKE special characters to prevent wildcard injection */
 function escapeIlike(input: string): string {
@@ -41,7 +43,7 @@ export async function GET(request: NextRequest) {
       .eq("auth_user_id", userId)
       .single()
 
-    if (!callerProfile || (callerProfile.role !== "doctor" && callerProfile.role !== "admin")) {
+    if (!callerProfile || !hasDoctorAccess(callerProfile)) {
       log.warn("Unauthorized search variant request", {
         requestedVariant: variant,
         callerRole: callerProfile?.role || "unknown",

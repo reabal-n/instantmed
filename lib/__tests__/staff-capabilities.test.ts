@@ -19,7 +19,7 @@ describe("staff capabilities", () => {
     expect(hasAdminAccess(profile("admin"))).toBe(true)
     expect(hasDoctorAccess(profile("admin"))).toBe(true)
     expect(roleHasAnyCapability("admin", ["doctor"])).toBe(true)
-    expect(getStaffDisplayRole(profile("admin"))).toBe("Operator")
+    expect(getStaffDisplayRole(profile("admin"))).toBe("Admin + Doctor")
   })
 
   it("keeps ordinary doctors out of admin capabilities", () => {

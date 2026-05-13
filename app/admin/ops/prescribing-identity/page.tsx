@@ -6,8 +6,10 @@ import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/componen
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { requireRole } from "@/lib/auth/helpers"
+import { hasAdminAccess, hasSupportAccess } from "@/lib/auth/staff-capabilities"
 import { getPrescribingIdentityBlockerReport } from "@/lib/doctor/patient-identity-report"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { maskPatientName } from "@/lib/verify/certificate"
 
 import { PrescribingIdentityEditForm } from "./edit-form"
 import { RetryParchmentSyncButton } from "./retry-button"
@@ -29,7 +31,8 @@ function formatDateTime(value: string | null): string {
 }
 
 export default async function PrescribingIdentityOpsPage() {
-  await requireRole(["admin"], { redirectTo: "/admin" })
+  const authUser = await requireRole(["admin", "support"], { redirectTo: "/admin/ops" })
+  const isSupportOnly = hasSupportAccess(authUser.profile) && !hasAdminAccess(authUser.profile)
 
   const report = await getPrescribingIdentityBlockerReport(createServiceRoleClient())
   const topBlockers = Object.entries(report.blockerCounts)
@@ -98,7 +101,9 @@ export default async function PrescribingIdentityOpsPage() {
         <div className="border-b border-border/60 px-5 py-4">
           <h2 className="text-base font-semibold">Blocked prescription requests</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Fix the patient details here or on the profile, then retry Parchment sync.
+            {isSupportOnly
+              ? "Support view: confirm the blocker and ask the patient to update missing details. Direct PHI editing stays admin-only."
+              : "Fix the patient details here or on the profile, then retry Parchment sync."}
           </p>
         </div>
 
@@ -120,7 +125,9 @@ export default async function PrescribingIdentityOpsPage() {
                     <p className="font-medium">{item.referenceNumber || "Prescription request"}</p>
                     <Badge variant="outline" size="sm">{item.status}</Badge>
                   </div>
-                  <p className="mt-1 text-sm text-muted-foreground">{item.patientName}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {isSupportOnly ? maskPatientName(item.patientName) : item.patientName}
+                  </p>
                   <p className="mt-1 text-xs text-muted-foreground">Paid {formatDateTime(item.paidAt || item.createdAt)}</p>
                 </div>
 
@@ -132,27 +139,35 @@ export default async function PrescribingIdentityOpsPage() {
                   ))}
                 </div>
 
-                <div className="flex flex-wrap gap-2 lg:justify-end">
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={item.intakeHref}>
-                      <ExternalLink className="h-3.5 w-3.5" />
-                      Intake
-                    </Link>
-                  </Button>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={item.profileHref}>
-                      <ExternalLink className="h-3.5 w-3.5" />
-                      Profile
-                    </Link>
-                  </Button>
-                  <RetryParchmentSyncButton intakeId={item.intakeId} />
-                </div>
+                {isSupportOnly ? (
+                  <div className="rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-xs text-muted-foreground lg:text-right">
+                    Support can chase missing details; admin/doctor must edit PHI or retry sync.
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex flex-wrap gap-2 lg:justify-end">
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={item.intakeHref}>
+                          <ExternalLink className="h-3.5 w-3.5" />
+                          Intake
+                        </Link>
+                      </Button>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={item.profileHref}>
+                          <ExternalLink className="h-3.5 w-3.5" />
+                          Profile
+                        </Link>
+                      </Button>
+                      <RetryParchmentSyncButton intakeId={item.intakeId} />
+                    </div>
 
-                <PrescribingIdentityEditForm
-                  patientId={item.patientId}
-                  intakeId={item.intakeId}
-                  identity={item.identity}
-                />
+                    <PrescribingIdentityEditForm
+                      patientId={item.patientId}
+                      intakeId={item.intakeId}
+                      identity={item.identity}
+                    />
+                  </>
+                )}
               </div>
             ))}
           </div>

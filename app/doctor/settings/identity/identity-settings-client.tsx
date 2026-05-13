@@ -52,6 +52,7 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { getAvatarPresetId } from "@/lib/account/avatar-presets"
+import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import {
   type DoctorIdentity,
   validateAhpraNumber,
@@ -97,8 +98,8 @@ export function IdentitySettingsClient({
   parchmentUserId: initialParchmentUserId,
   parchmentEnvironment: initialParchmentEnvironment,
   settingsPath = "/doctor/settings/identity",
-  backHref = "/doctor/dashboard",
-  backLabel = "Back to doctor dashboard",
+  backHref = STAFF_DASHBOARD_HREF,
+  backLabel = "Back to staff dashboard",
 }: IdentitySettingsClientProps) {
   const { user } = useAuth()
   const supabase = useMemo(() => createClient(), [])

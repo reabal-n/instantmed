@@ -1,7 +1,9 @@
-import { type NextRequest,NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 
 import { requireApiRole } from "@/lib/auth/helpers"
+import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import { getHealthProfile } from "@/lib/data/health-profile"
+import { doctorCanAccessPatient } from "@/lib/doctor/patient-access"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -29,6 +31,13 @@ export async function GET(
   const authResult = await requireApiRole(["doctor", "admin"])
   if (!authResult) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  if (!hasAdminAccess(authResult.profile)) {
+    const canAccessPatient = await doctorCanAccessPatient(authResult.profile.id, patientId)
+    if (!canAccessPatient) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 })
+    }
   }
 
   // Fetch health profile (decrypts PHI fields via data layer)

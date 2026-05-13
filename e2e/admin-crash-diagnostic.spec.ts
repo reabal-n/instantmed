@@ -110,13 +110,13 @@ test.describe("Admin Crash Diagnostics", () => {
     await logoutTestUser(page)
   })
 
-  test("diagnose /admin/studio crash", async ({ page }) => {
-    diagnostics.route = "/admin/studio"
+  test("diagnose /admin/settings/templates crash", async ({ page }) => {
+    diagnostics.route = "/admin/settings/templates"
 
     // Navigate and wait for either success or error
-    const response = await page.goto("/admin/studio", { waitUntil: "networkidle" })
+    const response = await page.goto("/admin/settings/templates", { waitUntil: "networkidle" })
     
-    console.log(`\n[NAVIGATION] /admin/studio - Status: ${response?.status()}`)
+    console.log(`\n[NAVIGATION] /admin/settings/templates - Status: ${response?.status()}`)
 
     // Wait a bit for any async errors
     await page.waitForTimeout(2000)

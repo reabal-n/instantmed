@@ -8,6 +8,7 @@ import { FALLBACK_RESPONSES, MED_CERT_DRAFT_PROMPT, PROMPT_VERSION } from "@/lib
 import { AI_MODEL_CONFIG,getModelWithConfig, isAIConfigured } from "@/lib/ai/provider"
 import { getApiAuth } from "@/lib/auth/helpers"
 import { auth } from "@/lib/auth/helpers"
+import { hasDoctorAccess } from "@/lib/auth/staff-capabilities"
 import { AI_ENDPOINTS,recordAIRequest } from "@/lib/monitoring/ai-health"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -108,7 +109,7 @@ export async function POST(request: NextRequest) {
     
     // Require doctor authentication
     const authResult = await getApiAuth()
-    if (!authResult || !["doctor", "admin"].includes(authResult.profile.role)) {
+    if (!authResult || !hasDoctorAccess(authResult.profile)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
     const { profile } = authResult

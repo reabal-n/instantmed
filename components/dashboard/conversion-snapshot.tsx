@@ -27,6 +27,14 @@ const WINDOW_LABELS: Record<ConversionWindow, string> = {
 
 const WINDOW_ORDER: ConversionWindow[] = ["24h", "7d", "30d", "90d"]
 
+const EMPTY_METRICS = {
+  started: 0,
+  checkout_reached: 0,
+  paid: 0,
+  approved: 0,
+  revenue_aud_cents: 0,
+}
+
 interface ConversionSnapshotCardProps {
   data: ConversionSnapshot
   className?: string
@@ -64,7 +72,7 @@ export function ConversionSnapshotCard({ data, className }: ConversionSnapshotCa
 
       <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
         {WINDOW_ORDER.map((window) => {
-          const m = data.windows[window]
+          const m = data.windows[window] ?? EMPTY_METRICS
           const checkoutRate = pct(m.checkout_reached, m.started)
           const paidRate = pct(m.paid, m.started)
           const approveRate = pct(m.approved, m.paid)

@@ -15,6 +15,7 @@ import {
   getParchmentPrescribingEligibility,
   isParchmentClaimSatisfied,
 } from "@/lib/doctor/parchment-claim"
+import { checkParchmentPrescribingCapability } from "@/lib/doctor/parchment-prescribing-capability"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import {
@@ -185,6 +186,32 @@ export async function getParchmentPrescribeUrlAction(
       }
     }
 
+    const { data: answerRow } = await supabase
+      .from("intake_answers")
+      .select("answers, answers_encrypted")
+      .eq("intake_id", intakeId)
+      .maybeSingle()
+
+    // Extract answers for sex field fallback and controlled-medicine defence.
+    const answers = answerRow
+      ? (await readAnswers({
+          answers: answerRow.answers as Record<string, unknown> | null,
+          answers_enc: answerRow.answers_encrypted as never,
+        })) ?? undefined
+      : undefined
+
+    const prescribingCapability = checkParchmentPrescribingCapability({
+      profile: authResult.profile,
+      answers,
+    })
+    if (!prescribingCapability.allowed) {
+      log.warn("Parchment prescribe blocked by doctor prescribing capability", {
+        requiredCapability: prescribingCapability.requiredCapability,
+        controlledMedicationDetected: prescribingCapability.controlledMedicationDetected,
+      })
+      return { success: false, error: prescribingCapability.error }
+    }
+
     try {
       await validateIntegration(doctorProfile.parchment_user_id)
     } catch (validationError) {
@@ -198,20 +225,6 @@ export async function getParchmentPrescribeUrlAction(
         error: "Parchment integration validation failed. Revalidate the Parchment account in Doctor Settings and retry.",
       }
     }
-
-    const { data: answerRow } = await supabase
-      .from("intake_answers")
-      .select("answers, answers_encrypted")
-      .eq("intake_id", intakeId)
-      .maybeSingle()
-
-    // Extract answers for sex field fallback.
-    const answers = answerRow
-      ? (await readAnswers({
-          answers: answerRow.answers as Record<string, unknown> | null,
-          answers_enc: answerRow.answers_encrypted as never,
-        })) ?? undefined
-      : undefined
 
     // Sync patient to Parchment (idempotent - returns existing ID if already synced)
     const parchmentPatientId = await syncPatientToParchment(

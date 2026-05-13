@@ -18,6 +18,7 @@ import { ServiceIconTile } from "@/components/icons/service-icons"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { services } from "@/components/shared/navbar/services-dropdown"
 import { AnimatedMobileMenu } from "@/components/ui/animated-mobile-menu"
+import { STAFF_QUEUE_HREF } from "@/lib/dashboard/routes"
 
 interface MobileMenuContentProps {
   variant: "marketing" | "patient" | "doctor"
@@ -135,7 +136,7 @@ export function MobileMenuContent({ variant, onClose }: MobileMenuContentProps) 
     return (
       <>
         <AnimatedMobileMenu.Item
-          item={{ label: "Queue", href: "/doctor/dashboard", icon: <LayoutDashboard className="h-5 w-5" /> }}
+          item={{ label: "Queue", href: STAFF_QUEUE_HREF, icon: <LayoutDashboard className="h-5 w-5" /> }}
           index={0}
           onClose={onClose}
         />

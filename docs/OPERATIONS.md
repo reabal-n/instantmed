@@ -765,6 +765,8 @@ Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_
 | Business Alerts | Failed payments, SLA breaches | Telegram (`lib/notifications/telegram.ts`) |
 | Payment Notifications | Successful checkout | Telegram (real-time) |
 | Request Flow Synthetic | Any production request-path render/click failure | GitHub Actions failure |
+| Staff Role Gate | More than one auth-linked human admin, owner-admin missing doctor identity, or doctor missing required prescribing/certificate identity | `pnpm check:staff-roles` release failure |
+| Dashboard Auth Smoke | Owner-admin `/dashboard` returns non-200, redirects away, throws client errors, or shows the generic error shell | `DASHBOARD_SMOKE_COOKIE_HEADER='...' pnpm e2e:prod-dashboard` failure |
 
 **Telegram alerts** require `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` env vars. If missing, alerts are silently skipped. Used by `business-alerts` cron, payment webhook, and health-check cron.
 
@@ -774,6 +776,15 @@ Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_
 |----------|--------|----------|
 | `/api/health` | Database, Redis, Stripe, env vars | `{ status: "healthy"|"degraded", checks, totalLatencyMs }` |
 | `/api/cron/health-check` | Queue depth, doctor activity, delivery, AI | Sentry capture on degradation |
+
+### Release-time Ops Checks
+
+| Command | Purpose | Notes |
+|---------|---------|-------|
+| `pnpm check:staff-roles` | Read-only Supabase check for the one-human-admin model and doctor readiness | Defaults owner admin to `me@reabal.ai`; override with `OWNER_ADMIN_EMAIL`. Set `ALLOW_OWNER_ADMIN_PAUSED=1` only when releasing intentionally paused. |
+| `DEMOTE_ADMIN_EMAILS='old-admin@example.com' DEMOTE_ADMIN_ROLE=patient pnpm fix:staff-roles` | Dry-run demotion for extra human admin profiles | Add `-- --apply` only after reviewing the target list. Writes go through `admin_change_profile_role`, which refuses to remove the last auth-linked human admin and resets clinical capability flags on demotion. |
+| `pnpm check:sentry` | Verifies `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT` can read the configured Sentry project | Does not print the token. 401 means rotate the token; 404 usually means wrong org/project slug. |
+| `DASHBOARD_SMOKE_COOKIE_HEADER='...' pnpm e2e:prod-dashboard` | Authenticated production smoke for `/dashboard` | Use a short-lived owner-admin browser cookie header from the production domain. Do not commit or paste the cookie into logs. |
 
 ### Sentry Saved Searches
 

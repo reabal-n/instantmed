@@ -31,6 +31,7 @@ import { NextRequest, NextResponse } from "next/server"
 const TEST_USERS = {
   operator: "e2e00000-0000-0000-0000-000000000001",  // admin + doctor
   doctor: "e2e00000-0000-0000-0000-000000000003",    // doctor only (not admin)
+  support: "e2e00000-0000-0000-0000-000000000004",   // support only (ops cockpit)
   patient: "e2e00000-0000-0000-0000-000000000002",
 } as const
 
@@ -140,7 +141,7 @@ export async function POST(request: NextRequest) {
   }
 
   const authUserId = TEST_USERS[userType]
-  const role = userType === "patient" ? "patient" : "doctor"
+  const role = userType === "patient" ? "patient" : userType === "support" ? "support" : "doctor"
   const isAdmin = userType === "operator"
   const e2eRunId = process.env.E2E_RUN_ID || body.e2eRunId
 

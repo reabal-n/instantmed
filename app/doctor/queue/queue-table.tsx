@@ -43,7 +43,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Pagination, UserCard } from "@/components/uix"
 import { capture } from "@/lib/analytics/capture"
-import { ADMIN_PRESCRIBING_IDENTITY_HREF } from "@/lib/dashboard/routes"
+import { ADMIN_PRESCRIBING_IDENTITY_HREF, STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import { buildPatientHandoffSummary } from "@/lib/doctor/patient-handoff"
 import { buildPatientSnapshot, getPatientSnapshotOptionsForCase } from "@/lib/doctor/patient-snapshot"
 import { LAST_OPENED_DOCTOR_CASE_KEY } from "@/lib/doctor/queue-focus"
@@ -224,7 +224,7 @@ export function QueueTable({
   aiApprovedIntakes,
   recentlyCompleted,
   pagination,
-  baseHref = "/doctor/dashboard",
+  baseHref = STAFF_DASHBOARD_HREF,
   emptyState = {
     title: "No review cases right now",
     description: "Paid clinical work, pending replies, and scripts will appear here automatically.",
@@ -378,12 +378,10 @@ export function QueueTable({
                   isFocused && "bg-primary/[0.04] ring-1 ring-inset ring-primary/20",
                   isOpen && "bg-primary/[0.06]",
                   isLastOpened && "bg-muted/35 ring-1 ring-inset ring-border/60",
-                  // Phase 10: subtle left border on a row that just arrived
-                  // via realtime. Decays via the row's `transition-colors`
-                  // (500ms tween) when the parent removes the row from the
-                  // `newlyArrivedIds` set after ~1.5s. The parent skips this
-                  // entirely under `prefers-reduced-motion`.
-                  justArrived && "border-l-2 border-l-primary/60 bg-primary/[0.025]"
+                  // Phase 10: subtle realtime arrival emphasis. Decays via
+                  // the row transition when the parent removes the row from
+                  // `newlyArrivedIds` after ~1.5s.
+                  justArrived && "bg-primary/[0.035] ring-1 ring-inset ring-primary/20"
                 )}
                 onMouseEnter={() => prefetchReviewData(intake.id)}
                 onClick={() => {

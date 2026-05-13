@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { OperatorShell } from "@/components/operator"
 import { requireRole } from "@/lib/auth/helpers"
 import { getStaffDisplayRole } from "@/lib/auth/staff-capabilities"
-import { EMPTY_STAFF_NAV_COUNTS } from "@/lib/dashboard/staff-navigation"
+import { EMPTY_STAFF_NAV_COUNTS, getStaffNav } from "@/lib/dashboard/staff-navigation"
 import { getStaffNavCounts } from "@/lib/data/staff-nav-counts"
 
 export const metadata: Metadata = {
@@ -20,17 +20,21 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  // Admin-only. Doctors previously had access to revenue and exception data via
-  // createServiceRoleClient-backed widgets. Clinical users stay in the doctor
-  // portal; delivery and recovery surfaces are admin-owned under /admin.
-  const authUser = await requireRole(["admin"], { redirectTo: "/" })
+  // Admin shell now also hosts the bounded support ops cockpit. Individual
+  // admin data pages remain admin-gated at page level; only explicit ops pages
+  // opt support in.
+  const authUser = await requireRole(["admin", "support"], { redirectTo: "/" })
+  const staffRoleLabel = getStaffDisplayRole(authUser.profile)
+  const navSections = getStaffNav(authUser.profile)
   const navCounts = await getStaffNavCounts().catch(() => EMPTY_STAFF_NAV_COUNTS)
 
   return (
     <OperatorShell
       userName={authUser.profile.full_name}
-      userRole={getStaffDisplayRole(authUser.profile)}
+      userRole={staffRoleLabel}
       navCounts={navCounts}
+      navSections={navSections}
+      brandLabel={staffRoleLabel}
     >
       {children}
     </OperatorShell>

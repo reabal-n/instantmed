@@ -9,7 +9,7 @@ import { IntakeReviewPanel } from "@/components/doctor"
 import { OperatorSplitPane } from "@/components/operator"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
-import { ADMIN_DOCTOR_IDENTITY_HREF, DOCTOR_DASHBOARD_HREF, parseQueueStatusFilter, type QueueStatusFilter } from "@/lib/dashboard/routes"
+import { ADMIN_DOCTOR_IDENTITY_HREF, parseQueueStatusFilter, type QueueStatusFilter,STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import { DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY, LAST_OPENED_DOCTOR_CASE_KEY } from "@/lib/doctor/queue-focus"
 import { removeCompletedIntakeFromQueue } from "@/lib/doctor/queue-state"
 import { calculateSlaCountdown,calculateWaitTime, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
@@ -87,7 +87,7 @@ export function QueueClient({
   todayEarnings,
   initialStatusFilter = "all",
   hasExplicitStatusFilter = false,
-  baseHref = DOCTOR_DASHBOARD_HREF,
+  baseHref = STAFF_DASHBOARD_HREF,
   doctorAvailable = true,
   compactShell = false,
 }: QueueClientProps) {

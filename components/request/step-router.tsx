@@ -17,14 +17,36 @@ import { useEffect, useState } from "react"
 import type { UnifiedStepId } from "@/lib/request/step-registry"
 
 import { StepErrorBoundary } from "./step-error-boundary"
-import type { StepComponentProps } from "./step-loaders"
+import {
+  loadStepComponent,
+  preloadStepComponent,
+  type StepComponentProps,
+} from "./step-loaders"
 
-function StepLoading() {
+const loadingCopy: Partial<Record<string, { title: string; description: string }>> = {
+  "certificate-step": {
+    title: "Pick the certificate type",
+    description: "Pick the certificate type, dates, and duration.",
+  },
+}
+
+function StepLoading({ componentPath }: { componentPath: string }) {
+  const copy = loadingCopy[componentPath]
+
   return (
     <div className="space-y-4" aria-live="polite" aria-busy="true">
       <div className="space-y-2">
-        <div className="h-5 w-2/3 rounded-full bg-muted" />
-        <div className="h-4 w-full rounded-full bg-muted/70" />
+        {copy ? (
+          <>
+            <p className="text-lg font-semibold text-foreground">{copy.title}</p>
+            <p className="text-sm text-muted-foreground">{copy.description}</p>
+          </>
+        ) : (
+          <>
+            <div className="h-5 w-2/3 rounded-full bg-muted" />
+            <div className="h-4 w-full rounded-full bg-muted/70" />
+          </>
+        )}
       </div>
       <div className="rounded-2xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] dark:bg-card">
         <div className="space-y-3">
@@ -77,8 +99,8 @@ export function StepRouter({
     setLoadFailed(false)
     setLoadedStep((current) => current?.componentPath === componentPath ? current : null)
 
-    import("./step-loaders")
-      .then((mod) => mod.loadStepComponent(componentPath))
+    void preloadStepComponent(componentPath)
+    loadStepComponent(componentPath)
       .then((Component) => {
         if (!Component) {
           if (!cancelled) {
@@ -110,7 +132,7 @@ export function StepRouter({
   if (!loadedStep || loadedStep.componentPath !== componentPath) {
     return (
       <StepErrorBoundary stepId={currentStepId}>
-        <StepLoading />
+        <StepLoading componentPath={componentPath} />
       </StepErrorBoundary>
     )
   }

@@ -3,6 +3,7 @@ import { z } from "zod"
 
 import { logExternalPrescribingIndicated } from "@/lib/audit/compliance-audit"
 import { requireApiRole } from "@/lib/auth/helpers"
+import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import { updateScriptTaskStatus } from "@/lib/data/script-tasks"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -63,7 +64,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Task not found" }, { status: 404 })
     }
 
-    if (profile.role !== "admin" && task.doctor_id !== profile.id) {
+    if (!hasAdminAccess(profile) && task.doctor_id !== profile.id) {
       return NextResponse.json(
         { error: "You can only update your own script tasks" },
         { status: 403 },

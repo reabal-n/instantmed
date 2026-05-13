@@ -124,8 +124,9 @@ describe("POST /api/patient/messages", () => {
       p_patient_id: PATIENT_ID,
     })
     expect(insert).not.toHaveBeenCalled()
-    expect(mocks.revalidatePath).toHaveBeenCalledWith("/doctor/queue")
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/dashboard")
     expect(mocks.revalidatePath).toHaveBeenCalledWith(`/doctor/intakes/${INTAKE_ID}`)
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/patient/messages")
     expect(mocks.revalidatePath).toHaveBeenCalledWith(`/patient/intakes/${INTAKE_ID}`)
   })
 

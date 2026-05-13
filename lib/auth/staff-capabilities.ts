@@ -57,7 +57,7 @@ export function hasStaffAccess(profile: Pick<Profile, "role">): boolean {
 
 export function getStaffDisplayRole(profile: Pick<Profile, "role">): string {
   if (hasAdminAccess(profile) && hasDoctorAccess(profile)) {
-    return "Operator"
+    return "Admin + Doctor"
   }
 
   if (hasDoctorAccess(profile)) {
@@ -77,8 +77,8 @@ export function getStaffDisplayRole(profile: Pick<Profile, "role">): string {
 
 // ── Per-doctor capability flags ──────────────────────────────────────────────
 // Future doctor hires may be scoped before they are verified for a service line.
-// The owner-operator is unrestricted; existing rows default true on every flag
-// except S8, which requires an explicit grant.
+// The owner-operator admin is unrestricted. Existing doctor rows default true
+// on every flag except S8, which requires an explicit grant.
 
 export type DoctorCapability =
   | "review_med_certs"
@@ -121,17 +121,18 @@ const DOCTOR_CAPABILITY_DEFAULT: Record<DoctorCapability, boolean> = {
 }
 
 /**
- * Whether a doctor profile holds a specific clinical capability. Admin profiles
- * inherit doctor capabilities (owner-operator); support and patient roles never
- * hold clinical capabilities.
+ * Whether a doctor profile holds a specific clinical capability. The admin
+ * owner-operator bypasses per-doctor flags entirely; support and patient roles
+ * never hold clinical capabilities.
  *
- * Missing rows (older profiles) fall back to the per-capability default.
+ * Missing rows for ordinary doctors fall back to the per-capability default.
  */
 export function doctorHasCapability(
   profile: Pick<Profile, "role"> & Partial<DoctorCapabilityFields>,
   capability: DoctorCapability,
 ): boolean {
   if (!hasDoctorAccess(profile)) return false
+  if (hasAdminAccess(profile)) return true
   const field = DOCTOR_CAPABILITY_FIELD[capability]
   const value = profile[field]
   if (typeof value === "boolean") return value
@@ -154,7 +155,7 @@ export function requiredCapabilityForService(
 ): DoctorCapability | null {
   if (!serviceType) return null
   if (serviceType === "med_certs") return "review_med_certs"
-  if (serviceType === "repeat_script" || serviceType === "prescription") {
+  if (serviceType === "common_scripts" || serviceType === "repeat_script" || serviceType === "prescription") {
     return "review_repeat_rx"
   }
   if (serviceType === "consult") {
@@ -190,7 +191,7 @@ export function describeServiceCapability(
   subtype: string | null | undefined,
 ): string {
   if (serviceType === "med_certs") return "medical certificates"
-  if (serviceType === "repeat_script" || serviceType === "prescription") {
+  if (serviceType === "common_scripts" || serviceType === "repeat_script" || serviceType === "prescription") {
     return "repeat prescriptions"
   }
   if (serviceType === "consult") {

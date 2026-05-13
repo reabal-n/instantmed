@@ -56,7 +56,7 @@ export const dynamic = "force-dynamic"
  * Canonical staff dashboard.
  *
  * Phase 2 of dashboard remaster (2026-05-12). Renders one role-aware surface
- * for admin, doctor, and support roles. Old `/admin` and `/doctor/dashboard`
+ * for admin, doctor, and support roles. Old `/admin` and doctor entrypoints
  * URLs 307 here.
  *
  * Layout (admin or doctor):
@@ -126,7 +126,7 @@ export default async function StaffDashboardPage({
   const recentlyCompleted = results[3].status === "fulfilled" ? results[3].value : []
   const doctorIdentity: DoctorIdentity | null = results[4].status === "fulfilled" ? results[4].value : null
   const todayEarnings = results[5].status === "fulfilled" ? results[5].value : 0
-  const doctorAvailable = results[6].status === "fulfilled" ? results[6].value.available : true
+  const doctorAvailable = results[6].status === "fulfilled" ? results[6].value?.available !== false : true
   const systemHealth = results[7].status === "fulfilled" ? results[7].value : EMPTY_SYSTEM_HEALTH
   const conversionSnapshot = results[8].status === "fulfilled" ? results[8].value : null
 

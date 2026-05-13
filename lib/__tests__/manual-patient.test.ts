@@ -121,6 +121,7 @@ describe("manual patient creation", () => {
     expect(refreshBody).toContain("checkServerActionRateLimit(")
     expect(refreshBody).toContain("await validateIntegration(callerParchmentUserId)")
     expect(refreshBody).toContain("syncParchmentPrescriptionListToPms(")
+    expect(refreshBody).toContain("prescriberProfileId: authResult.profile.id")
     expect(refreshBody).toContain("overwriteNullableLinks: false")
   })
 

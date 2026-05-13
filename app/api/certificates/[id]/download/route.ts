@@ -9,6 +9,7 @@ import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 
 import { auth } from "@/lib/auth/helpers"
+import { hasAdminAccess, hasDoctorAccess } from "@/lib/auth/staff-capabilities"
 import {
   getCertificateById,
   getSecureDownloadUrl,
@@ -61,8 +62,8 @@ export async function GET(
 
     // 4. Verify ownership or issuing doctor/admin access
     const isOwner = certificate.patient_id === profile.id
-    const isIssuingDoctor = profile.role === "doctor" && certificate.doctor_id === profile.id
-    const isAdmin = profile.role === "admin"
+    const isIssuingDoctor = hasDoctorAccess(profile) && certificate.doctor_id === profile.id
+    const isAdmin = hasAdminAccess(profile)
 
     if (!isOwner && !isIssuingDoctor && !isAdmin) {
       log.warn("Unauthorized download attempt", {

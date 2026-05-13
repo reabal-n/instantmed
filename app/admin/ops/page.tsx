@@ -1,9 +1,11 @@
 import { buildOperationalFailureOverview } from "@/lib/admin/ops-failures"
 import { requireRole } from "@/lib/auth/helpers"
+import { hasAdminAccess, hasSupportAccess } from "@/lib/auth/staff-capabilities"
 import { getMissingTelegramAlertEnv } from "@/lib/config/env"
 import {
   ADMIN_AUDIT_HREF,
   ADMIN_EMAIL_HUB_HREF,
+  ADMIN_OPS_HREF,
   ADMIN_PARCHMENT_OPS_HREF,
   ADMIN_WEBHOOK_DLQ_HREF,
   buildAdminIntakeHref,
@@ -26,6 +28,8 @@ type AuditErrorRow = {
   created_at: string
   metadata: Record<string, unknown> | null
 }
+
+type OpsDashboardData = Parameters<typeof OpsDashboardClient>[0]["ops"]
 
 function getMetadataString(metadata: Record<string, unknown> | null, key: string): string | null {
   const value = metadata?.[key]
@@ -50,8 +54,55 @@ function metadataStartsWith(row: AuditErrorRow, key: string, prefix: string): bo
   return getMetadataString(row.metadata, key)?.startsWith(prefix) || false
 }
 
+function supportCategoryHref(categoryId: string): string {
+  if (categoryId === "stripe_webhooks") return ADMIN_WEBHOOK_DLQ_HREF
+  if (categoryId === "prescription_delivery") return ADMIN_PARCHMENT_OPS_HREF
+  return ADMIN_OPS_HREF
+}
+
+function supportTimelineHref(itemId: string): string {
+  if (itemId === "payment_webhook") return ADMIN_WEBHOOK_DLQ_HREF
+  if (itemId === "parchment_sync") return ADMIN_PARCHMENT_OPS_HREF
+  return ADMIN_OPS_HREF
+}
+
+function toSupportOpsData(ops: OpsDashboardData): OpsDashboardData {
+  return {
+    ...ops,
+    emails: {
+      ...ops.emails,
+      recentOutgoing: [],
+    },
+    authEmails: {
+      ...ops.authEmails,
+      recentFailures: [],
+    },
+    errors: {
+      ...ops.errors,
+      recent: [],
+    },
+    safetyBlocks: {
+      ...ops.safetyBlocks,
+      recent: [],
+    },
+    failureOverview: {
+      ...ops.failureOverview,
+      categories: ops.failureOverview.categories.map((category) => ({
+        ...category,
+        href: supportCategoryHref(category.id),
+      })),
+      recent: [],
+    },
+    productionTimeline: ops.productionTimeline.map((item) => ({
+      ...item,
+      href: supportTimelineHref(item.id),
+    })),
+  }
+}
+
 export default async function OpsDashboardPage() {
-  await requireRole(["admin"], { redirectTo: "/admin" })
+  const authUser = await requireRole(["admin", "support"], { redirectTo: "/admin" })
+  const isSupportOnly = hasSupportAccess(authUser.profile) && !hasAdminAccess(authUser.profile)
 
   const supabase = createServiceRoleClient()
 
@@ -384,5 +435,5 @@ export default async function OpsDashboardPage() {
     },
   }
 
-  return <OpsDashboardClient ops={ops} />
+  return <OpsDashboardClient ops={isSupportOnly ? toSupportOpsData(ops) : ops} supportMode={isSupportOnly} />
 }

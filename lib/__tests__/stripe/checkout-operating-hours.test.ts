@@ -103,6 +103,7 @@ import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 
 function createGuestCheckoutSupabaseMock() {
+  const inserts: Array<{ table: string; payload: Record<string, unknown> }> = []
   const updates: Array<{ table: string; payload: Record<string, unknown> }> = []
   const deletes: string[] = []
 
@@ -120,8 +121,9 @@ function createGuestCheckoutSupabaseMock() {
         if (!operation) operation = "select"
         return builder
       }),
-      insert: vi.fn(() => {
+      insert: vi.fn((payload: Record<string, unknown>) => {
         operation = "insert"
+        inserts.push({ table, payload })
         return builder
       }),
       update: vi.fn((payload: Record<string, unknown>) => {
@@ -157,6 +159,7 @@ function createGuestCheckoutSupabaseMock() {
 
   return {
     deletes,
+    inserts,
     supabase: { from: vi.fn((table: string) => makeBuilder(table)) },
     updates,
   }
@@ -280,5 +283,63 @@ describe("checkout operating hours", () => {
         status: "checkout_failed",
       }),
     })
+  })
+
+  it("charges and persists Express Review for guest checkout", async () => {
+    const { inserts, supabase } = createGuestCheckoutSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    const previousPriorityPrice = process.env.STRIPE_PRICE_PRIORITY_FEE
+    process.env.STRIPE_PRICE_PRIORITY_FEE = "price_priority"
+
+    try {
+      const result = await createGuestCheckoutAction({
+        answers: {
+          terms_agreed: true,
+          accuracy_confirmed: true,
+          is_priority: true,
+        },
+        category: "medical_certificate",
+        guestDateOfBirth: "1985-04-01",
+        guestEmail: "patient@example.test",
+        guestName: "Test Patient",
+        subtype: "work",
+        type: "med-cert",
+      })
+
+      expect(result).toEqual({
+        success: true,
+        checkoutUrl: "https://checkout.stripe.test/pay/cs_test",
+        intakeId: "intake-1",
+      })
+      expect(inserts).toContainEqual({
+        table: "intakes",
+        payload: expect.objectContaining({
+          is_priority: true,
+        }),
+      })
+      expect(mocks.stripeSessionCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          line_items: [
+            { price: "price_med_cert", quantity: 1 },
+            { price: "price_priority", quantity: 1 },
+          ],
+          metadata: expect.objectContaining({
+            is_priority: "true",
+          }),
+          payment_intent_data: expect.objectContaining({
+            metadata: expect.objectContaining({
+              is_priority: "true",
+            }),
+          }),
+        }),
+        { idempotencyKey: "guest-checkout-intake-1" },
+      )
+    } finally {
+      if (previousPriorityPrice === undefined) {
+        delete process.env.STRIPE_PRICE_PRIORITY_FEE
+      } else {
+        process.env.STRIPE_PRICE_PRIORITY_FEE = previousPriorityPrice
+      }
+    }
   })
 })

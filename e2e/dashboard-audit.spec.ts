@@ -22,19 +22,18 @@ const ADMIN_PAGES = [
   "/admin/features",
   "/admin/emails",
   "/admin/analytics",
-  "/admin/business-kpi",
+  "/admin/analytics?tab=business-kpis",
   "/admin/finance",
   "/admin/ops",
   "/admin/compliance",
   "/admin/audit",
   "/admin/refunds",
   "/admin/errors",
-  "/admin/webhooks",
-  "/admin/content",
-  "/admin/email-hub",
-  "/admin/settings", // redirects to /admin/features
-  "/admin/studio",
   "/admin/webhook-dlq",
+  "/admin/content",
+  "/admin/emails/hub",
+  "/admin/settings", // redirects to /admin/features
+  "/admin/settings/templates",
   // Nested
   "/admin/ops/sla",
   "/admin/ops/intakes-stuck",
@@ -43,13 +42,12 @@ const ADMIN_PAGES = [
   "/admin/finance/revenue",
   "/admin/emails/analytics",
   "/admin/emails/preview",
-  "/admin/settings/templates",
   "/admin/settings/encryption",
   "/admin/doctors/performance",
 ]
 
 const DOCTOR_PAGES = [
-  "/doctor/dashboard",
+  "/dashboard",
   "/doctor/scripts",
   "/doctor/patients",
   "/admin",
@@ -73,23 +71,23 @@ const PATIENT_PAGES = [
 const DASHBOARD_ROUTE_CONTRACTS = [
   {
     from: "/doctor/queue?status=review",
-    to: /\/doctor\/dashboard\?status=review$/,
+    to: /\/dashboard\?status=review$/,
   },
   {
     from: "/doctor/queue?status=review&page=2&pageSize=25",
-    to: /\/doctor\/dashboard\?status=review&page=2&pageSize=25$/,
+    to: /\/dashboard\?status=review&page=2&pageSize=25$/,
   },
 ]
 
 const DASHBOARD_A11Y_TARGETS = [
   { name: "admin", path: "/admin", login: loginAsOperator },
-  { name: "doctor", path: "/doctor/dashboard", login: loginAsOperator },
+  { name: "doctor", path: "/dashboard", login: loginAsOperator },
   { name: "patient", path: "/patient", login: loginAsPatient },
 ]
 
 const MOBILE_SCREENSHOT_TARGETS = [
   { title: "admin dashboard mobile screenshot", path: "/admin", login: loginAsOperator, snapshot: "admin-dashboard-mobile.png" },
-  { title: "doctor dashboard mobile screenshot", path: "/doctor/dashboard", login: loginAsOperator, snapshot: "doctor-dashboard-mobile.png" },
+  { title: "doctor dashboard mobile screenshot", path: "/dashboard", login: loginAsOperator, snapshot: "doctor-dashboard-mobile.png" },
   { title: "patient dashboard mobile screenshot", path: "/patient", login: loginAsPatient, snapshot: "patient-dashboard-mobile.png" },
 ]
 
@@ -279,7 +277,7 @@ test.describe("Dashboard Audit - Doctor-only user", () => {
   test("doctor-only user can access doctor pages", async ({ page }) => {
     const tracker = createConsoleErrorTracker()
     tracker.attach(page)
-    await assertPageLoads(page, "/doctor/dashboard")
+    await assertPageLoads(page, "/dashboard")
     await assertPageLoads(page, "/doctor/patients")
     tracker.assertNoErrors()
   })
@@ -389,7 +387,7 @@ test.describe("Dashboard Audit - Link navigation", () => {
     const tracker = createConsoleErrorTracker()
     tracker.attach(page)
 
-    await page.goto("/doctor/dashboard")
+    await page.goto("/dashboard")
     await waitForPageLoad(page)
 
     const links = [
@@ -451,7 +449,7 @@ test.describe("Dashboard Audit - Link navigation", () => {
     const tracker = createConsoleErrorTracker()
     tracker.attach(page)
 
-    await page.goto("/doctor/dashboard?status=review")
+    await page.goto("/dashboard?status=review")
     await waitForPageLoad(page)
 
     await expect(page.getByRole("button", { name: /Needs Review/i })).toHaveAttribute("aria-pressed", "true")

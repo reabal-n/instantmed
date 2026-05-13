@@ -5,7 +5,7 @@
  * 
  * A) Login as operator (admin+doctor)
  * B) Visit /admin/clinic, update clinic phone, save → verify DB
- * C) Visit /admin/studio, edit template config, save → verify DB version increment
+ * C) Visit /admin/settings/templates, edit template config, save → verify DB version increment
  * D) Visit /doctor queue, approve seeded intake → verify:
  *    - intakes.status='approved'
  *    - issued_certificates exists with correct snapshots
@@ -118,13 +118,13 @@ test.describe("Operator End-to-End Journey", () => {
     // ========================================================================
     // STEP C: Update template config in studio
     // ========================================================================
-    await test.step("Update template config in /admin/studio", async () => {
+    await test.step("Update template config in /admin/settings/templates", async () => {
       // Get initial template state
       const initialTemplate = await getLatestActiveTemplateByType("med_cert")
       expect(initialTemplate).toBeTruthy()
       const initialVersion = initialTemplate?.version || 0
 
-      await page.goto("/admin/studio")
+      await page.goto("/admin/settings/templates")
       await waitForPageLoad(page)
 
       // Wait for studio to load
@@ -169,7 +169,7 @@ test.describe("Operator End-to-End Journey", () => {
         
         const [response] = await Promise.all([
           page.waitForResponse(resp => 
-            resp.url().includes("/admin/studio") && 
+            resp.url().includes("/admin/settings/templates") &&
             resp.request().method() === "POST"
           ),
           saveButton.click()

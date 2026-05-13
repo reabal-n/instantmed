@@ -20,7 +20,7 @@ const SEEDED_PATIENT_NAME = "E2E Test Patient"
 async function openSeededReviewPanel(page: import("@playwright/test").Page) {
   await resetIntakeForRetest(INTAKE_ID)
 
-  await page.goto("/doctor/dashboard")
+  await page.goto("/dashboard")
   await waitForPageLoad(page)
 
   await expect(
@@ -148,7 +148,7 @@ test.describe("Doctor Queue Keyboard Navigation", () => {
 
     await resetIntakeForRetest(INTAKE_ID)
 
-    await page.goto("/doctor/dashboard")
+    await page.goto("/dashboard")
     await waitForPageLoad(page)
 
     await expect(

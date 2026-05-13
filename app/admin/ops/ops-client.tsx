@@ -147,6 +147,7 @@ interface OpsData {
 
 interface OpsDashboardClientProps {
   ops: OpsData
+  supportMode?: boolean
 }
 
 type FailureCategory = OpsData["failureOverview"]["categories"][number]
@@ -244,7 +245,7 @@ function RecoveryLink({ category }: { category: FailureCategory }) {
   )
 }
 
-export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
+export function OpsDashboardClient({ ops, supportMode = false }: OpsDashboardClientProps) {
   const {
     webhooks,
     emails,
@@ -279,7 +280,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
       id: "resend-email",
       title: "Email delivery",
       detail: emails.failed > 0 || emails.pending > 0 ? "Email delivery has work" : "Open email queue",
-      href: `${ADMIN_EMAIL_HUB_HREF}?tab=queue`,
+      href: supportMode ? "/admin/ops" : `${ADMIN_EMAIL_HUB_HREF}?tab=queue`,
       tone: emails.failed > 0 || emails.pending > 0 ? "warning" : "neutral",
       keywords: "email outbox delivery resend retry pending failed",
     },
@@ -287,7 +288,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
       id: "open-stale-intake",
       title: "Stale intakes",
       detail: staleIntakes > 0 ? "Paid requests waiting too long" : "Open stale intake queue",
-      href: ADMIN_STALE_INTAKES_HREF,
+      href: supportMode ? "/admin/ops" : ADMIN_STALE_INTAKES_HREF,
       tone: staleIntakes > 0 ? "warning" : "neutral",
       keywords: "stale intake paid request recovery queue",
     },
@@ -299,14 +300,16 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
       tone: prescriptionFailures > 0 ? "critical" : "neutral",
       keywords: "parchment prescription script webhook sync retry",
     },
-  ], [emails.failed, emails.pending, prescriptionFailures, staleIntakes, webhooks.failedCount])
+  ], [emails.failed, emails.pending, prescriptionFailures, staleIntakes, supportMode, webhooks.failedCount])
 
   return (
     <OperatorPage>
       <OperatorPageHeader
         title="Operations"
-        description="Recovery paths only. Detailed logs stay inside their owning pages."
-        backHref="/admin"
+        description={supportMode
+          ? "Support view. Recovery summaries only; PHI-heavy logs stay behind admin review."
+          : "Recovery paths only. Detailed logs stay inside their owning pages."}
+        backHref={supportMode ? undefined : "/admin"}
         backLabel="Dashboard"
         actions={
           <div className="flex flex-wrap items-center gap-2">
@@ -389,10 +392,17 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
               </p>
             </div>
             <Button asChild variant="outline" size="sm">
-              <Link href={ADMIN_PATIENT_MERGE_AUDIT_HREF}>
-                Review duplicate profiles
-                <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-              </Link>
+              {supportMode ? (
+                <Link href="/admin/ops/prescribing-identity">
+                  Identity chase-ups
+                  <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                </Link>
+              ) : (
+                <Link href={ADMIN_PATIENT_MERGE_AUDIT_HREF}>
+                  Review duplicate profiles
+                  <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                </Link>
+              )}
             </Button>
           </div>
           <div className="mt-4 space-y-3">

@@ -36,8 +36,25 @@ const stepLoaders = {
 
 type StepComponentKey = keyof typeof stepLoaders
 
+const stepComponentCache = new Map<string, Promise<ComponentType<StepComponentProps> | null>>()
+
+export function preloadStepComponent(componentPath: string) {
+  const loader = stepLoaders[componentPath as StepComponentKey]
+  if (!loader) return Promise.resolve(null)
+
+  const cached = stepComponentCache.get(componentPath)
+  if (cached) return cached
+
+  const promise = loader().catch((error) => {
+    stepComponentCache.delete(componentPath)
+    throw error
+  })
+  stepComponentCache.set(componentPath, promise)
+  return promise
+}
+
 export async function loadStepComponent(componentPath: string) {
   const loader = stepLoaders[componentPath as StepComponentKey]
   if (!loader) return null
-  return loader()
+  return preloadStepComponent(componentPath)
 }

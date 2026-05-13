@@ -40,6 +40,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
 import { INTAKE_STATUS, type IntakeStatus as StatusType } from "@/lib/data/status"
 import { MIN_CLINICAL_NOTES_LENGTH } from "@/lib/doctor/clinical-notes"
@@ -137,7 +138,7 @@ export function IntakeDetailHeader({
   onReissueConfirm,
   certDelivery,
   doctorNotes,
-  backHref = "/doctor/dashboard",
+  backHref = STAFF_DASHBOARD_HREF,
   backLabel = "Back to queue",
   supplementaryActions,
   compact = false,

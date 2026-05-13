@@ -1,7 +1,9 @@
 import { notFound, redirect } from "next/navigation"
 
 import { requireRole } from "@/lib/auth/helpers"
+import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import { decryptProfilePhi } from "@/lib/data/profiles"
+import { doctorCanAccessPatient } from "@/lib/doctor/patient-access"
 import { collapseDuplicatePatientProfiles } from "@/lib/doctor/patient-snapshot"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { logger } from "@/lib/observability/logger"
@@ -324,7 +326,7 @@ async function getPatientParchmentAuditRows(
   return Array.from(rows.values())
 }
 
-async function getPatientWithHistory(patientId: string) {
+async function getPatientWithHistory(patientId: string, options: { doctorId?: string } = {}) {
   const supabase = createServiceRoleClient()
 
   // Get patient profile
@@ -348,6 +350,21 @@ async function getPatientWithHistory(patientId: string) {
 
   if (patientError || !patient) {
     return null
+  }
+
+  if (patient.merged_into_profile_id && options.doctorId) {
+    const canAccessMergedPatient = await doctorCanAccessPatient(
+      options.doctorId,
+      [patientId, patient.merged_into_profile_id],
+      supabase,
+    )
+    if (!canAccessMergedPatient) {
+      logger.warn("Doctor attempted to access merged patient outside their scope", {
+        doctorId: options.doctorId,
+        patientId,
+      })
+      return null
+    }
   }
 
   if (patient.merged_into_profile_id) {
@@ -389,6 +406,17 @@ async function getPatientWithHistory(patientId: string) {
     if (patientGroup) {
       canonicalPatient = patientGroup
       patientIds = [patientGroup.id, ...(patientGroup.duplicate_profile_ids ?? [])]
+    }
+  }
+
+  if (options.doctorId) {
+    const canAccessPatient = await doctorCanAccessPatient(options.doctorId, patientIds, supabase)
+    if (!canAccessPatient) {
+      logger.warn("Doctor attempted to access patient outside their scope", {
+        doctorId: options.doctorId,
+        patientId,
+      })
+      return null
     }
   }
 
@@ -543,8 +571,9 @@ export const dynamic = "force-dynamic"
 export default async function PatientDetailPage({ params }: PageProps) {
   const authResult = await requireRole(["doctor", "admin"])
   const { id } = await params
+  const doctorId = hasAdminAccess(authResult.profile) ? undefined : authResult.profile.id
   const [data, flags] = await Promise.all([
-    getPatientWithHistory(id),
+    getPatientWithHistory(id, { doctorId }),
     getFeatureFlags(),
   ])
 
@@ -561,7 +590,7 @@ export default async function PatientDetailPage({ params }: PageProps) {
       emailLogs={data.emailLogs}
       patientNotes={data.patientNotes}
       parchmentActivity={data.parchmentActivity}
-      canMergePatientProfiles={authResult.profile.role === "admin"}
+      canMergePatientProfiles={hasAdminAccess(authResult.profile)}
       parchmentEnabled={flags.parchment_embedded_prescribing}
       parchmentUserLinked={Boolean(authResult.profile.parchment_user_id)}
     />

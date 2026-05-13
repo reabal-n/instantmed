@@ -6,7 +6,7 @@ import { WebhookDlqClient } from "./webhook-dlq-client"
 export const dynamic = "force-dynamic"
 
 export default async function WebhookDlqPage() {
-  await requireRole(["admin"], { redirectTo: "/admin" })
+  await requireRole(["admin", "support"], { redirectTo: "/admin/ops" })
 
   return (
     <OperatorPage>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { getApiAuth } from "@/lib/auth/helpers"
+import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import { sendViaResend } from "@/lib/email/resend"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     // Auth check - admin only
     const authResult = await getApiAuth()
-    if (!authResult || authResult.profile.role !== "admin") {
+    if (!authResult || !hasAdminAccess(authResult.profile)) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }

@@ -205,7 +205,7 @@ test.describe("Decline Flow - Email Outbox Verification", () => {
     testIntakeId = intakeResult.intakeId
 
     // Navigate to email outbox admin page
-    await page.goto("/admin/email-hub")
+    await page.goto("/admin/emails/hub")
     await page.waitForLoadState("networkidle")
 
     // Page should load

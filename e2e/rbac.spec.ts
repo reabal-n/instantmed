@@ -39,8 +39,8 @@ test.describe("RBAC - Patient Access Restrictions", () => {
     expect(isPatientPage).toBe(true)
   })
 
-  test("patient is redirected from /admin/studio", async ({ page }) => {
-    await page.goto("/admin/studio")
+  test("patient is redirected from /admin/settings/templates", async ({ page }) => {
+    await page.goto("/admin/settings/templates")
     await waitForPageLoad(page)
 
     // Should be redirected away from /admin
@@ -56,7 +56,7 @@ test.describe("RBAC - Patient Access Restrictions", () => {
   })
 
   test("patient is redirected from /doctor", async ({ page }) => {
-    await page.goto("/doctor/dashboard")
+    await page.goto("/dashboard")
     await waitForPageLoad(page)
 
     // Should be redirected away from /doctor
@@ -132,7 +132,7 @@ test.describe("RBAC - Unauthenticated Access", () => {
 
   test("unauthenticated user is redirected from /doctor to sign-in", async ({ page }) => {
     // Don't login, just try to access doctor
-    await page.goto("/doctor/dashboard")
+    await page.goto("/dashboard")
     await waitForPageLoad(page)
 
     // Should be redirected to sign-in

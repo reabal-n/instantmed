@@ -284,6 +284,8 @@ All webhooks use signature verification (not CSRF).
 |--------------|---------------|
 | `/patient/*` | patient |
 | `/doctor/*` | doctor (or admin via capability inheritance) |
+| `/admin/ops`, `/admin/webhook-dlq`, `/admin/ops/parchment`, `/admin/ops/prescribing-identity` | admin or support (support receives masked/redacted data only) |
+| `/api/admin/webhook-dlq` | admin or support (payload redacted for support) |
 | `/admin/*`, `/api/admin/*` | admin |
 | `/dashboard` | admin, doctor, or support (staff role) |
 | `/api/health` | None (health check) |
@@ -296,12 +298,15 @@ All webhooks use signature verification (not CSRF).
 |------|------------------------|----------------|
 | `admin` | admin + doctor (owner-operator) | Everything |
 | `doctor` | doctor | Clinical surfaces only (queue, cases, patient profiles, identity) |
-| `support` | support | Non-clinical ops only (payment recovery, webhook retries, identity chase-ups, masked PHI). Phase 7 of the remaster wires the RLS hardening; until then the role exists on the enum but has no surface guards beyond the application-layer helpers. |
+| `support` | support | Non-clinical ops only. Support is bounded to `/admin/ops`, `/admin/webhook-dlq`, `/admin/ops/parchment`, and `/admin/ops/prescribing-identity`; PHI-heavy links, email hub, settings, patient ledgers, clinical actions, and direct prescribing remain admin/doctor-only. |
 | `patient` | patient | Patient portal only |
+
+**Future-doctor patient boundary (2026-05-13):** Admin remains the only broad operator. Non-admin doctors are scoped in app-layer service-role reads by `lib/doctor/patient-access.ts`; patient directory, patient detail, patient summary/health-profile APIs, staff command-palette search, and doctor analytics only include patients/cases tied to a concrete doctor relationship (`claimed_by`, `reviewing_doctor_id`, `reviewed_by`, `script_tasks.doctor_id`, `issued_certificates.doctor_id`, or `patient_notes.created_by`). Return 404 for direct patient API/profile access outside this relationship to avoid patient enumeration.
 
 Capability helpers live in `lib/auth/staff-capabilities.ts`:
 - `hasAdminAccess(profile)`, `hasDoctorAccess(profile)`, `hasSupportAccess(profile)`, `hasStaffAccess(profile)` — role-level checks
 - `doctorHasCapability(profile, "review_ed" | "prescribe_s8" | ...)` — per-doctor service-line scoping (7 boolean columns on `profiles`)
+- `checkParchmentPrescribingCapability(...)` — Parchment handoff gate that requires `prescribe_s4` for embedded prescribing and `prescribe_s8` when repeat-script intake answers include controlled-medication text
 
 ### Auth Patterns
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 
 import { requireApiRole } from "@/lib/auth/helpers"
+import { hasDoctorAccess } from "@/lib/auth/staff-capabilities"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"
@@ -53,8 +54,8 @@ export async function POST(request: NextRequest) {
       .eq("id", doctor_id)
       .single()
 
-    if (!doctorProfile || (doctorProfile.role !== "doctor" && doctorProfile.role !== "admin")) {
-      return NextResponse.json({ error: "Invalid doctor_id - must be a doctor or admin" }, { status: 400 })
+    if (!doctorProfile || !hasDoctorAccess(doctorProfile)) {
+      return NextResponse.json({ error: "Invalid doctor_id - must be doctor-capable" }, { status: 400 })
     }
 
     // Use claim RPC for consistent assignment (prevents race conditions)

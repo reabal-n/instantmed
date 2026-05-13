@@ -143,7 +143,7 @@ describe("admin navigation contract", () => {
     expect(sidebarSource).not.toContain("clinicalNavItems")
     expect(sidebarSource).not.toContain("Clinical mode")
     expect(operatorNavSource).toContain("ADMIN_DOCTOR_QUEUE_HREF")
-    expect(dashboardRoutesSource).toContain('ADMIN_DOCTOR_QUEUE_HREF = "/admin?status=review#doctor-queue"')
+    expect(dashboardRoutesSource).toContain("ADMIN_DOCTOR_QUEUE_HREF = STAFF_QUEUE_HREF")
     expect(operatorNavSource).toContain("ADMIN_SCRIPTS_HREF")
     expect(operatorNavSource).toContain("ADMIN_PATIENTS_HREF")
     expect(operatorNavSource).toContain('badgeKey: "scriptsToWrite"')
@@ -227,10 +227,8 @@ describe("admin navigation contract", () => {
     expect(adminRouteSources).not.toContain("/doctor/intakes")
     expect(adminRouteSources).not.toContain("/doctor/patients")
     const adminIntakeDetailSource = readFileSync(join(process.cwd(), "app/admin/intakes/[id]/page.tsx"), "utf8")
-    const adminPatientDetailSource = readFileSync(join(process.cwd(), "app/admin/patients/[id]/page.tsx"), "utf8")
 
     expect(adminIntakeDetailSource).not.toContain("DoctorIntakeDetailPage")
-    expect(adminPatientDetailSource).not.toContain("DoctorPatientDetailPage")
     expect(adminIntakeDetailSource).toContain("IntakeDetailClient")
     expect(adminIntakeDetailSource).toContain("PanelProvider")
     expect(adminIntakeDetailSource).toContain("compact")
@@ -240,16 +238,15 @@ describe("admin navigation contract", () => {
     expect(adminIntakeDetailSource).not.toContain("Switch to doctor mode")
     expect(adminIntakeDetailSource).not.toContain("Open doctor workflow")
     expect(adminIntakeDetailSource).toContain('requireRole(["admin"]')
-    // Phase 4 of dashboard remaster (2026-05-12): /admin/patients/[id] is
-    // now a redirect to /doctor/patients/[id]. The duplicate 471-line admin
-    // patient detail page (4-stat tile row + 3-card layout) was retired.
-    // The audit's "Open clinical file" CTA effectively became the whole page.
-    expect(adminPatientDetailSource).toContain("redirect")
-    expect(adminPatientDetailSource).toContain("/doctor/patients/")
-    expect(adminPatientDetailSource).not.toContain("Switch to doctor file")
-    expect(adminPatientDetailSource).not.toContain("Switch to doctor mode")
-    expect(adminPatientDetailSource).not.toContain("Continue as doctor")
-    expect(adminPatientDetailSource).not.toContain("Prescribe as doctor")
+    // Phase 4 of dashboard remaster (2026-05-12): /admin/patients/[id] now
+    // redirects at the Next config layer. The duplicate 471-line admin patient
+    // detail page (4-stat tile row + 3-card layout) was retired.
+    expect(nextConfigSource).toContain('source: "/admin/patients/:id"')
+    expect(nextConfigSource).toContain('destination: "/doctor/patients/:id"')
+    expect(nextConfigSource).not.toContain("Switch to doctor file")
+    expect(nextConfigSource).not.toContain("Switch to doctor mode")
+    expect(nextConfigSource).not.toContain("Continue as doctor")
+    expect(nextConfigSource).not.toContain("Prescribe as doctor")
   })
 
   it("keeps compact intake review as a three-lane decision cockpit", () => {
@@ -301,7 +298,7 @@ describe("admin navigation contract", () => {
   it("routes the generic dashboard entrypoint to the canonical /dashboard surface", () => {
     // Phase 2 of dashboard remaster (2026-05-12) made /dashboard the real
     // staff dashboard (no longer a role-aware redirect stub). The redirects
-    // moved up to /admin and /doctor/dashboard which 307 here.
+    // moved up to /admin and the legacy doctor URLs which 307 here.
     expect(dashboardRedirectSource).toContain("StaffDashboardPage")
     expect(dashboardRedirectSource).toContain('requireRole(["admin", "doctor", "support"]')
     expect(dashboardRedirectSource).toContain("hasAdminAccess")
@@ -310,23 +307,19 @@ describe("admin navigation contract", () => {
     expect(dashboardRedirectSource).toContain("QueueClient")
     // Legacy URLs forward to /dashboard.
     expect(adminPageSource).toContain('"/dashboard"')
-    const doctorDashboardLegacy = readFileSync(
-      join(process.cwd(), "app/doctor/dashboard/page.tsx"),
-      "utf8",
-    )
-    expect(doctorDashboardLegacy).toContain('"/dashboard"')
+    expect(nextConfigSource).toContain('source: "/doctor/dashboard", destination: "/dashboard"')
   })
 
   it("keeps admin data pages explicitly admin-gated at page level", () => {
     const redirectOnlyPages = new Set([
-      join(process.cwd(), "app/admin/business-kpi/page.tsx"),
-      join(process.cwd(), "app/admin/email-hub/page.tsx"),
-      join(process.cwd(), "app/admin/studio/page.tsx"),
-      join(process.cwd(), "app/admin/webhooks/page.tsx"),
       // Phase 2: /admin itself is now a redirect to /dashboard.
       join(process.cwd(), "app/admin/page.tsx"),
-      // Phase 4: /admin/patients/[id] is now a redirect to /doctor/patients/[id].
-      join(process.cwd(), "app/admin/patients/[id]/page.tsx"),
+      // Phase 7: bounded support ops pages deliberately allow support through
+      // the admin shell while keeping PHI-heavy admin data pages locked.
+      join(process.cwd(), "app/admin/ops/page.tsx"),
+      join(process.cwd(), "app/admin/ops/parchment/page.tsx"),
+      join(process.cwd(), "app/admin/ops/prescribing-identity/page.tsx"),
+      join(process.cwd(), "app/admin/webhook-dlq/page.tsx"),
     ])
 
     for (const pageFile of findAdminPageFiles()) {

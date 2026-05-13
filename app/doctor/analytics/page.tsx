@@ -1,4 +1,5 @@
 import { requireRole } from "@/lib/auth/helpers"
+import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { AnalyticsClient } from "./analytics-client"
@@ -24,13 +25,16 @@ interface IntakeRow {
   is_priority: boolean
   created_at: string
   reviewed_at: string | null
+  claimed_by: string | null
+  reviewing_doctor_id: string | null
+  reviewed_by: string | null
   category: string | null
   amount_cents: number | null
   payment_status: string | null
   paid_at: string | null
 }
 
-async function getAnalytics(searchParams: AnalyticsSearchParams = {}) {
+async function getAnalytics(searchParams: AnalyticsSearchParams = {}, doctorId?: string) {
   const supabase = createServiceRoleClient()
   
   const now = new Date()
@@ -52,6 +56,9 @@ async function getAnalytics(searchParams: AnalyticsSearchParams = {}) {
       is_priority,
       created_at,
       reviewed_at,
+      claimed_by,
+      reviewing_doctor_id,
+      reviewed_by,
       category,
       amount_cents,
       payment_status,
@@ -60,6 +67,10 @@ async function getAnalytics(searchParams: AnalyticsSearchParams = {}) {
     .gte("created_at", rangeStart.toISOString())
     .order("created_at", { ascending: false })
     .limit(PAGE_SIZE)
+
+  if (doctorId) {
+    query = query.or(`claimed_by.eq.${doctorId},reviewing_doctor_id.eq.${doctorId},reviewed_by.eq.${doctorId}`)
+  }
 
   // Cursor-based pagination: fetch items older than cursor
   if (searchParams.cursor) {
@@ -228,7 +239,7 @@ export default async function AnalyticsPage({ searchParams }: PageProps) {
   const { profile } = auth
   const params = await searchParams
 
-  const analytics = await getAnalytics(params)
+  const analytics = await getAnalytics(params, hasAdminAccess(profile) ? undefined : profile.id)
 
   return <AnalyticsClient analytics={analytics} doctorName={profile.full_name} />
 }

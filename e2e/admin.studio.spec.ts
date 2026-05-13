@@ -3,7 +3,7 @@
  * 
  * Tests the admin template studio workflow:
  * - Login as operator
- * - Navigate to /admin/studio
+ * - Navigate to /admin/settings/templates
  * - Select a template type
  * - Edit template configuration
  * - Save and verify DB update
@@ -31,7 +31,7 @@ test.describe("Admin Template Studio", () => {
   })
 
   test("can navigate to template studio", async ({ page }) => {
-    await page.goto("/admin/studio")
+    await page.goto("/admin/settings/templates")
     await waitForPageLoad(page)
 
     // Should see Template Studio heading
@@ -48,7 +48,7 @@ test.describe("Admin Template Studio", () => {
     const initialTemplate = await getActiveTemplate("med_cert")
     const initialVersion = initialTemplate?.version || 0
 
-    await page.goto("/admin/studio")
+    await page.goto("/admin/settings/templates")
     await waitForPageLoad(page)
 
     // Wait for page to fully load
@@ -101,7 +101,7 @@ test.describe("Admin Template Studio", () => {
       
       const [response] = await Promise.all([
         page.waitForResponse(resp => 
-          resp.url().includes("/admin/studio") && 
+          resp.url().includes("/admin/settings/templates") &&
           resp.request().method() === "POST"
         ),
         saveButton.click()
@@ -121,7 +121,7 @@ test.describe("Admin Template Studio", () => {
   test("can view version history", async ({ page }) => {
     test.skip(!isDbAvailable(), "SUPABASE_SERVICE_ROLE_KEY required")
     
-    await page.goto("/admin/studio")
+    await page.goto("/admin/settings/templates")
     await waitForPageLoad(page)
 
     // Verify we have an active template in the DB first
@@ -156,7 +156,7 @@ test.describe("Admin Template Studio", () => {
   })
 
   test("can switch between template types", async ({ page }) => {
-    await page.goto("/admin/studio")
+    await page.goto("/admin/settings/templates")
     await waitForPageLoad(page)
 
     // Click on Study (uni) template
@@ -174,6 +174,6 @@ test.describe("Admin Template Studio", () => {
     }
 
     // Should still be on the studio page
-    expect(page.url()).toContain("/admin/studio")
+    expect(page.url()).toContain("/admin/settings/templates")
   })
 })

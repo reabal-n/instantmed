@@ -37,7 +37,7 @@ test.describe("Doctor Review - Claim & Review", () => {
 
     await resetIntakeForRetest(INTAKE_ID)
 
-    await page.goto("/doctor/dashboard")
+    await page.goto("/dashboard")
     await waitForPageLoad(page)
 
     await expect(page.getByRole("heading", { name: /review queue/i })).toBeVisible({ timeout: 15000 })
@@ -184,7 +184,7 @@ test.describe("Doctor Review - Batch Operations", () => {
   })
 
   test("batch select UI elements are present", async ({ page }) => {
-    await page.goto("/doctor/dashboard")
+    await page.goto("/dashboard")
     await waitForPageLoad(page)
 
     await expect(page.getByRole("heading", { name: /review queue/i })).toBeVisible({ timeout: 15000 })

@@ -419,15 +419,15 @@ Config-driven, immutably versioned. Template config stored as JSONB in `certific
 
 - `admin` — owner-operator. Holds both admin and doctor capabilities via role inheritance (`getRoleCapabilities("admin") = ["admin", "doctor"]`). Single admin per platform; future doctor hires are `doctor` role only.
 - `doctor` — clinical only. Holds the `doctor` capability.
-- `support` — non-clinical operations. Holds the `support` capability. Reserved for future hires; payment recovery, webhook retries, identity chase-ups, masked PHI only. No clinical answers, approvals, or prescribing access.
+- `support` — non-clinical operations. Holds the `support` capability. Bounded to `/admin/ops`, `/admin/webhook-dlq`, `/admin/ops/parchment`, and `/admin/ops/prescribing-identity` with masked/redacted data only. No clinical answers, approvals, prescribing access, patient directory, email hub, finance, analytics, or settings access.
 
-Capability helpers in `lib/auth/staff-capabilities.ts`. Per-doctor capability flags on `profiles` (`can_review_med_certs`, `can_review_repeat_rx`, `can_review_consults`, `can_review_ed`, `can_review_hair_loss`, `can_prescribe_s4`, `can_prescribe_s8`) scope future doctor hires before their service-line verification completes; owner-operator is unrestricted by default.
+Capability helpers in `lib/auth/staff-capabilities.ts`. Per-doctor capability flags on `profiles` (`can_review_med_certs`, `can_review_repeat_rx`, `can_review_consults`, `can_review_ed`, `can_review_hair_loss`, `can_prescribe_s4`, `can_prescribe_s8`) scope future doctor hires before their service-line verification completes; owner-operator is unrestricted by default. Parchment prescribing actions call `checkParchmentPrescribingCapability(...)` before external handoff: `prescribe_s4` is required for every embedded prescribing launch, and `prescribe_s8` is required when repeat-script intake answers include a controlled-medication name.
 
-**Canonical URL:** `/dashboard`. As of Phase 2 of the dashboard remaster (2026-05-12), `/dashboard` is the real staff surface: role-aware content (admin gets the full Admin layer + setup card + queue; doctor gets the queue; support is redirected to `/admin/ops`), 3-tile KPI strip, `SystemHealthPill` in the header, staff command palette, and doctor availability toggle. Legacy `/admin` and `/doctor/dashboard` 307-redirect here and preserve query params. New code references `STAFF_*_HREF` constants from `lib/dashboard/routes.ts`; legacy `ADMIN_*_HREF` / `DOCTOR_*_HREF` aliases stay until a later remaster phase consolidates the file tree.
+**Canonical URL:** `/dashboard`. As of Phase 2 of the dashboard remaster (2026-05-12), `/dashboard` is the real staff surface: role-aware content (admin gets the full Admin layer + setup card + queue; doctor gets the queue; support is redirected to the bounded support ops cockpit at `/admin/ops`), 3-tile KPI strip, `SystemHealthPill` in the header, staff command palette, and doctor availability toggle. Legacy `/admin`, `/doctor`, `/doctor/dashboard`, and `/doctor/queue` 307-redirect here and preserve query params. New code references `STAFF_*_HREF` constants from `lib/dashboard/routes.ts`; legacy `ADMIN_*_HREF` / `DOCTOR_*_HREF` aliases stay until a later remaster phase consolidates the file tree.
 
 ## Admin Portal
 
-**Access:** `admin` role only (set via `profiles.role = 'admin'` in Supabase). In the current solo-doctor operating model, the same person can be both admin and treating doctor, so admin surfaces are designed as an operator cockpit rather than a separate mode.
+**Access:** `admin` role only for admin data pages (set via `profiles.role = 'admin'` in Supabase). The `/admin` shell also hosts the bounded support ops cockpit for `support` role on explicit non-clinical routes only: `/admin/ops`, `/admin/webhook-dlq`, `/admin/ops/parchment`, and `/admin/ops/prescribing-identity`. In the current solo-doctor operating model, the same person can be both admin and treating doctor, so admin surfaces are designed as an operator cockpit rather than a separate mode.
 
 Admin capabilities span the `/admin` route group and include: operator cockpit, patient directory/profile lookup, operations dashboard, analytics, compliance audit logs, feature flag management (kill switches, operational controls), finance (fraud flags, Stripe disputes), clinic identity configuration, and doctor management.
 
@@ -553,6 +553,8 @@ Use `components/operator/` for staff pages that combine admin and clinical work.
 | `StaffCommandPalette` | Keyboard-accessible staff search/jump surface |
 
 Do not build new bespoke admin shells or mode-switching pages. If a staff page needs a new layout primitive, add it under `components/operator/` and document it here in the same commit.
+
+**Future doctor data boundary:** Admin uses broad operator data. Non-admin doctors are scoped through `lib/doctor/patient-access.ts` for patient directory, patient detail, patient drawer APIs, command-palette search, and doctor analytics. The relationship sources are intake claim/review/reviewer fields, script-task ownership, issued certificates, and patient notes; the global unclaimed queue is not enough to place a patient in a doctor's directory/search/analytics history.
 
 ### Service Icon Tiles (`ServiceIconTile`)
 

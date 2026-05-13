@@ -154,6 +154,13 @@ export async function createIntakeAndCheckoutAction(
     }
     const isPriority = input.answers.is_priority === true
     const priorityPriceId = isPriority ? process.env.STRIPE_PRICE_PRIORITY_FEE : null
+    if (isPriority && !priorityPriceId) {
+      logger.error("Priority checkout requested without STRIPE_PRICE_PRIORITY_FEE", {
+        category: input.category,
+        subtype: input.subtype,
+      })
+      return { success: false, error: "Express Review is temporarily unavailable. Please try again without Express Review or contact support." }
+    }
     const attribution = normalizeAttributionForStorage(resolvedAttribution)
 
     // 8. Insert intake + answers (atomic), with idempotency-collision routing

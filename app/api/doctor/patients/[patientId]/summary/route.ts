@@ -1,7 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 import { requireApiRole } from "@/lib/auth/helpers"
+import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import { getPatientIntakes, getPatientNotes } from "@/lib/data/intakes"
+import { doctorCanAccessPatient } from "@/lib/doctor/patient-access"
 import { formatServiceType } from "@/lib/format/intake"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 
@@ -35,6 +37,13 @@ export async function GET(
   const authResult = await requireApiRole(["doctor", "admin"])
   if (!authResult) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  if (!hasAdminAccess(authResult.profile)) {
+    const canAccessPatient = await doctorCanAccessPatient(authResult.profile.id, patientId)
+    if (!canAccessPatient) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 })
+    }
   }
 
   const [patientHistory, notes] = await Promise.all([

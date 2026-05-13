@@ -31,19 +31,16 @@ const mobileNavSource = readFileSync(
   join(process.cwd(), "components/ui/mobile-nav.tsx"),
   "utf8",
 )
+const nextConfigSource = readFileSync(join(process.cwd(), "next.config.mjs"), "utf8")
 // Phase 2 of dashboard remaster (2026-05-12): the doctor dashboard moved to
-// the canonical /dashboard surface. The legacy /doctor/dashboard route is
-// now a redirect-only stub; its dashboard-header.tsx was retired.
+// the canonical /dashboard surface. Legacy doctor entrypoints now redirect at
+// the Next config layer, so there are no duplicate React page stubs.
 const dashboardHeaderSource = readFileSync(
   join(process.cwd(), "app/dashboard/page.tsx"),
   "utf8",
 )
 const doctorAvailabilityToggleSource = readFileSync(
   join(process.cwd(), "components/doctor/doctor-availability-toggle.tsx"),
-  "utf8",
-)
-const doctorQueuePageSource = readFileSync(
-  join(process.cwd(), "app/doctor/queue/page.tsx"),
   "utf8",
 )
 const doctorSettingsPageSource = readFileSync(
@@ -227,9 +224,11 @@ describe("doctor navigation contract", () => {
   })
 
   it("keeps legacy doctor routes as redirects to canonical surfaces", () => {
-    expect(doctorQueuePageSource).toContain("buildDoctorQueueRedirectHref")
+    expect(nextConfigSource).toContain('source: "/doctor", destination: "/dashboard"')
+    expect(nextConfigSource).toContain('source: "/doctor/dashboard", destination: "/dashboard"')
+    expect(nextConfigSource).toContain('source: "/doctor/queue", destination: "/dashboard"')
     expect(doctorSettingsPageSource).toContain('requireRole(["doctor", "admin"]')
-    expect(doctorSettingsPageSource).toContain('profile.role === "admin"')
+    expect(doctorSettingsPageSource).toContain("hasAdminAccess(profile)")
     expect(doctorSettingsPageSource).toContain('redirect("/admin/settings/doctor-identity")')
     expect(doctorSettingsPageSource).toContain('redirect("/doctor/settings/identity")')
     expect(legacyDoctorEmailSuppressionSource).toContain('redirect("/admin/emails/suppression")')
@@ -280,13 +279,8 @@ describe("doctor navigation contract", () => {
 
   it("keeps doctor data pages explicitly gated for doctor or admin users", () => {
     const redirectOnlyPages = new Set([
-      join(process.cwd(), "app/doctor/page.tsx"),
-      join(process.cwd(), "app/doctor/queue/page.tsx"),
       join(process.cwd(), "app/doctor/settings/page.tsx"),
       join(process.cwd(), "app/doctor/email-suppression/page.tsx"),
-      // Phase 2 of dashboard remaster (2026-05-12): /doctor/dashboard is now
-      // a thin redirect to the canonical /dashboard URL.
-      join(process.cwd(), "app/doctor/dashboard/page.tsx"),
     ])
 
     for (const pageFile of findDoctorPageFiles()) {

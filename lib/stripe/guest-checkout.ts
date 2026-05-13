@@ -548,6 +548,14 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       subtype: input.subtype,
       answers: input.answers,
     })
+    const isPriority = input.answers.is_priority === true || input.answers.isPriority === true
+    const priorityPriceId = isPriority ? process.env.STRIPE_PRICE_PRIORITY_FEE : null
+    if (isPriority && !priorityPriceId) {
+      return {
+        success: false,
+        error: "Express Review is temporarily unavailable. Please try again without Express Review or contact support.",
+      }
+    }
 
     // 3. Create the intake with pending_payment status
     // Include category, subtype, idempotency_key, guest_email, and stripe_price_id
@@ -568,6 +576,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         amount_cents: amountCents,
         category: input.category,
         subtype: input.subtype || null,
+        is_priority: isPriority,
         idempotency_key: guestIdempotencyKey,
         guest_email: normalizedEmail, // P1 FIX: Store for abandoned checkout recovery
         stripe_price_id: priceId || null, // P3 FIX: Store for retry pricing consistency
@@ -738,6 +747,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         subtype: input.subtype,
         service_slug: serviceSlug,
         guest_checkout: "true",
+        ...(isPriority ? { is_priority: "true" } : {}),
         ...(input.posthogDistinctId ? { ph_distinct_id: input.posthogDistinctId } : {}),
         // Google Ads click IDs for Enhanced Conversions attribution
         ...(attribution.gclid ? { gclid: attribution.gclid } : {}),
@@ -756,13 +766,17 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         ...(attribution.network ? { network: attribution.network } : {}),
       })
       // Use intake ID as idempotency key to prevent duplicate sessions on double-click
+      const lineItems: Array<{ price: string; quantity: number }> = [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ]
+      if (isPriority && priorityPriceId) {
+        lineItems.push({ price: priorityPriceId, quantity: 1 })
+      }
       session = await stripe.checkout.sessions.create({
-        line_items: [
-          {
-            price: priceId,
-            quantity: 1,
-          },
-        ],
+        line_items: lineItems,
         mode: "payment",
         success_url: successUrl,
         cancel_url: cancelUrl,

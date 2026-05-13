@@ -74,6 +74,10 @@ describe("Parchment action production contract", () => {
     const body = functionBody("getParchmentPrescribeUrlAction")
 
     expect(body).toContain("await validateIntegration(doctorProfile.parchment_user_id)")
+    expect(body).toContain("checkParchmentPrescribingCapability")
+    expect(body.indexOf("checkParchmentPrescribingCapability")).toBeLessThan(
+      body.indexOf("await validateIntegration(doctorProfile.parchment_user_id)"),
+    )
     expect(body.indexOf("await validateIntegration(doctorProfile.parchment_user_id)")).toBeLessThan(
       body.indexOf("syncPatientToParchment("),
     )

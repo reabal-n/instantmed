@@ -11,6 +11,7 @@ import {
   type ManualPatientFieldErrors,
   type ManualPatientFormValues,
 } from "@/lib/doctor/manual-patient"
+import { checkParchmentPrescribingCapability } from "@/lib/doctor/parchment-prescribing-capability"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import { getSsoUrl, validateIntegration } from "@/lib/parchment/client"
@@ -307,6 +308,16 @@ export async function getPatientParchmentPrescribeUrlAction(
     return { success: false, error: "Embedded prescribing is not enabled." }
   }
 
+  const prescribingCapability = checkParchmentPrescribingCapability({
+    profile: authResult.profile,
+  })
+  if (!prescribingCapability.allowed) {
+    log.warn("Patient profile Parchment prescribe blocked by doctor prescribing capability", {
+      requiredCapability: prescribingCapability.requiredCapability,
+    })
+    return { success: false, error: prescribingCapability.error }
+  }
+
   try {
     const supabase = createServiceRoleClient()
     const callerParchmentUserId = await getCallerParchmentUserId(supabase, authResult.profile.id)
@@ -535,7 +546,7 @@ export async function refreshPatientParchmentPrescriptionsAction(
       userId: callerParchmentUserId,
       parchmentPatientId,
       patientProfileId: patientId,
-      prescriberProfileId: authResult.profile.role === "doctor" ? authResult.profile.id : null,
+      prescriberProfileId: authResult.profile.id,
       intakeId: null,
       limit: 50,
       overwriteNullableLinks: false,

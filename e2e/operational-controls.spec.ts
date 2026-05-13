@@ -81,7 +81,7 @@ test.describe("Operational Controls - Doctor Availability", () => {
         .update({ doctor_available: false })
         .eq("id", OPERATOR_PROFILE_ID)
 
-      await page.goto("/doctor/dashboard")
+      await page.goto("/dashboard")
       await waitForPageLoad(page)
 
       await expect(page.getByRole("heading", { name: /review queue/i })).toBeVisible({ timeout: 15000 })

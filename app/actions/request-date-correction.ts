@@ -4,6 +4,7 @@ import { z } from "zod"
 
 import { reissueCertificateAction } from "@/app/actions/reissue-cert"
 import { getApiAuth } from "@/lib/auth/helpers"
+import { hasDoctorAccess } from "@/lib/auth/staff-capabilities"
 import { getCertificateForIntake } from "@/lib/data/issued-certificates"
 import { validateCertificateDateRange } from "@/lib/medical-certificates/date-policy"
 import { createLogger } from "@/lib/observability/logger"
@@ -148,7 +149,7 @@ export async function approveDateCorrection(
   intakeId: string
 ): Promise<{ success: boolean; error?: string }> {
   const authResult = await getApiAuth()
-  if (!authResult || authResult.profile.role !== "doctor") {
+  if (!authResult || !hasDoctorAccess(authResult.profile)) {
     return { success: false, error: "Unauthorized" }
   }
 

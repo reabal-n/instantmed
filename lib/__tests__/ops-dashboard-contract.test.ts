@@ -83,10 +83,7 @@ const emailReconstructSource = readFileSync(
   join(process.cwd(), "lib/email/send/reconstruct.ts"),
   "utf8",
 )
-const legacyWebhooksPageSource = readFileSync(
-  join(process.cwd(), "app/admin/webhooks/page.tsx"),
-  "utf8",
-)
+const nextConfigSource = readFileSync(join(process.cwd(), "next.config.mjs"), "utf8")
 const dashboardRoutesSource = readFileSync(
   join(process.cwd(), "lib/dashboard/routes.ts"),
   "utf8",
@@ -185,9 +182,10 @@ describe("ops dashboard data contract", () => {
     expect(adminSidebarSource).not.toContain('href: "/admin/webhooks"')
     expect(adminSidebarSource).not.toContain('href: "/admin/webhook-dlq"')
 
-    expect(legacyWebhooksPageSource).toContain('redirect("/admin/webhook-dlq")')
-    expect(legacyWebhooksPageSource).not.toContain('.from("webhook_events")')
-    expect(legacyWebhooksPageSource).not.toContain('.from("webhook_dlq")')
+    expect(nextConfigSource).toContain('source: "/admin/webhooks"')
+    expect(nextConfigSource).toContain('destination: "/admin/webhook-dlq"')
+    expect(nextConfigSource).not.toContain('.from("webhook_events")')
+    expect(nextConfigSource).not.toContain('.from("webhook_dlq")')
   })
 
   it("surfaces Telegram alert configuration without exposing secret values", () => {
