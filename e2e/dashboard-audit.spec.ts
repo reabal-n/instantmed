@@ -11,40 +11,41 @@ import AxeBuilder from "@axe-core/playwright"
 import { expect, type Page, test } from "@playwright/test"
 
 import { loginAsDoctor, loginAsOperator, loginAsPatient, logoutTestUser } from "./helpers/auth"
+import { STAFF_TEST_ROUTES } from "./helpers/staff-routes"
 import { waitForPageLoad } from "./helpers/test-utils"
 
-// Pages derived from admin-sidebar, dashboard-sidebar, and route structure
+// Pages derived from the operator workflow map and route structure. Incident-only
+// diagnostics stay out of this routine dashboard sweep.
 const ADMIN_PAGES = [
-  "/admin",
-  "/admin/clinic",
-  "/admin/doctors",
-  "/admin/services",
-  "/admin/features",
-  "/admin/analytics",
-  "/admin/finance",
-  "/admin/ops",
-  "/admin/audit",
-  "/admin/refunds",
-  "/admin/webhook-dlq",
-  "/admin/emails/hub",
-  "/admin/emails/hub?tab=queue",
-  "/admin/emails/suppression",
-  "/admin/emails/templates",
-  "/admin/settings",
-  "/admin/settings/templates",
+  STAFF_TEST_ROUTES.admin,
+  STAFF_TEST_ROUTES.adminClinic,
+  STAFF_TEST_ROUTES.adminDoctors,
+  STAFF_TEST_ROUTES.adminServices,
+  STAFF_TEST_ROUTES.adminFeatures,
+  STAFF_TEST_ROUTES.adminAnalytics,
+  STAFF_TEST_ROUTES.adminFinance,
+  STAFF_TEST_ROUTES.adminOps,
+  STAFF_TEST_ROUTES.adminAudit,
+  STAFF_TEST_ROUTES.adminRefunds,
+  STAFF_TEST_ROUTES.adminWebhookDlq,
+  STAFF_TEST_ROUTES.adminEmailHub,
+  STAFF_TEST_ROUTES.adminEmailQueue,
+  STAFF_TEST_ROUTES.adminEmailSuppression,
+  STAFF_TEST_ROUTES.adminEmailTemplates,
+  STAFF_TEST_ROUTES.adminSettings,
+  STAFF_TEST_ROUTES.adminCertificateTemplates,
   // Nested
-  "/admin/ops/intakes-stuck",
-  "/admin/ops/reconciliation",
-  "/admin/settings/encryption",
+  STAFF_TEST_ROUTES.adminStaleIntakes,
+  STAFF_TEST_ROUTES.adminReconciliation,
 ]
 
 const DOCTOR_PAGES = [
-  "/dashboard",
-  "/doctor/scripts",
-  "/doctor/patients",
-  "/admin",
-  "/doctor/settings",
-  "/doctor/settings/identity",
+  STAFF_TEST_ROUTES.dashboard,
+  STAFF_TEST_ROUTES.doctorScripts,
+  STAFF_TEST_ROUTES.doctorPatients,
+  STAFF_TEST_ROUTES.admin,
+  STAFF_TEST_ROUTES.doctorSettings,
+  STAFF_TEST_ROUTES.doctorIdentity,
 ]
 
 const PATIENT_PAGES = [
@@ -71,14 +72,14 @@ const DASHBOARD_ROUTE_CONTRACTS = [
 ]
 
 const DASHBOARD_A11Y_TARGETS = [
-  { name: "admin", path: "/admin", login: loginAsOperator },
-  { name: "doctor", path: "/dashboard", login: loginAsOperator },
+  { name: "admin", path: STAFF_TEST_ROUTES.admin, login: loginAsOperator },
+  { name: "doctor", path: STAFF_TEST_ROUTES.dashboard, login: loginAsOperator },
   { name: "patient", path: "/patient", login: loginAsPatient },
 ]
 
 const MOBILE_SCREENSHOT_TARGETS = [
-  { title: "admin dashboard mobile screenshot", path: "/admin", login: loginAsOperator, snapshot: "admin-dashboard-mobile.png" },
-  { title: "doctor dashboard mobile screenshot", path: "/dashboard", login: loginAsOperator, snapshot: "doctor-dashboard-mobile.png" },
+  { title: "admin dashboard mobile screenshot", path: STAFF_TEST_ROUTES.admin, login: loginAsOperator, snapshot: "admin-dashboard-mobile.png" },
+  { title: "doctor dashboard mobile screenshot", path: STAFF_TEST_ROUTES.dashboard, login: loginAsOperator, snapshot: "doctor-dashboard-mobile.png" },
   { title: "patient dashboard mobile screenshot", path: "/patient", login: loginAsPatient, snapshot: "patient-dashboard-mobile.png" },
 ]
 
@@ -268,13 +269,13 @@ test.describe("Dashboard Audit - Doctor-only user", () => {
   test("doctor-only user can access doctor pages", async ({ page }) => {
     const tracker = createConsoleErrorTracker()
     tracker.attach(page)
-    await assertPageLoads(page, "/dashboard")
-    await assertPageLoads(page, "/doctor/patients")
+    await assertPageLoads(page, STAFF_TEST_ROUTES.dashboard)
+    await assertPageLoads(page, STAFF_TEST_ROUTES.doctorPatients)
     tracker.assertNoErrors()
   })
 
   test("doctor-only user cannot access admin", async ({ page }) => {
-    await page.goto("/admin")
+    await page.goto(STAFF_TEST_ROUTES.admin)
     await waitForPageLoad(page)
     const url = page.url()
     const isRedirectedAway = !url.includes("/admin")
@@ -350,15 +351,15 @@ test.describe("Dashboard Audit - Link navigation", () => {
     const tracker = createConsoleErrorTracker()
     tracker.attach(page)
 
-    await page.goto("/admin")
+    await page.goto(STAFF_TEST_ROUTES.admin)
     await waitForPageLoad(page)
 
     // Click through key nav links
     const links = [
-      { href: "/admin/intakes" },
-      { href: "/admin/patients" },
-      { href: "/admin/analytics", section: /analytics/i },
-      { href: "/admin/ops", section: /ops/i },
+      { href: STAFF_TEST_ROUTES.adminIntakes },
+      { href: STAFF_TEST_ROUTES.adminPatients },
+      { href: STAFF_TEST_ROUTES.adminAnalytics, section: /analytics/i },
+      { href: STAFF_TEST_ROUTES.adminOps, section: /ops/i },
     ]
 
     for (const { href, section } of links) {
@@ -377,12 +378,12 @@ test.describe("Dashboard Audit - Link navigation", () => {
     const tracker = createConsoleErrorTracker()
     tracker.attach(page)
 
-    await page.goto("/dashboard")
+    await page.goto(STAFF_TEST_ROUTES.dashboard)
     await waitForPageLoad(page)
 
     const links = [
-      { href: "/doctor/scripts", label: /scripts/i },
-      { href: "/doctor/patients", label: /patients/i },
+      { href: STAFF_TEST_ROUTES.doctorScripts, label: /scripts/i },
+      { href: STAFF_TEST_ROUTES.doctorPatients, label: /patients/i },
     ]
 
     for (const { href, label } of links) {
@@ -439,7 +440,7 @@ test.describe("Dashboard Audit - Link navigation", () => {
     const tracker = createConsoleErrorTracker()
     tracker.attach(page)
 
-    await page.goto("/dashboard?status=review")
+    await page.goto(`${STAFF_TEST_ROUTES.dashboard}?status=review`)
     await waitForPageLoad(page)
 
     await expect(page.getByRole("button", { name: /Needs Review/i })).toHaveAttribute("aria-pressed", "true")

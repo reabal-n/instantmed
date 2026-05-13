@@ -1,48 +1,16 @@
 /**
- * Sentry Observability E2E Tests
+ * Sentry API Observability E2E Tests
  * 
  * Tests that verify Sentry error capture is working correctly:
- * 1. Edge runtime error capture
- * 2. API 500 response capture (handled failures)
+ * 1. API 500 response capture (handled failures)
+ * 2. Request ID correlation
  * 
  * PLAYWRIGHT MODE ONLY - requires PLAYWRIGHT=1 environment variable
  */
 
-import { expect,test } from "@playwright/test"
+import { expect, test } from "@playwright/test"
 
-test.describe("Sentry Observability", () => {
-  test.describe("Edge Runtime Error Capture", () => {
-    test("captures explicit error in Edge runtime", async ({ request }) => {
-      // Call the Edge canary route with action=capture
-      const response = await request.get("/api/test/edge-canary?action=capture")
-      
-      // Should succeed with 200 and return event ID
-      expect(response.status()).toBe(200)
-      
-      const data = await response.json()
-      expect(data.success).toBe(true)
-      expect(data.runtime).toBe("edge")
-      expect(data.eventId).toBeDefined()
-      expect(typeof data.eventId).toBe("string")
-      
-      // Event ID should be a valid Sentry ID (32 hex chars or UUID format)
-      expect(data.eventId).toMatch(/^[a-f0-9-]{32,36}$/i)
-      
-      // eslint-disable-next-line no-console
-      console.log(`[SENTRY_TEST] Edge capture event ID: ${data.eventId}`)
-    })
-
-    test("Edge canary health check works", async ({ request }) => {
-      const response = await request.get("/api/test/edge-canary")
-      
-      expect(response.status()).toBe(200)
-      
-      const data = await response.json()
-      expect(data.ok).toBe(true)
-      expect(data.runtime).toBe("edge")
-    })
-  })
-
+test.describe("Sentry API Observability", () => {
   test.describe("API 500 Response Capture", () => {
     test("captures handled 500 response to Sentry", async ({ request }) => {
       // Call the boom-500 route with action=500

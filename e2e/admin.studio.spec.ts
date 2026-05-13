@@ -14,10 +14,11 @@
  *   Fix: Replace brittle UI assertion with DB persistence verification
  */
 
-import { expect,test } from "@playwright/test"
+import { expect, test } from "@playwright/test"
 
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
 import { getActiveTemplate, isDbAvailable } from "./helpers/db"
+import { STAFF_TEST_ROUTES } from "./helpers/staff-routes"
 import { waitForPageLoad } from "./helpers/test-utils"
 
 test.describe("Admin Certificate Templates", () => {
@@ -31,7 +32,7 @@ test.describe("Admin Certificate Templates", () => {
   })
 
   test("can navigate to certificate templates", async ({ page }) => {
-    await page.goto("/admin/settings/templates")
+    await page.goto(STAFF_TEST_ROUTES.adminCertificateTemplates)
     await waitForPageLoad(page)
 
     await expect(page.getByRole("heading", { name: /certificate templates/i })).toBeVisible()
@@ -47,7 +48,7 @@ test.describe("Admin Certificate Templates", () => {
     const initialTemplate = await getActiveTemplate("med_cert")
     const initialVersion = initialTemplate?.version || 0
 
-    await page.goto("/admin/settings/templates")
+    await page.goto(STAFF_TEST_ROUTES.adminCertificateTemplates)
     await waitForPageLoad(page)
 
     // Wait for page to fully load
@@ -100,7 +101,7 @@ test.describe("Admin Certificate Templates", () => {
       
       const [response] = await Promise.all([
         page.waitForResponse(resp => 
-          resp.url().includes("/admin/settings/templates") &&
+          resp.url().includes(STAFF_TEST_ROUTES.adminCertificateTemplates) &&
           resp.request().method() === "POST"
         ),
         saveButton.click()
@@ -120,7 +121,7 @@ test.describe("Admin Certificate Templates", () => {
   test("can view version history", async ({ page }) => {
     test.skip(!isDbAvailable(), "SUPABASE_SERVICE_ROLE_KEY required")
     
-    await page.goto("/admin/settings/templates")
+    await page.goto(STAFF_TEST_ROUTES.adminCertificateTemplates)
     await waitForPageLoad(page)
 
     // Verify we have an active template in the DB first
@@ -155,7 +156,7 @@ test.describe("Admin Certificate Templates", () => {
   })
 
   test("can switch between template types", async ({ page }) => {
-    await page.goto("/admin/settings/templates")
+    await page.goto(STAFF_TEST_ROUTES.adminCertificateTemplates)
     await waitForPageLoad(page)
 
     // Click on Study (uni) template
@@ -173,6 +174,6 @@ test.describe("Admin Certificate Templates", () => {
     }
 
     // Should still be on the studio page
-    expect(page.url()).toContain("/admin/settings/templates")
+    expect(page.url()).toContain(STAFF_TEST_ROUTES.adminCertificateTemplates)
   })
 })

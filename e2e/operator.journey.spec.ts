@@ -14,7 +14,7 @@
  * This test uses a SINGLE operator session to verify the full journey.
  */
 
-import { expect,test } from "@playwright/test"
+import { expect, test } from "@playwright/test"
 
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
 import {
@@ -33,6 +33,7 @@ import {
   waitForIntakeStatus,
   waitForIssuedCertificate,
 } from "./helpers/db"
+import { STAFF_TEST_ROUTES } from "./helpers/staff-routes"
 import { waitForPageLoad } from "./helpers/test-utils"
 
 // E2E_RUN_ID for unique test values
@@ -78,7 +79,7 @@ test.describe("Operator End-to-End Journey", () => {
     // STEP B: Update clinic identity phone
     // ========================================================================
     await test.step("Update clinic phone in /admin/clinic", async () => {
-      await page.goto("/admin/clinic")
+      await page.goto(STAFF_TEST_ROUTES.adminClinic)
       await waitForPageLoad(page)
 
       // Wait for form to load
@@ -98,7 +99,7 @@ test.describe("Operator End-to-End Journey", () => {
       
       const [response] = await Promise.all([
         page.waitForResponse(resp => 
-          resp.url().includes("/admin/clinic") && 
+          resp.url().includes(STAFF_TEST_ROUTES.adminClinic) &&
           resp.request().method() === "POST"
         ),
         saveButton.click()
@@ -124,7 +125,7 @@ test.describe("Operator End-to-End Journey", () => {
       expect(initialTemplate).toBeTruthy()
       const initialVersion = initialTemplate?.version || 0
 
-      await page.goto("/admin/settings/templates")
+      await page.goto(STAFF_TEST_ROUTES.adminCertificateTemplates)
       await waitForPageLoad(page)
 
       await expect(page.getByRole("heading", { name: /certificate templates/i })).toBeVisible()
@@ -168,7 +169,7 @@ test.describe("Operator End-to-End Journey", () => {
         
         const [response] = await Promise.all([
           page.waitForResponse(resp => 
-            resp.url().includes("/admin/settings/templates") &&
+            resp.url().includes(STAFF_TEST_ROUTES.adminCertificateTemplates) &&
             resp.request().method() === "POST"
           ),
           saveButton.click()

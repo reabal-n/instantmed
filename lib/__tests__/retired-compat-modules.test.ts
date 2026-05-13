@@ -73,6 +73,11 @@ describe("retired compatibility modules", () => {
     expect(middleware).toContain('"/cert-preview"')
   })
 
+  it("keeps retired test-only ops diagnostics out of the app and e2e trees", () => {
+    expect(existsSync(join(root, "app/api/test/edge-canary/route.ts"))).toBe(false)
+    expect(existsSync(join(root, "e2e/admin-crash-diagnostic.spec.ts"))).toBe(false)
+  })
+
   it("keeps dev-only surfaces fail-closed in production and preview", () => {
     const middleware = readFileSync(join(root, "middleware.ts"), "utf8")
 

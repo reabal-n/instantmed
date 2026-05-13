@@ -2,6 +2,7 @@ import { expect, type Page, test } from "@playwright/test"
 
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
 import { INTAKE_ID, isDbAvailable } from "./helpers/db"
+import { STAFF_TEST_ROUTES } from "./helpers/staff-routes"
 import { waitForPageLoad } from "./helpers/test-utils"
 
 const PATIENT_ID = "e2e00000-0000-0000-0000-000000000002"
@@ -28,7 +29,7 @@ test.describe("operator viewport contract", () => {
   })
 
   test("keeps the core operator cockpit pages inside one desktop viewport", async ({ page }) => {
-    await page.goto("/admin")
+    await page.goto(STAFF_TEST_ROUTES.admin)
     await waitForPageLoad(page)
     await expect(page.getByRole("heading", { name: /^staff cockpit$/i })).toBeVisible()
     await expect(page.getByRole("heading", { name: /^admin layer$/i })).toBeVisible()
@@ -36,7 +37,7 @@ test.describe("operator viewport contract", () => {
     await expect(page.getByText(/switch to doctor|doctor mode|continue as doctor/i)).toHaveCount(0)
     await expectNoDesktopPageScroll(page)
 
-    await page.goto("/admin/ops")
+    await page.goto(STAFF_TEST_ROUTES.adminOps)
     await waitForPageLoad(page)
     await expect(page.getByRole("heading", { name: /^operations$/i })).toBeVisible()
     await expect(page.getByTestId("operator-scroll-area")).toBeVisible()
@@ -60,16 +61,16 @@ test.describe("operator viewport contract", () => {
     test.setTimeout(120_000)
 
     const pages = [
-      { path: "/admin/intakes", heading: /intake ledger/i },
-      { path: "/admin/ops/parchment", heading: /parchment ops/i },
-      { path: "/admin/ops/patient-merge-audit", heading: /patient merge audit/i },
-      { path: "/admin/ops/prescribing-identity", heading: /prescribing identity blocks/i },
-      { path: "/admin/analytics?tab=queue", heading: /analytics/i },
-      { path: "/admin/webhook-dlq", heading: /payment webhooks/i },
-      { path: "/admin/refunds?status=failed", heading: /^refunds$/i },
-      { path: "/admin/emails/hub?tab=queue", heading: /email delivery/i },
-      { path: "/admin/features", heading: /feature flags/i, boundedConsole: true },
-      { path: "/admin/settings/templates", heading: /certificate templates/i },
+      { path: STAFF_TEST_ROUTES.adminIntakes, heading: /intake ledger/i },
+      { path: STAFF_TEST_ROUTES.adminOpsParchment, heading: /parchment ops/i },
+      { path: STAFF_TEST_ROUTES.adminPatientMergeAudit, heading: /patient merge audit/i },
+      { path: STAFF_TEST_ROUTES.adminPrescribingIdentity, heading: /prescribing identity blocks/i },
+      { path: `${STAFF_TEST_ROUTES.adminAnalytics}?tab=queue`, heading: /analytics/i },
+      { path: STAFF_TEST_ROUTES.adminWebhookDlq, heading: /payment webhooks/i },
+      { path: STAFF_TEST_ROUTES.adminRefundFailures, heading: /^refunds$/i },
+      { path: STAFF_TEST_ROUTES.adminEmailQueue, heading: /email delivery/i },
+      { path: STAFF_TEST_ROUTES.adminFeatures, heading: /feature flags/i, boundedConsole: true },
+      { path: STAFF_TEST_ROUTES.adminCertificateTemplates, heading: /certificate templates/i },
     ]
 
     for (const pageConfig of pages) {

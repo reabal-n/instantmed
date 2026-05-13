@@ -13,7 +13,7 @@
  */
 
 import * as Sentry from "@sentry/nextjs"
-import { AlertTriangle, Bug, CheckCircle,Monitor, Server } from "lucide-react"
+import { AlertTriangle, Bug, CheckCircle, Monitor, Server } from "lucide-react"
 import { useState } from "react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -69,13 +69,12 @@ export default function SentryTestPage() {
     setServerResult(null)
     
     try {
-      // Call the boom-500 route (works in PLAYWRIGHT mode)
-      // For dev, we'll call edge-canary with capture action
-      const response = await fetch("/api/test/edge-canary?action=capture")
+      // Call the API capture route when PLAYWRIGHT mode is enabled.
+      const response = await fetch("/api/test/boom")
       const data = await response.json()
       
-      if (data.eventId) {
-        setServerResult({ ok: true, eventId: data.eventId })
+      if (data.sentryEventId) {
+        setServerResult({ ok: true, eventId: data.sentryEventId })
       } else if (response.status === 404) {
         // PLAYWRIGHT mode not enabled - capture locally instead
         const error = new Error("[Sentry Test] Server-side simulation from dev test page")

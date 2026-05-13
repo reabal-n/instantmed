@@ -17,13 +17,15 @@
  *   Fix: Use locator('#clinic_name') targeting input id directly
  */
 
-import { expect,test } from "@playwright/test"
+import { expect, test } from "@playwright/test"
 
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
-import { 
-  getActiveClinicIdentity, 
+import {
+  getActiveClinicIdentity,
   isDbAvailable,
-  updateClinicIdentity} from "./helpers/db"
+  updateClinicIdentity,
+} from "./helpers/db"
+import { STAFF_TEST_ROUTES } from "./helpers/staff-routes"
 import { waitForPageLoad } from "./helpers/test-utils"
 
 test.describe("Admin Clinic Identity", () => {
@@ -37,7 +39,7 @@ test.describe("Admin Clinic Identity", () => {
   })
 
   test("can navigate to clinic identity page", async ({ page }) => {
-    await page.goto("/admin/clinic")
+    await page.goto(STAFF_TEST_ROUTES.adminClinic)
     await waitForPageLoad(page)
 
     // Should see Clinic Identity heading
@@ -54,7 +56,7 @@ test.describe("Admin Clinic Identity", () => {
     const initialClinic = await getActiveClinicIdentity()
     const clinicId = initialClinic?.id
 
-    await page.goto("/admin/clinic")
+    await page.goto(STAFF_TEST_ROUTES.adminClinic)
     await waitForPageLoad(page)
 
     // Wait for form to be ready - use input id directly (more stable than label)
@@ -84,7 +86,7 @@ test.describe("Admin Clinic Identity", () => {
     // Wait for the save action to complete
     const [response] = await Promise.all([
       page.waitForResponse(resp => 
-        resp.url().includes("/admin/clinic") && 
+        resp.url().includes(STAFF_TEST_ROUTES.adminClinic) &&
         resp.request().method() === "POST"
       ),
       saveButton.click()
@@ -106,7 +108,7 @@ test.describe("Admin Clinic Identity", () => {
   })
 
   test("shows validation error for missing required fields", async ({ page }) => {
-    await page.goto("/admin/clinic")
+    await page.goto(STAFF_TEST_ROUTES.adminClinic)
     await waitForPageLoad(page)
 
     // Wait for clinic name input using id
@@ -138,7 +140,7 @@ test.describe("Admin Clinic Identity", () => {
     const clinic = await getActiveClinicIdentity()
     expect(clinic).toBeTruthy()
     
-    await page.goto("/admin/clinic")
+    await page.goto(STAFF_TEST_ROUTES.adminClinic)
     await waitForPageLoad(page)
 
     // Wait for form to load - use input ids directly

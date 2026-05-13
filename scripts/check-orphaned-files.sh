@@ -82,17 +82,19 @@ do
   fi
 done
 
-# ── 2c. Retired non-operational cron surfaces ────────────────────────────
-for retired_cron_surface in \
+# ── 2c. Retired non-operational cron/test surfaces ───────────────────────
+for retired_non_operational_surface in \
   "app/api/cron/acquisition-health/route.ts" \
   "app/api/cron/daily-digest/route.ts" \
   "app/api/cron/decline-reengagement/route.ts" \
   "app/api/cron/email-digest/route.ts" \
+  "app/api/test/edge-canary/route.ts" \
+  "e2e/admin-crash-diagnostic.spec.ts" \
   "lib/email/components/templates/decline-reengagement.tsx" \
   "lib/analytics/acquisition-health.ts"
 do
-  if [[ -e "$retired_cron_surface" ]]; then
-    echo "ORPHAN: $retired_cron_surface still exists (retired from lean staff operations)"
+  if [[ -e "$retired_non_operational_surface" ]]; then
+    echo "ORPHAN: $retired_non_operational_surface still exists (retired from lean staff operations)"
     orphans=$((orphans + 1))
   fi
 done
