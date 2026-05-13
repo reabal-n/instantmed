@@ -59,11 +59,11 @@ export const EMAIL_SEQUENCES: readonly EmailSequenceDefinition[] = [
   {
     id: "decline_reengagement",
     name: "Decline re-engagement",
-    status: "active",
-    owner: "Decline lifecycle",
-    trigger: "Declined request",
-    cadence: "2h after decline",
-    guard: "Checks active email_outbox rows",
+    status: "inactive",
+    owner: "Manual-only legacy marketing",
+    trigger: "None",
+    cadence: "Not scheduled",
+    guard: "Route remains cron-auth protected for audit compatibility",
   },
   {
     id: "treatment_followup",

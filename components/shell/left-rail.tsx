@@ -1,7 +1,6 @@
 'use client'
 
 import {
-  Activity,
   Bell,
   ChevronLeft,
   ChevronRight,
@@ -83,7 +82,6 @@ export function LeftRail({
     { icon: Home, label: 'Overview', href: '/patient' },
     { icon: FileText, label: 'Requests', href: '/patient/intakes' },
     { icon: ClipboardList, label: 'Prescriptions', href: '/patient/prescriptions' },
-    { icon: Activity, label: 'Health summary', href: '/patient/health-summary' },
     { icon: FolderOpen, label: 'Documents', href: '/patient/documents' },
     { icon: MessageSquare, label: 'Messages', href: '/patient/messages' },
     { icon: CreditCard, label: 'Payments', href: '/patient/payment-history' },

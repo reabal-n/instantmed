@@ -103,10 +103,6 @@
       "schedule": "0 1 * * *"
     },
     {
-      "path": "/api/cron/decline-reengagement",
-      "schedule": "0 * * * *"
-    },
-    {
       "path": "/api/cron/review-request",
       "schedule": "0 10 * * *"
     },

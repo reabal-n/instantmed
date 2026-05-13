@@ -1,6 +1,6 @@
 "use client"
 
-import { Activity, Bell, ClipboardList, CreditCard, FileText, FolderOpen, Home, LogOut, MessageSquare, MoreHorizontal, User, X } from "lucide-react"
+import { Bell, ClipboardList, CreditCard, FileText, FolderOpen, Home, LogOut, MessageSquare, MoreHorizontal, User, X } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -52,11 +52,6 @@ const moreItems: NavItem[] = [
     label: "Prescriptions",
     icon: ClipboardList,
     href: "/patient/prescriptions",
-  },
-  {
-    label: "Health summary",
-    icon: Activity,
-    href: "/patient/health-summary",
   },
   {
     label: "Messages",

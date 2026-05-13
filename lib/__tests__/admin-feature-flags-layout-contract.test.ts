@@ -57,4 +57,21 @@ describe("admin feature flags layout contract", () => {
     expect(detail).toContain("rows={2}")
     expect(detail).not.toContain('className="space-y-6 px-6 pb-6"')
   })
+
+  it("does not expose retired placeholder toggles that have no runtime implementation", () => {
+    const flags = readProjectFile("lib/data/types/feature-flags.ts")
+
+    for (const retiredFlag of [
+      "script_todo_enabled",
+      "batch_approve_enabled",
+      "consent_versioning_enabled",
+      "health_profile_enabled",
+      "realtime_queue_enabled",
+      "ab_testing_enabled",
+      "support_tickets_enabled",
+      "clinical_decision_support_enabled",
+    ]) {
+      expect(flags).not.toContain(retiredFlag)
+    }
+  })
 })

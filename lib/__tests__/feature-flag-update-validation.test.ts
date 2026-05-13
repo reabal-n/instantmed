@@ -38,4 +38,11 @@ describe("feature flag update validation", () => {
     expect(result).toEqual({ success: false, error: "Invalid feature flag value" })
     expect(mocks.createClient).not.toHaveBeenCalled()
   })
+
+  it("rejects retired placeholder flags instead of exposing no-op admin toggles", async () => {
+    const result = await updateFeatureFlag("batch_approve_enabled" as never, true, "admin-id")
+
+    expect(result).toEqual({ success: false, error: "Unknown feature flag" })
+    expect(mocks.createClient).not.toHaveBeenCalled()
+  })
 })

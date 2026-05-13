@@ -125,11 +125,14 @@ describe("email sequence ownership contract", () => {
 
   it("surfaces active and retired sequences in one compact admin map", () => {
     const ids = EMAIL_SEQUENCES.map((sequence) => sequence.id)
+    const schedules = new Map(vercelConfig.crons.map((cron) => [cron.path, cron.schedule]))
 
     expect(ids).toContain("partial_intake_recovery")
     expect(ids).toContain("abandoned_checkout")
     expect(ids).toContain("repeat_rx_reminder")
     expect(EMAIL_SEQUENCES.find((sequence) => sequence.id === "repeat_rx_reminder")?.status).toBe("inactive")
+    expect(EMAIL_SEQUENCES.find((sequence) => sequence.id === "decline_reengagement")?.status).toBe("inactive")
+    expect(schedules.has("/api/cron/decline-reengagement")).toBe(false)
     expect(emailHubSource).toContain("EMAIL_SEQUENCES")
     expect(emailHubSource).toContain("Sequence ownership")
   })

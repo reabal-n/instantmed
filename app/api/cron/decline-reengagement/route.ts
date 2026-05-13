@@ -15,10 +15,10 @@ const CATEGORY_LABELS: Record<string, string> = {
 }
 
 /**
- * Cron: Decline re-engagement emails
- * Runs hourly - finds intakes declined ~2h ago that haven't received this email yet.
- *
- * Schedule: every hour (vercel.json)
+ * Manual-only legacy decline re-engagement.
+ * Kept cron-auth protected for audit compatibility, but intentionally not
+ * scheduled in vercel.json. Declined clinical requests should not trigger an
+ * automated marketing nudge by default.
  */
 export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
