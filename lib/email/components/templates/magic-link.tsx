@@ -7,8 +7,6 @@
 
 import * as React from "react"
 
-import { TAGLINE } from "@/lib/marketing/voice"
-
 import { BaseEmail, Box, Button, colors, fontFamily, NameFirstGreeting, Text } from "../base-email"
 
 export interface MagicLinkEmailProps {
@@ -127,7 +125,7 @@ export function MagicLinkEmail({
             lineHeight: "1.6",
           }}
         >
-          {TAGLINE} If this link has expired, request a fresh one from the sign-in page.
+          If this link has expired, request a fresh one from the sign-in page.
         </p>
       </Box>
 

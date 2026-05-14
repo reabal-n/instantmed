@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     template: "%s | InstantMed",
   },
   description:
-    `Faster than your GP. Telehealth without the small talk. Medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat medication, and online doctor consults from AHPRA-registered Australian doctors. No appointment, no waiting room.`,
+    `Online doctor care for medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat medication, and consult requests from AHPRA-registered Australian doctors. No appointment, no waiting room.`,
   keywords: [
     "online doctor Australia",
     "telehealth Australia",
@@ -92,13 +92,13 @@ export const metadata: Metadata = {
     siteName: "InstantMed",
     title: "InstantMed | Online Doctor Australia",
     description:
-      `Faster than your GP. Telehealth without the small talk. Med certs from ${PRICING_DISPLAY.MED_CERT}, repeat medication, and online doctor consults from AHPRA-registered Australian doctors.`,
+      `Online doctor care for med certs from ${PRICING_DISPLAY.MED_CERT}, repeat medication, and consult requests from AHPRA-registered Australian doctors.`,
     // OG image handled by app/opengraph-image.tsx convention file
   },
   twitter: {
     card: "summary_large_image",
     title: "InstantMed | Online Doctor Australia",
-    description: `Faster than your GP. Telehealth without the small talk. Med certs from ${PRICING_DISPLAY.MED_CERT}, repeat medication, and online doctor consults from AHPRA-registered Australian doctors.`,
+    description: `Online doctor care for med certs from ${PRICING_DISPLAY.MED_CERT}, repeat medication, and consult requests from AHPRA-registered Australian doctors.`,
     // Twitter image handled by app/opengraph-image.tsx convention file
   },
   robots: {
