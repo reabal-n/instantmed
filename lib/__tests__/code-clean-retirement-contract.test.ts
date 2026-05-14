@@ -95,6 +95,22 @@ describe("code-clean retirement contracts", () => {
     expect(read("lib/constants/index.ts")).not.toContain("REPEAT_RX_MONTHLY")
     expect(read("lib/stripe/checkout.ts")).not.toContain('mode: "subscription"')
 
+    const checkoutCompletedHandler = read("app/api/stripe/webhook/handlers/checkout-session-completed.ts")
+    expect(checkoutCompletedHandler).not.toMatch(/from\("subscriptions"\)\.upsert/)
+    expect(checkoutCompletedHandler).not.toContain("Subscription record created")
+    expect(checkoutCompletedHandler).toContain("Ignored dormant subscription checkout completion")
+
+    const customerPortalRoute = read("app/api/stripe/customer-portal/route.ts")
+    expect(customerPortalRoute).toContain('from("subscriptions")')
+    expect(customerPortalRoute).toContain('.eq("status", "active")')
+    expect(customerPortalRoute).toContain("historical repeat-script")
+
+    const legacyCard = read("components/patient/subscription-card.tsx")
+    expect(legacyCard).toContain("Legacy repeat script plan")
+    expect(legacyCard).toContain("This plan is no longer sold")
+    expect(legacyCard).toContain("New requests are one-off")
+    expect(legacyCard).not.toContain("Repeat Script Subscription")
+
     const requestSurfaces = [
       "components/request/steps/review-step.tsx",
       "components/request/steps/checkout-step.tsx",

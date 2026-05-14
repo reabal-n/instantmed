@@ -23,7 +23,7 @@ import { type Intake } from "@/components/patient/intake-types"
 import { AddressDrawerContent, MedicareDrawerContent,PhoneDrawerContent } from "@/components/patient/profile-drawers"
 import { type ProfileData, ProfileTodoCard, type TodoDrawerType } from "@/components/patient/profile-todo-card"
 import { ReferralCard } from "@/components/patient/referral-card"
-import { SubscriptionCard } from "@/components/patient/subscription-card"
+import { LegacySubscriptionCard } from "@/components/patient/subscription-card"
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
 import { capture } from "@/lib/analytics/capture"
@@ -39,7 +39,7 @@ import { needsRenewalSoon } from "@/lib/prescriptions"
  *                    important next action (download / answer doctor /
  *                    track review / complete payment / renew / etc).
  *   2. Activity   — recent requests + active prescriptions.
- *   3. Manage     — profile todos, subscription, follow-up tracker (for
+ *   3. Manage     — profile todos, legacy subscription, follow-up tracker (for
  *                    not-due milestones), referral, Google review prompt.
  *
  * Replaces the previous 11-section flat list. The hero owns urgent state;
@@ -365,7 +365,7 @@ export function PanelDashboard({
 
             {subscription && subscription.status === "active" && (
               <motion.div variants={prefersReducedMotion ? undefined : stagger.item}>
-                <SubscriptionCard subscription={subscription} />
+                <LegacySubscriptionCard subscription={subscription} />
               </motion.div>
             )}
 

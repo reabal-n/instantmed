@@ -1,13 +1,13 @@
 "use client"
 
-import { Calendar, CreditCard, ExternalLink,RefreshCw } from "lucide-react"
+import { Calendar, CreditCard, ExternalLink, RefreshCw } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
-interface SubscriptionCardProps {
+interface LegacySubscriptionCardProps {
   subscription: {
     id: string
     status: string
@@ -16,7 +16,7 @@ interface SubscriptionCardProps {
   }
 }
 
-export function SubscriptionCard({ subscription }: SubscriptionCardProps) {
+export function LegacySubscriptionCard({ subscription }: LegacySubscriptionCardProps) {
   const [loading, setLoading] = useState(false)
 
   const nextBilling = subscription.current_period_end
@@ -35,7 +35,7 @@ export function SubscriptionCard({ subscription }: SubscriptionCardProps) {
       if (data.url) {
         window.location.href = data.url
       } else {
-        toast.error("Unable to open subscription management")
+        toast.error("Unable to open billing portal")
       }
     } catch {
       toast.error("Something went wrong")
@@ -49,7 +49,7 @@ export function SubscriptionCard({ subscription }: SubscriptionCardProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <RefreshCw className="w-4 h-4 text-primary" />
-          <h3 className="text-sm font-semibold">Repeat Script Subscription</h3>
+          <h3 className="text-sm font-semibold">Legacy repeat script plan</h3>
         </div>
         <Badge
           variant={subscription.status === "active" ? "default" : "secondary"}
@@ -58,6 +58,11 @@ export function SubscriptionCard({ subscription }: SubscriptionCardProps) {
           {subscription.status === "active" ? "Active" : subscription.status}
         </Badge>
       </div>
+
+      <p className="text-xs leading-relaxed text-muted-foreground">
+        This plan is no longer sold. New requests are one-off, but you can still manage
+        or cancel this historical plan.
+      </p>
 
       <div className="grid grid-cols-2 gap-3">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -81,7 +86,7 @@ export function SubscriptionCard({ subscription }: SubscriptionCardProps) {
         onClick={handleManage}
         disabled={loading}
       >
-        {loading ? "Opening..." : "Manage subscription"}
+        {loading ? "Opening..." : "Manage legacy plan"}
         <ExternalLink className="w-3 h-3 ml-1.5" />
       </Button>
     </div>
