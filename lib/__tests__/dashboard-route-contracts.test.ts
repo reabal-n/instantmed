@@ -40,7 +40,6 @@ import {
   PATIENT_INTAKES_HREF,
   PATIENT_MESSAGES_HREF,
   PATIENT_NEW_REQUEST_HREF,
-  PATIENT_NOTIFICATIONS_HREF,
   PATIENT_ONBOARDING_HREF,
   PATIENT_PAYMENT_HISTORY_HREF,
   PATIENT_PRESCRIPTIONS_HREF,
@@ -93,7 +92,6 @@ describe("dashboard route contracts", () => {
     expect(PATIENT_DOCUMENTS_HREF).toBe("/patient/documents")
     expect(PATIENT_MESSAGES_HREF).toBe("/patient/messages")
     expect(PATIENT_NEW_REQUEST_HREF).toBe("/patient/new-request")
-    expect(PATIENT_NOTIFICATIONS_HREF).toBe("/patient/notifications")
     expect(PATIENT_PAYMENT_HISTORY_HREF).toBe("/patient/payment-history")
     expect(PATIENT_FOLLOWUPS_HREF).toBe("/patient/followups")
     expect(PATIENT_SETTINGS_HREF).toBe("/patient/settings")

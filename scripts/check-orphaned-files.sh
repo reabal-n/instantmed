@@ -112,6 +112,7 @@ for retired_non_operational_surface in \
   "e2e/sentry-observability.spec.ts" \
   "lib/email/follow-up-reminder.ts" \
   "lib/email/components/templates/decline-reengagement.tsx" \
+  "lib/email/components/templates/review-followup.tsx" \
   "lib/analytics/acquisition-health.ts"
 do
   if [[ -e "$retired_non_operational_surface" ]]; then
@@ -123,6 +124,10 @@ done
 # ── 2e. Retired notification sidecars ────────────────────────────────────
 for retired_notification_sidecar in \
   "components/shared/notification-bell.tsx" \
+  "app/patient/notifications/page.tsx" \
+  "app/patient/notifications/notifications-client.tsx" \
+  "app/patient/notifications/error.tsx" \
+  "app/patient/notifications/loading.tsx" \
   "lib/hooks/use-notifications.ts" \
   "lib/notifications/push-notifications.ts" \
   "lib/prescriptions/refill-reminders.ts"

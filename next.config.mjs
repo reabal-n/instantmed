@@ -409,6 +409,7 @@ const nextConfig = {
       { source: "/doctor/email-suppression", destination: "/admin/emails/suppression", permanent: true },
       { source: "/doctor/repeat-rx", destination: "/dashboard", permanent: true },
       { source: "/doctor/repeat-rx/:path*", destination: "/dashboard", permanent: true },
+      { source: "/patient/notifications", destination: "/patient/intakes", permanent: false },
       { source: "/womens-health", destination: "/request", permanent: false },
       { source: "/request/med-cert", destination: "/request?service=med-cert", permanent: true },
       { source: "/request/consult", destination: "/request?service=consult", permanent: true },

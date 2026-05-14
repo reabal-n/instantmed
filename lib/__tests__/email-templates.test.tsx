@@ -36,7 +36,6 @@ abandonedCheckoutSubject,
   RefundIssuedEmail, refundIssuedEmailSubject,
   RequestDeclinedEmail, requestDeclinedEmailSubject,
   RequestReceivedEmail, requestReceivedSubject,
-  ReviewFollowupEmail, reviewFollowupSubject,
   ReviewRequestEmail, reviewRequestSubject,
   ScriptSentEmail, scriptSentEmailSubject,
   StillReviewingEmail, stillReviewingSubject,
@@ -941,20 +940,6 @@ describe("Email Templates", () => {
     })
   })
 
-  describe("ReviewFollowupEmail", () => {
-    it("renders content", () => {
-      const html = render(
-        <ReviewFollowupEmail patientName="Test Patient" appUrl={APP_URL} />
-      )
-      expectBaseEmailStructure(html)
-      expectContains(html, "Test")
-    })
-
-    it("subject is non-empty", () => {
-      expect(reviewFollowupSubject).toBeTruthy()
-    })
-  })
-
   describe("AbandonedCheckoutFollowupEmail", () => {
     it("renders content", () => {
       const html = render(
@@ -1047,7 +1032,6 @@ describe("Email Template Cross-Checks", () => {
       <StillReviewingEmail key="25" patientName="Test" requestType="Med Cert" requestId="R13" appUrl={APP_URL} />,
       <TreatmentFollowupEmail key="30" patientName="Test" followupId="fu-001" subtype="ed" milestone="month_3" appUrl={APP_URL} />,
       <ReviewRequestEmail key="31" patientName="Test" serviceName="Medical Certificate" appUrl={APP_URL} />,
-      <ReviewFollowupEmail key="32" patientName="Test" appUrl={APP_URL} />,
       <AbandonedCheckoutFollowupEmail key="33" patientName="Test" serviceName="Medical Certificate" resumeUrl="https://instantmed.com.au/request?resume=abc" appUrl={APP_URL} />,
       <MagicLinkEmail key="35" loginUrl="https://example.com/auth/v1/verify?token=abc&type=magiclink" appUrl={APP_URL} />,
     ]
@@ -1310,9 +1294,6 @@ describe("Link validation", () => {
     ReviewRequestEmail: (
       <ReviewRequestEmail patientName="Test Patient" serviceName="Medical Certificate" appUrl={APP_URL} />
     ),
-    ReviewFollowupEmail: (
-      <ReviewFollowupEmail patientName="Test Patient" appUrl={APP_URL} />
-    ),
     AbandonedCheckoutFollowupEmail: (
       <AbandonedCheckoutFollowupEmail patientName="Test Patient" serviceName="Medical Certificate" resumeUrl="https://instantmed.com.au/request?resume=abc" appUrl={APP_URL} />
     ),
@@ -1408,12 +1389,6 @@ describe("Google Review UTM tracking", () => {
       <ReviewRequestEmail
         patientName="Test"
         serviceName="Medical Certificate"
-        appUrl={APP_URL}
-      />
-    ),
-    ReviewFollowupEmail: (
-      <ReviewFollowupEmail
-        patientName="Test"
         appUrl={APP_URL}
       />
     ),

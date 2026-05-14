@@ -26,8 +26,6 @@ interface AuthenticatedShellProps {
   userAvatar?: string
   userRole: 'patient' | 'doctor'
   className?: string
-  /** Unread notification count for the LeftRail bell badge. */
-  unreadNotifications?: number
 }
 
 export function AuthenticatedShell({
@@ -36,7 +34,6 @@ export function AuthenticatedShell({
   userAvatar,
   userRole,
   className,
-  unreadNotifications,
 }: AuthenticatedShellProps) {
   const [isRailExpanded, setIsRailExpanded] = useState(true)
 
@@ -48,7 +45,6 @@ export function AuthenticatedShell({
           userName={userName}
           userAvatar={userAvatar}
           userRole={userRole}
-          unreadNotifications={unreadNotifications}
           isExpanded={isRailExpanded}
           onExpandedChange={setIsRailExpanded}
         />

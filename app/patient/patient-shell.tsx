@@ -27,8 +27,6 @@ interface PatientShellProps {
     email: string
     avatar?: string
   }
-  /** Unread notification count for the LeftRail bell badge. Fetched server-side in layout. */
-  unreadNotifications?: number
 }
 
 /**
@@ -76,13 +74,12 @@ function PatientShellContent({ children, patientId }: { children: ReactNode; pat
   )
 }
 
-export function PatientShell({ children, user, unreadNotifications }: PatientShellProps) {
+export function PatientShell({ children, user }: PatientShellProps) {
   return (
     <AuthenticatedShell
       userName={user.name}
       userAvatar={user.avatar}
       userRole="patient"
-      unreadNotifications={unreadNotifications}
     >
       <PatientShellContent patientId={user.id}>
         {children}

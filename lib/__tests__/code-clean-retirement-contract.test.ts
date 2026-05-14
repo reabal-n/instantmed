@@ -103,6 +103,31 @@ describe("code-clean retirement contracts", () => {
     expect(read("components/ui/mobile-nav.tsx")).not.toContain('label: "Notifications"')
   })
 
+  it("keeps the retired patient notifications feed redirect-only", () => {
+    const retiredPatientNotificationRoutes = [
+      "app/patient/notifications/page.tsx",
+      "app/patient/notifications/notifications-client.tsx",
+      "app/patient/notifications/error.tsx",
+      "app/patient/notifications/loading.tsx",
+    ]
+
+    for (const path of retiredPatientNotificationRoutes) {
+      expect(existsSync(join(root, path)), path).toBe(false)
+    }
+
+    const nextConfig = read("next.config.mjs")
+    expect(nextConfig).toContain('source: "/patient/notifications"')
+    expect(nextConfig).toContain('destination: "/patient/intakes"')
+
+    expect(read("lib/dashboard/routes.ts")).not.toContain("PATIENT_NOTIFICATIONS_HREF")
+    expect(read("components/shell/left-rail.tsx")).not.toContain("PATIENT_NOTIFICATIONS_HREF")
+    expect(read("components/shell/left-rail.tsx")).not.toContain("Bell")
+    expect(read("components/shell/left-rail.tsx")).not.toContain("unreadNotifications")
+    expect(read("components/shell/authenticated-shell.tsx")).not.toContain("unreadNotifications")
+    expect(read("app/patient/patient-shell.tsx")).not.toContain("unreadNotifications")
+    expect(read("app/patient/layout.tsx")).not.toContain('from("notifications")')
+  })
+
   it("keeps repeat-Rx subscriptions dormant and out of patient acquisition paths", () => {
     expect(existsSync(join(root, "app/api/cron/subscription-nudge/route.ts"))).toBe(false)
     expect(existsSync(join(root, "lib/data/subscriptions.ts"))).toBe(false)

@@ -53,8 +53,8 @@ export const EMAIL_SEQUENCES: readonly EmailSequenceDefinition[] = [
     status: "active",
     owner: "Post-approval lifecycle",
     trigger: "Approved or completed request",
-    cadence: "Day 2 and day 7",
-    guard: "Review sent timestamps on intake",
+    cadence: "Day 2 only",
+    guard: "review_email_sent_at timestamp on intake",
   },
   {
     id: "treatment_followup",

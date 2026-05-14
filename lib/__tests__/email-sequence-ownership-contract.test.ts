@@ -14,6 +14,10 @@ const abandonedCheckoutSource = readFileSync(
   join(process.cwd(), "lib/email/abandoned-checkout.ts"),
   "utf8",
 )
+const reviewRequestSource = readFileSync(
+  join(process.cwd(), "lib/email/review-request.ts"),
+  "utf8",
+)
 const sendEmailSource = readFileSync(
   join(process.cwd(), "lib/email/send-email.ts"),
   "utf8",
@@ -132,6 +136,25 @@ describe("email sequence ownership contract", () => {
     expect(schedules.has("/api/cron/follow-up-reminder")).toBe(false)
     expect(sequence?.status).toBe("inactive")
     expect(sequence?.guard).toBe("Review request owns post-care messaging")
+  })
+
+  it("keeps review requests to one post-care ask", () => {
+    const sequence = EMAIL_SEQUENCES.find((item) => item.id === "review_request")
+    const schedules = new Map(vercelConfig.crons.map((cron) => [cron.path, cron.schedule]))
+
+    expect(schedules.has("/api/cron/review-request")).toBe(true)
+    expect(sequence?.status).toBe("active")
+    expect(sequence?.cadence).toBe("Day 2 only")
+    expect(reviewRequestSource).toContain("findReviewRequestCandidates")
+    expect(reviewRequestSource).not.toContain("findReviewFollowupCandidates")
+    expect(reviewRequestSource).not.toContain("sendReviewFollowupEmail")
+    expect(reviewRequestSource).not.toContain("review_followup")
+    expect(existsSync(join(process.cwd(), "lib/email/components/templates/review-followup.tsx"))).toBe(false)
+    expect(DB_IDEMPOTENT_EMAIL_TYPES.has("review_followup" as never)).toBe(false)
+    expect(readFileSync(join(process.cwd(), "app/(dev)/email-preview/page.tsx"), "utf8")).not.toContain("review-followup")
+    expect(readFileSync(join(process.cwd(), "scripts/check-orphaned-files.sh"), "utf8")).toContain(
+      "lib/email/components/templates/review-followup.tsx",
+    )
   })
 
   it("surfaces active and retired sequences in one compact admin map", () => {

@@ -10,7 +10,7 @@ import { captureCronError } from "@/lib/observability/sentry"
 const logger = createLogger("cron-review-request")
 
 /**
- * Cron endpoint to send review request emails (day 2) and followups (day 7)
+ * Cron endpoint to send the single day-2 review request email.
  * Runs daily via Vercel Cron (configured in vercel.json)
  */
 export async function GET(request: NextRequest) {

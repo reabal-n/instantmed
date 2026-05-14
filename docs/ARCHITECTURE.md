@@ -392,11 +392,10 @@ Config-driven, immutably versioned. Template config stored as JSONB in `certific
 | `/patient/settings` | Profile, email prefs, export, retained-record account closure | Multiple API endpoints |
 | `/patient/health-profile` | Edit allergies, conditions, medications, and emergency contact | `/api/patient/health-profile` |
 | `/patient/health-summary` | Deep-linked read-only record view (stats, recent requests, certs, Rx history), intentionally not primary nav | Direct Supabase query |
-| `/patient/notifications` | Notification feed (Supabase Realtime + Web Push via VAPID) | Direct Supabase query |
 
 **Access control:** Double-layer -- RLS policies on every table (patient isolation via `auth.uid()` subquery) plus application-level ownership checks (`.eq("patient_id", patientId)`). Cross-patient access risk: LOW.
 
-**Real-time:** Messaging and notifications use Supabase Realtime (`postgres_changes` subscription on INSERT/UPDATE). Push notifications via Web Push API (VAPID key, Service Worker). Notification types: `request_update`, `payment`, `document_ready`, `refill_reminder`, `system`, `promotion`.
+**Real-time:** Messaging and request-status trackers use Supabase Realtime with polling fallbacks where needed. The old standalone patient notification feed is retired; patient-visible updates should land in requests, messages, documents, prescriptions, or payment history.
 
 **Guest → Authenticated flow:** Guest checkout creates profile without `auth_user_id` → Stripe redirect → success URL `/auth/complete-account?intake_id={id}` → post-signin page links the exact paid checkout profile when possible, otherwise one deterministic unlinked email match with paid history before newest guest fallback → sets `email_verified: true` → checks `onboarding_completed` → routes to `/patient/onboarding` or `/patient`. Closed profiles (`account_closed_at is not null`) are excluded from relinking.
 
@@ -688,7 +687,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 ## Directory Index
 
-### `app/` — 571 files, 229 route files
+### `app/` — 567 files, 228 route files
 
 Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-contract.test.ts`; `pnpm build` remains the source of truth for expanded static/SSG route output.
 

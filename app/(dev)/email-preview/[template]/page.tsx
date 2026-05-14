@@ -32,7 +32,6 @@ import { ReferralCreditEmail } from "@/lib/email/components/templates/referral-c
 import { RefundIssuedEmail } from "@/lib/email/components/templates/refund-issued"
 import { RequestDeclinedEmail } from "@/lib/email/components/templates/request-declined"
 import { RequestReceivedEmail } from "@/lib/email/components/templates/request-received"
-import { ReviewFollowupEmail } from "@/lib/email/components/templates/review-followup"
 import { ReviewRequestEmail } from "@/lib/email/components/templates/review-request"
 import { ScriptSentEmail } from "@/lib/email/components/templates/script-sent"
 import { StillReviewingEmail } from "@/lib/email/components/templates/still-reviewing"
@@ -425,16 +424,6 @@ const templates: Record<string, {
       <ReviewRequestEmail
         patientName={mock.patientName}
         serviceName="Medical Certificate"
-        appUrl={mock.appUrl}
-      />
-    ),
-  },
-  "review-followup": {
-    name: "Review Followup (Day 7)",
-    subject: "Still happy with us? 😊",
-    render: () => (
-      <ReviewFollowupEmail
-        patientName={mock.patientName}
         appUrl={mock.appUrl}
       />
     ),

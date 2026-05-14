@@ -3,7 +3,6 @@ import "server-only"
 import * as React from "react"
 
 import { getAppUrl } from "@/lib/config/env"
-import { ReviewFollowupEmail,reviewFollowupSubject } from "@/lib/email/components/templates/review-followup"
 import { ReviewRequestEmail,reviewRequestSubject } from "@/lib/email/components/templates/review-request"
 import { canSendMarketingEmail } from "@/lib/email/preferences"
 import { createLogger } from "@/lib/observability/logger"
@@ -55,41 +54,6 @@ export async function findReviewRequestCandidates(): Promise<ApprovedIntake[]> {
 
   if (error) {
     logger.error("Failed to fetch review request candidates", { error: error.message })
-    return []
-  }
-
-  return (data || []).map(item => {
-    const patient = Array.isArray(item.patient) ? item.patient[0] : item.patient
-    return { ...item, patient: patient ?? null }
-  }).filter(item => !item.patient || !(item.patient as Record<string, unknown>).email_bounced) as ApprovedIntake[]
-}
-
-/**
- * Find approved intakes 7-8 days old that received the day-2 email but not the day-7 followup
- */
-export async function findReviewFollowupCandidates(): Promise<ApprovedIntake[]> {
-  const supabase = createServiceRoleClient()
-
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-  const eightDaysAgo = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString()
-
-  const { data, error } = await supabase
-    .from("intakes")
-    .select(`
-      id,
-      patient_id,
-      category,
-      approved_at,
-      patient:profiles!patient_id(email, first_name, email_bounced)
-    `)
-    .in("status", ["approved", "completed"])
-    .not("review_email_sent_at", "is", null)
-    .is("review_followup_sent_at", null)
-    .lte("approved_at", sevenDaysAgo)
-    .gte("approved_at", eightDaysAgo)
-
-  if (error) {
-    logger.error("Failed to fetch review followup candidates", { error: error.message })
     return []
   }
 
@@ -157,71 +121,13 @@ export async function sendReviewRequestEmail(intake: ApprovedIntake): Promise<bo
 }
 
 /**
- * Send the day-7 review followup email via the centralized sendEmail system
- */
-export async function sendReviewFollowupEmail(intake: ApprovedIntake): Promise<boolean> {
-  const appUrl = getAppUrl()
-  const patient = intake.patient
-
-  if (!patient?.email) {
-    logger.warn("Skipping review followup email - no patient email", { intakeId: intake.id })
-    return false
-  }
-
-  if (intake.patient_id) {
-    const canSend = await canSendMarketingEmail(intake.patient_id)
-    if (!canSend) {
-      logger.info("Skipping review followup email - user opted out", { intakeId: intake.id })
-      const supabase = createServiceRoleClient()
-      await supabase
-        .from("intakes")
-        .update({ review_followup_sent_at: new Date().toISOString() })
-        .eq("id", intake.id)
-      return false
-    }
-  }
-
-  const patientName = patient.first_name || "there"
-  const result = await sendEmail({
-    to: patient.email,
-    subject: reviewFollowupSubject,
-    template: React.createElement(ReviewFollowupEmail, { patientName, appUrl }),
-    emailType: "review_followup" as import("./send-email").EmailType,
-    intakeId: intake.id,
-    patientId: intake.patient_id,
-    metadata: { category: intake.category },
-    tags: [
-      { name: "category", value: "review_followup" },
-      { name: "intake_id", value: intake.id },
-    ],
-  })
-
-  if (result.success) {
-    const supabase = createServiceRoleClient()
-    await supabase
-      .from("intakes")
-      .update({ review_followup_sent_at: new Date().toISOString() })
-      .eq("id", intake.id)
-
-    logger.info("Sent review followup email", { intakeId: intake.id, email: patient.email })
-  } else {
-    logger.error("Failed to send review followup email", { intakeId: intake.id, error: result.error })
-  }
-
-  return result.success
-}
-
-/**
- * Process all review request and followup emails
+ * Process all review request emails.
  * Called from the daily cron job
  */
 export async function processReviewRequests(): Promise<{
   requestSent: number
   requestFailed: number
-  followupSent: number
-  followupFailed: number
 }> {
-  // Day-2 review requests
   const requestCandidates = await findReviewRequestCandidates()
   let requestSent = 0
   let requestFailed = 0
@@ -232,21 +138,11 @@ export async function processReviewRequests(): Promise<{
     await new Promise(resolve => setTimeout(resolve, 100))
   }
 
-  // Day-7 review followups
-  const followupCandidates = await findReviewFollowupCandidates()
-  let followupSent = 0
-  let followupFailed = 0
-
-  for (const intake of followupCandidates) {
-    const success = await sendReviewFollowupEmail(intake)
-    if (success) { followupSent++ } else { followupFailed++ }
-    await new Promise(resolve => setTimeout(resolve, 100))
-  }
-
   logger.info("Processed review requests", {
-    requestSent, requestFailed, followupSent, followupFailed,
-    total: requestCandidates.length + followupCandidates.length,
+    requestSent,
+    requestFailed,
+    total: requestCandidates.length,
   })
 
-  return { requestSent, requestFailed, followupSent, followupFailed }
+  return { requestSent, requestFailed }
 }

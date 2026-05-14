@@ -40,7 +40,6 @@ export type EmailType =
   | "verification_code"
   // Review lifecycle emails (cron-triggered)
   | "review_request"
-  | "review_followup"
   | "payment_retry"
   | "ops_test"
 
@@ -51,7 +50,6 @@ export const MARKETING_EMAIL_TYPES: ReadonlySet<EmailType> = new Set([
   "partial_intake_recovery",
   "follow_up_reminder",
   "review_request",
-  "review_followup",
   "treatment_followup",
   "referral_credit",
 ])

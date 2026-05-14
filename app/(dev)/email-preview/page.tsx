@@ -186,12 +186,6 @@ const templates = [
     category: "engagement",
   },
   {
-    slug: "review-followup",
-    name: "Review Followup (Day 7)",
-    description: "Gentle review nudge sent 7 days after approval (last ask)",
-    category: "engagement",
-  },
-  {
     slug: "follow-up-reminder",
     name: "Follow-Up Reminder (Day 3)",
     description: "Gentle check-in sent 3 days after med cert approval",

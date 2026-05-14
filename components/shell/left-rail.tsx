@@ -1,7 +1,6 @@
 'use client'
 
 import {
-  Bell,
   ChevronLeft,
   ChevronRight,
   ClipboardList,
@@ -28,7 +27,6 @@ import {
   PATIENT_INTAKES_HREF,
   PATIENT_MESSAGES_HREF,
   PATIENT_NEW_REQUEST_HREF,
-  PATIENT_NOTIFICATIONS_HREF,
   PATIENT_PAYMENT_HISTORY_HREF,
   PATIENT_PRESCRIPTIONS_HREF,
   PATIENT_SETTINGS_HREF,
@@ -53,11 +51,6 @@ interface LeftRailProps {
   userName: string
   userAvatar?: string
   userRole: 'patient' | 'doctor'
-  /**
-   * Optional unread notification count. Renders a small dot on the bell
-   * when > 0. Wiring is up to the caller; LeftRail just paints.
-   */
-  unreadNotifications?: number
   isExpanded?: boolean
   onExpandedChange?: (expanded: boolean) => void
 }
@@ -66,7 +59,6 @@ export function LeftRail({
   userName,
   userAvatar,
   userRole,
-  unreadNotifications = 0,
   isExpanded: controlledExpanded,
   onExpandedChange,
 }: LeftRailProps) {
@@ -154,24 +146,6 @@ export function LeftRail({
               <p className="text-xs text-muted-foreground capitalize">{userRole}</p>
             </div>
           )}
-          <Link
-            href={PATIENT_NOTIFICATIONS_HREF}
-            className="relative p-2 rounded-lg hover:bg-muted transition-colors shrink-0"
-            title="Notifications"
-            aria-label={
-              unreadNotifications > 0
-                ? `Notifications (${unreadNotifications} unread)`
-                : "Notifications"
-            }
-          >
-            <Bell className="w-4 h-4 text-muted-foreground" />
-            {unreadNotifications > 0 && (
-              <span
-                aria-hidden="true"
-                className="absolute right-1.5 top-1.5 inline-flex h-2 w-2 rounded-full bg-primary ring-2 ring-background"
-              />
-            )}
-          </Link>
         </div>
       </div>
 

@@ -119,10 +119,6 @@ export { AbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject } from
 export type { ReviewRequestEmailProps } from "./review-request"
 export { ReviewRequestEmail, reviewRequestSubject } from "./review-request"
 
-// --- Review Follow-Up (day-7 nudge) ---
-export type { ReviewFollowupEmailProps } from "./review-followup"
-export { ReviewFollowupEmail, reviewFollowupSubject } from "./review-followup"
-
 // --- Magic Link (Supabase auth hook) ---
 export type { MagicLinkEmailProps } from "./magic-link"
 export { MagicLinkEmail, magicLinkEmailSubject } from "./magic-link"
