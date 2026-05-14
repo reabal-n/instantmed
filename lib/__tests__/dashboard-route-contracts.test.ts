@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs"
+import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
@@ -57,6 +57,19 @@ import {
 
 const root = process.cwd()
 const read = (path: string) => readFileSync(join(root, path), "utf8")
+
+function collectSourceFiles(path: string): string[] {
+  const fullPath = join(root, path)
+  const stat = statSync(fullPath)
+  if (stat.isFile()) return /\.(ts|tsx)$/.test(path) ? [path] : []
+
+  return readdirSync(fullPath).flatMap((entry) => {
+    const next = `${path}/${entry}`
+    const nextStat = statSync(join(root, next))
+    if (nextStat.isDirectory()) return collectSourceFiles(next)
+    return /\.(ts|tsx)$/.test(entry) ? [next] : []
+  })
+}
 
 describe("dashboard route contracts", () => {
   it("uses /patient as the canonical patient dashboard", () => {
@@ -175,6 +188,51 @@ describe("dashboard route contracts", () => {
     expect(dashboardSource).not.toContain("getConversionSnapshot")
     expect(sidebarSource).toContain("STAFF_NAV_ICONS[item.icon] ?? STAFF_NAV_ICONS.dashboard")
     expect(authHelperSource).toContain("Skipping unreadable optional staff PHI field during auth hydration")
+  })
+
+  it("keeps staff and patient revalidation paths on route helpers", () => {
+    const source = read("lib/dashboard/revalidate-staff.ts")
+
+    expect(source).toContain("buildAdminIntakeHref")
+    expect(source).toContain("buildDoctorIntakeHref")
+    expect(source).toContain("buildStaffPatientHref")
+    expect(source).toContain("buildPatientIntakeHref")
+    expect(source).toContain("buildPatientFollowupHref")
+    expect(source).not.toContain("revalidatePath(`/admin/intakes/${id}`)")
+    expect(source).not.toContain("revalidatePath(`/doctor/intakes/${id}`)")
+    expect(source).not.toContain("revalidatePath(`/admin/patients/${id}`)")
+    expect(source).not.toContain("revalidatePath(`/doctor/patients/${id}`)")
+    expect(source).not.toContain('revalidatePath("/patient")')
+    expect(source).not.toContain("revalidatePath(`/patient/intakes/${options.intakeId}`)")
+    expect(source).not.toContain("revalidatePath(`/patient/followups/${options.followupId}`)")
+  })
+
+  it("keeps patient and staff UI navigation on route helpers", () => {
+    const guardedFiles = [
+      ...collectSourceFiles("app/patient"),
+      ...collectSourceFiles("components/patient"),
+      ...collectSourceFiles("lib/patient"),
+      ...collectSourceFiles("app/admin"),
+      ...collectSourceFiles("app/doctor"),
+      ...collectSourceFiles("components/admin"),
+      ...collectSourceFiles("components/doctor"),
+      ...collectSourceFiles("components/operator"),
+      "lib/dashboard/revalidate-staff.ts",
+    ]
+
+    const rawNavigationPattern =
+      /(href=\{?["`]\/(?:patient|admin|doctor|dashboard|request)|router\.(?:push|replace)\(["`]\/(?:patient|admin|doctor|dashboard|request)|redirect\(["`]\/(?:patient|admin|doctor|dashboard|request)|revalidatePath\(["`]\/(?:patient|admin|doctor|dashboard|request))/
+
+    const offenders = guardedFiles.flatMap((file) => {
+      const source = read(file)
+      return source
+        .split("\n")
+        .map((line, index) => ({ line, lineNumber: index + 1 }))
+        .filter(({ line }) => rawNavigationPattern.test(line))
+        .map(({ line, lineNumber }) => `${file}:${lineNumber}: ${line.trim()}`)
+    })
+
+    expect(offenders).toEqual([])
   })
 
   it("keeps retired admin compliance aliases on the audit route", () => {

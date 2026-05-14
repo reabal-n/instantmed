@@ -64,6 +64,25 @@ describe("code-clean retirement contracts", () => {
     }
   })
 
+  it("keeps stale patient quick-reorder APIs out of the route tree", () => {
+    const retiredPatientApis = [
+      "app/api/patient/last-prescription/route.ts",
+      "app/api/patient/refill-prescription/route.ts",
+      "app/api/patient/update-profile/route.ts",
+    ]
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+
+    for (const route of retiredPatientApis) {
+      expect(existsSync(join(root, route)), route).toBe(false)
+      expect(orphanCheck).toContain(route)
+    }
+
+    const architecture = read("docs/ARCHITECTURE.md")
+    expect(architecture).not.toContain("last-prescription")
+    expect(architecture).not.toContain("refill-prescription")
+    expect(architecture).not.toContain("update-profile")
+  })
+
   it("keeps repeat-Rx subscriptions dormant and out of patient acquisition paths", () => {
     expect(existsSync(join(root, "app/api/cron/subscription-nudge/route.ts"))).toBe(false)
     expect(existsSync(join(root, "lib/data/subscriptions.ts"))).toBe(false)

@@ -82,7 +82,19 @@ do
   fi
 done
 
-# ── 2c. Retired non-operational cron/test surfaces ───────────────────────
+# ── 2c. Patient APIs retired by the one-off request model ────────────────
+for legacy_patient_api in \
+  "app/api/patient/last-prescription/route.ts" \
+  "app/api/patient/refill-prescription/route.ts" \
+  "app/api/patient/update-profile/route.ts"
+do
+  if [[ -e "$legacy_patient_api" ]]; then
+    echo "ORPHAN: $legacy_patient_api still exists (superseded by one-off request flows and /api/patient/profile)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 2d. Retired non-operational cron/test surfaces ───────────────────────
 for retired_non_operational_surface in \
   "app/api/cron/acquisition-health/route.ts" \
   "app/api/cron/daily-digest/route.ts" \

@@ -16,6 +16,14 @@ import {
   ADMIN_SERVICES_HREF,
   ADMIN_STALE_INTAKES_HREF,
   ADMIN_WEBHOOK_DLQ_HREF,
+  buildAdminIntakeHref,
+  buildDoctorIntakeHref,
+  buildPatientFollowupHref,
+  buildPatientIntakeHref,
+  buildStaffPatientHref,
+  PATIENT_DASHBOARD_HREF,
+  PATIENT_DOCUMENTS_HREF,
+  PATIENT_SETTINGS_HREF,
   STAFF_DASHBOARD_HREF,
   STAFF_DOCTOR_PATIENTS_HREF,
   STAFF_DOCTOR_SCRIPTS_HREF,
@@ -127,8 +135,8 @@ export function revalidateStaff(options: RevalidateStaffOptions = {}): void {
 
   if (options.intakeId) {
     const id = options.intakeId
-    revalidatePath(`/admin/intakes/${id}`)
-    revalidatePath(`/doctor/intakes/${id}`)
+    revalidatePath(buildAdminIntakeHref(id))
+    revalidatePath(buildDoctorIntakeHref(id))
   }
 
   if (options.patientId) {
@@ -136,8 +144,7 @@ export function revalidateStaff(options: RevalidateStaffOptions = {}): void {
       revalidatePath(path)
     }
     const id = options.patientId
-    revalidatePath(`/admin/patients/${id}`)
-    revalidatePath(`/doctor/patients/${id}`)
+    revalidatePath(buildStaffPatientHref(id))
   }
 
   if (options.ops) {
@@ -201,21 +208,18 @@ export interface RevalidatePatientOptions {
 }
 
 export function revalidatePatient(options: RevalidatePatientOptions = {}): void {
-  revalidatePath("/patient")
+  revalidatePath(PATIENT_DASHBOARD_HREF)
   if (options.intakeId) {
-    revalidatePath(`/patient/intakes/${options.intakeId}`)
-  }
-  if (options.patientId) {
-    revalidatePath(`/patient/profile`)
+    revalidatePath(buildPatientIntakeHref(options.intakeId))
   }
   if (options.settings) {
-    revalidatePath("/patient/settings")
+    revalidatePath(PATIENT_SETTINGS_HREF)
   }
   if (options.documents) {
-    revalidatePath("/patient/documents")
+    revalidatePath(PATIENT_DOCUMENTS_HREF)
   }
   if (options.followupId) {
-    revalidatePath(`/patient/followups/${options.followupId}`)
+    revalidatePath(buildPatientFollowupHref(options.followupId))
   }
   if (options.account) {
     revalidatePath("/account")
