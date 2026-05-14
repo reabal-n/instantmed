@@ -42,7 +42,7 @@ describe("resolvePostAuthDestination", () => {
     // staff (admin + doctor) login goes straight to the unified `/dashboard`
     // instead of the legacy aliases `/admin` and `/doctor/dashboard` which
     // 307 to the same target. Saves one round-trip per login.
-    expect(postSignInSource).toContain('destination = "/dashboard"')
+    expect(postSignInSource).toContain("destination = STAFF_DASHBOARD_HREF")
     expect(postSignInSource).toContain("hasDoctorAccess(profile)")
   })
 

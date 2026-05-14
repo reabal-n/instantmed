@@ -16,8 +16,8 @@ const adminHubSource = readFileSync(
   join(process.cwd(), "components/admin/admin-hub-zones.tsx"),
   "utf8",
 )
-const adminDashboardClientSource = readFileSync(
-  join(process.cwd(), "app/admin/admin-dashboard-client.tsx"),
+const adminIntakesLedgerSource = readFileSync(
+  join(process.cwd(), "app/admin/intakes/intakes-ledger-client.tsx"),
   "utf8",
 )
 const intakesQueriesSource = readFileSync(
@@ -210,9 +210,9 @@ describe("admin navigation contract", () => {
   })
 
   it("surfaces patient handoff gaps in admin without returning raw intake answers", () => {
-    expect(adminDashboardClientSource).toContain("HandoffBadge")
-    expect(adminDashboardClientSource).toContain("summary.actionLabel")
-    expect(adminDashboardClientSource).toContain("summary.detailLabel")
+    expect(adminIntakesLedgerSource).toContain("HandoffBadge")
+    expect(adminIntakesLedgerSource).toContain("summary.actionLabel")
+    expect(adminIntakesLedgerSource).toContain("summary.detailLabel")
     expect(intakesQueriesSource).toContain("buildPatientHandoffSummary")
     expect(intakesQueriesSource).toContain("getPatientSnapshotOptionsForCase")
     expect(intakesQueriesSource).toContain("answers: null")
@@ -247,7 +247,7 @@ describe("admin navigation contract", () => {
 
   it("keeps admin intake navigation on admin-owned routes", () => {
     const adminRouteSources = [
-      adminDashboardClientSource,
+      adminIntakesLedgerSource,
       opsParchmentSource,
       readFileSync(join(process.cwd(), "app/admin/ops/patient-merge-audit/page.tsx"), "utf8"),
       readFileSync(join(process.cwd(), "app/admin/patients/page.tsx"), "utf8"),
@@ -281,6 +281,8 @@ describe("admin navigation contract", () => {
     expect(nextConfigSource).not.toContain("Switch to doctor mode")
     expect(nextConfigSource).not.toContain("Continue as doctor")
     expect(nextConfigSource).not.toContain("Prescribe as doctor")
+    expect(existsSync(join(process.cwd(), "app/admin/admin-dashboard-client.tsx"))).toBe(false)
+    expect(existsSync(join(process.cwd(), "app/admin/intakes/intakes-ledger-client.tsx"))).toBe(true)
   })
 
   it("keeps compact intake review as a three-lane decision cockpit", () => {

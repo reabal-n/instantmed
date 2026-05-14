@@ -55,7 +55,7 @@ type AdminIntakeRow = IntakeWithPatient & {
   handoff?: PatientHandoffSummary | null
 }
 
-interface AdminDashboardClientProps {
+interface AdminIntakesLedgerClientProps {
   allIntakes: AdminIntakeRow[]
 }
 
@@ -134,9 +134,9 @@ function HandoffBadge({
   )
 }
 
-export function AdminDashboardClient({
+export function AdminIntakesLedgerClient({
   allIntakes,
-}: AdminDashboardClientProps) {
+}: AdminIntakesLedgerClientProps) {
   const { openPanel } = usePanel()
   const [intakes, setIntakes] = useState(allIntakes)
   const [searchQuery, setSearchQuery] = useState("")

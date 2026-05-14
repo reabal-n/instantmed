@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { UserCard } from "@/components/uix"
+import { STAFF_DOCTOR_PATIENTS_HREF } from "@/lib/dashboard/routes"
 import type { PatientDirectoryProfile, PatientDirectorySort } from "@/lib/data/patient-directory"
 import { findPotentialDuplicatePatients } from "@/lib/doctor/patient-snapshot"
 import { calculateAge, formatDate } from "@/lib/format"
@@ -89,8 +90,8 @@ export function PatientsListClient({
   rawPatientProfiles,
   collapsedDuplicateProfiles,
   currentSort = "recent_request",
-  baseHref = "/doctor/patients",
-  patientHrefBase = "/doctor/patients",
+  baseHref = STAFF_DOCTOR_PATIENTS_HREF,
+  patientHrefBase = STAFF_DOCTOR_PATIENTS_HREF,
   mergeAuditHref,
   showHeader = true,
   showAddPatientAction = true,

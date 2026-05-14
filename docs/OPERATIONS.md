@@ -420,7 +420,7 @@ Operational rules:
 ### Stripe
 
 1. Verify all `STRIPE_PRICE_*` env vars match production (`price_live_*` not `price_test_*`)
-2. Create webhook endpoint `https://<domain>/api/stripe/webhook` subscribing to `checkout.session.completed`, `checkout.session.expired`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `payment_intent.payment_failed`, `charge.refunded`, and `charge.dispute.created`
+2. Create webhook endpoint `https://<domain>/api/stripe/webhook` subscribing to `checkout.session.completed`, `checkout.session.expired`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `payment_intent.payment_failed`, `charge.refunded`, and `charge.dispute.created`. Do not enable invoice or `customer.subscription.*` events while the one-off model is active; those runtime handlers are retired.
 3. Test purchase end-to-end; verify webhook delivery
 
 ### Email

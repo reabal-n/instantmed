@@ -52,7 +52,7 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { getAvatarPresetId } from "@/lib/account/avatar-presets"
-import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
+import { STAFF_DASHBOARD_HREF, STAFF_IDENTITY_HREF } from "@/lib/dashboard/routes"
 import {
   type DoctorIdentity,
   validateAhpraNumber,
@@ -97,7 +97,7 @@ export function IdentitySettingsClient({
   avatarUrl,
   parchmentUserId: initialParchmentUserId,
   parchmentEnvironment: initialParchmentEnvironment,
-  settingsPath = "/doctor/settings/identity",
+  settingsPath = STAFF_IDENTITY_HREF,
   backHref = STAFF_DASHBOARD_HREF,
   backLabel = "Back to staff dashboard",
 }: IdentitySettingsClientProps) {

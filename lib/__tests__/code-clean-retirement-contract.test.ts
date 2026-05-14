@@ -119,6 +119,7 @@ describe("code-clean retirement contracts", () => {
     expect(webhookHandlers).not.toContain("invoice.payment_failed")
     expect(webhookHandlers).not.toContain("customer.subscription.deleted")
     expect(webhookHandlers).not.toContain("customer.subscription.updated")
+    expect(read("docs/OPERATIONS.md")).toContain("Do not enable invoice or `customer.subscription.*` events")
 
     const patientPage = read("app/patient/page.tsx")
     expect(patientPage).not.toContain('from("subscriptions")')

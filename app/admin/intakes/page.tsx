@@ -1,4 +1,4 @@
-import { AdminDashboardClient } from "@/app/admin/admin-dashboard-client"
+import { AdminIntakesLedgerClient } from "@/app/admin/intakes/intakes-ledger-client"
 import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
 import { PanelProvider } from "@/components/panels/panel-provider"
 import { requireRole } from "@/lib/auth/helpers"
@@ -35,7 +35,7 @@ export default async function AdminIntakeLedgerPage() {
 
         <OperatorScrollArea>
           <div id="intakes" className="min-h-[520px]">
-            <AdminDashboardClient allIntakes={intakesResult.data || []} />
+            <AdminIntakesLedgerClient allIntakes={intakesResult.data || []} />
           </div>
         </OperatorScrollArea>
       </OperatorPage>
