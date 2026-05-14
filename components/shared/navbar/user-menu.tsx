@@ -24,6 +24,10 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Button } from "@/components/uix"
 import {
+  PATIENT_DASHBOARD_HREF,
+  PATIENT_INTAKES_HREF,
+  PATIENT_SETTINGS_HREF,
+  REQUEST_HREF,
   STAFF_DASHBOARD_HREF,
   STAFF_DOCTOR_PATIENTS_HREF,
   STAFF_DOCTOR_SCRIPTS_HREF,
@@ -58,7 +62,7 @@ export function UserMenu({
           size="sm"
           className="text-xs h-7 px-4 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
         >
-          <Link href="/request">
+          <Link href={REQUEST_HREF}>
             Start a request
           </Link>
         </Button>
@@ -114,16 +118,20 @@ export function UserMenu({
     return (
       <>
         <AnimatedNavLink
-          href="/patient"
+          href={PATIENT_DASHBOARD_HREF}
           icon={<LayoutDashboard className="h-4 w-4" aria-hidden="true" />}
-          isActive={isActivePath("/patient") && !isActivePath("/patient/intakes") && !isActivePath("/patient/settings")}
+          isActive={
+            isActivePath(PATIENT_DASHBOARD_HREF) &&
+            !isActivePath(PATIENT_INTAKES_HREF) &&
+            !isActivePath(PATIENT_SETTINGS_HREF)
+          }
         >
           Dashboard
         </AnimatedNavLink>
         <AnimatedNavLink
-          href="/patient/intakes"
+          href={PATIENT_INTAKES_HREF}
           icon={<ClipboardList className="h-4 w-4" aria-hidden="true" />}
-          isActive={isActivePath("/patient/intakes")}
+          isActive={isActivePath(PATIENT_INTAKES_HREF)}
         >
           My Requests
         </AnimatedNavLink>

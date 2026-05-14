@@ -5,6 +5,16 @@ import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
 
 import { STAFF_NAV_ICONS } from "@/components/admin/staff-nav-icons"
+import {
+  PATIENT_DASHBOARD_HREF,
+  PATIENT_DOCUMENTS_HREF,
+  PATIENT_INTAKES_HREF,
+  PATIENT_MESSAGES_HREF,
+  PATIENT_NOTIFICATIONS_HREF,
+  PATIENT_PAYMENT_HISTORY_HREF,
+  PATIENT_PRESCRIPTIONS_HREF,
+  PATIENT_SETTINGS_HREF,
+} from "@/lib/dashboard/routes"
 import { doctorNavSections, doctorOperatorNavItems } from "@/lib/dashboard/staff-navigation"
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { cn } from "@/lib/utils"
@@ -28,17 +38,17 @@ const defaultItems: NavItem[] = [
   {
     label: "Home",
     icon: Home,
-    href: "/patient",
+    href: PATIENT_DASHBOARD_HREF,
   },
   {
     label: "Requests",
     icon: FileText,
-    href: "/patient/intakes",
+    href: PATIENT_INTAKES_HREF,
   },
   {
     label: "Documents",
     icon: FolderOpen,
-    href: "/patient/documents",
+    href: PATIENT_DOCUMENTS_HREF,
   },
   {
     label: "More",
@@ -51,27 +61,27 @@ const moreItems: NavItem[] = [
   {
     label: "Prescriptions",
     icon: ClipboardList,
-    href: "/patient/prescriptions",
+    href: PATIENT_PRESCRIPTIONS_HREF,
   },
   {
     label: "Messages",
     icon: MessageSquare,
-    href: "/patient/messages",
+    href: PATIENT_MESSAGES_HREF,
   },
   {
     label: "Notifications",
     icon: Bell,
-    href: "/patient/notifications",
+    href: PATIENT_NOTIFICATIONS_HREF,
   },
   {
     label: "Payments",
     icon: CreditCard,
-    href: "/patient/payment-history",
+    href: PATIENT_PAYMENT_HISTORY_HREF,
   },
   {
     label: "Account",
     icon: User,
-    href: "/patient/settings",
+    href: PATIENT_SETTINGS_HREF,
   },
 ]
 
@@ -206,8 +216,8 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
             // Home (/patient) uses exact match - child routes like /patient/intakes are distinct
             const isActive = isMore
               ? isMoreActive || moreOpen
-              : item.href === "/patient"
-                ? pathname === "/patient" || pathname === "/patient/"
+              : item.href === PATIENT_DASHBOARD_HREF
+                ? pathname === PATIENT_DASHBOARD_HREF || pathname === `${PATIENT_DASHBOARD_HREF}/`
                 : pathname === item.href || pathname?.startsWith(item.href + "/")
 
             return (

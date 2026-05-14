@@ -39,7 +39,10 @@ import {
   PATIENT_INTAKE_SUCCESS_HREF,
   PATIENT_INTAKES_HREF,
   PATIENT_MESSAGES_HREF,
+  PATIENT_NEW_REQUEST_HREF,
+  PATIENT_NOTIFICATIONS_HREF,
   PATIENT_ONBOARDING_HREF,
+  PATIENT_PAYMENT_HISTORY_HREF,
   PATIENT_PRESCRIPTIONS_HREF,
   PATIENT_SETTINGS_HREF,
   REQUEST_CONSULT_HREF,
@@ -89,6 +92,9 @@ describe("dashboard route contracts", () => {
     expect(PATIENT_PRESCRIPTIONS_HREF).toBe("/patient/prescriptions")
     expect(PATIENT_DOCUMENTS_HREF).toBe("/patient/documents")
     expect(PATIENT_MESSAGES_HREF).toBe("/patient/messages")
+    expect(PATIENT_NEW_REQUEST_HREF).toBe("/patient/new-request")
+    expect(PATIENT_NOTIFICATIONS_HREF).toBe("/patient/notifications")
+    expect(PATIENT_PAYMENT_HISTORY_HREF).toBe("/patient/payment-history")
     expect(PATIENT_FOLLOWUPS_HREF).toBe("/patient/followups")
     expect(PATIENT_SETTINGS_HREF).toBe("/patient/settings")
     expect(PATIENT_HEALTH_PROFILE_HREF).toBe("/patient/health-profile")
@@ -217,6 +223,14 @@ describe("dashboard route contracts", () => {
       ...collectSourceFiles("components/admin"),
       ...collectSourceFiles("components/doctor"),
       ...collectSourceFiles("components/operator"),
+      "app/account/page.tsx",
+      "app/api/patient/messages/route.ts",
+      "app/api/patient/profile/route.ts",
+      "app/onboarding/page.tsx",
+      "components/shell/left-rail.tsx",
+      "components/shared/navbar/user-menu.tsx",
+      "components/shared/notification-bell.tsx",
+      "components/ui/mobile-nav.tsx",
       "lib/dashboard/revalidate-staff.ts",
     ]
 

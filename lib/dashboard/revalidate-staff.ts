@@ -23,6 +23,7 @@ import {
   buildStaffPatientHref,
   PATIENT_DASHBOARD_HREF,
   PATIENT_DOCUMENTS_HREF,
+  PATIENT_MESSAGES_HREF,
   PATIENT_SETTINGS_HREF,
   STAFF_DASHBOARD_HREF,
   STAFF_DOCTOR_PATIENTS_HREF,
@@ -201,6 +202,8 @@ export interface RevalidatePatientOptions {
   settings?: boolean
   /** Bust /patient/documents. */
   documents?: boolean
+  /** Bust /patient/messages. */
+  messages?: boolean
   /** Bust /patient/followups/{id}. */
   followupId?: string
   /** Bust /account (auth-state-aware landing). */
@@ -217,6 +220,9 @@ export function revalidatePatient(options: RevalidatePatientOptions = {}): void 
   }
   if (options.documents) {
     revalidatePath(PATIENT_DOCUMENTS_HREF)
+  }
+  if (options.messages) {
+    revalidatePath(PATIENT_MESSAGES_HREF)
   }
   if (options.followupId) {
     revalidatePath(buildPatientFollowupHref(options.followupId))

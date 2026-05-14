@@ -69,8 +69,8 @@ const settingsLinks: SettingsLink[] = [
     icon: ToggleLeft,
   },
   {
-    label: "Certificate templates",
-    description: "Medical certificate layout and template configuration.",
+    label: "Certificate identity",
+    description: "Clinic identity used on generated medical certificates.",
     href: ADMIN_CERTIFICATE_TEMPLATES_HREF,
     icon: FileText,
   },

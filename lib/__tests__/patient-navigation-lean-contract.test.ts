@@ -13,11 +13,11 @@ describe("patient navigation lean contract", () => {
     const mobileNav = readProjectFile("components/ui/mobile-nav.tsx")
 
     for (const source of [leftRail, mobileNav]) {
-      expect(source).toContain("/patient/intakes")
-      expect(source).toContain("/patient/prescriptions")
-      expect(source).toContain("/patient/documents")
-      expect(source).toContain("/patient/messages")
-      expect(source).toContain("/patient/settings")
+      expect(source).toContain("PATIENT_INTAKES_HREF")
+      expect(source).toContain("PATIENT_PRESCRIPTIONS_HREF")
+      expect(source).toContain("PATIENT_DOCUMENTS_HREF")
+      expect(source).toContain("PATIENT_MESSAGES_HREF")
+      expect(source).toContain("PATIENT_SETTINGS_HREF")
       expect(source).not.toContain("Health summary")
       expect(source).not.toContain("/patient/health-summary")
     }

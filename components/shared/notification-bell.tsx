@@ -6,6 +6,7 @@ import Link from "next/link"
 import { useEffect, useRef,useState } from "react"
 
 import { Button } from "@/components/ui/button"
+import { PATIENT_NOTIFICATIONS_HREF } from "@/lib/dashboard/routes"
 import { type Notification,useNotifications } from "@/lib/hooks/use-notifications"
 import { cn } from "@/lib/utils"
 
@@ -186,7 +187,7 @@ export function NotificationBell() {
                 asChild
                 className="w-full text-sm text-muted-foreground hover:text-foreground"
               >
-                <Link href="/patient/notifications">View all notifications</Link>
+                <Link href={PATIENT_NOTIFICATIONS_HREF}>View all notifications</Link>
               </Button>
             </div>
           )}

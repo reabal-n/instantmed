@@ -262,7 +262,7 @@ Entry points (doctor queue | admin panel | API)
 
 **Template types:** Core transactional and lifecycle types are reconstructed from source records for retry, including `med_cert_patient`, `med_cert_employer`, `script_sent`, `request_declined`, `prescription_approved`, `still_reviewing`, and `payment_retry`. Supabase Auth send-email templates cover `magiclink`, `signup`, and `recovery` via `app/api/webhooks/supabase-auth/route.ts`. Marketing/engagement types are capped by warmup limits; transactional clinical/payment sends are not.
 
-**Email delivery:** `/admin/emails/hub` is the single delivery operations surface: outbox recovery, delivery status, sequence ownership, and compact controls for templates, suppression, and auth recovery health. Email template editing lives at `/admin/emails/templates`; certificate/PDF template configuration lives separately at `/admin/settings/templates`. In development, `/email-preview/magic-link` covers Supabase auth email QA. Legacy `/admin/email-hub`, `/admin/email-test`, `/admin/email-outbox`, `/admin/email-queue`, `/admin/ops/email-outbox`, `/admin/emails/preview`, and `/admin/emails/analytics` redirect to the owning email surfaces.
+**Email delivery:** `/admin/emails/hub` is the single delivery operations surface: outbox recovery, delivery status, sequence ownership, and compact controls for templates, suppression, and auth recovery health. Email template editing lives at `/admin/emails/templates`; certificate clinic identity and static-PDF preview live separately at `/admin/settings/templates`. In development, `/email-preview/magic-link` covers Supabase auth email QA. Legacy `/admin/email-hub`, `/admin/email-test`, `/admin/email-outbox`, `/admin/email-queue`, `/admin/ops/email-outbox`, `/admin/emails/preview`, and `/admin/emails/analytics` redirect to the owning email surfaces.
 
 ### Retry & Delivery
 
@@ -927,7 +927,7 @@ Models in `lib/ai/provider.ts`. Routed through Vercel AI Gateway in production (
 | `components/marketing/med-cert-landing.tsx` | 38KB | Dynamic imports for testimonials/exit-intent |
 | `app/admin/features/features-list.tsx` | 35KB | Feature flag admin |
 | `components/request/request-flow.tsx` | 31KB | Intake flow orchestrator |
-| `app/admin/settings/templates/template-studio-client.tsx` | 28KB | PDF template editor |
+| `app/admin/settings/templates/template-studio-client.tsx` | 19KB | Certificate identity + static PDF preview |
 | `app/patient/intakes/[id]/client.tsx` | 28KB | Patient intake detail |
 | `app/doctor/queue/queue-table.tsx` | 27KB | Doctor queue table |
 | `lib/email/send-email.ts` | 598 lines | Email sender (server) |

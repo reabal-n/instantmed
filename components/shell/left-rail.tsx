@@ -22,6 +22,17 @@ import { useState } from 'react'
 
 import { BrandLogo } from '@/components/shared/brand-logo'
 import { Button } from '@/components/ui/button'
+import {
+  PATIENT_DASHBOARD_HREF,
+  PATIENT_DOCUMENTS_HREF,
+  PATIENT_INTAKES_HREF,
+  PATIENT_MESSAGES_HREF,
+  PATIENT_NEW_REQUEST_HREF,
+  PATIENT_NOTIFICATIONS_HREF,
+  PATIENT_PAYMENT_HISTORY_HREF,
+  PATIENT_PRESCRIPTIONS_HREF,
+  PATIENT_SETTINGS_HREF,
+} from '@/lib/dashboard/routes'
 import { useAuth } from '@/lib/supabase/auth-provider'
 import { cn } from '@/lib/utils'
 
@@ -79,17 +90,17 @@ export function LeftRail({
   // remaster on 2026-05-11).
   // Sentence case throughout — matches design system §16 voice.
   const navItems = [
-    { icon: Home, label: 'Overview', href: '/patient' },
-    { icon: FileText, label: 'Requests', href: '/patient/intakes' },
-    { icon: ClipboardList, label: 'Prescriptions', href: '/patient/prescriptions' },
-    { icon: FolderOpen, label: 'Documents', href: '/patient/documents' },
-    { icon: MessageSquare, label: 'Messages', href: '/patient/messages' },
-    { icon: CreditCard, label: 'Payments', href: '/patient/payment-history' },
-    { icon: Settings, label: 'Settings', href: '/patient/settings' },
+    { icon: Home, label: 'Overview', href: PATIENT_DASHBOARD_HREF },
+    { icon: FileText, label: 'Requests', href: PATIENT_INTAKES_HREF },
+    { icon: ClipboardList, label: 'Prescriptions', href: PATIENT_PRESCRIPTIONS_HREF },
+    { icon: FolderOpen, label: 'Documents', href: PATIENT_DOCUMENTS_HREF },
+    { icon: MessageSquare, label: 'Messages', href: PATIENT_MESSAGES_HREF },
+    { icon: CreditCard, label: 'Payments', href: PATIENT_PAYMENT_HISTORY_HREF },
+    { icon: Settings, label: 'Settings', href: PATIENT_SETTINGS_HREF },
   ]
 
   const handleNewRequest = () => {
-    router.push('/patient/new-request')
+    router.push(PATIENT_NEW_REQUEST_HREF)
   }
 
   return (
@@ -102,9 +113,9 @@ export function LeftRail({
       {/* Header */}
       <div className="h-16 border-b border-border flex items-center justify-between px-4 shrink-0">
         {isExpanded ? (
-          <BrandLogo size="sm" href="/patient" />
+          <BrandLogo size="sm" href={PATIENT_DASHBOARD_HREF} />
         ) : (
-          <BrandLogo size="sm" iconOnly href="/patient" />
+          <BrandLogo size="sm" iconOnly href={PATIENT_DASHBOARD_HREF} />
         )}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
@@ -144,7 +155,7 @@ export function LeftRail({
             </div>
           )}
           <Link
-            href="/patient/notifications"
+            href={PATIENT_NOTIFICATIONS_HREF}
             className="relative p-2 rounded-lg hover:bg-muted transition-colors shrink-0"
             title="Notifications"
             aria-label={
@@ -193,8 +204,8 @@ export function LeftRail({
         {navItems.map((item) => {
           const Icon = item.icon
           // Overview (/patient) uses exact match only - child routes like /patient/intakes, /patient/onboarding are distinct
-          const isActive = item.href === '/patient'
-            ? pathname === '/patient' || pathname === '/patient/'
+          const isActive = item.href === PATIENT_DASHBOARD_HREF
+            ? pathname === PATIENT_DASHBOARD_HREF || pathname === `${PATIENT_DASHBOARD_HREF}/`
             : pathname === item.href || pathname?.startsWith(item.href + '/')
 
           return (

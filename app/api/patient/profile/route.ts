@@ -1,7 +1,7 @@
-import { revalidatePath } from "next/cache"
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
+import { revalidatePatient } from "@/lib/dashboard/revalidate-staff"
 import { getCurrentProfile, updateProfile } from "@/lib/data/profiles"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"
@@ -87,8 +87,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Failed to update profile" }, { status: 500 })
     }
 
-    revalidatePath("/patient/settings")
-    revalidatePath("/account")
+    revalidatePatient({ settings: true, account: true })
 
     return NextResponse.json({ success: true })
   } catch {

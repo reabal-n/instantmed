@@ -7,8 +7,8 @@ import { requireRole } from "@/lib/auth/helpers"
 import { TemplateStudioClient } from "./template-studio-client"
 
 export const metadata = {
-  title: "Certificate Templates | Admin",
-  description: "Configure medical certificate templates",
+  title: "Certificate Identity | Admin",
+  description: "Clinic identity and preview for generated medical certificates.",
 }
 
 export const dynamic = "force-dynamic"

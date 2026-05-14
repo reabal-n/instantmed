@@ -5,7 +5,6 @@ import {
   Building2,
   CheckCircle,
   Eye,
-  FileText,
   Loader2,
   RotateCcw,
   Save,
@@ -36,18 +35,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { STAFF_SETTINGS_HREF } from "@/lib/dashboard/routes"
 import type {
-  AccentColorPreset,
   ClinicIdentity,
   ClinicIdentityInput,
-  FontSizePreset,
-  HeaderStyle,
-  MarginPreset,
-  SignatureStyle,
   TemplateConfig,
 } from "@/types/certificate-template"
 import { DEFAULT_TEMPLATE_CONFIG } from "@/types/certificate-template"
@@ -79,11 +71,8 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
     footer_disclaimer: initialData.clinicIdentity?.footer_disclaimer || "",
   })
 
-  // Template Config State
   const activeTemplate = initialData.activeTemplate
-  const [templateConfig, setTemplateConfig] = useState<TemplateConfig>(
-    (activeTemplate?.config as TemplateConfig) || DEFAULT_TEMPLATE_CONFIG
-  )
+  const templateConfig = (activeTemplate?.config as TemplateConfig) || DEFAULT_TEMPLATE_CONFIG
 
   // Preview Scenarios
   const [scenarios, setScenarios] = useState<Record<string, boolean>>({
@@ -101,35 +90,6 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
   const updateClinicField = useCallback(
     <K extends keyof ClinicIdentityInput>(field: K, value: ClinicIdentityInput[K]) => {
       setClinicIdentity((prev) => ({ ...prev, [field]: value }))
-      setHasChanges(true)
-    },
-    []
-  )
-
-  // Update template config
-  const updateLayoutConfig = useCallback(
-    <K extends keyof TemplateConfig["layout"]>(
-      field: K,
-      value: TemplateConfig["layout"][K]
-    ) => {
-      setTemplateConfig((prev) => ({
-        ...prev,
-        layout: { ...prev.layout, [field]: value },
-      }))
-      setHasChanges(true)
-    },
-    []
-  )
-
-  const updateOptionsConfig = useCallback(
-    <K extends keyof TemplateConfig["options"]>(
-      field: K,
-      value: TemplateConfig["options"][K]
-    ) => {
-      setTemplateConfig((prev) => ({
-        ...prev,
-        options: { ...prev.options, [field]: value },
-      }))
       setHasChanges(true)
     },
     []
@@ -181,14 +141,9 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
       footer_disclaimer: initialData.clinicIdentity?.footer_disclaimer || "",
     })
 
-    // Reset template config
-    setTemplateConfig(
-      (activeTemplate?.config as TemplateConfig) || DEFAULT_TEMPLATE_CONFIG
-    )
-
     setHasChanges(false)
     setMessage(null)
-  }, [initialData, activeTemplate])
+  }, [initialData])
 
   // Handle logo upload
   const handleLogoUpload = useCallback(
@@ -230,8 +185,8 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
   return (
     <OperatorPage>
       <OperatorPageHeader
-        title="Certificate templates"
-        description="Clinic identity and certificate preview."
+        title="Certificate identity"
+        description="Clinic identity and certificate preview. Static certificate layout uses the checked-in PDF template."
         backHref={STAFF_SETTINGS_HREF}
         actions={
           <div className="flex flex-wrap items-center gap-2">
@@ -289,23 +244,12 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column: Settings Form */}
           <div className="space-y-6">
-            <Tabs defaultValue="clinic" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="clinic" className="gap-2">
-                  <Building2 className="h-4 w-4" />
-                  Clinic Identity
-                </TabsTrigger>
-                <TabsTrigger value="template" className="gap-2">
-                  <FileText className="h-4 w-4" />
-                  Template Layout
-                </TabsTrigger>
-              </TabsList>
-
-              {/* Clinic Identity Tab */}
-              <TabsContent value="clinic" className="mt-4 space-y-4">
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Clinic Details</CardTitle>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Building2 className="h-4 w-4" />
+                      Clinic details
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
@@ -503,173 +447,6 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
                     />
                   </CardContent>
                 </Card>
-              </TabsContent>
-
-              {/* Template Layout Tab */}
-              <TabsContent value="template" className="mt-4 space-y-4">
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Layout Options</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Header Style</Label>
-                      <Select
-                        value={templateConfig.layout.headerStyle}
-                        onValueChange={(value) =>
-                          updateLayoutConfig("headerStyle", value as HeaderStyle)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="logo-left">Logo Left</SelectItem>
-                          <SelectItem value="logo-center">Logo Center</SelectItem>
-                          <SelectItem value="no-logo">No Logo</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <Label>Margins</Label>
-                        <Select
-                          value={templateConfig.layout.marginPreset}
-                          onValueChange={(value) =>
-                            updateLayoutConfig(
-                              "marginPreset",
-                              value as MarginPreset
-                            )
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="S">Small</SelectItem>
-                            <SelectItem value="M">Medium</SelectItem>
-                            <SelectItem value="L">Large</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Font Size</Label>
-                        <Select
-                          value={templateConfig.layout.fontSizePreset}
-                          onValueChange={(value) =>
-                            updateLayoutConfig(
-                              "fontSizePreset",
-                              value as FontSizePreset
-                            )
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="S">Small</SelectItem>
-                            <SelectItem value="M">Medium</SelectItem>
-                            <SelectItem value="L">Large</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Color Theme</Label>
-                        <Select
-                          value={templateConfig.layout.accentColorPreset}
-                          onValueChange={(value) =>
-                            updateLayoutConfig(
-                              "accentColorPreset",
-                              value as AccentColorPreset
-                            )
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="mono">Mono (Black)</SelectItem>
-                            <SelectItem value="slate">Slate</SelectItem>
-                            <SelectItem value="blue">Blue</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Signature Style</Label>
-                      <Select
-                        value={templateConfig.options.signatureStyle}
-                        onValueChange={(value) =>
-                          updateOptionsConfig(
-                            "signatureStyle",
-                            value as SignatureStyle
-                          )
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="image">
-                            Signature Image (with fallback)
-                          </SelectItem>
-                          <SelectItem value="typed">Typed Name Only</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Display Options</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm font-medium">Show ABN</Label>
-                      <Switch
-                        checked={templateConfig.options.showAbn}
-                        onCheckedChange={(checked) =>
-                          updateOptionsConfig("showAbn", checked)
-                        }
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm font-medium">Show Address</Label>
-                      <Switch
-                        checked={templateConfig.options.showAddress}
-                        onCheckedChange={(checked) =>
-                          updateOptionsConfig("showAddress", checked)
-                        }
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm font-medium">Show Phone</Label>
-                      <Switch
-                        checked={templateConfig.options.showPhone}
-                        onCheckedChange={(checked) =>
-                          updateOptionsConfig("showPhone", checked)
-                        }
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm font-medium">Show Email</Label>
-                      <Switch
-                        checked={templateConfig.options.showEmail}
-                        onCheckedChange={(checked) =>
-                          updateOptionsConfig("showEmail", checked)
-                        }
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
           </div>
 
           {/* Right Column: Live Preview */}

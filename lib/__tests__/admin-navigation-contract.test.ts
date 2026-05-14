@@ -52,6 +52,10 @@ const dashboardRoutesSource = readFileSync(
   join(process.cwd(), "lib/dashboard/routes.ts"),
   "utf8",
 )
+const certificateIdentitySource = readFileSync(
+  join(process.cwd(), "app/admin/settings/templates/template-studio-client.tsx"),
+  "utf8",
+)
 const dashboardRedirectSource = readFileSync(
   join(process.cwd(), "app/dashboard/page.tsx"),
   "utf8",
@@ -128,6 +132,20 @@ describe("admin navigation contract", () => {
     expect(settingsSource).not.toContain('href: "/admin/parchment-conformance"')
     expect(settingsSource).not.toContain('href: "/admin/settings/encryption"')
     expect(encryptionPageSource).toContain("Incident-only diagnostic route")
+  })
+
+  it("keeps certificate setup truthful for static PDF templates", () => {
+    expect(settingsSource).toContain("Certificate identity")
+    expect(settingsSource).toContain("Clinic identity used on generated medical certificates.")
+    expect(certificateIdentitySource).toContain('title="Certificate identity"')
+    expect(certificateIdentitySource).toContain("Static certificate layout uses the checked-in PDF template")
+    expect(certificateIdentitySource).not.toContain('TabsTrigger value="template"')
+    expect(certificateIdentitySource).not.toContain("Template Layout")
+    expect(certificateIdentitySource).not.toContain("Layout Options")
+    expect(certificateIdentitySource).not.toContain("Display Options")
+    expect(certificateIdentitySource).not.toContain("updateLayoutConfig")
+    expect(certificateIdentitySource).not.toContain("updateOptionsConfig")
+    expect(certificateIdentitySource).not.toContain("onCheckedChange")
   })
 
   it("keeps the sidebar focused and avoids duplicate or vendor-specific labels", () => {

@@ -1,4 +1,3 @@
-import { revalidatePath } from "next/cache"
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 
@@ -19,8 +18,7 @@ const messageSchema = z.object({
 
 function revalidateMessageSurfaces(intakeId: string) {
   revalidateStaff({ intakeId })
-  revalidatePath("/patient/messages")
-  revalidatePatient({ intakeId })
+  revalidatePatient({ intakeId, messages: true })
 }
 
 export async function POST(request: NextRequest) {
