@@ -19,7 +19,6 @@ import {
 abandonedCheckoutSubject,
   ConsultApprovedEmail, consultApprovedSubject,
   EdApprovedEmail, edApprovedSubject,
-  FollowUpReminderEmail,
   GuestCompleteAccountEmail, guestCompleteAccountSubject,
   HairLossApprovedEmail, hairLossApprovedSubject,
   IntakeSubmittedEmail, intakeSubmittedSubject,
@@ -1358,12 +1357,6 @@ describe("Google Review UTM tracking", () => {
         patientName="Test"
         requestId="REQ-001"
         escriptReference="ES-001"
-        appUrl={APP_URL}
-      />
-    ),
-    FollowUpReminderEmail: (
-      <FollowUpReminderEmail
-        patientName="Test"
         appUrl={APP_URL}
       />
     ),

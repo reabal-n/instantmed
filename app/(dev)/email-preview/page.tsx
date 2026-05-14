@@ -185,12 +185,6 @@ const templates = [
     description: "Warm Google review ask sent 2 days after approval",
     category: "engagement",
   },
-  {
-    slug: "follow-up-reminder",
-    name: "Follow-Up Reminder (Day 3)",
-    description: "Gentle check-in sent 3 days after med cert approval",
-    category: "engagement",
-  },
 ]
 
 const CATEGORY_LABELS: Record<string, string> = {

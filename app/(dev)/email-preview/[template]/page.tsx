@@ -15,7 +15,6 @@ import { AbandonedCheckoutEmail } from "@/lib/email/components/templates/abandon
 import { AbandonedCheckoutFollowupEmail } from "@/lib/email/components/templates/abandoned-checkout-followup"
 import { ConsultApprovedEmail } from "@/lib/email/components/templates/consult-approved"
 import { EdApprovedEmail } from "@/lib/email/components/templates/ed-approved"
-import { FollowUpReminderEmail } from "@/lib/email/components/templates/follow-up-reminder"
 import { GuestCompleteAccountEmail } from "@/lib/email/components/templates/guest-complete-account"
 import { HairLossApprovedEmail } from "@/lib/email/components/templates/hair-loss-approved"
 import { IntakeSubmittedEmail } from "@/lib/email/components/templates/intake-submitted"
@@ -423,16 +422,6 @@ const templates: Record<string, {
       <ReviewRequestEmail
         patientName={mock.patientName}
         serviceName="Medical Certificate"
-        appUrl={mock.appUrl}
-      />
-    ),
-  },
-  "follow-up-reminder": {
-    name: "Follow-Up Reminder (Day 3)",
-    subject: "Checking in: how are you feeling?",
-    render: () => (
-      <FollowUpReminderEmail
-        patientName={mock.patientName}
         appUrl={mock.appUrl}
       />
     ),

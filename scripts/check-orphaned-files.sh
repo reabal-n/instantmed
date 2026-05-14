@@ -115,6 +115,7 @@ for retired_non_operational_surface in \
   "lib/email/follow-up-reminder.ts" \
   "lib/email/treatment-followup.ts" \
   "lib/email/components/templates/decline-reengagement.tsx" \
+  "lib/email/components/templates/follow-up-reminder.tsx" \
   "lib/email/components/templates/review-followup.tsx" \
   "lib/email/components/templates/treatment-followup.tsx" \
   "lib/data/followups.ts" \

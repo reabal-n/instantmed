@@ -45,7 +45,7 @@ export const EMAIL_SEQUENCES: readonly EmailSequenceDefinition[] = [
     owner: "Retired duplicate post-care sequence",
     trigger: "None",
     cadence: "Removed",
-    guard: "Review request owns post-care messaging",
+    guard: "No cron/template; review request owns post-care messaging",
   },
   {
     id: "review_request",

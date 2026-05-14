@@ -8,7 +8,6 @@ export const DB_IDEMPOTENT_EMAIL_TYPES: ReadonlySet<EmailType> = new Set([
   "abandoned_checkout",
   "abandoned_checkout_followup",
   "partial_intake_recovery",
-  "follow_up_reminder",
   "review_request",
 ])
 

@@ -61,7 +61,6 @@ const SUPPORTED_EMAIL_TYPES = [
   // Engagement & retention
   "abandoned_checkout",
   "abandoned_checkout_followup",
-  "follow_up_reminder",
   "referral_credit",
   "review_request",
 ] as const

@@ -133,9 +133,12 @@ describe("email sequence ownership contract", () => {
 
     expect(existsSync(join(process.cwd(), "app/api/cron/follow-up-reminder/route.ts"))).toBe(false)
     expect(existsSync(join(process.cwd(), "lib/email/follow-up-reminder.ts"))).toBe(false)
+    expect(existsSync(join(process.cwd(), "lib/email/components/templates/follow-up-reminder.tsx"))).toBe(false)
     expect(schedules.has("/api/cron/follow-up-reminder")).toBe(false)
     expect(sequence?.status).toBe("inactive")
-    expect(sequence?.guard).toBe("Review request owns post-care messaging")
+    expect(sequence?.guard).toBe("No cron/template; review request owns post-care messaging")
+    expect(DB_IDEMPOTENT_EMAIL_TYPES.has("follow_up_reminder" as never)).toBe(false)
+    expect(readFileSync(join(process.cwd(), "app/(dev)/email-preview/page.tsx"), "utf8")).not.toContain("follow-up-reminder")
   })
 
   it("keeps review requests to one post-care ask", () => {

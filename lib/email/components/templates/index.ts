@@ -97,10 +97,6 @@ export { RefundIssuedEmail, refundIssuedEmailSubject } from "./refund-issued"
 export type { VerificationCodeEmailProps } from "./verification-code"
 export { VerificationCodeEmail, verificationCodeSubject } from "./verification-code"
 
-// --- Follow-Up Reminder (day-3 post med cert approval) ---
-export type { FollowUpReminderEmailProps } from "./follow-up-reminder"
-export { FollowUpReminderEmail, followUpReminderSubject } from "./follow-up-reminder"
-
 // --- Still Reviewing (45-min follow-up for pending requests) ---
 export type { StillReviewingEmailProps } from "./still-reviewing"
 export { StillReviewingEmail, stillReviewingSubject } from "./still-reviewing"
