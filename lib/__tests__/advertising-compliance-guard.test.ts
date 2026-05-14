@@ -318,6 +318,8 @@ const PUBLIC_RISKY_OUTCOME_STAT_PATTERNS = [
 ]
 
 const PUBLIC_DOCTOR_MODEL_OVERCLAIM_PATTERNS = [
+  /\bAHPRA GP\b/i,
+  /\bAHPRA(?:-registered| registered)? GP\b/i,
   /\bAHPRA-registered (?:Australian )?GPs?\b/i,
   /\bAHPRA-registered online GPs?\b/i,
   /\b(?:real|qualified) GPs?\b/i,
