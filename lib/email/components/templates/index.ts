@@ -123,10 +123,6 @@ export { ReviewRequestEmail, reviewRequestSubject } from "./review-request"
 export type { ReviewFollowupEmailProps } from "./review-followup"
 export { ReviewFollowupEmail, reviewFollowupSubject } from "./review-followup"
 
-// --- Subscription Cancelled ---
-export type { SubscriptionCancelledEmailProps } from "./subscription-cancelled"
-export { SubscriptionCancelledEmail, subscriptionCancelledSubject } from "./subscription-cancelled"
-
 // --- Magic Link (Supabase auth hook) ---
 export type { MagicLinkEmailProps } from "./magic-link"
 export { MagicLinkEmail, magicLinkEmailSubject } from "./magic-link"

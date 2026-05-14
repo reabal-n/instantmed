@@ -70,6 +70,13 @@ describe("code-clean retirement contracts", () => {
     expect(existsSync(join(root, "lib/email/subscription-nudge.ts"))).toBe(false)
     expect(existsSync(join(root, "components/email/templates/subscription-nudge.tsx"))).toBe(false)
     expect(existsSync(join(root, "lib/email/components/templates/subscription-nudge.tsx"))).toBe(false)
+    expect(existsSync(join(root, "components/patient/subscription-card.tsx"))).toBe(false)
+    expect(existsSync(join(root, "app/api/stripe/customer-portal/route.ts"))).toBe(false)
+    expect(existsSync(join(root, "app/api/stripe/webhook/handlers/invoice-payment-succeeded.ts"))).toBe(false)
+    expect(existsSync(join(root, "app/api/stripe/webhook/handlers/invoice-payment-failed.ts"))).toBe(false)
+    expect(existsSync(join(root, "app/api/stripe/webhook/handlers/customer-subscription-deleted.ts"))).toBe(false)
+    expect(existsSync(join(root, "app/api/stripe/webhook/handlers/customer-subscription-updated.ts"))).toBe(false)
+    expect(existsSync(join(root, "lib/email/components/templates/subscription-cancelled.tsx"))).toBe(false)
 
     const orphanCheck = read("scripts/check-orphaned-files.sh")
     expect(orphanCheck).toContain("app/api/cron/subscription-nudge/route.ts")
@@ -77,6 +84,13 @@ describe("code-clean retirement contracts", () => {
     expect(orphanCheck).toContain("lib/email/subscription-nudge.ts")
     expect(orphanCheck).toContain("components/email/templates/subscription-nudge.tsx")
     expect(orphanCheck).toContain("lib/email/components/templates/subscription-nudge.tsx")
+    expect(orphanCheck).toContain("components/patient/subscription-card.tsx")
+    expect(orphanCheck).toContain("app/api/stripe/customer-portal/route.ts")
+    expect(orphanCheck).toContain("app/api/stripe/webhook/handlers/invoice-payment-succeeded.ts")
+    expect(orphanCheck).toContain("app/api/stripe/webhook/handlers/invoice-payment-failed.ts")
+    expect(orphanCheck).toContain("app/api/stripe/webhook/handlers/customer-subscription-deleted.ts")
+    expect(orphanCheck).toContain("app/api/stripe/webhook/handlers/customer-subscription-updated.ts")
+    expect(orphanCheck).toContain("lib/email/components/templates/subscription-cancelled.tsx")
 
     const vercelConfig = JSON.parse(read("vercel.json")) as {
       crons?: Array<{ path?: string }>
@@ -100,16 +114,22 @@ describe("code-clean retirement contracts", () => {
     expect(checkoutCompletedHandler).not.toContain("Subscription record created")
     expect(checkoutCompletedHandler).toContain("Ignored dormant subscription checkout completion")
 
-    const customerPortalRoute = read("app/api/stripe/customer-portal/route.ts")
-    expect(customerPortalRoute).toContain('from("subscriptions")')
-    expect(customerPortalRoute).toContain('.eq("status", "active")')
-    expect(customerPortalRoute).toContain("historical repeat-script")
+    const webhookHandlers = read("app/api/stripe/webhook/handlers/index.ts")
+    expect(webhookHandlers).not.toContain("invoice.payment_succeeded")
+    expect(webhookHandlers).not.toContain("invoice.payment_failed")
+    expect(webhookHandlers).not.toContain("customer.subscription.deleted")
+    expect(webhookHandlers).not.toContain("customer.subscription.updated")
 
-    const legacyCard = read("components/patient/subscription-card.tsx")
-    expect(legacyCard).toContain("Legacy repeat script plan")
-    expect(legacyCard).toContain("This plan is no longer sold")
-    expect(legacyCard).toContain("New requests are one-off")
-    expect(legacyCard).not.toContain("Repeat Script Subscription")
+    const patientPage = read("app/patient/page.tsx")
+    expect(patientPage).not.toContain('from("subscriptions")')
+    expect(patientPage).not.toContain("subscription={")
+
+    const patientPanel = read("components/patient/panel-dashboard.tsx")
+    expect(patientPanel).not.toContain("LegacySubscriptionCard")
+    expect(patientPanel).not.toContain("subscription?:")
+
+    const emailTypes = read("lib/email/send/types.ts")
+    expect(emailTypes).not.toContain("subscription_cancelled")
 
     const requestSurfaces = [
       "components/request/steps/review-step.tsx",

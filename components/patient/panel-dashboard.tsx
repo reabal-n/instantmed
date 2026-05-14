@@ -13,17 +13,16 @@ import { useRouter } from "next/navigation"
 import { useEffect, useMemo } from "react"
 
 import { DashboardSection } from "@/components/dashboard"
-import { DrawerPanel,usePanel } from "@/components/panels"
+import { DrawerPanel, usePanel } from "@/components/panels"
 import { DashboardHero } from "@/components/patient/dashboard-hero"
-import { type FollowupRow,FollowupTrackerCard } from "@/components/patient/followup-tracker-card"
+import { type FollowupRow, FollowupTrackerCard } from "@/components/patient/followup-tracker-card"
 import { GoogleReviewCard } from "@/components/patient/google-review-card"
 import { IntakeCard } from "@/components/patient/intake-card"
 import { IntakeDetailDrawer } from "@/components/patient/intake-detail-drawer"
 import { type Intake } from "@/components/patient/intake-types"
-import { AddressDrawerContent, MedicareDrawerContent,PhoneDrawerContent } from "@/components/patient/profile-drawers"
+import { AddressDrawerContent, MedicareDrawerContent, PhoneDrawerContent } from "@/components/patient/profile-drawers"
 import { type ProfileData, ProfileTodoCard, type TodoDrawerType } from "@/components/patient/profile-todo-card"
 import { ReferralCard } from "@/components/patient/referral-card"
-import { LegacySubscriptionCard } from "@/components/patient/subscription-card"
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
 import { capture } from "@/lib/analytics/capture"
@@ -39,8 +38,8 @@ import { needsRenewalSoon } from "@/lib/prescriptions"
  *                    important next action (download / answer doctor /
  *                    track review / complete payment / renew / etc).
  *   2. Activity   — recent requests + active prescriptions.
- *   3. Manage     — profile todos, legacy subscription, follow-up tracker (for
- *                    not-due milestones), referral, Google review prompt.
+ *   3. Manage     — profile todos, follow-up tracker (for not-due milestones),
+ *                    referral, Google review prompt.
  *
  * Replaces the previous 11-section flat list. The hero owns urgent state;
  * the rest is muted, scannable history + housekeeping.
@@ -55,13 +54,6 @@ interface Prescription {
   status: "active" | "expired"
 }
 
-interface SubscriptionData {
-  id: string
-  status: string
-  credits_remaining: number
-  current_period_end: string | null
-}
-
 interface PatientDashboardProps {
   fullName: string
   patientId: string
@@ -69,7 +61,6 @@ interface PatientDashboardProps {
   prescriptions?: Prescription[]
   error?: string | null
   profileData?: ProfileData
-  subscription?: SubscriptionData | null
   followups?: FollowupRow[]
 }
 
@@ -80,7 +71,6 @@ export function PanelDashboard({
   prescriptions = [],
   error,
   profileData,
-  subscription,
   followups,
 }: PatientDashboardProps) {
   const { openPanel } = usePanel()
@@ -360,12 +350,6 @@ export function PanelDashboard({
                     })
                   }
                 />
-              </motion.div>
-            )}
-
-            {subscription && subscription.status === "active" && (
-              <motion.div variants={prefersReducedMotion ? undefined : stagger.item}>
-                <LegacySubscriptionCard subscription={subscription} />
               </motion.div>
             )}
 

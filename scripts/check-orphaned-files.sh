@@ -170,7 +170,14 @@ for retired_subscription_file in \
   "lib/data/subscriptions.ts" \
   "lib/email/subscription-nudge.ts" \
   "components/email/templates/subscription-nudge.tsx" \
-  "lib/email/components/templates/subscription-nudge.tsx"
+  "lib/email/components/templates/subscription-nudge.tsx" \
+  "components/patient/subscription-card.tsx" \
+  "app/api/stripe/customer-portal/route.ts" \
+  "app/api/stripe/webhook/handlers/invoice-payment-succeeded.ts" \
+  "app/api/stripe/webhook/handlers/invoice-payment-failed.ts" \
+  "app/api/stripe/webhook/handlers/customer-subscription-deleted.ts" \
+  "app/api/stripe/webhook/handlers/customer-subscription-updated.ts" \
+  "lib/email/components/templates/subscription-cancelled.tsx"
 do
   if [[ -e "$retired_subscription_file" ]]; then
     echo "ORPHAN: $retired_subscription_file still exists (repeat-Rx subscription acquisition is retired)"

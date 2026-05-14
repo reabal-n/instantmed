@@ -59,17 +59,6 @@ function DashboardSkeleton() {
 }
 
 /** Async server component that fetches dashboard data and renders PanelDashboard */
-async function getActiveLegacySubscription(patientId: string) {
-  const { data } = await createServiceRoleClient()
-    .from("subscriptions")
-    .select("id, status, credits_remaining, current_period_end")
-    .eq("profile_id", patientId)
-    .eq("status", "active")
-    .maybeSingle()
-
-  return data
-}
-
 async function PatientDashboardContent({
   patientId,
   fullName,
@@ -79,9 +68,8 @@ async function PatientDashboardContent({
   fullName: string
   profileData: ProfileData
 }) {
-  const [dashboardData, subscriptionData, followupData] = await Promise.all([
+  const [dashboardData, followupData] = await Promise.all([
     getPatientDashboardData(patientId),
-    getActiveLegacySubscription(patientId),
     (async () => {
       try {
         const { data } = await createServiceRoleClient()
@@ -107,7 +95,6 @@ async function PatientDashboardContent({
       prescriptions={prescriptions}
       error={error}
       profileData={profileData}
-      subscription={subscriptionData}
       followups={followupData}
     />
   )

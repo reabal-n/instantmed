@@ -42,7 +42,6 @@ export type EmailType =
   | "review_request"
   | "review_followup"
   | "payment_retry"
-  | "subscription_cancelled"
   | "ops_test"
 
 // Email types that are marketing/engagement - get auto List-Unsubscribe headers
