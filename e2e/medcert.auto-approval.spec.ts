@@ -28,6 +28,7 @@ const AUTO_APPROVAL_FLAGS = {
   auto_approve_dry_run: false,
 } as const
 const E2E_MED_CERT_SERVICE_ID = "e2e00000-0000-0000-0000-000000000020"
+const E2E_SECRET = process.env.E2E_SECRET || "e2e-test-secret-local"
 
 type FeatureFlagKey = keyof typeof AUTO_APPROVAL_FLAGS
 type FeatureFlagSnapshot = Map<FeatureFlagKey, { exists: boolean; value: unknown }>
@@ -257,6 +258,9 @@ test.describe("Medical Certificate Auto-Approval", () => {
       await seedLowRiskAnswers(intakeId, startDate)
 
       const triggerResponse = await request.post("/api/test/medcert-auto-approve", {
+        headers: {
+          "X-E2E-SECRET": E2E_SECRET,
+        },
         data: {
           intakeId,
           startDate,

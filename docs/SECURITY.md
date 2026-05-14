@@ -344,7 +344,7 @@ None of these routes expose real PHI — all use hardcoded mock data. The middle
 
 ### E2E Test Auth Bypass
 
-Only when `NODE_ENV=test` or `PLAYWRIGHT=1`. Middleware blocks `/api/test/*` and `/(dev)/*` in production/preview. Shared route classification lives in `lib/dev-only-routes.ts`. The active test API surface is limited to auth bypass and the med-cert auto-approval trigger used by focused E2E flows.
+Only when `NODE_ENV=test` or `PLAYWRIGHT=1`. Middleware blocks `/api/test/*` and `/(dev)/*` in production/preview unless the deployed app itself is explicitly running with `PLAYWRIGHT=1`; even then every active `/api/test/*` route must pass the shared `X-E2E-SECRET` check from `lib/dev-only-route-auth.ts` plus the allowed-host check from `lib/dev-only-routes.ts`. The active test API surface is limited to auth bypass and the med-cert auto-approval trigger used by focused E2E flows.
 
 ---
 

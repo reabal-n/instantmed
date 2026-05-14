@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 
 import { attemptAutoApproval } from "@/lib/clinical/auto-approval-pipeline"
+import { verifyE2ESecret } from "@/lib/dev-only-route-auth"
 import { isAllowedDevOnlyRequest } from "@/lib/dev-only-routes"
 import { startPostPaymentReviewWork } from "@/lib/stripe/post-payment"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -49,6 +50,11 @@ async function seedReadyClinicalNoteDraft(intakeId: string, startDate: string) {
 export async function POST(request: NextRequest) {
   if (!isAllowedDevOnlyRequest(request)) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
+
+  const secret = verifyE2ESecret(request)
+  if (!secret.ok) {
+    return NextResponse.json({ error: secret.error }, { status: secret.status })
   }
 
   const parsed = PayloadSchema.safeParse(await request.json().catch(() => null))

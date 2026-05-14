@@ -98,6 +98,8 @@ await page.request.post(`${BASE_URL}/api/test/login`, {
 // Requires PLAYWRIGHT=1 env var — middleware checks this before accepting the cookies
 ```
 
+Every active `/api/test/*` endpoint must use the same seam: `PLAYWRIGHT=1` or `NODE_ENV=test`, allowed host, and `X-E2E-SECRET`. Do not add a test endpoint that relies on host/test-mode checks alone.
+
 **Never** use real auth credentials in E2E. The auth bypass is the only supported pattern.
 
 Do not use public inboxes such as Mailinator for staff, admin, privileged, or PHI-like test accounts. Manual patient smoke accounts may use disposable addresses only when they contain fabricated data and no privileged role; otherwise use the seeded E2E auth bypass or a controlled private test inbox.

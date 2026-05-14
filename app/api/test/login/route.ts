@@ -22,9 +22,9 @@
  *   })
  */
 
-import { timingSafeEqual } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
 
+import { verifyE2ESecret } from "@/lib/dev-only-route-auth"
 import { isAllowedDevOnlyRequest, isE2ETestModeEnabled } from "@/lib/dev-only-routes"
 
 // Test user profile IDs (must match seed.ts).
@@ -56,27 +56,9 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Verify E2E secret
-  const e2eSecret = process.env.E2E_SECRET
-  const providedSecret = request.headers.get("X-E2E-SECRET")
-
-  if (!e2eSecret) {
-    return NextResponse.json(
-      { error: "E2E_SECRET not configured" },
-      { status: 500 }
-    )
-  }
-
-  // Use timing-safe comparison to prevent timing attacks
-  if (
-    !providedSecret ||
-    providedSecret.length !== e2eSecret.length ||
-    !timingSafeEqual(Buffer.from(providedSecret), Buffer.from(e2eSecret))
-  ) {
-    return NextResponse.json(
-      { error: "Invalid E2E secret" },
-      { status: 401 }
-    )
+  const secret = verifyE2ESecret(request)
+  if (!secret.ok) {
+    return NextResponse.json({ error: secret.error }, { status: secret.status })
   }
 
   // Parse request body

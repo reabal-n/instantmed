@@ -10,6 +10,8 @@
 
 import { afterEach,beforeEach, describe, expect, it, vi } from "vitest"
 
+import { verifyE2ESecret } from "@/lib/dev-only-route-auth"
+
 /**
  * Helper to check if E2E test mode would be enabled for given env values.
  * This mirrors the logic in lib/auth.ts and app/api/test/login/route.ts
@@ -93,6 +95,44 @@ describe("E2E Auth Bypass Safety", () => {
       expect(correctSecret === secret).toBe(true)
       expect(wrongCaseSecret === secret).toBe(false)
       expect(partialSecret === secret).toBe(false)
+    })
+  })
+
+  describe("E2E secret guard", () => {
+    it("requires E2E_SECRET to be configured", () => {
+      process.env.E2E_SECRET = ""
+
+      const result = verifyE2ESecret(new Request("http://localhost/api/test/login"))
+
+      expect(result).toEqual({ ok: false, error: "E2E_SECRET not configured", status: 500 })
+    })
+
+    it("rejects missing and incorrect secrets", () => {
+      process.env.E2E_SECRET = "secret123"
+
+      expect(verifyE2ESecret(new Request("http://localhost/api/test/login"))).toMatchObject({
+        ok: false,
+        status: 401,
+      })
+      expect(
+        verifyE2ESecret(
+          new Request("http://localhost/api/test/login", {
+            headers: { "X-E2E-SECRET": "wrong" },
+          }),
+        ),
+      ).toMatchObject({ ok: false, status: 401 })
+    })
+
+    it("accepts the exact configured secret", () => {
+      process.env.E2E_SECRET = "secret123"
+
+      const result = verifyE2ESecret(
+        new Request("http://localhost/api/test/login", {
+          headers: { "X-E2E-SECRET": "secret123" },
+        }),
+      )
+
+      expect(result).toEqual({ ok: true })
     })
   })
 

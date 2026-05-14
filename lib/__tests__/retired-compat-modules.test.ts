@@ -113,6 +113,9 @@ describe("retired compatibility modules", () => {
       "app/api/test/login/route.ts",
       "app/api/test/medcert-auto-approve/route.ts",
     ])
+    for (const routePath of routePaths) {
+      expect(readFileSync(join(root, routePath), "utf8")).toContain("verifyE2ESecret")
+    }
     expect(allE2ESource).toContain("/api/test/login")
     expect(allE2ESource).toContain("/api/test/medcert-auto-approve")
   })
