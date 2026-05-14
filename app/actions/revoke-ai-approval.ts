@@ -13,6 +13,7 @@ import * as Sentry from "@sentry/nextjs"
 import { revokeCertificateAction } from "@/app/actions/revoke-cert"
 import { withServerAction } from "@/lib/actions/with-server-action"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
+import { buildPatientIntakeHref } from "@/lib/dashboard/routes"
 import { createNotification } from "@/lib/notifications/service"
 import type { ActionResult } from "@/types/shared"
 
@@ -90,7 +91,7 @@ export const revokeAIApproval = withServerAction<RevokeAIApprovalInput>(
         type: "request_update",
         title: "Certificate under review",
         message: "A doctor is reviewing your medical certificate. We'll update you shortly with the outcome.",
-        actionUrl: `/patient/intakes/${intakeId}`,
+        actionUrl: buildPatientIntakeHref(intakeId),
         metadata: { intakeId, revoked: true },
       })
     }

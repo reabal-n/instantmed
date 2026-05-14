@@ -1,6 +1,6 @@
 "use client"
 
-import { Bell, ClipboardList, CreditCard, FileText, FolderOpen, Home, LogOut, MessageSquare, MoreHorizontal, User, X } from "lucide-react"
+import { ClipboardList, CreditCard, FileText, FolderOpen, Home, LogOut, MessageSquare, MoreHorizontal, User, X } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -10,7 +10,6 @@ import {
   PATIENT_DOCUMENTS_HREF,
   PATIENT_INTAKES_HREF,
   PATIENT_MESSAGES_HREF,
-  PATIENT_NOTIFICATIONS_HREF,
   PATIENT_PAYMENT_HISTORY_HREF,
   PATIENT_PRESCRIPTIONS_HREF,
   PATIENT_SETTINGS_HREF,
@@ -67,11 +66,6 @@ const moreItems: NavItem[] = [
     label: "Messages",
     icon: MessageSquare,
     href: PATIENT_MESSAGES_HREF,
-  },
-  {
-    label: "Notifications",
-    icon: Bell,
-    href: PATIENT_NOTIFICATIONS_HREF,
   },
   {
     label: "Payments",

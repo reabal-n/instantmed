@@ -23,9 +23,6 @@ export const SMS_TEMPLATES = {
   PAYMENT_RECEIVED: (patientName: string, amount: string) =>
     `Hi ${patientName}, payment of ${amount} received. Your request is now in the doctor queue. ETA: ~15 mins.`,
 
-  REFILL_REMINDER: (medicationName: string, daysLeft: number) =>
-    `Your ${medicationName} script may run out in ${daysLeft} days. Tap to refill: instantmed.com.au/prescriptions/request`,
-
   DOCTOR_ASSIGNED: (patientName: string, doctorName: string) =>
     `Hi ${patientName}, Dr. ${doctorName} is now reviewing your request. You'll hear back soon!`,
 } as const

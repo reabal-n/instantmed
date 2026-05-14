@@ -83,6 +83,26 @@ describe("code-clean retirement contracts", () => {
     expect(architecture).not.toContain("update-profile")
   })
 
+  it("keeps unused notification sidecars out of the patient shell", () => {
+    const retiredNotificationSidecars = [
+      "components/shared/notification-bell.tsx",
+      "lib/hooks/use-notifications.ts",
+      "lib/notifications/push-notifications.ts",
+      "lib/prescriptions/refill-reminders.ts",
+    ]
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+
+    for (const path of retiredNotificationSidecars) {
+      expect(existsSync(join(root, path)), path).toBe(false)
+      expect(orphanCheck).toContain(path)
+    }
+
+    expect(read("components/shared/index.ts")).not.toContain("NotificationBell")
+    expect(read("components/shared/navbar/user-menu.tsx")).not.toContain("NotificationBell")
+    expect(read("components/ui/mobile-nav.tsx")).not.toContain("PATIENT_NOTIFICATIONS_HREF")
+    expect(read("components/ui/mobile-nav.tsx")).not.toContain('label: "Notifications"')
+  })
+
   it("keeps repeat-Rx subscriptions dormant and out of patient acquisition paths", () => {
     expect(existsSync(join(root, "app/api/cron/subscription-nudge/route.ts"))).toBe(false)
     expect(existsSync(join(root, "lib/data/subscriptions.ts"))).toBe(false)
@@ -127,6 +147,8 @@ describe("code-clean retirement contracts", () => {
     expect(read(".env.example")).not.toContain("STRIPE_PRICE_REPEAT_RX_MONTHLY")
     expect(read("lib/constants/index.ts")).not.toContain("REPEAT_RX_MONTHLY")
     expect(read("lib/stripe/checkout.ts")).not.toContain('mode: "subscription"')
+    expect(read("lib/sms/templates.ts")).not.toContain("REFILL_REMINDER")
+    expect(read("lib/sms/templates.ts")).not.toContain("/prescriptions/request")
 
     const checkoutCompletedHandler = read("app/api/stripe/webhook/handlers/checkout-session-completed.ts")
     expect(checkoutCompletedHandler).not.toMatch(/from\("subscriptions"\)\.upsert/)

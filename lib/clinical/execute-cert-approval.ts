@@ -5,6 +5,7 @@ import { getPostHogClient, trackIntakeFunnelStep } from "@/lib/analytics/posthog
 import { env } from "@/lib/config/env"
 import { ABN, COMPANY_ADDRESS, COMPANY_NAME, CONTACT_EMAIL,CONTACT_PHONE } from "@/lib/constants"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
+import { buildPatientIntakeHref } from "@/lib/dashboard/routes"
 import { getDoctorIdentity } from "@/lib/data/doctor-identity"
 import {
   atomicApproveCertificate,
@@ -536,7 +537,7 @@ export async function executeCertApproval(
     type: "document_ready",
     title: "Your certificate is ready",
     message: "Your request has been reviewed and approved. Your medical certificate is ready to download.",
-    actionUrl: `/patient/intakes/${intakeId}`,
+    actionUrl: buildPatientIntakeHref(intakeId),
     metadata: { intakeId, certificateType, certificateId },
   })
 

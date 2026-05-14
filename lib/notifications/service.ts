@@ -1,6 +1,7 @@
 "use server"
 
 import { getPostHogClient } from "@/lib/analytics/posthog-server"
+import { buildPatientIntakeHref } from "@/lib/dashboard/routes"
 import { sendRequestDeclinedEmail } from "@/lib/email/senders"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
@@ -80,7 +81,7 @@ export async function notifyRequestStatusChange(params: NotifyRequestStatusParam
     declineReason,
   } = params
 
-  const actionUrl = `/patient/intakes/${intakeId}`
+  const actionUrl = buildPatientIntakeHref(intakeId)
 
   try {
     switch (newStatus) {
@@ -190,7 +191,7 @@ export async function notifyPaymentReceived(params: {
       type: "payment",
       title: "Payment received",
       message: `Your payment of $${(amount / 100).toFixed(2)} has been confirmed. A doctor will review your request shortly.`,
-      actionUrl: `/patient/intakes/${intakeId}`,
+      actionUrl: buildPatientIntakeHref(intakeId),
       metadata: { intakeId, amount },
     })
 

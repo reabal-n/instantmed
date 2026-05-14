@@ -14,7 +14,6 @@ import { ServiceIconTile } from "@/components/icons/service-icons"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { AnimatedNavLink } from "@/components/shared/navbar/animated-nav-link"
 import { services } from "@/components/shared/navbar/services-dropdown"
-import { NotificationBell } from "@/components/shared/notification-bell"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -168,9 +167,6 @@ export function UserMenu({
             })}
           </DropdownMenuContent>
         </DropdownMenu>
-
-        {/* Notifications */}
-        <NotificationBell />
 
         {/* Static avatar - settings & sign out live in the sidebar */}
         <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0 ml-1" aria-hidden="true">

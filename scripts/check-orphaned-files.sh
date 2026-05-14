@@ -115,6 +115,19 @@ do
   fi
 done
 
+# ── 2e. Retired notification sidecars ────────────────────────────────────
+for retired_notification_sidecar in \
+  "components/shared/notification-bell.tsx" \
+  "lib/hooks/use-notifications.ts" \
+  "lib/notifications/push-notifications.ts" \
+  "lib/prescriptions/refill-reminders.ts"
+do
+  if [[ -e "$retired_notification_sidecar" ]]; then
+    echo "ORPHAN: $retired_notification_sidecar still exists (unused by the current patient shell)"
+    orphans=$((orphans + 1))
+  fi
+done
+
 # ── 3. @deprecated modules with zero imports ─────────────────────────────
 # Exclude the guard tests themselves — they scan for the @deprecated literal
 # as part of their policy, so they would always self-match.

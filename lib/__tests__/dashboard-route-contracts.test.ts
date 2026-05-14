@@ -213,6 +213,20 @@ describe("dashboard route contracts", () => {
     expect(source).not.toContain("revalidatePath(`/patient/followups/${options.followupId}`)")
   })
 
+  it("keeps patient notification action URLs on route helpers", () => {
+    const actionUrlOwners = [
+      "lib/notifications/service.ts",
+      "lib/clinical/execute-cert-approval.ts",
+      "app/actions/revoke-ai-approval.ts",
+    ]
+
+    for (const file of actionUrlOwners) {
+      const source = read(file)
+      expect(source, file).toContain("buildPatientIntakeHref")
+      expect(source, file).not.toContain("actionUrl: `/patient/intakes/${")
+    }
+  })
+
   it("keeps patient and staff UI navigation on route helpers", () => {
     const guardedFiles = [
       ...collectSourceFiles("app/patient"),
@@ -229,7 +243,6 @@ describe("dashboard route contracts", () => {
       "app/onboarding/page.tsx",
       "components/shell/left-rail.tsx",
       "components/shared/navbar/user-menu.tsx",
-      "components/shared/notification-bell.tsx",
       "components/ui/mobile-nav.tsx",
       "lib/dashboard/revalidate-staff.ts",
     ]
