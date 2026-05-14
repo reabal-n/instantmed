@@ -7,6 +7,7 @@ import { requireRole } from "@/lib/auth/helpers"
 import { getStaffDisplayRole, hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import { EMPTY_STAFF_NAV_COUNTS, getStaffNav } from "@/lib/dashboard/staff-navigation"
 import { getStaffNavCounts } from "@/lib/data/staff-nav-counts"
+import { getDoctorOnboardingStatus } from "@/lib/doctor/onboarding-status"
 import { createLogger } from "@/lib/observability/logger"
 
 import { DoctorShell } from "./doctor-shell"
@@ -36,10 +37,16 @@ export default async function DoctorLayout({
   const isAdmin = hasAdminAccess(authUser.profile)
   const staffRoleLabel = getStaffDisplayRole(authUser.profile)
   const navSections = getStaffNav(authUser.profile)
-  const navCounts = await getStaffNavCounts().catch((error) => {
-    log.error("Failed to load nav counts for doctor layout", {}, error)
-    return EMPTY_STAFF_NAV_COUNTS
-  })
+  const [navCounts, onboardingStatus] = await Promise.all([
+    getStaffNavCounts().catch((error) => {
+      log.error("Failed to load nav counts for doctor layout", {}, error)
+      return EMPTY_STAFF_NAV_COUNTS
+    }),
+    getDoctorOnboardingStatus(authUser.profile.id).catch((error) => {
+      log.error("Failed to load doctor onboarding status", {}, error)
+      return null
+    }),
+  ])
 
   return (
     <OperatorShell
@@ -54,7 +61,7 @@ export default async function DoctorLayout({
     >
       <DoctorShell isAdmin={isAdmin}>
         <div className="mx-auto max-w-5xl" data-testid="dashboard-container">
-          <DoctorOnboardingBanner />
+          <DoctorOnboardingBanner data={onboardingStatus} />
           <div data-testid="doctor-main">{children}</div>
         </div>
       </DoctorShell>

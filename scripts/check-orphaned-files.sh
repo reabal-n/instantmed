@@ -74,6 +74,7 @@ for legacy_staff_api in \
   "app/api/admin/test-email/route.ts" \
   "app/api/doctor/assign-request/route.ts" \
   "app/api/doctor/drafts/[intakeId]/route.ts" \
+  "app/api/doctor/onboarding-status/route.ts" \
   "app/api/health/dashboard/route.ts"
 do
   if [[ -e "$legacy_staff_api" ]]; then

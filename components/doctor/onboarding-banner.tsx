@@ -5,33 +5,12 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
+import type { DoctorOnboardingStatus } from "@/lib/doctor/onboarding-status-types"
 
 const DISMISS_KEY = "instantmed:doctor-onboarding-dismissed"
 const DISMISS_TTL_MS = 7 * 24 * 60 * 60 * 1000
 
-interface OnboardingStep {
-  id: string
-  label: string
-  description: string
-  completed: boolean
-  href?: string
-  required: boolean
-}
-
-interface OnboardingData {
-  steps: OnboardingStep[]
-  summary: {
-    total: number
-    completed: number
-    required_total: number
-    required_completed: number
-    all_required_complete: boolean
-    completion_percentage: number
-    can_approve_intakes: boolean
-  }
-}
-
-function getDismissSignature(data: OnboardingData) {
+function getDismissSignature(data: DoctorOnboardingStatus) {
   return data.steps
     .filter((step) => step.required && !step.completed)
     .map((step) => step.id)
@@ -39,24 +18,8 @@ function getDismissSignature(data: OnboardingData) {
     .join("|")
 }
 
-export function DoctorOnboardingBanner() {
-  const [data, setData] = useState<OnboardingData | null>(null)
+export function DoctorOnboardingBanner({ data }: { data: DoctorOnboardingStatus | null }) {
   const [dismissed, setDismissed] = useState(false)
-
-  useEffect(() => {
-    const fetchStatus = async () => {
-      try {
-        const res = await fetch("/api/doctor/onboarding-status")
-        if (res.ok) {
-          const json = await res.json()
-          setData(json)
-        }
-      } catch {
-        // Silently fail — not critical
-      }
-    }
-    fetchStatus()
-  }, [])
 
   useEffect(() => {
     if (!data || data.summary.all_required_complete) return
@@ -142,7 +105,7 @@ export function DoctorOnboardingBanner() {
             </span>
             {nextStep && (
               <span className="text-foreground">
-              Next: <span className="font-medium">{nextStep.label}</span>
+                Next: <span className="font-medium">{nextStep.label}</span>
               </span>
             )}
           </div>

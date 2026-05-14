@@ -54,6 +54,7 @@ describe("code-clean retirement contracts", () => {
       "app/api/admin/test-email/route.ts",
       "app/api/doctor/assign-request/route.ts",
       "app/api/doctor/drafts/[intakeId]/route.ts",
+      "app/api/doctor/onboarding-status/route.ts",
       "app/api/health/dashboard/route.ts",
     ]
     const orphanCheck = read("scripts/check-orphaned-files.sh")
@@ -148,6 +149,11 @@ describe("code-clean retirement contracts", () => {
     expect(read("components/patient/dashboard-hero.tsx")).not.toContain("followup-due")
     expect(read("components/patient/panel-dashboard.tsx")).not.toContain("FollowupTrackerCard")
     expect(read("vercel.json")).not.toContain("/api/cron/treatment-followup")
+
+    const legacyFollowupsPanel = read("app/doctor/intakes/[id]/intake-detail-followups.tsx")
+    expect(legacyFollowupsPanel).toContain("Legacy check-ins")
+    expect(legacyFollowupsPanel).toContain("New automated check-ins are retired")
+    expect(legacyFollowupsPanel).not.toContain("Follow-up check-ins")
   })
 
   it("keeps repeat-Rx subscriptions dormant and out of patient acquisition paths", () => {

@@ -61,8 +61,11 @@ export function IntakeDetailFollowups({
     <Card className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06]">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <MessageSquare className="h-4 w-4" /> Follow-up check-ins
+          <MessageSquare className="h-4 w-4" /> Legacy check-ins
         </CardTitle>
+        <p className="text-xs text-muted-foreground">
+          Historical treatment check-ins only. New automated check-ins are retired in the current one-off model.
+        </p>
       </CardHeader>
       <CardContent className="space-y-3">
         {followups.map((f) => {

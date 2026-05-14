@@ -120,6 +120,8 @@ describe("doctor navigation contract", () => {
     // getStaffNav(profile). Verify the wiring is intact.
     expect(doctorLayoutSource).toContain("OperatorShell")
     expect(doctorLayoutSource).toContain("getStaffNav")
+    expect(doctorLayoutSource).toContain("getDoctorOnboardingStatus")
+    expect(onboardingBannerSource).not.toContain("/api/doctor/onboarding-status")
     expect(doctorLayoutSource).toContain("hideMobileHamburger")
     expect(sidebarSource).toContain("operatorNavSections")
     expect(sidebarSource).toContain("navSections")

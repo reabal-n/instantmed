@@ -10,7 +10,7 @@
  * - Operator role (admin+doc)  → auth check passes (not a middleware reject)
  *
  * Routes exercised:
- * - GET  /api/doctor/onboarding-status   (doctor/admin only)
+ * - GET  /api/doctor/scripts             (doctor/admin only)
  * - POST /api/med-cert/preview          (doctor/admin only, CSRF after auth)
  *
  * Notes on response codes:
@@ -57,8 +57,8 @@ async function wasRejectedByMiddleware(response: APIResponse): Promise<boolean> 
 // ============================================================================
 
 test.describe("API RBAC - Unauthenticated Requests", () => {
-  test("GET /api/doctor/onboarding-status is denied without auth", async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/api/doctor/onboarding-status`)
+  test("GET /api/doctor/scripts is denied without auth", async ({ request }) => {
+    const response = await request.get(`${BASE_URL}/api/doctor/scripts`)
     expect(isDenied(response.status())).toBe(true)
   })
 
@@ -80,8 +80,8 @@ test.describe("API RBAC - Patient Role Restrictions", () => {
     expect(result.success, `Patient login should succeed: ${result.error}`).toBe(true)
   })
 
-  test("patient cannot GET /api/doctor/onboarding-status", async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/api/doctor/onboarding-status`)
+  test("patient cannot GET /api/doctor/scripts", async ({ request }) => {
+    const response = await request.get(`${BASE_URL}/api/doctor/scripts`)
     expect(isDenied(response.status())).toBe(true)
   })
 
@@ -103,8 +103,8 @@ test.describe("API RBAC - Operator Role Access", () => {
     expect(result.success, `Operator login should succeed: ${result.error}`).toBe(true)
   })
 
-  test("operator can GET /api/doctor/onboarding-status", async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/api/doctor/onboarding-status`)
+  test("operator can GET /api/doctor/scripts", async ({ request }) => {
+    const response = await request.get(`${BASE_URL}/api/doctor/scripts`)
     // GET - no CSRF. Should reach handler. Expect 200, or at worst a server-
     // side 500 (DB issue). Must NOT be an auth rejection.
     expect(await wasRejectedByMiddleware(response)).toBe(false)
@@ -112,9 +112,8 @@ test.describe("API RBAC - Operator Role Access", () => {
 
     if (response.status() === 200) {
       const body = await response.json()
-      // Shape check against the actual onboarding-status response
-      expect(body).toHaveProperty("steps")
-      expect(body).toHaveProperty("summary")
+      expect(body).toHaveProperty("tasks")
+      expect(body).toHaveProperty("counts")
     }
   })
 
@@ -139,13 +138,13 @@ test.describe("API RBAC - Operator Role Access", () => {
 
 test.describe("API RBAC - Response Shape Validation", () => {
   test("denied responses use a 4xx status code", async ({ request }) => {
-    const response = await request.get(`${BASE_URL}/api/doctor/onboarding-status`)
+    const response = await request.get(`${BASE_URL}/api/doctor/scripts`)
     expect(isDenied(response.status())).toBe(true)
   })
 
   test("patient on doctor endpoint is denied", async ({ request }) => {
     await loginWithRequest(request, "patient")
-    const response = await request.get(`${BASE_URL}/api/doctor/onboarding-status`)
+    const response = await request.get(`${BASE_URL}/api/doctor/scripts`)
     expect(isDenied(response.status())).toBe(true)
   })
 })
