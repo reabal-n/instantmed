@@ -923,7 +923,7 @@ Models in `lib/ai/provider.ts`. Routed through Vercel AI Gateway in production (
 
 | File | Size | Notes |
 |------|------|-------|
-| `components/marketing/med-cert-landing.tsx` | 38KB | Dynamic imports for testimonials/exit-intent |
+| `components/marketing/med-cert-landing.tsx` | 38KB | Main med-cert acquisition page; retired exit-intent email campaign code is intentionally absent |
 | `app/admin/features/features-list.tsx` | 35KB | Feature flag admin |
 | `components/request/request-flow.tsx` | 31KB | Intake flow orchestrator |
 | `app/admin/settings/templates/certificate-details-client.tsx` | 9KB | Read-only certificate details + static PDF preview |

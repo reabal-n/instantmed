@@ -175,6 +175,28 @@ describe("code-clean retirement contracts", () => {
     }
   })
 
+  it("keeps retired exit-intent email campaign code out of runtime", () => {
+    const retiredExitIntentFiles = [
+      "lib/email/components/templates/exit-intent-last-chance.tsx",
+      "lib/email/components/templates/exit-intent-reminder.tsx",
+      "lib/email/components/templates/exit-intent-social-proof.tsx",
+      "lib/crypto/exit-intent-token.ts",
+    ]
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+
+    for (const path of retiredExitIntentFiles) {
+      expect(existsSync(join(root, path)), path).toBe(false)
+      expect(orphanCheck).toContain(path)
+    }
+
+    expect(read("lib/email/components/templates/index.ts")).not.toContain("ExitIntent")
+    expect(read("lib/email/send/types.ts")).not.toContain("exit_intent")
+    expect(read("lib/email/email-dispatcher.ts")).not.toContain("exit_intent")
+    expect(read("lib/hooks/use-landing-analytics.ts")).not.toContain("trackExitIntent")
+    expect(read("lib/hooks/use-landing-analytics.ts")).not.toContain("landing_exit_intent")
+    expect(read("docs/ARCHITECTURE.md")).not.toContain("Dynamic imports for testimonials/exit-intent")
+  })
+
   it("keeps repeat-Rx subscriptions dormant and out of patient acquisition paths", () => {
     expect(existsSync(join(root, "app/api/cron/subscription-nudge/route.ts"))).toBe(false)
     expect(existsSync(join(root, "lib/data/subscriptions.ts"))).toBe(false)

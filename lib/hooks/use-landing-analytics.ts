@@ -11,7 +11,6 @@ type CTALocation =
   | "pricing"
   | "final_cta"
   | "sticky_mobile"
-  | "exit_intent"
   | "employer_link"
   | "verify_link"
 
@@ -29,17 +28,6 @@ export function useLandingAnalytics(service: string) {
       posthog?.capture("landing_cta_clicked", {
         service,
         cta_location: location,
-      })
-    },
-    [posthog, service]
-  )
-
-  // Track exit intent interactions
-  const trackExitIntent = useCallback(
-    (action: "shown" | "clicked" | "dismissed" | "email_captured") => {
-      posthog?.capture("landing_exit_intent", {
-        service,
-        action,
       })
     },
     [posthog, service]
@@ -92,7 +80,6 @@ export function useLandingAnalytics(service: string) {
 
   return {
     trackCTAClick,
-    trackExitIntent,
     trackFAQOpen,
     trackSectionView,
   }

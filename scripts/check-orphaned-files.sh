@@ -115,9 +115,13 @@ for retired_non_operational_surface in \
   "lib/email/follow-up-reminder.ts" \
   "lib/email/treatment-followup.ts" \
   "lib/email/components/templates/decline-reengagement.tsx" \
+  "lib/email/components/templates/exit-intent-last-chance.tsx" \
+  "lib/email/components/templates/exit-intent-reminder.tsx" \
+  "lib/email/components/templates/exit-intent-social-proof.tsx" \
   "lib/email/components/templates/follow-up-reminder.tsx" \
   "lib/email/components/templates/review-followup.tsx" \
   "lib/email/components/templates/treatment-followup.tsx" \
+  "lib/crypto/exit-intent-token.ts" \
   "lib/data/followups.ts" \
   "components/patient/followup-tracker-card.tsx" \
   "lib/analytics/acquisition-health.ts"
