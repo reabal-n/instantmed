@@ -1,8 +1,9 @@
 /**
  * Admin certificate details E2E.
  *
- * The certificate editor is intentionally lean: clinic details plus a generated
- * PDF preview. Static PDF layout/version editing is not an operator workflow.
+ * The certificate surface is intentionally lean: read-only clinic details plus
+ * a generated PDF preview. Static PDF layout/version editing is not an
+ * operator workflow.
  */
 
 import { expect, test } from "@playwright/test"
@@ -29,7 +30,7 @@ test.describe("Admin certificate details", () => {
     await expect(page.getByRole("heading", { name: /certificate details/i })).toBeVisible()
     await expect(page.getByText(/clinic details/i).first()).toBeVisible()
     await expect(page.getByText(/pdf preview/i).first()).toBeVisible()
-    await expect(page.getByRole("button", { name: /save changes/i })).toBeDisabled()
+    await expect(page.getByRole("link", { name: /edit clinic details/i })).toBeVisible()
   })
 
   test("keeps the static PDF layout out of the operator workflow", async ({ page }) => {
@@ -37,6 +38,7 @@ test.describe("Admin certificate details", () => {
     await waitForPageLoad(page)
 
     await expect(page.getByRole("tab", { name: /version history/i })).toHaveCount(0)
+    await expect(page.getByRole("button", { name: /save changes/i })).toHaveCount(0)
     await expect(page.getByRole("button", { name: /save version/i })).toHaveCount(0)
     await expect(page.getByText(/template layout/i)).toHaveCount(0)
     await expect(page.getByText(/layout options/i)).toHaveCount(0)

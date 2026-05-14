@@ -288,7 +288,7 @@ Email preview lives inside `/admin/emails/templates` for admin review and `/emai
 app/actions/approve-cert.ts
   1. Doctor gating (provider number + AHPRA)
   2. Idempotency check (existing cert?)
-  3. Fetch active template from certificate_templates
+  3. Fetch active static PDF config from certificate_templates
   4. Snapshot clinic_identity + doctor_identity
   5. Render PDF (lib/pdf/template-renderer.ts — pdf-lib overlay on static template)
   6. Upload to private Supabase Storage bucket
@@ -310,15 +310,15 @@ app/actions/approve-cert.ts
 5. PDF stored; `issued_certificates` record created with template config snapshot
 6. Patient notified via email
 
-### Template System
+### Certificate PDF Config
 
-Config-driven, immutably versioned. Template config stored as JSONB in `certificate_templates`.
+Static-PDF overlay config is stored as immutable JSONB in `certificate_templates`. Operators can preview the active certificate and edit clinic identity, but PDF layout changes stay in code review.
 
 | Table | Owner | Purpose |
 |-------|-------|---------|
 | `clinic_identity` | Admin | Singleton clinic details (name, ABN, address, logo) |
 | `profiles` | Doctor (admin validates) | Provider number, AHPRA number, signature (on `profiles` table) |
-| `certificate_templates` | Admin | JSONB config, versioned per type |
+| `certificate_templates` | Admin | Static PDF overlay config, versioned per type |
 | `issued_certificates` | System | Immutable record with template + identity snapshots |
 | `certificate_audit_log` | System | Append-only issuance/download/verify log |
 
@@ -926,7 +926,7 @@ Models in `lib/ai/provider.ts`. Routed through Vercel AI Gateway in production (
 | `components/marketing/med-cert-landing.tsx` | 38KB | Dynamic imports for testimonials/exit-intent |
 | `app/admin/features/features-list.tsx` | 35KB | Feature flag admin |
 | `components/request/request-flow.tsx` | 31KB | Intake flow orchestrator |
-| `app/admin/settings/templates/template-studio-client.tsx` | 19KB | Certificate details + static PDF preview |
+| `app/admin/settings/templates/certificate-details-client.tsx` | 9KB | Read-only certificate details + static PDF preview |
 | `app/patient/intakes/[id]/client.tsx` | 28KB | Patient intake detail |
 | `app/doctor/queue/queue-table.tsx` | 27KB | Doctor queue table |
 | `lib/email/send-email.ts` | 598 lines | Email sender (server) |

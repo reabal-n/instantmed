@@ -161,6 +161,18 @@ describe("code-clean retirement contracts", () => {
     expect(patientFollowupPage).toContain("Compatibility-only route for historical ED/hair-loss check-in links")
     expect(followupActions).toContain("Compatibility actions for historical intake_followups rows")
     expect(routesSource).toContain("Hidden compatibility route for historical treatment check-in links")
+
+    const patientNavigationSurfaces = [
+      "components/ui/mobile-nav.tsx",
+      "components/shell/left-rail.tsx",
+      "components/shell/authenticated-shell.tsx",
+      "app/patient/patient-shell.tsx",
+    ]
+    for (const surface of patientNavigationSurfaces) {
+      const source = read(surface)
+      expect(source, surface).not.toContain("PATIENT_FOLLOWUPS_HREF")
+      expect(source, surface).not.toContain("/patient/followups")
+    }
   })
 
   it("keeps repeat-Rx subscriptions dormant and out of patient acquisition paths", () => {

@@ -1,10 +1,10 @@
 import { Loader2 } from "lucide-react"
 import { Suspense } from "react"
 
-import { loadTemplateStudioData } from "@/app/actions/template-studio"
+import { loadCertificateDetailsData } from "@/app/actions/certificate-details"
 import { requireRole } from "@/lib/auth/helpers"
 
-import { TemplateStudioClient } from "./template-studio-client"
+import { CertificateDetailsClient } from "./certificate-details-client"
 
 export const metadata = {
   title: "Certificate Details | Admin",
@@ -13,13 +13,13 @@ export const metadata = {
 
 export const dynamic = "force-dynamic"
 
-async function TemplateStudioLoader() {
-  const result = await loadTemplateStudioData()
+async function CertificateDetailsLoader() {
+  const result = await loadCertificateDetailsData()
 
   if (!result.success || !result.data) {
     return (
       <div className="p-8 text-center">
-        <p className="text-destructive">Failed to load template data</p>
+        <p className="text-destructive">Failed to load certificate details</p>
         <p className="text-sm text-muted-foreground mt-2">
           {result.error || "Unknown error"}
         </p>
@@ -27,10 +27,10 @@ async function TemplateStudioLoader() {
     )
   }
 
-  return <TemplateStudioClient initialData={result.data} />
+  return <CertificateDetailsClient initialData={result.data} />
 }
 
-export default async function TemplateStudioPage() {
+export default async function CertificateDetailsPage() {
   await requireRole(["admin"])
 
   return (
@@ -41,7 +41,7 @@ export default async function TemplateStudioPage() {
         </div>
       }
     >
-      <TemplateStudioLoader />
+      <CertificateDetailsLoader />
     </Suspense>
   )
 }

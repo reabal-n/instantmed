@@ -53,7 +53,7 @@ const dashboardRoutesSource = readFileSync(
   "utf8",
 )
 const certificateIdentitySource = readFileSync(
-  join(process.cwd(), "app/admin/settings/templates/template-studio-client.tsx"),
+  join(process.cwd(), "app/admin/settings/templates/certificate-details-client.tsx"),
   "utf8",
 )
 const dashboardRedirectSource = readFileSync(
@@ -139,6 +139,11 @@ describe("admin navigation contract", () => {
     expect(settingsSource).toContain("Clinic details and PDF preview for generated medical certificates.")
     expect(certificateIdentitySource).toContain('title="Certificate details"')
     expect(certificateIdentitySource).toContain("Email templates live in Email delivery.")
+    expect(certificateIdentitySource).toContain("ADMIN_CLINIC_HREF")
+    expect(certificateIdentitySource).toContain("Edit clinic details")
+    expect(certificateIdentitySource).not.toContain("saveClinicIdentityAction")
+    expect(certificateIdentitySource).not.toContain("uploadClinicLogoAction")
+    expect(certificateIdentitySource).not.toContain("Save changes")
     expect(certificateIdentitySource).not.toContain('TabsTrigger value="template"')
     expect(certificateIdentitySource).not.toContain("Template Layout")
     expect(certificateIdentitySource).not.toContain("Layout Options")
