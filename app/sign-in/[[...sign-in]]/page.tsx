@@ -477,7 +477,7 @@ export default function SignInPage() {
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                   <Clock className="w-5 h-5 text-primary" />
                 </div>
-                <span>Average review time under 15 minutes</span>
+                <span>Review follows when a doctor is available</span>
               </div>
               <div className="flex items-center gap-3 text-muted-foreground">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">

@@ -62,7 +62,7 @@ const HOW_IT_WORKS_STEPS = [
   {
     sticker: "stethoscope" as const,
     step: 2,
-    title: "A real GP reviews it",
+    title: "A real doctor reviews it",
     description: "An AHPRA-registered doctor reviews your assessment and decides the next step.",
     time: "Reviewed when available",
   },

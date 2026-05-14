@@ -185,7 +185,7 @@ export default function ShiftWorkersPage() {
                     },
                     {
                       title: "Before your next roster",
-                      desc: "Need documentation before your manager schedules the next shift? Get sorted same-day.",
+                      desc: "Need documentation before your manager schedules the next shift? Submit the request from your phone.",
                     },
                     {
                       title: "Employer policies vary",
@@ -217,7 +217,7 @@ export default function ShiftWorkersPage() {
                     {
                       step: "2",
                       title: "Doctor reviews",
-                      desc: "An AHPRA-registered GP assesses your request.",
+                      desc: "An AHPRA-registered doctor assesses your request.",
                       time: "~15 min",
                     },
                     {

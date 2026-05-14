@@ -169,7 +169,7 @@ export function LocationPageContent({
             </div>
             <div className="flex items-center gap-1.5">
               <Clock className="h-4 w-4 text-primary" />
-              <span>Usually under 1 hour</span>
+              <span>Doctor review</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Shield className="h-4 w-4 text-primary" />
@@ -321,7 +321,7 @@ export function LocationPageContent({
               {
                 step: "2",
                 title: "Doctor reviews",
-                desc: "An Australian doctor reviews your request, usually within 1 hour",
+                desc: "An Australian doctor reviews your request when available",
               },
               {
                 step: "3",
@@ -358,7 +358,7 @@ export function LocationPageContent({
             {[
               "No need to leave home or work",
               "Skip the waiting room",
-              "Same-day service, most requests",
+              "Doctor review, digital delivery",
               "eScripts sent to your phone",
               "Employer policies may vary",
               "Reviewed by real Australian doctors",

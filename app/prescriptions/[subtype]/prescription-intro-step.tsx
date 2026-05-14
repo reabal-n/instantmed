@@ -63,7 +63,7 @@ export function PrescriptionIntroStep({ title, subtype, setStep }: PrescriptionI
               2
             </div>
             <div>
-              <p className="text-sm font-medium text-foreground">A GP reviews your request</p>
+              <p className="text-sm font-medium text-foreground">A Doctor reviews your request</p>
               <p className="text-sm text-muted-foreground">
                 An Australian-registered GP will verify your prescription history.
               </p>

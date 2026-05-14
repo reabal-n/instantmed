@@ -23,7 +23,6 @@ import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { getAllStateSlugs, statesData } from "@/lib/seo/data/states"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 // ============================================================================
 // METADATA - head-term pillar for "online doctor australia"
@@ -32,12 +31,12 @@ import { SOCIAL_PROOF } from "@/lib/social-proof"
 const CANONICAL = "https://instantmed.com.au/online-doctor-australia"
 
 export const metadata: Metadata = {
-  title: "Online Doctor Australia | AHPRA-Registered GPs, Reviewed Same Day",
-  description: `See an online doctor in Australia without the waiting room. AHPRA-registered GPs review medical certificates, prescriptions, and consultations same-day. ${PRICING_DISPLAY.FROM_MED_CERT}, requests open 24/7.`,
+  title: "Online Doctor Australia | AHPRA-Registered Doctors",
+  description: `See an online doctor in Australia without the waiting room. AHPRA-registered doctors review medical certificates, prescriptions, and consultations. ${PRICING_DISPLAY.FROM_MED_CERT}, requests open 24/7.`,
   keywords: [
     "online doctor australia",
     "online doctor au",
-    "online gp australia",
+    "online doctor service australia",
     "see a doctor online australia",
     "australian online doctor",
     "online doctor consultation australia",
@@ -47,8 +46,8 @@ export const metadata: Metadata = {
     "online doctor no appointment",
   ],
   openGraph: {
-    title: "Online Doctor Australia - AHPRA-Registered GPs | InstantMed",
-    description: `See an Australian online doctor without leaving home. Med certs, repeat prescriptions, and consultations reviewed by AHPRA-registered GPs. Same-day turnaround from ${PRICING_DISPLAY.MED_CERT}.`,
+    title: "Online Doctor Australia - AHPRA-Registered Doctors | InstantMed",
+    description: `See an Australian online doctor without leaving home. Med certs, repeat prescriptions, and consultations reviewed by AHPRA-registered doctors. From ${PRICING_DISPLAY.MED_CERT}.`,
     url: CANONICAL,
     siteName: "InstantMed",
     locale: "en_AU",
@@ -58,7 +57,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Online Doctor Australia | InstantMed",
     description:
-      "AHPRA-registered online GPs. Medical certificates, prescriptions, consultations - reviewed same-day.",
+      "AHPRA-registered online doctors. Medical certificates, prescriptions, and consultations without the waiting room.",
   },
   alternates: { canonical: CANONICAL },
 }
@@ -69,7 +68,7 @@ export const metadata: Metadata = {
 
 const STATS = [
   { value: "AHPRA", label: "Registered doctors", context: "Every review by an Australian-registered doctor" },
-  { value: `~${SOCIAL_PROOF.certTurnaroundMinutes} min`, label: "Med cert turnaround", context: "Typical same-day timing" },
+  { value: "8am-10pm", label: "Review window", context: "Requests can be submitted 24/7" },
   { value: "24/7", label: "Request submission", context: "Rx + consult review follows when available" },
   { value: `${PRICING_DISPLAY.MED_CERT}`, label: "From", context: "Full refund if we can't help" },
 ]
@@ -93,8 +92,8 @@ const SERVICES = [
   },
   {
     icon: Stethoscope,
-    title: "Online GP consultations",
-    body: "Discuss a new symptom, ongoing concern, or get a treatment plan - async written review by an Australian GP.",
+    title: "Online doctor consultations",
+    body: "Discuss a new symptom, ongoing concern, or get a treatment plan - async written review by an Australian doctor.",
     href: "/consult",
     cta: "Book an online consultation",
     priceLabel: `From ${PRICING_DISPLAY.CONSULT}`,
@@ -105,7 +104,7 @@ const FAQS = [
   {
     question: "Is InstantMed a real doctor or an AI?",
     answer:
-      "Every request is clinically reviewed by an AHPRA-registered Australian doctor. We use software to handle intake, triage, and delivery, but the clinical decision - whether to issue a certificate, approve a prescription, or decline - is always made by a human GP. No AI prescribes medication or issues certificates.",
+      "Every request is clinically reviewed by an AHPRA-registered Australian doctor. We use software to handle intake, triage, and delivery, but the clinical decision - whether to issue a certificate, approve a prescription, or decline - is always made by a human doctor. No AI prescribes medication or issues certificates.",
   },
   {
     question: "Are InstantMed's doctors registered with AHPRA?",
@@ -130,7 +129,7 @@ const FAQS = [
   {
     question: "How fast will I actually hear back from the doctor?",
     answer:
-      "Medical certificates are typically reviewed within around 30 minutes, 24 hours a day. Prescription and consultation requests can be submitted 24/7 and are usually reviewed within 1–2 hours during review hours (8am–10pm AEST, seven days a week), and within 24 hours at the maximum. We don't publish a customer-facing SLA guarantee, but the vast majority of requests are cleared same-day.",
+      "Requests can be submitted 24/7. Prescription and consultation review usually happens during review hours (8am–10pm AEST, seven days a week), and timing depends on clinical complexity and queue volume. We do not publish a fixed customer-facing SLA guarantee.",
   },
   {
     question: "Can I use an online doctor for my children?",
@@ -140,7 +139,7 @@ const FAQS = [
   {
     question: "When should I avoid an online doctor and go in person instead?",
     answer:
-      "Online GPs are great for straightforward conditions where clinical decisions can be made from history alone - med certs, repeat scripts on stable medication, uncomplicated infections, mental health check-ins. They're not appropriate for chest pain, shortness of breath, severe abdominal pain, suspected stroke, pregnancy complications, trauma, or anything else needing a physical exam or urgent imaging. In those cases, call 000 or go to your nearest emergency department.",
+      "Online doctors are great for straightforward conditions where clinical decisions can be made from history alone - med certs, repeat scripts on stable medication, uncomplicated infections, mental health check-ins. They're not appropriate for chest pain, shortness of breath, severe abdominal pain, suspected stroke, pregnancy complications, trauma, or anything else needing a physical exam or urgent imaging. In those cases, call 000 or go to your nearest emergency department.",
   },
 ]
 
@@ -217,12 +216,12 @@ export default function OnlineDoctorAustraliaPage() {
                 <SectionPill>Australia-wide · AHPRA registered</SectionPill>
               </div>
               <Heading level="display" className="mb-4">
-                Online doctor in Australia - reviewed by AHPRA-registered GPs
+                Online doctor in Australia - reviewed by AHPRA-registered doctors
               </Heading>
               <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
                 Medical certificates, repeat prescriptions, and consultations reviewed by
                 Australian-registered doctors. No appointments, no waiting rooms. Every
-                request goes to a real GP - not an algorithm.
+                request goes to a real doctor - not an algorithm.
               </p>
 
               <div className="flex flex-wrap justify-center gap-3 mb-8">
@@ -249,7 +248,7 @@ export default function OnlineDoctorAustraliaPage() {
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-4 h-4 text-primary" />
-                  ~30 min med cert turnaround
+                  Review follows when available
                 </span>
                 <span className="flex items-center gap-1.5">
                   <MapPin className="w-4 h-4 text-primary" />
@@ -262,10 +261,10 @@ export default function OnlineDoctorAustraliaPage() {
           {/* Page superpower — anchors the "AHPRA-registered, no algorithm"
               promise above the stats so the stats reinforce the claim. */}
           <ServiceClaimSection
-            eyebrow="Real GPs, not chatbots"
+            eyebrow="Real doctors, not chatbots"
             headline={
               <>
-                Every request reviewed by an <span className="text-primary">AHPRA-registered Australian GP</span>.
+                Every request reviewed by an <span className="text-primary">AHPRA-registered Australian doctor</span>.
               </>
             }
             body="No AI prescribes. No algorithm declines. The clinical decision is always made by a human Australian doctor whose registration you can verify on ahpra.gov.au."
@@ -306,7 +305,7 @@ export default function OnlineDoctorAustraliaPage() {
                   medical practitioner who has completed an Australian medical degree, internship,
                   and general registration pathway. The only thing that changes is how you reach them.
                   Instead of booking a 15-minute slot in a waiting room, you submit a structured
-                  intake form with your history and symptoms, and a GP reviews it on the other side.
+                  intake form with your history and symptoms, and a doctor reviews it on the other side.
                   The clinical decision - approve, decline, or ask for more information - is made by
                   a human doctor every single time, and logged against their provider number.
                 </p>
@@ -391,7 +390,7 @@ export default function OnlineDoctorAustraliaPage() {
               <div className="space-y-5 text-muted-foreground leading-relaxed">
                 <p>
                   The whole process is designed to replace the 90-minute round trip to a GP clinic
-                  with a 2-minute form and a same-day review. You start at{" "}
+                  with a secure form and doctor review. You start at{" "}
                   <Link href="/request" className="text-primary hover:underline font-medium">
                     /request
                   </Link>{" "}
@@ -410,7 +409,7 @@ export default function OnlineDoctorAustraliaPage() {
                   may send you a message asking a clarifying question, or offer a brief phone call at
                   no extra charge. If they decline, the decision is always explained and you&apos;re
                   refunded automatically. There is no hidden AI step and no outsourcing of clinical
-                  decisions - it&apos;s a queue of real GPs working through real patients.
+                  decisions - it&apos;s a queue of real doctors working through real patients.
                 </p>
                 <p>
                   When a prescription is approved, your eScript token arrives on your phone as a QR
@@ -482,7 +481,7 @@ export default function OnlineDoctorAustraliaPage() {
               <div className="space-y-5 text-muted-foreground leading-relaxed">
                 <p>
                   Australian online doctors operate under the same legal and professional framework
-                  as any other Australian GP. AHPRA - the Australian Health Practitioner Regulation
+                  as any other Australian doctor. AHPRA - the Australian Health Practitioner Regulation
                   Agency - sets the registration standards for every medical practitioner in the
                   country. Every doctor treating patients through InstantMed holds current general
                   registration and is publicly searchable at{" "}
@@ -576,7 +575,7 @@ export default function OnlineDoctorAustraliaPage() {
                     Full FAQ
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">
-                    Every question we&apos;ve been asked about online GPs
+                    Every question we&apos;ve been asked about online doctors
                   </div>
                 </Link>
               </div>
@@ -591,7 +590,7 @@ export default function OnlineDoctorAustraliaPage() {
                   Online doctors in every Australian state
                 </Heading>
                 <p className="text-muted-foreground max-w-2xl mx-auto">
-                  Dedicated guides for each state and territory. Same doctors, same turnaround -
+                  Dedicated guides for each state and territory. Same clinical review model -
                   different local context.
                 </p>
               </div>

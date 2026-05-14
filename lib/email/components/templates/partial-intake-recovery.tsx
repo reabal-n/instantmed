@@ -60,8 +60,8 @@ export function PartialIntakeRecoveryEmail({
         <Heading as="h3">If you do come back</Heading>
         <List
           items={[
-            "A real Australian GP reviews your request",
-            "Average review time is around 20 minutes",
+            "A real Australian doctor reviews your request",
+            "Doctor review follows when available",
             "Your certificate is emailed to you as a PDF",
             "Full refund if our doctor cannot help",
           ]}

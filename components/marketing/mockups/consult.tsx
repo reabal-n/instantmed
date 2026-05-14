@@ -40,7 +40,7 @@ export function ConsultMockup() {
       {/* Floating badge */}
       <div className="absolute bottom-1 right-2 flex items-center gap-1 px-2 py-1 rounded-full bg-white dark:bg-card border border-border/40 shadow-md text-[9px] font-medium text-muted-foreground">
         <Stethoscope className="w-3 h-3 text-primary" />
-        GP reviewed
+        doctor reviewed
       </div>
     </div>
   )

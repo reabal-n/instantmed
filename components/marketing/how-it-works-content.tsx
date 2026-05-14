@@ -25,7 +25,7 @@ const processSteps = [
   {
     title: "A real doctor reviews it",
     description:
-      "An AHPRA-registered GP reviews your request and medical history. If they need more info, they\u2019ll reach out directly. Most reviews done within the hour.",
+      "An AHPRA-registered doctor reviews your request and medical history. If they need more info, they\u2019ll reach out directly. Review follows when a doctor is available.",
   },
   {
     title: "Get your document",
@@ -39,7 +39,7 @@ const features = [
     icon: <StickerIcon name="clock" size={44} />,
     title: "Fast turnaround",
     description:
-      "Most requests reviewed within hours. If we can't help, you get a full refund.",
+      "Doctor review follows when available. If we can't help, you get a full refund.",
   },
   {
     icon: <StickerIcon name="security-shield" size={44} />,
@@ -134,7 +134,7 @@ const howItWorksGuide: GuideSectionData[] = [
 ]
 
 const HOW_IT_WORKS_FAQ = [
-  { question: "Is this a real doctor?", answer: "Yes. Every request is reviewed by an AHPRA-registered Australian GP. They're real doctors with real medical degrees and current registration, the same doctors who work in clinics and hospitals." },
+  { question: "Is this a real doctor?", answer: "Yes. Every request is reviewed by an AHPRA-registered Australian doctor. They're real doctors with real medical degrees and current registration, the same doctors who work in clinics and hospitals." },
   { question: "How long does it take?", answer: "Requests can be submitted any time. Medical certificates are typically issued quickly, and prescriptions or consultations are reviewed when a doctor is available." },
   { question: "Will my employer accept an online medical certificate?", answer: "Certificates from AHPRA-registered doctors can support workplace evidence requirements. Employer policies and individual circumstances may vary." },
   { question: "Do I need to be available for a call?", answer: "Usually no booked appointment is needed. You submit your form, the doctor reviews it, and we only interrupt you if something important is missing." },
@@ -170,7 +170,7 @@ export function HowItWorksContent() {
 
         {/* Page superpower — the asynchronous-but-not-automated promise.
             "Convenient" reads like a hedge in the subhead; this anchors the
-            two beats that actually matter: it's fast AND a real GP. */}
+            two beats that actually matter: it's fast AND a real doctor. */}
         <ServiceClaimSection
           eyebrow="Convenient, not automated"
           headline={
@@ -178,7 +178,7 @@ export function HowItWorksContent() {
               <span className="text-primary">Async</span>, but never algorithmic.
             </>
           }
-          body="A real AHPRA-registered Australian GP reviews every request. They read your full history. They make the call. The only thing the software does is move the request from your screen to theirs and back."
+          body="A real AHPRA-registered Australian doctor reviews every request. They read your full history. They make the call. The only thing the software does is move the request from your screen to theirs and back."
         />
 
         {/* Process Steps */}

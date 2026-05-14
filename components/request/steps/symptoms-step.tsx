@@ -190,7 +190,7 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
           </div>
           {symptomDuration === "week_plus" && (
             <div className="mt-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
-              Symptoms lasting more than a week may need an in-person GP review. You can still submit this request.
+              Symptoms lasting more than a week may need an in-person doctor review. You can still submit this request.
             </div>
           )}
         </FormField>

@@ -6,7 +6,7 @@ import { BreadcrumbSchema, FAQSchema,HowToSchema } from '@/components/seo/health
 export const revalidate = 86400 // 24h ISR for marketing page
 
 const howItWorksFaqs = [
-  { question: "Is this a real doctor?", answer: "Yes. Every request is reviewed by an AHPRA-registered Australian GP. They're real doctors with real medical degrees and current registration - the same doctors who work in clinics and hospitals." },
+  { question: "Is this a real doctor?", answer: "Yes. Every request is reviewed by an AHPRA-registered Australian doctor. They're real doctors with real medical degrees and current registration - the same doctors who work in clinics and hospitals." },
   { question: "How long does it take?", answer: "Requests can be submitted any time. Medical certificates are typically issued quickly, and prescriptions or consultations are reviewed when a doctor is available through a secure form-first workflow. We only interrupt you if something important is missing." },
   { question: "Can my employer use an online medical certificate as evidence?", answer: "Certificates from AHPRA-registered doctors can support workplace evidence requirements. Employer policies may vary." },
   { question: "Do I need a Medicare card?", answer: "For medical certificates - no. For prescriptions and consultations - Medicare details are requested so the doctor can verify your identity, but this is a private service and no Medicare rebate is claimed." },
@@ -54,7 +54,7 @@ export default function HowItWorksPage() {
           },
           {
             name: "A real doctor reviews it",
-            text: "An AHPRA-registered GP reviews your request and medical history. If they need more info, they'll reach out directly. Most reviews done within 1-2 hours.",
+            text: "An AHPRA-registered doctor reviews your request and medical history. If they need more info, they'll reach out directly. Review follows when a doctor is available.",
           },
           {
             name: "Get your document",

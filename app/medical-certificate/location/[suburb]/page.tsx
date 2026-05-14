@@ -228,7 +228,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
         name: `Can I get a medical certificate online in ${data.name}?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Yes! InstantMed provides online medical certificates to ${data.name} residents. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate - typically in under 30 minutes, available 24/7.`,
+          text: `Yes! InstantMed provides online medical certificates to ${data.name} residents. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate digitally if approved.`,
         },
       },
       {
@@ -244,7 +244,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
         name: "How fast can I get my medical certificate?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Most certificates are issued in under 30 minutes, available 24/7. You'll receive a secure PDF via email.",
+          text: "Requests can be submitted 24/7. You'll receive a secure PDF via email if approved.",
         },
       },
     ],
@@ -375,7 +375,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                   {
                     step: "2",
                     title: "Doctor reviews",
-                    desc: "An AHPRA-registered GP assesses your request.",
+                    desc: "An AHPRA-registered doctor assesses your request.",
                     time: "~15 min",
                   },
                   {
@@ -410,7 +410,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                 {[
                   {
                     q: `Can I get a medical certificate online in ${data.name}?`,
-                    a: `Yes! InstantMed provides online medical certificates to ${data.name} residents and anyone in ${data.stateShort}. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate - typically in under 30 minutes, available 24/7.`,
+                    a: `Yes! InstantMed provides online medical certificates to ${data.name} residents and anyone in ${data.stateShort}. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate digitally if approved.`,
                   },
                   {
                     q: "Will my employer accept this certificate?",
@@ -418,7 +418,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                   },
                   {
                     q: "How fast can I get my certificate?",
-                    a: "Most certificates are issued in under 30 minutes, available 24/7. You'll receive a secure PDF via email as soon as it's approved.",
+                    a: "Requests can be submitted 24/7. You'll receive a secure PDF via email if approved.",
                   },
                   {
                     q: "Can I get a certificate for yesterday?",

@@ -85,7 +85,7 @@ const instantmedVsHubHealth: ComparisonEntry = {
     "You need a single service - a medical certificate, a repeat script, or a one-off consult",
     "You don't want another monthly subscription on your card",
     "You want an upfront, transparent price for the thing you need today",
-    "You need a medical certificate quickly (often in about 20 minutes)",
+    "You need a medical certificate without waiting for a clinic appointment",
     "You prefer per-request care over an ongoing program structure",
   ],
   whenCompetitorBetter: [
@@ -123,7 +123,7 @@ const instantmedVsHubHealth: ComparisonEntry = {
     },
     {
       q: "Which service is faster for a medical certificate?",
-      a: "InstantMed is optimised for fast medical certificate turnaround - most requests are reviewed in about 20 minutes, 24/7. Hub Health isn't primarily built around same-day medical certificates, so InstantMed will usually be the faster option if that's what you need.",
+      a: "InstantMed is optimised for structured medical certificate requests without a clinic appointment. Hub Health is not primarily built around same-day medical certificates, so InstantMed will usually be the more direct option if that is what you need.",
     },
     {
       q: "Can I use a Medicare rebate on either service?",
@@ -237,7 +237,7 @@ const instantmedVsDoctorsOnDemand: ComparisonEntry = {
     },
     {
       q: "Which is faster: InstantMed or Doctors on Demand?",
-      a: "For medical certificates, InstantMed is usually faster - reviews typically happen in around 20 minutes and the service runs 24/7. For scheduled video consults, Doctors on Demand is fast once your slot comes up, but you may wait hours or days for the next available appointment depending on demand.",
+      a: "For medical certificates, InstantMed is designed around a structured online request that can be submitted 24/7. For scheduled video consults, Doctors on Demand is fast once your slot comes up, but you may wait hours or days for the next available appointment depending on demand.",
     },
     {
       q: "Can both services prescribe the same medications?",
@@ -256,7 +256,7 @@ const instantmedVsDoctorsOnDemand: ComparisonEntry = {
         id: "format-differences",
         title: "How Async and Video Consultations Actually Differ",
         paragraphs: [
-          "An async consultation works like a structured medical history - you fill in a form with your symptoms, relevant background, and what you're asking for. A doctor reviews it on their own time, often within an hour for common services. If they need clarification, they message you. If they're satisfied, they approve and issue whatever you need - a certificate, a script, a referral.",
+          "An async consultation works like a structured medical history - you fill in a form with your symptoms, relevant background, and what you're asking for. A doctor reviews it when available. If they need clarification, they message you. If they're satisfied, they approve and issue whatever you need - a certificate, a script, a referral.",
           "A video consultation is closer to the experience of an in-person GP visit. You book a slot, a doctor joins a video call at the scheduled time, and you have a live conversation. The doctor can ask follow-up questions in real time, observe you, and guide the conversation dynamically. It takes longer - typically 10 to 20 minutes - and the doctor's time is dedicated to you for that period.",
           "Neither format is universally better. Async is efficient; video is interactive. The match depends on what you're trying to get done.",
         ],
@@ -465,7 +465,7 @@ const instantmedVsQoctor: ComparisonEntry = {
     },
     {
       q: "Which service is faster for a medical certificate?",
-      a: "InstantMed targets around 20 minutes for most medical certificate reviews and runs 24/7. Qoctor's typical turnaround is similar during their operating hours. For out-of-hours requests, InstantMed's 24/7 availability is a tangible difference - if you submit at 2am, you'll get a response faster with a 24/7 service than one that's business-hours only.",
+      a: "InstantMed accepts medical certificate requests 24/7. Qoctor's turnaround depends on their operating hours. For out-of-hours requests, InstantMed's 24/7 submission window is a tangible difference - you can lodge the request without waiting for business hours.",
     },
     {
       q: "Do both services let me message the doctor if they have questions?",

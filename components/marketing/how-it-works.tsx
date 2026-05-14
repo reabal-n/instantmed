@@ -100,7 +100,7 @@ function StepThreeMockup() {
 
 export function HowItWorks() {
   const stepMockups = [StepOneMockup, StepTwoMockup, StepThreeMockup]
-  const stepBadges = ["~2 min", "~20 min", "Same day"]
+  const stepBadges = ["Secure form", "Doctor review", "Digital delivery"]
 
   return (
     <section id="how-it-works" className="py-10 sm:py-16 lg:py-24 scroll-mt-20">
@@ -190,7 +190,7 @@ const steps = [
   },
   {
     number: "2",
-    title: "A real GP reviews it",
+    title: "A real doctor reviews it",
     description: "AHPRA-registered doctor reviews your request. Same standards as in-person.",
   },
   {

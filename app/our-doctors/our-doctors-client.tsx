@@ -43,9 +43,9 @@ const credentials: FeatureItem[] = [
   },
   {
     icon: <TrustIcon icon={<GraduationCap className="w-6 h-6 text-primary" />} />,
-    title: "Qualified GP",
+    title: "Qualified doctor",
     description:
-      "Medical degree from an accredited Australian or equivalent international institution. Practising as a general practitioner.",
+      "Medical degree from an accredited Australian or equivalent international institution, with current medical registration.",
   },
   {
     icon: <TrustIcon icon={<MapPin className="w-6 h-6 text-primary" />} />,
@@ -102,7 +102,7 @@ const doctorFaqs: FAQGroup[] = [
     category: "Our Clinical Team",
     items: [
       {
-        question: "Is the reviewing doctor a real, registered Australian GP?",
+        question: "Is the reviewing doctor a real, registered Australian doctor?",
         answer:
           "Yes. Your request is reviewed by an AHPRA-registered Australian general practitioner whose name and registration number you can independently verify on the AHPRA public register at ahpra.gov.au. We do not use overseas practitioners, nurse practitioners, or AI to make clinical decisions.",
       },
@@ -171,8 +171,8 @@ export default function OurDoctorsClient() {
         {/* Hero */}
         <CenteredHero
           pill="AHPRA-Registered Australian Practice"
-          title="Every request reviewed by a real GP"
-          highlightWords={["a real GP"]}
+          title="Every request reviewed by a real doctor"
+          highlightWords={["a real doctor"]}
           subtitle="No algorithms. No shortcuts. Every request is reviewed by an AHPRA-registered Australian doctor who takes the time to understand your situation before making a clinical decision."
         >
           <div className="flex flex-wrap justify-center gap-3">
@@ -182,7 +182,7 @@ export default function OurDoctorsClient() {
             </Badge>
             <Badge variant="outline" className="py-2 px-4">
               <GraduationCap className="w-4 h-4 mr-2 text-primary" />
-              Qualified GPs
+              Registered doctors
             </Badge>
             <Badge variant="outline" className="py-2 px-4">
               <MapPin className="w-4 h-4 mr-2 text-primary" />

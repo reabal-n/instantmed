@@ -12,7 +12,7 @@ export const HAIR_LOSS_FAQ = [
   {
     question: "What if online care is not suitable?",
     answer:
-      "The doctor will explain why and may recommend GP review, pathology, or specialist care. If InstantMed cannot help, your consultation fee is refunded.",
+      "The doctor will explain why and may recommend doctor review, pathology, or specialist care. If InstantMed cannot help, your consultation fee is refunded.",
   },
   {
     question: "Do I need a doctor consultation?",

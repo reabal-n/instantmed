@@ -250,7 +250,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
     },
     additionalFaqs: [
       { q: "Can I use InstantMed from my office in Parramatta?", a: "Yes. Complete the form from anywhere - your office, the train, or home. The certificate is emailed as a PDF." },
-      { q: "Is InstantMed faster than a Western Sydney GP?", a: `Most certificates are reviewed within 1 hour. Compared to a 4–7 day GP wait in Western Sydney, that's a significant improvement. From ${PRICING_DISPLAY.MED_CERT}.` },
+      { q: "Is InstantMed faster than a Western Sydney GP?", a: `Doctor review follows when available. Compared to a 4–7 day GP wait in Western Sydney, that's a significant improvement. From ${PRICING_DISPLAY.MED_CERT}.` },
       { q: "Do Westmead Hospital and other employers accept these?", a: "Yes. All Australian employers - including NSW Health, hospitals, universities, and private companies - set their own policies for certificates from AHPRA-registered doctors." },
     ],
   },
@@ -273,7 +273,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Penrith Commuters, Western Sydney Workers, and Students",
         paragraphs: [
-          "A significant share of Penrith's working-age population commutes east on the T1 Western Line - to Parramatta, North Sydney, and the Sydney CBD - with door-to-door journey times of 60–90 minutes each way. For these commuters, losing a morning to a GP visit on top of a full workday is often simply not viable. Many of them complete their InstantMed intake on the train itself, have the certificate in their inbox by the time they reach Central, and skip the clinic entirely.",
+          "A significant share of Penrith's working-age population commutes east on the T1 Western Line - to Parramatta, North Sydney, and the Sydney CBD - with door-to-door journey times of 60–90 minutes each way. For these commuters, losing a morning to a GP visit on top of a full workday is often simply not viable. Many of them complete their InstantMed intake on the train itself and skip the clinic entirely.",
           "Penrith also has a large blue-collar workforce across logistics (the M4/M7 corridor is a major warehousing hub), construction, manufacturing, and trades - industries with early starts, long shifts, and little flexibility to sit in a waiting room. The growing Western Sydney International Airport and the surrounding Aerotropolis will only add to this workforce in the coming years. Telehealth is one of the few healthcare models that actually flexes around shift work and early-morning starts.",
           "Western Sydney University's Kingswood and Penrith campuses, together with TAFE NSW Nirimba, serve tens of thousands of students, many of whom are first-in-family university students juggling study, part-time work, and family obligations. For academic support requests, missed assessment documentation, and coursework documentation, all Western Sydney University campuses set their own policies for medical certificates from AHPRA-registered doctors - the consultation method does not affect validity.",
         ],
@@ -282,7 +282,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         title: "Medical Certificates and NSW Employment Law",
         paragraphs: [
           "Penrith employers - from logistics giants on the M4 corridor to NSW Health, from construction firms to local cafes along High Street - all operate under the Fair Work Act 2009 or NSW-specific industrial instruments. The Act refers to evidence from registered health practitioners and does not set a video-call requirement. A telehealth certificate from an AHPRA-registered doctor can support routine sick-leave review.",
-          "For casual retail and hospitality workers at Westfield Penrith, Nepean Village, or the Panthers precinct, a medical certificate can protect your shifts and demonstrate good faith to your employer even when you don't accrue sick leave. Telehealth is particularly useful for this demographic: same-day turnaround, no gap fees, no time off work to see a doctor about why you cannot come to work.",
+          "For casual retail and hospitality workers at Westfield Penrith, Nepean Village, or the Panthers precinct, a medical certificate can protect your shifts and demonstrate good faith to your employer even when you don't accrue sick leave. Telehealth is particularly useful for this demographic: online request submission, no gap fees, no time off work to see a doctor about why you cannot come to work.",
           "We never issue a certificate when the clinical situation is inappropriate for telehealth. If your symptoms suggest you need a physical examination - suspected chest infection, suspicious skin lesion, possible fracture - the doctor will refer you to in-person care and you will not be charged. The same filter applies whether you are in Penrith or anywhere else in the country.",
         ],
       },
@@ -337,7 +337,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         title: "Retirees, Remote Workers, and Hospitality",
         paragraphs: [
           "The Mid North Coast has one of the largest retiree populations per capita in NSW. Older residents typically use GP services more frequently, which further pressures same-day availability for everyone else. For the growing cohort of remote workers who have relocated from Sydney during and after the pandemic, the healthcare access gap is often a nasty surprise - they arrive expecting metropolitan-style convenience and find a week-long wait for a routine appointment.",
-          "The city's hospitality, retail, and tourism workforce relies heavily on medical certificates for absences during peak season. Getting a certificate the day you need it is critical - a delayed certificate often means a lost shift. Telehealth's same-day turnaround is the entire point: submit the intake in the morning, have the certificate in the inbox within an hour or two during business hours.",
+          "The city's hospitality, retail, and tourism workforce relies heavily on medical certificates for absences during peak season. Getting a certificate the day you need it is critical - a delayed certificate often means a lost shift. Telehealth request submission is the entire point: submit the intake in the morning, have the certificate in their inbox if approved.",
           "Southern Cross University's Coffs Harbour campus and TAFE NSW North Coast institutes serve thousands of students across the region. All set their own policies for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation. The consultation method does not affect validity or acceptance.",
         ],
       },
@@ -362,7 +362,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "GP economics on the Mid North Coast have moved in line with the national trend - bulk-billing has declined, gap fees have grown, and waiting lists have lengthened. For a family in Sawtell or Woolgoolga, the combined cost of a routine GP visit - fuel into Coffs, the gap fee, lost work time, and the wait - frequently exceeds what telehealth charges flat. For straightforward needs, the arithmetic favours telehealth.",
           "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees and no surprise add-ons. For families budgeting carefully in a region where housing costs have grown faster than incomes, that predictability matters as much as the time savings.",
-          "Most certificates are reviewed within an hour during business hours. The eScript or PDF arrives via email or SMS, and you can forward it to your supervisor, employer, or labour hire provider directly. The full process - from starting the intake to having the documentation in hand - typically takes 30–60 minutes. For Coffs and Mid North Coast residents, that is significantly faster than securing a same-day clinic appointment.",
+          "Doctor review follows when available during review hours. The eScript or PDF arrives via email or SMS, and you can forward it to your supervisor, employer, or labour hire provider directly. The process stays online from intake to delivery. For Coffs and Mid North Coast residents, that is significantly faster than securing a same-day clinic appointment.",
         ],
       },
     ],
@@ -386,7 +386,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       { q: "Does InstantMed cover Bellingen, Dorrigo, and Nambucca Heads?", a: "Yes. Bellingen, Dorrigo, Urunga, Sawtell, Woolgoolga, Nambucca Heads, Grafton - anywhere on the Mid North Coast with internet access is covered." },
       { q: "Can Southern Cross University students use InstantMed for academic support?", a: "Yes. SCU's Coffs Harbour campus sets its own policy for medical certificates from AHPRA-registered doctors for academic support, missed assessment documentation, and coursework documentation - the same as all Australian universities." },
       { q: "Are certificates suitable for Coffs banana and berry grower documentation?", a: "Yes. All Australian employers, including agricultural businesses, must set their own policies for certificates from AHPRA-registered doctors under the Fair Work Act. The consultation method does not affect validity." },
-      { q: "How fast can I get a certificate during school holidays?", a: `Most certificates are reviewed within an hour during business hours, even during peak tourist periods. From ${PRICING_DISPLAY.MED_CERT} - and there's no seasonal pricing.` },
+      { q: "How fast can I get a certificate during school holidays?", a: `Doctor review follows when available during review hours, including peak tourist periods. From ${PRICING_DISPLAY.MED_CERT} - and there's no seasonal pricing.` },
     ],
   },
   "wagga-wagga": {
@@ -434,7 +434,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "The economics of regional GP access have shifted in recent years. Bulk-billing has declined across the Riverina, gap fees have grown, and waiting times for non-urgent appointments have stretched to a week or more. For a working family in Junee or Cootamundra, the combined cost of a routine GP visit - fuel into Wagga, lost work time, the gap fee, the wait - frequently exceeds what telehealth charges flat. The arithmetic favours telehealth for routine certificate and script needs.",
           "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees, no surprise add-ons, and no bill shock at the end of the consultation. For families budgeting carefully in a region where wages have not kept pace with cost of living, that predictability matters as much as the time saved.",
-          "Most certificates are reviewed within an hour during business hours. The eScript or PDF arrives via email or SMS, and you can forward it directly to your supervisor, employer, or HR contact. The full process - from starting the intake to having the documentation in hand - typically takes 30–60 minutes. For Wagga and Riverina residents, that is significantly faster than securing a same-day clinic appointment in the local catchment.",
+          "Doctor review follows when available during review hours. The eScript or PDF arrives via email or SMS, and you can forward it directly to your supervisor, employer, or HR contact. The process stays online from intake to delivery. For Wagga and Riverina residents, that is significantly faster than securing a same-day clinic appointment in the local catchment.",
         ],
       },
     ],
@@ -482,7 +482,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Port Macquarie is one of Australia's most popular retirement destinations, and the population skews significantly older than the state average. Older Australians are increasingly comfortable with telehealth - the 2020–2021 pandemic period accelerated adoption across all age groups, and the retiree cohort in the Hastings is no exception. For repeat scripts on stable chronic medications, telehealth is often the preferred option: no drive, no waiting room, and the eScript arrives via SMS for collection at the nearest pharmacy.",
           "The region has also become a magnet for remote workers since the pandemic. Many arrived from Sydney or inland NSW for lifestyle reasons and kept their city jobs. These residents often arrived expecting metropolitan healthcare convenience and were surprised to find a week-long wait for routine appointments. Telehealth restores the convenience they were used to without requiring a move back to the city.",
-          "Hospitality, retail, and the region's growing tourism sector employ a younger workforce with irregular hours and limited sick leave accrual. For these workers, a same-day certificate is critical - a delayed certificate often means a lost shift. Telehealth's same-day turnaround solves that specific problem.",
+          "Hospitality, retail, and the region's growing tourism sector employ a younger workforce with irregular hours and limited sick leave accrual. For these workers, timely certificate access is critical - a delayed certificate often means a lost shift. Telehealth request submission solves that specific problem.",
         ],
       },
       {
@@ -506,7 +506,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "GP economics in the Port Macquarie-Hastings region have moved in line with the national trend. Bulk-billing has declined, gap fees have grown to $40–$80, and waiting times for non-urgent appointments have stretched to a week. For households on fixed retiree incomes or working families managing tight budgets, the combined cost of a routine GP visit - fuel, gap fee, lost time, the wait - frequently exceeds what telehealth charges flat.",
           "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees and no surprise add-ons. For residents budgeting carefully in a region where housing and cost-of-living pressures have grown sharply, that predictability matters as much as the time saved.",
-          "Most certificates are reviewed within an hour during business hours. The eScript or PDF arrives via email or SMS for collection at the nearest pharmacy or to forward directly to your employer. The full process - from starting the intake to having the documentation in hand - typically takes 30–60 minutes. For Port Macquarie and Hastings residents, that is significantly faster than securing a same-day clinic appointment.",
+          "Doctor review follows when available during review hours. The eScript or PDF arrives via email or SMS for collection at the nearest pharmacy or to forward directly to your employer. The process stays online from intake to delivery. For Port Macquarie and Hastings residents, that is significantly faster than securing a same-day clinic appointment.",
         ],
       },
     ],
@@ -578,7 +578,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "GP economics in Western NSW have shifted significantly over recent years. Bulk-billing has declined to one of the lowest rates in regional NSW, gap fees have grown to $40–$70, and waiting times have stretched to a week or more. For households across the Orana - particularly those on agricultural incomes that fluctuate with the seasons - the combined cost of a routine GP visit frequently exceeds what telehealth charges flat.",
           "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees and no surprise add-ons. For families budgeting through drought years and rural cost-of-living pressures, that predictability matters as much as the time saved.",
-          "Most certificates are reviewed within an hour during business hours. The eScript or PDF arrives via email or SMS, and you can forward it to your supervisor, employer, or contractor directly. The full process - from starting the intake to having the documentation in hand - typically takes 30–60 minutes. For Dubbo and broader Orana residents, that is significantly faster than securing a same-day clinic appointment.",
+          "Doctor review follows when available during review hours. The eScript or PDF arrives via email or SMS, and you can forward it to your supervisor, employer, or contractor directly. The process stays online from intake to delivery. For Dubbo and broader Orana residents, that is significantly faster than securing a same-day clinic appointment.",
         ],
       },
     ],

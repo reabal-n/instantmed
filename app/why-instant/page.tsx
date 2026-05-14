@@ -47,7 +47,7 @@ const whyInstantFaqs = [
   {
     question: "Faster than my GP, really?",
     answer:
-      "Yes, but specifically: faster than the wait to see your GP. Most Australians wait several days for a non-urgent GP appointment (RACGP Health of the Nation 2024). InstantMed reviews most medical certificate requests in well under an hour, 24/7. We're comparing wait times for what we offer (forms reviewed by a doctor) against the wait to book a GP appointment, not clinical depth or scope.",
+      "Yes, but specifically: faster than the wait to see your GP. Most Australians wait several days for a non-urgent GP appointment (RACGP Health of the Nation 2024). InstantMed lets patients submit routine requests online without waiting for a clinic appointment. We're comparing access friction for what we offer (forms reviewed by a doctor) against the wait to book a GP appointment, not clinical depth or scope.",
   },
   {
     question: "Are you cutting corners to be faster?",
@@ -80,7 +80,7 @@ const honestFastFeatures: FeatureItem[] = [
     icon: <StickerIcon name="user-check" size={48} />,
     title: "Real doctor, every request",
     description:
-      "Every request is reviewed by an AHPRA-registered Australian GP. No algorithmic auto-approval, no AI-only decisions.",
+      "Every request is reviewed by an AHPRA-registered Australian doctor. No algorithmic auto-approval, no AI-only decisions.",
   },
   {
     icon: <StickerIcon name="clock" size={48} />,

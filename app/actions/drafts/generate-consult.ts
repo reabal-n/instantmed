@@ -12,7 +12,7 @@ import { getPostHogClient } from "@/lib/analytics/posthog-server"
 import { getUsage,log } from "./shared"
 
 // Prompt for consultation draft generation (JSON output)
-const CONSULT_JSON_PROMPT = `You are a medical documentation assistant helping Australian GPs prepare for telehealth consultations.
+const CONSULT_JSON_PROMPT = `You are a medical documentation assistant helping Australian doctors prepare for telehealth consultations.
 
 ${CLINICAL_SAFETY_PREAMBLE}
 

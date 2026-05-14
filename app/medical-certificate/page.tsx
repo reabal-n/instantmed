@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Online Medical Certificate | AHPRA GP Review | InstantMed",
     description:
-      "Start with a secure form that takes about 3 minutes. AHPRA-registered GP review. Certificate to your inbox.",
+      "Start with a secure form that takes about 3 minutes. AHPRA-registered doctor review. Certificate to your inbox.",
     url: "https://instantmed.com.au/medical-certificate",
     type: "website",
     locale: "en_AU",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Online Medical Certificate | AHPRA GP Review | InstantMed",
-    description: "Start with a secure form that takes about 3 minutes. AHPRA-registered GP review. Certificate to your inbox.",
+    description: "Start with a secure form that takes about 3 minutes. AHPRA-registered doctor review. Certificate to your inbox.",
   },
   alternates: {
     canonical: "https://instantmed.com.au/medical-certificate",

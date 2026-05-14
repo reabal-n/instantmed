@@ -72,10 +72,10 @@ export const medicalCertificatesConfig: ServiceConfig = {
   name: 'Medical Certificates',
   shortName: 'Med Certs',
   tagline: 'Sick leave, carer\'s leave, or study absence certificates',
-  description: 'Request a routine sick, carer, or study absence certificate. Reviewed by AHPRA-registered doctors, delivered same-day when approved.',
+  description: 'Request a routine sick, carer, or study absence certificate. Reviewed by AHPRA-registered doctors and delivered digitally when approved.',
   
   heroTitle: 'Get a medical certificate without the waiting room',
-  heroSubtitle: 'Complete a quick questionnaire, and an Australian doctor reviews your request. If approved, your certificate is delivered directly to your email, typically within an hour.',
+  heroSubtitle: 'Complete a quick questionnaire, and an Australian doctor reviews your request. If approved, your certificate is delivered directly to your email.',
   heroImage: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=600&h=500&fit=crop&q=80',
   heroImageAlt: 'Healthcare professional reviewing medical documents on tablet',
   
@@ -96,7 +96,7 @@ export const medicalCertificatesConfig: ServiceConfig = {
     {
       step: 2,
       title: 'Doctor reviews your request',
-      description: 'An AHPRA-registered GP reviews your submission. They may message you if they need clarification.',
+      description: 'An AHPRA-registered doctor reviews your submission. They may message you if they need clarification.',
       icon: 'Stethoscope',
     },
     {
@@ -159,7 +159,7 @@ export const medicalCertificatesConfig: ServiceConfig = {
   ],
   
   metaTitle: 'Online Medical Certificates | Same-Day Delivery | InstantMed',
-  metaDescription: 'Get a medical certificate from an Australian doctor in under an hour. Employer policies may vary. Secure, private, and delivered to your email.',
+  metaDescription: 'Request a medical certificate from an Australian doctor. Employer policies may vary. Secure, private, and delivered to your email if approved.',
   
   accentColor: 'emerald',
   icon: 'FileText',
@@ -198,7 +198,7 @@ export const commonScriptsConfig: ServiceConfig = {
     {
       step: 2,
       title: 'Doctor reviews',
-      description: 'An AHPRA-registered GP reviews your request. They\'ll check it\'s safe to continue and may ask follow-up questions.',
+      description: 'An AHPRA-registered doctor reviews your request. They\'ll check it\'s safe to continue and may ask follow-up questions.',
       icon: 'Stethoscope',
     },
     {

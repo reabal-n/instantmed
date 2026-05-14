@@ -28,7 +28,7 @@ export const CONDITION_LOCATION_COMBOS: ConditionLocationCombo[] = [
       },
       {
         q: "Can I get a medical certificate in Sydney without leaving home?",
-        a: "Yes. InstantMed serves all of Greater Sydney. Complete a quick form, get reviewed by an AHPRA-registered doctor, and receive your certificate via email - typically within an hour.",
+        a: "Yes. InstantMed serves all of Greater Sydney. Complete a quick form, get reviewed by an AHPRA-registered doctor, and receive your certificate via email if approved.",
       },
     ],
   },
@@ -36,7 +36,7 @@ export const CONDITION_LOCATION_COMBOS: ConditionLocationCombo[] = [
     conditionSlug: "cold-and-flu",
     citySlug: "melbourne",
     localIntro:
-      "Melbourne's winter brings cold snaps and flu season - usually May to October. Indoor heating and crowded trams create ideal conditions for viruses to spread. If you're in Brunswick, Fitzroy, or the outer suburbs and need a medical certificate without braving the weather or a long clinic wait, InstantMed offers same-day assessment from home. Certificate to your inbox, no tram ride required.",
+      "Melbourne's winter brings cold snaps and flu season - usually May to October. Indoor heating and crowded trams create ideal conditions for viruses to spread. If you're in Brunswick, Fitzroy, or the outer suburbs and need a medical certificate without braving the weather or a long clinic wait, InstantMed offers online assessment from home. Certificate to your inbox if approved, no tram ride required.",
     localFaqs: [
       {
         q: "When does flu season hit Melbourne?",
@@ -52,7 +52,7 @@ export const CONDITION_LOCATION_COMBOS: ConditionLocationCombo[] = [
     conditionSlug: "cold-and-flu",
     citySlug: "brisbane",
     localIntro:
-      "Brisbane's flu season runs later than southern states - typically June to September. Air-conditioned offices and public transport help viruses spread. If you're in the CBD, Logan, or the bayside and need a medical certificate without the wait at a bulk-billing clinic, InstantMed offers same-day assessment. Certificate to your inbox, no drive across town.",
+      "Brisbane's flu season runs later than southern states - typically June to September. Air-conditioned offices and public transport help viruses spread. If you're in the CBD, Logan, or the bayside and need a medical certificate without the wait at a bulk-billing clinic, InstantMed offers online assessment. Certificate to your inbox if approved, no drive across town.",
     localFaqs: [
       {
         q: "When is flu season in Brisbane?",
@@ -60,7 +60,7 @@ export const CONDITION_LOCATION_COMBOS: ConditionLocationCombo[] = [
       },
       {
         q: "Can I get a medical certificate in Brisbane without a clinic visit?",
-        a: "Yes. InstantMed serves Greater Brisbane. Complete the form, get reviewed by an AHPRA-registered doctor, and receive your certificate via email - usually within an hour.",
+        a: "Yes. InstantMed serves Greater Brisbane. Complete the form, get reviewed by an AHPRA-registered doctor, and receive your certificate via email if approved.",
       },
     ],
   },
@@ -100,7 +100,7 @@ export const CONDITION_LOCATION_COMBOS: ConditionLocationCombo[] = [
     conditionSlug: "gastro",
     citySlug: "gold-coast",
     localIntro:
-      "The Gold Coast's tourism and outdoor lifestyle mean gastro can strike when you least expect it. If you're a local or visitor and need a medical certificate without hunting for a bulk-billing clinic, InstantMed offers same-day assessment from anywhere - Broadbeach, Burleigh, or the hinterland. Certificate to your inbox, no drive required.",
+      "The Gold Coast's tourism and outdoor lifestyle mean gastro can strike when you least expect it. If you're a local or visitor and need a medical certificate without hunting for a bulk-billing clinic, InstantMed offers online assessment from anywhere - Broadbeach, Burleigh, or the hinterland. Certificate to your inbox if approved, no drive required.",
     localFaqs: [
       {
         q: "Can tourists get a medical certificate on the Gold Coast?",
@@ -108,7 +108,7 @@ export const CONDITION_LOCATION_COMBOS: ConditionLocationCombo[] = [
       },
       {
         q: "How quickly can I get a gastro certificate on the Gold Coast?",
-        a: "Most requests are reviewed within 30–60 minutes during operating hours. Certificate delivered via email - no clinic visit needed.",
+        a: "Doctor review follows when available during review hours. Certificate delivered via email if approved - no clinic visit needed.",
       },
     ],
   },
@@ -132,7 +132,7 @@ export const CONDITION_LOCATION_COMBOS: ConditionLocationCombo[] = [
     conditionSlug: "migraine",
     citySlug: "melbourne",
     localIntro:
-      "Melbourne's variable weather, fluorescent office lighting, and stress can trigger migraines. If you're unable to work and need a medical certificate without braving the tram or a bright waiting room, InstantMed offers same-day assessment from home. Certificate to your inbox - no travel required when you're at your worst.",
+      "Melbourne's variable weather, fluorescent office lighting, and stress can trigger migraines. If you're unable to work and need a medical certificate without braving the tram or a bright waiting room, InstantMed offers online assessment from home. Certificate to your inbox if approved - no travel required when you're at your worst.",
     localFaqs: [
       {
         q: "Can I get a migraine certificate in Melbourne without a clinic visit?",

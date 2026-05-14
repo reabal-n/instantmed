@@ -113,11 +113,11 @@ const DESCRIPTION_TEMPLATES: Record<PageType, (page: SEOPage) => string> = {
   },
   
   location: (page) => {
-    return `Online doctor services in ${page.slug}. Medical certificates, prescriptions, and consultations from Australian GPs. No need to visit a clinic.`
+    return `Online doctor services in ${page.slug}. Medical certificates, prescriptions, and consultations from Australian doctors. No need to visit a clinic.`
   },
   
   certificate: (page) => {
-    return `Get a ${page.slug.replace(/-/g, ' ')} online. Valid for employers and universities. Issued by Australian doctors within hours.`
+    return `Get a ${page.slug.replace(/-/g, ' ')} online. Valid for employers and universities. Reviewed by Australian doctors when clinically appropriate.`
   },
   
   benefit: (page) => {

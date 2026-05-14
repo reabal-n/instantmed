@@ -58,7 +58,7 @@ const services = [
     features: [
       "E-script to your phone",
       "Any pharmacy Australia-wide",
-      "Usually under 1 hour",
+      "Doctor review",
       "SMS token delivery",
     ],
     popular: false,
@@ -93,7 +93,7 @@ const comparisonItems = [
   { label: "No appointment needed", us: true, them: false },
   { label: "Available 7 days a week", us: true, them: false },
   { label: "AHPRA-registered doctors", us: true, them: true },
-  { label: "Same-day turnaround", us: true, them: false },
+  { label: "Digital delivery if approved", us: true, them: false },
   { label: "Full refund if declined", us: true, them: false },
   { label: "No lock-in contracts", us: true, them: false },
   { label: "Standard workplace evidence", us: true, them: true },

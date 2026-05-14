@@ -64,7 +64,7 @@ export default function PrescriptionsPage() {
       <PrescriptionHowToSchema />
       <SpeakableSchema
         name="Online Prescription Australia"
-        description={`Renew your regular medications or get a new prescription online. AHPRA-registered Australian doctors review your request and send an eScript to your phone. Any pharmacy, same day. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`}
+        description={`Renew your regular medications or get a new prescription online. AHPRA-registered Australian doctors review your request and send an eScript to your phone if approved. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`}
         url="/prescriptions"
       />
       <FAQSchema faqs={[...PRESCRIPTION_FAQ]} />

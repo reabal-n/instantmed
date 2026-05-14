@@ -13,7 +13,7 @@ import { getPostHogClient } from "@/lib/analytics/posthog-server"
 import { getUsage,log } from "./shared"
 
 // Prompt for med cert draft generation (JSON output)
-const MED_CERT_JSON_PROMPT = `You are a medical documentation assistant helping Australian GPs draft medical certificates.
+const MED_CERT_JSON_PROMPT = `You are a medical documentation assistant helping Australian doctors draft medical certificates.
 
 ${CLINICAL_SAFETY_PREAMBLE}
 

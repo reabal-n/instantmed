@@ -15,7 +15,7 @@ import { getUsage,log } from "./shared"
 
 // Prompt for clinical note generation (JSON output)
 // Produces SOAP-format clinical note for record-keeping
-const CLINICAL_NOTE_JSON_PROMPT = `You are a medical documentation assistant helping Australian GPs write SOAP-format clinical notes.
+const CLINICAL_NOTE_JSON_PROMPT = `You are a medical documentation assistant helping Australian doctors write SOAP-format clinical notes.
 
 ${CLINICAL_SAFETY_PREAMBLE}
 

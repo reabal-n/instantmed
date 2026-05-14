@@ -20,7 +20,7 @@ export const revalidate = 43200;
 export const metadata: Metadata = {
   title: "Telehealth Health Guides & Medical Articles",
   description:
-    "Doctor-reviewed guides on medical certificates, telehealth and prescriptions. Written by AHPRA-registered Australian GPs.",
+    "Doctor-reviewed guides on medical certificates, telehealth and prescriptions. Written by AHPRA-registered Australian doctors.",
   openGraph: {
     title: "InstantMed Health Guides",
     description:
@@ -235,7 +235,7 @@ export default function BlogPage() {
 
           <CTABanner
             title="Need a Medical Certificate?"
-            subtitle="Get assessed by an AHPRA-registered doctor. Most requests reviewed within an hour."
+            subtitle="Get assessed by an AHPRA-registered doctor. Review follows when available."
             ctaText="Start a request"
             ctaHref="/request"
             secondaryText={`${PRICING_DISPLAY.FROM_MED_CERT} - No Medicare card required`}

@@ -5,7 +5,7 @@ import { ABN, COMPANY_ADDRESS,COMPANY_NAME, CONTACT_EMAIL, CONTACT_PHONE, PRICIN
 
 export const siteConfig = {
   name: "InstantMed",
-  tagline: "Online doctor consultations, reviewed by real GPs.",
+  tagline: "Online doctor consultations, reviewed by real doctors.",
   operatingHours: {
     medCerts: "24/7",
     rxConsults: "Submit 24/7",
@@ -30,14 +30,14 @@ export const heroRotatingTexts = [
   "Skip the waiting room, not the doctor.",
   "AHPRA-registered doctors. Reviewed, not automated.",
   "Fill in a form. A doctor reviews it. Done.",
-  "Real GP review, without leaving the couch.",
+  "Real doctor review, without leaving the couch.",
 ]
 
 export const trustSignals = [
   {
     icon: "Clock",
-    text: "Certs in ~20 min, scripts in 1–2 hrs",
-    description: "Most requests sorted same day",
+    text: "Submit requests 24/7",
+    description: "Doctor review follows when available",
   },
   {
     icon: "Clock",
@@ -72,7 +72,7 @@ export const serviceCategories = [
     cta: "Get your certificate",
     benefits: [
       "Issued if clinically appropriate",
-      "Delivered to your inbox same-day",
+      "Delivered to your inbox if approved",
       "AHPRA-registered doctor on every cert",
     ],
   },
@@ -101,7 +101,7 @@ export const serviceCategories = [
     title: "General Consult",
     shortTitle: "Consult",
     benefitQuestion: "Need to talk to a doctor?",
-    description: "A full clinical assessment with an AHPRA-registered GP. No appointment, no waiting room.",
+    description: "A full clinical assessment with an AHPRA-registered doctor. No appointment, no waiting room.",
     icon: "Stethoscope",
     color: "sky",
     priceFrom: 49.95,
@@ -109,7 +109,7 @@ export const serviceCategories = [
     popular: false,
     cta: "Start your consult",
     benefits: [
-      "Full clinical assessment by a real GP",
+      "Full clinical assessment by a real doctor",
       "Medication and referrals if needed",
       "Full refund if we can't help",
     ],
@@ -200,7 +200,7 @@ export const proofMetrics = [
   },
   {
     label: "Every request",
-    value: "Real GP reviewed",
+    value: "Real doctor reviewed",
     icon: "MessageSquare",
   },
   {

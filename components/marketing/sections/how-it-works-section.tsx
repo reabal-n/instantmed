@@ -23,17 +23,17 @@ const MED_CERT_STEPS = [
   },
   {
     number: "2",
-    title: "A real GP reviews it",
+    title: "A real doctor reviews it",
     description:
       "AHPRA-registered doctor reviews your request. Same standards as in-person.",
-    badge: "~20 min",
+    badge: "Doctor review",
   },
   {
     number: "3",
     title: "Certificate in your inbox",
     description:
       "Approved certificates are sent as a secure PDF straight to your email.",
-    badge: "Same day",
+    badge: "Digital delivery",
   },
 ]
 
@@ -138,7 +138,7 @@ export function HowItWorksSection({
             </Link>
           </Button>
           <p className="text-xs text-muted-foreground mt-2.5">
-            Most people are sorted in under an hour
+            If approved, your document is sent digitally
           </p>
         </Reveal>
       </div>

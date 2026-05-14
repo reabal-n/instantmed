@@ -48,7 +48,7 @@ export const serviceSEO: Record<string, ServiceSEO> = {
   prescriptions: {
     title: "Online Prescription Australia | Repeat Scripts",
     description:
-      "Request prescriptions online from Australian doctors. Repeat scripts and medication reviews handled online. Reviewed by AHPRA-registered GPs.",
+      "Request prescriptions online from Australian doctors. Repeat scripts and medication reviews handled online. Reviewed by AHPRA-registered doctors.",
     keywords: [
       "online prescription australia",
       "repeat prescription online",

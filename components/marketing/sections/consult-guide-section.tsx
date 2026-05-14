@@ -82,7 +82,7 @@ export function ConsultGuideSection() {
         <Reveal className="text-center mb-12">
           <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/20 text-xs font-medium text-primary mb-4">
             <BadgeCheck className="h-3.5 w-3.5" />
-            Medically reviewed by AHPRA-registered GPs
+            Medically reviewed by AHPRA-registered doctors
           </div>
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight mb-3">
             Everything you need to know about online consultations

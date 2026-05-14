@@ -158,7 +158,7 @@ export default async function AudiencePage({ params }: PageProps) {
                     {
                       step: "2",
                       title: "Doctor reviews",
-                      desc: "An AHPRA-registered GP assesses your request.",
+                      desc: "An AHPRA-registered doctor assesses your request.",
                       time: "~15 min",
                     },
                     {

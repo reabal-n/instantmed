@@ -149,7 +149,7 @@ export default function TrustPage() {
               Every decision, <span className="text-primary">a real doctor</span>.
             </>
           }
-          body="No AI prescribes. No algorithm declines. An AHPRA-registered Australian GP reads your full request and makes the call, with full clinical accountability and a name on every certificate."
+          body="No AI prescribes. No algorithm declines. An AHPRA-registered Australian doctor reads your full request and makes the call, with full clinical accountability and a name on every certificate."
         />
 
         {/* ── Stats Counter Strip ───────────────────────────── */}

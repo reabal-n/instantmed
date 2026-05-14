@@ -28,7 +28,7 @@ const consults: Array<{
     icon: 'hair-brush',
     title: "Hair Loss",
     description:
-      "Medical assessment for hair loss. Evidence-based treatments prescribed by an Australian GP.",
+      "Medical assessment for hair loss. Evidence-based treatments prescribed by an Australian doctor.",
     price: PRICING_DISPLAY.HAIR_LOSS,
     href: "/hair-loss",
   },

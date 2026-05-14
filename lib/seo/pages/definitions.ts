@@ -51,7 +51,7 @@ export const conditionPages: ConditionPage[] = [
     howWeHelp: [
       "Describe your symptoms and how long you've been unwell",
       "Our doctor assesses whether a medical certificate is appropriate",
-      "Certificate issued and emailed in about 20 minutes",
+      "Certificate emailed if approved",
     ],
     disclaimers: [
       "This is not a diagnosis. A medical certificate confirms you're unwell and unable to work - it's not treatment.",
@@ -112,7 +112,7 @@ export const conditionPages: ConditionPage[] = [
     howWeHelp: [
       "Tell us your symptoms and how long you've been unwell",
       "Our doctor assesses if a certificate is appropriate",
-      "Certificate issued immediately",
+      "Certificate emailed if approved",
     ],
     disclaimers: [
       "Most gastro resolves with rest and fluids - see a GP if symptoms are severe or persist.",
@@ -890,7 +890,7 @@ export const certificatePages: CertificatePage[] = [
     name: "Work Medical Certificate",
     title: "Work Medical Certificate Online | Australia | InstantMed",
     description:
-      "Get a doctor-reviewed medical certificate for work in under an hour. Employer policies may vary. No waiting rooms.",
+      "Get a doctor-reviewed medical certificate for work without a waiting room. Employer policies may vary.",
     h1: "Medical certificate for work - fast and valid",
     heroText:
       "Unwell and need to tell your boss? Get a legitimate medical certificate issued by an AHPRA-registered Australian doctor.",
@@ -976,7 +976,7 @@ export const certificatePages: CertificatePage[] = [
       },
       {
         q: "How long does the certificate take?",
-        a: "Usually within an hour. Get it submitted quickly to your institution.",
+        a: "Review follows when available. Submit it to your institution once approved.",
       },
       {
         q: "My exam was yesterday - can I still get a certificate?",
@@ -1044,13 +1044,13 @@ export const benefitPages: BenefitPage[] = [
     name: "Why Online Medical Certificates",
     title: "Why Choose Online Medical Certificates | InstantMed",
     description:
-      "Skip the waiting room. Get a medical certificate in under an hour from home. Legal, valid, and Australian.",
+      "Skip the waiting room. Request a medical certificate from home. Legal, valid, and Australian.",
     h1: "Why online medical certificates make sense",
     sections: [
       {
         title: "Speed",
         content:
-          "Most requests are done within an hour. No 3-week GP wait, no phone tag, no sitting in a waiting room full of sick people. Get it done, get it sent.",
+          "Submit online without the 3-week GP wait, phone tag, or sitting in a waiting room full of sick people. If approved, the certificate is sent digitally.",
       },
       {
         title: "Convenience",
@@ -1084,7 +1084,7 @@ export const benefitPages: BenefitPage[] = [
       },
       {
         q: "What if I have a complicated situation?",
-        a: "If something's unclear, our doctor may message you. If it needs a real GP conversation, we'll advise.",
+        a: "If something's unclear, our doctor may message you. If it needs a real doctor conversation, we'll advise.",
       },
     ],
   },

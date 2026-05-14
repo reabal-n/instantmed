@@ -89,14 +89,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ],
     openGraph: {
       title: `Online Doctor ${data.fullName} | InstantMed`,
-      description: `Telehealth medical certificates and prescriptions for every ${data.shortName} postcode. Reviewed by AHPRA-registered doctors in minutes.`,
+      description: `Telehealth medical certificates and prescriptions for every ${data.shortName} postcode. Reviewed by AHPRA-registered doctors.`,
       url: canonical,
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
       title: `Online Doctor ${data.fullName} | InstantMed`,
-      description: `Telehealth for ${data.fullName} residents - same-day med certs, eScripts, consultations.`,
+      description: `Telehealth for ${data.fullName} residents - online med certs, eScripts, consultations.`,
     },
     alternates: { canonical },
   }

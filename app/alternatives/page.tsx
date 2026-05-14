@@ -97,7 +97,7 @@ const OPTIONS: OptionCard[] = [
     whenItDoesnt:
       "When your condition needs an in-person examination, diagnostic tests, or is severe or worsening. Telehealth providers will decline and refund in those cases.",
     typicalCost: `From $${PRICING.MED_CERT.toFixed(2)}, no Medicare required. Refund if a doctor cannot help.`,
-    typicalTime: "Form takes around 2 minutes. Doctor review usually within 20 minutes. Certificate emailed as a PDF.",
+    typicalTime: "Form takes around 2 minutes. Doctor review follows when available. Certificate emailed as a PDF if approved.",
   },
   {
     title: "Statutory declaration",
@@ -254,7 +254,7 @@ export default function AlternativesPage() {
               If online telehealth fits your situation
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-              An AHPRA-registered Australian GP reviews your request, usually within 20 minutes, and emails the certificate to you as a PDF. Full refund if our doctor cannot help.
+              An AHPRA-registered Australian doctor reviews your request and emails the certificate to you as a PDF if approved. Full refund if our doctor cannot help.
             </p>
             <div className="pt-2">
               <Link

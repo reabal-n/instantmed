@@ -5,7 +5,7 @@
 
 export const APP_NAME = "InstantMed"
 export const APP_DESCRIPTION =
-  "Get medical certificates and prescriptions online from AHPRA-registered Australian GPs."
+  "Get medical certificates and prescriptions online from AHPRA-registered Australian doctors."
 
 // Company identity
 export const COMPANY_NAME = "InstantMed Pty Ltd"

@@ -26,7 +26,7 @@ export function DoctorProfileSection() {
                 <span className="text-xs font-medium text-primary">AHPRA Verified</span>
               </div>
               <h2 className="text-lg font-semibold text-foreground mb-2">
-                AHPRA-registered GPs
+                AHPRA-registered doctors
               </h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Every request is reviewed and approved by an experienced,

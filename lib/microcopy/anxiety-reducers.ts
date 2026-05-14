@@ -8,7 +8,7 @@ export const ANXIETY_REDUCERS = {
 
   // Time expectations
   timing: {
-    review: "Most requests done within 1-2 hours",
+    review: "Review follows when available",
     businessHours: "Submit anytime; review follows when available",
     worst: "Worst case, 24 hours",
     approval: "If approved, document lands in your inbox",
@@ -16,7 +16,7 @@ export const ANXIETY_REDUCERS = {
 
   // Process clarity
   process: {
-    whatHappens: "A real GP reviews every request. Not a bot, not an algorithm.",
+    whatHappens: "A real doctor reviews every request. Not a bot, not an algorithm.",
     moreInfo: "If they need more info, they'll reach out",
     decline: "If we can't help, full refund. No awkward conversations.",
   },
@@ -46,7 +46,7 @@ export const ANXIETY_REDUCERS = {
 
   // Trust builders
   trust: {
-    doctors: "Reviewed by AHPRA-registered Australian GPs",
+    doctors: "Reviewed by AHPRA-registered Australian doctors",
     refund: "Full refund if we can't help. No questions.",
     privacy: "We never share your data",
     support: "Real humans if you need help",

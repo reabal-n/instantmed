@@ -125,7 +125,7 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
                 />
               </svg>
               <p className="text-[10px] text-foreground/80 dark:text-white/70 font-medium">
-                AHPRA-registered GP
+                AHPRA-registered doctor
               </p>
               <p className="text-[9px] text-muted-foreground/70 dark:text-white/40 font-mono tracking-wide">
                 Registration on file

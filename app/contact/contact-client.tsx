@@ -113,7 +113,7 @@ export function ContactClient() {
                     Message sent!
                   </h1>
                   <p className="text-muted-foreground mb-8">
-                    We&apos;ve got it - a real person will read your message and get back to you, usually within a few hours. Keep an eye on your inbox.
+                    We&apos;ve got it - a real person will read your message and get back to you as soon as they can. Keep an eye on your inbox.
                   </p>
                   <Button asChild className="rounded-full text-primary-foreground">
                     <Link href="/">
@@ -139,7 +139,7 @@ export function ContactClient() {
           pill="Contact Us"
           title="Got a question? We're here to help."
           highlightWords={["here to help."]}
-          subtitle="Real people who read and reply to every message. Usually within a few hours, always within 24."
+          subtitle="Real people who read and reply to every message. No chatbot wall."
           className="pt-32 pb-16"
         />
 
@@ -151,7 +151,7 @@ export function ContactClient() {
               Real <span className="text-primary">humans</span> read every message.
             </>
           }
-          body="No chatbot wall, no auto-responder loop. Every contact-form message lands in a real inbox and gets a written reply, usually within a few hours and always within 24."
+          body="No chatbot wall, no auto-responder loop. Every contact-form message lands in a real inbox and gets a written reply."
         />
 
         {/* Response Stats */}
@@ -224,7 +224,7 @@ export function ContactClient() {
         {/* CTA Banner */}
         <CTABanner
           title="Looking for a medical certificate or repeat medication?"
-          subtitle={`Join ${getPatientCount().toLocaleString()}+ Australians who trust InstantMed. Fill in a quick form and an AHPRA-registered doctor reviews your request, most done within the hour.`}
+          subtitle={`Join ${getPatientCount().toLocaleString()}+ Australians who trust InstantMed. Fill in a quick form and an AHPRA-registered doctor reviews your request when available.`}
           ctaText="Get started"
           ctaHref="/request"
           secondaryText="See how it works"

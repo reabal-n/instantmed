@@ -201,7 +201,7 @@ function ComparisonTable() {
         </table>
       </div>
       <p className="mt-4 text-[11px] text-muted-foreground text-center leading-relaxed px-2">
-        * Average review time based on recent requests. Individual times vary.{" "}
+        * Review timing varies by queue volume and clinical complexity.{" "}
         † GP cost estimated from MBS item 23 standard consultation fee. Out-of-pocket costs vary by clinic.
       </p>
     </motion.div>

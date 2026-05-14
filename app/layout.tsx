@@ -92,13 +92,13 @@ export const metadata: Metadata = {
     siteName: "InstantMed",
     title: "InstantMed | Online Doctor Australia",
     description:
-      `Faster than your GP. Telehealth without the small talk. Med certs from ${PRICING_DISPLAY.MED_CERT}, repeat medication, and online doctor consults from AHPRA-registered Australian GPs.`,
+      `Faster than your GP. Telehealth without the small talk. Med certs from ${PRICING_DISPLAY.MED_CERT}, repeat medication, and online doctor consults from AHPRA-registered Australian doctors.`,
     // OG image handled by app/opengraph-image.tsx convention file
   },
   twitter: {
     card: "summary_large_image",
     title: "InstantMed | Online Doctor Australia",
-    description: `Faster than your GP. Telehealth without the small talk. Med certs from ${PRICING_DISPLAY.MED_CERT}, repeat medication, and online doctor consults from AHPRA-registered Australian GPs.`,
+    description: `Faster than your GP. Telehealth without the small talk. Med certs from ${PRICING_DISPLAY.MED_CERT}, repeat medication, and online doctor consults from AHPRA-registered Australian doctors.`,
     // Twitter image handled by app/opengraph-image.tsx convention file
   },
   robots: {

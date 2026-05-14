@@ -88,16 +88,16 @@ const HOW_IT_WORKS_STEPS = [
   {
     sticker: "stethoscope" as const,
     step: 2,
-    title: "A real GP reviews it",
-    description: `An AHPRA-registered doctor reviews your assessment. Average review time is ~${SOCIAL_PROOF.averageResponseMinutes} minutes.`,
-    time: `~${SOCIAL_PROOF.averageResponseMinutes} min`,
+    title: "A real doctor reviews it",
+    description: "An AHPRA-registered doctor reviews your assessment and decides whether a certificate is clinically appropriate.",
+    time: "Doctor review",
   },
   {
     sticker: "certificate" as const,
     step: 3,
     title: "Certificate sent to you",
     description: "If approved, your medical certificate is emailed to you as a PDF with verification details.",
-    time: "Same day",
+    time: "Digital delivery",
   },
 ]
 
@@ -256,7 +256,7 @@ function CertComparisonViz() {
       heading="Back on the couch in minutes. Not hours."
       ours={{ label: "InstantMed", value: `~${SOCIAL_PROOF.certTurnaroundMinutes}`, unit: "min" }}
       theirs={{ label: "GP clinic", value: "2", valueSuffix: "+", unit: "hrs" }}
-      ourSteps={["2 min form", "GP reviews your request", "Certificate in your inbox"]}
+      ourSteps={["2 min form", "Doctor reviews your request", "Certificate in your inbox"]}
       theirSteps={["Call to book appointment", "Travel to clinic", "Waiting room and consult"]}
       primaryFillPercent={18}
     />
@@ -381,7 +381,7 @@ export function MedCertLanding() {
             <div data-track-section="final_cta">
               <CTABanner
                 title="Back to bed in two minutes."
-                subtitle={`Fill the form, a real GP reviews it, and your certificate lands in your inbox. Trusted by ${patientCount.toLocaleString()}+ Australians.`}
+                subtitle={`Fill the form, a real doctor reviews it, and your certificate lands in your inbox. Trusted by ${patientCount.toLocaleString()}+ Australians.`}
                 ctaText={isDisabled ? "Contact us" : `Get your certificate · $${PRICING.MED_CERT.toFixed(2)}`}
                 ctaHref={isDisabled ? "/contact" : MED_CERT_START_HREF}
               />

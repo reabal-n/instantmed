@@ -166,6 +166,48 @@ const PUBLIC_OUTCOME_STAT_SURFACES = PUBLIC_SOCIAL_PROOF_SURFACES.filter(
   (surface) => surface !== "lib/social-proof",
 )
 
+const PUBLIC_DOCTOR_MODEL_SURFACES = [
+  "app/sign-in",
+  "app/sign-up",
+  "app/layout.tsx",
+  "app/manifest.ts",
+  "app/online-doctor-australia",
+  "app/blog/page.tsx",
+  "app/our-doctors",
+  "app/trust",
+  "components/marketing/credential-card.tsx",
+  "components/marketing/how-it-works.tsx",
+  "components/marketing/sections/how-it-works-section.tsx",
+  "components/marketing/med-cert-landing.tsx",
+  "lib/constants/index.ts",
+  "lib/marketing/homepage.ts",
+  "lib/marketing/services.ts",
+  "lib/microcopy",
+]
+
+const PUBLIC_FIXED_TURNAROUND_SURFACES = [
+  "app",
+  "components/marketing",
+  "components/patient/what-happens-next.tsx",
+  "components/request/steps/certificate-step.tsx",
+  "components/request/steps/weight-loss-call-step.tsx",
+  "components/seo",
+  "components/shared/footer.tsx",
+  "lib/data",
+  "lib/email/components/templates",
+  "lib/marketing",
+  "lib/microcopy",
+  "lib/seo/data/competitor-comparisons.ts",
+  "lib/seo/data/audience-pages.ts",
+  "lib/seo/data/condition-location-combos.ts",
+  "lib/seo/data/deep-city-content",
+  "lib/seo/data/guides",
+  "lib/seo/data/states.ts",
+  "lib/seo/metadata-generator.ts",
+  "lib/seo/pages",
+  "lib/seo/symptoms.ts",
+]
+
 const PUBLIC_TRUST_LOGO_SURFACES = [
   "app/about",
   "app/consult",
@@ -273,6 +315,55 @@ const PUBLIC_RISKY_OUTCOME_STAT_PATTERNS = [
   /\bfulfilled same day\b/i,
   /\bdelivered same day\b/i,
   /\bpatients return\b/i,
+]
+
+const PUBLIC_DOCTOR_MODEL_OVERCLAIM_PATTERNS = [
+  /\bAHPRA-registered (?:Australian )?GPs?\b/i,
+  /\bAHPRA-registered online GPs?\b/i,
+  /\b(?:real|qualified) GPs?\b/i,
+  /\bonline GPs?\b/i,
+]
+
+const PUBLIC_FIXED_TURNAROUND_PATTERNS = [
+  /\bunder 15 minutes\b/i,
+  /\bunder an hour\b/i,
+  /\bwithin the hour\b/i,
+  /\bwithin an hour\b/i,
+  /\bwithin 1[-–]2 hours\b/i,
+  /\bwithin 1 hour\b/i,
+  /\bwithin hours\b/i,
+  /\bwithin 30[-–]60 minutes\b/i,
+  /\bwithin 30 minutes\b/i,
+  /\bin under 30 minutes\b/i,
+  /\btypically in under 30 minutes\b/i,
+  /\bin about 20 minutes\b/i,
+  /\baround 20 minutes\b/i,
+  /\busually within 20 minutes\b/i,
+  /\busually under 30 minutes\b/i,
+  /\busually within a few hours\b/i,
+  /\bUsually under 1 hour\b/i,
+  /\bUsually within 1[-–]2h\b/i,
+  /\btypically reviewed within\b/i,
+  /\bAverage review time\b/i,
+  /\b15-minute priority\b/i,
+  /\b~20 min\b/i,
+  /\bMost requests reviewed\b/i,
+  /\bMost certificates are reviewed\b/i,
+  /\bMost reviewed\b/i,
+  /\bcompleted within an hour\b/i,
+  /\bCertificate issued immediately\b/i,
+  /\bCertificate issued and emailed in about 20 minutes\b/i,
+  /\breviewed in minutes\b/i,
+  /\bReviewed by AHPRA-registered doctors in minutes\b/i,
+  /\bsame-day access\b/i,
+  /\bsame-day service\b/i,
+  /\bsent same day\b/i,
+  /\barrives the same day\b/i,
+  /\bsame-day turnaround\b/i,
+  /\breviewed same-day\b/i,
+  /\bsame-day review\b/i,
+  /\bdelivered same-day\b/i,
+  /\bMost people are sorted\b/i,
 ]
 
 function toFullPath(relative: string): string {
@@ -456,6 +547,30 @@ describe("advertising compliance guard", () => {
     const hits = findHits(collectFiles(PUBLIC_CREDENTIAL_CLAIM_SURFACES), patterns)
     if (hits.length > 0) {
       failWithReport("Public credential claim guard failed", hits)
+    }
+
+    expect(hits).toEqual([])
+  })
+
+  it("keeps public doctor model claims to registered doctors, not unverified GP labels", () => {
+    const hits = findHits(
+      collectFiles(PUBLIC_DOCTOR_MODEL_SURFACES),
+      PUBLIC_DOCTOR_MODEL_OVERCLAIM_PATTERNS,
+    )
+    if (hits.length > 0) {
+      failWithReport("Public doctor-model claim guard failed", hits)
+    }
+
+    expect(hits).toEqual([])
+  })
+
+  it("keeps public surfaces away from fixed review-time promises", () => {
+    const hits = findHits(
+      collectFiles(PUBLIC_FIXED_TURNAROUND_SURFACES),
+      PUBLIC_FIXED_TURNAROUND_PATTERNS,
+    )
+    if (hits.length > 0) {
+      failWithReport("Public fixed-turnaround guard failed", hits)
     }
 
     expect(hits).toEqual([])

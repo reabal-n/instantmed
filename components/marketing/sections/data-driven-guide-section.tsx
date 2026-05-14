@@ -53,7 +53,7 @@ export interface DataDrivenGuideSectionProps {
  */
 export function DataDrivenGuideSection({
   ariaLabel,
-  badge = "Medically reviewed by AHPRA-registered GPs",
+  badge = "Medically reviewed by AHPRA-registered doctors",
   title,
   subtitle,
   sections,

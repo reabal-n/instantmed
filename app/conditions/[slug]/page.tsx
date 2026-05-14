@@ -100,7 +100,6 @@ export default async function ConditionPage({ params }: PageProps) {
   }]
 
   const fromPrice = condition.serviceType === "consult" ? PRICING_DISPLAY.CONSULT : PRICING_DISPLAY.MED_CERT
-  const serviceLabel = condition.serviceType === "med-cert" ? "certificates" : "consultations"
 
   return (
     <>
@@ -488,7 +487,7 @@ export default async function ConditionPage({ params }: PageProps) {
             {/* CTA Banner */}
             <CTABanner
               title={`Ready to get help with ${condition.name}?`}
-              subtitle={`Australian-registered doctors available now. Most ${serviceLabel} completed within an hour.`}
+              subtitle={`Australian-registered doctors review your request when available.`}
               ctaText={condition.ctaText}
               ctaHref={condition.ctaHref}
               secondaryText="Learn how it works"

@@ -51,7 +51,7 @@ export const revalidate = 3600
 // Note: Avoid prescription drug terms (script, prescription) per Google Ads policy for Australia
 export const metadata: Metadata = {
   title: { absolute: 'Online Doctor Australia | Consults, Repeat Rx, Med Certs, ED & Hair Loss | InstantMed' },
-  description: `Faster than your GP. Telehealth without the small talk. Medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat medication from ${PRICING_DISPLAY.REPEAT_SCRIPT}, online doctor consults from ${PRICING_DISPLAY.CONSULT}. AHPRA-registered Australian GPs.`,
+  description: `Faster than your GP. Telehealth without the small talk. Medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat medication from ${PRICING_DISPLAY.REPEAT_SCRIPT}, online doctor consults from ${PRICING_DISPLAY.CONSULT}. AHPRA-registered Australian doctors.`,
   keywords: [
     'online doctor australia',
     'telehealth australia',

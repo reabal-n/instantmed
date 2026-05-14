@@ -41,7 +41,7 @@ export function CertificatePreviewSection({ onCTAClick }: { onCTAClick?: () => v
               A real certificate from a real doctor
             </h2>
             <p className="text-muted-foreground mb-6 leading-relaxed">
-              Every certificate is issued by an AHPRA-registered GP and includes
+              Every certificate is issued by an AHPRA-registered doctor and includes
               everything your employer or university needs. Identical to what
               you&apos;d receive at a clinic.
             </p>

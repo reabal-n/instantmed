@@ -34,7 +34,7 @@ export function CredentialCard({ className, compact = false }: CredentialCardPro
         compact ? "px-3 py-2" : "px-4 py-2.5",
         className,
       )}
-      aria-label="AHPRA-registered Australian GPs. Verify on ahpra.gov.au."
+      aria-label="AHPRA-registered Australian doctors. Verify on ahpra.gov.au."
     >
       {/* Shield mark with subtle ring */}
       <div className="relative shrink-0">
@@ -55,7 +55,7 @@ export function CredentialCard({ className, compact = false }: CredentialCardPro
           "font-semibold text-foreground",
           compact ? "text-[11px]" : "text-xs",
         )}>
-          AHPRA-registered Australian GPs
+          AHPRA-registered Australian doctors
         </p>
         <p className={cn(
           "text-muted-foreground flex items-center gap-1",

@@ -58,7 +58,7 @@ const guaranteeFaqs = [
   {
     question: "How long until I know if a doctor can help me?",
     answer:
-      "Medical certificates: usually under 30 minutes, 24/7. Prescriptions and consultations: requests can be submitted 24/7 and are typically reviewed within 1 to 2 hours during review hours (8am to 10pm AEST, 7 days). You will get email updates. We do not guarantee a specific time, only the outcome.",
+      "Requests can be submitted 24/7. Prescriptions and consultations are reviewed during review hours (8am to 10pm AEST, 7 days), and medical certificate review follows when a doctor is available. You will get email updates. We do not guarantee a specific review time, only the refund outcome if our doctor cannot help.",
   },
   {
     question: "What if the doctor needs more information from me?",
@@ -151,7 +151,7 @@ const refundSteps = [
     number: 1,
     title: "Doctor reviews your request",
     description:
-      "An AHPRA-registered GP looks at your symptoms, history, and what you have asked for. Outcome is one of three: issue, decline, or follow-up question.",
+      "An AHPRA-registered doctor looks at your symptoms, history, and what you have asked for. Outcome is one of three: issue, decline, or follow-up question.",
   },
   {
     number: 2,

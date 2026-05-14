@@ -251,7 +251,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
         name: `Can I get a medical certificate online in ${data.name}?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Yes! InstantMed provides online medical certificates to ${data.name} residents. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate - typically in under 30 minutes, available 24/7.`,
+          text: `Yes! InstantMed provides online medical certificates to ${data.name} residents. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate digitally if approved.`,
         },
       },
       {
@@ -333,7 +333,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
                   {
                     step: "2",
                     title: "Doctor reviews",
-                    desc: "An Australian GP reviews your request",
+                    desc: "An Australian doctor reviews your request",
                   },
                   {
                     step: "3",

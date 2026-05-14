@@ -171,11 +171,11 @@ export const statesData: Record<StateSlug, StateData> = {
     capital: "Brisbane",
     heroHeadline: "Online doctor across Queensland",
     heroSubtitle:
-      "Telehealth medical certificates and prescriptions for Queensland residents. From Brisbane to Cairns, reviewed by AHPRA-registered doctors - same-day turnaround, no driving.",
+      "Telehealth medical certificates and prescriptions for Queensland residents. From Brisbane to Cairns, reviewed by AHPRA-registered doctors - no driving.",
     healthcareContext: [
       "Queensland's geography makes it the poster child for Australian telehealth. The state covers 1.85 million km² - more than seven times the size of the UK - with population clusters along the coast and sparse inland communities. A resident of Mount Isa is closer to Darwin than to Brisbane. Regional Queenslanders have some of the highest telehealth adoption rates in the country, and for good reason: the alternative is often a 2-4 hour drive or a flight to the nearest GP with availability.",
       "The Southeast corner - Brisbane, Gold Coast, Sunshine Coast, Ipswich, Toowoomba - has decent GP density but among the longest appointment wait times in Australia. Brisbane's northside and the Sunshine Coast have been growing faster than clinic capacity since 2020, pushing non-urgent wait times to 5-10 days. For FIFO workers, shift workers at the Brisbane Airport precinct, or anyone managing a busy schedule, the friction of a traditional GP visit for a straightforward med cert or prescription repeat is often untenable.",
-      "Far North Queensland and the tropics present unique medical considerations - stinger season, dengue awareness, tropical ulcer management - that InstantMed's doctors are trained for. Our prescribing follows TGA guidelines and we maintain the same Schedule 8 blocks as any other telehealth provider, but for straightforward repeat scripts on stable medication, the Cairns-to-Townsville corridor can access an AHPRA-registered doctor within an hour regardless of wet season flooding.",
+      "Far North Queensland and the tropics present unique medical considerations - stinger season, dengue awareness, tropical ulcer management - that InstantMed's doctors are trained for. Our prescribing follows TGA guidelines and we maintain the same Schedule 8 blocks as any other telehealth provider, but for straightforward repeat scripts on stable medication, the Cairns-to-Townsville corridor can submit a request to an AHPRA-registered doctor without relying on road conditions.",
     ],
     stats: [
       { label: "Population", value: "5.5M", context: "Third-largest Australian state" },
@@ -286,7 +286,7 @@ export const statesData: Record<StateSlug, StateData> = {
     capital: "Adelaide",
     heroHeadline: "Online doctor across South Australia",
     heroSubtitle:
-      "Medical certificates and prescriptions for South Australians. Adelaide, the Limestone Coast, Outback SA - reviewed by AHPRA-registered doctors in minutes.",
+      "Medical certificates and prescriptions for South Australians. Adelaide, the Limestone Coast, Outback SA - reviewed by AHPRA-registered doctors.",
     healthcareContext: [
       "South Australia is geographically vast - 984,000 km² - but with a relatively small population concentrated in Adelaide and along the coast. Like WA, distance is the defining feature of healthcare access outside the capital. A resident of Coober Pedy or Ceduna has limited options for a same-day GP visit, and the alternative is often a day-long drive to Adelaide or Port Augusta.",
       "Adelaide itself has comparatively good GP access by Australian standards - higher bulk-billing rates than Melbourne or Sydney CBDs, shorter average wait times for non-urgent appointments. Where Adelaide residents commonly use telehealth is for convenience and scheduling flexibility rather than access pressure. The CBD, North Adelaide, and inner suburbs have GPs available, but fitting a visit around work, childcare, or university commitments is the same friction as any other capital city.",

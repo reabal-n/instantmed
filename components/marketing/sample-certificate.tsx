@@ -107,7 +107,7 @@ export function SampleCertificate({ className = '', animate = true }: SampleCert
           <div className="mb-6">
             <p className="text-xs text-gray-500 italic mb-1">Electronically signed</p>
             <p className="font-semibold text-gray-900">Reviewing Doctor</p>
-            <p className="text-xs text-gray-500">AHPRA-registered GP</p>
+            <p className="text-xs text-gray-500">AHPRA-registered doctor</p>
             <p className="text-xs text-gray-500">InstantMed Medical Practice</p>
           </div>
 

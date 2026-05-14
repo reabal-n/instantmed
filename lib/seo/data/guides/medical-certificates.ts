@@ -14,7 +14,7 @@ export const medCertGuides: Record<string, GuideData> = {
     description: "A complete guide to getting routine sick-leave evidence for work in Australia. Learn your options, what employers review, and the fastest ways to request one.",
     lastUpdated: "April 2026",
     readTime: "6 min read",
-    intro: "Need time off work due to illness? In Australia, employers can request a medical certificate for sick leave, especially for absences of more than 2 days. This guide explains all your options for getting one - from your regular GP to telehealth services that can have you sorted in under an hour.",
+    intro: "Need time off work due to illness? In Australia, employers can request a medical certificate for sick leave, especially for absences of more than 2 days. This guide explains all your options for getting one - from your regular GP to telehealth services that let you submit a request from home.",
     steps: [
       {
         title: "Understand when you need a medical certificate",
@@ -27,11 +27,11 @@ export const medCertGuides: Record<string, GuideData> = {
       },
       {
         title: "Choose how to see a doctor",
-        content: "You have several options for getting a medical certificate in Australia. Your regular GP is always an option, but appointments can take days to get. After-hours clinics work for evenings and weekends but often have long waits. Telehealth services like InstantMed let you get assessed online - typically in under an hour, without leaving home.",
+        content: "You have several options for getting a medical certificate in Australia. Your regular GP is always an option, but appointments can take days to get. After-hours clinics work for evenings and weekends but often have long waits. Telehealth services like InstantMed let you get assessed online without leaving home.",
         tips: [
           "GP clinics: Usually need an appointment, may have wait times of days",
           "Walk-in clinics: No appointment but often 1-2 hour waits",
-          "Telehealth: Fastest option, done from home, usually under 1 hour"
+          "Telehealth: Online request from home, doctor-reviewed if clinically appropriate"
         ]
       },
       {
@@ -374,7 +374,7 @@ export const medCertGuides: Record<string, GuideData> = {
       { q: "How often can I take mental health days?", a: "As often as needed, within your leave balance. If you're frequently needing time off, consider discussing ongoing support with a GP." },
       { q: "Do I need to see a psychologist to get a mental health certificate?", a: "No. A GP (including via telehealth) can issue a medical certificate for a mental health day. You don't need a specialist." }
     ],
-    cta: { text: "Get a certificate", href: "/request?service=med-cert", subtext: "Certificate issued in under an hour. No diagnosis disclosed." }
+    cta: { text: "Get a certificate", href: "/request?service=med-cert", subtext: "Doctor-reviewed certificate if clinically appropriate. No diagnosis disclosed." }
   },
   "medical-certificate-for-surgery-recovery": {
     title: "How to Get a Medical Certificate for Surgery Recovery",

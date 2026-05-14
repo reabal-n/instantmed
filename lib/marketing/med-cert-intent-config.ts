@@ -136,7 +136,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     ],
     ctaTitle: "Get the documentation you need",
     ctaSubtitle:
-      "Quick form, real doctor review. Certificate to your inbox, usually within the hour.",
+      "Quick form, real doctor review. Certificate to your inbox if approved.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: "Medical Certificate for Study | Uni & TAFE $19.95",
@@ -296,7 +296,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     ],
     ctaTitle: "Get the documentation your uni needs",
     ctaSubtitle:
-      "Quick form, real doctor review. Certificate to your inbox, usually within the hour.",
+      "Quick form, real doctor review. Certificate to your inbox if approved.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: "Medical Certificate for University | Student Absence $19.95",
@@ -328,7 +328,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "How quickly can I get it?",
         answer:
-          "Most requests are reviewed within 30–60 minutes during operating hours. Plan ahead for deadlines. We can't guarantee same-day delivery during peak periods.",
+          "Doctor review follows when available during review hours. Plan ahead for deadlines. We can't guarantee same-day delivery during peak periods.",
       },
     ],
   },
@@ -354,7 +354,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     ],
     ctaTitle: "Documentation for school absences",
     ctaSubtitle:
-      "Quick form, doctor review. Certificate to your inbox, usually within the hour.",
+      "Quick form, doctor review. Certificate to your inbox if approved.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: "Medical Certificate for School | Child Absence $19.95",
@@ -465,7 +465,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     ],
     ctaTitle: "Need routine sick-leave evidence instead?",
     ctaSubtitle:
-      "Quick form, doctor review. Certificate to your inbox, usually within the hour.",
+      "Quick form, doctor review. Certificate to your inbox if approved.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: "Centrelink Medical Evidence | Check Requirements First",
@@ -635,7 +635,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     ],
     ctaTitle: "Documentation for working remotely",
     ctaSubtitle:
-      "Quick form, doctor assessment. Certificate to your inbox, usually within the hour.",
+      "Quick form, doctor assessment. Certificate to your inbox if approved.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: "Medical Certificate Work From Home | WFH Documentation $19.95",

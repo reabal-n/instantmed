@@ -643,7 +643,7 @@ export default function TelehealthAustraliaPage() {
               </Heading>
               <p className="text-muted-foreground mb-8">
                 Fill in a form, an AHPRA-registered doctor reviews it, certificate or eScript
-                arrives the same day. Refund if it&apos;s not the right fit.
+                arrives digitally if approved. Refund if it&apos;s not the right fit.
               </p>
               <div className="flex flex-wrap justify-center gap-3">
                 <Button asChild size="lg" className="rounded-full px-8">

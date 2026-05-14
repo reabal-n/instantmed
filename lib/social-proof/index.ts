@@ -46,8 +46,8 @@ const TOTAL_MS = TARGET_DATE.getTime() - ANCHOR_DATE.getTime()
  * All marketing pages, SEO data objects, and structured data must
  * reference these constants (or SOCIAL_PROOF_DISPLAY) instead of
  * hardcoding numbers. Prose copy (blog articles, meta descriptions)
- * may use natural language equivalents ("under an hour") but the
- * numbers here are the source.
+ * must avoid fixed public review-time promises; internal
+ * numbers here are the source for operational monitoring.
  *
  * Update here when real analytics data becomes available.
  */

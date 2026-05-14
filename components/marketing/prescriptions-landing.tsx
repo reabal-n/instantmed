@@ -91,7 +91,7 @@ const HOW_IT_WORKS_STEPS = [
   {
     sticker: "stethoscope" as const,
     step: 2,
-    title: "A real GP reviews it",
+    title: "A real doctor reviews it",
     description: "An AHPRA-registered doctor checks your request and medical history.",
     time: `~${SOCIAL_PROOF.averageResponseMinutes} min`,
   },
@@ -272,7 +272,7 @@ function PrescriptionComparisonViz() {
       heading="Your medication. Without the appointment."
       ours={{ label: "InstantMed", value: "~45", unit: "min" }}
       theirs={{ label: "GP visit", value: "3", valueSuffix: "+", unit: "hrs" }}
-      ourSteps={["5 min form", "GP reviews your request", "eScript sent to your phone"]}
+      ourSteps={["5 min form", "Doctor reviews your request", "eScript sent to your phone"]}
       theirSteps={["Call for appointment", "Travel to clinic", "Wait room + consult + pharmacy"]}
       primaryFillPercent={25}
     />
@@ -356,7 +356,7 @@ export function PrescriptionsLanding() {
             onCTAClick={handleHowItWorksCTA}
             isDisabled={isDisabled}
             heading="Three steps. No waiting room."
-            subheading="From your couch to your pharmacy. Most scripts are sent same day."
+            subheading="From your couch to your pharmacy. Scripts are sent digitally if approved."
           />
 
           {/* 3. eScript explainer — muted bg for rhythm.

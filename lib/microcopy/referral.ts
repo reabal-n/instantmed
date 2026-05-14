@@ -23,7 +23,7 @@ export const REFERRAL_COPY = {
     cta: "Start request",
     price: PRICING_DISPLAY.CONSULT,
     features: [
-      "GP reviews your clinical information",
+      "Doctor reviews your clinical information",
       "Referral issued if appropriate",
       "Valid at any pathology or imaging centre",
     ],
@@ -178,7 +178,7 @@ export const REFERRAL_COPY = {
     heading: "Complete payment",
     subtitle: "A GP will review and issue a referral if clinically appropriate",
     price: PRICING_DISPLAY.CONSULT,
-    includes: ["GP review of your request", "Referral issued if appropriate", "Valid at any collection centre"],
+    includes: ["doctor review of your request", "Referral issued if appropriate", "Valid at any collection centre"],
     disclaimer:
       "A GP will assess whether a referral is clinically appropriate. Some tests may require an in-person consultation. Advanced imaging (CT/MRI) requires clear clinical indication.",
     cta: "Pay & submit",

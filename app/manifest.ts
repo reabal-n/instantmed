@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "InstantMed - Online Doctor Consultations",
     short_name: "InstantMed",
-    description: "Medical certificates, prescriptions, and referrals online from AHPRA-registered Australian GPs",
+    description: "Medical certificates, prescriptions, and referrals online from AHPRA-registered Australian doctors",
     start_url: "/",
     display: "standalone",
     background_color: "#fafbfc",

@@ -16,9 +16,9 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
   serviceSlug: 'consult',
 
   hero: {
-    badge: 'Australian GP consultations',
+    badge: 'Australian doctor consultations',
     headline: 'See a doctor today. From your phone.',
-    subheadline: `Talk to an AHPRA-registered GP about health concerns, treatment options, or anything you'd normally see a doctor for. Medication may be prescribed by your doctor if clinically appropriate.`,
+    subheadline: `Talk to an AHPRA-registered doctor about health concerns, treatment options, or anything you'd normally see a doctor for. Medication may be prescribed by your doctor if clinically appropriate.`,
     ctaText: `Start your consult · ${PRICING_DISPLAY.CONSULT}`,
     ctaHref: '/request?service=consult',
   },
@@ -37,7 +37,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
       {
         icon: 'Sparkles',
         title: 'Hair Loss',
-        description: 'Medical assessment for hair loss. Evidence-based treatments prescribed by an Australian GP.',
+        description: 'Medical assessment for hair loss. Evidence-based treatments prescribed by an Australian doctor.',
         price: PRICING_DISPLAY.HAIR_LOSS,
         href: '/hair-loss',
       },
@@ -136,7 +136,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
     price: 49.95,
     originalPrice: 120,
     features: [
-      'Full clinical assessment by an AHPRA-registered GP',
+      'Full clinical assessment by an AHPRA-registered doctor',
       'Phone or video consultation',
       'Medication if clinically appropriate',
       'Referral letters if needed',
@@ -191,7 +191,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
       },
       {
         question: 'How is this different from a GP visit?',
-        answer: 'You get the same quality of care from an AHPRA-registered GP, just without the waiting room. The main limitation is the doctor can\'t physically examine you, so some conditions may still need an in-person visit.',
+        answer: 'You get the same quality of care from an AHPRA-registered doctor, just without the waiting room. The main limitation is the doctor can\'t physically examine you, so some conditions may still need an in-person visit.',
       },
       {
         question: 'What if my issue needs in-person care?',

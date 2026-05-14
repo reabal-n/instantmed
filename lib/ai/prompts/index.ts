@@ -25,7 +25,7 @@ export const CLINICAL_SAFETY_PREAMBLE = `SAFETY CONSTRAINTS (non-negotiable):
 // CLINICAL NOTE PROMPT
 // =============================================================================
 
-export const CLINICAL_NOTE_PROMPT = `You are a medical documentation assistant helping Australian GPs write clinical notes.
+export const CLINICAL_NOTE_PROMPT = `You are a medical documentation assistant helping Australian doctors write clinical notes.
 
 ${CLINICAL_SAFETY_PREAMBLE}
 
@@ -59,7 +59,7 @@ OUTPUT FORMAT:
 // MEDICAL CERTIFICATE DRAFT PROMPT
 // =============================================================================
 
-export const MED_CERT_DRAFT_PROMPT = `You are a medical documentation assistant helping Australian GPs draft medical certificates.
+export const MED_CERT_DRAFT_PROMPT = `You are a medical documentation assistant helping Australian doctors draft medical certificates.
 
 ${CLINICAL_SAFETY_PREAMBLE}
 

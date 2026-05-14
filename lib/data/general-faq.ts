@@ -11,7 +11,7 @@ export const GENERAL_FAQ: FAQGroup[] = [
       {
         question: 'What is InstantMed?',
         answer:
-          "We\u2019re an Australian telehealth service that connects you with AHPRA-registered GPs for medical certificates, prescription renewals, and consultations. You fill in a quick form online, a real doctor reviews it, and you get your result. Medical certificate requests are available 24/7.",
+          "We\u2019re an Australian telehealth service that connects you with AHPRA-registered doctors for medical certificates, prescription renewals, and consultations. You fill in a quick form online, a real doctor reviews it, and you get your result. Medical certificate requests are available 24/7.",
       },
       {
         question: 'Is this actually legitimate?',

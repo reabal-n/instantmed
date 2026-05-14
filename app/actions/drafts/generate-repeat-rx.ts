@@ -12,7 +12,7 @@ import { getPostHogClient } from "@/lib/analytics/posthog-server"
 import { getUsage,log } from "./shared"
 
 // Prompt for repeat prescription draft generation (JSON output)
-const REPEAT_RX_JSON_PROMPT = `You are a medical documentation assistant helping Australian GPs review repeat prescription requests.
+const REPEAT_RX_JSON_PROMPT = `You are a medical documentation assistant helping Australian doctors review repeat prescription requests.
 
 ${CLINICAL_SAFETY_PREAMBLE}
 
