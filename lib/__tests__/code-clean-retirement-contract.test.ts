@@ -128,6 +128,28 @@ describe("code-clean retirement contracts", () => {
     expect(read("app/patient/layout.tsx")).not.toContain('from("notifications")')
   })
 
+  it("keeps automated treatment follow-up reminders out of the lean one-off model", () => {
+    const retiredTreatmentFollowupFiles = [
+      "app/api/cron/treatment-followup/route.ts",
+      "lib/email/treatment-followup.ts",
+      "lib/email/components/templates/treatment-followup.tsx",
+      "lib/data/followups.ts",
+      "components/patient/followup-tracker-card.tsx",
+    ]
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+
+    for (const path of retiredTreatmentFollowupFiles) {
+      expect(existsSync(join(root, path)), path).toBe(false)
+      expect(orphanCheck).toContain(path)
+    }
+
+    expect(read("app/doctor/queue/actions.ts")).not.toContain("createFollowupsForIntake")
+    expect(read("app/patient/page.tsx")).not.toContain('from("intake_followups")')
+    expect(read("components/patient/dashboard-hero.tsx")).not.toContain("followup-due")
+    expect(read("components/patient/panel-dashboard.tsx")).not.toContain("FollowupTrackerCard")
+    expect(read("vercel.json")).not.toContain("/api/cron/treatment-followup")
+  })
+
   it("keeps repeat-Rx subscriptions dormant and out of patient acquisition paths", () => {
     expect(existsSync(join(root, "app/api/cron/subscription-nudge/route.ts"))).toBe(false)
     expect(existsSync(join(root, "lib/data/subscriptions.ts"))).toBe(false)

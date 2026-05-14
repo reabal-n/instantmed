@@ -1,14 +1,12 @@
 "use client"
 
-import { ArrowLeft,Plus, Settings } from "lucide-react"
+import { ArrowLeft, Settings } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useCallback,useState } from "react"
 import { toast } from "sonner"
 
 import {
-  createServiceAction,
-  deleteServiceAction,
   toggleServiceActiveAction,
   updateServiceAction,
 } from "@/app/actions/admin-settings"
@@ -16,7 +14,7 @@ import { ServiceFormDialog } from "@/app/admin/services/service-form-dialog"
 import { ServicesStats, ServicesTableCard, ToggleConfirmDialog } from "@/app/admin/services/services-table"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
-import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
+import { STAFF_SETTINGS_HREF } from "@/lib/dashboard/routes"
 import type { Service, ServiceInput } from "@/lib/data/types/services"
 
 interface ServicesConfigClientProps {
@@ -55,7 +53,6 @@ export function ServicesConfigClient({ initialServices }: ServicesConfigClientPr
   const [searchQuery, setSearchQuery] = useState("")
   const [typeFilter, setTypeFilter] = useState<string>("all")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [isCreating, setIsCreating] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null)
 
@@ -73,16 +70,6 @@ export function ServicesConfigClient({ initialServices }: ServicesConfigClientPr
     const matchesType = typeFilter === "all" || service.type === typeFilter
     return matchesSearch && matchesType
   })
-
-  const handleCreateNew = useCallback(() => {
-    setFormData({
-      ...EMPTY_SERVICE,
-      display_order: services.length,
-    })
-    setEditingServiceId(null)
-    setIsCreating(true)
-    setIsDialogOpen(true)
-  }, [services.length])
 
   const handleEditService = useCallback((service: Service) => {
     setFormData({
@@ -111,7 +98,6 @@ export function ServicesConfigClient({ initialServices }: ServicesConfigClientPr
       meta_description: service.meta_description,
     })
     setEditingServiceId(service.id)
-    setIsCreating(false)
     setIsDialogOpen(true)
   }, [])
 
@@ -150,25 +136,6 @@ export function ServicesConfigClient({ initialServices }: ServicesConfigClientPr
     }
   }
 
-  const handleDelete = async (service: Service) => {
-    // eslint-disable-next-line no-alert
-    if (!window.confirm(`Are you sure you want to delete "${service.name}"? This cannot be undone.`)) {
-      return
-    }
-
-    try {
-      const result = await deleteServiceAction(service.id)
-      if (result.success) {
-        setServices(prev => prev.filter(s => s.id !== service.id))
-        toast.success("Service deleted")
-      } else {
-        toast.error(result.error || "Failed to delete service")
-      }
-    } catch {
-      toast.error("Failed to delete service")
-    }
-  }
-
   const handleSave = async () => {
     // Validate required fields
     if (!formData.slug || !formData.name || !formData.type) {
@@ -184,17 +151,7 @@ export function ServicesConfigClient({ initialServices }: ServicesConfigClientPr
 
     setIsSaving(true)
     try {
-      if (isCreating) {
-        const result = await createServiceAction(formData)
-        if (result.success && result.data) {
-          setServices(prev => [...prev, result.data!])
-          toast.success("Service created successfully")
-          setIsDialogOpen(false)
-          router.refresh()
-        } else {
-          toast.error(result.error || "Failed to create service")
-        }
-      } else if (editingServiceId) {
+      if (editingServiceId) {
         const result = await updateServiceAction(editingServiceId, formData)
         if (result.success && result.data) {
           setServices(prev =>
@@ -220,7 +177,7 @@ export function ServicesConfigClient({ initialServices }: ServicesConfigClientPr
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
-            <Link href={STAFF_DASHBOARD_HREF}>
+            <Link href={STAFF_SETTINGS_HREF}>
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
@@ -234,10 +191,6 @@ export function ServicesConfigClient({ initialServices }: ServicesConfigClientPr
             </p>
           </div>
         </div>
-        <Button onClick={handleCreateNew}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Service
-        </Button>
       </div>
 
       {/* Stats */}
@@ -253,17 +206,15 @@ export function ServicesConfigClient({ initialServices }: ServicesConfigClientPr
         filteredServices={filteredServices}
         onEditService={handleEditService}
         onToggleActive={handleToggleActive}
-        onDelete={handleDelete}
       />
 
-      {/* Edit/Create Dialog */}
+      {/* Edit Dialog */}
       <ServiceFormDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         formData={formData}
         onInputChange={handleInputChange}
         onSave={handleSave}
-        isCreating={isCreating}
         isSaving={isSaving}
       />
 

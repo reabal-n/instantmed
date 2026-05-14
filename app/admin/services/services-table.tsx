@@ -3,14 +3,12 @@
 import {
   DollarSign,
   Edit,
-  GripVertical,
   Loader2,
   Power,
   PowerOff,
   Search,
   Settings,
   Shield,
-  Trash2,
 } from "lucide-react"
 
 import {
@@ -126,7 +124,6 @@ interface ServicesTableCardProps {
   filteredServices: Service[]
   onEditService: (service: Service) => void
   onToggleActive: (service: Service) => void
-  onDelete: (service: Service) => void
 }
 
 export function ServicesTableCard({
@@ -137,7 +134,6 @@ export function ServicesTableCard({
   filteredServices,
   onEditService,
   onToggleActive,
-  onDelete,
 }: ServicesTableCardProps) {
   return (
     <Card>
@@ -176,7 +172,6 @@ export function ServicesTableCard({
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
-                <TableHead className="w-[40px]"></TableHead>
                 <TableHead>Service</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Price</TableHead>
@@ -189,9 +184,6 @@ export function ServicesTableCard({
               {filteredServices.length > 0 ? (
                 filteredServices.map((service) => (
                   <TableRow key={service.id}>
-                    <TableCell>
-                      <GripVertical className="h-4 w-4 text-muted-foreground/50 cursor-grab" />
-                    </TableCell>
                     <TableCell>
                       <div>
                         <p className="font-medium">{service.name}</p>
@@ -243,16 +235,9 @@ export function ServicesTableCard({
                           variant="ghost"
                           size="sm"
                           onClick={() => onEditService(service)}
+                          aria-label={`Edit ${service.name}`}
                         >
                           <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onDelete(service)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>
@@ -260,7 +245,7 @@ export function ServicesTableCard({
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                     No services found
                   </TableCell>
                 </TableRow>

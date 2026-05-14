@@ -39,7 +39,6 @@ interface ServiceFormDialogProps {
   formData: ServiceInput
   onInputChange: (field: keyof ServiceInput, value: unknown) => void
   onSave: () => void
-  isCreating: boolean
   isSaving: boolean
 }
 
@@ -49,7 +48,6 @@ export function ServiceFormDialog({
   formData,
   onInputChange,
   onSave,
-  isCreating,
   isSaving,
 }: ServiceFormDialogProps) {
   return (
@@ -58,12 +56,10 @@ export function ServiceFormDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
-            {isCreating ? "Create New Service" : "Edit Service"}
+            Edit Service
           </DialogTitle>
           <DialogDescription>
-            {isCreating
-              ? "Add a new telehealth service to the platform"
-              : `Editing: ${formData.name}`}
+            Editing: {formData.name}
           </DialogDescription>
         </DialogHeader>
 
@@ -107,7 +103,7 @@ export function ServiceFormDialog({
                   onChange={(e) => onInputChange("slug", e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))}
                   placeholder="medical-certificate"
                   className="font-mono"
-                  disabled={!isCreating}
+                  disabled
                 />
                 <p className="text-xs text-muted-foreground">
                   Used in URLs: /services/{formData.slug || "slug"}
@@ -347,7 +343,7 @@ export function ServiceFormDialog({
             ) : (
               <Save className="h-4 w-4 mr-2" />
             )}
-            {isCreating ? "Create Service" : "Save Changes"}
+            Save Changes
           </Button>
         </div>
       </DialogContent>

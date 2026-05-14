@@ -3,7 +3,7 @@
  *
  * The patient dashboard hero adapts to user state via `resolveHeroState`,
  * a deterministic priority resolver. These tests pin the priority order
- * and the trigger conditions for each of the 9 states. If a future change
+ * and the trigger conditions for each of the 8 states. If a future change
  * accidentally re-orders the priority (e.g. promotes "renewal-due" above
  * "doctor-question"), these tests fail and we know.
  *
@@ -18,7 +18,6 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import { resolveHeroState } from "@/components/patient/dashboard-hero"
-import type { FollowupRow } from "@/components/patient/followup-tracker-card"
 import type { Intake } from "@/components/patient/intake-types"
 import type { ProfileData } from "@/components/patient/profile-todo-card"
 
@@ -36,7 +35,6 @@ const TWO_HOURS_AGO = new Date(NOW - 2 * 60 * 60 * 1000).toISOString()
 const ONE_DAY_AGO = new Date(NOW - 24 * 60 * 60 * 1000).toISOString()
 const ONE_HOUR_AGO = new Date(NOW - 60 * 60 * 1000).toISOString()
 const SOON = new Date(NOW + 24 * 60 * 60 * 1000).toISOString()
-const PAST_DUE = new Date(NOW - 24 * 60 * 60 * 1000).toISOString()
 
 function mkIntake(overrides: Partial<Intake>): Intake {
   return {
@@ -251,70 +249,15 @@ describe("DashboardHero · resolveHeroState", () => {
       },
     )
 
-    it("renewal-due wins over followup-due and profile-incomplete", () => {
+    it("renewal-due wins over profile-incomplete", () => {
       const result = resolveHeroState({
         intakes: [mkIntake({ status: "completed", updated_at: ONE_DAY_AGO })],
         prescriptions: [mkRx({ expiry_date: SOON })],
         profileData: INCOMPLETE_PROFILE,
-        followups: [
-          {
-            id: "f1",
-            subtype: "ed",
-            milestone: "month_3",
-            due_at: PAST_DUE,
-            completed_at: null,
-            skipped: false,
-          } satisfies FollowupRow,
-        ],
       })
       // documents-ready resolves first because of the recent completed intake
       // (updated_at is within 7 days), so this also asserts its precedence.
       expect(["documents-ready", "renewal-due"]).toContain(result.state)
-    })
-
-    it("followup-due fires when no higher-priority state present", () => {
-      const result = resolveHeroState({
-        intakes: [mkIntake({ status: "cancelled", created_at: ONE_DAY_AGO })],
-        prescriptions: [],
-        followups: [
-          {
-            id: "f1",
-            subtype: "ed",
-            milestone: "month_3",
-            due_at: PAST_DUE,
-            completed_at: null,
-            skipped: false,
-          } satisfies FollowupRow,
-        ],
-      })
-      expect(result.state).toBe("followup-due")
-      expect(result.followup?.id).toBe("f1")
-    })
-
-    it("followup-due ignores completed and skipped milestones", () => {
-      const result = resolveHeroState({
-        intakes: [mkIntake({ status: "cancelled", created_at: ONE_DAY_AGO })],
-        prescriptions: [],
-        followups: [
-          {
-            id: "f1",
-            subtype: "ed",
-            milestone: "month_3",
-            due_at: PAST_DUE,
-            completed_at: ONE_DAY_AGO,
-            skipped: false,
-          } satisfies FollowupRow,
-          {
-            id: "f2",
-            subtype: "ed",
-            milestone: "month_6",
-            due_at: PAST_DUE,
-            completed_at: null,
-            skipped: true,
-          } satisfies FollowupRow,
-        ],
-      })
-      expect(result.state).toBe("default")
     })
 
     it("profile-incomplete fires only when patient has activity", () => {

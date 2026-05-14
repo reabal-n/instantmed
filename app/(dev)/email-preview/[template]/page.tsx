@@ -35,7 +35,6 @@ import { RequestReceivedEmail } from "@/lib/email/components/templates/request-r
 import { ReviewRequestEmail } from "@/lib/email/components/templates/review-request"
 import { ScriptSentEmail } from "@/lib/email/components/templates/script-sent"
 import { StillReviewingEmail } from "@/lib/email/components/templates/still-reviewing"
-import { TreatmentFollowupEmail } from "@/lib/email/components/templates/treatment-followup"
 import { VerificationCodeEmail } from "@/lib/email/components/templates/verification-code"
 import { WeightLossApprovedEmail } from "@/lib/email/components/templates/weight-loss-approved"
 // ── Template imports ──
@@ -434,19 +433,6 @@ const templates: Record<string, {
     render: () => (
       <FollowUpReminderEmail
         patientName={mock.patientName}
-        appUrl={mock.appUrl}
-      />
-    ),
-  },
-  "treatment-followup": {
-    name: "Treatment Follow-Up",
-    subject: "Time for your 3-month check-in",
-    render: () => (
-      <TreatmentFollowupEmail
-        patientName={mock.patientName}
-        followupId="mock-followup-id"
-        subtype="ed"
-        milestone="month_3"
         appUrl={mock.appUrl}
       />
     ),

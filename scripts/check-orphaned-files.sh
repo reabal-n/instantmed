@@ -101,6 +101,7 @@ for retired_non_operational_surface in \
   "app/api/cron/decline-reengagement/route.ts" \
   "app/api/cron/email-digest/route.ts" \
   "app/api/cron/follow-up-reminder/route.ts" \
+  "app/api/cron/treatment-followup/route.ts" \
   "app/api/test/boom/route.ts" \
   "app/api/test/boom-500/route.ts" \
   "app/api/test/edge-canary/route.ts" \
@@ -111,8 +112,12 @@ for retired_non_operational_surface in \
   "e2e/sentry.integration.spec.ts" \
   "e2e/sentry-observability.spec.ts" \
   "lib/email/follow-up-reminder.ts" \
+  "lib/email/treatment-followup.ts" \
   "lib/email/components/templates/decline-reengagement.tsx" \
   "lib/email/components/templates/review-followup.tsx" \
+  "lib/email/components/templates/treatment-followup.tsx" \
+  "lib/data/followups.ts" \
+  "components/patient/followup-tracker-card.tsx" \
   "lib/analytics/acquisition-health.ts"
 do
   if [[ -e "$retired_non_operational_surface" ]]; then

@@ -64,7 +64,6 @@ const SUPPORTED_EMAIL_TYPES = [
   "follow_up_reminder",
   "referral_credit",
   "review_request",
-  "treatment_followup",
 ] as const
 
 function isSupportedEmailType(emailType: string): boolean {

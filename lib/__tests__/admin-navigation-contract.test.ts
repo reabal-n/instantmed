@@ -227,6 +227,40 @@ describe("admin navigation contract", () => {
     expect(adminHubSource).not.toContain('href: "/admin/settings"')
   })
 
+  it("keeps setup subpages anchored to the setup hub", () => {
+    const clinicClient = readFileSync(join(process.cwd(), "app/admin/clinic/clinic-client.tsx"), "utf8")
+    const servicesClient = readFileSync(join(process.cwd(), "app/admin/services/services-client.tsx"), "utf8")
+    const featuresClient = readFileSync(join(process.cwd(), "app/admin/features/features-client.tsx"), "utf8")
+
+    for (const source of [clinicClient, servicesClient, featuresClient]) {
+      expect(source).toContain("STAFF_SETTINGS_HREF")
+      expect(source).not.toContain("STAFF_DASHBOARD_HREF")
+    }
+  })
+
+  it("keeps service catalogue changes governed instead of open-ended CRUD", () => {
+    const servicesClient = readFileSync(join(process.cwd(), "app/admin/services/services-client.tsx"), "utf8")
+    const servicesTable = readFileSync(join(process.cwd(), "app/admin/services/services-table.tsx"), "utf8")
+    const serviceForm = readFileSync(join(process.cwd(), "app/admin/services/service-form-dialog.tsx"), "utf8")
+    const adminSettingsActions = readFileSync(join(process.cwd(), "app/actions/admin-settings.ts"), "utf8")
+    const servicesData = readFileSync(join(process.cwd(), "lib/data/services.ts"), "utf8")
+
+    expect(servicesClient).not.toContain("createServiceAction")
+    expect(servicesClient).not.toContain("deleteServiceAction")
+    expect(servicesClient).not.toContain("Add Service")
+    expect(servicesTable).not.toContain("Trash2")
+    expect(servicesTable).not.toContain("GripVertical")
+    expect(servicesTable).not.toContain("onDelete")
+    expect(serviceForm).not.toContain("isCreating")
+    expect(serviceForm).not.toContain("Create New Service")
+    expect(adminSettingsActions).not.toContain("createServiceAction")
+    expect(adminSettingsActions).not.toContain("deleteServiceAction")
+    expect(adminSettingsActions).not.toContain("updateServiceOrderAction")
+    expect(servicesData).not.toContain("createService(")
+    expect(servicesData).not.toContain("deleteService(")
+    expect(servicesData).not.toContain("updateServiceOrder(")
+  })
+
   it("surfaces patient handoff gaps in admin without returning raw intake answers", () => {
     expect(adminIntakesLedgerSource).toContain("HandoffBadge")
     expect(adminIntakesLedgerSource).toContain("summary.actionLabel")

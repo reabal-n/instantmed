@@ -1,6 +1,6 @@
 /**
  * Services Data Layer
- * CRUD operations for telehealth service configuration
+ * Operational service configuration for existing, governed service lines.
  */
 
 import "server-only"
@@ -129,56 +129,6 @@ export async function getServiceBySlug(slug: string): Promise<Service | null> {
 // ============================================================================
 
 /**
- * Create a new service
- */
-export async function createService(
-  input: ServiceInput
-): Promise<{ success: boolean; data?: Service; error?: string }> {
-  const supabase = createServiceRoleClient()
-
-  // Validate slug format
-  if (!/^[a-z0-9-]+$/.test(input.slug)) {
-    return { success: false, error: "Slug must contain only lowercase letters, numbers, and hyphens" }
-  }
-
-  // Validate price_cents >= 0
-  if (input.price_cents < 0) {
-    return { success: false, error: "Price cannot be negative" }
-  }
-
-  // Validate SLA: priority must be less than standard
-  const slaStandard = input.sla_standard_minutes ?? 1440
-  const slaPriority = input.sla_priority_minutes ?? 240
-  if (slaPriority >= slaStandard) {
-    return { success: false, error: "Priority SLA must be faster (fewer minutes) than standard SLA" }
-  }
-
-  const { data, error } = await supabase
-    .from("services")
-    .insert({
-      ...input,
-      is_active: input.is_active ?? false,
-      requires_id_verification: input.requires_id_verification ?? false,
-      requires_medicare: input.requires_medicare ?? false,
-      requires_photo: input.requires_photo ?? false,
-      sla_standard_minutes: input.sla_standard_minutes ?? 1440,
-      sla_priority_minutes: input.sla_priority_minutes ?? 240,
-      eligibility_rules: input.eligibility_rules ?? {},
-      display_order: input.display_order ?? 0,
-    })
-    .select("id, slug, created_at, updated_at")
-    .single()
-
-  if (error) {
-    log.error("Failed to create service", { slug: input.slug }, error)
-    return { success: false, error: error.message }
-  }
-
-  log.info("Service created", { id: data.id, slug: input.slug })
-  return { success: true, data: data as Service }
-}
-
-/**
  * Update an existing service
  */
 export async function updateService(
@@ -254,59 +204,6 @@ export async function toggleServiceActive(
   }
 
   log.info("Service status toggled", { id, isActive })
-  return { success: true }
-}
-
-/**
- * Update service display order (for drag-and-drop reordering)
- */
-export async function updateServiceOrder(
-  orderedIds: string[]
-): Promise<{ success: boolean; error?: string }> {
-  const supabase = createServiceRoleClient()
-
-  try {
-    for (let i = 0; i < orderedIds.length; i++) {
-      const { error } = await supabase
-        .from("services")
-        .update({ display_order: i, updated_at: new Date().toISOString() })
-        .eq("id", orderedIds[i])
-
-      if (error) throw error
-    }
-
-    log.info("Service order updated", { count: orderedIds.length })
-    return { success: true }
-  } catch (error) {
-    log.error("Failed to update service order", {}, error)
-    return { success: false, error: "Failed to update display order" }
-  }
-}
-
-/**
- * Delete a service (soft delete only - never hard delete to preserve audit trail)
- * Sets is_active=false
- */
-export async function deleteService(
-  id: string
-): Promise<{ success: boolean; error?: string }> {
-  const supabase = createServiceRoleClient()
-
-  // Always soft delete - never hard delete services to preserve audit trail
-  const { error } = await supabase
-    .from("services")
-    .update({
-      is_active: false,
-      updated_at: new Date().toISOString()
-    })
-    .eq("id", id)
-
-  if (error) {
-    log.error("Failed to soft delete service", { id }, error)
-    return { success: false, error: error.message }
-  }
-
-  log.info("Service soft deleted", { id })
   return { success: true }
 }
 

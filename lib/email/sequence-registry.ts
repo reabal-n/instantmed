@@ -59,11 +59,11 @@ export const EMAIL_SEQUENCES: readonly EmailSequenceDefinition[] = [
   {
     id: "treatment_followup",
     name: "Treatment follow-up",
-    status: "active",
-    owner: "ED and hair-loss follow-ups",
-    trigger: "Due follow-up milestone",
-    cadence: "Daily",
-    guard: "Follow-up log caps reminder count",
+    status: "inactive",
+    owner: "Retired automated follow-up tracker",
+    trigger: "None",
+    cadence: "Removed",
+    guard: "No cron/template; old follow-up links remain compatibility-only",
   },
   {
     id: "repeat_rx_reminder",

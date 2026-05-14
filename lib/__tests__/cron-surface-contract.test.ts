@@ -55,6 +55,7 @@ describe("cron surface contract", () => {
       "/api/cron/email-digest",
       "/api/cron/follow-up-reminder",
       "/api/cron/subscription-nudge",
+      "/api/cron/treatment-followup",
     ]
 
     for (const path of retired) {

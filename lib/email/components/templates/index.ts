@@ -105,11 +105,6 @@ export { FollowUpReminderEmail, followUpReminderSubject } from "./follow-up-remi
 export type { StillReviewingEmailProps } from "./still-reviewing"
 export { StillReviewingEmail, stillReviewingSubject } from "./still-reviewing"
 
-
-// --- Treatment Follow-Up (ED/hair-loss milestone check-ins) ---
-export type { FollowupMilestone,FollowupSubtype, TreatmentFollowupEmailProps } from "./treatment-followup"
-export { TreatmentFollowupEmail, treatmentFollowupSubject } from "./treatment-followup"
-
 // --- Abandoned Checkout Follow-Up (urgency reminder) ---
 export type { AbandonedCheckoutFollowupProps } from "./abandoned-checkout-followup"
 export { AbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject } from "./abandoned-checkout-followup"

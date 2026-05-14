@@ -14,14 +14,12 @@ import { type ReactNode } from "react"
 
 import { DashboardCard } from "@/components/dashboard"
 import { ServiceIconTile } from "@/components/icons/service-icons"
-import { type FollowupRow } from "@/components/patient/followup-tracker-card"
 import { type Intake } from "@/components/patient/intake-types"
 import { type ProfileData } from "@/components/patient/profile-todo-card"
 import { CopySupportSummaryButton } from "@/components/patient/support-summary-button"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 import {
-  buildPatientFollowupHref,
   buildPatientIntakeHref,
   buildPatientMessagesHref,
   buildPatientSettingsHref,
@@ -48,7 +46,6 @@ export type DashboardHeroState =
   | "live-review"
   | "stale-payment"
   | "renewal-due"
-  | "followup-due"
   | "profile-incomplete"
   | "empty"
   | "default"
@@ -58,7 +55,6 @@ interface DashboardHeroProps {
   intakes: Intake[]
   prescriptions: Prescription[]
   profileData?: ProfileData
-  followups?: FollowupRow[]
 }
 
 /**
@@ -70,22 +66,19 @@ interface DashboardHeroProps {
  *   3. Live review           → Reassurance during waiting.
  *   4. Stale payment         → Recovery prompt for abandoned checkout.
  *   5. Renewal due           → Active prescription renewal reminder.
- *   6. Follow-up due         → Treatment-tracker check-in.
- *   7. Profile incomplete    → Only when blocking future requests.
- *   8. Empty state           → First-time user, surface the catalog.
- *   9. Default (caught up)   → Service grid + reassurance.
+ *   6. Profile incomplete    → Only when blocking future requests.
+ *   7. Empty state           → First-time user, surface the catalog.
+ *   8. Default (caught up)   → Service grid + reassurance.
  */
 export function resolveHeroState({
   intakes,
   prescriptions,
   profileData,
-  followups = [],
 }: {
   intakes: Intake[]
   prescriptions: Prescription[]
   profileData?: ProfileData
-  followups?: FollowupRow[]
-}): { state: DashboardHeroState; intake?: Intake; prescription?: Prescription; followup?: FollowupRow } {
+}): { state: DashboardHeroState; intake?: Intake; prescription?: Prescription } {
   // 1. Doctor question: any intake with pending_info status
   const pendingInfo = intakes.find((i) => i.status === "pending_info")
   if (pendingInfo) return { state: "doctor-question", intake: pendingInfo }
@@ -132,14 +125,7 @@ export function resolveHeroState({
   )
   if (renewal) return { state: "renewal-due", prescription: renewal }
 
-  // 6. Follow-up due: any uncompleted follow-up that's due
-  const dueFollowup = followups.find((f) => {
-    if (f.completed_at || f.skipped) return false
-    return new Date(f.due_at).getTime() <= Date.now()
-  })
-  if (dueFollowup) return { state: "followup-due", followup: dueFollowup }
-
-  // 7. Profile incomplete + has-request: missing required fields and has activity
+  // 6. Profile incomplete + has-request: missing required fields and has activity
   if (profileData && intakes.length > 0) {
     const missingPhone = !profileData.phone
     const missingAddress =
@@ -152,12 +138,12 @@ export function resolveHeroState({
     }
   }
 
-  // 8. Empty state: zero intakes, fresh patient
+  // 7. Empty state: zero intakes, fresh patient
   if (intakes.length === 0 && prescriptions.length === 0) {
     return { state: "empty" }
   }
 
-  // 9. Default: caught up
+  // 8. Default: caught up
   return { state: "default" }
 }
 
@@ -259,9 +245,8 @@ export function DashboardHero({
   intakes,
   prescriptions,
   profileData,
-  followups,
 }: DashboardHeroProps) {
-  const resolved = resolveHeroState({ intakes, prescriptions, profileData, followups })
+  const resolved = resolveHeroState({ intakes, prescriptions, profileData })
   const { state, intake, prescription } = resolved
 
   switch (state) {
@@ -397,31 +382,12 @@ export function DashboardHero({
         />
       )
 
-    case "followup-due":
-      return (
-        <HeroShell
-          pill={{ icon: <Clock className="h-3 w-3" />, label: "Treatment check-in", tone: "info" }}
-          title={`Time for your check-in, ${firstName}.`}
-          subtitle="A minute of your time helps your doctor make sure your treatment is still working."
-          primaryCta={
-            resolved.followup && (
-              <Button asChild>
-                <Link href={buildPatientFollowupHref(resolved.followup.id)}>
-                  Share an update
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            )
-          }
-        />
-      )
-
     case "profile-incomplete":
       return (
         <HeroShell
           pill={{ icon: <FileText className="h-3 w-3" />, label: "One quick thing", tone: "info" }}
           title={`Add your contact details, ${firstName}.`}
-          subtitle="Phone and home address are required for prescriptions, referrals, and follow-ups. Takes ~30 seconds."
+          subtitle="Phone and home address are required for prescriptions and referrals. Takes ~30 seconds."
           primaryCta={
             <Button asChild>
               <Link href={buildPatientSettingsHref({ tab: "personal" })}>

@@ -15,7 +15,6 @@ import { useEffect, useMemo } from "react"
 import { DashboardSection } from "@/components/dashboard"
 import { DrawerPanel, usePanel } from "@/components/panels"
 import { DashboardHero } from "@/components/patient/dashboard-hero"
-import { type FollowupRow, FollowupTrackerCard } from "@/components/patient/followup-tracker-card"
 import { GoogleReviewCard } from "@/components/patient/google-review-card"
 import { IntakeCard } from "@/components/patient/intake-card"
 import { IntakeDetailDrawer } from "@/components/patient/intake-detail-drawer"
@@ -44,8 +43,7 @@ import { needsRenewalSoon } from "@/lib/prescriptions"
  *                    important next action (download / answer doctor /
  *                    track review / complete payment / renew / etc).
  *   2. Activity   — recent requests + active prescriptions.
- *   3. Manage     — profile todos, follow-up tracker (for not-due milestones),
- *                    referral, Google review prompt.
+ *   3. Manage     — profile todos, referral, Google review prompt.
  *
  * Replaces the previous 11-section flat list. The hero owns urgent state;
  * the rest is muted, scannable history + housekeeping.
@@ -67,7 +65,6 @@ interface PatientDashboardProps {
   prescriptions?: Prescription[]
   error?: string | null
   profileData?: ProfileData
-  followups?: FollowupRow[]
 }
 
 export function PanelDashboard({
@@ -77,7 +74,6 @@ export function PanelDashboard({
   prescriptions = [],
   error,
   profileData,
-  followups,
 }: PatientDashboardProps) {
   const { openPanel } = usePanel()
   const router = useRouter()
@@ -145,9 +141,6 @@ export function PanelDashboard({
   const hasRenewalDue = prescriptions.some(
     (p) => p.status === "active" && needsRenewalSoon(p.expiry_date),
   )
-  const hasFollowupDue = (followups ?? []).some(
-    (f) => !f.completed_at && !f.skipped && new Date(f.due_at).getTime() <= Date.now(),
-  )
 
   const isProfileIncomplete = Boolean(
     profileData &&
@@ -167,7 +160,6 @@ export function PanelDashboard({
     !hasLiveReview &&
     !hasStalePayment &&
     !hasRenewalDue &&
-    !hasFollowupDue &&
     isProfileIncomplete
 
   // Track dashboard view on mount
@@ -213,7 +205,6 @@ export function PanelDashboard({
         intakes={intakes}
         prescriptions={prescriptions}
         profileData={profileData}
-        followups={followups}
       />
 
       {/* System-level error banner; not state-driven so stays inline. */}
@@ -356,14 +347,6 @@ export function PanelDashboard({
                     })
                   }
                 />
-              </motion.div>
-            )}
-
-            {/* Follow-up tracker only renders not-due milestones; the
-                "due" case is in the hero. */}
-            {followups && followups.length > 0 && !hasFollowupDue && (
-              <motion.div variants={prefersReducedMotion ? undefined : stagger.item}>
-                <FollowupTrackerCard followups={followups} />
               </motion.div>
             )}
 

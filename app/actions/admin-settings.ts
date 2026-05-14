@@ -23,14 +23,11 @@ import {
 } from "@/lib/data/doctor-identity"
 import type { DoctorIdentityInput } from "@/lib/data/doctor-identity.shared"
 import {
-  createService,
-  deleteService,
   getAllServices,
   getServiceById,
   type ServiceInput,
   toggleServiceActive,
   updateService,
-  updateServiceOrder,
 } from "@/lib/data/services"
 import { createLogger } from "@/lib/observability/logger"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
@@ -233,31 +230,6 @@ export async function getServiceByIdAction(id: string) {
   return getServiceById(id)
 }
 
-export async function createServiceAction(input: ServiceInput) {
-  const admin = await requireAdminWithRateLimit()
-
-  const result = await createService(input)
-
-  if (result.success) {
-    revalidateStaff({ settings: true })
-    revalidatePath("/request")
-    log.info("Service created by admin", { adminId: admin.id, slug: input.slug })
-    
-    await logAuditEvent({
-      action: "settings_changed",
-      actorId: admin.id,
-      actorType: "admin",
-      metadata: {
-        settingType: "service_created",
-        serviceSlug: input.slug,
-        serviceName: input.name,
-      },
-    })
-  }
-
-  return result
-}
-
 export async function updateServiceAction(id: string, input: Partial<ServiceInput>) {
   const admin = await requireAdminWithRateLimit()
 
@@ -301,44 +273,6 @@ export async function toggleServiceActiveAction(id: string, isActive: boolean) {
         settingType: "service_toggled",
         serviceId: id,
         isActive,
-      },
-    })
-  }
-
-  return result
-}
-
-export async function updateServiceOrderAction(orderedIds: string[]) {
-  const admin = await requireAdminWithRateLimit()
-
-  const result = await updateServiceOrder(orderedIds)
-
-  if (result.success) {
-    revalidateStaff({ settings: true })
-    revalidatePath("/request")
-    log.info("Service order updated by admin", { adminId: admin.id })
-  }
-
-  return result
-}
-
-export async function deleteServiceAction(id: string) {
-  const admin = await requireAdminWithRateLimit()
-
-  const result = await deleteService(id)
-
-  if (result.success) {
-    revalidateStaff({ settings: true })
-    revalidatePath("/request")
-    log.info("Service deleted by admin", { adminId: admin.id, serviceId: id })
-    
-    await logAuditEvent({
-      action: "settings_changed",
-      actorId: admin.id,
-      actorType: "admin",
-      metadata: {
-        settingType: "service_deleted",
-        serviceId: id,
       },
     })
   }

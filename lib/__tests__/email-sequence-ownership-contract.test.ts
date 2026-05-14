@@ -157,6 +157,25 @@ describe("email sequence ownership contract", () => {
     )
   })
 
+  it("keeps automated treatment follow-up reminders retired", () => {
+    const schedules = new Map(vercelConfig.crons.map((cron) => [cron.path, cron.schedule]))
+    const sequence = EMAIL_SEQUENCES.find((item) => item.id === "treatment_followup")
+    const templateIndexSource = readFileSync(join(process.cwd(), "lib/email/components/templates/index.ts"), "utf8")
+    const sendTypesSource = readFileSync(join(process.cwd(), "lib/email/send/types.ts"), "utf8")
+    const dispatcherSource = readFileSync(join(process.cwd(), "lib/email/email-dispatcher.ts"), "utf8")
+
+    expect(existsSync(join(process.cwd(), "app/api/cron/treatment-followup/route.ts"))).toBe(false)
+    expect(existsSync(join(process.cwd(), "lib/email/treatment-followup.ts"))).toBe(false)
+    expect(existsSync(join(process.cwd(), "lib/email/components/templates/treatment-followup.tsx"))).toBe(false)
+    expect(schedules.has("/api/cron/treatment-followup")).toBe(false)
+    expect(sequence?.status).toBe("inactive")
+    expect(sequence?.guard).toBe("No cron/template; old follow-up links remain compatibility-only")
+    expect(sendTypesSource).not.toContain("treatment_followup")
+    expect(dispatcherSource).not.toContain("treatment_followup")
+    expect(templateIndexSource).not.toContain("TreatmentFollowup")
+    expect(readFileSync(join(process.cwd(), "app/(dev)/email-preview/page.tsx"), "utf8")).not.toContain("treatment-followup")
+  })
+
   it("surfaces active and retired sequences in one compact admin map", () => {
     const ids = EMAIL_SEQUENCES.map((sequence) => sequence.id)
 
@@ -165,6 +184,7 @@ describe("email sequence ownership contract", () => {
     expect(ids).toContain("repeat_rx_reminder")
     expect(EMAIL_SEQUENCES.find((sequence) => sequence.id === "repeat_rx_reminder")?.status).toBe("inactive")
     expect(EMAIL_SEQUENCES.find((sequence) => sequence.id === "follow_up_reminder")?.status).toBe("inactive")
+    expect(EMAIL_SEQUENCES.find((sequence) => sequence.id === "treatment_followup")?.status).toBe("inactive")
     expect(emailHubSource).toContain("EMAIL_SEQUENCES")
     expect(emailHubSource).toContain("Sequence ownership")
   })

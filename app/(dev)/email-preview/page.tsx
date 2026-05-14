@@ -191,12 +191,6 @@ const templates = [
     description: "Gentle check-in sent 3 days after med cert approval",
     category: "engagement",
   },
-  {
-    slug: "treatment-followup",
-    name: "Treatment Follow-Up",
-    description: "Treatment milestone check-in for followup tracker",
-    category: "engagement",
-  },
 ]
 
 const CATEGORY_LABELS: Record<string, string> = {
