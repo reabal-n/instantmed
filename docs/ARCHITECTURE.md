@@ -431,7 +431,7 @@ Capability helpers in `lib/auth/staff-capabilities.ts`. Per-doctor capability fl
 
 Admin capabilities span the `/admin` route group and include: operator cockpit, patient directory/profile lookup, operations dashboard, analytics, compliance audit logs, feature flag management (kill switches, operational controls), finance (fraud flags, Stripe disputes), clinic identity configuration, and doctor management.
 
-**Staff cockpit architecture:** `/dashboard` is the primary combined operator surface (Phase 2 of dashboard remaster, 2026-05-12). It uses `OperatorShell`, shared navigation from `lib/dashboard/staff-navigation.ts` (`getStaffNav(profile)`), live sidebar counts from `lib/data/staff-nav-counts.ts`, compact summaries from `lib/doctor/case-summary.ts`, and the `SystemHealthPill` in the header (45s poll on `/api/admin/system-health`). Dedicated Queue navigation deep-links to `/dashboard?status=review#doctor-queue`, Scripts navigation deep-links to `/dashboard?status=scripts#doctor-queue`, and Patients deep-links to `/admin/patients` with the active prescribing-identity blocker count. Owner-operator doctor setup lives inside the admin shell at `/admin/settings/doctor-identity`, reusing the doctor identity client for MFA, availability, certificate identity, signature, avatar, and Parchment linking without requiring a switch to the doctor portal. `/admin/intakes/[id]` (admin) and `/doctor/intakes/[id]` (doctor) share the same `IntakeDetailClient`. Phase 4a (2026-05-12) collapsed `/admin/patients/[id]` to a redirect; the canonical patient profile is `/doctor/patients/[id]`. The patient directory is sortable by most recent request, request type, last script, name, or joined date.
+**Staff cockpit architecture:** `/dashboard` is the primary combined operator surface (Phase 2 of dashboard remaster, 2026-05-12). It uses `OperatorShell`, shared navigation from `lib/dashboard/staff-navigation.ts` (`getStaffNav(profile)`), live sidebar counts from `lib/data/staff-nav-counts.ts`, compact summaries from `lib/doctor/case-summary.ts`, and the `SystemHealthPill` in the header (45s poll on `/api/admin/system-health`). Dedicated Queue navigation deep-links to `/dashboard?status=review#doctor-queue`, Scripts navigation deep-links to `/dashboard?status=scripts#doctor-queue`, and Patients deep-links to `/admin/patients` with the active prescribing-identity blocker count. Owner-operator doctor setup uses the shared doctor identity page at `/doctor/settings/identity`; `/admin/settings/doctor-identity` is a redirect-only compatibility alias. `/admin/intakes/[id]` (admin) and `/doctor/intakes/[id]` (doctor) share the same `IntakeDetailClient`. Phase 4a (2026-05-12) collapsed `/admin/patients/[id]` to a redirect; the canonical patient profile is `/doctor/patients/[id]`. The patient directory is sortable by most recent request, request type, last script, name, or joined date.
 
 **Operational controls** (`/admin/features`): Bounded operator console for platform/service kill switches, review timing reference (open/close, timezone), capacity limit (max intakes/day), urgent notice banner, scheduled maintenance (start/end datetime), safety libraries, automation, and recent changes. The critical strip keeps platform, med cert, repeat Rx, and consult kill switches visible without scrolling; lower-priority controls sit in compact tabs with internal pane scrolling only. Runtime helpers live in `lib/operational-controls/`; admin writes go through `lib/feature-flags.ts` with server-side key/value validation. Cron `scheduled-maintenance` syncs `maintenance_mode` with the scheduled window every 5 min, but will not disable manually enabled maintenance mode from an admin incident response.
 
@@ -688,7 +688,9 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 ## Directory Index
 
-### `app/` — 571 files, 240 routes
+### `app/` — 583 files, 237 route files
+
+Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-contract.test.ts`; `pnpm build` remains the source of truth for expanded static/SSG route output.
 
 | Directory | Purpose | Key files |
 |-----------|---------|-----------|
@@ -696,7 +698,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `app/admin/` | Admin dashboard | `patients/`, `intakes/`, `email-hub/`, `features/`, `settings/`, `ops/`, `analytics/` |
 | `app/doctor/` | Doctor portal | `queue/` (intake queue), `intakes/[id]/` (review), `scripts/` (Rx tasks), `patients/` |
 | `app/patient/` | Patient dashboard | `intakes/` (history + success), `settings/`, `onboarding/`, `documents/` |
-| `app/api/` | API routes | `stripe/webhook/`, `cron/`, `ai/`, `health/`, `certificates/`, `intakes/` |
+| `app/api/` | API routes (92 route files) | `stripe/webhook/`, `cron/`, `ai/`, `health/`, `certificates/`, `intakes/` |
 | `app/api/cron/` | Scheduled jobs (24) | `stale-queue/`, `email-dispatcher/`, `health-check/`, `release-stale-claims/`, etc. See OPERATIONS.md |
 | `app/api/stripe/webhook/` | Stripe handlers | 9 handlers: `checkout-session-completed`, `checkout-session-expired`, `checkout-session-async-payment-succeeded/failed`, `charge-refunded`, `charge-dispute-created`, `payment-intent-payment-failed`, `invoice-payment-succeeded`, `customer-subscription-deleted`. Subscription handlers are compatibility-only while Repeat Rx subscription acquisition is inactive. Registered in `handlers/index.ts`. |
 | `app/request/` | **Sole canonical intake flow.** Single page, step-based wizard. |

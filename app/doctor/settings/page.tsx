@@ -1,13 +1,10 @@
 import { redirect } from "next/navigation"
 
 import { requireRole } from "@/lib/auth/helpers"
-import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
+import { STAFF_IDENTITY_HREF } from "@/lib/dashboard/routes"
 
 export default async function DoctorSettingsPage() {
-  const { profile } = await requireRole(["doctor", "admin"])
-  if (hasAdminAccess(profile)) {
-    redirect("/admin/settings/doctor-identity")
-  }
+  await requireRole(["doctor", "admin"])
 
-  redirect("/doctor/settings/identity")
+  redirect(STAFF_IDENTITY_HREF)
 }

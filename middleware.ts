@@ -1,6 +1,7 @@
 import { type NextRequest,NextResponse } from 'next/server'
 
 import { captureAttributionToCookie } from '@/lib/analytics/middleware-attribution'
+import { isDevOnlyRoute, isVercelProdOrPreview } from '@/lib/dev-only-routes'
 import { updateSupabaseSession } from '@/lib/supabase/middleware'
 
 // Define protected routes that require authentication.
@@ -15,19 +16,8 @@ const PROTECTED_PATTERNS = [
   /^\/api\/admin/,
 ]
 
-const DEV_ONLY_ROUTE_PREFIXES = [
-  "/api/test",
-  "/email-preview",
-  "/sentry-test",
-  "/cert-preview",
-] as const
-
 function isProtectedRoute(pathname: string): boolean {
   return PROTECTED_PATTERNS.some(p => p.test(pathname))
-}
-
-function isDevOnlyRoute(pathname: string): boolean {
-  return DEV_ONLY_ROUTE_PREFIXES.some((prefix) => pathname.startsWith(prefix))
 }
 
 /**
@@ -63,9 +53,8 @@ export default async function middleware(req: NextRequest) {
   // Block dev routes in production and preview.
   // Use 410 Gone (not 404) so Google permanently drops these from its crawl queue.
   // A 404 means "might come back" — Google retries. A 410 means "stop wasting crawl budget."
-  const isVercelProdOrPreview = process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview"
   const isE2ETest = process.env.PLAYWRIGHT === "1"
-  if (isDevOnlyRoute(pathname) && isVercelProdOrPreview && !isE2ETest) {
+  if (isDevOnlyRoute(pathname) && isVercelProdOrPreview() && !isE2ETest) {
     return NextResponse.json({ error: "Gone" }, { status: 410 })
   }
 

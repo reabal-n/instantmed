@@ -219,9 +219,9 @@ describe("doctor navigation contract", () => {
     expect(nextConfigSource).toContain('source: "/doctor/queue", destination: "/dashboard"')
     expect(nextConfigSource).toContain('source: "/doctor/certificates", destination: "/dashboard"')
     expect(doctorSettingsPageSource).toContain('requireRole(["doctor", "admin"]')
-    expect(doctorSettingsPageSource).toContain("hasAdminAccess(profile)")
-    expect(doctorSettingsPageSource).toContain('redirect("/admin/settings/doctor-identity")')
-    expect(doctorSettingsPageSource).toContain('redirect("/doctor/settings/identity")')
+    expect(doctorSettingsPageSource).toContain("STAFF_IDENTITY_HREF")
+    expect(doctorSettingsPageSource).toContain("redirect(STAFF_IDENTITY_HREF)")
+    expect(doctorSettingsPageSource).not.toContain('redirect("/admin/settings/doctor-identity")')
     expect(nextConfigSource).toContain('source: "/doctor/email-suppression"')
     expect(nextConfigSource).toContain('destination: "/admin/emails/suppression"')
   })
@@ -229,7 +229,7 @@ describe("doctor navigation contract", () => {
   it("keeps doctor analytics pruned to a redirect, not a second dashboard", () => {
     expect(existsSync(join(process.cwd(), "app/doctor/analytics/page.tsx"))).toBe(false)
     expect(nextConfigSource).toContain('source: "/doctor/analytics", destination: "/dashboard"')
-    expect(nextConfigSource).not.toContain('destination: "/admin/analytics"')
+    expect(nextConfigSource).not.toContain('source: "/doctor/analytics", destination: "/admin/analytics"')
   })
 
   it("keeps portal surfaces free of decorative progress motion", () => {

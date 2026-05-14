@@ -6,7 +6,9 @@
  */
 
 import Link from "next/link"
-import { redirect } from "next/navigation"
+import { notFound } from "next/navigation"
+
+import { canAccessDevOnlyRoute } from "@/lib/dev-only-routes"
 
 // Guard: Only available in development
 export const dynamic = "force-dynamic"
@@ -214,10 +216,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 const CATEGORY_ORDER = ["lifecycle", "request", "approval", "payment", "engagement"]
 
 export default function EmailPreviewIndex() {
-  // Block in production
-  if (process.env.NODE_ENV === "production") {
-    redirect("/")
-  }
+  if (!canAccessDevOnlyRoute()) notFound()
 
   const grouped = CATEGORY_ORDER.map((cat) => ({
     category: cat,

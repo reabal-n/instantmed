@@ -6,7 +6,7 @@ Use these components when a staff screen combines operations, clinical review, r
 
 ## Canonical URL
 
-`/dashboard` is the canonical staff dashboard URL (Phase 1 of remaster, 2026-05-11). Today it forwards by role; Phase 2 lands the unified queue surface here. New code should use `STAFF_*_HREF` constants from `@/lib/dashboard/routes` rather than the legacy `ADMIN_*_HREF` / `DOCTOR_*_HREF` aliases.
+`/dashboard` is the canonical staff dashboard URL. It is the live queue cockpit for admins and doctors; support staff land on the bounded ops surface. New code should use `STAFF_*_HREF` constants from `@/lib/dashboard/routes` rather than the legacy `ADMIN_*_HREF` / `DOCTOR_*_HREF` aliases.
 
 ## Use
 

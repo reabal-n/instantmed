@@ -17,6 +17,29 @@ function findRouteFiles(dir: string): string[] {
   })
 }
 
+function findFiles(dir: string): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const fullPath = join(dir, entry.name)
+    if (entry.isDirectory()) return findFiles(fullPath)
+    return [fullPath]
+  })
+}
+
+function findRouteInventoryFiles(dir: string): string[] {
+  const routeLikeNames = new Set([
+    "page.tsx",
+    "route.ts",
+    "opengraph-image.tsx",
+    "sitemap.ts",
+    "robots.ts",
+    "manifest.ts",
+    "icon.tsx",
+    "apple-icon.tsx",
+  ])
+
+  return findFiles(dir).filter((file) => routeLikeNames.has(file.split("/").pop() ?? ""))
+}
+
 const agents = readProjectFile("AGENTS.md")
 const claude = readProjectFile("CLAUDE.md")
 const architecture = readProjectFile("docs/ARCHITECTURE.md")
@@ -82,5 +105,16 @@ describe("project docs drift contract", () => {
     for (const endpoint of endpoints) {
       expect(architecture, endpoint).toContain(endpoint)
     }
+  })
+
+  it("keeps the architecture directory-index counts tied to the app tree", () => {
+    const appRoot = join(root, "app")
+    const appFiles = findFiles(appRoot)
+    const routeFiles = findRouteInventoryFiles(appRoot)
+    const apiRoutes = findRouteFiles(join(root, "app/api"))
+
+    expect(architecture).toContain(`### \`app/\` — ${appFiles.length} files, ${routeFiles.length} route files`)
+    expect(architecture).toContain(`| \`app/api/\` | API routes (${apiRoutes.length} route files) |`)
+    expect(architecture).toContain("Filesystem route-count drift is guarded by")
   })
 })

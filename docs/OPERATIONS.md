@@ -112,7 +112,7 @@ PLAYWRIGHT=1 STRIPE_WEBHOOK_SECRET=whsec_test_... pnpm e2e e2e/stripe-webhook.sp
 | Payment and webhook recovery | `/admin/finance`, `/admin/refunds` | `/admin/webhook-dlq` |
 | Email delivery recovery | `/admin/emails/hub` | `/admin/emails/templates`, `/admin/emails/suppression` |
 | Revenue and conversion review | `/admin/analytics` | PostHog for deeper product analysis |
-| Platform setup | `/admin/settings` | `/admin/features`, `/admin/settings/doctor-identity`, `/admin/settings/templates` |
+| Platform setup | `/admin/settings` | `/admin/features`, `/doctor/settings/identity`, `/admin/settings/templates` |
 
 Pages outside this map should either be reachable from these surfaces, redirect to them, or be treated as cleanup candidates.
 Incident-only PHI encryption diagnostics live at `/admin/settings/encryption`; keep it out of routine nav and dashboard crawl, and use it only for key rotation or backfill incidents.

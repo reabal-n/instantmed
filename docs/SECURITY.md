@@ -333,9 +333,9 @@ Capability helpers live in `lib/auth/staff-capabilities.ts`:
 
 | Route | Path | Middleware block | Runtime guard |
 |-------|------|-----------------|---------------|
-| `app/(dev)/email-preview/page.tsx` | `/email-preview` | Yes — 302 to `/` in production/preview | `NODE_ENV === "production"` redirect |
-| `app/(dev)/email-preview/[template]/page.tsx` | `/email-preview/:template` | Yes — covered by `/email-preview` prefix | `NODE_ENV === "production"` redirect |
-| `app/(dev)/sentry-test/page.tsx` | `/sentry-test` | Yes — 404 in production/preview | `NODE_ENV !== "development"` renders locked UI |
+| `app/(dev)/email-preview/page.tsx` | `/email-preview` | Yes — 410 in production/preview | `canAccessDevOnlyRoute()` or 404 |
+| `app/(dev)/email-preview/[template]/page.tsx` | `/email-preview/:template` | Yes — covered by `/email-preview` prefix | `canAccessDevOnlyRoute()` or 404 |
+| `app/(dev)/sentry-test/page.tsx` | `/sentry-test` | Yes — 410 in production/preview | `NODE_ENV !== "development"` renders locked UI |
 
 None of these routes expose real PHI — all use hardcoded mock data. The middleware block is the primary control; runtime guards are defence-in-depth.
 
@@ -343,7 +343,7 @@ None of these routes expose real PHI — all use hardcoded mock data. The middle
 
 ### E2E Test Auth Bypass
 
-Only when `NODE_ENV=test` or `PLAYWRIGHT=1`. Middleware blocks `/api/test/*` and `/(dev)/*` in production/preview.
+Only when `NODE_ENV=test` or `PLAYWRIGHT=1`. Middleware blocks `/api/test/*` and `/(dev)/*` in production/preview. Shared route classification lives in `lib/dev-only-routes.ts`.
 
 ---
 

@@ -25,11 +25,11 @@ describe("staff readiness panel contract", () => {
     expect(panelSource).toContain("staff roles, owner doctor setup, future doctors, and release telemetry")
   })
 
-  it("lazy-loads the admin conversion snapshot below the clinical queue", () => {
+  it("keeps conversion analytics out of the staff cockpit", () => {
     const dashboardSource = read("app/dashboard/page.tsx")
 
-    expect(dashboardSource).toContain("Suspense")
-    expect(dashboardSource).toContain("AdminConversionSnapshotSection")
-    expect(dashboardSource).not.toContain("isAdmin ? getConversionSnapshot() : Promise.resolve(null)")
+    expect(dashboardSource).not.toContain("getConversionSnapshot")
+    expect(dashboardSource).not.toContain("AdminConversionSnapshotSection")
+    expect(dashboardSource).not.toContain("ConversionSnapshotCard")
   })
 })

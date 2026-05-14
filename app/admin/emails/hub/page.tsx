@@ -4,6 +4,7 @@ import { getEmailStats, getRecentEmailActivity, getRecentEmailIssues } from "@/a
 import { Skeleton } from "@/components/ui/skeleton"
 import { requireRole } from "@/lib/auth/helpers"
 import { getEmailOutboxList } from "@/lib/data/email-outbox"
+import { canAccessDevOnlyRoute } from "@/lib/dev-only-routes"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { EmailHubClient } from "./email-hub-client"
@@ -55,7 +56,7 @@ export default async function EmailHubPage({
     configured: Boolean(process.env.SUPABASE_AUTH_WEBHOOK_HOOK_SECRET && process.env.RESEND_API_KEY),
     hasResendKey: Boolean(process.env.RESEND_API_KEY),
     hasSupabaseHookSecret: Boolean(process.env.SUPABASE_AUTH_WEBHOOK_HOOK_SECRET),
-    devPreviewAvailable: process.env.NODE_ENV !== "production",
+    devPreviewAvailable: canAccessDevOnlyRoute(),
   }
 
   return (

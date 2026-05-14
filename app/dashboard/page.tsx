@@ -1,11 +1,9 @@
 import type { Metadata } from "next"
 import { redirect } from "next/navigation"
-import { Suspense } from "react"
 
 import { QueueClient } from "@/app/doctor/queue/queue-client"
 import { OwnerOperatorSetupCard } from "@/components/admin/owner-operator-setup-card"
 import { StaffReadinessPanel } from "@/components/admin/staff-readiness-panel"
-import { ConversionSnapshotCard } from "@/components/dashboard/conversion-snapshot"
 import { DoctorAvailabilityToggle } from "@/components/doctor/doctor-availability-toggle"
 import {
   OperatorPage,
@@ -27,7 +25,6 @@ import {
   type QueueStatusFilter,
   STAFF_DASHBOARD_HREF,
 } from "@/lib/dashboard/routes"
-import { getConversionSnapshot } from "@/lib/data/conversion-snapshot"
 import {
   type DoctorIdentity,
   getDoctorIdentity,
@@ -35,7 +32,6 @@ import {
 } from "@/lib/data/doctor-identity"
 import {
   getAIApprovedIntakes,
-  getDoctorDashboardStats,
   getDoctorQueue,
   getRecentlyCompletedIntakes,
   getTodayEarnings,
@@ -103,7 +99,6 @@ export default async function StaffDashboardPage({
   const showTestData = isAdmin && params.showTestData === "1"
 
   const results = await Promise.allSettled([
-    getDoctorDashboardStats(),
     getDoctorQueue({ page, pageSize, doctorId: profile.id, allowSeeded: showTestData }),
     getAIApprovedIntakes({ limit: 20 }),
     getRecentlyCompletedIntakes({ limit: 8 }),
@@ -114,21 +109,16 @@ export default async function StaffDashboardPage({
     isAdmin ? getStaffReadinessSnapshot() : Promise.resolve(null),
   ])
 
-  // Stats fetch kept (counts feed sidebar nav-counts indirectly via
-  // getStaffNavCounts in the layout). The local `stats` value is no longer
-  // surfaced on the dashboard now that AdminHubZones is gone and the
-  // dashboard now focuses on the clinical queue and essential admin warnings.
-  void results[0]
-  const queueResult = results[1].status === "fulfilled"
-    ? results[1].value
+  const queueResult = results[0].status === "fulfilled"
+    ? results[0].value
     : { data: [] as IntakeWithPatient[], total: 0, page: 1, pageSize, degraded: true }
-  const aiApprovedIntakes = results[2].status === "fulfilled" ? results[2].value : []
-  const recentlyCompleted = results[3].status === "fulfilled" ? results[3].value : []
-  const doctorIdentity: DoctorIdentity | null = results[4].status === "fulfilled" ? results[4].value : null
-  const todayEarnings = results[5].status === "fulfilled" ? results[5].value : 0
-  const doctorAvailable = results[6].status === "fulfilled" ? results[6].value?.available !== false : true
-  const systemHealth = results[7].status === "fulfilled" ? results[7].value : EMPTY_SYSTEM_HEALTH
-  const staffReadiness = results[8].status === "fulfilled" ? results[8].value : null
+  const aiApprovedIntakes = results[1].status === "fulfilled" ? results[1].value : []
+  const recentlyCompleted = results[2].status === "fulfilled" ? results[2].value : []
+  const doctorIdentity: DoctorIdentity | null = results[3].status === "fulfilled" ? results[3].value : null
+  const todayEarnings = results[4].status === "fulfilled" ? results[4].value : 0
+  const doctorAvailable = results[5].status === "fulfilled" ? results[5].value?.available !== false : true
+  const systemHealth = results[6].status === "fulfilled" ? results[6].value : EMPTY_SYSTEM_HEALTH
+  const staffReadiness = results[7].status === "fulfilled" ? results[7].value : null
 
   const parchmentUserId = typeof profile.parchment_user_id === "string" && profile.parchment_user_id.trim()
     ? profile.parchment_user_id.trim()
@@ -137,7 +127,6 @@ export default async function StaffDashboardPage({
   results.forEach((result, index) => {
     if (result.status === "rejected") {
       const names = [
-        "stats",
         "queue",
         "ai-approved",
         "recently-completed",
@@ -202,22 +191,8 @@ export default async function StaffDashboardPage({
               compactShell
             />
           </section>
-
-          {/* Conversion analytics anchored at the bottom of scroll — reference
-              info, not primary action. Admin-only and lazy so the clinical
-              queue paints before analytics. */}
-          {isAdmin ? (
-            <Suspense fallback={null}>
-              <AdminConversionSnapshotSection />
-            </Suspense>
-          ) : null}
         </OperatorScrollArea>
       </OperatorPage>
     </PanelProvider>
   )
-}
-
-async function AdminConversionSnapshotSection() {
-  const conversionSnapshot = await getConversionSnapshot()
-  return <ConversionSnapshotCard data={conversionSnapshot} />
 }

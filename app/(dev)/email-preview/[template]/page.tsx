@@ -6,10 +6,11 @@
  */
 
 import Link from "next/link"
-import { notFound,redirect } from "next/navigation"
+import { notFound } from "next/navigation"
 import * as React from "react"
 
 import { COMPANY_NAME,CONTACT_EMAIL_NOREPLY } from "@/lib/constants"
+import { canAccessDevOnlyRoute } from "@/lib/dev-only-routes"
 import { AbandonedCheckoutEmail } from "@/lib/email/components/templates/abandoned-checkout"
 import { AbandonedCheckoutFollowupEmail } from "@/lib/email/components/templates/abandoned-checkout-followup"
 import { ConsultApprovedEmail } from "@/lib/email/components/templates/consult-approved"
@@ -468,10 +469,7 @@ interface PageProps {
 }
 
 export default async function EmailPreviewPage({ params }: PageProps) {
-  // Block in production
-  if (process.env.NODE_ENV === "production") {
-    redirect("/")
-  }
+  if (!canAccessDevOnlyRoute()) notFound()
 
   const { template: templateSlug } = await params
   const template = templates[templateSlug]

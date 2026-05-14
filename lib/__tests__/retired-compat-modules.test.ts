@@ -69,8 +69,8 @@ describe("retired compatibility modules", () => {
   it("keeps the retired dev cert-preview route out of the app tree", () => {
     expect(existsSync(join(root, "app/(dev)/cert-preview/route.ts"))).toBe(false)
 
-    const middleware = readFileSync(join(root, "middleware.ts"), "utf8")
-    expect(middleware).toContain('"/cert-preview"')
+    const devOnlyRoutes = readFileSync(join(root, "lib/dev-only-routes.ts"), "utf8")
+    expect(devOnlyRoutes).toContain('"/cert-preview"')
   })
 
   it("keeps retired test-only ops diagnostics out of the app and e2e trees", () => {
@@ -95,11 +95,13 @@ describe("retired compatibility modules", () => {
 
   it("keeps dev-only surfaces fail-closed in production and preview", () => {
     const middleware = readFileSync(join(root, "middleware.ts"), "utf8")
+    const devOnlyRoutes = readFileSync(join(root, "lib/dev-only-routes.ts"), "utf8")
 
     for (const prefix of ["/api/test", "/email-preview", "/sentry-test", "/cert-preview"]) {
-      expect(middleware).toContain(`"${prefix}"`)
+      expect(devOnlyRoutes).toContain(`"${prefix}"`)
     }
-    expect(middleware).toContain("DEV_ONLY_ROUTE_PREFIXES")
+    expect(devOnlyRoutes).toContain("DEV_ONLY_ROUTE_PREFIXES")
+    expect(middleware).toContain("isDevOnlyRoute(pathname)")
     expect(middleware).toContain("isVercelProdOrPreview")
     expect(middleware).toContain('process.env.PLAYWRIGHT === "1"')
     expect(middleware).toContain("status: 410")

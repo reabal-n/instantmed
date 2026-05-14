@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs"
+import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
@@ -46,10 +46,6 @@ const analyticsPageSource = readFileSync(
 )
 const dashboardRoutesSource = readFileSync(
   join(process.cwd(), "lib/dashboard/routes.ts"),
-  "utf8",
-)
-const adminDoctorIdentityPageSource = readFileSync(
-  join(process.cwd(), "app/admin/settings/doctor-identity/page.tsx"),
   "utf8",
 )
 const dashboardRedirectSource = readFileSync(
@@ -373,7 +369,6 @@ describe("admin navigation contract", () => {
       "app/admin/patients/page.tsx",
       "app/admin/refunds/page.tsx",
       "app/admin/services/page.tsx",
-      "app/admin/settings/doctor-identity/page.tsx",
       "app/admin/settings/encryption/page.tsx",
       "app/admin/settings/page.tsx",
       "app/admin/settings/templates/page.tsx",
@@ -400,14 +395,11 @@ describe("admin navigation contract", () => {
     expect(financeClientSource).not.toContain("?tab=revenue")
   })
 
-  it("keeps doctor identity settings available inside the admin shell for owner-operators", () => {
-    expect(dashboardRoutesSource).toContain('ADMIN_DOCTOR_IDENTITY_HREF = "/admin/settings/doctor-identity"')
-    expect(adminDoctorIdentityPageSource).toContain('requireRole(["admin"]')
-    expect(adminDoctorIdentityPageSource).toContain("IdentitySettingsClient")
-    expect(adminDoctorIdentityPageSource).toContain('settingsPath="/admin/settings/doctor-identity"')
-    expect(adminDoctorIdentityPageSource).toContain('backHref="/admin/settings"')
-    expect(adminDoctorIdentityPageSource).not.toContain("DoctorShell")
-    expect(adminDoctorIdentityPageSource).not.toContain('redirect("/doctor/settings/identity")')
+  it("keeps doctor identity as one shared staff page with an admin compatibility redirect", () => {
+    expect(dashboardRoutesSource).toContain("export const ADMIN_DOCTOR_IDENTITY_HREF = STAFF_IDENTITY_HREF")
+    expect(nextConfigSource).toContain('source: "/admin/settings/doctor-identity"')
+    expect(nextConfigSource).toContain('destination: "/doctor/settings/identity"')
+    expect(existsSync(join(process.cwd(), "app/admin/settings/doctor-identity/page.tsx"))).toBe(false)
   })
 
   it("keeps future doctor setup as an admin checklist without leaking admin controls", () => {

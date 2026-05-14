@@ -75,7 +75,6 @@ const STAFF_OPS_PATHS = [
 ] as const
 
 const STAFF_IDENTITY_PATHS = [
-  "/admin/settings/doctor-identity",
   "/doctor/settings/identity",
   "/doctor/settings",
 ] as const
