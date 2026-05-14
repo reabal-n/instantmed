@@ -17,6 +17,7 @@ import {
   selectGuestProfileForAuthLink,
 } from "@/lib/auth/guest-profile-linking"
 import { hasAdminAccess, hasDoctorAccess, hasSupportAccess, type RoleCapability, roleHasAnyCapability } from "@/lib/auth/staff-capabilities"
+import { PATIENT_DASHBOARD_HREF, STAFF_DASHBOARD_HREF, STAFF_OPS_HREF } from "@/lib/dashboard/routes"
 import { createLogger } from "@/lib/observability/logger"
 import { decryptField } from "@/lib/security/encryption"
 import { createClient } from "@/lib/supabase/server"
@@ -476,11 +477,11 @@ export async function requireRole(
     if (options?.redirectTo) {
       redirect(options.redirectTo)
     } else if (userRole === "patient") {
-      redirect("/patient")
+      redirect(PATIENT_DASHBOARD_HREF)
     } else if (hasAdminAccess(authUser.profile) || hasDoctorAccess(authUser.profile)) {
-      redirect("/dashboard")
+      redirect(STAFF_DASHBOARD_HREF)
     } else if (hasSupportAccess(authUser.profile)) {
-      redirect("/admin/ops")
+      redirect(STAFF_OPS_HREF)
     } else {
       redirect("/sign-in")
     }

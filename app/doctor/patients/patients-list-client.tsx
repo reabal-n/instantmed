@@ -52,6 +52,33 @@ interface PatientsListClientProps {
 }
 
 type ProfileFilter = "all" | "complete" | "incomplete" | "duplicates"
+type ServiceFilter = "all" | "medical_certificate" | "repeat_script" | "consult" | "ed" | "hair_loss" | "no_request"
+type SyncFilter = "all" | "synced" | "not_synced"
+
+function getPatientServiceFilter(patient: PatientDirectoryProfile): ServiceFilter {
+  const request = patient.lastRequest
+  if (!request) return "no_request"
+
+  const markers = [
+    request.category,
+    request.subtype,
+    request.serviceType,
+    request.serviceLabel,
+    request.serviceShortLabel,
+  ]
+    .filter((value): value is string => Boolean(value))
+    .map((value) => value.toLowerCase())
+
+  if (markers.some((value) => value.includes("hair"))) return "hair_loss"
+  if (markers.some((value) => value === "ed" || value.includes("erectile"))) return "ed"
+  if (markers.some((value) => value.includes("medical_certificate") || (value.includes("med") && value.includes("cert")))) {
+    return "medical_certificate"
+  }
+  if (markers.some((value) => value.includes("repeat") || value.includes("prescription") || value.includes("script") || value.includes("rx"))) {
+    return "repeat_script"
+  }
+  return "consult"
+}
 
 export function PatientsListClient({
   patients,
@@ -72,6 +99,8 @@ export function PatientsListClient({
   const [searchQuery, setSearchQuery] = useState("")
   const [stateFilter, setStateFilter] = useState<string>("all")
   const [profileFilter, setProfileFilter] = useState<ProfileFilter>("all")
+  const [serviceFilter, setServiceFilter] = useState<ServiceFilter>("all")
+  const [syncFilter, setSyncFilter] = useState<SyncFilter>("all")
 
   const buildDirectoryHref = (page: number, sort: PatientDirectorySort = currentSort) => {
     const params = new URLSearchParams()
@@ -81,11 +110,7 @@ export function PatientsListClient({
     return query ? `${baseHref}?${query}` : baseHref
   }
 
-  const handleSortChange = (value: PatientDirectorySort) => {
-    router.push(buildDirectoryHref(1, value))
-  }
-
-  const searchablePatients = useMemo(() => {
+  const visibleBasePatients = useMemo(() => {
     return patients.filter((patient) => {
       const matchesSearch =
         patient.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -94,37 +119,33 @@ export function PatientsListClient({
         patient.phone?.includes(searchQuery)
 
       const matchesState = stateFilter === "all" || patient.state === stateFilter
+      const matchesService = serviceFilter === "all" || getPatientServiceFilter(patient) === serviceFilter
+      const matchesSync = syncFilter === "all"
+        || (syncFilter === "synced" ? Boolean(patient.parchment_patient_id) : !patient.parchment_patient_id)
 
-      return matchesSearch && matchesState
+      return matchesSearch && matchesState && matchesService && matchesSync
     })
-  }, [patients, searchQuery, stateFilter])
+  }, [patients, searchQuery, stateFilter, serviceFilter, syncFilter])
 
   const states = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
-  const sortOptions: Array<{ value: PatientDirectorySort; label: string }> = [
-    { value: "recent_request", label: "Most recent request" },
-    { value: "request_type", label: "Request type" },
-    { value: "recent_script", label: "Last script" },
-    { value: "name", label: "Name" },
-    { value: "joined", label: "Joined" },
-  ]
   const parchmentSyncedPatients = patients.filter((p) => p.parchment_patient_id).length
   const onboardedPatients = patients.filter((p) => p.onboarding_completed).length
   const incompletePatients = patients.length - onboardedPatients
   const notSyncedOnPage = patients.length - parchmentSyncedPatients
-  const duplicateGroups = useMemo(() => findPotentialDuplicatePatients(searchablePatients), [searchablePatients])
+  const duplicateGroups = useMemo(() => findPotentialDuplicatePatients(visibleBasePatients), [visibleBasePatients])
   const duplicatePatientIds = useMemo(() => {
     const ids = new Set<string>()
     duplicateGroups.forEach((group) => group.patientIds.forEach((id) => ids.add(id)))
     return ids
   }, [duplicateGroups])
   const filteredPatients = useMemo(() => {
-    return searchablePatients.filter((patient) => {
+    return visibleBasePatients.filter((patient) => {
       if (profileFilter === "complete") return patient.onboarding_completed
       if (profileFilter === "incomplete") return !patient.onboarding_completed
       if (profileFilter === "duplicates") return duplicatePatientIds.has(patient.id)
       return true
     })
-  }, [searchablePatients, profileFilter, duplicatePatientIds])
+  }, [visibleBasePatients, profileFilter, duplicatePatientIds])
   const firstDuplicatePatient = useMemo(
     () => filteredPatients.find((patient) => duplicatePatientIds.has(patient.id)) ?? null,
     [filteredPatients, duplicatePatientIds],
@@ -185,31 +206,15 @@ export function PatientsListClient({
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <Select value={currentSort} onValueChange={(value) => handleSortChange(value as PatientDirectorySort)}>
-                <SelectTrigger
-                  className="w-[190px] rounded-xl bg-white dark:bg-card border-border/50"
-                  aria-label="Sort patients"
-                >
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  {sortOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
               <Select value={stateFilter} onValueChange={setStateFilter}>
                 <SelectTrigger
-                  className="w-[120px] rounded-xl bg-white dark:bg-card border-border/50"
+                  className="w-[132px] rounded-xl bg-white dark:bg-card border-border/50"
                   aria-label="Filter patients by state"
                 >
                   <SelectValue placeholder="State" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All States</SelectItem>
+                  <SelectItem value="all">All states</SelectItem>
                   {states.map((state) => (
                     <SelectItem key={state} value={state}>
                       {state}
@@ -220,16 +225,48 @@ export function PatientsListClient({
 
               <Select value={profileFilter} onValueChange={(value) => setProfileFilter(value as ProfileFilter)}>
                 <SelectTrigger
-                  className="w-[160px] rounded-xl bg-white dark:bg-card border-border/50"
-                  aria-label="Filter patients by profile state"
+                  className="w-[156px] rounded-xl bg-white dark:bg-card border-border/50"
+                  aria-label="Filter patients by status"
                 >
-                  <SelectValue placeholder="Profile state" />
+                  <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="all">All statuses</SelectItem>
                   <SelectItem value="complete">Ready</SelectItem>
                   <SelectItem value="incomplete">Needs details</SelectItem>
                   <SelectItem value="duplicates">Duplicates</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={serviceFilter} onValueChange={(value) => setServiceFilter(value as ServiceFilter)}>
+                <SelectTrigger
+                  className="w-[156px] rounded-xl bg-white dark:bg-card border-border/50"
+                  aria-label="Filter patients by service"
+                >
+                  <SelectValue placeholder="Service" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All services</SelectItem>
+                  <SelectItem value="medical_certificate">Med cert</SelectItem>
+                  <SelectItem value="repeat_script">Repeat Rx</SelectItem>
+                  <SelectItem value="consult">Consult</SelectItem>
+                  <SelectItem value="ed">ED</SelectItem>
+                  <SelectItem value="hair_loss">Hair loss</SelectItem>
+                  <SelectItem value="no_request">No request</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={syncFilter} onValueChange={(value) => setSyncFilter(value as SyncFilter)}>
+                <SelectTrigger
+                  className="w-[156px] rounded-xl bg-white dark:bg-card border-border/50"
+                  aria-label="Filter patients by Parchment sync"
+                >
+                  <SelectValue placeholder="Sync" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Any sync</SelectItem>
+                  <SelectItem value="synced">Synced</SelectItem>
+                  <SelectItem value="not_synced">Not synced</SelectItem>
                 </SelectContent>
               </Select>
             </div>

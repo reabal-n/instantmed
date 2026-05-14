@@ -5,9 +5,6 @@ import {
   hasSupportAccess,
 } from "@/lib/auth/staff-capabilities"
 import {
-  ADMIN_PARCHMENT_OPS_HREF,
-  ADMIN_PRESCRIBING_IDENTITY_HREF,
-  ADMIN_WEBHOOK_DLQ_HREF,
   STAFF_ANALYTICS_HREF,
   STAFF_DASHBOARD_HREF,
   STAFF_DOCTOR_PATIENTS_HREF,
@@ -84,7 +81,7 @@ export const operatorNavSections: StaffNavSection[] = [
   {
     title: "Setup",
     items: [
-      { href: STAFF_SETTINGS_HREF, label: "Settings", icon: "settings" },
+      { href: STAFF_SETTINGS_HREF, label: "Setup", icon: "settings" },
     ],
   },
 ]
@@ -115,23 +112,18 @@ export const doctorOperatorNavItems: StaffNavItem[] = [
 // legacy exports above stay for back-compat until Phase 2 finishes the surface
 // consolidation; new sidebars should call this function.
 //
-// Support staff get a deliberately minimal nav: operations recovery
-// surfaces only. No patient directory (full PHI), no email hub, no settings,
-// no clinical queue, no prescriptions. The links here all target pages that
-// either show masked PHI (prescribing identity/Parchment) or payload-redacted
-// operational data (ops, webhooks). Phase 7 of dashboard remaster (2026-05-12)
-// removed the legacy `/admin/patients` entry — it was a misleading
-// link, since `requireRole(["admin"])` on that page would have
-// rejected support anyway.
+// Support staff get one deliberately minimal nav entry. `/admin/ops` is the
+// bounded recovery cockpit and links through to masked PHI / redacted payload
+// detail pages only when work exists. This avoids a second "support dashboard"
+// made from nested ops shortcuts while preserving the access boundary.
+// Phase 7 of dashboard remaster (2026-05-12) removed the legacy
+// `/admin/patients` entry because it was a misleading PHI-heavy link.
 
 export const supportNavSections: StaffNavSection[] = [
   {
     title: "Operations",
     items: [
       { href: STAFF_OPS_HREF, label: "Operations", icon: "activity" },
-      { href: ADMIN_WEBHOOK_DLQ_HREF, label: "Webhook retries", icon: "shield" },
-      { href: ADMIN_PARCHMENT_OPS_HREF, label: "Parchment recovery", icon: "queue" },
-      { href: ADMIN_PRESCRIBING_IDENTITY_HREF, label: "Identity chase-ups", icon: "users" },
     ],
   },
 ]

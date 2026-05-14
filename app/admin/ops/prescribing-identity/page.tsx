@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { requireRole } from "@/lib/auth/helpers"
 import { hasAdminAccess, hasSupportAccess } from "@/lib/auth/staff-capabilities"
+import { STAFF_OPS_HREF } from "@/lib/dashboard/routes"
 import { getPrescribingIdentityBlockerReport } from "@/lib/doctor/patient-identity-report"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { maskPatientName } from "@/lib/verify/certificate"
@@ -31,7 +32,7 @@ function formatDateTime(value: string | null): string {
 }
 
 export default async function PrescribingIdentityOpsPage() {
-  const authUser = await requireRole(["admin", "support"], { redirectTo: "/admin/ops" })
+  const authUser = await requireRole(["admin", "support"], { redirectTo: STAFF_OPS_HREF })
   const isSupportOnly = hasSupportAccess(authUser.profile) && !hasAdminAccess(authUser.profile)
 
   const report = await getPrescribingIdentityBlockerReport(createServiceRoleClient())
@@ -44,7 +45,7 @@ export default async function PrescribingIdentityOpsPage() {
       <OperatorPageHeader
         title="Prescribing identity blocks"
         description="Paid prescription requests that are not ready for Parchment because identity data is incomplete."
-        backHref="/admin/ops"
+        backHref={STAFF_OPS_HREF}
         backLabel="Operations"
         actions={
           <StatusBadge status={report.blockedCount === 0 ? "success" : "warning"}>

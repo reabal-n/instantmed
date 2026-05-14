@@ -39,6 +39,7 @@ import {
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
+import { STAFF_SETTINGS_HREF } from "@/lib/dashboard/routes"
 import type {
   AccentColorPreset,
   ClinicIdentity,
@@ -231,7 +232,7 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
       <OperatorPageHeader
         title="Certificate templates"
         description="Clinic identity and certificate preview."
-        backHref="/admin/settings"
+        backHref={STAFF_SETTINGS_HREF}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {activeTemplate && (

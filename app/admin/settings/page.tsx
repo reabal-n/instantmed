@@ -20,13 +20,14 @@ import {
   ADMIN_DOCTORS_HREF,
   ADMIN_FEATURES_HREF,
   ADMIN_SERVICES_HREF,
+  STAFF_SETTINGS_HREF,
 } from "@/lib/dashboard/routes"
 
 export const dynamic = "force-dynamic"
 
 export const metadata = {
-  title: "Admin Settings | InstantMed",
-  description: "Configuration surfaces for InstantMed admins.",
+  title: "Clinic Setup | InstantMed",
+  description: "Essential clinic, service, and doctor setup for InstantMed admins.",
 }
 
 interface SettingsLink {
@@ -38,19 +39,19 @@ interface SettingsLink {
 
 const settingsLinks: SettingsLink[] = [
   {
-    label: "Clinic identity",
-    description: "Provider details, clinic profile, and public-facing identity.",
+    label: "Clinic profile",
+    description: "Provider details, public identity, and clinic contact information.",
     href: ADMIN_CLINIC_HREF,
     icon: Building2,
   },
   {
-    label: "Doctors",
-    description: "Doctor records, provider numbers, and operational availability.",
+    label: "Doctor setup",
+    description: "Future doctor records, provider numbers, and readiness checks.",
     href: ADMIN_DOCTORS_HREF,
     icon: Stethoscope,
   },
   {
-    label: "Your doctor identity",
+    label: "Your prescribing identity",
     description: "Account security, availability, signature, and Parchment prescribing setup.",
     href: ADMIN_DOCTOR_IDENTITY_HREF,
     icon: UserCog,
@@ -62,8 +63,8 @@ const settingsLinks: SettingsLink[] = [
     icon: Settings,
   },
   {
-    label: "Feature flags",
-    description: "Roll out operational features deliberately.",
+    label: "Platform controls",
+    description: "Kill switches, capacity controls, and launch gates.",
     href: ADMIN_FEATURES_HREF,
     icon: ToggleLeft,
   },
@@ -81,8 +82,8 @@ export default async function AdminSettingsPage() {
   return (
     <div className="space-y-6">
       <DashboardPageHeader
-        title="Admin Settings"
-        description="Clinic, service, doctor, certificate, and platform configuration."
+        title="Clinic setup"
+        description="The essential setup surfaces for running InstantMed. Incident recovery stays in Ops."
         className="mb-0"
       />
 
@@ -97,7 +98,7 @@ export default async function AdminSettingsPage() {
           <CardContent className="px-5 pb-5">
             <GoogleAccountLinkCard
               accountLabel="admin"
-              redirectPath="/admin/settings#account-security"
+              redirectPath={`${STAFF_SETTINGS_HREF}#account-security`}
               className="rounded-xl border border-border/40 bg-white p-4 dark:bg-card"
             />
           </CardContent>
@@ -108,7 +109,7 @@ export default async function AdminSettingsPage() {
         <CardHeader className="px-5 py-4">
           <CardTitle className="text-base">Configuration</CardTitle>
           <CardDescription>
-            Email delivery and template operations live in the email hub, not settings.
+            Email delivery lives in the email hub. Recovery work lives in Ops.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-2 px-5 pb-5 md:grid-cols-2">

@@ -24,6 +24,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Button } from "@/components/uix"
 import {
+  STAFF_DASHBOARD_HREF,
   STAFF_DOCTOR_PATIENTS_HREF,
   STAFF_DOCTOR_SCRIPTS_HREF,
   STAFF_QUEUE_HREF,
@@ -179,7 +180,7 @@ export function UserMenu({
         <AnimatedNavLink
           href={STAFF_QUEUE_HREF}
           icon={<LayoutDashboard className="h-4 w-4" aria-hidden="true" />}
-          isActive={pathname === "/dashboard"}
+          isActive={pathname === STAFF_DASHBOARD_HREF}
         >
           Queue
         </AnimatedNavLink>

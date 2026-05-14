@@ -57,7 +57,7 @@ describe("support nav contract", () => {
       "Analytics",
       "Payments",
       "Ops",
-      "Settings",
+      "Setup",
     ])
     expect(doctorLabels).toEqual(["Queue", "Scripts", "Patients", "Identity"])
     expect(doctorLabels).not.toContain("Requests")
@@ -83,18 +83,13 @@ describe("support nav contract", () => {
     expect(hrefs).not.toContain("/dashboard")
   })
 
-  it("surfaces only the bounded operational recovery and identity chase-up paths", () => {
+  it("keeps support nav as one bounded operations entrypoint", () => {
     const hrefs = allHrefs(supportNavSections)
-    expect(hrefs).toEqual([
-      "/admin/ops",
-      "/admin/webhook-dlq",
-      "/admin/ops/parchment",
-      "/admin/ops/prescribing-identity",
-    ])
+    expect(hrefs).toEqual(["/admin/ops"])
     expect(hrefs).toContain("/admin/ops")
-    expect(hrefs).toContain("/admin/ops/prescribing-identity")
-    expect(hrefs).toContain("/admin/webhook-dlq")
-    expect(hrefs).toContain("/admin/ops/parchment")
+    expect(hrefs).not.toContain("/admin/ops/prescribing-identity")
+    expect(hrefs).not.toContain("/admin/webhook-dlq")
+    expect(hrefs).not.toContain("/admin/ops/parchment")
     expect(hrefs).not.toContain("/admin/emails/hub")
     expect(hrefs).not.toContain("/admin/settings")
   })
@@ -105,7 +100,8 @@ describe("support nav contract", () => {
     // intent is recoverable if anyone wonders why the support nav looks
     // bare relative to doctor / admin.
     expect(navSource).toContain("Phase 7 of dashboard remaster")
-    expect(navSource).toContain("masked PHI")
+    expect(navSource).toContain("bounded recovery cockpit")
+    expect(navSource).toContain("masked PHI / redacted payload")
   })
 
   it("allows support through only the selected ops route gates", () => {

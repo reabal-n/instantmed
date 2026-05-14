@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs"
+import { existsSync, readFileSync, readdirSync } from "node:fs"
 import { join } from "node:path"
 
 const root = process.cwd()
@@ -27,6 +27,18 @@ for (const cron of crons) {
   }
 }
 
+const cronRouteDir = join(root, "app/api/cron")
+const routePaths = readdirSync(cronRouteDir, { withFileTypes: true })
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => `/api/cron/${entry.name}`)
+  .sort()
+
+for (const routePath of routePaths) {
+  if (!seen.has(routePath)) {
+    failures.push(`Cron route is not scheduled in vercel.json: ${routePath}`)
+  }
+}
+
 if (failures.length > 0) {
   console.error("Vercel cron route check failed:")
   for (const failure of failures) {
@@ -35,4 +47,4 @@ if (failures.length > 0) {
   process.exit(1)
 }
 
-console.log(`Vercel cron route check passed (${crons.length} scheduled jobs).`)
+console.log(`Vercel cron route check passed (${crons.length} scheduled jobs, ${routePaths.length} route files).`)

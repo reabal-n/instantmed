@@ -6,7 +6,7 @@ import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/componen
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { requireRole } from "@/lib/auth/helpers"
-import { buildAdminAuditHref, buildStaffPatientHref } from "@/lib/dashboard/routes"
+import { buildAdminAuditHref, buildStaffPatientHref,STAFF_OPS_HREF } from "@/lib/dashboard/routes"
 import { getPatientProfileMergeAudit } from "@/lib/data/patient-profile-merge-audit"
 
 export const dynamic = "force-dynamic"
@@ -36,7 +36,7 @@ export default async function PatientMergeAuditPage() {
       <OperatorPageHeader
         title="Patient merge audit"
         description="Immutable history of duplicate patient profile merges and the records moved into the canonical profile."
-        backHref="/admin/ops"
+        backHref={STAFF_OPS_HREF}
         backLabel="Operations"
         actions={
           <StatusBadge status={error ? "error" : "success"}>

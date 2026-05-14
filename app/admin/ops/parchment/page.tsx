@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { requireRole } from "@/lib/auth/helpers"
 import { hasAdminAccess, hasSupportAccess } from "@/lib/auth/staff-capabilities"
-import { buildAdminIntakeHref, buildStaffPatientHref } from "@/lib/dashboard/routes"
+import { buildAdminIntakeHref, buildStaffPatientHref,STAFF_OPS_HREF } from "@/lib/dashboard/routes"
 import {
   getParchmentOpsDashboard,
   type ParchmentFailedWebhook,
@@ -186,7 +186,7 @@ function HandoffRecoveryItem({
 }
 
 export default async function ParchmentOpsPage() {
-  const authUser = await requireRole(["admin", "support"], { redirectTo: "/admin/ops" })
+  const authUser = await requireRole(["admin", "support"], { redirectTo: STAFF_OPS_HREF })
   const isSupportOnly = hasSupportAccess(authUser.profile) && !hasAdminAccess(authUser.profile)
 
   const dashboard = await getParchmentOpsDashboard(createServiceRoleClient())
@@ -209,7 +209,7 @@ export default async function ParchmentOpsPage() {
         description={isSupportOnly
           ? "Support view: current blockers and masked webhook evidence. PHI links, prescriber evidence, and retry actions stay admin-only."
           : "Prescribing integration recovery, current blockers, and production-readiness evidence."}
-        backHref="/admin/ops"
+        backHref={STAFF_OPS_HREF}
         actions={
           <div className="flex items-center gap-2">
             {isSupportOnly ? <Badge variant="outline" size="sm">Support view</Badge> : null}

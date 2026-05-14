@@ -34,6 +34,14 @@ describe("cron surface contract", () => {
     }
   })
 
+  it("keeps the local cron guard bidirectional", () => {
+    const script = read("scripts/check-vercel-cron-routes.mjs")
+
+    expect(script).toContain("readdirSync(cronRouteDir")
+    expect(script).toContain("Cron route is not scheduled in vercel.json")
+    expect(script).toContain("Missing route for scheduled cron")
+  })
+
   it("keeps non-operational engagement and dashboard digest crons retired", () => {
     const vercelConfig = JSON.parse(read("vercel.json")) as {
       crons?: Array<{ path?: string }>

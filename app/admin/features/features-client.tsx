@@ -7,6 +7,7 @@ import { toast } from "sonner"
 import type { AutoApproveStats } from "@/app/actions/admin-config"
 import { updateFeatureFlagAction } from "@/app/actions/admin-config"
 import { OperatorPage, OperatorPageHeader } from "@/components/operator"
+import { STAFF_SETTINGS_HREF } from "@/lib/dashboard/routes"
 import type { FeatureFlags, FlagKey } from "@/lib/data/types/feature-flags"
 import { FLAG_KEYS } from "@/lib/data/types/feature-flags"
 
@@ -103,9 +104,9 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [], autoApproveSt
   return (
     <OperatorPage>
       <OperatorPageHeader
-        title="Feature flags"
+        title="Platform controls"
         description="Kill switches and operational controls."
-        backHref="/admin/settings"
+        backHref={STAFF_SETTINGS_HREF}
       />
 
       <FeaturesList

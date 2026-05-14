@@ -10,7 +10,7 @@ import { PanelProvider } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
 import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
 import { requireRole } from "@/lib/auth/helpers"
-import { buildStaffPatientHref } from "@/lib/dashboard/routes"
+import { buildStaffPatientHref,STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { getIntakeWithDetails, getNextQueueIntakeId, getPatientIntakes, getPatientNotes } from "@/lib/data/intakes"
 import { getCertDeliveryStatus } from "@/lib/data/issued-certificates"
@@ -104,7 +104,7 @@ export default async function AdminIntakeDetailPage({
         parchmentEnabled={featureFlags.parchment_embedded_prescribing}
         patientMessages={patientMessages}
         patientNotes={patientNotes}
-        backHref="/admin#intakes"
+        backHref={STAFF_DASHBOARD_HREF}
         backLabel="Back to work"
         compact
         supplementaryActions={

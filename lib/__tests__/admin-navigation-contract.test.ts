@@ -107,11 +107,13 @@ describe("admin navigation contract", () => {
     expect(settingsSource).toContain("ADMIN_FEATURES_HREF")
     expect(settingsSource).toContain("ADMIN_CERTIFICATE_TEMPLATES_HREF")
     expect(settingsSource).toContain("ADMIN_DOCTOR_IDENTITY_HREF")
-    expect(settingsSource).toContain("Your doctor identity")
+    expect(settingsSource).toContain("Your prescribing identity")
+    expect(settingsSource).toContain("Clinic setup")
     expect(settingsSource).toContain("ADMIN_CLINIC_HREF")
     expect(settingsSource).toContain("ADMIN_DOCTORS_HREF")
     expect(settingsSource).toContain("ADMIN_SERVICES_HREF")
-    expect(settingsSource).toContain("Email delivery and template operations live in the email hub")
+    expect(settingsSource).toContain("Email delivery lives in the email hub")
+    expect(settingsSource).toContain("Recovery work lives in Ops")
     expect(settingsSource).not.toContain("ADMIN_EMAIL_TEMPLATE_EDITOR_HREF")
     expect(settingsSource).not.toContain('href: "/admin/content"')
     expect(settingsSource).not.toContain("Operational controls")
@@ -145,7 +147,7 @@ describe("admin navigation contract", () => {
       "Analytics",
       "Payments",
       "Ops",
-      "Settings",
+      "Setup",
     ])
     expect(sidebarSource).toContain("operatorNavSections")
     expect(sidebarSource).toContain("Expand staff navigation")
@@ -188,7 +190,7 @@ describe("admin navigation contract", () => {
     expect(dashboardRoutesSource).toContain('ADMIN_EMAIL_HUB_HREF = "/admin/emails/hub"')
     expect(dashboardRoutesSource).toContain('ADMIN_EMAIL_TEMPLATE_EDITOR_HREF = "/admin/emails/templates"')
     expect(dashboardRoutesSource).toContain('ADMIN_CERTIFICATE_TEMPLATES_HREF = "/admin/settings/templates"')
-    expect(dashboardRoutesSource).toContain('ADMIN_PATIENTS_HREF = "/admin/patients"')
+    expect(dashboardRoutesSource).toContain("ADMIN_PATIENTS_HREF = STAFF_PATIENTS_HREF")
     // Status-filter links now go to the canonical `/dashboard` via
     // buildStaffDashboardHref; the literal `/doctor/...` hrefs are gone.
     expect(adminHubSource).toContain("buildStaffDashboardHref")

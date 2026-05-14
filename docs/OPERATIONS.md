@@ -117,6 +117,7 @@ PLAYWRIGHT=1 STRIPE_WEBHOOK_SECRET=whsec_test_... pnpm e2e e2e/stripe-webhook.sp
 Pages outside this map should either be reachable from these surfaces, redirect to them, or be treated as cleanup candidates.
 Incident-only PHI encryption diagnostics live at `/admin/settings/encryption`; keep it out of routine nav and dashboard crawl, and use it only for key rotation or backfill incidents.
 Email delivery operations, suppression recovery, and email template editing stay under `/admin/emails/*`; do not duplicate them inside settings.
+Support staff get a single sidebar entry, `/admin/ops`; nested webhook, Parchment, and prescribing-identity pages stay reachable from the ops recovery cards rather than becoming separate sidebar modes.
 
 ### Solo-Doctor Operating Model
 
@@ -356,7 +357,7 @@ Critical paths (Stripe, approvals, prescriptions) are always sampled at 1.0.
 
 All crons use `verifyCronRequest()` from `lib/api/cron-auth.ts` for authentication.
 
-Cron surface policy: every `app/api/cron/*/route.ts` must be scheduled in `vercel.json`, documented in this table, and operationally justified as one of: clinical queue safety, payment/intake recovery, delivery recovery, compliance retention, health monitoring, or explicit growth support. Dormant engagement jobs, dashboard digests, and future subscription nudges stay deleted rather than paused in production.
+Cron surface policy: every `app/api/cron/*/route.ts` must be scheduled in `vercel.json`, documented in this table, and operationally justified as one of: clinical queue safety, payment/intake recovery, delivery recovery, compliance retention, health monitoring, or explicit growth support. `scripts/check-vercel-cron-routes.mjs` fails both directions: scheduled jobs with no route and route files with no schedule. Dormant engagement jobs, dashboard digests, and future subscription nudges stay deleted rather than paused in production.
 
 | Job | Endpoint | Schedule | Purpose |
 |-----|----------|----------|---------|

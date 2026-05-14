@@ -24,6 +24,7 @@ import {
   parseQueueStatusFilter,
   type QueueStatusFilter,
   STAFF_DASHBOARD_HREF,
+  STAFF_OPS_HREF,
 } from "@/lib/dashboard/routes"
 import {
   type DoctorIdentity,
@@ -64,7 +65,7 @@ export const dynamic = "force-dynamic"
  *   - Owner-operator setup card if admin and setup is incomplete.
  *   - Queue list (the same `QueueClient` as before).
  *
- * Support role gets redirected to /admin/ops (no clinical surface yet).
+ * Support role gets redirected to STAFF_OPS_HREF (no clinical surface yet).
  * Future Phase 7 builds a dedicated support cockpit here.
  */
 export default async function StaffDashboardPage({
@@ -82,7 +83,7 @@ export default async function StaffDashboardPage({
 
   // Support role has no clinical surface yet; forward to recovery.
   if (hasSupportAccess(profile) && !hasDoctorAccess(profile) && !hasAdminAccess(profile)) {
-    redirect("/admin/ops")
+    redirect(STAFF_OPS_HREF)
   }
 
   const isAdmin = hasAdminAccess(profile)

@@ -32,7 +32,8 @@ describe("account Google linking UX contract", () => {
     expect(patientSettingsSource).toContain('redirectPath="/patient/settings?tab=preferences#account-security"')
 
     expect(adminSettingsSource).toContain("GoogleAccountLinkCard")
-    expect(adminSettingsSource).toContain('redirectPath="/admin/settings#account-security"')
+    expect(adminSettingsSource).toContain("STAFF_SETTINGS_HREF")
+    expect(adminSettingsSource).toContain('redirectPath={`${STAFF_SETTINGS_HREF}#account-security`}')
   })
 
   it("shows patient account completion without creating another settings surface", () => {

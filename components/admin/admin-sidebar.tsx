@@ -6,6 +6,7 @@ import { usePathname, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import {
   EMPTY_STAFF_NAV_COUNTS,
   operatorNavSections,
@@ -185,7 +186,7 @@ function NavIconLink({
 function Brand({ expanded, brandLabel }: { expanded: boolean; brandLabel: string }) {
   return (
     <Link
-      href="/dashboard"
+      href={STAFF_DASHBOARD_HREF}
       prefetch={false}
       className={cn(
         "flex rounded-lg transition-colors",
