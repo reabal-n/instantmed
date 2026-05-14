@@ -12,7 +12,7 @@ export default async function RefundsPage({
 }: {
   searchParams: Promise<{ status?: string }>
 }) {
-  await requireRole(["admin"], { redirectTo: "/admin" })
+  await requireRole(["admin"])
   const params = await searchParams
   const initialStatusFilter = params.status === "failed" ? "failed" : undefined
 

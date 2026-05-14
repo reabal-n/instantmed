@@ -26,7 +26,7 @@ function formatDateTime(value: string): string {
 }
 
 export default async function PatientMergeAuditPage() {
-  await requireRole(["admin"], { redirectTo: "/admin" })
+  await requireRole(["admin"])
 
   const { entries, error } = await getPatientProfileMergeAudit(50)
   const movedReferenceCount = entries.reduce((sum, entry) => sum + entry.referenceSummary.total, 0)

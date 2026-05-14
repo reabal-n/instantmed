@@ -110,7 +110,7 @@ PLAYWRIGHT=1 STRIPE_WEBHOOK_SECRET=whsec_test_... pnpm e2e e2e/stripe-webhook.sp
 | Write or reconcile scripts | `/dashboard?status=scripts#doctor-queue` | `/doctor/scripts`, `/admin/ops/parchment` |
 | Patient lookup and duplicate review | `/admin/patients` | `/doctor/patients/[id]`, `/admin/ops/patient-merge-audit` |
 | Payment and webhook recovery | `/admin/finance`, `/admin/refunds` | `/admin/webhook-dlq` |
-| Email delivery recovery | `/admin/emails/hub` | `/admin/emails/templates`, `/admin/emails/suppression` |
+| Email delivery recovery | `/admin/emails/hub` | Compact controls link to `/admin/emails/templates` and `/admin/emails/suppression` |
 | Revenue and conversion review | `/admin/analytics` | PostHog for deeper product analysis |
 | Platform setup | `/admin/settings` | `/admin/features`, `/doctor/settings/identity`, `/admin/settings/templates` |
 
@@ -118,6 +118,7 @@ Pages outside this map should either be reachable from these surfaces, redirect 
 Incident-only PHI encryption diagnostics live at `/admin/settings/encryption`; keep it out of routine nav and dashboard crawl, and use it only for key rotation or backfill incidents.
 Email delivery operations, suppression recovery, and email template editing stay under `/admin/emails/*`; do not duplicate them inside settings.
 Support staff get a single sidebar entry, `/admin/ops`; nested webhook, Parchment, and prescribing-identity pages stay reachable from the ops recovery cards rather than becoming separate sidebar modes.
+Admin-only pages should rely on `requireRole(["admin"])` default redirects so wrong-role staff land on the role-aware staff surface instead of bouncing through `/admin`.
 
 ### Solo-Doctor Operating Model
 

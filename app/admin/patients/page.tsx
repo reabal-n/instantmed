@@ -2,6 +2,7 @@ import { PatientsListClient } from "@/components/admin/patient-directory-client"
 import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
 import { requireRole } from "@/lib/auth/helpers"
 import {
+  ADMIN_PATIENT_MERGE_AUDIT_HREF,
   ADMIN_PATIENTS_HREF,
   STAFF_DASHBOARD_HREF,
   STAFF_PATIENT_DETAIL_BASE_HREF,
@@ -19,7 +20,7 @@ export default async function AdminPatientsPage({
 }: {
   searchParams: Promise<{ page?: string; sort?: string | string[] }>
 }) {
-  await requireRole(["admin"], { redirectTo: "/admin" })
+  await requireRole(["admin"])
 
   const params = await searchParams
   const page = Math.max(1, parseInt(params.page || "1", 10) || 1)
@@ -52,6 +53,7 @@ export default async function AdminPatientsPage({
             currentSort={sort}
             baseHref={ADMIN_PATIENTS_HREF}
             patientHrefBase={STAFF_PATIENT_DETAIL_BASE_HREF}
+            mergeAuditHref={ADMIN_PATIENT_MERGE_AUDIT_HREF}
             showHeader={false}
             showAddPatientAction={false}
           />

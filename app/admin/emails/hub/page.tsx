@@ -24,7 +24,7 @@ export default async function EmailHubPage({
 }: {
   searchParams?: Promise<{ intake_id?: string; intake?: string }>
 }) {
-  await requireRole(["admin"], { redirectTo: "/admin" })
+  await requireRole(["admin"])
   const params = await searchParams
   const intakeId = params?.intake_id || params?.intake || undefined
 

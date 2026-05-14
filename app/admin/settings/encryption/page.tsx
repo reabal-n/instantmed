@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic"
 // day-to-day PHI posture belongs in system health, while this page is for
 // encryption rollout checks and incident response.
 export default async function EncryptionDashboardPage() {
-  await requireRole(["admin"], { redirectTo: "/admin" })
+  await requireRole(["admin"])
 
   const supabase = createServiceRoleClient()
 

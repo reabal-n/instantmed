@@ -8,7 +8,7 @@ import { FeatureFlagsClient } from "./features-client"
 export const dynamic = "force-dynamic"
 
 export default async function FeatureFlagsPage() {
-  await requireRole(["admin"], { redirectTo: "/admin" })
+  await requireRole(["admin"])
 
   const [flags, auditLogs, autoApproveStats] = await Promise.all([
     getFeatureFlagsAction().catch(() => DEFAULT_FLAGS),

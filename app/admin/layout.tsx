@@ -23,7 +23,7 @@ export default async function AdminLayout({
   // Admin shell now also hosts the bounded support ops cockpit. Individual
   // admin data pages remain admin-gated at page level; only explicit ops pages
   // opt support in.
-  const authUser = await requireRole(["admin", "support"], { redirectTo: "/" })
+  const authUser = await requireRole(["admin", "support"])
   const staffRoleLabel = getStaffDisplayRole(authUser.profile)
   const navSections = getStaffNav(authUser.profile)
   const navCounts = await getStaffNavCounts().catch(() => EMPTY_STAFF_NAV_COUNTS)

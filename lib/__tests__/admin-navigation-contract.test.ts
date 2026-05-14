@@ -187,7 +187,7 @@ describe("admin navigation contract", () => {
     expect(adminHubSource).toContain("ADMIN_EMAIL_HUB_HREF")
     expect(dashboardRoutesSource).toContain('ADMIN_PARCHMENT_OPS_HREF = "/admin/ops/parchment"')
     expect(dashboardRoutesSource).toContain('ADMIN_WEBHOOK_DLQ_HREF = "/admin/webhook-dlq"')
-    expect(dashboardRoutesSource).toContain('ADMIN_EMAIL_HUB_HREF = "/admin/emails/hub"')
+    expect(dashboardRoutesSource).toContain("ADMIN_EMAIL_HUB_HREF = STAFF_EMAILS_HREF")
     expect(dashboardRoutesSource).toContain('ADMIN_EMAIL_TEMPLATE_EDITOR_HREF = "/admin/emails/templates"')
     expect(dashboardRoutesSource).toContain('ADMIN_CERTIFICATE_TEMPLATES_HREF = "/admin/settings/templates"')
     expect(dashboardRoutesSource).toContain("ADMIN_PATIENTS_HREF = STAFF_PATIENTS_HREF")
@@ -295,7 +295,7 @@ describe("admin navigation contract", () => {
     expect(nestedOpsSources).not.toContain('requireRole(["doctor", "admin"]')
   })
 
-  it("does not send failed admin role checks back into the doctor portal", () => {
+  it("lets failed admin role checks use the central role-aware redirects", () => {
     const adminPageSources = [
       "app/admin/audit/page.tsx",
       "app/admin/emails/suppression/page.tsx",
@@ -308,7 +308,8 @@ describe("admin navigation contract", () => {
     ].map((file) => readFileSync(join(process.cwd(), file), "utf8")).join("\n")
 
     expect(adminPageSources).not.toContain('redirectTo: "/doctor/dashboard"')
-    expect(adminPageSources).toContain('redirectTo: "/admin"')
+    expect(adminPageSources).not.toContain('redirectTo: "/admin"')
+    expect(adminLayoutSource).not.toContain('redirectTo: "/"')
     expect(nextConfigSource).toContain('source: "/admin"')
     expect(nextConfigSource).toContain('destination: "/dashboard"')
     expect(findAdminPageFiles()).not.toContain(join(process.cwd(), "app/admin/page.tsx"))

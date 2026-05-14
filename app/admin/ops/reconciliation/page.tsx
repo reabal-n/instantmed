@@ -13,7 +13,7 @@ interface PageProps {
 }
 
 export default async function ReconciliationPage({ searchParams }: PageProps) {
-  await requireRole(["admin"], { redirectTo: "/admin" })
+  await requireRole(["admin"])
 
   const params = await searchParams
 

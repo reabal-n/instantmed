@@ -101,7 +101,7 @@ function toSupportOpsData(ops: OpsDashboardData): OpsDashboardData {
 }
 
 export default async function OpsDashboardPage() {
-  const authUser = await requireRole(["admin", "support"], { redirectTo: "/admin" })
+  const authUser = await requireRole(["admin", "support"])
   const isSupportOnly = hasSupportAccess(authUser.profile) && !hasAdminAccess(authUser.profile)
 
   const supabase = createServiceRoleClient()

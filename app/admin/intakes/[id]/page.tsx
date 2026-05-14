@@ -30,7 +30,7 @@ export default async function AdminIntakeDetailPage({
 }: {
   params: Promise<{ id: string }>
 }) {
-  const auth = await requireRole(["admin"], { redirectTo: "/admin" })
+  const auth = await requireRole(["admin"])
   const { id } = await params
 
   const intake = await getIntakeWithDetails(id)

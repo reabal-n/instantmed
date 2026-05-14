@@ -77,7 +77,7 @@ const settingsLinks: SettingsLink[] = [
 ]
 
 export default async function AdminSettingsPage() {
-  await requireRole(["admin"], { redirectTo: "/admin" })
+  await requireRole(["admin"])
 
   return (
     <div className="space-y-6">

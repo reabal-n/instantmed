@@ -11,6 +11,8 @@ const patientsListSource = readFileSync(
 describe("patient directory duplicate review UX", () => {
   it("turns duplicate warnings into the next operator action", () => {
     expect(patientsListSource).toContain("Open flagged patient")
+    expect(patientsListSource).toContain("Open merge audit")
+    expect(patientsListSource).toContain("mergeAuditHref")
     expect(patientsListSource).toContain("Show duplicate rows")
     expect(patientsListSource).toContain('value="duplicates"')
     expect(patientsListSource).toContain('aria-label="Filter patients by status"')

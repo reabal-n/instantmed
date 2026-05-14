@@ -6,7 +6,7 @@ import { DoctorProfilesClient } from "./doctors-client"
 export const dynamic = "force-dynamic"
 
 export default async function DoctorProfilesPage() {
-  await requireRole(["admin"], { redirectTo: "/admin" })
+  await requireRole(["admin"])
 
   const doctors = await getAllDoctorsAction().catch(() => [])
 

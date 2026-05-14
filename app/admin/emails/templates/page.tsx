@@ -6,7 +6,7 @@ import { EmailTemplateEditorClient } from "../edit/email-template-editor-client"
 export const dynamic = "force-dynamic"
 
 export default async function EmailTemplatesPage() {
-  await requireRole(["admin"], { redirectTo: "/admin" })
+  await requireRole(["admin"])
 
   const templates = await getAllEmailTemplatesAction().catch(() => [])
 

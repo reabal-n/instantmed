@@ -6,7 +6,7 @@ import { ClinicIdentityClient } from "./clinic-client"
 export const dynamic = "force-dynamic"
 
 export default async function ClinicIdentityPage() {
-  await requireRole(["admin"], { redirectTo: "/admin" })
+  await requireRole(["admin"])
 
   const clinicIdentity = await getActiveClinicIdentity()
   const logoUrl = clinicIdentity?.logo_storage_path

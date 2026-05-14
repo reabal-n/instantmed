@@ -13,7 +13,7 @@ export const metadata = {
 }
 
 export default async function AdminIntakeLedgerPage() {
-  await requireRole(["admin"], { redirectTo: "/admin" })
+  await requireRole(["admin"])
 
   const results = await Promise.allSettled([
     getAllIntakesForAdmin({ page: 1, pageSize: 50 }),

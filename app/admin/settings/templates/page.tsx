@@ -31,7 +31,7 @@ async function TemplateStudioLoader() {
 }
 
 export default async function TemplateStudioPage() {
-  await requireRole(["admin"], { redirectTo: "/admin" })
+  await requireRole(["admin"])
 
   return (
     <Suspense

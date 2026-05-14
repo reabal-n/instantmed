@@ -206,13 +206,6 @@ export function EmailHubClient({
   const emailTrendPct = yesterdayEmailCount > 0
     ? Math.round(((stats.emailsSentToday - yesterdayEmailCount) / yesterdayEmailCount) * 100)
     : stats.emailsSentToday > 0 ? 100 : 0
-  const authRecoveryChecks = [
-    { label: "Forgot password route", ready: true },
-    { label: "Verification code template", ready: authEmailHookStatus.configured },
-    { label: "Magic link template", ready: authEmailHookStatus.configured },
-    { label: "Password reset template", ready: authEmailHookStatus.configured },
-  ]
-
   const filteredOutboxRows = useMemo(() => {
     const normalizedQuery = outboxQuery.trim().toLowerCase()
     return outboxRows.filter((row) => {
@@ -364,122 +357,77 @@ export function EmailHubClient({
             </CardContent>
           </Card>
 
-          {/* Quick Actions */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <Link href={ADMIN_EMAIL_TEMPLATE_EDITOR_HREF}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Edit className="h-5 w-5" />
-                    Email Templates
-                  </CardTitle>
-                  <CardDescription>
-                    Edit and manage email templates
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      {templateCounts.active} of {templateCounts.total} active
-                    </span>
-                    <Badge variant="secondary">Manage</Badge>
-                  </div>
-                </CardContent>
+          <Card>
+            <CardHeader>
+              <CardTitle>Email controls</CardTitle>
+              <CardDescription>
+                The few links needed to keep delivery working.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-3 lg:grid-cols-3">
+              <Link
+                href={ADMIN_EMAIL_TEMPLATE_EDITOR_HREF}
+                className="rounded-lg border border-border/50 bg-muted/25 px-3 py-2 transition-colors hover:bg-muted/50"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+                    <Edit className="h-4 w-4 text-muted-foreground" />
+                    Templates
+                  </span>
+                  <Badge variant="secondary">{templateCounts.active}/{templateCounts.total} active</Badge>
+                </div>
               </Link>
-            </Card>
-
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <Link href={ADMIN_EMAIL_SUPPRESSION_HREF}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <ShieldAlert className="h-5 w-5" />
-                    Suppression List
-                  </CardTitle>
-                  <CardDescription>
-                    Recover blocked patient addresses
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Bounces and complaints
-                    </span>
-                    <Badge variant="secondary">Review</Badge>
-                  </div>
-                </CardContent>
+              <Link
+                href={ADMIN_EMAIL_SUPPRESSION_HREF}
+                className="rounded-lg border border-border/50 bg-muted/25 px-3 py-2 transition-colors hover:bg-muted/50"
+              >
+                <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+                  <ShieldAlert className="h-4 w-4 text-muted-foreground" />
+                  Suppression list
+                </span>
+                <p className="mt-1 text-xs text-muted-foreground">Recover blocked patient addresses.</p>
               </Link>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  {authEmailHookStatus.configured ? (
-                    <CheckCircle className="h-5 w-5 text-success" />
-                  ) : (
-                    <AlertTriangle className="h-5 w-5 text-warning" />
-                  )}
-                  Auth recovery health
-                </CardTitle>
-                <CardDescription>
-                  Magic links, password resets, and account recovery
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">
-                    {authEmailHookStatus.configured ? "Branded recovery emails ready" : "Recovery email setup incomplete"}
+              <div className="rounded-lg border border-border/50 bg-muted/25 px-3 py-2">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+                    {authEmailHookStatus.configured ? (
+                      <CheckCircle className="h-4 w-4 text-success" />
+                    ) : (
+                      <AlertTriangle className="h-4 w-4 text-warning" />
+                    )}
+                    Auth recovery
                   </span>
                   <Badge variant={authEmailHookStatus.configured ? "default" : "secondary"}>
                     {authEmailHookStatus.configured ? "Ready" : "Check env"}
                   </Badge>
                 </div>
-                <div className="space-y-1.5">
-                  {authRecoveryChecks.map((check) => (
-                    <div key={check.label} className="flex items-center justify-between rounded-lg border border-border/50 bg-muted/30 px-2.5 py-2 text-xs">
-                      <span className="font-medium text-foreground">{check.label}</span>
-                      <Badge variant={check.ready ? "default" : "secondary"} className="text-[10px]">
-                        {check.ready ? "Ready" : "Check"}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex flex-wrap gap-1.5 text-xs text-muted-foreground">
-                  <Badge variant="outline">
-                    Resend {authEmailHookStatus.hasResendKey ? "set" : "missing"}
-                  </Badge>
+                <div className="mt-2 flex flex-wrap gap-1.5 text-xs text-muted-foreground">
+                  <Badge variant="outline">Resend {authEmailHookStatus.hasResendKey ? "set" : "missing"}</Badge>
                   <Badge variant="outline">
                     Supabase hook {authEmailHookStatus.hasSupabaseHookSecret ? "set" : "missing"}
                   </Badge>
                 </div>
-                {authEmailHookStatus.devPreviewAvailable && (
-                  <div className="flex flex-wrap gap-3">
+                {authEmailHookStatus.devPreviewAvailable ? (
+                  <div className="mt-2 flex flex-wrap gap-3">
                     <Link
                       href="/email-preview/verification-code"
-                      className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:text-primary/80"
+                      className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80"
                     >
-                      Preview verification code
+                      Verification preview
                       <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                     <Link
                       href="/email-preview/magic-link"
-                      className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:text-primary/80"
+                      className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80"
                     >
-                      Preview magic link
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </Link>
-                    <Link
-                      href="/email-preview/magic-link-recovery"
-                      className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:text-primary/80"
-                    >
-                      Preview reset email
+                      Magic-link preview
                       <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-
-          </div>
+                ) : null}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Recent Activity */}
           <Card>

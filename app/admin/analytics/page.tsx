@@ -9,7 +9,7 @@ import { AnalyticsDashboardClient } from "./analytics-client"
 export const dynamic = "force-dynamic"
 
 export default async function AnalyticsDashboardPage() {
-  await requireRole(["admin"], { redirectTo: "/" })
+  await requireRole(["admin"])
 
   const supabase = createServiceRoleClient()
 

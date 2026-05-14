@@ -45,6 +45,7 @@ interface PatientsListClientProps {
   currentSort?: PatientDirectorySort
   baseHref?: string
   patientHrefBase?: string
+  mergeAuditHref?: string
   showHeader?: boolean
   showAddPatientAction?: boolean
   title?: string
@@ -90,6 +91,7 @@ export function PatientsListClient({
   currentSort = "recent_request",
   baseHref = "/doctor/patients",
   patientHrefBase = "/doctor/patients",
+  mergeAuditHref,
   showHeader = true,
   showAddPatientAction = true,
   title = "Patient Directory",
@@ -333,6 +335,18 @@ export function PatientsListClient({
                         <ChevronRight className="h-4 w-4" aria-hidden />
                       </Link>
                     </Button>
+                    {mergeAuditHref ? (
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        className="border-warning-border bg-white text-warning hover:bg-warning-light"
+                      >
+                        <Link href={mergeAuditHref} prefetch={false}>
+                          Open merge audit
+                        </Link>
+                      </Button>
+                    ) : null}
                   </div>
                 ) : null}
               </div>

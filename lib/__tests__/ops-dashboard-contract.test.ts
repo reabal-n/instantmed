@@ -300,11 +300,11 @@ describe("ops dashboard data contract", () => {
     expect(refundsClientSource).toContain('selectedPayment.refund_status === "failed"')
   })
 
-  it("shows auth recovery health inside email ops instead of a vague hook card", () => {
-    expect(emailHubClientSource).toContain("Auth recovery health")
-    expect(emailHubClientSource).toContain("Forgot password route")
-    expect(emailHubClientSource).toContain("Magic link template")
-    expect(emailHubClientSource).toContain("Password reset template")
+  it("keeps auth recovery health inside compact email controls", () => {
+    expect(emailHubClientSource).toContain("Email controls")
+    expect(emailHubClientSource).toContain("Auth recovery")
+    expect(emailHubClientSource).toContain("Verification preview")
+    expect(emailHubClientSource).toContain("Magic-link preview")
     expect(emailHubClientSource).not.toContain("Auth email hook")
   })
 
