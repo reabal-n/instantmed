@@ -2,7 +2,7 @@
  * Admin Dashboard & Analytics E2E Tests
  *
  * Tests the admin analytics dashboard, finance page, and email management:
- * - Analytics page loads with charts
+ * - Analytics page loads with the lean operator metric sections
  * - Finance page loads with revenue data
  * - Email hub and template editor pages load
  * - Email template management works
@@ -49,20 +49,14 @@ test.describe("Admin - Analytics Dashboard", () => {
     expect(hasMetrics).toBe(true)
   })
 
-  test("analytics page renders charts", async ({ page }) => {
+  test("analytics page stays focused on the three operator sections", async ({ page }) => {
     await page.goto("/admin/analytics")
     await waitForPageLoad(page)
 
-    // Charts render as SVG elements via Recharts
-    const svgCharts = page.locator("svg.recharts-surface")
-    const chartCount = await svgCharts.count()
-
-    // Should have at least one chart rendered
-    // (may be 0 if no data, but the container should exist)
-    const chartContainers = page.locator(".recharts-responsive-container, .recharts-wrapper")
-    const containerCount = await chartContainers.count()
-
-    expect(chartCount + containerCount).toBeGreaterThanOrEqual(0)
+    await expect(page.getByRole("heading", { name: "Revenue" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Conversion" })).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Queue health" })).toBeVisible()
+    await expect(page.locator(".recharts-responsive-container, .recharts-wrapper")).toHaveCount(0)
   })
 })
 

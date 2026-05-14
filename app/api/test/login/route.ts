@@ -25,6 +25,8 @@
 import { timingSafeEqual } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
 
+import { isAllowedDevOnlyRequest, isE2ETestModeEnabled } from "@/lib/dev-only-routes"
+
 // Test user profile IDs (must match seed.ts).
 // E2E bypass resolves these directly against profiles.id; do not use fake
 // auth_user_id strings because auth_user_id is a uuid column in production DBs.
@@ -37,50 +39,6 @@ const TEST_USERS = {
 
 type TestUserType = keyof typeof TEST_USERS
 
-/**
- * Check if E2E test mode is enabled.
- * Returns true ONLY if NODE_ENV === "test" OR PLAYWRIGHT === "1"
- */
-function isE2ETestModeEnabled(): boolean {
-  return process.env.NODE_ENV === "test" || process.env.PLAYWRIGHT === "1"
-}
-
-/**
- * Check if the request origin is allowed.
- * Only localhost/127.0.0.1 by default, or hosts in E2E_ALLOWED_HOSTS.
- */
-function isAllowedHost(request: NextRequest): boolean {
-  const host = request.headers.get("host") || ""
-  const origin = request.headers.get("origin") || ""
-
-  // Default allowed hosts
-  const defaultAllowed = ["localhost", "127.0.0.1"]
-
-  // Parse E2E_ALLOWED_HOSTS (comma-separated)
-  const allowedHostsEnv = process.env.E2E_ALLOWED_HOSTS || ""
-  const customAllowed = allowedHostsEnv.split(",").map(h => h.trim()).filter(Boolean)
-
-  const allAllowed = [...defaultAllowed, ...customAllowed]
-
-  // Check host header
-  const hostWithoutPort = host.split(":")[0]
-  if (allAllowed.includes(hostWithoutPort)) {
-    return true
-  }
-
-  // Check origin header
-  try {
-    const originUrl = new URL(origin)
-    if (allAllowed.includes(originUrl.hostname)) {
-      return true
-    }
-  } catch {
-    // Invalid or missing origin - check host only
-  }
-
-  return false
-}
-
 export async function POST(request: NextRequest) {
   // CRITICAL: Only allow in E2E test mode (NODE_ENV=test OR PLAYWRIGHT=1)
   if (!isE2ETestModeEnabled()) {
@@ -91,7 +49,7 @@ export async function POST(request: NextRequest) {
   }
 
   // CRITICAL: Only allow from localhost unless explicitly configured
-  if (!isAllowedHost(request)) {
+  if (!isAllowedDevOnlyRequest(request)) {
     return NextResponse.json(
       { error: "Forbidden" },
       { status: 403 }
@@ -215,7 +173,7 @@ export async function DELETE(request: NextRequest) {
   }
 
   // CRITICAL: Only allow from localhost
-  if (!isAllowedHost(request)) {
+  if (!isAllowedDevOnlyRequest(request)) {
     return NextResponse.json(
       { error: "Forbidden" },
       { status: 403 }

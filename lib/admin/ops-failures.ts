@@ -1,12 +1,12 @@
 import {
-  ADMIN_INTAKE_LEDGER_HREF,
   ADMIN_PARCHMENT_OPS_HREF,
   ADMIN_REFUNDS_HREF,
   ADMIN_STALE_INTAKES_HREF,
   ADMIN_WEBHOOK_DLQ_HREF,
   buildAdminIntakeHref,
-  buildAdminIntakeLedgerHref,
+  buildStaffLedgerHref,
   STAFF_EMAILS_HREF,
+  STAFF_LEDGER_HREF,
 } from "@/lib/dashboard/routes"
 
 type Severity = "critical" | "warning"
@@ -149,7 +149,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
       id: "checkout",
       label: "Checkout",
       count: input.checkoutFailures.length,
-      href: ADMIN_INTAKE_LEDGER_HREF,
+      href: STAFF_LEDGER_HREF,
       severity: "critical",
       emptyLabel: "No failed checkout sessions",
     },
@@ -157,7 +157,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
       id: "incomplete_requests",
       label: "Incomplete requests",
       count: input.incompleteRequests.length,
-      href: ADMIN_INTAKE_LEDGER_HREF,
+      href: STAFF_LEDGER_HREF,
       severity: "warning",
       emptyLabel: "No abandoned checkout requests",
     },
@@ -165,7 +165,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
       id: "certificate_delivery",
       label: "Medical certificates",
       count: input.certificateFailures.length,
-      href: buildAdminIntakeLedgerHref({ status: "approved" }),
+      href: buildStaffLedgerHref({ status: "approved" }),
       severity: "critical",
       emptyLabel: "No certificate send failures",
     },
@@ -238,7 +238,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
       title: "Certificate send failed",
       detail: row.email_failure_reason || "Certificate email needs retry",
       occurredAt: row.email_failed_at || row.updated_at || "",
-      href: row.intake_id ? buildAdminIntakeHref(row.intake_id) : buildAdminIntakeLedgerHref({ status: "approved" }),
+      href: row.intake_id ? buildAdminIntakeHref(row.intake_id) : buildStaffLedgerHref({ status: "approved" }),
       severity: "critical" as const,
     })),
     ...input.prescriptionWebhookFailures.map((row) => ({

@@ -7,13 +7,14 @@
 
 import { NextResponse } from "next/server"
 
+import { isAllowedDevOnlyRequest } from "@/lib/dev-only-routes"
 import { withSentryApiCapture } from "@/lib/observability/sentry"
 
 export const runtime = "nodejs"
 
 async function handler(request: Request): Promise<Response> {
   // Only allow in PLAYWRIGHT mode
-  if (process.env.PLAYWRIGHT !== "1") {
+  if (!isAllowedDevOnlyRequest(request)) {
     return NextResponse.json({ error: "Not available" }, { status: 404 })
   }
 

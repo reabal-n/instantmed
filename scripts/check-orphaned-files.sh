@@ -90,6 +90,7 @@ for retired_non_operational_surface in \
   "app/api/cron/email-digest/route.ts" \
   "app/api/cron/follow-up-reminder/route.ts" \
   "app/api/test/edge-canary/route.ts" \
+  "app/admin/emails/edit" \
   "e2e/admin-crash-diagnostic.spec.ts" \
   "e2e/admin.doctor-ops.spec.ts" \
   "lib/email/follow-up-reminder.ts" \

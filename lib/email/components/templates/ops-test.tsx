@@ -7,7 +7,7 @@
 
 import * as React from "react"
 
-import { buildAdminEmailHubHref } from "@/lib/dashboard/routes"
+import { buildStaffEmailHubHref } from "@/lib/dashboard/routes"
 
 import { BaseEmail, Button, HeroBlock, Text } from "../base-email"
 
@@ -45,7 +45,7 @@ export function OpsTestEmail({
         Issued: {issuedAt}
       </Text>
 
-      <Button href={`${appUrl}${buildAdminEmailHubHref({ tab: "queue" })}`}>
+      <Button href={`${appUrl}${buildStaffEmailHubHref({ tab: "queue" })}`}>
         Open email outbox
       </Button>
     </BaseEmail>

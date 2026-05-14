@@ -8,7 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { buildAdminEmailHubHref } from "@/lib/dashboard/routes"
+import { buildStaffEmailHubHref } from "@/lib/dashboard/routes"
 import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
 import { cn } from "@/lib/utils"
 
@@ -118,7 +118,7 @@ function computeChipState(certificate: CertDeliveryStatus | null): ChipState {
 export function CertHealthChip({ certificate, intakeId, className }: CertHealthChipProps) {
   const state = computeChipState(certificate)
   const Icon = state.icon
-  const href = buildAdminEmailHubHref({ tab: "queue", intakeId })
+  const href = buildStaffEmailHubHref({ tab: "queue", intakeId })
 
   return (
     <TooltipProvider delayDuration={200}>

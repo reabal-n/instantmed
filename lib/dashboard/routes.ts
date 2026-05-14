@@ -22,29 +22,16 @@ export function buildStaffPatientHref(patientId: string): string {
   return `${STAFF_PATIENT_DETAIL_BASE_HREF}/${encodeURIComponent(patientId)}`
 }
 
-// ── Legacy aliases (kept until Phase 2 swaps the actual page locations) ─────
-// New callers should use the STAFF_* names above.
+// ── Admin-only route constants ──────────────────────────────────────────────
+// Keep constants only for admin pages that still own real operational surfaces.
 
 export const PATIENT_DASHBOARD_HREF = "/patient" as const
-export const DOCTOR_DASHBOARD_HREF = STAFF_DASHBOARD_HREF
-export const ADMIN_DASHBOARD_HREF = STAFF_DASHBOARD_HREF
-export const ADMIN_INTAKE_LEDGER_HREF = STAFF_LEDGER_HREF
-export const ADMIN_DOCTOR_QUEUE_HREF = STAFF_QUEUE_HREF
-export const ADMIN_SCRIPTS_HREF = STAFF_SCRIPTS_HREF
-export const ADMIN_PATIENTS_HREF = STAFF_PATIENTS_HREF
-export const ADMIN_ANALYTICS_HREF = STAFF_ANALYTICS_HREF
-export const ADMIN_FINANCE_HREF = STAFF_FINANCE_HREF
-export const ADMIN_OPS_HREF = STAFF_OPS_HREF
-export const ADMIN_SETTINGS_HREF = STAFF_SETTINGS_HREF
 export const ADMIN_CLINIC_HREF = "/admin/clinic" as const
 export const ADMIN_DOCTORS_HREF = "/admin/doctors" as const
 export const ADMIN_SERVICES_HREF = "/admin/services" as const
 export const ADMIN_FEATURES_HREF = "/admin/features" as const
-export const ADMIN_DOCTOR_IDENTITY_HREF = STAFF_IDENTITY_HREF
 export const ADMIN_CERTIFICATE_TEMPLATES_HREF = "/admin/settings/templates" as const
-export const ADMIN_TEMPLATE_STUDIO_HREF = ADMIN_CERTIFICATE_TEMPLATES_HREF
 export const ADMIN_AUDIT_HREF = "/admin/audit" as const
-export const ADMIN_EMAIL_HUB_HREF = STAFF_EMAILS_HREF
 export const ADMIN_EMAIL_TEMPLATE_EDITOR_HREF = "/admin/emails/templates" as const
 export const ADMIN_EMAIL_SUPPRESSION_HREF = "/admin/emails/suppression" as const
 export const ADMIN_REFUNDS_HREF = "/admin/refunds" as const
@@ -55,22 +42,15 @@ export const ADMIN_RECONCILIATION_HREF = "/admin/ops/reconciliation" as const
 export const ADMIN_PATIENT_MERGE_AUDIT_HREF = "/admin/ops/patient-merge-audit" as const
 export const ADMIN_PRESCRIBING_IDENTITY_HREF = "/admin/ops/prescribing-identity" as const
 
-export function buildAdminIntakeLedgerHref(options: { status?: string | null } = {}): string {
+export function buildStaffLedgerHref(options: { status?: string | null } = {}): string {
   const params = new URLSearchParams()
   if (options.status) params.set("status", options.status)
   const query = params.toString()
-  return query ? `${ADMIN_INTAKE_LEDGER_HREF}?${query}` : ADMIN_INTAKE_LEDGER_HREF
+  return query ? `${STAFF_LEDGER_HREF}?${query}` : STAFF_LEDGER_HREF
 }
 
 export function buildAdminIntakeHref(intakeId: string): string {
   return `/admin/intakes/${encodeURIComponent(intakeId)}`
-}
-
-export function buildAdminEmailHubHref(options: {
-  tab?: "queue" | null
-  intakeId?: string | null
-} = {}): string {
-  return buildStaffEmailHubHref(options)
 }
 
 export function buildStaffEmailHubHref(options: {
@@ -133,24 +113,6 @@ function getPageSizeParam(value: string | string[] | number | undefined): string
 
   const parsed = Number(candidate)
   return parsed >= 10 && parsed <= 100 ? candidate : null
-}
-
-export function buildDoctorDashboardHref(options: {
-  status?: string | string[] | QueueStatusFilter | null
-  page?: string | string[] | number
-  pageSize?: string | string[] | number
-} = {}): string {
-  const params = new URLSearchParams()
-  const status = parseQueueStatusFilter(options.status)
-  const page = getPositiveIntegerParam(options.page)
-  const pageSize = getPageSizeParam(options.pageSize)
-
-  if (status !== "all") params.set("status", status)
-  if (page) params.set("page", page)
-  if (pageSize) params.set("pageSize", pageSize)
-
-  const query = params.toString()
-  return query ? `${DOCTOR_DASHBOARD_HREF}?${query}` : DOCTOR_DASHBOARD_HREF
 }
 
 /**

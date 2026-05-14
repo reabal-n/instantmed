@@ -1,6 +1,5 @@
 export interface AnalyticsData {
   funnel: {
-    visits: number
     started: number
     paid: number
     completed: number
@@ -14,16 +13,5 @@ export interface AnalyticsData {
     queueSize: number
     avgReviewTimeMinutes: number | null
     oldestInQueueMinutes: number | null
-    todaySubmissions: number
-    approvedToday: number
-    declinedToday: number
-  }
-  overview: {
-    total: number
-    inQueue: number
-    approved: number
-    declined: number
-    pendingInfo: number
-    scriptsPending: number
   }
 }

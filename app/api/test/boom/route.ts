@@ -11,18 +11,12 @@
 
 import { NextRequest, NextResponse } from "next/server"
 
+import { isAllowedDevOnlyRequest } from "@/lib/dev-only-routes"
 import { captureApiError } from "@/lib/observability/sentry"
-
-/**
- * Check if E2E test mode is enabled.
- */
-function isE2ETestModeEnabled(): boolean {
-  return process.env.NODE_ENV === "test" || process.env.PLAYWRIGHT === "1"
-}
 
 export async function GET(request: NextRequest) {
   // CRITICAL: Only allow in E2E test mode
-  if (!isE2ETestModeEnabled()) {
+  if (!isAllowedDevOnlyRequest(request)) {
     return NextResponse.json(
       { error: "Not found" },
       { status: 404 }

@@ -295,61 +295,56 @@ export function PatientsListClient({
           </div>
 
           {duplicateGroups.length > 0 && (
-            <div className="mt-4 rounded-lg border border-warning-border bg-warning-light px-3 py-2 text-sm text-warning">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                  <div>
-                    <p className="font-medium">
-                      {duplicateGroups.length} duplicate {duplicateGroups.length === 1 ? "group needs" : "groups need"} review
-                    </p>
-                    <p className="mt-0.5 text-xs">
-                      Open the flagged patient. Merge only when the patient file shows linked profiles; signed-in duplicates stay as manual review.
-                    </p>
-                    <p className="mt-0.5 text-xs">
-                      Match source: {duplicateGroups.map((group) => group.reason.replace("_", " + ")).join(", ")}
-                    </p>
-                  </div>
+            <div className="mt-3 flex flex-col gap-2 rounded-lg border border-border/50 bg-muted/25 px-3 py-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-warning" />
+                <div>
+                  <p>
+                    {duplicateGroups.length} duplicate {duplicateGroups.length === 1 ? "group" : "groups"} available for review.
+                  </p>
+                  {profileFilter === "duplicates" ? (
+                    <p className="mt-0.5">Open the flagged patient. Merge only when the patient file shows linked profiles.</p>
+                  ) : null}
                 </div>
-                {firstDuplicateHref ? (
-                  <div className="flex flex-wrap gap-2">
-                    {profileFilter !== "duplicates" ? (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="border-warning-border bg-white text-warning hover:bg-warning-light"
-                        onClick={() => setProfileFilter("duplicates")}
-                      >
-                        Show duplicate rows
-                      </Button>
-                    ) : null}
+              </div>
+              {firstDuplicateHref ? (
+                <div className="flex flex-wrap gap-2">
+                  {profileFilter !== "duplicates" ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 border-border/50 bg-white text-muted-foreground hover:border-warning-border hover:bg-warning-light hover:text-warning"
+                      onClick={() => setProfileFilter("duplicates")}
+                    >
+                      Show duplicate rows
+                    </Button>
+                  ) : null}
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="h-8 border-border/50 bg-white text-muted-foreground hover:border-warning-border hover:bg-warning-light hover:text-warning"
+                  >
+                    <Link href={firstDuplicateHref} prefetch={false}>
+                      Open flagged patient
+                      <ChevronRight className="h-4 w-4" aria-hidden />
+                    </Link>
+                  </Button>
+                  {mergeAuditHref && profileFilter === "duplicates" ? (
                     <Button
                       asChild
                       variant="outline"
                       size="sm"
-                      className="border-warning-border bg-white text-warning hover:bg-warning-light"
+                      className="h-8 border-border/50 bg-white text-muted-foreground hover:border-warning-border hover:bg-warning-light hover:text-warning"
                     >
-                      <Link href={firstDuplicateHref} prefetch={false}>
-                        Open flagged patient
-                        <ChevronRight className="h-4 w-4" aria-hidden />
+                      <Link href={mergeAuditHref} prefetch={false}>
+                        Merge audit
                       </Link>
                     </Button>
-                    {mergeAuditHref ? (
-                      <Button
-                        asChild
-                        variant="outline"
-                        size="sm"
-                        className="border-warning-border bg-white text-warning hover:bg-warning-light"
-                      >
-                        <Link href={mergeAuditHref} prefetch={false}>
-                          Open merge audit
-                        </Link>
-                      </Button>
-                    ) : null}
-                  </div>
-                ) : null}
-              </div>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           )}
         </CardContent>

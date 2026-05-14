@@ -33,7 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { buildAdminEmailHubHref, buildAdminIntakeHref } from "@/lib/dashboard/routes"
+import { buildAdminIntakeHref, buildStaffEmailHubHref } from "@/lib/dashboard/routes"
 import type { DeliveryStatus,ReconciliationRecord } from "@/lib/data/reconciliation"
 import { formatAge } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -299,7 +299,7 @@ export function ReconciliationClient({
                         </Link>
                       </Button>
                       <Button asChild variant="ghost" size="sm">
-                        <Link href={buildAdminEmailHubHref({ tab: "queue", intakeId: record.intake_id })}>
+                        <Link href={buildStaffEmailHubHref({ tab: "queue", intakeId: record.intake_id })}>
                           Emails
                         </Link>
                       </Button>
