@@ -107,10 +107,10 @@ export const doctorOperatorNavItems: StaffNavItem[] = [
   { href: STAFF_DASHBOARD_HREF, label: "Operations", icon: "shield" },
 ]
 
-// ── Canonical role-aware nav (Phase 1 of dashboard remaster, 2026-05-11) ────
-// `getStaffNav(profile)` is the single source of truth going forward. The
-// legacy exports above stay for back-compat until Phase 2 finishes the surface
-// consolidation; new sidebars should call this function.
+// ── Canonical role-aware nav ────────────────────────────────────────────────
+// `getStaffNav(profile)` is the single source of truth for resolving the staff
+// shell by role. The exported section arrays stay because mobile and sidebar
+// surfaces render the same items differently.
 //
 // Support staff get one deliberately minimal nav entry. `/admin/ops` is the
 // bounded recovery cockpit and links through to masked PHI / redacted payload

@@ -83,9 +83,6 @@ function isValidFlagValue(key: FlagKey, value: boolean | string | string[] | num
     if (key === FLAG_KEYS.AUTO_APPROVE_MAX_DURATION_DAYS) {
       return isValidInteger(value, 1, 3)
     }
-    if (key === FLAG_KEYS.DOCTOR_ALERT_THRESHOLD_HOURS) {
-      return isValidInteger(value, 1, 24)
-    }
     if (key === FLAG_KEYS.PATIENT_DELAY_EMAIL_HOURS) {
       return isValidInteger(value, 1, 48)
     }
@@ -171,8 +168,6 @@ async function fetchFlagsFromDB(): Promise<FeatureFlags> {
         flags.auto_approve_dry_run = row.value === true
       } else if (row.key === FLAG_KEYS.TELEGRAM_NOTIFICATIONS_ENABLED) {
         flags.telegram_notifications_enabled = row.value === true
-      } else if (row.key === FLAG_KEYS.DOCTOR_ALERT_THRESHOLD_HOURS) {
-        flags.doctor_alert_threshold_hours = typeof row.value === "number" ? row.value : 1
       } else if (row.key === FLAG_KEYS.PATIENT_DELAY_EMAIL_HOURS) {
         flags.patient_delay_email_hours = typeof row.value === "number" ? row.value : 2
       } else if (row.key === FLAG_KEYS.PARCHMENT_EMBEDDED_PRESCRIBING) {

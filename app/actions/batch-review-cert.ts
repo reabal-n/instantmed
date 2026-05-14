@@ -53,7 +53,7 @@ export async function markBatchReviewed(intakeId: string): Promise<BatchReviewRe
 
 /**
  * Mark multiple auto-approved intakes as batch-reviewed in one action.
- * Used by the "Confirm All Reviewed" button on the doctor dashboard.
+ * Used by the "Confirm All Reviewed" button in the staff cockpit.
  */
 export async function markAllBatchReviewed(): Promise<BatchReviewResult> {
   const user = await requireRoleOrNull(["doctor", "admin"])

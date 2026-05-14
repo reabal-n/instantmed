@@ -35,7 +35,6 @@ export const FLAG_KEYS = {
   AUTO_APPROVE_MAX_DURATION_DAYS: "auto_approve_max_duration_days",
   AUTO_APPROVE_DRY_RUN: "auto_approve_dry_run",
   TELEGRAM_NOTIFICATIONS_ENABLED: "telegram_notifications_enabled",
-  DOCTOR_ALERT_THRESHOLD_HOURS: "doctor_alert_threshold_hours",
   PATIENT_DELAY_EMAIL_HOURS: "patient_delay_email_hours",
   PARCHMENT_EMBEDDED_PRESCRIBING: "parchment_embedded_prescribing",
 } as const
@@ -72,7 +71,6 @@ export interface FeatureFlags {
   auto_approve_max_duration_days: number
   auto_approve_dry_run: boolean
   telegram_notifications_enabled: boolean
-  doctor_alert_threshold_hours: number
   patient_delay_email_hours: number
   parchment_embedded_prescribing: boolean
 }
@@ -114,7 +112,6 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   auto_approve_max_duration_days: 3,
   auto_approve_dry_run: false,
   telegram_notifications_enabled: true,
-  doctor_alert_threshold_hours: 1,
   patient_delay_email_hours: 2,
   parchment_embedded_prescribing: false,
 }
@@ -224,17 +221,13 @@ export function getFlagInfo(key: FlagKey): { label: string; description: string 
       label: "Telegram Notifications",
       description: "Master toggle for new paid request Telegram notifications only.",
     },
-    doctor_alert_threshold_hours: {
-      label: "Legacy Doctor Alert Threshold (hours)",
-      description: "Legacy setting retained for migration compatibility. Stale queue Telegram pings are disabled.",
-    },
     patient_delay_email_hours: {
       label: "Patient Delay Email (hours)",
       description: "Hours a paid intake must wait before the patient receives a delay notification email.",
     },
     parchment_embedded_prescribing: {
       label: "Parchment Embedded Prescribing",
-      description: "Enable embedded Parchment ePrescribing iframe in the doctor dashboard. When off, doctors use the manual 'Mark Sent' workflow.",
+      description: "Enable embedded Parchment ePrescribing iframe in the staff cockpit. When off, doctors use the manual 'Mark Sent' workflow.",
     },
   }
   return info[key]
@@ -289,7 +282,6 @@ export function isNumberFlag(key: FlagKey): boolean {
     FLAG_KEYS.AUTO_APPROVE_RATE_LIMIT_5MIN,
     FLAG_KEYS.AUTO_APPROVE_DAILY_CAP,
     FLAG_KEYS.AUTO_APPROVE_MAX_DURATION_DAYS,
-    FLAG_KEYS.DOCTOR_ALERT_THRESHOLD_HOURS,
     FLAG_KEYS.PATIENT_DELAY_EMAIL_HOURS,
   ]
   return numberFlags.includes(key)

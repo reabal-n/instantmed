@@ -70,6 +70,7 @@ describe("admin feature flags layout contract", () => {
       "ab_testing_enabled",
       "support_tickets_enabled",
       "clinical_decision_support_enabled",
+      "doctor_alert_threshold_hours",
     ]) {
       expect(flags).not.toContain(retiredFlag)
     }

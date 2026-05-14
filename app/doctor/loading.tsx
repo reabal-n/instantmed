@@ -7,7 +7,7 @@ export default function DoctorLoading() {
       aria-busy="true"
       aria-live="polite"
     >
-      <span className="sr-only" role="status">Loading doctor dashboard</span>
+      <span className="sr-only" role="status">Loading staff cockpit</span>
 
       {/* Page header */}
       <div className="space-y-1.5">

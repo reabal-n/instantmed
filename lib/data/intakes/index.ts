@@ -7,11 +7,7 @@
 // Queries (server-only)
 export {
   getAIApprovedIntakes,
-  getAllIntakesByStatus,
   getAllIntakesForAdmin,
-  getAutoApprovalMetrics,
-  getDoctorDashboardStats,
-  getDoctorPersonalStats,
   getDoctorQueue,
   getIntakeDocuments,
   getIntakeForPatient,
@@ -23,7 +19,6 @@ export {
   getPatientIntakeStats,
   getPatientNotes,
   getRecentlyCompletedIntakes,
-  getSlaBreachIntakes,
   getTodayEarnings,
 } from "./queries"
 

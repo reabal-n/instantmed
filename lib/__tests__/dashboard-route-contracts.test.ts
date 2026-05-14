@@ -108,11 +108,18 @@ describe("dashboard route contracts", () => {
 
   it("keeps the staff dashboard shell tolerant of optional data gaps", () => {
     const dashboardSource = read("app/dashboard/page.tsx")
+    const intakeIndexSource = read("lib/data/intakes/index.ts")
+    const intakeQueriesSource = read("lib/data/intakes/queries.ts")
     const sidebarSource = read("components/admin/admin-sidebar.tsx")
     const authHelperSource = read("lib/auth/helpers.ts")
 
     expect(dashboardSource).toContain("results[5].value?.available !== false")
     expect(dashboardSource).not.toContain("getDoctorDashboardStats")
+    expect(intakeIndexSource).not.toContain("getDoctorDashboardStats")
+    expect(intakeIndexSource).not.toContain("getAllIntakesByStatus")
+    expect(intakeIndexSource).not.toContain("getDoctorPersonalStats")
+    expect(intakeIndexSource).not.toContain("getSlaBreachIntakes")
+    expect(intakeQueriesSource).not.toContain("doctor-dashboard")
     expect(dashboardSource).not.toContain("getConversionSnapshot")
     expect(sidebarSource).toContain("STAFF_NAV_ICONS[item.icon] ?? STAFF_NAV_ICONS.dashboard")
     expect(authHelperSource).toContain("Skipping unreadable optional staff PHI field during auth hydration")

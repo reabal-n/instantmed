@@ -1,6 +1,6 @@
-// ── Canonical staff routes (Phase 1 of dashboard remaster, 2026-05-11) ──────
-// These are the source of truth going forward. Legacy ADMIN_*/DOCTOR_* aliases
-// are kept below until Phase 2 finishes the surface consolidation.
+// ── Canonical staff routes ──────────────────────────────────────────────────
+// Shared staff navigation uses STAFF_* routes. Keep ADMIN_* constants only for
+// admin pages that still own a real operational surface.
 
 export const STAFF_DASHBOARD_HREF = "/dashboard" as const
 export const STAFF_LEDGER_HREF = "/admin/intakes" as const

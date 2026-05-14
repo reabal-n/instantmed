@@ -45,7 +45,7 @@ function getErrorInfo(error: Error & { digest?: string }) {
   return {
     type: "unknown" as const,
     title: "Error loading dashboard",
-    description: "The doctor dashboard encountered an error. Patient data is safe.",
+    description: "The staff cockpit encountered an error. Patient data is safe.",
     icon: AlertTriangle,
   }
 }

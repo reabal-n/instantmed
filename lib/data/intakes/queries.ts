@@ -184,72 +184,6 @@ export async function getIntakeForPatient(intakeId: string, patientId: string): 
 // ============================================
 
 /**
- * Fetch all intakes by status (for doctor dashboard).
- * Includes patient profile information.
- * Only show paid intakes to doctors.
- * Supports pagination for scalability.
- */
-export async function getAllIntakesByStatus(
-  status: IntakeStatus,
-  options?: { page?: number; pageSize?: number }
-): Promise<{ data: IntakeWithPatient[]; total: number; page: number; pageSize: number }> {
-  const supabase = createServiceRoleClient()
-  const page = options?.page ?? 1
-  const pageSize = Math.min(options?.pageSize ?? 50, 100) // Cap at 100
-  const offset = (page - 1) * pageSize
-
-  // Get total count first
-  const { count, error: countError } = await supabase
-    .from("intakes")
-    .select("id", { count: "exact", head: true })
-    .eq("status", status)
-    .in("payment_status", ["paid", "pending"])
-
-  if (countError) {
-    logger.error("Error fetching intake count", {}, countError instanceof Error ? countError : new Error(String(countError)))
-    return { data: [], total: 0, page, pageSize }
-  }
-
-  // Fetch paginated data with only necessary fields
-  const { data, error } = await supabase
-    .from("intakes")
-    .select(`
-      id,
-      status,
-      payment_status,
-      is_priority,
-      sla_deadline,
-      created_at,
-      updated_at,
-      claimed_by,
-      claimed_at,
-      patient:profiles!patient_id (id, full_name, email, date_of_birth)
-    `)
-    .eq("status", status)
-    .in("payment_status", ["paid", "pending"])
-    .order("is_priority", { ascending: false })
-    .order("created_at", { ascending: true })
-    .range(offset, offset + pageSize - 1)
-
-  if (error) {
-    logger.error("Error fetching intakes by status", {}, toError(error))
-    return { data: [], total: count ?? 0, page, pageSize }
-  }
-
-  const unwrapped = (data || []).map(row => ({
-    ...row,
-    patient: Array.isArray(row.patient) ? row.patient[0] : row.patient,
-  }))
-  const validData = unwrapped.filter((r) => r.patient !== null)
-  return {
-    data: validData as unknown as IntakeWithPatient[],
-    total: count ?? 0,
-    page,
-    pageSize,
-  }
-}
-
-/**
  * Get doctor queue - paid intakes ready for review
  * Supports pagination for scalability at high volume.
  * When doctorId is provided and that doctor has doctor_available=false, returns empty queue
@@ -277,11 +211,11 @@ export async function getDoctorQueue(
   }
 
   // Get total count first. If this count path fails, still fetch the queue
-  // data; a count problem should not blank the doctor dashboard.
+  // data; a count problem should not blank the staff cockpit.
   const countResult = await readDashboardQuery({
-    label: "doctor queue count",
+    label: "staff review queue count",
     fallback: { count: 0, degraded: true },
-    context: { surface: "doctor-dashboard" },
+    context: { surface: "staff-dashboard" },
     operation: async () => {
       const { count, error } = await filterSeededE2EIntakes(supabase
         .from("intakes")
@@ -373,79 +307,6 @@ export async function getDoctorQueue(
 }
 
 /**
- * Get auto-approval metrics for admin monitoring.
- * Queries ai_audit_log for today's auto-approval activity.
- */
-export async function getAutoApprovalMetrics(): Promise<{
-  todayAttempted: number
-  todayApproved: number
-  todayIneligible: number
-  todayFailed: number
-  todayRevoked: number
-}> {
-  const supabase = createServiceRoleClient()
-  const todayStart = new Date()
-  todayStart.setUTCHours(0, 0, 0, 0)
-  const todayStartISO = todayStart.toISOString()
-
-  try {
-    const [attemptedResult, approvedResult, revokedResult] = await Promise.all([
-      // All auto-approve audit entries today
-      supabase
-        .from("ai_audit_log")
-        .select("id, metadata", { count: "exact", head: false })
-        .eq("action", "auto_approve")
-        .gte("created_at", todayStartISO),
-      // Intakes actually auto-approved today
-      supabase
-        .from("intakes")
-        .select("id", { count: "exact", head: true })
-        .eq("ai_approved", true)
-        .gte("ai_approved_at", todayStartISO),
-      // Revocations today
-      supabase
-        .from("ai_audit_log")
-        .select("id", { count: "exact", head: true })
-        .eq("action", "reject")
-        .eq("actor_type", "doctor")
-        .gte("created_at", todayStartISO),
-    ])
-
-    const todayAttempted = attemptedResult.count ?? 0
-    const todayApproved = approvedResult.count ?? 0
-    const todayRevoked = revokedResult.count ?? 0
-
-    // Count ineligible: audit entries where metadata.eligible = false
-    let todayIneligible = 0
-    if (attemptedResult.data) {
-      todayIneligible = attemptedResult.data.filter(row => {
-        const meta = row.metadata as Record<string, unknown> | null
-        return meta?.eligible === false
-      }).length
-    }
-
-    const todayFailed = todayAttempted - todayApproved - todayIneligible
-
-    return {
-      todayAttempted,
-      todayApproved,
-      todayIneligible,
-      todayFailed: Math.max(0, todayFailed),
-      todayRevoked,
-    }
-  } catch (err) {
-    logger.error("Error fetching auto-approval metrics", {}, toError(err))
-    return {
-      todayAttempted: 0,
-      todayApproved: 0,
-      todayIneligible: 0,
-      todayFailed: 0,
-      todayRevoked: 0,
-    }
-  }
-}
-
-/**
  * Get AI-approved intakes for doctor batch review.
  * Returns approved intakes where ai_approved=true, ordered by most recent.
  */
@@ -459,7 +320,7 @@ export async function getAIApprovedIntakes(
     const data = await readDashboardQuery({
       label: "AI-approved intakes",
       fallback: [] as Array<Record<string, unknown>>,
-      context: { surface: "doctor-dashboard", limit },
+      context: { surface: "staff-dashboard", limit },
       operation: async () => {
         const { data, error } = await supabase
           .from("intakes")
@@ -498,7 +359,7 @@ export async function getAIApprovedIntakes(
       const auditRows = await readDashboardQuery({
         label: "AI-approved audit flags",
         fallback: [] as Array<{ intake_id: string; metadata: { softFlags?: string[] } | null }>,
-        context: { surface: "doctor-dashboard", intakeCount: intakeIds.length },
+        context: { surface: "staff-dashboard", intakeCount: intakeIds.length },
         operation: async () => {
           const { data, error } = await supabase
             .from("ai_audit_log")
@@ -817,99 +678,7 @@ export async function getAllIntakesForAdmin(
 }
 
 /**
- * Get dashboard stats for doctor
- * Uses SQL COUNT queries for efficiency at scale
- * Cached for 30s - router.refresh() won't cause repeated DB hits or Suspense skeleton flashes
- */
-export const getDoctorDashboardStats = unstable_cache(
-  async (): Promise<{
-    total: number
-    in_queue: number
-    approved: number
-    declined: number
-    pending_info: number
-    scripts_pending: number
-  }> => {
-  const supabase = createServiceRoleClient()
-
-  try {
-    // Run all count queries in parallel for efficiency
-    const [totalResult, inQueueResult, approvedResult, declinedResult, pendingInfoResult, scriptsPendingResult] = await Promise.all([
-    // Total paid intakes
-    filterSeededE2EIntakes(supabase
-      .from("intakes")
-      .select("id", { count: "exact", head: true })
-      .eq("payment_status", "paid")
-      .not("status", "in", '("draft","cancelled")')),
-    // In queue (paid or in_review status)
-    filterSeededE2EIntakes(supabase
-      .from("intakes")
-      .select("id", { count: "exact", head: true })
-      .in("status", ["paid", "in_review"])),
-    // Approved or completed
-    filterSeededE2EIntakes(supabase
-      .from("intakes")
-      .select("id", { count: "exact", head: true })
-      .in("status", ["approved", "completed"])),
-    // Declined
-    filterSeededE2EIntakes(supabase
-      .from("intakes")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "declined")),
-    // Pending info
-    filterSeededE2EIntakes(supabase
-      .from("intakes")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "pending_info")),
-    // Scripts pending (approved but not sent)
-    filterSeededE2EIntakes(supabase
-      .from("intakes")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "approved")
-      .eq("script_sent", false)),
-  ])
-
-    // Log any errors but don't fail completely
-    const results = [totalResult, inQueueResult, approvedResult, declinedResult, pendingInfoResult, scriptsPendingResult]
-    const statLabels = ["total", "in_queue", "approved", "declined", "pending_info", "scripts_pending"]
-    results.forEach((r, i) => {
-      if (r.error) {
-        logger.warn("Dashboard stat unavailable", {
-          stat: statLabels[i],
-          error: r.error.message,
-          code: r.error.code,
-        })
-      }
-    })
-
-    return {
-      total: totalResult.count ?? 0,
-      in_queue: inQueueResult.count ?? 0,
-      approved: approvedResult.count ?? 0,
-      declined: declinedResult.count ?? 0,
-      pending_info: pendingInfoResult.count ?? 0,
-      scripts_pending: scriptsPendingResult.count ?? 0,
-    }
-  } catch (error) {
-    logger.error("Error fetching dashboard stats", {}, toError(error))
-    return {
-      total: 0,
-      in_queue: 0,
-      approved: 0,
-      declined: 0,
-      pending_info: 0,
-      scripts_pending: 0,
-    }
-  }
-},
-  ["doctor-dashboard-stats"],
-  { revalidate: 30, tags: ["doctor-stats"] }
-)
-
-/**
- * Get live intake monitoring stats for doctor dashboard
- * Includes today's submissions, queue metrics, and review time stats
- * Uses SQL COUNT queries for efficiency at scale
+ * Get live intake monitoring stats for the staff cockpit and compact analytics.
  */
 export async function getIntakeMonitoringStats(): Promise<{
   todaySubmissions: number
@@ -1045,139 +814,6 @@ export async function getIntakeMonitoringStats(): Promise<{
   }
 }
 
-/**
- * Get personal performance stats for a specific doctor
- */
-export async function getDoctorPersonalStats(doctorId: string): Promise<{
-  reviewedToday: number
-  approvedToday: number
-  declinedToday: number
-  avgReviewTimeMinutes: number | null
-  approvalRate: number | null
-  reviewedThisWeek: number
-  reviewedThisMonth: number
-}> {
-  const supabase = createServiceRoleClient()
-
-  // Time boundaries
-  const todayStart = new Date()
-  todayStart.setHours(0, 0, 0, 0)
-
-  const weekStart = new Date()
-  weekStart.setDate(weekStart.getDate() - 7)
-  weekStart.setHours(0, 0, 0, 0)
-
-  const monthStart = new Date()
-  monthStart.setDate(1)
-  monthStart.setHours(0, 0, 0, 0)
-
-  // Fetch doctor's reviewed intakes - filter by month at DB level to avoid N+1
-  const { data, error } = await supabase
-    .from("intakes")
-    .select("id, status, reviewed_by, paid_at, approved_at, declined_at, created_at")
-    .eq("reviewed_by", doctorId)
-    .in("status", ["approved", "declined", "completed"])
-    .or(`approved_at.gte.${monthStart.toISOString()},declined_at.gte.${monthStart.toISOString()}`)
-
-  if (error || !data) {
-    logger.error("Error fetching doctor personal stats", { doctorId }, toError(error))
-    return {
-      reviewedToday: 0,
-      approvedToday: 0,
-      declinedToday: 0,
-      avgReviewTimeMinutes: null,
-      approvalRate: null,
-      reviewedThisWeek: 0,
-      reviewedThisMonth: 0,
-    }
-  }
-
-  // Today's stats
-  const todayIntakes = data.filter(r => {
-    const decisionTime = r.approved_at || r.declined_at
-    return decisionTime && new Date(decisionTime) >= todayStart
-  })
-
-  const reviewedToday = todayIntakes.length
-  const approvedToday = todayIntakes.filter(r => r.status === "approved" || r.status === "completed").length
-  const declinedToday = todayIntakes.filter(r => r.status === "declined").length
-
-  // Week and month stats
-  const reviewedThisWeek = data.filter(r => {
-    const decisionTime = r.approved_at || r.declined_at
-    return decisionTime && new Date(decisionTime) >= weekStart
-  }).length
-
-  const reviewedThisMonth = data.filter(r => {
-    const decisionTime = r.approved_at || r.declined_at
-    return decisionTime && new Date(decisionTime) >= monthStart
-  }).length
-
-  // Approval rate (all time for this doctor)
-  const totalDecisions = data.length
-  const totalApproved = data.filter(r => r.status === "approved" || r.status === "completed").length
-  const approvalRate = totalDecisions > 0 ? Math.round((totalApproved / totalDecisions) * 100) : null
-
-  // Average review time (from paid_at to decision)
-  const intakesWithTiming = data.filter(r => r.paid_at && (r.approved_at || r.declined_at))
-  let avgReviewTimeMinutes: number | null = null
-
-  if (intakesWithTiming.length > 0) {
-    const totalMinutes = intakesWithTiming.reduce((sum, r) => {
-      const startTime = new Date(r.paid_at!).getTime()
-      const endTime = new Date(r.approved_at || r.declined_at!).getTime()
-      return sum + (endTime - startTime) / (1000 * 60)
-    }, 0)
-    avgReviewTimeMinutes = Math.round(totalMinutes / intakesWithTiming.length)
-  }
-
-  return {
-    reviewedToday,
-    approvedToday,
-    declinedToday,
-    avgReviewTimeMinutes,
-    approvalRate,
-    reviewedThisWeek,
-    reviewedThisMonth,
-  }
-}
-
-/**
- * Get intakes with SLA breach or approaching deadline
- */
-export async function getSlaBreachIntakes(): Promise<{
-  breached: number
-  approaching: number
-  intakeIds: string[]
-}> {
-  const supabase = createServiceRoleClient()
-  const now = new Date()
-  const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000)
-
-  const { data, error } = await filterSeededE2EIntakes(supabase
-    .from("intakes")
-    .select("id, sla_deadline")
-    .in("status", QUEUE_REVIEW_STATUSES)
-    .eq("payment_status", "paid")
-    .not("sla_deadline", "is", null))
-
-  if (error || !data) {
-    return { breached: 0, approaching: 0, intakeIds: [] }
-  }
-
-  const breached = data.filter(r => new Date(r.sla_deadline) < now)
-  const approaching = data.filter(r => {
-    const deadline = new Date(r.sla_deadline)
-    return deadline >= now && deadline <= oneHourFromNow
-  })
-
-  return {
-    breached: breached.length,
-    approaching: approaching.length,
-    intakeIds: [...breached.map(r => r.id), ...approaching.map(r => r.id)],
-  }
-}
-
 // ============================================
 // PATIENT NOTES (Read-only queries)
 // ============================================
@@ -1309,11 +945,11 @@ export const getPatientDashboardData = (patientId: string): Promise<{
 }
 
 // ============================================
-// DOCTOR DASHBOARD - RECENTLY COMPLETED & EARNINGS
+// STAFF COCKPIT - RECENTLY COMPLETED & EARNINGS
 // ============================================
 
 /**
- * Get recently completed intakes (approved/declined today) for the doctor dashboard.
+ * Get recently completed intakes for the unified staff cockpit.
  */
 export async function getRecentlyCompletedIntakes(opts: { limit?: number } = {}): Promise<IntakeWithPatient[]> {
   const supabase = createServiceRoleClient()

@@ -45,4 +45,11 @@ describe("feature flag update validation", () => {
     expect(result).toEqual({ success: false, error: "Unknown feature flag" })
     expect(mocks.createClient).not.toHaveBeenCalled()
   })
+
+  it("rejects the retired stale-queue doctor alert threshold", async () => {
+    const result = await updateFeatureFlag("doctor_alert_threshold_hours" as never, 1, "admin-id")
+
+    expect(result).toEqual({ success: false, error: "Unknown feature flag" })
+    expect(mocks.createClient).not.toHaveBeenCalled()
+  })
 })
