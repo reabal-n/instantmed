@@ -22,10 +22,66 @@ export function buildStaffPatientHref(patientId: string): string {
   return `${STAFF_PATIENT_DETAIL_BASE_HREF}/${encodeURIComponent(patientId)}`
 }
 
+// ── Public and patient route constants ──────────────────────────────────────
+
+export const REQUEST_HREF = "/request" as const
+export const REQUEST_REPEAT_SCRIPT_HREF = "/request?service=repeat-script" as const
+export const REQUEST_MED_CERT_HREF = "/request?service=med-cert" as const
+export const REQUEST_CONSULT_HREF = "/request?service=consult" as const
+
+export function buildRequestServiceHref(options: { service: string; subtype?: string | null }): string {
+  const params = new URLSearchParams({ service: options.service })
+  if (options.subtype) params.set("subtype", options.subtype)
+  return `${REQUEST_HREF}?${params.toString()}`
+}
+
+export const PATIENT_DASHBOARD_HREF = "/patient" as const
+export const PATIENT_INTAKES_HREF = "/patient/intakes" as const
+export const PATIENT_INTAKE_SUCCESS_HREF = "/patient/intakes/success" as const
+export const PATIENT_PRESCRIPTIONS_HREF = "/patient/prescriptions" as const
+export const PATIENT_DOCUMENTS_HREF = "/patient/documents" as const
+export const PATIENT_MESSAGES_HREF = "/patient/messages" as const
+export const PATIENT_FOLLOWUPS_HREF = "/patient/followups" as const
+export const PATIENT_SETTINGS_HREF = "/patient/settings" as const
+export const PATIENT_HEALTH_PROFILE_HREF = "/patient/health-profile" as const
+export const PATIENT_ONBOARDING_HREF = "/patient/onboarding" as const
+
+export function buildPatientIntakeHref(intakeId: string): string {
+  return `${PATIENT_INTAKES_HREF}/${encodeURIComponent(intakeId)}`
+}
+
+export function buildPatientIntakeSuccessHref(options: {
+  intakeId?: string | null
+  paymentRetry?: boolean
+} = {}): string {
+  const params = new URLSearchParams()
+  if (options.intakeId) params.set("intake_id", options.intakeId)
+  if (options.paymentRetry) params.set("payment_retry", "1")
+  const query = params.toString()
+  return query ? `${PATIENT_INTAKE_SUCCESS_HREF}?${query}` : PATIENT_INTAKE_SUCCESS_HREF
+}
+
+export function buildPatientFollowupHref(followupId: string): string {
+  return `${PATIENT_FOLLOWUPS_HREF}/${encodeURIComponent(followupId)}`
+}
+
+export function buildPatientMessagesHref(options: { intakeId?: string | null } = {}): string {
+  if (!options.intakeId) return PATIENT_MESSAGES_HREF
+  const params = new URLSearchParams({ intakeId: options.intakeId })
+  return `${PATIENT_MESSAGES_HREF}?${params.toString()}`
+}
+
+export function buildPatientSettingsHref(options: { tab?: string | null; anchor?: string | null } = {}): string {
+  const params = new URLSearchParams()
+  if (options.tab) params.set("tab", options.tab)
+  const query = params.toString()
+  const hash = options.anchor ? `#${options.anchor}` : ""
+  return `${PATIENT_SETTINGS_HREF}${query ? `?${query}` : ""}${hash}`
+}
+
 // ── Admin-only route constants ──────────────────────────────────────────────
 // Keep constants only for admin pages that still own real operational surfaces.
 
-export const PATIENT_DASHBOARD_HREF = "/patient" as const
 export const ADMIN_CLINIC_HREF = "/admin/clinic" as const
 export const ADMIN_DOCTORS_HREF = "/admin/doctors" as const
 export const ADMIN_SERVICES_HREF = "/admin/services" as const

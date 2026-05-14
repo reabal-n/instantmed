@@ -20,6 +20,15 @@ import { type ProfileData } from "@/components/patient/profile-todo-card"
 import { CopySupportSummaryButton } from "@/components/patient/support-summary-button"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
+import {
+  buildPatientFollowupHref,
+  buildPatientIntakeHref,
+  buildPatientMessagesHref,
+  buildPatientSettingsHref,
+  buildRequestServiceHref,
+  PATIENT_DOCUMENTS_HREF,
+  REQUEST_REPEAT_SCRIPT_HREF,
+} from "@/lib/dashboard/routes"
 import { needsRenewalSoon } from "@/lib/prescriptions"
 import { getActiveServices } from "@/lib/services/service-catalog"
 import { cn } from "@/lib/utils"
@@ -222,7 +231,7 @@ function ServiceGrid({ compact = false }: { compact?: boolean }) {
       {services.map((service) => (
         <Link
           key={service.id}
-          href={`/request?service=${service.serviceRoute}${service.subtype ? `&subtype=${service.subtype}` : ""}`}
+          href={buildRequestServiceHref({ service: service.serviceRoute, subtype: service.subtype })}
           className={cn(
             "group flex items-center gap-3 rounded-xl p-3",
             "bg-white dark:bg-card border border-border/50 dark:border-white/15",
@@ -269,7 +278,7 @@ export function DashboardHero({
           primaryCta={
             intake && (
               <Button asChild>
-                <Link href={`/patient/messages?intakeId=${encodeURIComponent(intake.id)}`}>
+                <Link href={buildPatientMessagesHref({ intakeId: intake.id })}>
                   Reply now
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -293,7 +302,7 @@ export function DashboardHero({
           primaryCta={
             intake && (
               <Button asChild>
-                <Link href={`/patient/intakes/${intake.id}`}>
+                <Link href={buildPatientIntakeHref(intake.id)}>
                   <Download className="mr-2 h-4 w-4" />
                   View &amp; download
                 </Link>
@@ -302,7 +311,7 @@ export function DashboardHero({
           }
           secondaryCta={
             <Button variant="outline" asChild>
-              <Link href="/patient/documents">All documents</Link>
+              <Link href={PATIENT_DOCUMENTS_HREF}>All documents</Link>
             </Button>
           }
         />
@@ -321,7 +330,7 @@ export function DashboardHero({
           primaryCta={
             intake && (
               <Button variant="outline" asChild>
-                <Link href={`/patient/intakes/${intake.id}`}>
+                <Link href={buildPatientIntakeHref(intake.id)}>
                   Track status
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -344,7 +353,7 @@ export function DashboardHero({
           primaryCta={
             intake && (
               <Button asChild>
-                <Link href={`/patient/intakes/${intake.id}`}>
+                <Link href={buildPatientIntakeHref(intake.id)}>
                   Complete payment
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -379,7 +388,7 @@ export function DashboardHero({
           }
           primaryCta={
             <Button asChild>
-              <Link href="/request?service=repeat-script">
+              <Link href={REQUEST_REPEAT_SCRIPT_HREF}>
                 Renew prescription
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
@@ -397,7 +406,7 @@ export function DashboardHero({
           primaryCta={
             resolved.followup && (
               <Button asChild>
-                <Link href={`/patient/followups/${resolved.followup.id}`}>
+                <Link href={buildPatientFollowupHref(resolved.followup.id)}>
                   Share an update
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -415,7 +424,7 @@ export function DashboardHero({
           subtitle="Phone and home address are required for prescriptions, referrals, and follow-ups. Takes ~30 seconds."
           primaryCta={
             <Button asChild>
-              <Link href="/patient/settings?tab=personal">
+              <Link href={buildPatientSettingsHref({ tab: "personal" })}>
                 Complete profile
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>

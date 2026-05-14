@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card"
 import { Heading } from "@/components/ui/heading"
 import { capture } from "@/lib/analytics/capture"
 import { CONTACT_EMAIL } from "@/lib/constants"
+import { buildPatientIntakeSuccessHref } from "@/lib/dashboard/routes"
 
 interface ConfirmedClientProps {
   intakeId?: string
@@ -77,7 +78,7 @@ export function ConfirmedClient({ intakeId, email, serviceName: _serviceName }: 
 
       <div className="space-y-3">
         <Button asChild className="w-full">
-          <Link href={`/auth/register?redirect=${encodeURIComponent(`/patient/intakes/success?intake_id=${intakeId}`)}`}>
+          <Link href={`/auth/register?redirect=${encodeURIComponent(buildPatientIntakeSuccessHref({ intakeId }))}`}>
             Create account to track progress
             <ArrowRight className="w-4 h-4 ml-2" />
           </Link>

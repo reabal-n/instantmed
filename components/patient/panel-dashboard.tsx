@@ -26,6 +26,12 @@ import { ReferralCard } from "@/components/patient/referral-card"
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
 import { capture } from "@/lib/analytics/capture"
+import {
+  buildPatientIntakeHref,
+  PATIENT_INTAKES_HREF,
+  PATIENT_PRESCRIPTIONS_HREF,
+  REQUEST_REPEAT_SCRIPT_HREF,
+} from "@/lib/dashboard/routes"
 import { formatDate } from "@/lib/format"
 import { stagger } from "@/lib/motion"
 import { needsRenewalSoon } from "@/lib/prescriptions"
@@ -176,7 +182,7 @@ export function PanelDashboard({
 
   const handleViewIntake = (intake: Intake) => {
     if (["approved", "completed"].includes(intake.status)) {
-      router.push(`/patient/intakes/${intake.id}`)
+      router.push(buildPatientIntakeHref(intake.id))
       return
     }
     capture("intake_detail_opened", {
@@ -233,7 +239,7 @@ export function PanelDashboard({
           {intakes.length > 0 && (
             <DashboardSection
               title="Recent requests"
-              viewAllHref={intakes.length > 5 ? "/patient/intakes" : undefined}
+              viewAllHref={intakes.length > 5 ? PATIENT_INTAKES_HREF : undefined}
             >
               <motion.div
                 className="space-y-4"
@@ -263,7 +269,7 @@ export function PanelDashboard({
               title="Active prescriptions"
               viewAllHref={
                 prescriptions.filter((p) => p.status === "active").length > 3
-                  ? "/patient/prescriptions"
+                  ? PATIENT_PRESCRIPTIONS_HREF
                   : undefined
               }
             >
@@ -298,7 +304,7 @@ export function PanelDashboard({
                             </span>
                           </div>
                         </div>
-                        <Link href="/request?service=repeat-script" className="shrink-0">
+                        <Link href={REQUEST_REPEAT_SCRIPT_HREF} className="shrink-0">
                           <Button variant="outline" size="sm">
                             <Pill className="w-4 h-4 mr-2" />
                             Renew

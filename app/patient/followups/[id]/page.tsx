@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation"
 import { getFollowup } from "@/app/actions/followups"
 import { Heading } from "@/components/ui/heading"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { buildPatientFollowupHref } from "@/lib/dashboard/routes"
 
 import { FollowupForm } from "./followup-form"
 
@@ -16,7 +17,7 @@ export default async function PatientFollowupPage({
 }) {
   const { id } = await params
   const auth = await getAuthenticatedUserWithProfile()
-  if (!auth) redirect(`/sign-in?redirect_url=/patient/followups/${id}`)
+  if (!auth) redirect(`/sign-in?redirect_url=${encodeURIComponent(buildPatientFollowupHref(id))}`)
 
   const followup = await getFollowup(id)
   if (!followup) notFound()

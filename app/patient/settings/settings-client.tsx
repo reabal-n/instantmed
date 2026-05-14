@@ -48,6 +48,7 @@ import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getAvatarPresetId } from "@/lib/account/avatar-presets"
 import { AUSTRALIAN_STATES } from "@/lib/constants"
+import { buildPatientSettingsHref,PATIENT_HEALTH_PROFILE_HREF } from "@/lib/dashboard/routes"
 import { fetchWithCsrf } from "@/lib/security/csrf-client"
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { createClient } from "@/lib/supabase/client"
@@ -726,7 +727,7 @@ export function PatientSettingsClient({ profile, email, avatarUrl, emailPreferen
             {/* Health Profile deep-link card. The standalone /patient/health-profile
                 page lives on for direct linking but is folded into Medical here. */}
             <Link
-              href="/patient/health-profile"
+              href={PATIENT_HEALTH_PROFILE_HREF}
               className="group flex items-center justify-between rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-sm shadow-primary/[0.04] dark:shadow-none p-6 transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-0.5 hover:shadow-md hover:shadow-primary/[0.06] hover:border-primary/40"
             >
               <div className="min-w-0 flex-1 pr-4">
@@ -831,7 +832,7 @@ export function PatientSettingsClient({ profile, email, avatarUrl, emailPreferen
                   </div>
                   <GoogleAccountLinkCard
                     accountLabel="patient"
-                    redirectPath="/patient/settings?tab=preferences#account-security"
+                    redirectPath={buildPatientSettingsHref({ tab: "preferences", anchor: "account-security" })}
                     className="rounded-xl border border-border/40 bg-white p-5 dark:bg-card"
                   />
                 </div>

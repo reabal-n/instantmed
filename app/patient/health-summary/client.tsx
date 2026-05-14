@@ -19,6 +19,14 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription,CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  buildPatientIntakeHref,
+  PATIENT_INTAKES_HREF,
+  PATIENT_SETTINGS_HREF,
+  REQUEST_HREF,
+  REQUEST_MED_CERT_HREF,
+  REQUEST_REPEAT_SCRIPT_HREF,
+} from "@/lib/dashboard/routes"
 import type { HealthSummary, MedicalDocument, PrescriptionRecord,RecentRequest } from "@/lib/data/health-summary"
 import { INTAKE_STATUS, type IntakeStatus } from "@/lib/data/status"
 import { formatDate } from "@/lib/format"
@@ -78,7 +86,7 @@ function RequestRow({ request }: { request: RecentRequest }) {
   
   return (
     <Link 
-      href={`/patient/intakes/${request.id}`}
+      href={buildPatientIntakeHref(request.id)}
       className="flex items-center justify-between p-4 hover:bg-muted/50 rounded-xl transition-colors group"
     >
       <div className="flex items-center gap-4">
@@ -124,7 +132,7 @@ function MedCertCard({ cert }: { cert: MedicalDocument }) {
               </p>
             </div>
           </div>
-          <Link href={`/patient/intakes/${cert.intake_id}`}>
+          <Link href={buildPatientIntakeHref(cert.intake_id)}>
             <Button variant="ghost" size="sm">
               <Download className="w-4 h-4 mr-1" />
               View
@@ -173,7 +181,7 @@ function PrescriptionCard({ prescription }: { prescription: PrescriptionRecord }
 
 export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
   const [activeTab, setActiveTab] = useState("overview")
-  const repeatScriptHref = "/request?service=repeat-script"
+  const repeatScriptHref = REQUEST_REPEAT_SCRIPT_HREF
   
   const memberSinceDate = new Date(summary.memberSince).toLocaleDateString("en-AU", {
     month: "long",
@@ -239,7 +247,7 @@ export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
                   </p>
                 </div>
               </div>
-              <Link href="/patient/intakes">
+              <Link href={PATIENT_INTAKES_HREF}>
                 <Button variant="outline" size="sm" className="border-warning-border hover:bg-warning-light">
                   View all
                 </Button>
@@ -269,7 +277,7 @@ export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
                 <div className="text-center py-12">
                   <Activity className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
                   <p className="text-muted-foreground">No requests yet</p>
-                  <Link href="/request">
+                  <Link href={REQUEST_HREF}>
                     <Button className="mt-4">Start your first request</Button>
                   </Link>
                 </div>
@@ -343,7 +351,7 @@ export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
       <div className="mt-8 pt-8 border-t">
         <h2 className="text-lg font-semibold mb-4">Quick actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Link href="/request?service=med-cert">
+          <Link href={REQUEST_MED_CERT_HREF}>
             <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full">
               <CardContent className="p-6 flex items-center gap-4">
                 <div className="p-3 bg-success-light rounded-xl">
@@ -371,7 +379,7 @@ export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
             </Card>
           </Link>
           
-          <Link href="/patient/settings">
+          <Link href={PATIENT_SETTINGS_HREF}>
             <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full">
               <CardContent className="p-6 flex items-center gap-4">
                 <div className="p-3 bg-info-light rounded-xl">

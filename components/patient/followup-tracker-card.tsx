@@ -4,6 +4,7 @@ import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { buildPatientFollowupHref } from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 
 export interface FollowupRow {
@@ -110,7 +111,7 @@ export function FollowupTrackerCard({ followups }: Props) {
                   {subtypeLabel} is still working for you.
                 </p>
                 <Button asChild size="sm">
-                  <Link href={`/patient/followups/${nextDue.id}`}>
+                  <Link href={buildPatientFollowupHref(nextDue.id)}>
                     Share your update
                   </Link>
                 </Button>

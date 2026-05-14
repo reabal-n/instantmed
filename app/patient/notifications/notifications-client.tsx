@@ -20,6 +20,7 @@ import { PatientErrorAlert } from "@/components/patient"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
+import { PATIENT_SETTINGS_HREF } from "@/lib/dashboard/routes"
 import { formatRelative } from "@/lib/format"
 import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
@@ -183,7 +184,7 @@ export function NotificationsClient({ notifications: initialNotifications, patie
               </Button>
             )}
             <Button variant="outline" size="sm" asChild>
-              <Link href="/patient/settings">
+              <Link href={PATIENT_SETTINGS_HREF}>
                 <Settings className="h-4 w-4 mr-1" />
                 Settings
               </Link>

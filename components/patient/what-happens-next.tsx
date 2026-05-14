@@ -16,6 +16,7 @@ import { Card } from "@/components/ui/card"
 import { Confetti } from "@/components/ui/confetti"
 import { useReducedMotion } from "@/components/ui/motion"
 import { QUEUE_DISPLAY_CAP, type WaitState } from "@/lib/brand/wait-counter"
+import { buildPatientIntakeHref,PATIENT_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
 import { cn } from "@/lib/utils"
 
@@ -225,7 +226,7 @@ export function WhatHappensNext({
                   asChild
                   className="gap-2"
                 >
-                  <Link href="/patient">
+                  <Link href={PATIENT_DASHBOARD_HREF}>
                     <Share2 className="w-3.5 h-3.5" />
                     Get your referral link
                   </Link>
@@ -299,13 +300,13 @@ export function WhatHappensNext({
           className="space-y-3"
         >
           <Button asChild size="lg" className="w-full">
-            <Link href={`/patient/intakes/${intakeId}`}>
+            <Link href={buildPatientIntakeHref(intakeId)}>
               View request details
             </Link>
           </Button>
           
           <Button asChild variant="outline" size="lg" className="w-full">
-            <Link href="/patient">
+            <Link href={PATIENT_DASHBOARD_HREF}>
               Go to dashboard
             </Link>
           </Button>

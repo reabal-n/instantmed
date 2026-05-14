@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
+import { PATIENT_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 
 interface Props {
   followupId: string
@@ -63,7 +64,7 @@ export function FollowupForm({ followupId, subtype: _subtype, milestone }: Props
       })
       if (r.success) {
         toast.success("Thanks - your doctor will review shortly")
-        router.push("/patient")
+        router.push(PATIENT_DASHBOARD_HREF)
       } else {
         toast.error(r.error || "Failed to save")
       }

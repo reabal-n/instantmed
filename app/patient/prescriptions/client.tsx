@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { buildPatientIntakeHref,REQUEST_REPEAT_SCRIPT_HREF } from "@/lib/dashboard/routes"
 import { getDaysUntilExpiry,needsRenewalSoon } from "@/lib/prescriptions"
 
 interface PrescriptionIntake {
@@ -55,7 +56,7 @@ export function PrescriptionsClient({
   error,
 }: PrescriptionsClientProps) {
   const [activeTab, setActiveTab] = useState("all")
-  const repeatScriptHref = "/request?service=repeat-script"
+  const repeatScriptHref = REQUEST_REPEAT_SCRIPT_HREF
   
   // Filter intakes by status
   const pendingIntakes = prescriptionIntakes.filter(i => 
@@ -187,7 +188,7 @@ export function PrescriptionsClient({
                 return (
                   <RequestCard
                     key={intake.id}
-                    href={`/patient/intakes/${intake.id}`}
+                    href={buildPatientIntakeHref(intake.id)}
                     title={displayName}
                     date={intake.created_at}
                     refId={intake.reference_number?.slice(0, 8) || intake.id.slice(0, 8)}

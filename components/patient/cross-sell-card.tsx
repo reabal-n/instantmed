@@ -5,6 +5,7 @@ import Link from "next/link"
 
 import { usePostHog } from "@/components/providers/posthog-provider"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { REQUEST_CONSULT_HREF, REQUEST_MED_CERT_HREF, REQUEST_REPEAT_SCRIPT_HREF } from "@/lib/dashboard/routes"
 import type { ServiceType } from "@/types/db"
 
 interface CrossSellCardProps {
@@ -26,7 +27,7 @@ export function getCrossSell(serviceType: ServiceType | undefined): CrossSellCon
         headline: "Need a prescription renewal?",
         description: "A doctor reviews repeat medication requests the same way. No appointment needed.",
         price: `from ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
-        href: "/request?service=repeat-script",
+        href: REQUEST_REPEAT_SCRIPT_HREF,
         cta: "Renew a prescription",
       }
     case "common_scripts":
@@ -34,7 +35,7 @@ export function getCrossSell(serviceType: ServiceType | undefined): CrossSellCon
         headline: "Need a GP consultation?",
         description: "For ongoing conditions, referrals, or anything that needs a more detailed review.",
         price: `from ${PRICING_DISPLAY.CONSULT}`,
-        href: "/request?service=consult",
+        href: REQUEST_CONSULT_HREF,
         cta: "Start a consultation",
       }
     case "weight_loss":
@@ -44,7 +45,7 @@ export function getCrossSell(serviceType: ServiceType | undefined): CrossSellCon
         headline: "Need a medical certificate?",
         description: "For time off work, school, or caring for someone else. Reviewed the same way.",
         price: `from ${PRICING_DISPLAY.MED_CERT}`,
-        href: "/request?service=med-cert",
+        href: REQUEST_MED_CERT_HREF,
         cta: "Get a certificate",
       }
     default:

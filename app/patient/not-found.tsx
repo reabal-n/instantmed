@@ -3,6 +3,7 @@ import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
+import { PATIENT_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 
 export default function PatientNotFound() {
   return (
@@ -16,7 +17,7 @@ export default function PatientNotFound() {
       </p>
       <div className="flex gap-3">
         <Button asChild className="rounded-xl">
-          <Link href="/patient">
+          <Link href={PATIENT_DASHBOARD_HREF}>
             <LayoutDashboard className="mr-2 h-4 w-4" />
             Dashboard
           </Link>

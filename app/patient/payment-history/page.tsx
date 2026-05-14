@@ -1,6 +1,7 @@
 import { DashboardPageHeader } from "@/components/dashboard"
 import { PaymentHistoryContent } from "@/components/patient"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { PATIENT_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 
 // Prevent static generation for dynamic auth
 
@@ -18,7 +19,7 @@ export default async function PaymentHistoryPage() {
     <div>
       <DashboardPageHeader
         title="Payment history"
-        backHref="/patient"
+        backHref={PATIENT_DASHBOARD_HREF}
         backLabel="Back to dashboard"
       />
 

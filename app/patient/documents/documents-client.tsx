@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { buildPatientIntakeHref } from "@/lib/dashboard/routes"
 import { formatCurrency,formatDate } from "@/lib/format"
 
 interface Certificate {
@@ -150,7 +151,7 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
                         </div>
                         {receipt.stripeSessionId && (
                           <Button variant="outline" size="sm" asChild>
-                            <Link href={`/patient/intakes/${receipt.id}`}>
+                            <Link href={buildPatientIntakeHref(receipt.id)}>
                               <ChevronRight className="h-4 w-4 mr-2" />
                               View
                             </Link>

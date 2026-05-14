@@ -51,6 +51,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { capture } from "@/lib/analytics/capture"
+import { buildPatientMessagesHref,PATIENT_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
 import { getPatientStatusNextStep, INTAKE_STATUS, type IntakeStatus as StatusKey } from "@/lib/data/status"
 import { formatIntakeStatus } from "@/lib/format/intake"
@@ -475,7 +476,7 @@ export function IntakeDetailClient({
       <IntakeStatusListener intakeId={intake.id} currentStatus={intake.status} />
 
       <Button variant="ghost" asChild className="-ml-3">
-        <Link href="/patient">
+        <Link href={PATIENT_DASHBOARD_HREF}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to dashboard
         </Link>
@@ -636,7 +637,7 @@ export function IntakeDetailClient({
                 The doctor needs more information before this can move forward.
               </p>
               <Button asChild variant="outline" size="sm">
-                <Link href={`/patient/messages?intakeId=${encodeURIComponent(intake.id)}`}>
+                <Link href={buildPatientMessagesHref({ intakeId: intake.id })}>
                   Open messages
                   <ArrowLeft className="ml-2 h-4 w-4 rotate-180" />
                 </Link>

@@ -4,6 +4,7 @@ import { usePathname,useRouter } from "next/navigation"
 import { useEffect, useRef } from "react"
 import { toast } from "sonner"
 
+import { buildPatientIntakeHref } from "@/lib/dashboard/routes"
 import { createClient } from "@/lib/supabase/client"
 
 interface GlobalIntakeNotificationsProps {
@@ -76,10 +77,11 @@ export function GlobalIntakeNotifications({ patientId }: GlobalIntakeNotificatio
           const intakeId = payload.new.id as string
           const newStatus = payload.new.status as string
           const prevStatus = knownStatuses.current[intakeId]
+          const intakeHref = buildPatientIntakeHref(intakeId)
 
           // Skip if status hasn't changed or we're already on this intake's page
           if (newStatus === prevStatus) return
-          if (pathnameRef.current === `/patient/intakes/${intakeId}`) return
+          if (pathnameRef.current === intakeHref) return
 
           knownStatuses.current[intakeId] = newStatus
 
@@ -97,7 +99,7 @@ export function GlobalIntakeNotifications({ patientId }: GlobalIntakeNotificatio
             description: message.description,
             action: {
               label: "View",
-              onClick: () => routerRef.current.push(`/patient/intakes/${intakeId}`),
+              onClick: () => routerRef.current.push(intakeHref),
             },
             duration: 8000,
           })

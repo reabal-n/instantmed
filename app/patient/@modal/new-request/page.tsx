@@ -4,6 +4,7 @@ import { X } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import { ServiceSelector } from "@/components/patient"
+import { REQUEST_CONSULT_HREF, REQUEST_MED_CERT_HREF, REQUEST_REPEAT_SCRIPT_HREF } from "@/lib/dashboard/routes"
 
 export default function NewRequestModal() {
   const router = useRouter()
@@ -14,11 +15,11 @@ export default function NewRequestModal() {
 
   const handleSelectService = (service: "medical-certificate" | "repeat-prescription" | "consultation") => {
     if (service === "medical-certificate") {
-      router.push("/request?service=med-cert")
+      router.push(REQUEST_MED_CERT_HREF)
     } else if (service === "repeat-prescription") {
-      router.push("/request?service=repeat-script")
+      router.push(REQUEST_REPEAT_SCRIPT_HREF)
     } else if (service === "consultation") {
-      router.push("/request?service=consult")
+      router.push(REQUEST_CONSULT_HREF)
     }
   }
 

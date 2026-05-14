@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { getWaitState } from "@/lib/brand/wait-counter"
+import { buildPatientIntakeSuccessHref } from "@/lib/dashboard/routes"
 import { logAuditEvent } from "@/lib/security/audit-log"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -93,8 +94,8 @@ export default async function PaymentSuccessPage({
       }
     } else if (data?.patient_id && !authUser) {
       // Intake exists but user is not authenticated - redirect to sign in
-      const retryParam = paymentRetry ? "&payment_retry=1" : ""
-      redirect(`/sign-in?redirect_url=${encodeURIComponent(`/patient/intakes/success?intake_id=${intakeId}${retryParam}`)}`)
+      const redirectUrl = buildPatientIntakeSuccessHref({ intakeId, paymentRetry })
+      redirect(`/sign-in?redirect_url=${encodeURIComponent(redirectUrl)}`)
     }
 
     initialStatus = data?.status

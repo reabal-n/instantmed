@@ -21,6 +21,7 @@ import { RequestCard, StatGrid } from "@/components/patient"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { buildPatientIntakeHref,PATIENT_INTAKES_HREF, REQUEST_HREF } from "@/lib/dashboard/routes"
 import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
 import type { IntakeWithPatient } from "@/types/db"
@@ -154,7 +155,7 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
   const goToPage = (page: number) => {
     const params = new URLSearchParams(searchParams.toString())
     params.set("page", String(page))
-    router.push(`/patient/intakes?${params.toString()}`)
+    router.push(`${PATIENT_INTAKES_HREF}?${params.toString()}`)
   }
   
   return (
@@ -173,7 +174,7 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
             >
               <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
             </Button>
-            <Link href="/request">
+            <Link href={REQUEST_HREF}>
               <Button>
                 <Plus className="w-4 h-4 mr-2" />
                 New request
@@ -231,7 +232,7 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
                   ? "Your completed requests will appear here."
                   : "No declined requests."
               }
-              action={activeTab === "all" ? { label: "Start a request", href: "/request" } : undefined}
+              action={activeTab === "all" ? { label: "Start a request", href: REQUEST_HREF } : undefined}
               secondaryAction={activeTab === "all" ? { label: "Learn how it works", href: "/how-it-works" } : undefined}
               tips={
                 activeTab === "all"
@@ -252,7 +253,7 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
                 return (
                   <RequestCard
                     key={intake.id}
-                    href={`/patient/intakes/${intake.id}`}
+                    href={buildPatientIntakeHref(intake.id)}
                     title={serviceName}
                     date={intake.created_at}
                     refId={intake.id.slice(0, 8).toUpperCase()}

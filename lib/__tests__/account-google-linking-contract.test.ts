@@ -29,7 +29,7 @@ describe("account Google linking UX contract", () => {
     expect(doctorSettingsSource).toContain('redirectPath={`${settingsPath}#account-security`}')
 
     expect(patientSettingsSource).toContain("GoogleAccountLinkCard")
-    expect(patientSettingsSource).toContain('redirectPath="/patient/settings?tab=preferences#account-security"')
+    expect(patientSettingsSource).toContain('buildPatientSettingsHref({ tab: "preferences", anchor: "account-security" })')
 
     expect(adminSettingsSource).toContain("GoogleAccountLinkCard")
     expect(adminSettingsSource).toContain("STAFF_SETTINGS_HREF")

@@ -95,7 +95,7 @@ describe("DashboardHero · resolveHeroState", () => {
   })
 
   it("routes doctor-question replies directly to the message thread", () => {
-    expect(dashboardHeroSource).toContain("/patient/messages?intakeId=")
+    expect(dashboardHeroSource).toContain("buildPatientMessagesHref")
     expect(dashboardHeroSource).not.toContain('Link href={`/patient/intakes/${intake.id}`}>\n                  Reply now')
   })
 

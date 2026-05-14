@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { ErrorRefChip } from "@/components/ui/error-ref-chip"
 import { Heading } from "@/components/ui/heading"
+import { PATIENT_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 
 export default function ConfirmedError({
   error,
@@ -63,7 +64,7 @@ export default function ConfirmedError({
             {isRetrying ? "Retrying..." : retryCount.current >= maxRetries ? "Please contact support" : "Try again"}
           </Button>
           <Button variant="outline" asChild className="w-full sm:w-auto">
-            <Link href="/patient">
+            <Link href={PATIENT_DASHBOARD_HREF}>
               <Home className="mr-2 h-4 w-4" />
               Go to dashboard
             </Link>

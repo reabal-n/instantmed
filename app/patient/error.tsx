@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button"
 import { ErrorRefChip } from "@/components/ui/error-ref-chip"
 import { Heading } from "@/components/ui/heading"
 import { CONTACT_EMAIL } from "@/lib/constants"
+import { PATIENT_DASHBOARD_HREF, PATIENT_INTAKES_HREF } from "@/lib/dashboard/routes"
 
 // Detect error type for better messaging
 function getErrorInfo(error: Error & { digest?: string }) {
@@ -118,7 +119,7 @@ export default function PatientError({
             </Button>
           )}
           <Button variant="outline" asChild className="w-full sm:w-auto">
-            <Link href="/patient">
+            <Link href={PATIENT_DASHBOARD_HREF}>
               <Home className="mr-2 h-4 w-4" />
               Dashboard
             </Link>
@@ -127,7 +128,7 @@ export default function PatientError({
 
         <div className="mt-6 pt-6 border-t border-border/50 space-y-3">
           <Link
-            href="/patient/intakes"
+            href={PATIENT_INTAKES_HREF}
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <FileText className="h-4 w-4" />

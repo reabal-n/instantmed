@@ -12,6 +12,7 @@ import { PulseSpinner } from "@/components/ui/spinner"
 import { getAttribution } from "@/lib/analytics/attribution"
 import { trackPurchase } from "@/lib/analytics/conversion-tracking"
 import type { WaitState } from "@/lib/brand/wait-counter"
+import { PATIENT_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
 
 const RESEND_COOLDOWN_SECONDS = 60
@@ -312,7 +313,7 @@ export function SuccessClient({
         <div className="p-4 rounded-xl bg-muted/50 text-sm space-y-2">
           <p><strong>What to do next:</strong></p>
           <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-            <li>Check your <a href="/patient" className="underline hover:no-underline">dashboard</a> for your request status</li>
+            <li>Check your <a href={PATIENT_DASHBOARD_HREF} className="underline hover:no-underline">dashboard</a> for your request status</li>
             <li>Look for a confirmation email in your inbox</li>
             <li>If you don&apos;t see your request within 10 minutes, <a href="/contact" className="underline hover:no-underline">contact support</a></li>
           </ul>

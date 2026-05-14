@@ -3,6 +3,7 @@ import Link from "next/link"
 
 import { type Intake, resolveStatusConfig } from "@/components/patient/intake-types"
 import { Button } from "@/components/ui/button"
+import { buildPatientIntakeHref } from "@/lib/dashboard/routes"
 import { getPatientStatusNextStep } from "@/lib/data/status"
 import { formatDate, formatRelative } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -57,7 +58,7 @@ export function IntakeDetailDrawer({ intake }: { intake: Intake }) {
       {/* Action */}
       <div className="pt-4 border-t border-border">
         <Button asChild className="w-full">
-          <Link href={`/patient/intakes/${intake.id}`}>
+          <Link href={buildPatientIntakeHref(intake.id)}>
             <ExternalLink className="w-4 h-4 mr-2" />
             {whatsNext?.actionLabel || "View full details"}
           </Link>

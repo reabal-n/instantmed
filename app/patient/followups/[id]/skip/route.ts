@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { skipFollowup } from "@/app/actions/followups"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { buildPatientFollowupHref,PATIENT_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
@@ -15,12 +16,12 @@ export async function GET(
   const auth = await getAuthenticatedUserWithProfile()
   if (!auth) {
     const signIn = new URL("/sign-in", BASE_URL)
-    signIn.searchParams.set("redirect_url", `/patient/followups/${id}/skip`)
+    signIn.searchParams.set("redirect_url", `${buildPatientFollowupHref(id)}/skip`)
     return NextResponse.redirect(signIn)
   }
 
   const result = await skipFollowup(id)
-  const url = new URL("/patient", BASE_URL)
+  const url = new URL(PATIENT_DASHBOARD_HREF, BASE_URL)
   url.searchParams.set("followup_skipped", result.success ? "1" : "0")
   return NextResponse.redirect(url)
 }

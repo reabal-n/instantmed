@@ -5,6 +5,7 @@ import { DashboardCard } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 import { CONTACT_EMAIL } from "@/lib/constants"
+import { buildPatientIntakeHref,PATIENT_DASHBOARD_HREF, REQUEST_HREF } from "@/lib/dashboard/routes"
 
 import { CancelledPageTracker } from "./tracker"
 
@@ -63,21 +64,21 @@ export default async function PaymentCancelledPage({
             <div className="flex flex-col gap-3">
               {intakeId ? (
                 <Button asChild size="lg" className="w-full rounded-xl">
-                  <Link href={`/patient/intakes/${intakeId}`}>
+                  <Link href={buildPatientIntakeHref(intakeId)}>
                     <CreditCard className="mr-2 w-4 h-4" />
                     Complete payment
                   </Link>
                 </Button>
               ) : (
                 <Button asChild size="lg" className="w-full rounded-xl">
-                  <Link href="/request">
+                  <Link href={REQUEST_HREF}>
                     <CreditCard className="mr-2 w-4 h-4" />
                     Start a new request
                   </Link>
                 </Button>
               )}
               <Button variant="outline" asChild className="w-full rounded-xl bg-transparent">
-                <Link href="/patient">
+                <Link href={PATIENT_DASHBOARD_HREF}>
                   <ArrowLeft className="mr-2 w-4 h-4" />
                   Back to dashboard
                 </Link>

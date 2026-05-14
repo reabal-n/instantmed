@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input"
 import { useReducedMotion } from "@/components/ui/motion"
 import { PageShell } from "@/components/ui/page-shell"
 import { ButtonSpinner } from "@/components/ui/skeleton"
+import { PATIENT_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import { spring } from "@/lib/motion"
 import { cn } from "@/lib/utils"
 import { suggestStateFromPostcode, validatePostcodeState } from "@/lib/validation/australian-address"
@@ -251,7 +252,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
       setError(result.error)
       setIsSubmitting(false)
     } else {
-      const destination = redirectTo || "/patient?onboarded=true"
+      const destination = redirectTo || PATIENT_DASHBOARD_HREF
       router.push(destination.includes("?") ? `${destination}&onboarded=true` : `${destination}?onboarded=true`)
     }
   }

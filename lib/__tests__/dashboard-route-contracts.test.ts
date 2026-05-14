@@ -22,11 +22,30 @@ import {
   buildDoctorDocumentBuilderHref,
   buildDoctorIntakeHref,
   buildDoctorQueueRedirectHref,
+  buildPatientFollowupHref,
+  buildPatientIntakeHref,
+  buildPatientIntakeSuccessHref,
+  buildPatientMessagesHref,
+  buildPatientSettingsHref,
+  buildRequestServiceHref,
   buildStaffEmailHubHref,
   buildStaffLedgerHref,
   buildStaffPatientHref,
   parseQueueStatusFilter,
   PATIENT_DASHBOARD_HREF,
+  PATIENT_DOCUMENTS_HREF,
+  PATIENT_FOLLOWUPS_HREF,
+  PATIENT_HEALTH_PROFILE_HREF,
+  PATIENT_INTAKE_SUCCESS_HREF,
+  PATIENT_INTAKES_HREF,
+  PATIENT_MESSAGES_HREF,
+  PATIENT_ONBOARDING_HREF,
+  PATIENT_PRESCRIPTIONS_HREF,
+  PATIENT_SETTINGS_HREF,
+  REQUEST_CONSULT_HREF,
+  REQUEST_HREF,
+  REQUEST_MED_CERT_HREF,
+  REQUEST_REPEAT_SCRIPT_HREF,
   STAFF_DOCTOR_PATIENTS_HREF,
   STAFF_DOCTOR_SCRIPTS_HREF,
   STAFF_DOCTOR_SETTINGS_HREF,
@@ -42,6 +61,34 @@ const read = (path: string) => readFileSync(join(root, path), "utf8")
 describe("dashboard route contracts", () => {
   it("uses /patient as the canonical patient dashboard", () => {
     expect(PATIENT_DASHBOARD_HREF).toBe("/patient")
+  })
+
+  it("builds patient navigation links from the shared route helper", () => {
+    expect(REQUEST_HREF).toBe("/request")
+    expect(REQUEST_REPEAT_SCRIPT_HREF).toBe("/request?service=repeat-script")
+    expect(REQUEST_MED_CERT_HREF).toBe("/request?service=med-cert")
+    expect(REQUEST_CONSULT_HREF).toBe("/request?service=consult")
+    expect(buildRequestServiceHref({ service: "consult", subtype: "hair_loss" })).toBe(
+      "/request?service=consult&subtype=hair_loss",
+    )
+    expect(PATIENT_INTAKES_HREF).toBe("/patient/intakes")
+    expect(PATIENT_INTAKE_SUCCESS_HREF).toBe("/patient/intakes/success")
+    expect(PATIENT_PRESCRIPTIONS_HREF).toBe("/patient/prescriptions")
+    expect(PATIENT_DOCUMENTS_HREF).toBe("/patient/documents")
+    expect(PATIENT_MESSAGES_HREF).toBe("/patient/messages")
+    expect(PATIENT_FOLLOWUPS_HREF).toBe("/patient/followups")
+    expect(PATIENT_SETTINGS_HREF).toBe("/patient/settings")
+    expect(PATIENT_HEALTH_PROFILE_HREF).toBe("/patient/health-profile")
+    expect(PATIENT_ONBOARDING_HREF).toBe("/patient/onboarding")
+    expect(buildPatientIntakeHref("intake 123")).toBe("/patient/intakes/intake%20123")
+    expect(buildPatientIntakeSuccessHref({ intakeId: "intake 123", paymentRetry: true })).toBe(
+      "/patient/intakes/success?intake_id=intake+123&payment_retry=1",
+    )
+    expect(buildPatientMessagesHref({ intakeId: "intake 123" })).toBe("/patient/messages?intakeId=intake+123")
+    expect(buildPatientFollowupHref("followup 123")).toBe("/patient/followups/followup%20123")
+    expect(buildPatientSettingsHref({ tab: "preferences", anchor: "account-security" })).toBe(
+      "/patient/settings?tab=preferences#account-security",
+    )
   })
 
   it("uses the staff dashboard for doctor queue deep links", () => {
