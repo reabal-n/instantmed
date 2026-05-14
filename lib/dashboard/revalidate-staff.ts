@@ -2,7 +2,7 @@ import { revalidatePath } from "next/cache"
 
 import {
   ADMIN_AUDIT_HREF,
-  ADMIN_CERTIFICATE_TEMPLATES_HREF,
+  ADMIN_CERTIFICATE_DETAILS_HREF,
   ADMIN_CLINIC_HREF,
   ADMIN_DOCTORS_HREF,
   ADMIN_EMAIL_SUPPRESSION_HREF,
@@ -111,13 +111,13 @@ const STAFF_SETTINGS_PATHS = [
   ADMIN_DOCTORS_HREF,
   ADMIN_SERVICES_HREF,
   ADMIN_FEATURES_HREF,
+  ADMIN_CERTIFICATE_DETAILS_HREF,
 ] as const
 
 const STAFF_EMAILS_PATHS = [
   STAFF_EMAILS_HREF,
   ADMIN_EMAIL_TEMPLATE_EDITOR_HREF,
   ADMIN_EMAIL_SUPPRESSION_HREF,
-  ADMIN_CERTIFICATE_TEMPLATES_HREF,
 ] as const
 
 const STAFF_CONTENT_PATHS = [
@@ -204,7 +204,7 @@ export interface RevalidatePatientOptions {
   documents?: boolean
   /** Bust /patient/messages. */
   messages?: boolean
-  /** Bust /patient/followups/{id}. */
+  /** Bust the hidden legacy /patient/followups/{id} compatibility route. */
   followupId?: string
   /** Bust /account (auth-state-aware landing). */
   account?: boolean

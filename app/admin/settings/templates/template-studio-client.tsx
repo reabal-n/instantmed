@@ -100,7 +100,7 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
     setScenarios((prev) => ({ ...prev, [id]: !prev[id] }))
   }, [])
 
-  // Save clinic identity (template editing removed - templates are static PDFs)
+  // Save clinic identity. The certificate layout itself is the checked-in PDF.
   const handleSave = useCallback(() => {
     startTransition(async () => {
       setMessage(null)
@@ -185,8 +185,8 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
   return (
     <OperatorPage>
       <OperatorPageHeader
-        title="Certificate identity"
-        description="Clinic identity and certificate preview. Static certificate layout uses the checked-in PDF template."
+        title="Certificate details"
+        description="Clinic details and PDF preview for generated medical certificates. Email templates live in Email delivery."
         backHref={STAFF_SETTINGS_HREF}
         actions={
           <div className="flex flex-wrap items-center gap-2">
@@ -217,7 +217,7 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
               ) : (
                 <Save className="mr-2 h-4 w-4" />
               )}
-              Save Changes
+              Save changes
             </Button>
           </div>
         }
@@ -242,7 +242,7 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column: Settings Form */}
+          {/* Left column: settings form */}
           <div className="space-y-6">
                 <Card>
                   <CardHeader className="pb-3">
@@ -254,7 +254,7 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="clinic_name">Clinic Name</Label>
+                        <Label htmlFor="clinic_name">Clinic name</Label>
                         <Input
                           id="clinic_name"
                           value={clinicIdentity.clinic_name}
@@ -265,7 +265,7 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="trading_name">
-                          Trading Name{" "}
+                          Trading name{" "}
                           <span className="text-muted-foreground">(optional)</span>
                         </Label>
                         <Input
@@ -282,7 +282,7 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="address_line_1">Address Line 1</Label>
+                      <Label htmlFor="address_line_1">Address line 1</Label>
                       <Input
                         id="address_line_1"
                         value={clinicIdentity.address_line_1}
@@ -294,7 +294,7 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
 
                     <div className="space-y-2">
                       <Label htmlFor="address_line_2">
-                        Address Line 2{" "}
+                        Address line 2{" "}
                         <span className="text-muted-foreground">(optional)</span>
                       </Label>
                       <Input
@@ -415,7 +415,7 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
                           className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-muted"
                         >
                           <Upload className="h-4 w-4" />
-                          Upload Logo
+                          Upload logo
                         </Label>
                         <Input
                           id="logo-upload"
@@ -434,7 +434,7 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
 
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Footer Disclaimer</CardTitle>
+                    <CardTitle className="text-base">Footer disclaimer</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <Textarea
@@ -449,20 +449,20 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
                 </Card>
           </div>
 
-          {/* Right Column: Live Preview */}
+          {/* Right column: live preview */}
           <div className="space-y-4">
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Eye className="h-4 w-4" />
-                  Live Preview
+                  Live preview
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {/* Preview Scenario Toggles */}
+                {/* Preview scenario toggles */}
                 <div className="mb-4 p-3 bg-muted/50 rounded-lg">
                   <p className="text-xs font-medium text-muted-foreground mb-2">
-                    Test Scenarios
+                    Test scenarios
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {[
@@ -487,7 +487,7 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
                   </div>
                 </div>
 
-                {/* Certificate Preview */}
+                {/* Certificate preview */}
                 <div className="border bg-muted p-4 overflow-auto max-h-[800px]">
                   <CertificatePreview
                     clinicIdentity={previewClinicIdentity}
@@ -499,7 +499,7 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
               </CardContent>
             </Card>
 
-            {/* Version history removed - templates are static PDFs */}
+            {/* Version history removed - the certificate layout is a static PDF. */}
           </div>
         </div>
       </OperatorScrollArea>

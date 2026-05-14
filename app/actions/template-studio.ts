@@ -75,7 +75,7 @@ export async function saveClinicIdentityAction(
     const result = await saveClinicIdentity(input, profile.id)
 
     if (result.success) {
-      revalidateStaff({ emails: true, settings: true })
+      revalidateStaff({ settings: true })
       log.info("Clinic identity saved by admin", { adminId: profile.id })
     }
 

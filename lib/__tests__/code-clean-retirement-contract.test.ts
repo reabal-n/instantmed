@@ -154,6 +154,13 @@ describe("code-clean retirement contracts", () => {
     expect(legacyFollowupsPanel).toContain("Legacy check-ins")
     expect(legacyFollowupsPanel).toContain("New automated check-ins are retired")
     expect(legacyFollowupsPanel).not.toContain("Follow-up check-ins")
+
+    const patientFollowupPage = read("app/patient/followups/[id]/page.tsx")
+    const followupActions = read("app/actions/followups.ts")
+    const routesSource = read("lib/dashboard/routes.ts")
+    expect(patientFollowupPage).toContain("Compatibility-only route for historical ED/hair-loss check-in links")
+    expect(followupActions).toContain("Compatibility actions for historical intake_followups rows")
+    expect(routesSource).toContain("Hidden compatibility route for historical treatment check-in links")
   })
 
   it("keeps repeat-Rx subscriptions dormant and out of patient acquisition paths", () => {

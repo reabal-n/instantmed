@@ -70,7 +70,7 @@ test.describe("operator viewport contract", () => {
       { path: STAFF_TEST_ROUTES.adminRefundFailures, heading: /^refunds$/i },
       { path: STAFF_TEST_ROUTES.adminEmailQueue, heading: /email delivery/i },
       { path: STAFF_TEST_ROUTES.adminFeatures, heading: /feature flags/i, boundedConsole: true },
-      { path: STAFF_TEST_ROUTES.adminCertificateTemplates, heading: /certificate templates/i },
+      { path: STAFF_TEST_ROUTES.adminCertificateDetails, heading: /certificate details/i },
     ]
 
     for (const pageConfig of pages) {

@@ -33,7 +33,7 @@ const ADMIN_PAGES = [
   STAFF_TEST_ROUTES.adminEmailSuppression,
   STAFF_TEST_ROUTES.adminEmailTemplates,
   STAFF_TEST_ROUTES.adminSettings,
-  STAFF_TEST_ROUTES.adminCertificateTemplates,
+  STAFF_TEST_ROUTES.adminCertificateDetails,
   // Nested
   STAFF_TEST_ROUTES.adminStaleIntakes,
   STAFF_TEST_ROUTES.adminReconciliation,

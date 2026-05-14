@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { skipFollowup } from "@/app/actions/followups"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
-import { buildPatientFollowupHref,PATIENT_DASHBOARD_HREF } from "@/lib/dashboard/routes"
+import { buildPatientFollowupHref, PATIENT_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"

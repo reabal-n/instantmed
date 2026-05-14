@@ -6,7 +6,7 @@ import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { revalidatePatient } from "@/lib/dashboard/revalidate-staff"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { type SubmitFollowupInput,submitFollowupSchema } from "@/lib/validation/followup-schema"
+import { type SubmitFollowupInput, submitFollowupSchema } from "@/lib/validation/followup-schema"
 
 const log = createLogger("followups-actions")
 
@@ -14,6 +14,8 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 
 import type { ActionResult } from "@/types/shared"
 
+// Compatibility actions for historical intake_followups rows. New automated
+// treatment follow-up scheduling is retired in the current one-off model.
 export async function getFollowup(followupId: string) {
   if (!UUID_REGEX.test(followupId)) return null
   const auth = await requireRoleOrNull(["patient", "doctor", "admin"])

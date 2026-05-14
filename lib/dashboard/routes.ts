@@ -43,6 +43,8 @@ export const PATIENT_DOCUMENTS_HREF = "/patient/documents" as const
 export const PATIENT_MESSAGES_HREF = "/patient/messages" as const
 export const PATIENT_NEW_REQUEST_HREF = "/patient/new-request" as const
 export const PATIENT_PAYMENT_HISTORY_HREF = "/patient/payment-history" as const
+// Hidden compatibility route for historical treatment check-in links. Not a
+// patient navigation destination in the current one-off model.
 export const PATIENT_FOLLOWUPS_HREF = "/patient/followups" as const
 export const PATIENT_SETTINGS_HREF = "/patient/settings" as const
 export const PATIENT_HEALTH_PROFILE_HREF = "/patient/health-profile" as const
@@ -88,7 +90,7 @@ export const ADMIN_CLINIC_HREF = "/admin/clinic" as const
 export const ADMIN_DOCTORS_HREF = "/admin/doctors" as const
 export const ADMIN_SERVICES_HREF = "/admin/services" as const
 export const ADMIN_FEATURES_HREF = "/admin/features" as const
-export const ADMIN_CERTIFICATE_TEMPLATES_HREF = "/admin/settings/templates" as const
+export const ADMIN_CERTIFICATE_DETAILS_HREF = "/admin/settings/templates" as const
 export const ADMIN_AUDIT_HREF = "/admin/audit" as const
 export const ADMIN_EMAIL_TEMPLATE_EDITOR_HREF = "/admin/emails/templates" as const
 export const ADMIN_EMAIL_SUPPRESSION_HREF = "/admin/emails/suppression" as const

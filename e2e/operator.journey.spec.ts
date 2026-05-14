@@ -5,7 +5,7 @@
  * 
  * A) Login as operator (admin+doctor)
  * B) Visit /admin/clinic, update clinic phone, save → verify DB
- * C) Visit /admin/settings/templates, edit template config, save → verify DB version increment
+ * C) Visit /admin/settings/templates, verify certificate details and active PDF config
  * D) Visit /doctor queue, approve seeded intake → verify:
  *    - intakes.status='approved'
  *    - issued_certificates exists with correct snapshots
@@ -63,7 +63,7 @@ test.describe("Operator End-to-End Journey", () => {
     await resetIntakeForRetest(INTAKE_ID)
   })
 
-  test("complete operator journey: clinic → studio → approve", async ({ page }) => {
+  test("complete operator journey: clinic → certificate details → approve", async ({ page }) => {
     test.skip(!isDbAvailable(), "SUPABASE_SERVICE_ROLE_KEY required")
     
     // Increase timeout for this comprehensive test
@@ -117,80 +117,18 @@ test.describe("Operator End-to-End Journey", () => {
     })
 
     // ========================================================================
-    // STEP C: Update template config in studio
+    // STEP C: Verify certificate details and active PDF config
     // ========================================================================
-    await test.step("Update template config in /admin/settings/templates", async () => {
-      // Get initial template state
-      const initialTemplate = await getLatestActiveTemplateByType("med_cert")
-      expect(initialTemplate).toBeTruthy()
-      const initialVersion = initialTemplate?.version || 0
+    await test.step("Verify certificate details in /admin/settings/templates", async () => {
+      savedTemplate = await getLatestActiveTemplateByType("med_cert")
+      expect(savedTemplate, "Should have captured active template for snapshot comparison").toBeTruthy()
 
-      await page.goto(STAFF_TEST_ROUTES.adminCertificateTemplates)
+      await page.goto(STAFF_TEST_ROUTES.adminCertificateDetails)
       await waitForPageLoad(page)
 
-      await expect(page.getByRole("heading", { name: /certificate templates/i })).toBeVisible()
-
-      // Select Work template type
-      const workButton = page.getByRole("button", { name: /work/i }).first()
-      if (await workButton.isVisible()) {
-        await workButton.click()
-      }
-
-      await page.waitForLoadState("networkidle")
-
-      // Find and toggle a switch to make a change
-      const switches = page.locator('button[role="switch"]')
-      const switchCount = await switches.count()
-      
-      if (switchCount > 0) {
-        const firstSwitch = switches.first()
-        await firstSwitch.click()
-      } else {
-        // Try changing a select option if no switches
-        const selects = page.locator('button[role="combobox"]')
-        if (await selects.count() > 0) {
-          await selects.first().click()
-          await page.waitForLoadState("networkidle")
-          const options = page.locator('[role="option"]')
-          if (await options.count() > 1) {
-            await options.nth(1).click()
-          }
-        }
-      }
-
-      // Check for unsaved changes
-      const unsavedBadge = page.getByText(/unsaved changes/i)
-      const hasUnsavedChanges = await unsavedBadge.isVisible().catch(() => false)
-
-      if (hasUnsavedChanges) {
-        // Save and wait for network response
-        const saveButton = page.getByRole("button", { name: /save version/i })
-        await expect(saveButton).toBeEnabled()
-        
-        const [response] = await Promise.all([
-          page.waitForResponse(resp => 
-            resp.url().includes(STAFF_TEST_ROUTES.adminCertificateTemplates) &&
-            resp.request().method() === "POST"
-          ),
-          saveButton.click()
-        ])
-        
-        expect(response.ok()).toBe(true)
-
-        // Verify success toast
-        await expect(page.getByText(/template saved/i)).toBeVisible({ timeout: 10000 })
-
-        // Verify DB update - version should increment
-        const updatedTemplate = await getLatestActiveTemplateByType("med_cert")
-        expect(updatedTemplate?.version).toBeGreaterThan(initialVersion)
-        savedTemplate = updatedTemplate
-      } else {
-        // No changes detected, capture current template for snapshot comparison
-        savedTemplate = initialTemplate
-      }
-      
-      // Ensure we have a template captured for comparison
-      expect(savedTemplate, "Should have captured template for snapshot comparison").toBeTruthy()
+      await expect(page.getByRole("heading", { name: /certificate details/i })).toBeVisible()
+      await expect(page.getByText(/pdf preview/i).first()).toBeVisible()
+      await expect(page.getByText(/save version/i)).toHaveCount(0)
     })
 
     // ========================================================================

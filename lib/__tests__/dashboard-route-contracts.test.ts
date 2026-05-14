@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   ADMIN_AUDIT_HREF,
-  ADMIN_CERTIFICATE_TEMPLATES_HREF,
+  ADMIN_CERTIFICATE_DETAILS_HREF,
   ADMIN_CLINIC_HREF,
   ADMIN_DOCTORS_HREF,
   ADMIN_EMAIL_TEMPLATE_EDITOR_HREF,
@@ -128,7 +128,7 @@ describe("dashboard route contracts", () => {
     expect(ADMIN_DOCTORS_HREF).toBe("/admin/doctors")
     expect(ADMIN_SERVICES_HREF).toBe("/admin/services")
     expect(ADMIN_FEATURES_HREF).toBe("/admin/features")
-    expect(ADMIN_CERTIFICATE_TEMPLATES_HREF).toBe("/admin/settings/templates")
+    expect(ADMIN_CERTIFICATE_DETAILS_HREF).toBe("/admin/settings/templates")
     expect(ADMIN_EMAIL_TEMPLATE_EDITOR_HREF).toBe("/admin/emails/templates")
     expect(buildStaffEmailHubHref()).toBe("/admin/emails/hub")
     expect(buildStaffEmailHubHref({ tab: "queue", intakeId: "intake 123" })).toBe(

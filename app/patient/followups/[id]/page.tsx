@@ -7,6 +7,8 @@ import { buildPatientFollowupHref } from "@/lib/dashboard/routes"
 
 import { FollowupForm } from "./followup-form"
 
+// Compatibility-only route for historical ED/hair-loss check-in links. The
+// current one-off workflow does not schedule new automated treatment follow-ups.
 export const metadata = { title: "Treatment check-in" }
 export const dynamic = "force-dynamic"
 

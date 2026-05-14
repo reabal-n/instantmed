@@ -14,7 +14,7 @@ import { DashboardPageHeader } from "@/components/dashboard"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { requireRole } from "@/lib/auth/helpers"
 import {
-  ADMIN_CERTIFICATE_TEMPLATES_HREF,
+  ADMIN_CERTIFICATE_DETAILS_HREF,
   ADMIN_CLINIC_HREF,
   ADMIN_DOCTORS_HREF,
   ADMIN_FEATURES_HREF,
@@ -69,9 +69,9 @@ const settingsLinks: SettingsLink[] = [
     icon: ToggleLeft,
   },
   {
-    label: "Certificate identity",
-    description: "Clinic identity used on generated medical certificates.",
-    href: ADMIN_CERTIFICATE_TEMPLATES_HREF,
+    label: "Certificate details",
+    description: "Clinic details and PDF preview for generated medical certificates.",
+    href: ADMIN_CERTIFICATE_DETAILS_HREF,
     icon: FileText,
   },
 ]

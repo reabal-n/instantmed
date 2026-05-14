@@ -113,7 +113,7 @@ describe("admin navigation contract", () => {
     expect(settingsSource).not.toContain('redirect("/admin/features")')
     expect(nextConfigSource).not.toContain('source: "/admin/settings", destination: "/admin/features"')
     expect(settingsSource).toContain("ADMIN_FEATURES_HREF")
-    expect(settingsSource).toContain("ADMIN_CERTIFICATE_TEMPLATES_HREF")
+    expect(settingsSource).toContain("ADMIN_CERTIFICATE_DETAILS_HREF")
     expect(settingsSource).toContain("STAFF_IDENTITY_HREF")
     expect(settingsSource).toContain("Your prescribing identity")
     expect(settingsSource).toContain("Clinic setup")
@@ -135,10 +135,10 @@ describe("admin navigation contract", () => {
   })
 
   it("keeps certificate setup truthful for static PDF templates", () => {
-    expect(settingsSource).toContain("Certificate identity")
-    expect(settingsSource).toContain("Clinic identity used on generated medical certificates.")
-    expect(certificateIdentitySource).toContain('title="Certificate identity"')
-    expect(certificateIdentitySource).toContain("Static certificate layout uses the checked-in PDF template")
+    expect(settingsSource).toContain("Certificate details")
+    expect(settingsSource).toContain("Clinic details and PDF preview for generated medical certificates.")
+    expect(certificateIdentitySource).toContain('title="Certificate details"')
+    expect(certificateIdentitySource).toContain("Email templates live in Email delivery.")
     expect(certificateIdentitySource).not.toContain('TabsTrigger value="template"')
     expect(certificateIdentitySource).not.toContain("Template Layout")
     expect(certificateIdentitySource).not.toContain("Layout Options")
@@ -213,7 +213,7 @@ describe("admin navigation contract", () => {
     expect(dashboardRoutesSource).toContain('ADMIN_WEBHOOK_DLQ_HREF = "/admin/webhook-dlq"')
     expect(dashboardRoutesSource).not.toContain("ADMIN_EMAIL_HUB_HREF")
     expect(dashboardRoutesSource).toContain('ADMIN_EMAIL_TEMPLATE_EDITOR_HREF = "/admin/emails/templates"')
-    expect(dashboardRoutesSource).toContain('ADMIN_CERTIFICATE_TEMPLATES_HREF = "/admin/settings/templates"')
+    expect(dashboardRoutesSource).toContain('ADMIN_CERTIFICATE_DETAILS_HREF = "/admin/settings/templates"')
     expect(dashboardRoutesSource).not.toContain("ADMIN_PATIENTS_HREF")
     // Status-filter links now go to the canonical `/dashboard` via
     // buildStaffDashboardHref; the literal `/doctor/...` hrefs are gone.
