@@ -101,10 +101,15 @@ for retired_non_operational_surface in \
   "app/api/cron/decline-reengagement/route.ts" \
   "app/api/cron/email-digest/route.ts" \
   "app/api/cron/follow-up-reminder/route.ts" \
+  "app/api/test/boom/route.ts" \
+  "app/api/test/boom-500/route.ts" \
   "app/api/test/edge-canary/route.ts" \
+  "app/(dev)/sentry-test/page.tsx" \
   "app/admin/emails/edit" \
   "e2e/admin-crash-diagnostic.spec.ts" \
   "e2e/admin.doctor-ops.spec.ts" \
+  "e2e/sentry.integration.spec.ts" \
+  "e2e/sentry-observability.spec.ts" \
   "lib/email/follow-up-reminder.ts" \
   "lib/email/components/templates/decline-reengagement.tsx" \
   "lib/analytics/acquisition-health.ts"

@@ -75,9 +75,28 @@ describe("retired compatibility modules", () => {
 
   it("keeps retired test-only ops diagnostics out of the app and e2e trees", () => {
     expect(existsSync(join(root, "app/api/test/edge-canary/route.ts"))).toBe(false)
+    expect(existsSync(join(root, "app/api/test/boom/route.ts"))).toBe(false)
+    expect(existsSync(join(root, "app/api/test/boom-500/route.ts"))).toBe(false)
+    expect(existsSync(join(root, "app/(dev)/sentry-test/page.tsx"))).toBe(false)
     expect(existsSync(join(root, "app/admin/emails/edit"))).toBe(false)
     expect(existsSync(join(root, "e2e/admin-crash-diagnostic.spec.ts"))).toBe(false)
     expect(existsSync(join(root, "e2e/admin.doctor-ops.spec.ts"))).toBe(false)
+    expect(existsSync(join(root, "e2e/sentry.integration.spec.ts"))).toBe(false)
+    expect(existsSync(join(root, "e2e/sentry-observability.spec.ts"))).toBe(false)
+
+    const orphanCheck = readFileSync(join(root, "scripts/check-orphaned-files.sh"), "utf8")
+    for (const path of [
+      "app/api/test/edge-canary/route.ts",
+      "app/api/test/boom/route.ts",
+      "app/api/test/boom-500/route.ts",
+      "app/(dev)/sentry-test/page.tsx",
+      "e2e/admin-crash-diagnostic.spec.ts",
+      "e2e/admin.doctor-ops.spec.ts",
+      "e2e/sentry.integration.spec.ts",
+      "e2e/sentry-observability.spec.ts",
+    ]) {
+      expect(orphanCheck).toContain(path)
+    }
   })
 
   it("keeps the /api/test surface explicit and limited to active e2e contracts", () => {
@@ -91,13 +110,9 @@ describe("retired compatibility modules", () => {
       .join("\n")
 
     expect(routePaths).toEqual([
-      "app/api/test/boom-500/route.ts",
-      "app/api/test/boom/route.ts",
       "app/api/test/login/route.ts",
       "app/api/test/medcert-auto-approve/route.ts",
     ])
-    expect(allE2ESource).toContain("/api/test/boom-500")
-    expect(allE2ESource).toContain("/api/test/boom")
     expect(allE2ESource).toContain("/api/test/login")
     expect(allE2ESource).toContain("/api/test/medcert-auto-approve")
   })

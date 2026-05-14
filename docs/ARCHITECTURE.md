@@ -688,7 +688,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 ## Directory Index
 
-### `app/` — 574 files, 232 route files
+### `app/` — 571 files, 229 route files
 
 Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-contract.test.ts`; `pnpm build` remains the source of truth for expanded static/SSG route output.
 
@@ -698,11 +698,11 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `app/admin/` | Admin dashboard | `patients/`, `intakes/`, `emails/`, `features/`, `settings/`, `ops/`, `analytics/` |
 | `app/doctor/` | Doctor portal | `queue/` (intake queue), `intakes/[id]/` (review), `scripts/` (Rx tasks), `patients/` |
 | `app/patient/` | Patient dashboard | `intakes/` (history + success), `settings/`, `onboarding/`, `documents/` |
-| `app/api/` | API routes (87 route files) | `stripe/webhook/`, `cron/`, `ai/`, `health/`, `certificates/`, `intakes/` |
+| `app/api/` | API routes (85 route files) | `stripe/webhook/`, `cron/`, `ai/`, `health/`, `certificates/`, `intakes/` |
 | `app/api/cron/` | Scheduled jobs (23) | `stale-queue/`, `email-dispatcher/`, `health-check/`, `release-stale-claims/`, etc. See OPERATIONS.md |
 | `app/api/stripe/webhook/` | Stripe handlers | 7 handlers: `checkout-session-completed`, `checkout-session-expired`, `checkout-session-async-payment-succeeded/failed`, `charge-refunded`, `charge-dispute-created`, `payment-intent-payment-failed`. Repeat Rx subscription handlers are retired; unsupported Stripe events are acknowledged and claimed by the dispatcher without running business logic. Registered in `handlers/index.ts`. |
 | `app/request/` | **Sole canonical intake flow.** Single page, step-based wizard. |
-| `app/(dev)/` | Dev-only routes | Email preview, Sentry test — blocked in production by middleware |
+| `app/(dev)/` | Dev-only routes | Email preview only; retired `/cert-preview` and `/sentry-test` prefixes remain fail-closed in middleware |
 | `app/blog/` | Guide-only health articles | MDX content from `content/blog/`, ISR 12h, `[slug]/page.tsx` |
 | `app/conditions/[slug]/` | SEO: conditions | Programmatic from `lib/seo/data/` |
 | `app/symptoms/[slug]/` | SEO: symptoms | Programmatic from `lib/seo/data/` |
@@ -776,7 +776,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `types/db.ts` | Supabase generated types + custom interfaces |
 | `types/certificate-template.ts` | PDF template field definitions |
 | `hooks/` | 5 custom hooks (use-connection-status, use-debounce, use-doctor-shortcuts, use-keyboard-navigation, use-landing-analytics) |
-| `e2e/` | 46 Playwright specs, `helpers/` (seed/teardown, auth bypass). Full suite runs in CI. |
+| `e2e/` | 44 Playwright specs, `helpers/` (seed/teardown, auth bypass). Focused paid-flow and ops smoke specs are the blocking CI gate. |
 | `supabase/migrations/` | 65 SQL migration files (1 squashed baseline + 64 incremental). Most recent: `20260507032122_tighten_paid_request_telegram_window.sql` |
 | `public/templates/` | Static PDF templates for certificate generation |
 | `content/blog/` | 108 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. Rewritten articles must be comprehensive, source-backed, and backed by at least two GPT-generated local visuals. |

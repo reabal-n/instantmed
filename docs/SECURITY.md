@@ -335,15 +335,16 @@ Capability helpers live in `lib/auth/staff-capabilities.ts`:
 |-------|------|-----------------|---------------|
 | `app/(dev)/email-preview/page.tsx` | `/email-preview` | Yes — 410 in production/preview | `canAccessDevOnlyRoute()` or 404 |
 | `app/(dev)/email-preview/[template]/page.tsx` | `/email-preview/:template` | Yes — covered by `/email-preview` prefix | `canAccessDevOnlyRoute()` or 404 |
-| `app/(dev)/sentry-test/page.tsx` | `/sentry-test` | Yes — 410 in production/preview | `NODE_ENV !== "development"` renders locked UI |
 
 None of these routes expose real PHI — all use hardcoded mock data. The middleware block is the primary control; runtime guards are defence-in-depth.
 
 **2026-05-10 cleanup:** the legacy `/cert-preview` route handler was retired because the doctor-only `/api/med-cert/preview` endpoint now uses the production renderer for certificate preview. The middleware deny rule for `/cert-preview` remains fail-closed so the path cannot be accidentally reintroduced without an explicit review.
 
+**2026-05-14 cleanup:** the synthetic Sentry test page and `/api/test/boom*` handlers were retired. The middleware deny rule for `/sentry-test` remains fail-closed so an accidental dev page cannot become reachable in production or preview.
+
 ### E2E Test Auth Bypass
 
-Only when `NODE_ENV=test` or `PLAYWRIGHT=1`. Middleware blocks `/api/test/*` and `/(dev)/*` in production/preview. Shared route classification lives in `lib/dev-only-routes.ts`.
+Only when `NODE_ENV=test` or `PLAYWRIGHT=1`. Middleware blocks `/api/test/*` and `/(dev)/*` in production/preview. Shared route classification lives in `lib/dev-only-routes.ts`. The active test API surface is limited to auth bypass and the med-cert auto-approval trigger used by focused E2E flows.
 
 ---
 

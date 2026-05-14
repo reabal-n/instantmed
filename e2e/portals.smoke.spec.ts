@@ -23,15 +23,15 @@ import { waitForPageLoad } from "./helpers/test-utils"
 // SENTRY ENVELOPE MOCK
 // ============================================================================
 //
-// Sentry is intentionally enabled in e2e mode (instrumentation-client.ts) so the
-// dedicated sentry.integration.spec.ts can verify the integration. The downside:
-// session replay fires thousands of envelope POSTs per page load, which production
-// Sentry rate-limits with 403. Each 403 surfaces as a `Failed to load resource`
-// console.error and floods the console error tracker below.
+// Sentry is intentionally enabled in e2e mode (instrumentation-client.ts).
+// Session replay can fire many envelope POSTs per page load, which production
+// Sentry may rate-limit with 403. Each 403 surfaces as a `Failed to load
+// resource` console.error and floods the console error tracker below.
 //
 // We mock the envelope endpoint to a 200 NoOp so the smoke tests aren't dependent
 // on (or polluted by) Sentry's network behavior. This is scoped to this file -
-// sentry.integration.spec.ts has its own per-test interceptor and is unaffected.
+// Synthetic Sentry trigger routes are intentionally retired; portal smoke should
+// only prove that real portal pages load without app-level runtime errors.
 test.beforeEach(async ({ context }) => {
   await context.route("**/*.ingest.*sentry.io/**", (route) =>
     route.fulfill({
