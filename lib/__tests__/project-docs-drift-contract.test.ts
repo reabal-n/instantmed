@@ -13,7 +13,7 @@ function findRouteFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const fullPath = join(dir, entry.name)
     if (entry.isDirectory()) return findRouteFiles(fullPath)
-    return entry.name === "route.ts" ? [fullPath] : []
+    return entry.name === "route.ts" || entry.name === "route.tsx" ? [fullPath] : []
   })
 }
 
@@ -29,6 +29,7 @@ function findRouteInventoryFiles(dir: string): string[] {
   const routeLikeNames = new Set([
     "page.tsx",
     "route.ts",
+    "route.tsx",
     "opengraph-image.tsx",
     "sitemap.ts",
     "robots.ts",

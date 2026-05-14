@@ -8,7 +8,7 @@ import {
   User,
 } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 import { ServiceIconTile } from "@/components/icons/service-icons"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
@@ -51,6 +51,7 @@ export function UserMenu({
   user,
 }: UserMenuProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { isServiceDisabled } = useServiceAvailability()
 
   if (variant === "marketing") {
@@ -179,19 +180,22 @@ export function UserMenu({
   }
 
   if (variant === "doctor") {
+    const dashboardStatus = searchParams.get("status")
+    const isDashboard = pathname === STAFF_DASHBOARD_HREF
+
     return (
       <>
         <AnimatedNavLink
           href={STAFF_QUEUE_HREF}
           icon={<LayoutDashboard className="h-4 w-4" aria-hidden="true" />}
-          isActive={pathname === STAFF_DASHBOARD_HREF}
+          isActive={isDashboard && dashboardStatus !== "scripts"}
         >
           Queue
         </AnimatedNavLink>
         <AnimatedNavLink
           href={STAFF_DOCTOR_SCRIPTS_HREF}
           icon={<ClipboardList className="h-4 w-4" aria-hidden="true" />}
-          isActive={isActivePath(STAFF_DOCTOR_SCRIPTS_HREF)}
+          isActive={isDashboard && dashboardStatus === "scripts"}
         >
           Scripts
         </AnimatedNavLink>

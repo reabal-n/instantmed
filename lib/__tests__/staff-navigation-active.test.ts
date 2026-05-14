@@ -133,8 +133,8 @@ describe("staff navigation active matching", () => {
     ])).toBe(true)
     expect(hasStatusFilteredDashboardItems([
       "/dashboard",
-      "/doctor/scripts",
-    ])).toBe(false)
+      "/dashboard?status=scripts#doctor-queue",
+    ])).toBe(true)
   })
 
   it("keeps each rendered staff sidebar to one active item", () => {
@@ -149,8 +149,9 @@ describe("staff navigation active matching", () => {
       { sections: operatorNavSections, pathname: "/dashboard", status: "scripts", expected: ["Scripts"] },
       { sections: operatorNavSections, pathname: "/doctor/patients/123", status: null, expected: ["Patients"] },
       { sections: operatorNavSections, pathname: "/admin/ops/parchment", status: null, expected: ["Ops"] },
+      { sections: doctorNavSections, pathname: "/dashboard", status: null, expected: ["Queue"] },
       { sections: doctorNavSections, pathname: "/dashboard", status: "review", expected: ["Queue"] },
-      { sections: doctorNavSections, pathname: "/doctor/scripts", status: null, expected: ["Scripts"] },
+      { sections: doctorNavSections, pathname: "/dashboard", status: "scripts", expected: ["Scripts"] },
       { sections: supportNavSections, pathname: "/admin/ops/parchment", status: null, expected: ["Operations"] },
     ]
 

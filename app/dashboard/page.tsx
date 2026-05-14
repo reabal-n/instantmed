@@ -63,8 +63,7 @@ export const dynamic = "force-dynamic"
  *   - Owner-operator setup/readiness cards when admin setup needs attention.
  *   - Queue list (the same `QueueClient` as before).
  *
- * Support role gets redirected to STAFF_OPS_HREF (no clinical surface yet).
- * Future Phase 7 builds a dedicated support cockpit here.
+ * Support role gets redirected to STAFF_OPS_HREF.
  */
 export default async function StaffDashboardPage({
   searchParams,
@@ -99,12 +98,12 @@ export default async function StaffDashboardPage({
 
   const results = await Promise.allSettled([
     getDoctorQueue({ page, pageSize, doctorId: profile.id, allowSeeded: showTestData }),
-    getAIApprovedIntakes({ limit: 20 }),
-    getRecentlyCompletedIntakes({ limit: 8 }),
+    isAdmin ? getAIApprovedIntakes({ limit: 20 }) : Promise.resolve([]),
+    isAdmin ? getRecentlyCompletedIntakes({ limit: 8 }) : Promise.resolve([]),
     getDoctorIdentity(profile.id),
-    getTodayEarnings(),
+    isAdmin ? getTodayEarnings() : Promise.resolve(0),
     import("@/app/actions/doctor-availability").then((m) => m.getDoctorAvailabilityAction()),
-    getSystemHealth(),
+    isAdmin ? getSystemHealth() : Promise.resolve(EMPTY_SYSTEM_HEALTH),
     isAdmin ? getStaffReadinessSnapshot() : Promise.resolve(null),
   ])
 
@@ -147,7 +146,7 @@ export default async function StaffDashboardPage({
           actions={(
             <div className="flex flex-wrap items-center justify-end gap-2">
               {isAdmin && <TestDataToggleButton active={showTestData} />}
-              <SystemHealthPill initial={systemHealth} />
+              {isAdmin && <SystemHealthPill initial={systemHealth} />}
               <DoctorAvailabilityToggle initialAvailable={doctorAvailable} compact />
             </div>
           )}

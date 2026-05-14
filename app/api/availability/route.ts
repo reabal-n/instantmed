@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { getFeatureFlags } from "@/lib/feature-flags"
+import { getFeatureFlags, resolveMaintenanceMode } from "@/lib/feature-flags"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 export const revalidate = 30
@@ -21,8 +21,9 @@ export async function GET(request: NextRequest) {
 
   try {
     const flags = await getFeatureFlags()
+    const maintenance = resolveMaintenanceMode(flags)
     return NextResponse.json({
-      maintenance_mode: flags.maintenance_mode,
+      maintenance_mode: maintenance.enabled,
       disable_med_cert: flags.disable_med_cert,
       disable_repeat_scripts: flags.disable_repeat_scripts,
       disable_consults: flags.disable_consults,

@@ -172,7 +172,7 @@ describe("email sequence ownership contract", () => {
     expect(existsSync(join(process.cwd(), "lib/email/components/templates/treatment-followup.tsx"))).toBe(false)
     expect(schedules.has("/api/cron/treatment-followup")).toBe(false)
     expect(sequence?.status).toBe("inactive")
-    expect(sequence?.guard).toBe("No cron/template; old follow-up links remain compatibility-only")
+    expect(sequence?.guard).toBe("No cron/template/patient route; history remains staff-only")
     expect(sendTypesSource).not.toContain("treatment_followup")
     expect(dispatcherSource).not.toContain("treatment_followup")
     expect(templateIndexSource).not.toContain("TreatmentFollowup")

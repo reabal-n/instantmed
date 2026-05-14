@@ -10,7 +10,6 @@ import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import {
   type AuditLogFilters,
   getAuditLogs,
-  getAuditLogStats,
 } from "@/lib/data/audit-logs"
 import {
   createEmailTemplate,
@@ -126,11 +125,6 @@ export async function getAuditLogsAction(
 ) {
   await requireAdmin()
   return getAuditLogs(filters, page, pageSize)
-}
-
-export async function getAuditLogStatsAction() {
-  await requireAdmin()
-  return getAuditLogStats()
 }
 
 export async function getFeatureFlagAuditLogsAction() {

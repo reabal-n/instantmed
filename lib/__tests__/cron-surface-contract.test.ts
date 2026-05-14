@@ -54,6 +54,7 @@ describe("cron surface contract", () => {
       "/api/cron/decline-reengagement",
       "/api/cron/email-digest",
       "/api/cron/follow-up-reminder",
+      "/api/cron/scheduled-maintenance",
       "/api/cron/subscription-nudge",
       "/api/cron/treatment-followup",
     ]
@@ -62,5 +63,17 @@ describe("cron surface contract", () => {
       expect(scheduledPaths.has(path), path).toBe(false)
       expect(orphanCheck, path).toContain(`app${path}/route.ts`)
     }
+  })
+
+  it("keeps health-check as a heartbeat watchdog rather than a duplicate alert surface", () => {
+    const healthCheckSource = read("app/api/cron/health-check/route.ts")
+    const heartbeatSource = read("lib/monitoring/cron-heartbeat.ts")
+
+    expect(healthCheckSource).toContain("checkCronHeartbeats")
+    expect(healthCheckSource).not.toContain("checkQueueHealthAndAlert")
+    expect(healthCheckSource).not.toContain("checkDoctorActivityAndAlert")
+    expect(healthCheckSource).not.toContain("checkDeliveryHealthAndAlert")
+    expect(healthCheckSource).not.toContain("getAIHealthMetrics")
+    expect(heartbeatSource).not.toContain('"health-check":')
   })
 })

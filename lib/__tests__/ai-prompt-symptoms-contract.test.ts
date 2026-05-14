@@ -17,41 +17,29 @@ describe("AI prompt symptom-field contract", () => {
   // already fixed separately (commit 842ff93d1). This contract pins
   // the prompt-side fix.
 
-  it("med-cert-draft prompt reads the textarea + duration, not only the legacy array", () => {
-    const source = read("app/api/ai/med-cert-draft/route.ts")
+  it("active draft prompt builder reads the textarea + duration, not only the legacy array", () => {
+    const source = read("app/actions/drafts/shared.ts")
 
-    // New behavior: both shapes are supported.
     expect(source).toContain("symptomDetails")
     expect(source).toContain("symptom_details")
     expect(source).toContain("symptoms_description")
     expect(source).toContain("symptomDuration")
     expect(source).toContain("symptom_duration")
 
-    // The dead "only-the-array" check is gone.
     expect(source).not.toMatch(
       /if \(answers\.symptoms && answers\.symptoms\.length > 0\)/,
     )
 
-    // Duration is included in the prompt now (the textarea alone has
-    // no timing signal; the chip's value is what tells the AI whether
-    // the patient is in day 1 vs week 2).
-    expect(source).toContain("Duration of Symptoms:")
+    expect(source).toContain("Symptom Duration:")
   })
 
-  it("clinical-note prompt reads the textarea + duration, not only the legacy array", () => {
-    const source = read("app/api/ai/clinical-note/route.ts")
+  it("retired duplicate AI API endpoints stay deleted", () => {
+    const retirementGuard = read("scripts/check-orphaned-files.sh")
 
-    expect(source).toContain("symptomDetails")
-    expect(source).toContain("symptom_details")
-    expect(source).toContain("symptoms_description")
-    expect(source).toContain("symptomDuration")
-    expect(source).toContain("symptom_duration")
-
-    expect(source).not.toMatch(
-      /if \(answers\.symptoms && answers\.symptoms\.length > 0\)/,
-    )
-
-    expect(source).toContain("Duration of Symptoms:")
+    expect(retirementGuard).toContain("app/api/ai/clinical-note/route.ts")
+    expect(retirementGuard).toContain("app/api/ai/med-cert-draft/route.ts")
+    expect(retirementGuard).toContain("app/api/ai/form-validation/route.ts")
+    expect(retirementGuard).toContain("app/api/ai/symptom-suggestions/route.ts")
   })
 
   it("draft-shared prompt builder falls back to the textarea when the array is absent", () => {

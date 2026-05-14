@@ -21,9 +21,12 @@ describe("navigation routing contracts", () => {
 
   it("does not link the doctor user menu to the missing /doctor/intakes index", () => {
     const userMenu = readFileSync(path.join(root, "components/shared/navbar/user-menu.tsx"), "utf8")
+    const nextConfig = readFileSync(path.join(root, "next.config.mjs"), "utf8")
 
     expect(existsSync(path.join(root, "app/doctor/intakes/page.tsx"))).toBe(false)
-    expect(existsSync(path.join(root, "app/doctor/scripts/page.tsx"))).toBe(true)
+    expect(existsSync(path.join(root, "app/doctor/scripts/page.tsx"))).toBe(false)
+    expect(nextConfig).toContain('source: "/doctor/scripts"')
+    expect(nextConfig).toContain('destination: "/dashboard?status=scripts#doctor-queue"')
     expect(userMenu).not.toContain("href=\"/doctor/intakes\"")
     expect(userMenu).toContain("STAFF_DOCTOR_SCRIPTS_HREF")
   })

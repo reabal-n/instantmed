@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { beforeEach, describe, expect, it, vi } from "vitest"
@@ -92,5 +92,12 @@ describe("operational control capacity checks", () => {
     expect(source).not.toContain("export async function getOperationalConfig")
     expect(source).not.toContain("export async function getTodayIntakeCount")
     expect(source).not.toContain("export function isScheduledMaintenance")
+  })
+
+  it("keeps the retired legacy operational config module deleted", () => {
+    expect(existsSync(join(process.cwd(), "lib/config/operational-config.ts"))).toBe(false)
+    expect(readFileSync(join(process.cwd(), "scripts/check-orphaned-files.sh"), "utf8")).toContain(
+      "lib/config/operational-config.ts",
+    )
   })
 })

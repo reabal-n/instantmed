@@ -206,19 +206,26 @@ export async function refreshFeatureFlags(): Promise<FeatureFlags> {
 }
 
 /**
- * Check if the platform is in maintenance mode (manual or scheduled)
+ * Resolve manual or scheduled maintenance from an already-loaded flag set.
  */
-export async function isMaintenanceMode(): Promise<{ enabled: boolean; message: string }> {
-  const flags = await getFeatureFlags()
+export function resolveMaintenanceMode(flags: FeatureFlags): { enabled: boolean; message: string } {
   const scheduled =
     flags.maintenance_scheduled_start &&
     flags.maintenance_scheduled_end &&
     new Date().getTime() >= new Date(flags.maintenance_scheduled_start).getTime() &&
     new Date().getTime() <= new Date(flags.maintenance_scheduled_end).getTime()
+
   return {
     enabled: flags.maintenance_mode || !!scheduled,
     message: flags.maintenance_message || DEFAULT_FLAGS.maintenance_message,
   }
+}
+
+/**
+ * Check if the platform is in maintenance mode (manual or scheduled)
+ */
+export async function isMaintenanceMode(): Promise<{ enabled: boolean; message: string }> {
+  return resolveMaintenanceMode(await getFeatureFlags())
 }
 
 /**

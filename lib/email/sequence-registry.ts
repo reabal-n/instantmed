@@ -63,7 +63,7 @@ export const EMAIL_SEQUENCES: readonly EmailSequenceDefinition[] = [
     owner: "Retired automated follow-up tracker",
     trigger: "None",
     cadence: "Removed",
-    guard: "No cron/template; old follow-up links remain compatibility-only",
+    guard: "No cron/template/patient route; history remains staff-only",
   },
   {
     id: "repeat_rx_reminder",

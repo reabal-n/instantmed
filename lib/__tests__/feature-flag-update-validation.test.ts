@@ -18,7 +18,7 @@ vi.mock("@/lib/security/audit-log", () => ({
   logAuditEvent: vi.fn(),
 }))
 
-import { updateFeatureFlag } from "@/lib/feature-flags"
+import { DEFAULT_FLAGS, resolveMaintenanceMode, updateFeatureFlag } from "@/lib/feature-flags"
 
 describe("feature flag update validation", () => {
   beforeEach(() => {
@@ -51,5 +51,18 @@ describe("feature flag update validation", () => {
 
     expect(result).toEqual({ success: false, error: "Unknown feature flag" })
     expect(mocks.createClient).not.toHaveBeenCalled()
+  })
+
+  it("computes scheduled maintenance without needing a background cron to flip the manual flag", () => {
+    const now = Date.now()
+    const maintenance = resolveMaintenanceMode({
+      ...DEFAULT_FLAGS,
+      maintenance_mode: false,
+      maintenance_scheduled_start: new Date(now - 60_000).toISOString(),
+      maintenance_scheduled_end: new Date(now + 60_000).toISOString(),
+      maintenance_message: "Back soon",
+    })
+
+    expect(maintenance).toEqual({ enabled: true, message: "Back soon" })
   })
 })

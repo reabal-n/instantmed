@@ -23,10 +23,28 @@ describe("patient navigation lean contract", () => {
     }
   })
 
-  it("keeps the health summary route available as a deep-linked record view", () => {
-    const page = readProjectFile("app/patient/health-summary/page.tsx")
+  it("keeps the retired health summary route redirect-only", () => {
+    const nextConfig = readProjectFile("next.config.mjs")
+    const orphanCheck = readProjectFile("scripts/check-orphaned-files.sh")
 
-    expect(page).toContain("getPatientHealthSummary")
-    expect(page).toContain("HealthSummaryClient")
+    expect(nextConfig).toContain('source: "/patient/health-summary"')
+    expect(nextConfig).toContain('destination: "/patient"')
+    expect(orphanCheck).toContain("app/patient/health-summary/page.tsx")
+    expect(orphanCheck).toContain("lib/data/health-summary.ts")
+  })
+
+  it("sends new patient requests to the canonical request selector", () => {
+    const leftRail = readProjectFile("components/shell/left-rail.tsx")
+    const layout = readProjectFile("app/patient/layout.tsx")
+    const nextConfig = readProjectFile("next.config.mjs")
+    const orphanCheck = readProjectFile("scripts/check-orphaned-files.sh")
+
+    expect(leftRail).toContain("REQUEST_HREF")
+    expect(leftRail).not.toContain("PATIENT_NEW_REQUEST_HREF")
+    expect(layout).not.toContain("modal")
+    expect(nextConfig).toContain('source: "/patient/new-request"')
+    expect(nextConfig).toContain('destination: "/request"')
+    expect(orphanCheck).toContain("app/patient/@modal/new-request/page.tsx")
+    expect(orphanCheck).toContain("app/patient/default.tsx")
   })
 })

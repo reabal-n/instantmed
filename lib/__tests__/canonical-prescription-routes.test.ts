@@ -8,13 +8,16 @@ const root = process.cwd()
 describe("legacy prescription routes", () => {
   it("routes repeat prescription entry points to the canonical request flow", () => {
     const nextConfig = readFileSync(path.join(root, "next.config.mjs"), "utf8")
-    const subtypePage = readFileSync(path.join(root, "app/prescriptions/[subtype]/page.tsx"), "utf8")
 
     expect(existsSync(path.join(root, "app/prescriptions/repeat/page.tsx"))).toBe(false)
+    expect(existsSync(path.join(root, "app/prescriptions/[subtype]/page.tsx"))).toBe(false)
     expect(nextConfig).toContain('source: "/prescriptions/repeat"')
+    expect(nextConfig).toContain('source: "/prescriptions/repeat-script"')
+    expect(nextConfig).toContain('source: "/prescriptions/chronic"')
     expect(nextConfig).toContain('destination: "/request?service=repeat-script"')
-    expect(subtypePage).toContain("repeat: \"repeat-script\"")
-    expect(subtypePage).not.toContain("repeat: \"prescription\"")
+    expect(nextConfig).toContain('source: "/prescriptions/new-medication"')
+    expect(nextConfig).toContain('destination: "/request?service=consult"')
+    expect(nextConfig).toContain('source: "/prescriptions/:subtype"')
   })
 
   it("retires the legacy repeat_rx_requests API and doctor review stack", () => {

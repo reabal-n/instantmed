@@ -22,7 +22,6 @@ import {
   buildDoctorDocumentBuilderHref,
   buildDoctorIntakeHref,
   buildDoctorQueueRedirectHref,
-  buildPatientFollowupHref,
   buildPatientIntakeHref,
   buildPatientIntakeSuccessHref,
   buildPatientMessagesHref,
@@ -34,12 +33,10 @@ import {
   parseQueueStatusFilter,
   PATIENT_DASHBOARD_HREF,
   PATIENT_DOCUMENTS_HREF,
-  PATIENT_FOLLOWUPS_HREF,
   PATIENT_HEALTH_PROFILE_HREF,
   PATIENT_INTAKE_SUCCESS_HREF,
   PATIENT_INTAKES_HREF,
   PATIENT_MESSAGES_HREF,
-  PATIENT_NEW_REQUEST_HREF,
   PATIENT_ONBOARDING_HREF,
   PATIENT_PAYMENT_HISTORY_HREF,
   PATIENT_PRESCRIPTIONS_HREF,
@@ -55,6 +52,7 @@ import {
   STAFF_LEDGER_HREF,
   STAFF_PATIENTS_HREF,
   STAFF_QUEUE_HREF,
+  STAFF_SCRIPTS_HREF,
 } from "@/lib/dashboard/routes"
 
 const root = process.cwd()
@@ -91,9 +89,7 @@ describe("dashboard route contracts", () => {
     expect(PATIENT_PRESCRIPTIONS_HREF).toBe("/patient/prescriptions")
     expect(PATIENT_DOCUMENTS_HREF).toBe("/patient/documents")
     expect(PATIENT_MESSAGES_HREF).toBe("/patient/messages")
-    expect(PATIENT_NEW_REQUEST_HREF).toBe("/patient/new-request")
     expect(PATIENT_PAYMENT_HISTORY_HREF).toBe("/patient/payment-history")
-    expect(PATIENT_FOLLOWUPS_HREF).toBe("/patient/followups")
     expect(PATIENT_SETTINGS_HREF).toBe("/patient/settings")
     expect(PATIENT_HEALTH_PROFILE_HREF).toBe("/patient/health-profile")
     expect(PATIENT_ONBOARDING_HREF).toBe("/patient/onboarding")
@@ -102,7 +98,6 @@ describe("dashboard route contracts", () => {
       "/patient/intakes/success?intake_id=intake+123&payment_retry=1",
     )
     expect(buildPatientMessagesHref({ intakeId: "intake 123" })).toBe("/patient/messages?intakeId=intake+123")
-    expect(buildPatientFollowupHref("followup 123")).toBe("/patient/followups/followup%20123")
     expect(buildPatientSettingsHref({ tab: "preferences", anchor: "account-security" })).toBe(
       "/patient/settings?tab=preferences#account-security",
     )
@@ -110,6 +105,7 @@ describe("dashboard route contracts", () => {
 
   it("uses the staff dashboard for doctor queue deep links", () => {
     expect(STAFF_QUEUE_HREF).toBe("/dashboard?status=review#doctor-queue")
+    expect(STAFF_SCRIPTS_HREF).toBe("/dashboard?status=scripts#doctor-queue")
   })
 
   it("protects the canonical staff dashboard at the middleware boundary", () => {
@@ -150,7 +146,7 @@ describe("dashboard route contracts", () => {
     expect(ADMIN_PATIENT_MERGE_AUDIT_HREF).toBe("/admin/ops/patient-merge-audit")
     expect(ADMIN_PRESCRIBING_IDENTITY_HREF).toBe("/admin/ops/prescribing-identity")
     expect(STAFF_DOCTOR_PATIENTS_HREF).toBe("/doctor/patients")
-    expect(STAFF_DOCTOR_SCRIPTS_HREF).toBe("/doctor/scripts")
+    expect(STAFF_DOCTOR_SCRIPTS_HREF).toBe(STAFF_SCRIPTS_HREF)
     expect(STAFF_DOCTOR_SETTINGS_HREF).toBe("/doctor/settings")
     expect(STAFF_IDENTITY_HREF).toBe("/doctor/settings/identity")
   })
@@ -207,14 +203,14 @@ describe("dashboard route contracts", () => {
     expect(source).toContain("buildDoctorIntakeHref")
     expect(source).toContain("buildStaffPatientHref")
     expect(source).toContain("buildPatientIntakeHref")
-    expect(source).toContain("buildPatientFollowupHref")
+    expect(source).not.toContain("buildPatientFollowupHref")
+    expect(source).not.toContain("followupId")
     expect(source).not.toContain("revalidatePath(`/admin/intakes/${id}`)")
     expect(source).not.toContain("revalidatePath(`/doctor/intakes/${id}`)")
     expect(source).not.toContain("revalidatePath(`/admin/patients/${id}`)")
     expect(source).not.toContain("revalidatePath(`/doctor/patients/${id}`)")
     expect(source).not.toContain('revalidatePath("/patient")')
     expect(source).not.toContain("revalidatePath(`/patient/intakes/${options.intakeId}`)")
-    expect(source).not.toContain("revalidatePath(`/patient/followups/${options.followupId}`)")
   })
 
   it("keeps patient notification action URLs on route helpers", () => {

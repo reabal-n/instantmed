@@ -155,10 +155,16 @@ export function requiredCapabilityForService(
 ): DoctorCapability | null {
   if (!serviceType) return null
   if (serviceType === "med_certs") return "review_med_certs"
-  if (serviceType === "common_scripts" || serviceType === "repeat_script" || serviceType === "prescription") {
+  if (
+    serviceType === "common_scripts" ||
+    serviceType === "repeat_rx" ||
+    serviceType === "repeat_script" ||
+    serviceType === "repeat-script" ||
+    serviceType === "prescription"
+  ) {
     return "review_repeat_rx"
   }
-  if (serviceType === "consult") {
+  if (serviceType === "consult" || serviceType === "consults") {
     if (subtype === "ed") return "review_ed"
     if (subtype === "hair_loss") return "review_hair_loss"
     return "review_consults"

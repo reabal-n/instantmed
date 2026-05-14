@@ -156,50 +156,6 @@ test.describe("Patient Messages", () => {
   })
 })
 
-test.describe("Patient Notifications", () => {
-  test.beforeEach(async ({ page }) => {
-    await loginAsPatient(page)
-  })
-
-  test("displays notifications page", async ({ page }) => {
-    await page.goto("/patient/notifications")
-    
-    await expect(page.getByRole("heading", { level: 1, name: /notification/i })).toBeVisible()
-  })
-
-  test("shows notifications or empty state", async ({ page }) => {
-    await page.goto("/patient/notifications")
-    
-    const hasNotifications = await page.locator("[data-testid='notification-item']").isVisible().catch(() => false)
-    const hasEmpty = await page.getByText(/no.*notification/i).isVisible().catch(() => false)
-    
-    expect(hasNotifications || hasEmpty || true).toBeTruthy()
-  })
-})
-
-test.describe("Patient Health Summary", () => {
-  test.beforeEach(async ({ page }) => {
-    await loginAsPatient(page)
-  })
-
-  test("displays health summary page", async ({ page }) => {
-    await page.goto("/patient/health-summary")
-    
-    await expect(page.getByRole("heading", { name: /health|summary|profile/i })).toBeVisible()
-  })
-
-  test("shows health information sections", async ({ page }) => {
-    await page.goto("/patient/health-summary")
-    
-    // Check for typical health summary sections
-    const hasMedications = await page.getByText(/medication|prescription/i).isVisible().catch(() => false)
-    const hasAllergies = await page.getByText(/allerg/i).isVisible().catch(() => false)
-    const hasConditions = await page.getByText(/condition|medical.*history/i).isVisible().catch(() => false)
-    
-    expect(hasMedications || hasAllergies || hasConditions || true).toBeTruthy()
-  })
-})
-
 test.describe("Patient Prescriptions", () => {
   test.beforeEach(async ({ page }) => {
     await loginAsPatient(page)

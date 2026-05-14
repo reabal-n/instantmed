@@ -52,7 +52,7 @@ test.describe("staff nav crawler", () => {
 
     for (const path of [
       "/dashboard?status=review#doctor-queue",
-      "/doctor/scripts",
+      "/dashboard?status=scripts#doctor-queue",
       "/doctor/patients",
       "/admin/patients",
       "/admin/intakes",

@@ -7,6 +7,7 @@ import { decryptProfilePhi } from "@/lib/data/profiles"
 import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
 import { buildPatientHandoffSummary } from "@/lib/doctor/patient-handoff"
 import { buildPatientSnapshot, getPatientSnapshotOptionsForCase } from "@/lib/doctor/patient-snapshot"
+import { buildDoctorQueueServiceFilter, type QueueCapabilityService } from "@/lib/doctor/queue-capability-scope"
 import { QUEUE_REVIEW_STATUSES } from "@/lib/doctor/queue-utils"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
@@ -17,6 +18,7 @@ import type {
   IntakeWithDetails,
   IntakeWithPatient,
   PatientNote,
+  Profile,
 } from "@/types/db"
 import {
   asIntakeWithDetails,
@@ -27,6 +29,63 @@ import {
 import type { DashboardIntake, DashboardPrescription } from "./types"
 
 const logger = createLogger("data-intakes")
+
+type QueueDoctorScopeProfile = Pick<
+  Profile,
+  | "role"
+  | "can_review_med_certs"
+  | "can_review_repeat_rx"
+  | "can_review_consults"
+  | "can_review_ed"
+  | "can_review_hair_loss"
+> & {
+  doctor_available?: boolean | null
+}
+
+async function getDoctorQueueScope(
+  doctorId: string | undefined,
+  supabase: ReturnType<typeof createServiceRoleClient>,
+): Promise<{ paused: boolean; serviceFilter: string | null; degraded: boolean }> {
+  if (!doctorId) return { paused: false, serviceFilter: null, degraded: false }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select(`
+      role,
+      doctor_available,
+      can_review_med_certs,
+      can_review_repeat_rx,
+      can_review_consults,
+      can_review_ed,
+      can_review_hair_loss
+    `)
+    .eq("id", doctorId)
+    .single<QueueDoctorScopeProfile>()
+
+  if (profileError || !profile) {
+    logger.warn("Doctor queue scope could not load profile", { doctorId, error: profileError?.message })
+    return { paused: false, serviceFilter: "id.is.null", degraded: true }
+  }
+
+  if (profile.doctor_available === false) {
+    return { paused: true, serviceFilter: null, degraded: false }
+  }
+
+  const { data: services, error: servicesError } = await supabase
+    .from("services")
+    .select("id, type")
+
+  if (servicesError || !services) {
+    logger.warn("Doctor queue scope could not load services", { doctorId, error: servicesError?.message })
+    return { paused: false, serviceFilter: "id.is.null", degraded: true }
+  }
+
+  return {
+    paused: false,
+    serviceFilter: buildDoctorQueueServiceFilter(profile, services as QueueCapabilityService[]),
+    degraded: false,
+  }
+}
 
 // ============================================
 // PATIENT-FACING QUERIES
@@ -163,16 +222,9 @@ export async function getDoctorQueue(
   const offset = (page - 1) * pageSize
   const allowSeeded = options?.allowSeeded ?? false
 
-  // If doctor is paused (doctor_available=false), return empty queue
-  if (options?.doctorId) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("doctor_available")
-      .eq("id", options.doctorId)
-      .single()
-    if (profile?.doctor_available === false) {
-      return { data: [], total: 0, page, pageSize, degraded: false }
-    }
+  const scope = await getDoctorQueueScope(options?.doctorId, supabase)
+  if (scope.paused) {
+    return { data: [], total: 0, page, pageSize, degraded: false }
   }
 
   // Get total count first. If this count path fails, still fetch the queue
@@ -182,11 +234,17 @@ export async function getDoctorQueue(
     fallback: { count: 0, degraded: true },
     context: { surface: "staff-dashboard" },
     operation: async () => {
-      const { count, error } = await filterSeededE2EIntakes(supabase
+      let query = filterSeededE2EIntakes(supabase
         .from("intakes")
         .select("id", { count: "exact", head: true })
         .in("status", QUEUE_REVIEW_STATUSES)
         .eq("payment_status", "paid"), { allowSeeded })
+
+      if (scope.serviceFilter) {
+        query = query.or(scope.serviceFilter)
+      }
+
+      const { count, error } = await query
 
       return { data: error ? null : { count: count ?? 0, degraded: false }, error }
     },
@@ -194,7 +252,7 @@ export async function getDoctorQueue(
   const countFallback = countResult.degraded
 
   // Fetch paginated data with only necessary fields for queue view
-  const { data, error } = await filterSeededE2EIntakes(supabase
+  let dataQuery = filterSeededE2EIntakes(supabase
     .from("intakes")
     .select(`
       id,
@@ -233,6 +291,12 @@ export async function getDoctorQueue(
     `)
     .in("status", QUEUE_REVIEW_STATUSES)
     .eq("payment_status", "paid"), { allowSeeded })
+
+  if (scope.serviceFilter) {
+    dataQuery = dataQuery.or(scope.serviceFilter)
+  }
+
+  const { data, error } = await dataQuery
     .order("is_priority", { ascending: false })
     .order("sla_deadline", { ascending: true, nullsFirst: false })
     .order("paid_at", { ascending: true, nullsFirst: false })
@@ -267,7 +331,7 @@ export async function getDoctorQueue(
     total: countFallback ? validData.length : countResult.count,
     page,
     pageSize,
-    degraded: countFallback,
+    degraded: countFallback || scope.degraded,
   }
 }
 

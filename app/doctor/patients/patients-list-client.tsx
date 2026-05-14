@@ -17,7 +17,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import { DashboardPageHeader } from "@/components/dashboard"
 import { Badge } from "@/components/ui/badge"
@@ -32,6 +32,7 @@ import type { PatientDirectoryProfile, PatientDirectorySort } from "@/lib/data/p
 import { findPotentialDuplicatePatients } from "@/lib/doctor/patient-snapshot"
 import { calculateAge, formatDate } from "@/lib/format"
 import { formatIntakeStatus } from "@/lib/format/intake"
+import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing-identity"
 import { cn } from "@/lib/utils"
 
 import { AddPatientDialog } from "./add-patient-dialog"
@@ -41,9 +42,9 @@ interface PatientsListClientProps {
   currentPage: number
   totalPages: number
   totalPatients: number
-  rawPatientProfiles: number
   collapsedDuplicateProfiles: number
   currentSort?: PatientDirectorySort
+  initialSearchQuery?: string
   baseHref?: string
   patientHrefBase?: string
   mergeAuditHref?: string
@@ -56,6 +57,38 @@ interface PatientsListClientProps {
 type ProfileFilter = "all" | "complete" | "incomplete" | "duplicates"
 type ServiceFilter = "all" | "medical_certificate" | "repeat_script" | "consult" | "ed" | "hair_loss" | "no_request"
 type SyncFilter = "all" | "synced" | "not_synced"
+
+const CLOSED_REQUEST_STATUSES = new Set(["completed", "declined", "cancelled", "expired"])
+
+function normalizeDirectorySearchQuery(value: string): string {
+  return value.replace(/\s+/g, " ").trim()
+}
+
+function buildPatientDirectoryHref(
+  baseHref: string,
+  page: number,
+  sort: PatientDirectorySort,
+  searchQuery: string,
+): string {
+  const params = new URLSearchParams()
+  const normalizedSearch = normalizeDirectorySearchQuery(searchQuery)
+  if (page > 1) params.set("page", String(page))
+  if (sort !== "recent_request") params.set("sort", sort)
+  if (normalizedSearch) params.set("q", normalizedSearch)
+  const query = params.toString()
+  return query ? `${baseHref}?${query}` : baseHref
+}
+
+function hasActivePrescribingRequest(patient: PatientDirectoryProfile): boolean {
+  const request = patient.lastRequest
+  if (!request || CLOSED_REQUEST_STATUSES.has(request.status)) return false
+
+  return requiresPrescribingIdentityForRequest({
+    category: request.category,
+    serviceType: request.serviceType,
+    subtype: request.subtype,
+  })
+}
 
 function getPatientServiceFilter(patient: PatientDirectoryProfile): ServiceFilter {
   const request = patient.lastRequest
@@ -87,9 +120,9 @@ export function PatientsListClient({
   currentPage,
   totalPages,
   totalPatients,
-  rawPatientProfiles,
   collapsedDuplicateProfiles,
   currentSort = "recent_request",
+  initialSearchQuery = "",
   baseHref = STAFF_DOCTOR_PATIENTS_HREF,
   patientHrefBase = STAFF_DOCTOR_PATIENTS_HREF,
   mergeAuditHref,
@@ -99,42 +132,61 @@ export function PatientsListClient({
   description = "View and manage all registered patients",
 }: PatientsListClientProps) {
   const router = useRouter()
-  const [searchQuery, setSearchQuery] = useState("")
+  const initialSearch = normalizeDirectorySearchQuery(initialSearchQuery)
+  const [searchQuery, setSearchQuery] = useState(initialSearch)
   const [stateFilter, setStateFilter] = useState<string>("all")
   const [profileFilter, setProfileFilter] = useState<ProfileFilter>("all")
   const [serviceFilter, setServiceFilter] = useState<ServiceFilter>("all")
   const [syncFilter, setSyncFilter] = useState<SyncFilter>("all")
 
   const buildDirectoryHref = (page: number, sort: PatientDirectorySort = currentSort) => {
-    const params = new URLSearchParams()
-    if (page > 1) params.set("page", String(page))
-    if (sort !== "recent_request") params.set("sort", sort)
-    const query = params.toString()
-    return query ? `${baseHref}?${query}` : baseHref
+    return buildPatientDirectoryHref(baseHref, page, sort, searchQuery)
   }
 
+  useEffect(() => {
+    setSearchQuery(initialSearch)
+  }, [initialSearch])
+
+  useEffect(() => {
+    const normalizedSearch = normalizeDirectorySearchQuery(searchQuery)
+    if (normalizedSearch === initialSearch) return
+
+    const handle = window.setTimeout(() => {
+      router.replace(buildPatientDirectoryHref(baseHref, 1, currentSort, normalizedSearch), { scroll: false })
+    }, 350)
+
+    return () => window.clearTimeout(handle)
+  }, [baseHref, currentSort, initialSearch, router, searchQuery])
+
   const visibleBasePatients = useMemo(() => {
+    const normalizedSearch = normalizeDirectorySearchQuery(searchQuery).toLowerCase()
+    const phoneSearch = normalizedSearch.replace(/\D/g, "")
+
     return patients.filter((patient) => {
       const matchesSearch =
-        patient.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        patient.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        patient.suburb?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        patient.phone?.includes(searchQuery)
+        !normalizedSearch ||
+        patient.full_name.toLowerCase().includes(normalizedSearch) ||
+        patient.email?.toLowerCase().includes(normalizedSearch) ||
+        patient.suburb?.toLowerCase().includes(normalizedSearch) ||
+        (phoneSearch.length >= 3 && patient.phone?.replace(/\D/g, "").includes(phoneSearch))
 
       const matchesState = stateFilter === "all" || patient.state === stateFilter
       const matchesService = serviceFilter === "all" || getPatientServiceFilter(patient) === serviceFilter
       const matchesSync = syncFilter === "all"
-        || (syncFilter === "synced" ? Boolean(patient.parchment_patient_id) : !patient.parchment_patient_id)
+        || (syncFilter === "synced"
+          ? Boolean(patient.parchment_patient_id)
+          : hasActivePrescribingRequest(patient) && !patient.parchment_patient_id)
 
       return matchesSearch && matchesState && matchesService && matchesSync
     })
   }, [patients, searchQuery, stateFilter, serviceFilter, syncFilter])
 
   const states = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
-  const parchmentSyncedPatients = patients.filter((p) => p.parchment_patient_id).length
-  const onboardedPatients = patients.filter((p) => p.onboarding_completed).length
-  const incompletePatients = patients.length - onboardedPatients
-  const notSyncedOnPage = patients.length - parchmentSyncedPatients
+  const activePrescribingPatients = patients.filter(hasActivePrescribingRequest)
+  const activePrescribingCount = activePrescribingPatients.length
+  const activeNeedsDetails = activePrescribingPatients.filter((p) => !p.onboarding_completed).length
+  const activeSyncedPatients = activePrescribingPatients.filter((p) => p.parchment_patient_id).length
+  const activeNotSynced = activePrescribingCount - activeSyncedPatients
   const duplicateGroups = useMemo(() => findPotentialDuplicatePatients(visibleBasePatients), [visibleBasePatients])
   const duplicatePatientIds = useMemo(() => {
     const ids = new Set<string>()
@@ -144,7 +196,7 @@ export function PatientsListClient({
   const filteredPatients = useMemo(() => {
     return visibleBasePatients.filter((patient) => {
       if (profileFilter === "complete") return patient.onboarding_completed
-      if (profileFilter === "incomplete") return !patient.onboarding_completed
+      if (profileFilter === "incomplete") return hasActivePrescribingRequest(patient) && !patient.onboarding_completed
       if (profileFilter === "duplicates") return duplicatePatientIds.has(patient.id)
       return true
     })
@@ -158,28 +210,28 @@ export function PatientsListClient({
     {
       label: "Patients",
       value: totalPatients,
-      detail: collapsedDuplicateProfiles > 0 ? `${rawPatientProfiles} raw profiles` : `${patients.length} on this page`,
+      detail: collapsedDuplicateProfiles > 0 ? `${patients.length} shown after merge view` : `${patients.length} on this page`,
       icon: Users,
       tone: "text-primary",
     },
     {
-      label: "Onboarded",
-      value: onboardedPatients,
-      detail: "Ready for clinical workflow",
+      label: "Prescribing",
+      value: activePrescribingCount,
+      detail: "Needs prescribing identity",
       icon: CheckCircle,
       tone: "text-success",
     },
     {
-      label: "Incomplete",
-      value: incompletePatients,
-      detail: "Needs patient details",
+      label: "Needs details",
+      value: activeNeedsDetails,
+      detail: activeNeedsDetails > 0 ? "Blocks active prescribing" : "No active blocker",
       icon: XCircle,
       tone: "text-warning",
     },
     {
       label: "Parchment sync",
-      value: parchmentSyncedPatients,
-      detail: notSyncedOnPage > 0 ? `${notSyncedOnPage} not synced on this page` : "All visible patients synced",
+      value: activeSyncedPatients,
+      detail: activeNotSynced > 0 ? `${activeNotSynced} active not synced` : "No active sync blocker",
       icon: Pill,
       tone: "text-success",
     },
@@ -269,7 +321,7 @@ export function PatientsListClient({
                 <SelectContent>
                   <SelectItem value="all">Any sync</SelectItem>
                   <SelectItem value="synced">Synced</SelectItem>
-                  <SelectItem value="not_synced">Not synced</SelectItem>
+                  <SelectItem value="not_synced">Sync needed</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -289,9 +341,9 @@ export function PatientsListClient({
           </div>
 
           <div className="mt-4 text-sm text-muted-foreground">
-            Showing {filteredPatients.length} of {patients.length} on this page ({totalPatients} unique total)
+            Showing {filteredPatients.length} of {patients.length} on this page ({totalPatients} total profiles)
             {collapsedDuplicateProfiles > 0 && (
-              <span> · {collapsedDuplicateProfiles} duplicate profile {collapsedDuplicateProfiles === 1 ? "record" : "records"} collapsed</span>
+              <span> · {collapsedDuplicateProfiles} duplicate profile {collapsedDuplicateProfiles === 1 ? "record" : "records"} collapsed on this page</span>
             )}
           </div>
 
@@ -377,6 +429,7 @@ export function PatientsListClient({
                     const patientHref = `${patientHrefBase}/${patient.id}`
                     const isDuplicateCandidate = duplicatePatientIds.has(patient.id)
                     const isFirstDuplicateCandidate = firstDuplicatePatient?.id === patient.id
+                    const hasPrescribingWork = hasActivePrescribingRequest(patient)
 
                     return (
                       <TableRow
@@ -479,10 +532,14 @@ export function PatientsListClient({
                               <CheckCircle className="mr-1 h-3 w-3" />
                               Complete
                             </Badge>
-                          ) : (
+                          ) : hasPrescribingWork ? (
                             <Badge variant="outline" className="bg-warning-light text-warning border-warning-border">
                               <XCircle className="mr-1 h-3 w-3" />
-                              Incomplete
+                              Needs details
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="border-border/60 bg-muted/35 text-muted-foreground">
+                              Profile partial
                             </Badge>
                           )}
                         </TableCell>
@@ -492,10 +549,14 @@ export function PatientsListClient({
                               <CheckCircle className="h-3 w-3" />
                               Ready in Parchment
                             </Badge>
-                          ) : (
+                          ) : hasPrescribingWork ? (
                             <Badge variant="warning" size="sm">
                               <XCircle className="h-3 w-3" />
-                              Not synced
+                              Sync needed
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" size="sm" className="border-border/60 bg-muted/30 text-muted-foreground">
+                              Not needed
                             </Badge>
                           )}
                         </TableCell>

@@ -59,7 +59,7 @@
 - `components/patient/intake-status-tracker.tsx`: replaced height-based AnimatePresence transition (`height: 0 → "auto"`, banned by §12) with `opacity + y` only. Normalised "escalated" status palette to §10 severity step 3 (canonical `bg-orange-100 text-orange-700` etc).
 - `components/patient/intake-card.tsx`, `profile-todo-card.tsx`, `referral-card.tsx`, `panel-dashboard.tsx`, `service-selector.tsx`, `what-happens-next.tsx`: all migrated off `bg-linear-to-br` / `bg-gradient-to-br` gradients on content surfaces. Now use solid tinted backgrounds.
 - `app/patient/health-profile/health-profile-client.tsx`: rose icon gradient → solid `bg-primary/10 text-primary`. Sky-50/200/700 alert callout → `bg-info-light border-info-border text-info`.
-- 16 patient surface h1s (intakes, prescriptions, documents, settings, messages, health-summary, notifications, payment-history, health-profile, intakes/cancelled, intakes/confirmed, intakes/[id]/error, error.tsx, not-found.tsx, followups/[id], intakes/success/error, intakes/confirmed/error) migrated from hand-rolled `text-2xl font-semibold tracking-tight` to `<DashboardPageHeader>` or `<Heading level="h1">`.
+- Patient surface h1s (current navigable routes plus historical routes active at the time) migrated from hand-rolled `text-2xl font-semibold tracking-tight` to `<DashboardPageHeader>` or `<Heading level="h1">`.
 - `components/patient/panel-dashboard.tsx` "Documents ready", "Recent Requests", "Active Prescriptions" sections migrated from hand-rolled `<section>` blocks to `<DashboardSection viewAllHref>`.
 
 ### Removed

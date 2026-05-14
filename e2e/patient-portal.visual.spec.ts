@@ -12,10 +12,8 @@
  *   - /patient/intakes           (intakes list with stat grid + tabs)
  *   - /patient/prescriptions     (active + expired sections)
  *   - /patient/documents         (documents list)
- *   - /patient/health-summary    (clinical summary)
  *   - /patient/messages          (messages list)
  *   - /patient/settings          (tabbed settings)
- *   - /patient/notifications     (notifications list)
  *   - /patient/payment-history   (payment history)
  *
  * Auth via E2E test seam (PLAYWRIGHT=1 + loginAsPatient). All seeded data
@@ -56,10 +54,8 @@ const SURFACES: readonly Surface[] = [
   { slug: "intakes",          path: "/patient/intakes" },
   { slug: "prescriptions",    path: "/patient/prescriptions" },
   { slug: "documents",        path: "/patient/documents" },
-  { slug: "health-summary",   path: "/patient/health-summary" },
   { slug: "messages",         path: "/patient/messages" },
   { slug: "settings",         path: "/patient/settings" },
-  { slug: "notifications",    path: "/patient/notifications" },
   { slug: "payment-history",  path: "/patient/payment-history" },
 ] as const
 

@@ -9,6 +9,7 @@ import {
   doctorHasCapability,
   requiredCapabilityForService,
 } from "@/lib/auth/staff-capabilities"
+import { buildDoctorQueueServiceFilter } from "@/lib/doctor/queue-capability-scope"
 import type { Profile } from "@/types/db"
 
 const root = process.cwd()
@@ -22,9 +23,12 @@ describe("doctor capability gating contract", () => {
   it("maps each service type + subtype to the right capability flag", () => {
     expect(requiredCapabilityForService("med_certs", null)).toBe("review_med_certs")
     expect(requiredCapabilityForService("common_scripts", null)).toBe("review_repeat_rx")
+    expect(requiredCapabilityForService("repeat_rx", null)).toBe("review_repeat_rx")
     expect(requiredCapabilityForService("prescription", null)).toBe("review_repeat_rx")
     expect(requiredCapabilityForService("repeat_script", null)).toBe("review_repeat_rx")
+    expect(requiredCapabilityForService("repeat-script", null)).toBe("review_repeat_rx")
     expect(requiredCapabilityForService("consult", null)).toBe("review_consults")
+    expect(requiredCapabilityForService("consults", null)).toBe("review_consults")
     expect(requiredCapabilityForService("consult", "ed")).toBe("review_ed")
     expect(requiredCapabilityForService("consult", "hair_loss")).toBe("review_hair_loss")
     // Unknown service: fall open (returns null) so legacy / not-yet-mapped
@@ -53,6 +57,34 @@ describe("doctor capability gating contract", () => {
     expect(doctorHasCapability(admin, "prescribe_s8")).toBe(true)
     expect(doctorCanReviewService(admin, "consult", "ed")).toBe(true)
     expect(doctorCanReviewService(admin, "common_scripts", null)).toBe(true)
+  })
+
+  it("scopes future-doctor queue visibility to configured clinical capabilities", () => {
+    const doctor = build({
+      role: "doctor",
+      can_review_med_certs: true,
+      can_review_repeat_rx: false,
+      can_review_consults: false,
+      can_review_ed: true,
+      can_review_hair_loss: false,
+    })
+
+    const filter = buildDoctorQueueServiceFilter(doctor, [
+      { id: "00000000-0000-0000-0000-000000000001", type: "med_certs" },
+      { id: "00000000-0000-0000-0000-000000000002", type: "common_scripts" },
+      { id: "00000000-0000-0000-0000-000000000003", type: "consult" },
+    ])
+
+    expect(filter).toContain("service_id.in.(00000000-0000-0000-0000-000000000001)")
+    expect(filter).not.toContain("00000000-0000-0000-0000-000000000002")
+    expect(filter).toContain("and(service_id.in.(00000000-0000-0000-0000-000000000003),subtype.eq.ed)")
+    expect(filter).not.toContain("subtype.eq.hair_loss")
+  })
+
+  it("does not add a service-line filter for the owner-admin queue", () => {
+    const admin = build({ role: "admin" })
+
+    expect(buildDoctorQueueServiceFilter(admin, [])).toBeNull()
   })
 
   it("doctor with explicit false on a flag fails the gate for that service", () => {
@@ -121,7 +153,6 @@ describe("doctor capability gating contract", () => {
     const manualPatientSource = read("app/actions/manual-patient.ts")
     const doctorIdentitySource = read("app/actions/doctor-identity.ts")
     const searchRouteSource = read("app/api/search/route.ts")
-    const scriptsRouteSource = read("app/api/doctor/scripts/route.ts")
     const scriptUpdateRouteSource = read("app/api/doctor/scripts/[id]/route.ts")
     const draftApprovalSource = read("app/actions/draft-approval.ts")
     const certificateDownloadSource = read("app/api/certificates/[id]/download/route.ts")
@@ -137,8 +168,8 @@ describe("doctor capability gating contract", () => {
 
     expect(searchRouteSource).toContain("hasDoctorAccess(callerProfile)")
     expect(existsSync(join(root, "app/api/doctor/assign-request/route.ts"))).toBe(false)
+    expect(existsSync(join(root, "app/api/doctor/scripts/route.ts"))).toBe(false)
 
-    expect(scriptsRouteSource).toContain("hasAdminAccess(authResult.profile)")
     expect(scriptUpdateRouteSource).toContain("hasAdminAccess(profile)")
     expect(draftApprovalSource).toContain("hasAdminAccess(auth.profile)")
     expect(certificateDownloadSource).toContain("hasDoctorAccess(profile)")

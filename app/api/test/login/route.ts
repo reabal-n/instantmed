@@ -162,6 +162,11 @@ export async function DELETE(request: NextRequest) {
     )
   }
 
+  const secret = verifyE2ESecret(request)
+  if (!secret.ok) {
+    return NextResponse.json({ error: secret.error }, { status: secret.status })
+  }
+
   const response = NextResponse.json({
     success: true,
     message: "E2E session cleared",

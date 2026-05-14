@@ -47,14 +47,6 @@ const doctorSettingsPageSource = readFileSync(
   join(process.cwd(), "app/doctor/settings/page.tsx"),
   "utf8",
 )
-const scriptsClientSource = readFileSync(
-  join(process.cwd(), "app/doctor/scripts/scripts-client.tsx"),
-  "utf8",
-)
-const scriptsPageSource = readFileSync(
-  join(process.cwd(), "app/doctor/scripts/page.tsx"),
-  "utf8",
-)
 const onboardingBannerSource = readFileSync(
   join(process.cwd(), "components/doctor/onboarding-banner.tsx"),
   "utf8",
@@ -165,6 +157,8 @@ describe("doctor navigation contract", () => {
       "Operations",
     ])
     expect(mobileNavSource).toContain("isAdmin")
+    expect(mobileNavSource).toContain("useSearchParams")
+    expect(mobileNavSource).toContain("getStaffNavHrefStatus")
     expect(mobileNavSource).not.toContain('label: "Certificates"')
     expect(mobileNavSource).not.toContain('label: "Settings"')
   })
@@ -191,7 +185,11 @@ describe("doctor navigation contract", () => {
     expect(sharedDoctorNav).toContain("STAFF_DOCTOR_SCRIPTS_HREF")
     expect(sharedDoctorNav).toContain("STAFF_DOCTOR_PATIENTS_HREF")
     expect(sharedDoctorNav).toContain("STAFF_IDENTITY_HREF")
+    expect(sharedUserMenuSource).toContain("useSearchParams")
+    expect(sharedUserMenuSource).toContain('dashboardStatus === "scripts"')
+    expect(sharedUserMenuSource).toContain('dashboardStatus !== "scripts"')
     expect(sharedDoctorNav).not.toContain("/doctor/intakes")
+    expect(sharedDoctorNav).not.toContain("/doctor/scripts")
     expect(sharedMobileMenuSource).not.toContain('label: "Admin"')
   })
 
@@ -201,18 +199,13 @@ describe("doctor navigation contract", () => {
     expect(sidebarSource).not.toContain("prefetch={true}")
   })
 
-  it("keeps the scripts screen quiet when there are no tasks", () => {
-    expect(scriptsClientSource).toContain('title="Scripts"')
-    expect(scriptsClientSource).toContain('description="Prescriptions waiting for Parchment send confirmation"')
-    expect(scriptsClientSource).not.toContain('title="Script To-Do"')
-    expect(scriptsPageSource).toContain("pageSize: 25")
-    expect(scriptsClientSource).toContain("const PAGE_SIZE = 25")
-    expect(scriptsClientSource).toContain("hasScriptActivity")
-    expect(scriptsClientSource).toContain("{hasScriptActivity && (")
-    expect(scriptsClientSource).toContain('aria-label="Filter script tasks"')
-    expect(scriptsClientSource).toContain("No script send work right now.")
-    expect(scriptsClientSource).toContain("Showing {STATUS_CONFIG[filter].label.toLowerCase()} tasks")
-    expect(scriptsClientSource).not.toContain("text-2xl font-semibold tabular-nums")
+  it("keeps scripts work inside the unified dashboard instead of a second page", () => {
+    expect(existsSync(join(process.cwd(), "app/doctor/scripts/page.tsx"))).toBe(false)
+    expect(staffNavigationSource).toContain("STAFF_DOCTOR_SCRIPTS_HREF")
+    expect(staffNavigationSource).not.toContain('href: "/doctor/scripts"')
+    expect(nextConfigSource).toContain('source: "/doctor/scripts"')
+    expect(nextConfigSource).toContain('destination: "/dashboard?status=scripts#doctor-queue"')
+    expect(dashboardHeaderSource).toContain("QueueClient")
   })
 
   it("keeps legacy doctor routes as redirects to canonical surfaces", () => {
@@ -220,6 +213,7 @@ describe("doctor navigation contract", () => {
     expect(nextConfigSource).toContain('source: "/doctor/dashboard", destination: "/dashboard"')
     expect(nextConfigSource).toContain('source: "/doctor/queue", destination: "/dashboard"')
     expect(nextConfigSource).toContain('source: "/doctor/certificates", destination: "/dashboard"')
+    expect(nextConfigSource).toContain('source: "/doctor/scripts", destination: "/dashboard?status=scripts#doctor-queue"')
     expect(doctorSettingsPageSource).toContain('requireRole(["doctor", "admin"]')
     expect(doctorSettingsPageSource).toContain("STAFF_IDENTITY_HREF")
     expect(doctorSettingsPageSource).toContain("redirect(STAFF_IDENTITY_HREF)")

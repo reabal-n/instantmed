@@ -1,7 +1,7 @@
 "use client"
 
 import { ClipboardList, CreditCard, FileText, FolderOpen, Home, LogOut, MessageSquare, MoreHorizontal, User, X } from "lucide-react"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useState } from "react"
 
 import { STAFF_NAV_ICONS } from "@/components/admin/staff-nav-icons"
@@ -15,6 +15,7 @@ import {
   PATIENT_SETTINGS_HREF,
 } from "@/lib/dashboard/routes"
 import { doctorNavSections, doctorOperatorNavItems } from "@/lib/dashboard/staff-navigation"
+import { getStaffNavHrefPath, getStaffNavHrefStatus } from "@/lib/dashboard/staff-navigation-active"
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { cn } from "@/lib/utils"
 
@@ -117,9 +118,14 @@ export function DoctorMobileNav({ className, isAdmin = false }: { className?: st
 export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, className }: MobileNavProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { signOut } = useAuth()
   const [moreOpen, setMoreOpen] = useState(false)
   const [isSigningOut, setIsSigningOut] = useState(false)
+  const currentStatus = searchParams.get("status")
+  const hasRootDashboardNavItem = [...items, ...moreMenuItems].some(
+    (item) => getStaffNavHrefPath(item.href) === "/dashboard" && !getStaffNavHrefStatus(item.href),
+  )
 
   const handleSignOut = async () => {
     if (isSigningOut) return
@@ -128,9 +134,24 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
     await signOut()
   }
 
-  const isMoreActive = moreMenuItems.some(
-    (item) => pathname === item.href || pathname?.startsWith(item.href + "/")
-  )
+  function isNavItemActive(item: NavItem, exactDashboard = false): boolean {
+    const hrefPath = getStaffNavHrefPath(item.href)
+    const hrefStatus = getStaffNavHrefStatus(item.href)
+
+    if (hrefStatus) {
+      if (pathname !== hrefPath) return false
+      if (currentStatus === hrefStatus) return true
+      return !currentStatus && hrefStatus === "review" && !hasRootDashboardNavItem
+    }
+
+    if (item.href === PATIENT_DASHBOARD_HREF || exactDashboard) {
+      return pathname === item.href || pathname === `${item.href}/`
+    }
+
+    return pathname === hrefPath || pathname?.startsWith(`${hrefPath}/`) || false
+  }
+
+  const isMoreActive = moreMenuItems.some((item) => isNavItemActive(item))
 
   return (
     <>
@@ -160,7 +181,7 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
             <nav className="px-3 pb-4 space-y-1">
               {moreMenuItems.map((item) => {
                 const Icon = item.icon
-                const isActive = pathname === item.href || pathname?.startsWith(item.href + "/")
+                const isActive = isNavItemActive(item)
                 return (
                   <button
                     key={item.href}
@@ -210,9 +231,7 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
             // Home (/patient) uses exact match - child routes like /patient/intakes are distinct
             const isActive = isMore
               ? isMoreActive || moreOpen
-              : item.href === PATIENT_DASHBOARD_HREF
-                ? pathname === PATIENT_DASHBOARD_HREF || pathname === `${PATIENT_DASHBOARD_HREF}/`
-                : pathname === item.href || pathname?.startsWith(item.href + "/")
+              : isNavItemActive(item, item.href === PATIENT_DASHBOARD_HREF)
 
             return (
               <button

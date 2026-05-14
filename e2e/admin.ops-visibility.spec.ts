@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test"
 
 import { loginAsDoctor, loginAsOperator, logoutTestUser } from "./helpers/auth"
+import { STAFF_TEST_ROUTES } from "./helpers/staff-routes"
 
 test.describe("Ops Navigation Visibility", () => {
   test.afterEach(async ({ page }) => {
@@ -11,19 +12,19 @@ test.describe("Ops Navigation Visibility", () => {
     const loginResult = await loginAsOperator(page)
     expect(loginResult.success).toBe(true)
 
-    await page.goto("/dashboard")
+    await page.goto(STAFF_TEST_ROUTES.dashboard)
     await page.waitForLoadState("networkidle")
 
     await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible({ timeout: 10000 })
     await expect(page.getByRole("region", { name: "Doctor request queue" })).toBeVisible()
 
     const sidebar = page.getByRole("complementary", { name: "Staff sidebar" })
-    await expect(sidebar.getByRole("link", { name: "Requests" })).toHaveAttribute("href", "/admin/intakes")
+    await expect(sidebar.getByRole("link", { name: "Requests" })).toHaveAttribute("href", STAFF_TEST_ROUTES.adminIntakes)
     await expect(sidebar.getByRole("link", { name: "Review" })).toHaveAttribute(
       "href",
-      "/dashboard?status=review#doctor-queue",
+      STAFF_TEST_ROUTES.dashboard + "?status=review#doctor-queue",
     )
-    await expect(sidebar.getByRole("link", { name: "Ops" })).toHaveAttribute("href", "/admin/ops")
+    await expect(sidebar.getByRole("link", { name: "Ops" })).toHaveAttribute("href", STAFF_TEST_ROUTES.adminOps)
     await expect(sidebar.getByRole("link", { name: "Admin Panel" })).not.toBeVisible()
     await expect(sidebar.getByRole("link", { name: "Email Suppression" })).not.toBeVisible()
   })
@@ -32,7 +33,7 @@ test.describe("Ops Navigation Visibility", () => {
     const loginResult = await loginAsDoctor(page)
     expect(loginResult.success).toBe(true)
 
-    await page.goto("/dashboard")
+    await page.goto(STAFF_TEST_ROUTES.dashboard)
     await page.waitForLoadState("networkidle")
 
     await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible({ timeout: 10000 })
@@ -52,22 +53,22 @@ test.describe("Ops Navigation Visibility", () => {
     const loginResult = await loginAsOperator(page)
     expect(loginResult.success).toBe(true)
 
-    await page.goto("/admin/ops")
+    await page.goto(STAFF_TEST_ROUTES.adminOps)
     await page.waitForLoadState("networkidle")
 
     await expect(page.getByRole("heading", { name: "Operations" })).toBeVisible({ timeout: 10000 })
 
     await expect(page.getByRole("link", { name: /Payment webhooks/i }).first()).toHaveAttribute(
       "href",
-      "/admin/webhook-dlq",
+      STAFF_TEST_ROUTES.adminWebhookDlq,
     )
     await expect(page.getByRole("link", { name: /Email delivery/i }).first()).toHaveAttribute(
       "href",
-      "/admin/emails/hub",
+      STAFF_TEST_ROUTES.adminEmailHub,
     )
     await expect(page.getByRole("link", { name: /Prescription delivery/i }).first()).toHaveAttribute(
       "href",
-      "/admin/ops/parchment",
+      STAFF_TEST_ROUTES.adminOpsParchment,
     )
   })
 })

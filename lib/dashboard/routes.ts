@@ -14,7 +14,7 @@ export const STAFF_EMAILS_HREF = "/admin/emails/hub" as const
 export const STAFF_SETTINGS_HREF = "/admin/settings" as const
 export const STAFF_IDENTITY_HREF = "/doctor/settings/identity" as const
 export const STAFF_DOCTOR_SETTINGS_HREF = "/doctor/settings" as const
-export const STAFF_DOCTOR_SCRIPTS_HREF = "/doctor/scripts" as const
+export const STAFF_DOCTOR_SCRIPTS_HREF = STAFF_SCRIPTS_HREF
 export const STAFF_DOCTOR_PATIENTS_HREF = "/doctor/patients" as const
 export const STAFF_PATIENT_DETAIL_BASE_HREF = "/doctor/patients" as const
 
@@ -41,11 +41,7 @@ export const PATIENT_INTAKE_SUCCESS_HREF = "/patient/intakes/success" as const
 export const PATIENT_PRESCRIPTIONS_HREF = "/patient/prescriptions" as const
 export const PATIENT_DOCUMENTS_HREF = "/patient/documents" as const
 export const PATIENT_MESSAGES_HREF = "/patient/messages" as const
-export const PATIENT_NEW_REQUEST_HREF = "/patient/new-request" as const
 export const PATIENT_PAYMENT_HISTORY_HREF = "/patient/payment-history" as const
-// Hidden compatibility route for historical treatment check-in links. Not a
-// patient navigation destination in the current one-off model.
-export const PATIENT_FOLLOWUPS_HREF = "/patient/followups" as const
 export const PATIENT_SETTINGS_HREF = "/patient/settings" as const
 export const PATIENT_HEALTH_PROFILE_HREF = "/patient/health-profile" as const
 export const PATIENT_ONBOARDING_HREF = "/patient/onboarding" as const
@@ -63,10 +59,6 @@ export function buildPatientIntakeSuccessHref(options: {
   if (options.paymentRetry) params.set("payment_retry", "1")
   const query = params.toString()
   return query ? `${PATIENT_INTAKE_SUCCESS_HREF}?${query}` : PATIENT_INTAKE_SUCCESS_HREF
-}
-
-export function buildPatientFollowupHref(followupId: string): string {
-  return `${PATIENT_FOLLOWUPS_HREF}/${encodeURIComponent(followupId)}`
 }
 
 export function buildPatientMessagesHref(options: { intakeId?: string | null } = {}): string {

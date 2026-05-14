@@ -72,7 +72,7 @@ PLAYWRIGHT=1 STRIPE_WEBHOOK_SECRET=whsec_test_... pnpm e2e e2e/stripe-webhook.sp
 2. PostHog: filter by `operational_block` event to see how often capacity blocks occur
 3. Review timing reference: verify `business_hours_open`/`close` and `business_hours_timezone` (default Australia/Sydney). These values set expectations; they do not block checkout.
 4. Capacity: `count_intakes_today_sydney` RPC; if at limit, either raise `capacity_limit_max` or wait for next day. If the capacity switch is enabled and the RPC fails, checkout fails closed as high demand until the RPC/schema issue is fixed or the capacity switch is deliberately disabled.
-5. Scheduled maintenance: cron runs every 5 min; if the window passed but banner still on, check whether an admin manually enabled `maintenance_mode` for an incident. Manually disable it only after the incident is resolved.
+5. Scheduled maintenance: request and availability checks compute the active window directly from `maintenance_scheduled_start`/`maintenance_scheduled_end`; no separate cron flips `maintenance_mode`. If the banner stays on after the window, check whether an admin manually enabled `maintenance_mode` for an incident.
 6. Doctor availability: paused doctors (`doctor_available = false`) see empty queue; toggle at `/doctor/settings/identity`
 
 ### Duplicate Patient Profiles
@@ -107,7 +107,7 @@ PLAYWRIGHT=1 STRIPE_WEBHOOK_SECRET=whsec_test_... pnpm e2e e2e/stripe-webhook.sp
 | Workflow | Primary surface | Supporting surface |
 |----------|-----------------|--------------------|
 | Review paid clinical work | `/dashboard?status=review#doctor-queue` | `/admin/intakes` for ledger/search |
-| Write or reconcile scripts | `/dashboard?status=scripts#doctor-queue` | `/doctor/scripts`, `/admin/ops/parchment` |
+| Write or reconcile scripts | `/dashboard?status=scripts#doctor-queue` | `/admin/ops/parchment` for vendor recovery |
 | Patient lookup and duplicate review | `/admin/patients` | `/doctor/patients/[id]`, `/admin/ops/patient-merge-audit` |
 | Payment and webhook recovery | `/admin/finance`, `/admin/refunds` | `/admin/webhook-dlq` |
 | Email delivery recovery | `/admin/emails/hub` | Compact controls link to `/admin/emails/templates` and `/admin/emails/suppression` |
@@ -362,7 +362,7 @@ Cron surface policy: every `app/api/cron/*/route.ts` must be scheduled in `verce
 
 | Job | Endpoint | Schedule | Purpose |
 |-----|----------|----------|---------|
-| Health Check | `/api/cron/health-check` | Every 5 min | Queue health, doctor activity, delivery health, AI metrics |
+| Health Check | `/api/cron/health-check` | Every 5 min | Cron heartbeat watchdog only; queue delay, delivery failures, and business alerts stay owned by their dedicated jobs |
 | Email Dispatcher | `/api/cron/email-dispatcher` | Every 5 min | Process pending/failed emails from `email_outbox` with atomic claiming; recovers stale `sending` claims and applies `DAILY_EMAIL_LIMIT` only to marketing/engagement sends |
 | Release Stale Claims | `/api/cron/release-stale-claims` | Every 5 min | Release doctor intake claims that have gone stale to prevent queue stalls |
 | Retry Drafts | `/api/cron/retry-drafts` | Every 5 min | Retry failed AI draft generation with exponential backoff |
@@ -372,7 +372,6 @@ Cron surface policy: every `app/api/cron/*/route.ts` must be scheduled in `verce
 | Partial Intake Recovery | `/api/cron/recover-partial-intakes` | Hourly (:15) | Pre-checkout draft recovery only; excludes review/checkout drafts so it does not overlap abandoned-checkout recovery |
 | Cleanup Intake Drafts | `/api/cron/cleanup-intake-drafts` | Daily (4 AM UTC) | Delete stale saved intake drafts so anonymous draft storage does not grow unbounded |
 | Emergency Flags | `/api/cron/emergency-flags` | Hourly | SMS emergency resources to patients who abandoned intakes with red flags |
-| Scheduled Maintenance | `/api/cron/scheduled-maintenance` | Every 5 min | Sync `maintenance_mode` with `maintenance_scheduled_start`/`end` window; auto-enable/disable banner |
 | Telegram Notifications | `/api/cron/telegram-notifications` | Every 5 min | Retry missed paid-request Telegram notifications when webhook-time sends fail |
 | AHPRA Re-verification | `/api/cron/ahpra-reverification` | Daily (6 AM AEST) | Flag overdue AHPRA verifications; disable approval for 30+ days overdue |
 | Daily Reconciliation | `/api/cron/daily-reconciliation` | Daily (7 AM AEST) | Identify mismatches: paid without delivery, failed refunds, failed deliveries |
@@ -760,10 +759,9 @@ Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_
 |----------|--------|-----------|--------|
 | Latency | Checkout P95 | < 5s | `lib/stripe/checkout.ts` |
 | Latency | Doctor Review P95 (paid to approved) | < 60 min | `lib/monitoring/queue-health.ts` |
-| Latency | AI Draft P95 | < 5s | `lib/monitoring/ai-health.ts` |
 | Latency | Email Delivery P95 | < 30s | `lib/monitoring/delivery-tracking.ts` |
 | Error | Payment failure rate | > 5% | Stripe webhook |
-| Error | AI failure rate | > 10% | `lib/monitoring/ai-health.ts` |
+| Error | AI draft failure rate | > 10% | `document_drafts.status = failed` + Sentry tag `source:ai_draft` |
 | Error | Email bounce rate | > 5% | `lib/monitoring/delivery-tracking.ts` |
 | Error | 5xx rate | > 1% | `lib/observability/sentry.ts` |
 | Error | Request step crash | Any event | Sentry tag `boundary:request-step` |
@@ -786,14 +784,14 @@ Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_
 | Request Flow Synthetic | Any production request-path render/click failure | GitHub Actions failure |
 | Staff Role Gate | More than one auth-linked human admin, owner-admin missing doctor identity, or doctor missing required prescribing/certificate identity | `pnpm check:staff-roles` release failure |
 
-**Telegram alerts** require `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` env vars. If missing, alerts are silently skipped. Used by `business-alerts` cron, payment webhook, and health-check cron.
+**Telegram alerts** require `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` env vars. If missing, alerts are silently skipped. Used by `business-alerts` cron and payment webhook.
 
 ### Health Endpoints
 
 | Endpoint | Checks | Response |
 |----------|--------|----------|
 | `/api/health` | Database, Redis, Stripe, env vars | `{ status: "healthy"|"degraded", checks, totalLatencyMs }` |
-| `/api/cron/health-check` | Queue depth, doctor activity, delivery, AI | Sentry capture on degradation |
+| `/api/cron/health-check` | Critical cron heartbeats | Sentry capture when essential scheduled jobs are overdue |
 
 ### Release-time Ops Checks
 
@@ -1123,7 +1121,7 @@ Using Vercel MCP, PostHog MCP, and Sentry MCP:
 - **Vercel:** Runtime logs last 24h — filter error/warning, categorize.
 - **PostHog:** Error tracking issues last 24h. Key funnel anomalies (intake → checkout → approval).
 - **Sentry:** Unresolved issues by frequency. Flag new issues since last audit.
-- **Cron jobs:** health-check, retry-auto-approval, SLA monitoring — check for errors.
+- **Cron jobs:** health-check heartbeat watchdog, retry-auto-approval, stale-queue, and dispatcher jobs — check for errors.
 
 ### 11. Whitelabel Readiness
 

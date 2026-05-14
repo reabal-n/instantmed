@@ -26,10 +26,10 @@ import {
   PATIENT_DOCUMENTS_HREF,
   PATIENT_INTAKES_HREF,
   PATIENT_MESSAGES_HREF,
-  PATIENT_NEW_REQUEST_HREF,
   PATIENT_PAYMENT_HISTORY_HREF,
   PATIENT_PRESCRIPTIONS_HREF,
   PATIENT_SETTINGS_HREF,
+  REQUEST_HREF,
 } from '@/lib/dashboard/routes'
 import { useAuth } from '@/lib/supabase/auth-provider'
 import { cn } from '@/lib/utils'
@@ -92,7 +92,7 @@ export function LeftRail({
   ]
 
   const handleNewRequest = () => {
-    router.push(PATIENT_NEW_REQUEST_HREF)
+    router.push(REQUEST_HREF)
   }
 
   return (

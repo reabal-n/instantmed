@@ -7,7 +7,11 @@ import {
   STAFF_PATIENT_DETAIL_BASE_HREF,
   STAFF_PATIENTS_HREF,
 } from "@/lib/dashboard/routes"
-import { getPatientDirectoryPage, parsePatientDirectorySort } from "@/lib/data/patient-directory"
+import {
+  getPatientDirectoryPage,
+  parsePatientDirectorySearch,
+  parsePatientDirectorySort,
+} from "@/lib/data/patient-directory"
 
 const PAGE_SIZE = 50
 
@@ -18,17 +22,19 @@ export const dynamic = "force-dynamic"
 export default async function AdminPatientsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; sort?: string | string[] }>
+  searchParams: Promise<{ page?: string; q?: string | string[]; sort?: string | string[] }>
 }) {
   await requireRole(["admin"])
 
   const params = await searchParams
   const page = Math.max(1, parseInt(params.page || "1", 10) || 1)
   const sort = parsePatientDirectorySort(params.sort)
-  const { patients, total, rawTotal, collapsedCount } = await getPatientDirectoryPage({
+  const search = parsePatientDirectorySearch(params.q)
+  const { patients, total, collapsedCount } = await getPatientDirectoryPage({
     page,
     pageSize: PAGE_SIZE,
     sort,
+    search,
   })
   const totalPages = Math.ceil(total / PAGE_SIZE)
 
@@ -48,9 +54,9 @@ export default async function AdminPatientsPage({
             currentPage={page}
             totalPages={totalPages}
             totalPatients={total}
-            rawPatientProfiles={rawTotal}
             collapsedDuplicateProfiles={collapsedCount}
             currentSort={sort}
+            initialSearchQuery={search}
             baseHref={STAFF_PATIENTS_HREF}
             patientHrefBase={STAFF_PATIENT_DETAIL_BASE_HREF}
             mergeAuditHref={ADMIN_PATIENT_MERGE_AUDIT_HREF}

@@ -9,7 +9,7 @@
 
 | Canonical | Aliases / redirects | Notes |
 |---|---|---|
-| `/request` | `/start`, `/start?service=...`, `/flow`, `/flow/:path*`, `/prescriptions/request`, `/prescriptions/repeat`, `/prescriptions/new`, `/consult/request`, `/medical-certificate/request` | Sole intake flow (commit `18e26f0b7` killed the parallel `/flow` system). `/start` is a 307 compatibility route that maps legacy `service` values and preserves attribution/query params before redirecting. `/flow` redirects via `next.config.mjs`. |
+| `/request` | `/start`, `/start?service=...`, `/flow`, `/flow/:path*`, `/prescriptions/request`, `/prescriptions/repeat`, `/prescriptions/repeat-script`, `/prescriptions/chronic`, `/prescriptions/new`, `/prescriptions/new-medication`, `/prescriptions/:subtype`, `/consult/request`, `/medical-certificate/request` | Sole intake flow (commit `18e26f0b7` killed the parallel `/flow` system). `/start` is a 307 compatibility route that maps legacy `service` values and preserves attribution/query params before redirecting. `/flow` and old prescription subtype paths redirect via `next.config.mjs`. |
 | `/medical-certificate` | `/medical-certificates`, `/medical-certificates/:path*` | Singular is canonical (`next.config.mjs`) |
 | `/prescriptions` | `/repeat-prescription`, `/repeat-prescription/:path*`, `/repeat-prescriptions`, `/repeat-prescriptions/:path*`, `/prescription` | |
 | `/` | `/medications`, `/medications/:path*` | Medications pages deleted 2026-04-08 (orphan duplicate of `/prescriptions/med/:slug`) |
@@ -62,29 +62,11 @@ First-touch attribution is captured client-side by `lib/analytics/attribution.ts
 
 The Stripe webhook reads the persisted intake attribution when payment completes, sends click IDs to the server-side Google Ads Conversion API, and mirrors attribution to PostHog. Admin source reporting in `/admin/analytics` and Business KPIs uses UTM first, then persisted referrer, then direct landing-page fallback.
 
-### AI Chat Intake
+### AI Assistance
 
-Alternative conversational path via floating `ChatIntakeButton`. Routes to `app/api/ai/chat-intake/route.ts`.
+AI is bounded to clinician-support documentation helpers. There is no parallel chat-intake path and no public AI validation endpoint in the current product: patients use the canonical `/request` form, and doctors review the submitted answers before any clinical decision. Do not reintroduce conversational intake without an explicit product and clinical-governance decision.
 
-**Intent classification** (turns 1-2): Button-based selection -> `medical_certificate` | `repeat_prescription` | `new_prescription` | `general_consult`.
-
-**AI boundaries** -- CAN: collect symptoms via structured categories, flag patterns. CANNOT: diagnose, recommend medications, predict approval, answer medical questions.
-
-**Structured output:**
-```ts
-interface StructuredIntake {
-  status: 'in_progress' | 'ready_for_review' | 'requires_form' | 'safety_exit'
-  serviceType: ServiceType
-  data: MedCertIntake | RepeatRxIntake | NewRxIntake | ConsultIntake
-  flags: IntakeFlag[]  // severity: info | caution | urgent | blocker
-  requiresFormTransition: boolean
-  aiMetadata: { turnCount, collectionDurationMs, modelVersion, promptVersion }
-}
-```
-
-**Safety exits** (server-enforced, no continue option): emergency keywords -> 000/ED, crisis keywords -> Lifeline/Beyond Blue, Schedule 8 -> block + advise in-person GP, out-of-scope -> advise in-person care.
-
-**Chat-to-form handoff:** On `requiresFormTransition: true`, data validated via `POST /api/ai/chat-intake/validate`, saved via `savePrefillData()`, redirect to `/request?prefill=true`. Transition triggers: cert >7 days, mental health new Rx, poor control + severe side effects, 3+ allergies, polypharmacy (5+ meds).
+**AI boundaries** -- CAN: draft internal clinical notes and service-specific documentation for doctor review. CANNOT: diagnose, recommend medications, predict approval, answer medical questions, validate checkout safety, or replace doctor review.
 
 ### Validation & Normalization
 
@@ -355,7 +337,7 @@ Static-PDF overlay config is stored as immutable JSONB in `certificate_templates
 | `/doctor/intakes/[id]/document` | Med cert generation | `getOrCreateMedCertDraftForIntake()` |
 | `/doctor/patients` | Patient list (capped 100) | Direct Supabase query |
 | `/admin/analytics` | Intake + payment analytics | Direct Supabase query |
-| `/doctor/scripts` | External script task list | `script_tasks` scoped by doctor/admin role |
+| `/doctor/scripts` | Legacy redirect to `/dashboard?status=scripts#doctor-queue` | `next.config.mjs` |
 | `/doctor/settings/identity` | Doctor identity config | Doctor profile |
 
 **Queue architecture:** Paginated (`pageSize` capped at 100 via `Math.min()`). Stale data warning shown when queue may be out of date. Polling-based refresh. Paused doctors (`profiles.doctor_available = false`) receive an empty queue — `getDoctorQueue({ doctorId })` filters them out so they do not see new intakes. Live queue reads also exclude the fixed seeded E2E patient via `lib/data/seeded-e2e-data.ts` unless an E2E/test env flag is set.
@@ -391,7 +373,6 @@ Static-PDF overlay config is stored as immutable JSONB in `certificate_templates
 | `/patient/payment-history` | Stripe invoices | Client-side fetch to `/api/patient/get-invoices` |
 | `/patient/settings` | Profile, email prefs, export, retained-record account closure | Multiple API endpoints |
 | `/patient/health-profile` | Edit allergies, conditions, medications, and emergency contact | `/api/patient/health-profile` |
-| `/patient/health-summary` | Deep-linked read-only record view (stats, recent requests, certs, Rx history), intentionally not primary nav | Direct Supabase query |
 
 **Access control:** Double-layer -- RLS policies on every table (patient isolation via `auth.uid()` subquery) plus application-level ownership checks (`.eq("patient_id", patientId)`). Cross-patient access risk: LOW.
 
@@ -433,7 +414,7 @@ Admin capabilities span the `/admin` route group and include: operator cockpit, 
 
 **Staff cockpit architecture:** `/dashboard` is the primary combined operator surface (Phase 2 of dashboard remaster, 2026-05-12). It uses `OperatorShell`, shared navigation from `lib/dashboard/staff-navigation.ts` (`getStaffNav(profile)`), live sidebar counts from `lib/data/staff-nav-counts.ts`, compact summaries from `lib/doctor/case-summary.ts`, and the `SystemHealthPill` in the header (45s poll on `/api/admin/system-health`). Dedicated Queue navigation deep-links to `/dashboard?status=review#doctor-queue`, Scripts navigation deep-links to `/dashboard?status=scripts#doctor-queue`, and Patients deep-links to `/admin/patients` with the active prescribing-identity blocker count. Owner-operator doctor setup uses the shared doctor identity page at `/doctor/settings/identity`; `/admin/settings/doctor-identity` is a redirect-only compatibility alias. `/admin/intakes/[id]` (admin) and `/doctor/intakes/[id]` (doctor) share the same `IntakeDetailClient`. Phase 4a (2026-05-12) collapsed `/admin/patients/[id]` to a redirect; the canonical patient profile is `/doctor/patients/[id]`. The patient directory defaults to most recent request and exposes only operational filters: status, service, state, and Parchment sync.
 
-**Operational controls** (`/admin/features`): Bounded operator console for platform/service kill switches, review timing reference (open/close, timezone), capacity limit (max intakes/day), urgent notice banner, scheduled maintenance (start/end datetime), safety libraries, automation, and recent changes. The critical strip keeps platform, med cert, repeat Rx, and consult kill switches visible without scrolling; lower-priority controls sit in compact tabs with internal pane scrolling only. Runtime helpers live in `lib/operational-controls/`; admin writes go through `lib/feature-flags.ts` with server-side key/value validation. Cron `scheduled-maintenance` syncs `maintenance_mode` with the scheduled window every 5 min, but will not disable manually enabled maintenance mode from an admin incident response.
+**Operational controls** (`/admin/features`): Bounded operator console for platform/service kill switches, review timing reference (open/close, timezone), capacity limit (max intakes/day), urgent notice banner, scheduled maintenance (start/end datetime), safety libraries, automation, and recent changes. The critical strip keeps platform, med cert, repeat Rx, and consult kill switches visible without scrolling; lower-priority controls sit in compact tabs with internal pane scrolling only. Runtime helpers live in `lib/operational-controls/`; admin writes go through `lib/feature-flags.ts` with server-side key/value validation. Scheduled maintenance is computed at request/availability read time, so no background cron needs to flip `maintenance_mode`.
 
 Role assignment methods: SQL update on `profiles` table (production) via Supabase dashboard or service role client.
 
@@ -463,7 +444,7 @@ Role assignment methods: SQL update on `profiles` table (production) via Supabas
 | `certificate_audit_log` | Issuance/download/verify events | `issued_certificates.id` |
 | `partial_intakes` | Anonymous abandoned-intake recovery drafts; answers and non-recovery identity fields encrypted | `session_id` bearer token |
 | `subscriptions` | Retired Repeat Rx subscription history table. No runtime app surface or webhook handler depends on it while the one-off model is active. | `profiles.id` via `profile_id` |
-| `intake_followups` | Legacy compatibility rows for previously scheduled ED/hair-loss check-ins. Current one-off model does not create new automated follow-ups. | `intakes.id` via `intake_id`, `profiles.id` via `patient_id` |
+| `intake_followups` | Historical rows for old ED/hair-loss check-ins, shown staff-side only. Current one-off model does not create new automated follow-ups, and patient follow-up routes are redirected to request history. | `intakes.id` via `intake_id`, `profiles.id` via `patient_id` |
 | `followup_email_log` | Legacy log of retired treatment follow-up reminder emails | `intake_followups.id` via `followup_id` |
 
 **Relationship hierarchy:**
@@ -492,13 +473,12 @@ Route inventory is generated by `pnpm build`. Webhooks, cron jobs, and admin rou
 | Domain | Routes | Key Endpoints |
 |--------|--------|---------------|
 | **Admin** (3) | `/api/admin/*` | `staff-nav-counts`, `system-health` (Phase 2, powers `SystemHealthPill`), `webhook-dlq` |
-| **AI** (6) | `/api/ai/*` | `chat-intake`, `chat-intake/validate`, `clinical-note`, `form-validation`, `med-cert-draft`, `symptom-suggestions` |
-| **Cron** (22) | `/api/cron/*` | See OPERATIONS.md for full cron table |
-| **Doctor** | `/api/doctor/*` | `certificates/[intakeId]/download`, `intakes/[id]/audit-view`, `intakes/[id]/lock`, `intakes/[id]/review-data`, `log-view-duration`, `patients/[patientId]/health-profile`, `patients/[patientId]/summary`, `scripts`, `scripts/[id]` |
+| **Cron** (21) | `/api/cron/*` | See OPERATIONS.md for full cron table |
+| **Doctor** (8) | `/api/doctor/*` | `certificates/[intakeId]/download`, `intakes/[id]/audit-view`, `intakes/[id]/lock`, `intakes/[id]/review-data`, `log-view-duration`, `patients/[patientId]/health-profile`, `patients/[patientId]/summary`, `scripts/[id]` |
 | **Patient** (11) | `/api/patient/*` | `certificates/[id]/download`, `documents/[intakeId]/download`, `get-invoices`, `download-invoice`, `health-profile`, `intake-status`, `messages` (GET/POST), `profile` (PATCH), `referral`, `retry-payment`, `resend-confirmation` |
 | **Med Cert** (2) | `/api/med-cert/*` | `preview` (GET), `render` (POST) |
-| **Webhooks** (5) | `/api/stripe/webhook`, `/api/stripe/verify-payment`, `/api/webhooks/resend`, `/api/webhooks/telegram`, `/api/webhooks/parchment` | Per-provider signature verification for one-off checkout, refunds, disputes, async payment outcomes, and `prescription.created` (Parchment). Repeat Rx subscription acquisition and runtime compatibility handlers are retired. |
-| **Misc** (13) | Various | `/api/draft`, `/api/certificates/[id]/download`, `/api/health`, `/api/medications/search`, `/api/verify`, `/api/unsubscribe`, `/api/search`, `/api/profile/ensure` |
+| **Webhooks** (6) | `/api/stripe/webhook`, `/api/stripe/verify-payment`, `/api/webhooks/resend`, `/api/webhooks/telegram`, `/api/webhooks/parchment`, `/api/webhooks/supabase-auth` | Per-provider signature verification for one-off checkout, refunds, disputes, async payment outcomes, auth sync, and `prescription.created` (Parchment). Repeat Rx subscription acquisition and runtime compatibility handlers are retired. |
+| **Misc** (13) | Various | `/api/draft`, `/api/certificates/[id]/download`, `/api/health`, `/api/medications/search`, `/api/og`, `/api/verify`, `/api/unsubscribe`, `/api/search`, `/api/profile/ensure` |
 
 ### Server-Only Module Pattern
 
@@ -652,24 +632,19 @@ All AI usage is documentation-assistance only. Safety logic is deterministic (no
 | Config key | Model | Temperature | Max tokens | Used for |
 |-----------|-------|-------------|------------|---------|
 | `clinical` | `claude-sonnet-4-20250514` | 0.1 | 2,000 | Medical cert drafts, clinical note generation |
-| `advanced` | `claude-sonnet-4-20250514` | 0.2 | 4,000 | Review summary, complex documentation |
-| `conversational` | `claude-sonnet-4-20250514` | 0.5 | 1,000 | Chat intake dialogue |
-| `creative` | `claude-sonnet-4-20250514` | 0.7 | 500 | Symptom suggestions, intelligent completions |
 
-**Helpers:** `getDefaultModel()` → clinical · `getAdvancedModel()` → advanced · `getConversationalModel()` → conversational · `getCreativeModel()` → creative.
+**Helper:** `getModelWithConfig("clinical")` is the only runtime model entrypoint.
 
-**PII sanitization:** All prompts pass through `sanitizePromptInput()` before being sent. Strips Medicare numbers, AU phone numbers, email addresses, and DOB patterns. Clinical notes are sent with patient identifiers removed — patient identity is never in the AI context.
+**PII sanitization:** Prompt inputs pass through `checkAndSanitize()` / `sanitizeAnswerValue()` before being sent. Patient identity is minimized in draft prompts; AI output remains internal and requires doctor review before use.
 
-### AI Endpoints
+### AI Draft Actions
 
-| Route | Config used | Purpose |
+| Action | Config used | Purpose |
 |-------|-------------|---------|
-| `/api/ai/chat-intake` | conversational | Conversational intake collection |
-| `/api/ai/chat-intake/validate` | clinical | Validate + normalize chat-collected fields |
-| `/api/ai/clinical-note` | clinical | Generate clinical notes for doctor review |
-| `/api/ai/form-validation` | clinical | Validate free-text intake answers |
-| `/api/ai/med-cert-draft` | clinical | Generate medical certificate draft text |
-| `/api/ai/symptom-suggestions` | creative | Autocomplete symptom descriptions |
+| `app/actions/drafts/generate-clinical-note.ts` | clinical | Generate internal clinical notes for doctor review |
+| `app/actions/drafts/generate-med-cert.ts` | clinical | Generate medical certificate draft data |
+| `app/actions/drafts/generate-repeat-rx.ts` | clinical | Generate repeat prescription review draft data |
+| `app/actions/drafts/generate-consult.ts` | clinical | Generate consult review draft data |
 
 ---
 
@@ -687,7 +662,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 ## Directory Index
 
-### `app/` — 565 files, 226 route files
+### `app/` — 530 files, 214 route files
 
 Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-contract.test.ts`; `pnpm build` remains the source of truth for expanded static/SSG route output.
 
@@ -695,10 +670,10 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 |-----------|---------|-----------|
 | `app/actions/` | Server actions | `unified-checkout.ts` (checkout bridge), `generate-drafts.ts` (AI), `ensure-profile.ts` |
 | `app/admin/` | Admin dashboard | `patients/`, `intakes/`, `emails/`, `features/`, `settings/`, `ops/`, `analytics/` |
-| `app/doctor/` | Doctor portal | `queue/` (intake queue), `intakes/[id]/` (review), `scripts/` (Rx tasks), `patients/` |
+| `app/doctor/` | Doctor portal under the shared staff shell | `intakes/[id]/` (review detail), `patients/`, `settings/`; queue/scripts entry points resolve through `/dashboard` |
 | `app/patient/` | Patient dashboard | `intakes/` (history + success), `settings/`, `onboarding/`, `documents/` |
-| `app/api/` | API routes (83 route files) | `stripe/webhook/`, `cron/`, `ai/`, `health/`, `certificates/`, `intakes/` |
-| `app/api/cron/` | Scheduled jobs (22) | `stale-queue/`, `email-dispatcher/`, `health-check/`, `release-stale-claims/`, etc. See OPERATIONS.md |
+| `app/api/` | API routes (77 route files) | `stripe/webhook/`, `cron/`, `health/`, `certificates/`, `intakes/` |
+| `app/api/cron/` | Scheduled jobs (21) | `stale-queue/`, `email-dispatcher/`, `health-check/`, `release-stale-claims/`, etc. See OPERATIONS.md |
 | `app/api/stripe/webhook/` | Stripe handlers | 7 handlers: `checkout-session-completed`, `checkout-session-expired`, `checkout-session-async-payment-succeeded/failed`, `charge-refunded`, `charge-dispute-created`, `payment-intent-payment-failed`. Repeat Rx subscription handlers are retired; unsupported Stripe events are acknowledged and claimed by the dispatcher without running business logic. Registered in `handlers/index.ts`. |
 | `app/request/` | **Sole canonical intake flow.** Single page, step-based wizard. |
 | `app/(dev)/` | Dev-only routes | Email preview only; retired `/cert-preview` and `/sentry-test` prefixes remain fail-closed in middleware |
@@ -889,9 +864,6 @@ Models in `lib/ai/provider.ts`. Routed through Vercel AI Gateway in production (
 | Profile | Model | Temp | Use |
 |---------|-------|------|-----|
 | clinical | claude-sonnet-4-20250514 | 0.1 | Medical documentation — high accuracy |
-| conversational | claude-sonnet-4-20250514 | 0.5 | Chat intake — balanced |
-| creative | claude-sonnet-4-20250514 | 0.7 | Suggestions — more variety |
-| advanced | claude-sonnet-4-20250514 | 0.2 | Complex medical analysis |
 
 ## Key Pages
 

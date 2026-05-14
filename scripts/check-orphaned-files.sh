@@ -57,8 +57,10 @@ for legacy_route in \
   "app/admin/page.tsx" \
   "app/admin/ops/doctors" \
   "app/admin/ops/sla" \
+  "app/prescriptions/[subtype]" \
   "app/doctor/certificates" \
   "app/doctor/email-suppression" \
+  "app/doctor/scripts" \
   "app/prescriptions/new" \
   "app/prescriptions/repeat" \
   "app/prescriptions/request"
@@ -83,6 +85,16 @@ do
   fi
 done
 
+# ── 2b.1. Retired duplicate public API surfaces ─────────────────────────
+for legacy_public_api in \
+  "app/api/medications/route.ts"
+do
+  if [[ -e "$legacy_public_api" ]]; then
+    echo "ORPHAN: $legacy_public_api still exists (superseded by /api/medications/search)"
+    orphans=$((orphans + 1))
+  fi
+done
+
 # ── 2c. Patient APIs retired by the one-off request model ────────────────
 for legacy_patient_api in \
   "app/api/patient/last-prescription/route.ts" \
@@ -102,6 +114,7 @@ for retired_non_operational_surface in \
   "app/api/cron/decline-reengagement/route.ts" \
   "app/api/cron/email-digest/route.ts" \
   "app/api/cron/follow-up-reminder/route.ts" \
+  "app/api/cron/scheduled-maintenance/route.ts" \
   "app/api/cron/treatment-followup/route.ts" \
   "app/api/test/boom/route.ts" \
   "app/api/test/boom-500/route.ts" \
@@ -112,6 +125,7 @@ for retired_non_operational_surface in \
   "e2e/admin.doctor-ops.spec.ts" \
   "e2e/sentry.integration.spec.ts" \
   "e2e/sentry-observability.spec.ts" \
+  "lib/config/operational-config.ts" \
   "lib/email/follow-up-reminder.ts" \
   "lib/email/treatment-followup.ts" \
   "lib/email/components/templates/decline-reengagement.tsx" \
@@ -123,8 +137,16 @@ for retired_non_operational_surface in \
   "lib/email/components/templates/treatment-followup.tsx" \
   "lib/crypto/exit-intent-token.ts" \
   "lib/data/followups.ts" \
+  "lib/validation/followup-schema.ts" \
+  "app/actions/followups.ts" \
+  "app/patient/followups/[id]/page.tsx" \
+  "app/patient/followups/[id]/followup-form.tsx" \
+  "app/patient/followups/[id]/loading.tsx" \
+  "app/patient/followups/[id]/skip/route.ts" \
   "components/patient/followup-tracker-card.tsx" \
-  "lib/analytics/acquisition-health.ts"
+  "lib/analytics/acquisition-health.ts" \
+  "lib/__tests__/followups-actions-schema.test.ts" \
+  "lib/__tests__/scheduled-maintenance-cron.test.ts"
 do
   if [[ -e "$retired_non_operational_surface" ]]; then
     echo "ORPHAN: $retired_non_operational_surface still exists (retired from lean staff operations)"
@@ -145,6 +167,32 @@ for retired_notification_sidecar in \
 do
   if [[ -e "$retired_notification_sidecar" ]]; then
     echo "ORPHAN: $retired_notification_sidecar still exists (unused by the current patient shell)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 2f. Retired duplicate patient record summary ─────────────────────────
+for retired_patient_summary_surface in \
+  "app/patient/health-summary/page.tsx" \
+  "app/patient/health-summary/client.tsx" \
+  "app/patient/health-summary/error.tsx" \
+  "app/patient/health-summary/loading.tsx" \
+  "lib/data/health-summary.ts"
+do
+  if [[ -e "$retired_patient_summary_surface" ]]; then
+    echo "ORPHAN: $retired_patient_summary_surface still exists (duplicated requests, documents, and prescriptions)"
+    orphans=$((orphans + 1))
+  fi
+done
+
+# ── 2g. Retired patient new-request modal ─────────────────────────────────
+for retired_patient_new_request_modal in \
+  "app/patient/@modal/new-request/page.tsx" \
+  "app/patient/@modal/default.tsx" \
+  "app/patient/default.tsx"
+do
+  if [[ -e "$retired_patient_new_request_modal" ]]; then
+    echo "ORPHAN: $retired_patient_new_request_modal still exists (superseded by canonical /request service selector)"
     orphans=$((orphans + 1))
   fi
 done
@@ -200,9 +248,24 @@ done < <(grep -rl \
 
 # ── 4. Superseded intake engines ──────────────────────────────────────────
 for legacy_intake_module in \
+  "app/api/ai/clinical-note/route.ts" \
+  "app/api/ai/form-validation/route.ts" \
+  "app/api/ai/med-cert-draft/route.ts" \
+  "app/api/ai/symptom-suggestions/route.ts" \
+  "lib/ai/audit.ts" \
+  "lib/ai/cache.ts" \
+  "lib/ai/confidence.ts" \
+  "lib/ai/index.ts" \
+  "lib/ai/intelligent-suggestions.ts" \
+  "lib/intake/ai-collection-boundaries.ts" \
+  "lib/intake/doctor-summary-format.ts" \
+  "lib/intake/form-transition.ts" \
+  "lib/intake/progress-persistence.ts" \
+  "lib/intake/structured-intake-schema.ts" \
   "lib/intake/flow-configs.ts" \
   "lib/intake/flow-engine.ts" \
-  "lib/intake/chat-flow-v2.ts"
+  "lib/intake/chat-flow-v2.ts" \
+  "lib/monitoring/ai-health.ts"
 do
   if [[ -e "$legacy_intake_module" ]]; then
     echo "ORPHAN: $legacy_intake_module still exists (superseded by lib/request/step-registry.ts and current AI intake routes)"

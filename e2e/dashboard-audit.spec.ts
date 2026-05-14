@@ -54,10 +54,8 @@ const PATIENT_PAGES = [
   "/patient/prescriptions",
   "/patient/documents",
   "/patient/messages",
-  "/patient/health-summary",
   "/patient/settings",
   "/patient/payment-history",
-  "/patient/notifications",
 ]
 
 const DASHBOARD_ROUTE_CONTRACTS = [
@@ -410,7 +408,6 @@ test.describe("Dashboard Audit - Link navigation", () => {
       { href: "/patient/intakes", label: /requests/i },
       { href: "/patient/prescriptions", label: /prescriptions/i },
       { href: "/patient/documents", label: /documents/i },
-      { href: "/patient/notifications", label: /notifications/i },
       { href: "/patient/payment-history", label: /payments/i },
     ]
 

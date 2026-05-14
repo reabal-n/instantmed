@@ -18,7 +18,6 @@ import {
   ADMIN_WEBHOOK_DLQ_HREF,
   buildAdminIntakeHref,
   buildDoctorIntakeHref,
-  buildPatientFollowupHref,
   buildPatientIntakeHref,
   buildStaffPatientHref,
   PATIENT_DASHBOARD_HREF,
@@ -27,7 +26,6 @@ import {
   PATIENT_SETTINGS_HREF,
   STAFF_DASHBOARD_HREF,
   STAFF_DOCTOR_PATIENTS_HREF,
-  STAFF_DOCTOR_SCRIPTS_HREF,
   STAFF_DOCTOR_SETTINGS_HREF,
   STAFF_EMAILS_HREF,
   STAFF_IDENTITY_HREF,
@@ -126,7 +124,7 @@ const STAFF_CONTENT_PATHS = [
 ] as const
 
 const STAFF_SCRIPTS_PATHS = [
-  STAFF_DOCTOR_SCRIPTS_HREF,
+  STAFF_DASHBOARD_HREF,
 ] as const
 
 export function revalidateStaff(options: RevalidateStaffOptions = {}): void {
@@ -204,8 +202,6 @@ export interface RevalidatePatientOptions {
   documents?: boolean
   /** Bust /patient/messages. */
   messages?: boolean
-  /** Bust the hidden legacy /patient/followups/{id} compatibility route. */
-  followupId?: string
   /** Bust /account (auth-state-aware landing). */
   account?: boolean
 }
@@ -223,9 +219,6 @@ export function revalidatePatient(options: RevalidatePatientOptions = {}): void 
   }
   if (options.messages) {
     revalidatePath(PATIENT_MESSAGES_HREF)
-  }
-  if (options.followupId) {
-    revalidatePath(buildPatientFollowupHref(options.followupId))
   }
   if (options.account) {
     revalidatePath("/account")

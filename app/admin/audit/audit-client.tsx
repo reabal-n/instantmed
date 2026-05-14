@@ -48,17 +48,11 @@ import { formatActorType, formatEventType, getAuditEventTypes } from "@/lib/data
 interface AuditLogClientProps {
   initialLogs: AuditLog[]
   initialTotal: number
-  stats: {
-    total: number
-    today: number
-    byType: { type: string; count: number }[]
-    byActor: { actor_type: string; count: number }[]
-  }
 }
 
 const EVENT_TYPES = getAuditEventTypes()
 
-export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogClientProps) {
+export function AuditLogClient({ initialLogs, initialTotal }: AuditLogClientProps) {
   const [logs, setLogs] = useState(initialLogs)
   const [total, setTotal] = useState(initialTotal)
   const [page, setPage] = useState(1)
@@ -148,31 +142,6 @@ export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogCli
       />
 
       <OperatorScrollArea>
-        <Card aria-label="Audit summary">
-          <CardContent className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">Total events</p>
-              <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">{stats.total.toLocaleString()}</p>
-            </div>
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">Today</p>
-              <p className="mt-1 text-xl font-semibold tabular-nums text-primary">{stats.today}</p>
-            </div>
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">Top events</p>
-              <p className="mt-1 truncate text-sm text-foreground">
-                {stats.byType.slice(0, 3).map(({ type }) => formatEventType(type)).join(", ") || "None"}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">Actor mix</p>
-              <p className="mt-1 truncate text-sm text-foreground">
-                {stats.byActor.map(({ actor_type, count }) => `${formatActorType(actor_type)} ${count}`).join(", ") || "None"}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Compliance history</CardTitle>

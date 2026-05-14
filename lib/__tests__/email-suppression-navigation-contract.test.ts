@@ -63,6 +63,18 @@ describe("email suppression navigation contract", () => {
     expect(hubPageSource).toContain("SUPABASE_AUTH_WEBHOOK_HOOK_SECRET")
   })
 
+  it("keeps email editing out of clinic setup", () => {
+    const settingsSource = readProjectFile("app/admin/settings/page.tsx")
+    const certificateDetailsSource = readProjectFile("app/admin/settings/templates/certificate-details-client.tsx")
+
+    expect(settingsSource).not.toContain("ADMIN_EMAIL_TEMPLATE_EDITOR_HREF")
+    expect(settingsSource).not.toContain("ADMIN_EMAIL_SUPPRESSION_HREF")
+    expect(settingsSource).not.toContain("/admin/emails/templates")
+    expect(settingsSource).not.toContain("/admin/emails/suppression")
+    expect(settingsSource).toContain("Delivery controls live in Email delivery")
+    expect(certificateDetailsSource).toContain("Email templates live in Email delivery")
+  })
+
   it("keeps branded magic-link and password-reset templates previewable", () => {
     const previewSource = readProjectFile("app/(dev)/email-preview/[template]/page.tsx")
 

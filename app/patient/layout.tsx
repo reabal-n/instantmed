@@ -12,10 +12,8 @@ export const metadata: Metadata = {
 
 export default async function PatientLayout({
   children,
-  modal,
 }: {
   children: React.ReactNode
-  modal: React.ReactNode
 }) {
   const authUser = await requireRole(["patient"])
   const avatarUrl = await resolveProfileAvatarUrl(authUser.profile.avatar_url)
@@ -29,7 +27,6 @@ export default async function PatientLayout({
         avatar: avatarUrl ?? undefined,
       }}
     >
-      {modal}
       {children}
     </PatientShell>
   )

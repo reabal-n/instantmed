@@ -2,13 +2,10 @@ import { NextRequest } from "next/server"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { PATCH } from "@/app/api/doctor/scripts/[id]/route"
-import { GET } from "@/app/api/doctor/scripts/route"
 
 const mocks = vi.hoisted(() => ({
   applyRateLimit: vi.fn(),
   createServiceRoleClient: vi.fn(),
-  getScriptTaskCounts: vi.fn(),
-  getScriptTasks: vi.fn(),
   logExternalPrescribingIndicated: vi.fn(),
   logger: {
     error: vi.fn(),
@@ -29,8 +26,6 @@ vi.mock("@/lib/auth/helpers", () => ({
 }))
 
 vi.mock("@/lib/data/script-tasks", () => ({
-  getScriptTaskCounts: mocks.getScriptTaskCounts,
-  getScriptTasks: mocks.getScriptTasks,
   updateScriptTaskStatus: mocks.updateScriptTaskStatus,
 }))
 
@@ -54,10 +49,6 @@ const TASK_ID = "11111111-1111-4111-8111-111111111111"
 const DOCTOR_ID = "22222222-2222-4222-8222-222222222222"
 const OTHER_DOCTOR_ID = "33333333-3333-4333-8333-333333333333"
 const INTAKE_ID = "44444444-4444-4444-8444-444444444444"
-
-function makeGetRequest(url = "http://localhost/api/doctor/scripts") {
-  return new NextRequest(url, { method: "GET" })
-}
 
 function makePatchRequest(body: Record<string, unknown>) {
   return new NextRequest(`http://localhost/api/doctor/scripts/${TASK_ID}`, {
@@ -88,32 +79,6 @@ function createSupabaseMock(task: Record<string, unknown> | null) {
   mocks.createServiceRoleClient.mockReturnValue(supabase)
   return supabase
 }
-
-describe("GET /api/doctor/scripts", () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    mocks.applyRateLimit.mockResolvedValue(null)
-    mocks.requireApiRole.mockResolvedValue({
-      profile: { id: DOCTOR_ID, role: "doctor" },
-      userId: "auth-user",
-    })
-    mocks.getScriptTasks.mockResolvedValue({ tasks: [], total: 0 })
-    mocks.getScriptTaskCounts.mockResolvedValue({ confirmed: 0, pending_send: 0, sent: 0, total: 0 })
-  })
-
-  it("scopes doctor script task lists and counts to the current doctor", async () => {
-    const response = await GET(makeGetRequest("http://localhost/api/doctor/scripts?status=pending_send"))
-
-    expect(response.status).toBe(200)
-    expect(mocks.getScriptTasks).toHaveBeenCalledWith({
-      doctorId: DOCTOR_ID,
-      page: 1,
-      pageSize: 50,
-      status: "pending_send",
-    })
-    expect(mocks.getScriptTaskCounts).toHaveBeenCalledWith({ doctorId: DOCTOR_ID })
-  })
-})
 
 describe("PATCH /api/doctor/scripts/[id]", () => {
   beforeEach(() => {

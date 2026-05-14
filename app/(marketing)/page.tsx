@@ -11,7 +11,7 @@ import { Navbar } from '@/components/shared/navbar'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
 import { getWaitState } from '@/lib/brand/wait-counter'
 import { PRICING_DISPLAY } from '@/lib/constants'
-import { getFeatureFlags } from '@/lib/feature-flags'
+import { isMaintenanceMode } from '@/lib/feature-flags'
 import { faqItems } from '@/lib/marketing/homepage'
 import { ICONIC_HOOK, PROP_PHRASE, TAGLINE, WEDGE } from '@/lib/marketing/voice'
 
@@ -87,8 +87,8 @@ export const metadata: Metadata = {
 // Streamed async component - fetches flags independently so the main page
 // shell renders immediately without waiting for the DB call.
 async function MaintenanceBanner() {
-  const flags = await getFeatureFlags()
-  if (!flags.maintenance_mode) return null
+  const maintenance = await isMaintenanceMode()
+  if (!maintenance.enabled) return null
   return (
     <div className="mx-4 mt-2 rounded-2xl border border-warning-border bg-warning-light/50 px-4 py-3 flex items-center gap-3">
       <svg className="w-5 h-5 text-warning shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -96,7 +96,7 @@ async function MaintenanceBanner() {
       </svg>
       <div>
         <p className="text-sm font-medium text-amber-900">We&apos;re currently performing maintenance.</p>
-        <p className="text-xs text-warning">{(flags as { maintenance_message?: string }).maintenance_message || "New requests will be accepted soon."}</p>
+        <p className="text-xs text-warning">{maintenance.message || "New requests will be accepted soon."}</p>
       </div>
     </div>
   )

@@ -19,6 +19,7 @@ describe("code-clean retirement contracts", () => {
       "app/admin/page.tsx",
       "app/admin/ops/doctors",
       "app/admin/ops/sla",
+      "app/prescriptions/[subtype]",
       "app/prescriptions/new",
       "app/prescriptions/repeat",
       "app/prescriptions/request",
@@ -41,6 +42,7 @@ describe("code-clean retirement contracts", () => {
     expect(nextConfig).toContain('destination: "/admin/analytics"')
     expect(nextConfig).toContain('source: "/prescriptions/new"')
     expect(nextConfig).toContain('source: "/prescriptions/repeat"')
+    expect(nextConfig).toContain('source: "/prescriptions/:subtype"')
     expect(nextConfig).toContain('source: "/prescriptions/request"')
 
     const orphanCheck = read("scripts/check-orphaned-files.sh")
@@ -55,6 +57,7 @@ describe("code-clean retirement contracts", () => {
       "app/api/doctor/assign-request/route.ts",
       "app/api/doctor/drafts/[intakeId]/route.ts",
       "app/api/doctor/onboarding-status/route.ts",
+      "app/api/medications/route.ts",
       "app/api/health/dashboard/route.ts",
     ]
     const orphanCheck = read("scripts/check-orphaned-files.sh")
@@ -129,6 +132,51 @@ describe("code-clean retirement contracts", () => {
     expect(read("app/patient/layout.tsx")).not.toContain('from("notifications")')
   })
 
+  it("keeps the retired patient health summary redirect-only", () => {
+    const retiredPatientHealthSummary = [
+      "app/patient/health-summary/page.tsx",
+      "app/patient/health-summary/client.tsx",
+      "app/patient/health-summary/error.tsx",
+      "app/patient/health-summary/loading.tsx",
+      "lib/data/health-summary.ts",
+    ]
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+
+    for (const path of retiredPatientHealthSummary) {
+      expect(existsSync(join(root, path)), path).toBe(false)
+      expect(orphanCheck).toContain(path)
+    }
+
+    const nextConfig = read("next.config.mjs")
+    expect(nextConfig).toContain('source: "/patient/health-summary"')
+    expect(nextConfig).toContain('destination: "/patient"')
+    expect(read("docs/ARCHITECTURE.md")).not.toContain("/patient/health-summary")
+  })
+
+  it("keeps the retired patient new-request modal redirect-only", () => {
+    const retiredPatientNewRequestModal = [
+      "app/patient/@modal/new-request/page.tsx",
+      "app/patient/@modal/default.tsx",
+      "app/patient/default.tsx",
+    ]
+    const orphanCheck = read("scripts/check-orphaned-files.sh")
+
+    for (const path of retiredPatientNewRequestModal) {
+      expect(existsSync(join(root, path)), path).toBe(false)
+      expect(orphanCheck).toContain(path)
+    }
+
+    const routesSource = read("lib/dashboard/routes.ts")
+    const leftRailSource = read("components/shell/left-rail.tsx")
+    const nextConfig = read("next.config.mjs")
+
+    expect(routesSource).not.toContain("PATIENT_NEW_REQUEST_HREF")
+    expect(leftRailSource).not.toContain("PATIENT_NEW_REQUEST_HREF")
+    expect(leftRailSource).toContain("REQUEST_HREF")
+    expect(nextConfig).toContain('source: "/patient/new-request"')
+    expect(nextConfig).toContain('destination: "/request"')
+  })
+
   it("keeps automated treatment follow-up reminders out of the lean one-off model", () => {
     const retiredTreatmentFollowupFiles = [
       "app/api/cron/treatment-followup/route.ts",
@@ -136,6 +184,12 @@ describe("code-clean retirement contracts", () => {
       "lib/email/components/templates/treatment-followup.tsx",
       "lib/data/followups.ts",
       "components/patient/followup-tracker-card.tsx",
+      "app/patient/followups/[id]/page.tsx",
+      "app/patient/followups/[id]/followup-form.tsx",
+      "app/patient/followups/[id]/loading.tsx",
+      "app/patient/followups/[id]/skip/route.ts",
+      "app/actions/followups.ts",
+      "lib/validation/followup-schema.ts",
     ]
     const orphanCheck = read("scripts/check-orphaned-files.sh")
 
@@ -155,12 +209,12 @@ describe("code-clean retirement contracts", () => {
     expect(legacyFollowupsPanel).toContain("New automated check-ins are retired")
     expect(legacyFollowupsPanel).not.toContain("Follow-up check-ins")
 
-    const patientFollowupPage = read("app/patient/followups/[id]/page.tsx")
-    const followupActions = read("app/actions/followups.ts")
     const routesSource = read("lib/dashboard/routes.ts")
-    expect(patientFollowupPage).toContain("Compatibility-only route for historical ED/hair-loss check-in links")
-    expect(followupActions).toContain("Compatibility actions for historical intake_followups rows")
-    expect(routesSource).toContain("Hidden compatibility route for historical treatment check-in links")
+    const nextConfigSource = read("next.config.mjs")
+    expect(routesSource).not.toContain("PATIENT_FOLLOWUPS_HREF")
+    expect(routesSource).not.toContain("buildPatientFollowupHref")
+    expect(nextConfigSource).toContain('source: "/patient/followups/:path*"')
+    expect(nextConfigSource).toContain('destination: "/patient/intakes"')
 
     const patientNavigationSurfaces = [
       "components/ui/mobile-nav.tsx",
@@ -300,9 +354,24 @@ describe("code-clean retirement contracts", () => {
 
   it("keeps superseded intake engines out of the runtime tree", () => {
     const retiredIntakeModules = [
+      "app/api/ai/clinical-note/route.ts",
+      "app/api/ai/form-validation/route.ts",
+      "app/api/ai/med-cert-draft/route.ts",
+      "app/api/ai/symptom-suggestions/route.ts",
+      "lib/ai/audit.ts",
+      "lib/ai/cache.ts",
+      "lib/ai/confidence.ts",
+      "lib/ai/index.ts",
+      "lib/ai/intelligent-suggestions.ts",
+      "lib/intake/ai-collection-boundaries.ts",
+      "lib/intake/doctor-summary-format.ts",
+      "lib/intake/form-transition.ts",
+      "lib/intake/progress-persistence.ts",
+      "lib/intake/structured-intake-schema.ts",
       "lib/intake/flow-configs.ts",
       "lib/intake/flow-engine.ts",
       "lib/intake/chat-flow-v2.ts",
+      "lib/monitoring/ai-health.ts",
     ]
 
     const orphanCheck = read("scripts/check-orphaned-files.sh")

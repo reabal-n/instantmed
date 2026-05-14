@@ -11,6 +11,7 @@
 import { expect,test } from "@playwright/test"
 
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
+import { STAFF_TEST_ROUTES } from "./helpers/staff-routes"
 import { waitForPageLoad } from "./helpers/test-utils"
 
 test.describe("Admin - Analytics Dashboard", () => {
@@ -24,7 +25,7 @@ test.describe("Admin - Analytics Dashboard", () => {
   })
 
   test("analytics page loads without errors", async ({ page }) => {
-    await page.goto("/admin/analytics")
+    await page.goto(STAFF_TEST_ROUTES.adminAnalytics)
     await waitForPageLoad(page)
 
     await expect(page.getByRole("heading", { name: /analytics|dashboard/i })).toBeVisible({
@@ -37,7 +38,7 @@ test.describe("Admin - Analytics Dashboard", () => {
   })
 
   test("analytics page shows key metric cards", async ({ page }) => {
-    await page.goto("/admin/analytics")
+    await page.goto(STAFF_TEST_ROUTES.adminAnalytics)
     await waitForPageLoad(page)
 
     // Should show metric values (numbers or charts)
@@ -50,7 +51,7 @@ test.describe("Admin - Analytics Dashboard", () => {
   })
 
   test("analytics page stays focused on the three operator sections", async ({ page }) => {
-    await page.goto("/admin/analytics")
+    await page.goto(STAFF_TEST_ROUTES.adminAnalytics)
     await waitForPageLoad(page)
 
     await expect(page.getByRole("heading", { name: "Revenue" })).toBeVisible()
@@ -71,7 +72,7 @@ test.describe("Admin - Finance Dashboard", () => {
   })
 
   test("finance page loads", async ({ page }) => {
-    await page.goto("/admin/finance")
+    await page.goto(STAFF_TEST_ROUTES.adminFinance)
     await waitForPageLoad(page)
 
     await expect(
@@ -80,7 +81,7 @@ test.describe("Admin - Finance Dashboard", () => {
   })
 
   test("finance page shows revenue metrics", async ({ page }) => {
-    await page.goto("/admin/finance")
+    await page.goto(STAFF_TEST_ROUTES.adminFinance)
     await waitForPageLoad(page)
 
     // Should display revenue-related content
@@ -104,7 +105,7 @@ test.describe("Admin - Email Management", () => {
   })
 
   test("email hub page loads", async ({ page }) => {
-    await page.goto("/admin/emails/hub")
+    await page.goto(STAFF_TEST_ROUTES.adminEmailHub)
     await waitForPageLoad(page)
 
     await expect(
@@ -129,7 +130,7 @@ test.describe("Admin - Email Management", () => {
   })
 
   test("email editor page loads", async ({ page }) => {
-    await page.goto("/admin/emails/templates")
+    await page.goto(STAFF_TEST_ROUTES.adminEmailTemplates)
     await waitForPageLoad(page)
 
     // Should show editor UI
@@ -171,7 +172,7 @@ test.describe("Admin - Audit Logs", () => {
   })
 
   test("audit logs page loads", async ({ page }) => {
-    await page.goto("/admin/audit")
+    await page.goto(STAFF_TEST_ROUTES.adminAudit)
     await waitForPageLoad(page)
 
     await expect(
@@ -180,7 +181,7 @@ test.describe("Admin - Audit Logs", () => {
   })
 
   test("audit logs shows search functionality", async ({ page }) => {
-    await page.goto("/admin/audit")
+    await page.goto(STAFF_TEST_ROUTES.adminAudit)
     await waitForPageLoad(page)
 
     // Should have a search input

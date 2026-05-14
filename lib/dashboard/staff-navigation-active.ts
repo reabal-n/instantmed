@@ -16,6 +16,12 @@ export function hasStatusFilteredDashboardItems(hrefs: string[]): boolean {
   )
 }
 
+function hasRootDashboardItem(hrefs: readonly string[] | undefined): boolean {
+  return Boolean(hrefs?.some(
+    (href) => getStaffNavHrefPath(href) === STAFF_DASHBOARD_HREF && !getStaffNavHrefStatus(href),
+  ))
+}
+
 const NAV_PATH_ALIASES: Record<string, string[]> = {
   [STAFF_PATIENTS_HREF]: [STAFF_DOCTOR_PATIENTS_HREF],
 }
@@ -62,7 +68,9 @@ export function isStaffNavItemActive({
   const hrefStatus = getStaffNavHrefStatus(href)
 
   if (hrefStatus) {
-    return pathname === hrefPath && currentStatus === hrefStatus
+    if (pathname !== hrefPath) return false
+    if (currentStatus === hrefStatus) return true
+    return !currentStatus && hrefStatus === "review" && !hasRootDashboardItem(allHrefs)
   }
 
   if (hrefPath === STAFF_DASHBOARD_HREF) {

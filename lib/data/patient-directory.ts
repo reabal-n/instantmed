@@ -55,10 +55,14 @@ export function parsePatientDirectorySort(value?: string | string[] | null): Pat
     : "recent_request"
 }
 
+export function parsePatientDirectorySearch(value?: string | string[] | null): string {
+  const candidate = Array.isArray(value) ? value[0] : value
+  return normalizePatientDirectorySearch(candidate)
+}
+
 export interface PatientDirectoryPage {
   patients: PatientDirectoryProfile[]
   total: number
-  rawTotal: number
   collapsedCount: number
 }
 
@@ -67,23 +71,26 @@ export async function getPatientDirectoryPage({
   page,
   pageSize = 50,
   sort = "recent_request",
+  search,
 }: {
   doctorId?: string
   page: number
   pageSize?: number
   sort?: PatientDirectorySort
+  search?: string
 }): Promise<PatientDirectoryPage> {
   const supabase = createServiceRoleClient()
 
   const from = (page - 1) * pageSize
   const to = from + pageSize - 1
+  const searchFilter = buildPatientDirectorySearchFilter(search)
 
   const accessiblePatientIds = doctorId
     ? Array.from(await getDoctorAccessiblePatientIds(doctorId, supabase))
     : null
 
   if (doctorId && accessiblePatientIds?.length === 0) {
-    return { patients: [], total: 0, rawTotal: 0, collapsedCount: 0 }
+    return { patients: [], total: 0, collapsedCount: 0 }
   }
 
   let query = supabase
@@ -102,17 +109,24 @@ export async function getPatientDirectoryPage({
     `, { count: "exact" })
     .eq("role", "patient")
     .is("merged_into_profile_id", null)
-    .order("created_at", { ascending: false })
+
+  query = sort === "name"
+    ? query.order("full_name", { ascending: true })
+    : query.order("created_at", { ascending: false })
 
   if (accessiblePatientIds) {
     query = query.in("id", accessiblePatientIds)
   }
 
-  const { data, error, count } = await query
+  if (searchFilter) {
+    query = query.or(searchFilter)
+  }
+
+  const { data, error, count } = await query.range(from, to)
 
   if (error) {
     log.error("Failed to fetch patient directory", { error: error.message, page: from })
-    return { patients: [], total: 0, rawTotal: 0, collapsedCount: 0 }
+    return { patients: [], total: 0, collapsedCount: 0 }
   }
 
   const rawPatients = (data || []).map((row) =>
@@ -127,13 +141,38 @@ export async function getPatientDirectoryPage({
   const patients = collapsed.patients
     .map((patient) => hydrateDirectoryPatient(patient, lastRequests, lastScripts))
     .sort((a, b) => compareDirectoryPatients(a, b, sort))
+  const rawTotal = count ?? rawPatients.length
 
   return {
-    patients: patients.slice(from, to + 1),
-    total: patients.length,
-    rawTotal: count ?? rawPatients.length,
+    patients,
+    total: rawTotal,
     collapsedCount: collapsed.collapsedCount,
   }
+}
+
+function normalizePatientDirectorySearch(value?: string | null): string {
+  return (value ?? "")
+    .replace(/[,%()_*]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 80)
+}
+
+function buildPatientDirectorySearchFilter(value?: string | null): string | null {
+  const search = normalizePatientDirectorySearch(value)
+  if (!search) return null
+
+  const filters = [
+    `full_name.ilike.%${search}%`,
+    `email.ilike.%${search}%`,
+    `suburb.ilike.%${search}%`,
+  ]
+  const phoneDigits = search.replace(/\D/g, "")
+  if (phoneDigits.length >= 3) {
+    filters.push(`phone.ilike.%${phoneDigits}%`)
+  }
+
+  return filters.join(",")
 }
 
 type RelatedRow<T> = T | T[] | null | undefined
