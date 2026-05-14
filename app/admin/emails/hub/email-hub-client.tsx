@@ -359,7 +359,7 @@ export function EmailHubClient({
 
           <Card>
             <CardHeader>
-              <CardTitle>Email controls</CardTitle>
+              <CardTitle>Email delivery controls</CardTitle>
               <CardDescription>
                 The few links needed to keep delivery working.
               </CardDescription>

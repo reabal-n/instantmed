@@ -1,13 +1,30 @@
 import { revalidatePath } from "next/cache"
 
 import {
+  ADMIN_AUDIT_HREF,
+  ADMIN_CERTIFICATE_TEMPLATES_HREF,
+  ADMIN_CLINIC_HREF,
+  ADMIN_DOCTORS_HREF,
+  ADMIN_EMAIL_SUPPRESSION_HREF,
+  ADMIN_EMAIL_TEMPLATE_EDITOR_HREF,
+  ADMIN_FEATURES_HREF,
   ADMIN_PARCHMENT_OPS_HREF,
   ADMIN_PATIENT_MERGE_AUDIT_HREF,
   ADMIN_PRESCRIBING_IDENTITY_HREF,
   ADMIN_RECONCILIATION_HREF,
+  ADMIN_REFUNDS_HREF,
+  ADMIN_SERVICES_HREF,
   ADMIN_STALE_INTAKES_HREF,
   ADMIN_WEBHOOK_DLQ_HREF,
+  STAFF_DASHBOARD_HREF,
+  STAFF_DOCTOR_PATIENTS_HREF,
+  STAFF_DOCTOR_SCRIPTS_HREF,
+  STAFF_DOCTOR_SETTINGS_HREF,
+  STAFF_EMAILS_HREF,
+  STAFF_IDENTITY_HREF,
   STAFF_OPS_HREF,
+  STAFF_PATIENTS_HREF,
+  STAFF_SETTINGS_HREF,
 } from "@/lib/dashboard/routes"
 
 /**
@@ -40,7 +57,7 @@ export interface RevalidateStaffOptions {
    */
   settings?: boolean
   /**
-   * Also bust the email console surfaces (templates, hub, suppression). Use
+   * Also bust the email delivery surfaces (templates, queue, suppression). Use
    * for template edits or email-outbox actions.
    */
   emails?: boolean
@@ -56,12 +73,12 @@ export interface RevalidateStaffOptions {
 }
 
 const STAFF_LANDING_PATHS = [
-  "/dashboard",
+  STAFF_DASHBOARD_HREF,
 ] as const
 
 const STAFF_PATIENT_LIST_PATHS = [
-  "/admin/patients",
-  "/doctor/patients",
+  STAFF_PATIENTS_HREF,
+  STAFF_DOCTOR_PATIENTS_HREF,
 ] as const
 
 const STAFF_OPS_PATHS = [
@@ -75,32 +92,32 @@ const STAFF_OPS_PATHS = [
 ] as const
 
 const STAFF_IDENTITY_PATHS = [
-  "/doctor/settings/identity",
-  "/doctor/settings",
+  STAFF_IDENTITY_HREF,
+  STAFF_DOCTOR_SETTINGS_HREF,
 ] as const
 
 const STAFF_SETTINGS_PATHS = [
-  "/admin/settings",
-  "/admin/clinic",
-  "/admin/doctors",
-  "/admin/services",
-  "/admin/features",
+  STAFF_SETTINGS_HREF,
+  ADMIN_CLINIC_HREF,
+  ADMIN_DOCTORS_HREF,
+  ADMIN_SERVICES_HREF,
+  ADMIN_FEATURES_HREF,
 ] as const
 
 const STAFF_EMAILS_PATHS = [
-  "/admin/emails/hub",
-  "/admin/emails/templates",
-  "/admin/emails/suppression",
-  "/admin/settings/templates",
+  STAFF_EMAILS_HREF,
+  ADMIN_EMAIL_TEMPLATE_EDITOR_HREF,
+  ADMIN_EMAIL_SUPPRESSION_HREF,
+  ADMIN_CERTIFICATE_TEMPLATES_HREF,
 ] as const
 
 const STAFF_CONTENT_PATHS = [
-  "/admin/refunds",
-  "/admin/audit",
+  ADMIN_REFUNDS_HREF,
+  ADMIN_AUDIT_HREF,
 ] as const
 
 const STAFF_SCRIPTS_PATHS = [
-  "/doctor/scripts",
+  STAFF_DOCTOR_SCRIPTS_HREF,
 ] as const
 
 export function revalidateStaff(options: RevalidateStaffOptions = {}): void {

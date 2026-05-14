@@ -1,9 +1,9 @@
 export const metadata = {
-  title: "Emails",
+  title: "Email delivery",
 }
 
 /**
- * Shared layout for the Emails section of /admin.
+ * Shared layout for the Email delivery section of /admin.
  *
  * Phase 6 of the doctor + admin portal rebuild (2026-04-29). Email
  * surfaces used to sprawl across templates, preview, analytics, suppression,
@@ -11,8 +11,8 @@ export const metadata = {
  * three jobs here:
  *
  * Routes consolidated under /admin/emails:
- *   /admin/emails -> Redirect to delivery hub
- *   /admin/emails/hub -> Delivery hub (queue recovery + health)
+ *   /admin/emails -> Redirect to Email delivery
+ *   /admin/emails/hub -> Email delivery (queue recovery + health)
  *   /admin/emails/templates -> Templates (edit, preview, test)
  *   /admin/emails/suppression -> Suppression (blocked recipient recovery)
  *

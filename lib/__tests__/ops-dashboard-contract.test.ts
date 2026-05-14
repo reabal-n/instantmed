@@ -301,7 +301,7 @@ describe("ops dashboard data contract", () => {
   })
 
   it("keeps auth recovery health inside compact email controls", () => {
-    expect(emailHubClientSource).toContain("Email controls")
+    expect(emailHubClientSource).toContain("Email delivery controls")
     expect(emailHubClientSource).toContain("Auth recovery")
     expect(emailHubClientSource).toContain("Verification preview")
     expect(emailHubClientSource).toContain("Magic-link preview")

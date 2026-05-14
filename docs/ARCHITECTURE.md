@@ -262,7 +262,7 @@ Entry points (doctor queue | admin panel | API)
 
 **Template types:** Core transactional and lifecycle types are reconstructed from source records for retry, including `med_cert_patient`, `med_cert_employer`, `script_sent`, `request_declined`, `prescription_approved`, `still_reviewing`, and `payment_retry`. Supabase Auth send-email templates cover `magiclink`, `signup`, and `recovery` via `app/api/webhooks/supabase-auth/route.ts`. Marketing/engagement types are capped by warmup limits; transactional clinical/payment sends are not.
 
-**Admin hub:** `/admin/emails/hub` is the single delivery operations surface: outbox recovery, delivery status, sequence ownership, and compact controls for templates, suppression, and auth recovery health. Email template editing lives at `/admin/emails/templates`; certificate/PDF template configuration lives separately at `/admin/settings/templates`. In development, `/email-preview/magic-link` covers Supabase auth email QA. Legacy `/admin/email-hub`, `/admin/email-test`, `/admin/email-outbox`, `/admin/email-queue`, `/admin/ops/email-outbox`, `/admin/emails/preview`, and `/admin/emails/analytics` redirect to the owning email surfaces.
+**Email delivery:** `/admin/emails/hub` is the single delivery operations surface: outbox recovery, delivery status, sequence ownership, and compact controls for templates, suppression, and auth recovery health. Email template editing lives at `/admin/emails/templates`; certificate/PDF template configuration lives separately at `/admin/settings/templates`. In development, `/email-preview/magic-link` covers Supabase auth email QA. Legacy `/admin/email-hub`, `/admin/email-test`, `/admin/email-outbox`, `/admin/email-queue`, `/admin/ops/email-outbox`, `/admin/emails/preview`, and `/admin/emails/analytics` redirect to the owning email surfaces.
 
 ### Retry & Delivery
 
@@ -276,7 +276,7 @@ All sends logged to `email_outbox`: `status` (pending | sending | sent | failed 
 
 ### Email Test Studio
 
-Email preview lives inside `/admin/emails/templates` for admin review and `/email-preview/*` for development template QA. Test sends use the admin email server action from the template editor or email hub; there is no separate `/admin/email-test` page or direct test-send API.
+Email preview lives inside `/admin/emails/templates` for admin review and `/email-preview/*` for development template QA. Test sends use the admin email server action from the template editor or Email delivery; there is no separate `/admin/email-test` page or direct test-send API.
 
 ---
 
@@ -419,7 +419,7 @@ Config-driven, immutably versioned. Template config stored as JSONB in `certific
 
 - `admin` — owner-operator. Holds both admin and doctor capabilities via role inheritance (`getRoleCapabilities("admin") = ["admin", "doctor"]`). Single admin per platform; future doctor hires are `doctor` role only.
 - `doctor` — clinical only. Holds the `doctor` capability.
-- `support` — non-clinical operations. Holds the `support` capability. Sidebar shows only `/admin/ops`; that cockpit links through to `/admin/webhook-dlq`, `/admin/ops/parchment`, and `/admin/ops/prescribing-identity` with masked/redacted data only when recovery work needs it. No clinical answers, approvals, prescribing access, patient directory, email hub, finance, analytics, or settings access.
+- `support` — non-clinical operations. Holds the `support` capability. Sidebar shows only `/admin/ops`; that cockpit links through to `/admin/webhook-dlq`, `/admin/ops/parchment`, and `/admin/ops/prescribing-identity` with masked/redacted data only when recovery work needs it. No clinical answers, approvals, prescribing access, patient directory, Email delivery, finance, analytics, or settings access.
 
 Capability helpers in `lib/auth/staff-capabilities.ts`. Per-doctor capability flags on `profiles` (`can_review_med_certs`, `can_review_repeat_rx`, `can_review_consults`, `can_review_ed`, `can_review_hair_loss`, `can_prescribe_s4`, `can_prescribe_s8`) scope future doctor hires before their service-line verification completes; owner-operator is unrestricted by default. Parchment prescribing actions call `checkParchmentPrescribingCapability(...)` before external handoff: `prescribe_s4` is required for every embedded prescribing launch, and `prescribe_s8` is required when repeat-script intake answers include a controlled-medication name.
 
@@ -695,7 +695,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | Directory | Purpose | Key files |
 |-----------|---------|-----------|
 | `app/actions/` | Server actions | `unified-checkout.ts` (checkout bridge), `generate-drafts.ts` (AI), `ensure-profile.ts` |
-| `app/admin/` | Admin dashboard | `patients/`, `intakes/`, `email-hub/`, `features/`, `settings/`, `ops/`, `analytics/` |
+| `app/admin/` | Admin dashboard | `patients/`, `intakes/`, `emails/`, `features/`, `settings/`, `ops/`, `analytics/` |
 | `app/doctor/` | Doctor portal | `queue/` (intake queue), `intakes/[id]/` (review), `scripts/` (Rx tasks), `patients/` |
 | `app/patient/` | Patient dashboard | `intakes/` (history + success), `settings/`, `onboarding/`, `documents/` |
 | `app/api/` | API routes (92 route files) | `stripe/webhook/`, `cron/`, `ai/`, `health/`, `certificates/`, `intakes/` |

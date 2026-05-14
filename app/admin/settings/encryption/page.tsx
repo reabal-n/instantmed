@@ -1,6 +1,9 @@
 import { AlertTriangle, CheckCircle2, Lock, Shield, Unlock } from "lucide-react"
+import Link from "next/link"
 
+import { Button } from "@/components/ui/button"
 import { requireRole } from "@/lib/auth/helpers"
+import { STAFF_OPS_HREF } from "@/lib/dashboard/routes"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export const dynamic = "force-dynamic"
@@ -54,15 +57,22 @@ export default async function EncryptionDashboardPage() {
   ]
 
   return (
-    <div className="space-y-6 p-6" aria-label="PHI Encryption Dashboard">
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-          <Shield className="h-5 w-5" aria-hidden="true" />
+    <div className="space-y-6 p-6" aria-label="Encryption diagnostics">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Shield className="h-5 w-5" aria-hidden="true" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-semibold">Encryption diagnostics</h1>
+            <p className="text-sm text-muted-foreground">
+              Incident-only checks for key rotation and encryption backfill. Routine health belongs in Ops.
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-semibold">PHI Encryption Status</h1>
-          <p className="text-sm text-muted-foreground">AES-256-GCM envelope encryption for protected health information</p>
-        </div>
+        <Button asChild variant="outline" size="sm">
+          <Link href={STAFF_OPS_HREF}>Back to Ops</Link>
+        </Button>
       </div>
 
       {/* Feature flag status */}

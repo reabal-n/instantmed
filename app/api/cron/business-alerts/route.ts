@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
 
     // 3. Bounced emails in last hour (from email_outbox)
     // Only track the business metric — don't raise a Sentry alert here.
-    // The email hub and Resend's own dashboard flag the domain-level issue.
+    // Email delivery and Resend's own dashboard flag the domain-level issue.
     // Spam-rate SLO is the
     // real concern; single-bounce spikes are almost always one bad address.
     const { count: bouncedEmails } = await supabase

@@ -112,7 +112,7 @@ describe("admin navigation contract", () => {
     expect(settingsSource).toContain("ADMIN_CLINIC_HREF")
     expect(settingsSource).toContain("ADMIN_DOCTORS_HREF")
     expect(settingsSource).toContain("ADMIN_SERVICES_HREF")
-    expect(settingsSource).toContain("Email delivery lives in the email hub")
+    expect(settingsSource).toContain("Delivery controls live in Email delivery")
     expect(settingsSource).toContain("Recovery work lives in Ops")
     expect(settingsSource).not.toContain("ADMIN_EMAIL_TEMPLATE_EDITOR_HREF")
     expect(settingsSource).not.toContain('href: "/admin/content"')
@@ -350,38 +350,55 @@ describe("admin navigation contract", () => {
     }
   })
 
-  it("keeps active admin routes intentionally owned by nav, settings, or ops", () => {
-    const allowedAdminPages = [
-      "app/admin/analytics/page.tsx",
-      "app/admin/audit/page.tsx",
-      "app/admin/clinic/page.tsx",
-      "app/admin/doctors/page.tsx",
-      "app/admin/emails/hub/page.tsx",
-      "app/admin/emails/suppression/page.tsx",
-      "app/admin/emails/templates/page.tsx",
-      "app/admin/features/page.tsx",
-      "app/admin/finance/page.tsx",
-      "app/admin/intakes/[id]/page.tsx",
-      "app/admin/intakes/page.tsx",
-      "app/admin/ops/intakes-stuck/page.tsx",
-      "app/admin/ops/page.tsx",
-      "app/admin/ops/parchment/page.tsx",
-      "app/admin/ops/patient-merge-audit/page.tsx",
-      "app/admin/ops/prescribing-identity/page.tsx",
-      "app/admin/ops/reconciliation/page.tsx",
-      "app/admin/patients/page.tsx",
-      "app/admin/refunds/page.tsx",
-      "app/admin/services/page.tsx",
-      "app/admin/settings/encryption/page.tsx",
-      "app/admin/settings/page.tsx",
-      "app/admin/settings/templates/page.tsx",
-      "app/admin/webhook-dlq/page.tsx",
-    ]
+  it("maps every active admin page to a lean operator workflow", () => {
+    const adminWorkflowPages = {
+      cockpit: [
+        "app/admin/intakes/[id]/page.tsx",
+        "app/admin/intakes/page.tsx",
+        "app/admin/patients/page.tsx",
+      ],
+      ops: [
+        "app/admin/audit/page.tsx",
+        "app/admin/ops/intakes-stuck/page.tsx",
+        "app/admin/ops/page.tsx",
+        "app/admin/ops/parchment/page.tsx",
+        "app/admin/ops/patient-merge-audit/page.tsx",
+        "app/admin/ops/prescribing-identity/page.tsx",
+        "app/admin/ops/reconciliation/page.tsx",
+        "app/admin/webhook-dlq/page.tsx",
+      ],
+      money: [
+        "app/admin/finance/page.tsx",
+        "app/admin/refunds/page.tsx",
+      ],
+      emailDelivery: [
+        "app/admin/emails/hub/page.tsx",
+        "app/admin/emails/suppression/page.tsx",
+        "app/admin/emails/templates/page.tsx",
+      ],
+      setup: [
+        "app/admin/clinic/page.tsx",
+        "app/admin/doctors/page.tsx",
+        "app/admin/features/page.tsx",
+        "app/admin/services/page.tsx",
+        "app/admin/settings/page.tsx",
+        "app/admin/settings/templates/page.tsx",
+      ],
+      analytics: [
+        "app/admin/analytics/page.tsx",
+      ],
+      incidentOnly: [
+        "app/admin/settings/encryption/page.tsx",
+      ],
+    }
     const adminPages = findAdminPageFiles()
       .map((file) => file.replace(process.cwd() + "/", ""))
       .sort()
+    const mappedPages = Object.values(adminWorkflowPages).flat().sort()
 
-    expect(adminPages).toEqual([...allowedAdminPages].sort())
+    expect(adminPages).toEqual(mappedPages)
+    expect(adminWorkflowPages.ops).toContain("app/admin/audit/page.tsx")
+    expect(adminWorkflowPages.incidentOnly).toEqual(["app/admin/settings/encryption/page.tsx"])
   })
 
   it("keeps analytics as a compact operator summary instead of a chart workspace", () => {

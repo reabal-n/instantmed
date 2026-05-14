@@ -41,7 +41,7 @@ describe("email suppression navigation contract", () => {
     expect(existsSync(join(root, "app/api/cron/daily-digest/route.ts"))).toBe(false)
   })
 
-  it("keeps the email hub focused on hub work instead of duplicating section tabs", () => {
+  it("keeps Email delivery focused on delivery work instead of duplicating section tabs", () => {
     const hubSource = readProjectFile("app/admin/emails/hub/email-hub-client.tsx")
     const hubPageSource = readProjectFile("app/admin/emails/hub/page.tsx")
 
@@ -54,7 +54,7 @@ describe("email suppression navigation contract", () => {
     expect(hubSource).not.toContain('href="/admin/emails/preview"')
     expect(hubSource).not.toContain('href="/admin/emails/hub"')
     expect(hubSource).not.toContain("Template Settings")
-    expect(hubSource).toContain("Email controls")
+    expect(hubSource).toContain("Email delivery controls")
     expect(hubSource).toContain("Auth recovery")
     expect(hubSource).toContain("/email-preview/verification-code")
     expect(hubSource).toContain("/email-preview/magic-link")
@@ -72,7 +72,7 @@ describe("email suppression navigation contract", () => {
     expect(previewSource).not.toContain("Reset your password with this link:")
   })
 
-  it("keeps the verification-code auth template previewable from the email hub", () => {
+  it("keeps the verification-code auth template previewable from Email delivery", () => {
     const hubSource = readProjectFile("app/admin/emails/hub/email-hub-client.tsx")
     const previewSource = readProjectFile("app/(dev)/email-preview/[template]/page.tsx")
 

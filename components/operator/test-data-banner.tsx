@@ -25,6 +25,7 @@ import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
+import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 
 function withTestDataParam(
   pathname: string,
@@ -48,7 +49,7 @@ function withTestDataParam(
  * query param.
  */
 export function TestDataBanner() {
-  const pathname = usePathname() ?? "/dashboard"
+  const pathname = usePathname() ?? STAFF_DASHBOARD_HREF
   const params = useSearchParams()
   const searchParams = new URLSearchParams(params?.toString() ?? "")
   const hideHref = withTestDataParam(pathname, searchParams, false)
@@ -89,7 +90,7 @@ export function TestDataBanner() {
  * is responsible for not rendering this for non-admin roles.
  */
 export function TestDataToggleButton({ active }: { active: boolean }) {
-  const pathname = usePathname() ?? "/dashboard"
+  const pathname = usePathname() ?? STAFF_DASHBOARD_HREF
   const params = useSearchParams()
   const searchParams = new URLSearchParams(params?.toString() ?? "")
   const href = withTestDataParam(pathname, searchParams, !active)

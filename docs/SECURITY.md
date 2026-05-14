@@ -298,7 +298,7 @@ All webhooks use signature verification (not CSRF).
 |------|------------------------|----------------|
 | `admin` | admin + doctor (owner-operator) | Everything |
 | `doctor` | doctor | Clinical surfaces only (queue, cases, patient profiles, identity) |
-| `support` | support | Non-clinical ops only. Support is bounded to `/admin/ops`, `/admin/webhook-dlq`, `/admin/ops/parchment`, and `/admin/ops/prescribing-identity`; PHI-heavy links, email hub, settings, patient ledgers, clinical actions, and direct prescribing remain admin/doctor-only. |
+| `support` | support | Non-clinical ops only. Support is bounded to `/admin/ops`, `/admin/webhook-dlq`, `/admin/ops/parchment`, and `/admin/ops/prescribing-identity`; PHI-heavy links, Email delivery, settings, patient ledgers, clinical actions, and direct prescribing remain admin/doctor-only. |
 | `patient` | patient | Patient portal only |
 
 **Future-doctor patient boundary (2026-05-13):** Admin remains the only broad operator. Non-admin doctors are scoped in app-layer service-role reads by `lib/doctor/patient-access.ts`; patient directory, patient detail, patient summary/health-profile APIs, and doctor analytics only include patients/cases tied to a concrete doctor relationship (`claimed_by`, `reviewing_doctor_id`, `reviewed_by`, `script_tasks.doctor_id`, `issued_certificates.doctor_id`, or `patient_notes.created_by`). Return 404 for direct patient API/profile access outside this relationship to avoid patient enumeration.

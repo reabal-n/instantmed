@@ -81,7 +81,7 @@ export function UserMenu({
           />
         ) : user ? (
           <Link
-            href="/dashboard"
+            href={STAFF_DASHBOARD_HREF}
             className="flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors border border-border/40"
           >
             <div className="h-4 w-4 rounded-full bg-primary/10 flex items-center justify-center shrink-0">

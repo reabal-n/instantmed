@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 
 import { getOrCreateAuthenticatedUser } from "@/lib/auth/helpers"
 import { normalizePostAuthRedirect } from "@/lib/auth/redirects"
+import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 
 import { OnboardingFlow } from "./onboarding-flow"
 
@@ -25,7 +26,7 @@ export default async function PatientOnboardingPage({
   }
 
   if (authUser.profile.role !== "patient") {
-    redirect("/dashboard")
+    redirect(STAFF_DASHBOARD_HREF)
   }
 
   // If already completed onboarding, redirect to intended destination or dashboard

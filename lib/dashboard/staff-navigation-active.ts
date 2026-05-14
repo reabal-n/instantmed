@@ -1,3 +1,5 @@
+import { STAFF_DASHBOARD_HREF, STAFF_DOCTOR_PATIENTS_HREF, STAFF_PATIENTS_HREF } from "@/lib/dashboard/routes"
+
 export function getStaffNavHrefPath(href: string): string {
   return href.split(/[?#]/)[0] || "/"
 }
@@ -10,12 +12,12 @@ export function getStaffNavHrefStatus(href: string): string | null {
 
 export function hasStatusFilteredDashboardItems(hrefs: string[]): boolean {
   return hrefs.some(
-    (href) => getStaffNavHrefPath(href) === "/dashboard" && getStaffNavHrefStatus(href),
+    (href) => getStaffNavHrefPath(href) === STAFF_DASHBOARD_HREF && getStaffNavHrefStatus(href),
   )
 }
 
 const NAV_PATH_ALIASES: Record<string, string[]> = {
-  "/admin/patients": ["/doctor/patients"],
+  [STAFF_PATIENTS_HREF]: [STAFF_DOCTOR_PATIENTS_HREF],
 }
 
 function getEquivalentPaths(href: string): string[] {
@@ -63,8 +65,8 @@ export function isStaffNavItemActive({
     return pathname === hrefPath && currentStatus === hrefStatus
   }
 
-  if (hrefPath === "/dashboard") {
-    return pathname === "/dashboard" && (!statusFilteredDashboard || !currentStatus)
+  if (hrefPath === STAFF_DASHBOARD_HREF) {
+    return pathname === STAFF_DASHBOARD_HREF && (!statusFilteredDashboard || !currentStatus)
   }
 
   if (!matchesPath(pathname, href)) return false

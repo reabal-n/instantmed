@@ -109,7 +109,7 @@ export default async function AdminSettingsPage() {
         <CardHeader className="px-5 py-4">
           <CardTitle className="text-base">Configuration</CardTitle>
           <CardDescription>
-            Email delivery lives in the email hub. Recovery work lives in Ops.
+            Delivery controls live in Email delivery. Recovery work lives in Ops.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-2 px-5 pb-5 md:grid-cols-2">

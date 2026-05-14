@@ -12,7 +12,7 @@ import { EmailHubClient } from "./email-hub-client"
 export const dynamic = "force-dynamic"
 
 /**
- * Email Hub — operational dashboard for the /admin/emails section.
+ * Email delivery — operational dashboard for the /admin/emails section.
  *
  * Canonical email ops surface. Template editing lives at
  * /admin/emails/templates; legacy email aliases redirect here.

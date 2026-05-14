@@ -9,6 +9,7 @@ import {
 } from "@/lib/auth/guest-profile-linking"
 import { normalizePostAuthRedirect } from "@/lib/auth/redirects"
 import { hasAdminAccess, hasDoctorAccess } from "@/lib/auth/staff-capabilities"
+import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import { createLogger } from "@/lib/observability/logger"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -339,7 +340,7 @@ export default async function PostSignInPage({
     // round-trip on every staff login. The aliases stay registered as
     // redirects for bookmarks + back-button.
     if (hasAdminAccess(profile) || hasDoctorAccess(profile)) {
-      destination = "/dashboard"
+      destination = STAFF_DASHBOARD_HREF
       // Background warmup: fire-and-forget the queue + nav counts before
       // the redirect so the dashboard's `Promise.allSettled` finds them
       // already in flight (or finished) by the time the page renders.

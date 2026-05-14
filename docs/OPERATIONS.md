@@ -52,7 +52,7 @@ PLAYWRIGHT=1 STRIPE_WEBHOOK_SECRET=whsec_test_... pnpm e2e e2e/stripe-webhook.sp
 
 1. Check Resend status: https://resend-status.com
 2. Check `/admin/emails/hub` for failed or pending outbox rows, delivery status, and recent queue activity.
-3. Manual retry: click "Retry" on individual failed rows in the email hub.
+3. Manual retry: click "Retry" on individual failed rows in Email delivery.
 4. If Resend is completely down: emails auto-retry via the `email-dispatcher` cron; stale `sending` claims are recovered back to retryable `failed` rows.
 
 ### Database Connection Issues
