@@ -16,10 +16,10 @@ import { requireRole } from "@/lib/auth/helpers"
 import {
   ADMIN_CERTIFICATE_TEMPLATES_HREF,
   ADMIN_CLINIC_HREF,
-  ADMIN_DOCTOR_IDENTITY_HREF,
   ADMIN_DOCTORS_HREF,
   ADMIN_FEATURES_HREF,
   ADMIN_SERVICES_HREF,
+  STAFF_IDENTITY_HREF,
   STAFF_SETTINGS_HREF,
 } from "@/lib/dashboard/routes"
 
@@ -53,7 +53,7 @@ const settingsLinks: SettingsLink[] = [
   {
     label: "Your prescribing identity",
     description: "Account security, availability, signature, and Parchment prescribing setup.",
-    href: ADMIN_DOCTOR_IDENTITY_HREF,
+    href: STAFF_IDENTITY_HREF,
     icon: UserCog,
   },
   {

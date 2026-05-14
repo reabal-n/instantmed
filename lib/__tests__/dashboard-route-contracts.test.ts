@@ -25,7 +25,6 @@ import {
   ADMIN_TEMPLATE_STUDIO_HREF,
   ADMIN_WEBHOOK_DLQ_HREF,
   buildAdminAuditHref,
-  buildAdminDashboardHref,
   buildAdminEmailHubHref,
   buildAdminIntakeHref,
   buildAdminIntakeLedgerHref,
@@ -33,15 +32,17 @@ import {
   buildDoctorDocumentBuilderHref,
   buildDoctorIntakeHref,
   buildDoctorQueueRedirectHref,
+  buildStaffEmailHubHref,
   buildStaffPatientHref,
   DOCTOR_DASHBOARD_HREF,
-  DOCTOR_QUEUE_REVIEW_HREF,
   parseQueueStatusFilter,
   PATIENT_DASHBOARD_HREF,
   STAFF_DOCTOR_PATIENTS_HREF,
   STAFF_DOCTOR_SCRIPTS_HREF,
   STAFF_DOCTOR_SETTINGS_HREF,
   STAFF_IDENTITY_HREF,
+  STAFF_QUEUE_HREF,
+  STAFF_SCRIPTS_HREF,
 } from "@/lib/dashboard/routes"
 
 const root = process.cwd()
@@ -54,7 +55,7 @@ describe("dashboard route contracts", () => {
 
   it("uses the staff dashboard for doctor queue deep links", () => {
     expect(DOCTOR_DASHBOARD_HREF).toBe("/dashboard")
-    expect(DOCTOR_QUEUE_REVIEW_HREF).toBe("/dashboard?status=review")
+    expect(STAFF_QUEUE_HREF).toBe("/dashboard?status=review#doctor-queue")
     expect(buildDoctorDashboardHref({ status: "review" })).toBe("/dashboard?status=review")
     expect(buildDoctorDashboardHref({ status: "all" })).toBe("/dashboard")
   })
@@ -65,11 +66,8 @@ describe("dashboard route contracts", () => {
     expect(buildAdminIntakeLedgerHref()).toBe("/admin/intakes")
     expect(buildAdminIntakeLedgerHref({ status: "approved" })).toBe("/admin/intakes?status=approved")
     expect(ADMIN_DOCTOR_QUEUE_HREF).toBe("/dashboard?status=review#doctor-queue")
-    expect(ADMIN_SCRIPTS_HREF).toBe("/dashboard?status=scripts#doctor-queue")
+    expect(ADMIN_SCRIPTS_HREF).toBe(STAFF_SCRIPTS_HREF)
     expect(ADMIN_PATIENTS_HREF).toBe("/admin/patients")
-    expect(buildAdminDashboardHref({ status: "scripts", anchor: "doctor-queue" })).toBe(
-      "/dashboard?status=scripts#doctor-queue",
-    )
     expect(buildAdminIntakeHref("intake-123")).toBe("/admin/intakes/intake-123")
     expect(buildAdminIntakeHref("intake 123")).toBe("/admin/intakes/intake%20123")
     expect(buildStaffPatientHref("patient 123")).toBe("/doctor/patients/patient%20123")
@@ -87,6 +85,9 @@ describe("dashboard route contracts", () => {
     expect(ADMIN_EMAIL_TEMPLATE_EDITOR_HREF).toBe("/admin/emails/templates")
     expect(buildAdminEmailHubHref()).toBe("/admin/emails/hub")
     expect(buildAdminEmailHubHref({ tab: "queue", intakeId: "intake 123" })).toBe(
+      "/admin/emails/hub?tab=queue&intake_id=intake+123",
+    )
+    expect(buildStaffEmailHubHref({ tab: "queue", intakeId: "intake 123" })).toBe(
       "/admin/emails/hub?tab=queue&intake_id=intake+123",
     )
     expect(buildAdminAuditHref({ search: "merge 123" })).toBe("/admin/audit?search=merge+123")

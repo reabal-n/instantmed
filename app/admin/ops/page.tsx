@@ -4,11 +4,11 @@ import { hasAdminAccess, hasSupportAccess } from "@/lib/auth/staff-capabilities"
 import { getMissingTelegramAlertEnv } from "@/lib/config/env"
 import {
   ADMIN_AUDIT_HREF,
-  ADMIN_EMAIL_HUB_HREF,
-  ADMIN_OPS_HREF,
   ADMIN_PARCHMENT_OPS_HREF,
   ADMIN_WEBHOOK_DLQ_HREF,
   buildAdminIntakeHref,
+  buildStaffEmailHubHref,
+  STAFF_OPS_HREF,
 } from "@/lib/dashboard/routes"
 import { getAuthEmailHealth } from "@/lib/data/auth-email-events"
 import { getStuckIntakes } from "@/lib/data/intake-ops"
@@ -57,13 +57,13 @@ function metadataStartsWith(row: AuditErrorRow, key: string, prefix: string): bo
 function supportCategoryHref(categoryId: string): string {
   if (categoryId === "stripe_webhooks") return ADMIN_WEBHOOK_DLQ_HREF
   if (categoryId === "prescription_delivery") return ADMIN_PARCHMENT_OPS_HREF
-  return ADMIN_OPS_HREF
+  return STAFF_OPS_HREF
 }
 
 function supportTimelineHref(itemId: string): string {
   if (itemId === "payment_webhook") return ADMIN_WEBHOOK_DLQ_HREF
   if (itemId === "parchment_sync") return ADMIN_PARCHMENT_OPS_HREF
-  return ADMIN_OPS_HREF
+  return STAFF_OPS_HREF
 }
 
 function toSupportOpsData(ops: OpsDashboardData): OpsDashboardData {
@@ -351,7 +351,7 @@ export default async function OpsDashboardPage() {
         retryCount: row.retry_count ?? 0,
         intakeId: row.intake_id || null,
         occurredAt: row.sent_at || row.last_attempt_at || row.created_at,
-        href: row.intake_id ? buildAdminIntakeHref(row.intake_id) : `${ADMIN_EMAIL_HUB_HREF}?tab=queue`,
+        href: row.intake_id ? buildAdminIntakeHref(row.intake_id) : buildStaffEmailHubHref({ tab: "queue" }),
       })),
     },
     authEmails: authEmailHealthResult,
@@ -400,7 +400,7 @@ export default async function OpsDashboardPage() {
           ? `${latestSentEmail.email_type || "email"} / ${latestSentEmail.delivery_status || latestSentEmail.status}`
           : "No sent email recorded yet",
         occurredAt: latestSentEmail?.sent_at || latestSentEmail?.created_at || null,
-        href: `${ADMIN_EMAIL_HUB_HREF}?tab=queue`,
+        href: buildStaffEmailHubHref({ tab: "queue" }),
       },
       {
         id: "telegram_alert",

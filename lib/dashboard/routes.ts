@@ -70,11 +70,18 @@ export function buildAdminEmailHubHref(options: {
   tab?: "queue" | null
   intakeId?: string | null
 } = {}): string {
+  return buildStaffEmailHubHref(options)
+}
+
+export function buildStaffEmailHubHref(options: {
+  tab?: "queue" | null
+  intakeId?: string | null
+} = {}): string {
   const params = new URLSearchParams()
   if (options.tab) params.set("tab", options.tab)
   if (options.intakeId) params.set("intake_id", options.intakeId)
   const query = params.toString()
-  return query ? `${ADMIN_EMAIL_HUB_HREF}?${query}` : ADMIN_EMAIL_HUB_HREF
+  return query ? `${STAFF_EMAILS_HREF}?${query}` : STAFF_EMAILS_HREF
 }
 
 export function buildAdminAuditHref(options: { search?: string | null } = {}): string {
@@ -146,32 +153,8 @@ export function buildDoctorDashboardHref(options: {
   return query ? `${DOCTOR_DASHBOARD_HREF}?${query}` : DOCTOR_DASHBOARD_HREF
 }
 
-export const DOCTOR_QUEUE_REVIEW_HREF = buildDoctorDashboardHref({ status: "review" })
-
-export function buildAdminDashboardHref(options: {
-  status?: string | string[] | QueueStatusFilter | null
-  page?: string | string[] | number
-  pageSize?: string | string[] | number
-  anchor?: string
-} = {}): string {
-  const params = new URLSearchParams()
-  const status = parseQueueStatusFilter(options.status)
-  const page = getPositiveIntegerParam(options.page)
-  const pageSize = getPageSizeParam(options.pageSize)
-
-  if (status !== "all") params.set("status", status)
-  if (page) params.set("page", page)
-  if (pageSize) params.set("pageSize", pageSize)
-
-  const query = params.toString()
-  const hash = options.anchor ? `#${options.anchor}` : ""
-  return `${STAFF_DASHBOARD_HREF}${query ? `?${query}` : ""}${hash}`
-}
-
 /**
  * Canonical staff dashboard href builder (Phase 2 of dashboard remaster).
- * New code should call this; the admin alias above remains for back-compat
- * until every consumer migrates.
  */
 export function buildStaffDashboardHref(options: {
   status?: string | string[] | QueueStatusFilter | null

@@ -3,9 +3,9 @@ import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/componen
 import { requireRole } from "@/lib/auth/helpers"
 import {
   ADMIN_PATIENT_MERGE_AUDIT_HREF,
-  ADMIN_PATIENTS_HREF,
   STAFF_DASHBOARD_HREF,
   STAFF_PATIENT_DETAIL_BASE_HREF,
+  STAFF_PATIENTS_HREF,
 } from "@/lib/dashboard/routes"
 import { getPatientDirectoryPage, parsePatientDirectorySort } from "@/lib/data/patient-directory"
 
@@ -51,7 +51,7 @@ export default async function AdminPatientsPage({
             rawPatientProfiles={rawTotal}
             collapsedDuplicateProfiles={collapsedCount}
             currentSort={sort}
-            baseHref={ADMIN_PATIENTS_HREF}
+            baseHref={STAFF_PATIENTS_HREF}
             patientHrefBase={STAFF_PATIENT_DETAIL_BASE_HREF}
             mergeAuditHref={ADMIN_PATIENT_MERGE_AUDIT_HREF}
             showHeader={false}

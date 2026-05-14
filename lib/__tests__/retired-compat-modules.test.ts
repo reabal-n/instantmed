@@ -76,6 +76,7 @@ describe("retired compatibility modules", () => {
   it("keeps retired test-only ops diagnostics out of the app and e2e trees", () => {
     expect(existsSync(join(root, "app/api/test/edge-canary/route.ts"))).toBe(false)
     expect(existsSync(join(root, "e2e/admin-crash-diagnostic.spec.ts"))).toBe(false)
+    expect(existsSync(join(root, "e2e/admin.doctor-ops.spec.ts"))).toBe(false)
   })
 
   it("keeps the /api/test surface explicit and limited to active e2e contracts", () => {

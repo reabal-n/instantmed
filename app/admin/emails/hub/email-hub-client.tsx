@@ -30,10 +30,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
-  ADMIN_EMAIL_HUB_HREF,
   ADMIN_EMAIL_SUPPRESSION_HREF,
   ADMIN_EMAIL_TEMPLATE_EDITOR_HREF,
   buildAdminIntakeHref,
+  STAFF_EMAILS_HREF,
   STAFF_OPS_HREF,
 } from "@/lib/dashboard/routes"
 import { EMAIL_SEQUENCES } from "@/lib/email/sequence-registry"
@@ -169,7 +169,7 @@ export function EmailHubClient({
     } else {
       params.delete("tab")
     }
-    router.replace(params.toString() ? `${ADMIN_EMAIL_HUB_HREF}?${params}` : ADMIN_EMAIL_HUB_HREF, { scroll: false })
+    router.replace(params.toString() ? `${STAFF_EMAILS_HREF}?${params}` : STAFF_EMAILS_HREF, { scroll: false })
   }
 
   const handleSendOpsTestEmail = () => {

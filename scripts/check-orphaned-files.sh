@@ -88,8 +88,11 @@ for retired_non_operational_surface in \
   "app/api/cron/daily-digest/route.ts" \
   "app/api/cron/decline-reengagement/route.ts" \
   "app/api/cron/email-digest/route.ts" \
+  "app/api/cron/follow-up-reminder/route.ts" \
   "app/api/test/edge-canary/route.ts" \
   "e2e/admin-crash-diagnostic.spec.ts" \
+  "e2e/admin.doctor-ops.spec.ts" \
+  "lib/email/follow-up-reminder.ts" \
   "lib/email/components/templates/decline-reengagement.tsx" \
   "lib/analytics/acquisition-health.ts"
 do

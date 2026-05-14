@@ -41,11 +41,11 @@ export const EMAIL_SEQUENCES: readonly EmailSequenceDefinition[] = [
   {
     id: "follow_up_reminder",
     name: "Med cert follow-up",
-    status: "active",
-    owner: "Certificate lifecycle",
-    trigger: "Approved med cert",
-    cadence: "Day 3",
-    guard: "One per intake",
+    status: "inactive",
+    owner: "Retired duplicate post-care sequence",
+    trigger: "None",
+    cadence: "Removed",
+    guard: "Review request owns post-care messaging",
   },
   {
     id: "review_request",

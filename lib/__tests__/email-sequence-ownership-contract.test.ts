@@ -123,6 +123,17 @@ describe("email sequence ownership contract", () => {
     expect(templateIndexSource).not.toContain("DeclineReengagement")
   })
 
+  it("keeps the duplicate med-cert day-3 follow-up cron retired", () => {
+    const schedules = new Map(vercelConfig.crons.map((cron) => [cron.path, cron.schedule]))
+    const sequence = EMAIL_SEQUENCES.find((item) => item.id === "follow_up_reminder")
+
+    expect(existsSync(join(process.cwd(), "app/api/cron/follow-up-reminder/route.ts"))).toBe(false)
+    expect(existsSync(join(process.cwd(), "lib/email/follow-up-reminder.ts"))).toBe(false)
+    expect(schedules.has("/api/cron/follow-up-reminder")).toBe(false)
+    expect(sequence?.status).toBe("inactive")
+    expect(sequence?.guard).toBe("Review request owns post-care messaging")
+  })
+
   it("surfaces active and retired sequences in one compact admin map", () => {
     const ids = EMAIL_SEQUENCES.map((sequence) => sequence.id)
 
@@ -130,6 +141,7 @@ describe("email sequence ownership contract", () => {
     expect(ids).toContain("abandoned_checkout")
     expect(ids).toContain("repeat_rx_reminder")
     expect(EMAIL_SEQUENCES.find((sequence) => sequence.id === "repeat_rx_reminder")?.status).toBe("inactive")
+    expect(EMAIL_SEQUENCES.find((sequence) => sequence.id === "follow_up_reminder")?.status).toBe("inactive")
     expect(emailHubSource).toContain("EMAIL_SEQUENCES")
     expect(emailHubSource).toContain("Sequence ownership")
   })

@@ -53,6 +53,7 @@ describe("cron surface contract", () => {
       "/api/cron/daily-digest",
       "/api/cron/decline-reengagement",
       "/api/cron/email-digest",
+      "/api/cron/follow-up-reminder",
       "/api/cron/subscription-nudge",
     ]
 

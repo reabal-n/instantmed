@@ -358,7 +358,7 @@ Critical paths (Stripe, approvals, prescriptions) are always sampled at 1.0.
 
 All crons use `verifyCronRequest()` from `lib/api/cron-auth.ts` for authentication.
 
-Cron surface policy: every `app/api/cron/*/route.ts` must be scheduled in `vercel.json`, documented in this table, and operationally justified as one of: clinical queue safety, payment/intake recovery, delivery recovery, compliance retention, health monitoring, or explicit growth support. `scripts/check-vercel-cron-routes.mjs` fails both directions: scheduled jobs with no route and route files with no schedule. Dormant engagement jobs, dashboard digests, and future subscription nudges stay deleted rather than paused in production.
+Cron surface policy: every `app/api/cron/*/route.ts` must be scheduled in `vercel.json`, documented in this table, and operationally justified as one of: clinical queue safety, payment/intake recovery, delivery recovery, compliance retention, health monitoring, or explicit growth support. `scripts/check-vercel-cron-routes.mjs` fails both directions: scheduled jobs with no route and route files with no schedule. Dormant engagement jobs, duplicate post-care nudges, dashboard digests, and future subscription nudges stay deleted rather than paused in production.
 
 | Job | Endpoint | Schedule | Purpose |
 |-----|----------|----------|---------|
@@ -380,7 +380,6 @@ Cron surface policy: every `app/api/cron/*/route.ts` must be scheduled in `verce
 | DLQ Monitor | `/api/cron/dlq-monitor` | Daily (9 AM UTC) | Alert on unprocessed Stripe webhook dead letter queue items > 24h old |
 | QA Sampling | `/api/cron/qa-sampling` | Weekly (Mon 6 AM UTC) | Sample 10% of approved intakes from last week for quality review |
 | Data Retention | `/api/cron/data-retention` | Daily (2 AM UTC) | Enforce AU health records retention (see CLINICAL.md → Data Retention Schedule); clean rate limit records |
-| Follow-Up Reminder | `/api/cron/follow-up-reminder` | Daily (1 AM UTC) | Day-3 follow-up emails to med cert patients |
 | Treatment Follow-Up | `/api/cron/treatment-followup` | Daily (23:00 UTC = 09:00 AEST) | ED/hair-loss treatment follow-up reminder emails (max 3 per milestone, ≥3 days apart) |
 | Review Request | `/api/cron/review-request` | Daily (10 AM UTC) | Explicit growth-support job for opted-in review request emails after completed care |
 | Retry Auto-Approval | `/api/cron/retry-auto-approval` | Every 3 min | Retry auto-approval via `auto_approval_state` enum (pending/failed_retrying). Includes timeout recovery for stale `attempting` intakes (>10 min). Feature-flagged. |
