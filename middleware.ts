@@ -10,6 +10,7 @@ const PROTECTED_PATTERNS = [
   /^\/doctor/,
   /^\/admin/,
   /^\/account/,
+  /^\/dashboard/,
   /^\/api\/patient\//,   // trailing slash: don't match /api/patient-count
   /^\/api\/patients\//,
   /^\/api\/doctor/,

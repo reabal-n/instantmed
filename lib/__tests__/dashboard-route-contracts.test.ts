@@ -112,6 +112,12 @@ describe("dashboard route contracts", () => {
     expect(STAFF_QUEUE_HREF).toBe("/dashboard?status=review#doctor-queue")
   })
 
+  it("protects the canonical staff dashboard at the middleware boundary", () => {
+    const middlewareSource = read("middleware.ts")
+
+    expect(middlewareSource).toContain("/^\\/dashboard/")
+  })
+
   it("builds admin intake detail links from the shared route helper", () => {
     expect(STAFF_LEDGER_HREF).toBe("/admin/intakes")
     expect(buildStaffLedgerHref()).toBe("/admin/intakes")
