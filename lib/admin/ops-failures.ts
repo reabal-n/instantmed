@@ -1,5 +1,4 @@
 import {
-  ADMIN_EMAIL_HUB_HREF,
   ADMIN_INTAKE_LEDGER_HREF,
   ADMIN_PARCHMENT_OPS_HREF,
   ADMIN_REFUNDS_HREF,
@@ -7,6 +6,7 @@ import {
   ADMIN_WEBHOOK_DLQ_HREF,
   buildAdminIntakeHref,
   buildAdminIntakeLedgerHref,
+  STAFF_EMAILS_HREF,
 } from "@/lib/dashboard/routes"
 
 type Severity = "critical" | "warning"
@@ -141,7 +141,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
       id: "email_delivery",
       label: "Email delivery",
       count: input.emailFailures.length,
-      href: ADMIN_EMAIL_HUB_HREF,
+      href: STAFF_EMAILS_HREF,
       severity: "warning",
       emptyLabel: "No failed or bounced emails",
     },
@@ -211,7 +211,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
       title: "Email delivery failed",
       detail: row.error_message || row.delivery_status || row.email_type || row.status || "Email needs review",
       occurredAt: row.created_at,
-      href: ADMIN_EMAIL_HUB_HREF,
+      href: STAFF_EMAILS_HREF,
       severity: "warning" as const,
     })),
     ...input.checkoutFailures.map((row) => ({

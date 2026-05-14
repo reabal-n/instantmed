@@ -32,11 +32,11 @@ import {
   matchesAdminWorkLaneFilter,
 } from "@/lib/dashboard/admin-work-lanes"
 import {
-  ADMIN_OPS_HREF,
-  ADMIN_PATIENTS_HREF,
   ADMIN_REFUNDS_HREF,
-  buildAdminDashboardHref,
   buildAdminIntakeHref,
+  buildStaffDashboardHref,
+  STAFF_OPS_HREF,
+  STAFF_PATIENTS_HREF,
 } from "@/lib/dashboard/routes"
 import { INTAKE_STATUS, type IntakeStatus } from "@/lib/data/status"
 import { buildStaffCaseSummary } from "@/lib/doctor/case-summary"
@@ -300,7 +300,7 @@ export function AdminDashboardClient({
         id: "patients",
         title: "Patients",
         detail: "Search patient profiles and prescribing identity",
-        href: ADMIN_PATIENTS_HREF,
+        href: STAFF_PATIENTS_HREF,
         keywords: "patients patient profile directory medicare phone identity parchment",
         label: "Go",
       },
@@ -308,7 +308,7 @@ export function AdminDashboardClient({
         id: "doctor-queue",
         title: "Review",
         detail: "Open clinical reviews in this cockpit",
-        href: buildAdminDashboardHref({ status: "review", anchor: "doctor-queue" }),
+        href: buildStaffDashboardHref({ status: "review", anchor: "doctor-queue" }),
         keywords: [
           "doctor queue clinical approve prescribe",
           "review patient decision action",
@@ -319,7 +319,7 @@ export function AdminDashboardClient({
         id: "scripts",
         title: "Scripts",
         detail: "Open script-ready cases in this cockpit",
-        href: buildAdminDashboardHref({ status: "scripts", anchor: "doctor-queue" }),
+        href: buildStaffDashboardHref({ status: "scripts", anchor: "doctor-queue" }),
         keywords: "scripts prescriptions parchment delivery",
         label: "Go",
       },
@@ -327,7 +327,7 @@ export function AdminDashboardClient({
         id: "ops",
         title: "Ops",
         detail: "Webhook, email, script, and stale-request recovery",
-        href: ADMIN_OPS_HREF,
+        href: STAFF_OPS_HREF,
         keywords: "operations recovery webhook email stale",
         label: "Go",
       },

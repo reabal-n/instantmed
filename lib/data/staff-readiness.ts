@@ -3,9 +3,9 @@ import "server-only"
 import * as Sentry from "@sentry/nextjs"
 
 import {
-  ADMIN_DOCTOR_IDENTITY_HREF,
-  ADMIN_OPS_HREF,
-  ADMIN_SETTINGS_HREF,
+  STAFF_IDENTITY_HREF,
+  STAFF_OPS_HREF,
+  STAFF_SETTINGS_HREF,
 } from "@/lib/dashboard/routes"
 import { type DoctorOnboardingState, getDoctorOnboardingState } from "@/lib/doctor/onboarding-state"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -164,7 +164,7 @@ export async function getStaffReadinessSnapshot(): Promise<StaffReadinessSnapsho
         label: "Staff role read",
         status: "fail",
         detail: "Could not read staff profiles. Check Supabase service role access.",
-        href: ADMIN_OPS_HREF,
+        href: STAFF_OPS_HREF,
       }],
     }
   }
@@ -201,7 +201,7 @@ export async function getStaffReadinessSnapshot(): Promise<StaffReadinessSnapsho
       detail: humanAdmins.length === 1 && owner
         ? `${maskEmail(owner.email)} is the only auth-linked human admin.`
         : `Expected one owner admin (${maskEmail(ownerEmail)}), found ${humanAdmins.length}.`,
-      href: ADMIN_SETTINGS_HREF,
+      href: STAFF_SETTINGS_HREF,
     },
     {
       id: "owner-doctor-ready",
@@ -213,14 +213,14 @@ export async function getStaffReadinessSnapshot(): Promise<StaffReadinessSnapsho
           ownerIdentity.missing.length > 0 ? `Missing ${ownerIdentity.missing.join(", ")}.` : null,
           ownerIdentity.paused ? "Doctor availability is paused." : null,
         ].filter(Boolean).join(" "),
-      href: ADMIN_DOCTOR_IDENTITY_HREF,
+      href: STAFF_IDENTITY_HREF,
     },
     {
       id: "doctor-onboarding",
       label: "Future doctor onboarding",
       status: doctorOnboarding.identity_pending > 0 || doctorOnboarding.capability_pending > 0 ? "warn" : "pass",
       detail: `${doctorOnboarding.active} active, ${doctorOnboarding.invited} invited, ${doctorOnboarding.identity_pending} identity pending, ${doctorOnboarding.capability_pending} capability pending.`,
-      href: ADMIN_SETTINGS_HREF,
+      href: STAFF_SETTINGS_HREF,
     },
     {
       id: "sentry",

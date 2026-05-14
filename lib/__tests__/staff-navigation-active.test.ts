@@ -1,11 +1,37 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  doctorNavSections,
+  operatorNavSections,
+  type StaffNavSection,
+  supportNavSections,
+} from "@/lib/dashboard/staff-navigation"
+import {
   getStaffNavHrefPath,
   getStaffNavHrefStatus,
   hasStatusFilteredDashboardItems,
   isStaffNavItemActive,
 } from "@/lib/dashboard/staff-navigation-active"
+
+function activeLabelsFor(
+  sections: StaffNavSection[],
+  pathname: string,
+  currentStatus: string | null,
+): string[] {
+  const allHrefs = sections.flatMap((section) => section.items.map((item) => item.href))
+  const statusFilteredDashboard = hasStatusFilteredDashboardItems(allHrefs)
+
+  return sections
+    .flatMap((section) => section.items)
+    .filter((item) => isStaffNavItemActive({
+      pathname,
+      href: item.href,
+      currentStatus,
+      statusFilteredDashboard,
+      allHrefs,
+    }))
+    .map((item) => item.label)
+}
 
 describe("staff navigation active matching", () => {
   it("parses path and status from dashboard anchors", () => {
@@ -109,5 +135,30 @@ describe("staff navigation active matching", () => {
       "/dashboard",
       "/doctor/scripts",
     ])).toBe(false)
+  })
+
+  it("keeps each rendered staff sidebar to one active item", () => {
+    const cases: Array<{
+      sections: StaffNavSection[]
+      pathname: string
+      status: string | null
+      expected: string[]
+    }> = [
+      { sections: operatorNavSections, pathname: "/dashboard", status: null, expected: ["Dashboard"] },
+      { sections: operatorNavSections, pathname: "/dashboard", status: "review", expected: ["Review"] },
+      { sections: operatorNavSections, pathname: "/dashboard", status: "scripts", expected: ["Scripts"] },
+      { sections: operatorNavSections, pathname: "/doctor/patients/123", status: null, expected: ["Patients"] },
+      { sections: operatorNavSections, pathname: "/admin/ops/parchment", status: null, expected: ["Ops"] },
+      { sections: doctorNavSections, pathname: "/dashboard", status: "review", expected: ["Queue"] },
+      { sections: doctorNavSections, pathname: "/doctor/scripts", status: null, expected: ["Scripts"] },
+      { sections: supportNavSections, pathname: "/admin/ops/parchment", status: null, expected: ["Operations"] },
+    ]
+
+    for (const item of cases) {
+      const activeLabels = activeLabelsFor(item.sections, item.pathname, item.status)
+
+      expect(activeLabels, `${item.pathname}?status=${item.status ?? ""}`).toEqual(item.expected)
+      expect(activeLabels.length).toBeLessThanOrEqual(1)
+    }
   })
 })

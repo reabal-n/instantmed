@@ -12,12 +12,12 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useRef,useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { ErrorRefChip } from "@/components/ui/error-ref-chip"
 import { CONTACT_EMAIL } from "@/lib/constants"
-import { ADMIN_SETTINGS_HREF, STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
+import { STAFF_DASHBOARD_HREF, STAFF_SETTINGS_HREF } from "@/lib/dashboard/routes"
 
 // Detect error type for better messaging
 function getErrorInfo(error: Error & { digest?: string }) {
@@ -127,7 +127,7 @@ export default function AdminError({
 
         <div className="mt-6 pt-6 border-t border-border/50 space-y-3">
           <Link
-            href={ADMIN_SETTINGS_HREF}
+            href={STAFF_SETTINGS_HREF}
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <Settings className="h-4 w-4" />

@@ -5,7 +5,7 @@ import type React from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { ADMIN_DOCTOR_IDENTITY_HREF, ADMIN_PARCHMENT_OPS_HREF } from "@/lib/dashboard/routes"
+import { ADMIN_PARCHMENT_OPS_HREF, STAFF_IDENTITY_HREF } from "@/lib/dashboard/routes"
 import type { DoctorIdentity } from "@/lib/data/doctor-identity"
 import { cn } from "@/lib/utils"
 
@@ -135,7 +135,7 @@ export function OwnerOperatorSetupCard({
             </Button>
           )}
           <Button asChild size="sm" className="h-8 text-xs">
-            <Link href={ADMIN_DOCTOR_IDENTITY_HREF}>
+            <Link href={STAFF_IDENTITY_HREF}>
               Finish setup
               <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
             </Link>

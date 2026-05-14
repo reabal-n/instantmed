@@ -10,12 +10,12 @@ import type { ComponentType } from "react"
 
 import { DashboardCard } from "@/components/dashboard"
 import {
-  ADMIN_EMAIL_HUB_HREF,
-  ADMIN_OPS_HREF,
   ADMIN_PARCHMENT_OPS_HREF,
-  ADMIN_PATIENTS_HREF,
   ADMIN_WEBHOOK_DLQ_HREF,
   buildStaffDashboardHref,
+  STAFF_EMAILS_HREF,
+  STAFF_OPS_HREF,
+  STAFF_PATIENTS_HREF,
 } from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 
@@ -100,7 +100,7 @@ export function AdminHubZones({
               attentionWhenNonZero: true,
             },
           ]}
-          action={{ label: "Open patient list", href: ADMIN_PATIENTS_HREF }}
+          action={{ label: "Open patient list", href: STAFF_PATIENTS_HREF }}
         />
         <DashboardCard tier="standard" padding="sm">
           <details className="group">
@@ -121,10 +121,10 @@ export function AdminHubZones({
             </summary>
             <div className="mt-3 flex flex-wrap gap-1.5 pl-11">
               {[
-                { label: "Ops", href: ADMIN_OPS_HREF },
+                { label: "Ops", href: STAFF_OPS_HREF },
                 { label: "Parchment", href: ADMIN_PARCHMENT_OPS_HREF },
                 { label: "Webhooks", href: ADMIN_WEBHOOK_DLQ_HREF },
-                { label: "Email", href: ADMIN_EMAIL_HUB_HREF },
+                { label: "Email", href: STAFF_EMAILS_HREF },
               ].map((link) => (
                 <Link
                   key={link.href}

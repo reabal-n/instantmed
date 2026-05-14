@@ -10,10 +10,10 @@ import { OperatorSplitPane } from "@/components/operator"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
 import {
-  ADMIN_DOCTOR_IDENTITY_HREF,
   parseQueueStatusFilter,
   type QueueStatusFilter,
   STAFF_DASHBOARD_HREF,
+  STAFF_IDENTITY_HREF,
 } from "@/lib/dashboard/routes"
 import { DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY, LAST_OPENED_DOCTOR_CASE_KEY } from "@/lib/doctor/queue-focus"
 import { removeCompletedIntakeFromQueue } from "@/lib/doctor/queue-state"
@@ -59,7 +59,7 @@ function buildQueueEmptyState({
       title: "Availability is paused",
       description: "Your queue can look empty while review availability is off. Turn availability back on before relying on this view.",
       tone: "warning",
-      actionHref: ADMIN_DOCTOR_IDENTITY_HREF,
+      actionHref: STAFF_IDENTITY_HREF,
       actionLabel: "Open availability",
     }
   }

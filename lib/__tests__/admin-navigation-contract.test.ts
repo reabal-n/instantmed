@@ -44,6 +44,10 @@ const analyticsPageSource = readFileSync(
   join(process.cwd(), "app/admin/analytics/page.tsx"),
   "utf8",
 )
+const auditClientSource = readFileSync(
+  join(process.cwd(), "app/admin/audit/audit-client.tsx"),
+  "utf8",
+)
 const dashboardRoutesSource = readFileSync(
   join(process.cwd(), "lib/dashboard/routes.ts"),
   "utf8",
@@ -184,7 +188,9 @@ describe("admin navigation contract", () => {
     expect(adminHubSource).not.toContain("Feature flags")
     expect(adminHubSource).toContain("ADMIN_PARCHMENT_OPS_HREF")
     expect(adminHubSource).toContain("ADMIN_WEBHOOK_DLQ_HREF")
-    expect(adminHubSource).toContain("ADMIN_EMAIL_HUB_HREF")
+    expect(adminHubSource).toContain("STAFF_EMAILS_HREF")
+    expect(adminHubSource).toContain("STAFF_OPS_HREF")
+    expect(adminHubSource).toContain("STAFF_PATIENTS_HREF")
     expect(dashboardRoutesSource).toContain('ADMIN_PARCHMENT_OPS_HREF = "/admin/ops/parchment"')
     expect(dashboardRoutesSource).toContain('ADMIN_WEBHOOK_DLQ_HREF = "/admin/webhook-dlq"')
     expect(dashboardRoutesSource).toContain("ADMIN_EMAIL_HUB_HREF = STAFF_EMAILS_HREF")
@@ -196,6 +202,9 @@ describe("admin navigation contract", () => {
     expect(adminHubSource).toContain("buildStaffDashboardHref")
     expect(adminHubSource).not.toContain('href: "/doctor')
     expect(adminHubSource).not.toContain("DOCTOR_QUEUE_REVIEW_HREF")
+    expect(adminHubSource).not.toContain("ADMIN_EMAIL_HUB_HREF")
+    expect(adminHubSource).not.toContain("ADMIN_OPS_HREF")
+    expect(adminHubSource).not.toContain("ADMIN_PATIENTS_HREF")
     expect(adminHubSource).not.toContain("configuration exceptions")
     expect(adminHubSource).not.toContain('href: "/admin/settings"')
   })
@@ -411,8 +420,19 @@ describe("admin navigation contract", () => {
     expect(analyticsClientSource).not.toContain("LazyBarChart")
     expect(analyticsClientSource).not.toContain("ResponsiveContainer")
     expect(analyticsPageSource).not.toContain("dailyData")
-    expect(financeClientSource).toContain("href={ADMIN_ANALYTICS_HREF}")
+    expect(financeClientSource).toContain("href={STAFF_ANALYTICS_HREF}")
+    expect(financeClientSource).not.toContain("ADMIN_ANALYTICS_HREF")
     expect(financeClientSource).not.toContain("?tab=revenue")
+  })
+
+  it("keeps audit history as an ops-owned evidence surface, not a dashboard mode", () => {
+    expect(auditClientSource).toContain("OperatorPageHeader")
+    expect(auditClientSource).toContain("title=\"Audit history\"")
+    expect(auditClientSource).toContain("backHref={STAFF_OPS_HREF}")
+    expect(auditClientSource).toContain("Compliance history")
+    expect(auditClientSource).not.toContain("STAFF_DASHBOARD_HREF")
+    expect(auditClientSource).not.toContain("Audit Log")
+    expect(auditClientSource).not.toContain("Total Events")
   })
 
   it("keeps doctor identity as one shared staff page with an admin compatibility redirect", () => {

@@ -1,8 +1,8 @@
-import { ArrowRight,LayoutDashboard } from "lucide-react"
+import { ArrowRight, LayoutDashboard } from "lucide-react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
-import { DOCTOR_QUEUE_REVIEW_HREF, STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
+import { STAFF_DASHBOARD_HREF, STAFF_QUEUE_HREF } from "@/lib/dashboard/routes"
 
 export default function DoctorNotFound() {
   return (
@@ -22,7 +22,7 @@ export default function DoctorNotFound() {
           </Link>
         </Button>
         <Button variant="outline" asChild className="rounded-xl">
-          <Link href={DOCTOR_QUEUE_REVIEW_HREF}>
+          <Link href={STAFF_QUEUE_HREF}>
             Review queue
             <ArrowRight className="ml-2 h-4 w-4" />
           </Link>

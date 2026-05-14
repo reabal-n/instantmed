@@ -15,7 +15,7 @@ import Link from "next/link"
 import { DashboardGrid, DashboardPageHeader, StatCard } from "@/components/dashboard"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ADMIN_ANALYTICS_HREF, ADMIN_REFUNDS_HREF, STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
+import { ADMIN_REFUNDS_HREF, STAFF_ANALYTICS_HREF, STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import { formatCurrency } from "@/lib/format"
 
 interface FinanceData {
@@ -154,7 +154,7 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
                 </a>
               </Button>
               <Button variant="outline" asChild>
-                <Link href={ADMIN_ANALYTICS_HREF}>Revenue analytics</Link>
+                <Link href={STAFF_ANALYTICS_HREF}>Revenue analytics</Link>
               </Button>
             </div>
           </section>

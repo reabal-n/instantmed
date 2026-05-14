@@ -84,6 +84,9 @@ describe("retired compatibility modules", () => {
       .map(({ path }) => path.replace(`${root}/`, ""))
       .filter((path) => path.endsWith("/route.ts"))
       .sort()
+    const allE2ESource = readSources(join(root, "e2e"))
+      .map(({ source }) => source)
+      .join("\n")
 
     expect(routePaths).toEqual([
       "app/api/test/boom-500/route.ts",
@@ -91,6 +94,10 @@ describe("retired compatibility modules", () => {
       "app/api/test/login/route.ts",
       "app/api/test/medcert-auto-approve/route.ts",
     ])
+    expect(allE2ESource).toContain("/api/test/boom-500")
+    expect(allE2ESource).toContain("/api/test/boom")
+    expect(allE2ESource).toContain("/api/test/login")
+    expect(allE2ESource).toContain("/api/test/medcert-auto-approve")
   })
 
   it("keeps dev-only surfaces fail-closed in production and preview", () => {

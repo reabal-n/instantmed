@@ -2,19 +2,17 @@
 
 import {
   Activity,
-  ArrowLeft,
   Bot,
   Eye,
-  ScrollText,
   Search,
   Stethoscope,
   User,
   Webhook,
 } from "lucide-react"
-import Link from "next/link"
-import { useCallback,useState } from "react"
+import { useCallback, useState } from "react"
 
 import { getAuditLogsAction } from "@/app/actions/admin-config"
+import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -25,7 +23,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Heading } from "@/components/ui/heading"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -43,10 +40,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Pagination, ScrollShadow,Skeleton, Tooltip } from "@/components/uix"
-import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
+import { Pagination, ScrollShadow, Skeleton, Tooltip } from "@/components/uix"
+import { STAFF_OPS_HREF } from "@/lib/dashboard/routes"
 import type { AuditLog, AuditLogFilters } from "@/lib/data/types/audit-logs"
-import { formatActorType,formatEventType, getAuditEventTypes } from "@/lib/data/types/audit-logs"
+import { formatActorType, formatEventType, getAuditEventTypes } from "@/lib/data/types/audit-logs"
 
 interface AuditLogClientProps {
   initialLogs: AuditLog[]
@@ -142,235 +139,190 @@ export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogCli
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href={STAFF_DASHBOARD_HREF}>
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div>
-            <Heading level="h1" className="!text-2xl flex items-center gap-2">
-              <ScrollText className="h-6 w-6 text-primary" />
-              Audit Log
-            </Heading>
-            <p className="text-sm text-muted-foreground mt-1">
-              Compliance and security event history
-            </p>
-          </div>
-        </div>
-      </div>
+    <OperatorPage>
+      <OperatorPageHeader
+        title="Audit history"
+        description="Compliance and security evidence for Ops investigations."
+        backHref={STAFF_OPS_HREF}
+        backLabel="Ops"
+      />
 
-      {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Events</p>
-                <p className="text-2xl font-semibold">{stats.total.toLocaleString()}</p>
-              </div>
-              <ScrollText className="h-8 w-8 text-muted-foreground/50" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Today</p>
-                <p className="text-2xl font-semibold text-primary">{stats.today}</p>
-              </div>
-              <Activity className="h-8 w-8 text-primary/50" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
+      <OperatorScrollArea>
+        <Card aria-label="Audit summary">
+          <CardContent className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
-              <p className="text-sm text-muted-foreground mb-2">Top Events (7d)</p>
-              <div className="space-y-1">
-                {stats.byType.slice(0, 3).map(({ type, count }) => (
-                  <div key={type} className="flex justify-between text-sm">
-                    <span className="text-muted-foreground truncate">{formatEventType(type)}</span>
-                    <span className="font-medium">{count}</span>
-                  </div>
-                ))}
-              </div>
+              <p className="text-xs font-medium text-muted-foreground">Total events</p>
+              <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">{stats.total.toLocaleString()}</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
             <div>
-              <p className="text-sm text-muted-foreground mb-2">By Actor (7d)</p>
-              <div className="space-y-1">
-                {stats.byActor.map(({ actor_type, count }) => (
-                  <div key={actor_type} className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">{formatActorType(actor_type)}</span>
-                    <span className="font-medium">{count}</span>
-                  </div>
-                ))}
-              </div>
+              <p className="text-xs font-medium text-muted-foreground">Today</p>
+              <p className="mt-1 text-xl font-semibold tabular-nums text-primary">{stats.today}</p>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters and Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Event History</CardTitle>
-          <CardDescription>
-            Searchable audit trail of all platform events
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-3 mb-4">
-            <div className="flex-1 min-w-[200px] relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search events..."
-                onChange={(e) => handleSearch(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Select
-              value={filters.eventType || "all"}
-              onValueChange={(v) => handleFilterChange("eventType", v)}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Event type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Events</SelectItem>
-                {EVENT_TYPES.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
-                    {type.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={filters.actorType || "all"}
-              onValueChange={(v) => handleFilterChange("actorType", v)}
-            >
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Actor type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Actors</SelectItem>
-                <SelectItem value="patient">Patient</SelectItem>
-                <SelectItem value="doctor">Doctor</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="system">System</SelectItem>
-                <SelectItem value="webhook">Webhook</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <ScrollShadow className="rounded-lg border overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead>Timestamp</TableHead>
-                  <TableHead>Event</TableHead>
-                  <TableHead>Actor</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  Array.from({ length: 5 }).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-5 w-20" /></TableCell>
-                      <TableCell><Skeleton className="h-5 w-16" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-48" /></TableCell>
-                      <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
-                    </TableRow>
-                  ))
-                ) : logs.length > 0 ? (
-                  logs.map((log) => (
-                    <TableRow key={log.id}>
-                      <TableCell className="font-mono text-xs whitespace-nowrap">
-                        {new Date(log.created_at).toLocaleString("en-AU", {
-                          day: "2-digit",
-                          month: "short",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">
-                          {formatEventType(log.action)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={`gap-1 ${getActorColor(log.actor_type)}`}>
-                          {getActorIcon(log.actor_type)}
-                          {formatActorType(log.actor_type)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="max-w-[300px]">
-                        {log.description ? (
-                          log.description.length > 50 ? (
-                            <Tooltip content={log.description}>
-                              <span className="truncate block cursor-help">
-                                {log.description.substring(0, 50)}...
-                              </span>
-                            </Tooltip>
-                          ) : (
-                            log.description
-                          )
-                        ) : (
-                          <span className="text-muted-foreground italic">No description</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleViewDetails(log)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                      No events found
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </ScrollShadow>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
-              <p className="text-sm text-muted-foreground">
-                Showing {((page - 1) * pageSize) + 1} - {Math.min(page * pageSize, total)} of {total}
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Top events</p>
+              <p className="mt-1 truncate text-sm text-foreground">
+                {stats.byType.slice(0, 3).map(({ type }) => formatEventType(type)).join(", ") || "None"}
               </p>
-              <Pagination
-                total={totalPages}
-                page={page}
-                onChange={(newPage) => fetchLogs(filters, newPage)}
-                showControls
-                size="sm"
-              />
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Actor mix</p>
+              <p className="mt-1 truncate text-sm text-foreground">
+                {stats.byActor.map(({ actor_type, count }) => `${formatActorType(actor_type)} ${count}`).join(", ") || "None"}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* Detail Dialog */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Compliance history</CardTitle>
+            <CardDescription>
+              Search audit events when Ops needs incident, merge, or security evidence.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-3 mb-4">
+              <div className="flex-1 min-w-[200px] relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search events..."
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <Select
+                value={filters.eventType || "all"}
+                onValueChange={(v) => handleFilterChange("eventType", v)}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Event type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Events</SelectItem>
+                  {EVENT_TYPES.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={filters.actorType || "all"}
+                onValueChange={(v) => handleFilterChange("actorType", v)}
+              >
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Actor type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Actors</SelectItem>
+                  <SelectItem value="patient">Patient</SelectItem>
+                  <SelectItem value="doctor">Doctor</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="system">System</SelectItem>
+                  <SelectItem value="webhook">Webhook</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <ScrollShadow className="rounded-lg border overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead>Timestamp</TableHead>
+                    <TableHead>Event</TableHead>
+                    <TableHead>Actor</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-48" /></TableCell>
+                        <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                      </TableRow>
+                    ))
+                  ) : logs.length > 0 ? (
+                    logs.map((log) => (
+                      <TableRow key={log.id}>
+                        <TableCell className="font-mono text-xs whitespace-nowrap">
+                          {new Date(log.created_at).toLocaleString("en-AU", {
+                            day: "2-digit",
+                            month: "short",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">
+                            {formatEventType(log.action)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={`gap-1 ${getActorColor(log.actor_type)}`}>
+                            {getActorIcon(log.actor_type)}
+                            {formatActorType(log.actor_type)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="max-w-[300px]">
+                          {log.description ? (
+                            log.description.length > 50 ? (
+                              <Tooltip content={log.description}>
+                                <span className="truncate block cursor-help">
+                                  {log.description.substring(0, 50)}...
+                                </span>
+                              </Tooltip>
+                            ) : (
+                              log.description
+                            )
+                          ) : (
+                            <span className="text-muted-foreground italic">No description</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewDetails(log)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                        No events found
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </ScrollShadow>
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4">
+                <p className="text-sm text-muted-foreground">
+                  Showing {((page - 1) * pageSize) + 1} - {Math.min(page * pageSize, total)} of {total}
+                </p>
+                <Pagination
+                  total={totalPages}
+                  page={page}
+                  onChange={(newPage) => fetchLogs(filters, newPage)}
+                  showControls
+                  size="sm"
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </OperatorScrollArea>
+
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
@@ -449,6 +401,6 @@ export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogCli
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </OperatorPage>
   )
 }
