@@ -1,5 +1,5 @@
 /**
- * Intake data module - re-exports all public API for backwards compatibility.
+ * Intake data module - re-exports the actively used intake data API.
  *
  * Consumers can import from "@/lib/data/intakes" as before.
  */
@@ -9,14 +9,12 @@ export {
   getAIApprovedIntakes,
   getAllIntakesForAdmin,
   getDoctorQueue,
-  getIntakeDocuments,
   getIntakeForPatient,
   getIntakeMonitoringStats,
   getIntakeWithDetails,
   getNextQueueIntakeId,
   getPatientDashboardData,
   getPatientIntakes,
-  getPatientIntakeStats,
   getPatientNotes,
   getRecentlyCompletedIntakes,
   getTodayEarnings,
@@ -25,28 +23,9 @@ export {
 // Mutations (server-only)
 export {
   createIntake,
-  createPatientNote,
   flagForFollowup,
   markAsReviewed,
-  markIntakeRefunded,
   saveDoctorNotes,
   updateIntakeStatus,
-  updatePatientNote,
   updateScriptSent,
 } from "./mutations"
-
-// Email triggers (server-only, internal use)
-export { triggerStatusEmail } from "./email-triggers"
-
-// Formatting helpers
-export {
-  formatIntakeStatus,
-  formatServiceType,
-  getIntakeStatusColor,
-} from "./format"
-
-// Types
-export type {
-  DashboardIntake,
-  DashboardPrescription,
-} from "./types"

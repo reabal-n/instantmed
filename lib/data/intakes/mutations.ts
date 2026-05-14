@@ -5,17 +5,13 @@ import { revalidateTag } from "next/cache"
 import { getParchmentScriptCompletionEligibility } from "@/lib/doctor/parchment-claim"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
-import { prepareDoctorNotesWrite, preparePatientNoteContentWrite, readPatientNoteContent } from "@/lib/security/phi-field-wrappers"
+import { prepareDoctorNotesWrite } from "@/lib/security/phi-field-wrappers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type {
   Intake,
   IntakeStatus,
-  PatientNote,
 } from "@/types/db"
-import {
-  asIntake,
-  asPatientNote,
-} from "@/types/db"
+import { asIntake } from "@/types/db"
 
 import { logStatusChange } from "../intake-events"
 import {
@@ -337,35 +333,6 @@ export async function saveDoctorNotes(intakeId: string, notes: string): Promise<
 }
 
 /**
- * Mark intake as refunded (after manual Stripe refund)
- */
-export async function markIntakeRefunded(
-  intakeId: string,
-  doctorId: string,
-  reason?: string
-): Promise<boolean> {
-  const supabase = createServiceRoleClient()
-
-  const { error } = await supabase
-    .from("intakes")
-    .update({
-      payment_status: "refunded",
-      refunded_at: new Date().toISOString(),
-      refunded_by: doctorId,
-      refund_reason: reason || "Manual refund processed",
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", intakeId)
-
-  if (error) {
-    logger.error("Error marking intake as refunded", {}, toError(error))
-    return false
-  }
-
-  return true
-}
-
-/**
  * Flag intake for follow-up
  */
 export async function flagForFollowup(intakeId: string, reason: string): Promise<boolean> {
@@ -425,74 +392,3 @@ export async function markAsReviewed(intakeId: string, doctorId: string): Promis
 
 // Legacy declineIntake() removed -- use canonical app/actions/decline-intake.ts
 // which handles refund + email + audit consistently.
-
-// ============================================
-// PATIENT NOTES (Longitudinal Encounter Notes)
-// ============================================
-
-/**
- * Create a patient note
- */
-export async function createPatientNote(
-  patientId: string,
-  createdBy: string,
-  content: string,
-  options?: {
-    noteType?: string
-  }
-): Promise<PatientNote | null> {
-  const supabase = createServiceRoleClient()
-
-  // Encrypt content (dual-write: plaintext + encrypted during migration)
-  const contentFields = await preparePatientNoteContentWrite(content)
-
-  const { data, error } = await supabase
-    .from("patient_notes")
-    .insert({
-      patient_id: patientId,
-      note_type: options?.noteType || "encounter",
-      ...contentFields,
-      created_by: createdBy,
-    })
-    .select("id, patient_id, note_type, content, content_enc, created_by, created_by_name, created_at, updated_at")
-    .single()
-
-  if (error) {
-    logger.error("Error creating patient note", {}, toError(error))
-    return null
-  }
-
-  return asPatientNote({
-    ...data,
-    content: await readPatientNoteContent(data),
-    content_enc: undefined,
-  } as Record<string, unknown>)
-}
-
-/**
- * Update a patient note
- */
-export async function updatePatientNote(
-  noteId: string,
-  content: string
-): Promise<boolean> {
-  const supabase = createServiceRoleClient()
-
-  // Encrypt content (dual-write: plaintext + encrypted during migration)
-  const contentFields = await preparePatientNoteContentWrite(content)
-
-  const { error } = await supabase
-    .from("patient_notes")
-    .update({
-      ...contentFields,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", noteId)
-
-  if (error) {
-    logger.error("Error updating patient note", {}, toError(error))
-    return false
-  }
-
-  return true
-}

@@ -115,41 +115,6 @@ export function getPatientIntakes(
 }
 
 /**
- * Get intake counts by status for a patient
- */
-export async function getPatientIntakeStats(patientId: string): Promise<{
-  total: number
-  pending: number
-  approved: number
-  declined: number
-  in_review: number
-  pending_info: number
-  awaiting_payment: number
-}> {
-  const supabase = createServiceRoleClient()
-
-  const { data, error } = await supabase
-    .from("intakes")
-    .select("status, payment_status")
-    .eq("patient_id", patientId)
-
-  if (error || !data) {
-    logger.error("Error fetching intake stats", {}, toError(error))
-    return { total: 0, pending: 0, approved: 0, declined: 0, in_review: 0, pending_info: 0, awaiting_payment: 0 }
-  }
-
-  return {
-    total: data.length,
-    pending: data.filter((r) => r.status === "paid").length,
-    approved: data.filter((r) => r.status === "approved" || r.status === "completed").length,
-    declined: data.filter((r) => r.status === "declined").length,
-    in_review: data.filter((r) => r.status === "in_review").length,
-    pending_info: data.filter((r) => r.status === "pending_info").length,
-    awaiting_payment: data.filter((r) => r.payment_status === "pending" || r.status === "pending_payment").length,
-  }
-}
-
-/**
  * Fetch a single intake for a patient (with ownership check)
  */
 export async function getIntakeForPatient(intakeId: string, patientId: string): Promise<IntakeWithPatient | null> {
@@ -856,36 +821,6 @@ export async function getPatientNotes(
   )
 
   return decrypted.map(row => asPatientNote(row as Record<string, unknown>))
-}
-
-// ============================================
-// DOCUMENT HELPERS
-// ============================================
-
-/**
- * Get documents for an intake
- */
-export async function getIntakeDocuments(intakeId: string): Promise<Array<{
-  id: string
-  document_type: string
-  filename: string
-  certificate_number: string | null
-  created_at: string
-}>> {
-  const supabase = createServiceRoleClient()
-
-  const { data, error } = await supabase
-    .from("intake_documents")
-    .select("id, document_type, filename, certificate_number, created_at")
-    .eq("intake_id", intakeId)
-    .order("created_at", { ascending: false })
-
-  if (error) {
-    logger.error("Error fetching intake documents", {}, toError(error))
-    return []
-  }
-
-  return data || []
 }
 
 // ============================================

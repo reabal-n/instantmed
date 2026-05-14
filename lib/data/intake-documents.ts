@@ -30,33 +30,3 @@ export async function getIntakeDocument(
 
   return data as IntakeDocument
 }
-
-/**
- * Get all documents for an intake.
- */
-export async function getIntakeDocuments(intakeId: string): Promise<IntakeDocument[]> {
-  const supabase = createServiceRoleClient()
-
-  const { data, error } = await supabase
-    .from("intake_documents")
-    .select("id, intake_id, document_type, filename, storage_path, mime_type, file_size_bytes, certificate_number, verification_code, metadata, created_by, created_at, updated_at")
-    .eq("intake_id", intakeId)
-    .order("created_at", { ascending: false })
-
-  if (error || !data) {
-    return []
-  }
-
-  return data as IntakeDocument[]
-}
-
-/**
- * Get the public URL for a document stored in Supabase Storage.
- */
-export function getDocumentPublicUrl(storagePath: string): string {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  if (!supabaseUrl) {
-    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL")
-  }
-  return `${supabaseUrl}/storage/v1/object/public/documents/${storagePath}`
-}

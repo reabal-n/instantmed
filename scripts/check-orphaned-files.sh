@@ -167,6 +167,7 @@ done
 # ── 5. Retired subscription acquisition files ─────────────────────────────
 for retired_subscription_file in \
   "app/api/cron/subscription-nudge/route.ts" \
+  "lib/data/subscriptions.ts" \
   "lib/email/subscription-nudge.ts" \
   "components/email/templates/subscription-nudge.tsx" \
   "lib/email/components/templates/subscription-nudge.tsx"
