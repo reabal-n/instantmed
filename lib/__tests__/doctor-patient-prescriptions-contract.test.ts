@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
@@ -125,6 +125,7 @@ describe("doctor patient medication history contract", () => {
     // mention the retired component for historical context.)
     expect(detailSource).not.toContain('import { ParchmentPrescribePanel, PatientCommunicationHistory }')
     expect(detailSource).not.toContain("<PatientCommunicationHistory")
+    expect(existsSync(join(process.cwd(), "components/doctor/patient-communication-history.tsx"))).toBe(false)
     expect(detailSource).not.toContain("No requests from this patient yet")
     expect(detailSource).not.toContain("No emails sent to this patient yet")
     expect(detailSource).not.toContain("No notes yet")

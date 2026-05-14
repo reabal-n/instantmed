@@ -565,7 +565,6 @@ export function ArticleTemplate({
           <SocialShare 
             url={`https://instantmed.com.au/blog/${article.slug}`}
             title={article.title}
-            description={article.excerpt}
           />
         </div>
       </div>

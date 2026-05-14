@@ -423,7 +423,7 @@ Static-PDF overlay config is stored as immutable JSONB in `certificate_templates
 
 Capability helpers in `lib/auth/staff-capabilities.ts`. Per-doctor capability flags on `profiles` (`can_review_med_certs`, `can_review_repeat_rx`, `can_review_consults`, `can_review_ed`, `can_review_hair_loss`, `can_prescribe_s4`, `can_prescribe_s8`) scope future doctor hires before their service-line verification completes; owner-operator is unrestricted by default. Parchment prescribing actions call `checkParchmentPrescribingCapability(...)` before external handoff: `prescribe_s4` is required for every embedded prescribing launch, and `prescribe_s8` is required when repeat-script intake answers include a controlled-medication name.
 
-**Canonical URL:** `/dashboard`. As of Phase 2 of the dashboard remaster (2026-05-12), `/dashboard` is the real staff surface: role-aware content (admin gets the full Admin layer + setup card + queue; doctor gets the queue; support is redirected to the bounded support ops cockpit at `/admin/ops`), `SystemHealthPill` in the header, and doctor availability toggle. Legacy `/admin`, `/doctor`, `/doctor/dashboard`, and `/doctor/queue` redirect here from `next.config.mjs`. New code references `STAFF_*_HREF` constants from `lib/dashboard/routes.ts`; legacy `ADMIN_*_HREF` / `DOCTOR_*_HREF` aliases stay until a later remaster phase consolidates the file tree.
+**Canonical URL:** `/dashboard`. As of Phase 2 of the dashboard remaster (2026-05-12), `/dashboard` is the real staff surface: role-aware content (admin gets setup/readiness cards above the same clinical queue; doctor gets the queue; support is redirected to the bounded support ops cockpit at `/admin/ops`), `SystemHealthPill` in the header, and doctor availability toggle. Legacy `/admin`, `/doctor`, `/doctor/dashboard`, and `/doctor/queue` redirect here from `next.config.mjs`. New code references `STAFF_*_HREF` constants from `lib/dashboard/routes.ts`; legacy `ADMIN_*_HREF` / `DOCTOR_*_HREF` aliases stay until a later remaster phase consolidates the file tree.
 
 ## Admin Portal
 
@@ -713,26 +713,26 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `app/compare/[slug]/` | SEO: comparisons | Service comparison pages |
 | `app/offline/` | Offline fallback | PWA offline page — shown by service worker when network unavailable |
 
-### `components/` — 394 files
+### `components/` — 490 files
 
 | Directory | Count | Purpose |
 |-----------|-------|---------|
-| `ui/` | 67 | shadcn/Radix primitives (Button, Input, Dialog, etc.) |
-| `uix/` | 11 | Thin shared wrappers and re-exports (UserCard, PageBreadcrumbs, DatePickerField, Pagination, Snippet, etc.) |
-| `shared/` | 39 | Header, Footer, InlineAuthStep, CheckoutButton, LazyOverlays |
-| `operator/` | — | OperatorShell, bounded staff pages, split panes, local action palettes |
-| `request/` | 32 | Intake flow: `request-flow.tsx` (orchestrator), `steps/` (per-step components), `store.ts` (Zustand) |
-| `marketing/` | 20 | Landing pages, ServiceFunnelPage, testimonials, exit intent |
+| `ui/` | 69 | shadcn/Radix primitives (Button, Input, Dialog, etc.) |
+| `uix/` | 12 | Thin shared wrappers and re-exports (UserCard, PageBreadcrumbs, DatePickerField, Pagination, Snippet, etc.) |
+| `shared/` | 40 | Header, Footer, InlineAuthStep, CheckoutButton, LazyOverlays |
+| `operator/` | 7 | OperatorShell, bounded staff pages, split panes, local action palettes |
+| `request/` | 50 | Intake flow: `request-flow.tsx` (orchestrator), `steps/` (per-step components), `store.ts` (Zustand) |
+| `marketing/` | 108 | Landing pages, ServiceFunnelPage, testimonials, exit intent |
 | `blog/` | 12 | Guide article template, TOC, visuals, related reading, share controls |
-| `doctor/` | — | IntakeReviewPanel, RepeatPrescriptionChecklist, clinical views |
-| `admin/` | — | Admin-specific panels and views |
-| `patient/` | — | ReferralCard, CrossSellCard, dashboard components |
-| `chat/` | — | AI chat intake (ChatIntake, lazy-loaded) |
-| `charts/` | — | LazyAreaChart, LazyBarChart, etc. (dynamic import from recharts) |
-| `effects/` | — | Confetti, ShakeAnimation |
-| `providers/` | — | PostHogProvider, ThemeProvider, MotionProvider |
-| `heroes/` | — | Morning Canvas hero variants (Split, Centered, Stats, FullBleed) |
-| `ui/morning/` | — | Morning Canvas primitives (MeshGradientCanvas, WordReveal, PerspectiveTiltCard) |
+| `doctor/` | 37 | IntakeReviewPanel, RepeatPrescriptionChecklist, clinical views |
+| `admin/` | 9 | Admin-specific panels and views |
+| `patient/` | 25 | ReferralCard, CrossSellCard, dashboard components |
+| `chat/` | 0 | AI chat intake is not active in the component tree |
+| `charts/` | 1 | LazyAreaChart, LazyBarChart, etc. (dynamic import from recharts) |
+| `effects/` | 2 | Confetti, ShakeAnimation |
+| `providers/` | 7 | PostHogProvider, ThemeProvider, MotionProvider |
+| `heroes/` | 5 | Morning Canvas hero variants (Split, Centered, Stats, FullBleed) |
+| `ui/morning/` | 7 | Morning Canvas primitives (MeshGradientCanvas, WordReveal, PerspectiveTiltCard) |
 | `ui/skeleton.tsx` | — | SkeletonCard, SkeletonForm, SkeletonList, SkeletonDashboard, Spinner |
 
 ### `lib/` — 334 files

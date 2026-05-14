@@ -3,22 +3,18 @@
 import { Check,Facebook, Link2, Linkedin, Twitter } from 'lucide-react'
 import { useState } from 'react'
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 interface SocialShareProps {
   url: string
   title: string
-  description?: string
 }
 
-export function SocialShare({ url, title, description }: SocialShareProps) {
+export function SocialShare({ url, title }: SocialShareProps) {
   const [copied, setCopied] = useState(false)
 
   const encodedUrl = encodeURIComponent(url)
   const encodedTitle = encodeURIComponent(title)
-  const _encodedDescription = encodeURIComponent(description || '')
 
   const shareLinks = [
     {

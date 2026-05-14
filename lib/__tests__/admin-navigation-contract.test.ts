@@ -12,10 +12,6 @@ const sidebarSource = readFileSync(
   join(process.cwd(), "components/admin/admin-sidebar.tsx"),
   "utf8",
 )
-const adminHubSource = readFileSync(
-  join(process.cwd(), "components/admin/admin-hub-zones.tsx"),
-  "utf8",
-)
 const adminIntakesLedgerSource = readFileSync(
   join(process.cwd(), "app/admin/intakes/intakes-ledger-client.tsx"),
   "utf8",
@@ -201,35 +197,18 @@ describe("admin navigation contract", () => {
     expect(operatorShellSource).toContain("MobileAdminNav")
   })
 
-  it("keeps the admin dashboard hub focused on operational next actions", () => {
-    // Phase 2 of dashboard remaster (2026-05-12) trimmed AdminHubZones to the
-    // compact-only layout. Heading is "Admin layer"; the legacy non-compact
-    // "Operational focus" branch was deleted.
-    expect(adminHubSource).toContain("Admin layer")
-    expect(adminHubSource).not.toContain("Quick navigation")
-    expect(adminHubSource).not.toContain("Doctor analytics")
-    expect(adminHubSource).not.toContain("Feature flags")
-    expect(adminHubSource).toContain("ADMIN_PARCHMENT_OPS_HREF")
-    expect(adminHubSource).toContain("ADMIN_WEBHOOK_DLQ_HREF")
-    expect(adminHubSource).toContain("STAFF_EMAILS_HREF")
-    expect(adminHubSource).toContain("STAFF_OPS_HREF")
-    expect(adminHubSource).toContain("STAFF_PATIENTS_HREF")
+  it("keeps the staff dashboard free of a second admin hub above the queue", () => {
+    expect(existsSync(join(process.cwd(), "components/admin/admin-hub-zones.tsx"))).toBe(false)
+    expect(dashboardRedirectSource).not.toContain("AdminHubZones")
+    expect(dashboardRedirectSource).toContain("OwnerOperatorSetupCard")
+    expect(dashboardRedirectSource).toContain("StaffReadinessPanel")
+    expect(dashboardRedirectSource).toContain("QueueClient")
     expect(dashboardRoutesSource).toContain('ADMIN_PARCHMENT_OPS_HREF = "/admin/ops/parchment"')
     expect(dashboardRoutesSource).toContain('ADMIN_WEBHOOK_DLQ_HREF = "/admin/webhook-dlq"')
     expect(dashboardRoutesSource).not.toContain("ADMIN_EMAIL_HUB_HREF")
     expect(dashboardRoutesSource).toContain('ADMIN_EMAIL_TEMPLATE_EDITOR_HREF = "/admin/emails/templates"')
     expect(dashboardRoutesSource).toContain('ADMIN_CERTIFICATE_DETAILS_HREF = "/admin/settings/templates"')
     expect(dashboardRoutesSource).not.toContain("ADMIN_PATIENTS_HREF")
-    // Status-filter links now go to the canonical `/dashboard` via
-    // buildStaffDashboardHref; the literal `/doctor/...` hrefs are gone.
-    expect(adminHubSource).toContain("buildStaffDashboardHref")
-    expect(adminHubSource).not.toContain('href: "/doctor')
-    expect(adminHubSource).not.toContain("DOCTOR_QUEUE_REVIEW_HREF")
-    expect(adminHubSource).not.toContain("ADMIN_EMAIL_HUB_HREF")
-    expect(adminHubSource).not.toContain("ADMIN_OPS_HREF")
-    expect(adminHubSource).not.toContain("ADMIN_PATIENTS_HREF")
-    expect(adminHubSource).not.toContain("configuration exceptions")
-    expect(adminHubSource).not.toContain('href: "/admin/settings"')
   })
 
   it("keeps setup subpages anchored to the setup hub", () => {

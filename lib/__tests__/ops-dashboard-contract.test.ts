@@ -7,10 +7,6 @@ const opsPageSource = readFileSync(
   join(process.cwd(), "app/admin/ops/page.tsx"),
   "utf8",
 )
-const adminHubZonesSource = readFileSync(
-  join(process.cwd(), "components/admin/admin-hub-zones.tsx"),
-  "utf8",
-)
 const adminSidebarSource = readFileSync(
   join(process.cwd(), "components/admin/admin-sidebar.tsx"),
   "utf8",
@@ -165,10 +161,8 @@ describe("ops dashboard data contract", () => {
   })
 
   it("keeps webhook recovery on the canonical Stripe DLQ surface", () => {
-    expect(adminHubZonesSource).toContain("ADMIN_WEBHOOK_DLQ_HREF")
     expect(dashboardRoutesSource).toContain('ADMIN_WEBHOOK_DLQ_HREF = "/admin/webhook-dlq"')
     expect(opsPageSource).toContain("ADMIN_WEBHOOK_DLQ_HREF")
-    expect(adminHubZonesSource).not.toContain('href: "/admin/webhooks"')
     expect(adminSidebarSource).not.toContain('href: "/admin/webhooks"')
     expect(adminSidebarSource).not.toContain('href: "/admin/webhook-dlq"')
 

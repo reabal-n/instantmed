@@ -59,10 +59,8 @@ export const dynamic = "force-dynamic"
  * redirect here from next.config.mjs.
  *
  * Layout (admin or doctor):
- *   - Header: title + system health pill + availability toggle
- *   - Compact 3-zone KPI strip (review queue, scripts, recovery) for admin
- *     only; doctor sees the queue header directly.
- *   - Owner-operator setup card if admin and setup is incomplete.
+ *   - Header: title + system health pill + availability toggle.
+ *   - Owner-operator setup/readiness cards when admin setup needs attention.
  *   - Queue list (the same `QueueClient` as before).
  *
  * Support role gets redirected to STAFF_OPS_HREF (no clinical surface yet).
