@@ -126,6 +126,7 @@ export function Footer({ variant = "marketing" }: FooterProps) {
             <Link href="/trust" className="hover:text-foreground transition-colors">Trust & Safety</Link>
           </div>
         </div>
+        <p className="whitespace-nowrap italic">An apple a day keeps the doctor away. We&apos;re here for when that fails.</p>
         <p className="whitespace-nowrap">ABN: {ABN}</p>
       </div>
     </footer>
