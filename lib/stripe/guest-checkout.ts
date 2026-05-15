@@ -30,8 +30,9 @@ import { validateMedCertPayload } from "@/lib/validation/med-cert-schema"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 import type { ServiceCategory } from "@/types/services"
 
-import { getAmountCentsForRequest, getPriceIdForRequest, stripe } from "./client"
+import { getAmountCentsForRequest, getOptionalStripePriceEnv, getPriceIdForRequest, stripe } from "./client"
 import { shouldReuseGuestProfileForCheckout } from "./guest-profile-dedupe"
+import { inferStripeLineItemFailureRole, stripePriceErrorUserMessage } from "./line-item-error"
 import { buildPaymentIntentMetadata, resolveGuestDuplicateCheckoutRecovery } from "./payment-integrity"
 import { buildPrescribingProfileUpdates } from "./prescribing-profile-fields"
 
@@ -549,7 +550,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       answers: input.answers,
     })
     const isPriority = input.answers.is_priority === true || input.answers.isPriority === true
-    const priorityPriceId = isPriority ? process.env.STRIPE_PRICE_PRIORITY_FEE : null
+    const priorityPriceId = isPriority ? getOptionalStripePriceEnv("STRIPE_PRICE_PRIORITY_FEE") : null
     if (isPriority && !priorityPriceId) {
       return {
         success: false,
@@ -735,6 +736,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
     // 7. Create Stripe checkout session
     let session
+    let lineItems: Array<{ price: string; quantity: number }> = []
     try {
       logger.info("Creating guest Stripe checkout session", { 
         intakeId: intake.id, 
@@ -766,7 +768,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         ...(attribution.network ? { network: attribution.network } : {}),
       })
       // Use intake ID as idempotency key to prevent duplicate sessions on double-click
-      const lineItems: Array<{ price: string; quantity: number }> = [
+      lineItems = [
         {
           price: priceId,
           quantity: 1,
@@ -797,17 +799,19 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       })
     } catch (stripeError: unknown) {
       const errorMessage = stripeError instanceof Error ? stripeError.message : String(stripeError)
+      const failedPriceRole = inferStripeLineItemFailureRole(errorMessage, lineItems)
       await markGuestCheckoutFailed(supabase, intake.id, errorMessage)
       logger.error("Stripe checkout session creation failed", { 
         error: errorMessage, 
         intakeId: intake.id,
-        category: input.category 
+        category: input.category,
+        failedPriceRole,
       })
 
       if (errorMessage.includes("No such price")) {
         return { 
           success: false, 
-          error: "This service is temporarily unavailable. Please try again later." 
+          error: stripePriceErrorUserMessage(failedPriceRole),
         }
       }
       return { 

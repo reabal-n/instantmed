@@ -21,6 +21,23 @@ export interface PriceIdInput {
   answers?: Record<string, unknown>
 }
 
+export function normalizeStripePriceId(priceId: string | null | undefined): string | undefined {
+  const normalized = priceId?.trim()
+  return normalized && normalized.length > 0 ? normalized : undefined
+}
+
+export function getOptionalStripePriceEnv(key: string): string | null {
+  return normalizeStripePriceId(process.env[key]) ?? null
+}
+
+function getRequiredStripePriceEnv(key: string): string {
+  const priceId = getOptionalStripePriceEnv(key)
+  if (!priceId) {
+    throw new Error(`Missing ${key} environment variable`)
+  }
+  return priceId
+}
+
 /**
  * Calculate number of absence days from answers
  * Supports both unified duration values and legacy absence_dates answers.
@@ -78,10 +95,10 @@ export function getAbsenceDays(answers?: Record<string, unknown>): number {
 export function getConsultPriceId(subtype: string, answers?: Record<string, unknown>): string {
   // Subtype-specific price IDs
   const subtypePriceIds: Record<string, string | undefined> = {
-    'ed': process.env.STRIPE_PRICE_CONSULT_ED,
-    'hair_loss': process.env.STRIPE_PRICE_CONSULT_HAIR_LOSS,
-    'womens_health': process.env.STRIPE_PRICE_CONSULT_WOMENS_HEALTH,
-    'weight_loss': process.env.STRIPE_PRICE_CONSULT_WEIGHT_LOSS,
+    'ed': getOptionalStripePriceEnv("STRIPE_PRICE_CONSULT_ED") ?? undefined,
+    'hair_loss': getOptionalStripePriceEnv("STRIPE_PRICE_CONSULT_HAIR_LOSS") ?? undefined,
+    'womens_health': getOptionalStripePriceEnv("STRIPE_PRICE_CONSULT_WOMENS_HEALTH") ?? undefined,
+    'weight_loss': getOptionalStripePriceEnv("STRIPE_PRICE_CONSULT_WEIGHT_LOSS") ?? undefined,
   }
   
   // Check for subtype-specific price
@@ -97,10 +114,7 @@ export function getConsultPriceId(subtype: string, answers?: Record<string, unkn
   }
   
   // Default to general consult price (covers 'general' and 'new_medication')
-  const defaultPriceId = process.env.STRIPE_PRICE_CONSULT
-  if (!defaultPriceId) {
-    throw new Error("Missing STRIPE_PRICE_CONSULT environment variable")
-  }
+  const defaultPriceId = getRequiredStripePriceEnv("STRIPE_PRICE_CONSULT")
 
   // Hard fail in production if a KNOWN subtype is missing its dedicated env var -
   // mischarging a customer is worse than a 500. env.ts already validates the four
@@ -136,38 +150,22 @@ export function getPriceIdForRequest({ category, subtype, answers }: PriceIdInpu
     
     // 3-day certificates use highest price
     if (absenceDays === 3) {
-      const priceId = process.env.STRIPE_PRICE_MEDCERT_3DAY
-      if (!priceId) {
-        throw new Error("Missing STRIPE_PRICE_MEDCERT_3DAY environment variable")
-      }
-      return priceId
+      return getRequiredStripePriceEnv("STRIPE_PRICE_MEDCERT_3DAY")
     }
 
     // 2-day certificates use higher price
     if (absenceDays === 2) {
-      const priceId = process.env.STRIPE_PRICE_MEDCERT_2DAY
-      if (!priceId) {
-        throw new Error("Missing STRIPE_PRICE_MEDCERT_2DAY environment variable")
-      }
-      return priceId
+      return getRequiredStripePriceEnv("STRIPE_PRICE_MEDCERT_2DAY")
     }
 
     // 1-day certificates (default)
-    const priceId = process.env.STRIPE_PRICE_MEDCERT
-    if (!priceId) {
-      throw new Error("Missing STRIPE_PRICE_MEDCERT environment variable")
-    }
-    return priceId
+    return getRequiredStripePriceEnv("STRIPE_PRICE_MEDCERT")
   }
 
   // Prescriptions - the intake flow is always for repeats ($29.95).
   // New prescriptions route through the consult flow and use STRIPE_PRICE_CONSULT ($49.95).
   if (category === "prescription") {
-    const priceId = process.env.STRIPE_PRICE_REPEAT_SCRIPT
-    if (!priceId) {
-      throw new Error("Missing STRIPE_PRICE_REPEAT_SCRIPT environment variable")
-    }
-    return priceId
+    return getRequiredStripePriceEnv("STRIPE_PRICE_REPEAT_SCRIPT")
   }
 
   // Consult - subtype-specific pricing

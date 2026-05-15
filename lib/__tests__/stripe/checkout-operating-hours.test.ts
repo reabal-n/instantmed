@@ -77,7 +77,9 @@ vi.mock("@/lib/security/fraud-detector", () => ({
 
 vi.mock("@/lib/stripe/client", () => ({
   getAmountCentsForRequest: vi.fn(() => 1995),
+  getOptionalStripePriceEnv: vi.fn((key: string) => process.env[key]?.trim() || null),
   getPriceIdForRequest: mocks.getPriceIdForRequest,
+  normalizeStripePriceId: vi.fn((priceId?: string | null) => priceId?.trim() || undefined),
   stripe: {
     checkout: {
       sessions: {
@@ -285,11 +287,54 @@ describe("checkout operating hours", () => {
     })
   })
 
+  it("returns an Express Review-specific error when the priority fee Stripe price is invalid", async () => {
+    const { supabase, updates } = createGuestCheckoutSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.stripeSessionCreate.mockRejectedValue(new Error("No such price: price_priority"))
+
+    const previousPriorityPrice = process.env.STRIPE_PRICE_PRIORITY_FEE
+    process.env.STRIPE_PRICE_PRIORITY_FEE = "price_priority"
+
+    try {
+      const result = await createGuestCheckoutAction({
+        answers: {
+          terms_agreed: true,
+          accuracy_confirmed: true,
+          is_priority: true,
+        },
+        category: "medical_certificate",
+        guestDateOfBirth: "1985-04-01",
+        guestEmail: "patient@example.test",
+        guestName: "Test Patient",
+        subtype: "work",
+        type: "med-cert",
+      })
+
+      expect(result).toEqual({
+        success: false,
+        error: "Express Review is temporarily unavailable. Please try again without Express Review or contact support.",
+      })
+      expect(updates).toContainEqual({
+        table: "intakes",
+        payload: expect.objectContaining({
+          checkout_error: "No such price: price_priority",
+          status: "checkout_failed",
+        }),
+      })
+    } finally {
+      if (previousPriorityPrice === undefined) {
+        delete process.env.STRIPE_PRICE_PRIORITY_FEE
+      } else {
+        process.env.STRIPE_PRICE_PRIORITY_FEE = previousPriorityPrice
+      }
+    }
+  })
+
   it("charges and persists Express Review for guest checkout", async () => {
     const { inserts, supabase } = createGuestCheckoutSupabaseMock()
     mocks.createServiceRoleClient.mockReturnValue(supabase)
     const previousPriorityPrice = process.env.STRIPE_PRICE_PRIORITY_FEE
-    process.env.STRIPE_PRICE_PRIORITY_FEE = "price_priority"
+    process.env.STRIPE_PRICE_PRIORITY_FEE = "price_priority\n"
 
     try {
       const result = await createGuestCheckoutAction({

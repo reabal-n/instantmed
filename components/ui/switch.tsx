@@ -20,10 +20,13 @@ export interface SwitchProps
   onValueChange?: (isSelected: boolean) => void
   /** Label text rendered next to the switch */
   children?: React.ReactNode
+  childrenClassName?: string
+  size?: "default" | "sm"
 }
 
 function Switch({
   className,
+  childrenClassName,
   checked,
   defaultChecked,
   onCheckedChange,
@@ -31,6 +34,7 @@ function Switch({
   defaultSelected,
   onValueChange,
   children,
+  size = "default",
   ...props
 }: SwitchProps) {
   // Merge dual APIs: isSelected/onValueChange take precedence if both provided
@@ -53,7 +57,7 @@ function Switch({
         onCheckedChange={resolvedOnChange}
         className={cn(
           // iOS-style sizing
-          "relative inline-flex h-[32px] w-[52px] shrink-0",
+          size === "sm" ? "relative inline-flex h-[22px] w-[38px] shrink-0" : "relative inline-flex h-[32px] w-[52px] shrink-0",
           "cursor-pointer rounded-full",
           // Neutral off state
           "bg-muted/80 dark:bg-white/10",
@@ -73,11 +77,11 @@ function Switch({
         <SwitchPrimitive.Thumb
           className={cn(
             // iOS-style thumb
-            "pointer-events-none block h-[26px] w-[26px] rounded-full",
+            size === "sm" ? "pointer-events-none block h-[18px] w-[18px] rounded-full" : "pointer-events-none block h-[26px] w-[26px] rounded-full",
             // Clean white thumb with sky-toned shadow (§5 canon — never black)
             "bg-white shadow-sm shadow-primary/[0.12]",
             // Slide animation
-            "translate-x-0.5 data-[state=checked]:translate-x-[22px]",
+            size === "sm" ? "translate-x-0.5 data-[state=checked]:translate-x-[16px]" : "translate-x-0.5 data-[state=checked]:translate-x-[22px]",
             // Gentle transition
             "transition-[transform,box-shadow] duration-300 ease-out",
             // Vertical centering
@@ -86,7 +90,7 @@ function Switch({
         />
       </SwitchPrimitive.Root>
       {children && (
-        <span className="text-sm font-medium text-foreground leading-none">
+        <span className={cn("text-sm font-medium text-foreground leading-none", childrenClassName)}>
           {children}
         </span>
       )}

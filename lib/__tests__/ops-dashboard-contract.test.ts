@@ -181,6 +181,14 @@ describe("ops dashboard data contract", () => {
     expect(opsClientSource).not.toContain("process.env.TELEGRAM_CHAT_ID")
   })
 
+  it("surfaces Stripe price configuration health without exposing price values", () => {
+    expect(opsPageSource).toContain("getStripePriceConfigIssues")
+    expect(opsPageSource).toContain("stripePricesHealthy")
+    expect(opsClientSource).toContain("Stripe prices")
+    expect(opsClientSource).toContain("stripePriceConfig")
+    expect(opsClientSource).not.toContain("process.env.STRIPE_PRICE")
+  })
+
   it("lets admins send an audited Telegram test alert from ops", () => {
     expect(opsClientSource).not.toContain("sendTelegramTestAlertAction")
     expect(opsClientSource).not.toContain("Live alert check")

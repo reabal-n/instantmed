@@ -310,6 +310,20 @@ describe("getPriceIdForRequest", () => {
     ).toBe("price_medcert_1day")
   })
 
+  it("trims Stripe price IDs loaded from environment variables", async () => {
+    process.env.STRIPE_PRICE_MEDCERT = "price_medcert_1day\n"
+    process.env.STRIPE_PRICE_CONSULT_ED = "\tprice_consult_ed "
+
+    const { getPriceIdForRequest } = await importModule()
+
+    expect(
+      getPriceIdForRequest({ category: "medical_certificate", subtype: "work" }),
+    ).toBe("price_medcert_1day")
+    expect(
+      getPriceIdForRequest({ category: "consult", subtype: "ed" }),
+    ).toBe("price_consult_ed")
+  })
+
   it("returns 2-day med cert price for duration=2", async () => {
     const { getPriceIdForRequest } = await importModule()
     expect(

@@ -12,7 +12,9 @@ export {
   getBasePriceCents,
   getConsultPriceId,
   getDisplayPriceForCategory,
+  getOptionalStripePriceEnv,
   getPriceIdForRequest,
+  normalizeStripePriceId,
   type PriceIdInput,
   type ServiceCategory,
 } from "./price-mapping"

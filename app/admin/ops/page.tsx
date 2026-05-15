@@ -16,6 +16,7 @@ import {
   getDuplicatePatientProfileSummary,
   getPrescribingIdentityBlockerReport,
 } from "@/lib/doctor/patient-identity-report"
+import { getStripePriceConfigIssues } from "@/lib/stripe/price-config-health"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { OpsDashboardClient } from "./ops-client"
@@ -300,6 +301,7 @@ export default async function OpsDashboardPage() {
     (prescriptionWebhookFailuresResult.data || []) as AuditErrorRow[],
   ).filter((row) => getMetadataString(row.metadata, "eventType") === "parchment:prescription.created")
   const missingTelegramAlertEnv = getMissingTelegramAlertEnv()
+  const stripePriceConfigIssues = getStripePriceConfigIssues()
   const missingEmailDeliveryEnv = [
     process.env.RESEND_API_KEY ? null : "RESEND_API_KEY",
   ].filter((value): value is string => Boolean(value))
@@ -381,6 +383,14 @@ export default async function OpsDashboardPage() {
       missingTelegramVars: missingTelegramAlertEnv,
       telegramLastTestedAt: lastTelegramTest?.created_at || null,
     },
+    stripePriceConfig: {
+      issueCount: stripePriceConfigIssues.length,
+      issueSummary: stripePriceConfigIssues.length > 0
+        ? stripePriceConfigIssues
+          .map((issue) => `${issue.key}: ${issue.issue.replace("_", " ")}`)
+          .join(", ")
+        : "All active checkout price IDs are configured.",
+    },
     productionTimeline: [
       {
         id: "payment_webhook",
@@ -431,6 +441,7 @@ export default async function OpsDashboardPage() {
       patientIdentityHealthy: patientIdentityResult.duplicateProfileCount === 0,
       prescribingIdentityHealthy: prescribingIdentityResult.blockedCount === 0,
       failureOverviewHealthy: failureOverview.openCount === 0,
+      stripePricesHealthy: stripePriceConfigIssues.length === 0,
       telegramAlertsHealthy: missingTelegramAlertEnv.length === 0,
     },
   }

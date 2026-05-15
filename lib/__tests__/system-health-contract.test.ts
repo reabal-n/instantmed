@@ -34,7 +34,7 @@ describe("system-health endpoint contract", () => {
     expect(source).toContain("catch (error)")
   })
 
-  it("queries the four recovery surfaces via Promise.allSettled with per-surface fallback to 0", () => {
+  it("queries recovery surfaces via Promise.allSettled with per-surface fallback to 0", () => {
     const source = read("lib/data/system-health.ts")
 
     // Each surface is a separate query so a single failing table doesn't
@@ -50,6 +50,8 @@ describe("system-health endpoint contract", () => {
     expect(source).toContain('eq("action", "webhook_failed")')
     expect(source).toContain('eq("metadata->>error_type", "parchment")')
     expect(source).toContain('from("email_outbox")')
+    expect(source).toContain("countStripePriceConfigIssues")
+    expect(source).toContain("stripePriceIssues")
 
     // Each rejection / error path must return 0, not throw.
     expect(source).toContain('result.status === "rejected"')
@@ -62,6 +64,8 @@ describe("system-health endpoint contract", () => {
     expect(source).toContain('fetch("/api/admin/system-health", { cache: "no-store" })')
     // 45_000 ms poll interval per the Phase 2 design.
     expect(source).toContain("POLL_INTERVAL_MS = 45_000")
+    expect(source).toContain("stripePriceIssues")
+    expect(source).toContain("Stripe price config")
     // On fetch failure we explicitly keep the prior state — no flashing
     // red on a single network blip.
     expect(source).toContain("Advisory; keep last known state")

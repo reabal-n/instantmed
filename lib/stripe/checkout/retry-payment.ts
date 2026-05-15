@@ -19,7 +19,7 @@ import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { ServiceCategory } from "@/types/services"
 
-import { getPriceIdForRequest, stripe } from "../client"
+import { getPriceIdForRequest, normalizeStripePriceId, stripe } from "../client"
 import { buildPaymentIntentMetadata, canRetryPaymentForIntake } from "../payment-integrity"
 import { createReferralCouponIfEligible } from "../referral-coupon"
 import { getBaseUrl, getServiceSlug, isValidUrl } from "./helpers"
@@ -140,7 +140,7 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
     }
 
     const service = intake.service as { slug: string; price_cents: number } | null
-    const storedPriceId = (intake as { stripe_price_id?: string }).stripe_price_id
+    const storedPriceId = normalizeStripePriceId((intake as { stripe_price_id?: string }).stripe_price_id)
     const storedCategory = intake.category as ServiceCategory | null
 
     const priceId =

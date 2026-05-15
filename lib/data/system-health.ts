@@ -2,6 +2,7 @@ import "server-only"
 
 import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
 import { createLogger } from "@/lib/observability/logger"
+import { countStripePriceConfigIssues } from "@/lib/stripe/price-config-health"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("system-health")
@@ -11,6 +12,7 @@ export interface SystemHealth {
   webhookFailures: number
   parchmentFailures: number
   emailFailures: number
+  stripePriceIssues: number
   totalIssues: number
 }
 
@@ -19,11 +21,12 @@ export const EMPTY_SYSTEM_HEALTH: SystemHealth = {
   webhookFailures: 0,
   parchmentFailures: 0,
   emailFailures: 0,
+  stripePriceIssues: 0,
   totalIssues: 0,
 }
 
 /**
- * One-shot read of the four recovery surfaces the SystemHealthPill renders.
+ * One-shot read of the recovery surfaces the SystemHealthPill renders.
  *
  * Phase 2 of dashboard remaster (2026-05-12). Each surface is queried via a
  * lightweight HEAD count. Any sub-query that fails returns 0 so a transient
@@ -86,12 +89,14 @@ export async function getSystemHealth(): Promise<SystemHealth> {
   const webhookFailures = countOf(webhookResult, "webhook-failures")
   const parchmentFailures = countOf(parchmentResult, "parchment-failures")
   const emailFailures = countOf(emailResult, "email-failures")
+  const stripePriceIssues = countStripePriceConfigIssues()
 
   return {
     stuckIntakes,
     webhookFailures,
     parchmentFailures,
     emailFailures,
-    totalIssues: stuckIntakes + webhookFailures + parchmentFailures + emailFailures,
+    stripePriceIssues,
+    totalIssues: stuckIntakes + webhookFailures + parchmentFailures + emailFailures + stripePriceIssues,
   }
 }

@@ -100,6 +100,10 @@ interface OpsData {
     missingTelegramVars: string[]
     telegramLastTestedAt: string | null
   }
+  stripePriceConfig: {
+    issueCount: number
+    issueSummary: string
+  }
   productionTimeline: Array<{
     id: string
     label: string
@@ -136,6 +140,7 @@ interface OpsData {
     patientIdentityHealthy: boolean
     prescribingIdentityHealthy: boolean
     failureOverviewHealthy: boolean
+    stripePricesHealthy: boolean
     telegramAlertsHealthy: boolean
   }
 }
@@ -191,10 +196,23 @@ function StatusPill({
   )
 }
 
-function HealthRow({ label, healthy }: { label: string; healthy: boolean }) {
+function HealthRow({
+  detail,
+  label,
+  healthy,
+}: {
+  detail?: string
+  label: string
+  healthy: boolean
+}) {
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-border/40 py-2.5 last:border-b-0">
-      <span className="text-sm font-medium text-foreground">{label}</span>
+    <div className="flex items-start justify-between gap-3 border-b border-border/40 py-2.5 last:border-b-0">
+      <div className="min-w-0">
+        <span className="text-sm font-medium text-foreground">{label}</span>
+        {detail && !healthy && (
+          <p className="mt-0.5 break-words text-xs text-muted-foreground">{detail}</p>
+        )}
+      </div>
       <StatusPill tone={healthy ? "success" : "warning"}>{healthy ? "Clear" : "Open"}</StatusPill>
     </div>
   )
@@ -243,6 +261,7 @@ function RecoveryLink({ category }: { category: FailureCategory }) {
 export function OpsDashboardClient({ ops, supportMode = false }: OpsDashboardClientProps) {
   const {
     failureOverview,
+    stripePriceConfig,
     systemStatus,
   } = ops
 
@@ -253,6 +272,7 @@ export function OpsDashboardClient({ ops, supportMode = false }: OpsDashboardCli
     && systemStatus.patientIdentityHealthy
     && systemStatus.prescribingIdentityHealthy
     && systemStatus.failureOverviewHealthy
+    && systemStatus.stripePricesHealthy
     && systemStatus.telegramAlertsHealthy
   const attentionCategories = failureOverview.categories.filter((category) => category.count > 0)
   const clearCategories = failureOverview.categories.filter((category) => category.count === 0)
@@ -325,6 +345,11 @@ export function OpsDashboardClient({ ops, supportMode = false }: OpsDashboardCli
               <HealthRow healthy={systemStatus.intakesHealthy} label="Intake processing" />
               <HealthRow healthy={systemStatus.patientIdentityHealthy} label="Patient identity" />
               <HealthRow healthy={systemStatus.prescribingIdentityHealthy} label="Prescribing identity" />
+              <HealthRow
+                healthy={systemStatus.stripePricesHealthy}
+                label="Stripe prices"
+                detail={stripePriceConfig.issueSummary}
+              />
               <HealthRow healthy={systemStatus.telegramAlertsHealthy} label="Telegram alerts" />
             </div>
           </div>

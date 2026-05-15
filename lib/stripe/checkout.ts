@@ -51,7 +51,7 @@ import {
   createStripeSessionWithRollback,
 } from "./checkout/stripe-session"
 import type { CheckoutResult,CreateCheckoutInput } from "./checkout/types"
-import { getAmountCentsForRequest, getPriceIdForRequest } from "./client"
+import { getAmountCentsForRequest, getOptionalStripePriceEnv, getPriceIdForRequest } from "./client"
 import { createReferralCouponIfEligible } from "./referral-coupon"
 
 const logger = createLogger("stripe-checkout")
@@ -153,7 +153,7 @@ export async function createIntakeAndCheckoutAction(
       return { success: false, error: "Unable to determine pricing. Please contact support." }
     }
     const isPriority = input.answers.is_priority === true
-    const priorityPriceId = isPriority ? process.env.STRIPE_PRICE_PRIORITY_FEE : null
+    const priorityPriceId = isPriority ? getOptionalStripePriceEnv("STRIPE_PRICE_PRIORITY_FEE") : null
     if (isPriority && !priorityPriceId) {
       logger.error("Priority checkout requested without STRIPE_PRICE_PRIORITY_FEE", {
         category: input.category,

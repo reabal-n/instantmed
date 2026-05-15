@@ -12,15 +12,15 @@ import { useEffect,useState } from "react"
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
 import { PaymentLogos } from "@/components/checkout/payment-logos"
 import { GuaranteeBadge } from "@/components/marketing/guarantee-badge"
+import { ExpressReviewToggle } from "@/components/request/shared/express-review-toggle"
 import { CheckoutButton, TrustBadgeRow } from "@/components/shared"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useReducedMotion } from "@/components/ui/motion"
-import { Switch } from "@/components/ui/switch"
 import { getAttribution } from "@/lib/analytics/attribution"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 import { usePostHog } from "@/lib/analytics/posthog-context"
-import { PRICING as APP_PRICING, PRICING_DISPLAY } from "@/lib/constants"
+import { PRICING as APP_PRICING } from "@/lib/constants"
 import { getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
 import { normalizeMedicationEntriesAnswer, stringAnswer } from "@/lib/request/intake-answer-normalizers"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
@@ -270,6 +270,14 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
               ? "Doctor review starts after payment. If approved, your certificate is emailed to you."
               : "One-time fee. Your doctor reviews right after."}
           </p>
+          <div className="flex justify-end border-t border-border/40 pt-2">
+            <ExpressReviewToggle
+              id="express-review-toggle"
+              checked={isPriority}
+              onCheckedChange={setIsPriority}
+              onOptIn={() => posthog?.capture('express_review_opted_in', { service_type: serviceType })}
+            />
+          </div>
         </div>
       </div>
 
@@ -297,40 +305,6 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
           </p>
         </div>
       )}
-
-      {/* Express review toggle - opt-in, understated */}
-      <div>
-        <label
-          htmlFor="express-review-toggle"
-          className={`w-full px-3.5 py-3 rounded-xl border text-left transition-[background-color,border-color] duration-200 flex items-center gap-3 cursor-pointer ${
-            isPriority
-              ? "border-primary/30 bg-primary/[0.03]"
-              : "border-border/40 hover:border-border/60"
-          }`}
-        >
-          <Switch
-            id="express-review-toggle"
-            checked={isPriority}
-            onCheckedChange={(val) => {
-              setIsPriority(val)
-              if (val) posthog?.capture('express_review_opted_in', { service_type: serviceType })
-            }}
-            className="shrink-0"
-            aria-label="Enable express review"
-          />
-          <div className="flex-1 flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-foreground">Express review</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Skip the queue. Your case is reviewed first.
-              </p>
-            </div>
-            <span className="text-xs font-medium text-muted-foreground shrink-0">
-              +{PRICING_DISPLAY.PRIORITY_FEE}
-            </span>
-          </div>
-        </label>
-      </div>
 
       {/* Single combined consent - Checkbox (not Switch) for legal acknowledgment semantics */}
       <div>

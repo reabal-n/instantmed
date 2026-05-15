@@ -18,6 +18,7 @@ import {
 import { createLogger } from "@/lib/observability/logger"
 
 import { stripe } from "../client"
+import { inferStripeLineItemFailureRole, stripePriceErrorUserMessage } from "../line-item-error"
 import { buildPaymentIntentMetadata } from "../payment-integrity"
 import type { StepResult } from "./types"
 import { stepFail, stepOk } from "./types"
@@ -176,6 +177,7 @@ export async function createStripeSessionWithRollback(args: {
     })
   } catch (stripeError: unknown) {
     const errorMessage = stripeError instanceof Error ? stripeError.message : String(stripeError)
+    const failedPriceRole = inferStripeLineItemFailureRole(errorMessage, sessionParams.line_items)
 
     await supabase
       .from("intakes")
@@ -190,10 +192,11 @@ export async function createStripeSessionWithRollback(args: {
       error: errorMessage,
       intakeId,
       category,
+      failedPriceRole,
     })
 
     if (errorMessage.includes("No such price")) {
-      return stepFail("This service is temporarily unavailable. Please try again later.")
+      return stepFail(stripePriceErrorUserMessage(failedPriceRole))
     }
     return stepFail("Payment system error. Please try again or contact support if the issue persists.")
   }

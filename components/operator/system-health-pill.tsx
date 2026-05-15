@@ -36,6 +36,7 @@ export interface SystemHealth {
   webhookFailures: number
   parchmentFailures: number
   emailFailures: number
+  stripePriceIssues: number
   /** Total of all the above. Server-computed so we don't drift. */
   totalIssues: number
 }
@@ -45,6 +46,7 @@ const EMPTY_HEALTH: SystemHealth = {
   webhookFailures: 0,
   parchmentFailures: 0,
   emailFailures: 0,
+  stripePriceIssues: 0,
   totalIssues: 0,
 }
 
@@ -67,6 +69,7 @@ export function SystemHealthPill({ initial }: { initial?: SystemHealth }) {
           webhookFailures: Number(next.webhookFailures) || 0,
           parchmentFailures: Number(next.parchmentFailures) || 0,
           emailFailures: Number(next.emailFailures) || 0,
+          stripePriceIssues: Number(next.stripePriceIssues) || 0,
           totalIssues: Number(next.totalIssues) || 0,
         })
       } catch {
@@ -93,6 +96,7 @@ export function SystemHealthPill({ initial }: { initial?: SystemHealth }) {
           webhookFailures: Number(next.webhookFailures) || 0,
           parchmentFailures: Number(next.parchmentFailures) || 0,
           emailFailures: Number(next.emailFailures) || 0,
+          stripePriceIssues: Number(next.stripePriceIssues) || 0,
           totalIssues: Number(next.totalIssues) || 0,
         })
       }
@@ -177,6 +181,11 @@ export function SystemHealthPill({ initial }: { initial?: SystemHealth }) {
             label="Email failures"
             count={health.emailFailures}
             href={STAFF_EMAILS_HREF}
+          />
+          <HealthRow
+            label="Stripe price config"
+            count={health.stripePriceIssues}
+            href={STAFF_OPS_HREF}
           />
         </div>
 

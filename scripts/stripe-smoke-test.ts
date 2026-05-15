@@ -52,6 +52,36 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 const stripe = new Stripe(STRIPE_SECRET_KEY)
 
 // ============================================================================
+// Stripe Price Env Vars to Verify
+// ============================================================================
+
+interface PriceEnvCheck {
+  label: string
+  priceEnvVar: string
+  expectedPriceId: string | undefined
+}
+
+interface PriceEnvResult extends PriceEnvCheck {
+  priceId: string | null
+  priceValid: boolean
+  amount: number | null
+  errors: string[]
+}
+
+const PRICE_ENV_CHECKS: PriceEnvCheck[] = [
+  { label: "Med Cert - 1 day", priceEnvVar: "STRIPE_PRICE_MEDCERT", expectedPriceId: process.env.STRIPE_PRICE_MEDCERT },
+  { label: "Med Cert - 2 day", priceEnvVar: "STRIPE_PRICE_MEDCERT_2DAY", expectedPriceId: process.env.STRIPE_PRICE_MEDCERT_2DAY },
+  { label: "Med Cert - 3 day", priceEnvVar: "STRIPE_PRICE_MEDCERT_3DAY", expectedPriceId: process.env.STRIPE_PRICE_MEDCERT_3DAY },
+  { label: "Repeat Prescription", priceEnvVar: "STRIPE_PRICE_REPEAT_SCRIPT", expectedPriceId: process.env.STRIPE_PRICE_REPEAT_SCRIPT },
+  { label: "General Consult", priceEnvVar: "STRIPE_PRICE_CONSULT", expectedPriceId: process.env.STRIPE_PRICE_CONSULT },
+  { label: "ED Consult", priceEnvVar: "STRIPE_PRICE_CONSULT_ED", expectedPriceId: process.env.STRIPE_PRICE_CONSULT_ED },
+  { label: "Hair Loss Consult", priceEnvVar: "STRIPE_PRICE_CONSULT_HAIR_LOSS", expectedPriceId: process.env.STRIPE_PRICE_CONSULT_HAIR_LOSS },
+  { label: "Women's Health Consult", priceEnvVar: "STRIPE_PRICE_CONSULT_WOMENS_HEALTH", expectedPriceId: process.env.STRIPE_PRICE_CONSULT_WOMENS_HEALTH },
+  { label: "Weight Loss Consult", priceEnvVar: "STRIPE_PRICE_CONSULT_WEIGHT_LOSS", expectedPriceId: process.env.STRIPE_PRICE_CONSULT_WEIGHT_LOSS },
+  { label: "Express Review", priceEnvVar: "STRIPE_PRICE_PRIORITY_FEE", expectedPriceId: process.env.STRIPE_PRICE_PRIORITY_FEE },
+]
+
+// ============================================================================
 // Consult Subtypes to Test
 // ============================================================================
 
@@ -125,6 +155,35 @@ async function verifyPriceExists(priceId: string): Promise<{ valid: boolean; amo
   } catch (error) {
     return { valid: false, error: error instanceof Error ? error.message : "Unknown error" }
   }
+}
+
+async function runPriceEnvCheck(check: PriceEnvCheck): Promise<PriceEnvResult> {
+  const priceId = check.expectedPriceId?.trim()
+  const result: PriceEnvResult = {
+    ...check,
+    priceId: priceId || null,
+    priceValid: false,
+    amount: null,
+    errors: [],
+  }
+
+  if (!priceId) {
+    result.errors.push(`Missing ${check.priceEnvVar} environment variable`)
+    return result
+  }
+
+  if (priceId !== check.expectedPriceId) {
+    result.errors.push(`${check.priceEnvVar} has leading or trailing whitespace`)
+  }
+
+  const priceCheck = await verifyPriceExists(priceId)
+  result.priceValid = priceCheck.valid
+  result.amount = priceCheck.amount ?? null
+  if (!priceCheck.valid) {
+    result.errors.push(`Price ID ${priceId} not found: ${priceCheck.error}`)
+  }
+
+  return result
 }
 
 async function findRecentIntake(subtype: string): Promise<{
@@ -252,12 +311,42 @@ async function printResults(results: TestResult[]): Promise<void> {
   console.log()
 }
 
+function printPriceEnvResults(results: PriceEnvResult[]): void {
+  console.log("\n" + "=".repeat(80))
+  console.log("STRIPE PRICE ENV CHECKS")
+  console.log("=".repeat(80) + "\n")
+
+  let allPassed = true
+  for (const r of results) {
+    const priceStatus = r.priceValid && r.errors.length === 0 ? "✅" : "❌"
+    console.log(`${priceStatus} ${r.label}: ${r.priceId || "NOT SET"} (${r.priceEnvVar})`)
+    if (r.amount !== null) {
+      console.log(`   Amount: $${(r.amount / 100).toFixed(2)}`)
+    }
+    if (r.errors.length > 0) {
+      allPassed = false
+      r.errors.forEach((error) => console.log(`   - ${error}`))
+    }
+  }
+
+  if (!allPassed) {
+    console.log("\n❌ Fix price env issues before testing checkout.")
+  }
+}
+
 async function main(): Promise<void> {
   console.log("🧪 Stripe Test-Mode Smoke Test")
   console.log("─".repeat(40))
   console.log(`Stripe Mode: ${STRIPE_SECRET_KEY?.startsWith("sk_test_") ? "TEST ✅" : "LIVE ❌"}`)
   console.log(`Supabase URL: ${SUPABASE_URL}`)
   console.log()
+
+  const priceResults: PriceEnvResult[] = []
+  for (const check of PRICE_ENV_CHECKS) {
+    console.log(`Checking ${check.label} price...`)
+    priceResults.push(await runPriceEnvCheck(check))
+  }
+  printPriceEnvResults(priceResults)
 
   const results: TestResult[] = []
 

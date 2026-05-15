@@ -5,22 +5,22 @@
  * Shows all collected information for patient to verify
  */
 
-import { Check, ChevronDown, ChevronUp, Clock, CreditCard, Edit2, Loader2, Lock, MessageSquare, RefreshCw,ShieldCheck, Smartphone } from "lucide-react"
+import { Check, ChevronDown, ChevronUp, CreditCard, Edit2, Loader2, Lock, RefreshCw,ShieldCheck } from "lucide-react"
 import { useRef,useState } from "react"
 
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
 import { PaymentLogos } from "@/components/checkout/payment-logos"
 import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
 import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
+import { ExpressReviewToggle } from "@/components/request/shared/express-review-toggle"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
 import { getAttribution } from "@/lib/analytics/attribution"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 import { usePostHog } from "@/lib/analytics/posthog-context"
-import { PRICING as APP_PRICING, PRICING_DISPLAY } from "@/lib/constants"
+import { PRICING as APP_PRICING } from "@/lib/constants"
 import { getAddressReviewSummary } from "@/lib/request/address-metadata"
 import { CONSULT_SUBTYPE_DISPLAY_LABELS,getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
 import { normalizeMedicationEntriesAnswer, stringAnswer, stringArrayAnswer } from "@/lib/request/intake-answer-normalizers"
@@ -700,50 +700,6 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
 
       {/* Safety consent + Continue */}
       <div className="space-y-3 pt-1">
-        {isPrescriptionCheckout && (
-          <div className="rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] p-3 space-y-3">
-            <div className="grid gap-2">
-              <label
-                htmlFor="review-express-review-toggle"
-                className={`min-h-[86px] rounded-xl border p-3 cursor-pointer transition-colors ${
-                  isPriority ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
-                }`}
-              >
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <Clock className="h-4 w-4 text-primary" />
-                  <Switch
-                    id="review-express-review-toggle"
-                    checked={isPriority}
-                    onCheckedChange={(checked) => {
-                      setIsPriority(checked)
-                      if (checked) posthog?.capture("express_review_opted_in", { service_type: serviceType })
-                    }}
-                    aria-label="Enable express review"
-                  />
-                </div>
-                <div className="text-sm font-medium leading-tight">Express review</div>
-                <div className="mt-0.5 text-xs text-muted-foreground">
-                  Skip the queue. Your case is reviewed first.
-                </div>
-                <div className="mt-1 text-xs font-medium text-muted-foreground">
-                  +{PRICING_DISPLAY.PRIORITY_FEE}
-                </div>
-              </label>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 border-t border-border/50 pt-3 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1.5">
-                <Smartphone className="h-3.5 w-3.5" />
-                eScript by SMS
-              </span>
-              <span className="flex items-center gap-1.5">
-                <MessageSquare className="h-3.5 w-3.5" />
-                Doctor reviews
-              </span>
-            </div>
-          </div>
-        )}
-
         {/* Price summary - show before CTA so there's no payment surprise */}
         <div className="px-4 py-3 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] space-y-2">
           <div className="flex items-center justify-between">
@@ -753,9 +709,16 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
             </span>
           </div>
           {isPrescriptionCheckout && (
-            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              <span>One-time fee</span>
-              {isPriority && <span>Includes express review</span>}
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+              <span>
+                One-time fee{isPriority ? " incl. express review" : ""}
+              </span>
+              <ExpressReviewToggle
+                id="review-express-review-toggle"
+                checked={isPriority}
+                onCheckedChange={setIsPriority}
+                onOptIn={() => posthog?.capture("express_review_opted_in", { service_type: serviceType })}
+              />
             </div>
           )}
         </div>
@@ -827,12 +790,6 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
           <Alert variant="destructive" role="alert">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
-        )}
-
-        {!isPrescriptionCheckout && (
-          <p className="text-center text-[11px] text-muted-foreground">
-            Express review available at checkout (+{PRICING_DISPLAY.PRIORITY_FEE})
-          </p>
         )}
 
         <div className="flex flex-col items-center gap-3">
