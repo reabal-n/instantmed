@@ -108,6 +108,7 @@ function getCompactNextActionLabel(status: IntakeWithPatient["status"], serviceT
 
 const REVIEW_TARGET_MINUTES = 120
 const REVIEW_TARGET_STATUSES = new Set(["paid", "in_review", "pending_info", "awaiting_script"])
+const QUEUE_DOM_WINDOW_LIMIT = 100
 
 // Soft-claim lock timeout — matches the server-side claim TTL in
 // `lib/data/intake-lock.ts`. Hoisted to module scope so the row render
@@ -241,6 +242,10 @@ export function QueueTable({
 
   const totalPages = pagination ? Math.ceil(pagination.total / pagination.pageSize) : 1
   const currentPage = pagination?.page ?? 1
+  const renderedIntakes = filteredIntakes.length > QUEUE_DOM_WINDOW_LIMIT
+    ? filteredIntakes.slice(0, QUEUE_DOM_WINDOW_LIMIT)
+    : filteredIntakes
+  const isDomWindowed = renderedIntakes.length < filteredIntakes.length
 
   // A patient is "returning" if they have a recently completed case.
   // Memoised so the Set isn't rebuilt on every render — the queue
@@ -300,7 +305,7 @@ export function QueueTable({
             compactShell && "min-h-0 flex-1 overflow-y-auto",
           )}
         >
-          {filteredIntakes.map((intake, index) => {
+          {renderedIntakes.map((intake, index) => {
             const isFocused = expandedId === intake.id
             const queueEnteredAt = getQueueEnteredAt(intake)
             const waitSeverity = getWaitTimeSeverity(queueEnteredAt, intake.sla_deadline)
@@ -374,7 +379,7 @@ export function QueueTable({
                   // padding so 12-15 cases fit in one viewport at 1440px.
                   compactShell ? "py-2" : "py-3",
                   "hover:bg-muted/40",
-                  index < filteredIntakes.length - 1 && "border-b border-border/40",
+                  index < renderedIntakes.length - 1 && "border-b border-border/40",
                   isFocused && "bg-primary/[0.04] ring-1 ring-inset ring-primary/20",
                   isOpen && "bg-primary/[0.06]",
                   isLastOpened && "bg-muted/35 ring-1 ring-inset ring-border/60",
@@ -664,6 +669,11 @@ export function QueueTable({
               </QueueRowPeek>
             )
           })}
+          {isDomWindowed && (
+            <div className="border-t border-border/40 bg-muted/20 px-4 py-2 text-xs text-muted-foreground">
+              Showing the first {QUEUE_DOM_WINDOW_LIMIT} visible rows. Refine the search or move to the next page for the rest.
+            </div>
+          )}
         </div>
       )}
 

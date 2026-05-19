@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 
-import { MedCertLanding } from "@/components/marketing"
+import { MedCertLanding } from "@/components/marketing/med-cert-landing"
 import { BreadcrumbSchema, FAQSchema, HealthArticleSchema,MedCertHowToSchema, MedicalServiceSchema, SpeakableSchema } from "@/components/seo"
 import { PRICING } from "@/lib/constants"
 import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"

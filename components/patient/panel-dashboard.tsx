@@ -9,8 +9,7 @@ import {
 } from "lucide-react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useEffect, useMemo } from "react"
+import { type MouseEvent, useEffect, useMemo } from "react"
 
 import { DashboardSection } from "@/components/dashboard"
 import { usePanel } from "@/components/panels/panel-provider"
@@ -100,7 +99,6 @@ export function PanelDashboard({
   profileData,
 }: PatientDashboardProps) {
   const { openPanel } = usePanel()
-  const router = useRouter()
   const firstName = fullName.split(" ")[0]
 
   const handleOpenProfileDrawer = (type: TodoDrawerType) => {
@@ -195,11 +193,14 @@ export function PanelDashboard({
     })
   }, [intakes.length, pendingIntakes.length, stalePaymentIntakes.length, activeRxCount])
 
-  const handleViewIntake = (intake: Intake) => {
+  const handleViewIntake = (event: MouseEvent<HTMLAnchorElement>, intake: Intake) => {
     if (["approved", "completed"].includes(intake.status)) {
-      router.push(buildPatientIntakeHref(intake.id))
       return
     }
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
+      return
+    }
+    event.preventDefault()
     capture("intake_detail_opened", {
       intake_id: intake.id,
       status: intake.status,
@@ -260,7 +261,8 @@ export function PanelDashboard({
                   <div key={intake.id}>
                     <IntakeCard
                       intake={intake}
-                      onClick={() => handleViewIntake(intake)}
+                      href={buildPatientIntakeHref(intake.id)}
+                      onClick={(event) => handleViewIntake(event, intake)}
                     />
                   </div>
                 ))}

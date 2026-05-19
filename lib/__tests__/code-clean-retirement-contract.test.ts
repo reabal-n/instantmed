@@ -127,7 +127,6 @@ describe("code-clean retirement contracts", () => {
     expect(read("components/shell/left-rail.tsx")).not.toContain("PATIENT_NOTIFICATIONS_HREF")
     expect(read("components/shell/left-rail.tsx")).not.toContain("Bell")
     expect(read("components/shell/left-rail.tsx")).not.toContain("unreadNotifications")
-    expect(read("components/shell/authenticated-shell.tsx")).not.toContain("unreadNotifications")
     expect(read("app/patient/patient-shell.tsx")).not.toContain("unreadNotifications")
     expect(read("app/patient/layout.tsx")).not.toContain('from("notifications")')
   })
@@ -219,7 +218,6 @@ describe("code-clean retirement contracts", () => {
     const patientNavigationSurfaces = [
       "components/ui/mobile-nav.tsx",
       "components/shell/left-rail.tsx",
-      "components/shell/authenticated-shell.tsx",
       "app/patient/patient-shell.tsx",
     ]
     for (const surface of patientNavigationSurfaces) {

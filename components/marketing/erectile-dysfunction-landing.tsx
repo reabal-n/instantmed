@@ -13,8 +13,8 @@ import { TimeComparisonViz } from "@/components/marketing/sections/time-comparis
 import {
   type LandingPageConfig,
   LandingPageShell,
-  ReferralStrip,
-} from "@/components/marketing/shared"
+} from "@/components/marketing/shared/landing-page-shell"
+import { ReferralStrip } from "@/components/marketing/shared/referral-strip"
 import { ContentHubLinks } from "@/components/seo"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
@@ -39,11 +39,11 @@ const RegulatoryPartners = dynamic(
   { loading: () => <div className="min-h-[120px]" /> },
 )
 const FAQSection = dynamic(
-  () => import("@/components/sections").then((m) => ({ default: m.FAQSection })),
+  () => import("@/components/sections/faq-section").then((m) => ({ default: m.FAQSection })),
   { loading: () => <div className="min-h-[400px]" /> },
 )
 const CTABanner = dynamic(
-  () => import("@/components/sections").then((m) => ({ default: m.CTABanner })),
+  () => import("@/components/sections/cta-banner").then((m) => ({ default: m.CTABanner })),
   { loading: () => <div className="min-h-[300px]" /> },
 )
 

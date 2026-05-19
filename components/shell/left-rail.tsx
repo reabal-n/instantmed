@@ -76,7 +76,7 @@ export function LeftRail({
     await signOut()
   }
 
-  // LeftRail is only used by the patient layout (AuthenticatedShell).
+  // LeftRail is only used by the patient layout.
   // Staff layouts (admin/doctor) use OperatorShell + DoctorShell instead
   // (the legacy DashboardSidebar was retired in Phase 1.2 of the dashboard
   // remaster on 2026-05-11).

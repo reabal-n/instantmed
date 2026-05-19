@@ -239,7 +239,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
   if (isLoading) {
     return (
       <Shell title="Loading case..." onClose={handlePanelClose}>
-        <div className="space-y-5">
+        <div className="space-y-5" data-testid="intake-review-loading">
           <Skeleton className="h-6 w-48" />
           <Skeleton className="h-36 w-full" />
           <Skeleton className="h-52 w-full" />
@@ -323,7 +323,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
         onClose={handlePanelClose}
       >
         <IntakeReviewProvider value={contextValue}>
-          <div className="space-y-5">
+          <div className="space-y-5" data-testid="intake-review-panel">
             {/* Top bar: status, case navigation, and profile links */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-wrap items-center gap-2">

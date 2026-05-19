@@ -30,7 +30,7 @@ import { TimeComparisonViz } from "@/components/marketing/sections/time-comparis
 import {
   type LandingPageConfig,
   LandingPageShell,
-} from "@/components/marketing/shared"
+} from "@/components/marketing/shared/landing-page-shell"
 import { EmployerLogoMarquee } from "@/components/shared/employer-logo-marquee"
 
 const RegulatoryPartners = dynamic(
@@ -58,10 +58,10 @@ const LimitationsSection = dynamic(
     ),
 )
 const CTABanner = dynamic(
-  () => import("@/components/sections").then((mod) => mod.CTABanner),
+  () => import("@/components/sections/cta-banner").then((mod) => mod.CTABanner),
 )
 const FAQSection = dynamic(
-  () => import("@/components/sections").then((mod) => mod.FAQSection),
+  () => import("@/components/sections/faq-section").then((mod) => mod.FAQSection),
 )
 import { Heading } from "@/components/ui/heading"
 import { PRICING } from "@/lib/constants"

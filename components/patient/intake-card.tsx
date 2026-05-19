@@ -1,6 +1,8 @@
 "use client"
 
 import { ChevronRight,FileText, Pill } from "lucide-react"
+import Link from "next/link"
+import type { MouseEvent } from "react"
 
 import { type Intake, resolveStatusConfig } from "@/components/patient/intake-types"
 import { Badge } from "@/components/ui/badge"
@@ -9,10 +11,12 @@ import { cn } from "@/lib/utils"
 
 export function IntakeCard({
   intake,
+  href,
   onClick,
 }: {
   intake: Intake
-  onClick: () => void
+  href: string
+  onClick?: (event: MouseEvent<HTMLAnchorElement>) => void
 }) {
   const config = resolveStatusConfig(intake.status)
   const Icon = config.icon
@@ -29,15 +33,17 @@ export function IntakeCard({
   const serviceName = getServiceName()
 
   return (
-    <button
+    <Link
+      href={href}
       onClick={onClick}
       aria-label={`View ${serviceName}, ${config.label}`}
       className={cn(
+        "block",
         "w-full text-left group cursor-pointer",
         "bg-white dark:bg-card border border-border/50 dark:border-white/15",
         "shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-4 sm:p-5",
         "transition-[transform,box-shadow,border-color] duration-300",
-        "hover:border-primary/40 hover:shadow-md hover:shadow-primary/[0.06] hover:-translate-y-0.5",
+        "hover:border-primary/40 hover:shadow-md hover:shadow-primary/[0.06]",
       )}
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -76,6 +82,6 @@ export function IntakeCard({
           <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
         </div>
       </div>
-    </button>
+    </Link>
   )
 }

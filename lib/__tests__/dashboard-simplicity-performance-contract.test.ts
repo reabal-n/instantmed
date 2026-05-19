@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
@@ -39,12 +39,14 @@ describe("dashboard simplicity and runtime performance contracts", () => {
 
   it("keeps the default panel provider out of the Framer Motion bundle path", () => {
     const providerSource = read("components/panels/panel-provider.tsx")
-    const authenticatedShellSource = read("components/shell/authenticated-shell.tsx")
+    const patientShellSource = read("app/patient/patient-shell.tsx")
 
     expect(providerSource).not.toContain("framer-motion")
     expect(providerSource).not.toContain("AnimatePresence")
-    expect(authenticatedShellSource).toContain("@/components/panels/panel-provider")
-    expect(authenticatedShellSource).not.toContain("@/components/panels'")
+    expect(patientShellSource).toContain("@/components/panels/panel-provider")
+    expect(patientShellSource).toContain("@/components/shell/left-rail")
+    expect(patientShellSource).not.toContain("@/components/shell'")
+    expect(existsSync(join(root, "components/shell/authenticated-shell.tsx"))).toBe(false)
   })
 
   it("avoids high-frequency whole-queue redraws in the staff cockpit", () => {
@@ -53,5 +55,13 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(source).toContain("}, 60000)")
     expect(source).toContain("if (intakes.length === 0)")
     expect(source).not.toContain("}, 30000)")
+  })
+
+  it("keeps staff queue DOM rows windowed at the scale boundary", () => {
+    const source = read("app/doctor/queue/queue-table.tsx")
+
+    expect(source).toContain("QUEUE_DOM_WINDOW_LIMIT = 100")
+    expect(source).toContain("filteredIntakes.slice(0, QUEUE_DOM_WINDOW_LIMIT)")
+    expect(source).toContain("renderedIntakes.map")
   })
 })

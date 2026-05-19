@@ -147,58 +147,54 @@ export function IntakeStatusTracker({
 
   // Subscribe to realtime status updates with reconnection logic
   useEffect(() => {
-    let reconnectTimeout: NodeJS.Timeout | null = null
+    let reconnectTimeout: ReturnType<typeof setTimeout> | null = null
 
-    const setupChannel = () => {
-      const channel = supabase
-        .channel(`intake-status-${intakeId}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "UPDATE",
-            schema: "public",
-            table: "intakes",
-            filter: `id=eq.${intakeId}`,
-          },
-          (payload) => {
-            const newStatus = payload.new.status as IntakeStatus
-            setStatus(newStatus)
-            // Record this transition timestamp immediately
-            setTimestamps(prev => {
-              const next = new Map(prev)
-              if (!next.has(newStatus)) {
-                next.set(newStatus, new Date().toISOString())
-              }
-              return next
-            })
-            onStatusChange?.(newStatus)
-          }
-        )
-        .subscribe((subscriptionStatus, _err) => {
-          if (subscriptionStatus === "SUBSCRIBED") {
-            setIsConnecting(false)
-            setIsDisconnected(false)
-            setRetryCount(0)
-          } else if (subscriptionStatus === "CHANNEL_ERROR" || subscriptionStatus === "TIMED_OUT") {
-            setIsDisconnected(true)
-            setIsConnecting(false)
-            
-            // Exponential backoff retry (max 30 seconds)
-            const delay = Math.min(1000 * Math.pow(2, retryCount), 30000)
-            reconnectTimeout = setTimeout(() => {
-              setRetryCount((prev) => prev + 1)
-              supabase.removeChannel(channel)
-              setupChannel()
-            }, delay)
-          } else if (subscriptionStatus === "CLOSED") {
-            setIsDisconnected(true)
-          }
-        })
+    setIsConnecting(true)
 
-      return channel
-    }
+    const channel = supabase
+      .channel(`intake-status-${intakeId}-${retryCount}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "intakes",
+          filter: `id=eq.${intakeId}`,
+        },
+        (payload) => {
+          const newStatus = payload.new.status as IntakeStatus
+          setStatus(newStatus)
+          // Record this transition timestamp immediately
+          setTimestamps(prev => {
+            const next = new Map(prev)
+            if (!next.has(newStatus)) {
+              next.set(newStatus, new Date().toISOString())
+            }
+            return next
+          })
+          onStatusChange?.(newStatus)
+        }
+      )
+      .subscribe((subscriptionStatus) => {
+        if (subscriptionStatus === "SUBSCRIBED") {
+          setIsConnecting(false)
+          setIsDisconnected(false)
+          if (retryCount !== 0) setRetryCount(0)
+        } else if (subscriptionStatus === "CHANNEL_ERROR" || subscriptionStatus === "TIMED_OUT") {
+          setIsDisconnected(true)
+          setIsConnecting(false)
 
-    const channel = setupChannel()
+          // Exponential backoff retry (max 30 seconds). A fresh channel
+          // name per retry avoids mutating an already-subscribed Realtime
+          // channel, which Supabase rejects.
+          const delay = Math.min(1000 * Math.pow(2, retryCount), 30000)
+          reconnectTimeout = setTimeout(() => {
+            setRetryCount((prev) => prev + 1)
+          }, delay)
+        } else if (subscriptionStatus === "CLOSED") {
+          setIsDisconnected(true)
+        }
+      })
 
     return () => {
       if (reconnectTimeout) clearTimeout(reconnectTimeout)

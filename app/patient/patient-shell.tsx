@@ -1,18 +1,19 @@
 'use client'
 
-import { type ReactNode } from 'react'
+import { type ReactNode, useState } from 'react'
 
+import { PanelProvider } from '@/components/panels/panel-provider'
 import { GlobalIntakeNotifications } from '@/components/patient/global-intake-notifications'
-import { AuthenticatedShell } from '@/components/shell'
+import { LeftRail } from '@/components/shell/left-rail'
 import { MobileNav } from '@/components/ui/mobile-nav'
+import { cn } from '@/lib/utils'
 
 /**
- * PatientShell - Wraps all patient pages with panel-based interface
+ * PatientShell - patient-only portal frame.
  *
  * Architecture note: usePanel() must be called INSIDE a PanelProvider.
- * AuthenticatedShell contains PanelProvider, so we split into two components:
- * - PatientShell: renders AuthenticatedShell (which includes PanelProvider)
- * - PatientShellContent: renders inside PanelProvider and can safely call usePanel()
+ * Keep this shell local to the patient portal so patient pages do not inherit
+ * old operator/shell barrel exports or decorative motion runtime.
  */
 
 interface PatientShellProps {
@@ -25,10 +26,6 @@ interface PatientShellProps {
   }
 }
 
-/**
- * Inner component that renders inside PanelProvider (via AuthenticatedShell)
- * and can safely call usePanel().
- */
 function PatientShellContent({ children, patientId }: { children: ReactNode; patientId: string }) {
   return (
     <>
@@ -43,15 +40,29 @@ function PatientShellContent({ children, patientId }: { children: ReactNode; pat
 }
 
 export function PatientShell({ children, user }: PatientShellProps) {
+  const [isRailExpanded, setIsRailExpanded] = useState(true)
+
   return (
-    <AuthenticatedShell
-      userName={user.name}
-      userAvatar={user.avatar}
-      userRole="patient"
-    >
-      <PatientShellContent patientId={user.id}>
-        {children}
-      </PatientShellContent>
-    </AuthenticatedShell>
+    <PanelProvider>
+      <div className="min-h-screen bg-background">
+        <LeftRail
+          userName={user.name}
+          userAvatar={user.avatar}
+          userRole="patient"
+          isExpanded={isRailExpanded}
+          onExpandedChange={setIsRailExpanded}
+        />
+        <main
+          className={cn(
+            "ml-0 transition-[margin-left] duration-200 ease-out motion-reduce:transition-none",
+            isRailExpanded ? "lg:ml-60" : "lg:ml-16",
+          )}
+        >
+          <PatientShellContent patientId={user.id}>
+            {children}
+          </PatientShellContent>
+        </main>
+      </div>
+    </PanelProvider>
   )
 }

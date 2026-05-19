@@ -3,8 +3,8 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
-import { MarketingFooter } from "@/components/marketing"
-import { Navbar } from "@/components/shared"
+import { MarketingFooter } from "@/components/marketing/marketing-footer"
+import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import {
   getUnsupportedMedCertUseCase,

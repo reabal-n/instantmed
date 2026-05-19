@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 
-import { HairLossLanding } from "@/components/marketing"
+import { HairLossLanding } from "@/components/marketing/hair-loss-landing"
 import {
   BreadcrumbSchema,
   FAQSchema,

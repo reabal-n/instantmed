@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 
-import { ErectileDysfunctionLanding } from "@/components/marketing"
+import { ErectileDysfunctionLanding } from "@/components/marketing/erectile-dysfunction-landing"
 import {
   BreadcrumbSchema,
   FAQSchema,

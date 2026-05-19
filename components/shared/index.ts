@@ -9,7 +9,7 @@ export { CookieBanner, isCookieAllowed,useCookieConsent } from "./cookie-banner"
 // `DashboardSidebar` retired in Phase 1.2 of the dashboard remaster
 // (2026-05-11). Staff portals now render through `OperatorShell` +
 // `AdminSidebar` with role-aware nav from `getStaffNav(profile)`. The
-// patient portal renders through `PatientShell` -> `AuthenticatedShell`.
+// patient portal renders through its local `PatientShell`.
 export { EmergencyDisclaimer,SAFETY_COPY } from "./emergency-disclaimer"
 export { EmergencyGate } from "./emergency-gate"
 export { EmployerLogoMarquee } from "./employer-logo-marquee"

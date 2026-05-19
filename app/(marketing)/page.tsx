@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
 
-import { Hero } from '@/components/marketing'
+import { Hero } from '@/components/marketing/hero'
 import { IntakeResumeChip } from '@/components/marketing/intake-resume-chip'
 import { MarketingPageShell } from '@/components/marketing/marketing-page-shell'
 import { FAQSchema, MedicalBusinessSchema, SpeakableSchema } from '@/components/seo/healthcare-schema'
@@ -36,7 +36,7 @@ const ComplianceMarquee = dynamic(
   () => import('@/components/marketing/compliance-marquee').then(m => ({ default: m.ComplianceMarquee })),
 )
 const MarketingFooter = dynamic(
-  () => import('@/components/marketing').then(m => ({ default: m.MarketingFooter })),
+  () => import('@/components/marketing/marketing-footer').then(m => ({ default: m.MarketingFooter })),
 )
 // Quiet trust strip between hero and services. Demoted from inside the hero
 // composition (was crowding above-the-fold). Renders the four regulatory
