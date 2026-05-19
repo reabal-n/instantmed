@@ -1,6 +1,5 @@
 "use client"
 
-import { motion } from "framer-motion"
 import {
   AlertTriangle,
   MapPin,
@@ -15,10 +14,9 @@ import {
   updatePhoneAction,
 } from "@/app/actions/profile-todo"
 import { DataSecurityStrip } from "@/components/checkout/trust-badges"
-import { usePanel } from "@/components/panels"
+import { usePanel } from "@/components/panels/panel-provider"
 import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
 import { Input } from "@/components/ui/input"
-import { useReducedMotion } from "@/components/ui/motion"
 import { ButtonSpinner } from "@/components/ui/skeleton"
 import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/uix"
@@ -402,7 +400,6 @@ export function validateMedicareDrawerFields({
 }
 
 export function MedicareDrawerContent({ profileData }: MedicareDrawerProps) {
-  const prefersReducedMotion = useReducedMotion()
   const { closePanel } = usePanel()
 
   // Parse existing medicare number into segments (if any)
@@ -518,14 +515,12 @@ export function MedicareDrawerContent({ profileData }: MedicareDrawerProps) {
       )}
 
       {expiryWarning && (
-        <motion.div
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
+        <div
           className="p-3 rounded-lg bg-warning-light border border-warning-border text-sm text-warning flex items-start gap-2"
         >
           <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{expiryWarning}</span>
-        </motion.div>
+        </div>
       )}
 
       {/* Medicare Number - Segmented */}

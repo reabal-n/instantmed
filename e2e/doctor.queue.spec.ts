@@ -8,7 +8,7 @@
  * - Can approve certificate and verify DB update
  */
 
-import { expect,test } from "@playwright/test"
+import { expect,type Page,test } from "@playwright/test"
 import { createClient } from "@supabase/supabase-js"
 
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
@@ -68,6 +68,13 @@ async function resetIntakeForTest(intakeId: string) {
     .eq("id", intakeId)
 }
 
+async function expectQueueSurface(page: Page) {
+  const queueRegion = page.getByRole("region", { name: /doctor request queue/i })
+  await expect(queueRegion).toBeVisible({ timeout: 15000 })
+  await expect(queueRegion.getByTestId("queue-heading")).toHaveText(/review and scripts/i)
+  return queueRegion
+}
+
 test.describe("Doctor Queue", () => {
   test.beforeEach(async ({ page }) => {
     const result = await loginAsOperator(page)
@@ -82,8 +89,8 @@ test.describe("Doctor Queue", () => {
     await page.goto("/dashboard")
     await waitForPageLoad(page)
 
-    // Should see the current doctor queue heading.
-    await expect(page.getByRole("heading", { level: 1, name: /^queue$/i })).toBeVisible({ timeout: 15000 })
+    // Should see the current unified staff cockpit queue surface.
+    await expectQueueSurface(page)
 
     // Should NOT see error banners
     const errorBanners = [
@@ -109,7 +116,7 @@ test.describe("Doctor Queue", () => {
     await waitForPageLoad(page)
 
     // Wait for queue to load
-    await expect(page.getByRole("heading", { level: 1, name: /^queue$/i })).toBeVisible({ timeout: 15000 })
+    await expectQueueSurface(page)
 
     // Look for the seeded patient in the queue
     // The patient name should appear in the queue list
@@ -133,7 +140,7 @@ test.describe("Doctor Queue", () => {
     await waitForPageLoad(page)
 
     // Wait for queue to load
-    await expect(page.getByRole("heading", { level: 1, name: /^queue$/i })).toBeVisible({ timeout: 15000 })
+    await expectQueueSurface(page)
 
     // Find and click on the seeded patient row to expand it
     const patientRow = page.getByText(SEEDED_PATIENT_NAME).first()

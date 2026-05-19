@@ -3,7 +3,7 @@
 import { type ReactNode } from 'react'
 import { useState } from 'react'
 
-import { PanelProvider } from '@/components/panels'
+import { PanelProvider } from '@/components/panels/panel-provider'
 import { cn } from '@/lib/utils'
 
 import { LeftRail } from './left-rail'
@@ -52,7 +52,7 @@ export function AuthenticatedShell({
         {/* Main Content Area - Offset by rail width */}
         <main
           className={cn(
-            "ml-0 transition-[margin-left,transform,box-shadow] duration-300",
+            "ml-0 transition-[margin-left] duration-200 ease-out motion-reduce:transition-none",
             isRailExpanded ? "lg:ml-60" : "lg:ml-16",
             className
           )}

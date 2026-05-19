@@ -1,6 +1,5 @@
 "use client"
 
-import { AnimatePresence,motion } from "framer-motion"
 import {
   CheckCircle2,
   ChevronRight,
@@ -10,7 +9,6 @@ import {
   ShieldCheck,
 } from "lucide-react"
 
-import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 import { validateAustralianAddress } from "@/lib/validation/australian-address"
 import { validateAustralianPhone } from "@/lib/validation/australian-phone"
@@ -108,7 +106,6 @@ export function getTodoItems(profile: ProfileData): TodoItem[] {
 }
 
 export function ProfileTodoCard({ profileData, onOpenDrawer, hideWhenMedCertOnlyComplete }: ProfileTodoCardProps) {
-  const prefersReducedMotion = useReducedMotion()
   const items = getTodoItems(profileData)
   const completedCount = items.filter((i) => i.isComplete).length
   const totalRequired = items.filter((i) => !i.isOptional).length
@@ -130,17 +127,12 @@ export function ProfileTodoCard({ profileData, onOpenDrawer, hideWhenMedCertOnly
   const isCondensed = allRequiredDone && !allDone
 
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        initial={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={prefersReducedMotion ? undefined : { opacity: 0, y: -8, height: 0, marginBottom: 0 }}
-        transition={{ duration: prefersReducedMotion ? 0 : 0.3, ease: "easeOut" }}
-        className={cn(
-          "bg-white dark:bg-card border border-border/50 dark:border-white/15",
-          "shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl overflow-hidden",
-        )}
-      >
+    <div
+      className={cn(
+        "bg-white dark:bg-card border border-border/50 dark:border-white/15",
+        "shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl overflow-hidden",
+      )}
+    >
         {/* Header */}
         <div className="px-5 pt-5 pb-5">
           <div className="flex items-center justify-between mb-1">
@@ -154,11 +146,9 @@ export function ProfileTodoCard({ profileData, onOpenDrawer, hideWhenMedCertOnly
 
           {/* Progress bar */}
           <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-            <motion.div
+            <div
               className="h-full bg-primary rounded-full"
-              initial={prefersReducedMotion ? {} : { width: 0 }}
-              animate={{ width: `${(completedCount / items.length) * 100}%` }}
-              transition={{ duration: prefersReducedMotion ? 0 : 0.3, ease: "easeOut", delay: prefersReducedMotion ? 0 : 0.15 }}
+              style={{ width: `${(completedCount / items.length) * 100}%` }}
             />
           </div>
         </div>
@@ -239,7 +229,6 @@ export function ProfileTodoCard({ profileData, onOpenDrawer, hideWhenMedCertOnly
             )
           })}
         </div>
-      </motion.div>
-    </AnimatePresence>
+    </div>
   )
 }

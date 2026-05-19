@@ -98,7 +98,7 @@ export function LeftRail({
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 h-screen bg-background border-r border-border transition-[transform,box-shadow] duration-300 z-40 hidden lg:flex flex-col",
+        "fixed left-0 top-0 z-40 hidden h-screen flex-col border-r border-border bg-background transition-colors duration-150 lg:flex",
         isExpanded ? "w-60" : "w-16",
       )}
     >

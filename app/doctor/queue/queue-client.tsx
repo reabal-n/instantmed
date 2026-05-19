@@ -255,14 +255,20 @@ export function QueueClient({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [intakes])
 
-  // Tick every 30s to update wait time displays live
+  // Tick once a minute to update wait time displays. The queue labels are
+  // minute-granular, so faster ticks just re-render dense clinical rows
+  // without adding useful information.
   useEffect(() => {
+    if (intakes.length === 0) {
+      setClockNow(null)
+      return
+    }
     setClockNow(new Date())
     const tickInterval = setInterval(() => {
       setClockNow(new Date())
-    }, 30000)
+    }, 60000)
     return () => clearInterval(tickInterval)
-  }, [])
+  }, [intakes.length])
 
   const calculateStableWaitTime = useCallback((createdAt: string) => {
     if (!clockNow) return "..."
