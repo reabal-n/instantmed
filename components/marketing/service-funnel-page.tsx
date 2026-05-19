@@ -1,5 +1,3 @@
-'use client'
-
 import { AlertCircle, CheckCircle2 } from 'lucide-react'
 
 import { AfterSubmitSection } from '@/components/marketing/funnel/after-submit-section'

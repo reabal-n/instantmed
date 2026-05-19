@@ -147,4 +147,18 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(controlsSource).toContain("useServiceAvailability")
     expect(controlsSource).toContain("StickyCTA")
   })
+
+  it("keeps the reusable service funnel shell server-rendered with client islands only where needed", () => {
+    const funnelShellSource = read("components/marketing/service-funnel-page.tsx")
+    const heroSectionSource = read("components/marketing/funnel/hero-section.tsx")
+    const trimmedFunnelShellSource = funnelShellSource.trimStart()
+    const trimmedHeroSectionSource = heroSectionSource.trimStart()
+
+    expect(trimmedFunnelShellSource.startsWith('"use client"')).toBe(false)
+    expect(trimmedFunnelShellSource.startsWith("'use client'")).toBe(false)
+    expect(funnelShellSource).not.toContain("framer-motion")
+    expect(funnelShellSource).not.toContain("useEffect")
+    expect(funnelShellSource).not.toContain("useState")
+    expect(trimmedHeroSectionSource.startsWith("'use client'")).toBe(true)
+  })
 })
