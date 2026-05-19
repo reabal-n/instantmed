@@ -1,11 +1,7 @@
-'use client'
-
-import { motion } from 'framer-motion'
 import { Shield } from 'lucide-react'
 
 import { StickerIcon } from '@/components/icons/stickers'
 import { Heading } from '@/components/ui/heading'
-import { useReducedMotion } from '@/components/ui/motion'
 import { cn } from '@/lib/utils'
 
 import type { ColorClasses,ServiceFunnelConfig } from './funnel-types'
@@ -17,33 +13,22 @@ interface TrustSectionProps {
 }
 
 export function TrustSection({ config, colors }: TrustSectionProps) {
-  const prefersReducedMotion = useReducedMotion()
-
   return (
     <section className="py-16 lg:py-24 bg-muted/20 dark:bg-muted/10">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={prefersReducedMotion ? {} : { y: 20 }}
-          whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-12"
-        >
+        <div className="text-center mb-12">
           <Heading level="h2" className="mb-4">
             {config.trust.title}
           </Heading>
-        </motion.div>
+        </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {config.trust.badges.map((badge, i) => {
             const Icon = iconMap[badge.icon] || Shield
             const stickerName = STICKER_ICON_MAP[badge.icon]
             return (
-              <motion.div
+              <div
                 key={i}
-                initial={prefersReducedMotion ? {} : { y: 20 }}
-                whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.3, delay: i * 0.1 }}
                 className="text-center p-6 bg-white dark:bg-card rounded-xl border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/[0.08] transition-[transform,box-shadow] duration-300"
               >
                 {stickerName ? (
@@ -57,7 +42,7 @@ export function TrustSection({ config, colors }: TrustSectionProps) {
                 )}
                 <h3 className="font-semibold text-foreground mb-1">{badge.title}</h3>
                 <p className="text-sm text-muted-foreground">{badge.description}</p>
-              </motion.div>
+              </div>
             )
           })}
         </div>

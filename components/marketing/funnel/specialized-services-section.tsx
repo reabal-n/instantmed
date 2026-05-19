@@ -1,12 +1,8 @@
-'use client'
-
-import { motion } from 'framer-motion'
 import { ArrowRight, Stethoscope } from 'lucide-react'
 import Link from 'next/link'
 
 import { StickerIcon } from '@/components/icons/stickers'
 import { Heading } from '@/components/ui/heading'
-import { useReducedMotion } from '@/components/ui/motion'
 import { cn } from '@/lib/utils'
 
 import type { ColorClasses,ServiceFunnelConfig } from './funnel-types'
@@ -18,39 +14,26 @@ interface SpecializedServicesSectionProps {
 }
 
 export function SpecializedServicesSection({ config, colors }: SpecializedServicesSectionProps) {
-  const prefersReducedMotion = useReducedMotion()
-
   if (!config.specializedServices) return null
 
   return (
     <section className="py-16 lg:py-24">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={prefersReducedMotion ? {} : { y: 20 }}
-          whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-12"
-        >
+        <div className="text-center mb-12">
           <Heading level="h2" className="mb-4">
             {config.specializedServices.title}
           </Heading>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             {config.specializedServices.subtitle}
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid sm:grid-cols-2 gap-6">
           {config.specializedServices.services.map((service, i) => {
             const Icon = iconMap[service.icon] || Stethoscope
             const stickerName = STICKER_ICON_MAP[service.icon]
             return (
-              <motion.div
-                key={i}
-                initial={prefersReducedMotion ? {} : { y: 30 }}
-                whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.3, delay: i * 0.1 }}
-              >
+              <div key={i}>
                 <Link
                   href={service.href}
                   className="block h-full rounded-2xl p-6 bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:shadow-primary/[0.08] hover:border-primary/20 hover:-translate-y-0.5 transition-[transform,box-shadow] duration-300 group"
@@ -79,7 +62,7 @@ export function SpecializedServicesSection({ config, colors }: SpecializedServic
                     </div>
                   </div>
                 </Link>
-              </motion.div>
+              </div>
             )
           })}
         </div>

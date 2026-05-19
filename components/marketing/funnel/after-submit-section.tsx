@@ -1,10 +1,6 @@
-'use client'
-
-import { motion } from 'framer-motion'
 import { Check } from 'lucide-react'
 
 import { Heading } from '@/components/ui/heading'
-import { useReducedMotion } from '@/components/ui/motion'
 import { cn } from '@/lib/utils'
 
 import type { ColorClasses,ServiceFunnelConfig } from './funnel-types'
@@ -16,35 +12,24 @@ interface AfterSubmitSectionProps {
 }
 
 export function AfterSubmitSection({ config, colors }: AfterSubmitSectionProps) {
-  const prefersReducedMotion = useReducedMotion()
-
   return (
     <section className="py-16 lg:py-24 bg-muted/20 dark:bg-muted/10">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={prefersReducedMotion ? {} : { y: 20 }}
-          whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-12"
-        >
+        <div className="text-center mb-12">
           <Heading level="h2" className="mb-4">
             {config.afterSubmit.title}
           </Heading>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             {config.afterSubmit.subtitle}
           </p>
-        </motion.div>
+        </div>
 
         <div className="space-y-4">
           {config.afterSubmit.items.map((item, i) => {
             const Icon = iconMap[item.icon] || Check
             return (
-              <motion.div
+              <div
                 key={i}
-                initial={prefersReducedMotion ? {} : { x: -20 }}
-                whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.3, delay: i * 0.1 }}
                 className="flex gap-4 p-5 bg-white dark:bg-card rounded-xl border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none hover:shadow-lg hover:shadow-primary/[0.08] hover:border-primary/15 hover:-translate-y-0.5 transition-[transform,box-shadow] duration-300"
               >
                 <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center shrink-0', colors.light)}>
@@ -54,7 +39,7 @@ export function AfterSubmitSection({ config, colors }: AfterSubmitSectionProps) 
                   <h3 className="font-semibold text-foreground mb-1">{item.title}</h3>
                   <p className="text-sm text-muted-foreground">{item.description}</p>
                 </div>
-              </motion.div>
+              </div>
             )
           })}
         </div>

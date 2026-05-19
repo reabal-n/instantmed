@@ -1,10 +1,5 @@
-'use client'
-
-import { motion } from 'framer-motion'
-
 import { FAQList } from '@/components/ui/faq-list'
 import { Heading } from '@/components/ui/heading'
-import { useReducedMotion } from '@/components/ui/motion'
 import { SectionPill } from '@/components/ui/section-pill'
 import { CONTACT_EMAIL } from '@/lib/constants'
 
@@ -15,21 +10,13 @@ interface FaqSectionProps {
 }
 
 export function FaqSection({ config }: FaqSectionProps) {
-  const prefersReducedMotion = useReducedMotion()
-
   if (!config.faq) return null
 
   return (
     <section id="faq" className="py-16 lg:py-24 scroll-mt-20">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <motion.div
-          className="text-center mb-10"
-          initial={prefersReducedMotion ? {} : { y: 20 }}
-          whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.3 }}
-        >
+        <div className="text-center mb-10">
           <div className="mb-6">
             <SectionPill>FAQ</SectionPill>
           </div>
@@ -40,18 +27,12 @@ export function FaqSection({ config }: FaqSectionProps) {
           <p className="text-muted-foreground max-w-lg mx-auto text-sm">
             {config.faq.subtitle}
           </p>
-        </motion.div>
+        </div>
 
         <FAQList items={config.faq.items} defaultValue="0" />
 
         {/* Contact support */}
-        <motion.div
-          className="mt-10 text-center"
-          initial={prefersReducedMotion ? {} : {}}
-          whileInView={prefersReducedMotion ? undefined : { opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3 }}
-        >
+        <div className="mt-10 text-center">
           <p className="text-muted-foreground mb-2 text-sm">Still have questions?</p>
           <a
             href={`mailto:${CONTACT_EMAIL}`}
@@ -59,7 +40,7 @@ export function FaqSection({ config }: FaqSectionProps) {
           >
             Contact our support team
           </a>
-        </motion.div>
+        </div>
       </div>
     </section>
   )

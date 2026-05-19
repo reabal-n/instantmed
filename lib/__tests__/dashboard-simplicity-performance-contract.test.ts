@@ -161,4 +161,39 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(funnelShellSource).not.toContain("useState")
     expect(trimmedHeroSectionSource.startsWith("'use client'")).toBe(true)
   })
+
+  it("keeps static service funnel sections off Framer and client-only hooks", () => {
+    const staticFunnelFiles = [
+      "components/marketing/funnel/who-its-for-section.tsx",
+      "components/marketing/funnel/how-it-works-section.tsx",
+      "components/marketing/funnel/after-submit-section.tsx",
+      "components/marketing/funnel/specialized-services-section.tsx",
+      "components/marketing/funnel/trust-section.tsx",
+      "components/marketing/funnel/faq-section.tsx",
+      "components/marketing/sections/pricing-section.tsx",
+      "components/ui/section-pill.tsx",
+    ]
+
+    for (const file of staticFunnelFiles) {
+      const source = read(file)
+      const trimmedSource = source.trimStart()
+
+      expect(trimmedSource.startsWith('"use client"')).toBe(false)
+      expect(trimmedSource.startsWith("'use client'")).toBe(false)
+      expect(source).not.toContain("framer-motion")
+      expect(source).not.toContain("useReducedMotion")
+      expect(source).not.toContain("motion.")
+      expect(source).not.toContain("@/components/ui/button")
+    }
+  })
+
+  it("keeps the FAQ accordion interactive without pulling Framer into every FAQ page", () => {
+    const faqListSource = read("components/ui/faq-list.tsx")
+
+    expect(faqListSource.trimStart().startsWith('"use client"')).toBe(true)
+    expect(faqListSource).toContain("@/components/ui/accordion")
+    expect(faqListSource).not.toContain("framer-motion")
+    expect(faqListSource).not.toContain("useReducedMotion")
+    expect(faqListSource).not.toContain("motion.")
+  })
 })

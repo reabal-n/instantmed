@@ -1,13 +1,8 @@
-'use client'
-
-import { motion } from 'framer-motion'
 import { AlertCircle,ArrowRight, Check, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 
 import { StripePaymentLogos } from '@/components/checkout/payment-logos'
-import { Button } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
-import { useReducedMotion } from '@/components/ui/motion'
 import { PRICING } from '@/lib/constants'
 import { SOCIAL_PROOF } from '@/lib/social-proof'
 import { cn } from '@/lib/utils'
@@ -67,29 +62,19 @@ export function PricingSection({
   showComparisonTable = false,
   className,
 }: PricingSectionProps) {
-  const prefersReducedMotion = useReducedMotion()
-
   return (
     <section id="pricing" className={cn('py-16 lg:py-24', className)}>
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={prefersReducedMotion ? {} : { y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-10"
-        >
+        <div className="text-center mb-10">
           <Heading level="h2" className="mb-4">
             {title}
           </Heading>
           <p className="text-lg text-muted-foreground">
             {subtitle}
           </p>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={prefersReducedMotion ? {} : { y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+        <div
           className={cn('rounded-2xl p-8 lg:p-10 border-2 text-center', colors.light, colors.border)}
         >
           {/* Price */}
@@ -118,16 +103,16 @@ export function PricingSection({
           </ul>
 
           {/* CTA */}
-          <Button
-            asChild
-            size="lg"
-            className={cn('w-full sm:w-auto px-10 h-12 text-base font-semibold text-white', colors.button)}
+          <Link
+            href={ctaHref}
+            className={cn(
+              'inline-flex h-12 w-full items-center justify-center gap-2 rounded-md px-10 text-base font-semibold text-white shadow-sm transition-[transform,box-shadow,background-color,border-color,color,opacity] duration-200 hover:shadow-md active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dawn-300 focus-visible:ring-offset-2 dark:focus-visible:ring-dawn-500/40 sm:w-auto',
+              colors.button
+            )}
           >
-            <Link href={ctaHref}>
-              {ctaText}
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
+            {ctaText}
+            <ArrowRight className="h-5 w-5" />
+          </Link>
           <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 border border-success/20 text-xs font-medium text-success">
             <RefreshCw className="w-3.5 h-3.5 shrink-0" />
             100% refund if we can&apos;t help
@@ -152,7 +137,7 @@ export function PricingSection({
               )}
             </div>
           )}
-        </motion.div>
+        </div>
 
         {/* Comparison Table - optional */}
         {showComparisonTable && <ComparisonTable />}
@@ -166,15 +151,8 @@ export function PricingSection({
 // ---------------------------------------------------------------------------
 
 function ComparisonTable() {
-  const prefersReducedMotion = useReducedMotion()
-
   return (
-    <motion.div
-      initial={prefersReducedMotion ? {} : { y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      className="mt-12"
-    >
+    <div className="mt-12">
       <h3 className="text-lg font-semibold text-foreground text-center mb-6">How we compare</h3>
       <div className="overflow-x-auto rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/10 shadow-lg dark:shadow-none">
         <table className="w-full text-sm border-collapse">
@@ -204,7 +182,7 @@ function ComparisonTable() {
         * Review timing varies by queue volume and clinical complexity.{" "}
         † GP cost estimated from MBS item 23 standard consultation fee. Out-of-pocket costs vary by clinic.
       </p>
-    </motion.div>
+    </div>
   )
 }
 

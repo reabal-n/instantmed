@@ -1,14 +1,11 @@
 "use client"
 
-import { motion } from "framer-motion"
-
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -55,11 +52,8 @@ export function FAQList({
   defaultValue,
   onValueChange,
   className,
-  animate: animateProp,
   itemClassName: itemClassNameProp,
 }: FAQListProps) {
-  const prefersReducedMotion = useReducedMotion()
-  const shouldAnimate = animateProp !== false && !prefersReducedMotion
   const resolvedItemClassName = itemClassNameProp ?? itemClassName
 
   // Flat list mode
@@ -73,13 +67,7 @@ export function FAQList({
         className={cn("space-y-3", className)}
       >
         {items.map((item, index) => (
-          <motion.div
-            key={index.toString()}
-            initial={shouldAnimate ? { y: 8 } : {}}
-            whileInView={shouldAnimate ? { opacity: 1, y: 0 } : undefined}
-            viewport={{ once: true }}
-            transition={{ duration: 0.3, delay: index * 0.04 }}
-          >
+          <div key={index.toString()}>
             <AccordionItem
               value={index.toString()}
               className={resolvedItemClassName}
@@ -93,7 +81,7 @@ export function FAQList({
                 {item.answer}
               </AccordionContent>
             </AccordionItem>
-          </motion.div>
+          </div>
         ))}
       </Accordion>
     )
@@ -105,33 +93,16 @@ export function FAQList({
       <div className={cn("space-y-10", className)}>
         {groups.map((group, gi) => (
           <div key={gi}>
-            <motion.h3
-              className="mb-4 text-lg font-semibold text-foreground"
-              initial={shouldAnimate ? { y: 8 } : {}}
-              whileInView={shouldAnimate ? { opacity: 1, y: 0 } : undefined}
-              viewport={{ once: true }}
-              transition={{ duration: 0.3, delay: gi * 0.08 }}
-            >
+            <h3 className="mb-4 text-lg font-semibold text-foreground">
               {group.category}
-            </motion.h3>
+            </h3>
             <Accordion
               type={type as "single"}
               collapsible={type === "single" ? true : undefined}
               className="space-y-3"
             >
               {group.items.map((item, ii) => (
-                <motion.div
-                  key={ii}
-                  initial={shouldAnimate ? { y: 8 } : {}}
-                  whileInView={
-                    shouldAnimate ? { opacity: 1, y: 0 } : undefined
-                  }
-                  viewport={{ once: true }}
-                  transition={{
-                    duration: 0.3,
-                    delay: gi * 0.08 + ii * 0.04,
-                  }}
-                >
+                <div key={ii}>
                   <AccordionItem
                     value={`${gi}-${ii}`}
                     className={itemClassName}
@@ -143,7 +114,7 @@ export function FAQList({
                       {item.answer}
                     </AccordionContent>
                   </AccordionItem>
-                </motion.div>
+                </div>
               ))}
             </Accordion>
           </div>

@@ -1,10 +1,6 @@
-'use client'
-
-import { motion } from 'framer-motion'
 import { HelpCircle } from 'lucide-react'
 
 import { Heading } from '@/components/ui/heading'
-import { useReducedMotion } from '@/components/ui/motion'
 import { cn } from '@/lib/utils'
 
 import type { ColorClasses,ServiceFunnelConfig } from './funnel-types'
@@ -16,24 +12,17 @@ interface WhoItsForSectionProps {
 }
 
 export function WhoItsForSection({ config, colors }: WhoItsForSectionProps) {
-  const prefersReducedMotion = useReducedMotion()
-
   return (
     <section className="py-16 lg:py-24">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={prefersReducedMotion ? {} : { y: 20 }}
-          whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-12"
-        >
+        <div className="text-center mb-12">
           <Heading level="h2" className="mb-4">
             {config.whoItsFor.title}
           </Heading>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             {config.whoItsFor.subtitle}
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {config.whoItsFor.cards.map((card, i) => {
@@ -42,12 +31,8 @@ export function WhoItsForSection({ config, colors }: WhoItsForSectionProps) {
             const isNegative = card.type === 'negative'
 
             return (
-              <motion.div
+              <div
                 key={i}
-                initial={prefersReducedMotion ? {} : { y: 30 }}
-                whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.3, delay: i * 0.1 }}
                 className={cn(
                   'rounded-2xl p-6 border transition-[transform,box-shadow] duration-300 hover:shadow-lg hover:-translate-y-0.5',
                   isPositive && 'bg-success-light border-success-border hover:shadow-primary/[0.06] hover:border-success-border',
@@ -70,7 +55,7 @@ export function WhoItsForSection({ config, colors }: WhoItsForSectionProps) {
                 </div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">{card.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{card.description}</p>
-              </motion.div>
+              </div>
             )
           })}
         </div>

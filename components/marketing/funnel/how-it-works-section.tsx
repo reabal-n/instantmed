@@ -1,13 +1,8 @@
-'use client'
-
-import { motion } from 'framer-motion'
 import { ArrowRight, ClipboardList,Clock } from 'lucide-react'
 import Link from 'next/link'
 
 import { StickerIcon } from '@/components/icons/stickers'
-import { Button } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
-import { useReducedMotion } from '@/components/ui/motion'
 import { cn } from '@/lib/utils'
 
 import type { ColorClasses,ServiceFunnelConfig } from './funnel-types'
@@ -19,36 +14,25 @@ interface HowItWorksSectionProps {
 }
 
 export function HowItWorksSection({ config, colors }: HowItWorksSectionProps) {
-  const prefersReducedMotion = useReducedMotion()
-
   return (
     <section id="how-it-works" className="py-16 lg:py-24">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={prefersReducedMotion ? {} : { y: 20 }}
-          whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-12"
-        >
+        <div className="text-center mb-12">
           <Heading level="h2" className="mb-4">
             {config.howItWorks.title}
           </Heading>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             {config.howItWorks.subtitle}
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid md:grid-cols-3 gap-8">
           {config.howItWorks.steps.map((step, i) => {
             const Icon = iconMap[step.icon] || ClipboardList
             const stickerName = STICKER_ICON_MAP[step.icon]
             return (
-              <motion.div
+              <div
                 key={step.number}
-                initial={prefersReducedMotion ? {} : { y: 30 }}
-                whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.3, delay: i * 0.1 }}
                 className="relative"
               >
                 {/* Connector line */}
@@ -83,28 +67,20 @@ export function HowItWorksSection({ config, colors }: HowItWorksSectionProps) {
                     </span>
                   )}
                 </div>
-              </motion.div>
+              </div>
             )
           })}
         </div>
 
-        <motion.div
-          initial={prefersReducedMotion ? {} : { y: 20 }}
-          whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mt-12"
-        >
-          <Button
-            asChild
-            size="lg"
-            className="px-8 h-12 font-semibold shadow-lg shadow-primary/20 dark:shadow-primary/15 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-[transform,box-shadow]"
+        <div className="text-center mt-12">
+          <Link
+            href={config.hero.ctaHref}
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-primary px-8 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dawn-300 focus-visible:ring-offset-2 active:scale-[0.97] dark:shadow-primary/15 dark:focus-visible:ring-dawn-500/40"
           >
-            <Link href={config.hero.ctaHref}>
-              {config.hero.ctaText}
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
-        </motion.div>
+            {config.hero.ctaText}
+            <ArrowRight className="h-5 w-5" />
+          </Link>
+        </div>
       </div>
     </section>
   )
