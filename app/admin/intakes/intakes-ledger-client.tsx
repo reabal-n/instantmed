@@ -45,6 +45,7 @@ import { formatDate } from "@/lib/format"
 import { formatIntakeStatus } from "@/lib/format/intake"
 import {
   ADMIN_SERVICE_FILTER_OPTIONS,
+  type AdminServiceFilterValue,
   getServicePresentation,
   matchesAdminServiceFilter,
 } from "@/lib/services/service-presentation"
@@ -57,6 +58,14 @@ type AdminIntakeRow = IntakeWithPatient & {
 
 interface AdminIntakesLedgerClientProps {
   allIntakes: AdminIntakeRow[]
+  initialFilters?: AdminIntakesLedgerInitialFilters
+}
+
+export interface AdminIntakesLedgerInitialFilters {
+  q?: string
+  service?: AdminServiceFilterValue
+  status?: AdminIntakeStatusFilterValue
+  workLane?: AdminWorkLaneFilterValue
 }
 
 function getPatient(intake: AdminIntakeRow) {
@@ -136,18 +145,26 @@ function HandoffBadge({
 
 export function AdminIntakesLedgerClient({
   allIntakes,
+  initialFilters,
 }: AdminIntakesLedgerClientProps) {
   const { openPanel } = usePanel()
   const [intakes, setIntakes] = useState(allIntakes)
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState(initialFilters?.q ?? "")
   const searchRef = useRef<HTMLInputElement>(null)
   const filteredIntakesRef = useRef<AdminIntakeRow[]>([])
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [workLaneFilter, setWorkLaneFilter] = useState<AdminWorkLaneFilterValue>(() =>
-    allIntakes.some((intake) => getAdminWorkLaneForStatus(intake.status) === "clinical") ? "clinical" : "all",
+    initialFilters?.workLane ??
+    (allIntakes.some((intake) => getAdminWorkLaneForStatus(intake.status) === "clinical") ? "clinical" : "all"),
   )
-  const [statusFilter, setStatusFilter] = useState<AdminIntakeStatusFilterValue>("all")
-  const [serviceFilter, setServiceFilter] = useState<string>("all")
+  const [statusFilter, setStatusFilter] = useState<AdminIntakeStatusFilterValue>(initialFilters?.status ?? "all")
+  const [serviceFilter, setServiceFilter] = useState<string>(initialFilters?.service ?? "all")
+  const hasInitialFilters = Boolean(
+    (initialFilters?.q && initialFilters.q.trim()) ||
+    (initialFilters?.status && initialFilters.status !== "all") ||
+    (initialFilters?.service && initialFilters.service !== "all") ||
+    (initialFilters?.workLane && initialFilters.workLane !== "all"),
+  )
 
   useEffect(() => {
     setIntakes(allIntakes)
@@ -402,6 +419,11 @@ export function AdminIntakesLedgerClient({
               <Badge variant="outline" className="shrink-0 text-xs">
                 {filteredIntakes.length} result{filteredIntakes.length === 1 ? "" : "s"}
               </Badge>
+              {hasInitialFilters ? (
+                <Badge variant="secondary" className="shrink-0 text-xs">
+                  Filtered link
+                </Badge>
+              ) : null}
               <StaffCommandPalette
                 items={commandItems}
                 buttonLabel="Staff search"

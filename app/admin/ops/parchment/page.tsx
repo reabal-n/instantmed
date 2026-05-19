@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { requireRole } from "@/lib/auth/helpers"
 import { hasAdminAccess, hasSupportAccess } from "@/lib/auth/staff-capabilities"
-import { buildAdminIntakeHref, buildStaffPatientHref,STAFF_OPS_HREF } from "@/lib/dashboard/routes"
+import { buildAdminIntakeHref, buildStaffPatientHref, STAFF_OPS_HREF } from "@/lib/dashboard/routes"
+import { getFeatureFlags } from "@/lib/feature-flags"
 import {
   getParchmentOpsDashboard,
   type ParchmentFailedWebhook,
@@ -45,6 +46,12 @@ function isUuid(value: string | null | undefined): value is string {
 function mapEventStatus(status: ParchmentOpsEvent["status"]): StatusBadgeStatus {
   if (status === "destructive") return "error"
   return status
+}
+
+function formatDurationMs(value: number | null | undefined): string {
+  if (!value) return "Not recorded"
+  if (value < 1000) return `${value}ms`
+  return `${(value / 1000).toFixed(1)}s`
 }
 
 function PatientLink({
@@ -190,6 +197,7 @@ export default async function ParchmentOpsPage() {
   const isSupportOnly = hasSupportAccess(authUser.profile) && !hasAdminAccess(authUser.profile)
 
   const dashboard = await getParchmentOpsDashboard(createServiceRoleClient())
+  const featureFlags = await getFeatureFlags()
   const readiness = getParchmentProductionReadiness()
   const actionableFailures = dashboard.failedWebhooks
   const handoffRecovery = dashboard.handoffRecovery
@@ -201,6 +209,49 @@ export default async function ParchmentOpsPage() {
         ? "error"
         : "warning"
   const degraded = handoffRecovery.length > 0 || dashboard.stats.unlinkedPrescribers > 0
+  const productionSmokeOk = dashboard.productionSmoke?.lastStatus === "ok"
+  const readinessGateItems: Array<{ label: string; detail: string; status: StatusBadgeStatus; value: string }> = [
+    {
+      label: "API base",
+      detail: readiness.externalApiPathConfigured
+        ? "Production external API path is configured."
+        : "Production API path must end in /external.",
+      status: readiness.environment === "production" && readiness.externalApiPathConfigured ? "success" : "error",
+      value: readiness.externalApiPathConfigured ? "Ready" : "Blocked",
+    },
+    {
+      label: "Credentials",
+      detail: "Required production keys are checked by presence only. Values are never shown.",
+      status: readiness.missingProductionKeys.length === 0 ? "success" : "warning",
+      value: readiness.missingProductionKeys.length === 0 ? "Present" : `${readiness.missingProductionKeys.length} missing`,
+    },
+    {
+      label: "Feature flag",
+      detail: "Embedded prescribing is only available when the database flag is on.",
+      status: featureFlags.parchment_embedded_prescribing ? "success" : "warning",
+      value: featureFlags.parchment_embedded_prescribing ? "Enabled" : "Off",
+    },
+    {
+      label: "Prescriber mapping",
+      detail: "At least one active doctor or admin profile must be linked to a Parchment user.",
+      status: dashboard.stats.linkedPrescribers > 0 && dashboard.stats.unlinkedPrescribers === 0 ? "success" : "warning",
+      value: `${dashboard.stats.linkedPrescribers} linked`,
+    },
+    {
+      label: "Webhook",
+      detail: "The production webhook endpoint is configured and watched through failed-event recovery.",
+      status: readiness.missingProductionKeys.includes("PARCHMENT_WEBHOOK_SECRET") ? "warning" : "success",
+      value: readiness.missingProductionKeys.includes("PARCHMENT_WEBHOOK_SECRET") ? "Missing secret" : "Configured",
+    },
+    {
+      label: "Daily smoke",
+      detail: dashboard.productionSmoke?.lastRunAt
+        ? `Last run ${formatDateTime(dashboard.productionSmoke.lastRunAt)} in ${formatDurationMs(dashboard.productionSmoke.lastDurationMs)}.`
+        : "The daily production smoke cron has not recorded a run yet.",
+      status: dashboard.productionSmoke ? (productionSmokeOk ? "success" : "error") : "warning",
+      value: dashboard.productionSmoke ? (productionSmokeOk ? "Passing" : "Failing") : "Pending",
+    },
+  ]
 
   return (
     <OperatorPage className="bg-background">
@@ -360,7 +411,21 @@ export default async function ParchmentOpsPage() {
                 </div>
               </div>
 
-              {readiness.missingProductionKeys.length > 0 && readiness.status !== "sandbox_only" ? (
+              <div className="mt-4 divide-y divide-border/60 rounded-lg border border-border/70 bg-white">
+                {readinessGateItems.map((item) => (
+                  <div key={item.label} className="grid gap-3 px-3 py-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground">{item.label}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{item.detail}</p>
+                    </div>
+                    <StatusBadge status={item.status} size="sm">
+                      {item.value}
+                    </StatusBadge>
+                  </div>
+                ))}
+              </div>
+
+              {readiness.missingProductionKeys.length > 0 ? (
                 <details className="mt-3 rounded-lg border border-border/70 bg-white px-3 py-2">
                   <summary className="cursor-pointer text-xs font-semibold text-muted-foreground">
                     Missing production keys
@@ -443,7 +508,7 @@ export default async function ParchmentOpsPage() {
               <div className="mt-4 space-y-4">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                    Historical sandbox failures
+                    Historical webhook noise
                   </p>
                   <div className="mt-2 space-y-2">
                     {dashboard.historicalWebhookFailures.length > 0 ? (
@@ -456,7 +521,7 @@ export default async function ParchmentOpsPage() {
                         </div>
                       ))
                     ) : (
-                      <p className="text-xs text-muted-foreground">No sandbox failures found.</p>
+                      <p className="text-xs text-muted-foreground">No historical webhook failures found.</p>
                     )}
                   </div>
                 </div>

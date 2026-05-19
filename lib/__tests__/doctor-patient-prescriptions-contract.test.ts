@@ -153,7 +153,7 @@ describe("doctor patient medication history contract", () => {
     expect(patientDirectorySource).toContain("compareDirectoryPatients")
     expect(patientsListSource).toContain("Parchment sync")
     expect(patientsListSource).toContain("Ready in Parchment")
-    expect(patientsListSource).toContain("Not synced")
+    expect(patientsListSource).toContain("Sync needed")
     expect(patientsListSource).toContain("All services")
     expect(patientsListSource).toContain("Last request")
     expect(patientsListSource).toContain("Last script")

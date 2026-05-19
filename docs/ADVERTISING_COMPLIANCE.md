@@ -29,6 +29,10 @@ Paid Google traffic must keep Google Ads auto-tagging on and use an account-leve
 
 Do not put prescription medicine names, diagnoses, or patient-specific terms into manual URL parameters. If a tracking template is required later, it must preserve the landing URL with `{lpurl}`.
 
+Paid conversions are uploaded from the Stripe webhook through `lib/analytics/google-ads-post-payment.ts`. Every Google-looking paid intake must produce a PHI-safe `audit_logs.action = google_ads_conversion_upload` row. `/api/cron/google-ads-conversions` runs hourly to retry failed or missing uploads from Supabase payment truth.
+
+`GOOGLE_ADS_CONVERSION_ACTION_PURCHASE` must be an offline click-import conversion action with Google Ads type `UPLOAD_CLICKS`. Do not use the browser website purchase/tag conversion action ID here. Keep the offline import action secondary until the bidding and deduplication plan is changed, otherwise browser tag purchases and offline imported purchases can double count.
+
 ## 3. Core Rule
 
 InstantMed can advertise telehealth services. It must not advertise prescription-only medicines to the public.

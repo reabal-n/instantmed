@@ -94,15 +94,11 @@ describe("Parchment action production contract", () => {
     expect(prescribingIdentityReportSource).not.toContain('.eq("category", "prescription")')
   })
 
-  it("keeps Parchment user lifecycle conformance as an admin-only, rate-limited action", () => {
-    const body = functionBody("runParchmentConformanceUserStepAction")
-
-    expect(body).toContain('requireRoleOrNull(["admin"])')
-    expect(body).toContain("checkServerActionRateLimit(")
-    expect(body).toContain("`parchment:user-lifecycle:${authResult.profile.id}`")
-    expect(body.indexOf("checkServerActionRateLimit(")).toBeLessThan(
-      body.indexOf("const callerParchmentUserId"),
-    )
+  it("does not keep sandbox-era Parchment user lifecycle actions in production", () => {
+    expect(parchmentSource).not.toContain("runParchmentConformanceUserStepAction")
+    expect(parchmentSource).not.toContain("ParchmentConformance")
+    expect(parchmentSource).not.toContain("parchment:user-lifecycle")
+    expect(parchmentSource).not.toContain("createUser(")
   })
 
   it("labels the active Parchment environment without exposing credentials", () => {
@@ -117,7 +113,7 @@ describe("Parchment action production contract", () => {
     expect(body).not.toContain("organizationSecret")
   })
 
-  it("blocks linking one sandbox or production Parchment user to multiple InstantMed profiles", () => {
+  it("blocks linking one Parchment user to multiple InstantMed profiles", () => {
     const body = functionBody("linkParchmentUserAction")
 
     expect(body).toContain("getParchmentEnvironment()")

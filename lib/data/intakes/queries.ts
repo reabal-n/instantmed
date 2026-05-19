@@ -4,6 +4,7 @@ import { unstable_cache } from "next/cache"
 
 import { readDashboardQuery } from "@/lib/data/dashboard-read-model"
 import { decryptProfilePhi } from "@/lib/data/profiles"
+import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
 import { buildPatientHandoffSummary } from "@/lib/doctor/patient-handoff"
 import { buildPatientSnapshot, getPatientSnapshotOptionsForCase } from "@/lib/doctor/patient-snapshot"
@@ -738,58 +739,58 @@ export async function getIntakeMonitoringStats(): Promise<{
       oldestInQueueResult,
       recentCompletedResult,
     ] = await Promise.all([
-    // Today's submissions (paid today)
-    filterSeededE2EIntakes(supabase
-      .from("intakes")
-      .select("id", { count: "exact", head: true })
-      .gte("paid_at", todayStartISO)),
-    // Queue size
-    filterSeededE2EIntakes(supabase
-      .from("intakes")
-      .select("id", { count: "exact", head: true })
-      .in("status", QUEUE_REVIEW_STATUSES)
-      .eq("payment_status", "paid")),
-    // Paid count
-    filterSeededE2EIntakes(supabase
-      .from("intakes")
-      .select("id", { count: "exact", head: true })
-      .eq("payment_status", "paid")
-      .not("status", "in", '("draft","cancelled")')),
-    // Pending count
-    filterSeededE2EIntakes(supabase
-      .from("intakes")
-      .select("id", { count: "exact", head: true })
-      .eq("payment_status", "pending")
-      .not("status", "in", '("draft","cancelled")')),
-    // Approved today
-    filterSeededE2EIntakes(supabase
-      .from("intakes")
-      .select("id", { count: "exact", head: true })
-      .gte("approved_at", todayStartISO)),
-    // Declined today
-    filterSeededE2EIntakes(supabase
-      .from("intakes")
-      .select("id", { count: "exact", head: true })
-      .gte("declined_at", todayStartISO)),
-    // Oldest in queue (single row, ordered by paid_at/created_at)
-    filterSeededE2EIntakes(supabase
-      .from("intakes")
-      .select("paid_at, submitted_at, created_at")
-      .in("status", QUEUE_REVIEW_STATUSES)
-      .eq("payment_status", "paid"))
-      .order("paid_at", { ascending: true, nullsFirst: false })
-      .order("created_at", { ascending: true })
-      .limit(1)
-      .maybeSingle(),
-    // Recent completed for avg review time (last 100 to keep query fast)
-    filterSeededE2EIntakes(supabase
-      .from("intakes")
-      .select("paid_at, approved_at, declined_at")
-      .not("paid_at", "is", null)
-      .in("status", ["approved", "declined", "completed"]))
-      .order("approved_at", { ascending: false, nullsFirst: true })
-      .limit(100),
-  ])
+      // Today's submissions (paid today)
+      filterReportableIntakes(supabase
+        .from("intakes")
+        .select("id", { count: "exact", head: true })
+        .gte("paid_at", todayStartISO)),
+      // Queue size
+      filterReportableIntakes(supabase
+        .from("intakes")
+        .select("id", { count: "exact", head: true })
+        .in("status", QUEUE_REVIEW_STATUSES)
+        .eq("payment_status", "paid")),
+      // Paid count
+      filterReportableIntakes(supabase
+        .from("intakes")
+        .select("id", { count: "exact", head: true })
+        .eq("payment_status", "paid")
+        .not("status", "in", '("draft","cancelled")')),
+      // Pending count
+      filterReportableIntakes(supabase
+        .from("intakes")
+        .select("id", { count: "exact", head: true })
+        .eq("payment_status", "pending")
+        .not("status", "in", '("draft","cancelled")')),
+      // Approved today
+      filterReportableIntakes(supabase
+        .from("intakes")
+        .select("id", { count: "exact", head: true })
+        .gte("approved_at", todayStartISO)),
+      // Declined today
+      filterReportableIntakes(supabase
+        .from("intakes")
+        .select("id", { count: "exact", head: true })
+        .gte("declined_at", todayStartISO)),
+      // Oldest in queue (single row, ordered by paid_at/created_at)
+      filterReportableIntakes(supabase
+        .from("intakes")
+        .select("paid_at, submitted_at, created_at")
+        .in("status", QUEUE_REVIEW_STATUSES)
+        .eq("payment_status", "paid"))
+        .order("paid_at", { ascending: true, nullsFirst: false })
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle(),
+      // Recent completed for avg review time (last 100 to keep query fast)
+      filterReportableIntakes(supabase
+        .from("intakes")
+        .select("paid_at, approved_at, declined_at")
+        .not("paid_at", "is", null)
+        .in("status", ["approved", "declined", "completed"]))
+        .order("approved_at", { ascending: false, nullsFirst: true })
+        .limit(100),
+    ])
 
   // Calculate oldest in queue minutes
   let oldestInQueueMinutes: number | null = null

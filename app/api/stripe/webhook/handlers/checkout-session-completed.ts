@@ -3,6 +3,7 @@ import { after, NextResponse } from "next/server"
 import type Stripe from "stripe"
 
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
+import { GOOGLE_ADS_ATTRIBUTION_SELECT, runGoogleAdsPostPaymentAttribution } from "@/lib/analytics/google-ads-post-payment"
 import { getPostHogBaselineProperties, getPostHogClient, trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
 import { sendPaidRequestTelegramNotification } from "@/lib/notifications/paid-request-telegram"
 import { notifyPaymentReceived } from "@/lib/notifications/service"
@@ -479,7 +480,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
     // Fetch attribution data stored on the intake at checkout time
     const { data: intakeAttribution } = await supabase
       .from("intakes")
-      .select("utm_source, utm_medium, utm_id, utm_campaign, utm_content, utm_term, referrer, landing_page, attribution_captured_at, category, subtype, gclid, gbraid, wbraid, campaignid, adgroupid, keyword, creative, matchtype, device, network, amount_cents")
+      .select(GOOGLE_ADS_ATTRIBUTION_SELECT)
       .eq("id", intakeId)
       .maybeSingle()
 
@@ -487,76 +488,20 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
     // Fall back to patientId for guest checkouts without authenticated accounts
     const posthogDistinctId = phProfile?.auth_user_id || patientId || intakeId
 
-    const hasGoogleClickId = Boolean(
-      intakeAttribution?.gclid ||
-        intakeAttribution?.gbraid ||
-        intakeAttribution?.wbraid,
-    )
-    const googleSourceHint = [
-      intakeAttribution?.utm_source,
-      intakeAttribution?.utm_medium,
-      intakeAttribution?.referrer,
-      intakeAttribution?.campaignid,
-      intakeAttribution?.adgroupid,
-      intakeAttribution?.creative,
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase()
-    const likelyGoogleAttributed =
-      googleSourceHint.includes("google") ||
-      googleSourceHint.includes("adwords") ||
-      googleSourceHint.includes("cpc") ||
-      googleSourceHint.includes("paid_search") ||
-      googleSourceHint.includes("doubleclick")
-
     // Server-side Google Ads Conversion API. Recovers attribution lost to
     // iOS Safari ITP. Browser-side gtag also fires from /patient/intakes/success
-    // - Google deduplicates on orderId (intakeId) so duplicates are safe.
-    // No-ops cleanly when env vars or click ids are missing, but records a
-    // non-PHI diagnostic event when a Google-looking paid row lacks a click id.
-    if (intakeId && intakeAttribution && (hasGoogleClickId || likelyGoogleAttributed)) {
+    // - Google deduplicates on orderId (intakeId) so duplicates are safe. The
+    // shared runner writes a PHI-safe audit row so failures are retryable.
+    if (intakeId && intakeAttribution) {
       after(async () => {
-        let conversionResult: { attempted: boolean; ok?: boolean; error?: string } = {
-          attempted: false,
-          error: "missing_click_id",
-        }
         try {
-          if (hasGoogleClickId) {
-            const { fireGoogleAdsPurchaseConversion } = await import("@/lib/analytics/google-ads-conversion-api")
-            conversionResult = await fireGoogleAdsPurchaseConversion({
-              orderId: intakeId,
-              gclid: intakeAttribution.gclid as string | null,
-              gbraid: intakeAttribution.gbraid as string | null,
-              wbraid: intakeAttribution.wbraid as string | null,
-              value: typeof session.amount_total === "number" ? session.amount_total / 100 : (intakeAttribution.amount_cents as number) / 100,
-            })
-          }
-
-          const posthog = getPostHogClient()
-          posthog.capture({
-            distinctId: posthogDistinctId,
-            event: "google_ads_server_conversion",
-            properties: {
-              ...getPostHogBaselineProperties(),
-              intake_id: intakeId,
-              attempted: conversionResult.attempted,
-              ok: conversionResult.ok ?? false,
-              error: conversionResult.error ?? null,
-              has_gclid: Boolean(intakeAttribution.gclid),
-              has_gbraid: Boolean(intakeAttribution.gbraid),
-              has_wbraid: Boolean(intakeAttribution.wbraid),
-              campaignid: intakeAttribution.campaignid || null,
-              adgroupid: intakeAttribution.adgroupid || null,
-              keyword: intakeAttribution.keyword || null,
-              creative: intakeAttribution.creative || null,
-              matchtype: intakeAttribution.matchtype || null,
-              device: intakeAttribution.device || null,
-              network: intakeAttribution.network || null,
-              likely_google_attributed: likelyGoogleAttributed,
-              service_category: intakeAttribution.category || session.metadata?.category,
-              amount_cents: session.amount_total,
-            },
+          await runGoogleAdsPostPaymentAttribution({
+            amountCents: session.amount_total,
+            intakeId,
+            posthogDistinctId,
+            row: intakeAttribution,
+            source: "checkout_session_completed",
+            supabase,
           })
         } catch (err) {
           log.warn("Server-side Google Ads conversion fire failed", {

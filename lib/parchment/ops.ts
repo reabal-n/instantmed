@@ -2,6 +2,8 @@ import "server-only"
 
 import type { SupabaseClient } from "@supabase/supabase-js"
 
+import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
+
 const PARCHMENT_PRESCRIPTION_EVENT = "parchment:prescription.created"
 
 const RETRYABLE_REASONS = new Set([
@@ -14,7 +16,7 @@ const RETRYABLE_REASONS = new Set([
   "script_completion_resume_failed",
 ])
 
-const NON_ACTIONABLE_SANDBOX_FAILURE_REASONS = new Set([
+const NON_ACTIONABLE_WEBHOOK_FAILURE_REASONS = new Set([
   "no_awaiting_script_intake",
 ])
 
@@ -44,10 +46,18 @@ interface PrescriptionRow {
 
 interface ProfileSummaryRow {
   id: string
+  can_prescribe_s4?: boolean | null
+  can_prescribe_s8?: boolean | null
   full_name: string | null
   email: string | null
   role: string
   parchment_user_id?: string | null
+}
+
+interface CronHeartbeatRow {
+  last_duration_ms: number | null
+  last_run_at: string | null
+  last_status: string | null
 }
 
 interface StaleScriptHandoffRow {
@@ -123,6 +133,11 @@ export interface ParchmentOpsDashboard {
   failedWebhooks: ParchmentFailedWebhook[]
   handoffRecovery: ParchmentHandoffRecoveryItem[]
   historicalWebhookFailures: ParchmentFailedWebhook[]
+  productionSmoke: {
+    lastDurationMs: number | null
+    lastRunAt: string | null
+    lastStatus: string | null
+  } | null
   recentEvents: ParchmentOpsEvent[]
   recentPrescriptions: Array<{
     id: string
@@ -201,8 +216,8 @@ function isRetryableParchmentFailure(failure: {
     && Boolean(failure.patientProfileId || failure.partnerPatientId)
 }
 
-function isNonActionableSandboxFailure(failure: ParchmentFailedWebhook): boolean {
-  return NON_ACTIONABLE_SANDBOX_FAILURE_REASONS.has(failure.reason) && !failure.intakeId
+function isNonActionableWebhookFailure(failure: ParchmentFailedWebhook): boolean {
+  return NON_ACTIONABLE_WEBHOOK_FAILURE_REASONS.has(failure.reason) && !failure.intakeId
 }
 
 export function mapParchmentFailedWebhook(row: AuditFailureRow): ParchmentFailedWebhook | null {
@@ -342,6 +357,14 @@ function compactIds(values: Array<string | null | undefined>): string[] {
   return Array.from(new Set(values.filter((value): value is string => Boolean(value))))
 }
 
+function isPrescribingCapableProfile(profile: ProfileSummaryRow): boolean {
+  if (profile.id === SYSTEM_AUTO_APPROVE_ID) return false
+
+  return profile.role === "admin"
+    || profile.can_prescribe_s4 === true
+    || profile.can_prescribe_s8 === true
+}
+
 async function getProfilesById(
   supabase: SupabaseClient,
   ids: string[],
@@ -366,8 +389,7 @@ export async function getParchmentOpsDashboard(
   const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString()
 
   const [
-    linkedPrescribersResult,
-    unlinkedPrescribersResult,
+    prescriberProfilesResult,
     syncedPatientsResult,
     unsyncedPatientsResult,
     failedWebhooksResult,
@@ -375,19 +397,13 @@ export async function getParchmentOpsDashboard(
     recentPrescriptionsResult,
     syncedPrescriptions7dResult,
     staleScriptHandoffsResult,
+    productionSmokeResult,
   ] = await Promise.all([
     supabase
       .from("profiles")
-      .select("id, full_name, email, role, parchment_user_id")
+      .select("id, full_name, email, role, parchment_user_id, can_prescribe_s4, can_prescribe_s8")
       .in("role", ["doctor", "admin"])
-      .not("parchment_user_id", "is", null)
       .order("full_name", { ascending: true }),
-
-    supabase
-      .from("profiles")
-      .select("id", { count: "exact", head: true })
-      .in("role", ["doctor", "admin"])
-      .is("parchment_user_id", null),
 
     supabase
       .from("profiles")
@@ -441,13 +457,19 @@ export async function getParchmentOpsDashboard(
       .lt("updated_at", new Date(now - 45 * 60 * 1000).toISOString())
       .order("updated_at", { ascending: true })
       .limit(20),
+
+    supabase
+      .from("cron_heartbeats")
+      .select("last_run_at, last_status, last_duration_ms")
+      .eq("job_name", "parchment-smoke")
+      .maybeSingle(),
   ])
 
   const failedWebhooks = ((failedWebhooksResult.data || []) as AuditFailureRow[])
     .map(mapParchmentFailedWebhook)
     .filter((failure): failure is ParchmentFailedWebhook => failure !== null)
-  const historicalWebhookFailures = failedWebhooks.filter(isNonActionableSandboxFailure)
-  const actionableFailures = failedWebhooks.filter((failure) => !isNonActionableSandboxFailure(failure))
+  const historicalWebhookFailures = failedWebhooks.filter(isNonActionableWebhookFailure)
+  const actionableFailures = failedWebhooks.filter((failure) => !isNonActionableWebhookFailure(failure))
   const staleScriptHandoffs = ((staleScriptHandoffsResult.data || []) as StaleScriptHandoffRow[])
     .map(mapStaleScriptHandoff)
   const handoffRecovery = [
@@ -468,7 +490,9 @@ export async function getParchmentOpsDashboard(
     ]),
   )
 
-  const linkedPrescribers = ((linkedPrescribersResult.data || []) as ProfileSummaryRow[])
+  const prescribingCapableProfiles = ((prescriberProfilesResult.data || []) as ProfileSummaryRow[])
+    .filter(isPrescribingCapableProfile)
+  const linkedPrescribers = prescribingCapableProfiles
     .filter((profile) => typeof profile.parchment_user_id === "string" && profile.parchment_user_id.trim())
     .map((profile) => ({
       id: profile.id,
@@ -481,7 +505,7 @@ export async function getParchmentOpsDashboard(
   return {
     stats: {
       linkedPrescribers: linkedPrescribers.length,
-      unlinkedPrescribers: unlinkedPrescribersResult.count || 0,
+      unlinkedPrescribers: prescribingCapableProfiles.length - linkedPrescribers.length,
       syncedPatients: syncedPatientsResult.count || 0,
       unsyncedPatients: unsyncedPatientsResult.count || 0,
       failedWebhooks7d: actionableFailures.length,
@@ -494,6 +518,13 @@ export async function getParchmentOpsDashboard(
     failedWebhooks: actionableFailures,
     handoffRecovery,
     historicalWebhookFailures,
+    productionSmoke: productionSmokeResult.data
+      ? {
+          lastDurationMs: (productionSmokeResult.data as CronHeartbeatRow).last_duration_ms,
+          lastRunAt: (productionSmokeResult.data as CronHeartbeatRow).last_run_at,
+          lastStatus: (productionSmokeResult.data as CronHeartbeatRow).last_status,
+        }
+      : null,
     recentEvents,
     recentPrescriptions: prescriptions.map((prescription) => ({
       id: prescription.id,

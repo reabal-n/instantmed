@@ -19,22 +19,12 @@ import { checkParchmentPrescribingCapability } from "@/lib/doctor/parchment-pres
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import {
-  createUser,
-  disableUser,
-  enableUser,
   getParchmentEnvironment,
   getSsoUrl,
   listUsers,
-  updateUser,
-  updateUserRoles,
   validateIntegration,
 } from "@/lib/parchment/client"
 import { ParchmentPatientIdentityError, ParchmentPatientSyncError, syncPatientToParchment } from "@/lib/parchment/sync-patient"
-import type {
-  CreateUserRequest,
-  ParchmentAccessRole,
-  UpdateUserRequest,
-} from "@/lib/parchment/types"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { readAnswers } from "@/lib/security/phi-field-wrappers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -478,8 +468,8 @@ export async function linkParchmentUserAction(
 
     try {
       // Validate the pasted user ID by generating a user-scoped token and calling
-      // /validate. This avoids making account linking depend on read:users, which
-      // is non-essential and can be disabled in some Parchment sandbox tenants.
+      // /validate. This keeps account linking independent from read:users, which
+      // is non-essential to production prescribing.
       await validateIntegration(trimmedUserId)
     } catch (validationError) {
       log.warn("Parchment account link validation failed", {
@@ -489,7 +479,7 @@ export async function linkParchmentUserAction(
 
       return {
         success: false,
-        error: `Could not validate this user_id in the ${environmentLabel} environment. Check that you are using the ${expectedEnvironment} Parchment user_id, not the other Parchment environment.`,
+        error: `Could not validate this user_id in the ${environmentLabel} environment. Check that you are using the ${expectedEnvironment} Parchment user_id, not a conformance or test user.`,
       }
     }
 
@@ -516,14 +506,14 @@ export async function linkParchmentUserAction(
 }
 
 // ============================================================================
-// VALIDATION - Conformance evidence for sandbox / production approval
+// VALIDATION - Production integration evidence
 // ============================================================================
 
 /**
  * Validate the linked Parchment integration for the currently logged-in doctor.
  *
  * This deliberately generates the token for the linked Parchment user before
- * calling /validate, matching Parchment's conformance requirement.
+ * calling /validate, matching Parchment's authenticated-user requirement.
  */
 export async function validateParchmentIntegrationAction(): Promise<{
   success: boolean
@@ -561,294 +551,5 @@ export async function validateParchmentIntegrationAction(): Promise<{
     log.error("Failed to validate Parchment integration", {}, error instanceof Error ? error : new Error(String(error)))
     Sentry.captureException(error)
     return { success: false, error: "Failed to validate Parchment integration" }
-  }
-}
-
-// ============================================================================
-// USER MANAGEMENT - Conformance evidence helper
-// ============================================================================
-
-export type ParchmentConformanceLifecycle = "prescriber" | "admin"
-export type ParchmentConformanceStep = "create" | "update" | "disable" | "enable"
-
-export interface ParchmentConformanceUserForm {
-  givenName: string
-  familyName: string
-  email: string
-  partnerUserId: string
-  phone?: string
-  accessRoles?: ParchmentAccessRole[]
-  updateGivenName?: string
-  updateFamilyName?: string
-  updatePhone?: string
-  updateAccessRoles?: ParchmentAccessRole[]
-  title?: string
-  dateOfBirth?: string
-  sex?: CreateUserRequest["sex"]
-  hpiiNumber?: string
-  prescriberType?: string
-  prescriberNumber?: string
-  qualifications?: string
-  providerNumber?: string
-  ahpraNumber?: string
-  hospitalProviderNumber?: string
-}
-
-export interface ParchmentConformanceUserStepInput {
-  lifecycle: ParchmentConformanceLifecycle
-  step: ParchmentConformanceStep
-  userId?: string
-  user: ParchmentConformanceUserForm
-}
-
-export interface ParchmentConformanceUserStepResult {
-  label: string
-  userId: string
-  message?: string
-  requestId?: string
-  statusCode?: number
-  warning?: string
-  accessRoles?: ParchmentAccessRole[]
-}
-
-export interface ParchmentConformanceUserStepActionResult {
-  success: boolean
-  error?: string
-  userId?: string
-  steps?: ParchmentConformanceUserStepResult[]
-}
-
-const ACCESS_ROLES: ParchmentAccessRole[] = [
-  "admin",
-  "provider",
-  "receptionist",
-  "rx_reader",
-  "rx_queue_manager",
-]
-
-function cleanString(value: string | undefined): string | undefined {
-  const trimmed = value?.trim()
-  return trimmed ? trimmed : undefined
-}
-
-function normalizeAccessRoles(
-  roles: ParchmentAccessRole[] | undefined,
-  fallback: ParchmentAccessRole[],
-): ParchmentAccessRole[] {
-  const normalized = (roles ?? []).filter((role): role is ParchmentAccessRole =>
-    ACCESS_ROLES.includes(role),
-  )
-  return normalized.length > 0 ? normalized : fallback
-}
-
-function addOptional<T extends Record<string, unknown>>(
-  payload: T,
-  key: keyof T,
-  value: string | undefined,
-) {
-  const cleaned = cleanString(value)
-  if (cleaned) payload[key] = cleaned as T[keyof T]
-}
-
-function requireFields(fields: Record<string, string | undefined>): string | null {
-  const missing = Object.entries(fields)
-    .filter(([, value]) => !cleanString(value))
-    .map(([label]) => label)
-
-  return missing.length > 0
-    ? `Missing required Parchment conformance fields: ${missing.join(", ")}`
-    : null
-}
-
-function buildConformanceCreatePayload(
-  lifecycle: ParchmentConformanceLifecycle,
-  user: ParchmentConformanceUserForm,
-): { payload?: CreateUserRequest; error?: string } {
-  const commonMissing = requireFields({
-    "given name": user.givenName,
-    "family name": user.familyName,
-    email: user.email,
-    "partner user ID": user.partnerUserId,
-  })
-  if (commonMissing) return { error: commonMissing }
-
-  const payload: CreateUserRequest = {
-    given_name: cleanString(user.givenName)!,
-    family_name: cleanString(user.familyName)!,
-    email: cleanString(user.email)!,
-    partner_user_id: cleanString(user.partnerUserId)!,
-    access_roles: normalizeAccessRoles(
-      user.accessRoles,
-      lifecycle === "prescriber" ? ["provider"] : ["admin"],
-    ),
-  }
-  addOptional(payload, "phone", user.phone)
-
-  if (lifecycle === "prescriber") {
-    const prescriberMissing = requireFields({
-      "date of birth": user.dateOfBirth,
-      sex: user.sex,
-      HPII: user.hpiiNumber,
-      "prescriber type": user.prescriberType,
-      "prescriber number": user.prescriberNumber,
-      qualifications: user.qualifications,
-    })
-    if (prescriberMissing) return { error: prescriberMissing }
-
-    payload.access_roles = ["provider"]
-    payload.date_of_birth = cleanString(user.dateOfBirth)
-    payload.sex = user.sex
-    addOptional(payload, "title", user.title)
-    addOptional(payload, "hpii_number", user.hpiiNumber)
-    addOptional(payload, "prescriber_type", user.prescriberType)
-    addOptional(payload, "prescriber_number", user.prescriberNumber)
-    addOptional(payload, "qualifications", user.qualifications)
-    addOptional(payload, "provider_number", user.providerNumber)
-    addOptional(payload, "ahpra_number", user.ahpraNumber)
-    addOptional(payload, "hospital_provider_number", user.hospitalProviderNumber)
-  }
-
-  return { payload }
-}
-
-function buildConformanceUpdatePayload(
-  lifecycle: ParchmentConformanceLifecycle,
-  user: ParchmentConformanceUserForm,
-): UpdateUserRequest {
-  const payload: UpdateUserRequest = {
-    given_name: cleanString(user.updateGivenName) || cleanString(user.givenName),
-    family_name: cleanString(user.updateFamilyName) || cleanString(user.familyName),
-  }
-  addOptional(payload, "phone", user.updatePhone || user.phone)
-
-  if (lifecycle === "prescriber") {
-    addOptional(payload, "qualifications", user.qualifications)
-    addOptional(payload, "provider_number", user.providerNumber)
-    addOptional(payload, "ahpra_number", user.ahpraNumber)
-  }
-
-  return payload
-}
-
-function toStepResult(
-  label: string,
-  result: Awaited<ReturnType<typeof createUser>>,
-): ParchmentConformanceUserStepResult {
-  return {
-    label,
-    userId: result.user_id,
-    message: result.message,
-    requestId: result.requestId,
-    statusCode: result.statusCode,
-    warning: typeof result.warning === "string" ? result.warning : undefined,
-    accessRoles: result.access_roles,
-  }
-}
-
-/**
- * Runs a single Parchment sandbox user-management conformance step.
- *
- * This is intentionally admin-only and tied to the logged-in admin's linked
- * Parchment user_id, so the recording proves the authenticated-user token path
- * rather than falling back to an organization-wide service user.
- */
-export async function runParchmentConformanceUserStepAction(
-  input: ParchmentConformanceUserStepInput,
-): Promise<ParchmentConformanceUserStepActionResult> {
-  const authResult = await requireRoleOrNull(["admin"])
-  if (!authResult) {
-    return { success: false, error: "Unauthorized" }
-  }
-
-  const rateLimit = await checkServerActionRateLimit(`parchment:user-lifecycle:${authResult.profile.id}`, "admin")
-  if (!rateLimit.success) {
-    return { success: false, error: rateLimit.error || "Too many Parchment user-management requests. Please wait and try again." }
-  }
-
-  const callerParchmentUserId = authResult.profile.parchment_user_id?.trim()
-  if (!callerParchmentUserId) {
-    return {
-      success: false,
-      error: "Your admin profile is not linked to a Parchment user_id. Link it in Doctor Settings > Identity before recording this video.",
-    }
-  }
-
-  if (!["prescriber", "admin"].includes(input.lifecycle)) {
-    return { success: false, error: "Invalid Parchment lifecycle type" }
-  }
-
-  if (!["create", "update", "disable", "enable"].includes(input.step)) {
-    return { success: false, error: "Invalid Parchment lifecycle step" }
-  }
-
-  const existingUserId = cleanString(input.userId)
-  if (input.step !== "create" && !existingUserId) {
-    return { success: false, error: "Create the Parchment sandbox user before running this step." }
-  }
-
-  try {
-    const steps: ParchmentConformanceUserStepResult[] = []
-
-    if (input.step === "create") {
-      const built = buildConformanceCreatePayload(input.lifecycle, input.user)
-      if (!built.payload) return { success: false, error: built.error || "Invalid Parchment user payload" }
-
-      const result = await createUser(callerParchmentUserId, built.payload)
-      steps.push(toStepResult(
-        input.lifecycle === "prescriber" ? "Created prescriber user" : "Created admin user",
-        result,
-      ))
-    }
-
-    if (input.step === "update") {
-      const result = await updateUser(
-        callerParchmentUserId,
-        existingUserId!,
-        buildConformanceUpdatePayload(input.lifecycle, input.user),
-      )
-      steps.push(toStepResult(
-        input.lifecycle === "prescriber" ? "Updated prescriber details" : "Updated admin details",
-        result,
-      ))
-
-      if (input.lifecycle === "admin") {
-        const roles = normalizeAccessRoles(input.user.updateAccessRoles, ["admin", "receptionist"])
-        const roleResult = await updateUserRoles(callerParchmentUserId, existingUserId!, roles)
-        steps.push(toStepResult("Updated admin role access", roleResult))
-      }
-    }
-
-    if (input.step === "disable") {
-      const result = await disableUser(callerParchmentUserId, existingUserId!)
-      steps.push(toStepResult(
-        input.lifecycle === "prescriber" ? "Disabled prescriber user" : "Disabled admin user",
-        result,
-      ))
-    }
-
-    if (input.step === "enable") {
-      const result = await enableUser(callerParchmentUserId, existingUserId!)
-      steps.push(toStepResult(
-        input.lifecycle === "prescriber" ? "Re-enabled prescriber user" : "Re-enabled admin user",
-        result,
-      ))
-    }
-
-    const lastStep = steps[steps.length - 1]
-    return {
-      success: true,
-      userId: lastStep?.userId || existingUserId,
-      steps,
-    }
-  } catch (error) {
-    log.error("Failed to run Parchment user lifecycle conformance step", {}, error instanceof Error ? error : new Error(String(error)))
-    Sentry.captureException(error, {
-      extra: {
-        context: "parchment_user_lifecycle_conformance",
-        lifecycle: input.lifecycle,
-        step: input.step,
-      },
-    })
-    return { success: false, error: "Parchment user-management step failed. Check the sandbox credentials, test data, and linked Parchment user." }
   }
 }

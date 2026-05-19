@@ -118,6 +118,14 @@ describe("dashboard route contracts", () => {
     expect(STAFF_LEDGER_HREF).toBe("/admin/intakes")
     expect(buildStaffLedgerHref()).toBe("/admin/intakes")
     expect(buildStaffLedgerHref({ status: "approved" })).toBe("/admin/intakes?status=approved")
+    expect(buildStaffLedgerHref({
+      q: "IM-20260430-61542C",
+      service: "repeat_rx",
+      status: "awaiting_script",
+      workLane: "clinical",
+    })).toBe(
+      "/admin/intakes?status=awaiting_script&service=repeat_rx&workLane=clinical&q=IM-20260430-61542C",
+    )
     expect(STAFF_PATIENTS_HREF).toBe("/admin/patients")
     expect(buildAdminIntakeHref("intake-123")).toBe("/admin/intakes/intake-123")
     expect(buildAdminIntakeHref("intake 123")).toBe("/admin/intakes/intake%20123")

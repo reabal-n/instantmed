@@ -13,3 +13,4 @@ playwright-report*/
 .claude/
 .codex/
 .agents/
+skills-lock.json

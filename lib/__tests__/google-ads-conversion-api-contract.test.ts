@@ -16,7 +16,7 @@ describe("Google Ads conversion upload contract", () => {
   })
 
   it("passes quota project and manager-account headers when configured", () => {
-    expect(source).toContain('headers["login-customer-id"] = loginCustomerId')
-    expect(source).toContain('headers["x-goog-user-project"] = quotaProjectId')
+    expect(source).toContain('headers["login-customer-id"] = config.loginCustomerId')
+    expect(source).toContain('headers["x-goog-user-project"] = config.quotaProjectId')
   })
 })

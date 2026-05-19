@@ -1,3 +1,6 @@
+import { type GoogleAdsHealth } from "@/lib/analytics/google-ads-health"
+import { type PrescriptionFulfilmentDashboard } from "@/lib/parchment/fulfilment-dashboard"
+
 export interface AnalyticsData {
   funnel: {
     started: number
@@ -14,4 +17,6 @@ export interface AnalyticsData {
     avgReviewTimeMinutes: number | null
     oldestInQueueMinutes: number | null
   }
+  googleAds: GoogleAdsHealth
+  prescriptionFulfilment: PrescriptionFulfilmentDashboard
 }

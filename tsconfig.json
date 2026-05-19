@@ -42,6 +42,17 @@
     "__tests__",
     "_deprecated",
     "__checks__",
-    "checkly.config.ts"
+    "checkly.config.ts",
+    "**/* 2.ts",
+    "**/* 2/**/*.ts",
+    ".next/types/**/* 2.ts",
+    ".next/types/app 2",
+    ".next/types/app 2/**/*.ts",
+    ".next/dev/types/**/* 2.ts",
+    ".next/dev/types/app 2",
+    ".next/dev/types/app 2/**/*.ts",
+    ".next/dev/dev/types/**/* 2.ts",
+    ".next/dev/dev/types/app 2",
+    ".next/dev/dev/types/app 2/**/*.ts"
   ]
 }

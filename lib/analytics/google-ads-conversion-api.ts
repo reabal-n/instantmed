@@ -13,8 +13,9 @@ const DEFAULT_GOOGLE_ADS_API_VERSION = "v24"
  * Why: browser-side gtag misses ~30% of attribution on iOS Safari (ITP blocks
  * third-party cookies) and other privacy-restricted contexts. Firing the same
  * conversion server-side using the gclid stored at intake submit time recovers
- * that loss. Google deduplicates on `order_id` so duplicate fires from browser
- * + server are safe.
+ * that loss. `order_id` keeps upload retries idempotent for this conversion
+ * action; Ads account goal settings still decide whether browser and offline
+ * actions are counted together.
  *
  * Required env vars (all must be present for the call to fire):
  *   GOOGLE_ADS_CUSTOMER_ID            - 10-digit customer id, no dashes
@@ -52,17 +53,51 @@ interface FireConversionInput {
   conversionDateTime?: Date
 }
 
-type ClickIdentifier = { gclid: string } | { gbraid: string } | { wbraid: string }
+type ClickIdentifier = {
+  gbraid?: string
+  gclid?: string
+  wbraid?: string
+}
 
 interface GoogleAdsClickConversionRequest {
   conversions: Array<{
     conversionAction: string
     conversionDateTime: string
+    conversionEnvironment: "WEB"
     conversionValue: number
     currencyCode: "AUD"
     orderId: string
   } & ClickIdentifier>
-  partialFailureEnabled: true
+  partialFailure: true
+}
+
+export type GoogleAdsConversionActionPreflightIssueCode =
+  | "conversion_action_not_enabled"
+  | "conversion_action_not_found"
+  | "conversion_action_preflight_failed"
+  | "invalid_conversion_action_type"
+  | "missing_env"
+  | "no_access_token"
+  | null
+
+export type GoogleAdsConversionActionPreflightSeverity = "ok" | "warning" | "error"
+
+export interface GoogleAdsConversionActionSnapshot {
+  id: string
+  name: string | null
+  resourceName: string | null
+  status: string | null
+  type: string | null
+}
+
+export interface GoogleAdsConversionActionPreflightResult {
+  action: string
+  code: GoogleAdsConversionActionPreflightIssueCode
+  conversionAction: GoogleAdsConversionActionSnapshot | null
+  detail: string
+  label: string
+  ok: boolean
+  severity: GoogleAdsConversionActionPreflightSeverity
 }
 
 interface AccessTokenCache {
@@ -73,6 +108,65 @@ interface AccessTokenCache {
 let tokenCache: AccessTokenCache | null = null
 
 const INSTANTMED_PURCHASE_CONVERSION_ACTION_ID = "7530736987"
+const REQUIRED_UPLOAD_CLICK_CONVERSION_ACTION_TYPE = "UPLOAD_CLICKS"
+
+export function resetGoogleAdsAccessTokenCacheForTests(): void {
+  tokenCache = null
+}
+
+function normalizeGoogleAdsNumericId(value?: string | null): string | null {
+  const trimmed = value?.trim()
+  if (!trimmed) return null
+
+  const resourceId = trimmed.match(/\/(\d+)$/)?.[1]
+  const normalized = (resourceId || trimmed).replace(/-/g, "")
+  return /^\d+$/.test(normalized) ? normalized : null
+}
+
+function getConfiguredPurchaseConversionActionId(customerId: string | null): string | null {
+  return normalizeGoogleAdsNumericId(
+    process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE ||
+      (customerId === "9205010513" ? INSTANTMED_PURCHASE_CONVERSION_ACTION_ID : undefined),
+  )
+}
+
+function getGoogleAdsPurchaseConversionConfig(): {
+  apiVersion: string
+  conversionActionId: string
+  customerId: string
+  developerToken: string
+  loginCustomerId?: string
+  quotaProjectId?: string
+} | null {
+  const customerId = normalizeGoogleAdsNumericId(process.env.GOOGLE_ADS_CUSTOMER_ID)
+  const developerToken = process.env.GOOGLE_ADS_DEVELOPER_TOKEN
+  const conversionActionId = getConfiguredPurchaseConversionActionId(customerId)
+
+  if (!customerId || !developerToken || !conversionActionId) return null
+
+  return {
+    apiVersion: process.env.GOOGLE_ADS_API_VERSION || DEFAULT_GOOGLE_ADS_API_VERSION,
+    conversionActionId,
+    customerId,
+    developerToken,
+    loginCustomerId: normalizeGoogleAdsNumericId(process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID) || undefined,
+    quotaProjectId: process.env.GOOGLE_ADS_QUOTA_PROJECT_ID?.trim() || undefined,
+  }
+}
+
+function buildGoogleAdsAuthHeaders(
+  config: NonNullable<ReturnType<typeof getGoogleAdsPurchaseConversionConfig>>,
+  accessToken: string,
+): Record<string, string> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${accessToken}`,
+    "developer-token": config.developerToken,
+  }
+  if (config.loginCustomerId) headers["login-customer-id"] = config.loginCustomerId
+  if (config.quotaProjectId) headers["x-goog-user-project"] = config.quotaProjectId
+  return headers
+}
 
 async function fetchAccessToken(): Promise<string | null> {
   const clientId = process.env.GOOGLE_ADS_CLIENT_ID
@@ -139,6 +233,63 @@ function normalizeClickId(value?: string | null): string | null {
   return normalized ? normalized : null
 }
 
+function compactError(value: string, fallback: string): string {
+  const normalized = value
+    .replace(/\s+/g, " ")
+    .replace(/[^a-zA-Z0-9_.:-]+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 96)
+
+  return normalized || fallback
+}
+
+export function extractGoogleAdsErrorCode(responseBody: string, status: number): string {
+  try {
+    const parsed = JSON.parse(responseBody) as {
+      error?: {
+        details?: Array<{
+          errors?: Array<{
+            errorCode?: Record<string, string>
+            message?: string
+          }>
+        }>
+        message?: string
+      }
+      partialFailureError?: {
+        details?: Array<{
+          errors?: Array<{
+            errorCode?: Record<string, string>
+            message?: string
+          }>
+        }>
+        message?: string
+      }
+    }
+
+    const errorSource = parsed.error || parsed.partialFailureError
+    const googleAdsError = errorSource?.details
+      ?.flatMap((detail) => detail.errors || [])
+      ?.find((error) => error.errorCode)
+
+    if (googleAdsError?.errorCode) {
+      const [namespace, code] = Object.entries(googleAdsError.errorCode)[0] || []
+      const detail = [namespace, code, googleAdsError.message]
+        .filter(Boolean)
+        .join(":")
+      return compactError(detail, `http_${status}`)
+    }
+
+    if (errorSource?.message) {
+      return compactError(errorSource.message, `http_${status}`)
+    }
+  } catch {
+    // Fall back below.
+  }
+
+  return `http_${status}`
+}
+
 export function selectGoogleAdsClickIdentifier(input: {
   gclid?: string | null
   gbraid?: string | null
@@ -161,25 +312,213 @@ export function getGoogleAdsUploadClickConversionsUrl(
   return `https://googleads.googleapis.com/${apiVersion}/customers/${customerId}:uploadClickConversions`
 }
 
+export function getGoogleAdsSearchUrl(
+  customerId: string,
+  apiVersion = process.env.GOOGLE_ADS_API_VERSION || DEFAULT_GOOGLE_ADS_API_VERSION,
+): string {
+  return `https://googleads.googleapis.com/${apiVersion}/customers/${customerId}/googleAds:search`
+}
+
+export function buildGoogleAdsConversionActionPreflightQuery(conversionActionId: string): string {
+  const normalizedConversionActionId = normalizeGoogleAdsNumericId(conversionActionId)
+  if (!normalizedConversionActionId) {
+    throw new Error("Google Ads conversion action id must be numeric")
+  }
+
+  return [
+    "SELECT",
+    "conversion_action.id,",
+    "conversion_action.name,",
+    "conversion_action.resource_name,",
+    "conversion_action.status,",
+    "conversion_action.type",
+    "FROM conversion_action",
+    `WHERE conversion_action.id = ${normalizedConversionActionId}`,
+    "LIMIT 1",
+  ].join(" ")
+}
+
 export function buildGoogleAdsClickConversionRequest(
   input: FireConversionInput,
   config: { customerId: string; conversionActionId: string },
 ): GoogleAdsClickConversionRequest | null {
   const clickIdentifier = selectGoogleAdsClickIdentifier(input)
   if (!clickIdentifier) return null
+  const conversionActionId = normalizeGoogleAdsNumericId(config.conversionActionId)
+  if (!conversionActionId) return null
 
   return {
     conversions: [
       {
-        conversionAction: `customers/${config.customerId}/conversionActions/${config.conversionActionId}`,
+        conversionAction: `customers/${config.customerId}/conversionActions/${conversionActionId}`,
         ...clickIdentifier,
         conversionDateTime: formatGoogleAdsDateTime(input.conversionDateTime ?? new Date()),
+        conversionEnvironment: "WEB",
         conversionValue: input.value,
         currencyCode: "AUD",
         orderId: input.orderId,
       },
     ],
-    partialFailureEnabled: true,
+    partialFailure: true,
+  }
+}
+
+function stringifyGoogleAdsErrorPayload(payload: unknown): string {
+  try {
+    return JSON.stringify(payload)
+  } catch {
+    return ""
+  }
+}
+
+function getUnknownPreflightError(error: unknown): GoogleAdsConversionActionPreflightResult {
+  const message = error instanceof Error ? error.message : String(error)
+  return {
+    action: "Check the Google Ads API credentials and retry the health check before forcing a backfill.",
+    code: "conversion_action_preflight_failed",
+    conversionAction: null,
+    detail: compactError(message, "preflight_failed"),
+    label: "Preflight failed",
+    ok: false,
+    severity: "warning",
+  }
+}
+
+function getMissingEnvPreflight(): GoogleAdsConversionActionPreflightResult {
+  return {
+    action: "Set the Google Ads customer id, developer token, and offline purchase conversion action id in production.",
+    code: "missing_env",
+    conversionAction: null,
+    detail: "The purchase conversion action cannot be checked because required Google Ads env vars are missing.",
+    label: "Missing Google Ads env",
+    ok: false,
+    severity: "error",
+  }
+}
+
+function getMissingAccessTokenPreflight(): GoogleAdsConversionActionPreflightResult {
+  return {
+    action: "Regenerate the Google Ads OAuth refresh token and confirm the account can mint access tokens.",
+    code: "no_access_token",
+    conversionAction: null,
+    detail: "The purchase conversion action cannot be checked because OAuth access-token minting failed.",
+    label: "OAuth token unavailable",
+    ok: false,
+    severity: "error",
+  }
+}
+
+export function classifyGoogleAdsConversionActionPreflight(
+  conversionAction: GoogleAdsConversionActionSnapshot | null,
+): GoogleAdsConversionActionPreflightResult {
+  if (!conversionAction) {
+    return {
+      action: "Use the conversion customer that owns the offline purchase action, or update GOOGLE_ADS_CONVERSION_ACTION_PURCHASE.",
+      code: "conversion_action_not_found",
+      conversionAction: null,
+      detail: "The configured purchase conversion action was not found in the Google Ads conversion customer.",
+      label: "Conversion action not found",
+      ok: false,
+      severity: "error",
+    }
+  }
+
+  const name = conversionAction.name ? `"${conversionAction.name}"` : "The configured conversion action"
+
+  if (conversionAction.type !== REQUIRED_UPLOAD_CLICK_CONVERSION_ACTION_TYPE) {
+    return {
+      action: "Create or select a Google Ads offline click-import purchase action with type UPLOAD_CLICKS, then update GOOGLE_ADS_CONVERSION_ACTION_PURCHASE.",
+      code: "invalid_conversion_action_type",
+      conversionAction,
+      detail: `${name} is type ${conversionAction.type || "unknown"}, but uploadClickConversions requires UPLOAD_CLICKS.`,
+      label: "Wrong conversion action type",
+      ok: false,
+      severity: "error",
+    }
+  }
+
+  if (conversionAction.status !== "ENABLED") {
+    return {
+      action: "Enable the offline purchase conversion action in Google Ads before relying on server-side uploads.",
+      code: "conversion_action_not_enabled",
+      conversionAction,
+      detail: `${name} is ${conversionAction.status || "not enabled"}. Google Ads imports should target an enabled action.`,
+      label: "Conversion action not enabled",
+      ok: false,
+      severity: "error",
+    }
+  }
+
+  return {
+    action: "No action needed.",
+    code: null,
+    conversionAction,
+    detail: `${name} is enabled and accepts uploadClickConversions imports.`,
+    label: "Conversion action accepts uploads",
+    ok: true,
+    severity: "ok",
+  }
+}
+
+function asString(value: unknown): string | null {
+  if (typeof value === "string") return value
+  if (typeof value === "number" && Number.isFinite(value)) return String(value)
+  return null
+}
+
+function parseConversionActionSearchResult(payload: unknown): GoogleAdsConversionActionSnapshot | null {
+  if (!payload || typeof payload !== "object" || !("results" in payload)) return null
+  const results = (payload as { results?: unknown }).results
+  if (!Array.isArray(results)) return null
+  const row = results[0]
+  if (!row || typeof row !== "object" || !("conversionAction" in row)) return null
+  const conversionAction = (row as { conversionAction?: unknown }).conversionAction
+  if (!conversionAction || typeof conversionAction !== "object") return null
+  const fields = conversionAction as Record<string, unknown>
+
+  return {
+    id: asString(fields.id) || "",
+    name: asString(fields.name),
+    resourceName: asString(fields.resourceName),
+    status: asString(fields.status),
+    type: asString(fields.type),
+  }
+}
+
+export async function preflightGoogleAdsPurchaseConversionAction(): Promise<GoogleAdsConversionActionPreflightResult> {
+  const config = getGoogleAdsPurchaseConversionConfig()
+  if (!config) return getMissingEnvPreflight()
+
+  const accessToken = await fetchAccessToken()
+  if (!accessToken) return getMissingAccessTokenPreflight()
+
+  try {
+    const res = await fetch(getGoogleAdsSearchUrl(config.customerId, config.apiVersion), {
+      method: "POST",
+      headers: buildGoogleAdsAuthHeaders(config, accessToken),
+      body: JSON.stringify({
+        pageSize: 1,
+        query: buildGoogleAdsConversionActionPreflightQuery(config.conversionActionId),
+      }),
+    })
+
+    const json = await res.json().catch(() => null)
+
+    if (!res.ok) {
+      return {
+        action: "Check the Google Ads API credentials, conversion customer id, and conversion-action access.",
+        code: "conversion_action_preflight_failed",
+        conversionAction: null,
+        detail: extractGoogleAdsErrorCode(stringifyGoogleAdsErrorPayload(json), res.status),
+        label: "Preflight failed",
+        ok: false,
+        severity: "warning",
+      }
+    }
+
+    return classifyGoogleAdsConversionActionPreflight(parseConversionActionSearchResult(json))
+  } catch (error) {
+    return getUnknownPreflightError(error)
   }
 }
 
@@ -192,28 +531,22 @@ export function buildGoogleAdsClickConversionRequest(
 export async function fireGoogleAdsPurchaseConversion(
   input: FireConversionInput,
 ): Promise<{ attempted: boolean; ok?: boolean; error?: string }> {
-  const customerId = process.env.GOOGLE_ADS_CUSTOMER_ID
-  const developerToken = process.env.GOOGLE_ADS_DEVELOPER_TOKEN
-  const conversionActionId =
-    process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE ||
-    (customerId === "9205010513" ? INSTANTMED_PURCHASE_CONVERSION_ACTION_ID : undefined)
-  const loginCustomerId = process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID
-  const quotaProjectId = process.env.GOOGLE_ADS_QUOTA_PROJECT_ID
+  const config = getGoogleAdsPurchaseConversionConfig()
 
-  if (!customerId || !developerToken || !conversionActionId) {
+  if (!config) {
     logger.warn("Google Ads Conversion API skipped - missing env vars", {
-      hasCustomerId: !!customerId,
-      hasDeveloperToken: !!developerToken,
-      hasConversionActionId: !!conversionActionId,
+      hasCustomerId: !!process.env.GOOGLE_ADS_CUSTOMER_ID,
+      hasDeveloperToken: !!process.env.GOOGLE_ADS_DEVELOPER_TOKEN,
+      hasConversionActionId: !!process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE,
     })
-    return { attempted: false }
+    return { attempted: false, error: "missing_env" }
   }
 
-  const body = buildGoogleAdsClickConversionRequest(input, { customerId, conversionActionId })
+  const body = buildGoogleAdsClickConversionRequest(input, config)
   if (!body) {
     // No click identifier - this conversion didn't originate from a Google ad
     // click, so there's nothing for the Conversion API to attribute to.
-    return { attempted: false }
+    return { attempted: false, error: "missing_click_id" }
   }
 
   const accessToken = await fetchAccessToken()
@@ -223,18 +556,11 @@ export async function fireGoogleAdsPurchaseConversion(
   }
 
   try {
-    const url = getGoogleAdsUploadClickConversionsUrl(customerId)
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-      "developer-token": developerToken,
-    }
-    if (loginCustomerId) headers["login-customer-id"] = loginCustomerId
-    if (quotaProjectId) headers["x-goog-user-project"] = quotaProjectId
+    const url = getGoogleAdsUploadClickConversionsUrl(config.customerId, config.apiVersion)
 
     const res = await fetch(url, {
       method: "POST",
-      headers,
+      headers: buildGoogleAdsAuthHeaders(config, accessToken),
       body: JSON.stringify(body),
     })
 
@@ -248,10 +574,11 @@ export async function fireGoogleAdsPurchaseConversion(
         level: "warning",
         extra: {
           orderId: input.orderId,
+          error: extractGoogleAdsErrorCode(responseBody, res.status),
           status: res.status,
         },
       })
-      return { attempted: true, ok: false, error: `http_${res.status}` }
+      return { attempted: true, ok: false, error: extractGoogleAdsErrorCode(responseBody, res.status) }
     }
 
     // Partial failures come back in the response body even with 200. Parse and
@@ -267,6 +594,7 @@ export async function fireGoogleAdsPurchaseConversion(
         ? (parsed as { partialFailureError?: { message?: string } }).partialFailureError
         : undefined
     if (partialFailure?.message) {
+      const errorCode = extractGoogleAdsErrorCode(responseBody, 200)
       logger.warn("Google Ads Conversion API partial failure", {
         orderId: input.orderId,
         message: partialFailure.message,
@@ -275,10 +603,11 @@ export async function fireGoogleAdsPurchaseConversion(
         level: "warning",
         extra: {
           orderId: input.orderId,
+          error: errorCode,
           message: partialFailure.message,
         },
       })
-      return { attempted: true, ok: false, error: "partial_failure" }
+      return { attempted: true, ok: false, error: errorCode }
     } else {
       logger.info("Google Ads Conversion API success", { orderId: input.orderId })
     }

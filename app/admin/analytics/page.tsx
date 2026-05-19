@@ -1,7 +1,13 @@
 import { Suspense } from "react"
 
+import { EMPTY_GOOGLE_ADS_HEALTH, getGoogleAdsHealth } from "@/lib/analytics/google-ads-health"
 import { requireRole } from "@/lib/auth/helpers"
 import { getIntakeMonitoringStats } from "@/lib/data/intakes"
+import { filterReportableIntakes } from "@/lib/data/reporting-filters"
+import {
+  EMPTY_PRESCRIPTION_FULFILMENT_DASHBOARD,
+  getPrescriptionFulfilmentDashboard,
+} from "@/lib/parchment/fulfilment-dashboard"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { AnalyticsDashboardClient } from "./analytics-client"
@@ -22,48 +28,54 @@ export default async function AnalyticsDashboardPage() {
   // conversion, and queue health. Anything deeper belongs in PostHog or ops.
   const results = await Promise.allSettled([
     // [0] Started intakes (created)
-    supabase
+    filterReportableIntakes(supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
-      .gte("created_at", monthAgo.toISOString()),
+      .gte("created_at", monthAgo.toISOString())),
 
     // [1] Paid intakes
-    supabase
+    filterReportableIntakes(supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
       .gte("created_at", monthAgo.toISOString())
-      .not("paid_at", "is", null),
+      .not("paid_at", "is", null)),
 
     // [2] Completed intakes
-    supabase
+    filterReportableIntakes(supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
       .gte("created_at", monthAgo.toISOString())
-      .eq("status", "approved"),
+      .eq("status", "approved")),
 
     // [3] Revenue data - paid intakes with amount
-    supabase
+    filterReportableIntakes(supabase
       .from("intakes")
       .select("amount_cents, paid_at, created_at")
       .not("paid_at", "is", null)
-      .gte("paid_at", monthAgo.toISOString()),
+      .gte("paid_at", monthAgo.toISOString())),
 
     // [4] Monitoring stats (queue health, avg review time)
     getIntakeMonitoringStats(),
 
     // [5] This week's paid intakes for weekly revenue
-    supabase
+    filterReportableIntakes(supabase
       .from("intakes")
       .select("amount_cents")
       .not("paid_at", "is", null)
-      .gte("paid_at", weekAgo.toISOString()),
+      .gte("paid_at", weekAgo.toISOString())),
 
     // [6] Today's paid intakes for daily revenue
-    supabase
+    filterReportableIntakes(supabase
       .from("intakes")
       .select("amount_cents")
       .not("paid_at", "is", null)
-      .gte("paid_at", today.toISOString()),
+      .gte("paid_at", today.toISOString())),
+
+    // [7] Google Ads upload health
+    getGoogleAdsHealth(supabase),
+
+    // [8] Prescription fulfilment handoff state
+    getPrescriptionFulfilmentDashboard(supabase),
   ])
 
   // Extract results with safe fallbacks
@@ -78,6 +90,10 @@ export default async function AnalyticsDashboardPage() {
   }
   const weekRevenueResult = results[5].status === "fulfilled" ? results[5].value : { data: [] }
   const todayRevenueResult = results[6].status === "fulfilled" ? results[6].value : { data: [] }
+  const googleAds = results[7].status === "fulfilled" ? results[7].value : EMPTY_GOOGLE_ADS_HEALTH
+  const prescriptionFulfilment = results[8].status === "fulfilled"
+    ? results[8].value
+    : EMPTY_PRESCRIPTION_FULFILMENT_DASHBOARD
 
   // Calculate revenue totals
   const monthRevenue = (revenueResult.data || []).reduce(
@@ -106,6 +122,8 @@ export default async function AnalyticsDashboardPage() {
       avgReviewTimeMinutes: monitoringStats.avgReviewTimeMinutes,
       oldestInQueueMinutes: monitoringStats.oldestInQueueMinutes,
     },
+    googleAds,
+    prescriptionFulfilment,
   }
 
   return (

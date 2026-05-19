@@ -110,6 +110,7 @@ vi.mock("@/lib/validation/repeat-script-schema", () => ({
 vi.mock("@/lib/stripe/client", () => ({
   getAmountCentsForRequest: vi.fn(() => 1995),
   getPriceIdForRequest: mocks.getPriceIdForRequest,
+  normalizeStripePriceId: vi.fn((priceId: string | null | undefined) => priceId?.trim() || undefined),
   stripe: {
     checkout: {
       sessions: {

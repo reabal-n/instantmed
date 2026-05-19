@@ -168,11 +168,9 @@ export function IdentitySettingsClient({
     parchmentEnvironment.environment === "unknown"
       ? "Paste user_id from the configured Parchment environment"
       : `Paste ${parchmentEnvironment.label} Parchment user_id`
-  const parchmentEnvironmentInstruction = parchmentEnvironment.isSandbox
-    ? "Use only the Sandbox Parchment user_id while this production website is configured for sandbox testing."
-    : parchmentEnvironment.isProduction
-      ? "Use only the Production Parchment user_id after production credentials are issued and the environment is switched."
-      : "Confirm the configured Parchment environment before linking a prescriber user_id."
+  const parchmentEnvironmentInstruction = parchmentEnvironment.isProduction
+    ? "Use the Production Parchment user_id for this prescriber."
+    : "Production Parchment is not correctly configured. Fix the integration before linking a prescriber user_id."
   const parchmentEnvironmentBadgeVariant: "warning" | "info" | "secondary" =
     parchmentEnvironment.isSandbox ? "warning" : parchmentEnvironment.isProduction ? "info" : "secondary"
   const settingsCompletionItems = [
@@ -993,7 +991,7 @@ export function IdentitySettingsClient({
               <span className="font-mono text-xs text-muted-foreground">{parchmentEnvironment.apiHost}</span>
             </div>
             <p className="mt-1 text-muted-foreground">
-              {parchmentEnvironmentInstruction} Production and Sandbox Parchment user IDs are separate and cannot be swapped.
+              {parchmentEnvironmentInstruction} Do not paste a conformance or test user ID into production.
             </p>
           </div>
           {parchmentUserId ? (

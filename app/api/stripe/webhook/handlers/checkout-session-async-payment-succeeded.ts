@@ -3,6 +3,7 @@ import { after, NextResponse } from "next/server"
 import type Stripe from "stripe"
 
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
+import { GOOGLE_ADS_ATTRIBUTION_SELECT, runGoogleAdsPostPaymentAttribution } from "@/lib/analytics/google-ads-post-payment"
 import { sendGuestCompleteAccountEmail } from "@/lib/email/template-sender"
 import { sendPaidRequestTelegramNotification } from "@/lib/notifications/paid-request-telegram"
 import { createLogger } from "@/lib/observability/logger"
@@ -186,6 +187,42 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
         { amount: session.amount_total, payment_intent: session.payment_intent },
       )
       return NextResponse.json({ received: true, skipped: true, dlq: true })
+    }
+
+    const [{ data: phProfile }, { data: intakeAttribution }] = await Promise.all([
+      patientId
+        ? supabase
+            .from("profiles")
+            .select("auth_user_id")
+            .eq("id", patientId)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+      supabase
+        .from("intakes")
+        .select(GOOGLE_ADS_ATTRIBUTION_SELECT)
+        .eq("id", intakeId)
+        .maybeSingle(),
+    ])
+
+    if (intakeAttribution) {
+      const posthogDistinctId = phProfile?.auth_user_id || patientId || intakeId
+      after(async () => {
+        try {
+          await runGoogleAdsPostPaymentAttribution({
+            amountCents: session.amount_total,
+            intakeId,
+            posthogDistinctId,
+            row: intakeAttribution,
+            source: "checkout_session_async_payment_succeeded",
+            supabase,
+          })
+        } catch (err) {
+          log.warn("Async server-side Google Ads conversion fire failed", {
+            error: err instanceof Error ? err.message : String(err),
+            intakeId,
+          })
+        }
+      })
     }
 
     // Save Stripe customer ID to profile

@@ -93,6 +93,7 @@ DAILY_AUDIT_PROMPT.md
 # Codex/agent local tooling state
 .agents/
 .codex/
+skills-lock.json
 
 # MCP config (contains absolute paths)
 .mcp.json

@@ -37,6 +37,8 @@ The current goal is to release and scale the platform to its realistic solo-doct
 
 General consults are not a brand pillar. They are a fallback pathway for cases that do not fit the specialised service lines.
 
+Non-med-cert paid traffic must pass `docs/SERVICE_LAUNCH_CHECKLISTS.md` before launch. The checklist is the operating gate for repeat scripts, ED, and hair loss now that production Parchment is available.
+
 ## 4. Positioning
 
 ### Platform Positioning

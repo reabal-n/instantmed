@@ -11,34 +11,51 @@ const smokeScriptSource = readFileSync(
 )
 
 describe("assertParchmentSmokeConfig", () => {
-  it("requires sandbox Parchment by default", () => {
+  it("blocks sandbox Parchment for production smoke validation", () => {
     expect(() => assertParchmentSmokeConfig({
-      PARCHMENT_API_URL: "https://api.parchmenthealth.io/external",
+      PARCHMENT_API_URL: "https://api.sandbox.parchmenthealth.io/external",
       PARCHMENT_SMOKE_USER_ID: "doctor-user",
     })).toThrow(/sandbox/i)
   })
 
-  it("requires a Parchment smoke user id for live validation", () => {
+  it("requires a production smoke user id for live validation", () => {
     expect(() => assertParchmentSmokeConfig({
-      PARCHMENT_API_URL: "https://api.sandbox.parchmenthealth.io/external",
+      PARCHMENT_API_URL: "https://api.parchmenthealth.io/external",
     })).toThrow(/PARCHMENT_SMOKE_USER_ID/)
   })
 
-  it("accepts sandbox config with an explicit smoke user id", () => {
+  it("requires the production external API base", () => {
+    expect(() => assertParchmentSmokeConfig({
+      PARCHMENT_API_URL: "https://api.parchmenthealth.io",
+      PARCHMENT_SMOKE_USER_ID: "doctor-user",
+    })).toThrow(/external API base/)
+  })
+
+  it("accepts production config with an explicit smoke user id", () => {
     expect(assertParchmentSmokeConfig({
-      PARCHMENT_API_URL: "https://api.sandbox.parchmenthealth.io/external",
+      PARCHMENT_API_URL: "https://api.parchmenthealth.io/external",
       PARCHMENT_SMOKE_USER_ID: "doctor-user",
     })).toEqual({
-      apiUrl: "https://api.sandbox.parchmenthealth.io/external",
+      apiUrl: "https://api.parchmenthealth.io/external",
       userId: "doctor-user",
-      allowProduction: false,
+      environment: "production",
     })
   })
 
-  it("smokes the SSO endpoint used by embedded prescribing", () => {
-    expect(smokeScriptSource).toContain("async function generateSmokeSsoUrl")
-    expect(smokeScriptSource).toContain('`${apiUrl}/v1/sso`')
-    expect(smokeScriptSource).toContain("parchmentSsoResponseSchema.parse")
+  it("falls back to the default production user id", () => {
+    expect(assertParchmentSmokeConfig({
+      PARCHMENT_API_URL: "https://api.parchmenthealth.io/external",
+      PARCHMENT_DEFAULT_USER_ID: "default-doctor-user",
+    })).toEqual({
+      apiUrl: "https://api.parchmenthealth.io/external",
+      userId: "default-doctor-user",
+      environment: "production",
+    })
+  })
+
+  it("smokes production token, organization validation, and SSO without logging secrets", () => {
+    expect(smokeScriptSource).toContain("runParchmentSmokeValidation")
+    expect(smokeScriptSource).toContain("includeSso: true")
 
     const consoleLines = smokeScriptSource
       .split("\n")

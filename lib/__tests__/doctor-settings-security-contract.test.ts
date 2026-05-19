@@ -42,11 +42,11 @@ describe("doctor settings security contract", () => {
     expect(identitySettingsSource).not.toContain("{/* Signature */}")
   })
 
-  it("makes sandbox versus production Parchment linking explicit before recording", () => {
+  it("makes production Parchment linking explicit before prescribing", () => {
     expect(identityPageSource).toContain("getParchmentEnvironment")
     expect(identitySettingsSource).toContain("{parchmentEnvironment.label} environment")
-    expect(identitySettingsSource).toContain("production website is configured for sandbox testing")
-    expect(identitySettingsSource).toContain("Production and Sandbox Parchment user IDs are separate")
+    expect(identitySettingsSource).toContain("Production Parchment user_id for this prescriber")
+    expect(identitySettingsSource).toContain("Do not paste a conformance or test user ID into production")
     expect(identitySettingsSource).toContain("Paste ${parchmentEnvironment.label} Parchment user_id")
     expect(identitySettingsSource).toContain("Validation runs automatically when you link this user and before prescribing.")
     expect(identitySettingsSource).toContain("Revalidate {parchmentEnvironmentDisplayLabel} Integration")

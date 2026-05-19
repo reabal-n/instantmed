@@ -60,7 +60,9 @@ Zustand store with `persist` middleware. Key: `instantmed-request-draft`, expiry
 
 First-touch attribution is captured client-side by `lib/analytics/attribution.ts` into `sessionStorage` and passed through `app/actions/unified-checkout.ts` to both authenticated and guest Stripe checkout paths. The checkout actions normalize attribution via `lib/analytics/attribution-storage.ts` before persisting to `intakes`: `utm_source`, `utm_medium`, `utm_id`, `utm_campaign`, `utm_content`, `utm_term`, sanitized `referrer`, sanitized `landing_page`, `attribution_captured_at`, `gclid`, `gbraid`, `wbraid`, and Google Ads ValueTrack diagnostics (`campaignid`, `adgroupid`, `keyword`, `creative`, `matchtype`, `device`, `network`).
 
-The Stripe webhook reads the persisted intake attribution when payment completes, sends click IDs to the server-side Google Ads Conversion API, and mirrors attribution to PostHog. Admin source reporting in `/admin/analytics` and Business KPIs uses UTM first, then persisted referrer, then direct landing-page fallback.
+The Stripe webhook reads the persisted intake attribution when payment completes, sends click IDs to the server-side Google Ads Conversion API, mirrors attribution to PostHog, and records a PHI-safe `google_ads_conversion_upload` audit row. The hourly `/api/cron/google-ads-conversions` backfill scans paid Google-looking intakes, skips already-successful uploads, and retries failed or missing uploads using the intake id as Google's `orderId` dedupe key. Admin source reporting in `/admin/analytics` and Business KPIs uses UTM first, then persisted referrer, then direct landing-page fallback.
+
+The Google Ads upload action is deliberately separate from the browser website purchase action: Google Ads offline click uploads require an `UPLOAD_CLICKS` conversion action. If the configured conversion action returns `INVALID_CONVERSION_ACTION_TYPE`, the cron treats it as non-retryable until the env var is updated; call `/api/cron/google-ads-conversions?force=1` after updating the action ID.
 
 ### AI Assistance
 
@@ -655,14 +657,14 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 **Quick reference:**
 - Unit tests: Vitest, Node environment, `lib/__tests__/`, 80/70/80/80 coverage thresholds (scoped to `lib/clinical/` and `lib/security/` — `lib/state-machine/` was removed from the include list in 2026-04-08 since the directory no longer exists)
 - E2E tests: Playwright, `e2e/`, auth bypass via `PLAYWRIGHT=1` + `__e2e_auth_user_id` cookie. **Full suite runs in CI** as of commit `ae1c80822` (previously only 4 of 47 specs ran). Requires `STRIPE_WEBHOOK_SECRET` (test-mode) in GitHub repo secrets or webhook tests silently skip.
-- Current local test count: **1,521 passing** across 55 test files as of 2026-04-28. Earlier 987-test references are stale.
+- Current local unit test count: **2,453 tests** across 258 test files as of 2026-05-19. Earlier 1,521-test and 987-test references are stale.
 - Commands: `pnpm test` · `pnpm test:coverage` · `pnpm e2e:chromium`
 
 ---
 
 ## Directory Index
 
-### `app/` — 530 files, 214 route files
+### `app/` — 532 files, 216 route files
 
 Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-contract.test.ts`; `pnpm build` remains the source of truth for expanded static/SSG route output.
 
@@ -672,8 +674,8 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `app/admin/` | Admin dashboard | `patients/`, `intakes/`, `emails/`, `features/`, `settings/`, `ops/`, `analytics/` |
 | `app/doctor/` | Doctor portal under the shared staff shell | `intakes/[id]/` (review detail), `patients/`, `settings/`; queue/scripts entry points resolve through `/dashboard` |
 | `app/patient/` | Patient dashboard | `intakes/` (history + success), `settings/`, `onboarding/`, `documents/` |
-| `app/api/` | API routes (77 route files) | `stripe/webhook/`, `cron/`, `health/`, `certificates/`, `intakes/` |
-| `app/api/cron/` | Scheduled jobs (21) | `stale-queue/`, `email-dispatcher/`, `health-check/`, `release-stale-claims/`, etc. See OPERATIONS.md |
+| `app/api/` | API routes (79 route files) | `stripe/webhook/`, `cron/`, `health/`, `certificates/`, `intakes/` |
+| `app/api/cron/` | Scheduled jobs (23) | `stale-queue/`, `email-dispatcher/`, `health-check`, `google-ads-conversions`, `parchment-smoke`, etc. See OPERATIONS.md |
 | `app/api/stripe/webhook/` | Stripe handlers | 7 handlers: `checkout-session-completed`, `checkout-session-expired`, `checkout-session-async-payment-succeeded/failed`, `charge-refunded`, `charge-dispute-created`, `payment-intent-payment-failed`. Repeat Rx subscription handlers are retired; unsupported Stripe events are acknowledged and claimed by the dispatcher without running business logic. Registered in `handlers/index.ts`. |
 | `app/request/` | **Sole canonical intake flow.** Single page, step-based wizard. |
 | `app/(dev)/` | Dev-only routes | Email preview only; retired `/cert-preview` and `/sentry-test` prefixes remain fail-closed in middleware |

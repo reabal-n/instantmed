@@ -94,9 +94,17 @@ export const ADMIN_RECONCILIATION_HREF = "/admin/ops/reconciliation" as const
 export const ADMIN_PATIENT_MERGE_AUDIT_HREF = "/admin/ops/patient-merge-audit" as const
 export const ADMIN_PRESCRIBING_IDENTITY_HREF = "/admin/ops/prescribing-identity" as const
 
-export function buildStaffLedgerHref(options: { status?: string | null } = {}): string {
+export function buildStaffLedgerHref(options: {
+  q?: string | null
+  service?: string | null
+  status?: string | null
+  workLane?: string | null
+} = {}): string {
   const params = new URLSearchParams()
   if (options.status) params.set("status", options.status)
+  if (options.service) params.set("service", options.service)
+  if (options.workLane) params.set("workLane", options.workLane)
+  if (options.q) params.set("q", options.q)
   const query = params.toString()
   return query ? `${STAFF_LEDGER_HREF}?${query}` : STAFF_LEDGER_HREF
 }

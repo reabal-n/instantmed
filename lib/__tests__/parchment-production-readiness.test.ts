@@ -5,7 +5,8 @@ import { getParchmentProductionReadiness } from "@/lib/parchment/readiness"
 const productionEnv = {
   NEXT_PUBLIC_PARCHMENT_IFRAME_ALLOWED_HOSTS:
     "instantmed.com.au,www.instantmed.com.au",
-  PARCHMENT_API_URL: "https://api.parchmenthealth.io",
+  PARCHMENT_API_URL: "https://api.parchmenthealth.io/external",
+  PARCHMENT_DEFAULT_USER_ID: "user_prod",
   PARCHMENT_ORGANIZATION_ID: "org_prod",
   PARCHMENT_ORGANIZATION_SECRET: "org_secret",
   PARCHMENT_PARTNER_ID: "partner_prod",
@@ -14,15 +15,15 @@ const productionEnv = {
 }
 
 describe("Parchment production readiness", () => {
-  it("keeps sandbox explicitly gated while production keys are pending", () => {
+  it("blocks sandbox configuration outright", () => {
     const readiness = getParchmentProductionReadiness({
       ...productionEnv,
-      PARCHMENT_API_URL: "https://sandbox.parchmenthealth.io",
+      PARCHMENT_API_URL: "https://api.sandbox.parchmenthealth.io/external",
     })
 
-    expect(readiness.status).toBe("sandbox_only")
-    expect(readiness.label).toBe("Waiting for Parchment production keys")
-    expect(readiness.message).toContain("Production prescribing stays gated")
+    expect(readiness.status).toBe("misconfigured")
+    expect(readiness.label).toBe("Sandbox environment blocked")
+    expect(readiness.message).toContain("Production prescribing is blocked")
   })
 
   it("blocks incomplete production configuration", () => {
@@ -33,6 +34,17 @@ describe("Parchment production readiness", () => {
 
     expect(readiness.status).toBe("awaiting_production_keys")
     expect(readiness.missingProductionKeys).toContain("PARCHMENT_PARTNER_SECRET")
+  })
+
+  it("requires the production external API path", () => {
+    const readiness = getParchmentProductionReadiness({
+      ...productionEnv,
+      PARCHMENT_API_URL: "https://api.parchmenthealth.io",
+    })
+
+    expect(readiness.status).toBe("misconfigured")
+    expect(readiness.label).toBe("Production API path incomplete")
+    expect(readiness.externalApiPathConfigured).toBe(false)
   })
 
   it("requires both production iframe hosts", () => {
@@ -52,6 +64,7 @@ describe("Parchment production readiness", () => {
     const readiness = getParchmentProductionReadiness(productionEnv)
 
     expect(readiness.status).toBe("ready")
+    expect(readiness.externalApiPathConfigured).toBe(true)
     expect(readiness.missingProductionKeys).toEqual([])
   })
 })
