@@ -26,15 +26,13 @@ import { requestDateCorrection } from "@/app/actions/request-date-correction"
 import { resendCertificate } from "@/app/actions/resend-certificate"
 import { resendVerificationEmail } from "@/app/actions/resend-verification"
 import { DashboardCard } from "@/components/dashboard"
-import {
-  CertificateCredentials,
-  CrossSellCard,
-  DocumentReadyReveal,
-  EmailVerificationGate,
-  IntakeStatusListener,
-  IntakeStatusTracker,
-  SendToEmployerDialog,
-} from "@/components/patient"
+import { CertificateCredentials } from "@/components/patient/certificate-credentials"
+import { CrossSellCard } from "@/components/patient/cross-sell-card"
+import { DocumentReadyReveal } from "@/components/patient/document-ready-reveal"
+import { EmailVerificationGate } from "@/components/patient/email-verification-gate"
+import { IntakeStatusListener } from "@/components/patient/intake-status-listener"
+import { IntakeStatusTracker } from "@/components/patient/intake-status-tracker"
+import { SendToEmployerDialog } from "@/components/patient/send-to-employer-dialog"
 import { CopySupportSummaryButton } from "@/components/patient/support-summary-button"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"

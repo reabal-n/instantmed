@@ -14,12 +14,9 @@ import { type MouseEvent, useEffect, useMemo } from "react"
 import { DashboardSection } from "@/components/dashboard"
 import { usePanel } from "@/components/panels/panel-provider"
 import { DashboardHero } from "@/components/patient/dashboard-hero"
-import { GoogleReviewCard } from "@/components/patient/google-review-card"
 import { IntakeCard } from "@/components/patient/intake-card"
-import { IntakeDetailDrawer } from "@/components/patient/intake-detail-drawer"
 import { type Intake } from "@/components/patient/intake-types"
 import { type ProfileData, ProfileTodoCard, type TodoDrawerType } from "@/components/patient/profile-todo-card"
-import { ReferralCard } from "@/components/patient/referral-card"
 import { Button } from "@/components/ui/button"
 import { capture } from "@/lib/analytics/capture"
 import {
@@ -35,6 +32,10 @@ const DrawerPanel = dynamic(
   () => import("@/components/panels/drawer-panel").then((mod) => mod.DrawerPanel),
   { loading: () => <ProfileDrawerLoading /> },
 )
+const IntakeDetailDrawer = dynamic(
+  () => import("@/components/patient/intake-detail-drawer").then((mod) => mod.IntakeDetailDrawer),
+  { loading: () => <ProfileDrawerLoading /> },
+)
 const PhoneDrawerContent = dynamic(
   () => import("@/components/patient/profile-drawers").then((mod) => mod.PhoneDrawerContent),
   { loading: () => <ProfileDrawerLoading /> },
@@ -47,6 +48,14 @@ const MedicareDrawerContent = dynamic(
   () => import("@/components/patient/profile-drawers").then((mod) => mod.MedicareDrawerContent),
   { loading: () => <ProfileDrawerLoading /> },
 )
+const ReferralCard = dynamic(
+  () => import("@/components/patient/referral-card").then((mod) => mod.ReferralCard),
+  { loading: () => <ReferralCardLoading /> },
+)
+const GoogleReviewCard = dynamic(
+  () => import("@/components/patient/google-review-card").then((mod) => mod.GoogleReviewCard),
+  { ssr: false },
+)
 
 function ProfileDrawerLoading() {
   return (
@@ -54,6 +63,16 @@ function ProfileDrawerLoading() {
       <div className="h-5 w-32 rounded bg-muted" />
       <div className="h-12 rounded-lg bg-muted" />
       <div className="h-12 rounded-lg bg-muted/70" />
+    </div>
+  )
+}
+
+function ReferralCardLoading() {
+  return (
+    <div className="rounded-xl border border-border/50 bg-primary/[0.04] p-5">
+      <div className="mb-4 h-5 w-32 rounded-md bg-muted motion-safe:animate-pulse" />
+      <div className="mb-5 h-4 w-64 max-w-full rounded-md bg-muted/80 motion-safe:animate-pulse" />
+      <div className="h-10 rounded-lg bg-muted/70 motion-safe:animate-pulse" />
     </div>
   )
 }

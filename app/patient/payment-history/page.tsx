@@ -1,5 +1,5 @@
 import { DashboardPageHeader } from "@/components/dashboard"
-import { PaymentHistoryContent } from "@/components/patient"
+import { PaymentHistoryContent } from "@/components/patient/payment-history-content"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { PATIENT_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 

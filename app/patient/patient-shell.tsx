@@ -1,9 +1,9 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { type ReactNode, useState } from 'react'
 
 import { PanelProvider } from '@/components/panels/panel-provider'
-import { GlobalIntakeNotifications } from '@/components/patient/global-intake-notifications'
 import { LeftRail } from '@/components/shell/left-rail'
 import { MobileNav } from '@/components/ui/mobile-nav'
 import { cn } from '@/lib/utils'
@@ -25,6 +25,11 @@ interface PatientShellProps {
     avatar?: string
   }
 }
+
+const GlobalIntakeNotifications = dynamic(
+  () => import('@/components/patient/global-intake-notifications').then((mod) => mod.GlobalIntakeNotifications),
+  { ssr: false },
+)
 
 function PatientShellContent({ children, patientId }: { children: ReactNode; patientId: string }) {
   return (

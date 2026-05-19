@@ -1,11 +1,11 @@
 "use client"
 
 import { AlertTriangle, RefreshCw } from "lucide-react"
+import dynamic from "next/dynamic"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
-import { IntakeReviewPanel } from "@/components/doctor"
 import { OperatorSplitPane } from "@/components/operator"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
@@ -40,6 +40,50 @@ interface QueueEmptyState {
   actionHref?: string
   actionLabel?: string
 }
+
+interface LazyIntakeReviewPanelProps {
+  intakeId: string
+  onActionComplete?: (options?: { advance?: boolean }) => void
+  onNextCase?: () => void
+  onPrevCase?: () => void
+  caseIndex?: number
+  totalCases?: number
+  profileMode?: "doctor" | "admin"
+  inline?: boolean
+}
+
+function IntakeReviewPanelLoading() {
+  const pulse = "rounded-md bg-muted motion-safe:animate-pulse"
+
+  return (
+    <div
+      className="h-full min-h-0 overflow-y-auto p-5"
+      aria-busy="true"
+      aria-label="Loading case review"
+      data-testid="intake-review-loading"
+    >
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="space-y-2">
+            <div className={cn(pulse, "h-4 w-28")} />
+            <div className={cn(pulse, "h-6 w-52")} />
+          </div>
+          <div className={cn(pulse, "h-9 w-24 rounded-lg")} />
+        </div>
+        <div className={cn(pulse, "h-28 w-full rounded-lg")} />
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className={cn(pulse, "h-40 rounded-lg")} />
+          <div className={cn(pulse, "h-40 rounded-lg")} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const IntakeReviewPanel = dynamic<LazyIntakeReviewPanelProps>(
+  () => import("@/components/doctor/intake-review-panel").then((mod) => mod.IntakeReviewPanel),
+  { loading: () => <IntakeReviewPanelLoading /> },
+)
 
 function buildQueueEmptyState({
   doctorAvailable,

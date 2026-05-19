@@ -184,9 +184,7 @@ export function QueueRowPeek({ intakeId, suppressed = false, children }: QueueRo
         side="right"
         align="start"
         sideOffset={12}
-        className="w-80 p-3"
-        onMouseEnter={handleEnter}
-        onMouseLeave={handleLeave}
+        className="pointer-events-none w-80 p-3"
       >
         {loading && !data ? (
           <div className="space-y-2">

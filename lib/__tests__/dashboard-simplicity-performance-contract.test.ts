@@ -23,6 +23,25 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(source).not.toContain("stagger.")
     expect(source).toContain("next/dynamic")
     expect(source).toContain("profile-drawers")
+    expect(source).toContain("patient/intake-detail-drawer")
+    expect(source).toContain("patient/referral-card")
+  })
+
+  it("keeps patient routes off the broad patient component barrel", () => {
+    expect(existsSync(join(root, "components/patient/index.ts"))).toBe(false)
+
+    const patientRouteSources = [
+      "app/patient/page.tsx",
+      "app/patient/intakes/intakes-client.tsx",
+      "app/patient/intakes/[id]/client.tsx",
+      "app/patient/prescriptions/client.tsx",
+      "app/patient/documents/documents-client.tsx",
+      "app/patient/messages/messages-client.tsx",
+    ]
+
+    for (const file of patientRouteSources) {
+      expect(read(file)).not.toContain('from "@/components/patient"')
+    }
   })
 
   it("keeps profile housekeeping static and defers drawer forms until opened", () => {
@@ -63,5 +82,11 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(source).toContain("QUEUE_DOM_WINDOW_LIMIT = 100")
     expect(source).toContain("filteredIntakes.slice(0, QUEUE_DOM_WINDOW_LIMIT)")
     expect(source).toContain("renderedIntakes.map")
+  })
+
+  it("keeps queue hover peeks from blocking primary row actions", () => {
+    const source = read("components/doctor/queue/queue-row-peek.tsx")
+
+    expect(source).toContain("pointer-events-none")
   })
 })

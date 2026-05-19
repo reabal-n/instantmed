@@ -1,7 +1,8 @@
 import type { Metadata } from "next"
 import { Suspense } from "react"
 
-import { PanelDashboard, type ProfileData } from "@/components/patient"
+import { PanelDashboard } from "@/components/patient/panel-dashboard"
+import type { ProfileData } from "@/components/patient/profile-todo-card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { getPatientDashboardData } from "@/lib/data/intakes"
