@@ -39,7 +39,7 @@ export const metadata: Metadata = {
 /**
  * /pricing layout - BreadcrumbSchema only.
  *
- * Previously ALSO emitted FAQSchema - but pricing-client.tsx emits its own
+ * Previously ALSO emitted FAQSchema - but pricing-content.tsx emits its own
  * FAQPage JSON-LD inline (with the full pricingFaqs data, which is the
  * canonical source), creating a duplicate FAQPage on the same URL. GSC
  * flagged this as critical 2026-04-06. Removed from layout in the same

@@ -1,34 +1,33 @@
-"use client"
-
-import { AnimatePresence, motion } from "framer-motion"
 import { ArrowRight, Check, Clock, Gift, Shield, Star, Zap } from "lucide-react"
 import Link from "next/link"
-import { useEffect, useRef, useState } from "react"
 
 import { StatsHero } from "@/components/heroes"
 import { ServiceIconTile } from "@/components/icons/service-icons"
 import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
 import { GoogleReviewsBadge } from "@/components/marketing/google-reviews-badge"
+import { MarketingFooter } from "@/components/marketing/marketing-footer"
+import { MarketingPageShell } from "@/components/marketing/marketing-page-shell"
 import { RegulatoryPartners } from "@/components/marketing/regulatory-partners"
 import { CommercialIntentLinksSection } from "@/components/marketing/sections/commercial-intent-links-section"
 import { CompetitorLinksSection } from "@/components/marketing/sections/competitor-links-section"
 import { PricingGuideSection } from "@/components/marketing/sections/pricing-guide-section"
 import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
 import { ComparisonBar } from "@/components/marketing/shared/data-viz"
-import { InformationalPageShell } from "@/components/marketing/shared/informational-page-shell"
 import { ComparisonTable } from "@/components/sections/comparison-table"
 import { CTABanner } from "@/components/sections/cta-banner"
 import { FAQSection } from "@/components/sections/faq-section"
 import { FAQSchema } from "@/components/seo"
+import { Navbar } from "@/components/shared/navbar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
-import { useReducedMotion } from "@/components/ui/motion"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { priorityCommercialLinks } from "@/lib/seo/commercial-links"
 import { getPatientCount, SOCIAL_PROOF } from "@/lib/social-proof"
 import { cn } from "@/lib/utils"
+
+import { PricingStickyCta } from "./pricing-sticky-cta"
 
 /* ────────────────────────────── Data ────────────────────────────── */
 
@@ -168,34 +167,16 @@ const pricingFaqs = [
       },
 ]
 
-const PRICING_CONFIG = {
-  analyticsId: "pricing" as const,
-  sticky: false as const,
-}
-
 /* ────────────────────────────── Component ────────────────────────────── */
 
-export function PricingClient() {
-  const pricingCardsRef = useRef<HTMLElement>(null)
-  const [showStickyCTA, setShowStickyCTA] = useState(false)
-  const prefersReducedMotion = useReducedMotion()
-
-  useEffect(() => {
-    const el = pricingCardsRef.current
-    if (!el) return
-    const observer = new IntersectionObserver(
-      ([entry]) => setShowStickyCTA(!entry.isIntersecting),
-      { threshold: 0 }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
-
+export function PricingContent() {
   return (
-    <InformationalPageShell config={PRICING_CONFIG}>
-      {() => (
-        <>
-        <FAQSchema faqs={pricingFaqs} />
+    <MarketingPageShell>
+      <div className="min-h-screen overflow-x-hidden">
+        <Navbar variant="marketing" />
+
+        <main className="relative">
+          <FAQSchema faqs={pricingFaqs} />
 
         {/* Hero */}
         <StatsHero
@@ -232,7 +213,7 @@ export function PricingClient() {
         />
 
         {/* Pricing Cards */}
-        <section ref={pricingCardsRef} className="px-4 py-16 sm:px-6">
+        <section id="pricing-cards" className="px-4 py-16 sm:px-6">
           <div className="mx-auto max-w-5xl">
             <div className="grid md:grid-cols-3 gap-6">
               {services.map((service) => (
@@ -392,15 +373,15 @@ export function PricingClient() {
 
         {/* Comparison Table */}
         <div className="bg-muted/30 dark:bg-white/[0.02]">
-        <ComparisonTable
-          pill="Why InstantMed?"
-          title="How we compare to a GP visit"
-          highlightWords={["compare"]}
-          subtitle="Same quality care, without the waiting room."
-          usLabel="InstantMed"
-          themLabel="GP clinic"
-          items={comparisonItems}
-        />
+          <ComparisonTable
+            pill="Why InstantMed?"
+            title="How we compare to a GP visit"
+            highlightWords={["compare"]}
+            subtitle="Same quality care, without the waiting room."
+            usLabel="InstantMed"
+            themLabel="GP clinic"
+            items={comparisonItems}
+          />
         </div>
 
         {/* Pricing Guide */}
@@ -408,12 +389,12 @@ export function PricingClient() {
 
         {/* FAQ */}
         <div className="bg-muted/30 dark:bg-white/[0.02]">
-        <FAQSection
-          title="Common questions"
-          subtitle="Everything you need to know about our pricing."
-          highlightWords={["questions"]}
-          items={pricingFaqs}
-        />
+          <FAQSection
+            title="Common questions"
+            subtitle="Everything you need to know about our pricing."
+            highlightWords={["questions"]}
+            items={pricingFaqs}
+          />
         </div>
 
         {/* Competitor comparisons */}
@@ -429,35 +410,11 @@ export function PricingClient() {
           ctaText="Start a consult"
           ctaHref="/medical-certificate"
         />
+        </main>
 
-        {/* Sticky mobile CTA - appears when pricing cards scroll out of view */}
-        <AnimatePresence>
-          {showStickyCTA && (
-            <motion.div
-              className="fixed bottom-0 left-0 right-0 z-40 lg:hidden"
-              initial={prefersReducedMotion ? {} : { y: 100 }}
-              animate={prefersReducedMotion ? { opacity: 1 } : { y: 0 }}
-              exit={prefersReducedMotion ? { opacity: 0 } : { y: 100 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-            >
-              <div className="bg-white/95 dark:bg-card/95 backdrop-blur-xl border-t border-border/50 shadow-lg px-4 pt-2.5 pb-3 safe-area-pb">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-medium text-foreground">
-                    {PRICING_DISPLAY.FROM_MED_CERT}
-                  </p>
-                  <Button asChild size="sm" className="shrink-0 shadow-md shadow-primary/20">
-                    <Link href="/request">
-                      Get started
-                      <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        </>
-      )}
-    </InformationalPageShell>
+        <MarketingFooter />
+        <PricingStickyCta targetId="pricing-cards" />
+      </div>
+    </MarketingPageShell>
   )
 }

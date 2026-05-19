@@ -121,7 +121,7 @@ Admin and doctor portal compatibility stylesheet imports were removed in v2.0.2 
 - Hair-loss service colour: `violet` → `amber`. Resolves audit findings C1 and C2.
 - Home page service grid (`lib/marketing/homepage.ts` → `serviceCategories`) updated to use `amber` for hair loss.
 - `/request` service hub (`components/request/service-hub-screen.tsx`) now reads from `lib/services/service-catalog` and renders `ServiceIconTile` with `variant="tile"`. Retires inline service definitions and `StickerIcon` usage on the hub.
-- `/pricing` cards (`app/pricing/pricing-client.tsx`) now render `ServiceIconTile` instead of hand-rolled hex-tinted pill. Fixes prohibited indigo (`#4f46e5`) on the Prescription card.
+- `/pricing` cards (`app/pricing/pricing-content.tsx`) now render `ServiceIconTile` instead of hand-rolled hex-tinted pill. Fixes prohibited indigo (`#4f46e5`) on the Prescription card.
 
 ### Removed
 - None yet (violet token retained during deprecation window for downstream consumers still migrating — slated for removal in Phase 2 sweep).

@@ -160,9 +160,9 @@ const COMING_SOON = getComingSoonServices()
 ### Task 1.5: C3 — Rewire /pricing cards to use ServiceIconTile
 
 **Files:**
-- Modify: `app/pricing/pricing-client.tsx` (locate service cards, replace soft-pill-with-Lucide with ServiceIconTile)
+- Modify: `app/pricing/pricing-content.tsx` (locate service cards, replace soft-pill-with-Lucide with ServiceIconTile)
 
-**Step 1:** Read `pricing-client.tsx` to find the Medical Cert / Prescription / Consultation card rendering.
+**Step 1:** Read `pricing-content.tsx` to find the Medical Cert / Prescription / Consultation card rendering.
 
 **Step 2:** Replace the icon pill with `<ServiceIconTile iconKey={service.iconKey} color={service.colorToken} size="lg" />` sourced from the catalog.
 

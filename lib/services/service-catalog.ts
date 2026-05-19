@@ -4,7 +4,7 @@
  * One canonical definition per service. Consumed by:
  *   - Home service grid (components/marketing/service-cards.tsx via lib/marketing/homepage.ts)
  *   - Intake service hub (components/request/service-hub-screen.tsx)
- *   - Pricing page (app/pricing/pricing-client.tsx)
+ *   - Pricing page (app/pricing/pricing-content.tsx)
  *   - Services dropdown (components/shared/navbar/services-dropdown.tsx)
  *   - Mobile menu (components/shared/navbar/mobile-menu-content.tsx)
  *

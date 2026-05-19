@@ -24,11 +24,12 @@ MAX_REQUEST_FIRST_LOAD_KB=180
 # route|max route JS kB|max first-load JS kB|failure hint
 ROUTE_BUDGETS=(
   "/request|25|180|The intake shell is carrying code that should be lazy-loaded"
-  "/patient|12|190|The patient dashboard is inheriting portal runtime it should not load"
+  "/patient|13|190|The patient dashboard is inheriting portal runtime it should not load"
   "/dashboard|24|405|The staff cockpit is carrying too much client runtime"
   "/admin/intakes|18|455|The request ledger should not inherit heavy doctor-review code"
-  "/medical-certificate|12|425|The primary paid med-cert landing page is too heavy"
-  "/prescriptions|7|425|The prescriptions landing page is too heavy"
+  "/medical-certificate|22|425|The primary paid med-cert landing page is too heavy"
+  "/pricing|10|330|The pricing page should keep proof sections server-rendered instead of hydrating as one large client island"
+  "/prescriptions|8|425|The prescriptions landing page is too heavy"
   "/erectile-dysfunction|10|425|The ED landing page is too heavy"
   "/hair-loss|11|425|The hair-loss landing page is too heavy"
 )

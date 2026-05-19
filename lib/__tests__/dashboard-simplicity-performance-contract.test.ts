@@ -122,4 +122,15 @@ describe("dashboard simplicity and runtime performance contracts", () => {
 
     expect(offenders).toEqual([])
   })
+
+  it("keeps pricing content server-rendered and isolates the sticky CTA client island", () => {
+    const pricingContentSource = read("app/pricing/pricing-content.tsx")
+    const stickyCtaSource = read("app/pricing/pricing-sticky-cta.tsx")
+
+    expect(pricingContentSource.startsWith('"use client"')).toBe(false)
+    expect(pricingContentSource).not.toContain("framer-motion")
+    expect(pricingContentSource).not.toContain("useEffect")
+    expect(stickyCtaSource.startsWith('"use client"')).toBe(true)
+    expect(stickyCtaSource).toContain("IntersectionObserver")
+  })
 })

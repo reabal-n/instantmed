@@ -155,7 +155,7 @@ describe("commercial SEO contract", () => {
     const authorityFiles = [
       "components/marketing/med-cert-landing.tsx",
       "components/marketing/prescriptions-landing.tsx",
-      "app/pricing/pricing-client.tsx",
+      "app/pricing/pricing-content.tsx",
       "components/marketing/how-it-works-content.tsx",
       "app/guides/[slug]/page.tsx",
     ]

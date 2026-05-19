@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { BreadcrumbSchema, MedicalServiceSchema } from "@/components/seo"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 
-import { PricingClient } from "./pricing-client"
+import { PricingContent } from "./pricing-content"
 
 export const metadata: Metadata = {
   title: "Pricing | Transparent Telehealth Costs",
@@ -52,7 +52,7 @@ export default function PricingPage() {
         description="Request prescriptions for common medications from registered Australian doctors"
         price={PRICING.REPEAT_SCRIPT.toFixed(2)}
       />
-      <PricingClient />
+      <PricingContent />
     </>
   )
 }
