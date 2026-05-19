@@ -23,6 +23,7 @@ interface HowItWorksInlineProps {
   heading?: string
   subheading?: string
   ctaText?: string
+  ctaDataAttributes?: Record<`data-${string}`, string>
 }
 
 export function HowItWorksInline({
@@ -33,6 +34,7 @@ export function HowItWorksInline({
   heading = "Three steps. Completely private.",
   subheading = "No booked appointment or waiting room. We only interrupt you if something important is missing.",
   ctaText,
+  ctaDataAttributes,
 }: HowItWorksInlineProps) {
   return (
     <section id="how-it-works" aria-label="How it works" className="py-16 lg:py-20">
@@ -76,7 +78,7 @@ export function HowItWorksInline({
             onClick={onCTAClick}
             disabled={isDisabled}
           >
-            <Link href={isDisabled ? "/contact" : ctaHref}>
+            <Link href={isDisabled ? "/contact" : ctaHref} {...ctaDataAttributes}>
               {isDisabled ? "Contact us" : (ctaText ?? "Start your assessment")}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>

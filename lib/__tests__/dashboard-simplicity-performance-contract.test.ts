@@ -133,4 +133,18 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(stickyCtaSource.startsWith('"use client"')).toBe(true)
     expect(stickyCtaSource).toContain("IntersectionObserver")
   })
+
+  it("keeps the medical certificate landing page server-rendered with narrow client controls", () => {
+    const landingSource = read("components/marketing/med-cert-landing.tsx")
+    const controlsSource = read("components/marketing/med-cert-client-controls.tsx")
+
+    expect(landingSource.startsWith('"use client"')).toBe(false)
+    expect(landingSource).not.toContain("LandingPageShell")
+    expect(landingSource).not.toContain("usePatientCount")
+    expect(landingSource).not.toContain("useLandingAnalytics")
+    expect(controlsSource.startsWith('"use client"')).toBe(true)
+    expect(controlsSource).toContain("useLandingAnalytics")
+    expect(controlsSource).toContain("useServiceAvailability")
+    expect(controlsSource).toContain("StickyCTA")
+  })
 })

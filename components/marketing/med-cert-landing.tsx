@@ -1,6 +1,5 @@
-"use client"
-
 import {
+  ArrowRight,
   Building2,
   CheckCircle2,
   ClipboardCheck,
@@ -10,68 +9,33 @@ import {
   Search,
   Star,
 } from "lucide-react"
-import dynamic from "next/dynamic"
 import Link from "next/link"
-import { useCallback } from "react"
 
-import { StripePaymentLogos } from "@/components/checkout/payment-logos"
-import { Hero } from "@/components/marketing/hero"
+import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
 import { IntakeResumeChip } from "@/components/marketing/intake-resume-chip"
+import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
+import { MarketingFooter } from "@/components/marketing/marketing-footer"
+import { MarketingPageShell } from "@/components/marketing/marketing-page-shell"
+import { MedCertClientControls } from "@/components/marketing/med-cert-client-controls"
 import { MedCertHeroMockup } from "@/components/marketing/mockups/med-cert-hero-mockup"
-// Above-the-fold sections stay statically imported.
-// Below-the-fold sections are code-split via `next/dynamic` so the
-// landing's initial JS payload is smaller. SSR is left on
-// (default for `next/dynamic`) so SEO crawlers still see the markup.
-// Saves several hundred KB of parse cost on first paint — directly
-// addresses the audit finding of 10.9s cold load on Slow 3G-ish networks.
+import { RegulatoryPartners } from "@/components/marketing/regulatory-partners"
 import { CertificateTypeSelector } from "@/components/marketing/sections/certificate-type-selector"
+import { CommercialIntentLinksSection } from "@/components/marketing/sections/commercial-intent-links-section"
+import { HowItWorksInline } from "@/components/marketing/sections/how-it-works-inline"
+import { LimitationsSection } from "@/components/marketing/sections/limitations-section"
 import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
 import { TimeComparisonViz } from "@/components/marketing/sections/time-comparison-viz"
-import {
-  type LandingPageConfig,
-  LandingPageShell,
-} from "@/components/marketing/shared/landing-page-shell"
+import { FAQSection } from "@/components/sections/faq-section"
 import { EmployerLogoMarquee } from "@/components/shared/employer-logo-marquee"
-
-const RegulatoryPartners = dynamic(
-  () =>
-    import("@/components/marketing/regulatory-partners").then(
-      (mod) => mod.RegulatoryPartners,
-    ),
-)
-const CommercialIntentLinksSection = dynamic(
-  () =>
-    import(
-      "@/components/marketing/sections/commercial-intent-links-section"
-    ).then((mod) => mod.CommercialIntentLinksSection),
-)
-const HowItWorksInline = dynamic(
-  () =>
-    import("@/components/marketing/sections/how-it-works-inline").then(
-      (mod) => mod.HowItWorksInline,
-    ),
-)
-const LimitationsSection = dynamic(
-  () =>
-    import("@/components/marketing/sections/limitations-section").then(
-      (mod) => mod.LimitationsSection,
-    ),
-)
-const CTABanner = dynamic(
-  () => import("@/components/sections/cta-banner").then((mod) => mod.CTABanner),
-)
-const FAQSection = dynamic(
-  () => import("@/components/sections/faq-section").then((mod) => mod.FAQSection),
-)
+import { Navbar } from "@/components/shared/navbar"
+import { ReturningPatientBanner } from "@/components/shared/returning-patient-banner"
 import { Heading } from "@/components/ui/heading"
 import { PRICING } from "@/lib/constants"
 import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
-import { usePatientCount } from "@/lib/hooks/use-patient-count"
-import { useSectionVisibilityFunnel } from "@/lib/hooks/use-section-visibility-funnel"
 import { buildMedCertRequestHref } from "@/lib/marketing/med-cert-selector"
 import { GUARANTEE, MED_CERT_WEDGE } from "@/lib/marketing/voice"
 import { commercialCertificateLinks, commercialLocationLinks } from "@/lib/seo/commercial-links"
-import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
+import { getPatientCount, SOCIAL_PROOF } from "@/lib/social-proof"
 
 // =============================================================================
 // DATA
@@ -102,6 +66,7 @@ const HOW_IT_WORKS_STEPS = [
 ]
 
 const MED_CERT_START_HREF = buildMedCertRequestHref({ duration: "1" })
+const MED_CERT_HERO_CTA_ID = "med-cert-hero-cta"
 
 const MED_CERT_PILL = (
   <div className="inline-flex items-center gap-2.5 rounded-full px-3 py-1.5 text-xs font-medium bg-white dark:bg-card border border-border/60 shadow-sm shadow-primary/[0.04]">
@@ -146,18 +111,6 @@ const FEE_DETAILS = [
   },
 ] as const
 
-const LANDING_CONFIG: LandingPageConfig = {
-  serviceId: "med-cert",
-  analyticsId: "med-cert",
-  sticky: {
-    ctaText: `Get your certificate · $${PRICING.MED_CERT.toFixed(2)}`,
-    ctaHref: MED_CERT_START_HREF,
-    mobileSummary: "Doctor-issued certificate · Employer policies vary",
-    responseTime: `Avg response: ${SOCIAL_PROOF_DISPLAY.responseTime}`,
-    mobileFooter: <StripePaymentLogos className="mt-1.5 opacity-60" />,
-  },
-}
-
 // =============================================================================
 // UNIQUE SECTIONS
 // =============================================================================
@@ -169,7 +122,7 @@ const LANDING_CONFIG: LandingPageConfig = {
  * Wraps the shared <ServiceClaimSection> primitive with med-cert-specific
  * footer links to /employers and /verify.
  */
-function WorkplaceProofPanel({ onEmployerClick, onVerifyClick }: { onEmployerClick?: () => void; onVerifyClick?: () => void }) {
+function WorkplaceProofPanel() {
   return (
     <div data-track-section="employer">
       <ServiceClaimSection
@@ -187,7 +140,7 @@ function WorkplaceProofPanel({ onEmployerClick, onVerifyClick }: { onEmployerCli
         <div className="pt-5 flex items-center justify-center gap-4 text-xs text-muted-foreground">
           <Link
             href="/employers"
-            onClick={onEmployerClick}
+            data-med-cert-cta="employer_link"
             className="inline-flex items-center gap-1.5 font-medium text-primary hover:text-primary/80 transition-colors"
           >
             <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
@@ -196,7 +149,7 @@ function WorkplaceProofPanel({ onEmployerClick, onVerifyClick }: { onEmployerCli
           <span className="h-3 w-px bg-border/60" aria-hidden="true" />
           <Link
             href="/verify"
-            onClick={onVerifyClick}
+            data-med-cert-cta="verify_link"
             className="inline-flex items-center gap-1.5 font-medium text-primary hover:text-primary/80 transition-colors"
           >
             <Search className="h-3.5 w-3.5" aria-hidden="true" />
@@ -263,135 +216,177 @@ function CertComparisonViz() {
   )
 }
 
+function MedCertHero() {
+  return (
+    <section className="relative overflow-x-clip pt-6 pb-12 sm:pt-14 sm:pb-20 lg:pt-20 lg:pb-24">
+      <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
+        <div className="flex flex-col items-center lg:flex-row lg:items-start lg:gap-12 xl:gap-14">
+          <div className="min-w-0 flex-1 text-center lg:text-left">
+            <div className="hero-availability-enter mb-5 flex justify-center sm:mb-7 lg:justify-start">
+              {MED_CERT_PILL}
+            </div>
+
+            <div
+              className="hero-availability-enter mb-4 flex justify-center lg:justify-start"
+              aria-hidden="true"
+            >
+              <span className="h-1.5 w-10 rounded-full bg-brand-coral" />
+            </div>
+
+            <Heading level="display" className="mb-5 sm:mb-7">
+              Medical certificate. From your bed.
+            </Heading>
+
+            <div className="hero-subheadline-enter">
+              <p className="mx-auto mb-6 max-w-xl text-balance text-sm leading-relaxed text-muted-foreground sm:mb-7 sm:text-base lg:mx-0 lg:text-lg">
+                {MED_CERT_WEDGE} AHPRA-registered Australian doctors review every request. PDF in your inbox, ready to forward. {GUARANTEE}
+              </p>
+            </div>
+
+            <div className="hero-cta-enter mb-6 sm:mb-7">
+              <p className="mx-auto inline-flex max-w-xl items-start gap-2 text-left text-[13px] leading-snug text-foreground sm:items-center sm:text-center lg:mx-0 lg:text-left">
+                <CheckCircle2 className="mt-px h-4 w-4 shrink-0 text-success sm:mt-0" aria-hidden="true" />
+                <span>
+                  Issued by AHPRA-registered Australian doctors.
+                  <span className="text-muted-foreground"> Employer and institution policies may vary.</span>
+                </span>
+              </p>
+            </div>
+
+            <div
+              id={MED_CERT_HERO_CTA_ID}
+              className="hero-cta-enter mb-6 flex flex-col justify-center gap-3 sm:mb-7 sm:flex-row lg:justify-start"
+            >
+              <Link
+                href={MED_CERT_START_HREF}
+                data-med-cert-cta="hero"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-primary px-8 text-base font-semibold text-primary-foreground shadow-md shadow-primary/20 transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dawn-300 focus-visible:ring-offset-2 dark:focus-visible:ring-dawn-500/40"
+              >
+                Get your certificate · ${PRICING.MED_CERT.toFixed(2)}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </div>
+
+            <div className="hero-trust-enter flex flex-wrap items-center justify-center gap-x-3 gap-y-2 pt-1 lg:justify-start">
+              <GoogleAdsCert size="sm" />
+              <LegitScriptSeal size="sm" />
+            </div>
+          </div>
+
+          <div className="relative mt-12 shrink-0 self-center lg:mt-0">
+            <MedCertHeroMockup />
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function MedCertFinalCta() {
+  const patientCount = getPatientCount()
+
+  return (
+    <section className="px-4 py-8 sm:py-10 lg:py-16">
+      <div className="relative mx-auto max-w-4xl overflow-hidden rounded-3xl border border-border/50 bg-white p-6 text-center shadow-lg shadow-primary/[0.06] dark:bg-card sm:p-8 lg:p-16">
+        <Heading level="h1" as="h2">
+          Back to bed in two minutes.
+        </Heading>
+        <p className="mx-auto mt-3 max-w-xl leading-relaxed text-muted-foreground">
+          Fill the form, a real doctor reviews it, and your certificate lands in your inbox. Trusted by {patientCount.toLocaleString()}+ Australians.
+        </p>
+        <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <Link
+            href={MED_CERT_START_HREF}
+            data-med-cert-cta="final_cta"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-primary px-8 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dawn-300 focus-visible:ring-offset-2 dark:focus-visible:ring-dawn-500/40"
+          >
+            Get your certificate · ${PRICING.MED_CERT.toFixed(2)}
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
+        </div>
+        <p className="mt-4 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" aria-hidden="true" />
+          {GUARANTEE}
+        </p>
+      </div>
+    </section>
+  )
+}
+
 // =============================================================================
 // MAIN PAGE COMPONENT
 // =============================================================================
 
 export function MedCertLanding() {
-  const patientCount = usePatientCount()
-
   return (
-    <LandingPageShell config={LANDING_CONFIG}>
-      {({ isDisabled, heroCTARef, analytics, handleHeroCTA, handleHowItWorksCTA, handleFAQOpen }) => {
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        useSectionVisibilityFunnel(analytics.trackSectionView)
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        const handleEmployerClick = useCallback(() => analytics.trackCTAClick("employer_link"), [analytics])
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        const handleVerifyClick = useCallback(() => analytics.trackCTAClick("verify_link"), [analytics])
+    <MarketingPageShell>
+      <div className="min-h-screen overflow-x-hidden">
+        <MedCertClientControls stickyTargetId={MED_CERT_HERO_CTA_ID} />
+        <ReturningPatientBanner className="mx-4 mt-2" />
+        <Navbar variant="marketing" />
 
-        return (
-          <>
-            {/* Resume unfinished intake - shown above hero so returning visitors
-                see it immediately without scrolling past the value prop. */}
-            <IntakeResumeChip className="mx-4 mt-3 max-w-5xl sm:mx-auto" />
+        <main className="relative">
+          <IntakeResumeChip className="mx-4 mt-3 max-w-5xl sm:mx-auto" />
+          <MedCertHero />
+          <WorkplaceProofPanel />
 
-            {/* 1. Hero — canonical <Hero> with med-cert-specific title, CTA,
-                employer-acceptance reassurance line, and the document-realism
-                cert mockup. Bespoke MedCertHeroSection retired in Pass 2. */}
-            <Hero
-              title="Medical certificate. From your bed."
-              pill={MED_CERT_PILL}
-              primaryCta={{
-                text: `Get your certificate · $${PRICING.MED_CERT.toFixed(2)}`,
-                href: MED_CERT_START_HREF,
-                onClick: handleHeroCTA,
-                ref: heroCTARef,
-              }}
-              secondaryCta={null}
-              beforeCta={
-                <p className="inline-flex items-start sm:items-center gap-2 text-[13px] text-foreground max-w-xl mx-auto lg:mx-0 leading-snug text-left sm:text-center lg:text-left">
-                  <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-px sm:mt-0" aria-hidden="true" />
-                  <span>
-                    Issued by AHPRA-registered Australian doctors.
-                    <span className="text-muted-foreground"> Employer and institution policies may vary.</span>
-                  </span>
-                </p>
-              }
-              mockup={<MedCertHeroMockup />}
-            >
-              <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-7 leading-relaxed text-balance">
-                {MED_CERT_WEDGE} AHPRA-registered Australian doctors review every request. PDF in your inbox, ready to forward. {GUARANTEE}
-              </p>
-            </Hero>
+          <div data-track-section="selector">
+            <CertificateTypeSelector />
+          </div>
 
-            {/* 2. Workplace evidence + employer-logo context in one section */}
-            <WorkplaceProofPanel onEmployerClick={handleEmployerClick} onVerifyClick={handleVerifyClick} />
+          <CertComparisonViz />
 
-            {/* 3. Compact certificate setup */}
-            <div data-track-section="selector">
-              <CertificateTypeSelector />
-            </div>
+          <CommercialIntentLinksSection
+            title="Common certificate searches"
+            body="Useful routes for patients comparing same-day, work, carer, student, and local certificate options before starting a request."
+            links={commercialCertificateLinks.slice(0, 6)}
+            compactLinks={[
+              ...commercialCertificateLinks.slice(6),
+              ...commercialLocationLinks,
+            ]}
+            className="bg-muted/30 dark:bg-white/[0.02]"
+          />
 
-            {/* 4. Time comparison - anchors the value prop before explaining the process */}
-            <CertComparisonViz />
-
-            <CommercialIntentLinksSection
-              title="Common certificate searches"
-              body="Useful routes for patients comparing same-day, work, carer, student, and local certificate options before starting a request."
-              links={commercialCertificateLinks.slice(0, 6)}
-              compactLinks={[
-                ...commercialCertificateLinks.slice(6),
-                ...commercialLocationLinks,
-              ]}
-              className="bg-muted/30 dark:bg-white/[0.02]"
+          <div data-track-section="how_it_works">
+            <HowItWorksInline
+              steps={HOW_IT_WORKS_STEPS}
+              ctaHref={MED_CERT_START_HREF}
+              ctaText={`Get your certificate · $${PRICING.MED_CERT.toFixed(2)}`}
+              ctaDataAttributes={{ "data-med-cert-cta": "how_it_works" }}
+              heading="How it works"
+              subheading="No appointment, no waiting room. Fill a form, a doctor reviews it, and your certificate lands in your inbox."
             />
+          </div>
 
-            {/* 5. How It Works */}
-            <div data-track-section="how_it_works">
-              <HowItWorksInline
-                steps={HOW_IT_WORKS_STEPS}
-                ctaHref={MED_CERT_START_HREF}
-                ctaText={`Get your certificate · $${PRICING.MED_CERT.toFixed(2)}`}
-                onCTAClick={handleHowItWorksCTA}
-                heading="How it works"
-                subheading="No appointment, no waiting room. Fill a form, a doctor reviews it, and your certificate lands in your inbox."
-              />
-            </div>
+          <FeeSuitabilityPanel />
+          <LimitationsSection />
 
-            {/* 6. Fee and suitability - replaces the generic comparison table */}
-            <FeeSuitabilityPanel />
+          <div data-track-section="faq">
+            <FAQSection
+              pill="FAQ"
+              title="Before you start"
+              subtitle="Everything you need to know about getting your certificate."
+              items={MED_CERT_FAQ}
+              initialCount={4}
+              viewAllHref="/faq"
+            />
+          </div>
 
-            {/* 7. What we cover / limitations */}
-            <LimitationsSection />
+          <div className="mx-auto max-w-3xl px-4 py-4 sm:px-6">
+            <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
+              The Fair Work Act 2009 (Cth), s 107 allows employers to request evidence for personal leave. Fair Work guidance says the evidence should satisfy a reasonable person. All InstantMed certificates are issued by AHPRA-registered practitioners.
+            </p>
+          </div>
 
-            {/* 8. FAQ */}
-            <div data-track-section="faq">
-              <FAQSection
-                pill="FAQ"
-                title="Before you start"
-                subtitle="Everything you need to know about getting your certificate."
-                items={MED_CERT_FAQ}
-                initialCount={4}
-                onFAQOpen={handleFAQOpen}
-                viewAllHref="/faq"
-              />
-            </div>
+          <div data-track-section="final_cta">
+            <MedCertFinalCta />
+          </div>
 
-            {/* Clinical references */}
-            <div className="mx-auto max-w-3xl px-4 sm:px-6 py-4">
-              <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
-                The Fair Work Act 2009 (Cth), s 107 allows employers to request evidence for personal leave. Fair Work guidance says the evidence should satisfy a reasonable person. All InstantMed certificates are issued by AHPRA-registered practitioners.
-              </p>
-            </div>
+          <RegulatoryPartners />
+        </main>
 
-            {/* 9. Final CTA — refund pre-pill removed in Pass 2; the
-                CTABanner auto-renders the canonical GUARANTEE line below the
-                CTA, so the dueling pre-CTA pill was redundant trust signal. */}
-            <div data-track-section="final_cta">
-              <CTABanner
-                title="Back to bed in two minutes."
-                subtitle={`Fill the form, a real doctor reviews it, and your certificate lands in your inbox. Trusted by ${patientCount.toLocaleString()}+ Australians.`}
-                ctaText={isDisabled ? "Contact us" : `Get your certificate · $${PRICING.MED_CERT.toFixed(2)}`}
-                ctaHref={isDisabled ? "/contact" : MED_CERT_START_HREF}
-              />
-            </div>
-
-            {/* 10. Compliant with - regulatory logos footer closer */}
-            <RegulatoryPartners />
-          </>
-        )
-      }}
-    </LandingPageShell>
+        <MarketingFooter />
+      </div>
+    </MarketingPageShell>
   )
 }
