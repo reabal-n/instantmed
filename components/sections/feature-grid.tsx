@@ -1,10 +1,4 @@
-"use client";
-
-import { motion } from "framer-motion";
-import { useRef } from "react";
-
 import { DottedGrid } from "@/components/marketing/dotted-grid";
-import { useReducedMotion,useScrollReveal } from "@/components/ui/motion";
 import { cn } from "@/lib/utils";
 
 import { SectionHeader } from "./section-header";
@@ -35,10 +29,6 @@ export function FeatureGrid({
   className,
   id,
 }: FeatureGridProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useScrollReveal(ref);
-  const prefersReducedMotion = useReducedMotion();
-
   return (
     <section id={id} className={cn("relative py-16 lg:py-24 px-4", className)}>
       <DottedGrid />
@@ -50,25 +40,12 @@ export function FeatureGrid({
       />
 
       <div
-        ref={ref}
         className={cn("mx-auto max-w-5xl grid gap-6", colsClass[columns])}
       >
-        {features.map((feature, i) => (
-          <motion.div
+        {features.map((feature) => (
+          <div
             key={feature.title}
-            initial={prefersReducedMotion ? {} : { y: 20, scale: 0.95 }}
-            animate={
-              prefersReducedMotion
-                ? {}
-                : isInView
-                  ? { opacity: 1, y: 0, scale: 1 }
-                  : undefined
-            }
-            transition={{
-              duration: 0.3,
-              delay: i * 0.08,
-              ease: [0.25, 0.1, 0.25, 1],
-            }}
+            className="h-full"
           >
             <div className="h-full rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none p-6 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/[0.1] transition-[transform,box-shadow] duration-300">
               <div className="mb-4 inline-flex rounded-xl bg-primary/5 p-3 text-primary">
@@ -81,7 +58,7 @@ export function FeatureGrid({
                 {feature.description}
               </p>
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
     </section>

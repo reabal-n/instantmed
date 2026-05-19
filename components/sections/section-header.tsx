@@ -1,5 +1,3 @@
-"use client";
-
 import { WordReveal } from "@/components/ui/morning/word-reveal";
 import { SectionPill } from "@/components/ui/section-pill";
 import { cn } from "@/lib/utils";

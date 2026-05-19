@@ -1,10 +1,5 @@
-"use client";
-
-import { motion } from "framer-motion";
 import { Check, X } from "lucide-react";
-import { useRef } from "react";
 
-import { useReducedMotion,useScrollReveal } from "@/components/ui/motion";
 import { cn } from "@/lib/utils";
 
 import { SectionHeader } from "./section-header";
@@ -31,10 +26,6 @@ export function ComparisonTable({
   className,
   id,
 }: ComparisonTableProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useScrollReveal(ref);
-  const prefersReducedMotion = useReducedMotion();
-
   return (
     <section id={id} className={cn("py-16 lg:py-24 px-4", className)}>
       <SectionHeader
@@ -44,7 +35,7 @@ export function ComparisonTable({
         highlightWords={highlightWords}
       />
 
-      <div ref={ref} className="mx-auto max-w-2xl overflow-hidden rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-lg shadow-primary/[0.06] dark:shadow-none">
+      <div className="mx-auto max-w-2xl overflow-hidden rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-lg shadow-primary/[0.06] dark:shadow-none">
         {/* Header row */}
         <div className="grid grid-cols-[1fr_120px_120px] gap-0 border-b border-border bg-muted/50 px-6 py-4 text-sm font-medium text-muted-foreground">
           <span />
@@ -54,37 +45,20 @@ export function ComparisonTable({
 
         {/* Comparison rows */}
         {items.map((item, i) => (
-          <motion.div
+          <div
             key={item.label}
             className={cn(
               "grid grid-cols-[1fr_120px_120px] gap-0 px-6 py-4 text-sm hover:bg-muted/30 transition-colors duration-200",
               i < items.length - 1 && "border-b border-border/50"
             )}
-            initial={prefersReducedMotion ? {} : { x: -12 }}
-            animate={
-              prefersReducedMotion
-                ? {}
-                : isInView
-                  ? { opacity: 1, x: 0 }
-                  : undefined
-            }
-            transition={{
-              duration: 0.3,
-              delay: i * 0.08,
-              ease: [0.25, 0.1, 0.25, 1],
-            }}
           >
             <span className="text-foreground">{item.label}</span>
             <span className="flex justify-center">
               {typeof item.us === "boolean" ? (
                 item.us ? (
-                  <motion.span
-                    initial={prefersReducedMotion ? {} : { scale: 0 }}
-                    animate={prefersReducedMotion ? {} : isInView ? { scale: 1 } : undefined}
-                    transition={{ duration: 0.25, delay: i * 0.08 + 0.15, ease: "easeOut" }}
-                  >
+                  <span>
                     <Check className="h-5 w-5 text-success" />
-                  </motion.span>
+                  </span>
                 ) : (
                   <X className="h-5 w-5 text-destructive" />
                 )
@@ -103,7 +77,7 @@ export function ComparisonTable({
                 <span className="text-muted-foreground">{item.them}</span>
               )}
             </span>
-          </motion.div>
+          </div>
         ))}
       </div>
     </section>

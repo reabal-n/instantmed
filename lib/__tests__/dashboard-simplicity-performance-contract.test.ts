@@ -196,4 +196,29 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(faqListSource).not.toContain("useReducedMotion")
     expect(faqListSource).not.toContain("motion.")
   })
+
+  it("keeps shared static section primitives server-rendered", () => {
+    const staticSectionFiles = [
+      "components/sections/comparison-table.tsx",
+      "components/sections/feature-grid.tsx",
+      "components/sections/icon-checklist.tsx",
+      "components/sections/image-text-split.tsx",
+      "components/sections/logo-badge-strip.tsx",
+      "components/sections/process-steps.tsx",
+      "components/sections/section-header.tsx",
+      "components/sections/timeline.tsx",
+    ]
+
+    for (const file of staticSectionFiles) {
+      const source = read(file)
+      const trimmedSource = source.trimStart()
+
+      expect(trimmedSource.startsWith('"use client"')).toBe(false)
+      expect(trimmedSource.startsWith("'use client'")).toBe(false)
+      expect(source).not.toContain("framer-motion")
+      expect(source).not.toContain("useScrollReveal")
+      expect(source).not.toContain("useReducedMotion")
+      expect(source).not.toContain("motion.")
+    }
+  })
 })

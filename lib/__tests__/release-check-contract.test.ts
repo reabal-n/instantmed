@@ -44,10 +44,10 @@ describe("release check contract", () => {
     expect(bundleGate).toContain("The patient dashboard is inheriting portal runtime it should not load")
     expect(bundleGate).toContain("The staff cockpit is carrying too much client runtime")
     expect(bundleGate).toContain("The request ledger should not inherit heavy doctor-review code")
-    expect(bundleGate).toContain("The primary paid med-cert landing page is too heavy")
-    expect(bundleGate).toContain("The prescriptions landing page is too heavy")
-    expect(bundleGate).toContain("The ED landing page is too heavy")
-    expect(bundleGate).toContain("The hair-loss landing page is too heavy")
+    expect(bundleGate).toContain("The primary paid med-cert landing page should stay server-first with narrow client islands")
+    expect(bundleGate).toContain("The prescriptions landing page should stay below the paid-funnel runtime ceiling")
+    expect(bundleGate).toContain("The ED landing page should not inherit broad service-funnel runtime")
+    expect(bundleGate).toContain("The hair-loss landing page should not inherit broad service-funnel runtime")
   })
 
   it("keeps paid landing routes off the marketing barrel", () => {

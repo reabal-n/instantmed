@@ -1,10 +1,5 @@
-"use client";
-
-import { motion } from "framer-motion";
 import { Check } from "lucide-react";
-import { useRef } from "react";
 
-import { useReducedMotion,useScrollReveal } from "@/components/ui/motion";
 import { cn } from "@/lib/utils";
 
 import { SectionHeader } from "./section-header";
@@ -29,10 +24,6 @@ export function IconChecklist({
   className,
   id,
 }: IconChecklistProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useScrollReveal(ref);
-  const prefersReducedMotion = useReducedMotion();
-
   return (
     <section id={id} className={cn("py-16 lg:py-24 px-4", className)}>
       <SectionHeader
@@ -43,55 +34,26 @@ export function IconChecklist({
       />
 
       <div
-        ref={ref}
         className={cn(
           "mx-auto max-w-3xl space-y-4",
           columns === 2 && "sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0"
         )}
       >
-        {items.map((item, i) => (
-          <motion.div
+        {items.map((item) => (
+          <div
             key={item.text}
             className="flex gap-3 rounded-xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-sm shadow-primary/[0.04] dark:shadow-none p-4 hover:-translate-y-0.5 hover:shadow-md hover:shadow-primary/[0.08] transition-[transform,box-shadow] duration-300"
-            initial={prefersReducedMotion ? {} : { x: -12 }}
-            animate={
-              prefersReducedMotion
-                ? {}
-                : isInView
-                  ? { opacity: 1, x: 0 }
-                  : undefined
-            }
-            transition={{
-              duration: 0.3,
-              delay: i * 0.05,
-              ease: [0.25, 0.1, 0.25, 1],
-            }}
           >
-            <motion.div
-              className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-success/20 text-success"
-              initial={prefersReducedMotion ? {} : { scale: 0 }}
-              animate={
-                prefersReducedMotion
-                  ? {}
-                  : isInView
-                    ? { scale: 1 }
-                    : undefined
-              }
-              transition={{
-                duration: 0.3,
-                ease: "easeOut",
-                delay: i * 0.05 + 0.15,
-              }}
-            >
+            <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-success/20 text-success">
               <Check className="h-3 w-3" />
-            </motion.div>
+            </div>
             <div>
               <span className="text-sm font-medium text-foreground">{item.text}</span>
               {item.subtext && (
                 <p className="mt-0.5 text-xs text-muted-foreground">{item.subtext}</p>
               )}
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
     </section>

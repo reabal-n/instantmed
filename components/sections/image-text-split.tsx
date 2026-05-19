@@ -1,11 +1,7 @@
-"use client";
-
-import { motion } from "framer-motion";
-import { type ReactNode,useRef } from "react";
+import { type ReactNode } from "react";
 
 import { ClipPathImage } from "@/components/ui/morning/clip-path-image";
 import { WordReveal } from "@/components/ui/morning/word-reveal";
-import { useReducedMotion,useScrollReveal } from "@/components/ui/motion";
 import { cn } from "@/lib/utils";
 
 import type { SectionProps } from "./types";
@@ -31,14 +27,9 @@ export function ImageTextSplit({
   className,
   id,
 }: ImageTextSplitProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useScrollReveal(ref);
-  const prefersReducedMotion = useReducedMotion();
-
   return (
     <section id={id} className={cn("py-20 px-4", className)}>
       <div
-        ref={ref}
         className={cn(
           "mx-auto max-w-5xl flex flex-col gap-12 items-center",
           "lg:flex-row lg:gap-16",
@@ -53,35 +44,13 @@ export function ImageTextSplit({
             highlightWords={highlightWords}
             className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:justify-start"
           />
-          <motion.p
-            className="mt-4 text-muted-foreground leading-relaxed"
-            initial={prefersReducedMotion ? {} : { y: 8 }}
-            animate={
-              prefersReducedMotion
-                ? {}
-                : isInView
-                  ? { opacity: 1, y: 0 }
-                  : undefined
-            }
-            transition={{ duration: 0.3, delay: 0.3, ease: "easeOut" }}
-          >
+          <p className="mt-4 text-muted-foreground leading-relaxed">
             {description}
-          </motion.p>
+          </p>
           {children && (
-            <motion.div
-              className="mt-6"
-              initial={prefersReducedMotion ? {} : { y: 8 }}
-              animate={
-                prefersReducedMotion
-                  ? {}
-                  : isInView
-                    ? { opacity: 1, y: 0 }
-                    : undefined
-              }
-              transition={{ duration: 0.3, delay: 0.4, ease: "easeOut" }}
-            >
+            <div className="mt-6">
               {children}
-            </motion.div>
+            </div>
           )}
         </div>
 
