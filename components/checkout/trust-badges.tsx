@@ -22,7 +22,7 @@ import {
   Shield} from "lucide-react"
 
 import { PaymentLogos } from "@/components/checkout/payment-logos"
-import { TrustBadgeRow } from "@/components/shared"
+import { TrustBadgeRow } from "@/components/shared/trust-badge"
 import { cn } from "@/lib/utils"
 
 // ── Stripe ──────────────────────────────────────────────────────────

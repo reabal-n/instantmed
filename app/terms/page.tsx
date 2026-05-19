@@ -2,10 +2,11 @@ import type { Metadata } from "next"
 import Link from "next/link"
 
 import { CenteredHero } from "@/components/heroes"
-import { MarketingFooter, MarketingPageShell } from "@/components/marketing"
-import { CTABanner } from "@/components/sections"
-import { Navbar } from "@/components/shared"
-import { LegalSection } from "@/components/shared"
+import { MarketingFooter } from "@/components/marketing/marketing-footer"
+import { MarketingPageShell } from "@/components/marketing/marketing-page-shell"
+import { CTABanner } from "@/components/sections/cta-banner"
+import { LegalSection } from "@/components/shared/legal-section"
+import { Navbar } from "@/components/shared/navbar"
 import { CONTACT_EMAIL_COMPLAINTS, CONTACT_EMAIL_LEGAL } from "@/lib/constants"
 
 export const metadata: Metadata = {

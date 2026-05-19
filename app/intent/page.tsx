@@ -2,10 +2,10 @@ import { ArrowRight, Search } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 
-import { MarketingFooter } from "@/components/marketing"
-import { AccordionSection } from "@/components/sections"
+import { MarketingFooter } from "@/components/marketing/marketing-footer"
+import { AccordionSection } from "@/components/sections/accordion-section"
 import { BreadcrumbSchema, FAQSchema } from "@/components/seo"
-import { Navbar } from "@/components/shared"
+import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import {
   type CommercialIntentCluster,

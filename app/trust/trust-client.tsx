@@ -10,18 +10,18 @@ import { useSyncExternalStore } from "react"
 // Morning Canvas components
 import { SplitHero } from "@/components/heroes"
 import { StickerIcon } from "@/components/icons/stickers"
-import { GoogleAdsCert,LegitScriptSeal, MarketingFooter } from "@/components/marketing"
-import { TrustGuideSection } from "@/components/marketing/sections"
+import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
+import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
+import { MarketingFooter } from "@/components/marketing/marketing-footer"
 import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
-import {
-  CTABanner,
-  FAQSection,
-  FeatureGrid,
-  ImageTextSplit,
-  StatStrip,
-  Timeline,
-} from "@/components/sections"
-import { Navbar } from "@/components/shared"
+import { TrustGuideSection } from "@/components/marketing/sections/trust-guide-section"
+import { CTABanner } from "@/components/sections/cta-banner"
+import { FAQSection } from "@/components/sections/faq-section"
+import { FeatureGrid } from "@/components/sections/feature-grid"
+import { ImageTextSplit } from "@/components/sections/image-text-split"
+import { StatStrip } from "@/components/sections/stat-strip"
+import { Timeline } from "@/components/sections/timeline"
+import { Navbar } from "@/components/shared/navbar"
 import { Heading } from "@/components/ui/heading"
 import { usePatientCount } from "@/lib/hooks/use-patient-count"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"

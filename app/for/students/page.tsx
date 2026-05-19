@@ -2,7 +2,8 @@ import { ArrowRight, BookOpen, Calendar, Clock, FileText, GraduationCap, Shield,
 import type { Metadata } from "next"
 import Link from "next/link"
 
-import { Footer,Navbar } from "@/components/shared"
+import { Footer } from "@/components/shared/footer"
+import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"

@@ -1,9 +1,10 @@
-import { ArrowRight, Building2, Globe,Zap } from "lucide-react"
+import { ArrowRight, Building2, Globe, Zap } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 
 import { BreadcrumbSchema } from "@/components/seo"
-import { Footer,Navbar } from "@/components/shared"
+import { Footer } from "@/components/shared/footer"
+import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
 

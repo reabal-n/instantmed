@@ -1,9 +1,9 @@
-import { Building2, ExternalLink,Lock, Shield } from "lucide-react"
+import { Building2, ExternalLink, Lock, Shield } from "lucide-react"
 import { Metadata } from "next"
 import Link from "next/link"
 
-import { MarketingFooter } from "@/components/marketing"
-import { Navbar } from "@/components/shared"
+import { MarketingFooter } from "@/components/marketing/marketing-footer"
+import { Navbar } from "@/components/shared/navbar"
 import { Badge } from "@/components/ui/badge"
 
 import { VerifyClient } from "./verify-client"

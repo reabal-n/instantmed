@@ -2,8 +2,8 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import type React from "react"
 
-import { MarketingFooter } from "@/components/marketing"
-import { Navbar } from "@/components/shared"
+import { MarketingFooter } from "@/components/marketing/marketing-footer"
+import { Navbar } from "@/components/shared/navbar"
 import { CONTACT_EMAIL, CONTACT_EMAIL_COMPLAINTS, PRICING_DISPLAY } from "@/lib/constants"
 
 export const metadata: Metadata = {

@@ -11,22 +11,23 @@
  */
 
 import { ArrowRight, Plus, ShieldAlert, X } from "lucide-react"
-import { useCallback,useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
-import { MedicationSearch, type SelectedPBSProduct } from "@/components/shared"
-import { Alert, AlertDescription,AlertTitle } from "@/components/ui/alert"
+import type { SelectedPBSProduct } from "@/components/shared/medication-search"
+import { MedicationSearch } from "@/components/shared/medication-search"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { usePostHog } from "@/lib/analytics/posthog-context"
-import { CONTROLLED_SUBSTANCE_DISCLAIMER,isControlledSubstance } from "@/lib/clinical/intake-validation"
+import { CONTROLLED_SUBSTANCE_DISCLAIMER, isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import {
   normalizeMedicationEntriesAnswer,
   normalizeMedicationProductAnswer,
   stringAnswer,
 } from "@/lib/request/intake-answer-normalizers"
-import { addRecentMedication,getSmartDefaults } from "@/lib/request/preferences"
+import { addRecentMedication, getSmartDefaults } from "@/lib/request/preferences"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 import { FormField } from "../form-field"

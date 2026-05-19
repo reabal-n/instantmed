@@ -1,10 +1,27 @@
-import { existsSync, readFileSync } from "node:fs"
+import {
+  existsSync,
+  readdirSync,
+  readFileSync,
+} from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
 const root = process.cwd()
 const read = (path: string) => readFileSync(join(root, path), "utf8")
+const collectSourceFiles = (dir: string): string[] => {
+  const absoluteDir = join(root, dir)
+  const entries = readdirSync(absoluteDir, { withFileTypes: true })
+
+  return entries.flatMap((entry) => {
+    const relativePath = `${dir}/${entry.name}`
+
+    if (entry.isDirectory()) return collectSourceFiles(relativePath)
+    if (!/\.(ts|tsx)$/.test(entry.name)) return []
+
+    return [relativePath]
+  })
+}
 
 describe("dashboard simplicity and runtime performance contracts", () => {
   it("keeps the patient app shell free of decorative page-transition runtime", () => {
@@ -88,5 +105,21 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     const source = read("components/doctor/queue/queue-row-peek.tsx")
 
     expect(source).toContain("pointer-events-none")
+  })
+
+  it("keeps route-facing code off broad public component barrels", () => {
+    const blockedBarrelPattern =
+      /from\s+["']@\/components\/(?:marketing|marketing\/sections|marketing\/shared|sections|shared)["']/g
+    const files = [
+      ...collectSourceFiles("app"),
+      ...collectSourceFiles("components"),
+    ]
+    const offenders = files.flatMap((file) => {
+      const matches = read(file).match(blockedBarrelPattern) ?? []
+
+      return matches.map((match) => `${file}: ${match}`)
+    })
+
+    expect(offenders).toEqual([])
   })
 })

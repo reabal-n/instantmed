@@ -14,7 +14,8 @@ import { notFound } from "next/navigation"
 
 import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
 import { BreadcrumbSchema, FAQSchema, HealthArticleSchema, HowToSchema, MedicalDisclaimer } from "@/components/seo"
-import { Footer,Navbar } from "@/components/shared"
+import { Footer } from "@/components/shared/footer"
+import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { PageBreadcrumbs } from "@/components/uix"
 import {
@@ -22,7 +23,7 @@ import {
   commercialComparisonLinks,
   commercialPrescriptionLinks,
 } from "@/lib/seo/commercial-links"
-import { GUIDE_INDEX,guides } from "@/lib/seo/data/guides"
+import { GUIDE_INDEX, guides } from "@/lib/seo/data/guides"
 
 interface PageProps {
   params: Promise<{ slug: string }>

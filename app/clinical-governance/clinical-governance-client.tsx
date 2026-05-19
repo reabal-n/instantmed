@@ -5,19 +5,18 @@ import Link from "next/link"
 
 import { StatsHero } from "@/components/heroes"
 import { StickerIcon } from "@/components/icons/stickers"
-import { MarketingFooter } from "@/components/marketing"
-import { DataDrivenGuideSection, type GuideSectionData } from "@/components/marketing/sections"
+import { MarketingFooter } from "@/components/marketing/marketing-footer"
+import type { GuideSectionData } from "@/components/marketing/sections/data-driven-guide-section"
+import { DataDrivenGuideSection } from "@/components/marketing/sections/data-driven-guide-section"
 import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
-import {
-  AccordionSection,
-  CTABanner,
-  FeatureGrid,
-  IconChecklist,
-  Timeline,
-} from "@/components/sections"
+import { AccordionSection } from "@/components/sections/accordion-section"
+import { CTABanner } from "@/components/sections/cta-banner"
+import { FeatureGrid } from "@/components/sections/feature-grid"
+import { IconChecklist } from "@/components/sections/icon-checklist"
+import { Timeline } from "@/components/sections/timeline"
 import type { ChecklistItem, FeatureItem, StatItem, TimelineStep } from "@/components/sections/types"
 import { FAQSchema } from "@/components/seo"
-import { Navbar } from "@/components/shared"
+import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 

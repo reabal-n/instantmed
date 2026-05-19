@@ -1,12 +1,14 @@
-import { AlertTriangle,ArrowRight } from "lucide-react";
+import { AlertTriangle, ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 import { CenteredHero } from "@/components/heroes";
-import { MarketingFooter } from "@/components/marketing";
-import { AccordionSection, CTABanner, SectionHeader } from "@/components/sections";
+import { MarketingFooter } from "@/components/marketing/marketing-footer"
+import { AccordionSection } from "@/components/sections/accordion-section"
+import { CTABanner } from "@/components/sections/cta-banner"
+import { SectionHeader } from "@/components/sections/section-header"
 import { BreadcrumbSchema, FAQSchema } from "@/components/seo";
-import { Navbar } from "@/components/shared";
+import { Navbar } from "@/components/shared/navbar"
 import { PerspectiveTiltCard } from "@/components/ui/morning/perspective-tilt-card";
 import { symptoms as symptomsData } from "@/lib/seo/data/symptoms";
 

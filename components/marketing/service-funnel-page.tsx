@@ -15,7 +15,7 @@ import { TrustSection } from '@/components/marketing/funnel/trust-section'
 import { WhoItsForSection } from '@/components/marketing/funnel/who-its-for-section'
 import { MarketingPageShell } from '@/components/marketing/marketing-page-shell'
 import { PricingSection as StandalonePricingSection } from '@/components/marketing/sections/pricing-section'
-import { ImageTextSplit } from '@/components/sections'
+import { ImageTextSplit } from "@/components/sections/image-text-split"
 import { EmergencyDisclaimer } from '@/components/shared/emergency-disclaimer'
 import { Navbar } from '@/components/shared/navbar'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'

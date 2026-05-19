@@ -1,5 +1,5 @@
 import { DottedGrid } from "@/components/marketing/dotted-grid"
-import { TrustBadgeGrid } from "@/components/shared"
+import { TrustBadgeGrid } from "@/components/shared/trust-badge"
 import { cn } from "@/lib/utils"
 
 interface TrustBadgeSliderProps {

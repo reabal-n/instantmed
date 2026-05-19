@@ -8,7 +8,7 @@ import { AlertTriangle, ArrowRight } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 
 import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
-import { EnhancedSelectionButton } from "@/components/shared"
+import { EnhancedSelectionButton } from "@/components/shared/enhanced-selection-button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"

@@ -1,10 +1,10 @@
 "use client"
 
-import { AnimatePresence,motion } from "framer-motion"
+import { AnimatePresence, motion } from "framer-motion"
 import { ChevronDown } from "lucide-react"
 import { useState } from "react"
 
-import { TrustBadge } from "@/components/shared"
+import { TrustBadge } from "@/components/shared/trust-badge"
 import { useReducedMotion } from "@/components/ui/motion"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import {

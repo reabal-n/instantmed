@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 
 import { ConsultChatMockup } from '@/components/marketing/mockups/consult-chat-mockup'
-import { ConsultGuideSection } from '@/components/marketing/sections'
+import { ConsultGuideSection } from "@/components/marketing/sections/consult-guide-section"
 import { ServiceClaimSection } from '@/components/marketing/sections/service-claim-section'
 import { ServiceFunnelPage } from '@/components/marketing/service-funnel-page'
-import { BreadcrumbSchema, FAQSchema, HealthArticleSchema,HowToSchema, MedicalServiceSchema } from '@/components/seo/healthcare-schema'
+import { BreadcrumbSchema, FAQSchema, HealthArticleSchema, HowToSchema, MedicalServiceSchema } from '@/components/seo/healthcare-schema'
 import { PRICING, PRICING_DISPLAY } from '@/lib/constants'
 import { getFeatureFlags } from '@/lib/feature-flags'
 import { generalConsultFunnelConfig } from '@/lib/marketing/service-funnel-configs'

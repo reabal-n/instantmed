@@ -3,14 +3,17 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
-import { LiveWaitTime, MarketingFooter, RegulatoryPartners,StatsStrip } from "@/components/marketing"
-import { BreadcrumbSchema,FAQSchema } from "@/components/seo"
-import { Navbar } from "@/components/shared"
+import { LiveWaitTime } from "@/components/marketing/live-wait-time"
+import { MarketingFooter } from "@/components/marketing/marketing-footer"
+import { RegulatoryPartners } from "@/components/marketing/regulatory-partners"
+import { StatsStrip } from "@/components/marketing/total-patients-counter"
+import { BreadcrumbSchema, FAQSchema } from "@/components/seo"
+import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
-import { getAllAudiencePageSlugs,getAudiencePageConfig } from "@/lib/seo/data/audience-pages"
+import { getAllAudiencePageSlugs, getAudiencePageConfig } from "@/lib/seo/data/audience-pages"
 
 interface PageProps {
   params: Promise<{ audience: string }>

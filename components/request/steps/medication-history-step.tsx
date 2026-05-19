@@ -10,10 +10,10 @@
  */
 
 import { ArrowLeft, ArrowRight, Stethoscope } from "lucide-react"
-import { useCallback,useState } from "react"
+import { useCallback, useState } from "react"
 
 import { IntakeStepIntro, QuestionCard, SegmentedChoiceGroup } from "@/components/request/shared/intake-step-primitives"
-import { EnhancedSelectionButton } from "@/components/shared"
+import { EnhancedSelectionButton } from "@/components/shared/enhanced-selection-button"
 import { AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"

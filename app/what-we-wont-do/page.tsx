@@ -1,12 +1,14 @@
 import type { Metadata } from "next"
 
 import { CenteredHero } from "@/components/heroes"
-import { MarketingFooter } from "@/components/marketing"
+import { MarketingFooter } from "@/components/marketing/marketing-footer"
 import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
-import type { ChecklistItem } from "@/components/sections"
-import { AccordionSection, CTABanner, IconChecklist } from "@/components/sections"
+import { AccordionSection } from "@/components/sections/accordion-section"
+import { CTABanner } from "@/components/sections/cta-banner"
+import { IconChecklist } from "@/components/sections/icon-checklist"
+import type { ChecklistItem } from "@/components/sections/types"
 import { FAQSchema } from "@/components/seo"
-import { Navbar } from "@/components/shared"
+import { Navbar } from "@/components/shared/navbar"
 
 // =============================================================================
 // METADATA

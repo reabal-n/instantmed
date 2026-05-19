@@ -1,11 +1,12 @@
-import { ArrowRight,MapPin } from "lucide-react"
+import { ArrowRight, MapPin } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 
 import { BreadcrumbSchema } from "@/components/seo"
-import { Footer,Navbar } from "@/components/shared"
+import { Footer } from "@/components/shared/footer"
+import { Navbar } from "@/components/shared/navbar"
 import { Heading } from "@/components/ui/heading"
-import { getAllStateSlugs,statesData } from "@/lib/seo/data/states"
+import { getAllStateSlugs, statesData } from "@/lib/seo/data/states"
 
 export const metadata: Metadata = {
   title: "Online Doctor | All Australian Locations",

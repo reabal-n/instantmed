@@ -17,17 +17,16 @@ import { notFound } from "next/navigation"
 
 import { CenteredHero } from "@/components/heroes"
 import { StickerIcon } from "@/components/icons/stickers"
-import { MarketingFooter, MarketingPageShell } from "@/components/marketing"
-import type { ChecklistItem,StatItem } from "@/components/sections"
-import {
-  AccordionSection,
-  CTABanner,
-  IconChecklist,
-  SectionHeader,
-  StatStrip,
-} from "@/components/sections"
+import { MarketingFooter } from "@/components/marketing/marketing-footer"
+import { MarketingPageShell } from "@/components/marketing/marketing-page-shell"
+import { AccordionSection } from "@/components/sections/accordion-section"
+import { CTABanner } from "@/components/sections/cta-banner"
+import { IconChecklist } from "@/components/sections/icon-checklist"
+import { SectionHeader } from "@/components/sections/section-header"
+import { StatStrip } from "@/components/sections/stat-strip"
+import type { ChecklistItem, StatItem } from "@/components/sections/types"
 import { BreadcrumbSchema, FAQSchema, MedicalConditionSchema } from "@/components/seo"
-import { Navbar } from "@/components/shared"
+import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { PageBreadcrumbs } from "@/components/uix"
 import { PRICING_DISPLAY } from "@/lib/constants"

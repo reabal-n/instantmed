@@ -3,7 +3,7 @@
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 
-import { TrustBadgeRow } from "@/components/shared";
+import { TrustBadgeRow } from "@/components/shared/trust-badge"
 import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
 import { Reveal } from "@/components/ui/reveal";

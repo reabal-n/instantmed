@@ -6,14 +6,15 @@
  */
 
 import { motion } from "framer-motion"
-import { Check, Clock, Lock, MessageSquare, RefreshCw,ShieldCheck, Smartphone, UserX } from "lucide-react"
-import { useEffect,useState } from "react"
+import { Check, Clock, Lock, MessageSquare, RefreshCw, ShieldCheck, Smartphone, UserX } from "lucide-react"
+import { useEffect, useState } from "react"
 
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
 import { PaymentLogos } from "@/components/checkout/payment-logos"
 import { GuaranteeBadge } from "@/components/marketing/guarantee-badge"
 import { ExpressReviewToggle } from "@/components/request/shared/express-review-toggle"
-import { CheckoutButton, TrustBadgeRow } from "@/components/shared"
+import { CheckoutButton } from "@/components/shared/checkout-button"
+import { TrustBadgeRow } from "@/components/shared/trust-badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useReducedMotion } from "@/components/ui/motion"

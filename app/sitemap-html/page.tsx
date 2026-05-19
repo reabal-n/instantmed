@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { CenteredHero } from "@/components/heroes";
-import { MarketingFooter } from "@/components/marketing";
-import { CTABanner } from "@/components/sections";
-import { Navbar } from "@/components/shared";
+import { MarketingFooter } from "@/components/marketing/marketing-footer"
+import { CTABanner } from "@/components/sections/cta-banner"
+import { Navbar } from "@/components/shared/navbar"
 import { audiencePageConfigs } from "@/lib/seo/data/audience-pages";
 import { getAllComparisonSlugs } from "@/lib/seo/data/comparisons";
 import { getAllConditionSlugs, getConditionBySlug } from "@/lib/seo/data/conditions";

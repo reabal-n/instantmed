@@ -1,8 +1,9 @@
-import { ArrowRight, Building,Clock, Shield, Smartphone, Wrench, Zap } from "lucide-react"
+import { ArrowRight, Building, Clock, Shield, Smartphone, Wrench, Zap } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 
-import { Footer,Navbar } from "@/components/shared"
+import { Footer } from "@/components/shared/footer"
+import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"

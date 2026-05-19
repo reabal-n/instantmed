@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { MarketingFooter } from "@/components/marketing/marketing-footer"
 import { MarketingPageShell } from "@/components/marketing/marketing-page-shell"
 import { StickyCTA } from "@/components/marketing/shared/sticky-cta"
-import { Navbar } from "@/components/shared"
+import { Navbar } from "@/components/shared/navbar"
 import { useReducedMotion } from "@/components/ui/motion"
 import { useLandingAnalytics } from "@/lib/hooks/use-landing-analytics"
 

@@ -1,14 +1,14 @@
-import { ArrowRight, Clock, Eye, Link2,Linkedin, Share2 } from "lucide-react";
+import { ArrowRight, Clock, Eye, Link2, Linkedin, Share2 } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
 import { ArticlesPage } from "@/components/blog/articles-page";
 import { CenteredHero } from "@/components/heroes";
-import { MarketingFooter } from "@/components/marketing";
-import { CTABanner } from "@/components/sections";
+import { MarketingFooter } from "@/components/marketing/marketing-footer"
+import { CTABanner } from "@/components/sections/cta-banner"
 import { BreadcrumbSchema } from "@/components/seo";
-import { Navbar } from "@/components/shared";
+import { Navbar } from "@/components/shared/navbar"
 import { SectionPill } from "@/components/ui/section-pill";
 import { allArticles } from "@/lib/blog/articles";
 import { categories } from "@/lib/blog/types";

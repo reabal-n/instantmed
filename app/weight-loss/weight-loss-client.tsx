@@ -14,16 +14,16 @@ import Script from "next/script"
 
 import { CenteredHero } from "@/components/heroes"
 import { StickerIcon } from "@/components/icons/stickers"
-import { DoctorCredibility,MarketingFooter, RegulatoryPartners } from "@/components/marketing"
+import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
+import { MarketingFooter } from "@/components/marketing/marketing-footer"
+import { RegulatoryPartners } from "@/components/marketing/regulatory-partners"
 import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
-import {
-  CTABanner,
-  FAQSection,
-  FeatureGrid,
-  ProcessSteps,
-} from "@/components/sections"
-import { Navbar } from "@/components/shared"
-import { AvailabilityIndicator } from "@/components/shared"
+import { CTABanner } from "@/components/sections/cta-banner"
+import { FAQSection } from "@/components/sections/faq-section"
+import { FeatureGrid } from "@/components/sections/feature-grid"
+import { ProcessSteps } from "@/components/sections/process-steps"
+import { AvailabilityIndicator } from "@/components/shared/availability-indicator"
+import { Navbar } from "@/components/shared/navbar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"

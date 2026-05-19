@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 
-import { Footer, Navbar } from "@/components/shared"
+import { Footer } from "@/components/shared/footer"
+import { Navbar } from "@/components/shared/navbar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 

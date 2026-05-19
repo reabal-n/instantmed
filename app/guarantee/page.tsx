@@ -2,18 +2,17 @@ import type { Metadata } from "next"
 
 import { CenteredHero } from "@/components/heroes"
 import { StickerIcon } from "@/components/icons/stickers"
-import { GuaranteeBadge, MarketingFooter } from "@/components/marketing"
+import { GuaranteeBadge } from "@/components/marketing/guarantee-badge"
+import { MarketingFooter } from "@/components/marketing/marketing-footer"
 import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
-import type { ChecklistItem, FeatureItem } from "@/components/sections"
-import {
-  AccordionSection,
-  CTABanner,
-  FeatureGrid,
-  IconChecklist,
-  ProcessSteps,
-} from "@/components/sections"
+import { AccordionSection } from "@/components/sections/accordion-section"
+import { CTABanner } from "@/components/sections/cta-banner"
+import { FeatureGrid } from "@/components/sections/feature-grid"
+import { IconChecklist } from "@/components/sections/icon-checklist"
+import { ProcessSteps } from "@/components/sections/process-steps"
+import type { ChecklistItem, FeatureItem } from "@/components/sections/types"
 import { FAQSchema } from "@/components/seo"
-import { Navbar } from "@/components/shared"
+import { Navbar } from "@/components/shared/navbar"
 import { GUARANTEE } from "@/lib/marketing/voice"
 
 // =============================================================================

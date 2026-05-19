@@ -1,4 +1,4 @@
-import { CTABanner } from '@/components/sections'
+import { CTABanner } from "@/components/sections/cta-banner"
 
 import type { ServiceFunnelConfig } from './funnel-types'
 
