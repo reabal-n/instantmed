@@ -27,12 +27,12 @@ ROUTE_BUDGETS=(
   "/patient|13|190|The patient dashboard is inheriting portal runtime it should not load"
   "/dashboard|24|405|The staff cockpit is carrying too much client runtime"
   "/admin/intakes|18|455|The request ledger should not inherit heavy doctor-review code"
-  "/medical-certificate|10|425|The primary paid med-cert landing page is too heavy"
+  "/medical-certificate|10|330|The primary paid med-cert landing page should stay server-first with narrow client islands"
   "/consult|6|330|The consult funnel should keep static sections server-rendered and hydrate only interactive section islands"
   "/pricing|10|330|The pricing page should keep proof sections server-rendered instead of hydrating as one large client island"
-  "/prescriptions|8|425|The prescriptions landing page is too heavy"
-  "/erectile-dysfunction|10|425|The ED landing page is too heavy"
-  "/hair-loss|11|425|The hair-loss landing page is too heavy"
+  "/prescriptions|8|335|The prescriptions landing page should stay below the paid-funnel runtime ceiling"
+  "/erectile-dysfunction|6|335|The ED landing page should not inherit broad service-funnel runtime"
+  "/hair-loss|7|335|The hair-loss landing page should not inherit broad service-funnel runtime"
 )
 
 BUILD_OUT="/tmp/next-build-output.txt"
