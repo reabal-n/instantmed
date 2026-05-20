@@ -167,7 +167,7 @@ export default async function OpsDashboardPage() {
       count: paymentFailuresCount,
       tone: paymentFailuresCount > 0 ? "critical" : "neutral",
       helperText: helperTextForPayment(paymentFailuresCount),
-      href: buildStaffLedgerHref({}),
+      href: buildStaffLedgerHref({ chips: ["failed_payment", "refund_failed"] }),
     },
     webhookDlq: {
       count: webhookDlqCount,

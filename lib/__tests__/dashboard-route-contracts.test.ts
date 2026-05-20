@@ -126,6 +126,10 @@ describe("dashboard route contracts", () => {
     })).toBe(
       "/admin/intakes?status=awaiting_script&service=repeat_rx&workLane=clinical&q=IM-20260430-61542C",
     )
+    expect(buildStaffLedgerHref({ chips: ["failed_payment", "refund_failed"] })).toBe(
+      "/admin/intakes?chips=failed_payment%2Crefund_failed",
+    )
+    expect(buildStaffLedgerHref({ chips: [] })).toBe("/admin/intakes")
     expect(STAFF_PATIENTS_HREF).toBe("/admin/patients")
     expect(buildAdminIntakeHref("intake-123")).toBe("/admin/intakes/intake-123")
     expect(buildAdminIntakeHref("intake 123")).toBe("/admin/intakes/intake%20123")

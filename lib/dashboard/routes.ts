@@ -99,12 +99,16 @@ export function buildStaffLedgerHref(options: {
   service?: string | null
   status?: string | null
   workLane?: string | null
+  chips?: string[] | null
 } = {}): string {
   const params = new URLSearchParams()
   if (options.status) params.set("status", options.status)
   if (options.service) params.set("service", options.service)
   if (options.workLane) params.set("workLane", options.workLane)
   if (options.q) params.set("q", options.q)
+  if (options.chips && options.chips.length > 0) {
+    params.set("chips", options.chips.join(","))
+  }
   const query = params.toString()
   return query ? `${STAFF_LEDGER_HREF}?${query}` : STAFF_LEDGER_HREF
 }

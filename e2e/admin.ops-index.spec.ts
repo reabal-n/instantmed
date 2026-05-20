@@ -44,7 +44,10 @@ test.describe("Ops Index Page", () => {
 
     const cards = page.getByTestId("counter-card")
     // Order matches the page: Payment failures, Webhook DLQ, Parchment unsynced, Missing identity
-    await expect(cards.nth(0)).toHaveAttribute("href", /\/admin\/intakes/)
+    await expect(cards.nth(0)).toHaveAttribute(
+      "href",
+      /\/admin\/intakes\?chips=failed_payment%2Crefund_failed/,
+    )
     await expect(cards.nth(1)).toHaveAttribute("href", "/admin/webhook-dlq")
     await expect(cards.nth(2)).toHaveAttribute("href", "/admin/ops/parchment")
     await expect(cards.nth(3)).toHaveAttribute("href", "/admin/ops/prescribing-identity")
