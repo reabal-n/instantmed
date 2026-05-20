@@ -5,6 +5,8 @@ export {
   FilterBar,
   type QuickFilter,
   QuickFilterChip,
+  RecoveryRow,
+  type RecoverySeverity,
   StatusDot,
 } from "./cases"
 export { CounterCard, type CounterCardTone } from "./counter-card"
