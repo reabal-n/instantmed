@@ -8,7 +8,8 @@ test.describe("Ops Navigation Visibility", () => {
     await logoutTestUser(page)
   })
 
-  test("admin doctor sees the unified staff cockpit nav and queue", async ({ page }) => {
+  test("admin doctor sees the unified staff cockpit nav and queue", async ({ page, isMobile }) => {
+    test.skip(isMobile, "Desktop sidebar contract")
     const loginResult = await loginAsOperator(page)
     expect(loginResult.success).toBe(true)
 
@@ -29,7 +30,8 @@ test.describe("Ops Navigation Visibility", () => {
     await expect(sidebar.getByRole("link", { name: "Email Suppression" })).not.toBeVisible()
   })
 
-  test("non-admin doctor keeps the clinical-only nav", async ({ page }) => {
+  test("non-admin doctor keeps the clinical-only nav", async ({ page, isMobile }) => {
+    test.skip(isMobile, "Desktop sidebar contract")
     const loginResult = await loginAsDoctor(page)
     expect(loginResult.success).toBe(true)
 

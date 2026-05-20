@@ -53,7 +53,8 @@ test.describe("Ops Index Page", () => {
     await expect(cards.nth(3)).toHaveAttribute("href", "/admin/ops/prescribing-identity")
   })
 
-  test("sidebar ops navigation is visible", async ({ page }) => {
+  test("sidebar ops navigation is visible", async ({ page, isMobile }) => {
+    test.skip(isMobile, "Desktop sidebar contract")
     await page.goto("/admin/ops")
     await page.waitForLoadState("networkidle")
 
