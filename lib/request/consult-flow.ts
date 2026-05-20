@@ -9,7 +9,6 @@ export {
 } from "./consult-subtypes"
 
 const CONSULT_SUBTYPE_FIRST_STEPS: Record<ConsultSubtype, UnifiedStepId> = {
-  general: "consult-reason",
   ed: "ed-goals",
   hair_loss: "hair-loss-goals",
   womens_health: "womens-health-type",
@@ -92,7 +91,7 @@ const CONSULT_SUBTYPE_RESET_KEYS = [
 export function getConsultSubtypeFirstStep(subtype: unknown): UnifiedStepId {
   return isConsultSubtypeKey(subtype)
     ? CONSULT_SUBTYPE_FIRST_STEPS[subtype]
-    : CONSULT_SUBTYPE_FIRST_STEPS.general
+    : CONSULT_SUBTYPE_FIRST_STEPS.ed
 }
 
 export function getConsultSubtypeResetKeys(): readonly string[] {

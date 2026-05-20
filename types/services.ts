@@ -60,7 +60,6 @@ export type UnifiedStepId =
  * That is intentionally separate for clinical validation.
  */
 export type ConsultSubtype =
-  | 'general'
   | 'ed'
   | 'hair_loss'
   | 'womens_health'

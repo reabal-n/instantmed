@@ -1,125 +1,173 @@
-import type { Metadata } from 'next'
+import { AlertCircle, ArrowRight, Stethoscope } from "lucide-react"
+import type { Metadata } from "next"
+import Link from "next/link"
 
-import { ConsultChatMockup } from '@/components/marketing/mockups/consult-chat-mockup'
-import { ConsultGuideSection } from "@/components/marketing/sections/consult-guide-section"
-import { ServiceClaimSection } from '@/components/marketing/sections/service-claim-section'
-import { ServiceFunnelPage } from '@/components/marketing/service-funnel-page'
-import { BreadcrumbSchema, FAQSchema, HealthArticleSchema, HowToSchema, MedicalServiceSchema } from '@/components/seo/healthcare-schema'
-import { PRICING, PRICING_DISPLAY } from '@/lib/constants'
-import { getFeatureFlags } from '@/lib/feature-flags'
-import { generalConsultFunnelConfig } from '@/lib/marketing/service-funnel-configs'
+import { FaqCtaSection } from "@/components/marketing/sections/faq-cta-section"
+import { ServiceCards } from "@/components/marketing/service-cards"
+import {
+  BreadcrumbSchema,
+  FAQSchema,
+  HealthArticleSchema,
+  MedicalServiceSchema,
+} from "@/components/seo/healthcare-schema"
+import { Button } from "@/components/ui/button"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
-import { MedCertRedirectBanner } from './med-cert-redirect-banner'
+/**
+ * What replaced the old General Consult landing page.
+ *
+ * Background: General Consult was retired from the public service catalog
+ * on 2026-05-20 because it served as a back-channel for services we have
+ * explicitly gated (weight loss, women's health) and high-risk cases that
+ * async telehealth should not handle. Google Ads never targeted this
+ * route, so removal carries no acquisition cost.
+ *
+ * This page keeps the /consult URL alive so we don't lose the SEO surface
+ * for "online doctor" queries, but it now routes the visitor to one of
+ * the four structured services we actually accept.
+ */
 
-const consultFaqs = [
-  { question: "Will the doctor call me?", answer: "This is a form-first service. The doctor reviews your questionnaire and responds in writing with advice, a prescription, or a referral. We'll only interrupt you if something important is missing." },
-  { question: "Can I get a prescription from a consult?", answer: "Yes. If the doctor determines medication is clinically appropriate, they'll send an eScript to your phone. You can collect it at any pharmacy." },
-  { question: "What about referrals and pathology?", answer: "The doctor can provide referral letters and pathology requests if they believe further investigation is needed. These are included in your consultation fee." },
-  { question: "How is this different from a GP visit?", answer: "You get the same quality of care from an AHPRA-registered doctor - just without the waiting room. The main limitation is the doctor can't physically examine you, so some conditions may still need an in-person visit." },
-  { question: "What if my issue needs in-person care?", answer: "If the doctor determines your concern requires a physical examination, they'll let you know and recommend seeing a GP in person. You'll receive a full refund." },
-  { question: "What conditions can you treat online?", answer: "Skin conditions (with photos), UTIs, allergies, mental health concerns, medication reviews, minor infections, stable chronic conditions, and many more. If your concern requires physical examination, we'll let you know." },
-  { question: "Is my consultation private?", answer: "Doctor-patient confidentiality applies fully. Your health information is encrypted and never shared with employers, insurers, or third parties. Since this is a private service, nothing appears on your Medicare claims history." },
-  { question: "Can I send photos to the doctor?", answer: "Yes. For skin conditions, rashes, and other visual concerns, you can upload photos during the questionnaire. This helps the doctor make a more accurate assessment." },
-  { question: "How long does it take?", answer: "You can submit your form 24/7. The doctor reviews your questionnaire when available and responds in writing - no waiting on hold or scheduling a call." },
-  { question: "Do I need a Medicare card?", answer: "Medicare details are requested for identity verification and prescribing history, but this is a private service - no Medicare rebate is claimed and nothing appears on your Medicare statement." },
-  { question: "Can I get a medical certificate from a consult?", answer: "Yes. If during the consultation the doctor determines you're unfit for work, they can issue a medical certificate as part of your consultation - no additional fee." },
-  { question: "What about follow-up questions?", answer: "After your consultation, you can message the doctor with follow-up questions through our secure platform. This is included in your consultation fee." },
+const overviewFaqs = [
+  {
+    question: "Why don't you offer a general consult anymore?",
+    answer:
+      "We're a focused telehealth service. Structured intake for each condition lets a doctor decide faster and avoids the back-and-forth of an open-ended consult. If your concern doesn't fit one of the services below, your GP is the right next step.",
+  },
+  {
+    question: "What if my concern doesn't fit any of these?",
+    answer:
+      "See your regular GP. We don't currently offer general consultations, weight loss treatment, or women's health treatment. Sending you to the right person beats taking your money for something we can't help with.",
+  },
+  {
+    question: "Will the doctor call me?",
+    answer:
+      "Our services are form-first. The doctor reviews your questionnaire and responds in writing with a decision, a prescription, or a referral. We only interrupt you if something clinically important is missing.",
+  },
+  {
+    question: "Can I get a prescription online?",
+    answer:
+      "Yes, through the specific services above. Repeat Prescription for medication you already take. ED Assessment or Hair Loss Assessment for those conditions. Medical Certificate doesn't involve prescribing.",
+  },
+  {
+    question: "How is this different from a GP visit?",
+    answer:
+      "You get an AHPRA-registered doctor without the waiting room, for the conditions we treat. The doctor can't physically examine you, so concerns that need an exam still need a GP in person.",
+  },
+  {
+    question: "Is my information private?",
+    answer:
+      "Doctor-patient confidentiality applies fully. Health information is encrypted and never shared with employers, insurers, or third parties. This is a private service, so nothing appears on your Medicare statement.",
+  },
+  {
+    question: "How much does it cost?",
+    answer: `Medical certificates from ${PRICING_DISPLAY.MED_CERT}. Repeat prescriptions ${PRICING_DISPLAY.REPEAT_SCRIPT}. ED and hair loss assessments ${PRICING_DISPLAY.CONSULT}. Flat fee, no Medicare rebate, full refund if we can't help.`,
+  },
+  {
+    question: "What about referrals or pathology requests?",
+    answer:
+      "Not offered as a standalone service yet. If a referral or test is clinically appropriate during one of our active services, the doctor will include it at no extra charge.",
+  },
 ]
 
 export const metadata: Metadata = {
-  title: 'See a Doctor Online | No Waiting Room',
-  description: `Skip the waiting room. Fill out a form, an Australian doctor reviews it, and you get treatment advice, a prescription, or a referral. ${PRICING_DISPLAY.FROM_CONSULT}.`,
+  title: "Online Doctor Services | InstantMed",
+  description:
+    "See an Australian doctor online for medical certificates, repeat prescriptions, ED, or hair loss. Form-first review, no waiting room, AHPRA-registered.",
   openGraph: {
-    title: 'See a Doctor Online | No Waiting Room | InstantMed',
-    description: 'Skip the waiting room. Fill out a form, an Australian doctor reviews it, and you get treatment advice, a prescription, or a referral.',
-    type: 'website',
-    url: 'https://instantmed.com.au/consult',
+    title: "Online Doctor Services | InstantMed",
+    description:
+      "See an Australian doctor online for medical certificates, repeat prescriptions, ED, or hair loss. Form-first review, no waiting room.",
+    type: "website",
+    url: "https://instantmed.com.au/consult",
   },
   twitter: {
-    card: 'summary_large_image',
-    title: 'See a Doctor Online | No Waiting Room | InstantMed',
-    description: 'Skip the waiting room. Fill out a form, an Australian doctor reviews it, and you get treatment advice, a prescription, or a referral.',
+    card: "summary_large_image",
+    title: "Online Doctor Services | InstantMed",
+    description:
+      "See an Australian doctor online for medical certificates, repeat prescriptions, ED, or hair loss. Form-first review, no waiting room.",
   },
   alternates: {
-    canonical: 'https://instantmed.com.au/consult',
+    canonical: "https://instantmed.com.au/consult",
   },
 }
 
-interface ConsultPageProps {
-  searchParams: Promise<{ 
-    source?: string
-    reason?: string
-    intended_duration?: string 
-  }>
-}
-
-export default async function ConsultPage({ searchParams }: ConsultPageProps) {
-  const [params, flags] = await Promise.all([
-    searchParams,
-    getFeatureFlags(),
-  ])
-  const isFromMedCert = params.source === 'med_cert' && params.reason === 'extended_duration'
-  
+export default function ConsultOverviewPage() {
   return (
     <>
-      {/* SEO Structured Data */}
-      <BreadcrumbSchema 
+      <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://instantmed.com.au" },
-          { name: "Doctor Consultation", url: "https://instantmed.com.au/consult" }
-        ]} 
-      />
-      <MedicalServiceSchema
-        name="Online Doctor Consultation"
-        description="A proper doctor consult without the clinic visit. Australian doctors assess your health concerns and provide treatment advice."
-        price={PRICING.CONSULT.toFixed(2)}
-      />
-      <HowToSchema
-        name="How to Get an Online Doctor Consultation in Australia"
-        description="Consult with an AHPRA-registered doctor online. Get treatment advice, prescriptions, or referrals without visiting a clinic."
-        totalTime="PT120M"
-        estimatedCost={PRICING.CONSULT.toFixed(2)}
-        steps={[
-          {
-            name: "Describe your health concern",
-            text: "Tell us what you'd like to discuss with a doctor. Include your symptoms, how long you've had them, and any relevant medical history.",
-          },
-          {
-            name: "Provide your details",
-            text: "Enter your personal and Medicare details so the doctor can verify your identity and prescribe if needed.",
-          },
-          {
-            name: "Doctor reviews and responds",
-            text: "An AHPRA-registered doctor reviews your questionnaire and responds in writing with advice, a prescription, or a referral when clinically appropriate.",
-          },
+          { name: "Online Doctor Services", url: "https://instantmed.com.au/consult" },
         ]}
       />
-      <FAQSchema faqs={consultFaqs} />
+      <MedicalServiceSchema
+        name="Online Doctor Services"
+        description="Australian doctors review structured forms for medical certificates, repeat prescriptions, ED, and hair loss."
+        price="19.95"
+      />
+      <FAQSchema faqs={overviewFaqs} />
       <HealthArticleSchema
-        title="Online Doctor Consultation Australia"
-        description="Consult an AHPRA-registered Australian doctor online. Get treatment advice, prescriptions, or referrals without visiting a clinic."
+        title="Online Doctor Services in Australia"
+        description="See what we treat online: medical certificates, repeat prescriptions, ED, and hair loss. Form-first review by AHPRA-registered doctors."
         url="/consult"
       />
-      {/* Show contextual banner for med cert redirects */}
-      {isFromMedCert && <MedCertRedirectBanner />}
-      <ServiceFunnelPage
-        config={generalConsultFunnelConfig}
-        isDisabled={flags.disable_consults}
-        heroMockup={<ConsultChatMockup />}
-        claimSection={
-          <ServiceClaimSection
-            eyebrow="Same care, less of your wallet"
-            headline={
-              <>
-                <span className="text-primary tabular-nums">${PRICING.CONSULT.toFixed(2)}</span> GP consult. Typically $120+ at a clinic.
-              </>
-            }
-            body="Australian doctor, AHPRA-registered, full clinical assessment. The only thing missing is the waiting room and the gap fee."
-          />
-        }
-      >
-        <ConsultGuideSection />
-      </ServiceFunnelPage>
+
+      <section className="border-b border-border/40 bg-background pt-12 pb-8 sm:pt-16 lg:pt-20">
+        <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
+          <div className="mx-auto mb-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <Stethoscope className="h-5 w-5" aria-hidden="true" />
+          </div>
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+            See an Australian doctor online
+          </h1>
+          <p className="mt-3 text-base text-muted-foreground sm:text-lg">
+            We treat specific things, properly. Pick the service that fits and a doctor will respond in writing.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <Button asChild size="lg">
+              <Link href="/request">
+                Start a request
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link href="#services">See all services</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <div id="services">
+        <ServiceCards />
+      </div>
+
+      <section className="border-t border-border/40 bg-muted/20 py-12 sm:py-16">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+          <div className="rounded-2xl border border-border/60 bg-card p-6 sm:p-8">
+            <div className="flex items-start gap-4">
+              <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+                <AlertCircle className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">
+                  Not finding your concern?
+                </h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  We don't currently take general consults, weight loss treatment, or women's health treatment. We're a focused service, and we'd rather route you to the right care than charge for something we can't help with.
+                </p>
+                <p className="mt-3 text-sm text-foreground">
+                  For anything outside the services above, see your regular GP. If it's urgent, call your GP, after-hours service, or 000.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <FaqCtaSection
+        faqs={overviewFaqs}
+        subtitle="Everything about our online doctor services."
+      />
     </>
   )
 }

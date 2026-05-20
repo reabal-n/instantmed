@@ -748,7 +748,7 @@ Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_
 
 - **RUM**: `WebVitalsReporter` in `app/layout.tsx` fires `web_vital` events to PostHog. Build a PostHog Insight grouping by `$pathname` + `device_type` for p50/p75/p95.
 - **CI-Lab**: `@lhci/cli` on every push to `main` + every PR. Results retained 14 days as GH artifact.
-- **Synthetic**: GitHub Actions runs `e2e/prod-request-flow-synthetic.spec.ts` against `https://instantmed.com.au` every 5 minutes. It clicks the med-cert certificate type, duration, and start-date controls and smoke-checks repeat script, prescription, general consult, ED, and hair-loss request paths.
+- **Synthetic**: GitHub Actions runs `e2e/prod-request-flow-synthetic.spec.ts` against `https://instantmed.com.au` every 5 minutes. It clicks the med-cert certificate type, duration, and start-date controls and smoke-checks repeat script, prescription, ED, and hair-loss request paths.
 - **Error tracking**: Sentry captures + custom tags (see `lib/observability/sentry.ts`).
 
 ---

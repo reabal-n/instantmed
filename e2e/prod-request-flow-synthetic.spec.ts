@@ -61,8 +61,6 @@ test.describe("Production request-flow synthetic", () => {
   test("active request pathways render their first actionable step", async ({ page }) => {
     const pathways = [
       { path: "/request?service=repeat-script", text: /Which medication do you need/i },
-      { path: "/request?service=repeat-script", text: /Which medication do you need/i },
-      { path: "/request?service=consult&subtype=general", text: /What do you need help with/i },
       { path: "/request?service=consult&subtype=ed", text: /What matters most right now/i },
       { path: "/request?service=consult&subtype=hair_loss", text: /What's your main goal|Hair loss goal/i },
     ]

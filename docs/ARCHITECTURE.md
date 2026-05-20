@@ -876,7 +876,7 @@ Models in `lib/ai/provider.ts`. Routed through Vercel AI Gateway in production (
 | `/prescriptions` | Repeat medication landing (one-off eScript review workflow). Subscription language is dormant/future strategy unless reactivated in `docs/BUSINESS_PLAN.md`. |
 | `/erectile-dysfunction` | Bespoke ED specialty landing (`ErectileDysfunctionLanding`). Routes into `/request?service=consult&subtype=ed`. Form-first doctor review; doctor may call/message if clinically needed. Short URL `/ed` 301s here. |
 | `/hair-loss` | Bespoke hair loss specialty landing (`HairLossLanding`). Routes into `/request?service=consult&subtype=hair_loss`. Form-first doctor review; doctor may call/message if clinically needed. |
-| `/consult` | Canonical generic doctor-consult funnel (`ServiceFunnelPage` + 12 FAQs + HowToSchema). The `/general-consult` URL was retired in commit `542ae8119` as an SEO cannibalization fix and now 301s here. |
+| `/consult` | Services overview page (no intake funnel). General Consult was retired on 2026-05-20; the URL preserves the SEO surface for "online doctor" queries and routes visitors to the 4 active services (med-cert, repeat Rx, ED, hair loss). `/general-consult` 301s here. |
 | `/blog` | Doctor-reviewed, guide-only health articles (12h ISR revalidation) |
 | `/faq` | 34 FAQs across 7 categories |
 | `/contact` | Contact form → support@instantmed.com.au |

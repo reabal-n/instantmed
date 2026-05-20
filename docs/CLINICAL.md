@@ -9,18 +9,20 @@
 
 InstantMed is **not a broad online GP clinic** and **not a prescribing system**. It is a specialised-service intake, triage, and documentation platform that supports clinician decision-making. All prescribing decisions occur outside the platform.
 
-**Active service scope (2026-05-01):**
+**Active service scope (2026-05-20):**
 
 - medical certificates
 - repeat prescriptions
 - hair loss
 - erectile dysfunction
-- general consult fallback
 
-**Gated future scope:** women's health and weight loss have reserved intake
-subtypes and draft step definitions, but they are not currently accepting paid
-requests. Entry and server checkout validation are blocked by
-`lib/request/consult-subtypes.ts` until launch readiness is explicitly changed.
+**Retired/gated future scope:** general consult was retired on 2026-05-20
+because it served as a back-channel for gated services with no structured
+screener. Women's health and weight loss have reserved intake subtypes and
+draft step definitions, but they are not currently accepting paid requests.
+Entry and server checkout validation are blocked by
+`lib/request/consult-subtypes.ts` (BLOCKED_CONSULT_SUBTYPES) until launch
+readiness is explicitly changed.
 
 General consults remain a fallback pathway, not the primary business positioning.
 

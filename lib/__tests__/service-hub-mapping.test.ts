@@ -133,7 +133,10 @@ describe("service catalog hub routing", () => {
       .filter((service) => typeof service.subtype !== "string" || service.subtype.length === 0)
       .map((service) => service.id)
 
-    expect(consultServices.map((service) => service.id)).toContain("general-consult")
+    // General Consult was retired on 2026-05-20. ED and Hair Loss are the
+    // only consult-route services. Both have explicit subtypes.
+    expect(consultServices.map((service) => service.id)).not.toContain("general-consult")
+    expect(consultServices.map((service) => service.id).sort()).toEqual(["ed", "hair-loss"])
     expect(servicesMissingSubtype).toEqual([])
   })
 

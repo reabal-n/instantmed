@@ -20,7 +20,6 @@ import { cn } from "@/lib/utils"
 export const services: Array<{ serviceId: ServiceId; title: string; href: string; description: string; iconKey: string; color: string; badge?: string }> = [
   { serviceId: "med-cert", title: "Medical Certificates", href: "/medical-certificate", description: "Work, uni & carer's leave",       iconKey: "FileText",    color: "emerald" },
   { serviceId: "scripts",  title: "Repeat Medication",    href: "/prescriptions",         description: "Medications you already take", iconKey: "Pill",         color: "cyan"    },
-  { serviceId: "consult",  title: "General Consult",      href: "/consult",               description: "Talk to a GP online",          iconKey: "Stethoscope", color: "sky"     },
   { serviceId: "consult",  title: "ED Assessment",        href: "/erectile-dysfunction",  description: "Discreet form-first review",  iconKey: "Lightning",    color: "blue",   badge: "Popular" },
   { serviceId: "consult",  title: "Hair Loss Assessment", href: "/hair-loss",             description: "Doctor-reviewed assessment", iconKey: "Sparkles",  color: "amber"   },
 ]
@@ -38,7 +37,6 @@ export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
   const isServiceActive =
     isActivePath("/medical-certificate") ||
     isActivePath("/prescriptions") ||
-    isActivePath("/consult") ||
     isActivePath("/erectile-dysfunction") ||
     isActivePath("/hair-loss")
 

@@ -8,7 +8,9 @@ import { waitForPageLoad } from "./helpers/test-utils"
  * Exercises every step of each intake type from start to the checkout screen:
  *   1. Medical Certificate  (med-cert)
  *   2. Repeat Prescription  (prescription / repeat-script)
- *   3. General Consultation (consult&subtype=general)
+ *
+ * ED and Hair Loss have dedicated specs. General Consult was retired
+ * on 2026-05-20.
  *
  * These tests run as a guest (no auth) and stop at the Stripe redirect
  * because we can't complete payment in tests. The goal is to prove every
@@ -301,56 +303,6 @@ async function completeMedicationSearchStep(page: Page) {
   await page.waitForTimeout(500)
 }
 
-/**
- * Complete the consult reason step.
- *
- * When subtype is pre-selected via URL params (e.g., ?subtype=general),
- * the store's `consultSubtype` is set via useEffect on mount. The
- * consult-reason-step then maps it to `consultCategory` via another
- * useEffect. This requires two render cycles, so we wait for the
- * "Consultation type" label to appear.
- *
- * If the subtype race condition causes the category grid to show instead,
- * we fall back to selecting from the grid.
- */
-async function completeConsultReasonStep(page: Page, opts?: { subtype?: string }) {
-  // Wait for the step to render (either path)
-  await page.waitForTimeout(500) // allow useEffect to set consultSubtype
-
-  // Check which version of the step we got
-  const hasGrid = await page.getByText(/What would you like help with/i).isVisible({ timeout: 2000 }).catch(() => false)
-  const hasPreSelected = await page.getByText(/Consultation type/i).isVisible({ timeout: 1000 }).catch(() => false)
-
-  if (hasPreSelected) {
-    // Subtype was pre-selected - just verify it shows correctly
-    const subtypeLabel = opts?.subtype === "general" ? "General consultation" : opts?.subtype || "General consultation"
-    await expect(page.getByText(subtypeLabel).first()).toBeVisible()
-  } else if (hasGrid) {
-    // Category grid is shown - select from it
-    // Button names include emoji: "🩺General consultation", "🔵Erectile dysfunction", etc.
-    const categoryLabel = opts?.subtype === "ed" ? /Erectile dysfunction/i
-      : opts?.subtype === "hair_loss" ? /Hair loss/i
-      : opts?.subtype === "weight_loss" ? /Weight loss/i
-      : opts?.subtype === "womens_health" ? /Women.*health/i
-      : /General consultation/i
-    await page.getByRole("button", { name: categoryLabel }).click()
-  }
-
-  // Fill in details (min 20 chars)
-  await fillTextarea(page,
-    "I have been experiencing persistent lower back pain for the last two weeks and would like to discuss treatment options and possible referrals."
-  )
-
-  // Urgency selection
-  await clickChip(page, /Routine/i)
-
-  // Wait for React state to settle before clicking Continue
-  await page.waitForTimeout(500)
-  await clickContinue(page)
-  // Wait for navigation animation
-  await page.waitForTimeout(500)
-}
-
 // ---------------------------------------------------------------------------
 // 1 · MEDICAL CERTIFICATE - Full Flow
 // ---------------------------------------------------------------------------
@@ -510,44 +462,14 @@ test.describe("Intake: Repeat Prescription - full flow", () => {
 })
 
 // ---------------------------------------------------------------------------
-// 3 · GENERAL CONSULTATION - Full Flow
+// 3 · CONSULTATION (no subtype) - Service Hub Redirect
+//
+// General Consult was retired on 2026-05-20 so the full-flow test that
+// used to live here was removed. ED and Hair Loss are the only consult
+// subtypes; their flows live in their own describe blocks.
 // ---------------------------------------------------------------------------
 
-test.describe("Intake: General Consultation - full flow", () => {
-  test("completes general consult from start to checkout", async ({ page }) => {
-    // Navigate to general consultation flow (subtype pre-selected from hub)
-    await page.goto("/request?service=consult&subtype=general")
-    await waitForPageLoad(page)
-    await dismissOverlays(page)
-
-    // ── Step 1: Consult reason ──
-    // The subtype is set via useEffect which may cause the category grid
-    // to briefly appear before the pre-selected label shows.
-    // Our helper handles both paths gracefully.
-    await completeConsultReasonStep(page, { subtype: "general" })
-
-    // ── Step 2: Medical history ──
-    await completeMedicalHistoryStep(page)
-
-    // ── Step 3: Patient details ──
-    await completeDetailsStep(page, { needsPhone: true })
-
-    // ── Step 4: Safety step ──
-    await completeSafetyStep(page)
-
-    // ── Step 5: Review ──
-    await completeReviewStep(page)
-
-    // ── Step 6: Checkout ──
-    await verifyCheckoutStep(page)
-  })
-})
-
-// ---------------------------------------------------------------------------
-// 4 · CONSULTATION (no subtype) - Category Selection Flow
-// ---------------------------------------------------------------------------
-
-test.describe("Intake: Consultation without subtype - category selection", () => {
+test.describe("Intake: Consultation without subtype - service hub", () => {
   test("shows service hub when no subtype is pre-selected", async ({ page }) => {
     // Navigating to /request?service=consult WITHOUT a subtype now redirects to
     // the service hub (request-flow.tsx line 428). The old category-grid step
@@ -559,11 +481,10 @@ test.describe("Intake: Consultation without subtype - category selection", () =>
     // Service hub heading should be visible
     await expect(page.getByText(/What brings you in today/i).first()).toBeVisible({ timeout: 10000 })
 
-    // All active services should appear
+    // All active services should appear (General Consult retired 2026-05-20)
     await expect(page.getByText(/Medical certificate/i).first()).toBeVisible()
     await expect(page.getByText(/Erectile dysfunction/i).first()).toBeVisible()
     await expect(page.getByText(/Hair loss/i).first()).toBeVisible()
-    await expect(page.getByText(/General consultation/i).first()).toBeVisible()
   })
 })
 

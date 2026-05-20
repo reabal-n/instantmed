@@ -96,25 +96,6 @@ export const serviceCategories = [
     ],
   },
   {
-    id: "consult",
-    slug: "consult",
-    title: "General Consult",
-    shortTitle: "Consult",
-    benefitQuestion: "Need to talk to a doctor?",
-    description: "A full clinical assessment with an AHPRA-registered doctor. No appointment, no waiting room.",
-    icon: "Stethoscope",
-    color: "sky",
-    priceFrom: 49.95,
-    href: "/consult",
-    popular: false,
-    cta: "Start your consult",
-    benefits: [
-      "Full clinical assessment by a real doctor",
-      "Medication and referrals if needed",
-      "Full refund if we can't help",
-    ],
-  },
-  {
     id: "ed",
     slug: "erectile-dysfunction",
     title: "ED Assessment",
@@ -312,7 +293,6 @@ export const footerLinks = {
   services: [
     { label: "Medical Certificates", href: "/medical-certificate" },
     { label: "Repeat Prescriptions", href: "/prescriptions" },
-    { label: "General Consult", href: "/consult" },
     { label: "ED Assessment", href: "/erectile-dysfunction" },
     { label: "Hair Loss Assessment", href: "/hair-loss" },
   ],

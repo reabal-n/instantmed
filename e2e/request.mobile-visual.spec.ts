@@ -3,7 +3,6 @@ import { expect, type Page, test } from "@playwright/test"
 const MOBILE_FLOWS = [
   { label: "Medical certificate", url: "/request?service=med-cert" },
   { label: "Repeat script", url: "/request?service=repeat-script" },
-  { label: "General consult", url: "/request?service=consult&subtype=general" },
   { label: "ED consult", url: "/request?service=consult&subtype=ed" },
   { label: "Hair loss consult", url: "/request?service=consult&subtype=hair_loss" },
 ] as const

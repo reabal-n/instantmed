@@ -246,19 +246,6 @@ const CONSULT_COMMON_TAIL: StepDefinition[] = [
 
 // Consult subtype-specific step sequences
 const CONSULT_SUBTYPE_STEPS: Record<ConsultSubtype, StepDefinition[]> = {
-  // General and new_medication use existing consult-reason step
-  general: [
-    {
-      id: 'consult-reason',
-      label: 'Your concern',
-      shortLabel: 'Concern',
-      componentPath: 'consult-reason-step',
-      validateFn: 'validateConsultReasonStep',
-      required: true,
-    },
-    ...CONSULT_COMMON_TAIL,
-  ],
-  
   ed: [
     {
       id: 'ed-goals',

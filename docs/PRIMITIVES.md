@@ -121,7 +121,7 @@ Full-page configuration objects for the generic service funnel template (`servic
 
 Type: `ServiceFunnelConfig` (from `components/marketing/funnel/funnel-types.ts`).
 
-**Note:** Specialty landing pages (med-cert, ED, hair loss) use custom layouts, not the funnel template. The funnel template is for prescriptions and general consults.
+**Note:** Specialty landing pages (med-cert, ED, hair loss) use custom layouts, not the funnel template. The funnel template was previously used for general consults; that route now renders a services overview page instead.
 
 ---
 

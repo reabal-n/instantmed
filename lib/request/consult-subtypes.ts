@@ -12,7 +12,6 @@ export const BLOCKED_CONSULT_SUBTYPES: ReadonlySet<ConsultSubtype> = new Set([
 ])
 
 export const CONSULT_SUBTYPE_LABELS: Record<ConsultSubtype, string> = {
-  general: "General consultation",
   ed: "Erectile dysfunction",
   hair_loss: "Hair loss treatment",
   womens_health: "Women's health",
@@ -21,7 +20,6 @@ export const CONSULT_SUBTYPE_LABELS: Record<ConsultSubtype, string> = {
 
 export function isConsultSubtypeKey(value: unknown): value is ConsultSubtype {
   return (
-    value === "general" ||
     value === "ed" ||
     value === "hair_loss" ||
     value === "womens_health" ||

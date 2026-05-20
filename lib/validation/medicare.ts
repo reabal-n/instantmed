@@ -130,7 +130,6 @@ export function validateIHI(ihi: string): {
  */
 export const SERVICES_REQUIRING_MEDICARE = [
   "repeat-prescription",
-  "general-consult",
 ] as const
 
 export const SERVICES_NOT_REQUIRING_MEDICARE = [

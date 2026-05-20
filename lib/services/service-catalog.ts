@@ -23,7 +23,6 @@ export type CanonicalServiceId =
   | "repeat-rx"
   | "ed"
   | "hair-loss"
-  | "general-consult"
   | "womens-health"
   | "weight-loss"
 
@@ -134,19 +133,6 @@ export const SERVICE_CATALOG: Record<CanonicalServiceId, ServiceDef> = {
     colorToken: "amber", // was 'violet'; fixed per audit C1/C2
     serviceRoute: "consult",
     subtype: "hair_loss",
-  },
-  "general-consult": {
-    id: "general-consult",
-    title: "General consultation",
-    subtitle: "Manual review for other concerns",
-    slug: "consult",
-    price: PRICING_DISPLAY.CONSULT,
-    priceFrom: 49.95,
-    effort: "~5 min",
-    iconKey: "Stethoscope",
-    colorToken: "sky",
-    serviceRoute: "consult",
-    subtype: "general",
   },
   "womens-health": {
     id: "womens-health",
