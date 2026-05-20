@@ -7,6 +7,7 @@ export {
   QuickFilterChip,
   StatusDot,
 } from "./cases"
+export { CounterCard, type CounterCardTone } from "./counter-card"
 export {
   OperatorPage,
   OperatorPageHeader,
