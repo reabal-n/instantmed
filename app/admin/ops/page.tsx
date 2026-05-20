@@ -33,16 +33,19 @@ function isNonActionableParchmentSandboxError(row: AuditRow): boolean {
   )
 }
 
-function helperTextForPayment(count: number, refundFailedCount: number): string {
+// Counter buckets that merge two source categories (Payment = checkout +
+// refund_failures, Parchment unsynced = prescription_delivery + stale_scripts)
+// must not show a sub-count in the helper line. The big number is the story;
+// the click-through to the ledger or workshop shows the split. Showing one
+// sub-count makes the operator wonder what the other rows are.
+function helperTextForPayment(count: number): string {
   if (count === 0) return "All clear"
-  if (refundFailedCount > 0) return `${refundFailedCount} refund failed`
   return `${count} to resolve`
 }
 
-function helperTextForParchment(count: number, staleCount: number): string {
+function helperTextForParchment(count: number): string {
   if (count === 0) return "All clear"
-  if (staleCount > 0) return `${staleCount} stale`
-  return "Action needed"
+  return `${count} to resolve`
 }
 
 function helperTextForIdentity(count: number): string {
@@ -163,7 +166,7 @@ export default async function OpsDashboardPage() {
     paymentFailures: {
       count: paymentFailuresCount,
       tone: paymentFailuresCount > 0 ? "critical" : "neutral",
-      helperText: helperTextForPayment(paymentFailuresCount, refundFailedCount),
+      helperText: helperTextForPayment(paymentFailuresCount),
       href: buildStaffLedgerHref({}),
     },
     webhookDlq: {
@@ -175,7 +178,7 @@ export default async function OpsDashboardPage() {
     parchmentUnsynced: {
       count: parchmentUnsyncedCount,
       tone: parchmentUnsyncedCount > 0 ? "warning" : "neutral",
-      helperText: helperTextForParchment(parchmentUnsyncedCount, staleScriptCount),
+      helperText: helperTextForParchment(parchmentUnsyncedCount),
       href: ADMIN_PARCHMENT_OPS_HREF,
     },
     missingIdentity: {
