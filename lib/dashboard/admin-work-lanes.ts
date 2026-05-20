@@ -92,13 +92,3 @@ export function matchesAdminStatusFilter(
 ): boolean {
   return filterValue === "all" || status === filterValue
 }
-
-export function compareAdminWorkItems<T extends { status: string; created_at: string }>(
-  a: T,
-  b: T,
-): number {
-  const priorityDelta =
-    (ADMIN_STATUS_PRIORITY[a.status] ?? 99) - (ADMIN_STATUS_PRIORITY[b.status] ?? 99)
-  if (priorityDelta !== 0) return priorityDelta
-  return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-}

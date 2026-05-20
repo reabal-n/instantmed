@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest"
 import {
   ADMIN_INTAKE_STATUS_FILTER_OPTIONS,
   ADMIN_WORK_LANE_FILTER_OPTIONS,
-  compareAdminWorkItems,
   getAdminWorkLaneForStatus,
   matchesAdminStatusFilter,
   matchesAdminWorkLaneFilter,
@@ -55,19 +54,5 @@ describe("admin work lanes", () => {
     expect(matchesAdminStatusFilter("pending_info", "pending_info")).toBe(true)
     expect(matchesAdminStatusFilter("paid", "all")).toBe(true)
     expect(matchesAdminStatusFilter("paid", "completed")).toBe(false)
-  })
-
-  it("keeps urgent clinical/admin work above old completed history", () => {
-    const ordered = [
-      { status: "completed", created_at: "2026-05-05T00:00:00.000Z" },
-      { status: "awaiting_script", created_at: "2026-05-04T00:00:00.000Z" },
-      { status: "pending_info", created_at: "2026-05-06T00:00:00.000Z" },
-    ].sort(compareAdminWorkItems)
-
-    expect(ordered.map((item) => item.status)).toEqual([
-      "awaiting_script",
-      "pending_info",
-      "completed",
-    ])
   })
 })
