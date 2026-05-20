@@ -37,7 +37,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { TypedConfirmDialog } from "@/components/ui/typed-confirm-dialog"
 import { STAFF_DOCTOR_PATIENTS_HREF, STAFF_IDENTITY_HREF } from "@/lib/dashboard/routes"
 import { buildPatientSnapshot } from "@/lib/doctor/patient-snapshot"
-import { formatDate, formatDateLong } from "@/lib/format"
 import { formatIntakeStatus } from "@/lib/format/intake"
 import type { Profile } from "@/types/db"
 
@@ -483,7 +482,15 @@ export function PatientDetailClient({
             </span>
           </div>
         ) : null}
-        <dl className="grid gap-x-6 gap-y-3 p-4 text-sm sm:grid-cols-2 xl:grid-cols-3">
+        {/*
+          2-row identity grid (compressed 2026-05-21).
+          Row 1: Email + Phone. Row 2: Address + Medicare.
+          DOB is shown in the identity strip header (line ~337); Member
+          since was dropped because it doesn't earn its place above the
+          clinical timeline. Saves ~120px of vertical above the timeline
+          on the longest operator page.
+        */}
+        <dl className="grid gap-x-6 gap-y-3 p-4 text-sm sm:grid-cols-2">
           <div className="flex items-start gap-2 min-w-0">
             <Mail className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
             <div className="min-w-0">
@@ -511,12 +518,6 @@ export function PatientDetailClient({
             </div>
           </div>
           <div className="min-w-0">
-            <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">DOB</dt>
-            <dd className="text-sm tabular-nums">
-              {patient.date_of_birth ? formatDateLong(patient.date_of_birth) : "Not collected"}
-            </dd>
-          </div>
-          <div className="min-w-0">
             <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Medicare</dt>
             <dd className="font-mono text-sm tabular-nums">
               {snapshot.medicare.present ? snapshot.medicare.label : "Not collected"}
@@ -524,10 +525,6 @@ export function PatientDetailClient({
             {snapshot.medicare.detailsLabel ? (
               <p className="text-[11px] text-muted-foreground">{snapshot.medicare.detailsLabel}</p>
             ) : null}
-          </div>
-          <div className="min-w-0">
-            <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Member since</dt>
-            <dd className="text-sm tabular-nums">{formatDate(patient.created_at)}</dd>
           </div>
         </dl>
       </div>
