@@ -31,7 +31,8 @@ describe("support nav contract", () => {
   it("does not include any clinical entry points in the support nav", () => {
     const labels = allLabels(supportNavSections)
     // Support is non-clinical operations only; these clinical labels must
-    // never appear here.
+    // never appear here. The shared "Requests" label is allowed (Phase 8,
+    // refund-only access — page itself returns only ledger metadata).
     expect(labels).not.toContain("Queue")
     expect(labels).not.toContain("Review queue")
     expect(labels).not.toContain("Review")
@@ -69,24 +70,26 @@ describe("support nav contract", () => {
 
   it("does not link to PHI-heavy admin surfaces", () => {
     const hrefs = allHrefs(supportNavSections)
-    // The full patient directory shows un-redacted names; support must not
-    // be routed there even as a misleading link. Phase 4 of dashboard
-    // remaster collapsed `/admin/patients/[id]` to a redirect to the
-    // doctor profile (which has its own role gate), so even if the link
-    // existed it would fail closed, but we want the nav to match the
-    // access boundary.
+    // The full patient directory shows un-redacted names + clinical history;
+    // support is never routed there. Phase 8 (2026-05-20) opened the intake
+    // ledger to support so they can process refund tickets, but the ledger
+    // shows only payment/refund metadata (no clinical answers, Medicare, or
+    // address fields) — the PHI gate stays on the intake detail page.
     expect(hrefs).not.toContain("/admin/patients")
-    expect(hrefs).not.toContain("/admin/intakes")
     expect(hrefs).not.toContain("/admin/analytics")
     expect(hrefs).not.toContain("/admin/finance")
     expect(hrefs).not.toContain("/admin/doctors")
     expect(hrefs).not.toContain("/dashboard")
+    expect(hrefs).not.toContain("/admin/emails/hub")
+    expect(hrefs).not.toContain("/admin/settings")
   })
 
-  it("keeps support nav as one bounded operations entrypoint", () => {
+  it("keeps support nav scoped to the refund + recovery surfaces", () => {
     const hrefs = allHrefs(supportNavSections)
-    expect(hrefs).toEqual(["/admin/ops"])
+    // Phase 7: bounded ops cockpit. Phase 8 (2026-05-20): refund ledger.
+    expect(hrefs).toEqual(["/admin/ops", "/admin/intakes"])
     expect(hrefs).toContain("/admin/ops")
+    expect(hrefs).toContain("/admin/intakes")
     expect(hrefs).not.toContain("/admin/ops/prescribing-identity")
     expect(hrefs).not.toContain("/admin/webhook-dlq")
     expect(hrefs).not.toContain("/admin/ops/parchment")
@@ -120,7 +123,6 @@ describe("support nav contract", () => {
     const adminOnlySources = [
       "app/admin/emails/hub/page.tsx",
       "app/admin/settings/page.tsx",
-      "app/admin/intakes/page.tsx",
       "app/admin/patients/page.tsx",
       "app/admin/finance/page.tsx",
       "app/admin/analytics/page.tsx",
@@ -128,6 +130,12 @@ describe("support nav contract", () => {
 
     expect(adminOnlySources).toContain('requireRole(["admin"]')
     expect(adminOnlySources).not.toContain('requireRole(["admin", "support"]')
+
+    // Phase 8 (2026-05-20): the intake ledger is the one historically
+    // admin-only page that opened to support so they can work refund
+    // tickets. PHI stays gated on the intake detail page.
+    const ledgerSource = readFileSync(join(root, "app/admin/intakes/page.tsx"), "utf8")
+    expect(ledgerSource).toContain('requireRole(["admin", "support"]')
   })
 
   it("keeps support ops views masked and payload-redacted", () => {

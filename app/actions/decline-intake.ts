@@ -29,10 +29,8 @@ import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import {
-  FULL_REFUND_CATEGORIES,
-  PARTIAL_REFUND_CATEGORIES,
-  PARTIAL_REFUND_PERCENT,
   processRefund,
+  REFUND_ON_DECLINE_CATEGORIES,
 } from "./decline-refund"
 
 // Split modules: import directly from ./decline-bulk and ./decline-refund.
@@ -210,9 +208,7 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
 
     const isPaid = intake.payment_status === "paid"
     const category = intake.category || ""
-    const isFullRefund = FULL_REFUND_CATEGORIES.includes(category)
-    const isPartialRefund = PARTIAL_REFUND_CATEGORIES.includes(category)
-    const isEligible = isFullRefund || isPartialRefund
+    const isEligible = REFUND_ON_DECLINE_CATEGORIES.includes(category)
     const isE2E = process.env.E2E_MODE === "true" || process.env.PLAYWRIGHT === "1"
 
     if (isPaid && isEligible && !skipRefund) {
@@ -230,11 +226,9 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
 
         logger.info("[Decline] Refund skipped (E2E mode)", { intakeId })
       } else {
-        // Process real refund - full for med cert/Rx, 50% for consults
-        const refundAmountCents = isPartialRefund && intake.amount_cents
-          ? Math.floor(intake.amount_cents * PARTIAL_REFUND_PERCENT)
-          : undefined // undefined = full refund
-        refundResult = await processRefund(intakeId, intake, actorId, timestamp, refundAmountCents)
+        // Always full refund (no partial) - consult policy was changed
+        // on 2026-05-20 after operator feedback. See decline-refund.ts.
+        refundResult = await processRefund(intakeId, intake, actorId, timestamp)
       }
     } else if (isPaid && !isEligible) {
       refundResult = { status: "not_eligible" }

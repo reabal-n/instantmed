@@ -9,6 +9,7 @@ import {
   Mail,
   Pill,
   ReceiptText,
+  RotateCcw,
   Server,
   Webhook,
 } from "lucide-react"
@@ -20,6 +21,7 @@ import {
   ADMIN_PATIENT_MERGE_AUDIT_HREF,
   ADMIN_PRESCRIBING_IDENTITY_HREF,
   STAFF_DASHBOARD_HREF,
+  STAFF_LEDGER_HREF,
 } from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 
@@ -130,6 +132,21 @@ interface OpsData {
       occurredAt: string
       href: string
       severity: "critical" | "warning"
+    }>
+  }
+  recentRefunds: {
+    last24hCount: number
+    failedCount: number
+    recent: Array<{
+      intakeId: string
+      intakeRef: string
+      amountFormatted: string
+      paymentStatus: "refunded" | "partially_refunded"
+      refundStatus: string | null
+      occurredAt: string
+      patientName: string | null
+      actorName: string | null
+      href: string
     }>
   }
   systemStatus: {
@@ -258,9 +275,23 @@ function RecoveryLink({ category }: { category: FailureCategory }) {
   )
 }
 
+function formatRefundTime(iso: string): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  const diffMs = Date.now() - d.getTime()
+  const diffMin = Math.round(diffMs / 60000)
+  if (diffMin < 1) return "just now"
+  if (diffMin < 60) return `${diffMin}m ago`
+  const diffHr = Math.round(diffMin / 60)
+  if (diffHr < 24) return `${diffHr}h ago`
+  const diffDay = Math.round(diffHr / 24)
+  return `${diffDay}d ago`
+}
+
 export function OpsDashboardClient({ ops, supportMode = false }: OpsDashboardClientProps) {
   const {
     failureOverview,
+    recentRefunds,
     stripePriceConfig,
     systemStatus,
   } = ops
@@ -403,6 +434,57 @@ export function OpsDashboardClient({ ops, supportMode = false }: OpsDashboardCli
               </details>
             )}
           </div>
+        </section>
+
+        <section className="rounded-xl border border-border/50 bg-card p-5 shadow-sm shadow-primary/[0.04]">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <RotateCcw className="h-5 w-5 text-muted-foreground" />
+                <h2 className="text-base font-semibold text-foreground">Refunds</h2>
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {recentRefunds.last24hCount === 0
+                  ? "No refunds in the last 24 hours."
+                  : `${recentRefunds.last24hCount} refund${recentRefunds.last24hCount === 1 ? "" : "s"} processed in the last 24 hours${recentRefunds.failedCount > 0 ? ` · ${recentRefunds.failedCount} failed` : ""}.`}
+              </p>
+            </div>
+            <Button asChild variant="outline" size="sm">
+              <Link href={`${STAFF_LEDGER_HREF}?chips=refunded`}>
+                See all refunds
+                <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+              </Link>
+            </Button>
+          </div>
+          {recentRefunds.recent.length > 0 ? (
+            <ul className="mt-4 divide-y divide-border/50 rounded-lg border border-border/50">
+              {recentRefunds.recent.map((r) => {
+                const tone = r.refundStatus === "failed"
+                  ? "text-red-600 dark:text-red-400"
+                  : r.paymentStatus === "partially_refunded"
+                    ? "text-amber-600 dark:text-amber-400"
+                    : "text-emerald-600 dark:text-emerald-400"
+                const label = r.refundStatus === "failed"
+                  ? "Failed"
+                  : r.paymentStatus === "partially_refunded"
+                    ? "Partial"
+                    : "Refunded"
+                return (
+                  <li key={`${r.intakeId}-${r.occurredAt}`} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
+                    <Link href={r.href} className="flex min-w-0 flex-1 items-center gap-3 hover:underline">
+                      <span className="font-mono text-[11px] text-muted-foreground">{r.intakeRef}</span>
+                      <span className="truncate text-foreground">{r.patientName || "Unknown patient"}</span>
+                    </Link>
+                    <div className="flex items-center gap-3 text-xs">
+                      <span className="tabular-nums text-foreground">{r.amountFormatted}</span>
+                      <span className={cn("font-medium", tone)}>{label}</span>
+                      <span className="tabular-nums text-muted-foreground">{formatRefundTime(r.occurredAt)}</span>
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          ) : null}
         </section>
       </OperatorScrollArea>
     </OperatorPage>

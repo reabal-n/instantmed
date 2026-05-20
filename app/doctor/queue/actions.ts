@@ -13,6 +13,7 @@ import {
   describeServiceCapability,
   doctorCanReviewService,
   hasAdminAccess,
+  hasSupportAccess,
 } from "@/lib/auth/staff-capabilities"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { IntakeLifecycleError } from "@/lib/data/intake-lifecycle"
@@ -708,17 +709,66 @@ export async function getDeclineReasonTemplatesAction(): Promise<{
 }
 
 /**
- * Issue a standalone Stripe refund for any paid intake.
- * Separate from the decline flow - works on any paid request regardless of status.
+ * Issue a standalone Stripe refund for any paid intake. Separate from the
+ * decline flow; works regardless of intake status. Aware of partial refunds
+ * so it can top up to full when called on a `partially_refunded` intake
+ * (e.g. customer escalates after a historical partial).
+ *
+ * Role gating:
+ * - admin: unrestricted
+ * - doctor: unrestricted (existing behaviour)
+ * - support: capped at $100/refund and 3 refunds per rolling 24h. Above
+ *   either limit, the action returns an error.
  */
+const SUPPORT_REFUND_CAP_CENTS = 10_000 // $100
+const SUPPORT_REFUND_MAX_PER_24H = 3
+
+async function checkSupportRefundLimits(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  profileId: string,
+  refundAmountCents: number,
+): Promise<{ allowed: true } | { allowed: false; error: string }> {
+  if (refundAmountCents > SUPPORT_REFUND_CAP_CENTS) {
+    return {
+      allowed: false,
+      error: `Support refunds are capped at $${(SUPPORT_REFUND_CAP_CENTS / 100).toFixed(2)} per request (this one is $${(refundAmountCents / 100).toFixed(2)}). Ask an admin to process it.`,
+    }
+  }
+
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const { count, error } = await supabase
+    .from("intakes")
+    .select("id", { count: "exact", head: true })
+    .eq("refunded_by", profileId)
+    .gte("refunded_at", since)
+
+  if (error) {
+    logger.warn("[IssueRefund] Failed to count recent refunds", { profileId, error: error.message })
+    // Fail closed: if we can't verify the rate limit, deny the action.
+    return {
+      allowed: false,
+      error: "Could not verify your refund quota right now. Try again in a moment or ask an admin.",
+    }
+  }
+
+  if ((count ?? 0) >= SUPPORT_REFUND_MAX_PER_24H) {
+    return {
+      allowed: false,
+      error: `You've issued ${count} refunds in the last 24h (limit ${SUPPORT_REFUND_MAX_PER_24H}). Ask an admin or wait until the limit resets.`,
+    }
+  }
+
+  return { allowed: true }
+}
+
 export async function issueRefundAction(
   intakeId: string,
-): Promise<{ success: boolean; error?: string; refundId?: string; amount?: number }> {
+): Promise<{ success: boolean; error?: string; refundId?: string; amount?: number; totalRefunded?: number }> {
   if (!isValidUUID(intakeId)) {
     return { success: false, error: "Invalid intake ID" }
   }
 
-  const { profile } = await requireRole(["doctor", "admin"])
+  const { profile } = await requireRole(["doctor", "admin", "support"])
   if (!profile) {
     return { success: false, error: "Unauthorized" }
   }
@@ -727,7 +777,6 @@ export async function issueRefundAction(
   Sentry.setTag("intake_id", intakeId)
 
   try {
-    const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
     const supabase = createServiceRoleClient()
     const timestamp = new Date().toISOString()
 
@@ -742,6 +791,7 @@ export async function issueRefundAction(
         payment_id,
         stripe_payment_intent_id,
         amount_cents,
+        refund_amount_cents,
         patient_id,
         patient:profiles!patient_id (
           id,
@@ -756,11 +806,32 @@ export async function issueRefundAction(
       return { success: false, error: "Request not found" }
     }
 
-    // Guard: only refund requests with payment_status "paid".
-    // Once refunded, payment_status becomes "refunded" - this naturally prevents re-runs.
-    // Stripe idempotency key is a secondary backstop.
-    if (intake.payment_status !== "paid") {
-      return { success: false, error: "Refund can only be issued for paid requests" }
+    // Refundable from `paid` (full original) or `partially_refunded` (top-up to full).
+    // Anything else (refunded, unpaid, failed, disputed) is terminal for this flow.
+    const refundable = intake.payment_status === "paid" || intake.payment_status === "partially_refunded"
+    if (!refundable) {
+      return {
+        success: false,
+        error: intake.payment_status === "refunded"
+          ? "This request has already been fully refunded."
+          : `Refund is not available for payment status '${intake.payment_status}'.`,
+      }
+    }
+
+    const paidCents = intake.amount_cents ?? 0
+    const alreadyRefundedCents = intake.refund_amount_cents ?? 0
+    const remainingCents = Math.max(paidCents - alreadyRefundedCents, 0)
+
+    if (remainingCents <= 0) {
+      return { success: false, error: "Nothing left to refund on this request." }
+    }
+
+    // Support-role guardrails: cap per refund + rolling 24h count.
+    if (hasSupportAccess(profile) && !hasAdminAccess(profile)) {
+      const limit = await checkSupportRefundLimits(supabase, profile.id, remainingCents)
+      if (!limit.allowed) {
+        return { success: false, error: limit.error }
+      }
     }
 
     // Get payment intent ID
@@ -783,37 +854,63 @@ export async function issueRefundAction(
       return { success: false, error: "No payment found for this request" }
     }
 
-    // Process Stripe refund
+    // Idempotency: top-up refunds against a previously-partially-refunded intake
+    // need a distinct key so they aren't blocked by the original refund key.
+    // The key is deterministic per (intake, current_already_refunded) so a
+    // retry of the same top-up doesn't double-fire.
+    const isTopUp = alreadyRefundedCents > 0
+    const idempotencyKey = isTopUp
+      ? `standalone_refund_topup_${intakeId}_${alreadyRefundedCents}`
+      : `standalone_refund_${intakeId}`
+
+    // Process Stripe refund. We pass an explicit amount so Stripe refunds
+    // exactly the remaining unrefunded balance, not whatever it computes
+    // by default.
     const { stripe } = await import("@/lib/stripe/client")
     const refund = await stripe.refunds.create(
       {
         payment_intent: paymentIntentId,
+        amount: remainingCents,
         reason: "requested_by_customer",
         metadata: {
           intake_id: intakeId,
           category: intake.category || "unknown",
           refunded_by: profile.id,
-          refund_type: "standalone",
+          refunded_by_role: profile.role,
+          refund_type: isTopUp ? "standalone_topup" : "standalone",
+          already_refunded_cents: String(alreadyRefundedCents),
         },
       },
-      { idempotencyKey: `standalone_refund_${intakeId}` }
+      { idempotencyKey }
     )
 
-    // Update intake
+    const newTotalRefunded = alreadyRefundedCents + (refund.amount ?? 0)
+    const isNowFullyRefunded = newTotalRefunded >= paidCents
+
+    // Update intake. We always record the LATEST Stripe refund ID; the full
+    // history is in Stripe + intake_events. `payment_status` flips to
+    // `refunded` only when the running total covers the original payment.
     await supabase
       .from("intakes")
       .update({
-        payment_status: "refunded",
+        payment_status: isNowFullyRefunded ? "refunded" : "partially_refunded",
         refund_status: "succeeded",
         refund_stripe_id: refund.id,
-        refund_amount_cents: refund.amount,
+        refund_amount_cents: newTotalRefunded,
         refunded_at: timestamp,
         refunded_by: profile.id,
         updated_at: timestamp,
       })
       .eq("id", intakeId)
 
-    logger.info("[IssueRefund] Refund succeeded", { intakeId, refundId: refund.id, amount: refund.amount })
+    logger.info("[IssueRefund] Refund succeeded", {
+      intakeId,
+      refundId: refund.id,
+      amount: refund.amount,
+      totalRefunded: newTotalRefunded,
+      isTopUp,
+      actorRole: profile.role,
+    })
 
     // Send patient email (non-critical)
     try {
@@ -850,7 +947,12 @@ export async function issueRefundAction(
     revalidateStaff({ intakeId, content: true })
     revalidatePatient({ intakeId })
 
-    return { success: true, refundId: refund.id, amount: refund.amount }
+    return {
+      success: true,
+      refundId: refund.id,
+      amount: refund.amount ?? 0,
+      totalRefunded: newTotalRefunded,
+    }
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Unknown error"
     logger.error("[IssueRefund] Failed", { intakeId }, error instanceof Error ? error : undefined)

@@ -23,6 +23,7 @@ import { type IntakeStatus } from "@/lib/data/status"
 import {
   type CaseRowData,
   DEFAULT_SORT,
+  type RefundIndicator,
   type SortField,
   type SortState,
 } from "@/lib/operator/cases/types"
@@ -53,6 +54,8 @@ const QUICK_FILTERS: QuickFilter[] = [
   { id: "stale", label: "Stale > 4h" },
   { id: "awaiting_script", label: "Awaiting script" },
   { id: "failed_payment", label: "Failed payment" },
+  { id: "refunded", label: "Refunded" },
+  { id: "refund_failed", label: "Refund failed" },
   { id: "mine", label: "Mine" },
 ]
 
@@ -104,6 +107,18 @@ function getInitials(name: string | undefined): string {
   return ((parts[0]?.[0] ?? "") + (parts[parts.length - 1]?.[0] ?? "")).toUpperCase()
 }
 
+function getRefundIndicator(intake: LedgerRow): RefundIndicator | null {
+  const row = intake as {
+    payment_status?: string | null
+    refund_status?: string | null
+  }
+  if (row.payment_status === "refunded") return "refunded"
+  if (row.payment_status === "partially_refunded") return "partially_refunded"
+  if (row.refund_status === "failed") return "refund_failed"
+  if (row.refund_status === "pending") return "refund_processing"
+  return null
+}
+
 function mapToCaseRow(intake: LedgerRow): CaseRowData {
   const patient = getPatient(intake)
   const service = getServiceDisplay(intake)
@@ -123,6 +138,7 @@ function mapToCaseRow(intake: LedgerRow): CaseRowData {
     href: buildAdminIntakeHref(intake.id),
     isPriority: Boolean((intake as { is_priority?: boolean }).is_priority),
     isStale: isStale(intake),
+    refundIndicator: getRefundIndicator(intake),
   }
 }
 
@@ -189,6 +205,12 @@ function intakeMatchesQuickFilter(
         intake.status === "checkout_failed" ||
         (intake as { payment_status?: string }).payment_status === "failed"
       )
+    case "refunded": {
+      const status = (intake as { payment_status?: string }).payment_status
+      return status === "refunded" || status === "partially_refunded"
+    }
+    case "refund_failed":
+      return (intake as { refund_status?: string }).refund_status === "failed"
     case "mine":
       // "mine" means assigned to current admin. With one admin today this is
       // always true; future hire path will compare claimed_by to current user.

@@ -1,6 +1,17 @@
 import type { IntakeStatus } from "@/lib/data/status"
 
 /**
+ * Compact refund indicator shown alongside the status dot when an intake has
+ * payment activity that operators need to see at a glance from the ledger.
+ * `null` (or absent) means "no refund signal worth surfacing".
+ */
+export type RefundIndicator =
+  | "refunded"
+  | "partially_refunded"
+  | "refund_failed"
+  | "refund_processing"
+
+/**
  * Shape consumed by <CaseRow>. Caller maps domain models (intake, patient,
  * recovery item, etc.) into this shape so the same primitive renders
  * everywhere.
@@ -19,6 +30,7 @@ export type CaseRowData = {
   href: string
   isPriority?: boolean
   isStale?: boolean
+  refundIndicator?: RefundIndicator | null
 }
 
 export type Density = "compact" | "comfortable" | "spacious"

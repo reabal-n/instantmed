@@ -134,6 +134,7 @@ export default async function OpsDashboardPage() {
     recentOutgoingEmailsResult,
     latestPaidIntakeResult,
     latestSentEmailResult,
+    recentRefundsResult,
   ] = await Promise.all([
     // Failed webhooks (DLQ)
     supabase
@@ -280,6 +281,27 @@ export default async function OpsDashboardPage() {
       .order("sent_at", { ascending: false })
       .limit(1)
       .then(r => r.error ? { data: [] } : r),
+
+    // Recent refunds across all actors. Powers the Refunds card on /admin/ops
+    // so support staff can confirm refunds settled without leaving the page.
+    supabase
+      .from("intakes")
+      .select(`
+        id,
+        reference_number,
+        payment_status,
+        refund_status,
+        refund_amount_cents,
+        amount_cents,
+        refunded_at,
+        refunded_by,
+        patient:profiles!patient_id (id, full_name),
+        actor:profiles!refunded_by (id, full_name)
+      `)
+      .not("refunded_at", "is", null)
+      .order("refunded_at", { ascending: false })
+      .limit(8)
+      .then(r => r.error ? { data: [] } : r),
   ])
 
   // Process email stats
@@ -328,6 +350,49 @@ export default async function OpsDashboardPage() {
     staleScriptIntakes: staleScriptIntakesResult.data || [],
     refundFailures: refundFailuresResult.data || [],
   })
+
+  // Refund activity for the cockpit Refunds card. Normalises the row shape so
+  // the client only knows about a flat list, not Supabase relation arrays.
+  type RecentRefundRow = {
+    id: string
+    reference_number: string | null
+    payment_status: string | null
+    refund_status: string | null
+    refund_amount_cents: number | null
+    amount_cents: number | null
+    refunded_at: string | null
+    refunded_by: string | null
+    patient: { id?: string; full_name?: string | null } | { id?: string; full_name?: string | null }[] | null
+    actor: { id?: string; full_name?: string | null } | { id?: string; full_name?: string | null }[] | null
+  }
+  const dayAgoIso = dayAgo.toISOString()
+  const recentRefundRows = (recentRefundsResult.data || []) as RecentRefundRow[]
+  function pickRelation(value: RecentRefundRow["patient"]): { id?: string; full_name?: string | null } | null {
+    if (!value) return null
+    if (Array.isArray(value)) return value[0] ?? null
+    return value
+  }
+  const recentRefunds = {
+    last24hCount: recentRefundRows.filter((row) => (row.refunded_at ?? "") >= dayAgoIso).length,
+    failedCount: recentRefundRows.filter((row) => row.refund_status === "failed").length,
+    recent: recentRefundRows.slice(0, 5).map((row) => {
+      const patient = pickRelation(row.patient)
+      const actor = pickRelation(row.actor)
+      const amountCents = row.refund_amount_cents ?? 0
+      const isPartial = row.payment_status === "partially_refunded"
+      return {
+        intakeId: row.id,
+        intakeRef: row.reference_number || `IM-${row.id.slice(0, 8)}`,
+        amountFormatted: `$${(amountCents / 100).toFixed(2)}`,
+        paymentStatus: isPartial ? "partially_refunded" as const : "refunded" as const,
+        refundStatus: row.refund_status,
+        occurredAt: row.refunded_at || new Date().toISOString(),
+        patientName: patient?.full_name?.trim() || null,
+        actorName: actor?.full_name?.trim() || null,
+        href: buildAdminIntakeHref(row.id),
+      }
+    }),
+  }
 
   const ops = {
     webhooks: {
@@ -391,6 +456,7 @@ export default async function OpsDashboardPage() {
           .join(", ")
         : "All active checkout price IDs are configured.",
     },
+    recentRefunds,
     productionTimeline: [
       {
         id: "payment_webhook",

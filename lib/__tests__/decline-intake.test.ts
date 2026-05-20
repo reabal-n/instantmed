@@ -6,14 +6,13 @@
  *   2. Intake lookup (not found)
  *   3. Idempotency (already declined)
  *   4. Status validation (can't decline from wrong status)
- *   5. Refund amount math per category:
+ *   5. Refund per category (full refund for every refundable category since
+ *      2026-05-20; consult was previously 50% partial):
  *      - medical_certificate → FULL refund (no `amount` in Stripe call)
  *      - prescription       → FULL refund (no `amount` in Stripe call)
- *      - consult            → 50% PARTIAL refund (Math.floor(amount_cents * 0.5))
+ *      - consult            → FULL refund (no `amount` in Stripe call)
  *      - other categories   → not_eligible (no Stripe call)
- *   6. Idempotency key distinction:
- *      - Full refund:    `refund_decline_${id}`
- *      - Partial refund: `refund_decline_partial_${id}`
+ *   6. Idempotency key: `refund_decline_${id}`
  *   7. E2E short-circuit (PLAYWRIGHT=1 skips Stripe)
  *   8. skipRefund flag (for testing pathways that don't need refund)
  *
@@ -287,54 +286,29 @@ describe("declineIntake", () => {
       expect(refundOpts).toEqual({ idempotencyKey: "refund_decline_intake-rx" })
     })
 
-    it("consult → 50% PARTIAL refund (Math.floor(amount_cents * 0.5))", async () => {
+    it("consult → FULL refund (no amount in Stripe call) — partial policy retired 2026-05-20", async () => {
       mockDoctorProfile()
-      // $49.95 consult → 2498 cents (Math.floor(4995 * 0.5))
       mockDeclineFlow(makeIntakeRow({ category: "consult", amount_cents: 4995 }))
-      vi.mocked(stripe.refunds.create).mockResolvedValue({ id: "re_partial", amount: 2497 } as never)
+      vi.mocked(stripe.refunds.create).mockResolvedValue({ id: "re_consult", amount: 4995 } as never)
 
       await declineIntake({ intakeId: "intake-consult" })
 
       expect(stripe.refunds.create).toHaveBeenCalledOnce()
       const [refundParams, refundOpts] = getRefundCall()
-      expect(refundParams.amount).toBe(2497) // Math.floor(4995 * 0.5)
+      // Full refund → no `amount` field
+      expect(refundParams).not.toHaveProperty("amount")
       expect(refundParams.metadata).toMatchObject({
-        refund_type: "decline_partial",
-        partial_refund_percent: "0.5",
+        refund_type: "decline",
         category: "consult",
       })
-      // Partial refund uses a distinct idempotency key so a future full-refund
-      // retry isn't blocked by the partial-refund key.
-      expect(refundOpts).toEqual({ idempotencyKey: "refund_decline_partial_intake-consult" })
+      expect(refundParams.metadata).not.toHaveProperty("partial_refund_percent")
+      // Same idempotency key shape as med-cert/Rx now that consult is full too
+      expect(refundOpts).toEqual({ idempotencyKey: "refund_decline_intake-consult" })
       expect(getSupabaseUpdatePayloads()).toContainEqual(expect.objectContaining({
-        payment_status: "partially_refunded",
-        refund_amount_cents: 2497,
+        payment_status: "refunded",
+        refund_amount_cents: 4995,
         refund_status: "succeeded",
       }))
-    })
-
-    it("consult with $89.95 (weight loss) → 4497 cents partial refund", async () => {
-      mockDoctorProfile()
-      mockDeclineFlow(makeIntakeRow({ category: "consult", amount_cents: 8995 }))
-      vi.mocked(stripe.refunds.create).mockResolvedValue({ id: "re_w", amount: 4497 } as never)
-
-      await declineIntake({ intakeId: "intake-weight" })
-
-      const [refundParams] = getRefundCall()
-      expect(refundParams.amount).toBe(4497) // Math.floor(8995 / 2) - rounds down
-    })
-
-    it("consult with odd cent count → Math.floor rounds DOWN (never overpays)", async () => {
-      mockDoctorProfile()
-      // 1001 cents × 0.5 = 500.5 → Math.floor → 500 cents
-      // (Floor ensures we never refund more than the fair half.)
-      mockDeclineFlow(makeIntakeRow({ category: "consult", amount_cents: 1001 }))
-      vi.mocked(stripe.refunds.create).mockResolvedValue({ id: "re_odd", amount: 500 } as never)
-
-      await declineIntake({ intakeId: "intake-odd" })
-
-      const [refundParams] = getRefundCall()
-      expect(refundParams.amount).toBe(500)
     })
   })
 

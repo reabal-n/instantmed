@@ -5,9 +5,11 @@
  * (which has "use server"). Constants can't be exported from "use server" files.
  *
  * Handles Stripe refund logic when an intake is declined:
- * - Full refund for med certs and prescriptions
- * - 50% partial refund for consults (acknowledges doctor review time)
- * - Idempotent via distinct Stripe idempotency keys
+ * - 100% full refund for every refundable category (no partial logic).
+ *   Consults were previously 50% partial; changed to full on 2026-05-20 after
+ *   operator feedback that partial refunds caused complaints we resolved by
+ *   topping up to full anyway.
+ * - Idempotent via a single Stripe idempotency key per intake decline.
  *
  * Extracted from decline-intake.ts for single-responsibility.
  */
@@ -22,14 +24,13 @@ import type { DeclineResult } from "./decline-intake"
 
 const logger = createLogger("decline-refund")
 
-// Categories eligible for FULL auto-refund on decline (cheaper, lower-cost-of-goods services)
-export const FULL_REFUND_CATEGORIES = ["medical_certificate", "prescription"]
-
-// Categories eligible for PARTIAL auto-refund on decline.
-// Consults: 50% refund acknowledges doctor review time was spent while still honoring
-// the "refund if we can't help" promise on checkout.
-export const PARTIAL_REFUND_CATEGORIES = ["consult"]
-export const PARTIAL_REFUND_PERCENT = 0.5
+/**
+ * Service categories that receive an automatic full Stripe refund when an
+ * intake is declined. Any paid intake in one of these categories gets 100%
+ * back; anything outside this list falls through to `refund_status="not_eligible"`
+ * and the operator can still issue a manual refund from the intake detail UI.
+ */
+export const REFUND_ON_DECLINE_CATEGORIES = ["medical_certificate", "prescription", "consult"]
 
 // ============================================================================
 // REFUND PROCESSING
@@ -45,8 +46,6 @@ export async function processRefund(
   },
   actorId: string,
   timestamp: string,
-  /** Refund amount in cents. Omit/undefined for full refund (Stripe default). */
-  amountCents?: number
 ): Promise<DeclineResult["refund"]> {
   const supabase = createServiceRoleClient()
 
@@ -95,34 +94,27 @@ export async function processRefund(
       }
     }
 
-    // Process Stripe refund - partial refunds get a distinct idempotency key so
-    // a future full-refund retry isn't blocked by the partial-refund key.
-    const isPartial = amountCents !== undefined
-    const idempotencyKey = isPartial
-      ? `refund_decline_partial_${intakeId}`
-      : `refund_decline_${intakeId}`
-
+    // Always full refund. No amount arg means Stripe refunds the full remaining
+    // unrefunded amount, which is the correct behaviour even on a retry.
     const refund = await stripe.refunds.create(
       {
         payment_intent: paymentIntentId,
-        ...(amountCents !== undefined ? { amount: amountCents } : {}),
         reason: "requested_by_customer",
         metadata: {
           intake_id: intakeId,
           category: intake.category || "unknown",
           declined_by: actorId,
-          refund_type: isPartial ? "decline_partial" : "decline",
-          ...(isPartial ? { partial_refund_percent: String(PARTIAL_REFUND_PERCENT) } : {}),
+          refund_type: "decline",
         },
       },
-      { idempotencyKey }
+      { idempotencyKey: `refund_decline_${intakeId}` }
     )
 
     // Update intake with success
     await supabase
       .from("intakes")
       .update({
-        payment_status: isPartial ? "partially_refunded" : "refunded",
+        payment_status: "refunded",
         refund_status: "succeeded",
         refund_stripe_id: refund.id,
         refund_amount_cents: refund.amount,

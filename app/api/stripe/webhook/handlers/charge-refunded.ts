@@ -10,6 +10,20 @@ import { tryClaimEvent } from "./utils"
 
 const log = createLogger("stripe-webhook:charge-refunded")
 
+/**
+ * Greet the patient by their first name with safe capitalisation. The
+ * `profiles.full_name` column stores whatever the patient typed at signup,
+ * which often has lower-case surnames or odd capitalisation. Splitting to
+ * the first token and Title-casing it avoids "Hi sarah roberts," in
+ * automated refund emails. Falls back to "there" when no name is on file.
+ */
+function greetingFirstName(name: string | null | undefined): string {
+  if (!name) return "there"
+  const first = name.trim().split(/\s+/)[0]
+  if (!first) return "there"
+  return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase()
+}
+
 export async function handleChargeRefunded(ctx: WebhookContext): Promise<HandlerResult> {
   const { event, supabase } = ctx
   const charge = event.data.object as Stripe.Charge
@@ -128,7 +142,7 @@ export async function handleChargeRefunded(ctx: WebhookContext): Promise<Handler
               const amountFormatted = `$${(refundAmountCents / 100).toFixed(2)}`
               const emailResult = await sendRefundEmail({
                 to: patient.email,
-                patientName: patient.full_name || "there",
+                patientName: greetingFirstName(patient.full_name),
                 amount: amountFormatted,
                 refundReason: refundIsFullRefund ? "Your request was declined or cancelled" : "Partial refund processed",
                 intakeId: refundIntakeId,

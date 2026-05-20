@@ -56,6 +56,7 @@ import { isConsultServiceType, isKnownDoctorServiceType, SERVICE_TYPES } from "@
 import { formatIntakeStatus } from "@/lib/format/intake"
 import type { DeclineReasonCode, IntakeStatus, IntakeWithDetails } from "@/types/db"
 
+import { IntakeRefundDialog } from "./intake-refund-dialog"
 import type { IntakeDialogState } from "./use-intake-dialogs"
 
 export { DECLINE_REASONS }
@@ -377,11 +378,12 @@ export function IntakeDetailHeader({
               </Button>
             )}
 
-            {/* Refund - show for paid intakes that haven't been refunded */}
-            {intake.payment_status === "paid" && (
+            {/* Refund - show for paid intakes (full refund) AND partially_refunded
+                intakes (top-up to full). Once fully refunded, the button hides. */}
+            {(intake.payment_status === "paid" || intake.payment_status === "partially_refunded") && (
               <Button size={actionButtonSize} variant="outline" onClick={dialogs.openRefundDialog} disabled={isPending} className="text-warning border-warning-border hover:bg-warning-light">
                 <CreditCard className="h-4 w-4 mr-2" />
-                Issue Refund
+                {intake.payment_status === "partially_refunded" ? "Top up refund" : "Issue refund"}
               </Button>
             )}
 
@@ -488,24 +490,16 @@ export function IntakeDetailHeader({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Refund Dialog */}
-      <AlertDialog open={dialogs.showRefundDialog} onOpenChange={(open) => { if (!open) dialogs.closeRefundDialog() }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Issue Refund</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will automatically process a full refund via Stripe and notify the patient by email. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={onMarkRefunded} disabled={isPending} className="bg-amber-600 hover:bg-amber-700">
-              {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Issue Refund
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Refund Dialog - typed-confirm with concrete amount preview. */}
+      <IntakeRefundDialog
+        open={dialogs.showRefundDialog}
+        onOpenChange={(open) => { if (!open) dialogs.closeRefundDialog() }}
+        onConfirmRefund={onMarkRefunded}
+        isPending={isPending}
+        paidAmountCents={intake.amount_cents ?? 0}
+        alreadyRefundedCents={intake.refund_amount_cents ?? 0}
+        patientName={intake.patient?.full_name?.trim() || "the patient"}
+      />
 
       {/* Certificate Preview Dialog */}
       {certPreviewData && (

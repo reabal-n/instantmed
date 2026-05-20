@@ -382,17 +382,29 @@ describe("admin navigation contract", () => {
   })
 
   it("keeps admin data pages explicitly admin-gated at page level", () => {
-    const redirectOnlyPages = new Set([
+    const supportShellPages = new Set([
       // Phase 7: bounded support ops pages deliberately allow support through
       // the admin shell while keeping PHI-heavy admin data pages locked.
       join(process.cwd(), "app/admin/ops/page.tsx"),
       join(process.cwd(), "app/admin/ops/parchment/page.tsx"),
       join(process.cwd(), "app/admin/ops/prescribing-identity/page.tsx"),
       join(process.cwd(), "app/admin/webhook-dlq/page.tsx"),
+      // Phase 8 (2026-05-20): the intake ledger opens to support so they can
+      // see refund state + drill into a case to issue a refund. The page
+      // shows ledger metadata only — clinical answers, Medicare details, and
+      // structured address fields are never returned by `getAllIntakesForAdmin`.
+      join(process.cwd(), "app/admin/intakes/page.tsx"),
     ])
 
     for (const pageFile of findAdminPageFiles()) {
-      if (redirectOnlyPages.has(pageFile)) continue
+      if (supportShellPages.has(pageFile)) {
+        const source = readFileSync(pageFile, "utf8")
+        // Pages in the support shell must explicitly include support in the
+        // role gate (not just allow it implicitly).
+        expect(source, pageFile).toContain('requireRole(["admin", "support"]')
+        expect(source, pageFile).not.toContain('requireRole(["doctor", "admin"]')
+        continue
+      }
 
       const source = readFileSync(pageFile, "utf8")
       expect(source, pageFile).toContain('requireRole(["admin"]')

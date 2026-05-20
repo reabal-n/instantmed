@@ -124,6 +124,9 @@ export const supportNavSections: StaffNavSection[] = [
     title: "Operations",
     items: [
       { href: STAFF_OPS_HREF, label: "Operations", icon: "activity" },
+      // Phase 8 (2026-05-20): refund workflow opened to support. Ledger
+      // shows ref/service/status/refund chips but no clinical answers.
+      { href: STAFF_LEDGER_HREF, label: "Requests", icon: "intakeLedger" },
     ],
   },
 ]

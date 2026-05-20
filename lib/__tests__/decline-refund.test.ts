@@ -53,28 +53,30 @@ describe("processRefund", () => {
     })
   })
 
-  it("marks partial decline refunds as partially_refunded instead of fully refunded", async () => {
+  it("refunds consult declines in full (no partial logic since 2026-05-20)", async () => {
     const updates = captureSupabaseUpdates()
-    vi.mocked(stripe.refunds.create).mockResolvedValue({ id: "re_partial", amount: 2497 } as never)
+    vi.mocked(stripe.refunds.create).mockResolvedValue({ id: "re_consult", amount: 4995 } as never)
 
     await processRefund(
-      "intake-partial",
+      "intake-consult",
       {
-        payment_id: "cs_partial",
-        stripe_payment_intent_id: "pi_partial",
+        payment_id: "cs_consult",
+        stripe_payment_intent_id: "pi_consult",
         amount_cents: 4995,
         category: "consult",
       },
       "doctor-1",
       "2026-05-07T00:00:00.000Z",
-      2497,
     )
 
+    const [refundParams] = vi.mocked(stripe.refunds.create).mock.calls[0]
+    expect(refundParams).not.toHaveProperty("amount")
+    expect((refundParams as { metadata: Record<string, string> }).metadata.refund_type).toBe("decline")
+
     expect(updates.at(-1)).toMatchObject({
-      payment_status: "partially_refunded",
+      payment_status: "refunded",
       refund_status: "succeeded",
-      refund_stripe_id: "re_partial",
-      refund_amount_cents: 2497,
+      refund_amount_cents: 4995,
     })
   })
 })

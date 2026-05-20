@@ -1,4 +1,4 @@
-import { AlertTriangle, Bolt } from "lucide-react"
+import { AlertTriangle, Bolt, RotateCcw } from "lucide-react"
 import Link from "next/link"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -6,11 +6,38 @@ import { formatRelativeTime } from "@/lib/operator/cases/time-grouping"
 import {
   type CaseRowData,
   type Density,
+  type RefundIndicator,
   ROW_HEIGHT,
 } from "@/lib/operator/cases/types"
 import { cn } from "@/lib/utils"
 
 import { StatusDot } from "./status-dot"
+
+const REFUND_PRESENTATION: Record<
+  RefundIndicator,
+  { label: string; className: string; title: string }
+> = {
+  refunded: {
+    label: "Refunded",
+    className: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300",
+    title: "Fully refunded",
+  },
+  partially_refunded: {
+    label: "Partial",
+    className: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300",
+    title: "Partially refunded — top up to make whole",
+  },
+  refund_failed: {
+    label: "Refund failed",
+    className: "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300",
+    title: "Refund failed — needs operator action",
+  },
+  refund_processing: {
+    label: "Refunding",
+    className: "bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-300",
+    title: "Refund in flight",
+  },
+}
 
 type CaseRowProps = {
   row: CaseRowData
@@ -144,6 +171,19 @@ export function CaseRow({
           >
             <Bolt className="h-3 w-3" aria-hidden="true" />
             Express
+          </span>
+        ) : null}
+        {row.refundIndicator ? (
+          <span
+            className={cn(
+              "inline-flex h-5 items-center gap-1 rounded-full px-1.5 text-[10px] font-medium",
+              REFUND_PRESENTATION[row.refundIndicator].className,
+            )}
+            aria-label={REFUND_PRESENTATION[row.refundIndicator].title}
+            title={REFUND_PRESENTATION[row.refundIndicator].title}
+          >
+            <RotateCcw className="h-3 w-3" aria-hidden="true" />
+            {REFUND_PRESENTATION[row.refundIndicator].label}
           </span>
         ) : null}
         {row.isStale ? (
