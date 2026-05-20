@@ -1,6 +1,7 @@
 "use client"
 
-import { CheckCircle, ClipboardCheck, Loader2, Send, XCircle } from "lucide-react"
+import { ArrowUpRight, CheckCircle, ClipboardCheck, Loader2, Send, XCircle } from "lucide-react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useMemo, useState, useTransition } from "react"
 import { toast } from "sonner"
@@ -21,6 +22,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
+import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import { MIN_CLINICAL_NOTES_LENGTH } from "@/lib/doctor/clinical-notes"
 import {
   buildPatientSnapshot,
@@ -96,8 +98,29 @@ export function IntakeActionButtons() {
   return (
     <div className="sticky bottom-0 bg-background border-t border-border pt-3 pb-1" data-testid="operator-action-rail">
       {hasPrescribingIdentityBlocker && (
-        <div className="w-full rounded-md border border-warning-border bg-warning-light px-3 py-2 text-xs font-medium text-warning">
-          Complete patient identity before prescribing: {missingPrescribingIdentityFields.join(", ")}
+        <div className="mb-2 flex flex-col gap-2 rounded-md border border-warning-border bg-warning-light px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-warning">
+              Patient identity incomplete
+            </p>
+            <p className="text-xs text-warning/90">
+              Missing for prescribing: {missingPrescribingIdentityFields.join(", ")}
+            </p>
+          </div>
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="shrink-0 border-warning-border bg-background text-warning hover:bg-background/80"
+          >
+            <Link
+              href={buildStaffPatientHref(intake.patient.id)}
+              prefetch={false}
+            >
+              Open patient profile
+              <ArrowUpRight className="ml-1 h-3 w-3" aria-hidden="true" />
+            </Link>
+          </Button>
         </div>
       )}
       <div
