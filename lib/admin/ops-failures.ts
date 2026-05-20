@@ -78,7 +78,7 @@ export interface OperationalFailureOverviewInput {
   stripeDlq: StripeDlqRow[]
   emailFailures: EmailFailureRow[]
   checkoutFailures: CheckoutFailureRow[]
-  incompleteRequests: IncompleteRequestRow[]
+  incompleteRequests?: IncompleteRequestRow[]
   certificateFailures: CertificateFailureRow[]
   prescriptionWebhookFailures: AuditFailureRow[]
   staleScriptIntakes: StaleScriptIntakeRow[]
@@ -128,6 +128,7 @@ function sortByOccurredAtDesc(items: OperationalFailureItem[]): OperationalFailu
 }
 
 export function buildOperationalFailureOverview(input: OperationalFailureOverviewInput): OperationalFailureOverview {
+  const incompleteRequests = input.incompleteRequests ?? []
   const categories: OperationalFailureCategory[] = [
     {
       id: "stripe_webhooks",
@@ -156,7 +157,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
     {
       id: "incomplete_requests",
       label: "Incomplete requests",
-      count: input.incompleteRequests.length,
+      count: incompleteRequests.length,
       href: STAFF_LEDGER_HREF,
       severity: "warning",
       emptyLabel: "No abandoned checkout requests",
@@ -223,7 +224,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
       href: buildAdminIntakeHref(row.id),
       severity: "critical" as const,
     })),
-    ...input.incompleteRequests.map((row) => ({
+    ...incompleteRequests.map((row) => ({
       id: row.id,
       categoryId: "incomplete_requests" as const,
       title: "Request left incomplete",
