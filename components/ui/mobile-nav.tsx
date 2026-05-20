@@ -16,6 +16,7 @@ import {
 } from "@/lib/dashboard/routes"
 import { doctorNavSections, doctorOperatorNavItems } from "@/lib/dashboard/staff-navigation"
 import { getStaffNavHrefPath, getStaffNavHrefStatus } from "@/lib/dashboard/staff-navigation-active"
+import { useLiveStaffNavCounts } from "@/lib/dashboard/use-staff-nav-counts"
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { cn } from "@/lib/utils"
 
@@ -80,19 +81,6 @@ const moreItems: NavItem[] = [
   },
 ]
 
-const doctorItems: NavItem[] = [
-  ...doctorNavSections[0].items.map((item) => ({
-    label: item.label,
-    icon: STAFF_NAV_ICONS[item.icon],
-    href: item.href,
-  })),
-  {
-    label: "More",
-    icon: MoreHorizontal,
-    href: "__more__",
-  },
-]
-
 const doctorMoreItems: NavItem[] = doctorNavSections[1].items.map((item) => ({
   label: item.label,
   icon: STAFF_NAV_ICONS[item.icon],
@@ -101,6 +89,21 @@ const doctorMoreItems: NavItem[] = doctorNavSections[1].items.map((item) => ({
 
 /** Doctor-specific mobile navigation with doctor routes pre-configured */
 export function DoctorMobileNav({ className, isAdmin = false }: { className?: string; isAdmin?: boolean }) {
+  const counts = useLiveStaffNavCounts()
+  const items: NavItem[] = [
+    ...doctorNavSections[0].items.map((item) => ({
+      label: item.label,
+      icon: STAFF_NAV_ICONS[item.icon],
+      href: item.href,
+      badge: item.badgeKey ? counts[item.badgeKey] : undefined,
+    })),
+    {
+      label: "More",
+      icon: MoreHorizontal,
+      href: "__more__",
+    },
+  ]
+
   const moreMenuItems = isAdmin
     ? [
         ...doctorMoreItems,
@@ -112,7 +115,7 @@ export function DoctorMobileNav({ className, isAdmin = false }: { className?: st
       ]
     : doctorMoreItems
 
-  return <MobileNav items={doctorItems} moreMenuItems={moreMenuItems} className={className} />
+  return <MobileNav items={items} moreMenuItems={moreMenuItems} className={className} />
 }
 
 export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, className }: MobileNavProps) {

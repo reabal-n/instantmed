@@ -8,7 +8,6 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import {
-  EMPTY_STAFF_NAV_COUNTS,
   operatorNavSections,
   type StaffNavCounts,
   type StaffNavItem,
@@ -18,6 +17,7 @@ import {
   hasStatusFilteredDashboardItems,
   isStaffNavItemActive,
 } from "@/lib/dashboard/staff-navigation-active"
+import { useLiveStaffNavCounts } from "@/lib/dashboard/use-staff-nav-counts"
 import { cn } from "@/lib/utils"
 
 import { STAFF_NAV_ICONS } from "./staff-nav-icons"
@@ -90,37 +90,6 @@ function InlineNavBadge({
       {count > 99 ? "99+" : count}
     </span>
   )
-}
-
-function useLiveStaffNavCounts(initialCounts?: StaffNavCounts) {
-  const [counts, setCounts] = useState<StaffNavCounts>(initialCounts ?? EMPTY_STAFF_NAV_COUNTS)
-
-  const refreshCounts = useCallback(async () => {
-    try {
-      const response = await fetch("/api/admin/staff-nav-counts", { cache: "no-store" })
-      if (!response.ok) return
-      const nextCounts = await response.json() as StaffNavCounts
-      setCounts({
-        prescribingIdentityPatients: Number(nextCounts.prescribingIdentityPatients) || 0,
-        scriptsToWrite: Number(nextCounts.scriptsToWrite) || 0,
-        inQueue: Number(nextCounts.inQueue) || 0,
-      })
-    } catch {
-      // Count badges are advisory; keep the last good values if polling fails.
-    }
-  }, [])
-
-  useEffect(() => {
-    setCounts(initialCounts ?? EMPTY_STAFF_NAV_COUNTS)
-  }, [initialCounts])
-
-  useEffect(() => {
-    refreshCounts()
-    const interval = window.setInterval(refreshCounts, 45_000)
-    return () => window.clearInterval(interval)
-  }, [refreshCounts])
-
-  return counts
 }
 
 function NavIconLink({

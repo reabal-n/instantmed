@@ -187,7 +187,7 @@ describe("admin navigation contract", () => {
     expect(operatorNavSource).toContain('badgeKey: "scriptsToWrite"')
     expect(operatorNavSource).toContain('badgeKey: "prescribingIdentityPatients"')
     expect(sidebarSource).toContain("useLiveStaffNavCounts")
-    expect(sidebarSource).toContain("/api/admin/staff-nav-counts")
+    expect(sidebarSource).toContain('from "@/lib/dashboard/use-staff-nav-counts"')
     expect(operatorNavSource).not.toContain('href: "/doctor/dashboard"')
     expect(sidebarSource).not.toContain('href: "/doctor/patients"')
     expect(sidebarSource).not.toContain('href: "/doctor/scripts"')
