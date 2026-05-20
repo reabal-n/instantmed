@@ -386,8 +386,9 @@ export function ParchmentPrescribePanel({
                 size="sm"
                 className="text-xs text-muted-foreground hover:text-foreground"
                 onClick={onScriptSent}
+                title="Use when the script was sent through a different channel and Parchment won't notify us"
               >
-                Mark sent manually
+                Sent outside Parchment
               </Button>
             )}
             {patientId && onPrescriptionsRefresh && (

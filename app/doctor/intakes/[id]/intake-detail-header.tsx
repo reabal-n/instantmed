@@ -324,7 +324,7 @@ export function IntakeDetailHeader({
                   className={onOpenParchmentPrescribe ? "" : "bg-blue-600 hover:bg-blue-700"}
                 >
                   {!onOpenParchmentPrescribe && <Send className="h-4 w-4 mr-2" />}
-                  Mark Sent Manually
+                  Sent outside Parchment
                 </Button>
               </>
             )}

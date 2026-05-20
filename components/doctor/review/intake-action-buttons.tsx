@@ -249,19 +249,26 @@ function MarkSentManuallyButton({ intakeId }: { intakeId: string }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [parchmentReference, setParchmentReference] = useState("")
+  const [reason, setReason] = useState("")
   const [isPending, startTransition] = useTransition()
+
+  const reset = () => {
+    setParchmentReference("")
+    setReason("")
+  }
 
   const handleConfirm = () => {
     startTransition(async () => {
+      const reasonNote = reason.trim()
       const result = await markScriptSentAction(
         intakeId,
-        undefined,
+        reasonNote ? `Sent outside Parchment: ${reasonNote}` : undefined,
         parchmentReference.trim() || undefined,
       )
       if (result.success) {
         toast.success("Script marked as sent. Patient email queued.")
         setOpen(false)
-        setParchmentReference("")
+        reset()
         router.refresh()
       } else {
         toast.error(result.error || "Failed to mark script sent")
@@ -278,36 +285,51 @@ function MarkSentManuallyButton({ intakeId }: { intakeId: string }) {
         disabled={isPending}
       >
         <ClipboardCheck className="h-4 w-4 mr-1.5" />
-        Mark sent manually
+        Sent outside Parchment
       </Button>
       <AlertDialog
         open={open}
         onOpenChange={(next) => {
           if (!next && isPending) return
-          if (!next) setParchmentReference("")
+          if (!next) reset()
           setOpen(next)
         }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Mark script as sent</AlertDialogTitle>
+            <AlertDialogTitle>Confirm sent outside Parchment</AlertDialogTitle>
             <AlertDialogDescription>
-              Confirm that you have sent the prescription via Parchment or
-              another channel. The case will leave the queue and the patient
-              will be emailed.
+              Use this when you've sent the script through a different channel
+              (paper script, alternate pharmacy portal, fax) and the Parchment
+              webhook will not fire. The case leaves the queue and the patient
+              is emailed.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="space-y-2 py-2">
-            <Label htmlFor="mark-sent-parchment-reference">
-              Parchment reference (optional)
-            </Label>
-            <Input
-              id="mark-sent-parchment-reference"
-              placeholder="e.g., PAR-12345"
-              value={parchmentReference}
-              onChange={(event) => setParchmentReference(event.target.value)}
-              disabled={isPending}
-            />
+          <div className="space-y-3 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="mark-sent-parchment-reference">
+                Parchment reference (if applicable)
+              </Label>
+              <Input
+                id="mark-sent-parchment-reference"
+                placeholder="e.g., PAR-12345"
+                value={parchmentReference}
+                onChange={(event) => setParchmentReference(event.target.value)}
+                disabled={isPending}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="mark-sent-reason">
+                Channel used (recorded in the audit log)
+              </Label>
+              <Input
+                id="mark-sent-reason"
+                placeholder="e.g., Paper script handed to patient"
+                value={reason}
+                onChange={(event) => setReason(event.target.value)}
+                disabled={isPending}
+              />
+            </div>
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
