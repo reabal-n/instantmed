@@ -1,7 +1,7 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { IntakeReviewPanel } from "@/components/doctor"
 import {
@@ -11,26 +11,26 @@ import {
 } from "@/components/operator"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
-import { useDensity } from "@/lib/operator/cases/use-density"
+import {
+  ADMIN_STATUS_PRIORITY,
+  type AdminIntakeStatusFilterValue,
+  type AdminWorkLaneFilterValue,
+  matchesAdminStatusFilter,
+  matchesAdminWorkLaneFilter,
+} from "@/lib/dashboard/admin-work-lanes"
+import { buildAdminIntakeHref, STAFF_LEDGER_HREF } from "@/lib/dashboard/routes"
+import { type IntakeStatus } from "@/lib/data/status"
 import {
   type CaseRowData,
   DEFAULT_SORT,
   type SortField,
   type SortState,
 } from "@/lib/operator/cases/types"
+import { useDensity } from "@/lib/operator/cases/use-density"
 import {
-  ADMIN_STATUS_PRIORITY,
-  matchesAdminStatusFilter,
-  matchesAdminWorkLaneFilter,
-  type AdminIntakeStatusFilterValue,
-  type AdminWorkLaneFilterValue,
-} from "@/lib/dashboard/admin-work-lanes"
-import { buildAdminIntakeHref } from "@/lib/dashboard/routes"
-import { type IntakeStatus } from "@/lib/data/status"
-import {
+  type AdminServiceFilterValue,
   getServicePresentation,
   matchesAdminServiceFilter,
-  type AdminServiceFilterValue,
 } from "@/lib/services/service-presentation"
 import type { IntakeWithPatient } from "@/types/db"
 
@@ -255,7 +255,7 @@ export function AdminIntakesLedgerV2({
     else params.delete("smart")
     const queryString = params.toString()
     const next = queryString ? `?${queryString}` : ""
-    router.replace(`/admin/intakes${next}`, { scroll: false })
+    router.replace(`${STAFF_LEDGER_HREF}${next}`, { scroll: false })
   }, [sortState, activeChips, smartSort, router, searchParams])
 
   // Keep local list in sync if server-side data refreshes (e.g. revalidation).
