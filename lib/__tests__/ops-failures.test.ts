@@ -120,4 +120,24 @@ describe("operational failure overview", () => {
     expect(overview.categories.every((category) => category.count === 0)).toBe(true)
     expect(overview.recent).toEqual([])
   })
+
+  it("treats omitted incompleteRequests the same as an empty array", () => {
+    const overview = buildOperationalFailureOverview({
+      stripeDlq: [],
+      emailFailures: [],
+      checkoutFailures: [],
+      // incompleteRequests omitted on purpose; the cockpit reshape lets callers skip it
+      certificateFailures: [],
+      prescriptionWebhookFailures: [],
+      staleScriptIntakes: [],
+      refundFailures: [],
+    })
+
+    const incompleteCategory = overview.categories.find(
+      (category) => category.id === "incomplete_requests",
+    )
+    expect(incompleteCategory?.count).toBe(0)
+    expect(overview.openCount).toBe(0)
+    expect(overview.recent.some((item) => item.categoryId === "incomplete_requests")).toBe(false)
+  })
 })
