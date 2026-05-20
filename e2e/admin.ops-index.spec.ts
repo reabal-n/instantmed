@@ -12,43 +12,42 @@ test.describe("Ops Index Page", () => {
     await logoutTestUser(page)
   })
 
-  test("page loads and displays current ops health signals", async ({ page }) => {
+  test("page loads with two-block cockpit layout", async ({ page }) => {
     await page.goto("/admin/ops")
     await page.waitForLoadState("networkidle")
 
-    await expect(page.getByRole("heading", { name: "Operations" })).toBeVisible({ timeout: 10000 })
-    await expect(page.getByText(/System (clear|needs review)/i)).toBeVisible()
+    await expect(page.getByRole("heading", { name: "Operations" })).toBeVisible({ timeout: 10_000 })
 
-    await expect(page.getByRole("heading", { name: "Needs attention" })).toBeVisible()
-    await expect(page.getByRole("heading", { name: "System checks" })).toBeVisible()
-    await expect(page.getByRole("heading", { name: "Recovery paths" })).toBeVisible()
-    await expect(page.locator("span").filter({ hasText: /^Payment webhooks$/ })).toBeVisible()
-    await expect(page.locator("span").filter({ hasText: /^Email delivery$/ })).toBeVisible()
-    await expect(page.locator("span").filter({ hasText: /^Intake processing$/ })).toBeVisible()
-    await expect(page.locator("span").filter({ hasText: /^Patient identity$/ })).toBeVisible()
-    await expect(page.locator("span").filter({ hasText: /^Prescribing identity$/ })).toBeVisible()
-    await expect(page.locator("span").filter({ hasText: /^Telegram alerts$/ })).toBeVisible()
+    // 4 counter cards by data-testid
+    const counterCards = page.getByTestId("counter-card")
+    await expect(counterCards).toHaveCount(4)
+
+    // Visible labels in the 4 tiles
+    await expect(page.getByText("Payment failures")).toBeVisible()
+    await expect(page.getByText("Webhook DLQ")).toBeVisible()
+    await expect(page.getByText("Parchment unsynced")).toBeVisible()
+    await expect(page.getByText("Missing identity")).toBeVisible()
+
+    // Recent (last 24h) block heading visible regardless of content
+    await expect(page.getByRole("heading", { name: /Recent \(last 24h\)/ })).toBeVisible()
+
+    // Retired headings must not appear
+    await expect(page.getByRole("heading", { name: "Needs attention" })).toHaveCount(0)
+    await expect(page.getByRole("heading", { name: "System checks" })).toHaveCount(0)
+    await expect(page.getByRole("heading", { name: "Recovery paths" })).toHaveCount(0)
+    await expect(page.getByRole("heading", { name: "Refunds" })).toHaveCount(0)
   })
 
-  test("routes ops recovery links to current destinations", async ({ page }) => {
+  test("counter cards deep-link to the appropriate workshop", async ({ page }) => {
     await page.goto("/admin/ops")
     await page.waitForLoadState("networkidle")
-    await expect(page.getByRole("link", { name: /Payment webhooks/i }).first()).toHaveAttribute(
-      "href",
-      "/admin/webhook-dlq",
-    )
-    await expect(page.getByRole("link", { name: /Email delivery/i }).first()).toHaveAttribute(
-      "href",
-      "/admin/emails/hub",
-    )
-    await expect(page.getByRole("link", { name: /Prescription delivery/i }).first()).toHaveAttribute(
-      "href",
-      "/admin/ops/parchment",
-    )
-    await expect(page.getByRole("link", { name: /Review duplicate profiles/i }).first()).toHaveAttribute(
-      "href",
-      "/admin/ops/patient-merge-audit",
-    )
+
+    const cards = page.getByTestId("counter-card")
+    // Order matches the page: Payment failures, Webhook DLQ, Parchment unsynced, Missing identity
+    await expect(cards.nth(0)).toHaveAttribute("href", /\/admin\/intakes/)
+    await expect(cards.nth(1)).toHaveAttribute("href", "/admin/webhook-dlq")
+    await expect(cards.nth(2)).toHaveAttribute("href", "/admin/ops/parchment")
+    await expect(cards.nth(3)).toHaveAttribute("href", "/admin/ops/prescribing-identity")
   })
 
   test("sidebar ops navigation is visible", async ({ page }) => {

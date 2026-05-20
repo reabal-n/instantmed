@@ -58,17 +58,10 @@ test.describe("Ops Navigation Visibility", () => {
 
     await expect(page.getByRole("heading", { name: "Operations" })).toBeVisible({ timeout: 10000 })
 
-    await expect(page.getByRole("link", { name: /Payment webhooks/i }).first()).toHaveAttribute(
-      "href",
-      STAFF_TEST_ROUTES.adminWebhookDlq,
-    )
-    await expect(page.getByRole("link", { name: /Email delivery/i }).first()).toHaveAttribute(
-      "href",
-      STAFF_TEST_ROUTES.adminEmailHub,
-    )
-    await expect(page.getByRole("link", { name: /Prescription delivery/i }).first()).toHaveAttribute(
-      "href",
-      STAFF_TEST_ROUTES.adminOpsParchment,
-    )
+    const cards = page.getByTestId("counter-card")
+    await expect(cards).toHaveCount(4)
+    await expect(cards.nth(1)).toHaveAttribute("href", STAFF_TEST_ROUTES.adminWebhookDlq)
+    await expect(cards.nth(2)).toHaveAttribute("href", STAFF_TEST_ROUTES.adminOpsParchment)
+    await expect(cards.nth(3)).toHaveAttribute("href", STAFF_TEST_ROUTES.adminPrescribingIdentity)
   })
 })
