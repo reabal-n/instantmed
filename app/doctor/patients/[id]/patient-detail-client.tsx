@@ -585,6 +585,8 @@ export function PatientDetailClient({
           admin={canMergePatientProfiles}
           title="Patient timeline"
           emptyLabel="No requests, prescriptions, notes, emails, or webhook events recorded for this patient yet."
+          initialPageSize={10}
+          pageStep={20}
         />
       )}
 
