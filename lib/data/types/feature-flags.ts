@@ -37,7 +37,6 @@ export const FLAG_KEYS = {
   TELEGRAM_NOTIFICATIONS_ENABLED: "telegram_notifications_enabled",
   PATIENT_DELAY_EMAIL_HOURS: "patient_delay_email_hours",
   PARCHMENT_EMBEDDED_PRESCRIBING: "parchment_embedded_prescribing",
-  COCKPIT_V2: "cockpit_v2",
 } as const
 
 export type FlagKey = (typeof FLAG_KEYS)[keyof typeof FLAG_KEYS]
@@ -74,7 +73,6 @@ export interface FeatureFlags {
   telegram_notifications_enabled: boolean
   patient_delay_email_hours: number
   parchment_embedded_prescribing: boolean
-  cockpit_v2: boolean
 }
 
 // ============================================================================
@@ -116,7 +114,6 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   telegram_notifications_enabled: true,
   patient_delay_email_hours: 2,
   parchment_embedded_prescribing: false,
-  cockpit_v2: false,
 }
 
 // ============================================================================
@@ -231,10 +228,6 @@ export function getFlagInfo(key: FlagKey): { label: string; description: string 
     parchment_embedded_prescribing: {
       label: "Parchment Embedded Prescribing",
       description: "Enable embedded Parchment ePrescribing iframe in the staff cockpit. When off, doctors use the manual 'Mark Sent' workflow.",
-    },
-    cockpit_v2: {
-      label: "Staff Cockpit v2",
-      description: "Role-aware staff cockpit (admin / doctor / support) with sortable ledger, KPI strip, server-redacted ops view. Default off.",
     },
   }
   return info[key]

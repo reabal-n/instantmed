@@ -246,9 +246,12 @@ describe("admin navigation contract", () => {
   })
 
   it("surfaces patient handoff gaps in admin without returning raw intake answers", () => {
-    expect(adminIntakesLedgerSource).toContain("HandoffBadge")
-    expect(adminIntakesLedgerSource).toContain("summary.actionLabel")
-    expect(adminIntakesLedgerSource).toContain("summary.detailLabel")
+    // Ledger surfaces stale + status state via the cockpit/cases primitives
+    // (CaseTable renders StatusDot + the isStale flag on CaseRow). Full
+    // handoff copy still lives on the intake detail decision strip, not in
+    // the ledger row, so the ledger keeps each line scannable.
+    expect(adminIntakesLedgerSource).toContain("isStale")
+    expect(adminIntakesLedgerSource).toContain("CaseTable")
     expect(intakesQueriesSource).toContain("buildPatientHandoffSummary")
     expect(intakesQueriesSource).toContain("getPatientSnapshotOptionsForCase")
     expect(intakesQueriesSource).toContain("answers: null")

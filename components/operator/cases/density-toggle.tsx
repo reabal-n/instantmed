@@ -2,9 +2,8 @@
 
 import { Rows2, Rows3, Rows4 } from "lucide-react"
 
-import { cn } from "@/lib/utils"
-
 import type { Density } from "@/lib/operator/cases/types"
+import { cn } from "@/lib/utils"
 
 type DensityToggleProps = {
   value: Density

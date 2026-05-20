@@ -1,13 +1,13 @@
-import Link from "next/link"
 import { AlertTriangle, Bolt } from "lucide-react"
+import Link from "next/link"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { formatRelativeTime } from "@/lib/operator/cases/time-grouping"
 import {
   type CaseRowData,
   type Density,
   ROW_HEIGHT,
 } from "@/lib/operator/cases/types"
-import { formatRelativeTime } from "@/lib/operator/cases/time-grouping"
 import { cn } from "@/lib/utils"
 
 import { StatusDot } from "./status-dot"
