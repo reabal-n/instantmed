@@ -65,13 +65,16 @@ describe("doctor patient medication history contract", () => {
 
   it("organizes the profile around the unified timeline as primary content", () => {
     // Identity / Prescribing identity / Parchment cards collapsed into one
-    // bounded `<dl>` strip. The compact identity row keeps Email/Phone/
-    // Address/DOB/Medicare/Member-since but drops the "Patient summary"
-    // header that hosted them.
+    // bounded `<dl>` strip. Phase 4b kept Email/Phone/Address/DOB/Medicare/
+    // Member-since; the 2026-05-21 compression dropped Member-since (low
+    // priority above the timeline) and the standalone DOB cell (already
+    // shown in the identity strip header via snapshot.ageDobLabel). Email
+    // / Phone / Address / Medicare remain as the four-cell identity row.
+    expect(detailSource).toContain("Email")
+    expect(detailSource).toContain("Phone")
     expect(detailSource).toContain("Address")
-    expect(detailSource).toContain("DOB")
     expect(detailSource).toContain("Medicare")
-    expect(detailSource).toContain("Member since")
+    expect(detailSource).toContain("ageDobLabel")
     // Old card titles must NOT come back.
     expect(detailSource).not.toContain("Patient summary")
     expect(detailSource).not.toContain("Prescribing identity")
