@@ -19,8 +19,8 @@ export const COPY = {
     // SLA messaging for intake status - configurable for seasonal adjustments
     slaReviewTime: "1–2 hours",
     slaBusinessHours: "Requests accepted 24/7",
-    slaPendingMessage: "Requests are accepted any time. Doctor review follows when available.",
-    slaInReviewMessage: "A doctor is reviewing your request. Timing depends on clinical complexity and queue volume.",
+    slaPendingMessage: "A doctor will review your request as soon as one is available. You will be emailed the moment there is a decision.",
+    slaInReviewMessage: "A doctor is reviewing your request now. You will be emailed the moment there is a decision.",
     price: {
       medcert: PRICING_DISPLAY.FROM_MED_CERT,
       medcertOneDay: PRICING_DISPLAY.MED_CERT,

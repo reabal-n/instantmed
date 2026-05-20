@@ -590,9 +590,7 @@ export function IntakeDetailClient({
           {intake.status === "in_review" && (
             <div className="text-sm space-y-1">
               <p>A doctor is currently reviewing your request.</p>
-              <p className="text-muted-foreground">
-                You&apos;ll be notified when a decision has been made.
-              </p>
+              <p className="text-muted-foreground">{COPY.global.slaInReviewMessage}</p>
             </div>
           )}
           {intake.status === "approved" && (
