@@ -2,6 +2,7 @@ import {
   AdminIntakesLedgerClient,
   type AdminIntakesLedgerInitialFilters,
 } from "@/app/admin/intakes/intakes-ledger-client"
+import { AdminIntakesLedgerV2 } from "@/app/admin/intakes/intakes-ledger-v2"
 import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
 import { PanelProvider } from "@/components/panels/panel-provider"
 import { requireRole } from "@/lib/auth/helpers"
@@ -11,6 +12,7 @@ import {
 } from "@/lib/dashboard/admin-work-lanes"
 import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import { getAllIntakesForAdmin } from "@/lib/data/intakes"
+import { getFeatureFlags } from "@/lib/feature-flags"
 import {
   ADMIN_SERVICE_FILTER_OPTIONS,
   type AdminServiceFilterValue,
@@ -69,13 +71,16 @@ export default async function AdminIntakeLedgerPage({
   const params = await searchParams
   const initialFilters = parseLedgerFilters(params)
 
-  const results = await Promise.allSettled([
-    getAllIntakesForAdmin({ page: 1, pageSize: 50 }),
+  const [results, flags] = await Promise.all([
+    Promise.allSettled([getAllIntakesForAdmin({ page: 1, pageSize: 50 })]),
+    getFeatureFlags(),
   ])
 
   const intakesResult = results[0].status === "fulfilled"
     ? results[0].value
     : { data: [] as IntakeWithPatient[], total: 0, page: 1, pageSize: 50 }
+
+  const cockpitV2 = flags.cockpit_v2
 
   return (
     <PanelProvider>
@@ -93,10 +98,17 @@ export default async function AdminIntakeLedgerPage({
 
         <OperatorScrollArea>
           <div id="intakes" className="min-h-[520px]">
-            <AdminIntakesLedgerClient
-              allIntakes={intakesResult.data || []}
-              initialFilters={initialFilters}
-            />
+            {cockpitV2 ? (
+              <AdminIntakesLedgerV2
+                allIntakes={intakesResult.data || []}
+                initialFilters={initialFilters}
+              />
+            ) : (
+              <AdminIntakesLedgerClient
+                allIntakes={intakesResult.data || []}
+                initialFilters={initialFilters}
+              />
+            )}
           </div>
         </OperatorScrollArea>
       </OperatorPage>

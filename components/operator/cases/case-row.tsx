@@ -18,6 +18,13 @@ type CaseRowProps = {
   selected?: boolean
   actions?: React.ReactNode
   className?: string
+  /**
+   * When provided, plain left-click on the row calls this handler instead
+   * of navigating to `row.href`. Cmd/Ctrl/Shift/middle-click still follow
+   * the link as a browser default. Used to wire the slide-over case panel
+   * in the Ledger while keeping the row's link semantics intact.
+   */
+  onPrimary?: (id: string) => void
 }
 
 /**
@@ -36,6 +43,7 @@ export function CaseRow({
   selected = false,
   actions,
   className,
+  onPrimary,
 }: CaseRowProps) {
   const relativeTime = formatRelativeTime(row.createdAt)
   const fullTimestamp = (() => {
@@ -68,9 +76,18 @@ export function CaseRow({
       )}
     >
       {/* Stretched primary link. Sits behind content (z-0) so visual cells
-          can sit above with pointer-events disabled. */}
+          can sit above with pointer-events disabled. When onPrimary is set,
+          plain left-click opens the slide-over instead of navigating; Cmd/
+          Ctrl/Shift/middle-click still follow the link. */}
       <Link
         href={row.href}
+        onClick={(event) => {
+          if (!onPrimary) return
+          if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+          if (event.button !== 0) return
+          event.preventDefault()
+          onPrimary(row.id)
+        }}
         className={cn(
           "absolute inset-0 z-0 rounded-sm",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1",

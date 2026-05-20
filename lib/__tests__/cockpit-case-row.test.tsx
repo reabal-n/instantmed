@@ -114,4 +114,16 @@ describe("CaseRow", () => {
     )
     expect(html).toContain("data-selected=\"true\"")
   })
+
+  it("still renders a navigable href when onPrimary is set (modifier-click fallback)", () => {
+    const html = render(
+      <CaseRow
+        row={baseRow}
+        density="comfortable"
+        onPrimary={() => undefined}
+      />,
+    )
+    // Cmd/Ctrl/middle-click should still follow the link to /admin/intakes/...
+    expect(html).toContain('href="/admin/intakes/intake-1"')
+  })
 })

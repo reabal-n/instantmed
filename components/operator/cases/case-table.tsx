@@ -34,6 +34,16 @@ type CaseTableProps = {
   now?: Date
   emptyState?: EmptyStateConfig
   rowActions?: (row: CaseRowData) => React.ReactNode
+  /**
+   * Plain-click handler for rows. Threaded into CaseRow's `onPrimary`. When
+   * set, left-click opens the callback (e.g. a slide-over) instead of
+   * navigating; modifier-click still follows the row href.
+   */
+  onRowPrimary?: (id: string) => void
+  /**
+   * The id of the currently selected row (for keyboard navigation visuals).
+   */
+  selectedRowId?: string | null
   className?: string
 }
 
@@ -79,6 +89,8 @@ export function CaseTable({
   now,
   emptyState,
   rowActions,
+  onRowPrimary,
+  selectedRowId,
   className,
 }: CaseTableProps) {
   if (rows.length === 0) {
@@ -142,6 +154,8 @@ export function CaseTable({
                 row={row}
                 density={density}
                 actions={rowActions?.(row)}
+                onPrimary={onRowPrimary}
+                selected={selectedRowId === row.id}
               />
             ))}
           </div>
