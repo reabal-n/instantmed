@@ -168,6 +168,7 @@ export interface Intake {
   paid_request_telegram_attempts: number
   paid_request_telegram_last_attempt_at: string | null
   paid_request_telegram_claimed_at: string | null
+  paid_request_telegram_message_id: number | null
   // Guest checkout
   guest_email: string | null
   // Document

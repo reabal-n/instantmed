@@ -21,7 +21,7 @@ describe("Telegram request notifications", () => {
   })
 
   it("sends new-request copy without making it feel like a payment alert", async () => {
-    fetchMock.mockResolvedValue({ ok: true })
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ result: { message_id: 42 } }) })
 
     const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
 
@@ -60,7 +60,7 @@ describe("Telegram request notifications", () => {
   })
 
   it("does not include a clinical approve callback by default", async () => {
-    fetchMock.mockResolvedValue({ ok: true })
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ result: { message_id: 42 } }) })
 
     const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
 
@@ -83,7 +83,7 @@ describe("Telegram request notifications", () => {
   })
 
   it("keeps Telegram notification bodies PHI-minimal", async () => {
-    fetchMock.mockResolvedValue({ ok: true })
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ result: { message_id: 42 } }) })
 
     const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
 
@@ -104,7 +104,7 @@ describe("Telegram request notifications", () => {
   })
 
   it("prefixes the title with Express when isPriority is true", async () => {
-    fetchMock.mockResolvedValue({ ok: true })
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ result: { message_id: 42 } }) })
 
     const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
 
@@ -123,7 +123,7 @@ describe("Telegram request notifications", () => {
   })
 
   it("omits the Express prefix when isPriority is false", async () => {
-    fetchMock.mockResolvedValue({ ok: true })
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ result: { message_id: 42 } }) })
 
     const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
 
@@ -145,7 +145,7 @@ describe("Telegram request notifications", () => {
   it("only emits approve callbacks when explicitly enabled with a dedicated signing secret", async () => {
     process.env.TELEGRAM_APPROVAL_ACTIONS_ENABLED = "true"
     process.env.TELEGRAM_ACTION_SIGNING_SECRET = "test-action-signing-secret"
-    fetchMock.mockResolvedValue({ ok: true })
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ result: { message_id: 42 } }) })
 
     const { notifyNewIntakeViaTelegram, verifyIntakeAction } = await import("@/lib/notifications/telegram")
 
@@ -187,7 +187,7 @@ describe("Telegram request notifications", () => {
   })
 
   it("keeps system Telegram alerts off unless explicitly re-enabled", async () => {
-    fetchMock.mockResolvedValue({ ok: true })
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ result: { message_id: 42 } }) })
     process.env.TELEGRAM_ALL_LEVELS = "1"
     delete process.env.TELEGRAM_SYSTEM_ALERTS_ENABLED
 

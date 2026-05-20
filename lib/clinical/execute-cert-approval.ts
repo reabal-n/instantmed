@@ -19,6 +19,7 @@ import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/lib/email/com
 import { sendEmail } from "@/lib/email/send-email"
 import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
 import { validateCertificateDateRange } from "@/lib/medical-certificates/date-policy"
+import { editPaidRequestTelegramMessageToApproved } from "@/lib/notifications/edit-paid-request-telegram"
 import { createNotification } from "@/lib/notifications/service"
 import { logger } from "@/lib/observability/logger"
 import { getPatientIntakeDetailHref } from "@/lib/patient/certificate-download"
@@ -584,6 +585,10 @@ export async function executeCertApproval(
   // 11. Revalidate cache
   revalidateStaff({ intakeId, patientId: patient.id })
   revalidatePatient({ intakeId, patientId: patient.id, documents: true })
+
+  // 12. Edit the original Telegram notification to "Approved". Fire and forget;
+  // the helper is fail-soft and must never block the approval response.
+  void editPaidRequestTelegramMessageToApproved(intakeId)
 
   return { success: true, certificateId, emailSent: emailResult.success }
 }

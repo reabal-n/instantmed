@@ -69,13 +69,27 @@ interface TelegramNotifyOptions {
   isPriority?: boolean
 }
 
+export interface NotifyNewIntakeResult {
+  messageId: number | null
+}
+
+function parseMessageId(json: unknown): number | null {
+  if (!json || typeof json !== "object") return null
+  const result = (json as { result?: { message_id?: unknown } }).result
+  const raw = result?.message_id
+  return typeof raw === "number" ? raw : null
+}
+
 /**
  * Send a new-order notification to the doctor's Telegram.
  * Messages are PHI-minimal: service, amount, short ref, and authenticated review link.
  * Med cert approval buttons are disabled unless explicitly enabled with a separate signing secret.
  * Other requests get a notification + Review link.
+ *
+ * Returns the Telegram message_id so callers can persist it and later edit
+ * the message to a Reviewed or Declined state.
  */
-export async function notifyNewIntakeViaTelegram(opts: TelegramNotifyOptions): Promise<void> {
+export async function notifyNewIntakeViaTelegram(opts: TelegramNotifyOptions): Promise<NotifyNewIntakeResult> {
   const token = getToken()
   const chatId = getChatId()
   if (!token || !chatId) {
@@ -90,18 +104,16 @@ export async function notifyNewIntakeViaTelegram(opts: TelegramNotifyOptions): P
 
   const isMedCert = opts.serviceSlug?.startsWith("med-cert")
 
-  if (isMedCert) {
-    await sendMedCertNotification(opts, token, chatId)
-  } else {
-    await sendGenericNotification(opts, token, chatId)
-  }
+  return isMedCert
+    ? sendMedCertNotification(opts, token, chatId)
+    : sendGenericNotification(opts, token, chatId)
 }
 
 async function sendGenericNotification(
   opts: TelegramNotifyOptions,
   token: string,
   chatId: string,
-): Promise<void> {
+): Promise<NotifyNewIntakeResult> {
   const appUrl = opts.appUrl || process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
   const reviewUrl = `${appUrl}${buildDoctorIntakeHref(opts.intakeId)}`
   const title = opts.isPriority ? `*⚡ Express · New request ready*` : `*New request ready*`
@@ -129,9 +141,11 @@ async function sendGenericNotification(
       const body = await response.text()
       log.error("Telegram send failed", { status: response.status, body })
       throw new TelegramSendError(`Telegram send failed: ${response.status}`)
-    } else {
-      log.info("Telegram notification sent", { intakeId: opts.intakeId })
     }
+    const json = await response.json().catch(() => null)
+    const messageId = parseMessageId(json)
+    log.info("Telegram notification sent", { intakeId: opts.intakeId, hasMessageId: messageId !== null })
+    return { messageId }
   } catch (error) {
     log.error("Telegram error", { intakeId: opts.intakeId }, error instanceof Error ? error : new Error(String(error)))
     throw error
@@ -142,7 +156,7 @@ async function sendMedCertNotification(
   opts: TelegramNotifyOptions,
   token: string,
   chatId: string,
-): Promise<void> {
+): Promise<NotifyNewIntakeResult> {
   const appUrl = opts.appUrl || process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
 
   const reviewUrl = `${appUrl}${buildDoctorIntakeHref(opts.intakeId)}`
@@ -182,13 +196,46 @@ async function sendMedCertNotification(
       const body = await response.text()
       log.error("Telegram med cert send failed", { status: response.status, body })
       throw new TelegramSendError(`Telegram med cert send failed: ${response.status}`)
-    } else {
-      log.info("Telegram med cert notification sent", { intakeId: opts.intakeId })
     }
+    const json = await response.json().catch(() => null)
+    const messageId = parseMessageId(json)
+    log.info("Telegram med cert notification sent", { intakeId: opts.intakeId, hasMessageId: messageId !== null })
+    return { messageId }
   } catch (error) {
     log.error("Telegram error", { intakeId: opts.intakeId }, error instanceof Error ? error : new Error(String(error)))
     throw error
   }
+}
+
+/**
+ * Edit the original new-request notification to show that the doctor has
+ * approved the intake. Caller passes the message_id that was captured on send.
+ * No-op when chat is not configured. Errors propagate to the caller for logging.
+ */
+export async function editTelegramMessageToApproved(
+  messageId: number,
+  serviceName: string,
+): Promise<void> {
+  const chatId = getChatId()
+  if (!chatId) return
+  const safe = escapeMarkdown(serviceName)
+  const text = [`*✓ Approved*`, ``, `*${safe}*`].join("\n")
+  await editTelegramMessage(chatId, messageId, text)
+}
+
+/**
+ * Edit the original new-request notification to show that the doctor declined
+ * the intake. Same fail-soft contract as the approved variant.
+ */
+export async function editTelegramMessageToDeclined(
+  messageId: number,
+  serviceName: string,
+): Promise<void> {
+  const chatId = getChatId()
+  if (!chatId) return
+  const safe = escapeMarkdown(serviceName)
+  const text = [`*✕ Declined*`, ``, `*${safe}*`].join("\n")
+  await editTelegramMessage(chatId, messageId, text)
 }
 
 /**

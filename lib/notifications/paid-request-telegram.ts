@@ -142,6 +142,7 @@ export function resolvePaidRequestServiceDetail(input: {
 async function markSent(
   supabase: Pick<SupabaseClient, "from">,
   intakeId: string,
+  messageId: number | null,
 ): Promise<void> {
   const { error } = await supabase
     .from("intakes")
@@ -150,6 +151,7 @@ async function markSent(
       paid_request_telegram_failed_at: null,
       paid_request_telegram_error: null,
       paid_request_telegram_claimed_at: null,
+      paid_request_telegram_message_id: messageId,
       updated_at: new Date().toISOString(),
     })
     .eq("id", intakeId)
@@ -277,7 +279,7 @@ export async function sendPaidRequestTelegramNotification(
   const serviceName = detail ? `${baseServiceName} · ${detail}` : baseServiceName
 
   try {
-    await notifyNewIntakeViaTelegram({
+    const sendResult = await notifyNewIntakeViaTelegram({
       intakeId: input.intakeId,
       patientName: "Patient",
       serviceName,
@@ -286,7 +288,7 @@ export async function sendPaidRequestTelegramNotification(
       isPriority,
     })
 
-    await markSent(input.supabase, input.intakeId)
+    await markSent(input.supabase, input.intakeId, sendResult.messageId)
     return { sent: true }
   } catch (error) {
     await markFailed(input.supabase, input.intakeId, error)

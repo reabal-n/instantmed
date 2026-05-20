@@ -31,6 +31,10 @@ import {
   getParchmentScriptCompletionEligibility,
   isParchmentClaimSatisfied,
 } from "@/lib/doctor/parchment-claim"
+import {
+  editPaidRequestTelegramMessageToApproved,
+  editPaidRequestTelegramMessageToDeclined,
+} from "@/lib/notifications/edit-paid-request-telegram"
 import { createLogger } from "@/lib/observability/logger"
 import { getParchmentPatientIdentityIssues } from "@/lib/parchment/sync-patient"
 import { readAnswers } from "@/lib/security/phi-field-wrappers"
@@ -269,6 +273,12 @@ export async function updateStatusAction(
 
     revalidateStaff({ intakeId, scripts: true })
 
+    // Edit the original Telegram notification to Approved when the doctor
+    // moves the case into a reviewed state. Fire-and-forget; fail-soft helper.
+    if (status === "approved" || status === "awaiting_script") {
+      void editPaidRequestTelegramMessageToApproved(intakeId)
+    }
+
     return { success: true }
   } catch (error) {
     if (error instanceof IntakeLifecycleError) {
@@ -391,7 +401,10 @@ export async function declineIntakeAction(
   revalidateStaff({ intakeId })
   revalidatePatient({ intakeId })
 
-  return { 
+  // Edit the original Telegram notification to Declined. Fire-and-forget.
+  void editPaidRequestTelegramMessageToDeclined(intakeId)
+
+  return {
     success: true,
     refund: result.refund ? { status: result.refund.status } : undefined,
   }

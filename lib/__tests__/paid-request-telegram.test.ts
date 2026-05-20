@@ -94,7 +94,7 @@ describe("paid request Telegram notification ledger", () => {
       },
     ])
 
-    vi.mocked(notifyNewIntakeViaTelegram).mockResolvedValueOnce()
+    vi.mocked(notifyNewIntakeViaTelegram).mockResolvedValueOnce({ messageId: 42 })
     vi.mocked(getIntakeAnswers).mockResolvedValueOnce(null)
 
     const result = await sendPaidRequestTelegramNotification({
@@ -125,6 +125,7 @@ describe("paid request Telegram notification ledger", () => {
       paid_request_telegram_claimed_at: null,
       paid_request_telegram_error: null,
       paid_request_telegram_failed_at: null,
+      paid_request_telegram_message_id: 42,
     })
     expect(updates[0].paid_request_telegram_sent_at).toEqual(expect.any(String))
   })
@@ -146,7 +147,7 @@ describe("paid request Telegram notification ledger", () => {
       { isPriority: true },
     )
 
-    vi.mocked(notifyNewIntakeViaTelegram).mockResolvedValueOnce()
+    vi.mocked(notifyNewIntakeViaTelegram).mockResolvedValueOnce({ messageId: 42 })
     vi.mocked(getIntakeAnswers).mockResolvedValueOnce({ medicationName: "Atorvastatin" })
 
     const result = await sendPaidRequestTelegramNotification({
