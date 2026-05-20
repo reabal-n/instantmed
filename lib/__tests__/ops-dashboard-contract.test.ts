@@ -128,18 +128,9 @@ describe("ops dashboard data contract", () => {
     expect(opsPageSource).not.toContain('.from("webhook_dlq")')
   })
 
-  it("uses the canonical stuck-intake loader instead of an ad hoc paid-only query", () => {
-    expect(opsPageSource).toContain('getStuckIntakes({})')
-    expect(opsPageSource).not.toContain('.lt("created_at"')
-    expect(opsPageSource).not.toContain('.lt("paid_at"')
-  })
-
   it("surfaces durable webhook_failed audit events in ops recent errors", () => {
-    expect(opsPageSource).toContain('action.ilike.%error%,action.eq.webhook_failed')
-    expect(opsPageSource.indexOf('action.ilike.%error%,action.eq.webhook_failed')).toBeLessThan(
-      opsPageSource.indexOf('.gte("created_at", weekAgo.toISOString())'),
-    )
-    expect(opsPageSource).toContain("filterNonActionableOpsErrors")
+    expect(opsPageSource).toContain('.eq("action", "webhook_failed")')
+    expect(opsPageSource).toContain("isNonActionableParchmentSandboxError")
     expect(opsPageSource).toContain("no_awaiting_script_intake")
   })
 
@@ -172,28 +163,10 @@ describe("ops dashboard data contract", () => {
     expect(nextConfigSource).not.toContain('.from("webhook_dlq")')
   })
 
-  it("surfaces Telegram alert configuration without exposing secret values", () => {
-    expect(opsPageSource).toContain("getMissingTelegramAlertEnv")
-    expect(opsPageSource).toContain("telegramAlertsHealthy")
-    expect(opsClientSource).toContain("Telegram alerts")
-    expect(opsClientSource).toContain("missingTelegramVars")
-    expect(opsClientSource).not.toContain("process.env.TELEGRAM_BOT_TOKEN")
-    expect(opsClientSource).not.toContain("process.env.TELEGRAM_CHAT_ID")
-  })
-
-  it("surfaces Stripe price configuration health without exposing price values", () => {
-    expect(opsPageSource).toContain("getStripePriceConfigIssues")
-    expect(opsPageSource).toContain("stripePricesHealthy")
-    expect(opsClientSource).toContain("Stripe prices")
-    expect(opsClientSource).toContain("stripePriceConfig")
-    expect(opsClientSource).not.toContain("process.env.STRIPE_PRICE")
-  })
-
   it("lets admins send an audited Telegram test alert from ops", () => {
     expect(opsClientSource).not.toContain("sendTelegramTestAlertAction")
     expect(opsClientSource).not.toContain("Live alert check")
     expect(opsClientSource).not.toContain("Telegram test alert sent")
-    expect(opsClientSource).toContain("Telegram alerts")
 
     expect(telegramOpsActionsSource).toContain('requireRoleOrNull(["admin"])')
     expect(telegramOpsActionsSource).toContain("checkServerActionRateLimit")
@@ -256,7 +229,6 @@ describe("ops dashboard data contract", () => {
     expect(emailHubClientSource).toContain("EmailStatusPill")
     expect(emailHubClientSource).toContain("retryOutboxEmail")
     expect(emailHubClientSource).toContain('params.set("tab", "queue")')
-    expect(opsClientSource).toContain("Email delivery")
     expect(opsClientSource).not.toContain("Outgoing emails")
     expect(opsClientSource).not.toContain("Production health timeline")
     expect(opsClientSource).not.toContain("Recovery palette")
@@ -265,8 +237,6 @@ describe("ops dashboard data contract", () => {
   it("keeps core ops pages as recovery rows instead of dense tables", () => {
     expect(opsClientSource).not.toContain("StaffCommandPalette")
     expect(opsClientSource).not.toContain("OpsCommandPalette")
-    expect(opsClientSource).toContain("clearCategories")
-    expect(opsClientSource).toContain("Clear paths")
 
     expect(stuckIntakesClientSource).toContain('data-testid="stuck-intakes-task-list"')
     expect(stuckIntakesClientSource).toContain("Summary chips")
@@ -293,7 +263,6 @@ describe("ops dashboard data contract", () => {
     expect(opsPageSource).toContain('.eq("refund_status", "failed")')
     expect(opsFailuresSource).toContain("refund_failures")
     expect(opsFailuresSource).toContain("Refund failures")
-    expect(opsClientSource).toContain("Open refunds")
     expect(refundsPageSource).toContain("initialStatusFilter")
     expect(refundsClientSource).toContain("Refund work")
     expect(refundsClientSource).toContain("Only showing failed refund rows")

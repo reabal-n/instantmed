@@ -139,12 +139,10 @@ describe("support nav contract", () => {
   })
 
   it("keeps support ops views masked and payload-redacted", () => {
-    const opsSource = readFileSync(join(root, "app/admin/ops/page.tsx"), "utf8")
     const webhookRouteSource = readFileSync(join(root, "app/api/admin/webhook-dlq/route.ts"), "utf8")
     const identitySource = readFileSync(join(root, "app/admin/ops/prescribing-identity/page.tsx"), "utf8")
     const parchmentSource = readFileSync(join(root, "app/admin/ops/parchment/page.tsx"), "utf8")
 
-    expect(opsSource).toContain("toSupportOpsData")
     expect(webhookRouteSource).toContain("redactWebhookDlqEntryForSupport")
     expect(identitySource).toContain("maskPatientName")
     expect(identitySource).toContain("isSupportOnly")

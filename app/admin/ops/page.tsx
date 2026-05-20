@@ -1,189 +1,85 @@
 import { buildOperationalFailureOverview } from "@/lib/admin/ops-failures"
 import { requireRole } from "@/lib/auth/helpers"
-import { hasAdminAccess, hasSupportAccess } from "@/lib/auth/staff-capabilities"
-import { getMissingTelegramAlertEnv } from "@/lib/config/env"
 import {
-  ADMIN_AUDIT_HREF,
   ADMIN_PARCHMENT_OPS_HREF,
+  ADMIN_PRESCRIBING_IDENTITY_HREF,
   ADMIN_WEBHOOK_DLQ_HREF,
-  buildAdminIntakeHref,
-  buildStaffEmailHubHref,
-  STAFF_OPS_HREF,
+  buildStaffLedgerHref,
 } from "@/lib/dashboard/routes"
-import { getAuthEmailHealth } from "@/lib/data/auth-email-events"
-import { getStuckIntakes } from "@/lib/data/intake-ops"
-import {
-  getDuplicatePatientProfileSummary,
-  getPrescribingIdentityBlockerReport,
-} from "@/lib/doctor/patient-identity-report"
-import { getStripePriceConfigIssues } from "@/lib/stripe/price-config-health"
+import { getPrescribingIdentityBlockerReport } from "@/lib/doctor/patient-identity-report"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
-import { OpsDashboardClient } from "./ops-client"
+import { OpsDashboardClient, type OpsDashboardClientProps } from "./ops-client"
 
 export const dynamic = "force-dynamic"
 
-type AuditErrorRow = {
+type AuditRow = {
   id: string
   action: string
   created_at: string
   metadata: Record<string, unknown> | null
 }
 
-type OpsDashboardData = Parameters<typeof OpsDashboardClient>[0]["ops"]
-
-function getMetadataString(metadata: Record<string, unknown> | null, key: string): string | null {
+function metadataString(metadata: Record<string, unknown> | null, key: string): string | null {
   const value = metadata?.[key]
   return typeof value === "string" && value.trim() ? value.trim() : null
 }
 
-function isNonActionableParchmentSandboxError(row: AuditErrorRow): boolean {
-  return row.action === "webhook_failed"
-    && getMetadataString(row.metadata, "eventType") === "parchment:prescription.created"
-    && getMetadataString(row.metadata, "error") === "no_awaiting_script_intake"
+function isNonActionableParchmentSandboxError(row: AuditRow): boolean {
+  return (
+    row.action === "webhook_failed"
+    && metadataString(row.metadata, "eventType") === "parchment:prescription.created"
+    && metadataString(row.metadata, "error") === "no_awaiting_script_intake"
+  )
 }
 
-function filterNonActionableOpsErrors(rows: AuditErrorRow[]): AuditErrorRow[] {
-  return rows.filter((row) => !isNonActionableParchmentSandboxError(row))
+function helperTextForPayment(count: number, refundFailedCount: number): string {
+  if (count === 0) return "All clear"
+  if (refundFailedCount > 0) return `${refundFailedCount} refund failed`
+  return `${count} to resolve`
 }
 
-function metadataEquals(row: AuditErrorRow, key: string, expected: string): boolean {
-  return getMetadataString(row.metadata, key) === expected
+function helperTextForParchment(count: number, staleCount: number): string {
+  if (count === 0) return "All clear"
+  if (staleCount > 0) return `${staleCount} stale`
+  return "Action needed"
 }
 
-function metadataStartsWith(row: AuditErrorRow, key: string, prefix: string): boolean {
-  return getMetadataString(row.metadata, key)?.startsWith(prefix) || false
+function helperTextForIdentity(count: number): string {
+  if (count === 0) return "All clear"
+  return `${count} to chase`
 }
 
-function supportCategoryHref(categoryId: string): string {
-  if (categoryId === "stripe_webhooks") return ADMIN_WEBHOOK_DLQ_HREF
-  if (categoryId === "prescription_delivery") return ADMIN_PARCHMENT_OPS_HREF
-  return STAFF_OPS_HREF
-}
-
-function supportTimelineHref(itemId: string): string {
-  if (itemId === "payment_webhook") return ADMIN_WEBHOOK_DLQ_HREF
-  if (itemId === "parchment_sync") return ADMIN_PARCHMENT_OPS_HREF
-  return STAFF_OPS_HREF
-}
-
-function toSupportOpsData(ops: OpsDashboardData): OpsDashboardData {
-  return {
-    ...ops,
-    emails: {
-      ...ops.emails,
-      recentOutgoing: [],
-    },
-    authEmails: {
-      ...ops.authEmails,
-      recentFailures: [],
-    },
-    errors: {
-      ...ops.errors,
-      recent: [],
-    },
-    safetyBlocks: {
-      ...ops.safetyBlocks,
-      recent: [],
-    },
-    failureOverview: {
-      ...ops.failureOverview,
-      categories: ops.failureOverview.categories.map((category) => ({
-        ...category,
-        href: supportCategoryHref(category.id),
-      })),
-      recent: [],
-    },
-    productionTimeline: ops.productionTimeline.map((item) => ({
-      ...item,
-      href: supportTimelineHref(item.id),
-    })),
-  }
+function helperTextForWebhook(count: number): string {
+  if (count === 0) return "All clear"
+  return "Action needed"
 }
 
 export default async function OpsDashboardPage() {
-  const authUser = await requireRole(["admin", "support"])
-  const isSupportOnly = hasSupportAccess(authUser.profile) && !hasAdminAccess(authUser.profile)
+  await requireRole(["admin", "support"])
 
   const supabase = createServiceRoleClient()
-
   const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const dayAgo = new Date(today.getTime() - 24 * 60 * 60 * 1000)
-  const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const fortyEightHrsAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000)
 
-  // Fetch operations data - some tables may not exist in production
   const [
     webhookDlqResult,
-    emailQueueResult,
-    recentErrorsResult,
-    auditLogsResult,
-    safetyBlocksResult,
-    stuckIntakesResult,
-    authEmailHealthResult,
-    patientIdentityResult,
-    prescribingIdentityResult,
     emailFailuresResult,
     checkoutFailuresResult,
-    incompleteRequestsResult,
     certificateFailuresResult,
     prescriptionWebhookFailuresResult,
     staleScriptIntakesResult,
     refundFailuresResult,
-    opsAuditActionsResult,
-    recentOutgoingEmailsResult,
-    latestPaidIntakeResult,
-    latestSentEmailResult,
-    recentRefundsResult,
+    prescribingIdentityResult,
   ] = await Promise.all([
-    // Failed webhooks (DLQ)
     supabase
       .from("stripe_webhook_dead_letter")
-      .select("id, created_at, resolved_at, event_type", { count: "exact" })
+      .select("id, created_at, event_type")
       .is("resolved_at", null)
       .order("created_at", { ascending: false })
-      .limit(10)
-      .then(r => r.error ? { data: [], count: 0 } : r),
-    
-    // Email queue status
-    supabase
-      .from("email_outbox")
-      .select("id, status, created_at")
-      .gte("created_at", dayAgo.toISOString())
-      .then(r => r.error ? { data: [] } : r),
-    
-    // Recent errors from audit logs
-    supabase
-      .from("audit_logs")
-      .select("id, action, created_at, metadata")
-      .or("action.ilike.%error%,action.eq.webhook_failed")
-      .gte("created_at", weekAgo.toISOString())
-      .order("created_at", { ascending: false })
-      .limit(20),
-    
-    // Audit log volume
-    supabase
-      .from("audit_logs")
-      .select("id", { count: "exact", head: true })
-      .gte("created_at", dayAgo.toISOString()),
-
-    supabase
-      .from("safety_audit_log")
-      .select("id, evaluated_at, service_slug, outcome, risk_tier, triggered_rule_ids, request_id", { count: "exact" })
-      .neq("outcome", "ALLOW")
-      .gte("evaluated_at", dayAgo.toISOString())
-      .order("evaluated_at", { ascending: false })
-      .limit(10)
-      .then(r => r.error ? { data: [], count: 0 } : r),
-    
-    getStuckIntakes({}),
-
-    getAuthEmailHealth(dayAgo),
-
-    getDuplicatePatientProfileSummary(supabase),
-
-    getPrescribingIdentityBlockerReport(supabase),
-
+      .limit(20)
+      .then((r) => (r.error ? { data: [] } : r)),
     supabase
       .from("email_outbox")
       .select("id, email_type, status, error_message, delivery_status, created_at")
@@ -191,8 +87,7 @@ export default async function OpsDashboardPage() {
       .gte("created_at", weekAgo.toISOString())
       .order("created_at", { ascending: false })
       .limit(20)
-      .then(r => r.error ? { data: [] } : r),
-
+      .then((r) => (r.error ? { data: [] } : r)),
     supabase
       .from("intakes")
       .select("id, created_at, updated_at, category, subtype, checkout_error")
@@ -200,19 +95,7 @@ export default async function OpsDashboardPage() {
       .gte("updated_at", weekAgo.toISOString())
       .order("updated_at", { ascending: false })
       .limit(20)
-      .then(r => r.error ? { data: [] } : r),
-
-    supabase
-      .from("intakes")
-      .select("id, created_at, updated_at, category, subtype")
-      .eq("status", "pending_payment")
-      .neq("payment_status", "paid")
-      .lt("updated_at", new Date(now.getTime() - 30 * 60 * 1000).toISOString())
-      .gte("created_at", weekAgo.toISOString())
-      .order("updated_at", { ascending: true })
-      .limit(20)
-      .then(r => r.error ? { data: [] } : r),
-
+      .then((r) => (r.error ? { data: [] } : r)),
     supabase
       .from("issued_certificates")
       .select("id, intake_id, updated_at, email_failed_at, email_failure_reason")
@@ -220,8 +103,7 @@ export default async function OpsDashboardPage() {
       .gte("email_failed_at", weekAgo.toISOString())
       .order("email_failed_at", { ascending: false })
       .limit(20)
-      .then(r => r.error ? { data: [] } : r),
-
+      .then((r) => (r.error ? { data: [] } : r)),
     supabase
       .from("audit_logs")
       .select("id, action, created_at, metadata")
@@ -229,288 +111,91 @@ export default async function OpsDashboardPage() {
       .gte("created_at", weekAgo.toISOString())
       .order("created_at", { ascending: false })
       .limit(50)
-      .then(r => r.error ? { data: [] } : r),
-
+      .then((r) => (r.error ? { data: [] } : r)),
     supabase
       .from("intakes")
       .select("id, created_at, updated_at, category, subtype")
       .eq("status", "awaiting_script")
       .eq("payment_status", "paid")
-      .lt("updated_at", new Date(now.getTime() - 48 * 60 * 60 * 1000).toISOString())
+      .lt("updated_at", fortyEightHrsAgo.toISOString())
       .order("updated_at", { ascending: true })
       .limit(20)
-      .then(r => r.error ? { data: [] } : r),
-
+      .then((r) => (r.error ? { data: [] } : r)),
     supabase
       .from("payments")
       .select("id, intake_id, created_at, updated_at, refund_reason")
       .eq("refund_status", "failed")
       .order("updated_at", { ascending: false })
       .limit(20)
-      .then(r => r.error ? { data: [] } : r),
-
-    supabase
-      .from("audit_logs")
-      .select("id, action, created_at, metadata")
-      .eq("action", "admin_action")
-      .gte("created_at", weekAgo.toISOString())
-      .order("created_at", { ascending: false })
-      .limit(100)
-      .then(r => r.error ? { data: [] } : r),
-
-    supabase
-      .from("email_outbox")
-      .select("id, email_type, subject, status, delivery_status, error_message, retry_count, intake_id, created_at, sent_at, last_attempt_at")
-      .order("created_at", { ascending: false })
-      .limit(8)
-      .then(r => r.error ? { data: [] } : r),
-
-    supabase
-      .from("intakes")
-      .select("id, paid_at, category, subtype")
-      .not("paid_at", "is", null)
-      .order("paid_at", { ascending: false })
-      .limit(1)
-      .then(r => r.error ? { data: [] } : r),
-
-    supabase
-      .from("email_outbox")
-      .select("id, email_type, status, delivery_status, sent_at, created_at, intake_id")
-      .in("status", ["sent", "skipped_e2e"])
-      .not("sent_at", "is", null)
-      .order("sent_at", { ascending: false })
-      .limit(1)
-      .then(r => r.error ? { data: [] } : r),
-
-    // Recent refunds across all actors. Powers the Refunds card on /admin/ops
-    // so support staff can confirm refunds settled without leaving the page.
-    supabase
-      .from("intakes")
-      .select(`
-        id,
-        reference_number,
-        payment_status,
-        refund_status,
-        refund_amount_cents,
-        amount_cents,
-        refunded_at,
-        refunded_by,
-        patient:profiles!patient_id (id, full_name),
-        actor:profiles!refunded_by (id, full_name)
-      `)
-      .not("refunded_at", "is", null)
-      .order("refunded_at", { ascending: false })
-      .limit(8)
-      .then(r => r.error ? { data: [] } : r),
+      .then((r) => (r.error ? { data: [] } : r)),
+    getPrescribingIdentityBlockerReport(supabase),
   ])
 
-  // Process email stats
-  const emailStats = {
-    total: emailQueueResult.data?.length || 0,
-    sent: emailQueueResult.data?.filter((e) => e.status === "sent").length || 0,
-    failed: emailQueueResult.data?.filter((e) => e.status === "failed").length || 0,
-    pending: emailQueueResult.data?.filter((e) => e.status === "pending").length || 0,
-  }
-  
-  const emailSuccessRate = emailStats.total > 0 
-    ? ((emailStats.sent / emailStats.total) * 100).toFixed(1) 
-    : "100"
+  const prescriptionWebhookFailures = (
+    (prescriptionWebhookFailuresResult.data || []) as AuditRow[]
+  )
+    .filter((row) => !isNonActionableParchmentSandboxError(row))
+    .filter(
+      (row) => metadataString(row.metadata, "eventType") === "parchment:prescription.created",
+    )
 
-  // Stale intakes (paid but not reviewed in 2+ hours)
-  const staleIntakes = stuckIntakesResult.data || []
-  const recentErrors = filterNonActionableOpsErrors((recentErrorsResult.data || []) as AuditErrorRow[])
-  const prescriptionWebhookFailures = filterNonActionableOpsErrors(
-    (prescriptionWebhookFailuresResult.data || []) as AuditErrorRow[],
-  ).filter((row) => getMetadataString(row.metadata, "eventType") === "parchment:prescription.created")
-  const missingTelegramAlertEnv = getMissingTelegramAlertEnv()
-  const stripePriceConfigIssues = getStripePriceConfigIssues()
-  const missingEmailDeliveryEnv = [
-    process.env.RESEND_API_KEY ? null : "RESEND_API_KEY",
-  ].filter((value): value is string => Boolean(value))
-  const opsAuditActions = ((opsAuditActionsResult.data || []) as AuditErrorRow[])
-  const lastTelegramTest = opsAuditActions.find((row) =>
-    metadataEquals(row, "action_type", "telegram_test_alert") && metadataEquals(row, "status", "sent")
-  )
-  const lastOpsEmailTest = opsAuditActions.find((row) =>
-    metadataEquals(row, "action_type", "ops_test_email") && metadataEquals(row, "status", "sent")
-  )
-  const lastParchmentSuccess = opsAuditActions.find((row) =>
-    metadataStartsWith(row, "action_type", "parchment_webhook_")
-      || (metadataEquals(row, "action_type", "parchment_webhook_retry") && metadataEquals(row, "result", "success"))
-  )
-  const latestPaidIntake = latestPaidIntakeResult.data?.[0] || null
-  const latestSentEmail = latestSentEmailResult.data?.[0] || null
   const failureOverview = buildOperationalFailureOverview({
     stripeDlq: webhookDlqResult.data || [],
     emailFailures: emailFailuresResult.data || [],
     checkoutFailures: checkoutFailuresResult.data || [],
-    incompleteRequests: incompleteRequestsResult.data || [],
     certificateFailures: certificateFailuresResult.data || [],
     prescriptionWebhookFailures,
     staleScriptIntakes: staleScriptIntakesResult.data || [],
     refundFailures: refundFailuresResult.data || [],
   })
 
-  // Refund activity for the cockpit Refunds card. Normalises the row shape so
-  // the client only knows about a flat list, not Supabase relation arrays.
-  type RecentRefundRow = {
-    id: string
-    reference_number: string | null
-    payment_status: string | null
-    refund_status: string | null
-    refund_amount_cents: number | null
-    amount_cents: number | null
-    refunded_at: string | null
-    refunded_by: string | null
-    patient: { id?: string; full_name?: string | null } | { id?: string; full_name?: string | null }[] | null
-    actor: { id?: string; full_name?: string | null } | { id?: string; full_name?: string | null }[] | null
-  }
-  const dayAgoIso = dayAgo.toISOString()
-  const recentRefundRows = (recentRefundsResult.data || []) as RecentRefundRow[]
-  function pickRelation(value: RecentRefundRow["patient"]): { id?: string; full_name?: string | null } | null {
-    if (!value) return null
-    if (Array.isArray(value)) return value[0] ?? null
-    return value
-  }
-  const recentRefunds = {
-    last24hCount: recentRefundRows.filter((row) => (row.refunded_at ?? "") >= dayAgoIso).length,
-    failedCount: recentRefundRows.filter((row) => row.refund_status === "failed").length,
-    recent: recentRefundRows.slice(0, 5).map((row) => {
-      const patient = pickRelation(row.patient)
-      const actor = pickRelation(row.actor)
-      const amountCents = row.refund_amount_cents ?? 0
-      const isPartial = row.payment_status === "partially_refunded"
-      return {
-        intakeId: row.id,
-        intakeRef: row.reference_number || `IM-${row.id.slice(0, 8)}`,
-        amountFormatted: `$${(amountCents / 100).toFixed(2)}`,
-        paymentStatus: isPartial ? "partially_refunded" as const : "refunded" as const,
-        refundStatus: row.refund_status,
-        occurredAt: row.refunded_at || new Date().toISOString(),
-        patientName: patient?.full_name?.trim() || null,
-        actorName: actor?.full_name?.trim() || null,
-        href: buildAdminIntakeHref(row.id),
-      }
-    }),
-  }
+  const countByCategory = new Map(failureOverview.categories.map((c) => [c.id, c.count]))
+  const checkoutCount = countByCategory.get("checkout") ?? 0
+  const refundFailedCount = countByCategory.get("refund_failures") ?? 0
+  const paymentFailuresCount = checkoutCount + refundFailedCount
+  const webhookDlqCount = countByCategory.get("stripe_webhooks") ?? 0
+  const prescriptionCount = countByCategory.get("prescription_delivery") ?? 0
+  const staleScriptCount = countByCategory.get("stale_scripts") ?? 0
+  const parchmentUnsyncedCount = prescriptionCount + staleScriptCount
+  const missingIdentityCount = prescribingIdentityResult.blockedCount
 
-  const ops = {
-    webhooks: {
-      failedCount: webhookDlqResult.count || 0,
-      recentFailed: (webhookDlqResult.data || []).map((entry) => ({
-        ...entry,
-        status: entry.resolved_at ? "resolved" : "open",
-      })),
+  const counters: OpsDashboardClientProps["counters"] = {
+    paymentFailures: {
+      count: paymentFailuresCount,
+      tone: paymentFailuresCount > 0 ? "critical" : "neutral",
+      helperText: helperTextForPayment(paymentFailuresCount, refundFailedCount),
+      href: buildStaffLedgerHref({}),
     },
-    emails: {
-      ...emailStats,
-      successRate: parseFloat(emailSuccessRate),
-      configured: missingEmailDeliveryEnv.length === 0,
-      missingVars: missingEmailDeliveryEnv,
-      lastTestedAt: lastOpsEmailTest?.created_at || null,
-      recentOutgoing: (recentOutgoingEmailsResult.data || []).map((row) => ({
-        id: row.id,
-        emailType: row.email_type || "unknown",
-        subject: row.subject || "No subject",
-        status: row.status || "unknown",
-        deliveryStatus: row.delivery_status || null,
-        errorMessage: row.error_message || null,
-        retryCount: row.retry_count ?? 0,
-        intakeId: row.intake_id || null,
-        occurredAt: row.sent_at || row.last_attempt_at || row.created_at,
-        href: row.intake_id ? buildAdminIntakeHref(row.intake_id) : buildStaffEmailHubHref({ tab: "queue" }),
-      })),
+    webhookDlq: {
+      count: webhookDlqCount,
+      tone: webhookDlqCount > 0 ? "critical" : "neutral",
+      helperText: helperTextForWebhook(webhookDlqCount),
+      href: ADMIN_WEBHOOK_DLQ_HREF,
     },
-    authEmails: authEmailHealthResult,
-    errors: {
-      count: recentErrors.length,
-      recent: recentErrors,
+    parchmentUnsynced: {
+      count: parchmentUnsyncedCount,
+      tone: parchmentUnsyncedCount > 0 ? "warning" : "neutral",
+      helperText: helperTextForParchment(parchmentUnsyncedCount, staleScriptCount),
+      href: ADMIN_PARCHMENT_OPS_HREF,
     },
-    auditVolume: auditLogsResult.count || 0,
-    safetyBlocks: {
-      count: safetyBlocksResult.count || 0,
-      recent: safetyBlocksResult.data || [],
-    },
-    patientIdentity: patientIdentityResult,
-    prescribingIdentity: {
-      totalActive: prescribingIdentityResult.totalActive,
-      blockedCount: prescribingIdentityResult.blockedCount,
-      readyCount: prescribingIdentityResult.readyCount,
-      topBlockers: Object.entries(prescribingIdentityResult.blockerCounts)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 3)
-        .map(([label, count]) => ({ label, count: Number(count) || 0 })),
-    },
-    staleIntakes: staleIntakes.length,
-    failureOverview,
-    alerting: {
-      telegramConfigured: missingTelegramAlertEnv.length === 0,
-      missingTelegramVars: missingTelegramAlertEnv,
-      telegramLastTestedAt: lastTelegramTest?.created_at || null,
-    },
-    stripePriceConfig: {
-      issueCount: stripePriceConfigIssues.length,
-      issueSummary: stripePriceConfigIssues.length > 0
-        ? stripePriceConfigIssues
-          .map((issue) => `${issue.key}: ${issue.issue.replace("_", " ")}`)
-          .join(", ")
-        : "All active checkout price IDs are configured.",
-    },
-    recentRefunds,
-    productionTimeline: [
-      {
-        id: "payment_webhook",
-        label: "Payment webhook",
-        status: latestPaidIntake ? "ok" as const : "missing" as const,
-        detail: latestPaidIntake
-          ? [latestPaidIntake.category, latestPaidIntake.subtype].filter(Boolean).join(" / ") || "Paid request recorded"
-          : "No paid request recorded yet",
-        occurredAt: latestPaidIntake?.paid_at || null,
-        href: latestPaidIntake ? buildAdminIntakeHref(latestPaidIntake.id) : ADMIN_WEBHOOK_DLQ_HREF,
-      },
-      {
-        id: "email_delivery",
-        label: "Email delivery",
-        status: latestSentEmail ? "ok" as const : "missing" as const,
-        detail: latestSentEmail
-          ? `${latestSentEmail.email_type || "email"} / ${latestSentEmail.delivery_status || latestSentEmail.status}`
-          : "No sent email recorded yet",
-        occurredAt: latestSentEmail?.sent_at || latestSentEmail?.created_at || null,
-        href: buildStaffEmailHubHref({ tab: "queue" }),
-      },
-      {
-        id: "telegram_alert",
-        label: "Telegram alert",
-        status: lastTelegramTest ? "ok" as const : "missing" as const,
-        detail: lastTelegramTest
-          ? `Test event ${getMetadataString(lastTelegramTest.metadata, "event_id")?.slice(0, 8) || "sent"}`
-          : "No successful test alert this week",
-        occurredAt: lastTelegramTest?.created_at || null,
-        href: ADMIN_AUDIT_HREF,
-      },
-      {
-        id: "parchment_sync",
-        label: "Parchment sync",
-        status: lastParchmentSuccess ? "ok" as const : "missing" as const,
-        detail: lastParchmentSuccess
-          ? getMetadataString(lastParchmentSuccess.metadata, "action_type") || "Parchment success"
-          : "No sync success recorded this week",
-        occurredAt: lastParchmentSuccess?.created_at || null,
-        href: ADMIN_PARCHMENT_OPS_HREF,
-      },
-    ],
-    systemStatus: {
-      webhooksHealthy: (webhookDlqResult.count || 0) < 5,
-      emailsHealthy: emailStats.failed < 3 && missingEmailDeliveryEnv.length === 0,
-      authEmailsHealthy: !authEmailHealthResult.unavailable && authEmailHealthResult.failed === 0,
-      intakesHealthy: staleIntakes.length < 3,
-      patientIdentityHealthy: patientIdentityResult.duplicateProfileCount === 0,
-      prescribingIdentityHealthy: prescribingIdentityResult.blockedCount === 0,
-      failureOverviewHealthy: failureOverview.openCount === 0,
-      stripePricesHealthy: stripePriceConfigIssues.length === 0,
-      telegramAlertsHealthy: missingTelegramAlertEnv.length === 0,
+    missingIdentity: {
+      count: missingIdentityCount,
+      tone: missingIdentityCount > 0 ? "warning" : "neutral",
+      helperText: helperTextForIdentity(missingIdentityCount),
+      href: ADMIN_PRESCRIBING_IDENTITY_HREF,
     },
   }
 
-  return <OpsDashboardClient ops={isSupportOnly ? toSupportOpsData(ops) : ops} supportMode={isSupportOnly} />
+  const recoveries: OpsDashboardClientProps["recoveries"] = failureOverview.recent
+    .slice(0, 10)
+    .map((item) => ({
+      id: item.id,
+      title: item.title,
+      detail: item.detail,
+      occurredAt: item.occurredAt,
+      severity: item.severity,
+      href: item.href,
+    }))
+
+  return <OpsDashboardClient counters={counters} recoveries={recoveries} />
 }

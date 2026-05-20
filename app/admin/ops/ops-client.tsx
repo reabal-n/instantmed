@@ -1,490 +1,109 @@
 "use client"
 
 import {
-  AlertTriangle,
-  ArrowRight,
-  CheckCircle,
-  FileWarning,
-  type LucideIcon,
-  Mail,
-  Pill,
-  ReceiptText,
-  RotateCcw,
-  Server,
-  Webhook,
-} from "lucide-react"
-import Link from "next/link"
+  CounterCard,
+  type CounterCardTone,
+  OperatorPage,
+  OperatorPageHeader,
+  OperatorScrollArea,
+  RecoveryRow,
+  type RecoverySeverity,
+} from "@/components/operator"
 
-import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
-import { Button } from "@/components/ui/button"
-import {
-  ADMIN_PATIENT_MERGE_AUDIT_HREF,
-  ADMIN_PRESCRIBING_IDENTITY_HREF,
-  STAFF_DASHBOARD_HREF,
-  STAFF_LEDGER_HREF,
-} from "@/lib/dashboard/routes"
-import { cn } from "@/lib/utils"
+type CounterCellData = {
+  count: number
+  helperText: string
+  tone: CounterCardTone
+  href: string
+}
 
-interface OpsData {
-  webhooks: {
-    failedCount: number
-    recentFailed: Array<{ id: string; created_at: string; status: string; event_type: string }>
+export interface OpsDashboardClientProps {
+  counters: {
+    paymentFailures: CounterCellData
+    webhookDlq: CounterCellData
+    parchmentUnsynced: CounterCellData
+    missingIdentity: CounterCellData
   }
-  emails: {
-    total: number
-    sent: number
-    failed: number
-    pending: number
-    successRate: number
-    configured: boolean
-    missingVars: string[]
-    lastTestedAt: string | null
-    recentOutgoing: Array<{
-      id: string
-      emailType: string
-      subject: string
-      status: string
-      deliveryStatus: string | null
-      errorMessage: string | null
-      retryCount: number
-      intakeId: string | null
-      occurredAt: string
-      href: string
-    }>
-  }
-  authEmails: {
-    total: number
-    sent: number
-    failed: number
-    successRate: number
-    unavailable: boolean
-    recentFailures: Array<{
-      id: string
-      createdAt: string
-      actionType: string
-      recipientDomain: string | null
-      httpStatus: number | null
-      errorMessage: string | null
-    }>
-  }
-  errors: {
-    count: number
-    recent: Array<{ id: string; action: string; created_at: string; metadata: Record<string, unknown> | null }>
-  }
-  auditVolume: number
-  safetyBlocks: {
-    count: number
-    recent: Array<{
-      id: string
-      evaluated_at: string
-      service_slug: string
-      outcome: string
-      risk_tier: string
-      triggered_rule_ids: string[] | null
-      request_id: string | null
-    }>
-  }
-  patientIdentity: {
-    rawProfileCount: number
-    uniqueProfileCount: number
-    duplicateProfileCount: number
-    duplicateGroupCount: number
-  }
-  prescribingIdentity: {
-    totalActive: number
-    blockedCount: number
-    readyCount: number
-    topBlockers: Array<{ label: string; count: number }>
-  }
-  staleIntakes: number
-  alerting: {
-    telegramConfigured: boolean
-    missingTelegramVars: string[]
-    telegramLastTestedAt: string | null
-  }
-  stripePriceConfig: {
-    issueCount: number
-    issueSummary: string
-  }
-  productionTimeline: Array<{
+  recoveries: Array<{
     id: string
-    label: string
-    status: "ok" | "missing"
+    title: string
     detail: string
-    occurredAt: string | null
+    occurredAt: string
+    severity: RecoverySeverity
     href: string
   }>
-  failureOverview: {
-    openCount: number
-    categories: Array<{
-      id: string
-      label: string
-      count: number
-      href: string
-      severity: "critical" | "warning"
-      emptyLabel: string
-    }>
-    recent: Array<{
-      id: string
-      categoryId: string
-      title: string
-      detail: string
-      occurredAt: string
-      href: string
-      severity: "critical" | "warning"
-    }>
-  }
-  recentRefunds: {
-    last24hCount: number
-    failedCount: number
-    recent: Array<{
-      intakeId: string
-      intakeRef: string
-      amountFormatted: string
-      paymentStatus: "refunded" | "partially_refunded"
-      refundStatus: string | null
-      occurredAt: string
-      patientName: string | null
-      actorName: string | null
-      href: string
-    }>
-  }
-  systemStatus: {
-    webhooksHealthy: boolean
-    emailsHealthy: boolean
-    authEmailsHealthy: boolean
-    intakesHealthy: boolean
-    patientIdentityHealthy: boolean
-    prescribingIdentityHealthy: boolean
-    failureOverviewHealthy: boolean
-    stripePricesHealthy: boolean
-    telegramAlertsHealthy: boolean
-  }
 }
 
-interface OpsDashboardClientProps {
-  ops: OpsData
-  supportMode?: boolean
-}
-
-type FailureCategory = OpsData["failureOverview"]["categories"][number]
-
-const categoryActionById: Record<string, string> = {
-  stripe_webhooks: "Open webhooks",
-  email_delivery: "Open email",
-  checkout: "Open ledger",
-  incomplete_requests: "Open requests",
-  certificate_delivery: "Open certs",
-  prescription_delivery: "Open Parchment",
-  stale_scripts: "Open scripts",
-  refund_failures: "Open refunds",
-}
-
-const categoryIconById: Record<string, LucideIcon> = {
-  stripe_webhooks: Webhook,
-  email_delivery: Mail,
-  checkout: ReceiptText,
-  incomplete_requests: AlertTriangle,
-  certificate_delivery: FileWarning,
-  prescription_delivery: Pill,
-  stale_scripts: AlertTriangle,
-  refund_failures: ReceiptText,
-}
-
-function StatusPill({
-  tone,
-  children,
-}: {
-  tone: "success" | "warning" | "critical" | "neutral"
-  children: React.ReactNode
-}) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-medium leading-none",
-        tone === "success" && "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-950/30 dark:text-emerald-300",
-        tone === "warning" && "border-orange-200 bg-orange-100 text-orange-800 dark:border-orange-500/30 dark:bg-orange-950/40 dark:text-orange-200",
-        tone === "critical" && "border-red-200 bg-red-100 text-red-800 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-200",
-        tone === "neutral" && "border-border/60 bg-muted/60 text-muted-foreground",
-      )}
-    >
-      {children}
-    </span>
-  )
-}
-
-function HealthRow({
-  detail,
-  label,
-  healthy,
-}: {
-  detail?: string
-  label: string
-  healthy: boolean
-}) {
-  return (
-    <div className="flex items-start justify-between gap-3 border-b border-border/40 py-2.5 last:border-b-0">
-      <div className="min-w-0">
-        <span className="text-sm font-medium text-foreground">{label}</span>
-        {detail && !healthy && (
-          <p className="mt-0.5 break-words text-xs text-muted-foreground">{detail}</p>
-        )}
-      </div>
-      <StatusPill tone={healthy ? "success" : "warning"}>{healthy ? "Clear" : "Open"}</StatusPill>
-    </div>
-  )
-}
-
-function RecoveryLink({ category }: { category: FailureCategory }) {
-  const Icon = categoryIconById[category.id] || AlertTriangle
-  const hasWork = category.count > 0
-
-  return (
-    <Link
-      href={category.href}
-      className={cn(
-        "group flex items-center justify-between gap-4 rounded-lg border px-3 py-3 transition-colors",
-        hasWork
-          ? "border-orange-200 bg-orange-50/70 hover:border-orange-300 dark:border-orange-500/30 dark:bg-orange-950/20"
-          : "border-border/50 bg-muted/20 hover:border-primary/30 hover:bg-muted/40",
-      )}
-    >
-      <div className="flex min-w-0 items-center gap-3">
-        <span
-          className={cn(
-            "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background text-muted-foreground",
-            hasWork && "bg-orange-100 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300",
-          )}
-        >
-          <Icon className="h-4 w-4" />
-        </span>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-foreground">{category.label}</p>
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">
-            {hasWork ? categoryActionById[category.id] || "Open fix" : category.emptyLabel}
-          </p>
-        </div>
-      </div>
-      <div className="flex shrink-0 items-center gap-2">
-        <StatusPill tone={hasWork ? category.severity === "critical" ? "critical" : "warning" : "success"}>
-          {hasWork ? "Open" : "Clear"}
-        </StatusPill>
-        <ArrowRight className="h-4 w-4 text-muted-foreground opacity-60 transition-[opacity,transform] group-hover:translate-x-0.5 group-hover:opacity-100" />
-      </div>
-    </Link>
-  )
-}
-
-function formatRefundTime(iso: string): string {
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return iso
-  const diffMs = Date.now() - d.getTime()
-  const diffMin = Math.round(diffMs / 60000)
-  if (diffMin < 1) return "just now"
-  if (diffMin < 60) return `${diffMin}m ago`
-  const diffHr = Math.round(diffMin / 60)
-  if (diffHr < 24) return `${diffHr}h ago`
-  const diffDay = Math.round(diffHr / 24)
-  return `${diffDay}d ago`
-}
-
-export function OpsDashboardClient({ ops, supportMode = false }: OpsDashboardClientProps) {
-  const {
-    failureOverview,
-    recentRefunds,
-    stripePriceConfig,
-    systemStatus,
-  } = ops
-
-  const allHealthy = systemStatus.webhooksHealthy
-    && systemStatus.emailsHealthy
-    && systemStatus.authEmailsHealthy
-    && systemStatus.intakesHealthy
-    && systemStatus.patientIdentityHealthy
-    && systemStatus.prescribingIdentityHealthy
-    && systemStatus.failureOverviewHealthy
-    && systemStatus.stripePricesHealthy
-    && systemStatus.telegramAlertsHealthy
-  const attentionCategories = failureOverview.categories.filter((category) => category.count > 0)
-  const clearCategories = failureOverview.categories.filter((category) => category.count === 0)
-
+export function OpsDashboardClient({ counters, recoveries }: OpsDashboardClientProps) {
   return (
     <OperatorPage>
       <OperatorPageHeader
         title="Operations"
-        description={supportMode
-          ? "Support view. Recovery summaries only; PHI-heavy logs stay behind admin review."
-          : "Recovery paths only. Detailed logs stay inside their owning pages."}
-        backHref={supportMode ? undefined : STAFF_DASHBOARD_HREF}
-        backLabel="Dashboard"
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <StatusPill tone={allHealthy ? "success" : "warning"}>
-              System {allHealthy ? "clear" : "needs review"}
-            </StatusPill>
-          </div>
-        }
+        description="Resolve payment, sync, and identity issues."
       />
-
       <OperatorScrollArea>
-        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)]">
-          <div className="rounded-xl border border-border/50 bg-card p-5 shadow-sm shadow-primary/[0.04]">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  {attentionCategories.length > 0 ? (
-                    <AlertTriangle className="h-5 w-5 text-warning" />
-                  ) : (
-                    <CheckCircle className="h-5 w-5 text-success" />
-                  )}
-                  <h2 className="text-base font-semibold text-foreground">Needs attention</h2>
-                </div>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Open only what blocks payment, delivery, identity, or patient flow.
-                </p>
-              </div>
-              <StatusPill tone={attentionCategories.length > 0 ? "warning" : "success"}>
-                {attentionCategories.length > 0 ? "Open" : "Clear"}
-              </StatusPill>
-            </div>
-
-            <div className="mt-4 space-y-2">
-              {attentionCategories.length === 0 ? (
-                <div className="rounded-lg border border-success-border bg-success-light px-3 py-3 text-sm text-success">
-                  No recovery work is waiting.
-                </div>
-              ) : (
-                attentionCategories.slice(0, 6).map((category) => (
-                  <RecoveryLink key={category.id} category={category} />
-                ))
-              )}
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-border/50 bg-card p-5 shadow-sm shadow-primary/[0.04]">
-            <div className="flex items-center gap-2">
-              <Server className="h-5 w-5 text-muted-foreground" />
-              <h2 className="text-base font-semibold text-foreground">System checks</h2>
-            </div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Clear means no action is needed here.
-            </p>
-            <div className="mt-4">
-              <HealthRow healthy={systemStatus.webhooksHealthy} label="Payment webhooks" />
-              <HealthRow healthy={systemStatus.emailsHealthy} label="Email delivery" />
-              <HealthRow healthy={systemStatus.authEmailsHealthy} label="Auth email" />
-              <HealthRow healthy={systemStatus.intakesHealthy} label="Intake processing" />
-              <HealthRow healthy={systemStatus.patientIdentityHealthy} label="Patient identity" />
-              <HealthRow healthy={systemStatus.prescribingIdentityHealthy} label="Prescribing identity" />
-              <HealthRow
-                healthy={systemStatus.stripePricesHealthy}
-                label="Stripe prices"
-                detail={stripePriceConfig.issueSummary}
-              />
-              <HealthRow healthy={systemStatus.telegramAlertsHealthy} label="Telegram alerts" />
-            </div>
-          </div>
+        <section
+          aria-label="Recovery counters"
+          className="grid gap-3 md:grid-cols-2 xl:grid-cols-4"
+        >
+          <CounterCard
+            count={counters.paymentFailures.count}
+            label="Payment failures"
+            helperText={counters.paymentFailures.helperText}
+            tone={counters.paymentFailures.tone}
+            href={counters.paymentFailures.href}
+          />
+          <CounterCard
+            count={counters.webhookDlq.count}
+            label="Webhook DLQ"
+            helperText={counters.webhookDlq.helperText}
+            tone={counters.webhookDlq.tone}
+            href={counters.webhookDlq.href}
+          />
+          <CounterCard
+            count={counters.parchmentUnsynced.count}
+            label="Parchment unsynced"
+            helperText={counters.parchmentUnsynced.helperText}
+            tone={counters.parchmentUnsynced.tone}
+            href={counters.parchmentUnsynced.href}
+          />
+          <CounterCard
+            count={counters.missingIdentity.count}
+            label="Missing identity"
+            helperText={counters.missingIdentity.helperText}
+            tone={counters.missingIdentity.tone}
+            href={counters.missingIdentity.href}
+          />
         </section>
 
-        <section className="rounded-xl border border-border/50 bg-card p-5 shadow-sm shadow-primary/[0.04]">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h2 className="text-base font-semibold text-foreground">Recovery paths</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                These are shortcuts to the focused pages. Keep the dashboard out of the weeds.
-              </p>
+        <section
+          aria-label="Recent recoveries"
+          className="rounded-xl border border-border/50 bg-card shadow-sm shadow-primary/[0.04]"
+        >
+          <header className="border-b border-border/40 px-4 py-3">
+            <h2 className="text-sm font-semibold tracking-tight text-foreground">
+              Recent (last 24h)
+            </h2>
+          </header>
+          {recoveries.length === 0 ? (
+            <div className="px-4 py-6 text-sm text-muted-foreground">
+              Nothing to recover. All systems clear.
             </div>
-            <Button asChild variant="outline" size="sm">
-              {supportMode ? (
-                <Link href={ADMIN_PRESCRIBING_IDENTITY_HREF}>
-                  Identity chase-ups
-                  <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                </Link>
-              ) : (
-                <Link href={ADMIN_PATIENT_MERGE_AUDIT_HREF}>
-                  Review duplicate profiles
-                  <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                </Link>
-              )}
-            </Button>
-          </div>
-          <div className="mt-4 space-y-3">
-            {attentionCategories.length > 0 ? (
-              <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
-                {attentionCategories.map((category) => (
-                  <RecoveryLink key={category.id} category={category} />
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-lg border border-success-border bg-success-light px-3 py-3 text-sm text-success">
-                No open recovery paths.
-              </div>
-            )}
-
-            {clearCategories.length > 0 && (
-              <details className="rounded-lg border border-border/50 bg-muted/20">
-                <summary className="cursor-pointer px-3 py-2 text-sm font-semibold text-muted-foreground">
-                  Clear paths ({clearCategories.length})
-                </summary>
-                <div className="grid gap-2 border-t border-border/50 p-3 md:grid-cols-2 xl:grid-cols-4">
-                  {clearCategories.map((category) => (
-                    <RecoveryLink key={category.id} category={category} />
-                  ))}
-                </div>
-              </details>
-            )}
-          </div>
-        </section>
-
-        <section className="rounded-xl border border-border/50 bg-card p-5 shadow-sm shadow-primary/[0.04]">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <RotateCcw className="h-5 w-5 text-muted-foreground" />
-                <h2 className="text-base font-semibold text-foreground">Refunds</h2>
-              </div>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {recentRefunds.last24hCount === 0
-                  ? "No refunds in the last 24 hours."
-                  : `${recentRefunds.last24hCount} refund${recentRefunds.last24hCount === 1 ? "" : "s"} processed in the last 24 hours${recentRefunds.failedCount > 0 ? ` · ${recentRefunds.failedCount} failed` : ""}.`}
-              </p>
-            </div>
-            <Button asChild variant="outline" size="sm">
-              <Link href={`${STAFF_LEDGER_HREF}?chips=refunded`}>
-                See all refunds
-                <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-              </Link>
-            </Button>
-          </div>
-          {recentRefunds.recent.length > 0 ? (
-            <ul className="mt-4 divide-y divide-border/50 rounded-lg border border-border/50">
-              {recentRefunds.recent.map((r) => {
-                const tone = r.refundStatus === "failed"
-                  ? "text-red-600 dark:text-red-400"
-                  : r.paymentStatus === "partially_refunded"
-                    ? "text-amber-600 dark:text-amber-400"
-                    : "text-emerald-600 dark:text-emerald-400"
-                const label = r.refundStatus === "failed"
-                  ? "Failed"
-                  : r.paymentStatus === "partially_refunded"
-                    ? "Partial"
-                    : "Refunded"
-                return (
-                  <li key={`${r.intakeId}-${r.occurredAt}`} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
-                    <Link href={r.href} className="flex min-w-0 flex-1 items-center gap-3 hover:underline">
-                      <span className="font-mono text-[11px] text-muted-foreground">{r.intakeRef}</span>
-                      <span className="truncate text-foreground">{r.patientName || "Unknown patient"}</span>
-                    </Link>
-                    <div className="flex items-center gap-3 text-xs">
-                      <span className="tabular-nums text-foreground">{r.amountFormatted}</span>
-                      <span className={cn("font-medium", tone)}>{label}</span>
-                      <span className="tabular-nums text-muted-foreground">{formatRefundTime(r.occurredAt)}</span>
-                    </div>
-                  </li>
-                )
-              })}
+          ) : (
+            <ul className="divide-y divide-border/40">
+              {recoveries.map((r) => (
+                <li key={r.id}>
+                  <RecoveryRow
+                    title={r.title}
+                    detail={r.detail}
+                    occurredAt={r.occurredAt}
+                    severity={r.severity}
+                    href={r.href}
+                  />
+                </li>
+              ))}
             </ul>
-          ) : null}
+          )}
         </section>
       </OperatorScrollArea>
     </OperatorPage>
