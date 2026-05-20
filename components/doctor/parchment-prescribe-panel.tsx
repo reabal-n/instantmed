@@ -57,7 +57,9 @@ export function ParchmentPrescribePanel({
   const [iframeSlowToLoad, setIframeSlowToLoad] = useState(false)
   const [iframeReloadKey, setIframeReloadKey] = useState(0)
   const [canUseIframe, setCanUseIframe] = useState(true)
+  const [sessionRefreshing, setSessionRefreshing] = useState(false)
   const ssoExpiryTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const ssoWarningTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const closeAndRefresh = useCallback(() => {
     if (patientId && iframeLoaded && onPrescriptionsRefresh) {
@@ -110,6 +112,7 @@ export function ParchmentPrescribePanel({
   const loadPrescribingUrl = useCallback(async () => {
     setLoading(true)
     setError(null)
+    setSessionRefreshing(false)
 
     const result = await loadFreshParchmentUrl()
 
@@ -118,8 +121,14 @@ export function ParchmentPrescribePanel({
       setIframeLoaded(false)
       setIframeSlowToLoad(false)
 
-      // SSO tokens expire in 300s - auto-refresh at 270s (30s safety margin)
+      // SSO tokens expire in 300s. Surface a subtle "Session refreshing..."
+      // banner at 240s so the doctor knows a refresh is coming before the
+      // iframe blinks. Fire the actual refresh at 270s (30s safety margin).
       if (ssoExpiryTimer.current) clearTimeout(ssoExpiryTimer.current)
+      if (ssoWarningTimer.current) clearTimeout(ssoWarningTimer.current)
+      ssoWarningTimer.current = setTimeout(() => {
+        setSessionRefreshing(true)
+      }, 240_000) // 4 minutes
       ssoExpiryTimer.current = setTimeout(() => {
         loadPrescribingUrl()
       }, 270_000) // 4.5 minutes
@@ -131,11 +140,12 @@ export function ParchmentPrescribePanel({
     setLoading(false)
   }, [loadFreshParchmentUrl])
 
-  // Auto-load on mount + cleanup timer
+  // Auto-load on mount + cleanup timers
   useEffect(() => {
     loadPrescribingUrl()
     return () => {
       if (ssoExpiryTimer.current) clearTimeout(ssoExpiryTimer.current)
+      if (ssoWarningTimer.current) clearTimeout(ssoWarningTimer.current)
     }
   }, [loadPrescribingUrl])
 
@@ -247,6 +257,15 @@ export function ParchmentPrescribePanel({
               )}
             </div>
             <div className="flex items-center gap-2 ml-4">
+              {sessionRefreshing && !error && (
+                <span
+                  className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-800"
+                  aria-live="polite"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" aria-hidden="true" />
+                  Session refreshing
+                </span>
+              )}
               {ssoUrl && (
                 <Button
                   variant="ghost"
