@@ -66,6 +66,7 @@ interface TelegramNotifyOptions {
   amount: string
   serviceSlug?: string
   appUrl?: string
+  isPriority?: boolean
 }
 
 /**
@@ -101,15 +102,14 @@ async function sendGenericNotification(
   token: string,
   chatId: string,
 ): Promise<void> {
-  const refId = opts.intakeId.slice(0, 8).toUpperCase()
   const appUrl = opts.appUrl || process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
   const reviewUrl = `${appUrl}${buildDoctorIntakeHref(opts.intakeId)}`
+  const title = opts.isPriority ? `*⚡ Express · New request ready*` : `*New request ready*`
 
   const message = [
-    `*New request ready*`,
+    title,
     ``,
     `*${escapeMarkdown(opts.serviceName)}*`,
-    `Ref: \`${refId}\``,
     ``,
     `[Review now →](${reviewUrl})`,
   ].join("\n")
@@ -144,7 +144,6 @@ async function sendMedCertNotification(
   chatId: string,
 ): Promise<void> {
   const appUrl = opts.appUrl || process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
-  const refId = opts.intakeId.slice(0, 8).toUpperCase()
 
   const reviewUrl = `${appUrl}${buildDoctorIntakeHref(opts.intakeId)}`
   const buttons: Array<{ text: string; callback_data?: string; url?: string }> = [
@@ -155,11 +154,12 @@ async function sendMedCertNotification(
     buttons.unshift({ text: "✅ Approve", callback_data: `approve:${opts.intakeId}:${signIntakeAction(opts.intakeId, "approve")}` })
   }
 
+  const title = opts.isPriority ? `*⚡ Express · New med cert ready*` : `*New med cert ready*`
+
   const message = [
-    `*New med cert ready*`,
+    title,
     ``,
     `*${escapeMarkdown(opts.serviceName)}*`,
-    `Ref: \`${refId}\``,
   ].join("\n")
 
   const inlineKeyboard = {

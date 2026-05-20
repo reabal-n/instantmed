@@ -3,6 +3,7 @@ import "server-only"
 import * as Sentry from "@sentry/nextjs"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
+import { getIntakeAnswers } from "@/lib/data/intake-answers"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -109,6 +110,33 @@ export function resolvePaidRequestServiceName(input: {
   }
 
   return slugDisplayNames[serviceSlug] ?? "Medical Request"
+}
+
+export function resolvePaidRequestServiceDetail(input: {
+  category?: string | null
+  subtype?: string | null
+  answers?: Record<string, unknown> | null
+}): string | null {
+  const { category, answers } = input
+  if (!answers) return null
+
+  if (category === "med_certs" || category === "medical_certificate") {
+    const raw = answers.duration
+    const days = typeof raw === "string" ? raw : typeof raw === "number" ? String(raw) : null
+    if (!days) return null
+    const trimmed = days.trim()
+    if (!/^[1-3]$/.test(trimmed)) return null
+    return `${trimmed} day${trimmed === "1" ? "" : "s"}`
+  }
+
+  if (category === "prescription" || category === "common_scripts") {
+    const name = typeof answers.medicationName === "string" ? answers.medicationName.trim() : ""
+    if (!name) return null
+    // Truncate to keep the Telegram one-liner readable.
+    return name.length > 40 ? `${name.slice(0, 39)}…` : name
+  }
+
+  return null
 }
 
 async function markSent(
@@ -218,13 +246,44 @@ export async function sendPaidRequestTelegramNotification(
     subtype,
   })
 
+  // Fail-soft enrichment lookups: never abort the notification if these fail.
+  let isPriority = false
+  try {
+    const { data: intakeExtras } = await input.supabase
+      .from("intakes")
+      .select("is_priority")
+      .eq("id", input.intakeId)
+      .maybeSingle()
+    isPriority = Boolean((intakeExtras as { is_priority?: boolean } | null)?.is_priority)
+  } catch (extrasError) {
+    log.error("Failed to look up is_priority for Telegram notification", {
+      intakeId: input.intakeId,
+      error: getErrorMessage(extrasError),
+    })
+  }
+
+  let answers: Record<string, unknown> | null = null
+  try {
+    answers = await getIntakeAnswers(input.intakeId)
+  } catch (answersError) {
+    log.error("Failed to load intake answers for Telegram notification detail", {
+      intakeId: input.intakeId,
+      error: getErrorMessage(answersError),
+    })
+  }
+
+  const baseServiceName = resolvePaidRequestServiceName({ serviceSlug, category, subtype })
+  const detail = resolvePaidRequestServiceDetail({ category, subtype, answers })
+  const serviceName = detail ? `${baseServiceName} · ${detail}` : baseServiceName
+
   try {
     await notifyNewIntakeViaTelegram({
       intakeId: input.intakeId,
       patientName: "Patient",
-      serviceName: resolvePaidRequestServiceName({ serviceSlug, category, subtype }),
+      serviceName,
       amount: formatAmount(input.amountCents ?? claim.amount_cents),
       serviceSlug,
+      isPriority,
     })
 
     await markSent(input.supabase, input.intakeId)

@@ -99,7 +99,47 @@ describe("Telegram request notifications", () => {
     expect(requestBody.text).not.toContain("Alex")
     expect(requestBody.text).not.toContain("Patient:")
     expect(requestBody.text).not.toContain("Reason:")
-    expect(requestBody.text).toContain("Ref: `12345678`")
+    expect(requestBody.text).not.toContain("Ref: ")
+    expect(requestBody.text).not.toContain("12345678")
+  })
+
+  it("prefixes the title with Express when isPriority is true", async () => {
+    fetchMock.mockResolvedValue({ ok: true })
+
+    const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
+
+    await notifyNewIntakeViaTelegram({
+      intakeId: "12345678-1234-1234-1234-123456789abc",
+      patientName: "Patient",
+      serviceName: "Medical Certificate · 3 days",
+      amount: "$29.95",
+      serviceSlug: "med-cert-sick",
+      isPriority: true,
+    })
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body)
+    expect(body.text).toContain("⚡ Express · New med cert ready")
+    expect(body.text).toContain("Medical Certificate · 3 days")
+  })
+
+  it("omits the Express prefix when isPriority is false", async () => {
+    fetchMock.mockResolvedValue({ ok: true })
+
+    const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
+
+    await notifyNewIntakeViaTelegram({
+      intakeId: "12345678-1234-1234-1234-123456789abc",
+      patientName: "Patient",
+      serviceName: "Prescription · Atorvastatin",
+      amount: "$29.95",
+      serviceSlug: "common-scripts",
+      isPriority: false,
+    })
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body)
+    expect(body.text).toContain("*New request ready*")
+    expect(body.text).not.toContain("Express")
+    expect(body.text).toContain("Prescription · Atorvastatin")
   })
 
   it("only emits approve callbacks when explicitly enabled with a dedicated signing secret", async () => {

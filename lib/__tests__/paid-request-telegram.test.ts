@@ -5,6 +5,10 @@ vi.mock("@/lib/notifications/telegram", () => ({
   notifyNewIntakeViaTelegram: vi.fn(),
 }))
 
+vi.mock("@/lib/data/intake-answers", () => ({
+  getIntakeAnswers: vi.fn(async () => null),
+}))
+
 const { mockGetFeatureFlags } = vi.hoisted(() => ({
   mockGetFeatureFlags: vi.fn(async () => ({ telegram_notifications_enabled: true })),
 }))
@@ -12,15 +16,25 @@ vi.mock("@/lib/feature-flags", () => ({
   getFeatureFlags: () => mockGetFeatureFlags(),
 }))
 
+import { getIntakeAnswers } from "@/lib/data/intake-answers"
 import { notifyNewIntakeViaTelegram } from "@/lib/notifications/telegram"
 
 const INTAKE_ID = "11111111-1111-4111-8111-111111111111"
 const PATIENT_ID = "22222222-2222-4222-8222-222222222222"
 
-function createSupabaseStub(claimRows: Array<Record<string, unknown>>, profileName = "Alex Patient") {
+function createSupabaseStub(
+  claimRows: Array<Record<string, unknown>>,
+  options: { profileName?: string; isPriority?: boolean } = {},
+) {
+  const profileName = options.profileName ?? "Alex Patient"
+  const isPriority = options.isPriority ?? false
   const updates: Array<Record<string, unknown>> = []
   const profileMaybeSingle = vi.fn(async () => ({
     data: { full_name: profileName },
+    error: null,
+  }))
+  const intakeExtrasMaybeSingle = vi.fn(async () => ({
+    data: { is_priority: isPriority },
     error: null,
   }))
   const intakesEq = vi.fn(async () => ({ data: null, error: null }))
@@ -40,6 +54,11 @@ function createSupabaseStub(claimRows: Array<Record<string, unknown>>, profileNa
 
       if (table === "intakes") {
         return {
+          select: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              maybeSingle: intakeExtrasMaybeSingle,
+            })),
+          })),
           update: vi.fn((payload: Record<string, unknown>) => {
             updates.push(payload)
             return { eq: intakesEq }
@@ -51,13 +70,14 @@ function createSupabaseStub(claimRows: Array<Record<string, unknown>>, profileNa
     }),
   }
 
-  return { supabase, updates, profileMaybeSingle }
+  return { supabase, updates, profileMaybeSingle, intakeExtrasMaybeSingle }
 }
 
 describe("paid request Telegram notification ledger", () => {
   afterEach(() => {
     vi.clearAllMocks()
     mockGetFeatureFlags.mockResolvedValue({ telegram_notifications_enabled: true })
+    vi.mocked(getIntakeAnswers).mockResolvedValue(null)
   })
 
   it("claims a paid intake before sending and marks Telegram delivery as sent without fetching patient PHI", async () => {
@@ -75,6 +95,7 @@ describe("paid request Telegram notification ledger", () => {
     ])
 
     vi.mocked(notifyNewIntakeViaTelegram).mockResolvedValueOnce()
+    vi.mocked(getIntakeAnswers).mockResolvedValueOnce(null)
 
     const result = await sendPaidRequestTelegramNotification({
       supabase: supabase as never,
@@ -97,6 +118,7 @@ describe("paid request Telegram notification ledger", () => {
       serviceName: "Medical Certificate",
       amount: "$29.95",
       serviceSlug: "med-cert-sick",
+      isPriority: false,
     })
     expect(profileMaybeSingle).not.toHaveBeenCalled()
     expect(updates[0]).toMatchObject({
@@ -105,6 +127,47 @@ describe("paid request Telegram notification ledger", () => {
       paid_request_telegram_failed_at: null,
     })
     expect(updates[0].paid_request_telegram_sent_at).toEqual(expect.any(String))
+  })
+
+  it("enriches the service name with the medication and sets the Express flag when is_priority is true", async () => {
+    const { sendPaidRequestTelegramNotification } = await import("@/lib/notifications/paid-request-telegram")
+    const { supabase } = createSupabaseStub(
+      [
+        {
+          id: INTAKE_ID,
+          patient_id: PATIENT_ID,
+          amount_cents: 2995,
+          category: "common_scripts",
+          subtype: null,
+          service_slug: "common-scripts",
+          paid_request_telegram_attempts: 1,
+        },
+      ],
+      { isPriority: true },
+    )
+
+    vi.mocked(notifyNewIntakeViaTelegram).mockResolvedValueOnce()
+    vi.mocked(getIntakeAnswers).mockResolvedValueOnce({ medicationName: "Atorvastatin" })
+
+    const result = await sendPaidRequestTelegramNotification({
+      supabase: supabase as never,
+      intakeId: INTAKE_ID,
+      paymentStatus: "paid",
+      amountCents: 2995,
+      serviceSlug: "common-scripts",
+      category: "common_scripts",
+      subtype: null,
+    })
+
+    expect(result).toEqual({ sent: true })
+    expect(notifyNewIntakeViaTelegram).toHaveBeenCalledWith({
+      intakeId: INTAKE_ID,
+      patientName: "Patient",
+      serviceName: "Prescription · Atorvastatin",
+      amount: "$29.95",
+      serviceSlug: "common-scripts",
+      isPriority: true,
+    })
   })
 
   it("records failed Telegram attempts so cron can retry missed notifications", async () => {
