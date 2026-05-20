@@ -732,6 +732,63 @@ export async function getCertificateWithPdfUrl(
 }
 
 /**
+ * Fetches certificates where email delivery failed and has not subsequently
+ * succeeded. Used to render a self-serve banner on the patient dashboard.
+ *
+ * Returns at most 5 rows ordered by most recent failure first. Filters to
+ * non-revoked, non-superseded statuses so the banner does not nag about
+ * certs that have been intentionally invalidated.
+ */
+export async function getPatientUndeliveredCertificates(
+  patientId: string,
+): Promise<Array<{
+  intakeId: string
+  certificateRef: string | null
+  certificateType: string | null
+  failedAt: string
+  retryCount: number
+}>> {
+  const supabase = createServiceRoleClient()
+  const { data, error } = await supabase
+    .from("issued_certificates")
+    .select(
+      "intake_id, certificate_ref, certificate_number, certificate_type, email_failed_at, email_retry_count, status",
+    )
+    .eq("patient_id", patientId)
+    .not("email_failed_at", "is", null)
+    .is("email_sent_at", null)
+    .order("email_failed_at", { ascending: false })
+    .limit(5)
+
+  if (error || !data) {
+    if (error) {
+      log.error("Failed to fetch undelivered certificates", { patientId }, error)
+    }
+    return []
+  }
+
+  type Row = {
+    intake_id: string
+    certificate_ref: string | null
+    certificate_number: string | null
+    certificate_type: string | null
+    email_failed_at: string
+    email_retry_count: number | null
+    status: string | null
+  }
+
+  return (data as Row[])
+    .filter((row) => row.status !== "revoked" && row.status !== "superseded")
+    .map((row) => ({
+      intakeId: row.intake_id,
+      certificateRef: row.certificate_ref ?? row.certificate_number ?? null,
+      certificateType: row.certificate_type ?? null,
+      failedAt: row.email_failed_at,
+      retryCount: row.email_retry_count ?? 0,
+    }))
+}
+
+/**
  * Get failed email deliveries for admin queue
  */
 export async function getFailedEmailDeliveries(

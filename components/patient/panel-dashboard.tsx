@@ -2,6 +2,7 @@
 
 import {
   AlertCircle,
+  ArrowRight,
   Calendar,
   Clock,
   FileText,
@@ -100,6 +101,14 @@ interface Prescription {
   status: "active" | "expired"
 }
 
+interface UndeliveredCertificate {
+  intakeId: string
+  certificateRef: string | null
+  certificateType: string | null
+  failedAt: string
+  retryCount: number
+}
+
 interface PatientDashboardProps {
   fullName: string
   patientId: string
@@ -107,6 +116,7 @@ interface PatientDashboardProps {
   prescriptions?: Prescription[]
   error?: string | null
   profileData?: ProfileData
+  undeliveredCerts?: UndeliveredCertificate[]
 }
 
 export function PanelDashboard({
@@ -116,6 +126,7 @@ export function PanelDashboard({
   prescriptions = [],
   error,
   profileData,
+  undeliveredCerts = [],
 }: PatientDashboardProps) {
   const { openPanel } = usePanel()
   const firstName = fullName.split(" ")[0]
@@ -242,6 +253,43 @@ export function PanelDashboard({
 
   return (
     <div className="space-y-10">
+      {/* Undelivered certificate banner: exception state, calm warning chrome. */}
+      {undeliveredCerts.length > 0 && (
+        <div
+          role="alert"
+          className="rounded-xl border border-warning-border bg-warning-light/50 p-4 dark:border-warning/40 dark:bg-warning/10"
+        >
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 shrink-0 text-warning" aria-hidden="true" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-foreground">
+                {undeliveredCerts.length === 1
+                  ? "Your certificate didn't reach your inbox."
+                  : `${undeliveredCerts.length} certificates didn't reach your inbox.`}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                We tried multiple times. Open the request page to download or resend.
+              </p>
+              <ul className="mt-3 space-y-1.5">
+                {undeliveredCerts.map((cert) => (
+                  <li key={cert.intakeId}>
+                    <Link
+                      href={buildPatientIntakeHref(cert.intakeId)}
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-warning hover:underline"
+                    >
+                      {cert.certificateType
+                        ? `${cert.certificateType.replaceAll("_", " ")}${cert.certificateRef ? ` · ${cert.certificateRef}` : ""}`
+                        : (cert.certificateRef ?? "View certificate")}
+                      <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ─── ZONE 1 · HERO ──────────────────────────────────────────────── */}
       <DashboardHero
         firstName={firstName}

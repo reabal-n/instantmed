@@ -6,6 +6,7 @@ import type { ProfileData } from "@/components/patient/profile-todo-card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { getPatientDashboardData } from "@/lib/data/intakes"
+import { getPatientUndeliveredCertificates } from "@/lib/data/issued-certificates"
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -68,7 +69,10 @@ async function PatientDashboardContent({
   fullName: string
   profileData: ProfileData
 }) {
-  const { intakes, prescriptions, error } = await getPatientDashboardData(patientId)
+  const [{ intakes, prescriptions, error }, undeliveredCerts] = await Promise.all([
+    getPatientDashboardData(patientId),
+    getPatientUndeliveredCertificates(patientId),
+  ])
 
   return (
     <PanelDashboard
@@ -78,6 +82,7 @@ async function PatientDashboardContent({
       prescriptions={prescriptions}
       error={error}
       profileData={profileData}
+      undeliveredCerts={undeliveredCerts}
     />
   )
 }
