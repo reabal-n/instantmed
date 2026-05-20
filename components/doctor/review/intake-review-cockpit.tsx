@@ -1,7 +1,7 @@
 "use client"
 
 import { FileText, History, Loader2, NotebookPen, RefreshCw } from "lucide-react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 
 import { PatientDecisionStrip } from "@/components/doctor/patient-decision-strip"
 import { PatientTimeline } from "@/components/doctor/patient-timeline"
@@ -15,6 +15,8 @@ import { SafetyFlagsCard } from "@/components/doctor/review/safety-flags-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
+import { useDoctorShortcuts } from "@/lib/hooks/use-doctor-shortcuts"
 import { cn } from "@/lib/utils"
 
 interface IntakeReviewCockpitProps {
@@ -133,12 +135,13 @@ export function IntakeReviewCockpit({
   className,
   showDecisionStrip = true,
 }: IntakeReviewCockpitProps) {
+  const review = useIntakeReview()
   const {
     data,
     intake,
     answers,
     service,
-  } = useIntakeReview()
+  } = review
 
   // The Notes tab is the default IF the case is `paid`/`in_review` AND
   // there are no patient messages to triage; for everything else the
@@ -147,6 +150,65 @@ export function IntakeReviewCockpit({
 
   const messageCount = (data.patientMessages?.length ?? 0) +
     (intake.info_request_message ? 1 : 0)
+
+  // Keyboard shortcuts mirror the full-page case-detail wiring.
+  // Cmd/Ctrl+A approves, Cmd/Ctrl+D opens decline, Cmd/Ctrl+N focuses
+  // the notes editor (also switches to the Notes tab). Esc closes any
+  // open dialog. Cmd+? opens the shortcuts help modal globally.
+  const caseSummary = useMemo(
+    () =>
+      buildClinicalCaseSummary({
+        category: intake.category,
+        subtype: intake.subtype,
+        serviceType: service?.type,
+        patientName: intake.patient?.full_name,
+        answers: answers ?? {},
+        riskTier: intake.risk_tier,
+        requiresLiveConsult: intake.requires_live_consult,
+      }),
+    [
+      intake.category,
+      intake.subtype,
+      intake.patient?.full_name,
+      intake.requires_live_consult,
+      intake.risk_tier,
+      service?.type,
+      answers,
+    ],
+  )
+  const hasPrescriptionIntent = Boolean(caseSummary.prescriptionIntent)
+
+  useDoctorShortcuts({
+    disabled: review.isPending,
+    onApprove: () => {
+      if (intake.status !== "paid" && intake.status !== "in_review") return
+      if (
+        intake.category === "consult" &&
+        ["ed", "hair_loss"].includes(intake.subtype || "") &&
+        hasPrescriptionIntent
+      ) {
+        review.handleApproveAndOpenParchment()
+      } else if (service?.type === "med_certs") {
+        review.handleMedCertApprove()
+      } else if (service?.type === "repeat_rx" || service?.type === "common_scripts") {
+        review.handleStatusChange("awaiting_script")
+      } else {
+        review.handleStatusChange("approved")
+      }
+    },
+    onDecline: () => {
+      if (["approved", "declined", "completed"].includes(intake.status)) return
+      review.setShowDeclineDialog(true)
+    },
+    onNote: () => {
+      setTab("notes")
+      // Focus the textarea on the next paint.
+      setTimeout(() => review.notesRef.current?.focus(), 60)
+    },
+    onEscape: () => {
+      if (review.showDeclineDialog) review.setShowDeclineDialog(false)
+    },
+  })
 
   return (
     <div className={cn("flex h-full min-h-0 flex-col", className)}>
