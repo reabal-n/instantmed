@@ -112,32 +112,11 @@ const PREGNANCY_KEYWORDS = [
 // AHPRA complaints when a third party (uni, court, employer's insurer, RTA,
 // firearms registry, family lawyer) follows up. We do not make fitness-for-X
 // determinations from a structured form.
-const HIGH_STAKES_USE_CASE_KEYWORDS = [
-  // Academic high-stakes
-  "exam", "examination", "exams", "deferral", "defer", "deferred",
-  "special consideration", "extension", "supplementary",
-  "fail", "failed", "failing",
-  // Legal / court
-  // "jury" alone matches "injury" via substring; use "jury duty" instead.
-  "court", "hearing", "tribunal", "summons", "subpoena", "jury duty",
-  "custody", "family law", "avo", "intervention order",
-  // Driving / transport / firearms — fitness-to-X determinations
-  "driving", "drive", "license", "licence", "rta", "service nsw",
-  "firearm", "gun licence", "gun license", "shooting",
-  "fitness to fly", "fitness to drive", "flight", "airline",
-  "commercial driver", "forklift", "heavy machinery",
-  "fitness for duty", "fit for duty", "fitness to work", "fit to work",
-  "return to work clearance", "pre-employment", "pre employment",
-  "site medical", "mine site medical", "safety-critical", "safety critical",
-  // Workers comp / insurance / claim
-  "workers compensation", "worker compensation", "certificate of capacity",
-  "capacity certificate", "work capacity", "insurance claim",
-  "income protection", "ndis", "tac",
-  // Government program evidence
-  "centrelink", "services australia", "mutual obligation", "jobseeker",
-  "disability support pension", "dsp",
-  // (note: "workers comp" / "workcover" / "work injury" already in INJURY_KEYWORDS)
-]
+//
+// Canonical list lives in `lib/clinical/high-stakes-keywords.ts` so the
+// intake-time hard block and the auto-approval gate can't drift.
+// (note: "workers comp" / "workcover" / "work injury" already in INJURY_KEYWORDS)
+import { HIGH_STAKES_USE_CASE_KEYWORDS } from "./high-stakes-keywords"
 
 // ============================================================================
 // SOFT-BLOCK KEYWORD LISTS
@@ -200,7 +179,7 @@ export function extractSymptomText(answers: Record<string, unknown> | null): str
 /**
  * Check if text contains any keywords from a list (case-insensitive).
  */
-function containsKeywords(text: string, keywords: string[]): string[] {
+function containsKeywords(text: string, keywords: ReadonlyArray<string>): string[] {
   const lower = text.toLowerCase()
   return keywords.filter(keyword => lower.includes(keyword))
 }
