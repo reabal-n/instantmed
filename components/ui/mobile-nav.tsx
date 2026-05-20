@@ -16,6 +16,7 @@ import {
 } from "@/lib/dashboard/routes"
 import { doctorNavSections, doctorOperatorNavItems } from "@/lib/dashboard/staff-navigation"
 import { getStaffNavHrefPath, getStaffNavHrefStatus } from "@/lib/dashboard/staff-navigation-active"
+import { usePatientNavCounts } from "@/lib/dashboard/use-patient-nav-counts"
 import { useLiveStaffNavCounts } from "@/lib/dashboard/use-staff-nav-counts"
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { cn } from "@/lib/utils"
@@ -126,7 +127,27 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
   const [moreOpen, setMoreOpen] = useState(false)
   const [isSigningOut, setIsSigningOut] = useState(false)
   const currentStatus = searchParams.get("status")
-  const hasRootDashboardNavItem = [...items, ...moreMenuItems].some(
+
+  // The default-prop call sites of MobileNav are patient surfaces (PatientShell).
+  // DoctorMobileNav passes its own items/moreMenuItems and never hits this branch.
+  const isPatientShell = items === defaultItems && moreMenuItems === moreItems
+  const patientCounts = usePatientNavCounts()
+  const itemsWithBadges: NavItem[] = isPatientShell
+    ? items.map((item) =>
+        item.href === "__more__"
+          ? { ...item, badge: patientCounts.unreadMessages }
+          : item,
+      )
+    : items
+  const moreMenuItemsWithBadges: NavItem[] = isPatientShell
+    ? moreMenuItems.map((item) =>
+        item.href === PATIENT_MESSAGES_HREF
+          ? { ...item, badge: patientCounts.unreadMessages }
+          : item,
+      )
+    : moreMenuItems
+
+  const hasRootDashboardNavItem = [...itemsWithBadges, ...moreMenuItemsWithBadges].some(
     (item) => getStaffNavHrefPath(item.href) === "/dashboard" && !getStaffNavHrefStatus(item.href),
   )
 
@@ -154,7 +175,7 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
     return pathname === hrefPath || pathname?.startsWith(`${hrefPath}/`) || false
   }
 
-  const isMoreActive = moreMenuItems.some((item) => isNavItemActive(item))
+  const isMoreActive = moreMenuItemsWithBadges.some((item) => isNavItemActive(item))
 
   return (
     <>
@@ -182,7 +203,7 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
               </button>
             </div>
             <nav className="px-3 pb-4 space-y-1">
-              {moreMenuItems.map((item) => {
+              {moreMenuItemsWithBadges.map((item) => {
                 const Icon = item.icon
                 const isActive = isNavItemActive(item)
                 return (
@@ -201,6 +222,11 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
                   >
                     <Icon className="w-5 h-5" />
                     <span className="text-sm">{item.label}</span>
+                    {item.badge && item.badge > 0 ? (
+                      <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-semibold text-white dark:bg-red-600">
+                        {item.badge > 99 ? "99+" : item.badge}
+                      </span>
+                    ) : null}
                   </button>
                 )
               })}
@@ -228,7 +254,7 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
         )}
       >
         <div className="flex items-center justify-around px-2 py-2">
-          {items.map((item) => {
+          {itemsWithBadges.map((item) => {
             const Icon = item.icon
             const isMore = item.href === "__more__"
             // Home (/patient) uses exact match - child routes like /patient/intakes are distinct
