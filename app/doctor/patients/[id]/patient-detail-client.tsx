@@ -18,7 +18,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState, useTransition } from "react"
+import { useEffect, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import {
@@ -153,6 +153,18 @@ export function PatientDetailClient({
   const [newNote, setNewNote] = useState("")
   const [notes, setNotes] = useState<PatientNote[]>(patientNotes)
   const [showNoteForm, setShowNoteForm] = useState(false)
+  const noteFormRef = useRef<HTMLDivElement | null>(null)
+  const noteTextareaRef = useRef<HTMLTextAreaElement | null>(null)
+
+  useEffect(() => {
+    if (!showNoteForm) return
+    // Scroll into view + focus the textarea so the operator doesn't have
+    // to hunt for the form when they click "Add note" from the header.
+    requestAnimationFrame(() => {
+      noteFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+      noteTextareaRef.current?.focus()
+    })
+  }, [showNoteForm])
   const [showMergeDialog, setShowMergeDialog] = useState(false)
   const duplicateProfileIds = patient.duplicate_profile_ids ?? []
   const canMergeLinkedProfiles = canMergePatientProfiles && duplicateProfileIds.length > 0
@@ -537,19 +549,47 @@ export function PatientDetailClient({
         into one chronological `PatientTimeline` with channel filter tabs so
         the doctor reads the patient's history top-to-bottom in one stream.
       */}
-      <PatientTimeline
-        requests={intakes}
-        prescriptions={medications}
-        notes={notes}
-        emails={emailLogs}
-        audit={parchmentActivity}
-        admin={canMergePatientProfiles}
-        title="Patient timeline"
-        emptyLabel="No requests, prescriptions, notes, emails, or webhook events recorded for this patient yet."
-      />
+      {intakes.length === 0 && medications.length === 0 && notes.length === 0 ? (
+        <Card className="rounded-xl border-dashed border-border/60 bg-card/50">
+          <CardContent className="flex flex-col items-center gap-3 px-6 py-12 text-center">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <FileText className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-foreground">
+                No clinical history yet
+              </p>
+              <p className="mt-1 max-w-md text-sm text-muted-foreground">
+                The first request, prescription, or doctor note from this
+                patient will appear in the timeline here.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowNoteForm(true)}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Add a doctor note
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <PatientTimeline
+          requests={intakes}
+          prescriptions={medications}
+          notes={notes}
+          emails={emailLogs}
+          audit={parchmentActivity}
+          admin={canMergePatientProfiles}
+          title="Patient timeline"
+          emptyLabel="No requests, prescriptions, notes, emails, or webhook events recorded for this patient yet."
+        />
+      )}
 
       {showNoteForm && (
-        <Card className="rounded-xl border-border/50">
+        <Card ref={noteFormRef} className="rounded-xl border-border/50">
           <CardHeader className="py-3 px-4">
             <CardTitle className="text-base">Add patient note</CardTitle>
             <p className="mt-1 text-xs text-muted-foreground">
@@ -559,6 +599,7 @@ export function PatientDetailClient({
           <CardContent className="px-4 py-3">
             <div className="space-y-3 rounded-lg bg-muted/50 p-4">
               <Textarea
+                ref={noteTextareaRef}
                 placeholder="Add a note about this patient..."
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
