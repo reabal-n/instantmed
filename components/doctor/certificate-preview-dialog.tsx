@@ -188,12 +188,12 @@ export function CertificatePreviewDialog({
         <DialogHeader className="px-6 pt-6 pb-4">
           <DialogTitle className="flex items-center gap-2 text-base">
             <Eye className="h-4 w-4 text-primary" />
-            {mode === "reissue" ? "Correct certificate (same reference)" : "Certificate Preview"}
+            {mode === "reissue" ? "Correct certificate (same reference)" : "Confirm before sending"}
           </DialogTitle>
           <DialogDescription className="text-sm">
             {mode === "reissue"
               ? "Edit the certificate details below. The existing PDF is replaced in place; the certificate reference number does not change. Limit 3 corrections per certificate."
-              : "Review the certificate details below before sending to the patient."}
+              : "This will issue the certificate, send the email to the patient, and write the audit log. Review the details below."}
           </DialogDescription>
         </DialogHeader>
 
