@@ -100,7 +100,10 @@ export function IntakeActionButtons() {
           Complete patient identity before prescribing: {missingPrescribingIdentityFields.join(", ")}
         </div>
       )}
-      <div className="flex flex-wrap gap-2">
+      <div
+        className="flex flex-col gap-2 sm:flex-row sm:flex-wrap [&>button]:w-full sm:[&>button]:w-auto"
+        data-action-bar
+      >
         {/* Med cert: preview then approve */}
         {service?.type === "med_certs" && ["paid", "in_review"].includes(intake.status) && (
         <Button
