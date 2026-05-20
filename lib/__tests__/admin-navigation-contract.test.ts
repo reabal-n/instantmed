@@ -396,6 +396,13 @@ describe("admin navigation contract", () => {
       join(process.cwd(), "app/admin/intakes/page.tsx"),
     ])
 
+    // 2026-05-21: /admin/patients opens to doctors with the same scoping
+    // /doctor/patients applies (doctorId param → only patients they've
+    // touched). Admins see everything. Both roles use the same client.
+    const doctorAdminSharedPages = new Set([
+      join(process.cwd(), "app/admin/patients/page.tsx"),
+    ])
+
     for (const pageFile of findAdminPageFiles()) {
       if (supportShellPages.has(pageFile)) {
         const source = readFileSync(pageFile, "utf8")
@@ -403,6 +410,13 @@ describe("admin navigation contract", () => {
         // role gate (not just allow it implicitly).
         expect(source, pageFile).toContain('requireRole(["admin", "support"]')
         expect(source, pageFile).not.toContain('requireRole(["doctor", "admin"]')
+        continue
+      }
+
+      if (doctorAdminSharedPages.has(pageFile)) {
+        const source = readFileSync(pageFile, "utf8")
+        expect(source, pageFile).toContain('requireRole(["admin", "doctor"]')
+        expect(source, pageFile).toContain("hasAdminAccess")
         continue
       }
 

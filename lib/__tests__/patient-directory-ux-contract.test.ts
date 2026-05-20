@@ -28,7 +28,9 @@ describe("patient directory duplicate review UX", () => {
     expect(patientsListSource).toContain("Any sync")
     expect(patientsListSource).toContain("Sync needed")
     expect(patientsListSource).toContain("hasActivePrescribingRequest(patient) && !patient.parchment_patient_id")
-    expect(patientsListSource).toContain("Profile partial")
+    // Short copy "Partial" replaced "Profile partial" in 2026-05-21
+    // when the loud colored-background pills became inline status dots.
+    expect(patientsListSource).toContain(">\n                              Partial")
     expect(patientsListSource).toContain("Not needed")
     expect(patientsListSource).not.toContain('aria-label="Sort patients"')
     expect(patientsListSource).not.toContain("Not synced")

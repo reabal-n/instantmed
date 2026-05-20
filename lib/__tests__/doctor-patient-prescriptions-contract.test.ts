@@ -154,14 +154,16 @@ describe("doctor patient medication history contract", () => {
     expect(patientDirectorySource).toContain("getLastRequestMap")
     expect(patientDirectorySource).toContain("getLastScriptMap")
     expect(patientDirectorySource).toContain("compareDirectoryPatients")
+    // 2026-05-21: Status + Parchment columns calmed from loud
+    // colored-background pills to inline dot + label. Stat strip
+    // compressed from a 4-card 2x2 grid into a single horizontal row.
     expect(patientsListSource).toContain("Parchment sync")
-    expect(patientsListSource).toContain("Ready in Parchment")
+    expect(patientsListSource).toContain("Synced")
     expect(patientsListSource).toContain("Sync needed")
     expect(patientsListSource).toContain("All services")
     expect(patientsListSource).toContain("Last request")
     expect(patientsListSource).toContain("Last script")
     expect(patientsListSource).toContain("Directory summary")
-    expect(patientsListSource).toContain("sm:grid-cols-2 xl:grid-cols-4")
     expect(patientsListSource).not.toContain("{/* Overview */}")
   })
 

@@ -1,6 +1,7 @@
 import { PatientsListClient } from "@/components/admin/patient-directory-client"
 import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
 import { requireRole } from "@/lib/auth/helpers"
+import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import {
   ADMIN_PATIENT_MERGE_AUDIT_HREF,
   STAFF_DASHBOARD_HREF,
@@ -24,13 +25,17 @@ export default async function AdminPatientsPage({
 }: {
   searchParams: Promise<{ page?: string; q?: string | string[]; sort?: string | string[] }>
 }) {
-  await requireRole(["admin"])
+  // Both roles can land here without 403. Non-admin doctors are scoped
+  // to patients they've touched via the doctorId param (same pattern the
+  // doctor-portal patient list uses). Admin owner-operators see everything.
+  const auth = await requireRole(["admin", "doctor"])
 
   const params = await searchParams
   const page = Math.max(1, parseInt(params.page || "1", 10) || 1)
   const sort = parsePatientDirectorySort(params.sort)
   const search = parsePatientDirectorySearch(params.q)
   const { patients, total, collapsedCount } = await getPatientDirectoryPage({
+    doctorId: hasAdminAccess(auth.profile) ? undefined : auth.profile.id,
     page,
     pageSize: PAGE_SIZE,
     sort,

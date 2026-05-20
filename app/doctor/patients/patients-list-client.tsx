@@ -327,15 +327,27 @@ export function PatientsListClient({
             </div>
           </div>
 
-          <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4" aria-label="Directory summary">
+          {/* Compact stat strip (2026-05-21). Four-card 2x2 grid replaced
+              with a single horizontal row of metric+value pairs. Saves
+              ~80px vertical above the table; the detail copy now lives
+              in title attributes so the strip stays scannable. */}
+          <div
+            className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg border border-border/50 bg-muted/25 px-3 py-2"
+            aria-label="Directory summary"
+          >
             {summaryItems.map((item) => (
-              <div key={item.label} className="rounded-lg border border-border/50 bg-muted/25 px-3 py-2">
-                <div className="flex items-center gap-2">
-                  <item.icon className={`h-4 w-4 ${item.tone}`} />
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{item.label}</p>
-                </div>
-                <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">{item.value}</p>
-                <p className="text-xs text-muted-foreground">{item.detail}</p>
+              <div
+                key={item.label}
+                className="flex items-center gap-2 min-w-0"
+                title={item.detail}
+              >
+                <item.icon className={`h-3.5 w-3.5 shrink-0 ${item.tone}`} aria-hidden />
+                <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                  {item.label}
+                </span>
+                <span className="text-base font-semibold tabular-nums text-foreground">
+                  {item.value}
+                </span>
               </div>
             ))}
           </div>
@@ -528,36 +540,38 @@ export function PatientsListClient({
                         </TableCell>
                         <TableCell>
                           {patient.onboarding_completed ? (
-                            <Badge variant="outline" className="bg-success-light text-success border-success-border">
-                              <CheckCircle className="mr-1 h-3 w-3" />
+                            <span className="inline-flex items-center gap-2 text-sm text-foreground">
+                              <span className="h-2 w-2 rounded-full bg-emerald-500 ring-1 ring-inset ring-black/5" aria-hidden />
                               Complete
-                            </Badge>
+                            </span>
                           ) : hasPrescribingWork ? (
-                            <Badge variant="outline" className="bg-warning-light text-warning border-warning-border">
-                              <XCircle className="mr-1 h-3 w-3" />
+                            <span className="inline-flex items-center gap-2 text-sm text-foreground">
+                              <span className="h-2 w-2 rounded-full bg-amber-500 ring-1 ring-inset ring-black/5" aria-hidden />
                               Needs details
-                            </Badge>
+                            </span>
                           ) : (
-                            <Badge variant="outline" className="border-border/60 bg-muted/35 text-muted-foreground">
-                              Profile partial
-                            </Badge>
+                            <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="h-2 w-2 rounded-full bg-slate-400 ring-1 ring-inset ring-black/5" aria-hidden />
+                              Partial
+                            </span>
                           )}
                         </TableCell>
                         <TableCell>
                           {patient.parchment_patient_id ? (
-                            <Badge variant="success" size="sm">
-                              <CheckCircle className="h-3 w-3" />
-                              Ready in Parchment
-                            </Badge>
+                            <span className="inline-flex items-center gap-2 text-sm text-foreground">
+                              <span className="h-2 w-2 rounded-full bg-emerald-500 ring-1 ring-inset ring-black/5" aria-hidden />
+                              Synced
+                            </span>
                           ) : hasPrescribingWork ? (
-                            <Badge variant="warning" size="sm">
-                              <XCircle className="h-3 w-3" />
+                            <span className="inline-flex items-center gap-2 text-sm text-foreground">
+                              <span className="h-2 w-2 rounded-full bg-amber-500 ring-1 ring-inset ring-black/5" aria-hidden />
                               Sync needed
-                            </Badge>
+                            </span>
                           ) : (
-                            <Badge variant="outline" size="sm" className="border-border/60 bg-muted/30 text-muted-foreground">
+                            <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="h-2 w-2 rounded-full bg-slate-400 ring-1 ring-inset ring-black/5" aria-hidden />
                               Not needed
-                            </Badge>
+                            </span>
                           )}
                         </TableCell>
                         <TableCell>
