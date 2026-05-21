@@ -12,7 +12,33 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { extractMedicationFromAnswers } from "@/lib/validation/repeat-script-schema"
 import { asProfile } from "@/types/db"
 
-import { PatientDetailClient } from "./patient-detail-client"
+import { PatientDetailClient, type PatientTouchAttribution } from "./patient-detail-client"
+
+function toAttributionRow(
+  row: Record<string, unknown>,
+): PatientTouchAttribution {
+  const pick = (key: string) =>
+    typeof row[key] === "string" ? (row[key] as string) : null
+  return {
+    adgroupid: pick("adgroupid"),
+    campaignid: pick("campaignid"),
+    creative: pick("creative"),
+    device: pick("device"),
+    gbraid: pick("gbraid"),
+    gclid: pick("gclid"),
+    keyword: pick("keyword"),
+    landing_page: pick("landing_page"),
+    matchtype: pick("matchtype"),
+    network: pick("network"),
+    referrer: pick("referrer"),
+    utm_campaign: pick("utm_campaign"),
+    utm_medium: pick("utm_medium"),
+    utm_source: pick("utm_source"),
+    utm_term: pick("utm_term"),
+    wbraid: pick("wbraid"),
+    created_at: pick("created_at"),
+  }
+}
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -421,7 +447,7 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
     }
   }
 
-  const [intakesResult, certsResult, emailResult, notesResult, prescriptionsResult] = await Promise.all([
+  const [intakesResult, certsResult, emailResult, notesResult, prescriptionsResult, firstTouchResult, lastTouchResult] = await Promise.all([
     supabase
       .from("intakes")
       .select(`
@@ -493,6 +519,32 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
       .in("patient_id", patientIds)
       .order("issued_date", { ascending: false })
       .limit(20),
+
+    // First-touch attribution: the oldest intake for this patient (across
+    // every linked profile, so merge-collapsed patients still see their
+    // original acquisition source).
+    supabase
+      .from("intakes")
+      .select(
+        "utm_source, utm_medium, utm_campaign, utm_term, gclid, gbraid, wbraid, campaignid, adgroupid, keyword, creative, matchtype, device, network, referrer, landing_page, created_at",
+      )
+      .in("patient_id", patientIds)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+
+    // Most-recent-touch attribution: the newest intake. May be the same
+    // row as first-touch for single-request patients; the client decides
+    // whether to render one chip or two.
+    supabase
+      .from("intakes")
+      .select(
+        "utm_source, utm_medium, utm_campaign, utm_term, gclid, gbraid, wbraid, campaignid, adgroupid, keyword, creative, matchtype, device, network, referrer, landing_page, created_at",
+      )
+      .in("patient_id", patientIds)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ])
 
   const { data: intakes, error: intakesError } = intakesResult
@@ -500,6 +552,15 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
   const { data: emailLogs, error: emailError } = emailResult
   const { data: patientNotes, error: notesError } = notesResult
   const { data: prescriptions, error: prescriptionsError } = prescriptionsResult
+  const { data: firstTouchIntake, error: firstTouchError } = firstTouchResult
+  const { data: lastTouchIntake, error: lastTouchError } = lastTouchResult
+
+  if (firstTouchError) {
+    logger.warn("Could not fetch first-touch attribution", { patientId }, firstTouchError)
+  }
+  if (lastTouchError) {
+    logger.warn("Could not fetch last-touch attribution", { patientId }, lastTouchError)
+  }
 
   if (intakesError) {
     logger.error("Error fetching intakes", { patientId }, intakesError)
@@ -549,6 +610,13 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
     parchmentAuditRows,
   )
 
+  const firstTouchAttribution = firstTouchIntake
+    ? toAttributionRow(firstTouchIntake)
+    : null
+  const lastTouchAttribution = lastTouchIntake
+    ? toAttributionRow(lastTouchIntake)
+    : null
+
   return {
     patient: canonicalPatient,
     intakes: transformedIntakes,
@@ -556,6 +624,8 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
     parchmentActivity,
     emailLogs: emailLogs || [],
     patientNotes: patientNotes || [],
+    firstTouchAttribution,
+    lastTouchAttribution,
     stats: {
       totalRequests: intakes?.length || 0,
       approvedRequests: intakes?.filter(i => i.status === "approved" || i.status === "completed").length || 0,
@@ -583,9 +653,9 @@ export default async function PatientDetailPage({ params }: PageProps) {
   }
 
   return (
-    <PatientDetailClient 
-      patient={data.patient} 
-      intakes={data.intakes} 
+    <PatientDetailClient
+      patient={data.patient}
+      intakes={data.intakes}
       medications={data.medications}
       stats={data.stats}
       emailLogs={data.emailLogs}
@@ -594,6 +664,8 @@ export default async function PatientDetailPage({ params }: PageProps) {
       canMergePatientProfiles={hasAdminAccess(authResult.profile)}
       parchmentEnabled={flags.parchment_embedded_prescribing}
       parchmentUserLinked={Boolean(authResult.profile.parchment_user_id)}
+      firstTouchAttribution={data.firstTouchAttribution}
+      lastTouchAttribution={data.lastTouchAttribution}
     />
   )
 }

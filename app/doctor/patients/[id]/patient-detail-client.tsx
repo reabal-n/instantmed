@@ -27,7 +27,7 @@ import {
 } from "@/app/actions/manual-patient"
 import { addPatientNoteAction } from "@/app/actions/patient-notes"
 import { mergePatientProfilesAction } from "@/app/actions/patient-profile-merge"
-import { ParchmentPrescribePanel } from "@/components/doctor"
+import { AttributionChip, ParchmentPrescribePanel } from "@/components/doctor"
 import { PatientTimeline } from "@/components/doctor/patient-timeline"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Badge } from "@/components/ui/badge"
@@ -35,12 +35,20 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { TypedConfirmDialog } from "@/components/ui/typed-confirm-dialog"
+import {
+  type AttributionClassificationInput,
+  classifyAttributionSource,
+} from "@/lib/analytics/source-classification"
 import { STAFF_DOCTOR_PATIENTS_HREF, STAFF_IDENTITY_HREF } from "@/lib/dashboard/routes"
 import { buildPatientSnapshot } from "@/lib/doctor/patient-snapshot"
 import { formatIntakeStatus } from "@/lib/format/intake"
 import type { Profile } from "@/types/db"
 
 import { EditPatientDialog } from "./edit-patient-dialog"
+
+export type PatientTouchAttribution = AttributionClassificationInput & {
+  created_at: string | null
+}
 
 interface IntakeWithService {
   id: string
@@ -130,6 +138,8 @@ interface PatientDetailClientProps {
   canMergePatientProfiles: boolean
   parchmentEnabled: boolean
   parchmentUserLinked: boolean
+  firstTouchAttribution: PatientTouchAttribution | null
+  lastTouchAttribution: PatientTouchAttribution | null
 }
 
 export function PatientDetailClient({
@@ -143,6 +153,8 @@ export function PatientDetailClient({
   canMergePatientProfiles,
   parchmentEnabled,
   parchmentUserLinked,
+  firstTouchAttribution,
+  lastTouchAttribution,
 }: PatientDetailClientProps) {
   const router = useRouter()
   const { openPanel } = usePanel()
@@ -264,6 +276,26 @@ export function PatientDetailClient({
     requireMedicareDetails: true,
     validateMedicare: true,
   })
+
+  // Acquisition source: first-touch and last-touch. If the patient has only
+  // one request, render a single chip. If the two intakes resolved to the
+  // same group, also render a single chip. Otherwise render both labelled
+  // so the operator can see how acquisition has evolved.
+  const firstGroup = firstTouchAttribution
+    ? classifyAttributionSource(firstTouchAttribution).group
+    : null
+  const lastGroup = lastTouchAttribution
+    ? classifyAttributionSource(lastTouchAttribution).group
+    : null
+  const isSameTouch =
+    Boolean(firstTouchAttribution) &&
+    Boolean(lastTouchAttribution) &&
+    firstTouchAttribution?.created_at === lastTouchAttribution?.created_at
+  const showSeparateTouches =
+    Boolean(firstTouchAttribution) &&
+    Boolean(lastTouchAttribution) &&
+    !isSameTouch &&
+    firstGroup !== lastGroup
   const addressVerificationVariant = snapshot.address.verificationTone === "success"
     ? "success"
     : snapshot.address.verificationTone === "warning"
@@ -538,6 +570,36 @@ export function PatientDetailClient({
               <p className="text-[11px] text-muted-foreground">{snapshot.medicare.detailsLabel}</p>
             ) : null}
           </div>
+          {/* Acquisition source: first-touch and last-touch when they differ.
+              Staff-only signal; never rendered on patient-facing surfaces. */}
+          {firstTouchAttribution ? (
+            <div className="min-w-0 sm:col-span-2">
+              <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Source</dt>
+              <dd className="mt-1 flex flex-wrap items-start gap-x-6 gap-y-2">
+                {showSeparateTouches ? (
+                  <>
+                    <AttributionChip
+                      variant="block"
+                      attribution={firstTouchAttribution}
+                      contextLabel="First touch"
+                    />
+                    {lastTouchAttribution ? (
+                      <AttributionChip
+                        variant="block"
+                        attribution={lastTouchAttribution}
+                        contextLabel="Most recent"
+                      />
+                    ) : null}
+                  </>
+                ) : (
+                  <AttributionChip
+                    variant="block"
+                    attribution={lastTouchAttribution ?? firstTouchAttribution}
+                  />
+                )}
+              </dd>
+            </div>
+          ) : null}
         </dl>
       </div>
 
