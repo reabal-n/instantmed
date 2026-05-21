@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 
 import { QueueClient } from "@/app/doctor/queue/queue-client"
+import { AttributionSourcesCard } from "@/components/admin/attribution-sources-card"
 import { OwnerOperatorSetupCard } from "@/components/admin/owner-operator-setup-card"
 import { StaffReadinessPanel } from "@/components/admin/staff-readiness-panel"
 import { DoctorAvailabilityToggle } from "@/components/doctor/doctor-availability-toggle"
@@ -26,6 +27,10 @@ import {
   STAFF_DASHBOARD_HREF,
   STAFF_OPS_HREF,
 } from "@/lib/dashboard/routes"
+import {
+  type AttributionSourceBreakdown,
+  getAttributionSourceBreakdown,
+} from "@/lib/data/dashboard-attribution"
 import {
   type DoctorIdentity,
   getDoctorIdentity,
@@ -105,6 +110,9 @@ export default async function StaffDashboardPage({
     import("@/app/actions/doctor-availability").then((m) => m.getDoctorAvailabilityAction()),
     isAdmin ? getSystemHealth() : Promise.resolve(EMPTY_SYSTEM_HEALTH),
     isAdmin ? getStaffReadinessSnapshot() : Promise.resolve(null),
+    isAdmin
+      ? getAttributionSourceBreakdown()
+      : Promise.resolve<AttributionSourceBreakdown | null>(null),
   ])
 
   const queueResult = results[0].status === "fulfilled"
@@ -117,6 +125,8 @@ export default async function StaffDashboardPage({
   const doctorAvailable = results[5].status === "fulfilled" ? results[5].value?.available !== false : true
   const systemHealth = results[6].status === "fulfilled" ? results[6].value : EMPTY_SYSTEM_HEALTH
   const staffReadiness = results[7].status === "fulfilled" ? results[7].value : null
+  const attributionBreakdown: AttributionSourceBreakdown | null =
+    results[8].status === "fulfilled" ? results[8].value : null
 
   const parchmentUserId = typeof profile.parchment_user_id === "string" && profile.parchment_user_id.trim()
     ? profile.parchment_user_id.trim()
@@ -133,6 +143,7 @@ export default async function StaffDashboardPage({
         "availability",
         "system-health",
         "staff-readiness",
+        "attribution-breakdown",
       ]
       log.error(`Failed to fetch staff dashboard ${names[index]}`, { profileId: profile.id }, result.reason)
     }
@@ -166,6 +177,12 @@ export default async function StaffDashboardPage({
 
           {isAdmin && staffReadiness ? (
             <StaffReadinessPanel snapshot={staffReadiness} />
+          ) : null}
+
+          {isAdmin && attributionBreakdown ? (
+            <div className="grid gap-3 md:grid-cols-2">
+              <AttributionSourcesCard breakdown={attributionBreakdown} />
+            </div>
           ) : null}
 
           <section id="doctor-queue" className="min-h-0 flex-1">
