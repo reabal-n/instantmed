@@ -7,6 +7,10 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { getPatientDashboardData } from "@/lib/data/intakes"
 import { getPatientUndeliveredCertificates } from "@/lib/data/issued-certificates"
+import {
+  computePatientProfileCompleteness,
+  type PatientProfileCompleteness,
+} from "@/lib/data/patient-completeness"
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -64,10 +68,12 @@ async function PatientDashboardContent({
   patientId,
   fullName,
   profileData,
+  completeness,
 }: {
   patientId: string
   fullName: string
   profileData: ProfileData
+  completeness: PatientProfileCompleteness
 }) {
   const [{ intakes, prescriptions, error }, undeliveredCerts] = await Promise.all([
     getPatientDashboardData(patientId),
@@ -83,6 +89,7 @@ async function PatientDashboardContent({
       error={error}
       profileData={profileData}
       undeliveredCerts={undeliveredCerts}
+      completeness={completeness}
     />
   )
 }
@@ -104,12 +111,26 @@ export default async function PatientDashboard() {
     consentMyhr: authUser.profile.consent_myhr,
   }
 
+  const completeness = computePatientProfileCompleteness({
+    full_name: authUser.profile.full_name,
+    date_of_birth: authUser.profile.date_of_birth,
+    email: authUser.profile.email,
+    phone: authUser.profile.phone,
+    sex: authUser.profile.sex,
+    address_line1: authUser.profile.address_line1,
+    suburb: authUser.profile.suburb,
+    state: authUser.profile.state,
+    postcode: authUser.profile.postcode,
+    medicare_number: authUser.profile.medicare_number,
+  })
+
   return (
     <Suspense fallback={<DashboardSkeleton />}>
       <PatientDashboardContent
         patientId={patientId}
         fullName={authUser.profile.full_name || "Patient"}
         profileData={profileData}
+        completeness={completeness}
       />
     </Suspense>
   )
