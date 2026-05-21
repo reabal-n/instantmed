@@ -122,12 +122,18 @@ describe("unified intake regressions", () => {
   })
 
   it("requires phone for authenticated consult step skipping", () => {
+    // Per the 2026-05-21 operator rule, every non-medcert service requires the
+    // full structured identity bundle (address + Medicare + sex + phone), not
+    // just prescribing subtypes. The test still pins phone-as-required by
+    // toggling only the phone flag while keeping every other identity bit
+    // satisfied.
     const baseContext: StepContext = {
       isAuthenticated: true,
       hasProfile: true,
       hasCompleteIdentity: true,
       hasMedicare: true,
       hasAddress: true,
+      hasSex: true,
       serviceType: "consult",
       answers: {
         consultSubtype: "general",

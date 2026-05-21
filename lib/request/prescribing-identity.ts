@@ -1,6 +1,28 @@
-import type { ConsultSubtype, UnifiedServiceType } from "@/types/services"
+import type { UnifiedServiceType } from "@/types/services"
 
-const PRESCRIBING_CONSULT_SUBTYPES = new Set<ConsultSubtype>(["ed", "hair_loss"])
+// Medical certificates are the only intake flow that does NOT require the
+// structured prescribing identity bundle (Medicare + address + sex + phone).
+// Everything else does, even subtypes that are currently retired or gated off:
+//   - prescription / repeat_rx / common_scripts
+//   - consult / consults (every subtype)
+//
+// Keeping the rule expressed as "anything that is not a med cert" rather than
+// an allowlist of consult subtypes means future re-activation of a service
+// (weight_loss, womens_health, infection, mental_health, general, etc.)
+// inherits the correct gating automatically without a code change.
+//
+// Operator-stated rule (2026-05-21):
+//   Address + Medicare + phone are required for every service EXCEPT med certs.
+//   Name + DOB + email are required for ALL services (enforced at checkout
+//   identity step separately).
+//
+// Contract test: lib/__tests__/prescribing-identity-gate-contract.test.ts
+const MED_CERT_CATEGORIES: ReadonlySet<string> = new Set(["medical_certificate", "med_certs"])
+const MED_CERT_SERVICE_TYPES: ReadonlySet<string> = new Set([
+  "med_cert",
+  "med_certs",
+  "medical_certificate",
+])
 
 export function requiresPrescribingIdentityForRequest({
   category,
@@ -11,20 +33,16 @@ export function requiresPrescribingIdentityForRequest({
   serviceType?: UnifiedServiceType | string | null
   subtype?: string | null
 }): boolean {
-  const normalizedServiceType = serviceType ?? ""
-  const normalizedCategory = category ?? ""
-  const isPrescribingConsult = (
-    normalizedCategory === "consult" ||
-    normalizedServiceType === "consult" ||
-    normalizedServiceType === "consults"
-  ) && PRESCRIBING_CONSULT_SUBTYPES.has((subtype ?? "") as ConsultSubtype)
+  void subtype
+  const normalizedCategory = (category ?? "").trim()
+  const normalizedServiceType = (serviceType ?? "").trim()
 
-  return (
-    normalizedCategory === "prescription" ||
-    normalizedServiceType === "common_scripts" ||
-    normalizedServiceType === "repeat_rx" ||
-    normalizedServiceType === "prescription" ||
-    normalizedServiceType === "repeat-script" ||
-    isPrescribingConsult
-  )
+  // If nothing is known about the request, default to NOT requiring the full
+  // identity bundle. Better to under-collect than to block a legitimate flow.
+  if (!normalizedCategory && !normalizedServiceType) return false
+
+  if (MED_CERT_CATEGORIES.has(normalizedCategory)) return false
+  if (MED_CERT_SERVICE_TYPES.has(normalizedServiceType)) return false
+
+  return true
 }
