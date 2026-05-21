@@ -24,6 +24,7 @@ import {
   formatRenewalMatchTitle,
   type RenewalMatch,
 } from "@/lib/doctor/renewal-format"
+import { computeLedgerDailyAggregate } from "@/lib/operator/cases/daily-aggregate"
 import {
   type CaseRowData,
   DEFAULT_SORT,
@@ -372,6 +373,32 @@ export function AdminIntakesLedgerClient({
     count: chipCounts[filter.id] ?? 0,
   }))
 
+  // Today's daily volume (unfiltered) so operators see real workload before
+  // any chip/search trims the visible rows. Hidden when the day is empty;
+  // renewal count omitted when zero so we never show misleading "0 renewals".
+  const dailyAggregate = useMemo(
+    () =>
+      computeLedgerDailyAggregate(
+        intakes.map((intake) => ({
+          created_at: intake.created_at,
+          isRenewal: Boolean(
+            (intake as { is_renewal?: boolean }).is_renewal,
+          ),
+        })),
+      ),
+    [intakes],
+  )
+
+  const dailyAggregateLabel = (() => {
+    if (dailyAggregate.total === 0) return null
+    const intakesLabel = `${dailyAggregate.total} ${dailyAggregate.total === 1 ? "intake" : "intakes"}`
+    if (dailyAggregate.renewals === 0) {
+      return `Today: ${intakesLabel}`
+    }
+    const renewalsLabel = `${dailyAggregate.renewals} ${dailyAggregate.renewals === 1 ? "renewal" : "renewals"}`
+    return `Today: ${intakesLabel} · ${renewalsLabel}`
+  })()
+
   const handleSortChange = useCallback((next: SortState) => {
     setSortState(next)
   }, [])
@@ -470,6 +497,15 @@ export function AdminIntakesLedgerClient({
 
   return (
     <div className="flex flex-col gap-4">
+      {dailyAggregateLabel ? (
+        <div
+          className="text-xs tabular-nums text-muted-foreground"
+          aria-live="polite"
+        >
+          {dailyAggregateLabel}
+        </div>
+      ) : null}
+
       <FilterBar
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
