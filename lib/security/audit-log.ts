@@ -39,6 +39,7 @@ export type AuditAction =
   | "data_export"
   | "account_closed"
   | "permission_change"
+  | "doctor_capabilities_updated"
 
 interface AuditLogEntry {
   action: AuditAction

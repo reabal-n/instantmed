@@ -135,6 +135,13 @@ export async function getAllDoctorsAction() {
       role,
       provider_number,
       ahpra_number,
+      can_review_med_certs,
+      can_review_repeat_rx,
+      can_review_consults,
+      can_review_ed,
+      can_review_hair_loss,
+      can_prescribe_s4,
+      can_prescribe_s8,
       created_at
     `)
     .in("role", ["doctor", "admin"])

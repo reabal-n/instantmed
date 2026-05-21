@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  AlertTriangle,
   ArrowLeft,
   CheckCircle,
   Edit,
@@ -22,6 +23,10 @@ import { useRouter } from "next/navigation"
 import { useCallback,useState } from "react"
 import { toast } from "sonner"
 
+import {
+  type DoctorCapabilities,
+  updateDoctorCapabilitiesAction,
+} from "@/app/actions/admin-doctor-capabilities"
 import {
   getSignatureUrlAction,
   updateDoctorIdentityAction,
@@ -50,6 +55,7 @@ import {
 import { Heading } from "@/components/ui/heading"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 import {
   Table,
   TableBody,
@@ -77,7 +83,78 @@ interface DoctorProfile {
   signature_storage_path?: string | null
   certificate_identity_complete?: boolean
   is_active?: boolean
+  can_review_med_certs?: boolean | null
+  can_review_repeat_rx?: boolean | null
+  can_review_consults?: boolean | null
+  can_review_ed?: boolean | null
+  can_review_hair_loss?: boolean | null
+  can_prescribe_s4?: boolean | null
+  can_prescribe_s8?: boolean | null
   created_at: string
+}
+
+const CAPABILITY_LABELS: Array<{
+  key: keyof DoctorCapabilities
+  label: string
+  restricted?: boolean
+}> = [
+  { key: "can_review_med_certs", label: "Review medical certificates" },
+  { key: "can_review_repeat_rx", label: "Review repeat prescriptions" },
+  { key: "can_review_consults", label: "Review consults" },
+  { key: "can_review_ed", label: "Review ED consults" },
+  { key: "can_review_hair_loss", label: "Review hair loss consults" },
+  { key: "can_prescribe_s4", label: "Prescribe Schedule 4 (PBS-listed)" },
+  { key: "can_prescribe_s8", label: "Prescribe Schedule 8 (controlled)", restricted: true },
+]
+
+const CAPABILITY_DEFAULTS: DoctorCapabilities = {
+  can_review_med_certs: true,
+  can_review_repeat_rx: true,
+  can_review_consults: true,
+  can_review_ed: true,
+  can_review_hair_loss: true,
+  can_prescribe_s4: true,
+  can_prescribe_s8: false,
+}
+
+function resolveCapabilities(doctor: DoctorProfile): DoctorCapabilities {
+  return {
+    can_review_med_certs:
+      typeof doctor.can_review_med_certs === "boolean"
+        ? doctor.can_review_med_certs
+        : CAPABILITY_DEFAULTS.can_review_med_certs,
+    can_review_repeat_rx:
+      typeof doctor.can_review_repeat_rx === "boolean"
+        ? doctor.can_review_repeat_rx
+        : CAPABILITY_DEFAULTS.can_review_repeat_rx,
+    can_review_consults:
+      typeof doctor.can_review_consults === "boolean"
+        ? doctor.can_review_consults
+        : CAPABILITY_DEFAULTS.can_review_consults,
+    can_review_ed:
+      typeof doctor.can_review_ed === "boolean"
+        ? doctor.can_review_ed
+        : CAPABILITY_DEFAULTS.can_review_ed,
+    can_review_hair_loss:
+      typeof doctor.can_review_hair_loss === "boolean"
+        ? doctor.can_review_hair_loss
+        : CAPABILITY_DEFAULTS.can_review_hair_loss,
+    can_prescribe_s4:
+      typeof doctor.can_prescribe_s4 === "boolean"
+        ? doctor.can_prescribe_s4
+        : CAPABILITY_DEFAULTS.can_prescribe_s4,
+    can_prescribe_s8:
+      typeof doctor.can_prescribe_s8 === "boolean"
+        ? doctor.can_prescribe_s8
+        : CAPABILITY_DEFAULTS.can_prescribe_s8,
+  }
+}
+
+function summarizeCapabilities(capabilities: DoctorCapabilities): string {
+  const granted = Object.values(capabilities).filter(Boolean).length
+  if (granted === 7) return "All clinical + S8"
+  if (granted === 6 && !capabilities.can_prescribe_s8) return "All clinical"
+  return `${granted} of 7`
 }
 
 interface DoctorProfilesClientProps {
@@ -91,9 +168,10 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
   const [selectedDoctor, setSelectedDoctor] = useState<DoctorProfile | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [isSavingCapabilities, setIsSavingCapabilities] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [signatureUrl, setSignatureUrl] = useState<string | null>(null)
-  
+
   // Confirmation dialog state for AHPRA/provider updates
   const [confirmSaveOpen, setConfirmSaveOpen] = useState(false)
 
@@ -104,6 +182,9 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
     ahpra_number: null,
     signature_storage_path: null,
   })
+
+  // Capability toggle state for the current dialog
+  const [capabilityState, setCapabilityState] = useState<DoctorCapabilities>(CAPABILITY_DEFAULTS)
 
   const filteredDoctors = doctors.filter(
     (doctor) =>
@@ -129,6 +210,7 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
       ahpra_number: doctor.ahpra_number,
       signature_storage_path: doctor.signature_storage_path,
     })
+    setCapabilityState(resolveCapabilities(doctor))
 
     // Load signature URL if exists
     if (doctor.signature_storage_path) {
@@ -140,6 +222,44 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
 
     setIsDialogOpen(true)
   }, [])
+
+  const handleCapabilityToggle = useCallback(
+    (key: keyof DoctorCapabilities, value: boolean) => {
+      setCapabilityState((prev) => ({ ...prev, [key]: value }))
+    },
+    [],
+  )
+
+  const handleSaveCapabilities = async () => {
+    if (!selectedDoctor) return
+
+    setIsSavingCapabilities(true)
+    try {
+      const result = await updateDoctorCapabilitiesAction(selectedDoctor.id, capabilityState)
+      if (!result.success) {
+        toast.error(result.error || "Failed to update capabilities")
+        return
+      }
+
+      setDoctors((prev) =>
+        prev.map((d) =>
+          d.id === selectedDoctor.id
+            ? {
+                ...d,
+                ...capabilityState,
+              }
+            : d,
+        ),
+      )
+      toast.success("Capabilities updated")
+      setIsDialogOpen(false)
+      router.refresh()
+    } catch {
+      toast.error("Failed to update capabilities")
+    } finally {
+      setIsSavingCapabilities(false)
+    }
+  }
 
   const handleInputChange = useCallback((field: keyof DoctorIdentityInput, value: string | null) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -378,6 +498,7 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
                   <TableHead>Practitioner</TableHead>
                   <TableHead>Provider Number</TableHead>
                   <TableHead>AHPRA</TableHead>
+                  <TableHead>Capabilities</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -408,6 +529,16 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
                         ) : "—"}
                       </TableCell>
                       <TableCell>
+                        <button
+                          type="button"
+                          onClick={() => handleEditDoctor(doctor)}
+                          className="text-xs tabular-nums text-muted-foreground hover:text-foreground transition-colors"
+                          aria-label={`Edit capabilities for ${doctor.full_name}`}
+                        >
+                          {summarizeCapabilities(resolveCapabilities(doctor))}
+                        </button>
+                      </TableCell>
+                      <TableCell>
                         {doctor.certificate_identity_complete ? (
                           <Badge className="bg-success-light text-success">
                             <CheckCircle className="h-3 w-3 mr-1" />
@@ -434,7 +565,7 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                       No practitioners found
                     </TableCell>
                   </TableRow>
@@ -447,7 +578,7 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
 
       {/* Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Stethoscope className="h-5 w-5" />
@@ -541,6 +672,61 @@ export function DoctorProfilesClient({ initialDoctors }: DoctorProfilesClientPro
                     PNG or JPG, max 1MB
                   </p>
                 </div>
+              </div>
+            </div>
+
+            <div className="space-y-3 border-t border-border/60 pt-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Clinical capabilities</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Scope which service lines this practitioner can review. Owner-operator admin bypasses these flags.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={handleSaveCapabilities}
+                  disabled={isSavingCapabilities}
+                  data-testid="save-capabilities"
+                >
+                  {isSavingCapabilities ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-2" />
+                  )}
+                  Save capabilities
+                </Button>
+              </div>
+              <div
+                className="grid gap-x-4 gap-y-2 sm:grid-cols-2"
+                data-testid="capability-grid"
+              >
+                {CAPABILITY_LABELS.map(({ key, label, restricted }) => (
+                  <div
+                    key={key}
+                    className="flex items-start justify-between gap-3 rounded-md border border-border/50 bg-background px-3 py-2.5"
+                    data-capability={key}
+                  >
+                    <div className="min-w-0">
+                      <Label htmlFor={`capability-${key}`} className="text-sm leading-tight">
+                        {label}
+                      </Label>
+                      {restricted ? (
+                        <p className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
+                          <AlertTriangle className="h-3 w-3 shrink-0" aria-hidden="true" />
+                          <span>Restricted - explicit grant per AHPRA.</span>
+                        </p>
+                      ) : null}
+                    </div>
+                    <Switch
+                      id={`capability-${key}`}
+                      checked={capabilityState[key]}
+                      onCheckedChange={(value) => handleCapabilityToggle(key, value)}
+                    />
+                  </div>
+                ))}
               </div>
             </div>
           </div>
