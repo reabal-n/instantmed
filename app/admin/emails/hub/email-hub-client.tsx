@@ -115,19 +115,27 @@ function EmailStatusPill({
     ? deliveryStatus
     : status
 
+  let dotColor = "bg-slate-400"
+  if (["sent", "skipped_e2e", "delivered", "opened", "clicked"].includes(resolvedStatus)) {
+    dotColor = "bg-emerald-500"
+  } else if (["pending", "sending"].includes(resolvedStatus)) {
+    dotColor = "bg-amber-500"
+  } else if (["failed", "bounced", "complained"].includes(resolvedStatus)) {
+    dotColor = "bg-red-500"
+  }
+
+  const label = resolvedStatus === "skipped_e2e" ? "sent (test)" : resolvedStatus.replace("_", " ")
+
   return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-medium leading-none capitalize",
-        ["sent", "skipped_e2e", "delivered", "opened", "clicked"].includes(resolvedStatus)
-          && "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-950/30 dark:text-emerald-300",
-        ["pending", "sending"].includes(resolvedStatus)
-          && "border-orange-200 bg-orange-100 text-orange-800 dark:border-orange-500/30 dark:bg-orange-950/40 dark:text-orange-200",
-        ["failed", "bounced", "complained"].includes(resolvedStatus)
-          && "border-red-200 bg-red-100 text-red-800 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-200",
-      )}
-    >
-      {resolvedStatus === "skipped_e2e" ? "sent (test)" : resolvedStatus.replace("_", " ")}
+    <span className="inline-flex items-center gap-2 align-middle">
+      <span
+        aria-hidden="true"
+        className={cn(
+          "h-2 w-2 shrink-0 rounded-full ring-1 ring-inset ring-black/5",
+          dotColor,
+        )}
+      />
+      <span className="text-xs capitalize text-foreground">{label}</span>
     </span>
   )
 }
