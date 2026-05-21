@@ -21,6 +21,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 
+import { GeographicBreakdownCard } from "@/components/admin/geographic-breakdown-card"
 import {
   DashboardCard,
   DashboardGrid,
@@ -37,12 +38,14 @@ import {
   buildStaffLedgerHref,
   STAFF_DASHBOARD_HREF,
 } from "@/lib/dashboard/routes"
+import type { GeographicBreakdown } from "@/lib/data/analytics-geographic"
 import { formatCurrency, formatMinutes, formatTimeAgo } from "@/lib/format"
 
 import { type AnalyticsData } from "./analytics-helpers"
 
 interface AnalyticsDashboardClientProps {
   analytics: AnalyticsData
+  geographic: GeographicBreakdown
 }
 
 function formatNullableTime(value: string | null): string {
@@ -90,6 +93,7 @@ function notificationStatusLabel(status: AnalyticsData["prescriptionFulfilment"]
 
 export function AnalyticsDashboardClient({
   analytics,
+  geographic,
 }: AnalyticsDashboardClientProps) {
   const { funnel, googleAds, prescriptionFulfilment, revenue, queueHealth } = analytics
   const payRate = funnel.started > 0 ? Math.round((funnel.paid / funnel.started) * 100) : 0
@@ -169,6 +173,8 @@ export function AnalyticsDashboardClient({
             />
           </DashboardGrid>
         </section>
+
+        <GeographicBreakdownCard breakdown={geographic} />
 
         <section aria-labelledby="google-ads-heading" className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -369,17 +375,18 @@ export function AnalyticsDashboardClient({
                     {(stage.slaBreachedCount > 0 || stage.emailFailedCount > 0 || stage.emailPendingCount > 0) ? (
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {stage.slaBreachedCount > 0 ? (
-                          <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-medium text-destructive">
+                          <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-700 dark:bg-red-500/10 dark:text-red-300">
                             {stage.slaBreachedCount} stale
                           </span>
                         ) : null}
                         {stage.emailFailedCount > 0 ? (
-                          <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-medium text-destructive">
+                          <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-700 dark:bg-red-500/10 dark:text-red-300">
                             {stage.emailFailedCount} email failed
                           </span>
                         ) : null}
                         {stage.emailPendingCount > 0 ? (
-                          <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300">
+                          <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+                            <span aria-hidden="true" className="h-2 w-2 shrink-0 rounded-full bg-amber-500 ring-1 ring-inset ring-black/5" />
                             {stage.emailPendingCount} email pending
                           </span>
                         ) : null}
@@ -409,24 +416,31 @@ export function AnalyticsDashboardClient({
                               <span>{item.stageAt ? formatTimeAgo(item.stageAt) : item.status || "No timestamp"}</span>
                             </div>
                             {(sourceLabel || notificationLabel) ? (
-                              <div className="mt-2 flex flex-wrap gap-1.5">
+                              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
                                 {sourceLabel ? (
-                                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                                  <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+                                    <span aria-hidden="true" className="h-2 w-2 shrink-0 rounded-full bg-blue-500 ring-1 ring-inset ring-black/5" />
                                     {sourceLabel}
                                   </span>
                                 ) : null}
                                 {notificationLabel ? (
-                                  <span
-                                    className={
-                                      item.notificationStatus === "failed"
-                                        ? "rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-medium text-destructive"
-                                        : item.notificationStatus === "pending"
-                                          ? "rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300"
-                                          : "rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300"
-                                    }
-                                  >
-                                    {notificationLabel}
-                                  </span>
+                                  item.notificationStatus === "failed" ? (
+                                    <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-700 dark:bg-red-500/10 dark:text-red-300">
+                                      {notificationLabel}
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+                                      <span
+                                        aria-hidden="true"
+                                        className={
+                                          item.notificationStatus === "pending"
+                                            ? "h-2 w-2 shrink-0 rounded-full bg-amber-500 ring-1 ring-inset ring-black/5"
+                                            : "h-2 w-2 shrink-0 rounded-full bg-emerald-500 ring-1 ring-inset ring-black/5"
+                                        }
+                                      />
+                                      {notificationLabel}
+                                    </span>
+                                  )
                                 ) : null}
                               </div>
                             ) : null}

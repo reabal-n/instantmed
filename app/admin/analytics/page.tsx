@@ -1,7 +1,6 @@
-import { Suspense } from "react"
-
 import { EMPTY_GOOGLE_ADS_HEALTH, getGoogleAdsHealth } from "@/lib/analytics/google-ads-health"
 import { requireRole } from "@/lib/auth/helpers"
+import { getGeographicBreakdown } from "@/lib/data/analytics-geographic"
 import { getIntakeMonitoringStats } from "@/lib/data/intakes"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import {
@@ -76,6 +75,9 @@ export default async function AnalyticsDashboardPage() {
 
     // [8] Prescription fulfilment handoff state
     getPrescriptionFulfilmentDashboard(supabase),
+
+    // [9] Patients by state (30d window, top 5 + unknown)
+    getGeographicBreakdown(),
   ])
 
   // Extract results with safe fallbacks
@@ -94,6 +96,9 @@ export default async function AnalyticsDashboardPage() {
   const prescriptionFulfilment = results[8].status === "fulfilled"
     ? results[8].value
     : EMPTY_PRESCRIPTION_FULFILMENT_DASHBOARD
+  const geographic = results[9].status === "fulfilled"
+    ? results[9].value
+    : { windowDays: 30, totalPatients: 0, topStates: [], unknownCount: 0 }
 
   // Calculate revenue totals
   const monthRevenue = (revenueResult.data || []).reduce(
@@ -127,10 +132,9 @@ export default async function AnalyticsDashboardPage() {
   }
 
   return (
-    <Suspense fallback={null}>
-      <AnalyticsDashboardClient
-        analytics={analytics}
-      />
-    </Suspense>
+    <AnalyticsDashboardClient
+      analytics={analytics}
+      geographic={geographic}
+    />
   )
 }
