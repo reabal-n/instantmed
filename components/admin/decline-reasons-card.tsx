@@ -7,14 +7,14 @@ interface DeclineReasonsCardProps {
 }
 
 /**
- * Decline reasons — top-5 reason codes for declined requests in the last
+ * Decline reasons. Top-5 reason codes for declined requests in the last
  * `windowDays`. Surfaces service-line health at a glance: a spike in
  * "controlled substance" or "insufficient info" tells you something is off
  * in intake screening before it becomes a refund problem.
  *
  * Self-hides (returns `null`) when there are zero declines in the window.
  * All decline rows share an amber dot because every decline is an attention
- * signal — distinguishing the relative count is the operator's job here.
+ * signal; distinguishing the relative count is the operator's job here.
  */
 export function DeclineReasonsCard({ breakdown, className }: DeclineReasonsCardProps) {
   if (breakdown.totalDeclines === 0) return null

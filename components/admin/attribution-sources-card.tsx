@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
  * Calm-chrome dot colors per attribution group. Mirrors the AttributionChip
  * taxonomy (amber for paid, emerald for organic, violet for AI referral,
  * blue for relational, slate for unattributed) without ever applying a
- * colored backdrop — the dashboard tile is glance-able, not loud.
+ * colored backdrop. The dashboard tile is glance-able, not loud.
  */
 const DOT_COLOR: Record<AttributionSourceGroup, string> = {
   google_ads: "bg-amber-500",
@@ -26,7 +26,7 @@ interface AttributionSourcesCardProps {
 }
 
 /**
- * Where patients came from — top-5 attribution sources for the last
+ * Where patients came from. Top-5 attribution sources for the last
  * `windowDays`, ranked by paid-intake count.
  *
  * Self-hides (returns `null`) when there are zero paid intakes in the
