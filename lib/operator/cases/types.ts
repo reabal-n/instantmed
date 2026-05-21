@@ -31,6 +31,12 @@ export type CaseRowData = {
   isPriority?: boolean
   isStale?: boolean
   refundIndicator?: RefundIndicator | null
+  /**
+   * True when the intake is a prescription request for a medicine the patient
+   * already has on file (status active or completed). Informational chip only;
+   * does not change clinical flow.
+   */
+  isRenewal: boolean
 }
 
 export type Density = "compact" | "comfortable" | "spacious"

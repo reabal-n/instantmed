@@ -139,6 +139,7 @@ function mapToCaseRow(intake: LedgerRow): CaseRowData {
     isPriority: Boolean((intake as { is_priority?: boolean }).is_priority),
     isStale: isStale(intake),
     refundIndicator: getRefundIndicator(intake),
+    isRenewal: Boolean((intake as { is_renewal?: boolean }).is_renewal),
   }
 }
 

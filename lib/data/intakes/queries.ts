@@ -10,6 +10,7 @@ import { buildPatientHandoffSummary } from "@/lib/doctor/patient-handoff"
 import { buildPatientSnapshot, getPatientSnapshotOptionsForCase } from "@/lib/doctor/patient-snapshot"
 import { buildDoctorQueueServiceFilter, type QueueCapabilityService } from "@/lib/doctor/queue-capability-scope"
 import { QUEUE_REVIEW_STATUSES } from "@/lib/doctor/queue-utils"
+import { detectRenewalsForIntakes, type IntakeRenewalProbe } from "@/lib/doctor/renewal-detection"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
 import { readAnswers, readDoctorNotes, readPatientNoteContent } from "@/lib/security/phi-field-wrappers"
@@ -30,6 +31,28 @@ import {
 import type { DashboardIntake, DashboardPrescription } from "./types"
 
 const logger = createLogger("data-intakes")
+
+/**
+ * Extract the patient's stated medication name from a decrypted intake_answers
+ * row. The intake form persists the field as `medicationName`; some legacy and
+ * server-shaped paths also use `medication_name` / `medicationDisplay`. Return
+ * the first non-empty string match, or null.
+ */
+function pickAnswersMedicationName(
+  answers: Record<string, unknown> | null | undefined,
+): string | null {
+  if (!answers || typeof answers !== "object") return null
+  const candidates = [
+    answers["medicationName"],
+    answers["medication_name"],
+    answers["medicationDisplay"],
+    answers["medication_display"],
+  ]
+  for (const value of candidates) {
+    if (typeof value === "string" && value.trim().length > 0) return value
+  }
+  return null
+}
 
 type QueueDoctorScopeProfile = Pick<
   Profile,
@@ -327,9 +350,30 @@ export async function getDoctorQueue(
     }
   }))
   const validData = unwrapped.filter((r) => r.patient !== null)
+
+  // Renewal badge: one batched lookup per page against `prescriptions`.
+  const renewalProbes: IntakeRenewalProbe[] = validData.map((row) => {
+    const firstAnswers = Array.isArray(row.answers) && row.answers[0]
+      ? (row.answers[0].answers as Record<string, unknown> | null)
+      : null
+    const service = row.service as { type?: string } | null | undefined
+    return {
+      intakeId: row.id,
+      patientId: row.patient_id,
+      category: row.category,
+      serviceType: service?.type ?? null,
+      medicationName: pickAnswersMedicationName(firstAnswers),
+    }
+  })
+  const renewalMap = await detectRenewalsForIntakes(renewalProbes)
+  const withRenewal = validData.map((row) => ({
+    ...row,
+    is_renewal: renewalMap.get(row.id) ?? false,
+  }))
+
   return {
-    data: validData as unknown as IntakeWithPatient[],
-    total: countFallback ? validData.length : countResult.count,
+    data: withRenewal as unknown as IntakeWithPatient[],
+    total: countFallback ? withRenewal.length : countResult.count,
     page,
     pageSize,
     degraded: countFallback || scope.degraded,
@@ -694,6 +738,9 @@ export async function getAllIntakesForAdmin(
       : decryptedPatient
 
     return {
+      // Carry medicationName + service.type only long enough to feed the
+      // renewal probe below; the ledger payload itself returns answers: null.
+      __medicationName: pickAnswersMedicationName(answers),
       ...row,
       answers: null,
       patient: patientForClient,
@@ -702,8 +749,32 @@ export async function getAllIntakesForAdmin(
     }
   }))
   const validData = unwrapped.filter((r) => r.patient !== null)
+
+  // Renewal badge: one batched lookup per page against `prescriptions`.
+  const renewalProbes: IntakeRenewalProbe[] = validData.map((row) => {
+    const service = row.service as { type?: string } | null | undefined
+    return {
+      intakeId: row.id,
+      patientId: row.patient_id,
+      category: row.category,
+      serviceType: service?.type ?? null,
+      medicationName: (row as { __medicationName?: string | null }).__medicationName ?? null,
+    }
+  })
+  const renewalMap = await detectRenewalsForIntakes(renewalProbes)
+  const withRenewal = validData.map((row) => {
+    const { __medicationName: _scratch, ...rest } = row as typeof row & {
+      __medicationName?: string | null
+    }
+    void _scratch
+    return {
+      ...rest,
+      is_renewal: renewalMap.get(row.id) ?? false,
+    }
+  })
+
   return {
-    data: validData as unknown as IntakeWithPatient[],
+    data: withRenewal as unknown as IntakeWithPatient[],
     total: count ?? 0,
     page,
     pageSize,

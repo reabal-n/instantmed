@@ -9,6 +9,7 @@ import {
   Eye,
   Loader2,
   MessageSquare,
+  RotateCw,
   ShieldAlert,
   Sparkles,
   Zap,
@@ -468,6 +469,15 @@ export function QueueTable({
                   {!compactShell && isReturning && (
                     <Badge variant="outline" className="text-xs text-muted-foreground border-border/50">
                       Returning
+                    </Badge>
+                  )}
+                  {Boolean((intake as IntakeWithPatient & { is_renewal?: boolean }).is_renewal) && (
+                    <Badge
+                      className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20"
+                      title="Renewal: patient already has this prescription on file"
+                      aria-label="Renewal: patient already has this prescription on file"
+                    >
+                      <RotateCw className="h-3 w-3 mr-1" />Renewal
                     </Badge>
                   )}
                   {/* Soft-claim presence (Phase 7). Two-doctor model: surface

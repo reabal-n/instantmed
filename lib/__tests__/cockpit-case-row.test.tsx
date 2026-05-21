@@ -19,6 +19,7 @@ const baseRow: CaseRowData = {
   status: "approved",
   createdAt: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
   href: "/admin/intakes/intake-1",
+  isRenewal: false,
 }
 
 describe("CaseRow", () => {
@@ -63,6 +64,19 @@ describe("CaseRow", () => {
       <CaseRow row={{ ...baseRow, isStale: true }} density="comfortable" />,
     )
     expect(html).toContain("Stale")
+  })
+
+  it("renders the Renewal chip when isRenewal is true", () => {
+    const html = render(
+      <CaseRow row={{ ...baseRow, isRenewal: true }} density="comfortable" />,
+    )
+    expect(html).toContain("Renewal")
+    expect(html).toContain("Renewal: patient already has this prescription on file")
+  })
+
+  it("hides the Renewal chip when isRenewal is false", () => {
+    const html = render(<CaseRow row={baseRow} density="comfortable" />)
+    expect(html).not.toContain("Renewal")
   })
 
   it("applies compact row height", () => {

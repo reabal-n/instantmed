@@ -21,6 +21,7 @@ const rows: CaseRowData[] = [
     status: "approved",
     createdAt: new Date(NOW.getTime() - 30 * 60 * 1000).toISOString(),
     href: "/admin/intakes/a",
+    isRenewal: false,
   },
   {
     id: "b",
@@ -31,6 +32,7 @@ const rows: CaseRowData[] = [
     status: "declined",
     createdAt: new Date(NOW.getTime() - 26 * 60 * 60 * 1000).toISOString(),
     href: "/admin/intakes/b",
+    isRenewal: false,
   },
   {
     id: "c",
@@ -41,6 +43,7 @@ const rows: CaseRowData[] = [
     status: "pending_info",
     createdAt: new Date(NOW.getTime() - 4 * 24 * 60 * 60 * 1000).toISOString(),
     href: "/admin/intakes/c",
+    isRenewal: false,
   },
 ]
 
