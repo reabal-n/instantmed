@@ -187,14 +187,21 @@ export function CaseRow({
           </span>
         ) : null}
         {row.isRenewal ? (
-          <span
-            className="inline-flex h-5 items-center gap-1 rounded-full bg-emerald-50 px-1.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"
-            aria-label="Renewal: patient already has this prescription on file"
-            title="Renewal: patient already has this prescription on file"
-          >
-            <RotateCw className="h-3 w-3" aria-hidden="true" />
-            Renewal
-          </span>
+          (() => {
+            const renewalTitle =
+              row.renewalMatchTitle ??
+              "Renewal: patient already has this prescription on file"
+            return (
+              <span
+                className="inline-flex h-5 items-center gap-1 rounded-full bg-emerald-50 px-1.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"
+                aria-label={renewalTitle}
+                title={renewalTitle}
+              >
+                <RotateCw className="h-3 w-3" aria-hidden="true" />
+                Renewal
+              </span>
+            )
+          })()
         ) : null}
         {row.isStale ? (
           <span

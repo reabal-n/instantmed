@@ -3,6 +3,14 @@ import "server-only"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
+import type { RenewalMatch } from "./renewal-format"
+
+export {
+  formatRenewalMatchTitle,
+  RENEWAL_FALLBACK_TITLE,
+  type RenewalMatch,
+} from "./renewal-format"
+
 const logger = createLogger("renewal-detection")
 
 const PRESCRIPTION_CATEGORIES: ReadonlySet<string> = new Set([
@@ -34,7 +42,7 @@ export interface IntakeRenewalProbe {
 /**
  * Resolve which intakes are renewals (patient already has a row in
  * `prescriptions` with a matching medication_name). Returns a map keyed by
- * intakeId; missing entries default to false at the caller.
+ * intakeId; missing entries default to "not a renewal" at the caller.
  *
  * Bulk-aware: one query for the whole batch, not one per intake. Fail-soft on
  * Supabase error so the queue/ledger never blanks because renewal detection
@@ -42,8 +50,8 @@ export interface IntakeRenewalProbe {
  */
 export async function detectRenewalsForIntakes(
   probes: IntakeRenewalProbe[],
-): Promise<Map<string, boolean>> {
-  const result = new Map<string, boolean>()
+): Promise<Map<string, RenewalMatch>> {
+  const result = new Map<string, RenewalMatch>()
   if (probes.length === 0) return result
 
   // Filter to prescription-shaped intakes with a real medicationName + patientId.
@@ -68,7 +76,7 @@ export async function detectRenewalsForIntakes(
   const supabase = createServiceRoleClient()
   const { data, error } = await supabase
     .from("prescriptions")
-    .select("patient_id, medication_name")
+    .select("patient_id, medication_name, medication_strength")
     .in("patient_id", patientIds)
     .in("status", RENEWAL_PRIOR_STATUSES as unknown as string[])
 
@@ -84,19 +92,27 @@ export async function detectRenewalsForIntakes(
   }
 
   // Index by `${patient_id}::${normalized medication_name}` for O(1) lookup.
-  const known = new Set<string>()
+  // FIRST hit wins so retries don't churn the tooltip text on each render.
+  const known = new Map<string, RenewalMatch>()
   for (const row of data) {
     const pid = (row.patient_id as string | null) ?? ""
-    const med = ((row.medication_name as string | null) ?? "")
-      .trim()
-      .toLowerCase()
-    if (pid && med) known.add(`${pid}::${med}`)
+    const rawName = (row.medication_name as string | null) ?? ""
+    const med = rawName.trim().toLowerCase()
+    if (!pid || !med) continue
+    const key = `${pid}::${med}`
+    if (known.has(key)) continue
+    const strength = (row.medication_strength as string | null) ?? null
+    known.set(key, {
+      medicationName: rawName.trim(),
+      strength: strength && strength.trim().length > 0 ? strength.trim() : null,
+    })
   }
 
   for (const probe of candidates) {
     const med = (probe.medicationName ?? "").trim().toLowerCase()
     const key = `${probe.patientId}::${med}`
-    if (known.has(key)) result.set(probe.intakeId, true)
+    const match = known.get(key)
+    if (match) result.set(probe.intakeId, match)
   }
   return result
 }

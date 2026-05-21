@@ -366,10 +366,14 @@ export async function getDoctorQueue(
     }
   })
   const renewalMap = await detectRenewalsForIntakes(renewalProbes)
-  const withRenewal = validData.map((row) => ({
-    ...row,
-    is_renewal: renewalMap.get(row.id) ?? false,
-  }))
+  const withRenewal = validData.map((row) => {
+    const match = renewalMap.get(row.id) ?? null
+    return {
+      ...row,
+      is_renewal: match !== null,
+      renewal_match: match,
+    }
+  })
 
   return {
     data: withRenewal as unknown as IntakeWithPatient[],
@@ -767,9 +771,11 @@ export async function getAllIntakesForAdmin(
       __medicationName?: string | null
     }
     void _scratch
+    const match = renewalMap.get(row.id) ?? null
     return {
       ...rest,
-      is_renewal: renewalMap.get(row.id) ?? false,
+      is_renewal: match !== null,
+      renewal_match: match,
     }
   })
 

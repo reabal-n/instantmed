@@ -37,6 +37,13 @@ export type CaseRowData = {
    * does not change clinical flow.
    */
   isRenewal: boolean
+  /**
+   * Pre-rendered tooltip string for the renewal chip, e.g.
+   * "Renewal of: Atorvastatin 40mg". Built upstream so the queue row and the
+   * operator case row stay in lockstep. Falls back to a generic message when
+   * the matched medicine isn't known.
+   */
+  renewalMatchTitle?: string | null
 }
 
 export type Density = "compact" | "comfortable" | "spacious"

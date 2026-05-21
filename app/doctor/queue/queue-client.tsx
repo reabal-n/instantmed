@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
+import { QueueShortcutHint } from "@/components/doctor/queue-shortcut-hint"
 import { OperatorSplitPane } from "@/components/operator"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
@@ -24,6 +25,7 @@ import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
 import { formatServiceType } from "@/lib/format/intake"
 import { useDebounce } from "@/lib/hooks/use-debounce"
 import { useIsDesktop } from "@/lib/hooks/use-media-query"
+import { formatRelativeTime } from "@/lib/operator/cases/time-grouping"
 import { cn } from "@/lib/utils"
 import type { IntakeStatus, IntakeWithPatient } from "@/types/db"
 
@@ -39,6 +41,12 @@ interface QueueEmptyState {
   tone: "success" | "warning" | "neutral"
   actionHref?: string
   actionLabel?: string
+  /**
+   * Optional one-line stat summary rendered inside the calm "All caught up."
+   * card when the queue is genuinely empty (success tone, no filters narrowing
+   * the view). Composed in `buildQueueEmptyState` from `recentlyCompleted`.
+   */
+  summary?: string | null
 }
 
 interface LazyIntakeReviewPanelProps {
@@ -85,18 +93,65 @@ const IntakeReviewPanel = dynamic<LazyIntakeReviewPanelProps>(
   { loading: () => <IntakeReviewPanelLoading /> },
 )
 
+/**
+ * Compose the calm "All caught up." stat line from data already on hand.
+ * Returns null when there's nothing meaningful to show (no reviews yet today
+ * and no recent completions) so the caller can fall back to a single-line
+ * "Today: 0 reviewed" message.
+ */
+function buildCaughtUpSummary({
+  recentlyCompleted,
+  liveMedianMinutes,
+  now,
+}: {
+  recentlyCompleted: IntakeWithPatient[]
+  liveMedianMinutes: number | null
+  now: Date
+}): string {
+  // Reviewed today = today's reviewed_at OR completed_at, AEST-naive (uses
+  // local TZ which on Vercel/Node is UTC; "today" here is whatever bucket the
+  // server thinks it is. We're displaying the count, not gating clinical work.
+  const todayKey = now.toISOString().slice(0, 10)
+  const reviewedToday = recentlyCompleted.filter((r) => {
+    const stamp = r.reviewed_at ?? r.completed_at ?? null
+    return typeof stamp === "string" && stamp.slice(0, 10) === todayKey
+  }).length
+
+  const lastCleared = recentlyCompleted
+    .map((r) => r.reviewed_at ?? r.completed_at ?? null)
+    .filter((s): s is string => typeof s === "string" && s.length > 0)
+    .sort()
+    .pop() ?? null
+
+  const parts: string[] = [`Today: ${reviewedToday} reviewed`]
+  if (typeof liveMedianMinutes === "number" && liveMedianMinutes > 0) {
+    parts.push(`avg ${liveMedianMinutes}m`)
+  }
+  if (lastCleared) {
+    const relative = formatRelativeTime(lastCleared, now)
+    if (relative) parts.push(`last cleared ${relative}`)
+  }
+  return parts.join(" · ")
+}
+
 function buildQueueEmptyState({
   doctorAvailable,
   totalCount,
   statusFilter,
   searchQuery,
   baseHref,
+  recentlyCompleted,
+  liveMedianMinutes,
+  now,
 }: {
   doctorAvailable: boolean
   totalCount: number
   statusFilter: QueueStatusFilter
   searchQuery: string
   baseHref: string
+  recentlyCompleted: IntakeWithPatient[]
+  liveMedianMinutes: number | null
+  now: Date
 }): QueueEmptyState {
   if (!doctorAvailable && totalCount === 0) {
     return {
@@ -122,6 +177,7 @@ function buildQueueEmptyState({
     title: "No review cases right now",
     description: "Paid clinical work, pending replies, and scripts will appear here automatically.",
     tone: "success",
+    summary: buildCaughtUpSummary({ recentlyCompleted, liveMedianMinutes, now }),
   }
 }
 
@@ -620,13 +676,47 @@ export function QueueClient({
     filteredIntakesRef.current = filteredIntakes
   }, [filteredIntakes])
 
+  // Live median wait. Moved above the empty state computation so the
+  // "All caught up." summary line can reference it. Brand spec
+  // (docs/BRAND.md §6.1) says median(paid_at → reviewed_at), rolling
+  // 4-hour window from the `recentlyCompleted` prop. Returns null when
+  // there's no recent data.
+  const liveMedianMinutes = useMemo(() => {
+    const fourHoursAgo = Date.now() - 4 * 60 * 60 * 1000
+    const samples: number[] = []
+    for (const intake of recentlyCompleted) {
+      const reviewedAt = intake.reviewed_at ? new Date(intake.reviewed_at).getTime() : null
+      const paidAt = intake.paid_at ? new Date(intake.paid_at).getTime() : null
+      if (!reviewedAt || !paidAt || reviewedAt < paidAt) continue
+      if (reviewedAt < fourHoursAgo) continue
+      samples.push((reviewedAt - paidAt) / 60000)
+    }
+    if (samples.length === 0) return null
+    samples.sort((a, b) => a - b)
+    const mid = Math.floor(samples.length / 2)
+    return samples.length % 2 === 0
+      ? Math.round((samples[mid - 1] + samples[mid]) / 2)
+      : Math.round(samples[mid])
+  }, [recentlyCompleted])
+
   const queueEmptyState = useMemo(() => buildQueueEmptyState({
     doctorAvailable,
     totalCount: intakes.length,
     statusFilter,
     searchQuery: debouncedSearch,
     baseHref,
-  }), [baseHref, debouncedSearch, doctorAvailable, intakes.length, statusFilter])
+    recentlyCompleted,
+    liveMedianMinutes,
+    now: new Date(),
+  }), [
+    baseHref,
+    debouncedSearch,
+    doctorAvailable,
+    intakes.length,
+    statusFilter,
+    recentlyCompleted,
+    liveMedianMinutes,
+  ])
 
   const handleReviewNext = useCallback(() => {
     const next = filteredIntakesRef.current[0]
@@ -725,28 +815,6 @@ export function QueueClient({
       (r) => r.status === "approved" || r.status === "completed",
     ).length
     return Math.round((approved / recentlyCompleted.length) * 100)
-  }, [recentlyCompleted])
-
-  // Live median wait from real queue data. Brand spec (docs/BRAND.md §6.1)
-  // says median(paid_at → reviewed_at). Rolling 4-hour window per spec,
-  // computed client-side from the `recentlyCompleted` prop the server
-  // already sends. Returns null when there's no recent data.
-  const liveMedianMinutes = useMemo(() => {
-    const fourHoursAgo = Date.now() - 4 * 60 * 60 * 1000
-    const samples: number[] = []
-    for (const intake of recentlyCompleted) {
-      const reviewedAt = intake.reviewed_at ? new Date(intake.reviewed_at).getTime() : null
-      const paidAt = intake.paid_at ? new Date(intake.paid_at).getTime() : null
-      if (!reviewedAt || !paidAt || reviewedAt < paidAt) continue
-      if (reviewedAt < fourHoursAgo) continue
-      samples.push((reviewedAt - paidAt) / 60000)
-    }
-    if (samples.length === 0) return null
-    samples.sort((a, b) => a - b)
-    const mid = Math.floor(samples.length / 2)
-    return samples.length % 2 === 0
-      ? Math.round((samples[mid - 1] + samples[mid]) / 2)
-      : Math.round(samples[mid])
   }, [recentlyCompleted])
 
   return (
@@ -889,6 +957,8 @@ export function QueueClient({
           liveMedianMinutes={liveMedianMinutes}
         />
       </div>
+
+      <QueueShortcutHint />
 
       {compactShell && isDesktop ? (
         <OperatorSplitPane

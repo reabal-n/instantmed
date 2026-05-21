@@ -190,10 +190,14 @@ export default async function StaffDashboardPage({
             <StaffReadinessPanel snapshot={staffReadiness} />
           ) : null}
 
+          {/* Acquisition / decline tiles hidden below md: on a phone the
+              operator wants to triage, not browse 30-day stats. Setup +
+              readiness panels above stay visible at all sizes because
+              they are actionable. */}
           {isAdmin &&
           ((attributionBreakdown && attributionBreakdown.totalIntakes > 0) ||
             (declineBreakdown && declineBreakdown.totalDeclines > 0)) ? (
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="hidden gap-3 md:grid md:grid-cols-2">
               {attributionBreakdown ? (
                 <AttributionSourcesCard breakdown={attributionBreakdown} />
               ) : null}

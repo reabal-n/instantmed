@@ -11,6 +11,7 @@ vi.mock("@/lib/supabase/service-role", () => ({
 interface PrescriptionRow {
   patient_id: string
   medication_name: string
+  medication_strength?: string | null
 }
 
 interface QueryResult {
@@ -26,6 +27,35 @@ function createSupabaseMock(result: QueryResult) {
   const from = vi.fn(() => ({ select }))
   return { from, select, firstIn, secondIn }
 }
+
+describe("formatRenewalMatchTitle", () => {
+  it("renders name + strength when strength is present", async () => {
+    const { formatRenewalMatchTitle } = await import(
+      "@/lib/doctor/renewal-format"
+    )
+    expect(
+      formatRenewalMatchTitle({ medicationName: "Atorvastatin", strength: "40mg" }),
+    ).toBe("Renewal of: Atorvastatin 40mg")
+  })
+
+  it("renders just the name when strength is null", async () => {
+    const { formatRenewalMatchTitle } = await import(
+      "@/lib/doctor/renewal-format"
+    )
+    expect(
+      formatRenewalMatchTitle({ medicationName: "Atorvastatin", strength: null }),
+    ).toBe("Renewal of: Atorvastatin")
+  })
+
+  it("collapses whitespace-only strength to name-only", async () => {
+    const { formatRenewalMatchTitle } = await import(
+      "@/lib/doctor/renewal-format"
+    )
+    expect(
+      formatRenewalMatchTitle({ medicationName: "Metformin", strength: "   " }),
+    ).toBe("Renewal of: Metformin")
+  })
+})
 
 describe("detectRenewalsForIntakes", () => {
   beforeEach(() => {
@@ -75,10 +105,14 @@ describe("detectRenewalsForIntakes", () => {
     expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
   })
 
-  it("returns true when a prior active prescription matches by name", async () => {
+  it("returns the matched medicine name + strength when a prior active prescription matches", async () => {
     const supabase = createSupabaseMock({
       data: [
-        { patient_id: "patient-1", medication_name: "Atorvastatin 20mg" },
+        {
+          patient_id: "patient-1",
+          medication_name: "Atorvastatin",
+          medication_strength: "40mg",
+        },
       ],
       error: null,
     })
@@ -93,16 +127,51 @@ describe("detectRenewalsForIntakes", () => {
         patientId: "patient-1",
         category: "prescription",
         serviceType: "repeat_rx",
-        medicationName: "Atorvastatin 20mg",
+        medicationName: "Atorvastatin",
       },
     ])
 
-    expect(result.get("intake-rx-1")).toBe(true)
+    expect(result.get("intake-rx-1")).toEqual({
+      medicationName: "Atorvastatin",
+      strength: "40mg",
+    })
     expect(supabase.firstIn).toHaveBeenCalledWith("patient_id", ["patient-1"])
     expect(supabase.secondIn).toHaveBeenCalledWith(
       "status",
       ["active", "completed"],
     )
+  })
+
+  it("returns null strength when the prior prescription has no strength recorded", async () => {
+    const supabase = createSupabaseMock({
+      data: [
+        {
+          patient_id: "patient-1",
+          medication_name: "Sertraline",
+          medication_strength: null,
+        },
+      ],
+      error: null,
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+
+    const { detectRenewalsForIntakes } = await import(
+      "@/lib/doctor/renewal-detection"
+    )
+    const result = await detectRenewalsForIntakes([
+      {
+        intakeId: "intake-rx-1",
+        patientId: "patient-1",
+        category: "prescription",
+        serviceType: "repeat_rx",
+        medicationName: "Sertraline",
+      },
+    ])
+
+    expect(result.get("intake-rx-1")).toEqual({
+      medicationName: "Sertraline",
+      strength: null,
+    })
   })
 
   it("returns no entry when there is no matching prior prescription", async () => {
@@ -130,7 +199,7 @@ describe("detectRenewalsForIntakes", () => {
     expect(result.get("intake-rx-1")).toBeUndefined()
   })
 
-  it("matches case-insensitively on the trimmed medication name", async () => {
+  it("matches case-insensitively on the trimmed medication name and preserves the prior's casing", async () => {
     const supabase = createSupabaseMock({
       data: [
         { patient_id: "patient-1", medication_name: "atorvastatin" },
@@ -152,7 +221,7 @@ describe("detectRenewalsForIntakes", () => {
       },
     ])
 
-    expect(result.get("intake-rx-1")).toBe(true)
+    expect(result.get("intake-rx-1")?.medicationName).toBe("atorvastatin")
   })
 
   it("only counts active and completed prior statuses (cancelled/expired excluded by query)", async () => {
@@ -209,8 +278,8 @@ describe("detectRenewalsForIntakes", () => {
   it("batches into a single query for multiple intakes across patients", async () => {
     const supabase = createSupabaseMock({
       data: [
-        { patient_id: "patient-1", medication_name: "Atorvastatin" },
-        { patient_id: "patient-2", medication_name: "Metformin" },
+        { patient_id: "patient-1", medication_name: "Atorvastatin", medication_strength: "40mg" },
+        { patient_id: "patient-2", medication_name: "Metformin", medication_strength: "500mg" },
       ],
       error: null,
     })
@@ -244,8 +313,8 @@ describe("detectRenewalsForIntakes", () => {
     ])
 
     expect(supabase.from).toHaveBeenCalledTimes(1)
-    expect(result.get("intake-rx-1")).toBe(true)
-    expect(result.get("intake-rx-2")).toBe(true)
+    expect(result.get("intake-rx-1")?.medicationName).toBe("Atorvastatin")
+    expect(result.get("intake-rx-2")?.medicationName).toBe("Metformin")
     expect(result.get("intake-rx-3")).toBeUndefined()
   })
 })

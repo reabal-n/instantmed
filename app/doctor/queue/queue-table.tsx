@@ -49,6 +49,11 @@ import { buildPatientHandoffSummary } from "@/lib/doctor/patient-handoff"
 import { buildPatientSnapshot, getPatientSnapshotOptionsForCase } from "@/lib/doctor/patient-snapshot"
 import { LAST_OPENED_DOCTOR_CASE_KEY } from "@/lib/doctor/queue-focus"
 import { getQueueEnteredAt, getQueueStatusMeta } from "@/lib/doctor/queue-utils"
+import {
+  formatRenewalMatchTitle,
+  RENEWAL_FALLBACK_TITLE,
+  type RenewalMatch,
+} from "@/lib/doctor/renewal-format"
 import { prefetchReviewData } from "@/lib/doctor/review-data-cache"
 import { SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { formatServiceType } from "@/lib/format/intake"
@@ -167,6 +172,12 @@ export interface QueueTableProps {
     tone: "success" | "warning" | "neutral"
     actionHref?: string
     actionLabel?: string
+    /**
+     * When present AND tone is "success" (genuinely caught up, no filters
+     * narrowing the view), renders a calm "All caught up" card with this
+     * summary line instead of the default decorative empty state.
+     */
+    summary?: string | null
   }
   compactShell?: boolean
   /**
@@ -265,40 +276,63 @@ export function QueueTable({
     }
   }
 
+  // Calm "All caught up." card replaces the decorative empty state when the
+  // queue is genuinely empty (no filters / search narrowing the view) and
+  // upstream supplied a summary line built from `recentlyCompleted`.
+  const showCaughtUpSummary =
+    filteredIntakes.length === 0 &&
+    emptyState.tone === "success" &&
+    typeof emptyState.summary === "string" &&
+    emptyState.summary.length > 0
+
   return (
     <>
       {/* Queue List — flat rows, single click opens review panel */}
       {filteredIntakes.length === 0 ? (
-        <div
-          className={cn(
-            "flex flex-col items-center justify-center px-6 text-center rounded-xl border border-dashed border-border/60 bg-muted/20",
-            compactShell ? "min-h-0 flex-1 py-8" : "py-16",
-          )}
-        >
+        showCaughtUpSummary ? (
           <div
             className={cn(
-              "mb-3 flex h-11 w-11 items-center justify-center rounded-xl border",
-              emptyState.tone === "warning"
-                ? "border-warning-border bg-warning-light"
-                : "border-success-border bg-success-light",
+              "rounded-xl border border-border/50 bg-card p-6 text-center shadow-sm shadow-primary/[0.04]",
+              compactShell && "min-h-0 flex-1",
             )}
           >
-            {emptyState.tone === "warning" ? (
-              <AlertTriangle className="h-5 w-5 text-warning" aria-hidden="true" />
-            ) : (
-              <CheckCircle className="h-5 w-5 text-success" aria-hidden="true" />
+            <p className="text-sm font-medium text-foreground">All caught up.</p>
+            <p className="mt-1.5 text-xs tabular-nums text-muted-foreground">
+              {emptyState.summary}
+            </p>
+          </div>
+        ) : (
+          <div
+            className={cn(
+              "flex flex-col items-center justify-center px-6 text-center rounded-xl border border-dashed border-border/60 bg-muted/20",
+              compactShell ? "min-h-0 flex-1 py-8" : "py-16",
+            )}
+          >
+            <div
+              className={cn(
+                "mb-3 flex h-11 w-11 items-center justify-center rounded-xl border",
+                emptyState.tone === "warning"
+                  ? "border-warning-border bg-warning-light"
+                  : "border-success-border bg-success-light",
+              )}
+            >
+              {emptyState.tone === "warning" ? (
+                <AlertTriangle className="h-5 w-5 text-warning" aria-hidden="true" />
+              ) : (
+                <CheckCircle className="h-5 w-5 text-success" aria-hidden="true" />
+              )}
+            </div>
+            <h3 className="text-base font-semibold text-foreground mb-1">{emptyState.title}</h3>
+            <p className="text-sm text-muted-foreground max-w-xs">
+              {emptyState.description}
+            </p>
+            {emptyState.actionHref && (
+              <Button asChild variant="outline" size="sm" className="mt-4">
+                <Link href={emptyState.actionHref}>{emptyState.actionLabel ?? "Open"}</Link>
+              </Button>
             )}
           </div>
-          <h3 className="text-base font-semibold text-foreground mb-1">{emptyState.title}</h3>
-          <p className="text-sm text-muted-foreground max-w-xs">
-            {emptyState.description}
-          </p>
-          {emptyState.actionHref && (
-            <Button asChild variant="outline" size="sm" className="mt-4">
-              <Link href={emptyState.actionHref}>{emptyState.actionLabel ?? "Open"}</Link>
-            </Button>
-          )}
-        </div>
+        )
       ) : (
         <div
           className={cn(
@@ -471,15 +505,23 @@ export function QueueTable({
                       Returning
                     </Badge>
                   )}
-                  {Boolean((intake as IntakeWithPatient & { is_renewal?: boolean }).is_renewal) && (
-                    <Badge
-                      className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20"
-                      title="Renewal: patient already has this prescription on file"
-                      aria-label="Renewal: patient already has this prescription on file"
-                    >
-                      <RotateCw className="h-3 w-3 mr-1" />Renewal
-                    </Badge>
-                  )}
+                  {Boolean((intake as IntakeWithPatient & { is_renewal?: boolean }).is_renewal) && (() => {
+                    const renewalMatch = (intake as IntakeWithPatient & {
+                      renewal_match?: RenewalMatch | null
+                    }).renewal_match ?? null
+                    const renewalTitle = renewalMatch
+                      ? formatRenewalMatchTitle(renewalMatch)
+                      : RENEWAL_FALLBACK_TITLE
+                    return (
+                      <Badge
+                        className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20"
+                        title={renewalTitle}
+                        aria-label={renewalTitle}
+                      >
+                        <RotateCw className="h-3 w-3 mr-1" />Renewal
+                      </Badge>
+                    )
+                  })()}
                   {/* Soft-claim presence (Phase 7). Two-doctor model: surface
                       who's reviewing a paid case before another doctor opens
                       the same one and races on Approve. The DB-level claim

@@ -21,6 +21,10 @@ import {
 import { buildAdminIntakeHref, STAFF_LEDGER_HREF } from "@/lib/dashboard/routes"
 import { type IntakeStatus } from "@/lib/data/status"
 import {
+  formatRenewalMatchTitle,
+  type RenewalMatch,
+} from "@/lib/doctor/renewal-format"
+import {
   type CaseRowData,
   DEFAULT_SORT,
   type RefundIndicator,
@@ -125,6 +129,8 @@ function mapToCaseRow(intake: LedgerRow): CaseRowData {
   const location = [patient?.suburb, patient?.state]
     .filter(Boolean)
     .join(", ")
+  const renewalMatch =
+    (intake as { renewal_match?: RenewalMatch | null }).renewal_match ?? null
   return {
     id: intake.id,
     intakeRef: intake.reference_number || `IM-${intake.id.slice(0, 8)}`,
@@ -140,6 +146,7 @@ function mapToCaseRow(intake: LedgerRow): CaseRowData {
     isStale: isStale(intake),
     refundIndicator: getRefundIndicator(intake),
     isRenewal: Boolean((intake as { is_renewal?: boolean }).is_renewal),
+    renewalMatchTitle: renewalMatch ? formatRenewalMatchTitle(renewalMatch) : null,
   }
 }
 
