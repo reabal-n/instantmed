@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 
 import { QueueClient } from "@/app/doctor/queue/queue-client"
 import { AttributionSourcesCard } from "@/components/admin/attribution-sources-card"
+import { DeclineReasonsCard } from "@/components/admin/decline-reasons-card"
 import { OwnerOperatorSetupCard } from "@/components/admin/owner-operator-setup-card"
 import { StaffReadinessPanel } from "@/components/admin/staff-readiness-panel"
 import { DoctorAvailabilityToggle } from "@/components/doctor/doctor-availability-toggle"
@@ -31,6 +32,10 @@ import {
   type AttributionSourceBreakdown,
   getAttributionSourceBreakdown,
 } from "@/lib/data/dashboard-attribution"
+import {
+  type DeclineReasonBreakdown,
+  getDeclineReasonBreakdown,
+} from "@/lib/data/dashboard-decline-trends"
 import {
   type DoctorIdentity,
   getDoctorIdentity,
@@ -113,6 +118,9 @@ export default async function StaffDashboardPage({
     isAdmin
       ? getAttributionSourceBreakdown()
       : Promise.resolve<AttributionSourceBreakdown | null>(null),
+    isAdmin
+      ? getDeclineReasonBreakdown()
+      : Promise.resolve<DeclineReasonBreakdown | null>(null),
   ])
 
   const queueResult = results[0].status === "fulfilled"
@@ -127,6 +135,8 @@ export default async function StaffDashboardPage({
   const staffReadiness = results[7].status === "fulfilled" ? results[7].value : null
   const attributionBreakdown: AttributionSourceBreakdown | null =
     results[8].status === "fulfilled" ? results[8].value : null
+  const declineBreakdown: DeclineReasonBreakdown | null =
+    results[9].status === "fulfilled" ? results[9].value : null
 
   const parchmentUserId = typeof profile.parchment_user_id === "string" && profile.parchment_user_id.trim()
     ? profile.parchment_user_id.trim()
@@ -144,6 +154,7 @@ export default async function StaffDashboardPage({
         "system-health",
         "staff-readiness",
         "attribution-breakdown",
+        "decline-breakdown",
       ]
       log.error(`Failed to fetch staff dashboard ${names[index]}`, { profileId: profile.id }, result.reason)
     }
@@ -179,9 +190,16 @@ export default async function StaffDashboardPage({
             <StaffReadinessPanel snapshot={staffReadiness} />
           ) : null}
 
-          {isAdmin && attributionBreakdown ? (
+          {isAdmin &&
+          ((attributionBreakdown && attributionBreakdown.totalIntakes > 0) ||
+            (declineBreakdown && declineBreakdown.totalDeclines > 0)) ? (
             <div className="grid gap-3 md:grid-cols-2">
-              <AttributionSourcesCard breakdown={attributionBreakdown} />
+              {attributionBreakdown ? (
+                <AttributionSourcesCard breakdown={attributionBreakdown} />
+              ) : null}
+              {declineBreakdown ? (
+                <DeclineReasonsCard breakdown={declineBreakdown} />
+              ) : null}
             </div>
           ) : null}
 
