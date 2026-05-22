@@ -25,16 +25,28 @@ import {
   FileText,
   type LucideIcon,
   Mail,
+  MoreHorizontal,
   Pill,
+  RotateCcw,
   StickyNote,
   Webhook,
   XCircle,
 } from "lucide-react"
 import Link from "next/link"
-import { memo, useMemo, useState } from "react"
+import { memo, useCallback, useMemo, useState, useTransition } from "react"
+import { toast } from "sonner"
 
+import { IntakeRefundDialog } from "@/app/doctor/intakes/[id]/intake-refund-dialog"
+import { issueRefundAction } from "@/app/doctor/queue/actions"
 import { Badge, type BadgeProps } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { buildAdminIntakeHref, buildDoctorIntakeHref } from "@/lib/dashboard/routes"
 import { formatDateTime } from "@/lib/format"
 import { formatIntakeStatus } from "@/lib/format/intake"
@@ -51,6 +63,11 @@ export interface PatientTimelineRequest {
   reference_number?: string | null
   category?: string | null
   service_label?: string | null
+  payment_status?: string | null
+  /** Paid amount in cents. Needed to drive the per-row refund dialog. */
+  amount_cents?: number | null
+  /** Already-refunded amount in cents. 0 if none. */
+  refund_amount_cents?: number | null
   service?: {
     name?: string | null
     short_name?: string | null
@@ -380,6 +397,103 @@ export function PatientTimeline({
 }
 
 // ---------------------------------------------------------------------------
+// Internal: Request row — has its own refund dialog state
+// ---------------------------------------------------------------------------
+
+function RequestTimelineRow({ request, admin }: { request: PatientTimelineRequest; admin: boolean }) {
+  const baseClass = "flex min-w-0 items-start gap-3 px-4 py-3"
+  const Icon = ICONS["request"]
+  const status = INTAKE_STATUS_TONE[request.status] ?? "outline"
+
+  const isRefundEligible =
+    (request.payment_status === "paid" || request.payment_status === "partially_refunded") &&
+    (request.amount_cents ?? 0) > 0
+
+  const [showRefundDialog, setShowRefundDialog] = useState(false)
+  const [isPending, startTransition] = useTransition()
+
+  const handleConfirmRefund = useCallback(() => {
+    startTransition(async () => {
+      const result = await issueRefundAction(request.id)
+      if (result.success) {
+        setShowRefundDialog(false)
+        const amountText = result.amount ? ` ($${(result.amount / 100).toFixed(2)})` : ""
+        toast.success(`Refund processed${amountText}`)
+      } else {
+        toast.error(result.error ?? "Failed to process refund")
+      }
+    })
+  }, [request.id])
+
+  return (
+    <li className="group relative">
+      <Link
+        href={requestHref(request, admin)}
+        className={cn(baseClass, "block transition-colors hover:bg-muted/30 pr-10")}
+      >
+        <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" aria-hidden />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-foreground">
+            {requestLabel(request)}
+          </p>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">
+            {request.reference_number || request.id.slice(0, 8)} · {formatDateTime(request.created_at)}
+          </p>
+        </div>
+        <Badge variant={status} size="sm" className="shrink-0">
+          {formatIntakeStatus(request.status)}
+        </Badge>
+      </Link>
+
+      {/* Kebab: hover-revealed, sits above the link */}
+      <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              aria-label="Row actions"
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuItem asChild>
+              <Link href={requestHref(request, admin)}>Open intake</Link>
+            </DropdownMenuItem>
+            {isRefundEligible && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onSelect={() => setShowRefundDialog(true)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <RotateCcw className="mr-2 h-3.5 w-3.5" aria-hidden />
+                  Issue refund
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {isRefundEligible && (
+        <IntakeRefundDialog
+          open={showRefundDialog}
+          onOpenChange={setShowRefundDialog}
+          onConfirmRefund={handleConfirmRefund}
+          isPending={isPending}
+          paidAmountCents={request.amount_cents ?? 0}
+          alreadyRefundedCents={request.refund_amount_cents ?? 0}
+          patientName="the patient"
+        />
+      )}
+    </li>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Internal: row renderer per kind
 // ---------------------------------------------------------------------------
 
@@ -392,29 +506,7 @@ const TimelineRow = memo(function TimelineRow({ item, admin }: { item: TimelineI
 
   switch (item.kind) {
     case "request": {
-      const request = item.data
-      const status = INTAKE_STATUS_TONE[request.status] ?? "outline"
-      return (
-        <li>
-          <Link
-            href={requestHref(request, admin)}
-            className={cn(baseClass, "group transition-colors hover:bg-muted/30")}
-          >
-            <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" aria-hidden />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-foreground">
-                {requestLabel(request)}
-              </p>
-              <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                {request.reference_number || request.id.slice(0, 8)} · {formatDateTime(request.created_at)}
-              </p>
-            </div>
-            <Badge variant={status} size="sm" className="shrink-0">
-              {formatIntakeStatus(request.status)}
-            </Badge>
-          </Link>
-        </li>
-      )
+      return <RequestTimelineRow request={item.data} admin={admin} />
     }
 
     case "prescription": {

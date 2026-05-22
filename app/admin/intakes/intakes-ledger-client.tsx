@@ -1,8 +1,12 @@
 "use client"
 
+import { RotateCcw } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
+import { toast } from "sonner"
 
+import { IntakeRefundDialog } from "@/app/doctor/intakes/[id]/intake-refund-dialog"
+import { issueRefundAction } from "@/app/doctor/queue/actions"
 import { IntakeReviewPanel } from "@/components/doctor"
 import {
   CaseTable,
@@ -148,6 +152,9 @@ function mapToCaseRow(intake: LedgerRow): CaseRowData {
     refundIndicator: getRefundIndicator(intake),
     isRenewal: Boolean((intake as { is_renewal?: boolean }).is_renewal),
     renewalMatchTitle: renewalMatch ? formatRenewalMatchTitle(renewalMatch) : null,
+    paymentStatus: (intake as { payment_status?: string | null }).payment_status ?? null,
+    amountCents: (intake as { amount_cents?: number | null }).amount_cents ?? null,
+    refundAmountCents: (intake as { refund_amount_cents?: number | null }).refund_amount_cents ?? null,
   }
 }
 
@@ -240,6 +247,23 @@ export function AdminIntakesLedgerClient({
 
   const [intakes, setIntakes] = useState(allIntakes)
   const [selectedRowId, setSelectedRowId] = useState<string | null>(null)
+  const [refundTarget, setRefundTarget] = useState<CaseRowData | null>(null)
+  const [isRefundPending, startRefundTransition] = useTransition()
+
+  const handleRefund = useCallback(() => {
+    if (!refundTarget) return
+    startRefundTransition(async () => {
+      const result = await issueRefundAction(refundTarget.id)
+      if (result.success) {
+        setRefundTarget(null)
+        const amountText = result.amount ? ` ($${(result.amount / 100).toFixed(2)})` : ""
+        toast.success(`Refund processed${amountText}`)
+        router.refresh()
+      } else {
+        toast.error(result.error ?? "Failed to process refund")
+      }
+    })
+  }, [refundTarget, router])
   const [searchQuery, setSearchQuery] = useState(initialFilters?.q ?? "")
   const [statusFilter] = useState<AdminIntakeStatusFilterValue>(
     initialFilters?.status ?? "all",
@@ -538,6 +562,26 @@ export function AdminIntakesLedgerClient({
         groupByTime={sortIsDefault}
         onRowPrimary={openCaseSlideover}
         selectedRowId={selectedRowId}
+        rowActions={(row) => {
+          const isEligible =
+            row.paymentStatus === "paid" || row.paymentStatus === "partially_refunded"
+          if (!isEligible) return null
+          return (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              title="Issue refund"
+              aria-label={`Issue refund for ${row.patientName}`}
+              onClick={(e) => {
+                e.stopPropagation()
+                setRefundTarget(row)
+              }}
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+            </Button>
+          )
+        }}
         emptyState={{
           title: "No matches",
           body:
@@ -545,6 +589,16 @@ export function AdminIntakesLedgerClient({
               ? "Try clearing filters or the search box."
               : "No requests in the last 30 days.",
         }}
+      />
+
+      <IntakeRefundDialog
+        open={refundTarget !== null}
+        onOpenChange={(open) => { if (!open) setRefundTarget(null) }}
+        onConfirmRefund={handleRefund}
+        isPending={isRefundPending}
+        paidAmountCents={refundTarget?.amountCents ?? 0}
+        alreadyRefundedCents={refundTarget?.refundAmountCents ?? 0}
+        patientName={refundTarget?.patientName ?? "the patient"}
       />
     </div>
   )

@@ -52,6 +52,7 @@ export type PatientTouchAttribution = AttributionClassificationInput & {
 
 interface IntakeWithService {
   id: string
+  reference_number: string | null
   status: string
   category: string | null
   subtype: string | null
@@ -60,6 +61,8 @@ interface IntakeWithService {
   reviewed_at: string | null
   reviewed_by: string | null
   payment_status: string | null
+  amount_cents: number | null
+  refund_amount_cents: number | null
   service: { name: string; short_name: string; type: string } | null
 }
 

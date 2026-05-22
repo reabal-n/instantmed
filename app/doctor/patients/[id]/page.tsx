@@ -452,6 +452,7 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
       .from("intakes")
       .select(`
         id,
+        reference_number,
         status,
         category,
         subtype,
@@ -460,6 +461,8 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
         reviewed_at,
         reviewed_by,
         payment_status,
+        amount_cents,
+        refund_amount_cents,
         script_sent,
         script_sent_at,
         parchment_reference,

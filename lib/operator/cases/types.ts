@@ -44,6 +44,15 @@ export type CaseRowData = {
    * the matched medicine isn't known.
    */
   renewalMatchTitle?: string | null
+  /**
+   * Raw payment_status value. Used to gate the per-row refund action button.
+   * Only "paid" and "partially_refunded" are eligible for operator refunds.
+   */
+  paymentStatus?: string | null
+  /** Original paid amount in cents. Drives the refund dialog amount preview. */
+  amountCents?: number | null
+  /** Already-refunded amount in cents. 0 if none. */
+  refundAmountCents?: number | null
 }
 
 export type Density = "compact" | "comfortable" | "spacious"
