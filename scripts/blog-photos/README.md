@@ -1,1 +1,0 @@
-# Drop category photos here
