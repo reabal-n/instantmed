@@ -42,6 +42,7 @@ ACTUAL=$(find . -name "*.md" \
   -not -path "./.vercel/*" \
   -not -path "./.lighthouseci/*" \
   -not -path "./.playwright-cli/*" \
+  -not -path "./.agents/*" \
   | wc -l | tr -d ' ')
 EXPECTED=$(cat docs/bookkeeping/expected-md-count | tr -d ' \n')
 if [ "$ACTUAL" -ne "$EXPECTED" ]; then
