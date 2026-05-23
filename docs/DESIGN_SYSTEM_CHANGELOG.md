@@ -178,4 +178,4 @@ Completed same day as 1.0.0 pin. All phases shipped on `main`.
 - `regulator-logo-marquee.tsx`: `hover:scale-110` bounce on logo hover.
 - `DESIGN.md §7`: removed stale `violet` row, added `amber`/`sky`, added service-icon exception block for `blue` token.
 
-See `docs/plans/2026-04-20-design-system-95-sprint.md` for full audit rubric and success criteria.
+See `docs/plans/archive/2026-04-20-design-system-95-sprint.md` for full audit rubric and success criteria.
