@@ -3,7 +3,7 @@
 > Voice is the product's accent. Get it right once, reuse it everywhere, police it in CI.
 
 **Source of truth:** `lib/marketing/voice.ts`
-**Enforced by:** `tests/voice-guard.test.ts` (banned phrases + em-dash scan across `components/marketing/**` and `lib/marketing/**`)
+**Enforced by:** `lib/__tests__/voice-guard.test.ts` (banned phrases + em-dash scan across `components/marketing/**` and `lib/marketing/**`)
 
 ---
 
