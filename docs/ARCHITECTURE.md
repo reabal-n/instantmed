@@ -503,7 +503,46 @@ export async function getPatientCountFromDB(): Promise<number> { ... }
 
 ### UIX Component Library
 
+> **Status:** Compatibility layer in retreat. Do not add new APIs here. Prefer canonical components from `@/components/ui` and domain-specific primitives first. This subsection absorbed the previous `components/uix/README.md` on 2026-05-23 doc cleanup so the doc surface stays in one place.
+
 Custom abstraction layer at `components/uix/`. Import everything from `@/components/uix`.
+
+**Full export list:**
+
+```tsx
+import {
+  Accordion,
+  AccordionItem,
+  Badge,
+  Button,
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  CompactStepper,
+  DatePickerField,
+  Input,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  PageBreadcrumbs,
+  Pagination,
+  ScrollShadow,
+  Skeleton,
+  Snippet,
+  Spinner,
+  Stepper,
+  Tooltip,
+  UserCard,
+  useDisclosure,
+} from "@/components/uix"
+```
+
+**Bespoke uix primitives** (the actual abstraction layer, not re-exports):
 
 | Component | Purpose | Key Props |
 |-----------|---------|-----------|
@@ -513,8 +552,30 @@ Custom abstraction layer at `components/uix/`. Import everything from `@/compone
 | `Snippet` | Copyable code/text display | `symbol`, `size`, children |
 | `Pagination` | Shared pagination control | `page`, `totalPages`, `onPageChange` |
 | `ScrollShadow` | Scroll container with edge affordance | children |
+| `CompactStepper` / `Stepper` | Stepper variants | step-state props |
+| `Modal` (+ `ModalBody`, `ModalFooter`, `ModalHeader`) | Modal primitives | `useDisclosure` hook for open state |
 
-Also re-exports selected shadcn/Radix primitives: `Button`, `Card`, `Input`, `Badge`, `Skeleton`, `Spinner`, `Tooltip`, `Modal`, `Accordion`, and `Stepper`.
+Also re-exports selected shadcn/Radix primitives: `Button`, `Card` (+ sub-parts), `Input`, `Badge`, `Skeleton`, `Spinner`, `Tooltip`, `Accordion` (+ `AccordionItem`).
+
+**Usage examples:**
+
+```tsx
+import { PageBreadcrumbs, Snippet, UserCard } from "@/components/uix"
+
+<PageBreadcrumbs
+  showHome
+  links={[
+    { label: "Admin", href: "/admin" },
+    { label: "Settings" },
+  ]}
+/>
+
+<UserCard name="Clinician" description="General Practitioner" />
+
+<Snippet symbol="" size="sm">
+  MC-REFERENCE
+</Snippet>
+```
 
 **Component decision tree:** See CLAUDE.md for quick-reference selection guide (shadcn vs UIX vs solid-depth components).
 
