@@ -15,6 +15,7 @@
     "check:staff-roles": "tsx scripts/check-staff-role-readiness.ts",
     "fix:staff-roles": "tsx scripts/fix-staff-admin-roles.ts",
     "check:sentry": "tsx scripts/check-sentry-access.ts",
+    "doc:audit": "bash scripts/doc-audit.sh",
     "start": "next start",
     "lint": "eslint --max-warnings 0",
     "typecheck": "NODE_OPTIONS='--max-old-space-size=8192' tsc --noEmit",
