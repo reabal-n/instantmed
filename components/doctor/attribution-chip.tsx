@@ -32,15 +32,17 @@ export interface AttributionChipProps {
 }
 
 // Semantic dot colours per acquisition group. Aligns with the StatusDot
-// palette: blue for system primary, emerald for healthy organic, violet for
-// AI referrals, amber for paid (worth noticing), slate for inert/unknown.
-// Brand coral is reserved and intentionally NOT used here.
+// palette: blue for system primary, emerald for healthy organic, sky for
+// AI referrals (purple/violet banned per DESIGN.md §1; sky maps to the
+// brand morning palette and reads as the tech/cloud category), amber for
+// paid (worth noticing), slate for inert/unknown. Brand coral is reserved
+// and intentionally NOT used here.
 const GROUP_DOT: Record<AttributionSourceGroup, string> = {
   google_ads: "bg-amber-500",
   other_paid: "bg-amber-500",
   organic_brand: "bg-emerald-500",
   organic_nonbrand: "bg-emerald-500",
-  ai_referral: "bg-violet-500",
+  ai_referral: "bg-sky-500",
   recovery_email: "bg-blue-500",
   referral: "bg-blue-500",
   direct: "bg-slate-400",
