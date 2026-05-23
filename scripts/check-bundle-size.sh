@@ -25,7 +25,7 @@ MAX_REQUEST_FIRST_LOAD_KB=180
 ROUTE_BUDGETS=(
   "/request|25|180|The intake shell is carrying code that should be lazy-loaded"
   "/patient|13|190|The patient dashboard is inheriting portal runtime it should not load"
-  "/dashboard|30|405|The staff cockpit is carrying too much client runtime. Current ceiling reflects AttributionSourcesCard + DeclineReasonsCard + CounterCard + RecoveryRow + geographic tile + calm-chrome pass shipped 2026-05-11 to 2026-05-23. Investigate dynamic-import opportunities (e.g. queue panels behind a click) before the next bump."
+  "/dashboard|30|420|The staff cockpit is carrying too much client runtime. Current ceiling reflects AttributionSourcesCard + DeclineReasonsCard + CounterCard + RecoveryRow + geographic tile + calm-chrome pass shipped 2026-05-11 to 2026-05-23 (route JS 24 to 30 kB, first-load 405 to 420 kB). Investigate dynamic-import opportunities (e.g. queue panels behind a click) before the next bump."
   "/admin/intakes|18|455|The request ledger should not inherit heavy doctor-review code"
   "/medical-certificate|10|330|The primary paid med-cert landing page should stay server-first with narrow client islands"
   "/consult|6|330|The consult funnel should keep static sections server-rendered and hydrate only interactive section islands"
