@@ -2,21 +2,24 @@ import { describe, expect, it } from "vitest"
 
 import { computeLedgerDailyAggregate } from "@/lib/operator/cases/daily-aggregate"
 
-// Anchor "now" inside the same locale day so the helper's TODAY bucket
-// matches the test's intent regardless of the host CI timezone offset.
-const NOW = new Date("2026-05-21T14:00:00")
+// Anchor NOW in AEST (+10:00) so the helper's TODAY bucket — which uses
+// startOfDayAEST() under the hood per lib/operator/cases/time-grouping.ts —
+// resolves to the same wall-clock day on AEST macOS and UTC CI runners.
+// The cockpit-time-utils.test.ts uses the same +10:00 anchoring pattern.
+const NOW = new Date("2026-05-21T14:00:00+10:00")
+const AEST_OFFSET_MS = 10 * 60 * 60 * 1000
 
+// Construct AEST timestamps by computing the UTC instant for the given
+// AEST wall-clock hour on NOW's AEST day. Using setHours() here would
+// be system-local and would diverge between AEST and UTC runners.
 function todayAt(hours: number, minutes = 0): string {
-  const d = new Date(NOW)
-  d.setHours(hours, minutes, 0, 0)
-  return d.toISOString()
+  const aestMidnight = Math.floor((NOW.getTime() + AEST_OFFSET_MS) / 86_400_000) * 86_400_000 - AEST_OFFSET_MS
+  return new Date(aestMidnight + hours * 60 * 60 * 1000 + minutes * 60 * 1000).toISOString()
 }
 
 function yesterdayAt(hours: number): string {
-  const d = new Date(NOW)
-  d.setDate(d.getDate() - 1)
-  d.setHours(hours, 0, 0, 0)
-  return d.toISOString()
+  const aestMidnight = Math.floor((NOW.getTime() + AEST_OFFSET_MS) / 86_400_000) * 86_400_000 - AEST_OFFSET_MS
+  return new Date(aestMidnight + hours * 60 * 60 * 1000 - 86_400_000).toISOString()
 }
 
 describe("computeLedgerDailyAggregate", () => {
