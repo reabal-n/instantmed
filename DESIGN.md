@@ -1,6 +1,6 @@
 # DESIGN.md — InstantMed
 
-> **Version: 1.0.0** · Pinned 2026-04-20 · See [changelog](docs/DESIGN_SYSTEM_CHANGELOG.md) · Pin constant: `lib/design-system/version.ts`
+> **Version: 2.0.2** · Pinned 2026-05-01 · See [changelog](docs/DESIGN_SYSTEM_CHANGELOG.md) · Pin constant: `lib/design-system/version.ts`
 
 > **Load every session.** Single source of truth for all visual, layout, and interaction decisions. The design system is law.
 
@@ -324,7 +324,7 @@ All service icons use the `ServiceIconTile` component (`components/icons/service
 | Token | Gradient | Use |
 |-------|----------|-----|
 | `emerald` | `#10B981 → #059669` | Medical Certificates |
-| `cyan` / `sky` | `#0EA5E9 → #0284C7` | Repeat Medication / General Consult |
+| `cyan` / `sky` | `#0EA5E9 → #0284C7` | Repeat Medication |
 | `blue` | `#6366F1 → #4F46E5` | ED Treatment _(service-icon exception — see note)_ |
 | `amber` | `#F59E0B → #D97706` | Hair Loss |
 | `pink` | `#EC4899 → #DB2777` | Women's Health |
@@ -484,7 +484,7 @@ className="bg-white dark:bg-card border border-border
 
 ## 12. Motion & Animation
 
-**Canonical source:** `lib/motion.ts`. All timing, easing, and variant tokens live there. Import from this file, not hardcoded values.
+**Canonical source:** `lib/motion/index.ts`. All timing, easing, and variant tokens live there. Import from this file, not hardcoded values.
 
 ### Easing Curves
 
@@ -499,7 +499,7 @@ Two curves. Use the right one:
 
 No CSS custom properties for easing exist. For CSS transitions, use `ease-out` keyword or inline the cubic-bezier.
 
-**Note:** `[0.25, 0.1, 0.25, 1]` (CSS standard `ease`) appears in 15+ section/marketing components and `PageTransitionProvider`. Not exported from `lib/motion.ts` - components use it inline. Intentional.
+**Note:** `[0.25, 0.1, 0.25, 1]` (CSS standard `ease`) appears in 15+ section/marketing components and `PageTransitionProvider`. Not exported from `lib/motion/index.ts` - components use it inline. Intentional.
 
 ### Duration Tokens
 
@@ -517,7 +517,7 @@ No bounce. No elastic. No parallax on content. Patients don't need theatrics.
 
 ### Spring Presets (Tween-based)
 
-`lib/motion.ts` explicitly avoids Framer Motion spring configs. All transitions use duration + easing:
+`lib/motion/index.ts` explicitly avoids Framer Motion spring configs. All transitions use duration + easing:
 
 ```ts
 spring.snappy  // { duration: 0.15, ease: 'easeOut' } - icons, badges, small elements
@@ -531,7 +531,7 @@ spring.smooth  // { duration: 0.2, ease: 'easeOut' }  - cards, containers, panel
 
 ### Framer Motion Patterns
 
-Prefer `lib/motion.ts` variants (`fadeUp`, `stagger`) over inline values. The canonical entrance is `fadeUp` (opacity 0 to 1, y 8 to 0, `easing.strongOut`).
+Prefer `lib/motion/index.ts` variants (`fadeUp`, `stagger`) over inline values. The canonical entrance is `fadeUp` (opacity 0 to 1, y 8 to 0, `easing.strongOut`).
 
 ```tsx
 import { fadeUp, stagger, spring, easing } from '@/lib/motion'
@@ -590,7 +590,7 @@ import { sessionPanelVariants, drawerVariants, sheetVariants } from '@/lib/motio
 
 ### Scroll & Reveal
 
-- **Stagger rise** is the default scroll-entry for lists, grids, card groups. Use `stagger.container` + `stagger.item` from `lib/motion.ts`. Hard cap: 8 items per stagger group.
+- **Stagger rise** is the default scroll-entry for lists, grids, card groups. Use `stagger.container` + `stagger.item` from `lib/motion/index.ts`. Hard cap: 8 items per stagger group.
 - **Emergence** for hero/feature sections: `initial={{ opacity: 0, filter: 'blur(8px)', scale: 0.98 }}` with `will-change: filter`. Add `@supports` fallback (opacity + scale only).
 - **Product fly-in:** `translateY(40px to 0)` + opacity, 60ms stagger, IntersectionObserver at 15%.
 - **Shimmer skeleton:** Gradient sweep left to right, 30% element width, soft edges, 1.5s repeat.
@@ -677,7 +677,7 @@ All ambient and scroll-triggered animations fully disabled under reduced motion.
 - `whileHover` icon scale max `1.1x`. Element scale max `1.02x`.
 - Never rotate, never elastic, never parallax on content.
 - Panel curve (`easing.panel`) for drawers/sheets. Primary ease-out (`easing.out`) for everything else.
-- Import from `lib/motion.ts`. Exception: `[0.25, 0.1, 0.25, 1]` standard ease used inline in section components.
+- Import from `lib/motion/index.ts`. Exception: `[0.25, 0.1, 0.25, 1]` standard ease used inline in section components.
 - Stagger max 8 items per group.
 - No ambient motion in portals.
 - No glass on content cards.
