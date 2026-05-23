@@ -59,7 +59,7 @@
 |------|---------|
 | [docs/plans/2026-05-23-archived-plan-followups.md](../plans/2026-05-23-archived-plan-followups.md) | Active backlog stub: 6 open follow-ups carried out of archived plans (lib restructure deferrals + health guides remaining rewrite + /admin/ops release feed idea) |
 
-The cleanup plan ([docs/plans/2026-05-23-doc-cleanup-plan.md](../plans/2026-05-23-doc-cleanup-plan.md)) itself moves to `archive/` in Step 11 of this branch.
+The cleanup plan that produced this state lives in archive: [docs/plans/archive/2026-05-23-doc-cleanup-plan.md](../plans/archive/2026-05-23-doc-cleanup-plan.md).
 
 ## docs/plans/archive/ — completed/superseded plans (90-day retention)
 
