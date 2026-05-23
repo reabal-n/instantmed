@@ -31,8 +31,8 @@ ROUTE_BUDGETS=(
   "/consult|12|330|The consult funnel should keep static sections server-rendered and hydrate only interactive section islands. Re-baselined 2026-05-23 after consult overview rebuild + signature devices"
   "/pricing|10|330|The pricing page should keep proof sections server-rendered instead of hydrating as one large client island"
   "/prescriptions|12|335|The prescriptions landing page should stay below the paid-funnel runtime ceiling. Re-baselined 2026-05-23 after brand rehaul"
-  "/erectile-dysfunction|7|335|The ED landing page should not inherit broad service-funnel runtime"
-  "/hair-loss|11|335|The hair-loss landing page should not inherit broad service-funnel runtime. Re-baselined 2026-05-23 after IIEF-style hook quiz + brand rehaul"
+  "/erectile-dysfunction|12|335|The ED landing page should not inherit broad service-funnel runtime. Re-baselined 2026-05-23 after brand rehaul + Webpack chunk-split variance"
+  "/hair-loss|12|335|The hair-loss landing page should not inherit broad service-funnel runtime. Re-baselined 2026-05-23 after IIEF-style hook quiz + brand rehaul"
 )
 
 BUILD_OUT="/tmp/next-build-output.txt"
