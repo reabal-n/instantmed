@@ -3,7 +3,7 @@
 > Internal-only product roadmap. Refreshed monthly by the operator.
 > Source of truth for: current operating phase, last-90-days shipped, next-30-60-days priorities, long-term expansion gates.
 >
-> **Last refreshed:** 2026-05-23. Bump this stamp on every edit.
+> **Last refreshed:** 2026-05-23 evening (post-doc-cleanup-program + post-visual-QA). Bump this stamp on every edit.
 
 ---
 
@@ -22,14 +22,17 @@ Specifics:
 
 | Rank | Priority | Owner | Status |
 |------|----------|-------|--------|
-| 1 | Doc cleanup PR program (3 PRs: structural + content audit + new canon docs) | Operator + Claude | PR 48 + PR 49 + PR 50 in flight 2026-05-23 |
-| 2 | Memory hygiene pass via `/consolidate-memory` | Operator | Scheduled post-PR-3-merge |
-| 3 | Category-by-category rewrite of remaining ~93 health guide pages | Operator | Ongoing per archived plan `docs/plans/archive/2026-05-04-health-guides-rehaul.md` |
-| 4 | `/blog` vs `/guides` routing cleanup once page quality stabilises | Operator | Backlogged in `docs/plans/2026-05-23-archived-plan-followups.md` |
-| 5 | Type centralisation + ESLint import boundary enforcement (from archived lib-restructure plan) | Operator | Backlogged in `docs/plans/2026-05-23-archived-plan-followups.md` |
-| 6 | **Google Ads conversion action ID config** — finalise `GOOGLE_ADS_CONVERSION_ACTION_PURCHASE` env var to a working `UPLOAD_CLICKS` conversion action so the hourly backfill cron stops returning `INVALID_CONVERSION_ACTION_TYPE`. Per `docs/ARCHITECTURE.md` attribution section. | Operator | Pending |
-| 7 | **Parchment production prescriber link verification** — confirm every prescribing-capable doctor has a `parchment_user_id` linked + verified via daily smoke. Per `docs/SERVICE_LAUNCH_CHECKLISTS.md` shared gates. | Operator | Pending pre-launch |
-| 8 | **Paid traffic ramp on ED + hair loss services** — only after the per-service launch gates in `docs/SERVICE_LAUNCH_CHECKLISTS.md` are met; start exact/phrase match only. | Operator | Gated on §3 hires + scorecard |
+| 1 | ~~Doc cleanup PR program~~ | Operator + Claude | **DONE 2026-05-23 evening.** PRs #48 + #49 + #50 merged. Plus #51 (test fixes) + #52 (.agents exclusion) + #53 (Stripe handler parity test) follow-ups. CI on main green for the first time in 2+ days. |
+| 2 | **Google Ads conversion action ID config** — finalise `GOOGLE_ADS_CONVERSION_ACTION_PURCHASE` env var to a working `UPLOAD_CLICKS` conversion action. Per audit_log evidence: 35/35 server-side uploads failed `INVALID_CONVERSION_ACTION_TYPE` over 14d. Code is correct; conversion action `7530736987` is the wrong TYPE in Google Ads. | **Operator** | **Blocking. Single highest-leverage 10-min task.** Runbook in session log. |
+| 3 | **Branch protection on `main`** requiring `build` + `Doc surface audit` CI checks. Currently NOT set (verified via gh api). Root cause of "main CI red for 2 days unnoticed". | **Operator** | One-liner produced this session; not auto-applied (security/permissions change requires explicit consent). |
+| 4 | **Operator decision: intake `7ea9f367-...`** — patient holds a valid medical certificate AND was refunded. Either revoke the cert OR accept goodwill outcome. Add contract test that asserts post-issue refund triggers cert revoke (prevents recurrence). | **Operator** | Real exposure (employer could verify cert; platform's verify endpoint returns "valid"). |
+| 5 | Memory hygiene pass via `/consolidate-memory` | Operator | Memory edited inline in PRs #49 + #50 + this session refresh; full consolidation pass still useful when next convenient. |
+| 6 | Category-by-category rewrite of remaining ~93 health guide pages | Operator | Ongoing per archived plan `docs/plans/archive/2026-05-04-health-guides-rehaul.md`. No engineering bottleneck. |
+| 7 | **Parchment production prescriber link verification** — confirm every prescribing-capable doctor has `parchment_user_id` + verified via daily smoke. | Operator | Pending pre-launch per `docs/SERVICE_LAUNCH_CHECKLISTS.md`. |
+| 8 | **Paid traffic ramp on ED + hair loss services** — only after per-service launch gates in `docs/SERVICE_LAUNCH_CHECKLISTS.md` are met. | Operator | Gated on #2 (GAds attribution) + #3 (hire trigger per `docs/REVENUE_MODEL.md` §8). |
+| 9 | `/blog` vs `/guides` routing cleanup once page quality stabilises | Operator | Backlog: `docs/plans/2026-05-23-archived-plan-followups.md`. |
+| 10 | Type centralisation + ESLint import boundary enforcement | Operator | Backlog: same followups stub. |
+| 11 | **Demand-generation strategy session** — engineering is no longer the bottleneck. Revenue at ~$688/30d (annualized ~$8k vs $1M target = 121x gap). Decide between (a) paid acquisition ramp (gated on #2), (b) SEO compounding via guide rewrite (#6), (c) something else. | **Operator** | Not engineering. 60 min with analytics dashboards. |
 
 ## 3. Last 90 days shipped
 
@@ -37,6 +40,7 @@ Chronological. One line per material change. Pulled from `git log --since="90 da
 
 ### 2026-05 (this month)
 
+- **2026-05-23 (evening)** — 6-PR doc cleanup program shipped: #48 structural cleanup + `pnpm doc:audit` tooling + CI wire-in; #49 content audit sweep of 8 canonical docs + memory tree refresh; #50 added `docs/ROADMAP.md` (this file) + `docs/DOCTOR_ONBOARDING.md`; #51 fixed 5 pre-existing test failures (timezone bug in `groupByTime` + stale admin-nav contract assertion) — unblocked CI on main; #52 `.agents/` exclusion in doc:audit; #53 Stripe webhook handler files-vs-Map parity contract (catches zombie handler class of bug). Plus: 13 stale untracked local files cleaned, 5 worktrees + branches pruned. Production visual QA via Claude in Chrome — homepage + /medical-certificate + /erectile-dysfunction + /hair-loss all on-spec, no actionable visual bugs.
 - 2026-05-23 — Easy refund entry points in patient timeline + intake ledger.
 - 2026-05-21 — Doctor capability flag UI; renewal badge on queue + ledger; patient profile completeness meter; attribution source surfacing on intake + patient profile; identity gating for non-medcert services; Telegram notification edits to Reviewed/Declined; unread-message badge on mobile bottom-tab; certificate-email-failed banner; clearer in-review status copy; payment-failures counter deep-link; admin attribution-sources + decline-reasons cards; geographic analytics tile.
 - 2026-05-20 — `/admin/ops` reshape to two-block scannable cockpit; staff cockpit overhaul Phases 1-8 shipped + cockpit_v2 flag dropped; refund policy 100% on all decline categories; General Consult retired publicly; calm-chrome pattern codified; intake ledger rebuild; `/admin/patients` opened to doctors; patient profile compressed identity grid.
