@@ -83,6 +83,9 @@ jobs:
       - name: AGENTS.md is in sync with CLAUDE.md
         run: bash scripts/sync-agent-doc.sh --check
 
+      - name: Doc surface audit (count + plan-refs + 8 pinning contracts)
+        run: pnpm doc:audit
+
       - name: Portal design-system compliance (no legacy classes)
         run: bash scripts/check-portal-no-legacy-classes.sh
 
