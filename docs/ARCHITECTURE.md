@@ -778,7 +778,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | Directory | Purpose | Key files |
 |-----------|---------|-----------|
 | `lib/auth.ts` | Auth helpers | `getAuthenticatedUserWithProfile()`, `requireRoleOrNull()` |
-| `lib/constants.ts` | App constants | PRICING, SYSTEM_AUTO_APPROVE_ID, CONTACT_EMAIL |
+| `lib/constants/index.ts` | App constants | PRICING, SYSTEM_AUTO_APPROVE_ID, CONTACT_EMAIL |
 | `lib/env.ts` | Env validation | Zod schemas, `getAppUrl()` |
 | `lib/format.ts` | Date formatting | All AEST, `formatDateLong()`, `addDays()` |
 | `lib/utils.ts` | Utilities | `cn()` (class merger) |
@@ -813,8 +813,8 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `types/db.ts` | Supabase generated types + custom interfaces |
 | `types/certificate-template.ts` | PDF template field definitions |
 | `hooks/` | 5 custom hooks (use-connection-status, use-debounce, use-doctor-shortcuts, use-keyboard-navigation, use-landing-analytics) |
-| `e2e/` | 44 Playwright specs, `helpers/` (seed/teardown, auth bypass). Focused paid-flow and ops smoke specs are the blocking CI gate. |
-| `supabase/migrations/` | 65 SQL migration files (1 squashed baseline + 64 incremental). Most recent: `20260507032122_tighten_paid_request_telegram_window.sql` |
+| `e2e/` | 62 Playwright specs, `helpers/` (seed/teardown, auth bypass). Focused paid-flow and ops smoke specs are the blocking CI gate. |
+| `supabase/migrations/` | 73 SQL migration files (1 squashed baseline + 72 incremental). Most recent: `20260521010000_add_paid_request_telegram_message_id.sql` |
 | `public/templates/` | Static PDF templates for certificate generation |
 | `content/blog/` | 108 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. Rewritten articles must be comprehensive, source-backed, and backed by at least two GPT-generated local visuals. |
 | `public/images/blog/` | Local WebP hero and article visual assets for health guides. New generated guide visuals carry a deterministic `InstantMed` wordmark added after image generation. |
