@@ -3,7 +3,7 @@
 > Canonical revenue model for the current one-off, solo-doctor operating phase.
 > Read this before changing pricing, service mix, growth targets, subscriptions, or staffing assumptions.
 
-**Last updated:** 2026-04-28
+**Last updated:** 2026-05-23
 
 ---
 
@@ -34,7 +34,6 @@ All canonical prices live in `lib/constants/index.ts`.
 | Hair loss consult | $49.95 |
 | Women's health | $59.95 |
 | Weight loss | $89.95 |
-| General consult | $49.95 |
 | Priority fee | $9.95 |
 
 Repeat Rx subscription acquisition is dormant/future strategy. Patient-facing checkout, nudge cron, email template, env requirement, and display price were retired. Treat subscriptions as inactive unless explicitly reactivated in this document and `docs/BUSINESS_PLAN.md`.

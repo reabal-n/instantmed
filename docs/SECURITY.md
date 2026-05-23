@@ -286,6 +286,7 @@ All webhooks use signature verification (not CSRF).
 | `/doctor/*` | doctor (or admin via capability inheritance) |
 | `/admin/ops`, `/admin/webhook-dlq`, `/admin/ops/parchment`, `/admin/ops/prescribing-identity` | admin or support (support receives masked/redacted data only) |
 | `/api/admin/webhook-dlq` | admin or support (payload redacted for support) |
+| `/admin/intakes` | admin, doctor, or support (Phase 8 2026-05-20: support sees ledger metadata only, clinical answers still gated on the intake detail page) |
 | `/admin/*`, `/api/admin/*` | admin |
 | `/dashboard` | admin, doctor, or support (staff role) |
 | `/api/health` | None (health check) |
@@ -298,7 +299,7 @@ All webhooks use signature verification (not CSRF).
 |------|------------------------|----------------|
 | `admin` | admin + doctor (owner-operator) | Everything |
 | `doctor` | doctor | Clinical surfaces only (queue, cases, patient profiles, identity) |
-| `support` | support | Non-clinical ops only. Support is bounded to `/admin/ops`, `/admin/webhook-dlq`, `/admin/ops/parchment`, and `/admin/ops/prescribing-identity`; PHI-heavy links, Email delivery, settings, patient ledgers, clinical actions, and direct prescribing remain admin/doctor-only. |
+| `support` | support | Non-clinical ops. Initial scope (Phase 1, 2026-05-11): `/admin/ops`, `/admin/webhook-dlq`, `/admin/ops/parchment`, `/admin/ops/prescribing-identity`. Phase 8 (2026-05-20) opened `/admin/intakes` (intake ledger) and the intake refund action to support, capped at $100/refund and 3 per rolling 24h via `checkSupportRefundLimits` in `app/doctor/queue/actions.ts`. Support still sees only ledger metadata (no clinical answers); Email delivery, settings, full patient ledgers, clinical approvals, and direct prescribing remain admin/doctor-only. |
 | `patient` | patient | Patient portal only |
 
 **Future-doctor patient boundary (2026-05-13):** Admin remains the only broad operator. Non-admin doctors are scoped in app-layer service-role reads by `lib/doctor/patient-access.ts`; patient directory, patient detail, patient summary/health-profile APIs, and doctor analytics only include patients/cases tied to a concrete doctor relationship (`claimed_by`, `reviewing_doctor_id`, `reviewed_by`, `script_tasks.doctor_id`, `issued_certificates.doctor_id`, or `patient_notes.created_by`). Return 404 for direct patient API/profile access outside this relationship to avoid patient enumeration.

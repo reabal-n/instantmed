@@ -8,8 +8,8 @@
 
 | Layer | Framework | Location | Count |
 |-------|-----------|----------|-------|
-| Unit tests | Vitest | `**/*.test.ts` / `lib/__tests__/**/*.test.ts` | **2,308** passing (231 Vitest files, local `pnpm release:check` 2026-05-10) |
-| E2E tests | Playwright | `e2e/**/*.spec.ts` | 54 specs — blocking CI currently runs ops smoke plus focused paid critical flows |
+| Unit tests | Vitest | `**/*.test.ts` / `lib/__tests__/**/*.test.ts` | **2,694** tests across 288 test files (local `pnpm test --run` 2026-05-23). 1 known failing test in `admin-navigation-contract.test.ts` predates this audit and is tracked separately. |
+| E2E tests | Playwright | `e2e/**/*.spec.ts` | 62 specs — blocking CI currently runs ops smoke plus focused paid critical flows |
 
 **Coverage threshold:** 80% statements / 70% branches / 80% functions / 80% lines (enforced by Vitest config, scoped to `lib/clinical/` and `lib/security/`). **Note:** `lib/state-machine/` was removed from the include list 2026-04-08 because the directory no longer exists — the state-machine logic was consolidated into `lib/clinical/auto-approval-state.ts`.
 

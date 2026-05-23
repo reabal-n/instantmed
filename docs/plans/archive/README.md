@@ -35,3 +35,4 @@ Minimum 90 days. Re-evaluate quarterly. Delete only if:
 | 2026-05-20-staff-cockpit-overhaul-design.md | Shipped. See CLAUDE.md "Staff dashboard URL", "Intake ledger". |
 | 2026-05-20-staff-cockpit-overhaul-plan.md | Shipped. Implementation companion of the above design. |
 | 2026-05-23-doc-cleanup-plan.md | Shipped 2026-05-23. PR 1 of the 3-PR doc cleanup program. Structural cleanup + doc-hygiene tooling (pnpm doc:audit + CI wire-in). |
+| 2026-05-23-doc-content-audit-plan.md | Shipped 2026-05-23. PR 2 of the 3-PR doc cleanup program. Content audit sweep of 8 canonical docs + memory tree refresh (CLINICAL refund policy 100%, DESIGN version v2.0.2, General Consult retirement narratives, support role Phase 8, test/migration counts). |
