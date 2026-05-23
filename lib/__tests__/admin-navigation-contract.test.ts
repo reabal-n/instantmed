@@ -295,8 +295,18 @@ describe("admin navigation contract", () => {
     expect(adminRouteSources).toContain("buildAdminIntakeHref")
     expect(adminRouteSources).toContain("STAFF_PATIENTS_HREF")
     expect(adminRouteSources).toContain("buildStaffPatientHref")
-    expect(adminRouteSources).not.toContain("/doctor/intakes")
-    expect(adminRouteSources).not.toContain("/doctor/patients")
+    // Strip import statements before checking for /doctor/* path strings.
+    // Admin pages can legitimately import shared components from app/doctor/
+    // (e.g. IntakeRefundDialog is the canonical refund button per CLAUDE.md
+    // "Easy refund (2026-05-20)" and lives at app/doctor/intakes/[id]/).
+    // The intent of this assertion is to block admin pages from NAVIGATING
+    // users to /doctor/* routes, not from importing shared components.
+    const adminRouteSourcesNonImport = adminRouteSources
+      .split("\n")
+      .filter((line) => !/^\s*import\b/.test(line))
+      .join("\n")
+    expect(adminRouteSourcesNonImport).not.toContain("/doctor/intakes")
+    expect(adminRouteSourcesNonImport).not.toContain("/doctor/patients")
     const adminIntakeDetailSource = readFileSync(join(process.cwd(), "app/admin/intakes/[id]/page.tsx"), "utf8")
 
     expect(adminIntakeDetailSource).not.toContain("DoctorIntakeDetailPage")

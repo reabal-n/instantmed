@@ -3,6 +3,18 @@
  *
  * Pure functions. No DOM, no Intl-locale assumptions beyond en-AU dates.
  * Designed to be cheap enough to call inside useMemo on every render.
+ *
+ * Day boundaries are computed in AEST (UTC+10) regardless of the system
+ * timezone. This is an AU-specific telehealth platform; doctors + admins
+ * always operate on AEST wall-clock days. Previously this used the system
+ * `setHours(0,0,0,0)` which produced different bucketing on UTC CI runners
+ * vs local AEST macOS, breaking 4 cockpit tests deterministically.
+ *
+ * Known limitation: AEDT (Oct-Apr daylight saving, UTC+11) is not handled.
+ * During AEDT, day boundaries shift by 1 hour. A row from 11pm AEDT may
+ * bucket as the next AEST day. Acceptable for the staff cockpit use case;
+ * if precision matters, refactor to use Intl.DateTimeFormat with
+ * timeZone: "Australia/Sydney".
  */
 
 export type TimeGroupLabel = "TODAY" | "YESTERDAY" | "THIS WEEK" | "EARLIER"
@@ -19,10 +31,16 @@ const TIME_GROUP_ORDER: TimeGroupLabel[] = [
   "EARLIER",
 ]
 
-function startOfDayLocal(d: Date): Date {
-  const x = new Date(d)
-  x.setHours(0, 0, 0, 0)
-  return x
+const AEST_OFFSET_MS = 10 * 60 * 60 * 1000
+const DAY_MS = 24 * 60 * 60 * 1000
+
+function startOfDayAEST(d: Date): Date {
+  // Shift to AEST wall clock, floor to UTC day boundary in shifted frame,
+  // shift back. Net result: midnight AEST as a UTC timestamp, independent
+  // of the system timezone.
+  const shifted = d.getTime() + AEST_OFFSET_MS
+  const aestMidnightShifted = Math.floor(shifted / DAY_MS) * DAY_MS
+  return new Date(aestMidnightShifted - AEST_OFFSET_MS)
 }
 
 function toValidDate(value: unknown): Date | null {
@@ -46,9 +64,9 @@ export function groupByTime<T>(
   dateField: keyof T,
   now: Date = new Date(),
 ): TimeGroup<T>[] {
-  const today = startOfDayLocal(now)
-  const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000)
-  const weekStart = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const today = startOfDayAEST(now)
+  const yesterday = new Date(today.getTime() - DAY_MS)
+  const weekStart = new Date(today.getTime() - 7 * DAY_MS)
 
   const buckets: Record<TimeGroupLabel, T[]> = {
     TODAY: [],
