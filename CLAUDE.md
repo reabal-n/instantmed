@@ -104,7 +104,7 @@ The following versions are **hard-pinned** in `package.json` (exact versions, no
    - This Stack Pin Policy table
    - Add a Gotchas entry if the upgrade has subtle behavioral changes
 4. **Verify the full intake flow E2E** before merging — typecheck/build alone is not enough.
-5. Reference the prior context: `docs/plans/2026-04-07-stable-stack-downgrade.md` and `~/.claude/projects/-Users-rey-Desktop-instantmed/memory/decisions.md`.
+5. Reference the prior context in `~/.claude/projects/-Users-rey-Desktop-instantmed/memory/decisions.md`.
 
 If you are an AI and the user asks you to upgrade something on this list, **stop and confirm** before touching the lockfile. The user has been bitten by this and wants explicit acknowledgment.
 
