@@ -1165,3 +1165,107 @@ Using Vercel MCP, PostHog MCP, and Sentry MCP:
 - Coverage: X%
 - Dead code removed: X lines
 ```
+
+
+---
+
+## Integration Invariants + Operator Runbook Queries (added 2026-05-23 evening)
+
+Queries the operator should run weekly. Each surfaces an invariant that no automated alert currently watches. Future work: convert each to a cron + Sentry alert.
+
+### Q1 — Queue P95 by category/subtype (90d)
+
+Detects category-level breaches of the 24h max review SLA. Per `docs/REVENUE_MODEL.md` §5 the target is "median below 30 minutes, P95 below 2 hours during operating hours." 2026-05-23 evening snapshot: **med cert work P95 = 165h (7x over 24h max); max = 14 days**.
+
+```sql
+WITH first_review AS (
+  SELECT intake_id, MIN(created_at) AS first_clinician_view
+  FROM compliance_audit_log
+  WHERE event_type = 'clinician_opened_request'
+  GROUP BY intake_id
+)
+SELECT
+  i.category, i.subtype,
+  COUNT(*) AS paid_count,
+  COUNT(fr.first_clinician_view) AS reviewed_count,
+  ROUND(EXTRACT(EPOCH FROM PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY (fr.first_clinician_view - i.paid_at))) / 3600.0, 2) AS p50_hours,
+  ROUND(EXTRACT(EPOCH FROM PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY (fr.first_clinician_view - i.paid_at))) / 3600.0, 2) AS p95_hours,
+  ROUND(EXTRACT(EPOCH FROM MAX(fr.first_clinician_view - i.paid_at)) / 3600.0, 2) AS max_hours
+FROM intakes i
+LEFT JOIN first_review fr ON fr.intake_id = i.id
+WHERE i.payment_status IN ('paid', 'refunded', 'partially_refunded')
+  AND i.paid_at > NOW() - INTERVAL '90 days'
+  AND i.patient_id != '00000000-0000-0000-0000-000000000001'
+GROUP BY i.category, i.subtype
+ORDER BY p95_hours DESC NULLS LAST;
+```
+
+Action thresholds:
+- P95 > 24h on med-cert work for >1 reporting period: capacity issue or auto-decline trigger needed.
+- Max > 7 days on any category: refund + apology email; review the specific intake.
+
+### Q2 — Cert + refund orphan detection
+
+Finds intakes where the platform issued a certificate AND refunded the payment, but the cert was not revoked. Each row is a real-world case where an employer could verify the cert via `/api/verify` and get `valid` status.
+
+```sql
+SELECT
+  i.id AS intake_id,
+  i.category, i.subtype,
+  i.payment_status, i.refund_status, i.refunded_at,
+  ic.id AS certificate_id,
+  ic.status AS cert_status,
+  ic.issue_date AS cert_issue_date
+FROM intakes i
+INNER JOIN issued_certificates ic ON ic.intake_id = i.id
+WHERE i.payment_status IN ('refunded', 'partially_refunded')
+  AND ic.status = 'valid'
+  AND i.patient_id != '00000000-0000-0000-0000-000000000001'
+ORDER BY i.refunded_at DESC NULLS LAST;
+```
+
+2026-05-23 evening snapshot: **2 orphans**. Per-orphan operator decision needed (revoke vs goodwill-accept). The auto-revoke-on-refund question is clinical/legal policy, not engineering — needs an explicit decision before any contract test or code path is added.
+
+### Q3 — INVALID_TYPE pattern audit across integrations
+
+The Google Ads `INVALID_CONVERSION_ACTION_TYPE` bug (env var points at a resource ID that exists but is the wrong TYPE) is a recurring pattern. Other integrations could have the same hole:
+
+| Integration | Existence check | Type check at boot | Risk |
+|---|---|---|---|
+| **Stripe price IDs** (`STRIPE_PRICE_*`) | ✅ Zod validates env var is set | ❌ No type check — if `STRIPE_PRICE_MEDCERT` is accidentally set to a subscription price, checkout silently mis-charges | **Medium** — Stripe API rejects at session.create, but only after customer initiates |
+| **Parchment org/partner IDs** | ✅ daily smoke | ✅ smoke validates org access (indirect type check) | Low |
+| **Resend** | ✅ API key validated at boot | ❌ no `from` domain ownership check | Low — Resend rejects at send |
+| **Anthropic model name** | ✅ string declared in source | ❌ no runtime model-exists check | Low — fails on first call, Sentry catches |
+| **Google Ads conversion action ID** | ✅ if env var present | ❌ **THE BUG** — `7530736987` exists but is wrong type | **High (confirmed broken)** |
+
+Recommended next work: add `pnpm check:integrations` that:
+1. Fetches each `STRIPE_PRICE_*` from Stripe API and asserts `type: "one_time"`.
+2. Fetches the configured Google Ads conversion action and asserts `type: "UPLOAD_CLICKS"`.
+3. Confirms Resend domain ownership for the `RESEND_FROM_EMAIL` domain.
+4. Confirms the Anthropic model name in `lib/ai/provider.ts` resolves to a valid model.
+
+Wire into `pnpm release:check` so launch gates catch any of these at promotion time.
+
+### Q4 — Refund record invariant check
+
+Detects `payment_status = 'refunded'` rows that don't have a corresponding refund record. Each row is a legacy data anomaly likely from before the `refund_status` enum was added.
+
+```sql
+SELECT id, category, subtype, paid_at, refunded_at, refund_status, refund_amount_cents
+FROM intakes
+WHERE payment_status IN ('refunded', 'partially_refunded')
+  AND (refund_status IS NULL OR refund_status = 'not_applicable' OR refunded_at IS NULL)
+  AND patient_id != '00000000-0000-0000-0000-000000000001'
+ORDER BY paid_at DESC;
+```
+
+2026-05-23 evening snapshot: 1 row (intake `4fc90333-...`, study cert issued 2026-04-14, marked refunded with no refund record). Operator action: backfill `refund_status` + `refunded_at` from Stripe dashboard OR mark as `not_applicable` with explicit reason.
+
+### How these become alerts
+
+When the operator wants to formalize:
+
+1. Wrap each query in a Vercel cron route under `app/api/cron/`.
+2. Surface counts on `/admin/ops` as a fifth CounterCard ("Operational invariants" → "2 cert orphans · 1 refund anomaly · med-cert P95 165h").
+3. Sentry alert when any count is non-zero (severity warning) or P95 exceeds target (severity critical).
+4. Update `docs/SECURITY.md` Kill Switches table if the alert should pause new paid intakes.

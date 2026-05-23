@@ -3,7 +3,7 @@
 > Internal-only product roadmap. Refreshed monthly by the operator.
 > Source of truth for: current operating phase, last-90-days shipped, next-30-60-days priorities, long-term expansion gates.
 >
-> **Last refreshed:** 2026-05-23 evening (post-doc-cleanup-program + post-visual-QA). Bump this stamp on every edit.
+> **Last refreshed:** 2026-05-23 evening (post-doc-cleanup-program + post-visual-QA + post-data-session). Bump this stamp on every edit.
 
 ---
 
@@ -24,15 +24,17 @@ Specifics:
 |------|----------|-------|--------|
 | 1 | ~~Doc cleanup PR program~~ | Operator + Claude | **DONE 2026-05-23 evening.** PRs #48 + #49 + #50 merged. Plus #51 (test fixes) + #52 (.agents exclusion) + #53 (Stripe handler parity test) follow-ups. CI on main green for the first time in 2+ days. |
 | 2 | **Google Ads conversion action ID config** — finalise `GOOGLE_ADS_CONVERSION_ACTION_PURCHASE` env var to a working `UPLOAD_CLICKS` conversion action. Per audit_log evidence: 35/35 server-side uploads failed `INVALID_CONVERSION_ACTION_TYPE` over 14d. Code is correct; conversion action `7530736987` is the wrong TYPE in Google Ads. | **Operator** | **Blocking. Single highest-leverage 10-min task.** Runbook in session log. |
-| 3 | **Branch protection on `main`** requiring `build` + `Doc surface audit` CI checks. Currently NOT set (verified via gh api). Root cause of "main CI red for 2 days unnoticed". | **Operator** | One-liner produced this session; not auto-applied (security/permissions change requires explicit consent). |
-| 4 | **Operator decision: intake `7ea9f367-...`** — patient holds a valid medical certificate AND was refunded. Either revoke the cert OR accept goodwill outcome. Add contract test that asserts post-issue refund triggers cert revoke (prevents recurrence). | **Operator** | Real exposure (employer could verify cert; platform's verify endpoint returns "valid"). |
-| 5 | Memory hygiene pass via `/consolidate-memory` | Operator | Memory edited inline in PRs #49 + #50 + this session refresh; full consolidation pass still useful when next convenient. |
-| 6 | Category-by-category rewrite of remaining ~93 health guide pages | Operator | Ongoing per archived plan `docs/plans/archive/2026-05-04-health-guides-rehaul.md`. No engineering bottleneck. |
-| 7 | **Parchment production prescriber link verification** — confirm every prescribing-capable doctor has `parchment_user_id` + verified via daily smoke. | Operator | Pending pre-launch per `docs/SERVICE_LAUNCH_CHECKLISTS.md`. |
-| 8 | **Paid traffic ramp on ED + hair loss services** — only after per-service launch gates in `docs/SERVICE_LAUNCH_CHECKLISTS.md` are met. | Operator | Gated on #2 (GAds attribution) + #3 (hire trigger per `docs/REVENUE_MODEL.md` §8). |
-| 9 | `/blog` vs `/guides` routing cleanup once page quality stabilises | Operator | Backlog: `docs/plans/2026-05-23-archived-plan-followups.md`. |
-| 10 | Type centralisation + ESLint import boundary enforcement | Operator | Backlog: same followups stub. |
-| 11 | **Demand-generation strategy session** — engineering is no longer the bottleneck. Revenue at ~$688/30d (annualized ~$8k vs $1M target = 121x gap). Decide between (a) paid acquisition ramp (gated on #2), (b) SEO compounding via guide rewrite (#6), (c) something else. | **Operator** | Not engineering. 60 min with analytics dashboards. |
+| 3 | ~~Branch protection on `main`~~ | Operator + Claude | **DONE 2026-05-23 evening.** Applied via gh api with required_status_checks: build (strict), no admin enforce (operator can bypass for emergencies), no PR review (solo). Verified via gh api GET. |
+| 4 | **Med cert queue P95 = 165 hours = 7 days** (vs 24h max per OPERATIONS.md). Volume engine has the worst SLA breach. Max wait = 14 days. 56 paid intakes in 90d. Either add doctor capacity, add auto-decline+refund above 24h, batch-review triage, or document & loosen the target with explicit reasoning. | **Operator** | Real refund/support/brand-damage exposure. See OPERATIONS.md §Integration Invariants Q1. |
+| 5 | **Operator decision: 2 cert+refund orphans** — intake `7ea9f367-...` (refunded 2026-05-22) + intake `4fc90333-...` (refunded with legacy data anomaly: no `refund_status` or `refunded_at`). Both certs still `valid`; verify endpoint returns valid status to employers. Decide per-case revoke vs accept; backfill the legacy refund record. The auto-revoke-on-refund question is a clinical/legal policy call, not pure engineering. | **Operator** | Real exposure. See OPERATIONS.md §Integration Invariants Q2 + Q4. |
+| 6 | Memory hygiene pass via `/consolidate-memory` | Operator | Memory edited inline in PRs #49 + #50 + this session refresh; full consolidation pass still useful when next convenient. |
+| 7 | Category-by-category rewrite of remaining ~93 health guide pages | Operator | Ongoing per archived plan `docs/plans/archive/2026-05-04-health-guides-rehaul.md`. No engineering bottleneck. |
+| 8 | **Parchment production prescriber link verification** — confirm every prescribing-capable doctor has `parchment_user_id` + verified via daily smoke. | Operator | Pending pre-launch per `docs/SERVICE_LAUNCH_CHECKLISTS.md`. |
+| 9 | **Paid traffic ramp on ED + hair loss services** — only after per-service launch gates in `docs/SERVICE_LAUNCH_CHECKLISTS.md` are met. | Operator | Gated on #2 (GAds attribution) + #3 (hire trigger per `docs/REVENUE_MODEL.md` §8). |
+| 10 | `/blog` vs `/guides` routing cleanup once page quality stabilises | Operator | Backlog: `docs/plans/2026-05-23-archived-plan-followups.md`. |
+| 11 | Type centralisation + ESLint import boundary enforcement | Operator | Backlog: same followups stub. |
+| 12 | **INVALID_TYPE pattern hardening** — add `pnpm check:integrations` that runtime-validates each integration resource is the right TYPE (not just present): Stripe price IDs = `one_time`, Google Ads conversion action = `UPLOAD_CLICKS`, Resend domain ownership, Anthropic model. Wire into `pnpm release:check`. Same bug class as the Google Ads issue. See OPERATIONS.md §Integration Invariants Q3. | Operator → Claude | ~1 hr PR. Prevents the next GAds-class outage. |
+| 13 | **Demand-generation strategy session** — engineering is no longer the bottleneck. Revenue at ~$688/30d (annualized ~$8k vs $1M target = 121x gap). Decide between (a) paid acquisition ramp (gated on #2), (b) SEO compounding via guide rewrite (#7), (c) something else. | **Operator** | Not engineering. 60 min with analytics dashboards. |
 
 ## 3. Last 90 days shipped
 
