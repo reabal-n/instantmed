@@ -16,7 +16,7 @@
 | [PRODUCT.md](../../PRODUCT.md) | Operator | `project-docs-drift-contract` |
 | [DESIGN.md](../../DESIGN.md) | Operator | `project-docs-drift-contract`; `marketing-copy-contract` |
 
-## docs/ — 17 canonical satellites
+## docs/ — 19 canonical satellites
 
 | File | Purpose | Pinned by |
 |------|---------|-----------|
@@ -37,6 +37,8 @@
 | [docs/PRODUCTION_RELEASE_CHECKLIST.md](../PRODUCTION_RELEASE_CHECKLIST.md) | Pre-promotion gates (quality + dashboard + clinical + payments + ops) | `release-check-contract` |
 | [docs/SERVICE_LAUNCH_CHECKLISTS.md](../SERVICE_LAUNCH_CHECKLISTS.md) | Repeat-script / ED / hair-loss production launch gates | `service-launch-checklists-contract` |
 | [docs/DESIGN_SYSTEM_CHANGELOG.md](../DESIGN_SYSTEM_CHANGELOG.md) | Versioned design-system changelog | `release-check-contract` |
+| [docs/ROADMAP.md](../ROADMAP.md) | Internal product roadmap: operating phase, last-90-days shipped, active priorities, expansion gates | `project-docs-drift-contract` (phase label + Last refreshed stamp + backlog provenance link) |
+| [docs/DOCTOR_ONBOARDING.md](../DOCTOR_ONBOARDING.md) | Technical onboarding for new clinicians: capability flags, AHPRA, Parchment linking, identity gates, service-line verification | `project-docs-drift-contract` (7 capability flag keys + AHPRA regex + Parchment env-var floor) |
 
 ## docs/runbooks/ — 1
 

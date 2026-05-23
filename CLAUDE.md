@@ -40,6 +40,8 @@
 | `docs/OPERATIONS.md` | Incident response, key rotation, debugging, cron jobs, monitoring, env vars | Ops tasks, debugging, deployments |
 | `docs/TESTING.md` | Unit test conventions, E2E patterns, auth bypass, coverage rules, CI pipeline | Writing tests, debugging test failures |
 | `docs/PRIMITIVES.md` | Marketing primitives registry: social proof, trust badges, stats, pricing, FAQ data, wait times | Adding/changing marketing page content, stats, badges, or FAQ |
+| `docs/ROADMAP.md` | Internal product roadmap: operating phase, last-90-days shipped, active priorities, expansion gates | Monthly refresh, strategic prioritisation, before suggesting new feature work |
+| `docs/DOCTOR_ONBOARDING.md` | Technical onboarding for new clinicians: capability flags, AHPRA, Parchment linking, identity gates, service-line verification | Onboarding a new doctor, capability change, Parchment integration debugging |
 
 ---
 

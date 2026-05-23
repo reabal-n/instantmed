@@ -118,4 +118,26 @@ describe("project docs drift contract", () => {
     expect(architecture).toContain(`| \`app/api/\` | API routes (${apiRoutes.length} route files) |`)
     expect(architecture).toContain("Filesystem route-count drift is guarded by")
   })
+
+  it("keeps ROADMAP.md pinned to current operating phase + last refreshed stamp + backlog provenance", () => {
+    const roadmap = readProjectFile("docs/ROADMAP.md")
+    expect(roadmap).toContain("Live. Hardening operator surfaces and scaling toward $1M one-off revenue")
+    expect(roadmap).toContain("Last refreshed:")
+    expect(roadmap).toContain("docs/plans/2026-05-23-archived-plan-followups.md")
+  })
+
+  it("keeps DOCTOR_ONBOARDING.md pinned to the 7 capability flags + AHPRA format + Parchment env floor", () => {
+    const onboarding = readProjectFile("docs/DOCTOR_ONBOARDING.md")
+    expect(onboarding).toContain("review_med_certs")
+    expect(onboarding).toContain("review_repeat_rx")
+    expect(onboarding).toContain("review_consults")
+    expect(onboarding).toContain("review_ed")
+    expect(onboarding).toContain("review_hair_loss")
+    expect(onboarding).toContain("prescribe_s4")
+    expect(onboarding).toContain("prescribe_s8")
+    expect(onboarding).toContain("/^[A-Z]{3}\\d{10}$/")
+    expect(onboarding).toContain("PARCHMENT_API_URL")
+    expect(onboarding).toContain("PARCHMENT_ORGANIZATION_ID")
+    expect(onboarding).toContain("PARCHMENT_WEBHOOK_SECRET")
+  })
 })
