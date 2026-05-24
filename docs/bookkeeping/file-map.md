@@ -75,6 +75,12 @@ See [docs/plans/archive/README.md](../plans/archive/README.md) for the retention
 | [docs/bookkeeping/file-map.md](file-map.md) | This file |
 | docs/bookkeeping/expected-md-count | Single integer; source of truth for the .md file count guard run by `pnpm doc:audit` |
 
+## docs/reviews/ — 1 (auto-maintained)
+
+| File | Purpose |
+|------|---------|
+| [docs/reviews/INDEX.md](../reviews/INDEX.md) | Auto-generated video-review log. Maintained by `scripts/video-review/index-update.ts` (runs at the end of every `pnpm review`). Per-run `report.md` files under `docs/reviews/<runId>/` are gitignored from the count by being inside subdirectories — only INDEX.md sits at the top. |
+
 ## components/*/README.md — 2 colocated docs
 
 | File | Purpose | Pinned by |
