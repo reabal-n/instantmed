@@ -36,10 +36,22 @@ export function getAIApiKey(): string | undefined {
   )
 }
 
+/**
+ * Canonical Anthropic API base URL. Pinned explicitly because some
+ * environments (notably Claude Code's interactive shell) export
+ * `ANTHROPIC_BASE_URL=https://api.anthropic.com` (without `/v1`). The
+ * SDK reads that env var and appends `/messages`, so requests hit
+ * `/messages` (404 Not Found) instead of `/v1/messages`. Passing
+ * `baseURL` explicitly to `createAnthropic` overrides the env var.
+ * See CLAUDE.md gotcha "@ai-sdk/anthropic calls must pin baseURL".
+ */
+const ANTHROPIC_BASE_URL = "https://api.anthropic.com/v1"
+
 function getAnthropic() {
   if (!_anthropic) {
     _anthropic = createAnthropic({
       apiKey: getAIApiKey(),
+      baseURL: ANTHROPIC_BASE_URL,
     })
   }
   return _anthropic

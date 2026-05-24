@@ -26,7 +26,7 @@ import { readdirSync } from "node:fs"
 import { writeFile } from "node:fs/promises"
 import { join, relative } from "node:path"
 
-import { anthropic } from "@ai-sdk/anthropic"
+import { createAnthropic } from "@ai-sdk/anthropic"
 import { generateText } from "ai"
 
 import { withTimeout } from "./retry"
@@ -36,6 +36,11 @@ import { SYNTHESIZE_SYSTEM_PROMPT } from "./voice-prompt"
 const CLAUDE_MODEL = "claude-opus-4-7"
 const SYNTHESIZE_TIMEOUT_MS = 3 * 60_000
 const MIN_REPORT_BYTES = 500
+
+// Pin baseURL so a leaked ANTHROPIC_BASE_URL env var (Claude Code's
+// shell sets it to `https://api.anthropic.com` without /v1) cannot
+// misroute SDK calls. See lib/ai/provider.ts + CLAUDE.md gotcha.
+const ANTHROPIC_BASE_URL = "https://api.anthropic.com/v1"
 
 export interface SynthesizeOptions {
   critique: StructuredCritique
@@ -60,6 +65,10 @@ export async function synthesize(opts: SynthesizeOptions): Promise<SynthesizeRes
   console.log(`[synthesize] generating report with ${CLAUDE_MODEL} (timeout ${SYNTHESIZE_TIMEOUT_MS / 1000}s)...`)
 
   const userMessage = buildUserMessage(opts)
+  const anthropic = createAnthropic({
+    apiKey: process.env.ANTHROPIC_API_KEY,
+    baseURL: ANTHROPIC_BASE_URL,
+  })
 
   const { text } = await withTimeout(
     generateText({
