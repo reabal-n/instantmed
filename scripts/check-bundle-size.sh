@@ -25,14 +25,14 @@ MAX_REQUEST_FIRST_LOAD_KB=180
 ROUTE_BUDGETS=(
   "/request|25|180|The intake shell is carrying code that should be lazy-loaded"
   "/patient|13|190|The patient dashboard is inheriting portal runtime it should not load"
-  "/dashboard|24|405|The staff cockpit is carrying too much client runtime"
-  "/admin/intakes|18|455|The request ledger should not inherit heavy doctor-review code"
-  "/medical-certificate|10|330|The primary paid med-cert landing page should stay server-first with narrow client islands"
-  "/consult|6|330|The consult funnel should keep static sections server-rendered and hydrate only interactive section islands"
+  "/dashboard|30|420|The staff cockpit is carrying too much client runtime. Current ceiling reflects AttributionSourcesCard + DeclineReasonsCard + CounterCard + RecoveryRow + geographic tile + calm-chrome pass shipped 2026-05-11 to 2026-05-23 (route JS 24 to 30 kB, first-load 405 to 420 kB). Investigate dynamic-import opportunities (e.g. queue panels behind a click) before the next bump."
+  "/admin/intakes|22|455|The request ledger should not inherit heavy doctor-review code. Current ceiling reflects shared cockpit primitives + refund indicator + renewal badge work shipped 2026-05-20 to 2026-05-21"
+  "/medical-certificate|12|330|The primary paid med-cert landing page should stay server-first with narrow client islands. Re-baselined 2026-05-23 after brand rehaul (live wait counter + signature devices + coral accent + Plus Jakarta Sans)"
+  "/consult|12|330|The consult funnel should keep static sections server-rendered and hydrate only interactive section islands. Re-baselined 2026-05-23 after consult overview rebuild + signature devices"
   "/pricing|10|330|The pricing page should keep proof sections server-rendered instead of hydrating as one large client island"
-  "/prescriptions|8|335|The prescriptions landing page should stay below the paid-funnel runtime ceiling"
-  "/erectile-dysfunction|6|335|The ED landing page should not inherit broad service-funnel runtime"
-  "/hair-loss|7|335|The hair-loss landing page should not inherit broad service-funnel runtime"
+  "/prescriptions|12|335|The prescriptions landing page should stay below the paid-funnel runtime ceiling. Re-baselined 2026-05-23 after brand rehaul"
+  "/erectile-dysfunction|12|335|The ED landing page should not inherit broad service-funnel runtime. Re-baselined 2026-05-23 after brand rehaul + Webpack chunk-split variance"
+  "/hair-loss|12|335|The hair-loss landing page should not inherit broad service-funnel runtime. Re-baselined 2026-05-23 after IIEF-style hook quiz + brand rehaul"
 )
 
 BUILD_OUT="/tmp/next-build-output.txt"

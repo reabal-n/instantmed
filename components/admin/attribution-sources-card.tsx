@@ -13,7 +13,7 @@ const DOT_COLOR: Record<AttributionSourceGroup, string> = {
   other_paid: "bg-amber-500",
   organic_brand: "bg-emerald-500",
   organic_nonbrand: "bg-emerald-500",
-  ai_referral: "bg-violet-500",
+  ai_referral: "bg-sky-500",
   recovery_email: "bg-blue-500",
   referral: "bg-blue-500",
   direct: "bg-slate-400",
