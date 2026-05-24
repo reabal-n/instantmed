@@ -1,0 +1,8 @@
+# Capture videos are large and reproducible from the journey definition.
+# Commit the structured critique JSON + voice-corrected report + frame
+# stills (referenced inline in report.md). Skip the webms.
+*.webm
+
+# Raw Gemini responses kept only for ad-hoc debugging when JSON parse
+# fails. Do not commit transient debug artefacts.
+critique.raw.txt
