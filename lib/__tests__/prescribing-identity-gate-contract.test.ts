@@ -24,6 +24,15 @@ describe("requiresPrescribingIdentityForRequest", () => {
       expect(requiresPrescribingIdentityForRequest({ serviceType: "med_cert" })).toBe(false)
     })
 
+    it("returns false for med-cert service type (canonical hyphenated form)", () => {
+      // Regression: the live /request flow uses the hyphenated form per
+      // types/services.ts UnifiedServiceType. Missing this match caused
+      // every med-cert intake to demand Medicare + address at checkout,
+      // killing conversion on a service that explicitly does not need
+      // those fields. See CLAUDE.md "Eligibility" row.
+      expect(requiresPrescribingIdentityForRequest({ serviceType: "med-cert" })).toBe(false)
+    })
+
     it("returns false regardless of subtype on med certs (work, study, carer)", () => {
       for (const subtype of ["work", "study", "carer"]) {
         expect(
