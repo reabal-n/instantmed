@@ -1007,20 +1007,57 @@ export async function seedTestIntake(options: SeedTestIntakeOptions = {}): Promi
 }> {
   try {
     const supabase = getSupabaseClient()
-    
+
     // Use E2E patient ID (from seed.ts)
     const E2E_PATIENT_ID = "e2e00000-0000-0000-0000-000000000002"
     const serviceId = resolveSeedServiceId(options)
-    
-    // Check if patient exists
-    const { data: patient, error: patientError } = await supabase
+
+    // Check if patient exists. Pre-fix: a missing patient here returned a
+    // hard error "E2E patient not found" and surfaced as ~16 test failures
+    // every CI run. The race was caused by another suite (or a stray
+    // teardown sharing the Supabase preview DB) deleting the seeded
+    // profile mid-run, between global-setup and this call.
+    //
+    // Self-heal: if the patient is missing, upsert it with the minimum
+    // schema-required fields and continue. Idempotent; safe to call
+    // concurrently because the row's PK is fixed. Anything richer the
+    // patient needs (DOB, address, Medicare etc.) is what
+    // scripts/e2e/seed.ts populates; for retry-recovery purposes the
+    // bare profile is sufficient — downstream test setup re-applies
+    // whatever it specifically needs.
+    const { data: patient } = await supabase
       .from("profiles")
       .select("id")
       .eq("id", E2E_PATIENT_ID)
-      .single()
-    
-    if (patientError || !patient) {
-      return { success: false, error: "E2E patient not found - run seed script first" }
+      .maybeSingle()
+
+    if (!patient) {
+      console.warn(
+        "[seedTestIntake] E2E patient missing mid-run; re-seeding minimum profile for self-heal. " +
+        "This usually means a teardown from a concurrent suite deleted the row.",
+      )
+      const { error: reseedError } = await supabase
+        .from("profiles")
+        .upsert(
+          {
+            id: E2E_PATIENT_ID,
+            auth_user_id: E2E_PATIENT_ID,
+            full_name: "E2E Test Patient",
+            email: "e2e-test-patient@instantmed-e2e.test",
+            role: "patient",
+            email_verified: true,
+            email_verified_at: new Date().toISOString(),
+            onboarding_completed: true,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "id" },
+        )
+      if (reseedError) {
+        return {
+          success: false,
+          error: `E2E patient missing and self-heal upsert failed: ${reseedError.message}`,
+        }
+      }
     }
     
     // Generate unique reference number
