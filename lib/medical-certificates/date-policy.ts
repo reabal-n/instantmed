@@ -1,7 +1,13 @@
 const DAY_MS = 24 * 60 * 60 * 1000
 
+// Forward-dating window: patients legitimately request certs for a known
+// upcoming absence (e.g. day-after-tomorrow procedure, planned recovery
+// window). Default is 14 days forward. Set to 0 to block future dates
+// (legacy behaviour, kept available for tests).
+export const CERTIFICATE_MAX_FORWARD_DAYS_DEFAULT = 14
+
 export const CERTIFICATE_FUTURE_START_ERROR =
-  "Medical certificates cannot start in the future. Please select today or an earlier date."
+  "Certificates can be dated up to 14 days ahead. Please pick an earlier date."
 
 export const CERTIFICATE_BACKDATE_ERROR =
   "Certificates cannot be backdated more than 7 days. Please see your doctor for earlier dates."
@@ -51,7 +57,11 @@ function parseDateOnlyToUtc(value: string): Date | null {
 
 export function validateCertificateStartDate(
   startDate: string,
-  options: { maxBackdateDays?: number | null; now?: Date } = {},
+  options: {
+    maxBackdateDays?: number | null
+    maxForwardDays?: number | null
+    now?: Date
+  } = {},
 ): { valid: boolean; error?: string } {
   const parsedStartDate = parseDateOnlyToUtc(startDate)
   if (!parsedStartDate) {
@@ -59,13 +69,28 @@ export function validateCertificateStartDate(
   }
 
   const today = getSydneyDateOnly(options.now)
-  if (startDate > today) {
-    return { valid: false, error: CERTIFICATE_FUTURE_START_ERROR }
+  const parsedToday = parseDateOnlyToUtc(today)
+
+  // Forward-dating cap. Patients commonly book med certs for a known
+  // upcoming absence (tomorrow procedure, planned recovery). Default is
+  // CERTIFICATE_MAX_FORWARD_DAYS_DEFAULT (14d); pass 0 to block all
+  // future dates (legacy behaviour); pass null to allow unbounded
+  // future-dating (correction paths only).
+  const maxForwardDays =
+    options.maxForwardDays === undefined
+      ? CERTIFICATE_MAX_FORWARD_DAYS_DEFAULT
+      : options.maxForwardDays
+  if (maxForwardDays !== null && parsedToday) {
+    const forwardDiff = Math.floor(
+      (parsedStartDate.getTime() - parsedToday.getTime()) / DAY_MS,
+    )
+    if (forwardDiff > maxForwardDays) {
+      return { valid: false, error: CERTIFICATE_FUTURE_START_ERROR }
+    }
   }
 
   const maxBackdateDays = options.maxBackdateDays === undefined ? 7 : options.maxBackdateDays
   if (maxBackdateDays !== null) {
-    const parsedToday = parseDateOnlyToUtc(today)
     const daysDiff = parsedToday
       ? Math.floor((parsedToday.getTime() - parsedStartDate.getTime()) / DAY_MS)
       : 0
@@ -81,7 +106,12 @@ export function validateCertificateStartDate(
 export function validateCertificateDateRange(
   startDate: string,
   endDate: string,
-  options: { maxBackdateDays?: number | null; maxDurationDays?: number | null; now?: Date } = {},
+  options: {
+    maxBackdateDays?: number | null
+    maxForwardDays?: number | null
+    maxDurationDays?: number | null
+    now?: Date
+  } = {},
 ): { valid: true; durationDays: number } | { valid: false; error: string } {
   const startValidation = validateCertificateStartDate(startDate, options)
   if (!startValidation.valid) {

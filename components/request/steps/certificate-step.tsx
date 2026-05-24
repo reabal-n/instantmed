@@ -5,7 +5,10 @@
  *
  * Date model: two-question layout.
  * 1. How many days? (1/2/3 chips with prices)
- * 2. Starting from? (3 chips: day before yesterday, yesterday, today)
+ * 2. Starting from? (4 chips: yesterday, today, tomorrow, day after).
+ *    Med certs commonly cover a sick day the patient knows is coming up
+ *    (e.g. day-after-tomorrow procedure), not just backdates. Window is
+ *    -1..+14 days; chips show the 4 most common picks.
  * Certificates capped at 3 days max.
  */
 
@@ -53,10 +56,14 @@ function parseDuration(value: unknown): Duration | null {
 
 // ─── Date helpers ─────────────────────────────────────────────────────────
 
-const WIN_MIN = -2
-const WIN_MAX = 0
+// Window: 1 day backdate (yesterday) through 14 days forward. The validator
+// in lib/medical-certificates/date-policy.ts enforces this same window
+// server-side. Chips below show the 4 most common picks; the wider window
+// supports URL-prefilled and future-extensible flows.
+const WIN_MIN = -1
+const WIN_MAX = 14
 
-const START_OFFSETS = [-2, -1, 0] as const
+const START_OFFSETS = [-1, 0, 1, 2] as const
 
 function offsetToDate(offset: number): Date {
   const d = new Date()
@@ -83,6 +90,8 @@ function isoToOffset(iso: string): number | null {
 function chipLabel(offset: number): string {
   if (offset === -1) return "Yesterday"
   if (offset === 0) return "Today"
+  if (offset === 1) return "Tomorrow"
+  if (offset === 2) return "Day after"
   const d = offsetToDate(offset)
   return d.toLocaleDateString("en-AU", { weekday: "short", day: "numeric" })
 }
@@ -90,6 +99,8 @@ function chipLabel(offset: number): string {
 function summaryLabel(offset: number): string {
   if (offset === -1) return "Yesterday"
   if (offset === 0) return "Today"
+  if (offset === 1) return "Tomorrow"
+  if (offset === 2) return "Day after"
   const d = offsetToDate(offset)
   return d.toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short" })
 }

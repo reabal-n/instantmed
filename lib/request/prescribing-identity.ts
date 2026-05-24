@@ -18,7 +18,14 @@ import type { UnifiedServiceType } from "@/types/services"
 //
 // Contract test: lib/__tests__/prescribing-identity-gate-contract.test.ts
 const MED_CERT_CATEGORIES: ReadonlySet<string> = new Set(["medical_certificate", "med_certs"])
+// IMPORTANT: the canonical UnifiedServiceType is `'med-cert'` (HYPHEN) per
+// types/services.ts and the /request URL convention. The underscore variants
+// here cover legacy callers (intake categories, persisted answers) but the
+// hyphenated form is the live one. Missing the hyphenated form historically
+// caused the patient-details step to demand a Medicare number from every
+// med-cert patient — exactly the wrong gate. Keep both.
 const MED_CERT_SERVICE_TYPES: ReadonlySet<string> = new Set([
+  "med-cert",
   "med_cert",
   "med_certs",
   "medical_certificate",
