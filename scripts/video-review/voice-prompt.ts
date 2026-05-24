@@ -1,5 +1,5 @@
 /**
- * System prompt for Stage 3 (Claude Sonnet 4 synthesis).
+ * System prompt for Stage 3 (Claude Opus 4.7 synthesis).
  *
  * Bakes the voice rules from docs/BRAND.md + docs/VOICE.md +
  * lib/marketing/voice.ts directly into the model context so EVERY sentence

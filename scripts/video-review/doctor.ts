@@ -5,11 +5,12 @@
  *
  * Checks:
  *   1. GEMINI_API_KEY present + a minimal generateContent succeeds
- *      against `gemini-2.5-pro` (catches expired keys, model removal,
+ *      against `gemini-3.5-flash` (catches expired keys, model removal,
  *      quota issues).
  *   2. ANTHROPIC_API_KEY present + a minimal generateText succeeds
- *      against `claude-sonnet-4-20250514` (catches model-name drift,
- *      auth failures, plan-restricted models).
+ *      against `claude-opus-4-7` (catches model-name drift, auth
+ *      failures, plan-restricted models, the temperature-deprecation
+ *      400 if the model is mid-rolled).
  *   3. Playwright chromium installed.
  *   4. Default capture URL returns 2xx.
  *   5. docs/reviews/ has >= 100MB free.
@@ -52,7 +53,7 @@ async function checkGemini(): Promise<CheckResult> {
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
     const res = await ai.models.generateContent({
-      model: "gemini-2.5-pro",
+      model: "gemini-3.5-flash",
       contents: [{ role: "user", parts: [{ text: "Reply with only the word OK." }] }],
     })
     const text = (res.text ?? "").trim()
@@ -61,13 +62,13 @@ async function checkGemini(): Promise<CheckResult> {
         name: "Gemini API key + model",
         ok: false,
         detail: "API key works but model returned empty text.",
-        fix: "Check the model name 'gemini-2.5-pro' is still available at https://aistudio.google.com/",
+        fix: "Check the model name 'gemini-3.5-flash' is still available at https://aistudio.google.com/",
       }
     }
     return {
       name: "Gemini API key + model",
       ok: true,
-      detail: `gemini-2.5-pro responded (${text.length} chars).`,
+      detail: `gemini-3.5-flash responded (${text.length} chars).`,
     }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
@@ -97,23 +98,24 @@ async function checkAnthropic(): Promise<CheckResult> {
   }
   try {
     const { text } = await generateText({
-      model: anthropic("claude-sonnet-4-20250514"),
+      model: anthropic("claude-opus-4-7"),
       messages: [{ role: "user", content: "Reply with only the word OK." }],
       maxOutputTokens: 16,
       maxRetries: 1,
+      // temperature intentionally omitted - claude-opus-4-7 deprecated it
     })
     if (!text.trim()) {
       return {
         name: "Anthropic API key + model",
         ok: false,
         detail: "API key works but model returned empty text.",
-        fix: "Check claude-sonnet-4-20250514 is still available at https://docs.anthropic.com/en/docs/about-claude/models",
+        fix: "Check claude-opus-4-7 is still available at https://docs.anthropic.com/en/docs/about-claude/models",
       }
     }
     return {
       name: "Anthropic API key + model",
       ok: true,
-      detail: `claude-sonnet-4-20250514 responded (${text.length} chars).`,
+      detail: `claude-opus-4-7 responded (${text.length} chars).`,
     }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)

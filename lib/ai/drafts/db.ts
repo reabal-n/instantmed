@@ -72,7 +72,7 @@ export async function upsertDraft(params: UpsertDraftParams): Promise<DocumentDr
         type: params.type,
         subtype: params.type,         // Bridge: legacy NOT NULL column
         content: params.content,
-        model: params.model || "claude-sonnet-4-20250514",
+        model: params.model || "claude-opus-4-7",
         is_ai_generated: true,
         status: params.status,
         error: params.error || null,
