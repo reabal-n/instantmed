@@ -20,13 +20,13 @@
  */
 import { describe, expect, it } from "vitest"
 
-import { buildDoctorQueueServiceFilter } from "@/lib/doctor/queue-capability-scope"
 import {
   getParchmentPatientSyncEligibility,
   getParchmentPrescribingEligibility,
   getParchmentScriptCompletionEligibility,
   type ParchmentPrescribingEligibilityState,
 } from "@/lib/doctor/parchment-claim"
+import { buildDoctorQueueServiceFilter } from "@/lib/doctor/queue-capability-scope"
 import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing-identity"
 import type { ConsultSubtype, UnifiedServiceType } from "@/types/services"
 
