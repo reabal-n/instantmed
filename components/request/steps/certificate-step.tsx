@@ -401,19 +401,37 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
               aria-label="Certificate start date"
             >
               {START_OFFSETS.map((offset) => {
-                const isSelected = startOffset === offset
+                // Multi-day certs visually span the whole range. The start
+                // chip stays the primary selected state; intermediate and
+                // end chips inside the duration window get a softer
+                // "included" treatment so the patient instantly sees the
+                // full range they're booking. Without this, a "2 days"
+                // selection only highlighted the start chip, which read
+                // as "1 day starting tomorrow" — confusing.
+                const isStart = startOffset === offset
+                const isInRange =
+                  startOffset !== null &&
+                  selectedDays !== null &&
+                  offset > startOffset &&
+                  offset <= startOffset + selectedDays - 1
+                const isSelected = isStart || isInRange
                 return (
                   <button
                     key={offset}
                     type="button"
                     role="radio"
-                    aria-checked={isSelected}
+                    aria-checked={isStart}
+                    aria-label={
+                      isInRange
+                        ? `${chipLabel(offset)} (also covered by this certificate)`
+                        : chipLabel(offset)
+                    }
                     onClick={() => handleStartOffsetClick(offset)}
                     className={requestCx(
                       "min-h-12 rounded-xl border px-2 py-2.5 text-sm font-medium transition-[background-color,border-color,color] duration-150 touch-manipulation",
-                      isSelected
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-background text-foreground border-border/60 hover:border-primary/50 hover:bg-primary/5"
+                      isStart && "bg-primary text-primary-foreground border-primary",
+                      isInRange && !isStart && "bg-primary/15 text-primary border-primary/40",
+                      !isSelected && "bg-background text-foreground border-border/60 hover:border-primary/50 hover:bg-primary/5"
                     )}
                   >
                     {chipLabel(offset)}
@@ -425,14 +443,17 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
         </QuestionCard>
       </div>
 
-      {/* Live summary card */}
+      {/* Live summary card — always visible so the patient (especially on
+          mobile) sees exactly which dates the doctor will cover before
+          tapping Continue. Without this, multi-day selections read as
+          ambiguous because chips alone don't enumerate the range. */}
       {selectedDays !== null && startOffset !== null && endOffset !== null && price && (
-        <div className="hidden items-center justify-between px-3 py-2.5 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] sm:flex">
-          <div>
-            <p className="text-xs font-medium text-foreground">
+        <div className="flex items-center justify-between px-3 py-2.5 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06]">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-foreground">
               {selectedDays === 1
                 ? `${summaryLabel(startOffset)} · 1 day`
-                : `${summaryLabel(startOffset)} → ${summaryLabel(endOffset)} · ${selectedDays} days`}
+                : `${summaryLabel(startOffset)} to ${summaryLabel(endOffset)} · ${selectedDays} days`}
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
               No waiting rooms · doctor review when available
@@ -442,8 +463,9 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
         </div>
       )}
 
-      {/* GP note - longer absences */}
-      <p className="hidden px-1 text-xs text-muted-foreground sm:block">
+      {/* GP note - longer absences. Visible on every viewport so a patient
+          on mobile understands the 3-day cap without scrolling laterally. */}
+      <p className="px-1 text-xs text-muted-foreground">
         Need more than 3 days off? Please visit your GP for an extended certificate.
       </p>
 
