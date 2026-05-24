@@ -62,13 +62,24 @@ interface CheckoutResult {
 }
 
 /**
- * Map unified service type to Stripe category and subtype
- * 
- * IMPORTANT: Both 'prescription' and 'repeat-script' map to subtype: 'repeat'
- * which routes to the 'common-scripts' service (type: common_scripts).
- * This ensures the doctor RepeatPrescriptionChecklist renders correctly.
- * 
- * For NEW prescriptions (not repeats), use 'consult' service type instead.
+ * Map unified service type to Stripe category and subtype.
+ *
+ * Both 'prescription' and 'repeat-script' map to subtype: 'repeat' so that
+ * persisted localStorage drafts can round-trip safely through checkout.
+ *
+ * Reason: the UI/URL convention emits `serviceType: 'repeat-script'`, but
+ * the draft-storage canonical form is `'prescription'` (see
+ * `lib/request/draft-storage.ts` `canonicalizeServiceType`, which normalises
+ * `'prescription' | 'repeat-script' | 'repeat-rx' | 'repeat-prescription'`
+ * → `'prescription'` before persisting). A returning patient whose draft
+ * rehydrates as `'prescription'` must land in the same repeat-script
+ * checkout path the URL flow would take.
+ *
+ * No production UI emits `serviceType: 'prescription'` directly — the
+ * patient-request-links contract test forbids `/request?service=prescription`.
+ *
+ * NEW (not repeat) prescriptions go through the `consult` service type at
+ * the new-prescription price point ($49.95), NOT through this mapping.
  */
 function mapServiceToCategory(serviceType: UnifiedServiceType): { category: ServiceCategory; subtype: string } {
   const mapping: Record<UnifiedServiceType, { category: ServiceCategory; subtype: string }> = {
