@@ -39,6 +39,7 @@
 | [docs/DESIGN_SYSTEM_CHANGELOG.md](../DESIGN_SYSTEM_CHANGELOG.md) | Versioned design-system changelog | `release-check-contract` |
 | [docs/ROADMAP.md](../ROADMAP.md) | Internal product roadmap: operating phase, last-90-days shipped, active priorities, expansion gates | `project-docs-drift-contract` (phase label + Last refreshed stamp + backlog provenance link) |
 | [docs/DOCTOR_ONBOARDING.md](../DOCTOR_ONBOARDING.md) | Technical onboarding for new clinicians: capability flags, AHPRA, Parchment linking, identity gates, service-line verification | `project-docs-drift-contract` (7 capability flag keys + AHPRA regex + Parchment env-var floor) |
+| [docs/PHI_KEY_ROTATION_DESIGN.md](../PHI_KEY_ROTATION_DESIGN.md) | DESIGN ONLY (2026-05-24). Three-phase PHI master-key rotation: dual-key reads + operator-paced key swap + optional re-encryption batch. Not yet implemented; operator approval required per phase. | none yet (design doc; will need `phi-key-rotation-contract` when Phase 1 ships) |
 
 ## docs/runbooks/ — 1
 
