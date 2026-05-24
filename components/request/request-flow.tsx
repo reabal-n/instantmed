@@ -631,13 +631,14 @@ export function RequestFlow({
     syncPrimaryAction()
 
     // Performance: this observer is the single biggest contributor to
-    // the /request route's mobile Lighthouse Total Blocking Time (~100ms
-    // hot loop, was over budget at 301ms vs 200ms target). The mobile
+    // the /request route's mobile Lighthouse Total Blocking Time. PR #63
+    // scoped it to mobile-only + the step content container (was over
+    // budget at 301ms vs 200ms target, came down to 282ms). The mobile
     // primary-action bar only renders on viewports below sm: (640px),
     // and only the step content's primary action button needs to be
     // tracked — not the whole document.
     //
-    // Two scoping reductions:
+    // Three scoping reductions:
     //   1. Skip the observer entirely on desktop where the bar doesn't
     //      render. Saves the whole DOM-watch on the majority of
     //      sessions.
@@ -647,6 +648,12 @@ export function RequestFlow({
     //      motion frames in the sticky CTA, nav button hover states,
     //      Sentry/PostHog DOM injections etc. no longer trigger
     //      syncPrimaryAction.
+    //   3. Drop `characterData: true`. The button's label is driven by
+    //      the `data-intake-primary-label` attribute (already in
+    //      attributeFilter), not by textContent — so every form-field
+    //      validation message change, every framer-motion text
+    //      interpolation, and every inline-input keystroke was firing
+    //      a no-op syncPrimaryAction. Pure overhead.
     const isMobileViewport =
       typeof window !== "undefined" &&
       window.matchMedia &&
@@ -661,7 +668,6 @@ export function RequestFlow({
       attributes: true,
       attributeFilter: ["disabled", "data-intake-primary-label"],
       childList: true,
-      characterData: true,
       subtree: true,
     })
 
