@@ -88,6 +88,7 @@ export function ServiceFunnelPage({
 
       <Navbar variant="marketing" />
 
+      <main className="relative">
       {/* Section 1: Hero */}
       <HeroSection config={config} colors={colors} isDisabled={isDisabled} mockupOverride={heroMockup} />
 
@@ -181,6 +182,7 @@ export function ServiceFunnelPage({
 
       {/* Final CTA */}
       <FinalCtaSection config={config} isDisabled={isDisabled} />
+      </main>
 
       <MarketingFooter />
     </div>

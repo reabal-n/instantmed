@@ -5,7 +5,10 @@
  *
  * Date model: two-question layout.
  * 1. How many days? (1/2/3 chips with prices)
- * 2. Starting from? (3 chips: day before yesterday, yesterday, today)
+ * 2. Starting from? (4 chips: yesterday, today, tomorrow, day after).
+ *    Med certs commonly cover a sick day the patient knows is coming up
+ *    (e.g. day-after-tomorrow procedure), not just backdates. Window is
+ *    -1..+14 days; chips show the 4 most common picks.
  * Certificates capped at 3 days max.
  */
 
@@ -53,10 +56,14 @@ function parseDuration(value: unknown): Duration | null {
 
 // ─── Date helpers ─────────────────────────────────────────────────────────
 
-const WIN_MIN = -2
-const WIN_MAX = 0
+// Window: 1 day backdate (yesterday) through 14 days forward. The validator
+// in lib/medical-certificates/date-policy.ts enforces this same window
+// server-side. Chips below show the 4 most common picks; the wider window
+// supports URL-prefilled and future-extensible flows.
+const WIN_MIN = -1
+const WIN_MAX = 14
 
-const START_OFFSETS = [-2, -1, 0] as const
+const START_OFFSETS = [-1, 0, 1, 2] as const
 
 function offsetToDate(offset: number): Date {
   const d = new Date()
@@ -83,13 +90,43 @@ function isoToOffset(iso: string): number | null {
 function chipLabel(offset: number): string {
   if (offset === -1) return "Yesterday"
   if (offset === 0) return "Today"
+  if (offset === 1) return "Tomorrow"
+  if (offset === 2) return "Day after"
   const d = offsetToDate(offset)
   return d.toLocaleDateString("en-AU", { weekday: "short", day: "numeric" })
+}
+
+// Pure, exported so the cert-step-revenue contract test can pin the chip
+// range behaviour without needing to render the component. Returns the
+// visual state for a given chip:
+//   "start"      — the chip the user picked; primary selected style
+//   "in_range"   — covered by the duration but not the start; soft style
+//   "unselected" — outside the duration window
+//
+// Today's bug (2026-05-24): only "start" was computed; in-range chips
+// rendered as unselected. Patients saw "2 days starting tomorrow" but
+// only the Tomorrow chip lit up, reading as a 1-day cert. The fix made
+// in-range chips visually distinct. This function is the single source
+// of truth for that behaviour — change it and the contract test fires.
+export type CertChipState = "start" | "in_range" | "unselected"
+export function getCertChipRangeState(
+  offset: number,
+  startOffset: number | null,
+  selectedDays: number | null,
+): CertChipState {
+  if (startOffset === null || selectedDays === null) return "unselected"
+  if (offset === startOffset) return "start"
+  if (offset > startOffset && offset <= startOffset + selectedDays - 1) {
+    return "in_range"
+  }
+  return "unselected"
 }
 
 function summaryLabel(offset: number): string {
   if (offset === -1) return "Yesterday"
   if (offset === 0) return "Today"
+  if (offset === 1) return "Tomorrow"
+  if (offset === 2) return "Day after"
   const d = offsetToDate(offset)
   return d.toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short" })
 }
@@ -390,19 +427,32 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
               aria-label="Certificate start date"
             >
               {START_OFFSETS.map((offset) => {
-                const isSelected = startOffset === offset
+                // Multi-day certs visually span the whole range. See
+                // getCertChipRangeState comment for the why. The state
+                // function is pinned by the cert-step-revenue contract
+                // test so a future refactor cannot silently drop the
+                // in-range rendering.
+                const chipState = getCertChipRangeState(offset, startOffset, selectedDays)
+                const isStart = chipState === "start"
+                const isInRange = chipState === "in_range"
+                const isSelected = isStart || isInRange
                 return (
                   <button
                     key={offset}
                     type="button"
                     role="radio"
-                    aria-checked={isSelected}
+                    aria-checked={isStart}
+                    aria-label={
+                      isInRange
+                        ? `${chipLabel(offset)} (also covered by this certificate)`
+                        : chipLabel(offset)
+                    }
                     onClick={() => handleStartOffsetClick(offset)}
                     className={requestCx(
                       "min-h-12 rounded-xl border px-2 py-2.5 text-sm font-medium transition-[background-color,border-color,color] duration-150 touch-manipulation",
-                      isSelected
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-background text-foreground border-border/60 hover:border-primary/50 hover:bg-primary/5"
+                      isStart && "bg-primary text-primary-foreground border-primary",
+                      isInRange && !isStart && "bg-primary/15 text-primary border-primary/40",
+                      !isSelected && "bg-background text-foreground border-border/60 hover:border-primary/50 hover:bg-primary/5"
                     )}
                   >
                     {chipLabel(offset)}
@@ -414,14 +464,17 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
         </QuestionCard>
       </div>
 
-      {/* Live summary card */}
+      {/* Live summary card — always visible so the patient (especially on
+          mobile) sees exactly which dates the doctor will cover before
+          tapping Continue. Without this, multi-day selections read as
+          ambiguous because chips alone don't enumerate the range. */}
       {selectedDays !== null && startOffset !== null && endOffset !== null && price && (
-        <div className="hidden items-center justify-between px-3 py-2.5 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] sm:flex">
-          <div>
-            <p className="text-xs font-medium text-foreground">
+        <div className="flex items-center justify-between px-3 py-2.5 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06]">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-foreground">
               {selectedDays === 1
                 ? `${summaryLabel(startOffset)} · 1 day`
-                : `${summaryLabel(startOffset)} → ${summaryLabel(endOffset)} · ${selectedDays} days`}
+                : `${summaryLabel(startOffset)} to ${summaryLabel(endOffset)} · ${selectedDays} days`}
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
               No waiting rooms · doctor review when available
@@ -431,8 +484,9 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
         </div>
       )}
 
-      {/* GP note - longer absences */}
-      <p className="hidden px-1 text-xs text-muted-foreground sm:block">
+      {/* GP note - longer absences. Visible on every viewport so a patient
+          on mobile understands the 3-day cap without scrolling laterally. */}
+      <p className="px-1 text-xs text-muted-foreground">
         Need more than 3 days off? Please visit your GP for an extended certificate.
       </p>
 

@@ -106,7 +106,12 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   blocked_medication_terms: [],
   safety_screening_symptoms: DEFAULT_SAFETY_SYMPTOMS,
   ai_auto_approve_enabled: false,
-  auto_approve_delay_minutes: 2,
+  // 5-minute default is operator-locked. Faster auto-approval reads as
+  // "obviously automated" and erodes trust on a regulated-health product
+  // where the patient expects a doctor reviewed their case. See
+  // memory/decision_auto_approve_delay.md (2026-04-29 decision, reaffirmed
+  // 2026-05-24). Operator can override via /admin/features per intake.
+  auto_approve_delay_minutes: 5,
   auto_approve_rate_limit_5min: 10,
   auto_approve_daily_cap: 50,
   auto_approve_max_duration_days: 3,
