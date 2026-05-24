@@ -7,7 +7,7 @@ const DAY_MS = 24 * 60 * 60 * 1000
 export const CERTIFICATE_MAX_FORWARD_DAYS_DEFAULT = 14
 
 export const CERTIFICATE_FUTURE_START_ERROR =
-  "Certificates can be dated up to 14 days ahead. Please pick an earlier date."
+  "Certificates cannot start more than 14 days in the future. Please pick an earlier date."
 
 export const CERTIFICATE_BACKDATE_ERROR =
   "Certificates cannot be backdated more than 7 days. Please see your doctor for earlier dates."
