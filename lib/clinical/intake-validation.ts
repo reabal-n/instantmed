@@ -317,14 +317,19 @@ export function isHighRiskFirstTime(
 // OUTSIDE GP SCOPE CHECK
 // ============================================================================
 
+// Word-boundary anchored — substring matches were rejecting legitimate
+// intakes (e.g. "intravenous infusion" mentioned in passing for chronic
+// iron treatment matched /iv\s*infusion/, "specialist only?" or "specialist
+// only treats..." matched /specialist\s*only/). The clinical intent is to
+// detect a discrete reference to the procedure, not any substring.
 const OUTSIDE_GP_SCOPE_PATTERNS = [
-  /chemotherapy/i,
-  /radiation\s*therapy/i,
-  /dialysis/i,
-  /organ\s*transplant/i,
-  /surgical\s*procedure/i,
-  /iv\s*infusion/i,
-  /specialist\s*only/i,
+  /\bchemotherapy\b/i,
+  /\bradiation\s*therapy\b/i,
+  /\bdialysis\b/i,
+  /\borgan\s*transplant\b/i,
+  /\bsurgical\s*procedure\b/i,
+  /\biv\s*infusion\b/i,
+  /\bspecialist\s*only\b/i,
 ]
 
 /**
