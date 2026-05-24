@@ -96,6 +96,32 @@ function chipLabel(offset: number): string {
   return d.toLocaleDateString("en-AU", { weekday: "short", day: "numeric" })
 }
 
+// Pure, exported so the cert-step-revenue contract test can pin the chip
+// range behaviour without needing to render the component. Returns the
+// visual state for a given chip:
+//   "start"      — the chip the user picked; primary selected style
+//   "in_range"   — covered by the duration but not the start; soft style
+//   "unselected" — outside the duration window
+//
+// Today's bug (2026-05-24): only "start" was computed; in-range chips
+// rendered as unselected. Patients saw "2 days starting tomorrow" but
+// only the Tomorrow chip lit up, reading as a 1-day cert. The fix made
+// in-range chips visually distinct. This function is the single source
+// of truth for that behaviour — change it and the contract test fires.
+export type CertChipState = "start" | "in_range" | "unselected"
+export function getCertChipRangeState(
+  offset: number,
+  startOffset: number | null,
+  selectedDays: number | null,
+): CertChipState {
+  if (startOffset === null || selectedDays === null) return "unselected"
+  if (offset === startOffset) return "start"
+  if (offset > startOffset && offset <= startOffset + selectedDays - 1) {
+    return "in_range"
+  }
+  return "unselected"
+}
+
 function summaryLabel(offset: number): string {
   if (offset === -1) return "Yesterday"
   if (offset === 0) return "Today"
@@ -401,19 +427,14 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
               aria-label="Certificate start date"
             >
               {START_OFFSETS.map((offset) => {
-                // Multi-day certs visually span the whole range. The start
-                // chip stays the primary selected state; intermediate and
-                // end chips inside the duration window get a softer
-                // "included" treatment so the patient instantly sees the
-                // full range they're booking. Without this, a "2 days"
-                // selection only highlighted the start chip, which read
-                // as "1 day starting tomorrow" — confusing.
-                const isStart = startOffset === offset
-                const isInRange =
-                  startOffset !== null &&
-                  selectedDays !== null &&
-                  offset > startOffset &&
-                  offset <= startOffset + selectedDays - 1
+                // Multi-day certs visually span the whole range. See
+                // getCertChipRangeState comment for the why. The state
+                // function is pinned by the cert-step-revenue contract
+                // test so a future refactor cannot silently drop the
+                // in-range rendering.
+                const chipState = getCertChipRangeState(offset, startOffset, selectedDays)
+                const isStart = chipState === "start"
+                const isInRange = chipState === "in_range"
                 const isSelected = isStart || isInRange
                 return (
                   <button
