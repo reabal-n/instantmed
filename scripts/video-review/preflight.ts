@@ -34,14 +34,18 @@ interface PreflightOptions {
 export async function preflight(opts: PreflightOptions): Promise<void> {
   const failures: string[] = []
 
-  if (!process.env.GEMINI_API_KEY) {
+  if (!process.env.GEMINI_API_KEY?.trim()) {
     failures.push(
-      "GEMINI_API_KEY missing. Add to .env.local + Vercel env + GitHub repo secrets. See https://aistudio.google.com/apikey",
+      "GEMINI_API_KEY missing or empty. Add to .env.local + Vercel env + GitHub repo secrets. " +
+        "If already in .env.local: your shell may have the var pre-set to empty - " +
+        "`unset GEMINI_API_KEY` and retry. See https://aistudio.google.com/apikey",
     )
   }
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.ANTHROPIC_API_KEY?.trim()) {
     failures.push(
-      "ANTHROPIC_API_KEY missing. Add to .env.local + Vercel env + GitHub repo secrets.",
+      "ANTHROPIC_API_KEY missing or empty. Add to .env.local + Vercel env + GitHub repo secrets. " +
+        "If already in .env.local: your shell may have the var pre-set to empty - " +
+        "`unset ANTHROPIC_API_KEY` and retry.",
     )
   }
 
