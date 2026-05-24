@@ -2,7 +2,10 @@ import { expect, type Page, test } from "@playwright/test"
 
 import { waitForPageLoad } from "./helpers/test-utils"
 
-const ACTIVE_CONSULT_SUBTYPES = ["general", "ed", "hair_loss"] as const
+// General Consult was retired publicly on 2026-05-20 (see CLAUDE.md). The
+// `consult` service type stays in code as the parent category for ED and
+// hair-loss, but `general` is no longer an active hub action or URL flow.
+const ACTIVE_CONSULT_SUBTYPES = ["ed", "hair_loss"] as const
 
 async function clearDrafts(page: Page) {
   await page.addInitScript(() => {
@@ -53,9 +56,11 @@ test.describe("Consult Sub-Services", () => {
     await page.getByRole("button", { name: /Hair loss treatment/i }).click()
     await page.waitForURL(/service=consult.*subtype=hair_loss/, { timeout: 15000 })
 
-    await page.goto("/request")
-    await page.getByRole("button", { name: /General consultation/i }).click()
-    await page.waitForURL(/service=consult.*subtype=general/, { timeout: 15000 })
+    // General Consult was retired publicly on 2026-05-20 — the hub no longer
+    // exposes a "General consultation" button. The /consult route renders a
+    // services-overview page and /general-consult 301s into it. Do not
+    // reintroduce an assertion for this without first updating
+    // docs/BUSINESS_PLAN.md and the service hub copy.
   })
 
   test("subtype mismatch draft path does not crash", async ({ page }) => {
