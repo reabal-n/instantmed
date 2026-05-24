@@ -32,13 +32,19 @@ test.describe("Medical Certificate Flow", () => {
   test("landing page loads correctly", async ({ page }) => {
     // Check page title
     await expect(page).toHaveTitle(/Medical Certificate/i)
-    
+
     // Check main CTA is visible (use main content area to avoid nav buttons)
     const startButton = getHeroCertificateCta(page)
     await expect(startButton).toBeVisible({ timeout: 10000 })
-    
-    // Check key trust elements are present
-    await expect(page.getByText(/AHPRA|Australian doctor|doctor/i).first()).toBeVisible()
+
+    // Check key trust elements are present. Scope to <main> so the locator
+    // does not match the mobile sticky CTA caption (rendered outside main,
+    // hidden on desktop via lg:hidden + offscreen via initial transform).
+    // The unscoped .first() match landed on the hidden caption and wrongly
+    // reported "no AHPRA text on the page" since 2026-05-19.
+    await expect(
+      page.getByRole("main").getByText(/AHPRA|Australian doctor|doctor/i).first(),
+    ).toBeVisible()
   })
 
   test("can navigate to intake flow", async ({ page }) => {
@@ -80,9 +86,12 @@ test.describe("Medical Certificate Flow", () => {
   test("displays pricing information", async ({ page }) => {
     await page.goto("/medical-certificate")
     await waitForPageLoad(page)
-    
-    // Price should be visible somewhere on page
-    const priceText = page.getByText(/\$\d+/i).first()
+
+    // Price should be visible somewhere on main page content. Scope to
+    // <main> so the locator does not match the mobile sticky CTA price
+    // (rendered outside main, hidden on desktop). The unscoped .first()
+    // match landed on the hidden sticky CTA price and wrongly failed.
+    const priceText = page.getByRole("main").getByText(/\$\d+/i).first()
     await expect(priceText).toBeVisible({ timeout: 10000 })
   })
 })

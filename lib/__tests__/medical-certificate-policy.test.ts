@@ -22,20 +22,56 @@ describe("medical certificate policy contract", () => {
     }
   })
 
-  it("keeps the issued certificate table guarded against future start dates", () => {
+  it("keeps the issued certificate table guarded against future start dates (AEST-aware)", () => {
+    // Active constraint is defined in the AEST-aware migration. The earlier
+    // 20260501060000 migration created the UTC version; the 20260524080000
+    // migration drops and replaces it so the DB agrees with the application's
+    // AEST notion of "today" (see lib/medical-certificates/date-policy.ts and
+    // lib/data/documents.ts). Without AEST anchoring, every UTC afternoon a
+    // doctor approving a "today" certificate hit the constraint as "future".
     const migration = readFileSync(
-      "supabase/migrations/20260501060000_guard_med_cert_future_start_dates.sql",
+      "supabase/migrations/20260524080000_aest_aware_cert_start_date_constraint.sql",
       "utf8",
     )
 
     expect(migration).toContain("issued_certificates_start_date_not_future")
-    expect(migration).toContain("start_date <= CURRENT_DATE")
+    expect(migration).toContain("Australia/Sydney")
     expect(migration).toContain("NOT VALID")
+    // Defensive: ensure the constraint expression is timezone-anchored, not
+    // raw CURRENT_DATE, which would re-introduce the UTC/AEST drift bug.
+    expect(migration).not.toMatch(/start_date <= CURRENT_DATE/)
   })
 
   it("allows historical correction paths while still blocking future starts", () => {
     expect(validateCertificateStartDate("2020-01-01", { maxBackdateDays: null }).valid).toBe(true)
     expect(validateCertificateStartDate("2099-01-01", { maxBackdateDays: null }).valid).toBe(false)
+  })
+
+  it("treats AEST today as valid even when the UTC clock is still on yesterday", () => {
+    // Regression for the 11 e2e failures + production edge case caught on
+    // 2026-05-23 evening: at 14:00 UTC, Sydney rolls into the next calendar
+    // day. The validator + the DB constraint must agree that AEST-today is
+    // *not* in the future, otherwise doctors working in the AEST early
+    // morning cannot approve a "today" certificate.
+    //
+    // Frozen at 2026-05-23 14:30 UTC = 2026-05-24 00:30 AEST.
+    const nowAtBoundary = new Date("2026-05-23T14:30:00Z")
+
+    // AEST today (the day after UTC today at this moment) MUST validate.
+    expect(
+      validateCertificateStartDate("2026-05-24", {
+        maxBackdateDays: null,
+        now: nowAtBoundary,
+      }).valid,
+    ).toBe(true)
+
+    // AEST tomorrow MUST still be blocked.
+    expect(
+      validateCertificateStartDate("2026-05-25", {
+        maxBackdateDays: null,
+        now: nowAtBoundary,
+      }).valid,
+    ).toBe(false)
   })
 
   it("keeps doctor review surfaces from returning raw Medicare numbers", () => {
