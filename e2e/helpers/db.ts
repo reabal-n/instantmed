@@ -431,10 +431,43 @@ async function deleteCertificateApprovalArtifactsForIntake(
 }
 
 /**
- * Reset intake status to paid for re-testing
+ * Reset intake status to paid for re-testing.
+ *
+ * Self-heals the canonical seeded fixture intake if a prior test or
+ * concurrent cleanup deleted it. Non-canonical intake IDs still throw on
+ * missing rows so that real cleanup-race bugs surface loudly.
  */
 export async function resetIntakeForRetest(intakeId: string): Promise<void> {
   const supabase = getSupabaseClient()
+
+  // Pre-fix: when a prior test (decline/cancel/terminal flow) or a
+  // concurrent suite's teardown deleted the seeded fixture, every
+  // downstream test that called resetIntakeForRetest cascaded with
+  // "intake ... was not found". On 2026-05-24 CI this produced 15+
+  // failures across medcert.email-pipeline + medcert.idempotency.
+  // Self-heal mirrors the pattern PR #64 used for the seeded patient
+  // profile in seedTestIntake: re-seed the row on demand, then carry
+  // on with the normal reset.
+  const { data: existing } = await supabase
+    .from("intakes")
+    .select("id")
+    .eq("id", intakeId)
+    .maybeSingle()
+
+  if (!existing) {
+    if (intakeId !== INTAKE_ID) {
+      throw new Error(
+        `Failed to reset intake for retest: intake ${intakeId} was not found ` +
+        `(only the canonical seeded INTAKE_ID self-heals; other IDs surface ` +
+        `cleanup races deliberately)`,
+      )
+    }
+    console.warn(
+      "[resetIntakeForRetest] Canonical seeded intake missing mid-run; re-seeding. " +
+      "Usually means a prior test or concurrent suite deleted the row.",
+    )
+    await reseedCanonicalIntake(supabase)
+  }
 
   await deleteCertificateApprovalArtifactsForIntake(supabase, intakeId)
 
@@ -452,7 +485,7 @@ export async function resetIntakeForRetest(intakeId: string): Promise<void> {
     .from("intake_events")
     .delete()
     .eq("intake_id", intakeId)
-  
+
   const { error: resetError } = await supabase.rpc("e2e_reset_intake_status", {
     p_intake_id: intakeId,
     p_status: "paid",
@@ -464,7 +497,7 @@ export async function resetIntakeForRetest(intakeId: string): Promise<void> {
 
   const { data: intake, error: updateError } = await supabase
     .from("intakes")
-    .update({ 
+    .update({
       payment_status: "paid",
       claimed_by: null,
       claimed_at: null,
@@ -494,6 +527,77 @@ export async function resetIntakeForRetest(intakeId: string): Promise<void> {
 
   if (!intake) {
     throw new Error(`Failed to reset intake for retest: intake ${intakeId} was not found`)
+  }
+}
+
+const E2E_PATIENT_ID = "e2e00000-0000-0000-0000-000000000002"
+
+/**
+ * Re-seed the canonical fixture intake (id = INTAKE_ID) with the same
+ * shape that scripts/e2e/seed.ts produces at globalSetup. Used by
+ * resetIntakeForRetest's self-heal path. Also ensures the E2E patient
+ * profile exists so the intake's FK can resolve.
+ */
+async function reseedCanonicalIntake(
+  supabase: ReturnType<typeof getSupabaseClient>,
+): Promise<void> {
+  const { data: patient } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("id", E2E_PATIENT_ID)
+    .maybeSingle()
+
+  if (!patient) {
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .upsert(
+        {
+          id: E2E_PATIENT_ID,
+          auth_user_id: E2E_PATIENT_ID,
+          full_name: "E2E Test Patient",
+          email: "e2e-test-patient@instantmed-e2e.test",
+          role: "patient",
+          email_verified: true,
+          email_verified_at: new Date().toISOString(),
+          onboarding_completed: true,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "id" },
+      )
+    if (profileError) {
+      throw new Error(
+        `Self-heal failed: could not re-seed E2E patient: ${profileError.message}`,
+      )
+    }
+  }
+
+  const referenceNumber = `E2E-RESEED-${Date.now().toString(36).toUpperCase()}`
+
+  const { error: insertError } = await supabase.from("intakes").insert({
+    id: INTAKE_ID,
+    patient_id: E2E_PATIENT_ID,
+    service_id: E2E_SERVICE_ID,
+    reference_number: referenceNumber,
+    status: "pending_payment",
+    payment_status: "paid",
+    category: "medical_certificate",
+    amount_cents: 1995,
+    paid_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  })
+  if (insertError) {
+    throw new Error(`Self-heal failed: could not insert intake: ${insertError.message}`)
+  }
+
+  const { error: bypassError } = await supabase.rpc("e2e_reset_intake_status", {
+    p_intake_id: INTAKE_ID,
+    p_status: "paid",
+  })
+  if (bypassError) {
+    throw new Error(
+      `Self-heal failed: could not bypass-transition intake to paid: ${bypassError.message}`,
+    )
   }
 }
 
