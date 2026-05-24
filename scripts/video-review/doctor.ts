@@ -97,25 +97,47 @@ async function checkAnthropic(): Promise<CheckResult> {
     }
   }
   try {
-    const { text } = await generateText({
-      model: anthropic("claude-opus-4-7"),
-      messages: [{ role: "user", content: "Reply with only the word OK." }],
-      maxOutputTokens: 16,
-      maxRetries: 1,
-      // temperature intentionally omitted - claude-opus-4-7 deprecated it
-    })
-    if (!text.trim()) {
-      return {
-        name: "Anthropic API key + model",
-        ok: false,
-        detail: "API key works but model returned empty text.",
-        fix: "Check claude-opus-4-7 is still available at https://docs.anthropic.com/en/docs/about-claude/models",
+    // Probe a fallback chain so the doctor can distinguish three failure
+    // modes:
+    //   - All models fail → the key itself is broken or has no access.
+    //   - Some work, some don't → the key has tier-restricted access;
+    //     surface which models ARE available so the operator can pick one.
+    //   - First works → key + latest model both fine.
+    const probeChain = [
+      "claude-opus-4-7",
+      "claude-opus-4-6",
+      "claude-opus-4-5",
+      "claude-sonnet-4-6",
+      "claude-sonnet-4-5",
+      "claude-haiku-4-5",
+    ] as const
+    let lastErr: Error | undefined
+    for (const modelId of probeChain) {
+      try {
+        const { text } = await generateText({
+          model: anthropic(modelId),
+          messages: [{ role: "user", content: "Reply with only the word OK." }],
+          maxOutputTokens: 16,
+          maxRetries: 0,
+          // temperature intentionally omitted - claude-opus-4-7 deprecated it
+        })
+        if (text.trim()) {
+          const ahead = probeChain.indexOf(modelId)
+          const detail =
+            ahead === 0
+              ? `${modelId} responded (${text.length} chars).`
+              : `${modelId} responded (${text.length} chars). NOTE: ${ahead} newer model(s) failed — key may be tier-restricted. Newer: ${probeChain.slice(0, ahead).join(", ")}.`
+          return { name: "Anthropic API key + model", ok: true, detail }
+        }
+      } catch (err) {
+        lastErr = err instanceof Error ? err : new Error(String(err))
       }
     }
     return {
       name: "Anthropic API key + model",
-      ok: true,
-      detail: `claude-opus-4-7 responded (${text.length} chars).`,
+      ok: false,
+      detail: `All ${probeChain.length} model probes failed. Last error: ${lastErr?.message.slice(0, 150) ?? "unknown"}`,
+      fix: "Key has no model access on any tested model. Verify at https://console.anthropic.com → API keys (check the key has not been disabled) and Workspaces (check the workspace has billing + a paid plan).",
     }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
