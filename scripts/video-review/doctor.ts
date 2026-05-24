@@ -23,13 +23,17 @@ import { existsSync, statfsSync } from "node:fs"
 import { homedir } from "node:os"
 import { join } from "node:path"
 
-import { anthropic } from "@ai-sdk/anthropic"
+import { createAnthropic } from "@ai-sdk/anthropic"
 import { GoogleGenAI } from "@google/genai"
 import { generateText } from "ai"
 
 const DEFAULT_URL = "https://instantmed.com.au"
 const REVIEWS_ROOT = "docs/reviews"
 const MIN_FREE_BYTES = 100 * 1024 * 1024
+// Pin baseURL so a leaked ANTHROPIC_BASE_URL env var (Claude Code's
+// shell sets it to `https://api.anthropic.com` without /v1) cannot
+// misroute SDK calls. See lib/ai/provider.ts + CLAUDE.md gotcha.
+const ANTHROPIC_BASE_URL = "https://api.anthropic.com/v1"
 
 interface CheckResult {
   name: string
@@ -111,6 +115,10 @@ async function checkAnthropic(): Promise<CheckResult> {
       "claude-sonnet-4-5",
       "claude-haiku-4-5",
     ] as const
+    const anthropic = createAnthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+      baseURL: ANTHROPIC_BASE_URL,
+    })
     let lastErr: Error | undefined
     for (const modelId of probeChain) {
       try {
