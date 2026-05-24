@@ -60,6 +60,18 @@ function calculateSignedDays(startDate: string, endDate: string): number {
   return dayDiff(startDate, endDate)
 }
 
+// Test-only exports. Internal helpers are deliberately private to the
+// module but the AEST/UTC drift class is subtle enough that a contract
+// test is the only sane way to guarantee it stays correct. Do NOT import
+// these from production code — use evaluateSafety / evaluateSafetyWithAdditionalInfo
+// or whatever the appropriate public entry point is.
+export const __testOnly = {
+  calculateDurationDays,
+  calculateSignedDays,
+  dayDiff,
+  resolveAEST,
+}
+
 function calculateAge(dateOfBirth: string): number {
   const today = new Date()
   const birth = new Date(dateOfBirth)

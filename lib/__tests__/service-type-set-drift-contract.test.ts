@@ -20,6 +20,7 @@
  */
 import { describe, expect, it } from "vitest"
 
+import { buildDoctorQueueServiceFilter } from "@/lib/doctor/queue-capability-scope"
 import {
   getParchmentPatientSyncEligibility,
   getParchmentPrescribingEligibility,
@@ -182,6 +183,96 @@ describe("service-type Set drift contract", () => {
       }
     })
   })
+
+  // ── buildDoctorQueueServiceFilter ─────────────────────────────────────────
+  //
+  // The queue filter operates on the `services` table's `service_type`
+  // ENUM (db values: "med_certs", "common_scripts", "consults", etc.),
+  // NOT the UnifiedServiceType URL values. Different namespace — same
+  // bug class would still hurt: an unrecognised type string means doctors
+  // see an empty queue. Pin the behaviour through the public API.
+  describe("buildDoctorQueueServiceFilter", () => {
+    const adminProfile = { role: "admin" as const }
+    const doctorProfileAllCapabilities = {
+      role: "doctor" as const,
+      can_review_med_certs: true,
+      can_review_repeat_rx: true,
+      can_review_consults: true,
+      can_review_ed: true,
+      can_review_hair_loss: true,
+    }
+    const services = [
+      { id: "11111111-1111-1111-1111-111111111111", type: "med_certs" },
+      { id: "22222222-2222-2222-2222-222222222222", type: "common_scripts" },
+      { id: "33333333-3333-3333-3333-333333333333", type: "consults" },
+    ]
+
+    it("returns null for admins (admins see all services)", () => {
+      expect(buildDoctorQueueServiceFilter(adminProfile, services)).toBeNull()
+    })
+
+    it("includes the med_cert service id when the doctor has review_med_certs", () => {
+      const filter = buildDoctorQueueServiceFilter(doctorProfileAllCapabilities, services)
+      expect(filter).toContain("11111111-1111-1111-1111-111111111111")
+    })
+
+    it("includes the consult service id when the doctor has any consult capability", () => {
+      const filter = buildDoctorQueueServiceFilter(doctorProfileAllCapabilities, services)
+      expect(filter).toContain("33333333-3333-3333-3333-333333333333")
+    })
+
+    it("includes the common_scripts service id when the doctor has review_repeat_rx", () => {
+      const filter = buildDoctorQueueServiceFilter(doctorProfileAllCapabilities, services)
+      expect(filter).toContain("22222222-2222-2222-2222-222222222222")
+    })
+
+    it("returns the empty-result sentinel when the doctor has zero capabilities", () => {
+      // Doctor capabilities default to true unless explicitly set false
+      // (per CLAUDE.md "All default true except can_prescribe_s8"). To
+      // simulate a freshly-hired doctor with no verified service lines,
+      // every clinical flag must be explicitly false.
+      const profile = {
+        role: "doctor" as const,
+        can_review_med_certs: false,
+        can_review_repeat_rx: false,
+        can_review_consults: false,
+        can_review_ed: false,
+        can_review_hair_loss: false,
+      }
+      const filter = buildDoctorQueueServiceFilter(profile, services)
+      expect(filter).toBe("id.is.null")
+    })
+  })
+
+  // ── Audit inventory: other service-type Sets in the codebase ──────────────
+  //
+  // The 2026-05-24 audit found these other Sets that gate behaviour on
+  // service-type / category / subtype strings. Each is either covered by
+  // the tests above, OR is in a server-only module that can't be unit
+  // tested without restructuring, OR is display-surface code where drift
+  // shows up as a generic "request" label instead of breaking a flow.
+  //
+  // When extending coverage:
+  // - Move display-surface gates here once they have a pure helper to test
+  // - For server-only modules, extract the predicate into a non-server module
+  //   and test the predicate, OR add a `__testOnly` export and import it here
+  //
+  //   lib/doctor/renewal-detection.ts                PRESCRIPTION_SERVICE_TYPES
+  //                                                  (server-only — covered by
+  //                                                  the existing repeat-rx
+  //                                                  gates indirectly; if
+  //                                                  ever extracted, add here)
+  //   lib/email/send-status.ts                       formatRequestType (display)
+  //   lib/notifications/paid-request-telegram.ts     category aliases (display)
+  //   lib/parchment/fulfilment-dashboard.ts          row.category === "prescription"
+  //                                                  (single check, low drift
+  //                                                  risk; display dashboard)
+  //   app/doctor/queue/actions.ts                    getScriptCompletionRequestType
+  //                                                  (covered indirectly by the
+  //                                                  Parchment tests above)
+  //   lib/auth/staff-capabilities.ts                 describeServiceCapability
+  //                                                  (display — falls through to
+  //                                                  "this service" which is fine)
 
   // ── Drift sentinel ────────────────────────────────────────────────────────
   //
