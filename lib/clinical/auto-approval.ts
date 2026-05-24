@@ -177,11 +177,40 @@ export function extractSymptomText(answers: Record<string, unknown> | null): str
 }
 
 /**
- * Check if text contains any keywords from a list (case-insensitive).
+ * Check if text contains any keywords from a list (case-insensitive,
+ * word-boundary aware).
+ *
+ * Substring matching was producing aggressive false positives that pushed
+ * legitimately auto-approvable intakes into manual review (and delayed
+ * revenue):
+ *   - "burns" matched "sunburns" (a common cold-symptom phrasing)
+ *   - "chronic" matched "not chronic, first time" (patient explicitly
+ *     ruling it out)
+ *   - "maternity" matched "on maternity leave already, just sick today"
+ *     (patient is not pregnant, just stating their employment status)
+ *   - "surgery" matched "had minor surgery last week, feeling unwell from
+ *     recovery" (the surgery itself is past, this is a cold today)
+ *
+ * Word-boundary regex (`\b...\b`) restores the original intent: match the
+ * keyword as a discrete word, not as a substring inside another word. The
+ * "not chronic" / "feeling unwell post-surgery" false-positives still
+ * trigger because the keyword IS present as a word — those require
+ * negation handling at the rule level, not at the matcher level. Out of
+ * scope here; tracked separately.
  */
+const KEYWORD_BOUNDARY_CACHE = new Map<string, RegExp>()
+function keywordBoundaryRegex(keyword: string): RegExp {
+  const cached = KEYWORD_BOUNDARY_CACHE.get(keyword)
+  if (cached) return cached
+  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  const re = new RegExp(`\\b${escaped}\\b`, "i")
+  KEYWORD_BOUNDARY_CACHE.set(keyword, re)
+  return re
+}
+
 function containsKeywords(text: string, keywords: ReadonlyArray<string>): string[] {
-  const lower = text.toLowerCase()
-  return keywords.filter(keyword => lower.includes(keyword))
+  if (!text) return []
+  return keywords.filter(keyword => keywordBoundaryRegex(keyword).test(text))
 }
 
 /**

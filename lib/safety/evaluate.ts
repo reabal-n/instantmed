@@ -19,22 +19,45 @@ function calculateBMI(weight: number, heightCm: number): number {
   return weight / (heightM * heightM)
 }
 
+// Resolve 'today' or 'YYYY-MM-DD' to a calendar date in AEST. The
+// application uses AEST for every 'today' definition; UTC interpretation
+// produces off-by-one errors at AEST 00:00-09:59 (= UTC 14:00-23:59) where
+// the two timezones disagree on the calendar day. Returns null for
+// unparseable input.
+function resolveAEST(dateStr: string): { y: number; m: number; d: number } | null {
+  const source =
+    dateStr === 'today'
+      ? new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Sydney" })
+      : dateStr
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(source)
+  if (!match) return null
+  return { y: Number(match[1]), m: Number(match[2]) - 1, d: Number(match[3]) }
+}
+
+// Calendar-day difference (b - a) in whole days, AEST-anchored, no rounding
+// drift. Both inputs are 'today' or 'YYYY-MM-DD'.
+function dayDiff(a: string, b: string): number {
+  const aResolved = resolveAEST(a)
+  const bResolved = resolveAEST(b)
+  if (!aResolved || !bResolved) return 0
+  // Use Date.UTC for the day arithmetic. Both points are pinned at the
+  // same UTC anchor so DST and timezone offsets cannot drift the result.
+  const aMs = Date.UTC(aResolved.y, aResolved.m, aResolved.d)
+  const bMs = Date.UTC(bResolved.y, bResolved.m, bResolved.d)
+  return Math.round((bMs - aMs) / (1000 * 60 * 60 * 24))
+}
+
 function calculateDurationDays(startDate: string, endDate: string): number {
-  const start = new Date(startDate)
-  const end = endDate === 'today' ? new Date() : new Date(endDate)
-  const diffTime = Math.abs(end.getTime() - start.getTime())
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  return Math.abs(dayDiff(startDate, endDate))
 }
 
 /**
- * AUDIT FIX: Signed day difference (end - start) without Math.abs().
- * Positive = end is after start. Used to detect future-dated certificates.
+ * Signed day difference (end - start) without Math.abs(). Positive = end is
+ * after start. Used to detect future-dated certificates and date-ordering
+ * rules. AEST-anchored via resolveAEST (see comment above).
  */
 function calculateSignedDays(startDate: string, endDate: string): number {
-  const start = startDate === 'today' ? new Date() : new Date(startDate)
-  const end = endDate === 'today' ? new Date() : new Date(endDate)
-  const diffTime = end.getTime() - start.getTime()
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  return dayDiff(startDate, endDate)
 }
 
 function calculateAge(dateOfBirth: string): number {
