@@ -8,7 +8,10 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['lib/__tests__/**/*.test.{ts,tsx}'],
+    include: [
+      'lib/__tests__/**/*.test.{ts,tsx}',
+      'scripts/video-review/__tests__/**/*.test.ts',
+    ],
     setupFiles: ['./lib/__tests__/setup.ts'],
     // Zod 4's `export { z }` re-export pattern breaks under vitest's
     // module transformation - force vitest to use the CJS entry instead.

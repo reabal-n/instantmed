@@ -10,7 +10,6 @@ import { readdir, readFile, stat, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 
 const REVIEWS_DIR = "docs/reviews"
-const INDEX_PATH = join(REVIEWS_DIR, "INDEX.md")
 
 interface RunEntry {
   runId: string
@@ -74,7 +73,7 @@ Auto-maintained by \`scripts/video-review/index-update.ts\`. Edit nothing here b
 ${rows}
 `
 
-  await writeFile(INDEX_PATH, indexMarkdown, "utf8")
+  await writeFile(join(reviewsDir, "INDEX.md"), indexMarkdown, "utf8")
 }
 
 function parseFrontmatter(body: string, fallbackRunId: string): RunEntry | null {
@@ -100,7 +99,7 @@ function parseFrontmatter(body: string, fallbackRunId: string): RunEntry | null 
 if (import.meta.url === `file://${process.argv[1]}`) {
   updateIndex().then(
     () => {
-      console.log(`Updated ${INDEX_PATH}`)
+      console.log(`Updated ${join(REVIEWS_DIR, "INDEX.md")}`)
     },
     (err: unknown) => {
       console.error(err)

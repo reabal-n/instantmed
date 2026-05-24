@@ -1,19 +1,29 @@
 /**
  * Stage 1: Playwright screencast capture.
  *
- * Records a webm video of the journey at mobile viewport (375x812),
- * touch-capable browser context. Also extracts ~8 representative
- * still frames from the video for the final report's embed images.
+ * Hardening:
+ *   - Browser lifecycle wrapped in try/finally so a thrown journey
+ *     cannot leave a headless Chromium process on the runner.
+ *   - SIGINT/SIGTERM handlers installed for the duration of the
+ *     capture so Ctrl-C cleans up the browser too.
+ *   - Captured video validated post-run: file must exist AND exceed
+ *     a minimum size to catch silent journey failures (Playwright
+ *     does emit a tiny webm even when nothing renders).
+ *   - Per-screenshot timeout cap so a hung snapshot does not stall
+ *     the journey.
  *
- * Returns the absolute path to the .webm and the frames directory.
+ * Records a webm at mobile viewport (375x812), touch-capable, and
+ * extracts ~8 representative still frames during the journey.
  */
 
-import { mkdir, readdir, rename } from "node:fs/promises"
+import { mkdir, readdir, rename, stat } from "node:fs/promises"
 import { join, resolve } from "node:path"
 
-import { chromium } from "playwright"
+import { chromium, type Browser } from "playwright"
 
 import type { Journey } from "./journeys"
+
+const MIN_VIDEO_BYTES = 50 * 1024
 
 export interface CaptureResult {
   videoPath: string
@@ -32,39 +42,69 @@ export async function capture(opts: CaptureOptions): Promise<CaptureResult> {
   const framesDir = join(outDir, "frames")
   await mkdir(framesDir, { recursive: true })
 
-  const browser = await chromium.launch({
-    headless: true,
-    args: ["--disable-blink-features=AutomationControlled"],
-  })
+  let browser: Browser | undefined
+  const cleanup = async (): Promise<void> => {
+    if (browser) {
+      try {
+        await browser.close()
+      } catch {
+        // browser may already be gone
+      }
+      browser = undefined
+    }
+  }
 
-  const context = await browser.newContext({
-    viewport: { width: 375, height: 812 },
-    deviceScaleFactor: 3,
-    isMobile: true,
-    hasTouch: true,
-    locale: "en-AU",
-    timezoneId: "Australia/Sydney",
-    userAgent:
-      "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
-    recordVideo: {
-      dir: outDir,
-      size: { width: 375, height: 812 },
-    },
-  })
+  const signalHandler = (): void => {
+    console.warn("[capture] received signal, closing browser...")
+    void cleanup().finally(() => process.exit(130))
+  }
+  process.once("SIGINT", signalHandler)
+  process.once("SIGTERM", signalHandler)
 
-  const page = await context.newPage()
   const startedAt = Date.now()
-
-  const frameInterval = Math.max(4000, Math.floor((journey.targetSeconds * 1000) / 8))
-  const stopFrameLoop = scheduleFrameCaptures(page, framesDir, frameInterval)
+  let stopFrameLoop: (() => void) | undefined
 
   try {
-    await journey.run(page, baseUrl)
+    browser = await chromium.launch({
+      headless: true,
+      args: ["--disable-blink-features=AutomationControlled"],
+    })
+
+    const context = await browser.newContext({
+      viewport: { width: 375, height: 812 },
+      deviceScaleFactor: 3,
+      isMobile: true,
+      hasTouch: true,
+      locale: "en-AU",
+      timezoneId: "Australia/Sydney",
+      userAgent:
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+      recordVideo: {
+        dir: outDir,
+        size: { width: 375, height: 812 },
+      },
+    })
+
+    const page = await context.newPage()
+    page.setDefaultTimeout(30_000)
+    page.setDefaultNavigationTimeout(30_000)
+
+    const frameInterval = Math.max(4000, Math.floor((journey.targetSeconds * 1000) / 8))
+    stopFrameLoop = scheduleFrameCaptures(page, framesDir, frameInterval)
+
+    try {
+      await journey.run(page, baseUrl)
+    } finally {
+      stopFrameLoop()
+      stopFrameLoop = undefined
+      await page.close().catch(() => {})
+      await context.close().catch(() => {})
+    }
   } finally {
-    stopFrameLoop()
-    await page.close()
-    await context.close()
-    await browser.close()
+    if (stopFrameLoop) stopFrameLoop()
+    process.off("SIGINT", signalHandler)
+    process.off("SIGTERM", signalHandler)
+    await cleanup()
   }
 
   const durationSeconds = (Date.now() - startedAt) / 1000
@@ -78,19 +118,26 @@ export async function capture(opts: CaptureOptions): Promise<CaptureResult> {
   if (videoFiles.length > 1) {
     videoFiles.sort()
   }
+  const firstVideo = videoFiles[0]!
   const finalVideoPath = resolve(outDir, "capture.webm")
-  await rename(join(outDir, videoFiles[0]!), finalVideoPath)
+  await rename(join(outDir, firstVideo), finalVideoPath)
+
+  const info = await stat(finalVideoPath)
+  if (info.size < MIN_VIDEO_BYTES) {
+    throw new Error(
+      `Capture produced a ${info.size}-byte video (< ${MIN_VIDEO_BYTES} threshold). ` +
+        `The journey likely failed before any content rendered. Inspect ${finalVideoPath}.`,
+    )
+  }
 
   return { videoPath: finalVideoPath, framesDir, durationSeconds }
 }
 
 /**
- * Snapshots a PNG every `intervalMs` while the journey runs. The
- * returned `stop` cancels the loop without throwing on the in-flight
- * screenshot.
- *
- * Note: page.screenshot during navigation throws "Target closed".
- * We swallow those — the loop is best-effort, not strict.
+ * Snapshots a PNG every `intervalMs` while the journey runs. Each
+ * screenshot has a 5s individual timeout so a hung paint cannot stall
+ * the next frame. Errors are swallowed: this loop is best-effort, the
+ * webm is the source of truth.
  */
 function scheduleFrameCaptures(
   page: import("playwright").Page,
@@ -101,7 +148,7 @@ function scheduleFrameCaptures(
   let frameNumber = 0
   const start = Date.now()
 
-  const loop = async () => {
+  const loop = async (): Promise<void> => {
     while (!cancelled) {
       await new Promise((r) => setTimeout(r, intervalMs))
       if (cancelled) break
@@ -115,7 +162,7 @@ function scheduleFrameCaptures(
           timeout: 5000,
         })
       } catch {
-        // Page closed mid-screenshot or transition mid-flight. Skip and continue.
+        // page closed / mid-transition / target lost. Skip.
       }
     }
   }
