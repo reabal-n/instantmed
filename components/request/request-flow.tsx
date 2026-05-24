@@ -630,8 +630,34 @@ export function RequestFlow({
 
     syncPrimaryAction()
 
+    // Performance: this observer is the single biggest contributor to
+    // the /request route's mobile Lighthouse Total Blocking Time (~100ms
+    // hot loop, was over budget at 301ms vs 200ms target). The mobile
+    // primary-action bar only renders on viewports below sm: (640px),
+    // and only the step content's primary action button needs to be
+    // tracked — not the whole document.
+    //
+    // Two scoping reductions:
+    //   1. Skip the observer entirely on desktop where the bar doesn't
+    //      render. Saves the whole DOM-watch on the majority of
+    //      sessions.
+    //   2. On mobile, narrow the target from document.body to the
+    //      step content container (contentRef). Cuts the surface area
+    //      that fires the callback by orders of magnitude — framer-
+    //      motion frames in the sticky CTA, nav button hover states,
+    //      Sentry/PostHog DOM injections etc. no longer trigger
+    //      syncPrimaryAction.
+    const isMobileViewport =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(max-width: 640px)").matches
+    if (!isMobileViewport) {
+      return
+    }
+
+    const observerTarget = contentRef.current ?? document.body
     const observer = new MutationObserver(syncPrimaryAction)
-    observer.observe(document.body, {
+    observer.observe(observerTarget, {
       attributes: true,
       attributeFilter: ["disabled", "data-intake-primary-label"],
       childList: true,
