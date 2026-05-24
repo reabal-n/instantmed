@@ -1,13 +1,22 @@
 /**
- * Stage 3: Claude Opus 4.7 voice-aware synthesis.
+ * Stage 3: Claude voice-aware synthesis.
+ *
+ * Model: claude-sonnet-4-20250514. Matches the existing production
+ * Claude usage in lib/ai/provider.ts (AI_MODEL_CONFIG.clinical). Sonnet
+ * is 5x cheaper than Opus, ~2x faster, and the voice-correction task
+ * (structured JSON → markdown in the InstantMed voice) does not need
+ * Opus-grade reasoning. To switch to Opus later, swap the constant
+ * AND verify the model ID is current on the key's plan.
  *
  * Hardening:
  *   - generateText wrapped in withTimeout (3 min cap) so a hung stream
  *     cannot block the pipeline.
  *   - maxRetries explicitly set on the SDK call.
  *   - Output validated non-empty + minimum length before writing.
- *   - temperature OMITTED per the Opus 4.7 deprecation gotcha. Comment
- *     in source to prevent re-adding.
+ *   - temperature explicitly set to 0.2 - low enough for voice
+ *     consistency, high enough to avoid robotic paraphrase. Sonnet
+ *     accepts temperature without issue (only the 1M-context Opus
+ *     variant deprecated it).
  *
  * Takes the validated Critique JSON and rewrites it as a ranked
  * markdown report in the InstantMed voice. Every sentence is the
@@ -26,7 +35,7 @@ import { withTimeout } from "./retry"
 import type { StructuredCritique } from "./schema"
 import { SYNTHESIZE_SYSTEM_PROMPT } from "./voice-prompt"
 
-const CLAUDE_MODEL = "claude-opus-4-7"
+const CLAUDE_MODEL = "claude-sonnet-4-20250514"
 const SYNTHESIZE_TIMEOUT_MS = 3 * 60_000
 const MIN_REPORT_BYTES = 500
 
@@ -61,7 +70,7 @@ export async function synthesize(opts: SynthesizeOptions): Promise<SynthesizeRes
       messages: [{ role: "user", content: userMessage }],
       maxOutputTokens: 4000,
       maxRetries: 3,
-      // temperature intentionally omitted - claude-opus-4-7 deprecated it
+      temperature: 0.2,
     }),
     SYNTHESIZE_TIMEOUT_MS,
     "Claude generateText",
