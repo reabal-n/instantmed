@@ -2,7 +2,7 @@
  * Video review pipeline orchestrator.
  *
  * Stages: capture (Playwright) -> critique (Gemini 2.5 Pro) ->
- * synthesize (Claude Opus 4.7) -> index update.
+ * synthesize (Claude Sonnet 4) -> index update.
  *
  * Output: docs/reviews/<runId>/{capture.webm, frames/, critique.json, report.md}
  *

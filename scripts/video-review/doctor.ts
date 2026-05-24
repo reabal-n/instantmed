@@ -8,8 +8,8 @@
  *      against `gemini-2.5-pro` (catches expired keys, model removal,
  *      quota issues).
  *   2. ANTHROPIC_API_KEY present + a minimal generateText succeeds
- *      against `claude-opus-4-7` (catches the temperature deprecation
- *      and other 400-class breakage).
+ *      against `claude-sonnet-4-20250514` (catches model-name drift,
+ *      auth failures, plan-restricted models).
  *   3. Playwright chromium installed.
  *   4. Default capture URL returns 2xx.
  *   5. docs/reviews/ has >= 100MB free.
@@ -97,7 +97,7 @@ async function checkAnthropic(): Promise<CheckResult> {
   }
   try {
     const { text } = await generateText({
-      model: anthropic("claude-opus-4-7"),
+      model: anthropic("claude-sonnet-4-20250514"),
       messages: [{ role: "user", content: "Reply with only the word OK." }],
       maxOutputTokens: 16,
       maxRetries: 1,
@@ -107,18 +107,18 @@ async function checkAnthropic(): Promise<CheckResult> {
         name: "Anthropic API key + model",
         ok: false,
         detail: "API key works but model returned empty text.",
-        fix: "Check claude-opus-4-7 is still available at https://docs.anthropic.com/en/docs/about-claude/models",
+        fix: "Check claude-sonnet-4-20250514 is still available at https://docs.anthropic.com/en/docs/about-claude/models",
       }
     }
     return {
       name: "Anthropic API key + model",
       ok: true,
-      detail: `claude-opus-4-7 responded (${text.length} chars).`,
+      detail: `claude-sonnet-4-20250514 responded (${text.length} chars).`,
     }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
-    const fix = msg.toLowerCase().includes("temperature")
-      ? "Remove any 'temperature' arg from synthesize.ts - opus 4.7 deprecated it."
+    const fix = msg.toLowerCase().includes("not found")
+      ? "Either (a) the model name is wrong, or (b) the API key lacks access to any model. If multiple model names all return 'Not Found', check workspace model access at https://console.anthropic.com → Workspaces → Models. New keys created via the console default to no model access until enabled."
       : msg.toLowerCase().includes("api key") || msg.toLowerCase().includes("authentication")
         ? "Rotate at https://console.anthropic.com/settings/keys + update .env.local + Vercel + GitHub secrets."
         : undefined
