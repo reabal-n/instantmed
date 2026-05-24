@@ -1,5 +1,5 @@
 /**
- * Stage 2: Gemini 2.5 Pro video critique.
+ * Stage 2: Gemini 3.5 Flash video critique.
  *
  * Hardening:
  *   - Upload + every Files API op wrapped in withRetry (3 attempts,
@@ -27,7 +27,7 @@ import { buildRubricPrompt, RESPONSE_SCHEMA } from "./rubric"
 import { withRetry, withTimeout } from "./retry"
 import { CritiqueSchema, type StructuredCritique } from "./schema"
 
-const GEMINI_MODEL = "gemini-2.5-pro"
+const GEMINI_MODEL = "gemini-3.5-flash"
 const FILE_POLL_BUDGET_MS = 120_000
 const GENERATE_TIMEOUT_MS = 4 * 60_000
 

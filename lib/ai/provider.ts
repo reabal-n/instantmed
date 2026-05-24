@@ -8,12 +8,13 @@ import { createAnthropic } from "@ai-sdk/anthropic"
  * Uses lazy initialization to avoid build-time errors.
  */
 
-// Model configurations with recommended temperatures
+// Model configurations
+// NOTE: claude-opus-4-7 deprecated the `temperature` param. Do NOT add a
+// temperature key here; the SDK will pass it through and the API will 400.
 export const AI_MODEL_CONFIG = {
   // For medical documentation - requires high accuracy
   clinical: {
-    model: 'claude-sonnet-4-20250514',
-    temperature: 0.1,
+    model: 'claude-opus-4-7',
     maxTokens: 2000,
   },
 } as const
@@ -45,13 +46,16 @@ function getAnthropic() {
 }
 
 /**
- * Get model with specific configuration
+ * Get model with specific configuration.
+ *
+ * Note: `temperature` is intentionally NOT returned. claude-opus-4-7
+ * deprecated the param and rejects requests that include it. Callers
+ * should NOT pass temperature to the SDK; rely on model defaults.
  */
 export function getModelWithConfig(type: AIModelType) {
   const config = AI_MODEL_CONFIG[type]
   return {
     model: getAnthropic()(config.model),
-    temperature: config.temperature,
     maxTokens: config.maxTokens,
   }
 }
