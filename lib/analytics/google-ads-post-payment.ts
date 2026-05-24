@@ -241,6 +241,26 @@ export async function runGoogleAdsPostPaymentAttribution({
   status?: GoogleAdsConversionStatus
   error?: string
 }> {
+  // Operator kill switch. Set GOOGLE_ADS_SERVER_CONVERSION_DISABLED=true
+  // in Vercel env to disable server-side Conversion API uploads entirely.
+  //
+  // When to use: the conversion action that `GOOGLE_ADS_CONVERSION_ACTION_PURCHASE`
+  // points at is the wrong TYPE (INVALID_CONVERSION_ACTION_TYPE errors in
+  // audit_logs), or when GA4 → Ads native attribution is the canonical
+  // source of truth and you don't need the server-side belt-and-braces.
+  //
+  // This kill switch does NOT stop client-side gtag fires (those go via
+  // lib/analytics/conversion-tracking.ts and remain the primary
+  // attribution path for browser-side conversions). It only short-circuits
+  // the server-side Conversion API upload that runs after Stripe webhooks.
+  //
+  // Flip back to false (or unset) once a proper UPLOAD_CLICKS conversion
+  // action exists in Google Ads and GOOGLE_ADS_CONVERSION_ACTION_PURCHASE
+  // points at its numeric ID.
+  if (process.env.GOOGLE_ADS_SERVER_CONVERSION_DISABLED === "true") {
+    return { attempted: false }
+  }
+
   if (!isLikelyGoogleAttributed(row)) return { attempted: false }
 
   const resolvedAmountCents =
