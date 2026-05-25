@@ -25,10 +25,12 @@ import {
 
 const loadingCopy: Partial<Record<string, { title: string; description: string }>> = {
   "certificate-step": {
-    title: "Pick the certificate type",
+    title: "What do you need covered?",
     description: "Pick the certificate type, dates, and duration.",
   },
 }
+
+const persistentIntroSteps = new Set(["certificate-step"])
 
 /**
  * StepLoading — perceived-speed first.
@@ -37,48 +39,62 @@ const loadingCopy: Partial<Record<string, { title: string; description: string }
  * skeleton in the meantime makes a fast form feel slow. The product is
  * called InstantMed — the loading state IS the brand promise.
  *
- * Strategy (paid-funnel review 2026-05-25 fix #3):
- *   1. Render nothing for the first 150ms — if the chunk lands quickly the
- *      user never sees a placeholder at all.
- *   2. After 150ms, fade in a calm low-opacity ghost (no pulse, no hard greys).
- *      Keep per-step copy when we have it so the title doesn't flicker.
+ * Strategy:
+ *   1. Render the step intro immediately. On mobile Lighthouse, hiding this
+ *      copy behind opacity made the real step intro a late LCP candidate.
+ *   2. Delay only the lower placeholder controls for 150ms. Fast chunk loads
+ *      avoid the skeleton flash, while the above-fold copy still paints early.
  */
-function StepLoading({ componentPath }: { componentPath: string }) {
+function StepIntroShell({ componentPath }: { componentPath: string }) {
   const copy = loadingCopy[componentPath]
-  const [revealed, setRevealed] = useState(false)
+
+  if (!copy) {
+    return (
+      <div className="space-y-2">
+        <div className="h-5 w-2/3 rounded-full bg-muted/30" />
+        <div className="h-4 w-full rounded-full bg-muted/20" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-1.5" data-intake-step-intro="true">
+      <h2 className="text-lg font-semibold tracking-tight text-foreground">{copy.title}</h2>
+      <p className="text-sm leading-relaxed text-muted-foreground">{copy.description}</p>
+    </div>
+  )
+}
+
+function StepLoading({
+  componentPath,
+  showIntro = true,
+}: {
+  componentPath: string
+  showIntro?: boolean
+}) {
+  const [showControls, setShowControls] = useState(false)
 
   useEffect(() => {
-    const handle = setTimeout(() => setRevealed(true), 150)
+    const handle = setTimeout(() => setShowControls(true), 150)
     return () => clearTimeout(handle)
   }, [])
 
   return (
     <div
-      className="space-y-4 transition-opacity duration-200 ease-out"
-      style={{ opacity: revealed ? 1 : 0 }}
+      className="space-y-4"
       aria-live="polite"
       aria-busy="true"
     >
-      <div className="space-y-2">
-        {copy ? (
-          <>
-            <p className="text-lg font-semibold text-foreground">{copy.title}</p>
-            <p className="text-sm text-muted-foreground">{copy.description}</p>
-          </>
-        ) : (
-          <>
-            <div className="h-5 w-2/3 rounded-full bg-muted/30" />
-            <div className="h-4 w-full rounded-full bg-muted/20" />
-          </>
-        )}
-      </div>
-      <div className="rounded-2xl border border-border/40 bg-white p-5 shadow-sm shadow-primary/[0.03] dark:bg-card">
-        <div className="space-y-3">
-          <div className="h-11 rounded-xl border border-border/30 bg-muted/20" />
-          <div className="h-11 rounded-xl border border-border/30 bg-muted/15" />
-          <div className="h-11 rounded-xl border border-border/30 bg-muted/10" />
+      {showIntro && <StepIntroShell componentPath={componentPath} />}
+      {showControls && (
+        <div className="rounded-2xl border border-border/40 bg-white p-5 shadow-sm shadow-primary/[0.03] dark:bg-card">
+          <div className="space-y-3">
+            <div className="h-11 rounded-xl border border-border/30 bg-muted/20" />
+            <div className="h-11 rounded-xl border border-border/30 bg-muted/15" />
+            <div className="h-11 rounded-xl border border-border/30 bg-muted/10" />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
@@ -117,6 +133,7 @@ export function StepRouter({
     Component: ComponentType<StepComponentProps>
   } | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
+  const hasPersistentIntro = persistentIntroSteps.has(componentPath)
 
   useEffect(() => {
     let cancelled = false
@@ -156,7 +173,14 @@ export function StepRouter({
   if (!loadedStep || loadedStep.componentPath !== componentPath) {
     return (
       <StepErrorBoundary stepId={currentStepId}>
-        <StepLoading componentPath={componentPath} />
+        {hasPersistentIntro ? (
+          <div className="space-y-4">
+            <StepIntroShell componentPath={componentPath} />
+            <StepLoading componentPath={componentPath} showIntro={false} />
+          </div>
+        ) : (
+          <StepLoading componentPath={componentPath} />
+        )}
       </StepErrorBoundary>
     )
   }
@@ -165,13 +189,27 @@ export function StepRouter({
 
   return (
     <StepErrorBoundary stepId={currentStepId}>
-      <StepComponent
-        serviceType={serviceType}
-        onNext={onNext}
-        onBack={onBack}
-        onComplete={onComplete}
-        initialDuration={initialDuration}
-      />
+      {hasPersistentIntro ? (
+        <div className="space-y-4">
+          <StepIntroShell componentPath={componentPath} />
+          <StepComponent
+            serviceType={serviceType}
+            onNext={onNext}
+            onBack={onBack}
+            onComplete={onComplete}
+            initialDuration={initialDuration}
+            hideIntro
+          />
+        </div>
+      ) : (
+        <StepComponent
+          serviceType={serviceType}
+          onNext={onNext}
+          onBack={onBack}
+          onComplete={onComplete}
+          initialDuration={initialDuration}
+        />
+      )}
     </StepErrorBoundary>
   )
 }

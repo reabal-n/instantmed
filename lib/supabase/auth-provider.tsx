@@ -87,6 +87,31 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
     let subscription: { unsubscribe: () => void } | null = null
     let cancelInteraction: (() => void) | null = null
     let cancelIdleLoad: (() => void) | null = null
+    let cancelSentryUserInteraction: (() => void) | null = null
+    let cancelSentryUserIdle: (() => void) | null = null
+
+    const syncSentryUserContext = (newSession: Session | null) => {
+      cancelSentryUserInteraction?.()
+      cancelSentryUserIdle?.()
+
+      // Keep the Sentry browser bundle off the anonymous /request critical path.
+      // Error capture is initialized from instrumentation-client.ts after user
+      // interaction; this only adds user attribution when telemetry is already
+      // worth paying for.
+      cancelSentryUserInteraction = onFirstInteraction(() => {
+        cancelSentryUserIdle = scheduleIdle(() => {
+          void import('@sentry/nextjs')
+            .then((Sentry) => {
+              if (newSession?.user) {
+                Sentry.setUser({ id: newSession.user.id })
+              } else {
+                Sentry.setUser(null)
+              }
+            })
+            .catch(() => undefined)
+        }, 2500)
+      })
+    }
 
     // E2E bypass: __e2e_auth_role cookie is readable client-side (non-httpOnly).
     // Skip Supabase session check to prevent SIGNED_OUT → router.refresh() redirect chain.
@@ -112,21 +137,7 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
                 router.refresh()
               }
 
-              // Sentry user context. Signed-out clears, signed-in tags
-              // future events with the user id so the next portal error
-              // is attributable. Email + role kept out of the tag set —
-              // role is read server-side in Sentry beforeSend if needed,
-              // and email would expand the user-data fingerprint past
-              // what we want to ship to Sentry per PHI policy.
-              void import('@sentry/nextjs')
-                .then((Sentry) => {
-                  if (newSession?.user) {
-                    Sentry.setUser({ id: newSession.user.id })
-                  } else {
-                    Sentry.setUser(null)
-                  }
-                })
-                .catch(() => undefined)
+              syncSentryUserContext(newSession)
             }
           )
 
@@ -162,6 +173,8 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
       cancelled = true
       cancelInteraction?.()
       cancelIdleLoad?.()
+      cancelSentryUserInteraction?.()
+      cancelSentryUserIdle?.()
       subscription?.unsubscribe()
     }
   }, [router])

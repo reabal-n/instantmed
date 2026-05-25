@@ -8,6 +8,7 @@ export interface StepComponentProps {
   onBack: () => void
   onComplete: () => void
   initialDuration?: string
+  hideIntro?: boolean
 }
 
 const stepLoaders = {

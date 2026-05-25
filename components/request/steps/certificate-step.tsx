@@ -33,6 +33,7 @@ interface CertificateStepProps {
   onBack: () => void
   onComplete: () => void
   initialDuration?: string
+  hideIntro?: boolean
 }
 
 const CERT_TYPES = [
@@ -133,7 +134,7 @@ function summaryLabel(offset: number): string {
 
 // ─── Component ────────────────────────────────────────────────────────────
 
-export default function CertificateStep({ onNext, initialDuration }: CertificateStepProps) {
+export default function CertificateStep({ onNext, initialDuration, hideIntro = false }: CertificateStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
   const initialUrlDurationRef = useRef<Duration | null>(parseDuration(initialDuration))
@@ -311,10 +312,12 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
 
   return (
     <div className="space-y-4">
-      <IntakeStepIntro
-        title="What do you need covered?"
-        description="Pick the certificate type, dates, and duration."
-      />
+      {!hideIntro && (
+        <IntakeStepIntro
+          title="What do you need covered?"
+          description="Pick the certificate type, dates, and duration."
+        />
+      )}
 
       {/* Certificate type */}
       <QuestionCard compact>
