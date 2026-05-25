@@ -1,4 +1,7 @@
-const FIRST_INTERACTION_EVENTS = ["pointerdown", "keydown", "scroll", "touchstart"] as const
+// Keep this to intentional input only. Treating passive scroll as "first
+// interaction" pulls telemetry/replay chunks onto the mobile intake critical
+// path during Lighthouse and during low-intent browsing.
+const FIRST_INTERACTION_EVENTS = ["pointerdown", "keydown", "touchstart"] as const
 
 let hasInteracted = false
 const callbacks = new Set<() => void>()
