@@ -228,8 +228,8 @@ export function WeightLossClient() {
           <section className="px-4 pb-12">
             <div className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-border/50 dark:border-white/15 shadow-lg shadow-primary/[0.06] dark:shadow-none">
               <Image
-                src="/images/consult-1.webp"
-                alt="Patient using their phone for a medical consultation"
+                src="/images/instantmed-photography/consult-1.webp"
+                alt="A patient calmly fills in a secure health form on their phone at a kitchen bench."
                 width={800}
                 height={450}
                 className="w-full h-auto object-cover"

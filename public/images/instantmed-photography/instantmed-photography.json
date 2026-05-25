@@ -1,0 +1,441 @@
+{
+  "generatedAt": "2026-05-25T12:26:52.296Z",
+  "generator": "openai/gpt-image-2",
+  "aiDisclosure": "AI-generated marketing image created with GPT-image-2 for InstantMed. No real patient, child, pharmacist, doctor, certificate, eScript, or practitioner identity is depicted.",
+  "notes": [
+    "Generated humans are synthetic and must not be presented as real patients, testimonials, pharmacists, or practitioners.",
+    "Use static images only. Do not add parallax, auto-zoom, or motion effects.",
+    "Alt text lives beside each asset entry in this manifest."
+  ],
+  "shots": [
+    {
+      "id": "home-1",
+      "filename": "home-1.webp",
+      "title": "Person at home reading their phone",
+      "use": "Reserved for future /home editorial accents and email headers",
+      "scene": "A Sydney apartment bedroom or living room in soft late-morning light. Linen sheets or a couch, a mug of tea on the side table, eucalyptus visible through the window, slightly lived-in but tidy.",
+      "subject": "Australian adult in their late 20s to mid 40s, sitting up in bed or on a couch, phone in hand, tired but calm, mid-glance at the screen.",
+      "mood": "Relief, the moment they realise they do not have to drive anywhere.",
+      "diversity": "Mixed-ethnicity Australian patient, realistic body type.",
+      "alt": "A tired patient sits in soft morning light at home, reading their phone beside a mug of tea.",
+      "aiDisclosure": "AI-generated marketing image created with GPT-image-2 for InstantMed. No real patient, child, pharmacist, doctor, certificate, eScript, or practitioner identity is depicted.",
+      "generator": "openai/gpt-image-2",
+      "sourceSize": "2048x1536",
+      "assets": {
+        "banner16x9": {
+          "path": "/images/instantmed-photography/home-1.webp",
+          "width": 1920,
+          "height": 1080,
+          "bytes": 112656,
+          "quality": 85
+        },
+        "accent4x3": {
+          "path": "/images/instantmed-photography/home-1-4x3.webp",
+          "width": 1600,
+          "height": 1200,
+          "bytes": 109638,
+          "quality": 85
+        },
+        "social1x1": {
+          "path": "/images/instantmed-photography/home-1-1x1.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 89482,
+          "quality": 85
+        },
+        "ogWebp": {
+          "path": "/images/instantmed-photography/home-1-og.webp",
+          "width": 1200,
+          "height": 630,
+          "bytes": 57158,
+          "quality": 85
+        },
+        "ogJpg": {
+          "path": "/images/instantmed-photography/home-1-og.jpg",
+          "width": 1200,
+          "height": 630,
+          "bytes": 76091,
+          "quality": 84
+        }
+      }
+    },
+    {
+      "id": "consult-1",
+      "filename": "consult-1.webp",
+      "title": "Person on a video-free phone consult",
+      "use": "/weight-loss, /consult, and future ad creative",
+      "scene": "A lived-in Australian kitchen bench or dining table with late-morning window light, a coffee or water glass nearby, an AU power outlet subtly visible.",
+      "subject": "Australian adult in their 30s, typing or reading on a phone resting on the bench. Engaged but unhurried. This is asynchronous form completion, not a video call.",
+      "mood": "Considered, answering thoroughly because a real doctor will read it.",
+      "diversity": "Asian-Australian or South Asian-Australian patient, realistic body type.",
+      "alt": "A patient calmly fills in a secure health form on their phone at a kitchen bench.",
+      "criticalConstraints": [
+        "No video-call UI, no doctor on screen, no drug names."
+      ],
+      "aiDisclosure": "AI-generated marketing image created with GPT-image-2 for InstantMed. No real patient, child, pharmacist, doctor, certificate, eScript, or practitioner identity is depicted.",
+      "generator": "openai/gpt-image-2",
+      "sourceSize": "2048x1536",
+      "assets": {
+        "banner16x9": {
+          "path": "/images/instantmed-photography/consult-1.webp",
+          "width": 1920,
+          "height": 1080,
+          "bytes": 113530,
+          "quality": 85
+        },
+        "accent4x3": {
+          "path": "/images/instantmed-photography/consult-1-4x3.webp",
+          "width": 1600,
+          "height": 1200,
+          "bytes": 108106,
+          "quality": 85
+        },
+        "social1x1": {
+          "path": "/images/instantmed-photography/consult-1-1x1.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 86672,
+          "quality": 85
+        },
+        "ogWebp": {
+          "path": "/images/instantmed-photography/consult-1-og.webp",
+          "width": 1200,
+          "height": 630,
+          "bytes": 57780,
+          "quality": 85
+        },
+        "ogJpg": {
+          "path": "/images/instantmed-photography/consult-1-og.jpg",
+          "width": 1200,
+          "height": 630,
+          "bytes": 77478,
+          "quality": 84
+        }
+      }
+    },
+    {
+      "id": "rx-1",
+      "filename": "rx-1.webp",
+      "title": "At a pharmacy counter",
+      "use": "/prescriptions EScript explainer accent",
+      "scene": "An Australian pharmacy counter with generic green-and-white pharmacy shelves in soft focus, understated Healthy Living-style signage, and an indistinct pharmacist shape in the background.",
+      "subject": "Older Australian patient over 55 holding a phone toward the counter. The screen suggests an SMS-style eScript token but contains no real barcode, no QR code, no medication name, and no patient name.",
+      "mood": "Frictionless, they showed their phone and can collect their medication if approved by the doctor.",
+      "diversity": "Older patient over 55, Mediterranean-Australian or Middle Eastern-Australian, realistic body type.",
+      "alt": "An older patient shows a phone at an Australian pharmacy counter while the pharmacist is softly out of focus.",
+      "criticalConstraints": [
+        "No real pharmacy brand logos, no readable prescription drug names, no scannable token."
+      ],
+      "aiDisclosure": "AI-generated marketing image created with GPT-image-2 for InstantMed. No real patient, child, pharmacist, doctor, certificate, eScript, or practitioner identity is depicted.",
+      "generator": "openai/gpt-image-2",
+      "sourceSize": "2048x1536",
+      "assets": {
+        "banner16x9": {
+          "path": "/images/instantmed-photography/rx-1.webp",
+          "width": 1920,
+          "height": 1080,
+          "bytes": 138188,
+          "quality": 85
+        },
+        "accent4x3": {
+          "path": "/images/instantmed-photography/rx-1-4x3.webp",
+          "width": 1600,
+          "height": 1200,
+          "bytes": 128832,
+          "quality": 85
+        },
+        "social1x1": {
+          "path": "/images/instantmed-photography/rx-1-1x1.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 118782,
+          "quality": 85
+        },
+        "ogWebp": {
+          "path": "/images/instantmed-photography/rx-1-og.webp",
+          "width": 1200,
+          "height": 630,
+          "bytes": 58846,
+          "quality": 85
+        },
+        "ogJpg": {
+          "path": "/images/instantmed-photography/rx-1-og.jpg",
+          "width": 1200,
+          "height": 630,
+          "bytes": 69775,
+          "quality": 84
+        }
+      }
+    },
+    {
+      "id": "med-cert-context",
+      "filename": "med-cert-context.webp",
+      "title": "Sick person on a couch with their laptop",
+      "use": "/medical-certificate lifestyle slot and email confirmation",
+      "scene": "A couch in an Australian apartment with soft afternoon daylight through linen curtains, throw blanket, tissue box, glass of water, and a laptop open nearby.",
+      "subject": "Australian adult in their 30s or 40s under a throw blanket, looking unwell but functional. Laptop screen shows a generic document or inbox with a large SPECIMEN watermark only, no names.",
+      "mood": "Honest, genuinely sick and not keen to leave the couch.",
+      "diversity": "First Nations, Pacific Islander, or mixed-ethnicity Australian patient, realistic body type.",
+      "alt": "A sick patient rests on a couch with water and tissues nearby while a laptop sits open beside them.",
+      "criticalConstraints": [
+        "Laptop content must be generic with SPECIMEN only, no realistic certificate text."
+      ],
+      "aiDisclosure": "AI-generated marketing image created with GPT-image-2 for InstantMed. No real patient, child, pharmacist, doctor, certificate, eScript, or practitioner identity is depicted.",
+      "generator": "openai/gpt-image-2",
+      "sourceSize": "2048x1536",
+      "assets": {
+        "banner16x9": {
+          "path": "/images/instantmed-photography/med-cert-context.webp",
+          "width": 1920,
+          "height": 1080,
+          "bytes": 175816,
+          "quality": 82
+        },
+        "accent4x3": {
+          "path": "/images/instantmed-photography/med-cert-context-4x3.webp",
+          "width": 1600,
+          "height": 1200,
+          "bytes": 188794,
+          "quality": 85
+        },
+        "social1x1": {
+          "path": "/images/instantmed-photography/med-cert-context-1x1.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 145648,
+          "quality": 85
+        },
+        "ogWebp": {
+          "path": "/images/instantmed-photography/med-cert-context-og.webp",
+          "width": 1200,
+          "height": 630,
+          "bytes": 96684,
+          "quality": 85
+        },
+        "ogJpg": {
+          "path": "/images/instantmed-photography/med-cert-context-og.jpg",
+          "width": 1200,
+          "height": 630,
+          "bytes": 103690,
+          "quality": 84
+        }
+      }
+    },
+    {
+      "id": "doctor-reviewing",
+      "filename": "doctor-reviewing.webp",
+      "title": "Clinician hands typing on a laptop",
+      "use": "/trust, /clinical-governance, /our-doctors, and /how-it-works",
+      "scene": "Top-down or over-the-shoulder clinical desk in an Australian home office or consulting room, coffee mug, notebook, and a soft out-of-focus Medicare/AHPRA-context notice shape in the background.",
+      "subject": "Clinician hands typing on a laptop, face fully out of frame or obscured. Stethoscope may be present as a small soft background object, never the main prop.",
+      "mood": "Considered, someone is reading the request carefully.",
+      "diversity": "No identifiable face. Hands-only clinician representation.",
+      "alt": "A clinician reviews a request on a laptop, shown only by their hands at a quiet desk.",
+      "criticalConstraints": [
+        "No doctor face, no readable doctor name, no visible patient data, no fake medical registration number."
+      ],
+      "aiDisclosure": "AI-generated marketing image created with GPT-image-2 for InstantMed. No real patient, child, pharmacist, doctor, certificate, eScript, or practitioner identity is depicted.",
+      "generator": "openai/gpt-image-2",
+      "sourceSize": "2048x1536",
+      "assets": {
+        "banner16x9": {
+          "path": "/images/instantmed-photography/doctor-reviewing.webp",
+          "width": 1920,
+          "height": 1080,
+          "bytes": 89838,
+          "quality": 85
+        },
+        "accent4x3": {
+          "path": "/images/instantmed-photography/doctor-reviewing-4x3.webp",
+          "width": 1600,
+          "height": 1200,
+          "bytes": 77972,
+          "quality": 85
+        },
+        "social1x1": {
+          "path": "/images/instantmed-photography/doctor-reviewing-1x1.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 59318,
+          "quality": 85
+        },
+        "ogWebp": {
+          "path": "/images/instantmed-photography/doctor-reviewing-og.webp",
+          "width": 1200,
+          "height": 630,
+          "bytes": 45976,
+          "quality": 85
+        },
+        "ogJpg": {
+          "path": "/images/instantmed-photography/doctor-reviewing-og.jpg",
+          "width": 1200,
+          "height": 630,
+          "bytes": 67142,
+          "quality": 84
+        }
+      }
+    },
+    {
+      "id": "australian-context",
+      "filename": "australian-context.webp",
+      "title": "Wide-shot Australian morning",
+      "use": "/about, /trust, and hero backdrop options",
+      "scene": "A wide environmental shot of an understated Australian morning: a Sydney terrace street or Brisbane apartment balcony view with eucalyptus, warm ivory buildings, soft early light, and no people.",
+      "subject": "Australian place, not a landmark postcard. Residential, quiet, grounded, unmistakably local.",
+      "mood": "Grounded, we are from here.",
+      "diversity": "No people.",
+      "alt": "A quiet Australian residential street in soft morning light with eucalyptus in the background.",
+      "criticalConstraints": [
+        "No people, no tourist postcard composition, no flags, no beach cliché."
+      ],
+      "aiDisclosure": "AI-generated marketing image created with GPT-image-2 for InstantMed. No real patient, child, pharmacist, doctor, certificate, eScript, or practitioner identity is depicted.",
+      "generator": "openai/gpt-image-2",
+      "sourceSize": "2048x1536",
+      "assets": {
+        "banner16x9": {
+          "path": "/images/instantmed-photography/australian-context.webp",
+          "width": 1920,
+          "height": 1080,
+          "bytes": 190206,
+          "quality": 82
+        },
+        "accent4x3": {
+          "path": "/images/instantmed-photography/australian-context-4x3.webp",
+          "width": 1600,
+          "height": 1200,
+          "bytes": 204482,
+          "quality": 85
+        },
+        "social1x1": {
+          "path": "/images/instantmed-photography/australian-context-1x1.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 174202,
+          "quality": 82
+        },
+        "ogWebp": {
+          "path": "/images/instantmed-photography/australian-context-og.webp",
+          "width": 1200,
+          "height": 630,
+          "bytes": 103228,
+          "quality": 85
+        },
+        "ogJpg": {
+          "path": "/images/instantmed-photography/australian-context-og.jpg",
+          "width": 1200,
+          "height": 630,
+          "bytes": 119960,
+          "quality": 84
+        }
+      }
+    },
+    {
+      "id": "phone-cert-detail",
+      "filename": "phone-cert-detail.webp",
+      "title": "Macro phone showing a certificate",
+      "use": "OG images, hero detail shots, and email confirmation",
+      "scene": "Tight macro on a hand holding a phone above a warm wooden surface, shallow depth of field, coffee mug ring or soft linen in the background.",
+      "subject": "Phone screen in sharp focus showing a generic medical certificate PDF preview with a large SPECIMEN watermark and no real name, no real doctor, no valid certificate number, no official seal.",
+      "mood": "Resolved, it is done and in their hand.",
+      "diversity": "Australian patient hand, realistic skin tone and natural fingernails.",
+      "alt": "A hand holds a phone showing a specimen medical certificate preview on a warm wooden table.",
+      "criticalConstraints": [
+        "SPECIMEN watermark required, no scannable code, no real certificate details, no practitioner name."
+      ],
+      "aiDisclosure": "AI-generated marketing image created with GPT-image-2 for InstantMed. No real patient, child, pharmacist, doctor, certificate, eScript, or practitioner identity is depicted.",
+      "generator": "openai/gpt-image-2",
+      "sourceSize": "2048x1536",
+      "assets": {
+        "banner16x9": {
+          "path": "/images/instantmed-photography/phone-cert-detail.webp",
+          "width": 1920,
+          "height": 1080,
+          "bytes": 119244,
+          "quality": 85
+        },
+        "accent4x3": {
+          "path": "/images/instantmed-photography/phone-cert-detail-4x3.webp",
+          "width": 1600,
+          "height": 1200,
+          "bytes": 133794,
+          "quality": 85
+        },
+        "social1x1": {
+          "path": "/images/instantmed-photography/phone-cert-detail-1x1.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 106392,
+          "quality": 85
+        },
+        "ogWebp": {
+          "path": "/images/instantmed-photography/phone-cert-detail-og.webp",
+          "width": 1200,
+          "height": 630,
+          "bytes": 57036,
+          "quality": 85
+        },
+        "ogJpg": {
+          "path": "/images/instantmed-photography/phone-cert-detail-og.jpg",
+          "width": 1200,
+          "height": 630,
+          "bytes": 71959,
+          "quality": 84
+        }
+      }
+    },
+    {
+      "id": "family-context",
+      "filename": "family-context.webp",
+      "title": "Parent and child sick day",
+      "use": "/for/parents, /faq, and future carer's leave content",
+      "scene": "A lived-in Australian living room in soft daylight, couch, linen blanket, child-safe simple interior, phone visible in the parent's hand or on the couch showing only a generic calendar/message shape.",
+      "subject": "Parent on a couch with a child napping with their head on the parent's lap. Parent looks tired but settled, not posing, not looking at camera.",
+      "mood": "Domestic, needing a carer's leave certificate without dragging a sick child to a clinic.",
+      "diversity": "Parent in their 30s or 40s with primary-school-age child, diverse Australian household, realistic body types.",
+      "alt": "A parent sits quietly on a couch while their sick child naps on their lap, with a phone nearby.",
+      "criticalConstraints": [
+        "No distressed child, no visible illness severity, no testimonial-style eye contact."
+      ],
+      "aiDisclosure": "AI-generated marketing image created with GPT-image-2 for InstantMed. No real patient, child, pharmacist, doctor, certificate, eScript, or practitioner identity is depicted.",
+      "generator": "openai/gpt-image-2",
+      "sourceSize": "2048x1536",
+      "assets": {
+        "banner16x9": {
+          "path": "/images/instantmed-photography/family-context.webp",
+          "width": 1920,
+          "height": 1080,
+          "bytes": 173352,
+          "quality": 85
+        },
+        "accent4x3": {
+          "path": "/images/instantmed-photography/family-context-4x3.webp",
+          "width": 1600,
+          "height": 1200,
+          "bytes": 149514,
+          "quality": 85
+        },
+        "social1x1": {
+          "path": "/images/instantmed-photography/family-context-1x1.webp",
+          "width": 1200,
+          "height": 1200,
+          "bytes": 104490,
+          "quality": 85
+        },
+        "ogWebp": {
+          "path": "/images/instantmed-photography/family-context-og.webp",
+          "width": 1200,
+          "height": 630,
+          "bytes": 79920,
+          "quality": 85
+        },
+        "ogJpg": {
+          "path": "/images/instantmed-photography/family-context-og.jpg",
+          "width": 1200,
+          "height": 630,
+          "bytes": 91686,
+          "quality": 84
+        }
+      }
+    }
+  ]
+}

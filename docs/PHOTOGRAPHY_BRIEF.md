@@ -78,7 +78,7 @@ Each shot should be deliverable in two crops: **16:9 (1920×1080)** for hero/ban
 - **Color profile:** sRGB
 - **DPI:** 72ppi on web, but capture at 300ppi originals
 - **Quality target:** 85 (WebP), preserve detail in shadows
-- **File naming:** Match existing `/public/images/*.webp` convention
+- **File naming:** Store the final set under `/public/images/instantmed-photography/` with each base filename plus `-4x3`, `-1x1`, and `-og` variants.
 
 ## Color & light direction
 
@@ -119,7 +119,7 @@ The Australian audience is genuinely diverse. Across the 8 shots, represent:
 
 ## Acceptance criteria
 
-Before swapping any image into `public/images/`:
+Before swapping any image into `public/images/instantmed-photography/`:
 - [ ] Australian context legible (window foliage, power outlet, signage, etc.)
 - [ ] No "stock photo" feel (no posed eye contact, no overlit white)
 - [ ] Morning Canvas palette honored (warm light, no cool-blue dominance)
@@ -144,7 +144,7 @@ When generating images with GPT-image or similar, use this standing prompt as a 
 >
 > *Scene:* [insert scene clause from the shot list above]
 
-After generation, run a curation pass against the §Acceptance criteria checklist before any image is committed to `public/images/`. Discard anything that fails even one criterion; iteration is cheaper than a stock-photo-feel hero in production.
+After generation, run a curation pass against the §Acceptance criteria checklist before any image is committed to `public/images/instantmed-photography/`. Discard anything that fails even one criterion; iteration is cheaper than a stock-photo-feel hero in production.
 
 ---
 

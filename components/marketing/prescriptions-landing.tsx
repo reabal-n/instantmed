@@ -376,8 +376,8 @@ export function PrescriptionsLanding() {
           <div className="bg-muted/30 dark:bg-white/[0.02]">
             <EScriptExplainerSection
               accentImage={{
-                src: "/images/rx-1.webp",
-                alt: "Picking up a prescription at a pharmacy counter",
+                src: "/images/instantmed-photography/rx-1.webp",
+                alt: "An older patient shows a phone at an Australian pharmacy counter while the pharmacist is softly out of focus.",
               }}
             />
           </div>
