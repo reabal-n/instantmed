@@ -23,6 +23,10 @@ const AUTH_IMMEDIATE_PATH_PREFIXES = [
 // the gain is no auth flicker on the homepage / service pages. Anonymous
 // users hit the same call but the provider resolves to `isLoaded=true`
 // with `user=null` and the nav settles on "Log in".
+//
+// /request is intentionally excluded. The server component already resolves
+// the cookie-backed user/profile for intake prefill, and loading the Supabase
+// browser client during hydration adds a mobile TBT long task to the paid flow.
 const AUTH_IMMEDIATE_ROOT_PATHS = new Set([
   '/',
   '/medical-certificate',
@@ -33,7 +37,6 @@ const AUTH_IMMEDIATE_ROOT_PATHS = new Set([
   '/about',
   '/pricing',
   '/contact',
-  '/request',
 ])
 
 function shouldLoadAuthImmediately(pathname: string) {
