@@ -196,7 +196,7 @@ describe("checkout operating hours", () => {
       answers: {},
       category: "consult",
       idempotencyKey: "test-idempotency-key",
-      subtype: "general",
+      subtype: "ed",
       type: "consult",
     })
 
@@ -221,7 +221,7 @@ describe("checkout operating hours", () => {
       },
       category: "consult",
       idempotencyKey: "test-idempotency-key",
-      subtype: "general",
+      subtype: "ed",
       type: "consult",
     })
 

@@ -30,11 +30,35 @@ const loadingCopy: Partial<Record<string, { title: string; description: string }
   },
 }
 
+/**
+ * StepLoading — perceived-speed first.
+ *
+ * Most step chunks resolve in well under 150ms, so flashing a pulsing grey
+ * skeleton in the meantime makes a fast form feel slow. The product is
+ * called InstantMed — the loading state IS the brand promise.
+ *
+ * Strategy (paid-funnel review 2026-05-25 fix #3):
+ *   1. Render nothing for the first 150ms — if the chunk lands quickly the
+ *      user never sees a placeholder at all.
+ *   2. After 150ms, fade in a calm low-opacity ghost (no pulse, no hard greys).
+ *      Keep per-step copy when we have it so the title doesn't flicker.
+ */
 function StepLoading({ componentPath }: { componentPath: string }) {
   const copy = loadingCopy[componentPath]
+  const [revealed, setRevealed] = useState(false)
+
+  useEffect(() => {
+    const handle = setTimeout(() => setRevealed(true), 150)
+    return () => clearTimeout(handle)
+  }, [])
 
   return (
-    <div className="space-y-4" aria-live="polite" aria-busy="true">
+    <div
+      className="space-y-4 transition-opacity duration-200 ease-out"
+      style={{ opacity: revealed ? 1 : 0 }}
+      aria-live="polite"
+      aria-busy="true"
+    >
       <div className="space-y-2">
         {copy ? (
           <>
@@ -43,16 +67,16 @@ function StepLoading({ componentPath }: { componentPath: string }) {
           </>
         ) : (
           <>
-            <div className="h-5 w-2/3 rounded-full bg-muted" />
-            <div className="h-4 w-full rounded-full bg-muted/70" />
+            <div className="h-5 w-2/3 rounded-full bg-muted/30" />
+            <div className="h-4 w-full rounded-full bg-muted/20" />
           </>
         )}
       </div>
-      <div className="rounded-2xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] dark:bg-card">
+      <div className="rounded-2xl border border-border/40 bg-white p-5 shadow-sm shadow-primary/[0.03] dark:bg-card">
         <div className="space-y-3">
-          <div className="h-11 rounded-xl bg-muted/70" />
-          <div className="h-11 rounded-xl bg-muted/60" />
-          <div className="h-11 rounded-xl bg-muted/50" />
+          <div className="h-11 rounded-xl border border-border/30 bg-muted/20" />
+          <div className="h-11 rounded-xl border border-border/30 bg-muted/15" />
+          <div className="h-11 rounded-xl border border-border/30 bg-muted/10" />
         </div>
       </div>
     </div>

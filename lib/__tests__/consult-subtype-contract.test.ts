@@ -68,19 +68,15 @@ describe("consult subtype contract", () => {
     }
   })
 
-  it("rejects legacy or unknown consult subtypes before falling back to general consult validation", () => {
+  it("rejects legacy or unknown consult subtypes — no fallback flow exists after the 2026-05-20 general consult retirement", () => {
     expect(normalizeConsultSubtypeParam("womens-health")).toBe("womens_health")
     expect(normalizeConsultSubtypeParam("womens_health_uti")).toBeUndefined()
 
     expect(
       validateAnswersServerSide("consult", {
         consultSubtype: "womens_health_uti",
-        consultCategory: "general",
-        consultDetails: "I need help with a general health concern that is not listed.",
-        consultUrgency: "routine",
-        general_associated_symptoms: ["none"],
         ...sharedMedicalHistory,
       }, identity),
-    ).toContain("Unknown consultation type")
+    ).toContain("Please choose a consultation type")
   })
 })

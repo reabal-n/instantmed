@@ -109,12 +109,17 @@ html {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   overflow-x: hidden;
+  /* Paint warm ivory at the document level so the very first frame is
+     never plain white. Without this the body bg only applies after the
+     stylesheet hydrates, which was visible enough for Gemini's video-review
+     rubric to flag as a "3s white flash on load" (2026-05-25 /consult review). */
+  background: #F8F7F4;
 }
 
 body {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  /* Warm ivory prevents white flash before MeshGradientCanvas hydrates (ssr: false) */
+  /* Mirror html so any per-element opacity/transform still composites onto ivory. */
   background: #F8F7F4;
 }
 

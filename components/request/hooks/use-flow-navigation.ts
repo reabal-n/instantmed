@@ -37,7 +37,6 @@ const SAFETY_PRE_CHECK_STEPS = new Set([
   'medical-history',        // shared: after medical history (catches drug interactions)
   'ed-health',              // ED consult: after health screening (nitrates, cardiac)
   'weight-loss-assessment', // Weight loss: after BMI/screening
-  'consult-reason',         // General consult: after describing concern
 ])
 
 interface PostHogLike {

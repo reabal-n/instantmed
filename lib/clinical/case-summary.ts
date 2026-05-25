@@ -1,6 +1,5 @@
 import {
   validateEdConsult,
-  validateGeneralConsult,
   validateHairLossConsult,
 } from "@/lib/clinical/consult-validators"
 import { isControlledSubstance } from "@/lib/clinical/intake-validation"
@@ -99,11 +98,6 @@ function isAffirmative(value: unknown): boolean {
 
 function answerYes(answers: Answers, key: string): boolean {
   return isAffirmative(raw(answers, key))
-}
-
-function stringArray(answers: Answers, key: string): string[] {
-  const value = raw(answers, key)
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : []
 }
 
 function yesNo(value: unknown): string {
@@ -538,121 +532,56 @@ function medCertSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   }
 }
 
-const GENERAL_EMERGENCY_SYMPTOMS = new Set([
-  "chest_pain",
-  "difficulty_breathing",
-  "sudden_weakness",
-  "severe_headache",
-  "suicidal_thoughts",
-  "self_harm",
-])
-
-function generalSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
+/**
+ * Fallback summary for consult intakes that don't have a specialty handler.
+ * Covers three cases:
+ *   1. Legacy `subtype = 'general'` rows from before the 2026-05-20 retirement
+ *      (operator should still be able to view them in the case detail page).
+ *   2. The gated `womens_health` / `weight_loss` subtypes if they somehow
+ *      reach a doctor before their dedicated summaries are built.
+ *   3. Any future consult subtype added to the URL layer before its summary
+ *      is wired up.
+ * Keeps the payload small — surfaces the raw answers and tells the doctor to
+ * decide manually.
+ */
+function unknownConsultSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const { answers } = input
-  const validation = validateGeneralConsult(answers)
-  const details = str(answers, "consultDetails") || "No patient description provided."
-  const category = str(answers, "consultCategory") || "general"
-  const urgency = str(answers, "consultUrgency") || "routine"
-  const associatedSymptoms = stringArray(answers, "general_associated_symptoms")
-  const hasEmergencyRedFlag = associatedSymptoms.some((symptom) => GENERAL_EMERGENCY_SYMPTOMS.has(symptom))
-  const hasPostSurgicalConcern = associatedSymptoms.includes("post_surgical_complications")
-  const pregnancyAnswer = raw(answers, "isPregnantOrBreastfeeding") ?? raw(answers, "is_pregnant_or_breastfeeding")
-  const adverseReactionAnswer = raw(answers, "hasAdverseMedicationReactions") ?? raw(answers, "has_adverse_medication_reactions")
-  const pregnancyConcern = isAffirmative(pregnancyAnswer)
-  const urgent = urgency === "urgent" || input.requiresLiveConsult || input.riskTier === "high"
-  const requiresLiveReview = urgent || pregnancyConcern || hasPostSurgicalConcern
-
-  const safetyItems: ClinicalSafetyItem[] = [
-    hasEmergencyRedFlag
-      ? {
-          severity: "block" as const,
-          label: "Emergency red flag",
-          detail: "Patient selected symptoms that require emergency or urgent in-person assessment, not async completion.",
-        }
-      : null,
-    ...validation.warnings.map((warning) => ({
-      severity: "caution" as const,
-      label: "Urgency caution",
-      detail: warning,
-    })),
-    pregnancyConcern
-      ? {
-          severity: "caution" as const,
-          label: "Pregnancy/breastfeeding",
-          detail: "Pregnancy or breastfeeding concerns need live clinician assessment before advice or medication.",
-        }
-      : null,
-    hasPostSurgicalConcern
-      ? {
-          severity: "caution" as const,
-          label: "Recent surgery concern",
-          detail: "Post-surgical concerns need live assessment to exclude complications.",
-        }
-      : null,
-    urgent
-      ? {
-          severity: "caution" as const,
-          label: "Higher urgency",
-          detail: "Review whether this should be converted to phone/video or urgent care.",
-        }
-      : null,
-  ].filter(Boolean) as ClinicalSafetyItem[]
-
-  const recommendedPlan: ClinicalPlan = hasEmergencyRedFlag
-    ? {
-        action: "decline",
-        title: "Do not complete asynchronously",
-        rationale: "The structured red-flag screen indicates the patient needs emergency or urgent in-person care.",
-        nextSteps: ["Direct the patient to 000, emergency care, or urgent in-person assessment as clinically appropriate."],
-      }
-    : requiresLiveReview
-    ? {
-        action: "needs_call",
-        title: "Convert to live consultation",
-        rationale: "Patient urgency or triage flags suggest asynchronous completion may not be enough.",
-        nextSteps: ["Contact patient by phone/video.", "Escalate to urgent care if red flags are confirmed."],
-      }
-    : {
-        action: "approve",
-        title: "Async consult review",
-        rationale: "No hard red flags were detected in the structured general consult screen.",
-        nextSteps: ["Review patient free text and history.", "Document advice, treatment or referral plan as clinically appropriate."],
-      }
-
-  const keyFacts = compactFacts([
-    { label: "Category", value: humanize(category) },
-    { label: "Urgency", value: humanize(urgency) },
-    factHumanized("Associated symptoms", raw(answers, "general_associated_symptoms")),
-    fact("Allergies", firstStr(answers, ["known_allergies", "allergies"])),
-    fact("Conditions", firstStr(answers, ["existing_conditions", "conditions"])),
-    fact("Current medications", firstStr(answers, ["current_medications", "otherMedications", "other_medications"])),
-    pregnancyAnswer !== undefined ? { label: "Pregnant/breastfeeding", value: yesNo(pregnancyAnswer) } : null,
-    adverseReactionAnswer !== undefined ? { label: "Adverse medication reactions", value: yesNo(adverseReactionAnswer) } : null,
-  ])
-
-  const subjective = `${input.patientName || "Patient"} reports: ${details}`
-  const objective = `Category: ${humanize(category)}. Urgency: ${humanize(urgency)}. Associated symptoms: ${humanize(associatedSymptoms)}.`
-  const assessment = hasEmergencyRedFlag
-    ? "Not suitable for asynchronous completion due to emergency red flags."
-    : requiresLiveReview
-      ? "Requires live clinical review before completion."
-      : "General consult suitable for doctor review."
-  const planText = recommendedPlan.nextSteps.join(" ")
+  const details = str(answers, "consultDetails") || "No structured patient description available."
+  const subtypeLabel = input.subtype ? humanize(input.subtype) : "Unspecified"
+  const recommendedPlan: ClinicalPlan = {
+    action: "request_info",
+    title: "Full manual review",
+    rationale: "No automated summary is available for this consult type. Review the raw answers below before deciding.",
+    nextSteps: [
+      "Read the patient's free text and any structured answers.",
+      "Decide: approve, request more info, or decline.",
+    ],
+  }
 
   return {
-    title: "General consult",
+    title: `Consult · ${subtypeLabel}`,
     patientStory: details,
-    keyFacts,
-    safetyItems,
+    keyFacts: compactFacts([
+      fact("Subtype", input.subtype ?? null),
+      fact("Allergies", firstStr(answers, ["known_allergies", "allergies"])),
+      fact("Conditions", firstStr(answers, ["existing_conditions", "conditions"])),
+      fact("Current medications", firstStr(answers, ["current_medications", "otherMedications", "other_medications"])),
+    ]),
+    safetyItems: [],
     recommendedPlan,
-    draftNote: note(subjective, objective, assessment, planText),
+    draftNote: note(
+      `${input.patientName || "Patient"}: ${details}`,
+      `Subtype: ${input.subtype ?? "unknown"}.`,
+      "Specialty consult outside automated summary scope; full doctor review needed.",
+      recommendedPlan.nextSteps.join(" "),
+    ),
   }
 }
 
 export function buildClinicalCaseSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   if (input.category === "consult" && input.subtype === "ed") return edSummary(input)
   if (input.category === "consult" && input.subtype === "hair_loss") return hairSummary(input)
-  if (input.category === "consult") return generalSummary(input)
+  if (input.category === "consult") return unknownConsultSummary(input)
   if (input.serviceType === "med_certs" || input.category === "medical_certificate") return medCertSummary(input)
   if (
     input.category === "prescription" ||
@@ -663,9 +592,5 @@ export function buildClinicalCaseSummary(input: ClinicalCaseInput): ClinicalCase
     return repeatSummary(input)
   }
 
-  return generalSummary({
-    ...input,
-    category: "consult",
-    subtype: "general",
-  })
+  return unknownConsultSummary(input)
 }

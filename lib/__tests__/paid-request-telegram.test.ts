@@ -10,7 +10,10 @@ vi.mock("@/lib/data/intake-answers", () => ({
 }))
 
 const { mockGetFeatureFlags } = vi.hoisted(() => ({
-  mockGetFeatureFlags: vi.fn(async () => ({ telegram_notifications_enabled: true })),
+  mockGetFeatureFlags: vi.fn(async () => ({
+    telegram_notifications_enabled: true,
+    ai_auto_approve_enabled: false,
+  })),
 }))
 vi.mock("@/lib/feature-flags", () => ({
   getFeatureFlags: () => mockGetFeatureFlags(),
@@ -76,7 +79,10 @@ function createSupabaseStub(
 describe("paid request Telegram notification ledger", () => {
   afterEach(() => {
     vi.clearAllMocks()
-    mockGetFeatureFlags.mockResolvedValue({ telegram_notifications_enabled: true })
+    mockGetFeatureFlags.mockResolvedValue({
+      telegram_notifications_enabled: true,
+      ai_auto_approve_enabled: false,
+    })
     vi.mocked(getIntakeAnswers).mockResolvedValue(null)
   })
 
@@ -114,11 +120,11 @@ describe("paid request Telegram notification ledger", () => {
     )
     expect(notifyNewIntakeViaTelegram).toHaveBeenCalledWith({
       intakeId: INTAKE_ID,
-      patientName: "Patient",
-      serviceName: "Medical Certificate",
-      amount: "$29.95",
       serviceSlug: "med-cert-sick",
+      subtype: undefined,
+      serviceDetail: undefined,
       isPriority: false,
+      autoApprovalCandidate: false,
     })
     expect(profileMaybeSingle).not.toHaveBeenCalled()
     expect(updates[0]).toMatchObject({
@@ -130,7 +136,7 @@ describe("paid request Telegram notification ledger", () => {
     expect(updates[0].paid_request_telegram_sent_at).toEqual(expect.any(String))
   })
 
-  it("enriches the service name with the medication and sets the Express flag when is_priority is true", async () => {
+  it("passes the resolved detail (medication / duration) through as serviceDetail and sets the Express flag when is_priority is true", async () => {
     const { sendPaidRequestTelegramNotification } = await import("@/lib/notifications/paid-request-telegram")
     const { supabase } = createSupabaseStub(
       [
@@ -163,11 +169,11 @@ describe("paid request Telegram notification ledger", () => {
     expect(result).toEqual({ sent: true })
     expect(notifyNewIntakeViaTelegram).toHaveBeenCalledWith({
       intakeId: INTAKE_ID,
-      patientName: "Patient",
-      serviceName: "Prescription · Atorvastatin",
-      amount: "$29.95",
       serviceSlug: "common-scripts",
+      subtype: undefined,
+      serviceDetail: "Atorvastatin",
       isPriority: true,
+      autoApprovalCandidate: false,
     })
   })
 
@@ -258,7 +264,10 @@ describe("paid request Telegram notification ledger", () => {
   })
 
   it("respects the new-request Telegram feature flag before claiming a row", async () => {
-    mockGetFeatureFlags.mockResolvedValueOnce({ telegram_notifications_enabled: false })
+    mockGetFeatureFlags.mockResolvedValueOnce({
+      telegram_notifications_enabled: false,
+      ai_auto_approve_enabled: false,
+    })
     const { sendPaidRequestTelegramNotification } = await import("@/lib/notifications/paid-request-telegram")
     const { supabase } = createSupabaseStub([
       {
@@ -283,5 +292,123 @@ describe("paid request Telegram notification ledger", () => {
     expect(result).toEqual({ sent: false, skipped: "disabled" })
     expect(supabase.rpc).not.toHaveBeenCalled()
     expect(notifyNewIntakeViaTelegram).not.toHaveBeenCalled()
+  })
+
+  it("never pages the operator for seeded E2E intakes (no claim, no Telegram send)", async () => {
+    const { SEEDED_E2E_PATIENT_PROFILE_ID } = await import("@/lib/data/seeded-e2e-data")
+    const { sendPaidRequestTelegramNotification } = await import("@/lib/notifications/paid-request-telegram")
+    const { supabase } = createSupabaseStub([])
+
+    const result = await sendPaidRequestTelegramNotification({
+      supabase: supabase as never,
+      intakeId: INTAKE_ID,
+      patientId: SEEDED_E2E_PATIENT_PROFILE_ID,
+      paymentStatus: "paid",
+      amountCents: 2995,
+      serviceSlug: "med-cert-sick",
+      category: "med_certs",
+      subtype: null,
+    })
+
+    expect(result).toEqual({ sent: false, skipped: "e2e" })
+    expect(supabase.rpc).not.toHaveBeenCalled()
+    expect(notifyNewIntakeViaTelegram).not.toHaveBeenCalled()
+  })
+
+  it("still catches E2E if the caller forgot to pass patientId but the claim row has the seeded patient", async () => {
+    const { SEEDED_E2E_PATIENT_PROFILE_ID } = await import("@/lib/data/seeded-e2e-data")
+    const { sendPaidRequestTelegramNotification } = await import("@/lib/notifications/paid-request-telegram")
+    const { supabase } = createSupabaseStub([
+      {
+        id: INTAKE_ID,
+        patient_id: SEEDED_E2E_PATIENT_PROFILE_ID,
+        amount_cents: 2995,
+        category: "med_certs",
+        subtype: null,
+        paid_request_telegram_attempts: 1,
+      },
+    ])
+
+    const result = await sendPaidRequestTelegramNotification({
+      supabase: supabase as never,
+      intakeId: INTAKE_ID,
+      // No patientId — simulating a caller that didn't pass it.
+      paymentStatus: "paid",
+      amountCents: 2995,
+      serviceSlug: "med-cert-sick",
+      category: "med_certs",
+      subtype: null,
+    })
+
+    expect(result).toEqual({ sent: false, skipped: "e2e" })
+    expect(notifyNewIntakeViaTelegram).not.toHaveBeenCalled()
+  })
+
+  it("sets autoApprovalCandidate=true for med cert when ai_auto_approve_enabled is on", async () => {
+    mockGetFeatureFlags.mockResolvedValueOnce({
+      telegram_notifications_enabled: true,
+      ai_auto_approve_enabled: true,
+    })
+    const { sendPaidRequestTelegramNotification } = await import("@/lib/notifications/paid-request-telegram")
+    const { supabase } = createSupabaseStub([
+      {
+        id: INTAKE_ID,
+        patient_id: PATIENT_ID,
+        amount_cents: 1995,
+        category: "med_certs",
+        subtype: null,
+        paid_request_telegram_attempts: 1,
+      },
+    ])
+
+    vi.mocked(notifyNewIntakeViaTelegram).mockResolvedValueOnce({ messageId: 42 })
+
+    await sendPaidRequestTelegramNotification({
+      supabase: supabase as never,
+      intakeId: INTAKE_ID,
+      paymentStatus: "paid",
+      amountCents: 1995,
+      serviceSlug: "med-cert-sick",
+      category: "med_certs",
+      subtype: null,
+    })
+
+    expect(notifyNewIntakeViaTelegram).toHaveBeenCalledWith(
+      expect.objectContaining({ autoApprovalCandidate: true }),
+    )
+  })
+
+  it("keeps autoApprovalCandidate=false for non-med-cert services even when the flag is on", async () => {
+    mockGetFeatureFlags.mockResolvedValueOnce({
+      telegram_notifications_enabled: true,
+      ai_auto_approve_enabled: true,
+    })
+    const { sendPaidRequestTelegramNotification } = await import("@/lib/notifications/paid-request-telegram")
+    const { supabase } = createSupabaseStub([
+      {
+        id: INTAKE_ID,
+        patient_id: PATIENT_ID,
+        amount_cents: 4995,
+        category: "consult",
+        subtype: "ed",
+        paid_request_telegram_attempts: 1,
+      },
+    ])
+
+    vi.mocked(notifyNewIntakeViaTelegram).mockResolvedValueOnce({ messageId: 42 })
+
+    await sendPaidRequestTelegramNotification({
+      supabase: supabase as never,
+      intakeId: INTAKE_ID,
+      paymentStatus: "paid",
+      amountCents: 4995,
+      serviceSlug: "consult",
+      category: "consult",
+      subtype: "ed",
+    })
+
+    expect(notifyNewIntakeViaTelegram).toHaveBeenCalledWith(
+      expect.objectContaining({ autoApprovalCandidate: false }),
+    )
   })
 })

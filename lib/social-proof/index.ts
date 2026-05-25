@@ -90,7 +90,12 @@ export const SOCIAL_PROOF = {
  * Avoids scattering template literals and `.toFixed()` calls everywhere.
  */
 export const SOCIAL_PROOF_DISPLAY = {
-  responseTime: `~${SOCIAL_PROOF.averageResponseMinutes} min`,
+  // Drop the tilde — at the small grey font size used in the sticky bar
+  // ticker, "~44 min" reads as "-44 min" to both human eyes and the video
+  // review rubric. The number is already approximate (rounded median) so
+  // we don't need the precision modifier. See Tier 1 review 2026-05-25
+  // (/prescriptions + /medical-certificate).
+  responseTime: `${SOCIAL_PROOF.averageResponseMinutes} min`,
   certTurnaround: `${SOCIAL_PROOF.certTurnaroundMinutes} min`,
   operatingHours: `${SOCIAL_PROOF.operatingHoursStart}am–${SOCIAL_PROOF.operatingHoursEnd > 12 ? SOCIAL_PROOF.operatingHoursEnd - 12 : SOCIAL_PROOF.operatingHoursEnd}pm`,
   operatingSchedule: `${SOCIAL_PROOF.operatingDays} days a week`,

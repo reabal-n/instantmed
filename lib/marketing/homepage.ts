@@ -298,6 +298,7 @@ export const footerLinks = {
   ],
   company: [
     { label: "About Us", href: "/about" },
+    { label: "For Business", href: "/business" },
     { label: "Pricing", href: "/pricing" },
     { label: "Health Guides", href: "/blog" },
     { label: "Your Options", href: "/alternatives" },

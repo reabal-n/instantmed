@@ -577,62 +577,12 @@ const consultRules: SafetyRule[] = [
     priority: 1000,
     services: ['gp-consult', 'consult'],
   },
-  // ----------------------------------------
-  // PREGNANCY-RELATED CONCERNS - Requires call
-  // ----------------------------------------
-  {
-    id: 'general_pregnancy_concern',
-    name: 'Pregnancy Concern - General Consult',
-    description: 'Patient has pregnancy-related health concern requiring phone assessment',
-    conditions: [
-      { fieldId: 'consultCategory', operator: 'equals', value: 'general' },
-      { fieldId: 'isPregnantOrBreastfeeding', operator: 'equals', value: true },
-    ],
-    conditionLogic: 'AND',
-    outcome: 'REQUIRES_CALL',
-    riskTier: 'medium',
-    patientMessage: 'Pregnancy-related concerns need careful assessment. A doctor will call you to ensure we can help you safely.',
-    doctorNote: 'Pregnant/breastfeeding patient in general consult - phone assessment required for medication safety',
-    priority: 700,
-    services: ['gp-consult', 'consult'],
-  },
-  // ----------------------------------------
-  // RECENT SURGERY COMPLICATIONS - Requires call
-  // ----------------------------------------
-  {
-    id: 'general_recent_surgery',
-    name: 'Recent Surgery Complications - General Consult',
-    description: 'Patient has had recent surgery and is experiencing complications',
-    conditions: [
-      { fieldId: 'general_associated_symptoms', operator: 'includes_any', value: ['post_surgical_complications'] },
-    ],
-    outcome: 'REQUIRES_CALL',
-    riskTier: 'medium',
-    patientMessage: 'Post-surgical concerns require a phone assessment to ensure you receive appropriate care. A doctor will call you.',
-    doctorNote: 'Post-surgical complications reported - phone assessment required to evaluate severity',
-    priority: 700,
-    services: ['gp-consult', 'consult'],
-  },
-  // ----------------------------------------
-  // SEVERE SYMPTOMS - General consult escalation
-  // ----------------------------------------
-  {
-    id: 'general_severe_symptoms',
-    name: 'Severe Symptoms - General Consult',
-    description: 'Patient reports severe symptoms in general consult',
-    conditions: [
-      { fieldId: 'consultCategory', operator: 'equals', value: 'general' },
-      // Maps to consultUrgency from consult-reason-step (closest available field)
-      { fieldId: 'consultUrgency', operator: 'equals', value: 'urgent' },
-    ],
-    conditionLogic: 'AND',
-    outcome: 'REQUIRES_CALL',
-    riskTier: 'medium',
-    patientMessage: 'You\'ve reported severe symptoms. A doctor will call you for a more thorough assessment to ensure you get the right care.',
-    doctorNote: 'Severe symptoms reported in general consult - phone assessment recommended',
-    priority: 500,
-    services: ['gp-consult', 'consult'],
-  },
+  // General-consult safety rules (general_pregnancy_concern,
+  // general_recent_surgery, general_severe_symptoms) were retired alongside
+  // the general consult subtype on 2026-05-20. Specialty consults (ED, hair
+  // loss, women's health, weight loss) carry their own subtype-specific
+  // safety rules below.
+
   // ============================================
   // BROADER WOMEN'S HEALTH SAFETY RULES
   // ============================================

@@ -198,11 +198,6 @@ describe("getConsultPriceId", () => {
     expect(getConsultPriceId(subtype)).toBe(expected)
   })
 
-  it('returns default consult price for "general" subtype', async () => {
-    const { getConsultPriceId } = await importModule()
-    expect(getConsultPriceId("general")).toBe("price_consult_general")
-  })
-
   it("falls back to default for unknown subtype", async () => {
     const { getConsultPriceId } = await importModule()
     expect(getConsultPriceId("some_future_type")).toBe("price_consult_general")
@@ -226,7 +221,7 @@ describe("getConsultPriceId", () => {
   it("throws when STRIPE_PRICE_CONSULT is missing and no subtype match", async () => {
     delete process.env.STRIPE_PRICE_CONSULT
     const { getConsultPriceId } = await importModule()
-    expect(() => getConsultPriceId("general")).toThrow(
+    expect(() => getConsultPriceId("unknown_subtype")).toThrow(
       "Missing STRIPE_PRICE_CONSULT environment variable",
     )
   })
@@ -276,12 +271,12 @@ describe("getConsultPriceId", () => {
       expect(getConsultPriceId("ed")).toBe("price_fallback")
     })
 
-    it("does not throw in production for 'general' (no dedicated env var)", async () => {
+    it("does not throw in production for an unknown subtype (default fallback path)", async () => {
       vi.stubEnv("NODE_ENV", "production")
       vi.stubEnv("STRIPE_PRICE_CONSULT", "price_fallback")
 
       const { getConsultPriceId } = await importModule()
-      expect(getConsultPriceId("general")).toBe("price_fallback")
+      expect(getConsultPriceId("unknown_subtype")).toBe("price_fallback")
     })
   })
 })
@@ -472,7 +467,6 @@ describe("getConsultSubtypePrice", () => {
     ["hair_loss", PRICING.HAIR_LOSS],
     ["womens_health", PRICING.WOMENS_HEALTH],
     ["weight_loss", PRICING.WEIGHT_LOSS],
-    ["general", PRICING.CONSULT],
   ] as const)('returns correct default for "%s"', async (subtype, expected) => {
     const { getConsultSubtypePrice } = await importModule()
     expect(getConsultSubtypePrice(subtype)).toBe(expected)
@@ -668,11 +662,11 @@ describe("getAmountCentsForRequest", () => {
     })).toBe(8995)
   })
 
-  it("stores consult subtype amount from answers when checkout subtype is generic", async () => {
+  it("stores consult subtype amount from answers when checkout subtype is blank", async () => {
     const { getAmountCentsForRequest } = await importModule()
     expect(getAmountCentsForRequest({
       category: "consult",
-      subtype: "general",
+      subtype: "",
       answers: { consultSubtype: "weight_loss" },
     })).toBe(8995)
   })

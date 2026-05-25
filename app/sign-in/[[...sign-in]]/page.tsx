@@ -308,7 +308,7 @@ function SignInForm() {
                   }
                 />
               </div>
-              <div className="flex justify-end">
+              <div className="flex justify-end pt-1">
                 <Link
                   href="/auth/forgot-password"
                   className="text-xs text-muted-foreground hover:text-primary transition-colors"
@@ -371,24 +371,6 @@ function SignInForm() {
               </div>
             )}
 
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              className="w-full mb-3"
-              onClick={handleEmailLinkSignIn}
-              disabled={formState === 'loading' || emailLinkLoading || !email.trim()}
-            >
-              {emailLinkLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <>
-                  <Mail className="w-4 h-4" />
-                  {emailLinkSent ? 'Send another sign-in link' : 'Email me a sign-in link'}
-                </>
-              )}
-            </Button>
-
             {googleErrorMessage && (
               <div
                 className="mb-3 rounded-xl border border-destructive-border bg-destructive-light px-4 py-3 text-sm text-destructive"
@@ -399,7 +381,10 @@ function SignInForm() {
               </div>
             )}
 
-            {/* Google OAuth */}
+            {/* Google OAuth — kept as a button for the OAuth affordance.
+                Magic-link demoted to a text link below: returning users want
+                one obvious path (email + password), with a quiet escape hatch
+                for the "I forgot my password and can't be bothered" case. */}
             <Button
               type="button"
               variant="outline"
@@ -417,6 +402,34 @@ function SignInForm() {
                 </>
               )}
             </Button>
+
+            <p className="mt-4 text-center text-xs text-muted-foreground">
+              {emailLinkSent ? (
+                <>
+                  Sign-in link sent. Didn&apos;t arrive?{' '}
+                  <button
+                    type="button"
+                    onClick={handleEmailLinkSignIn}
+                    disabled={formState === 'loading' || emailLinkLoading || !email.trim()}
+                    className="font-medium text-primary hover:text-primary/80 underline underline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline"
+                  >
+                    Resend
+                  </button>
+                </>
+              ) : (
+                <>
+                  Prefer not to type a password?{' '}
+                  <button
+                    type="button"
+                    onClick={handleEmailLinkSignIn}
+                    disabled={formState === 'loading' || emailLinkLoading || !email.trim()}
+                    className="font-medium text-primary hover:text-primary/80 underline underline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline"
+                  >
+                    Email me a sign-in link
+                  </button>
+                </>
+              )}
+            </p>
 
           </motion.div>
 

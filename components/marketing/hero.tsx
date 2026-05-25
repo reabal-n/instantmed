@@ -178,8 +178,14 @@ export function Hero({
             {/* Subhead */}
             <div className="hero-subheadline-enter">
               {children ?? (
-                <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed text-balance">
-                  AHPRA-registered Australian doctors. Secure form-first review.
+                <p className="text-sm sm:text-base lg:text-lg leading-[1.5rem] sm:leading-relaxed text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 text-balance">
+                  {/*
+                    nowrap span on "AHPRA-registered" so the hyphen can't break
+                    mid-word on narrow viewports. Tier 1 review 2026-05-25
+                    (/medical-certificate #3): "the most important credential
+                    breaks mid-word".
+                  */}
+                  <span className="whitespace-nowrap">AHPRA-registered</span> Australian doctors. Secure form-first review.
                 </p>
               )}
             </div>
@@ -187,10 +193,11 @@ export function Hero({
             {/* Optional service-specific reassurance line above the CTA. */}
             {beforeCta && <div className="hero-cta-enter mb-6 sm:mb-7">{beforeCta}</div>}
 
-            {/* CTAs */}
+            {/* CTAs — primary button leads, secondary demoted to ghost so
+                it stops competing for the click (2026-05-25 video-review fix). */}
             <div
               ref={primaryCta.ref}
-              className="hero-cta-enter flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-6 sm:mb-7"
+              className="hero-cta-enter flex flex-col sm:flex-row sm:items-center gap-2 justify-center lg:justify-start mb-3 sm:mb-4"
             >
               <Button
                 asChild
@@ -206,21 +213,33 @@ export function Hero({
               {resolvedSecondary && (
                 <Button
                   asChild
-                  variant="outline"
+                  variant="ghost"
                   size="lg"
-                  className="h-12 px-8 text-base font-semibold"
+                  className="h-12 px-4 text-sm font-medium text-muted-foreground hover:text-foreground"
                 >
                   <Link href={resolvedSecondary.href}>{resolvedSecondary.text}</Link>
                 </Button>
               )}
             </div>
 
+            {/* Reassurance line under the CTA — price + refund promise put
+                the patient on the right side of the decision at the moment
+                they're about to click. */}
+            <p className="text-xs text-muted-foreground mb-6 sm:mb-7 text-center lg:text-left">
+              Takes about 3 minutes. Full refund if our doctor can&apos;t help.
+            </p>
+
             {/* Trust row — Google + LegitScript + live counter. Constant
                 across pages so users learn the pattern. ServiceFunnelPage
                 consumers pass `trustRow={null}` since they render their
                 own TrustBadgeSlider below the hero. */}
             {resolvedTrustRow && (
-              <div className="hero-trust-enter flex flex-wrap items-center justify-center lg:justify-start gap-x-3 gap-y-2 pt-1">
+              // items-stretch lets each badge fill the row's min-height (h-7)
+              // so they line up as a single horizontal strip instead of
+              // bobbing at different heights. Tier 1 review 2026-05-25
+              // (/erectile-dysfunction #1) flagged "different heights
+              // breaking the line of the CTA".
+              <div className="hero-trust-enter flex flex-wrap items-stretch justify-center lg:justify-start gap-x-3 gap-y-2 pt-1 min-h-7">
                 {resolvedTrustRow}
               </div>
             )}

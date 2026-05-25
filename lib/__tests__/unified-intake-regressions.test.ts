@@ -13,8 +13,7 @@ import {
   transformAnswersForUnifiedCheckout,
   validateAnswersServerSide,
 } from "@/lib/request/unified-checkout"
-import { validateConsultReasonStep } from "@/lib/request/validation"
-import { checkSafetyForServer, evaluateSafety } from "@/lib/safety"
+import { checkSafetyForServer } from "@/lib/safety"
 
 const identity = {
   email: "patient@example.com",
@@ -66,7 +65,7 @@ describe("unified intake regressions", () => {
     }
 
     expect(validateAnswersServerSide("consult", answers, identity)).toBeNull()
-    expect(resolveCheckoutSubtype("consult", answers, "general")).toBe("ed")
+    expect(resolveCheckoutSubtype("consult", answers, "")).toBe("ed")
   })
 
   it("validates hair loss consults against hair loss fields instead of general consult fields", () => {
@@ -88,7 +87,7 @@ describe("unified intake regressions", () => {
     }
 
     expect(validateAnswersServerSide("consult", answers, identity)).toBeNull()
-    expect(resolveCheckoutSubtype("consult", answers, "general")).toBe("hair_loss")
+    expect(resolveCheckoutSubtype("consult", answers, "")).toBe("hair_loss")
   })
 
   it("does not ask ED and hair loss patients for duplicate generic medical history", () => {
@@ -111,14 +110,11 @@ describe("unified intake regressions", () => {
       ...baseContext,
       answers: { consultSubtype: "hair_loss" },
     }).map((step) => step.id)
-    const generalSteps = getStepsForService("consult", {
-      ...baseContext,
-      answers: { consultSubtype: "general" },
-    }).map((step) => step.id)
 
+    // ED + hair loss collect medical history inside their subtype-specific
+    // health screens, so the generic medical-history step should NOT appear.
     expect(edSteps).not.toContain("medical-history")
     expect(hairLossSteps).not.toContain("medical-history")
-    expect(generalSteps).toContain("medical-history")
   })
 
   it("requires phone for authenticated consult step skipping", () => {
@@ -136,7 +132,9 @@ describe("unified intake regressions", () => {
       hasSex: true,
       serviceType: "consult",
       answers: {
-        consultSubtype: "general",
+        // Use any active specialty subtype — this test is about the phone
+        // requirement, not the subtype. ED is the most common live consult.
+        consultSubtype: "ed",
       },
     }
 
@@ -237,31 +235,6 @@ describe("unified intake regressions", () => {
 
     expect(steps).not.toContain("checkout")
     expect(steps.at(-1)).toBe("review")
-  })
-
-  it("requires structured general consult red flags and maps them to emergency safety rules", () => {
-    expect(
-      validateConsultReasonStep({
-        consultSubtype: "general",
-        consultCategory: "general",
-        consultDetails: "I have chest pain and feel unwell today.",
-        consultUrgency: "soon",
-      }).isValid,
-    ).toBe(false)
-
-    const transformed = transformAnswersForUnifiedCheckout("consult", {
-      consultSubtype: "general",
-      consultCategory: "general",
-      consultDetails: "I have chest pain and feel unwell today.",
-      consultUrgency: "soon",
-      general_associated_symptoms: ["chest_pain"],
-    })
-
-    expect(transformed.emergency_symptoms).toContain("chest_pain")
-
-    const result = evaluateSafety("consult", transformed)
-    expect(result.outcome).toBe("DECLINE")
-    expect(result.triggeredRules.some((rule) => rule.ruleId === "emergency_chest_pain")).toBe(true)
   })
 
   it("maps medical certificate emergency free text into server safety rules", () => {

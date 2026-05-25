@@ -141,8 +141,10 @@ export function TimeComparisonViz({
             />
           </div>
 
-          {/* Step breakdown */}
-          <div className="grid grid-cols-2 gap-6 pt-1">
+          {/* Step breakdown — stack vertically below 400px so the two columns
+              don't squeeze the copy on iPhone SE / 375px viewports. Tier 1
+              review 2026-05-25 (/hair-loss #2). */}
+          <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-4 min-[400px]:gap-6 pt-1">
             <div className="space-y-2">
               {ourSteps.map((step) => (
                 <p key={step} className="flex items-center gap-2 text-xs text-foreground">

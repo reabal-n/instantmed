@@ -11,7 +11,6 @@ interface UseQueueRealtimeOptions {
   onInsert: (intake: IntakeWithPatient) => void
   onUpdate: (intake: Partial<IntakeWithPatient> & { id: string }) => void
   onDelete: (id: string) => void
-  playNotificationSound: () => void
 }
 
 interface UseQueueRealtimeResult {
@@ -27,7 +26,6 @@ export function useQueueRealtime({
   onInsert,
   onUpdate,
   onDelete,
-  playNotificationSound,
 }: UseQueueRealtimeOptions): UseQueueRealtimeResult {
   const router = useRouter()
   const [isStale, setIsStale] = useState(false)
@@ -39,11 +37,9 @@ export function useQueueRealtime({
   const onInsertRef = useRef(onInsert)
   const onUpdateRef = useRef(onUpdate)
   const onDeleteRef = useRef(onDelete)
-  const playNotificationSoundRef = useRef(playNotificationSound)
   useEffect(() => { onInsertRef.current = onInsert }, [onInsert])
   useEffect(() => { onUpdateRef.current = onUpdate }, [onUpdate])
   useEffect(() => { onDeleteRef.current = onDelete }, [onDelete])
-  useEffect(() => { playNotificationSoundRef.current = playNotificationSound }, [playNotificationSound])
 
   useEffect(() => {
     const supabase = createClient()
@@ -76,9 +72,10 @@ export function useQueueRealtime({
 
             if (payload.eventType === "INSERT") {
               const newRow = payload.new as Partial<IntakeWithPatient> & { id: string }
-              // Sound only — toast is handled by IntakeNotificationListener
-              // to avoid duplicate notifications.
-              playNotificationSoundRef.current()
+              // Notification is handled by IntakeNotificationListener (toast)
+              // + Telegram (canonical channel for "new intake arrived").
+              // Desktop notification sound retired 2026-05-25 — Telegram is
+              // the source of truth for ping-when-not-looking.
               if (isHydratedQueueRealtimeInsert(newRow)) {
                 onInsertRef.current(newRow as IntakeWithPatient)
               } else {

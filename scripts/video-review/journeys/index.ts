@@ -15,7 +15,18 @@ import type { Page } from "playwright"
 
 import { paidFunnel } from "./paid-funnel"
 import { brandSpine } from "./brand-spine"
+import { doctorDashboard } from "./doctor-dashboard"
 import { homepage } from "./homepage"
+import {
+  aboutLanding,
+  businessLanding,
+  contactLanding,
+  erectileDysfunctionLanding,
+  hairLossLanding,
+  medicalCertificateLanding,
+  prescriptionsLanding,
+  pricingLanding,
+} from "./service-landing"
 
 export interface Journey {
   name: string
@@ -38,7 +49,16 @@ export interface Journey {
 export const JOURNEYS: Record<string, Journey> = {
   "paid-funnel": paidFunnel,
   "brand-spine": brandSpine,
+  "doctor-dashboard": doctorDashboard,
   homepage,
+  "service-medical-certificate": medicalCertificateLanding,
+  "service-prescriptions": prescriptionsLanding,
+  "service-erectile-dysfunction": erectileDysfunctionLanding,
+  "service-hair-loss": hairLossLanding,
+  "marketing-about": aboutLanding,
+  "marketing-pricing": pricingLanding,
+  "marketing-contact": contactLanding,
+  "marketing-business": businessLanding,
 }
 
 export const DEFAULT_JOURNEY = "paid-funnel"

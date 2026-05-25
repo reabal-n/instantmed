@@ -82,11 +82,14 @@ interface CheckoutResult {
  * the new-prescription price point ($49.95), NOT through this mapping.
  */
 function mapServiceToCategory(serviceType: UnifiedServiceType): { category: ServiceCategory; subtype: string } {
+  // Consult has no base subtype — resolveCheckoutSubtype must read it from
+  // answers.consultSubtype. Reaching this with an empty consult subtype is a
+  // bug (upstream redirect/validation should have caught it).
   const mapping: Record<UnifiedServiceType, { category: ServiceCategory; subtype: string }> = {
     'med-cert': { category: 'medical_certificate', subtype: 'work' },
     'prescription': { category: 'prescription', subtype: 'repeat' },
     'repeat-script': { category: 'prescription', subtype: 'repeat' },
-    'consult': { category: 'consult', subtype: 'general' },
+    'consult': { category: 'consult', subtype: '' },
   }
   return mapping[serviceType] || mapping['med-cert']
 }

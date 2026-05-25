@@ -9,7 +9,6 @@ import {
   Heart,
   Pill,
   Sparkles,
-  User,
 } from "lucide-react"
 
 export interface ConsultationType {
@@ -252,60 +251,6 @@ export const CONSULTATION_TYPES: ConsultationType[] = [
         type: "textarea",
         required: false,
         placeholder: "Other medications, lifestyle changes, etc.",
-      },
-    ],
-  },
-  {
-    id: "general",
-    label: "General Health Issue",
-    description: "Other health concerns",
-    icon: User,
-    requiresCall: true,
-    questions: [
-      {
-        id: "chief-complaint",
-        question: "What is your main concern today?",
-        type: "text",
-        required: true,
-        placeholder: "e.g., Persistent cough, back pain, fatigue",
-      },
-      {
-        id: "duration",
-        question: "How long have you had this issue?",
-        type: "select",
-        required: true,
-        options: [
-          "Less than 1 week",
-          "1-2 weeks",
-          "2-4 weeks",
-          "1-3 months",
-          "Over 3 months",
-        ],
-      },
-      {
-        id: "severity",
-        question: "How severe is it?",
-        type: "select",
-        required: true,
-        options: [
-          "Mild - minor inconvenience",
-          "Moderate - affects daily activities",
-          "Severe - significantly impacts life",
-        ],
-      },
-      {
-        id: "details",
-        question: "Please describe your symptoms in detail",
-        type: "textarea",
-        required: true,
-        placeholder: "When did it start? What makes it better/worse? Any other symptoms?",
-      },
-      {
-        id: "tried",
-        question: "What have you tried so far?",
-        type: "textarea",
-        required: false,
-        placeholder: "Medications, home remedies, etc.",
       },
     ],
   },

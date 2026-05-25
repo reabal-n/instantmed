@@ -3,11 +3,13 @@ import "server-only"
 import { getIntakeAnswers } from "@/lib/data/intake-answers"
 import {
   resolvePaidRequestServiceDetail,
-  resolvePaidRequestServiceName,
+  resolvePaidRequestServiceSlug,
 } from "@/lib/notifications/paid-request-telegram"
 import {
+  type EditTelegramMessageOptions,
   editTelegramMessageToApproved,
   editTelegramMessageToDeclined,
+  editTelegramMessageToNeedsManualReview,
 } from "@/lib/notifications/telegram"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -22,7 +24,7 @@ type IntakeForEdit = {
 
 async function loadIntakeForEdit(
   intakeId: string,
-): Promise<{ row: IntakeForEdit; answers: Record<string, unknown> | null } | null> {
+): Promise<{ messageId: number; opts: EditTelegramMessageOptions } | null> {
   const supabase = createServiceRoleClient()
   const { data, error } = await supabase
     .from("intakes")
@@ -42,14 +44,7 @@ async function loadIntakeForEdit(
     answers = null
   }
 
-  return { row, answers }
-}
-
-function composeServiceName(
-  row: IntakeForEdit,
-  answers: Record<string, unknown> | null,
-): string {
-  const base = resolvePaidRequestServiceName({
+  const serviceSlug = resolvePaidRequestServiceSlug({
     category: row.category,
     subtype: row.subtype,
   })
@@ -58,7 +53,15 @@ function composeServiceName(
     subtype: row.subtype,
     answers,
   })
-  return detail ? `${base} · ${detail}` : base
+
+  return {
+    messageId: row.paid_request_telegram_message_id,
+    opts: {
+      serviceSlug: serviceSlug || undefined,
+      subtype: row.subtype ?? undefined,
+      serviceDetail: detail ?? undefined,
+    },
+  }
 }
 
 /**
@@ -71,12 +74,8 @@ function composeServiceName(
 export async function editPaidRequestTelegramMessageToApproved(intakeId: string): Promise<void> {
   try {
     const loaded = await loadIntakeForEdit(intakeId)
-    if (!loaded || !loaded.row.paid_request_telegram_message_id) return
-    const serviceName = composeServiceName(loaded.row, loaded.answers)
-    await editTelegramMessageToApproved(
-      loaded.row.paid_request_telegram_message_id,
-      serviceName,
-    )
+    if (!loaded) return
+    await editTelegramMessageToApproved(loaded.messageId, loaded.opts)
   } catch (error) {
     log.warn("Failed to edit Telegram message to approved (non-fatal)", {
       intakeId,
@@ -88,14 +87,31 @@ export async function editPaidRequestTelegramMessageToApproved(intakeId: string)
 export async function editPaidRequestTelegramMessageToDeclined(intakeId: string): Promise<void> {
   try {
     const loaded = await loadIntakeForEdit(intakeId)
-    if (!loaded || !loaded.row.paid_request_telegram_message_id) return
-    const serviceName = composeServiceName(loaded.row, loaded.answers)
-    await editTelegramMessageToDeclined(
-      loaded.row.paid_request_telegram_message_id,
-      serviceName,
-    )
+    if (!loaded) return
+    await editTelegramMessageToDeclined(loaded.messageId, loaded.opts)
   } catch (error) {
     log.warn("Failed to edit Telegram message to declined (non-fatal)", {
+      intakeId,
+      error: String(error),
+    })
+  }
+}
+
+/**
+ * Flip the original ✅ "auto" message to ❌ "needs manual review" when the
+ * auto-approval pipeline decides the intake is ineligible (mental-health
+ * keyword, repeat-request cooldown, duration > 3 days, etc.). Only meaningful
+ * for med-cert intakes that were originally sent as auto candidates.
+ */
+export async function editPaidRequestTelegramMessageToNeedsManualReview(
+  intakeId: string,
+): Promise<void> {
+  try {
+    const loaded = await loadIntakeForEdit(intakeId)
+    if (!loaded) return
+    await editTelegramMessageToNeedsManualReview(loaded.messageId, loaded.opts)
+  } catch (error) {
+    log.warn("Failed to edit Telegram message to needs-manual-review (non-fatal)", {
       intakeId,
       error: String(error),
     })

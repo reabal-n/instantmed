@@ -1,9 +1,8 @@
 "use client"
 
-import { ArrowRight, RefreshCw, Search, Volume2, VolumeOff } from "lucide-react"
+import { ArrowRight, RefreshCw, Search } from "lucide-react"
 import { useEffect, useRef } from "react"
 
-import { KeyboardShortcutsModal } from "@/components/doctor/keyboard-shortcuts-modal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { QueueStatusFilter } from "@/lib/dashboard/routes"
@@ -13,8 +12,6 @@ import type { IntakeWithPatient } from "@/types/db"
 export interface QueueFiltersProps {
   searchQuery: string
   onSearchChange: (value: string) => void
-  soundMuted: boolean
-  onToggleSound: () => void
   onRefresh: () => void
   statusFilter: QueueStatusFilter
   onStatusFilterChange: (value: QueueStatusFilter) => void
@@ -23,8 +20,6 @@ export interface QueueFiltersProps {
   isStale: boolean
   isReconnecting: boolean
   isRefreshing?: boolean
-  /** No longer rendered (kept on the type for back-compat). */
-  lastUpdatedLabel?: string
   compactShell?: boolean
   onReviewNext?: () => void
   /**
@@ -38,8 +33,6 @@ export interface QueueFiltersProps {
 export function QueueFilters({
   searchQuery,
   onSearchChange,
-  soundMuted,
-  onToggleSound,
   onRefresh,
   statusFilter,
   onStatusFilterChange,
@@ -48,8 +41,6 @@ export function QueueFilters({
   isStale,
   isReconnecting,
   isRefreshing = false,
-  // lastUpdatedLabel is no longer rendered; kept on props for back-compat.
-  lastUpdatedLabel: _lastUpdatedLabel,
   compactShell = false,
   onReviewNext,
   liveMedianMinutes,
@@ -127,18 +118,6 @@ export function QueueFilters({
               startContent={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
             />
           </div>
-          {!compactShell && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0"
-              onClick={onToggleSound}
-              aria-label={soundMuted ? "Unmute notifications" : "Mute notifications"}
-              title={soundMuted ? "Unmute notifications" : "Mute notifications"}
-            >
-              {soundMuted ? <VolumeOff className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
-            </Button>
-          )}
           <Button
             variant="ghost"
             size="icon"
@@ -150,21 +129,6 @@ export function QueueFilters({
           >
             <RefreshCw className={cn("h-3.5 w-3.5", isRefreshing && "animate-spin")} />
           </Button>
-          {!compactShell && (
-            <KeyboardShortcutsModal
-              trigger={
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
-                  title="Keyboard shortcuts (?)"
-                  aria-label="Show keyboard shortcuts"
-                >
-                  <kbd className="text-xs font-mono font-semibold">?</kbd>
-                </Button>
-              }
-            />
-          )}
         </div>
       </div>
 

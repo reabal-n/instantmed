@@ -114,7 +114,7 @@ export function sanitizeHtml(html: string): string {
   sanitized = sanitized.replace(/href\s*=\s*["']?\s*data:/gi, 'href="')
   
   // Process tags
-  sanitized = sanitized.replace(/<(\/?)([\w-]+)([^>]*)>/g, (match, slash, tag, attrs) => {
+  sanitized = sanitized.replace(/<(\/?)([\w-]+)([^>]*)>/g, (_match, slash, tag, attrs) => {
     const lowerTag = tag.toLowerCase()
     
     // Remove disallowed tags entirely

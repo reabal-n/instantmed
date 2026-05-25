@@ -134,60 +134,10 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
   // Alias - same flow as prescription
   'repeat-script': [] as StepDefinition[], // populated below
 
-  'consult': [
-    {
-      id: 'consult-reason',
-      label: 'Your concern',
-      shortLabel: 'Concern',
-      componentPath: 'consult-reason-step',
-      validateFn: 'validateConsultReasonStep',
-      required: true,
-    },
-    {
-      id: 'medical-history',
-      label: 'Medical history',
-      shortLabel: 'Health',
-      componentPath: 'medical-history-step',
-      validateFn: 'validateMedicalHistoryStep',
-      required: true,
-    },
-    {
-      id: 'details',
-      label: 'Your details',
-      shortLabel: 'Details',
-      componentPath: 'patient-details-step',
-      validateFn: 'validateDetailsStep',
-      canSkip: (ctx) => {
-        const needsPrescribingIdentity = requiresPrescribingIdentityForRequest({
-          serviceType: ctx.serviceType,
-          subtype: ctx.answers.consultSubtype as string | undefined,
-        })
-
-        return ctx.isAuthenticated
-          && (ctx.hasCompleteIdentity ?? ctx.hasProfile)
-          && ctx.hasMedicare
-          && ctx.hasPhone === true
-          && (!needsPrescribingIdentity || (ctx.hasAddress && ctx.hasSex === true))
-      },
-      required: true,
-    },
-    {
-      id: 'review',
-      label: 'Review',
-      shortLabel: 'Review',
-      componentPath: 'review-step',
-      required: true,
-    },
-    {
-      id: 'checkout',
-      label: 'Payment',
-      shortLabel: 'Pay',
-      componentPath: 'checkout-step',
-      validateFn: 'validateCheckoutStep',
-      required: true,
-    },
-  ],
-
+  // 'consult' has no default flow — it must always have a subtype. Bare
+  // /request?service=consult is redirected to /consult (services index) by
+  // the page entry. Subtype-specific sequences live in CONSULT_SUBTYPE_STEPS.
+  'consult': [],
 }
 
 // repeat-script uses the same flow as prescription
@@ -373,7 +323,7 @@ export function getStepDefinitionById(
     const subtype = context.answers.consultSubtype as ConsultSubtype | undefined
     steps = subtype && CONSULT_SUBTYPE_STEPS[subtype]
       ? CONSULT_SUBTYPE_STEPS[subtype]
-      : CONSULT_COMMON_TAIL
+      : []
   } else {
     steps = STEP_REGISTRY[serviceType] ?? []
   }
@@ -391,7 +341,10 @@ export function getStepsForService(
   let steps: StepDefinition[]
   
   if (serviceType === 'consult') {
-    // Branch based on consult subtype
+    // Consult REQUIRES a subtype. Bare /request?service=consult is redirected
+    // to /consult (services index) by the page entry, so we should never reach
+    // here without one. Returning [] makes the flow render as "no steps" if
+    // somehow a stale state lands here.
     const subtype = context.answers.consultSubtype as ConsultSubtype | undefined
 
     // Block entry to Coming Soon subtypes
@@ -402,8 +355,7 @@ export function getStepsForService(
     if (subtype && CONSULT_SUBTYPE_STEPS[subtype]) {
       steps = CONSULT_SUBTYPE_STEPS[subtype]
     } else {
-      // Fallback to default consult steps (with category selection)
-      steps = STEP_REGISTRY['consult']
+      return []
     }
   } else {
     steps = STEP_REGISTRY[serviceType]

@@ -149,10 +149,13 @@ export function EScriptHeroMockup({ compact = false }: EScriptHeroMockupProps) {
         </>
       )}
 
-      {/* Progress timeline — desktop only */}
+      {/* Progress timeline — lg+ only. Was rendering at sm with an
+          absolute -right-4 offset that clipped the right edge on 375px
+          viewports (Tier 1 review 2026-05-25 /prescriptions #2). Hidden
+          below lg so the mockup fits cleanly in the hero column. */}
       {!compact && (
         <div
-          className="absolute -bottom-8 -right-4 xl:-right-8 rounded-xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] dark:shadow-none p-3 min-w-[210px]"
+          className="hidden lg:block absolute -bottom-8 -right-4 xl:-right-8 rounded-xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] dark:shadow-none p-3 min-w-[210px]"
           style={{ animation: "hero-fade-up 0.5s ease-out 0.6s both" }}
         >
           <div className="space-y-2">

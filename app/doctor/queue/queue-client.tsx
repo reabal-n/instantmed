@@ -259,15 +259,8 @@ export function QueueClient({
   const [isApprovePending, startTransition] = useTransition()
   const [isQueueRefreshPending, startQueueRefreshTransition] = useTransition()
   const lastQueueRefreshAtRef = useRef(0)
-  const [lastQueueRefreshAt, setLastQueueRefreshAt] = useState<Date | null>(null)
   const dialogs = useQueueDialogs({ intakes, setIntakes })
   const [clockNow, setClockNow] = useState<Date | null>(null)
-  const [soundMuted, setSoundMuted] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("instantmed:queue-sound-muted") === "true"
-    }
-    return false
-  })
 
   useEffect(() => {
     panelOpenRef.current = Boolean(activePanel)
@@ -284,16 +277,13 @@ export function QueueClient({
     const now = Date.now()
     if (!force && now - lastQueueRefreshAtRef.current < 5000) return
     lastQueueRefreshAtRef.current = now
-    setLastQueueRefreshAt(new Date(now))
     startQueueRefreshTransition(() => {
       router.refresh()
     })
   }, [router])
 
   useEffect(() => {
-    const now = Date.now()
-    lastQueueRefreshAtRef.current = now
-    setLastQueueRefreshAt(new Date(now))
+    lastQueueRefreshAtRef.current = Date.now()
   }, [])
 
   useEffect(() => {
@@ -385,31 +375,6 @@ export function QueueClient({
     return calculateSlaCountdown(slaDeadline, clockNow)
   }, [clockNow])
 
-  const lastQueueRefreshLabel = useMemo(() => {
-    if (!lastQueueRefreshAt) return "Auto refresh on"
-    return `Updated ${lastQueueRefreshAt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`
-  }, [lastQueueRefreshAt])
-
-  // Play a subtle notification sound when a new intake arrives
-  const playNotificationSound = useCallback(() => {
-    if (soundMuted) return
-    try {
-      const audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
-      const oscillator = audioCtx.createOscillator()
-      const gainNode = audioCtx.createGain()
-      oscillator.connect(gainNode)
-      gainNode.connect(audioCtx.destination)
-      oscillator.frequency.setValueAtTime(880, audioCtx.currentTime) // A5
-      oscillator.frequency.setValueAtTime(1175, audioCtx.currentTime + 0.1) // D6
-      gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime)
-      gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3)
-      oscillator.start(audioCtx.currentTime)
-      oscillator.stop(audioCtx.currentTime + 0.3)
-    } catch {
-      // Audio not available - silent fallback
-    }
-  }, [soundMuted])
-
   // Track row IDs that just arrived via realtime so the queue can flash a
   // calm border on the row for ~1.5s (decays via `transition-colors`).
   // Honours `prefers-reduced-motion` by skipping the timer entirely; the
@@ -455,7 +420,6 @@ export function QueueClient({
     onInsert: handleInsert,
     onUpdate: handleUpdate,
     onDelete: handleDelete,
-    playNotificationSound,
   })
 
   // Shared action-complete handler. Removes the case from the live queue,
@@ -937,12 +901,6 @@ export function QueueClient({
         <QueueFilters
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          soundMuted={soundMuted}
-          onToggleSound={() => {
-            const newMuted = !soundMuted
-            setSoundMuted(newMuted)
-            localStorage.setItem("instantmed:queue-sound-muted", String(newMuted))
-          }}
           onRefresh={() => refreshQueue(true)}
           statusFilter={statusFilter}
           onStatusFilterChange={handleStatusFilterChange}
@@ -951,7 +909,6 @@ export function QueueClient({
           isStale={isStale}
           isReconnecting={isReconnecting}
           isRefreshing={isQueueRefreshPending}
-          lastUpdatedLabel={lastQueueRefreshLabel}
           compactShell={compactShell}
           onReviewNext={handleReviewNext}
           liveMedianMinutes={liveMedianMinutes}

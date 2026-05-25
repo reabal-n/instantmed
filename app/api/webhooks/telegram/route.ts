@@ -190,12 +190,11 @@ export async function POST(req: Request) {
     })
 
     if (result.success) {
-      const refId = intakeId.slice(0, 8).toUpperCase()
-      await editTelegramMessage(
-        callbackQuery.message.chat.id,
-        callbackQuery.message.message_id,
-        `✅ *Approved*\n\nRef: \`${refId}\` - certificate sent to patient\\.`,
-      )
+      // The Telegram message has already been edited to the canonical
+      // "*✓ Approved · <noun> · <detail>*" format by
+      // editPaidRequestTelegramMessageToApproved inside executeCertApproval.
+      // Don't double-edit here; that just rewrites it to a divergent format
+      // and breaks chat-history consistency with operator-initiated approvals.
       log.info("Med cert approved via Telegram", { intakeId, doctorId: doctorProfile.id })
     } else {
       await editTelegramMessage(

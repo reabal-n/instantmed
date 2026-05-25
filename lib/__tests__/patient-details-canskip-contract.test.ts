@@ -26,10 +26,10 @@ describe("patient-details canSkip contract", () => {
     hasPhone: true,
     hasSex: true,
     serviceType: "consult",
-    answers: { consultSubtype: "general" },
+    answers: { consultSubtype: "ed" },
   }
 
-  describe("general consult", () => {
+  describe("ED consult", () => {
     it("skips details when the patient has the full identity bundle on profile", () => {
       const steps = getStepsForService("consult", fullyIdentified).map((s) => s.id)
       expect(steps).not.toContain("details")

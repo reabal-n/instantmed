@@ -271,78 +271,25 @@ describe("buildClinicalCaseSummary", () => {
     expect(summary.prescriptionIntent).toBeUndefined()
   })
 
-  it("prioritises the patient's words for general consults and recommends triage instead of medication", () => {
+  it("falls back to a minimal 'manual review' summary for legacy or unknown consult subtypes", () => {
+    // After the 2026-05-20 general consult retirement, the case summary helper
+    // no longer has a dedicated path for `subtype = 'general'`. The fallback
+    // surface still renders so doctors can view legacy intakes (3 historical
+    // rows in production) — just with a request_info recommendation instead of
+    // a bespoke plan.
     const summary = buildClinicalCaseSummary({
       category: "consult",
       subtype: "general",
       serviceType: "consult",
-      patientName: "General Patient",
+      patientName: "Legacy Patient",
       answers: {
-        consultCategory: "skin",
-        consultDetails: "I have had a spreading itchy rash on my arm for two weeks after changing detergent.",
-        consultUrgency: "soon",
-        general_associated_symptoms: ["itch", "redness"],
-        takes_medications: "no",
-        has_allergies: "no",
-        has_conditions: "no",
-      },
-    })
-
-    expect(summary.title).toBe("General consult")
-    expect(summary.patientStory).toContain("spreading itchy rash")
-    expect(summary.recommendedPlan.action).toBe("approve")
-    expect(summary.recommendedPlan.title).toMatch(/async/i)
-    expect(summary.prescriptionIntent).toBeUndefined()
-  })
-
-  it("surfaces current general-consult medical history keys in the doctor summary", () => {
-    const summary = buildClinicalCaseSummary({
-      category: "consult",
-      subtype: "general",
-      serviceType: "consult",
-      patientName: "General Patient",
-      answers: {
-        consultCategory: "general",
         consultDetails: "I have ongoing reflux symptoms and would like advice on the safest next step.",
-        consultUrgency: "routine",
-        general_associated_symptoms: ["none"],
-        hasAllergies: true,
-        allergies: "Penicillin rash",
-        hasConditions: true,
-        conditions: "Asthma",
-        hasOtherMedications: true,
-        otherMedications: "Salbutamol as needed",
-        isPregnantOrBreastfeeding: true,
-        hasAdverseMedicationReactions: false,
       },
     })
 
-    expect(summary.keyFacts).toContainEqual({ label: "Allergies", value: "Penicillin rash" })
-    expect(summary.keyFacts).toContainEqual({ label: "Conditions", value: "Asthma" })
-    expect(summary.keyFacts).toContainEqual({ label: "Current medications", value: "Salbutamol as needed" })
-    expect(summary.keyFacts).toContainEqual({ label: "Pregnant/breastfeeding", value: "Yes" })
-    expect(summary.recommendedPlan.action).toBe("needs_call")
-  })
-
-  it("does not recommend async completion when a general consult has emergency red flags", () => {
-    const summary = buildClinicalCaseSummary({
-      category: "consult",
-      subtype: "general",
-      serviceType: "consult",
-      patientName: "General Patient",
-      answers: {
-        consultCategory: "general",
-        consultDetails: "I am reporting symptoms that include chest pain today and need advice.",
-        consultUrgency: "soon",
-        general_associated_symptoms: ["chest_pain"],
-        hasAllergies: false,
-        hasConditions: false,
-      },
-    })
-
-    expect(summary.recommendedPlan.action).toBe("decline")
-    expect(summary.safetyItems).toContainEqual(
-      expect.objectContaining({ severity: "block", label: "Emergency red flag" }),
-    )
+    expect(summary.title).toBe("Consult · General")
+    expect(summary.patientStory).toContain("reflux symptoms")
+    expect(summary.recommendedPlan.action).toBe("request_info")
+    expect(summary.prescriptionIntent).toBeUndefined()
   })
 })

@@ -531,15 +531,11 @@ function getRequiredSafetyFields(
 
   if (serviceSlug === 'consult' || serviceSlug === 'gp-consult' || serviceSlug === 'consultation') {
     const subtype = String(answers.consultSubtype || answers.consult_subtype || '')
-    const category = String(answers.consultCategory || answers.consult_category || '')
 
     if (subtype === 'ed') {
       fields.add('edNitrates')
       fields.add('edRecentHeartEvent')
       fields.add('edSevereHeart')
-    } else if (!subtype || subtype === 'general' || category === 'general') {
-      fields.add('general_associated_symptoms')
-      fields.add('consultUrgency')
     }
   }
 

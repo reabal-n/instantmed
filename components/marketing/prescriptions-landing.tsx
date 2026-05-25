@@ -218,13 +218,24 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
                   ))}
                 </ul>
 
+                {/*
+                  Both cards must read as actionable. The outline variant on
+                  the non-highlight card was so quiet the Tier 1 review missed
+                  it entirely — "the New Prescription card has no button". Beef
+                  up the outline so it can't disappear: primary-tinted border,
+                  primary text, soft hover wash. Keeps visual hierarchy
+                  (highlight is still the filled primary) without leaving the
+                  second tier visually orphaned.
+                */}
                 <Button
                   asChild
                   size="lg"
                   variant={service.highlight ? "default" : "outline"}
                   className={cn(
                     "w-full h-11 font-semibold",
-                    service.highlight && "shadow-md shadow-primary/20"
+                    service.highlight && "shadow-md shadow-primary/20",
+                    !service.highlight &&
+                      "border-2 border-primary/40 text-primary hover:bg-primary/5 hover:border-primary/60"
                   )}
                   disabled={isDisabled}
                 >
@@ -315,7 +326,7 @@ export function PrescriptionsLanding() {
             }}
             mockup={<EScriptHeroMockup />}
           >
-            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-7 leading-relaxed text-balance">
+            <p className="text-sm sm:text-base lg:text-lg leading-[1.5rem] sm:leading-relaxed text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-7 text-balance">
               {FORM_FIRST_WEDGE} Tell us what you already take. Once approved, your eScript is sent to your phone for any Australian pharmacy. {GUARANTEE}
             </p>
           </Hero>

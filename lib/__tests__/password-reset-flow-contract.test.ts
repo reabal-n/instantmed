@@ -15,8 +15,12 @@ describe("password reset flow contract", () => {
 
     expect(signInPage).toContain("signInWithPassword")
     expect(signInPage).toContain("signInWithOtp")
+    // The magic-link affordance was demoted from a primary button to a text
+    // link below the Google CTA on 2026-05-25 (sign-in page cleanup —
+    // 3 equal-weight buttons was choice paralysis). The functionality stays;
+    // these strings pin the new text-link copy.
     expect(signInPage).toContain("Email me a sign-in link")
-    expect(signInPage).toContain("Send another sign-in link")
+    expect(signInPage).toContain("Sign-in link sent. Didn")
     expect(signInPage).toContain("Use the newest link if a few arrive.")
     expect(signInPage).toContain("We couldn't send that link. Try again.")
     expect(signInPage).toContain("emailLinkErrorMessage")

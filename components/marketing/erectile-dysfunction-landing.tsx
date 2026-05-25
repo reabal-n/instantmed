@@ -192,7 +192,11 @@ export function ErectileDysfunctionLanding() {
           {/* 1. Hero — canonical <Hero> with ED-specific title, CTA, and the
               discreet ED hero mockup. Bespoke EDHeroSection retired in Pass 2. */}
           <Hero
-            title="Private ED assessment, without the awkward GP visit."
+            // NBSP between "GP" and "visit." so the H1 cannot orphan "visit."
+            // on its own line at 375px. text-balance is already on (Heading
+            // component default) but the browser balancer still drops short
+            // trailing words sometimes. Tier 1 review 2026-05-25 #2.
+            title={"Private ED assessment, without the awkward GP visit."}
             primaryCta={{
               text: `Start assessment · $${PRICING.MENS_HEALTH.toFixed(2)}`,
               href: "/request?service=consult&subtype=ed",

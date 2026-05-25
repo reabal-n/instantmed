@@ -58,14 +58,12 @@ async function notifyPaidRequestTelegramForSession(
   session: Stripe.Checkout.Session,
   intakeId: string | null | undefined,
   patientId: string | null | undefined,
-  patientName?: string | null,
 ): Promise<void> {
   try {
     await sendPaidRequestTelegramNotification({
       supabase,
       intakeId,
       patientId,
-      patientName,
       paymentStatus: session.payment_status,
       amountCents: session.amount_total,
       serviceSlug: session.metadata?.service_slug,
@@ -898,7 +896,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
     // 5c: Telegram notification to doctor. This is ledgered separately from
     // email so webhook retries can recover a paid request that was marked paid
     // before the external Telegram API call completed.
-    await notifyPaidRequestTelegramForSession(supabase, session, intakeId, patientId, patientProfile?.full_name)
+    await notifyPaidRequestTelegramForSession(supabase, session, intakeId, patientId)
 
     const duration = Date.now() - startTime
     log.info("Payment processed successfully", {

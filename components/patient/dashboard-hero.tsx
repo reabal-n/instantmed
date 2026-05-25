@@ -50,6 +50,18 @@ export type DashboardHeroState =
   | "empty"
   | "default"
 
+/**
+ * Returning-patient shortcut surfaced on the default "all caught up" hero.
+ * If we know what they did last, we offer a one-tap path to repeat the
+ * same service — the closest we can get to a 2-tap re-request without
+ * skipping the clinical intake (which we won't, for safety).
+ */
+interface LastServiceShortcut {
+  serviceParam: "med-cert" | "prescription" | "consult"
+  subtype?: string
+  label: string
+}
+
 interface DashboardHeroProps {
   firstName: string
   intakes: Intake[]
@@ -68,7 +80,9 @@ interface DashboardHeroProps {
  *   5. Renewal due           → Active prescription renewal reminder.
  *   6. Profile incomplete    → Only when blocking future requests.
  *   7. Empty state           → First-time user, surface the catalog.
- *   8. Default (caught up)   → Service grid + reassurance.
+ *   8. Default (caught up)   → Service grid + reassurance + optional
+ *                              "Start another [last service]" shortcut for
+ *                              returning patients (PR5, 2026-05-25).
  */
 export function resolveHeroState({
   intakes,
@@ -78,7 +92,12 @@ export function resolveHeroState({
   intakes: Intake[]
   prescriptions: Prescription[]
   profileData?: ProfileData
-}): { state: DashboardHeroState; intake?: Intake; prescription?: Prescription } {
+}): {
+  state: DashboardHeroState
+  intake?: Intake
+  prescription?: Prescription
+  lastService?: LastServiceShortcut
+} {
   // 1. Doctor question: any intake with pending_info status
   const pendingInfo = intakes.find((i) => i.status === "pending_info")
   if (pendingInfo) return { state: "doctor-question", intake: pendingInfo }
@@ -143,8 +162,54 @@ export function resolveHeroState({
     return { state: "empty" }
   }
 
-  // 8. Default: caught up
-  return { state: "default" }
+  // 8. Default: caught up. If we know what the patient did last, attach a
+  //    "Start another [service]" shortcut so the dashboard becomes a 2-tap
+  //    return-visit experience for the common case (one service per patient).
+  return { state: "default", lastService: resolveLastServiceShortcut(intakes) }
+}
+
+function resolveLastServiceShortcut(intakes: Intake[]): LastServiceShortcut | undefined {
+  if (intakes.length === 0) return undefined
+
+  const mostRecent = [...intakes].sort(
+    (a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  )[0]
+
+  if (!mostRecent) return undefined
+
+  const serviceType = mostRecent.service?.type
+  const subtype = typeof (mostRecent as { subtype?: unknown }).subtype === "string"
+    ? ((mostRecent as { subtype?: string }).subtype)
+    : undefined
+
+  if (serviceType === "med_certs") {
+    return { serviceParam: "med-cert", label: "Start another medical certificate" }
+  }
+
+  if (serviceType === "common_scripts") {
+    return { serviceParam: "prescription", label: "Repeat a prescription" }
+  }
+
+  if (serviceType === "consult") {
+    if (subtype === "ed") {
+      return {
+        serviceParam: "consult",
+        subtype: "ed",
+        label: "Start another ED assessment",
+      }
+    }
+    if (subtype === "hair_loss") {
+      return {
+        serviceParam: "consult",
+        subtype: "hair_loss",
+        label: "Start another hair loss assessment",
+      }
+    }
+    return { serviceParam: "consult", label: "Start another consult" }
+  }
+
+  return undefined
 }
 
 function getServiceName(intake: Intake): string {
@@ -247,7 +312,7 @@ export function DashboardHero({
   profileData,
 }: DashboardHeroProps) {
   const resolved = resolveHeroState({ intakes, prescriptions, profileData })
-  const { state, intake, prescription } = resolved
+  const { state, intake, prescription, lastService } = resolved
 
   switch (state) {
     case "doctor-question":
@@ -418,7 +483,26 @@ export function DashboardHero({
         <HeroShell
           pill={{ icon: <CheckCircle2 className="h-3 w-3" />, label: "All caught up", tone: "success" }}
           title={`Anything you need today, ${firstName}?`}
-          subtitle="Pick a service to start. A doctor reviews and we email the result."
+          subtitle={
+            lastService
+              ? "Tap below to repeat your last service, or pick a different one."
+              : "Pick a service to start. A doctor reviews and we email the result."
+          }
+          primaryCta={
+            lastService ? (
+              <Button asChild data-testid="hero-repeat-last-service">
+                <Link
+                  href={buildRequestServiceHref({
+                    service: lastService.serviceParam,
+                    subtype: lastService.subtype,
+                  })}
+                >
+                  {lastService.label}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            ) : undefined
+          }
         >
           <div className="pt-2">
             <ServiceGrid compact />

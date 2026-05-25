@@ -326,7 +326,7 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
           hint="Choose the type that matches your situation"
         >
           <div
-            className="relative mt-2 grid grid-cols-3 gap-2"
+            className="relative mt-2 grid grid-cols-1 gap-2 min-[400px]:grid-cols-3"
             role="radiogroup"
             aria-label="Certificate type"
           >
@@ -345,13 +345,13 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
                     "outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                     isSelected
                       ? "border-primary bg-primary/5 text-foreground ring-1 ring-primary/30"
-                      : "border-border/60 bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                      : "border-border bg-white dark:bg-card text-foreground hover:border-primary/60 hover:bg-primary/5"
                   )}
                 >
                   <Icon
                     className={requestCx(
                       "w-4 h-4 transition-colors duration-150",
-                      isSelected ? "text-primary" : "text-muted-foreground/60"
+                      isSelected ? "text-primary" : "text-muted-foreground"
                     )}
                   />
                   <span>{type.label}</span>
@@ -390,7 +390,7 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
                       "flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-xl border px-2 py-2 text-sm font-medium transition-[background-color,border-color,color] duration-150 touch-manipulation",
                       isSelected
                         ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-background text-foreground border-border/60 hover:border-primary/50 hover:bg-primary/5"
+                        : "bg-white dark:bg-card text-foreground border-border hover:border-primary/60 hover:bg-primary/5"
                     )}
                   >
                     <span>
@@ -452,7 +452,12 @@ export default function CertificateStep({ onNext, initialDuration }: Certificate
                       "min-h-12 rounded-xl border px-2 py-2.5 text-sm font-medium transition-[background-color,border-color,color] duration-150 touch-manipulation",
                       isStart && "bg-primary text-primary-foreground border-primary",
                       isInRange && !isStart && "bg-primary/15 text-primary border-primary/40",
-                      !isSelected && "bg-background text-foreground border-border/60 hover:border-primary/50 hover:bg-primary/5"
+                      // Unselected: explicit white + full-opacity border so chips
+                      // read as actionable. Prior `bg-background border-border/60`
+                      // looked greyed-out next to selected chips, making
+                      // "Yesterday" (and other unpicked dates) read as disabled.
+                      // See paid-funnel review 2026-05-25 fix #1.
+                      !isSelected && "bg-white dark:bg-card text-foreground border-border hover:border-primary/60 hover:bg-primary/5"
                     )}
                   >
                     {chipLabel(offset)}

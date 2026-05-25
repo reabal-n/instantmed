@@ -4,4 +4,24 @@ Auto-maintained by `scripts/video-review/index-update.ts`. Edit nothing here by 
 
 | Captured | Run | Journey | Score | Headline |
 |---|---|---|---|---|
-| _no runs yet_ | | | | |
+| 2026-05-25T10:08:49.785Z | [2026-05-25-homepage-clkf](2026-05-25-homepage-clkf/report.md) | Homepage long-scroll + nav tour | 8 | The homepage holds up. Fix the first half-second. |
+| 2026-05-25T10:07:32.798Z | [2026-05-25-marketing-business-h4tc](2026-05-25-marketing-business-h4tc/report.md) | /business B2B landing long-scroll | 7 | The copy is doing the heavy lifting. The form is undoing it. |
+| 2026-05-25T10:06:13.426Z | [2026-05-25-marketing-contact-9vhv](2026-05-25-marketing-contact-9vhv/report.md) | /contact marketing page long-scroll | 8 | A trustworthy contact page, undone by one stray line of copy |
+| 2026-05-25T10:04:46.887Z | [2026-05-25-marketing-pricing-8t7x](2026-05-25-marketing-pricing-8t7x/report.md) | /pricing marketing page long-scroll | 6 | The page is honest about money. The hero jitters before it gets the chance to say so. |
+| 2026-05-25T10:03:04.857Z | [2026-05-25-marketing-about-hgwz](2026-05-25-marketing-about-hgwz/report.md) | /about marketing page long-scroll | 7 | The brand says "without the small talk". The page asks for ten minutes of reading. |
+| 2026-05-25T09:59:14.524Z | [2026-05-25-service-erectile-dysfunction-0rho](2026-05-25-service-erectile-dysfunction-0rho/report.md) | /erectile-dysfunction service landing long-scroll | 8 | Price, refund, and a real doctor. All visible before you scroll. |
+| 2026-05-25T09:57:55.867Z | [2026-05-25-service-prescriptions-6xwj](2026-05-25-service-prescriptions-6xwj/report.md) | /prescriptions service landing long-scroll | 9 | The 44-minute wait counter is doing real work |
+| 2026-05-25T09:56:23.921Z | [2026-05-25-service-medical-certificate-nyva](2026-05-25-service-medical-certificate-nyva/report.md) | /medical-certificate service landing long-scroll | 8 | An 8/10 landing that loses its nerve in the middle |
+| 2026-05-25T09:30:38.372Z | [2026-05-25-service-hair-loss-44xi](2026-05-25-service-hair-loss-44xi/report.md) | /hair-loss service landing long-scroll | 9 | The page is doing its job. Three small finishes left. |
+| 2026-05-25T09:29:12.883Z | [2026-05-25-service-erectile-dysfunction-eoa9](2026-05-25-service-erectile-dysfunction-eoa9/report.md) | /erectile-dysfunction service landing long-scroll | 7 | Price up front, refund on the page, and the sticky bar still eats the screen |
+| 2026-05-25T09:27:49.480Z | [2026-05-25-service-prescriptions-id3x](2026-05-25-service-prescriptions-id3x/report.md) | /prescriptions service landing long-scroll | 6 | The sticky footer says "Avg response: -44 min". Fix that today. |
+| 2026-05-25T09:26:08.695Z | [2026-05-25-service-medical-certificate-mqaw](2026-05-25-service-medical-certificate-mqaw/report.md) | /medical-certificate service landing long-scroll | 7 | The page sells trust. The sticky bar undersells the price. |
+| 2026-05-25T09:12:21.525Z | [2026-05-25-brand-spine-yhf6](2026-05-25-brand-spine-yhf6/report.md) | Brand spine across 4 service surfaces | 8 | The thesis lands in three seconds. The compliance row lets it down. |
+| 2026-05-25T09:10:17.863Z | [2026-05-25-paid-funnel-kkq2](2026-05-25-paid-funnel-kkq2/report.md) | Paid funnel (homepage → /request med-cert → checkout) | 6 | The promise is clear. The paid funnel is hiding it. |
+| 2026-05-25T09:06:23.439Z | [2026-05-25-homepage-5jc7](2026-05-25-homepage-5jc7/report.md) | Homepage long-scroll + nav tour | 8 | The homepage earns trust early. Two CTAs share the load when one should lead. |
+| 2026-05-25T09:05:57.240Z | [2026-05-25-doctor-dashboard-kcth](2026-05-25-doctor-dashboard-kcth/report.md) | Doctor dashboard (queue + header chrome after 2026-05-25 cuts) | 5 | The hero lands. The login wall undoes it. |
+| 2026-05-25T08:23:58.171Z | [2026-05-25-homepage-l0yn](2026-05-25-homepage-l0yn/report.md) | Homepage long-scroll + nav tour | 8 | An 8/10 page held back by three seconds of blank white |
+| 2026-05-25T07:57:20.858Z | [2026-05-25-doctor-dashboard-7be0](2026-05-25-doctor-dashboard-7be0/report.md) | Doctor dashboard (queue + header chrome after 2026-05-25 cuts) | 5 | A login screen doing marketing's job, not the doctor's |
+| 2026-05-25T07:54:52.168Z | [2026-05-25-doctor-dashboard-a39b](2026-05-25-doctor-dashboard-a39b/report.md) | Doctor dashboard (queue + header chrome after 2026-05-25 cuts) | 5 | A clean login that forgets it belongs to a doctor |
+| 2026-05-25T07:49:01.953Z | [2026-05-25-doctor-dashboard-u12l](2026-05-25-doctor-dashboard-u12l/report.md) | Doctor dashboard (queue + header chrome after 2026-05-25 cuts) | 4 | The login screen forgot whose login screen it is |
+| 2026-05-25T07:45:21.645Z | [2026-05-25-doctor-dashboard-puor](2026-05-25-doctor-dashboard-puor/report.md) | Doctor dashboard (queue + header chrome after 2026-05-25 cuts) | 6 | A login screen with a clipped logo and a CTA that whispers |

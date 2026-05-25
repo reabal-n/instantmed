@@ -124,15 +124,16 @@ describe("doctor queue production contract", () => {
 
   it("keeps queue refreshes throttled and runs a refresh after successful decisions", () => {
     expect(queueClientSource).toContain("lastQueueRefreshAtRef")
-    expect(queueClientSource).toContain("lastQueueRefreshLabel")
     expect(queueClientSource).toContain("window.setInterval(refreshIfVisible, 45000)")
     expect(queueClientSource).toContain("refreshQueue(true)")
-    expect(queueClientSource).toContain("setLastQueueRefreshAt(new Date(now))")
-    expect(queueClientSource).toContain("lastUpdatedLabel={lastQueueRefreshLabel}")
     expect(queueClientSource).toContain("onActionComplete={(options)")
     expect(queueClientSource).not.toContain("onActionComplete={(options) => {\n            router.refresh()")
     expect(reviewActionsSource).toContain("if (onActionComplete)")
     expect(reviewActionsSource).toContain("if (!onActionComplete) router.refresh()")
+    // lastQueueRefreshLabel + setLastQueueRefreshAt + lastUpdatedLabel prop
+    // were removed 2026-05-25 when the queue header's "updated 5:03pm"
+    // chrome was deleted; the throttle ref is what actually enforces the
+    // 5-second floor.
   })
 
   it("does not write patient email addresses into decline logs", () => {

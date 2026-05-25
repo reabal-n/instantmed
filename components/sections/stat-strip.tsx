@@ -15,8 +15,14 @@ function AnimatedNumber({ value, prefix = "", suffix = "" }: { value: number; pr
   // Warm-start at 30% so the counter never dead-starts from 0 on fast connections.
   const warmStart = Math.round(value * 0.3);
   const motionValue = useMotionValue(warmStart);
-  // Inline spring config to avoid Transition vs SpringOptions type mismatch
-  const spring = useSpring(motionValue, { stiffness: 300, damping: 20, mass: 1 });
+  // Critically damped spring — Tier 1 review 2026-05-25 (/pricing #1)
+  // flagged the counter as overshooting from 106% back to 100% with a
+  // visible layout shift. The previous {stiffness: 300, damping: 20}
+  // gave a damping ratio of ~0.58 (underdamped → overshoot). Bumped to
+  // damping: 40 (ratio ~1.15, slightly over-critically damped) so the
+  // value settles without crossing target. Width-locked tabular-nums
+  // below kills the layout shift even on the final tick.
+  const spring = useSpring(motionValue, { stiffness: 300, damping: 40, mass: 1 });
   const [display, setDisplay] = useState(warmStart);
 
   useEffect(() => {
@@ -35,7 +41,11 @@ function AnimatedNumber({ value, prefix = "", suffix = "" }: { value: number; pr
   }, [spring]);
 
   return (
-    <span ref={ref}>
+    // tabular-nums + inline-block locks each digit slot width so a 2→3
+    // digit transition (e.g. 99 → 100) doesn't reflow the surrounding
+    // layout. Paired with the over-damped spring above this guarantees
+    // the hero stays still in the first 4 seconds.
+    <span ref={ref} className="tabular-nums inline-block">
       {prefix}{display.toLocaleString()}{suffix}
     </span>
   );

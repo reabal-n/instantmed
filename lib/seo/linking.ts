@@ -70,15 +70,9 @@ export function generateRelatedLinks(context: LinkingContext): LinkSection[] {
     })
   }
 
-  // 4. Other treatments (medication/condition specific)
-  const treatments = findOtherTreatments(currentPage, maxLinks)
-  if (treatments.length > 0) {
-    sections.push({
-      title: 'Other Treatments We Can Help With',
-      links: treatments,
-      type: 'treatments',
-    })
-  }
+  // The "Other Treatments" section was retired alongside the medication
+  // landing pages (Google Ads compliance) — keeping the call site here would
+  // just invoke a stub that always returns [].
 
   return sections
 }
@@ -216,21 +210,6 @@ function findPeopleAlsoSearch(
   }
 
   return searches.slice(0, maxLinks)
-}
-
-// ============================================
-// OTHER TREATMENTS FINDER
-// ============================================
-
-function findOtherTreatments(
-  current: LinkingContext['currentPage'],
-  maxLinks: number
-): RelatedLink[] {
-  const treatments: RelatedLink[] = []
-
-  // Medication pages removed for Google Ads compliance
-
-  return treatments.slice(0, maxLinks)
 }
 
 // ============================================

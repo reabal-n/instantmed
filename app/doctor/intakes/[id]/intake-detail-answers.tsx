@@ -162,7 +162,7 @@ export function IntakeDetailAnswers({
               </Badge>
             )}
             {/* Display consult subtype for consult service */}
-            {intake.category === 'consult' && intake.subtype && intake.subtype !== 'general' && (
+            {intake.category === 'consult' && intake.subtype && (
               <Badge variant="secondary" className="ml-2 text-xs font-normal">
                 {formatConsultSubtype(intake.subtype)}
               </Badge>

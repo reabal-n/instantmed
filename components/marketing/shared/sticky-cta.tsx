@@ -61,17 +61,24 @@ export function StickyCTA({
         transition={{ duration: 0.3, ease: "easeOut" }}
         inert={!show ? true : undefined}
       >
-        <div className="bg-white dark:bg-card border-t border-border/50 px-4 pt-2.5 pb-3 safe-area-pb">
-          <p className="text-xs text-muted-foreground text-center mb-2">
+        {/*
+          Compact layout — Tier 1 review 2026-05-25 flagged the ED sticky
+          bar as "eating 20% of the viewport". Tighter padding (pt-1.5 pb-2),
+          summary line truncated, response time bumped to text-[13px] on
+          solid surface so the number actually reads. We trade the chip
+          height for reading room above the fold.
+        */}
+        <div className="bg-white dark:bg-card border-t border-border/50 px-4 pt-1.5 pb-2 safe-area-pb">
+          <p className="text-[11px] leading-tight text-muted-foreground text-center mb-1.5 truncate">
             {mobileSummary}
             {responseTime && (
-              <span className="text-muted-foreground"> &middot; {responseTime}</span>
+              <span className="text-foreground/80 font-medium"> &middot; {responseTime}</span>
             )}
           </p>
           <Button
             asChild
             size="lg"
-            className="w-full h-12 text-base font-semibold shadow-md shadow-primary/20"
+            className="w-full h-11 text-base font-semibold shadow-md shadow-primary/20"
             disabled={isDisabled}
             onClick={onCTAClick}
           >

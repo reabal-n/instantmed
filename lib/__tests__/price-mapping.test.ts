@@ -128,11 +128,6 @@ describe('getConsultPriceId', () => {
     expect(getConsultPriceId('weight_loss')).toBe('price_consult_weight_loss')
   })
 
-  it('returns default consult price for "general" subtype', async () => {
-    const { getConsultPriceId } = await import('@/lib/stripe/price-mapping')
-    expect(getConsultPriceId('general')).toBe('price_consult_general')
-  })
-
   it('uses consultSubtype from answers when subtype has no specific price', async () => {
     const { getConsultPriceId } = await import('@/lib/stripe/price-mapping')
     expect(getConsultPriceId('something', { consultSubtype: 'weight_loss' })).toBe('price_consult_weight_loss')
@@ -146,7 +141,7 @@ describe('getConsultPriceId', () => {
   it('throws when STRIPE_PRICE_CONSULT is missing and subtype unknown', async () => {
     delete process.env.STRIPE_PRICE_CONSULT
     const { getConsultPriceId } = await import('@/lib/stripe/price-mapping')
-    expect(() => getConsultPriceId('general')).toThrow('Missing STRIPE_PRICE_CONSULT environment variable')
+    expect(() => getConsultPriceId('unknown_subtype')).toThrow('Missing STRIPE_PRICE_CONSULT environment variable')
   })
 })
 
@@ -195,12 +190,12 @@ describe('getConsultPriceId - production hard-fail on missing subtype env var', 
     expect(getConsultPriceId('ed')).toBe('price_fallback_generic')
   })
 
-  it('does not throw in production for general subtype (default path)', async () => {
+  it('does not throw in production for an unknown subtype (default path)', async () => {
     vi.stubEnv('NODE_ENV', 'production')
     vi.stubEnv('STRIPE_PRICE_CONSULT', 'price_fallback_generic')
 
     const { getConsultPriceId } = await import('@/lib/stripe/price-mapping')
-    expect(getConsultPriceId('general')).toBe('price_fallback_generic')
+    expect(getConsultPriceId('unknown_subtype')).toBe('price_fallback_generic')
   })
 })
 
@@ -314,11 +309,6 @@ describe('getConsultSubtypePrice', () => {
   it('returns PRICING.WEIGHT_LOSS default for "weight_loss"', async () => {
     const { getConsultSubtypePrice } = await import('@/lib/stripe/price-mapping')
     expect(getConsultSubtypePrice('weight_loss')).toBe(PRICING.WEIGHT_LOSS)
-  })
-
-  it('returns PRICING.CONSULT default for "general"', async () => {
-    const { getConsultSubtypePrice } = await import('@/lib/stripe/price-mapping')
-    expect(getConsultSubtypePrice('general')).toBe(PRICING.CONSULT)
   })
 
   it('uses env var override when NEXT_PUBLIC_PRICE_CONSULT_ED is set', async () => {

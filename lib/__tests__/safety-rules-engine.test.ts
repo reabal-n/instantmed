@@ -429,20 +429,6 @@ describe("Safety Rules Engine", () => {
       expect(result.patientMessage).toContain("Lifeline")
     })
 
-    it("should REQUIRES_CALL for pregnancy concern in general consult", () => {
-      const result = evaluateSafety("consult", {
-        emergency_symptoms: [],
-        consultCategory: "general",
-        isPregnantOrBreastfeeding: true,
-      })
-      expect(result.outcome).toBe("REQUIRES_CALL")
-      expect(
-        result.triggeredRules.some(
-          (r) => r.ruleId === "general_pregnancy_concern"
-        )
-      ).toBe(true)
-    })
-
     it("should DECLINE women's health with pregnancy + hormonal medication", () => {
       const result = evaluateSafety("consult", {
         emergency_symptoms: [],
@@ -669,15 +655,6 @@ describe("Safety Rules Engine", () => {
       const result = validateSafetyFieldsPresent("medical-certificate", {})
       expect(result.valid).toBe(false)
       expect(result.missingFields).toEqual(["emergency_symptoms", "start_date"])
-    })
-
-    it("requires general consult safety screen fields before checkout", () => {
-      const result = validateSafetyFieldsPresent("consult", {
-        consultCategory: "general",
-        emergency_symptoms: [],
-      })
-      expect(result.valid).toBe(false)
-      expect(result.missingFields).toEqual(["general_associated_symptoms", "consultUrgency"])
     })
 
     it("requires ED safety screen fields without requiring general consult fields", () => {

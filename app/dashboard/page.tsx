@@ -2,10 +2,7 @@ import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 
 import { QueueClient } from "@/app/doctor/queue/queue-client"
-import { AttributionSourcesCard } from "@/components/admin/attribution-sources-card"
-import { DeclineReasonsCard } from "@/components/admin/decline-reasons-card"
 import { OwnerOperatorSetupCard } from "@/components/admin/owner-operator-setup-card"
-import { StaffReadinessPanel } from "@/components/admin/staff-readiness-panel"
 import { DoctorAvailabilityToggle } from "@/components/doctor/doctor-availability-toggle"
 import {
   OperatorPage,
@@ -29,14 +26,6 @@ import {
   STAFF_OPS_HREF,
 } from "@/lib/dashboard/routes"
 import {
-  type AttributionSourceBreakdown,
-  getAttributionSourceBreakdown,
-} from "@/lib/data/dashboard-attribution"
-import {
-  type DeclineReasonBreakdown,
-  getDeclineReasonBreakdown,
-} from "@/lib/data/dashboard-decline-trends"
-import {
   type DoctorIdentity,
   getDoctorIdentity,
   isDoctorIdentityComplete,
@@ -47,7 +36,6 @@ import {
   getRecentlyCompletedIntakes,
   getTodayEarnings,
 } from "@/lib/data/intakes"
-import { getStaffReadinessSnapshot } from "@/lib/data/staff-readiness"
 import { EMPTY_SYSTEM_HEALTH, getSystemHealth } from "@/lib/data/system-health"
 import { createLogger } from "@/lib/observability/logger"
 import type { IntakeWithPatient } from "@/types/db"
@@ -114,13 +102,6 @@ export default async function StaffDashboardPage({
     isAdmin ? getTodayEarnings() : Promise.resolve(0),
     import("@/app/actions/doctor-availability").then((m) => m.getDoctorAvailabilityAction()),
     isAdmin ? getSystemHealth() : Promise.resolve(EMPTY_SYSTEM_HEALTH),
-    isAdmin ? getStaffReadinessSnapshot() : Promise.resolve(null),
-    isAdmin
-      ? getAttributionSourceBreakdown()
-      : Promise.resolve<AttributionSourceBreakdown | null>(null),
-    isAdmin
-      ? getDeclineReasonBreakdown()
-      : Promise.resolve<DeclineReasonBreakdown | null>(null),
   ])
 
   const queueResult = results[0].status === "fulfilled"
@@ -132,11 +113,6 @@ export default async function StaffDashboardPage({
   const todayEarnings = results[4].status === "fulfilled" ? results[4].value : 0
   const doctorAvailable = results[5].status === "fulfilled" ? results[5].value?.available !== false : true
   const systemHealth = results[6].status === "fulfilled" ? results[6].value : EMPTY_SYSTEM_HEALTH
-  const staffReadiness = results[7].status === "fulfilled" ? results[7].value : null
-  const attributionBreakdown: AttributionSourceBreakdown | null =
-    results[8].status === "fulfilled" ? results[8].value : null
-  const declineBreakdown: DeclineReasonBreakdown | null =
-    results[9].status === "fulfilled" ? results[9].value : null
 
   const parchmentUserId = typeof profile.parchment_user_id === "string" && profile.parchment_user_id.trim()
     ? profile.parchment_user_id.trim()
@@ -152,9 +128,6 @@ export default async function StaffDashboardPage({
         "earnings",
         "availability",
         "system-health",
-        "staff-readiness",
-        "attribution-breakdown",
-        "decline-breakdown",
       ]
       log.error(`Failed to fetch staff dashboard ${names[index]}`, { profileId: profile.id }, result.reason)
     }
@@ -186,26 +159,13 @@ export default async function StaffDashboardPage({
             />
           ) : null}
 
-          {isAdmin && staffReadiness ? (
-            <StaffReadinessPanel snapshot={staffReadiness} />
-          ) : null}
-
-          {/* Acquisition / decline tiles hidden below md: on a phone the
-              operator wants to triage, not browse 30-day stats. Setup +
-              readiness panels above stay visible at all sizes because
-              they are actionable. */}
-          {isAdmin &&
-          ((attributionBreakdown && attributionBreakdown.totalIntakes > 0) ||
-            (declineBreakdown && declineBreakdown.totalDeclines > 0)) ? (
-            <div className="hidden gap-3 md:grid md:grid-cols-2">
-              {attributionBreakdown ? (
-                <AttributionSourcesCard breakdown={attributionBreakdown} />
-              ) : null}
-              {declineBreakdown ? (
-                <DeclineReasonsCard breakdown={declineBreakdown} />
-              ) : null}
-            </div>
-          ) : null}
+          {/*
+            StaffReadinessPanel, AttributionSourcesCard, and DeclineReasonsCard
+            were removed from the dashboard on 2026-05-25. Acquisition + decline
+            analytics belong on /admin/analytics, not in the operator's primary
+            triage surface; readiness onboarding belongs in /admin/clinic. The
+            dashboard's job is one thing: scan → claim → review → next.
+          */}
 
           <section id="doctor-queue" className="min-h-0 flex-1">
             <QueueClient

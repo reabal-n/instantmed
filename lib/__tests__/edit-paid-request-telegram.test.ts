@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   getIntakeAnswers: vi.fn(),
   editTelegramMessageToApproved: vi.fn(),
   editTelegramMessageToDeclined: vi.fn(),
+  editTelegramMessageToNeedsManualReview: vi.fn(),
   createServiceRoleClient: vi.fn(),
 }))
 
@@ -14,6 +15,7 @@ vi.mock("@/lib/data/intake-answers", () => ({
 vi.mock("@/lib/notifications/telegram", () => ({
   editTelegramMessageToApproved: mocks.editTelegramMessageToApproved,
   editTelegramMessageToDeclined: mocks.editTelegramMessageToDeclined,
+  editTelegramMessageToNeedsManualReview: mocks.editTelegramMessageToNeedsManualReview,
 }))
 
 vi.mock("@/lib/supabase/service-role", () => ({
@@ -75,7 +77,11 @@ describe("editPaidRequestTelegramMessageToApproved", () => {
     const { editPaidRequestTelegramMessageToApproved } = await import("@/lib/notifications/edit-paid-request-telegram")
     await editPaidRequestTelegramMessageToApproved(INTAKE_ID)
 
-    expect(mocks.editTelegramMessageToApproved).toHaveBeenCalledWith(99, "Medical Certificate · 3 days")
+    expect(mocks.editTelegramMessageToApproved).toHaveBeenCalledWith(99, {
+      serviceSlug: "med-cert-sick",
+      subtype: undefined,
+      serviceDetail: "3 days",
+    })
   })
 
   it("swallows errors so callers (approval action) never see a throw", async () => {
@@ -112,7 +118,11 @@ describe("editPaidRequestTelegramMessageToDeclined", () => {
     const { editPaidRequestTelegramMessageToDeclined } = await import("@/lib/notifications/edit-paid-request-telegram")
     await editPaidRequestTelegramMessageToDeclined(INTAKE_ID)
 
-    expect(mocks.editTelegramMessageToDeclined).toHaveBeenCalledWith(7, "ED Consultation")
+    expect(mocks.editTelegramMessageToDeclined).toHaveBeenCalledWith(7, {
+      serviceSlug: "consult",
+      subtype: "ed",
+      serviceDetail: undefined,
+    })
   })
 
   it("swallows errors so the decline action never fails because of a stale chat edit", async () => {
@@ -128,5 +138,46 @@ describe("editPaidRequestTelegramMessageToDeclined", () => {
 
     const { editPaidRequestTelegramMessageToDeclined } = await import("@/lib/notifications/edit-paid-request-telegram")
     await expect(editPaidRequestTelegramMessageToDeclined(INTAKE_ID)).resolves.toBeUndefined()
+  })
+})
+
+describe("editPaidRequestTelegramMessageToNeedsManualReview", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it("flips an auto med-cert chat message to the needs-manual editor with the same service context", async () => {
+    mocks.createServiceRoleClient.mockReturnValue(
+      makeSupabaseStub({
+        paid_request_telegram_message_id: 21,
+        category: "med_certs",
+        subtype: null,
+      }),
+    )
+    mocks.getIntakeAnswers.mockResolvedValueOnce({ duration: "2" })
+
+    const { editPaidRequestTelegramMessageToNeedsManualReview } = await import("@/lib/notifications/edit-paid-request-telegram")
+    await editPaidRequestTelegramMessageToNeedsManualReview(INTAKE_ID)
+
+    expect(mocks.editTelegramMessageToNeedsManualReview).toHaveBeenCalledWith(21, {
+      serviceSlug: "med-cert-sick",
+      subtype: undefined,
+      serviceDetail: "2 days",
+    })
+  })
+
+  it("no-ops cleanly when the row has no Telegram message_id (notification never sent)", async () => {
+    mocks.createServiceRoleClient.mockReturnValue(
+      makeSupabaseStub({
+        paid_request_telegram_message_id: null,
+        category: "med_certs",
+        subtype: null,
+      }),
+    )
+
+    const { editPaidRequestTelegramMessageToNeedsManualReview } = await import("@/lib/notifications/edit-paid-request-telegram")
+    await editPaidRequestTelegramMessageToNeedsManualReview(INTAKE_ID)
+
+    expect(mocks.editTelegramMessageToNeedsManualReview).not.toHaveBeenCalled()
   })
 })

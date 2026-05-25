@@ -19,7 +19,6 @@ const intakeStepFiles = [
   "components/request/steps/medication-step.tsx",
   "components/request/steps/medication-history-step.tsx",
   "components/request/steps/medical-history-step.tsx",
-  "components/request/steps/consult-reason-step.tsx",
   "components/request/steps/patient-details-step.tsx",
   "components/request/steps/review-step.tsx",
   "components/request/steps/ed-goals-step.tsx",

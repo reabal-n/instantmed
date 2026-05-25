@@ -31,15 +31,18 @@ describe('Consult Subtype → Stripe Price ID Mapping', () => {
     vi.resetModules()
   })
 
-  it('maps "general" subtype to STRIPE_PRICE_CONSULT', async () => {
-    // Import from price-mapping (no server-only restriction)
+  it('falls back to STRIPE_PRICE_CONSULT for an unknown subtype', async () => {
+    // After the 2026-05-20 general consult retirement, the default fallback
+    // exists for defense (typo in subtype, future addition without price wired
+    // yet). No live URL produces an unknown subtype today — the request page
+    // gates it.
     const { getPriceIdForRequest } = await import('@/lib/stripe/price-mapping')
-    
+
     const priceId = getPriceIdForRequest({
       category: 'consult',
-      subtype: 'general',
+      subtype: 'unknown_subtype',
     })
-    
+
     expect(priceId).toBe('price_consult_general')
   })
 

@@ -8,7 +8,6 @@ import {
 import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing-identity"
 import {
   validateCertificateStep,
-  validateConsultReasonStep,
   validateDetailsStep,
   validateEdAssessmentStep,
   validateEdGoalsStep,
@@ -372,10 +371,14 @@ export function validateAnswersServerSide(
     const rawConsultSubtype = answers.consultSubtype
     const consultSubtype = typeof rawConsultSubtype === "string" && rawConsultSubtype.trim()
       ? rawConsultSubtype.trim()
-      : "general"
+      : null
 
-    if (!isConsultSubtypeKey(consultSubtype)) {
-      return "Unknown consultation type."
+    // Consult always requires a specialty subtype after the 2026-05-20 general
+    // consult retirement. /request?service=consult with no subtype is bounced
+    // to /consult by app/request/page.tsx, so reaching here without one is a
+    // bug we want to surface loudly rather than silently accept.
+    if (!consultSubtype || !isConsultSubtypeKey(consultSubtype)) {
+      return "Please choose a consultation type."
     }
 
     if (!isConsultSubtypeAvailable(consultSubtype)) {
@@ -424,10 +427,8 @@ export function validateAnswersServerSide(
       )
     }
 
-    return firstValidationError(
-      validateConsultReasonStep(answers),
-      validateMedicalHistoryStep(answers),
-    )
+    // Unreachable: isConsultSubtypeKey gate above exhausts the union.
+    return "Unknown consultation type."
   }
 
   return null
@@ -444,10 +445,6 @@ export function resolveCheckoutSubtype(
 
   if (serviceType === "consult" && answers.consultSubtype) {
     return String(answers.consultSubtype)
-  }
-
-  if (serviceType === "consult" && answers.consultCategory) {
-    return String(answers.consultCategory)
   }
 
   return baseSubtype

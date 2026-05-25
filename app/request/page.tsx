@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { redirect } from "next/navigation"
 
 import { RequestFlow } from "@/components/request/request-flow"
 import { trackOperationalBlock } from "@/lib/analytics/posthog-server"
@@ -49,6 +50,14 @@ export default async function RequestPage({
   const initialSubtype = initialService === "consult"
     ? normalizeConsultSubtypeParam(params.subtype)
     : params.subtype
+
+  // Consult REQUIRES a valid specialty subtype (ED, hair loss, women's health,
+  // weight loss). Bare /request?service=consult or an unknown subtype goes to
+  // the services index where the user can pick. General consult was retired
+  // 2026-05-20 — no fallback flow exists.
+  if (initialService === "consult" && !initialSubtype) {
+    redirect("/consult")
+  }
 
   // Check operational status - run in parallel, none depends on the others
   const [maintenance, atCapacity] = await Promise.all([

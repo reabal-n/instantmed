@@ -118,10 +118,16 @@ export function SupportedMedicationsSection() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {CATEGORIES.map((cat, index) => (
             <Reveal key={cat.name} delay={index * 0.05}>
+              {/*
+                Uniform top border — Tier 1 review 2026-05-25 (/prescriptions #1)
+                flagged the multi-colored accent stripes (rose, amber, pink, sky,
+                orange, lime, teal) as "a pamphlet, not a clinic". The icons
+                already carry the chromatic variation. Border drops to neutral
+                so the ivory spine reads as one calm system.
+              */}
               <div
                 className={cn(
-                  "rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 border-t-2",
-                  cat.accent,
+                  "rounded-xl bg-white dark:bg-card border border-border/60 dark:border-white/15",
                   "shadow-sm shadow-primary/[0.04] dark:shadow-none p-4",
                   "hover:shadow-md hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-[transform,box-shadow] duration-300"
                 )}

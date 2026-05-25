@@ -104,6 +104,12 @@ vi.mock("@/lib/notifications/telegram", () => ({
   escapeMarkdownValue: (v: string) => v,
 }))
 
+const mockEditTelegramToNeedsManualReview = vi.fn().mockResolvedValue(undefined)
+vi.mock("@/lib/notifications/edit-paid-request-telegram", () => ({
+  editPaidRequestTelegramMessageToNeedsManualReview: (...args: unknown[]) =>
+    mockEditTelegramToNeedsManualReview(...args),
+}))
+
 const mockClaimForProcessing = vi.fn().mockResolvedValue(true)
 const mockMarkApproved = vi.fn().mockResolvedValue(true)
 const mockMarkNeedsDoctor = vi.fn().mockResolvedValue(true)
@@ -244,6 +250,8 @@ describe("attemptAutoApproval orchestrator", () => {
     mockMarkNeedsDoctor.mockResolvedValue(true)
     mockMarkFailedRetrying.mockResolvedValue(true)
     mockMarkIneligible.mockResolvedValue(true)
+    mockEditTelegramToNeedsManualReview.mockReset()
+    mockEditTelegramToNeedsManualReview.mockResolvedValue(undefined)
     supabaseQueryResults = {}
     setupSupabaseMock()
   })
@@ -408,6 +416,30 @@ describe("attemptAutoApproval orchestrator", () => {
     expect(result.autoApproved).toBe(false)
     // Should be ineligible due to emergency/mental health keywords
     expect(result.reason).toBeTruthy()
+    // The original ✅ Telegram title should flip to ❌ "manual review needed"
+    // so the operator's chat reflects that the auto path is no longer viable.
+    expect(mockEditTelegramToNeedsManualReview).toHaveBeenCalledWith(TEST_INTAKE_ID)
+  })
+
+  it("does NOT edit the Telegram message when the early service-type check rejects (the title was never ✅)", async () => {
+    mockFeatureFlags.ai_auto_approve_enabled = true
+    supabaseQueryResults["intakes"] = makeIntakeChain({
+      intakeData: {
+        id: TEST_INTAKE_ID,
+        status: "paid",
+        subtype: null,
+        patient_id: "patient-1",
+        service: { id: "svc-2", slug: "common-scripts", name: "Prescription", type: "common_scripts" },
+        patient: { date_of_birth: "1990-01-01" },
+        answers: { answers: {} },
+      },
+    })
+
+    const attemptAutoApproval = await getAttemptAutoApproval()
+    const result = await attemptAutoApproval(TEST_INTAKE_ID)
+
+    expect(result.reason).toBe("Not a med cert service")
+    expect(mockEditTelegramToNeedsManualReview).not.toHaveBeenCalled()
   })
 
   // --------------------------------------------------------------------------

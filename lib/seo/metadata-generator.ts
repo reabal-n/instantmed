@@ -244,13 +244,6 @@ export function generateMetadata(page: SEOPage): Metadata {
 // HELPER FUNCTIONS
 // ============================================
 
-function _extractPrimaryKeyword(page: SEOPage): string {
-  if (page.metadata.keywords && page.metadata.keywords.length > 0) {
-    return page.metadata.keywords[0]
-  }
-  return page.slug.split('-').slice(0, 2).join(' ')
-}
-
 function optimizeTitleLength(title: string, maxLength: number = 60): string {
   if (title.length <= maxLength) return title
   

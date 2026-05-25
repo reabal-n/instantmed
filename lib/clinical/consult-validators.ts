@@ -109,44 +109,6 @@ function requireMinLength(
 }
 
 // ============================================================================
-// GENERAL CONSULT VALIDATOR
-// ============================================================================
-
-const CONSULT_CATEGORIES = [
-  "skin",
-  "infection",
-  "new_medication",
-  "general",
-  "ed",
-  "hair_loss",
-  "weight_loss",
-  "womens_health",
-] as const
-
-const URGENCY_LEVELS = ["routine", "soon", "urgent"] as const
-
-export function validateGeneralConsult(answers: Answers): ConsultValidationResult {
-  const errors: string[] = []
-  const warnings: string[] = []
-  const flags: ConsultFlag[] = []
-
-  requireOneOf(answers, "consultCategory", "Consultation category", CONSULT_CATEGORIES, errors)
-  requireMinLength(answers, "consultDetails", "Consultation details", 20, errors)
-
-  // Urgency is optional but if provided must be valid
-  const urgency = str(answers, "consultUrgency")
-  if (urgency && !URGENCY_LEVELS.includes(urgency as typeof URGENCY_LEVELS[number])) {
-    errors.push("Urgency level has an invalid value")
-  }
-
-  if (urgency === "urgent") {
-    warnings.push("Urgent requests may still require up to 24 hours for review. If this is an emergency, please call 000.")
-  }
-
-  return { valid: errors.length === 0, errors, warnings, flags }
-}
-
-// ============================================================================
 // ED CONSULT VALIDATOR
 // ============================================================================
 
@@ -665,7 +627,6 @@ export function validateWomensGeneralConsult(answers: Answers): ConsultValidatio
 // ============================================================================
 
 export type ClinicalConsultValidationSubtype =
-  | "general"
   | "ed"
   | "hair_loss"
   | "womens_health_contraception"
@@ -683,8 +644,6 @@ export function validateConsultBySubtype(
   answers: Answers
 ): ConsultValidationResult {
   switch (subtype) {
-    case "general":
-      return validateGeneralConsult(answers)
     case "ed":
       return validateEdConsult(answers)
     case "hair_loss":

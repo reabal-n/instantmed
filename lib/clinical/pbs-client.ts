@@ -123,22 +123,6 @@ export interface PBSApiResponse<T> {
   data: T[]
 }
 
-interface _ItemOverviewResult {
-  pbs_code: string
-  li_item_id: number | null
-  drug_name: string
-  li_drug_name: string | null
-  li_form: string | null
-  brand_name: string | null
-  manufacturer_code: string | null
-  manufacturer_name: string | null
-  pack_size: string | null
-  number_of_repeats: number | null
-  max_quantity: number | null
-  tgm_indicator: string | null
-  restriction_flag: string | null
-}
-
 /**
  * Fetch with timeout wrapper to prevent hanging requests
  */

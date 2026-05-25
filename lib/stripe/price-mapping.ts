@@ -113,7 +113,10 @@ export function getConsultPriceId(subtype: string, answers?: Record<string, unkn
     return subtypePriceIds[consultSubtype]!
   }
   
-  // Default to general consult price (covers 'general' and 'new_medication')
+  // Default consult price. After the 2026-05-20 general consult retirement,
+  // reaching this fallback means the caller passed a subtype we don't have a
+  // dedicated price for (e.g. a typo, a new subtype added before pricing was
+  // wired). The default keeps checkout working but signals a misconfiguration.
   const defaultPriceId = getRequiredStripePriceEnv("STRIPE_PRICE_CONSULT")
 
   // Hard fail in production if a KNOWN subtype is missing its dedicated env var -
@@ -131,9 +134,7 @@ export function getConsultPriceId(subtype: string, answers?: Record<string, unkn
       )
     }
     logger.warn("No specific price for consult subtype, using default (dev/test only)", { subtype })
-  } else if (subtype && subtype !== 'general') {
-    // Unknown subtype (e.g. 'new_medication', future values) - silent fallback,
-    // these are intentionally routed through the generic consult price.
+  } else if (subtype) {
     logger.warn("No specific price for consult subtype, using default", { subtype })
   }
 
@@ -189,7 +190,6 @@ export function getConsultSubtypePrice(subtype?: string): number {
     'hair_loss': PRICING.HAIR_LOSS,
     'womens_health': PRICING.WOMENS_HEALTH,
     'weight_loss': PRICING.WEIGHT_LOSS,
-    'general': PRICING.CONSULT,
   }
 
   const subtypePrices: Record<string, string | undefined> = {
@@ -197,7 +197,6 @@ export function getConsultSubtypePrice(subtype?: string): number {
     'hair_loss': process.env.NEXT_PUBLIC_PRICE_CONSULT_HAIR_LOSS,
     'womens_health': process.env.NEXT_PUBLIC_PRICE_CONSULT_WOMENS_HEALTH,
     'weight_loss': process.env.NEXT_PUBLIC_PRICE_CONSULT_WEIGHT_LOSS,
-    'general': process.env.NEXT_PUBLIC_PRICE_CONSULT,
   }
 
   const priceStr = subtypePrices[subtype] || process.env.NEXT_PUBLIC_PRICE_CONSULT

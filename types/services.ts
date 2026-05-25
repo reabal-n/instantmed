@@ -34,7 +34,6 @@ export type UnifiedStepId =
   | 'medication'        // PBS medication search
   | 'medication-history'// Previous prescriptions + side effects
   | 'medical-history'   // Allergies, conditions, other meds
-  | 'consult-reason'    // General consult pathway
   | 'ed-goals'          // ED goals and duration
   | 'ed-assessment'     // ED-specific assessment (IIEF-5)
   | 'ed-health'         // ED health screening (nitrates, cardiac, medical history)

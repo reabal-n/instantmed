@@ -266,19 +266,6 @@ export const prescriptionMedicalHistoryStepSchema = z
     }
   })
 
-export const consultReasonStepSchema = z.object({
-  consultCategory: nonEmptyString("Please select what you'd like help with"),
-  general_associated_symptoms: z
-    .array(z.string())
-    .min(1, "Please answer the safety question"),
-  consultDetails: z
-    .string()
-    .refine((v) => (v?.trim().length ?? 0) >= 20, {
-      message: "Please provide more detail (at least 20 characters)",
-    }),
-  consultUrgency: nonEmptyString("Please indicate how urgent this is"),
-})
-
 // ---------------------------------------------------------------------------
 // ED Intake - 4-step validation
 // ---------------------------------------------------------------------------
@@ -570,10 +557,6 @@ export function validateMedicalHistoryStep(answers: Record<string, unknown>): Va
 
 export function validatePrescriptionMedicalHistoryStep(answers: Record<string, unknown>): ValidationResult {
   return runSchema(prescriptionMedicalHistoryStepSchema, answers)
-}
-
-export function validateConsultReasonStep(answers: Record<string, unknown>): ValidationResult {
-  return runSchema(consultReasonStepSchema, answers)
 }
 
 export function validateEdGoalsStep(answers: Record<string, unknown>): ValidationResult {

@@ -11,7 +11,6 @@ export const STEP_TIME_ESTIMATES: Record<string, number> = {
   'medication': 60,
   'medication-history': 45,
   'medical-history': 60,
-  'consult-reason': 45,
   'ed-goals': 30,
   'ed-assessment': 60,
   'ed-health': 90,

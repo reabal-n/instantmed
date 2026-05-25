@@ -4,75 +4,12 @@ import {
   validateConsultBySubtype,
   validateContraceptionConsult,
   validateEdConsult,
-  validateGeneralConsult,
   validateHairLossConsult,
   validateMorningAfterConsult,
   validateUtiConsult,
   validateWeightLossConsult,
   validateWomensGeneralConsult,
 } from "../clinical/consult-validators"
-
-// ============================================================================
-// GENERAL CONSULT
-// ============================================================================
-
-describe("validateGeneralConsult", () => {
-  it("passes with all required fields", () => {
-    const result = validateGeneralConsult({
-      consultCategory: "skin",
-      consultDetails: "I have a persistent rash on my forearm that has been there for two weeks.",
-    })
-    expect(result.valid).toBe(true)
-    expect(result.errors).toHaveLength(0)
-  })
-
-  it("fails without consultCategory", () => {
-    const result = validateGeneralConsult({
-      consultDetails: "I have a persistent rash on my forearm.",
-    })
-    expect(result.valid).toBe(false)
-    expect(result.errors).toContain("Consultation category is required")
-  })
-
-  it("fails with invalid consultCategory", () => {
-    const result = validateGeneralConsult({
-      consultCategory: "dermatology",
-      consultDetails: "I have a persistent rash on my forearm.",
-    })
-    expect(result.valid).toBe(false)
-    expect(result.errors).toContain("Consultation category has an invalid value")
-  })
-
-  it("fails when consultDetails is too short", () => {
-    const result = validateGeneralConsult({
-      consultCategory: "general",
-      consultDetails: "Rash",
-    })
-    expect(result.valid).toBe(false)
-    expect(result.errors).toContain("Consultation details must be at least 20 characters")
-  })
-
-  it("warns on urgent requests", () => {
-    const result = validateGeneralConsult({
-      consultCategory: "infection",
-      consultDetails: "Sore throat with swollen glands for three days.",
-      consultUrgency: "urgent",
-    })
-    expect(result.valid).toBe(true)
-    expect(result.warnings.length).toBeGreaterThan(0)
-    expect(result.warnings[0]).toContain("emergency")
-  })
-
-  it("rejects invalid urgency value", () => {
-    const result = validateGeneralConsult({
-      consultCategory: "skin",
-      consultDetails: "I have a persistent rash on my forearm.",
-      consultUrgency: "asap",
-    })
-    expect(result.valid).toBe(false)
-    expect(result.errors).toContain("Urgency level has an invalid value")
-  })
-})
 
 // ============================================================================
 // ED CONSULT
@@ -602,14 +539,6 @@ describe("validateWomensGeneralConsult", () => {
 // ============================================================================
 
 describe("validateConsultBySubtype", () => {
-  it("routes general subtype correctly", () => {
-    const result = validateConsultBySubtype("general", {
-      consultCategory: "skin",
-      consultDetails: "I have a rash that has been getting worse over two weeks.",
-    })
-    expect(result.valid).toBe(true)
-  })
-
   it("routes ed subtype correctly", () => {
     const result = validateConsultBySubtype("ed", {
       edAgeConfirmed: true,

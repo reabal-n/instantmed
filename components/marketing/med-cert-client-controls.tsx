@@ -6,7 +6,6 @@ import { StripePaymentLogos } from "@/components/checkout/payment-logos"
 import { StickyCTA } from "@/components/marketing/shared/sticky-cta"
 import { UnavailableBanner } from "@/components/marketing/shared/unavailable-banner"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
-import { PRICING } from "@/lib/constants"
 import { useLandingAnalytics } from "@/lib/hooks/use-landing-analytics"
 import { useSectionVisibilityFunnel } from "@/lib/hooks/use-section-visibility-funnel"
 import { buildMedCertRequestHref } from "@/lib/marketing/med-cert-selector"
@@ -68,7 +67,13 @@ export function MedCertClientControls({ stickyTargetId }: MedCertClientControlsP
       <UnavailableBanner show={isDisabled} />
       <StickyCTA
         show={showStickyCTA}
-        ctaText={`Get your certificate · $${PRICING.MED_CERT.toFixed(2)}`}
+        // Drop the price from the sticky CTA. The med-cert day selector
+        // already shows per-day pricing inline ($19.95 / $29.95 / $39.95)
+        // and the sticky has no read access to the user's current selection.
+        // Hardcoding $19.95 here lied to anyone who picked 2 or 3 days
+        // (Tier 1 review 2026-05-25 #1). Generic CTA + price in the page
+        // body is clearer than a sticky number that drifts.
+        ctaText="Get your certificate"
         ctaHref={MED_CERT_START_HREF}
         mobileSummary="Doctor-issued certificate · Employer policies vary"
         isDisabled={isDisabled}

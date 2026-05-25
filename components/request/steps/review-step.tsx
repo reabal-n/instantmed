@@ -22,7 +22,7 @@ import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { PRICING as APP_PRICING } from "@/lib/constants"
 import { getAddressReviewSummary } from "@/lib/request/address-metadata"
-import { CONSULT_SUBTYPE_DISPLAY_LABELS,getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
+import { getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
 import { normalizeMedicationEntriesAnswer, stringAnswer, stringArrayAnswer } from "@/lib/request/intake-answer-normalizers"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
@@ -338,27 +338,6 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
   // Consult-specific sections
   if (serviceType === 'consult') {
     const consultSubtype = stringAnswer(answers.consultSubtype) || undefined
-    const consultCategory = stringAnswer(answers.consultCategory) || undefined
-    const consultDetails = stringAnswer(answers.consultDetails) || undefined
-
-    // General / new medication consult
-    if (consultCategory || consultDetails) {
-      const CATEGORY_LABELS: Record<string, string> = {
-        general: 'General consultation',
-        skin: 'Skin condition',
-        infection: 'Infection',
-        mental_health: 'Mental health',
-        ...CONSULT_SUBTYPE_DISPLAY_LABELS,
-      }
-      sections.push({
-        title: 'Consultation Details',
-        items: [
-          ...(consultCategory ? [{ label: 'Category', value: CATEGORY_LABELS[consultCategory] || consultCategory }] : []),
-          ...(consultDetails ? [{ label: 'Details', value: consultDetails }] : []),
-        ],
-        stepId: 'consult-reason',
-      })
-    }
 
     // ED assessment
     if (consultSubtype === 'ed') {

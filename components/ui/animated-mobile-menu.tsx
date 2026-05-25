@@ -25,21 +25,28 @@ const useDimensions = (ref: React.RefObject<HTMLDivElement | null>) => {
   return dimensions
 }
 
-// Sidebar background animation variants
+// Sidebar background animation variants.
+// Curve is the iOS sheet feel (cubic-bezier 0.16, 1, 0.3, 1) at 350ms —
+// Tier 1 reviews across /prescriptions and /erectile-dysfunction flagged
+// the prior `ease: "easeOut"` as reading like a 2014 dropdown. The new
+// curve has a soft landing without a thud and lifts perceived polish on
+// every marketing surface that uses this drawer.
+const DRAWER_EASE = [0.16, 1, 0.3, 1] as const
+
 const sidebarVariants: Variants = {
   open: (height = 1000) => ({
     clipPath: `circle(${height * 2 + 200}px at calc(100% - 44px) 44px)`,
     transition: {
-      duration: 0.2,
-      ease: "easeOut",
+      duration: 0.35,
+      ease: DRAWER_EASE,
     },
   }),
   closed: {
     clipPath: "circle(0px at calc(100% - 44px) 44px)",
     transition: {
-      delay: 0.15,
+      delay: 0.1,
       duration: 0.3,
-      ease: "easeOut",
+      ease: DRAWER_EASE,
     },
   },
 }

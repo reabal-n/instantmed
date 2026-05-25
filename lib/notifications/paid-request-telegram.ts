@@ -4,6 +4,7 @@ import * as Sentry from "@sentry/nextjs"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { getIntakeAnswers } from "@/lib/data/intake-answers"
+import { SEEDED_E2E_PATIENT_PROFILE_ID } from "@/lib/data/seeded-e2e-data"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -32,13 +33,12 @@ type ClaimRow = {
 
 export type PaidRequestTelegramResult =
   | { sent: true }
-  | { sent: false; skipped: "not_paid" | "missing_intake" | "invalid_intake" | "disabled" | "already_sent_or_claimed" }
+  | { sent: false; skipped: "not_paid" | "missing_intake" | "invalid_intake" | "disabled" | "already_sent_or_claimed" | "e2e" }
 
 type SendPaidRequestTelegramInput = {
   supabase: Pick<SupabaseClient, "from" | "rpc">
   intakeId?: string | null
   patientId?: string | null
-  patientName?: string | null
   paymentStatus?: string | null
   amountCents?: number | null
   serviceSlug?: string | null
@@ -53,10 +53,6 @@ export function shouldSendPaidRequestTelegramNotification(input: PaidRequestTele
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message.slice(0, MAX_ERROR_LENGTH)
   return String(error).slice(0, MAX_ERROR_LENGTH)
-}
-
-function formatAmount(amountCents: number | null | undefined): string {
-  return `$${((amountCents ?? 0) / 100).toFixed(2)}`
 }
 
 export function resolvePaidRequestServiceSlug(input: {
@@ -79,37 +75,6 @@ export function resolvePaidRequestServiceSlug(input: {
   }
 
   return ""
-}
-
-export function resolvePaidRequestServiceName(input: {
-  serviceSlug?: string | null
-  category?: string | null
-  subtype?: string | null
-}): string {
-  const serviceSlug = resolvePaidRequestServiceSlug(input)
-  const category = input.category ?? ""
-  const subtype = input.subtype ?? ""
-
-  if (category === "consult" || category === "consultation" || serviceSlug === "consult") {
-    const subtypeLabels: Record<string, string> = {
-      ed: "ED Consultation",
-      hair_loss: "Hair Loss Consultation",
-      womens_health: "Women's Health Consultation",
-      weight_loss: "Weight Loss Consultation",
-      new_medication: "New Medication Request",
-      general: "General Consultation",
-    }
-    return subtypeLabels[subtype] ?? "Consultation"
-  }
-
-  const slugDisplayNames: Record<string, string> = {
-    "med-cert-sick": "Medical Certificate",
-    "med-cert-carer": "Carers Certificate",
-    "common-scripts": "Prescription",
-    consult: "Consultation",
-  }
-
-  return slugDisplayNames[serviceSlug] ?? "Medical Request"
 }
 
 export function resolvePaidRequestServiceDetail(input: {
@@ -214,10 +179,16 @@ export async function sendPaidRequestTelegramNotification(
     return { sent: false, skipped: "invalid_intake" }
   }
 
+  // Seeded E2E intakes never page the operator — no claim row, no Telegram.
+  if (input.patientId === SEEDED_E2E_PATIENT_PROFILE_ID) {
+    return { sent: false, skipped: "e2e" }
+  }
+
   const flags = await getFeatureFlags()
   if (!flags.telegram_notifications_enabled) {
     return { sent: false, skipped: "disabled" }
   }
+  const autoApproveFlagOn = Boolean(flags.ai_auto_approve_enabled)
 
   const now = new Date()
   const staleClaimBefore = new Date(now.getTime() - 5 * 60 * 1000)
@@ -274,18 +245,27 @@ export async function sendPaidRequestTelegramNotification(
     })
   }
 
-  const baseServiceName = resolvePaidRequestServiceName({ serviceSlug, category, subtype })
   const detail = resolvePaidRequestServiceDetail({ category, subtype, answers })
-  const serviceName = detail ? `${baseServiceName} · ${detail}` : baseServiceName
+
+  // Defence-in-depth: catch the edge case where input.patientId was null but
+  // the claimed row turns out to be the E2E patient. The early-return above
+  // covers the normal path; this would only trigger if a caller forgot to
+  // pass patientId AND the intake was created against the seeded fixture.
+  if (claim.patient_id === SEEDED_E2E_PATIENT_PROFILE_ID) {
+    return { sent: false, skipped: "e2e" }
+  }
+
+  const isMedCert = serviceSlug.startsWith("med-cert")
+  const autoApprovalCandidate = autoApproveFlagOn && isMedCert
 
   try {
     const sendResult = await notifyNewIntakeViaTelegram({
       intakeId: input.intakeId,
-      patientName: "Patient",
-      serviceName,
-      amount: formatAmount(input.amountCents ?? claim.amount_cents),
       serviceSlug,
+      subtype: subtype ?? undefined,
+      serviceDetail: detail ?? undefined,
       isPriority,
+      autoApprovalCandidate,
     })
 
     await markSent(input.supabase, input.intakeId, sendResult.messageId)
