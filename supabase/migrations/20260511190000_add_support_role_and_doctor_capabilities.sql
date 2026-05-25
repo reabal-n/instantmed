@@ -30,10 +30,18 @@ END
 $$;
 
 -- ── 2. profiles_role_check constraint: include 'support' ────────────────────
+-- Postgres caveat (55P04): a CHECK that compares `role` (user_role enum)
+-- against the literal 'support' implicitly casts the literal to user_role,
+-- which fails in the SAME transaction that ALTER TYPE ADD VALUE created
+-- the value. That blows up Supabase Preview branches replaying all
+-- migrations from scratch even though production applied them serially
+-- and is fine. Casting `role::text` makes both sides plain text — the
+-- literal stays a string, the constraint enforces membership without
+-- requiring the new enum value to be visible in this transaction.
 ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_role_check;
 ALTER TABLE public.profiles
   ADD CONSTRAINT profiles_role_check
-  CHECK (role IN ('patient', 'doctor', 'admin', 'support'));
+  CHECK (role::text IN ('patient', 'doctor', 'admin', 'support'));
 
 -- ── 3. Doctor capability flag columns ───────────────────────────────────────
 ALTER TABLE public.profiles
