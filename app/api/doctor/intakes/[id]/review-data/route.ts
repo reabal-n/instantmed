@@ -7,6 +7,7 @@ import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { getIntakeWithDetails, getNextQueueIntakeId, getPatientIntakes, getPatientNotes } from "@/lib/data/intakes"
 import { getCertificateForIntake } from "@/lib/data/issued-certificates"
 import { getPatientMessagesForIntake } from "@/lib/data/patient-messages"
+import { detectRenewalsForIntakes } from "@/lib/doctor/renewal-detection"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { maskMedicare } from "@/lib/utils/format"
 
@@ -80,6 +81,28 @@ export async function GET(
 
   const maskedMedicare = maskMedicare(intake.patient.medicare_number ?? null)
 
+  // Renewal smart-link: one batched lookup against `prescriptions` (batch
+  // size 1 here) reusing the same helper as the queue/ledger so the
+  // matching semantics stay in lockstep. Fail-soft: a Supabase error
+  // returns an empty map and the slide simply omits the link.
+  //
+  // `getIntakeWithDetails()` already unwraps `data.answers?.[0]` into a
+  // single object on `intake.answers`, so reach for the decrypted body
+  // directly. The earlier Array.isArray() gate was always false and meant
+  // the renewal link never rendered.
+  const intakeAnswers = (intake.answers as { answers?: Record<string, unknown> | null } | null)?.answers ?? null
+  const medicationName = pickMedicationNameForRenewal(intakeAnswers)
+  const renewalMap = await detectRenewalsForIntakes([
+    {
+      intakeId: intake.id,
+      patientId: intake.patient.id,
+      category: intake.category,
+      serviceType,
+      medicationName,
+    },
+  ])
+  const renewalMatch = renewalMap.get(intake.id) ?? null
+
   return NextResponse.json({
     intake,
     patientAge,
@@ -90,6 +113,7 @@ export async function GET(
     previousIntakeCount: previousIntakes.length,
     patientNotes,
     patientMessages,
+    renewalMatch,
     draftId: medCertDraft?.id || null,
     certificate: certificate ? {
       id: certificate.id,
@@ -100,4 +124,27 @@ export async function GET(
       resend_count: certificate.resend_count ?? 0,
     } : null,
   })
+}
+
+/**
+ * Single-intake mirror of the helper used by the queue/ledger batch
+ * paths. Returns the patient's stated medication name from the decrypted
+ * intake answers, or null. The intake form writes `medicationName`;
+ * legacy/server-shaped paths also use `medication_name` and
+ * `medicationDisplay`.
+ */
+function pickMedicationNameForRenewal(
+  answers: Record<string, unknown> | null,
+): string | null {
+  if (!answers) return null
+  const candidates = [
+    answers["medicationName"],
+    answers["medication_name"],
+    answers["medicationDisplay"],
+    answers["medication_display"],
+  ]
+  for (const value of candidates) {
+    if (typeof value === "string" && value.trim().length > 0) return value
+  }
+  return null
 }

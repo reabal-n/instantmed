@@ -71,7 +71,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
   async function fetchIntakeContext(intakeId: string) {
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")
-      .select("id, patient_id, service_id, reference_number, amount_cents, paid_at, decline_reason, decline_reason_note, refund_amount_cents, parchment_reference")
+      .select("id, patient_id, service_id, reference_number, amount_cents, paid_at, decline_reason, decline_reason_code, decline_reason_note, refund_amount_cents, parchment_reference")
       .eq("id", intakeId)
       .single()
 
@@ -206,6 +206,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
 
     const requestType = ctx.service.short_name || ctx.service.name
     const reason = ctx.intake.decline_reason_note || ctx.intake.decline_reason || undefined
+    const reasonCode = ctx.intake.decline_reason_code || undefined
 
     const { RequestDeclinedEmail } = await import("@/lib/email/components/templates")
     const template = RequestDeclinedEmail({
@@ -213,6 +214,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       requestType,
       requestId: ctx.intake.id,
       reason,
+      reasonCode,
       appUrl: env.appUrl,
     })
 

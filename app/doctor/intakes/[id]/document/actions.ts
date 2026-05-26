@@ -182,8 +182,16 @@ export async function saveMedCertDraftAction(
 export interface ApproveActionResult {
   success: boolean
   error?: string
-  emailStatus?: "sent" | "failed" | "pending"
+  emailStatus?: "sent" | "failed" | "pending" | "scheduled"
   certificateId?: string
+  /** Patient email the certificate was dispatched to (populated only when emailStatus is "sent"). */
+  emailSentTo?: string
+  /**
+   * When the deferred cert email is scheduled to fire, ISO timestamp. Only
+   * populated when emailStatus is "scheduled" (manual doctor approval inside
+   * the 30s undo window). Drives the Undo toast countdown.
+   */
+  emailScheduledFor?: string
 }
 
 export async function generateMedCertPdfAndApproveAction(
@@ -305,21 +313,27 @@ export async function generateMedCertPdfAndApproveAction(
       return { success: false, error: result.error || "Failed to generate certificate" }
     }
 
-    // Use emailSent from approveAndSendCert result directly
-    const emailStatus: "sent" | "failed" | "pending" = result.emailSent === true
-      ? "sent"
-      : result.emailSent === false
-        ? "failed"
-        : "pending"
+    // Map the underlying result to the action-layer email status. A
+    // deferred send (manual doctor approval inside the undo window) is
+    // marked "scheduled" so the caller can show the countdown Undo toast.
+    const emailStatus: "sent" | "failed" | "pending" | "scheduled" = result.emailScheduledFor
+      ? "scheduled"
+      : result.emailSent === true
+        ? "sent"
+        : result.emailSent === false
+          ? "failed"
+          : "pending"
 
     return {
       success: true,
       certificateId: result.certificateId,
       emailStatus,
+      emailSentTo: result.emailSentTo,
+      emailScheduledFor: result.emailScheduledFor,
     }
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err)
-    logger.error("APPROVE_ACTION_ERROR", { 
+    logger.error("APPROVE_ACTION_ERROR", {
       hasDraftId: Boolean(draftId),
       errorName: err instanceof Error ? err.name : "UnknownError",
     })
@@ -373,16 +387,20 @@ export async function approveWithPreviewDataAction(
       return { success: false, error: result.error || "Failed to generate certificate" }
     }
 
-    const emailStatus: "sent" | "failed" | "pending" = result.emailSent === true
-      ? "sent"
-      : result.emailSent === false
-        ? "failed"
-        : "pending"
+    const emailStatus: "sent" | "failed" | "pending" | "scheduled" = result.emailScheduledFor
+      ? "scheduled"
+      : result.emailSent === true
+        ? "sent"
+        : result.emailSent === false
+          ? "failed"
+          : "pending"
 
     return {
       success: true,
       certificateId: result.certificateId,
       emailStatus,
+      emailSentTo: result.emailSentTo,
+      emailScheduledFor: result.emailScheduledFor,
     }
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err)

@@ -28,6 +28,7 @@ interface NotifyRequestStatusParams {
   newStatus: string
   documentUrl?: string
   declineReason?: string
+  declineReasonCode?: string
 }
 
 /**
@@ -79,6 +80,7 @@ export async function notifyRequestStatusChange(params: NotifyRequestStatusParam
     requestType,
     newStatus,
     declineReason,
+    declineReasonCode,
   } = params
 
   const actionUrl = buildPatientIntakeHref(intakeId)
@@ -133,6 +135,7 @@ export async function notifyRequestStatusChange(params: NotifyRequestStatusParam
           intakeId,
           requestType,
           reason: declineReason,
+          reasonCode: declineReasonCode,
         })
         logger.info("Decline email sent", { intakeId, patientEmail })
 

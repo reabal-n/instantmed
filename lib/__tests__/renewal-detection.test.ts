@@ -9,6 +9,7 @@ vi.mock("@/lib/supabase/service-role", () => ({
 }))
 
 interface PrescriptionRow {
+  id?: string | null
   patient_id: string
   medication_name: string
   medication_strength?: string | null
@@ -20,12 +21,13 @@ interface QueryResult {
 }
 
 function createSupabaseMock(result: QueryResult) {
-  // .from("prescriptions").select(...).in(...).in(...) -> awaited result
-  const secondIn = vi.fn(async () => result)
+  // .from("prescriptions").select(...).in(...).in(...).order(...) -> awaited
+  const order = vi.fn(async () => result)
+  const secondIn = vi.fn(() => ({ order }))
   const firstIn = vi.fn(() => ({ in: secondIn }))
   const select = vi.fn(() => ({ in: firstIn }))
   const from = vi.fn(() => ({ select }))
-  return { from, select, firstIn, secondIn }
+  return { from, select, firstIn, secondIn, order }
 }
 
 describe("formatRenewalMatchTitle", () => {
@@ -109,6 +111,7 @@ describe("detectRenewalsForIntakes", () => {
     const supabase = createSupabaseMock({
       data: [
         {
+          id: "rx-prior-1",
           patient_id: "patient-1",
           medication_name: "Atorvastatin",
           medication_strength: "40mg",
@@ -134,6 +137,7 @@ describe("detectRenewalsForIntakes", () => {
     expect(result.get("intake-rx-1")).toEqual({
       medicationName: "Atorvastatin",
       strength: "40mg",
+      priorPrescriptionId: "rx-prior-1",
     })
     expect(supabase.firstIn).toHaveBeenCalledWith("patient_id", ["patient-1"])
     expect(supabase.secondIn).toHaveBeenCalledWith(
@@ -146,6 +150,7 @@ describe("detectRenewalsForIntakes", () => {
     const supabase = createSupabaseMock({
       data: [
         {
+          id: "rx-prior-2",
           patient_id: "patient-1",
           medication_name: "Sertraline",
           medication_strength: null,
@@ -171,7 +176,38 @@ describe("detectRenewalsForIntakes", () => {
     expect(result.get("intake-rx-1")).toEqual({
       medicationName: "Sertraline",
       strength: null,
+      priorPrescriptionId: "rx-prior-2",
     })
+  })
+
+  it("carries through the matched prior prescription id for deep-linking", async () => {
+    const supabase = createSupabaseMock({
+      data: [
+        {
+          id: "rx-deep-link",
+          patient_id: "patient-1",
+          medication_name: "Tadalafil",
+          medication_strength: "5mg",
+        },
+      ],
+      error: null,
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+
+    const { detectRenewalsForIntakes } = await import(
+      "@/lib/doctor/renewal-detection"
+    )
+    const result = await detectRenewalsForIntakes([
+      {
+        intakeId: "intake-rx-1",
+        patientId: "patient-1",
+        category: "prescription",
+        serviceType: "repeat_rx",
+        medicationName: "Tadalafil",
+      },
+    ])
+
+    expect(result.get("intake-rx-1")?.priorPrescriptionId).toBe("rx-deep-link")
   })
 
   it("returns no entry when there is no matching prior prescription", async () => {

@@ -10,6 +10,13 @@ export interface RenewalMatch {
   medicationName: string
   /** Strength if the prior prescription recorded one (e.g. "40mg"). */
   strength: string | null
+  /**
+   * The matched prior prescription's `id`. Optional so batch callers that
+   * only render the chip/tooltip can omit it; the slide review-data API
+   * sets it so the doctor can deep-link to the prior script in the
+   * patient timeline.
+   */
+  priorPrescriptionId?: string | null
 }
 
 /** Generic fallback when we know it's a renewal but lost the matched name. */

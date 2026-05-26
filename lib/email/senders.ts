@@ -28,10 +28,12 @@ interface SendRequestDeclinedEmailParams {
   intakeId: string
   requestType: string
   reason?: string
+  /** Structured decline-reason code (e.g. "requires_examination"). Drives next-step copy. */
+  reasonCode?: string
 }
 
 export async function sendRequestDeclinedEmail(params: SendRequestDeclinedEmailParams) {
-  const { to, patientName, patientId, intakeId, requestType, reason } = params
+  const { to, patientName, patientId, intakeId, requestType, reason, reasonCode } = params
 
   return sendEmail({
     to,
@@ -42,6 +44,7 @@ export async function sendRequestDeclinedEmail(params: SendRequestDeclinedEmailP
       requestType,
       requestId: intakeId,
       reason,
+      reasonCode,
       appUrl: env.appUrl,
     }),
     emailType: "request_declined",
@@ -50,6 +53,7 @@ export async function sendRequestDeclinedEmail(params: SendRequestDeclinedEmailP
     metadata: {
       request_type: requestType,
       has_reason: !!reason,
+      reason_code: reasonCode || null,
     },
     tags: [
       { name: "category", value: "request_declined" },
