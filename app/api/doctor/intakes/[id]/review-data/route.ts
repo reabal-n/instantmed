@@ -85,9 +85,12 @@ export async function GET(
   // size 1 here) reusing the same helper as the queue/ledger so the
   // matching semantics stay in lockstep. Fail-soft: a Supabase error
   // returns an empty map and the slide simply omits the link.
-  const intakeAnswers = Array.isArray(intake.answers) && intake.answers[0]
-    ? (intake.answers[0].answers as Record<string, unknown> | null)
-    : null
+  //
+  // `getIntakeWithDetails()` already unwraps `data.answers?.[0]` into a
+  // single object on `intake.answers`, so reach for the decrypted body
+  // directly. The earlier Array.isArray() gate was always false and meant
+  // the renewal link never rendered.
+  const intakeAnswers = (intake.answers as { answers?: Record<string, unknown> | null } | null)?.answers ?? null
   const medicationName = pickMedicationNameForRenewal(intakeAnswers)
   const renewalMap = await detectRenewalsForIntakes([
     {

@@ -21,12 +21,13 @@ interface QueryResult {
 }
 
 function createSupabaseMock(result: QueryResult) {
-  // .from("prescriptions").select(...).in(...).in(...) -> awaited result
-  const secondIn = vi.fn(async () => result)
+  // .from("prescriptions").select(...).in(...).in(...).order(...) -> awaited
+  const order = vi.fn(async () => result)
+  const secondIn = vi.fn(() => ({ order }))
   const firstIn = vi.fn(() => ({ in: secondIn }))
   const select = vi.fn(() => ({ in: firstIn }))
   const from = vi.fn(() => ({ select }))
-  return { from, select, firstIn, secondIn }
+  return { from, select, firstIn, secondIn, order }
 }
 
 describe("formatRenewalMatchTitle", () => {

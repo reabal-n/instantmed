@@ -75,7 +75,11 @@ function wireSupabaseMocks(opts: {
     data: opts.outboxRow ?? null,
     error: null,
   })
+  // The action now chains `.delete().eq(id).eq(status).gt(scheduled_for).select("id")`
+  // and treats zero deleted rows as "lost the race with the dispatcher". Default
+  // to one row deleted on success, no rows on a simulated race.
   const outboxDelete = vi.fn().mockResolvedValue({
+    data: opts.outboxDeleteError ? null : [{ id: opts.outboxRow?.id ?? "outbox-mock" }],
     error: opts.outboxDeleteError ?? null,
   })
   const intakeUpdate = vi.fn().mockResolvedValue({
@@ -101,10 +105,14 @@ function wireSupabaseMocks(opts: {
       chain.order = vi.fn(() => chain)
       chain.limit = vi.fn(() => chain)
       chain.maybeSingle = outboxFetch
-      // Delete path
-      chain.delete = vi.fn(() => ({
-        eq: vi.fn(() => outboxDelete()),
-      }))
+      // Delete path: .delete().eq(id).eq(status).gt(scheduled_for).select("id")
+      chain.delete = vi.fn(() => {
+        const deleteChain: Record<string, unknown> = {}
+        deleteChain.eq = vi.fn(() => deleteChain)
+        deleteChain.gt = vi.fn(() => deleteChain)
+        deleteChain.select = vi.fn(() => outboxDelete())
+        return deleteChain
+      })
       return chain
     }
     if (table === "intakes") {
@@ -175,6 +183,26 @@ describe("undoCertApprovalAction", () => {
 
     expect(result.success).toBe(false)
     expect(result.error).toMatch(/window/i)
+    expect(mockRevokeCertificateAction).not.toHaveBeenCalled()
+  })
+
+  it("returns an error when the dispatcher claimed the row between the schedule check and the delete (zero rows deleted)", async () => {
+    authAs(DOCTOR_A)
+    mockRevokeCertificateAction.mockResolvedValue({ success: true })
+    const futureIso = new Date(Date.now() + 25_000).toISOString()
+    // wireSupabaseMocks returns one row by default; force zero to simulate
+    // the dispatcher claiming the row between the schedule check and our
+    // delete. The action must fail closed instead of reporting success.
+    const { outboxDelete } = wireSupabaseMocks({
+      cert: { id: CERT_ID, doctor_id: DOCTOR_A, status: "valid" },
+      outboxRow: { id: "outbox-1", status: "pending", scheduled_for: futureIso, sent_at: null },
+    })
+    outboxDelete.mockResolvedValueOnce({ data: [], error: null })
+
+    const result = await undoCertApprovalAction({ intakeId: INTAKE_ID })
+
+    expect(result.success).toBe(false)
+    expect(result.error).toMatch(/just closed|already.*notified/i)
     expect(mockRevokeCertificateAction).not.toHaveBeenCalled()
   })
 

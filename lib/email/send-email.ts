@@ -302,7 +302,26 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
   // Short-circuit on deferred send: we leave the row in pending state with
   // scheduled_for set; the dispatcher will pick it up on the next tick after
   // the schedule lapses. Returns success so the caller's UX flow continues.
+  //
+  // Require a real outbox row id before reporting success. Without a row
+  // the dispatcher has nothing to pick up, the patient never gets the
+  // email, and the UI silently shows an "Undo" toast for a send that does
+  // not exist. Falling through to the synchronous send path is also wrong
+  // (the doctor expected a deferred send), so we surface the failure.
   if (scheduledFor && new Date(scheduledFor).getTime() > Date.now()) {
+    if (!outboxId) {
+      logger.error("[Email] Deferred send requested but outbox insert failed", {
+        emailType,
+        scheduledFor,
+        certificateId,
+        intakeId,
+        duplicate: outboxResult.duplicate,
+      })
+      return {
+        success: false,
+        error: "Failed to queue the deferred email; please retry.",
+      }
+    }
     logger.info("[Email] Queued for deferred send", {
       outboxId,
       emailType,
@@ -312,8 +331,8 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     })
     return {
       success: true,
-      messageId: outboxId ? `deferred-${outboxId}` : undefined,
-      outboxId: outboxId || undefined,
+      messageId: `deferred-${outboxId}`,
+      outboxId,
     }
   }
 

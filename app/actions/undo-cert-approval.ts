@@ -131,15 +131,35 @@ export async function undoCertApprovalAction(
 
     // 5. Cancel the queued email. We delete rather than soft-update so the
     //    dispatcher cannot race with us and pick it up between the schedule
-    //    check and our cancellation.
-    const { error: deleteError } = await supabase
+    //    check and our cancellation. Restrict the delete to rows that are
+    //    still strictly pending AND still in the future so the dispatcher
+    //    cannot have claimed the row in-memory in the window between our
+    //    schedule check above and this delete. Zero rows deleted means the
+    //    dispatcher already grabbed it (the in-memory send may still fire);
+    //    we fail the undo and tell the doctor the patient was notified.
+    const nowIso = new Date().toISOString()
+    const { data: deletedRows, error: deleteError } = await supabase
       .from("email_outbox")
       .delete()
       .eq("id", outboxRow.id)
+      .eq("status", "pending")
+      .gt("scheduled_for", nowIso)
+      .select("id")
 
     if (deleteError) {
       log.error("Failed to cancel queued cert email", { intakeId, outboxId: outboxRow.id, error: deleteError.message })
       return { success: false, error: "Failed to cancel queued email. Please try again." }
+    }
+
+    if (!deletedRows || deletedRows.length === 0) {
+      log.warn("Undo lost the race: dispatcher already claimed the queued email row", {
+        intakeId,
+        outboxId: outboxRow.id,
+      })
+      return {
+        success: false,
+        error: "Undo window has just closed. The patient may already have been notified.",
+      }
     }
 
     // 6. Revoke the certificate. If it was already revoked, the canonical

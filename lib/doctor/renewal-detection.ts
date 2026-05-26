@@ -74,11 +74,17 @@ export async function detectRenewalsForIntakes(
   if (patientIds.length === 0) return result
 
   const supabase = createServiceRoleClient()
+  // Order newest first so when the first-hit-wins index below picks one
+  // prior script for the deep link, it is deterministically the most recent
+  // prior of that medication. Without the order, Postgres can return rows
+  // in arbitrary physical order and the link target can drift between runs
+  // for patients with multiple prior scripts of the same medication.
   const { data, error } = await supabase
     .from("prescriptions")
-    .select("id, patient_id, medication_name, medication_strength")
+    .select("id, patient_id, medication_name, medication_strength, created_at")
     .in("patient_id", patientIds)
     .in("status", RENEWAL_PRIOR_STATUSES as unknown as string[])
+    .order("created_at", { ascending: false })
 
   if (error || !data) {
     if (error) {
