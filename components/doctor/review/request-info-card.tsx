@@ -12,6 +12,12 @@ import { cn } from "@/lib/utils"
 interface RequestInfoCardProps {
   compact?: boolean
   hideFullAnswers?: boolean
+  /**
+   * Suppress the inline Parchment-preset block. The intake-review cockpit
+   * sets this so the canonical PrescriptionRecommendationCard does not
+   * double-render alongside the legacy inline preset section.
+   */
+  hidePrescriptionIntent?: boolean
 }
 
 /**
@@ -25,6 +31,7 @@ interface RequestInfoCardProps {
 export function RequestInfoCard({
   compact = false,
   hideFullAnswers = false,
+  hidePrescriptionIntent = false,
 }: RequestInfoCardProps) {
   const { intake, service, answers, formatDate } = useIntakeReview()
   const submittedAt = intake.submitted_at ?? intake.created_at
@@ -62,6 +69,7 @@ export function RequestInfoCard({
           requiresLiveConsult={intake.requires_live_consult}
           compact={compact}
           showFullAnswers={!hideFullAnswers}
+          hidePrescriptionIntent={hidePrescriptionIntent}
         />
       </CardContent>
     </Card>

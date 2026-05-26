@@ -24,6 +24,12 @@ interface ClinicalCaseReviewProps {
   className?: string
   compact?: boolean
   showFullAnswers?: boolean
+  /**
+   * Suppress the inline Parchment-preset block. Callers that render the
+   * canonical PrescriptionRecommendationCard alongside this component
+   * (the intake-review cockpit) set this to true to avoid double-render.
+   */
+  hidePrescriptionIntent?: boolean
 }
 
 const ACTION_STYLES: Record<ClinicalPlanAction, string> = {
@@ -66,6 +72,7 @@ export function ClinicalCaseReview({
   className,
   compact = false,
   showFullAnswers = true,
+  hidePrescriptionIntent = false,
 }: ClinicalCaseReviewProps) {
   const summary = buildClinicalCaseSummary({
     category,
@@ -223,7 +230,7 @@ export function ClinicalCaseReview({
             </div>
           </section>
 
-          {summary.prescriptionIntent && (
+          {summary.prescriptionIntent && !hidePrescriptionIntent && (
             <section className="rounded-md border border-blue-200 bg-blue-50/70 px-3 py-3">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 flex-1 space-y-1">
