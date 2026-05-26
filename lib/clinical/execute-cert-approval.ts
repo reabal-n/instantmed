@@ -40,6 +40,8 @@ export interface ApproveCertResult {
   certificateId?: string
   isExisting?: boolean
   emailSent?: boolean
+  /** Patient email address the certificate was dispatched to (populated on success only). */
+  emailSentTo?: string
 }
 
 export interface ExecuteCertApprovalInput {
@@ -590,5 +592,10 @@ export async function executeCertApproval(
   // the helper is fail-soft and must never block the approval response.
   void editPaidRequestTelegramMessageToApproved(intakeId)
 
-  return { success: true, certificateId, emailSent: emailResult.success }
+  return {
+    success: true,
+    certificateId,
+    emailSent: emailResult.success,
+    emailSentTo: emailResult.success ? patient.email : undefined,
+  }
 }

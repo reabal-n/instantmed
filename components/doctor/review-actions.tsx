@@ -285,7 +285,9 @@ export function useReviewActions({
         setShowCertPreview(false)
         const emailNote =
           result.emailStatus === "sent"
-            ? "Certificate approved and sent to patient."
+            ? result.emailSentTo
+              ? `Certificate sent to ${result.emailSentTo}`
+              : "Certificate approved and sent to patient."
             : "Certificate approved. Email will be sent shortly."
         playApprovalSound()
         toast.success(emailNote)

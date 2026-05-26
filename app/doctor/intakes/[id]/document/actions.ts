@@ -184,6 +184,8 @@ export interface ApproveActionResult {
   error?: string
   emailStatus?: "sent" | "failed" | "pending"
   certificateId?: string
+  /** Patient email the certificate was dispatched to (populated only when emailStatus is "sent"). */
+  emailSentTo?: string
 }
 
 export async function generateMedCertPdfAndApproveAction(
@@ -316,10 +318,11 @@ export async function generateMedCertPdfAndApproveAction(
       success: true,
       certificateId: result.certificateId,
       emailStatus,
+      emailSentTo: result.emailSentTo,
     }
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err)
-    logger.error("APPROVE_ACTION_ERROR", { 
+    logger.error("APPROVE_ACTION_ERROR", {
       hasDraftId: Boolean(draftId),
       errorName: err instanceof Error ? err.name : "UnknownError",
     })
@@ -383,6 +386,7 @@ export async function approveWithPreviewDataAction(
       success: true,
       certificateId: result.certificateId,
       emailStatus,
+      emailSentTo: result.emailSentTo,
     }
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err)
