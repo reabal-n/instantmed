@@ -1,5 +1,8 @@
 "use client"
 
+import { ArrowRight, ShieldOff } from "lucide-react"
+import Link from "next/link"
+
 import { StickerIcon } from "@/components/icons/stickers"
 import { AboutGuideSection } from "@/components/marketing/sections/about-guide-section"
 import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
@@ -12,6 +15,7 @@ import { FAQSection } from "@/components/sections/faq-section"
 import { FeatureGrid } from "@/components/sections/feature-grid"
 import { FAQSchema } from "@/components/seo"
 import { TrustBadgeRow } from "@/components/shared/trust-badge"
+import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 import { usePatientCount } from "@/lib/hooks/use-patient-count"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
@@ -22,7 +26,14 @@ import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 const ABOUT_CONFIG = {
   analyticsId: "about" as const,
-  sticky: false as const,
+  // Sticky mobile CTA appears after the hero scrolls out of view so the
+  // primary action is always one tap away. Per 2026-05-25 video review:
+  // patients were scrolling 30s before finding a way to start a request.
+  sticky: {
+    ctaText: "Start a request",
+    ctaHref: "/request",
+    mobileSummary: "AHPRA-registered doctors, ~44 min average",
+  },
 }
 
 const ABOUT_FAQS = [
@@ -104,14 +115,16 @@ export function AboutClient() {
 
   return (
     <InformationalPageShell config={ABOUT_CONFIG}>
-      {() => (
+      {({ analytics }) => (
         <>
           <FAQSchema faqs={faqSchemaItems} />
 
           {/* Hero - clean mission statement.
               Lede uses BRAND_THESIS phrasing per docs/BRAND.md §1: "Telehealth
               without the small talk. A real doctor, ready in the time it
-              takes to make a coffee." Split across H1/sub for visual rhythm. */}
+              takes to make a coffee." Split across H1/sub for visual rhythm.
+              Primary CTA inline below the lede so the patient is never more
+              than one tap from starting a request. */}
           <section className="pt-16 sm:pt-24 pb-8 sm:pb-12 px-4">
             <div className="mx-auto max-w-2xl text-center">
               <p className="inline-flex items-center rounded-full border border-border/60 bg-background px-4 py-1.5 text-xs font-medium text-foreground/70 shadow-sm shadow-primary/[0.04] mb-6">
@@ -120,12 +133,28 @@ export function AboutClient() {
               <Heading level="display" className="mb-4">
                 Telehealth without the small talk.
               </Heading>
-              <p className="text-muted-foreground text-balance max-w-lg mx-auto">
+              <p className="text-muted-foreground text-balance max-w-lg mx-auto mb-7">
                 A real Australian doctor, ready in the time it takes to make
                 a coffee. AHPRA-registered, no waiting room, no appointment.
                 We handle medical certificates, repeat medication, and online
                 doctor consults.
               </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Button
+                  asChild
+                  size="lg"
+                  className="w-full sm:w-auto h-11 text-base font-semibold shadow-md shadow-primary/20"
+                  onClick={() => analytics.trackCTAClick("about_hero")}
+                >
+                  <Link href="/request">
+                    Start a request
+                    <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+                  </Link>
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Takes about 3 minutes. Refund if we can&apos;t help.
+                </p>
+              </div>
             </div>
           </section>
 
@@ -178,11 +207,14 @@ export function AboutClient() {
             body="Not a wellness brand. Not an app. A real Australian medical practice that operates online. AHPRA-registered doctors, real prescriptions, real medical certificates, real clinical accountability. Telehealth without the small talk."
           />
 
-          {/* Data viz section */}
+          {/* Data viz section.
+              Stack vertically below md (768px) so the ComparisonBar has
+              enough width to keep label and value inline at narrow breakpoints
+              (sm 640px squeezed it into two cramped columns). */}
           <div className="bg-muted/30 dark:bg-white/[0.02]">
             <section className="py-12 lg:py-16">
               <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-                <div className="grid sm:grid-cols-2 gap-8 items-center">
+                <div className="grid md:grid-cols-2 gap-10 md:gap-8 items-center">
                   <div className="flex justify-center">
                     <AnimatedDonutChart
                       value={SOCIAL_PROOF.refundPercent}
@@ -217,6 +249,45 @@ export function AboutClient() {
             features={VALUES}
             columns={2}
           />
+
+          {/* "What we won't do" promotion: one of the signature brand
+              devices (docs/BRAND.md). Surfaces the limits the brand leads
+              with, alongside the values grid rather than buried in the
+              footer. Same calm chrome as the values cards. */}
+          <section className="px-4 pb-16 lg:pb-24">
+            <div className="mx-auto max-w-3xl">
+              <Link
+                href="/what-we-wont-do"
+                className="group block rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none p-6 sm:p-8 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/[0.1] transition-[transform,box-shadow] duration-300"
+                onClick={() => analytics.trackCTAClick("about_what_we_wont_do")}
+              >
+                <div className="flex items-start gap-4 sm:gap-6">
+                  <div className="shrink-0 inline-flex rounded-xl bg-primary/5 p-3 text-primary">
+                    <ShieldOff className="h-6 w-6" aria-hidden="true" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-primary mb-2 tracking-wide uppercase">
+                      The limits we lead with
+                    </p>
+                    <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">
+                      What we won&apos;t do
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                      Trust is built on what a service refuses to do, not
+                      just what it offers. Schedule 8 prescriptions,
+                      high-stakes certificates, AI-only decisions: the
+                      things we deliberately don&apos;t do, written down
+                      where you can find them.
+                    </p>
+                    <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary group-hover:gap-2 transition-[gap]">
+                      Read the list
+                      <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            </div>
+          </section>
 
           {/* Regulatory logos */}
           <div className="bg-muted/30 dark:bg-white/[0.02]">
