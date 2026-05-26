@@ -538,14 +538,77 @@ async function seedCertificateTemplate() {
 async function seedPaidIntake(serviceId: string) {
   console.log("🔧 Seeding paid med_certs intake...")
 
-  const cleanupExistingIntake = async () => {
-    await supabase.from("issued_certificates").delete().eq("intake_id", INTAKE_ID)
-    await supabase.from("intake_documents").delete().eq("intake_id", INTAKE_ID)
-    await supabase.from("document_drafts").delete().eq("intake_id", INTAKE_ID)
-    await supabase.from("document_drafts").delete().eq("request_id", INTAKE_ID)
-    await supabase.from("intake_answers").delete().eq("intake_id", INTAKE_ID)
-    await supabase.from("intake_events").delete().eq("intake_id", INTAKE_ID)
-    await supabase.from("intakes").delete().eq("id", INTAKE_ID)
+  type CleanupResult = { error: { message: string } | null }
+
+  const clearExistingIntakeArtifacts = async () => {
+    const clear = async (label: string, operation: PromiseLike<CleanupResult>) => {
+      const result = await operation
+      if (result.error) {
+        console.log(`   ⚠️ Could not clear ${label}:`, result.error.message)
+      }
+    }
+
+    await clear("issued certificates", supabase.from("issued_certificates").delete().eq("intake_id", INTAKE_ID))
+    await clear("intake documents", supabase.from("intake_documents").delete().eq("intake_id", INTAKE_ID))
+    await clear("document drafts by intake", supabase.from("document_drafts").delete().eq("intake_id", INTAKE_ID))
+    await clear("document drafts by request", supabase.from("document_drafts").delete().eq("request_id", INTAKE_ID))
+    await clear("intake answers", supabase.from("intake_answers").delete().eq("intake_id", INTAKE_ID))
+    await clear("intake events", supabase.from("intake_events").delete().eq("intake_id", INTAKE_ID))
+  }
+
+  async function resetExistingIntake() {
+    await clearExistingIntakeArtifacts()
+
+    const now = new Date().toISOString()
+    const { error: resetError } = await supabase.rpc("e2e_reset_intake_status", {
+      p_intake_id: INTAKE_ID,
+      p_status: "paid",
+    })
+
+    if (resetError) {
+      console.error("❌ Failed to reset existing intake status:", resetError.message)
+      throw resetError
+    }
+
+    const { data, error } = await supabase
+      .from("intakes")
+      .update({
+        patient_id: PATIENT_PROFILE_ID,
+        service_id: serviceId,
+        status: "paid",
+        payment_status: "paid",
+        amount_cents: 2500,
+        payment_id: `pi_e2e_${randomUUID().slice(0, 8)}`,
+        paid_at: now,
+        submitted_at: now,
+        claimed_by: null,
+        claimed_at: null,
+        decision: null,
+        decline_reason: null,
+        decline_reason_code: null,
+        decline_reason_note: null,
+        decided_at: null,
+        reviewed_by: null,
+        reviewed_at: null,
+        ai_approved: false,
+        ai_approved_at: null,
+        auto_approval_attempts: 0,
+        auto_approval_state: null,
+        auto_approval_state_reason: null,
+        auto_approval_state_updated_at: null,
+        doctor_notes: E2E_CLINICAL_NOTE,
+        updated_at: now,
+      })
+      .eq("id", INTAKE_ID)
+      .select()
+      .single()
+
+    if (error) {
+      console.error("❌ Failed to reset existing intake metadata:", error.message)
+      throw error
+    }
+
+    return data
   }
   
   // Check if already exists
@@ -557,51 +620,16 @@ async function seedPaidIntake(serviceId: string) {
 
   if (existing) {
     if (TERMINAL_INTAKE_STATUSES.has(existing.status)) {
-      console.log(`   ↳ Existing intake is terminal (${existing.status}); recreating`)
-      await cleanupExistingIntake()
-    } else {
-    // Reset to paid status for test reuse
-      if (existing.status !== "paid") {
-        console.log("   ↳ Resetting intake status to 'paid'")
-        const { error } = await supabase
-          .from("intakes")
-          .update({ 
-            status: "paid", 
-            payment_status: "paid",
-            claimed_by: null, 
-            claimed_at: null,
-            decision: null,
-            decline_reason: null,
-            decline_reason_code: null,
-            decline_reason_note: null,
-            decided_at: null,
-            reviewed_by: null,
-            reviewed_at: null,
-            doctor_notes: E2E_CLINICAL_NOTE,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", INTAKE_ID)
+      console.log(`   ↳ Existing intake is terminal (${existing.status}); resetting`)
+      return await resetExistingIntake()
+    }
 
-        if (error) {
-          console.log("   ↳ Reset failed; recreating intake:", error.message)
-          await cleanupExistingIntake()
-        } else {
-          return { ...existing, status: "paid", payment_status: "paid", claimed_by: null, claimed_at: null }
-        }
-      } else {
-        console.log("   ↳ Reusing existing intake (already paid)")
-        const { error } = await supabase
-        .from("intakes")
-        .update({ 
-          claimed_by: null, 
-          claimed_at: null,
-          doctor_notes: E2E_CLINICAL_NOTE,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", INTAKE_ID)
-        if (error) console.log("   ⚠️ Could not clear claim:", error.message)
-        return existing
-      }
+    if (existing.status !== "paid" || existing.payment_status !== "paid") {
+      console.log("   ↳ Resetting intake status to 'paid'")
+      return await resetExistingIntake()
+    } else {
+      console.log("   ↳ Reusing existing intake (already paid)")
+      return await resetExistingIntake()
     }
   }
   

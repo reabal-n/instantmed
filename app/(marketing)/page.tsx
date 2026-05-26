@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
+import Image from 'next/image'
 import { Suspense } from 'react'
 
 import { Hero } from '@/components/marketing/hero'
@@ -174,10 +175,44 @@ export default async function HomePage() {
         {/* 2. Service cards - what we offer */}
         <ServiceCards />
 
+        {/* Editorial lifestyle photo, primary. Quiet visual break between
+            the dense service grid and the "how it works" rhythm. */}
+        <section aria-hidden="true" className="py-10 sm:py-14">
+          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+            <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-border/40 shadow-md shadow-primary/[0.06]">
+              <Image
+                src="/images/home-1.webp"
+                alt="Patient at home reviewing their care on a phone"
+                fill
+                className="object-cover"
+                loading="lazy"
+                sizes="(max-width: 1024px) calc(100vw - 4rem), 768px"
+              />
+            </div>
+          </div>
+        </section>
+
         {/* 3. How it works - muted bg for rhythm */}
         <div className="bg-muted/30 dark:bg-white/[0.02]">
           <HowItWorks />
         </div>
+
+        {/* Editorial lifestyle photo, secondary. A calm trust beat before
+            the FAQ block. */}
+        <section aria-hidden="true" className="py-10 sm:py-14">
+          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+            <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-border/40 shadow-md shadow-primary/[0.06]">
+              <Image
+                src="/images/home-2.webp"
+                alt="Australian home setting with daylight, suggesting unhurried care"
+                fill
+                className="object-cover"
+                loading="lazy"
+                sizes="(max-width: 1024px) calc(100vw - 4rem), 768px"
+              />
+            </div>
+          </div>
+        </section>
 
         {/* 4. FAQs */}
         <FAQSection
@@ -187,6 +222,23 @@ export default async function HomePage() {
           items={faqItems}
           viewAllHref="/faq"
         />
+
+        {/* Editorial lifestyle photo, closing. Sits between the FAQ block
+            and the final CTA so the page closes on a human note. */}
+        <section aria-hidden="true" className="pb-2 sm:pb-4">
+          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+            <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-border/40 shadow-md shadow-primary/[0.06]">
+              <Image
+                src="/images/home-3.webp"
+                alt="Lived-in Australian interior on a sunlit morning"
+                fill
+                className="object-cover"
+                loading="lazy"
+                sizes="(max-width: 1024px) calc(100vw - 4rem), 768px"
+              />
+            </div>
+          </div>
+        </section>
 
         {/* 5. Final CTA */}
         <CTABanner

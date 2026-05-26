@@ -5,6 +5,7 @@ import {
   CheckCircle2,
 } from "lucide-react"
 import dynamic from "next/dynamic"
+import Image from "next/image"
 import Link from "next/link"
 
 import { StickerIcon } from "@/components/icons/stickers"
@@ -382,12 +383,14 @@ export function PrescriptionsLanding() {
 
           {/* 3. eScript explainer — muted bg for rhythm.
               Lifestyle photo relocated here from the hero (was a 16:7 scroll-
-              break). Renders as a framed banner below the mockup + facts split. */}
+              break). Renders as a framed banner below the mockup + facts split.
+              Updated 2026-05-26 to use the root /images/rx-1.webp asset
+              produced by the latest photography brief. */}
           <div className="bg-muted/30 dark:bg-white/[0.02]">
             <EScriptExplainerSection
               accentImage={{
-                src: "/images/instantmed-photography/rx-1.webp",
-                alt: "An older patient shows a phone at an Australian pharmacy counter while the pharmacist is softly out of focus.",
+                src: "/images/rx-1.webp",
+                alt: "Person collecting medication at an Australian pharmacy counter",
               }}
             />
           </div>
@@ -402,6 +405,23 @@ export function PrescriptionsLanding() {
 
           {/* Doctor profile */}
           <DoctorProfileSection />
+
+          {/* Editorial lifestyle photo, secondary. Sits between doctor
+              profile and the pre-qualify block as a quiet visual beat. */}
+          <section aria-hidden="true" className="py-8 sm:py-12">
+            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-border/40 shadow-md shadow-primary/[0.06]">
+                <Image
+                  src="/images/rx-2.webp"
+                  alt="At-home moment with regular medication, reinforcing routine care"
+                  fill
+                  className="object-cover"
+                  loading="lazy"
+                  sizes="(max-width: 1024px) calc(100vw - 4rem), 768px"
+                />
+              </div>
+            </div>
+          </section>
 
           {/* Pre-qualify */}
           <PrescriptionLimitationsSection />

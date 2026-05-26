@@ -2,6 +2,7 @@
 
 import { ArrowRight, CheckCircle2, ClipboardCheck, Sparkles } from "lucide-react"
 import dynamic from "next/dynamic"
+import Image from "next/image"
 import Link from "next/link"
 
 import { StickerIcon } from "@/components/icons/stickers"
@@ -333,6 +334,23 @@ export function HairLossLanding() {
             body="A structured doctor review for hair loss concerns. Once approved, your eScript is sent by SMS and can be used at any Australian pharmacy."
           />
 
+          {/* Editorial lifestyle photo, primary. A calm "at home"
+              moment between the service claim and the how-it-works block. */}
+          <section aria-hidden="true" className="py-8 sm:py-12">
+            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-border/40 shadow-md shadow-primary/[0.06]">
+                <Image
+                  src="/images/hairloss-1.webp"
+                  alt="Person at home, candid moment relevant to a hair loss review"
+                  fill
+                  className="object-cover"
+                  loading="lazy"
+                  sizes="(max-width: 1024px) calc(100vw - 4rem), 768px"
+                />
+              </div>
+            </div>
+          </section>
+
           {/* 2. How It Works */}
           <HowItWorksInline
             steps={HOW_IT_WORKS_STEPS}
@@ -349,6 +367,23 @@ export function HairLossLanding() {
 
           {/* 5. Doctor profile */}
           <DoctorProfileSection />
+
+          {/* Editorial lifestyle photo, secondary. Sits between doctor
+              profile and pricing as a quiet trust moment. */}
+          <section aria-hidden="true" className="py-8 sm:py-12">
+            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-border/40 shadow-md shadow-primary/[0.06]">
+                <Image
+                  src="/images/hairloss-2.webp"
+                  alt="Daylight Australian interior, reinforcing unhurried at-home care"
+                  fill
+                  className="object-cover"
+                  loading="lazy"
+                  sizes="(max-width: 1024px) calc(100vw - 4rem), 768px"
+                />
+              </div>
+            </div>
+          </section>
 
           {/* 6. Pricing */}
           <HairLossPricingSection isDisabled={isDisabled} />
