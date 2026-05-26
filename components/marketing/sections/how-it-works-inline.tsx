@@ -54,9 +54,13 @@ export function HowItWorksInline({
               key={step.step}
               instant={i < 2}
               delay={i * 0.1}
-              className="relative bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none rounded-2xl p-6 text-center"
+              className="relative bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none rounded-2xl p-6 text-center transition-[transform,box-shadow] duration-200 ease-in-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/[0.08]"
             >
-              <div className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 text-primary font-semibold text-xs mb-3">
+              {/* Step number - transition added so the badge eases in when
+                  Reveal triggers instead of snapping to its final state.
+                  Tier 1 review 2026-05-25 (/hair-loss #4): "step-card
+                  checkmarks pop in as a state-flip". */}
+              <div className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 text-primary font-semibold text-xs mb-3 transition-[opacity,transform] duration-200 ease-in-out">
                 {step.step}
               </div>
               <StickerIcon name={step.sticker} size={52} className="mx-auto mb-3" />

@@ -75,7 +75,18 @@ function QRCode({ className }: { className?: string }) {
  */
 export function EScriptHeroMockup({ compact = false }: EScriptHeroMockupProps) {
   return (
-    <div className={cn("relative", compact ? "w-full" : "w-72 xl:w-80")}>
+    // max-w-full + max-w-[calc(100vw-2rem)] guard against any narrow
+    // viewport (iPhone SE / 320px) where the fixed w-72 would push the
+    // floating -right-3 badge past the viewport edge. Tier 1 review
+    // 2026-05-25 (/prescriptions #2): "hero phone mockup clips on right
+    // margin at 375px".
+    <div
+      className={cn(
+        "relative",
+        compact ? "w-full" : "w-72 xl:w-80 max-w-full",
+      )}
+      style={!compact ? { maxWidth: "calc(100vw - 2rem)" } : undefined}
+    >
       {/* Main card */}
       <div
         className={cn(

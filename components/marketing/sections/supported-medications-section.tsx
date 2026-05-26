@@ -22,17 +22,19 @@ interface MedCategory {
   icon: LucideIcon
   name: string
   scope: string
-  accent: string
   iconBg: string
   iconColor: string
 }
 
+// `accent` (per-category coloured top border) was retired 2026-05-26 after
+// Tier 1 review flagged the multi-colour stripes as "a pamphlet, not a
+// clinic". The icons retain the chromatic variation; the card border is
+// uniform `border-border/60` for the ivory spine.
 const CATEGORIES: MedCategory[] = [
   {
     icon: Heart,
     name: "Blood pressure",
     scope: "Stable repeat requests already prescribed by your usual doctor",
-    accent: "border-t-rose-400/60",
     iconBg: "bg-rose-50 dark:bg-rose-500/10",
     iconColor: "text-rose-500",
   },
@@ -40,7 +42,6 @@ const CATEGORIES: MedCategory[] = [
     icon: Droplets,
     name: "Cholesterol",
     scope: "Regular cholesterol medicines that do not need urgent review",
-    accent: "border-t-amber-400/60",
     iconBg: "bg-amber-50 dark:bg-amber-500/10",
     iconColor: "text-amber-500",
   },
@@ -48,7 +49,6 @@ const CATEGORIES: MedCategory[] = [
     icon: Shield,
     name: "Contraceptives",
     scope: "Ongoing contraception reviews where online care is suitable",
-    accent: "border-t-pink-400/60",
     iconBg: "bg-pink-50 dark:bg-pink-500/10",
     iconColor: "text-pink-500",
   },
@@ -56,7 +56,6 @@ const CATEGORIES: MedCategory[] = [
     icon: Wind,
     name: "Asthma & COPD",
     scope: "Maintenance inhaler reviews for stable, non-urgent symptoms",
-    accent: "border-t-sky-400/60",
     iconBg: "bg-sky-50 dark:bg-sky-500/10",
     iconColor: "text-sky-500",
   },
@@ -64,7 +63,6 @@ const CATEGORIES: MedCategory[] = [
     icon: Thermometer,
     name: "Reflux & gut",
     scope: "Repeat requests for stable reflux or gut symptom management",
-    accent: "border-t-orange-400/60",
     iconBg: "bg-orange-50 dark:bg-orange-500/10",
     iconColor: "text-orange-500",
   },
@@ -72,7 +70,6 @@ const CATEGORIES: MedCategory[] = [
     icon: Sun,
     name: "Skin conditions",
     scope: "Ongoing skin-care prescriptions already used safely",
-    accent: "border-t-lime-400/60",
     iconBg: "bg-lime-50 dark:bg-lime-500/10",
     iconColor: "text-lime-500",
   },
@@ -80,7 +77,6 @@ const CATEGORIES: MedCategory[] = [
     icon: Brain,
     name: "Thyroid",
     scope: "Stable thyroid medicine reviews with recent monitoring where needed",
-    accent: "border-t-teal-400/60",
     iconBg: "bg-teal-50 dark:bg-teal-500/10",
     iconColor: "text-teal-500",
   },
@@ -88,7 +84,6 @@ const CATEGORIES: MedCategory[] = [
     icon: Pill,
     name: "Other regular meds",
     scope: "Other stable repeat medicines assessed case by case",
-    accent: "border-t-slate-400/60",
     iconBg: "bg-slate-50 dark:bg-slate-500/10",
     iconColor: "text-slate-500",
   },

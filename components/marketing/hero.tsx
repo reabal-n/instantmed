@@ -254,12 +254,16 @@ export function Hero({
                 pass `trustRow={null}` since they render their own
                 TrustBadgeSlider below the hero. */}
             {resolvedTrustRow && (
-              // items-stretch lets each badge fill the row's min-height (h-7)
-              // so they line up as a single horizontal strip instead of
-              // bobbing at different heights. Tier 1 review 2026-05-25
+              // items-center + a 40px cap on every direct child keeps all
+              // three trust marks (GoogleAdsCert, GoogleReviewsBadge,
+              // LegitScript) on one optical baseline. LegitScript was the
+              // outlier before (its native seal is 79px tall, vs ~36-37px
+              // for the two pills). Tier 1 review 2026-05-25
               // (/erectile-dysfunction #1) flagged "different heights
-              // breaking the line of the CTA".
-              <div className="hero-trust-enter flex flex-wrap items-stretch justify-center lg:justify-start gap-x-3 gap-y-2 pt-1 min-h-7">
+              // breaking the line of the CTA". The [&>*]:max-h-10 selector
+              // applies whether a consumer passes the default trust row
+              // or their own list of marks.
+              <div className="hero-trust-enter flex flex-wrap items-center justify-center lg:justify-start gap-x-3 gap-y-2 pt-1 min-h-10 [&>*]:max-h-10">
                 {resolvedTrustRow}
               </div>
             )}
