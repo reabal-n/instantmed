@@ -292,4 +292,87 @@ describe("buildClinicalCaseSummary", () => {
     expect(summary.recommendedPlan.action).toBe("request_info")
     expect(summary.prescriptionIntent).toBeUndefined()
   })
+
+  describe("ED preset wiring (2026-05-26)", () => {
+    it("daily preference fills prescriptionIntent with Tadalafil 5mg", () => {
+      const summary = buildClinicalCaseSummary({
+        category: "consult",
+        subtype: "ed",
+        serviceType: "consult",
+        patientName: "Test Patient",
+        answers: {
+          edGoal: "improve_erections",
+          edDuration: "1_to_3_years",
+          edPreference: "daily",
+          iiefTotal: 12,
+          edNitrates: "no",
+          edRecentHeartEvent: "no",
+          edSevereHeart: "no",
+          edAlphaBlockers: "no",
+        },
+      })
+      expect(summary.prescriptionIntent?.medicationName).toBe("Tadalafil")
+      expect(summary.prescriptionIntent?.strength).toBe("5mg")
+      expect(summary.prescriptionIntent?.quantityTemplate).toBe("30 tablets")
+      expect(summary.prescriptionIntent?.directionsTemplate).toMatch(/once daily/i)
+      expect(summary.prescriptionIntent?.clipboardText).toContain("Tadalafil")
+      expect(summary.prescriptionIntent?.clipboardText).toContain("30 tablets")
+    })
+
+    it("prn preference fills prescriptionIntent with Sildenafil 50mg", () => {
+      const summary = buildClinicalCaseSummary({
+        category: "consult",
+        subtype: "ed",
+        serviceType: "consult",
+        patientName: "Test Patient",
+        answers: {
+          edGoal: "improve_erections",
+          edDuration: "1_to_3_years",
+          edPreference: "prn",
+          edNitrates: "no",
+          edRecentHeartEvent: "no",
+          edSevereHeart: "no",
+          edAlphaBlockers: "no",
+        },
+      })
+      expect(summary.prescriptionIntent?.medicationName).toBe("Sildenafil")
+      expect(summary.prescriptionIntent?.strength).toBe("50mg")
+      expect(summary.prescriptionIntent?.directionsTemplate).toMatch(/1 hour before/i)
+    })
+
+    it("doctor_decides preference defaults to Sildenafil 50mg with alternative note", () => {
+      const summary = buildClinicalCaseSummary({
+        category: "consult",
+        subtype: "ed",
+        serviceType: "consult",
+        patientName: "Test Patient",
+        answers: {
+          edGoal: "improve_erections",
+          edDuration: "1_to_3_years",
+          edPreference: "doctor_decides",
+          edNitrates: "no",
+          edRecentHeartEvent: "no",
+          edSevereHeart: "no",
+          edAlphaBlockers: "no",
+        },
+      })
+      expect(summary.prescriptionIntent?.medicationName).toBe("Sildenafil")
+      expect((summary.prescriptionIntent as { alternativeNote?: string })?.alternativeNote).toMatch(/Tadalafil 5mg/i)
+    })
+
+    it("hard contraindication still suppresses prescriptionIntent", () => {
+      const summary = buildClinicalCaseSummary({
+        category: "consult",
+        subtype: "ed",
+        serviceType: "consult",
+        patientName: "Test Patient",
+        answers: {
+          edGoal: "improve_erections",
+          edPreference: "daily",
+          edNitrates: "yes",
+        },
+      })
+      expect(summary.prescriptionIntent).toBeUndefined()
+    })
+  })
 })
