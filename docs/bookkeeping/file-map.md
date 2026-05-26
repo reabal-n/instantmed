@@ -1,6 +1,6 @@
 # Doc File Map
 
-> **Last updated:** 2026-05-23 (post-cleanup).
+> **Last updated:** 2026-05-26.
 > Single source of truth for the full canonical doc surface. A fresh contributor reads this file and knows the doc tree without grepping.
 >
 > **Owner:** Operator. Update on every doc add, move, or delete. Bump the timestamp.
@@ -61,6 +61,8 @@
 | File | Purpose |
 |------|---------|
 | [docs/plans/2026-05-23-archived-plan-followups.md](../plans/2026-05-23-archived-plan-followups.md) | Active backlog stub: 6 open follow-ups carried out of archived plans (lib restructure deferrals + health guides remaining rewrite + /admin/ops release feed idea) |
+| [docs/plans/2026-05-26-minimal-slide-modal-design.md](../plans/2026-05-26-minimal-slide-modal-design.md) | Design doc for the 2026-05-26 cockpit cleanup bundle (2-day auto-approve widening, single-column slide modal, ED prescription preset). |
+| [docs/plans/2026-05-26-minimal-slide-modal-plan.md](../plans/2026-05-26-minimal-slide-modal-plan.md) | 8-task TDD implementation plan companion to the 2026-05-26 design doc. |
 
 The cleanup plan that produced this state lives in archive: [docs/plans/archive/2026-05-23-doc-cleanup-plan.md](../plans/archive/2026-05-23-doc-cleanup-plan.md).
 
