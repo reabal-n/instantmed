@@ -53,7 +53,9 @@ export async function acquireIntakeLock(
       const lockedByName = claim?.current_claimant || "another doctor"
       const lockedAt = now.toISOString()
       const expiresAt = new Date(now.getTime() + LOCK_TIMEOUT_MS).toISOString()
+      const errorMessage = claim?.error_message ?? ""
       const isSystemClaim = lockedByName.toLowerCase().includes("auto-approve")
+      const hasBrokenMinutesTemplate = /\(\s*minutes remaining\s*\)/.test(errorMessage)
       return {
         acquired: false,
         existingLock: {
@@ -63,9 +65,9 @@ export async function acquireIntakeLock(
           lockedAt,
           expiresAt,
         },
-        warning: isSystemClaim
+        warning: isSystemClaim && hasBrokenMinutesTemplate
           ? "Auto-approval check is running on this case. You can still review and act if needed."
-          : (claim?.error_message || "This case could not be claimed for review."),
+          : (errorMessage || "This case could not be claimed for review."),
       }
     }
 
