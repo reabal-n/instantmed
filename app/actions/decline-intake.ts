@@ -261,6 +261,7 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
           intakeId,
           requestType: intake.category || "request",
           reason: reason || "Your request could not be approved at this time.",
+          reasonCode,
         })
         emailSent = true
         logger.info("[Decline] Decline email sent", { intakeId, emailSent: true })
