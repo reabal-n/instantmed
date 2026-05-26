@@ -382,6 +382,8 @@ function LegacyIntakeDetailClient({
         subtype: intake.subtype,
         serviceType: service?.type,
         patientName: intake.patient?.full_name,
+        patientDateOfBirth: intake.patient?.date_of_birth ?? null,
+        patientSex: intake.patient?.sex ?? null,
         answers: intakeAnswers ?? {},
         riskTier: intake.risk_tier,
         requiresLiveConsult: intake.requires_live_consult,
@@ -389,6 +391,8 @@ function LegacyIntakeDetailClient({
     [
       intake.category,
       intake.patient?.full_name,
+      intake.patient?.date_of_birth,
+      intake.patient?.sex,
       intake.requires_live_consult,
       intake.risk_tier,
       intake.subtype,

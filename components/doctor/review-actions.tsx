@@ -187,6 +187,8 @@ export function useReviewActions({
       subtype: intake.subtype,
       serviceType: service?.type,
       patientName: intake.patient.full_name,
+      patientDateOfBirth: intake.patient.date_of_birth ?? null,
+      patientSex: intake.patient.sex ?? null,
       riskTier: intake.risk_tier,
       requiresLiveConsult: intake.requires_live_consult,
     })
