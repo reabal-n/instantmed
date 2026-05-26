@@ -18,6 +18,8 @@ interface ClinicalCaseReviewProps {
   subtype?: string | null
   serviceType?: string | null
   patientName?: string | null
+  patientDateOfBirth?: string | null
+  patientSex?: string | null
   answers: Record<string, unknown>
   riskTier?: string | null
   requiresLiveConsult?: boolean | null
@@ -66,6 +68,8 @@ export function ClinicalCaseReview({
   subtype,
   serviceType,
   patientName,
+  patientDateOfBirth,
+  patientSex,
   answers,
   riskTier,
   requiresLiveConsult,
@@ -79,6 +83,8 @@ export function ClinicalCaseReview({
     subtype,
     serviceType,
     patientName,
+    patientDateOfBirth,
+    patientSex,
     answers,
     riskTier,
     requiresLiveConsult,

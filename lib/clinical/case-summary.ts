@@ -4,6 +4,7 @@ import {
 } from "@/lib/clinical/consult-validators"
 import { getEdPreset } from "@/lib/clinical/ed-prescribing-presets"
 import { isControlledSubstance } from "@/lib/clinical/intake-validation"
+import { normaliseSymptomText } from "@/lib/clinical/symptom-normaliser"
 import {
   buildRepeatScriptMedicationValidationText,
   extractRepeatScriptMedications,
@@ -20,6 +21,8 @@ export interface ClinicalCaseInput {
   subtype?: string | null
   serviceType?: string | null
   patientName?: string | null
+  patientDateOfBirth?: string | null
+  patientSex?: string | null
   answers: Answers
   riskTier?: string | null
   requiresLiveConsult?: boolean | null
@@ -163,12 +166,52 @@ function makeIntent(intent: Omit<PrescriptionIntent, "clipboardText" | "parchmen
 }
 
 function note(subjective: string, objective: string, assessment: string, plan: string): string {
-  return [
-    `Subjective: ${subjective}`,
-    `Objective: ${objective}`,
-    `Assessment: ${assessment}`,
-    `Plan: ${plan}`,
-  ].join("\n")
+  return [`S: ${subjective}`, `O: ${objective}`, `A: ${assessment}`, `P: ${plan}`].join("\n")
+}
+
+function ageFromDob(dob: string | null | undefined): number | null {
+  if (!dob) return null
+  const date = new Date(dob)
+  if (Number.isNaN(date.getTime())) return null
+  const now = new Date()
+  let age = now.getFullYear() - date.getFullYear()
+  const m = now.getMonth() - date.getMonth()
+  if (m < 0 || (m === 0 && now.getDate() < date.getDate())) age--
+  return age >= 0 && age < 130 ? age : null
+}
+
+/**
+ * Map all known patient-sex inputs (DB enum + free-text) to a single-letter
+ * shorthand used on the S line. Profile.sex is `"M" | "F" | "N" | "I"` in
+ * `types/db.ts`, but caller code sometimes passes raw strings like "male" /
+ * "female". Accept both. Returns null for anything unmappable (eg. "Not
+ * stated") so the header falls back to a generic form.
+ */
+function sexShorthand(sex: string | null | undefined): string | null {
+  if (!sex) return null
+  const s = sex.toLowerCase().trim()
+  if (s === "male" || s === "m") return "M"
+  if (s === "female" || s === "f") return "F"
+  if (s === "intersex" || s === "i" || s === "x") return "X"
+  return null
+}
+
+/**
+ * Produce the leading clause of the Subjective line.
+ *   "25yo F" if both DOB and sex resolve.
+ *   "40yo patient" if only DOB resolves.
+ *   "Patient (F)" if only sex resolves.
+ *   "Tuki Tkt" (the patient name) if neither resolves.
+ *   "Patient" as a final fallback when even the name is missing.
+ * Never leaks "NaN", "undefined", or "null" into the rendered string.
+ */
+function patientHeader(input: ClinicalCaseInput): string {
+  const age = ageFromDob(input.patientDateOfBirth)
+  const sex = sexShorthand(input.patientSex)
+  if (age != null && sex) return `${age}yo ${sex}`
+  if (age != null) return `${age}yo patient`
+  if (sex) return `Patient (${sex})`
+  return input.patientName?.trim() || "Patient"
 }
 
 function edSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
@@ -286,18 +329,53 @@ function edSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     alternativeNote: edPreset.alternativeNote,
   })
 
-  const subjective = `${input.patientName || "Patient"} requests help to ${sentenceHumanize(goal)} with symptoms for ${sentenceHumanize(duration)}.`
-  const objective = `Structured ED screen reviewed${score ? `; IIEF-5 score ${score}` : ""}. Nitrate use: ${yesNo(raw(answers, "edNitrates"))}. GP clearance reported: ${yesNo(raw(answers, "edGpCleared"))}.`
+  const header = patientHeader(input)
+  // Patient-story / UI sentence keeps the prior shape (goal-led). Only the
+  // doctor's SOAP draft note moves to clinical voice. The cockpit renders the
+  // story above the note.
+  const storySentence = `${input.patientName || "Patient"} requests help to ${sentenceHumanize(goal)} with symptoms for ${sentenceHumanize(duration)}.`
+
+  const subjective = [
+    `${header}, c/o erectile dysfunction.`,
+    duration ? `Symptoms for ${humanize(duration).toLowerCase()}.` : null,
+    score ? `IIEF-5 ${score}/25.` : null,
+    preference ? `Patient prefers ${humanize(preference).toLowerCase()} dosing.` : null,
+  ]
+    .filter(Boolean)
+    .join(" ")
+
+  const objective = [
+    "Structured ED screen completed.",
+    `Nitrates: ${yesNo(raw(answers, "edNitrates"))}.`,
+    `Recent cardiac event: ${yesNo(raw(answers, "edRecentHeartEvent"))}.`,
+    `Severe cardiac history: ${yesNo(raw(answers, "edSevereHeart"))}.`,
+    `Alpha-blockers: ${yesNo(raw(answers, "edAlphaBlockers"))}.`,
+    (hasRecentHeartEvent || hasSevereHeart || hasAlphaBlockers)
+      ? `GP clearance reported: ${yesNo(raw(answers, "edGpCleared"))}.`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" ")
+
   const assessment = hasBlock
-    ? "Not suitable for asynchronous ED prescribing based on safety screen."
+    ? "Contraindication to PDE5 inhibitor therapy identified on screen. Not suitable for asynchronous prescribing."
     : needsLiveReview
-      ? "Requires live clinician review before any ED prescribing."
-      : "Potentially suitable for ED prescribing subject to doctor review."
-  const planText = recommendedPlan.nextSteps.join(" ")
+      ? "Cardiac history or alpha-blocker use requires clinician verification before prescribing."
+      : score && Number(score) <= 11
+        ? "Moderate erectile dysfunction. No contraindications to PDE5 inhibitor identified on screen."
+        : "Mild to moderate erectile dysfunction. No contraindications to PDE5 inhibitor identified on screen."
+
+  const planText = hasBlock
+    ? "Decline asynchronous prescribing. Advise patient to consult GP or cardiology for in-person review."
+    : needsLiveReview
+      ? "Call patient to verify cardiac context and confirm GP clearance before any prescribing decision."
+      : preference === "daily"
+        ? "Tadalafil 5mg daily x 30 tablets, 2 repeats. Counsel on dosing, side effects (headache, flushing, dyspepsia, back pain), and to seek review if no response after 4 weeks or if any chest pain on activity."
+        : "Sildenafil 50mg PRN x 8 tablets, 2 repeats. 1 tablet 1 hour before sexual activity, max 1 per 24h. Counsel on side effects (headache, flushing, dyspepsia, visual disturbance), and to seek review if no response or if any chest pain on activity."
 
   return {
     title: "Erectile dysfunction consult",
-    patientStory: `${subjective} Preference: ${sentenceHumanize(preference)}.`,
+    patientStory: `${storySentence} Preference: ${sentenceHumanize(preference)}.`,
     keyFacts,
     safetyItems,
     recommendedPlan,
@@ -367,14 +445,43 @@ function hairSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     safetyChecks: ["Reproductive screen reviewed", "Scalp screen reviewed", "BP/cardiac screen reviewed", "Current medications checked"],
   })
 
-  const subjective = `${input.patientName || "Patient"} requests hair loss treatment for ${sentenceHumanize(pattern)} with onset ${sentenceHumanize(onset)}.`
-  const objective = `Goal: ${humanize(goal)}. Reproductive risk: ${yesNo(raw(answers, "hairReproductive"))}. Scalp screen: ${scalpSummary(answers)}.`
-  const assessment = hasBlock ? "Not suitable for oral hair loss prescribing based on reproductive safety screen." : "Potentially suitable for hair loss treatment subject to doctor review."
-  const planText = recommendedPlan.nextSteps.join(" ")
+  const header = patientHeader(input)
+  const storySentence = `${input.patientName || "Patient"} requests hair loss treatment for ${sentenceHumanize(pattern)} with onset ${sentenceHumanize(onset)}.`
+
+  const subjective = [
+    `${header}, c/o androgenetic-pattern hair loss (${humanize(pattern).toLowerCase()}).`,
+    onset ? `Onset ${humanize(onset).toLowerCase()}.` : null,
+    `Goal: ${humanize(goal).toLowerCase()}.`,
+    preference ? `Patient prefers ${humanize(preference).toLowerCase()} option.` : null,
+  ]
+    .filter(Boolean)
+    .join(" ")
+
+  const objective = [
+    "Structured hair loss screen completed.",
+    `Reproductive risk: ${yesNo(raw(answers, "hairReproductive"))}.`,
+    `Scalp screen: ${scalpSummary(answers)}.`,
+    `Low BP / dizziness: ${yesNo(raw(answers, "hairLowBP"))}.`,
+    `Heart conditions / palpitations: ${yesNo(raw(answers, "hairHeartConditions"))}.`,
+  ]
+    .filter(Boolean)
+    .join(" ")
+
+  const assessment = hasBlock
+    ? "Reproductive contraindication identified on screen. Not suitable for oral hair loss prescribing via this workflow."
+    : "Likely androgenetic alopecia. No contraindications identified on screen."
+
+  const planText = hasBlock
+    ? "Decline oral hair loss prescribing. Advise GP or dermatologist review for safe alternatives."
+    : preference === "oral"
+      ? "Finasteride 1mg daily, 90 tablets, 3 repeats. Counsel on onset of effect (3-6 months), sexual side effects (typically reversible), and the need to stop and seek review if mood symptoms develop. Adjunct topical minoxidil 5% may be considered."
+      : preference === "topical"
+        ? "Topical minoxidil 5% twice daily to dry scalp. Counsel on 3-6 month onset, initial shedding phase, and to stop if scalp irritation or unwanted facial hair develops."
+        : "Doctor to select between finasteride 1mg daily or topical minoxidil 5% based on preference and contraindications. Counsel on expected onset of effect (3-6 months)."
 
   return {
     title: "Hair loss consult",
-    patientStory: `${subjective} Preference: ${sentenceHumanize(preference)}.`,
+    patientStory: `${storySentence} Preference: ${sentenceHumanize(preference)}.`,
     keyFacts,
     safetyItems,
     recommendedPlan,
@@ -479,20 +586,38 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     safetyChecks: ["Repeat history reviewed", "Allergies checked", "Current medications checked", "Controlled-substance screen checked"],
   })
 
-  const subjective = `${input.patientName || "Patient"} requests a repeat prescription for ${requestedMedicationValue}.${currentDose ? ` Patient reports current dose: ${currentDose}.` : ""}`
+  const header = patientHeader(input)
+  const storySentence = `${input.patientName || "Patient"} requests a repeat prescription for ${requestedMedicationValue}.${currentDose ? ` Patient reports current dose: ${currentDose}.` : ""}`
+
+  const subjective = [
+    `${header}, requesting repeat prescription for ${requestedMedicationValue}.`,
+    currentDose ? `Patient reports current dose: ${currentDose}.` : null,
+    history && history !== "not specified" ? `Last prescribed ${humanize(history).toLowerCase()}.` : null,
+  ]
+    .filter(Boolean)
+    .join(" ")
+
   const objective = [
-    `Last prescribed: ${humanize(history)}.`,
-    `Allergies: ${allergies || yesNo(raw(answers, "has_allergies") ?? raw(answers, "hasAllergies"))}.`,
-    `Current medicines: ${currentMedications || yesNo(raw(answers, "takes_medications") ?? raw(answers, "hasOtherMedications"))}.`,
+    "Telehealth review of structured repeat request.",
+    allergies ? `Allergies: ${allergies}.` : "No allergies reported.",
+    currentMedications ? `Current medicines: ${currentMedications}.` : "No other current medicines reported.",
     pregnancyAnswer !== undefined ? `Pregnant/breastfeeding: ${yesNo(pregnancyAnswer)}.` : null,
     adverseReactionAnswer !== undefined ? `Adverse medication reactions: ${yesNo(adverseReactionAnswer)}.` : null,
-  ].filter(Boolean).join(" ")
-  const assessment = controlled ? "Request is outside repeat prescription scope." : "Potentially suitable for repeat prescription subject to doctor review."
-  const planText = recommendedPlan.nextSteps.join(" ")
+  ]
+    .filter(Boolean)
+    .join(" ")
+
+  const assessment = controlled
+    ? `${medicationName} is a controlled substance. Repeat prescription via this workflow is not permitted.`
+    : `Stable patient on ${medicationName}. No safety flags identified on screen.`
+
+  const planText = controlled
+    ? "Decline repeat prescription. Advise patient to see their regular GP for in-person review."
+    : `Repeat ${medicationName}${currentDose ? ` at ${currentDose}` : ""}. Confirm quantity and repeats in Parchment. Advise patient to book a face-to-face review if dose or condition changes.`
 
   return {
     title: "Repeat prescription",
-    patientStory: `${subjective} Patient reports prior prescription history: ${sentenceHumanize(history)}.`,
+    patientStory: `${storySentence} Patient reports prior prescription history: ${sentenceHumanize(history)}.`,
     keyFacts,
     safetyItems,
     recommendedPlan,
@@ -507,8 +632,39 @@ function medCertSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const duration = str(answers, "duration")
   const startDate = str(answers, "startDate") || str(answers, "start_date")
   const symptoms = raw(answers, "symptoms")
-  const symptomDetails = str(answers, "symptomDetails") || str(answers, "symptom_details") || "No symptom detail provided."
+  const rawSymptomDetails = str(answers, "symptomDetails") || str(answers, "symptom_details") || ""
+  const symptomDetails = rawSymptomDetails || "No symptom detail provided."
   const symptomDuration = str(answers, "symptomDuration") || str(answers, "symptom_duration")
+  const normalisedSymptoms = normaliseSymptomText(rawSymptomDetails)
+  const header = patientHeader(input)
+  const durationLabel = duration ? `${duration}-day` : "medical"
+  const durationDays = duration ? parseInt(duration, 10) : null
+
+  const subjective = [
+    `${header},`,
+    normalisedSymptoms || (rawSymptomDetails ? rawSymptomDetails + "." : "Symptom detail not provided."),
+    symptomDuration ? `Symptom duration ${humanize(symptomDuration).toLowerCase()}.` : null,
+    `Requesting ${durationLabel} ${humanize(certType).toLowerCase()} certificate.`,
+  ]
+    .filter(Boolean)
+    .join(" ")
+
+  const objective = "Telehealth review of structured intake. No red flags reported on screen."
+
+  const assessment = "Symptoms consistent with self-limiting acute illness based on structured intake."
+
+  const safetyNetReturn = durationDays && durationDays <= 2
+    ? "Return if symptoms persist beyond 7 days, or develop high fever (>39 C), shortness of breath, chest pain, or inability to keep fluids down."
+    : "Return if symptoms persist beyond the certificate period, or develop high fever (>39 C), shortness of breath, chest pain, or inability to keep fluids down."
+
+  const planParts = [
+    duration && startDate
+      ? `${duration}-day medical certificate issued from ${startDate}.`
+      : "Medical certificate issued.",
+    "Symptomatic management advised (rest, fluids, paracetamol PRN).",
+    safetyNetReturn,
+  ]
+  const planText = planParts.join(" ")
 
   const keyFacts = compactFacts([
     { label: "Certificate type", value: humanize(certType) },
@@ -518,11 +674,6 @@ function medCertSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     factHumanized("Symptom duration", symptomDuration),
     fact("Details", symptomDetails),
   ])
-
-  const subjective = `${input.patientName || "Patient"} requests a ${sentenceHumanize(certType)}. ${symptomDetails}`
-  const objective = `Requested duration: ${duration ? `${duration} day${duration === "1" ? "" : "s"}` : "not provided"}. Start date: ${startDate || "not provided"}.`
-  const assessment = "Medical certificate request requires doctor review against symptoms, dates and telehealth suitability."
-  const planText = "Confirm symptoms and requested dates, document capacity impact, then approve certificate only if clinically appropriate."
 
   return {
     title: "Medical certificate request",
@@ -565,6 +716,12 @@ function unknownConsultSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     ],
   }
 
+  const header = patientHeader(input)
+  const subjective = `${header} (subtype: ${subtypeLabel}). ${details}`
+  const objective = "Free-text consult intake. No structured screener for this subtype in automated summary."
+  const assessment = "Specialty consult outside automated summary scope. Full doctor review required."
+  const planText = "Read patient free text. Decide: approve, request more info, or decline."
+
   return {
     title: `Consult · ${subtypeLabel}`,
     patientStory: details,
@@ -576,12 +733,7 @@ function unknownConsultSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     ]),
     safetyItems: [],
     recommendedPlan,
-    draftNote: note(
-      `${input.patientName || "Patient"}: ${details}`,
-      `Subtype: ${input.subtype ?? "unknown"}.`,
-      "Specialty consult outside automated summary scope; full doctor review needed.",
-      recommendedPlan.nextSteps.join(" "),
-    ),
+    draftNote: note(subjective, objective, assessment, planText),
   }
 }
 

@@ -36,8 +36,8 @@ describe("buildClinicalCaseSummary", () => {
     expect(summary.recommendedPlan.title).toMatch(/PDE5/i)
     expect(summary.prescriptionIntent?.presetLabel).toMatch(/ED/i)
     expect(summary.prescriptionIntent?.parchmentMode).toBe("open_patient_prescribe")
-    expect(summary.draftNote).toContain("Subjective:")
-    expect(summary.draftNote).toContain("Plan:")
+    expect(summary.draftNote).toMatch(/^S:\s/m)
+    expect(summary.draftNote).toMatch(/^P:\s/m)
   })
 
   it("hard-blocks ED prescribing when current boolean nitrate screen is positive", () => {
@@ -373,6 +373,116 @@ describe("buildClinicalCaseSummary", () => {
         },
       })
       expect(summary.prescriptionIntent).toBeUndefined()
+    })
+  })
+
+  describe("doctor-voice note rewrite (2026-05-26)", () => {
+    it("med cert: writes a SOAP note with age + sex shorthand and normalised symptoms", () => {
+      const summary = buildClinicalCaseSummary({
+        category: "medical_certificate",
+        serviceType: "med_certs",
+        patientName: "Tuki Tkt",
+        patientDateOfBirth: "2000-11-14",
+        patientSex: "female",
+        answers: {
+          certType: "work",
+          duration: "2",
+          startDate: "2026-05-25",
+          symptomDetails: "fever nose full get cold",
+          symptomDuration: "1-2 days",
+        },
+      })
+
+      // Should NOT contain the old AI-generated phrasing
+      expect(summary.draftNote).not.toContain("requests a work")
+      expect(summary.draftNote).not.toContain("Medical certificate request requires doctor review")
+      expect(summary.draftNote).not.toContain("Confirm symptoms and requested dates")
+
+      // SHOULD contain SOAP shorthand
+      expect(summary.draftNote).toMatch(/^S:\s/m)
+      expect(summary.draftNote).toMatch(/^O:\s/m)
+      expect(summary.draftNote).toMatch(/^A:\s/m)
+      expect(summary.draftNote).toMatch(/^P:\s/m)
+
+      // Age + sex shorthand on the S line
+      expect(summary.draftNote).toMatch(/^S:\s+25yo F/m)
+
+      // Normalised symptoms (not the raw patient text)
+      expect(summary.draftNote).toContain("Fever, nasal congestion, cold symptoms")
+      expect(summary.draftNote).not.toContain("fever nose full get cold")
+
+      // Plan should mention the date range and safety-netting language
+      expect(summary.draftNote).toMatch(/2-day medical certificate/)
+      expect(summary.draftNote).toMatch(/Return if/i)
+    })
+
+    it("ED consult: doctor-voice note with IIEF + screen reference", () => {
+      const summary = buildClinicalCaseSummary({
+        category: "consult",
+        subtype: "ed",
+        serviceType: "consult",
+        patientName: "Stacy Walker",
+        patientDateOfBirth: "1986-01-06",
+        patientSex: "male",
+        answers: {
+          edGoal: "improve_erections",
+          edDuration: "1_to_3_years",
+          edPreference: "daily",
+          iiefTotal: 10,
+          edNitrates: "no",
+          edRecentHeartEvent: "no",
+          edSevereHeart: "no",
+          edAlphaBlockers: "no",
+        },
+      })
+
+      expect(summary.draftNote).not.toContain("Potentially suitable for ED prescribing subject to doctor review")
+      expect(summary.draftNote).not.toContain("Confirm current medicines and cardiovascular risk")
+
+      expect(summary.draftNote).toMatch(/^S:\s+40yo M/m)
+      expect(summary.draftNote).toMatch(/IIEF-5\s+10\/25/i)
+      expect(summary.draftNote).toMatch(/^P:\s/m)
+    })
+
+    it("falls back to a generic age string when DOB is missing", () => {
+      const summary = buildClinicalCaseSummary({
+        category: "medical_certificate",
+        serviceType: "med_certs",
+        patientName: "John Doe",
+        patientDateOfBirth: null,
+        patientSex: null,
+        answers: { certType: "work", duration: "1", startDate: "2026-05-26", symptomDetails: "headache" },
+      })
+
+      // No "NaNyo" or undefined leakage
+      expect(summary.draftNote).not.toMatch(/NaN/)
+      expect(summary.draftNote).not.toMatch(/undefined/)
+      expect(summary.draftNote).not.toMatch(/null/)
+
+      // Should still produce a coherent note with S/O/A/P
+      expect(summary.draftNote).toMatch(/^S:\s/m)
+      expect(summary.draftNote).toMatch(/^P:\s/m)
+    })
+
+    it("repeat prescription: doctor-voice with medication-specific plan", () => {
+      const summary = buildClinicalCaseSummary({
+        category: "prescription",
+        serviceType: "repeat_rx",
+        patientName: "Jane Roe",
+        patientDateOfBirth: "1985-03-15",
+        patientSex: "female",
+        answers: {
+          medicationName: "Sertraline",
+          medicationStrength: "50mg",
+          currentDose: "1 daily",
+          prescriptionHistory: "stable on dose for 2 years",
+        },
+      })
+
+      expect(summary.draftNote).not.toContain("Repeat existing regimen after doctor confirms")
+      expect(summary.draftNote).toMatch(/^S:\s+\d+yo F/m)
+      expect(summary.draftNote).toContain("Sertraline")
+      expect(summary.draftNote).toMatch(/^P:\s/m)
     })
   })
 })

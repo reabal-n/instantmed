@@ -48,6 +48,9 @@ export interface IntakeReviewContextValue {
   noteSaved: boolean
   setNoteSaved: (v: boolean) => void
   noteDirty: boolean
+  savedAt: Date | null
+  isAutoSaving: boolean
+  autoSaveError: boolean
   isAiPrefilled: boolean
   hasClinicalDraft: boolean
   isRegenerating: boolean
