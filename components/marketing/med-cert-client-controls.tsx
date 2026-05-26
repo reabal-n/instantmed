@@ -9,7 +9,7 @@ import { useServiceAvailability } from "@/components/providers/service-availabil
 import { useLandingAnalytics } from "@/lib/hooks/use-landing-analytics"
 import { useSectionVisibilityFunnel } from "@/lib/hooks/use-section-visibility-funnel"
 import { buildMedCertRequestHref } from "@/lib/marketing/med-cert-selector"
-import { SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
+import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 const MED_CERT_START_HREF = buildMedCertRequestHref({ duration: "1" })
 const CTA_LOCATIONS = new Set([
@@ -79,7 +79,13 @@ export function MedCertClientControls({ stickyTargetId }: MedCertClientControlsP
         isDisabled={isDisabled}
         onCTAClick={() => analytics.trackCTAClick("sticky_mobile")}
         mobileFooter={<StripePaymentLogos className="mt-1.5 opacity-60" />}
-        responseTime={`Avg response: ${SOCIAL_PROOF_DISPLAY.responseTime}`}
+        // The CertComparisonViz above already uses certTurnaroundMinutes
+        // (20) as the headline number. The sticky used to read
+        // "Avg response: 44 min", which conflicted with the 20 min number
+        // higher up the page (Tier 1 review 2026-05-26 /medical-certificate
+        // #6). Now both label the same journey: certificate ready in
+        // about 20 min, doctor-review-driven.
+        responseTime={`Certificate ready: ~${SOCIAL_PROOF.certTurnaroundMinutes} min (doctor review)`}
       />
     </>
   )

@@ -142,9 +142,13 @@ export default function CertificateStep({ onNext, initialDuration, hideIntro = f
   const storedDurationAppliedRef = useRef(false)
 
   const certType = answers.certType as CertType | undefined
-  // Default to 2 days - most common selection, pre-checked per UX intent.
+  // Default to 1 day. Tier 1 review 2026-05-26 (/medical-certificate #5)
+  // retired the pre-form day-selector from the landing page, so the
+  // wizard is now the sole place to set duration. 1 day is the lowest-
+  // commitment default and the cheapest option, so any drift goes
+  // toward intentionally choosing more rather than over-issuing.
   // URL/store duration is applied after hydration to avoid SSR/client drift.
-  const [selectedDays, setSelectedDays] = useState<Duration | null>(2)
+  const [selectedDays, setSelectedDays] = useState<Duration | null>(1)
   const [canSyncSelection, setCanSyncSelection] = useState(false)
   // Default start offset to 0 (today). Most patients start the same day.
   // Restore effect overrides for users navigating back to this step.

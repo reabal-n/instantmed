@@ -1,4 +1,4 @@
-import { ArrowRight, Check, Clock, Gift, Shield, Star, Zap } from "lucide-react"
+import { ArrowRight, Check, Clock, Gift, Shield, Zap } from "lucide-react"
 import Link from "next/link"
 
 import { StatsHero } from "@/components/heroes"
@@ -227,8 +227,12 @@ export function PricingContent() {
                   )}
                 >
                   {service.popular && (
-                    <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground shadow-lg font-medium text-xs">
-                      <Star className="w-3 h-3 mr-1 fill-current" />
+                    // Coral pill matching the rest of the UI palette. The
+                    // earlier Star-icon variant read as a generic SaaS
+                    // template badge against InstantMed chrome (Tier 1
+                    // review 2026-05-25 /pricing #2). Plain coral pill,
+                    // tight tracking, no icon.
+                    <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground shadow-md shadow-primary/25 rounded-full px-2.5 py-0.5 font-semibold text-[11px] tracking-wide uppercase">
                       Most Popular
                     </Badge>
                   )}
