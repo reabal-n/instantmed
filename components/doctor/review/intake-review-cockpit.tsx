@@ -1,6 +1,6 @@
 "use client"
 
-import { FileText, History, Loader2, NotebookPen, RefreshCw } from "lucide-react"
+import { FileText, Loader2, RefreshCw } from "lucide-react"
 import { useMemo, useState } from "react"
 
 import { PatientDecisionStrip } from "@/components/doctor/patient-decision-strip"
@@ -8,13 +8,14 @@ import { PatientTimeline } from "@/components/doctor/patient-timeline"
 import { ClinicalNotesEditor } from "@/components/doctor/review/clinical-notes-editor"
 import { IntakeActionButtons } from "@/components/doctor/review/intake-action-buttons"
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
+import { IntakeSecondaryDisclosure } from "@/components/doctor/review/intake-secondary-disclosure"
 import { PatientMessageThread } from "@/components/doctor/review/patient-message-thread"
+import { PrescriptionRecommendationCard } from "@/components/doctor/review/prescription-recommendation-card"
 import { RequestInfoCard } from "@/components/doctor/review/request-info-card"
 import { ReviewBlockersStrip } from "@/components/doctor/review/review-blockers-strip"
 import { SafetyFlagsCard } from "@/components/doctor/review/safety-flags-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import { useDoctorShortcuts } from "@/lib/hooks/use-doctor-shortcuts"
 import { cn } from "@/lib/utils"
@@ -25,35 +26,17 @@ interface IntakeReviewCockpitProps {
 }
 
 /**
- * IntakeReviewCockpit — Linear issue-panel layout.
+ * IntakeReviewCockpit, single-column edition.
  *
- * Phase 3 of the dashboard remaster (2026-05-12): the cockpit moves from a
- * two-column grid stuffed with nested cards to a single-column panel with
- * three tabs (Request / Notes / History). Keeps the panel inside one
- * viewport without scroll for the common med-cert path.
- *
- * Layout:
- *   ┌────────────────────────────────────────────┐
- *   │ PatientDecisionStrip      (sticky top)     │
- *   ├────────────────────────────────────────────┤
- *   │ ReviewBlockersStrip       (only if blockers│
- *   │ SafetyFlagsCard           or red flags)    │
- *   ├────────────────────────────────────────────┤
- *   │  [Request]  [Notes]  [History]    (tabs)   │
- *   │                                            │
- *   │  ... tab content (scrollable region)       │
- *   │                                            │
- *   ├────────────────────────────────────────────┤
- *   │ IntakeActionButtons       (sticky bottom)  │
- *   └────────────────────────────────────────────┘
- *
- * The action bar is always visible. Notes editor lives in the Notes tab;
- * when the operator hits Approve and notes are too short, the tab will
- * switch to Notes (handled inside IntakeActionButtons via its existing
- * min-length validation toast).
+ * 2026-05-26: collapses the Request/Notes/History tabs into one
+ * scrollable column. The patient decision strip, blockers, safety
+ * flags, request facts, optional patient messages, the recommended
+ * prescription card, and certificate delivery status all live above
+ * the fold. The clinical notes editor and the unified patient
+ * timeline live inside a bottom "Show full intake" disclosure that
+ * is closed by default; Cmd+N opens the disclosure first and then
+ * focuses the notes textarea so notes are always reachable.
  */
-
-type CockpitTab = "request" | "notes" | "history"
 
 function CertificateDeliveryCard() {
   const {
@@ -120,13 +103,13 @@ function CertificateDeliveryCard() {
             : "Resend"}
         </Button>
       </div>
-      {data.certificate.email_opened_at && (
+      {data.certificate.email_opened_at ? (
         <p className="text-xs text-muted-foreground">
           Opened {new Date(data.certificate.email_opened_at).toLocaleString("en-AU", {
             day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
           })}
         </p>
-      )}
+      ) : null}
     </div>
   )
 }
@@ -136,25 +119,13 @@ export function IntakeReviewCockpit({
   showDecisionStrip = true,
 }: IntakeReviewCockpitProps) {
   const review = useIntakeReview()
-  const {
-    data,
-    intake,
-    answers,
-    service,
-  } = review
+  const { data, intake, answers, service } = review
 
-  // The Notes tab is the default IF the case is `paid`/`in_review` AND
-  // there are no patient messages to triage; for everything else the
-  // Request tab is the natural starting point.
-  const [tab, setTab] = useState<CockpitTab>("request")
+  const [disclosureOpen, setDisclosureOpen] = useState(false)
 
   const messageCount = (data.patientMessages?.length ?? 0) +
     (intake.info_request_message ? 1 : 0)
 
-  // Keyboard shortcuts mirror the full-page case-detail wiring.
-  // Cmd/Ctrl+A approves, Cmd/Ctrl+D opens decline, Cmd/Ctrl+N focuses
-  // the notes editor (also switches to the Notes tab). Esc closes any
-  // open dialog. Cmd+? opens the shortcuts help modal globally.
   const caseSummary = useMemo(
     () =>
       buildClinicalCaseSummary({
@@ -201,8 +172,8 @@ export function IntakeReviewCockpit({
       review.setShowDeclineDialog(true)
     },
     onNote: () => {
-      setTab("notes")
-      // Focus the textarea on the next paint.
+      // Open the disclosure BEFORE focusing notes so the textarea exists in the DOM.
+      setDisclosureOpen(true)
       setTimeout(() => review.notesRef.current?.focus(), 60)
     },
     onEscape: () => {
@@ -214,7 +185,7 @@ export function IntakeReviewCockpit({
     <div className={cn("flex h-full min-h-0 flex-col", className)}>
       {/* Sticky top: patient header + always-on blockers. Compact density. */}
       <div className="flex flex-col gap-3 pb-3">
-        {showDecisionStrip && (
+        {showDecisionStrip ? (
           <PatientDecisionStrip
             intake={intake}
             answers={answers}
@@ -222,70 +193,44 @@ export function IntakeReviewCockpit({
             service={service}
             compact
           />
-        )}
+        ) : null}
         <ReviewBlockersStrip />
         <SafetyFlagsCard />
       </div>
 
-      {/* Scrollable middle: tabbed content. Bounded so the action bar stays in view. */}
-      <Tabs
-        value={tab}
-        onValueChange={(value) => setTab(value as CockpitTab)}
-        className="min-h-0 flex-1 gap-3"
-      >
-        <TabsList className="shrink-0 self-start">
-          <TabsTrigger value="request" className="gap-1.5 text-xs">
-            <FileText className="h-3.5 w-3.5" aria-hidden />
-            Request
-          </TabsTrigger>
-          <TabsTrigger value="notes" className="gap-1.5 text-xs">
-            <NotebookPen className="h-3.5 w-3.5" aria-hidden />
-            Notes
-          </TabsTrigger>
-          <TabsTrigger value="history" className="gap-1.5 text-xs">
-            <History className="h-3.5 w-3.5" aria-hidden />
-            History
-            {(data.previousIntakes?.length ?? 0) > 0 ? (
-              <span className="ml-0.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground">
-                {data.previousIntakes?.length}
-              </span>
-            ) : null}
-          </TabsTrigger>
-        </TabsList>
+      {/* Scrollable middle: single column, no tabs. */}
+      <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+        <div className="space-y-3">
+          <RequestInfoCard compact hideFullAnswers hidePrescriptionIntent />
+          {messageCount > 0 ? (
+            <PatientMessageThread
+              messages={data.patientMessages ?? []}
+              infoRequestMessage={intake.info_request_message}
+              infoRequestedAt={intake.info_requested_at}
+              status={intake.status}
+            />
+          ) : null}
+          <PrescriptionRecommendationCard intent={caseSummary.prescriptionIntent} />
+          <CertificateDeliveryCard />
 
-        {/* Request tab: facts + patient messages. */}
-        <TabsContent value="request" className="min-h-0 flex-1 overflow-y-auto pr-1">
-          <div className="space-y-3">
-            <RequestInfoCard compact hideFullAnswers />
-            {messageCount > 0 ? (
-              <PatientMessageThread
-                messages={data.patientMessages ?? []}
-                infoRequestMessage={intake.info_request_message}
-                infoRequestedAt={intake.info_requested_at}
-                status={intake.status}
-              />
-            ) : null}
-            <CertificateDeliveryCard />
-          </div>
-        </TabsContent>
-
-        {/* Notes tab: clinical-notes editor with whatever historical patient notes exist. */}
-        <TabsContent value="notes" className="min-h-0 flex-1 overflow-y-auto pr-1">
-          <ClinicalNotesEditor />
-        </TabsContent>
-
-        {/* History tab: compact unified timeline. */}
-        <TabsContent value="history" className="min-h-0 flex-1 overflow-y-auto pr-1">
-          <PatientTimeline
-            requests={data.previousIntakes ?? []}
-            notes={data.patientNotes ?? []}
-            compact
-            maxItems={20}
-            title="Patient history"
-            emptyLabel="No previous patient activity."
-          />
-        </TabsContent>
-      </Tabs>
+          <IntakeSecondaryDisclosure
+            priorRequestCount={data.previousIntakes?.length ?? 0}
+            noteCount={data.patientNotes?.length ?? 0}
+            open={disclosureOpen}
+            onOpenChange={setDisclosureOpen}
+          >
+            <ClinicalNotesEditor />
+            <PatientTimeline
+              requests={data.previousIntakes ?? []}
+              notes={data.patientNotes ?? []}
+              compact
+              maxItems={20}
+              title="Patient history"
+              emptyLabel="No previous patient activity."
+            />
+          </IntakeSecondaryDisclosure>
+        </div>
+      </div>
 
       {/* Sticky bottom: action bar. Always visible. */}
       <div className="mt-3 shrink-0 border-t border-border/40 pt-3">

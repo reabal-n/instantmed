@@ -21,7 +21,7 @@ import { checkEmergencySymptoms, checkRedFlagPatterns } from "./triage-rules-eng
  *
  * Format: MAJOR.MINOR (major = structural changes, minor = keyword/threshold updates)
  */
-export const ELIGIBILITY_ENGINE_VERSION = "2.4"
+export const ELIGIBILITY_ENGINE_VERSION = "2.5"
 
 /**
  * Human-readable manifest of all checks the engine applies.
@@ -472,16 +472,19 @@ export function evaluateAutoApprovalEligibility(
     }
   }
 
-  // TUNING: For 1-day certificates with mild common symptoms, allow auto-approval
-  // even if soft-block keywords are present. These are the most common and lowest-risk requests.
+  // TUNING: For 1-2 day certificates with mild common symptoms, allow auto-approval
+  // even if soft-block keywords are present. These are the most common and lowest-risk
+  // requests. The 3-day cap still requires either zero flags or a returning patient.
+  //
   // hasOnlySoftFlags: every flag in flags[] originated from a soft-block keyword list
   // (tracked via softOriginFlags). Hard-block lists, emergency checks, and structural
-  // checks (empty_symptom_text, duration_unknown) are never soft-origin.
+  // checks (empty_symptom_text, duration_unknown) are never soft-origin, and
+  // that invariant is what makes this fast path medico-legally safe.
   const hasOnlySoftFlags = flags.length > 0 && flags.every(f => softOriginFlags.has(f))
-  if (hasOnlySoftFlags && durationDays === 1) {
+  if (hasOnlySoftFlags && durationDays !== null && durationDays <= 2) {
     return result({
       eligible: true,
-      reason: "1-day certificate with mild symptoms - auto-approved",
+      reason: `${durationDays}-day certificate with mild symptoms - auto-approved`,
       disqualifyingFlags: [],
       softFlags: flags,
     })

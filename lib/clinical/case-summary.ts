@@ -2,6 +2,7 @@ import {
   validateEdConsult,
   validateHairLossConsult,
 } from "@/lib/clinical/consult-validators"
+import { getEdPreset } from "@/lib/clinical/ed-prescribing-presets"
 import { isControlledSubstance } from "@/lib/clinical/intake-validation"
 import {
   buildRepeatScriptMedicationValidationText,
@@ -54,6 +55,7 @@ export interface PrescriptionIntent {
   safetyChecks: string[]
   parchmentMode: "open_patient_prescribe"
   clipboardText: string
+  alternativeNote?: string
 }
 
 export interface ClinicalCaseSummary {
@@ -270,13 +272,18 @@ function edSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
         nextSteps: ["Confirm current medicines and cardiovascular risk.", "Open Parchment and prescribe within Parchment if satisfied."],
       }
 
+  const edPreset = getEdPreset(preference)
   const prescriptionIntent = hasBlock || needsLiveReview ? undefined : makeIntent({
     presetLabel: "ED prescribing preset",
-    medicationSearchHint: preference === "daily" ? "daily ED PDE5 option" : "as-needed ED PDE5 option",
-    directionsTemplate: "Doctor to select agent, strength, directions, quantity and repeats in Parchment after final review.",
-    quantityTemplate: "Confirm in Parchment",
-    repeatsTemplate: "Confirm in Parchment",
+    medicationName: edPreset.medicationName,
+    strength: edPreset.strength,
+    form: edPreset.form,
+    medicationSearchHint: edPreset.medicationSearchHint,
+    directionsTemplate: edPreset.directionsTemplate,
+    quantityTemplate: edPreset.quantityTemplate,
+    repeatsTemplate: edPreset.repeatsTemplate,
     safetyChecks: ["No nitrates reported", "Cardiac screen reviewed", "Alpha blockers checked", "Current medications checked"],
+    alternativeNote: edPreset.alternativeNote,
   })
 
   const subjective = `${input.patientName || "Patient"} requests help to ${sentenceHumanize(goal)} with symptoms for ${sentenceHumanize(duration)}.`
