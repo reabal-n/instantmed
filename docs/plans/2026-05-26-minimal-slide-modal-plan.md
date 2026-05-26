@@ -1,12 +1,12 @@
-# Minimal slide modal + ED rec + auto-approve fixes — Implementation Plan
+# Minimal slide modal + ED rec + auto-approve fixes: Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Three bundled fixes to the doctor intake-review surface — widen med-cert auto-approve to 2 days, replace the empty `( minutes remaining)` claim banner, collapse the cockpit tabs to a single column, and replace the generic ED Parchment-preset hint with a concrete medication recommendation derived from the patient's stated treatment preference.
+**Goal:** Three bundled fixes to the doctor intake-review surface. Widen med-cert auto-approve to 2 days, replace the empty `( minutes remaining)` claim banner, collapse the cockpit tabs to a single column, and replace the generic ED Parchment-preset hint with a concrete medication recommendation derived from the patient's stated treatment preference.
 
 **Architecture:** Pure additive + replacement changes across `lib/clinical/`, `lib/data/intake-lock.ts`, `components/doctor/review/`, and one new component file. No new tables, no new API routes. Engine version bumped from 2.4 → 2.5. Existing keyboard-shortcut hook stays wired; just one branch added for "open the disclosure before focusing the notes textarea".
 
-**Tech Stack:** Next.js 15.5 App Router (RSC), Vitest (Node env), React 18.3, Tailwind v4, shadcn/ui, Framer Motion 11. Pinned per CLAUDE.md Stack Pin Policy — do not bump anything in `package.json`.
+**Tech Stack:** Next.js 15.5 App Router (RSC), Vitest (Node env), React 18.3, Tailwind v4, shadcn/ui, Framer Motion 11. Pinned per CLAUDE.md Stack Pin Policy. Do not bump anything in `package.json`.
 
 **Companion design doc:** `docs/plans/2026-05-26-minimal-slide-modal-design.md`.
 
@@ -148,7 +148,7 @@ if (hasOnlySoftFlags && durationDays !== null && durationDays <= 2) {
 }
 ```
 
-Also relax the no-flags case at the bottom (line 511) — when `flags.length === 0` and the duration is within cap, that already auto-approves via the final `return`. No change needed there.
+Also relax the no-flags case at the bottom (line 511). When `flags.length === 0` and the duration is within cap, that already auto-approves via the final `return`. No change needed there.
 
 **Step 4: Run the tests to verify they pass.**
 
@@ -223,7 +223,7 @@ vi.mock("@/lib/supabase/service-role", () => ({
   }),
 }))
 
-describe("acquireIntakeLock — System auto-approve claimant", () => {
+describe("acquireIntakeLock (System auto-approve claimant)", () => {
   it("masks the empty '( minutes remaining)' template when System holds the claim", async () => {
     const result = await acquireIntakeLock("intake-1", "doctor-1", "Dr Test")
     expect(result.acquired).toBe(false)
@@ -356,7 +356,7 @@ describe("ED prescribing presets", () => {
 pnpm vitest run lib/__tests__/ed-prescribing-presets.test.ts
 ```
 
-Expected: FAIL — module does not exist.
+Expected: FAIL. Module does not exist.
 
 **Step 3: Create the presets module.**
 
@@ -401,7 +401,7 @@ export const ED_PRESCRIBING_PRESETS: Record<"daily" | "prn" | "doctor_decides", 
     repeatsTemplate: "2",
     directionsTemplate: "Take 1 tablet 1 hour before sexual activity. Maximum 1 tablet per 24 hours.",
     medicationSearchHint: "Sildenafil 50mg tablet",
-    alternativeNote: "Patient hasn't expressed a preference — Tadalafil 5mg daily is an alternative for patients who prefer daily dosing.",
+    alternativeNote: "Patient hasn't expressed a preference. Tadalafil 5mg daily is an alternative for patients who prefer daily dosing.",
   },
 }
 
@@ -450,7 +450,7 @@ EOF
 
 **Step 1: Write the failing test.**
 
-Extend `lib/__tests__/clinical-case-summary.test.ts` — add after the existing ED test (around line 47):
+Extend `lib/__tests__/clinical-case-summary.test.ts`. Add after the existing ED test (around line 47):
 
 ```typescript
 describe("ED preset wiring (2026-05-26)", () => {
@@ -543,7 +543,7 @@ describe("ED preset wiring (2026-05-26)", () => {
 pnpm vitest run lib/__tests__/clinical-case-summary.test.ts
 ```
 
-Expected: FAIL — `medicationName` is undefined under current code (the existing `edSummary` doesn't set it).
+Expected: FAIL. `medicationName` is undefined under current code (the existing `edSummary` doesn't set it).
 
 **Step 3: Implement the wiring.**
 
@@ -612,7 +612,7 @@ const prescriptionIntent = hasBlock || needsLiveReview ? undefined : makeIntent(
 pnpm vitest run lib/__tests__/clinical-case-summary.test.ts
 ```
 
-Expected: all new tests pass + existing ED tests still pass (the existing "daily" test asserts `presetLabel: /ED/i` — still matches).
+Expected: all new tests pass + existing ED tests still pass (the existing "daily" test asserts `presetLabel: /ED/i`, which still matches).
 
 **Step 5: Commit.**
 
@@ -652,7 +652,7 @@ If `@testing-library/react` is in use, follow that pattern. If component tests l
 
 **Step 2: Write the failing test.**
 
-Create the test (using whichever path/pattern the discovery step found — defaulting to `lib/__tests__/prescription-recommendation-card.test.tsx`):
+Create the test (using whichever path/pattern the discovery step found, defaulting to `lib/__tests__/prescription-recommendation-card.test.tsx`):
 
 ```typescript
 import { render, screen } from "@testing-library/react"
@@ -719,7 +719,7 @@ describe("PrescriptionRecommendationCard", () => {
 pnpm vitest run prescription-recommendation-card
 ```
 
-Expected: FAIL — component does not exist.
+Expected: FAIL. Component does not exist.
 
 **Step 4: Implement the component.**
 
@@ -845,7 +845,7 @@ EOF
 ## Task 6: Collapse cockpit Tabs into single column + bottom disclosure
 
 **Files:**
-- Modify: `components/doctor/review/intake-review-cockpit.tsx` (full layout rewrite — keep the imports + CertificateDeliveryCard helper)
+- Modify: `components/doctor/review/intake-review-cockpit.tsx` (full layout rewrite; keep the imports + CertificateDeliveryCard helper)
 - Create: `components/doctor/review/intake-secondary-disclosure.tsx`
 
 **Step 1: Inspect the cockpit's collaborators.**
@@ -859,7 +859,7 @@ cat components/doctor/review/clinical-notes-editor.tsx | head -20
 cat components/doctor/patient-decision-strip.tsx | head -40
 ```
 
-Confirm that `RequestInfoCard` accepts `compact` + `hideFullAnswers` and that `PatientDecisionStrip` accepts `compact`. If either prop is missing, abort and re-read the existing cockpit — the rewrite assumes these existed before today.
+Confirm that `RequestInfoCard` accepts `compact` + `hideFullAnswers` and that `PatientDecisionStrip` accepts `compact`. If either prop is missing, abort and re-read the existing cockpit. The rewrite assumes these existed before today.
 
 **Step 2: Create the disclosure component.**
 
@@ -1193,7 +1193,7 @@ Expected: green across all three.
 
 ## Task 8: Push + PR + auto-merge
 
-Per `memory/feedback_auto_merge.md` — commit → push → open PR → `gh pr merge --squash --auto --delete-branch`.
+Per `memory/feedback_auto_merge.md`: commit → push → open PR → `gh pr merge --squash --auto --delete-branch`.
 
 **Step 1: Push branch.**
 
@@ -1256,6 +1256,6 @@ Expected: top commit is the squashed PR commit.
 
 ## Skill references
 
-- @superpowers:test-driven-development — apply to Tasks 1, 2, 3, 4, 5.
-- @superpowers:verification-before-completion — apply at the end of each task before claiming it done.
-- @superpowers:executing-plans — orchestrates this plan.
+- @superpowers:test-driven-development: apply to Tasks 1, 2, 3, 4, 5.
+- @superpowers:verification-before-completion: apply at the end of each task before claiming it done.
+- @superpowers:executing-plans: orchestrates this plan.
