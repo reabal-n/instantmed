@@ -2,13 +2,13 @@ import * as Sentry from "@sentry/nextjs"
 import crypto from "crypto"
 
 import { getPostHogClient, trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
+import { claimIntakeForManualCertApproval } from "@/lib/clinical/manual-cert-claim"
 import { UNDO_CERT_WINDOW_SECONDS } from "@/lib/clinical/undo-cert-window"
 import { env } from "@/lib/config/env"
 import { ABN, COMPANY_ADDRESS, COMPANY_NAME, CONTACT_EMAIL,CONTACT_PHONE } from "@/lib/constants"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { buildPatientIntakeHref } from "@/lib/dashboard/routes"
 import { getDoctorIdentity } from "@/lib/data/doctor-identity"
-import { formatClaimWarning } from "@/lib/data/intake-lock-warning"
 import {
   atomicApproveCertificate,
   compareForEdits,
@@ -164,22 +164,25 @@ export async function executeCertApproval(
   } else if (!skipClaim) {
     // Use atomic claim RPC with row locking to prevent race condition
     Sentry.addBreadcrumb({ category: "cert.flow", message: "Claiming intake for review", level: "info", data: { intakeId } })
-    const { data: claimResult, error: claimError } = await supabase.rpc("claim_intake_for_review", {
-      p_intake_id: intakeId,
-      p_doctor_id: doctorProfile.id,
-      p_force: false,
+    const manualClaim = await claimIntakeForManualCertApproval({
+      supabase,
+      intakeId,
+      doctorId: doctorProfile.id,
     })
 
-    const claim = Array.isArray(claimResult) ? claimResult[0] : claimResult
-
-    if (claimError || !claim?.success) {
-      const operatorMessage = formatClaimWarning(claim, claimError?.message || "Failed to claim intake")
+    if (!manualClaim.success) {
       logger.warn("Failed to claim intake for review", {
         intakeId,
-        claimError: claim?.error_message || claimError?.message,
-        currentClaimant: claim?.current_claimant
+        claimError: manualClaim.error,
+        currentClaimant: manualClaim.currentClaimant,
       })
-      return { success: false, error: operatorMessage }
+      return { success: false, error: manualClaim.error }
+    }
+
+    if (manualClaim.forcedAutoApprovalTakeover) {
+      logger.info("Manual certificate approval continuing after taking over system auto-approval claim", {
+        intakeId,
+      })
     }
   }
   // When skipClaim=true (auto-approval), we proceed without claiming.
