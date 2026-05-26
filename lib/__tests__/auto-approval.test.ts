@@ -1,6 +1,7 @@
 import { describe, expect,it } from 'vitest'
 
 import {
+  ELIGIBILITY_ENGINE_VERSION,
   evaluateAutoApprovalEligibility,
   extractDurationDays,
   extractStartDate,
@@ -878,4 +879,63 @@ describe("evaluateAutoApprovalEligibility", () => {
       ).toBe(true)
     })
   })
+
+  describe("2-day rule (widened 2026-05-26)", () => {
+    it("auto-approves a 2-day cert with no flags for a first-request patient", () => {
+      const result = evaluateAutoApprovalEligibility(
+        makeIntake(),
+        makeAnswers({ duration: "2", symptomDetails: "fever, runny nose, sore throat" }),
+        makeReadyDraft(),
+        { date_of_birth: "1990-01-01" },
+        { previousApprovalCount: 0 },
+      )
+      expect(result.eligible).toBe(true)
+      expect(result.reason).toMatch(/2-day|standard med cert/i)
+    })
+
+    it("still rejects 3-day certs with soft flags from first-request patients", () => {
+      // The 1-2 day widening must NOT extend to 3 days for soft-flag cases.
+      // Only zero-flag 3-day certs continue to auto-approve (clean path);
+      // 3-day soft-flag certs still require either zero flags or a returning patient.
+      const result = evaluateAutoApprovalEligibility(
+        makeIntake(),
+        makeAnswers({
+          symptoms: ["Back pain"],
+          symptomDetails: "Sole symptom: panic about a fall",
+          duration: "3",
+        }),
+        makeReadyDraft(),
+        { date_of_birth: "1990-01-01" },
+        { previousApprovalCount: 0 },
+      )
+      expect(result.eligible).toBe(false)
+    })
+
+    it("still rejects 2-day certs with hard-block keywords", () => {
+      const result = evaluateAutoApprovalEligibility(
+        makeIntake(),
+        makeAnswers({ duration: "2", symptomDetails: "back pain since a fracture last week" }),
+        makeReadyDraft(),
+        { date_of_birth: "1990-01-01" },
+        { previousApprovalCount: 0 },
+      )
+      expect(result.eligible).toBe(false)
+      expect(result.disqualifyingFlags.some(f => f.includes("injury"))).toBe(true)
+    })
+
+    it("returning patient (>=2 prior) with 3-day still auto-approves under existing rule", () => {
+      const result = evaluateAutoApprovalEligibility(
+        makeIntake(),
+        makeAnswers({ duration: "3", symptomDetails: "fever, runny nose" }),
+        makeReadyDraft(),
+        { date_of_birth: "1990-01-01" },
+        { previousApprovalCount: 4 },
+      )
+      expect(result.eligible).toBe(true)
+    })
+  })
+})
+
+it("bumps engine version to 2.5 with the 2-day widening", () => {
+  expect(ELIGIBILITY_ENGINE_VERSION).toBe("2.5")
 })
