@@ -54,7 +54,10 @@ describe("PrescriptionRecommendationCard", () => {
 
   it("omits the alternative note when not provided", () => {
     const html = render(<PrescriptionRecommendationCard intent={baseIntent} />)
-    expect(html).not.toContain("alternative")
+    // Use the specific fixture phrasing rather than the bare word "alternative",
+    // so unrelated future copy changes that happen to use that word do not
+    // silently break this regression guard.
+    expect(html).not.toContain("Tadalafil 5mg daily is an alternative")
   })
 
   it("renders nothing when intent is undefined", () => {
