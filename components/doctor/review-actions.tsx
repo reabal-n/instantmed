@@ -38,12 +38,18 @@ export interface ReviewActionsState {
   // Doctor notes
   doctorNotes: string
   setDoctorNotes: (v: string) => void
-  /** Set notes from server data — records the baseline so auto-save only fires for doctor edits. */
+  /** Set notes from server data, records the baseline so auto-save only fires for doctor edits. */
   setInitialNotes: (notes: string, dbNotes: string) => void
   noteSaved: boolean
   setNoteSaved: (v: boolean) => void
-  /** True while there are unsaved changes pending the 2.5 s debounce */
+  /** True while there are unsaved changes pending the 800 ms debounce */
   noteDirty: boolean
+  /** Timestamp of the last successful save, drives the "Saved Ns ago" label. Null if never saved this session. */
+  savedAt: Date | null
+  /** True while an auto-save request is in flight. */
+  isAutoSaving: boolean
+  /** True if the most recent auto-save attempt failed. */
+  autoSaveError: boolean
   isAiPrefilled: boolean
   hasClinicalDraft: boolean
   isRegenerating: boolean
@@ -106,6 +112,9 @@ export function useReviewActions({
   // Doctor notes
   const [doctorNotes, setDoctorNotes] = useState("")
   const [noteSaved, setNoteSaved] = useState(false)
+  const [savedAt, setSavedAt] = useState<Date | null>(null)
+  const [isAutoSaving, setIsAutoSaving] = useState(false)
+  const [autoSaveError, setAutoSaveError] = useState(false)
   const [isAiPrefilled, setIsAiPrefilled] = useState(false)
   const notesRef = useRef<HTMLTextAreaElement>(null)
   // Tracks the last content successfully persisted to DB so we only auto-save diffs.
@@ -136,7 +145,7 @@ export function useReviewActions({
   const service = intake?.service as { name?: string; type?: string; short_name?: string } | undefined
   const hasClinicalDraft = !!findClinicalNoteDraft(data?.aiDrafts || [])
 
-  // Auto-save: debounced 2.5 s after last keystroke.
+  // Auto-save: debounced 800 ms after last keystroke.
   const intakeId = intake?.id
   const intakeStatus = intake?.status
   useEffect(() => {
@@ -148,13 +157,23 @@ export function useReviewActions({
     autoSaveTimerRef.current = setTimeout(async () => {
       const snapshot = doctorNotes
       if (snapshot === lastSavedNotesRef.current) return
-      const result = await saveDoctorNotesAction(intakeId, snapshot)
-      if (result.success) {
-        lastSavedNotesRef.current = snapshot
-        setNoteSaved(true)
-        setTimeout(() => setNoteSaved(false), 2000)
+      setIsAutoSaving(true)
+      try {
+        const result = await saveDoctorNotesAction(intakeId, snapshot)
+        if (result.success) {
+          lastSavedNotesRef.current = snapshot
+          setNoteSaved(true)
+          setSavedAt(new Date())
+          setAutoSaveError(false)
+        } else {
+          setAutoSaveError(true)
+        }
+      } catch {
+        setAutoSaveError(true)
+      } finally {
+        setIsAutoSaving(false)
       }
-    }, 2500)
+    }, 800)
 
     return () => {
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
@@ -313,6 +332,8 @@ export function useReviewActions({
         lastSavedNotesRef.current = decisionNote
         setDoctorNotes(decisionNote)
         setNoteSaved(true)
+        setSavedAt(new Date())
+        setAutoSaveError(false)
         setIsAiPrefilled(false)
       }
       const result = await updateStatusAction(intake.id, status)
@@ -357,6 +378,8 @@ export function useReviewActions({
         lastSavedNotesRef.current = decisionNote
         setDoctorNotes(decisionNote)
         setNoteSaved(true)
+        setSavedAt(new Date())
+        setAutoSaveError(false)
         setIsAiPrefilled(false)
         setData({
           ...data,
@@ -435,9 +458,11 @@ export function useReviewActions({
       if (result.success) {
         lastSavedNotesRef.current = doctorNotes
         setNoteSaved(true)
+        setSavedAt(new Date())
+        setAutoSaveError(false)
         setIsAiPrefilled(false)
-        setTimeout(() => setNoteSaved(false), 3000)
       } else {
+        setAutoSaveError(true)
         toast.error(result.error || "Failed to save notes")
       }
     })
@@ -512,6 +537,9 @@ export function useReviewActions({
     noteSaved,
     setNoteSaved,
     noteDirty: doctorNotes !== lastSavedNotesRef.current,
+    savedAt,
+    isAutoSaving,
+    autoSaveError,
     isAiPrefilled,
     hasClinicalDraft,
     isRegenerating,

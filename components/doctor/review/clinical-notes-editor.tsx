@@ -1,6 +1,7 @@
 "use client"
 
 import { FileText, Loader2,Save } from "lucide-react"
+import { useEffect, useState } from "react"
 
 import { FormattingToolbar } from "@/components/doctor/review/formatting-toolbar"
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
@@ -10,6 +11,17 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
+
+function formatSavedAgo(savedAt: Date, now: number): string {
+  const elapsedMs = Math.max(0, now - savedAt.getTime())
+  const elapsedSec = Math.floor(elapsedMs / 1000)
+  if (elapsedSec < 5) return "Saved just now"
+  if (elapsedSec < 60) return `Saved ${elapsedSec}s ago`
+  const elapsedMin = Math.floor(elapsedSec / 60)
+  if (elapsedMin < 60) return `Saved ${elapsedMin}m ago`
+  const elapsedHour = Math.floor(elapsedMin / 60)
+  return `Saved ${elapsedHour}h ago`
+}
 
 const SNIPPETS_BY_TYPE: Record<string, { label: string; text: string }[]> = {
   med_certs: [
@@ -69,9 +81,11 @@ export function ClinicalNotesEditor() {
     service,
     doctorNotes,
     setDoctorNotes,
-    noteSaved,
     setNoteSaved,
     noteDirty,
+    savedAt,
+    isAutoSaving,
+    autoSaveError,
     isAiPrefilled,
     hasClinicalDraft,
     isRegenerating,
@@ -80,6 +94,14 @@ export function ClinicalNotesEditor() {
     handleSaveNotes,
     handleGenerateOrRegenerateNote,
   } = useIntakeReview()
+
+  // 1s ticker drives the "Saved Ns ago" / "Saved Nm ago" label so the count visibly advances.
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    if (!savedAt) return
+    const id = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [savedAt])
 
   const isReadonly = ["approved", "completed", "awaiting_script"].includes(intake.status)
   const snippets = (service?.type && SNIPPETS_BY_TYPE[service.type]) || DEFAULT_SNIPPETS
@@ -190,11 +212,41 @@ export function ClinicalNotesEditor() {
                 </Button>
               </div>
               <div className="flex items-center gap-2.5">
-                {noteSaved && <span className="text-xs text-emerald-600">Saved!</span>}
-                {!noteSaved && noteDirty && !isPending && (
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground" aria-live="polite">
+                {autoSaveError && !isAutoSaving && (
+                  <span
+                    className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400"
+                    aria-live="polite"
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                    {noteDirty ? "Save failed. Retrying..." : "Save failed."}
+                  </span>
+                )}
+                {!autoSaveError && isAutoSaving && (
+                  <span
+                    className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-500"
+                    aria-live="polite"
+                  >
                     <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-                    Auto-saving…
+                    Saving...
+                  </span>
+                )}
+                {!autoSaveError && !isAutoSaving && noteDirty && !isPending && (
+                  <span
+                    className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-500"
+                    aria-live="polite"
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                    Saving...
+                  </span>
+                )}
+                {!autoSaveError && !isAutoSaving && !noteDirty && savedAt && (
+                  <span
+                    className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-500"
+                    aria-live="polite"
+                    title={savedAt.toLocaleTimeString()}
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    {formatSavedAgo(savedAt, now)}
                   </span>
                 )}
                 {doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH ? (
