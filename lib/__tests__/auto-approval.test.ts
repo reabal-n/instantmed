@@ -897,11 +897,18 @@ describe("evaluateAutoApprovalEligibility", () => {
       // The 1-2 day widening must NOT extend to 3 days for soft-flag cases.
       // Only zero-flag 3-day certs continue to auto-approve (clean path);
       // 3-day soft-flag certs still require either zero flags or a returning patient.
+      //
+      // Use a single structured symptom and ONLY a mental-health soft-block
+      // keyword in the free-text so the only flag is `mental_health: panic`
+      // (soft-origin). Avoid injury keywords like "fall" — they are pushed to
+      // flags[] but intentionally NOT added to softOriginFlags (workers comp
+      // risk), which would short-circuit this test by blocking on the injury
+      // flag instead of exercising the duration cap.
       const result = evaluateAutoApprovalEligibility(
         makeIntake(),
         makeAnswers({
           symptoms: ["Back pain"],
-          symptomDetails: "Sole symptom: panic about a fall",
+          symptomDetails: "Sole symptom: panic about deadlines",
           duration: "3",
         }),
         makeReadyDraft(),
@@ -909,6 +916,25 @@ describe("evaluateAutoApprovalEligibility", () => {
         { previousApprovalCount: 0 },
       )
       expect(result.eligible).toBe(false)
+      expect(result.disqualifyingFlags.some(f => f.includes("mental_health: panic"))).toBe(true)
+    })
+
+    it("auto-approves a 2-day cert with the same soft flag, proving the boundary is the duration cap", () => {
+      // Companion to the 3-day rejection above. Identical inputs except for
+      // duration; this MUST pass so the boundary case is unambiguous.
+      const result = evaluateAutoApprovalEligibility(
+        makeIntake(),
+        makeAnswers({
+          symptoms: ["Back pain"],
+          symptomDetails: "Sole symptom: panic about deadlines",
+          duration: "2",
+        }),
+        makeReadyDraft(),
+        { date_of_birth: "1990-01-01" },
+        { previousApprovalCount: 0 },
+      )
+      expect(result.eligible).toBe(true)
+      expect(result.reason).toMatch(/^2-day certificate with mild symptoms/)
     })
 
     it("still rejects 2-day certs with hard-block keywords", () => {
@@ -933,9 +959,9 @@ describe("evaluateAutoApprovalEligibility", () => {
       )
       expect(result.eligible).toBe(true)
     })
-  })
-})
 
-it("bumps engine version to 2.5 with the 2-day widening", () => {
-  expect(ELIGIBILITY_ENGINE_VERSION).toBe("2.5")
+    it("bumps engine version to 2.5 with the 2-day widening", () => {
+      expect(ELIGIBILITY_ENGINE_VERSION).toBe("2.5")
+    })
+  })
 })
