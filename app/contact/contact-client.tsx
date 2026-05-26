@@ -70,7 +70,6 @@ export function ContactClient() {
       contact_reason: selectedReason,
       has_name: !!formData.get('name'),
       has_email: !!formData.get('email'),
-      has_subject: !!formData.get('subject'),
       has_message: !!formData.get('message'),
     })
 
@@ -138,10 +137,9 @@ export function ContactClient() {
         <>
         {/* Hero */}
         <CenteredHero
-          pill="Contact Us"
           title="Got a question? We're here to help."
           highlightWords={["here to help."]}
-          subtitle="Real people who read and reply to every message. No chatbot wall."
+          subtitle="Real people who read and reply to every message."
           className="pt-32 pb-16"
         />
 
@@ -166,8 +164,8 @@ export function ContactClient() {
               <div className="grid sm:grid-cols-2 gap-8 items-center">
                 <div className="flex justify-center">
                   <AnimatedDonutChart
-                    value={SOCIAL_PROOF.refundPercent}
-                    label="Refund if declined"
+                    value={100}
+                    label="Messages replied to"
                     size={130}
                     strokeWidth={11}
                   />
@@ -416,10 +414,10 @@ function ContactFormCard({
                     aria-checked={selectedReason === reason.id}
                     onClick={() => setSelectedReason(reason.id)}
                     className={cn(
-                      "flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-[background-color,color] duration-200",
+                      "flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium transition-[background-color,color,border-color] duration-200",
                       selectedReason === reason.id
-                        ? "bg-primary text-primary-foreground shadow-lg"
-                        : "bg-foreground/5 text-muted-foreground hover:bg-foreground/10"
+                        ? "border-primary/30 bg-primary/10 text-primary"
+                        : "border-transparent bg-foreground/5 text-muted-foreground hover:bg-foreground/10"
                     )}
                   >
                     <Icon className="h-4 w-4" aria-hidden="true" />
@@ -454,17 +452,6 @@ function ContactFormCard({
                 className="h-12"
               />
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="subject">Subject</Label>
-            <Input
-              id="subject"
-              name="subject"
-              placeholder="How can we help?"
-              required
-              className="h-12"
-            />
           </div>
 
           <div className="space-y-2">

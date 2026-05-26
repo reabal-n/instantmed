@@ -18,10 +18,16 @@ import { sanitizeEmail,sanitizeString } from "@/lib/security/sanitize"
 const contactFormSchema = z.object({
   name: z.string().transform(sanitizeString).pipe(z.string().min(1, "Name is required").max(100)),
   email: z.string().transform(sanitizeEmail).pipe(z.string().email("Invalid email address")),
-  subject: z.string().transform(sanitizeString).pipe(z.string().min(1, "Subject is required").max(200)),
   message: z.string().transform(sanitizeString).pipe(z.string().min(10, "Message must be at least 10 characters").max(5000)),
   reason: z.union([z.string(), z.null(), z.undefined()]).optional().transform((s) => (s && typeof s === "string" ? sanitizeString(s) : undefined)),
 })
+
+const REASON_LABELS: Record<string, string> = {
+  general: "General Inquiry",
+  support: "Technical Support",
+  request: "About My Request",
+  complaint: "Feedback",
+}
 
 export type ContactFormData = z.infer<typeof contactFormSchema>
 
@@ -44,20 +50,21 @@ export async function submitContactForm(formData: FormData): Promise<ContactForm
     const rawData = {
       name: formData.get("name"),
       email: formData.get("email"),
-      subject: formData.get("subject"),
       message: formData.get("message"),
       reason: formData.get("reason"),
     }
 
     const validationResult = contactFormSchema.safeParse(rawData)
-    
+
     if (!validationResult.success) {
       const errorMessage = validationResult.error.issues[0]?.message || "Invalid form data"
       log.warn("[Contact Form] Validation failed", { errors: validationResult.error.issues })
       return { success: false, error: errorMessage }
     }
 
-    const { name, email, subject, message, reason } = validationResult.data
+    const { name, email, message, reason } = validationResult.data
+    const reasonLabel = (reason && REASON_LABELS[reason]) || REASON_LABELS[reason ?? "general"] || "General Inquiry"
+    const subject = `${reasonLabel} from ${name}`
 
     // Rate limit by email to prevent spam (5 submissions per hour via "sensitive" tier)
     const rateLimit = await checkServerActionRateLimit(`contact:${email}`, "sensitive")
@@ -67,7 +74,6 @@ export async function submitContactForm(formData: FormData): Promise<ContactForm
     }
 
     // Build email HTML
-    const reasonLabel = reason || "General Inquiry"
     const html = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1a1a1a; border-bottom: 2px solid #2563eb; padding-bottom: 10px;">
@@ -88,10 +94,6 @@ export async function submitContactForm(formData: FormData): Promise<ContactForm
             <td style="padding: 8px 0; color: #1a1a1a;">
               <a href="mailto:${escapeHtml(email)}" style="color: #2563eb;">${escapeHtml(email)}</a>
             </td>
-          </tr>
-          <tr>
-            <td style="padding: 8px 0; color: #666;"><strong>Subject:</strong></td>
-            <td style="padding: 8px 0; color: #1a1a1a;">${escapeHtml(subject)}</td>
           </tr>
         </table>
 
