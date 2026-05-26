@@ -102,8 +102,13 @@ describe("marketing copy contracts", () => {
   it("renders the employer logo marquee on the medical certificate landing page", () => {
     expect(medCertLandingSource).toContain("EmployerLogoMarquee")
     expect(medCertLandingSource).toContain("WorkplaceProofPanel")
+    // CertificateTypeSelector was retired from this surface on 2026-05-26
+    // (Tier 1 review /medical-certificate #5). The wizard owns the
+    // duration choice now. WorkplaceProofPanel must still come before
+    // the comparison viz so the trust block lands above the fold.
+    expect(medCertLandingSource).not.toContain("CertificateTypeSelector")
     expect(medCertLandingSource.indexOf("<WorkplaceProofPanel")).toBeLessThan(
-      medCertLandingSource.indexOf("<CertificateTypeSelector"),
+      medCertLandingSource.indexOf("<CertComparisonViz"),
     )
   })
 

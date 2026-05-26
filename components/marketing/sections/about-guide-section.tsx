@@ -1,4 +1,4 @@
-import { BadgeCheck } from "lucide-react"
+import { BadgeCheck, ChevronDown } from "lucide-react"
 import Link from "next/link"
 
 import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
@@ -93,32 +93,59 @@ export function AboutGuideSection() {
           </p>
         </Reveal>
 
-        {/* Content sections */}
+        {/* Content sections: paragraph 1 reads as the lede, paragraphs
+            2+ collapse into a native <details> "Read more" disclosure.
+            Per 2026-05-25 video review: long-form body felt like a
+            wall of text. Native disclosure keeps the SEO content
+            crawlable (it ships in the HTML) while reducing perceived
+            density on first paint. */}
         <div className="space-y-12">
-          {GUIDE_SECTIONS.map((section, i) => (
-            <Reveal key={section.id} delay={i * 0.05}>
-              <div className="flex items-start gap-4">
-                <div className="shrink-0 mt-0.5">
-                  <StickerIcon name={section.sticker} size={36} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-semibold text-foreground mb-3">
-                    {section.title}
-                  </h3>
-                  <div className="space-y-3">
-                    {section.paragraphs.map((p, j) => (
-                      <p
-                        key={j}
-                        className="text-sm text-muted-foreground leading-relaxed"
-                      >
-                        {p}
-                      </p>
-                    ))}
+          {GUIDE_SECTIONS.map((section, i) => {
+            const [lede, ...rest] = section.paragraphs
+            return (
+              <Reveal key={section.id} delay={i * 0.05}>
+                <div className="flex items-start gap-4">
+                  <div className="shrink-0 mt-0.5">
+                    <StickerIcon name={section.sticker} size={36} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-semibold text-foreground mb-3">
+                      {section.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {lede}
+                    </p>
+                    {rest.length > 0 && (
+                      <details className="group/details mt-3">
+                        <summary className="inline-flex cursor-pointer items-center gap-1 text-sm font-medium text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 rounded-sm list-none [&::-webkit-details-marker]:hidden">
+                          <span className="group-open/details:hidden">
+                            Read more
+                          </span>
+                          <span className="hidden group-open/details:inline">
+                            Show less
+                          </span>
+                          <ChevronDown
+                            className="h-3.5 w-3.5 transition-transform duration-200 group-open/details:rotate-180"
+                            aria-hidden="true"
+                          />
+                        </summary>
+                        <div className="mt-3 space-y-3">
+                          {rest.map((p, j) => (
+                            <p
+                              key={j}
+                              className="text-sm text-muted-foreground leading-relaxed"
+                            >
+                              {p}
+                            </p>
+                          ))}
+                        </div>
+                      </details>
+                    )}
                   </div>
                 </div>
-              </div>
-            </Reveal>
-          ))}
+              </Reveal>
+            )
+          })}
         </div>
 
         {/* Clinical governance link */}

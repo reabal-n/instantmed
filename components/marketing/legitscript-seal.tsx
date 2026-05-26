@@ -29,7 +29,14 @@ interface LegitScriptSealProps {
 }
 
 export function LegitScriptSeal({ size = "sm", className }: LegitScriptSealProps) {
-  const scale = size === "sm" ? 0.8 : 1
+  // sm cap matches the hero trust row's max height so LegitScript no longer
+  // bobs taller than GoogleAdsCert + GoogleReviewsBadge. The native seal
+  // (73x79) is preserved at size="md" for dedicated certification blocks
+  // where it stands alone. Tier 1 review 2026-05-25 (/erectile-dysfunction
+  // #1): "trust badges different heights breaking the line of the CTA".
+  const isLarge = size === "md"
+  const targetHeight = isLarge ? NATIVE_HEIGHT : 36
+  const scale = targetHeight / NATIVE_HEIGHT
   const width = Math.round(NATIVE_WIDTH * scale)
   const height = Math.round(NATIVE_HEIGHT * scale)
 
@@ -40,7 +47,7 @@ export function LegitScriptSeal({ size = "sm", className }: LegitScriptSealProps
       rel="noopener noreferrer"
       title="Verify LegitScript certification for instantmed.com.au"
       className={cn(
-        "inline-flex shrink-0 rounded-md transition-opacity hover:opacity-80",
+        "inline-flex shrink-0 items-center rounded-md transition-opacity hover:opacity-80",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2",
         className,
       )}

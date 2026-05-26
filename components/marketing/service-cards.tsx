@@ -47,10 +47,15 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
           </div>
         )}
 
-        {/* Most popular badge */}
+        {/* Most popular badge. Sits fully INSIDE the card on mobile (top-3
+            keeps it tucked in the card header area), then lifts slightly
+            above the card edge on sm+ where there's room to breathe. The
+            old -top-3 across all breakpoints crowded the top edge on
+            narrow viewports. Tier 1 video-review fix 2026-05-26
+            (homepage-5jc7). */}
         {service.popular && !disabled && (
-          <div className="absolute -top-3 right-4 z-20">
-            <div className="px-2.5 py-1 rounded-lg bg-primary text-primary-foreground text-xs font-semibold">
+          <div className="absolute top-3 sm:-top-2.5 right-4 z-20">
+            <div className="px-2.5 py-1 rounded-lg bg-primary text-primary-foreground text-xs font-semibold shadow-sm">
               Most popular
             </div>
           </div>
@@ -58,6 +63,11 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
 
         <div className={cn(
           'relative h-full rounded-xl flex flex-col p-5',
+          // Extra top padding on mobile-only popular cards so the inset
+          // badge (top-3 on mobile) doesn't sit on top of the icon. The
+          // padding only applies on mobile because sm+ lifts the badge
+          // out of the card.
+          service.popular && !disabled && 'pt-12 sm:pt-5',
           'bg-white dark:bg-card',
           'border border-border/50 dark:border-white/10',
           'shadow-sm',
@@ -141,10 +151,15 @@ function ComingSoonCard({ service }: ComingSoonCardProps) {
         />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-sm font-semibold text-foreground/75">
+            <h3 className="text-sm font-semibold text-foreground">
               {service.title}
             </h3>
-            <span className="rounded-full border border-border/50 bg-background/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+            {/* Planned pill. Was text-muted-foreground (slate-600) on a
+                70%-opacity ivory bg, which sat at the AA contrast floor
+                for 10px uppercase. Slate-700 text on a solid ivory bg
+                is 9.4:1, comfortably AA-large + AA-normal. Tier 1
+                video-review fix 2026-05-26 (homepage-clkf). */}
+            <span className="rounded-full border border-border/60 bg-background px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-700 dark:text-slate-200">
               Planned
             </span>
           </div>
@@ -207,8 +222,14 @@ export function ServiceCards() {
         {comingSoonServices.length > 0 && (
           <div className="border-t border-border/40 pt-7 sm:pt-8">
             <Reveal instant className="mx-auto mb-4 max-w-2xl text-center">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.12em] mb-1">Coming next</p>
-              <p className="text-sm text-muted-foreground">Not taking requests yet. A small preview of services being prepared.</p>
+              {/* Eyebrow + subtext bumped from text-muted-foreground to
+                  foreground-tinted values so the 12px tracked uppercase
+                  comfortably clears WCAG AA on ivory. The earlier pass
+                  used muted-foreground which sat at the AA floor for
+                  small tracked text. Tier 1 video-review fix 2026-05-26
+                  (homepage-clkf). */}
+              <p className="text-xs font-semibold text-foreground/80 uppercase tracking-[0.12em] mb-1">Coming next</p>
+              <p className="text-sm text-foreground/70">Not taking requests yet. A small preview of services being prepared.</p>
             </Reveal>
             <div className="grid gap-3 sm:grid-cols-2 max-w-3xl mx-auto">
               {comingSoonServices.map((service, i) => (

@@ -8,20 +8,44 @@ import { Reveal } from "@/components/ui/reveal"
 // DATA
 // =============================================================================
 
-const GUIDE_SECTIONS: Array<{
+interface GuideBullet {
+  label: string
+  body: string
+}
+
+interface GuideBlock {
   id: string
   sticker: StickerIconName
   title: string
+  /** Short scannable paragraphs (2-3 sentences each). */
   paragraphs: readonly string[]
-}> = [
+  /** Optional bullet list rendered after the paragraphs. */
+  bullets?: readonly GuideBullet[]
+}
+
+const GUIDE_SECTIONS: GuideBlock[] = [
   {
     id: "telehealth-pricing",
     sticker: "wallet",
     title: "Understanding telehealth pricing in Australia",
     paragraphs: [
-      "Most telehealth platforms in Australia operate outside of Medicare. This isn't unusual - it's standard across the industry. Medicare rebates are designed around traditional GP consultations where a provider-patient relationship is established through ongoing care. Asynchronous telehealth services, where a doctor reviews your request without a real-time appointment, don't fit neatly into existing Medicare item numbers.",
-      "The result is that telehealth consultations are typically a private, out-of-pocket expense. Our pricing reflects the genuine clinical work involved: a doctor reviews your medical history, assesses your symptoms, makes a clinical decision, and generates your documentation. That's the same clinical process you'd get at a GP clinic - minus the waiting room, the commute, and the two hours you didn't budget for on a Tuesday morning.",
-      "For context, the average out-of-pocket cost for a standard GP visit in Australia is between $39 and $80 after Medicare rebates (AMA data, 2024). Bulk-billed GP visits are becoming harder to find - the AIHW reports that only around 35% of GP visits are fully bulk-billed in some metropolitan areas, and rural access is even tighter. Our pricing sits well below the average gap payment for a private GP visit, and you don't need to leave the house.",
+      "Most telehealth platforms in Australia sit outside Medicare. That's standard, not a red flag.",
+      "Medicare rebates are designed around traditional GP appointments with an ongoing provider relationship. Asynchronous review, where a doctor reads your request without a live consult, doesn't fit those item numbers.",
+      "So a telehealth fee is private and out-of-pocket. You're paying for genuine clinical work: a doctor reviews your history, assesses your symptoms, makes a decision, and generates the document. Same clinical steps as a clinic visit, without the waiting room.",
+    ],
+    bullets: [
+      {
+        label: "Average GP gap",
+        body: "$39 to $80 after Medicare rebates (AMA, 2024).",
+      },
+      {
+        label: "Bulk-billed access",
+        body: "Around 35% of metro GP visits, lower in regional areas (AIHW).",
+      },
+      {
+        label: "Our fee",
+        body: "Well under the typical private GP gap, no travel time.",
+      },
     ],
   },
   {
@@ -113,6 +137,33 @@ export function PricingGuideSection() {
                         {p}
                       </p>
                     ))}
+                    {section.bullets && (
+                      // Bullet rail. Splits a wall-of-text section into
+                      // scannable rows on mobile (Tier 1 review 2026-05-25
+                      // /pricing #3). Label is foreground weight so the
+                      // eye lands on it first, body trails in muted.
+                      <ul className="mt-4 space-y-2 rounded-xl border border-border/40 bg-muted/30 dark:bg-white/[0.03] p-3">
+                        {section.bullets.map((bullet) => (
+                          <li
+                            key={bullet.label}
+                            className="flex items-start gap-2 text-sm leading-relaxed"
+                          >
+                            <span
+                              className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary/70"
+                              aria-hidden="true"
+                            />
+                            <span>
+                              <span className="font-semibold text-foreground">
+                                {bullet.label}:
+                              </span>{" "}
+                              <span className="text-muted-foreground">
+                                {bullet.body}
+                              </span>
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </div>
               </div>

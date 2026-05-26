@@ -334,15 +334,25 @@ export function PrescriptionsLanding() {
           {/* Live wait time */}
           <LiveWaitTime variant="strip" services={["scripts"]} />
 
+          {/*
+            Trust strip below the hero. Switched from `variant: "styled"`
+            (saturated coloured-background pills with heavy borders that
+            read as clickable links) to the no-pill plain entries
+            (no_face_to_face, fast_form, privacy, ssl) so the strip reads
+            as quiet credentials. The Google + LegitScript "verify" cards
+            already live in the hero trust row above. Tier 1 review
+            2026-05-25 (/prescriptions id3x): "trust pills wear heavy
+            borders, making them look clickable when they aren't".
+          */}
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-5">
             <TrustBadgeRow
               badges={[
-                { id: "no_appointment", variant: "styled" },
-                { id: "form_only", variant: "styled" },
-                { id: "google_pharmacy", variant: "styled" },
-                "refund",
+                "no_face_to_face",
+                "fast_form",
+                "privacy",
+                "ssl",
               ]}
-              className="gap-3"
+              className="gap-x-5 gap-y-2"
             />
           </div>
 

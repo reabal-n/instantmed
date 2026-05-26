@@ -19,7 +19,6 @@ import { MarketingPageShell } from "@/components/marketing/marketing-page-shell"
 import { MedCertClientControls } from "@/components/marketing/med-cert-client-controls"
 import { MedCertHeroMockup } from "@/components/marketing/mockups/med-cert-hero-mockup"
 import { RegulatoryPartners } from "@/components/marketing/regulatory-partners"
-import { CertificateTypeSelector } from "@/components/marketing/sections/certificate-type-selector"
 import { CommercialIntentLinksSection } from "@/components/marketing/sections/commercial-intent-links-section"
 import { HowItWorksInline } from "@/components/marketing/sections/how-it-works-inline"
 import { LimitationsSection } from "@/components/marketing/sections/limitations-section"
@@ -175,8 +174,8 @@ function FeeSuitabilityPanel() {
               Clear fee. Clear fallback.
             </Heading>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Most patients are trying to avoid a waiting room, not decode a
-              health platform. This is the plain version of what happens.
+              Straightforward fees, no surprises. Here is exactly what your
+              fee covers, and what happens if a doctor cannot help.
             </p>
           </div>
 
@@ -206,6 +205,10 @@ function FeeSuitabilityPanel() {
 function CertComparisonViz() {
   return (
     <TimeComparisonViz
+      // Pill clarifies the 20-min figure is total turnaround end-to-end
+      // (form → doctor review → inbox), not just one stage of it
+      // (Tier 1 review 2026-05-26 /medical-certificate #6).
+      pill="Total turnaround"
       heading="Back on the couch in minutes. Not hours."
       ours={{ label: "InstantMed", value: `~${SOCIAL_PROOF.certTurnaroundMinutes}`, unit: "min" }}
       theirs={{ label: "GP clinic", value: "2", valueSuffix: "+", unit: "hrs" }}
@@ -330,9 +333,10 @@ export function MedCertLanding() {
           <MedCertHero />
           <WorkplaceProofPanel />
 
-          <div data-track-section="selector">
-            <CertificateTypeSelector />
-          </div>
+          {/* Day-selector was retired 2026-05-26 (Tier 1 review #5). The
+              pre-form 1/2/3-day chooser forced a decision before the form
+              and duplicated work the intake wizard already does. The
+              wizard now defaults to 1 day and lets users adjust inline. */}
 
           <CertComparisonViz />
 
@@ -344,6 +348,10 @@ export function MedCertLanding() {
               ...commercialCertificateLinks.slice(6),
               ...commercialLocationLinks,
             ]}
+            // Quiet inline links instead of a wall of pills. The pill
+            // row was reading as SEO directory bait mid-funnel (Tier 1
+            // review 2026-05-25 /medical-certificate #4).
+            compactStyle="inline"
             className="bg-muted/30 dark:bg-white/[0.02]"
           />
 

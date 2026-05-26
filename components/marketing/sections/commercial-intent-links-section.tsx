@@ -10,6 +10,14 @@ interface CommercialIntentLinksSectionProps {
   body: string
   links: CommercialInternalLink[]
   compactLinks?: CommercialInternalLink[]
+  /**
+   * Rendering style for the `compactLinks` row.
+   * - `"pill"` (default): rounded border + bg pills.
+   * - `"inline"`: quiet text links separated by a thin divider. Use when
+   *   the pill chrome reads as SEO directory bait on a high-trust surface
+   *   (Tier 1 review 2026-05-25, /medical-certificate #4).
+   */
+  compactStyle?: "pill" | "inline"
   className?: string
 }
 
@@ -19,6 +27,7 @@ export function CommercialIntentLinksSection({
   body,
   links,
   compactLinks,
+  compactStyle = "pill",
   className,
 }: CommercialIntentLinksSectionProps) {
   return (
@@ -60,17 +69,40 @@ export function CommercialIntentLinksSection({
         </div>
 
         {compactLinks && compactLinks.length > 0 && (
-          <div className="mt-5 flex flex-wrap gap-2">
-            {compactLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="rounded-full border border-border/60 bg-white px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:border-primary/40 hover:text-primary dark:border-white/15 dark:bg-card"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
+          compactStyle === "inline" ? (
+            <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
+              <span className="mr-2 font-medium text-foreground/80">
+                See also:
+              </span>
+              {compactLinks.map((link, i) => (
+                <span key={link.href}>
+                  {i > 0 && (
+                    <span className="mx-1.5 text-border" aria-hidden="true">
+                      ·
+                    </span>
+                  )}
+                  <Link
+                    href={link.href}
+                    className="underline decoration-border/60 underline-offset-2 transition-colors hover:text-primary hover:decoration-primary/60"
+                  >
+                    {link.label}
+                  </Link>
+                </span>
+              ))}
+            </p>
+          ) : (
+            <div className="mt-5 flex flex-wrap gap-2">
+              {compactLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="rounded-full border border-border/60 bg-white px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:border-primary/40 hover:text-primary dark:border-white/15 dark:bg-card"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          )
         )}
       </div>
     </section>

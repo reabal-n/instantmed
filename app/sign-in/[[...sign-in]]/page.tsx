@@ -8,6 +8,7 @@ import { useSearchParams } from 'next/navigation'
 import { Suspense, useCallback, useEffect, useRef, useState } from "react"
 
 import { GoogleIcon } from "@/components/icons/google-icon"
+import { BrandLogo } from "@/components/shared/brand-logo"
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { getPostAuthRedirectParam } from '@/lib/auth/redirects'
@@ -204,14 +205,6 @@ function SignInForm() {
 
   return (
     <div className="w-full max-w-md">
-      {/* Mobile logo */}
-      <div className="lg:hidden text-center mb-8">
-        <Link href="/" className="inline-flex items-center gap-2.5">
-          <Image src="/branding/logo-192.png" alt="InstantMed" width={36} height={36} className="rounded-xl" unoptimized />
-          <span className="text-xl font-semibold text-foreground tracking-tight">InstantMed</span>
-        </Link>
-      </div>
-
           <motion.div
             key="form"
             initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
@@ -219,6 +212,10 @@ function SignInForm() {
             transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-2xl p-8"
           >
+            {/* Wordmark anchors the form to InstantMed so it doesn't read as a generic auth page. */}
+            <div className="flex justify-center mb-5">
+              <BrandLogo size="md" />
+            </div>
             <div className="text-center mb-6">
               <h2 className="text-xl font-semibold text-foreground mb-1">
                 Welcome back
@@ -226,26 +223,6 @@ function SignInForm() {
               <p className="text-sm text-muted-foreground">
                 Sign in to your account
               </p>
-              {/* Mobile-only social proof */}
-              <div className="lg:hidden flex items-center justify-center gap-2 mt-3">
-                <div className="flex -space-x-1.5">
-                  {trustMarks.map(({ icon: Icon, className }, index) => (
-                    <span
-                      key={index}
-                      className={`grid h-5.5 w-5.5 place-items-center rounded-full border-2 border-white dark:border-card ${className}`}
-                      aria-hidden="true"
-                    >
-                      <Icon className="h-2.5 w-2.5" />
-                    </span>
-                  ))}
-                </div>
-                <span className="text-xs text-muted-foreground">
-                  {getPatientCount().toLocaleString()}+ Australians
-                </span>
-                <div className="flex items-center gap-0.5 text-amber-500" role="img" aria-label="Google star rating">
-                  {[1,2,3,4,5].map(i => <Star key={i} className="w-2.5 h-2.5 fill-current" />)}
-                </div>
-              </div>
             </div>
 
             <form onSubmit={handleSignIn} className="space-y-3">

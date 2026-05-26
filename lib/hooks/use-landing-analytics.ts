@@ -13,6 +13,8 @@ type CTALocation =
   | "sticky_mobile"
   | "employer_link"
   | "verify_link"
+  | "about_hero"
+  | "about_what_we_wont_do"
 
 /**
  * Analytics hook for service landing pages.

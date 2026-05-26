@@ -165,11 +165,15 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
         </div>
       </div>
 
-      {/* Delivery confirmation - desktop only, redesigned to feel less like SaaS template */}
+      {/* Delivery confirmation - desktop only, redesigned to feel less like SaaS template.
+          Nudged inward (was -right-3 xl:-right-5, now right-2 xl:right-0) and
+          bumped z-index so the pill sits cleanly above the cert mock instead
+          of clipping its right edge. Tier 1 review 2026-05-25 (brand-spine
+          yhf6 #12). */}
       {!compact && (
         <div
           className={cn(
-            "absolute -bottom-6 -right-3 xl:-right-5",
+            "absolute -bottom-6 right-2 xl:right-0 z-10",
             "rounded-xl bg-white dark:bg-card",
             "border border-border/50 dark:border-white/10",
             "shadow-lg shadow-primary/[0.08] dark:shadow-none",

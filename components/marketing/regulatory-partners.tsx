@@ -36,11 +36,18 @@ function ADHALogo({ className }: { className?: string }) {
 }
 
 function LogoItem({ partner }: { partner: typeof regulatoryPartners[number] }) {
+  // Single monochrome treatment: greyscale at 60% with a hover-to-100%
+  // affordance so the row reads as a quiet compliance strip but rewards
+  // attention. Bumped from opacity-40 which read as "washed out" in the
+  // 2026-05-25 brand-spine review (yhf6).
+  const logoClass =
+    "object-contain grayscale opacity-60 transition-[opacity,filter] duration-200 hover:opacity-100 hover:grayscale-0 dark:invert dark:opacity-50 dark:hover:opacity-90"
+
   if (partner.name === 'Stripe') {
-    return <StripeLogo className="text-muted-foreground/50" />
+    return <StripeLogo className={cn('text-muted-foreground', logoClass)} />
   }
   if (partner.name === 'ADHA') {
-    return <ADHALogo className="text-muted-foreground/50" />
+    return <ADHALogo className={cn('text-muted-foreground', logoClass)} />
   }
   if (!partner.logo) return null
 
@@ -52,7 +59,7 @@ function LogoItem({ partner }: { partner: typeof regulatoryPartners[number] }) {
       height={partner.height}
       unoptimized
       style={{ height: 'auto' }}
-      className="object-contain grayscale opacity-40 dark:invert dark:opacity-30"
+      className={logoClass}
     />
   )
 }
@@ -61,14 +68,17 @@ export function RegulatoryPartners({ className, exclude = [] }: RegulatoryPartne
   const visible = regulatoryPartners.filter((p) => !exclude.includes(p.name))
 
   return (
-    <div className={cn('py-4 sm:py-6', className)}>
+    <div className={cn('py-6 sm:py-8', className)}>
       {/* Label */}
-      <p className="text-[10px] font-semibold text-muted-foreground text-center mb-3 uppercase tracking-[0.15em]">
+      <p className="text-[10px] font-semibold text-muted-foreground text-center mb-4 uppercase tracking-[0.15em]">
         Compliance stack
       </p>
 
-      {/* Static centered row */}
-      <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12 px-4">
+      {/* Static centered row - gap bumped from 8/12 to 10/16 so the
+          logos breathe horizontally. Tier 1 review 2026-05-25
+          (brand-spine yhf6): "compliance logo row washed-out grey,
+          cramped". */}
+      <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 sm:gap-x-16 px-4">
         {visible.map((partner) => (
           <div key={partner.name} className="flex items-center shrink-0" title={partner.name}>
             <LogoItem partner={partner} />

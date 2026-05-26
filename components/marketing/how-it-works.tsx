@@ -118,8 +118,13 @@ export function HowItWorks() {
           </p>
         </Reveal>
 
-        {/* Timeline - horizontal on desktop, vertical on mobile */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-6 relative">
+        {/* Timeline - horizontal on desktop, vertical on mobile.
+            gap-4 on mobile + tightened step-number size below shrink the
+            "tall section" feel on phones (previously sm screens had a
+            full 48px numeral + mb-4 + gap-6 stacking up the divider rail
+            three times). Tier 1 video-review fix 2026-05-26
+            (homepage-5jc7 / clkf). */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 relative">
           {/* Desktop timeline connector */}
           <div className="hidden lg:block absolute top-[2.5rem] left-[16%] right-[16%] border-t border-border/60" />
 
@@ -127,11 +132,12 @@ export function HowItWorks() {
             const Mockup = stepMockups[index]
             return (
               <div key={step.number} className="relative flex flex-col">
-                {/* Step number */}
-                <div className="text-center mb-4 order-1">
+                {/* Step number. 3xl on mobile keeps the divider compact;
+                    grows to 5xl on sm+ where the page has room. */}
+                <div className="text-center mb-2 sm:mb-4 order-1">
                   <span
                     aria-hidden="true"
-                    className="text-5xl font-light text-muted-foreground/15 dark:text-muted-foreground/10 select-none"
+                    className="text-3xl sm:text-5xl font-light text-muted-foreground/15 dark:text-muted-foreground/10 select-none"
                   >
                     {step.number}
                   </span>
