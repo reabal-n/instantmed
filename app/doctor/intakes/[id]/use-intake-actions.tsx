@@ -80,7 +80,7 @@ export function useIntakeActions({
     intake.doctor_notes ? (intake.updated_at || intake.reviewed_at || intake.created_at) : null,
   )
   const [isAiPrefilled, setIsAiPrefilled] = useState(false)
-  const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const [actionMessage, setActionMessage] = useState<{ type: "success" | "error" | "warning"; text: string } | null>(null)
   const [showCertPreview, setShowCertPreview] = useState(false)
   const [certPreviewData, setCertPreviewData] = useState<CertificatePreviewData | null>(null)
   const [isLoadingPreview, setIsLoadingPreview] = useState(false)
@@ -201,7 +201,12 @@ export function useIntakeActions({
 
     acquireIntakeLockAction(intake.id).then((result) => {
       if (result.data?.warning) {
-        setActionMessage({ type: "error", text: result.data.warning })
+        // Suppress auto-approval system lock warnings silently — doctor can still act.
+        // Only surface when a real doctor holds the claim.
+        const isSystemClaim = result.data.lockedByName?.toLowerCase().includes("auto-approve")
+        if (!isSystemClaim) {
+          setActionMessage({ type: "warning", text: result.data.warning })
+        }
       }
       lockAcquiredAt.current = Date.now()
     })

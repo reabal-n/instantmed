@@ -75,7 +75,7 @@ interface IntakeDetailHeaderProps {
   isPending: boolean
   isLoadingPreview: boolean
   isViewingCert: boolean
-  actionMessage: { type: "success" | "error"; text: string } | null
+  actionMessage: { type: "success" | "error" | "warning"; text: string } | null
   dialogs: IntakeDialogState
   showCertPreview: boolean
   setShowCertPreview: (val: boolean) => void
@@ -228,7 +228,11 @@ export function IntakeDetailHeader({
       {actionMessage && (
         <div
           className={`p-3 rounded-lg text-sm ${
-            actionMessage.type === "success" ? "bg-success-light text-success" : "bg-destructive/10 text-destructive"
+            actionMessage.type === "success"
+              ? "bg-success-light text-success"
+              : actionMessage.type === "warning"
+              ? "bg-warning-light border border-warning-border text-warning"
+              : "bg-destructive/10 text-destructive"
           }`}
         >
           {actionMessage.text}
