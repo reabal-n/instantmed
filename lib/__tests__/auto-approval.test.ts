@@ -900,7 +900,7 @@ describe("evaluateAutoApprovalEligibility", () => {
       //
       // Use a single structured symptom and ONLY a mental-health soft-block
       // keyword in the free-text so the only flag is `mental_health: panic`
-      // (soft-origin). Avoid injury keywords like "fall" — they are pushed to
+      // (soft-origin). Avoid injury keywords like "fall"; they are pushed to
       // flags[] but intentionally NOT added to softOriginFlags (workers comp
       // risk), which would short-circuit this test by blocking on the injury
       // flag instead of exercising the duration cap.

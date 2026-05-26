@@ -478,8 +478,8 @@ export function evaluateAutoApprovalEligibility(
   //
   // hasOnlySoftFlags: every flag in flags[] originated from a soft-block keyword list
   // (tracked via softOriginFlags). Hard-block lists, emergency checks, and structural
-  // checks (empty_symptom_text, duration_unknown) are never soft-origin — that
-  // invariant is what makes this fast path medico-legally safe.
+  // checks (empty_symptom_text, duration_unknown) are never soft-origin, and
+  // that invariant is what makes this fast path medico-legally safe.
   const hasOnlySoftFlags = flags.length > 0 && flags.every(f => softOriginFlags.has(f))
   if (hasOnlySoftFlags && durationDays !== null && durationDays <= 2) {
     return result({

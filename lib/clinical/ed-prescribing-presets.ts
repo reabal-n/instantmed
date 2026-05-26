@@ -1,5 +1,5 @@
 /**
- * ED prescribing presets — concrete medication recommendations derived from
+ * ED prescribing presets: concrete medication recommendations derived from
  * the patient's stated `treatment_preference` on the ED consult intake.
  *
  * Doses follow standard adult starting prescriptions:
@@ -12,7 +12,7 @@
  *     months).
  *
  * Hard contraindications (nitrate use, recent cardiac event, severe heart
- * condition) are gated upstream in `edSummary` — this preset table is only
+ * condition) are gated upstream in `edSummary`; this preset table is only
  * read when the safety screen is already clear.
  */
 export interface EdPreset {
@@ -53,7 +53,7 @@ export const ED_PRESCRIBING_PRESETS: Record<"daily" | "prn" | "doctor_decides", 
     repeatsTemplate: "2",
     directionsTemplate: "Take 1 tablet 1 hour before sexual activity. Maximum 1 tablet per 24 hours.",
     medicationSearchHint: "Sildenafil 50mg tablet",
-    alternativeNote: "Patient hasn't expressed a preference — Tadalafil 5mg daily is an alternative for patients who prefer daily dosing.",
+    alternativeNote: "Patient hasn't expressed a preference. Tadalafil 5mg daily is an alternative for patients who prefer daily dosing.",
   },
 }
 

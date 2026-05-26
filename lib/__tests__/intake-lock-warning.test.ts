@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-describe("acquireIntakeLock — System auto-approve claimant", () => {
+describe("acquireIntakeLock when System holds auto-approve claim", () => {
   beforeEach(() => {
     vi.resetModules()
     vi.doUnmock("@/lib/supabase/service-role")
