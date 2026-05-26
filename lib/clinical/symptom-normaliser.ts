@@ -93,7 +93,7 @@ function commaSeparateSymptomList(text: string): string {
   for (const phrase of KNOWN_MULTI_WORD) {
     let idx = working.toLowerCase().indexOf(phrase)
     while (idx !== -1) {
-      const placeholder = `${placeholders.length}`
+      const placeholder = `${placeholders.length}`
       placeholders.push(phrase)
       working = working.slice(0, idx) + placeholder + working.slice(idx + phrase.length)
       idx = working.toLowerCase().indexOf(phrase)
@@ -105,7 +105,7 @@ function commaSeparateSymptomList(text: string): string {
 
   return tokens
     .map(token => {
-      const match = token.match(/^(\d+)$/)
+      const match = token.match(/^(\d+)$/)
       return match ? placeholders[Number(match[1])] : token
     })
     .filter(Boolean)
