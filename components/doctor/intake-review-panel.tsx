@@ -23,6 +23,7 @@ import {
   isConcerningValue,
 } from "@/components/doctor/review/utils"
 import { useReviewActions } from "@/components/doctor/review-actions"
+import { SlaChip } from "@/components/doctor/sla-chip"
 import { usePanel } from "@/components/panels/panel-provider"
 import { SheetPanel } from "@/components/panels/sheet-panel"
 import { Badge } from "@/components/ui/badge"
@@ -338,6 +339,11 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
                 <Badge className={getStatusColor(intake.status)}>
                   {formatIntakeStatus(intake.status)}
                 </Badge>
+                {/* SLA chip: "Paid Xh ago" with calm-chrome semantic dot
+                    (green <4h, amber 4-24h, red 24h+) so the operator sees
+                    review urgency next to the patient name at the decision
+                    moment, not just on the queue list. */}
+                <SlaChip paidAt={intake.paid_at} />
                 {caseIndex != null && totalCases != null && (
                   <Badge variant="outline" size="sm">Case {caseIndex + 1} of {totalCases}</Badge>
                 )}
