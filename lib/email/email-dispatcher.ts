@@ -183,12 +183,19 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
 
   const supabase = createServiceRoleClient()
 
-  // Fetch pending/failed emails that might be eligible for retry
+  // Fetch pending/failed emails that might be eligible for retry.
+  //
+  // DEFERRED SEND: rows with `scheduled_for` in the future are NOT eligible
+  // yet; they must wait for the schedule to lapse before the dispatcher
+  // claims them. The OR'd filter keeps rows with scheduled_for IS NULL
+  // (instant sends, the default) and rows whose scheduled_for has lapsed.
+  const nowIso = new Date().toISOString()
   const { data: candidates, error: fetchError } = await supabase
     .from("email_outbox")
-    .select("id, email_type, to_email, to_name, subject, status, provider, provider_message_id, error_message, retry_count, intake_id, patient_id, certificate_id, metadata, created_at, sent_at, last_attempt_at")
+    .select("id, email_type, to_email, to_name, subject, status, provider, provider_message_id, error_message, retry_count, intake_id, patient_id, certificate_id, metadata, created_at, sent_at, last_attempt_at, scheduled_for")
     .in("status", ["pending", "failed"])
     .lt("retry_count", MAX_RETRIES)
+    .or(`scheduled_for.is.null,scheduled_for.lte.${nowIso}`)
     .order("created_at", { ascending: true })
     .limit(MAX_BATCH_SIZE * 2)
 

@@ -75,6 +75,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     headers,
     attachments,
     idempotencyKey,
+    scheduledFor,
   } = params
 
   // Add Sentry context
@@ -276,6 +277,13 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
   // TWO-PHASE WRITE: Create pending outbox row BEFORE attempting send
   // This ensures we have a record for the dispatcher to retry if process crashes
   // Body is NOT stored - dispatcher reconstructs from intake/certificate data
+  //
+  // DEFERRED SEND: when `scheduledFor` is set to a future timestamp (e.g. the
+  // 30s cert approval undo window), we still write the pending row with the
+  // schedule applied, then return immediately. The dispatcher skips rows whose
+  // scheduled_for is still in the future, so the send fires the next cron tick
+  // after the schedule passes. Undoing the queued send is just a DELETE on the
+  // outbox row before `scheduled_for` lapses.
   const outboxResult = await createPendingOutbox({
     email_type: emailType,
     to_email: to,
@@ -287,8 +295,27 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     certificate_id: certificateId,
     metadata,
     idempotency_key: idempotencyKey,
+    scheduled_for: scheduledFor,
   })
   const outboxId = outboxResult.id
+
+  // Short-circuit on deferred send: we leave the row in pending state with
+  // scheduled_for set; the dispatcher will pick it up on the next tick after
+  // the schedule lapses. Returns success so the caller's UX flow continues.
+  if (scheduledFor && new Date(scheduledFor).getTime() > Date.now()) {
+    logger.info("[Email] Queued for deferred send", {
+      outboxId,
+      emailType,
+      scheduledFor,
+      certificateId,
+      intakeId,
+    })
+    return {
+      success: true,
+      messageId: outboxId ? `deferred-${outboxId}` : undefined,
+      outboxId: outboxId || undefined,
+    }
+  }
 
   if (outboxResult.duplicate) {
     logger.info("[Email] Duplicate send suppressed by outbox guard", {
@@ -583,6 +610,23 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{ success: bool
       provider_message_id: data.id,
       attempts: row.retry_count + 1,
     })
+
+    // Mirror the dispatcher send onto the cert delivery state so the
+    // CertHealthChip and patient timeline stay accurate for deferred
+    // sends (e.g. cert approval undo window). Fire-and-forget; never block
+    // the dispatcher batch on this housekeeping.
+    if (row.certificate_id && row.email_type === "med_cert_patient") {
+      try {
+        const { updateEmailStatus: updateCertEmailStatus } = await import("@/lib/data/issued-certificates")
+        await updateCertEmailStatus(row.certificate_id, "sent", { deliveryId: data.id })
+      } catch (mirrorErr) {
+        logger.warn("[Email Dispatcher] Failed to mirror send onto issued_certificates", {
+          outboxId: row.id,
+          certificateId: row.certificate_id,
+          error: mirrorErr instanceof Error ? mirrorErr.message : String(mirrorErr),
+        })
+      }
+    }
 
     return { success: true }
   } catch (err) {

@@ -84,15 +84,18 @@ function mockOutboxSelect(
   error: { message: string } | null = null,
 ) {
   // The dispatcher calls:
-  //   supabase.from("email_outbox").select(...).in(...).lt(...).order(...).limit(...)
+  //   supabase.from("email_outbox").select(...).in(...).lt(...).or(...).order(...).limit(...)
   // The shared setup.ts mock makes all chain methods return the chain, and
   // terminal methods (single/maybeSingle) return mockSupabaseSingle's value.
   // But the SELECT query here does NOT call .single() -- it expects an array.
   // We need the .limit() call to resolve with { data, error }.
+  //
+  // 2026-05-26: Added .or(...) for the scheduled_for filter (cert undo window).
 
   const limitMock = vi.fn().mockResolvedValue({ data: candidates, error })
   const orderMock = vi.fn(() => ({ limit: limitMock }))
-  const ltMock = vi.fn(() => ({ order: orderMock }))
+  const orMock = vi.fn(() => ({ order: orderMock }))
+  const ltMock = vi.fn(() => ({ or: orMock }))
   const inMock = vi.fn(() => ({ lt: ltMock }))
   const selectMock = vi.fn(() => ({ in: inMock }))
 
@@ -109,7 +112,7 @@ function mockOutboxSelect(
     update: updateChain.update,
   }))
 
-  return { selectMock, inMock, ltMock, orderMock, limitMock }
+  return { selectMock, inMock, ltMock, orMock, orderMock, limitMock }
 }
 
 /**

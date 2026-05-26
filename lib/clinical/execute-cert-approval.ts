@@ -42,6 +42,13 @@ export interface ApproveCertResult {
   emailSent?: boolean
   /** Patient email address the certificate was dispatched to (populated on success only). */
   emailSentTo?: string
+  /**
+   * ISO timestamp when the deferred cert email will fire (UNDO_WINDOW_SECONDS
+   * after approval). Present only on doctor-manual approvals that queue the
+   * email through the dispatcher. NULL for auto-approval (no UI to undo) and
+   * for idempotent re-approvals (no new email queued).
+   */
+  emailScheduledFor?: string
 }
 
 export interface ExecuteCertApprovalInput {
@@ -60,6 +67,17 @@ export interface ExecuteCertApprovalInput {
   /** Reason for AI auto-approval (stored for audit) */
   aiApprovalReason?: string
 }
+
+/**
+ * Doctor undo window after approving a med cert. The patient email is queued
+ * with `scheduled_for = now() + UNDO_WINDOW_SECONDS`; the dispatcher waits
+ * out the schedule before claiming the row. A doctor clicking Undo within
+ * the window deletes the row and revokes the cert.
+ *
+ * Kept in sync with `app/actions/undo-cert-approval.ts UNDO_WINDOW_SECONDS`
+ * via the contract test in `lib/__tests__/undo-cert-approval.test.ts`.
+ */
+export const CERT_APPROVAL_UNDO_WINDOW_SECONDS = 30
 
 // ============================================================================
 // CORE APPROVAL PIPELINE
@@ -490,8 +508,19 @@ export async function executeCertApproval(
 
   // 7. Send email notification. The email routes patients back through the
   // app so certificate downloads stay ownership-checked and audit-logged.
+  //
+  // UNDO WINDOW: For doctor-manual approvals (skipClaim=false AND !aiApproved)
+  // we defer the email by CERT_APPROVAL_UNDO_WINDOW_SECONDS so the doctor can
+  // hit Undo inside that window. Auto-approval (aiApproved=true) sends
+  // immediately because there's no UI toast to undo. Idempotent re-approvals
+  // already returned above without queueing a new email.
   Sentry.addBreadcrumb({ category: "cert.flow", message: "Sending patient email", level: "info", data: { intakeId, certificateId } })
   const dashboardUrl = `${env.appUrl}${getPatientIntakeDetailHref(intakeId)}`
+
+  const deferEmail = !skipClaim && !aiApproved
+  const emailScheduledFor = deferEmail
+    ? new Date(Date.now() + CERT_APPROVAL_UNDO_WINDOW_SECONDS * 1000).toISOString()
+    : undefined
 
   const emailResult = await sendEmail({
     to: patient.email,
@@ -510,22 +539,34 @@ export async function executeCertApproval(
     certificateId,
     metadata: {
       cert_type: certificateType,
+      ...(emailScheduledFor ? { undo_window: true } : {}),
     },
     tags: [
       { name: "category", value: "med_cert_approved" },
       { name: "intake_id", value: intakeId },
       { name: "cert_type", value: certificateType },
     ],
+    scheduledFor: emailScheduledFor,
     // No PDF attachment and no storage signed URL in email. Patients download
     // through the app route so auth, ownership checks, and audit logging stay intact.
   })
 
-  // Track email status
+  // Track email status. For deferred sends we DO NOT yet mark the cert as
+  // "sent"; the dispatcher will fire the email after the undo window and the
+  // cert-level email_sent_at column should reflect that real delivery, not
+  // our queue intent. We do log a "scheduled" audit event so the doctor
+  // timeline records the queue action.
   if (certificateId) {
-    if (emailResult.success) {
+    if (emailResult.success && !emailScheduledFor) {
       await updateEmailStatus(certificateId, "sent", { deliveryId: emailResult.messageId })
       await logCertificateEvent(certificateId, "email_sent", null, "system", { resend_id: emailResult.messageId })
-    } else {
+    } else if (emailResult.success && emailScheduledFor) {
+      await logCertificateEvent(certificateId, "email_sent", null, "system", {
+        outbox_id: emailResult.outboxId,
+        scheduled_for: emailScheduledFor,
+        deferred: true,
+      })
+    } else if (!emailResult.success) {
       await updateEmailStatus(certificateId, "failed", { failureReason: emailResult.error })
       await logCertificateEvent(certificateId, "email_failed", null, "system", { error: emailResult.error })
       logger.error("Failed to send email (certificate still issued)", { intakeId, certificateId, error: emailResult.error })
@@ -596,6 +637,11 @@ export async function executeCertApproval(
     success: true,
     certificateId,
     emailSent: emailResult.success,
-    emailSentTo: emailResult.success ? patient.email : undefined,
+    // When the email is deferred, `emailResult.success` is still true (the
+    // outbox row was queued) but the patient has not been contacted yet.
+    // We only surface `emailSentTo` for sends that actually fired, so the
+    // doctor toast can stay honest about delivery state.
+    emailSentTo: emailResult.success && !emailScheduledFor ? patient.email : undefined,
+    emailScheduledFor: emailResult.success ? emailScheduledFor : undefined,
   }
 }

@@ -70,6 +70,13 @@ export interface SendEmailParams {
   // Optional file attachments (base64-encoded)
   attachments?: { filename: string; content: string; contentType?: string }[]
   idempotencyKey?: string
+  /**
+   * Optional ISO timestamp. When set, the email is queued in pending state
+   * (no immediate Resend call) and the dispatcher waits until
+   * `now() >= scheduledFor` before claiming it. NULL means send immediately.
+   * Used by the 30s cert approval undo window.
+   */
+  scheduledFor?: string
 }
 
 export interface SendEmailResult {
@@ -97,6 +104,8 @@ export interface OutboxEntry {
   last_attempt_at?: string
   retry_count?: number
   idempotency_key?: string
+  /** ISO timestamp the dispatcher must wait for before claiming this row. */
+  scheduled_for?: string
 }
 
 export interface OutboxRow {
@@ -112,4 +121,6 @@ export interface OutboxRow {
   patient_id: string | null
   certificate_id: string | null
   metadata: Record<string, unknown> | null
+  /** Present when the row was queued for deferred send. */
+  scheduled_for?: string | null
 }

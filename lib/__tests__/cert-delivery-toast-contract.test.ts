@@ -31,6 +31,21 @@ describe("Cert delivery toast contract", () => {
 
   it("executeCertApproval populates emailSentTo from the patient profile on a successful send", () => {
     expect(executeCertApprovalSource).toMatch(/emailSentTo\?:\s*string/)
-    expect(executeCertApprovalSource).toMatch(/emailSentTo:\s*emailResult\.success\s*\?\s*patient\.email/)
+    // After the 30s undo window landed (2026-05-26), emailSentTo is only set
+    // for sends that actually fired, not for deferred sends still sitting in
+    // the outbox queue. The ternary now guards on `!emailScheduledFor` too.
+    expect(executeCertApprovalSource).toMatch(
+      /emailSentTo:\s*emailResult\.success\s*&&\s*!emailScheduledFor\s*\?\s*patient\.email/
+    )
+  })
+
+  it("executeCertApproval surfaces emailScheduledFor so the caller can render the Undo countdown toast", () => {
+    expect(executeCertApprovalSource).toMatch(/emailScheduledFor\?:\s*string/)
+    expect(executeCertApprovalSource).toMatch(/CERT_APPROVAL_UNDO_WINDOW_SECONDS/)
+  })
+
+  it("review-actions shows the Undo countdown toast when emailStatus is scheduled", () => {
+    expect(reviewActionsSource).toMatch(/showCertApprovalUndoToast/)
+    expect(reviewActionsSource).toMatch(/emailStatus === "scheduled"/)
   })
 })

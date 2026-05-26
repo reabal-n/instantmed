@@ -12,6 +12,7 @@ import {
 } from "@/app/doctor/intakes/[id]/document/actions"
 import { declineIntakeAction,saveDoctorNotesAction } from "@/app/doctor/queue/actions"
 import { updateStatusAction } from "@/app/doctor/queue/actions"
+import { showCertApprovalUndoToast } from "@/components/doctor/cert-approval-undo-toast"
 import type { CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
 import { ParchmentPrescribePanel } from "@/components/doctor/parchment-prescribe-panel"
 import type { ReviewData } from "@/components/doctor/review/intake-review-context"
@@ -283,14 +284,28 @@ export function useReviewActions({
       })
       if (result.success) {
         setShowCertPreview(false)
-        const emailNote =
-          result.emailStatus === "sent"
-            ? result.emailSentTo
-              ? `Certificate sent to ${result.emailSentTo}`
-              : "Certificate approved and sent to patient."
-            : "Certificate approved. Email will be sent shortly."
         playApprovalSound()
-        toast.success(emailNote)
+
+        // Deferred send path: pop the countdown Undo toast and let the
+        // dispatcher fire the email after the window. We still advance the
+        // queue because the approval is committed; the doctor can undo
+        // without scrolling back.
+        if (result.emailStatus === "scheduled" && result.emailScheduledFor) {
+          showCertApprovalUndoToast({
+            intakeId: intake.id,
+            scheduledFor: result.emailScheduledFor,
+            patientName: intake.patient?.full_name || undefined,
+            onUndone: () => router.refresh(),
+          })
+        } else {
+          const emailNote =
+            result.emailStatus === "sent"
+              ? result.emailSentTo
+                ? `Certificate sent to ${result.emailSentTo}`
+                : "Certificate approved and sent to patient."
+              : "Certificate approved. Email will be sent shortly."
+          toast.success(emailNote)
+        }
         closeAndRefresh()
       } else {
         toast.error(result.error || "Failed to approve certificate")

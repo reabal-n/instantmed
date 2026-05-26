@@ -86,6 +86,7 @@ export async function createPendingOutbox(entry: Omit<OutboxEntry, "status">): P
         idempotency_key: idempotencyKey,
         last_attempt_at: new Date().toISOString(),
         retry_count: 0,
+        scheduled_for: entry.scheduled_for ?? null,
       })
       .select("id")
       .single()
@@ -145,7 +146,7 @@ export async function claimOutboxRow(outboxId: string): Promise<{
     })
     .in("status", ["pending", "failed"])
     .eq("id", outboxId)
-    .select("id, email_type, to_email, to_name, subject, status, provider, provider_message_id, error_message, retry_count, intake_id, patient_id, certificate_id, metadata, created_at, sent_at, last_attempt_at")
+    .select("id, email_type, to_email, to_name, subject, status, provider, provider_message_id, error_message, retry_count, intake_id, patient_id, certificate_id, metadata, created_at, sent_at, last_attempt_at, scheduled_for")
     .single()
 
   if (error) {
