@@ -2,6 +2,7 @@
 
 import { ArrowRight, CheckCircle2, Lock } from "lucide-react"
 import dynamic from "next/dynamic"
+import Image from "next/image"
 import Link from "next/link"
 
 import { StickerIcon } from "@/components/icons/stickers"
@@ -235,6 +236,23 @@ export function ErectileDysfunctionLanding() {
             body="Doctor-reviewed online assessment. Once approved, your eScript is sent by SMS and can be used at any Australian pharmacy."
           />
 
+          {/* Editorial lifestyle photo, primary. A quiet "private at home"
+              beat after the service-claim block. */}
+          <section aria-hidden="true" className="py-8 sm:py-12">
+            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-border/40 shadow-md shadow-primary/[0.06]">
+                <Image
+                  src="/images/ed-1.webp"
+                  alt="Discreet at-home setting for a private ED assessment"
+                  fill
+                  className="object-cover"
+                  loading="lazy"
+                  sizes="(max-width: 1024px) calc(100vw - 4rem), 768px"
+                />
+              </div>
+            </div>
+          </section>
+
           {/* 2. How It Works */}
           <HowItWorksInline
             steps={HOW_IT_WORKS_STEPS}
@@ -249,6 +267,23 @@ export function ErectileDysfunctionLanding() {
 
           {/* 4. Doctor profile */}
           <DoctorProfileSection />
+
+          {/* Editorial lifestyle photo, secondary. Sits between doctor
+              profile and pricing as a calm trust moment. */}
+          <section aria-hidden="true" className="py-8 sm:py-12">
+            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-border/40 shadow-md shadow-primary/[0.06]">
+                <Image
+                  src="/images/ed-2.webp"
+                  alt="Private Australian home moment, reinforcing discreet care"
+                  fill
+                  className="object-cover"
+                  loading="lazy"
+                  sizes="(max-width: 1024px) calc(100vw - 4rem), 768px"
+                />
+              </div>
+            </div>
+          </section>
 
           {/* 5. Pricing */}
           <EDPricingSection isDisabled={isDisabled} />

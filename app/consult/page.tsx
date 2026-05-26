@@ -14,6 +14,7 @@ import {
   Timer,
 } from "lucide-react"
 import type { Metadata } from "next"
+import Image from "next/image"
 import Link from "next/link"
 
 import { FaqCtaSection } from "@/components/marketing/sections/faq-cta-section"
@@ -305,6 +306,23 @@ export default async function ConsultOverviewPage() {
               Refund if we can't help
             </li>
           </ul>
+        </div>
+      </section>
+
+      {/* Editorial lifestyle photo, primary. Sits between the hero and the
+          services grid as a warm visual handoff. */}
+      <section aria-hidden="true" className="bg-background pt-2 pb-6 sm:pt-4 sm:pb-10">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+          <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-border/40 shadow-md shadow-primary/[0.06]">
+            <Image
+              src="/images/consult-1.webp"
+              alt="Person on a quiet phone consult with an Australian doctor"
+              fill
+              className="object-cover"
+              loading="lazy"
+              sizes="(max-width: 1024px) calc(100vw - 4rem), 768px"
+            />
+          </div>
         </div>
       </section>
 
