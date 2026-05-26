@@ -122,12 +122,17 @@ const DEFAULT_TITLE = 'Consults, certs, and treatment. From your bed.'
 const DEFAULT_PRIMARY: CtaConfig = { text: 'Get started', href: '/request' }
 const DEFAULT_SECONDARY: SecondaryCtaConfig = { text: 'How it works', href: '#how-it-works' }
 
+// LastReviewedSignal moved out of the trust row and pulled up directly
+// under the primary CTA (see the markup below). Operators surfaced in
+// the 2026-05-26 video reviews that the "Last reviewed X min ago"
+// reassurance was stranded at the bottom of the trust row, far from the
+// click moment. Reading it AS the user is deciding to act delivers the
+// reassurance at the right beat.
 const DEFAULT_TRUST_ROW = (
   <>
     <GoogleAdsCert size="sm" />
     <GoogleReviewsBadge />
     <LegitScriptSeal size="sm" />
-    <LastReviewedSignal className="ml-1" />
   </>
 )
 
@@ -170,8 +175,17 @@ export function Hero({
               <span className="h-1.5 w-10 rounded-full bg-brand-coral" />
             </div>
 
-            {/* Headline — LCP element. Display scale: 36 / 48 / 60. */}
-            <Heading level="display" className="mb-5 sm:mb-7">
+            {/* Headline (LCP element). Display scale: 36 / 48 / 60.
+                min-height locks the headline slot at the typical 2-line
+                wrap (mobile) so font-load swap can't reflow the page on
+                first paint. With display:optional on Plus Jakarta this
+                rarely matters, but the floor keeps CLS at zero even if
+                the fallback metrics drift. Tier 1 video-review fix
+                2026-05-26 (homepage-5jc7 / clkf / l0yn). */}
+            <Heading
+              level="display"
+              className="mb-5 sm:mb-7 min-h-[5rem] sm:min-h-[6.5rem] lg:min-h-[8rem]"
+            >
               {title}
             </Heading>
 
@@ -222,17 +236,23 @@ export function Hero({
               )}
             </div>
 
-            {/* Reassurance line under the CTA — price + refund promise put
-                the patient on the right side of the decision at the moment
-                they're about to click. */}
-            <p className="text-xs text-muted-foreground mb-6 sm:mb-7 text-center lg:text-left">
-              Takes about 3 minutes. Full refund if our doctor can&apos;t help.
-            </p>
+            {/* Reassurance row under the CTA. Price/refund promise plus
+                the live "Last reviewed N min ago" signal both sit at the
+                decision moment, so the patient sees recency proof exactly
+                as they're about to click. The signal was previously
+                stranded at the end of the trust row, which buried it.
+                Tier 1 video-review fix 2026-05-26 (homepage-clkf). */}
+            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-x-3 gap-y-1 mb-6 sm:mb-7 justify-center lg:justify-start">
+              <p className="text-xs text-muted-foreground text-center lg:text-left">
+                Takes about 3 minutes. Full refund if our doctor can&apos;t help.
+              </p>
+              <LastReviewedSignal className="justify-center lg:justify-start" />
+            </div>
 
-            {/* Trust row — Google + LegitScript + live counter. Constant
-                across pages so users learn the pattern. ServiceFunnelPage
-                consumers pass `trustRow={null}` since they render their
-                own TrustBadgeSlider below the hero. */}
+            {/* Trust row: Google + LegitScript. Constant across pages so
+                users learn the pattern. ServiceFunnelPage consumers
+                pass `trustRow={null}` since they render their own
+                TrustBadgeSlider below the hero. */}
             {resolvedTrustRow && (
               // items-stretch lets each badge fill the row's min-height (h-7)
               // so they line up as a single horizontal strip instead of

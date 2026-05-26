@@ -69,11 +69,18 @@ const FLOATS: FloatingCard[] = [
   },
   {
     icon: RefreshCcw,
-    iconClass: "text-sky-600 dark:text-sky-400",
-    bgClass: "bg-sky-50 dark:bg-sky-950/40",
+    // Snap to the brand-coral signature accent. The previous sky-50 +
+    // sky-600/700 combo read as off-palette blue-grey alongside the
+    // emerald + primary + amber siblings (all of which are brand-aligned
+    // semantics). Coral is the only non-CTA brand accent (see
+    // docs/BRAND.md signature devices) and gives Repeat Rx its own
+    // recognition beat without introducing a fifth colour stop. Tier 1
+    // video-review fix 2026-05-26 (homepage-l0yn).
+    iconClass: "text-brand-coral",
+    bgClass: "bg-brand-coral/10 dark:bg-brand-coral/15",
     title: "Repeat Rx",
     status: `One-off ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
-    statusClass: "text-sky-700 dark:text-sky-300",
+    statusClass: "text-brand-coral",
     position: "bottom-left",
   },
   {
