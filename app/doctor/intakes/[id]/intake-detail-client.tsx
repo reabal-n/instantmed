@@ -231,6 +231,7 @@ function CockpitIntakeDetailClient({
     declineReason: actions.declineReason,
     setDeclineReason: actions.setDeclineReason,
     declineReasonCode: actions.declineReasonCode,
+    setDeclineReasonCode: actions.setDeclineReasonCode,
     handleDeclineReasonCodeChange: actions.handleDeclineReasonCodeChange,
     isLoadingPreview: actions.isLoadingPreview,
     formatDate,

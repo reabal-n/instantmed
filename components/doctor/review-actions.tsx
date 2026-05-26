@@ -61,6 +61,7 @@ export interface ReviewActionsState {
   declineReason: string
   setDeclineReason: (v: string) => void
   declineReasonCode: DeclineReasonCode
+  setDeclineReasonCode: (code: DeclineReasonCode) => void
   handleDeclineReasonCodeChange: (code: DeclineReasonCode) => void
 
   // Certificate preview
@@ -549,6 +550,7 @@ export function useReviewActions({
     declineReason,
     setDeclineReason,
     declineReasonCode,
+    setDeclineReasonCode,
     handleDeclineReasonCodeChange,
     showCertPreview,
     setShowCertPreview,
