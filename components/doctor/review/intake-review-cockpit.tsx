@@ -5,6 +5,7 @@ import { useMemo, useState } from "react"
 
 import { PatientDecisionStrip } from "@/components/doctor/patient-decision-strip"
 import { PatientTimeline } from "@/components/doctor/patient-timeline"
+import { RenewalLink } from "@/components/doctor/renewal-link"
 import { ClinicalNotesEditor } from "@/components/doctor/review/clinical-notes-editor"
 import { IntakeActionButtons } from "@/components/doctor/review/intake-action-buttons"
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
@@ -205,6 +206,14 @@ export function IntakeReviewCockpit({
       {/* Scrollable middle: single column, no tabs. */}
       <div className="min-h-0 flex-1 overflow-y-auto pr-1">
         <div className="space-y-3">
+          {data.renewalMatch ? (
+            <div className="flex items-center justify-end">
+              <RenewalLink
+                renewalMatch={data.renewalMatch}
+                patientId={intake.patient.id}
+              />
+            </div>
+          ) : null}
           <RequestInfoCard compact hideFullAnswers hidePrescriptionIntent />
           {messageCount > 0 ? (
             <PatientMessageThread

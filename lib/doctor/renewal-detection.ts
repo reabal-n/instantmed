@@ -76,7 +76,7 @@ export async function detectRenewalsForIntakes(
   const supabase = createServiceRoleClient()
   const { data, error } = await supabase
     .from("prescriptions")
-    .select("patient_id, medication_name, medication_strength")
+    .select("id, patient_id, medication_name, medication_strength")
     .in("patient_id", patientIds)
     .in("status", RENEWAL_PRIOR_STATUSES as unknown as string[])
 
@@ -102,9 +102,11 @@ export async function detectRenewalsForIntakes(
     const key = `${pid}::${med}`
     if (known.has(key)) continue
     const strength = (row.medication_strength as string | null) ?? null
+    const priorId = (row.id as string | null) ?? null
     known.set(key, {
       medicationName: rawName.trim(),
       strength: strength && strength.trim().length > 0 ? strength.trim() : null,
+      priorPrescriptionId: priorId,
     })
   }
 

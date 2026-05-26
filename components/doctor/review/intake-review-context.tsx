@@ -4,6 +4,7 @@ import { createContext, type RefObject, useContext } from "react"
 
 import type { AIDraft } from "@/app/actions/draft-approval"
 import type { PatientThreadMessage } from "@/lib/data/patient-messages"
+import type { RenewalMatch } from "@/lib/doctor/renewal-format"
 import type { DeclineReasonCode, IntakeStatus, IntakeWithDetails, IntakeWithPatient, PatientNote } from "@/types/db"
 
 export interface ReviewData {
@@ -25,6 +26,13 @@ export interface ReviewData {
     resend_count: number
   } | null
   patientMessages?: PatientThreadMessage[]
+  /**
+   * Populated by the review-data API when the intake is a renewal of a
+   * prior active/completed prescription for the same patient. Drives the
+   * inline `RenewalLink` smart-link on the cockpit. Null when the intake
+   * is not a renewal or the lookup failed (fail-soft).
+   */
+  renewalMatch?: RenewalMatch | null
 }
 
 export interface IntakeReviewContextValue {
