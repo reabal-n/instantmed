@@ -1,0 +1,104 @@
+{
+  "summary": "InstantMed establishes high credibility with an elegant, warm-ivory interface that successfully channels the premium clinical trust of Mosh and Pilot. Minor implementation oversights—most notably a misplaced billing copy block in the support section—and redundant form fields are the only elements holding it back from a flawless score.",
+  "overall_score": 8,
+  "categories": {
+    "brand_spine": {
+      "score": 8,
+      "observation": "The page feels highly professional, warm, and tailored for Australian healthcare with prominent AHPRA trust signals, although the core brand tagline 'Faster than your GP' is missing from the hero.",
+      "findings": []
+    },
+    "typography": {
+      "score": 8,
+      "observation": "Excellent contrast and selection of Plus Jakarta Sans paired with Source Sans 3, creating an approachable and legible clinical interface.",
+      "findings": []
+    },
+    "color_and_surface": {
+      "score": 8,
+      "observation": "The warm ivory (#F8F7F4) background acts as a comforting canvas, though some elements like the solid blue selected category button present an aggressive visual weight.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 16,
+          "issue": "The active state of the 'General Inquiry' button uses a heavy, solid dark blue fill that clashes with the soft ivory surface aesthetic.",
+          "recommendation": "Use a subtle borders-only or tinted light-blue background state for active options in the category selector."
+        }
+      ]
+    },
+    "motion": {
+      "score": 7,
+      "observation": "Transitions are functional, but the slide-in behavior of the mobile navigation tray lacks physical dampening or spring-based easing.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 26,
+          "issue": "The mobile navigation menu slides in using a linear, standard ease which feels cheap and mechanical.",
+          "recommendation": "Use a customized spring animation (e.g., cubic-bezier(0.16, 1, 0.3, 1)) to provide a more responsive, tactile feel."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 7,
+      "observation": "The copy feels like an unhurried GP, but it suffers from occasional repetition and one major copy-paste error.",
+      "findings": [
+        {
+          "severity": 4,
+          "timestamp_seconds": 12,
+          "issue": "The text 'Refund if declined' is mistakenly placed beneath the 100% response time gauge, which is confusing and irrelevant to support times.",
+          "recommendation": "Replace 'Refund if declined' with context-appropriate copy like 'Resolved on first contact' or remove it entirely."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 7,
+          "issue": "The phrase 'no chatbot wall' is repeated twice on-screen at the exact same time (subheading and body text).",
+          "recommendation": "Rewrite the body copy to focus on the swiftness of human response instead of repeating the chatbot constraint."
+        }
+      ]
+    },
+    "hierarchy_and_layout": {
+      "score": 8,
+      "observation": "The mobile-first card rhythm is easy to digest, though some minor badges introduce unnecessary clutter.",
+      "findings": [
+        {
+          "severity": 1,
+          "timestamp_seconds": 7,
+          "issue": "The 'Contact Us' pill badge at the very top of the page is redundant since the user is already on the contact page.",
+          "recommendation": "Remove the redundant 'Contact Us' pill badge to clear up vertical whitespace above the hero heading."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 8,
+      "observation": "Excellent conversion module at the bottom of the contact page, but the support message form itself introduces excess input overhead.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 17,
+          "issue": "The contact form requires both a selected 'Category' and a manual 'Subject' input, creating redundant friction.",
+          "recommendation": "Remove the 'Subject' input field entirely; the selected category and body message are sufficient for sorting inquiries."
+        }
+      ]
+    },
+    "signature_devices": {
+      "score": 9,
+      "observation": "Excellent application of signature elements, including the handwritten doctor's signature in the footer, transparent support response metrics, and the 'What we won't do' link.",
+      "findings": []
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Fix the mismatched copy under the response time circle.",
+      "why": "Having 'Refund if declined' under response times looks like a severe development bug and hurts clinical trust.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Remove the 'Subject' field from the contact form.",
+      "why": "Simplifying the support form fields drives a faster submission rate and reduces user typing fatigue on mobile.",
+      "estimated_impact": "medium"
+    },
+    {
+      "action": "Soften the active state styling on inquiry category buttons.",
+      "why": "Replacing the solid heavy blue background with a light border-and-tint combination elevates the UI to match Stripe's form polish.",
+      "estimated_impact": "low"
+    }
+  ]
+}

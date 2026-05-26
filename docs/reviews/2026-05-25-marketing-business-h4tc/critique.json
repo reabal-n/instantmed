@@ -1,0 +1,112 @@
+{
+  "summary": "InstantMed's B2B landing page presents a highly polished, clean aesthetic with exceptional copywriting that masterfully avoids healthtech hyperbole. The color palette and typography establish immediate professional credibility, but the page falls short of the reference bar due to static motion states and high-friction form elements. Streamlining the intake flow and adding signature micro-interactions will elevate the overall trust to a world-class standard.",
+  "overall_score": 7,
+  "categories": {
+    "brand_spine": {
+      "score": 7,
+      "observation": "The page establishes a strong B2B value proposition for HR managers immediately, but lacks the specific punchiness of the core 'Faster than your GP' brand signature.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 5,
+          "issue": "The core consumer brand tagline 'Faster than your GP' is completely missing in both direct and adapted formats on this business page.",
+          "recommendation": "Integrate an adapted B2B sub-headline below the hero title: 'Faster for your employees than a traditional clinic visit.'"
+        }
+      ]
+    },
+    "typography": {
+      "score": 8,
+      "observation": "Clean use of modern sans-serif fonts with clear hierarchy, though minor mobile spacing refinements are needed to maximize readability.",
+      "findings": [
+        {
+          "severity": 1,
+          "timestamp_seconds": 5,
+          "issue": "The uppercase eyebrow header 'FOR BUSINESS' lacks tracking, causing the letters to feel overly compressed.",
+          "recommendation": "Apply a slight letter-spacing utility (e.g., tracking-wider or 0.05em) to all uppercase eyebrow text elements."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 8,
+      "observation": "The warm ivory background successfully creates a calming atmosphere, but the card drop shadows lack depth.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 10,
+          "issue": "Card elements use neutral-grey shadows that feel slightly muddy on the warm ivory background.",
+          "recommendation": "Replace neutral-grey shadows on cards with a translucent cool-blue or slate-blue tinted shadow to enhance contrast."
+        }
+      ]
+    },
+    "motion": {
+      "score": 5,
+      "observation": "The entire landing page experience is completely static with no entrance transitions or button feedback states.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 5,
+          "issue": "The hero elements load abruptly on screen without any of the signature brand ease-in transitions.",
+          "recommendation": "Implement a 300ms ease-out fade-in/up transition for the hero card elements upon page initialization."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 9,
+      "observation": "Superb tone of voice that perfectly emulates a calm, unhurried GP using simple, direct sentences with zero fluff or medical jargon.",
+      "findings": []
+    },
+    "hierarchy_and_layout": {
+      "score": 8,
+      "observation": "Good visual rhythm and spacing on the vertical stack, though information density gets slightly tight in the features grid on mobile.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 10,
+          "issue": "The descriptive text inside the benefits cards is highly dense, reducing scannability for fast-scrolling mobile users.",
+          "recommendation": "Bold the first 2 or 3 words of each benefit description to anchor the user's eye as they scroll."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 6,
+      "observation": "The call to action drives the user to a long lead-generation form with numerous mandatory fields instead of an intuitive fast-start path.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 17,
+          "issue": "The contact form requests seven separate user inputs, creating high friction for busy HR managers.",
+          "recommendation": "Reduce initial mandatory fields to just 'Work email' and 'Company name', converting the rest into progressive optional steps."
+        }
+      ]
+    },
+    "signature_devices": {
+      "score": 7,
+      "observation": "The live wait-counter is prominently displayed and works exceptionally well, but other key trust devices are absent.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 21,
+          "issue": "The critical 'what we won't certify' safety boundary link is missing from this business-facing page.",
+          "recommendation": "Insert a clear hyperlink to the 'What we don't certify' guidelines below the primary FAQ accordion."
+        }
+      ]
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Streamline the B2B contact form inputs.",
+      "why": "The current form at 0:17 has 7 fields, creating excessive friction for time-poor professionals trying to make initial contact.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Inject ease-in motion transitions into the page entry.",
+      "why": "As seen at 0:05, the static layout lacks the high-end, premium feel defined by the Linear and Stripe reference bars.",
+      "estimated_impact": "medium"
+    },
+    {
+      "action": "Apply scan-optimization formatting to the product benefit cards.",
+      "why": "The benefit blocks at 0:10 are text-heavy and lack visual anchors, making quick scanning difficult on mobile.",
+      "estimated_impact": "medium"
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "summary": "InstantMed presents a clear and highly localized telehealth offering that immediately sets the correct compliance expectations for Australian patients. However, the experience falls short of a premium reference bar due to unrefined mobile layout spacing, confusing button states in the date selectors, and jarring loading skeletons.",
+  "overall_score": 6,
+  "categories": {
+    "brand_spine": {
+      "score": 7,
+      "observation": "The core thesis is clear and localized immediately with AHPRA trust markers, but the landing layout relies heavily on standard badge groupings which feels clinical rather than premium.",
+      "findings": []
+    },
+    "typography": {
+      "score": 6,
+      "observation": "Plus Jakarta Sans and Source Sans 3 provide clean foundations, but cramped mobile line spacing hurts readability in the body copy block.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 1,
+          "issue": "The hero description paragraph has overly tight line-height causing a congested, hard-to-read text block on mobile.",
+          "recommendation": "Increase the body line-height to 1.5rem and adjust letter-spacing on mobile viewports within tailwind configs."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 6,
+      "observation": "The brand's primary blue pops well, but gray background styles on interactive elements create accessibility and interaction confusion.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 12,
+          "issue": "The 'Yesterday' date-starting selection option uses a light gray background styling that closely mimics a disabled button.",
+          "recommendation": "Apply uniform white borders and dark slate text to all unselected date options to differentiate them from disabled states."
+        }
+      ]
+    },
+    "motion": {
+      "score": 5,
+      "observation": "Animations are mostly basic jumps or fast-scrolling CSS transitions without the premium physics of a high-end application.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 5,
+          "issue": "The scrolling features visual sequence runs too quickly, overlapping content cards and causing visual noise.",
+          "recommendation": "Slow the scroll timeline animation speed by 50% and implement a cubic-bezier ease-out transition on intersection."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 8,
+      "observation": "The copy reads naturally like a professional doctor with clean local terminology, free of unnecessary marketing buzzwords.",
+      "findings": []
+    },
+    "hierarchy_and_layout": {
+      "score": 7,
+      "observation": "The primary paths are clear, but layout grids compress too tightly on standard 375px mobile viewports.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 15,
+          "issue": "The certificate type buttons ('Work', 'Study', 'Carer\\'s leave') are crammed into a tiny row that is prone to misclicks.",
+          "recommendation": "Switch the horizontal flex row to a single-column vertical list on mobile screens below 400px."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 8,
+      "observation": "Pricing transparency and the 'Full refund if our doctor can't help' prompt minimize initial transaction concerns.",
+      "findings": [
+        {
+          "severity": 4,
+          "timestamp_seconds": 11,
+          "issue": "The appearance of empty grey skeleton shapes on step change creates a visual freeze and highlights latency.",
+          "recommendation": "Implement a slide-out transition for the initial form and pre-render the text outlines with light opacity instead of harsh gray skeletons."
+        }
+      ]
+    },
+    "signature_devices": {
+      "score": 5,
+      "observation": "The platform has solid operational text, but misses the opportunity to display the core live wait times signature device in the booking flow.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 15,
+          "issue": "No live wait-time counter is shown near the price summary to reassure the patient of immediate delivery.",
+          "recommendation": "Add a dynamic live wait text indicator such as 'Average delivery today: 12 mins' directly next to the checkout pricing label."
+        }
+      ]
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Fix date selector button states",
+      "why": "At 0:12, the 'Yesterday' button visually reads as disabled, which could prevent users seeking retrospective medical certs from completing their purchase.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Remove blank loading skeletons",
+      "why": "At 0:11, the harsh gray transition skeletons create perceived lag, breaking the premium 'instant' promise of the service.",
+      "estimated_impact": "medium"
+    },
+    {
+      "action": "Optimize certificate type selectors layout for mobile",
+      "why": "At 0:15, the side-by-side buttons are too cramped, increasing mobile interaction difficulty and error rates.",
+      "estimated_impact": "high"
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "summary": "The login page presents a functional but visually cluttered form interface that leans toward generic healthtech rather than a premium, Stripe-grade experience. The visual hierarchy suffers from a cramped layout in the header block, while key signature brand assets and micro-interactions are entirely absent.",
+  "overall_score": 5,
+  "categories": {
+    "brand_spine": {
+      "score": 4,
+      "observation": "The core brand identity 'Faster than your GP' is completely absent from the login screen, replaced with standard sign-in elements and generic trust signals.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 2,
+          "issue": "The '837+ Australians' trust badge feels generic and cheapens the premium, healthcare-first clinical tone.",
+          "recommendation": "Remove this marketing-style trust badge from the sign-in flow for existing, authenticated users to preserve a clinical, clean space."
+        }
+      ]
+    },
+    "typography": {
+      "score": 5,
+      "observation": "While the primary sans-serif face reads cleanly, the styling of auxiliary links lacks high-contrast legibility and hierarchy restraint.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 2,
+          "issue": "The 'Forgot password?' link uses a small, low-contrast grey font that fails AAA accessibility guidelines.",
+          "recommendation": "Increase the font-size of 'Forgot password?' to 14px and darken the color value to match the secondary button text."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 4,
+      "observation": "The primary 'Sign in' button uses a desaturated periwinkle-blue instead of the direct, highly confident brand blue, weakening the conversion action.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 2,
+          "issue": "The primary button color looks washed out and lacks the premium punch of Stripe or Pilot's direct colorways.",
+          "recommendation": "Change the background color of the 'Sign in' button to the primary brand blue #2563EB and ensure text remains high-contrast white."
+        }
+      ]
+    },
+    "motion": {
+      "score": 2,
+      "observation": "The interface is entirely static during transition and rendering, completely missing the signature brand motion systems.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 1,
+          "issue": "The page lacks the signature ivory-to-dawn gradient sweep on entry, making the transition feel sudden and unpolished.",
+          "recommendation": "Apply the signature ivory-to-dawn CSS gradient transition over a 400ms ease-in-out curve on initial wrapper mount."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 5,
+      "observation": "The copy on this page is standard template-level jargon without the unhurried GP voice characteristic of the core brand guidelines.",
+      "findings": [
+        {
+          "severity": 1,
+          "timestamp_seconds": 2,
+          "issue": "The subtitle 'Sign in to your account' is generic and adds zero branded personality.",
+          "recommendation": "Rewrite the subtitle to something brief and calming, such as 'Let's get you back to your care.' to mirror Mosh's warm tone."
+        }
+      ]
+    },
+    "hierarchy_and_layout": {
+      "score": 4,
+      "observation": "Vertical spacing is heavily compressed inside the central login card, making the input layout feel cramped.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 2,
+          "issue": "The trust icons, stars, and counter are crammed too close directly beneath the subtitle, forcing visual noise onto the user's focus point.",
+          "recommendation": "Increase the bottom margin of the 'Sign in to your account' subtitle to at least 16px if keeping the trust indicators, or ideally remove them to let the fields breathe."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 6,
+      "observation": "The presence of a clear 'Email me a sign-in link' passwordless entry option reduces login friction considerably.",
+      "findings": []
+    },
+    "signature_devices": {
+      "score": 2,
+      "observation": "No signature devices like the real-time wait-counter or clinician signatures are integrated to validate the 'Faster than your GP' promise.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 2,
+          "issue": "The login page lacks any real-time feedback demonstrating current platform wait-times to motivate returning patients.",
+          "recommendation": "Add a small, quiet live wait-counter to the bottom footer of the card showing 'Average prescription update today: 8 minutes'."
+        }
+      ]
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Remove the generic trust badge block ('837+ Australians' and stars) from the sign-in modal.",
+      "why": "It clutters the vertical grid of the form header and feels cheap, serving no conversion purpose for returning users who have already converted.",
+      "estimated_impact": "medium"
+    },
+    {
+      "action": "Swap the desaturated blue button background for the primary #2563EB brand blue.",
+      "why": "It establishes immediate visual dominance for the primary path (Sign in) versus the secondary options (Google and Magic Link).",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Increase size and contrast of the 'Forgot password?' anchor link.",
+      "why": "It currently fails basic readability requirements on mobile viewports, introducing unnecessary friction for users struggling with credentials.",
+      "estimated_impact": "medium"
+    }
+  ]
+}

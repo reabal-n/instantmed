@@ -1,0 +1,84 @@
+{
+  "summary": "InstantMed sets an exceptionally high standard for regulated healthtech landing pages, easily matching the reference bar set by Pilot and Stripe. The visual hierarchy, clear pricing anchors, and localized Australian trust badges (AHPRA, ADHA) make for an immediate premium and highly credible brand experience.",
+  "overall_score": 9,
+  "categories": {
+    "brand_spine": {
+      "score": 9,
+      "observation": "Extremely credible presentation that instantly communicates trust, professional medical governance, and rapid turnaround speed without feeling transactional.",
+      "findings": []
+    },
+    "typography": {
+      "score": 9,
+      "observation": "Plus Jakarta Sans headers stand out beautifully with clear scale hierarchy, though some long-form paragraphs could benefit from slightly looser leading on mobile.",
+      "findings": [
+        {
+          "severity": 1,
+          "timestamp_seconds": 2,
+          "issue": "The hero's body copy feels a bit dense on narrow mobile viewports due to tight line-height.",
+          "recommendation": "Increase line-height of the body text to 1.5rem within components/Hero.tsx on viewports smaller than 640px."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 9,
+      "observation": "The use of soft warm ivory background, pristine white cards, and calculated blue primary buttons delivers perfect calm reassurance.",
+      "findings": []
+    },
+    "motion": {
+      "score": 8,
+      "observation": "Good structural layout animations. The transition on step-states is clear but could feel more fluid.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 5,
+          "issue": "The interactive step checkmark updates abruptly inside the process card animation.",
+          "recommendation": "Apply a 200ms ease-in-out opacity and scale transition to state badge changes within the StepsCard component."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 10,
+      "observation": "Outstanding copy that avoids any artificial tech hype, communicates directly using Australian terms, and addresses doctor reviews in a reassuring clinical tone.",
+      "findings": []
+    },
+    "hierarchy_and_layout": {
+      "score": 8,
+      "observation": "Rhythm is excellent with clear, distinct section changes. The sticky footer bar remains legible and highly useful throughout scrolling.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 10,
+          "issue": "The side-by-side comparative table columns feel slightly squeezed on narrow viewports.",
+          "recommendation": "Introduce a slight negative margin or stack the grid elements on mobile viewports under 375px wide in the ComparisonSection."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 9,
+      "observation": "Extremely low friction. Pricing transparency is placed right inside the main triggers, backed with solid trust markers immediately adjacent to the primary CTA.",
+      "findings": []
+    },
+    "signature_devices": {
+      "score": 9,
+      "observation": "Excellent implementation of signature brand devices, including the handwritten doctor's signature in the footer and the persistent average response wait time counter.",
+      "findings": []
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Add smooth opacity transitions to the interactive steps card animation.",
+      "why": "The sudden jumping of checked states on the review process card at 0:05 breaks the illusion of a highly polished physical interface.",
+      "estimated_impact": "medium"
+    },
+    {
+      "action": "Increase line-height of body copy globally on mobile viewports.",
+      "why": "Improves overall readability on the hero card and other primary info paragraphs, ensuring key compliance disclosures are easily digestible.",
+      "estimated_impact": "low"
+    },
+    {
+      "action": "Adapt the Comparison columns to stack vertically on extremely narrow screens.",
+      "why": "Prevents awkward line breaks inside the comparison list at 0:10 on smaller devices.",
+      "estimated_impact": "medium"
+    }
+  ]
+}

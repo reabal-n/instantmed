@@ -1,0 +1,84 @@
+{
+  "summary": "InstantMed is an exceptional telehealth landing page that exhibits extreme care in trust signals, risk reversals, and conversion pathways. It sits very close to the reference bar set by Pilot, successfully combining clinical seriousness with high-converting modern web design. The integration of local compliance stacks, direct pricing, and interactive previews provides an immediate sense of reliability.",
+  "overall_score": 8,
+  "categories": {
+    "brand_spine": {
+      "score": 8,
+      "observation": "The value proposition 'Faster than your GP' is immediately clear and reinforced by authentic Australian trust indicators like AHPRA, Medicare, and Stripe.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 0.5,
+          "issue": "A noticeable visual layout shift clips the primary hero heading 'Faster than your GP' momentarily as the page loads.",
+          "recommendation": "Adjust CSS containment and min-height on the hero container to prevent layout shifts during font or initial page rendering."
+        }
+      ]
+    },
+    "typography": {
+      "score": 8,
+      "observation": "Clean hierarchy with highly readable sans-serif typography that feels spacious on small mobile viewports.",
+      "findings": []
+    },
+    "color_and_surface": {
+      "score": 8,
+      "observation": "An elegant pale ivory/off-white background color creates a calming clinical surface, with sharp high-contrast blue CTAs.",
+      "findings": []
+    },
+    "motion": {
+      "score": 8,
+      "observation": "Interactive dynamic mockups simulating the diagnostic form and review steps provide physical, tactile trust.",
+      "findings": []
+    },
+    "copy_voice": {
+      "score": 9,
+      "observation": "Direct, empathetic, and professional copy with explicit pricing and terms. Excellent local Australian localization ('carer's leave').",
+      "findings": []
+    },
+    "hierarchy_and_layout": {
+      "score": 7,
+      "observation": "Visual flow is logical, but some mobile-specific alignment choices cut into layout safety margins.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 5.5,
+          "issue": "The 'Most popular' badge sits too close to the upper boundary of the Medical Certificates card, resulting in awkward spacing.",
+          "recommendation": "Increase top padding of the Medical Certificates card container in the services grid component to give the overflow badge breathing room."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 8,
+      "observation": "Clear, upfront pricing with direct conversion paths per condition card and robust risk-reversal microcopy directly beneath buttons.",
+      "findings": [
+        {
+          "severity": 1,
+          "timestamp_seconds": 24.5,
+          "issue": "The light/dark appearance toggle inside the navigation drawer is small and hard to tap reliably.",
+          "recommendation": "Increase the interactive touch target size of the theme toggle to at least 44x44px within the menu drawer."
+        }
+      ]
+    },
+    "signature_devices": {
+      "score": 9,
+      "observation": "Superb inclusion of signature brand elements such as the live dynamic doctor review counter, hand-drawn signature, and explicit 'What we won't do' link.",
+      "findings": []
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Resolve hero header layout shift",
+      "why": "At 00:00, the main headline text is clipped on initial render, which degrades trust on the initial page load.",
+      "estimated_impact": "medium"
+    },
+    {
+      "action": "Increase padding above 'Most popular' badge",
+      "why": "At 00:05, the overflow badge on the Medical Certificates card looks visually crowded and poorly aligned on mobile viewports.",
+      "estimated_impact": "low"
+    },
+    {
+      "action": "Improve touch target of mobile menu appearance toggle",
+      "why": "At 00:24, the theme toggle switch lacks standard mobile spacing, posing potential accessibility and interactive friction.",
+      "estimated_impact": "low"
+    }
+  ]
+}

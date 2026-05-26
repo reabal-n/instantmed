@@ -1,0 +1,98 @@
+{
+  "summary": "InstantMed achieves an impressively clean, direct, and high-trust telehealth surface that holds its own against direct Australian competitors. The copy is exceptionally calibrated to a calm, clinical voice with transparent pricing and refund policies. The primary opportunities lie in optimizing the mobile viewport layout to prevent CTAs from falling below the fold and introducing more dynamic signature brand devices.",
+  "overall_score": 8,
+  "categories": {
+    "brand_spine": {
+      "score": 7,
+      "observation": "The direct focus on treating 'four things, properly' establishes excellent clarity, but the core brand promise and tagline are not immediately prominent.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 3,
+          "issue": "The signature brand tagline 'Faster than your GP' is missing from the hero context.",
+          "recommendation": "Integrate 'Faster than your GP' as a prominent pre-header kicker above the primary headline in the hero section."
+        }
+      ]
+    },
+    "typography": {
+      "score": 8,
+      "observation": "Clear hierarchy with excellent modern geometric sans-serif styling, but minor inline formatting challenges present a dense experience on small mobile screens.",
+      "findings": [
+        {
+          "severity": 1,
+          "timestamp_seconds": 4,
+          "issue": "The horizontal price tier list for 1/2/3 days on the Medical certificate card is visually cramped and hard to read.",
+          "recommendation": "Convert the plain-text inline dash sequence into a small horizontal badge row component."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 9,
+      "observation": "The warm ivory background and white-on-ivory card layout feels reassuringly calm, premium, and distinct from sterile white platforms.",
+      "findings": []
+    },
+    "motion": {
+      "score": 6,
+      "observation": "The interactive accordion transitions smoothly, but the initial page load starts with an abrupt blank white flash.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 0,
+          "issue": "A white screen flash occurs for nearly three seconds before the warm page style renders.",
+          "recommendation": "Implement the signature ivory-to-dawn gradient sweep animation on mount and optimize initial bundle load sequence."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 10,
+      "observation": "Exceptional unhurried tone that perfectly matches a professional GP. The copy avoids buzzwords and lists prices immediately.",
+      "findings": []
+    },
+    "hierarchy_and_layout": {
+      "score": 7,
+      "observation": "The vertical rhythm on desktop is solid, but the mobile viewport elements are too tall, hiding action triggers on page entry.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 3,
+          "issue": "The primary 'Start a certificate' CTA button is pushed entirely below the fold on standard mobile viewport sizes.",
+          "recommendation": "Compact card padding and reduce vertical margin on mobile layout to ensure primary CTAs remain visible above 640px height."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 9,
+      "observation": "Outstanding, friction-free conversion paths with direct steps outlined and refund policies placed directly adjacent to action buttons.",
+      "findings": []
+    },
+    "signature_devices": {
+      "score": 6,
+      "observation": "The page relies mostly on static clinical bullet points and misses the opportunity to display live, dynamic system status indicators.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 3,
+          "issue": "The core live wait-counter signature device is missing, reducing the perceived speed of the service.",
+          "recommendation": "Incorporate a live status badge (e.g., 'Average review time: 14 mins') directly below the main card headers."
+        }
+      ]
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Eliminate the initial loading flash",
+      "why": "The transition from a blank white screen to the ivory base at 0:00-0:03 disrupts the premium feel; applying the page-entry gradient sweep maintains brand immersion.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Compact mobile spacing to pull CTA above the fold",
+      "why": "On mobile devices, the first 'Start a certificate' action button is hidden below the scroll fold, increasing initial interaction friction.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Add a dynamic live wait-time badge",
+      "why": "Swapping the static '1-2h target' copy for a dynamic average wait time adds instant credibility and validates the 'Faster than your GP' branding.",
+      "estimated_impact": "medium"
+    }
+  ]
+}

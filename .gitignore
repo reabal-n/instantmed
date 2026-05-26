@@ -73,6 +73,7 @@ storybook-static
 
 # Audit/debug screenshots
 *.png
+!docs/reviews/**/frames/*.png
 !public/branding/*.png
 !public/logos/*.png
 !public/images/**/*.png

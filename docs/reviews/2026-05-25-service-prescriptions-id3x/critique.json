@@ -1,0 +1,118 @@
+{
+  "summary": "InstantMed delivers a clear value proposition with immediately visible pricing and strong trust anchors, mimicking the conversion confidence of Pilot. However, the experience is severely undercut by clinical grey gradients, flat motion design, and a critical data-binding bug in the sticky footer wait-time estimator. Resolving these visual and technical inconsistencies will quickly elevate the product from generic healthtech to a premium service.",
+  "overall_score": 6,
+  "categories": {
+    "brand_spine": {
+      "score": 6,
+      "observation": "The brand thesis is present, and trust badges are heavily featured, but the overall presentation lacks the high-end premium warmth found in direct AU competitors like Mosh.",
+      "findings": []
+    },
+    "typography": {
+      "score": 7,
+      "observation": "Plus Jakarta Sans and Source Sans 3 are set with reasonable hierarchy on mobile, though line heights are occasionally too dense.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "The 'Need repeat scripts every month?' card body copy is excessively dense and lacks optimal line-height for quick scanning on mobile devices.",
+          "recommendation": "Increase line-height to 1.5rem and add a 12px margin-bottom below the heading inside the repeat scripts alert card."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 5,
+      "observation": "The application relies on a sterile, clinical light-grey and blue gradient system rather than a premium, calming warm ivory base color, making it look generic.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 4,
+          "issue": "The hero background uses a cold, clinical light-blue gradient that fails the premium organic warmth of the target warm ivory theme.",
+          "recommendation": "Set the global body background color to a warm ivory (#F8F7F4) to immediately soften the visual anxiety of a clinical service."
+        },
+        {
+          "severity": 2,
+          "timestamp_seconds": 21,
+          "issue": "The health conditions grid features saturated, multi-color gradient borders (pink, orange, green) that disrupt the intentional restraint of the brand palette.",
+          "recommendation": "Simplify condition card borders to a uniform light grey or subtle sky-blue shadow, reserving brand accent colors exclusively for primary conversion elements."
+        }
+      ]
+    },
+    "motion": {
+      "score": 4,
+      "observation": "Page transition and scrolling are completely flat with mechanical, linear easing curves that lack physics or polish.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 3,
+          "issue": "The side navigation drawer slides in with a linear, mechanical easing curve that lacks a premium spring-like deceleration.",
+          "recommendation": "Update the CSS transition on the side menu drawer to 'transform 350ms cubic-bezier(0.16, 1, 0.3, 1)' to mimic native iOS sheet transitions."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 5,
+      "observation": "The copy is straightforward and pricing is transparent, but a critical system bug displays confusing and unprofessional data output.",
+      "findings": [
+        {
+          "severity": 5,
+          "timestamp_seconds": 10,
+          "issue": "The sticky footer displays a negative average response time ('Avg response: -44 min') which immediately breaks medical credibility.",
+          "recommendation": "Add a Math.abs() wrapper or a absolute value check in the sticky footer calculation script to prevent negative time intervals from rendering."
+        }
+      ]
+    },
+    "hierarchy_and_layout": {
+      "score": 7,
+      "observation": "The layout is well-composed for a 375px viewport with a prominent CTA, but interactive signals are occasionally misleading.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 8,
+          "issue": "The trust badges ('No appointment', 'Secure form first') look identical to clickable pill-buttons, leading to user confusion.",
+          "recommendation": "Remove arrow icons and heavy borders from these static indicators to clearly signal they are labels, not interactive CTAs."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 8,
+      "observation": "Friction is low with immediate path choices, clear upfront pricing, and a strong money-back guarantee prominently positioned next to buttons.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 11,
+          "issue": "The 'New prescription' pricing tier card lacks an inline CTA button, leaving the user with no direct path to proceed for that specific option.",
+          "recommendation": "Add a secondary, outline-styled 'Get started' button directly inside the New Prescription card to balance the Renew Medication card."
+        }
+      ]
+    },
+    "signature_devices": {
+      "score": 6,
+      "observation": "The handwritten doctor signature in the footer is a nice touch, but the dynamic response time-counter is compromised.",
+      "findings": [
+        {
+          "severity": 4,
+          "timestamp_seconds": 25,
+          "issue": "The live time-saved estimator table compares static numbers rather than presenting a real-time reactive interface.",
+          "recommendation": "Inject dynamic location-based data (e.g. 'Estimated GP wait in Sydney today') to make the static comparison table feel interactive and urgent."
+        }
+      ]
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Fix negative response time value in sticky footer.",
+      "why": "The sticky banner currently outputs 'Avg response: -44 min' across the entire scroll, presenting a broken system state that actively destroys clinical trust.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Migrate background styling to warm ivory (#F8F7F4).",
+      "why": "The cold blue-grey gradient styling feels sterile and resembles cheap, generic templates rather than a high-end telehealth service like Mosh.",
+      "estimated_impact": "medium"
+    },
+    {
+      "action": "Add dedicated CTA button to the New Prescription pricing tier card.",
+      "why": "Currently, only the Repeat Prescription card has a clear next-step button, creating an immediate UX dead-end for users looking to start a new medication.",
+      "estimated_impact": "high"
+    }
+  ]
+}

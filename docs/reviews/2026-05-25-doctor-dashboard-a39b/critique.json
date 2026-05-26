@@ -1,0 +1,112 @@
+{
+  "summary": "The login interface presents a clean, functional layout, but it relies heavily on generic auth UI patterns that fail to signal a premium, custom healthtech experience. While localizing with 'Australians' is a strong touch, the lack of signature brand surfaces and competing secondary actions dilute the visual hierarchy.",
+  "overall_score": 5,
+  "categories": {
+    "brand_spine": {
+      "score": 5,
+      "observation": "The auth screen is highly transactional and completely lacks the premium personality, taglines, or GP-led warmth found in the reference sites.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 9,
+          "issue": "The screen does not carry any of the core brand promises or InstantMed identity, reading like any standard SaaS template.",
+          "recommendation": "Integrate a subtle, reassuring brand touchpoint or a micro-copy reminder of the platform's speed below the 'Welcome back' heading."
+        }
+      ]
+    },
+    "typography": {
+      "score": 6,
+      "observation": "The typography scale is legible, but spacing in the header and input zones feels compressed on the 375px mobile viewport.",
+      "findings": [
+        {
+          "severity": 1,
+          "timestamp_seconds": 10,
+          "issue": "The trust badge text '837+ Australians' is crammed tightly underneath the tiny security icons, making it difficult to scan.",
+          "recommendation": "Increase letter-spacing slightly and add 4px of horizontal padding between the icons and the text label."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 5,
+      "observation": "The canvas background lacks the signature warm ivory depth, reverting to a default sterile grey/white environment.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 9,
+          "issue": "The container background looks like a standard flat light grey instead of the reassuring warm ivory #F8F7F4, making the surface feel cold.",
+          "recommendation": "Apply the brand's #F8F7F4 warm ivory color to the viewport background and define the card's elevation using sky-toned subtle drop-shadows."
+        }
+      ]
+    },
+    "motion": {
+      "score": 4,
+      "observation": "No transitions or interactive focus state animations are demonstrated, resulting in a static, rigid feeling screen load.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 9,
+          "issue": "The page lacks a signature entering transition, making the jump from loading state to the card feel abrupt.",
+          "recommendation": "Add a subtle 300ms ease-out lift transition to the main login card on initial mount."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 7,
+      "observation": "The voice is direct and avoids banned marketing jargon, making effective localized use of 'Australians' to establish trust.",
+      "findings": []
+    },
+    "hierarchy_and_layout": {
+      "score": 5,
+      "observation": "The visual hierarchy is cluttered by secondary auth methods that share the exact same height and structural prominence as the primary CTA.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 10,
+          "issue": "The 'Email me a sign-in link' and 'Continue with Google' buttons compete heavily for visual attention with the primary 'Sign in' action.",
+          "recommendation": "Use outline styles or icon-only layouts for secondary OAuth providers, ensuring the primary blue Sign-in button stands out clearly."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 6,
+      "observation": "Standard fields are easy to target, but tight layout spacing increases the likelihood of mis-taps on mobile devices.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 10,
+          "issue": "The 'Forgot password?' link is placed too close to the password input boundary, posing a mis-tap risk.",
+          "recommendation": "Increase the top margin of the 'Forgot password?' link container to at least 12px for better tap target separation."
+        }
+      ]
+    },
+    "signature_devices": {
+      "score": 5,
+      "observation": "Aside from the localized trust badge, none of the brand's distinctive elements like live wait-counters or doctor sign-offs are leveraged here.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 9,
+          "issue": "No reassuring wait-time metrics are presented to ease patient entry or encourage password completion.",
+          "recommendation": "Place a small, real-time indicator at the bottom of the card showing current doctor availability to encourage fast login completion."
+        }
+      ]
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Restructure the secondary login buttons.",
+      "why": "The Magic Link and Google login options visually compete with the primary 'Sign in' CTA, causing choice paralysis.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Update layout colors to the warm ivory brand palette.",
+      "why": "The current generic light grey color palette makes the screen look like generic corporate software rather than a warm, trustworthy medical interface.",
+      "estimated_impact": "medium"
+    },
+    {
+      "action": "Increase tap target spacing around links.",
+      "why": "The proximity of 'Forgot password?' to the password input field presents high friction for mobile-first users.",
+      "estimated_impact": "medium"
+    }
+  ]
+}

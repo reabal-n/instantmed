@@ -1,0 +1,119 @@
+{
+  "summary": "The InstantMed login experience feels like a generic, off-the-shelf SaaS template rather than a premium, high-trust Australian telehealth service. It completely lacks brand identification, distinctive signature devices, and the warm, reassuring color palette typical of world-class telehealth competitors.",
+  "overall_score": 4,
+  "categories": {
+    "brand_spine": {
+      "score": 4,
+      "observation": "There is a complete absence of the InstantMed logo or brand name, making the entry point feel anonymous and untrustworthy.",
+      "findings": [
+        {
+          "severity": 4,
+          "timestamp_seconds": 1.5,
+          "issue": "The login page does not display the InstantMed brand name or logo, missing an essential trust-building touchpoint.",
+          "recommendation": "Introduce a clear, high-resolution brand mark or wordmark at the top of the white card container."
+        }
+      ]
+    },
+    "typography": {
+      "score": 6,
+      "observation": "The typography hierarchy is generally clear but lacks breathing room around the secondary social proof elements.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 2,
+          "issue": "The social proof line is crammed too close to the sub-headline with insufficient vertical spacing.",
+          "recommendation": "Increase the margin-top above the social proof group to at least 16px to let the copy breathe."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 5,
+      "observation": "The primary CTA button uses a desaturated, low-contrast periwinkle blue instead of a confident, premium primary brand color.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 1,
+          "issue": "The primary 'Sign in' button lacks visual weight and proper brand alignment due to its desaturated periwinkle-blue background.",
+          "recommendation": "Update the primary CTA color to a vibrant, high-contrast primary blue (#2563EB) to establish visual confidence."
+        }
+      ]
+    },
+    "motion": {
+      "score": 2,
+      "observation": "The experience is entirely static with no sign of the brand's expected signature entering transitions or CTA hover interactions.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 5,
+          "issue": "There are no transitions, skeleton loading states, or reactive hover lifts on primary actions.",
+          "recommendation": "Apply a 300ms ease-out lift transition on the 'Sign in' hover state to mimic physical interaction."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 5,
+      "observation": "The social proof copy feels arbitrary and lacks the professional, reassuring voice of a clinical service.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 1,
+          "issue": "The phrase '837+ Australians' with star icons feels like a generic e-commerce dropshipping banner.",
+          "recommendation": "Refine copy to 'Trusted by 837+ patients today' to sound more professional and reassuring."
+        }
+      ]
+    },
+    "hierarchy_and_layout": {
+      "score": 5,
+      "observation": "The login flow presents too many competing authentication pathways on a single, cramped interface.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 3,
+          "issue": "Offering password login, magic link email, and Google sign-in stacked vertically creates cognitive overload.",
+          "recommendation": "De-emphasize the 'Email me a sign-in link' button by turning it into a text link or tertiary style."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 4,
+      "observation": "The alternative pathways slow down returning users who just want to access their dashboard.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 2.5,
+          "issue": "The multiple alternative options distract from the primary email and password inputs.",
+          "recommendation": "Simplify the card layout to focus primarily on username/password, with a single secondary tab for social login."
+        }
+      ]
+    },
+    "signature_devices": {
+      "score": 3,
+      "observation": "None of the signature brand elements like live wait counters or doctor guarantees are present to reinforce the platform's speed promise.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 1,
+          "issue": "The promise of 'Faster than your GP' is completely missing at this key access point.",
+          "recommendation": "Add a subtle wait-time indicator above the card (e.g., 'Avg. response time: 14 mins') to reassure returning users."
+        }
+      ]
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Add InstantMed brand mark",
+      "why": "The auth screen is currently anonymous; introducing the logo instantly establishes security and authority.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Change CTA color to #2563EB",
+      "why": "The current faded periwinkle button looks weak and lacks the premium conversion confidence of direct competitors.",
+      "estimated_impact": "medium"
+    },
+    {
+      "action": "Simplify secondary auth methods",
+      "why": "Reducing the layout density from three stacked button options down to a primary email form minimizes cognitive load.",
+      "estimated_impact": "medium"
+    }
+  ]
+}

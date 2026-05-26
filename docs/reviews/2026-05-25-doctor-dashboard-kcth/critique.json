@@ -1,0 +1,112 @@
+{
+  "summary": "While InstantMed delivers clean copywriting and starts with a strong brand thesis ('Faster than your GP'), the conversion flow is crippled by a premature sign-in gate that blocks access to the clinical form. Serious mobile layout collisions between trust indicators and dynamic pills further degrade the premium feel of the experience.",
+  "overall_score": 5,
+  "categories": {
+    "brand_spine": {
+      "score": 7,
+      "observation": "The brand core 'Telehealth without the small talk' is delivered confidently in the hero section, landing successfully with the 'Faster than your GP' tagline.",
+      "findings": []
+    },
+    "typography": {
+      "score": 7,
+      "observation": "The font scaling on Plus Jakarta Sans looks solid, but the body paragraphs are set slightly too dense on mobile viewports, making the AHPRA disclaimer text feel cramped.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 1,
+          "issue": "The body copy block underneath the subtitle has dense line-height and tight tracking, making the key AHPRA-registered text difficult to scan on mobile.",
+          "recommendation": "Increase the line-height of the body text to 1.5rem (24px) and add subtle letter-spacing to improve readability."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 6,
+      "observation": "While the warm ivory background renders nicely on the home screen, the Sign In screen loses this warmth and transitions to a generic cool-gray palette.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 11,
+          "issue": "The Sign In button uses a desaturated, washed-out purple/blue instead of the confident, high-contrast primary brand blue (#2563EB) seen on the home screen.",
+          "recommendation": "Unify the primary button styles by utilizing the high-contrast brand blue (#2563EB) for the Sign In action on the login screen."
+        }
+      ]
+    },
+    "motion": {
+      "score": 5,
+      "observation": "Transitions between major viewports feel basic and unpolished, featuring a jarring blank screen lag instead of fluid transitions.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 8,
+          "issue": "A prolonged, completely blank white screen appears for nearly two seconds when transitioning from the landing page to the login flow.",
+          "recommendation": "Implement a lightweight skeleton loader or an ivory-to-dawn gradient sweep to mask the network transition latency."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 6,
+      "observation": "The clinical voice feels reassuring and direct, but is missing critical price anchoring and refund terms in the hero copy.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 1,
+          "issue": "The landing page copy fails to mention pricing or the standard 'Full refund if our doctor can't help' conversion guarantee.",
+          "recommendation": "Append small microcopy below the 'Get started' CTA: 'Form takes 3 mins. Full refund if we can't assist.'"
+        }
+      ]
+    },
+    "hierarchy_and_layout": {
+      "score": 5,
+      "observation": "The visual structure breaks down on mobile viewports, causing critical trust indicators to overlap and look cluttered.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 2,
+          "issue": "The dynamic slide-up pills ('Medical certificate Approved' and 'eScript sent') overlap and obscure the secondary 'Doctor review' trust badges.",
+          "recommendation": "Apply a safe-area margin or adjust the absolute positioning of the dynamic overlay container to sit cleanly below the static trust text."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 3,
+      "observation": "The product forces an immediate authentication gate right after the primary call-to-action, frustrating time-poor users expecting an instant form.",
+      "findings": [
+        {
+          "severity": 5,
+          "timestamp_seconds": 11,
+          "issue": "Clicking 'Get started' hits a hard wall requiring users to sign in or sign up before they can see or interact with the clinical intake form.",
+          "recommendation": "Defer sign-up entirely. Let users complete the 3-minute form first and prompt for account creation at the final submit step."
+        }
+      ]
+    },
+    "signature_devices": {
+      "score": 6,
+      "observation": "The live wait-counter device ('Last reviewed 14 min ago') is present but feels static and isolated from the core CTA.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 1,
+          "issue": "The platform lacks a highly specific live wait-counter near the CTA to prove real-time velocity.",
+          "recommendation": "Replace the static 'Last reviewed' label with a live metrics string: 'Average cert sent in 14 minutes today'."
+        }
+      ]
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Defer the login wall past the clinical form",
+      "why": "At 00:11, forcing immediate login creates a high-friction gate. Postponing this to the end of the form will dramatically raise conversion rates.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Resolve mobile layout overlaps",
+      "why": "At 00:02, the animated notification pills overlap and obscure secondary trust badges, making the landing page look broken on mobile devices.",
+      "estimated_impact": "medium"
+    },
+    {
+      "action": "Add explicit price anchoring and guarantees",
+      "why": "At 00:01, there is zero mention of pricing or the refund policy near the main CTAs, which hurts trust on high-anxiety patient surfaces.",
+      "estimated_impact": "high"
+    }
+  ]
+}

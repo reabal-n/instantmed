@@ -1,0 +1,84 @@
+{
+  "summary": "InstantMed presents a highly competitive, trust-focused telehealth experience that rivals premium direct-to-consumer healthcare platforms. The site combines clear, patient-centric copy with transparent pricing and essential trust anchors. However, the premium aesthetic is slightly undermined mid-page by a cluttered SEO keyword tag cloud and minor typographic polishing details.",
+  "overall_score": 8,
+  "categories": {
+    "brand_spine": {
+      "score": 8,
+      "observation": "The brand's promise of effortless, video-free medical certificates is instantly visible. The interface successfully balances the clinical authority of Pilot with the approachable warmth of Mosh, establishing strong institutional trust within the first five seconds.",
+      "findings": []
+    },
+    "typography": {
+      "score": 7,
+      "observation": "The font selection of Plus Jakarta Sans delivers a clean, modern aesthetic. However, word wrapping on narrower viewports leads to awkward line breaks and hyphenated medical terminology.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 1,
+          "issue": "The core medical authority term 'AHPRA-registered' breaks awkwardly across lines in the hero description.",
+          "recommendation": "Use a non-breaking hyphen (U+2011) or wrap the term in a CSS white-space span inside the landing page copy component."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 8,
+      "observation": "The warm off-white background maintains a premium, reassuring look that avoids clinical coldness. Shadow styling on primary white card elements creates distinct but subtle visual layers.",
+      "findings": []
+    },
+    "motion": {
+      "score": 6,
+      "observation": "Page transitions are clean and responsive, but lack the physical fluid weight and micro-interaction polish typical of Stripe or Linear products.",
+      "findings": []
+    },
+    "copy_voice": {
+      "score": 9,
+      "observation": "Exceptional clarity that speaks directly to a sick user. Avoids industry buzzwords, maintains a professional Australian English tone, and places the core $19.95 pricing structure front and center.",
+      "findings": []
+    },
+    "hierarchy_and_layout": {
+      "score": 7,
+      "observation": "Top and bottom sections feel highly refined with standard spacing. However, the mid-page section containing certificate variant options and search terms looks cluttered and unaligned.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 14.5,
+          "issue": "The popular searches and location pill tag block is visually noisy, resembling a generic directory page.",
+          "recommendation": "Redesign this directory block into a clean, search-expandable component or a stylized list to maintain the landing page's premium feel."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 8,
+      "observation": "Friction is minimized by transparent upfront pricing and a clear path to action, but the dual day/pricing selector before the flow starts might trigger choice paralysis.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 10,
+          "issue": "Presenting price and day variations immediately before the form starts complicates the conversion pathway.",
+          "recommendation": "Default the primary landing CTA to the standard 1-day certificate and defer multi-day configurations into the step-by-step intake wizard."
+        }
+      ]
+    },
+    "signature_devices": {
+      "score": 9,
+      "observation": "The application makes excellent use of essential Trust Devices, including the footer's handwritten doctor signature, the live response duration timer, and the explicit list of what conditions are not covered.",
+      "findings": []
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Redesign the SEO Tag Cloud Section",
+      "why": "The location and category tag pills at 00:14 look messy and detract from the premium, professional atmosphere of the site.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Implement CSS White-Space Wrapping on Medical Key Terms",
+      "why": "Awkward word-wrapping of clinical credentials in the hero block (00:01) impacts professionalism and layout structure.",
+      "estimated_impact": "low"
+    },
+    {
+      "action": "Simplify the Pre-Intake Configuration Selector",
+      "why": "Eliminating the day-selector choices (00:10) on the landing page removes decision-making steps, letting users enter the conversion funnel faster.",
+      "estimated_impact": "medium"
+    }
+  ]
+}
