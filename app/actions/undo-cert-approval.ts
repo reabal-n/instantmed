@@ -15,8 +15,10 @@
  *   4. Revokes the issued certificate via the existing canonical action.
  *   5. Flips the intake back to in_review so it returns to the queue.
  *
- * The 30-second window matches `CERT_APPROVAL_UNDO_WINDOW_SECONDS` in
- * `lib/clinical/execute-cert-approval.ts`. Keep them in sync.
+ * The window length lives in `lib/clinical/undo-cert-window.ts` so the
+ * server action, the cert pipeline, and the client toast all read from a
+ * single non-server module. (Next.js forbids non-async exports from a
+ * "use server" file.)
  */
 
 import * as Sentry from "@sentry/nextjs"
@@ -29,12 +31,6 @@ import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("undo-cert-approval")
-
-/**
- * Public constant for the undo window length, exported so the client toast
- * countdown stays in lockstep with the server-side validation.
- */
-export const UNDO_WINDOW_SECONDS = 30
 
 export interface UndoCertApprovalInput {
   intakeId: string

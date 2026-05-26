@@ -41,7 +41,7 @@ describe("Cert delivery toast contract", () => {
 
   it("executeCertApproval surfaces emailScheduledFor so the caller can render the Undo countdown toast", () => {
     expect(executeCertApprovalSource).toMatch(/emailScheduledFor\?:\s*string/)
-    expect(executeCertApprovalSource).toMatch(/CERT_APPROVAL_UNDO_WINDOW_SECONDS/)
+    expect(executeCertApprovalSource).toMatch(/UNDO_CERT_WINDOW_SECONDS/)
   })
 
   it("review-actions shows the Undo countdown toast when emailStatus is scheduled", () => {

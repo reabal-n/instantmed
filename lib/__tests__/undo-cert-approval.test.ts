@@ -38,7 +38,8 @@ vi.mock("@/lib/data/intake-events", () => ({
 }))
 
 // Import AFTER mocks are registered
-import { UNDO_WINDOW_SECONDS,undoCertApprovalAction } from "@/app/actions/undo-cert-approval"
+import { undoCertApprovalAction } from "@/app/actions/undo-cert-approval"
+import { UNDO_CERT_WINDOW_SECONDS } from "@/lib/clinical/undo-cert-window"
 
 const DOCTOR_A = "doctor-aaa-1111"
 const DOCTOR_B = "doctor-bbb-2222"
@@ -132,7 +133,7 @@ describe("undoCertApprovalAction", () => {
   })
 
   it("exposes a 30-second undo window constant", () => {
-    expect(UNDO_WINDOW_SECONDS).toBe(30)
+    expect(UNDO_CERT_WINDOW_SECONDS).toBe(30)
   })
 
   it("revokes the cert, deletes the queued email, and flips intake back to in_review", async () => {

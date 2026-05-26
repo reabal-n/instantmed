@@ -2,11 +2,13 @@ import * as Sentry from "@sentry/nextjs"
 import crypto from "crypto"
 
 import { getPostHogClient, trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
+import { UNDO_CERT_WINDOW_SECONDS } from "@/lib/clinical/undo-cert-window"
 import { env } from "@/lib/config/env"
 import { ABN, COMPANY_ADDRESS, COMPANY_NAME, CONTACT_EMAIL,CONTACT_PHONE } from "@/lib/constants"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { buildPatientIntakeHref } from "@/lib/dashboard/routes"
 import { getDoctorIdentity } from "@/lib/data/doctor-identity"
+import { formatClaimWarning } from "@/lib/data/intake-lock-warning"
 import {
   atomicApproveCertificate,
   compareForEdits,
@@ -43,10 +45,11 @@ export interface ApproveCertResult {
   /** Patient email address the certificate was dispatched to (populated on success only). */
   emailSentTo?: string
   /**
-   * ISO timestamp when the deferred cert email will fire (UNDO_WINDOW_SECONDS
-   * after approval). Present only on doctor-manual approvals that queue the
-   * email through the dispatcher. NULL for auto-approval (no UI to undo) and
-   * for idempotent re-approvals (no new email queued).
+   * ISO timestamp when the deferred cert email will fire
+   * (UNDO_CERT_WINDOW_SECONDS after approval). Present only on doctor-manual
+   * approvals that queue the email through the dispatcher. NULL for
+   * auto-approval (no UI to undo) and for idempotent re-approvals (no new
+   * email queued).
    */
   emailScheduledFor?: string
 }
@@ -68,16 +71,15 @@ export interface ExecuteCertApprovalInput {
   aiApprovalReason?: string
 }
 
-/**
- * Doctor undo window after approving a med cert. The patient email is queued
- * with `scheduled_for = now() + UNDO_WINDOW_SECONDS`; the dispatcher waits
- * out the schedule before claiming the row. A doctor clicking Undo within
- * the window deletes the row and revokes the cert.
- *
- * Kept in sync with `app/actions/undo-cert-approval.ts UNDO_WINDOW_SECONDS`
- * via the contract test in `lib/__tests__/undo-cert-approval.test.ts`.
- */
-export const CERT_APPROVAL_UNDO_WINDOW_SECONDS = 30
+// Doctor undo window after approving a med cert. The patient email is queued
+// with `scheduled_for = now() + UNDO_CERT_WINDOW_SECONDS`; the dispatcher
+// waits out the schedule before claiming the row. A doctor clicking Undo
+// within the window deletes the row and revokes the cert.
+//
+// Single source of truth lives in `lib/clinical/undo-cert-window.ts` so the
+// server action, the cert pipeline, and the client toast all read the same
+// number (Next.js forbids non-async exports from "use server" files, hence
+// the dedicated module).
 
 // ============================================================================
 // CORE APPROVAL PIPELINE
@@ -171,13 +173,13 @@ export async function executeCertApproval(
     const claim = Array.isArray(claimResult) ? claimResult[0] : claimResult
 
     if (claimError || !claim?.success) {
-      const errorMsg = claim?.error_message || claimError?.message || "Failed to claim intake"
+      const operatorMessage = formatClaimWarning(claim, claimError?.message || "Failed to claim intake")
       logger.warn("Failed to claim intake for review", {
         intakeId,
-        claimError: errorMsg,
+        claimError: claim?.error_message || claimError?.message,
         currentClaimant: claim?.current_claimant
       })
-      return { success: false, error: errorMsg }
+      return { success: false, error: operatorMessage }
     }
   }
   // When skipClaim=true (auto-approval), we proceed without claiming.
@@ -510,8 +512,8 @@ export async function executeCertApproval(
   // app so certificate downloads stay ownership-checked and audit-logged.
   //
   // UNDO WINDOW: For doctor-manual approvals (skipClaim=false AND !aiApproved)
-  // we defer the email by CERT_APPROVAL_UNDO_WINDOW_SECONDS so the doctor can
-  // hit Undo inside that window. Auto-approval (aiApproved=true) sends
+  // we defer the email by UNDO_CERT_WINDOW_SECONDS so the doctor can hit
+  // Undo inside that window. Auto-approval (aiApproved=true) sends
   // immediately because there's no UI toast to undo. Idempotent re-approvals
   // already returned above without queueing a new email.
   Sentry.addBreadcrumb({ category: "cert.flow", message: "Sending patient email", level: "info", data: { intakeId, certificateId } })
@@ -519,7 +521,7 @@ export async function executeCertApproval(
 
   const deferEmail = !skipClaim && !aiApproved
   const emailScheduledFor = deferEmail
-    ? new Date(Date.now() + CERT_APPROVAL_UNDO_WINDOW_SECONDS * 1000).toISOString()
+    ? new Date(Date.now() + UNDO_CERT_WINDOW_SECONDS * 1000).toISOString()
     : undefined
 
   const emailResult = await sendEmail({

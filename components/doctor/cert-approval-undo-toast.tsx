@@ -9,17 +9,18 @@
  * deletes the queued email, revokes the cert, and flips the intake back to
  * in_review.
  *
- * Keep the countdown length in lockstep with:
- *   - `UNDO_WINDOW_SECONDS` in `app/actions/undo-cert-approval.ts`
- *   - `CERT_APPROVAL_UNDO_WINDOW_SECONDS` in `lib/clinical/execute-cert-approval.ts`
+ * The countdown length lives in `lib/clinical/undo-cert-window.ts` as
+ * `UNDO_CERT_WINDOW_SECONDS`, shared by the server action, the cert pipeline,
+ * and this client toast.
  */
 
 import { CheckCircle2, RotateCcw } from "lucide-react"
 import { useEffect, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
-import { UNDO_WINDOW_SECONDS,undoCertApprovalAction } from "@/app/actions/undo-cert-approval"
+import { undoCertApprovalAction } from "@/app/actions/undo-cert-approval"
 import { Button } from "@/components/ui/button"
+import { UNDO_CERT_WINDOW_SECONDS } from "@/lib/clinical/undo-cert-window"
 
 interface CertApprovalUndoToastProps {
   toastId: string | number
@@ -143,6 +144,6 @@ export function showCertApprovalUndoToast(opts: {
         onUndone={opts.onUndone}
       />
     ),
-    { duration: UNDO_WINDOW_SECONDS * 1000 },
+    { duration: UNDO_CERT_WINDOW_SECONDS * 1000 },
   )
 }
