@@ -17,6 +17,7 @@ import {
 } from "@/lib/auth/staff-capabilities"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { IntakeLifecycleError } from "@/lib/data/intake-lifecycle"
+import { formatClaimWarning } from "@/lib/data/intake-lock-warning"
 import {
   flagForFollowup,
   markAsReviewed,
@@ -625,13 +626,16 @@ export async function claimIntakeAction(
 
     const result = data?.[0]
     if (!result?.success) {
-      logger.info("[ClaimIntake] Intake already claimed", { 
-        intakeId, 
-        claimedBy: result?.current_claimant 
+      logger.info("[ClaimIntake] Intake already claimed", {
+        intakeId,
+        claimedBy: result?.current_claimant
       })
       return {
         success: false,
-        error: result?.error_message || "Intake already claimed",
+        // Mask the broken "( minutes remaining)" template when the System
+        // (Auto-Approve) actor holds the claim. Doctor-claim error messages
+        // and any other genuine RPC error fall through unchanged.
+        error: formatClaimWarning(result, "Intake already claimed"),
         claimedBy: result?.current_claimant
       }
     }
