@@ -66,7 +66,7 @@ async function clickChip(page: Page, label: string | RegExp) {
 
 /** Click the primary "Continue" action button at the bottom of a step */
 async function clickContinue(page: Page) {
-  const btn = page.getByRole("button", { name: /^Continue$/i }).last()
+  const btn = page.getByRole("button", { name: /^Continue|Continue to/i }).last()
   await expect(btn).toBeEnabled({ timeout: 5000 })
   await btn.scrollIntoViewIfNeeded()
   await btn.click()
@@ -94,41 +94,22 @@ async function waitForStep(page: Page, text: string | RegExp, timeout = 15000) {
  *   3. If that still doesn't work, click "I don't know the exact name" fallback
  */
 async function completeMedicationSearchStep(page: Page) {
-  await waitForStep(page, /Search using the PBS database/i)
+  await waitForStep(page, /Which medication do you need\?/i)
 
   const medInput = page.getByRole("combobox").first()
-  await medInput.fill("Amox")
-  // Wait for debounce (350ms) + API response
-  await page.waitForTimeout(2000)
+  await medInput.fill("E2E test medication")
+  await medInput.blur()
+  await page.waitForTimeout(400)
 
-  // Strategy 1: Click a PBS dropdown result if available
-  const firstResult = page.locator('[role="option"]').first()
-  if (await firstResult.isVisible({ timeout: 2000 }).catch(() => false)) {
-    await firstResult.click()
-  } else {
-    // Strategy 2: Type a full medication name and blur to trigger manual entry
-    await medInput.clear()
-    await medInput.fill("Amoxicillin 500mg capsules")
-    await medInput.blur()
-    // Wait for handleBlur's 200ms setTimeout to fire
-    await page.waitForTimeout(500)
+  const manualOption = page.getByRole("button", { name: /Continue with "E2E test medication"/i })
+  if (await manualOption.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await manualOption.click()
   }
 
-  // Verify we have a selection - wait for state to propagate
-  await page.waitForTimeout(1000)
-
-  // If Continue is still not enabled, try the "I don't know" fallback
-  const continueBtn = page.getByRole("button", { name: /^Continue$/i }).last()
-  const isEnabled = await continueBtn.isEnabled().catch(() => false)
-  if (!isEnabled) {
-    const dontKnow = page.getByText(/I don.t know the exact name/i)
-    if (await dontKnow.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await dontKnow.click()
-      await page.waitForTimeout(500)
-    }
-  }
-
-  await page.waitForTimeout(500)
+  await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
+  await page.locator("#medication-strength-0").fill("500 mg")
+  await page.locator("#medication-form-0").fill("capsule")
+  await expect(page.getByRole("button", { name: /Continue to history/i }).last()).toBeEnabled({ timeout: 5000 })
   await clickContinue(page)
   await page.waitForTimeout(500)
 }
@@ -142,7 +123,8 @@ async function completeMedicationSearchStep(page: Page) {
 async function completeMedicationHistoryStep(page: Page) {
   await waitForStep(page, /When were you last prescribed/i)
   await clickChip(page, /Less than 3 months ago/i)
-  // Side effects question appears after selecting a history option
+  await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
+  // Side effects question appears after entering the current dose.
   await clickChip(page, /No side effects/i)
   await clickContinue(page)
 }
@@ -151,10 +133,14 @@ async function completeMedicationHistoryStep(page: Page) {
  * Complete the Medical History step (allergies, conditions, other meds).
  */
 async function completeMedicalHistoryStep(page: Page) {
-  await waitForStep(page, /This information helps our doctors/i)
+  await waitForStep(page, /Any allergies/i)
   await clickChip(page, /No allergies/i)
   await clickChip(page, /No conditions/i)
-  await clickChip(page, /No other medications/i)
+  await clickChip(page, /No medications/i)
+  if (await page.getByText(/Currently pregnant or breastfeeding/i).isVisible({ timeout: 3000 }).catch(() => false)) {
+    await clickChip(page, /^No$/i)
+    await clickChip(page, /No reactions/i)
+  }
   await clickContinue(page)
 }
 
@@ -163,7 +149,7 @@ async function completeMedicalHistoryStep(page: Page) {
  * Phone is always required for prescriptions.
  */
 async function completeDetailsStep(page: Page) {
-  await waitForStep(page, /This information is required/i)
+  await waitForStep(page, /Your details/i)
 
   // Dismiss autofill banner if present
   const noThanks = page.getByRole("button", { name: /No thanks/i })
@@ -181,6 +167,20 @@ async function completeDetailsStep(page: Page) {
   // Phone - required for prescriptions
   await page.locator('input[placeholder="0412 345 678"]').fill("0412345678")
 
+  await page.locator("#sex-select-trigger").click()
+  await page.getByRole("option", { name: /^Male$/i }).click()
+
+  await page.locator('input[placeholder="10 digits"]').fill("2123456701")
+  await page.locator('input[placeholder="10 digits"]').blur()
+  await page.waitForTimeout(200)
+  await page.getByRole("button", { name: /^1$/ }).last().click()
+
+  await page.locator('[placeholder="Start typing your address..."]').fill("123 Test Street")
+  await page.locator("#suburb").fill("Sydney")
+  await page.locator("#state-select-trigger").click()
+  await page.getByRole("option", { name: /^NSW$/i }).click()
+  await page.locator("#postcode").fill("2000")
+
   await clickContinue(page)
 }
 
@@ -192,15 +192,14 @@ async function completeDetailsStep(page: Page) {
  * before "Continue to payment" becomes enabled.
  */
 async function completeReviewStep(page: Page) {
-  await waitForStep(page, /Review your request/i)
+  await waitForStep(page, /One last check/i)
 
-  // Toggle safety consent switch (merged into review step)
-  const safetySwitch = page.locator("#safety-consent")
-  await safetySwitch.scrollIntoViewIfNeeded()
-  await safetySwitch.click()
-
-  // Click "Continue to payment"
-  await page.getByRole("button", { name: /Continue to payment/i }).click()
+  const safetyCheckbox = page.locator("#safety-consent")
+  await safetyCheckbox.scrollIntoViewIfNeeded()
+  const isChecked = await safetyCheckbox.isChecked().catch(() => false)
+  if (!isChecked) {
+    await safetyCheckbox.click()
+  }
 }
 
 /**
@@ -216,22 +215,17 @@ async function completeReviewStep(page: Page) {
  * a server action that redirects to Stripe.
  */
 async function verifyCheckoutStep(page: Page) {
-  await waitForStep(page, /Request Summary/i)
+  await waitForStep(page, /One last check/i)
 
   // Verify correct service label
-  await expect(page.getByText("Prescription Request")).toBeVisible()
+  await expect(page.getByText(/Medication/i).first()).toBeVisible()
 
   // Verify correct Stripe price ($29.95 for repeat prescription)
   await expect(page.getByText("$29.95")).toBeVisible()
 
-  // Toggle consent - the single Switch controls both accuracy + terms
-  const consentArea = page.getByText(/By paying, I confirm the information/i)
-  await consentArea.scrollIntoViewIfNeeded()
-  await consentArea.click()
-
-  // Verify the checkout button becomes enabled
-  const checkoutBtn = page.getByRole("button", { name: /Continue to payment/i }).last()
+  const checkoutBtn = page.getByRole("button", { name: /^Pay \$/ }).last()
   await expect(checkoutBtn).toBeEnabled({ timeout: 5000 })
+  await expect(checkoutBtn).toHaveAttribute("aria-disabled", "false")
 }
 
 // ---------------------------------------------------------------------------
@@ -276,7 +270,7 @@ test.describe("Prescription: repeat-script alias loads same flow", () => {
     await waitForPageLoad(page)
 
     // Should land on medication search step (same as ?service=repeat-script)
-    await waitForStep(page, /Search using the PBS database/i)
+    await waitForStep(page, /Which medication do you need\?/i)
     // Progress nav should be visible
     await expect(page.getByRole("navigation", { name: /Request progress/i })).toBeVisible()
   })
@@ -320,7 +314,7 @@ test.describe("Prescription: step validation", () => {
     await dismissOverlays(page)
 
     // On medication step - Continue should be disabled without a selection
-    await waitForStep(page, /Search using the PBS database/i)
+    await waitForStep(page, /Which medication do you need\?/i)
     const btn = page.getByRole("button", { name: /^Continue$/i }).last()
     await expect(btn).toBeDisabled()
   })
@@ -364,10 +358,9 @@ test.describe("Prescription: step validation", () => {
     await completeMedicalHistoryStep(page)
     await completeDetailsStep(page)
 
-    // On review step - "Continue to payment" should be disabled without safety consent
-    await waitForStep(page, /Review your request/i)
-    const btn = page.getByRole("button", { name: /Continue to payment/i })
-    await expect(btn).toBeDisabled()
+    await waitForStep(page, /One last check/i)
+    const btn = page.getByRole("button", { name: /^Pay \$/ }).last()
+    await expect(btn).toHaveAttribute("aria-disabled", "true")
   })
 })
 
@@ -389,21 +382,14 @@ test.describe("Prescription: checkout price verification", () => {
     await completeDetailsStep(page)
     await completeReviewStep(page)
 
-    // Verify checkout step
-    await waitForStep(page, /Request Summary/i)
+    await waitForStep(page, /One last check/i)
 
     // Verify price is $29.95 (PRICING.REPEAT_SCRIPT)
     await expect(page.getByText("$29.95")).toBeVisible()
 
-    // Verify "Prescription Request" service label
-    await expect(page.getByText("Prescription Request")).toBeVisible()
-
     // Verify trust badges
-    await expect(page.getByText(/AHPRA-registered doctors/i)).toBeVisible()
-    await expect(page.getByText(/Secured by Stripe/i)).toBeVisible()
-
-    // Verify prescription-specific "What you'll get" section
-    await expect(page.getByText(/eScript sent directly to your phone/i)).toBeVisible()
+    await expect(page.getByText(/AHPRA-registered doctor/i)).toBeVisible()
+    await expect(page.getByText(/Full refund if declined/i)).toBeVisible()
   })
 
   test("checkout button disabled without consent", async ({ page }) => {
@@ -415,20 +401,18 @@ test.describe("Prescription: checkout price verification", () => {
     await completeMedicationHistoryStep(page)
     await completeMedicalHistoryStep(page)
     await completeDetailsStep(page)
-    await completeReviewStep(page)
-
-    // On checkout - button should be disabled before consent
-    await waitForStep(page, /Request Summary/i)
-    const checkoutBtn = page.getByRole("button", { name: /Continue to payment/i }).last()
-    await expect(checkoutBtn).toBeDisabled()
+    await waitForStep(page, /One last check/i)
+    const checkoutBtn = page.getByRole("button", { name: /^Pay \$/ }).last()
+    await expect(checkoutBtn).toHaveAttribute("aria-disabled", "true")
 
     // Toggle consent
-    const consentArea = page.getByText(/By paying, I confirm the information/i)
-    await consentArea.scrollIntoViewIfNeeded()
-    await consentArea.click()
+    const safetyCheckbox = page.locator("#safety-consent")
+    await safetyCheckbox.scrollIntoViewIfNeeded()
+    await safetyCheckbox.click()
 
     // Button should now be enabled
     await expect(checkoutBtn).toBeEnabled({ timeout: 5000 })
+    await expect(checkoutBtn).toHaveAttribute("aria-disabled", "false")
   })
 })
 

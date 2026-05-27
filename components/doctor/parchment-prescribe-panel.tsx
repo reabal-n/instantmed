@@ -69,6 +69,13 @@ function getParchmentErrorCopy(error: string | null): { title: string; detail: s
   }
 }
 
+function canFixParchmentErrorFromPatientProfile(error: string | null): boolean {
+  return Boolean(
+    error?.startsWith("Missing prescribing details:") ||
+    error?.startsWith("Parchment rejected the patient details"),
+  )
+}
+
 /**
  * Embedded Parchment prescribing panel.
  *
@@ -101,7 +108,7 @@ export function ParchmentPrescribePanel({
   const ssoWarningTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const errorCopy = getParchmentErrorCopy(error)
   const patientDetailsHref = patientProfileHref || (patientId ? buildStaffPatientHref(patientId) : null)
-  const canEditMissingIdentity = Boolean(patientDetailsHref && error?.startsWith("Missing prescribing details:"))
+  const canEditPatientDetails = Boolean(patientDetailsHref && canFixParchmentErrorFromPatientProfile(error))
 
   const closeAndRefresh = useCallback(() => {
     if (patientId && iframeLoaded && onPrescriptionsRefresh) {
@@ -353,7 +360,7 @@ export function ParchmentPrescribePanel({
                   <p className="text-sm text-muted-foreground mt-1">{errorCopy.detail}</p>
                 </div>
                 <div className="flex gap-2 justify-center">
-                  {canEditMissingIdentity && patientDetailsHref ? (
+                  {canEditPatientDetails && patientDetailsHref ? (
                     <Button variant="outline" size="sm" asChild>
                       <Link href={patientDetailsHref}>Edit patient details</Link>
                     </Button>

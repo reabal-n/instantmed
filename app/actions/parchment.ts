@@ -65,6 +65,18 @@ function getParchmentAuditRequestType({
   return "intake"
 }
 
+function getParchmentConnectionFailureMessage(error: unknown): string | null {
+  if (!(error instanceof Error)) return null
+  if (
+    error.message.startsWith("Parchment SSO request failed") ||
+    error.message.startsWith("Parchment token request failed") ||
+    error.message === "Parchment request timed out"
+  ) {
+    return "Parchment session could not be opened. Revalidate the Parchment account in Doctor Settings, then retry."
+  }
+  return null
+}
+
 // ============================================================================
 // SSO - Get prescribing URL for embedded iframe
 // ============================================================================
@@ -293,6 +305,13 @@ export async function getParchmentPrescribeUrlAction(
       log.warn("Parchment prescribe blocked by patient sync failure")
       Sentry.captureException(error, { extra: { context: "parchment_prescribe_patient_sync" } })
       return { success: false, error: "Parchment rejected the patient details. Check Medicare, address, DOB, phone, and sex; then retry." }
+    }
+
+    const connectionFailureMessage = getParchmentConnectionFailureMessage(error)
+    if (connectionFailureMessage) {
+      log.warn("Parchment prescribe blocked by connection/session failure")
+      Sentry.captureException(error, { extra: { context: "parchment_prescribe_connection" } })
+      return { success: false, error: connectionFailureMessage }
     }
 
     log.error("Failed to get Parchment prescribe URL", {}, error instanceof Error ? error : new Error(String(error)))

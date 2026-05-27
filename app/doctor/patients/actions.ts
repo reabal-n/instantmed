@@ -28,6 +28,18 @@ function revalidatePatientRecord(patientId: string): void {
   revalidateStaff({ patientId })
 }
 
+function getParchmentConnectionFailureMessage(error: unknown): string | null {
+  if (!(error instanceof Error)) return null
+  if (
+    error.message.startsWith("Parchment SSO request failed") ||
+    error.message.startsWith("Parchment token request failed") ||
+    error.message === "Parchment request timed out"
+  ) {
+    return "Parchment session could not be opened. Revalidate the Parchment account in Doctor Settings, then retry."
+  }
+  return null
+}
+
 export interface DoctorPatientParchmentActionResult {
   success: boolean
   error?: string
@@ -299,6 +311,13 @@ export async function openPatientInParchmentAction(
 
     if (error instanceof ParchmentPatientSyncError) {
       return { success: false, error: "Parchment rejected the patient details. Check Medicare, address, DOB, phone, and sex; then retry." }
+    }
+
+    const connectionFailureMessage = getParchmentConnectionFailureMessage(error)
+    if (connectionFailureMessage) {
+      log.warn("Failed to open patient in Parchment because the session could not be created")
+      Sentry.captureException(error, { extra: { context: "doctor_open_patient_parchment_connection" } })
+      return { success: false, error: connectionFailureMessage }
     }
 
     log.warn("Failed to open patient in Parchment")

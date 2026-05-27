@@ -673,7 +673,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
                 }
               }}
               onBlur={() => handleBlur('medicareNumber', medicareNumber)}
-              placeholder="1234 56789 0"
+              placeholder="10 digits"
               autoComplete="off"
               aria-invalid={touched.medicareNumber && !!errors.medicareNumber}
               data-error={touched.medicareNumber && errors.medicareNumber ? "true" : undefined}

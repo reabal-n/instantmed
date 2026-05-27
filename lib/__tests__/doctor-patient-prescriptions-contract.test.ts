@@ -61,6 +61,8 @@ describe("doctor patient medication history contract", () => {
     expect(detailSource).toContain("Prescriber not linked")
     expect(detailSource).toContain("`${STAFF_IDENTITY_HREF}#parchment-account`")
     expect(detailSource).toContain("Parchment integration disabled")
+    expect(detailSource).toContain("hasInvalidMedicareNumber")
+    expect(detailSource).toContain("Valid Medicare number")
   })
 
   it("organizes the profile around the unified timeline as primary content", () => {
@@ -192,6 +194,13 @@ describe("doctor patient medication history contract", () => {
     expect(panelSource).toContain("setIframeReloadKey((key) => key + 1)")
     expect(panelSource).toContain("Retry iframe")
     expect(panelSource).toContain("key={iframeReloadKey}")
+  })
+
+  it("routes Parchment identity failures back to patient detail editing", () => {
+    expect(panelSource).toContain("canFixParchmentErrorFromPatientProfile")
+    expect(panelSource).toContain('error?.startsWith("Missing prescribing details:")')
+    expect(panelSource).toContain('error?.startsWith("Parchment rejected the patient details")')
+    expect(panelSource).toContain("Edit patient details")
   })
 
   it("names the copied medicine in Parchment copy feedback", () => {

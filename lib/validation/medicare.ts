@@ -3,9 +3,23 @@
  * Australian Medicare numbers follow specific validation rules
  */
 
-const TEST_MEDICARE_NUMBERS = ["1111111111", "2222222222", "3333333333", "1234567890"]
+const TEST_MEDICARE_NUMBERS = new Set(["1111111111", "2222222222", "3333333333", "1234567890"])
 
-export function validateMedicareNumber(medicareNumber: string): {
+export interface MedicareValidationOptions {
+  /**
+   * Test fixtures can opt into deterministic placeholder numbers. Patient,
+   * checkout, profile, and prescribing paths should use the default, which
+   * rejects these in production and browser runtime.
+   */
+  allowTestNumbers?: boolean
+}
+
+function allowTestMedicareNumbers(options?: MedicareValidationOptions): boolean {
+  if (options?.allowTestNumbers !== undefined) return options.allowTestNumbers
+  return process.env.NODE_ENV === "test"
+}
+
+export function validateMedicareNumber(medicareNumber: string, options?: MedicareValidationOptions): {
   valid: boolean
   error?: string
 } {
@@ -21,8 +35,10 @@ export function validateMedicareNumber(medicareNumber: string): {
     return { valid: false, error: "Enter a valid Medicare number" }
   }
 
-  if (TEST_MEDICARE_NUMBERS.includes(cleaned)) {
-    return { valid: true }
+  if (TEST_MEDICARE_NUMBERS.has(cleaned)) {
+    return allowTestMedicareNumbers(options)
+      ? { valid: true }
+      : { valid: false, error: "Enter a real Medicare number" }
   }
 
   // First digit must be 2-6

@@ -150,7 +150,7 @@ async function completeDetailsStep(
   page: Page,
   opts?: { needsPhone?: boolean; needsPrescriptionDetails?: boolean }
 ) {
-  await waitForStep(page, /This information is required/i)
+  await waitForStep(page, /Your details/i)
 
   // Dismiss autofill banner if present
   const noThanks = page.getByRole("button", { name: /No thanks/i })
@@ -176,14 +176,19 @@ async function completeDetailsStep(
     await page.locator("#sex-select-trigger").click()
     await page.getByRole("option", { name: /^Male$/i }).click()
 
-    // Medicare number - test number accepted by validateMedicareNumber
-    await page.locator('input[placeholder="1234 56789 0"]').fill("2222222222")
+    // Medicare number - deterministic non-real checksum-valid fixture
+    await page.locator('input[placeholder="10 digits"]').fill("2123456701")
     // Blur to trigger validation
-    await page.locator('input[placeholder="1234 56789 0"]').blur()
+    await page.locator('input[placeholder="10 digits"]').blur()
     await page.waitForTimeout(200)
+    await page.getByRole("button", { name: /^1$/ }).last().click()
 
     // Address - typed text sets addressLine1 via onChange (no autocomplete required)
-    await page.locator('[placeholder="Start typing your address..."]').fill("123 Test Street, Sydney NSW 2000")
+    await page.locator('[placeholder="Start typing your address..."]').fill("123 Test Street")
+    await page.locator("#suburb").fill("Sydney")
+    await page.locator("#state-select-trigger").click()
+    await page.getByRole("option", { name: /^NSW$/i }).click()
+    await page.locator("#postcode").fill("2000")
     await page.waitForTimeout(200)
   }
 
@@ -201,6 +206,10 @@ async function completeMedicalHistoryStep(page: Page) {
   await clickChip(page, /No allergies/i)
   await clickChip(page, /No conditions/i)
   await clickChip(page, /No medications/i)
+  if (await page.getByText(/Currently pregnant or breastfeeding/i).isVisible({ timeout: 3000 }).catch(() => false)) {
+    await clickChip(page, /^No$/i)
+    await clickChip(page, /No reactions/i)
+  }
   await clickContinue(page)
 }
 
@@ -212,7 +221,8 @@ async function completeMedicalHistoryStep(page: Page) {
  */
 async function completeReviewStep(page: Page) {
   await waitForStep(page, /One last check/i)
-  // Tick the safety consent checkbox (required to enable Continue to payment)
+  // Tick the safety consent checkbox. Prescription flows submit payment from this
+  // combined review/pay screen; med-cert flows still continue to a checkout step.
   const safetyCheckbox = page.locator("#safety-consent")
   if (await safetyCheckbox.isVisible({ timeout: 3000 }).catch(() => false)) {
     const isChecked = await safetyCheckbox.isChecked().catch(() => false)
@@ -221,6 +231,9 @@ async function completeReviewStep(page: Page) {
       await page.waitForTimeout(200)
     }
   }
+  const payButton = page.getByRole("button", { name: /^Pay \$/ }).last()
+  if (await payButton.isVisible({ timeout: 1000 }).catch(() => false)) return
+
   await page.getByRole("button", { name: /Continue to payment/i }).click()
 }
 
@@ -230,7 +243,14 @@ async function completeReviewStep(page: Page) {
  * because it fires a server action → Stripe redirect.
  */
 async function verifyCheckoutStep(page: Page) {
-  await waitForStep(page, /Request Summary/i)
+  const combinedPayButton = page.getByRole("button", { name: /^Pay \$/ }).last()
+  if (await combinedPayButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await expect(combinedPayButton).toBeEnabled({ timeout: 5000 })
+    await expect(combinedPayButton).toHaveAttribute("aria-disabled", "false")
+    return
+  }
+
+  await waitForStep(page, /Request Summary|Ready to submit/i)
 
   // Tick the single combined consent checkbox (#consent-checkbox)
   const consentCheckbox = page.locator("#consent-checkbox")
@@ -259,47 +279,23 @@ async function verifyCheckoutStep(page: Page) {
  *   3. If that still doesn't work, click "I don't know the exact name" fallback
  */
 async function completeMedicationSearchStep(page: Page) {
-  await waitForStep(page, /Search using the PBS database/i)
+  await waitForStep(page, /Which medication do you need\?/i)
 
   const medInput = page.getByRole("combobox").first()
-  await medInput.fill("Amox")
-  // Wait for debounce (350ms) + API response
-  await page.waitForTimeout(2000)
+  await medInput.fill("E2E test medication")
+  await medInput.blur()
+  await page.waitForTimeout(400)
 
-  // Strategy 1: Click a PBS dropdown result if available
-  const firstResult = page.locator('[role="option"]').first()
-  if (await firstResult.isVisible({ timeout: 2000 }).catch(() => false)) {
-    await firstResult.click()
-    // Wait for handleSelect to register in Zustand store
-    await page.waitForTimeout(1000)
-  } else {
-    // Strategy 2: Type a full medication name and blur to trigger manual entry.
-    // handleBlur in MedicationSearch creates a MANUAL pbs_code entry after 200ms.
-    // The fill also triggers a debounced PBS search (350ms debounce + API latency),
-    // which causes re-renders. We must wait for the full cycle to settle before
-    // clicking Continue — otherwise the element is "visible and enabled but not stable".
-    await medInput.clear()
-    await medInput.fill("Amoxicillin 500mg capsules")
-    await medInput.blur()
-    // Wait for: handleBlur 200ms + debounce 350ms + PBS API response (~2s) + React settle
-    await page.waitForTimeout(3500)
+  const manualOption = page.getByRole("button", { name: /Continue with "E2E test medication"/i })
+  if (await manualOption.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await manualOption.click()
   }
 
-  // Verify the step-advance button now reads "Continue to history" (canContinue=true).
-  // The /^Continue$/i pattern deliberately does NOT match "Continue to history", so if
-  // the button IS enabled the check short-circuits and we fall through to clickContinue.
-  const continueToHistory = page.getByRole("button", { name: /Continue to history/i }).last()
-  const isReady = await continueToHistory.isEnabled({ timeout: 2000 }).catch(() => false)
-  if (!isReady) {
-    // Fallback: press Tab to trigger a second blur event in case the first was swallowed
-    await page.keyboard.press("Tab")
-    await page.waitForTimeout(1000)
-  }
-
-  // Wait for any final re-renders to settle before clicking
-  await page.waitForTimeout(500)
+  await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
+  await page.locator("#medication-strength-0").fill("500 mg")
+  await page.locator("#medication-form-0").fill("capsule")
+  await expect(page.getByRole("button", { name: /Continue to history/i }).last()).toBeEnabled({ timeout: 5000 })
   await clickContinue(page)
-  // Wait for navigation animation
   await page.waitForTimeout(500)
 }
 
@@ -439,7 +435,8 @@ test.describe("Intake: Repeat Prescription - full flow", () => {
     // ── Step 2: Medication history ──
     await waitForStep(page, /When were you last prescribed/i)
     await clickChip(page, /Less than 3 months ago/i)
-    // Side effects question appears after selecting a history option
+    await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
+    // Side effects question appears after entering the current dose.
     await clickChip(page, /No side effects/i)
     await clickContinue(page)
 
@@ -604,7 +601,7 @@ test.describe("Intake: repeat-script alias", () => {
     await waitForPageLoad(page)
 
     // Should land on medication search step
-    await waitForStep(page, /Search using the PBS database/i)
+    await waitForStep(page, /Which medication do you need\?/i)
     // Progress nav should be visible
     await expect(page.getByRole("navigation", { name: /Request progress/i })).toBeVisible()
   })

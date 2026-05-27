@@ -29,6 +29,18 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const log = createLogger("manual-patient-actions")
 
+function getParchmentConnectionFailureMessage(error: unknown): string | null {
+  if (!(error instanceof Error)) return null
+  if (
+    error.message.startsWith("Parchment SSO request failed") ||
+    error.message.startsWith("Parchment token request failed") ||
+    error.message === "Parchment request timed out"
+  ) {
+    return "Parchment session could not be opened. Revalidate the Parchment account in Doctor Settings, then retry."
+  }
+  return null
+}
+
 interface DuplicatePatient {
   id: string
   fullName: string
@@ -402,6 +414,13 @@ export async function getPatientParchmentPrescribeUrlAction(
       log.warn("Patient profile Parchment prescribe blocked by sync failure")
       Sentry.captureException(error, { extra: { context: "patient_profile_parchment_sync" } })
       return { success: false, error: "Parchment rejected the patient details. Check Medicare, address, DOB, phone, and sex; then retry." }
+    }
+
+    const connectionFailureMessage = getParchmentConnectionFailureMessage(error)
+    if (connectionFailureMessage) {
+      log.warn("Patient profile Parchment blocked by connection/session failure")
+      Sentry.captureException(error, { extra: { context: "patient_profile_parchment_connection" } })
+      return { success: false, error: connectionFailureMessage }
     }
 
     log.error("Failed to get patient profile Parchment URL", {}, error instanceof Error ? error : new Error(String(error)))
