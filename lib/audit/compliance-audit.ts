@@ -552,7 +552,8 @@ export async function logClinicianViewedIntakeAnswers(
 export async function logClinicianViewedMedicalHistory(
   requestId: string,
   requestType: RequestType,
-  clinicianId: string
+  clinicianId: string,
+  metadata?: Record<string, unknown>
 ) {
   return logComplianceEvent({
     eventType: "clinician_viewed_medical_history",
@@ -561,6 +562,7 @@ export async function logClinicianViewedMedicalHistory(
     actorId: clinicianId,
     actorRole: "clinician",
     isHumanAction: true,
+    eventData: metadata,
   })
 }
 

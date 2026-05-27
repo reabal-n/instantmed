@@ -1,8 +1,13 @@
+"use client"
+
+import { useEffect, useState } from "react"
+
 import { cn } from "@/lib/utils"
 
 interface SlaChipProps {
   paidAt: string | null | undefined
   className?: string
+  mode?: "paid" | "waiting"
 }
 
 type Tone = "success" | "warning" | "critical" | "neutral"
@@ -25,19 +30,21 @@ const LABEL_COLOR: Record<Tone, string> = {
   neutral: "text-muted-foreground",
 }
 
-function formatRelative(diffMs: number): string {
-  if (diffMs < 60_000) return "Paid just now"
+function formatRelative(diffMs: number, mode: "paid" | "waiting"): string {
+  const prefix = mode === "waiting" ? "Waiting" : "Paid"
+  if (diffMs < 60_000) return mode === "waiting" ? "Waiting under 1m" : "Paid just now"
   const minutes = Math.floor(diffMs / 60_000)
-  if (minutes < 60) return `Paid ${minutes}m ago`
+  if (minutes < 60) return mode === "waiting" ? `Waiting ${minutes}m` : `Paid ${minutes}m ago`
   const hours = Math.floor(minutes / 60)
   const remainderMin = minutes % 60
   if (hours < 24) {
-    return remainderMin > 0 && hours < 4
-      ? `Paid ${hours}h ${remainderMin}m ago`
-      : `Paid ${hours}h ago`
+    if (mode === "waiting") return remainderMin > 0 ? `${prefix} ${hours}h ${remainderMin}m` : `${prefix} ${hours}h`
+    return remainderMin > 0 && hours < 4 ? `${prefix} ${hours}h ${remainderMin}m ago` : `${prefix} ${hours}h ago`
   }
   const days = Math.floor(hours / 24)
-  return days === 1 ? "Paid 1d ago" : `Paid ${days}d ago`
+  return mode === "waiting"
+    ? days === 1 ? `${prefix} 1d` : `${prefix} ${days}d`
+    : days === 1 ? `${prefix} 1d ago` : `${prefix} ${days}d ago`
 }
 
 function toneFor(diffMs: number): Tone {
@@ -54,7 +61,13 @@ function toneFor(diffMs: number): Tone {
  * as `StatusDot` (`components/operator/cases/status-dot.tsx`) so the
  * cockpit reads as one system.
  */
-export function SlaChip({ paidAt, className }: SlaChipProps) {
+export function SlaChip({ paidAt, className, mode = "paid" }: SlaChipProps) {
+  const [nowMs, setNowMs] = useState(() => Date.now())
+  useEffect(() => {
+    const interval = window.setInterval(() => setNowMs(Date.now()), 30_000)
+    return () => window.clearInterval(interval)
+  }, [])
+
   if (!paidAt) {
     return (
       <span
@@ -78,10 +91,10 @@ export function SlaChip({ paidAt, className }: SlaChipProps) {
   }
 
   const paidAtDate = new Date(paidAt)
-  const diffMs = Date.now() - paidAtDate.getTime()
+  const diffMs = nowMs - paidAtDate.getTime()
   const safeDiffMs = Number.isFinite(diffMs) && diffMs >= 0 ? diffMs : 0
   const tone = toneFor(safeDiffMs)
-  const label = formatRelative(safeDiffMs)
+  const label = formatRelative(safeDiffMs, mode)
   const title = paidAtDate.toLocaleString("en-AU", {
     day: "numeric",
     month: "short",
@@ -94,7 +107,7 @@ export function SlaChip({ paidAt, className }: SlaChipProps) {
       className={cn("inline-flex items-center gap-1.5 align-middle text-xs", className)}
       data-testid="sla-chip"
       data-tone={tone}
-      title={`Paid at ${title}`}
+      title={mode === "waiting" ? `Queue entered at ${title}` : `Paid at ${title}`}
     >
       <span
         aria-hidden="true"

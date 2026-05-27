@@ -37,7 +37,10 @@ export function OperatorShell({
 }: OperatorShellProps) {
   const resolvedSections = navSections ?? operatorNavSections
   return (
-    <div className="flex min-h-screen bg-background">
+    <div
+      data-operator-shell
+      className="flex min-h-screen bg-[#F7F3EC] text-foreground dark:bg-background"
+    >
       <AdminSidebar
         userName={userName}
         userRole={userRole}
@@ -45,7 +48,12 @@ export function OperatorShell({
         navSections={resolvedSections}
         brandLabel={brandLabel}
       />
-      <main className={cn("flex-1 min-w-0 py-8 px-4 sm:px-6 lg:px-8", mainClassName)}>
+      <main
+        className={cn(
+          "min-w-0 flex-1 bg-[#F7F3EC] px-4 py-8 transition-colors duration-150 dark:bg-background sm:px-6 lg:px-8",
+          mainClassName,
+        )}
+      >
         <div
           className={cn(
             "mx-auto",

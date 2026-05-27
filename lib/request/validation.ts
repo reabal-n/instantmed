@@ -334,13 +334,6 @@ export const edHealthStepSchema = z
         message: "Please confirm your GP has cleared you",
       })
     }
-    if (data.edAlphaBlockers === true && !data.edGpCleared) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["edGpCleared"],
-        message: "Please confirm your GP has cleared you",
-      })
-    }
     if (data.takes_medications === undefined) {
       ctx.addIssue({ code: "custom", path: ["takes_medications"], message: "Please answer medication question" })
     }

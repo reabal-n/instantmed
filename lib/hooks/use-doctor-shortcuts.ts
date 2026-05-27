@@ -7,8 +7,8 @@
  * Saves ~8 minutes per 100 cases.
  * 
  * Shortcuts:
- * - ⌘/Ctrl + A: Approve current case
- * - ⌘/Ctrl + D: Open decline dialog
+ * - ⌘/Ctrl + Enter: Approve current case
+ * - ⌘/Ctrl + Shift + D: Open decline dialog
  * - ⌘/Ctrl + →: Navigate to next case in queue
  * - ⌘/Ctrl + ←: Navigate to previous case
  * - ⌘/Ctrl + N: Add clinical note
@@ -57,15 +57,15 @@ export function useDoctorShortcuts({
 
       const isMod = event.metaKey || event.ctrlKey
 
-      // ⌘/Ctrl + A: Approve
-      if (isMod && event.key === "a") {
+      // ⌘/Ctrl + Enter: Approve
+      if (isMod && event.key === "Enter") {
         event.preventDefault()
         onApprove?.()
         return
       }
 
-      // ⌘/Ctrl + D: Decline
-      if (isMod && event.key === "d") {
+      // ⌘/Ctrl + Shift + D: Decline
+      if (isMod && event.shiftKey && event.key.toLowerCase() === "d") {
         event.preventDefault()
         onDecline?.()
         return
@@ -125,8 +125,8 @@ export function useDoctorShortcuts({
  * Keyboard shortcut hint component data
  */
 export const DOCTOR_SHORTCUTS = [
-  { keys: ["⌘", "A"], label: "Approve", description: "Approve current case" },
-  { keys: ["⌘", "D"], label: "Decline", description: "Open decline dialog" },
+  { keys: ["⌘", "Enter"], label: "Approve", description: "Approve current case" },
+  { keys: ["⌘", "Shift", "D"], label: "Decline", description: "Open decline dialog" },
   { keys: ["J"], label: "Next", description: "Go to next case" },
   { keys: ["K"], label: "Previous", description: "Go to previous case" },
   { keys: ["⌘", "→"], label: "Next (alt)", description: "Go to next case" },
@@ -181,15 +181,15 @@ export function useDoctorShortcutsExtended({
       // Don't trigger other shortcuts when typing in inputs
       if (isInput) return
 
-      // ⌘/Ctrl + A: Approve
-      if (isMod && event.key === "a") {
+      // ⌘/Ctrl + Enter: Approve
+      if (isMod && event.key === "Enter") {
         event.preventDefault()
         onApprove?.()
         return
       }
 
-      // ⌘/Ctrl + D: Decline
-      if (isMod && event.key === "d") {
+      // ⌘/Ctrl + Shift + D: Decline
+      if (isMod && event.shiftKey && event.key.toLowerCase() === "d") {
         event.preventDefault()
         onDecline?.()
         return

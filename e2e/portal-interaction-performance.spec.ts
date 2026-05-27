@@ -1,7 +1,7 @@
 import { expect, type Page, test } from "@playwright/test"
 
 import { loginAsOperator, loginAsPatient } from "./helpers/auth"
-import { INTAKE_ID } from "./helpers/db"
+import { INTAKE_ID, resetIntakeForRetest } from "./helpers/db"
 import { waitForPageLoad } from "./helpers/test-utils"
 
 async function expectInteractionUnder(
@@ -51,6 +51,8 @@ test.describe("portal and intake interaction performance", () => {
   })
 
   test("patient dashboard track-status action responds quickly", async ({ page }) => {
+    await resetIntakeForRetest(INTAKE_ID)
+
     const login = await loginAsPatient(page)
     expect(login.success, login.error).toBe(true)
 
@@ -76,6 +78,8 @@ test.describe("portal and intake interaction performance", () => {
   })
 
   test("staff queue row opens the review surface quickly", async ({ page }) => {
+    await resetIntakeForRetest(INTAKE_ID)
+
     const login = await loginAsOperator(page)
     expect(login.success, login.error).toBe(true)
 
@@ -86,6 +90,18 @@ test.describe("portal and intake interaction performance", () => {
     await expect(queueRow).toBeVisible()
     const openCaseButton = queueRow.getByRole("button", { name: /open case for/i })
     await expect(openCaseButton).toBeVisible()
+
+    let reviewDataRequests = 0
+    page.on("request", (request) => {
+      const url = request.url()
+      if (/\/api\/doctor\/intakes\/[^/]+\/review-data/.test(url)) {
+        reviewDataRequests += 1
+      }
+    })
+
+    await queueRow.hover()
+    await page.waitForTimeout(600)
+    expect(reviewDataRequests, "queue hover must not fetch the full review-data payload").toBe(0)
 
     await expectInteractionUnder(
       page,
@@ -98,5 +114,11 @@ test.describe("portal and intake interaction performance", () => {
         })
       },
     )
+    await expect
+      .poll(() => reviewDataRequests, {
+        message: "explicit case open should fetch review-data",
+        timeout: 6000,
+      })
+      .toBeGreaterThanOrEqual(1)
   })
 })

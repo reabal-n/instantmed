@@ -6,9 +6,11 @@
 
 // Queries (server-only)
 export {
+  type FormToInboxStats,
   getAIApprovedIntakes,
   getAllIntakesForAdmin,
   getDoctorQueue,
+  getFormToInboxStats,
   getIntakeForPatient,
   getIntakeMonitoringStats,
   getIntakeWithDetails,

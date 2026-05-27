@@ -3,13 +3,14 @@ import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 
 import { ClinicalCaseReview } from "@/components/doctor/clinical-case-review"
+import { stripGenericClinicalNoteBoilerplate } from "@/components/doctor/review/utils"
 
 function render(element: React.ReactElement): string {
   return renderToStaticMarkup(element)
 }
 
 describe("ClinicalCaseReview", () => {
-  it("renders the doctor-first patient story, plan, note, and Parchment preset before raw answers", () => {
+  it("renders the doctor-first patient story, plan, visible note, and Parchment preset before raw answers", () => {
     const html = render(
       <ClinicalCaseReview
         category="consult"
@@ -29,11 +30,46 @@ describe("ClinicalCaseReview", () => {
       />,
     )
 
-    expect(html).toContain("Patient story")
-    expect(html).toContain("Recommended plan")
+    expect(html).toContain("Reason for visit")
+    expect(html).toContain("Prescribing plan")
     expect(html).toContain("Draft note")
     expect(html).toContain("Parchment preset")
     expect(html).toContain("Full answers")
-    expect(html.indexOf("Patient story")).toBeLessThan(html.indexOf("Full answers"))
+    expect(html.indexOf("Reason for visit")).toBeLessThan(html.indexOf("Full answers"))
+  })
+
+  it("omits med-cert recommendation noise while keeping the draft note editable", () => {
+    const html = render(
+      <ClinicalCaseReview
+        category="medical_certificate"
+        serviceType="med_certs"
+        patientName="Sam Lee"
+        answers={{
+          certificateType: "work",
+          duration: "1 day",
+          symptomDuration: "Today",
+          symptomDetails: "Fever and cough today.",
+        }}
+        hideRecommendedPlan
+        draftNoteValue="Patient requests a one-day work certificate for acute symptoms."
+        onDraftNoteChange={() => undefined}
+      />,
+    )
+
+    expect(html).not.toContain("Recommended plan")
+    expect(html).toContain("Draft note")
+    expect(html).toContain("textarea")
+    expect(html).toContain("Patient requests a one-day work certificate")
+  })
+
+  it("strips generic process-speak note boilerplate before it reaches the editable note", () => {
+    expect(
+      stripGenericClinicalNoteBoilerplate(
+        "Patient history reviewed. Medical certificate request requires doctor review before approval.",
+      ),
+    ).toBe("")
+    expect(stripGenericClinicalNoteBoilerplate("Reviewed intake. Patient has fever and cough today.")).toContain(
+      "fever and cough",
+    )
   })
 })

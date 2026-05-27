@@ -4,6 +4,7 @@ Auto-maintained by `scripts/video-review/index-update.ts`. Edit nothing here by 
 
 | Captured | Run | Journey | Score | Headline |
 |---|---|---|---|---|
+| 2026-05-27T09:59:54.005Z | [2026-05-27-doctor-dashboard-desktop-u18r](2026-05-27-doctor-dashboard-desktop-u18r/report.md) | Doctor dashboard desktop interaction audit (queue hover + review open) | 8 | A doctor's console that respects the clock, with a few signals still hiding from the action |
 | 2026-05-25T10:08:49.785Z | [2026-05-25-homepage-clkf](2026-05-25-homepage-clkf/report.md) | Homepage long-scroll + nav tour | 8 | The homepage holds up. Fix the first half-second. |
 | 2026-05-25T10:07:32.798Z | [2026-05-25-marketing-business-h4tc](2026-05-25-marketing-business-h4tc/report.md) | /business B2B landing long-scroll | 7 | The copy is doing the heavy lifting. The form is undoing it. |
 | 2026-05-25T10:06:13.426Z | [2026-05-25-marketing-contact-9vhv](2026-05-25-marketing-contact-9vhv/report.md) | /contact marketing page long-scroll | 8 | A trustworthy contact page, undone by one stray line of copy |

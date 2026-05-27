@@ -48,9 +48,9 @@ describe("buildPatientSnapshot", () => {
       postcode: null,
     }, { now })
 
-    expect(snapshot.ageDobLabel).toBe("DOB not collected")
-    expect(snapshot.medicare.label).toBe("Medicare not collected")
-    expect(snapshot.address.label).toBe("Address not collected")
+    expect(snapshot.ageDobLabel).toBe("Not provided")
+    expect(snapshot.medicare.label).toBe("Not provided")
+    expect(snapshot.address.label).toBe("Not provided")
     expect(snapshot.missingCriticalFields).toEqual(["DOB", "Medicare", "Phone", "Address"])
     expect(snapshot.completenessLabel).toBe("Missing DOB, Medicare, Phone, Address")
     expect(snapshot.completenessTone).toBe("missing")

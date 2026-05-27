@@ -305,10 +305,10 @@ export function buildPatientSnapshot(
   const age = options?.now && dateOfBirth
     ? calculateAgeAt(dateOfBirth, options.now)
     : calculateAge(dateOfBirth)
-  const dobLabel = formatShortDateSafe(dateOfBirth) ?? "DOB not collected"
+  const dobLabel = formatShortDateSafe(dateOfBirth) ?? "Not provided"
   const ageDobLabel = dateOfBirth
     ? `${age != null ? `${age}y` : "Age unknown"} / ${dobLabel}`
-    : "DOB not collected"
+    : "Not provided"
   const medicare = answerOrProfile(options?.answers, ["medicare_number", "medicareNumber"], patient.medicare_number)
   const medicareIrn = answerOrProfile(options?.answers, ["medicare_irn", "medicareIrn"], patient.medicare_irn)
   const medicareExpiry = normalizeMedicareExpiry(
@@ -374,12 +374,12 @@ export function buildPatientSnapshot(
     dobLabel,
     ageDobLabel,
     sex: {
-      label: sexLabel ?? "Sex not collected",
+      label: sexLabel ?? "Not provided",
       present: Boolean(sexValue),
       value: sexValue ?? undefined,
     },
     medicare: {
-      label: medicare ?? "Medicare not collected",
+      label: medicare ?? "Not provided",
       present: Boolean(medicare),
       value: medicare ?? undefined,
       valid: medicareValidation?.valid,
@@ -387,15 +387,15 @@ export function buildPatientSnapshot(
       detailsLabel: medicareDetails || undefined,
     },
     phone: {
-      label: phone ?? "Phone not collected",
+      label: phone ?? "Not provided",
       present: Boolean(phone),
     },
     email: {
-      label: email ?? "Email not collected",
+      label: email ?? "Not provided",
       present: Boolean(email),
     },
     address: {
-      label: address.label ?? "Address not collected",
+      label: address.label ?? "Not provided",
       present: Boolean(address.label),
       value: address.label ?? undefined,
       complete: address.complete,

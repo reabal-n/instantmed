@@ -47,6 +47,12 @@ describe("SlaChip", () => {
     expect(html).toContain("just now")
   })
 
+  it("can render patient waiting time for the inline review header", () => {
+    const html = render(<SlaChip paidAt="2026-05-26T09:42:00Z" mode="waiting" />)
+    expect(html).toContain("Waiting 18m")
+    expect(html).toContain("Queue entered at")
+  })
+
   it("uses no colored backgrounds on routine display (calm-chrome contract)", () => {
     const html = render(<SlaChip paidAt="2026-05-26T07:00:00Z" />)
     expect(html).not.toMatch(/bg-(emerald|orange|red|amber|sky|violet|blue|slate)-(50|100)(?!\d)/)

@@ -4,8 +4,8 @@
  * Test-data visibility banner + admin toggle.
  *
  * Renders a warning strip across the dashboard when `?showTestData=1`
- * is active so the operator can never confuse seeded-E2E rows with
- * real production cases. The toggle button (rendered separately in
+ * is active so the operator can never confuse test rows with real
+ * production cases. The toggle button (rendered separately in
  * the page header) flips the query param on/off without losing other
  * URL state (status filter, page, etc.).
  *
@@ -58,21 +58,20 @@ export function TestDataBanner() {
     <div
       role="status"
       aria-live="polite"
-      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-warning-border bg-warning-light px-4 py-2.5 text-sm"
+      className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-warning-border bg-warning-light px-3 py-2 text-xs shadow-sm shadow-warning/5 dark:border-warning-border"
     >
-      <div className="flex items-center gap-2 text-warning">
-        <Beaker className="h-4 w-4 shrink-0" aria-hidden />
-        <span className="font-medium">Test data visible.</span>
-        <span className="text-warning/80">
-          The seeded E2E patient is included in this view. Not real
-          patients. Toggle off before reviewing live cases.
+      <div className="flex min-w-0 items-center gap-2 text-warning">
+        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-warning" aria-hidden />
+        <span className="font-medium">Test mode is on.</span>
+        <span className="truncate text-warning/90">
+          Switch off before reviewing real patients.
         </span>
       </div>
       <Button
         asChild
-        variant="outline"
+        variant="ghost"
         size="sm"
-        className="h-7 border-warning-border bg-card px-2.5 text-xs text-warning hover:bg-warning/10"
+        className="h-7 px-2.5 text-xs text-warning hover:bg-warning/10 hover:text-warning"
       >
         <Link href={hideHref}>
           <X className="mr-1 h-3 w-3" aria-hidden />
@@ -98,25 +97,26 @@ export function TestDataToggleButton({ active }: { active: boolean }) {
   return (
     <Button
       asChild
-      variant={active ? "default" : "outline"}
+      variant="outline"
       size="sm"
       className={
         active
-          ? "border-warning-border bg-warning-light text-warning hover:bg-warning/10"
+          ? "border-border/70 bg-background text-muted-foreground hover:bg-muted/50 hover:text-foreground"
           : "border-dashed text-muted-foreground hover:text-foreground"
       }
-      title={active ? "Hide the seeded E2E patient" : "Show the seeded E2E patient in the queue"}
+      title={active ? "Hide test patients" : "Show test patients in the queue"}
     >
       <Link href={href}>
         {active ? (
           <>
+            <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-warning" aria-hidden />
             <EyeOff className="mr-1.5 h-3.5 w-3.5" aria-hidden />
-            Test data on
+            Test mode
           </>
         ) : (
           <>
             <Beaker className="mr-1.5 h-3.5 w-3.5" aria-hidden />
-            Test data
+            Test mode
           </>
         )}
       </Link>

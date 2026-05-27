@@ -19,7 +19,6 @@ import type { ReviewData } from "@/components/doctor/review/intake-review-contex
 import {
   findClinicalNoteDraft,
   formatClinicalNoteContent,
-  MIN_CLINICAL_NOTES_LENGTH,
 } from "@/components/doctor/review/utils"
 import { usePanel } from "@/components/panels/panel-provider"
 import { playApprovalSound } from "@/lib/audio/approval-sound"
@@ -80,7 +79,7 @@ export interface ReviewActionsState {
   handleCertPreviewConfirm: (editedData: CertificatePreviewData) => Promise<void>
   handleStatusChange: (status: IntakeStatus) => Promise<void>
   handleDecline: () => Promise<void>
-  handleSaveNotes: () => Promise<void>
+  handleSaveNotes: (nextNotes?: string) => Promise<void>
   handleGenerateOrRegenerateNote: () => Promise<void>
   handleOpenParchmentPrescribe: () => void
   handleApproveAndOpenParchment: () => Promise<void>
@@ -249,8 +248,9 @@ export function useReviewActions({
       toast.error("Review and acknowledge safety flags before approving.")
       return
     }
-    if (doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH) {
-      toast.error(`Clinical notes required (min ${MIN_CLINICAL_NOTES_LENGTH} chars).`)
+    const decisionNote = resolveDecisionNote()
+    if (!decisionNote) {
+      toast.error("Use the draft note or add a brief clinical note.")
       notesRef.current?.focus()
       return
     }
@@ -274,7 +274,13 @@ export function useReviewActions({
   const handleCertPreviewConfirm = async (editedData: CertificatePreviewData) => {
     if (!intake) return
     startTransition(async () => {
-      await saveDoctorNotesAction(intake.id, doctorNotes)
+      const decisionNote = resolveDecisionNote()
+      if (!decisionNote) {
+        toast.error("Use the draft note or add a brief clinical note.")
+        notesRef.current?.focus()
+        return
+      }
+      await saveDoctorNotesAction(intake.id, decisionNote)
       const result = await approveWithPreviewDataAction(intake.id, {
         startDate: editedData.startDate,
         endDate: editedData.endDate,
@@ -321,27 +327,17 @@ export function useReviewActions({
       return
     }
 
-    const decisionNote = status === "awaiting_script" ? resolveDecisionNote() : null
-    if (status === "approved" && doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH) {
-      toast.error(`Clinical notes required (min ${MIN_CLINICAL_NOTES_LENGTH} chars).`)
-      notesRef.current?.focus()
-      return
-    }
-    if (status === "awaiting_script" && !decisionNote) {
-      toast.error(`Clinical notes required (min ${MIN_CLINICAL_NOTES_LENGTH} chars).`)
+    const decisionNote = status === "approved" || status === "awaiting_script"
+      ? resolveDecisionNote()
+      : null
+    if ((status === "approved" || status === "awaiting_script") && !decisionNote) {
+      toast.error("Use the draft note or add a brief clinical note.")
       notesRef.current?.focus()
       return
     }
 
     startTransition(async () => {
-      if (status === "approved") {
-        const saveResult = await saveDoctorNotesAction(intake.id, doctorNotes)
-        if (!saveResult.success) {
-          toast.error(saveResult.error || "Failed to save clinical notes")
-          return
-        }
-      }
-      if (status === "awaiting_script" && decisionNote) {
+      if ((status === "approved" || status === "awaiting_script") && decisionNote) {
         const saveResult = await saveDoctorNotesAction(intake.id, decisionNote)
         if (!saveResult.success) {
           toast.error(saveResult.error || "Failed to save clinical notes")
@@ -380,7 +376,7 @@ export function useReviewActions({
     }
     const decisionNote = resolveDecisionNote()
     if (!decisionNote) {
-      toast.error(`Clinical notes required (min ${MIN_CLINICAL_NOTES_LENGTH} chars).`)
+      toast.error("Use the draft note or add a brief clinical note.")
       notesRef.current?.focus()
       return
     }
@@ -469,12 +465,16 @@ export function useReviewActions({
     }
   }
 
-  const handleSaveNotes = async () => {
+  const handleSaveNotes = async (nextNotes?: string) => {
     if (!intake) return
+    const notesToSave = nextNotes ?? doctorNotes
+    if (nextNotes !== undefined && nextNotes !== doctorNotes) {
+      setDoctorNotes(nextNotes)
+    }
     startTransition(async () => {
-      const result = await saveDoctorNotesAction(intake.id, doctorNotes)
+      const result = await saveDoctorNotesAction(intake.id, notesToSave)
       if (result.success) {
-        lastSavedNotesRef.current = doctorNotes
+        lastSavedNotesRef.current = notesToSave
         setNoteSaved(true)
         setSavedAt(new Date())
         setAutoSaveError(false)

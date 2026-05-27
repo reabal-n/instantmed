@@ -15,7 +15,7 @@ import type { Page } from "playwright"
 
 import { paidFunnel } from "./paid-funnel"
 import { brandSpine } from "./brand-spine"
-import { doctorDashboard } from "./doctor-dashboard"
+import { doctorDashboard, doctorDashboardDesktop } from "./doctor-dashboard"
 import { homepage } from "./homepage"
 import {
   aboutLanding,
@@ -37,6 +37,20 @@ export interface Journey {
    * ~targetSeconds/8 seconds), and INDEX.md metadata.
    */
   targetSeconds: number
+  capture?: {
+    viewport: { width: number; height: number }
+    videoSize?: { width: number; height: number }
+    deviceScaleFactor?: number
+    isMobile?: boolean
+    hasTouch?: boolean
+    userAgent?: string
+  }
+  /**
+   * Optional non-recorded warmup. Use for authenticated local journeys where
+   * Next.js dev compile would otherwise dominate the first captured seconds.
+   * This must not mutate product data.
+   */
+  preCapture?: (baseUrl: string) => Promise<void>
   /**
    * Drive the page. The page is already navigated to baseUrl and
    * sized to mobile 375x812 with a touch-capable browser context.
@@ -50,6 +64,7 @@ export const JOURNEYS: Record<string, Journey> = {
   "paid-funnel": paidFunnel,
   "brand-spine": brandSpine,
   "doctor-dashboard": doctorDashboard,
+  "doctor-dashboard-desktop": doctorDashboardDesktop,
   homepage,
   "service-medical-certificate": medicalCertificateLanding,
   "service-prescriptions": prescriptionsLanding,

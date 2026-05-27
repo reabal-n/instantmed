@@ -47,6 +47,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
 // E2E_RUN_ID: Use env var if provided (from global setup), else fallback to static ID
 // Static IDs allow idempotent seeding when running manually
 export const E2E_RUN_ID = process.env.E2E_RUN_ID || "e2e-test-run-001"
+const IS_VIDEO_REVIEW_SEED = E2E_RUN_ID.startsWith("video-review")
 
 // Deterministic IDs for test data (allows idempotent seeding)
 // These use a fixed prefix to ensure consistent lookups across runs
@@ -68,7 +69,48 @@ export const DRAFT_ID = "e2e00000-0000-0000-0000-000000000040"
 export const TEMPLATE_ID = "e2e00000-0000-0000-0000-000000000051"
 
 const TERMINAL_INTAKE_STATUSES = new Set(["approved", "completed", "declined", "cancelled"])
-const E2E_CLINICAL_NOTE = "E2E baseline clinical note. Patient history reviewed. Medical certificate request requires doctor review before approval."
+const FIXTURE_COPY = {
+  operatorName: IS_VIDEO_REVIEW_SEED ? "Dr Amelia Reid" : "Dr. E2E Operator",
+  doctorName: IS_VIDEO_REVIEW_SEED ? "Dr Noah Bennett" : "Dr. E2E Doctor",
+  supportName: IS_VIDEO_REVIEW_SEED ? "Support Coordinator" : "E2E Support",
+  patientName: IS_VIDEO_REVIEW_SEED ? "Mia Carter" : "E2E Test Patient",
+  serviceName: IS_VIDEO_REVIEW_SEED ? "Medical Certificate" : "Medical Certificate (E2E)",
+  serviceShortName: IS_VIDEO_REVIEW_SEED ? "Med Cert" : "E2E Cert",
+  serviceDescription: IS_VIDEO_REVIEW_SEED
+    ? "Online medical certificate review"
+    : "E2E test medical certificate service",
+  scriptServiceName: IS_VIDEO_REVIEW_SEED ? "Common Scripts" : "Common Scripts (E2E)",
+  scriptServiceShortName: IS_VIDEO_REVIEW_SEED ? "Scripts" : "E2E Scripts",
+  scriptServiceDescription: IS_VIDEO_REVIEW_SEED
+    ? "Repeat prescription review"
+    : "E2E test repeat prescription service",
+  clinicName: IS_VIDEO_REVIEW_SEED ? "InstantMed Clinic" : "E2E Test Medical Clinic",
+  clinicTradingName: IS_VIDEO_REVIEW_SEED ? "InstantMed" : "E2E Clinic",
+  clinicFooter: IS_VIDEO_REVIEW_SEED
+    ? "Generated for video review seed data."
+    : "This is an E2E test certificate.",
+  templateName: IS_VIDEO_REVIEW_SEED ? "Medical Certificate v1" : "E2E Medical Certificate v1",
+  clinicalNote: IS_VIDEO_REVIEW_SEED
+    ? ""
+    : "E2E baseline clinical note. Reviewed intake. Confirm clinical suitability before approval.",
+  draftReason: IS_VIDEO_REVIEW_SEED ? "Medical certificate draft" : "E2E seed validation draft",
+} as const
+
+const E2E_CLINICAL_NOTE = FIXTURE_COPY.clinicalNote
+
+function buildE2EMedCertAnswers(): Record<string, unknown> {
+  return {
+    certType: "work",
+    certificate_type: "work",
+    duration: "1",
+    startDate: new Date().toISOString().slice(0, 10),
+    symptomDuration: "today",
+    symptoms: ["sore throat", "fatigue", "headache"],
+    symptomDetails: IS_VIDEO_REVIEW_SEED
+      ? "Sore throat and fatigue since this morning. Mild headache. No chest pain, shortness of breath, or red-flag symptoms reported."
+      : "Sore throat and fatigue since this morning. Mild headache. No red-flag symptoms reported.",
+  }
+}
 
 // Valid template config that matches TypeScript types
 const E2E_TEMPLATE_CONFIG = {
@@ -112,7 +154,14 @@ async function seedOperatorProfile() {
 
   if (existing) {
     console.log("   ↳ Reusing existing operator profile")
-    return existing
+    if (!IS_VIDEO_REVIEW_SEED) return existing
+    const { data: updated } = await supabase
+      .from("profiles")
+      .update({ full_name: FIXTURE_COPY.operatorName, updated_at: new Date().toISOString() })
+      .eq("id", OPERATOR_PROFILE_ID)
+      .select()
+      .single()
+    return updated || existing
   }
   
   const { data, error } = await supabase
@@ -121,7 +170,7 @@ async function seedOperatorProfile() {
       id: OPERATOR_PROFILE_ID,
       auth_user_id: null,
       email: "e2e-operator@test.instantmed.com.au",
-      full_name: "Dr. E2E Operator",
+      full_name: FIXTURE_COPY.operatorName,
       date_of_birth: "1980-01-15",
       role: "admin", // Admin role has doctor access
       onboarding_completed: true,
@@ -165,7 +214,14 @@ async function seedDoctorProfile() {
 
   if (existing) {
     console.log("   ↳ Reusing existing doctor profile")
-    return existing
+    if (!IS_VIDEO_REVIEW_SEED) return existing
+    const { data: updated } = await supabase
+      .from("profiles")
+      .update({ full_name: FIXTURE_COPY.doctorName, updated_at: new Date().toISOString() })
+      .eq("id", DOCTOR_PROFILE_ID)
+      .select()
+      .single()
+    return updated || existing
   }
   
   const { data, error } = await supabase
@@ -174,7 +230,7 @@ async function seedDoctorProfile() {
       id: DOCTOR_PROFILE_ID,
       auth_user_id: null,
       email: "e2e-doctor@test.instantmed.com.au",
-      full_name: "Dr. E2E Doctor",
+      full_name: FIXTURE_COPY.doctorName,
       date_of_birth: "1985-03-20",
       role: "doctor", // Doctor role - NOT admin
       onboarding_completed: true,
@@ -215,7 +271,14 @@ async function seedSupportProfile() {
 
   if (existing) {
     console.log("   ↳ Reusing existing support profile")
-    return existing
+    if (!IS_VIDEO_REVIEW_SEED) return existing
+    const { data: updated } = await supabase
+      .from("profiles")
+      .update({ full_name: FIXTURE_COPY.supportName, updated_at: new Date().toISOString() })
+      .eq("id", SUPPORT_PROFILE_ID)
+      .select()
+      .single()
+    return updated || existing
   }
 
   const { data, error } = await supabase
@@ -224,7 +287,7 @@ async function seedSupportProfile() {
       id: SUPPORT_PROFILE_ID,
       auth_user_id: null,
       email: "e2e-support@test.instantmed.com.au",
-      full_name: "E2E Support",
+      full_name: FIXTURE_COPY.supportName,
       role: "support",
       onboarding_completed: true,
       email_verified: true,
@@ -258,6 +321,7 @@ async function seedPatientProfile() {
     const { data: updated } = await supabase
       .from("profiles")
       .update({
+        full_name: FIXTURE_COPY.patientName,
         date_of_birth: "1990-06-20",
         phone: "0498765432",
         address_line1: "456 Patient Street",
@@ -282,7 +346,7 @@ async function seedPatientProfile() {
       id: PATIENT_PROFILE_ID,
       auth_user_id: null,
       email: "e2e-patient@test.instantmed.com.au",
-      full_name: "E2E Test Patient",
+      full_name: FIXTURE_COPY.patientName,
       date_of_birth: "1990-06-20",
       role: "patient",
       onboarding_completed: true,
@@ -333,7 +397,18 @@ async function seedService() {
 
   if (e2eExisting) {
     console.log("   ↳ Reusing existing E2E service")
-    return e2eExisting
+    if (!IS_VIDEO_REVIEW_SEED) return e2eExisting
+    const { data: updated } = await supabase
+      .from("services")
+      .update({
+        name: FIXTURE_COPY.serviceName,
+        short_name: FIXTURE_COPY.serviceShortName,
+        description: FIXTURE_COPY.serviceDescription,
+      })
+      .eq("id", SERVICE_ID)
+      .select("id, slug, name, short_name, description, type, price_cents, is_active, created_at")
+      .single()
+    return updated || e2eExisting
   }
 
   const { data, error } = await supabase
@@ -341,9 +416,9 @@ async function seedService() {
     .insert({
       id: SERVICE_ID,
       slug: "med-cert-e2e",
-      name: "Medical Certificate (E2E)",
-      short_name: "E2E Cert",
-      description: "E2E test medical certificate service",
+      name: FIXTURE_COPY.serviceName,
+      short_name: FIXTURE_COPY.serviceShortName,
+      description: FIXTURE_COPY.serviceDescription,
       type: "med_certs",
       price_cents: 2500,
       is_active: true,
@@ -372,7 +447,18 @@ async function seedScriptService() {
 
   if (existingById) {
     console.log("   ↳ Reusing existing E2E common_scripts service")
-    return existingById
+    if (!IS_VIDEO_REVIEW_SEED) return existingById
+    const { data: updated } = await supabase
+      .from("services")
+      .update({
+        name: FIXTURE_COPY.scriptServiceName,
+        short_name: FIXTURE_COPY.scriptServiceShortName,
+        description: FIXTURE_COPY.scriptServiceDescription,
+      })
+      .eq("id", SCRIPT_SERVICE_ID)
+      .select("id, slug, name, short_name, description, type, price_cents, is_active, created_at")
+      .single()
+    return updated || existingById
   }
 
   const { data, error } = await supabase
@@ -380,9 +466,9 @@ async function seedScriptService() {
     .insert({
       id: SCRIPT_SERVICE_ID,
       slug: "common-scripts-e2e",
-      name: "Common Scripts (E2E)",
-      short_name: "E2E Scripts",
-      description: "E2E test repeat prescription service",
+      name: FIXTURE_COPY.scriptServiceName,
+      short_name: FIXTURE_COPY.scriptServiceShortName,
+      description: FIXTURE_COPY.scriptServiceDescription,
       type: "common_scripts",
       price_cents: 2995,
       is_active: true,
@@ -416,10 +502,27 @@ async function seedClinicIdentity() {
       console.log("   ↳ Reactivating existing E2E clinic identity")
       await supabase
         .from("clinic_identity")
-        .update({ is_active: true, updated_by: OPERATOR_PROFILE_ID })
+        .update({
+          is_active: true,
+          clinic_name: FIXTURE_COPY.clinicName,
+          trading_name: FIXTURE_COPY.clinicTradingName,
+          footer_disclaimer: FIXTURE_COPY.clinicFooter,
+          updated_by: OPERATOR_PROFILE_ID,
+        })
         .eq("id", CLINIC_IDENTITY_ID)
     } else {
       console.log("   ↳ Reusing existing E2E clinic identity")
+      if (IS_VIDEO_REVIEW_SEED) {
+        await supabase
+          .from("clinic_identity")
+          .update({
+            clinic_name: FIXTURE_COPY.clinicName,
+            trading_name: FIXTURE_COPY.clinicTradingName,
+            footer_disclaimer: FIXTURE_COPY.clinicFooter,
+            updated_by: OPERATOR_PROFILE_ID,
+          })
+          .eq("id", CLINIC_IDENTITY_ID)
+      }
     }
     return existing
   }
@@ -439,8 +542,8 @@ async function seedClinicIdentity() {
     .from("clinic_identity")
     .insert({
       id: CLINIC_IDENTITY_ID,
-      clinic_name: "E2E Test Medical Clinic",
-      trading_name: "E2E Clinic",
+      clinic_name: FIXTURE_COPY.clinicName,
+      trading_name: FIXTURE_COPY.clinicTradingName,
       address_line_1: "123 Test Street",
       address_line_2: "Suite 100",
       suburb: "Sydney",
@@ -450,7 +553,7 @@ async function seedClinicIdentity() {
       phone: "1300 123 456",
       email: "clinic@test.instantmed.com.au",
       logo_storage_path: null,
-      footer_disclaimer: "This is an E2E test certificate.",
+      footer_disclaimer: FIXTURE_COPY.clinicFooter,
       is_active: true,
       created_by: OPERATOR_PROFILE_ID,
       updated_by: OPERATOR_PROFILE_ID,
@@ -484,11 +587,18 @@ async function seedCertificateTemplate() {
         .update({
           is_active: true,
           activated_at: new Date().toISOString(),
+          name: FIXTURE_COPY.templateName,
           activated_by: OPERATOR_PROFILE_ID,
         })
         .eq("id", TEMPLATE_ID)
     } else {
       console.log("   ↳ Reusing E2E template")
+      if (IS_VIDEO_REVIEW_SEED) {
+        await supabase
+          .from("certificate_templates")
+          .update({ name: FIXTURE_COPY.templateName })
+          .eq("id", TEMPLATE_ID)
+      }
     }
     return existing
   }
@@ -515,7 +625,7 @@ async function seedCertificateTemplate() {
     .insert({
       id: TEMPLATE_ID,
       template_type: "med_cert",
-      name: "E2E Medical Certificate v1",
+      name: FIXTURE_COPY.templateName,
       version: nextVersion,
       config: E2E_TEMPLATE_CONFIG,
       is_active: true,
@@ -695,6 +805,25 @@ async function seedPaidIntake(serviceId: string) {
   return data
 }
 
+async function seedIntakeAnswers() {
+  console.log("🔧 Seeding med_certs intake answers...")
+
+  const answers = buildE2EMedCertAnswers()
+  const { error } = await supabase
+    .from("intake_answers")
+    .insert({
+      intake_id: INTAKE_ID,
+      answers,
+    })
+
+  if (error) {
+    console.error("❌ Failed to seed intake answers:", error.message)
+    throw error
+  }
+
+  console.log("   ↳ Created intake answers")
+}
+
 async function seedDocumentDraft() {
   console.log("🔧 Seeding document draft for intake (optional)...")
   
@@ -734,8 +863,8 @@ async function seedDocumentDraft() {
         type: "med_cert",
         subtype: "work",
         data: {
-          patient_name: "E2E Test Patient",
-          reason: "E2E seed validation draft",
+          patient_name: FIXTURE_COPY.patientName,
+          reason: FIXTURE_COPY.draftReason,
         },
         content: {},
         is_ai_generated: false,
@@ -1005,6 +1134,7 @@ async function main() {
     await seedClinicIdentity()
     await seedCertificateTemplate()
     await seedPaidIntake(service.id)
+    await seedIntakeAnswers()
     await seedDocumentDraft()
     
     // Validate all seeded data

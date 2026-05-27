@@ -21,6 +21,7 @@ import {
   formatDate,
   getStatusColor,
   isConcerningValue,
+  stripGenericClinicalNoteBoilerplate,
 } from "@/components/doctor/review/utils"
 import { useReviewActions } from "@/components/doctor/review-actions"
 import { SlaChip } from "@/components/doctor/sla-chip"
@@ -29,11 +30,13 @@ import { SheetPanel } from "@/components/panels/sheet-panel"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import { buildAdminIntakeHref, buildDoctorIntakeHref } from "@/lib/dashboard/routes"
+import { isReviewLockableStatus } from "@/lib/doctor/intake-lock-status"
 import { logIntakeViewDuration, preloadViewDurationLogging } from "@/lib/doctor/log-view-duration-client"
-import { consumePrefetchedData } from "@/lib/doctor/review-data-cache"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format/intake"
 import { useAuth } from "@/lib/supabase/auth-provider"
+import { cn } from "@/lib/utils"
 
 /**
  * Shell wrappers. `SheetShell` is the slide-over chrome (used everywhere
@@ -70,7 +73,7 @@ function InlineShell({
   // container, border, and overflow management. `onClose` is a no-op
   // inline because j/k in the queue replaces it (selection drives detail).
   return (
-    <div className="h-full min-h-0 overflow-y-auto p-5">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden p-3 sm:p-4">
       {children}
     </div>
   )
@@ -78,6 +81,11 @@ function InlineShell({
 
 interface IntakeReviewPanelProps {
   intakeId: string
+  previewIntake?: {
+    patient: { full_name: string }
+    service?: { name?: string | null; type?: string | null; short_name?: string | null } | null
+    status?: string | null
+  }
   onActionComplete?: (options?: { advance?: boolean }) => void
   onNextCase?: () => void
   onPrevCase?: () => void
@@ -94,12 +102,23 @@ interface IntakeReviewPanelProps {
   inline?: boolean
 }
 
-export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPrevCase, caseIndex, totalCases, profileMode = "doctor", inline = false }: IntakeReviewPanelProps) {
+export function IntakeReviewPanel({
+  intakeId,
+  previewIntake,
+  onActionComplete,
+  onNextCase,
+  onPrevCase,
+  caseIndex,
+  totalCases,
+  profileMode = "doctor",
+  inline = false,
+}: IntakeReviewPanelProps) {
   useAuth()
   const { closePanel, openPanel } = usePanel()
   const [data, setData] = useState<ReviewData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [reloadToken, setReloadToken] = useState(0)
 
   // Safety flags
   const [redFlagsAcknowledged, setRedFlagsAcknowledged] = useState(false)
@@ -111,15 +130,20 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
     preloadViewDurationLogging()
   }, [])
 
-  // Fetch data on mount - uses prefetched response from hover cache when available
+  // Fetch data only after explicit open intent. Queue hover intentionally
+  // does not prefetch PHI-heavy review payloads.
   useEffect(() => {
     const loadSequence = loadSequenceRef.current + 1
     loadSequenceRef.current = loadSequence
+    const controller = new AbortController()
+    const timeout = window.setTimeout(() => controller.abort(), 12000)
     setIsLoading(true)
     setError(null)
     async function fetchData() {
       try {
-        const res = await (consumePrefetchedData(intakeId) ?? fetch(`/api/doctor/intakes/${intakeId}/review-data`))
+        const res = await fetch(`/api/doctor/intakes/${intakeId}/review-data`, {
+          signal: controller.signal,
+        })
         if (!res.ok) {
           const body = await res.json().catch(() => ({ error: "Failed to load" }))
           throw new Error(body.error || `HTTP ${res.status}`)
@@ -131,13 +155,22 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
         }
       } catch (err) {
         if (loadSequenceRef.current === loadSequence) {
-          setError(err instanceof Error ? err.message : "Failed to load intake data")
+          const message = err instanceof DOMException && err.name === "AbortError"
+            ? "Review details took too long to load. Retry before making a decision."
+            : err instanceof Error ? err.message : "Failed to load intake data"
+          setError(message)
           setIsLoading(false)
         }
+      } finally {
+        window.clearTimeout(timeout)
       }
     }
     fetchData()
-  }, [intakeId])
+    return () => {
+      window.clearTimeout(timeout)
+      controller.abort()
+    }
+  }, [intakeId, reloadToken])
 
   // Computed values from data
   const intake = data?.intake
@@ -174,7 +207,10 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
   // ---- Extracted hooks ----
 
   // Lock management: acquire on data load, extend on interval, release on unmount
-  const { lockWarning, releaseLock } = useIntakeLock(intakeId, !!data)
+  const { lockWarning, releaseLock } = useIntakeLock(
+    intakeId,
+    Boolean(data && isReviewLockableStatus(data.intake.status)),
+  )
 
   // Audit trail: fire one-shot audit events after data loads
   useAuditTrail(intakeId, !!data, {
@@ -198,23 +234,29 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
   // persisted until the doctor edits, saves, or approves.
   useEffect(() => {
     if (!data) return
-    const existingNotes = data.intake.doctor_notes || ""
-    const isReviewable = !["approved", "completed", "awaiting_script", "declined"].includes(data.intake.status)
+    const existingNotes = stripGenericClinicalNoteBoilerplate(data.intake.doctor_notes || "")
     if (!existingNotes && data.aiDrafts) {
       const clinicalDraft = findClinicalNoteDraft(data.aiDrafts)
       if (clinicalDraft) {
         const formatted = formatClinicalNoteContent(clinicalDraft.content)
         actions.setInitialNotes(formatted || "", formatted || "")
       } else {
-        actions.setInitialNotes("", "")
+        const fallbackDraftNote = buildClinicalCaseSummary({
+          answers: (data.intake.answers?.answers || {}) as Record<string, unknown>,
+          category: data.intake.category,
+          subtype: data.intake.subtype,
+          serviceType: (data.intake.service as { type?: string | null } | null | undefined)?.type,
+          patientName: data.intake.patient.full_name,
+          patientDateOfBirth: data.intake.patient.date_of_birth ?? null,
+          patientSex: data.intake.patient.sex ?? null,
+          riskTier: data.intake.risk_tier,
+          requiresLiveConsult: data.intake.requires_live_consult,
+        }).draftNote
+        actions.setInitialNotes(fallbackDraftNote, fallbackDraftNote)
       }
     } else {
       // dbNotes=existingNotes → already in DB, no immediate auto-save
       actions.setInitialNotes(existingNotes, existingNotes)
-    }
-    // Auto-focus notes for reviewable cases so doctor can start typing immediately
-    if (isReviewable) {
-      setTimeout(() => actions.notesRef.current?.focus(), 100)
     }
     // Only run when data first arrives
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -238,13 +280,85 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
 
   // Loading skeleton
   if (isLoading) {
+    const previewService = previewIntake?.service
+    const previewServiceLabel = previewService?.short_name || previewService?.name || formatServiceType(previewService?.type || "")
+    const skeletonTone = "bg-[#F1EFEA]/80 dark:bg-white/10"
     return (
       <Shell title="Loading case..." onClose={handlePanelClose}>
-        <div className="space-y-5" data-testid="intake-review-loading">
-          <Skeleton className="h-6 w-48" />
-          <Skeleton className="h-36 w-full" />
-          <Skeleton className="h-52 w-full" />
-          <Skeleton className="h-36 w-full" />
+        <div
+          className={cn(inline ? "flex h-full min-h-0 flex-col gap-3" : "space-y-5")}
+          data-testid="intake-review-loading"
+        >
+          {previewIntake ? (
+            <div className="rounded-xl border border-border/60 bg-muted/25 px-3.5 py-3">
+              <div className="flex min-w-0 items-center gap-2">
+                <User className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-foreground">{previewIntake.patient.full_name}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {previewServiceLabel} · {formatIntakeStatus(previewIntake.status || "paid")}
+                  </p>
+                  <p className="mt-1 text-[11px] font-medium text-slate-500 dark:text-muted-foreground">
+                    Loading patient record
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <Skeleton className={`h-6 w-48 ${skeletonTone}`} />
+          )}
+          <div className={cn(inline ? "min-h-0 flex-1 space-y-3 overflow-hidden" : "space-y-5")}>
+            <section className="rounded-xl border border-border/55 bg-muted/15 p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="space-y-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-muted-foreground">
+                    Patient details
+                  </p>
+                  <Skeleton className={`h-4 w-36 ${skeletonTone}`} />
+                </div>
+                <Skeleton className={`h-5 w-28 rounded-full ${skeletonTone}`} />
+              </div>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                <Skeleton className={`h-12 ${skeletonTone}`} />
+                <Skeleton className={`h-12 ${skeletonTone}`} />
+                <Skeleton className={`h-12 ${skeletonTone}`} />
+                <Skeleton className={`h-12 ${skeletonTone}`} />
+              </div>
+            </section>
+            <section className="rounded-xl border border-border/55 bg-muted/15 p-3">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-semibold text-slate-500 dark:text-muted-foreground">
+                  Checks
+                </p>
+                <Skeleton className={`h-5 w-8 rounded-full ${skeletonTone}`} />
+              </div>
+              <Skeleton className={`mt-3 h-16 ${skeletonTone}`} />
+            </section>
+            <section className="rounded-xl border border-border/55 bg-muted/15 p-3">
+              <p className="text-xs font-semibold text-slate-500 dark:text-muted-foreground">
+                Draft note
+              </p>
+              <Skeleton className={`mt-3 h-28 ${skeletonTone}`} />
+            </section>
+          </div>
+          <div className="shrink-0 border-t border-border bg-background/95 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/90">
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-9 cursor-not-allowed border-border/60 bg-muted px-3 text-xs text-slate-500 opacity-100"
+                disabled
+              >
+                Loading patient record
+              </Button>
+              <Button variant="outline" size="sm" className="h-9 border-transparent bg-transparent px-3 text-xs text-slate-600 opacity-60" disabled>
+                Decline
+              </Button>
+            </div>
+            <p className="mt-2 text-xs font-medium text-slate-600 dark:text-muted-foreground">
+              Waiting for the patient's answers.
+            </p>
+          </div>
         </div>
       </Shell>
     )
@@ -254,13 +368,18 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
   if (error || !intake) {
     return (
       <Shell title="Error" onClose={handlePanelClose}>
-        <div className="text-center py-12">
+        <div className="py-12 text-center">
           <p className="text-destructive font-medium">{error || "Intake not found"}</p>
-          {!inline ? (
-            <Button variant="outline" className="mt-4" onClick={closePanel}>
-              Close
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            <Button variant="outline" onClick={() => setReloadToken((value) => value + 1)}>
+              Retry
             </Button>
-          ) : null}
+            {!inline ? (
+              <Button variant="ghost" onClick={closePanel}>
+                Close
+              </Button>
+            ) : null}
+          </div>
         </div>
       </Shell>
     )
@@ -315,7 +434,6 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
   const fullCaseHref = profileMode === "admin"
     ? buildAdminIntakeHref(intake.id)
     : buildDoctorIntakeHref(intake.id)
-
   return (
     <>
       <Shell
@@ -328,23 +446,28 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
         onClose={handlePanelClose}
       >
         <IntakeReviewProvider value={contextValue}>
-          <div className="space-y-5" data-testid="intake-review-panel">
+          <div
+            className={cn(
+              inline ? "flex h-full min-h-0 flex-col gap-3 motion-safe:animate-[fade-in-up_200ms_cubic-bezier(0.16,1,0.3,1)]" : "space-y-5 motion-safe:animate-[fade-in-up_200ms_cubic-bezier(0.16,1,0.3,1)]",
+            )}
+            data-testid="intake-review-panel"
+          >
             {/* Top bar: status, case navigation, and profile links */}
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-wrap items-center gap-2">
                 {inline ? (
-                  <h2 className="truncate text-base font-semibold tracking-tight text-foreground">
+                  <h2 className="truncate text-2xl font-semibold tracking-tight text-foreground">
                     {intake.patient.full_name}
                   </h2>
                 ) : null}
                 <Badge className={getStatusColor(intake.status)}>
                   {formatIntakeStatus(intake.status)}
                 </Badge>
-                {/* SLA chip: "Paid Xh ago" with calm-chrome semantic dot
+                {/* SLA chip: "Waiting Xm" with calm-chrome semantic dot
                     (green <4h, amber 4-24h, red 24h+) so the operator sees
                     review urgency next to the patient name at the decision
                     moment, not just on the queue list. */}
-                <SlaChip paidAt={intake.paid_at} />
+                <SlaChip paidAt={intake.paid_at} mode={inline ? "waiting" : "paid"} />
                 {caseIndex != null && totalCases != null && (
                   <Badge variant="outline" size="sm">Case {caseIndex + 1} of {totalCases}</Badge>
                 )}
@@ -376,7 +499,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
                 )}
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() => {
                     openPanel({
@@ -423,8 +546,16 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
               previousIntakes={data?.previousIntakes ?? []}
               service={service}
               doctorNotes={actions.doctorNotes}
+              showPatientName={false}
+              summaryOnly
+              compact={inline}
+              revealIdentityByDefault={inline}
             />
-            <IntakeReviewCockpit showDecisionStrip={false} />
+            <IntakeReviewCockpit
+              showDecisionStrip={false}
+              showThinMedCertWarning={false}
+              className={inline ? "min-h-0 flex-1" : undefined}
+            />
           </div>
         </IntakeReviewProvider>
       </Shell>

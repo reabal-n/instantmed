@@ -12,11 +12,11 @@
  *   - Per-screenshot timeout cap so a hung snapshot does not stall
  *     the journey.
  *
- * Records a webm at mobile viewport (375x812), touch-capable, and
- * extracts ~8 representative still frames during the journey.
+ * Records a webm at the journey's requested viewport (mobile 375x812 by
+ * default) and extracts ~8 representative still frames during the journey.
  */
 
-import { mkdir, readdir, rename, stat } from "node:fs/promises"
+import { mkdir, readdir, rename, stat, writeFile } from "node:fs/promises"
 import { join, resolve } from "node:path"
 
 import { chromium, type Browser } from "playwright"
@@ -29,6 +29,7 @@ export interface CaptureResult {
   videoPath: string
   framesDir: string
   durationSeconds: number
+  domEvidencePath: string
 }
 
 export interface CaptureOptions {
@@ -63,25 +64,33 @@ export async function capture(opts: CaptureOptions): Promise<CaptureResult> {
 
   const startedAt = Date.now()
   let stopFrameLoop: (() => void) | undefined
+  let domEvidencePath = join(outDir, "dom-evidence.json")
 
   try {
+    if (journey.preCapture) {
+      await journey.preCapture(baseUrl)
+    }
+
     browser = await chromium.launch({
       headless: true,
       args: ["--disable-blink-features=AutomationControlled"],
     })
 
+    const viewport = journey.capture?.viewport ?? { width: 375, height: 812 }
+    const videoSize = journey.capture?.videoSize ?? viewport
     const context = await browser.newContext({
-      viewport: { width: 375, height: 812 },
-      deviceScaleFactor: 3,
-      isMobile: true,
-      hasTouch: true,
+      viewport,
+      deviceScaleFactor: journey.capture?.deviceScaleFactor ?? 3,
+      isMobile: journey.capture?.isMobile ?? true,
+      hasTouch: journey.capture?.hasTouch ?? true,
       locale: "en-AU",
       timezoneId: "Australia/Sydney",
       userAgent:
+        journey.capture?.userAgent ??
         "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
       recordVideo: {
         dir: outDir,
-        size: { width: 375, height: 812 },
+        size: videoSize,
       },
     })
 
@@ -89,12 +98,16 @@ export async function capture(opts: CaptureOptions): Promise<CaptureResult> {
     page.setDefaultTimeout(30_000)
     page.setDefaultNavigationTimeout(30_000)
 
-    const frameInterval = Math.max(4000, Math.floor((journey.targetSeconds * 1000) / 8))
+    const frameInterval = Math.max(
+      1200,
+      Math.min(4000, Math.floor((journey.targetSeconds * 1000) / 8)),
+    )
     stopFrameLoop = scheduleFrameCaptures(page, framesDir, frameInterval)
 
     try {
       await journey.run(page, baseUrl)
     } finally {
+      domEvidencePath = await captureDomEvidence(page, outDir)
       stopFrameLoop()
       stopFrameLoop = undefined
       await page.close().catch(() => {})
@@ -130,7 +143,94 @@ export async function capture(opts: CaptureOptions): Promise<CaptureResult> {
     )
   }
 
-  return { videoPath: finalVideoPath, framesDir, durationSeconds }
+  return { videoPath: finalVideoPath, framesDir, durationSeconds, domEvidencePath }
+}
+
+export interface DomEvidenceSnapshot {
+  capturedAt: string
+  url: string
+  title: string
+  visibleText: string
+  elements: Array<{
+    selector: string
+    text: string
+  }>
+}
+
+async function captureDomEvidence(
+  page: import("playwright").Page,
+  outDir: string,
+): Promise<string> {
+  const path = join(outDir, "dom-evidence.json")
+  try {
+    const evidence = (await page.evaluate(`(() => {
+      const normalize = (value) =>
+        (value ?? "").replace(/\\s+/g, " ").trim()
+      const elementSelectors = [
+        "h1",
+        "h2",
+        "[data-testid]",
+        "button",
+        "[role='status']",
+        "[aria-label]",
+      ]
+      const elements = Array.from(document.querySelectorAll(elementSelectors.join(",")))
+        .slice(0, 80)
+        .map((element) => {
+          const label =
+            element.getAttribute("data-testid") ||
+            element.getAttribute("aria-label") ||
+            element.tagName.toLowerCase()
+          return {
+            selector: label,
+            text: normalize(element.textContent),
+          }
+        })
+        .filter((item) => item.text.length > 0)
+        .slice(0, 40)
+
+      return {
+        capturedAt: new Date().toISOString(),
+        url: window.location.href,
+        title: document.title,
+        visibleText: normalize(document.body?.innerText).slice(0, 20000),
+        elements,
+      }
+    })()`)) as DomEvidenceSnapshot
+
+    await writeFile(path, JSON.stringify(redactDomEvidence(evidence), null, 2), "utf8")
+  } catch (error) {
+    const fallback: DomEvidenceSnapshot = {
+      capturedAt: new Date().toISOString(),
+      url: page.url(),
+      title: "",
+      visibleText: "",
+      elements: [
+        {
+          selector: "capture-error",
+          text: error instanceof Error ? error.message : String(error),
+        },
+      ],
+    }
+    await writeFile(path, JSON.stringify(fallback, null, 2), "utf8")
+  }
+  return path
+}
+
+function redactDomEvidence(evidence: DomEvidenceSnapshot): DomEvidenceSnapshot {
+  const redact = (value: string) =>
+    value
+      .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[email]")
+      .replace(/\b(?:\+?61|0)\s?\d(?:[\s-]?\d){7,9}\b/g, "[phone]")
+
+  return {
+    ...evidence,
+    visibleText: redact(evidence.visibleText),
+    elements: evidence.elements.map((element) => ({
+      ...element,
+      text: redact(element.text),
+    })),
+  }
 }
 
 /**

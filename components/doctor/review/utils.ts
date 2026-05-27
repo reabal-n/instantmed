@@ -4,6 +4,18 @@ export { MIN_CLINICAL_NOTES_LENGTH } from "@/lib/doctor/clinical-notes"
 
 export type FormattingType = "bold" | "italic" | "h2" | "bullet" | "numbered" | "divider"
 
+const GENERIC_CLINICAL_NOTE_BOILERPLATE = [
+  "patient history reviewed. medical certificate request requires doctor review before approval.",
+  "e2e baseline clinical note. patient history reviewed. medical certificate request requires doctor review before approval.",
+] as const
+
+export function stripGenericClinicalNoteBoilerplate(note: string): string {
+  const normalized = note.replace(/\s+/g, " ").trim().toLowerCase()
+  return GENERIC_CLINICAL_NOTE_BOILERPLATE.includes(normalized as typeof GENERIC_CLINICAL_NOTE_BOILERPLATE[number])
+    ? ""
+    : note
+}
+
 /**
  * Format clinical note draft JSON into SOAP clinical note text.
  */
@@ -19,7 +31,8 @@ export function formatClinicalNoteContent(content: Record<string, unknown>): str
   if (obj) sections.push(`Objective:\n${obj}`)
   if (assess) sections.push(`Assessment:\n${assess}`)
   if (plan) sections.push(`Plan:\n${plan}`)
-  return sections.length > 0 ? sections.join("\n\n") : null
+  const formatted = sections.length > 0 ? sections.join("\n\n") : null
+  return formatted ? stripGenericClinicalNoteBoilerplate(formatted) || null : null
 }
 
 /**

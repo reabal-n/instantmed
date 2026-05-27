@@ -35,6 +35,10 @@ const queueFocusSource = readFileSync(
   join(process.cwd(), "lib/doctor/queue-focus.ts"),
   "utf8",
 )
+const intakeReviewPanelSource = readFileSync(
+  join(process.cwd(), "components/doctor/intake-review-panel.tsx"),
+  "utf8",
+)
 const intakeDetailActionsSource = readFileSync(
   join(process.cwd(), "app/doctor/intakes/[id]/use-intake-actions.tsx"),
   "utf8",
@@ -69,6 +73,10 @@ const caseActionGuardSource = readFileSync(
 
 const intakeLockSource = readFileSync(
   join(process.cwd(), "lib/data/intake-lock.ts"),
+  "utf8",
+)
+const intakeLockStatusSource = readFileSync(
+  join(process.cwd(), "lib/doctor/intake-lock-status.ts"),
   "utf8",
 )
 
@@ -134,6 +142,35 @@ describe("doctor queue production contract", () => {
     // were removed 2026-05-25 when the queue header's "updated 5:03pm"
     // chrome was deleted; the throttle ref is what actually enforces the
     // 5-second floor.
+  })
+
+  it("opens queue cases through one selection path so the Review button works on the first click", () => {
+    expect(queueClientSource).not.toContain("onToggleExpand")
+    expect(queueTableSource).not.toContain("onToggleExpand")
+
+    const openHandlerStart = queueClientSource.indexOf("const openReviewPanel")
+    const desktopReturnStart = queueClientSource.indexOf("if (compactShell && isDesktop)", openHandlerStart)
+    const beforeDesktopReturn = queueClientSource.slice(openHandlerStart, desktopReturnStart)
+
+    expect(openHandlerStart).toBeGreaterThan(-1)
+    expect(desktopReturnStart).toBeGreaterThan(openHandlerStart)
+    expect(beforeDesktopReturn).toContain("setExpandedId(intakeId)")
+    expect(queueTableSource).toContain("onPointerDown={(event)")
+    expect(queueTableSource).toContain("if (event.detail === 0) openCaseFromPrimaryAction()")
+  })
+
+  it("keeps queue hover visual-only so clinical review data loads only after explicit open", () => {
+    expect(existsSync(join(process.cwd(), "components/doctor/queue/queue-row-peek.tsx"))).toBe(false)
+    expect(existsSync(join(process.cwd(), "lib/doctor/review-data-cache.ts"))).toBe(false)
+    expect(queueTableSource).not.toContain("onMouseEnter")
+    expect(queueTableSource).not.toContain("prefetchReviewData")
+    expect(intakeReviewPanelSource).toContain("fetch(`/api/doctor/intakes/${intakeId}/review-data`,")
+    expect(intakeReviewPanelSource).toContain("does not prefetch PHI-heavy review payloads")
+  })
+
+  it("keeps status filters local-first without forcing a server navigation", () => {
+    expect(queueClientSource).toContain("window.history.replaceState")
+    expect(queueClientSource).not.toContain("router.replace")
   })
 
   it("does not write patient email addresses into decline logs", () => {
@@ -237,7 +274,7 @@ describe("doctor queue production contract", () => {
     expect(queueTableSource).toContain('intake.payment_status === "paid"')
   })
 
-  it("explains disabled approval buttons when clinical notes are missing", () => {
+  it("keeps note guidance inline and avoids global 50-character blockers", () => {
     const detailHeaderSource = readFileSync(
       join(process.cwd(), "app/doctor/intakes/[id]/intake-detail-header.tsx"),
       "utf8",
@@ -248,14 +285,14 @@ describe("doctor queue production contract", () => {
     )
 
     expect(detailHeaderSource).toContain("approveDisabledReason")
-    expect(detailHeaderSource).toContain("Add clinical notes")
-    expect(detailHeaderSource).toContain("doctorNotes.trim().length")
+    expect(detailHeaderSource).toContain("approveDisabledReason")
     expect(detailHeaderSource).toContain("title={approveDisabledReason || undefined}")
 
     expect(reviewButtonsSource).toContain("approveDisabledReason")
-    expect(reviewButtonsSource).toContain("MIN_CLINICAL_NOTES_LENGTH")
-    expect(reviewButtonsSource).toContain("Add clinical notes")
-    expect(reviewButtonsSource).toContain("title={approveDisabledReason || undefined}")
+    expect(reviewButtonsSource).toContain("isClinicalNoteSufficient")
+    expect(reviewButtonsSource).toContain("Use the draft note or add a brief clinical note.")
+    expect(reviewButtonsSource).toContain("approveDisabledReason || undefined")
+    expect(reviewButtonsSource).not.toContain("50+ chars")
   })
 
   it("does not fail open when the doctor claim RPC is missing or unavailable", () => {
@@ -274,6 +311,15 @@ describe("doctor queue production contract", () => {
     expect(intakeLockSource).not.toContain("claimed_by: doctorId")
   })
 
+  it("does not claim approved or terminal cases when opening read-only review", () => {
+    expect(intakeReviewPanelSource).toContain("isReviewLockableStatus(data.intake.status)")
+    expect(intakeLockStatusSource).toContain('"paid"')
+    expect(intakeLockStatusSource).toContain('"awaiting_script"')
+    expect(intakeLockStatusSource).not.toContain('"approved"')
+    expect(intakeLockStatusSource).not.toContain('"completed"')
+    expect(intakeLockStatusSource).not.toContain('"declined"')
+  })
+
   it("requires case ownership before requesting more patient information", () => {
     expect(requestMoreInfoSource).toContain("getDoctorCaseActionError")
     expect(requestMoreInfoSource).toContain("claimed_by")
@@ -283,5 +329,11 @@ describe("doctor queue production contract", () => {
   it("blocks awaiting-script transitions when prescribing identity is incomplete", () => {
     expect(queueActionsSource).toContain("getParchmentPatientIdentityIssues")
     expect(queueActionsSource).toContain("Cannot approve for prescribing until patient identity is complete")
+  })
+
+  it("persists the generated case-summary draft when approving without typed notes", () => {
+    expect(queueActionsSource).toContain("buildClinicalCaseSummary")
+    expect(queueActionsSource).toContain("resolveClinicalDecisionNote")
+    expect(queueActionsSource).toContain("saveDoctorNotes(intakeId, decisionNote)")
   })
 })

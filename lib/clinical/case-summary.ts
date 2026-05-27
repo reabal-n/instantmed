@@ -56,6 +56,7 @@ export interface PrescriptionIntent {
   quantityTemplate?: string
   repeatsTemplate?: string
   safetyChecks: string[]
+  cautionChecks?: string[]
   parchmentMode: "open_patient_prescribe"
   clipboardText: string
   alternativeNote?: string
@@ -152,6 +153,7 @@ function createClipboardText(intent: Omit<PrescriptionIntent, "clipboardText" | 
     intent.quantityTemplate ? `Quantity: ${intent.quantityTemplate}` : null,
     intent.repeatsTemplate ? `Repeats: ${intent.repeatsTemplate}` : null,
     intent.safetyChecks.length > 0 ? `Safety checks: ${intent.safetyChecks.join("; ")}` : null,
+    intent.cautionChecks && intent.cautionChecks.length > 0 ? `Cautions: ${intent.cautionChecks.join("; ")}` : null,
   ].filter(Boolean)
 
   return lines.join("\n")
@@ -165,8 +167,25 @@ function makeIntent(intent: Omit<PrescriptionIntent, "clipboardText" | "parchmen
   }
 }
 
+function sentenceCaseClinicalText(text: string): string {
+  return text
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/(^|[.!?]\s+)([a-z])/g, (match, prefix: string, char: string) => `${prefix}${char.toUpperCase()}`)
+}
+
+function displayPatientStory(text: string): string {
+  return sentenceCaseClinicalText(text)
+    .replace(/\b(\d+)yo\b/gi, "$1-year-old")
+}
+
 function note(subjective: string, objective: string, assessment: string, plan: string): string {
-  return [`S: ${subjective}`, `O: ${objective}`, `A: ${assessment}`, `P: ${plan}`].join("\n")
+  return [
+    `S: ${sentenceCaseClinicalText(subjective)}`,
+    `O: ${sentenceCaseClinicalText(objective)}`,
+    `A: ${sentenceCaseClinicalText(assessment)}`,
+    `P: ${sentenceCaseClinicalText(plan)}`,
+  ].join("\n")
 }
 
 function ageFromDob(dob: string | null | undefined): number | null {
@@ -230,7 +249,6 @@ function edSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const hasAlphaBlockers = answerYes(answers, "edAlphaBlockers")
   const gpCleared = answerYes(answers, "edGpCleared")
   const hasBlock = hasNitrates || (hasRecentHeartEvent && !gpCleared) || (hasSevereHeart && !gpCleared)
-  const needsLiveReview = !hasBlock && (hasRecentHeartEvent || hasSevereHeart || hasAlphaBlockers)
   const goal = str(answers, "edGoal") || "ED treatment"
   const duration = str(answers, "edDuration") || str(answers, "duration_of_concern") || "unspecified duration"
   const preference = str(answers, "edPreference") || "doctor decides"
@@ -293,7 +311,10 @@ function edSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     fact("Current medications", str(answers, "current_medications")),
   ])
 
-  const action: ClinicalPlanAction = hasBlock ? "decline" : needsLiveReview ? "needs_call" : "prescribe"
+  const cautionChecks = safetyItems
+    .filter((item) => item.severity === "caution")
+    .map((item) => item.label)
+  const action: ClinicalPlanAction = hasBlock ? "decline" : "prescribe"
   const recommendedPlan: ClinicalPlan = hasBlock
     ? {
         action,
@@ -301,22 +322,17 @@ function edSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
         rationale: "A contraindication or high-risk cardiac screen was detected.",
         nextSteps: ["Decline or convert to a clinician-led consultation.", "Advise GP/cardiology review where relevant."],
       }
-    : needsLiveReview
-      ? {
-          action,
-          title: "Live review before ED prescribing",
-          rationale: "The patient reported cardiac history or alpha-blocker use that needs clinician verification before any Parchment action.",
-          nextSteps: ["Call the patient or verify GP/cardiology clearance.", "Confirm current medicines, blood pressure context, and dosing separation before prescribing."],
-        }
     : {
         action,
         title: "PDE5 inhibitor pathway if clinically appropriate",
-        rationale: "No hard contraindication was detected in the structured ED screen.",
+        rationale: cautionChecks.length > 0
+          ? "No absolute contraindication was detected, but the doctor must confirm the caution items before prescribing."
+          : "No hard contraindication was detected in the structured ED screen.",
         nextSteps: ["Confirm current medicines and cardiovascular risk.", "Open Parchment and prescribe within Parchment if satisfied."],
       }
 
   const edPreset = getEdPreset(preference)
-  const prescriptionIntent = hasBlock || needsLiveReview ? undefined : makeIntent({
+  const prescriptionIntent = hasBlock ? undefined : makeIntent({
     presetLabel: "ED prescribing preset",
     medicationName: edPreset.medicationName,
     strength: edPreset.strength,
@@ -326,6 +342,7 @@ function edSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     quantityTemplate: edPreset.quantityTemplate,
     repeatsTemplate: edPreset.repeatsTemplate,
     safetyChecks: ["No nitrates reported", "Cardiac screen reviewed", "Alpha blockers checked", "Current medications checked"],
+    cautionChecks,
     alternativeNote: edPreset.alternativeNote,
   })
 
@@ -359,17 +376,15 @@ function edSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
 
   const assessment = hasBlock
     ? "Contraindication to PDE5 inhibitor therapy identified on screen. Not suitable for asynchronous prescribing."
-    : needsLiveReview
-      ? "Cardiac history or alpha-blocker use requires clinician verification before prescribing."
+    : cautionChecks.length > 0
+      ? "ED with caution items on screen. No absolute contraindication identified, but safety context requires doctor confirmation before prescribing."
       : score && Number(score) <= 11
         ? "Moderate erectile dysfunction. No contraindications to PDE5 inhibitor identified on screen."
         : "Mild to moderate erectile dysfunction. No contraindications to PDE5 inhibitor identified on screen."
 
   const planText = hasBlock
     ? "Decline asynchronous prescribing. Advise patient to consult GP or cardiology for in-person review."
-    : needsLiveReview
-      ? "Call patient to verify cardiac context and confirm GP clearance before any prescribing decision."
-      : preference === "daily"
+    : preference === "daily"
         ? "Tadalafil 5mg daily x 30 tablets, 2 repeats. Counsel on dosing, side effects (headache, flushing, dyspepsia, back pain), and to seek review if no response after 4 weeks or if any chest pain on activity."
         : "Sildenafil 50mg PRN x 8 tablets, 2 repeats. 1 tablet 1 hour before sexual activity, max 1 per 24h. Counsel on side effects (headache, flushing, dyspepsia, visual disturbance), and to seek review if no response or if any chest pain on activity."
 
@@ -389,15 +404,17 @@ function hairSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const validation = validateHairLossConsult(answers)
   const blockingFlags = validation.flags.filter((flag) => flag.type === "safety_block")
   const cautionFlags = validation.flags.filter((flag) => flag.type !== "safety_block")
-  const hasBlock = blockingFlags.length > 0
   const goal = str(answers, "hairGoal") || "hair loss treatment"
   const onset = str(answers, "hairOnset") || "unspecified onset"
   const pattern = str(answers, "hairPattern") || "unspecified pattern"
   const preference = str(answers, "hairMedicationPreference") || "doctor decides"
+  const reproductiveBlock = blockingFlags.some((flag) => flag.reason === "reproductive_contraindication")
+  const oralRequested = preference === "oral"
+  const hasBlock = reproductiveBlock && oralRequested
 
   const safetyItems: ClinicalSafetyItem[] = [
     ...blockingFlags.map((flag) => ({
-      severity: "block" as const,
+      severity: hasBlock ? "block" as const : "caution" as const,
       label: flag.reason === "reproductive_contraindication" ? "Reproductive contraindication" : humanize(flag.reason),
       detail: flag.details || "Safety block detected.",
     })),
@@ -432,17 +449,28 @@ function hairSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     : {
         action: "prescribe",
         title: "Hair loss treatment pathway if clinically appropriate",
-        rationale: "No hard contraindication was detected in the structured hair-loss screen.",
+        rationale: reproductiveBlock
+          ? "Oral finasteride is unsuitable from the reproductive screen; topical treatment can still be considered if clinically appropriate."
+          : "No hard contraindication was detected in the structured hair-loss screen.",
         nextSteps: ["Confirm pattern and reversible causes.", "Open Parchment and prescribe within Parchment if satisfied."],
       }
 
+  const hairCautionChecks = safetyItems
+    .filter((item) => item.severity === "caution")
+    .map((item) => item.label)
+  const hairPreset = resolveHairLossPreset(preference, reproductiveBlock)
   const prescriptionIntent = hasBlock ? undefined : makeIntent({
     presetLabel: "Hair loss prescribing preset",
-    medicationSearchHint: preference === "oral" ? "oral hair loss option" : "hair loss treatment option",
-    directionsTemplate: "Doctor to select agent, strength, directions, quantity and repeats in Parchment after final review.",
-    quantityTemplate: "Confirm in Parchment",
-    repeatsTemplate: "Confirm in Parchment",
+    medicationName: hairPreset.medicationName,
+    strength: hairPreset.strength,
+    form: hairPreset.form,
+    medicationSearchHint: hairPreset.medicationSearchHint,
+    directionsTemplate: hairPreset.directionsTemplate,
+    quantityTemplate: hairPreset.quantityTemplate,
+    repeatsTemplate: hairPreset.repeatsTemplate,
     safetyChecks: ["Reproductive screen reviewed", "Scalp screen reviewed", "BP/cardiac screen reviewed", "Current medications checked"],
+    cautionChecks: hairCautionChecks,
+    alternativeNote: hairPreset.alternativeNote,
   })
 
   const header = patientHeader(input)
@@ -488,6 +516,63 @@ function hairSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     prescriptionIntent,
     draftNote: note(subjective, objective, assessment, planText),
   }
+}
+
+function resolveHairLossPreset(
+  preference: string,
+  reproductiveBlock: boolean,
+): {
+  medicationName: string
+  strength: string
+  form: string
+  quantityTemplate: string
+  repeatsTemplate: string
+  directionsTemplate: string
+  medicationSearchHint: string
+  alternativeNote?: string
+} {
+  const topicalPreset = {
+    medicationName: "Minoxidil",
+    strength: "5%",
+    form: "topical solution or foam",
+    quantityTemplate: "1 bottle",
+    repeatsTemplate: "3",
+    directionsTemplate: "Apply to affected scalp once to twice daily. Counsel on 3-6 month onset, possible initial shedding, and scalp irritation.",
+    medicationSearchHint: "Minoxidil 5% topical",
+  }
+
+  if (reproductiveBlock) {
+    return {
+      ...topicalPreset,
+      alternativeNote: "Avoid oral finasteride because the reproductive safety screen is positive.",
+    }
+  }
+
+  const oralPreset = {
+    medicationName: "Finasteride",
+    strength: "1mg",
+    form: "tablet",
+    quantityTemplate: "90 tablets",
+    repeatsTemplate: "3",
+    directionsTemplate: "Take 1 tablet once daily. Counsel on 3-6 month onset, sexual side effects, mood symptoms, and reproductive safety.",
+    medicationSearchHint: "Finasteride 1mg tablet",
+  }
+
+  if (preference === "combination") {
+    return {
+      ...oralPreset,
+      alternativeNote: "Consider adjunct topical minoxidil 5% if the doctor is satisfied it is appropriate.",
+    }
+  }
+
+  if (preference === "doctor_decides") {
+    return {
+      ...oralPreset,
+      alternativeNote: "Topical minoxidil 5% is an alternative if oral treatment is not suitable or not preferred.",
+    }
+  }
+
+  return oralPreset
 }
 
 function scalpSummary(answers: Answers): string {
@@ -581,8 +666,8 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     directionsTemplate: currentDose
       ? `${hasMultipleMedications ? `Patient requested multiple medicines: ${requestedMedicationValue}. ` : ""}Patient reports current dose: ${currentDose}. Confirm regimen, quantity, repeats and indication in Parchment before prescribing.`
       : `${hasMultipleMedications ? `Patient requested multiple medicines: ${requestedMedicationValue}. ` : ""}Repeat existing regimen after doctor confirms dose, quantity, repeats and indication in Parchment.`,
-    quantityTemplate: "Match clinically appropriate repeat quantity in Parchment",
-    repeatsTemplate: "Doctor to confirm in Parchment",
+    quantityTemplate: hasMultipleMedications ? undefined : "Match clinically appropriate repeat quantity in Parchment",
+    repeatsTemplate: hasMultipleMedications ? undefined : "Doctor to confirm in Parchment",
     safetyChecks: ["Repeat history reviewed", "Allergies checked", "Current medications checked", "Controlled-substance screen checked"],
   })
 
@@ -633,37 +718,46 @@ function medCertSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const startDate = str(answers, "startDate") || str(answers, "start_date")
   const symptoms = raw(answers, "symptoms")
   const rawSymptomDetails = str(answers, "symptomDetails") || str(answers, "symptom_details") || ""
-  const symptomDetails = rawSymptomDetails || "No symptom detail provided."
+  const hasSymptomDetails = rawSymptomDetails.trim().length > 0
   const symptomDuration = str(answers, "symptomDuration") || str(answers, "symptom_duration")
   const normalisedSymptoms = normaliseSymptomText(rawSymptomDetails)
   const header = patientHeader(input)
-  const durationLabel = duration ? `${duration}-day` : "medical"
+  const certTypeLabel = humanize(certType).toLowerCase()
+  const certificateLabel = certTypeLabel.endsWith("certificate")
+    ? certTypeLabel
+    : `${certTypeLabel} certificate`
+  const requestLabel = duration ? `${duration}-day ${certificateLabel}` : certificateLabel
   const durationDays = duration ? parseInt(duration, 10) : null
 
   const subjective = [
-    `${header},`,
-    normalisedSymptoms || (rawSymptomDetails ? rawSymptomDetails + "." : "Symptom detail not provided."),
+    `${header}.`,
+    normalisedSymptoms || (rawSymptomDetails ? rawSymptomDetails + "." : null),
     symptomDuration ? `Symptom duration ${humanize(symptomDuration).toLowerCase()}.` : null,
-    `Requesting ${durationLabel} ${humanize(certType).toLowerCase()} certificate.`,
+    duration ? `Requesting ${requestLabel}.` : `Requesting a ${requestLabel}.`,
   ]
     .filter(Boolean)
     .join(" ")
 
   const objective = "Telehealth review of structured intake. No red flags reported on screen."
 
-  const assessment = "Symptoms consistent with self-limiting acute illness based on structured intake."
+  const assessment = hasSymptomDetails
+    ? "Symptoms consistent with self-limiting acute illness based on structured intake."
+    : "Insufficient symptom detail to safely determine certificate suitability."
 
   const safetyNetReturn = durationDays && durationDays <= 2
     ? "Return if symptoms persist beyond 7 days, or develop high fever (>39 C), shortness of breath, chest pain, or inability to keep fluids down."
     : "Return if symptoms persist beyond the certificate period, or develop high fever (>39 C), shortness of breath, chest pain, or inability to keep fluids down."
 
   const planParts = [
-    duration && startDate
-      ? `${duration}-day medical certificate issued from ${startDate}.`
-      : "Medical certificate issued.",
-    "Symptomatic management advised (rest, fluids, paracetamol PRN).",
-    safetyNetReturn,
+    hasSymptomDetails
+      ? duration && startDate
+        ? `${duration}-day medical certificate issued from ${startDate}.`
+        : "Medical certificate issued."
+      : "Request symptom detail before issuing a certificate.",
+    hasSymptomDetails ? "Symptomatic management advised (rest, fluids, paracetamol PRN)." : null,
+    hasSymptomDetails ? safetyNetReturn : null,
   ]
+    .filter(Boolean)
   const planText = planParts.join(" ")
 
   const keyFacts = compactFacts([
@@ -672,20 +766,27 @@ function medCertSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     fact("Start date", startDate),
     factHumanized("Symptoms", symptoms),
     factHumanized("Symptom duration", symptomDuration),
-    fact("Details", symptomDetails),
+    fact("Patient note", rawSymptomDetails),
   ])
 
   return {
     title: "Medical certificate request",
-    patientStory: subjective,
+    patientStory: displayPatientStory(subjective),
     keyFacts,
     safetyItems: [],
-    recommendedPlan: {
-      action: "approve",
-      title: "Review certificate suitability",
-      rationale: "Certificate requests should be approved only when symptoms and requested dates are clinically consistent.",
-      nextSteps: ["Confirm symptom story and duration.", "Approve certificate only if the requested absence is clinically appropriate."],
-    },
+    recommendedPlan: hasSymptomDetails
+      ? {
+          action: "approve",
+          title: "Confirm certificate rules are met",
+          rationale: "Certificate requests should be approved only when symptoms and requested dates are clinically consistent.",
+          nextSteps: ["Confirm symptom story and duration.", "Approve certificate only if the requested absence is clinically appropriate."],
+        }
+      : {
+          action: "request_info",
+          title: "Request symptom detail",
+          rationale: "A certificate should not be issued from a blank symptom description.",
+          nextSteps: ["Ask the patient to describe symptoms and onset.", "Reopen the case once the patient replies."],
+        },
     draftNote: note(subjective, objective, assessment, planText),
   }
 }

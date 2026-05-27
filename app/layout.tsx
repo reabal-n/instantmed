@@ -170,7 +170,10 @@ export default function RootLayout({
           <link rel="dns-prefetch" href="https://api.dicebear.com" />
 
         </head>
-        <body className="font-sans antialiased text-foreground">
+        <body
+          className="font-sans antialiased text-foreground"
+          style={{ backgroundColor: "#f8f7f4" }}
+        >
           <OrganizationSchema />
           <WebSiteSchema />
           <AttributionCapture />

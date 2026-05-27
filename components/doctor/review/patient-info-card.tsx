@@ -70,9 +70,9 @@ export function PatientInfoCard() {
           <User className="h-4 w-4 shrink-0" />
           <span className="min-w-0 flex-1">Patient snapshot</span>
           <Badge
-            variant={snapshot.completenessTone === "complete" ? "success" : snapshot.completenessTone === "partial" ? "warning" : "destructive"}
+            variant={snapshot.completenessTone === "complete" ? "outline" : snapshot.completenessTone === "partial" ? "warning" : "destructive"}
             size="sm"
-            className="hidden sm:inline-flex"
+            className={cn("hidden sm:inline-flex", snapshot.completenessTone === "complete" && "text-muted-foreground")}
           >
             {snapshot.completenessTone === "complete" ? "Details complete" : snapshot.completenessLabel}
           </Badge>
@@ -88,9 +88,9 @@ export function PatientInfoCard() {
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <Badge
-                variant={snapshot.completenessTone === "complete" ? "success" : snapshot.completenessTone === "partial" ? "warning" : "destructive"}
+                variant={snapshot.completenessTone === "complete" ? "outline" : snapshot.completenessTone === "partial" ? "warning" : "destructive"}
                 size="sm"
-                className="sm:hidden"
+                className={cn("sm:hidden", snapshot.completenessTone === "complete" && "text-muted-foreground")}
               >
                 {snapshot.completenessTone === "complete" ? "Details complete" : snapshot.completenessLabel}
               </Badge>

@@ -66,7 +66,7 @@ describe("buildClinicalCaseSummary", () => {
     )
   })
 
-  it("removes the ED Parchment shortcut when cardiac or alpha-blocker history needs live review", () => {
+  it("keeps the ED prescribing preset visible when caution history is GP-cleared", () => {
     const summary = buildClinicalCaseSummary({
       category: "consult",
       subtype: "ed",
@@ -86,8 +86,17 @@ describe("buildClinicalCaseSummary", () => {
       },
     })
 
-    expect(summary.recommendedPlan.action).toBe("needs_call")
-    expect(summary.prescriptionIntent).toBeUndefined()
+    expect(summary.recommendedPlan.action).toBe("prescribe")
+    expect(summary.prescriptionIntent).toMatchObject({
+      medicationName: "Sildenafil",
+      strength: "50mg",
+    })
+    expect(summary.prescriptionIntent?.cautionChecks).toEqual(
+      expect.arrayContaining([
+        "Recent cardiac event",
+        "Alpha blocker use",
+      ]),
+    )
     expect(summary.safetyItems).toContainEqual(
       expect.objectContaining({ severity: "caution", label: "Recent cardiac event" }),
     )
@@ -124,6 +133,38 @@ describe("buildClinicalCaseSummary", () => {
       expect.objectContaining({ severity: "block", label: "Reproductive contraindication" }),
     )
     expect(summary.prescriptionIntent).toBeUndefined()
+  })
+
+  it("turns safe oral hair loss requests into a concrete finasteride preset", () => {
+    const summary = buildClinicalCaseSummary({
+      category: "consult",
+      subtype: "hair_loss",
+      serviceType: "consult",
+      patientName: "Alex Patient",
+      answers: {
+        hairGoal: "both",
+        hairOnset: "1_2_years",
+        hairPattern: "noticeable_thinning",
+        hairFamilyHistory: "yes_father",
+        hairMedicationPreference: "oral",
+        hairReproductive: "no",
+        scalpNone: true,
+        hairLowBP: false,
+        hairHeartConditions: false,
+        takes_medications: "no",
+        has_allergies: "no",
+        has_conditions: "no",
+      },
+    })
+
+    expect(summary.recommendedPlan.action).toBe("prescribe")
+    expect(summary.prescriptionIntent).toMatchObject({
+      medicationName: "Finasteride",
+      strength: "1mg",
+      form: "tablet",
+      quantityTemplate: "90 tablets",
+    })
+    expect(summary.prescriptionIntent?.directionsTemplate).toMatch(/once daily/i)
   })
 
   it("uses the requested medication as the repeat-prescription Parchment intent", () => {
@@ -216,6 +257,48 @@ describe("buildClinicalCaseSummary", () => {
     })
     expect(summary.draftNote).toContain("Metformin 500 mg tablet")
     expect(summary.prescriptionIntent?.clipboardText).toContain("Metformin 500 mg tablet")
+    expect(summary.prescriptionIntent?.quantityTemplate).toBeUndefined()
+    expect(summary.prescriptionIntent?.repeatsTemplate).toBeUndefined()
+    expect(summary.prescriptionIntent?.clipboardText).not.toContain("Quantity:")
+    expect(summary.prescriptionIntent?.clipboardText).not.toContain("Repeats:")
+  })
+
+  it("does not duplicate medical certificate wording in the patient story", () => {
+    const summary = buildClinicalCaseSummary({
+      category: "med_cert",
+      serviceType: "med_certs",
+      patientName: "Pat Certificate",
+      answers: {
+        certType: "medical certificate",
+        duration: "2",
+        startDate: "2026-05-25",
+        symptomDetails: "Fever and sore throat",
+      },
+    })
+
+    expect(summary.patientStory).toContain("Requesting 2-day medical certificate.")
+    expect(summary.patientStory).not.toContain("medical medical")
+    expect(summary.patientStory).not.toContain("certificate certificate")
+    expect(summary.recommendedPlan.title).toBe("Confirm certificate rules are met")
+  })
+
+  it("renders medical certificate patient story in professional sentence casing", () => {
+    const summary = buildClinicalCaseSummary({
+      category: "med_cert",
+      serviceType: "med_certs",
+      patientDateOfBirth: "1990-06-20",
+      answers: {
+        certType: "work",
+        duration: "1",
+        startDate: "2026-05-27",
+        symptomDuration: "today",
+        symptomDetails: "sore throat and fatigue since this morning. mild headache.",
+      },
+    })
+
+    expect(summary.patientStory).toContain("35-year-old patient.")
+    expect(summary.patientStory).toContain("Sore throat and fatigue since this morning. Mild headache.")
+    expect(summary.patientStory).not.toContain("35yo patient. sore throat")
   })
 
   it("condenses verbose AMT repeat-script medicine strings for operator scanning", () => {
@@ -269,6 +352,23 @@ describe("buildClinicalCaseSummary", () => {
     expect(summary.keyFacts).toContainEqual({ label: "Requested duration", value: "2 days" })
     expect(summary.recommendedPlan.action).toBe("approve")
     expect(summary.prescriptionIntent).toBeUndefined()
+  })
+
+  it("requests more detail instead of approving blank-symptom medical certificates", () => {
+    const summary = buildClinicalCaseSummary({
+      serviceType: "med_certs",
+      patientName: "Cert Patient",
+      answers: {
+        certType: "work",
+        duration: "2",
+        startDate: "2026-05-25",
+      },
+    })
+
+    expect(summary.recommendedPlan.action).toBe("request_info")
+    expect(summary.recommendedPlan.title).toBe("Request symptom detail")
+    expect(summary.keyFacts).not.toContainEqual({ label: "Patient note", value: "None provided" })
+    expect(summary.draftNote).toContain("Request symptom detail before issuing a certificate.")
   })
 
   it("falls back to a minimal 'manual review' summary for legacy or unknown consult subtypes", () => {
@@ -414,6 +514,27 @@ describe("buildClinicalCaseSummary", () => {
       // Plan should mention the date range and safety-netting language
       expect(summary.draftNote).toMatch(/2-day medical certificate/)
       expect(summary.draftNote).toMatch(/Return if/i)
+    })
+
+    it("sentence-cases generated SOAP note fragments before rendering", () => {
+      const summary = buildClinicalCaseSummary({
+        category: "medical_certificate",
+        serviceType: "med_certs",
+        patientName: "Mia Carter",
+        patientDateOfBirth: "1990-06-20",
+        answers: {
+          certType: "work",
+          duration: "1",
+          startDate: "2026-05-27",
+          symptomDetails: "sore throat and fatigue since this morning. mild headache. no chest pain.",
+          symptomDuration: "today",
+        },
+      })
+
+      expect(summary.draftNote).toContain("Mild headache.")
+      expect(summary.draftNote).toContain("No chest pain.")
+      expect(summary.draftNote).not.toContain(". mild headache")
+      expect(summary.draftNote).not.toContain(". no chest pain")
     })
 
     it("ED consult: doctor-voice note with IIEF + screen reference", () => {

@@ -52,6 +52,30 @@ const EMPTY_HEALTH: SystemHealth = {
 
 const POLL_INTERVAL_MS = 45_000
 
+const HEALTH_ISSUE_LABELS = [
+  { key: "stuckIntakes", singular: "waiting at intake", plural: "waiting at intake" },
+  { key: "webhookFailures", singular: "webhook failure", plural: "webhook failures" },
+  { key: "parchmentFailures", singular: "Parchment failure", plural: "Parchment failures" },
+  { key: "emailFailures", singular: "email failure", plural: "email failures" },
+  { key: "stripePriceIssues", singular: "Stripe config issue", plural: "Stripe config issues" },
+] as const
+
+function dominantSystemHealthLabel(health: SystemHealth): string {
+  const active = HEALTH_ISSUE_LABELS
+    .map((item) => ({
+      ...item,
+      count: Number(health[item.key]) || 0,
+    }))
+    .filter((item) => item.count > 0)
+
+  if (active.length !== 1) {
+    return health.totalIssues === 1 ? "issue" : "issues"
+  }
+
+  const [item] = active
+  return item.count === 1 ? item.singular : item.plural
+}
+
 export function SystemHealthPill({ initial }: { initial?: SystemHealth }) {
   const [health, setHealth] = useState<SystemHealth>(initial ?? EMPTY_HEALTH)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -109,6 +133,7 @@ export function SystemHealthPill({ initial }: { initial?: SystemHealth }) {
 
   const total = health.totalIssues
   const tone: "warning" | "danger" = total > 5 ? "danger" : "warning"
+  const summaryLabel = dominantSystemHealthLabel(health)
 
   // Self-hide when everything is healthy. The all-clear state was permanent
   // header noise the operator learned to ignore. Absence is the signal: if
@@ -125,9 +150,9 @@ export function SystemHealthPill({ initial }: { initial?: SystemHealth }) {
           className={cn(
             "gap-2 transition-colors",
             tone === "danger" && "border-destructive/40 text-destructive hover:bg-destructive/5",
-            tone === "warning" && "border-warning-border text-warning hover:bg-warning-light/50",
+            tone === "warning" && "border-border/60 text-slate-700 hover:bg-muted/35 dark:text-muted-foreground",
           )}
-          aria-label={`System health: ${total} issue${total === 1 ? "" : "s"} need attention`}
+          aria-label={`System health: ${total} ${summaryLabel} need attention`}
         >
           <span
             className={cn(
@@ -139,7 +164,7 @@ export function SystemHealthPill({ initial }: { initial?: SystemHealth }) {
           />
           <AlertCircle className="h-3.5 w-3.5" aria-hidden />
           <span className="tabular-nums">{total}</span>
-          <span className="hidden sm:inline">{total === 1 ? "issue" : "issues"}</span>
+          <span className="hidden sm:inline">{summaryLabel}</span>
           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground/70" aria-hidden />
         </Button>
       </PopoverTrigger>

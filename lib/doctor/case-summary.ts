@@ -1,5 +1,5 @@
 import { buildStaffPatientHref } from "@/lib/dashboard/routes"
-import { MIN_CLINICAL_NOTES_LENGTH } from "@/lib/doctor/clinical-notes"
+import { isClinicalNoteSufficient } from "@/lib/doctor/clinical-notes"
 import {
   buildPatientSnapshot,
   getPatientSnapshotOptionsForCase,
@@ -94,7 +94,7 @@ export function buildStaffCaseSummary({
     : "First request"
   const notesLength = (doctorNotes ?? intake.doctor_notes ?? "").trim().length
   const notesReady =
-    notesLength >= MIN_CLINICAL_NOTES_LENGTH ||
+    isClinicalNoteSufficient(doctorNotes ?? intake.doctor_notes) ||
     ["approved", "awaiting_script", "completed", "declined"].includes(intake.status)
 
   return {
@@ -105,7 +105,7 @@ export function buildStaffCaseSummary({
     actionLabel: resolveStaffCaseActionLabel(intake, service?.type),
     notesLength,
     notesReady,
-    notesLabel: notesReady ? "Notes ready" : `${notesLength}/${MIN_CLINICAL_NOTES_LENGTH} notes`,
+    notesLabel: notesReady ? "Note ready" : "Add note",
     previousLabel,
     profileHref: snapshot.profileHref,
     adminProfileHref: buildStaffPatientHref(snapshot.id),

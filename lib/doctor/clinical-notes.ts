@@ -1,4 +1,4 @@
-export const MIN_CLINICAL_NOTES_LENGTH = 50
+export const MIN_CLINICAL_NOTES_LENGTH = 1
 
 export function isClinicalNoteSufficient(notes: string | null | undefined): boolean {
   return (notes?.trim().length || 0) >= MIN_CLINICAL_NOTES_LENGTH

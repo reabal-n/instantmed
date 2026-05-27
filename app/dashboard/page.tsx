@@ -8,8 +8,8 @@ import {
   OperatorPage,
   OperatorPageHeader,
   OperatorScrollArea,
+  QueuePressureSignal,
   SystemHealthPill,
-  TestDataBanner,
   TestDataToggleButton,
 } from "@/components/operator"
 import { PanelProvider } from "@/components/panels/panel-provider"
@@ -33,10 +33,12 @@ import {
 import {
   getAIApprovedIntakes,
   getDoctorQueue,
+  getFormToInboxStats,
   getRecentlyCompletedIntakes,
   getTodayEarnings,
 } from "@/lib/data/intakes"
 import { EMPTY_SYSTEM_HEALTH, getSystemHealth } from "@/lib/data/system-health"
+import { getQueueEnteredAt } from "@/lib/doctor/queue-utils"
 import { createLogger } from "@/lib/observability/logger"
 import type { IntakeWithPatient } from "@/types/db"
 
@@ -100,6 +102,7 @@ export default async function StaffDashboardPage({
     isAdmin ? getRecentlyCompletedIntakes({ limit: 8 }) : Promise.resolve([]),
     getDoctorIdentity(profile.id),
     isAdmin ? getTodayEarnings() : Promise.resolve(0),
+    getFormToInboxStats(),
     import("@/app/actions/doctor-availability").then((m) => m.getDoctorAvailabilityAction()),
     isAdmin ? getSystemHealth() : Promise.resolve(EMPTY_SYSTEM_HEALTH),
   ])
@@ -111,9 +114,15 @@ export default async function StaffDashboardPage({
   const recentlyCompleted = results[2].status === "fulfilled" ? results[2].value : []
   const doctorIdentity: DoctorIdentity | null = results[3].status === "fulfilled" ? results[3].value : null
   const todayEarnings = results[4].status === "fulfilled" ? results[4].value : 0
-  const doctorAvailable = results[5].status === "fulfilled" ? results[5].value?.available !== false : true
-  const systemHealth = results[6].status === "fulfilled" ? results[6].value : EMPTY_SYSTEM_HEALTH
-
+  const formToInboxStats = results[5].status === "fulfilled" ? results[5].value : null
+  const doctorAvailable = results[6].status === "fulfilled" ? results[6].value?.available !== false : true
+  const systemHealth = results[7].status === "fulfilled" ? results[7].value : EMPTY_SYSTEM_HEALTH
+  const oldestWaitingMinutes = queueResult.data.reduce<number | null>((oldest, intake) => {
+    const enteredAt = new Date(getQueueEnteredAt(intake)).getTime()
+    if (!Number.isFinite(enteredAt)) return oldest
+    const minutes = Math.max(0, Math.floor((Date.now() - enteredAt) / 60000))
+    return oldest == null ? minutes : Math.max(oldest, minutes)
+  }, null)
   const parchmentUserId = typeof profile.parchment_user_id === "string" && profile.parchment_user_id.trim()
     ? profile.parchment_user_id.trim()
     : null
@@ -126,6 +135,7 @@ export default async function StaffDashboardPage({
         "recently-completed",
         "identity",
         "earnings",
+        "form-to-inbox",
         "availability",
         "system-health",
       ]
@@ -140,16 +150,19 @@ export default async function StaffDashboardPage({
           title="Dashboard"
           actions={(
             <div className="flex flex-wrap items-center justify-end gap-2">
-              {isAdmin && <TestDataToggleButton active={showTestData} />}
-              {isAdmin && <SystemHealthPill initial={systemHealth} />}
-              <DoctorAvailabilityToggle initialAvailable={doctorAvailable} compact />
+              <div className="flex flex-wrap items-center gap-2 border-r border-border/60 pr-2">
+                <QueuePressureSignal oldestWaitingMinutes={oldestWaitingMinutes} showIcon={false} />
+                {isAdmin && <SystemHealthPill initial={systemHealth} />}
+              </div>
+              <div className="flex items-center gap-2">
+                {isAdmin && <TestDataToggleButton active={showTestData} />}
+                <DoctorAvailabilityToggle initialAvailable={doctorAvailable} compact />
+              </div>
             </div>
           )}
         />
 
         <OperatorScrollArea className="flex flex-col gap-3 space-y-0">
-          {showTestData && <TestDataBanner />}
-
           {/* Owner setup card self-hides when complete (no blocking items). */}
           {isAdmin ? (
             <OwnerOperatorSetupCard
@@ -180,6 +193,7 @@ export default async function StaffDashboardPage({
               }}
               aiApprovedIntakes={aiApprovedIntakes}
               recentlyCompleted={recentlyCompleted}
+              formToInboxStats={formToInboxStats}
               todayEarnings={todayEarnings}
               initialStatusFilter={initialStatusFilter}
               hasExplicitStatusFilter={hasExplicitStatusFilter}

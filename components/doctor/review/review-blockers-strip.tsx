@@ -1,16 +1,14 @@
 "use client"
 
-import { AlertTriangle, FileText, Mail, ShieldAlert, Truck } from "lucide-react"
+import { AlertTriangle, Mail, ShieldAlert, Truck } from "lucide-react"
 
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
 import { Badge } from "@/components/ui/badge"
-import { MIN_CLINICAL_NOTES_LENGTH } from "@/lib/doctor/clinical-notes"
 import {
   buildPatientSnapshot,
   getPatientSnapshotOptionsForCase,
   requiresPrescribingIdentityForCase,
 } from "@/lib/doctor/patient-snapshot"
-import { isConsultServiceType, isKnownDoctorServiceType } from "@/lib/doctor/service-types"
 import { cn } from "@/lib/utils"
 
 interface BlockerItem {
@@ -22,7 +20,7 @@ interface BlockerItem {
 }
 
 export function ReviewBlockersStrip() {
-  const { intake, service, answers, data, doctorNotes } = useIntakeReview()
+  const { intake, service, answers, data } = useIntakeReview()
   const snapshotContext = {
     answers,
     category: intake.category,
@@ -34,12 +32,6 @@ export function ReviewBlockersStrip() {
     answers,
   })
   const requiresPrescribingIdentity = requiresPrescribingIdentityForCase(snapshotContext)
-  const noteTooShort = doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH
-  const approvalNeedsClinicalNotes =
-    (service?.type === "med_certs" && ["paid", "in_review"].includes(intake.status)) ||
-    (isConsultServiceType(service?.type) && intake.status === "paid") ||
-    (service?.type && !isKnownDoctorServiceType(service.type) && intake.status === "paid") ||
-    (!service?.type && intake.status === "paid")
   const patientReplyCount = data.patientMessages?.filter((message) => message.sender_type === "patient").length ?? 0
   const certificateDeliveryPending = Boolean(
     data.certificate &&
@@ -77,15 +69,6 @@ export function ReviewBlockersStrip() {
           tone: "warning" as const,
         }]
       : []),
-    ...(approvalNeedsClinicalNotes && noteTooShort
-      ? [{
-          id: "notes",
-          label: "Note too short",
-          detail: `${doctorNotes.trim().length}/${MIN_CLINICAL_NOTES_LENGTH} chars`,
-          icon: FileText,
-          tone: "warning" as const,
-        }]
-      : []),
     ...(certificateDeliveryPending || scriptDeliveryPending
       ? [{
           id: "delivery",
@@ -102,11 +85,11 @@ export function ReviewBlockersStrip() {
   if (blockers.length === 0) return null
 
   return (
-    <section className="rounded-xl border border-warning-border bg-warning-light/30 p-3" aria-label="Case blockers">
+    <section className="rounded-xl border border-warning-border bg-warning-light/30 p-3" aria-label="Case checks">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <AlertTriangle className="h-4 w-4 text-warning" aria-hidden />
-          <h3 className="text-sm font-semibold text-foreground">Blockers</h3>
+          <h3 className="text-sm font-semibold text-foreground">Needs attention</h3>
         </div>
         <Badge variant="warning" size="sm">
           {blockers.length} open

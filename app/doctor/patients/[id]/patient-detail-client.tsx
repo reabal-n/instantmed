@@ -42,6 +42,7 @@ import {
 import { STAFF_DOCTOR_PATIENTS_HREF, STAFF_IDENTITY_HREF } from "@/lib/dashboard/routes"
 import { buildPatientSnapshot } from "@/lib/doctor/patient-snapshot"
 import { formatIntakeStatus } from "@/lib/format/intake"
+import { cn } from "@/lib/utils"
 import type { Profile } from "@/types/db"
 
 import { EditPatientDialog } from "./edit-patient-dialog"
@@ -306,16 +307,17 @@ export function PatientDetailClient({
       : "outline"
 
   const canUseParchment = parchmentEnabled && parchmentUserLinked
+  const hasParchmentBlocker = !parchmentEnabled || !parchmentUserLinked || !patient.parchment_patient_id
   const latestRequest = intakes[0] ?? null
   const parchmentStatusLabel = !parchmentEnabled
     ? "Parchment integration disabled"
     : !parchmentUserLinked
       ? "Prescriber not linked"
       : patient.parchment_patient_id
-        ? "Ready in Parchment"
+        ? "Synced in Parchment"
         : "Sync required"
   const parchmentStatusTone = canUseParchment
-    ? patient.parchment_patient_id ? "success" : "warning"
+    ? patient.parchment_patient_id ? "outline" : "warning"
     : "destructive"
   const patientFileStatusItems: Array<{
     label: string
@@ -325,13 +327,27 @@ export function PatientDetailClient({
   }> = [
     {
       label: "Identity",
-      value: snapshot.completenessTone === "complete" ? "Ready" : snapshot.completenessLabel,
+      value: snapshot.completenessTone === "complete" ? "Details complete" : snapshot.completenessLabel,
       tone: snapshot.completenessTone === "complete"
-        ? "success"
+        ? "muted"
         : snapshot.completenessTone === "partial"
           ? "warning"
           : "destructive",
       icon: snapshot.completenessTone === "complete" ? CheckCircle : AlertTriangle,
+    },
+    {
+      label: "Prescribing",
+      value: patient.parchment_patient_id ? "Ready" : parchmentStatusLabel,
+      tone: patient.parchment_patient_id ? "muted" : parchmentStatusTone === "warning" ? "warning" : "destructive",
+      icon: patient.parchment_patient_id ? CheckCircle : Pill,
+    },
+    {
+      label: "Latest request",
+      value: latestRequest
+        ? `${latestRequest.service?.short_name || latestRequest.service?.name || latestRequest.category || "Request"} · ${formatIntakeStatus(latestRequest.status)}`
+        : "No requests",
+      tone: "muted",
+      icon: FileText,
     },
     {
       label: "Duplicate",
@@ -340,20 +356,6 @@ export function PatientDetailClient({
         : "Single profile",
       tone: stats.linkedProfiles > 1 ? "warning" : "muted",
       icon: stats.linkedProfiles > 1 ? GitMerge : CheckCircle,
-    },
-    {
-      label: "Parchment",
-      value: patient.parchment_patient_id ? "Ready" : parchmentStatusLabel,
-      tone: parchmentStatusTone,
-      icon: patient.parchment_patient_id ? CheckCircle : Pill,
-    },
-    {
-      label: "Last request",
-      value: latestRequest
-        ? `${latestRequest.service?.short_name || latestRequest.service?.name || latestRequest.category || "Request"} · ${formatIntakeStatus(latestRequest.status)}`
-        : "No requests",
-      tone: "muted",
-      icon: FileText,
     },
   ]
 
@@ -373,8 +375,9 @@ export function PatientDetailClient({
                 {snapshot.name}
               </h1>
               <Badge
-                variant={snapshot.completenessTone === "complete" ? "success" : snapshot.completenessTone === "partial" ? "warning" : "destructive"}
+                variant={snapshot.completenessTone === "complete" ? "outline" : snapshot.completenessTone === "partial" ? "warning" : "destructive"}
                 size="sm"
+                className={snapshot.completenessTone === "complete" ? "text-muted-foreground" : undefined}
               >
                 {snapshot.completenessTone === "complete" ? "Details complete" : snapshot.completenessLabel}
               </Badge>
@@ -396,7 +399,7 @@ export function PatientDetailClient({
             Add note
           </Button>
           {patient.onboarding_completed ? (
-            <Badge variant="outline" className="bg-success-light text-success border-success-border">
+            <Badge variant="outline" className="text-muted-foreground">
               <CheckCircle className="mr-1 h-3 w-3" />
               Onboarded
             </Badge>
@@ -434,8 +437,15 @@ export function PatientDetailClient({
           row: status chip, latest prescription/request as one inline line,
           and a primary "Prescribe" CTA. The rest of the parchment actions
           (sync, refresh, link prescriber) live in the Actions menu. */}
-      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-primary/15 bg-primary/5 px-4 py-2.5 text-sm">
-        <Pill className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+      <div
+        className={cn(
+          "flex flex-wrap items-center gap-3 rounded-xl border px-4 py-2.5 text-sm transition-colors duration-150",
+          hasParchmentBlocker
+            ? "border-warning-border bg-warning-light/45"
+            : "border-border/50 bg-card",
+        )}
+      >
+        <Pill className={cn("h-4 w-4 shrink-0", hasParchmentBlocker ? "text-warning" : "text-muted-foreground")} aria-hidden />
         <span className="text-sm font-medium text-foreground">Prescribing</span>
         <Badge variant={parchmentStatusTone} size="sm">{parchmentStatusLabel}</Badge>
         <div className="ml-auto flex shrink-0 flex-wrap items-center gap-2">
@@ -567,7 +577,7 @@ export function PatientDetailClient({
           <div className="min-w-0">
             <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Medicare</dt>
             <dd className="font-mono text-sm tabular-nums">
-              {snapshot.medicare.present ? snapshot.medicare.label : "Not collected"}
+              {snapshot.medicare.present ? snapshot.medicare.label : "Not provided"}
             </dd>
             {snapshot.medicare.detailsLabel ? (
               <p className="text-[11px] text-muted-foreground">{snapshot.medicare.detailsLabel}</p>

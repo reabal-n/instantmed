@@ -18,6 +18,8 @@ import { existsSync, statfsSync } from "node:fs"
 import { homedir } from "node:os"
 import { join } from "node:path"
 
+import { getClaudeCredentialSource } from "./claude-model"
+
 const MIN_FREE_BYTES = 100 * 1024 * 1024
 
 interface PreflightOptions {
@@ -41,11 +43,10 @@ export async function preflight(opts: PreflightOptions): Promise<void> {
         "`unset GEMINI_API_KEY` and retry. See https://aistudio.google.com/apikey",
     )
   }
-  if (!process.env.ANTHROPIC_API_KEY?.trim()) {
+  if (!getClaudeCredentialSource()) {
     failures.push(
-      "ANTHROPIC_API_KEY missing or empty. Add to .env.local + Vercel env + GitHub repo secrets. " +
-        "If already in .env.local: your shell may have the var pre-set to empty - " +
-        "`unset ANTHROPIC_API_KEY` and retry.",
+      "Claude credential missing. Set ANTHROPIC_API_KEY for direct Anthropic, or " +
+        "AI_GATEWAY_API_KEY / VERCEL_AI_GATEWAY_API_KEY for Vercel AI Gateway.",
     )
   }
 
@@ -98,9 +99,10 @@ async function checkPlaywrightChromium(): Promise<boolean> {
 /**
  * Check the capture URL returns 2xx via a HEAD ping. Some hosts reject
  * HEAD (returns 405) but a GET would work, so we fall back to GET on a
- * 405 specifically. Any other non-2xx fails pre-flight.
+ * 405 specifically. Local Next dev can still be compiling when the review
+ * starts, so retry a few times before failing the run.
  *
- * Timeout: 5s.
+ * Timeout: 15s per attempt.
  */
 async function checkUrlIs2xx(url: string): Promise<string | null> {
   try {
@@ -109,19 +111,27 @@ async function checkUrlIs2xx(url: string): Promise<string | null> {
     return `Target URL is not a valid URL: ${url}`
   }
 
-  try {
-    const head = await fetchWithTimeout(url, { method: "HEAD", redirect: "follow" }, 5000)
-    if (head.status === 405) {
-      const get = await fetchWithTimeout(url, { method: "GET", redirect: "follow" }, 5000)
-      if (get.ok) return null
-      return `Target URL ${url} returned ${get.status} (GET fallback after 405).`
+  const attempts = 6
+  let lastMessage = "unknown error"
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      const head = await fetchWithTimeout(url, { method: "HEAD", redirect: "follow" }, 15000)
+      if (head.status === 405) {
+        const get = await fetchWithTimeout(url, { method: "GET", redirect: "follow" }, 15000)
+        if (get.ok) return null
+        lastMessage = `returned ${get.status} (GET fallback after 405)`
+      } else if (head.ok) {
+        return null
+      } else {
+        lastMessage = `returned ${head.status}`
+      }
+    } catch (err) {
+      lastMessage = err instanceof Error ? err.message : String(err)
     }
-    if (head.ok) return null
-    return `Target URL ${url} returned ${head.status}. Capture would record an error page.`
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err)
-    return `Target URL ${url} unreachable: ${msg}`
+    if (attempt < attempts) await sleep(1500)
   }
+
+  return `Target URL ${url} not ready after ${attempts} attempts: ${lastMessage}. Capture would record an error page.`
 }
 
 async function fetchWithTimeout(url: string, init: RequestInit, ms: number): Promise<Response> {
@@ -132,6 +142,10 @@ async function fetchWithTimeout(url: string, init: RequestInit, ms: number): Pro
   } finally {
     clearTimeout(t)
   }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 /**

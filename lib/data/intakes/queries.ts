@@ -1028,6 +1028,108 @@ export const getPatientDashboardData = (patientId: string): Promise<{
 // STAFF COCKPIT - RECENTLY COMPLETED & EARNINGS
 // ============================================
 
+export interface FormToInboxStats {
+  medianMinutes: number
+  sampleSize: number
+  windowDays: number
+}
+
+type CertificateTimingRow = {
+  intake_id: string | null
+  email_sent_at: string | null
+}
+
+type FormToInboxIntakeRow = {
+  id: string
+  category: string | null
+  paid_at: string | null
+  submitted_at: string | null
+  created_at: string | null
+  service: { type: string | null } | { type: string | null }[] | null
+}
+
+const DEFAULT_FORM_TO_INBOX_WINDOW_DAYS = 7
+const DEFAULT_FORM_TO_INBOX_MIN_SAMPLE_SIZE = 3
+
+/**
+ * Real-only staff KPI: med-cert form/payment completion to patient inbox.
+ * Hidden by callers when the recent sample is too small. This keeps the
+ * dashboard honest and avoids turning the public speed promise into a stale
+ * hard-coded operator metric.
+ */
+export async function getFormToInboxStats(opts: {
+  windowDays?: number
+  minSampleSize?: number
+  limit?: number
+} = {}): Promise<FormToInboxStats | null> {
+  const supabase = createServiceRoleClient()
+  const windowDays = opts.windowDays ?? DEFAULT_FORM_TO_INBOX_WINDOW_DAYS
+  const minSampleSize = opts.minSampleSize ?? DEFAULT_FORM_TO_INBOX_MIN_SAMPLE_SIZE
+  const since = new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000).toISOString()
+
+  const { data: certRows, error: certError } = await supabase
+    .from("issued_certificates")
+    .select("intake_id, email_sent_at")
+    .eq("status", "valid")
+    .not("email_sent_at", "is", null)
+    .gte("email_sent_at", since)
+    .order("email_sent_at", { ascending: false })
+    .limit(opts.limit ?? 100)
+
+  if (certError) {
+    logger.warn("Failed to fetch form-to-inbox certificate timings", { error: certError.message })
+    return null
+  }
+
+  const certificateRows = (certRows ?? []) as CertificateTimingRow[]
+  const intakeIds = Array.from(new Set(certificateRows.flatMap((row) => row.intake_id ? [row.intake_id] : [])))
+  if (intakeIds.length === 0) return null
+
+  const { data: intakeRows, error: intakeError } = await supabase
+    .from("intakes")
+    .select("id, category, paid_at, submitted_at, created_at, service:services!service_id(type)")
+    .in("id", intakeIds)
+
+  if (intakeError) {
+    logger.warn("Failed to fetch form-to-inbox intake timings", { error: intakeError.message })
+    return null
+  }
+
+  const intakeById = new Map(
+    ((intakeRows ?? []) as FormToInboxIntakeRow[]).map((row) => [row.id, row]),
+  )
+
+  const durations = certificateRows.flatMap((certificate) => {
+    if (!certificate.intake_id || !certificate.email_sent_at) return []
+    const intake = intakeById.get(certificate.intake_id)
+    if (!intake) return []
+    const service = Array.isArray(intake.service) ? intake.service[0] : intake.service
+    const isMedCert = intake.category === "medical_certificate" || service?.type === "med_certs"
+    if (!isMedCert) return []
+
+    const startValue = intake.paid_at ?? intake.submitted_at ?? intake.created_at
+    if (!startValue) return []
+    const start = new Date(startValue).getTime()
+    const end = new Date(certificate.email_sent_at).getTime()
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return []
+
+    return [Math.round((end - start) / 60000)]
+  }).sort((a, b) => a - b)
+
+  if (durations.length < minSampleSize) return null
+
+  const middle = Math.floor(durations.length / 2)
+  const medianMinutes = durations.length % 2 === 1
+    ? durations[middle]!
+    : Math.round((durations[middle - 1]! + durations[middle]!) / 2)
+
+  return {
+    medianMinutes,
+    sampleSize: durations.length,
+    windowDays,
+  }
+}
+
 /**
  * Get recently completed intakes for the unified staff cockpit.
  */

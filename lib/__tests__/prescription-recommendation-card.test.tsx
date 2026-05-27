@@ -52,6 +52,22 @@ describe("PrescriptionRecommendationCard", () => {
     expect(html).toContain("Tadalafil 5mg daily is an alternative")
   })
 
+  it("renders caution checks without hiding the preset", () => {
+    const html = render(
+      <PrescriptionRecommendationCard
+        intent={{
+          ...baseIntent,
+          cautionChecks: ["Alpha blocker use", "GP-cleared cardiac history"],
+        }}
+      />,
+    )
+
+    expect(html).toContain("Tadalafil")
+    expect(html).toContain("Cautions")
+    expect(html).toContain("Alpha blocker use")
+    expect(html).toContain("GP-cleared cardiac history")
+  })
+
   it("omits the alternative note when not provided", () => {
     const html = render(<PrescriptionRecommendationCard intent={baseIntent} />)
     // Use the specific fixture phrasing rather than the bare word "alternative",

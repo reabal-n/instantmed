@@ -23,6 +23,11 @@ describe("acquireIntakeLock when System holds auto-approve claim", () => {
           return Promise.resolve({ data: null, error: null })
         }),
         from: () => ({
+          select: () => ({
+            eq: () => ({
+              maybeSingle: () => Promise.resolve({ data: { status: "paid" }, error: null }),
+            }),
+          }),
           update: () => ({
             eq: () => ({
               eq: () => ({
@@ -41,27 +46,26 @@ describe("acquireIntakeLock when System holds auto-approve claim", () => {
     expect(result.warning).toMatch(/you can still review/i)
   })
 
-  it("passes through real System error messages when the broken-minutes template is absent", async () => {
-    // Mock returns a hypothetical future System error that does NOT contain "( minutes remaining)".
-    // This proves the mask is gated on the broken template, not just the claimant name.
+  it("skips terminal statuses before calling the claim RPC", async () => {
+    const rpc = vi.fn()
     vi.doMock("@/lib/supabase/service-role", () => ({
       createServiceRoleClient: () => ({
-        rpc: vi.fn().mockResolvedValue({
-          data: [{
-            success: false,
-            current_claimant: "System (Auto-Approve)",
-            error_message: "Cannot claim intake in 'declined' status",
-          }],
-          error: null,
+        rpc,
+        from: () => ({
+          select: () => ({
+            eq: () => ({
+              maybeSingle: () => Promise.resolve({ data: { status: "approved" }, error: null }),
+            }),
+          }),
+          update: () => ({ eq: () => ({ eq: () => ({ in: () => ({ error: null }) }) }) }),
         }),
-        from: () => ({ update: () => ({ eq: () => ({ eq: () => ({ in: () => ({ error: null }) }) }) }) }),
       }),
     }))
 
-    // Re-import the module under the new mock.
     const mod = await import("@/lib/data/intake-lock")
     const result = await mod.acquireIntakeLock("intake-2", "doctor-1", "Dr Test")
     expect(result.acquired).toBe(false)
-    expect(result.warning).toBe("Cannot claim intake in 'declined' status")
+    expect(result.warning).toBeUndefined()
+    expect(rpc).not.toHaveBeenCalled()
   })
 })

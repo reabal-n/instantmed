@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   CheckCircle,
   ChevronDown,
+  ChevronRight,
   Clock,
   ExternalLink,
   Eye,
@@ -21,7 +22,6 @@ import { toast } from "sonner"
 
 import { revokeAIApproval } from "@/app/actions/revoke-ai-approval"
 import { PatientProfilePanel } from "@/components/doctor/patient-profile-panel"
-import { QueueRowPeek } from "@/components/doctor/queue/queue-row-peek"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -54,7 +54,6 @@ import {
   RENEWAL_FALLBACK_TITLE,
   type RenewalMatch,
 } from "@/lib/doctor/renewal-format"
-import { prefetchReviewData } from "@/lib/doctor/review-data-cache"
 import { SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { formatServiceType } from "@/lib/format/intake"
 import { cn } from "@/lib/utils"
@@ -62,22 +61,6 @@ import type { IntakeWithPatient } from "@/types/db"
 
 import type { PaginationInfo } from "./types"
 import type { QueueDialogState } from "./use-queue-dialogs"
-
-function getChiefComplaint(intake: IntakeWithPatient): string | null {
-  const a = (intake.answers as Array<{ answers: Record<string, unknown> }> | null | undefined)?.[0]?.answers
-  if (!a) return null
-  const candidate = (
-    a["symptom_details"] ??
-    a["symptoms"] ??
-    a["consult_reason"] ??
-    a["edGoal"] ??
-    a["medication_name"] ??
-    a["drug_name"] ??
-    a["reason_for_request"]
-  )
-  if (typeof candidate !== "string" || !candidate.trim()) return null
-  return candidate.length > 50 ? `${candidate.slice(0, 50)}…` : candidate
-}
 
 /**
  * Map a consult subtype to a short scanning-aid label for the queue chip.
@@ -102,14 +85,16 @@ function getCompactPatientDescription(patient: {
   const location = patient.address.present && patient.address.value
     ? patient.address.value.split(",").slice(-3, -1).map((part) => part.trim()).filter(Boolean).join(" ")
     : null
-  return [patient.ageDobLabel, patient.sex.value, location].filter(Boolean).join(" • ")
+  const ageDob = patient.ageDobLabel.replace(" / ", " • ")
+  return [ageDob, patient.sex.value, location].filter(Boolean).join(" • ")
 }
 
-function getCompactNextActionLabel(status: IntakeWithPatient["status"], serviceType?: string | null): string {
-  if (status === "pending_info") return "Reply"
-  if (status === "awaiting_script") return "Write script"
-  if (serviceType === SERVICE_TYPES.COMMON_SCRIPTS || serviceType === SERVICE_TYPES.REPEAT_RX) return "Review script"
-  return serviceType === SERVICE_TYPES.MED_CERTS ? "Review" : "Open"
+function getCompactQueueReason(service: { type?: string; name?: string; short_name?: string } | undefined, subtype: string | null | undefined): string {
+  if (service?.type === SERVICE_TYPES.MED_CERTS) return "Medical certificate request"
+  if (service?.type === SERVICE_TYPES.COMMON_SCRIPTS || service?.type === "repeat_rx") return "Prescription request"
+  if (subtype === "ed") return "ED consult request"
+  if (subtype === "hair_loss") return "Hair loss consult request"
+  return `${service?.short_name || service?.name || "Clinical"} request`
 }
 
 const REVIEW_TARGET_MINUTES = 120
@@ -134,6 +119,14 @@ function formatQueueTimestamp(value: string | null | undefined): string | null {
   return QUEUE_TS_FORMATTER.format(new Date(value))
 }
 
+function getPlainSearchHighlight(query: string | null | undefined): string {
+  if (!query) return ""
+  return query
+    .toLowerCase()
+    .replace(/\w+:\S+/g, "")
+    .trim()
+}
+
 export function isPastReviewTarget(queueEnteredAt: string | null | undefined, now = Date.now()): boolean {
   if (!queueEnteredAt) return false
   const enteredAt = new Date(queueEnteredAt).getTime()
@@ -145,18 +138,16 @@ export interface QueueTableProps {
   filteredIntakes: IntakeWithPatient[]
   intakes?: IntakeWithPatient[]
   expandedId: string | null
-  onToggleExpand: (id: string) => void
   isPending: boolean
   identityComplete: boolean
   onApprove: (intakeId: string, serviceType?: string | null) => void
   hasRedFlags: (intake: IntakeWithPatient) => boolean
   calculateWaitTime: (createdAt: string) => string
   getWaitTimeSeverity: (createdAt: string, slaDeadline?: string | null) => "normal" | "warning" | "critical"
-  calculateSlaCountdown: (slaDeadline: string | null | undefined) => string | null
   openReviewPanel: (intakeId: string) => void
+  onPrimeReviewPanelCode?: () => void
   openIntakeId: string | null
   doctorId: string
-  readIds: Set<string>
   lastOpenedIntakeId: string | null
   onRememberOpenedCase: (intakeId: string) => void
   dialogs: QueueDialogState
@@ -180,6 +171,7 @@ export interface QueueTableProps {
     summary?: string | null
   }
   compactShell?: boolean
+  searchQuery?: string
   /**
    * Set of row IDs that just arrived via realtime. Rendered with a calm
    * left border for ~1.5s, then removed (managed by the parent).
@@ -189,20 +181,18 @@ export interface QueueTableProps {
 
 export function QueueTable({
   filteredIntakes,
-  intakes: _intakes,
+  intakes = [],
   expandedId,
-  onToggleExpand,
   isPending,
   identityComplete,
   onApprove,
   hasRedFlags,
   calculateWaitTime,
   getWaitTimeSeverity,
-  calculateSlaCountdown,
   openReviewPanel,
+  onPrimeReviewPanelCode,
   openIntakeId,
   doctorId,
-  readIds,
   lastOpenedIntakeId,
   onRememberOpenedCase,
   dialogs: {
@@ -244,6 +234,7 @@ export function QueueTable({
     tone: "success",
   },
   compactShell = false,
+  searchQuery = "",
   newlyArrivedIds,
 }: QueueTableProps) {
   const router = useRouter()
@@ -258,6 +249,12 @@ export function QueueTable({
     ? filteredIntakes.slice(0, QUEUE_DOM_WINDOW_LIMIT)
     : filteredIntakes
   const isDomWindowed = renderedIntakes.length < filteredIntakes.length
+  const plainSearchHighlight = useMemo(
+    () => getPlainSearchHighlight(searchQuery),
+    [searchQuery],
+  )
+  const pendingReplyCount = intakes.filter((intake) => intake.status === "pending_info").length
+  const scriptCount = intakes.filter((intake) => intake.status === "awaiting_script").length
 
   // A patient is "returning" if they have a recently completed case.
   // Memoised so the Set isn't rebuilt on every render — the queue
@@ -292,7 +289,7 @@ export function QueueTable({
         showCaughtUpSummary ? (
           <div
             className={cn(
-              "rounded-xl border border-border/50 bg-card p-6 text-center shadow-sm shadow-primary/[0.04]",
+              "rounded-xl border border-border/50 bg-card p-6 text-center shadow-sm shadow-primary/[0.04] motion-safe:animate-[fade-in_150ms_ease-out]",
               compactShell && "min-h-0 flex-1",
             )}
           >
@@ -304,7 +301,7 @@ export function QueueTable({
         ) : (
           <div
             className={cn(
-              "flex flex-col items-center justify-center px-6 text-center rounded-xl border border-dashed border-border/60 bg-muted/20",
+              "flex flex-col items-center justify-center rounded-xl border border-dashed border-border/60 bg-muted/20 px-6 text-center motion-safe:animate-[fade-in_150ms_ease-out]",
               compactShell ? "min-h-0 flex-1 py-8" : "py-16",
             )}
           >
@@ -384,7 +381,6 @@ export function QueueTable({
               intake.payment_status === "paid" &&
               REVIEW_TARGET_STATUSES.has(intake.status) &&
               isPastReviewTarget(queueEnteredAt)
-            const nextActionLabel = getCompactNextActionLabel(intake.status, service?.type)
             const showIdentityFix =
               compactShell &&
               intake.status === "awaiting_script" &&
@@ -392,52 +388,55 @@ export function QueueTable({
             const identityFixHref = `${ADMIN_PRESCRIBING_IDENTITY_HREF}#identity-${intake.id}`
 
             const isOpen = openIntakeId === intake.id
-            const isRead = readIds.has(intake.id)
-            const isLastOpened = lastOpenedIntakeId === intake.id && !isOpen
+            const isSelected = isFocused || isOpen
+            const isLastOpened = lastOpenedIntakeId === intake.id && !isSelected
             const isReturning = returningPatientIds.has(intake.patient_id)
-            const chiefComplaint = getChiefComplaint(intake)
             const justArrived = newlyArrivedIds?.has(intake.id) ?? false
+            const openCaseFromPrimaryAction = () => {
+              rememberOpenedCase(intake.id)
+              openReviewPanel(intake.id)
+            }
+            const showRoutineStatus = !compactShell || !["paid", "in_review"].includes(intake.status)
+            const showInlineWaitTime = true
+            const waitLabel = calculateWaitTime(queueEnteredAt)
+            const compactQueueReason = compactShell
+              ? getCompactQueueReason(service, intake.subtype)
+              : null
             return (
-              <QueueRowPeek
-                key={intake.id}
-                intakeId={intake.id}
-                // Suppress the peek when the row is the active/open case —
-                // the detail pane is already showing the full content; an
-                // additional popover overlay would be noise.
-                suppressed={isFocused || isOpen}
-              >
               <div
+                key={intake.id}
                 data-testid={`queue-row-${intake.id}`}
                 className={cn(
-                  "group grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1.5 px-3 transition-colors duration-500 sm:grid-cols-[minmax(0,auto)_minmax(0,1fr)_auto_auto_auto] sm:items-center sm:px-4",
+                  "group relative grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1 px-3 transition-colors duration-150 sm:grid-cols-[minmax(0,auto)_minmax(0,1fr)_auto_auto] sm:items-center sm:px-4",
+                  compactShell && "sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start",
                   // Linear-tier density: compact rows breathe at 8px vertical
                   // padding so 12-15 cases fit in one viewport at 1440px.
-                  compactShell ? "py-2" : "py-3",
+                  compactShell ? "py-2.5" : "py-3",
                   "hover:bg-muted/40",
                   index < renderedIntakes.length - 1 && "border-b border-border/40",
-                  isFocused && "bg-primary/[0.04] ring-1 ring-inset ring-primary/20",
-                  isOpen && "bg-primary/[0.06]",
-                  isLastOpened && "bg-muted/35 ring-1 ring-inset ring-border/60",
+                  isSelected && "bg-primary/[0.055] ring-1 ring-inset ring-primary/25 before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-full before:bg-primary before:content-['']",
+                  !compactShell && isLastOpened && "bg-muted/35 ring-1 ring-inset ring-border/60",
                   // Phase 10: subtle realtime arrival emphasis. Decays via
                   // the row transition when the parent removes the row from
                   // `newlyArrivedIds` after ~1.5s.
                   justArrived && "bg-primary/[0.035] ring-1 ring-inset ring-primary/20"
                 )}
-                onMouseEnter={() => prefetchReviewData(intake.id)}
                 onClick={() => {
                   rememberOpenedCase(intake.id)
                   capture("doctor_case_opened", {
                     intake_id: intake.id,
                     service_type: service?.type,
                   })
-                  onToggleExpand(intake.id)
                   openReviewPanel(intake.id)
                 }}
+                onPointerEnter={onPrimeReviewPanelCode}
+                onFocus={onPrimeReviewPanelCode}
               >
                 {/* Patient */}
                 <div className="col-start-1 row-start-1 min-w-0 sm:shrink-0">
                   <UserCard
                     name={patientSnapshot.name}
+                    highlight={plainSearchHighlight}
                     description={
                       compactShell
                         ? getCompactPatientDescription(patientSnapshot)
@@ -445,38 +444,33 @@ export function QueueTable({
                     }
                     size="sm"
                   />
-                  {chiefComplaint && (
-                    <p
-                      className={cn(
-                        "mt-0.5 truncate pl-9 text-xs text-muted-foreground",
-                        compactShell ? "max-w-[240px]" : "max-w-[160px]",
-                      )}
-                    >
-                      {chiefComplaint}
-                    </p>
-                  )}
                 </div>
 
                 {/* Badges */}
-                <div className="col-span-2 col-start-1 row-start-2 flex min-w-0 flex-wrap items-center gap-1.5 sm:col-span-1 sm:col-start-2 sm:row-start-1">
-                  <Badge variant="outline" className="text-xs">
+                <div className={cn(
+                  "col-span-2 col-start-1 row-start-2 flex min-w-0 flex-wrap items-center gap-1.5 sm:col-span-1 sm:col-start-2 sm:row-start-1",
+                  compactShell && "sm:col-span-2 sm:col-start-1 sm:row-start-2",
+                )}>
+                  <Badge variant="outline" className={cn("text-xs", compactShell && "min-w-fit whitespace-nowrap")}>
                     {service?.short_name || formatServiceType(service?.type || "")}
                   </Badge>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "text-xs",
-                      statusMeta.tone === "script" && "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300",
-                      statusMeta.tone === "info" && "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300",
-                      statusMeta.tone === "review" && "border-info-border bg-info-light text-info"
-                    )}
-                  >
-                    {statusMeta.label}
-                  </Badge>
+                  {showRoutineStatus && (
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "text-xs",
+                        statusMeta.tone === "script" && "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300",
+                        statusMeta.tone === "info" && "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300",
+                        statusMeta.tone === "review" && "border-info-border bg-info-light text-info"
+                      )}
+                    >
+                      {statusMeta.label}
+                    </Badge>
+                  )}
                   {(() => {
                     const subtypeLabel = getConsultSubtypeLabel(intake.subtype)
                     return subtypeLabel ? (
-                      <Badge variant="secondary" className="text-xs">{subtypeLabel}</Badge>
+                      <Badge variant="secondary" className={cn("text-xs", compactShell && "whitespace-nowrap")}>{subtypeLabel}</Badge>
                     ) : null
                   })()}
                   {intake.is_priority && (
@@ -505,7 +499,7 @@ export function QueueTable({
                       Returning
                     </Badge>
                   )}
-                  {Boolean((intake as IntakeWithPatient & { is_renewal?: boolean }).is_renewal) && (() => {
+                  {!compactShell && Boolean((intake as IntakeWithPatient & { is_renewal?: boolean }).is_renewal) && (() => {
                     const renewalMatch = (intake as IntakeWithPatient & {
                       renewal_match?: RenewalMatch | null
                     }).renewal_match ?? null
@@ -571,20 +565,33 @@ export function QueueTable({
                       {!compactShell && <span className="hidden sm:inline">{handoffSummary.statusLabel}</span>}
                     </Badge>
                   )}
-                  {!compactShell && isOpen && (
+                  {!compactShell && isSelected && (
                     <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">
-                      Open
+                      Selected
                     </Badge>
                   )}
+                  {compactShell && isSelected ? (
+                    <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                      Selected
+                    </span>
+                  ) : null}
                   {!compactShell && isLastOpened && (
                     <Badge variant="outline" className="text-xs text-muted-foreground border-border/60">
                       Last opened
                     </Badge>
                   )}
+                  {compactQueueReason ? (
+                    <span className="min-w-0 truncate text-xs font-medium text-muted-foreground">
+                      {compactQueueReason}
+                    </span>
+                  ) : null}
                 </div>
 
                 {/* Quick actions */}
-                <div className="col-start-2 row-start-1 flex shrink-0 items-center justify-end gap-1 sm:col-start-3">
+                <div className={cn(
+                  "col-start-2 row-start-1 flex shrink-0 items-center justify-end gap-1 sm:col-start-3",
+                  compactShell && "sm:col-start-2",
+                )}>
                   {showIdentityFix && (
                     <Button
                       variant="outline"
@@ -604,20 +611,36 @@ export function QueueTable({
                     </Button>
                   )}
                   <Button
-                    variant={compactShell ? "default" : "outline"}
-                    size="sm"
-                    className="h-8 px-3 text-xs"
+                    variant="outline"
+                    size={compactShell ? "icon" : "sm"}
+                    className={cn(
+                      "h-8 px-3 text-xs",
+                      compactShell && "w-8 border-transparent bg-transparent px-0 text-muted-foreground shadow-none hover:bg-muted/45 hover:text-foreground",
+                    )}
                     aria-label={`Open case for ${intake.patient.full_name}`}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      rememberOpenedCase(intake.id)
-                      onToggleExpand(intake.id)
-                      openReviewPanel(intake.id)
+                    onPointerDown={(event) => {
+                      if (event.button !== 0) return
+                      event.stopPropagation()
+                      openCaseFromPrimaryAction()
+                    }}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      // Pointer activation is handled on pointer-down so
+                      // hover/focus chrome cannot swallow the first press.
+                      // Keyboard and assistive-tech activation still arrive
+                      // as click events with detail 0.
+                      if (event.detail === 0) openCaseFromPrimaryAction()
                     }}
                     disabled={isPending}
                   >
-                    {!compactShell && <Eye className="h-3.5 w-3.5 mr-1" />}
-                    {compactShell ? nextActionLabel : "Open"}
+                    {compactShell ? (
+                      <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+                    ) : (
+                      <>
+                        <Eye className="h-3.5 w-3.5 mr-1" />
+                        Open
+                      </>
+                    )}
                   </Button>
                   {!compactShell && (
                     <div
@@ -691,23 +714,17 @@ export function QueueTable({
                   )}
                 </div>
 
-                {/* Unread dot */}
-                {!compactShell && !isRead && (
-                  <span
-                    className="col-start-1 row-start-3 h-2 w-2 shrink-0 rounded-full bg-primary sm:col-start-4 sm:row-start-1"
-                    role="img"
-                    aria-label="Unread case"
-                  />
-                )}
-
                 {/* Wait time */}
-                <div className={cn(
-                  "col-start-2 row-start-3 flex shrink-0 items-center justify-end gap-1 text-xs font-medium tabular-nums sm:col-start-5 sm:row-start-1",
-                  waitSeverity === "critical" ? "text-destructive" : waitSeverity === "warning" ? "text-warning" : "text-muted-foreground"
-                )}>
-                  <Clock className="h-3.5 w-3.5" />
-                  <span>{intake.sla_deadline ? calculateSlaCountdown(intake.sla_deadline) : calculateWaitTime(queueEnteredAt)}</span>
-                </div>
+                {showInlineWaitTime && (
+                  <div className={cn(
+                    "col-start-1 row-start-3 flex shrink-0 items-center gap-1 text-xs font-medium tabular-nums sm:col-start-4 sm:row-start-1 sm:justify-end",
+                    compactShell && "sm:col-start-1 sm:row-start-3 sm:justify-start",
+                    waitSeverity === "critical" ? "text-destructive" : waitSeverity === "warning" ? "text-warning" : "text-muted-foreground"
+                  )}>
+                    <Clock className="h-3.5 w-3.5" />
+                    <span>Waiting {waitLabel}</span>
+                  </div>
+                )}
                 {!compactShell && (paidAt || submittedAt) && (
                   <p className="col-span-2 col-start-1 row-start-4 text-[11px] text-muted-foreground sm:col-span-2 sm:col-start-2 sm:row-start-2">
                     {paidAt ? `Paid ${paidAt}` : "Paid time missing"}
@@ -715,15 +732,38 @@ export function QueueTable({
                   </p>
                 )}
                 {waitSeverity === "critical" && (
-                  <AlertTriangle className="col-start-2 row-start-3 h-3.5 w-3.5 shrink-0 justify-self-end text-destructive sm:col-start-5 sm:row-start-1" aria-label="Critical" />
+                  <AlertTriangle className="col-start-2 row-start-3 h-3.5 w-3.5 shrink-0 justify-self-end text-destructive sm:col-start-4 sm:row-start-1" aria-label="Critical" />
                 )}
               </div>
-              </QueueRowPeek>
             )
           })}
           {isDomWindowed && (
             <div className="border-t border-border/40 bg-muted/20 px-4 py-2 text-xs text-muted-foreground">
               Showing the first {QUEUE_DOM_WINDOW_LIMIT} visible rows. Refine the search or move to the next page for the rest.
+            </div>
+          )}
+          {compactShell && filteredIntakes.length > 0 && filteredIntakes.length <= 2 && (
+            <div className="border-t border-border/40 bg-muted/15 px-4 py-3">
+              <p className="text-xs font-medium text-muted-foreground">
+                {filteredIntakes.length === 1
+                  ? "No one else waiting · target under 2h"
+                  : `${filteredIntakes.length} visible cases · target under 2h`}
+              </p>
+            </div>
+          )}
+          {compactShell && filteredIntakes.length <= 1 && (pendingReplyCount > 0 || scriptCount > 0) && (
+            <div className="border-t border-border/40 bg-muted/15 px-4 py-3">
+              <p className="text-xs font-semibold text-foreground">Follow-ups</p>
+              <div className="mt-2 grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
+                <div className="rounded-lg border border-border/45 bg-white px-3 py-2 dark:bg-background">
+                  <span className="font-medium text-foreground tabular-nums">{pendingReplyCount}</span>{" "}
+                  pending replies
+                </div>
+                <div className="rounded-lg border border-border/45 bg-white px-3 py-2 dark:bg-background">
+                  <span className="font-medium text-foreground tabular-nums">{scriptCount}</span>{" "}
+                  scripts to write
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -760,7 +800,6 @@ export function QueueTable({
                 <div
                   key={intake.id}
                   className="flex cursor-pointer flex-col justify-between gap-2 rounded-lg border border-border/40 bg-muted/20 p-2.5 transition-colors hover:bg-muted/45 sm:flex-row sm:items-center sm:gap-3"
-                  onMouseEnter={() => prefetchReviewData(intake.id)}
                   onClick={() => openReviewPanel(intake.id)}
                 >
                   <div className="flex items-center gap-3 min-w-0">

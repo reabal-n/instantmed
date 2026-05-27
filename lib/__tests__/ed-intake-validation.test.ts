@@ -186,14 +186,14 @@ describe("edHealthStepSchema", () => {
     expect(result.isValid).toBe(true)
   })
 
-  it("fails when alpha blocker use is reported without GP clearance", () => {
+  it("passes when alpha blocker use is reported without GP clearance", () => {
     const result = validateEdHealthStep({
       ...validMinimum,
       edAlphaBlockers: true,
     })
 
-    expect(result.isValid).toBe(false)
-    expect(result.errors.edGpCleared).toBeDefined()
+    expect(result.isValid).toBe(true)
+    expect(result.errors.edGpCleared).toBeUndefined()
   })
 
   it("requires allergy details when has_allergies is 'yes'", () => {

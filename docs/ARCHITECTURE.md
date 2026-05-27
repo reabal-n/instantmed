@@ -914,6 +914,7 @@ Partial index on actionable states only: `idx_intakes_auto_approval_active` on `
 | Two cron instances, same intake | CAS: `UPDATE WHERE state = 'pending'` — only one wins |
 | Webhook + cron race | Webhook sets `awaiting_drafts`; cron only sees `pending`/`failed_retrying` |
 | Crashed pipeline orphan lock | Stale `attempting` → `failed_retrying` after 10 min |
+| Doctor acts while auto-approval is `attempting` | Manual med-cert approval force-takes only the `System (Auto-Approve)` claim, parks `auto_approval_state='needs_doctor'` with `manual_doctor_override`, then continues through the normal certificate approval pipeline |
 | Pipeline succeeds, no release needed | `markApproved()` is atomic — no release step |
 
 **Alerting:** `needs_doctor` (exhausted retries) and stale recovery trigger Telegram. Sentry: `warning` on exhausted retries and stale recovery; `info` on approval and deterministic `needs_doctor`.

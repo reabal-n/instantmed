@@ -40,8 +40,8 @@ interface AdminSidebarProps {
  * pane needs more width.
  */
 
-const ACTIVE_NAV = "bg-primary/10 text-primary"
-const INACTIVE_NAV = "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+const ACTIVE_NAV = "border border-primary/15 bg-primary/[0.08] text-primary shadow-sm shadow-primary/[0.04]"
+const INACTIVE_NAV = "border border-transparent text-slate-600 hover:border-border/45 hover:bg-white/65 hover:text-foreground dark:text-muted-foreground dark:hover:bg-white/[0.06]"
 const STAFF_SIDEBAR_EXPANDED_STORAGE_KEY = "instantmed.staff.sidebar.expanded"
 
 function NavBadge({
@@ -114,7 +114,7 @@ function NavIconLink({
       prefetch={false}
       onClick={onClick}
       className={cn(
-        "relative flex h-10 rounded-lg text-sm font-medium transition-colors duration-150",
+        "relative flex h-10 rounded-lg text-sm font-medium transition-[background-color,border-color,color,box-shadow] duration-150",
         expanded ? "w-full items-center justify-start gap-3 px-3" : "w-10 items-center justify-center",
         active ? ACTIVE_NAV : INACTIVE_NAV,
       )}
@@ -160,7 +160,7 @@ function Brand({ expanded, brandLabel }: { expanded: boolean; brandLabel: string
       className={cn(
         "flex rounded-lg transition-colors",
         expanded
-          ? "min-w-0 flex-1 items-center gap-3 hover:bg-muted/50"
+          ? "min-w-0 flex-1 items-center gap-3 hover:bg-white/65 dark:hover:bg-white/[0.06]"
           : "h-10 w-10 items-center justify-center bg-primary text-primary-foreground hover:bg-primary/90",
       )}
       aria-label="InstantMed home"
@@ -171,7 +171,7 @@ function Brand({ expanded, brandLabel }: { expanded: boolean; brandLabel: string
       {expanded ? (
         <span className="min-w-0">
           <span className="block truncate text-sm font-semibold tracking-tight text-foreground">InstantMed</span>
-          <span className="block truncate text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          <span className="block truncate text-[11px] font-medium uppercase tracking-wider text-slate-500 dark:text-muted-foreground">
             {brandLabel}
           </span>
         </span>
@@ -201,7 +201,7 @@ function UserInitials({
     <button
       type="button"
       className={cn(
-        "flex rounded-lg bg-muted text-foreground transition-colors hover:bg-muted/80",
+        "flex rounded-lg border border-border/35 bg-white/65 text-foreground shadow-sm shadow-primary/[0.03] transition-colors hover:bg-white/85 dark:bg-white/[0.05] dark:hover:bg-white/[0.08]",
         expanded
           ? "w-full items-center gap-3 px-3 py-2 text-left"
           : "h-10 w-10 items-center justify-center text-[11px] font-semibold",
@@ -214,7 +214,7 @@ function UserInitials({
       {expanded ? (
         <span className="min-w-0">
           <span className="block truncate text-sm font-medium text-foreground">{displayName}</span>
-          <span className="block truncate text-xs text-muted-foreground">{userRole}</span>
+          <span className="block truncate text-xs text-slate-600 dark:text-muted-foreground">{userRole}</span>
         </span>
       ) : null}
     </button>
@@ -285,7 +285,7 @@ export function AdminSidebar({
     <TooltipProvider>
       <aside
         className={cn(
-          "hidden shrink-0 flex-col border-r border-border/40 bg-background lg:flex",
+          "hidden shrink-0 flex-col border-r border-border/45 bg-[#FCFBF8] shadow-sm shadow-primary/[0.03] dark:bg-card lg:flex",
           expanded ? "w-64" : "w-[60px]",
         )}
         aria-label="Staff sidebar"
@@ -301,7 +301,7 @@ export function AdminSidebar({
             <button
               type="button"
               onClick={toggleExpanded}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-transparent text-muted-foreground transition-colors hover:border-border/45 hover:bg-white/65 hover:text-foreground dark:hover:bg-white/[0.06]"
               aria-label={expanded ? "Collapse staff navigation" : "Expand staff navigation"}
               aria-expanded={expanded}
             >
@@ -317,7 +317,7 @@ export function AdminSidebar({
                   <div className={cn("my-1 h-px bg-border/50", expanded ? "w-full" : "w-6")} aria-hidden />
                 ) : null}
                 {expanded ? (
-                  <p className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <p className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-muted-foreground">
                     {section.title}
                   </p>
                 ) : null}
@@ -382,7 +382,7 @@ export function MobileAdminNav({ navCounts, navSections, brandLabel: _brandLabel
     <div className="lg:hidden">
       <button
         onClick={() => setOpen(true)}
-        className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/50 bg-background text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+        className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/50 bg-white/75 text-muted-foreground shadow-sm shadow-primary/[0.03] transition-colors hover:bg-white hover:text-foreground dark:bg-card"
         aria-label="Open staff navigation"
         type="button"
       >
@@ -400,7 +400,7 @@ export function MobileAdminNav({ navCounts, navSections, brandLabel: _brandLabel
 
       <nav
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col border-r border-border bg-background shadow-xl transition-transform duration-200 ease-out",
+          "fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col border-r border-border bg-[#FCFBF8] shadow-xl shadow-primary/[0.08] transition-transform duration-200 ease-out dark:bg-card",
           open ? "translate-x-0" : "-translate-x-full",
         )}
         aria-label="Staff navigation"
@@ -426,7 +426,7 @@ export function MobileAdminNav({ navCounts, navSections, brandLabel: _brandLabel
           {sections.map((section, index) => (
             <div key={section.title} className="space-y-1">
               {index > 0 ? <div className="border-t border-border/30" /> : null}
-              <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-muted-foreground">
                 {section.title}
               </p>
               {section.items.map((item) => {
