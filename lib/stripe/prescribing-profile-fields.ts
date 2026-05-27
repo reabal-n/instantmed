@@ -1,4 +1,4 @@
-import { validateMedicareNumber } from "@/lib/validation/medicare"
+import { validateMedicareExpiry, validateMedicareNumber } from "@/lib/validation/medicare"
 import type { AustralianState, Profile } from "@/types/db"
 
 const AUSTRALIAN_STATES: AustralianState[] = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
@@ -98,6 +98,42 @@ function normalizeSex(value: string | null): NonNullable<Profile["sex"]> | null 
   return SEX_VALUES.includes(upper as NonNullable<Profile["sex"]>)
     ? upper as NonNullable<Profile["sex"]>
     : null
+}
+
+export function validateRequiredPrescribingProfileAnswers(
+  answers: Record<string, unknown>,
+  requestLabel = "prescription requests",
+): string | null {
+  const medicare = normalizeDigits(firstStringAnswer(answers, ["medicare_number", "medicareNumber"]))
+  const medicareIrn = normalizeIrn(firstScalarAnswer(answers, ["medicare_irn", "medicareIrn"]))
+  const rawMedicareExpiry = firstScalarAnswer(answers, ["medicare_expiry", "medicareExpiry"])
+  const medicareExpiry = normalizeMedicareExpiry(rawMedicareExpiry)
+  const addressLine1 = firstStringAnswer(answers, ["address_line1", "addressLine1", "address_line_1", "street_address"])
+  const suburb = firstStringAnswer(answers, ["suburb"])
+  const state = normalizeState(firstStringAnswer(answers, ["state"]))
+  const postcode = firstStringAnswer(answers, ["postcode"])
+  const sex = normalizeSex(firstStringAnswer(answers, ["sex", "gender"]))
+
+  if (!medicare) return `Medicare number is required for ${requestLabel}.`
+
+  const medicareResult = validateMedicareNumber(medicare)
+  if (!medicareResult.valid) return medicareResult.error || "Invalid Medicare number"
+
+  if (!medicareIrn) return `Medicare IRN is required for ${requestLabel}.`
+
+  if (rawMedicareExpiry) {
+    if (!medicareExpiry) return "Medicare card expiry is invalid."
+    const expiryResult = validateMedicareExpiry(medicareExpiry)
+    if (!expiryResult.valid) return expiryResult.error || "Medicare card expiry is invalid."
+  }
+
+  if (!addressLine1) return `Street address is required for ${requestLabel}.`
+  if (!suburb) return `Address suburb is required for ${requestLabel}.`
+  if (!state) return `A valid Australian state is required for ${requestLabel}.`
+  if (!postcode || !/^\d{4}$/.test(postcode)) return `A valid 4-digit postcode is required for ${requestLabel}.`
+  if (!sex) return `Sex is required for ${requestLabel}.`
+
+  return null
 }
 
 export function buildPrescribingProfileUpdates(

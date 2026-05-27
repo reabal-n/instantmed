@@ -79,7 +79,7 @@ describe("getParchmentPatientIdentityIssues", () => {
     expect(getParchmentPatientIdentityIssues({
       ...baseProfile,
       medicare_number: "0000000000",
-    })).toEqual(["Valid Medicare"])
+    })).toEqual(["Valid Medicare number"])
   })
 
   it("does not include invalid Medicare details in Parchment payload helpers", () => {

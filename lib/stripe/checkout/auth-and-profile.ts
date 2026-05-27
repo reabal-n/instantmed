@@ -12,7 +12,10 @@ import { updateProfile } from "@/lib/data/profiles"
 import { createLogger } from "@/lib/observability/logger"
 import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing-identity"
 
-import { buildPrescribingProfileUpdates } from "../prescribing-profile-fields"
+import {
+  buildPrescribingProfileUpdates,
+  validateRequiredPrescribingProfileAnswers,
+} from "../prescribing-profile-fields"
 import { getBaseUrl, isValidUrl } from "./helpers"
 import type { CreateCheckoutInput, StepResult } from "./types"
 import { stepFail, stepOk } from "./types"
@@ -63,6 +66,11 @@ export async function runAuthAndProfile(
   //    captured in the intake answers into the profile so Parchment + admin
   //    blocker reports see them.
   if (requiresPrescribingIdentityForRequest({ category: input.category, subtype: input.subtype })) {
+    const prescribingIdentityError = validateRequiredPrescribingProfileAnswers(input.answers)
+    if (prescribingIdentityError) {
+      return stepFail(prescribingIdentityError)
+    }
+
     const prescribingUpdates = buildPrescribingProfileUpdates(input.answers)
     if (Object.keys(prescribingUpdates).length > 0) {
       const updatedProfile = await updateProfile(patientId, prescribingUpdates)

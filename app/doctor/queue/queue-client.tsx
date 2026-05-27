@@ -21,7 +21,6 @@ import { calculateWaitTime, getQueueEnteredAt, getWaitTimeSeverity } from "@/lib
 import { hasReviewNextRisk, sortForReviewNext } from "@/lib/doctor/review-next"
 import { SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
-import { formatMinutes } from "@/lib/format/dates"
 import { formatServiceType } from "@/lib/format/intake"
 import { useDebounce } from "@/lib/hooks/use-debounce"
 import { useIsDesktop } from "@/lib/hooks/use-media-query"
@@ -216,6 +215,7 @@ function QueueIdlePanel({
   doctorAvailable,
   queueDegraded,
   nextIntakes,
+  onOpenNext,
 }: {
   queueSize: number
   reviewedToday: number
@@ -226,62 +226,31 @@ function QueueIdlePanel({
   doctorAvailable: boolean
   queueDegraded: boolean
   nextIntakes?: IntakeWithPatient[]
+  onOpenNext?: () => void
 }) {
   const nextIntake = nextIntakes?.[0] ?? null
+  const hasQueueTiming = formToInboxStats != null || medianDecisionMinutes != null || oldestWaitingMinutes != null
   const nextAction = queueDegraded
     ? "Refresh before clinical action."
     : !doctorAvailable
       ? "Availability is paused."
-      : filteredCount > 0 && typeof oldestWaitingMinutes === "number"
-        ? `Oldest wait ${formatMinutes(oldestWaitingMinutes)}.`
       : filteredCount > 0
-        ? "Open the oldest case in this filter."
+        ? "Single click or Enter opens it."
         : "No cases match this filter."
-  const oldestWaitingLabel = typeof oldestWaitingMinutes === "number"
-    ? oldestWaitingMinutes === 0
-      ? "Just arrived"
-      : formatMinutes(oldestWaitingMinutes)
-    : "--"
-  const medianDecisionLabel = medianDecisionMinutes != null
-    ? medianDecisionMinutes <= 0
-      ? "Under 1m"
-      : formatMinutes(medianDecisionMinutes)
-    : "Needs first decision"
-  const medianDecisionMetric = medianDecisionMinutes != null ? medianDecisionLabel : "--"
-  const formToInboxLabel = formToInboxStats
-    ? formatMinutes(formToInboxStats.medianMinutes)
-    : null
-  const primaryMetricLabel = formToInboxStats
-    ? "Avg med cert today"
-    : medianDecisionMinutes != null
-      ? "Median decision"
-      : oldestWaitingMinutes != null
-        ? "Oldest wait"
-        : "Queue"
-  const primaryMetricValue = formToInboxStats
-    ? formToInboxLabel ?? "--"
-    : medianDecisionMinutes != null
-      ? medianDecisionMetric
-      : oldestWaitingMinutes != null
-        ? oldestWaitingLabel
-        : String(queueSize)
+  const primaryMetricLabel = "Reviews today"
+  const primaryMetricValue = String(reviewedToday)
   const primaryMetricDetail = formToInboxStats
-    ? `Based on the last ${formToInboxStats.sampleSize} med certs issued.`
-    : medianDecisionMinutes != null
-      ? "Today"
-      : oldestWaitingMinutes != null
-        ? "Target under 2h."
-        : "Visible cases"
-  const nextCaseWaitingLabel = nextIntake
-    ? (() => {
-        const minutes = Math.max(0, Math.floor((Date.now() - new Date(getQueueEnteredAt(nextIntake)).getTime()) / 60000))
-        return minutes <= 0 ? "just arrived" : `waiting ${formatMinutes(minutes)}`
-      })()
-    : null
-  const nextCaseLabel = nextIntake && nextCaseWaitingLabel
-    ? `${nextCaseWaitingLabel[0]?.toUpperCase() ?? "W"}${nextCaseWaitingLabel.slice(1)}.`
+    ? "Timing shown in queue header."
+    : hasQueueTiming
+      ? "Queue timing shown above."
+      : queueSize > 0
+        ? `${queueSize} visible case${queueSize === 1 ? "" : "s"}.`
+        : "Completed clinical reviews."
+  const nextPatientFirstName = nextIntake?.patient.full_name?.trim().split(/\s+/)[0] ?? null
+  const nextCaseLabel = nextIntake
+    ? `${nextPatientFirstName || "Next case"} is next.`
     : filteredCount > 0
-      ? "Oldest visible case is ready."
+      ? "Select the oldest case."
       : "Nothing to review."
   const showNextUp = filteredCount > 0
 
@@ -298,7 +267,7 @@ function QueueIdlePanel({
             </p>
           </div>
           <p className="max-w-[260px] text-sm font-medium leading-snug text-slate-600 dark:text-muted-foreground sm:text-right">
-            {formToInboxStats ? "Form to inbox. Target under 2h." : "Target: oldest wait under 2h."}
+            Completed decisions only.
           </p>
         </div>
         <p className="mt-2 text-xs font-medium text-slate-500 dark:text-muted-foreground">
@@ -314,16 +283,18 @@ function QueueIdlePanel({
               <p className="mt-1 text-base font-semibold leading-snug text-foreground">
                 {nextCaseLabel}
               </p>
-              <p className="mt-1 text-xs font-medium leading-snug text-slate-600 dark:text-muted-foreground">
-                {reviewedToday > 0
-                  ? reviewedToday === 1
-                    ? "One review completed today."
-                    : `${reviewedToday} reviews completed today.`
-                  : "No reviews completed today."}
-              </p>
             </div>
             <div className="flex shrink-0 flex-col items-end gap-1">
-              {nextAction ? (
+              {nextIntake && onOpenNext ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-8 px-3 text-xs"
+                  onClick={onOpenNext}
+                >
+                  Open {nextPatientFirstName || "case"}
+                </Button>
+              ) : nextAction ? (
                 <p className="max-w-[180px] text-right text-[11px] font-medium leading-snug text-slate-500 dark:text-muted-foreground">
                   {nextAction}
                 </p>
@@ -913,6 +884,20 @@ export function QueueClient({
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [expandedId, filteredIntakes, openReviewPanel, handleApprove, dialogs])
 
+  useEffect(() => {
+    const handleReleasedReviewCase = (event: Event) => {
+      const intakeId = event instanceof CustomEvent
+        ? (event.detail as { intakeId?: string } | undefined)?.intakeId
+        : null
+      setExpandedId((current) => (intakeId && current !== intakeId ? current : null))
+      refreshQueue(true)
+      toast.success("Case released.")
+    }
+
+    window.addEventListener("operator-release-review-case", handleReleasedReviewCase)
+    return () => window.removeEventListener("operator-release-review-case", handleReleasedReviewCase)
+  }, [refreshQueue])
+
   // Auto-scroll the keyboard-focused row into view. Uses the row's
   // `data-testid` attribute (set by QueueTable) to locate the element
   // without prop-drilling refs. `nearest` block keeps the row in view
@@ -1096,6 +1081,7 @@ export function QueueClient({
           onSearchChange={setSearchQuery}
           onRefresh={() => refreshQueue(true)}
           onOpenSingleMatch={filteredIntakes.length === 1 ? handleReviewNext : undefined}
+          onOpenOldest={handleJumpToOldestWait}
           statusFilter={statusFilter}
           onStatusFilterChange={handleStatusFilterChange}
           intakes={intakes}
@@ -1181,6 +1167,7 @@ export function QueueClient({
                 doctorAvailable={doctorAvailable}
                 queueDegraded={queueDegraded}
                 nextIntakes={filteredIntakes.slice(0, 3)}
+                onOpenNext={handleReviewNext}
               />
             )
           )}

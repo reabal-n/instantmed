@@ -250,9 +250,9 @@ export function IntakeReviewCockpit({
 
         {/* Scrollable middle: single column, no tabs. */}
         <div
-          className="min-h-0 flex-1 overflow-y-auto pr-1"
+          className="min-h-0 flex-1 overflow-y-auto pr-1 scroll-pb-24"
         >
-          <div className="space-y-3">
+          <div className="space-y-3 pb-6">
             {data.renewalMatch ? (
               <div className="flex items-center justify-end">
                 <RenewalLink
@@ -310,7 +310,7 @@ export function IntakeReviewCockpit({
           </div>
         </div>
       </div>
-      <div className="shrink-0" data-action-rail-shell>
+      <div className="shrink-0 shadow-lg shadow-primary/[0.06]" data-action-rail-shell>
         {decisionActions}
       </div>
     </div>

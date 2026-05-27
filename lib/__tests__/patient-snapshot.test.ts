@@ -235,7 +235,7 @@ describe("buildPatientSnapshot", () => {
 
     expect(snapshot.medicare.present).toBe(true)
     expect(snapshot.medicare.valid).toBe(false)
-    expect(snapshot.missingCriticalFields).toEqual(["Valid Medicare"])
+    expect(snapshot.missingCriticalFields).toEqual(["Valid Medicare number"])
   })
 
   it("treats all-zero Medicare placeholders as invalid prescribing identity", () => {
@@ -262,7 +262,7 @@ describe("buildPatientSnapshot", () => {
 
     expect(snapshot.medicare.present).toBe(true)
     expect(snapshot.medicare.valid).toBe(false)
-    expect(snapshot.missingCriticalFields).toEqual(["Valid Medicare"])
+    expect(snapshot.missingCriticalFields).toEqual(["Valid Medicare number"])
     expect(snapshot.completenessTone).toBe("partial")
   })
 

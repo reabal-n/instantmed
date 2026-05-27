@@ -34,7 +34,10 @@ import { getAmountCentsForRequest, getOptionalStripePriceEnv, getPriceIdForReque
 import { shouldReuseGuestProfileForCheckout } from "./guest-profile-dedupe"
 import { inferStripeLineItemFailureRole, stripePriceErrorUserMessage } from "./line-item-error"
 import { buildPaymentIntentMetadata, resolveGuestDuplicateCheckoutRecovery } from "./payment-integrity"
-import { buildPrescribingProfileUpdates } from "./prescribing-profile-fields"
+import {
+  buildPrescribingProfileUpdates,
+  validateRequiredPrescribingProfileAnswers,
+} from "./prescribing-profile-fields"
 
 const logger = createLogger("guest-checkout")
 
@@ -239,6 +242,13 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       return {
         success: false,
         error: "Phone number is required for prescription requests to receive your eScript via SMS.",
+      }
+    }
+
+    if (requiresPrescribingIdentityForRequest({ category: input.category, subtype: input.subtype })) {
+      const prescribingIdentityError = validateRequiredPrescribingProfileAnswers(input.answers)
+      if (prescribingIdentityError) {
+        return { success: false, error: prescribingIdentityError }
       }
     }
 

@@ -30,10 +30,10 @@ const severityClasses: Record<QueuePressureSeverity, {
     value: "text-foreground",
   },
   watch: {
-    root: "border-warning-border bg-warning-light text-warning dark:bg-warning/10",
-    icon: "text-warning",
+    root: "border-border/70 bg-white text-slate-700 dark:bg-card dark:text-muted-foreground",
+    icon: "text-muted-foreground",
     dot: "bg-warning",
-    value: "text-warning",
+    value: "text-slate-800 dark:text-foreground",
   },
   urgent: {
     root: "border-destructive/25 bg-destructive/10 text-destructive",
@@ -59,6 +59,7 @@ interface QueuePressureSignalProps {
   showLabel?: boolean
   softenWhenReviewOpen?: boolean
   jumpToOldestOnClick?: boolean
+  prominent?: boolean
   targetMinutes?: number
 }
 
@@ -71,6 +72,7 @@ export function QueuePressureSignal({
   showLabel = true,
   softenWhenReviewOpen = false,
   jumpToOldestOnClick = false,
+  prominent = false,
   targetMinutes = QUEUE_WAIT_TARGET_MINUTES,
 }: QueuePressureSignalProps) {
   const mountedAtRef = useRef(Date.now())
@@ -108,7 +110,7 @@ export function QueuePressureSignal({
     : `${state.title} ${targetLabel}.`
   const rootClassName = cn(
     "inline-flex min-h-8 items-center gap-2 rounded-xl border px-2.5 py-1.5 text-xs font-medium shadow-sm shadow-primary/[0.03] transition-colors duration-150",
-    compact ? "h-8" : "h-10 px-3",
+    prominent ? "min-h-14 px-3.5 py-2" : compact ? "h-8" : "h-10 px-3",
     classes.root,
     jumpToOldestOnClick && "cursor-pointer hover:border-primary/30 hover:bg-primary/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25",
     className,
@@ -118,20 +120,20 @@ export function QueuePressureSignal({
       {showIcon ? <Clock3 className={cn("h-3.5 w-3.5 shrink-0", classes.icon)} aria-hidden /> : null}
       {!showIcon ? (
         <span
-          className={cn("h-1.5 w-1.5 rounded-full motion-safe:animate-[pulse-soft_1.2s_ease-in-out_infinite]", classes.dot)}
+          className={cn(prominent ? "h-2 w-2" : "h-1.5 w-1.5", "rounded-full motion-safe:animate-[pulse-soft_1.2s_ease-in-out_infinite]", classes.dot)}
           aria-hidden
         />
       ) : null}
       {showLabel ? (
-        <span className={cn("hidden font-semibold sm:inline", compact ? "text-[11px]" : "text-xs")}>
+        <span className={cn("hidden font-semibold sm:inline", prominent ? "text-[11px]" : compact ? "text-[11px]" : "text-xs")}>
           {state.label}
         </span>
       ) : null}
-      <span className={cn("font-semibold tabular-nums", compact ? "text-sm" : "text-base", classes.value)}>
+      <span className={cn("font-semibold tabular-nums", prominent ? "text-xl" : compact ? "text-sm" : "text-base", classes.value)}>
         {state.value}
       </span>
       {trailingLabel ? (
-        <span className={cn("hidden font-medium opacity-80 sm:inline", compact ? "text-[11px]" : "text-xs")}>
+        <span className={cn("hidden font-medium opacity-80 sm:inline", prominent ? "text-[11px]" : compact ? "text-[11px]" : "text-xs")}>
           {trailingLabel}
         </span>
       ) : null}

@@ -39,6 +39,10 @@ const intakeReviewPanelSource = readFileSync(
   join(process.cwd(), "components/doctor/intake-review-panel.tsx"),
   "utf8",
 )
+const intakeLockHookSource = readFileSync(
+  join(process.cwd(), "components/doctor/hooks/use-intake-lock.ts"),
+  "utf8",
+)
 const intakeDetailActionsSource = readFileSync(
   join(process.cwd(), "app/doctor/intakes/[id]/use-intake-actions.tsx"),
   "utf8",
@@ -309,6 +313,17 @@ describe("doctor queue production contract", () => {
   it("uses the atomic claim RPC for panel lock acquisition", () => {
     expect(intakeLockSource).toContain('rpc("claim_intake_for_review"')
     expect(intakeLockSource).not.toContain("claimed_by: doctorId")
+  })
+
+  it("surfaces the active review claim inside the open case pane", () => {
+    expect(intakeLockHookSource).toContain("lockState")
+    expect(intakeReviewPanelSource).toContain("data-review-claim-state")
+    expect(intakeReviewPanelSource).toContain("data-review-release-claim")
+    expect(intakeReviewPanelSource).toContain("formatClaimAge")
+    expect(intakeReviewPanelSource).toContain("Claimed for review")
+    expect(intakeReviewPanelSource).toContain("Claiming case")
+    expect(intakeReviewPanelSource).toContain("Release case lock")
+    expect(queueClientSource).toContain("operator-release-review-case")
   })
 
   it("does not claim approved or terminal cases when opening read-only review", () => {

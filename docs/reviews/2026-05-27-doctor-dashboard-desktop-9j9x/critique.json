@@ -1,0 +1,119 @@
+{
+  "summary": "The InstantMed Doctor Console presents an exceptionally clean, ivory-based aesthetic that largely succeeds in delivering a calm clinician experience. However, the layout suffers from horizontal compression when the three-column split occurs during patient review, and the harsh red SLA alert breaks the warm brand system. Resolving these layout constraints and toning down alert signals will push the interface closer to Stripe-grade utility.",
+  "overall_score": 7,
+  "categories": {
+    "brand_spine": {
+      "score": 7,
+      "observation": "The use of the warm ivory background (#F8F7F4) immediately offsets the typical sterile aesthetic of medical consoles, successfully anchoring the Mosh-like warmth. However, the doctor-facing workspace leans heavily into sterile B2B structure rather than fully maintaining the streamlined, human-centered brand thesis.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 2,
+          "issue": "The layout looks like a standard healthcare CRM rather than a bespoke, high-end telehealth console.",
+          "recommendation": "Introduce subtle medical-grade iconography and elevate the Dr. Amelia Patel profile card layout in the lower left navigation to humanize the interface."
+        }
+      ]
+    },
+    "typography": {
+      "score": 7,
+      "observation": "Text elements are readable with a clean sans-serif scale, but the details panel at 00:11 features dense blocks of copy and tightly packed metadata lacking visual breathing room.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 11,
+          "issue": "The 'Patient details' panel typography is dense, causing critical data points like Medicare and phone numbers to blend together.",
+          "recommendation": "Increase the line-height of metadata items to 1.5rem and widen letter-spacing on high-density subheads in the profile panel."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 7,
+      "observation": "The solid white cards resting on the ivory background are beautifully executed. However, the alarming red alert color for queue targets breaks this tranquil aesthetic.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 2,
+          "issue": "The primary red alert card is overly aggressive and causes unnecessary cognitive alarm.",
+          "recommendation": "Soften the alert container color from the harsh red border/text to a muted warm coral (#FF6B5B) with a soft tint background."
+        }
+      ]
+    },
+    "motion": {
+      "score": 6,
+      "observation": "The app lacks transition feedback, resulting in harsh page pops when searching or opening a patient record.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 10,
+          "issue": "Opening a patient file results in an instantaneous, abrupt shift as the review panel slides in.",
+          "recommendation": "Implement a 250ms ease-out horizontal slide transition on the patient detail panel to anchor the spatial movement."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 8,
+      "observation": "The text avoids clinical and corporate jargon, using friendly, direct Australian phrasing, though some system prompts sound clinical-ops focused.",
+      "findings": [
+        {
+          "severity": 1,
+          "timestamp_seconds": 2,
+          "issue": "The command 'Open it now' on the target card sounds demanding rather than collaborative.",
+          "recommendation": "Update copy to a supportive tone, such as: 'Oldest wait has exceeded 2h. Let's address Mia's case first.'"
+        }
+      ]
+    },
+    "hierarchy_and_layout": {
+      "score": 6,
+      "observation": "While the dashboard has excellent horizontal spacing initially, the layout breaks down into squeezed, narrow columns when patient details are loaded.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 11,
+          "issue": "A forced three-column layout leaves patient notes and metadata severely compressed horizontally.",
+          "recommendation": "Allow the middle queue list to collapse or scale down significantly when the main patient details view is actively open."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 8,
+      "observation": "While there are no patient-facing barriers shown here, doctor triage speed is hampered by a lack of fast keyboard navigation or automated action triggers.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 8,
+          "issue": "Opening a patient search manually introduces latency in high-speed, high-volume review states.",
+          "recommendation": "Introduce a global search hotkey shortcut like 'CMD + K' directly next to the search bar placeholder text."
+        }
+      ]
+    },
+    "signature_devices": {
+      "score": 7,
+      "observation": "The SLA timers ('Median today: 10m') are front and center, successfully mirroring Stripe's detail-oriented transparency, but the workflow context is missing clinical policy shortcuts.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 11,
+          "issue": "The workspace does not surface policy constraints such as 'What we won't do' guidelines directly inside the clinical review flow.",
+          "recommendation": "Add a subtle hover tooltip or link to the 'What we won't do' medical guidelines directly next to the 'Reason for visit' section."
+        }
+      ]
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Implement collapsible mid-column navigation for the active details panel.",
+      "why": "The three-column split on desktop (at 00:11) severely compresses patient files, cutting off vital medical texts horizontally.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Soften the SLA 'Over-review target' card colors to warm brand coral.",
+      "why": "The bright clinical red warning card (at 00:02) clashes with the calming ivory-to-dawn brand language and increases clinical pressure.",
+      "estimated_impact": "medium"
+    },
+    {
+      "action": "Add a visual keyboard shortcut helper (e.g., CMD+K) to the search input.",
+      "why": "Entering searches manually (as seen at 00:08) slows down busy practitioners who need frictionless keyboard navigation.",
+      "estimated_impact": "medium"
+    }
+  ]
+}

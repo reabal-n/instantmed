@@ -1,12 +1,12 @@
 "use client"
 
-import { ArrowDown, ArrowUp, ExternalLink, User } from "lucide-react"
+import { ArrowDown, ArrowUp, ExternalLink, LockKeyhole, User } from "lucide-react"
 import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import { CertificatePreviewDialog } from "@/components/doctor/certificate-preview-dialog"
 import { useAuditTrail } from "@/components/doctor/hooks/use-audit-trail"
-import { useIntakeLock } from "@/components/doctor/hooks/use-intake-lock"
+import { type IntakeLockState, useIntakeLock } from "@/components/doctor/hooks/use-intake-lock"
 import { PatientDecisionStrip } from "@/components/doctor/patient-decision-strip"
 import { PatientProfilePanel } from "@/components/doctor/patient-profile-panel"
 import { DeclineIntakeDialog } from "@/components/doctor/review/decline-intake-dialog"
@@ -134,6 +134,24 @@ function formatPreviewLocation(patient?: PreviewPatient): string {
   return [patient.suburb, patient.state, patient.postcode].filter(Boolean).join(", ") || "Address loading"
 }
 
+function formatClaimAge(lockedAt: string | null, now = Date.now()): string {
+  if (!lockedAt) return "just now"
+  const lockedAtMs = new Date(lockedAt).getTime()
+  if (!Number.isFinite(lockedAtMs)) return "just now"
+  const minutes = Math.max(0, Math.floor((now - lockedAtMs) / 60000))
+  if (minutes < 1) return "just now"
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.floor(minutes / 60)
+  return hours === 1 ? "1h ago" : `${hours}h ago`
+}
+
+function formatClaimStateLabel(lockState: IntakeLockState, now = Date.now()): string | null {
+  if (lockState.status === "inactive") return null
+  if (lockState.status === "claiming") return "Claiming case"
+  if (lockState.status === "claimed") return `Claimed for review · ${formatClaimAge(lockState.lockedAt, now)}`
+  return lockState.lockedByName ? `Claimed by ${lockState.lockedByName}` : "Claim held elsewhere"
+}
+
 export function IntakeReviewPanel({
   intakeId,
   previewIntake,
@@ -239,10 +257,16 @@ export function IntakeReviewPanel({
   // ---- Extracted hooks ----
 
   // Lock management: acquire on data load, extend on interval, release on unmount
-  const { lockWarning, releaseLock } = useIntakeLock(
-    intakeId,
-    Boolean(data && isReviewLockableStatus(data.intake.status)),
-  )
+  const lockableForReview = Boolean(data && isReviewLockableStatus(data.intake.status))
+  const { lockWarning, releaseLock, lockState } = useIntakeLock(intakeId, lockableForReview)
+  const [claimAgeNow, setClaimAgeNow] = useState(() => Date.now())
+
+  useEffect(() => {
+    if (lockState.status !== "claimed") return
+    setClaimAgeNow(Date.now())
+    const interval = window.setInterval(() => setClaimAgeNow(Date.now()), 60000)
+    return () => window.clearInterval(interval)
+  }, [lockState.lockedAt, lockState.status])
 
   // Audit trail: fire one-shot audit events after data loads
   useAuditTrail(intakeId, !!data, {
@@ -334,7 +358,7 @@ export function IntakeReviewPanel({
                     {previewServiceLabel} · {previewStatusLabel}
                   </p>
                   <p className="mt-1 text-[11px] font-medium text-slate-500 dark:text-muted-foreground">
-                    Pulling intake answers
+                    Loading answers
                   </p>
                 </div>
               </div>
@@ -376,7 +400,7 @@ export function IntakeReviewPanel({
                     </div>
                     <div className="rounded-lg bg-background px-3 py-2 ring-1 ring-border/35">
                       <p className="text-[11px] font-medium text-muted-foreground">Sex</p>
-                      <p className="mt-0.5 text-sm font-semibold text-foreground">{previewIntake.patient.sex || "Loading"}</p>
+                      <p className="mt-0.5 text-sm font-semibold text-foreground">{previewIntake.patient.sex || "Not collected"}</p>
                     </div>
                     <div className="rounded-lg bg-background px-3 py-2 ring-1 ring-border/35">
                       <p className="text-[11px] font-medium text-muted-foreground">Location</p>
@@ -440,7 +464,7 @@ export function IntakeReviewPanel({
               </Button>
             </div>
             <p className="mt-2 text-xs font-medium text-slate-600 dark:text-muted-foreground">
-              Approve and decline unlock once the clinical payload is ready.
+              Buttons enable when answers load.
             </p>
           </div>
         </div>
@@ -518,6 +542,15 @@ export function IntakeReviewPanel({
   const fullCaseHref = profileMode === "admin"
     ? buildAdminIntakeHref(intake.id)
     : buildDoctorIntakeHref(intake.id)
+  const claimStateLabel = formatClaimStateLabel(lockState, claimAgeNow)
+  const handleReleaseClaim = () => {
+    releaseLock()
+    if (inline) {
+      window.dispatchEvent(new CustomEvent("operator-release-review-case", { detail: { intakeId } }))
+      return
+    }
+    closePanel()
+  }
   return (
     <>
       <Shell
@@ -556,6 +589,30 @@ export function IntakeReviewPanel({
                   {caseIndex != null && totalCases != null && (
                     <Badge variant="outline" size="sm">Case {caseIndex + 1} of {totalCases}</Badge>
                   )}
+                  {claimStateLabel ? (
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1.5 rounded-lg border border-border/60 bg-muted/35 px-2 py-1 text-[11px] font-semibold text-muted-foreground",
+                        lockState.status === "claimed" && "border-primary/20 bg-primary/[0.035] text-primary",
+                        lockState.status === "blocked" && "border-warning-border bg-warning-light text-warning",
+                      )}
+                      data-review-claim-state={lockState.status}
+                    >
+                      <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />
+                      <span>{claimStateLabel}</span>
+                      {lockState.status === "claimed" ? (
+                        <button
+                          type="button"
+                          className="ml-0.5 rounded-md border border-primary/20 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-primary shadow-sm shadow-primary/[0.03] transition-colors hover:bg-primary/[0.04] dark:bg-card"
+                          onClick={handleReleaseClaim}
+                          data-review-release-claim
+                          title="Release case lock"
+                        >
+                          Release
+                        </button>
+                      ) : null}
+                    </span>
+                  ) : null}
                 </div>
               </div>
               <div className="flex flex-wrap items-center justify-end gap-1.5" aria-label="Patient actions">

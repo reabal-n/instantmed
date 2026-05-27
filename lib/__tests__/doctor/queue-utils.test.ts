@@ -41,16 +41,17 @@ describe("getWaitTimeSeverity", () => {
     vi.useRealTimers()
   })
 
-  it("returns normal for recent (< 30min)", () => {
+  it("returns normal before 75% of the 2h target", () => {
     expect(getWaitTimeSeverity("2026-04-09T11:45:00Z")).toBe("normal")
+    expect(getWaitTimeSeverity("2026-04-09T10:45:00Z")).toBe("normal")
   })
 
-  it("returns warning for 30-60min wait", () => {
-    expect(getWaitTimeSeverity("2026-04-09T11:20:00Z")).toBe("warning")
+  it("returns warning after 75% of the 2h target", () => {
+    expect(getWaitTimeSeverity("2026-04-09T10:20:00Z")).toBe("warning")
   })
 
-  it("returns critical for > 60min wait", () => {
-    expect(getWaitTimeSeverity("2026-04-09T10:30:00Z")).toBe("critical")
+  it("returns critical only after the 2h target is breached", () => {
+    expect(getWaitTimeSeverity("2026-04-09T09:50:00Z")).toBe("critical")
   })
 
   it("uses SLA deadline when provided - normal", () => {

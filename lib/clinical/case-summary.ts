@@ -171,6 +171,7 @@ function sentenceCaseClinicalText(text: string): string {
   return text
     .replace(/\s+/g, " ")
     .trim()
+    .replace(/\b(\d+)yo\b/gi, "$1-year-old")
     .replace(/(^|[.!?]\s+)([a-z])/g, (match, prefix: string, char: string) => `${prefix}${char.toUpperCase()}`)
 }
 
@@ -738,7 +739,7 @@ function medCertSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     .filter(Boolean)
     .join(" ")
 
-  const objective = "Telehealth review; no physical examination performed."
+  const objective = "Telehealth consultation. No physical examination."
 
   const assessment = hasSymptomDetails
     ? "Symptoms consistent with self-limiting acute illness based on structured intake."

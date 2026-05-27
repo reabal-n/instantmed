@@ -40,6 +40,7 @@ import {
 } from "@/lib/data/intakes"
 import { EMPTY_SYSTEM_HEALTH, getSystemHealth } from "@/lib/data/system-health"
 import { getQueueEnteredAt } from "@/lib/doctor/queue-utils"
+import { formatMinutes } from "@/lib/format/dates"
 import { createLogger } from "@/lib/observability/logger"
 import type { IntakeWithPatient } from "@/types/db"
 
@@ -132,6 +133,7 @@ export default async function StaffDashboardPage({
   const parchmentUserId = typeof profile.parchment_user_id === "string" && profile.parchment_user_id.trim()
     ? profile.parchment_user_id.trim()
     : null
+  const formToInboxLabel = formToInboxStats ? formatMinutes(formToInboxStats.medianMinutes) : null
 
   results.forEach((result, index) => {
     if (result.status === "rejected") {
@@ -157,12 +159,25 @@ export default async function StaffDashboardPage({
           actions={(
             <div className="flex flex-wrap items-center justify-end gap-2">
               <div className="flex flex-wrap items-center gap-2 border-r border-border/60 pr-2">
-                <QueuePressureSignal
-                  oldestWaitingMinutes={oldestWaitingMinutes}
-                  showIcon={false}
-                  softenWhenReviewOpen
-                  jumpToOldestOnClick
-                />
+                <div
+                  data-dashboard-wait-strip
+                  className="flex flex-wrap items-stretch gap-0 overflow-hidden rounded-xl border border-border/60 bg-white shadow-sm shadow-primary/[0.04] dark:bg-card"
+                >
+                  <QueuePressureSignal
+                    oldestWaitingMinutes={oldestWaitingMinutes}
+                    showIcon={false}
+                    jumpToOldestOnClick
+                    prominent
+                    className="rounded-none border-0 bg-transparent shadow-none"
+                  />
+                  {formToInboxLabel ? (
+                    <div className="border-l border-border/60 px-3.5 py-2">
+                      <p className="text-[11px] font-semibold text-muted-foreground">Median today</p>
+                      <p className="text-xl font-semibold tabular-nums text-foreground">{formToInboxLabel}</p>
+                      <p className="text-[11px] font-medium text-muted-foreground">form to inbox · under 2h</p>
+                    </div>
+                  ) : null}
+                </div>
                 {isAdmin && !onlyTestData ? <SystemHealthPill initial={systemHealth} /> : null}
               </div>
               <div className="flex items-center gap-2">

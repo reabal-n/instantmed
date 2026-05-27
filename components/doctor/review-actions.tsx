@@ -23,6 +23,7 @@ import {
 import { usePanel } from "@/components/panels/panel-provider"
 import { playApprovalSound } from "@/lib/audio/approval-sound"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
+import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import { resolveClinicalDecisionNote } from "@/lib/doctor/clinical-notes"
 import { DECLINE_REASONS } from "@/lib/doctor/constants"
 import { buildParchmentPrescriptionContext } from "@/lib/doctor/parchment-prescribing-context"
@@ -223,6 +224,7 @@ export function useReviewActions({
         <ParchmentPrescribePanel
           intakeId={intake.id}
           patientName={intake.patient?.full_name || "Patient"}
+          patientProfileHref={intake.patient?.id ? buildStaffPatientHref(intake.patient.id) : undefined}
           prescriptionContext={buildParchmentPrescriptionContext(getClinicalCaseSummary())}
         />
       ),

@@ -299,6 +299,10 @@ describe("buildClinicalCaseSummary", () => {
     expect(summary.patientStory).toContain("35-year-old patient.")
     expect(summary.patientStory).toContain("Sore throat and fatigue since this morning. Mild headache.")
     expect(summary.patientStory).not.toContain("35yo patient. sore throat")
+    expect(summary.draftNote).toContain("S: 35-year-old patient.")
+    expect(summary.draftNote).toContain("O: Telehealth consultation. No physical examination.")
+    expect(summary.draftNote).not.toContain("35yo patient")
+    expect(summary.draftNote).not.toContain("Telehealth review; no physical examination performed.")
   })
 
   it("condenses verbose AMT repeat-script medicine strings for operator scanning", () => {
@@ -506,8 +510,9 @@ describe("buildClinicalCaseSummary", () => {
       expect(summary.draftNote).not.toContain("Reviewed patient-submitted intake")
       expect(summary.draftNote).not.toContain("No red flags noted")
 
-      // Age + sex shorthand on the S line
-      expect(summary.draftNote).toMatch(/^S:\s+25yo F/m)
+      // Age + sex render in signed-record language on the S line.
+      expect(summary.draftNote).toMatch(/^S:\s+25-year-old F/m)
+      expect(summary.draftNote).not.toContain("25yo F")
 
       // Normalised symptoms (not the raw patient text)
       expect(summary.draftNote).toContain("Fever, nasal congestion, cold symptoms")
@@ -562,7 +567,7 @@ describe("buildClinicalCaseSummary", () => {
       expect(summary.draftNote).not.toContain("Potentially suitable for ED prescribing subject to doctor review")
       expect(summary.draftNote).not.toContain("Confirm current medicines and cardiovascular risk")
 
-      expect(summary.draftNote).toMatch(/^S:\s+40yo M/m)
+      expect(summary.draftNote).toMatch(/^S:\s+40-year-old M/m)
       expect(summary.draftNote).toMatch(/IIEF-5\s+10\/25/i)
       expect(summary.draftNote).toMatch(/^P:\s/m)
     })
@@ -603,7 +608,7 @@ describe("buildClinicalCaseSummary", () => {
       })
 
       expect(summary.draftNote).not.toContain("Repeat existing regimen after doctor confirms")
-      expect(summary.draftNote).toMatch(/^S:\s+\d+yo F/m)
+      expect(summary.draftNote).toMatch(/^S:\s+\d+-year-old F/m)
       expect(summary.draftNote).toContain("Sertraline")
       expect(summary.draftNote).toMatch(/^P:\s/m)
     })

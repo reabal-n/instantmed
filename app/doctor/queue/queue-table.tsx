@@ -556,7 +556,7 @@ export function QueueTable({
                       {claimLabel}
                     </Badge>
                   )}
-                  {overReviewTarget && (
+                  {!compactShell && overReviewTarget && (
                     <Badge className="bg-amber-50 text-amber-700 border-amber-200 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300">
                       <Clock className="w-3 h-3 mr-1" />Over review target
                     </Badge>
@@ -743,15 +743,6 @@ export function QueueTable({
           {isDomWindowed && (
             <div className="border-t border-border/40 bg-muted/20 px-4 py-2 text-xs text-muted-foreground">
               Showing the first {QUEUE_DOM_WINDOW_LIMIT} visible rows. Refine the search or move to the next page for the rest.
-            </div>
-          )}
-          {compactShell && filteredIntakes.length > 0 && filteredIntakes.length <= 2 && (
-            <div className="border-t border-border/40 bg-muted/15 px-4 py-3">
-              <p className="text-xs font-medium text-muted-foreground">
-                {filteredIntakes.length === 1
-                  ? "No one else waiting · target under 2h"
-                  : `${filteredIntakes.length} in the queue · target under 2h`}
-              </p>
             </div>
           )}
           {compactShell && filteredIntakes.length <= 1 && (pendingReplyCount > 0 || scriptCount > 0) && (

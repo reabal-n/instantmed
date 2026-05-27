@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   buildCheckoutIdentityProfileUpdates,
   buildPrescribingProfileUpdates,
+  validateRequiredPrescribingProfileAnswers,
 } from "@/lib/stripe/prescribing-profile-fields"
 
 describe("buildPrescribingProfileUpdates", () => {
@@ -93,5 +94,34 @@ describe("buildCheckoutIdentityProfileUpdates", () => {
       date_of_birth: "1985-04-01",
       phone: "0412 345 678",
     })
+  })
+})
+
+describe("validateRequiredPrescribingProfileAnswers", () => {
+  const completeAnswers = {
+    medicareNumber: "2123 45670 1",
+    medicareIrn: "2",
+    medicareExpiry: "2029-05-01",
+    addressLine1: "12 Manual Entry Road",
+    suburb: "Sydney",
+    state: "NSW",
+    postcode: "2000",
+    sex: "M",
+  }
+
+  it("requires a real Medicare number for prescribing requests", () => {
+    expect(validateRequiredPrescribingProfileAnswers({
+      ...completeAnswers,
+      medicareNumber: "",
+    })).toBe("Medicare number is required for prescription requests.")
+
+    expect(validateRequiredPrescribingProfileAnswers({
+      ...completeAnswers,
+      medicareNumber: "0000000000",
+    })).toBe("Enter a valid Medicare number")
+  })
+
+  it("accepts complete prescribing identity answers", () => {
+    expect(validateRequiredPrescribingProfileAnswers(completeAnswers)).toBeNull()
   })
 })
