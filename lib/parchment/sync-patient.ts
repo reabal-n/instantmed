@@ -47,6 +47,12 @@ function normalizeDigits(value: string | number | null | undefined): string | un
   return normalized || undefined
 }
 
+function normalizeValidMedicareDigits(value: string | number | null | undefined): string | undefined {
+  const normalized = normalizeDigits(value)
+  if (!normalized) return undefined
+  return validateMedicareNumber(normalized).valid ? normalized : undefined
+}
+
 function normalizeMedicareExpiry(value: string | null | undefined): string | undefined {
   const trimmed = value?.trim()
   if (!trimmed) return undefined
@@ -310,6 +316,7 @@ export function buildCreatePatientRequest(
   const phone = normalizePhone(answerOrProfile(profile.phone, intakeAnswers, ["phone", "mobile", "mobilePhone"]))
   const medicareNumber = answerOrProfile(profile.medicare_number, intakeAnswers, ["medicare_number", "medicareNumber"])
   const medicareIrn = answerOrProfile(profile.medicare_irn, intakeAnswers, ["medicare_irn", "medicareIrn"])
+  const validMedicareNumber = normalizeValidMedicareDigits(medicareNumber)
   const medicareExpiry = normalizeMedicareExpiry(answerOrProfile(profile.medicare_expiry, intakeAnswers, ["medicare_expiry", "medicareExpiry"]))
   const dateOfBirth = resolveDateOfBirth(profile, intakeAnswers)
 
@@ -321,9 +328,9 @@ export function buildCreatePatientRequest(
     partner_patient_id: patientProfileId, // Our profile.id - used for webhook matching
     ...(email ? { email } : {}),
     ...(phone ? { phone } : {}),
-    ...(normalizeDigits(medicareNumber) ? { medicare_card_number: normalizeDigits(medicareNumber) } : {}),
-    ...(normalizeDigits(medicareIrn) ? { medicare_irn: normalizeDigits(medicareIrn) } : {}),
-    ...(medicareExpiry ? { medicare_valid_to: medicareExpiry } : {}),
+    ...(validMedicareNumber ? { medicare_card_number: validMedicareNumber } : {}),
+    ...(validMedicareNumber && normalizeDigits(medicareIrn) ? { medicare_irn: normalizeDigits(medicareIrn) } : {}),
+    ...(validMedicareNumber && medicareExpiry ? { medicare_valid_to: medicareExpiry } : {}),
     ...(address ? { australian_street_address: address } : {}),
   }
 }
@@ -338,6 +345,7 @@ export function buildUpdatePatientRequest(
   const phone = normalizePhone(answerOrProfile(profile.phone, intakeAnswers, ["phone", "mobile", "mobilePhone"]))
   const medicareNumber = answerOrProfile(profile.medicare_number, intakeAnswers, ["medicare_number", "medicareNumber"])
   const medicareIrn = answerOrProfile(profile.medicare_irn, intakeAnswers, ["medicare_irn", "medicareIrn"])
+  const validMedicareNumber = normalizeValidMedicareDigits(medicareNumber)
   const medicareExpiry = normalizeMedicareExpiry(answerOrProfile(profile.medicare_expiry, intakeAnswers, ["medicare_expiry", "medicareExpiry"]))
   const dateOfBirth = resolveDateOfBirth(profile, intakeAnswers)
 
@@ -348,9 +356,9 @@ export function buildUpdatePatientRequest(
     sex: resolveParchmentSex(profile, intakeAnswers),
     ...(email ? { email } : {}),
     ...(phone ? { phone } : {}),
-    ...(normalizeDigits(medicareNumber) ? { medicare_card_number: normalizeDigits(medicareNumber) } : {}),
-    ...(normalizeDigits(medicareIrn) ? { medicare_irn: normalizeDigits(medicareIrn) } : {}),
-    ...(medicareExpiry ? { medicare_valid_to: medicareExpiry } : {}),
+    ...(validMedicareNumber ? { medicare_card_number: validMedicareNumber } : {}),
+    ...(validMedicareNumber && normalizeDigits(medicareIrn) ? { medicare_irn: normalizeDigits(medicareIrn) } : {}),
+    ...(validMedicareNumber && medicareExpiry ? { medicare_valid_to: medicareExpiry } : {}),
     ...(address ? { australian_address: address } : {}),
   }
 }

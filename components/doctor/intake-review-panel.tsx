@@ -82,9 +82,18 @@ function InlineShell({
 interface IntakeReviewPanelProps {
   intakeId: string
   previewIntake?: {
-    patient: { full_name: string }
+    patient: {
+      full_name: string
+      date_of_birth?: string | null
+      sex?: string | null
+      suburb?: string | null
+      state?: string | null
+      postcode?: string | null
+    }
     service?: { name?: string | null; type?: string | null; short_name?: string | null } | null
     status?: string | null
+    paid_at?: string | null
+    submitted_at?: string | null
   }
   onActionComplete?: (options?: { advance?: boolean }) => void
   onNextCase?: () => void
@@ -100,6 +109,29 @@ interface IntakeReviewPanelProps {
    * unmount, so the parent should force-remount via `key={intakeId}`.
    */
   inline?: boolean
+}
+
+type PreviewPatient = NonNullable<IntakeReviewPanelProps["previewIntake"]>["patient"]
+
+function formatPreviewAgeDob(dateOfBirth?: string | null): string {
+  if (!dateOfBirth) return "DOB pending"
+  const birthDate = new Date(dateOfBirth)
+  if (Number.isNaN(birthDate.getTime())) return "DOB pending"
+  const today = new Date()
+  let age = today.getFullYear() - birthDate.getFullYear()
+  const monthDelta = today.getMonth() - birthDate.getMonth()
+  if (monthDelta < 0 || (monthDelta === 0 && today.getDate() < birthDate.getDate())) age -= 1
+  const dob = birthDate.toLocaleDateString("en-AU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  })
+  return `${age}y / ${dob}`
+}
+
+function formatPreviewLocation(patient?: PreviewPatient): string {
+  if (!patient) return "Address loading"
+  return [patient.suburb, patient.state, patient.postcode].filter(Boolean).join(", ") || "Address loading"
 }
 
 export function IntakeReviewPanel({
@@ -282,6 +314,9 @@ export function IntakeReviewPanel({
   if (isLoading) {
     const previewService = previewIntake?.service
     const previewServiceLabel = previewService?.short_name || previewService?.name || formatServiceType(previewService?.type || "")
+    const previewStatusLabel = formatIntakeStatus(previewIntake?.status || "paid")
+    const previewAgeDob = formatPreviewAgeDob(previewIntake?.patient.date_of_birth)
+    const previewLocation = formatPreviewLocation(previewIntake?.patient)
     const skeletonTone = "bg-[#F1EFEA]/80 dark:bg-white/10"
     return (
       <Shell title="Loading case..." onClose={handlePanelClose}>
@@ -296,10 +331,10 @@ export function IntakeReviewPanel({
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-foreground">{previewIntake.patient.full_name}</p>
                   <p className="truncate text-xs text-muted-foreground">
-                    {previewServiceLabel} · {formatIntakeStatus(previewIntake.status || "paid")}
+                    {previewServiceLabel} · {previewStatusLabel}
                   </p>
                   <p className="mt-1 text-[11px] font-medium text-slate-500 dark:text-muted-foreground">
-                    Loading patient record
+                    Pulling intake answers
                   </p>
                 </div>
               </div>
@@ -314,15 +349,48 @@ export function IntakeReviewPanel({
                   <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-muted-foreground">
                     Patient details
                   </p>
-                  <Skeleton className={`h-4 w-36 ${skeletonTone}`} />
+                  {previewIntake ? (
+                    <p className="text-sm font-semibold text-foreground">{previewIntake.patient.full_name}</p>
+                  ) : (
+                    <Skeleton className={`h-4 w-36 ${skeletonTone}`} />
+                  )}
                 </div>
-                <Skeleton className={`h-5 w-28 rounded-full ${skeletonTone}`} />
+                {previewIntake ? (
+                  <Badge className={getStatusColor(previewIntake.status || "paid")}>
+                    {previewStatusLabel}
+                  </Badge>
+                ) : (
+                  <Skeleton className={`h-5 w-28 rounded-full ${skeletonTone}`} />
+                )}
               </div>
               <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                <Skeleton className={`h-12 ${skeletonTone}`} />
-                <Skeleton className={`h-12 ${skeletonTone}`} />
-                <Skeleton className={`h-12 ${skeletonTone}`} />
-                <Skeleton className={`h-12 ${skeletonTone}`} />
+                {previewIntake ? (
+                  <>
+                    <div className="rounded-lg bg-background px-3 py-2 ring-1 ring-border/35">
+                      <p className="text-[11px] font-medium text-muted-foreground">DOB</p>
+                      <p className="mt-0.5 text-sm font-semibold text-foreground tabular-nums">{previewAgeDob}</p>
+                    </div>
+                    <div className="rounded-lg bg-background px-3 py-2 ring-1 ring-border/35">
+                      <p className="text-[11px] font-medium text-muted-foreground">Service</p>
+                      <p className="mt-0.5 text-sm font-semibold text-foreground">{previewServiceLabel || "Clinical request"}</p>
+                    </div>
+                    <div className="rounded-lg bg-background px-3 py-2 ring-1 ring-border/35">
+                      <p className="text-[11px] font-medium text-muted-foreground">Sex</p>
+                      <p className="mt-0.5 text-sm font-semibold text-foreground">{previewIntake.patient.sex || "Loading"}</p>
+                    </div>
+                    <div className="rounded-lg bg-background px-3 py-2 ring-1 ring-border/35">
+                      <p className="text-[11px] font-medium text-muted-foreground">Location</p>
+                      <p className="mt-0.5 text-sm font-semibold text-foreground">{previewLocation}</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Skeleton className={`h-12 ${skeletonTone}`} />
+                    <Skeleton className={`h-12 ${skeletonTone}`} />
+                    <Skeleton className={`h-12 ${skeletonTone}`} />
+                    <Skeleton className={`h-12 ${skeletonTone}`} />
+                  </>
+                )}
               </div>
             </section>
             <section className="rounded-xl border border-border/55 bg-muted/15 p-3">
@@ -332,13 +400,29 @@ export function IntakeReviewPanel({
                 </p>
                 <Skeleton className={`h-5 w-8 rounded-full ${skeletonTone}`} />
               </div>
-              <Skeleton className={`mt-3 h-16 ${skeletonTone}`} />
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Skeleton className={`h-6 w-24 rounded-full ${skeletonTone}`} />
+                <Skeleton className={`h-6 w-24 rounded-full ${skeletonTone}`} />
+                <Skeleton className={`h-6 w-24 rounded-full ${skeletonTone}`} />
+              </div>
+            </section>
+            <section className="min-h-[116px] rounded-xl border border-border/55 bg-muted/15 p-3">
+              <p className="text-xs font-semibold text-slate-500 dark:text-muted-foreground">
+                Reason for visit
+              </p>
+              <Skeleton className={`mt-3 h-4 w-full ${skeletonTone}`} />
+              <Skeleton className={`mt-2 h-4 w-10/12 ${skeletonTone}`} />
+              <Skeleton className={`mt-2 h-4 w-7/12 ${skeletonTone}`} />
             </section>
             <section className="rounded-xl border border-border/55 bg-muted/15 p-3">
               <p className="text-xs font-semibold text-slate-500 dark:text-muted-foreground">
                 Draft note
               </p>
-              <Skeleton className={`mt-3 h-28 ${skeletonTone}`} />
+              <div className="mt-3 space-y-2">
+                <Skeleton className={`h-4 w-full ${skeletonTone}`} />
+                <Skeleton className={`h-4 w-11/12 ${skeletonTone}`} />
+                <Skeleton className={`h-4 w-9/12 ${skeletonTone}`} />
+              </div>
             </section>
           </div>
           <div className="shrink-0 border-t border-border bg-background/95 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/90">
@@ -349,14 +433,14 @@ export function IntakeReviewPanel({
                 className="h-9 cursor-not-allowed border-border/60 bg-muted px-3 text-xs text-slate-500 opacity-100"
                 disabled
               >
-                Loading patient record
+                Preparing review
               </Button>
               <Button variant="outline" size="sm" className="h-9 border-transparent bg-transparent px-3 text-xs text-slate-600 opacity-60" disabled>
                 Decline
               </Button>
             </div>
             <p className="mt-2 text-xs font-medium text-slate-600 dark:text-muted-foreground">
-              Waiting for the patient's answers.
+              Approve and decline unlock once the clinical payload is ready.
             </p>
           </div>
         </div>

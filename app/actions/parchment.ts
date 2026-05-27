@@ -24,7 +24,12 @@ import {
   listUsers,
   validateIntegration,
 } from "@/lib/parchment/client"
-import { ParchmentPatientIdentityError, ParchmentPatientSyncError, syncPatientToParchment } from "@/lib/parchment/sync-patient"
+import {
+  getParchmentPatientIdentityIssues,
+  ParchmentPatientIdentityError,
+  ParchmentPatientSyncError,
+  syncPatientToParchment,
+} from "@/lib/parchment/sync-patient"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { readAnswers } from "@/lib/security/phi-field-wrappers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -34,9 +39,15 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 const log = createLogger("parchment-actions")
 
 type ServiceRelation = { type?: string | null } | { type?: string | null }[] | null
+type RelationValue<T> = T | T[] | null | undefined
+type ParchmentIdentityPatient = Parameters<typeof getParchmentPatientIdentityIssues>[0]
 
 function getServiceType(service: ServiceRelation | undefined): string | null {
   return Array.isArray(service) ? service[0]?.type ?? null : service?.type ?? null
+}
+
+function firstRelation<T>(value: RelationValue<T>): T | null {
+  return Array.isArray(value) ? value[0] ?? null : value ?? null
 }
 
 function getParchmentAuditRequestType({
@@ -120,6 +131,22 @@ export async function getParchmentPrescribeUrlAction(
         claimed_by,
         reviewing_doctor_id,
         reviewed_by,
+        patient:profiles!patient_id (
+          id,
+          full_name,
+          date_of_birth,
+          sex,
+          medicare_number,
+          medicare_irn,
+          medicare_expiry,
+          phone,
+          email,
+          address_line1,
+          address_line2,
+          suburb,
+          state,
+          postcode
+        ),
         service:services!service_id(type)
       `)
       .eq("id", intakeId)
@@ -200,6 +227,19 @@ export async function getParchmentPrescribeUrlAction(
         controlledMedicationDetected: prescribingCapability.controlledMedicationDetected,
       })
       return { success: false, error: prescribingCapability.error }
+    }
+
+    const patient = firstRelation(intake.patient as RelationValue<ParchmentIdentityPatient>)
+    if (!patient) {
+      return { success: false, error: "Patient profile not found" }
+    }
+
+    const identityIssues = getParchmentPatientIdentityIssues(patient, answers)
+    if (identityIssues.length > 0) {
+      log.warn("Parchment prescribe blocked before handoff by incomplete prescribing identity", {
+        missingFields: identityIssues,
+      })
+      return { success: false, error: `Missing prescribing details: ${identityIssues.join(", ")}` }
     }
 
     try {

@@ -37,6 +37,7 @@ function withTestDataParam(
     next.set("showTestData", "1")
   } else {
     next.delete("showTestData")
+    next.delete("onlyTestData")
   }
   const qs = next.toString()
   return qs ? `${pathname}?${qs}` : pathname
@@ -58,13 +59,13 @@ export function TestDataBanner() {
     <div
       role="status"
       aria-live="polite"
-      className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-warning-border bg-warning-light px-3 py-2 text-xs shadow-sm shadow-warning/5 dark:border-warning-border"
+      className="flex min-h-8 flex-wrap items-center justify-between gap-3 rounded-md border border-warning-border/55 border-l-warning bg-warning-light/50 px-3 py-1.5 text-xs shadow-none dark:border-warning-border/60"
     >
       <div className="flex min-w-0 items-center gap-2 text-warning">
         <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-warning" aria-hidden />
-        <span className="font-medium">Test mode is on.</span>
+        <span className="font-medium">Test mode.</span>
         <span className="truncate text-warning/90">
-          Switch off before reviewing real patients.
+          Real patients are hidden.
         </span>
       </div>
       <Button

@@ -216,7 +216,6 @@ function QueueIdlePanel({
   doctorAvailable,
   queueDegraded,
   nextIntakes,
-  onReviewNext,
 }: {
   queueSize: number
   reviewedToday: number
@@ -227,7 +226,6 @@ function QueueIdlePanel({
   doctorAvailable: boolean
   queueDegraded: boolean
   nextIntakes?: IntakeWithPatient[]
-  onReviewNext: () => void
 }) {
   const nextIntake = nextIntakes?.[0] ?? null
   const nextAction = queueDegraded
@@ -239,7 +237,6 @@ function QueueIdlePanel({
       : filteredCount > 0
         ? "Open the oldest case in this filter."
         : "No cases match this filter."
-  const showRailAction = filteredCount > 0 && doctorAvailable && !queueDegraded
   const oldestWaitingLabel = typeof oldestWaitingMinutes === "number"
     ? oldestWaitingMinutes === 0
       ? "Just arrived"
@@ -287,9 +284,6 @@ function QueueIdlePanel({
       ? "Oldest visible case is ready."
       : "Nothing to review."
   const showNextUp = filteredCount > 0
-  const nextCaseButtonLabel = nextIntake?.patient.full_name
-    ? `Open ${nextIntake.patient.full_name.split(/\s+/)[0]}`
-    : "Open next case"
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-[linear-gradient(180deg,#FFFFFF_0%,#FFFEFB_100%)] dark:bg-card motion-safe:animate-[fade-in_180ms_ease-out]">
@@ -316,7 +310,7 @@ function QueueIdlePanel({
         <div className="px-5 py-4">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-xs font-semibold text-muted-foreground">Next up</p>
+              <p className="text-xs font-semibold text-muted-foreground">Next step</p>
               <p className="mt-1 text-base font-semibold leading-snug text-foreground">
                 {nextCaseLabel}
               </p>
@@ -329,16 +323,6 @@ function QueueIdlePanel({
               </p>
             </div>
             <div className="flex shrink-0 flex-col items-end gap-1">
-              {showRailAction ? (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-9 px-3 text-xs"
-                  onClick={onReviewNext}
-                >
-                  {nextCaseButtonLabel}
-                </Button>
-              ) : null}
               {nextAction ? (
                 <p className="max-w-[180px] text-right text-[11px] font-medium leading-snug text-slate-500 dark:text-muted-foreground">
                   {nextAction}
@@ -385,6 +369,7 @@ export function QueueClient({
   const [intakes, setIntakes] = useState(initialIntakes)
   // Keep a live ref to filtered intakes for use in panel callbacks
   const filteredIntakesRef = useRef<IntakeWithPatient[]>([])
+  const intakesRef = useRef<IntakeWithPatient[]>(initialIntakes)
 
   // Sync server data into local state after router.refresh() soft-refreshes the page.
   // useState(initialIntakes) only reads the prop on mount, so without this effect
@@ -392,6 +377,10 @@ export function QueueClient({
   useEffect(() => {
     setIntakes(initialIntakes)
   }, [initialIntakes])
+
+  useEffect(() => {
+    intakesRef.current = intakes
+  }, [intakes])
 
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [lastOpenedIntakeId, setLastOpenedIntakeId] = useState<string | null>(() => {
@@ -841,6 +830,27 @@ export function QueueClient({
     openReviewPanel(next.id)
   }, [openReviewPanel, rememberOpenedCase])
 
+  const handleJumpToOldestWait = useCallback(() => {
+    const oldest = intakesRef.current.reduce<IntakeWithPatient | null>((current, intake) => {
+      const enteredAt = new Date(getQueueEnteredAt(intake)).getTime()
+      if (!Number.isFinite(enteredAt)) return current
+      if (!current) return intake
+      const currentEnteredAt = new Date(getQueueEnteredAt(current)).getTime()
+      return enteredAt < currentEnteredAt ? intake : current
+    }, null)
+    if (!oldest) return
+
+    setSearchQuery("")
+    if (statusFilter !== "all") handleStatusFilterChange("all")
+    rememberOpenedCase(oldest.id)
+    openReviewPanel(oldest.id)
+  }, [handleStatusFilterChange, openReviewPanel, rememberOpenedCase, statusFilter])
+
+  useEffect(() => {
+    window.addEventListener("operator-jump-to-oldest-wait", handleJumpToOldestWait)
+    return () => window.removeEventListener("operator-jump-to-oldest-wait", handleJumpToOldestWait)
+  }, [handleJumpToOldestWait])
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -919,6 +929,23 @@ export function QueueClient({
     )
     row?.scrollIntoView({ block: "nearest", behavior: "auto" })
   }, [expandedId])
+
+  useEffect(() => {
+    if (!compactShell || !isDesktop) return
+
+    const root = document.documentElement
+    if (expandedId) {
+      root.dataset.operatorReviewingCase = "true"
+    } else {
+      delete root.dataset.operatorReviewingCase
+    }
+    window.dispatchEvent(new CustomEvent("operator-reviewing-case-change"))
+
+    return () => {
+      delete root.dataset.operatorReviewingCase
+      window.dispatchEvent(new CustomEvent("operator-reviewing-case-change"))
+    }
+  }, [compactShell, expandedId, isDesktop])
 
   const reviewedToday = recentlyCompleted.length
   const queueSize = intakes.length
@@ -1068,6 +1095,7 @@ export function QueueClient({
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           onRefresh={() => refreshQueue(true)}
+          onOpenSingleMatch={filteredIntakes.length === 1 ? handleReviewNext : undefined}
           statusFilter={statusFilter}
           onStatusFilterChange={handleStatusFilterChange}
           intakes={intakes}
@@ -1153,7 +1181,6 @@ export function QueueClient({
                 doctorAvailable={doctorAvailable}
                 queueDegraded={queueDegraded}
                 nextIntakes={filteredIntakes.slice(0, 3)}
-                onReviewNext={handleReviewNext}
               />
             )
           )}

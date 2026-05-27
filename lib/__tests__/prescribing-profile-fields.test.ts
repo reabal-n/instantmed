@@ -8,7 +8,7 @@ import {
 describe("buildPrescribingProfileUpdates", () => {
   it("extracts prescribing identity fields from unified checkout answers", () => {
     expect(buildPrescribingProfileUpdates({
-      medicareNumber: "2420 99202 9",
+      medicareNumber: "2123 45670 1",
       medicareIrn: "2",
       medicareExpiry: "2029-05-01",
       addressLine1: "12 Manual Entry Road",
@@ -17,7 +17,7 @@ describe("buildPrescribingProfileUpdates", () => {
       postcode: "2000",
       sex: "M",
     })).toEqual({
-      medicare_number: "2420992029",
+      medicare_number: "2123456701",
       medicare_irn: 2,
       medicare_expiry: "2029-05-01",
       address_line1: "12 Manual Entry Road",
@@ -47,18 +47,16 @@ describe("buildPrescribingProfileUpdates", () => {
     expect(buildPrescribingProfileUpdates({
       medicareNumber: "0000000000",
       medicareIrn: "2",
-    })).toEqual({
-      medicare_irn: 2,
-    })
+    })).toEqual({})
   })
 
   it("normalizes MM/YY Medicare expiry from legacy intake answers", () => {
     expect(buildPrescribingProfileUpdates({
-      medicareNumber: "2420992029",
+      medicareNumber: "2123456701",
       medicareIrn: 4,
       medicareExpiry: "06/30",
     })).toEqual({
-      medicare_number: "2420992029",
+      medicare_number: "2123456701",
       medicare_irn: 4,
       medicare_expiry: "2030-06-01",
     })

@@ -134,6 +134,48 @@ export function PatientDecisionStrip({
       if (!identifier) return false
       return !revealedIdentifiers.has(identifier)
     })
+  const renderSummaryFacts = (isCompact: boolean) => (
+    <dl
+      className={cn(
+        "grid grid-cols-1 gap-2 sm:grid-cols-2",
+        isCompact && "mt-1.5 grid-cols-2 gap-x-5 gap-y-2 xl:grid-cols-[minmax(110px,0.8fr)_minmax(150px,1fr)_minmax(130px,1fr)]",
+      )}
+    >
+      {summaryFacts.map((item) => (
+        <div
+          key={item.label}
+          className={cn(
+            "min-w-0",
+            isCompact && item.label === "Address" && "sm:col-span-2 xl:col-span-3",
+            isCompact
+              ? "pl-0"
+              : "rounded-lg bg-card px-2.5 py-2 ring-1 ring-border/35",
+          )}
+        >
+          <dt className={cn(
+            "font-medium text-slate-500 dark:text-muted-foreground",
+            isCompact ? "text-xs text-slate-400" : "text-[11px] uppercase tracking-[0.08em]",
+          )}>
+            {item.label}
+          </dt>
+          <dd className={cn(
+            "mt-0.5 flex min-w-0 items-center gap-2 font-semibold text-foreground tabular-nums",
+            isCompact ? "text-[15px] leading-5" : "text-sm",
+            item.mono && "font-mono",
+          )}>
+            <span
+              className={cn(
+                "truncate",
+                isCompact && item.label === "Address" && "line-clamp-2 max-w-full whitespace-normal break-words",
+              )}
+            >
+              {item.value}
+            </span>
+          </dd>
+        </div>
+      ))}
+    </dl>
+  )
 
   return (
     <section
@@ -189,57 +231,17 @@ export function PatientDecisionStrip({
       </div>
       {summaryOnly ? (
         <div className={cn("mt-3", compact ? "mt-2" : "space-y-2")}>
-          <details
-            open={!compact}
-            className={cn(compact && "rounded-lg border border-border/50 bg-background/70 px-2.5 py-2")}
-          >
-            <summary className={cn(
-              "cursor-pointer text-xs font-semibold text-muted-foreground",
-              !compact && "sr-only",
-            )}>
-              Identity details
-            </summary>
-            <dl
-              className={cn(
-                "grid grid-cols-1 gap-2 sm:grid-cols-2",
-                compact && "mt-2 grid-cols-2 gap-x-5 gap-y-2 xl:grid-cols-[minmax(110px,0.8fr)_minmax(150px,1fr)_minmax(130px,1fr)]",
-              )}
-            >
-              {summaryFacts.map((item) => (
-                <div
-                  key={item.label}
-                  className={cn(
-                    "min-w-0",
-                    compact && item.label === "Address" && "sm:col-span-2 xl:col-span-3",
-                    compact
-                      ? "pl-0"
-                      : "rounded-lg bg-card px-2.5 py-2 ring-1 ring-border/35",
-                  )}
-                >
-                  <dt className={cn(
-                    "font-medium text-slate-500 dark:text-muted-foreground",
-                    compact ? "text-xs text-slate-400" : "text-[11px] uppercase tracking-[0.08em]",
-                  )}>
-                    {item.label}
-                  </dt>
-                  <dd className={cn(
-                    "mt-0.5 flex min-w-0 items-center gap-2 font-semibold text-foreground tabular-nums",
-                    compact ? "text-[15px] leading-5" : "text-sm",
-                    item.mono && "font-mono",
-                  )}>
-                    <span
-                      className={cn(
-                        "truncate",
-                        compact && item.label === "Address" && "line-clamp-2 max-w-full whitespace-normal break-words",
-                      )}
-                    >
-                      {item.value}
-                    </span>
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </details>
+          {compact ? (
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground">Identity details</p>
+              {renderSummaryFacts(true)}
+            </div>
+          ) : (
+            <details open>
+              <summary className="sr-only">Identity details</summary>
+              {renderSummaryFacts(false)}
+            </details>
+          )}
           {!compact ? (
             <p className="truncate text-xs text-muted-foreground">
               {summary.previousLabel && summary.previousLabel !== "First request" ? summary.previousLabel : "First visit"}

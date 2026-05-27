@@ -82,6 +82,28 @@ describe("getParchmentPatientIdentityIssues", () => {
     })).toEqual(["Valid Medicare"])
   })
 
+  it("does not include invalid Medicare details in Parchment payload helpers", () => {
+    const createPayload = buildCreatePatientRequest({
+      ...baseProfile,
+      medicare_number: "0000000000",
+      medicare_irn: 1,
+      medicare_expiry: "2029-05-01",
+    }, "profile-1")
+    const updatePayload = buildUpdatePatientRequest({
+      ...baseProfile,
+      medicare_number: "0000000000",
+      medicare_irn: 1,
+      medicare_expiry: "2029-05-01",
+    })
+
+    expect(createPayload.medicare_card_number).toBeUndefined()
+    expect(createPayload.medicare_irn).toBeUndefined()
+    expect(createPayload.medicare_valid_to).toBeUndefined()
+    expect(updatePayload.medicare_card_number).toBeUndefined()
+    expect(updatePayload.medicare_irn).toBeUndefined()
+    expect(updatePayload.medicare_valid_to).toBeUndefined()
+  })
+
   it("flags Medicare card expiry only when an invalid expiry is supplied", () => {
     expect(getParchmentPatientIdentityIssues({
       ...baseProfile,

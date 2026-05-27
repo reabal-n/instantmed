@@ -228,7 +228,7 @@ export function IntakeReviewCockpit({
   })
 
   return (
-    <div className={cn("flex h-full min-h-0 flex-col", className)}>
+    <div className={cn("flex h-full min-h-0 flex-col overflow-hidden", className)}>
       <div
         className="flex min-h-0 flex-1 flex-col motion-safe:animate-[review-body-in_200ms_cubic-bezier(0.16,1,0.3,1)]"
         data-review-body-transition
@@ -310,7 +310,9 @@ export function IntakeReviewCockpit({
           </div>
         </div>
       </div>
-      {decisionActions}
+      <div className="shrink-0" data-action-rail-shell>
+        {decisionActions}
+      </div>
     </div>
   )
 }

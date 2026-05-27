@@ -447,6 +447,7 @@ export function QueueTable({
                         ? getCompactPatientDescription(patientSnapshot)
                         : patientSnapshot.age != null ? `${patientSnapshot.age}y` : "DOB missing"
                     }
+                    descriptionClassName={compactShell ? "line-clamp-2 whitespace-normal break-words" : undefined}
                     size="sm"
                   />
                 </div>
@@ -538,11 +539,16 @@ export function QueueTable({
                   {claimedByMe && (
                     <Badge
                       variant="outline"
-                      className="border-primary/30 bg-primary/10 text-primary text-xs"
+                      className={cn(
+                        "text-xs",
+                        compactShell
+                          ? "border-border/60 bg-muted/45 text-muted-foreground"
+                          : "border-primary/30 bg-primary/10 text-primary",
+                      )}
                       title="You're holding the review claim on this case."
                     >
                       <Eye className="h-3 w-3 mr-1" />
-                      You
+                      {compactShell ? "Claimed" : "You"}
                     </Badge>
                   )}
                   {!compactShell && claimLabel && !claimActive && (
@@ -572,11 +578,6 @@ export function QueueTable({
                       Selected
                     </Badge>
                   )}
-                  {compactShell && isSelected ? (
-                    <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
-                      Selected
-                    </span>
-                  ) : null}
                   {!compactShell && isLastOpened && (
                     <Badge variant="outline" className="text-xs text-muted-foreground border-border/60">
                       Last opened

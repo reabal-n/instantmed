@@ -5,7 +5,10 @@ import { unstable_cache } from "next/cache"
 import { readDashboardQuery } from "@/lib/data/dashboard-read-model"
 import { decryptProfilePhi } from "@/lib/data/profiles"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
-import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
+import {
+  filterSeededE2EIntakes,
+  SEEDED_E2E_PATIENT_PROFILE_ID,
+} from "@/lib/data/seeded-e2e-data"
 import { buildPatientHandoffSummary } from "@/lib/doctor/patient-handoff"
 import { buildPatientSnapshot, getPatientSnapshotOptionsForCase } from "@/lib/doctor/patient-snapshot"
 import { buildDoctorQueueServiceFilter, type QueueCapabilityService } from "@/lib/doctor/queue-capability-scope"
@@ -238,13 +241,14 @@ export async function getIntakeForPatient(intakeId: string, patientId: string): 
  * so paused doctors do not see new intakes.
  */
 export async function getDoctorQueue(
-  options?: { page?: number; pageSize?: number; doctorId?: string; allowSeeded?: boolean }
+  options?: { page?: number; pageSize?: number; doctorId?: string; allowSeeded?: boolean; onlySeeded?: boolean }
 ): Promise<{ data: IntakeWithPatient[]; total: number; page: number; pageSize: number; degraded?: boolean }> {
   const supabase = createServiceRoleClient()
   const page = options?.page ?? 1
   const pageSize = Math.min(options?.pageSize ?? 50, 100) // Cap at 100
   const offset = (page - 1) * pageSize
   const allowSeeded = options?.allowSeeded ?? false
+  const onlySeeded = allowSeeded && options?.onlySeeded === true
 
   const scope = await getDoctorQueueScope(options?.doctorId, supabase)
   if (scope.paused) {
@@ -266,6 +270,9 @@ export async function getDoctorQueue(
 
       if (scope.serviceFilter) {
         query = query.or(scope.serviceFilter)
+      }
+      if (onlySeeded) {
+        query = query.eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
       }
 
       const { count, error } = await query
@@ -318,6 +325,9 @@ export async function getDoctorQueue(
 
   if (scope.serviceFilter) {
     dataQuery = dataQuery.or(scope.serviceFilter)
+  }
+  if (onlySeeded) {
+    dataQuery = dataQuery.eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
   }
 
   const { data, error } = await dataQuery

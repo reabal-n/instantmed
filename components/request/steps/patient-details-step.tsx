@@ -233,6 +233,11 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   const addressStarted = Boolean(addressLine1.trim() || suburb.trim() || state || postcode.trim())
   const addressNeedsCompletion = addressRequired || addressStarted
   const showManualAddressFields = addressRequired || addressStarted
+  const medicareValidation = needsPrescriptionDetails && medicareNumber.trim()
+    ? validateMedicareNumber(medicareNumber)
+    : null
+  const medicareNumberReady = !needsPrescriptionDetails || Boolean(medicareNumber.trim() && medicareValidation?.valid)
+  const medicareIdentityReady = !needsPrescriptionDetails || Boolean(medicareNumberReady && /^[1-9]$/.test(medicareIrn))
 
   // Real-time validation on blur
   const validateField = useCallback((field: string, value: string | undefined) => {
@@ -443,8 +448,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   }
 
   const addressComplete = !addressNeedsCompletion || (addressLine1 && suburb && state && postcode)
-  const medicareComplete = !needsPrescriptionDetails || (medicareNumber && medicareIrn)
-  const isComplete = firstName && lastName && email && dob && (!needsPhone || phone) && (!needsPrescriptionDetails || (medicareComplete && sex)) && addressComplete
+  const isComplete = firstName && lastName && email && dob && (!needsPhone || phone) && (!needsPrescriptionDetails || (medicareIdentityReady && sex)) && addressComplete
   const hasNoErrors = Object.keys(errors).length === 0
   const canContinue = isComplete && hasNoErrors
   const primaryActionLabel = canContinue
@@ -658,6 +662,15 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
               onChange={(e) => {
                 const raw = e.target.value.replace(/[^\d]/g, '').slice(0, 10)
                 setAnswer('medicareNumber', raw)
+                if (touched.medicareNumber) {
+                  const result = validateMedicareNumber(raw)
+                  setErrors((prev) => {
+                    if (!raw.trim()) return { ...prev, medicareNumber: 'Your Medicare number is needed to issue the prescription' }
+                    if (!result.valid) return { ...prev, medicareNumber: result.error || 'Invalid Medicare number' }
+                    const { medicareNumber: _, ...rest } = prev
+                    return rest
+                  })
+                }
               }}
               onBlur={() => handleBlur('medicareNumber', medicareNumber)}
               placeholder="1234 56789 0"
@@ -666,7 +679,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
               data-error={touched.medicareNumber && errors.medicareNumber ? "true" : undefined}
               className={cn("h-11", touched.medicareNumber && errors.medicareNumber && "border-destructive")}
             />
-            {medicareNumber.length === 10 && !errors.medicareNumber && (
+            {medicareNumber.length === 10 && medicareValidation?.valid && !errors.medicareNumber && (
               <p className="text-xs text-muted-foreground mt-1">
                 {formatMedicareNumber(medicareNumber)}
               </p>

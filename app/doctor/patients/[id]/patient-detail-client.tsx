@@ -589,6 +589,9 @@ export function PatientDetailClient({
             <dd className="font-mono text-sm tabular-nums">
               {snapshot.medicare.present ? snapshot.medicare.label : "Not provided"}
             </dd>
+            {snapshot.medicare.error ? (
+              <p className="text-[11px] text-warning">{snapshot.medicare.error}</p>
+            ) : null}
             {snapshot.medicare.detailsLabel ? (
               <p className="text-[11px] text-muted-foreground">{snapshot.medicare.detailsLabel}</p>
             ) : null}
