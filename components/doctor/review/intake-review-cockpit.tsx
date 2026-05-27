@@ -9,7 +9,6 @@ import { requestMoreInfoAction } from "@/app/actions/request-more-info"
 import { PatientDecisionStrip } from "@/components/doctor/patient-decision-strip"
 import { PatientTimeline } from "@/components/doctor/patient-timeline"
 import { RenewalLink } from "@/components/doctor/renewal-link"
-import { ClinicalNotesEditor } from "@/components/doctor/review/clinical-notes-editor"
 import { IntakeActionButtons } from "@/components/doctor/review/intake-action-buttons"
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
 import { IntakeSecondaryDisclosure } from "@/components/doctor/review/intake-secondary-disclosure"
@@ -38,12 +37,11 @@ const MED_CERT_SYMPTOM_DETAIL_REQUEST =
  *
  * 2026-05-26: collapses the Request/Notes/History tabs into one
  * scrollable column. The patient decision strip, blockers, safety
- * flags, request facts, optional patient messages, the recommended
- * prescription card, and certificate delivery status all live above
- * the fold. The clinical notes editor and the unified patient
- * timeline live inside a bottom "Show full intake" disclosure that
- * is closed by default; Cmd+N opens the disclosure first and then
- * focuses the notes textarea so notes are always reachable.
+ * flags, request facts, optional patient messages, the visible draft
+ * note, the recommended prescription card, and certificate delivery
+ * status all live above the fold. The unified patient timeline stays
+ * inside a bottom "Show full intake" disclosure; Cmd+N focuses the
+ * visible note instead of opening a hidden duplicate editor.
  */
 
 function CertificateDeliveryCard() {
@@ -133,7 +131,6 @@ export function IntakeReviewCockpit({
 
   const [disclosureOpen, setDisclosureOpen] = useState(false)
   const [isRequestingClinicalDetail, startRequestingClinicalDetail] = useTransition()
-  const [caseReadAcknowledged, setCaseReadAcknowledged] = useState(false)
 
   const messageCount = (data.patientMessages?.length ?? 0) +
     (intake.info_request_message ? 1 : 0)
@@ -172,8 +169,6 @@ export function IntakeReviewCockpit({
         : ""
   const hasThinMedCertIntake = service?.type === "med_certs" && symptomDetail.trim().length === 0
   const canRequestClinicalDetail = hasThinMedCertIntake && ["paid", "in_review"].includes(intake.status)
-  const isApprovalReviewState = ["paid", "in_review"].includes(intake.status)
-  const approvalReadRequired = isApprovalReviewState && !caseReadAcknowledged
   const handleRequestClinicalDetail = useCallback(() => {
     if (!canRequestClinicalDetail) return
 
@@ -197,7 +192,6 @@ export function IntakeReviewCockpit({
     <IntakeActionButtons
       placement="bottom"
       requiresClinicalDetail={canRequestClinicalDetail}
-      approvalReadRequired={approvalReadRequired}
       onRequestClinicalDetail={handleRequestClinicalDetail}
       isRequestingClinicalDetail={isRequestingClinicalDetail}
     />
@@ -207,10 +201,6 @@ export function IntakeReviewCockpit({
     disabled: review.isPending,
     onApprove: () => {
       if (intake.status !== "paid" && intake.status !== "in_review") return
-      if (approvalReadRequired) {
-        toast.info("Review the case before approving.")
-        return
-      }
       if (
         intake.category === "consult" &&
         ["ed", "hair_loss"].includes(intake.subtype || "") &&
@@ -230,8 +220,6 @@ export function IntakeReviewCockpit({
       review.setShowDeclineDialog(true)
     },
     onNote: () => {
-      // Open the disclosure BEFORE focusing notes so the textarea exists in the DOM.
-      setDisclosureOpen(true)
       setTimeout(() => review.notesRef.current?.focus(), 60)
     },
     onEscape: () => {
@@ -259,12 +247,6 @@ export function IntakeReviewCockpit({
       {/* Scrollable middle: single column, no tabs. */}
       <div
         className="min-h-0 flex-1 overflow-y-auto pr-1"
-        onScroll={(event) => {
-          if (event.currentTarget.scrollTop > 24) setCaseReadAcknowledged(true)
-        }}
-        onFocusCapture={(event) => {
-          if (event.target instanceof HTMLTextAreaElement) setCaseReadAcknowledged(true)
-        }}
       >
         <div className="space-y-3">
           {data.renewalMatch ? (
@@ -312,7 +294,6 @@ export function IntakeReviewCockpit({
             open={disclosureOpen}
             onOpenChange={setDisclosureOpen}
           >
-            <ClinicalNotesEditor />
             <PatientTimeline
               requests={data.previousIntakes ?? []}
               notes={data.patientNotes ?? []}

@@ -738,7 +738,7 @@ function medCertSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     .filter(Boolean)
     .join(" ")
 
-  const objective = "Telehealth review of structured intake. No red flags reported on screen."
+  const objective = "Telehealth review; no physical examination performed."
 
   const assessment = hasSymptomDetails
     ? "Symptoms consistent with self-limiting acute illness based on structured intake."

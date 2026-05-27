@@ -38,10 +38,9 @@ describe("IntakeReviewCockpit source contract", () => {
     expect(cockpitSource).toMatch(/notesRef/)
   })
 
-  it("opens the disclosure before focusing notes on Cmd+N", () => {
-    // The onNote handler must flip the disclosure open before the focus timer
-    // so the textarea is mounted when focus runs.
-    expect(cockpitSource).toMatch(/setDisclosureOpen\(true\)/)
+  it("focuses the visible draft note on Cmd+N without opening a duplicate editor", () => {
+    expect(cockpitSource).toMatch(/notesRef\.current\?\.focus\(\)/)
+    expect(cockpitSource).not.toMatch(/ClinicalNotesEditor/)
   })
 
   it("hides the duplicate prescription preset in RequestInfoCard", () => {

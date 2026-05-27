@@ -1,0 +1,154 @@
+{
+  "summary": "Doctor console feels composed and restrained, closer to Linear than generic healthtech. Ivory surface, clear queue, sensible review pane with keyboard hints. Falls short on motion polish and a few copy/density details, and the patient brief duplicates content between 'What the patient told us' and the clinical note.",
+  "overall_score": 7,
+  "categories": {
+    "brand_spine": {
+      "score": 7,
+      "observation": "This is an internal doctor console, so the consumer-facing 'Faster than your GP' thesis isn't expected, but the operational thesis (wait named, then removed) shows up well via 'Oldest wait 33m', 'Avg med cert today 10m', and 'Form to inbox. Target under 2h.' Feels like the back-of-house of the brand, not a generic admin tool.",
+      "findings": []
+    },
+    "typography": {
+      "score": 8,
+      "observation": "Hierarchy is clean: patient name as the anchor, labels in muted caps, values in regular weight. Line-height in the Reason for visit / Subjective blocks is comfortable. No orphaned headings spotted across frames.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "'In Queue' pill and 'Waiting 14m' status sit at the same weight as section labels, slightly competing with the patient name for second-glance attention.",
+          "recommendation": "Drop status pill to xs/medium and lighten the 'Waiting 14m' to a tertiary tone so the H1 owns the top of the pane."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 8,
+      "observation": "Ivory holds across all frames, cards are solid white with soft shadow, blue reserved for primary CTA and 'You' assignment chip, amber only for the waiting warning. No coral creep, no color noise. Test mode dot is appropriately muted.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "The 'Available' toggle in the top-right uses a saturated green that is the loudest element on the page and pulls the eye away from the queue and the primary 'Approve & send' CTA later.",
+          "recommendation": "Use a calmer sage/teal for the on-state, or reduce the track saturation; keep the status dot as the signal, not the track."
+        }
+      ]
+    },
+    "motion": {
+      "score": 5,
+      "observation": "Between 8s (queue only) and 12s (review pane open) the right-hand pane appears with no visible transition in the frames sampled, then at 16s the 'What the patient told us' block is replaced by a 'Clinical note' block with no continuity. Hard to judge fully without video, but the swap reads as a cut, not a Linear-grade transition.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 16,
+          "issue": "Content swap from 'What the patient told us' to 'Clinical note' between 12s and 16s has no visible cross-fade or height animation; the Pre-flight checks row also stays pinned which makes the swap feel like a flash, not a state change.",
+          "recommendation": "Add a 200ms opacity+4px-y ease-out on the swapped panel and animate height with FLIP; respect prefers-reduced-motion."
+        },
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "Selected queue card (Mia Carter) shows selection via a chevron button appearing on the right but no left rail accent or lift; the selected state is weak on a list this short.",
+          "recommendation": "Add a 2px left accent in CTA blue and a subtle shadow lift on selected card; transition 150ms ease-out."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 7,
+      "observation": "Voice is mostly clinical-calm and on-brand: 'Form to inbox. Target under 2h.', 'Based on the last 7 med certs issued.', 'Confirm first. Decline returns $25 to the patient automatically.' Short sentences, full stops, no hype. A couple of label choices feel like product-speak rather than GP-speak.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "'Pre-flight checks' is aviation jargon on a clinical surface; a GP wouldn't say this out loud before signing a cert.",
+          "recommendation": "Rename to 'Before you sign' or 'Safety checks'."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 12,
+          "issue": "'What the patient told us' is warm but uses 'us' where the rest of the surface uses second person ('You' chip, 'Open Andres'). Minor voice inconsistency.",
+          "recommendation": "Use 'What the patient told you' to match the assignment voice, or drop to 'Patient's words'."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 16,
+          "issue": "'Draft note' subtitle under 'Clinical note' is redundant with the visible Subjective/Objective fields.",
+          "recommendation": "Remove the subtitle or replace with the autosave timestamp ('Saved 12s ago')."
+        }
+      ]
+    },
+    "hierarchy_and_layout": {
+      "score": 8,
+      "observation": "Eye lands on 'Today's queue' then 'Avg med cert today 10m' within 2 seconds; on review open, the patient name and the 'Approve & send' CTA are the two clear anchors. Spacing rhythm is Stripe-adjacent, sections separated by whitespace not dividers.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "Top bar carries four status modules (Oldest wait, Waiting at intake, Test mode, Available) competing with the page H1 'Dashboard'; this is the most chip-dense zone on the screen.",
+          "recommendation": "Group Test mode + Available into a single account/status cluster and demote 'Updated just now' to a tooltip on hover."
+        },
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "'Patient details' card duplicates info already shown in the queue row (age, DOB, location) and pushes the clinically important 'Reason for visit' below the fold on shorter laptops.",
+          "recommendation": "Collapse Patient details into a one-line summary by default with an expand affordance; lead the pane with Reason for visit."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 16,
+          "issue": "Between the 'In Queue / Waiting' header row and the Clinical note card there's a thin empty strip where Patient details used to sit, creating a visible gap and implying a loading skeleton.",
+          "recommendation": "Either keep Patient details collapsed in place or remove the reserved space on state change."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 8,
+      "observation": "This is the doctor path, not the patient paid path, so the equivalent of 'conversion' is time-to-decision. Strong: Cmd+Enter shortcut on Approve, Cmd+Shift+D on Decline, 3/3 checks gate visible, refund mechanic stated inline ('Decline returns $25 to the patient automatically'). The 'Full refund if our doctor can't help' merchandised promise is honoured operationally here.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "'Approve & send' becomes available once 3/3 checks are green, but the checks all read as already done in the capture with no way to see what failed earlier or who ticked them; trust on a regulated action depends on that audit being visible.",
+          "recommendation": "On hover/focus of each check, show who/when it was completed; persist on the case timeline."
+        },
+        {
+          "severity": 2,
+          "timestamp_seconds": 16,
+          "issue": "Decline CTA sits to the right of Approve in the same visual weight band; on a fast Cmd+Enter flow there's no confirmation step shown for Approve, only for Decline ('Confirm first').",
+          "recommendation": "Add a 2-second undo toast after Approve & send rather than a modal; keeps speed but recovers from mis-clicks."
+        }
+      ]
+    },
+    "signature_devices": {
+      "score": 6,
+      "observation": "Present: live wait counter ('Oldest wait 33m', 'Waiting 33m', 'Waiting 14m'), 'while you wait' specificity translated to operational SLAs ('Form to inbox 10m. Target under 2h.'), name-first framing ('Open Andres'). Missing on this surface: handwritten signature mark (correctly absent, marketing-only), 'what we won't do' link (not expected here), and a 'next-action' nudge tying the doctor's pace back to the patient promise.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "'Next up' card shows 'Waiting 33m' but doesn't surface SLA breach risk against the 2h target; the signature 'name the wait then remove it' device is half-used.",
+          "recommendation": "Add a small SLA bar or 'Due in 1h 27m' under each queue item; turn amber at <30m to breach, red at breach."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 12,
+          "issue": "'2 reviews completed today' is a flat counter; misses an opportunity to mirror the patient-facing 'while you wait' specificity ('Avg time to decision today: 6m').",
+          "recommendation": "Replace with a today-vs-target micro stat that maps to the public promise."
+        }
+      ]
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Animate the right-pane content swap (Patient details → Clinical note) with a 200ms opacity+y transition and FLIP-based height, gated on prefers-reduced-motion.",
+      "why": "The current cut between 12s and 16s reads as a flash and undercuts the Linear-grade motion bar the brand is aiming for on a high-trust clinical surface.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Rename 'Pre-flight checks' to 'Before you sign' and expose who/when each check was completed on hover.",
+      "why": "Removes aviation jargon that fails the 'would a GP say this out loud' test and adds an audit trail at the exact point of a regulated action.",
+      "estimated_impact": "medium"
+    },
+    {
+      "action": "Desaturate the 'Available' toggle and group Test mode + Available into one status cluster in the top bar.",
+      "why": "The saturated green currently out-shouts both the page H1 and the primary CTA, breaking the ivory/blue restraint that defines the surface.",
+      "estimated_impact": "low"
+    }
+  ]
+}

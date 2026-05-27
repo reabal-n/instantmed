@@ -399,6 +399,7 @@ export function QueueTable({
             const showRoutineStatus = !compactShell || !["paid", "in_review"].includes(intake.status)
             const showInlineWaitTime = true
             const waitLabel = calculateWaitTime(queueEnteredAt)
+            const displayWaitLabel = waitLabel === "0m" ? "Just arrived" : `Waiting ${waitLabel}`
             const compactQueueReason = compactShell
               ? getCompactQueueReason(service, intake.subtype)
               : null
@@ -414,7 +415,7 @@ export function QueueTable({
                   compactShell ? "py-2.5" : "py-3",
                   "hover:bg-muted/40",
                   index < renderedIntakes.length - 1 && "border-b border-border/40",
-                  isSelected && "bg-primary/[0.055] ring-1 ring-inset ring-primary/25 before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-full before:bg-primary before:content-['']",
+                  isSelected && "bg-primary/[0.04] shadow-[inset_3px_0_0_hsl(var(--primary))] ring-1 ring-inset ring-primary/25 before:absolute before:inset-y-2 before:left-0 before:w-1 before:rounded-r-full before:bg-primary before:content-[''] dark:bg-primary/[0.08]",
                   !compactShell && isLastOpened && "bg-muted/35 ring-1 ring-inset ring-border/60",
                   // Phase 10: subtle realtime arrival emphasis. Decays via
                   // the row transition when the parent removes the row from
@@ -722,7 +723,7 @@ export function QueueTable({
                     waitSeverity === "critical" ? "text-destructive" : waitSeverity === "warning" ? "text-warning" : "text-muted-foreground"
                   )}>
                     <Clock className="h-3.5 w-3.5" />
-                    <span>Waiting {waitLabel}</span>
+                    <span>{displayWaitLabel}</span>
                   </div>
                 )}
                 {!compactShell && (paidAt || submittedAt) && (

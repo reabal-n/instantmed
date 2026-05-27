@@ -503,6 +503,8 @@ describe("buildClinicalCaseSummary", () => {
       expect(summary.draftNote).toMatch(/^O:\s/m)
       expect(summary.draftNote).toMatch(/^A:\s/m)
       expect(summary.draftNote).toMatch(/^P:\s/m)
+      expect(summary.draftNote).not.toContain("Reviewed patient-submitted intake")
+      expect(summary.draftNote).not.toContain("No red flags noted")
 
       // Age + sex shorthand on the S line
       expect(summary.draftNote).toMatch(/^S:\s+25yo F/m)

@@ -56,6 +56,45 @@ function getPrescriptionCopyLabel(intent: PrescriptionIntent): string {
   return medicationLabel || intent.presetLabel || "medicine"
 }
 
+const SOAP_SECTIONS = [
+  { key: "S", label: "Subjective" },
+  { key: "O", label: "Objective" },
+  { key: "A", label: "Assessment" },
+  { key: "P", label: "Plan" },
+] as const
+
+type SoapSectionKey = typeof SOAP_SECTIONS[number]["key"]
+type SoapSections = Record<SoapSectionKey, string>
+
+function parseSoapDraft(note: string): SoapSections | null {
+  const matches = Array.from(note.matchAll(/(?:^|\n)[ \t]*([SOAP]):[ \t]*/g))
+  if (matches.length < SOAP_SECTIONS.length) return null
+
+  const sections = SOAP_SECTIONS.reduce((acc, section) => {
+    acc[section.key] = ""
+    return acc
+  }, {} as SoapSections)
+  const foundSections = new Set<SoapSectionKey>()
+
+  for (let index = 0; index < matches.length; index += 1) {
+    const match = matches[index]
+    const key = match[1] as SoapSectionKey
+    if (!(key in sections) || typeof match.index !== "number") continue
+    foundSections.add(key)
+    const start = match.index + match[0].length
+    const end = matches[index + 1]?.index ?? note.length
+    sections[key] = note.slice(start, end).trim()
+  }
+
+  return SOAP_SECTIONS.every((section) => foundSections.has(section.key)) ? sections : null
+}
+
+function composeSoapDraft(sections: SoapSections): string {
+  return SOAP_SECTIONS
+    .map((section) => `${section.key}: ${sections[section.key].trim()}`)
+    .join("\n")
+}
+
 export function ClinicalCaseReview({
   category,
   subtype,
@@ -118,7 +157,9 @@ export function ClinicalCaseReview({
   const hiddenFactCount = Math.max(summary.keyFacts.length - visibleFacts.length, 0)
   const isEditableDraftNote = Boolean(onDraftNoteChange)
   const visibleDraftNote = isEditableDraftNote ? draftNoteValue ?? "" : summary.draftNote
-  const pinnedDraftFacts = compact ? summary.keyFacts.slice(0, 4) : []
+  const pinnedDraftFacts = compact ? [] : summary.keyFacts.slice(0, 4)
+  const signOffParts = doctorSignOffLabel?.split(/\s+·\s+/, 2) ?? null
+  const structuredSoapDraft = compact && isEditableDraftNote ? parseSoapDraft(visibleDraftNote) : null
 
   return (
     <div className={cn(compact ? "space-y-3" : "space-y-4", className)}>
@@ -145,36 +186,52 @@ export function ClinicalCaseReview({
           )}
 
           {visibleFacts.length > 0 ? (
-            <section className={compact ? "grid grid-cols-1 gap-2 sm:grid-cols-2" : "grid grid-cols-1 sm:grid-cols-2 gap-2"}>
-              {visibleFacts.map((fact) => (
-                <div key={`${fact.label}:${fact.value}`} className="rounded-lg bg-muted/30 px-3 py-2.5">
-                  <p className="text-[11px] font-medium text-muted-foreground">
-                    {fact.label}
-                  </p>
-                  <p className={cn("mt-0.5 text-sm font-medium text-foreground", compact && "max-h-10 overflow-hidden")}>
-                    {fact.value}
-                  </p>
-                </div>
-              ))}
-              {hiddenFactCount > 0 && (
-                <details className="rounded-lg bg-muted/30 px-3 py-2.5 sm:col-span-2">
-                  <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
-                    {hiddenFactCount} more facts
-                  </summary>
-                  <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
-                    {summary.keyFacts.slice(visibleFacts.length).map((fact) => (
-                      <div key={`${fact.label}:${fact.value}`} className="rounded-md bg-background px-3 py-2">
-                        <p className="text-[11px] font-medium text-muted-foreground">
-                          {fact.label}
-                        </p>
-                        <p className="mt-0.5 text-sm font-medium text-foreground">
-                          {fact.value}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </details>
+            <section
+              aria-label="Request"
+              className={cn(
+                compact
+                  ? "rounded-xl border border-border/60 bg-card p-3 shadow-sm shadow-primary/[0.035]"
+                  : "grid grid-cols-1 gap-2 sm:grid-cols-2",
               )}
+            >
+              {compact ? (
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold text-foreground">What the patient told us</p>
+                  </div>
+                </div>
+              ) : null}
+              <div className={cn(compact ? "grid grid-cols-1 gap-2 sm:grid-cols-2" : "contents")}>
+                {visibleFacts.map((fact) => (
+                  <div key={`${fact.label}:${fact.value}`} className="rounded-lg bg-muted/30 px-3 py-2.5">
+                    <p className="text-[11px] font-medium text-muted-foreground">
+                      {fact.label}
+                    </p>
+                    <p className={cn("mt-0.5 text-sm font-medium text-foreground", compact && "max-h-10 overflow-hidden")}>
+                      {fact.value}
+                    </p>
+                  </div>
+                ))}
+                {hiddenFactCount > 0 && (
+                  <details className="rounded-lg bg-muted/30 px-3 py-2.5 sm:col-span-2">
+                    <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
+                      {hiddenFactCount} more facts
+                    </summary>
+                    <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
+                      {summary.keyFacts.slice(visibleFacts.length).map((fact) => (
+                        <div key={`${fact.label}:${fact.value}`} className="rounded-md bg-background px-3 py-2">
+                          <p className="text-[11px] font-medium text-muted-foreground">
+                            {fact.label}
+                          </p>
+                          <p className="mt-0.5 text-sm font-medium text-foreground">
+                            {fact.value}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                )}
+              </div>
             </section>
           ) : null}
 
@@ -291,13 +348,18 @@ export function ClinicalCaseReview({
             </section>
           )}
 
-          <section className="rounded-lg border border-border/60 bg-muted/20">
+          <section className="rounded-xl border border-border/60 bg-card shadow-sm shadow-primary/[0.035]">
             <div className="flex flex-col gap-2 border-b border-border/60 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-                <p className="text-xs font-medium text-muted-foreground">
-                  Draft note
-                </p>
+                <div>
+                  <p className="text-xs font-semibold text-foreground">
+                    Clinical note
+                  </p>
+                  <p className="text-[11px] font-medium text-muted-foreground">
+                    Draft note
+                  </p>
+                </div>
               </div>
               {isEditableDraftNote ? (
                 <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground">
@@ -315,7 +377,20 @@ export function ClinicalCaseReview({
             </div>
             {isEditableDraftNote ? (
               <div className="space-y-2 p-3">
-                {pinnedDraftFacts.length > 0 ? (
+                {!compact ? (
+                  <div
+                    aria-label="Pinned reason for visit"
+                    className="rounded-md border border-border/50 bg-background/80 px-2.5 py-2"
+                  >
+                    <p className="text-[10px] font-semibold text-muted-foreground">
+                      Reason for visit
+                    </p>
+                    <p className="mt-0.5 line-clamp-2 text-xs font-medium leading-5 text-foreground">
+                      {summary.patientStory}
+                    </p>
+                  </div>
+                ) : null}
+                {!compact && pinnedDraftFacts.length > 0 ? (
                   <div
                     aria-label="Pinned case facts"
                     className="grid gap-1.5 rounded-md border border-border/50 bg-background/80 p-2 sm:grid-cols-2"
@@ -332,24 +407,65 @@ export function ClinicalCaseReview({
                     ))}
                   </div>
                 ) : null}
-                <Textarea
-                  ref={draftNoteTextareaRef}
-                  value={visibleDraftNote}
-                  placeholder="Start your note. Only you can see this until you send."
-                  onChange={(event) => {
-                    onDraftNoteChange?.(event.target.value)
-                  }}
-                  className="min-h-[132px] resize-y border-border/60 bg-background text-sm leading-relaxed focus-visible:ring-primary/20"
-                  aria-label="Draft clinical note"
-                />
-                {doctorSignOffLabel ? (
-                  <div className="rounded-md border border-border/50 bg-background/80 px-2.5 py-1.5 text-xs font-medium text-muted-foreground">
-                    Issue sign-off: <span className="text-foreground">{doctorSignOffLabel}</span>
+                {structuredSoapDraft ? (
+                  <div className="space-y-1.5" aria-label="Structured SOAP note">
+                    {SOAP_SECTIONS.map((section) => (
+                      <div
+                        key={section.key}
+                        className="grid gap-1.5 rounded-md border border-border/60 bg-background/80 p-2.5 sm:grid-cols-[104px_minmax(0,1fr)] sm:items-start"
+                      >
+                        <label
+                          htmlFor={`draft-soap-${section.key}`}
+                          className="pt-1 text-[11px] font-semibold text-slate-500 dark:text-muted-foreground"
+                        >
+                          {section.label}
+                        </label>
+                        <Textarea
+                          id={`draft-soap-${section.key}`}
+                          ref={section.key === "S" ? draftNoteTextareaRef : undefined}
+                          value={structuredSoapDraft[section.key]}
+                          placeholder={`${section.label} note`}
+                          onChange={(event) => {
+                            onDraftNoteChange?.(composeSoapDraft({
+                              ...structuredSoapDraft,
+                              [section.key]: event.target.value,
+                            }))
+                          }}
+                          className="w-full"
+                          textareaClassName="min-h-[52px] max-h-[118px] resize-none overflow-y-auto border-transparent bg-transparent px-0 py-0 text-sm leading-relaxed shadow-none hover:border-transparent focus:min-h-[88px] focus:max-h-[180px] focus:border-transparent focus:ring-0 focus-visible:ring-0"
+                          aria-label={`Draft clinical note ${section.label}`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <Textarea
+                    ref={draftNoteTextareaRef}
+                    value={visibleDraftNote}
+                    placeholder="Start your note. Private until you send."
+                    onChange={(event) => {
+                      onDraftNoteChange?.(event.target.value)
+                    }}
+                    className="w-full"
+                    textareaClassName="min-h-[172px] max-h-[260px] resize-none overflow-y-auto border-border/60 bg-background pb-6 text-sm leading-relaxed motion-safe:transition-[min-height,box-shadow] motion-safe:duration-150 motion-safe:ease-out focus:min-h-[220px] focus-visible:ring-primary/20"
+                    aria-label="Draft clinical note"
+                  />
+                )}
+                {signOffParts ? (
+                  <div className="rounded-md border border-primary/10 bg-primary/[0.025] px-2.5 py-1.5 text-xs font-medium text-muted-foreground">
+                    Issue sign-off:{" "}
+                    <span className="font-semibold text-foreground">{signOffParts[0]}</span>
+                    {signOffParts[1] ? (
+                      <>
+                        <span className="text-muted-foreground"> · </span>
+                        <span className="font-mono text-[11px] text-foreground">{signOffParts[1]}</span>
+                      </>
+                    ) : null}
                   </div>
                 ) : null}
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-xs text-muted-foreground">
-                    Auto-saves as you type. Only you can see this note until you send.
+                    Saved as you type. Private until you send.
                   </p>
                   {draftNoteSaveError && onDraftNoteSave ? (
                     <Button
@@ -374,9 +490,16 @@ export function ClinicalCaseReview({
                 <pre className="whitespace-pre-wrap text-sm font-sans leading-relaxed text-foreground">
                   {summary.draftNote}
                 </pre>
-                {doctorSignOffLabel ? (
-                  <div className="rounded-md border border-border/50 bg-background/80 px-2.5 py-1.5 text-xs font-medium text-muted-foreground">
-                    Issue sign-off: <span className="text-foreground">{doctorSignOffLabel}</span>
+                {signOffParts ? (
+                  <div className="rounded-md border border-primary/10 bg-primary/[0.025] px-2.5 py-1.5 text-xs font-medium text-muted-foreground">
+                    Issue sign-off:{" "}
+                    <span className="font-semibold text-foreground">{signOffParts[0]}</span>
+                    {signOffParts[1] ? (
+                      <>
+                        <span className="text-muted-foreground"> · </span>
+                        <span className="font-mono text-[11px] text-foreground">{signOffParts[1]}</span>
+                      </>
+                    ) : null}
                   </div>
                 ) : null}
               </div>

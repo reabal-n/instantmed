@@ -215,7 +215,7 @@ function QueueIdlePanel({
   filteredCount,
   doctorAvailable,
   queueDegraded,
-  nextIntake,
+  nextIntakes,
   onReviewNext,
 }: {
   queueSize: number
@@ -226,21 +226,21 @@ function QueueIdlePanel({
   filteredCount: number
   doctorAvailable: boolean
   queueDegraded: boolean
-  nextIntake?: IntakeWithPatient | null
+  nextIntakes?: IntakeWithPatient[]
   onReviewNext: () => void
 }) {
+  const nextIntake = nextIntakes?.[0] ?? null
+  const visibleNextIntakes = nextIntakes?.slice(0, 3) ?? []
   const nextAction = queueDegraded
     ? "Refresh before clinical action."
     : !doctorAvailable
       ? "Availability is paused."
-      : filteredCount > 1 && typeof oldestWaitingMinutes === "number"
+      : filteredCount > 0 && typeof oldestWaitingMinutes === "number"
         ? `Oldest wait ${formatMinutes(oldestWaitingMinutes)}.`
-      : filteredCount > 1
+      : filteredCount > 0
         ? "Open the oldest case in this filter."
-      : filteredCount === 1
-        ? ""
         : "No cases match this filter."
-  const showRailAction = filteredCount > 1 && doctorAvailable && !queueDegraded
+  const showRailAction = filteredCount > 0 && doctorAvailable && !queueDegraded
   const oldestWaitingLabel = typeof oldestWaitingMinutes === "number"
     ? oldestWaitingMinutes === 0
       ? "Just arrived"
@@ -270,7 +270,7 @@ function QueueIdlePanel({
         ? oldestWaitingLabel
         : String(queueSize)
   const primaryMetricDetail = formToInboxStats
-    ? `Based on ${formToInboxStats.sampleSize} certs sent in the last ${formToInboxStats.windowDays} days.`
+    ? `Based on the last ${formToInboxStats.sampleSize} med certs issued.`
     : medianDecisionMinutes != null
       ? "Today"
       : oldestWaitingMinutes != null
@@ -282,19 +282,32 @@ function QueueIdlePanel({
         return minutes <= 0 ? "just arrived" : `waiting ${formatMinutes(minutes)}`
       })()
     : null
-  const nextPatientFirstName = nextIntake?.patient.full_name?.split(" ")[0] || nextIntake?.patient.full_name
   const nextCaseLabel = nextIntake && nextCaseWaitingLabel
-    ? `${nextPatientFirstName} ${nextCaseWaitingLabel}.`
+    ? `${nextCaseWaitingLabel[0]?.toUpperCase() ?? "W"}${nextCaseWaitingLabel.slice(1)}.`
     : filteredCount > 0
-      ? "Open the next visible case."
+      ? "Oldest visible case is ready."
       : "Nothing to review."
+  const showNextUp = filteredCount > 0
+  const nextCaseButtonLabel = nextIntake?.patient.full_name
+    ? `Open ${nextIntake.patient.full_name.split(/\s+/)[0]}`
+    : "Open next case"
+  const getNextPreview = (intake: IntakeWithPatient) => {
+    const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
+    const waitMinutes = Math.max(0, Math.floor((Date.now() - new Date(getQueueEnteredAt(intake)).getTime()) / 60000))
+    const waitLabel = waitMinutes <= 0 ? "just arrived" : formatMinutes(waitMinutes)
+    return {
+      patientName: intake.patient.full_name,
+      serviceLabel: service?.short_name || formatServiceType(service?.type || ""),
+      waitLabel,
+    }
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-[linear-gradient(180deg,#FFFFFF_0%,#FFFEFB_100%)] dark:bg-card motion-safe:animate-[fade-in_180ms_ease-out]">
       <div className="border-b border-primary/10 bg-primary/[0.025] px-5 py-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-primary">
+            <p className="text-xs font-semibold text-foreground">
               {primaryMetricLabel}
             </p>
             <p className="mt-1 text-4xl font-semibold tracking-tight text-foreground tabular-nums">
@@ -310,39 +323,67 @@ function QueueIdlePanel({
         </p>
       </div>
 
-      <div className="px-5 py-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-xs font-semibold text-muted-foreground">Next up</p>
-            <p className="mt-1 truncate text-base font-semibold text-foreground">
-              {nextCaseLabel}
-            </p>
-            <p className="mt-1 truncate text-xs font-medium text-slate-600 dark:text-muted-foreground">
-              {reviewedToday > 0
-                ? reviewedToday === 1
-                  ? "One review completed today."
-                  : `${reviewedToday} reviews completed today.`
-                : "No reviews completed today."}
-            </p>
-          </div>
-          <div className="flex shrink-0 flex-col items-end gap-1">
-            {showRailAction ? (
-              <Button
-                size="sm"
-                className="h-9 px-3 text-xs"
-                onClick={onReviewNext}
-              >
-                Open oldest waiting
-              </Button>
-            ) : null}
-            {nextAction ? (
-              <p className="max-w-[180px] text-right text-[11px] font-medium leading-snug text-slate-500 dark:text-muted-foreground">
-                {nextAction}
+      {showNextUp ? (
+        <div className="px-5 py-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-muted-foreground">Next up</p>
+              <p className="mt-1 text-base font-semibold leading-snug text-foreground">
+                {nextCaseLabel}
               </p>
-            ) : null}
+              <p className="mt-1 text-xs font-medium leading-snug text-slate-600 dark:text-muted-foreground">
+                {reviewedToday > 0
+                  ? reviewedToday === 1
+                    ? "One review completed today."
+                    : `${reviewedToday} reviews completed today.`
+                  : "No reviews completed today."}
+              </p>
+              {visibleNextIntakes.length > 0 ? (
+                <div className="mt-3 divide-y divide-border/45 rounded-lg border border-border/50 bg-background/75">
+                  {visibleNextIntakes.map((intake) => {
+                    const preview = getNextPreview(intake)
+                    return (
+                      <div
+                        key={intake.id}
+                        className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-3 py-2 text-xs"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold text-foreground">
+                            {preview.patientName}
+                          </p>
+                          <p className="truncate text-muted-foreground">
+                            {preview.serviceLabel}
+                          </p>
+                        </div>
+                        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 font-medium tabular-nums text-muted-foreground">
+                          {preview.waitLabel}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : null}
+            </div>
+            <div className="flex shrink-0 flex-col items-end gap-1">
+              {showRailAction ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-9 px-3 text-xs"
+                  onClick={onReviewNext}
+                >
+                  {nextCaseButtonLabel}
+                </Button>
+              ) : null}
+              {nextAction ? (
+                <p className="max-w-[180px] text-right text-[11px] font-medium leading-snug text-slate-500 dark:text-muted-foreground">
+                  {nextAction}
+                </p>
+              ) : null}
+            </div>
           </div>
         </div>
-      </div>
+      ) : null}
     </div>
   )
 }
@@ -1073,6 +1114,7 @@ export function QueueClient({
           compactShell={compactShell}
           oldestWaitingMinutes={oldestWaitingMinutes}
           showOldestWaiting={!compactShell}
+          formToInboxStats={formToInboxStats}
         />
       </div>
 
@@ -1087,7 +1129,7 @@ export function QueueClient({
           list={(
             <div
               key={`${statusFilter}:${debouncedSearch}`}
-              className="flex h-full min-h-0 flex-col overflow-hidden motion-safe:animate-[fade-in_150ms_ease-in-out]"
+              className="flex h-full min-h-0 flex-col overflow-hidden"
             >
               <QueueTable
                 filteredIntakes={filteredIntakes}
@@ -1122,10 +1164,13 @@ export function QueueClient({
               // `key={expandedId}` forces remount on selection change so
               // the lock + audit + view-duration effects re-run cleanly
               // for the new case (releases the old lock automatically).
-              <div className="flex h-full min-h-0 flex-col">
+              <div
+                key={expandedId}
+                className="flex h-full min-h-0 flex-col motion-safe:animate-[review-pane-in_220ms_cubic-bezier(0.16,1,0.3,1)]"
+                data-review-pane-entry
+              >
                 <div className="min-h-0 flex-1">
                   <IntakeReviewPanel
-                    key={expandedId}
                     inline
                     intakeId={expandedId}
                     previewIntake={filteredIntakes.find((intake) => intake.id === expandedId)}
@@ -1143,7 +1188,7 @@ export function QueueClient({
                 filteredCount={filteredIntakes.length}
                 doctorAvailable={doctorAvailable}
                 queueDegraded={queueDegraded}
-                nextIntake={filteredIntakes[0] ?? null}
+                nextIntakes={filteredIntakes.slice(0, 3)}
                 onReviewNext={handleReviewNext}
               />
             )

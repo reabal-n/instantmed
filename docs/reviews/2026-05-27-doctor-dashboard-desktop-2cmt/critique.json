@@ -1,0 +1,91 @@
+{
+  "summary": "InstantMed's doctor console shows impressive visual restraint, holding faithfully to a calming warm ivory palette and clean typographic scale. While the layout operates with high clinical efficiency, the interaction design feels slightly mechanical, particularly around panel transitions and loading skeleton states that lack the physical polish of a Tier 1 application.",
+  "overall_score": 8,
+  "categories": {
+    "brand_spine": {
+      "score": 8,
+      "observation": "The brand's clinical speed promise ('Avg med cert today: 10m') is elegantly pulled into the internal dashboard, reinforcing operational metrics directly to the practitioner in a clean, human-centric layout.",
+      "findings": []
+    },
+    "typography": {
+      "score": 8,
+      "observation": "Excellent typographic restraint and visual hierarchy. Patient data is structured cleanly using light weights and structured grids, avoiding clinical visual noise.",
+      "findings": [
+        {
+          "severity": 1,
+          "timestamp_seconds": 9,
+          "issue": "The 'Reason for visit' section has dense body text with tighter-than-ideal line-height, making quick scanning harder for doctors.",
+          "recommendation": "Increase line-height to 1.5rem (24px) for the main patient description block to improve rapid readability."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 8,
+      "observation": "The #F8F7F4 warm ivory background creates an exceptionally calming workspace, beautifully contrasted with pure white cards and subtle sky-toned drop shadows.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 8,
+          "issue": "The skeleton loading state uses a stark, cool gray that breaks the warm, calming ivory aesthetic.",
+          "recommendation": "Adjust the skeleton pulse background to use a warm gray tint like #EFEEDB or #EAE9E4 to maintain warm-surface cohesion."
+        }
+      ]
+    },
+    "motion": {
+      "score": 7,
+      "observation": "Transitions are functional but lean on mechanical default ease curves rather than mimicking physical, fluid motion.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 8,
+          "issue": "The right-hand slide-over panel moves in with a stark, linear transition that feels abrupt.",
+          "recommendation": "Replace the transition timing function with a custom cubic-bezier (e.g., cubic-bezier(0.16, 1, 0.3, 1)) to replicate Linear-grade spring physics."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 9,
+      "observation": "The language is highly professional, direct, and free from clinical over-complexity, establishing immediate clarity and trust.",
+      "findings": []
+    },
+    "hierarchy_and_layout": {
+      "score": 8,
+      "observation": "Clear dual-column dashboard rhythm that makes triage simple. The split screen between list and detail view is highly intuitive.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 9,
+          "issue": "The sticky action bar at the bottom is highly cramped, forcing multiple safety checklists and critical action CTAs into a tiny, narrow strip.",
+          "recommendation": "Increase the vertical height of the bottom sticky action container and add explicit spacing or a vertical layout stack for mobile-responsive scaling."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 8,
+      "observation": "The clinical sign-off workflow safely balances speed and compliance by requiring checklist validation before revealing the primary blue CTA.",
+      "findings": []
+    },
+    "signature_devices": {
+      "score": 9,
+      "observation": "The live wait-counter dashboard widget is a stellar brand touchpoint that perfectly translates the speed-oriented consumer value proposition into internal clinical reality.",
+      "findings": []
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Smooth the slide-over panel animation",
+      "why": "The current linear entrance at 00:08 feels jarring and robotic; applying a soft cubic-bezier curve will immediately elevated the perceived quality to match reference bars.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Warm up the skeleton loader background",
+      "why": "The cold gray loading states visible at 00:08 momentarily disrupt the carefully crafted warm ivory and sky-toned aesthetic of the interface.",
+      "estimated_impact": "medium"
+    },
+    {
+      "action": "Expand sticky footer height and checklist spacing",
+      "why": "At 00:09, critical action items (like 'Decline' and 'Approve') sit dangerously close to medical checkboxes, risking accidental double-taps or misclicks during rapid queues.",
+      "estimated_impact": "medium"
+    }
+  ]
+}
