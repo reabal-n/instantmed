@@ -30,6 +30,8 @@ describe("queue pressure signal", () => {
 
     expect(signalSource).toContain('dot: "bg-slate-500"')
     expect(signalSource).toContain('value: "text-foreground"')
+    expect(signalSource).toContain('root: "border-border/70 bg-white text-slate-700')
+    expect(signalSource).not.toContain('root: "border-warning-border bg-warning-light text-warning')
     expect(signalSource).toContain("formatRefreshAge(nowMs, mountedAtRef.current)")
     expect(signalSource).not.toContain('refreshAgeLabel === "Updated just now"')
     expect(filterSource).toContain('dot: "bg-slate-500"')

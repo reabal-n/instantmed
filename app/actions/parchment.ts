@@ -9,6 +9,7 @@ import {
 import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { acquireIntakeLock } from "@/lib/data/intake-lock"
+import { getProfileById } from "@/lib/data/profiles"
 import {
   getParchmentPatientSyncEligibility,
   getParchmentPrescriberCandidateIds,
@@ -39,15 +40,9 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 const log = createLogger("parchment-actions")
 
 type ServiceRelation = { type?: string | null } | { type?: string | null }[] | null
-type RelationValue<T> = T | T[] | null | undefined
-type ParchmentIdentityPatient = Parameters<typeof getParchmentPatientIdentityIssues>[0]
 
 function getServiceType(service: ServiceRelation | undefined): string | null {
   return Array.isArray(service) ? service[0]?.type ?? null : service?.type ?? null
-}
-
-function firstRelation<T>(value: RelationValue<T>): T | null {
-  return Array.isArray(value) ? value[0] ?? null : value ?? null
 }
 
 function getParchmentAuditRequestType({
@@ -229,7 +224,7 @@ export async function getParchmentPrescribeUrlAction(
       return { success: false, error: prescribingCapability.error }
     }
 
-    const patient = firstRelation(intake.patient as RelationValue<ParchmentIdentityPatient>)
+    const patient = await getProfileById(intake.patient_id)
     if (!patient) {
       return { success: false, error: "Patient profile not found" }
     }

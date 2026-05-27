@@ -138,7 +138,7 @@ export function PatientDecisionStrip({
     <dl
       className={cn(
         "grid grid-cols-1 gap-2 sm:grid-cols-2",
-        isCompact && "mt-1.5 grid-cols-2 gap-x-5 gap-y-2 xl:grid-cols-[minmax(110px,0.8fr)_minmax(150px,1fr)_minmax(130px,1fr)]",
+        isCompact && "mt-1.5 grid-cols-2 gap-x-5 gap-y-2 xl:grid-cols-2",
       )}
     >
       {summaryFacts.map((item) => (
@@ -146,7 +146,7 @@ export function PatientDecisionStrip({
           key={item.label}
           className={cn(
             "min-w-0",
-            isCompact && item.label === "Address" && "sm:col-span-2 xl:col-span-3",
+            isCompact && item.label === "Address" && "sm:col-span-2",
             isCompact
               ? "pl-0"
               : "rounded-lg bg-card px-2.5 py-2 ring-1 ring-border/35",
@@ -154,7 +154,7 @@ export function PatientDecisionStrip({
         >
           <dt className={cn(
             "font-medium text-slate-500 dark:text-muted-foreground",
-            isCompact ? "text-xs text-slate-400" : "text-[11px] uppercase tracking-[0.08em]",
+            isCompact ? "text-[11px] text-slate-500/80" : "text-[11px] uppercase tracking-[0.08em]",
           )}>
             {item.label}
           </dt>
@@ -261,7 +261,7 @@ export function PatientDecisionStrip({
           >
             <Icon className={cn("mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground", missing && "text-warning")} aria-hidden />
             <div className="min-w-0">
-              <dt className={cn("font-medium text-muted-foreground", missing && "text-warning")}>{label}</dt>
+              <dt className={cn("text-[11px] font-medium text-muted-foreground/80", missing && "text-warning")}>{label}</dt>
               <dd
                 className={cn(
                   "mt-0.5 font-semibold text-foreground",

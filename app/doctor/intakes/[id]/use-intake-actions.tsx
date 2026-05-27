@@ -17,7 +17,7 @@ import type { CertificatePreviewData } from "@/components/doctor"
 import { ParchmentPrescribePanel } from "@/components/doctor"
 import { usePanel } from "@/components/panels/panel-provider"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
-import { buildDoctorIntakeHref, STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
+import { buildDoctorIntakeHref, buildStaffPatientHref, STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import { resolveClinicalDecisionNote } from "@/lib/doctor/clinical-notes"
 import { logIntakeViewDuration, preloadViewDurationLogging } from "@/lib/doctor/log-view-duration-client"
 import { buildParchmentPrescriptionContext } from "@/lib/doctor/parchment-prescribing-context"
@@ -470,6 +470,7 @@ export function useIntakeActions({
         <ParchmentPrescribePanel
           intakeId={intake.id}
           patientName={intake.patient?.full_name || "Patient"}
+          patientProfileHref={intake.patient?.id ? buildStaffPatientHref(intake.patient.id) : undefined}
           prescriptionContext={buildParchmentPrescriptionContext(getClinicalCaseSummary())}
           onScriptSent={() => {
             dialogs.openScriptDialog()
@@ -477,7 +478,7 @@ export function useIntakeActions({
         />
       ),
     })
-  }, [getClinicalCaseSummary, intake.id, intake.patient?.full_name, parchmentEnabled, openPanel, dialogs])
+  }, [getClinicalCaseSummary, intake.id, intake.patient?.full_name, intake.patient?.id, parchmentEnabled, openPanel, dialogs])
 
   const handleApproveAndOpenParchment = useCallback(async () => {
     if (!parchmentEnabled) return

@@ -108,6 +108,10 @@ describe("manual patient creation", () => {
     )
 
     expect(prescribeBody).toContain("await validateIntegration(callerParchmentUserId)")
+    expect(prescribeBody).toContain("getParchmentPatientIdentityIssues(patientProfile)")
+    expect(prescribeBody.indexOf("getParchmentPatientIdentityIssues(patientProfile)")).toBeLessThan(
+      prescribeBody.indexOf("await validateIntegration(callerParchmentUserId)"),
+    )
     expect(prescribeBody.indexOf("await validateIntegration(callerParchmentUserId)")).toBeLessThan(
       prescribeBody.indexOf("syncPatientToParchment("),
     )

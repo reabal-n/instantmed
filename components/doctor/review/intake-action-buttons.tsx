@@ -73,13 +73,13 @@ function ActionReadinessChecks({
 
   return (
     <div
-      className="flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-muted-foreground sm:basis-full"
+      className="flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-muted-foreground sm:mr-auto"
       data-action-readiness
       aria-label="Approval readiness checks"
     >
       <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-foreground">
         <CheckCircle className={cn("h-3.5 w-3.5", readyCount === checks.length ? "text-slate-600" : "text-warning")} aria-hidden />
-        {readyCount === checks.length ? "Ready to decide" : `Checks need attention · ${readyCount}/${checks.length}`}
+        {readyCount === checks.length ? "Checks complete" : `Checks need attention · ${readyCount}/${checks.length}`}
       </span>
       {checks.map((check) => (
         <span
@@ -210,7 +210,7 @@ export function IntakeActionButtons({
       className={
         placement === "top"
           ? "rounded-xl border border-border/60 bg-background p-2 shadow-sm shadow-primary/[0.03]"
-          : "sticky bottom-0 z-30 shrink-0 border-t border-border bg-gradient-to-t from-background via-background/95 to-background/85 px-2 py-2 shadow-lg shadow-primary/[0.08] backdrop-blur supports-[backdrop-filter]:from-background/95 supports-[backdrop-filter]:via-background/90"
+          : "z-30 shrink-0 border-t border-border bg-gradient-to-t from-background via-background/95 to-background/85 px-2 py-2 shadow-lg shadow-primary/[0.08] backdrop-blur supports-[backdrop-filter]:from-background/95 supports-[backdrop-filter]:via-background/90"
       }
       data-testid="operator-action-rail"
       data-action-rail-pinned
@@ -242,6 +242,12 @@ export function IntakeActionButtons({
           </Button>
         </div>
       )}
+      {showRefundOnDecline ? (
+        <p className="mb-2 text-[11px] font-medium leading-snug text-muted-foreground">
+          <span className="font-semibold text-foreground">Full refund if we can't help.</span>{" "}
+          {refundShortLabel ? `Decline refunds ${refundShortLabel} to the patient.` : "Decline refunds the patient."}
+        </p>
+      ) : null}
       <div
         className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end [&>button]:w-full [&>div]:w-full sm:[&>button]:w-auto sm:[&>div]:w-auto"
         data-action-bar
@@ -389,35 +395,22 @@ export function IntakeActionButtons({
       {/* Decline */}
       {canDecline && (
         <div
-          className="flex w-full flex-col gap-1 border-t border-border/60 pt-2 sm:w-auto sm:items-end sm:border-t-0 sm:pl-2 sm:pt-0"
+          className="flex w-full flex-col gap-1 border-t border-border/60 pt-2 sm:w-auto sm:items-end sm:border-t-0 sm:pl-3 sm:pt-0"
           data-decline-lane
           data-decline-action
         >
-          {showRefundOnDecline ? (
-            <p className="px-0.5 text-[11px] font-medium leading-snug text-slate-600 dark:text-muted-foreground sm:max-w-[280px] sm:text-right">
-              Patient was shown: full refund if we can't help.
-            </p>
-          ) : null}
           <Button
-            variant="ghost"
+            variant="outline"
             onClick={() => setShowDeclineDialog(true)}
-            className="h-7 px-1 text-[11px] font-medium text-destructive/85 shadow-none hover:bg-transparent hover:text-destructive"
+            className="h-7 border-border/70 bg-background px-2.5 text-[11px] font-semibold text-slate-700 shadow-none transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-800 dark:border-white/15 dark:bg-card dark:text-muted-foreground dark:hover:border-rose-900/55 dark:hover:bg-rose-950/30 dark:hover:text-rose-300"
             disabled={isPending}
             size="sm"
-            title={showRefundOnDecline ? "Confirming decline issues the patient refund." : undefined}
+            title={showRefundOnDecline ? "Confirming decline refunds the patient." : undefined}
           >
-            {showRefundOnDecline
-              ? refundShortLabel
-                ? `Decline request · refund ${refundShortLabel}`
-                : "Decline request · refund patient"
-              : "Decline request"}
+            {showRefundOnDecline ? <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> : null}
+            {showRefundOnDecline ? "Decline & refund" : "Decline request"}
             <ShortcutHint>Cmd+Shift+D</ShortcutHint>
           </Button>
-          {showRefundOnDecline ? (
-            <p className="px-0.5 text-[11px] font-medium leading-snug text-muted-foreground sm:max-w-[260px] sm:text-right">
-              {refundShortLabel ? `A decline refunds ${refundShortLabel} to the patient.` : "A decline refunds the patient."}
-            </p>
-          ) : null}
         </div>
       )}
       </div>

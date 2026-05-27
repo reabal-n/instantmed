@@ -4,7 +4,7 @@ import * as Sentry from "@sentry/nextjs"
 
 import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
-import { encryptProfilePhi } from "@/lib/data/profiles"
+import { encryptProfilePhi, getProfileById } from "@/lib/data/profiles"
 import {
   buildManualPatientDuplicateLookup,
   buildManualPatientProfileCreate,
@@ -15,7 +15,12 @@ import { checkParchmentPrescribingCapability } from "@/lib/doctor/parchment-pres
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import { getSsoUrl, validateIntegration } from "@/lib/parchment/client"
-import { ParchmentPatientIdentityError, ParchmentPatientSyncError, syncPatientToParchment } from "@/lib/parchment/sync-patient"
+import {
+  getParchmentPatientIdentityIssues,
+  ParchmentPatientIdentityError,
+  ParchmentPatientSyncError,
+  syncPatientToParchment,
+} from "@/lib/parchment/sync-patient"
 import { syncParchmentPrescriptionListToPms } from "@/lib/parchment/sync-prescription"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { logAuditEvent } from "@/lib/security/audit-log"
@@ -336,6 +341,16 @@ export async function getPatientParchmentPrescribeUrlAction(
 
     if (!patient || patient.role !== "patient" || patient.merged_into_profile_id) {
       return { success: false, error: "Patient profile not found." }
+    }
+
+    const patientProfile = await getProfileById(patientId)
+    if (!patientProfile) {
+      return { success: false, error: "Patient profile not found." }
+    }
+
+    const identityIssues = getParchmentPatientIdentityIssues(patientProfile)
+    if (identityIssues.length > 0) {
+      return { success: false, error: `Missing prescribing details: ${identityIssues.join(", ")}` }
     }
 
     try {

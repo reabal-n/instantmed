@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import { AlertTriangle, CheckCircle, Clipboard, ExternalLink, Loader2, RefreshCw, X } from "lucide-react"
+import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
@@ -10,12 +11,14 @@ import { getParchmentPrescribeUrlAction } from "@/app/actions/parchment"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
+import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import type { ParchmentPrescriptionContext } from "@/lib/doctor/parchment-prescribing-context"
 import { backdropVariants, sheetVariants } from "@/lib/motion/panel-variants"
 import { canEmbedParchmentForHost } from "@/lib/parchment/embed-policy"
 
 type ParchmentPrescribePanelProps = {
   patientName: string
+  patientProfileHref?: string
   prescriptionContext?: ParchmentPrescriptionContext | null
   onScriptSent?: () => void
   onPrescriptionsRefresh?: () => void
@@ -78,6 +81,7 @@ export function ParchmentPrescribePanel({
   intakeId,
   patientId,
   patientName,
+  patientProfileHref,
   prescriptionContext,
   onScriptSent,
   onPrescriptionsRefresh,
@@ -96,6 +100,8 @@ export function ParchmentPrescribePanel({
   const ssoExpiryTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const ssoWarningTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const errorCopy = getParchmentErrorCopy(error)
+  const patientDetailsHref = patientProfileHref || (patientId ? buildStaffPatientHref(patientId) : null)
+  const canEditMissingIdentity = Boolean(patientDetailsHref && error?.startsWith("Missing prescribing details:"))
 
   const closeAndRefresh = useCallback(() => {
     if (patientId && iframeLoaded && onPrescriptionsRefresh) {
@@ -347,6 +353,11 @@ export function ParchmentPrescribePanel({
                   <p className="text-sm text-muted-foreground mt-1">{errorCopy.detail}</p>
                 </div>
                 <div className="flex gap-2 justify-center">
+                  {canEditMissingIdentity && patientDetailsHref ? (
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={patientDetailsHref}>Edit patient details</Link>
+                    </Button>
+                  ) : null}
                   <Button variant="outline" size="sm" onClick={loadPrescribingUrl}>
                     Try Again
                   </Button>

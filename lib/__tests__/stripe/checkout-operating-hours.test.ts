@@ -209,6 +209,72 @@ describe("checkout operating hours", () => {
     })
   })
 
+  it("blocks authenticated prescribing checkout without valid Medicare details", async () => {
+    mocks.getAuthenticatedUserWithProfile.mockResolvedValue({
+      user: { id: "user-1", email: "patient@example.com" },
+      profile: {
+        id: "patient-1",
+        date_of_birth: "1990-01-01",
+        full_name: "Patient Example",
+        stripe_customer_id: null,
+      },
+    })
+
+    const result = await createIntakeAndCheckoutAction({
+      answers: {
+        agreedToTerms: true,
+        confirmedAccuracy: true,
+        addressLine1: "12 Manual Entry Road",
+        suburb: "Sydney",
+        state: "NSW",
+        postcode: "2000",
+        sex: "M",
+      },
+      category: "consult",
+      idempotencyKey: "test-idempotency-key",
+      subtype: "ed",
+      type: "consult",
+    })
+
+    expect(result).toEqual({
+      success: false,
+      error: "Medicare number is required for prescription requests.",
+    })
+    expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
+  })
+
+  it("blocks guest prescribing checkout without valid Medicare details", async () => {
+    const { inserts, supabase } = createGuestCheckoutSupabaseMock()
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+
+    const result = await createGuestCheckoutAction({
+      answers: {
+        agreedToTerms: true,
+        confirmedAccuracy: true,
+        medicareNumber: "0000000000",
+        medicareIrn: "1",
+        addressLine1: "12 Manual Entry Road",
+        suburb: "Sydney",
+        state: "NSW",
+        postcode: "2000",
+        sex: "M",
+      },
+      category: "consult",
+      guestDateOfBirth: "1990-01-01",
+      guestEmail: "patient@example.com",
+      guestName: "Patient Example",
+      guestPhone: "0412345678",
+      subtype: "ed",
+      type: "consult",
+    })
+
+    expect(result).toEqual({
+      success: false,
+      error: "Enter a valid Medicare number",
+    })
+    expect(inserts).toEqual([])
+  })
+
   it("blocks authenticated consult checkout when blocked medication terms appear in consult details", async () => {
     mocks.isMedicationBlocked.mockImplementation(async (value: unknown) => ({
       blocked: typeof value === "string" && value.includes("blocked-test-med"),

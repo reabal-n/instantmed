@@ -155,7 +155,7 @@ export function OperatorSplitPane({
     mode === "idle"
       ? "lg:grid-cols-[minmax(460px,0.92fr)_minmax(0,1.38fr)]"
       : mode === "reviewing"
-        ? "lg:grid-cols-[minmax(460px,0.92fr)_minmax(0,1.38fr)]"
+        ? "lg:grid-cols-[minmax(320px,0.5fr)_minmax(0,1.65fr)]"
         : "lg:grid-cols-[minmax(320px,0.95fr)_minmax(0,1.4fr)]"
 
   return (

@@ -1,6 +1,6 @@
 "use client"
 
-import { RefreshCw, Search, X } from "lucide-react"
+import { AlertTriangle, RefreshCw, Search, X } from "lucide-react"
 import { useEffect, useRef } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -44,6 +44,7 @@ export interface QueueFiltersProps {
   onSearchChange: (value: string) => void
   onRefresh: () => void
   onOpenSingleMatch?: () => void
+  onOpenOldest?: () => void
   statusFilter: QueueStatusFilter
   onStatusFilterChange: (value: QueueStatusFilter) => void
   intakes: IntakeWithPatient[]
@@ -67,6 +68,7 @@ export function QueueFilters({
   onSearchChange,
   onRefresh,
   onOpenSingleMatch,
+  onOpenOldest,
   statusFilter,
   onStatusFilterChange,
   intakes,
@@ -85,6 +87,8 @@ export function QueueFilters({
   const pressure = getQueuePressureState(oldestWaitingMinutes, QUEUE_WAIT_TARGET_MINUTES)
   const pressureClass = pressureClasses[pressure.severity]
   const formToInboxLabel = formToInboxStats ? formatMinutes(formToInboxStats.medianMinutes) : null
+  const openOldest = onOpenOldest ?? onOpenSingleMatch
+  const showBreachAction = filteredCount > 1 && Boolean(openOldest)
 
   // `/` key focuses the search input (standard queue shortcut)
   useEffect(() => {
@@ -135,7 +139,7 @@ export function QueueFilters({
           </div>
           {compactShell && formToInboxLabel ? (
             <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-muted-foreground">
-              Form to inbox {formToInboxLabel} · target under 2h
+              Median today {formToInboxLabel} form to inbox · target under 2h
             </p>
           ) : null}
         </div>
@@ -197,6 +201,34 @@ export function QueueFilters({
           )}
         </div>
       </div>
+
+      {compactShell && pressure.severity === "urgent" ? (
+        <div
+          className="flex flex-col gap-2 rounded-xl border border-destructive/25 bg-destructive/10 px-3 py-2 text-destructive sm:flex-row sm:items-center sm:justify-between"
+          data-queue-breach-banner
+        >
+          <div className="flex min-w-0 items-center gap-2">
+            <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <div className="min-w-0">
+              <p className="text-sm font-semibold">Over review target</p>
+              <p className="text-xs font-medium opacity-85">
+                Oldest case has waited {pressure.value}. Open it next.
+              </p>
+            </div>
+          </div>
+          {showBreachAction ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-8 shrink-0 border-destructive/25 bg-white text-destructive hover:bg-destructive/10 hover:text-destructive dark:bg-card"
+              onClick={openOldest}
+            >
+              Open oldest case
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
 
       {/* Status Filter Tabs */}
       <div className="flex w-full gap-1.5 overflow-x-auto rounded-lg bg-muted/25 p-1 sm:w-fit sm:flex-wrap">

@@ -352,7 +352,7 @@ export function buildPatientSnapshot(
   const missingCriticalFields = [
     dateOfBirth ? null : "DOB",
     options?.requireSex && !sexValue ? "Sex" : null,
-    requireMedicare ? (medicareIsCritical ? null : medicare ? "Valid Medicare" : "Medicare") : null,
+    requireMedicare ? (medicareIsCritical ? null : medicare ? "Valid Medicare number" : "Medicare") : null,
     options?.requireMedicareDetails && medicare && !medicareIrnIsCritical ? "Medicare IRN" : null,
     options?.requireMedicareDetails && medicare && medicareExpiry && !medicareExpiryValidation?.valid ? "Valid Medicare expiry" : null,
     requirePhone ? (phone ? null : "Phone") : null,

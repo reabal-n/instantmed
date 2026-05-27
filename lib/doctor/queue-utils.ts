@@ -104,8 +104,8 @@ export function getWaitTimeSeverity(
   const diffMins = Math.floor(
     (now.getTime() - created.getTime()) / (1000 * 60),
   )
-  if (diffMins > 60) return "critical"
-  if (diffMins > 30) return "warning"
+  if (diffMins > 120) return "critical"
+  if (diffMins >= 90) return "warning"
   return "normal"
 }
 

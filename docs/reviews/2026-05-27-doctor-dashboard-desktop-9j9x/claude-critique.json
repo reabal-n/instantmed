@@ -1,0 +1,155 @@
+{
+  "summary": "This is a doctor-facing console, not the patient marketing surface, so most brand-spine and conversion criteria don't apply. As an internal tool it's competent and calm — clear queue state, sensible SLA framing, restrained palette — but it lacks the typographic precision and motion polish of a Linear-grade dashboard, and a few copy moments ('Mia is next.', 'Claiming case') feel under-baked.",
+  "overall_score": 6,
+  "categories": {
+    "brand_spine": {
+      "score": 6,
+      "observation": "This is the Doctor Console, an internal surface, so the consumer thesis 'Telehealth without the small talk' isn't expected here. The brand presence is correctly minimal: IM mark, 'DOCTOR CONSOLE' label, ivory background. It reads as InstantMed, but the spine here is operational (SLA framing, wait counter) rather than brand-voice.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "'Faster than your GP.' equivalent for the doctor surface is missing — there's no internal spine line that grounds the doctor in the patient promise (e.g. 'target under 2h' is there but unbranded).",
+          "recommendation": "Add a single subdued spine line in the dashboard header tying the doctor's SLA to the patient promise, e.g. 'Patients are promised under 2h. Median today: 10m.'"
+        }
+      ]
+    },
+    "typography": {
+      "score": 6,
+      "observation": "Hierarchy is mostly legible: 'Dashboard' H1, 'Today's queue' H2, patient name as card title. But the metric block in the header ('2h 13m', '10m') is small for the most important number on the screen, and the 'Updated just now / 5s ago / 10s ago' meta sits at the same weight as the wait value at a glance.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 4,
+          "issue": "The oldest-wait value '2h 13m' is the page's most urgent datum but is typeset at roughly the same scale as 'Median today 10m' next to it. The SLA-breach signal has no typographic dominance.",
+          "recommendation": "Bump the breached oldest-wait to ~28–32px, tighten letter-spacing, and demote 'Updated 10s ago' to a smaller muted caption beneath the value."
+        },
+        {
+          "severity": 2,
+          "timestamp_seconds": 16,
+          "issue": "Patient detail labels ('DOB', 'Medicare', 'Phone', 'Address') and their values share too-similar weights; scanning the identity block takes longer than it should.",
+          "recommendation": "Use a clearer label/value contrast — labels at 12px uppercase muted, values at 15–16px regular ink — and align in a consistent two-column grid."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 7,
+      "observation": "Ivory background, white cards, blue primary, restrained use of coral/red only where it earns its keep (over-target banner, waiting badge). The test-mode amber strip is appropriately quiet. No decoration tax.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "The 'Over review target' banner uses a saturated pink/red fill that competes with the red oldest-wait pill in the header — two red signals for the same fact.",
+          "recommendation": "Pick one site of alarm. Soften the banner to a pale rose with a single red icon and red headline, and let the header pill carry the live metric."
+        }
+      ]
+    },
+    "motion": {
+      "score": 5,
+      "observation": "Cannot assess true motion from stills, but between 4s and 12s the right pane swaps from empty state to patient detail with no visible transition cue (search filter applied, panel populated). Between 12s and 16s the claim action toggles state without a status affordance change beyond the pill text.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "Right-pane content change from 'Reviews today / Next step' to full patient detail appears to be a hard swap with no continuity cue.",
+          "recommendation": "Add a 180–240ms cross-fade with a 4px upward translate on the new pane; respect prefers-reduced-motion."
+        },
+        {
+          "severity": 2,
+          "timestamp_seconds": 16,
+          "issue": "Claim action transition ('Claimed for review · just now') appears instant — no micro-confirmation, no subtle pulse on the new state.",
+          "recommendation": "On claim, briefly tint the pill background then settle (300ms ease-out), and lift the case card 2px to confirm ownership."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 5,
+      "observation": "Mostly calm and operational. 'Median today 10m form to inbox · target under 2h' is good — names the wait, sets the SLA. But 'Mia is next.' under 'Next step' is oddly intimate for an internal queue, and 'Claiming case' as an action state is mid-tense and ambiguous.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "'Next step — Mia is next.' is redundant and uses the patient's first name without surname context. Reads cute, not clinical.",
+          "recommendation": "Replace with 'Next: Mia Carter · Med Cert · waiting 2h 13m' so the doctor sees who, what, and how late at a glance."
+        },
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "'Claiming case' as a button/pill label is unclear — is it an action or a state?",
+          "recommendation": "If it's a transient state, label it 'Claiming…'. If it's the action, label it 'Claim case'. Pick one."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 4,
+          "issue": "'Completed decisions only.' under the zero count is a small piece of jargon — fine for doctors but worth a plainer reframe.",
+          "recommendation": "Try 'Counts cases you've finalised today.'"
+        }
+      ]
+    },
+    "hierarchy_and_layout": {
+      "score": 6,
+      "observation": "The eye lands on the over-target banner first, which is correct triage. But the header metrics row (oldest wait, median today, test mode, availability toggle) is four competing widgets at the same altitude with no clear primary. The queue card and detail card share the same elevation, so when one patient is selected the relationship between list and detail isn't strongly expressed.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 4,
+          "issue": "Top utility row crams the SLA metric, the median, the test-mode toggle, and the availability switch on one line. The SLA breach metric — the most operationally important — doesn't dominate.",
+          "recommendation": "Split into two altitudes: SLA + median as a prominent left-aligned metric block; test mode + availability as a smaller utility cluster top-right."
+        },
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "Selected queue item ('Mia Carter') has only a faint left-border / background tint to indicate selection; on a longer queue this won't read.",
+          "recommendation": "Strengthen selection: 2px left accent in primary blue, slightly raised shadow, and reduce opacity of unselected items by 10%."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 7,
+      "observation": "Conversion-friction rubric is largely N/A for an internal doctor console — there is no paid path here. As an operational flow, the friction story is good: queue → click patient → claim → review, all on one screen with no modal interruptions. The 'Release' affordance next to 'Claimed for review' is a clean undo.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 16,
+          "issue": "After claim there's no obvious 'Start review' / 'Open notes' primary CTA in the detail pane — the doctor has claimed but the next action isn't merchandised.",
+          "recommendation": "Once claimed, surface a primary 'Start review' button at the top of the patient pane, replacing the now-redundant claim affordance."
+        }
+      ]
+    },
+    "signature_devices": {
+      "score": 5,
+      "observation": "The live wait-counter is present and well-used ('Oldest wait 2h 13m · Updated just now', 'Median today 10m form to inbox · target under 2h', per-case 'Waiting 2h 13m'). The other four devices (handwritten signature, 'what we won't do', name-first emails, 'while you wait') are marketing-surface devices and correctly absent here. The internal equivalent — making the SLA promise visible to the doctor — is present but undercooked.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "Wait-counter is shown three times (header, queue subhead, case row) in three different formats. The spine device loses force through repetition without a consistent treatment.",
+          "recommendation": "Pick one canonical format ('14m form to inbox') and use it identically in all three places; let the header carry the live aggregate, the row carry the case-specific time."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 4,
+          "issue": "The patient-facing refund promise ('Full refund if our doctor can't help') has no internal mirror — doctors should see the commitment they're operating under.",
+          "recommendation": "Add a one-line footer on the case detail: 'Patient refunded if you can't help. Use Release if out of scope.'"
+        }
+      ]
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Rework the dashboard header so the breached oldest-wait is the typographic hero (28–32px) and the test-mode / availability controls drop to a smaller utility cluster.",
+      "why": "The SLA breach is the single most important signal on this screen and currently shares weight with three lesser widgets.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Add a primary 'Start review' CTA in the patient pane once a case is claimed, and fix the ambiguous 'Claiming case' label to either 'Claim case' or 'Claiming…'.",
+      "why": "Post-claim the doctor's next action is invisible; clear state + clear next step shortens time-to-decision.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Rewrite 'Next step — Mia is next.' to a structured line: 'Next: Mia Carter · Med Cert · waiting 2h 13m'.",
+      "why": "Removes cute copy from a clinical surface and packs who/what/how-late into one scannable line.",
+      "estimated_impact": "medium"
+    }
+  ]
+}
