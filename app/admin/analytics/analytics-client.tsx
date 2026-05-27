@@ -25,11 +25,11 @@ import { GeographicBreakdownCard } from "@/components/admin/geographic-breakdown
 import {
   DashboardCard,
   DashboardGrid,
-  DashboardPageHeader,
   StatCard,
   StatusBadge,
   type StatusBadgeStatus,
 } from "@/components/dashboard"
+import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
 import { Button } from "@/components/ui/button"
 import {
   ADMIN_PARCHMENT_OPS_HREF,
@@ -107,23 +107,23 @@ export function AnalyticsDashboardClient({
     : buildStaffEmailHubHref({ tab: "queue" })
 
   return (
-    <div className="min-h-full">
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
-        <DashboardPageHeader
-          title="Analytics"
-          description="Revenue, conversion, and queue health. Deeper product analysis stays in PostHog."
-          backHref={STAFF_DASHBOARD_HREF}
-          backLabel="Staff cockpit"
-          actions={
-            <Button variant="outline" asChild>
-              <a href="https://app.posthog.com" target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="w-4 h-4 mr-2" />
-                Open PostHog
-              </a>
-            </Button>
-          }
-        />
+    <OperatorPage>
+      <OperatorPageHeader
+        title="Analytics"
+        description="Revenue, conversion, and queue health. Deeper product analysis stays in PostHog."
+        backHref={STAFF_DASHBOARD_HREF}
+        backLabel="Staff cockpit"
+        actions={
+          <Button variant="outline" asChild>
+            <a href="https://app.posthog.com" target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Open PostHog
+            </a>
+          </Button>
+        }
+      />
 
+      <OperatorScrollArea>
         <section aria-labelledby="revenue-heading" className="space-y-3">
           <h2 id="revenue-heading" className="text-sm font-semibold text-foreground">Revenue</h2>
           <DashboardGrid columns={3} gap="md">
@@ -526,7 +526,7 @@ export function AnalyticsDashboardClient({
             />
           </DashboardGrid>
         </section>
-      </div>
-    </div>
+      </OperatorScrollArea>
+    </OperatorPage>
   )
 }

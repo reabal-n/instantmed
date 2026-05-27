@@ -201,6 +201,11 @@ function normalizePhone(value: string | null | undefined): string {
   return digits
 }
 
+function hasValidMedicare(value: string | null | undefined): boolean {
+  const medicare = present(value)
+  return medicare ? validateMedicareNumber(medicare).valid : false
+}
+
 function resolveSexLabel(value: string | null): string | null {
   const normalized = value?.trim().toUpperCase()
   switch (normalized) {
@@ -586,7 +591,7 @@ function completenessScore(patient: PatientSnapshotInput): number {
     extended.onboarding_completed ? 7 : 0,
     extended.email_verified ? 4 : 0,
     present(patient.date_of_birth) ? 4 : 0,
-    present(patient.medicare_number) ? 4 : 0,
+    hasValidMedicare(patient.medicare_number) ? 4 : 0,
     presentScalar(patient.medicare_irn) ? 1 : 0,
     present(patient.medicare_expiry) ? 1 : 0,
     normalizePhone(patient.phone) ? 3 : 0,

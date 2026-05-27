@@ -230,7 +230,6 @@ function QueueIdlePanel({
   onReviewNext: () => void
 }) {
   const nextIntake = nextIntakes?.[0] ?? null
-  const visibleNextIntakes = nextIntakes?.slice(0, 3) ?? []
   const nextAction = queueDegraded
     ? "Refresh before clinical action."
     : !doctorAvailable
@@ -291,16 +290,6 @@ function QueueIdlePanel({
   const nextCaseButtonLabel = nextIntake?.patient.full_name
     ? `Open ${nextIntake.patient.full_name.split(/\s+/)[0]}`
     : "Open next case"
-  const getNextPreview = (intake: IntakeWithPatient) => {
-    const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
-    const waitMinutes = Math.max(0, Math.floor((Date.now() - new Date(getQueueEnteredAt(intake)).getTime()) / 60000))
-    const waitLabel = waitMinutes <= 0 ? "just arrived" : formatMinutes(waitMinutes)
-    return {
-      patientName: intake.patient.full_name,
-      serviceLabel: service?.short_name || formatServiceType(service?.type || ""),
-      waitLabel,
-    }
-  }
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-[linear-gradient(180deg,#FFFFFF_0%,#FFFEFB_100%)] dark:bg-card motion-safe:animate-[fade-in_180ms_ease-out]">
@@ -338,31 +327,6 @@ function QueueIdlePanel({
                     : `${reviewedToday} reviews completed today.`
                   : "No reviews completed today."}
               </p>
-              {visibleNextIntakes.length > 0 ? (
-                <div className="mt-3 divide-y divide-border/45 rounded-lg border border-border/50 bg-background/75">
-                  {visibleNextIntakes.map((intake) => {
-                    const preview = getNextPreview(intake)
-                    return (
-                      <div
-                        key={intake.id}
-                        className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-3 py-2 text-xs"
-                      >
-                        <div className="min-w-0">
-                          <p className="truncate font-semibold text-foreground">
-                            {preview.patientName}
-                          </p>
-                          <p className="truncate text-muted-foreground">
-                            {preview.serviceLabel}
-                          </p>
-                        </div>
-                        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 font-medium tabular-nums text-muted-foreground">
-                          {preview.waitLabel}
-                        </span>
-                      </div>
-                    )
-                  })}
-                </div>
-              ) : null}
             </div>
             <div className="flex shrink-0 flex-col items-end gap-1">
               {showRailAction ? (

@@ -1,3 +1,4 @@
+import { validateMedicareNumber } from "@/lib/validation/medicare"
 import type { Profile } from "@/types/db"
 
 /**
@@ -71,6 +72,12 @@ function hasValue(value: string | null | undefined): boolean {
   return value.trim().length > 0
 }
 
+function hasValidMedicareNumber(value: string | null | undefined): boolean {
+  const medicare = value?.trim()
+  if (!medicare) return false
+  return validateMedicareNumber(medicare).valid
+}
+
 /** Field set ordered for display in the missing list. */
 const FIELDS: readonly FieldDef[] = [
   { key: "full_name", label: "Full name", isFilled: (p) => hasValue(p.full_name) },
@@ -82,7 +89,7 @@ const FIELDS: readonly FieldDef[] = [
   { key: "suburb", label: "Suburb", isFilled: (p) => hasValue(p.suburb) },
   { key: "state", label: "State", isFilled: (p) => hasValue(p.state) },
   { key: "postcode", label: "Postcode", isFilled: (p) => hasValue(p.postcode) },
-  { key: "medicare_number", label: "Medicare number", isFilled: (p) => hasValue(p.medicare_number) },
+  { key: "medicare_number", label: "Medicare number", isFilled: (p) => hasValidMedicareNumber(p.medicare_number) },
 ] as const
 
 export const PATIENT_COMPLETENESS_TOTAL = FIELDS.length

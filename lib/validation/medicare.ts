@@ -3,7 +3,7 @@
  * Australian Medicare numbers follow specific validation rules
  */
 
-const TEST_MEDICARE_NUMBERS = ["1111111111", "2222222222", "3333333333", "1234567890", "0000000000"]
+const TEST_MEDICARE_NUMBERS = ["1111111111", "2222222222", "3333333333", "1234567890"]
 
 export function validateMedicareNumber(medicareNumber: string): {
   valid: boolean
@@ -15,6 +15,10 @@ export function validateMedicareNumber(medicareNumber: string): {
   // Must be exactly 10 digits
   if (!/^\d{10}$/.test(cleaned)) {
     return { valid: false, error: "Medicare number must be 10 digits" }
+  }
+
+  if (/^0{10}$/.test(cleaned)) {
+    return { valid: false, error: "Enter a valid Medicare number" }
   }
 
   if (TEST_MEDICARE_NUMBERS.includes(cleaned)) {

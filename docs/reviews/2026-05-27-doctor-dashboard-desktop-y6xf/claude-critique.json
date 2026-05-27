@@ -1,0 +1,104 @@
+{
+  "summary": "This is the internal doctor console, not the patient marketing surface — so most of the brand-spine/voice rubric doesn't apply cleanly. What's here is a competent, restrained operator UI with clear queue mechanics, sensible status colour, and a usable review pane. It holds its own against the references in restraint, but lacks the Linear-grade density tuning and Stripe-grade form polish in the review pane.",
+  "overall_score": 7,
+  "categories": {
+    "brand_spine": {
+      "score": 6,
+      "observation": "This is an internal console so the consumer thesis isn't expected, but the spine still shows up correctly in operational language: 'Form to inbox 10m · target under 2h', 'Avg med cert today 10m', 'Oldest wait 1h 58m'. The product is internally consistent with 'faster than your GP'. No coral, no marketing warmth — appropriate for a clinical surface.",
+      "findings": []
+    },
+    "typography": {
+      "score": 7,
+      "observation": "Hierarchy is legible: 'Dashboard' H1, 'Today's queue' section head, patient names at consistent weight. The '10m' metric at 4s reads as the dominant numeric anchor, which is right. Body sizes are comfortable. Minor issue: 'Brisbane …' truncates on the Andres card (4s) while there's whitespace available, which looks like a layout bug rather than intentional restraint.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "Andres Burgos meta line truncates ('Brisbane …') even though the card has horizontal room before the Verify identity pill.",
+          "recommendation": "Allow the meta line to use available width up to the pill, or move the pill to a second row on narrow widths."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 8,
+      "observation": "Ivory canvas, white cards, restrained sky shadows — exactly the stated system. Status colour is well-used: red for oldest wait (4s), amber 'Verify identity · Missing 1' pill, blue 'Awaiting script' and 'In Queue' chips, green check icons in the 'Before you sign' tracker (12s). No coral creep, no rainbow. Selected row uses a faint blue left rail (12s) which reads cleanly.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "The 'Decline and refund' affordance (12s, 16s) sits in a faint pink/ivory band right next to the primary blue 'Approve and send'. The destructive action competes visually with the primary because both are full-width-ish and similarly weighted.",
+          "recommendation": "Demote 'Decline and refund' to a tertiary text button aligned right with smaller weight, or move it behind a kebab. Keep the keyboard shortcut."
+        }
+      ]
+    },
+    "motion": {
+      "score": 6,
+      "observation": "Can't fully judge motion from frames, but the transition from list-only (4s/8s) to list+detail (12s) is a clean swap with no obvious layout shift in the surrounding chrome. The 'Updated just now → Updated 5s ago → Updated 10s ago' counter ticks predictably. No jank visible.",
+      "findings": []
+    },
+    "copy_voice": {
+      "score": 8,
+      "observation": "Copy is dry and operational — appropriate for the console. 'Form to inbox 10m · target under 2h', 'Based on the last 7 med certs issued', 'No reviews completed today', 'Confirm first. Declining refunds $25 to the patient.' all read like a calm GP would say them. No banned phrases. 'Private until sent' (16s) on the clinical note is exactly the kind of quiet specificity the brand wants.",
+      "findings": [
+        {
+          "severity": 1,
+          "timestamp_seconds": 12,
+          "issue": "'Confirm first. Declining refunds $25 to the patient.' is grammatically ambiguous — 'refunds' parses as a noun on first read.",
+          "recommendation": "Rewrite: 'Confirm first. A decline refunds $25 to the patient.' or 'Declining will refund $25 to the patient.'"
+        }
+      ]
+    },
+    "hierarchy_and_layout": {
+      "score": 7,
+      "observation": "Two-pane layout works. Empty right pane at 4s/8s is honest ('No reviews completed today.', 'Next up' with an Open Andres CTA) rather than padded with junk. On case open (12s) the eye lands on patient name → status chip → reason for visit → primary CTA, which is the correct path. The 'Before you sign 3/3' tracker above the CTA is a nice Stripe-ish progress anchor.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 12,
+          "issue": "The top-of-page 'Oldest wait 1h 58m' alert and the in-list 'Waiting 1h 58m' on Andres both scream red, but the currently-open case is Mia (15m). The red alert is about a patient the doctor isn't reviewing, so it pulls attention away from the task at hand.",
+          "recommendation": "When a case is open, soften the global oldest-wait badge or add a one-click 'Jump to oldest' so the alert is actionable rather than just anxiety-inducing."
+        },
+        {
+          "severity": 2,
+          "timestamp_seconds": 16,
+          "issue": "When 'Identity details' is collapsed and '2 more facts' is collapsed (16s), there's a lot of vertical real estate consumed by section headers with very little content visible. Density is below Linear.",
+          "recommendation": "Default 'Identity details' and 'Patient answers' to expanded on first open; collapse only after the doctor has signed once in the session."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 7,
+      "observation": "Not a paid-path surface, but the equivalent here is time-to-sign. Keyboard shortcuts are exposed (Cmd+Enter to approve, Cmd+Shift+D to decline) which is Linear-grade. The 'Before you sign · Intake · Safety · Note · 3/3' checklist directly above the primary CTA is good friction: it earns the click.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "Opening Mia's case (12s) requires a click on the row even though she is flagged 'Next up' at 8s with an 'Open Andres' button — Andres is actually older. The 'Next up' label on the right pane points at Mia while the button opens Andres. Confusing.",
+          "recommendation": "Either rename the button to match the row it opens, or surface two buttons: 'Open oldest (Andres)' and 'Open next (Mia)'."
+        }
+      ]
+    },
+    "signature_devices": {
+      "score": 6,
+      "observation": "Live wait-counter is present and well-executed ('Avg med cert today 10m · Based on the last 7 med certs issued', plus 'Updated Xs ago' on the oldest-wait pill). 'While you wait' specificity shows up as 'target under 2h' framing. Handwritten signature, 'what we won't do' link, and name-first email devices are not relevant on this surface. The refund promise appears operationally as the $25 decline note (12s), which is the internal mirror of the marketing promise — nice touch.",
+      "findings": []
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Demote 'Decline and refund' to a tertiary text/icon action and keep Cmd+Shift+D; let the blue 'Approve and send' own the primary slot alone.",
+      "why": "At 12s and 16s the destructive action competes with the primary, which slows the sign decision and is the opposite of Stripe-grade form polish.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Fix the 'Next up' / 'Open Andres' mismatch — either rename the button to match the named patient or surface two explicit buttons (Open oldest, Open next).",
+      "why": "At 8s the right pane says 'Next up' under Mia but the button opens Andres. Ambiguity on the primary triage CTA is unacceptable on a queue console.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Expand 'Identity details' and 'Patient answers' by default on first case open; rewrite '$25' line to 'A decline refunds $25 to the patient.'",
+      "why": "Removes a needless click before signing and removes a grammar stumble next to a destructive action — both are sub-day fixes that raise density and clarity to the reference bar.",
+      "estimated_impact": "medium"
+    }
+  ]
+}

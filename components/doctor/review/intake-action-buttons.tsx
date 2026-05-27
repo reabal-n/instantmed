@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowUpRight, Check, CheckCircle, ClipboardCheck, Loader2, Send, XCircle } from "lucide-react"
+import { ArrowUpRight, Check, CheckCircle, ClipboardCheck, Loader2, Send } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useMemo, useState, useTransition } from "react"
@@ -78,11 +78,12 @@ function ActionReadinessChecks({
       aria-label="Approval readiness checks"
     >
       <span className="inline-flex items-center rounded-md border border-border/60 bg-background px-1.5 py-1 text-[11px] font-semibold text-muted-foreground">
-        Pre-flight checks
+        Before you sign
       </span>
       {checks.map((check) => (
         <span
           key={check.label}
+          title={check.ready ? check.completeLabel : check.incompleteLabel}
           className={cn(
             "inline-flex cursor-default select-none items-center gap-1.5 rounded-md border px-1.5 py-1",
             check.ready
@@ -102,7 +103,7 @@ function ActionReadinessChecks({
           >
             {check.ready ? <Check className="h-3 w-3" /> : null}
           </span>
-          {check.ready ? `${check.label} done` : check.label}
+          {check.label}
         </span>
       ))}
       <span className="inline-flex items-center rounded-md border border-border/60 bg-background px-1.5 py-1 text-[11px] font-semibold text-slate-600 dark:text-muted-foreground">
@@ -243,7 +244,7 @@ export function IntakeActionButtons({
         </div>
       )}
       <div
-        className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center [&>button]:w-full [&>div]:w-full sm:[&>button]:w-auto sm:[&>div]:w-auto"
+        className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end [&>button]:w-full [&>div]:w-full sm:[&>button]:w-auto sm:[&>div]:w-auto"
         data-action-bar
       >
         {showActionReadiness ? (
@@ -269,7 +270,7 @@ export function IntakeActionButtons({
               ) : (
                 <CheckCircle className="h-4 w-4 mr-1.5" />
               )}
-              {isLoadingPreview ? "Loading..." : isPending ? "Generating..." : requiresClinicalDetail ? "Review & send" : "Approve & send"}
+              {isLoadingPreview ? "Loading..." : isPending ? "Generating..." : requiresClinicalDetail ? "Review and send" : "Approve and send"}
               <ShortcutHint tone="on-primary">Cmd+Enter</ShortcutHint>
             </Button>
             {requiresClinicalDetail ? (
@@ -389,25 +390,24 @@ export function IntakeActionButtons({
       {/* Decline */}
       {canDecline && (
         <div
-          className="flex w-full flex-col gap-1 border-t border-border/60 pt-2 sm:ml-auto sm:w-auto sm:items-end sm:border-t-0 sm:pl-2 sm:pt-0"
+          className="flex w-full flex-col gap-1 border-t border-border/60 pt-2 sm:w-auto sm:items-end sm:border-t-0 sm:pl-2 sm:pt-0"
           data-decline-lane
           data-decline-action
         >
           <Button
             variant="ghost"
             onClick={() => setShowDeclineDialog(true)}
-            className="h-7 border-transparent bg-transparent px-2 text-xs font-semibold text-destructive shadow-none hover:bg-destructive/5 hover:text-destructive"
+            className="h-7 px-1 text-[11px] font-medium text-destructive/85 shadow-none hover:bg-transparent hover:text-destructive"
             disabled={isPending}
             size="sm"
             title={showRefundOnDecline ? "Confirming decline issues the patient refund." : undefined}
           >
-            <XCircle className="h-4 w-4 mr-1.5 text-destructive/80" />
-            {showRefundOnDecline ? "Decline & refund" : "Decline"}
+            {showRefundOnDecline ? "Decline and refund" : "Decline"}
             <ShortcutHint>Cmd+Shift+D</ShortcutHint>
           </Button>
           {showRefundOnDecline ? (
-            <p className="px-0.5 text-[11px] font-medium leading-snug text-muted-foreground sm:max-w-[230px] sm:text-right">
-              {refundShortLabel ? `Confirm first. Decline returns ${refundShortLabel} to the patient automatically.` : "Confirm first. Decline refunds the patient automatically."}
+            <p className="px-0.5 text-[11px] font-medium leading-snug text-muted-foreground sm:max-w-[260px] sm:text-right">
+              {refundShortLabel ? `A decline refunds ${refundShortLabel} to the patient.` : "A decline refunds the patient."}
             </p>
           ) : null}
         </div>

@@ -97,7 +97,8 @@ export async function synthesize(opts: SynthesizeOptions): Promise<SynthesizeRes
 
   const markdownWithFalsePositives = injectModelFalsePositives(text, opts, domEvidence)
   const markdownWithChecklist = injectAcceptanceChecklist(markdownWithFalsePositives, opts, domEvidence)
-  const markdownWithFrames = injectFrameReferences(markdownWithChecklist, opts.framesDir, opts.outDir)
+  const markdownWithDomEvidence = injectDomEvidenceReferences(markdownWithChecklist, domEvidence)
+  const markdownWithFrames = injectFrameReferences(markdownWithDomEvidence, opts.framesDir, opts.outDir)
 
   const reportPath = join(opts.outDir, "report.md")
   await writeFile(reportPath, markdownWithFrames, "utf8")
@@ -226,6 +227,38 @@ function injectModelFalsePositives(
 The DOM/text evidence contradicts these model findings, so they do not count against the acceptance checklist:
 
 ${list}
+`
+}
+
+function injectDomEvidenceReferences(
+  markdown: string,
+  domEvidence: DomEvidenceSnapshot | null,
+): string {
+  if (!domEvidence || markdown.includes("## DOM Evidence")) return markdown
+
+  const visibleExcerpt = domEvidence.visibleText
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 700)
+  const elementLines = domEvidence.elements
+    .slice(0, 8)
+    .map((element) => {
+      const text = element.text.replace(/\s+/g, " ").trim().slice(0, 140)
+      return `- ${element.selector}: ${text}`
+    })
+    .join("\n")
+
+  return `${markdown.trimEnd()}
+
+## DOM Evidence
+
+Captured from \`dom-evidence.json\` for rendered-truth checks beside the frames.
+
+- URL: ${domEvidence.url}
+- Title: ${domEvidence.title || "Untitled"}
+- Visible text excerpt: ${visibleExcerpt || "No visible text captured."}
+
+${elementLines || "- No element snippets captured."}
 `
 }
 

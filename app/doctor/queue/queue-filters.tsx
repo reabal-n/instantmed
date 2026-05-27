@@ -132,7 +132,7 @@ export function QueueFilters({
             )}
           </div>
           {compactShell && formToInboxLabel ? (
-            <p className="mt-0.5 text-[11px] font-medium text-muted-foreground">
+            <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-muted-foreground">
               Form to inbox {formToInboxLabel} · target under 2h
             </p>
           ) : null}

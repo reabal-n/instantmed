@@ -73,7 +73,7 @@ function patientSavedButParchmentFailed(patientId: string, error: unknown): Doct
     return {
       success: false,
       patientId,
-      error: "Patient saved, but Parchment did not accept the sync. Open the patient record and retry.",
+      error: "Patient saved, but Parchment rejected the patient details. Check Medicare, address, DOB, phone, and sex; then retry.",
     }
   }
 
@@ -295,6 +295,10 @@ export async function openPatientInParchmentAction(
   } catch (error) {
     if (error instanceof ParchmentPatientIdentityError) {
       return { success: false, error: `Missing prescribing details: ${error.issues.join(", ")}` }
+    }
+
+    if (error instanceof ParchmentPatientSyncError) {
+      return { success: false, error: "Parchment rejected the patient details. Check Medicare, address, DOB, phone, and sex; then retry." }
     }
 
     log.warn("Failed to open patient in Parchment")

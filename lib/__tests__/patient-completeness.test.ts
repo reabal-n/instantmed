@@ -83,6 +83,17 @@ describe("computePatientProfileCompleteness", () => {
     expect(result.missingFields).toEqual([{ key: "medicare_number", label: "Medicare number" }])
   })
 
+  it("does not count all-zero Medicare placeholders as complete", () => {
+    const result = computePatientProfileCompleteness({
+      ...COMPLETE,
+      medicare_number: "0000000000",
+    })
+
+    expect(result.filled).toBe(9)
+    expect(result.isComplete).toBe(false)
+    expect(result.missingFields).toEqual([{ key: "medicare_number", label: "Medicare number" }])
+  })
+
   it("marks a fully-filled profile complete", () => {
     const result = computePatientProfileCompleteness(COMPLETE)
     expect(result.filled).toBe(10)

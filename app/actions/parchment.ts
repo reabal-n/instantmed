@@ -257,7 +257,7 @@ export async function getParchmentPrescribeUrlAction(
     if (error instanceof ParchmentPatientSyncError) {
       log.warn("Parchment prescribe blocked by patient sync failure")
       Sentry.captureException(error, { extra: { context: "parchment_prescribe_patient_sync" } })
-      return { success: false, error: "Failed to refresh patient details in Parchment. Retry after confirming the patient details." }
+      return { success: false, error: "Parchment rejected the patient details. Check Medicare, address, DOB, phone, and sex; then retry." }
     }
 
     log.error("Failed to get Parchment prescribe URL", {}, error instanceof Error ? error : new Error(String(error)))

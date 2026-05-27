@@ -43,6 +43,15 @@ describe("buildPrescribingProfileUpdates", () => {
     })
   })
 
+  it("does not persist all-zero Medicare placeholders from checkout answers", () => {
+    expect(buildPrescribingProfileUpdates({
+      medicareNumber: "0000000000",
+      medicareIrn: "2",
+    })).toEqual({
+      medicare_irn: 2,
+    })
+  })
+
   it("normalizes MM/YY Medicare expiry from legacy intake answers", () => {
     expect(buildPrescribingProfileUpdates({
       medicareNumber: "2420992029",

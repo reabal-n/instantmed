@@ -1,0 +1,105 @@
+{
+  "summary": "The doctor console matches a modern SaaS tool interface and represents a strong, functional core. However, it lacks the signature polish of Linear or Stripe, particularly in its transition mechanics, text spacing, and layout transitions. Several minor grammar errors and mechanical loading states detract from an otherwise highly efficient, trust-focused workspace.",
+  "overall_score": 6,
+  "categories": {
+    "brand_spine": {
+      "score": 6,
+      "observation": "While functional as a clean clinical tool, the console relies heavily on standard SaaS patterns rather than projecting the warm, high-trust identity found in Direct-to-Consumer telehealth surfaces like Mosh.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 1.5,
+          "issue": "The 'DOCTOR CONSOLE' branding in the sidebar is overly understated and uses generic styling.",
+          "recommendation": "Introduce a warm brand accent or subtle logo element to the sidebar header to align the console's internal look with the patient-facing warm ivory palette."
+        }
+      ]
+    },
+    "typography": {
+      "score": 6,
+      "observation": "Good typography contrast is present in primary headings, but the subtexts and secondary statuses in the list views suffer from dense layout grouping and tight line-heights.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 10.5,
+          "issue": "The paragraph text under 'Reason for visit' has tight line-height and letter-spacing, making medical reading taxing.",
+          "recommendation": "Increase line-height of body content in patient detail cards to 1.5rem and slightly increase paragraph spacing in tailwind configuration."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 7,
+      "observation": "Warm ivory background tones are respected, preventing a clinical, sterile look, though high-priority warnings feel visual loud due to inconsistent badge sizes.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 1.5,
+          "issue": "'Verify Identity - Missing' label has a bright orange border and text which conflicts visually with red and amber notifications elsewhere.",
+          "recommendation": "Consolidate notification accent colors to a defined system palette where orange is strictly reserved for high-priority blocking items."
+        }
+      ]
+    },
+    "motion": {
+      "score": 5,
+      "observation": "The transition state when loading patient records is mechanical and lacks easing, resulting in abrupt jumps when elements snap into place.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 9.5,
+          "issue": "The skeleton loader to actual patient detail transition feels abrupt and lacks a polished fade/spring effect.",
+          "recommendation": "Implement a 300ms ease-out transitions with a small vertical translate-y drift when switching between loading state and loaded patient data."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 5,
+      "observation": "Copy is generally clear and clinical, but is undermined by grammatically broken strings and awkward system labels.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 5.2,
+          "issue": "Grammatically broken placeholder text reading 'No else waiting - target under 2h' is displayed in the queue area.",
+          "recommendation": "Update localized string to 'No one else in queue — target under 2h' in the queue empty-state component."
+        }
+      ]
+    },
+    "hierarchy_and_layout": {
+      "score": 6,
+      "observation": "The main split-pane dashboard offers a strong layout structure, but spacing in the patient details pane feels cramped near the bottom action section.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 14.5,
+          "issue": "The bottom action group ('Approve and send', 'Decline and refund') lacks distinctive separation from the clinical notes sections.",
+          "recommendation": "Add a subtle top border or a semi-transparent floating action bar backdrop at the bottom of the details scroll pane."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 7,
+      "observation": "The action flow for doctors is exceptionally optimized with minimal clicks required to transition from queue viewing to decision execution.",
+      "findings": []
+    },
+    "signature_devices": {
+      "score": 6,
+      "observation": "The 'Avg med cert today: 10m' counter brings high-value transparency and urgency directly into the physician workflow, matching the patient-facing speed promises.",
+      "findings": []
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Fix queue grammatically broken copy string.",
+      "why": "The text 'No else waiting - target under 2h' looks highly unprofessional and damages internal team trust in the codebase.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Add smooth ease-out spring physics to right-hand drawer loading transitions.",
+      "why": "The raw loading skeleton snapping into the card content at 00:10 feels unpolished compared to reference apps like Stripe or Linear.",
+      "estimated_impact": "medium"
+    },
+    {
+      "action": "Increase line-height and spacing in 'Reason for visit' medical details pane.",
+      "why": "Clinical data density is high, and comfortable reading layout is critical for reducing visual fatigue in doctors processing many reviews.",
+      "estimated_impact": "medium"
+    }
+  ]
+}

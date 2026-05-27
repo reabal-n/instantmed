@@ -75,6 +75,13 @@ describe("getParchmentPatientIdentityIssues", () => {
     })).toEqual([])
   })
 
+  it("blocks Parchment sync for all-zero Medicare placeholders", () => {
+    expect(getParchmentPatientIdentityIssues({
+      ...baseProfile,
+      medicare_number: "0000000000",
+    })).toEqual(["Valid Medicare"])
+  })
+
   it("flags Medicare card expiry only when an invalid expiry is supplied", () => {
     expect(getParchmentPatientIdentityIssues({
       ...baseProfile,

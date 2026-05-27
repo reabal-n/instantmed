@@ -48,13 +48,13 @@ export function DoctorAvailabilityToggle({
         onCheckedChange={handleToggle}
         disabled={isPending}
         size={compact ? "sm" : "default"}
-        switchClassName="data-[state=checked]:border-[#6B8A76]/45 data-[state=checked]:bg-[#6B8A76]"
+        switchClassName="data-[state=checked]:border-[#7B8F80]/45 data-[state=checked]:bg-[#7B8F80]"
       />
       <Label
         htmlFor={compact ? "staff-availability" : "availability"}
         className={cn(
           compact ? "text-xs" : "text-sm",
-          available ? "text-[#587565]" : "text-muted-foreground",
+          available ? "text-[#637A68]" : "text-muted-foreground",
         )}
       >
         {available ? "Available" : "Unavailable"}
