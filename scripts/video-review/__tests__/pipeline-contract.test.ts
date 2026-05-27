@@ -40,6 +40,8 @@ describe("video review multi-model contract", () => {
     expect(synthesize).toContain("Use both.")
     expect(synthesize).toContain("DomEvidenceSnapshot")
     expect(synthesize).toContain("filterContradictedFindings")
+    expect(synthesize).toContain("injectDomEvidenceReferences")
+    expect(synthesize).toContain("Captured from \\`dom-evidence.json\\`")
     expect(synthesize).toContain("Model false positives")
     expect(synthesize).toContain("Acceptance Checklist")
     expect(synthesize).toContain("No shortcut hazards")

@@ -94,15 +94,15 @@ export function QueuePressureSignal({
         />
       ) : null}
       {showLabel ? (
-        <span className="hidden text-[11px] font-semibold sm:inline">
+        <span className={cn("hidden font-semibold sm:inline", compact ? "text-[11px]" : "text-xs")}>
           {state.label}
         </span>
       ) : null}
-      <span className={cn("text-sm font-semibold tabular-nums", classes.value)}>
+      <span className={cn("font-semibold tabular-nums", compact ? "text-sm" : "text-base", classes.value)}>
         {state.value}
       </span>
       {trailingLabel ? (
-        <span className="hidden text-[11px] font-medium opacity-80 sm:inline">
+        <span className={cn("hidden font-medium opacity-80 sm:inline", compact ? "text-[11px]" : "text-xs")}>
           {trailingLabel}
         </span>
       ) : null}

@@ -4,11 +4,13 @@ import {
   Calendar,
   CreditCard,
   ExternalLink,
+  FileText,
   Loader2,
   type LucideIcon,
   Mail,
   MapPin,
   Phone,
+  Pill,
   ShieldCheck,
   UserRound,
 } from "lucide-react"
@@ -19,13 +21,13 @@ import { PatientTimeline } from "@/components/doctor/patient-timeline"
 import { DrawerPanel } from "@/components/panels/drawer-panel"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import {
   buildPatientSnapshot,
   getPatientSnapshotOptionsForCase,
   type PatientSnapshotInput,
 } from "@/lib/doctor/patient-snapshot"
+import { formatIntakeStatus } from "@/lib/format/intake"
 import { cn } from "@/lib/utils"
 
 interface PatientProfilePanelProps {
@@ -123,7 +125,8 @@ export function PatientProfilePanel({
         : "destructive"
   const [summary, setSummary] = useState<SummaryState>({ status: "idle" })
   const canLoadHistory = loadHistory && UUID_RE.test(snapshot.id)
-  const showHistoryTab = loadHistory
+  const latestHistory = summary.status === "ready" ? summary.data.history[0] ?? null : null
+  const prescribingReady = snapshot.missingCriticalFields.length === 0
 
   useEffect(() => {
     if (!canLoadHistory) {
@@ -181,73 +184,104 @@ export function PatientProfilePanel({
           )}
         </section>
 
-        <Tabs defaultValue="identity" className="gap-3">
-          <TabsList className="w-full justify-start rounded-lg bg-muted/25 p-1 shadow-none">
-            <TabsTrigger className="flex-1 rounded-md px-3 py-1.5 text-xs shadow-none" value="identity">
-              Identity
-            </TabsTrigger>
-            <TabsTrigger className="flex-1 rounded-md px-3 py-1.5 text-xs shadow-none" value="contact">
-              Contact
-            </TabsTrigger>
-            {showHistoryTab ? (
-              <TabsTrigger className="flex-1 rounded-md px-3 py-1.5 text-xs shadow-none" value="history">
-                History
-              </TabsTrigger>
-            ) : null}
-          </TabsList>
+        <section className="space-y-2" aria-label="Identity risk">
+          <DetailRow icon={Calendar} label="Date of birth" value={snapshot.ageDobLabel} />
+          <DetailRow
+            icon={UserRound}
+            label="Sex"
+            value={snapshot.sex.label}
+          />
+        </section>
 
-          <TabsContent value="identity" className="mt-0 space-y-2">
-            <DetailRow icon={Calendar} label="Date of birth" value={snapshot.ageDobLabel} />
-            <DetailRow
-              icon={UserRound}
-              label="Sex"
-              value={snapshot.sex.label}
-            />
+        <section className="rounded-xl border border-border/60 bg-background px-3 py-3" aria-label="Prescribing readiness">
+          <div className="flex items-start gap-3">
+            <span className={cn(
+              "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
+              prescribingReady ? "bg-muted text-muted-foreground" : "bg-warning-light text-warning",
+            )}>
+              <Pill className="h-4 w-4" aria-hidden />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Prescribing readiness
+              </p>
+              <p className="mt-0.5 text-sm font-semibold text-foreground">
+                {prescribingReady ? "Ready for this pathway" : `Missing ${snapshot.missingCriticalFields.join(", ")}`}
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                Missing identity blocks Parchment/script launch, not case review.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-xl border border-border/60 bg-background px-3 py-3" aria-label="Latest request">
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+              <FileText className="h-4 w-4" aria-hidden />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Latest request
+              </p>
+              <p className="mt-0.5 truncate text-sm font-semibold text-foreground">
+                {latestHistory
+                  ? `${latestHistory.service_label} · ${formatIntakeStatus(latestHistory.status)}`
+                  : summary.status === "loading"
+                    ? "Loading latest request"
+                    : sourceLabel}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <details className="rounded-xl border border-border/60 bg-background">
+          <summary className="cursor-pointer px-3 py-2.5 text-sm font-semibold text-muted-foreground">
+            Contact and identifiers
+          </summary>
+          <div className="space-y-2 border-t border-border/60 p-3">
             <DetailRow
               icon={CreditCard}
               label="Medicare"
               value={snapshot.medicare.label}
               mono={snapshot.medicare.present}
             />
-          </TabsContent>
-
-          <TabsContent value="contact" className="mt-0 space-y-2">
             <DetailRow icon={Phone} label="Phone" value={snapshot.phone.label} />
             <DetailRow icon={Mail} label="Email" value={snapshot.email.label} />
             <DetailRow icon={MapPin} label="Address" value={snapshot.address.label} />
-          </TabsContent>
+          </div>
+        </details>
 
-          {showHistoryTab ? (
-            <TabsContent value="history" className="mt-0">
-              {summary.status === "loading" && (
-                <section className="rounded-xl border border-border/60 bg-background p-4">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                    Loading history
-                  </div>
-                </section>
-              )}
+        {loadHistory ? (
+          <section aria-label="Patient timeline">
+            {summary.status === "loading" && (
+              <div className="rounded-xl border border-border/60 bg-background p-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  Loading timeline
+                </div>
+              </div>
+            )}
 
-              {summary.status === "error" && (
-                <section className="rounded-xl border border-border/60 bg-background p-4">
-                  <p className="text-sm text-muted-foreground">{summary.message}</p>
-                </section>
-              )}
+            {summary.status === "error" && (
+              <div className="rounded-xl border border-border/60 bg-background p-4">
+                <p className="text-sm text-muted-foreground">{summary.message}</p>
+              </div>
+            )}
 
-              {summary.status === "ready" && (
-                <PatientTimeline
-                  requests={summary.data.history}
-                  notes={summary.data.notes}
-                  admin={admin}
-                  compact
-                  maxItems={5}
-                  title="Clinical history"
-                  emptyLabel="No previous requests recorded."
-                />
-              )}
-            </TabsContent>
-          ) : null}
-        </Tabs>
+            {summary.status === "ready" && (
+              <PatientTimeline
+                requests={summary.data.history}
+                notes={summary.data.notes}
+                admin={admin}
+                compact
+                maxItems={5}
+                title="Timeline"
+                emptyLabel="No previous requests recorded."
+              />
+            )}
+          </section>
+        ) : null}
 
         {profileHref && (
           <Button asChild variant="outline" className="w-full justify-between">

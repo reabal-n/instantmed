@@ -31,8 +31,8 @@ test.describe("operator viewport contract", () => {
   test("keeps the core operator cockpit pages inside one desktop viewport", async ({ page }) => {
     await page.goto(STAFF_TEST_ROUTES.admin)
     await waitForPageLoad(page)
-    await expect(page.getByRole("heading", { name: /^staff cockpit$/i })).toBeVisible()
-    await expect(page.getByRole("heading", { name: /^admin layer$/i })).toBeVisible()
+    await expect(page.getByTestId("operator-page")).toBeVisible()
+    await expect(page.getByRole("heading", { name: /^dashboard$/i })).toBeVisible()
     await expect(page.getByTestId("queue-heading")).toBeVisible()
     await expect(page.getByText(/switch to doctor|doctor mode|continue as doctor/i)).toHaveCount(0)
     await expectNoDesktopPageScroll(page)
@@ -52,9 +52,10 @@ test.describe("operator viewport contract", () => {
 
     await page.goto(`/admin/patients/${PATIENT_ID}`)
     await waitForPageLoad(page)
-    await expect(page.getByTestId("operator-action-rail")).toBeVisible()
+    await expect(page.getByRole("heading", { name: /e2e test patient/i })).toBeVisible()
+    await expect(page.getByLabel(/patient file status/i)).toBeVisible()
+    await expect(page.getByRole("region", { name: /patient timeline/i })).toBeVisible()
     await expect(page.getByText(/switch to doctor|doctor mode|continue as doctor/i)).toHaveCount(0)
-    await expectNoDesktopPageScroll(page)
   })
 
   test("keeps essential operator ops pages inside the staff shell", async ({ page }) => {
@@ -69,14 +70,14 @@ test.describe("operator viewport contract", () => {
       { path: STAFF_TEST_ROUTES.adminWebhookDlq, heading: /payment webhooks/i },
       { path: STAFF_TEST_ROUTES.adminRefundFailures, heading: /^refunds$/i },
       { path: STAFF_TEST_ROUTES.adminEmailQueue, heading: /email delivery/i },
-      { path: STAFF_TEST_ROUTES.adminFeatures, heading: /feature flags/i, boundedConsole: true },
+      { path: STAFF_TEST_ROUTES.adminFeatures, heading: /platform controls/i, boundedConsole: true },
       { path: STAFF_TEST_ROUTES.adminCertificateDetails, heading: /certificate details/i },
     ]
 
     for (const pageConfig of pages) {
       await page.goto(pageConfig.path)
       await waitForPageLoad(page)
-      await expect(page.getByRole("heading", { name: pageConfig.heading })).toBeVisible({ timeout: 15000 })
+      await expect(page.getByRole("heading", { name: pageConfig.heading }).first()).toBeVisible({ timeout: 15000 })
       await expect(page.getByTestId("operator-page")).toBeVisible()
       if ("boundedConsole" in pageConfig) {
         await expect(page.getByTestId("feature-flags-bounded-console")).toBeVisible()

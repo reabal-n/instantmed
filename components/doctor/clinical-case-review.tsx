@@ -11,6 +11,7 @@ import {
   buildClinicalCaseSummary,
   type PrescriptionIntent,
 } from "@/lib/clinical/case-summary"
+import { isClinicalNoteSufficient } from "@/lib/doctor/clinical-notes"
 import { cn } from "@/lib/utils"
 
 interface ClinicalCaseReviewProps {
@@ -157,6 +158,7 @@ export function ClinicalCaseReview({
   const hiddenFactCount = Math.max(summary.keyFacts.length - visibleFacts.length, 0)
   const isEditableDraftNote = Boolean(onDraftNoteChange)
   const visibleDraftNote = isEditableDraftNote ? draftNoteValue ?? "" : summary.draftNote
+  const draftNoteReady = isClinicalNoteSufficient(visibleDraftNote)
   const pinnedDraftFacts = compact ? [] : summary.keyFacts.slice(0, 4)
   const signOffParts = doctorSignOffLabel?.split(/\s+·\s+/, 2) ?? null
   const structuredSoapDraft = compact && isEditableDraftNote ? parseSoapDraft(visibleDraftNote) : null
@@ -197,7 +199,7 @@ export function ClinicalCaseReview({
               {compact ? (
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs font-semibold text-foreground">What the patient told us</p>
+                    <p className="text-xs font-semibold text-foreground">Patient answers</p>
                   </div>
                 </div>
               ) : null}
@@ -357,7 +359,7 @@ export function ClinicalCaseReview({
                     Clinical note
                   </p>
                   <p className="text-[11px] font-medium text-muted-foreground">
-                    Draft note
+                    Private until sent
                   </p>
                 </div>
               </div>
@@ -432,7 +434,7 @@ export function ClinicalCaseReview({
                             }))
                           }}
                           className="w-full"
-                          textareaClassName="min-h-[52px] max-h-[118px] resize-none overflow-y-auto border-transparent bg-transparent px-0 py-0 text-sm leading-relaxed shadow-none hover:border-transparent focus:min-h-[88px] focus:max-h-[180px] focus:border-transparent focus:ring-0 focus-visible:ring-0"
+                          textareaClassName="min-h-[52px] max-h-[118px] resize-none overflow-y-auto border-transparent bg-transparent px-0 py-0 text-sm leading-relaxed shadow-none hover:border-transparent focus:min-h-[104px] focus:max-h-[220px] focus:border-transparent focus:ring-0 focus-visible:ring-0"
                           aria-label={`Draft clinical note ${section.label}`}
                         />
                       </div>
@@ -447,10 +449,15 @@ export function ClinicalCaseReview({
                       onDraftNoteChange?.(event.target.value)
                     }}
                     className="w-full"
-                    textareaClassName="min-h-[172px] max-h-[260px] resize-none overflow-y-auto border-border/60 bg-background pb-6 text-sm leading-relaxed motion-safe:transition-[min-height,box-shadow] motion-safe:duration-150 motion-safe:ease-out focus:min-h-[220px] focus-visible:ring-primary/20"
+                    textareaClassName="min-h-[172px] max-h-[280px] resize-none overflow-y-auto border-border/60 bg-background pb-6 text-sm leading-relaxed motion-safe:transition-[min-height,box-shadow] motion-safe:duration-150 motion-safe:ease-out focus:min-h-[280px] focus:max-h-[380px] focus-visible:ring-primary/20"
                     aria-label="Draft clinical note"
                   />
                 )}
+                {!draftNoteReady ? (
+                  <p className="rounded-md border border-border/60 bg-muted/25 px-2.5 py-1.5 text-xs font-medium text-muted-foreground">
+                    Add one clinical note line before signing.
+                  </p>
+                ) : null}
                 {signOffParts ? (
                   <div className="rounded-md border border-primary/10 bg-primary/[0.025] px-2.5 py-1.5 text-xs font-medium text-muted-foreground">
                     Issue sign-off:{" "}

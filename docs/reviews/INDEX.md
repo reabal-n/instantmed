@@ -4,6 +4,7 @@ Auto-maintained by `scripts/video-review/index-update.ts`. Edit nothing here by 
 
 | Captured | Run | Journey | Score | Headline |
 |---|---|---|---|---|
+| 2026-05-27T14:26:39.047Z | [2026-05-27-doctor-dashboard-desktop-y6xf](2026-05-27-doctor-dashboard-desktop-y6xf/report.md) | Doctor dashboard desktop interaction audit (queue hover + review open) | 7 | A calm console with two CTAs fighting for the same click |
 | 2026-05-27T13:01:14.894Z | [2026-05-27-doctor-dashboard-desktop-2cmt](2026-05-27-doctor-dashboard-desktop-2cmt/report.md) | Doctor dashboard desktop interaction audit (queue hover + review open) | 8 | The console is calm. The motion isn't. |
 | 2026-05-25T10:08:49.785Z | [2026-05-25-homepage-clkf](2026-05-25-homepage-clkf/report.md) | Homepage long-scroll + nav tour | 8 | The homepage holds up. Fix the first half-second. |
 | 2026-05-25T10:07:32.798Z | [2026-05-25-marketing-business-h4tc](2026-05-25-marketing-business-h4tc/report.md) | /business B2B landing long-scroll | 7 | The copy is doing the heavy lifting. The form is undoing it. |

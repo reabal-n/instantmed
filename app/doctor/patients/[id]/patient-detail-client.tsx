@@ -306,13 +306,20 @@ export function PatientDetailClient({
       ? "warning"
       : "outline"
 
-  const canUseParchment = parchmentEnabled && parchmentUserLinked
-  const hasParchmentBlocker = !parchmentEnabled || !parchmentUserLinked || !patient.parchment_patient_id
+  const missingPrescribingIdentityFields = snapshot.missingCriticalFields
+  const hasPrescribingIdentityBlocker = missingPrescribingIdentityFields.length > 0
+  const prescribingIdentityBlockerTitle = hasPrescribingIdentityBlocker
+    ? `Complete prescribing identity: ${missingPrescribingIdentityFields.join(", ")}`
+    : undefined
+  const canUseParchment = parchmentEnabled && parchmentUserLinked && !hasPrescribingIdentityBlocker
+  const hasParchmentBlocker = !parchmentEnabled || !parchmentUserLinked || hasPrescribingIdentityBlocker || !patient.parchment_patient_id
   const latestRequest = intakes[0] ?? null
   const parchmentStatusLabel = !parchmentEnabled
     ? "Parchment integration disabled"
-    : !parchmentUserLinked
-      ? "Prescriber not linked"
+      : !parchmentUserLinked
+        ? "Prescriber not linked"
+      : hasPrescribingIdentityBlocker
+        ? `Verify identity: ${missingPrescribingIdentityFields.join(", ")}`
       : patient.parchment_patient_id
         ? "Synced in Parchment"
         : "Sync required"
@@ -337,9 +344,11 @@ export function PatientDetailClient({
     },
     {
       label: "Prescribing",
-      value: patient.parchment_patient_id ? "Ready" : parchmentStatusLabel,
-      tone: patient.parchment_patient_id ? "muted" : parchmentStatusTone === "warning" ? "warning" : "destructive",
-      icon: patient.parchment_patient_id ? CheckCircle : Pill,
+      value: hasPrescribingIdentityBlocker
+        ? `Verify identity: ${missingPrescribingIdentityFields.join(", ")}`
+        : patient.parchment_patient_id ? "Ready" : parchmentStatusLabel,
+      tone: hasPrescribingIdentityBlocker ? "warning" : patient.parchment_patient_id ? "muted" : parchmentStatusTone === "warning" ? "warning" : "destructive",
+      icon: hasPrescribingIdentityBlocker ? AlertTriangle : patient.parchment_patient_id ? CheckCircle : Pill,
     },
     {
       label: "Latest request",
@@ -459,9 +468,9 @@ export function PatientDetailClient({
               type="button"
               variant="outline"
               size="sm"
-              disabled={isParchmentSyncPending}
+              disabled={isParchmentSyncPending || hasPrescribingIdentityBlocker}
               onClick={handleSyncPatientToParchment}
-              title="Sync this patient to Parchment"
+              title={prescribingIdentityBlockerTitle ?? "Sync this patient to Parchment"}
             >
               {isParchmentSyncPending ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -474,11 +483,11 @@ export function PatientDetailClient({
           {canUseParchment ? (
             <Button
               type="button"
-              variant="outline"
-              size="sm"
-              disabled={isPrescriptionRefreshPending}
-              onClick={handleRefreshParchmentPrescriptions}
-              title="Refresh prescriptions from Parchment"
+            variant="outline"
+            size="sm"
+            disabled={isPrescriptionRefreshPending || hasPrescribingIdentityBlocker}
+            onClick={handleRefreshParchmentPrescriptions}
+            title={prescribingIdentityBlockerTitle ?? "Refresh prescriptions from Parchment"}
             >
               {isPrescriptionRefreshPending ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -492,6 +501,7 @@ export function PatientDetailClient({
             type="button"
             size="sm"
             disabled={!canUseParchment}
+            title={prescribingIdentityBlockerTitle}
             onClick={handleOpenParchmentPrescribe}
           >
             <Pill className="h-4 w-4" />

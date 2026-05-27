@@ -53,6 +53,10 @@ function normalizeDigits(value: string | null): string | null {
   return digits || null
 }
 
+function isZeroMedicarePlaceholder(value: string): boolean {
+  return /^0{10}$/.test(value)
+}
+
 function normalizeIrn(value: string | null): number | null {
   const digits = normalizeDigits(value)
   if (!digits || !/^[1-9]$/.test(digits)) return null
@@ -107,7 +111,7 @@ export function buildPrescribingProfileUpdates(
   const postcode = firstStringAnswer(answers, ["postcode"])
   const sex = normalizeSex(firstStringAnswer(answers, ["sex", "gender"]))
 
-  if (medicare) updates.medicare_number = medicare
+  if (medicare && !isZeroMedicarePlaceholder(medicare)) updates.medicare_number = medicare
   if (medicareIrn) updates.medicare_irn = medicareIrn
   if (medicareExpiry) updates.medicare_expiry = medicareExpiry
   if (addressLine1) updates.address_line1 = addressLine1

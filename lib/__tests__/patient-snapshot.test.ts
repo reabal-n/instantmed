@@ -238,6 +238,34 @@ describe("buildPatientSnapshot", () => {
     expect(snapshot.missingCriticalFields).toEqual(["Valid Medicare"])
   })
 
+  it("treats all-zero Medicare placeholders as invalid prescribing identity", () => {
+    const snapshot = buildPatientSnapshot({
+      id: "patient-zero-medicare",
+      full_name: "Zero Medicare",
+      date_of_birth: "1985-01-01",
+      medicare_number: "0000000000",
+      medicare_irn: 1,
+      phone: "0412 345 678",
+      email: "zero@example.com",
+      address_line1: "12 George St",
+      suburb: "Sydney",
+      state: "NSW",
+      postcode: "2000",
+      sex: "M",
+    }, {
+      now,
+      requireStructuredAddress: true,
+      requireSex: true,
+      requireMedicareDetails: true,
+      validateMedicare: true,
+    })
+
+    expect(snapshot.medicare.present).toBe(true)
+    expect(snapshot.medicare.valid).toBe(false)
+    expect(snapshot.missingCriticalFields).toEqual(["Valid Medicare"])
+    expect(snapshot.completenessTone).toBe("partial")
+  })
+
   it("flags missing Medicare IRN but does not require expiry when full prescribing identity is required", () => {
     const snapshot = buildPatientSnapshot({
       id: "patient-6",

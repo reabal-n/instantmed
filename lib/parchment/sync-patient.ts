@@ -501,6 +501,6 @@ export async function syncPatientToParchment(
     }
 
     log.error("Failed to sync patient to Parchment", {}, error instanceof Error ? error : new Error(String(error)))
-    throw error
+    throw new ParchmentPatientSyncError("Failed to sync patient details to Parchment", error)
   }
 }

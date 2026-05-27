@@ -386,6 +386,10 @@ export function QueueTable({
               intake.status === "awaiting_script" &&
               patientSnapshot.missingCriticalFields.length > 0
             const identityFixHref = `${ADMIN_PRESCRIBING_IDENTITY_HREF}#identity-${intake.id}`
+            const subtypeLabel = getConsultSubtypeLabel(intake.subtype)
+            const serviceBadgeLabel = compactShell && subtypeLabel
+              ? `${subtypeLabel} consult`
+              : service?.short_name || formatServiceType(service?.type || "")
 
             const isOpen = openIntakeId === intake.id
             const isSelected = isFocused || isOpen
@@ -453,7 +457,7 @@ export function QueueTable({
                   compactShell && "sm:col-span-2 sm:col-start-1 sm:row-start-2",
                 )}>
                   <Badge variant="outline" className={cn("text-xs", compactShell && "min-w-fit whitespace-nowrap")}>
-                    {service?.short_name || formatServiceType(service?.type || "")}
+                    {serviceBadgeLabel}
                   </Badge>
                   {showRoutineStatus && (
                     <Badge
@@ -468,12 +472,9 @@ export function QueueTable({
                       {statusMeta.label}
                     </Badge>
                   )}
-                  {(() => {
-                    const subtypeLabel = getConsultSubtypeLabel(intake.subtype)
-                    return subtypeLabel ? (
-                      <Badge variant="secondary" className={cn("text-xs", compactShell && "whitespace-nowrap")}>{subtypeLabel}</Badge>
-                    ) : null
-                  })()}
+                  {!compactShell && subtypeLabel ? (
+                    <Badge variant="secondary" className="text-xs">{subtypeLabel}</Badge>
+                  ) : null}
                   {intake.is_priority && (
                     <Badge className="bg-warning-light text-warning border-warning-border">
                       <Zap className="w-3 h-3 mr-1" />Priority
@@ -554,7 +555,7 @@ export function QueueTable({
                       <Clock className="w-3 h-3 mr-1" />Over review target
                     </Badge>
                   )}
-                  {handoffSummary.tone !== "success" && (
+                  {handoffSummary.tone !== "success" && !showIdentityFix && (
                     <Badge
                       variant={handoffSummary.tone === "critical" ? "destructive" : "warning"}
                       className="max-w-full text-xs"
@@ -605,9 +606,9 @@ export function QueueTable({
                         onClick={(event) => {
                           event.stopPropagation()
                         }}
-                        aria-label={`Fix prescribing identity for ${intake.patient.full_name}`}
+                        aria-label={`Verify prescribing identity for ${intake.patient.full_name}`}
                       >
-                        Fix identity
+                        Verify identity · Missing {patientSnapshot.missingCriticalFields.length}
                       </Link>
                     </Button>
                   )}
@@ -732,7 +733,7 @@ export function QueueTable({
                     {submittedAt ? ` · Submitted ${submittedAt}` : ""}
                   </p>
                 )}
-                {waitSeverity === "critical" && (
+                {!compactShell && waitSeverity === "critical" && (
                   <AlertTriangle className="col-start-2 row-start-3 h-3.5 w-3.5 shrink-0 justify-self-end text-destructive sm:col-start-4 sm:row-start-1" aria-label="Critical" />
                 )}
               </div>
@@ -748,7 +749,7 @@ export function QueueTable({
               <p className="text-xs font-medium text-muted-foreground">
                 {filteredIntakes.length === 1
                   ? "No one else waiting · target under 2h"
-                  : `${filteredIntakes.length} visible cases · target under 2h`}
+                  : `${filteredIntakes.length} in the queue · target under 2h`}
               </p>
             </div>
           )}

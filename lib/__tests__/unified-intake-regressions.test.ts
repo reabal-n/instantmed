@@ -391,6 +391,28 @@ describe("unified intake regressions", () => {
     }, identity)).toBeNull()
   })
 
+  it("blocks prescription checkout when Medicare is an all-zero placeholder", () => {
+    const validPrescriptionAnswers = {
+      medicationName: "Budesonide + formoterol",
+      medicationStrength: "100/3 micrograms",
+      medicationForm: "inhaler",
+      prescriptionHistory: "6 to 12 months",
+      currentDose: "2 puffs twice daily",
+      ...sharedMedicalHistory,
+      medicareNumber: "0000000000",
+      medicareIrn: "2",
+      addressLine1: "12 Manual Entry Road",
+      suburb: "Sydney",
+      state: "NSW",
+      postcode: "2000",
+      sex: "M",
+    }
+
+    expect(
+      validateAnswersServerSide("repeat-script", validPrescriptionAnswers, identity),
+    ).toBe("Enter a valid Medicare number")
+  })
+
   it("requires the patient-reported dose for repeat medication requests", () => {
     expect(validateAnswersServerSide("repeat-script", {
       medicationName: "Budesonide + formoterol",
