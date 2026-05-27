@@ -26,6 +26,11 @@ export interface ReviewData {
     resend_count: number
   } | null
   patientMessages?: PatientThreadMessage[]
+  reviewingClinician?: {
+    fullName: string | null
+    providerNumber: string | null
+    ahpraNumber: string | null
+  } | null
   /**
    * Populated by the review-data API when the intake is a renewal of a
    * prior active/completed prescription for the same patient. Drives the
@@ -73,7 +78,7 @@ export interface IntakeReviewContextValue {
   handleMedCertApprove: () => Promise<void>
   handleStatusChange: (status: IntakeStatus) => Promise<void>
   handleDecline: () => Promise<void>
-  handleSaveNotes: () => Promise<void>
+  handleSaveNotes: (nextNotes?: string) => Promise<void>
   handleGenerateOrRegenerateNote: () => Promise<void>
   handleOpenParchmentPrescribe: () => void
   handleApproveAndOpenParchment: () => Promise<void>

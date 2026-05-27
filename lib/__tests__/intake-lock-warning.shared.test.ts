@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import { formatClaimWarning } from "@/lib/data/intake-lock-warning"
+import { isReviewLockableStatus } from "@/lib/doctor/intake-lock-status"
 
 describe("formatClaimWarning", () => {
   it("masks the broken System (Auto-Approve) template", () => {
@@ -44,5 +45,17 @@ describe("formatClaimWarning", () => {
       error_message: "Already claimed by system (auto-approve) ( minutes remaining)",
     })
     expect(warning).toMatch(/you can still review/i)
+  })
+})
+
+describe("isReviewLockableStatus", () => {
+  it("allows live review statuses and skips terminal ledger statuses", () => {
+    expect(isReviewLockableStatus("paid")).toBe(true)
+    expect(isReviewLockableStatus("in_review")).toBe(true)
+    expect(isReviewLockableStatus("pending_info")).toBe(true)
+    expect(isReviewLockableStatus("awaiting_script")).toBe(true)
+    expect(isReviewLockableStatus("approved")).toBe(false)
+    expect(isReviewLockableStatus("completed")).toBe(false)
+    expect(isReviewLockableStatus("declined")).toBe(false)
   })
 })

@@ -63,7 +63,7 @@ export function OperatorPageHeader({
   return (
     <header
       className={cn(
-        "mb-0 shrink-0 flex flex-wrap items-center gap-3 sm:flex-nowrap",
+        "mb-0 flex shrink-0 flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3",
         className,
       )}
     >
@@ -78,7 +78,7 @@ export function OperatorPageHeader({
           </Link>
         ) : null}
         <div className="flex flex-wrap items-center gap-2">
-          <h1 className="truncate text-xl font-semibold tracking-tight text-foreground">
+          <h1 className="min-w-0 text-lg font-semibold tracking-tight text-foreground sm:truncate sm:text-xl">
             {title}
           </h1>
           {badge}
@@ -88,7 +88,7 @@ export function OperatorPageHeader({
         ) : null}
       </div>
       {actions ? (
-        <div className="flex shrink-0 items-center gap-2">{actions}</div>
+        <div className="flex w-full shrink-0 flex-wrap items-center gap-2 sm:w-auto sm:justify-end">{actions}</div>
       ) : null}
     </header>
   )
@@ -137,6 +137,7 @@ export function OperatorPanel({
 interface OperatorSplitPaneProps {
   list: ReactNode
   detail: ReactNode
+  mode?: "idle" | "reviewing" | "dense"
   className?: string
   listClassName?: string
   detailClassName?: string
@@ -145,21 +146,30 @@ interface OperatorSplitPaneProps {
 export function OperatorSplitPane({
   list,
   detail,
+  mode = "dense",
   className,
   listClassName,
   detailClassName,
 }: OperatorSplitPaneProps) {
+  const layoutClass =
+    mode === "idle"
+      ? "lg:grid-cols-[minmax(560px,1fr)_minmax(280px,0.38fr)]"
+      : mode === "reviewing"
+        ? "lg:grid-cols-[minmax(460px,0.92fr)_minmax(0,1.38fr)]"
+        : "lg:grid-cols-[minmax(320px,0.95fr)_minmax(0,1.4fr)]"
+
   return (
     <div
       data-testid="operator-split-pane"
       className={cn(
-        "grid min-h-0 flex-1 gap-3 lg:grid-cols-[minmax(320px,0.95fr)_minmax(0,1.4fr)]",
+        "grid min-h-0 flex-1 gap-3 motion-safe:transition-[grid-template-columns] motion-safe:duration-300 motion-safe:ease-[cubic-bezier(0.16,1,0.3,1)] lg:min-h-[620px]",
+        layoutClass,
         className,
       )}
     >
       <div
         className={cn(
-          "min-h-0 overflow-hidden rounded-xl border border-border/50 bg-card shadow-sm shadow-primary/[0.04]",
+          "min-h-0 overflow-hidden rounded-xl border border-border/50 bg-card shadow-sm shadow-primary/[0.04] motion-safe:animate-[fade-in_160ms_ease-out]",
           listClassName,
         )}
       >
@@ -167,7 +177,7 @@ export function OperatorSplitPane({
       </div>
       <div
         className={cn(
-          "min-h-0 overflow-hidden rounded-xl border border-border/50 bg-card shadow-sm shadow-primary/[0.04]",
+          "min-h-0 overflow-hidden rounded-xl border border-border/50 border-l-primary/20 bg-card shadow-sm shadow-primary/[0.06] motion-safe:animate-[fade-in-right_260ms_cubic-bezier(0.16,1,0.3,1)] lg:border-l-2",
           detailClassName,
         )}
       >

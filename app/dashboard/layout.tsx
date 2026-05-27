@@ -2,7 +2,11 @@ import type { Metadata } from "next"
 
 import { OperatorShell } from "@/components/operator"
 import { requireRole } from "@/lib/auth/helpers"
-import { getStaffDisplayRole } from "@/lib/auth/staff-capabilities"
+import {
+  getStaffDisplayRole,
+  hasDoctorAccess,
+  hasSupportAccess,
+} from "@/lib/auth/staff-capabilities"
 import { EMPTY_STAFF_NAV_COUNTS, getStaffNav } from "@/lib/dashboard/staff-navigation"
 import { getStaffNavCounts } from "@/lib/data/staff-nav-counts"
 
@@ -33,6 +37,11 @@ export default async function DashboardLayout({
 
   const navSections = getStaffNav(authUser.profile)
   const staffRoleLabel = getStaffDisplayRole(authUser.profile)
+  const brandLabel = hasDoctorAccess(authUser.profile)
+    ? "Doctor console"
+    : hasSupportAccess(authUser.profile)
+      ? "Support console"
+      : "Staff console"
   const navCounts = await getStaffNavCounts().catch(() => EMPTY_STAFF_NAV_COUNTS)
 
   return (
@@ -41,6 +50,7 @@ export default async function DashboardLayout({
       userRole={staffRoleLabel}
       navCounts={navCounts}
       navSections={navSections}
+      brandLabel={brandLabel}
     >
       {children}
     </OperatorShell>

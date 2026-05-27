@@ -1,10 +1,11 @@
 /**
  * Video review pipeline orchestrator.
  *
- * Stages: capture (Playwright) -> critique (Gemini 3.5 Flash) ->
- * synthesize (Claude Opus 4.7) -> index update.
+ * Stages: capture (Playwright) -> critique (Gemini 3.5 Flash + Claude
+ * Opus 4.7 vision) -> synthesize (Claude Opus 4.7) -> index update.
  *
- * Output: docs/reviews/<runId>/{capture.webm, frames/, critique.json, report.md}
+ * Output: docs/reviews/<runId>/{capture.webm, frames/, critique.json,
+ * claude-critique.json, report.md}
  *
  * Hardening:
  *   - Granular resume: --from-run auto-detects which stage to start at
@@ -18,10 +19,11 @@
  *   - SIGINT bubbles to capture.ts's browser cleanup handler.
  */
 
-import { mkdir, readdir, readFile, stat } from "node:fs/promises"
+import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises"
 import { join, resolve } from "node:path"
 
 import { capture, type CaptureResult } from "./capture"
+import { critiqueWithClaudeVision, type ClaudeCritiqueResult } from "./claude-critique"
 import { critique, type CritiqueResult } from "./critique"
 import { updateIndex } from "./index-update"
 import { JOURNEYS, getJourney, type Journey } from "./journeys"
@@ -84,6 +86,7 @@ Output:
     capture.webm
     frames/*.png
     critique.json
+    claude-critique.json
     report.md`)
 }
 
@@ -104,26 +107,32 @@ function makeRunId(journeyName: string): string {
 interface RunArtifacts {
   hasVideo: boolean
   hasCritique: boolean
+  hasClaudeCritique: boolean
   hasReport: boolean
   videoPath: string
   critiqueJsonPath: string
+  claudeCritiqueJsonPath: string
 }
 
 async function detectArtifacts(outDir: string): Promise<RunArtifacts> {
   const videoPath = join(outDir, "capture.webm")
   const critiqueJsonPath = join(outDir, "critique.json")
+  const claudeCritiqueJsonPath = join(outDir, "claude-critique.json")
   const reportPath = join(outDir, "report.md")
-  const [video, critiqueJson, report] = await Promise.all([
+  const [video, critiqueJson, claudeCritiqueJson, report] = await Promise.all([
     fileExists(videoPath),
     fileExists(critiqueJsonPath),
+    fileExists(claudeCritiqueJsonPath),
     fileExists(reportPath),
   ])
   return {
     hasVideo: video,
     hasCritique: critiqueJson,
+    hasClaudeCritique: claudeCritiqueJson,
     hasReport: report,
     videoPath,
     critiqueJsonPath,
+    claudeCritiqueJsonPath,
   }
 }
 
@@ -154,7 +163,25 @@ interface ResumeMetadata {
   capturedAt: string
 }
 
-async function loadResumeMetadata(runId: string): Promise<ResumeMetadata> {
+async function loadResumeMetadata(runId: string, capturedUrlOverride?: string): Promise<ResumeMetadata> {
+  const metadataPath = join(REVIEWS_ROOT, runId, "metadata.json")
+  try {
+    const metadata = JSON.parse(await readFile(metadataPath, "utf8")) as {
+      journeyName?: string
+      capturedUrl?: string
+      capturedAt?: string
+    }
+    if (metadata.journeyName) {
+      return {
+        journey: getJourney(metadata.journeyName),
+        capturedUrl: capturedUrlOverride ?? metadata.capturedUrl ?? DEFAULT_URL,
+        capturedAt: metadata.capturedAt ?? new Date().toISOString(),
+      }
+    }
+  } catch {
+    // Older runs do not have metadata.json. Fall through to frontmatter / run-id inference.
+  }
+
   const reportPath = join(REVIEWS_ROOT, runId, "report.md")
   let body = ""
   try {
@@ -181,7 +208,7 @@ async function loadResumeMetadata(runId: string): Promise<ResumeMetadata> {
     journeyName = runId.match(/^\d{4}-\d{2}-\d{2}-([a-z-]+)-[a-z0-9]{4}$/)?.[1]
   }
   const journey = getJourney(journeyName)
-  return { journey, capturedUrl, capturedAt }
+  return { journey, capturedUrl: capturedUrlOverride ?? capturedUrl, capturedAt }
 }
 
 async function listRuns(): Promise<void> {
@@ -198,7 +225,8 @@ async function listRuns(): Promise<void> {
       const arts = await detectArtifacts(join(REVIEWS_ROOT, runId))
       const flags = [
         arts.hasVideo ? "video" : "-",
-        arts.hasCritique ? "critique" : "-",
+        arts.hasCritique ? "gemini" : "-",
+        arts.hasClaudeCritique ? "claude" : "-",
         arts.hasReport ? "report" : "-",
       ].join(" / ")
       console.log(`  ${runId}   [${flags}]`)
@@ -230,7 +258,7 @@ async function main(): Promise<void> {
   }
 
   if (args.fromRun) {
-    await runResume(args.fromRun)
+    await runResume(args.fromRun, args.url === DEFAULT_URL ? undefined : args.url)
     return
   }
 
@@ -248,10 +276,27 @@ async function runFresh(args: ParsedArgs): Promise<void> {
   const runId = makeRunId(journey.name)
   const outDir = resolve(REVIEWS_ROOT, runId)
   await mkdir(outDir, { recursive: true })
+  const capturedAt = new Date().toISOString()
 
   console.log(`[review] runId: ${runId}`)
   console.log(`[review] journey: ${journey.label}`)
   console.log(`[review] url: ${args.url}`)
+
+  await writeFile(
+    join(outDir, "metadata.json"),
+    JSON.stringify(
+      {
+        runId,
+        journeyName: journey.name,
+        journeyLabel: journey.label,
+        capturedUrl: args.url,
+        capturedAt,
+      },
+      null,
+      2,
+    ),
+    "utf8",
+  )
 
   await preflight({
     targetUrl: args.url,
@@ -272,17 +317,28 @@ async function runFresh(args: ParsedArgs): Promise<void> {
     journeyLabel: journey.label,
     capturedUrl: args.url,
   })
-  console.log(`[review] critique scored ${critiqueResult.critique.overall_score}/10 -> ${critiqueResult.critiqueJsonPath}`)
+  console.log(`[review] Gemini critique scored ${critiqueResult.critique.overall_score}/10 -> ${critiqueResult.critiqueJsonPath}`)
 
-  const capturedAt = new Date().toISOString()
+  const claudeCritiqueResult: ClaudeCritiqueResult = await critiqueWithClaudeVision({
+    framesDir: captureResult.framesDir,
+    outDir,
+    journeyLabel: journey.label,
+    capturedUrl: args.url,
+  })
+  console.log(
+    `[review] Claude vision critique scored ${claudeCritiqueResult.critique.overall_score}/10 -> ${claudeCritiqueResult.critiqueJsonPath}`,
+  )
+
   const synthResult = await synthesize({
     critique: critiqueResult.critique,
+    claudeCritique: claudeCritiqueResult.critique,
     outDir,
     runId,
     journeyLabel: journey.label,
     capturedUrl: args.url,
     capturedAt,
     framesDir: captureResult.framesDir,
+    domEvidencePath: captureResult.domEvidencePath,
   })
   console.log(`[review] report written: ${synthResult.reportPath}`)
 
@@ -292,7 +348,7 @@ async function runFresh(args: ParsedArgs): Promise<void> {
   console.log(`\n✅ Done. Open ${synthResult.reportPath}`)
 }
 
-async function runResume(runId: string): Promise<void> {
+async function runResume(runId: string, capturedUrlOverride?: string): Promise<void> {
   const outDir = resolve(REVIEWS_ROOT, runId)
   try {
     const info = await stat(outDir)
@@ -304,11 +360,11 @@ async function runResume(runId: string): Promise<void> {
   }
 
   const arts = await detectArtifacts(outDir)
-  const meta = await loadResumeMetadata(runId)
+  const meta = await loadResumeMetadata(runId, capturedUrlOverride)
 
   console.log(`[review] resuming run: ${runId}`)
   console.log(
-    `[review] artefacts: video=${arts.hasVideo} critique=${arts.hasCritique} report=${arts.hasReport}`,
+    `[review] artefacts: video=${arts.hasVideo} gemini=${arts.hasCritique} claude=${arts.hasClaudeCritique} report=${arts.hasReport}`,
   )
 
   await preflight({
@@ -317,12 +373,13 @@ async function runResume(runId: string): Promise<void> {
     resumeFromRunId: runId,
   })
 
-  let captureResult: { videoPath: string; framesDir: string; durationSeconds: number }
+  let captureResult: { videoPath: string; framesDir: string; durationSeconds: number; domEvidencePath: string }
   if (arts.hasVideo) {
     captureResult = {
       videoPath: arts.videoPath,
       framesDir: join(outDir, "frames"),
       durationSeconds: 0,
+      domEvidencePath: join(outDir, "dom-evidence.json"),
     }
     console.log(`[review] reusing existing capture.webm`)
   } else {
@@ -337,7 +394,7 @@ async function runResume(runId: string): Promise<void> {
   let critiqueData: StructuredCritique
   if (arts.hasCritique) {
     critiqueData = await loadCritique(arts.critiqueJsonPath)
-    console.log(`[review] reusing existing critique.json (score ${critiqueData.overall_score}/10)`)
+    console.log(`[review] reusing existing critique.json (Gemini score ${critiqueData.overall_score}/10)`)
   } else {
     console.log(`[review] no critique.json - running critique stage...`)
     const c = await critique({
@@ -349,15 +406,34 @@ async function runResume(runId: string): Promise<void> {
     critiqueData = c.critique
   }
 
+  let claudeCritiqueData: StructuredCritique
+  if (arts.hasClaudeCritique) {
+    claudeCritiqueData = await loadCritique(arts.claudeCritiqueJsonPath)
+    console.log(
+      `[review] reusing existing claude-critique.json (Claude score ${claudeCritiqueData.overall_score}/10)`,
+    )
+  } else {
+    console.log(`[review] no claude-critique.json - running Claude vision critique stage...`)
+    const c = await critiqueWithClaudeVision({
+      framesDir: captureResult.framesDir,
+      outDir,
+      journeyLabel: meta.journey.label,
+      capturedUrl: meta.capturedUrl,
+    })
+    claudeCritiqueData = c.critique
+  }
+
   console.log(`[review] running synthesize stage...`)
   const synthResult = await synthesize({
     critique: critiqueData,
+    claudeCritique: claudeCritiqueData,
     outDir,
     runId,
     journeyLabel: meta.journey.label,
     capturedUrl: meta.capturedUrl,
     capturedAt: meta.capturedAt,
     framesDir: captureResult.framesDir,
+    domEvidencePath: captureResult.domEvidencePath,
   })
 
   await updateIndex()

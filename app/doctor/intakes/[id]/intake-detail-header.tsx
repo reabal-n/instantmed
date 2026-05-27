@@ -44,7 +44,7 @@ import { buildDoctorDocumentBuilderHref } from "@/lib/dashboard/routes"
 import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
 import { INTAKE_STATUS, type IntakeStatus as StatusType } from "@/lib/data/status"
-import { MIN_CLINICAL_NOTES_LENGTH } from "@/lib/doctor/clinical-notes"
+import { isClinicalNoteSufficient } from "@/lib/doctor/clinical-notes"
 // Re-export so existing consumers (intake-decline-dialog) don't have to change import paths.
 import { DECLINE_REASONS } from "@/lib/doctor/decline-reasons"
 import {
@@ -168,8 +168,8 @@ export function IntakeDetailHeader({
     (isConsultServiceType(service?.type) && intake.status === "paid" && !isPrescribingConsult) ||
     (!isKnownDoctorServiceType(service?.type) && intake.status === "paid")
   const approveDisabledReason =
-    approvalNeedsClinicalNotes && doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH
-      ? `Add clinical notes (${doctorNotes.trim().length}/${MIN_CLINICAL_NOTES_LENGTH} chars) before approving.`
+    approvalNeedsClinicalNotes && !isClinicalNoteSufficient(doctorNotes)
+      ? "Use the draft note or add a brief clinical note."
       : null
 
   const getStatusColor = (status: string) => {

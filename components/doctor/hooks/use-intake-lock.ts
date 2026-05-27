@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef,useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import { fetchWithCsrf } from "@/lib/security/csrf-client"
 
@@ -15,12 +15,13 @@ const LOCK_EXTEND_INTERVAL_MS = 5 * 60 * 1000
  */
 export function useIntakeLock(intakeId: string, active = true) {
   const [lockWarning, setLockWarning] = useState<string | null>(null)
-  const hasAcquired = useRef(false)
+  const lockedIntakeIdRef = useRef<string | null>(null)
 
   // Acquire lock + start extend interval when active
   useEffect(() => {
-    if (!active || hasAcquired.current) return
-    hasAcquired.current = true
+    if (!active || lockedIntakeIdRef.current === intakeId) return
+    lockedIntakeIdRef.current = intakeId
+    setLockWarning(null)
     let cancelled = false
 
     fetchWithCsrf(`/api/doctor/intakes/${intakeId}/lock`, {
@@ -48,6 +49,9 @@ export function useIntakeLock(intakeId: string, active = true) {
     return () => {
       cancelled = true
       clearInterval(lockInterval)
+      if (lockedIntakeIdRef.current === intakeId) {
+        lockedIntakeIdRef.current = null
+      }
       void fetchWithCsrf(`/api/doctor/intakes/${intakeId}/lock`, {
         method: "DELETE",
         keepalive: true,
@@ -57,6 +61,8 @@ export function useIntakeLock(intakeId: string, active = true) {
 
   // Explicit release for use in close handlers (e.g. before sendBeacon)
   const releaseLock = useCallback(() => {
+    if (lockedIntakeIdRef.current !== intakeId) return
+    lockedIntakeIdRef.current = null
     void fetchWithCsrf(`/api/doctor/intakes/${intakeId}/lock`, {
       method: "DELETE",
       keepalive: true,

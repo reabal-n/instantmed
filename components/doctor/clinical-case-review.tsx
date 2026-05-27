@@ -1,14 +1,14 @@
 "use client"
 
-import { AlertTriangle, CheckCircle2, Clipboard, FileText, ShieldAlert, Stethoscope } from "lucide-react"
+import { AlertTriangle, CheckCircle2, Clipboard, FileText, Loader2, Save, ShieldAlert, Stethoscope } from "lucide-react"
+import { type RefObject } from "react"
 import { toast } from "sonner"
 
 import { ClinicalSummary } from "@/components/doctor/clinical-summary"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
 import {
   buildClinicalCaseSummary,
-  type ClinicalPlanAction,
   type PrescriptionIntent,
 } from "@/lib/clinical/case-summary"
 import { cn } from "@/lib/utils"
@@ -26,31 +26,24 @@ interface ClinicalCaseReviewProps {
   className?: string
   compact?: boolean
   showFullAnswers?: boolean
+  hidePatientStory?: boolean
+  hideTitle?: boolean
+  hideRecommendedPlan?: boolean
+  draftNoteValue?: string
+  draftNoteTextareaRef?: RefObject<HTMLTextAreaElement>
+  onDraftNoteChange?: (value: string) => void
+  onDraftNoteSave?: (value: string) => Promise<void> | void
+  isDraftNoteSaving?: boolean
+  draftNoteDirty?: boolean
+  draftNoteSavedAt?: Date | null
+  draftNoteSaveError?: boolean
+  doctorSignOffLabel?: string | null
   /**
    * Suppress the inline Parchment-preset block. Callers that render the
    * canonical PrescriptionRecommendationCard alongside this component
    * (the intake-review cockpit) set this to true to avoid double-render.
    */
   hidePrescriptionIntent?: boolean
-}
-
-const ACTION_STYLES: Record<ClinicalPlanAction, string> = {
-  approve: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  prescribe: "bg-blue-50 text-blue-700 border-blue-200",
-  needs_call: "bg-amber-50 text-amber-700 border-amber-200",
-  request_info: "bg-amber-50 text-amber-700 border-amber-200",
-  decline: "bg-red-50 text-red-700 border-red-200",
-}
-
-function actionLabel(action: ClinicalPlanAction): string {
-  const labels: Record<ClinicalPlanAction, string> = {
-    approve: "Approve",
-    prescribe: "Prescribe",
-    needs_call: "Call",
-    request_info: "Info",
-    decline: "Decline",
-  }
-  return labels[action]
 }
 
 function getPrescriptionCopyLabel(intent: PrescriptionIntent): string {
@@ -76,6 +69,18 @@ export function ClinicalCaseReview({
   className,
   compact = false,
   showFullAnswers = true,
+  hidePatientStory = false,
+  hideTitle = false,
+  hideRecommendedPlan = false,
+  draftNoteValue,
+  draftNoteTextareaRef,
+  onDraftNoteChange,
+  onDraftNoteSave,
+  isDraftNoteSaving = false,
+  draftNoteDirty = false,
+  draftNoteSavedAt = null,
+  draftNoteSaveError = false,
+  doctorSignOffLabel = null,
   hidePrescriptionIntent = false,
 }: ClinicalCaseReviewProps) {
   const summary = buildClinicalCaseSummary({
@@ -111,65 +116,71 @@ export function ClinicalCaseReview({
   }
   const visibleFacts = compact ? summary.keyFacts.slice(0, 4) : summary.keyFacts
   const hiddenFactCount = Math.max(summary.keyFacts.length - visibleFacts.length, 0)
+  const isEditableDraftNote = Boolean(onDraftNoteChange)
+  const visibleDraftNote = isEditableDraftNote ? draftNoteValue ?? "" : summary.draftNote
+  const pinnedDraftFacts = compact ? summary.keyFacts.slice(0, 4) : []
 
   return (
-    <div className={cn(compact ? "space-y-2" : "space-y-4", className)}>
-      <div className="rounded-lg border border-border/60 bg-background">
-        <div className={cn("border-b border-border/60", compact ? "px-3 py-2" : "px-4 py-3")}>
-          <div className="flex flex-wrap items-center gap-2">
-            <Stethoscope className="h-4 w-4 text-primary" />
-            <h3 className="text-sm font-semibold text-foreground">{summary.title}</h3>
-            <Badge className={cn("ml-auto border text-xs", ACTION_STYLES[summary.recommendedPlan.action])}>
-              {actionLabel(summary.recommendedPlan.action)}
-            </Badge>
+    <div className={cn(compact ? "space-y-3" : "space-y-4", className)}>
+      <div className={cn("space-y-4", compact && "space-y-3")}>
+        {!hideTitle && (
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Stethoscope className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-semibold text-foreground">{summary.title}</h3>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className={cn("grid", compact ? "gap-2 p-3" : "gap-4 p-4")}>
-          <section className={compact ? "space-y-1" : "space-y-1.5"}>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Patient story
-            </p>
-            <p className={compact ? "max-h-12 overflow-hidden text-sm leading-6 text-foreground" : "text-sm leading-relaxed text-foreground"}>
-              {summary.patientStory}
-            </p>
-          </section>
+        <div className={cn("grid", compact ? "gap-3" : "gap-5")}>
+          {!hidePatientStory && (
+            <section className={cn("rounded-lg bg-muted/30", compact ? "space-y-1 p-3" : "space-y-1.5 p-4")}>
+              <p className="text-xs font-medium text-muted-foreground">
+                Reason for visit
+              </p>
+              <p className={compact ? "max-h-12 overflow-hidden text-sm leading-6 text-foreground" : "text-sm leading-relaxed text-foreground"}>
+                {summary.patientStory}
+              </p>
+            </section>
+          )}
 
-          <section className={compact ? "grid grid-cols-1 gap-1.5 sm:grid-cols-2" : "grid grid-cols-1 sm:grid-cols-2 gap-2"}>
-            {visibleFacts.map((fact) => (
-              <div key={`${fact.label}:${fact.value}`} className="rounded-md bg-muted/35 px-3 py-2">
-                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                  {fact.label}
-                </p>
-                <p className={cn("mt-0.5 text-sm font-medium text-foreground", compact && "max-h-10 overflow-hidden")}>
-                  {fact.value}
-                </p>
-              </div>
-            ))}
-            {hiddenFactCount > 0 && (
-              <details className="rounded-md bg-muted/35 px-3 py-2 sm:col-span-2">
-                <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
-                  {hiddenFactCount} more facts
-                </summary>
-                <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
-                  {summary.keyFacts.slice(visibleFacts.length).map((fact) => (
-                    <div key={`${fact.label}:${fact.value}`} className="rounded-md bg-background px-3 py-2">
-                      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                        {fact.label}
-                      </p>
-                      <p className="mt-0.5 text-sm font-medium text-foreground">
-                        {fact.value}
-                      </p>
-                    </div>
-                  ))}
+          {visibleFacts.length > 0 ? (
+            <section className={compact ? "grid grid-cols-1 gap-2 sm:grid-cols-2" : "grid grid-cols-1 sm:grid-cols-2 gap-2"}>
+              {visibleFacts.map((fact) => (
+                <div key={`${fact.label}:${fact.value}`} className="rounded-lg bg-muted/30 px-3 py-2.5">
+                  <p className="text-[11px] font-medium text-muted-foreground">
+                    {fact.label}
+                  </p>
+                  <p className={cn("mt-0.5 text-sm font-medium text-foreground", compact && "max-h-10 overflow-hidden")}>
+                    {fact.value}
+                  </p>
                 </div>
-              </details>
-            )}
-          </section>
+              ))}
+              {hiddenFactCount > 0 && (
+                <details className="rounded-lg bg-muted/30 px-3 py-2.5 sm:col-span-2">
+                  <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
+                    {hiddenFactCount} more facts
+                  </summary>
+                  <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
+                    {summary.keyFacts.slice(visibleFacts.length).map((fact) => (
+                      <div key={`${fact.label}:${fact.value}`} className="rounded-md bg-background px-3 py-2">
+                        <p className="text-[11px] font-medium text-muted-foreground">
+                          {fact.label}
+                        </p>
+                        <p className="mt-0.5 text-sm font-medium text-foreground">
+                          {fact.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              )}
+            </section>
+          ) : null}
 
           {summary.safetyItems.length > 0 && (
             <section className="space-y-2">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              <p className="text-xs font-medium text-muted-foreground">
                 Safety
               </p>
               <div className="space-y-2">
@@ -201,46 +212,48 @@ export function ClinicalCaseReview({
             </section>
           )}
 
-          <section className="rounded-md border border-border/60 px-3 py-3">
-            <div className="flex items-start gap-2">
-              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Recommended plan
-                </p>
-                <p className="mt-1 text-sm font-semibold text-foreground">
-                  {summary.recommendedPlan.title}
-                </p>
-                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                  {summary.recommendedPlan.rationale}
-                </p>
-                {compact ? (
-                  <details className="mt-2">
-                    <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
-                      Decision checks
-                    </summary>
+          {!hideRecommendedPlan && (
+            <section className="rounded-lg border border-border/60 bg-background px-4 py-4">
+              <div className="flex items-start gap-2">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {summary.prescriptionIntent ? "Prescribing plan" : "Recommended plan"}
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-foreground">
+                    {summary.recommendedPlan.title}
+                  </p>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                    {summary.recommendedPlan.rationale}
+                  </p>
+                  {compact ? (
+                    <details className="mt-2">
+                      <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
+                        Decision checks
+                      </summary>
+                      <ul className="mt-2 space-y-1 text-sm text-foreground">
+                        {summary.recommendedPlan.nextSteps.map((step) => (
+                          <li key={step} className="leading-relaxed">- {step}</li>
+                        ))}
+                      </ul>
+                    </details>
+                  ) : (
                     <ul className="mt-2 space-y-1 text-sm text-foreground">
                       {summary.recommendedPlan.nextSteps.map((step) => (
                         <li key={step} className="leading-relaxed">- {step}</li>
                       ))}
                     </ul>
-                  </details>
-                ) : (
-                  <ul className="mt-2 space-y-1 text-sm text-foreground">
-                    {summary.recommendedPlan.nextSteps.map((step) => (
-                      <li key={step} className="leading-relaxed">- {step}</li>
-                    ))}
-                  </ul>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
-          </section>
+            </section>
+          )}
 
           {summary.prescriptionIntent && !hidePrescriptionIntent && (
             <section className="rounded-md border border-blue-200 bg-blue-50/70 px-3 py-3">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 flex-1 space-y-1">
-                  <p className="text-xs font-medium uppercase tracking-wide text-blue-700">
+                  <p className="text-xs font-medium text-blue-700">
                     Parchment preset
                   </p>
                   <p className="text-sm font-semibold text-blue-950">
@@ -278,15 +291,97 @@ export function ClinicalCaseReview({
             </section>
           )}
 
-          <details className="rounded-md border border-border/60 bg-muted/25">
-            <summary className="flex cursor-pointer items-center gap-2 px-3 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              <FileText className="h-4 w-4" />
-              Draft note
-            </summary>
-            <pre className="whitespace-pre-wrap border-t border-border/60 px-3 py-2 text-sm font-sans leading-relaxed text-foreground">
-              {summary.draftNote}
-            </pre>
-          </details>
+          <section className="rounded-lg border border-border/60 bg-muted/20">
+            <div className="flex flex-col gap-2 border-b border-border/60 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                <p className="text-xs font-medium text-muted-foreground">
+                  Draft note
+                </p>
+              </div>
+              {isEditableDraftNote ? (
+                <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground">
+                  {draftNoteSaveError ? (
+                    <span className="text-destructive">Save failed</span>
+                  ) : isDraftNoteSaving ? (
+                    <span>Saving...</span>
+                  ) : draftNoteDirty ? (
+                    <span>Auto-saving...</span>
+                  ) : draftNoteSavedAt ? (
+                    <span>Draft saved</span>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+            {isEditableDraftNote ? (
+              <div className="space-y-2 p-3">
+                {pinnedDraftFacts.length > 0 ? (
+                  <div
+                    aria-label="Pinned case facts"
+                    className="grid gap-1.5 rounded-md border border-border/50 bg-background/80 p-2 sm:grid-cols-2"
+                  >
+                    {pinnedDraftFacts.map((fact) => (
+                      <div key={`draft:${fact.label}:${fact.value}`} className="min-w-0">
+                        <p className="text-[10px] font-semibold text-muted-foreground">
+                          {fact.label}
+                        </p>
+                        <p className="mt-0.5 truncate text-xs font-medium text-foreground">
+                          {fact.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+                <Textarea
+                  ref={draftNoteTextareaRef}
+                  value={visibleDraftNote}
+                  placeholder="Start your note. Only you can see this until you send."
+                  onChange={(event) => {
+                    onDraftNoteChange?.(event.target.value)
+                  }}
+                  className="min-h-[132px] resize-y border-border/60 bg-background text-sm leading-relaxed focus-visible:ring-primary/20"
+                  aria-label="Draft clinical note"
+                />
+                {doctorSignOffLabel ? (
+                  <div className="rounded-md border border-border/50 bg-background/80 px-2.5 py-1.5 text-xs font-medium text-muted-foreground">
+                    Issue sign-off: <span className="text-foreground">{doctorSignOffLabel}</span>
+                  </div>
+                ) : null}
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-xs text-muted-foreground">
+                    Auto-saves as you type. Only you can see this note until you send.
+                  </p>
+                  {draftNoteSaveError && onDraftNoteSave ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => void onDraftNoteSave(visibleDraftNote)}
+                      disabled={isDraftNoteSaving}
+                    >
+                      {isDraftNoteSaving ? (
+                        <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                      ) : (
+                        <Save className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
+                      )}
+                      Save note
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2 px-3 py-2">
+                <pre className="whitespace-pre-wrap text-sm font-sans leading-relaxed text-foreground">
+                  {summary.draftNote}
+                </pre>
+                {doctorSignOffLabel ? (
+                  <div className="rounded-md border border-border/50 bg-background/80 px-2.5 py-1.5 text-xs font-medium text-muted-foreground">
+                    Issue sign-off: <span className="text-foreground">{doctorSignOffLabel}</span>
+                  </div>
+                ) : null}
+              </div>
+            )}
+          </section>
         </div>
       </div>
 

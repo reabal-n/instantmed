@@ -113,6 +113,11 @@ export async function GET(
     previousIntakeCount: previousIntakes.length,
     patientNotes,
     patientMessages,
+    reviewingClinician: {
+      fullName: auth.profile.full_name ?? null,
+      providerNumber: auth.profile.provider_number ?? null,
+      ahpraNumber: auth.profile.ahpra_number ?? null,
+    },
     renewalMatch,
     draftId: medCertDraft?.id || null,
     certificate: certificate ? {

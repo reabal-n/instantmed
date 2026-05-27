@@ -49,10 +49,24 @@ const POST_CONVERSION_PATH_PREFIXES = [
   "/auth/complete-account",
 ] as const
 
+const AUTHENTICATED_APP_PATH_PREFIXES = [
+  "/account",
+  "/admin",
+  "/dashboard",
+  "/doctor",
+  "/patient",
+] as const
+
 function isPostConversionPath() {
   if (typeof window === "undefined") return false
   const path = window.location.pathname
   return POST_CONVERSION_PATH_PREFIXES.some((prefix) => path.startsWith(prefix))
+}
+
+function shouldLoadCookieBanner() {
+  if (typeof window === "undefined") return false
+  const path = window.location.pathname
+  return !AUTHENTICATED_APP_PATH_PREFIXES.some((prefix) => path.startsWith(prefix))
 }
 
 /**
@@ -78,6 +92,7 @@ export function GlobalDeferredClients() {
       setClients((current) => ({ ...current, [key]: component }))
     }
 
+    const allowCookieBanner = shouldLoadCookieBanner()
     const loadClients = () => {
       cleanup.push(
         scheduleIdle(() => {
@@ -92,9 +107,11 @@ export function GlobalDeferredClients() {
           void import("@/components/pwa/service-worker-registration").then((mod) => {
             setClient("ServiceWorkerRegistration", mod.ServiceWorkerRegistration)
           })
-          void import("@/components/shared/cookie-banner").then((mod) => {
-            setClient("CookieBanner", mod.CookieBanner)
-          })
+          if (allowCookieBanner) {
+            void import("@/components/shared/cookie-banner").then((mod) => {
+              setClient("CookieBanner", mod.CookieBanner)
+            })
+          }
           void import("@/components/shared/referral-capture").then((mod) => {
             setClient("ReferralCapture", mod.ReferralCapture)
           })

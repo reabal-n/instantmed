@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
-import { QueueShortcutHint } from "@/components/doctor/queue-shortcut-hint"
 import { OperatorSplitPane } from "@/components/operator"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
@@ -18,10 +17,11 @@ import {
 } from "@/lib/dashboard/routes"
 import { DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY, LAST_OPENED_DOCTOR_CASE_KEY } from "@/lib/doctor/queue-focus"
 import { removeCompletedIntakeFromQueue } from "@/lib/doctor/queue-state"
-import { calculateSlaCountdown, calculateWaitTime, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
+import { calculateWaitTime, getQueueEnteredAt, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
 import { hasReviewNextRisk, sortForReviewNext } from "@/lib/doctor/review-next"
 import { SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
+import { formatMinutes } from "@/lib/format/dates"
 import { formatServiceType } from "@/lib/format/intake"
 import { useDebounce } from "@/lib/hooks/use-debounce"
 import { useIsDesktop } from "@/lib/hooks/use-media-query"
@@ -58,10 +58,11 @@ interface LazyIntakeReviewPanelProps {
   totalCases?: number
   profileMode?: "doctor" | "admin"
   inline?: boolean
+  previewIntake?: IntakeWithPatient
 }
 
 function IntakeReviewPanelLoading() {
-  const pulse = "rounded-md bg-muted motion-safe:animate-pulse"
+  const pulse = "rounded-md bg-[#F1EFEA]/80 motion-safe:animate-pulse dark:bg-white/10"
 
   return (
     <div
@@ -78,20 +79,31 @@ function IntakeReviewPanelLoading() {
           </div>
           <div className={cn(pulse, "h-9 w-24 rounded-lg")} />
         </div>
-        <div className={cn(pulse, "h-28 w-full rounded-lg")} />
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className={cn(pulse, "h-40 rounded-lg")} />
-          <div className={cn(pulse, "h-40 rounded-lg")} />
+        <div className="rounded-xl border border-border/55 bg-muted/20 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="space-y-2">
+              <div className={cn(pulse, "h-3 w-24")} />
+              <div className={cn(pulse, "h-4 w-44")} />
+            </div>
+            <div className={cn(pulse, "h-8 w-28 rounded-lg")} />
+          </div>
         </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className={cn(pulse, "h-28 rounded-lg")} />
+          <div className={cn(pulse, "h-28 rounded-lg")} />
+        </div>
+        <div className={cn(pulse, "h-24 rounded-lg")} />
       </div>
     </div>
   )
 }
 
-const IntakeReviewPanel = dynamic<LazyIntakeReviewPanelProps>(
-  () => import("@/components/doctor/intake-review-panel").then((mod) => mod.IntakeReviewPanel),
-  { loading: () => <IntakeReviewPanelLoading /> },
-)
+const loadIntakeReviewPanel = () =>
+  import("@/components/doctor/intake-review-panel").then((mod) => mod.IntakeReviewPanel)
+
+const IntakeReviewPanel = dynamic<LazyIntakeReviewPanelProps>(loadIntakeReviewPanel, {
+  loading: () => <IntakeReviewPanelLoading />,
+})
 
 /**
  * Compose the calm "All caught up." stat line from data already on hand.
@@ -101,11 +113,9 @@ const IntakeReviewPanel = dynamic<LazyIntakeReviewPanelProps>(
  */
 function buildCaughtUpSummary({
   recentlyCompleted,
-  liveMedianMinutes,
   now,
 }: {
   recentlyCompleted: IntakeWithPatient[]
-  liveMedianMinutes: number | null
   now: Date
 }): string {
   // Reviewed today = today's reviewed_at OR completed_at, AEST-naive (uses
@@ -124,9 +134,6 @@ function buildCaughtUpSummary({
     .pop() ?? null
 
   const parts: string[] = [`Today: ${reviewedToday} reviewed`]
-  if (typeof liveMedianMinutes === "number" && liveMedianMinutes > 0) {
-    parts.push(`avg ${liveMedianMinutes}m`)
-  }
   if (lastCleared) {
     const relative = formatRelativeTime(lastCleared, now)
     if (relative) parts.push(`last cleared ${relative}`)
@@ -141,7 +148,6 @@ function buildQueueEmptyState({
   searchQuery,
   baseHref,
   recentlyCompleted,
-  liveMedianMinutes,
   now,
 }: {
   doctorAvailable: boolean
@@ -150,7 +156,6 @@ function buildQueueEmptyState({
   searchQuery: string
   baseHref: string
   recentlyCompleted: IntakeWithPatient[]
-  liveMedianMinutes: number | null
   now: Date
 }): QueueEmptyState {
   if (!doctorAvailable && totalCount === 0) {
@@ -164,6 +169,26 @@ function buildQueueEmptyState({
   }
 
   if (searchQuery.trim() || statusFilter !== "all") {
+    if (statusFilter === "scripts" && !searchQuery.trim()) {
+      return {
+        title: "No scripts to write",
+        description: "No scripts waiting right now.",
+        tone: "neutral",
+        actionHref: baseHref,
+        actionLabel: "Open full queue",
+      }
+    }
+
+    if (statusFilter === "pending_info" && !searchQuery.trim()) {
+      return {
+        title: "No patient replies",
+        description: "No patient replies waiting right now.",
+        tone: "neutral",
+        actionHref: baseHref,
+        actionLabel: "Open full queue",
+      }
+    }
+
     return {
       title: "No matches for this filter",
       description: "Cases may still exist in another status or outside the current search. Clear filters to see the whole queue.",
@@ -177,8 +202,149 @@ function buildQueueEmptyState({
     title: "No review cases right now",
     description: "Paid clinical work, pending replies, and scripts will appear here automatically.",
     tone: "success",
-    summary: buildCaughtUpSummary({ recentlyCompleted, liveMedianMinutes, now }),
+    summary: buildCaughtUpSummary({ recentlyCompleted, now }),
   }
+}
+
+function QueueIdlePanel({
+  queueSize,
+  reviewedToday,
+  medianDecisionMinutes,
+  oldestWaitingMinutes,
+  formToInboxStats,
+  filteredCount,
+  doctorAvailable,
+  queueDegraded,
+  nextIntake,
+  onReviewNext,
+}: {
+  queueSize: number
+  reviewedToday: number
+  medianDecisionMinutes: number | null
+  oldestWaitingMinutes: number | null
+  formToInboxStats: QueueClientProps["formToInboxStats"]
+  filteredCount: number
+  doctorAvailable: boolean
+  queueDegraded: boolean
+  nextIntake?: IntakeWithPatient | null
+  onReviewNext: () => void
+}) {
+  const nextAction = queueDegraded
+    ? "Refresh before clinical action."
+    : !doctorAvailable
+      ? "Availability is paused."
+      : filteredCount > 1 && typeof oldestWaitingMinutes === "number"
+        ? `Oldest wait ${formatMinutes(oldestWaitingMinutes)}.`
+      : filteredCount > 1
+        ? "Open the oldest case in this filter."
+      : filteredCount === 1
+        ? ""
+        : "No cases match this filter."
+  const showRailAction = filteredCount > 1 && doctorAvailable && !queueDegraded
+  const oldestWaitingLabel = typeof oldestWaitingMinutes === "number"
+    ? oldestWaitingMinutes === 0
+      ? "Just arrived"
+      : formatMinutes(oldestWaitingMinutes)
+    : "--"
+  const medianDecisionLabel = medianDecisionMinutes != null
+    ? medianDecisionMinutes <= 0
+      ? "Under 1m"
+      : formatMinutes(medianDecisionMinutes)
+    : "Needs first decision"
+  const medianDecisionMetric = medianDecisionMinutes != null ? medianDecisionLabel : "--"
+  const formToInboxLabel = formToInboxStats
+    ? formatMinutes(formToInboxStats.medianMinutes)
+    : null
+  const primaryMetricLabel = formToInboxStats
+    ? "Avg med cert today"
+    : medianDecisionMinutes != null
+      ? "Median decision"
+      : oldestWaitingMinutes != null
+        ? "Oldest wait"
+        : "Queue"
+  const primaryMetricValue = formToInboxStats
+    ? formToInboxLabel ?? "--"
+    : medianDecisionMinutes != null
+      ? medianDecisionMetric
+      : oldestWaitingMinutes != null
+        ? oldestWaitingLabel
+        : String(queueSize)
+  const primaryMetricDetail = formToInboxStats
+    ? `Based on ${formToInboxStats.sampleSize} certs sent in the last ${formToInboxStats.windowDays} days.`
+    : medianDecisionMinutes != null
+      ? "Today"
+      : oldestWaitingMinutes != null
+        ? "Target under 2h."
+        : "Visible cases"
+  const nextCaseWaitingLabel = nextIntake
+    ? (() => {
+        const minutes = Math.max(0, Math.floor((Date.now() - new Date(getQueueEnteredAt(nextIntake)).getTime()) / 60000))
+        return minutes <= 0 ? "just arrived" : `waiting ${formatMinutes(minutes)}`
+      })()
+    : null
+  const nextPatientFirstName = nextIntake?.patient.full_name?.split(" ")[0] || nextIntake?.patient.full_name
+  const nextCaseLabel = nextIntake && nextCaseWaitingLabel
+    ? `${nextPatientFirstName} ${nextCaseWaitingLabel}.`
+    : filteredCount > 0
+      ? "Open the next visible case."
+      : "Nothing to review."
+
+  return (
+    <div className="flex h-full min-h-0 flex-col bg-[linear-gradient(180deg,#FFFFFF_0%,#FFFEFB_100%)] dark:bg-card motion-safe:animate-[fade-in_180ms_ease-out]">
+      <div className="border-b border-primary/10 bg-primary/[0.025] px-5 py-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-primary">
+              {primaryMetricLabel}
+            </p>
+            <p className="mt-1 text-4xl font-semibold tracking-tight text-foreground tabular-nums">
+              {primaryMetricValue}
+            </p>
+          </div>
+          <p className="max-w-[260px] text-sm font-medium leading-snug text-slate-600 dark:text-muted-foreground sm:text-right">
+            {formToInboxStats ? "Form to inbox. Target under 2h." : "Target: oldest wait under 2h."}
+          </p>
+        </div>
+        <p className="mt-2 text-xs font-medium text-slate-500 dark:text-muted-foreground">
+          {primaryMetricDetail}
+        </p>
+      </div>
+
+      <div className="px-5 py-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-muted-foreground">Next up</p>
+            <p className="mt-1 truncate text-base font-semibold text-foreground">
+              {nextCaseLabel}
+            </p>
+            <p className="mt-1 truncate text-xs font-medium text-slate-600 dark:text-muted-foreground">
+              {reviewedToday > 0
+                ? reviewedToday === 1
+                  ? "One review completed today."
+                  : `${reviewedToday} reviews completed today.`
+                : "No reviews completed today."}
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-col items-end gap-1">
+            {showRailAction ? (
+              <Button
+                size="sm"
+                className="h-9 px-3 text-xs"
+                onClick={onReviewNext}
+              >
+                Open oldest waiting
+              </Button>
+            ) : null}
+            {nextAction ? (
+              <p className="max-w-[180px] text-right text-[11px] font-medium leading-snug text-slate-500 dark:text-muted-foreground">
+                {nextAction}
+              </p>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export function QueueClient({
@@ -189,6 +355,7 @@ export function QueueClient({
   pagination,
   aiApprovedIntakes = [],
   recentlyCompleted = [],
+  formToInboxStats = null,
   todayEarnings,
   initialStatusFilter = "all",
   hasExplicitStatusFilter = false,
@@ -230,24 +397,6 @@ export function QueueClient({
       return null
     }
   })
-  const [readIds, setReadIds] = useState<Set<string>>(() => {
-    if (typeof window === "undefined") return new Set()
-    try {
-      const stored = sessionStorage.getItem("instantmed:queue-read-ids")
-      return stored ? new Set(JSON.parse(stored) as string[]) : new Set()
-    } catch { return new Set() }
-  })
-
-  const markAsRead = useCallback((intakeId: string) => {
-    setReadIds((prev) => {
-      if (prev.has(intakeId)) return prev
-      const next = new Set(prev)
-      next.add(intakeId)
-      try { sessionStorage.setItem("instantmed:queue-read-ids", JSON.stringify([...next])) } catch { /* ignore */ }
-      return next
-    })
-  }, [])
-
   const rememberOpenedCase = useCallback((intakeId: string) => {
     setLastOpenedIntakeId(intakeId)
   }, [])
@@ -271,6 +420,16 @@ export function QueueClient({
     explicitStatusFilterRef.current = searchParams.has("status") && nextStatus !== "all"
     setStatusFilter(nextStatus)
   }, [searchParams])
+
+  // Warm the split-pane review module after first paint. Hover no longer
+  // prefetches clinical data, so this keeps the first explicit open feeling
+  // immediate without touching PHI-heavy API payloads.
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadIntakeReviewPanel()
+    }, 250)
+    return () => window.clearTimeout(timer)
+  }, [])
 
   const refreshQueue = useCallback((force = false) => {
     if (!force && panelOpenRef.current) return
@@ -317,7 +476,7 @@ export function QueueClient({
     setStatusFilter(value)
     explicitStatusFilterRef.current = value !== "all"
 
-    const params = new URLSearchParams(searchParams.toString())
+    const params = new URLSearchParams(window.location.search)
     if (value === "all") {
       params.delete("status")
     } else {
@@ -326,8 +485,9 @@ export function QueueClient({
     params.delete("page")
 
     const query = params.toString()
-    router.replace(query ? `${baseHref}?${query}` : baseHref, { scroll: false })
-  }, [baseHref, router, searchParams])
+    const hash = window.location.hash || ""
+    window.history.replaceState(window.history.state, "", `${query ? `${baseHref}?${query}` : baseHref}${hash}`)
+  }, [baseHref])
 
   // Auto-activate priority mode when SLA-breached cases exist
   useEffect(() => {
@@ -368,11 +528,6 @@ export function QueueClient({
   const getStableWaitTimeSeverity = useCallback((createdAt: string, slaDeadline?: string | null) => {
     if (!clockNow) return "normal"
     return getWaitTimeSeverity(createdAt, slaDeadline, clockNow)
-  }, [clockNow])
-
-  const calculateStableSlaCountdown = useCallback((slaDeadline: string | null | undefined) => {
-    if (!clockNow) return null
-    return calculateSlaCountdown(slaDeadline, clockNow)
   }, [clockNow])
 
   // Track row IDs that just arrived via realtime so the queue can flash a
@@ -448,7 +603,6 @@ export function QueueClient({
   // to the slide-over so the detail doesn't stack below the queue. In
   // legacy non-compact mode it always opens the slide-over.
   const openReviewPanel = useCallback((intakeId: string) => {
-    markAsRead(intakeId)
     setExpandedId(intakeId)
 
     if (compactShell && isDesktop) {
@@ -469,6 +623,7 @@ export function QueueClient({
 
     const list = filteredIntakesRef.current
     const caseIndex = list.findIndex((r) => r.id === intakeId)
+    const previewIntake = list.find((r) => r.id === intakeId)
 
     openPanel({
       id: `intake-review-${intakeId}`,
@@ -476,6 +631,7 @@ export function QueueClient({
       component: (
         <IntakeReviewPanel
           intakeId={intakeId}
+          previewIntake={previewIntake}
           caseIndex={caseIndex >= 0 ? caseIndex : undefined}
           totalCases={list.length > 0 ? list.length : undefined}
           onActionComplete={(options) => {
@@ -496,7 +652,11 @@ export function QueueClient({
         />
       ),
     })
-  }, [openPanel, markAsRead, compactShell, isDesktop, handleIntakeActionComplete])
+  }, [openPanel, compactShell, isDesktop, handleIntakeActionComplete])
+
+  const primeReviewPanelCode = useCallback(() => {
+    void loadIntakeReviewPanel()
+  }, [])
 
   const handleApprove = useCallback(async (intakeId: string, serviceType?: string | null) => {
     if (serviceType === SERVICE_TYPES.MED_CERTS) {
@@ -559,7 +719,7 @@ export function QueueClient({
           next.splice(Math.max(0, safeIndex), 0, removedIntake)
           return next
         })
-        toast.error("Add clinical notes (50+ chars) in the case review before approving.", {
+        toast.error("Use the draft note or add a brief clinical note before approving.", {
           action: { label: "Open case", onClick: () => openReviewPanel(intakeId) },
           duration: 6000,
         })
@@ -640,28 +800,17 @@ export function QueueClient({
     filteredIntakesRef.current = filteredIntakes
   }, [filteredIntakes])
 
-  // Live median wait. Moved above the empty state computation so the
-  // "All caught up." summary line can reference it. Brand spec
-  // (docs/BRAND.md §6.1) says median(paid_at → reviewed_at), rolling
-  // 4-hour window from the `recentlyCompleted` prop. Returns null when
-  // there's no recent data.
-  const liveMedianMinutes = useMemo(() => {
-    const fourHoursAgo = Date.now() - 4 * 60 * 60 * 1000
-    const samples: number[] = []
-    for (const intake of recentlyCompleted) {
-      const reviewedAt = intake.reviewed_at ? new Date(intake.reviewed_at).getTime() : null
-      const paidAt = intake.paid_at ? new Date(intake.paid_at).getTime() : null
-      if (!reviewedAt || !paidAt || reviewedAt < paidAt) continue
-      if (reviewedAt < fourHoursAgo) continue
-      samples.push((reviewedAt - paidAt) / 60000)
-    }
-    if (samples.length === 0) return null
-    samples.sort((a, b) => a - b)
-    const mid = Math.floor(samples.length / 2)
-    return samples.length % 2 === 0
-      ? Math.round((samples[mid - 1] + samples[mid]) / 2)
-      : Math.round(samples[mid])
-  }, [recentlyCompleted])
+  const oldestWaitingMinutes = useMemo(() => {
+    if (filteredIntakes.length === 0) return null
+    const now = (clockNow ?? new Date()).getTime()
+    const oldest = filteredIntakes.reduce<number | null>((current, intake) => {
+      const enteredAt = new Date(getQueueEnteredAt(intake)).getTime()
+      if (!Number.isFinite(enteredAt)) return current
+      return current === null ? enteredAt : Math.min(current, enteredAt)
+    }, null)
+    if (oldest === null) return null
+    return Math.max(0, Math.floor((now - oldest) / 60000))
+  }, [clockNow, filteredIntakes])
 
   const queueEmptyState = useMemo(() => buildQueueEmptyState({
     doctorAvailable,
@@ -670,7 +819,6 @@ export function QueueClient({
     searchQuery: debouncedSearch,
     baseHref,
     recentlyCompleted,
-    liveMedianMinutes,
     now: new Date(),
   }), [
     baseHref,
@@ -679,7 +827,6 @@ export function QueueClient({
     intakes.length,
     statusFilter,
     recentlyCompleted,
-    liveMedianMinutes,
   ])
 
   const handleReviewNext = useCallback(() => {
@@ -770,6 +917,20 @@ export function QueueClient({
 
   const reviewedToday = recentlyCompleted.length
   const queueSize = intakes.length
+  const medianDecisionMinutes = useMemo(() => {
+    const durations = recentlyCompleted.flatMap((intake) => {
+      const start = intake.paid_at ? new Date(intake.paid_at).getTime() : NaN
+      const endValue = intake.approved_at ?? intake.declined_at ?? intake.reviewed_at ?? intake.completed_at
+      const end = endValue ? new Date(endValue).getTime() : NaN
+      if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return []
+      return [Math.round((end - start) / 60000)]
+    }).sort((a, b) => a - b)
+    if (durations.length === 0) return null
+    const middle = Math.floor(durations.length / 2)
+    return durations.length % 2 === 1
+      ? durations[middle]!
+      : Math.round((durations[middle - 1]! + durations[middle]!) / 2)
+  }, [recentlyCompleted])
   // Memoised so the clock tick / search input / hover doesn't recompute
   // this on every render. Only depends on the (rarely-changing) recent
   // completions prop.
@@ -869,25 +1030,25 @@ export function QueueClient({
 
       {isStale && (
         <div
-          role="alert"
-          className="flex items-center gap-3 p-3 rounded-lg bg-warning-light border border-warning-border/60"
+          role="status"
+          className="flex items-center justify-end"
         >
-          <AlertTriangle className="h-4 w-4 text-warning shrink-0" />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-warning">
-              {isReconnecting ? "Reconnecting to live updates..." : "Queue may be out of date"}
-            </p>
+          <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-warning-border/60 bg-warning-light px-3 py-1.5 text-xs font-medium text-warning">
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+            <span className="min-w-0 truncate">
+              {isReconnecting ? "Reconnecting to live updates..." : "Showing older queue data. Refresh to see new arrivals."}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => refreshQueue(true)}
+              disabled={isQueueRefreshPending}
+              className="h-6 shrink-0 px-1.5 text-xs text-warning hover:bg-warning/10 hover:text-warning"
+            >
+              <RefreshCw className={cn("mr-1 h-3 w-3", isQueueRefreshPending && "animate-spin")} />
+              Refresh
+            </Button>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refreshQueue(true)}
-            disabled={isQueueRefreshPending}
-            className="shrink-0 h-7 text-xs"
-          >
-            <RefreshCw className={cn("h-3 w-3 mr-1", isQueueRefreshPending && "animate-spin")} />
-            Refresh
-          </Button>
         </div>
       )}
 
@@ -910,28 +1071,30 @@ export function QueueClient({
           isReconnecting={isReconnecting}
           isRefreshing={isQueueRefreshPending}
           compactShell={compactShell}
-          onReviewNext={handleReviewNext}
-          liveMedianMinutes={liveMedianMinutes}
+          oldestWaitingMinutes={oldestWaitingMinutes}
+          showOldestWaiting={!compactShell}
         />
       </div>
 
-      <QueueShortcutHint />
-
       {compactShell && isDesktop ? (
         <OperatorSplitPane
-          className="min-h-0 flex-1"
+          mode={expandedId ? "reviewing" : "idle"}
+          className={cn(
+            "min-h-0 flex-1",
+          )}
           listClassName="min-h-0"
           detailClassName="min-h-0"
           list={(
-            <div className="flex h-full min-h-0 flex-col overflow-hidden">
+            <div
+              key={`${statusFilter}:${debouncedSearch}`}
+              className="flex h-full min-h-0 flex-col overflow-hidden motion-safe:animate-[fade-in_150ms_ease-in-out]"
+            >
               <QueueTable
                 filteredIntakes={filteredIntakes}
                 intakes={intakes}
                 expandedId={expandedId}
-                onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)}
                 openIntakeId={openIntakeId}
                 doctorId={doctorId}
-                readIds={readIds}
                 lastOpenedIntakeId={lastOpenedIntakeId}
                 onRememberOpenedCase={rememberOpenedCase}
                 isPending={dialogs.isPending || isApprovePending}
@@ -940,8 +1103,8 @@ export function QueueClient({
                 hasRedFlags={hasRedFlags}
                 calculateWaitTime={calculateStableWaitTime}
                 getWaitTimeSeverity={getStableWaitTimeSeverity}
-                calculateSlaCountdown={calculateStableSlaCountdown}
                 openReviewPanel={openReviewPanel}
+                onPrimeReviewPanelCode={primeReviewPanelCode}
                 dialogs={dialogs}
                 aiApprovedIntakes={aiApprovedIntakes}
                 recentlyCompleted={recentlyCompleted}
@@ -949,6 +1112,7 @@ export function QueueClient({
                 baseHref={baseHref}
                 emptyState={queueEmptyState}
                 compactShell={compactShell}
+                searchQuery={debouncedSearch}
                 newlyArrivedIds={newlyArrivedIds}
               />
             </div>
@@ -958,19 +1122,30 @@ export function QueueClient({
               // `key={expandedId}` forces remount on selection change so
               // the lock + audit + view-duration effects re-run cleanly
               // for the new case (releases the old lock automatically).
-              <IntakeReviewPanel
-                key={expandedId}
-                inline
-                intakeId={expandedId}
-                onActionComplete={(options) => handleIntakeActionComplete(expandedId, options)}
-              />
-            ) : (
-              <div className="flex h-full min-h-0 flex-col items-center justify-center gap-2 px-6 text-center">
-                <p className="text-sm font-medium text-foreground">No case selected.</p>
-                <p className="max-w-xs text-xs text-muted-foreground">
-                  Pick a row on the left, or press <kbd className="rounded border border-border/60 bg-muted/40 px-1.5 py-0.5 font-sans text-[10px] font-semibold text-foreground/80">↓</kbd> to start.
-                </p>
+              <div className="flex h-full min-h-0 flex-col">
+                <div className="min-h-0 flex-1">
+                  <IntakeReviewPanel
+                    key={expandedId}
+                    inline
+                    intakeId={expandedId}
+                    previewIntake={filteredIntakes.find((intake) => intake.id === expandedId)}
+                    onActionComplete={(options) => handleIntakeActionComplete(expandedId, options)}
+                  />
+                </div>
               </div>
+            ) : (
+              <QueueIdlePanel
+                queueSize={queueSize}
+                reviewedToday={reviewedToday}
+                medianDecisionMinutes={medianDecisionMinutes}
+                oldestWaitingMinutes={oldestWaitingMinutes}
+                formToInboxStats={formToInboxStats}
+                filteredCount={filteredIntakes.length}
+                doctorAvailable={doctorAvailable}
+                queueDegraded={queueDegraded}
+                nextIntake={filteredIntakes[0] ?? null}
+                onReviewNext={handleReviewNext}
+              />
             )
           )}
         />
@@ -979,10 +1154,8 @@ export function QueueClient({
           filteredIntakes={filteredIntakes}
           intakes={intakes}
           expandedId={expandedId}
-          onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)}
           openIntakeId={openIntakeId}
           doctorId={doctorId}
-          readIds={readIds}
           lastOpenedIntakeId={lastOpenedIntakeId}
           onRememberOpenedCase={rememberOpenedCase}
           isPending={dialogs.isPending || isApprovePending}
@@ -991,8 +1164,8 @@ export function QueueClient({
           hasRedFlags={hasRedFlags}
           calculateWaitTime={calculateStableWaitTime}
           getWaitTimeSeverity={getStableWaitTimeSeverity}
-          calculateSlaCountdown={calculateStableSlaCountdown}
           openReviewPanel={openReviewPanel}
+          onPrimeReviewPanelCode={primeReviewPanelCode}
           dialogs={dialogs}
           aiApprovedIntakes={aiApprovedIntakes}
           recentlyCompleted={recentlyCompleted}
@@ -1000,6 +1173,7 @@ export function QueueClient({
           baseHref={baseHref}
           emptyState={queueEmptyState}
           compactShell={compactShell}
+          searchQuery={debouncedSearch}
         />
       )}
 

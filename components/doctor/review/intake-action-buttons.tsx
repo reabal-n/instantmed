@@ -23,15 +23,51 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import { buildStaffPatientHref } from "@/lib/dashboard/routes"
-import { MIN_CLINICAL_NOTES_LENGTH } from "@/lib/doctor/clinical-notes"
+import { isClinicalNoteSufficient } from "@/lib/doctor/clinical-notes"
 import {
   buildPatientSnapshot,
   getPatientSnapshotOptionsForCase,
   requiresPrescribingIdentityForCase,
 } from "@/lib/doctor/patient-snapshot"
 import { isConsultServiceType, isKnownDoctorServiceType } from "@/lib/doctor/service-types"
+import { formatCurrency } from "@/lib/format"
+import { cn } from "@/lib/utils"
 
-export function IntakeActionButtons() {
+function ShortcutHint({
+  children,
+  tone = "neutral",
+}: {
+  children: string
+  tone?: "neutral" | "on-primary"
+}) {
+  return (
+    <span
+      data-shortcut-hint
+      className={cn(
+        "ml-1.5 rounded px-1.5 py-0.5 font-mono text-[10px] font-medium leading-none",
+        tone === "on-primary"
+          ? "bg-white/15 text-white/85"
+          : "bg-muted/55 text-muted-foreground",
+      )}
+    >
+      {children}
+    </span>
+  )
+}
+
+export function IntakeActionButtons({
+  placement = "bottom",
+  requiresClinicalDetail = false,
+  approvalReadRequired = false,
+  onRequestClinicalDetail,
+  isRequestingClinicalDetail = false,
+}: {
+  placement?: "top" | "bottom"
+  requiresClinicalDetail?: boolean
+  approvalReadRequired?: boolean
+  onRequestClinicalDetail?: () => void
+  isRequestingClinicalDetail?: boolean
+}) {
   const {
     intake,
     service,
@@ -76,13 +112,13 @@ export function IntakeActionButtons() {
   const isRepeatScript = service?.type === "repeat_rx" || service?.type === "common_scripts"
   const isPrescribingConsult = intake.category === "consult" && ["ed", "hair_loss"].includes(intake.subtype || "")
   const shouldPrescribeFromConsult = isPrescribingConsult && hasPrescriptionIntent
-  const needsClinicalNotes = doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH
+  const needsClinicalNotes = !isClinicalNoteSufficient(doctorNotes)
   const approvalNeedsClinicalNotes =
     (service?.type === "med_certs" && ["paid", "in_review"].includes(intake.status)) ||
     (isConsultServiceType(service?.type) && intake.status === "paid" && !shouldPrescribeFromConsult) ||
     (!isKnownDoctorServiceType(service?.type) && intake.status === "paid")
   const approveDisabledReason = approvalNeedsClinicalNotes && needsClinicalNotes
-    ? `Add clinical notes (${doctorNotes.trim().length}/${MIN_CLINICAL_NOTES_LENGTH} chars) before approving.`
+    ? "Use the draft note or add a brief clinical note."
     : null
   const snapshotContext = {
     answers,
@@ -98,9 +134,26 @@ export function IntakeActionButtons() {
     ? `Complete patient identity: ${missingPrescribingIdentityFields.join(", ")}`
     : undefined
   const prescribingActionLabel = hasPrescribingIdentityBlocker ? "Complete patient identity" : null
+  const canDecline = !["approved", "declined", "completed"].includes(intake.status)
+  const showRefundOnDecline = canDecline && intake.payment_status === "paid"
+  const refundRemainingCents = Math.max(0, (intake.amount_cents ?? 0) - (intake.refund_amount_cents ?? 0))
+  const refundLabel = refundRemainingCents > 0 ? formatCurrency(refundRemainingCents) : null
+  const requestClinicalDetailLabel = "Request symptoms"
+  const disabledApproveHint = approvalReadRequired
+    ? null
+    : requiresClinicalDetail
+      ? "Symptoms missing; the next screen asks you to confirm before sending."
+      : approveDisabledReason
 
   return (
-    <div className="sticky bottom-0 bg-background border-t border-border pt-3 pb-1" data-testid="operator-action-rail">
+    <div
+      className={
+        placement === "top"
+          ? "rounded-xl border border-border/60 bg-background p-2 shadow-sm shadow-primary/[0.03]"
+          : "sticky bottom-0 z-10 shrink-0 border-t border-border bg-background/95 py-1.5 shadow-sm shadow-primary/[0.04] backdrop-blur supports-[backdrop-filter]:bg-background/90"
+      }
+      data-testid="operator-action-rail"
+    >
       {hasPrescribingIdentityBlocker && (
         <div className="mb-2 flex flex-col gap-2 rounded-md border border-warning-border bg-warning-light px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
@@ -128,34 +181,54 @@ export function IntakeActionButtons() {
         </div>
       )}
       <div
-        className="flex flex-col gap-2 sm:flex-row sm:flex-wrap [&>button]:w-full sm:[&>button]:w-auto"
+        className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center [&>button]:w-full [&>div]:w-full sm:[&>button]:w-auto sm:[&>div]:w-auto"
         data-action-bar
       >
-        {/* Med cert: preview then approve */}
+        {/* Med cert: approve opens the confirm-before-sending preview flow. */}
         {service?.type === "med_certs" && ["paid", "in_review"].includes(intake.status) && (
-        <Button
-          onClick={handleMedCertApprove}
-          className="bg-emerald-600 hover:bg-emerald-700"
-          disabled={isPending || isLoadingPreview || Boolean(approveDisabledReason)}
-          title={approveDisabledReason || undefined}
-          size="sm"
-        >
-          {isPending || isLoadingPreview ? (
-            <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-          ) : (
-            <CheckCircle className="h-4 w-4 mr-1.5" />
-          )}
-          {isLoadingPreview ? "Loading..." : isPending ? "Generating..." : "Approve & Send Certificate"}
-        </Button>
-      )}
+          <>
+            <Button
+              onClick={handleMedCertApprove}
+              className="h-7 bg-[#2563EB] px-2.5 text-xs text-white motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out motion-safe:hover:-translate-y-0.5 hover:bg-[#1D4ED8]"
+              disabled={isPending || isLoadingPreview || approvalReadRequired || Boolean(approveDisabledReason)}
+              title={approvalReadRequired ? "Review the case before approving." : approveDisabledReason || undefined}
+              size="sm"
+            >
+              {isPending || isLoadingPreview ? (
+                <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+              ) : (
+                <CheckCircle className="h-4 w-4 mr-1.5" />
+              )}
+              {isLoadingPreview ? "Loading..." : isPending ? "Generating..." : requiresClinicalDetail ? "Review & send" : "Approve & send"}
+              <ShortcutHint tone="on-primary">Cmd+Enter</ShortcutHint>
+            </Button>
+            {requiresClinicalDetail ? (
+              <Button
+                onClick={onRequestClinicalDetail}
+                variant="outline"
+                className="h-7 border-border/70 bg-background px-2.5 text-xs text-foreground hover:bg-muted/40"
+                disabled={isPending || isRequestingClinicalDetail || !onRequestClinicalDetail}
+                title="Ask the patient to describe symptoms before issuing a certificate."
+                size="sm"
+              >
+                {isRequestingClinicalDetail ? (
+                  <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4 mr-1.5" />
+                )}
+                {isRequestingClinicalDetail ? "Sending..." : requestClinicalDetailLabel}
+              </Button>
+            ) : null}
+          </>
+        )}
 
       {/* Repeat scripts: approve and open Parchment when the request is clinically prescribable */}
       {isRepeatScript && intake.status === "paid" && hasPrescriptionIntent && (
         <Button
           onClick={handleApproveAndOpenParchment}
-          className="bg-primary hover:bg-primary/90"
-          disabled={isPending || hasPrescribingIdentityBlocker}
-          title={prescribingIdentityTitle}
+          className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
+          disabled={isPending || approvalReadRequired || hasPrescribingIdentityBlocker}
+          title={approvalReadRequired ? "Review the case before approving." : prescribingIdentityTitle}
           size="sm"
         >
           {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Send className="h-4 w-4 mr-1.5" />}
@@ -166,9 +239,9 @@ export function IntakeActionButtons() {
       {isRepeatScript && intake.status === "paid" && !hasPrescriptionIntent && (
         <Button
           onClick={() => handleStatusChange("awaiting_script")}
-          className="bg-primary hover:bg-primary/90"
-          disabled={isPending || hasPrescribingIdentityBlocker}
-          title={prescribingIdentityTitle}
+          className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
+          disabled={isPending || approvalReadRequired || hasPrescribingIdentityBlocker}
+          title={approvalReadRequired ? "Review the case before approving." : prescribingIdentityTitle}
           size="sm"
         >
           {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
@@ -179,9 +252,9 @@ export function IntakeActionButtons() {
       {shouldPrescribeFromConsult && ["paid", "in_review"].includes(intake.status) && (
         <Button
           onClick={handleApproveAndOpenParchment}
-          className="bg-primary hover:bg-primary/90"
-          disabled={isPending || hasPrescribingIdentityBlocker}
-          title={prescribingIdentityTitle}
+          className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
+          disabled={isPending || approvalReadRequired || hasPrescribingIdentityBlocker}
+          title={approvalReadRequired ? "Review the case before approving." : prescribingIdentityTitle}
           size="sm"
         >
           {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Send className="h-4 w-4 mr-1.5" />}
@@ -193,7 +266,7 @@ export function IntakeActionButtons() {
         <>
           <Button
             onClick={handleOpenParchmentPrescribe}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="h-7 px-2.5 text-xs bg-blue-600 hover:bg-blue-700"
             disabled={isPending || hasPrescribingIdentityBlocker}
             title={prescribingIdentityTitle}
             size="sm"
@@ -218,9 +291,9 @@ export function IntakeActionButtons() {
       {isConsultServiceType(service?.type) && intake.status === "paid" && !shouldPrescribeFromConsult && (
         <Button
           onClick={() => handleStatusChange("approved")}
-          className="bg-primary hover:bg-primary/90"
-          disabled={isPending || Boolean(approveDisabledReason)}
-          title={approveDisabledReason || undefined}
+          className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
+          disabled={isPending || approvalReadRequired || Boolean(approveDisabledReason)}
+          title={approvalReadRequired ? "Review the case before approving." : approveDisabledReason || undefined}
           size="sm"
         >
           {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
@@ -231,12 +304,12 @@ export function IntakeActionButtons() {
       {/* Generic approve */}
       {!isKnownDoctorServiceType(service?.type) &&
         intake.status === "paid" && (
-          <Button
-            onClick={() => handleStatusChange("approved")}
-            className="bg-primary hover:bg-primary/90"
-            disabled={isPending || Boolean(approveDisabledReason)}
-            title={approveDisabledReason || undefined}
-            size="sm"
+            <Button
+              onClick={() => handleStatusChange("approved")}
+              className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
+              disabled={isPending || approvalReadRequired || Boolean(approveDisabledReason)}
+              title={approvalReadRequired ? "Review the case before approving." : approveDisabledReason || undefined}
+              size="sm"
           >
             {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
             {isPending ? "Approving..." : "Approve"}
@@ -244,20 +317,35 @@ export function IntakeActionButtons() {
         )}
 
       {/* Decline */}
-      {!["approved", "declined", "completed"].includes(intake.status) && (
-        <Button
-          variant="destructive"
-          onClick={() => setShowDeclineDialog(true)}
-          disabled={isPending}
-          size="sm"
+      {canDecline && (
+        <div
+          className="flex w-full flex-col gap-1 sm:ml-auto sm:w-auto"
+          data-decline-action
         >
-          <XCircle className="h-4 w-4 mr-1.5" />
-          Decline
-        </Button>
+          <Button
+            variant="outline"
+            onClick={() => setShowDeclineDialog(true)}
+            className="h-7 border-transparent bg-transparent px-2 text-xs font-medium text-destructive/85 shadow-none hover:border-destructive/25 hover:bg-destructive/5 hover:text-destructive"
+            disabled={isPending}
+            size="sm"
+            title={showRefundOnDecline ? "Confirming decline issues the patient refund." : undefined}
+          >
+            <XCircle className="h-4 w-4 mr-1.5" />
+            {showRefundOnDecline ? "Decline & refund" : "Decline"}
+            <ShortcutHint>Cmd+Shift+D</ShortcutHint>
+          </Button>
+          {showRefundOnDecline ? (
+            <p className="px-0.5 text-[11px] font-medium leading-snug text-muted-foreground sm:max-w-[230px] sm:text-right">
+              Refunds {refundLabel ?? "the patient"} automatically on decline.
+            </p>
+          ) : null}
+        </div>
       )}
       </div>
-      {approveDisabledReason && (
-        <p className="mt-2 text-xs font-medium text-warning">{approveDisabledReason}</p>
+      {disabledApproveHint && (
+        <p className="mt-2 inline-flex w-fit items-center rounded-md border border-border/60 bg-muted/25 px-2 py-1 text-xs font-medium text-slate-600 dark:text-muted-foreground">
+          {disabledApproveHint}
+        </p>
       )}
     </div>
   )

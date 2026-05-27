@@ -14,6 +14,8 @@ export interface UserCardProps {
   avatarUrl?: string
   /** Avatar fallback (initials) */
   avatarFallback?: string
+  /** Optional plain-text query to mark inside the display name */
+  highlight?: string
   /** Size variant */
   size?: "sm" | "md" | "lg"
   /** Additional class name */
@@ -40,6 +42,7 @@ export function UserCard({
   description,
   avatarUrl,
   avatarFallback,
+  highlight,
   size = "md",
   className,
 }: UserCardProps) {
@@ -55,6 +58,27 @@ export function UserCard({
   }, [name, avatarFallback])
 
   const avatarSize = size === "sm" ? "sm" : size === "lg" ? "lg" : "md"
+  const highlightQuery = highlight?.trim()
+  const highlightedName = React.useMemo(() => {
+    if (!highlightQuery) return name
+
+    const index = name.toLowerCase().indexOf(highlightQuery.toLowerCase())
+    if (index < 0) return name
+
+    const before = name.slice(0, index)
+    const match = name.slice(index, index + highlightQuery.length)
+    const after = name.slice(index + highlightQuery.length)
+
+    return (
+      <>
+        {before}
+        <mark className="rounded-sm bg-warning-light px-0.5 text-foreground ring-1 ring-warning-border/70">
+          {match}
+        </mark>
+        {after}
+      </>
+    )
+  }, [highlightQuery, name])
 
   return (
     <div className={cn("flex items-center gap-3", className)}>
@@ -74,13 +98,13 @@ export function UserCard({
             size === "lg" && "text-lg font-semibold"
           )}
         >
-          {name}
+          {highlightedName}
         </p>
         {description && (
           <p
             className={cn(
-              "truncate text-muted-foreground",
-              size === "sm" ? "text-xs" : "text-sm"
+              "truncate text-slate-700 dark:text-muted-foreground",
+              size === "sm" ? "text-[13px] leading-4" : "text-sm"
             )}
           >
             {description}

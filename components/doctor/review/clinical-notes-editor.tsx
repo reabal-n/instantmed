@@ -1,15 +1,15 @@
 "use client"
 
-import { FileText, Loader2,Save } from "lucide-react"
+import { FileText, Loader2, Save } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { FormattingToolbar } from "@/components/doctor/review/formatting-toolbar"
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
-import { MIN_CLINICAL_NOTES_LENGTH } from "@/components/doctor/review/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
+import { isClinicalNoteSufficient } from "@/lib/doctor/clinical-notes"
 import { cn } from "@/lib/utils"
 
 function formatSavedAgo(savedAt: Date, now: number): string {
@@ -97,6 +97,7 @@ export function ClinicalNotesEditor() {
 
   // 1s ticker drives the "Saved Ns ago" / "Saved Nm ago" label so the count visibly advances.
   const [now, setNow] = useState(() => Date.now())
+  const [isNoteFocused, setIsNoteFocused] = useState(false)
   useEffect(() => {
     if (!savedAt) return
     const id = setInterval(() => setNow(Date.now()), 1000)
@@ -105,6 +106,7 @@ export function ClinicalNotesEditor() {
 
   const isReadonly = ["approved", "completed", "awaiting_script"].includes(intake.status)
   const snippets = (service?.type && SNIPPETS_BY_TYPE[service.type]) || DEFAULT_SNIPPETS
+  const noteReady = isClinicalNoteSufficient(doctorNotes)
 
   return (
     <Card>
@@ -167,8 +169,8 @@ export function ClinicalNotesEditor() {
               </div>
             ) : (
               <div className={cn(
-                "rounded-lg border bg-background overflow-hidden focus-within:ring-1 transition-colors",
-                doctorNotes.trim().length > 0 && doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH
+                "rounded-lg border bg-background overflow-hidden focus-within:ring-1 focus-within:shadow-sm focus-within:shadow-primary/[0.04] transition-[border-color,box-shadow]",
+                !noteReady
                   ? "border-amber-300 dark:border-amber-500/50 focus-within:ring-amber-400/50 focus-within:border-amber-400"
                   : "border-border/60 focus-within:ring-ring focus-within:border-ring"
               )}>
@@ -181,15 +183,20 @@ export function ClinicalNotesEditor() {
                     setDoctorNotes(e.target.value)
                     setNoteSaved(false)
                   }}
+                  onFocus={() => setIsNoteFocused(true)}
+                  onBlur={() => setIsNoteFocused(false)}
                   disabled={isPending || isRegenerating}
-                  className="min-h-[180px] text-sm border-0 rounded-none focus-visible:ring-0 resize-y"
+                  className={cn(
+                    "text-sm border-0 rounded-none focus-visible:ring-0 resize-y transition-[min-height] duration-200 ease-out",
+                    isNoteFocused ? "min-h-[320px]" : "min-h-[180px]",
+                  )}
                 />
               </div>
             )}
             {/* Actions row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Button onClick={handleSaveNotes} disabled={isPending || isRegenerating} variant="outline" size="sm">
+                <Button onClick={() => void handleSaveNotes()} disabled={isPending || isRegenerating} variant="outline" size="sm">
                   <Save className="h-3.5 w-3.5 mr-1.5" />
                   Save Notes
                 </Button>
@@ -249,27 +256,12 @@ export function ClinicalNotesEditor() {
                     {formatSavedAgo(savedAt, now)}
                   </span>
                 )}
-                {doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH ? (
-                  <div className="flex items-center gap-1.5" aria-live="polite">
-                    <div className="w-20 h-1.5 rounded-full bg-muted overflow-hidden">
-                      <div
-                        className={cn(
-                          "h-full rounded-full",
-                          doctorNotes.trim().length === 0
-                            ? "w-0"
-                            : doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH * 0.5
-                              ? "bg-amber-400"
-                              : "bg-amber-500"
-                        )}
-                        style={{ width: `${Math.min(100, (doctorNotes.trim().length / MIN_CLINICAL_NOTES_LENGTH) * 100)}%` }}
-                      />
-                    </div>
-                    <span className="text-xs tabular-nums text-amber-600 dark:text-amber-500">
-                      {doctorNotes.trim().length}/{MIN_CLINICAL_NOTES_LENGTH}
-                    </span>
-                  </div>
+                {!noteReady ? (
+                  <span className="text-xs text-amber-600 dark:text-amber-500" aria-live="polite">
+                    Add a note before deciding
+                  </span>
                 ) : (
-                  <span className="text-xs text-muted-foreground" aria-live="polite">Min met</span>
+                  <span className="text-xs text-muted-foreground" aria-live="polite">Note ready</span>
                 )}
               </div>
             </div>

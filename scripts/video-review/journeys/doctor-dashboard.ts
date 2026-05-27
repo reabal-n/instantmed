@@ -27,11 +27,97 @@
 import type { Journey } from "./index"
 
 const E2E_SECRET = process.env.E2E_SECRET || "e2e-test-secret-local"
+const OPERATOR_USER_ID = "e2e00000-0000-0000-0000-000000000001"
+const E2E_REVIEW_INTAKE_ID = "e2e00000-0000-0000-0000-000000000010"
+const OPERATOR_COOKIE_HEADER = [
+  `__e2e_auth_user_id=${OPERATOR_USER_ID}`,
+  "__e2e_auth_user_type=operator",
+  "__e2e_auth_role=doctor",
+  "__e2e_auth_is_admin=true",
+].join("; ")
+
+async function fetchWithTimeout(url: string, init: RequestInit, ms = 15000): Promise<Response> {
+  const ctrl = new AbortController()
+  const timeout = setTimeout(() => ctrl.abort(), ms)
+  try {
+    return await fetch(url, { ...init, signal: ctrl.signal })
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+async function waitForWarmResponse(
+  label: string,
+  url: string,
+  init: RequestInit,
+  accepts: (response: Response) => boolean = (response) => response.ok,
+  attempts = 6,
+): Promise<void> {
+  let lastMessage = "unknown error"
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      const response = await fetchWithTimeout(url, init, 20000)
+      if (accepts(response)) return
+      const body = await response.text().catch(() => "")
+      lastMessage = `${response.status} ${body.slice(0, 160)}`
+    } catch (err) {
+      lastMessage = err instanceof Error ? err.message : String(err)
+    }
+    if (attempt < attempts) {
+      await new Promise((resolve) => setTimeout(resolve, 1500))
+    }
+  }
+
+  throw new Error(
+    `doctor-dashboard preCapture: ${label} did not become ready after ${attempts} attempts. ` +
+      `Last response: ${lastMessage}. Hint: run the dev server with PLAYWRIGHT=1, make sure seeded test data exists, and retry.`,
+  )
+}
+
+async function prewarmDoctorDashboard(baseUrl: string, showTestData = false): Promise<void> {
+  await waitForWarmResponse("test login", `${baseUrl}/api/test/login`, {
+    method: "POST",
+    headers: {
+      "X-E2E-SECRET": E2E_SECRET,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ userType: "operator" }),
+  })
+
+  const dashboardUrl = `${baseUrl}/dashboard${showTestData ? "?showTestData=1" : ""}`
+  await waitForWarmResponse("dashboard route", dashboardUrl, {
+    method: "GET",
+    redirect: "follow",
+    headers: {
+      Cookie: OPERATOR_COOKIE_HEADER,
+    },
+  })
+
+  // Compile and warm the PHI-heavy review endpoint before recording starts.
+  // In production this is an ordinary API fetch; in local Next dev, leaving it
+  // cold makes the first recorded open look like a multi-second skeleton stall.
+  await waitForWarmResponse("review-data endpoint", `${baseUrl}/api/doctor/intakes/${E2E_REVIEW_INTAKE_ID}/review-data`, {
+    method: "GET",
+    redirect: "follow",
+    headers: {
+      Cookie: OPERATOR_COOKIE_HEADER,
+    },
+  })
+
+  await fetchWithTimeout(`${baseUrl}/api/csrf`, {
+    method: "GET",
+    redirect: "follow",
+    headers: {
+      Cookie: OPERATOR_COOKIE_HEADER,
+    },
+  }).catch(() => undefined)
+}
 
 export const doctorDashboard: Journey = {
   name: "doctor-dashboard",
   label: "Doctor dashboard (queue + header chrome after 2026-05-25 cuts)",
   targetSeconds: 60,
+  preCapture: (baseUrl) => prewarmDoctorDashboard(baseUrl),
   async run(page, baseUrl) {
     // 0. Warm the browser at homepage so the Playwright context has settled
     // origin state before we install cookies + navigate to the gated page.
@@ -67,7 +153,6 @@ export const doctorDashboard: Journey = {
     // lib/supabase/auth-provider.tsx:93 checks for it specifically. Without
     // it, the AuthProvider calls Supabase, finds no real session, emits
     // SIGNED_OUT, and the middleware bounces /dashboard → /sign-in mid-render.
-    const OPERATOR_USER_ID = "e2e00000-0000-0000-0000-000000000001"
     await page.context().clearCookies()
     await page.context().addCookies([
       { name: "__e2e_auth_user_id", value: OPERATOR_USER_ID, url: baseUrl, httpOnly: true, secure: false, sameSite: "Lax" },
@@ -136,5 +221,110 @@ export const doctorDashboard: Journey = {
     // 7. End with the dashboard at rest so the closing frame is clean.
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: "smooth" }))
     await page.waitForTimeout(2000)
+  },
+}
+
+export const doctorDashboardDesktop: Journey = {
+  name: "doctor-dashboard-desktop",
+  label: "Doctor dashboard desktop interaction audit (queue hover + review open)",
+  targetSeconds: 75,
+  capture: {
+    viewport: { width: 1440, height: 900 },
+    videoSize: { width: 1440, height: 900 },
+    deviceScaleFactor: 1,
+    isMobile: false,
+    hasTouch: false,
+    userAgent:
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+  },
+  preCapture: (baseUrl) => prewarmDoctorDashboard(baseUrl, true),
+  async run(page, baseUrl) {
+    const loginResponse = await page.request.post(`${baseUrl}/api/test/login`, {
+      headers: {
+        "X-E2E-SECRET": E2E_SECRET,
+        "Content-Type": "application/json",
+      },
+      data: { userType: "operator" },
+    })
+    if (!loginResponse.ok()) {
+      const body = await loginResponse.text().catch(() => "")
+      throw new Error(
+        `doctor-dashboard-desktop journey: test-login failed (${loginResponse.status()}). ` +
+          `Body: ${body.slice(0, 200)}. ` +
+          `Hint: dev server must run with PLAYWRIGHT=1 and a matching E2E_SECRET.`,
+      )
+    }
+
+    await page.context().clearCookies()
+    await page.context().addCookies([
+      { name: "__e2e_auth_user_id", value: OPERATOR_USER_ID, url: baseUrl, httpOnly: true, secure: false, sameSite: "Lax" },
+      { name: "__e2e_auth_user_type", value: "operator", url: baseUrl, httpOnly: true, secure: false, sameSite: "Lax" },
+      { name: "__e2e_auth_role", value: "doctor", url: baseUrl, httpOnly: false, secure: false, sameSite: "Lax" },
+      { name: "__e2e_auth_is_admin", value: "true", url: baseUrl, httpOnly: false, secure: false, sameSite: "Lax" },
+    ])
+
+    await page.goto(`${baseUrl}/dashboard?showTestData=1`, {
+      waitUntil: "networkidle",
+      timeout: 30000,
+    })
+    await page.waitForTimeout(1400)
+
+    const queue = page.getByRole("region", { name: /doctor request queue/i })
+    await queue.waitFor({ state: "visible", timeout: 30000 })
+
+    for (const tabLabel of [/Review/i, /Scripts/i, /^All/]) {
+      const tab = queue.getByRole("button", { name: tabLabel }).first()
+      if (await tab.isVisible().catch(() => false)) {
+        const label = await tab.textContent().catch(() => "")
+        if (label && /\(0\)/.test(label) && !/^All/i.test(label)) continue
+        await tab.click()
+        await page.waitForTimeout(650)
+      }
+    }
+
+    const search = queue.getByPlaceholder(/search/i).first()
+    if (await search.isVisible().catch(() => false)) {
+      await search.click()
+      await search.fill("E2E")
+      await page.waitForTimeout(850)
+      await search.fill("")
+      await page.waitForTimeout(550)
+    }
+
+    const row = page.getByTestId("queue-row-e2e00000-0000-0000-0000-000000000010")
+    if (await row.isVisible().catch(() => false)) {
+      await row.hover()
+      await page.waitForTimeout(800)
+
+      const openButton = row.getByRole("button", { name: /open case for/i }).first()
+      if (await openButton.isVisible().catch(() => false)) {
+        await openButton.click()
+        await page.waitForSelector('[data-testid="intake-review-panel"], [data-testid="intake-review-loading"]', {
+          state: "visible",
+          timeout: 30000,
+        })
+        await page.waitForSelector('[data-testid="intake-review-panel"]', {
+          state: "visible",
+          timeout: 45000,
+        })
+        await page.waitForTimeout(3500)
+      }
+    }
+
+    const reviewPanel = page.getByTestId("intake-review-panel")
+    if (await reviewPanel.isVisible().catch(() => false)) {
+      await reviewPanel.locator("textarea").first().click().catch(() => {})
+      await page.waitForTimeout(1000)
+      await reviewPanel.evaluate((el) => {
+        el.scrollTo({ top: 500, behavior: "smooth" })
+      }).catch(() => {})
+      await page.waitForTimeout(1800)
+      await reviewPanel.evaluate((el) => {
+        el.scrollTo({ top: 0, behavior: "smooth" })
+      }).catch(() => {})
+      await page.waitForTimeout(1200)
+    }
+
+    await page.waitForTimeout(1500)
   },
 }

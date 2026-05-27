@@ -1,11 +1,13 @@
 import "server-only"
 
 import { formatClaimWarning } from "@/lib/data/intake-lock-warning"
+import {
+  isReviewLockableStatus,
+  REVIEW_LOCKABLE_INTAKE_STATUSES,
+} from "@/lib/doctor/intake-lock-status"
 import { toError } from "@/lib/errors"
 import { logger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-
-const LOCKABLE_STATUSES = ["paid", "in_review", "pending_info", "awaiting_script"] as const
 
 /**
  * Review claim for intake review.
@@ -42,6 +44,23 @@ export async function acquireIntakeLock(
   const supabase = createServiceRoleClient()
   const now = new Date()
   try {
+    const { data: intakeStatus, error: intakeStatusError } = await supabase
+      .from("intakes")
+      .select("status")
+      .eq("id", intakeId)
+      .maybeSingle()
+
+    if (intakeStatusError) {
+      logger.error("Failed to read intake status before claim", { intakeId, doctorId }, intakeStatusError)
+    } else if (!intakeStatus) {
+      return {
+        acquired: false,
+        warning: "Intake not found.",
+      }
+    } else if (!isReviewLockableStatus(intakeStatus.status)) {
+      return { acquired: false }
+    }
+
     const { data: claimResult, error: claimError } = await supabase.rpc("claim_intake_for_review", {
       p_intake_id: intakeId,
       p_doctor_id: doctorId,
@@ -77,7 +96,7 @@ export async function acquireIntakeLock(
       })
       .eq("id", intakeId)
       .eq("claimed_by", doctorId)
-      .in("status", LOCKABLE_STATUSES)
+      .in("status", REVIEW_LOCKABLE_INTAKE_STATUSES)
 
     if (error) {
       logger.error("Failed to write intake review context after claim", { intakeId, doctorId }, error)
@@ -122,7 +141,7 @@ export async function releaseIntakeLock(
       })
       .eq("id", intakeId)
       .eq("reviewing_doctor_id", doctorId)
-      .in("status", LOCKABLE_STATUSES)
+      .in("status", REVIEW_LOCKABLE_INTAKE_STATUSES)
 
     if (error) {
       logger.error("Failed to release intake lock", { intakeId, doctorId }, error)

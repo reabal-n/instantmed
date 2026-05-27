@@ -21,12 +21,14 @@ export interface SwitchProps
   /** Label text rendered next to the switch */
   children?: React.ReactNode
   childrenClassName?: string
+  switchClassName?: string
   size?: "default" | "sm"
 }
 
 function Switch({
   className,
   childrenClassName,
+  switchClassName,
   checked,
   defaultChecked,
   onCheckedChange,
@@ -70,7 +72,8 @@ function Switch({
           // Focus
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2",
           // Disabled
-          "disabled:cursor-not-allowed disabled:opacity-50"
+          "disabled:cursor-not-allowed disabled:opacity-50",
+          switchClassName,
         )}
         {...props}
       >

@@ -15,6 +15,7 @@ import {
   hasAdminAccess,
   hasSupportAccess,
 } from "@/lib/auth/staff-capabilities"
+import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { IntakeLifecycleError } from "@/lib/data/intake-lifecycle"
 import { formatClaimWarning } from "@/lib/data/intake-lock-warning"
@@ -26,7 +27,7 @@ import {
   updateScriptSent,
 } from "@/lib/data/intakes"
 import { getDoctorCaseActionError } from "@/lib/doctor/case-action-guard"
-import { isClinicalNoteSufficient, MIN_CLINICAL_NOTES_LENGTH } from "@/lib/doctor/clinical-notes"
+import { resolveClinicalDecisionNote } from "@/lib/doctor/clinical-notes"
 import {
   getParchmentPatientSyncEligibility,
   getParchmentScriptCompletionEligibility,
@@ -54,6 +55,11 @@ type ServiceRelation = { type?: string | null } | { type?: string | null }[] | n
 type QueueActionProfile = Pick<Profile, "id" | "role">
 type RelationValue<T> = T | T[] | null | undefined
 type PrescribingIdentityPatient = Parameters<typeof getParchmentPatientIdentityIssues>[0]
+type ClinicalDecisionPatient = {
+  full_name: string | null
+  date_of_birth: string | null
+  sex: string | null
+}
 type IntakeAnswersRow = {
   answers: Record<string, unknown> | null
   answers_encrypted: never | null
@@ -136,17 +142,64 @@ export async function updateStatusAction(
     const supabase = createServiceRoleClient()
     const { data: intake } = await supabase
       .from("intakes")
-      .select("doctor_notes")
+      .select(`
+        doctor_notes,
+        category,
+        subtype,
+        risk_tier,
+        requires_live_consult,
+        patient:profiles!patient_id (
+          full_name,
+          date_of_birth,
+          sex
+        ),
+        answers:intake_answers (
+          answers,
+          answers_encrypted
+        ),
+        service:services!service_id(type)
+      `)
       .eq("id", intakeId)
       .single()
 
-    const notes = intake?.doctor_notes?.trim() || ""
-    if (!isClinicalNoteSufficient(notes)) {
+    const answerRow = firstRelation(intake?.answers as RelationValue<IntakeAnswersRow>)
+    const answers = answerRow
+      ? (await readAnswers({
+          answers: answerRow.answers,
+          answers_enc: answerRow.answers_encrypted,
+        })) ?? {}
+      : {}
+    const patient = firstRelation(intake?.patient as RelationValue<ClinicalDecisionPatient>)
+    const serviceType = getServiceType(intake?.service as ServiceRelation)
+    const fallbackDraftNote = intake
+      ? buildClinicalCaseSummary({
+          answers,
+          category: intake.category,
+          subtype: intake.subtype,
+          serviceType,
+          patientName: patient?.full_name,
+          patientDateOfBirth: patient?.date_of_birth ?? null,
+          patientSex: patient?.sex ?? null,
+          riskTier: intake.risk_tier,
+          requiresLiveConsult: intake.requires_live_consult,
+        }).draftNote
+      : null
+    const existingNotes = intake?.doctor_notes?.trim() || ""
+    const decisionNote = resolveClinicalDecisionNote({
+      doctorNotes: existingNotes,
+      fallbackDraftNote,
+    })
+
+    if (!decisionNote) {
       return {
         success: false,
-        error: `Clinical notes must be at least ${MIN_CLINICAL_NOTES_LENGTH} characters before approving or sending a script.`,
+        error: "Use the draft note or add a brief clinical note before approving or prescribing.",
         code: "INSUFFICIENT_CLINICAL_NOTES",
       }
+    }
+
+    if (decisionNote !== existingNotes) {
+      await saveDoctorNotes(intakeId, decisionNote)
     }
   }
 

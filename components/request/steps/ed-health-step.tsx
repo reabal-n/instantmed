@@ -130,8 +130,9 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
   // Soft block: GP clearance required
   // ---------------------------------------------------------------------------
 
-  const softBlockActive = (edRecentHeartEvent === true || edSevereHeart === true || edAlphaBlockers === true)
-  const gpClearanceRequired = softBlockActive && edGpCleared !== true
+  const clearanceBlockActive = edRecentHeartEvent === true || edSevereHeart === true
+  const softBlockActive = clearanceBlockActive || edAlphaBlockers === true
+  const gpClearanceRequired = clearanceBlockActive && edGpCleared !== true
 
   // ---------------------------------------------------------------------------
   // Section completion checks
@@ -145,8 +146,9 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
     // Alpha-blockers, heart event & severe heart must be answered
     if (edAlphaBlockers === undefined) return false
     if (edRecentHeartEvent === undefined || edSevereHeart === undefined) return false
-    // If soft block is active, GP clearance must be checked
-    if ((edRecentHeartEvent || edSevereHeart || edAlphaBlockers) && edGpCleared !== true) return false
+    // Cardiac-risk answers need GP/cardiology clearance. Alpha blockers are
+    // a caution for the doctor, not an intake hard stop.
+    if ((edRecentHeartEvent || edSevereHeart) && edGpCleared !== true) return false
     return true
   }, [edNitrates, edAlphaBlockers, edRecentHeartEvent, edSevereHeart, edGpCleared])
 
@@ -375,14 +377,14 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
                 <AlertTriangle className="w-4 h-4 text-warning" />
                 <AlertDescription className="text-sm">
                   {edAlphaBlockers
-                    ? "Alpha-blockers can interact with ED prescription options, causing a drop in blood pressure. Your GP should confirm it\u2019s safe to combine them."
+                    ? "Alpha-blockers can interact with ED prescription options, causing a drop in blood pressure. The doctor will check dose timing and safety before prescribing."
                     : "This condition requires clearance from your GP before we can prescribe."}
                 </AlertDescription>
               </Alert>
             )}
 
             {/* GP clearance checkbox - shown only when soft block active */}
-            {softBlockActive && (
+            {clearanceBlockActive && (
               <div className="p-3 rounded-xl border bg-muted/30">
                 <Checkbox
                   id="ed-gp-cleared"

@@ -210,7 +210,7 @@ export async function updateClinicIdentity(
 export const INTAKE_ID = "e2e00000-0000-0000-0000-000000000010"
 const E2E_SERVICE_ID = "e2e00000-0000-0000-0000-000000000020"
 const E2E_SCRIPT_SERVICE_ID = "e2e00000-0000-0000-0000-000000000021"
-const E2E_CLINICAL_NOTE = "E2E baseline clinical note. Patient history reviewed. Medical certificate request requires doctor review before approval."
+const E2E_CLINICAL_NOTE = "E2E baseline clinical note. Reviewed intake. Confirm clinical suitability before approval."
 
 /**
  * Intake type definition

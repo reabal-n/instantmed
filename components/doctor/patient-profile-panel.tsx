@@ -19,6 +19,7 @@ import { PatientTimeline } from "@/components/doctor/patient-timeline"
 import { DrawerPanel } from "@/components/panels/drawer-panel"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import {
   buildPatientSnapshot,
@@ -116,12 +117,13 @@ export function PatientProfilePanel({
   }
   const identityBadgeVariant =
     snapshot.completenessTone === "complete"
-      ? "success"
+      ? "outline"
       : snapshot.completenessTone === "partial"
         ? "warning"
         : "destructive"
   const [summary, setSummary] = useState<SummaryState>({ status: "idle" })
   const canLoadHistory = loadHistory && UUID_RE.test(snapshot.id)
+  const showHistoryTab = loadHistory
 
   useEffect(() => {
     if (!canLoadHistory) {
@@ -163,9 +165,13 @@ export function PatientProfilePanel({
               <p className="truncate text-lg font-semibold text-foreground">{snapshot.name}</p>
               <p className="mt-1 text-sm text-muted-foreground">{sourceLabel}</p>
             </div>
-            <Badge variant={identityBadgeVariant} size="sm" className="shrink-0">
+            <Badge
+              variant={identityBadgeVariant}
+              size="sm"
+              className={cn("shrink-0", snapshot.completenessTone === "complete" && "text-muted-foreground")}
+            >
               <ShieldCheck className="h-3 w-3" />
-              {snapshot.completenessTone === "complete" ? "Ready" : snapshot.completenessLabel}
+              {snapshot.completenessTone === "complete" ? "Details complete" : snapshot.completenessLabel}
             </Badge>
           </div>
           {snapshot.missingCriticalFields.length > 0 && (
@@ -175,53 +181,73 @@ export function PatientProfilePanel({
           )}
         </section>
 
-        <section aria-label="Patient identifiers" className="space-y-2">
-          <DetailRow icon={Calendar} label="Date of birth" value={snapshot.ageDobLabel} />
-          <DetailRow
-            icon={UserRound}
-            label="Sex"
-            value={snapshot.sex.label}
-          />
-          <DetailRow
-            icon={CreditCard}
-            label="Medicare"
-            value={snapshot.medicare.label}
-            mono={snapshot.medicare.present}
-          />
-        </section>
+        <Tabs defaultValue="identity" className="gap-3">
+          <TabsList className="w-full justify-start rounded-lg bg-muted/25 p-1 shadow-none">
+            <TabsTrigger className="flex-1 rounded-md px-3 py-1.5 text-xs shadow-none" value="identity">
+              Identity
+            </TabsTrigger>
+            <TabsTrigger className="flex-1 rounded-md px-3 py-1.5 text-xs shadow-none" value="contact">
+              Contact
+            </TabsTrigger>
+            {showHistoryTab ? (
+              <TabsTrigger className="flex-1 rounded-md px-3 py-1.5 text-xs shadow-none" value="history">
+                History
+              </TabsTrigger>
+            ) : null}
+          </TabsList>
 
-        <section aria-label="Patient contact details" className="space-y-2">
-          <DetailRow icon={Phone} label="Phone" value={snapshot.phone.label} />
-          <DetailRow icon={Mail} label="Email" value={snapshot.email.label} />
-          <DetailRow icon={MapPin} label="Address" value={snapshot.address.label} />
-        </section>
+          <TabsContent value="identity" className="mt-0 space-y-2">
+            <DetailRow icon={Calendar} label="Date of birth" value={snapshot.ageDobLabel} />
+            <DetailRow
+              icon={UserRound}
+              label="Sex"
+              value={snapshot.sex.label}
+            />
+            <DetailRow
+              icon={CreditCard}
+              label="Medicare"
+              value={snapshot.medicare.label}
+              mono={snapshot.medicare.present}
+            />
+          </TabsContent>
 
-        {summary.status === "loading" && (
-          <section className="rounded-xl border border-border/60 bg-background p-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-              Loading history
-            </div>
-          </section>
-        )}
+          <TabsContent value="contact" className="mt-0 space-y-2">
+            <DetailRow icon={Phone} label="Phone" value={snapshot.phone.label} />
+            <DetailRow icon={Mail} label="Email" value={snapshot.email.label} />
+            <DetailRow icon={MapPin} label="Address" value={snapshot.address.label} />
+          </TabsContent>
 
-        {summary.status === "error" && (
-          <section className="rounded-xl border border-border/60 bg-background p-4">
-            <p className="text-sm text-muted-foreground">{summary.message}</p>
-          </section>
-        )}
+          {showHistoryTab ? (
+            <TabsContent value="history" className="mt-0">
+              {summary.status === "loading" && (
+                <section className="rounded-xl border border-border/60 bg-background p-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                    Loading history
+                  </div>
+                </section>
+              )}
 
-        {summary.status === "ready" && (
-          <PatientTimeline
-            requests={summary.data.history}
-            notes={summary.data.notes}
-            admin={admin}
-            compact
-            maxItems={5}
-            title="Clinical history"
-            emptyLabel="No previous requests recorded."
-          />
-        )}
+              {summary.status === "error" && (
+                <section className="rounded-xl border border-border/60 bg-background p-4">
+                  <p className="text-sm text-muted-foreground">{summary.message}</p>
+                </section>
+              )}
+
+              {summary.status === "ready" && (
+                <PatientTimeline
+                  requests={summary.data.history}
+                  notes={summary.data.notes}
+                  admin={admin}
+                  compact
+                  maxItems={5}
+                  title="Clinical history"
+                  emptyLabel="No previous requests recorded."
+                />
+              )}
+            </TabsContent>
+          ) : null}
+        </Tabs>
 
         {profileHref && (
           <Button asChild variant="outline" className="w-full justify-between">

@@ -1,0 +1,142 @@
+{
+  "summary": "This is an internal doctor console, not the patient marketing surface, so brand-spine and conversion-friction rubrics largely don't apply. As a clinician tool it's clean, calm, and information-dense in a Linear-adjacent way — queue, patient details, SOAP note, and keyboard shortcuts are well organised. The bar to clear is operator efficiency, and a few details (status banner clarity, note auto-save proof, decline affordance weight) leave signal on the table.",
+  "overall_score": 7,
+  "categories": {
+    "brand_spine": {
+      "score": 7,
+      "observation": "Doctor console, so the patient-facing thesis 'Telehealth without the small talk' isn't the job here. The console correctly inherits the ivory surface, restrained palette, and the operational equivalent of the thesis: 'Avg med cert today 10m', 'Oldest wait 15m', 'Target under 2h'. That is the brand spine for the clinician — speed made legible.",
+      "findings": []
+    },
+    "typography": {
+      "score": 8,
+      "observation": "Hierarchy reads cleanly at 4s: 'Dashboard' → 'Today's queue' → patient row. Labels (DOB, MEDICARE, PHONE) are quiet uppercase, values are weight-led. Line-height in the SOAP textarea at 12s is comfortable. No orphaned headings spotted.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 8,
+          "issue": "'Patient details / Identity and notes' double-stack is redundant — the subtitle adds no information a doctor needs.",
+          "recommendation": "Drop 'Identity and notes' or replace with a status sentence ('First visit · details complete')."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 8,
+      "observation": "Ivory #F8F7F4 holds across all four frames, cards are solid white, shadows are restrained. Primary blue is reserved for 'Approve & send' and the active 'You' chip. Coral is absent, which is correct for an internal tool. Red is reserved for 'Decline & refund', which reads as semantic not decorative.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "The 'Oldest wait' and 'waiting at intake' status pills use small orange dots that read as warnings without explanation — at 15m against a 2h target, nothing is actually wrong.",
+          "recommendation": "Tie the dot colour to threshold (green under 50% of target, amber 50-80%, red over 80%) and add a tooltip on hover so the colour earns its alarm."
+        }
+      ]
+    },
+    "motion": {
+      "score": 6,
+      "observation": "Can't fully judge motion from stills, but the 8s→12s transition (intake summary collapsing into a compact facts grid while the SOAP note expands) is a meaningful, physical state change. That's Linear-grade if the easing is right.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "Between 8s and 12s the 'Reason for visit' paragraph disappears entirely once the note opens. If this is an instant swap rather than a tucked/collapsed state, the doctor loses context they may still want while typing.",
+          "recommendation": "Persist 'Reason for visit' as a collapsed strip above the note, or animate it into the '2 more facts' disclosure so it's clearly stowed, not deleted."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 8,
+      "observation": "Voice is calm and operator-appropriate. 'No one else waiting · target under 2h' is exactly the unhurried-GP register. 'Refunds $25.00 automatically on decline' names the money in the first breath. No banned phrases spotted. Australian English consistent (Melbourne VIC, 20/06/1990).",
+      "findings": [
+        {
+          "severity": 1,
+          "timestamp_seconds": 12,
+          "issue": "'Auto-saves as you type. Only you can see this note until you send.' is two sentences doing one job; the second clause is the load-bearing one.",
+          "recommendation": "Tighten to 'Saved as you type. Private until you send.'"
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 8,
+          "issue": "'In Queue' as a status chip next to a name reads slightly system-y for a GP surface.",
+          "recommendation": "Use 'Waiting' (matches the 'Waiting 15m' label two lines down) or drop the chip since the timer already conveys state."
+        }
+      ]
+    },
+    "hierarchy_and_layout": {
+      "score": 7,
+      "observation": "Two-pane layout works: queue left, case right. Eye lands on the patient row and then 'Approve & send' inside 2s once the case opens. Right-rail KPI card at 4s ('10m · Form to inbox · Target under 2h') is the right hero metric for a doctor. Spacing is Stripe-adjacent, not yet Stripe-grade.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 8,
+          "issue": "The 'Details complete' and 'Note ready' indicators top-right of the patient card are far from the actions they gate ('Approve & send' is ~500px below). The doctor has to scan up to confirm readiness.",
+          "recommendation": "Mirror the two checks next to the Approve button ('Details complete · Note ready') so the green-light state sits with the action."
+        },
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "Issue sign-off line ('Dr Amelia Reid · MED0001234567') sits visually inside the note card but functions as metadata for the certificate. Ambiguous ownership.",
+          "recommendation": "Move sign-off into the certificate facts grid above, or give it a divider and a label ('Signed by') so it's clearly the cert's signature, not the note's."
+        },
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "Right-rail 'Next up: Mia waiting 15m' duplicates the queue row when only one patient is waiting — feels like filler.",
+          "recommendation": "Hide 'Next up' when queue length is 1, or replace with the day's running stats ('2 done, avg 9m')."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 7,
+      "observation": "Not a paid-path surface, so scored on operator friction. Cmd+Enter and Cmd+Shift+D are surfaced inline — that's the right move for a 14-minute target. Approve and Decline are both reachable without scrolling at 12s.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 8,
+          "issue": "At 8s the 'Approve & send' button is rendered in a dimmed/disabled-looking state even though all data is present. If it's actually enabled, the styling is misleading; if it's disabled until the note exists, the reason isn't shown.",
+          "recommendation": "Either enable with full contrast once details are complete, or show a one-line reason ('Add a clinical note to approve') tied to the button."
+        },
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "'Decline & refund' is the same visual weight as 'Approve & send' (both have icons, both have shortcuts). Decline is the rarer, higher-consequence action and should not compete.",
+          "recommendation": "Demote decline to a text-button with the red colour reserved for the icon, keep the Cmd+Shift+D shortcut visible on hover only."
+        }
+      ]
+    },
+    "signature_devices": {
+      "score": 6,
+      "observation": "Operational analogues of the marketing devices are present and well-placed: live wait counter ('Oldest wait 15m · Updated 5s ago' at 12s), 'while you wait' specificity ('Avg med cert today 10m · Based on 7 certs sent in the last 7 days'), name-first context ('Mia waiting 15m.'), and the refund promise materialised as 'Refunds $25.00 automatically on decline.' The handwritten signature and 'what we won't do' devices are correctly absent from this internal surface.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "'Updated 5s ago' / 'Updated 10s ago' on the oldest-wait pill is the liveness signal, but it only appears after the first refresh (not visible at 4s). Doctors second-guess stale numbers.",
+          "recommendation": "Always render the 'Updated Xs ago' suffix from first paint, even if it reads 'Updated just now'."
+        },
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "The '10m · Form to inbox' KPI lacks a sparkline or trend — it's a number without a story. Mosh/Stripe would give it a tiny shape.",
+          "recommendation": "Add a 7-day micro-sparkline under the number; same data source as 'Based on 7 certs sent'."
+        }
+      ]
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Move 'Details complete · Note ready' indicators next to the Approve & send button and fix the button's disabled-looking state when it is actually enabled.",
+      "why": "Right now the readiness signal lives 500px from the action it gates, and the muted Approve styling at 8s creates a half-second hesitation on every case — that compounds against the 14-minute promise.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Demote 'Decline & refund' to a tertiary text-button while keeping the Cmd+Shift+D shortcut and the red icon.",
+      "why": "Decline is rare and irreversible-feeling; it should not share visual weight with the primary approve path on a speed-optimised console.",
+      "estimated_impact": "medium"
+    },
+    {
+      "action": "Make the 'Oldest wait' dot threshold-driven (green/amber/red) and always render the 'Updated Xs ago' suffix from first paint.",
+      "why": "The current orange dot reads as a warning when nothing is wrong, and the liveness label only appears after a refresh — both undermine trust in the very metric the console is built around.",
+      "estimated_impact": "medium"
+    }
+  ]
+}

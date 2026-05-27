@@ -12,6 +12,7 @@ import { expect,type Page,test } from "@playwright/test"
 import { createClient } from "@supabase/supabase-js"
 
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
+import { resetIntakeForRetest } from "./helpers/db"
 import { waitForPageLoad } from "./helpers/test-utils"
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || ""
@@ -42,36 +43,10 @@ async function getIntakeStatus(intakeId: string): Promise<string | null> {
   return data?.status
 }
 
-async function resetIntakeForTest(intakeId: string) {
-  const supabase = getSupabaseClient()
-  
-  // Delete any existing issued certificates
-  await supabase
-    .from("issued_certificates")
-    .delete()
-    .eq("intake_id", intakeId)
-  
-  // Delete any existing intake documents
-  await supabase
-    .from("intake_documents")
-    .delete()
-    .eq("intake_id", intakeId)
-  
-  // Reset intake status to paid
-  await supabase
-    .from("intakes")
-    .update({ 
-      status: "paid",
-      claimed_by: null,
-      claimed_at: null,
-    })
-    .eq("id", intakeId)
-}
-
 async function expectQueueSurface(page: Page) {
   const queueRegion = page.getByRole("region", { name: /doctor request queue/i })
   await expect(queueRegion).toBeVisible({ timeout: 15000 })
-  await expect(queueRegion.getByTestId("queue-heading")).toHaveText(/review and scripts/i)
+  await expect(queueRegion.getByTestId("queue-heading")).toHaveText(/today's queue/i)
   return queueRegion
 }
 
@@ -110,7 +85,7 @@ test.describe("Doctor Queue", () => {
     test.skip(!SUPABASE_SERVICE_ROLE_KEY, "SUPABASE_SERVICE_ROLE_KEY required")
 
     // Ensure intake is in paid status
-    await resetIntakeForTest(SEEDED_INTAKE_ID)
+    await resetIntakeForRetest(SEEDED_INTAKE_ID)
 
     await page.goto("/dashboard")
     await waitForPageLoad(page)
@@ -125,16 +100,15 @@ test.describe("Doctor Queue", () => {
 
     const queueRow = page.getByTestId(`queue-row-${SEEDED_INTAKE_ID}`)
     await expect(queueRow).toBeVisible()
-    await expect(queueRow.getByText("Needs review")).toBeVisible()
-    await expect(queueRow.getByText(/Paid /)).toBeVisible()
-    await expect(queueRow.getByText(/Submitted /)).toBeVisible()
+    await expect(queueRow.getByRole("button", { name: `Open case for ${SEEDED_PATIENT_NAME}` })).toBeVisible()
+    await expect(queueRow.getByText(/e2e cert|medical certificate|med cert/i).first()).toBeVisible()
   })
 
   test("can open review panel from queue", async ({ page }) => {
     test.skip(!SUPABASE_SERVICE_ROLE_KEY, "SUPABASE_SERVICE_ROLE_KEY required")
 
     // Ensure intake is in paid status
-    await resetIntakeForTest(SEEDED_INTAKE_ID)
+    await resetIntakeForRetest(SEEDED_INTAKE_ID)
 
     await page.goto("/dashboard")
     await waitForPageLoad(page)
@@ -142,14 +116,15 @@ test.describe("Doctor Queue", () => {
     // Wait for queue to load
     await expectQueueSurface(page)
 
-    // Find and click on the seeded patient row to expand it
-    const patientRow = page.getByText(SEEDED_PATIENT_NAME).first()
-    await expect(patientRow).toBeVisible({ timeout: 10000 })
-    await patientRow.click()
+    // Click the same primary queue action doctors use in the split-pane cockpit.
+    const queueRow = page.getByTestId(`queue-row-${SEEDED_INTAKE_ID}`)
+    await expect(queueRow).toBeVisible({ timeout: 10000 })
+    await queueRow.getByRole("button", { name: `Open case for ${SEEDED_PATIENT_NAME}` }).click()
 
-    const reviewPanel = page.getByRole("dialog", { name: SEEDED_PATIENT_NAME })
+    const reviewPanel = page.getByTestId("intake-review-panel")
     await expect(reviewPanel).toBeVisible({ timeout: 15000 })
-    await expect(reviewPanel.getByText(/medical certificate/i).first()).toBeVisible()
+    await expect(reviewPanel.getByRole("heading", { name: SEEDED_PATIENT_NAME })).toBeVisible()
+    await expect(reviewPanel.getByText(/reason for visit/i).first()).toBeVisible()
     await expect(reviewPanel.getByRole("button", { name: /approve|review|certificate/i }).first()).toBeVisible()
     await expect(reviewPanel.getByRole("button", { name: /decline/i }).first()).toBeVisible()
   })
@@ -158,7 +133,7 @@ test.describe("Doctor Queue", () => {
     test.skip(!SUPABASE_SERVICE_ROLE_KEY, "SUPABASE_SERVICE_ROLE_KEY required")
 
     // Reset intake for clean test
-    await resetIntakeForTest(SEEDED_INTAKE_ID)
+    await resetIntakeForRetest(SEEDED_INTAKE_ID)
 
     // Navigate directly to document builder
     await page.goto(`/doctor/intakes/${SEEDED_INTAKE_ID}/document`)
@@ -182,14 +157,12 @@ test.describe("Doctor Queue", () => {
     await expect(approveButton).toBeEnabled()
     await approveButton.click()
 
-    // Wait for success message
-    const successMessage = page.locator('[data-testid="success-message"]')
-    await expect(successMessage).toBeVisible({ timeout: 30000 })
-
-    // Verify DB was updated
-    await page.waitForTimeout(2000)
-    const status = await getIntakeStatus(SEEDED_INTAKE_ID)
-    expect(status, "Intake status should be 'approved'").toBe("approved")
+    await expect
+      .poll(() => getIntakeStatus(SEEDED_INTAKE_ID), {
+        message: "Intake status should become approved after certificate approval",
+        timeout: 30000,
+      })
+      .toBe("approved")
   })
 })
 
@@ -210,10 +183,10 @@ test.describe("Doctor Queue - Edge Cases", () => {
     await waitForPageLoad(page)
 
     // Should load without crashing
-    await expect(page.getByRole("heading", { level: 1, name: /^queue$/i })).toBeVisible({ timeout: 15000 })
+    await expectQueueSurface(page)
 
     // If queue is empty, should show empty state (not an error)
-    const emptyState = page.getByText(/queue is clear|no pending/i)
+    const emptyState = page.getByText(/all caught up|no review cases right now|no matches for this filter|availability is paused/i)
     const hasIntakes = await page.getByText(SEEDED_PATIENT_NAME).isVisible().catch(() => false)
     
     // Either we have intakes or we have an empty state - both are valid
@@ -226,7 +199,7 @@ test.describe("Doctor Queue - Edge Cases", () => {
     await waitForPageLoad(page)
 
     // Wait for queue to load
-    await expect(page.getByRole("heading", { level: 1, name: /^queue$/i })).toBeVisible({ timeout: 15000 })
+    await expectQueueSurface(page)
 
     // Look for search input
     const searchInput = page.getByPlaceholder(/search/i)
@@ -237,7 +210,7 @@ test.describe("Doctor Queue - Edge Cases", () => {
 
       // Should filter results (either show E2E patient or show no results)
       // No crash is the main assertion
-      expect(page.url()).toContain("/doctor")
+      expect(page.url()).toContain("/dashboard")
     }
   })
 })

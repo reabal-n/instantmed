@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation"
 
 import type { AIDraft } from "@/app/actions/draft-approval"
 import { DraftReviewPanel, RepeatPrescriptionChecklist } from "@/components/doctor"
-import { MIN_CLINICAL_NOTES_LENGTH } from "@/components/doctor/review/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
+import { isClinicalNoteSufficient } from "@/lib/doctor/clinical-notes"
 import { formatDateTime } from "@/lib/format"
 import type { IntakeWithDetails } from "@/types/db"
 
@@ -217,16 +217,15 @@ export function IntakeDetailDrafts({
                     </span>
                   )}
                 </div>
-                {/* Minimum-length hint for AHPRA defensibility */}
                 <span
                   className={`text-xs tabular-nums ${
-                    doctorNotes.trim().length >= MIN_CLINICAL_NOTES_LENGTH
+                    isClinicalNoteSufficient(doctorNotes)
                       ? "text-muted-foreground"
                       : "text-amber-600 dark:text-amber-500"
                   }`}
                   aria-live="polite"
                 >
-                  {doctorNotes.trim().length}/{MIN_CLINICAL_NOTES_LENGTH} min
+                  {isClinicalNoteSufficient(doctorNotes) ? "Note ready" : "Add a note before deciding"}
                 </span>
               </div>
             </>
