@@ -215,7 +215,7 @@ export function ClinicalCaseReview({
                   </div>
                 ))}
                 {hiddenFactCount > 0 && (
-                  <details className="rounded-lg bg-muted/30 px-3 py-2.5 sm:col-span-2">
+                  <details open className="rounded-lg bg-muted/30 px-3 py-2.5 sm:col-span-2">
                     <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
                       {hiddenFactCount} more facts
                     </summary>

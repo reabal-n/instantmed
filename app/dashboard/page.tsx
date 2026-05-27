@@ -10,6 +10,7 @@ import {
   OperatorScrollArea,
   QueuePressureSignal,
   SystemHealthPill,
+  TestDataBanner,
   TestDataToggleButton,
 } from "@/components/operator"
 import { PanelProvider } from "@/components/panels/panel-provider"
@@ -73,6 +74,7 @@ export default async function StaffDashboardPage({
     pageSize?: string
     status?: string | string[]
     showTestData?: string
+    onlyTestData?: string
   }>
 }) {
   const auth = await requireRole(["admin", "doctor", "support"], { redirectTo: "/sign-in" })
@@ -95,9 +97,13 @@ export default async function StaffDashboardPage({
   // renders below the header when active so the operator never forgets
   // they're looking at mixed data.
   const showTestData = isAdmin && params.showTestData === "1"
+  // Video-review captures must not blend real queue state with the seeded
+  // fixture. Keep this narrower than the admin toggle: local test mode only,
+  // and only after the admin-gated test-data opt-in is already active.
+  const onlyTestData = showTestData && params.onlyTestData === "1" && process.env.PLAYWRIGHT === "1"
 
   const results = await Promise.allSettled([
-    getDoctorQueue({ page, pageSize, doctorId: profile.id, allowSeeded: showTestData }),
+    getDoctorQueue({ page, pageSize, doctorId: profile.id, allowSeeded: showTestData, onlySeeded: onlyTestData }),
     isAdmin ? getAIApprovedIntakes({ limit: 20 }) : Promise.resolve([]),
     isAdmin ? getRecentlyCompletedIntakes({ limit: 8 }) : Promise.resolve([]),
     getDoctorIdentity(profile.id),
@@ -151,8 +157,13 @@ export default async function StaffDashboardPage({
           actions={(
             <div className="flex flex-wrap items-center justify-end gap-2">
               <div className="flex flex-wrap items-center gap-2 border-r border-border/60 pr-2">
-                <QueuePressureSignal oldestWaitingMinutes={oldestWaitingMinutes} showIcon={false} />
-                {isAdmin && <SystemHealthPill initial={systemHealth} />}
+                <QueuePressureSignal
+                  oldestWaitingMinutes={oldestWaitingMinutes}
+                  showIcon={false}
+                  softenWhenReviewOpen
+                  jumpToOldestOnClick
+                />
+                {isAdmin && !onlyTestData ? <SystemHealthPill initial={systemHealth} /> : null}
               </div>
               <div className="flex items-center gap-2">
                 {isAdmin && <TestDataToggleButton active={showTestData} />}
@@ -163,6 +174,8 @@ export default async function StaffDashboardPage({
         />
 
         <OperatorScrollArea className="flex flex-col gap-3 space-y-0">
+          {showTestData ? <TestDataBanner /> : null}
+
           {/* Owner setup card self-hides when complete (no blocking items). */}
           {isAdmin ? (
             <OwnerOperatorSetupCard

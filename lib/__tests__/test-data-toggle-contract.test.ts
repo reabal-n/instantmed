@@ -65,6 +65,10 @@ describe("test-data toggle contract", () => {
     const source = read("lib/data/intakes/queries.ts")
     // Function signature accepts the option.
     expect(source).toMatch(/allowSeeded\?: boolean/)
+    expect(source).toMatch(/onlySeeded\?: boolean/)
+    expect(source).toContain("const onlySeeded = allowSeeded && options?.onlySeeded === true")
+    expect(source).toContain('query.eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)')
+    expect(source).toContain('dataQuery.eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)')
     // Both filter call sites in getDoctorQueue forward the option via the
     // shared `allowSeeded` local. (Counting `{ allowSeeded }` is enough —
     // the filter wraps a multi-line query so regex-matching the whole
@@ -76,13 +80,17 @@ describe("test-data toggle contract", () => {
   it("/dashboard page gates the toggle on admin access and the showTestData query param", () => {
     const source = read("app/dashboard/page.tsx")
     expect(source).toContain("showTestData")
+    expect(source).toContain("onlyTestData")
     // Admin-only gate.
     expect(source).toContain("isAdmin && params.showTestData === \"1\"")
+    expect(source).toContain('process.env.PLAYWRIGHT === "1"')
     // Toggle button + banner both wired.
     expect(source).toContain("TestDataToggleButton")
     expect(source).toContain("TestDataBanner")
     // The queue fetch receives the allowSeeded flag.
     expect(source).toContain("allowSeeded: showTestData")
+    expect(source).toContain("onlySeeded: onlyTestData")
+    expect(source).toContain("!onlyTestData ? <SystemHealthPill")
   })
 
   it("test-data toggle UI preserves the rest of the query string", () => {
@@ -91,5 +99,6 @@ describe("test-data toggle contract", () => {
     expect(source).toContain("new URLSearchParams(searchParams)")
     // Hide link removes the param without dropping siblings.
     expect(source).toContain('next.delete("showTestData")')
+    expect(source).toContain('next.delete("onlyTestData")')
   })
 })

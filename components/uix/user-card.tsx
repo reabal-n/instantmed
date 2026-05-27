@@ -16,6 +16,8 @@ export interface UserCardProps {
   avatarFallback?: string
   /** Optional plain-text query to mark inside the display name */
   highlight?: string
+  /** Additional class name for the secondary line */
+  descriptionClassName?: string
   /** Size variant */
   size?: "sm" | "md" | "lg"
   /** Additional class name */
@@ -43,6 +45,7 @@ export function UserCard({
   avatarUrl,
   avatarFallback,
   highlight,
+  descriptionClassName,
   size = "md",
   className,
 }: UserCardProps) {
@@ -103,8 +106,10 @@ export function UserCard({
         {description && (
           <p
             className={cn(
-              "truncate text-slate-700 dark:text-muted-foreground",
-              size === "sm" ? "text-[13px] leading-4" : "text-sm"
+              "text-slate-700 dark:text-muted-foreground",
+              !descriptionClassName && "truncate",
+              size === "sm" ? "text-[13px] leading-4" : "text-sm",
+              descriptionClassName,
             )}
           >
             {description}

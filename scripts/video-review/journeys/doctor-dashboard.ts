@@ -29,6 +29,8 @@ import type { Journey } from "./index"
 const E2E_SECRET = process.env.E2E_SECRET || "e2e-test-secret-local"
 const OPERATOR_USER_ID = "e2e00000-0000-0000-0000-000000000001"
 const E2E_REVIEW_INTAKE_ID = "e2e00000-0000-0000-0000-000000000010"
+const E2E_REVIEW_FILTER = "E2E"
+const TEST_ONLY_DASHBOARD_PATH = "/dashboard?showTestData=1&onlyTestData=1"
 const OPERATOR_COOKIE_HEADER = [
   `__e2e_auth_user_id=${OPERATOR_USER_ID}`,
   "__e2e_auth_user_type=operator",
@@ -84,7 +86,9 @@ async function prewarmDoctorDashboard(baseUrl: string, showTestData = false): Pr
     body: JSON.stringify({ userType: "operator" }),
   })
 
-  const dashboardUrl = `${baseUrl}/dashboard${showTestData ? "?showTestData=1" : ""}`
+  const dashboardUrl = showTestData
+    ? `${baseUrl}${TEST_ONLY_DASHBOARD_PATH}`
+    : `${baseUrl}/dashboard`
   await waitForWarmResponse("dashboard route", dashboardUrl, {
     method: "GET",
     redirect: "follow",
@@ -263,7 +267,7 @@ export const doctorDashboardDesktop: Journey = {
       { name: "__e2e_auth_is_admin", value: "true", url: baseUrl, httpOnly: false, secure: false, sameSite: "Lax" },
     ])
 
-    await page.goto(`${baseUrl}/dashboard?showTestData=1`, {
+    await page.goto(`${baseUrl}${TEST_ONLY_DASHBOARD_PATH}`, {
       waitUntil: "networkidle",
       timeout: 30000,
     })
@@ -272,23 +276,17 @@ export const doctorDashboardDesktop: Journey = {
     const queue = page.getByRole("region", { name: /doctor request queue/i })
     await queue.waitFor({ state: "visible", timeout: 30000 })
 
-    for (const tabLabel of [/Review/i, /Scripts/i, /^All/]) {
-      const tab = queue.getByRole("button", { name: tabLabel }).first()
-      if (await tab.isVisible().catch(() => false)) {
-        const label = await tab.textContent().catch(() => "")
-        if (label && /\(0\)/.test(label) && !/^All/i.test(label)) continue
-        await tab.click()
-        await page.waitForTimeout(650)
-      }
+    const allTab = queue.getByRole("button", { name: /^All/ }).first()
+    if (await allTab.isVisible().catch(() => false)) {
+      await allTab.click()
+      await page.waitForTimeout(500)
     }
 
     const search = queue.getByPlaceholder(/search/i).first()
     if (await search.isVisible().catch(() => false)) {
       await search.click()
-      await search.fill("E2E")
+      await search.fill(E2E_REVIEW_FILTER)
       await page.waitForTimeout(850)
-      await search.fill("")
-      await page.waitForTimeout(550)
     }
 
     const row = page.getByTestId("queue-row-e2e00000-0000-0000-0000-000000000010")

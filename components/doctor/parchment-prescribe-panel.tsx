@@ -31,6 +31,41 @@ function getCopiedMedicineLabel(context: ParchmentPrescriptionContext | null | u
   return context?.medicationLabel || context?.presetLabel || "medicine"
 }
 
+function getParchmentErrorCopy(error: string | null): { title: string; detail: string } {
+  if (!error) {
+    return {
+      title: "Unable to load Parchment",
+      detail: "Try again or open Parchment in a new tab.",
+    }
+  }
+
+  if (error.startsWith("Missing prescribing details:")) {
+    return {
+      title: "Prescribing identity incomplete",
+      detail: `${error}. Edit the patient details, collect a valid Medicare number if needed, then retry.`,
+    }
+  }
+
+  if (error.startsWith("Parchment rejected the patient details")) {
+    return {
+      title: "Parchment rejected patient details",
+      detail: error,
+    }
+  }
+
+  if (error.startsWith("Parchment integration validation failed")) {
+    return {
+      title: "Parchment account needs attention",
+      detail: error,
+    }
+  }
+
+  return {
+    title: "Unable to load Parchment",
+    detail: error,
+  }
+}
+
 /**
  * Embedded Parchment prescribing panel.
  *
@@ -60,6 +95,7 @@ export function ParchmentPrescribePanel({
   const [sessionRefreshing, setSessionRefreshing] = useState(false)
   const ssoExpiryTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const ssoWarningTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const errorCopy = getParchmentErrorCopy(error)
 
   const closeAndRefresh = useCallback(() => {
     if (patientId && iframeLoaded && onPrescriptionsRefresh) {
@@ -307,8 +343,8 @@ export function ParchmentPrescribePanel({
               <div className="text-center space-y-4 max-w-sm px-6">
                 <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto" />
                 <div>
-                  <p className="text-sm font-medium text-foreground">Unable to load Parchment</p>
-                  <p className="text-sm text-muted-foreground mt-1">{error}</p>
+                  <p className="text-sm font-medium text-foreground">{errorCopy.title}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{errorCopy.detail}</p>
                 </div>
                 <div className="flex gap-2 justify-center">
                   <Button variant="outline" size="sm" onClick={loadPrescribingUrl}>

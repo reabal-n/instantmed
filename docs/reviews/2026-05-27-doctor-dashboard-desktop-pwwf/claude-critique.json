@@ -1,0 +1,136 @@
+{
+  "summary": "This is an internal doctor console, not the patient-facing marketing surface, so most brand/conversion criteria do not apply. As an operational tool it is composed, restrained, and on-voice — the queue, wait counter, and decision rail are clear. The biggest gaps are minor: the 'Form to inbox 10m' / 'Avg med cert today 10m' framing conflicts with the live 'Oldest wait 19m' counter, and the queue→detail transition reads as instant rather than the signature 300ms ease-out lift.",
+  "overall_score": 7,
+  "categories": {
+    "brand_spine": {
+      "score": 7,
+      "observation": "Doctor console, so the consumer thesis ('faster than your GP', coffee-time framing) is correctly absent. What carries the brand here is the live wait counter top-right ('Oldest wait 19m · Updated just now'), the calm ivory surface, and the merchandised refund promise at the decision point ('Patient was shown: full refund if we can't help.'). That's enough spine for an internal tool.",
+      "findings": []
+    },
+    "typography": {
+      "score": 8,
+      "observation": "Hierarchy is clean across all frames: patient name as the H1, status pill, then labelled field groups (DOB / Medicare / Phone / Address) at a consistent scale. Numerals in the 10m / 19m stats read as display weight without shouting. No orphaned headings or awkward wraps at this viewport.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "Field labels (DOB, Medicare, Phone, Address) and the values beneath them sit at very similar weight and size, so the eye has to work to separate label from data in the Identity details block.",
+          "recommendation": "Drop label size one step and/or shift labels to a muted ink; keep values at current weight. Matches the Stripe pattern of quiet label, loud value."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 8,
+      "observation": "Ivory canvas, solid white cards, blue primary CTA, single coral accent on the destructive 'Decline request · refund $25'. Restraint is holding. The amber 'Test mode' banner is the loudest element on screen, which is correct given its purpose.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "Three status dots in the readiness rail (Intake / Safety / Draft) all render the same blue tick, so they read as decoration rather than a real checklist of state.",
+          "recommendation": "Use ink for 'done', muted outline for 'pending', and only colour the active step. Lets a doctor scan in one glance whether anything is missing before approving."
+        }
+      ]
+    },
+    "motion": {
+      "score": 5,
+      "observation": "Across frames 4s→8s→12s→16s→20s the only visible motion is the detail panel appearing and the clinical note swapping in for patient answers. Both look like instant state changes rather than the signature 300ms ease-out lift. Nothing janks, but nothing feels physical either.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "Opening the patient detail (frame 8s→12s) appears as a hard mount with no enter transition, so the relationship between the queue row and the opened case is not communicated.",
+          "recommendation": "Add a 200–300ms ease-out fade+translate on the detail panel keyed off the selected row id, gated by useReducedMotion. Matches the Linear-grade restraint the brand asks for."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 16,
+          "issue": "Swap from 'Patient answers' to 'Clinical note' (12s→16s) is a cut, not a transition, so the doctor loses a sense of progressing through the case.",
+          "recommendation": "Cross-fade the section body at 150ms and leave the section header fixed; the eye stays anchored."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 8,
+      "observation": "Voice is on-brand: 'No one else waiting · target under 2h', 'Form to inbox. Target under 2h.', 'Ready to decide', 'A decline refunds $25 to the patient.' Short sentences, full stops, no hype words, no em-dashes, AU spelling holds. Reason-for-visit and clinical note read like something a GP would actually write.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "'Avg med cert today 10m · Based on the last 7 med certs issued.' sits next to a live 'Oldest wait 19m' and 'Waiting 19m' on the same screen. A doctor reading this can't tell whether 10m is the promise, the median, or stale.",
+          "recommendation": "Rename to 'Median today (last 7)' and pair it with 'Right now: 19m oldest'. Removes the contradiction without changing the data."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 16,
+          "issue": "'Private until sent' under Clinical note is good, but 'Subjective' as a lone field label leaves the doctor guessing the SOAP structure that's coming.",
+          "recommendation": "Either show the full SOAP scaffold (S/O/A/P) collapsed, or drop the clinical jargon label and call it 'Notes for the record'."
+        }
+      ]
+    },
+    "hierarchy_and_layout": {
+      "score": 8,
+      "observation": "Two-pane layout reads correctly: queue left, case right, decision rail pinned bottom-right. Primary action 'Approve and send' is the clear visual anchor with its keyboard hint, and the destructive action is demoted to text. Spacing rhythm inside the case card is Stripe-adjacent.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "Before a patient is selected (frames 4s, 8s) the entire right two-thirds is taken by a single 'Avg med cert today 10m' stat and a near-empty 'Next step' block. The console reads half-empty on a one-patient queue.",
+          "recommendation": "When the queue has exactly one waiting patient, auto-select them so the case opens by default. Removes a redundant click and fills the canvas."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 12,
+          "issue": "The decision rail ('Ready to decide · Intake · Safety · Draft') sits below the fold of the case content on this height, so a doctor scrolling the note may lose the action affordance.",
+          "recommendation": "Sticky-pin the decision rail to the bottom of the right pane so Approve/Decline + the Cmd+Enter hint are always reachable."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 7,
+      "observation": "Not the paid path, so this category re-reads as 'time-to-decision'. Keyboard shortcuts (Cmd+Enter, Cmd+Shift+D) are surfaced inline, the refund promise is visible at the decision point, and the case opens in one click from the queue. Friction is low.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "There is no visible 'claim' or 'lock' state on the case once the doctor opens it — the 'Claimed' pill is on the queue row, but the right pane gives no indication that another doctor opening the same case would conflict.",
+          "recommendation": "Show 'Claimed by you · 19m ago' at the top of the case pane, with a one-click release. Prevents double-handling on a regulated decision."
+        }
+      ]
+    },
+    "signature_devices": {
+      "score": 6,
+      "observation": "Live wait-counter is present and well-placed ('Oldest wait 19m · Updated just now', updating to '5s ago' / '10s ago' across frames). Refund promise is merchandised at the decision point. Name-first treatment is honoured ('Mia Carter' as H1). Missing: doctor's handwritten signature mark, 'what we won't do' reference, and any 'while you wait' specificity for the patient-facing artefact the doctor is about to send.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 16,
+          "issue": "The clinical note composer gives no preview of how the outbound certificate / message will look to the patient, so the name-first email and signature devices are invisible to the doctor approving them.",
+          "recommendation": "Add a collapsed 'Patient will receive' preview above Approve and send, showing the name-first greeting and the signature mark. Doctors approve the artefact, not just the data."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 4,
+          "issue": "'Avg med cert today 10m' is a wait-counter device pointed at the doctor, but it doesn't tie back to the patient-visible promise ('faster than your GP').",
+          "recommendation": "Append 'Patients were promised: faster than your GP' under the stat. Keeps the doctor anchored to the external promise they're keeping."
+        }
+      ]
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Auto-select the only waiting patient and sticky-pin the decision rail to the bottom of the case pane.",
+      "why": "Removes a redundant click on a one-patient queue (frames 4s/8s) and guarantees Approve/Decline + Cmd+Enter stay reachable while scrolling the clinical note.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Reconcile the two time stats: rename 'Avg med cert today 10m' to 'Median today (last 7)' and pair with a live 'Right now: 19m oldest'.",
+      "why": "Today the dashboard shows 10m and 19m a few centimetres apart with no relationship, which undermines the wait-counter as a trust device.",
+      "estimated_impact": "medium"
+    },
+    {
+      "action": "Add a 200–300ms ease-out fade+translate on the case detail panel and a 150ms cross-fade on section swaps, gated by useReducedMotion.",
+      "why": "Frames 8s→12s and 12s→16s currently read as hard cuts, which loses the Linear-grade physicality the brand spine asks for on every transition.",
+      "estimated_impact": "low"
+    }
+  ]
+}

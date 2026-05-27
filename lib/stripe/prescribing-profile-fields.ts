@@ -1,3 +1,4 @@
+import { validateMedicareNumber } from "@/lib/validation/medicare"
 import type { AustralianState, Profile } from "@/types/db"
 
 const AUSTRALIAN_STATES: AustralianState[] = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
@@ -53,8 +54,9 @@ function normalizeDigits(value: string | null): string | null {
   return digits || null
 }
 
-function isZeroMedicarePlaceholder(value: string): boolean {
-  return /^0{10}$/.test(value)
+function isValidMedicareForStorage(value: string | null): value is string {
+  if (!value) return false
+  return validateMedicareNumber(value).valid
 }
 
 function normalizeIrn(value: string | null): number | null {
@@ -111,9 +113,11 @@ export function buildPrescribingProfileUpdates(
   const postcode = firstStringAnswer(answers, ["postcode"])
   const sex = normalizeSex(firstStringAnswer(answers, ["sex", "gender"]))
 
-  if (medicare && !isZeroMedicarePlaceholder(medicare)) updates.medicare_number = medicare
-  if (medicareIrn) updates.medicare_irn = medicareIrn
-  if (medicareExpiry) updates.medicare_expiry = medicareExpiry
+  if (isValidMedicareForStorage(medicare)) {
+    updates.medicare_number = medicare
+    if (medicareIrn) updates.medicare_irn = medicareIrn
+    if (medicareExpiry) updates.medicare_expiry = medicareExpiry
+  }
   if (addressLine1) updates.address_line1 = addressLine1
   if (suburb) updates.suburb = suburb
   if (state) updates.state = state

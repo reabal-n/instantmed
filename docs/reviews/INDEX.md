@@ -4,6 +4,7 @@ Auto-maintained by `scripts/video-review/index-update.ts`. Edit nothing here by 
 
 | Captured | Run | Journey | Score | Headline |
 |---|---|---|---|---|
+| 2026-05-27T16:03:57.553Z | [2026-05-27-doctor-dashboard-desktop-pwwf](2026-05-27-doctor-dashboard-desktop-pwwf/report.md) | Doctor dashboard desktop interaction audit (queue hover + review open) | 8 | A calm console that does the job, with two wait numbers that argue with each other |
 | 2026-05-27T14:26:39.047Z | [2026-05-27-doctor-dashboard-desktop-y6xf](2026-05-27-doctor-dashboard-desktop-y6xf/report.md) | Doctor dashboard desktop interaction audit (queue hover + review open) | 7 | A calm console with two CTAs fighting for the same click |
 | 2026-05-27T13:01:14.894Z | [2026-05-27-doctor-dashboard-desktop-2cmt](2026-05-27-doctor-dashboard-desktop-2cmt/report.md) | Doctor dashboard desktop interaction audit (queue hover + review open) | 8 | The console is calm. The motion isn't. |
 | 2026-05-25T10:08:49.785Z | [2026-05-25-homepage-clkf](2026-05-25-homepage-clkf/report.md) | Homepage long-scroll + nav tour | 8 | The homepage holds up. Fix the first half-second. |

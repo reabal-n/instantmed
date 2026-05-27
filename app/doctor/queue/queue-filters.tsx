@@ -43,6 +43,7 @@ export interface QueueFiltersProps {
   searchQuery: string
   onSearchChange: (value: string) => void
   onRefresh: () => void
+  onOpenSingleMatch?: () => void
   statusFilter: QueueStatusFilter
   onStatusFilterChange: (value: QueueStatusFilter) => void
   intakes: IntakeWithPatient[]
@@ -65,6 +66,7 @@ export function QueueFilters({
   searchQuery,
   onSearchChange,
   onRefresh,
+  onOpenSingleMatch,
   statusFilter,
   onStatusFilterChange,
   intakes,
@@ -145,6 +147,12 @@ export function QueueFilters({
                 placeholder={compactShell ? "Search patients" : "Search… or / to focus"}
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter") return
+                  if (!onOpenSingleMatch || filteredCount !== 1) return
+                  event.preventDefault()
+                  onOpenSingleMatch()
+                }}
                 className={cn(
                   "w-full",
                   "[&>div]:h-9 [&>div]:min-h-0 [&>div]:border-slate-300 [&>div]:bg-white [&>div]:shadow-sm [&>div]:shadow-primary/[0.03] [&>div]:focus-within:border-primary/45 [&>div]:focus-within:ring-primary/20 dark:[&>div]:bg-card",

@@ -67,7 +67,7 @@ function ActionReadinessChecks({
   const checks = [
     { label: "Intake", ready: detailsReady, completeLabel: "Intake checked", incompleteLabel: "Check intake" },
     { label: "Safety", ready: safetyReady, completeLabel: "No red flags", incompleteLabel: "Review safety" },
-    { label: "Note", ready: noteReady, completeLabel: "Note drafted", incompleteLabel: "Add note" },
+    { label: "Draft", ready: noteReady, completeLabel: "Draft note ready", incompleteLabel: "Add note" },
   ]
   const readyCount = checks.filter((check) => check.ready).length
 
@@ -77,38 +77,36 @@ function ActionReadinessChecks({
       data-action-readiness
       aria-label="Approval readiness checks"
     >
-      <span className="inline-flex items-center rounded-md border border-border/60 bg-background px-1.5 py-1 text-[11px] font-semibold text-muted-foreground">
-        Before you sign
+      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-foreground">
+        <CheckCircle className={cn("h-3.5 w-3.5", readyCount === checks.length ? "text-slate-600" : "text-warning")} aria-hidden />
+        {readyCount === checks.length ? "Ready to decide" : `Checks need attention · ${readyCount}/${checks.length}`}
       </span>
       {checks.map((check) => (
         <span
           key={check.label}
           title={check.ready ? check.completeLabel : check.incompleteLabel}
           className={cn(
-            "inline-flex cursor-default select-none items-center gap-1.5 rounded-md border px-1.5 py-1",
+            "inline-flex cursor-default select-none items-center gap-1",
             check.ready
-              ? "border-border/60 bg-muted/30 text-slate-600 dark:text-muted-foreground"
-              : "border-warning-border bg-background text-warning",
+              ? "text-slate-500 dark:text-muted-foreground"
+              : "font-semibold text-warning",
           )}
           aria-label={`${check.ready ? check.completeLabel : check.incompleteLabel}: ${check.ready ? "complete" : "needs attention"}`}
         >
           <span
             className={cn(
-              "grid h-4 w-4 place-items-center rounded-full border",
+              "grid h-3.5 w-3.5 place-items-center rounded-full border",
               check.ready
-                ? "border-slate-500 bg-slate-600 text-white dark:border-slate-400 dark:bg-slate-500"
+                ? "border-slate-400 bg-slate-500 text-white"
                 : "border-warning/55 bg-background",
             )}
             aria-hidden
           >
-            {check.ready ? <Check className="h-3 w-3" /> : null}
+            {check.ready ? <Check className="h-2.5 w-2.5" /> : null}
           </span>
           {check.label}
         </span>
       ))}
-      <span className="inline-flex items-center rounded-md border border-border/60 bg-background px-1.5 py-1 text-[11px] font-semibold text-slate-600 dark:text-muted-foreground">
-        {readyCount}/{checks.length}
-      </span>
     </div>
   )
 }
@@ -212,10 +210,11 @@ export function IntakeActionButtons({
       className={
         placement === "top"
           ? "rounded-xl border border-border/60 bg-background p-2 shadow-sm shadow-primary/[0.03]"
-          : "sticky bottom-0 z-10 shrink-0 border-t border-border bg-background/95 py-1.5 shadow-md shadow-primary/[0.06] backdrop-blur supports-[backdrop-filter]:bg-background/90"
+          : "sticky bottom-0 z-30 shrink-0 border-t border-border bg-gradient-to-t from-background via-background/95 to-background/85 px-2 py-2 shadow-lg shadow-primary/[0.08] backdrop-blur supports-[backdrop-filter]:from-background/95 supports-[backdrop-filter]:via-background/90"
       }
       data-testid="operator-action-rail"
       data-action-rail-pinned
+      data-action-rail-outside-scroll
     >
       {hasPrescribingIdentityBlocker && (
         <div className="mb-2 flex flex-col gap-2 rounded-md border border-warning-border bg-warning-light px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
@@ -394,6 +393,11 @@ export function IntakeActionButtons({
           data-decline-lane
           data-decline-action
         >
+          {showRefundOnDecline ? (
+            <p className="px-0.5 text-[11px] font-medium leading-snug text-slate-600 dark:text-muted-foreground sm:max-w-[280px] sm:text-right">
+              Patient was shown: full refund if we can't help.
+            </p>
+          ) : null}
           <Button
             variant="ghost"
             onClick={() => setShowDeclineDialog(true)}
@@ -402,7 +406,11 @@ export function IntakeActionButtons({
             size="sm"
             title={showRefundOnDecline ? "Confirming decline issues the patient refund." : undefined}
           >
-            {showRefundOnDecline ? "Decline and refund" : "Decline"}
+            {showRefundOnDecline
+              ? refundShortLabel
+                ? `Decline request · refund ${refundShortLabel}`
+                : "Decline request · refund patient"
+              : "Decline request"}
             <ShortcutHint>Cmd+Shift+D</ShortcutHint>
           </Button>
           {showRefundOnDecline ? (
