@@ -1,0 +1,168 @@
+{
+  "capturedAt": "2026-05-27T13:01:39.614Z",
+  "url": "http://localhost:3001/dashboard?showTestData=1",
+  "title": "Staff Dashboard | InstantMed",
+  "visibleText": "You're back online Skip to main content IM InstantMed DOCTOR CONSOLE TODAY Dashboard Requests Review Scripts Patients RUN Analytics Payments Ops SETUP Setup DA Dr Amelia Reid Admin + Doctor Dashboard Oldest wait 33m Updated 10s ago 5 waiting at intake Test mode Available Today's queue Form to inbox 10m · target under 2h All(2) Review(2) Info(0) Scripts to write(0) AB Andres Burgos 25y • 27/09/2000 • M • Brisbane QLD Consult ED ED consult request Waiting 33m MC Mia Carter 35y • 20/06/1990 • Melbourne VIC Med Cert You Selected Medical certificate request Waiting 14m 2 visible cases · target under 2h Mia Carter In Queue Waiting 14m Profile Full case Patient details First visit DOB 35y / 20/06/1990 Medicare 2123 45670 1 Phone [phone] Address 456 Patient Street, Melbourne, VIC, 3000 Reason for visit 35-year-old patient. Sore throat and fatigue since this morning. Mild headache. No chest pain, shortness of breath, or red-flag symptoms reported. Symptom duration today. Requesting 1-day work certificate. What the patient told us Certificate type Work Requested duration 1 day Start date 2026-05-27 Symptoms Sore Throat, Fatigue, Headache 2 more facts Clinical note Draft note Subjective Objective Assessment Plan Issue sign-off: Dr Amelia Reid · MED0001234567 Saved as you type. Private until you send. Show full intake · 0 prior requests · 0 notes Pre-flight checks Intake done Safety done Note done 3/3 Approve & send Cmd+Enter Decline & refund Cmd+Shift+D Confirm first. Decline returns $25 to the patient automatically.",
+  "elements": [
+    {
+      "selector": "Staff sidebar",
+      "text": "IMInstantMedDoctor consoleTodayDashboardRequestsReviewScriptsPatientsRunAnalyticsPaymentsOpsSetupSetupDADr Amelia ReidAdmin + Doctor"
+    },
+    {
+      "selector": "InstantMed home",
+      "text": "IMInstantMedDoctor console"
+    },
+    {
+      "selector": "Primary",
+      "text": "TodayDashboardRequestsReviewScriptsPatientsRunAnalyticsPaymentsOpsSetupSetup"
+    },
+    {
+      "selector": "Dashboard",
+      "text": "Dashboard"
+    },
+    {
+      "selector": "Requests",
+      "text": "Requests"
+    },
+    {
+      "selector": "Review",
+      "text": "Review"
+    },
+    {
+      "selector": "Scripts",
+      "text": "Scripts"
+    },
+    {
+      "selector": "Patients",
+      "text": "Patients"
+    },
+    {
+      "selector": "Analytics",
+      "text": "Analytics"
+    },
+    {
+      "selector": "Payments",
+      "text": "Payments"
+    },
+    {
+      "selector": "Ops",
+      "text": "Ops"
+    },
+    {
+      "selector": "Setup",
+      "text": "Setup"
+    },
+    {
+      "selector": "Signed in as Dr Amelia Reid",
+      "text": "DADr Amelia ReidAdmin + Doctor"
+    },
+    {
+      "selector": "Staff navigation",
+      "text": "IMInstantMedTodayDashboardRequestsReviewScriptsPatientsRunAnalyticsPaymentsOpsSetupSetup"
+    },
+    {
+      "selector": "operator-page",
+      "text": "DashboardOldest wait33mUpdated 10s ago5waiting at intakeTest modeAvailableToday's queueForm to inbox 10m · target under 2hAll(2)Review(2)Info(0)Scripts to write(0)ABAndres Burgos25y • 27/09/2000 • M • Brisbane QLDConsultEDED consult requestWaiting 33mMCMia Carter35y • 20/06/1990 • Melbourne VICMed CertYouSelectedMedical certificate requestWaiting 14m2 visible cases · target under 2hMia CarterIn QueueWaiting 14mProfileFull casePatient detailsFirst visitDOB35y / 20/06/1990Medicare2123 45670 1Phone0498 765 432Address456 Patient Street, Melbourne, VIC, 3000Reason for visit35-year-old patient. Sore throat and fatigue since this morning. Mild headache. No chest pain, shortness of breath, or red-flag symptoms reported. Symptom duration today. Requesting 1-day work certificate.What the patient told usCertificate typeWorkRequested duration1 dayStart date2026-05-27SymptomsSore Throat, Fatigue, Headache2 more factsSymptom durationTodayPatient noteSore throat and fatigue since this morning. Mild headache. No chest pain, shortness of breath, or red-flag symptoms reported.Clinical noteDraft noteSubjective35yo patient. Sore throat and fatigue since this morning. Mild headache. No chest pain, shortness of breath, or red-flag symptoms reported. Symptom duration today. Requesting 1-day work certificate.ObjectiveTelehealth review; no physical examination performed.AssessmentSymptoms consistent with self-limiting acute illness based on structured intake.Plan1-day medical certificate issued from 2026-05-27. Symptomatic management advised (rest, fluids, paracetamol PRN). Return if symptoms persist beyond 7 days, or develop high fever (>39 C), shortness of breath, chest pain, or inability to keep fluids down.Issue sign-off: Dr Amelia Reid · MED0001234567Saved as you type. Private until you send.Show full intake · 0 prior requests · 0 notesPre-flight checksIntake doneSafety doneNote done3/3Approve & sendCmd+EnterDecline & refundCmd+Shift+DConfirm first. Decline returns $25 to the patient automatically."
+    },
+    {
+      "selector": "h1",
+      "text": "Dashboard"
+    },
+    {
+      "selector": "Oldest wait: 33m",
+      "text": "Oldest wait33mUpdated 10s ago"
+    },
+    {
+      "selector": "System health: 5 waiting at intake need attention",
+      "text": "5waiting at intake"
+    },
+    {
+      "selector": "operator-scroll-area",
+      "text": "Today's queueForm to inbox 10m · target under 2hAll(2)Review(2)Info(0)Scripts to write(0)ABAndres Burgos25y • 27/09/2000 • M • Brisbane QLDConsultEDED consult requestWaiting 33mMCMia Carter35y • 20/06/1990 • Melbourne VICMed CertYouSelectedMedical certificate requestWaiting 14m2 visible cases · target under 2hMia CarterIn QueueWaiting 14mProfileFull casePatient detailsFirst visitDOB35y / 20/06/1990Medicare2123 45670 1Phone0498 765 432Address456 Patient Street, Melbourne, VIC, 3000Reason for visit35-year-old patient. Sore throat and fatigue since this morning. Mild headache. No chest pain, shortness of breath, or red-flag symptoms reported. Symptom duration today. Requesting 1-day work certificate.What the patient told usCertificate typeWorkRequested duration1 dayStart date2026-05-27SymptomsSore Throat, Fatigue, Headache2 more factsSymptom durationTodayPatient noteSore throat and fatigue since this morning. Mild headache. No chest pain, shortness of breath, or red-flag symptoms reported.Clinical noteDraft noteSubjective35yo patient. Sore throat and fatigue since this morning. Mild headache. No chest pain, shortness of breath, or red-flag symptoms reported. Symptom duration today. Requesting 1-day work certificate.ObjectiveTelehealth review; no physical examination performed.AssessmentSymptoms consistent with self-limiting acute illness based on structured intake.Plan1-day medical certificate issued from 2026-05-27. Symptomatic management advised (rest, fluids, paracetamol PRN). Return if symptoms persist beyond 7 days, or develop high fever (>39 C), shortness of breath, chest pain, or inability to keep fluids down.Issue sign-off: Dr Amelia Reid · MED0001234567Saved as you type. Private until you send.Show full intake · 0 prior requests · 0 notesPre-flight checksIntake doneSafety doneNote done3/3Approve & sendCmd+EnterDecline & refundCmd+Shift+DConfirm first. Decline returns $25 to the patient automatically."
+    },
+    {
+      "selector": "Doctor request queue",
+      "text": "Today's queueForm to inbox 10m · target under 2hAll(2)Review(2)Info(0)Scripts to write(0)ABAndres Burgos25y • 27/09/2000 • M • Brisbane QLDConsultEDED consult requestWaiting 33mMCMia Carter35y • 20/06/1990 • Melbourne VICMed CertYouSelectedMedical certificate requestWaiting 14m2 visible cases · target under 2hMia CarterIn QueueWaiting 14mProfileFull casePatient detailsFirst visitDOB35y / 20/06/1990Medicare2123 45670 1Phone0498 765 432Address456 Patient Street, Melbourne, VIC, 3000Reason for visit35-year-old patient. Sore throat and fatigue since this morning. Mild headache. No chest pain, shortness of breath, or red-flag symptoms reported. Symptom duration today. Requesting 1-day work certificate.What the patient told usCertificate typeWorkRequested duration1 dayStart date2026-05-27SymptomsSore Throat, Fatigue, Headache2 more factsSymptom durationTodayPatient noteSore throat and fatigue since this morning. Mild headache. No chest pain, shortness of breath, or red-flag symptoms reported.Clinical noteDraft noteSubjective35yo patient. Sore throat and fatigue since this morning. Mild headache. No chest pain, shortness of breath, or red-flag symptoms reported. Symptom duration today. Requesting 1-day work certificate.ObjectiveTelehealth review; no physical examination performed.AssessmentSymptoms consistent with self-limiting acute illness based on structured intake.Plan1-day medical certificate issued from 2026-05-27. Symptomatic management advised (rest, fluids, paracetamol PRN). Return if symptoms persist beyond 7 days, or develop high fever (>39 C), shortness of breath, chest pain, or inability to keep fluids down.Issue sign-off: Dr Amelia Reid · MED0001234567Saved as you type. Private until you send.Show full intake · 0 prior requests · 0 notesPre-flight checksIntake doneSafety doneNote done3/3Approve & sendCmd+EnterDecline & refundCmd+Shift+DConfirm first. Decline returns $25 to the patient automatically."
+    },
+    {
+      "selector": "queue-header",
+      "text": "Today's queueForm to inbox 10m · target under 2h"
+    },
+    {
+      "selector": "queue-heading",
+      "text": "Today's queue"
+    },
+    {
+      "selector": "button",
+      "text": "All(2)"
+    },
+    {
+      "selector": "button",
+      "text": "Review(2)"
+    },
+    {
+      "selector": "button",
+      "text": "Info(0)"
+    },
+    {
+      "selector": "button",
+      "text": "Scripts to write(0)"
+    },
+    {
+      "selector": "operator-split-pane",
+      "text": "ABAndres Burgos25y • 27/09/2000 • M • Brisbane QLDConsultEDED consult requestWaiting 33mMCMia Carter35y • 20/06/1990 • Melbourne VICMed CertYouSelectedMedical certificate requestWaiting 14m2 visible cases · target under 2hMia CarterIn QueueWaiting 14mProfileFull casePatient detailsFirst visitDOB35y / 20/06/1990Medicare2123 45670 1Phone0498 765 432Address456 Patient Street, Melbourne, VIC, 3000Reason for visit35-year-old patient. Sore throat and fatigue since this morning. Mild headache. No chest pain, shortness of breath, or red-flag symptoms reported. Symptom duration today. Requesting 1-day work certificate.What the patient told usCertificate typeWorkRequested duration1 dayStart date2026-05-27SymptomsSore Throat, Fatigue, Headache2 more factsSymptom durationTodayPatient noteSore throat and fatigue since this morning. Mild headache. No chest pain, shortness of breath, or red-flag symptoms reported.Clinical noteDraft noteSubjective35yo patient. Sore throat and fatigue since this morning. Mild headache. No chest pain, shortness of breath, or red-flag symptoms reported. Symptom duration today. Requesting 1-day work certificate.ObjectiveTelehealth review; no physical examination performed.AssessmentSymptoms consistent with self-limiting acute illness based on structured intake.Plan1-day medical certificate issued from 2026-05-27. Symptomatic management advised (rest, fluids, paracetamol PRN). Return if symptoms persist beyond 7 days, or develop high fever (>39 C), shortness of breath, chest pain, or inability to keep fluids down.Issue sign-off: Dr Amelia Reid · MED0001234567Saved as you type. Private until you send.Show full intake · 0 prior requests · 0 notesPre-flight checksIntake doneSafety doneNote done3/3Approve & sendCmd+EnterDecline & refundCmd+Shift+DConfirm first. Decline returns $25 to the patient automatically."
+    },
+    {
+      "selector": "queue-row-7be254fd-db45-402b-b142-5c0c58ac189d",
+      "text": "ABAndres Burgos25y • 27/09/2000 • M • Brisbane QLDConsultEDED consult requestWaiting 33m"
+    },
+    {
+      "selector": "queue-row-e2e00000-0000-0000-0000-000000000010",
+      "text": "MCMia Carter35y • 20/06/1990 • Melbourne VICMed CertYouSelectedMedical certificate requestWaiting 14m"
+    },
+    {
+      "selector": "intake-review-panel",
+      "text": "Mia CarterIn QueueWaiting 14mProfileFull casePatient detailsFirst visitDOB35y / 20/06/1990Medicare2123 45670 1Phone0498 765 432Address456 Patient Street, Melbourne, VIC, 3000Reason for visit35-year-old patient. Sore throat and fatigue since this morning. Mild headache. No chest pain, shortness of breath, or red-flag symptoms reported. Symptom duration today. Requesting 1-day work certificate.What the patient told usCertificate typeWorkRequested duration1 dayStart date2026-05-27SymptomsSore Throat, Fatigue, Headache2 more factsSymptom durationTodayPatient noteSore throat and fatigue since this morning. Mild headache. No chest pain, shortness of breath, or red-flag symptoms reported.Clinical noteDraft noteSubjective35yo patient. Sore throat and fatigue since this morning. Mild headache. No chest pain, shortness of breath, or red-flag symptoms reported. Symptom duration today. Requesting 1-day work certificate.ObjectiveTelehealth review; no physical examination performed.AssessmentSymptoms consistent with self-limiting acute illness based on structured intake.Plan1-day medical certificate issued from 2026-05-27. Symptomatic management advised (rest, fluids, paracetamol PRN). Return if symptoms persist beyond 7 days, or develop high fever (>39 C), shortness of breath, chest pain, or inability to keep fluids down.Issue sign-off: Dr Amelia Reid · MED0001234567Saved as you type. Private until you send.Show full intake · 0 prior requests · 0 notesPre-flight checksIntake doneSafety doneNote done3/3Approve & sendCmd+EnterDecline & refundCmd+Shift+DConfirm first. Decline returns $25 to the patient automatically."
+    },
+    {
+      "selector": "h2",
+      "text": "Mia Carter"
+    },
+    {
+      "selector": "sla-chip",
+      "text": "Waiting 14m"
+    },
+    {
+      "selector": "Patient actions",
+      "text": "ProfileFull case"
+    },
+    {
+      "selector": "button",
+      "text": "Profile"
+    },
+    {
+      "selector": "Patient details for this decision",
+      "text": "Patient detailsFirst visitDOB35y / 20/06/1990Medicare2123 45670 1Phone0498 765 432Address456 Patient Street, Melbourne, VIC, 3000"
+    },
+    {
+      "selector": "Case summary",
+      "text": "What the patient told usCertificate typeWorkRequested duration1 dayStart date2026-05-27SymptomsSore Throat, Fatigue, Headache2 more factsSymptom durationTodayPatient noteSore throat and fatigue since this morning. Mild headache. No chest pain, shortness of breath, or red-flag symptoms reported.Clinical noteDraft noteSubjective35yo patient. Sore throat and fatigue since this morning. Mild headache. No chest pain, shortness of breath, or red-flag symptoms reported. Symptom duration today. Requesting 1-day work certificate.ObjectiveTelehealth review; no physical examination performed.AssessmentSymptoms consistent with self-limiting acute illness based on structured intake.Plan1-day medical certificate issued from 2026-05-27. Symptomatic management advised (rest, fluids, paracetamol PRN). Return if symptoms persist beyond 7 days, or develop high fever (>39 C), shortness of breath, chest pain, or inability to keep fluids down.Issue sign-off: Dr Amelia Reid · MED0001234567Saved as you type. Private until you send."
+    },
+    {
+      "selector": "Request",
+      "text": "What the patient told usCertificate typeWorkRequested duration1 dayStart date2026-05-27SymptomsSore Throat, Fatigue, Headache2 more factsSymptom durationTodayPatient noteSore throat and fatigue since this morning. Mild headache. No chest pain, shortness of breath, or red-flag symptoms reported."
+    },
+    {
+      "selector": "Structured SOAP note",
+      "text": "Subjective35yo patient. Sore throat and fatigue since this morning. Mild headache. No chest pain, shortness of breath, or red-flag symptoms reported. Symptom duration today. Requesting 1-day work certificate.ObjectiveTelehealth review; no physical examination performed.AssessmentSymptoms consistent with self-limiting acute illness based on structured intake.Plan1-day medical certificate issued from 2026-05-27. Symptomatic management advised (rest, fluids, paracetamol PRN). Return if symptoms persist beyond 7 days, or develop high fever (>39 C), shortness of breath, chest pain, or inability to keep fluids down."
+    },
+    {
+      "selector": "Draft clinical note Subjective",
+      "text": "35yo patient. Sore throat and fatigue since this morning. Mild headache. No chest pain, shortness of breath, or red-flag symptoms reported. Symptom duration today. Requesting 1-day work certificate."
+    },
+    {
+      "selector": "Draft clinical note Objective",
+      "text": "Telehealth review; no physical examination performed."
+    }
+  ]
+}

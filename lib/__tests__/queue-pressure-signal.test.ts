@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs"
+
 import { describe, expect, it } from "vitest"
 
 import {
@@ -20,6 +22,18 @@ describe("queue pressure signal", () => {
     expect(getQueuePressureState(null).value).toBe("No one waiting")
     expect(getQueuePressureState(0).value).toBe("0m")
     expect(getQueuePressureState(50).value).toBe("50m")
+  })
+
+  it("keeps low pressure visually neutral instead of warning-coloured", () => {
+    const signalSource = readFileSync("components/operator/queue-pressure-signal.tsx", "utf8")
+    const filterSource = readFileSync("app/doctor/queue/queue-filters.tsx", "utf8")
+
+    expect(signalSource).toContain('dot: "bg-slate-500"')
+    expect(signalSource).toContain('value: "text-foreground"')
+    expect(signalSource).toContain("formatRefreshAge(nowMs, mountedAtRef.current)")
+    expect(signalSource).not.toContain('refreshAgeLabel === "Updated just now"')
+    expect(filterSource).toContain('dot: "bg-slate-500"')
+    expect(filterSource).toContain('value: "text-slate-700 dark:text-muted-foreground"')
   })
 })
 

@@ -187,7 +187,7 @@ test.describe("Doctor Queue - Edge Cases", () => {
 
     // If queue is empty, should show empty state (not an error)
     const emptyState = page.getByText(/all caught up|no review cases right now|no matches for this filter|availability is paused/i)
-    const hasIntakes = await page.getByText(SEEDED_PATIENT_NAME).isVisible().catch(() => false)
+    const hasIntakes = await page.locator('[data-testid^="queue-row-"]').first().isVisible().catch(() => false)
     
     // Either we have intakes or we have an empty state - both are valid
     const validState = hasIntakes || (await emptyState.isVisible().catch(() => false))

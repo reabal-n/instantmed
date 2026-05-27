@@ -58,6 +58,7 @@ export function RequestInfoCard({
   const queueEnteredAt = getQueueEnteredAt(intake)
   const isMedCert = service?.type === "med_certs"
   const showCompactRequestHeader = !(compact && hideFullAnswers && hidePatientStory)
+  const splitCompactReview = compact && hideFullAnswers && hidePatientStory
   const doctorSignOffLabel = [
     data.reviewingClinician?.fullName,
     data.reviewingClinician?.ahpraNumber,
@@ -67,8 +68,10 @@ export function RequestInfoCard({
     <section
       aria-label="Case summary"
       className={cn(
-        "rounded-xl border border-border/50 bg-card shadow-sm shadow-primary/[0.04]",
-        compact ? "p-4" : "p-5 sm:p-6",
+        splitCompactReview
+          ? "space-y-3"
+          : "rounded-xl border border-border/50 bg-card shadow-sm shadow-primary/[0.04]",
+        !splitCompactReview && (compact ? "p-4" : "p-5 sm:p-6"),
       )}
     >
       <div className="space-y-4">

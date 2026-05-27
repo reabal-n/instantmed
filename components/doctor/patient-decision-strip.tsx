@@ -16,6 +16,8 @@ import { Badge } from "@/components/ui/badge"
 import { buildStaffCaseSummary } from "@/lib/doctor/case-summary"
 import { fetchWithCsrf } from "@/lib/security/csrf-client"
 import { cn } from "@/lib/utils"
+import { formatPhoneNumber } from "@/lib/validation/australian-phone"
+import { formatMedicareNumber } from "@/lib/validation/medicare"
 import type { IntakeWithDetails, IntakeWithPatient } from "@/types/db"
 
 type StripIntake = IntakeWithDetails | IntakeWithPatient
@@ -64,12 +66,18 @@ export function PatientDecisionStrip({
     doctorNotes,
   })
   const { snapshot } = summary
+  const displayMedicare = snapshot.medicare.present
+    ? formatMedicareNumber(snapshot.medicare.label)
+    : snapshot.medicare.label
+  const displayPhone = snapshot.phone.present
+    ? formatPhoneNumber(snapshot.phone.label)
+    : snapshot.phone.label
 
   const fields = [
     { label: "DOB", value: snapshot.ageDobLabel, icon: Calendar },
     { label: "Sex", value: snapshot.sex.label, icon: Users, missing: snapshot.missingCriticalFields.includes("Sex") },
-    { label: "Medicare", value: snapshot.medicare.label, icon: CreditCard, mono: snapshot.medicare.present },
-    { label: "Phone", value: snapshot.phone.label, icon: Phone },
+    { label: "Medicare", value: displayMedicare, icon: CreditCard, mono: snapshot.medicare.present },
+    { label: "Phone", value: displayPhone, icon: Phone },
     { label: "Address", value: snapshot.address.label, icon: MapPin, wide: true },
     { label: "Last request", value: summary.previousLabel, icon: History, wide: true },
   ]
@@ -77,7 +85,9 @@ export function PatientDecisionStrip({
     ? "Patient details"
     : showPatientName ? summary.patientName : summary.serviceShortLabel
   const compactSubheading = compact && summaryOnly
-    ? "Identity and notes"
+    ? summary.previousLabel && summary.previousLabel !== "First request"
+      ? summary.previousLabel
+      : "First visit"
     : showPatientName ? summary.serviceShortLabel : "Patient details"
   const summaryFacts = [
     { label: "DOB", value: snapshot.ageDobLabel, mono: false },
@@ -85,15 +95,15 @@ export function PatientDecisionStrip({
       label: "Medicare",
       value: snapshot.medicare.present && !revealedIdentifiers.has("medicare")
         ? maskIdentifier(snapshot.medicare.label)
-        : snapshot.medicare.label,
-      mono: snapshot.medicare.present,
+        : displayMedicare,
+      mono: false,
       sensitive: snapshot.medicare.present ? "medicare" as const : null,
     },
     {
       label: "Phone",
       value: snapshot.phone.present && !revealedIdentifiers.has("phone")
         ? maskIdentifier(snapshot.phone.label)
-        : snapshot.phone.label,
+        : displayPhone,
       mono: false,
       sensitive: snapshot.phone.present ? "phone" as const : null,
     },
@@ -144,8 +154,8 @@ export function PatientDecisionStrip({
           </p>
         </div>
         {compact && summaryOnly ? (
-          <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-muted-foreground">
-            {hiddenIdentifiers.length > 0 ? (
+          hiddenIdentifiers.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-muted-foreground">
               <button
                 type="button"
                 className="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-semibold text-muted-foreground underline underline-offset-2 hover:text-foreground"
@@ -154,16 +164,8 @@ export function PatientDecisionStrip({
               >
                 Show identity
               </button>
-            ) : null}
-            <span className={cn("inline-flex items-center gap-1", snapshot.completenessTone !== "complete" && "text-warning")}>
-              <ClipboardCheck className="h-3 w-3" aria-hidden />
-              {snapshot.completenessTone === "complete" ? "Details complete" : snapshot.completenessLabel}
-            </span>
-            <span className={cn("inline-flex items-center gap-1", !summary.notesReady && "text-warning")}>
-              <FileText className="h-3 w-3" aria-hidden />
-              {summary.notesLabel}
-            </span>
-          </div>
+            </div>
+          ) : null
         ) : (
           <div className="flex flex-wrap items-center gap-1.5">
             <Badge
@@ -186,30 +188,52 @@ export function PatientDecisionStrip({
         )}
       </div>
       {summaryOnly ? (
-        <div className="mt-3 space-y-2">
-          <dl className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <div className={cn("mt-3", compact ? "mt-2" : "space-y-2")}>
+          <dl
+            className={cn(
+              "grid grid-cols-1 gap-2 sm:grid-cols-2",
+              compact && "grid-cols-2 gap-x-5 gap-y-2 xl:grid-cols-[minmax(110px,0.8fr)_minmax(150px,1fr)_minmax(130px,1fr)]",
+            )}
+          >
             {summaryFacts.map((item) => (
               <div
                 key={item.label}
                 className={cn(
                   "min-w-0",
+                  compact && item.label === "Address" && "sm:col-span-2 xl:col-span-3",
                   compact
-                    ? "border-l border-border/50 pl-2.5"
+                    ? "pl-0"
                     : "rounded-lg bg-card px-2.5 py-2 ring-1 ring-border/35",
                 )}
               >
-                <dt className="text-[11px] font-medium uppercase tracking-[0.08em] text-slate-500 dark:text-muted-foreground">
+                <dt className={cn(
+                  "font-medium text-slate-500 dark:text-muted-foreground",
+                  compact ? "text-xs text-slate-400" : "text-[11px] uppercase tracking-[0.08em]",
+                )}>
                   {item.label}
                 </dt>
-                <dd className={cn("mt-0.5 flex min-w-0 items-center gap-2 text-sm font-semibold text-foreground tabular-nums", item.mono && "font-mono")}>
-                  <span className="truncate">{item.value}</span>
+                <dd className={cn(
+                  "mt-0.5 flex min-w-0 items-center gap-2 font-semibold text-foreground tabular-nums",
+                  compact ? "text-[15px] leading-5" : "text-sm",
+                  item.mono && "font-mono",
+                )}>
+                  <span
+                    className={cn(
+                      "truncate",
+                      compact && item.label === "Address" && "line-clamp-2 max-w-full whitespace-normal break-words",
+                    )}
+                  >
+                    {item.value}
+                  </span>
                 </dd>
               </div>
             ))}
           </dl>
-          <p className="truncate text-xs text-muted-foreground">
-            {summary.previousLabel && summary.previousLabel !== "First request" ? summary.previousLabel : "First visit"}
-          </p>
+          {!compact ? (
+            <p className="truncate text-xs text-muted-foreground">
+              {summary.previousLabel && summary.previousLabel !== "First request" ? summary.previousLabel : "First visit"}
+            </p>
+          ) : null}
         </div>
       ) : (
       <dl className={cn("mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3", compact && "mt-2")}>

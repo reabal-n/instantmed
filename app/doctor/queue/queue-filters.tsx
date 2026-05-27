@@ -6,11 +6,13 @@ import { useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { QueueStatusFilter } from "@/lib/dashboard/routes"
+import type { FormToInboxStats } from "@/lib/data/intakes"
 import {
   getQueuePressureState,
   QUEUE_WAIT_TARGET_MINUTES,
   type QueuePressureSeverity,
 } from "@/lib/doctor/queue-pressure"
+import { formatMinutes } from "@/lib/format/dates"
 import { cn } from "@/lib/utils"
 import type { IntakeWithPatient } from "@/types/db"
 
@@ -22,7 +24,7 @@ const pressureClasses: Record<QueuePressureSeverity, { root: string; dot: string
   },
   clear: {
     root: "text-muted-foreground",
-    dot: "bg-muted-foreground/50",
+    dot: "bg-slate-500",
     value: "text-slate-700 dark:text-muted-foreground",
   },
   watch: {
@@ -56,6 +58,7 @@ export interface QueueFiltersProps {
    */
   oldestWaitingMinutes?: number | null
   showOldestWaiting?: boolean
+  formToInboxStats?: FormToInboxStats | null
 }
 
 export function QueueFilters({
@@ -72,12 +75,14 @@ export function QueueFilters({
   compactShell = false,
   oldestWaitingMinutes,
   showOldestWaiting = true,
+  formToInboxStats = null,
 }: QueueFiltersProps) {
   const searchRef = useRef<HTMLInputElement>(null)
   const hasActiveSearch = searchQuery.trim().length > 0
   const matchLabel = `${filteredCount} ${filteredCount === 1 ? "match" : "matches"}`
   const pressure = getQueuePressureState(oldestWaitingMinutes, QUEUE_WAIT_TARGET_MINUTES)
   const pressureClass = pressureClasses[pressure.severity]
+  const formToInboxLabel = formToInboxStats ? formatMinutes(formToInboxStats.medianMinutes) : null
 
   // `/` key focuses the search input (standard queue shortcut)
   useEffect(() => {
@@ -95,35 +100,42 @@ export function QueueFilters({
     <>
       {/* Header + Search */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between" data-testid="queue-header">
-        <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
-          <h2
-            className={cn(
-              "font-semibold tracking-tight text-foreground font-sans",
-              compactShell ? "text-base" : "text-xl",
-            )}
-            data-testid="queue-heading"
-          >
-            {compactShell ? "Today's queue" : `${filteredCount} case${filteredCount !== 1 ? "s" : ""} waiting`}
-          </h2>
-          {/* Status dot only when stale/reconnecting. Healthy state is implicit; */}
-          {/* the per-tab counts already say how many cases are in play. */}
-          {(isStale || isReconnecting) && (
-            <span className="inline-flex items-center gap-1.5 text-xs text-warning font-medium">
-              <span className="h-1.5 w-1.5 rounded-full bg-warning" />
-              {isReconnecting ? "Reconnecting" : "Stale"}
-            </span>
-          )}
-          {showOldestWaiting && typeof oldestWaitingMinutes === "number" && oldestWaitingMinutes >= 0 && (
-            <span
-              className={cn("inline-flex items-center gap-1.5 text-[11px] font-medium transition-colors duration-150", pressureClass.root)}
-              title={pressure.title}
-              data-queue-pressure={pressure.severity}
+        <div className="min-w-0">
+          <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
+            <h2
+              className={cn(
+                "font-semibold tracking-tight text-foreground font-sans",
+                compactShell ? "text-base" : "text-xl",
+              )}
+              data-testid="queue-heading"
             >
-              <span className={cn("h-1.5 w-1.5 rounded-full", pressureClass.dot)} aria-hidden />
-              <span>Oldest wait:</span>
-              <span className={cn("tabular-nums", pressureClass.value)}>{pressure.value}</span>
-            </span>
-          )}
+              {compactShell ? "Today's queue" : `${filteredCount} case${filteredCount !== 1 ? "s" : ""} waiting`}
+            </h2>
+            {/* Status dot only when stale/reconnecting. Healthy state is implicit; */}
+            {/* the per-tab counts already say how many cases are in play. */}
+            {(isStale || isReconnecting) && (
+              <span className="inline-flex items-center gap-1.5 text-xs text-warning font-medium">
+                <span className="h-1.5 w-1.5 rounded-full bg-warning" />
+                {isReconnecting ? "Reconnecting" : "Stale"}
+              </span>
+            )}
+            {showOldestWaiting && typeof oldestWaitingMinutes === "number" && oldestWaitingMinutes >= 0 && (
+              <span
+                className={cn("inline-flex items-center gap-1.5 text-[11px] font-medium transition-colors duration-150", pressureClass.root)}
+                title={pressure.title}
+                data-queue-pressure={pressure.severity}
+              >
+                <span className={cn("h-1.5 w-1.5 rounded-full", pressureClass.dot)} aria-hidden />
+                <span>Oldest wait:</span>
+                <span className={cn("tabular-nums", pressureClass.value)}>{pressure.value}</span>
+              </span>
+            )}
+          </div>
+          {compactShell && formToInboxLabel ? (
+            <p className="mt-0.5 text-[11px] font-medium text-muted-foreground">
+              Form to inbox {formToInboxLabel} · target under 2h
+            </p>
+          ) : null}
         </div>
         <div className="flex w-full flex-col items-stretch gap-1 sm:w-auto sm:items-end">
           <div className="flex w-full items-center gap-2 sm:w-auto">

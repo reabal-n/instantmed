@@ -157,7 +157,7 @@ export function SystemHealthPill({ initial }: { initial?: SystemHealth }) {
           <span
             className={cn(
               "h-2 w-2 rounded-full",
-              tone === "warning" && "bg-warning",
+              tone === "warning" && "bg-slate-500",
               tone === "danger" && "bg-destructive",
             )}
             aria-hidden

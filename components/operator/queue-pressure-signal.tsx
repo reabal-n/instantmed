@@ -24,9 +24,9 @@ const severityClasses: Record<QueuePressureSeverity, {
     value: "text-foreground",
   },
   clear: {
-    root: "border-border/60 bg-white text-muted-foreground dark:bg-card",
+    root: "border-border/60 bg-white text-slate-700 dark:bg-card dark:text-muted-foreground",
     icon: "text-muted-foreground",
-    dot: "bg-muted-foreground/50",
+    dot: "bg-slate-500",
     value: "text-foreground",
   },
   watch: {
@@ -71,11 +71,8 @@ export function QueuePressureSignal({
   const state = getQueuePressureState(oldestWaitingMinutes, targetMinutes)
   const classes = severityClasses[state.severity]
   const refreshAgeLabel = formatRefreshAge(nowMs, mountedAtRef.current)
-  const trailingLabel = showTarget
-    ? refreshAgeLabel === "Updated just now"
-      ? "Target: under 2h"
-      : refreshAgeLabel
-    : null
+  const targetLabel = "Target: under 2h"
+  const trailingLabel = showTarget ? refreshAgeLabel : null
 
   return (
     <span
@@ -85,7 +82,7 @@ export function QueuePressureSignal({
         classes.root,
         className,
       )}
-      title={state.title}
+      title={`${state.title} ${targetLabel}.`}
       aria-label={`${state.label}: ${state.value}`}
       data-queue-pressure={state.severity}
     >
@@ -97,7 +94,7 @@ export function QueuePressureSignal({
         />
       ) : null}
       {showLabel ? (
-        <span className="hidden text-[11px] font-semibold uppercase tracking-[0.08em] sm:inline">
+        <span className="hidden text-[11px] font-semibold sm:inline">
           {state.label}
         </span>
       ) : null}

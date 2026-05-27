@@ -11,6 +11,8 @@ export interface TextareaProps
   onChange?: React.ChangeEventHandler<HTMLTextAreaElement | HTMLInputElement>
   /** Preferred callback -- receives the string value directly */
   onValueChange?: (value: string) => void
+  /** Classes applied to the native textarea. `className` stays on the wrapper for back-compat. */
+  textareaClassName?: string
   /** Floating or static label */
   label?: string
   /** Minimum visible rows (sets min-height) */
@@ -31,6 +33,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
       size = "default",
       onChange,
       onValueChange,
+      textareaClassName,
       label,
       minRows,
       style,
@@ -71,7 +74,8 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             "focus:border-primary focus:ring-2 focus:ring-primary/20",
             "disabled:cursor-not-allowed disabled:opacity-50",
             "resize-y",
-            sizeClasses[size]
+            sizeClasses[size],
+            textareaClassName,
           )}
           {...props}
         />

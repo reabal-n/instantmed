@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowUpRight, CheckCircle, ClipboardCheck, Loader2, Send, XCircle } from "lucide-react"
+import { ArrowUpRight, Check, CheckCircle, ClipboardCheck, Loader2, Send, XCircle } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useMemo, useState, useTransition } from "react"
@@ -55,16 +55,71 @@ function ShortcutHint({
   )
 }
 
+function ActionReadinessChecks({
+  detailsReady,
+  noteReady,
+  safetyReady,
+}: {
+  detailsReady: boolean
+  noteReady: boolean
+  safetyReady: boolean
+}) {
+  const checks = [
+    { label: "Intake", ready: detailsReady, completeLabel: "Intake checked", incompleteLabel: "Check intake" },
+    { label: "Safety", ready: safetyReady, completeLabel: "No red flags", incompleteLabel: "Review safety" },
+    { label: "Note", ready: noteReady, completeLabel: "Note drafted", incompleteLabel: "Add note" },
+  ]
+  const readyCount = checks.filter((check) => check.ready).length
+
+  return (
+    <div
+      className="flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-muted-foreground sm:basis-full"
+      data-action-readiness
+      aria-label="Approval readiness checks"
+    >
+      <span className="inline-flex items-center rounded-md border border-border/60 bg-background px-1.5 py-1 text-[11px] font-semibold text-muted-foreground">
+        Pre-flight checks
+      </span>
+      {checks.map((check) => (
+        <span
+          key={check.label}
+          className={cn(
+            "inline-flex cursor-default select-none items-center gap-1.5 rounded-md border px-1.5 py-1",
+            check.ready
+              ? "border-border/60 bg-muted/30 text-slate-600 dark:text-muted-foreground"
+              : "border-warning-border bg-background text-warning",
+          )}
+          aria-label={`${check.ready ? check.completeLabel : check.incompleteLabel}: ${check.ready ? "complete" : "needs attention"}`}
+        >
+          <span
+            className={cn(
+              "grid h-4 w-4 place-items-center rounded-full border",
+              check.ready
+                ? "border-slate-500 bg-slate-600 text-white dark:border-slate-400 dark:bg-slate-500"
+                : "border-warning/55 bg-background",
+            )}
+            aria-hidden
+          >
+            {check.ready ? <Check className="h-3 w-3" /> : null}
+          </span>
+          {check.ready ? `${check.label} done` : check.label}
+        </span>
+      ))}
+      <span className="inline-flex items-center rounded-md border border-border/60 bg-background px-1.5 py-1 text-[11px] font-semibold text-slate-600 dark:text-muted-foreground">
+        {readyCount}/{checks.length}
+      </span>
+    </div>
+  )
+}
+
 export function IntakeActionButtons({
   placement = "bottom",
   requiresClinicalDetail = false,
-  approvalReadRequired = false,
   onRequestClinicalDetail,
   isRequestingClinicalDetail = false,
 }: {
   placement?: "top" | "bottom"
   requiresClinicalDetail?: boolean
-  approvalReadRequired?: boolean
   onRequestClinicalDetail?: () => void
   isRequestingClinicalDetail?: boolean
 }) {
@@ -126,9 +181,11 @@ export function IntakeActionButtons({
     serviceType: service?.type,
     subtype: intake.subtype,
   }
+  const patientSnapshot = buildPatientSnapshot(intake.patient, getPatientSnapshotOptionsForCase(snapshotContext))
   const missingPrescribingIdentityFields = requiresPrescribingIdentityForCase(snapshotContext)
-    ? buildPatientSnapshot(intake.patient, getPatientSnapshotOptionsForCase(snapshotContext)).missingCriticalFields
+    ? patientSnapshot.missingCriticalFields
     : []
+  const hasPatientDetailsReady = patientSnapshot.missingCriticalFields.length === 0
   const hasPrescribingIdentityBlocker = missingPrescribingIdentityFields.length > 0
   const prescribingIdentityTitle = hasPrescribingIdentityBlocker
     ? `Complete patient identity: ${missingPrescribingIdentityFields.join(", ")}`
@@ -138,21 +195,26 @@ export function IntakeActionButtons({
   const showRefundOnDecline = canDecline && intake.payment_status === "paid"
   const refundRemainingCents = Math.max(0, (intake.amount_cents ?? 0) - (intake.refund_amount_cents ?? 0))
   const refundLabel = refundRemainingCents > 0 ? formatCurrency(refundRemainingCents) : null
+  const refundShortLabel = refundLabel?.replace(/\.00$/, "")
   const requestClinicalDetailLabel = "Request symptoms"
-  const disabledApproveHint = approvalReadRequired
-    ? null
-    : requiresClinicalDetail
-      ? "Symptoms missing; the next screen asks you to confirm before sending."
-      : approveDisabledReason
+  const disabledApproveHint = requiresClinicalDetail
+    ? "Symptoms missing; the next screen asks you to confirm before sending."
+    : approveDisabledReason
+  const showActionReadiness = ["paid", "in_review", "awaiting_script"].includes(intake.status)
+  const safetyReady =
+    caseSummary.safetyItems.length === 0 &&
+    intake.requires_live_consult !== true &&
+    intake.risk_tier !== "high"
 
   return (
     <div
       className={
         placement === "top"
           ? "rounded-xl border border-border/60 bg-background p-2 shadow-sm shadow-primary/[0.03]"
-          : "sticky bottom-0 z-10 shrink-0 border-t border-border bg-background/95 py-1.5 shadow-sm shadow-primary/[0.04] backdrop-blur supports-[backdrop-filter]:bg-background/90"
+          : "sticky bottom-0 z-10 shrink-0 border-t border-border bg-background/95 py-1.5 shadow-md shadow-primary/[0.06] backdrop-blur supports-[backdrop-filter]:bg-background/90"
       }
       data-testid="operator-action-rail"
+      data-action-rail-pinned
     >
       {hasPrescribingIdentityBlocker && (
         <div className="mb-2 flex flex-col gap-2 rounded-md border border-warning-border bg-warning-light px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
@@ -184,14 +246,22 @@ export function IntakeActionButtons({
         className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center [&>button]:w-full [&>div]:w-full sm:[&>button]:w-auto sm:[&>div]:w-auto"
         data-action-bar
       >
+        {showActionReadiness ? (
+          <ActionReadinessChecks
+            detailsReady={hasPatientDetailsReady}
+            noteReady={!needsClinicalNotes}
+            safetyReady={safetyReady}
+          />
+        ) : null}
+
         {/* Med cert: approve opens the confirm-before-sending preview flow. */}
         {service?.type === "med_certs" && ["paid", "in_review"].includes(intake.status) && (
           <>
             <Button
               onClick={handleMedCertApprove}
-              className="h-7 bg-[#2563EB] px-2.5 text-xs text-white motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out motion-safe:hover:-translate-y-0.5 hover:bg-[#1D4ED8]"
-              disabled={isPending || isLoadingPreview || approvalReadRequired || Boolean(approveDisabledReason)}
-              title={approvalReadRequired ? "Review the case before approving." : approveDisabledReason || undefined}
+              className="h-7 bg-[#2563EB] px-2.5 text-xs text-white transition-colors hover:bg-[#1D4ED8]"
+              disabled={isPending || isLoadingPreview || Boolean(approveDisabledReason)}
+              title={approveDisabledReason || undefined}
               size="sm"
             >
               {isPending || isLoadingPreview ? (
@@ -227,8 +297,8 @@ export function IntakeActionButtons({
         <Button
           onClick={handleApproveAndOpenParchment}
           className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
-          disabled={isPending || approvalReadRequired || hasPrescribingIdentityBlocker}
-          title={approvalReadRequired ? "Review the case before approving." : prescribingIdentityTitle}
+          disabled={isPending || hasPrescribingIdentityBlocker}
+          title={prescribingIdentityTitle}
           size="sm"
         >
           {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Send className="h-4 w-4 mr-1.5" />}
@@ -240,8 +310,8 @@ export function IntakeActionButtons({
         <Button
           onClick={() => handleStatusChange("awaiting_script")}
           className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
-          disabled={isPending || approvalReadRequired || hasPrescribingIdentityBlocker}
-          title={approvalReadRequired ? "Review the case before approving." : prescribingIdentityTitle}
+          disabled={isPending || hasPrescribingIdentityBlocker}
+          title={prescribingIdentityTitle}
           size="sm"
         >
           {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
@@ -253,8 +323,8 @@ export function IntakeActionButtons({
         <Button
           onClick={handleApproveAndOpenParchment}
           className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
-          disabled={isPending || approvalReadRequired || hasPrescribingIdentityBlocker}
-          title={approvalReadRequired ? "Review the case before approving." : prescribingIdentityTitle}
+          disabled={isPending || hasPrescribingIdentityBlocker}
+          title={prescribingIdentityTitle}
           size="sm"
         >
           {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Send className="h-4 w-4 mr-1.5" />}
@@ -292,8 +362,8 @@ export function IntakeActionButtons({
         <Button
           onClick={() => handleStatusChange("approved")}
           className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
-          disabled={isPending || approvalReadRequired || Boolean(approveDisabledReason)}
-          title={approvalReadRequired ? "Review the case before approving." : approveDisabledReason || undefined}
+          disabled={isPending || Boolean(approveDisabledReason)}
+          title={approveDisabledReason || undefined}
           size="sm"
         >
           {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
@@ -307,8 +377,8 @@ export function IntakeActionButtons({
             <Button
               onClick={() => handleStatusChange("approved")}
               className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
-              disabled={isPending || approvalReadRequired || Boolean(approveDisabledReason)}
-              title={approvalReadRequired ? "Review the case before approving." : approveDisabledReason || undefined}
+              disabled={isPending || Boolean(approveDisabledReason)}
+              title={approveDisabledReason || undefined}
               size="sm"
           >
             {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
@@ -319,24 +389,25 @@ export function IntakeActionButtons({
       {/* Decline */}
       {canDecline && (
         <div
-          className="flex w-full flex-col gap-1 sm:ml-auto sm:w-auto"
+          className="flex w-full flex-col gap-1 border-t border-border/60 pt-2 sm:ml-auto sm:w-auto sm:items-end sm:border-t-0 sm:pl-2 sm:pt-0"
+          data-decline-lane
           data-decline-action
         >
           <Button
-            variant="outline"
+            variant="ghost"
             onClick={() => setShowDeclineDialog(true)}
-            className="h-7 border-transparent bg-transparent px-2 text-xs font-medium text-destructive/85 shadow-none hover:border-destructive/25 hover:bg-destructive/5 hover:text-destructive"
+            className="h-7 border-transparent bg-transparent px-2 text-xs font-semibold text-destructive shadow-none hover:bg-destructive/5 hover:text-destructive"
             disabled={isPending}
             size="sm"
             title={showRefundOnDecline ? "Confirming decline issues the patient refund." : undefined}
           >
-            <XCircle className="h-4 w-4 mr-1.5" />
+            <XCircle className="h-4 w-4 mr-1.5 text-destructive/80" />
             {showRefundOnDecline ? "Decline & refund" : "Decline"}
             <ShortcutHint>Cmd+Shift+D</ShortcutHint>
           </Button>
           {showRefundOnDecline ? (
             <p className="px-0.5 text-[11px] font-medium leading-snug text-muted-foreground sm:max-w-[230px] sm:text-right">
-              Refunds {refundLabel ?? "the patient"} automatically on decline.
+              {refundShortLabel ? `Confirm first. Decline returns ${refundShortLabel} to the patient automatically.` : "Confirm first. Decline refunds the patient automatically."}
             </p>
           ) : null}
         </div>

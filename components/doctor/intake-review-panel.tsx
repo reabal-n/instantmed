@@ -448,31 +448,33 @@ export function IntakeReviewPanel({
         <IntakeReviewProvider value={contextValue}>
           <div
             className={cn(
-              inline ? "flex h-full min-h-0 flex-col gap-3 motion-safe:animate-[fade-in-up_200ms_cubic-bezier(0.16,1,0.3,1)]" : "space-y-5 motion-safe:animate-[fade-in-up_200ms_cubic-bezier(0.16,1,0.3,1)]",
+              inline ? "flex h-full min-h-0 flex-col gap-3 motion-safe:animate-[review-pane-in_220ms_cubic-bezier(0.16,1,0.3,1)]" : "space-y-5 motion-safe:animate-[fade-in-up_200ms_cubic-bezier(0.16,1,0.3,1)]",
             )}
             data-testid="intake-review-panel"
           >
-            {/* Top bar: status, case navigation, and profile links */}
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-wrap items-center gap-2">
+            {/* Top bar: patient anchor, grouped status, and quiet patient actions. */}
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0 space-y-1">
                 {inline ? (
                   <h2 className="truncate text-2xl font-semibold tracking-tight text-foreground">
                     {intake.patient.full_name}
                   </h2>
                 ) : null}
-                <Badge className={getStatusColor(intake.status)}>
-                  {formatIntakeStatus(intake.status)}
-                </Badge>
-                {/* SLA chip: "Waiting Xm" with calm-chrome semantic dot
-                    (green <4h, amber 4-24h, red 24h+) so the operator sees
-                    review urgency next to the patient name at the decision
-                    moment, not just on the queue list. */}
-                <SlaChip paidAt={intake.paid_at} mode={inline ? "waiting" : "paid"} />
-                {caseIndex != null && totalCases != null && (
-                  <Badge variant="outline" size="sm">Case {caseIndex + 1} of {totalCases}</Badge>
-                )}
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge className={getStatusColor(intake.status)}>
+                    {formatIntakeStatus(intake.status)}
+                  </Badge>
+                  {/* SLA chip: "Waiting Xm" with calm-chrome semantic dot
+                      (green <4h, amber 4-24h, red 24h+) so the operator sees
+                      review urgency next to the patient name at the decision
+                      moment, not just on the queue list. */}
+                  <SlaChip paidAt={intake.paid_at} mode={inline ? "waiting" : "paid"} />
+                  {caseIndex != null && totalCases != null && (
+                    <Badge variant="outline" size="sm">Case {caseIndex + 1} of {totalCases}</Badge>
+                  )}
+                </div>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center justify-end gap-1.5" aria-label="Patient actions">
                 {/* Inline mode: j/k in the queue is the canonical case navigator,
                     so the in-panel ↑/↓ buttons are hidden. */}
                 {!inline && (onPrevCase || onNextCase) && (
@@ -501,6 +503,9 @@ export function IntakeReviewPanel({
                   type="button"
                   variant="ghost"
                   size="sm"
+                  className={cn(
+                    inline && "h-7 px-1.5 text-xs font-medium text-muted-foreground hover:bg-muted/35 hover:text-foreground",
+                  )}
                   onClick={() => {
                     openPanel({
                       id: `${profileMode}-patient-profile-${intake.patient.id}`,
@@ -522,9 +527,16 @@ export function IntakeReviewPanel({
                   }}
                 >
                   <User className="h-3.5 w-3.5" />
-                  Patient profile
+                  {inline ? "Profile" : "Patient profile"}
                 </Button>
-                <Button asChild variant="ghost" size="sm">
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    inline && "h-7 px-1.5 text-xs font-medium text-muted-foreground hover:bg-muted/35 hover:text-foreground",
+                  )}
+                >
                   <Link href={fullCaseHref} onClick={inline ? undefined : () => closePanel()}>
                     <ExternalLink className="h-3.5 w-3.5" />
                     Full case
