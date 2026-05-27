@@ -275,6 +275,11 @@ export const doctorDashboardDesktop: Journey = {
 
     const queue = page.getByRole("region", { name: /doctor request queue/i })
     await queue.waitFor({ state: "visible", timeout: 30000 })
+    await page.waitForFunction(
+      () => !document.body.innerText.includes("Waiting ..."),
+      undefined,
+      { timeout: 30000 },
+    )
 
     const allTab = queue.getByRole("button", { name: /^All/ }).first()
     if (await allTab.isVisible().catch(() => false)) {
@@ -291,22 +296,23 @@ export const doctorDashboardDesktop: Journey = {
 
     const row = page.getByTestId("queue-row-e2e00000-0000-0000-0000-000000000010")
     if (await row.isVisible().catch(() => false)) {
+      await row.scrollIntoViewIfNeeded().catch(() => {})
       await row.hover()
       await page.waitForTimeout(800)
 
-      const openButton = row.getByRole("button", { name: /open case for/i }).first()
-      if (await openButton.isVisible().catch(() => false)) {
-        await openButton.click()
-        await page.waitForSelector('[data-testid="intake-review-panel"], [data-testid="intake-review-loading"]', {
-          state: "visible",
-          timeout: 30000,
-        })
-        await page.waitForSelector('[data-testid="intake-review-panel"]', {
-          state: "visible",
-          timeout: 45000,
-        })
-        await page.waitForTimeout(3500)
-      }
+      // Match the production interaction contract: the whole compact row is
+      // the first-click target. The icon button is just a secondary affordance
+      // and can be visually tiny in the desktop split-pane queue.
+      await row.click({ position: { x: 24, y: 24 } })
+      await page.waitForSelector('[data-testid="intake-review-panel"], [data-testid="intake-review-loading"]', {
+        state: "visible",
+        timeout: 30000,
+      })
+      await page.waitForSelector('[data-testid="intake-review-panel"]', {
+        state: "visible",
+        timeout: 45000,
+      })
+      await page.waitForTimeout(3500)
     }
 
     const reviewPanel = page.getByTestId("intake-review-panel")

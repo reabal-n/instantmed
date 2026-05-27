@@ -176,6 +176,26 @@ export function PatientDecisionStrip({
       ))}
     </dl>
   )
+  const renderCompactSummaryFacts = () => (
+    <dl className="mt-2 flex flex-wrap gap-x-3 gap-y-1.5 text-xs" data-compact-identity-summary>
+      {summaryFacts.map((item) => (
+        <div key={item.label} className="flex min-w-0 max-w-full items-baseline gap-1.5">
+          <dt className="shrink-0 text-[11px] font-medium text-muted-foreground/75">
+            {item.label}
+          </dt>
+          <dd
+            className={cn(
+              "min-w-0 max-w-[16rem] truncate font-semibold text-foreground tabular-nums",
+              item.label === "Address" && "max-w-[22rem]",
+              item.mono && "font-mono",
+            )}
+          >
+            {item.value}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  )
 
   return (
     <section
@@ -233,8 +253,8 @@ export function PatientDecisionStrip({
         <div className={cn("mt-3", compact ? "mt-2" : "space-y-2")}>
           {compact ? (
             <div>
-              <p className="text-xs font-semibold text-muted-foreground">Identity details</p>
-              {renderSummaryFacts(true)}
+              <p className="sr-only">Identity details</p>
+              {renderCompactSummaryFacts()}
             </div>
           ) : (
             <details open>

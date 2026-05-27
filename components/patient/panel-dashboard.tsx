@@ -12,13 +12,12 @@ import dynamic from "next/dynamic"
 import Link from "next/link"
 import { type MouseEvent, useEffect, useMemo } from "react"
 
-import { DashboardSection } from "@/components/dashboard"
+import { DashboardSection } from "@/components/dashboard/dashboard-section"
 import { usePanel } from "@/components/panels/panel-provider"
 import { DashboardHero } from "@/components/patient/dashboard-hero"
 import { IntakeCard } from "@/components/patient/intake-card"
 import { type Intake } from "@/components/patient/intake-types"
-import { ProfileCompletenessMeter } from "@/components/patient/profile-completeness-meter"
-import { type ProfileData, ProfileTodoCard, type TodoDrawerType } from "@/components/patient/profile-todo-card"
+import { type ProfileData, type TodoDrawerType } from "@/components/patient/profile-todo-card"
 import { Button } from "@/components/ui/button"
 import { capture } from "@/lib/analytics/capture"
 import {
@@ -27,7 +26,6 @@ import {
   PATIENT_PRESCRIPTIONS_HREF,
   REQUEST_REPEAT_SCRIPT_HREF,
 } from "@/lib/dashboard/routes"
-import type { PatientProfileCompleteness } from "@/lib/data/patient-completeness"
 import { formatDate } from "@/lib/format"
 import { needsRenewalSoon } from "@/lib/prescriptions"
 
@@ -50,6 +48,9 @@ const AddressDrawerContent = dynamic(
 const MedicareDrawerContent = dynamic(
   () => import("@/components/patient/profile-drawers").then((mod) => mod.MedicareDrawerContent),
   { loading: () => <ProfileDrawerLoading /> },
+)
+const ProfileTodoCard = dynamic(
+  () => import("@/components/patient/profile-todo-card").then((mod) => mod.ProfileTodoCard),
 )
 const ReferralCard = dynamic(
   () => import("@/components/patient/referral-card").then((mod) => mod.ReferralCard),
@@ -119,7 +120,6 @@ interface PatientDashboardProps {
   error?: string | null
   profileData?: ProfileData
   undeliveredCerts?: UndeliveredCertificate[]
-  completeness?: PatientProfileCompleteness
 }
 
 export function PanelDashboard({
@@ -130,7 +130,6 @@ export function PanelDashboard({
   error,
   profileData,
   undeliveredCerts = [],
-  completeness,
 }: PatientDashboardProps) {
   const { openPanel } = usePanel()
   const firstName = fullName.split(" ")[0]
@@ -293,9 +292,6 @@ export function PanelDashboard({
           </div>
         </div>
       )}
-
-      {/* Compact profile completeness meter. Self-hides when fully filled. */}
-      {completeness && <ProfileCompletenessMeter completeness={completeness} />}
 
       {/* ─── ZONE 1 · HERO ──────────────────────────────────────────────── */}
       <DashboardHero

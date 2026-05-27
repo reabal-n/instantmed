@@ -162,7 +162,7 @@ export function OperatorSplitPane({
     <div
       data-testid="operator-split-pane"
       className={cn(
-        "grid min-h-0 flex-1 gap-3 lg:min-h-[620px]",
+        "grid min-h-0 flex-1 gap-3 lg:h-[min(620px,calc(100vh-15rem))] lg:min-h-[540px]",
         layoutClass,
         className,
       )}

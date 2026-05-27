@@ -116,7 +116,13 @@ export function SlaChip({ paidAt, className, mode = "paid" }: SlaChipProps) {
           DOT_COLOR[tone],
         )}
       />
-      <span className={LABEL_COLOR[tone]}>{label}</span>
+      <span
+        key={label}
+        className={cn(LABEL_COLOR[tone], "motion-safe:animate-[wait-digit-tick_160ms_cubic-bezier(0.16,1,0.3,1)]")}
+        data-live-wait-counter
+      >
+        {label}
+      </span>
     </span>
   )
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Suspense } from "react"
 
 import { PanelDashboard } from "@/components/patient/panel-dashboard"
+import { ProfileCompletenessMeter } from "@/components/patient/profile-completeness-meter"
 import type { ProfileData } from "@/components/patient/profile-todo-card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
@@ -81,16 +82,18 @@ async function PatientDashboardContent({
   ])
 
   return (
-    <PanelDashboard
-      fullName={fullName}
-      patientId={patientId}
-      intakes={intakes}
-      prescriptions={prescriptions}
-      error={error}
-      profileData={profileData}
-      undeliveredCerts={undeliveredCerts}
-      completeness={completeness}
-    />
+    <div className="space-y-10">
+      <ProfileCompletenessMeter completeness={completeness} />
+      <PanelDashboard
+        fullName={fullName}
+        patientId={patientId}
+        intakes={intakes}
+        prescriptions={prescriptions}
+        error={error}
+        profileData={profileData}
+        undeliveredCerts={undeliveredCerts}
+      />
+    </div>
   )
 }
 

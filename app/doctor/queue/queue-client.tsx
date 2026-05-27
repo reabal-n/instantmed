@@ -16,11 +16,13 @@ import {
   STAFF_IDENTITY_HREF,
 } from "@/lib/dashboard/routes"
 import { DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY, LAST_OPENED_DOCTOR_CASE_KEY } from "@/lib/doctor/queue-focus"
+import { QUEUE_WAIT_TARGET_MINUTES } from "@/lib/doctor/queue-pressure"
 import { removeCompletedIntakeFromQueue } from "@/lib/doctor/queue-state"
 import { calculateWaitTime, getQueueEnteredAt, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
 import { hasReviewNextRisk, sortForReviewNext } from "@/lib/doctor/review-next"
 import { SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
+import { formatMinutes } from "@/lib/format/dates"
 import { formatServiceType } from "@/lib/format/intake"
 import { useDebounce } from "@/lib/hooks/use-debounce"
 import { useIsDesktop } from "@/lib/hooks/use-media-query"
@@ -65,33 +67,48 @@ function IntakeReviewPanelLoading() {
 
   return (
     <div
-      className="h-full min-h-0 overflow-y-auto p-5"
+      className="h-full min-h-0 overflow-y-auto p-5 motion-safe:animate-[review-pane-in_300ms_cubic-bezier(0.16,1,0.3,1)]"
       aria-busy="true"
       aria-label="Loading case review"
       data-testid="intake-review-loading"
     >
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
-        <div className="flex items-center justify-between gap-3">
+      <div className="mx-auto flex h-full w-full max-w-4xl flex-col gap-3">
+        <div className="flex items-start justify-between gap-3">
           <div className="space-y-2">
-            <div className={cn(pulse, "h-4 w-28")} />
-            <div className={cn(pulse, "h-6 w-52")} />
+            <div className={cn(pulse, "h-7 w-56")} />
+            <div className={cn(pulse, "h-4 w-28 rounded-full")} />
           </div>
-          <div className={cn(pulse, "h-9 w-24 rounded-lg")} />
+          <div className="flex gap-2">
+            <div className={cn(pulse, "h-8 w-24 rounded-lg")} />
+            <div className={cn(pulse, "h-8 w-20 rounded-lg")} />
+            <div className={cn(pulse, "h-8 w-24 rounded-lg")} />
+          </div>
         </div>
         <div className="rounded-xl border border-border/55 bg-muted/20 p-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="space-y-2">
-              <div className={cn(pulse, "h-3 w-24")} />
-              <div className={cn(pulse, "h-4 w-44")} />
-            </div>
-            <div className={cn(pulse, "h-8 w-28 rounded-lg")} />
+          <div className="grid gap-2 sm:grid-cols-4">
+            <div className={cn(pulse, "h-5 rounded-md")} />
+            <div className={cn(pulse, "h-5 rounded-md")} />
+            <div className={cn(pulse, "h-5 rounded-md")} />
+            <div className={cn(pulse, "h-5 rounded-md")} />
           </div>
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className={cn(pulse, "h-28 rounded-lg")} />
-          <div className={cn(pulse, "h-28 rounded-lg")} />
+        <div className="rounded-xl border border-border/50 bg-card p-4">
+          <div className={cn(pulse, "h-3 w-28")} />
+          <div className={cn(pulse, "mt-3 h-5 w-full max-w-[70ch]")} />
+          <div className={cn(pulse, "mt-2 h-5 w-4/5")} />
         </div>
-        <div className={cn(pulse, "h-24 rounded-lg")} />
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className={cn(pulse, "h-20 rounded-lg")} />
+          <div className={cn(pulse, "h-20 rounded-lg")} />
+          <div className={cn(pulse, "h-20 rounded-lg")} />
+          <div className={cn(pulse, "h-20 rounded-lg")} />
+        </div>
+        <div className="mt-auto rounded-xl border-t border-border bg-background/80 px-3 py-2">
+          <div className="flex items-center justify-between gap-3">
+            <div className={cn(pulse, "h-5 w-52")} />
+            <div className={cn(pulse, "h-8 w-44 rounded-lg")} />
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -215,7 +232,6 @@ function QueueIdlePanel({
   doctorAvailable,
   queueDegraded,
   nextIntakes,
-  onOpenNext,
 }: {
   queueSize: number
   reviewedToday: number
@@ -226,7 +242,6 @@ function QueueIdlePanel({
   doctorAvailable: boolean
   queueDegraded: boolean
   nextIntakes?: IntakeWithPatient[]
-  onOpenNext?: () => void
 }) {
   const nextIntake = nextIntakes?.[0] ?? null
   const hasQueueTiming = formToInboxStats != null || medianDecisionMinutes != null || oldestWaitingMinutes != null
@@ -235,20 +250,56 @@ function QueueIdlePanel({
     : !doctorAvailable
       ? "Availability is paused."
       : filteredCount > 0
-        ? "Single click or Enter opens it."
+        ? "Open a case from the queue."
         : "No cases match this filter."
-  const primaryMetricLabel = "Reviews today"
+  const primaryMetricLabel = reviewedToday > 0 ? "Reviews today" : "Today's pace"
   const primaryMetricValue = String(reviewedToday)
+  const primaryMetricState = reviewedToday > 0 ? "Cases finished today." : "No cases finished yet today."
+  const targetUsedPercent = typeof oldestWaitingMinutes === "number" && oldestWaitingMinutes >= 0
+    ? Math.round(Math.min(oldestWaitingMinutes / QUEUE_WAIT_TARGET_MINUTES, 1) * 100)
+    : null
+  const secondaryMetric = queueSize > 0 && targetUsedPercent != null
+    ? {
+        label: "Target used",
+        value: `${targetUsedPercent}%`,
+        detail: "Against the 2h review target.",
+      }
+    : formToInboxStats
+    ? {
+        label: "Form to inbox",
+        value: formatMinutes(formToInboxStats.medianMinutes),
+        detail: "Real med-cert median today.",
+      }
+    : medianDecisionMinutes != null
+      ? {
+          label: "Median decision",
+          value: formatMinutes(medianDecisionMinutes),
+          detail: "Completed cases today.",
+        }
+      : {
+          label: "Queue status",
+          value: queueSize > 0 ? String(queueSize) : "Clear",
+          detail: queueSize > 0 ? "Visible clinical cases." : "No visible wait pressure.",
+        }
   const primaryMetricDetail = formToInboxStats
-    ? "Timing shown in queue header."
+    ? "Time from patient form to inbox today."
     : hasQueueTiming
-      ? "Queue timing shown above."
+      ? "Queue pressure shown above."
       : queueSize > 0
         ? `${queueSize} visible case${queueSize === 1 ? "" : "s"}.`
-        : "Completed clinical reviews."
-  const nextPatientFirstName = nextIntake?.patient.full_name?.trim().split(/\s+/)[0] ?? null
+        : "Finished clinical decisions."
+  const nextPatientName = nextIntake?.patient.full_name?.trim() || null
+  const nextService = nextIntake?.service
+  const nextServiceLabel = nextService
+    ? nextService.short_name || nextService.name || formatServiceType(nextService.type || "")
+    : null
+  const nextWaitLabel = nextIntake ? calculateWaitTime(getQueueEnteredAt(nextIntake)) : null
   const nextCaseLabel = nextIntake
-    ? `${nextPatientFirstName || "Next case"} is next.`
+    ? [
+        `Next: ${nextPatientName || "case"}`,
+        nextServiceLabel,
+        nextWaitLabel ? `waiting ${nextWaitLabel}` : null,
+      ].filter(Boolean).join(" · ")
     : filteredCount > 0
       ? "Select the oldest case."
       : "Nothing to review."
@@ -257,18 +308,29 @@ function QueueIdlePanel({
   return (
     <div className="flex h-full min-h-0 flex-col bg-[linear-gradient(180deg,#FFFFFF_0%,#FFFEFB_100%)] dark:bg-card motion-safe:animate-[fade-in_180ms_ease-out]">
       <div className="border-b border-primary/10 bg-primary/[0.025] px-5 py-4">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div className="min-w-0">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="min-w-0 rounded-lg bg-card/65 px-3 py-2 ring-1 ring-border/35">
             <p className="text-xs font-semibold text-foreground">
               {primaryMetricLabel}
             </p>
             <p className="mt-1 text-4xl font-semibold tracking-tight text-foreground tabular-nums">
               {primaryMetricValue}
             </p>
+            <p className="mt-1 text-[11px] font-medium leading-snug text-slate-500 dark:text-muted-foreground">
+              {primaryMetricState}
+            </p>
           </div>
-          <p className="max-w-[260px] text-sm font-medium leading-snug text-slate-600 dark:text-muted-foreground sm:text-right">
-            Completed decisions only.
-          </p>
+          <div className="min-w-0 rounded-lg bg-card/65 px-3 py-2 ring-1 ring-border/35">
+            <p className="text-xs font-semibold text-foreground">
+              {secondaryMetric.label}
+            </p>
+            <p className="mt-1 text-4xl font-semibold tracking-tight text-foreground tabular-nums">
+              {secondaryMetric.value}
+            </p>
+            <p className="mt-1 text-[11px] font-medium leading-snug text-slate-500 dark:text-muted-foreground">
+              {secondaryMetric.detail}
+            </p>
+          </div>
         </div>
         <p className="mt-2 text-xs font-medium text-slate-500 dark:text-muted-foreground">
           {primaryMetricDetail}
@@ -284,22 +346,11 @@ function QueueIdlePanel({
                 {nextCaseLabel}
               </p>
             </div>
-            <div className="flex shrink-0 flex-col items-end gap-1">
-              {nextIntake && onOpenNext ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  className="h-8 px-3 text-xs"
-                  onClick={onOpenNext}
-                >
-                  Open {nextPatientFirstName || "case"}
-                </Button>
-              ) : nextAction ? (
-                <p className="max-w-[180px] text-right text-[11px] font-medium leading-snug text-slate-500 dark:text-muted-foreground">
-                  {nextAction}
-                </p>
-              ) : null}
-            </div>
+            {nextAction ? (
+              <p className="max-w-[180px] shrink-0 text-right text-[11px] font-medium leading-snug text-slate-500 dark:text-muted-foreground">
+                {nextAction}
+              </p>
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -685,7 +736,7 @@ export function QueueClient({
           return next
         })
         toast.error("Use the draft note or add a brief clinical note before approving.", {
-          action: { label: "Open case", onClick: () => openReviewPanel(intakeId) },
+          action: { label: "Open review", onClick: () => openReviewPanel(intakeId) },
           duration: 6000,
         })
       } else {
@@ -883,20 +934,6 @@ export function QueueClient({
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [expandedId, filteredIntakes, openReviewPanel, handleApprove, dialogs])
-
-  useEffect(() => {
-    const handleReleasedReviewCase = (event: Event) => {
-      const intakeId = event instanceof CustomEvent
-        ? (event.detail as { intakeId?: string } | undefined)?.intakeId
-        : null
-      setExpandedId((current) => (intakeId && current !== intakeId ? current : null))
-      refreshQueue(true)
-      toast.success("Case released.")
-    }
-
-    window.addEventListener("operator-release-review-case", handleReleasedReviewCase)
-    return () => window.removeEventListener("operator-release-review-case", handleReleasedReviewCase)
-  }, [refreshQueue])
 
   // Auto-scroll the keyboard-focused row into view. Uses the row's
   // `data-testid` attribute (set by QueueTable) to locate the element
@@ -1144,7 +1181,7 @@ export function QueueClient({
               // for the new case (releases the old lock automatically).
               <div
                 key={expandedId}
-                className="flex h-full min-h-0 flex-col motion-safe:animate-[review-pane-in_220ms_cubic-bezier(0.16,1,0.3,1)]"
+                className="flex h-full min-h-0 flex-col motion-safe:animate-[review-pane-in_300ms_cubic-bezier(0.16,1,0.3,1)]"
                 data-review-pane-entry
               >
                 <div className="min-h-0 flex-1">
@@ -1167,7 +1204,6 @@ export function QueueClient({
                 doctorAvailable={doctorAvailable}
                 queueDegraded={queueDegraded}
                 nextIntakes={filteredIntakes.slice(0, 3)}
-                onOpenNext={handleReviewNext}
               />
             )
           )}

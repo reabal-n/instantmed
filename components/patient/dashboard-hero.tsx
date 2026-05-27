@@ -9,14 +9,13 @@ import {
   FileText,
   MessageCircle,
 } from "lucide-react"
+import dynamic from "next/dynamic"
 import Link from "next/link"
 import { type ReactNode } from "react"
 
-import { DashboardCard } from "@/components/dashboard"
-import { ServiceIconTile } from "@/components/icons/service-icons"
+import { DashboardCard } from "@/components/dashboard/dashboard-card"
 import { type Intake } from "@/components/patient/intake-types"
 import { type ProfileData } from "@/components/patient/profile-todo-card"
-import { CopySupportSummaryButton } from "@/components/patient/support-summary-button"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 import {
@@ -28,7 +27,6 @@ import {
   REQUEST_REPEAT_SCRIPT_HREF,
 } from "@/lib/dashboard/routes"
 import { needsRenewalSoon } from "@/lib/prescriptions"
-import { getActiveServices } from "@/lib/services/service-catalog"
 import { cn } from "@/lib/utils"
 
 interface Prescription {
@@ -68,6 +66,15 @@ interface DashboardHeroProps {
   prescriptions: Prescription[]
   profileData?: ProfileData
 }
+
+const DashboardServiceGrid = dynamic(
+  () => import("@/components/patient/dashboard-service-grid").then((mod) => mod.DashboardServiceGrid),
+)
+
+const CopySupportSummaryButton = dynamic(
+  () => import("@/components/patient/support-summary-button").then((mod) => mod.CopySupportSummaryButton),
+  { ssr: false },
+)
 
 /**
  * Resolve which hero state takes priority based on patient context.
@@ -270,41 +277,6 @@ function HeroShell({ pill, title, subtitle, primaryCta, secondaryCta, children, 
   )
 }
 
-function ServiceGrid({ compact = false }: { compact?: boolean }) {
-  const services = getActiveServices().slice(0, compact ? 4 : 5)
-  return (
-    <div
-      className={cn(
-        "grid gap-3",
-        compact ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
-      )}
-    >
-      {services.map((service) => (
-        <Link
-          key={service.id}
-          href={buildRequestServiceHref({ service: service.serviceRoute, subtype: service.subtype })}
-          className={cn(
-            "group flex items-center gap-3 rounded-xl p-3",
-            "bg-white dark:bg-card border border-border/50 dark:border-white/15",
-            "shadow-sm shadow-primary/[0.04] dark:shadow-none",
-            "transition-[transform,box-shadow,border-color] duration-300",
-            "hover:-translate-y-0.5 hover:shadow-md hover:shadow-primary/[0.06] hover:border-primary/40",
-          )}
-        >
-          <ServiceIconTile iconKey={service.iconKey} color={service.colorToken} size="md" />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-foreground truncate">{service.title}</p>
-            <p className="text-xs text-muted-foreground truncate">
-              {service.pricePrefix ? `${service.pricePrefix} ${service.price}` : service.price}
-            </p>
-          </div>
-          <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
-        </Link>
-      ))}
-    </div>
-  )
-}
-
 export function DashboardHero({
   firstName,
   intakes,
@@ -472,7 +444,7 @@ export function DashboardHero({
           subtitle="We only interrupt you if something important is missing, then email you the result."
         >
           <div className="pt-2">
-            <ServiceGrid />
+            <DashboardServiceGrid />
           </div>
         </HeroShell>
       )
@@ -505,7 +477,7 @@ export function DashboardHero({
           }
         >
           <div className="pt-2">
-            <ServiceGrid compact />
+            <DashboardServiceGrid compact />
           </div>
         </HeroShell>
       )

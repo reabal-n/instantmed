@@ -4,6 +4,7 @@ Auto-maintained by `scripts/video-review/index-update.ts`. Edit nothing here by 
 
 | Captured | Run | Journey | Score | Headline |
 |---|---|---|---|---|
+| 2026-05-27T19:59:43.729Z | [2026-05-27-doctor-dashboard-desktop-4j2e](2026-05-27-doctor-dashboard-desktop-4j2e/report.md) | Doctor dashboard desktop interaction audit (queue hover + review open) | 8 | A composed doctor console. Fix the layout jump and you've got Linear-grade. |
 | 2026-05-27T17:58:36.395Z | [2026-05-27-doctor-dashboard-desktop-9j9x](2026-05-27-doctor-dashboard-desktop-9j9x/report.md) | Doctor dashboard desktop interaction audit (queue hover + review open) | 7 | Calm console, but the SLA breach doesn't earn its weight |
 | 2026-05-27T16:03:57.553Z | [2026-05-27-doctor-dashboard-desktop-pwwf](2026-05-27-doctor-dashboard-desktop-pwwf/report.md) | Doctor dashboard desktop interaction audit (queue hover + review open) | 8 | A calm console that does the job, with two wait numbers that argue with each other |
 | 2026-05-27T14:26:39.047Z | [2026-05-27-doctor-dashboard-desktop-y6xf](2026-05-27-doctor-dashboard-desktop-y6xf/report.md) | Doctor dashboard desktop interaction audit (queue hover + review open) | 7 | A calm console with two CTAs fighting for the same click |

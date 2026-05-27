@@ -28,6 +28,7 @@ const eslintConfig = [
       "scripts/**",
       ".worktrees/**",
       "tools/**",
+      "_deprecated/**",
     ],
   },
   // Base JS recommended

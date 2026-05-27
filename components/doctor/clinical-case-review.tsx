@@ -169,11 +169,16 @@ export function ClinicalCaseReview({
   const draftNoteReady = isClinicalNoteSufficient(visibleDraftNote)
   const pinnedDraftFacts = compact ? [] : summary.keyFacts.slice(0, 4)
   const signOffParts = doctorSignOffLabel?.split(/\s+·\s+/, 2) ?? null
-  const structuredSoapDraft = compact && isEditableDraftNote ? parseSoapDraft(visibleDraftNote) : null
-  const showClinicalNoteBeforeAnswers = compact && isEditableDraftNote
+  const structuredSoapDraft = !compact && isEditableDraftNote ? parseSoapDraft(visibleDraftNote) : null
+  const showClinicalNoteBeforeAnswers = false
+  const setDraftNoteEditableRef = (node: HTMLDivElement | null) => {
+    if (!draftNoteTextareaRef) return
+    ;(draftNoteTextareaRef as unknown as { current: HTMLTextAreaElement | null }).current =
+      node as unknown as HTMLTextAreaElement | null
+  }
   const clinicalNoteSection = (
     <section className="rounded-xl border border-border/60 bg-card shadow-sm shadow-primary/[0.035]">
-      <div className="flex flex-col gap-2 border-b border-border/60 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-2 border-b border-border/60 bg-muted/15 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <FileText className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           <div>
@@ -181,7 +186,7 @@ export function ClinicalCaseReview({
               Clinical note
             </p>
             <p className="text-[11px] font-medium text-muted-foreground">
-              Private until sent
+              Start your note. Cmd+Enter approves.
             </p>
           </div>
         </div>
@@ -264,17 +269,26 @@ export function ClinicalCaseReview({
               ))}
             </div>
           ) : (
-            <Textarea
-              ref={draftNoteTextareaRef}
-              value={visibleDraftNote}
-              placeholder="Start your note. Private until you send."
-              onChange={(event) => {
-                onDraftNoteChange?.(event.target.value)
-              }}
-              className="w-full"
-              textareaClassName="min-h-[172px] max-h-[280px] resize-none overflow-y-auto border-border/60 bg-background pb-6 text-sm leading-relaxed motion-safe:transition-[min-height,box-shadow] motion-safe:duration-150 motion-safe:ease-out focus:min-h-[280px] focus:max-h-[380px] focus-visible:ring-primary/20"
+            <div
+              ref={setDraftNoteEditableRef}
+              role="textbox"
               aria-label="Draft clinical note"
-            />
+              aria-multiline="true"
+              contentEditable
+              suppressContentEditableWarning
+              data-placeholder="Start your note. Cmd+Enter approves."
+              onInput={(event) => {
+                onDraftNoteChange?.(event.currentTarget.innerText)
+              }}
+              onPaste={(event) => {
+                event.preventDefault()
+                const text = event.clipboardData.getData("text/plain")
+                document.execCommand("insertText", false, text)
+              }}
+              className="min-h-[112px] w-full scroll-mt-6 overflow-visible whitespace-pre-wrap rounded-md border border-border/70 bg-[#FFFEFB] px-3 pb-2 pt-6 font-sans text-sm font-medium leading-6 text-foreground shadow-inner shadow-primary/[0.025] outline-none transition-[min-height,border-color,box-shadow] duration-150 ease-out empty:before:text-muted-foreground empty:before:content-[attr(data-placeholder)] hover:border-border focus:min-h-[150px] focus:border-primary focus:ring-2 focus:ring-primary/20 dark:bg-card"
+            >
+              {visibleDraftNote}
+            </div>
           )}
           {!draftNoteReady ? (
             <p className="rounded-md border border-border/60 bg-muted/25 px-2.5 py-1.5 text-xs font-medium text-muted-foreground">

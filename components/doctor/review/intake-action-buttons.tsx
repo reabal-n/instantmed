@@ -65,21 +65,21 @@ function ActionReadinessChecks({
   safetyReady: boolean
 }) {
   const checks = [
-    { label: "Intake", ready: detailsReady, completeLabel: "Intake checked", incompleteLabel: "Check intake" },
-    { label: "Safety", ready: safetyReady, completeLabel: "No red flags", incompleteLabel: "Review safety" },
-    { label: "Draft", ready: noteReady, completeLabel: "Draft note ready", incompleteLabel: "Add note" },
+    { label: "Intake checked", ready: detailsReady, completeLabel: "Intake checked", incompleteLabel: "Check intake" },
+    { label: "Safety checked", ready: safetyReady, completeLabel: "Safety checked", incompleteLabel: "Review safety" },
+    { label: "Note ready", ready: noteReady, completeLabel: "Draft note ready", incompleteLabel: "Add note" },
   ]
   const readyCount = checks.filter((check) => check.ready).length
 
   return (
     <div
-      className="flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-muted-foreground sm:mr-auto"
+      className="flex flex-wrap items-center gap-1 text-[10px] font-medium text-muted-foreground sm:mr-auto"
       data-action-readiness
       aria-label="Approval readiness checks"
     >
-      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-foreground">
+      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-foreground">
         <CheckCircle className={cn("h-3.5 w-3.5", readyCount === checks.length ? "text-slate-600" : "text-warning")} aria-hidden />
-        {readyCount === checks.length ? "Checks complete" : `Checks need attention · ${readyCount}/${checks.length}`}
+        {readyCount === checks.length ? "All checks passed. Note ready to send." : `Needs attention · ${readyCount}/${checks.length}`}
       </span>
       {checks.map((check) => (
         <span
@@ -104,7 +104,7 @@ function ActionReadinessChecks({
           >
             {check.ready ? <Check className="h-2.5 w-2.5" /> : null}
           </span>
-          {check.label}
+          {check.ready ? null : <span>{check.incompleteLabel}</span>}
         </span>
       ))}
     </div>
@@ -210,7 +210,7 @@ export function IntakeActionButtons({
       className={
         placement === "top"
           ? "rounded-xl border border-border/60 bg-background p-2 shadow-sm shadow-primary/[0.03]"
-          : "z-30 shrink-0 border-t border-border bg-gradient-to-t from-background via-background/95 to-background/85 px-2 py-2 shadow-lg shadow-primary/[0.08] backdrop-blur supports-[backdrop-filter]:from-background/95 supports-[backdrop-filter]:via-background/90"
+          : "sticky bottom-0 z-30 shrink-0 border-t border-border bg-gradient-to-t from-background via-background/95 to-background/85 px-2 py-1.5 shadow-lg shadow-primary/[0.08] backdrop-blur supports-[backdrop-filter]:from-background/95 supports-[backdrop-filter]:via-background/90"
       }
       data-testid="operator-action-rail"
       data-action-rail-pinned
@@ -243,9 +243,9 @@ export function IntakeActionButtons({
         </div>
       )}
       {showRefundOnDecline ? (
-        <p className="mb-2 text-[11px] font-medium leading-snug text-muted-foreground">
+        <p className="mb-1.5 text-[11px] font-medium leading-snug text-muted-foreground">
           <span className="font-semibold text-foreground">Full refund if we can't help.</span>{" "}
-          {refundShortLabel ? `Decline refunds ${refundShortLabel} to the patient.` : "Decline refunds the patient."}
+          {refundShortLabel ? `Declining this case refunds ${refundShortLabel} to the patient automatically.` : "Declining this case refunds the patient automatically."}
         </p>
       ) : null}
       <div
@@ -395,19 +395,18 @@ export function IntakeActionButtons({
       {/* Decline */}
       {canDecline && (
         <div
-          className="flex w-full flex-col gap-1 border-t border-border/60 pt-2 sm:w-auto sm:items-end sm:border-t-0 sm:pl-3 sm:pt-0"
+          className="flex w-full flex-col gap-1 border-t border-border/60 pt-2 sm:order-first sm:mr-auto sm:w-auto sm:items-start sm:border-t-0 sm:pr-3 sm:pt-0"
           data-decline-lane
           data-decline-action
         >
           <Button
             variant="outline"
             onClick={() => setShowDeclineDialog(true)}
-            className="h-7 border-border/70 bg-background px-2.5 text-[11px] font-semibold text-slate-700 shadow-none transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-800 dark:border-white/15 dark:bg-card dark:text-muted-foreground dark:hover:border-rose-900/55 dark:hover:bg-rose-950/30 dark:hover:text-rose-300"
+            className="h-7 border-transparent bg-transparent px-2.5 text-[11px] font-semibold text-rose-700 shadow-none transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-900 dark:border-transparent dark:bg-transparent dark:text-rose-300 dark:hover:border-rose-900/55 dark:hover:bg-rose-950/30 dark:hover:text-rose-200"
             disabled={isPending}
             size="sm"
             title={showRefundOnDecline ? "Confirming decline refunds the patient." : undefined}
           >
-            {showRefundOnDecline ? <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden /> : null}
             {showRefundOnDecline ? "Decline & refund" : "Decline request"}
             <ShortcutHint>Cmd+Shift+D</ShortcutHint>
           </Button>

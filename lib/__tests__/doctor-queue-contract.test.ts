@@ -318,12 +318,13 @@ describe("doctor queue production contract", () => {
   it("surfaces the active review claim inside the open case pane", () => {
     expect(intakeLockHookSource).toContain("lockState")
     expect(intakeReviewPanelSource).toContain("data-review-claim-state")
-    expect(intakeReviewPanelSource).toContain("data-review-release-claim")
+    expect(intakeReviewPanelSource).toContain("data-review-start-cta")
     expect(intakeReviewPanelSource).toContain("formatClaimAge")
-    expect(intakeReviewPanelSource).toContain("Claimed for review")
-    expect(intakeReviewPanelSource).toContain("Claiming case")
-    expect(intakeReviewPanelSource).toContain("Release case lock")
-    expect(queueClientSource).toContain("operator-release-review-case")
+    expect(intakeReviewPanelSource).toContain("You're reviewing")
+    expect(intakeReviewPanelSource).toContain("Starting review")
+    expect(intakeReviewPanelSource).toContain("visibleClaimStateLabel")
+    expect(intakeReviewPanelSource).toContain("Review note")
+    expect(queueClientSource).not.toContain("operator-release-review-case")
   })
 
   it("does not claim approved or terminal cases when opening read-only review", () => {
@@ -350,5 +351,11 @@ describe("doctor queue production contract", () => {
     expect(queueActionsSource).toContain("buildClinicalCaseSummary")
     expect(queueActionsSource).toContain("resolveClinicalDecisionNote")
     expect(queueActionsSource).toContain("saveDoctorNotes(intakeId, decisionNote)")
+  })
+
+  it("falls back to the case-summary draft when the formatted AI note is empty", () => {
+    expect(intakeReviewPanelSource).toContain("const fallbackDraftNote = buildClinicalCaseSummary")
+    expect(intakeReviewPanelSource).toContain("const resolvedDraftNote = formatted?.trim() ? formatted : fallbackDraftNote")
+    expect(intakeReviewPanelSource).toContain("actions.setInitialNotes(resolvedDraftNote, resolvedDraftNote)")
   })
 })

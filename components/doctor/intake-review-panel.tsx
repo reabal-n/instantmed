@@ -147,9 +147,9 @@ function formatClaimAge(lockedAt: string | null, now = Date.now()): string {
 
 function formatClaimStateLabel(lockState: IntakeLockState, now = Date.now()): string | null {
   if (lockState.status === "inactive") return null
-  if (lockState.status === "claiming") return "Claiming case"
-  if (lockState.status === "claimed") return `Claimed for review · ${formatClaimAge(lockState.lockedAt, now)}`
-  return lockState.lockedByName ? `Claimed by ${lockState.lockedByName}` : "Claim held elsewhere"
+  if (lockState.status === "claiming") return "Starting review..."
+  if (lockState.status === "claimed") return `You're reviewing · ${formatClaimAge(lockState.lockedAt, now)}`
+  return lockState.lockedByName ? `${lockState.lockedByName} is reviewing` : "Another doctor is reviewing"
 }
 
 export function IntakeReviewPanel({
@@ -291,23 +291,24 @@ export function IntakeReviewPanel({
   useEffect(() => {
     if (!data) return
     const existingNotes = stripGenericClinicalNoteBoilerplate(data.intake.doctor_notes || "")
+    const fallbackDraftNote = buildClinicalCaseSummary({
+      answers: (data.intake.answers?.answers || {}) as Record<string, unknown>,
+      category: data.intake.category,
+      subtype: data.intake.subtype,
+      serviceType: (data.intake.service as { type?: string | null } | null | undefined)?.type,
+      patientName: data.intake.patient.full_name,
+      patientDateOfBirth: data.intake.patient.date_of_birth ?? null,
+      patientSex: data.intake.patient.sex ?? null,
+      riskTier: data.intake.risk_tier,
+      requiresLiveConsult: data.intake.requires_live_consult,
+    }).draftNote
     if (!existingNotes && data.aiDrafts) {
       const clinicalDraft = findClinicalNoteDraft(data.aiDrafts)
       if (clinicalDraft) {
         const formatted = formatClinicalNoteContent(clinicalDraft.content)
-        actions.setInitialNotes(formatted || "", formatted || "")
+        const resolvedDraftNote = formatted?.trim() ? formatted : fallbackDraftNote
+        actions.setInitialNotes(resolvedDraftNote, resolvedDraftNote)
       } else {
-        const fallbackDraftNote = buildClinicalCaseSummary({
-          answers: (data.intake.answers?.answers || {}) as Record<string, unknown>,
-          category: data.intake.category,
-          subtype: data.intake.subtype,
-          serviceType: (data.intake.service as { type?: string | null } | null | undefined)?.type,
-          patientName: data.intake.patient.full_name,
-          patientDateOfBirth: data.intake.patient.date_of_birth ?? null,
-          patientSex: data.intake.patient.sex ?? null,
-          riskTier: data.intake.risk_tier,
-          requiresLiveConsult: data.intake.requires_live_consult,
-        }).draftNote
         actions.setInitialNotes(fallbackDraftNote, fallbackDraftNote)
       }
     } else {
@@ -543,14 +544,12 @@ export function IntakeReviewPanel({
     ? buildAdminIntakeHref(intake.id)
     : buildDoctorIntakeHref(intake.id)
   const claimStateLabel = formatClaimStateLabel(lockState, claimAgeNow)
-  const handleReleaseClaim = () => {
-    releaseLock()
-    if (inline) {
-      window.dispatchEvent(new CustomEvent("operator-release-review-case", { detail: { intakeId } }))
-      return
-    }
-    closePanel()
+  const handleStartReview = () => {
+    actions.notesRef.current?.scrollIntoView({ block: "center", inline: "nearest" })
+    actions.notesRef.current?.focus()
   }
+  const visibleClaimStateLabel = lockState.status === "claimed" ? null : claimStateLabel
+
   return (
     <>
       <Shell
@@ -565,7 +564,7 @@ export function IntakeReviewPanel({
         <IntakeReviewProvider value={contextValue}>
           <div
             className={cn(
-              inline ? "flex h-full min-h-0 flex-col gap-3 motion-safe:animate-[review-pane-in_220ms_cubic-bezier(0.16,1,0.3,1)]" : "space-y-5 motion-safe:animate-[fade-in-up_200ms_cubic-bezier(0.16,1,0.3,1)]",
+              inline ? "flex h-full min-h-0 flex-col gap-3 motion-safe:animate-[review-pane-in_300ms_cubic-bezier(0.16,1,0.3,1)]" : "space-y-5 motion-safe:animate-[fade-in-up_200ms_cubic-bezier(0.16,1,0.3,1)]",
             )}
             data-testid="intake-review-panel"
           >
@@ -589,33 +588,37 @@ export function IntakeReviewPanel({
                   {caseIndex != null && totalCases != null && (
                     <Badge variant="outline" size="sm">Case {caseIndex + 1} of {totalCases}</Badge>
                   )}
-                  {claimStateLabel ? (
+                  {visibleClaimStateLabel ? (
                     <span
                       className={cn(
                         "inline-flex items-center gap-1.5 rounded-lg border border-border/60 bg-muted/35 px-2 py-1 text-[11px] font-semibold text-muted-foreground",
-                        lockState.status === "claimed" && "border-primary/20 bg-primary/[0.035] text-primary",
                         lockState.status === "blocked" && "border-warning-border bg-warning-light text-warning",
                       )}
                       data-review-claim-state={lockState.status}
                     >
                       <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />
-                      <span>{claimStateLabel}</span>
-                      {lockState.status === "claimed" ? (
-                        <button
-                          type="button"
-                          className="ml-0.5 rounded-md border border-primary/20 bg-white px-1.5 py-0.5 text-[11px] font-semibold text-primary shadow-sm shadow-primary/[0.03] transition-colors hover:bg-primary/[0.04] dark:bg-card"
-                          onClick={handleReleaseClaim}
-                          data-review-release-claim
-                          title="Release case lock"
-                        >
-                          Release
-                        </button>
-                      ) : null}
+                      <span>{visibleClaimStateLabel}</span>
                     </span>
                   ) : null}
                 </div>
               </div>
               <div className="flex flex-wrap items-center justify-end gap-1.5" aria-label="Patient actions">
+                {lockState.status === "claimed" ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className={cn(
+                      "h-8 border-border/65 bg-background px-2.5 text-xs font-medium text-muted-foreground shadow-none hover:bg-muted/40 hover:text-foreground",
+                      inline && "h-7 px-2 text-xs",
+                    )}
+                    onClick={handleStartReview}
+                    data-review-start-cta
+                    title={claimStateLabel ?? "Focus the clinical note"}
+                  >
+                    Review note
+                  </Button>
+                ) : null}
                 {/* Inline mode: j/k in the queue is the canonical case navigator,
                     so the in-panel ↑/↓ buttons are hidden. */}
                 {!inline && (onPrevCase || onNextCase) && (
@@ -642,10 +645,11 @@ export function IntakeReviewPanel({
                 )}
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   className={cn(
-                    inline && "h-7 px-1.5 text-xs font-medium text-muted-foreground hover:bg-muted/35 hover:text-foreground",
+                    "border-border/65 bg-background text-muted-foreground shadow-none hover:bg-muted/40 hover:text-foreground",
+                    inline && "h-7 px-1.5 text-xs font-medium",
                   )}
                   onClick={() => {
                     openPanel({
@@ -672,10 +676,11 @@ export function IntakeReviewPanel({
                 </Button>
                 <Button
                   asChild
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   className={cn(
-                    inline && "h-7 px-1.5 text-xs font-medium text-muted-foreground hover:bg-muted/35 hover:text-foreground",
+                    "border-border/65 bg-background text-muted-foreground shadow-none hover:bg-muted/40 hover:text-foreground",
+                    inline && "h-7 px-1.5 text-xs font-medium",
                   )}
                 >
                   <Link href={fullCaseHref} onClick={inline ? undefined : () => closePanel()}>

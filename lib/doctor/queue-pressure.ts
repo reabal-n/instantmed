@@ -37,10 +37,14 @@ export function getQueuePressureState(
     ? formatMinutes(oldestWaitingMinutes)
     : "No one waiting"
   const label = severity === "idle" ? "Queue wait" : "Oldest wait"
-  const percent = ratio == null ? null : Math.round(Math.min(ratio, 1) * 100)
+  const targetDelta = typeof oldestWaitingMinutes === "number" && oldestWaitingMinutes >= 0
+    ? oldestWaitingMinutes < targetMinutes
+      ? `${formatMinutes(targetMinutes - oldestWaitingMinutes)} before target`
+      : `${formatMinutes(oldestWaitingMinutes - targetMinutes)} past target`
+    : null
   const title = severity === "idle"
     ? "No visible case is currently waiting."
-    : `Oldest visible case has been waiting ${value}. ${percent}% of the ${formatMinutes(targetMinutes)} target.`
+    : `Oldest visible case has been waiting ${value}. ${targetDelta}.`
 
   return {
     severity,

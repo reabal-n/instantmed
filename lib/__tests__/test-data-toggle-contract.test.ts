@@ -91,6 +91,7 @@ describe("test-data toggle contract", () => {
     expect(source).toContain("allowSeeded: showTestData")
     expect(source).toContain("onlySeeded: onlyTestData")
     expect(source).toContain("!onlyTestData ? <SystemHealthPill")
+    expect(source).toContain("isAdmin && !onlyTestData ? <TestDataToggleButton")
   })
 
   it("test-data toggle UI preserves the rest of the query string", () => {

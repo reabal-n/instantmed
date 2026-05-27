@@ -8,6 +8,7 @@ import {
   QUEUE_WAIT_TARGET_MINUTES,
   type QueuePressureSeverity,
 } from "@/lib/doctor/queue-pressure"
+import { formatMinutes } from "@/lib/format/dates"
 import { formatRefreshAge } from "@/lib/hooks/use-relative-refresh-age"
 import { cn } from "@/lib/utils"
 
@@ -61,6 +62,7 @@ interface QueuePressureSignalProps {
   jumpToOldestOnClick?: boolean
   prominent?: boolean
   targetMinutes?: number
+  waitingCaseCount?: number | null
 }
 
 export function QueuePressureSignal({
@@ -74,6 +76,7 @@ export function QueuePressureSignal({
   jumpToOldestOnClick = false,
   prominent = false,
   targetMinutes = QUEUE_WAIT_TARGET_MINUTES,
+  waitingCaseCount = null,
 }: QueuePressureSignalProps) {
   const mountedAtRef = useRef(Date.now())
   const [nowMs, setNowMs] = useState(() => mountedAtRef.current)
@@ -104,7 +107,17 @@ export function QueuePressureSignal({
   const classes = softenUrgent ? reviewOpenUrgentClasses : severityClasses[state.severity]
   const refreshAgeLabel = formatRefreshAge(nowMs, mountedAtRef.current)
   const targetLabel = "Target: under 2h"
-  const trailingLabel = showTarget ? refreshAgeLabel : null
+  const targetProgressLabel = state.ratio == null || typeof oldestWaitingMinutes !== "number" || oldestWaitingMinutes < 0
+    ? targetLabel
+    : oldestWaitingMinutes < targetMinutes
+      ? `${formatMinutes(targetMinutes - oldestWaitingMinutes)} to target`
+      : `${formatMinutes(oldestWaitingMinutes - targetMinutes)} over target`
+  const waitingCaseLabel = typeof waitingCaseCount === "number" && waitingCaseCount > 0
+    ? `${waitingCaseCount} case${waitingCaseCount === 1 ? "" : "s"} waiting`
+    : null
+  const trailingLabel = showTarget
+    ? prominent ? [refreshAgeLabel, waitingCaseLabel, targetProgressLabel].filter(Boolean).join(" · ") : refreshAgeLabel
+    : null
   const title = softenUrgent
     ? `${state.title} Another case is open; finish or switch from the queue when ready. ${targetLabel}.`
     : `${state.title} ${targetLabel}.`
@@ -115,25 +128,54 @@ export function QueuePressureSignal({
     jumpToOldestOnClick && "cursor-pointer hover:border-primary/30 hover:bg-primary/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25",
     className,
   )
-  const content = (
+  const content = prominent ? (
+    <span className="flex min-w-[132px] flex-col gap-0.5">
+      <span className="flex items-center gap-1.5 text-[11px] font-semibold leading-none">
+        {showIcon ? <Clock3 className={cn("h-3.5 w-3.5 shrink-0", classes.icon)} aria-hidden /> : null}
+        {!showIcon ? (
+          <span
+            className={cn("h-2 w-2 rounded-full motion-safe:animate-[pulse-soft_1.2s_ease-in-out_infinite]", classes.dot)}
+            aria-hidden
+          />
+        ) : null}
+        {showLabel ? <span>{state.label}</span> : null}
+      </span>
+      <span
+        key={state.value}
+        className={cn("text-3xl font-semibold leading-none tracking-tight tabular-nums motion-safe:animate-[wait-digit-tick_160ms_cubic-bezier(0.16,1,0.3,1)]", classes.value)}
+        data-live-wait-counter
+      >
+        {state.value}
+      </span>
+      {trailingLabel ? (
+        <span className="text-[11px] font-medium leading-none opacity-80">
+          {trailingLabel}
+        </span>
+      ) : null}
+    </span>
+  ) : (
     <>
       {showIcon ? <Clock3 className={cn("h-3.5 w-3.5 shrink-0", classes.icon)} aria-hidden /> : null}
       {!showIcon ? (
         <span
-          className={cn(prominent ? "h-2 w-2" : "h-1.5 w-1.5", "rounded-full motion-safe:animate-[pulse-soft_1.2s_ease-in-out_infinite]", classes.dot)}
+          className={cn("h-1.5 w-1.5 rounded-full motion-safe:animate-[pulse-soft_1.2s_ease-in-out_infinite]", classes.dot)}
           aria-hidden
         />
       ) : null}
       {showLabel ? (
-        <span className={cn("hidden font-semibold sm:inline", prominent ? "text-[11px]" : compact ? "text-[11px]" : "text-xs")}>
+        <span className={cn("hidden font-semibold sm:inline", compact ? "text-[11px]" : "text-xs")}>
           {state.label}
         </span>
       ) : null}
-      <span className={cn("font-semibold tabular-nums", prominent ? "text-xl" : compact ? "text-sm" : "text-base", classes.value)}>
+      <span
+        key={state.value}
+        className={cn("font-semibold tabular-nums motion-safe:animate-[wait-digit-tick_160ms_cubic-bezier(0.16,1,0.3,1)]", compact ? "text-sm" : "text-base", classes.value)}
+        data-live-wait-counter
+      >
         {state.value}
       </span>
       {trailingLabel ? (
-        <span className={cn("hidden font-medium opacity-80 sm:inline", prominent ? "text-[11px]" : compact ? "text-[11px]" : "text-xs")}>
+        <span className={cn("hidden font-medium opacity-80 sm:inline", compact ? "text-[11px]" : "text-xs")}>
           {trailingLabel}
         </span>
       ) : null}

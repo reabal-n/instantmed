@@ -165,6 +165,7 @@ export default async function StaffDashboardPage({
                 >
                   <QueuePressureSignal
                     oldestWaitingMinutes={oldestWaitingMinutes}
+                    waitingCaseCount={queueResult.total}
                     showIcon={false}
                     jumpToOldestOnClick
                     prominent
@@ -173,15 +174,15 @@ export default async function StaffDashboardPage({
                   {formToInboxLabel ? (
                     <div className="border-l border-border/60 px-3.5 py-2">
                       <p className="text-[11px] font-semibold text-muted-foreground">Median today</p>
-                      <p className="text-xl font-semibold tabular-nums text-foreground">{formToInboxLabel}</p>
-                      <p className="text-[11px] font-medium text-muted-foreground">form to inbox · under 2h</p>
+                      <p className="text-lg font-semibold leading-tight tabular-nums text-foreground">{formToInboxLabel}</p>
+                      <p className="text-[11px] font-medium leading-tight text-muted-foreground">form to inbox · under 2h</p>
                     </div>
                   ) : null}
                 </div>
                 {isAdmin && !onlyTestData ? <SystemHealthPill initial={systemHealth} /> : null}
               </div>
               <div className="flex items-center gap-2">
-                {isAdmin && <TestDataToggleButton active={showTestData} />}
+                {isAdmin && !onlyTestData ? <TestDataToggleButton active={showTestData} /> : null}
                 <DoctorAvailabilityToggle initialAvailable={doctorAvailable} compact />
               </div>
             </div>

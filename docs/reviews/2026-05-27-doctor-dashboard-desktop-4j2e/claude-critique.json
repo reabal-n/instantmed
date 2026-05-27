@@ -1,0 +1,155 @@
+{
+  "summary": "A composed, restrained doctor console that reads closer to Linear/Stripe than generic healthtech. Information density is well-judged, the queue → review flow is legible, and trust cues (refund line, check pills, test-mode banner) are placed where they should be. Brand spine is mostly invisible here because this is an internal surface, but the typographic and color discipline holds.",
+  "overall_score": 7,
+  "categories": {
+    "brand_spine": {
+      "score": 6,
+      "observation": "This is an internal doctor console, not the patient-facing marketing surface, so the consumer brand thesis ('Telehealth without the small talk…') isn't expected here. What is present — 'InstantMed / Doctor Console', the wait-counter chip, and the median pace — does communicate the operational spine of the brand. It feels closer to Stripe Dashboard's tone than to Mosh's warmth, which is appropriate.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "No durable brand mark beyond the 'IM' avatar tile. The console reads as competent but anonymous — a sibling product wouldn't be recognisable as part of the same family.",
+          "recommendation": "Add a small wordmark lockup next to 'Doctor Console' in the sidebar header, and consider a 1px coral underline accent on the active nav item to carry brand identity without colour creep."
+        }
+      ]
+    },
+    "typography": {
+      "score": 8,
+      "observation": "Hierarchy is clean: '1h 15m' as the hero metric, section labels in small caps/weight contrast, body in a readable sans. Line-height on the reason-for-visit paragraph (16s) breathes well. Numerals look tabular in the metric cards, which is the right call.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 16,
+          "issue": "Patient details row ('DOB 35y / 20/06/1990   Medicare 2123 45670 1   Phone …') uses inline label/value pairs separated only by spacing. At a glance the labels and values blur together — the eye has to parse.",
+          "recommendation": "Drop label weight to 500 and colour to a muted slate; keep values in default ink. Or stack label-above-value like the Patient answers grid below for consistency."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 4,
+          "issue": "'Today's pace' value '0' sits without unit context; the supporting line 'No cases finished yet today' carries the meaning but the 0 reads ambiguous at first scan.",
+          "recommendation": "Append a faint unit ('0 cases') or shrink the 0 when the value is zero-state so it doesn't compete with the live 1h 15m number."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 8,
+      "observation": "Ivory background, white cards, restrained blue for the primary CTA and 'In Queue' chip, amber dot for the test-mode banner, coral reserved for the decline action. No colour creep. Shadows are soft. This is Stripe-grade restraint.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 16,
+          "issue": "'Decline & refund' is rendered in coral text inline with the footer. Coral was reserved for brand-recognition moments — using it as a destructive action label dilutes the signature and risks reading as a brand accent rather than a warning.",
+          "recommendation": "Use a neutral ink + underline on hover for Decline, or a muted red distinct from the brand coral. Keep coral for marketing surfaces only."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 4,
+          "issue": "The Available toggle's green track is a slightly different green family from the rest of the system (no other green is in view), so it stands alone.",
+          "recommendation": "Define a single 'status green' token and document it; or render the toggle in the system blue when 'on' to keep the palette tight."
+        }
+      ]
+    },
+    "motion": {
+      "score": 6,
+      "observation": "Across the static frames I can see, transitions between queue-only (4s) → row hover/open (8s) → loaded review (16s) appear to settle without layout shift. The loading skeleton at 8s ('Loading answers', greyed Checks pills, disabled 'Preparing review' button) is the right intentional motion choice — state is communicated, not hidden.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 8,
+          "issue": "Between 8s (skeleton) and 16s (loaded) the right pane grows in height as Patient details, Reason for visit, Patient answers, and footer all appear. Without a reserved-height container this is a visible content jump.",
+          "recommendation": "Reserve the final card heights with skeleton blocks of the correct dimensions so the loaded state fades in rather than expanding the layout."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 8,
+      "observation": "Copy is calm and operational. 'Average med cert today' equivalent is present via 'Median today 10m form to inbox · under 2h'. 'Full refund if we can't help. Declining this case refunds $25 to the patient automatically.' is exactly the merchandised promise, delivered plainly. No hype, no jargon, no banned phrases visible. 'Buttons enable when answers load.' (8s) is a lovely small-print sentence a real person would say.",
+      "findings": [
+        {
+          "severity": 1,
+          "timestamp_seconds": 4,
+          "issue": "'Test mode. Real patients are hidden.' is good, but 'Hide test data' on the right reads as a slightly different register (product-y verb) next to the human first sentence.",
+          "recommendation": "Consider 'Hide this banner' or 'Dismiss' — closer to how a GP would phrase it."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 16,
+          "issue": "'All checks passed. Note ready to send.' is good. The three tick circles next to it are decorative duplication of the same message.",
+          "recommendation": "Either keep the sentence and remove the ticks, or keep ticks with hover labels (ID, Medicare, Red-flags) so each tick earns its place."
+        }
+      ]
+    },
+    "hierarchy_and_layout": {
+      "score": 8,
+      "observation": "Two-pane layout with queue left, case detail right is correct for this job. The eye lands on '1h 15m' first (operational priority), then on the queue row, then the primary action 'Approve and send' bottom-right (16s). Spacing rhythm is Stripe-adjacent. Sections are distinguishable through card elevation alone — no heavy dividers needed.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 16,
+          "issue": "Top-of-page emphasis goes to the wait metrics card, but on a doctor console the primary job is 'open the next case'. The 'Next step: Open a case from the queue' line is buried in a small card on the right at 4s.",
+          "recommendation": "When the queue has work, promote the next-case action to a primary button in the header strip, e.g. 'Open next: E2E Test Patient · 1h 15m' — single click to start work."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 16,
+          "issue": "'Review note', 'Profile', 'Full case' top-right are three peer actions with no visual hierarchy, competing with the bottom-right primary CTA.",
+          "recommendation": "Demote two of those to an overflow menu, or render them as text links rather than bordered buttons so the bottom 'Approve and send' clearly owns the primary slot."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 8,
+      "observation": "This is the doctor path, not the patient paid path, so 'conversion' here = time-to-decision. Friction is low: queue → click row → review loads → Approve and send (Cmd+Enter shown). Keyboard shortcut surfaced inline is excellent. The refund promise is at the decision point. Trust signals (checks passed, test-mode banner) are at CTA proximity.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 8,
+          "issue": "The interim 'Loading answers' state holds for what looks like several seconds (8s → 16s frame gap) with the Approve button disabled. On a 14-minute SLA this is meaningful dead time.",
+          "recommendation": "Prefetch patient answers on queue-row hover (not click), so by the time the doctor clicks the case is already loaded. Linear does this for issue previews."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 16,
+          "issue": "'Cmd+Shift+D' for decline sits next to 'Decline & refund' but 'Cmd+Enter' for approve is on the button itself — inconsistent shortcut placement.",
+          "recommendation": "Pick one pattern: either both shortcuts as kbd chips on the buttons, or both as inline hints. Consistency reduces the cognitive load of a fast operator."
+        }
+      ]
+    },
+    "signature_devices": {
+      "score": 6,
+      "observation": "Visible: live wait counter ('Oldest wait 1h 15m · Updated just now · 1 case waiting · 45m to target') — strong, and 'Median today 10m form to inbox · under 2h' is the operational twin of the patient-facing 'while you wait' specificity. The refund promise is present at the CTA. Missing from this surface: handwritten doctor signature (correct — marketing only), name-first email tone (not testable here), 'what we won't do' link (not expected on internal surface).",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "The wait counter says 'Updated just now' and at 16s 'Updated 10s ago', 20s/25s/30s/35s — that's good live behaviour, but the increment is the only signal it's live. A more 'physical' device (a subtle pulse on the dot, or the number ticking) would sell the live-ness.",
+          "recommendation": "Add a 1.2s ease-in-out opacity pulse on the orange dot, gated by useReducedMotion. Tiny, but it makes the counter feel alive without being a toy."
+        },
+        {
+          "severity": 2,
+          "timestamp_seconds": 16,
+          "issue": "'45m to target' is a key operational number but rendered as inline metadata in the same weight as the rest of the meta row. The doctor's eye should snap to it when it goes red.",
+          "recommendation": "Treat 'time to target' as a status token with three states (green >30m, amber 10–30m, red <10m). It's the most actionable number on the page for a time-poor doctor."
+        }
+      ]
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Reserve the final card heights in the case-detail pane so the skeleton at 8s collapses into the loaded layout at 16s without the panel growing.",
+      "why": "The visible height jump between skeleton and loaded state is the only obvious motion/layout-shift defect on an otherwise composed surface, and it happens on every case open.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Prefetch patient answers on queue-row hover so the Approve button is live on click, and promote an 'Open next case' primary action into the header strip.",
+      "why": "Cuts dead time from the doctor's critical path on a 14-minute SLA and aligns the visual hierarchy with the actual job-to-be-done.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Re-colour 'Decline & refund' off coral, and introduce a green/amber/red status token on the '45m to target' meta so urgency reads at a glance.",
+      "why": "Protects the coral as a brand-recognition signature and makes the most operationally important number actually pop when it matters.",
+      "estimated_impact": "medium"
+    }
+  ]
+}
