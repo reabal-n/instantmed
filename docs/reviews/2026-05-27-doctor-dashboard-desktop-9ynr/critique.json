@@ -1,0 +1,98 @@
+{
+  "summary": "The InstantMed Doctor Console exhibits an exceptionally high level of visual polish, leveraging a Stripe-like layout grid and a warm, clinical-grade color palette to build instant trust. While the interface is highly professional and matches top-tier references in aesthetics, it is held back by minor clinical-scan readability issues and a noticeable layout shift when transitioning to patient details. Refining these minor details will elevate the system to a truly gold-standard clinical interface.",
+  "overall_score": 8,
+  "categories": {
+    "brand_spine": {
+      "score": 8,
+      "observation": "The Doctor Console feels remarkably professional, using a warm ivory background and high-trust blue CTA states that avoid the sterile look of legacy medical software while maintaining strict utility.",
+      "findings": []
+    },
+    "typography": {
+      "score": 8,
+      "observation": "The font selection and hierarchical scale are generally clean and highly legible, but horizontal dense string lists limit rapid readability for critical clinical information.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 7,
+          "issue": "The pipe-separated metadata line under 'About Mia' is visually dense and difficult for a doctor to scan quickly.",
+          "recommendation": "Convert the inline string into a structured key-value grid with light labels and darker values inside the 'About Mia' component."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 9,
+      "observation": "Excellent color discipline with clean off-white ivory backdrops, crisp white action cards, and functional blue/green accents indicating statuses and primary paths.",
+      "findings": []
+    },
+    "motion": {
+      "score": 6,
+      "observation": "While screen transitions are fast, the loading state introduces a visual layout jump because the skeleton screen structure doesn't match the final rendered detail layout.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 6,
+          "issue": "The skeleton loading layout at 0:06 displays generic centered horizontal bars that do not match the split-column layout of the patient detail screen loaded at 0:07.",
+          "recommendation": "Refactor the skeleton loader component to match the grid of the patient detail view so fields hydrate in-place without shifting."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 7,
+      "observation": "The copywriting is direct, reassuring, and highly legible, with the exception of a noticeable grammatical typo on the active dashboard pacing stats card.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 1,
+          "issue": "The text in 'Today's pace' stats card contains a grammatical error: 'We are finished yet. But one's queued.'",
+          "recommendation": "Change the copy string to read: 'We aren't finished yet, but one is queued.' or 'Not finished yet, but one is in the queue.'"
+        }
+      ]
+    },
+    "hierarchy_and_layout": {
+      "score": 8,
+      "observation": "The master-detail split layout is highly efficient for high-throughput clinical review, though some elements near the margins risk tight compression on narrower desktop screens.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 7,
+          "issue": "The patient's residential address is pushed tight against the container edge, threatening awkward wrapping on smaller screens.",
+          "recommendation": "Set a clear flex-wrap or column structure for patient details to ensure addresses and longer metadata lines stack nicely on smaller viewports."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 8,
+      "observation": "The path to approve or decline a certificate is highly visible, but there is mild ambiguity around clinical requirements before committing the action.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 7,
+          "issue": "It is unclear if the 'Doctor notes' text area is optional or mandatory before the doctor clicks 'Approve and send'.",
+          "recommendation": "Add an '(optional)' label to the 'Doctor notes' placeholder text, or dynamically validate and enable/disable the primary action button based on mandatory input."
+        }
+      ]
+    },
+    "signature_devices": {
+      "score": 9,
+      "observation": "The continuous live wait times and performance metrics header perfectly mirrors the consumer-facing brand promise of hyper-speed and reliability inside the doctor interface.",
+      "findings": []
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Fix the grammatical typo in the dashboard stats card",
+      "why": "The phrasing 'We are finished yet' looks highly unprofessional on a high-trust, medical-grade administrative surface.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Match skeleton loader structure to patient detail grid layout",
+      "why": "Eliminating the visual layout jump at 0:06 will make the dashboard transition feel like a seamless, Linear-grade native desktop application.",
+      "estimated_impact": "medium"
+    },
+    {
+      "action": "Restructure the inline patient metadata into a readable grid",
+      "why": "Doctors need to verify identity details instantly; separating DOB, Medicare, and Address into a distinct key-value grid removes cognitive load and scanning delay.",
+      "estimated_impact": "medium"
+    }
+  ]
+}

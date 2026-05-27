@@ -81,14 +81,15 @@ export function PatientDecisionStrip({
     { label: "Address", value: snapshot.address.label, icon: MapPin, wide: true },
     { label: "Last request", value: summary.previousLabel, icon: History, wide: true },
   ]
+  const patientFirstName = summary.patientName?.trim().split(/\s+/)[0] || "patient"
   const compactHeading = compact && summaryOnly
-    ? "Patient details"
+    ? `About ${patientFirstName}`
     : showPatientName ? summary.patientName : summary.serviceShortLabel
   const compactSubheading = compact && summaryOnly
     ? summary.previousLabel && summary.previousLabel !== "First request"
       ? summary.previousLabel
       : "First visit"
-    : showPatientName ? summary.serviceShortLabel : "Patient details"
+    : showPatientName ? summary.serviceShortLabel : "About patient"
   const summaryFacts = [
     { label: "DOB", value: snapshot.ageDobLabel, mono: false },
     {
@@ -199,7 +200,7 @@ export function PatientDecisionStrip({
 
   return (
     <section
-      aria-label="Patient details for this decision"
+      aria-label="Patient context for this decision"
       className={cn(
         "rounded-xl border border-border/60 bg-muted/25 px-3.5 py-3",
         compact && "px-3 py-2.5",

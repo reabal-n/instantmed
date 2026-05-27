@@ -3551,6 +3551,40 @@ button:not(.no-micro):active:not(:disabled),
   }
 }
 
+/* Collapse dashboard-level queue metrics once the split-pane review is active.
+   The case pane becomes the primary object of attention; the live wait signal
+   stays visible as a slim context token instead of a full KPI tile. */
+@media (min-width: 1024px) {
+  html[data-operator-reviewing-case="true"] [data-dashboard-wait-strip] {
+    max-height: 2.5rem;
+    transition: max-height 200ms cubic-bezier(0.16, 1, 0.3, 1), opacity 160ms ease-out;
+  }
+
+  html[data-operator-reviewing-case="true"] [data-dashboard-wait-strip] [data-dashboard-median-tile] {
+    display: none;
+  }
+
+  html[data-operator-reviewing-case="true"] [data-dashboard-wait-strip] [data-queue-pressure] {
+    min-height: 2.5rem;
+    padding: 0.375rem 0.625rem;
+  }
+
+  html[data-operator-reviewing-case="true"] [data-dashboard-wait-strip] [data-queue-pressure] > span {
+    min-width: 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  html[data-operator-reviewing-case="true"] [data-dashboard-wait-strip] [data-live-wait-counter] {
+    font-size: 1rem;
+  }
+
+  html[data-operator-reviewing-case="true"] [data-dashboard-wait-strip] [data-target-pressure-token] {
+    display: none;
+  }
+}
+
 /* ==========================================================================
    GLOBAL REDUCED MOTION
    Comprehensive prefers-reduced-motion support.

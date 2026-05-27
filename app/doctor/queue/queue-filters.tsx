@@ -1,6 +1,6 @@
 "use client"
 
-import { AlertTriangle, RefreshCw, Search, X } from "lucide-react"
+import { AlertTriangle, ArrowRight, RefreshCw, Search, X } from "lucide-react"
 import { useEffect, useRef } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -89,6 +89,8 @@ export function QueueFilters({
   const formToInboxLabel = formToInboxStats ? formatMinutes(formToInboxStats.medianMinutes) : null
   const openOldest = onOpenOldest ?? onOpenSingleMatch
   const showBreachAction = filteredCount > 1 && Boolean(openOldest)
+  const showNextCaseAction = compactShell && filteredCount > 0 && Boolean(openOldest)
+  const showSearch = !compactShell || intakes.length > 5 || hasActiveSearch
 
   // `/` key focuses the search input (standard queue shortcut)
   useEffect(() => {
@@ -145,43 +147,57 @@ export function QueueFilters({
         </div>
         <div className="flex w-full flex-col items-stretch gap-1 sm:w-auto sm:items-end">
           <div className="flex w-full items-center gap-2 sm:w-auto">
-            <div className="relative flex flex-1 items-center sm:flex-none">
-              <Input
-                ref={searchRef}
-                placeholder={compactShell ? "Search patients" : "Search… or / to focus"}
-                value={searchQuery}
-                onChange={(e) => onSearchChange(e.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key !== "Enter") return
-                  if (!onOpenSingleMatch || filteredCount !== 1) return
-                  event.preventDefault()
-                  onOpenSingleMatch()
-                }}
-                className={cn(
-                  "w-full",
-                  "[&>div]:h-9 [&>div]:min-h-0 [&>div]:border-slate-300 [&>div]:bg-white [&>div]:shadow-sm [&>div]:shadow-primary/[0.03] [&>div]:focus-within:border-primary/45 [&>div]:focus-within:ring-primary/20 dark:[&>div]:bg-card",
-                  "[&_input]:h-9 [&_input]:py-0 [&_input]:text-sm [&_input]:leading-9 [&_input]:placeholder:text-slate-500",
-                  compactShell ? "sm:w-64" : "sm:w-56",
-                )}
-                startContent={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
-                endContent={
-                  searchQuery ? (
-                    <button
-                      type="button"
-                      aria-label="Clear patient search"
-                      className="rounded-full p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:hover:bg-white/10"
-                      onMouseDown={(event) => event.preventDefault()}
-                      onClick={() => {
-                        onSearchChange("")
-                        searchRef.current?.focus()
-                      }}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  ) : null
-                }
-              />
-            </div>
+            {showNextCaseAction ? (
+              <Button
+                type="button"
+                size="sm"
+                className="h-8 shrink-0 bg-primary px-3 text-xs text-primary-foreground shadow-sm shadow-primary/[0.12] hover:bg-primary/90"
+                onClick={openOldest}
+                data-open-next-case
+              >
+                Open next case
+                <ArrowRight className="ml-1 h-3.5 w-3.5" aria-hidden="true" />
+              </Button>
+            ) : null}
+            {showSearch ? (
+              <div className="relative flex flex-1 items-center sm:flex-none">
+                <Input
+                  ref={searchRef}
+                  placeholder={compactShell ? "Search patients" : "Search… or / to focus"}
+                  value={searchQuery}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key !== "Enter") return
+                    if (!onOpenSingleMatch || filteredCount !== 1) return
+                    event.preventDefault()
+                    onOpenSingleMatch()
+                  }}
+                  className={cn(
+                    "w-full",
+                    "[&>div]:h-9 [&>div]:min-h-0 [&>div]:border-slate-300 [&>div]:bg-white [&>div]:shadow-sm [&>div]:shadow-primary/[0.03] [&>div]:focus-within:border-primary/45 [&>div]:focus-within:ring-primary/20 dark:[&>div]:bg-card",
+                    "[&_input]:h-9 [&_input]:py-0 [&_input]:text-sm [&_input]:leading-9 [&_input]:placeholder:text-slate-500",
+                    compactShell ? "sm:w-64" : "sm:w-56",
+                  )}
+                  startContent={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
+                  endContent={
+                    searchQuery ? (
+                      <button
+                        type="button"
+                        aria-label="Clear patient search"
+                        className="rounded-full p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:hover:bg-white/10"
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => {
+                          onSearchChange("")
+                          searchRef.current?.focus()
+                        }}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    ) : null
+                  }
+                />
+              </div>
+            ) : null}
             <Button
               variant="ghost"
               size="icon"

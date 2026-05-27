@@ -1,0 +1,137 @@
+{
+  "summary": "Doctor console is calm, legible, and clearly Stripe/Linear-adjacent in restraint — ivory surface, disciplined typography, sensible queue → review flow. But this is an internal tool surface, so brand-spine devices (tagline, coral moments, marketing copy) aren't expected here, and the patient-facing merchandising promise is correctly surfaced near the approve action. Main weaknesses: queue card is static between 8s–44s (no perceptible motion, counter updates feel mechanical), and the review pane lacks visual landing for the primary action on first paint.",
+  "overall_score": 7,
+  "categories": {
+    "brand_spine": {
+      "score": 6,
+      "observation": "This is an internal doctor console, so the consumer tagline 'Faster than your GP.' is correctly absent. The brand spine here is operational: 'Median today 10m form to inbox · target under 2h' (4s) and 'Oldest wait 25m' do the work of the wait-counter device. The IM logo lockup top-left is competent but generic — could be any B2B SaaS.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "Sidebar lockup 'InstantMed / DOCTOR CONSOLE' reads as generic SaaS chrome. No brand warmth carries into the doctor surface at all — it could be Linear, Notion, or any admin tool.",
+          "recommendation": "Add one quiet brand moment in the sidebar footer or header — e.g. a small coral dot on the active nav item, or a handwritten 'Dr Reid' signature mark near the avatar. One device, not five."
+        }
+      ]
+    },
+    "typography": {
+      "score": 8,
+      "observation": "Hierarchy is clean: 'Dashboard' H1, 'Today's queue' section head, 'Mia Carter' card title all step down predictably. The 25m / 26m wait number is the right size for glanceability (4s, 8s). Body copy in the Reason-for-visit block (8s) is comfortable, no orphans. Labels like 'Certificate type', 'Requested duration' are restrained and Stripe-grade.",
+      "findings": [
+        {
+          "severity": 1,
+          "timestamp_seconds": 8,
+          "issue": "The Reason for visit paragraph wraps with a hyphenated break 'red-flag' across lines, which on a clinical surface reads slightly awkward.",
+          "recommendation": "Set hyphens: manual or use a non-breaking hyphen for clinical compound terms ('red-flag', 'follow-up') so they don't split."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 8,
+      "observation": "Ivory background holds, white cards float correctly, blue CTA (Open next case at 4s, Approve and send at 8s) is the only saturated colour — exactly the restraint brief asked for. Amber test-mode banner is appropriately loud without being alarming. No coral creep on this internal surface, which is correct per the brief.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 8,
+          "issue": "The 'In Queue' pill (light blue) and the 'Claimed' chip and the 'Med Cert' chip all sit in similar muted tones, making status vs category visually indistinguishable at a glance.",
+          "recommendation": "Differentiate status pills (In Queue / Claimed / Sent) from taxonomy chips (Med Cert / Script) using shape or weight, not just hue. Status = filled pill, taxonomy = outlined chip."
+        }
+      ]
+    },
+    "motion": {
+      "score": 4,
+      "observation": "Across frames 4s → 44s the queue card, review pane, and CTA show no perceptible motion. The wait counter ticks (25m 58s → 26m 02s → 26m 10s → 26m 38s) but the update appears as a hard number swap with no subtle tick animation. No hover lift visible on the blue CTAs. This is the weakest category against Linear's bar.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 16,
+          "issue": "Wait counter increments are hard swaps. On a 'live' device this is the single most important piece of brand motion and it currently feels like a static number.",
+          "recommendation": "Animate the seconds digit with a 200ms crossfade or odometer roll. Keep minutes still unless they change. Respect prefers-reduced-motion."
+        },
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "No visible hover/focus state on 'Open next case' across frames. Can't confirm the 300ms ease-out lift exists.",
+          "recommendation": "Add a 2–4px translateY lift + shadow deepen on hover, 240ms cubic-bezier(0.2, 0.8, 0.2, 1). Skip under reduced-motion."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 8,
+      "observation": "'Median today 10m form to inbox · target under 2h' (4s) is exactly the calm GP voice — names the wait, removes it. 'All checks passed. Certificate ready to send.' (8s) is clean. 'Full refund if we can't help. Declining this case refunds $25 to the patient automatically.' (8s) is the merchandised promise delivered at the conversion point — well done. No banned phrases spotted. AU English ('Certificate', 'Medicare') correct.",
+      "findings": [
+        {
+          "severity": 1,
+          "timestamp_seconds": 8,
+          "issue": "'No cases finished yet. First one's queued.' (4s) — 'First one's queued' is fine but slightly cute. Borderline GP voice.",
+          "recommendation": "Try 'No cases finished yet. One waiting.' — shorter, flatter, more GP."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 4,
+          "issue": "'Time used 21%' / 'You're 21% into the 2h target' is double-stated. The percentage and the gloss say the same thing.",
+          "recommendation": "Drop the gloss line or replace with a non-redundant signal: 'About 25 minutes of the 2h target.'"
+        }
+      ]
+    },
+    "hierarchy_and_layout": {
+      "score": 7,
+      "observation": "Three-column rhythm (nav / queue / detail) is composed. The header strip with Oldest wait + Median today is well-anchored top-right (4s). On opening Mia Carter (8s), the eye lands on her name then drifts down through About → Reason → Patient answers → Approve. Section headings carry rhythm without dividers — Stripe-adjacent.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 8,
+          "issue": "The primary action 'Approve and send' sits at the bottom of a long card and is only visible after the eye has traversed five sub-sections. On taller cases it may sit below the fold.",
+          "recommendation": "Pin the action bar (Decline & refund / Approve and send) to the bottom of the review pane as a sticky footer. Keep the keyboard shortcut hints."
+        },
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "'Today's pace 0' card and 'Time used 21%' card take the entire right pane when no case is open, but their information density is very low — two numbers consume the prime real estate.",
+          "recommendation": "Either fold these into the header strip or add a third tile (e.g. 'Cases today by hour' sparkline) so the pane earns its width."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 8,
+      "observation": "This is a doctor flow, not a patient conversion flow, but the equivalent — time-to-decision — is well served. Cmd+Enter shortcut visible (8s), refund promise inline at the action (8s), 'All checks passed' trust signal adjacent to the CTA. Two clicks from dashboard to decision (Open next case → Approve).",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 8,
+          "issue": "Patient identity (DOB, Medicare, Phone, Address) sits above clinical content. For a 14-minute target the doctor needs Reason + Symptoms first, identity second.",
+          "recommendation": "Reorder: Reason for visit and Patient answers above the About Mia identity block. Identity verifies but doesn't drive the decision."
+        }
+      ]
+    },
+    "signature_devices": {
+      "score": 6,
+      "observation": "Visible: live wait-counter (Oldest wait 25m 58s at 4s, ticking), 'while you wait' specificity via the median/target framing, name-first reference ('About Mia', 'First visit') at 8s. Missing on this surface: doctor's handwritten signature mark (correctly — marketing only), 'what we won't do' link (not expected here), refund promise (present at 8s — good).",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "The live wait-counter is the brand's loudest device but it's rendered as plain text. It doesn't feel 'live' — no pulse, no tick, no subtle indication of freshness beyond the 'Updated just now' label.",
+          "recommendation": "Add a 1px breathing dot next to 'Oldest wait' that pulses every 10s, and animate the seconds. Tiny, but it's the signature device."
+        }
+      ]
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Animate the wait counter (seconds tick + breathing status dot) and add the 300ms ease-out hover lift to primary CTAs.",
+      "why": "Motion is the weakest category and the live counter is the signature brand device. Currently both feel inert against the Linear reference.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Pin the Decline & refund / Approve and send bar to the bottom of the review pane and reorder content so Reason + Patient answers sit above identity.",
+      "why": "Cuts visual traversal time on the doctor's 14-minute target and keeps the primary action always visible regardless of case length.",
+      "estimated_impact": "medium"
+    },
+    {
+      "action": "Differentiate status pills from taxonomy chips (filled vs outlined) so In Queue / Claimed / Sent are scannable at a glance.",
+      "why": "Currently the queue card reads as one blur of pastel chips, slowing triage on a high-volume day.",
+      "estimated_impact": "low"
+    }
+  ]
+}

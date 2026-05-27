@@ -152,7 +152,6 @@ function injectAcceptanceChecklist(
   opts: SynthesizeOptions,
   domEvidence: DomEvidenceSnapshot | null,
 ): string {
-  if (markdown.includes("## Acceptance Checklist")) return markdown
   const combinedScore = Math.round((opts.critique.overall_score + opts.claudeCritique.overall_score) / 2)
   const rawFindings = [
     ...Object.values(opts.critique.categories).flatMap((category) => category.findings),
@@ -169,16 +168,28 @@ function injectAcceptanceChecklist(
   const clippedDecisionText = /clip|clipped|truncat|cut off|viewport edge/.test(text)
   const scoreFloorPassed = combinedScore >= 8
   const line = (passed: boolean, label: string) => `- [${passed ? "x" : " "}] ${label}`
-
-  return `${markdown.trimEnd()}
-
-## Acceptance Checklist
+  const checklist = `## Acceptance Checklist
 
 ${line(highSeverityCount === 0, "No high-severity findings")}
 ${line(!shortcutHazard, "No shortcut hazards")}
 ${line(!clippedDecisionText, "No clipped decision text")}
-${line(scoreFloorPassed, "Combined video score at or above 8/10")}
+${line(scoreFloorPassed, "Combined video score at or above 8/10")}`
+
+  if (markdown.includes("## Acceptance Checklist")) {
+    return replaceAcceptanceChecklist(markdown, checklist)
+  }
+
+  return `${markdown.trimEnd()}
+
+${checklist}
 `
+}
+
+function replaceAcceptanceChecklist(markdown: string, checklist: string): string {
+  return markdown.replace(
+    /## Acceptance Checklist[\s\S]*?(?=\n## |\n?$)/,
+    checklist,
+  )
 }
 
 function loadDomEvidence(opts: SynthesizeOptions): DomEvidenceSnapshot | null {
@@ -274,6 +285,17 @@ function isContradictedByDomEvidence(
   ]
     .join(" ")
     .toLowerCase()
+
+  const claimsIncompleteApprovalChecks =
+    /\bapprove\b/.test(findingText) &&
+    /\b(check|checks|checklist|mandatory|outstanding|incomplete|not complete|warning)\b/.test(findingText)
+  const evidenceShowsApprovalChecksPassed =
+    /\ball checks passed\b/.test(evidenceText) &&
+    /\b(certificate|case) ready to send\b/.test(evidenceText) &&
+    !/\bneeds attention\b/.test(evidenceText)
+  if (claimsIncompleteApprovalChecks && evidenceShowsApprovalChecksPassed) {
+    return true
+  }
 
   if (/\b15\s*(?:yo|y\/o|years?\s+old)\b/.test(findingText)) {
     return /\b35\s*(?:y|yo|y\/o|years?\s+old)\b/.test(evidenceText)

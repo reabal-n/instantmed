@@ -105,7 +105,7 @@ interface IntakeReviewPanelProps {
    * Render inline (no SheetPanel chrome) for the `/dashboard` two-pane layout.
    * Skips the slide-over wrapper, hides the case-nav top arrows (j/k drives
    * navigation from the queue itself), and keeps a slim top bar with status
-   * + Patient profile / Full case actions. Lock + audit still release on
+ * + Patient profile / Full case actions. Lock + audit still release on
    * unmount, so the parent should force-remount via `key={intakeId}`.
    */
   inline?: boolean
@@ -147,7 +147,7 @@ function formatClaimAge(lockedAt: string | null, now = Date.now()): string {
 
 function formatClaimStateLabel(lockState: IntakeLockState, now = Date.now()): string | null {
   if (lockState.status === "inactive") return null
-  if (lockState.status === "claiming") return "Starting review..."
+  if (lockState.status === "claiming") return null
   if (lockState.status === "claimed") return `You're reviewing · ${formatClaimAge(lockState.lockedAt, now)}`
   return lockState.lockedByName ? `${lockState.lockedByName} is reviewing` : "Another doctor is reviewing"
 }
@@ -439,7 +439,18 @@ export function IntakeReviewPanel({
               <Skeleton className={`mt-2 h-4 w-10/12 ${skeletonTone}`} />
               <Skeleton className={`mt-2 h-4 w-7/12 ${skeletonTone}`} />
             </section>
-            <section className="rounded-xl border border-border/55 bg-muted/15 p-3">
+            <section className="min-h-[136px] rounded-xl border border-border/55 bg-muted/15 p-3" data-review-skeleton-reserved>
+              <p className="text-xs font-semibold text-slate-500 dark:text-muted-foreground">
+                Patient answers
+              </p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <Skeleton className={`h-10 ${skeletonTone}`} />
+                <Skeleton className={`h-10 ${skeletonTone}`} />
+                <Skeleton className={`h-10 ${skeletonTone}`} />
+                <Skeleton className={`h-10 ${skeletonTone}`} />
+              </div>
+            </section>
+            <section className="min-h-[154px] rounded-xl border border-border/55 bg-muted/15 p-3" data-review-skeleton-reserved>
               <p className="text-xs font-semibold text-slate-500 dark:text-muted-foreground">
                 Draft note
               </p>
@@ -447,6 +458,7 @@ export function IntakeReviewPanel({
                 <Skeleton className={`h-4 w-full ${skeletonTone}`} />
                 <Skeleton className={`h-4 w-11/12 ${skeletonTone}`} />
                 <Skeleton className={`h-4 w-9/12 ${skeletonTone}`} />
+                <Skeleton className={`h-8 w-44 ${skeletonTone}`} />
               </div>
             </section>
           </div>
@@ -544,11 +556,7 @@ export function IntakeReviewPanel({
     ? buildAdminIntakeHref(intake.id)
     : buildDoctorIntakeHref(intake.id)
   const claimStateLabel = formatClaimStateLabel(lockState, claimAgeNow)
-  const handleStartReview = () => {
-    actions.notesRef.current?.scrollIntoView({ block: "center", inline: "nearest" })
-    actions.notesRef.current?.focus()
-  }
-  const visibleClaimStateLabel = lockState.status === "claimed" ? null : claimStateLabel
+  const visibleClaimStateLabel = lockState.status === "blocked" ? claimStateLabel : null
 
   return (
     <>
@@ -603,22 +611,6 @@ export function IntakeReviewPanel({
                 </div>
               </div>
               <div className="flex flex-wrap items-center justify-end gap-1.5" aria-label="Patient actions">
-                {lockState.status === "claimed" ? (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    className={cn(
-                      "h-8 border-border/65 bg-background px-2.5 text-xs font-medium text-muted-foreground shadow-none hover:bg-muted/40 hover:text-foreground",
-                      inline && "h-7 px-2 text-xs",
-                    )}
-                    onClick={handleStartReview}
-                    data-review-start-cta
-                    title={claimStateLabel ?? "Focus the clinical note"}
-                  >
-                    Review note
-                  </Button>
-                ) : null}
                 {/* Inline mode: j/k in the queue is the canonical case navigator,
                     so the in-panel ↑/↓ buttons are hidden. */}
                 {!inline && (onPrevCase || onNextCase) && (

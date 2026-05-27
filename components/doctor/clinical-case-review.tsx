@@ -63,6 +63,8 @@ const SOAP_SECTIONS = [
   { key: "A", label: "Assessment" },
   { key: "P", label: "Plan" },
 ] as const
+const COMPACT_FACT_LIMIT = 6
+const PINNED_DRAFT_FACT_LIMIT = 4
 
 type SoapSectionKey = typeof SOAP_SECTIONS[number]["key"]
 type SoapSections = Record<SoapSectionKey, string>
@@ -162,12 +164,12 @@ export function ClinicalCaseReview({
       toast.error("Could not copy search term")
     }
   }
-  const visibleFacts = compact ? summary.keyFacts.slice(0, 4) : summary.keyFacts
+  const visibleFacts = compact ? summary.keyFacts.slice(0, COMPACT_FACT_LIMIT) : summary.keyFacts
   const hiddenFactCount = Math.max(summary.keyFacts.length - visibleFacts.length, 0)
   const isEditableDraftNote = Boolean(onDraftNoteChange)
   const visibleDraftNote = isEditableDraftNote ? draftNoteValue ?? "" : summary.draftNote
   const draftNoteReady = isClinicalNoteSufficient(visibleDraftNote)
-  const pinnedDraftFacts = compact ? [] : summary.keyFacts.slice(0, 4)
+  const pinnedDraftFacts = compact ? [] : summary.keyFacts.slice(0, PINNED_DRAFT_FACT_LIMIT)
   const signOffParts = doctorSignOffLabel?.split(/\s+·\s+/, 2) ?? null
   const structuredSoapDraft = !compact && isEditableDraftNote ? parseSoapDraft(visibleDraftNote) : null
   const showClinicalNoteBeforeAnswers = false

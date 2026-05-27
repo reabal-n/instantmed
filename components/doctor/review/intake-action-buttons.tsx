@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowUpRight, Check, CheckCircle, ClipboardCheck, Loader2, Send } from "lucide-react"
+import { ArrowUpRight, CheckCircle, ClipboardCheck, Loader2, Send } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useMemo, useState, useTransition } from "react"
@@ -59,10 +59,12 @@ function ActionReadinessChecks({
   detailsReady,
   noteReady,
   safetyReady,
+  readyLabel = "Case ready to send.",
 }: {
   detailsReady: boolean
   noteReady: boolean
   safetyReady: boolean
+  readyLabel?: string
 }) {
   const checks = [
     { label: "Intake checked", ready: detailsReady, completeLabel: "Intake checked", incompleteLabel: "Check intake" },
@@ -70,6 +72,7 @@ function ActionReadinessChecks({
     { label: "Note ready", ready: noteReady, completeLabel: "Draft note ready", incompleteLabel: "Add note" },
   ]
   const readyCount = checks.filter((check) => check.ready).length
+  const incompleteChecks = checks.filter((check) => !check.ready)
 
   return (
     <div
@@ -79,32 +82,20 @@ function ActionReadinessChecks({
     >
       <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-foreground">
         <CheckCircle className={cn("h-3.5 w-3.5", readyCount === checks.length ? "text-slate-600" : "text-warning")} aria-hidden />
-        {readyCount === checks.length ? "All checks passed. Note ready to send." : `Needs attention · ${readyCount}/${checks.length}`}
+        {readyCount === checks.length ? `All checks passed. ${readyLabel}` : `Needs attention · ${readyCount}/${checks.length}`}
       </span>
-      {checks.map((check) => (
+      {incompleteChecks.map((check) => (
         <span
           key={check.label}
-          title={check.ready ? check.completeLabel : check.incompleteLabel}
-          className={cn(
-            "inline-flex cursor-default select-none items-center gap-1",
-            check.ready
-              ? "text-slate-500 dark:text-muted-foreground"
-              : "font-semibold text-warning",
-          )}
-          aria-label={`${check.ready ? check.completeLabel : check.incompleteLabel}: ${check.ready ? "complete" : "needs attention"}`}
+          title={check.incompleteLabel}
+          className="inline-flex cursor-default select-none items-center gap-1 font-semibold text-warning"
+          aria-label={`${check.incompleteLabel}: needs attention`}
         >
           <span
-            className={cn(
-              "grid h-3.5 w-3.5 place-items-center rounded-full border",
-              check.ready
-                ? "border-slate-400 bg-slate-500 text-white"
-                : "border-warning/55 bg-background",
-            )}
+            className="grid h-3.5 w-3.5 place-items-center rounded-full border border-warning/55 bg-background"
             aria-hidden
-          >
-            {check.ready ? <Check className="h-2.5 w-2.5" /> : null}
-          </span>
-          {check.ready ? null : <span>{check.incompleteLabel}</span>}
+          />
+          <span>{check.incompleteLabel}</span>
         </span>
       ))}
     </div>
@@ -200,6 +191,7 @@ export function IntakeActionButtons({
     ? "Symptoms missing; the next screen asks you to confirm before sending."
     : approveDisabledReason
   const showActionReadiness = ["paid", "in_review", "awaiting_script"].includes(intake.status)
+  const readyLabel = service?.type === "med_certs" ? "Certificate ready to send." : "Case ready to send."
   const safetyReady =
     caseSummary.safetyItems.length === 0 &&
     intake.requires_live_consult !== true &&
@@ -257,6 +249,7 @@ export function IntakeActionButtons({
             detailsReady={hasPatientDetailsReady}
             noteReady={!needsClinicalNotes}
             safetyReady={safetyReady}
+            readyLabel={readyLabel}
           />
         ) : null}
 
@@ -402,7 +395,7 @@ export function IntakeActionButtons({
           <Button
             variant="outline"
             onClick={() => setShowDeclineDialog(true)}
-            className="h-7 border-transparent bg-transparent px-2.5 text-[11px] font-semibold text-rose-700 shadow-none transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-900 dark:border-transparent dark:bg-transparent dark:text-rose-300 dark:hover:border-rose-900/55 dark:hover:bg-rose-950/30 dark:hover:text-rose-200"
+            className="h-7 border-rose-200/70 bg-background px-2.5 text-[11px] font-semibold text-rose-700 shadow-none transition-colors hover:border-rose-300 hover:bg-rose-50 hover:text-rose-900 dark:border-rose-900/55 dark:bg-card dark:text-rose-300 dark:hover:border-rose-800 dark:hover:bg-rose-950/30 dark:hover:text-rose-200"
             disabled={isPending}
             size="sm"
             title={showRefundOnDecline ? "Confirming decline refunds the patient." : undefined}

@@ -51,8 +51,31 @@ const reviewOpenUrgentClasses = {
   value: "text-slate-700 dark:text-foreground",
 }
 
+type TargetTokenTone = "idle" | "clear" | "watch" | "urgent"
+
+const targetTokenClasses: Record<TargetTokenTone, string> = {
+  idle: "border-border/60 bg-background/70 text-muted-foreground",
+  clear: "border-slate-200 bg-slate-50 text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-muted-foreground",
+  watch: "border-warning-border bg-warning-light text-warning",
+  urgent: "border-destructive/25 bg-destructive/10 text-destructive",
+}
+
+function getTargetTokenTone(
+  oldestWaitingMinutes: number | null | undefined,
+  targetMinutes: number,
+): TargetTokenTone {
+  if (typeof oldestWaitingMinutes !== "number" || oldestWaitingMinutes < 0 || targetMinutes <= 0) return "idle"
+  if (oldestWaitingMinutes >= targetMinutes) return "urgent"
+
+  const remainingMinutes = targetMinutes - oldestWaitingMinutes
+  if (remainingMinutes <= 10) return "urgent"
+  if (remainingMinutes <= 30) return "watch"
+  return "clear"
+}
+
 interface QueuePressureSignalProps {
   oldestWaitingMinutes: number | null | undefined
+  oldestWaitingEnteredAt?: string | null
   className?: string
   compact?: boolean
   showTarget?: boolean
@@ -67,6 +90,7 @@ interface QueuePressureSignalProps {
 
 export function QueuePressureSignal({
   oldestWaitingMinutes,
+  oldestWaitingEnteredAt = null,
   className,
   compact = false,
   showTarget = true,
@@ -83,7 +107,7 @@ export function QueuePressureSignal({
   const [reviewOpen, setReviewOpen] = useState(false)
 
   useEffect(() => {
-    const interval = window.setInterval(() => setNowMs(Date.now()), 5000)
+    const interval = window.setInterval(() => setNowMs(Date.now()), 1000)
     return () => window.clearInterval(interval)
   }, [])
 
@@ -102,22 +126,40 @@ export function QueuePressureSignal({
     }
   }, [softenWhenReviewOpen])
 
-  const state = getQueuePressureState(oldestWaitingMinutes, targetMinutes)
+  const liveElapsedSeconds = (() => {
+    if (!oldestWaitingEnteredAt) return null
+    const enteredAt = new Date(oldestWaitingEnteredAt).getTime()
+    if (!Number.isFinite(enteredAt)) return null
+    return Math.max(0, Math.floor((nowMs - enteredAt) / 1000))
+  })()
+  const liveOldestWaitingMinutes =
+    typeof liveElapsedSeconds === "number"
+      ? Math.floor(liveElapsedSeconds / 60)
+      : oldestWaitingMinutes
+  const liveSecondsLabel =
+    prominent && typeof liveElapsedSeconds === "number"
+      ? `${String(liveElapsedSeconds % 60).padStart(2, "0")}s`
+      : null
+  const state = getQueuePressureState(liveOldestWaitingMinutes, targetMinutes)
   const softenUrgent = softenWhenReviewOpen && reviewOpen && state.severity === "urgent"
   const classes = softenUrgent ? reviewOpenUrgentClasses : severityClasses[state.severity]
   const refreshAgeLabel = formatRefreshAge(nowMs, mountedAtRef.current)
   const targetLabel = "Target: under 2h"
-  const targetProgressLabel = state.ratio == null || typeof oldestWaitingMinutes !== "number" || oldestWaitingMinutes < 0
+  const targetProgressLabel = state.ratio == null || typeof liveOldestWaitingMinutes !== "number" || liveOldestWaitingMinutes < 0
     ? targetLabel
-    : oldestWaitingMinutes < targetMinutes
-      ? `${formatMinutes(targetMinutes - oldestWaitingMinutes)} to target`
-      : `${formatMinutes(oldestWaitingMinutes - targetMinutes)} over target`
+    : liveOldestWaitingMinutes < targetMinutes
+      ? `${formatMinutes(targetMinutes - liveOldestWaitingMinutes)} to target`
+      : `${formatMinutes(liveOldestWaitingMinutes - targetMinutes)} over target`
   const waitingCaseLabel = typeof waitingCaseCount === "number" && waitingCaseCount > 0
     ? `${waitingCaseCount} case${waitingCaseCount === 1 ? "" : "s"} waiting`
     : null
   const trailingLabel = showTarget
     ? prominent ? [refreshAgeLabel, waitingCaseLabel, targetProgressLabel].filter(Boolean).join(" · ") : refreshAgeLabel
     : null
+  const prominentMetaLabel = prominent
+    ? [refreshAgeLabel, waitingCaseLabel].filter(Boolean).join(" · ")
+    : null
+  const targetTokenTone = getTargetTokenTone(liveOldestWaitingMinutes, targetMinutes)
   const title = softenUrgent
     ? `${state.title} Another case is open; finish or switch from the queue when ready. ${targetLabel}.`
     : `${state.title} ${targetLabel}.`
@@ -141,15 +183,36 @@ export function QueuePressureSignal({
         {showLabel ? <span>{state.label}</span> : null}
       </span>
       <span
-        key={state.value}
+        key={`${state.value}:${liveSecondsLabel}`}
         className={cn("text-3xl font-semibold leading-none tracking-tight tabular-nums motion-safe:animate-[wait-digit-tick_160ms_cubic-bezier(0.16,1,0.3,1)]", classes.value)}
         data-live-wait-counter
       >
         {state.value}
+        {liveSecondsLabel ? (
+          <>
+            {" "}
+            <span className="ml-1.5 align-baseline text-sm font-medium text-muted-foreground">
+              {liveSecondsLabel}
+            </span>
+          </>
+        ) : null}
       </span>
-      {trailingLabel ? (
-        <span className="text-[11px] font-medium leading-none opacity-80">
-          {trailingLabel}
+      {showTarget ? (
+        <span className="mt-0.5 flex flex-wrap items-center gap-1.5">
+          {prominentMetaLabel ? (
+            <span className="text-[11px] font-medium leading-none opacity-80">
+              {prominentMetaLabel}
+            </span>
+          ) : null}
+          <span
+            className={cn(
+              "inline-flex min-h-5 items-center rounded-full border px-1.5 text-[10px] font-semibold leading-none",
+              targetTokenClasses[targetTokenTone],
+            )}
+            data-target-pressure-token={targetTokenTone}
+          >
+            {targetProgressLabel}
+          </span>
         </span>
       ) : null}
     </span>

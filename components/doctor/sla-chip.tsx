@@ -32,7 +32,11 @@ const LABEL_COLOR: Record<Tone, string> = {
 
 function formatRelative(diffMs: number, mode: "paid" | "waiting"): string {
   const prefix = mode === "waiting" ? "Waiting" : "Paid"
-  if (diffMs < 60_000) return mode === "waiting" ? "Waiting under 1m" : "Paid just now"
+  if (diffMs < 60_000) {
+    if (mode !== "waiting") return "Paid just now"
+    const seconds = Math.max(0, Math.floor(diffMs / 1000))
+    return seconds < 5 ? "Waiting now" : `Waiting ${seconds}s`
+  }
   const minutes = Math.floor(diffMs / 60_000)
   if (minutes < 60) return mode === "waiting" ? `Waiting ${minutes}m` : `Paid ${minutes}m ago`
   const hours = Math.floor(minutes / 60)
@@ -64,9 +68,10 @@ function toneFor(diffMs: number): Tone {
 export function SlaChip({ paidAt, className, mode = "paid" }: SlaChipProps) {
   const [nowMs, setNowMs] = useState(() => Date.now())
   useEffect(() => {
-    const interval = window.setInterval(() => setNowMs(Date.now()), 30_000)
+    const intervalMs = mode === "waiting" ? 1000 : 30_000
+    const interval = window.setInterval(() => setNowMs(Date.now()), intervalMs)
     return () => window.clearInterval(interval)
-  }, [])
+  }, [mode])
 
   if (!paidAt) {
     return (

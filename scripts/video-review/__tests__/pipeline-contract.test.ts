@@ -44,6 +44,8 @@ describe("video review multi-model contract", () => {
     expect(synthesize).toContain("Captured from \\`dom-evidence.json\\`")
     expect(synthesize).toContain("Model false positives")
     expect(synthesize).toContain("Acceptance Checklist")
+    expect(synthesize).toContain("replaceAcceptanceChecklist")
+    expect(synthesize).not.toContain('if (markdown.includes("## Acceptance Checklist")) return markdown')
     expect(synthesize).toContain("No shortcut hazards")
     expect(synthesize).toContain("No clipped decision text")
   })
@@ -110,6 +112,33 @@ describe("video review multi-model contract", () => {
         timestamp_seconds: 12,
         issue: "Action rail is visually heavy.",
         recommendation: "Compact the sticky rail.",
+      },
+    ]
+
+    expect(filterContradictedFindings(findings, evidence)).toEqual([findings[1]])
+  })
+
+  it("does not count approval-check findings when DOM shows checks passed", () => {
+    const evidence: DomEvidenceSnapshot = {
+      capturedAt: "2026-05-27T00:00:00.000Z",
+      url: "http://localhost:3628/dashboard?showTestData=1",
+      title: "Dashboard",
+      visibleText: "All checks passed. Certificate ready to send. Approve and send Cmd+Enter",
+      elements: [],
+    }
+
+    const findings = [
+      {
+        severity: 4,
+        timestamp_seconds: 7,
+        issue: "The primary Approve and send button is active while outstanding checks remain.",
+        recommendation: "Disable approve until all mandatory checklist items are complete.",
+      },
+      {
+        severity: 3,
+        timestamp_seconds: 16,
+        issue: "Wait counter looks frozen.",
+        recommendation: "Show seconds beside the minute label.",
       },
     ]
 

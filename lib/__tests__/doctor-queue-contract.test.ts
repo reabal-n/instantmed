@@ -318,12 +318,12 @@ describe("doctor queue production contract", () => {
   it("surfaces the active review claim inside the open case pane", () => {
     expect(intakeLockHookSource).toContain("lockState")
     expect(intakeReviewPanelSource).toContain("data-review-claim-state")
-    expect(intakeReviewPanelSource).toContain("data-review-start-cta")
+    expect(intakeReviewPanelSource).not.toContain("data-review-start-cta")
     expect(intakeReviewPanelSource).toContain("formatClaimAge")
     expect(intakeReviewPanelSource).toContain("You're reviewing")
-    expect(intakeReviewPanelSource).toContain("Starting review")
+    expect(intakeReviewPanelSource).not.toContain("Starting review")
     expect(intakeReviewPanelSource).toContain("visibleClaimStateLabel")
-    expect(intakeReviewPanelSource).toContain("Review note")
+    expect(intakeReviewPanelSource).not.toContain("Review note")
     expect(queueClientSource).not.toContain("operator-release-review-case")
   })
 

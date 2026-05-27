@@ -85,6 +85,18 @@ export function calculateWaitTime(createdAt: string, now = new Date()): string {
   return `${diffMins}m`
 }
 
+/** Live wait label with seconds during the first minute for visible queue rows. */
+export function calculateLiveWaitTime(createdAt: string, now = new Date()): string {
+  const created = new Date(createdAt)
+  const diffMs = now.getTime() - created.getTime()
+  const diffSeconds = Math.max(0, Math.floor(diffMs / 1000))
+
+  if (diffSeconds < 5) return "just now"
+  if (diffSeconds < 60) return `${diffSeconds}s`
+
+  return calculateWaitTime(createdAt, now)
+}
+
 /** Color-coding severity based on wait time or SLA deadline. */
 export function getWaitTimeSeverity(
   createdAt: string,

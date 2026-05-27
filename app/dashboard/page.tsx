@@ -124,12 +124,17 @@ export default async function StaffDashboardPage({
   const formToInboxStats = results[5].status === "fulfilled" ? results[5].value : null
   const doctorAvailable = results[6].status === "fulfilled" ? results[6].value?.available !== false : true
   const systemHealth = results[7].status === "fulfilled" ? results[7].value : EMPTY_SYSTEM_HEALTH
-  const oldestWaitingMinutes = queueResult.data.reduce<number | null>((oldest, intake) => {
+  const nowMs = Date.now()
+  const oldestWaitingEnteredAt = queueResult.data.reduce<string | null>((oldest, intake) => {
     const enteredAt = new Date(getQueueEnteredAt(intake)).getTime()
     if (!Number.isFinite(enteredAt)) return oldest
-    const minutes = Math.max(0, Math.floor((Date.now() - enteredAt) / 60000))
-    return oldest == null ? minutes : Math.max(oldest, minutes)
+    if (oldest == null) return getQueueEnteredAt(intake)
+    const currentOldest = new Date(oldest).getTime()
+    return enteredAt < currentOldest ? getQueueEnteredAt(intake) : oldest
   }, null)
+  const oldestWaitingMinutes = oldestWaitingEnteredAt
+    ? Math.max(0, Math.floor((nowMs - new Date(oldestWaitingEnteredAt).getTime()) / 60000))
+    : null
   const parchmentUserId = typeof profile.parchment_user_id === "string" && profile.parchment_user_id.trim()
     ? profile.parchment_user_id.trim()
     : null
@@ -165,6 +170,7 @@ export default async function StaffDashboardPage({
                 >
                   <QueuePressureSignal
                     oldestWaitingMinutes={oldestWaitingMinutes}
+                    oldestWaitingEnteredAt={oldestWaitingEnteredAt}
                     waitingCaseCount={queueResult.total}
                     showIcon={false}
                     jumpToOldestOnClick
@@ -172,7 +178,7 @@ export default async function StaffDashboardPage({
                     className="rounded-none border-0 bg-transparent shadow-none"
                   />
                   {formToInboxLabel ? (
-                    <div className="border-l border-border/60 px-3.5 py-2">
+                    <div data-dashboard-median-tile className="border-l border-border/60 px-3.5 py-2">
                       <p className="text-[11px] font-semibold text-muted-foreground">Median today</p>
                       <p className="text-lg font-semibold leading-tight tabular-nums text-foreground">{formToInboxLabel}</p>
                       <p className="text-[11px] font-medium leading-tight text-muted-foreground">form to inbox · under 2h</p>

@@ -18,7 +18,7 @@ import {
 import { DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY, LAST_OPENED_DOCTOR_CASE_KEY } from "@/lib/doctor/queue-focus"
 import { QUEUE_WAIT_TARGET_MINUTES } from "@/lib/doctor/queue-pressure"
 import { removeCompletedIntakeFromQueue } from "@/lib/doctor/queue-state"
-import { calculateWaitTime, getQueueEnteredAt, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
+import { calculateLiveWaitTime, getQueueEnteredAt, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
 import { hasReviewNextRisk, sortForReviewNext } from "@/lib/doctor/review-next"
 import { SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
@@ -92,10 +92,26 @@ function IntakeReviewPanelLoading() {
             <div className={cn(pulse, "h-5 rounded-md")} />
           </div>
         </div>
-        <div className="rounded-xl border border-border/50 bg-card p-4">
+        <div className="min-h-[116px] rounded-xl border border-border/50 bg-card p-4">
           <div className={cn(pulse, "h-3 w-28")} />
           <div className={cn(pulse, "mt-3 h-5 w-full max-w-[70ch]")} />
           <div className={cn(pulse, "mt-2 h-5 w-4/5")} />
+        </div>
+        <div className="min-h-[136px] rounded-xl border border-border/50 bg-card p-4" data-review-skeleton-reserved>
+          <div className={cn(pulse, "h-3 w-32")} />
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <div className={cn(pulse, "h-10 rounded-lg")} />
+            <div className={cn(pulse, "h-10 rounded-lg")} />
+            <div className={cn(pulse, "h-10 rounded-lg")} />
+            <div className={cn(pulse, "h-10 rounded-lg")} />
+          </div>
+        </div>
+        <div className="min-h-[154px] rounded-xl border border-border/50 bg-card p-4" data-review-skeleton-reserved>
+          <div className={cn(pulse, "h-3 w-24")} />
+          <div className={cn(pulse, "mt-3 h-4 w-full")} />
+          <div className={cn(pulse, "mt-2 h-4 w-11/12")} />
+          <div className={cn(pulse, "mt-2 h-4 w-10/12")} />
+          <div className={cn(pulse, "mt-4 h-8 w-44 rounded-lg")} />
         </div>
         <div className="grid gap-3 md:grid-cols-2">
           <div className={cn(pulse, "h-20 rounded-lg")} />
@@ -254,15 +270,19 @@ function QueueIdlePanel({
         : "No cases match this filter."
   const primaryMetricLabel = reviewedToday > 0 ? "Reviews today" : "Today's pace"
   const primaryMetricValue = String(reviewedToday)
-  const primaryMetricState = reviewedToday > 0 ? "Cases finished today." : "No cases finished yet today."
+  const primaryMetricState = reviewedToday > 0
+    ? "Cases finished today."
+    : queueSize > 0
+      ? "No cases finished yet. First one's queued."
+      : "No cases finished yet."
   const targetUsedPercent = typeof oldestWaitingMinutes === "number" && oldestWaitingMinutes >= 0
     ? Math.round(Math.min(oldestWaitingMinutes / QUEUE_WAIT_TARGET_MINUTES, 1) * 100)
     : null
   const secondaryMetric = queueSize > 0 && targetUsedPercent != null
     ? {
-        label: "Target used",
+        label: "Time used",
         value: `${targetUsedPercent}%`,
-        detail: "Against the 2h review target.",
+        detail: `You're ${targetUsedPercent}% into the 2h target.`,
       }
     : formToInboxStats
     ? {
@@ -293,10 +313,10 @@ function QueueIdlePanel({
   const nextServiceLabel = nextService
     ? nextService.short_name || nextService.name || formatServiceType(nextService.type || "")
     : null
-  const nextWaitLabel = nextIntake ? calculateWaitTime(getQueueEnteredAt(nextIntake)) : null
+  const nextWaitLabel = nextIntake ? calculateLiveWaitTime(getQueueEnteredAt(nextIntake)) : null
   const nextCaseLabel = nextIntake
     ? [
-        `Next: ${nextPatientName || "case"}`,
+        nextPatientName || "Case",
         nextServiceLabel,
         nextWaitLabel ? `waiting ${nextWaitLabel}` : null,
       ].filter(Boolean).join(" · ")
@@ -341,7 +361,7 @@ function QueueIdlePanel({
         <div className="px-5 py-4">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-xs font-semibold text-muted-foreground">Next step</p>
+              <p className="text-xs font-semibold text-muted-foreground">Next case</p>
               <p className="mt-1 text-base font-semibold leading-snug text-foreground">
                 {nextCaseLabel}
               </p>
@@ -521,24 +541,30 @@ export function QueueClient({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [intakes])
 
-  // Tick once a minute to update wait time displays. The queue labels are
-  // minute-granular, so faster ticks just re-render dense clinical rows
-  // without adding useful information.
+  // Tick every second only while a visible queue case is still in its first
+  // minute; after that the labels are minute-granular to avoid dense redraws.
   useEffect(() => {
     if (intakes.length === 0) {
       setClockNow(null)
       return
     }
     setClockNow(new Date())
-    const tickInterval = setInterval(() => {
+    const hasFreshQueueCase = intakes.some((intake) => {
+      const enteredAt = new Date(getQueueEnteredAt(intake)).getTime()
+      if (!Number.isFinite(enteredAt)) return false
+      const ageMs = Date.now() - enteredAt
+      return ageMs >= 0 && ageMs < 60_000
+    })
+    const freshQueueTickMs = hasFreshQueueCase ? 1000 : 60000
+    const tickInterval = window.setInterval(() => {
       setClockNow(new Date())
-    }, 60000)
-    return () => clearInterval(tickInterval)
-  }, [intakes.length])
+    }, freshQueueTickMs)
+    return () => window.clearInterval(tickInterval)
+  }, [intakes])
 
   const calculateStableWaitTime = useCallback((createdAt: string) => {
     if (!clockNow) return "..."
-    return calculateWaitTime(createdAt, clockNow)
+    return calculateLiveWaitTime(createdAt, clockNow)
   }, [clockNow])
 
   const getStableWaitTimeSeverity = useCallback((createdAt: string, slaDeadline?: string | null) => {

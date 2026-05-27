@@ -403,7 +403,7 @@ export function QueueTable({
             const showRoutineStatus = !compactShell || !["paid", "in_review"].includes(intake.status)
             const showInlineWaitTime = true
             const waitLabel = calculateWaitTime(queueEnteredAt)
-            const displayWaitLabel = waitLabel === "0m" ? "Just arrived" : `Waiting ${waitLabel}`
+            const displayWaitLabel = waitLabel === "just now" ? "Just arrived" : `Waiting ${waitLabel}`
             const compactQueueReason = compactShell
               ? getCompactQueueReason(service, intake.subtype)
               : null

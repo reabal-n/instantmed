@@ -1,6 +1,7 @@
 import { afterEach,beforeEach, describe, expect, it, vi } from "vitest"
 
 import {
+  calculateLiveWaitTime,
   calculateSlaCountdown,
   calculateWaitTime,
   getQueueEnteredAt,
@@ -29,6 +30,31 @@ describe("calculateWaitTime", () => {
 
   it("returns 0m for just-submitted", () => {
     expect(calculateWaitTime("2026-04-09T12:00:00Z")).toBe("0m")
+  })
+})
+
+describe("calculateLiveWaitTime", () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date("2026-04-09T12:00:00Z"))
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it("keeps just-arrived rows calm instead of flashing 0s", () => {
+    expect(calculateLiveWaitTime("2026-04-09T12:00:00Z")).toBe("just now")
+    expect(calculateLiveWaitTime("2026-04-09T11:59:57Z")).toBe("just now")
+  })
+
+  it("shows truthful seconds during the first minute", () => {
+    expect(calculateLiveWaitTime("2026-04-09T11:59:48Z")).toBe("12s")
+    expect(calculateLiveWaitTime("2026-04-09T11:59:01Z")).toBe("59s")
+  })
+
+  it("falls back to compact minute and hour labels after the first minute", () => {
+    expect(calculateLiveWaitTime("2026-04-09T11:45:00Z")).toBe("15m")
+    expect(calculateLiveWaitTime("2026-04-09T10:30:00Z")).toBe("1h 30m")
   })
 })
 
