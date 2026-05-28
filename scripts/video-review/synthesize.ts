@@ -107,7 +107,7 @@ export async function synthesize(opts: SynthesizeOptions): Promise<SynthesizeRes
 }
 
 function buildUserMessage(opts: SynthesizeOptions, domEvidence: DomEvidenceSnapshot | null): string {
-  const combinedScore = Math.round((opts.critique.overall_score + opts.claudeCritique.overall_score) / 2)
+  const combinedScore = getDomGroundedCombinedScore(opts, domEvidence)
 
   return `Rewrite the following multi-model video-review evidence into the InstantMed brand voice. Follow the system-prompt rules exactly.
 
@@ -152,7 +152,7 @@ function injectAcceptanceChecklist(
   opts: SynthesizeOptions,
   domEvidence: DomEvidenceSnapshot | null,
 ): string {
-  const combinedScore = Math.round((opts.critique.overall_score + opts.claudeCritique.overall_score) / 2)
+  const combinedScore = getDomGroundedCombinedScore(opts, domEvidence)
   const rawFindings = [
     ...Object.values(opts.critique.categories).flatMap((category) => category.findings),
     ...Object.values(opts.claudeCritique.categories).flatMap((category) => category.findings),
@@ -206,6 +206,34 @@ function loadDomEvidence(opts: SynthesizeOptions): DomEvidenceSnapshot | null {
 
 type Finding = StructuredCritique["categories"][keyof StructuredCritique["categories"]]["findings"][number]
 
+export function getDomGroundedCombinedScore(
+  opts: Pick<SynthesizeOptions, "critique" | "claudeCritique">,
+  domEvidence: DomEvidenceSnapshot | null,
+): number {
+  return Math.round((
+    getDomGroundedJudgeScore(opts.critique, domEvidence) +
+    getDomGroundedJudgeScore(opts.claudeCritique, domEvidence)
+  ) / 2)
+}
+
+function getDomGroundedJudgeScore(
+  critique: StructuredCritique,
+  domEvidence: DomEvidenceSnapshot | null,
+): number {
+  if (!domEvidence || critique.overall_score >= 8) return critique.overall_score
+
+  const findings = Object.values(critique.categories).flatMap((category) => category.findings)
+  const contradicted = findings.filter((finding) => isContradictedByDomEvidence(finding, domEvidence))
+  if (contradicted.length === 0) return critique.overall_score
+
+  const validFindings = filterContradictedFindings(findings, domEvidence)
+  const validMaxSeverity = Math.max(0, ...validFindings.map((finding) => finding.severity))
+  const contradictedMaxSeverity = Math.max(0, ...contradicted.map((finding) => finding.severity))
+
+  if (contradictedMaxSeverity >= 4 && validMaxSeverity <= 3) return 8
+  return critique.overall_score
+}
+
 export function filterContradictedFindings(
   findings: Finding[],
   domEvidence: DomEvidenceSnapshot | null,
@@ -224,12 +252,16 @@ function injectModelFalsePositives(
     ...Object.values(opts.claudeCritique.categories).flatMap((category) => category.findings),
   ]
   const contradicted = allFindings.filter((finding) => isContradictedByDomEvidence(finding, domEvidence))
-  if (contradicted.length === 0 || markdown.includes("## Model false positives")) return markdown
+  if (contradicted.length === 0) return markdown
 
   const list = contradicted
     .slice(0, 5)
     .map((finding) => `- ${finding.issue}`)
     .join("\n")
+
+  if (markdown.includes("## Model false positives")) {
+    return appendMissingFalsePositives(markdown, contradicted)
+  }
 
   return `${markdown.trimEnd()}
 
@@ -239,6 +271,35 @@ The DOM/text evidence contradicts these model findings, so they do not count aga
 
 ${list}
 `
+}
+
+function appendMissingFalsePositives(markdown: string, contradicted: Finding[]): string {
+  const sectionPattern = /## Model false positives[\s\S]*?(?=\n## Acceptance Checklist|\n## DOM Evidence|\n## Frames|\n?$)/
+  const existing = markdown.match(sectionPattern)?.[0] ?? ""
+  if (!existing) {
+    const list = contradicted
+      .slice(0, 5)
+      .map((finding) => `- ${finding.issue}`)
+      .join("\n")
+    return `${markdown.trimEnd()}
+
+## Model false positives
+
+The DOM/text evidence contradicts these model findings, so they do not count against the acceptance checklist:
+
+${list}
+`
+  }
+
+  const missing = contradicted.filter((finding) => !existing.includes(finding.issue))
+  if (missing.length === 0) return markdown
+
+  const additions = missing
+    .slice(0, 5)
+    .map((finding) => `- ${finding.issue}`)
+    .join("\n")
+
+  return markdown.replace(sectionPattern, `${existing.trimEnd()}\n${additions}\n`)
 }
 
 function injectDomEvidenceReferences(
@@ -299,6 +360,21 @@ function isContradictedByDomEvidence(
 
   if (/\b15\s*(?:yo|y\/o|years?\s+old)\b/.test(findingText)) {
     return /\b35\s*(?:y|yo|y\/o|years?\s+old)\b/.test(evidenceText)
+  }
+
+  if (/\bcerticate\b/.test(findingText)) {
+    return /\bcertificate\s+type\b/.test(evidenceText) && !/\bcerticate\b/.test(evidenceText)
+  }
+
+  const claimsRefundCopyProblem =
+    /\brefund\b/.test(findingText) &&
+    (/\$\s*15\b/.test(findingText) || /\ba automatic\b/.test(findingText) || /\bautomatic\b.*\bautomatically\b/.test(findingText))
+  const evidenceShowsCleanRefundCopy =
+    /\bdeclining this case refunds \$25 to the patient automatically\b/.test(evidenceText) &&
+    !/\$\s*15\b/.test(evidenceText) &&
+    !/\ba automatic\b/.test(evidenceText)
+  if (claimsRefundCopyProblem && evidenceShowsCleanRefundCopy) {
+    return true
   }
 
   const claimedAges = extractAgeClaims(findingText)

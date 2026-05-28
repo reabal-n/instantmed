@@ -106,6 +106,21 @@ function getSoapTextareaRows(section: SoapSectionKey, value: string): number {
   return Math.min(9, Math.max(baseline, explicitLines + wrappedLines))
 }
 
+function normaliseClinicalFactText(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+}
+
+function isDuplicatePatientNoteFact(label: string, value: string, patientStory: string): boolean {
+  if (label.toLowerCase() !== "patient note") return false
+  const note = normaliseClinicalFactText(value)
+  if (note.length < 24) return false
+  return normaliseClinicalFactText(patientStory).includes(note)
+}
+
 export function ClinicalCaseReview({
   category,
   subtype,
@@ -164,8 +179,13 @@ export function ClinicalCaseReview({
       toast.error("Could not copy search term")
     }
   }
-  const visibleFacts = compact ? summary.keyFacts.slice(0, COMPACT_FACT_LIMIT) : summary.keyFacts
-  const hiddenFactCount = Math.max(summary.keyFacts.length - visibleFacts.length, 0)
+  const scannableFacts = summary.keyFacts.filter((fact) => (
+    compact && hidePatientStory
+      ? !isDuplicatePatientNoteFact(fact.label, fact.value, summary.patientStory)
+      : true
+  ))
+  const visibleFacts = compact ? scannableFacts.slice(0, COMPACT_FACT_LIMIT) : scannableFacts
+  const hiddenFactCount = Math.max(scannableFacts.length - visibleFacts.length, 0)
   const isEditableDraftNote = Boolean(onDraftNoteChange)
   const visibleDraftNote = isEditableDraftNote ? draftNoteValue ?? "" : summary.draftNote
   const draftNoteReady = isClinicalNoteSufficient(visibleDraftNote)
@@ -371,7 +391,7 @@ export function ClinicalCaseReview({
               <p className="text-xs font-medium text-muted-foreground">
                 Reason for visit
               </p>
-              <p className={compact ? "max-h-12 overflow-hidden text-sm leading-6 text-foreground" : "text-sm leading-relaxed text-foreground"}>
+              <p className={compact ? "text-sm leading-6 text-foreground" : "text-sm leading-relaxed text-foreground"}>
                 {summary.patientStory}
               </p>
             </section>
@@ -401,7 +421,7 @@ export function ClinicalCaseReview({
                     <p className="text-[11px] font-medium text-muted-foreground">
                       {fact.label}
                     </p>
-                    <p className={cn("mt-0.5 text-sm font-medium text-foreground", compact && "max-h-10 overflow-hidden")}>
+                    <p className="mt-0.5 text-sm font-medium text-foreground">
                       {fact.value}
                     </p>
                   </div>
@@ -412,7 +432,7 @@ export function ClinicalCaseReview({
                       {hiddenFactCount} more facts
                     </summary>
                     <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
-                      {summary.keyFacts.slice(visibleFacts.length).map((fact) => (
+                      {scannableFacts.slice(visibleFacts.length).map((fact) => (
                         <div key={`${fact.label}:${fact.value}`} className="rounded-md bg-background px-3 py-2">
                           <p className="text-[11px] font-medium text-muted-foreground">
                             {fact.label}

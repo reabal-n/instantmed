@@ -86,7 +86,11 @@ export function calculateWaitTime(createdAt: string, now = new Date()): string {
 }
 
 /** Live wait label with seconds during the first minute for visible queue rows. */
-export function calculateLiveWaitTime(createdAt: string, now = new Date()): string {
+export function calculateLiveWaitTime(
+  createdAt: string,
+  now = new Date(),
+  options: { afterFirstMinuteSecondsCadence?: number } = {},
+): string {
   const created = new Date(createdAt)
   const diffMs = now.getTime() - created.getTime()
   const diffSeconds = Math.max(0, Math.floor(diffMs / 1000))
@@ -94,7 +98,53 @@ export function calculateLiveWaitTime(createdAt: string, now = new Date()): stri
   if (diffSeconds < 5) return "just now"
   if (diffSeconds < 60) return `${diffSeconds}s`
 
+  if (options.afterFirstMinuteSecondsCadence) {
+    const cadence = Math.max(1, Math.floor(options.afterFirstMinuteSecondsCadence))
+    const minutes = Math.floor(diffSeconds / 60)
+    const seconds = diffSeconds % 60
+    const visibleSeconds = Math.floor(seconds / cadence) * cadence
+    return visibleSeconds > 0 ? `${minutes}m ${visibleSeconds}s` : `${minutes}m`
+  }
+
   return calculateWaitTime(createdAt, now)
+}
+
+/**
+ * Schedule queue-row wait ticks at the next visible label boundary.
+ *
+ * A naive 60s interval can drift from the header's live wait signal by almost
+ * a full minute because it starts from component mount time, not from the
+ * case's queue-entered timestamp. This keeps minute-granular rows aligned
+ * without repainting long queues every second once every row is older than
+ * one minute.
+ */
+export function getQueueClockTickDelayMs(
+  queueEnteredAtValues: Array<string | null | undefined>,
+  now = new Date(),
+  options: { postMinuteCadenceMs?: number } = {},
+): number | null {
+  const nowMs = now.getTime()
+  const postMinuteCadenceMs = Math.max(1_000, options.postMinuteCadenceMs ?? 60_000)
+  const ages = queueEnteredAtValues
+    .map((value) => {
+      if (!value) return null
+      const enteredAt = new Date(value).getTime()
+      if (!Number.isFinite(enteredAt)) return null
+      return nowMs - enteredAt
+    })
+    .filter((age): age is number => typeof age === "number" && age >= 0)
+
+  if (ages.length === 0) return null
+  if (ages.some((age) => age < 60_000)) return 1_000
+
+  const nextBoundaryMs = Math.min(
+    ...ages.map((age) => {
+      const elapsedInCadence = age % postMinuteCadenceMs
+      return elapsedInCadence === 0 ? postMinuteCadenceMs : postMinuteCadenceMs - elapsedInCadence
+    }),
+  )
+
+  return Math.max(1_000, Math.min(postMinuteCadenceMs, nextBoundaryMs))
 }
 
 /** Color-coding severity based on wait time or SLA deadline. */

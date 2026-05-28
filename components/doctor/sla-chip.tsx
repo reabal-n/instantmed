@@ -30,6 +30,8 @@ const LABEL_COLOR: Record<Tone, string> = {
   neutral: "text-muted-foreground",
 }
 
+const WAIT_SECONDS_CADENCE = 15
+
 function formatRelative(diffMs: number, mode: "paid" | "waiting"): string {
   const prefix = mode === "waiting" ? "Waiting" : "Paid"
   if (diffMs < 60_000) {
@@ -38,7 +40,12 @@ function formatRelative(diffMs: number, mode: "paid" | "waiting"): string {
     return seconds < 5 ? "Waiting now" : `Waiting ${seconds}s`
   }
   const minutes = Math.floor(diffMs / 60_000)
-  if (minutes < 60) return mode === "waiting" ? `Waiting ${minutes}m` : `Paid ${minutes}m ago`
+  if (minutes < 60) {
+    if (mode !== "waiting") return `Paid ${minutes}m ago`
+    const seconds = Math.floor((diffMs % 60_000) / 1000)
+    const visibleSeconds = Math.floor(seconds / WAIT_SECONDS_CADENCE) * WAIT_SECONDS_CADENCE
+    return visibleSeconds > 0 ? `Waiting ${minutes}m ${visibleSeconds}s` : `Waiting ${minutes}m`
+  }
   const hours = Math.floor(minutes / 60)
   const remainderMin = minutes % 60
   if (hours < 24) {

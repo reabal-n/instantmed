@@ -245,9 +245,9 @@ export function IntakeReviewCockpit({
 
         {/* Scrollable middle: single column, no tabs. */}
         <div
-          className="min-h-0 flex-1 overflow-y-auto pr-1 scroll-pb-24"
+          className="min-h-0 flex-1 overflow-y-auto pr-1 scroll-pb-32"
         >
-          <div className="space-y-3 pb-6">
+          <div className="space-y-3 pb-8">
             {data.renewalMatch ? (
               <div className="flex items-center justify-end">
                 <RenewalLink
@@ -258,7 +258,7 @@ export function IntakeReviewCockpit({
             ) : null}
             <section className="min-h-[116px] rounded-xl border border-border/50 bg-card p-4 shadow-sm shadow-primary/[0.04]">
               <p className="text-xs font-medium text-muted-foreground">Reason for visit</p>
-              <p className="mt-1 line-clamp-3 text-sm leading-relaxed text-foreground">
+              <p className="mt-1 text-sm leading-relaxed text-foreground">
                 {caseSummary.patientStory}
               </p>
               {showThinMedCertWarning && hasThinMedCertIntake ? (
@@ -318,7 +318,7 @@ export function IntakeReviewCockpit({
           </div>
         </div>
       </div>
-      <div className="shrink-0 shadow-lg shadow-primary/[0.06]" data-action-rail-shell>
+      <div className="mt-3 shrink-0 shadow-lg shadow-primary/[0.06]" data-action-rail-shell>
         {decisionActions}
       </div>
     </div>

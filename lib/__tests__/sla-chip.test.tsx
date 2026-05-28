@@ -53,6 +53,11 @@ describe("SlaChip", () => {
     expect(html).toContain("Queue entered at")
   })
 
+  it("keeps older waiting chips visibly live on a quiet seconds cadence", () => {
+    const html = render(<SlaChip paidAt="2026-05-26T09:44:06Z" mode="waiting" />)
+    expect(html).toContain("Waiting 15m 45s")
+  })
+
   it("keeps sub-minute patient waiting time aligned with the queue row", () => {
     const html = render(<SlaChip paidAt="2026-05-26T09:59:48Z" mode="waiting" />)
     expect(html).toContain("Waiting 12s")

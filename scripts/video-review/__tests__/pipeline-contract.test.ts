@@ -2,7 +2,8 @@ import { readFileSync } from "node:fs"
 
 import { describe, expect, it } from "vitest"
 
-import { filterContradictedFindings, type DomEvidenceSnapshot } from "../synthesize"
+import { filterContradictedFindings, getDomGroundedCombinedScore, type DomEvidenceSnapshot } from "../synthesize"
+import type { StructuredCritique } from "../schema"
 
 function read(path: string) {
   return readFileSync(path, "utf8")
@@ -143,5 +144,93 @@ describe("video review multi-model contract", () => {
     ]
 
     expect(filterContradictedFindings(findings, evidence)).toEqual([findings[1]])
+  })
+
+  it("does not count spelling findings that DOM text contradicts", () => {
+    const evidence: DomEvidenceSnapshot = {
+      capturedAt: "2026-05-27T00:00:00.000Z",
+      url: "http://localhost:3628/dashboard?showTestData=1",
+      title: "Dashboard",
+      visibleText: "Patient answers Certificate type Work Requested duration 1 day",
+      elements: [],
+    }
+
+    const findings = [
+      {
+        severity: 4,
+        timestamp_seconds: 7,
+        issue: "The label is misspelled as 'Certicate type' instead of 'Certificate type'.",
+        recommendation: "Correct the clinical fields label.",
+      },
+      {
+        severity: 2,
+        timestamp_seconds: 8,
+        issue: "The disabled primary action is still visually heavy.",
+        recommendation: "Demote the disabled button.",
+      },
+    ]
+
+    expect(filterContradictedFindings(findings, evidence)).toEqual([findings[1]])
+  })
+
+  it("does not let DOM-contradicted high-severity findings drag the combined gate score below 8", () => {
+    const evidence: DomEvidenceSnapshot = {
+      capturedAt: "2026-05-27T00:00:00.000Z",
+      url: "http://localhost:3628/dashboard?showTestData=1",
+      title: "Dashboard",
+      visibleText: "Mia Carter 35y / 20/06/1990 Reason for visit 35-year-old patient. Declining this case refunds $25 to the patient automatically.",
+      elements: [],
+    }
+    const lowScoreWithFalsePositive = {
+      overall_score: 6,
+      categories: {
+        brand_spine: {
+          score: 6,
+          observation: "",
+          findings: [{
+            severity: 5,
+            timestamp_seconds: 7,
+            issue: "Header says 31y but reason says 18-year-old patient.",
+            recommendation: "Fix age grounding.",
+          }],
+        },
+        copy_voice: {
+          score: 6,
+          observation: "",
+          findings: [{
+            severity: 3,
+            timestamp_seconds: 8,
+            issue: "Refund copy says a automatic $15 refund automatically.",
+            recommendation: "Fix grammar.",
+          }],
+        },
+      },
+      top_three_actions: [],
+    } as unknown as StructuredCritique
+    const normalJudge = {
+      overall_score: 7,
+      categories: {
+        motion: {
+          score: 7,
+          observation: "",
+          findings: [{
+            severity: 2,
+            timestamp_seconds: 6,
+            issue: "Add softer panel transition.",
+            recommendation: "Use a 200ms ease-out.",
+          }],
+        },
+      },
+      top_three_actions: [],
+    } as unknown as StructuredCritique
+
+    expect(filterContradictedFindings(
+      Object.values(lowScoreWithFalsePositive.categories).flatMap((category) => category.findings),
+      evidence,
+    )).toEqual([])
+    expect(getDomGroundedCombinedScore({
+      critique: lowScoreWithFalsePositive,
+      claudeCritique: normalJudge,
+    }, evidence)).toBe(8)
   })
 })

@@ -38,7 +38,7 @@ function ShortcutHint({
   tone = "neutral",
 }: {
   children: string
-  tone?: "neutral" | "on-primary"
+  tone?: "neutral" | "on-primary" | "tertiary"
 }) {
   return (
     <span
@@ -47,6 +47,8 @@ function ShortcutHint({
         "ml-1.5 rounded px-1.5 py-0.5 font-mono text-[10px] font-medium leading-none",
         tone === "on-primary"
           ? "bg-white/15 text-white/85"
+          : tone === "tertiary"
+            ? "bg-transparent px-0 text-muted-foreground/65"
           : "bg-muted/55 text-muted-foreground",
       )}
     >
@@ -73,12 +75,17 @@ function ActionReadinessChecks({
   ]
   const readyCount = checks.filter((check) => check.ready).length
   const incompleteChecks = checks.filter((check) => !check.ready)
+  const auditTrailLabel = checks
+    .map((check) => (check.ready ? check.completeLabel : check.incompleteLabel))
+    .join(" · ")
 
   return (
     <div
       className="flex flex-wrap items-center gap-1 text-[10px] font-medium text-muted-foreground sm:mr-auto"
       data-action-readiness
+      data-action-readiness-summary={auditTrailLabel}
       aria-label="Approval readiness checks"
+      title={auditTrailLabel}
     >
       <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-foreground">
         <CheckCircle className={cn("h-3.5 w-3.5", readyCount === checks.length ? "text-slate-600" : "text-warning")} aria-hidden />
@@ -192,6 +199,27 @@ export function IntakeActionButtons({
     : approveDisabledReason
   const showActionReadiness = ["paid", "in_review", "awaiting_script"].includes(intake.status)
   const readyLabel = service?.type === "med_certs" ? "Certificate ready to send." : "Case ready to send."
+  const patientFirstName = intake.patient.full_name?.trim().split(/\s+/)[0] || ""
+  const medCertApproveLabel = requiresClinicalDetail
+    ? "Review and send"
+    : patientFirstName
+      ? `Send to ${patientFirstName}`
+      : "Approve and send"
+  const medCertApproveAriaLabel = requiresClinicalDetail
+    ? "Review and send certificate"
+    : patientFirstName
+      ? `Approve and send certificate to ${patientFirstName}`
+      : "Approve and send certificate"
+  const declineLabel = showRefundOnDecline
+    ? patientFirstName
+      ? `Decline & refund ${patientFirstName}`
+      : "Decline & refund"
+    : "Decline request"
+  const refundConsequenceLabel = refundShortLabel
+    ? patientFirstName
+      ? `Declining refunds ${refundShortLabel} to ${patientFirstName} automatically.`
+      : `Declining refunds ${refundShortLabel} to the patient automatically.`
+    : "Declining refunds the patient automatically."
   const safetyReady =
     caseSummary.safetyItems.length === 0 &&
     intake.requires_live_consult !== true &&
@@ -235,10 +263,10 @@ export function IntakeActionButtons({
         </div>
       )}
       {showRefundOnDecline ? (
-        <p className="mb-1.5 text-[11px] font-medium leading-snug text-muted-foreground">
-          <span className="font-semibold text-foreground">Full refund if we can't help.</span>{" "}
-          {refundShortLabel ? `Declining this case refunds ${refundShortLabel} to the patient automatically.` : "Declining this case refunds the patient automatically."}
-        </p>
+        <div className="mb-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-[11px] font-medium leading-snug text-muted-foreground" data-refund-consequence>
+          <p className="font-semibold text-foreground">Full refund if we can't help.</p>
+          <p>{refundConsequenceLabel}</p>
+        </div>
       ) : null}
       <div
         className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end [&>button]:w-full [&>div]:w-full sm:[&>button]:w-auto sm:[&>div]:w-auto"
@@ -258,6 +286,7 @@ export function IntakeActionButtons({
           <>
             <Button
               onClick={handleMedCertApprove}
+              aria-label={medCertApproveAriaLabel}
               className="h-7 bg-[#2563EB] px-2.5 text-xs text-white transition-colors hover:bg-[#1D4ED8]"
               disabled={isPending || isLoadingPreview || Boolean(approveDisabledReason)}
               title={approveDisabledReason || undefined}
@@ -268,7 +297,7 @@ export function IntakeActionButtons({
               ) : (
                 <CheckCircle className="h-4 w-4 mr-1.5" />
               )}
-              {isLoadingPreview ? "Loading..." : isPending ? "Generating..." : requiresClinicalDetail ? "Review and send" : "Approve and send"}
+              {isLoadingPreview ? "Loading..." : isPending ? "Generating..." : medCertApproveLabel}
               <ShortcutHint tone="on-primary">Cmd+Enter</ShortcutHint>
             </Button>
             {requiresClinicalDetail ? (
@@ -393,15 +422,15 @@ export function IntakeActionButtons({
           data-decline-action
         >
           <Button
-            variant="outline"
+            variant="ghost"
             onClick={() => setShowDeclineDialog(true)}
-            className="h-7 border-rose-200/70 bg-background px-2.5 text-[11px] font-semibold text-rose-700 shadow-none transition-colors hover:border-rose-300 hover:bg-rose-50 hover:text-rose-900 dark:border-rose-900/55 dark:bg-card dark:text-rose-300 dark:hover:border-rose-800 dark:hover:bg-rose-950/30 dark:hover:text-rose-200"
+            className="h-7 bg-transparent px-1.5 text-[11px] font-medium text-rose-700/80 shadow-none transition-colors hover:bg-rose-50 hover:text-rose-900 dark:text-rose-300/80 dark:hover:bg-rose-950/25 dark:hover:text-rose-200"
             disabled={isPending}
             size="sm"
             title={showRefundOnDecline ? "Confirming decline refunds the patient." : undefined}
           >
-            {showRefundOnDecline ? "Decline & refund" : "Decline request"}
-            <ShortcutHint>Cmd+Shift+D</ShortcutHint>
+            {declineLabel}
+            <ShortcutHint tone="tertiary">Cmd+Shift+D</ShortcutHint>
           </Button>
         </div>
       )}

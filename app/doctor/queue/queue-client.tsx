@@ -18,7 +18,7 @@ import {
 import { DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY, LAST_OPENED_DOCTOR_CASE_KEY } from "@/lib/doctor/queue-focus"
 import { QUEUE_WAIT_TARGET_MINUTES } from "@/lib/doctor/queue-pressure"
 import { removeCompletedIntakeFromQueue } from "@/lib/doctor/queue-state"
-import { calculateLiveWaitTime, getQueueEnteredAt, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
+import { calculateLiveWaitTime, getQueueClockTickDelayMs, getQueueEnteredAt, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
 import { hasReviewNextRisk, sortForReviewNext } from "@/lib/doctor/review-next"
 import { SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
@@ -35,6 +35,8 @@ import { QueueFilters } from "./queue-filters"
 import { QueueTable } from "./queue-table"
 import type { QueueClientProps } from "./types"
 import { useQueueDialogs } from "./use-queue-dialogs"
+
+const QUEUE_VISIBLE_WAIT_SECONDS_CADENCE = 15
 
 interface QueueEmptyState {
   title: string
@@ -67,12 +69,13 @@ function IntakeReviewPanelLoading() {
 
   return (
     <div
-      className="h-full min-h-0 overflow-y-auto p-5 motion-safe:animate-[review-pane-in_300ms_cubic-bezier(0.16,1,0.3,1)]"
+      className="h-full min-h-0 overflow-y-auto p-3 sm:p-4 motion-safe:animate-[review-pane-in_300ms_cubic-bezier(0.16,1,0.3,1)]"
       aria-busy="true"
       aria-label="Loading case review"
       data-testid="intake-review-loading"
+      data-review-skeleton-matched
     >
-      <div className="mx-auto flex h-full w-full max-w-4xl flex-col gap-3">
+      <div className="flex h-full w-full flex-col gap-3">
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-2">
             <div className={cn(pulse, "h-7 w-56")} />
@@ -268,7 +271,7 @@ function QueueIdlePanel({
       : filteredCount > 0
         ? "Open a case from the queue."
         : "No cases match this filter."
-  const primaryMetricLabel = reviewedToday > 0 ? "Reviews today" : "Today's pace"
+  const primaryMetricLabel = "Cases finished today"
   const primaryMetricValue = String(reviewedToday)
   const primaryMetricState = reviewedToday > 0
     ? "Cases finished today."
@@ -280,9 +283,9 @@ function QueueIdlePanel({
     : null
   const secondaryMetric = queueSize > 0 && targetUsedPercent != null
     ? {
-        label: "Time used",
+        label: "Target used",
         value: `${targetUsedPercent}%`,
-        detail: "2h review target.",
+        detail: `${formatMinutes(typeof oldestWaitingMinutes === "number" ? oldestWaitingMinutes : 0)} of the 2-hour target.`,
       }
     : formToInboxStats
     ? {
@@ -327,16 +330,16 @@ function QueueIdlePanel({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-[linear-gradient(180deg,#FFFFFF_0%,#FFFEFB_100%)] dark:bg-card motion-safe:animate-[fade-in_180ms_ease-out]">
-      <div className="border-b border-primary/10 bg-primary/[0.025] px-5 py-4">
-        <div className="grid gap-3 sm:grid-cols-2">
+      <div className="border-b border-primary/10 bg-primary/[0.025] px-5 py-3">
+        <div className="grid gap-2 sm:grid-cols-2">
           <div className="min-w-0 rounded-lg bg-card/65 px-3 py-2 ring-1 ring-border/35">
             <p className="text-xs font-semibold text-foreground">
               {primaryMetricLabel}
             </p>
-            <p className="mt-1 text-4xl font-semibold tracking-tight text-foreground tabular-nums">
+            <p className="mt-1 text-3xl font-semibold tracking-tight text-foreground tabular-nums">
               {primaryMetricValue}
             </p>
-            <p className="mt-1 text-[11px] font-medium leading-snug text-slate-500 dark:text-muted-foreground">
+            <p className="mt-1 text-xs font-medium leading-snug text-slate-500 dark:text-muted-foreground">
               {primaryMetricState}
             </p>
           </div>
@@ -344,10 +347,10 @@ function QueueIdlePanel({
             <p className="text-xs font-semibold text-foreground">
               {secondaryMetric.label}
             </p>
-            <p className="mt-1 text-4xl font-semibold tracking-tight text-foreground tabular-nums">
+            <p className="mt-1 text-3xl font-semibold tracking-tight text-foreground tabular-nums">
               {secondaryMetric.value}
             </p>
-            <p className="mt-1 text-[11px] font-medium leading-snug text-slate-500 dark:text-muted-foreground">
+            <p className="mt-1 text-xs font-medium leading-snug text-slate-500 dark:text-muted-foreground">
               {secondaryMetric.detail}
             </p>
           </div>
@@ -358,7 +361,7 @@ function QueueIdlePanel({
       </div>
 
       {showNextUp ? (
-        <div className="px-5 py-4">
+        <div className="px-5 py-3">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <p className="text-xs font-semibold text-muted-foreground">Next case</p>
@@ -445,7 +448,7 @@ export function QueueClient({
   const [isQueueRefreshPending, startQueueRefreshTransition] = useTransition()
   const lastQueueRefreshAtRef = useRef(0)
   const dialogs = useQueueDialogs({ intakes, setIntakes })
-  const [clockNow, setClockNow] = useState<Date | null>(null)
+  const [clockNow, setClockNow] = useState<Date>(() => new Date())
 
   useEffect(() => {
     panelOpenRef.current = Boolean(activePanel)
@@ -542,33 +545,34 @@ export function QueueClient({
   }, [intakes])
 
   // Tick every second only while a visible queue case is still in its first
-  // minute; after that the labels are minute-granular to avoid dense redraws.
+  // minute; after that, schedule a low-frequency seconds cadence. This keeps
+  // row chips visibly live without repainting long queues every second.
   useEffect(() => {
-    if (intakes.length === 0) {
-      setClockNow(null)
-      return
-    }
+    if (intakes.length === 0) return
     setClockNow(new Date())
-    const hasFreshQueueCase = intakes.some((intake) => {
-      const enteredAt = new Date(getQueueEnteredAt(intake)).getTime()
-      if (!Number.isFinite(enteredAt)) return false
-      const ageMs = Date.now() - enteredAt
-      return ageMs >= 0 && ageMs < 60_000
-    })
-    const freshQueueTickMs = hasFreshQueueCase ? 1000 : 60000
-    const tickInterval = window.setInterval(() => {
-      setClockNow(new Date())
-    }, freshQueueTickMs)
-    return () => window.clearInterval(tickInterval)
   }, [intakes])
 
+  useEffect(() => {
+    if (intakes.length === 0) return
+    const tickDelayMs = getQueueClockTickDelayMs(
+      intakes.map((intake) => getQueueEnteredAt(intake)),
+      clockNow,
+      { postMinuteCadenceMs: QUEUE_VISIBLE_WAIT_SECONDS_CADENCE * 1000 },
+    )
+    if (tickDelayMs == null) return
+    const tickTimeout = window.setTimeout(() => {
+      setClockNow(new Date())
+    }, tickDelayMs)
+    return () => window.clearTimeout(tickTimeout)
+  }, [clockNow, intakes])
+
   const calculateStableWaitTime = useCallback((createdAt: string) => {
-    if (!clockNow) return "..."
-    return calculateLiveWaitTime(createdAt, clockNow)
+    return calculateLiveWaitTime(createdAt, clockNow, {
+      afterFirstMinuteSecondsCadence: QUEUE_VISIBLE_WAIT_SECONDS_CADENCE,
+    })
   }, [clockNow])
 
   const getStableWaitTimeSeverity = useCallback((createdAt: string, slaDeadline?: string | null) => {
-    if (!clockNow) return "normal"
     return getWaitTimeSeverity(createdAt, slaDeadline, clockNow)
   }, [clockNow])
 
@@ -1145,6 +1149,7 @@ export function QueueClient({
           onRefresh={() => refreshQueue(true)}
           onOpenSingleMatch={filteredIntakes.length === 1 ? handleReviewNext : undefined}
           onOpenOldest={handleJumpToOldestWait}
+          hasOpenCase={Boolean(expandedId)}
           statusFilter={statusFilter}
           onStatusFilterChange={handleStatusFilterChange}
           intakes={intakes}

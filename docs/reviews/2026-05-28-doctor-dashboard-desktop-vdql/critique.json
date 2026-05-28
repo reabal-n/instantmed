@@ -1,0 +1,84 @@
+{
+  "summary": "The InstantMed Doctor Console delivers an exceptionally polished, Stripe-grade interface that avoids the sterile aesthetic of legacy clinical portals. The use of a warm ivory canvas and crisp, semantic queue trackers directly reinforces the brand promise of hyper-efficient care without sacrificing clinical clarity.",
+  "overall_score": 8,
+  "categories": {
+    "brand_spine": {
+      "score": 8,
+      "observation": "The doctor's console directly mirrors the consumer brand's commitment to speed and clarity, featuring persistent live queue metrics and direct action pathways.",
+      "findings": []
+    },
+    "typography": {
+      "score": 8,
+      "observation": "Clear, modern geometric typography is used for metrics and system labels, establishing a strong hierarchy that supports quick scanning.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 7.5,
+          "issue": "The 'Reason for visit' paragraph has a slightly tight line-height, which reduces clinical readability under fast-paced triage conditions.",
+          "recommendation": "Increase the line-height of the body text in the patient detail view from default to 1.6 in the Tailwind class (e.g., change leading-normal to leading-relaxed)."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 9,
+      "observation": "The warm ivory background (#F8F7F4) works perfectly alongside soft blue badges and subtle shadows, creating a calm workspace for clinicians.",
+      "findings": []
+    },
+    "motion": {
+      "score": 7,
+      "observation": "The transition into the patient detail panel uses logical slide-in patterns, though the skeleton loading state transitions abruptly to the final content.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 6.8,
+          "issue": "The skeleton loader snaps instantly into the active patient data layout, causing a minor visual layout jump.",
+          "recommendation": "Add a 150ms ease-in-out opacity transition on the patient details wrapper when the loading state resolves."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 9,
+      "observation": "Extremely professional, direct clinical summaries devoid of system jargon. Refund messaging is direct and clear on consequences.",
+      "findings": []
+    },
+    "hierarchy_and_layout": {
+      "score": 8,
+      "observation": "The split-pane master-detail layout manages information density beautifully, presenting key stats alongside patient files without clutter.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 1.5,
+          "issue": "The 'Next best case' button feels visually detached from the actual queue card below it, creating slight spatial ambiguity.",
+          "recommendation": "Align the 'Next best case' button directly to the right header column of the 'Today's queue' card container."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 8,
+      "observation": "The clinician's pathway from selecting a card to signing off is highly optimized with prominent primary action buttons fixed to the bottom drawer.",
+      "findings": []
+    },
+    "signature_devices": {
+      "score": 8,
+      "observation": "The live wait-counter widget on the top bar clearly signals system load and waiting times, reinforcing the platform's speed-oriented philosophy.",
+      "findings": []
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Increase clinical body text line-height",
+      "why": "Improving the line-height of the patient-submitted 'Reason for visit' block directly enhances readability for reviewing doctors under pressure.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Smooth the skeleton loading state exit",
+      "why": "Adding a quick fade transition when patient data finishes loading prevents visual layout jarring.",
+      "estimated_impact": "medium"
+    },
+    {
+      "action": "Re-align queue CTA button",
+      "why": "Placing the 'Next best case' CTA flush with the card column clarifies the sequential workflow of the triage queue.",
+      "estimated_impact": "low"
+    }
+  ]
+}

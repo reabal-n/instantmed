@@ -1,0 +1,155 @@
+{
+  "summary": "A composed, Stripe-adjacent doctor console with strong information hierarchy and calm surfaces. The brand thesis lands operationally (wait counter, refund promise, form-to-inbox metric) but the surface is closer to generic SaaS than to Mosh-warmth/Pilot-confidence. Typography is restrained but the queue panel does little work after a case is opened.",
+  "overall_score": 7,
+  "categories": {
+    "brand_spine": {
+      "score": 7,
+      "observation": "Brand thesis is encoded in the metrics (Oldest wait 28m, Median 10m form-to-inbox, target under 2h) and the refund promise at the action bar at 8s. 'InstantMed / Doctor Console' wordmark is quiet and trustworthy. However, this is a doctor-facing surface, so the consumer tagline 'Faster than your GP.' is correctly absent — the question is whether the internal voice still reads as InstantMed and not as a generic admin tool. Right now it leans generic.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "Nothing on the dashboard chrome carries a brand signature beyond the IM monogram. The header, queue card, and stat tiles could be any health admin tool.",
+          "recommendation": "Add one small brand-spine artefact in the header strip — e.g. a quiet 'form to inbox · under 2h' promise rendered in Plus Jakarta with the coral dot, so the doctor surface still feels InstantMed-shaped."
+        }
+      ]
+    },
+    "typography": {
+      "score": 8,
+      "observation": "Hierarchy is clean: '28m' as the hero metric, 'Mia Carter' as a confident H2 at 8s, labels in muted caps-less micro type. Line-height on the reason-for-visit paragraph is comfortable. Numerals look like tabular figures, which is correct for a clinical console.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "The two top-right stat blocks (Oldest wait 28m / Median today 10m) compete with the page title 'Dashboard' for first fixation. The '28m' is heavier than the H1.",
+          "recommendation": "Either demote the stat numerals by 2-4px or promote 'Dashboard' — pick one anchor. Linear would let the H1 win and keep the stats as supporting tabular data."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 8,
+          "issue": "'Patient answers' field labels (Certificate type, Requested duration, Symptoms…) and their values share similar weight, making the form read flatter than it should.",
+          "recommendation": "Drop label weight to 500 / 12px muted, keep values at 15-16px regular. Stripe-grade label/value contrast."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 7,
+      "observation": "Ivory background holds. Cards are solid white with soft shadows. The 'Claimed' pill is rendered as a black chip which reads as a status assertion rather than decoration — good. Coral is correctly restrained, appearing only as the test-mode dot and the 'Decline & refund' link at 8s. The primary blue is reserved for 'Open next case' / 'Send to Mia'.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "The test-mode banner takes a full-width amber-tinted strip that competes visually with the queue card immediately below it. On a calm patient flow this would be fine; on a doctor's working surface it nags.",
+          "recommendation": "Reduce the banner to a single-line inline chip near the page title, or collapse it to a small coral dot + 'Test mode' label. Keep the dismiss affordance."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 8,
+          "issue": "The action bar at the bottom ('Full refund if we can't help…') uses ivory-on-ivory and risks blending with the page background; the only separator is a hairline.",
+          "recommendation": "Lift the action bar surface with a subtle sky-toned shadow or a 1px top border in a slightly cooler tone so it reads as a persistent action shelf, not as page content."
+        }
+      ]
+    },
+    "motion": {
+      "score": 6,
+      "observation": "Across frames 4s → 44s the only visible motion is the ticking wait counter (28m 01s → 28m 41s) and the panel swap from empty-state to case detail between 4s and 8s. The swap is instantaneous — no ivory-to-dawn sweep, no 300ms ease-out lift is detectable in the capture.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 8,
+          "issue": "Opening a case (right panel goes from stat tiles to full case view) appears as a hard swap. There is no transitional motion to tell the doctor 'you are now in a case context'.",
+          "recommendation": "Add a 200-240ms ease-out fade + 4px Y lift on the case panel mount. Skip on prefers-reduced-motion. This is the Linear-grade cue that justifies the layout shift."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 16,
+          "issue": "The wait counter ticks every second but appears to re-render the whole '28m 13s' string, which on some browsers will cause sub-pixel jitter on the trailing seconds.",
+          "recommendation": "Split the counter into stable minute glyphs and a separate seconds span with tabular-nums and fixed width, so only the seconds repaint."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 8,
+      "observation": "Voice holds. 'Today's queue', 'Median form-to-inbox today: 10m. Target: under 2h.', 'Full refund if we can't help. Declining refunds $25 to Mia automatically.' — short sentences, full stops, no hype, no jargon, no em-dashes, no banned phrases. Australian English ('Med Cert'). Name-first is honoured ('Send to Mia', 'refund Mia'). The reason-for-visit paragraph reads like a real clinical handover.",
+      "findings": [
+        {
+          "severity": 1,
+          "timestamp_seconds": 8,
+          "issue": "'All checks passed. Certificate ready to send.' is good, but the adjacent 'Declining refunds $25 to Mia automatically' is slightly ambiguous — is the system declining the case and refunding, or is it the auto-refund amount?",
+          "recommendation": "Tighten to 'Decline & refund Mia $25.' on the link, and on the status line 'If you decline, Mia is refunded $25 automatically.' One sentence, one action."
+        }
+      ]
+    },
+    "hierarchy_and_layout": {
+      "score": 7,
+      "observation": "At 4s the eye lands on '28m' then 'Open next case' — both are correct primary anchors for a doctor opening the console. At 8s, after a case opens, the right panel takes over with a clean Reason → Patient answers → Clinical note → Action bar rhythm. Spacing is Stripe-adjacent. The left queue rail collapses gracefully to a single card.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 8,
+          "issue": "Once a case is open, the queue column on the left becomes near-dead space — one card, lots of vertical emptiness. The doctor loses the sense of 'what's next' the moment they engage.",
+          "recommendation": "Either show a compact 'Up next' preview card below the current case, or shrink the queue rail to a 64px icon rail with hover-expand. Reclaim the column for signal."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 8,
+          "issue": "The 'Profile' and 'Full case' buttons in the case header are visually equal in weight, but one is a context shift and the other is a side-panel. They shouldn't read as siblings.",
+          "recommendation": "Make 'Full case' the ghost-primary (slight border emphasis) and 'Profile' a tertiary text link with the user icon. Reduces decision cost."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 8,
+      "observation": "This is a doctor console, not a paid path, so 'conversion' = time from dashboard land to case action. At 4s, 'Open next case' is one click and clearly primary. At 8s the case opens with Cmd+Enter to send and Cmd+Shift+D to decline — keyboard-first, time-poor-clinician-respecting. The refund promise sits at the action bar, which is the correct conversion-proximate trust signal.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "'Open next case' is the only primary CTA, but there is no peripheral indicator of whether claiming will route this specific case or pull the oldest. The doctor has to trust the queue ordering blindly.",
+          "recommendation": "Add one line below the CTA: 'Opens Mia Carter · Med Cert · waiting 28m.' Mirror it from the 'Next case' tile that already exists at 4s. One sentence, removes hesitation."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 8,
+          "issue": "The case-detail screen never re-states the SLA pressure (28m waited, target under 2h) at the action bar. The clinician loses the wait context once they scroll.",
+          "recommendation": "Pin a compact 'Waiting 28m · 1h 32m to target' chip to the left of the action bar so urgency travels with the decision."
+        }
+      ]
+    },
+    "signature_devices": {
+      "score": 6,
+      "observation": "Devices present: live wait-counter (Oldest wait 28m 01s … 41s, ticking across frames), 'while you wait' specificity implied by 'form to inbox · under 2h', name-first action ('Send to Mia', 'refund Mia'), and the merchandised refund promise at the action bar. Missing on this surface: doctor's handwritten signature (correctly absent — marketing only), 'what we won't do' link (not expected here).",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "The live wait-counter is present but reads as a generic stat tile. Its phrasing ('Oldest wait') doesn't carry the brand voice the marketing site uses ('Average med cert today: 14 minutes from form to inbox').",
+          "recommendation": "Rewrite the tile copy as 'Oldest wait · 28m. Updated just now.' on one line and add a second muted line: 'Median form to inbox today: 10m.' Lift the device into voice, not just numerals."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 8,
+          "issue": "Name-first is honoured in actions ('Send to Mia') but the case header is just 'Mia Carter' with status pills. There's no warmth cue that this is a person, not a ticket.",
+          "recommendation": "Under the name, add one muted line in voice: 'Mia, 35, Melbourne. First visit.' Pulls the warmth dial up without adding noise."
+        }
+      ]
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Add a 200-240ms ease-out fade + 4px Y lift transition when the case panel mounts at 8s, gated by prefers-reduced-motion.",
+      "why": "The current hard swap from stat tiles to case detail is the single biggest gap versus the Linear reference and undersells the moment the doctor enters clinical context.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Pin a 'Waiting 28m · 1h 32m to target' chip and the 'Full refund if we can't help' promise to the action bar, and tighten the decline copy to 'Decline & refund Mia $25.'",
+      "why": "Keeps SLA urgency and the merchandised refund promise conversion-proximate at the exact moment the doctor decides to send or decline, which is the only decision that matters on this screen.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Reclaim the left queue column once a case is open: collapse to a 64px icon rail with hover-expand, or surface a compact 'Up next: name · type · waiting Xm' card under the current case.",
+      "why": "After 8s the queue column is mostly empty space and the doctor loses the 'what's next' signal, which directly affects throughput on a time-poor surface.",
+      "estimated_impact": "medium"
+    }
+  ]
+}

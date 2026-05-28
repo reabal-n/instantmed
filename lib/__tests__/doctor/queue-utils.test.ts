@@ -4,6 +4,7 @@ import {
   calculateLiveWaitTime,
   calculateSlaCountdown,
   calculateWaitTime,
+  getQueueClockTickDelayMs,
   getQueueEnteredAt,
   getQueueStatusMeta,
   getWaitTimeSeverity,
@@ -55,6 +56,53 @@ describe("calculateLiveWaitTime", () => {
   it("falls back to compact minute and hour labels after the first minute", () => {
     expect(calculateLiveWaitTime("2026-04-09T11:45:00Z")).toBe("15m")
     expect(calculateLiveWaitTime("2026-04-09T10:30:00Z")).toBe("1h 30m")
+  })
+
+  it("can expose a subdued seconds cadence after the first minute for visible wait chips", () => {
+    expect(
+      calculateLiveWaitTime("2026-04-09T11:44:06Z", new Date("2026-04-09T12:00:00Z"), {
+        afterFirstMinuteSecondsCadence: 15,
+      }),
+    ).toBe("15m 45s")
+  })
+})
+
+describe("getQueueClockTickDelayMs", () => {
+  it("ticks every second while any visible case is under one minute old", () => {
+    expect(
+      getQueueClockTickDelayMs(
+        ["2026-04-09T11:59:45Z", "2026-04-09T11:54:20Z"],
+        new Date("2026-04-09T12:00:00Z"),
+      ),
+    ).toBe(1_000)
+  })
+
+  it("ticks on the next minute boundary once rows are minute-granular", () => {
+    expect(
+      getQueueClockTickDelayMs(
+        ["2026-04-09T11:54:27Z", "2026-04-09T11:50:20Z"],
+        new Date("2026-04-09T12:00:00Z"),
+      ),
+    ).toBe(20_000)
+  })
+
+  it("waits a full minute when all labels just reached a boundary", () => {
+    expect(
+      getQueueClockTickDelayMs(
+        ["2026-04-09T11:55:00Z"],
+        new Date("2026-04-09T12:00:00Z"),
+      ),
+    ).toBe(60_000)
+  })
+
+  it("can tick older rows on a low-frequency seconds cadence", () => {
+    expect(
+      getQueueClockTickDelayMs(
+        ["2026-04-09T11:44:52Z"],
+        new Date("2026-04-09T12:00:00Z"),
+        { postMinuteCadenceMs: 15_000 },
+      ),
+    ).toBe(7_000)
   })
 })
 
