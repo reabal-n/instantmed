@@ -273,7 +273,7 @@ function QueueIdlePanel({
   const primaryMetricState = reviewedToday > 0
     ? "Cases finished today."
     : queueSize > 0
-      ? "No cases finished yet. First one's queued."
+      ? "No cases finished yet. One waiting."
       : "No cases finished yet."
   const targetUsedPercent = typeof oldestWaitingMinutes === "number" && oldestWaitingMinutes >= 0
     ? Math.round(Math.min(oldestWaitingMinutes / QUEUE_WAIT_TARGET_MINUTES, 1) * 100)
@@ -282,7 +282,7 @@ function QueueIdlePanel({
     ? {
         label: "Time used",
         value: `${targetUsedPercent}%`,
-        detail: `You're ${targetUsedPercent}% into the 2h target.`,
+        detail: "2h review target.",
       }
     : formToInboxStats
     ? {

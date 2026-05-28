@@ -319,14 +319,15 @@ export function buildPatientSnapshot(
   const medicareExpiry = normalizeMedicareExpiry(
     answerOrProfile(options?.answers, ["medicare_expiry", "medicareExpiry"], patient.medicare_expiry),
   )
-  const medicareValidation = medicare && options?.validateMedicare
+  const shouldValidateMedicare = Boolean(medicare && (options?.validateMedicare || options?.requireMedicareDetails))
+  const medicareValidation = shouldValidateMedicare && medicare
     ? validateMedicareNumber(medicare)
     : null
   const medicareExpiryValidation = medicareExpiry && options?.requireMedicareDetails
     ? validateMedicareExpiry(medicareExpiry)
     : null
   const medicareIsCritical = Boolean(
-    medicare && (!options?.validateMedicare || medicareValidation?.valid),
+    medicare && (!shouldValidateMedicare || medicareValidation?.valid),
   )
   const medicareIrnIsCritical = !options?.requireMedicareDetails || Boolean(medicareIrn && /^[1-9]$/.test(medicareIrn))
   const medicareDetails = [

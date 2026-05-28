@@ -27,6 +27,8 @@ interface IntakeReviewCockpitProps {
   className?: string
   showDecisionStrip?: boolean
   showThinMedCertWarning?: boolean
+  compactDecisionStrip?: boolean
+  revealIdentityByDefault?: boolean
 }
 
 const MED_CERT_SYMPTOM_DETAIL_REQUEST =
@@ -124,6 +126,8 @@ export function IntakeReviewCockpit({
   className,
   showDecisionStrip = true,
   showThinMedCertWarning = true,
+  compactDecisionStrip = false,
+  revealIdentityByDefault = false,
 }: IntakeReviewCockpitProps) {
   const review = useIntakeReview()
   const { data, intake, answers, service } = review
@@ -233,17 +237,8 @@ export function IntakeReviewCockpit({
         className="flex min-h-0 flex-1 flex-col motion-safe:animate-[review-body-in_200ms_cubic-bezier(0.16,1,0.3,1)]"
         data-review-body-transition
       >
-        {/* Sticky top: patient header + always-on blockers. Compact density. */}
+        {/* Sticky top: always-on clinical blockers. Compact density. */}
         <div className="flex flex-col gap-3 pb-3">
-          {showDecisionStrip ? (
-            <PatientDecisionStrip
-              intake={intake}
-              answers={answers}
-              previousIntakes={data.previousIntakes ?? []}
-              service={service}
-              compact
-            />
-          ) : null}
           <ReviewBlockersStrip />
           <SafetyFlagsCard />
         </div>
@@ -281,6 +276,19 @@ export function IntakeReviewCockpit({
               hidePatientStory
               hidePrescriptionIntent
             />
+            {showDecisionStrip ? (
+              <PatientDecisionStrip
+                intake={intake}
+                answers={answers}
+                previousIntakes={data.previousIntakes ?? []}
+                service={service}
+                doctorNotes={review.doctorNotes}
+                compact
+                showPatientName={!compactDecisionStrip}
+                summaryOnly={compactDecisionStrip}
+                revealIdentityByDefault={revealIdentityByDefault}
+              />
+            ) : null}
             {messageCount > 0 ? (
               <PatientMessageThread
                 messages={data.patientMessages ?? []}

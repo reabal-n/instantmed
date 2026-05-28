@@ -170,6 +170,7 @@ describe("service-type Set drift contract", () => {
         "paid",
         "in_review",
         "pending_info",
+        "approved",
         "awaiting_script",
       ]
       for (const status of PARCHMENT_PATIENT_SYNC_STATUSES) {
@@ -284,5 +285,19 @@ describe("service-type Set drift contract", () => {
   it("inventory sizes match the canonical types (bump intentionally if types change)", () => {
     expect(ALL_UNIFIED_SERVICE_TYPES).toHaveLength(4)
     expect(ALL_CONSULT_SUBTYPES).toHaveLength(4)
+  })
+
+  describe("getParchmentPatientSyncEligibility", () => {
+    it("treats approved prescribing cases as active so identity is rechecked before script handoff", () => {
+      const result = getParchmentPatientSyncEligibility({
+        status: "approved",
+        payment_status: "paid",
+        category: "consult",
+        subtype: "ed",
+        serviceType: "consult",
+      })
+
+      expect(result.eligible).toBe(true)
+    })
   })
 })

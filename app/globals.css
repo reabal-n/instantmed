@@ -1425,6 +1425,17 @@ body {
   }
 }
 
+@keyframes queue-live-breath {
+  0%, 88%, 100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  92% {
+    opacity: 1;
+    transform: scale(1.8);
+  }
+}
+
 @keyframes scale-in {
   from {
     opacity: 0;

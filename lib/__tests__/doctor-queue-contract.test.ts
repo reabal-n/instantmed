@@ -207,6 +207,18 @@ describe("doctor queue production contract", () => {
     expect(queueTableSource).not.toContain("Queue is clear!")
   })
 
+  it("keeps compact dashboard queue copy and chips decision-focused", () => {
+    expect(queueClientSource).toContain("No cases finished yet. One waiting.")
+    expect(queueClientSource).not.toContain("No cases finished yet. First one's queued.")
+    expect(queueClientSource).not.toContain("You're ${targetUsedPercent}% into the 2h target.")
+
+    expect(queueTableSource).toContain("data-queue-taxonomy-chip")
+    expect(queueTableSource).toContain("data-queue-status-chip")
+    expect(queueTableSource).toContain("compactStatusChipClass")
+    expect(queueTableSource).toContain("compactTaxonomyChipClass")
+    expect(queueTableSource).toContain("bg-slate-900 text-white")
+  })
+
   it("keeps queue health monitoring aligned with the paid doctor queue", () => {
     expect(queueHealthSource).toContain("QUEUE_REVIEW_STATUSES")
     expect(queueHealthSource).toContain('.in("status", QUEUE_REVIEW_STATUSES)')

@@ -7,7 +7,6 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { CertificatePreviewDialog } from "@/components/doctor/certificate-preview-dialog"
 import { useAuditTrail } from "@/components/doctor/hooks/use-audit-trail"
 import { type IntakeLockState, useIntakeLock } from "@/components/doctor/hooks/use-intake-lock"
-import { PatientDecisionStrip } from "@/components/doctor/patient-decision-strip"
 import { PatientProfilePanel } from "@/components/doctor/patient-profile-panel"
 import { DeclineIntakeDialog } from "@/components/doctor/review/decline-intake-dialog"
 import { IntakeReviewCockpit } from "@/components/doctor/review/intake-review-cockpit"
@@ -690,19 +689,10 @@ export function IntakeReviewPanel({
               </div>
             )}
 
-            <PatientDecisionStrip
-              intake={intake}
-              answers={answers}
-              previousIntakes={data?.previousIntakes ?? []}
-              service={service}
-              doctorNotes={actions.doctorNotes}
-              showPatientName={false}
-              summaryOnly
-              compact={inline}
-              revealIdentityByDefault={inline}
-            />
             <IntakeReviewCockpit
-              showDecisionStrip={false}
+              showDecisionStrip
+              compactDecisionStrip
+              revealIdentityByDefault={inline}
               showThinMedCertWarning={false}
               className={inline ? "min-h-0 flex-1" : undefined}
             />

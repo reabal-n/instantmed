@@ -20,7 +20,7 @@ export interface ParchmentPrescribingEligibility {
 export const PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES = ["ed", "hair_loss"] as const
 const PRESCRIBING_CONSULT_SUBTYPES = new Set<string>(PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES)
 const PRESCRIBING_SERVICE_TYPES = new Set(["common_scripts", "repeat_rx", "prescription", "repeat-script"])
-export const PARCHMENT_PATIENT_SYNC_STATUSES = ["paid", "in_review", "pending_info", "awaiting_script"] as const
+export const PARCHMENT_PATIENT_SYNC_STATUSES = ["paid", "in_review", "pending_info", "approved", "awaiting_script"] as const
 const ACTIVE_PATIENT_SYNC_STATUSES = new Set<string>(PARCHMENT_PATIENT_SYNC_STATUSES)
 
 function isParchmentPrescribingCase(intake: ParchmentPrescribingEligibilityState): boolean {

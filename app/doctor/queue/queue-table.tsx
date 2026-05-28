@@ -407,6 +407,8 @@ export function QueueTable({
             const compactQueueReason = compactShell
               ? getCompactQueueReason(service, intake.subtype)
               : null
+            const compactTaxonomyChipClass = "border-border/60 bg-background text-muted-foreground"
+            const compactStatusChipClass = "border-slate-900 bg-slate-900 text-white dark:border-white/15 dark:bg-white/10 dark:text-foreground"
             return (
               <div
                 key={intake.id}
@@ -461,18 +463,28 @@ export function QueueTable({
                   "col-span-2 col-start-1 row-start-2 flex min-w-0 flex-wrap items-center gap-1.5 sm:col-span-1 sm:col-start-2 sm:row-start-1",
                   compactShell && "sm:col-span-2 sm:col-start-1 sm:row-start-2",
                 )}>
-                  <Badge variant="outline" className={cn("text-xs", compactShell && "min-w-fit whitespace-nowrap")}>
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "text-xs",
+                      compactShell && `min-w-fit whitespace-nowrap ${compactTaxonomyChipClass}`,
+                    )}
+                    data-queue-taxonomy-chip
+                  >
                     {serviceBadgeLabel}
                   </Badge>
                   {showRoutineStatus && (
                     <Badge
-                      variant="outline"
+                      variant={compactShell ? "default" : "outline"}
                       className={cn(
                         "text-xs",
-                        statusMeta.tone === "script" && "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300",
-                        statusMeta.tone === "info" && "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300",
-                        statusMeta.tone === "review" && "border-info-border bg-info-light text-info"
+                        compactShell
+                          ? compactStatusChipClass
+                          : statusMeta.tone === "script" && "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300",
+                        !compactShell && statusMeta.tone === "info" && "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300",
+                        !compactShell && statusMeta.tone === "review" && "border-info-border bg-info-light text-info",
                       )}
+                      data-queue-status-chip
                     >
                       {statusMeta.label}
                     </Badge>
@@ -530,9 +542,15 @@ export function QueueTable({
                       the visual layer that prevents wasted clicks. */}
                   {claimedByOther && (
                     <Badge
-                      variant="outline"
-                      className="border-warning-border bg-warning-light text-warning text-xs"
+                      variant={compactShell ? "default" : "outline"}
+                      className={cn(
+                        "text-xs",
+                        compactShell
+                          ? "border-warning bg-warning text-white dark:border-warning/40 dark:bg-warning/20 dark:text-warning"
+                          : "border-warning-border bg-warning-light text-warning",
+                      )}
                       title={`${claimantName ?? "Another doctor"} is reviewing this case. The DB lock will release after 10 minutes of inactivity.`}
+                      data-queue-status-chip
                     >
                       <Eye className="h-3 w-3 mr-1" />
                       {compactShell
@@ -542,14 +560,15 @@ export function QueueTable({
                   )}
                   {claimedByMe && (
                     <Badge
-                      variant="outline"
+                      variant={compactShell ? "default" : "outline"}
                       className={cn(
                         "text-xs",
                         compactShell
-                          ? "border-border/60 bg-muted/45 text-muted-foreground"
+                          ? compactStatusChipClass
                           : "border-primary/30 bg-primary/10 text-primary",
                       )}
                       title="You're holding the review claim on this case."
+                      data-queue-status-chip
                     >
                       <Eye className="h-3 w-3 mr-1" />
                       {compactShell ? "Claimed" : "You"}

@@ -266,6 +266,31 @@ describe("buildPatientSnapshot", () => {
     expect(snapshot.completenessTone).toBe("partial")
   })
 
+  it("validates Medicare whenever prescribing Medicare details are required", () => {
+    const snapshot = buildPatientSnapshot({
+      id: "patient-zero-medicare-implicit-validation",
+      full_name: "Zero Medicare",
+      date_of_birth: "1991-06-14",
+      medicare_number: "0000000000",
+      medicare_irn: 1,
+      phone: "0412 345 678",
+      email: "zero@example.com",
+      address_line1: "1 King Street",
+      suburb: "Sydney",
+      state: "NSW",
+      postcode: "2000",
+      sex: "M",
+    }, {
+      now,
+      requireStructuredAddress: true,
+      requireSex: true,
+      requireMedicareDetails: true,
+    })
+
+    expect(snapshot.missingCriticalFields).toEqual(["Valid Medicare number"])
+    expect(snapshot.completenessTone).toBe("partial")
+  })
+
   it("flags missing Medicare IRN but does not require expiry when full prescribing identity is required", () => {
     const snapshot = buildPatientSnapshot({
       id: "patient-6",

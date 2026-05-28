@@ -180,6 +180,11 @@ export function QueuePressureSignal({
             aria-hidden
           />
         ) : null}
+        <span
+          className={cn("h-1 w-1 rounded-full motion-safe:animate-[queue-live-breath_10s_cubic-bezier(0.16,1,0.3,1)_infinite]", classes.dot)}
+          aria-hidden
+          data-live-wait-dot
+        />
         {showLabel ? <span>{state.label}</span> : null}
       </span>
       <span
@@ -225,6 +230,11 @@ export function QueuePressureSignal({
           aria-hidden
         />
       ) : null}
+      <span
+        className={cn("h-1 w-1 rounded-full motion-safe:animate-[queue-live-breath_10s_cubic-bezier(0.16,1,0.3,1)_infinite]", classes.dot)}
+        aria-hidden
+        data-live-wait-dot
+      />
       {showLabel ? (
         <span className={cn("hidden font-semibold sm:inline", compact ? "text-[11px]" : "text-xs")}>
           {state.label}

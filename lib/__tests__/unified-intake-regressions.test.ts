@@ -204,6 +204,43 @@ describe("unified intake regressions", () => {
     }, identity)).toBeNull()
   })
 
+  it("blocks ED checkout when Medicare is missing or a placeholder", () => {
+    const edAnswers = {
+      consultSubtype: "ed",
+      edGoal: "improve_erections",
+      edDuration: "months",
+      edAgeConfirmed: true,
+      iief1: 3,
+      iief2: 3,
+      iief3: 3,
+      iief4: 3,
+      iief5: 3,
+      edNitrates: false,
+      edAlphaBlockers: false,
+      edRecentHeartEvent: false,
+      edSevereHeart: false,
+      takes_medications: "no",
+      has_allergies: "no",
+      has_conditions: "no",
+      previousEdMeds: false,
+      edPreference: "doctor_recommendation",
+      medicareIrn: "2",
+      addressLine1: "12 Manual Entry Road",
+      suburb: "Sydney",
+      state: "NSW",
+      postcode: "2000",
+      sex: "M",
+    }
+
+    expect(validateAnswersServerSide("consult", edAnswers, identity)).toBe(
+      "Medicare number is required for prescribing consults.",
+    )
+    expect(validateAnswersServerSide("consult", {
+      ...edAnswers,
+      medicareNumber: "0000000000",
+    }, identity)).toBe("Enter a valid Medicare number")
+  })
+
   it("does not skip prescription details unless prescribing sex is already on profile", () => {
     const baseContext: StepContext = {
       isAuthenticated: true,
