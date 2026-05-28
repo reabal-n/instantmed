@@ -210,7 +210,7 @@ export async function getIntakeForPatient(intakeId: string, patientId: string): 
     .from("intakes")
     .select(`
       *,
-      patient:profiles!patient_id(id, full_name, email, date_of_birth, medicare_number, phone, suburb, state),
+      patient:profiles!patient_id(id, full_name, email, date_of_birth, medicare_number, ihi_number, phone, suburb, state),
       answers:intake_answers(id, answers, answers_encrypted, encryption_metadata)
     `)
     .eq("id", intakeId)
@@ -317,7 +317,7 @@ export async function getDoctorQueue(
       script_sent,
       parchment_reference,
       answers:intake_answers(id, answers, answers_encrypted),
-      patient:profiles!patient_id (id, full_name, email, date_of_birth, sex, medicare_number, medicare_irn, medicare_expiry, phone, address_line1, suburb, state, postcode),
+      patient:profiles!patient_id (id, full_name, email, date_of_birth, sex, medicare_number, medicare_irn, medicare_expiry, ihi_number, phone, address_line1, suburb, state, postcode),
       service:services!service_id (id, name, short_name, type, slug)
     `)
     .in("status", QUEUE_REVIEW_STATUSES)
@@ -541,6 +541,8 @@ export async function getIntakeWithDetails(intakeId: string): Promise<IntakeWith
         medicare_number_encrypted,
         medicare_irn,
         medicare_expiry,
+        ihi_number,
+        ihi_number_encrypted,
         address_line1,
         suburb,
         state,
@@ -689,6 +691,8 @@ export async function getAllIntakesForAdmin(
         medicare_number_encrypted,
         medicare_irn,
         medicare_expiry,
+        ihi_number,
+        ihi_number_encrypted,
         address_line1,
         suburb,
         state,
@@ -1153,7 +1157,7 @@ export async function getRecentlyCompletedIntakes(opts: { limit?: number } = {})
     .from("intakes")
     .select(`
       *,
-      patient:profiles!patient_id(id, full_name, email, date_of_birth, phone, suburb, state, medicare_number, auth_user_id),
+      patient:profiles!patient_id(id, full_name, email, date_of_birth, phone, suburb, state, medicare_number, ihi_number, auth_user_id),
       service:services!service_id(id, slug, name, type, short_name)
     `)
     .in("status", ["approved", "declined", "completed"])

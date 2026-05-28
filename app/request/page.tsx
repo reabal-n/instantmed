@@ -12,6 +12,7 @@ import { isAtCapacity } from "@/lib/operational-controls/config"
 import { normalizeConsultSubtypeParam } from "@/lib/request/consult-flow"
 import { mapServiceParam } from "@/lib/request/step-registry"
 import { validateMedicareNumber } from "@/lib/validation/medicare"
+import { normalizeValidIhiNumber } from "@/lib/validation/prescribing-identifier"
 
 // Prevent static generation for dynamic auth
 export const dynamic = "force-dynamic"
@@ -224,7 +225,8 @@ export default async function RequestPage({
   const hasCompleteIdentity = !!profile && !!profileDateOfBirth
   const hasAddress = !!(profile?.address_line1 && profile?.suburb && profile?.state && profile?.postcode)
   const hasValidMedicareNumber = !!profile?.medicare_number && validateMedicareNumber(profile.medicare_number).valid
-  const hasValidMedicare = hasValidMedicareNumber && !!profile?.medicare_irn
+  const hasValidIhi = Boolean(normalizeValidIhiNumber(profile?.ihi_number))
+  const hasValidMedicare = (hasValidMedicareNumber && !!profile?.medicare_irn) || hasValidIhi
   const hasSex = !!profile?.sex
 
   return (
@@ -247,6 +249,7 @@ export default async function RequestPage({
       profileDateOfBirth={profileDateOfBirth ?? undefined}
       profileMedicare={hasValidMedicareNumber ? profile?.medicare_number ?? undefined : undefined}
       profileMedicareIrn={profile?.medicare_irn ?? undefined}
+      profileIhi={hasValidIhi ? profile?.ihi_number ?? undefined : undefined}
       profileSex={hasSex ? profile?.sex ?? undefined : undefined}
       profileAddress={hasAddress ? {
         addressLine1: profile!.address_line1!,

@@ -44,6 +44,22 @@ export function decryptProfilePhi<T extends Record<string, unknown>>(profile: T)
     decrypted.medicare_number = profile.medicare_number
   }
 
+  if (profile.ihi_number_encrypted) {
+    try {
+      decrypted.ihi_number = decryptField<string>(
+        profile.ihi_number_encrypted as string
+      )
+    } catch (error) {
+      logger.error("PHI decryption failed for ihi_number", {
+        profileId: profile.id,
+        hasPlaintext: !!profile.ihi_number,
+      }, toError(error))
+      throw new Error("Failed to decrypt sensitive data. Please contact support.")
+    }
+  } else if (profile.ihi_number) {
+    decrypted.ihi_number = profile.ihi_number
+  }
+
   // Decrypt date_of_birth
   if (profile.date_of_birth_encrypted) {
     try {
@@ -72,6 +88,7 @@ export function decryptProfilePhi<T extends Record<string, unknown>>(profile: T)
 
   // Remove encrypted fields from response
   delete decrypted.medicare_number_encrypted
+  delete decrypted.ihi_number_encrypted
   delete decrypted.date_of_birth_encrypted
   delete decrypted.phone_encrypted
 
@@ -88,6 +105,7 @@ export function encryptProfilePhi<T extends Record<string, unknown>>(
   medicare_number_encrypted?: string
   date_of_birth_encrypted?: string
   phone_encrypted?: string
+  ihi_number_encrypted?: string
   phi_encrypted_at?: string
 } {
   if (!isEncryptionEnabled()) {
@@ -100,6 +118,10 @@ export function encryptProfilePhi<T extends Record<string, unknown>>(
   // Plaintext kept for doctor dashboard visibility and Parchment eScript integration
   if (data.medicare_number) {
     encrypted.medicare_number_encrypted = encryptField(data.medicare_number)
+  }
+
+  if (data.ihi_number) {
+    encrypted.ihi_number_encrypted = encryptField(data.ihi_number)
   }
 
   // Encrypt date_of_birth
@@ -119,6 +141,7 @@ export function encryptProfilePhi<T extends Record<string, unknown>>(
   // Mark when PHI was encrypted
   if (
     encrypted.medicare_number_encrypted ||
+    encrypted.ihi_number_encrypted ||
     encrypted.date_of_birth_encrypted ||
     encrypted.phone_encrypted
   ) {
@@ -127,6 +150,7 @@ export function encryptProfilePhi<T extends Record<string, unknown>>(
 
   return encrypted as T & {
     medicare_number_encrypted?: string
+    ihi_number_encrypted?: string
     date_of_birth_encrypted?: string
     phone_encrypted?: string
     phi_encrypted_at?: string
@@ -162,6 +186,8 @@ export async function getCurrentProfile(): Promise<Profile | null> {
       medicare_number_encrypted,
       medicare_irn,
       medicare_expiry,
+      ihi_number,
+      ihi_number_encrypted,
       address_line1,
       suburb,
       state,
@@ -209,6 +235,8 @@ export async function getProfileById(profileId: string): Promise<Profile | null>
       medicare_number_encrypted,
       medicare_irn,
       medicare_expiry,
+      ihi_number,
+      ihi_number_encrypted,
       address_line1,
       suburb,
       state,
@@ -267,6 +295,8 @@ export async function updateProfile(
       medicare_number_encrypted,
       medicare_irn,
       medicare_expiry,
+      ihi_number,
+      ihi_number_encrypted,
       address_line1,
       suburb,
       state,
@@ -334,6 +364,8 @@ export async function completeOnboarding(
       medicare_number_encrypted,
       medicare_irn,
       medicare_expiry,
+      ihi_number,
+      ihi_number_encrypted,
       address_line1,
       suburb,
       state,

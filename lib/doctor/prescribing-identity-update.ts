@@ -1,6 +1,7 @@
 import { validateAustralianAddress } from "@/lib/validation/australian-address"
 import { validateAustralianPhone } from "@/lib/validation/australian-phone"
 import { validateMedicareExpiry, validateMedicareNumber } from "@/lib/validation/medicare"
+import { normalizeValidIhiNumber } from "@/lib/validation/prescribing-identifier"
 import type { AustralianState, Profile } from "@/types/db"
 
 export interface PrescribingIdentityFormValues {
@@ -10,6 +11,7 @@ export interface PrescribingIdentityFormValues {
   medicareNumber: string
   medicareIrn: string
   medicareExpiry: string
+  ihiNumber?: string
   addressLine1: string
   suburb: string
   state: string
@@ -27,6 +29,7 @@ export type PrescribingIdentityProfileUpdates = Partial<
     | "medicare_number"
     | "medicare_irn"
     | "medicare_expiry"
+    | "ihi_number"
     | "address_line1"
     | "suburb"
     | "state"
@@ -141,6 +144,7 @@ export function resolvePrescribingIdentityFormValues(
     medicare_number?: string | null
     medicare_irn?: string | number | null
     medicare_expiry?: string | null
+    ihi_number?: string | null
     address_line1?: string | null
     suburb?: string | null
     state?: string | null
@@ -157,6 +161,7 @@ export function resolvePrescribingIdentityFormValues(
     medicareNumber: presentAnswer(answers, ["medicare_number", "medicareNumber"]) || presentPatientValue(patient.medicare_number),
     medicareIrn: presentAnswer(answers, ["medicare_irn", "medicareIrn"]) || presentPatientValue(patient.medicare_irn),
     medicareExpiry: presentAnswer(answers, ["medicare_expiry", "medicareExpiry"]) || presentPatientValue(patient.medicare_expiry),
+    ihiNumber: presentAnswer(answers, ["ihi_number", "ihiNumber"]) || presentPatientValue(patient.ihi_number),
     addressLine1: useAnswerAddress
       ? presentAnswer(answers, ADDRESS_LINE1_ANSWER_KEYS)
       : presentPatientValue(patient.address_line1),
@@ -193,13 +198,25 @@ export function buildPrescribingIdentityProfileUpdates(
   }
 
   const medicareNumber = input.medicareNumber.replace(/[\s-]/g, "")
-  const medicareResult = validateMedicareNumber(medicareNumber)
-  if (!medicareResult.valid) {
-    fieldErrors.medicareNumber = medicareResult.error || "Enter a valid Medicare number."
+  const medicareResult = medicareNumber ? validateMedicareNumber(medicareNumber) : null
+  const validMedicare = medicareResult?.valid === true
+  const medicareIrn = input.medicareIrn.trim()
+  const hasValidMedicareIrn = /^[1-9]$/.test(medicareIrn)
+  const ihiNumber = normalizeValidIhiNumber(input.ihiNumber ?? "")
+  const rawIhi = (input.ihiNumber ?? "").trim()
+
+  if (!validMedicare && !ihiNumber) {
+    if (medicareNumber) {
+      fieldErrors.medicareNumber = "Enter a valid Medicare number or provide a valid IHI."
+    } else {
+      fieldErrors.medicareNumber = "Enter Medicare details or an IHI."
+    }
+  }
+  if (rawIhi && !ihiNumber) {
+    fieldErrors.ihiNumber = "Enter a valid 16-digit IHI."
   }
 
-  const medicareIrn = input.medicareIrn.trim()
-  if (!/^[1-9]$/.test(medicareIrn)) {
+  if (validMedicare && !hasValidMedicareIrn && !ihiNumber) {
     fieldErrors.medicareIrn = "Enter the Medicare IRN as one digit from 1 to 9."
   }
 
@@ -210,7 +227,7 @@ export function buildPrescribingIdentityProfileUpdates(
       fieldErrors.medicareExpiry = "Enter a valid Medicare expiry month."
     }
   }
-  if (medicareExpiry) {
+  if (validMedicare && medicareExpiry) {
     const expiryResult = validateMedicareExpiry(medicareExpiry)
     if (!expiryResult.valid) {
       fieldErrors.medicareExpiry = expiryResult.error || "Enter a current Medicare expiry month."
@@ -249,9 +266,16 @@ export function buildPrescribingIdentityProfileUpdates(
       date_of_birth: dateOfBirth,
       sex,
       phone: phoneResult.e164,
-      medicare_number: medicareNumber,
-      medicare_irn: Number.parseInt(medicareIrn, 10),
-      ...(medicareExpiry ? { medicare_expiry: medicareExpiry } : {}),
+      ...(validMedicare ? {
+        medicare_number: medicareNumber,
+        medicare_irn: Number.parseInt(medicareIrn, 10),
+        ...(medicareExpiry ? { medicare_expiry: medicareExpiry } : {}),
+      } : {
+        medicare_number: null,
+        medicare_irn: null,
+        medicare_expiry: null,
+      }),
+      ...(ihiNumber ? { ihi_number: ihiNumber } : {}),
       address_line1: input.addressLine1.trim(),
       suburb: input.suburb.trim(),
       state: state as AustralianState,

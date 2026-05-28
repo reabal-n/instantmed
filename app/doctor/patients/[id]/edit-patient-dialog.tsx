@@ -45,6 +45,7 @@ function patientFormValue(patient: Profile): DoctorPatientCreateInput {
     medicareNumber: patient.medicare_number ?? "",
     medicareIrn: patient.medicare_irn ? String(patient.medicare_irn) : "",
     medicareExpiry: monthInputValue(patient.medicare_expiry),
+    ihiNumber: patient.ihi_number ?? "",
     addressLine1: patient.address_line1 ?? "",
     suburb: patient.suburb ?? "",
     state: patient.state ?? "",
@@ -222,7 +223,14 @@ export function EditPatientDialog({ patient }: EditPatientDialogProps) {
               onChange={(event) => setField("medicareNumber", event.target.value)}
               isInvalid={Boolean(fieldErrors.medicareNumber)}
               errorMessage={fieldErrors.medicareNumber}
-              required
+            />
+            <Input
+              label="IHI"
+              value={form.ihiNumber ?? ""}
+              onChange={(event) => setField("ihiNumber", event.target.value)}
+              isInvalid={Boolean(fieldErrors.ihiNumber)}
+              errorMessage={fieldErrors.ihiNumber}
+              inputMode="numeric"
             />
             <Input
               label="Medicare IRN"
@@ -231,7 +239,6 @@ export function EditPatientDialog({ patient }: EditPatientDialogProps) {
               isInvalid={Boolean(fieldErrors.medicareIrn)}
               errorMessage={fieldErrors.medicareIrn}
               maxLength={1}
-              required
             />
             <Input
               label="Medicare expiry (optional)"

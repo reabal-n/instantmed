@@ -262,8 +262,36 @@ describe("buildPatientSnapshot", () => {
 
     expect(snapshot.medicare.present).toBe(true)
     expect(snapshot.medicare.valid).toBe(false)
-    expect(snapshot.missingCriticalFields).toEqual(["Valid Medicare number"])
+    expect(snapshot.missingCriticalFields).toEqual(["Valid Medicare number or IHI"])
     expect(snapshot.completenessTone).toBe("partial")
+  })
+
+  it("treats valid IHI as sufficient prescribing identity when Medicare is absent", () => {
+    const snapshot = buildPatientSnapshot({
+      id: "patient-ihi",
+      full_name: "International Patient",
+      date_of_birth: "1985-01-01",
+      medicare_number: null,
+      medicare_irn: null,
+      ihi_number: "8003600000000000",
+      phone: "0412 345 678",
+      email: "ihi@example.com",
+      address_line1: "12 George St",
+      suburb: "Sydney",
+      state: "NSW",
+      postcode: "2000",
+      sex: "M",
+    }, {
+      now,
+      requireStructuredAddress: true,
+      requireSex: true,
+      requireMedicareDetails: true,
+      validateMedicare: true,
+    })
+
+    expect(snapshot.medicare.label).toBe("IHI 8003600000000000")
+    expect(snapshot.missingCriticalFields).toEqual([])
+    expect(snapshot.completenessTone).toBe("complete")
   })
 
   it("validates Medicare whenever prescribing Medicare details are required", () => {
@@ -287,7 +315,7 @@ describe("buildPatientSnapshot", () => {
       requireMedicareDetails: true,
     })
 
-    expect(snapshot.missingCriticalFields).toEqual(["Valid Medicare number"])
+    expect(snapshot.missingCriticalFields).toEqual(["Valid Medicare number or IHI"])
     expect(snapshot.completenessTone).toBe("partial")
   })
 

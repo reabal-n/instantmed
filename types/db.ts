@@ -419,9 +419,11 @@ export interface Profile {
   medicare_number: string | null
   medicare_irn: number | null // 1-9
   medicare_expiry: string | null // ISO date string
+  ihi_number?: string | null
   // PHI encryption columns
   date_of_birth_encrypted: string | null
   medicare_number_encrypted: string | null
+  ihi_number_encrypted?: string | null
   phi_encrypted_at: string | null
   phone_encrypted: string | null
   // Doctor-specific fields

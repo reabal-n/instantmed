@@ -146,6 +146,7 @@ export async function getParchmentPrescribeUrlAction(
           medicare_number,
           medicare_irn,
           medicare_expiry,
+          ihi_number,
           phone,
           email,
           address_line1,

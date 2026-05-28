@@ -45,6 +45,7 @@ export interface UserPreferences {
     medicareNumber?: string
     medicareIrn?: string
     medicareExpiry?: string
+    ihiNumber?: string
   }
   
   // Consult preferences

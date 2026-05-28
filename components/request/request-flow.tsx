@@ -252,7 +252,7 @@ interface RequestFlowProps {
   hasProfile: boolean
   /** Profile has complete identity (incl. date_of_birth) - details step can be skipped */
   hasCompleteIdentity?: boolean
-  hasMedicare: boolean
+  hasMedicare: boolean // Medicare+IRN or IHI is available for prescribing
   hasAddress: boolean
   /** Profile has a phone number - required for prescriptions + consults */
   hasPhone?: boolean
@@ -270,6 +270,8 @@ interface RequestFlowProps {
   profileMedicare?: string
   /** Profile Medicare IRN for pre-filling */
   profileMedicareIrn?: number | string
+  /** Profile IHI for pre-filling when patient has no Medicare */
+  profileIhi?: string
   /** Profile prescribing sex for pre-filling */
   profileSex?: string
   /** Profile address for pre-filling */
@@ -298,6 +300,7 @@ export function RequestFlow({
   profileDateOfBirth,
   profileMedicare,
   profileMedicareIrn,
+  profileIhi,
   profileSex,
   profileAddress,
   healthProfile,
@@ -364,6 +367,9 @@ export function RequestFlow({
     if (profileMedicareIrn && !answers.medicareIrn) {
       setAnswer('medicareIrn', String(profileMedicareIrn))
     }
+    if (profileIhi && !answers.ihiNumber) {
+      setAnswer('ihiNumber', profileIhi)
+    }
     if (profileSex && !answers.sex) {
       setAnswer('sex', profileSex)
     }
@@ -374,7 +380,7 @@ export function RequestFlow({
       setAnswer('state', profileAddress.state)
       setAnswer('postcode', profileAddress.postcode)
     }
-  }, [userEmail, userName, userPhone, profileDateOfBirth, profileMedicare, profileMedicareIrn, profileSex, profileAddress, answers.email, answers.medicareNumber, answers.medicareIrn, answers.sex, answers.addressLine1, phone, setIdentity, setAnswer])
+  }, [userEmail, userName, userPhone, profileDateOfBirth, profileMedicare, profileMedicareIrn, profileIhi, profileSex, profileAddress, answers.email, answers.medicareNumber, answers.medicareIrn, answers.ihiNumber, answers.sex, answers.addressLine1, phone, setIdentity, setAnswer])
 
   // Pre-fill medical history from health profile
   useEffect(() => {

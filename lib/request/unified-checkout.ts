@@ -29,6 +29,7 @@ import {
   type ValidationResult,
 } from "@/lib/request/validation"
 import { validateMedicareExpiry, validateMedicareNumber } from "@/lib/validation/medicare"
+import { normalizeIdentifierDigits, normalizeValidIhiNumber } from "@/lib/validation/prescribing-identifier"
 import type { UnifiedServiceType } from "@/types/services"
 
 export interface UnifiedCheckoutIdentity {
@@ -192,25 +193,31 @@ function validatePrescriptionIdentityAnswers(
   answers: Record<string, unknown>,
   requestLabel = "prescription requests",
 ): string | null {
-  const medicare = firstStringAnswer(answers, ["medicare_number", "medicareNumber"])
-  const medicareIrn = firstScalarAnswer(answers, ["medicare_irn", "medicareIrn"])
+  const medicare = normalizeIdentifierDigits(firstStringAnswer(answers, ["medicare_number", "medicareNumber"]))
+  const medicareIrn = normalizeIdentifierDigits(firstScalarAnswer(answers, ["medicare_irn", "medicareIrn"]))
   const rawMedicareExpiry = firstScalarAnswer(answers, ["medicare_expiry", "medicareExpiry"])
   const medicareExpiry = normalizeMedicareExpiry(rawMedicareExpiry)
+  const ihi = firstStringAnswer(answers, ["ihi_number", "ihiNumber"])
+  const validIhi = normalizeValidIhiNumber(ihi)
   const addressLine1 = firstStringAnswer(answers, ["address_line1", "addressLine1", "address_line_1", "street_address"])
   const suburb = firstStringAnswer(answers, ["suburb"])
   const state = firstStringAnswer(answers, ["state"])
   const postcode = firstStringAnswer(answers, ["postcode"])
   const sex = firstStringAnswer(answers, ["sex", "gender"])
 
-  if (!medicare) return `Medicare number is required for ${requestLabel}.`
-  const medicareResult = validateMedicareNumber(medicare)
-  if (!medicareResult.valid) {
-    return medicareResult.error || "Invalid Medicare number."
+  const medicareResult = medicare ? validateMedicareNumber(medicare) : null
+  const validMedicare = medicareResult?.valid === true
+  const medicareIdentityComplete = validMedicare && Boolean(medicareIrn && /^[1-9]$/.test(medicareIrn))
+
+  if (!medicareIdentityComplete && !validIhi) {
+    if (!medicare && !ihi) return `Medicare number or IHI is required for ${requestLabel}.`
+    if (medicare && !validMedicare) return "Enter a valid Medicare number or provide a valid IHI."
+    if (!medicare && ihi) return "Enter a valid IHI."
+    if (validMedicare && !medicareIrn) return `Medicare IRN is required for ${requestLabel}.`
+    return "Enter a valid Medicare number or IHI."
   }
-  if (!medicareIrn || !/^[1-9]$/.test(medicareIrn)) {
-    return `Medicare IRN is required for ${requestLabel}.`
-  }
-  if (rawMedicareExpiry) {
+
+  if (medicareIdentityComplete && rawMedicareExpiry) {
     if (!medicareExpiry) {
       return "Medicare card expiry is invalid."
     }
@@ -309,6 +316,7 @@ export function transformAnswersForUnifiedCheckout(
   copyStringAnswer(transformed, "medicare_number", answers, ["medicare_number", "medicareNumber"])
   copyScalarAnswer(transformed, "medicare_irn", answers, ["medicare_irn", "medicareIrn"])
   copyStringAnswer(transformed, "medicare_expiry", answers, ["medicare_expiry", "medicareExpiry"])
+  copyStringAnswer(transformed, "ihi_number", answers, ["ihi_number", "ihiNumber"])
   copyStringAnswer(transformed, "address_line1", answers, ["address_line1", "addressLine1", "address_line_1", "street_address"])
   copyStringAnswer(transformed, "address_line2", answers, ["address_line2", "addressLine2", "address_line_2"])
   copyStringAnswer(transformed, "suburb", answers, ["suburb"])

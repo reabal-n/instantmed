@@ -13,6 +13,7 @@ import { getProfileById } from "@/lib/data/profiles"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { validateMedicareExpiry, validateMedicareNumber } from "@/lib/validation/medicare"
+import { normalizeValidIhiNumber } from "@/lib/validation/prescribing-identifier"
 import type { AustralianState } from "@/types/db"
 
 import { createPatient, ParchmentApiError, updatePatient } from "./client"
@@ -281,14 +282,15 @@ export function getParchmentPatientIdentityIssues(
   const medicareNumber = normalizeDigits(answerOrProfile(profile.medicare_number, intakeAnswers, ["medicare_number", "medicareNumber"]))
   const medicareIrn = normalizeDigits(answerOrProfile(profile.medicare_irn, intakeAnswers, ["medicare_irn", "medicareIrn"]))
   const medicareExpiry = normalizeMedicareExpiry(answerOrProfile(profile.medicare_expiry, intakeAnswers, ["medicare_expiry", "medicareExpiry"]))
+  const validIhi = normalizeValidIhiNumber(answerOrProfile(profile.ihi_number, intakeAnswers, ["ihi_number", "ihiNumber"]))
   const { addressLine1, suburb, state, postcode } = resolveParchmentAddressComponents(profile, intakeAnswers)
 
   if (!dateOfBirth) issues.push("DOB")
   if (!rawSex) issues.push("Sex")
   if (!phone) issues.push("Phone")
-  if (!medicareNumber) {
-    issues.push("Medicare")
-  } else {
+  if (!validIhi && !medicareNumber) {
+    issues.push("Medicare or IHI")
+  } else if (!validIhi && medicareNumber) {
     const medicare = validateMedicareNumber(medicareNumber)
     if (!medicare.valid) issues.push("Valid Medicare number")
     if (!medicareIrn || !/^[1-9]$/.test(medicareIrn)) issues.push("Medicare IRN")
@@ -318,6 +320,7 @@ export function buildCreatePatientRequest(
   const medicareIrn = answerOrProfile(profile.medicare_irn, intakeAnswers, ["medicare_irn", "medicareIrn"])
   const validMedicareNumber = normalizeValidMedicareDigits(medicareNumber)
   const medicareExpiry = normalizeMedicareExpiry(answerOrProfile(profile.medicare_expiry, intakeAnswers, ["medicare_expiry", "medicareExpiry"]))
+  const validIhi = normalizeValidIhiNumber(answerOrProfile(profile.ihi_number, intakeAnswers, ["ihi_number", "ihiNumber"]))
   const dateOfBirth = resolveDateOfBirth(profile, intakeAnswers)
 
   return {
@@ -331,6 +334,7 @@ export function buildCreatePatientRequest(
     ...(validMedicareNumber ? { medicare_card_number: validMedicareNumber } : {}),
     ...(validMedicareNumber && normalizeDigits(medicareIrn) ? { medicare_irn: normalizeDigits(medicareIrn) } : {}),
     ...(validMedicareNumber && medicareExpiry ? { medicare_valid_to: medicareExpiry } : {}),
+    ...(validIhi ? { ihi_number: validIhi } : {}),
     ...(address ? { australian_street_address: address } : {}),
   }
 }
@@ -347,6 +351,7 @@ export function buildUpdatePatientRequest(
   const medicareIrn = answerOrProfile(profile.medicare_irn, intakeAnswers, ["medicare_irn", "medicareIrn"])
   const validMedicareNumber = normalizeValidMedicareDigits(medicareNumber)
   const medicareExpiry = normalizeMedicareExpiry(answerOrProfile(profile.medicare_expiry, intakeAnswers, ["medicare_expiry", "medicareExpiry"]))
+  const validIhi = normalizeValidIhiNumber(answerOrProfile(profile.ihi_number, intakeAnswers, ["ihi_number", "ihiNumber"]))
   const dateOfBirth = resolveDateOfBirth(profile, intakeAnswers)
 
   return {
@@ -359,6 +364,7 @@ export function buildUpdatePatientRequest(
     ...(validMedicareNumber ? { medicare_card_number: validMedicareNumber } : {}),
     ...(validMedicareNumber && normalizeDigits(medicareIrn) ? { medicare_irn: normalizeDigits(medicareIrn) } : {}),
     ...(validMedicareNumber && medicareExpiry ? { medicare_valid_to: medicareExpiry } : {}),
+    ...(validIhi ? { ihi_number: validIhi } : {}),
     ...(address ? { australian_address: address } : {}),
   }
 }

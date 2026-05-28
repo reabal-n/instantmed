@@ -3,6 +3,7 @@ import { calculateAge, formatShortDateSafe } from "@/lib/format"
 import { getAddressReviewSummary } from "@/lib/request/address-metadata"
 import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing-identity"
 import { validateMedicareExpiry, validateMedicareNumber } from "@/lib/validation/medicare"
+import { normalizeValidIhiNumber } from "@/lib/validation/prescribing-identifier"
 import type { AustralianState } from "@/types/db"
 
 export interface PatientSnapshotInput {
@@ -13,6 +14,7 @@ export interface PatientSnapshotInput {
   medicare_number?: string | null
   medicare_irn?: number | string | null
   medicare_expiry?: string | null
+  ihi_number?: string | null
   phone?: string | null
   email?: string | null
   address_line1?: string | null
@@ -319,6 +321,8 @@ export function buildPatientSnapshot(
   const medicareExpiry = normalizeMedicareExpiry(
     answerOrProfile(options?.answers, ["medicare_expiry", "medicareExpiry"], patient.medicare_expiry),
   )
+  const ihi = answerOrProfile(options?.answers, ["ihi_number", "ihiNumber"], patient.ihi_number)
+  const validIhi = normalizeValidIhiNumber(ihi)
   const shouldValidateMedicare = Boolean(medicare && (options?.validateMedicare || options?.requireMedicareDetails))
   const medicareValidation = shouldValidateMedicare && medicare
     ? validateMedicareNumber(medicare)
@@ -330,6 +334,11 @@ export function buildPatientSnapshot(
     medicare && (!shouldValidateMedicare || medicareValidation?.valid),
   )
   const medicareIrnIsCritical = !options?.requireMedicareDetails || Boolean(medicareIrn && /^[1-9]$/.test(medicareIrn))
+  const prescribingIdentifierIsCritical = Boolean(
+    options?.requireMedicareDetails
+      ? validIhi || medicareIsCritical
+      : medicareIsCritical,
+  )
   const medicareDetails = [
     medicareIrn ? `IRN ${medicareIrn}` : options?.requireMedicareDetails ? "IRN missing" : null,
     medicareExpiry ? `Exp ${formatShortDateSafe(medicareExpiry) ?? medicareExpiry}` : null,
@@ -349,13 +358,15 @@ export function buildPatientSnapshot(
   const requireMedicare = options?.requireMedicare ?? true
   const requirePhone = options?.requirePhone ?? true
   const requireAddress = options?.requireAddress ?? true
+  const missingIdentifierLabel = options?.requireMedicareDetails ? "Medicare or IHI" : "Medicare"
+  const invalidIdentifierLabel = options?.requireMedicareDetails ? "Valid Medicare number or IHI" : "Valid Medicare number"
 
   const missingCriticalFields = [
     dateOfBirth ? null : "DOB",
     options?.requireSex && !sexValue ? "Sex" : null,
-    requireMedicare ? (medicareIsCritical ? null : medicare ? "Valid Medicare number" : "Medicare") : null,
-    options?.requireMedicareDetails && medicare && !medicareIrnIsCritical ? "Medicare IRN" : null,
-    options?.requireMedicareDetails && medicare && medicareExpiry && !medicareExpiryValidation?.valid ? "Valid Medicare expiry" : null,
+    requireMedicare ? (prescribingIdentifierIsCritical ? null : medicare ? invalidIdentifierLabel : missingIdentifierLabel) : null,
+    options?.requireMedicareDetails && !validIhi && medicare && medicareValidation?.valid && !medicareIrnIsCritical ? "Medicare IRN" : null,
+    options?.requireMedicareDetails && !validIhi && medicare && medicareExpiry && !medicareExpiryValidation?.valid ? "Valid Medicare expiry" : null,
     requirePhone ? (phone ? null : "Phone") : null,
     requireAddress && options?.requireStructuredAddress && !address.line1 ? "Address street" : null,
     requireAddress && options?.requireStructuredAddress && !address.suburb ? "Address suburb" : null,
@@ -385,12 +396,12 @@ export function buildPatientSnapshot(
       value: sexValue ?? undefined,
     },
     medicare: {
-      label: medicare ?? "Not provided",
-      present: Boolean(medicare),
-      value: medicare ?? undefined,
-      valid: medicareValidation?.valid,
-      error: medicareValidation?.valid === false ? medicareValidation.error : undefined,
-      detailsLabel: medicareDetails || undefined,
+      label: medicare ?? (validIhi ? `IHI ${validIhi}` : "Not provided"),
+      present: Boolean(medicare || validIhi),
+      value: medicare ?? validIhi ?? undefined,
+      valid: medicareValidation?.valid ?? (validIhi ? true : undefined),
+      error: medicareValidation?.valid === false && !validIhi ? medicareValidation.error : undefined,
+      detailsLabel: medicareDetails || (validIhi ? "IHI" : undefined),
     },
     phone: {
       label: phone ?? "Not provided",

@@ -1,4 +1,5 @@
 import { validateMedicareExpiry, validateMedicareNumber } from "@/lib/validation/medicare"
+import { normalizeValidIhiNumber } from "@/lib/validation/prescribing-identifier"
 import type { AustralianState, Profile } from "@/types/db"
 
 const AUSTRALIAN_STATES: AustralianState[] = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
@@ -6,7 +7,7 @@ const SEX_VALUES: NonNullable<Profile["sex"]>[] = ["M", "F", "N", "I"]
 
 export type PrescribingProfileUpdates = Partial<Pick<
   Profile,
-  "medicare_number" | "medicare_irn" | "medicare_expiry" | "address_line1" | "suburb" | "state" | "postcode" | "sex"
+  "medicare_number" | "medicare_irn" | "medicare_expiry" | "ihi_number" | "address_line1" | "suburb" | "state" | "postcode" | "sex"
 >>
 
 export type CheckoutIdentityProfileUpdates = Partial<Pick<
@@ -108,20 +109,27 @@ export function validateRequiredPrescribingProfileAnswers(
   const medicareIrn = normalizeIrn(firstScalarAnswer(answers, ["medicare_irn", "medicareIrn"]))
   const rawMedicareExpiry = firstScalarAnswer(answers, ["medicare_expiry", "medicareExpiry"])
   const medicareExpiry = normalizeMedicareExpiry(rawMedicareExpiry)
+  const ihi = firstStringAnswer(answers, ["ihi_number", "ihiNumber"])
+  const validIhi = normalizeValidIhiNumber(ihi)
   const addressLine1 = firstStringAnswer(answers, ["address_line1", "addressLine1", "address_line_1", "street_address"])
   const suburb = firstStringAnswer(answers, ["suburb"])
   const state = normalizeState(firstStringAnswer(answers, ["state"]))
   const postcode = firstStringAnswer(answers, ["postcode"])
   const sex = normalizeSex(firstStringAnswer(answers, ["sex", "gender"]))
 
-  if (!medicare) return `Medicare number is required for ${requestLabel}.`
+  const medicareResult = medicare ? validateMedicareNumber(medicare) : null
+  const validMedicare = medicareResult?.valid === true
+  const medicareIdentityComplete = validMedicare && Boolean(medicareIrn)
 
-  const medicareResult = validateMedicareNumber(medicare)
-  if (!medicareResult.valid) return medicareResult.error || "Invalid Medicare number"
+  if (!medicareIdentityComplete && !validIhi) {
+    if (!medicare && !ihi) return `Medicare number or IHI is required for ${requestLabel}.`
+    if (medicare && !validMedicare) return "Enter a valid Medicare number or provide a valid IHI."
+    if (!medicare && ihi) return "Enter a valid IHI."
+    if (validMedicare && !medicareIrn) return `Medicare IRN is required for ${requestLabel}.`
+    return "Enter a valid Medicare number or IHI."
+  }
 
-  if (!medicareIrn) return `Medicare IRN is required for ${requestLabel}.`
-
-  if (rawMedicareExpiry) {
+  if (medicareIdentityComplete && rawMedicareExpiry) {
     if (!medicareExpiry) return "Medicare card expiry is invalid."
     const expiryResult = validateMedicareExpiry(medicareExpiry)
     if (!expiryResult.valid) return expiryResult.error || "Medicare card expiry is invalid."
@@ -143,6 +151,7 @@ export function buildPrescribingProfileUpdates(
   const medicare = normalizeDigits(firstStringAnswer(answers, ["medicare_number", "medicareNumber"]))
   const medicareIrn = normalizeIrn(firstScalarAnswer(answers, ["medicare_irn", "medicareIrn"]))
   const medicareExpiry = normalizeMedicareExpiry(firstScalarAnswer(answers, ["medicare_expiry", "medicareExpiry"]))
+  const validIhi = normalizeValidIhiNumber(firstStringAnswer(answers, ["ihi_number", "ihiNumber"]))
   const addressLine1 = firstStringAnswer(answers, ["address_line1", "addressLine1", "address_line_1", "street_address"])
   const suburb = firstStringAnswer(answers, ["suburb"])
   const state = normalizeState(firstStringAnswer(answers, ["state"]))
@@ -153,6 +162,13 @@ export function buildPrescribingProfileUpdates(
     updates.medicare_number = medicare
     if (medicareIrn) updates.medicare_irn = medicareIrn
     if (medicareExpiry) updates.medicare_expiry = medicareExpiry
+  } else if (validIhi) {
+    updates.medicare_number = null
+    updates.medicare_irn = null
+    updates.medicare_expiry = null
+  }
+  if (validIhi) {
+    updates.ihi_number = validIhi
   }
   if (addressLine1) updates.address_line1 = addressLine1
   if (suburb) updates.suburb = suburb

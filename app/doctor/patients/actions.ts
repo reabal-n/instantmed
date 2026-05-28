@@ -53,10 +53,12 @@ function encryptedProfileFields(input: {
   date_of_birth?: string | null
   phone?: string | null
   medicare_number?: string | null
+  ihi_number?: string | null
 }): {
   date_of_birth_encrypted?: string
   phone_encrypted?: string
   medicare_number_encrypted?: string
+  ihi_number_encrypted?: string
   phi_encrypted_at?: string
 } {
   if (!process.env.ENCRYPTION_KEY) return {}
@@ -65,6 +67,7 @@ function encryptedProfileFields(input: {
     ...(input.date_of_birth ? { date_of_birth_encrypted: encryptField(input.date_of_birth) } : {}),
     ...(input.phone ? { phone_encrypted: encryptField(input.phone) } : {}),
     ...(input.medicare_number ? { medicare_number_encrypted: encryptField(input.medicare_number) } : {}),
+    ...(input.ihi_number ? { ihi_number_encrypted: encryptField(input.ihi_number) } : {}),
   }
 
   return Object.keys(encrypted).length > 0
@@ -85,7 +88,7 @@ function patientSavedButParchmentFailed(patientId: string, error: unknown): Doct
     return {
       success: false,
       patientId,
-      error: "Patient saved, but Parchment rejected the patient details. Check Medicare, address, DOB, phone, and sex; then retry.",
+      error: "Patient saved, but Parchment rejected the patient details. Check Medicare/IHI, address, DOB, phone, and sex; then retry.",
     }
   }
 

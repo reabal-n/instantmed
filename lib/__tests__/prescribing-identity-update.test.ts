@@ -25,6 +25,7 @@ describe("buildPrescribingIdentityProfileUpdates", () => {
       medicareNumber: "2123456701",
       medicareIrn: "4",
       medicareExpiry: "2030-06",
+      ihiNumber: "8003600000000000",
       addressLine1: "Unit 2, 21 Kent Road",
       suburb: "Dapto",
       state: "NSW",
@@ -38,6 +39,7 @@ describe("buildPrescribingIdentityProfileUpdates", () => {
       medicareNumber: "2123456701",
       medicareIrn: "4",
       medicareExpiry: "2030-06",
+      ihiNumber: "8003600000000000",
       addressLine1: "Unit 2, 21 Kent Road",
       suburb: "Dapto",
       state: "NSW",
@@ -112,6 +114,30 @@ describe("buildPrescribingIdentityProfileUpdates", () => {
     expect(result.updates).not.toHaveProperty("medicare_expiry")
   })
 
+  it("accepts a valid IHI instead of Medicare when updating prescribing identity", () => {
+    const result = buildPrescribingIdentityProfileUpdates({
+      dateOfBirth: "1988-01-01",
+      sex: "F",
+      phone: "0412 345 678",
+      medicareNumber: "",
+      medicareIrn: "",
+      medicareExpiry: "",
+      ihiNumber: "8003 6000 0000 0000",
+      addressLine1: "12 Test Street",
+      suburb: "Sydney",
+      state: "NSW",
+      postcode: "2000",
+    })
+
+    expect(result.valid).toBe(true)
+    expect(result.updates).toMatchObject({
+      ihi_number: "8003600000000000",
+      medicare_expiry: null,
+      medicare_irn: null,
+      medicare_number: null,
+    })
+  })
+
   it("rejects invalid Medicare expiry when one is supplied", () => {
     const result = buildPrescribingIdentityProfileUpdates({
       dateOfBirth: "1988-01-01",
@@ -153,7 +179,6 @@ describe("buildPrescribingIdentityProfileUpdates", () => {
       sex: expect.any(String),
       phone: expect.any(String),
       medicareNumber: expect.any(String),
-      medicareIrn: expect.any(String),
       addressLine1: expect.any(String),
       suburb: expect.any(String),
       postcode: expect.any(String),

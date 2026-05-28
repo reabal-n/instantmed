@@ -41,6 +41,7 @@ const PROFILE_COLUMNS = `
   date_of_birth, date_of_birth_encrypted, role, sex, phone, phone_encrypted,
   address_line1, suburb, state, postcode,
   medicare_number, medicare_number_encrypted, medicare_irn, medicare_expiry,
+  ihi_number, ihi_number_encrypted,
   phi_encrypted_at,
   ahpra_number, ahpra_verified, ahpra_verified_at, ahpra_verified_by,
   ahpra_verification_notes, ahpra_next_review_at, provider_number, nominals,
@@ -65,7 +66,7 @@ function decryptProfilePhiForAuth<T extends Record<string, unknown>>(profile: T)
   const decrypted: Record<string, unknown> = { ...profile }
   const failClosedOnDecryptError = !isStaffRoleValue(profile.role)
 
-  const handleDecryptError = (field: "medicare_number" | "date_of_birth" | "phone", error: unknown) => {
+  const handleDecryptError = (field: "medicare_number" | "ihi_number" | "date_of_birth" | "phone", error: unknown) => {
     if (failClosedOnDecryptError) {
       log.error(`Failed to decrypt auth profile ${field} field`, {}, error)
       throw new Error("Failed to decrypt patient identity")
@@ -84,6 +85,14 @@ function decryptProfilePhiForAuth<T extends Record<string, unknown>>(profile: T)
   if (profile.medicare_number_encrypted) {
     try {
       decrypted.medicare_number = decryptField<string>(profile.medicare_number_encrypted as string)
+    } catch (error) {
+      handleDecryptError("ihi_number", error)
+    }
+  }
+
+  if (profile.ihi_number_encrypted) {
+    try {
+      decrypted.ihi_number = decryptField<string>(profile.ihi_number_encrypted as string)
     } catch (error) {
       handleDecryptError("medicare_number", error)
     }
@@ -106,6 +115,7 @@ function decryptProfilePhiForAuth<T extends Record<string, unknown>>(profile: T)
   }
 
   delete decrypted.medicare_number_encrypted
+  delete decrypted.ihi_number_encrypted
   delete decrypted.date_of_birth_encrypted
   delete decrypted.phone_encrypted
 

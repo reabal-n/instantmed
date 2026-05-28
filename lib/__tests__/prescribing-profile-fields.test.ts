@@ -51,6 +51,19 @@ describe("buildPrescribingProfileUpdates", () => {
     })).toEqual({})
   })
 
+  it("persists a valid IHI when the patient has no Medicare card", () => {
+    expect(buildPrescribingProfileUpdates({
+      ihiNumber: "8003 6000 0000 0000",
+      medicareNumber: "",
+      medicareIrn: "",
+    })).toEqual({
+      ihi_number: "8003600000000000",
+      medicare_expiry: null,
+      medicare_irn: null,
+      medicare_number: null,
+    })
+  })
+
   it("normalizes MM/YY Medicare expiry from legacy intake answers", () => {
     expect(buildPrescribingProfileUpdates({
       medicareNumber: "2123456701",
@@ -113,15 +126,25 @@ describe("validateRequiredPrescribingProfileAnswers", () => {
     expect(validateRequiredPrescribingProfileAnswers({
       ...completeAnswers,
       medicareNumber: "",
-    })).toBe("Medicare number is required for prescription requests.")
+    })).toBe("Medicare number or IHI is required for prescription requests.")
 
     expect(validateRequiredPrescribingProfileAnswers({
       ...completeAnswers,
       medicareNumber: "0000000000",
-    })).toBe("Enter a valid Medicare number")
+    })).toBe("Enter a valid Medicare number or provide a valid IHI.")
   })
 
   it("accepts complete prescribing identity answers", () => {
     expect(validateRequiredPrescribingProfileAnswers(completeAnswers)).toBeNull()
+  })
+
+  it("accepts a valid IHI instead of Medicare for prescribing requests", () => {
+    expect(validateRequiredPrescribingProfileAnswers({
+      ...completeAnswers,
+      medicareNumber: "",
+      medicareIrn: "",
+      medicareExpiry: "",
+      ihiNumber: "8003600000000000",
+    })).toBeNull()
   })
 })

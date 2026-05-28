@@ -82,6 +82,38 @@ describe("getParchmentPatientIdentityIssues", () => {
     })).toEqual(["Valid Medicare number"])
   })
 
+  it("accepts a valid IHI when the patient has no Medicare card", () => {
+    expect(getParchmentPatientIdentityIssues({
+      ...baseProfile,
+      medicare_number: null,
+      medicare_irn: null,
+      medicare_expiry: null,
+      ihi_number: "8003600000000000",
+    })).toEqual([])
+  })
+
+  it("uses valid IHI in Parchment payload helpers and omits invalid Medicare placeholders", () => {
+    const createPayload = buildCreatePatientRequest({
+      ...baseProfile,
+      medicare_number: "0000000000",
+      medicare_irn: 1,
+      medicare_expiry: "2029-05-01",
+      ihi_number: "8003600000000000",
+    }, "profile-1")
+    const updatePayload = buildUpdatePatientRequest({
+      ...baseProfile,
+      medicare_number: "0000000000",
+      medicare_irn: 1,
+      medicare_expiry: "2029-05-01",
+      ihi_number: "8003600000000000",
+    })
+
+    expect(createPayload.ihi_number).toBe("8003600000000000")
+    expect(updatePayload.ihi_number).toBe("8003600000000000")
+    expect(createPayload.medicare_card_number).toBeUndefined()
+    expect(updatePayload.medicare_card_number).toBeUndefined()
+  })
+
   it("does not include invalid Medicare details in Parchment payload helpers", () => {
     const createPayload = buildCreatePatientRequest({
       ...baseProfile,

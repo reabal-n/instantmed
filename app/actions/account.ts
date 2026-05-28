@@ -150,6 +150,8 @@ export async function deleteAccount(): Promise<{ success: boolean; error: string
       postcode: null,
       medicare_number: null,
       medicare_number_encrypted: null,
+      ihi_number: null,
+      ihi_number_encrypted: null,
       medicare_irn: null,
       medicare_expiry: null,
       phi_encrypted_at: null,

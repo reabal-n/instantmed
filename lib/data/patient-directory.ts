@@ -100,6 +100,7 @@ export async function getPatientDirectoryPage({
       date_of_birth, date_of_birth_encrypted, role, phone, phone_encrypted,
       address_line1, suburb, state, postcode,
       medicare_number, medicare_number_encrypted, medicare_irn, medicare_expiry,
+      ihi_number, ihi_number_encrypted,
       parchment_patient_id,
       onboarding_completed,
       email_verified, email_verified_at,

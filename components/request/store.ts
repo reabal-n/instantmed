@@ -43,7 +43,7 @@ export interface RequestState {
   authContext: {
     isAuthenticated: boolean
     hasProfile: boolean
-    hasMedicare: boolean
+    hasMedicare: boolean // Medicare+IRN or IHI is available for prescribing
     hasAddress: boolean
     hasSex?: boolean
   }
@@ -74,7 +74,7 @@ export interface AuthContext {
   hasProfile: boolean
   /** True when profile has complete identity (incl. date_of_birth) - mirrors RequestFlow prop */
   hasCompleteIdentity?: boolean
-  hasMedicare: boolean
+  hasMedicare: boolean // Medicare+IRN or IHI is available for prescribing
   hasAddress: boolean
   /** True when profile has a phone number - required for prescriptions + consults */
   hasPhone?: boolean

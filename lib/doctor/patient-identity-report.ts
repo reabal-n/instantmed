@@ -86,6 +86,7 @@ export async function getPrescribingIdentityBlockerReport(
         id, email, full_name, date_of_birth, date_of_birth_encrypted,
         sex, phone, phone_encrypted,
         medicare_number, medicare_number_encrypted, medicare_irn, medicare_expiry,
+        ihi_number, ihi_number_encrypted,
         address_line1, suburb, state, postcode,
         parchment_patient_id
       ),

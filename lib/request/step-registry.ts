@@ -38,7 +38,7 @@ export interface StepContext {
   hasProfile: boolean
   /** True when profile has complete identity (incl. date_of_birth) - details step can be skipped */
   hasCompleteIdentity?: boolean
-  hasMedicare: boolean
+  hasMedicare: boolean // true when Medicare+IRN or IHI is present for prescribing
   hasAddress: boolean
   /** True when profile has a phone number - required for prescriptions + consults */
   hasPhone?: boolean
@@ -117,7 +117,7 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
       shortLabel: 'Details',
       componentPath: 'patient-details-step',
       validateFn: 'validateDetailsStep',
-      // Prescriptions require Medicare + address - only skip if all are present
+      // Prescriptions require Medicare-or-IHI + address - only skip if all are present
       canSkip: (ctx) => ctx.isAuthenticated && (ctx.hasCompleteIdentity ?? ctx.hasProfile) && ctx.hasMedicare && ctx.hasAddress && ctx.hasPhone === true && ctx.hasSex === true,
       required: true,
     },

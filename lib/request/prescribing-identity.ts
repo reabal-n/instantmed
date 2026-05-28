@@ -1,7 +1,7 @@
 import type { UnifiedServiceType } from "@/types/services"
 
 // Medical certificates are the only intake flow that does NOT require the
-// structured prescribing identity bundle (Medicare + address + sex + phone).
+// structured prescribing identity bundle (Medicare-or-IHI + address + sex + phone).
 // Everything else does, even subtypes that are currently retired or gated off:
 //   - prescription / repeat_rx / common_scripts
 //   - consult / consults (every subtype)
@@ -12,7 +12,7 @@ import type { UnifiedServiceType } from "@/types/services"
 // inherits the correct gating automatically without a code change.
 //
 // Operator-stated rule (2026-05-21):
-//   Address + Medicare + phone are required for every service EXCEPT med certs.
+//   Address + Medicare-or-IHI + phone are required for every service EXCEPT med certs.
 //   Name + DOB + email are required for ALL services (enforced at checkout
 //   identity step separately).
 //

@@ -135,6 +135,15 @@ export function PrescribingIdentityEditForm({
         />
 
         <Input
+          label="IHI"
+          inputMode="numeric"
+          value={form.ihiNumber ?? ""}
+          isInvalid={Boolean(fieldErrors.ihiNumber)}
+          errorMessage={fieldErrors.ihiNumber}
+          onChange={(event) => updateField("ihiNumber", event.target.value)}
+        />
+
+        <Input
           label="IRN"
           inputMode="numeric"
           value={form.medicareIrn}

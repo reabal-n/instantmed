@@ -30,6 +30,7 @@ import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { validateDOB, validateEmail, validateName, validatePhone } from "@/lib/request/validation"
 import { cn } from "@/lib/utils"
 import { suggestStateFromPostcode, validatePostcodeState } from "@/lib/validation/australian-address"
+import { formatIHI, validateIHI } from "@/lib/validation/ihi"
 import { formatMedicareNumber, validateMedicareNumber } from "@/lib/validation/medicare"
 
 import { FormField } from "../form-field"
@@ -115,6 +116,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   const postcode = (answers.postcode as string) || ""
   const medicareNumber = (answers.medicareNumber as string) || ""
   const medicareIrn = String(answers.medicareIrn || "")
+  const ihiNumber = (answers.ihiNumber as string) || ""
   const sex = (answers.sex as string) || ""
   const consultSubtype = answers.consultSubtype as string | undefined
 
@@ -172,6 +174,9 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       }
       if (savedData.medicareIrn) {
         setAnswer('medicareIrn', savedData.medicareIrn)
+      }
+      if (savedData.ihiNumber) {
+        setAnswer('ihiNumber', savedData.ihiNumber)
       }
       setShowAutofillBanner(false)
     }
@@ -236,8 +241,12 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   const medicareValidation = needsPrescriptionDetails && medicareNumber.trim()
     ? validateMedicareNumber(medicareNumber)
     : null
-  const medicareNumberReady = !needsPrescriptionDetails || Boolean(medicareNumber.trim() && medicareValidation?.valid)
-  const medicareIdentityReady = !needsPrescriptionDetails || Boolean(medicareNumberReady && /^[1-9]$/.test(medicareIrn))
+  const ihiValidation = needsPrescriptionDetails && ihiNumber.trim()
+    ? validateIHI(ihiNumber)
+    : null
+  const ihiReady = Boolean(ihiNumber.trim() && ihiValidation?.valid)
+  const medicareNumberReady = Boolean(medicareNumber.trim() && medicareValidation?.valid)
+  const medicareIdentityReady = !needsPrescriptionDetails || ihiReady || Boolean(medicareNumberReady && /^[1-9]$/.test(medicareIrn))
 
   // Real-time validation on blur
   const validateField = useCallback((field: string, value: string | undefined) => {
@@ -262,14 +271,22 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       case 'medicareNumber':
         if (needsPrescriptionDetails && value) {
           const result = validateMedicareNumber(value)
-          error = result.valid ? null : (result.error || 'Invalid Medicare number')
-        } else if (needsPrescriptionDetails && !value) {
-          error = 'Your Medicare number is needed to issue the prescription'
+          error = result.valid || ihiReady ? null : (result.error || 'Invalid Medicare number')
+        } else if (needsPrescriptionDetails && !value && !ihiReady) {
+          error = 'Enter Medicare details or your IHI'
         }
         break
       case 'medicareIrn':
-        if (needsPrescriptionDetails && !/^[1-9]$/.test(value || "")) {
+        if (needsPrescriptionDetails && medicareNumberReady && !ihiReady && !/^[1-9]$/.test(value || "")) {
           error = 'Select your Medicare IRN'
+        }
+        break
+      case 'ihiNumber':
+        if (needsPrescriptionDetails && value) {
+          const result = validateIHI(value)
+          error = result.valid ? null : (result.error || 'Enter a valid IHI')
+        } else if (needsPrescriptionDetails && !medicareNumberReady) {
+          error = 'Enter an IHI if you do not have Medicare'
         }
         break
       case 'addressLine1':
@@ -306,7 +323,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
     })
 
     return error === null
-  }, [dobInput, needsPhone, needsPrescriptionDetails, addressNeedsCompletion, addressRequired, state])
+  }, [dobInput, needsPhone, needsPrescriptionDetails, addressNeedsCompletion, addressRequired, state, ihiReady, medicareNumberReady])
   
   const handleBlur = (field: string, value: string | undefined) => {
     setTouched(prev => ({ ...prev, [field]: true }))
@@ -364,13 +381,19 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       if (!sex) {
         newErrors.sex = 'Select your sex'
       }
-      if (!medicareNumber.trim()) {
-        newErrors.medicareNumber = 'Your Medicare number is needed to issue the prescription'
-      } else {
-        const medicareResult = validateMedicareNumber(medicareNumber)
-        if (!medicareResult.valid) newErrors.medicareNumber = medicareResult.error || 'Invalid Medicare number'
+      if (ihiNumber.trim() && !ihiReady) {
+        const result = validateIHI(ihiNumber)
+        newErrors.ihiNumber = result.error || 'Enter a valid IHI'
       }
-      if (!/^[1-9]$/.test(medicareIrn)) {
+      if (!medicareIdentityReady) {
+        newErrors.medicareNumber = 'Enter Medicare number and IRN, or enter your IHI'
+      } else {
+        if (medicareNumber.trim() && !medicareNumberReady && !ihiReady) {
+          const medicareResult = validateMedicareNumber(medicareNumber)
+          newErrors.medicareNumber = medicareResult.error || 'Invalid Medicare number'
+        }
+      }
+      if (medicareNumberReady && !ihiReady && !/^[1-9]$/.test(medicareIrn)) {
         newErrors.medicareIrn = 'Select your Medicare IRN'
       }
     }
@@ -404,6 +427,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       phone: true,
       medicareNumber: true,
       medicareIrn: true,
+      ihiNumber: true,
       addressLine1: true,
       suburb: true,
       state: true,
@@ -430,6 +454,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         postcode,
         medicareNumber,
         medicareIrn,
+        ihiNumber,
       })
       // Send hashed user data to Google for Enhanced Conversions
       setEnhancedConversionsData({ email, phone, firstName, lastName })
@@ -645,15 +670,16 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         )}
       </FormField>
 
-      {/* Medicare number - required for prescribing pathways */}
+      {/* Medicare or IHI - required for prescribing pathways */}
       {needsPrescriptionDetails && (
         <div className="space-y-3">
           <FormField
             label="Medicare number"
-            required
+            required={!ihiReady}
             error={touched.medicareNumber ? errors.medicareNumber : undefined}
             icon={CreditCard}
-            helpContent={{ title: "Why do we need your Medicare number?", content: "Required to issue your prescription under your name. Your Medicare details are encrypted and never shared." }}
+            hint="Use IHI below if you do not have Medicare"
+            helpContent={{ title: "Why do we need this?", content: "Required to issue your prescription under your name. Medicare and IHI details are encrypted and never shared." }}
           >
             <Input
               type="text"
@@ -665,9 +691,9 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
                 if (touched.medicareNumber) {
                   const result = validateMedicareNumber(raw)
                   setErrors((prev) => {
-                    if (!raw.trim()) return { ...prev, medicareNumber: 'Your Medicare number is needed to issue the prescription' }
-                    if (!result.valid) return { ...prev, medicareNumber: result.error || 'Invalid Medicare number' }
-                    const { medicareNumber: _, ...rest } = prev
+                    if (!raw.trim() && !ihiReady) return { ...prev, medicareNumber: 'Enter Medicare details or your IHI' }
+                    if (raw.trim() && !result.valid && !ihiReady) return { ...prev, medicareNumber: result.error || 'Invalid Medicare number' }
+                    const { medicareNumber: _, medicareIrn: _medicareIrn, ...rest } = prev
                     return rest
                   })
                 }
@@ -719,6 +745,45 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
               )}
             </div>
           </div>
+
+          <FormField
+            label="IHI"
+            required={!medicareIdentityReady}
+            error={touched.ihiNumber ? errors.ihiNumber : undefined}
+            icon={CreditCard}
+            hint="For patients without Medicare"
+            helpContent={{ title: "Where do I find my IHI?", content: "International patients can get their Individual Healthcare Identifier through myGov or the Healthcare Identifiers Service." }}
+          >
+            <Input
+              type="text"
+              inputMode="numeric"
+              value={ihiNumber}
+              onChange={(e) => {
+                const raw = e.target.value.replace(/[^\d]/g, '').slice(0, 16)
+                setAnswer('ihiNumber', raw)
+                if (touched.ihiNumber) {
+                  const result = validateIHI(raw)
+                  setErrors((prev) => {
+                    if (!raw.trim() && !medicareIdentityReady) return { ...prev, ihiNumber: 'Enter your IHI if you do not have Medicare' }
+                    if (raw.trim() && !result.valid) return { ...prev, ihiNumber: result.error || 'Enter a valid IHI' }
+                    const { ihiNumber: _, medicareNumber: _medicareNumber, ...rest } = prev
+                    return rest
+                  })
+                }
+              }}
+              onBlur={() => handleBlur('ihiNumber', ihiNumber)}
+              placeholder="16 digits"
+              autoComplete="off"
+              aria-invalid={touched.ihiNumber && !!errors.ihiNumber}
+              data-error={touched.ihiNumber && errors.ihiNumber ? "true" : undefined}
+              className={cn("h-11", touched.ihiNumber && errors.ihiNumber && "border-destructive")}
+            />
+            {ihiNumber.length === 16 && ihiValidation?.valid && !errors.ihiNumber && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {formatIHI(ihiNumber)}
+              </p>
+            )}
+          </FormField>
         </div>
       )}
 

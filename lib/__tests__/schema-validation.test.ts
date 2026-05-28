@@ -32,6 +32,7 @@ describe("schema validation", () => {
     expect(profileSelect).toContain("medicare_number")
     expect(profileSelect).toContain("medicare_irn")
     expect(profileSelect).toContain("medicare_expiry")
+    expect(profileSelect).toContain("ihi_number")
     expect(profileSelect).toContain("address_line1")
     expect(profileSelect).toContain("suburb")
     expect(profileSelect).toContain("state")

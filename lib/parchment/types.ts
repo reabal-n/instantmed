@@ -83,6 +83,7 @@ export const createPatientRequestSchema = z.object({
   medicare_card_number: z.string().optional(),
   medicare_irn: z.string().optional(),
   medicare_valid_to: z.string().optional(),
+  ihi_number: z.string().optional(),
   email: z.string().email().optional(),
   phone: z.string().optional(),
   dva_file_number: z.string().optional(),
