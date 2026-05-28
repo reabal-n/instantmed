@@ -143,10 +143,11 @@ function ActionReadinessChecks({
 }) {
   const checks = [
     { label: "Intake checked", ready: detailsReady, completeLabel: "Intake checked", incompleteLabel: "Check intake" },
-    { label: "Safety checked", ready: safetyReady, completeLabel: "Safety checked", incompleteLabel: "Review safety" },
+    { label: "Safety checked", ready: safetyReady, completeLabel: "No red flags", incompleteLabel: "Review safety" },
     { label: "Note ready", ready: noteReady, completeLabel: "Draft note ready", incompleteLabel: "Add note" },
   ]
   const readyCount = checks.filter((check) => check.ready).length
+  const completedChecks = checks.filter((check) => check.ready)
   const incompleteChecks = checks.filter((check) => !check.ready)
   const auditTrailLabel = checks
     .map((check) => (check.ready ? check.completeLabel : check.incompleteLabel))
@@ -154,28 +155,38 @@ function ActionReadinessChecks({
 
   return (
     <div
-      className="flex flex-wrap items-center gap-1 text-[10px] font-medium text-muted-foreground sm:mr-auto"
+      className="grid gap-1 text-[10px] font-medium text-muted-foreground sm:mr-auto sm:min-w-[220px] sm:grid-cols-2"
       data-action-readiness
       data-action-readiness-summary={auditTrailLabel}
       aria-label="Approval readiness checks"
       title={auditTrailLabel}
     >
-      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-foreground">
+      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-foreground sm:col-span-2">
         <CheckCircle className={cn("h-3.5 w-3.5", readyCount === checks.length ? "text-slate-600" : "text-warning")} aria-hidden />
-        {readyCount === checks.length ? `All checks passed. ${readyLabel}` : `Needs attention · ${readyCount}/${checks.length}`}
+        {readyCount === checks.length ? readyLabel : `Needs attention · ${readyCount}/${checks.length}`}
       </span>
-      {incompleteChecks.map((check) => (
+      {(readyCount === checks.length ? completedChecks : incompleteChecks).map((check) => (
         <span
           key={check.label}
-          title={check.incompleteLabel}
-          className="inline-flex cursor-default select-none items-center gap-1 font-semibold text-warning"
-          aria-label={`${check.incompleteLabel}: needs attention`}
+          title={check.ready ? check.completeLabel : check.incompleteLabel}
+          className={cn(
+            "inline-flex cursor-default select-none items-center gap-1 rounded-md border px-1.5 py-1 font-semibold",
+            check.ready ? "text-muted-foreground" : "text-warning",
+            check.ready ? "border-border/55 bg-background/70" : "border-warning-border bg-warning-light",
+          )}
+          aria-label={check.ready ? `${check.completeLabel}: ready` : `${check.incompleteLabel}: needs attention`}
+          data-readiness-check
         >
           <span
-            className="grid h-3.5 w-3.5 place-items-center rounded-full border border-warning/55 bg-background"
+            className={cn(
+              "grid h-3.5 w-3.5 place-items-center rounded-full border bg-background",
+              check.ready ? "border-border/70 text-slate-600" : "border-warning/55 text-warning",
+            )}
             aria-hidden
-          />
-          <span>{check.incompleteLabel}</span>
+          >
+            {check.ready ? <CheckCircle className="h-3 w-3" aria-hidden /> : null}
+          </span>
+          <span>{check.ready ? check.completeLabel : check.incompleteLabel}</span>
         </span>
       ))}
     </div>
@@ -284,15 +295,11 @@ export function IntakeActionButtons({
       ? `Approve and send certificate to ${patientFirstName}`
       : "Approve and send certificate"
   const declineLabel = showRefundOnDecline
-    ? patientFirstName
-      ? `Decline & refund ${patientFirstName}`
-      : "Decline & refund"
+    ? "Decline and refund"
     : "Decline request"
   const refundConsequenceLabel = refundShortLabel
-    ? patientFirstName
-      ? `Declining refunds ${refundShortLabel} to ${patientFirstName} automatically.`
-      : `Declining refunds ${refundShortLabel} to the patient automatically.`
-    : "Declining refunds the patient automatically."
+    ? `If you decline, ${patientFirstName || "the patient"} is refunded ${refundShortLabel}.`
+    : `If you decline, ${patientFirstName || "the patient"} is refunded.`
   const safetyReady =
     caseSummary.safetyItems.length === 0 &&
     intake.requires_live_consult !== true &&
@@ -336,12 +343,6 @@ export function IntakeActionButtons({
           </Button>
         </div>
       )}
-      {showRefundOnDecline ? (
-        <div className="mb-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-[11px] font-medium leading-snug text-muted-foreground" data-refund-consequence>
-          <p className="font-semibold text-foreground">Full refund if we can't help.</p>
-          <p>{refundConsequenceLabel}</p>
-        </div>
-      ) : null}
       <div
         className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end [&>button]:w-full [&>div]:w-full sm:[&>button]:w-auto sm:[&>div]:w-auto"
         data-action-bar
@@ -501,14 +502,19 @@ export function IntakeActionButtons({
           <Button
             variant="ghost"
             onClick={() => setShowDeclineDialog(true)}
-            className="h-7 bg-transparent px-1.5 text-[11px] font-medium text-rose-700/80 shadow-none transition-colors hover:bg-rose-50 hover:text-rose-900 dark:text-rose-300/80 dark:hover:bg-rose-950/25 dark:hover:text-rose-200"
+            className="h-7 bg-transparent px-2 text-[11px] font-semibold text-muted-foreground shadow-none transition-colors hover:bg-destructive/5 hover:text-destructive focus-visible:text-destructive"
             disabled={isPending}
             size="sm"
-            title={showRefundOnDecline ? "Confirming decline refunds the patient." : undefined}
+            title={showRefundOnDecline ? "Opens confirmation before refunding the patient." : undefined}
           >
             {declineLabel}
             <ShortcutHint tone="tertiary">Cmd+Shift+D</ShortcutHint>
           </Button>
+          {showRefundOnDecline ? (
+            <p className="max-w-[260px] text-[11px] font-medium leading-snug text-muted-foreground" data-refund-consequence>
+              {refundConsequenceLabel}
+            </p>
+          ) : null}
         </div>
       )}
       </div>

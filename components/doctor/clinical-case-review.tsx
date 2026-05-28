@@ -63,7 +63,7 @@ const SOAP_SECTIONS = [
   { key: "A", label: "Assessment" },
   { key: "P", label: "Plan" },
 ] as const
-const COMPACT_FACT_LIMIT = 6
+const COMPACT_FACT_LIMIT = 4
 const PINNED_DRAFT_FACT_LIMIT = 4
 
 type SoapSectionKey = typeof SOAP_SECTIONS[number]["key"]
@@ -191,8 +191,8 @@ export function ClinicalCaseReview({
   const draftNoteReady = isClinicalNoteSufficient(visibleDraftNote)
   const pinnedDraftFacts = compact ? [] : summary.keyFacts.slice(0, PINNED_DRAFT_FACT_LIMIT)
   const signOffParts = doctorSignOffLabel?.split(/\s+·\s+/, 2) ?? null
-  const structuredSoapDraft = !compact && isEditableDraftNote ? parseSoapDraft(visibleDraftNote) : null
-  const showClinicalNoteBeforeAnswers = false
+  const structuredSoapDraft = isEditableDraftNote ? parseSoapDraft(visibleDraftNote) : null
+  const showClinicalNoteBeforeAnswers = compact && isEditableDraftNote
   const setDraftNoteEditableRef = (node: HTMLDivElement | null) => {
     if (!draftNoteTextareaRef) return
     ;(draftNoteTextareaRef as unknown as { current: HTMLTextAreaElement | null }).current =
@@ -200,15 +200,15 @@ export function ClinicalCaseReview({
   }
   const clinicalNoteSection = (
     <section className="rounded-xl border border-border/60 bg-card shadow-sm shadow-primary/[0.035]">
-      <div className="flex flex-col gap-2 border-b border-border/60 bg-muted/15 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="sticky top-0 z-10 flex flex-col gap-2 border-b border-border/60 bg-card/95 px-3 py-2 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <FileText className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           <div>
             <p className="text-xs font-semibold text-foreground">
-              Clinical note
+              {isEditableDraftNote ? "Draft note" : "Clinical note"}
             </p>
             <p className="text-[11px] font-medium text-muted-foreground">
-              Start your note. Cmd+Enter approves.
+              Visible to you before send. Press Cmd+Enter to approve.
             </p>
           </div>
         </div>
@@ -263,20 +263,23 @@ export function ClinicalCaseReview({
               {SOAP_SECTIONS.map((section) => (
                 <div
                   key={section.key}
-                  className="grid gap-1.5 rounded-md border border-border/60 bg-background/80 p-2.5 sm:grid-cols-[108px_minmax(0,1fr)] sm:items-start"
+                  className={cn(
+                    "grid gap-1.5 rounded-md border border-border/60 bg-background/80 p-2.5 sm:items-start",
+                    compact ? "sm:grid-cols-[104px_minmax(0,1fr)]" : "sm:grid-cols-[108px_minmax(0,1fr)]",
+                  )}
                 >
                   <label
                     htmlFor={`draft-soap-${section.key}`}
                     className="pt-1 text-[11px] font-semibold text-slate-500 dark:text-muted-foreground"
                   >
-                    {section.label}
+                    {compact ? `${section.key} · ${section.label}` : section.label}
                   </label>
                   <Textarea
                     id={`draft-soap-${section.key}`}
                     ref={section.key === "S" ? draftNoteTextareaRef : undefined}
                     value={structuredSoapDraft[section.key]}
                     placeholder={`${section.label} note`}
-                    minRows={getSoapTextareaRows(section.key, structuredSoapDraft[section.key])}
+                    minRows={compact ? Math.min(3, getSoapTextareaRows(section.key, structuredSoapDraft[section.key])) : getSoapTextareaRows(section.key, structuredSoapDraft[section.key])}
                     onChange={(event) => {
                       onDraftNoteChange?.(composeSoapDraft({
                         ...structuredSoapDraft,
@@ -298,7 +301,7 @@ export function ClinicalCaseReview({
               aria-multiline="true"
               contentEditable
               suppressContentEditableWarning
-              data-placeholder="Start your note. Cmd+Enter approves."
+              data-placeholder="Start your note. Press Cmd+Enter to approve."
               onInput={(event) => {
                 onDraftNoteChange?.(event.currentTarget.innerText)
               }}

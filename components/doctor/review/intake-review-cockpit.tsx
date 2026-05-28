@@ -234,7 +234,7 @@ export function IntakeReviewCockpit({
   return (
     <div className={cn("flex h-full min-h-0 flex-col overflow-hidden", className)}>
       <div
-        className="flex min-h-0 flex-1 flex-col motion-safe:animate-[review-body-in_200ms_cubic-bezier(0.16,1,0.3,1)]"
+        className="flex min-h-0 flex-1 flex-col motion-safe:animate-[review-body-in_240ms_cubic-bezier(0.16,1,0.3,1)]"
         data-review-body-transition
       >
         {/* Sticky top: always-on clinical blockers. Compact density. */}

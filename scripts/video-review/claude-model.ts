@@ -1,13 +1,15 @@
 import { createAnthropic } from "@ai-sdk/anthropic"
 import type { LanguageModel } from "ai"
 
+import { getEnv } from "./local-env"
+
 export const CLAUDE_DIRECT_MODEL = "claude-opus-4-7"
 export const CLAUDE_GATEWAY_MODEL = "anthropic/claude-opus-4.7"
 
 const ANTHROPIC_BASE_URL = "https://api.anthropic.com/v1"
 
 export function getClaudeCredentialSource(): "anthropic" | "gateway" | null {
-  if (process.env.ANTHROPIC_API_KEY?.trim()) return "anthropic"
+  if (getEnv("ANTHROPIC_API_KEY")) return "anthropic"
   if (getGatewayKey()) return "gateway"
   return null
 }
@@ -19,7 +21,7 @@ export function getClaudeModelLabel(): string {
 }
 
 export function getClaudeModel(): LanguageModel {
-  const directKey = process.env.ANTHROPIC_API_KEY?.trim()
+  const directKey = getEnv("ANTHROPIC_API_KEY")
   if (directKey) {
     const anthropic = createAnthropic({
       apiKey: directKey,
@@ -46,7 +48,7 @@ export function getClaudeModel(): LanguageModel {
 
 function getGatewayKey(): string | undefined {
   return (
-    process.env.AI_GATEWAY_API_KEY?.trim() ||
-    process.env.VERCEL_AI_GATEWAY_API_KEY?.trim()
+    getEnv("AI_GATEWAY_API_KEY") ||
+    getEnv("VERCEL_AI_GATEWAY_API_KEY")
   )
 }

@@ -27,6 +27,8 @@ import { createAnthropic } from "@ai-sdk/anthropic"
 import { GoogleGenAI } from "@google/genai"
 import { generateText } from "ai"
 
+import { getEnv, hydrateLocalEnv } from "./local-env"
+
 const DEFAULT_URL = "https://instantmed.com.au"
 const REVIEWS_ROOT = "docs/reviews"
 const MIN_FREE_BYTES = 100 * 1024 * 1024
@@ -43,19 +45,17 @@ interface CheckResult {
 }
 
 async function checkGemini(): Promise<CheckResult> {
-  if (!process.env.GEMINI_API_KEY?.trim()) {
+  const apiKey = getEnv("GEMINI_API_KEY")
+  if (!apiKey) {
     return {
       name: "Gemini API key + model",
       ok: false,
-      detail: "GEMINI_API_KEY not set (or empty) in this shell.",
-      fix:
-        "If the value is in .env.local, your shell may have the var pre-set to empty: " +
-        "run `unset GEMINI_API_KEY` and try again. Node --env-file does not override " +
-        "existing env vars even when they are empty.",
+      detail: "GEMINI_API_KEY not set in the shell, .env.local, or .env.",
+      fix: "Add GEMINI_API_KEY to .env.local and retry.",
     }
   }
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
+    const ai = new GoogleGenAI({ apiKey })
     const res = await ai.models.generateContent({
       model: "gemini-3.5-flash",
       contents: [{ role: "user", parts: [{ text: "Reply with only the word OK." }] }],
@@ -89,15 +89,13 @@ async function checkGemini(): Promise<CheckResult> {
 }
 
 async function checkAnthropic(): Promise<CheckResult> {
-  if (!process.env.ANTHROPIC_API_KEY?.trim()) {
+  const apiKey = getEnv("ANTHROPIC_API_KEY")
+  if (!apiKey) {
     return {
       name: "Anthropic API key + model",
       ok: false,
-      detail: "ANTHROPIC_API_KEY not set (or empty) in this shell.",
-      fix:
-        "If the value is in .env.local, your shell may have the var pre-set to empty: " +
-        "run `unset ANTHROPIC_API_KEY` and try again. Node --env-file does not override " +
-        "existing env vars even when they are empty.",
+      detail: "ANTHROPIC_API_KEY not set in the shell, .env.local, or .env.",
+      fix: "Add ANTHROPIC_API_KEY to .env.local and retry.",
     }
   }
   try {
@@ -116,7 +114,7 @@ async function checkAnthropic(): Promise<CheckResult> {
       "claude-haiku-4-5",
     ] as const
     const anthropic = createAnthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
+      apiKey,
       baseURL: ANTHROPIC_BASE_URL,
     })
     let lastErr: Error | undefined
@@ -246,6 +244,8 @@ function checkDiskSpace(): CheckResult {
 }
 
 async function main(): Promise<void> {
+  hydrateLocalEnv(["GEMINI_API_KEY", "ANTHROPIC_API_KEY"])
+
   console.log("Running pre-flight doctor for the video-review pipeline...\n")
 
   const results = await Promise.all([

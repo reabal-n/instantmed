@@ -42,6 +42,7 @@ import { EMPTY_SYSTEM_HEALTH, getSystemHealth } from "@/lib/data/system-health"
 import { getQueueEnteredAt } from "@/lib/doctor/queue-utils"
 import { formatMinutes } from "@/lib/format/dates"
 import { createLogger } from "@/lib/observability/logger"
+import { cn } from "@/lib/utils"
 import type { IntakeWithPatient } from "@/types/db"
 
 const log = createLogger("staff-dashboard")
@@ -166,24 +167,31 @@ export default async function StaffDashboardPage({
               <div className="flex flex-wrap items-center gap-2 border-r border-border/60 pr-2">
                 <div
                   data-dashboard-wait-strip
-                  className="flex flex-wrap items-stretch gap-0 overflow-hidden rounded-xl border border-border/60 bg-white shadow-sm shadow-primary/[0.04] dark:bg-card"
+                  className={cn(
+                    "hidden flex-none items-center gap-2 lg:flex",
+                    formToInboxLabel ? "min-w-[420px]" : "min-w-[220px]",
+                  )}
                 >
+                  {formToInboxLabel ? (
+                    <div
+                      data-dashboard-median-tile
+                      className="inline-flex h-10 items-center gap-2 rounded-xl border border-border/60 bg-white px-3 text-xs font-medium text-muted-foreground shadow-sm shadow-primary/[0.03] dark:bg-card"
+                    >
+                      <span>Median time to inbox</span>
+                      <span className="text-base font-semibold tabular-nums text-foreground">{formToInboxLabel}</span>
+                      <span className="rounded-full border border-success-border bg-success-light px-1.5 py-0.5 text-[10px] font-semibold leading-none text-success">
+                        target &lt;2h
+                      </span>
+                    </div>
+                  ) : null}
                   <QueuePressureSignal
                     oldestWaitingMinutes={oldestWaitingMinutes}
                     oldestWaitingEnteredAt={oldestWaitingEnteredAt}
                     waitingCaseCount={queueResult.total}
                     showIcon={false}
                     jumpToOldestOnClick
-                    prominent
-                    className="rounded-none border-0 bg-transparent shadow-none"
+                    className="h-10 bg-white shadow-sm shadow-primary/[0.03]"
                   />
-                  {formToInboxLabel ? (
-                    <div data-dashboard-median-tile className="border-l border-border/60 px-3.5 py-2">
-                      <p className="text-[11px] font-semibold text-muted-foreground">Median today</p>
-                      <p className="text-lg font-semibold leading-tight tabular-nums text-foreground">{formToInboxLabel}</p>
-                      <p className="text-[11px] font-medium leading-tight text-muted-foreground">form to inbox · under 2h</p>
-                    </div>
-                  ) : null}
                 </div>
                 {isAdmin && !onlyTestData ? <SystemHealthPill initial={systemHealth} /> : null}
               </div>

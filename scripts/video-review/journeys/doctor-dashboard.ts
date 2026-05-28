@@ -18,15 +18,15 @@
  *
  * Auth: hits POST /api/test/login (operator role) so the page bypasses
  * sign-in. Requires the dev server to run with PLAYWRIGHT=1 and the
- * E2E_SECRET env var set. Run via:
+ * E2E_SECRET env var set in `.env.local`. Run via:
  *
- *   E2E_SECRET=e2e-test-secret-local PLAYWRIGHT=1 pnpm dev
+ *   PLAYWRIGHT=1 pnpm dev
  *   pnpm review --journey=doctor-dashboard --url=http://localhost:3000
  */
 
+import { getEnv } from "../local-env"
 import type { Journey } from "./index"
 
-const E2E_SECRET = process.env.E2E_SECRET || "e2e-test-secret-local"
 const OPERATOR_USER_ID = "e2e00000-0000-0000-0000-000000000001"
 const E2E_REVIEW_INTAKE_ID = "e2e00000-0000-0000-0000-000000000010"
 const E2E_REVIEW_FILTER = "E2E"
@@ -37,6 +37,16 @@ const OPERATOR_COOKIE_HEADER = [
   "__e2e_auth_role=doctor",
   "__e2e_auth_is_admin=true",
 ].join("; ")
+
+function getE2ESecret(): string {
+  const secret = getEnv("E2E_SECRET")
+  if (!secret) {
+    throw new Error(
+      "doctor-dashboard journey requires E2E_SECRET in .env.local or the shell.",
+    )
+  }
+  return secret
+}
 
 async function fetchWithTimeout(url: string, init: RequestInit, ms = 15000): Promise<Response> {
   const ctrl = new AbortController()
@@ -80,7 +90,7 @@ async function prewarmDoctorDashboard(baseUrl: string, showTestData = false): Pr
   await waitForWarmResponse("test login", `${baseUrl}/api/test/login`, {
     method: "POST",
     headers: {
-      "X-E2E-SECRET": E2E_SECRET,
+      "X-E2E-SECRET": getE2ESecret(),
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ userType: "operator" }),
@@ -134,7 +144,7 @@ export const doctorDashboard: Journey = {
     // server-side bypass is wired correctly + creates the audit trail).
     const loginResponse = await page.request.post(`${baseUrl}/api/test/login`, {
       headers: {
-        "X-E2E-SECRET": E2E_SECRET,
+        "X-E2E-SECRET": getE2ESecret(),
         "Content-Type": "application/json",
       },
       data: { userType: "operator" },
@@ -245,7 +255,7 @@ export const doctorDashboardDesktop: Journey = {
   async run(page, baseUrl) {
     const loginResponse = await page.request.post(`${baseUrl}/api/test/login`, {
       headers: {
-        "X-E2E-SECRET": E2E_SECRET,
+        "X-E2E-SECRET": getE2ESecret(),
         "Content-Type": "application/json",
       },
       data: { userType: "operator" },

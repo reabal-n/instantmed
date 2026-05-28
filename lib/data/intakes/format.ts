@@ -36,7 +36,7 @@ export function formatIntakeStatus(status: IntakeStatus | string | null | undefi
   const statusMap: Record<string, string> = {
     draft: "Draft",
     pending_payment: "Awaiting Payment",
-    paid: "In Queue",
+    paid: "In queue",
     in_review: "Under Review",
     pending_info: "Needs Info",
     approved: "Approved",

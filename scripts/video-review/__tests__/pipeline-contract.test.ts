@@ -70,6 +70,9 @@ describe("video review multi-model contract", () => {
     expect(doctorDashboard).toContain("await search.fill(E2E_REVIEW_FILTER)")
     expect(doctorDashboard).toContain('timeout: 45000')
     expect(doctorDashboard).not.toContain("timeout: 30000,\n        }).catch(() => undefined)")
+    expect(doctorDashboard).toContain('getEnv("E2E_SECRET")')
+    expect(doctorDashboard).not.toContain("e2e-test-secret-local")
+    expect(doctorDashboard).not.toContain("process.env.E2E_SECRET ||")
   })
 
   it("retries local dev readiness before failing capture preflight", () => {
@@ -78,6 +81,21 @@ describe("video review multi-model contract", () => {
     expect(preflight).toContain("not ready after")
     expect(preflight).toContain("attempts = 6")
     expect(preflight).toContain("15000")
+  })
+
+  it("hydrates blank video-review credentials from local env files", () => {
+    const localEnv = read("scripts/video-review/local-env.ts")
+    const doctor = read("scripts/video-review/doctor.ts")
+    const claudeModel = read("scripts/video-review/claude-model.ts")
+    const critique = read("scripts/video-review/critique.ts")
+
+    expect(localEnv).toContain('const LOCAL_ENV_FILES = [".env.local", ".env"]')
+    expect(localEnv).toContain("process.env[name] = local")
+    expect(doctor).toContain("hydrateLocalEnv")
+    expect(doctor).toContain('getEnv("ANTHROPIC_API_KEY")')
+    expect(doctor).not.toContain("run `unset ANTHROPIC_API_KEY`")
+    expect(claudeModel).toContain('getEnv("ANTHROPIC_API_KEY")')
+    expect(critique).toContain('getEnv("GEMINI_API_KEY")')
   })
 
   it("uses realistic fixture labels for video-review seeds", () => {
@@ -124,7 +142,7 @@ describe("video review multi-model contract", () => {
       capturedAt: "2026-05-27T00:00:00.000Z",
       url: "http://localhost:3628/dashboard?showTestData=1",
       title: "Dashboard",
-      visibleText: "All checks passed. Certificate ready to send. Approve and send Cmd+Enter",
+      visibleText: "Certificate ready to send. Intake checked No red flags Draft note ready Approve and send Cmd+Enter",
       elements: [],
     }
 
@@ -173,12 +191,45 @@ describe("video review multi-model contract", () => {
     expect(filterContradictedFindings(findings, evidence)).toEqual([findings[1]])
   })
 
+  it("does not count SOAP-numbering or nonexistent AI-jargon findings that DOM text contradicts", () => {
+    const evidence: DomEvidenceSnapshot = {
+      capturedAt: "2026-05-27T00:00:00.000Z",
+      url: "http://localhost:3628/dashboard?showTestData=1",
+      title: "Dashboard",
+      visibleText: "Structured SOAP note S · Subjective O · Objective A · Assessment P · Plan If you decline, Mia is refunded $25.",
+      elements: [],
+    }
+
+    const findings = [
+      {
+        severity: 3,
+        timestamp_seconds: 14,
+        issue: "The clinical SOAP note section numbering skips from 1 to 4.",
+        recommendation: "Correct the numbering sequence.",
+      },
+      {
+        severity: 2,
+        timestamp_seconds: 14,
+        issue: "Technical jargon 'model to AI automatically' breaks the tone.",
+        recommendation: "Rewrite the AI model copy.",
+      },
+      {
+        severity: 2,
+        timestamp_seconds: 16,
+        issue: "The decline action is still visually louder than the send action.",
+        recommendation: "Demote the destructive action at rest.",
+      },
+    ]
+
+    expect(filterContradictedFindings(findings, evidence)).toEqual([findings[2]])
+  })
+
   it("does not let DOM-contradicted high-severity findings drag the combined gate score below 8", () => {
     const evidence: DomEvidenceSnapshot = {
       capturedAt: "2026-05-27T00:00:00.000Z",
       url: "http://localhost:3628/dashboard?showTestData=1",
       title: "Dashboard",
-      visibleText: "Mia Carter 35y / 20/06/1990 Reason for visit 35-year-old patient. Declining this case refunds $25 to the patient automatically.",
+      visibleText: "Mia Carter 35y / 20/06/1990 Reason for visit 35-year-old patient. If you decline, Mia is refunded $25.",
       elements: [],
     }
     const lowScoreWithFalsePositive = {

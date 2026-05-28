@@ -136,10 +136,7 @@ export function QueuePressureSignal({
     typeof liveElapsedSeconds === "number"
       ? Math.floor(liveElapsedSeconds / 60)
       : oldestWaitingMinutes
-  const liveSecondsLabel =
-    prominent && typeof liveElapsedSeconds === "number"
-      ? `${String(liveElapsedSeconds % 60).padStart(2, "0")}s`
-      : null
+  const liveSecondsLabel = null
   const state = getQueuePressureState(liveOldestWaitingMinutes, targetMinutes)
   const softenUrgent = softenWhenReviewOpen && reviewOpen && state.severity === "urgent"
   const classes = softenUrgent ? reviewOpenUrgentClasses : severityClasses[state.severity]
@@ -154,7 +151,9 @@ export function QueuePressureSignal({
     ? `${waitingCaseCount} case${waitingCaseCount === 1 ? "" : "s"} waiting`
     : null
   const trailingLabel = showTarget
-    ? prominent ? [refreshAgeLabel, waitingCaseLabel, targetProgressLabel].filter(Boolean).join(" · ") : refreshAgeLabel
+    ? prominent
+      ? [refreshAgeLabel, waitingCaseLabel, targetProgressLabel].filter(Boolean).join(" · ")
+      : [refreshAgeLabel, waitingCaseLabel].filter(Boolean).join(" · ")
     : null
   const prominentMetaLabel = prominent
     ? [refreshAgeLabel, waitingCaseLabel].filter(Boolean).join(" · ")
@@ -188,15 +187,17 @@ export function QueuePressureSignal({
         {showLabel ? <span>{state.label}</span> : null}
       </span>
       <span
-        key={`${state.value}:${liveSecondsLabel}`}
-        className={cn("text-3xl font-semibold leading-none tracking-tight tabular-nums motion-safe:animate-[wait-digit-tick_160ms_cubic-bezier(0.16,1,0.3,1)]", classes.value)}
+        className={cn("text-3xl font-semibold leading-none tracking-tight tabular-nums", classes.value)}
         data-live-wait-counter
       >
         {state.value}
         {liveSecondsLabel ? (
           <>
             {" "}
-            <span className="ml-1.5 align-baseline text-sm font-medium text-muted-foreground">
+            <span
+              key={liveSecondsLabel}
+              className="ml-1.5 align-baseline text-sm font-medium text-muted-foreground motion-safe:animate-[wait-digit-tick_160ms_cubic-bezier(0.16,1,0.3,1)]"
+            >
               {liveSecondsLabel}
             </span>
           </>
@@ -205,7 +206,7 @@ export function QueuePressureSignal({
       {showTarget ? (
         <span className="mt-0.5 flex flex-wrap items-center gap-1.5">
           {prominentMetaLabel ? (
-            <span className="text-[11px] font-medium leading-none opacity-80">
+            <span className="text-[11px] font-medium leading-none opacity-80 tabular-nums">
               {prominentMetaLabel}
             </span>
           ) : null}
@@ -248,7 +249,7 @@ export function QueuePressureSignal({
         {state.value}
       </span>
       {trailingLabel ? (
-        <span className={cn("hidden font-medium opacity-80 sm:inline", compact ? "text-[11px]" : "text-xs")}>
+        <span className={cn("hidden font-medium opacity-80 tabular-nums sm:inline", compact ? "text-[11px]" : "text-xs")}>
           {trailingLabel}
         </span>
       ) : null}

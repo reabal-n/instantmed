@@ -371,9 +371,11 @@ export function IntakeReviewPanel({
     const previewStatusLabel = formatIntakeStatus(previewIntake?.status || "paid")
     const previewAgeDob = formatPreviewAgeDob(previewIntake?.patient.date_of_birth)
     const previewLocation = formatPreviewLocation(previewIntake?.patient)
+    const previewFirstName = previewIntake?.patient.full_name?.trim().split(/\s+/)[0] || null
+    const loadingAnswersLabel = previewFirstName ? `Loading ${previewFirstName}'s answers.` : "Loading answers."
     const skeletonTone = "bg-[#F1EFEA]/80 dark:bg-white/10"
     return (
-      <Shell title="Loading case..." onClose={handlePanelClose}>
+      <Shell title={loadingAnswersLabel} onClose={handlePanelClose}>
         <div
           className={cn(inline ? "flex h-full min-h-0 flex-col gap-3" : "space-y-5")}
           data-testid="intake-review-loading"
@@ -388,7 +390,7 @@ export function IntakeReviewPanel({
                     {previewServiceLabel} · {previewStatusLabel}
                   </p>
                   <p className="mt-1 text-[11px] font-medium text-slate-500 dark:text-muted-foreground">
-                    Loading answers
+                    {loadingAnswersLabel}
                   </p>
                 </div>
               </div>
@@ -492,21 +494,12 @@ export function IntakeReviewPanel({
             </section>
           </div>
           <div className="shrink-0 border-t border-border bg-background/95 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/90">
-            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-9 cursor-not-allowed border-border/60 bg-muted px-3 text-xs text-slate-500 opacity-100"
-                disabled
-              >
-                Preparing review
-              </Button>
-              <Button variant="outline" size="sm" className="h-9 border-transparent bg-transparent px-3 text-xs text-slate-600 opacity-60" disabled>
-                Decline
-              </Button>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className={`h-8 w-40 rounded-md ${skeletonTone}`} aria-hidden="true" />
+              <div className={`h-8 w-36 rounded-md ${skeletonTone}`} aria-hidden="true" />
             </div>
-            <p className="mt-2 text-xs font-medium text-slate-600 dark:text-muted-foreground">
-              Buttons enable when answers load.
+            <p className="mt-2 text-xs font-medium text-muted-foreground">
+              {loadingAnswersLabel}
             </p>
           </div>
         </div>
@@ -594,6 +587,10 @@ export function IntakeReviewPanel({
         previousIntakeCount,
       })
     : null
+  const patientFirstName = intake.patient.full_name?.trim().split(/\s+/)[0] || "Patient"
+  const patientVisibleStatus = inline && ["paid", "in_review"].includes(intake.status)
+    ? `${patientFirstName} sees: in queue. Doctor review follows when available.`
+    : null
 
   return (
     <>
@@ -609,7 +606,7 @@ export function IntakeReviewPanel({
         <IntakeReviewProvider value={contextValue}>
           <div
             className={cn(
-              inline ? "flex h-full min-h-0 flex-col gap-3 motion-safe:animate-[review-pane-in_220ms_cubic-bezier(0.16,1,0.3,1)]" : "space-y-5 motion-safe:animate-[fade-in-up_200ms_cubic-bezier(0.16,1,0.3,1)]",
+              inline ? "flex h-full min-h-0 flex-col gap-3 motion-safe:animate-[review-pane-in_280ms_cubic-bezier(0.16,1,0.3,1)]" : "space-y-5 motion-safe:animate-[fade-in-up_200ms_cubic-bezier(0.16,1,0.3,1)]",
             )}
             data-testid="intake-review-panel"
           >
@@ -636,7 +633,7 @@ export function IntakeReviewPanel({
                       (green <4h, amber 4-24h, red 24h+) so the operator sees
                       review urgency next to the patient name at the decision
                       moment, not just on the queue list. */}
-                  <SlaChip paidAt={intake.paid_at} mode={inline ? "waiting" : "paid"} />
+                  {!inline ? <SlaChip paidAt={intake.paid_at} mode="paid" /> : null}
                   {caseIndex != null && totalCases != null && (
                     <Badge variant="outline" size="sm">Case {caseIndex + 1} of {totalCases}</Badge>
                   )}
@@ -653,6 +650,11 @@ export function IntakeReviewPanel({
                     </span>
                   ) : null}
                 </div>
+                {patientVisibleStatus ? (
+                  <p className="max-w-[70ch] text-[11px] font-normal leading-relaxed text-muted-foreground/80" data-patient-visible-status>
+                    {patientVisibleStatus}
+                  </p>
+                ) : null}
               </div>
               <div className="flex flex-wrap items-center justify-end gap-1.5" aria-label="Patient actions">
                 {/* Inline mode: j/k in the queue is the canonical case navigator,
@@ -708,7 +710,7 @@ export function IntakeReviewPanel({
                   }}
                 >
                   <User className="h-3.5 w-3.5" />
-                  {inline ? "Profile" : "Patient profile"}
+                  {inline ? "View profile" : "Patient profile"}
                 </Button>
                 <Button
                   asChild
@@ -721,7 +723,7 @@ export function IntakeReviewPanel({
                 >
                   <Link href={fullCaseHref} onClick={inline ? undefined : () => closePanel()}>
                     <ExternalLink className="h-3.5 w-3.5" />
-                    Full case
+                    Open full record
                   </Link>
                 </Button>
               </div>

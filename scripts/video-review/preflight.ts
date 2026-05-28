@@ -19,6 +19,7 @@ import { homedir } from "node:os"
 import { join } from "node:path"
 
 import { getClaudeCredentialSource } from "./claude-model"
+import { getEnv, hydrateLocalEnv } from "./local-env"
 
 const MIN_FREE_BYTES = 100 * 1024 * 1024
 
@@ -34,13 +35,19 @@ interface PreflightOptions {
 }
 
 export async function preflight(opts: PreflightOptions): Promise<void> {
+  hydrateLocalEnv([
+    "GEMINI_API_KEY",
+    "ANTHROPIC_API_KEY",
+    "AI_GATEWAY_API_KEY",
+    "VERCEL_AI_GATEWAY_API_KEY",
+  ])
+
   const failures: string[] = []
 
-  if (!process.env.GEMINI_API_KEY?.trim()) {
+  if (!getEnv("GEMINI_API_KEY")) {
     failures.push(
-      "GEMINI_API_KEY missing or empty. Add to .env.local + Vercel env + GitHub repo secrets. " +
-        "If already in .env.local: your shell may have the var pre-set to empty - " +
-        "`unset GEMINI_API_KEY` and retry. See https://aistudio.google.com/apikey",
+      "GEMINI_API_KEY missing or empty. Add it to .env.local, Vercel env, or GitHub repo secrets. " +
+        "See https://aistudio.google.com/apikey",
     )
   }
   if (!getClaudeCredentialSource()) {

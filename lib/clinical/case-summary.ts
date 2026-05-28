@@ -742,7 +742,7 @@ function medCertSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const objective = "Telehealth consultation. No physical examination."
 
   const assessment = hasSymptomDetails
-    ? "Symptoms consistent with self-limiting acute illness based on structured intake."
+    ? "Symptoms consistent with self-limiting acute illness."
     : "Insufficient symptom detail to safely determine certificate suitability."
 
   const safetyNetReturn = durationDays && durationDays <= 2

@@ -77,18 +77,6 @@ function getConsultSubtypeLabel(subtype: string | null | undefined): string | nu
   return labels[subtype] ?? null
 }
 
-function getCompactPatientDescription(patient: {
-  ageDobLabel: string
-  sex: { value?: string }
-  address: { present: boolean; value?: string }
-}): string {
-  const location = patient.address.present && patient.address.value
-    ? patient.address.value.split(",").slice(-3, -1).map((part) => part.trim()).filter(Boolean).join(" ")
-    : null
-  const ageDob = patient.ageDobLabel.replace(" / ", " • ")
-  return [ageDob, patient.sex.value, location].filter(Boolean).join(" • ")
-}
-
 function getCompactQueueReason(service: { type?: string; name?: string; short_name?: string } | undefined, subtype: string | null | undefined): string {
   if (service?.type === SERVICE_TYPES.MED_CERTS) return "Medical certificate request"
   if (service?.type === SERVICE_TYPES.COMMON_SCRIPTS || service?.type === "repeat_rx") return "Prescription request"
@@ -445,10 +433,9 @@ export function QueueTable({
                     highlight={plainSearchHighlight}
                     description={
                       compactShell
-                        ? getCompactPatientDescription(patientSnapshot)
+                        ? undefined
                         : patientSnapshot.age != null ? `${patientSnapshot.age}y` : "DOB missing"
                     }
-                    descriptionClassName={compactShell ? "line-clamp-2 whitespace-normal break-words" : undefined}
                     size="sm"
                   />
                 </div>

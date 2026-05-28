@@ -1,0 +1,149 @@
+{
+  "summary": "A composed, restrained doctor console that reads as a clinical tool rather than marketing surface — appropriate given context. Type, color and spacing are close to Stripe/Linear restraint, but the dashboard leans utilitarian and misses InstantMed's signature warmth devices. Brand spine is barely present because this is back-of-house, which is fine, but a few copy and friction details still need tightening.",
+  "overall_score": 7,
+  "categories": {
+    "brand_spine": {
+      "score": 6,
+      "observation": "This is the doctor console, not the patient marketing surface, so the public brand thesis ('Faster than your GP.') is intentionally absent. The 'InstantMed / Doctor Console' lockup at top-left is clean and confident, similar in tone to Linear's internal product chrome. However nothing here signals the Mosh-warmth side of the brand — it could be any generic clinical queue tool.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "Doctor console has zero brand personality cues. No wordmark detail, no warmth, no signature device — it reads as a Notion-style internal tool.",
+          "recommendation": "Introduce one small brand signature in the chrome: e.g. Dr Reid's name-first greeting ('Morning, Amelia') or a subtle coral accent on the Available toggle when on-shift."
+        }
+      ]
+    },
+    "typography": {
+      "score": 8,
+      "observation": "Hierarchy is clean. 'Dashboard' H1, 'Today's queue' section head, 'Mia Carter' case head all read in clear descending weight. Source Sans body at ~14-15px is comfortable; numerals in the KPI strip (5m, 1h 5m) have good tabular feel. No orphans or awkward breaks across the four frames.",
+      "findings": [
+        {
+          "severity": 1,
+          "timestamp_seconds": 12,
+          "issue": "Reason-for-visit paragraph and Subjective paragraph are duplicated verbatim, which makes the dense block of body type feel heavier than necessary.",
+          "recommendation": "Either collapse Reason for visit into a one-line summary or auto-fill Subjective and visually de-emphasise (smaller, muted) so the eye doesn't read the same wall twice."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 8,
+      "observation": "Ivory #F8F7F4 background with solid white cards is holding. Shadows are soft, not sky-heavy but acceptable. Primary blue CTA ('Open Mia's case', 'Send to Mia') is the single dominant color event — good restraint. The amber test-mode banner is the right severity for its purpose. No coral creep, no decoration tax.",
+      "findings": [
+        {
+          "severity": 1,
+          "timestamp_seconds": 12,
+          "issue": "The 'Claimed' pill is solid black, which is the heaviest visual element on the queue card and competes with the primary CTA in the right pane.",
+          "recommendation": "Demote Claimed to a neutral slate fill (e.g. #1F2937 at 8% with dark text) or an outlined state. Reserve solid black for nothing on this surface."
+        }
+      ]
+    },
+    "motion": {
+      "score": 6,
+      "observation": "Across frames 4s→8s→12s→16s the only visible change is content swap when the case opens; no jank, no layout shift. But there's no evidence of intentional motion either — no stagger on queue items, no lift on the case card opening, no counter tick on the wait timer. It feels static rather than Linear-grade physical.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "Case detail pane appears instantly on click with no transition — the eye loses continuity between the queue row and the expanded view.",
+          "recommendation": "Add a 180-220ms ease-out fade+4px lift on the right pane when a case opens, and a subtle width tween on the queue column. Respect prefers-reduced-motion."
+        },
+        {
+          "severity": 2,
+          "timestamp_seconds": 16,
+          "issue": "Waiting timer jumps from '65m 45s' to '66m' between frames — the unit format changes mid-session, which reads as a glitch.",
+          "recommendation": "Lock a single format ('1h 6m' or 'Mm Ss') and tick continuously. Animate digit changes with a 120ms crossfade so it feels alive, not stale."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 7,
+      "observation": "Voice is mostly calm and operational. 'Mia sees: in queue. Doctor review follows when available.' is excellent — short, full stops, names the wait, no jargon. 'If you decline, Mia is refunded $25.' is on-brand: plain, named, no hedge. Status pills ('Intake checked', 'No red flags', 'Draft note ready') are crisp.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "'Symptoms consistent with self-limiting acute illness.' is clinician-jargon. Fine inside a SOAP note, but the surrounding voice elsewhere is plain English, creating tonal whiplash if any of this leaks to patient view.",
+          "recommendation": "Confirm Assessment field is doctor-only. If any of it is patient-visible, add a 'patient-facing summary' field with plain-English mirror ('Likely a short viral illness. Rest and fluids.')."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 16,
+          "issue": "'Certificate ready to send.' is good, but the merchandised refund promise ('Full refund if our doctor can't help') is absent at the decline/refund moment where it would reinforce the brand commitment to the doctor too.",
+          "recommendation": "Add a one-line muted footnote near 'Decline and refund': 'Mia keeps her refund promise — $25 returned automatically.'"
+        }
+      ]
+    },
+    "hierarchy_and_layout": {
+      "score": 8,
+      "observation": "Two-pane queue/detail layout is Stripe-disciplined. KPI strip top-right (Median time to inbox, Oldest wait, Availability toggle) is the right information density for a doctor on-shift. Eye lands on 'Open Mia's case' / 'Send to Mia' inside 2 seconds. Section rhythm holds without heavy dividers.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "When a case is unopened (frames 4s, 8s), the entire right pane is a near-empty card with '1 case completed today.' floating in whitespace. That's a lot of dead real estate and undersells the 'Open Mia's case' CTA.",
+          "recommendation": "Auto-preview the next case in the right pane (read-only) or surface today's metrics (cases done, median time, refund count) so the pane is never empty."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 12,
+          "issue": "'Open next case' button disappears once a case is open — the navigational anchor is gone with no replacement (no 'Next' or 'Skip' affordance after Send).",
+          "recommendation": "Keep a persistent 'Next case' control (or auto-advance) so the doctor never has to return to the queue manually after sending."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 7,
+      "observation": "Doctor-side 'conversion' is time-to-send. Cmd+Enter shortcut, pre-filled SOAP, status checklist (Intake checked / No red flags / Draft note ready), and a single dominant Send CTA are all correct. Waiting time and target are visible at the action moment ('Waiting 66m · 54m to target') — good urgency without panic.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "The decline path ('Decline and refund Cmd+Shift+D') sits visually equal to the send path. On a regulated surface this is fine, but the refund consequence ('Mia is refunded $25') is in body text, easy to miss under time pressure.",
+          "recommendation": "Add a confirmation step (lightweight inline, not modal) on decline with the refund amount and reason picker. Keeps speed for Send, adds one safety beat to Decline."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 16,
+          "issue": "No visible indicator that the certificate PDF/document has been generated or attached — doctor sends without confirming what the patient receives.",
+          "recommendation": "Add a 'Preview certificate' link next to 'Certificate ready to send.' so the doctor can verify the artefact in one click before Cmd+Enter."
+        }
+      ]
+    },
+    "signature_devices": {
+      "score": 5,
+      "observation": "Of the five signature devices, only one and a half are present here: the live wait-counter is implemented ('Median time to inbox 5m', 'Waiting 65m 45s', 'Oldest wait 1h 5m') and name-first framing is partially used ('Mia sees:', 'If you decline, Mia is refunded'). Missing: doctor's handwritten signature mark (correctly absent — marketing only), 'what we won't do' surfacing, and 'while you wait' specificity for the patient-visible status.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "'Mia sees: in queue.' is a great device but stops short — the patient-visible message could be more specific ('while you wait') and the doctor doesn't see what the patient is seeing right now.",
+          "recommendation": "Show a small 'Patient sees' preview card mirroring Mia's current screen ('You're next. Average wait today is 14 minutes.'). Closes the empathy loop for the doctor in one glance."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 16,
+          "issue": "No 'what we won't do' shortcut on the decline path — declines are the moment that policy matters most.",
+          "recommendation": "Link 'See decline reasons' beside the Decline button, opening the canonical 'what we won't do' list so the doctor's refusal aligns with the public commitment."
+        }
+      ]
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Add a 180-220ms ease-out transition when opening a case (fade + 4px lift on the right pane) and animate the wait-timer digits with a 120ms crossfade so the counter reads as live, not stale.",
+      "why": "Currently the surface is static between frames and the timer jumps formats (65m 45s → 66m), which undermines the live-wait signature device and the Linear-grade motion bar.",
+      "estimated_impact": "medium"
+    },
+    {
+      "action": "Replace the empty right pane (frames 4s/8s) with an auto-preview of the next case or today's doctor metrics, and keep a persistent 'Next case' control after Send.",
+      "why": "Removes dead space, eliminates a return-to-queue step after every send, and shortens the doctor's loop — the only conversion that matters on this surface.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Surface the refund promise and a 'Patient sees' mirror card on the case detail — one line under Decline ('Mia keeps her refund promise — $25 returned automatically') and a small preview of the patient's current screen.",
+      "why": "Pulls two signature brand devices (refund commitment + while-you-wait specificity) into the doctor's workspace, aligning back-of-house with the public brand spine.",
+      "estimated_impact": "medium"
+    }
+  ]
+}

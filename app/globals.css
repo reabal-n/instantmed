@@ -1383,7 +1383,7 @@ body {
 @keyframes review-pane-in {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -3562,9 +3562,8 @@ button:not(.no-micro):active:not(:disabled),
   }
 }
 
-/* Collapse dashboard-level queue metrics once the split-pane review is active.
-   The case pane becomes the primary object of attention; the live wait signal
-   stays visible as a slim context token instead of a full KPI tile. */
+/* Keep dashboard-level queue metrics visible once the split-pane review is active.
+   They stay compact so pace remains obvious without competing with the case. */
 @media (min-width: 1024px) {
   html[data-operator-reviewing-case="true"] [data-dashboard-wait-strip] {
     max-height: 2.5rem;
@@ -3572,7 +3571,7 @@ button:not(.no-micro):active:not(:disabled),
   }
 
   html[data-operator-reviewing-case="true"] [data-dashboard-wait-strip] [data-dashboard-median-tile] {
-    display: none;
+    display: inline-flex;
   }
 
   html[data-operator-reviewing-case="true"] [data-dashboard-wait-strip] [data-queue-pressure] {

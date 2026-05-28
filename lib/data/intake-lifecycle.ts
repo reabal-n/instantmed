@@ -197,7 +197,7 @@ export function getStatusLabel(status: IntakeStatus): string {
     draft: "Draft",
     pending_payment: "Awaiting Payment",
     checkout_failed: "Checkout Failed",
-    paid: "In Queue",
+    paid: "In queue",
     in_review: "Under Review",
     pending_info: "Needs Info",
     approved: "Approved",

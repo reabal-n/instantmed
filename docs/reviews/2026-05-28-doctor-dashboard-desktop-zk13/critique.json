@@ -1,0 +1,105 @@
+{
+  "summary": "The InstantMed doctor console is an exceptionally clean and highly performant dashboard that holds its own close to the Stripe and Linear reference bar. It successfully avoids the cluttered, generic look of typical healthtech with a calm, warm ivory backdrop and clear layout structure. Refining keyboard shortcut mappings, resolving text jumps during state transitions, and polishing minor phrasing will elevate this to a flawless medical tool.",
+  "overall_score": 8,
+  "categories": {
+    "brand_spine": {
+      "score": 8,
+      "observation": "The layout conveys speed and efficiency, matching the promise of a rapid clinical workflow without looking cold or clinical.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 2,
+          "issue": "The workspace feels slightly generic-SaaS and misses subtle visual cues connecting it back to the core warm-ivory consumer branding.",
+          "recommendation": "Integrate a subtle warm coral brand color indicator or soft brand styling on the doctor status and active sidebar states."
+        }
+      ]
+    },
+    "typography": {
+      "score": 8,
+      "observation": "Plus Jakarta Sans and clean weights establish clear hierarchy, though the SOAP draft note text block is slightly dense.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 10,
+          "issue": "The letters and line spacing inside the Subjective/Objective/Assessment edit boxes feel tight and cramped for easy reading.",
+          "recommendation": "Adjust line-height to 1.4 and add 4px of extra vertical padding inside the SOAP input cells."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 9,
+      "observation": "Maintains excellent color restraint with the #F8F7F4 warm ivory background, solid white cards, and clear blue interactive CTAs.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 2,
+          "issue": "The amber warning color under the Patient sidebar icon clashes slightly with the refined ivory and soft-blue palette.",
+          "recommendation": "Subdue the amber warning tone to a softer, warmer gold or brand coral color to maintain color consistency."
+        }
+      ]
+    },
+    "motion": {
+      "score": 7,
+      "observation": "Dashboard loading state scales gracefully, but dynamic content rendering inside the details panel introduces visual jumps.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 9.5,
+          "issue": "Significant layout pop occurs when 'Loading Mia's answers' resolves to the full questionnaire content.",
+          "recommendation": "Apply a subtle fade-in transition and use skeleton placeholders with fixed heights to absorb the incoming text height."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 8,
+      "observation": "Highly clinical, respectful, and direct tone, though one instruction string has a slightly unnatural phrase.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 10,
+          "issue": "The phrase 'Modify to your outlook and Press Cmd+Enter' is awkward and grammatically unnatural for medical software.",
+          "recommendation": "Change the prompt to read 'Modify to match your clinical judgment and press Cmd+Enter to approve.'"
+        }
+      ]
+    },
+    "hierarchy_and_layout": {
+      "score": 9,
+      "observation": "Excellent use of a split-pane layout to keep the queue visible on the left while focus is maintained on the active patient review on the right.",
+      "findings": []
+    },
+    "conversion_friction": {
+      "score": 7,
+      "observation": "Speed is optimized with intuitive hotkeys, but a critical keyboard shortcut conflict will frustrate doctors.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 10,
+          "issue": "Mapping the primary action 'Send to Mia' to F12 creates a browser hotkey conflict that will trigger Developer Tools on most machines.",
+          "recommendation": "Rebind the 'Send to Mia' keyboard shortcut from F12 to Cmd+Enter or Ctrl+Enter."
+        }
+      ]
+    },
+    "signature_devices": {
+      "score": 9,
+      "observation": "The live wait counters and active dashboard queue targets serve as excellent operational anchors.",
+      "findings": []
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Rebind the primary action keyboard shortcut",
+      "why": "The F12 hotkey is currently mapped to 'Send to Mia', which natively conflicts with the browser developer console tool across all standard browsers.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Fix patient details layout jump",
+      "why": "The jump when loading patient answers at timestamp 00:09 disrupts focus and causes sudden visual shifts.",
+      "estimated_impact": "medium"
+    },
+    {
+      "action": "Revise SOAP instruction copy",
+      "why": "The phrase 'Modify to your outlook' is not professional medical phrasing and damages the polished tone.",
+      "estimated_impact": "low"
+    }
+  ]
+}

@@ -4,6 +4,7 @@ Auto-maintained by `scripts/video-review/index-update.ts`. Edit nothing here by 
 
 | Captured | Run | Journey | Score | Headline |
 |---|---|---|---|---|
+| 2026-05-28T03:49:29.708Z | [2026-05-28-doctor-dashboard-desktop-zk13](2026-05-28-doctor-dashboard-desktop-zk13/report.md) | Doctor dashboard desktop interaction audit (queue hover + review open) | 8 | A clinician's console that respects the clinician's time |
 | 2026-05-28T01:43:42.534Z | [2026-05-28-doctor-dashboard-desktop-vdql](2026-05-28-doctor-dashboard-desktop-vdql/report.md) | Doctor dashboard desktop interaction audit (queue hover + review open) | 8 | A calm clinical console that loses its voice the moment a case opens |
 | 2026-05-27T23:37:35.570Z | [2026-05-27-doctor-dashboard-desktop-9ynr](2026-05-27-doctor-dashboard-desktop-9ynr/report.md) | Doctor dashboard desktop interaction audit (queue hover + review open) | 8 | A calm console that forgot its loudest device is the live counter |
 | 2026-05-27T19:59:43.729Z | [2026-05-27-doctor-dashboard-desktop-4j2e](2026-05-27-doctor-dashboard-desktop-4j2e/report.md) | Doctor dashboard desktop interaction audit (queue hover + review open) | 8 | A composed doctor console. Fix the layout jump and you've got Linear-grade. |

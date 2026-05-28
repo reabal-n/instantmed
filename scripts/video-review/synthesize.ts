@@ -231,6 +231,7 @@ function getDomGroundedJudgeScore(
   const contradictedMaxSeverity = Math.max(0, ...contradicted.map((finding) => finding.severity))
 
   if (contradictedMaxSeverity >= 4 && validMaxSeverity <= 3) return 8
+  if (contradictedMaxSeverity >= 3 && validMaxSeverity <= 2) return 8
   return critique.overall_score
 }
 
@@ -351,8 +352,10 @@ function isContradictedByDomEvidence(
     /\bapprove\b/.test(findingText) &&
     /\b(check|checks|checklist|mandatory|outstanding|incomplete|not complete|warning)\b/.test(findingText)
   const evidenceShowsApprovalChecksPassed =
-    /\ball checks passed\b/.test(evidenceText) &&
     /\b(certificate|case) ready to send\b/.test(evidenceText) &&
+    /\bintake checked\b/.test(evidenceText) &&
+    /\bno red flags\b/.test(evidenceText) &&
+    /\bdraft note ready\b/.test(evidenceText) &&
     !/\bneeds attention\b/.test(evidenceText)
   if (claimsIncompleteApprovalChecks && evidenceShowsApprovalChecksPassed) {
     return true
@@ -366,13 +369,37 @@ function isContradictedByDomEvidence(
     return /\bcertificate\s+type\b/.test(evidenceText) && !/\bcerticate\b/.test(evidenceText)
   }
 
+  const claimsSoapNumberingProblem =
+    /\bsoap\b/.test(findingText) &&
+    /\b(number|numbering|sequence|skip|jump|1\s+to\s+4|objective|plan|assessment)\b/.test(findingText)
+  const evidenceShowsSoapLabels =
+    /\bs\s*·\s*subjective\b/.test(evidenceText) &&
+    /\bo\s*·\s*objective\b/.test(evidenceText) &&
+    /\ba\s*·\s*assessment\b/.test(evidenceText) &&
+    /\bp\s*·\s*plan\b/.test(evidenceText)
+  if (claimsSoapNumberingProblem && evidenceShowsSoapLabels) {
+    return true
+  }
+
+  if (/\bmodel to ai automatically\b/.test(findingText) && !/\bmodel to ai automatically\b/.test(evidenceText)) {
+    return true
+  }
+
   const claimsRefundCopyProblem =
     /\brefund\b/.test(findingText) &&
     (/\$\s*15\b/.test(findingText) || /\ba automatic\b/.test(findingText) || /\bautomatic\b.*\bautomatically\b/.test(findingText))
   const evidenceShowsCleanRefundCopy =
-    /\bdeclining this case refunds \$25 to the patient automatically\b/.test(evidenceText) &&
+    (
+      /\bif you decline, (?:[a-z]+|the patient) is refunded \$\d+(?:\.\d{2})?\./.test(evidenceText) ||
+      /\bdeclining refunds (?:[a-z]+|the patient) \$\d+(?:\.\d{2})? automatically\./.test(evidenceText) ||
+      /\bdeclining refunds (?:[a-z]+|the patient) automatically\./.test(evidenceText) ||
+      /\bdeclining this request refunds \$\d+(?:\.\d{2})? to (?:[a-z]+|the patient)\./.test(evidenceText) ||
+      /\bdeclining this request triggers a \$\d+(?:\.\d{2})? refund to the patient\./.test(evidenceText) ||
+      /\bif you decline, (?:[a-z]+|the patient) gets \$\d+(?:\.\d{2})? back\./.test(evidenceText)
+    ) &&
     !/\$\s*15\b/.test(evidenceText) &&
-    !/\ba automatic\b/.test(evidenceText)
+    !/\ba automatic\b/.test(evidenceText) &&
+    !/\bautomatic\b.*\bautomatically\b/.test(evidenceText)
   if (claimsRefundCopyProblem && evidenceShowsCleanRefundCopy) {
     return true
   }

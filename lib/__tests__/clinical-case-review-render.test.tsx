@@ -32,7 +32,7 @@ describe("ClinicalCaseReview", () => {
 
     expect(html).toContain("Reason for visit")
     expect(html).toContain("Prescribing plan")
-    expect(html).toContain("Start your note. Cmd+Enter approves.")
+    expect(html).toContain("Visible to you before send. Press Cmd+Enter to approve.")
     expect(html).toContain("Parchment preset")
     expect(html).toContain("Full answers")
     expect(html.indexOf("Reason for visit")).toBeLessThan(html.indexOf("Full answers"))
@@ -57,7 +57,7 @@ describe("ClinicalCaseReview", () => {
     )
 
     expect(html).not.toContain("Recommended plan")
-    expect(html).toContain("Start your note. Cmd+Enter approves.")
+    expect(html).toContain("Visible to you before send. Press Cmd+Enter to approve.")
     expect(html).toContain("contenteditable")
     expect(html).toContain("Patient requests a one-day work certificate")
   })

@@ -208,7 +208,7 @@ describe("doctor queue production contract", () => {
   })
 
   it("keeps compact dashboard queue copy and chips decision-focused", () => {
-    expect(queueClientSource).toContain("Queue pressure is shown in the header.")
+    expect(queueClientSource).toContain("completed today.")
     expect(queueClientSource).not.toContain("No cases finished yet. First one's queued.")
     expect(queueClientSource).not.toContain("You're ${targetUsedPercent}% into the 2h target.")
 

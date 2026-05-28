@@ -67,7 +67,7 @@ function IntakeReviewPanelLoading() {
 
   return (
     <div
-      className="h-full min-h-0 overflow-y-auto p-3 sm:p-4 motion-safe:animate-[review-pane-in_220ms_cubic-bezier(0.16,1,0.3,1)]"
+      className="h-full min-h-0 overflow-y-auto p-3 sm:p-4 motion-safe:animate-[review-pane-in_280ms_cubic-bezier(0.16,1,0.3,1)]"
       aria-busy="true"
       aria-label="Loading case review"
       data-testid="intake-review-loading"
@@ -246,6 +246,7 @@ function QueueIdlePanel({
   doctorAvailable,
   queueDegraded,
   nextIntakes,
+  onOpenNextCase,
 }: {
   queueSize: number
   reviewedToday: number
@@ -253,16 +254,18 @@ function QueueIdlePanel({
   doctorAvailable: boolean
   queueDegraded: boolean
   nextIntakes?: IntakeWithPatient[]
+  onOpenNextCase?: () => void
 }) {
   const nextIntake = nextIntakes?.[0] ?? null
+  const nextPatientName = nextIntake?.patient.full_name?.trim() || null
+  const nextPatientFirstName = nextPatientName?.split(/\s+/)[0] || "the patient"
   const nextAction = queueDegraded
     ? "Refresh before clinical action."
     : !doctorAvailable
       ? "Availability is paused."
       : filteredCount > 0
-        ? "Open a case from the queue."
+        ? `Open the case to see ${nextPatientFirstName}'s details.`
         : "No cases match this filter."
-  const nextPatientName = nextIntake?.patient.full_name?.trim() || null
   const nextService = nextIntake?.service
   const nextServiceLabel = nextService
     ? nextService.short_name || nextService.name || formatServiceType(nextService.type || "")
@@ -289,6 +292,16 @@ function QueueIdlePanel({
               <p className="mt-1 text-base font-semibold leading-snug text-foreground">
                 {nextCaseLabel}
               </p>
+              {nextIntake && onOpenNextCase ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  className="mt-3 h-8 bg-primary px-3 text-xs text-primary-foreground shadow-sm shadow-primary/[0.12] hover:bg-primary/90"
+                  onClick={onOpenNextCase}
+                >
+                  Open {nextPatientFirstName}'s case
+                </Button>
+              ) : null}
             </div>
             {nextAction ? (
               <p className="max-w-[180px] shrink-0 text-right text-[11px] font-medium leading-snug text-slate-500 dark:text-muted-foreground">
@@ -300,7 +313,7 @@ function QueueIdlePanel({
       ) : null}
       <div className="flex flex-1 items-start px-5 py-4 text-xs font-medium text-muted-foreground">
         {queueSize > 0
-          ? `${reviewedToday} finished today. Queue pressure is shown in the header.`
+          ? `${reviewedToday} case${reviewedToday === 1 ? "" : "s"} completed today.`
           : "No visible wait pressure."}
       </div>
     </div>
@@ -1121,7 +1134,7 @@ export function QueueClient({
               // for the new case (releases the old lock automatically).
               <div
                 key={expandedId}
-                className="flex h-full min-h-0 flex-col motion-safe:animate-[review-pane-in_220ms_cubic-bezier(0.16,1,0.3,1)]"
+                className="flex h-full min-h-0 flex-col motion-safe:animate-[review-pane-in_280ms_cubic-bezier(0.16,1,0.3,1)]"
                 data-review-pane-entry
               >
                 <div className="min-h-0 flex-1">
@@ -1141,6 +1154,7 @@ export function QueueClient({
                 doctorAvailable={doctorAvailable}
                 queueDegraded={queueDegraded}
                 nextIntakes={filteredIntakes.slice(0, 3)}
+                onOpenNextCase={handleReviewNext}
               />
             )
           )}

@@ -23,6 +23,7 @@ import { join } from "node:path"
 
 import { GoogleGenAI } from "@google/genai"
 
+import { getEnv } from "./local-env"
 import { buildRubricPrompt, RESPONSE_SCHEMA } from "./rubric"
 import { withRetry, withTimeout } from "./retry"
 import { CritiqueSchema, type StructuredCritique } from "./schema"
@@ -46,7 +47,7 @@ export interface CritiqueResult {
 export type { StructuredCritique } from "./schema"
 
 export async function critique(opts: CritiqueOptions): Promise<CritiqueResult> {
-  const apiKey = process.env.GEMINI_API_KEY
+  const apiKey = getEnv("GEMINI_API_KEY")
   if (!apiKey) throw new Error("GEMINI_API_KEY not set (pre-flight should have caught this)")
 
   const ai = new GoogleGenAI({ apiKey })

@@ -85,9 +85,8 @@ export function QueueFilters({
   const pressure = getQueuePressureState(oldestWaitingMinutes, QUEUE_WAIT_TARGET_MINUTES)
   const pressureClass = pressureClasses[pressure.severity]
   const openOldest = onOpenOldest ?? onOpenSingleMatch
-  const showNextCaseAction = compactShell && filteredCount > 0 && Boolean(openOldest)
+  const showNextCaseAction = compactShell && filteredCount > 0 && Boolean(openOldest) && !hasOpenCase
   const showSearch = !compactShell || intakes.length > 5 || hasActiveSearch
-  const nextCaseLabel = hasOpenCase ? "Case open" : "Open next case"
 
   // `/` key focuses the search input (standard queue shortcut)
   useEffect(() => {
@@ -143,19 +142,11 @@ export function QueueFilters({
               <Button
                 type="button"
                 size="sm"
-                variant={hasOpenCase ? "outline" : "default"}
-                className={cn(
-                  "h-8 shrink-0 px-3 text-xs",
-                  hasOpenCase
-                    ? "border-border/70 bg-muted/30 text-muted-foreground shadow-none hover:bg-muted/30"
-                    : "bg-primary text-primary-foreground shadow-sm shadow-primary/[0.12] hover:bg-primary/90",
-                )}
+                className="h-8 shrink-0 bg-primary px-3 text-xs text-primary-foreground shadow-sm shadow-primary/[0.12] hover:bg-primary/90"
                 onClick={openOldest}
-                disabled={hasOpenCase}
-                title={hasOpenCase ? "Finish or close the current case before opening the next one." : undefined}
                 data-open-next-case
               >
-                {nextCaseLabel}
+                Open next case
                 <ArrowRight className="ml-1 h-3.5 w-3.5" aria-hidden="true" />
               </Button>
             ) : null}
