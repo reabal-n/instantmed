@@ -387,6 +387,11 @@ export function QueueTable({
             const showInlineWaitTime = true
             const waitLabel = calculateWaitTime(queueEnteredAt)
             const displayWaitLabel = waitLabel === "just now" ? "Just arrived" : `Waiting ${waitLabel}`
+            const waitTargetLabel = waitSeverity === "critical"
+              ? "Over target"
+              : waitSeverity === "warning"
+                ? "At risk"
+                : "On track"
             const compactQueueReason = compactShell
               ? getCompactQueueReason(service, intake.subtype)
               : null
@@ -739,6 +744,8 @@ export function QueueTable({
                     >
                       {displayWaitLabel}
                     </span>
+                    <span className="text-muted-foreground/60" aria-hidden="true">·</span>
+                    <span>{waitTargetLabel}</span>
                   </div>
                 )}
                 {!compactShell && (paidAt || submittedAt) && (

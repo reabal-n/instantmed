@@ -43,6 +43,8 @@ import { STAFF_DOCTOR_PATIENTS_HREF, STAFF_IDENTITY_HREF } from "@/lib/dashboard
 import { buildPatientSnapshot } from "@/lib/doctor/patient-snapshot"
 import { formatIntakeStatus } from "@/lib/format/intake"
 import { cn } from "@/lib/utils"
+import { validateMedicareNumber } from "@/lib/validation/medicare"
+import { normalizeIdentifierDigits, normalizeValidIhiNumber } from "@/lib/validation/prescribing-identifier"
 import type { Profile } from "@/types/db"
 
 import { EditPatientDialog } from "./edit-patient-dialog"
@@ -126,6 +128,19 @@ const PATIENT_FILE_STATUS_TONE_CLASS: Record<PatientFileStatusTone, string> = {
   muted: "bg-muted/45 text-muted-foreground",
 }
 
+function formatParchmentActivityTime(value: string | null | undefined): string | null {
+  if (!value) return null
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return null
+
+  return new Intl.DateTimeFormat("en-AU", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date)
+}
+
 interface PatientDetailClientProps {
   patient: PatientDetailProfile
   intakes: IntakeWithService[]
@@ -204,7 +219,7 @@ export function PatientDetailClient({
     startParchmentSyncTransition(async () => {
       const result = await syncPatientParchmentProfileAction(patient.id)
       if (result.success) {
-        toast.success("Patient synced to Parchment")
+        toast.success(patient.parchment_patient_id ? "Patient identity resynced to Parchment" : "Patient synced to Parchment")
         router.refresh()
         return
       }
@@ -313,6 +328,19 @@ export function PatientDetailClient({
     : undefined
   const canUseParchment = parchmentEnabled && parchmentUserLinked && !hasPrescribingIdentityBlocker
   const hasParchmentBlocker = !parchmentEnabled || !parchmentUserLinked || hasPrescribingIdentityBlocker || !patient.parchment_patient_id
+  const validIhiNumber = normalizeValidIhiNumber(patient.ihi_number)
+  const medicareDigits = normalizeIdentifierDigits(patient.medicare_number)
+  const hasInvalidMedicareNumber = Boolean(medicareDigits && !validateMedicareNumber(medicareDigits).valid)
+  const usingIhiForPrescribing = Boolean(validIhiNumber && (!medicareDigits || hasInvalidMedicareNumber))
+  const prescribingIdentifierHeading = usingIhiForPrescribing
+    ? "IHI"
+    : validIhiNumber
+      ? "Medicare / IHI"
+      : "Medicare"
+  const latestIdentitySync = parchmentActivity.find((item) => item.label === "Patient synced") ?? null
+  const latestIdentitySyncLabel = formatParchmentActivityTime(latestIdentitySync?.occurred_at)
+  const syncButtonLabel = patient.parchment_patient_id ? "Resync identity" : "Sync identity"
+  const syncButtonTitle = prescribingIdentityBlockerTitle ?? "Push current Medicare/IHI, address, DOB, phone, and sex to Parchment"
   const latestRequest = intakes[0] ?? null
   const parchmentStatusLabel = !parchmentEnabled
     ? "Parchment integration disabled"
@@ -457,27 +485,32 @@ export function PatientDetailClient({
         <Pill className={cn("h-4 w-4 shrink-0", hasParchmentBlocker ? "text-warning" : "text-muted-foreground")} aria-hidden />
         <span className="text-sm font-medium text-foreground">Prescribing</span>
         <Badge variant={parchmentStatusTone} size="sm">{parchmentStatusLabel}</Badge>
+        {canUseParchment && patient.parchment_patient_id ? (
+          <span className="text-xs text-muted-foreground">
+            {latestIdentitySyncLabel ? `Last identity sync ${latestIdentitySyncLabel}` : "Resync after Medicare/IHI edits."}
+          </span>
+        ) : null}
         <div className="ml-auto flex shrink-0 flex-wrap items-center gap-2">
           {parchmentEnabled && !parchmentUserLinked ? (
             <Button type="button" variant="outline" size="sm" asChild>
               <Link href={`${STAFF_IDENTITY_HREF}#parchment-account`}>Link prescriber</Link>
             </Button>
           ) : null}
-          {canUseParchment && !patient.parchment_patient_id ? (
+          {canUseParchment ? (
             <Button
               type="button"
               variant="outline"
               size="sm"
               disabled={isParchmentSyncPending || hasPrescribingIdentityBlocker}
               onClick={handleSyncPatientToParchment}
-              title={prescribingIdentityBlockerTitle ?? "Sync this patient to Parchment"}
+              title={syncButtonTitle}
             >
               {isParchmentSyncPending ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
                 <RefreshCw className="h-3.5 w-3.5" />
               )}
-              Sync
+              {syncButtonLabel}
             </Button>
           ) : null}
           {canUseParchment ? (
@@ -585,10 +618,13 @@ export function PatientDetailClient({
             </div>
           </div>
           <div className="min-w-0">
-            <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Medicare</dt>
+            <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{prescribingIdentifierHeading}</dt>
             <dd className="font-mono text-sm tabular-nums">
               {snapshot.medicare.present ? snapshot.medicare.label : "Not provided"}
             </dd>
+            {usingIhiForPrescribing && hasInvalidMedicareNumber ? (
+              <p className="text-[11px] text-success">IHI used for prescribing. Invalid Medicare is ignored.</p>
+            ) : null}
             {snapshot.medicare.error ? (
               <p className="text-[11px] text-warning">{snapshot.medicare.error}</p>
             ) : null}

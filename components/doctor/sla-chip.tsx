@@ -8,6 +8,8 @@ interface SlaChipProps {
   paidAt: string | null | undefined
   className?: string
   mode?: "paid" | "waiting"
+  showTargetState?: boolean
+  targetMinutes?: number
 }
 
 type Tone = "success" | "warning" | "critical" | "neutral"
@@ -58,7 +60,15 @@ function formatRelative(diffMs: number, mode: "paid" | "waiting"): string {
     : days === 1 ? `${prefix} 1d ago` : `${prefix} ${days}d ago`
 }
 
-function toneFor(diffMs: number): Tone {
+function targetStateFor(diffMs: number, targetMinutes: number): { label: string; tone: Tone } {
+  const ratio = diffMs / (targetMinutes * 60_000)
+  if (ratio >= 1) return { label: "Over target", tone: "critical" }
+  if (ratio >= 0.6) return { label: "At risk", tone: "warning" }
+  return { label: "On track", tone: "success" }
+}
+
+function toneFor(diffMs: number, targetMinutes?: number): Tone {
+  if (targetMinutes) return targetStateFor(diffMs, targetMinutes).tone
   const hours = diffMs / 3_600_000
   if (hours < 4) return "success"
   if (hours < 24) return "warning"
@@ -72,7 +82,7 @@ function toneFor(diffMs: number): Tone {
  * as `StatusDot` (`components/operator/cases/status-dot.tsx`) so the
  * cockpit reads as one system.
  */
-export function SlaChip({ paidAt, className, mode = "paid" }: SlaChipProps) {
+export function SlaChip({ paidAt, className, mode = "paid", showTargetState = false, targetMinutes }: SlaChipProps) {
   const [nowMs, setNowMs] = useState(() => Date.now())
   useEffect(() => {
     const intervalMs = mode === "waiting" ? 1000 : 30_000
@@ -105,7 +115,8 @@ export function SlaChip({ paidAt, className, mode = "paid" }: SlaChipProps) {
   const paidAtDate = new Date(paidAt)
   const diffMs = nowMs - paidAtDate.getTime()
   const safeDiffMs = Number.isFinite(diffMs) && diffMs >= 0 ? diffMs : 0
-  const tone = toneFor(safeDiffMs)
+  const targetState = showTargetState && targetMinutes ? targetStateFor(safeDiffMs, targetMinutes) : null
+  const tone = toneFor(safeDiffMs, targetState ? targetMinutes : undefined)
   const label = formatRelative(safeDiffMs, mode)
   const title = paidAtDate.toLocaleString("en-AU", {
     day: "numeric",
@@ -135,6 +146,12 @@ export function SlaChip({ paidAt, className, mode = "paid" }: SlaChipProps) {
       >
         {label}
       </span>
+      {targetState ? (
+        <>
+          <span className="text-muted-foreground/60" aria-hidden="true">·</span>
+          <span className={cn(LABEL_COLOR[tone], "font-medium")}>{targetState.label}</span>
+        </>
+      ) : null}
     </span>
   )
 }

@@ -503,6 +503,44 @@ describe("collapseDuplicatePatientProfiles", () => {
     expect(result.patients[0].duplicate_profile_ids).toEqual(["older"])
   })
 
+  it("treats valid IHI as a prescribing completeness signal when collapsing duplicate profiles", () => {
+    const result = collapseDuplicatePatientProfiles([
+      {
+        id: "stale-medicare",
+        full_name: "Andres Burgos",
+        date_of_birth: "2000-09-27",
+        phone: "0414 883 251",
+        email: "anburgos7@gmail.com",
+        medicare_number: "0000000000",
+        medicare_irn: 1,
+        address_line1: "363 turbot street",
+        suburb: "Brisbane",
+        state: "QLD",
+        postcode: "4000",
+        created_at: "2026-05-27T00:00:00Z",
+        updated_at: "2026-05-27T00:00:00Z",
+      },
+      {
+        id: "valid-ihi",
+        full_name: "Andres Burgos",
+        date_of_birth: "2000-09-27",
+        phone: "+61414883251",
+        email: "anburgos7@gmail.com",
+        ihi_number: "8003600000000000",
+        address_line1: "363 turbot street",
+        suburb: "Brisbane",
+        state: "QLD",
+        postcode: "4000",
+        created_at: "2026-05-27T01:00:00Z",
+        updated_at: "2026-05-28T02:00:00Z",
+      },
+    ])
+
+    expect(result.collapsedCount).toBe(1)
+    expect(result.patients[0].id).toBe("valid-ihi")
+    expect(result.patients[0].duplicate_profile_ids).toEqual(["stale-medicare"])
+  })
+
   it("does not collapse different patients who share a phone number", () => {
     const result = collapseDuplicatePatientProfiles([
       { id: "parent", full_name: "Alex Parent", date_of_birth: "1980-01-01", phone: "0400000000" },

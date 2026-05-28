@@ -305,7 +305,7 @@ export async function getParchmentPrescribeUrlAction(
     if (error instanceof ParchmentPatientSyncError) {
       log.warn("Parchment prescribe blocked by patient sync failure")
       Sentry.captureException(error, { extra: { context: "parchment_prescribe_patient_sync" } })
-      return { success: false, error: "Parchment rejected the patient details. Check Medicare, address, DOB, phone, and sex; then retry." }
+      return { success: false, error: "Parchment rejected the patient details. Check Medicare/IHI, address, DOB, phone, and sex; then retry." }
     }
 
     const connectionFailureMessage = getParchmentConnectionFailureMessage(error)

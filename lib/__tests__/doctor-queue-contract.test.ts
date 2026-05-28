@@ -208,12 +208,16 @@ describe("doctor queue production contract", () => {
   })
 
   it("keeps compact dashboard queue copy and chips decision-focused", () => {
-    expect(queueClientSource).toContain("completed today.")
+    expect(queueClientSource).not.toContain("completed today.")
+    expect(queueClientSource).toContain("Next up")
     expect(queueClientSource).not.toContain("No cases finished yet. First one's queued.")
     expect(queueClientSource).not.toContain("You're ${targetUsedPercent}% into the 2h target.")
 
     expect(queueTableSource).toContain("data-queue-taxonomy-chip")
     expect(queueTableSource).toContain("data-queue-status-chip")
+    expect(queueTableSource).toContain("On track")
+    expect(queueTableSource).toContain("At risk")
+    expect(queueTableSource).toContain("Over target")
     expect(queueTableSource).toContain("compactStatusChipClass")
     expect(queueTableSource).toContain("compactTaxonomyChipClass")
     expect(queueTableSource).toContain("bg-background text-foreground")

@@ -313,7 +313,7 @@ export async function openPatientInParchmentAction(
     }
 
     if (error instanceof ParchmentPatientSyncError) {
-      return { success: false, error: "Parchment rejected the patient details. Check Medicare, address, DOB, phone, and sex; then retry." }
+      return { success: false, error: "Parchment rejected the patient details. Check Medicare/IHI, address, DOB, phone, and sex; then retry." }
     }
 
     const connectionFailureMessage = getParchmentConnectionFailureMessage(error)

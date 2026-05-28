@@ -614,6 +614,7 @@ function completenessScore(patient: PatientSnapshotInput): number {
     extended.email_verified ? 4 : 0,
     present(patient.date_of_birth) ? 4 : 0,
     hasValidMedicare(patient.medicare_number) ? 4 : 0,
+    normalizeValidIhiNumber(patient.ihi_number) ? 4 : 0,
     presentScalar(patient.medicare_irn) ? 1 : 0,
     present(patient.medicare_expiry) ? 1 : 0,
     normalizePhone(patient.phone) ? 3 : 0,

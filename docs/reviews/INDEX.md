@@ -4,7 +4,7 @@ Auto-maintained by `scripts/video-review/index-update.ts`. Edit nothing here by 
 
 | Captured | Run | Journey | Score | Headline |
 |---|---|---|---|---|
-| 2026-05-28T06:00:16.514Z | [2026-05-28-doctor-dashboard-desktop-fpio](2026-05-28-doctor-dashboard-desktop-fpio/report.md) | Doctor dashboard desktop interaction audit (queue hover + review open) | 8 | A credible doctor console with two signature devices hiding in plain sight |
+| 2026-05-28T07:26:25.371Z | [2026-05-28-doctor-dashboard-desktop-7jpp](2026-05-28-doctor-dashboard-desktop-7jpp/report.md) | Doctor dashboard desktop interaction audit (queue hover + review open) | 8 | A competent doctor console that forgets it's an InstantMed product |
 | 2026-05-27T23:37:35.570Z | [2026-05-27-doctor-dashboard-desktop-9ynr](2026-05-27-doctor-dashboard-desktop-9ynr/report.md) | Doctor dashboard desktop interaction audit (queue hover + review open) | 8 | A calm console that forgot its loudest device is the live counter |
 | 2026-05-27T19:59:43.729Z | [2026-05-27-doctor-dashboard-desktop-4j2e](2026-05-27-doctor-dashboard-desktop-4j2e/report.md) | Doctor dashboard desktop interaction audit (queue hover + review open) | 8 | A composed doctor console. Fix the layout jump and you've got Linear-grade. |
 | 2026-05-27T17:58:36.395Z | [2026-05-27-doctor-dashboard-desktop-9j9x](2026-05-27-doctor-dashboard-desktop-9j9x/report.md) | Doctor dashboard desktop interaction audit (queue hover + review open) | 7 | Calm console, but the SLA breach doesn't earn its weight |

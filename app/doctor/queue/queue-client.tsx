@@ -240,16 +240,12 @@ function buildQueueEmptyState({
 }
 
 function QueueIdlePanel({
-  queueSize,
-  reviewedToday,
   filteredCount,
   doctorAvailable,
   queueDegraded,
   nextIntakes,
   onOpenNext,
 }: {
-  queueSize: number
-  reviewedToday: number
   filteredCount: number
   doctorAvailable: boolean
   queueDegraded: boolean
@@ -288,9 +284,7 @@ function QueueIdlePanel({
       {showNextUp ? (
         <div className="flex flex-1 flex-col items-start gap-3 px-5 py-4">
           <p className="text-xs font-semibold text-muted-foreground">
-            {queueSize > 0
-              ? `${queueSize} visible case${queueSize === 1 ? "" : "s"} · ${reviewedToday} completed today.`
-              : "No visible wait pressure"}
+            Next up
           </p>
           {nextIntake && onOpenNext ? (
             <Button
@@ -1139,8 +1133,6 @@ export function QueueClient({
               </div>
             ) : (
               <QueueIdlePanel
-                queueSize={queueSize}
-                reviewedToday={reviewedToday}
                 filteredCount={filteredIntakes.length}
                 doctorAvailable={doctorAvailable}
                 queueDegraded={queueDegraded}

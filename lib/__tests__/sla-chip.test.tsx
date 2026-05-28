@@ -53,6 +53,20 @@ describe("SlaChip", () => {
     expect(html).toContain("Queue entered at")
   })
 
+  it("can carry the queue SLA state into the review header", () => {
+    const html = render(
+      <SlaChip
+        paidAt="2026-05-26T09:42:00Z"
+        mode="waiting"
+        targetMinutes={120}
+        showTargetState
+      />,
+    )
+    expect(html).toContain("Waiting 18m")
+    expect(html).toContain("On track")
+    expect(html).toMatch(/data-tone="success"|bg-emerald/)
+  })
+
   it("keeps older waiting chips visibly live on a quiet seconds cadence", () => {
     const html = render(<SlaChip paidAt="2026-05-26T09:44:06Z" mode="waiting" />)
     expect(html).toContain("Waiting 15m 45s")

@@ -144,6 +144,7 @@ export default async function StaffDashboardPage({
       ? "Under 1m"
       : formatMinutes(formToInboxStats.medianMinutes)
     : null
+  const showHeaderOperationalSummary = queueResult.total > 1 || (queueResult.total === 0 && Boolean(formToInboxLabel))
 
   results.forEach((result, index) => {
     if (result.status === "rejected") {
@@ -169,34 +170,36 @@ export default async function StaffDashboardPage({
           actions={(
             <div className="flex flex-wrap items-center justify-end gap-2">
               <div className="flex flex-wrap items-center gap-2 border-r border-border/60 pr-2">
-                <div
-                  data-dashboard-wait-strip
-                  className={cn(
-                    "hidden flex-none items-center gap-2 lg:flex",
-                    formToInboxLabel ? "min-w-[420px]" : "min-w-[220px]",
-                  )}
-                >
-                  {formToInboxLabel ? (
-                    <div
-                      data-dashboard-median-tile
-                      className="inline-flex h-10 items-center gap-2 rounded-xl border border-border/60 bg-white px-3 text-xs font-medium text-muted-foreground shadow-sm shadow-primary/[0.03] dark:bg-card"
-                    >
-                      <span>Median time to inbox</span>
-                      <span className="text-base font-semibold tabular-nums text-foreground">{formToInboxLabel}</span>
-                      <span className="rounded-full border border-success-border bg-success-light px-1.5 py-0.5 text-[10px] font-semibold leading-none text-success">
-                        target &lt;2h
-                      </span>
-                    </div>
-                  ) : null}
-                  <QueuePressureSignal
-                    oldestWaitingMinutes={oldestWaitingMinutes}
-                    oldestWaitingEnteredAt={oldestWaitingEnteredAt}
-                    waitingCaseCount={queueResult.total}
-                    showIcon={false}
-                    jumpToOldestOnClick
-                    className="bg-white shadow-sm shadow-primary/[0.03]"
-                  />
-                </div>
+                {showHeaderOperationalSummary ? (
+                  <div
+                    data-dashboard-wait-strip
+                    className={cn(
+                      "hidden flex-none items-center gap-2 lg:flex",
+                      formToInboxLabel ? "min-w-[420px]" : "min-w-[220px]",
+                    )}
+                  >
+                    {formToInboxLabel ? (
+                      <div
+                        data-dashboard-median-tile
+                        className="inline-flex h-10 items-center gap-2 rounded-xl border border-border/60 bg-white px-3 text-xs font-medium text-muted-foreground shadow-sm shadow-primary/[0.03] dark:bg-card"
+                      >
+                        <span>Median time to inbox</span>
+                        <span className="text-base font-semibold tabular-nums text-foreground">{formToInboxLabel}</span>
+                        <span className="rounded-full border border-success-border bg-success-light px-1.5 py-0.5 text-[10px] font-semibold leading-none text-success">
+                          target &lt;2h
+                        </span>
+                      </div>
+                    ) : null}
+                    <QueuePressureSignal
+                      oldestWaitingMinutes={oldestWaitingMinutes}
+                      oldestWaitingEnteredAt={oldestWaitingEnteredAt}
+                      waitingCaseCount={queueResult.total}
+                      showIcon={false}
+                      jumpToOldestOnClick
+                      className="bg-white shadow-sm shadow-primary/[0.03]"
+                    />
+                  </div>
+                ) : null}
                 {isAdmin && !onlyTestData ? <SystemHealthPill initial={systemHealth} /> : null}
               </div>
               <div className="flex items-center gap-2">

@@ -126,6 +126,15 @@ export function EditPatientDialog({ patient }: EditPatientDialogProps) {
       const result = await updateDoctorPatientAndSyncParchmentAction(patient.id, form)
 
       if (!result.success) {
+        if (result.patientId) {
+          toast.warning(result.error || "Patient updated. Retry Parchment sync from the prescribing strip.")
+          setFieldErrors({})
+          setFormError(null)
+          setOpen(false)
+          router.refresh()
+          return
+        }
+
         setFieldErrors(result.fieldErrors ?? {})
         const message = result.error || "Could not update patient"
         setFormError(message)

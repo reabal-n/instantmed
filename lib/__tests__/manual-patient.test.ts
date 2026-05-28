@@ -148,6 +148,9 @@ describe("manual patient creation", () => {
     // `Refresh` button) and link to the same identity-settings anchor.
     expect(patientDetailClientSource).toContain("Prescriber not linked")
     expect(patientDetailClientSource).toContain("`${STAFF_IDENTITY_HREF}#parchment-account`")
+    expect(patientDetailClientSource).toContain("Resync identity")
+    expect(patientDetailClientSource).toContain("Last identity sync")
+    expect(patientDetailClientSource).toContain("IHI used for prescribing")
     expect(patientDetailClientSource).toContain("Refresh")
   })
 

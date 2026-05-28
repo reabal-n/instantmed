@@ -1,0 +1,136 @@
+{
+  "summary": "A competent, restrained doctor console that reads closer to Linear than to generic healthtech. The queue→review flow is fast and legible, but the surface is mostly utilitarian — brand spine is barely felt here (it's an internal tool, fair), and a few small craft gaps (loading skeleton copy, empty-state phrasing, missing wait specificity) keep it from a Stripe-grade finish.",
+  "overall_score": 7,
+  "categories": {
+    "brand_spine": {
+      "score": 6,
+      "observation": "This is the doctor console, not the patient marketing surface, so brand warmth is appropriately dialled down. The IM mark + 'DOCTOR CONSOLE' eyebrow do the job. But the thesis ('without the small talk', 'time it takes to make a coffee') doesn't bleed into the internal tone at all — the wait counter could be the place it does.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "The 'What Mia sees right now' panel is the perfect spot to echo brand voice ('A doctor is looking at your request now.') but the sentence is flat and doesn't reuse the coffee/time-to-cert promise that defines the brand.",
+          "recommendation": "Mirror the patient-facing wait copy verbatim so doctors see exactly what the patient sees, and the brand spine reaches the console."
+        }
+      ]
+    },
+    "typography": {
+      "score": 8,
+      "observation": "Hierarchy is clean: 'Mia Carter' as H1, sub-line in muted grey, section labels in small caps. Line-height is comfortable, no orphaned headings, SOAP block labels (S·Subjective, O·Objective) are a nice typographic device. Nothing fighting for attention.",
+      "findings": []
+    },
+    "color_and_surface": {
+      "score": 8,
+      "observation": "Ivory background, white cards, blue primary CTA, coral reserved for the test-mode warning and 'Decline with reason'. Restraint holds. Sky-toned shadows are subtle. The 'In queue' pill and 'Case 1 of 1' chip are tasteful.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "'Decline with reason' rendered in coral/red at 12s reads as a destructive action, but decline is a legitimate clinical outcome, not an error. Coral is supposed to be brand-recognition only.",
+          "recommendation": "Demote decline to a neutral ghost button (grey text, no coral). Reserve coral strictly for brand moments per the system."
+        }
+      ]
+    },
+    "motion": {
+      "score": 6,
+      "observation": "Can't fully judge from frames, but the queue→detail transition between 4s and 8s appears to swap content without a visible enter animation; the 8s skeleton state lands abruptly. No obvious jank or layout shift.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 8,
+          "issue": "Loading skeleton appears as a hard swap from the empty 'Open Mia's request when you're ready' state. No ease-in, no continuity between the two surfaces.",
+          "recommendation": "Cross-fade the empty state into the skeleton over ~200ms, then skeleton into content. Linear-grade transitions need a reason and a curve."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 6,
+      "observation": "Mostly calm and clinical. 'Test mode. Real patients are hidden.' is exemplary — short, full stops, no hype. SOAP draft note copy is appropriately clinical. But a few loading and empty states slip into placeholder-speak.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 8,
+          "issue": "'Loading Mia's answers.' appears twice on the same screen (header sub-line and footer). Repeating a loading string in two places reads as a build artefact, not deliberate UI.",
+          "recommendation": "Show the loading line once, near the content it's loading. Header should stay stable with the patient name only."
+        },
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "'Open Mia's request when you're ready.' as the empty-state lead is slightly limp. A real GP voice would name the next action without the hedge.",
+          "recommendation": "Try 'Mia is next. Open when ready.' or just 'Next: Mia Carter.' Shorter, more declarative."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 12,
+          "issue": "'Intake checked. Review before you send.' is good. 'Check before you send.' under 'Draft note' is redundant with it.",
+          "recommendation": "Drop one of the two; the CTA-adjacent reassurance is the stronger location."
+        }
+      ]
+    },
+    "hierarchy_and_layout": {
+      "score": 8,
+      "observation": "Two-column queue/detail is standard but well-spaced. Primary action (Send to Mia) is bottom-right with a keyboard hint (Cmd+Enter) — Stripe-grade detail. Eye lands on the patient name fast at 12s. Section cards are distinguishable without heavy dividers.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "The sticky footer 'Refund on decline: $25 to Mia' sits visually closer to the destructive 'Decline with reason' link than to the primary CTA, which is fine, but the price anchor reads as a penalty rather than a trust signal.",
+          "recommendation": "Reframe as 'Full refund if you can't help — $25 to Mia.' Ties it to the merchandised promise and makes decline feel safe, not punitive."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 7,
+      "observation": "This is the doctor side, so conversion friction is really 'time to send'. From queue-click (4s) to draft-ready (12s) is ~8 seconds — strong. Cmd+Enter shortcut visible. Intake-checked reassurance lives next to the send button.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "The 'Open Mia's request' button in the empty state duplicates the queue card click target. Two ways to do the same thing within 400px of each other is friction, not affordance.",
+          "recommendation": "Remove the secondary 'Open Mia's request' button. The queue card is already the click target; let the right pane stay quiet until selection."
+        },
+        {
+          "severity": 3,
+          "timestamp_seconds": 12,
+          "issue": "The 'Full refund if our doctor can't help' merchandised promise is nowhere on the decline path, which is exactly where it belongs for the doctor (it removes guilt and accelerates honest declines).",
+          "recommendation": "Surface the refund promise inline next to 'Decline with reason' as a calm reassurance: 'Decline is fine. Mia gets a full refund.'"
+        }
+      ]
+    },
+    "signature_devices": {
+      "score": 4,
+      "observation": "Of the five devices, only a faint version of 'while you wait' specificity shows up via 'Waiting 15s · On track'. The live wait-counter is there but not phrased in the brand's signature way. No 'what we won't do' surface, no name-first email preview, no doctor signature mark (correctly absent on console).",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 4,
+          "issue": "'Waiting 10s · On track' is the right idea but reads as a system metric, not the branded wait-counter. The brand thesis ('time it takes to make a coffee') never lands.",
+          "recommendation": "Add a sibling line on the queue card: 'Average med cert today: 14 min.' Doctors then see the SLA they're being measured against in the brand's voice."
+        },
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "The Send-to-Mia confirmation has no preview of the name-first email Mia will receive. Doctors lose the signature device at the exact moment it matters most.",
+          "recommendation": "Show a one-line preview above Send: 'Email opens with: Hi Mia,' so the doctor sees the brand voice they're authorising."
+        }
+      ]
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Move the 'Full refund if our doctor can't help' promise inline next to 'Decline with reason' and demote that link from coral to neutral grey.",
+      "why": "Removes friction on honest declines (a clinical good), restores coral as a brand-only colour, and lands the merchandised promise at the exact decision point.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Rewrite the queue meta line to 'Waiting 15s · Average med cert today: 14 min' so the live wait-counter device is visible to doctors in the brand's voice.",
+      "why": "The console currently shows a metric but not the brand. One line ties the doctor's pace to the patient-facing promise.",
+      "estimated_impact": "medium"
+    },
+    {
+      "action": "Collapse the duplicate loading strings and remove the secondary 'Open Mia's request' button in the empty state; let the queue card be the sole target and let the right pane stay quiet.",
+      "why": "Two loading lines and two click targets within 400px read as unfinished. Cleaning this up moves the console from competent to Linear-grade.",
+      "estimated_impact": "low"
+    }
+  ]
+}

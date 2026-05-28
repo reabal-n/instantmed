@@ -166,7 +166,7 @@ function formatParchmentSyncError(error: unknown): string {
     return `Missing prescribing details: ${error.issues.join(", ")}`
   }
   if (error instanceof ParchmentPatientSyncError) {
-    return "Parchment rejected the patient details. Check Medicare, address, DOB, phone, and sex; then retry."
+    return "Parchment rejected the patient details. Check Medicare/IHI, address, DOB, phone, and sex; then retry."
   }
   return "Failed to sync patient to Parchment. Confirm the integration status and try again."
 }
@@ -413,7 +413,7 @@ export async function getPatientParchmentPrescribeUrlAction(
     if (error instanceof ParchmentPatientSyncError) {
       log.warn("Patient profile Parchment prescribe blocked by sync failure")
       Sentry.captureException(error, { extra: { context: "patient_profile_parchment_sync" } })
-      return { success: false, error: "Parchment rejected the patient details. Check Medicare, address, DOB, phone, and sex; then retry." }
+      return { success: false, error: "Parchment rejected the patient details. Check Medicare/IHI, address, DOB, phone, and sex; then retry." }
     }
 
     const connectionFailureMessage = getParchmentConnectionFailureMessage(error)

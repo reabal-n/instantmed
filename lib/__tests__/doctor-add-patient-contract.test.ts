@@ -128,6 +128,7 @@ describe("doctor add patient Parchment contract", () => {
     expect(detailSource).toContain("EditPatientDialog")
     expect(editPatientDialogSource).toContain("Update and sync")
     expect(editPatientDialogSource).toContain("AddressAutocomplete")
+    expect(editPatientDialogSource).toContain("Patient updated. Retry Parchment sync from the prescribing strip.")
     expect(body).toContain('requireRoleOrNull(["doctor", "admin"])')
     expect(body).toContain("validateDoctorPatientCreateInput(input)")
     expect(body).toContain(".from(\"profiles\")")

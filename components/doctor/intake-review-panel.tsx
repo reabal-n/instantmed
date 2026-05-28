@@ -33,6 +33,8 @@ import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import { buildAdminIntakeHref, buildDoctorIntakeHref } from "@/lib/dashboard/routes"
 import { isReviewLockableStatus } from "@/lib/doctor/intake-lock-status"
 import { logIntakeViewDuration, preloadViewDurationLogging } from "@/lib/doctor/log-view-duration-client"
+import { QUEUE_WAIT_TARGET_MINUTES } from "@/lib/doctor/queue-pressure"
+import { getQueueEnteredAt } from "@/lib/doctor/queue-utils"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format/intake"
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { cn } from "@/lib/utils"
@@ -608,6 +610,7 @@ export function IntakeReviewPanel({
       })
     : null
   const patientFirstName = getPatientFirstName(intake.patient.full_name)
+  const queueEnteredAt = getQueueEnteredAt(intake)
 
   return (
     <>
@@ -646,11 +649,14 @@ export function IntakeReviewPanel({
                   <Badge className={getStatusColor(intake.status)}>
                     {formatIntakeStatus(intake.status)}
                   </Badge>
-                  {/* SLA chip: "Waiting Xm" with calm-chrome semantic dot
-                      (green <4h, amber 4-24h, red 24h+) so the operator sees
-                      review urgency next to the patient name at the decision
-                      moment, not just on the queue list. */}
-                  {!inline ? <SlaChip paidAt={intake.paid_at} mode="paid" /> : null}
+                  {/* SLA chip follows the case from the queue into review so
+                      wait pressure remains visible at the decision moment. */}
+                  <SlaChip
+                    paidAt={queueEnteredAt}
+                    mode="waiting"
+                    targetMinutes={QUEUE_WAIT_TARGET_MINUTES}
+                    showTargetState
+                  />
                   {caseIndex != null && totalCases != null && (
                     <Badge variant="outline" size="sm">Case {caseIndex + 1} of {totalCases}</Badge>
                   )}

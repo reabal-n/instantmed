@@ -154,12 +154,12 @@ function ActionReadinessChecks({
     .map((check) => (check.ready ? check.completeLabel : check.incompleteLabel))
     .join(" · ")
   const visibleSummary = readyCount === checks.length
-    ? "Intake complete. Screener checked. Review before sending."
+    ? "Intake checked. Review before you send."
     : `Needs attention · ${incompleteChecks.map((check) => check.incompleteLabel.toLowerCase()).join(", ")}`
 
   return (
     <div
-      className="flex text-[10px] font-medium text-muted-foreground sm:mr-auto sm:min-w-[220px]"
+      className="flex text-[10px] font-medium text-muted-foreground sm:mr-auto sm:min-w-[180px]"
       data-action-readiness
       data-action-readiness-summary={auditTrailLabel}
       aria-label="Approval readiness checks"
@@ -286,8 +286,8 @@ export function IntakeActionButtons({
   const declineLabel = showRefundOnDecline ? "Decline with reason" : "Decline request"
   const declineCaption = showRefundOnDecline
     ? refundShortLabel
-      ? `Refund on decline: ${refundShortLabel} to ${refundRecipient}.`
-      : `Refund on decline: ${refundRecipient} is refunded.`
+      ? `Full refund if you decline: ${refundShortLabel} back to ${refundRecipient}.`
+      : `Full refund if you decline. ${refundRecipient} is refunded.`
     : "Opens confirmation."
   const safetyReady =
     caseSummary.safetyItems.length === 0 &&
