@@ -111,7 +111,9 @@ describe("getParchmentPatientIdentityIssues", () => {
     expect(createPayload.ihi_number).toBe("8003600000000000")
     expect(updatePayload.ihi_number).toBe("8003600000000000")
     expect(createPayload.medicare_card_number).toBeUndefined()
-    expect(updatePayload.medicare_card_number).toBeUndefined()
+    expect(updatePayload.medicare_card_number).toBeNull()
+    expect(updatePayload.medicare_irn).toBeNull()
+    expect(updatePayload.medicare_valid_to).toBeNull()
   })
 
   it("does not include invalid Medicare details in Parchment payload helpers", () => {

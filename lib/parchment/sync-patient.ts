@@ -353,6 +353,7 @@ export function buildUpdatePatientRequest(
   const medicareExpiry = normalizeMedicareExpiry(answerOrProfile(profile.medicare_expiry, intakeAnswers, ["medicare_expiry", "medicareExpiry"]))
   const validIhi = normalizeValidIhiNumber(answerOrProfile(profile.ihi_number, intakeAnswers, ["ihi_number", "ihiNumber"]))
   const dateOfBirth = resolveDateOfBirth(profile, intakeAnswers)
+  const clearMedicareFields = Boolean(validIhi && !validMedicareNumber)
 
   return {
     family_name: familyName,
@@ -361,9 +362,9 @@ export function buildUpdatePatientRequest(
     sex: resolveParchmentSex(profile, intakeAnswers),
     ...(email ? { email } : {}),
     ...(phone ? { phone } : {}),
-    ...(validMedicareNumber ? { medicare_card_number: validMedicareNumber } : {}),
-    ...(validMedicareNumber && normalizeDigits(medicareIrn) ? { medicare_irn: normalizeDigits(medicareIrn) } : {}),
-    ...(validMedicareNumber && medicareExpiry ? { medicare_valid_to: medicareExpiry } : {}),
+    ...(validMedicareNumber ? { medicare_card_number: validMedicareNumber } : clearMedicareFields ? { medicare_card_number: null } : {}),
+    ...(validMedicareNumber && normalizeDigits(medicareIrn) ? { medicare_irn: normalizeDigits(medicareIrn) } : clearMedicareFields ? { medicare_irn: null } : {}),
+    ...(validMedicareNumber && medicareExpiry ? { medicare_valid_to: medicareExpiry } : clearMedicareFields ? { medicare_valid_to: null } : {}),
     ...(validIhi ? { ihi_number: validIhi } : {}),
     ...(address ? { australian_address: address } : {}),
   }
