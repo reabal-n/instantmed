@@ -36,7 +36,7 @@ import { formatCurrency } from "@/lib/format"
 import { formatMinutes } from "@/lib/format/dates"
 import { cn } from "@/lib/utils"
 
-const DECISION_WAIT_SIGNAL_CADENCE_MS = 15_000
+const DECISION_WAIT_SIGNAL_CADENCE_MS = 1_000
 
 function ShortcutHint({
   children,
@@ -101,6 +101,8 @@ function DecisionWaitSignal({ queueEnteredAt }: { queueEnteredAt: string }) {
 
   const waitMinutes = Math.max(0, Math.floor((now.getTime() - enteredAtMs) / 60000))
   const tone = getDecisionWaitTone(waitMinutes)
+  if (tone === "neutral") return null
+
   const targetLabel = waitMinutes >= QUEUE_WAIT_TARGET_MINUTES
     ? `${formatMinutes(waitMinutes - QUEUE_WAIT_TARGET_MINUTES)} past target`
     : `${formatMinutes(QUEUE_WAIT_TARGET_MINUTES - waitMinutes)} to target`
@@ -143,52 +145,38 @@ function ActionReadinessChecks({
 }) {
   const checks = [
     { label: "Intake checked", ready: detailsReady, completeLabel: "Intake checked", incompleteLabel: "Check intake" },
-    { label: "Safety checked", ready: safetyReady, completeLabel: "No red flags", incompleteLabel: "Review safety" },
+    { label: "Safety checked", ready: safetyReady, completeLabel: "No flags detected in screener", incompleteLabel: "Review safety" },
     { label: "Note ready", ready: noteReady, completeLabel: "Draft note ready", incompleteLabel: "Add note" },
   ]
   const readyCount = checks.filter((check) => check.ready).length
-  const completedChecks = checks.filter((check) => check.ready)
   const incompleteChecks = checks.filter((check) => !check.ready)
   const auditTrailLabel = checks
     .map((check) => (check.ready ? check.completeLabel : check.incompleteLabel))
     .join(" · ")
+  const visibleSummary = readyCount === checks.length
+    ? "Intake complete. Screener checked. Review before sending."
+    : `Needs attention · ${incompleteChecks.map((check) => check.incompleteLabel.toLowerCase()).join(", ")}`
 
   return (
     <div
-      className="grid gap-1 text-[10px] font-medium text-muted-foreground sm:mr-auto sm:min-w-[220px] sm:grid-cols-2"
+      className="flex text-[10px] font-medium text-muted-foreground sm:mr-auto sm:min-w-[220px]"
       data-action-readiness
       data-action-readiness-summary={auditTrailLabel}
       aria-label="Approval readiness checks"
-      title={auditTrailLabel}
+      title={`${readyLabel} ${auditTrailLabel}`}
     >
-      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-foreground sm:col-span-2">
+      <span
+        className={cn(
+          "inline-flex max-w-full items-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold",
+          readyCount === checks.length
+            ? "border-border/60 bg-background/70 text-muted-foreground"
+            : "border-warning-border bg-warning-light text-warning",
+        )}
+        data-readiness-check
+      >
         <CheckCircle className={cn("h-3.5 w-3.5", readyCount === checks.length ? "text-slate-600" : "text-warning")} aria-hidden />
-        {readyCount === checks.length ? readyLabel : `Needs attention · ${readyCount}/${checks.length}`}
+        <span className="truncate">{visibleSummary}</span>
       </span>
-      {(readyCount === checks.length ? completedChecks : incompleteChecks).map((check) => (
-        <span
-          key={check.label}
-          title={check.ready ? check.completeLabel : check.incompleteLabel}
-          className={cn(
-            "inline-flex cursor-default select-none items-center gap-1 rounded-md border px-1.5 py-1 font-semibold",
-            check.ready ? "text-muted-foreground" : "text-warning",
-            check.ready ? "border-border/55 bg-background/70" : "border-warning-border bg-warning-light",
-          )}
-          aria-label={check.ready ? `${check.completeLabel}: ready` : `${check.incompleteLabel}: needs attention`}
-          data-readiness-check
-        >
-          <span
-            className={cn(
-              "grid h-3.5 w-3.5 place-items-center rounded-full border bg-background",
-              check.ready ? "border-border/70 text-slate-600" : "border-warning/55 text-warning",
-            )}
-            aria-hidden
-          >
-            {check.ready ? <CheckCircle className="h-3 w-3" aria-hidden /> : null}
-          </span>
-          <span>{check.ready ? check.completeLabel : check.incompleteLabel}</span>
-        </span>
-      ))}
     </div>
   )
 }
@@ -294,12 +282,13 @@ export function IntakeActionButtons({
     : patientFirstName
       ? `Approve and send certificate to ${patientFirstName}`
       : "Approve and send certificate"
-  const declineLabel = showRefundOnDecline
-    ? "Decline and refund"
-    : "Decline request"
-  const refundConsequenceLabel = refundShortLabel
-    ? `If you decline, ${patientFirstName || "the patient"} is refunded ${refundShortLabel}.`
-    : `If you decline, ${patientFirstName || "the patient"} is refunded.`
+  const refundRecipient = patientFirstName || "the patient"
+  const declineLabel = showRefundOnDecline ? "Decline with reason" : "Decline request"
+  const declineCaption = showRefundOnDecline
+    ? refundShortLabel
+      ? `Refund on decline: ${refundShortLabel} to ${refundRecipient}.`
+      : `Refund on decline: ${refundRecipient} is refunded.`
+    : "Opens confirmation."
   const safetyReady =
     caseSummary.safetyItems.length === 0 &&
     intake.requires_live_consult !== true &&
@@ -344,7 +333,7 @@ export function IntakeActionButtons({
         </div>
       )}
       <div
-        className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end [&>button]:w-full [&>div]:w-full sm:[&>button]:w-auto sm:[&>div]:w-auto"
+        className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-x-6 [&>button]:w-full [&>div]:w-full sm:[&>button]:w-auto sm:[&>div]:w-auto"
         data-action-bar
       >
         {showActionReadiness ? (
@@ -502,19 +491,25 @@ export function IntakeActionButtons({
           <Button
             variant="ghost"
             onClick={() => setShowDeclineDialog(true)}
-            className="h-7 bg-transparent px-2 text-[11px] font-semibold text-muted-foreground shadow-none transition-colors hover:bg-destructive/5 hover:text-destructive focus-visible:text-destructive"
+            className="h-7 bg-transparent px-2 text-[11px] font-semibold text-destructive/85 shadow-none transition-colors hover:bg-destructive/5 hover:text-destructive focus-visible:text-destructive"
             disabled={isPending}
             size="sm"
-            title={showRefundOnDecline ? "Opens confirmation before refunding the patient." : undefined}
+            title={showRefundOnDecline ? "Shortcut: Cmd+Shift+D. Opens confirmation before refunding the patient." : "Shortcut: Cmd+Shift+D."}
+            aria-keyshortcuts="Meta+Shift+D"
           >
             {declineLabel}
-            <ShortcutHint tone="tertiary">Cmd+Shift+D</ShortcutHint>
           </Button>
-          {showRefundOnDecline ? (
-            <p className="max-w-[260px] text-[11px] font-medium leading-snug text-muted-foreground" data-refund-consequence>
-              {refundConsequenceLabel}
-            </p>
-          ) : null}
+          <p
+            className={cn(
+              "rounded-md px-2 py-1 text-[10px] font-semibold leading-tight",
+              showRefundOnDecline
+                ? "bg-transparent text-muted-foreground"
+                : "text-muted-foreground",
+            )}
+            data-decline-confirmation-copy
+          >
+            {declineCaption}
+          </p>
         </div>
       )}
       </div>

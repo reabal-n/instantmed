@@ -49,8 +49,11 @@ export async function critiqueWithClaudeVision(
     )
   }
 
+  const claudeModel = await getClaudeModel()
+  const claudeModelLabel = await getClaudeModelLabel()
+
   console.log(
-    `[claude-critique] generating vision critique with ${getClaudeModelLabel()} from ${frames.length} frames ` +
+    `[claude-critique] generating vision critique with ${claudeModelLabel} from ${frames.length} frames ` +
       `(timeout ${CLAUDE_VISION_TIMEOUT_MS / 1000}s)...`,
   )
 
@@ -89,7 +92,7 @@ Return this exact shape. Do not rename keys.
   try {
     const result = await withTimeout(
       generateText({
-        model: getClaudeModel(),
+        model: claudeModel,
         messages: [
           {
             role: "user",
@@ -111,7 +114,7 @@ Return this exact shape. Do not rename keys.
         ],
         maxOutputTokens: 8000,
         maxRetries: 3,
-        // temperature intentionally omitted - claude-opus-4-7 deprecated it.
+        // Temperature intentionally omitted. Some Claude Opus versions reject it.
       }),
       CLAUDE_VISION_TIMEOUT_MS,
       "Claude vision generateText",

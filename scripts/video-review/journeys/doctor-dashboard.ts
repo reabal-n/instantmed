@@ -24,6 +24,9 @@
  *   pnpm review --journey=doctor-dashboard --url=http://localhost:3000
  */
 
+import { execFile } from "node:child_process"
+import { promisify } from "node:util"
+
 import { getEnv } from "../local-env"
 import type { Journey } from "./index"
 
@@ -31,12 +34,14 @@ const OPERATOR_USER_ID = "e2e00000-0000-0000-0000-000000000001"
 const E2E_REVIEW_INTAKE_ID = "e2e00000-0000-0000-0000-000000000010"
 const E2E_REVIEW_FILTER = "E2E"
 const TEST_ONLY_DASHBOARD_PATH = "/dashboard?showTestData=1&onlyTestData=1"
+const VIDEO_REVIEW_RUN_ID = "video-review-dashboard-current"
 const OPERATOR_COOKIE_HEADER = [
   `__e2e_auth_user_id=${OPERATOR_USER_ID}`,
   "__e2e_auth_user_type=operator",
   "__e2e_auth_role=doctor",
   "__e2e_auth_is_admin=true",
 ].join("; ")
+const execFileAsync = promisify(execFile)
 
 function getE2ESecret(): string {
   const secret = getEnv("E2E_SECRET")
@@ -87,6 +92,18 @@ async function waitForWarmResponse(
 }
 
 async function prewarmDoctorDashboard(baseUrl: string, showTestData = false): Promise<void> {
+  if (showTestData) {
+    await execFileAsync("pnpm", ["tsx", "scripts/e2e/seed.ts"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        E2E_RUN_ID: VIDEO_REVIEW_RUN_ID,
+        E2E_SEED_CLI: "1",
+      },
+      timeout: 90_000,
+    })
+  }
+
   await waitForWarmResponse("test login", `${baseUrl}/api/test/login`, {
     method: "POST",
     headers: {
@@ -327,16 +344,8 @@ export const doctorDashboardDesktop: Journey = {
 
     const reviewPanel = page.getByTestId("intake-review-panel")
     if (await reviewPanel.isVisible().catch(() => false)) {
-      await reviewPanel.locator("textarea").first().click().catch(() => {})
-      await page.waitForTimeout(1000)
-      await reviewPanel.evaluate((el) => {
-        el.scrollTo({ top: 500, behavior: "smooth" })
-      }).catch(() => {})
-      await page.waitForTimeout(1800)
-      await reviewPanel.evaluate((el) => {
-        el.scrollTo({ top: 0, behavior: "smooth" })
-      }).catch(() => {})
-      await page.waitForTimeout(1200)
+      await reviewPanel.locator("textarea").first().focus().catch(() => {})
+      await page.waitForTimeout(900)
     }
 
     await page.waitForTimeout(1500)

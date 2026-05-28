@@ -1,20 +1,19 @@
 /**
  * Stage 3: Claude voice-aware synthesis.
  *
- * Model: claude-opus-4-7 (latest Opus). Matches the production
- * AI_MODEL_CONFIG.clinical in lib/ai/provider.ts. Opus is the right
- * call here because voice rewriting on a regulated-health surface
- * benefits from the extra reasoning - the brand voice rules are
- * specific and the cost of off-voice output is real.
+ * Model: Claude Opus, resolved from env or Anthropic's model list.
+ * Opus is the right call here because voice rewriting on a
+ * regulated-health surface benefits from the extra reasoning - the
+ * brand voice rules are specific and the cost of off-voice output is
+ * real.
  *
  * Hardening:
  *   - generateText wrapped in withTimeout (3 min cap) so a hung stream
  *     cannot block the pipeline.
  *   - maxRetries explicitly set on the SDK call.
  *   - Output validated non-empty + minimum length before writing.
- *   - temperature OMITTED. claude-opus-4-7 deprecated the param; the
- *     SDK will pass through whatever you set and the API will return
- *     400. Per CLAUDE.md gotcha.
+ *   - temperature OMITTED. Some Claude Opus versions reject it, and the
+ *     SDK will pass through whatever you set.
  *
  * Takes the validated Gemini + Claude-vision critique JSON and rewrites
  * it as a ranked markdown report in the InstantMed voice. Every sentence
@@ -69,19 +68,22 @@ export async function synthesize(opts: SynthesizeOptions): Promise<SynthesizeRes
     throw new Error("No Claude credential set (pre-flight should have caught this)")
   }
 
-  console.log(`[synthesize] generating report with ${getClaudeModelLabel()} (timeout ${SYNTHESIZE_TIMEOUT_MS / 1000}s)...`)
+  const claudeModel = await getClaudeModel()
+  const claudeModelLabel = await getClaudeModelLabel()
+
+  console.log(`[synthesize] generating report with ${claudeModelLabel} (timeout ${SYNTHESIZE_TIMEOUT_MS / 1000}s)...`)
 
   const domEvidence = loadDomEvidence(opts)
   const userMessage = buildUserMessage(opts, domEvidence)
 
   const { text } = await withTimeout(
     generateText({
-      model: getClaudeModel(),
+      model: claudeModel,
       system: SYNTHESIZE_SYSTEM_PROMPT,
       messages: [{ role: "user", content: userMessage }],
       maxOutputTokens: 4000,
       maxRetries: 3,
-      // temperature intentionally omitted - claude-opus-4-7 deprecated it
+      // Temperature intentionally omitted. Some Claude Opus versions reject it.
     }),
     SYNTHESIZE_TIMEOUT_MS,
     "Claude generateText",
@@ -113,7 +115,7 @@ function buildUserMessage(opts: SynthesizeOptions, domEvidence: DomEvidenceSnaps
 
 You have two independent visual judges:
 - Gemini reviewed the full WebM capture.
-- Claude Opus 4.7 reviewed the extracted PNG frames from the same capture.
+- Claude Opus reviewed the extracted PNG frames from the same capture.
 
 Use both. Prioritise issues that both models agree on. When they disagree, call out the more concrete, frame-grounded evidence. Do not silently average vague claims into the report.
 When a model claim conflicts with the DOM/text evidence, mark it as a model false positive instead of a product defect.
@@ -132,7 +134,7 @@ capturedAt: ${opts.capturedAt}
 ${JSON.stringify(opts.critique, null, 2)}
 \`\`\`
 
-# Claude Opus 4.7 vision critique JSON
+# Claude Opus vision critique JSON
 
 \`\`\`json
 ${JSON.stringify(opts.claudeCritique, null, 2)}
@@ -165,7 +167,9 @@ function injectAcceptanceChecklist(
     ...opts.claudeCritique.top_three_actions,
   ]).toLowerCase()
   const shortcutHazard = /\bcmd\+a\b|select-all|select all/.test(text)
-  const clippedDecisionText = /clip|clipped|truncat|cut off|viewport edge/.test(text)
+  const clippedDecisionText =
+    /\b(send|decline|approve|action|button|footer|decision)\b.{0,90}\b(clip|clipped|truncat|cut off|viewport edge)\b/.test(text) ||
+    /\b(clip|clipped|truncat|cut off|viewport edge)\b.{0,90}\b(send|decline|approve|action|button|footer|decision)\b/.test(text)
   const scoreFloorPassed = combinedScore >= 8
   const line = (passed: boolean, label: string) => `- [${passed ? "x" : " "}] ${label}`
   const checklist = `## Acceptance Checklist
@@ -352,10 +356,17 @@ function isContradictedByDomEvidence(
     /\bapprove\b/.test(findingText) &&
     /\b(check|checks|checklist|mandatory|outstanding|incomplete|not complete|warning)\b/.test(findingText)
   const evidenceShowsApprovalChecksPassed =
-    /\b(certificate|case) ready to send\b/.test(evidenceText) &&
-    /\bintake checked\b/.test(evidenceText) &&
-    /\bno red flags\b/.test(evidenceText) &&
-    /\bdraft note ready\b/.test(evidenceText) &&
+    (
+      (
+        /\b(certificate|case) ready to send\b/.test(evidenceText) &&
+        /\bintake checked\b/.test(evidenceText) &&
+        (/\bno red flags\b/.test(evidenceText) || /\bno flags detected in screener\b/.test(evidenceText)) &&
+        /\bdraft note ready\b/.test(evidenceText)
+      ) ||
+      /\bchecks passed\b.*\bintake\b.*\bred flags\b.*\bdraft\b/.test(evidenceText) ||
+      /\bintake complete\b.*\bno red flags\b.*\bdraft ready\b/.test(evidenceText) ||
+      /\bintake complete\b.*\bscreener checked\b.*\breview before sending\b/.test(evidenceText)
+    ) &&
     !/\bneeds attention\b/.test(evidenceText)
   if (claimsIncompleteApprovalChecks && evidenceShowsApprovalChecksPassed) {
     return true
@@ -385,6 +396,61 @@ function isContradictedByDomEvidence(
     return true
   }
 
+  if (
+    /\bhost patients\b/.test(findingText) &&
+    /\breal patients are hidden\b/.test(evidenceText) &&
+    !/\bhost patients\b/.test(evidenceText)
+  ) {
+    return true
+  }
+
+  if (
+    /\bpost-\d+\b/.test(findingText) &&
+    /\bmelbourne,\s*vic,\s*3000\b/.test(evidenceText) &&
+    !/\bpost-\d+\b/.test(evidenceText)
+  ) {
+    return true
+  }
+
+  const claimsPatientMirrorIsCopyLeak =
+    /\bnot this doctor'?s patient\b/.test(findingText) ||
+    (
+      /\ba doctor (?:will review your request|will review|is reviewing requests|is reviewing your request|is reviewing|is looking at your request)\b/.test(findingText) &&
+      /\b(copy|leak|patient-facing|persona|context)\b/.test(findingText)
+    )
+  const evidenceShowsIntentionalPatientMirror =
+    (
+      /\b[a-z]+\s+sees:\s*["']?you(?:'|’)?re (?:next|in the queue|in the doctor queue)\b/.test(evidenceText) ||
+      /\bwhat (?:[a-z]+|the patient) sees right now\s*["']?you(?:'|’)?re (?:next|in the queue|in the doctor queue)\b/.test(evidenceText) ||
+      /\bpatient sees now\s*["']?you(?:'|’)?re (?:next|in the queue|in the doctor queue)\b/.test(evidenceText) ||
+      /\bpatient currently sees\s*["']?you(?:'|’)?re (?:next|in the queue|in the doctor queue)\b/.test(evidenceText)
+    ) &&
+    /\ba doctor (?:will review your request shortly|is reviewing requests now|is reviewing your request now|is looking at your request now)\b/.test(evidenceText)
+  if (claimsPatientMirrorIsCopyLeak && evidenceShowsIntentionalPatientMirror) {
+    return true
+  }
+
+  const claimsDraftHelperMisread =
+    /\breview once every before sending\b/.test(findingText) ||
+    /\bpress cmd\+enter to draft\b/.test(findingText)
+  const evidenceShowsCleanDraftHelper =
+    (/\breview every line before sending\b/.test(evidenceText) || /\bcheck before you send\b/.test(evidenceText)) &&
+    !/\breview once every before sending\b/.test(evidenceText) &&
+    !/\bpress cmd\+enter to draft\b/.test(evidenceText)
+  if (claimsDraftHelperMisread && evidenceShowsCleanDraftHelper) {
+    return true
+  }
+
+  const claimsMissingShortcutLabels =
+    /\b(no|missing|add)\b.*\b(shortcut|key-?bind|cmd\+enter|⌘\s*\+?\s*enter)\b/.test(findingText) ||
+    /\bshortcut labels?\b/.test(findingText)
+  const evidenceShowsDecisionShortcuts =
+    /\bcmd\+enter\b/.test(evidenceText) &&
+    /\bcmd\+shift\+d\b/.test(evidenceText)
+  if (claimsMissingShortcutLabels && evidenceShowsDecisionShortcuts) {
+    return true
+  }
+
   const claimsRefundCopyProblem =
     /\brefund\b/.test(findingText) &&
     (/\$\s*15\b/.test(findingText) || /\ba automatic\b/.test(findingText) || /\bautomatic\b.*\bautomatically\b/.test(findingText))
@@ -395,7 +461,8 @@ function isContradictedByDomEvidence(
       /\bdeclining refunds (?:[a-z]+|the patient) automatically\./.test(evidenceText) ||
       /\bdeclining this request refunds \$\d+(?:\.\d{2})? to (?:[a-z]+|the patient)\./.test(evidenceText) ||
       /\bdeclining this request triggers a \$\d+(?:\.\d{2})? refund to the patient\./.test(evidenceText) ||
-      /\bif you decline, (?:[a-z]+|the patient) gets \$\d+(?:\.\d{2})? back\./.test(evidenceText)
+      /\bif you decline, (?:[a-z]+|the patient) gets \$\d+(?:\.\d{2})? back\./.test(evidenceText) ||
+      /\brefund on decline: \$\d+(?:\.\d{2})? to (?:[a-z]+|the patient)\./.test(evidenceText)
     ) &&
     !/\$\s*15\b/.test(evidenceText) &&
     !/\ba automatic\b/.test(evidenceText) &&

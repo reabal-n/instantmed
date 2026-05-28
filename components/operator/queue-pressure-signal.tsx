@@ -136,8 +136,13 @@ export function QueuePressureSignal({
     typeof liveElapsedSeconds === "number"
       ? Math.floor(liveElapsedSeconds / 60)
       : oldestWaitingMinutes
-  const liveSecondsLabel = null
+  const liveSecondsLabel = typeof liveElapsedSeconds === "number" && liveElapsedSeconds >= 60
+    ? `${String(liveElapsedSeconds % 60).padStart(2, "0")}s`
+    : null
   const state = getQueuePressureState(liveOldestWaitingMinutes, targetMinutes)
+  const liveWaitValue = typeof liveElapsedSeconds === "number" && liveElapsedSeconds < 60
+    ? `${liveElapsedSeconds}s`
+    : state.value
   const softenUrgent = softenWhenReviewOpen && reviewOpen && state.severity === "urgent"
   const classes = softenUrgent ? reviewOpenUrgentClasses : severityClasses[state.severity]
   const refreshAgeLabel = formatRefreshAge(nowMs, mountedAtRef.current)
@@ -159,9 +164,12 @@ export function QueuePressureSignal({
     ? [refreshAgeLabel, waitingCaseLabel].filter(Boolean).join(" · ")
     : null
   const targetTokenTone = getTargetTokenTone(liveOldestWaitingMinutes, targetMinutes)
+  const liveTitle = state.severity === "idle"
+    ? state.title
+    : state.title.replace(`waiting ${state.value}`, `waiting ${liveWaitValue}`)
   const title = softenUrgent
-    ? `${state.title} Another case is open; finish or switch from the queue when ready. ${targetLabel}.`
-    : `${state.title} ${targetLabel}.`
+    ? `${liveTitle} Another case is open; finish or switch from the queue when ready. ${targetLabel}.`
+    : `${liveTitle} ${targetLabel}.`
   const rootClassName = cn(
     "inline-flex min-h-8 items-center gap-2 rounded-xl border px-2.5 py-1.5 text-xs font-medium shadow-sm shadow-primary/[0.03] transition-colors duration-150",
     prominent ? "min-h-14 px-3.5 py-2" : compact ? "h-8" : "h-10 px-3",
@@ -190,7 +198,7 @@ export function QueuePressureSignal({
         className={cn("text-3xl font-semibold leading-none tracking-tight tabular-nums", classes.value)}
         data-live-wait-counter
       >
-        {state.value}
+        {liveWaitValue}
         {liveSecondsLabel ? (
           <>
             {" "}
@@ -242,11 +250,19 @@ export function QueuePressureSignal({
         </span>
       ) : null}
       <span
-        key={state.value}
+        key={liveWaitValue}
         className={cn("font-semibold tabular-nums motion-safe:animate-[wait-digit-tick_160ms_cubic-bezier(0.16,1,0.3,1)]", compact ? "text-sm" : "text-base", classes.value)}
         data-live-wait-counter
       >
-        {state.value}
+        {liveWaitValue}
+        {liveSecondsLabel ? (
+          <>
+            {" "}
+            <span className="text-[11px] font-medium text-muted-foreground">
+              {liveSecondsLabel}
+            </span>
+          </>
+        ) : null}
       </span>
       {trailingLabel ? (
         <span className={cn("hidden font-medium opacity-80 tabular-nums sm:inline", compact ? "text-[11px]" : "text-xs")}>
@@ -262,7 +278,7 @@ export function QueuePressureSignal({
         type="button"
         className={rootClassName}
         title={`${title} Click to open the oldest waiting case.`}
-        aria-label={`${state.label}: ${state.value}${softenUrgent ? " while reviewing another case" : ""}. Open oldest waiting case.`}
+        aria-label={`${state.label}: ${liveWaitValue}${softenUrgent ? " while reviewing another case" : ""}. Open oldest waiting case.`}
         data-queue-pressure={state.severity}
         data-queue-pressure-softened={softenUrgent ? "true" : undefined}
         onClick={() => window.dispatchEvent(new CustomEvent("operator-jump-to-oldest-wait"))}
@@ -276,7 +292,7 @@ export function QueuePressureSignal({
     <span
       className={rootClassName}
       title={title}
-      aria-label={`${state.label}: ${state.value}${softenUrgent ? " while reviewing another case" : ""}`}
+      aria-label={`${state.label}: ${liveWaitValue}${softenUrgent ? " while reviewing another case" : ""}`}
       data-queue-pressure={state.severity}
       data-queue-pressure-softened={softenUrgent ? "true" : undefined}
     >

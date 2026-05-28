@@ -106,6 +106,12 @@ function getSoapTextareaRows(section: SoapSectionKey, value: string): number {
   return Math.min(9, Math.max(baseline, explicitLines + wrappedLines))
 }
 
+function getCompactSoapTextareaRows(section: SoapSectionKey, value: string): number {
+  if (section === "S") return Math.min(3, Math.max(2, Math.ceil(value.length / 96)))
+  if (section === "P") return 3
+  return 2
+}
+
 function normaliseClinicalFactText(value: string): string {
   return value
     .toLowerCase()
@@ -208,7 +214,7 @@ export function ClinicalCaseReview({
               {isEditableDraftNote ? "Draft note" : "Clinical note"}
             </p>
             <p className="text-[11px] font-medium text-muted-foreground">
-              Visible to you before send. Press Cmd+Enter to approve.
+              Check before you send.
             </p>
           </div>
         </div>
@@ -259,18 +265,26 @@ export function ClinicalCaseReview({
             </div>
           ) : null}
           {structuredSoapDraft ? (
-            <div className="space-y-2" aria-label="Structured SOAP note">
+            <div
+              className={cn("grid gap-2", compact ? "xl:grid-cols-2" : "grid-cols-1")}
+              aria-label="Structured SOAP note"
+            >
               {SOAP_SECTIONS.map((section) => (
                 <div
                   key={section.key}
                   className={cn(
-                    "grid gap-1.5 rounded-md border border-border/60 bg-background/80 p-2.5 sm:items-start",
-                    compact ? "sm:grid-cols-[104px_minmax(0,1fr)]" : "sm:grid-cols-[108px_minmax(0,1fr)]",
+                    "grid gap-1.5 rounded-md border border-border/60 bg-background/80 sm:items-start",
+                    compact
+                      ? "p-2"
+                      : "p-2.5 sm:grid-cols-[108px_minmax(0,1fr)]",
                   )}
                 >
                   <label
                     htmlFor={`draft-soap-${section.key}`}
-                    className="pt-1 text-[11px] font-semibold text-slate-500 dark:text-muted-foreground"
+                    className={cn(
+                      "text-[11px] font-semibold text-slate-500 dark:text-muted-foreground",
+                      !compact && "pt-1",
+                    )}
                   >
                     {compact ? `${section.key} · ${section.label}` : section.label}
                   </label>
@@ -279,7 +293,7 @@ export function ClinicalCaseReview({
                     ref={section.key === "S" ? draftNoteTextareaRef : undefined}
                     value={structuredSoapDraft[section.key]}
                     placeholder={`${section.label} note`}
-                    minRows={compact ? Math.min(3, getSoapTextareaRows(section.key, structuredSoapDraft[section.key])) : getSoapTextareaRows(section.key, structuredSoapDraft[section.key])}
+                    minRows={compact ? getCompactSoapTextareaRows(section.key, structuredSoapDraft[section.key]) : getSoapTextareaRows(section.key, structuredSoapDraft[section.key])}
                     onChange={(event) => {
                       onDraftNoteChange?.(composeSoapDraft({
                         ...structuredSoapDraft,
@@ -287,7 +301,7 @@ export function ClinicalCaseReview({
                       }))
                     }}
                     className="w-full"
-                    textareaClassName="resize-y overflow-visible border-transparent bg-transparent px-0 py-0 text-sm leading-relaxed shadow-none hover:border-transparent focus:border-transparent focus:ring-0 focus-visible:ring-0"
+                    textareaClassName="resize-y overflow-auto border-transparent bg-transparent px-0 py-0 text-sm leading-relaxed shadow-none hover:border-transparent focus:border-transparent focus:ring-0 focus-visible:ring-0"
                     aria-label={`Draft clinical note ${section.label}`}
                   />
                 </div>

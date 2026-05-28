@@ -216,7 +216,8 @@ describe("doctor queue production contract", () => {
     expect(queueTableSource).toContain("data-queue-status-chip")
     expect(queueTableSource).toContain("compactStatusChipClass")
     expect(queueTableSource).toContain("compactTaxonomyChipClass")
-    expect(queueTableSource).toContain("bg-slate-900 text-white")
+    expect(queueTableSource).toContain("bg-background text-foreground")
+    expect(queueTableSource).toContain("compactClaimChipClass")
   })
 
   it("keeps queue health monitoring aligned with the paid doctor queue", () => {

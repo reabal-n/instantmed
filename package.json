@@ -6,7 +6,7 @@
     "node": "24.x"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "PORT=3060 next dev",
     "build": "NODE_OPTIONS='--max-old-space-size=8192' next build",
     "build:release": "bash scripts/build-release.sh",
     "check:node": "bash scripts/check-node-runtime.sh",

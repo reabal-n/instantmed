@@ -49,7 +49,7 @@
 
 ```bash
 pnpm install
-pnpm dev              # Dev server (localhost:3000)
+pnpm dev              # Dev server (localhost:3060)
 pnpm build            # Production build (8GB heap)
 pnpm typecheck        # Type-check without emitting
 pnpm lint             # ESLint (flat config)
@@ -61,6 +61,7 @@ pnpm ci               # Full CI: install → lint → test → build
 
 - Unit tests: `lib/__tests__/**/*.test.ts` — Node environment, not jsdom. Coverage: 80% statements, 70% branches, 80% functions, 80% lines (scoped to `lib/clinical/` and `lib/security/`; `lib/state-machine/` was removed 2026-04-08).
 - E2E tests: `e2e/**/*.spec.ts` — auto-seeds/tears down test data. Auth bypass: `PLAYWRIGHT=1` + `__e2e_auth_user_id` cookie.
+- Dedicated local app port: `3060`. Use `http://localhost:3060` for manual/Codex Browser Use checks. Moirai uses `3010`; Reabal uses `3055`; do not reuse those ports for InstantMed.
 
 ## Tech Stack
 

@@ -85,7 +85,7 @@ export function QueueFilters({
   const pressure = getQueuePressureState(oldestWaitingMinutes, QUEUE_WAIT_TARGET_MINUTES)
   const pressureClass = pressureClasses[pressure.severity]
   const openOldest = onOpenOldest ?? onOpenSingleMatch
-  const showNextCaseAction = compactShell && filteredCount > 0 && Boolean(openOldest) && !hasOpenCase
+  const showNextCaseAction = compactShell && filteredCount > 1 && Boolean(openOldest) && !hasOpenCase
   const showSearch = !compactShell || intakes.length > 5 || hasActiveSearch
 
   // `/` key focuses the search input (standard queue shortcut)

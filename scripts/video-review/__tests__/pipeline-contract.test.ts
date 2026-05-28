@@ -37,7 +37,7 @@ describe("video review multi-model contract", () => {
     const synthesize = read("scripts/video-review/synthesize.ts")
 
     expect(synthesize).toContain("Gemini reviewed the full WebM capture")
-    expect(synthesize).toContain("Claude Opus 4.7 reviewed the extracted PNG frames")
+    expect(synthesize).toContain("Claude Opus reviewed the extracted PNG frames")
     expect(synthesize).toContain("Use both.")
     expect(synthesize).toContain("DomEvidenceSnapshot")
     expect(synthesize).toContain("filterContradictedFindings")
@@ -68,6 +68,9 @@ describe("video review multi-model contract", () => {
     expect(doctorDashboard).toContain("/review-data")
     expect(doctorDashboard).toContain("/api/csrf")
     expect(doctorDashboard).toContain("await search.fill(E2E_REVIEW_FILTER)")
+    expect(doctorDashboard).toContain('VIDEO_REVIEW_RUN_ID = "video-review-dashboard-current"')
+    expect(doctorDashboard).toContain("E2E_SEED_CLI")
+    expect(doctorDashboard).toContain("execFileAsync")
     expect(doctorDashboard).toContain('timeout: 45000')
     expect(doctorDashboard).not.toContain("timeout: 30000,\n        }).catch(() => undefined)")
     expect(doctorDashboard).toContain('getEnv("E2E_SECRET")')
@@ -92,9 +95,12 @@ describe("video review multi-model contract", () => {
     expect(localEnv).toContain('const LOCAL_ENV_FILES = [".env.local", ".env"]')
     expect(localEnv).toContain("process.env[name] = local")
     expect(doctor).toContain("hydrateLocalEnv")
-    expect(doctor).toContain('getEnv("ANTHROPIC_API_KEY")')
+    expect(doctor).toContain('getClaudeCredentialSource')
     expect(doctor).not.toContain("run `unset ANTHROPIC_API_KEY`")
     expect(claudeModel).toContain('getEnv("ANTHROPIC_API_KEY")')
+    expect(claudeModel).toContain("CLAUDE_MODEL")
+    expect(claudeModel).toContain("discoverLatestAnthropicOpusModel")
+    expect(claudeModel).toContain("selectLatestAnthropicOpusModel")
     expect(critique).toContain('getEnv("GEMINI_API_KEY")')
   })
 
@@ -142,7 +148,7 @@ describe("video review multi-model contract", () => {
       capturedAt: "2026-05-27T00:00:00.000Z",
       url: "http://localhost:3628/dashboard?showTestData=1",
       title: "Dashboard",
-      visibleText: "Certificate ready to send. Intake checked No red flags Draft note ready Approve and send Cmd+Enter",
+      visibleText: "Certificate ready to send. Intake checked No flags detected in screener Draft note ready Approve and send Cmd+Enter",
       elements: [],
     }
 
@@ -158,6 +164,60 @@ describe("video review multi-model contract", () => {
         timestamp_seconds: 16,
         issue: "Wait counter looks frozen.",
         recommendation: "Show seconds beside the minute label.",
+      },
+    ]
+
+    expect(filterContradictedFindings(findings, evidence)).toEqual([findings[1]])
+  })
+
+  it("does not count patient-mirror copy as a doctor-context leak", () => {
+    const evidence: DomEvidenceSnapshot = {
+      capturedAt: "2026-05-28T00:00:00.000Z",
+      url: "http://localhost:3002/dashboard?showTestData=1",
+      title: "Dashboard",
+      visibleText: "What Mia sees right now You're next. A doctor is looking at your request now.",
+      elements: [],
+    }
+
+    const findings = [
+      {
+        severity: 4,
+        timestamp_seconds: 7,
+        issue: "The patient detail card banner copy reads 'A doctor will review your request' which breaks the doctor's persona context.",
+        recommendation: "Replace with doctor-oriented instructional copy.",
+      },
+      {
+        severity: 2,
+        timestamp_seconds: 8,
+        issue: "The patient-mirror block could use more contrast.",
+        recommendation: "Add a left accent hairline.",
+      },
+    ]
+
+    expect(filterContradictedFindings(findings, evidence)).toEqual([findings[1]])
+  })
+
+  it("does not count draft-helper copy hallucinations when DOM shows the clean helper", () => {
+    const evidence: DomEvidenceSnapshot = {
+      capturedAt: "2026-05-28T00:00:00.000Z",
+      url: "http://localhost:3002/dashboard?showTestData=1",
+      title: "Dashboard",
+      visibleText: "Draft note Check before you send. Send to Mia Cmd+Enter",
+      elements: [],
+    }
+
+    const findings = [
+      {
+        severity: 4,
+        timestamp_seconds: 8,
+        issue: "The draft note helper text contains broken English: 'Draft - review once every before sending. Press Cmd+Enter to draft.'",
+        recommendation: "Rewrite the helper placeholder.",
+      },
+      {
+        severity: 2,
+        timestamp_seconds: 8,
+        issue: "The skeleton loader could feel softer.",
+        recommendation: "Use a shimmer.",
       },
     ]
 
@@ -191,12 +251,45 @@ describe("video review multi-model contract", () => {
     expect(filterContradictedFindings(findings, evidence)).toEqual([findings[1]])
   })
 
+  it("does not count hallucinated test-banner or postcode findings that DOM text contradicts", () => {
+    const evidence: DomEvidenceSnapshot = {
+      capturedAt: "2026-05-28T00:00:00.000Z",
+      url: "http://localhost:3060/dashboard?showTestData=1",
+      title: "Dashboard",
+      visibleText: "Test mode. Real patients are hidden. Mia, 35, Melbourne, VIC, 3000.",
+      elements: [],
+    }
+
+    const findings = [
+      {
+        severity: 3,
+        timestamp_seconds: 1,
+        issue: "The banner says 'Host patients are hidden' and appears to be a typo.",
+        recommendation: "Change Host to Real.",
+      },
+      {
+        severity: 2,
+        timestamp_seconds: 9,
+        issue: "The location line displays Melbourne, VIC, Post-016.",
+        recommendation: "Fix the postcode parser.",
+      },
+      {
+        severity: 2,
+        timestamp_seconds: 10,
+        issue: "The decline cluster is too visually loud.",
+        recommendation: "Tone down the helper text.",
+      },
+    ]
+
+    expect(filterContradictedFindings(findings, evidence)).toEqual([findings[2]])
+  })
+
   it("does not count SOAP-numbering or nonexistent AI-jargon findings that DOM text contradicts", () => {
     const evidence: DomEvidenceSnapshot = {
       capturedAt: "2026-05-27T00:00:00.000Z",
       url: "http://localhost:3628/dashboard?showTestData=1",
       title: "Dashboard",
-      visibleText: "Structured SOAP note S · Subjective O · Objective A · Assessment P · Plan If you decline, Mia is refunded $25.",
+      visibleText: "Structured SOAP note S · Subjective O · Objective A · Assessment P · Plan Refund on decline: $25 to Mia.",
       elements: [],
     }
 
@@ -229,7 +322,7 @@ describe("video review multi-model contract", () => {
       capturedAt: "2026-05-27T00:00:00.000Z",
       url: "http://localhost:3628/dashboard?showTestData=1",
       title: "Dashboard",
-      visibleText: "Mia Carter 35y / 20/06/1990 Reason for visit 35-year-old patient. If you decline, Mia is refunded $25.",
+      visibleText: "Mia Carter 35y / 20/06/1990 Reason for visit 35-year-old patient. Refund on decline: $25 to Mia.",
       elements: [],
     }
     const lowScoreWithFalsePositive = {

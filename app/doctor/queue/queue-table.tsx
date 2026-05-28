@@ -391,7 +391,8 @@ export function QueueTable({
               ? getCompactQueueReason(service, intake.subtype)
               : null
             const compactTaxonomyChipClass = "border-border/60 bg-background text-muted-foreground"
-            const compactStatusChipClass = "border-slate-900 bg-slate-900 text-white dark:border-white/15 dark:bg-white/10 dark:text-foreground"
+            const compactStatusChipClass = "border-border/60 bg-background text-foreground shadow-none dark:border-white/15 dark:bg-white/5 dark:text-foreground"
+            const compactClaimChipClass = "border-border/60 bg-muted/35 text-muted-foreground shadow-none dark:border-white/15 dark:bg-white/5"
             return (
               <div
                 key={intake.id}
@@ -406,7 +407,7 @@ export function QueueTable({
                   index < renderedIntakes.length - 1 && "border-b border-border/40",
                   isSelected && (
                     compactShell
-                      ? "bg-[#FFFEFB] shadow-[inset_3px_0_0_hsl(var(--border))] ring-1 ring-inset ring-border/70 before:absolute before:inset-y-2 before:left-0 before:w-1 before:rounded-r-full before:bg-slate-300 before:content-[''] dark:bg-card"
+                      ? "bg-primary/[0.035] shadow-[inset_3px_0_0_hsl(var(--primary))] ring-1 ring-inset ring-primary/25 before:absolute before:inset-y-2 before:left-0 before:w-1 before:rounded-r-full before:bg-primary before:content-[''] dark:bg-primary/[0.08]"
                       : "bg-primary/[0.04] shadow-[inset_3px_0_0_hsl(var(--primary))] ring-1 ring-inset ring-primary/25 before:absolute before:inset-y-2 before:left-0 before:w-1 before:rounded-r-full before:bg-primary before:content-[''] dark:bg-primary/[0.08]"
                   ),
                   !compactShell && isLastOpened && "bg-muted/35 ring-1 ring-inset ring-border/60",
@@ -437,6 +438,7 @@ export function QueueTable({
                         : patientSnapshot.age != null ? `${patientSnapshot.age}y` : "DOB missing"
                     }
                     size="sm"
+                    className={cn(compactShell && isOpen && "opacity-60")}
                   />
                 </div>
 
@@ -546,14 +548,14 @@ export function QueueTable({
                       className={cn(
                         "text-xs",
                         compactShell
-                          ? compactStatusChipClass
+                          ? compactClaimChipClass
                           : "border-primary/30 bg-primary/10 text-primary",
                       )}
                       title="You're holding the review claim on this case."
                       data-queue-status-chip
                     >
                       <Eye className="h-3 w-3 mr-1" />
-                      {compactShell ? "Claimed" : "You"}
+                      You
                     </Badge>
                   )}
                   {!compactShell && claimLabel && !claimActive && (

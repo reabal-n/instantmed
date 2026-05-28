@@ -181,6 +181,20 @@ function formatClaimStateLabel(lockState: IntakeLockState, now = Date.now()): st
   return lockState.lockedByName ? `${lockState.lockedByName} is reviewing` : "Another doctor is reviewing"
 }
 
+function formatPatientVisiblePreview({
+  status,
+  caseIndex,
+}: {
+  status: string
+  caseIndex?: number
+}): string | null {
+  if (!["paid", "in_review"].includes(status)) return null
+  const queuePosition = typeof caseIndex === "number" && caseIndex === 0
+    ? "You're next."
+    : "You're in the queue."
+  return `${queuePosition} A doctor is looking at your request now.`
+}
+
 export function IntakeReviewPanel({
   intakeId,
   previewIntake,
@@ -587,10 +601,13 @@ export function IntakeReviewPanel({
         previousIntakeCount,
       })
     : null
-  const patientFirstName = intake.patient.full_name?.trim().split(/\s+/)[0] || "Patient"
-  const patientVisibleStatus = inline && ["paid", "in_review"].includes(intake.status)
-    ? `${patientFirstName} sees: in queue. Doctor review follows when available.`
+  const patientVisibleStatus = inline
+    ? formatPatientVisiblePreview({
+        status: intake.status,
+        caseIndex,
+      })
     : null
+  const patientFirstName = getPatientFirstName(intake.patient.full_name)
 
   return (
     <>
@@ -615,7 +632,7 @@ export function IntakeReviewPanel({
               <div className="min-w-0 space-y-1">
                 {inline ? (
                   <>
-                    <h2 className="truncate text-2xl font-semibold tracking-tight text-foreground">
+                    <h2 className="truncate text-[28px] font-semibold leading-tight tracking-tight text-foreground">
                       {intake.patient.full_name}
                     </h2>
                     {caseAnchorLine ? (
@@ -651,9 +668,18 @@ export function IntakeReviewPanel({
                   ) : null}
                 </div>
                 {patientVisibleStatus ? (
-                  <p className="max-w-[70ch] text-[11px] font-normal leading-relaxed text-muted-foreground/80" data-patient-visible-status>
-                    {patientVisibleStatus}
-                  </p>
+                  <div
+                    className="mt-2 max-w-[72ch] rounded-lg border border-border/55 border-l-slate-300 bg-background/75 px-2.5 py-2 pl-3 shadow-sm shadow-primary/[0.025]"
+                    data-patient-visible-status
+                    aria-label="Patient-visible status preview"
+                  >
+                    <p className="text-[11px] font-semibold text-muted-foreground/75">
+                      {patientFirstName ? `What ${patientFirstName} sees right now` : "What the patient sees right now"}
+                    </p>
+                    <p className="mt-1 text-[11px] font-medium leading-relaxed text-muted-foreground">
+                      {patientVisibleStatus}
+                    </p>
+                  </div>
                 ) : null}
               </div>
               <div className="flex flex-wrap items-center justify-end gap-1.5" aria-label="Patient actions">

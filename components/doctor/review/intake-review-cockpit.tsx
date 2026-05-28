@@ -19,7 +19,7 @@ import { ReviewBlockersStrip } from "@/components/doctor/review/review-blockers-
 import { SafetyFlagsCard } from "@/components/doctor/review/safety-flags-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
+import { buildClinicalCaseSummary, type ClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import { useDoctorShortcuts } from "@/lib/hooks/use-doctor-shortcuts"
 import { cn } from "@/lib/utils"
 
@@ -33,6 +33,16 @@ interface IntakeReviewCockpitProps {
 
 const MED_CERT_SYMPTOM_DETAIL_REQUEST =
   "Could you please add a brief description of your symptoms and when they started? I need that before I can safely issue a medical certificate."
+
+function formatCompactReasonForVisit(summary: ClinicalCaseSummary): string {
+  const factLabels = new Set(["Certificate type", "Requested duration", "Start date", "Symptoms", "Preference"])
+  const facts = summary.keyFacts
+    .filter((fact) => factLabels.has(fact.label))
+    .slice(0, 3)
+    .map((fact) => fact.value)
+
+  return [summary.title, ...facts].filter(Boolean).join(" · ")
+}
 
 /**
  * IntakeReviewCockpit, single-column edition.
@@ -165,6 +175,9 @@ export function IntakeReviewCockpit({
     ],
   )
   const hasPrescriptionIntent = Boolean(caseSummary.prescriptionIntent)
+  const reasonForVisitText = compactDecisionStrip
+    ? formatCompactReasonForVisit(caseSummary)
+    : caseSummary.patientStory
   const symptomDetail =
     typeof answers?.symptomDetails === "string"
       ? answers.symptomDetails
@@ -256,10 +269,10 @@ export function IntakeReviewCockpit({
                 />
               </div>
             ) : null}
-            <section className="min-h-[116px] rounded-xl border border-border/50 bg-card p-4 shadow-sm shadow-primary/[0.04]">
+            <section className="rounded-xl border border-border/50 bg-card p-3.5 shadow-sm shadow-primary/[0.04]">
               <p className="text-xs font-medium text-muted-foreground">Reason for visit</p>
               <p className="mt-1 text-sm leading-relaxed text-foreground">
-                {caseSummary.patientStory}
+                {reasonForVisitText}
               </p>
               {showThinMedCertWarning && hasThinMedCertIntake ? (
                 <div className="mt-3 flex items-start gap-2 rounded-lg border border-border/60 bg-muted/25 px-3 py-2 text-slate-600 dark:text-muted-foreground">
@@ -318,7 +331,7 @@ export function IntakeReviewCockpit({
           </div>
         </div>
       </div>
-      <div className="mt-3 shrink-0 shadow-lg shadow-primary/[0.06]" data-action-rail-shell>
+      <div className="sticky bottom-0 z-30 mt-3 shrink-0 shadow-lg shadow-primary/[0.06]" data-action-rail-shell>
         {decisionActions}
       </div>
     </div>

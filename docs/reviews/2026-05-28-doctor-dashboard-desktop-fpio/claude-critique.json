@@ -1,0 +1,130 @@
+{
+  "summary": "A composed, restrained doctor console that reads as a credible internal tool — ivory surfaces, calm typography, and a clear queue-to-review flow. It's closer to Linear's restraint than Mosh's warmth, which is appropriate for an operator surface, but the brand spine and signature devices are nearly invisible here. The skeleton load and queue-state transitions are clean; the review pane copy is the weakest link.",
+  "overall_score": 7,
+  "categories": {
+    "brand_spine": {
+      "score": 6,
+      "observation": "This is the doctor-side console, so the patient-facing brand thesis ('faster than your GP', coffee-time promise) is not expected on-surface. The 'InstantMed / Doctor Console' lockup and the live oldest-wait counter in the header do carry the spine — speed, named accountability — without shouting. But there's no warmth dial here at all; it reads as pure operator chrome.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "The header live-wait chip ('Oldest wait 11s · Updated just now · 1 case waiting') is the strongest brand device on screen but is visually under-leveraged — small grey type tucked top-right, easy to miss.",
+          "recommendation": "Promote the wait-counter typographically: larger numeric, Plus Jakarta Sans display weight on the seconds value, keep the rest as supporting metadata. This is the signature device; make it the hero of the doctor view."
+        }
+      ]
+    },
+    "typography": {
+      "score": 8,
+      "observation": "Hierarchy is clean: 'Mia Carter' as the patient name reads as the right anchor, SOAP section labels (S · Subjective, O · Objective) are well-sized and consistent. Body copy in Source Sans 3 sits comfortably. No orphans or awkward breaks visible.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "Subjective field truncates mid-sentence ('Symptom') with no visible affordance that there's more. Reads as broken text rather than scrollable content.",
+          "recommendation": "Either expand the textarea to fit the draft, add a subtle fade-mask + 'expand' affordance, or auto-grow on render. A doctor scanning shouldn't wonder whether the note ends mid-word."
+        }
+      ]
+    },
+    "color_and_surface": {
+      "score": 9,
+      "observation": "Ivory #F8F7F4 holds throughout, white cards with soft shadows, blue reserved for the primary action and active nav state. The amber 'Test mode' banner is the only warm accent and earns its place. No coral creep, no decoration tax.",
+      "findings": []
+    },
+    "motion": {
+      "score": 7,
+      "observation": "Skeleton load at 8s is well-pitched — block sizes match the eventual layout so there's minimal layout shift when content arrives at 12s. Can't fully judge easing curves from frames, but the transition from empty-state ('Open Mia's request when you're ready') to skeleton to filled record is sequenced sensibly.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 8,
+          "issue": "Skeleton stays on screen for what looks like ~4 seconds (8s → 12s) for a single-case load. That's long enough to feel like latency rather than polish.",
+          "recommendation": "If real fetch time is shorter, hold the skeleton for a minimum 150–250ms only. If fetch is genuinely that slow, stream the header (name, age, reason) first and skeleton only the SOAP fields."
+        }
+      ]
+    },
+    "copy_voice": {
+      "score": 8,
+      "observation": "Mostly on-voice: 'Open Mia's request when you're ready.', 'Check before you send.', 'Intake complete. Screener checked. Review before sending.' all read like a calm GP. Australian English holds (Melbourne, VIC). Prices present where they matter ('Refund on decline: $25 to Mia').",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "Draft note Subjective starts '35-year-old patient. Sore throat and fatigue since this morning…' — fine clinically, but the visible Plan line 'Symptomatic management advised /rest, fluids' has an odd '/' that reads like a template artefact, not prose a GP would write.",
+          "recommendation": "Replace the slash with a full stop or comma: 'Symptomatic management advised. Rest, fluids…'. Audit all SOAP autogen templates for stray separators."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 12,
+          "issue": "'What Mia sees right now / You're next. A doctor is looking at your request now.' uses 'now' twice in two short lines.",
+          "recommendation": "Tighten to 'You're next. A doctor is reviewing your request.' or drop the label's 'right now'."
+        }
+      ]
+    },
+    "hierarchy_and_layout": {
+      "score": 8,
+      "observation": "Three-pane rhythm (nav / queue / review) is Stripe-grade in its restraint. Primary CTA 'Send to Mia' with ⌘+Enter hint anchors the bottom-right, paired with 'Decline with reason' on the left and a confirmation strip in the middle — exactly the right tri-state for a regulated send action. Eye lands on the CTA inside 2 seconds at 12s.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 12,
+          "issue": "The queue card and the review pane both use very similar card treatments, so the relationship 'selected queue item → open record on right' isn't visually asserted. No connector, no selected-state emphasis on the Mia Carter row beyond a faint border tint.",
+          "recommendation": "Strengthen the selected queue row: heavier border-left in #2563EB, or a subtle filled background. Make it unambiguous which case is loaded in the review pane."
+        }
+      ]
+    },
+    "conversion_friction": {
+      "score": 7,
+      "observation": "Doctor-side, so 'conversion' is send-to-patient throughput. The send path is one click from a loaded record, ⌘+Enter shortcut exposed, refund cost surfaced inline at decline — all good. The 'Intake complete. Screener checked.' pre-send strip is a strong trust signal for the operator.",
+      "findings": [
+        {
+          "severity": 3,
+          "timestamp_seconds": 12,
+          "issue": "The merchandised promise 'Full refund if our doctor can't help' is nowhere near the decline action. Only the operator-side refund amount ($25) is shown, which frames decline as a cost rather than as honouring a patient promise.",
+          "recommendation": "Add a one-line patient-facing reminder next to 'Decline with reason': 'Full refund issued automatically. Mia keeps the consult notes.' Reinforces brand promise at the moment it gets honoured."
+        },
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "Empty review pane state ('Open Mia's request when you're ready') requires an explicit click on 'Open Mia's request' even though there's exactly one case in queue. For a time-poor doctor with one waiting patient, that's a redundant click.",
+          "recommendation": "Auto-open the only case when queue length is 1 and the pane is empty. Keep manual open behaviour when queue length ≥ 2."
+        }
+      ]
+    },
+    "signature_devices": {
+      "score": 5,
+      "observation": "Live wait-counter is present (header, 11s → 23s ticking) — good. 'While you wait' specificity appears patient-side ('You're next. A doctor is looking at your request now.') — good. Name-first appears throughout ('Open Mia's request', 'Send to Mia', '$25 to Mia') — strong. Missing: handwritten signature mark, 'what we won't do' surface, and the wait-counter is undersized for its importance.",
+      "findings": [
+        {
+          "severity": 2,
+          "timestamp_seconds": 4,
+          "issue": "Doctor's handwritten signature mark is absent from the send action area, where it most reinforces 'a real doctor signed this'.",
+          "recommendation": "Add a small handwritten initial preview next to 'Send to Mia' — 'Signed as Dr Amelia Reid' with the signature glyph. Operator confidence + brand spine in one element."
+        },
+        {
+          "severity": 1,
+          "timestamp_seconds": 12,
+          "issue": "No visible link to the 'what we won't do' policy from the decline flow, where it's most relevant context for the doctor choosing a decline reason.",
+          "recommendation": "Add a quiet link under 'Decline with reason': 'See what we won't prescribe →'. Helps standardise decline reasoning."
+        }
+      ]
+    }
+  },
+  "top_three_actions": [
+    {
+      "action": "Auto-open the sole queued case and strengthen the selected-row state so the queue→review relationship is unambiguous.",
+      "why": "Removes a redundant click for the most common doctor state (one patient waiting) and fixes the weakest hierarchy moment in the layout.",
+      "estimated_impact": "high"
+    },
+    {
+      "action": "Promote the live wait-counter typographically and pair the send CTA with a handwritten 'Signed as Dr Amelia Reid' mark.",
+      "why": "These are the two signature brand devices most relevant on the operator surface; right now both are present but under-leveraged.",
+      "estimated_impact": "medium"
+    },
+    {
+      "action": "Fix the SOAP draft template — remove stray '/' separators, tighten 'right now' duplication, and surface the refund promise (not just the $25 cost) at the decline action.",
+      "why": "Brings copy back to 'would a real GP say this out loud?' and reinforces the refund promise at the moment it's actually honoured.",
+      "estimated_impact": "low"
+    }
+  ]
+}

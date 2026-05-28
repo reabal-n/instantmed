@@ -81,6 +81,21 @@ pnpm e2e:headed         # Visible browser for debugging
 pnpm e2e:debug          # Step-through debugger
 ```
 
+### Local Ports
+
+- InstantMed's dedicated manual/Codex Browser Use port is `3060` (`pnpm dev` -> `http://localhost:3060`).
+- Playwright's isolated web server still defaults to `3001` for deterministic E2E runs unless `PLAYWRIGHT_PORT` or `E2E_PORT` is set.
+- Moirai uses `3010` and Reabal uses `3055`; do not reuse those ports for InstantMed sessions.
+
+### Local Exploratory Browser Checks
+
+Codex Browser Use is part of the local UI review stack for exploratory hover, click, scroll, and visual inspection on `http://localhost:3060`. It is a human-in-the-loop quality layer, not the release gate.
+
+- Use Browser Use after material UI changes to inspect the rendered page, visible copy, focus/hover feel, and obvious layout defects.
+- Keep Playwright as the authenticated release gate for doctor/admin flows because it owns the E2E auth bypass, seeded data, first-click assertions, and no-PHI-prefetch network checks.
+- Keep Gemini + Claude video review for qualitative design/motion critique after Playwright passes.
+- Do not add AutoExplore to the default stack; it is intentionally excluded for cost.
+
 ### Auth Bypass
 
 E2E tests bypass auth via a server endpoint that sets auth cookies:

@@ -122,7 +122,7 @@ export default async function StaffDashboardPage({
   const recentlyCompleted = results[2].status === "fulfilled" ? results[2].value : []
   const doctorIdentity: DoctorIdentity | null = results[3].status === "fulfilled" ? results[3].value : null
   const todayEarnings = results[4].status === "fulfilled" ? results[4].value : 0
-  const formToInboxStats = results[5].status === "fulfilled" ? results[5].value : null
+  const formToInboxStats = !onlyTestData && results[5].status === "fulfilled" ? results[5].value : null
   const doctorAvailable = results[6].status === "fulfilled" ? results[6].value?.available !== false : true
   const systemHealth = results[7].status === "fulfilled" ? results[7].value : EMPTY_SYSTEM_HEALTH
   const nowMs = Date.now()
@@ -139,7 +139,11 @@ export default async function StaffDashboardPage({
   const parchmentUserId = typeof profile.parchment_user_id === "string" && profile.parchment_user_id.trim()
     ? profile.parchment_user_id.trim()
     : null
-  const formToInboxLabel = formToInboxStats ? formatMinutes(formToInboxStats.medianMinutes) : null
+  const formToInboxLabel = formToInboxStats
+    ? formToInboxStats.medianMinutes <= 0
+      ? "Under 1m"
+      : formatMinutes(formToInboxStats.medianMinutes)
+    : null
 
   results.forEach((result, index) => {
     if (result.status === "rejected") {
@@ -190,7 +194,7 @@ export default async function StaffDashboardPage({
                     waitingCaseCount={queueResult.total}
                     showIcon={false}
                     jumpToOldestOnClick
-                    className="h-10 bg-white shadow-sm shadow-primary/[0.03]"
+                    className="bg-white shadow-sm shadow-primary/[0.03]"
                   />
                 </div>
                 {isAdmin && !onlyTestData ? <SystemHealthPill initial={systemHealth} /> : null}

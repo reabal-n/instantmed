@@ -34,7 +34,7 @@ import { QueueTable } from "./queue-table"
 import type { QueueClientProps } from "./types"
 import { useQueueDialogs } from "./use-queue-dialogs"
 
-const QUEUE_VISIBLE_WAIT_SECONDS_CADENCE = 15
+const QUEUE_VISIBLE_WAIT_SECONDS_CADENCE = 1
 
 interface QueueEmptyState {
   title: string
@@ -246,7 +246,7 @@ function QueueIdlePanel({
   doctorAvailable,
   queueDegraded,
   nextIntakes,
-  onOpenNextCase,
+  onOpenNext,
 }: {
   queueSize: number
   reviewedToday: number
@@ -254,30 +254,19 @@ function QueueIdlePanel({
   doctorAvailable: boolean
   queueDegraded: boolean
   nextIntakes?: IntakeWithPatient[]
-  onOpenNextCase?: () => void
+  onOpenNext?: () => void
 }) {
   const nextIntake = nextIntakes?.[0] ?? null
-  const nextPatientName = nextIntake?.patient.full_name?.trim() || null
-  const nextPatientFirstName = nextPatientName?.split(/\s+/)[0] || "the patient"
-  const nextAction = queueDegraded
+  const nextPatientName = nextIntake?.patient?.full_name?.trim() || "the next patient"
+  const nextFirstName = nextPatientName.split(/\s+/)[0] || "patient"
+  const supportCopy = queueDegraded
     ? "Refresh before clinical action."
     : !doctorAvailable
       ? "Availability is paused."
-      : filteredCount > 0
-        ? `Open the case to see ${nextPatientFirstName}'s details.`
-        : "No cases match this filter."
-  const nextService = nextIntake?.service
-  const nextServiceLabel = nextService
-    ? nextService.short_name || nextService.name || formatServiceType(nextService.type || "")
-    : null
-  const nextWaitLabel = nextIntake ? calculateLiveWaitTime(getQueueEnteredAt(nextIntake)) : null
-  const nextCaseLabel = nextIntake
-    ? [
-        nextPatientName || "Case",
-        nextServiceLabel,
-        nextWaitLabel ? `waiting ${nextWaitLabel}` : null,
-      ].filter(Boolean).join(" · ")
-    : filteredCount > 0
+      : filteredCount > 0 && nextIntake
+        ? `Open ${nextFirstName}'s request when you're ready.`
+      : "No cases match this filter."
+  const nextCaseLabel = filteredCount > 0
       ? "Select the oldest case."
       : "Nothing to review."
   const showNextUp = filteredCount > 0
@@ -285,37 +274,37 @@ function QueueIdlePanel({
   return (
     <div className="flex h-full min-h-0 flex-col bg-[linear-gradient(180deg,#FFFFFF_0%,#FFFEFB_100%)] dark:bg-card motion-safe:animate-[fade-in_180ms_ease-out]">
       {showNextUp ? (
-        <div className="border-b border-border/45 px-5 py-4">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <p className="text-xs font-semibold text-muted-foreground">Next case</p>
-              <p className="mt-1 text-base font-semibold leading-snug text-foreground">
-                {nextCaseLabel}
-              </p>
-              {nextIntake && onOpenNextCase ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  className="mt-3 h-8 bg-primary px-3 text-xs text-primary-foreground shadow-sm shadow-primary/[0.12] hover:bg-primary/90"
-                  onClick={onOpenNextCase}
-                >
-                  Open {nextPatientFirstName}'s case
-                </Button>
-              ) : null}
-            </div>
-            {nextAction ? (
-              <p className="max-w-[180px] shrink-0 text-right text-[11px] font-medium leading-snug text-slate-500 dark:text-muted-foreground">
-                {nextAction}
-              </p>
-            ) : null}
-          </div>
+        <div className="border-b border-border/45 px-5 py-3">
+          <p className="text-xs font-medium leading-relaxed text-slate-500 dark:text-muted-foreground">
+            {supportCopy}
+          </p>
         </div>
       ) : null}
-      <div className="flex flex-1 items-start px-5 py-4 text-xs font-medium text-muted-foreground">
-        {queueSize > 0
-          ? `${reviewedToday} case${reviewedToday === 1 ? "" : "s"} completed today.`
-          : "No visible wait pressure."}
-      </div>
+      {!showNextUp ? (
+        <div className="flex flex-1 items-center px-5 py-4 text-sm font-medium text-muted-foreground">
+          {nextCaseLabel}
+        </div>
+      ) : null}
+      {showNextUp ? (
+        <div className="flex flex-1 flex-col items-start gap-3 px-5 py-4">
+          <p className="text-xs font-semibold text-muted-foreground">
+            {queueSize > 0
+              ? `${queueSize} visible case${queueSize === 1 ? "" : "s"} · ${reviewedToday} completed today.`
+              : "No visible wait pressure"}
+          </p>
+          {nextIntake && onOpenNext ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-8 border-border/70 bg-background px-3 text-xs font-semibold text-foreground shadow-sm hover:bg-muted/35"
+              onClick={onOpenNext}
+            >
+              Open {nextFirstName}'s request
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -1142,6 +1131,8 @@ export function QueueClient({
                     inline
                     intakeId={expandedId}
                     previewIntake={filteredIntakes.find((intake) => intake.id === expandedId)}
+                    caseIndex={filteredIntakes.findIndex((intake) => intake.id === expandedId)}
+                    totalCases={filteredIntakes.length}
                     onActionComplete={(options) => handleIntakeActionComplete(expandedId, options)}
                   />
                 </div>
@@ -1154,7 +1145,7 @@ export function QueueClient({
                 doctorAvailable={doctorAvailable}
                 queueDegraded={queueDegraded}
                 nextIntakes={filteredIntakes.slice(0, 3)}
-                onOpenNextCase={handleReviewNext}
+                onOpenNext={handleReviewNext}
               />
             )
           )}
