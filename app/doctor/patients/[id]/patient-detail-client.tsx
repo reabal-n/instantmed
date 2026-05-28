@@ -43,7 +43,6 @@ import { STAFF_DOCTOR_PATIENTS_HREF, STAFF_IDENTITY_HREF } from "@/lib/dashboard
 import { buildPatientSnapshot } from "@/lib/doctor/patient-snapshot"
 import { formatIntakeStatus } from "@/lib/format/intake"
 import { cn } from "@/lib/utils"
-import { validateMedicareNumber } from "@/lib/validation/medicare"
 import type { Profile } from "@/types/db"
 
 import { EditPatientDialog } from "./edit-patient-dialog"
@@ -307,13 +306,7 @@ export function PatientDetailClient({
       ? "warning"
       : "outline"
 
-  const hasInvalidMedicareNumber = Boolean(
-    snapshot.medicare.value && !validateMedicareNumber(snapshot.medicare.value).valid,
-  )
-  const missingPrescribingIdentityFields = Array.from(new Set([
-    ...snapshot.missingCriticalFields,
-    ...(hasInvalidMedicareNumber ? ["Valid Medicare number"] : []),
-  ]))
+  const missingPrescribingIdentityFields = Array.from(new Set(snapshot.missingCriticalFields))
   const hasPrescribingIdentityBlocker = missingPrescribingIdentityFields.length > 0
   const prescribingIdentityBlockerTitle = hasPrescribingIdentityBlocker
     ? `Complete prescribing identity: ${missingPrescribingIdentityFields.join(", ")}`

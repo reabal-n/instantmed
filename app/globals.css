@@ -1383,11 +1383,11 @@ body {
 @keyframes review-pane-in {
   from {
     opacity: 0;
-    transform: translateY(10px) scale(0.995);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 

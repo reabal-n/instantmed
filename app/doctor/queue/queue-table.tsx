@@ -136,7 +136,6 @@ export function isPastReviewTarget(queueEnteredAt: string | null | undefined, no
 
 export interface QueueTableProps {
   filteredIntakes: IntakeWithPatient[]
-  intakes?: IntakeWithPatient[]
   expandedId: string | null
   isPending: boolean
   identityComplete: boolean
@@ -181,7 +180,6 @@ export interface QueueTableProps {
 
 export function QueueTable({
   filteredIntakes,
-  intakes = [],
   expandedId,
   isPending,
   identityComplete,
@@ -253,9 +251,6 @@ export function QueueTable({
     () => getPlainSearchHighlight(searchQuery),
     [searchQuery],
   )
-  const pendingReplyCount = intakes.filter((intake) => intake.status === "pending_info").length
-  const scriptCount = intakes.filter((intake) => intake.status === "awaiting_script").length
-
   // A patient is "returning" if they have a recently completed case.
   // Memoised so the Set isn't rebuilt on every render — the queue
   // re-renders on every 30s clock tick + every search keystroke.
@@ -772,21 +767,6 @@ export function QueueTable({
           {isDomWindowed && (
             <div className="border-t border-border/40 bg-muted/20 px-4 py-2 text-xs text-muted-foreground">
               Showing the first {QUEUE_DOM_WINDOW_LIMIT} visible rows. Refine the search or move to the next page for the rest.
-            </div>
-          )}
-          {compactShell && filteredIntakes.length <= 1 && (pendingReplyCount > 0 || scriptCount > 0) && (
-            <div className="border-t border-border/40 bg-muted/15 px-4 py-3">
-              <p className="text-xs font-semibold text-foreground">Follow-ups</p>
-              <div className="mt-2 grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
-                <div className="rounded-lg border border-border/45 bg-white px-3 py-2 dark:bg-background">
-                  <span className="font-medium text-foreground tabular-nums">{pendingReplyCount}</span>{" "}
-                  pending replies
-                </div>
-                <div className="rounded-lg border border-border/45 bg-white px-3 py-2 dark:bg-background">
-                  <span className="font-medium text-foreground tabular-nums">{scriptCount}</span>{" "}
-                  scripts to write
-                </div>
-              </div>
             </div>
           )}
         </div>

@@ -1,18 +1,16 @@
 "use client"
 
-import { AlertTriangle, ArrowRight, RefreshCw, Search, X } from "lucide-react"
+import { ArrowRight, RefreshCw, Search, X } from "lucide-react"
 import { useEffect, useRef } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { QueueStatusFilter } from "@/lib/dashboard/routes"
-import type { FormToInboxStats } from "@/lib/data/intakes"
 import {
   getQueuePressureState,
   QUEUE_WAIT_TARGET_MINUTES,
   type QueuePressureSeverity,
 } from "@/lib/doctor/queue-pressure"
-import { formatMinutes } from "@/lib/format/dates"
 import { cn } from "@/lib/utils"
 import type { IntakeWithPatient } from "@/types/db"
 
@@ -61,7 +59,6 @@ export interface QueueFiltersProps {
    */
   oldestWaitingMinutes?: number | null
   showOldestWaiting?: boolean
-  formToInboxStats?: FormToInboxStats | null
 }
 
 export function QueueFilters({
@@ -81,16 +78,13 @@ export function QueueFilters({
   compactShell = false,
   oldestWaitingMinutes,
   showOldestWaiting = true,
-  formToInboxStats = null,
 }: QueueFiltersProps) {
   const searchRef = useRef<HTMLInputElement>(null)
   const hasActiveSearch = searchQuery.trim().length > 0
   const matchLabel = `${filteredCount} ${filteredCount === 1 ? "match" : "matches"}`
   const pressure = getQueuePressureState(oldestWaitingMinutes, QUEUE_WAIT_TARGET_MINUTES)
   const pressureClass = pressureClasses[pressure.severity]
-  const formToInboxLabel = formToInboxStats ? formatMinutes(formToInboxStats.medianMinutes) : null
   const openOldest = onOpenOldest ?? onOpenSingleMatch
-  const showBreachAction = filteredCount > 1 && Boolean(openOldest)
   const showNextCaseAction = compactShell && filteredCount > 0 && Boolean(openOldest)
   const showSearch = !compactShell || intakes.length > 5 || hasActiveSearch
   const nextCaseLabel = hasOpenCase ? "Case open" : "Open next case"
@@ -142,11 +136,6 @@ export function QueueFilters({
               </span>
             )}
           </div>
-          {compactShell && formToInboxLabel ? (
-            <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-muted-foreground">
-              Median form-to-inbox today: {formToInboxLabel}. Target: under 2h.
-            </p>
-          ) : null}
         </div>
         <div className="flex w-full flex-col items-stretch gap-1 sm:w-auto sm:items-end">
           <div className="flex w-full items-center gap-2 sm:w-auto">
@@ -228,34 +217,6 @@ export function QueueFilters({
           )}
         </div>
       </div>
-
-      {compactShell && pressure.severity === "urgent" ? (
-        <div
-          className="flex flex-col gap-2 rounded-xl border border-destructive/25 bg-destructive/10 px-3 py-2 text-destructive sm:flex-row sm:items-center sm:justify-between"
-          data-queue-breach-banner
-        >
-          <div className="flex min-w-0 items-center gap-2">
-            <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <div className="min-w-0">
-              <p className="text-sm font-semibold">Over review target</p>
-              <p className="text-xs font-medium opacity-85">
-                Oldest case has waited {pressure.value}. Open it next.
-              </p>
-            </div>
-          </div>
-          {showBreachAction ? (
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              className="h-8 shrink-0 border-destructive/25 bg-white text-destructive hover:bg-destructive/10 hover:text-destructive dark:bg-card"
-              onClick={openOldest}
-            >
-              Open oldest case
-            </Button>
-          ) : null}
-        </div>
-      ) : null}
 
       {/* Status Filter Tabs */}
       <div className="flex w-full gap-1.5 overflow-x-auto rounded-lg bg-muted/25 p-1 sm:w-fit sm:flex-wrap">

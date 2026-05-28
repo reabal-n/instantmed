@@ -275,7 +275,7 @@ export function buildPrescribingIdentityProfileUpdates(
         medicare_irn: null,
         medicare_expiry: null,
       }),
-      ...(ihiNumber ? { ihi_number: ihiNumber } : {}),
+      ihi_number: ihiNumber ?? null,
       address_line1: input.addressLine1.trim(),
       suburb: input.suburb.trim(),
       state: state as AustralianState,

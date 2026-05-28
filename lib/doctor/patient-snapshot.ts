@@ -343,6 +343,16 @@ export function buildPatientSnapshot(
     medicareIrn ? `IRN ${medicareIrn}` : options?.requireMedicareDetails ? "IRN missing" : null,
     medicareExpiry ? `Exp ${formatShortDateSafe(medicareExpiry) ?? medicareExpiry}` : null,
   ].filter(Boolean).join(" / ")
+  const useIhiAsPrimaryIdentifier = Boolean(validIhi && !medicareIsCritical)
+  const identifierLabel = useIhiAsPrimaryIdentifier
+    ? `IHI ${validIhi}`
+    : medicare ?? (validIhi ? `IHI ${validIhi}` : "Not provided")
+  const identifierValue = useIhiAsPrimaryIdentifier
+    ? validIhi ?? undefined
+    : medicare ?? validIhi ?? undefined
+  const identifierDetailsLabel = useIhiAsPrimaryIdentifier
+    ? "IHI"
+    : medicareDetails || (validIhi ? "IHI" : undefined)
   const sexValue = normalizeSexValue(
     answerOrProfile(options?.answers, ["sex", "gender"], patient.sex),
   )
@@ -396,12 +406,12 @@ export function buildPatientSnapshot(
       value: sexValue ?? undefined,
     },
     medicare: {
-      label: medicare ?? (validIhi ? `IHI ${validIhi}` : "Not provided"),
+      label: identifierLabel,
       present: Boolean(medicare || validIhi),
-      value: medicare ?? validIhi ?? undefined,
-      valid: medicareValidation?.valid ?? (validIhi ? true : undefined),
+      value: identifierValue,
+      valid: useIhiAsPrimaryIdentifier ? true : medicareValidation?.valid ?? (validIhi ? true : undefined),
       error: medicareValidation?.valid === false && !validIhi ? medicareValidation.error : undefined,
-      detailsLabel: medicareDetails || (validIhi ? "IHI" : undefined),
+      detailsLabel: identifierDetailsLabel,
     },
     phone: {
       label: phone ?? "Not provided",

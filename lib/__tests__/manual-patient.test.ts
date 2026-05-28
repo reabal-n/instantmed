@@ -31,6 +31,14 @@ const patientDetailClientSource = readFileSync(
   join(process.cwd(), "app/doctor/patients/[id]/patient-detail-client.tsx"),
   "utf8",
 )
+const doctorPatientActionsSource = readFileSync(
+  join(process.cwd(), "app/doctor/patients/actions.ts"),
+  "utf8",
+)
+const profilesSource = readFileSync(
+  join(process.cwd(), "lib/data/profiles.ts"),
+  "utf8",
+)
 
 function actionBody(name: string): string {
   const start = manualPatientActionSource.indexOf(`export async function ${name}`)
@@ -60,6 +68,7 @@ describe("manual patient creation", () => {
       medicare_number: "2123456701",
       medicare_irn: 1,
       medicare_expiry: "2030-12-01",
+      ihi_number: null,
       address_line1: "12 King Street",
       suburb: "Sydney",
       state: "NSW",
@@ -140,5 +149,17 @@ describe("manual patient creation", () => {
     expect(patientDetailClientSource).toContain("Prescriber not linked")
     expect(patientDetailClientSource).toContain("`${STAFF_IDENTITY_HREF}#parchment-account`")
     expect(patientDetailClientSource).toContain("Refresh")
+  })
+
+  it("clears encrypted PHI mirrors when prescribing identifiers are cleared", () => {
+    expect(doctorPatientActionsSource).toContain('"medicare_number" in input')
+    expect(doctorPatientActionsSource).toContain("medicare_number_encrypted: input.medicare_number ? encryptField(input.medicare_number) : null")
+    expect(doctorPatientActionsSource).toContain('"ihi_number" in input')
+    expect(doctorPatientActionsSource).toContain("ihi_number_encrypted: input.ihi_number ? encryptField(input.ihi_number) : null")
+    expect(profilesSource).toContain('if ("medicare_number" in data)')
+    expect(profilesSource).toContain("encrypted.medicare_number_encrypted = data.medicare_number")
+    expect(profilesSource).toContain(": null")
+    expect(profilesSource).toContain('if ("ihi_number" in data)')
+    expect(profilesSource).toContain("encrypted.ihi_number_encrypted = data.ihi_number")
   })
 })

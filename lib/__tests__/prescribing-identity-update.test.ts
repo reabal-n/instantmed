@@ -82,6 +82,7 @@ describe("buildPrescribingIdentityProfileUpdates", () => {
       date_of_birth: "1988-01-01",
       sex: "F",
       phone: "+61412345678",
+      ihi_number: null,
       medicare_number: "1111111111",
       medicare_irn: 2,
       medicare_expiry: "2029-05-01",
@@ -108,6 +109,7 @@ describe("buildPrescribingIdentityProfileUpdates", () => {
 
     expect(result.valid).toBe(true)
     expect(result.updates).toMatchObject({
+      ihi_number: null,
       medicare_number: "1111111111",
       medicare_irn: 2,
     })

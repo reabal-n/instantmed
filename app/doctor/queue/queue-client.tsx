@@ -16,13 +16,11 @@ import {
   STAFF_IDENTITY_HREF,
 } from "@/lib/dashboard/routes"
 import { DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY, LAST_OPENED_DOCTOR_CASE_KEY } from "@/lib/doctor/queue-focus"
-import { QUEUE_WAIT_TARGET_MINUTES } from "@/lib/doctor/queue-pressure"
 import { removeCompletedIntakeFromQueue } from "@/lib/doctor/queue-state"
 import { calculateLiveWaitTime, getQueueClockTickDelayMs, getQueueEnteredAt, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
 import { hasReviewNextRisk, sortForReviewNext } from "@/lib/doctor/review-next"
 import { SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
-import { formatMinutes } from "@/lib/format/dates"
 import { formatServiceType } from "@/lib/format/intake"
 import { useDebounce } from "@/lib/hooks/use-debounce"
 import { useIsDesktop } from "@/lib/hooks/use-media-query"
@@ -69,7 +67,7 @@ function IntakeReviewPanelLoading() {
 
   return (
     <div
-      className="h-full min-h-0 overflow-y-auto p-3 sm:p-4 motion-safe:animate-[review-pane-in_300ms_cubic-bezier(0.16,1,0.3,1)]"
+      className="h-full min-h-0 overflow-y-auto p-3 sm:p-4 motion-safe:animate-[review-pane-in_220ms_cubic-bezier(0.16,1,0.3,1)]"
       aria-busy="true"
       aria-label="Loading case review"
       data-testid="intake-review-loading"
@@ -244,9 +242,6 @@ function buildQueueEmptyState({
 function QueueIdlePanel({
   queueSize,
   reviewedToday,
-  medianDecisionMinutes,
-  oldestWaitingMinutes,
-  formToInboxStats,
   filteredCount,
   doctorAvailable,
   queueDegraded,
@@ -254,16 +249,12 @@ function QueueIdlePanel({
 }: {
   queueSize: number
   reviewedToday: number
-  medianDecisionMinutes: number | null
-  oldestWaitingMinutes: number | null
-  formToInboxStats: QueueClientProps["formToInboxStats"]
   filteredCount: number
   doctorAvailable: boolean
   queueDegraded: boolean
   nextIntakes?: IntakeWithPatient[]
 }) {
   const nextIntake = nextIntakes?.[0] ?? null
-  const hasQueueTiming = formToInboxStats != null || medianDecisionMinutes != null || oldestWaitingMinutes != null
   const nextAction = queueDegraded
     ? "Refresh before clinical action."
     : !doctorAvailable
@@ -271,46 +262,6 @@ function QueueIdlePanel({
       : filteredCount > 0
         ? "Open a case from the queue."
         : "No cases match this filter."
-  const primaryMetricLabel = "Cases finished today"
-  const primaryMetricValue = String(reviewedToday)
-  const primaryMetricState = reviewedToday > 0
-    ? "Cases finished today."
-    : queueSize > 0
-      ? "No cases finished yet. One waiting."
-      : "No cases finished yet."
-  const targetUsedPercent = typeof oldestWaitingMinutes === "number" && oldestWaitingMinutes >= 0
-    ? Math.round(Math.min(oldestWaitingMinutes / QUEUE_WAIT_TARGET_MINUTES, 1) * 100)
-    : null
-  const secondaryMetric = queueSize > 0 && targetUsedPercent != null
-    ? {
-        label: "Target used",
-        value: `${targetUsedPercent}%`,
-        detail: `${formatMinutes(typeof oldestWaitingMinutes === "number" ? oldestWaitingMinutes : 0)} of the 2-hour target.`,
-      }
-    : formToInboxStats
-    ? {
-        label: "Form to inbox",
-        value: formatMinutes(formToInboxStats.medianMinutes),
-        detail: "Real med-cert median today.",
-      }
-    : medianDecisionMinutes != null
-      ? {
-          label: "Median decision",
-          value: formatMinutes(medianDecisionMinutes),
-          detail: "Completed cases today.",
-        }
-      : {
-          label: "Queue status",
-          value: queueSize > 0 ? String(queueSize) : "Clear",
-          detail: queueSize > 0 ? "Visible clinical cases." : "No visible wait pressure.",
-        }
-  const primaryMetricDetail = formToInboxStats
-    ? "Time from patient form to inbox today."
-    : hasQueueTiming
-      ? "Queue pressure shown above."
-      : queueSize > 0
-        ? `${queueSize} visible case${queueSize === 1 ? "" : "s"}.`
-        : "Finished clinical decisions."
   const nextPatientName = nextIntake?.patient.full_name?.trim() || null
   const nextService = nextIntake?.service
   const nextServiceLabel = nextService
@@ -330,38 +281,8 @@ function QueueIdlePanel({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-[linear-gradient(180deg,#FFFFFF_0%,#FFFEFB_100%)] dark:bg-card motion-safe:animate-[fade-in_180ms_ease-out]">
-      <div className="border-b border-primary/10 bg-primary/[0.025] px-5 py-3">
-        <div className="grid gap-2 sm:grid-cols-2">
-          <div className="min-w-0 rounded-lg bg-card/65 px-3 py-2 ring-1 ring-border/35">
-            <p className="text-xs font-semibold text-foreground">
-              {primaryMetricLabel}
-            </p>
-            <p className="mt-1 text-3xl font-semibold tracking-tight text-foreground tabular-nums">
-              {primaryMetricValue}
-            </p>
-            <p className="mt-1 text-xs font-medium leading-snug text-slate-500 dark:text-muted-foreground">
-              {primaryMetricState}
-            </p>
-          </div>
-          <div className="min-w-0 rounded-lg bg-card/65 px-3 py-2 ring-1 ring-border/35">
-            <p className="text-xs font-semibold text-foreground">
-              {secondaryMetric.label}
-            </p>
-            <p className="mt-1 text-3xl font-semibold tracking-tight text-foreground tabular-nums">
-              {secondaryMetric.value}
-            </p>
-            <p className="mt-1 text-xs font-medium leading-snug text-slate-500 dark:text-muted-foreground">
-              {secondaryMetric.detail}
-            </p>
-          </div>
-        </div>
-        <p className="mt-2 text-xs font-medium text-slate-500 dark:text-muted-foreground">
-          {primaryMetricDetail}
-        </p>
-      </div>
-
       {showNextUp ? (
-        <div className="px-5 py-3">
+        <div className="border-b border-border/45 px-5 py-4">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <p className="text-xs font-semibold text-muted-foreground">Next case</p>
@@ -377,6 +298,11 @@ function QueueIdlePanel({
           </div>
         </div>
       ) : null}
+      <div className="flex flex-1 items-start px-5 py-4 text-xs font-medium text-muted-foreground">
+        {queueSize > 0
+          ? `${reviewedToday} finished today. Queue pressure is shown in the header.`
+          : "No visible wait pressure."}
+      </div>
     </div>
   )
 }
@@ -389,7 +315,6 @@ export function QueueClient({
   pagination,
   aiApprovedIntakes = [],
   recentlyCompleted = [],
-  formToInboxStats = null,
   todayEarnings,
   initialStatusFilter = "all",
   hasExplicitStatusFilter = false,
@@ -1001,20 +926,6 @@ export function QueueClient({
 
   const reviewedToday = recentlyCompleted.length
   const queueSize = intakes.length
-  const medianDecisionMinutes = useMemo(() => {
-    const durations = recentlyCompleted.flatMap((intake) => {
-      const start = intake.paid_at ? new Date(intake.paid_at).getTime() : NaN
-      const endValue = intake.approved_at ?? intake.declined_at ?? intake.reviewed_at ?? intake.completed_at
-      const end = endValue ? new Date(endValue).getTime() : NaN
-      if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return []
-      return [Math.round((end - start) / 60000)]
-    }).sort((a, b) => a - b)
-    if (durations.length === 0) return null
-    const middle = Math.floor(durations.length / 2)
-    return durations.length % 2 === 1
-      ? durations[middle]!
-      : Math.round((durations[middle - 1]! + durations[middle]!) / 2)
-  }, [recentlyCompleted])
   // Memoised so the clock tick / search input / hover doesn't recompute
   // this on every render. Only depends on the (rarely-changing) recent
   // completions prop.
@@ -1160,7 +1071,6 @@ export function QueueClient({
           compactShell={compactShell}
           oldestWaitingMinutes={oldestWaitingMinutes}
           showOldestWaiting={!compactShell}
-          formToInboxStats={formToInboxStats}
         />
       </div>
 
@@ -1179,7 +1089,6 @@ export function QueueClient({
             >
               <QueueTable
                 filteredIntakes={filteredIntakes}
-                intakes={intakes}
                 expandedId={expandedId}
                 openIntakeId={openIntakeId}
                 doctorId={doctorId}
@@ -1212,7 +1121,7 @@ export function QueueClient({
               // for the new case (releases the old lock automatically).
               <div
                 key={expandedId}
-                className="flex h-full min-h-0 flex-col motion-safe:animate-[review-pane-in_300ms_cubic-bezier(0.16,1,0.3,1)]"
+                className="flex h-full min-h-0 flex-col motion-safe:animate-[review-pane-in_220ms_cubic-bezier(0.16,1,0.3,1)]"
                 data-review-pane-entry
               >
                 <div className="min-h-0 flex-1">
@@ -1228,9 +1137,6 @@ export function QueueClient({
               <QueueIdlePanel
                 queueSize={queueSize}
                 reviewedToday={reviewedToday}
-                medianDecisionMinutes={medianDecisionMinutes}
-                oldestWaitingMinutes={oldestWaitingMinutes}
-                formToInboxStats={formToInboxStats}
                 filteredCount={filteredIntakes.length}
                 doctorAvailable={doctorAvailable}
                 queueDegraded={queueDegraded}
@@ -1242,7 +1148,6 @@ export function QueueClient({
       ) : (
         <QueueTable
           filteredIntakes={filteredIntakes}
-          intakes={intakes}
           expandedId={expandedId}
           openIntakeId={openIntakeId}
           doctorId={doctorId}

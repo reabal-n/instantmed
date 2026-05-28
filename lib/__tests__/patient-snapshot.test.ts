@@ -294,6 +294,36 @@ describe("buildPatientSnapshot", () => {
     expect(snapshot.completenessTone).toBe("complete")
   })
 
+  it("uses valid IHI over an invalid cleared Medicare placeholder for prescribing identity", () => {
+    const snapshot = buildPatientSnapshot({
+      id: "patient-ihi-stale-medicare",
+      full_name: "International Patient",
+      date_of_birth: "1985-01-01",
+      medicare_number: "0000000000",
+      medicare_irn: null,
+      ihi_number: "8003600000000000",
+      phone: "0412 345 678",
+      email: "ihi-stale@example.com",
+      address_line1: "12 George St",
+      suburb: "Sydney",
+      state: "NSW",
+      postcode: "2000",
+      sex: "M",
+    }, {
+      now,
+      requireStructuredAddress: true,
+      requireSex: true,
+      requireMedicareDetails: true,
+      validateMedicare: true,
+    })
+
+    expect(snapshot.medicare.label).toBe("IHI 8003600000000000")
+    expect(snapshot.medicare.detailsLabel).toBe("IHI")
+    expect(snapshot.medicare.valid).toBe(true)
+    expect(snapshot.missingCriticalFields).toEqual([])
+    expect(snapshot.completenessTone).toBe("complete")
+  })
+
   it("validates Medicare whenever prescribing Medicare details are required", () => {
     const snapshot = buildPatientSnapshot({
       id: "patient-zero-medicare-implicit-validation",

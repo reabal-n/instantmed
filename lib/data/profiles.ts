@@ -102,10 +102,10 @@ export function decryptProfilePhi<T extends Record<string, unknown>>(profile: T)
 export function encryptProfilePhi<T extends Record<string, unknown>>(
   data: T
 ): T & {
-  medicare_number_encrypted?: string
-  date_of_birth_encrypted?: string
-  phone_encrypted?: string
-  ihi_number_encrypted?: string
+  medicare_number_encrypted?: string | null
+  date_of_birth_encrypted?: string | null
+  phone_encrypted?: string | null
+  ihi_number_encrypted?: string | null
   phi_encrypted_at?: string
 } {
   if (!isEncryptionEnabled()) {
@@ -116,26 +116,32 @@ export function encryptProfilePhi<T extends Record<string, unknown>>(
 
   // Encrypt medicare_number - dual-write: encrypted + plaintext
   // Plaintext kept for doctor dashboard visibility and Parchment eScript integration
-  if (data.medicare_number) {
-    encrypted.medicare_number_encrypted = encryptField(data.medicare_number)
+  if ("medicare_number" in data) {
+    encrypted.medicare_number_encrypted = data.medicare_number
+      ? encryptField(data.medicare_number)
+      : null
   }
 
-  if (data.ihi_number) {
-    encrypted.ihi_number_encrypted = encryptField(data.ihi_number)
+  if ("ihi_number" in data) {
+    encrypted.ihi_number_encrypted = data.ihi_number
+      ? encryptField(data.ihi_number)
+      : null
   }
 
   // Encrypt date_of_birth
-  if (data.date_of_birth) {
+  if ("date_of_birth" in data) {
     const dobString =
       data.date_of_birth instanceof Date
         ? data.date_of_birth.toISOString().split("T")[0]
-        : String(data.date_of_birth)
-    encrypted.date_of_birth_encrypted = encryptField(dobString)
+        : data.date_of_birth
+          ? String(data.date_of_birth)
+          : null
+    encrypted.date_of_birth_encrypted = dobString ? encryptField(dobString) : null
   }
 
   // Encrypt phone
-  if (data.phone) {
-    encrypted.phone_encrypted = encryptField(data.phone)
+  if ("phone" in data) {
+    encrypted.phone_encrypted = data.phone ? encryptField(data.phone) : null
   }
 
   // Mark when PHI was encrypted
@@ -149,10 +155,10 @@ export function encryptProfilePhi<T extends Record<string, unknown>>(
   }
 
   return encrypted as T & {
-    medicare_number_encrypted?: string
-    ihi_number_encrypted?: string
-    date_of_birth_encrypted?: string
-    phone_encrypted?: string
+    medicare_number_encrypted?: string | null
+    ihi_number_encrypted?: string | null
+    date_of_birth_encrypted?: string | null
+    phone_encrypted?: string | null
     phi_encrypted_at?: string
   }
 }

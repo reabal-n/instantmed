@@ -1,9 +1,9 @@
 "use client"
 
-import { ArrowUpRight, CheckCircle, ClipboardCheck, Loader2, Send } from "lucide-react"
+import { ArrowUpRight, CheckCircle, ClipboardCheck, Clock, Loader2, Send } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useMemo, useState, useTransition } from "react"
+import { useEffect, useMemo, useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { markScriptSentAction } from "@/app/doctor/queue/actions"
@@ -29,9 +29,14 @@ import {
   getPatientSnapshotOptionsForCase,
   requiresPrescribingIdentityForCase,
 } from "@/lib/doctor/patient-snapshot"
+import { QUEUE_WAIT_TARGET_MINUTES } from "@/lib/doctor/queue-pressure"
+import { calculateLiveWaitTime, getQueueClockTickDelayMs, getQueueEnteredAt } from "@/lib/doctor/queue-utils"
 import { isConsultServiceType, isKnownDoctorServiceType } from "@/lib/doctor/service-types"
 import { formatCurrency } from "@/lib/format"
+import { formatMinutes } from "@/lib/format/dates"
 import { cn } from "@/lib/utils"
+
+const DECISION_WAIT_SIGNAL_CADENCE_MS = 15_000
 
 function ShortcutHint({
   children,
@@ -53,6 +58,74 @@ function ShortcutHint({
       )}
     >
       {children}
+    </span>
+  )
+}
+
+function getDecisionWaitTone(waitMinutes: number): "neutral" | "watch" | "urgent" {
+  const ratio = waitMinutes / QUEUE_WAIT_TARGET_MINUTES
+  if (ratio >= 0.9) return "urgent"
+  if (ratio >= 0.6) return "watch"
+  return "neutral"
+}
+
+function DecisionWaitSignal({ queueEnteredAt }: { queueEnteredAt: string }) {
+  const [now, setNow] = useState(() => new Date())
+
+  useEffect(() => {
+    let timeout: number | undefined
+    let cancelled = false
+
+    const schedule = () => {
+      const currentNow = new Date()
+      setNow(currentNow)
+      const delay = getQueueClockTickDelayMs([queueEnteredAt], currentNow, {
+        postMinuteCadenceMs: DECISION_WAIT_SIGNAL_CADENCE_MS,
+      }) ?? DECISION_WAIT_SIGNAL_CADENCE_MS
+
+      timeout = window.setTimeout(() => {
+        if (cancelled) return
+        schedule()
+      }, delay)
+    }
+
+    schedule()
+    return () => {
+      cancelled = true
+      if (timeout) window.clearTimeout(timeout)
+    }
+  }, [queueEnteredAt])
+
+  const enteredAtMs = new Date(queueEnteredAt).getTime()
+  if (!Number.isFinite(enteredAtMs)) return null
+
+  const waitMinutes = Math.max(0, Math.floor((now.getTime() - enteredAtMs) / 60000))
+  const tone = getDecisionWaitTone(waitMinutes)
+  const targetLabel = waitMinutes >= QUEUE_WAIT_TARGET_MINUTES
+    ? `${formatMinutes(waitMinutes - QUEUE_WAIT_TARGET_MINUTES)} past target`
+    : `${formatMinutes(QUEUE_WAIT_TARGET_MINUTES - waitMinutes)} to target`
+  const waitLabel = calculateLiveWaitTime(queueEnteredAt, now, {
+    afterFirstMinuteSecondsCadence: DECISION_WAIT_SIGNAL_CADENCE_MS / 1000,
+  })
+
+  return (
+    <span
+      className={cn(
+        "inline-flex min-w-fit items-center gap-1 rounded-full border px-2 py-1 text-[10px] font-semibold tabular-nums",
+        tone === "urgent"
+          ? "border-destructive/30 bg-destructive/10 text-destructive"
+          : tone === "watch"
+            ? "border-warning-border bg-warning-light text-warning"
+            : "border-border/60 bg-muted/35 text-muted-foreground",
+      )}
+      title={`Case has been waiting ${waitLabel}. ${targetLabel}.`}
+      data-decision-wait-signal
+      data-decision-wait-tone={tone}
+    >
+      <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+      <span>Waiting {waitLabel}</span>
+      <span className="text-muted-foreground/70" aria-hidden="true">·</span>
+      <span>{targetLabel}</span>
     </span>
   )
 }
@@ -224,6 +297,7 @@ export function IntakeActionButtons({
     caseSummary.safetyItems.length === 0 &&
     intake.requires_live_consult !== true &&
     intake.risk_tier !== "high"
+  const queueEnteredAt = getQueueEnteredAt(intake)
 
   return (
     <div
@@ -272,6 +346,9 @@ export function IntakeActionButtons({
         className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end [&>button]:w-full [&>div]:w-full sm:[&>button]:w-auto sm:[&>div]:w-auto"
         data-action-bar
       >
+        {showActionReadiness ? (
+          <DecisionWaitSignal queueEnteredAt={queueEnteredAt} />
+        ) : null}
         {showActionReadiness ? (
           <ActionReadinessChecks
             detailsReady={hasPatientDetailsReady}

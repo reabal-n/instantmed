@@ -228,7 +228,6 @@ export default async function StaffDashboardPage({
               }}
               aiApprovedIntakes={aiApprovedIntakes}
               recentlyCompleted={recentlyCompleted}
-              formToInboxStats={formToInboxStats}
               todayEarnings={todayEarnings}
               initialStatusFilter={initialStatusFilter}
               hasExplicitStatusFilter={hasExplicitStatusFilter}

@@ -133,6 +133,36 @@ function formatPreviewLocation(patient?: PreviewPatient): string {
   return [patient.suburb, patient.state, patient.postcode].filter(Boolean).join(", ") || "Address loading"
 }
 
+function getPatientFirstName(fullName: string | null | undefined): string | null {
+  const name = fullName?.trim().split(/\s+/)[0]
+  return name || null
+}
+
+function formatCaseAnchorLine({
+  patient,
+  patientAge,
+  previousIntakeCount,
+}: {
+  patient: PreviewPatient
+  patientAge: number | null
+  previousIntakeCount: number
+}): string {
+  const firstName = getPatientFirstName(patient.full_name)
+  const location = [patient.suburb, patient.state].filter(Boolean).join(", ")
+  const identityParts = [
+    firstName,
+    typeof patientAge === "number" && Number.isFinite(patientAge) ? String(patientAge) : null,
+    location || null,
+  ].filter(Boolean)
+  const visitLabel = previousIntakeCount > 0
+    ? `${previousIntakeCount} prior request${previousIntakeCount === 1 ? "" : "s"}`
+    : "First visit"
+
+  return identityParts.length > 0
+    ? `${identityParts.join(", ")}. ${visitLabel}.`
+    : `${visitLabel}.`
+}
+
 function formatClaimAge(lockedAt: string | null, now = Date.now()): string {
   if (!lockedAt) return "just now"
   const lockedAtMs = new Date(lockedAt).getTime()
@@ -556,6 +586,14 @@ export function IntakeReviewPanel({
     : buildDoctorIntakeHref(intake.id)
   const claimStateLabel = formatClaimStateLabel(lockState, claimAgeNow)
   const visibleClaimStateLabel = lockState.status === "blocked" ? claimStateLabel : null
+  const previousIntakeCount = data.previousIntakeCount ?? data.previousIntakes?.length ?? 0
+  const caseAnchorLine = inline
+    ? formatCaseAnchorLine({
+        patient: intake.patient,
+        patientAge: data.patientAge,
+        previousIntakeCount,
+      })
+    : null
 
   return (
     <>
@@ -571,7 +609,7 @@ export function IntakeReviewPanel({
         <IntakeReviewProvider value={contextValue}>
           <div
             className={cn(
-              inline ? "flex h-full min-h-0 flex-col gap-3 motion-safe:animate-[review-pane-in_300ms_cubic-bezier(0.16,1,0.3,1)]" : "space-y-5 motion-safe:animate-[fade-in-up_200ms_cubic-bezier(0.16,1,0.3,1)]",
+              inline ? "flex h-full min-h-0 flex-col gap-3 motion-safe:animate-[review-pane-in_220ms_cubic-bezier(0.16,1,0.3,1)]" : "space-y-5 motion-safe:animate-[fade-in-up_200ms_cubic-bezier(0.16,1,0.3,1)]",
             )}
             data-testid="intake-review-panel"
           >
@@ -579,9 +617,16 @@ export function IntakeReviewPanel({
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0 space-y-1">
                 {inline ? (
-                  <h2 className="truncate text-2xl font-semibold tracking-tight text-foreground">
-                    {intake.patient.full_name}
-                  </h2>
+                  <>
+                    <h2 className="truncate text-2xl font-semibold tracking-tight text-foreground">
+                      {intake.patient.full_name}
+                    </h2>
+                    {caseAnchorLine ? (
+                      <p className="truncate text-xs font-medium text-muted-foreground" data-case-anchor-line>
+                        {caseAnchorLine}
+                      </p>
+                    ) : null}
+                  </>
                 ) : null}
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge className={getStatusColor(intake.status)}>
