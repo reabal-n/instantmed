@@ -1,7 +1,9 @@
 # Doc File Map
 
-> **Last updated:** 2026-05-26.
+> **Last updated:** 2026-05-29.
 > Single source of truth for the full canonical doc surface. A fresh contributor reads this file and knows the doc tree without grepping.
+>
+> **Doc-surface count:** 69 `.md` files per `scripts/doc-audit.sh` (which counts `docs/plans/**` working + archived plans and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-05-29 from 53: plans accumulated since 2026-05-26 and the CI count gate had been masked by a unit-test step that failed earlier in the same job.
 >
 > **Owner:** Operator. Update on every doc add, move, or delete. Bump the timestamp.
 

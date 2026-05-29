@@ -62,7 +62,7 @@ describe("doctor patient medication history contract", () => {
     expect(detailSource).toContain("`${STAFF_IDENTITY_HREF}#parchment-account`")
     expect(detailSource).toContain("Parchment integration disabled")
     expect(detailSource).toContain("hasInvalidMedicareNumber")
-    expect(detailSource).toContain("Valid Medicare number")
+    expect(detailSource).toContain("Invalid Medicare is ignored")
   })
 
   it("organizes the profile around the unified timeline as primary content", () => {
