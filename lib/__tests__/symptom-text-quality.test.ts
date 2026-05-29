@@ -3,28 +3,28 @@ import { describe, expect,it } from "vitest"
 import { validateSymptomTextQuality } from "@/lib/clinical/symptom-text-quality"
 
 describe("validateSymptomTextQuality", () => {
-  describe("length checks", () => {
+  describe("required + non-empty (no length / word-count gate)", () => {
     it("rejects empty / null / undefined", () => {
       expect(validateSymptomTextQuality("").valid).toBe(false)
       expect(validateSymptomTextQuality(null).valid).toBe(false)
       expect(validateSymptomTextQuality(undefined).valid).toBe(false)
     })
 
-    it("rejects text under 15 characters", () => {
-      // 14 chars, but 3 distinct words + valid stems, so it fails ONLY on the
-      // length floor — pinning that boundary specifically.
-      const result = validateSymptomTextQuality("flu ache today")
-      expect(result.valid).toBe(false)
-      expect(result.reason).toMatch(/minimum 15/)
+    it("accepts brief real input — no minimum length or word count (2026-05-29)", () => {
+      // The char + word-count gates were removed; a single recognizable
+      // symptom word is enough. The stem check below is the only floor.
+      expect(validateSymptomTextQuality("migraine").valid).toBe(true)
+      expect(validateSymptomTextQuality("fever").valid).toBe(true)
+      expect(validateSymptomTextQuality("bad back today").valid).toBe(true)
     })
 
-    it("rejects whitespace-padded short text", () => {
+    it("rejects whitespace-padded text with no symptom word", () => {
       const result = validateSymptomTextQuality("   short text   ")
       expect(result.valid).toBe(false)
     })
   })
 
-  describe("distinct word count", () => {
+  describe("repetition / filler (rejected by the symptom-word check)", () => {
     it("rejects single repeated word", () => {
       const result = validateSymptomTextQuality("test test test test test test test")
       expect(result.valid).toBe(false)
@@ -79,10 +79,7 @@ describe("validateSymptomTextQuality", () => {
       expect(result.valid).toBe(true)
     })
 
-    it("accepts a valid 3-word description at the 15-char floor", () => {
-      // "fever and cough" (15 chars) was false-rejected by the old 20-char
-      // floor despite being a legitimate med-cert reason; the 3-distinct-words
-      // + symptom-stem gates still apply.
+    it("accepts brief multi-word descriptions", () => {
       expect(validateSymptomTextQuality("fever and cough").valid).toBe(true)
       expect(validateSymptomTextQuality("bad cough today").valid).toBe(true)
     })
