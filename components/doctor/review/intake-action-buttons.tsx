@@ -300,7 +300,7 @@ export function IntakeActionButtons({
       className={
         placement === "top"
           ? "rounded-xl border border-border/60 bg-background p-2 shadow-sm shadow-primary/[0.03]"
-          : "sticky bottom-0 z-30 shrink-0 border-t border-border bg-gradient-to-t from-background via-background/95 to-background/85 px-2 py-1.5 shadow-lg shadow-primary/[0.08] backdrop-blur supports-[backdrop-filter]:from-background/95 supports-[backdrop-filter]:via-background/90"
+          : "sticky bottom-0 z-30 shrink-0 border-t border-border bg-background/95 px-2 py-1.5 shadow-lg shadow-primary/[0.08] backdrop-blur supports-[backdrop-filter]:bg-background/90"
       }
       data-testid="operator-action-rail"
       data-action-rail-pinned
