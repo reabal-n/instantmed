@@ -1,4 +1,12 @@
 import { buildOperationalFailureOverview } from "@/lib/admin/ops-failures"
+import {
+  certOrphanHelper,
+  getOperationalInvariants,
+  invariantTone,
+  refundAnomalyHelper,
+  SLA_BREACH_CRITICAL,
+  slaBacklogHelper,
+} from "@/lib/admin/ops-invariants"
 import { requireRole } from "@/lib/auth/helpers"
 import {
   ADMIN_PARCHMENT_OPS_HREF,
@@ -75,6 +83,7 @@ export default async function OpsDashboardPage() {
     staleScriptIntakesResult,
     refundFailuresResult,
     prescribingIdentityResult,
+    operationalInvariants,
   ] = await Promise.all([
     supabase
       .from("stripe_webhook_dead_letter")
@@ -132,6 +141,7 @@ export default async function OpsDashboardPage() {
       .limit(20)
       .then((r) => (r.error ? { data: [] } : r)),
     getPrescribingIdentityBlockerReport(supabase),
+    getOperationalInvariants(supabase),
   ])
 
   const prescriptionWebhookFailures = (
@@ -189,6 +199,27 @@ export default async function OpsDashboardPage() {
     },
   }
 
+  const invariants: OpsDashboardClientProps["invariants"] = {
+    slaBreachBacklog: {
+      count: operationalInvariants.slaBreachBacklog,
+      tone: invariantTone(operationalInvariants.slaBreachBacklog, SLA_BREACH_CRITICAL),
+      helperText: slaBacklogHelper(operationalInvariants.slaBreachBacklog),
+      href: buildStaffLedgerHref({}),
+    },
+    certRefundOrphans: {
+      count: operationalInvariants.certRefundOrphans,
+      tone: invariantTone(operationalInvariants.certRefundOrphans, 1),
+      helperText: certOrphanHelper(operationalInvariants.certRefundOrphans),
+      href: buildStaffLedgerHref({ chips: ["refunded"] }),
+    },
+    refundRecordAnomalies: {
+      count: operationalInvariants.refundRecordAnomalies,
+      tone: invariantTone(operationalInvariants.refundRecordAnomalies, Number.POSITIVE_INFINITY),
+      helperText: refundAnomalyHelper(operationalInvariants.refundRecordAnomalies),
+      href: buildStaffLedgerHref({ chips: ["refunded"] }),
+    },
+  }
+
   const recoveries: OpsDashboardClientProps["recoveries"] = failureOverview.recent
     .slice(0, 10)
     .map((item) => ({
@@ -200,5 +231,5 @@ export default async function OpsDashboardPage() {
       href: item.href,
     }))
 
-  return <OpsDashboardClient counters={counters} recoveries={recoveries} />
+  return <OpsDashboardClient counters={counters} invariants={invariants} recoveries={recoveries} />
 }

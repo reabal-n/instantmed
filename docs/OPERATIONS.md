@@ -1171,7 +1171,7 @@ Using Vercel MCP, PostHog MCP, and Sentry MCP:
 
 ## Integration Invariants + Operator Runbook Queries (added 2026-05-23 evening)
 
-Queries the operator should run weekly. Each surfaces an invariant that no automated alert currently watches. Future work: convert each to a cron + Sentry alert.
+Queries the operator should run weekly. As of 2026-05-29, Q1/Q2/Q4 also render live on `/admin/ops` (the "Integrity (weekly invariants)" strip); Q3 stays a manual config check. Future work: convert each to a cron + Sentry alert. The seeded-E2E patient filter in the SQL below uses `e2e00000-0000-0000-0000-000000000002` to match `SEEDED_E2E_PATIENT_PROFILE_ID` (the app filter); the prior `0000...0001` literal matched no real row.
 
 ### Q1 — Queue P95 by category/subtype (90d)
 
@@ -1195,7 +1195,7 @@ FROM intakes i
 LEFT JOIN first_review fr ON fr.intake_id = i.id
 WHERE i.payment_status IN ('paid', 'refunded', 'partially_refunded')
   AND i.paid_at > NOW() - INTERVAL '90 days'
-  AND i.patient_id != '00000000-0000-0000-0000-000000000001'
+  AND i.patient_id != 'e2e00000-0000-0000-0000-000000000002'
 GROUP BY i.category, i.subtype
 ORDER BY p95_hours DESC NULLS LAST;
 ```
@@ -1220,7 +1220,7 @@ FROM intakes i
 INNER JOIN issued_certificates ic ON ic.intake_id = i.id
 WHERE i.payment_status IN ('refunded', 'partially_refunded')
   AND ic.status = 'valid'
-  AND i.patient_id != '00000000-0000-0000-0000-000000000001'
+  AND i.patient_id != 'e2e00000-0000-0000-0000-000000000002'
 ORDER BY i.refunded_at DESC NULLS LAST;
 ```
 
@@ -1255,7 +1255,7 @@ SELECT id, category, subtype, paid_at, refunded_at, refund_status, refund_amount
 FROM intakes
 WHERE payment_status IN ('refunded', 'partially_refunded')
   AND (refund_status IS NULL OR refund_status = 'not_applicable' OR refunded_at IS NULL)
-  AND patient_id != '00000000-0000-0000-0000-000000000001'
+  AND patient_id != 'e2e00000-0000-0000-0000-000000000002'
 ORDER BY paid_at DESC;
 ```
 
@@ -1266,6 +1266,6 @@ ORDER BY paid_at DESC;
 When the operator wants to formalize:
 
 1. Wrap each query in a Vercel cron route under `app/api/cron/`.
-2. Surface counts on `/admin/ops` as a fifth CounterCard ("Operational invariants" → "2 cert orphans · 1 refund anomaly · med-cert P95 165h").
+2. **DONE (2026-05-29).** `/admin/ops` renders an "Integrity (weekly invariants)" strip with 3 cards: Review SLA backlog (Q1 proxy: paid intakes awaiting review past 24h), Cert + refund orphans (Q2), Refund record anomalies (Q4). Counts come from `getOperationalInvariants()` in `lib/admin/ops-invariants.ts` (service-role, seeded-E2E filtered, fail-soft). The cert-orphan card is critical on any non-zero count; SLA backlog goes critical at `SLA_BREACH_CRITICAL` (10).
 3. Sentry alert when any count is non-zero (severity warning) or P95 exceeds target (severity critical).
 4. Update `docs/SECURITY.md` Kill Switches table if the alert should pause new paid intakes.

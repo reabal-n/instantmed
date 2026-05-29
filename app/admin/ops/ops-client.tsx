@@ -24,6 +24,11 @@ export interface OpsDashboardClientProps {
     parchmentUnsynced: CounterCellData
     missingIdentity: CounterCellData
   }
+  invariants: {
+    slaBreachBacklog: CounterCellData
+    certRefundOrphans: CounterCellData
+    refundRecordAnomalies: CounterCellData
+  }
   recoveries: Array<{
     id: string
     title: string
@@ -34,7 +39,7 @@ export interface OpsDashboardClientProps {
   }>
 }
 
-export function OpsDashboardClient({ counters, recoveries }: OpsDashboardClientProps) {
+export function OpsDashboardClient({ counters, invariants, recoveries }: OpsDashboardClientProps) {
   return (
     <OperatorPage>
       <OperatorPageHeader
@@ -74,6 +79,35 @@ export function OpsDashboardClient({ counters, recoveries }: OpsDashboardClientP
             tone={counters.missingIdentity.tone}
             href={counters.missingIdentity.href}
           />
+        </section>
+
+        <section aria-label="Operational invariants">
+          <h2 className="mb-3 text-sm font-semibold tracking-tight text-foreground">
+            Integrity (weekly invariants)
+          </h2>
+          <div className="grid gap-3 md:grid-cols-3">
+            <CounterCard
+              count={invariants.slaBreachBacklog.count}
+              label="Review SLA backlog"
+              helperText={invariants.slaBreachBacklog.helperText}
+              tone={invariants.slaBreachBacklog.tone}
+              href={invariants.slaBreachBacklog.href}
+            />
+            <CounterCard
+              count={invariants.certRefundOrphans.count}
+              label="Cert + refund orphans"
+              helperText={invariants.certRefundOrphans.helperText}
+              tone={invariants.certRefundOrphans.tone}
+              href={invariants.certRefundOrphans.href}
+            />
+            <CounterCard
+              count={invariants.refundRecordAnomalies.count}
+              label="Refund record anomalies"
+              helperText={invariants.refundRecordAnomalies.helperText}
+              tone={invariants.refundRecordAnomalies.tone}
+              href={invariants.refundRecordAnomalies.href}
+            />
+          </div>
         </section>
 
         <section
