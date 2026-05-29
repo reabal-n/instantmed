@@ -238,7 +238,7 @@ describe("checkout operating hours", () => {
 
     expect(result).toEqual({
       success: false,
-      error: "Medicare number is required for prescription requests.",
+      error: "Medicare number or IHI is required for prescription requests.",
     })
     expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
   })
@@ -270,7 +270,7 @@ describe("checkout operating hours", () => {
 
     expect(result).toEqual({
       success: false,
-      error: "Enter a valid Medicare number",
+      error: "Enter a valid Medicare number or provide a valid IHI.",
     })
     expect(inserts).toEqual([])
   })
