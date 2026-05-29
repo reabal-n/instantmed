@@ -3,7 +3,7 @@
 > **Last updated:** 2026-05-29.
 > Single source of truth for the full canonical doc surface. A fresh contributor reads this file and knows the doc tree without grepping.
 >
-> **Doc-surface count:** 69 `.md` files per `scripts/doc-audit.sh` (which counts `docs/plans/**` working + archived plans and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-05-29 from 53: plans accumulated since 2026-05-26 and the CI count gate had been masked by a unit-test step that failed earlier in the same job.
+> **Doc-surface count:** 67 `.md` files per `scripts/doc-audit.sh` (which counts `docs/plans/**` working + archived plans and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-05-29: 53 -> 69 (plans accumulated since 2026-05-26; the CI gate had been masked by a unit-test step failing earlier in the same job), then 69 -> 67 after re-deleting `docs/RELEASE_LOG.md` + `docs/DESIGN_SYSTEM.md`, which were deleted in `a80d664a9` and accidentally resurrected by `29a3ffbb8`.
 >
 > **Owner:** Operator. Update on every doc add, move, or delete. Bump the timestamp.
 
