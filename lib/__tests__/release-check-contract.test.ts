@@ -43,7 +43,7 @@ describe("release check contract", () => {
     expect(bundleGate).toContain("The intake shell is carrying code that should be lazy-loaded")
     expect(bundleGate).toContain("The patient dashboard should stay tight")
     expect(bundleGate).toContain("returning-patient shortcut shipped on the hero")
-    expect(bundleGate).toContain("The staff cockpit is carrying too much client runtime")
+    expect(bundleGate).toContain("The staff cockpit first-load floor is ~421 kB")
     expect(bundleGate).toContain("The request ledger should not inherit heavy doctor-review code")
     expect(bundleGate).toContain("The primary paid med-cert landing page should stay server-first with narrow client islands")
     expect(bundleGate).toContain("The prescriptions landing page should stay below the paid-funnel runtime ceiling")
