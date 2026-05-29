@@ -84,10 +84,10 @@ export function validateMedCertPayload(
     answers.symptom_details ||
     answers.symptomDetails ||
     answers.symptomsDescription
-  if (!symptomDetails || typeof symptomDetails !== "string" || symptomDetails.trim().length < 20) {
+  if (!symptomDetails || typeof symptomDetails !== "string" || symptomDetails.trim().length < 15) {
     return {
       valid: false,
-      error: "Please describe your symptoms in at least 20 characters.",
+      error: "Please describe your symptoms in at least 15 characters.",
     }
   }
 

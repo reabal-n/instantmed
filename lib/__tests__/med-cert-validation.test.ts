@@ -52,7 +52,7 @@ describe("medical certificate validation", () => {
     expect(result.error).toBeUndefined()
   })
 
-  it("still rejects when the symptom description is shorter than 20 characters", () => {
+  it("still rejects when the symptom description is shorter than 15 characters", () => {
     const tooShort = {
       certType: "work",
       duration: "1",
@@ -65,7 +65,7 @@ describe("medical certificate validation", () => {
     }
     const result = validateMedCertPayload(tooShort)
     expect(result.valid).toBe(false)
-    expect(result.error).toContain("20 characters")
+    expect(result.error).toContain("15 characters")
   })
 
   it("does not block checkout on the absence of a legacy symptoms array", () => {

@@ -10,10 +10,12 @@ describe("validateSymptomTextQuality", () => {
       expect(validateSymptomTextQuality(undefined).valid).toBe(false)
     })
 
-    it("rejects text under 20 characters", () => {
-      const result = validateSymptomTextQuality("fever bad")
+    it("rejects text under 15 characters", () => {
+      // 14 chars, but 3 distinct words + valid stems, so it fails ONLY on the
+      // length floor — pinning that boundary specifically.
+      const result = validateSymptomTextQuality("flu ache today")
       expect(result.valid).toBe(false)
-      expect(result.reason).toMatch(/minimum 20/)
+      expect(result.reason).toMatch(/minimum 15/)
     })
 
     it("rejects whitespace-padded short text", () => {
@@ -75,6 +77,14 @@ describe("validateSymptomTextQuality", () => {
     it("accepts brief but real symptom text", () => {
       const result = validateSymptomTextQuality("really sick today, can't get out of bed")
       expect(result.valid).toBe(true)
+    })
+
+    it("accepts a valid 3-word description at the 15-char floor", () => {
+      // "fever and cough" (15 chars) was false-rejected by the old 20-char
+      // floor despite being a legitimate med-cert reason; the 3-distinct-words
+      // + symptom-stem gates still apply.
+      expect(validateSymptomTextQuality("fever and cough").valid).toBe(true)
+      expect(validateSymptomTextQuality("bad cough today").valid).toBe(true)
     })
 
     it("accepts broken English from non-native speakers", () => {

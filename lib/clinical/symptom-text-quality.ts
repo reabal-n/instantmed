@@ -14,7 +14,13 @@
  */
 
 const MIN_DISTINCT_WORDS = 3
-const MIN_TEXT_LENGTH = 20
+// 15, not 20. The 3-distinct-words + symptom-vocabulary-stem checks below are
+// the real anti-gibberish gates; a 20-char floor on top of them false-rejected
+// legitimate 3-word descriptions ("fever and cough" = 15, "bad cough today" =
+// 15). Lowered 2026-05-29 to stop blocking valid brief input. Downstream AI
+// clinical-note generation, auto-approval eligibility, and emergency screening
+// are unchanged — this is the first gate, not the last.
+const MIN_TEXT_LENGTH = 15
 
 /**
  * Curated stems patients use to describe symptoms. Substring match is
@@ -80,7 +86,7 @@ const GENERIC_REASON =
  * not gibberish, filler, or repeated tokens.
  *
  * Checks (in order):
- * 1. Minimum 20 characters (matches existing schema)
+ * 1. Minimum 15 characters
  * 2. At least 3 distinct alphabetic tokens (≥2 chars each)
  * 3. At least one symptom-vocabulary stem present
  */
