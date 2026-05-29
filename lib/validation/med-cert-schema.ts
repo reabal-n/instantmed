@@ -3,6 +3,7 @@
  * Single source of truth for med cert answers validation
  */
 
+import { validateSymptomTextQuality } from "@/lib/clinical/symptom-text-quality"
 import { validateCertificateStartDate } from "@/lib/medical-certificates/date-policy"
 
 export interface MedCertValidationResult {
@@ -84,11 +85,19 @@ export function validateMedCertPayload(
     answers.symptom_details ||
     answers.symptomDetails ||
     answers.symptomsDescription
-  if (!symptomDetails || typeof symptomDetails !== "string" || symptomDetails.trim().length < 20) {
+  if (!symptomDetails || typeof symptomDetails !== "string") {
     return {
       valid: false,
-      error: "Please describe your symptoms in at least 20 characters.",
+      error: "Please describe your symptoms.",
     }
+  }
+  // Same non-empty + anti-gibberish gate as the intake step — no length or
+  // word-count minimum. Accepts brief real input ("migraine") while still
+  // rejecting empty + keyboard-mash (and closes the old length-only gap that
+  // let long gibberish through).
+  const symptomQuality = validateSymptomTextQuality(symptomDetails)
+  if (!symptomQuality.valid) {
+    return { valid: false, error: symptomQuality.reason ?? "Please describe your symptoms." }
   }
 
   // Symptom duration is required for clinical defensibility

@@ -13,8 +13,11 @@
  * here and be caught (or not) by the AI in the next layer.
  */
 
-const MIN_DISTINCT_WORDS = 3
-const MIN_TEXT_LENGTH = 20
+// No length or word-count gate (2026-05-29): patients describe briefly
+// ("migraine", "bad back today") and advance. The only floor is the
+// anti-gibberish symptom-vocabulary stem check below, plus non-empty. The
+// char + distinct-word minimums were removed because they drove the
+// symptoms-step drop-off without adding protection the stem check lacks.
 
 /**
  * Curated stems patients use to describe symptoms. Substring match is
@@ -76,34 +79,22 @@ const GENERIC_REASON =
   "Please describe your symptoms in plain English - e.g. \"fever and headache since yesterday\""
 
 /**
- * Validate that a free-text symptom description looks like a real description,
- * not gibberish, filler, or repeated tokens.
+ * Validate that a free-text symptom description is real, not gibberish.
  *
- * Checks (in order):
- * 1. Minimum 20 characters (matches existing schema)
- * 2. At least 3 distinct alphabetic tokens (≥2 chars each)
- * 3. At least one symptom-vocabulary stem present
+ * Intentionally NOT gated on length or word count (2026-05-29): patients can
+ * describe briefly ("migraine", "bad back today") and move on. The only gate
+ * is anti-gibberish — the text must be non-empty and mention a recognizable
+ * symptom-vocabulary stem, so empty input and keyboard-mash don't reach the
+ * doctor or auto-approval. Defense-in-depth: AI notes, auto-approval, and
+ * safety screening still run downstream.
  */
 export function validateSymptomTextQuality(
   text: string | undefined | null,
 ): SymptomTextQualityResult {
   const trimmed = (text ?? "").trim()
 
-  if (trimmed.length < MIN_TEXT_LENGTH) {
-    return {
-      valid: false,
-      reason: `Please describe your symptoms (minimum ${MIN_TEXT_LENGTH} characters)`,
-    }
-  }
-
-  const tokens = trimmed
-    .toLowerCase()
-    .split(/[^a-z]+/)
-    .filter((w) => w.length >= 2)
-  const distinctWords = new Set(tokens)
-
-  if (distinctWords.size < MIN_DISTINCT_WORDS) {
-    return { valid: false, reason: GENERIC_REASON }
+  if (!trimmed) {
+    return { valid: false, reason: "Please describe your symptoms" }
   }
 
   const lower = trimmed.toLowerCase()

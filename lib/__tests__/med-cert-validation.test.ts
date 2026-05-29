@@ -52,20 +52,23 @@ describe("medical certificate validation", () => {
     expect(result.error).toBeUndefined()
   })
 
-  it("still rejects when the symptom description is shorter than 20 characters", () => {
-    const tooShort = {
+  it("rejects an empty symptom description but accepts brief real input (no length gate)", () => {
+    const base = {
       certType: "work",
       duration: "1",
-      symptomDetails: "Cough.",
       symptomDuration: "1_2_days",
       startDate: new Date().toISOString().slice(0, 10),
       telehealthConsentGiven: true,
       confirmedAccuracy: true,
       agreedToTerms: true,
     }
-    const result = validateMedCertPayload(tooShort)
-    expect(result.valid).toBe(false)
-    expect(result.error).toContain("20 characters")
+    // Empty / whitespace is rejected — a med cert needs a stated reason.
+    const empty = validateMedCertPayload({ ...base, symptomDetails: "   " })
+    expect(empty.valid).toBe(false)
+    expect(empty.error).toMatch(/describe your symptoms|plain English/)
+    // Brief real input now passes: no character/word-count floor (2026-05-29).
+    const brief = validateMedCertPayload({ ...base, symptomDetails: "Cough." })
+    expect(brief.valid).toBe(true)
   })
 
   it("does not block checkout on the absence of a legacy symptoms array", () => {

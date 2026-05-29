@@ -79,7 +79,6 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
     .toLowerCase()
     .split(/[^a-z]+/)
     .filter((word) => word.length >= 2).length
-  const WORD_TARGET = 5
 
   const validate = useCallback(() => {
     const newErrors: Record<string, string> = {}
@@ -145,24 +144,6 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
             }
             className={`mt-2 min-h-[88px] resize-none ${touched.symptomDetails && errors.symptomDetails ? "border-destructive" : ""}`}
           />
-          <div className="mt-1.5 flex items-center justify-between gap-2">
-            <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
-              <div
-                className={`h-full rounded-full transition-[width] duration-300 ${
-                  detailsQuality.valid ? "bg-primary" : "bg-primary/50"
-                }`}
-                style={{ width: `${Math.min((detailsWordCount / WORD_TARGET) * 100, 100)}%` }}
-              />
-            </div>
-            <p
-              className={`shrink-0 text-xs tabular-nums ${
-                detailsQuality.valid ? "text-primary" : "text-muted-foreground"
-              }`}
-              aria-live="polite"
-            >
-              {detailsQuality.valid ? `${detailsWordCount} words` : `${detailsWordCount}/${WORD_TARGET} words`}
-            </p>
-          </div>
         </FormField>
       </QuestionCard>
 
