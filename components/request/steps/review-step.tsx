@@ -6,7 +6,7 @@
  */
 
 import { Check, ChevronDown, ChevronUp, CreditCard, Edit2, Loader2, Lock, RefreshCw,ShieldCheck } from "lucide-react"
-import { useRef,useState } from "react"
+import { useEffect, useRef,useState } from "react"
 
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
 import { PaymentLogos } from "@/components/checkout/payment-logos"
@@ -143,6 +143,17 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
   const [showCheckmark, setShowCheckmark] = useState(false)
   const [isPriority, setIsPriority] = useState(false)
   const totalDue = price + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)
+
+  // Track checkout view once on mount — mirrors checkout-step.tsx so the
+  // prescription / repeat-script pay step emits the same funnel event as
+  // med-cert + consult (review-step previously only fired checkout_initiated,
+  // leaving prescription/repeat funnels blind at the "reached checkout" step).
+  useEffect(() => {
+    posthog?.capture("checkout_viewed", {
+      service_type: serviceType,
+      consult_subtype: answers.consultSubtype,
+    })
+  }, [posthog, serviceType, answers.consultSubtype])
 
   const handleConsentChange = (checked: boolean) => {
     setSafetyConfirmed(checked)
