@@ -89,7 +89,7 @@ describe("getParchmentPatientSyncEligibility", () => {
   })
 
   it("keeps patient sync statuses aligned with active prescribing recovery states", () => {
-    expect(PARCHMENT_PATIENT_SYNC_STATUSES).toEqual(["paid", "in_review", "pending_info", "awaiting_script"])
+    expect(PARCHMENT_PATIENT_SYNC_STATUSES).toEqual(["paid", "in_review", "pending_info", "approved", "awaiting_script"])
   })
 
   it("allows active paid prescription requests to sync identity to Parchment", () => {
