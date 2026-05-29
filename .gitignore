@@ -15,7 +15,7 @@
 /test-results/
 /playwright-report/
 /playwright-report*/
-e2e/.e2e-run-id
+e2e/.e2e-run-id*
 
 # next.js
 /.next/
