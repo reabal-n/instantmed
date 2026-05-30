@@ -126,8 +126,15 @@ export async function getParchmentPrescribeUrlAction(
       }
     }
 
-    // Get patient_id from the intake and enforce prescribing eligibility server-side.
-    const { data: intake } = await supabase
+    // Get patient_id + eligibility fields from the intake. The patient profile is
+    // re-fetched via getProfileById below, so we only select the columns this action
+    // actually uses. A previous embedded `patient:profiles!patient_id(...)` join also
+    // selected a second address-line column that does NOT exist on the live profiles
+    // schema (address line 2 lives in intake answers, not the profile). PostgREST
+    // rejected the whole query (400/42703), which the action then surfaced as a
+    // misleading "Intake or patient not found". Keep this select to live columns only;
+    // pinned by parchment-action-contract.test.ts.
+    const { data: intake, error: intakeError } = await supabase
       .from("intakes")
       .select(`
         patient_id,
@@ -138,27 +145,25 @@ export async function getParchmentPrescribeUrlAction(
         claimed_by,
         reviewing_doctor_id,
         reviewed_by,
-        patient:profiles!patient_id (
-          id,
-          full_name,
-          date_of_birth,
-          sex,
-          medicare_number,
-          medicare_irn,
-          medicare_expiry,
-          ihi_number,
-          phone,
-          email,
-          address_line1,
-          address_line2,
-          suburb,
-          state,
-          postcode
-        ),
         service:services!service_id(type)
       `)
       .eq("id", intakeId)
       .single()
+
+    // PGRST116 = no rows (handled below as "not found"). Any other error is a real
+    // query/schema failure that must not masquerade as a missing patient.
+    if (intakeError && intakeError.code !== "PGRST116") {
+      const lookupError = new Error(`Intake lookup failed: ${intakeError.message}`)
+      log.error(
+        "Failed to load intake for Parchment prescribe handoff",
+        { intakeId, code: intakeError.code },
+        lookupError,
+      )
+      Sentry.captureException(lookupError, {
+        extra: { context: "parchment_prescribe_intake_lookup", intakeId, code: intakeError.code, details: intakeError.details },
+      })
+      return { success: false, error: "Could not load this intake. Please retry, or use manual prescribing if it persists." }
+    }
 
     if (!intake?.patient_id) {
       return { success: false, error: "Intake or patient not found" }

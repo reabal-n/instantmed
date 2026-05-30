@@ -86,6 +86,26 @@ describe("Parchment action production contract", () => {
     )
   })
 
+  it("does not select profile columns absent from the live schema in the SSO handoff", () => {
+    const body = functionBody("getParchmentPrescribeUrlAction")
+
+    // `address_line2` does not exist on the live profiles table (address line 2 is an
+    // intake-answers field, not a profile column). Embedding it in the intake select
+    // makes PostgREST reject the whole query (400/42703), which previously surfaced as
+    // a misleading "Intake or patient not found" and blocked prescribing entirely.
+    expect(body).not.toContain("address_line2")
+  })
+
+  it("surfaces intake lookup query errors instead of reporting them as not-found", () => {
+    const body = functionBody("getParchmentPrescribeUrlAction")
+
+    // The intake lookup must capture `error`, not just `data`, so a query/schema
+    // failure cannot masquerade as a missing patient. Genuine no-row reads (PGRST116)
+    // still fall through to the "not found" message.
+    expect(body).toContain("error: intakeError")
+    expect(body).toContain('intakeError.code !== "PGRST116"')
+  })
+
   it("keeps the prescribing identity blocker report aligned with sync retry eligibility", () => {
     expect(prescribingIdentityReportSource).toContain("PARCHMENT_PATIENT_SYNC_STATUSES")
     expect(prescribingIdentityReportSource).toContain(".in(\"status\", [...PARCHMENT_PATIENT_SYNC_STATUSES])")
