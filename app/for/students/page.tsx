@@ -11,7 +11,7 @@ import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 export const metadata: Metadata = {
   title: "Medical Certificates for Uni Students | InstantMed",
-  description: "Get a doctor-reviewed medical certificate for study absence documentation. 15-minute turnaround. Institution policies vary.",
+  description: "Get a doctor-reviewed medical certificate for study absence documentation. Fast doctor review with live wait messaging. Institution policies vary.",
   keywords: [
     "medical certificate uni student",
     "student medical certificate",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "Medical Certificates for Uni Students | InstantMed",
-    description: "Get a doctor-reviewed medical certificate for study absence documentation in 15 minutes.",
+    description: "Get a doctor-reviewed medical certificate for study absence documentation. Fast doctor review with live wait messaging.",
     url: "https://instantmed.com.au/for/students",
   },
   alternates: {
@@ -76,7 +76,7 @@ export default function StudentsPage() {
                     Medical Certificates for Students
                   </h1>
                   <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto mb-4">
-                    Too unwell for class or study? Get your medical certificate in <strong>15 minutes</strong>. Institution policies vary.
+                    Too unwell for class or study? Review timing follows live queue conditions. Institution policies vary.
                   </p>
                   <p className="text-xs text-muted-foreground mb-6">
                     Study absence documentation • Doctor-reviewed • Verification code included
@@ -93,7 +93,7 @@ export default function StudentsPage() {
                   <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs">
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Zap className="h-3.5 w-3.5 text-primary" />
-                      <span className="font-medium text-muted-foreground">15 min turnaround</span>
+                      <span className="font-medium text-muted-foreground">Fast doctor review</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <GraduationCap className="h-3.5 w-3.5 text-primary" />
@@ -120,7 +120,7 @@ export default function StudentsPage() {
                       <div className="text-xs text-muted-foreground">questionnaire</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-semibold mb-1 text-primary">15 min</div>
+                      <div className="text-2xl font-semibold mb-1 text-primary">Fast</div>
                       <div className="text-xs text-muted-foreground">doctor review</div>
                     </div>
                     <div>
@@ -210,7 +210,7 @@ export default function StudentsPage() {
                     {
                       icon: Clock,
                       title: "No GP waitlists",
-                      desc: "Skip the 2-week wait for a bulk-billing appointment. Sorted in 15 minutes.",
+                      desc: "Skip the 2-week wait for a bulk-billing appointment. Reviewed quickly when the med-cert queue is clear.",
                     },
                     {
                       icon: Zap,
@@ -266,7 +266,7 @@ export default function StudentsPage() {
                     },
                     {
                       q: "What does it cost?",
-                      a: `Medical certificates start at ${PRICING_DISPLAY.MED_CERT} for 1 day, ${PRICING_DISPLAY.MED_CERT_2DAY} for 2 days. If your request isn't approved, you get a refund minus a small admin fee.`,
+                      a: `Medical certificates start at ${PRICING_DISPLAY.MED_CERT} for 1 day, ${PRICING_DISPLAY.MED_CERT_2DAY} for 2 days. If your request isn't approved, you get a full refund.`,
                     },
                   ].map((faq, i) => (
                     <div key={i} className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
@@ -284,7 +284,7 @@ export default function StudentsPage() {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-xl mx-auto text-center">
                 <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-primary/20 bg-blue-50/30 dark:bg-blue-950/10">
-                  <h2 className="text-2xl font-semibold mb-3">Get your certificate in 15 minutes</h2>
+                  <h2 className="text-2xl font-semibold mb-3">Get your certificate reviewed quickly</h2>
                   <p className="text-sm text-muted-foreground mb-6">
                     Get your certificate before your documentation deadline.
                   </p>

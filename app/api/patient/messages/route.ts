@@ -23,8 +23,8 @@ function revalidateMessageSurfaces(intakeId: string) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Apply rate limiting
-    const rateLimitResponse = await applyRateLimit(request, "standard")
+    // Patient messages can contain PHI; keep this on the critical sensitive bucket.
+    const rateLimitResponse = await applyRateLimit(request, "sensitive")
     if (rateLimitResponse) return rateLimitResponse
 
     const authResult = await getApiAuth()
@@ -129,8 +129,8 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    // Apply rate limiting
-    const rateLimitResponse = await applyRateLimit(request, "standard")
+    // Patient messages can contain PHI; keep this on the critical sensitive bucket.
+    const rateLimitResponse = await applyRateLimit(request, "sensitive")
     if (rateLimitResponse) return rateLimitResponse
 
     const authResult = await getApiAuth()

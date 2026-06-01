@@ -1,6 +1,7 @@
 import { EMPTY_GOOGLE_ADS_HEALTH, getGoogleAdsHealth } from "@/lib/analytics/google-ads-health"
 import { requireRole } from "@/lib/auth/helpers"
 import { getGeographicBreakdown } from "@/lib/data/analytics-geographic"
+import { getBusinessOperatingScorecard } from "@/lib/data/business-scorecard"
 import { getIntakeMonitoringStats } from "@/lib/data/intakes"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import {
@@ -78,6 +79,9 @@ export default async function AnalyticsDashboardPage() {
 
     // [9] Patients by state (30d window, top 5 + unknown)
     getGeographicBreakdown(),
+
+    // [10] Operating scorecard: revenue, capacity, support load, and hire triggers
+    getBusinessOperatingScorecard(supabase, now),
   ])
 
   // Extract results with safe fallbacks
@@ -99,6 +103,9 @@ export default async function AnalyticsDashboardPage() {
   const geographic = results[9].status === "fulfilled"
     ? results[9].value
     : { windowDays: 30, totalPatients: 0, topStates: [], unknownCount: 0 }
+  const businessScorecard = results[10].status === "fulfilled"
+    ? results[10].value
+    : null
 
   // Calculate revenue totals
   const monthRevenue = (revenueResult.data || []).reduce(
@@ -129,6 +136,7 @@ export default async function AnalyticsDashboardPage() {
     },
     googleAds,
     prescriptionFulfilment,
+    businessScorecard,
   }
 
   return (

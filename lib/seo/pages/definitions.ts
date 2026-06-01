@@ -1184,7 +1184,7 @@ export const resourcePages: ResourcePage[] = [
       },
       {
         q: "Can I get a refund?",
-        a: "If we can't help, you won't be charged the consultation fee. A small admin fee may apply.",
+        a: "If we can't help after doctor review, declined refundable categories receive a full refund.",
       },
     ],
   },

@@ -21,7 +21,7 @@ export const SMS_TEMPLATES = {
     `Hi ${patientName}, your eScript is ready! Show this code at any pharmacy: ${scriptToken}. Or tap: https://erx.com.au/script/${scriptToken}`,
 
   PAYMENT_RECEIVED: (patientName: string, amount: string) =>
-    `Hi ${patientName}, payment of ${amount} received. Your request is now in the doctor queue. ETA: ~15 mins.`,
+    `Hi ${patientName}, payment of ${amount} received. Your request is now in the doctor queue. We'll update you by email.`,
 
   DOCTOR_ASSIGNED: (patientName: string, doctorName: string) =>
     `Hi ${patientName}, Dr. ${doctorName} is now reviewing your request. You'll hear back soon!`,

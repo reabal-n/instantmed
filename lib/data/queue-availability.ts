@@ -31,7 +31,7 @@ export async function getQueueEstimate(): Promise<QueueEstimate> {
 
     let estimatedWait: string
     if (pendingCount <= 5) {
-      estimatedWait = "~15 minutes"
+      estimatedWait = "fast review"
     } else if (pendingCount <= 15) {
       estimatedWait = "~30 minutes"
     } else if (pendingCount <= 30) {

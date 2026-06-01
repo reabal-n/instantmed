@@ -78,4 +78,24 @@ describe("Google Ads health", () => {
     expect(health.configuration.detail).toContain("WEBPAGE")
     expect(health.configuration.action).toContain("UPLOAD_CLICKS")
   })
+
+  it("surfaces disabled server-side uploads as a blocking configuration state", () => {
+    const health = buildGoogleAdsHealth({
+      audits: [
+        {
+          intake_id: "disabled-intake",
+          created_at: "2026-06-01T03:00:00.000Z",
+          metadata: { status: "skipped_disabled" },
+        },
+      ],
+      candidates: [
+        { id: "disabled-intake", paid_at: "2026-06-01T02:00:00.000Z", gclid: "gclid-1" },
+      ],
+    })
+
+    expect(health.skipped).toBe(1)
+    expect(health.configuration.severity).toBe("error")
+    expect(health.configuration.code).toBe("server_disabled")
+    expect(health.configuration.label).toBe("Server uploads disabled")
+  })
 })

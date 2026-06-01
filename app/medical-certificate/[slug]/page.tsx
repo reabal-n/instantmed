@@ -298,7 +298,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
               <div className="flex flex-wrap justify-center gap-4 mb-8">
                 <div className="flex items-center gap-2 text-sm text-background/70">
                   <Zap className="h-4 w-4 text-primary" />
-                  ~15 min turnaround
+                  Fast doctor review
                 </div>
                 <div className="flex items-center gap-2 text-sm text-background/70">
                   <Shield className="h-4 w-4 text-primary" />
@@ -356,9 +356,9 @@ export default async function MedCertSlugPage({ params }: PageProps) {
 
           <section className="px-4 py-12">
             <div className="mx-auto max-w-xl text-center">
-              <h2 className="text-2xl font-semibold mb-4">Ready in 15 minutes</h2>
+              <h2 className="text-2xl font-semibold mb-4">Fast doctor review</h2>
               <p className="text-background/60 mb-6">
-                Join hundreds of {data.name} residents who skip the waiting room with InstantMed.
+                When recent med-cert queue data is green. Doctor review is required before any certificate is issued.
               </p>
               <Link href="/request?service=med-cert">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">

@@ -10,9 +10,10 @@
  *   2. A Claude credential is present + a minimal generateText succeeds
  *      against the configured/discovered Claude Opus model (catches auth
  *      failures, plan-restricted models, and model-name drift).
- *   3. Playwright chromium installed.
- *   4. Default capture URL returns 2xx.
- *   5. docs/reviews/ has >= 100MB free.
+ *   3. OPENAI_API_KEY present + the configured GPT review model exists.
+ *   4. Playwright chromium installed.
+ *   5. Default capture URL returns 2xx.
+ *   6. docs/reviews/ has >= 100MB free.
  *
  * Exits 0 on all-green, 1 on any failure. Each failure logged with the
  * exact fix command where possible.
@@ -31,6 +32,7 @@ import { getEnv, hydrateLocalEnv } from "./local-env"
 const DEFAULT_URL = "https://instantmed.com.au"
 const REVIEWS_ROOT = "docs/reviews"
 const MIN_FREE_BYTES = 100 * 1024 * 1024
+const DEFAULT_OPENAI_REVIEW_MODEL = "gpt-5.5-pro"
 
 interface CheckResult {
   name: string
@@ -136,6 +138,45 @@ async function checkClaude(): Promise<CheckResult> {
   }
 }
 
+async function checkOpenAI(): Promise<CheckResult> {
+  const apiKey = getEnv("OPENAI_API_KEY")
+  const model = getEnv("OPENAI_REVIEW_MODEL") || DEFAULT_OPENAI_REVIEW_MODEL
+
+  if (!apiKey) {
+    return {
+      name: "OpenAI API key + GPT review model",
+      ok: false,
+      detail: "OPENAI_API_KEY not set in the shell, .env.local, or .env.",
+      fix: "Add OPENAI_API_KEY to .env.local and Vercel, then retry.",
+    }
+  }
+
+  try {
+    const response = await fetch(`https://api.openai.com/v1/models/${encodeURIComponent(model)}`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    })
+    if (!response.ok) {
+      return {
+        name: "OpenAI API key + GPT review model",
+        ok: false,
+        detail: `${model} returned ${response.status}.`,
+        fix: "Set OPENAI_REVIEW_MODEL to a model listed by the OpenAI Models API for this key.",
+      }
+    }
+    return {
+      name: "OpenAI API key + GPT review model",
+      ok: true,
+      detail: `${model} is available.`,
+    }
+  } catch (err) {
+    return {
+      name: "OpenAI API key + GPT review model",
+      ok: false,
+      detail: err instanceof Error ? err.message : String(err),
+    }
+  }
+}
+
 function checkChromium(): CheckResult {
   const candidates = [
     process.env.PLAYWRIGHT_BROWSERS_PATH,
@@ -222,6 +263,8 @@ async function main(): Promise<void> {
   hydrateLocalEnv([
     "GEMINI_API_KEY",
     "ANTHROPIC_API_KEY",
+    "OPENAI_API_KEY",
+    "OPENAI_REVIEW_MODEL",
     "AI_GATEWAY_API_KEY",
     "VERCEL_AI_GATEWAY_API_KEY",
     "CLAUDE_MODEL",
@@ -237,6 +280,7 @@ async function main(): Promise<void> {
   const results = await Promise.all([
     checkGemini(),
     checkClaude(),
+    checkOpenAI(),
     Promise.resolve(checkChromium()),
     checkTargetUrl(),
     Promise.resolve(checkDiskSpace()),

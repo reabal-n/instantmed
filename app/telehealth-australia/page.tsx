@@ -114,7 +114,7 @@ const FAQS = [
   },
   {
     question: "What does a telehealth consultation actually cost in Australia?",
-    answer: `That depends entirely on the provider and whether Medicare applies. GP-based telehealth with an established-relationship patient may be bulk-billed or carry a small gap fee. Private telehealth services like InstantMed charge a flat fee per request - medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}, and general consultations from ${PRICING_DISPLAY.CONSULT}. The trade-off is simple: you pay a small fee for immediate, structured access without the wait or the Medicare card requirement.`,
+    answer: `That depends entirely on the provider and whether Medicare applies. GP-based telehealth with an established-relationship patient may be bulk-billed or carry a small gap fee. Private telehealth services like InstantMed charge a flat fee per request - medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}, and specialised ED or hair-loss assessments from ${PRICING_DISPLAY.CONSULT}. The trade-off is simple: you pay a small fee for structured access without the wait or the Medicare card requirement.`,
   },
   {
     question: "Can a telehealth doctor send a prescription to my pharmacy?",

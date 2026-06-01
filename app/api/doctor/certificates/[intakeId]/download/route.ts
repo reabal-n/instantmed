@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { requireApiRole } from "@/lib/auth/helpers"
-import { getCertificateForIntake } from "@/lib/data/issued-certificates"
+import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
+import { getCertificateForIntake, logCertificateEvent } from "@/lib/data/issued-certificates"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -39,6 +40,21 @@ export async function GET(
     return NextResponse.json({ error: "Certificate not found" }, { status: 404 })
   }
 
+  const canAccessCertificate =
+    hasAdminAccess(authResult.profile) || certificate.doctor_id === authResult.profile.id
+
+  if (!canAccessCertificate) {
+    log.warn("Certificate is not accessible to this doctor", {
+      intakeId,
+      requesterId: authResult.profile.id,
+    })
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
+
+  if (certificate.status !== "valid") {
+    return NextResponse.json({ error: `Certificate is ${certificate.status}` }, { status: 410 })
+  }
+
   const supabase = createServiceRoleClient()
   const { data: signedUrlData, error: signedUrlError } = await supabase.storage
     .from("documents")
@@ -56,6 +72,27 @@ export async function GET(
   }
 
   const pdfBuffer = await pdfResponse.arrayBuffer()
+  const auditActorRole = hasAdminAccess(authResult.profile) ? "admin" : "doctor"
+  const auditResult = await logCertificateEvent(
+    certificate.id,
+    "downloaded",
+    authResult.profile.id,
+    auditActorRole,
+    {
+      channel: "doctor_certificate_download",
+      intake_id: intakeId,
+    },
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim(),
+    request.headers.get("user-agent") ?? undefined,
+  )
+
+  if (!auditResult.success) {
+    log.error("Certificate download audit event failed", {
+      intakeId,
+      certificateId: certificate.id,
+    })
+    return NextResponse.json({ error: "Failed to audit certificate download" }, { status: 500 })
+  }
 
   return new NextResponse(pdfBuffer, {
     headers: {

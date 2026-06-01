@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 
+import { buildOperationalInvariantAlerts, getOperationalInvariants } from "@/lib/admin/ops-invariants"
 import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { toError } from "@/lib/errors"
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
     const supabase = createServiceRoleClient()
     const now = new Date()
     const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
-    const alerts: Array<{ metric: string; severity: string; detail: string }> = []
+    const alerts: Array<{ metric: string; severity: string; detail: string; count?: number }> = []
 
     // 1. Failed payments in last hour
     const { count: failedPayments } = await supabase
@@ -160,7 +161,18 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // SLA queue monitoring is handled by the stale-queue cron (Sentry/PostHog only).
+    // 7. Weekly ops invariants promoted from dashboard-only visibility to alerting.
+    const operationalInvariants = await getOperationalInvariants(supabase)
+    const invariantAlerts = buildOperationalInvariantAlerts(operationalInvariants)
+
+    for (const alert of invariantAlerts) {
+      alerts.push(alert)
+      trackBusinessMetric({
+        metric: alert.metric,
+        severity: alert.severity,
+        metadata: { count: alert.count },
+      })
+    }
 
     // Fire Sentry alerts for critical items
     const criticalAlerts = alerts.filter((a) => a.severity === "critical")
@@ -219,6 +231,9 @@ export async function GET(request: NextRequest) {
         stuck_pending_emails: stuckPending || 0,
         high_risk_waiting: highRiskWaiting || 0,
         email_sla_breaches: slaBreaches || 0,
+        ops_sla_breach_backlog: operationalInvariants.slaBreachBacklog,
+        ops_cert_refund_orphans: operationalInvariants.certRefundOrphans,
+        ops_refund_record_anomalies: operationalInvariants.refundRecordAnomalies,
       },
       checked_at: now.toISOString(),
     })

@@ -264,7 +264,7 @@ export const FORM = {
 export const TOOLTIPS = {
   medicare: "We need this to verify your identity. Encrypted, secure, never shared.",
   irn: "The small number (1-9) next to your name. Usually overlooked.",
-  priority: "Jump the queue. Doctor reviews within 15 minutes.",
+  priority: "Jump the queue for earlier doctor review.",
   securePayment: "Payments go through Stripe. We never see your card details.",
   doctorReview: "Every request reviewed by an AHPRA-registered Australian doctor. The real deal.",
 } as const

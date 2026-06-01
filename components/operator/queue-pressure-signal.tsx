@@ -196,6 +196,7 @@ export function QueuePressureSignal({
       </span>
       <span
         className={cn("text-3xl font-semibold leading-none tracking-tight tabular-nums", classes.value)}
+        suppressHydrationWarning
         data-live-wait-counter
       >
         {liveWaitValue}
@@ -205,6 +206,7 @@ export function QueuePressureSignal({
             <span
               key={liveSecondsLabel}
               className="ml-1.5 align-baseline text-sm font-medium text-muted-foreground motion-safe:animate-[wait-digit-tick_160ms_cubic-bezier(0.16,1,0.3,1)]"
+              suppressHydrationWarning
             >
               {liveSecondsLabel}
             </span>
@@ -252,13 +254,14 @@ export function QueuePressureSignal({
       <span
         key={liveWaitValue}
         className={cn("font-semibold tabular-nums motion-safe:animate-[wait-digit-tick_160ms_cubic-bezier(0.16,1,0.3,1)]", compact ? "text-sm" : "text-base", classes.value)}
+        suppressHydrationWarning
         data-live-wait-counter
       >
         {liveWaitValue}
         {liveSecondsLabel ? (
           <>
             {" "}
-            <span className="text-[11px] font-medium text-muted-foreground">
+            <span className="text-[11px] font-medium text-muted-foreground" suppressHydrationWarning>
               {liveSecondsLabel}
             </span>
           </>

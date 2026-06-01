@@ -81,7 +81,7 @@ export const GENERAL_FAQ: FAQGroup[] = [
       {
         question: 'What types of consultations do you offer?',
         answer:
-          "We offer general consultations, erectile dysfunction consults, hair loss consults, women\u2019s health consults, and weight management consults. Each is reviewed by an AHPRA-registered doctor who\u2019ll assess whether we can help or whether you\u2019d be better off with in-person care.",
+          "We currently offer specialised erectile dysfunction and hair loss assessment pathways. Broad General Consult, women\u2019s health, and weight management request surfaces are not accepting paid requests until launch readiness is explicitly changed.",
       },
       {
         question: 'Can I get a referral to a specialist?',

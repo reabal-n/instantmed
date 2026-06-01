@@ -107,7 +107,7 @@ const instantmedVsHubHealth: ComparisonEntry = {
     },
     {
       q: "Does InstantMed offer the same treatment programs as Hub Health?",
-      a: "InstantMed currently offers active one-off services such as medical certificates, repeat prescriptions, ED, hair loss, and general consults. Hub Health's model is more structured around ongoing programs with a care team. If you want a one-off doctor review and an eScript for an active InstantMed service, InstantMed will handle that. If you want a multi-month coached program, Hub Health is purpose-built for that.",
+      a: "InstantMed currently offers active one-off services such as medical certificates, repeat prescriptions, ED, and hair loss. Hub Health's model is more structured around ongoing programs with a care team. If you want a one-off doctor review and an eScript for an active InstantMed service, InstantMed will handle that. If you want a multi-month coached program, Hub Health is purpose-built for that.",
     },
     {
       q: "Are both services legitimate and AHPRA-registered?",
@@ -115,7 +115,7 @@ const instantmedVsHubHealth: ComparisonEntry = {
     },
     {
       q: "What happens if my request is declined on InstantMed?",
-      a: "Medical certificate and prescription requests that a doctor declines receive a 100% refund. Consult requests that are declined receive a 50% refund - the doctor has still reviewed your case and written a clinical note. Hub Health's refund policy varies by program; check their terms before subscribing.",
+      a: "Medical certificate, prescription, and active specialty assessment requests that a doctor declines receive a 100% refund. Hub Health's refund policy varies by program; check their terms before subscribing.",
     },
     {
       q: "Do I have to commit to anything with InstantMed?",
@@ -188,14 +188,14 @@ const instantmedVsDoctorsOnDemand: ComparisonEntry = {
     { feature: "Consultation format", instantmed: "Async form + doctor messaging", competitor: "Video consultation", winner: "tie" },
     { feature: "Need to book a time slot", instantmed: "No - submit anytime", competitor: "Yes, scheduled", winner: "instantmed" },
     { feature: "Medical certificate price", instantmed: PRICING_DISPLAY.FROM_MED_CERT, competitor: "Higher (video consult)", winner: "instantmed" },
-    { feature: "General consult price", instantmed: PRICING_DISPLAY.FROM_CONSULT, competitor: "Premium video pricing", winner: "instantmed" },
+    { feature: "Specialty assessment price", instantmed: PRICING_DISPLAY.FROM_CONSULT, competitor: "Premium video pricing", winner: "instantmed" },
     { feature: "Prescription available", instantmed: true, competitor: true, winner: "tie" },
     { feature: "Face-to-face with doctor", instantmed: "No - written exchange", competitor: "Yes - video", winner: "competitor" },
     { feature: "After-hours availability", instantmed: "24/7 for med certs", competitor: "Extended hours", winner: "instantmed" },
     { feature: "Suitable for complex conditions", instantmed: "Simple to moderate", competitor: "Can handle wider scope", winner: "competitor" },
     { feature: "Requires working camera/mic", instantmed: "No - any device", competitor: "Yes", winner: "instantmed" },
     { feature: "AHPRA-registered doctors", instantmed: true, competitor: true, winner: "tie" },
-    { feature: "Refund guarantee", instantmed: "100% on med cert/Rx declines, 50% on consults", competitor: "Varies", winner: "instantmed" },
+    { feature: "Refund guarantee", instantmed: "100% on declined refundable categories", competitor: "Varies", winner: "instantmed" },
   ],
   whenInstantMedBetter: [
     "You want a medical certificate without scheduling a video call",
@@ -423,12 +423,12 @@ const instantmedVsQoctor: ComparisonEntry = {
     { feature: "AHPRA-registered doctors", instantmed: true, competitor: true, winner: "tie" },
     { feature: "Medical certificate", instantmed: PRICING_DISPLAY.FROM_MED_CERT, competitor: "Similar pricing", winner: "tie" },
     { feature: "Repeat prescription", instantmed: PRICING_DISPLAY.REPEAT_SCRIPT, competitor: "Similar pricing", winner: "tie" },
-    { feature: "General consultation", instantmed: PRICING_DISPLAY.FROM_CONSULT, competitor: "Similar pricing", winner: "tie" },
+    { feature: "Specialty assessment", instantmed: PRICING_DISPLAY.FROM_CONSULT, competitor: "Similar pricing", winner: "tie" },
     { feature: "Async form-based workflow", instantmed: true, competitor: true, winner: "tie" },
     { feature: "Doctor messaging on request", instantmed: true, competitor: "Varies", winner: "instantmed" },
     { feature: "24/7 medical certificates", instantmed: true, competitor: "Extended hours", winner: "instantmed" },
     { feature: "Priority review option", instantmed: `Express Review +${PRICING_DISPLAY.PRIORITY_FEE}`, competitor: "Not advertised", winner: "instantmed" },
-    { feature: "Refund on declined request", instantmed: "100% on med cert/Rx, 50% on consults", competitor: "Refund policy varies", winner: "instantmed" },
+    { feature: "Refund on declined request", instantmed: "100% on declined refundable categories", competitor: "Refund policy varies", winner: "instantmed" },
     { feature: "Repeat prescription commitment", instantmed: "Per-request only", competitor: "Per-request only", winner: "tie" },
   ],
   whenInstantMedBetter: [
@@ -457,7 +457,7 @@ const instantmedVsQoctor: ComparisonEntry = {
     },
     {
       q: "How do the prices actually compare?",
-      a: `Both services charge comparable prices for the same core offerings. InstantMed's medical certificates start at ${PRICING_DISPLAY.FROM_MED_CERT}, repeat scripts at ${PRICING_DISPLAY.REPEAT_SCRIPT}, and general consults at ${PRICING_DISPLAY.FROM_CONSULT}. Qoctor's pricing is in a similar range. Check both sites for the specific service you need - small differences may apply depending on the request type.`,
+      a: `Both services charge comparable prices for overlapping core offerings. InstantMed's medical certificates start at ${PRICING_DISPLAY.FROM_MED_CERT}, repeat scripts at ${PRICING_DISPLAY.REPEAT_SCRIPT}, and active specialty assessments at ${PRICING_DISPLAY.FROM_CONSULT}. Qoctor's pricing is in a similar range. Check both sites for the specific service you need - small differences may apply depending on the request type.`,
     },
     {
       q: "Can I switch between InstantMed and Qoctor?",
@@ -498,7 +498,7 @@ const instantmedVsQoctor: ComparisonEntry = {
         title: "Why Refund Policies Actually Matter",
         paragraphs: [
           "The refund policy is one of the most underrated factors in choosing a telehealth service. Most patients assume their request will be approved - and usually it is - but the handling of declined requests reveals a lot about how a service treats patients. If a doctor decides your case isn't suitable for telehealth, do you still pay? Partially? Fully? Does the service explain why, or just take the money and move on?",
-          "InstantMed refunds 100% of the fee for declined medical certificate and prescription requests. For declined consult requests, you receive a 50% refund, because the doctor has still reviewed your case in detail and written a clinical note. The 50% retention isn't a penalty - it reflects the work that's already been done, and the patient still gets that clinical assessment.",
+          "InstantMed refunds 100% of the fee for declined refundable categories. That clear refund policy removes financial pressure to approve borderline cases and keeps the clinical decision cleaner.",
           "A clear refund policy also filters the doctor's incentive structure. When refunds are guaranteed, there's no financial pressure to approve borderline cases. That makes the clinical decision cleaner, and it protects patients from inappropriate approvals just as much as from inappropriate declines.",
         ],
       },
@@ -533,12 +533,12 @@ const instantmedVsInstantScripts: ComparisonEntry = {
   ],
   competitor: { name: "InstantScripts", type: "competitor" },
   heroText:
-    "InstantScripts is one of the largest script-focused telehealth services in Australia. InstantMed offers a similar core - medical certificates, repeat scripts, and consultations - with a slightly different workflow and commitments. Here's an honest, side-by-side look.",
+    "InstantScripts is one of the largest script-focused telehealth services in Australia. InstantMed offers a similar core - medical certificates, repeat scripts, ED, and hair-loss pathways - with a slightly different workflow and commitments. Here's an honest, side-by-side look.",
   comparisonTable: [
     { feature: "AHPRA-registered doctors", instantmed: true, competitor: true, winner: "tie" },
     { feature: "Medical certificate", instantmed: PRICING_DISPLAY.FROM_MED_CERT, competitor: "Similar pricing", winner: "tie" },
     { feature: "Repeat prescription", instantmed: PRICING_DISPLAY.REPEAT_SCRIPT, competitor: "Similar pricing", winner: "tie" },
-    { feature: "General consultation", instantmed: PRICING_DISPLAY.FROM_CONSULT, competitor: "Similar pricing", winner: "tie" },
+    { feature: "Specialty assessment", instantmed: PRICING_DISPLAY.FROM_CONSULT, competitor: "Similar pricing", winner: "tie" },
     { feature: "eScript delivery", instantmed: true, competitor: true, winner: "tie" },
     { feature: "Priority / Express review", instantmed: `+${PRICING_DISPLAY.PRIORITY_FEE} fast-track option`, competitor: "Varies", winner: "instantmed" },
     { feature: "Repeat script commitment", instantmed: "Per-request", competitor: "Per-request", winner: "tie" },
@@ -589,7 +589,7 @@ const instantmedVsInstantScripts: ComparisonEntry = {
     },
     {
       q: "What's the refund policy difference?",
-      a: "InstantMed has a clearly documented policy: 100% refund on declined medical certificate and prescription requests, 50% refund on declined consult requests. InstantScripts handles refunds through their own terms - check their policy directly. Services with explicit refund commitments reduce the financial risk of trying them for the first time.",
+      a: "InstantMed has a clearly documented policy: 100% refund on declined refundable categories. InstantScripts handles refunds through their own terms - check their policy directly. Services with explicit refund commitments reduce the financial risk of trying them for the first time.",
     },
     {
       q: "Which service should I try first?",

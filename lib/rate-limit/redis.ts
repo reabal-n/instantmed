@@ -5,9 +5,9 @@
  * Do NOT import from ./index.ts, ./upstash.ts, or ./limiter.ts
  *
  * Uses Upstash Redis for distributed rate limiting across serverless instances.
- * Falls back to fail-open (allow request) if Redis is unavailable - this is
- * intentional for serverless: in-memory Maps don't persist across invocations,
- * so the only safe fallback is to allow the request and log the failure.
+ * Lower-risk buckets fall back to fail-open if Redis is unavailable.
+ * Abuse-sensitive buckets fail closed in production so auth, PHI, uploads,
+ * address search, and AI spend controls do not silently disappear.
  *
  * @example
  * import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
@@ -23,6 +23,16 @@ import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("rate-limit")
 
+type RateLimitFailureMode = "open" | "closed"
+
+type RateLimitCheckResult = {
+  success: boolean
+  limit: number
+  remaining: number
+  resetAt: number
+  failureReason?: "limit_exceeded" | "protection_unavailable"
+}
+
 // Check if Redis is configured
 const isRedisConfigured = !!process.env.UPSTASH_REDIS_REST_URL && !!process.env.UPSTASH_REDIS_REST_TOKEN
 
@@ -37,7 +47,7 @@ if (isRedisConfigured) {
  */
 export const rateLimitConfigs = {
   /** Standard API rate limit: 100 requests per minute */
-  standard: {
+	  standard: {
     limiter: redis
       ? new Ratelimit({
           redis,
@@ -46,8 +56,9 @@ export const rateLimitConfigs = {
           prefix: "ratelimit:standard",
         })
       : null,
-    label: "standard",
-  },
+	    label: "standard",
+	    failureMode: "open",
+	  },
 
   /** Public address search: 60 requests per minute before auth/checkout */
   addressSearch: {
@@ -59,8 +70,9 @@ export const rateLimitConfigs = {
           prefix: "ratelimit:address-search",
         })
       : null,
-    label: "addressSearch",
-  },
+	    label: "addressSearch",
+	    failureMode: "closed",
+	  },
 
   /** Auth operations: 10 requests per minute */
   auth: {
@@ -72,8 +84,9 @@ export const rateLimitConfigs = {
           prefix: "ratelimit:auth",
         })
       : null,
-    label: "auth",
-  },
+	    label: "auth",
+	    failureMode: "closed",
+	  },
 
   /** Sensitive operations: 20 requests per hour */
   sensitive: {
@@ -85,8 +98,9 @@ export const rateLimitConfigs = {
           prefix: "ratelimit:sensitive",
         })
       : null,
-    label: "sensitive",
-  },
+	    label: "sensitive",
+	    failureMode: "closed",
+	  },
 
   /** File uploads: 30 per hour */
   upload: {
@@ -98,8 +112,9 @@ export const rateLimitConfigs = {
           prefix: "ratelimit:upload",
         })
       : null,
-    label: "upload",
-  },
+	    label: "upload",
+	    failureMode: "closed",
+	  },
 
   /** AI endpoints: 30 requests per minute per user (protects LLM spend) */
   ai: {
@@ -111,8 +126,9 @@ export const rateLimitConfigs = {
           prefix: "ratelimit:ai",
         })
       : null,
-    label: "ai",
-  },
+	    label: "ai",
+	    failureMode: "closed",
+	  },
 
   /** Webhooks: 1000 per minute (high volume) */
   webhook: {
@@ -124,8 +140,9 @@ export const rateLimitConfigs = {
           prefix: "ratelimit:webhook",
         })
       : null,
-    label: "webhook",
-  },
+	    label: "webhook",
+	    failureMode: "open",
+	  },
 
   /** Supabase auth webhook: 30 per minute (auth emails should never exceed this) */
   webhookAuth: {
@@ -137,8 +154,9 @@ export const rateLimitConfigs = {
           prefix: "ratelimit:webhook-auth",
         })
       : null,
-    label: "webhookAuth",
-  },
+	    label: "webhookAuth",
+	    failureMode: "open",
+	  },
 
   /** Admin operations: 30 requests per minute per user */
   admin: {
@@ -150,27 +168,48 @@ export const rateLimitConfigs = {
           prefix: "ratelimit:admin",
         })
       : null,
-    label: "admin",
-  },
+	    label: "admin",
+	    failureMode: "open",
+	  },
 } as const
+
+function shouldFailClosed(failureMode: RateLimitFailureMode): boolean {
+  return process.env.NODE_ENV === "production" && failureMode === "closed"
+}
+
+function unavailableResult(): RateLimitCheckResult {
+  return {
+    success: false,
+    limit: 0,
+    remaining: 0,
+    resetAt: Date.now() + 60_000,
+    failureReason: "protection_unavailable",
+  }
+}
 
 /**
  * Check rate limit for a given identifier.
  *
- * FAIL-OPEN: If Redis is down or throws, the request is ALLOWED.
- * This prevents a Redis outage from taking down the entire application.
- * Rate limiting is a best-effort protection, not a hard security boundary.
+ * Buckets declare their own fallback policy. Critical production buckets fail
+ * closed when Redis protection is unavailable; lower-risk buckets stay open.
  */
 async function checkRateLimit(
   identifier: string,
   config: keyof typeof rateLimitConfigs
-): Promise<{ success: boolean; limit: number; remaining: number; resetAt: number }> {
+): Promise<RateLimitCheckResult> {
   const rateLimitConfig = rateLimitConfigs[config]
 
   // No Redis configured - skip rate limiting (dev/test only)
   if (!rateLimitConfig.limiter) {
+    if (shouldFailClosed(rateLimitConfig.failureMode)) {
+      logger.error("[RateLimit] Redis not configured in production - failing closed", {
+        config,
+      })
+      return unavailableResult()
+    }
+
     if (process.env.NODE_ENV === "production") {
-      logger.warn("[RateLimit] Redis not configured in production - rate limiting disabled", {
+      logger.warn("[RateLimit] Redis not configured in production - non-critical bucket failing open", {
         config,
       })
     }
@@ -184,11 +223,20 @@ async function checkRateLimit(
       limit: result.limit,
       remaining: result.remaining,
       resetAt: result.reset,
+      failureReason: result.success ? undefined : "limit_exceeded",
     }
   } catch (error) {
-    // FAIL-OPEN: Redis error → allow the request, log the failure
+    if (shouldFailClosed(rateLimitConfig.failureMode)) {
+      logger.error(
+        "[RateLimit] Redis error - failing closed",
+        { config, identifier: identifier.substring(0, 20) },
+        error instanceof Error ? error : undefined
+      )
+      return unavailableResult()
+    }
+
     logger.error(
-      "[RateLimit] Redis error - failing open (request allowed)",
+      "[RateLimit] Redis error - non-critical bucket failing open",
       { config, identifier: identifier.substring(0, 20) },
       error instanceof Error ? error : undefined
     )
@@ -228,6 +276,22 @@ export async function applyRateLimit(
   const result = await checkRateLimit(identifier, config)
 
   if (!result.success) {
+    if (result.failureReason === "protection_unavailable") {
+      return new Response(
+        JSON.stringify({
+          error: "Rate limit protection unavailable",
+          message: "Request protection is temporarily unavailable. Please try again shortly.",
+        }),
+        {
+          status: 503,
+          headers: {
+            "Content-Type": "application/json",
+            "Retry-After": "60",
+          },
+        }
+      )
+    }
+
     const retryAfter = Math.ceil((result.resetAt - Date.now()) / 1000)
     return new Response(
       JSON.stringify({

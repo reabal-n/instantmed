@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  buildOperationalInvariantAlerts,
   certOrphanHelper,
+  getInvariantQueryFailures,
   invariantTone,
   refundAnomalyHelper,
   SLA_BREACH_CRITICAL,
@@ -52,5 +54,74 @@ describe("helper text builders", () => {
   it("refundAnomalyHelper", () => {
     expect(refundAnomalyHelper(0)).toBe("None")
     expect(refundAnomalyHelper(1)).toBe("1 to reconcile")
+  })
+})
+
+describe("buildOperationalInvariantAlerts", () => {
+  it("turns non-zero ops invariants into PHI-free warning and critical alerts", () => {
+    const alerts = buildOperationalInvariantAlerts({
+      slaBreachBacklog: SLA_BREACH_CRITICAL,
+      certRefundOrphans: 2,
+      refundRecordAnomalies: 1,
+    })
+
+    expect(alerts).toEqual([
+      {
+        metric: "ops_sla_breach_backlog",
+        severity: "critical",
+        detail: `${SLA_BREACH_CRITICAL} paid intakes past 24h review SLA`,
+        count: SLA_BREACH_CRITICAL,
+      },
+      {
+        metric: "ops_cert_refund_orphans",
+        severity: "critical",
+        detail: "2 refunded certificate intakes still verify as valid",
+        count: 2,
+      },
+      {
+        metric: "ops_refund_record_anomalies",
+        severity: "warning",
+        detail: "1 refunded intake missing complete refund metadata",
+        count: 1,
+      },
+    ])
+
+    expect(JSON.stringify(alerts)).not.toMatch(/patient|email|medicare|phone|address|intakeId/i)
+  })
+
+  it("turns invariant query failures into PHI-free critical alerts instead of zero-count silence", () => {
+    const alerts = buildOperationalInvariantAlerts({
+      slaBreachBacklog: 0,
+      certRefundOrphans: 0,
+      refundRecordAnomalies: 0,
+      queryFailures: ["sla_breach_backlog", "refund_record_anomalies"],
+    })
+
+    expect(alerts).toEqual([
+      {
+        metric: "ops_invariant_query_failed",
+        severity: "critical",
+        detail: "2 operational invariant queries failed",
+        count: 2,
+      },
+    ])
+    expect(JSON.stringify(alerts)).not.toMatch(/patient|email|medicare|phone|address|intakeId/i)
+  })
+
+  it("reports failed invariant query names without patient identifiers", () => {
+    expect(getInvariantQueryFailures({
+      slaBreachBacklog: 0,
+      certRefundOrphans: 0,
+      refundRecordAnomalies: 0,
+      queryFailures: ["cert_refund_orphans"],
+    })).toEqual(["cert_refund_orphans"])
+  })
+
+  it("does not alert on clean invariants", () => {
+    expect(buildOperationalInvariantAlerts({
+      slaBreachBacklog: 0,
+      certRefundOrphans: 0,
+      refundRecordAnomalies: 0,
+    })).toEqual([])
   })
 })

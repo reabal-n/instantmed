@@ -60,6 +60,16 @@ function shouldSkipBackfillForPreflight(
   return preflight.severity === "error"
 }
 
+function serializePreflight(preflight: GoogleAdsConversionActionPreflightResult) {
+  return {
+    ok: preflight.ok,
+    severity: preflight.severity,
+    code: preflight.code,
+    label: preflight.label,
+    detail: preflight.detail,
+  }
+}
+
 /**
  * Retry/backfill Google Ads server-side purchase uploads from Supabase truth.
  *
@@ -89,7 +99,25 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = createServiceRoleClient()
     const force = request.nextUrl.searchParams.get("force") === "1"
+    const preflightOnly = request.nextUrl.searchParams.get("preflight") === "1"
     const since = new Date(Date.now() - LOOKBACK_DAYS * 24 * 60 * 60 * 1000).toISOString()
+
+    if (preflightOnly) {
+      const preflight = await preflightGoogleAdsPurchaseConversionAction()
+      return NextResponse.json({
+        success: preflight.severity !== "error",
+        skipped: true,
+        reason: "preflight_only",
+        preflight: serializePreflight(preflight),
+        lookback_days: LOOKBACK_DAYS,
+        force,
+        processed: 0,
+        skipped_already_resolved: 0,
+        skipped_uploads: 0,
+        failed: 0,
+        batch_limit: BATCH_LIMIT,
+      })
+    }
 
     const candidateQuery = supabase
       .from("intakes")
@@ -129,8 +157,9 @@ export async function GET(request: NextRequest) {
       .filter((row) => shouldRetryCandidate(row, latestAuditByIntake.get(row.id), { force }))
       .slice(0, BATCH_LIMIT)
 
+    let preflight: GoogleAdsConversionActionPreflightResult | null = null
     if (retryable.length > 0) {
-      const preflight = await preflightGoogleAdsPurchaseConversionAction()
+      preflight = await preflightGoogleAdsPurchaseConversionAction()
       if (shouldSkipBackfillForPreflight(preflight)) {
         logger.warn("Google Ads conversion backfill skipped by preflight", {
           candidates: candidates.length,
@@ -143,6 +172,7 @@ export async function GET(request: NextRequest) {
           skipped: true,
           reason: "skipped_preflight",
           code: preflight.code,
+          preflight: serializePreflight(preflight),
           lookback_days: LOOKBACK_DAYS,
           candidates: candidates.length,
           force,
@@ -173,11 +203,13 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    const failed = results.filter((result) => result.status && result.status !== "success")
+    const skipped = results.filter((result) => result.status?.startsWith("skipped"))
+    const failed = results.filter((result) => result.status && result.status !== "success" && !result.status.startsWith("skipped"))
 
     logger.info("Google Ads conversion backfill complete", {
       candidates: candidates.length,
       processed: results.length,
+      skipped: skipped.length,
       failed: failed.length,
     })
 
@@ -186,8 +218,10 @@ export async function GET(request: NextRequest) {
       lookback_days: LOOKBACK_DAYS,
       candidates: candidates.length,
       force,
+      preflight: preflight ? serializePreflight(preflight) : null,
       processed: results.length,
       skipped_already_resolved: candidates.length - retryable.length,
+      skipped: skipped.length,
       failed: failed.length,
       batch_limit: BATCH_LIMIT,
     })

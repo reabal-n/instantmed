@@ -13,6 +13,7 @@ import {
   ADMIN_PRESCRIBING_IDENTITY_HREF,
   ADMIN_WEBHOOK_DLQ_HREF,
   buildStaffLedgerHref,
+  STAFF_OPS_HREF,
 } from "@/lib/dashboard/routes"
 import { getPrescribingIdentityBlockerReport } from "@/lib/doctor/patient-identity-report"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -217,6 +218,12 @@ export default async function OpsDashboardPage() {
       tone: invariantTone(operationalInvariants.refundRecordAnomalies, Number.POSITIVE_INFINITY),
       helperText: refundAnomalyHelper(operationalInvariants.refundRecordAnomalies),
       href: buildStaffLedgerHref({ chips: ["refunded"] }),
+    },
+    queryFailures: {
+      count: operationalInvariants.queryFailures?.length ?? 0,
+      tone: (operationalInvariants.queryFailures?.length ?? 0) > 0 ? "critical" : "neutral",
+      helperText: (operationalInvariants.queryFailures?.length ?? 0) > 0 ? "Alert emitted" : "All queries healthy",
+      href: STAFF_OPS_HREF,
     },
   }
 

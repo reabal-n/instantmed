@@ -21,6 +21,7 @@ import {
   isDbAvailable,
   resetIntakeForRetest,
   storageObjectExists,
+  waitForEmailOutboxEntry,
 } from "./helpers/db"
 import { waitForPageLoad } from "./helpers/test-utils"
 
@@ -180,10 +181,18 @@ test.describe("Medical Certificate Approval Flow", () => {
     expect(certificate, "Issued certificate should exist").not.toBeNull()
     expect(certificate?.intake_id).toBe(SEEDED_INTAKE_ID)
     
-    // 5c. Check email status is set (not null)
-    // Email status should be either sent or failed, but not null
+    // 5c. Check delivery handoff is recorded. Manual approvals may defer the
+    // patient email for the undo window, so certificate-level sent/failed
+    // timestamps are not required immediately. The durable contract is a
+    // linked med_cert_patient outbox row.
     const hasEmailStatus = certificate?.email_sent_at !== null || certificate?.email_failed_at !== null
-    expect(hasEmailStatus, "Email status (sent_at or failed_at) should be set").toBe(true)
+    const emailEntry = await waitForEmailOutboxEntry(SEEDED_INTAKE_ID, "med_cert_patient", 15000)
+    expect(emailEntry, "email_outbox should have med_cert_patient entry").not.toBeNull()
+    expect(emailEntry?.certificate_id, "email_outbox row should link to issued certificate").toBe(certificate?.id)
+    expect(
+      hasEmailStatus || ["pending", "sent", "skipped_e2e"].includes(emailEntry?.status || ""),
+      "Delivery should be represented by certificate status or linked outbox status"
+    ).toBe(true)
 
     // 5d. Check intake_documents row exists with storage_path
     const document = await getIntakeDocument(SEEDED_INTAKE_ID)

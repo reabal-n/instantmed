@@ -173,7 +173,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
     heroText: "Several telehealth services in Australia offer online medical certificates. Here's what to look for and how the options compare.",
     comparisonTable: [
       { feature: "AHPRA registered doctors", instantmed: true, competitor: "Varies - always check", winner: "tie" },
-      { feature: "Average response time", instantmed: "Under 1 hour", competitor: "1-24 hours", winner: "instantmed" },
+      { feature: "Review timing", instantmed: "Fast doctor review", competitor: "1-24 hours", winner: "instantmed" },
       { feature: "Price for med cert", instantmed: PRICING_DISPLAY.FROM_MED_CERT, competitor: "$15-50", winner: "tie" },
       { feature: "Backdating available", instantmed: "If clinically appropriate", competitor: "Varies by service", winner: "tie" },
       { feature: "Carer's leave certificates", instantmed: true, competitor: "Most services", winner: "tie" },
@@ -900,7 +900,7 @@ export default async function ComparisonPage({ params }: PageProps) {
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-primary" />
-                  <span>Under 1 hour</span>
+                  <span>Fast doctor review</span>
                 </div>
               </div>
             </div>

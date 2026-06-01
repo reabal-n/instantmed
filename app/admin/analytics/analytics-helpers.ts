@@ -1,4 +1,5 @@
 import { type GoogleAdsHealth } from "@/lib/analytics/google-ads-health"
+import { type BusinessOperatingScorecard } from "@/lib/data/business-scorecard"
 import { type PrescriptionFulfilmentDashboard } from "@/lib/parchment/fulfilment-dashboard"
 
 export interface AnalyticsData {
@@ -19,4 +20,5 @@ export interface AnalyticsData {
   }
   googleAds: GoogleAdsHealth
   prescriptionFulfilment: PrescriptionFulfilmentDashboard
+  businessScorecard: BusinessOperatingScorecard | null
 }

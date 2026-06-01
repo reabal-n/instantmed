@@ -26,6 +26,7 @@ export type GoogleAdsConfigurationIssueCode =
   | "missing_env"
   | "missing_click_id_coverage"
   | "no_access_token"
+  | "server_disabled"
   | null
 
 export interface GoogleAdsConfigurationDiagnosis {
@@ -145,6 +146,16 @@ function buildConfigurationDiagnosis({
       code: "missing_env",
       detail: "A paid Google-attributed intake was captured, but upload was skipped because required env vars were missing.",
       label: "Missing Google Ads env",
+      severity: "error",
+    }
+  }
+
+  if (latestStatus === "skipped_disabled") {
+    return {
+      action: "Remove GOOGLE_ADS_SERVER_CONVERSION_DISABLED only after the offline purchase conversion action validates.",
+      code: "server_disabled",
+      detail: "A paid Google-attributed intake was captured, but server-side upload was intentionally disabled.",
+      label: "Server uploads disabled",
       severity: "error",
     }
   }

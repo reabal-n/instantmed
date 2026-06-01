@@ -60,7 +60,7 @@ test.describe("Ops Navigation Visibility", () => {
 
     await expect(page.getByRole("heading", { name: "Operations" })).toBeVisible({ timeout: 10000 })
 
-    const cards = page.getByTestId("counter-card")
+    const cards = page.getByRole("region", { name: "Recovery counters" }).getByTestId("counter-card")
     await expect(cards).toHaveCount(4)
     await expect(cards.nth(1)).toHaveAttribute("href", STAFF_TEST_ROUTES.adminWebhookDlq)
     await expect(cards.nth(2)).toHaveAttribute("href", STAFF_TEST_ROUTES.adminOpsParchment)

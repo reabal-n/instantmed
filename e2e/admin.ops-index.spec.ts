@@ -18,8 +18,10 @@ test.describe("Ops Index Page", () => {
 
     await expect(page.getByRole("heading", { name: "Operations" })).toBeVisible({ timeout: 10_000 })
 
-    // 4 counter cards by data-testid
-    const counterCards = page.getByTestId("counter-card")
+    // 4 recovery counter cards. Operational invariants below reuse CounterCard
+    // but are a separate block with different behavior.
+    const recoveryCounters = page.getByRole("region", { name: "Recovery counters" })
+    const counterCards = recoveryCounters.getByTestId("counter-card")
     await expect(counterCards).toHaveCount(4)
 
     // Visible labels in the 4 tiles
@@ -42,7 +44,7 @@ test.describe("Ops Index Page", () => {
     await page.goto("/admin/ops")
     await page.waitForLoadState("networkidle")
 
-    const cards = page.getByTestId("counter-card")
+    const cards = page.getByRole("region", { name: "Recovery counters" }).getByTestId("counter-card")
     // Order matches the page: Payment failures, Webhook DLQ, Parchment unsynced, Missing identity
     await expect(cards.nth(0)).toHaveAttribute(
       "href",

@@ -27,6 +27,8 @@ describe("queue pressure signal", () => {
   it("keeps low pressure visually neutral instead of warning-coloured", () => {
     const signalSource = readFileSync("components/operator/queue-pressure-signal.tsx", "utf8")
     const filterSource = readFileSync("app/doctor/queue/queue-filters.tsx", "utf8")
+    const queueTableSource = readFileSync("app/doctor/queue/queue-table.tsx", "utf8")
+    const slaChipSource = readFileSync("components/doctor/sla-chip.tsx", "utf8")
 
     expect(signalSource).toContain('dot: "bg-slate-500"')
     expect(signalSource).toContain('value: "text-foreground"')
@@ -42,6 +44,9 @@ describe("queue pressure signal", () => {
     expect(signalSource).toContain("liveWaitValue")
     expect(signalSource).toContain("{liveSecondsLabel ? (")
     expect(signalSource).toContain("data-live-wait-dot")
+    expect(signalSource).toContain("suppressHydrationWarning")
+    expect(queueTableSource).toContain("suppressHydrationWarning")
+    expect(slaChipSource).toContain("suppressHydrationWarning")
     expect(signalSource).toContain("queue-live-breath_10s")
     expect(signalSource).not.toContain('refreshAgeLabel === "Updated just now"')
     expect(readFileSync("app/globals.css", "utf8")).toContain("@keyframes queue-live-breath")

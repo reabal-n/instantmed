@@ -48,6 +48,7 @@ export type GoogleAdsConversionSource =
 type GoogleAdsConversionStatus =
   | "success"
   | "failed"
+  | "skipped_disabled"
   | "skipped_missing_click_id"
   | "skipped_missing_env"
   | "skipped_no_access_token"
@@ -241,6 +242,15 @@ export async function runGoogleAdsPostPaymentAttribution({
   status?: GoogleAdsConversionStatus
   error?: string
 }> {
+  if (!isLikelyGoogleAttributed(row)) return { attempted: false }
+
+  const resolvedAmountCents =
+    typeof amountCents === "number"
+      ? amountCents
+      : typeof row.amount_cents === "number"
+        ? row.amount_cents
+        : null
+
   // Operator kill switch. Set GOOGLE_ADS_SERVER_CONVERSION_DISABLED=true
   // in Vercel env to disable server-side Conversion API uploads entirely.
   //
@@ -258,17 +268,38 @@ export async function runGoogleAdsPostPaymentAttribution({
   // action exists in Google Ads and GOOGLE_ADS_CONVERSION_ACTION_PURCHASE
   // points at its numeric ID.
   if (process.env.GOOGLE_ADS_SERVER_CONVERSION_DISABLED === "true") {
-    return { attempted: false }
+    const result = { attempted: false, ok: false, error: "server_disabled" }
+    const status = "skipped_disabled"
+
+    await recordGoogleAdsConversionAudit({
+      amountCents: resolvedAmountCents,
+      error: result.error,
+      intakeId,
+      result,
+      row,
+      source,
+      status,
+      supabase,
+    })
+
+    trackGoogleAdsPostHogEvent({
+      amountCents: resolvedAmountCents,
+      error: result.error,
+      intakeId,
+      posthogDistinctId,
+      result,
+      row,
+      source,
+      status,
+    })
+
+    return {
+      attempted: false,
+      ok: false,
+      status,
+      error: result.error,
+    }
   }
-
-  if (!isLikelyGoogleAttributed(row)) return { attempted: false }
-
-  const resolvedAmountCents =
-    typeof amountCents === "number"
-      ? amountCents
-      : typeof row.amount_cents === "number"
-        ? row.amount_cents
-        : null
 
   let result: { attempted: boolean; ok?: boolean; error?: string }
   if (hasGoogleClickId(row)) {

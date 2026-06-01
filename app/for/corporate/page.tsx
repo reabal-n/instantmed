@@ -13,8 +13,8 @@ import { PRICING_DISPLAY } from "@/lib/constants"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 export const metadata: Metadata = {
-  title: "Medical Certificates for Corporate Workers | 15 Min",
-  description: "Get a medical certificate before HR asks. 15-minute turnaround, delivered to your inbox. Professional, discreet, employer policies may vary. No time off work needed.",
+  title: "Medical Certificates for Corporate Workers | InstantMed",
+  description: "Get a medical certificate before HR asks. Fast doctor review with live wait messaging. Professional, discreet, employer policies may vary. No time off work needed.",
   keywords: [
     "medical certificate corporate",
     "office worker sick certificate",
@@ -96,7 +96,7 @@ export default function CorporatePage() {
                   <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs">
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Zap className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span className="font-medium text-muted-foreground">15 min turnaround</span>
+                      <span className="font-medium text-muted-foreground">Fast doctor review</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Mail className="h-3.5 w-3.5 text-muted-foreground" />
@@ -123,7 +123,7 @@ export default function CorporatePage() {
                       <div className="text-xs text-muted-foreground">questionnaire</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-semibold mb-1 text-muted-foreground">15 min</div>
+                      <div className="text-2xl font-semibold mb-1 text-muted-foreground">Fast</div>
                       <div className="text-xs text-muted-foreground">doctor review</div>
                     </div>
                     <div>
@@ -151,7 +151,7 @@ export default function CorporatePage() {
                     {
                       icon: Zap,
                       title: "Before your manager asks",
-                      desc: "15-minute turnaround. Have your certificate ready before anyone follows up.",
+                      desc: "Med-cert review timing follows live queue conditions.",
                     },
                     {
                       icon: Lock,
@@ -209,7 +209,7 @@ export default function CorporatePage() {
                   {[
                     { title: "Repeat Scripts", desc: "Blood pressure, reflux, contraceptive", price: PRICING_DISPLAY.FROM_SCRIPT, href: "/prescriptions" },
                     { title: "Hair Loss", desc: "Discreet treatment options", price: `From ${PRICING_DISPLAY.HAIR_LOSS}`, href: "/hair-loss" },
-                    { title: "Online Consults", desc: "General health concerns", price: PRICING_DISPLAY.FROM_CONSULT, href: "/consult" },
+                    { title: "Specialty consults", desc: "ED and hair-loss pathways", price: PRICING_DISPLAY.FROM_CONSULT, href: "/consult" },
                   ].map((item) => (
                     <Link key={item.title} href={item.href}>
                       <div className="glass-card rounded-xl p-4 h-full hover:border-border transition-[border-color]">
@@ -249,7 +249,7 @@ export default function CorporatePage() {
                     },
                     {
                       q: "What if I need a certificate for carer's leave?",
-                      a: "We provide carer's certificates for looking after sick family members. Same process, same 15-minute turnaround.",
+                      a: "We provide carer's certificates for looking after sick family members. The same doctor-review process applies.",
                     },
                   ].map((faq, i) => (
                     <div key={i} className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">

@@ -141,7 +141,7 @@ export const telehealthGuides: Record<string, GuideData> = {
     steps: [
       {
         title: "Choose a telehealth service",
-        content: "Look for services with AHPRA-registered doctors, clear pricing, and good reviews. Check what they offer - medical certificates, prescriptions, or general consultations. Some specialise; others offer a range of services.",
+        content: "Look for services with AHPRA-registered doctors, clear pricing, and good reviews. Check what they offer - medical certificates, prescriptions, or structured specialty assessments. Some specialise; others offer a broader range of care.",
         tips: ["Verify doctors are AHPRA-registered", "Check operating hours", "Understand the fees before you start"]
       },
       {

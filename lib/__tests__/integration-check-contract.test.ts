@@ -1,0 +1,45 @@
+import { existsSync, readFileSync } from "node:fs"
+import { join } from "node:path"
+
+import { describe, expect, it } from "vitest"
+
+const root = process.cwd()
+
+function read(path: string): string {
+  return readFileSync(join(root, path), "utf8")
+}
+
+describe("integration type validation release gate", () => {
+  it("ships a check:integrations script and wires it into release:check", () => {
+    expect(existsSync(join(root, "scripts/check-integrations.ts"))).toBe(true)
+
+    const packageJson = JSON.parse(read("package.json")) as {
+      scripts: Record<string, string>
+    }
+
+    expect(packageJson.scripts["check:integrations"]).toBe("tsx scripts/check-integrations.ts")
+    expect(packageJson.scripts["release:check"]).toContain("pnpm check:integrations")
+  })
+
+  it("validates the same wrong-type integration class that broke Google Ads", () => {
+    const source = read("scripts/check-integrations.ts")
+
+    expect(source).toContain("hydrateLocalEnv")
+    expect(source).toContain("CHECK_INTEGRATIONS_STRICT")
+    expect(source).toContain("parseEmailDomain")
+    expect(source).toContain("warnings")
+    expect(source).toContain("process.exit(1)")
+    expect(source).toContain("prices.retrieve")
+    expect(source).toContain("price.type")
+    expect(source).toContain("one_time")
+    expect(source).toContain("preflightGoogleAdsPurchaseConversionAction")
+    expect(source).toContain("UPLOAD_CLICKS")
+    expect(source).toContain("RESEND_FROM_EMAIL")
+    expect(source).toContain("domains")
+    expect(source).toContain("AI_MODEL_CONFIG")
+    expect(source).toContain("checkOpenAIReviewModel")
+    expect(source).toContain("OPENAI_REVIEW_MODEL")
+    expect(source).toContain("gpt-5.5-pro")
+    expect(source).toContain("PARCHMENT_SMOKE_USER_ID")
+  })
+})

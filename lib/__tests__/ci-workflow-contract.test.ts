@@ -39,10 +39,18 @@ describe("CI workflow contract", () => {
   })
 
   it("fails the paid-flow E2E gate when webhook secrets are missing", () => {
-    expect(ciWorkflowSource).toContain("Verify paid-flow E2E secrets")
+    expect(ciWorkflowSource).toContain("Verify required E2E secrets")
     expect(ciWorkflowSource).toContain("STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}")
     expect(ciWorkflowSource).toContain("PARCHMENT_WEBHOOK_SECRET: ${{ secrets.PARCHMENT_WEBHOOK_SECRET }}")
     expect(ciWorkflowSource).toContain("is required for the paid-flow E2E gate")
+  })
+
+  it("does not allow protected-branch E2E to be skipped by a repository variable", () => {
+    expect(ciWorkflowSource).not.toContain("vars.E2E_ENABLED")
+    expect(ciWorkflowSource).not.toMatch(/^\s*if:\s*\$\{\{\s*vars\.E2E_ENABLED/m)
+    expect(ciWorkflowSource).toContain("Verify required E2E secrets")
+    expect(ciWorkflowSource).toContain("E2E_SECRET: ${{ secrets.E2E_SECRET }}")
+    expect(ciWorkflowSource).toContain("SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}")
   })
 
   it("keeps paid critical E2E blocking instead of warning-only", () => {

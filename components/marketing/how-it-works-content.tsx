@@ -81,9 +81,9 @@ const servicePathways = [
     outcome: "eScript by SMS if approved. If it is not appropriate, the doctor explains the next step and the request is refunded.",
   },
   {
-    title: "General consults",
+    title: "Specialty assessments",
     href: "/consult",
-    summary: "For health questions that need GP judgement but do not obviously require urgent examination, imaging, or emergency care.",
+    summary: "For active ED and hair-loss pathways that need structured doctor judgement but do not obviously require urgent examination, imaging, or emergency care.",
     doctorChecks: "Symptoms, duration, medical history, risk factors, photos if relevant, and whether written advice, prescription, referral, or in-person review is safest.",
     outcome: "A written doctor response, prescription or referral if clinically appropriate, or clear guidance to seek in-person care.",
   },
@@ -113,8 +113,8 @@ const howItWorksGuide: GuideSectionData[] = [
     icon: "medical-history",
     title: "Medical certificates vs prescriptions vs consultations",
     paragraphs: [
-      "We offer three core services, each with a different clinical pathway. Medical certificates are for short-term illness; the doctor assesses whether your reported symptoms justify time off work or study. Repeat prescriptions are for medications you already take; the doctor confirms it's safe to continue and sends an eScript to your phone. General consultations are for new health concerns; the doctor reviews your questionnaire and responds in writing with treatment advice, prescriptions, or referrals as needed.",
-      "The clinical rigour scales with the complexity. A medical certificate for a one-day cold is relatively straightforward. A general consultation about ongoing symptoms requires more assessment and may involve follow-up questions through the platform. A prescription for a medication you've been taking for years requires different checks than one for a new concern. The process adapts. The standard doesn't.",
+      "We offer specialised one-off services, each with a different clinical pathway. Medical certificates are for short-term illness; the doctor assesses whether your reported symptoms justify time off work or study. Repeat prescriptions are for medications you already take; the doctor confirms it's safe to continue and sends an eScript to your phone. ED and hair-loss requests use structured specialty assessment pathways.",
+      "The clinical rigour scales with the complexity. A medical certificate for a one-day cold is relatively straightforward. A specialty assessment about ongoing symptoms requires more structured screening and may involve follow-up questions through the platform. A prescription for a medication you've been taking for years requires different checks than one for a new concern. The process adapts. The standard doesn't.",
     ],
   },
   {

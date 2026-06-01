@@ -10,8 +10,8 @@ import { PRICING_DISPLAY } from "@/lib/constants"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 export const metadata: Metadata = {
-  title: "Medical Certificates for Tradies | 15 Min Script",
-  description: "Get your medical certificate without leaving the job site. 15-minute turnaround. Employer policies vary. No appointments, no waiting rooms. Built for tradies.",
+  title: "Medical Certificates for Tradies | InstantMed",
+  description: "Get your medical certificate without leaving the job site. Fast doctor review with live wait messaging. Employer policies vary. Built for tradies.",
   keywords: [
     "medical certificate tradies",
     "tradie sick certificate",
@@ -21,8 +21,8 @@ export const metadata: Metadata = {
     "telehealth for tradies",
   ],
   openGraph: {
-    title: "Medical Certificates for Tradies | 15 Min | InstantMed",
-    description: "Get your med cert without leaving the site. 15-minute turnaround. Employer policies vary.",
+    title: "Medical Certificates for Tradies | InstantMed",
+    description: "Get your med cert without leaving the site. Fast doctor review with live wait messaging. Employer policies vary.",
     url: "https://instantmed.com.au/for/tradies",
   },
   alternates: {
@@ -40,7 +40,7 @@ export default function TradiesPage() {
         name: "Can I get a medical certificate on my phone?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes. Complete the questionnaire on your phone in about 2 minutes. Your certificate is reviewed by a doctor and delivered to your email - typically within 15 minutes. No need to leave the site.",
+          text: "Yes. Complete the questionnaire on your phone in about 2 minutes. Your certificate is reviewed by a doctor and delivered to your email if approved. No need to leave the site.",
         },
       },
       {
@@ -76,7 +76,7 @@ export default function TradiesPage() {
                     Get Your Med Cert Without Leaving Site
                   </h1>
                   <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto mb-4">
-                    Woke up crook? Get your medical certificate on your phone in <strong>15 minutes</strong>. No doctor visits, no time off site, no stuffing around.
+                    Unwell before a shift? Request a medical certificate on your phone. Review timing follows live queue conditions.
                   </p>
                   <p className="text-xs text-muted-foreground mb-6">
                     Employer policies vary • AHPRA doctors • Done from your phone
@@ -93,7 +93,7 @@ export default function TradiesPage() {
                   <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs">
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Zap className="h-3.5 w-3.5 text-dawn-500" />
-                      <span className="font-medium text-muted-foreground">15 min turnaround</span>
+                      <span className="font-medium text-muted-foreground">Fast doctor review</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Smartphone className="h-3.5 w-3.5 text-dawn-500" />
@@ -101,7 +101,7 @@ export default function TradiesPage() {
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Shield className="h-3.5 w-3.5 text-dawn-500" />
-                      <span className="font-medium text-muted-foreground">Boss-proof</span>
+                      <span className="font-medium text-muted-foreground">Workplace details</span>
                     </div>
                   </div>
                 </div>
@@ -120,7 +120,7 @@ export default function TradiesPage() {
                       <div className="text-xs text-muted-foreground">to fill out</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-semibold mb-1 text-dawn-600">15 min</div>
+                      <div className="text-2xl font-semibold mb-1 text-dawn-600">Fast</div>
                       <div className="text-xs text-muted-foreground">doctor review</div>
                     </div>
                     <div>
@@ -147,13 +147,13 @@ export default function TradiesPage() {
                     },
                     {
                       icon: Zap,
-                      title: "Before smoko",
-                      desc: "15-minute turnaround. Have your cert before your boss even asks.",
+                      title: "Before the paperwork deadline",
+                      desc: "Med-cert review timing follows live queue conditions.",
                     },
                     {
                       icon: Building,
-                      title: "Employer policies vary it",
-                      desc: "Valid for builders, contractors, agencies - anyone. Legally legit.",
+                      title: "Employer policies vary",
+                      desc: "Issued by AHPRA-registered doctors with standard workplace evidence details.",
                     },
                     {
                       icon: Smartphone,
@@ -209,7 +209,7 @@ export default function TradiesPage() {
                     },
                     {
                       q: "How fast is it?",
-                      a: "Fill out the form in 2 minutes. Doctor reviews it. Most certs are in your inbox within 15 minutes.",
+                      a: "Fill out the form in about 2 minutes. A doctor reviews it. Current wait messaging updates from recent queue data.",
                     },
                     {
                       q: "Can I get a cert for yesterday?",
@@ -217,7 +217,7 @@ export default function TradiesPage() {
                     },
                     {
                       q: "What if I need a script too?",
-                      a: "We do repeat prescriptions for common stuff - blood pressure meds, reflux, asthma inhalers. Same deal, 15 minutes, sent to your phone.",
+                      a: "Repeat prescription requests are reviewed separately by a doctor. We do not promise under-hour prescribing or approval.",
                     },
                     {
                       q: "What's it cost?",
@@ -239,7 +239,7 @@ export default function TradiesPage() {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-xl mx-auto text-center">
                 <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-dawn-500/20 bg-amber-50/30 dark:bg-amber-950/10">
-                  <h2 className="text-2xl font-semibold mb-3">Sorted in 15 minutes</h2>
+                  <h2 className="text-2xl font-semibold mb-3">Fast certificate review</h2>
                   <p className="text-sm text-muted-foreground mb-6">
                     Get your cert on your phone. No stuffing around.
                   </p>

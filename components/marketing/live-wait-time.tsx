@@ -5,17 +5,26 @@ import { Clock, FileText, Phone,Pill } from 'lucide-react'
 import { useSyncExternalStore } from 'react'
 
 import { useReducedMotion } from '@/components/ui/motion'
-import { SOCIAL_PROOF } from '@/lib/social-proof'
+import { buildMedCertSpeedClaim } from '@/lib/marketing/speed-claims'
 import { cn } from '@/lib/utils'
 
-// Static, honest wait time data - no randomisation, no fake fluctuation
+// Client-only fallback. Metric-backed under-hour claims are rendered by
+// server-fed WaitCounter surfaces when recent med-cert data is green.
+const MED_CERT_SPEED_CLAIM = buildMedCertSpeedClaim({
+  service: "med-cert",
+  medianMinutes: null,
+  sampleSize: 0,
+  newestSampleAgeMinutes: null,
+  queueP95Minutes: null,
+})
+
 const SERVICE_CONFIG = {
   'med-cert': {
     label: 'Medical Certificates',
     shortLabel: 'Med Certs',
     icon: FileText,
-    waitLabel: `Under ${SOCIAL_PROOF.certTurnaroundMinutes} min`,
-    subtext: 'Available 24/7',
+    waitLabel: MED_CERT_SPEED_CLAIM.primary,
+    subtext: MED_CERT_SPEED_CLAIM.qualifier,
     color: 'text-primary',
     bgColor: 'bg-primary/10',
     alwaysOnline: true,

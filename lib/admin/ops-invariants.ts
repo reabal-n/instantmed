@@ -37,13 +37,40 @@ export type OperationalInvariants = {
   slaBreachBacklog: number
   certRefundOrphans: number
   refundRecordAnomalies: number
+  queryFailures?: OperationalInvariantQueryFailure[]
+}
+
+export type OperationalInvariantQueryFailure =
+  | "sla_breach_backlog"
+  | "cert_refund_orphans"
+  | "refund_record_anomalies"
+
+export type OperationalInvariantAlert = {
+  metric:
+    | "ops_sla_breach_backlog"
+    | "ops_cert_refund_orphans"
+    | "ops_refund_record_anomalies"
+    | "ops_invariant_query_failed"
+  severity: "warning" | "critical"
+  detail: string
+  count: number
 }
 
 type CountResult = { count: number | null; error: unknown }
 
-function countOf(result: PromiseSettledResult<CountResult>): number {
-  if (result.status === "rejected") return 0
-  if (result.value.error) return 0
+function countOf(
+  name: OperationalInvariantQueryFailure,
+  result: PromiseSettledResult<CountResult>,
+  queryFailures: OperationalInvariantQueryFailure[],
+): number {
+  if (result.status === "rejected") {
+    queryFailures.push(name)
+    return 0
+  }
+  if (result.value.error) {
+    queryFailures.push(name)
+    return 0
+  }
   return result.value.count ?? 0
 }
 
@@ -84,10 +111,13 @@ export async function getOperationalInvariants(
     ),
   ])
 
+  const queryFailures: OperationalInvariantQueryFailure[] = []
+
   return {
-    slaBreachBacklog: countOf(slaResult),
-    certRefundOrphans: countOf(orphanResult),
-    refundRecordAnomalies: countOf(anomalyResult),
+    slaBreachBacklog: countOf("sla_breach_backlog", slaResult, queryFailures),
+    certRefundOrphans: countOf("cert_refund_orphans", orphanResult, queryFailures),
+    refundRecordAnomalies: countOf("refund_record_anomalies", anomalyResult, queryFailures),
+    queryFailures,
   }
 }
 
@@ -119,4 +149,53 @@ export function certOrphanHelper(count: number): string {
 
 export function refundAnomalyHelper(count: number): string {
   return count === 0 ? "None" : `${count} to reconcile`
+}
+
+export function buildOperationalInvariantAlerts(
+  invariants: OperationalInvariants,
+): OperationalInvariantAlert[] {
+  const alerts: OperationalInvariantAlert[] = []
+  const queryFailures = getInvariantQueryFailures(invariants)
+
+  if (queryFailures.length > 0) {
+    alerts.push({
+      metric: "ops_invariant_query_failed",
+      severity: "critical",
+      detail: `${queryFailures.length} operational invariant ${queryFailures.length === 1 ? "query" : "queries"} failed`,
+      count: queryFailures.length,
+    })
+  }
+
+  if (invariants.slaBreachBacklog > 0) {
+    alerts.push({
+      metric: "ops_sla_breach_backlog",
+      severity: invariantTone(invariants.slaBreachBacklog, SLA_BREACH_CRITICAL) === "critical" ? "critical" : "warning",
+      detail: `${invariants.slaBreachBacklog} paid intakes past 24h review SLA`,
+      count: invariants.slaBreachBacklog,
+    })
+  }
+
+  if (invariants.certRefundOrphans > 0) {
+    alerts.push({
+      metric: "ops_cert_refund_orphans",
+      severity: "critical",
+      detail: `${invariants.certRefundOrphans} refunded certificate intakes still verify as valid`,
+      count: invariants.certRefundOrphans,
+    })
+  }
+
+  if (invariants.refundRecordAnomalies > 0) {
+    alerts.push({
+      metric: "ops_refund_record_anomalies",
+      severity: "warning",
+      detail: `${invariants.refundRecordAnomalies} refunded intake missing complete refund metadata`,
+      count: invariants.refundRecordAnomalies,
+    })
+  }
+
+  return alerts
+}
+
+export function getInvariantQueryFailures(invariants: OperationalInvariants): OperationalInvariantQueryFailure[] {
+  return invariants.queryFailures ?? []
 }

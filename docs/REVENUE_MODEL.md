@@ -3,7 +3,7 @@
 > Canonical revenue model for the current one-off, solo-doctor operating phase.
 > Read this before changing pricing, service mix, growth targets, subscriptions, or staffing assumptions.
 
-**Last updated:** 2026-05-23
+**Last updated:** 2026-06-01
 
 ---
 
@@ -98,7 +98,25 @@ Track these weekly by service:
 | Doctor queue P95 | Below 2 hours during operating hours |
 | Organic share of orders | Increasing month over month |
 
-## 6. Profit Levers
+## 6. Operating Scorecard
+
+Review weekly before scaling paid traffic or adding clinical capacity. The point is not to make the dashboard bigger; it is to stop revenue ambition from outrunning doctor capacity, attribution quality, and support load.
+
+| Metric | Current gate | Target / decision rule |
+|--------|--------------|------------------------|
+| Monthly gross revenue | Pull from Stripe/Supabase paid intakes, net of refunded orders in the same period. | Scale only when revenue is growing with stable refund, chargeback, and queue metrics. |
+| Paid order volume | Paid intakes by service line, excluding seeded E2E and failed checkout rows. | 30-50 orders/day triggers admin/support planning; service mix must not overload prescribing review time. |
+| CAC ceiling | Paid spend divided by paid first orders by channel. | Keep CAC below 30% of first-order gross profit for low-AOV services before increasing spend. |
+| Refund rate | Refunded or partially refunded paid intakes by service line. | Stay below 8-10%; spikes pause paid ramp and trigger eligibility/copy review. |
+| Chargeback rate | Stripe disputes divided by paid orders. | Stay below 0.5%; any cluster gets same-week root-cause review. |
+| Support tickets per 100 orders | Support-visible patient/admin contacts per 100 paid orders. | Stay below 5 per 100; above target means fix product friction before adding demand. |
+| Doctor minutes per order | Sample by service from queue/review timestamps and operator review notes. | Must fall or stay stable as volume rises; do not hide worsening complexity behind revenue growth. |
+| Queue P95 | Doctor queue P95 during operating hours, by service line. | Keep below 2h during operating hours and below the 24h hard ceiling. |
+| Hire trigger state | Admin/support, doctor coverage, and QA sampling thresholds from §9. | Treat any triggered state as an operating decision before paid growth. |
+
+**Do not ramp ED or hair-loss paid traffic** until Google Ads purchase attribution is verified, refund/chargeback baselines are stable, and queue P95 is under control for the existing paid mix.
+
+## 7. Profit Levers
 
 | Lever | Why it matters |
 |-------|----------------|
@@ -110,7 +128,7 @@ Track these weekly by service:
 | Improve eligibility screening before payment | Lowers refunds and complaints. |
 | Invest in compliant SEO | Paid healthcare traffic is expensive and policy-constrained. |
 
-## 7. Paid Growth Guardrails
+## 8. Paid Growth Guardrails
 
 Do not scale paid spend until:
 
@@ -121,7 +139,7 @@ Do not scale paid spend until:
 - conversion is measured from click to paid order
 - CAC is under 30% of first-order gross profit for low-AOV services
 
-## 8. Hiring Triggers
+## 9. Hiring Triggers
 
 | Trigger | Hire |
 |---------|------|
@@ -131,7 +149,7 @@ Do not scale paid spend until:
 | Revenue consistently above $60k-$80k/month | Start formal staff plan |
 | Weight loss demand grows | Add monitoring/admin capacity before scaling |
 
-## 9. What Not To Do Yet
+## 10. What Not To Do Yet
 
 - Do not launch subscriptions while operating solo.
 - Do not add pharmacy fulfilment.

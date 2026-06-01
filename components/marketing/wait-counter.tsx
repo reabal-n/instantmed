@@ -3,7 +3,7 @@
 import type { ReactNode } from "react"
 
 import { useReducedMotion } from "@/components/ui/motion"
-import { QUEUE_DISPLAY_CAP, type WaitState } from "@/lib/brand/wait-counter"
+import { QUEUE_DISPLAY_CAP, type WaitState } from "@/lib/brand/wait-counter-types"
 import { cn } from "@/lib/utils"
 
 interface WaitCounterProps {

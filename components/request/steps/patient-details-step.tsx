@@ -787,7 +787,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         </div>
       )}
 
-      {/* Address - required for prescribing pathways, optional for general consults */}
+      {/* Address - required for prescribing pathways, optional for retired broad consult surfaces */}
       {showAddress && (
         <FormField
           label="Address"

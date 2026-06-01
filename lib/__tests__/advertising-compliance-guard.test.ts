@@ -328,7 +328,6 @@ const PUBLIC_DOCTOR_MODEL_OVERCLAIM_PATTERNS = [
 
 const PUBLIC_FIXED_TURNAROUND_PATTERNS = [
   /\bunder 15 minutes\b/i,
-  /\bunder an hour\b/i,
   /\bwithin the hour\b/i,
   /\bwithin an hour\b/i,
   /\bwithin 1[-–]2 hours\b/i,

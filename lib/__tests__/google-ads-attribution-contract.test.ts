@@ -39,6 +39,8 @@ describe("Google Ads attribution contract", () => {
     expect(cron).toContain("skipped_missing_click_id")
     expect(cron).toContain("isNonRetryableGoogleAdsConversionError")
     expect(cron).toContain('searchParams.get("force") === "1"')
+    expect(cron).toContain('searchParams.get("preflight") === "1"')
+    expect(cron).toContain("serializePreflight")
     expect(vercel).toContain("/api/cron/google-ads-conversions")
     expect(heartbeat).toContain('"google-ads-conversions"')
   })

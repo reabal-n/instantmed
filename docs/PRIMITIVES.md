@@ -101,15 +101,15 @@ Canonical FAQ content per service. All exports are `FAQItem[]` or `FAQGroup[]` (
 
 ---
 
-## 6. Wait Times — `components/marketing/live-wait-time.tsx`
+## 6. Wait Times — `lib/brand/wait-counter.ts` + `components/marketing/live-wait-time.tsx`
 
-Static, honest wait time display per service. No fake randomization.
+Metric-backed wait display per service. No fake randomization.
 
 | Constant | Scope |
 |----------|-------|
 | `SERVICE_CONFIG` | Internal to `live-wait-time.tsx`. Keys: `med-cert`, `scripts`, `consult`, `consult-ed`, `consult-hair-loss`. |
 
-Med-cert wait time reads from `SOCIAL_PROOF.certTurnaroundMinutes` (currently 20 min). Other services use fixed "Under 1 hour".
+`getWaitState()` reads recent medical-certificate rows and degrades to neutral review copy when metrics are missing, stale, or the queue is pressured. Client-only `LiveWaitTime` surfaces must use neutral "fast doctor review" or submit/review copy unless a server-fed metric state is passed in. Prescription, ED, hair-loss, and broad consult surfaces must not render under-hour approval or prescribing claims.
 
 **Components:** `LiveWaitTime` (single service), `WaitTimeStrip` (all services in a row).
 
@@ -121,7 +121,7 @@ Full-page configuration objects for the generic service funnel template (`servic
 
 Type: `ServiceFunnelConfig` (from `components/marketing/funnel/funnel-types.ts`).
 
-**Note:** Specialty landing pages (med-cert, ED, hair loss) use custom layouts, not the funnel template. The funnel template was previously used for general consults; that route now renders a services overview page instead.
+**Note:** Specialty landing pages (med-cert, ED, hair loss) use custom layouts, not the funnel template. The funnel template was previously used for the retired General Consult route; that route now renders a services overview page instead.
 
 ---
 

@@ -740,6 +740,7 @@ export function QueueTable({
                     <span
                       key={displayWaitLabel}
                       className="motion-safe:animate-[wait-digit-tick_160ms_cubic-bezier(0.16,1,0.3,1)]"
+                      suppressHydrationWarning
                       data-live-wait-counter
                     >
                       {displayWaitLabel}

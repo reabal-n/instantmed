@@ -142,6 +142,7 @@ export function SlaChip({ paidAt, className, mode = "paid", showTargetState = fa
       <span
         key={label}
         className={cn(LABEL_COLOR[tone], "motion-safe:animate-[wait-digit-tick_160ms_cubic-bezier(0.16,1,0.3,1)]")}
+        suppressHydrationWarning
         data-live-wait-counter
       >
         {label}

@@ -1,4 +1,4 @@
-import { ConsoleMessage,expect, Page, test } from "@playwright/test"
+import { ConsoleMessage, expect, Page, test } from "@playwright/test"
 
 import { loginAsOperator, loginAsPatient, logoutTestUser } from "./helpers/auth"
 import { waitForPageLoad } from "./helpers/test-utils"
@@ -76,6 +76,8 @@ const BENIGN_CONSOLE_PATTERNS = [
   /\[data-intakes\] Failed to fetch today's earnings/i,
   /TypeError: fetch failed/i,
 ]
+
+const PORTAL_RENDER_TIMEOUT_MS = 60_000
 
 function isBenignConsoleMessage(msg: ConsoleMessage): boolean {
   const text = msg.text()
@@ -236,8 +238,11 @@ test.describe("Operator Portal Access - Admin + Doctor", () => {
     await gotoWithRetry(page, "/dashboard")
 
     // Wait for the page heading to stream in - domcontentloaded fires before
-    // Suspense boundaries resolve in the dev server.
-    await page.getByRole("heading").first().waitFor({ state: "visible", timeout: 30000 }).catch(() => {})
+    // Suspense boundaries resolve in the dev server, especially while webpack
+    // compiles staff routes on demand.
+    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible({
+      timeout: PORTAL_RENDER_TIMEOUT_MS,
+    })
 
     // Should NOT show error messages
     const main = page.locator("main")
@@ -247,11 +252,9 @@ test.describe("Operator Portal Access - Admin + Doctor", () => {
     expect(hasLoadError).toBe(false)
     expect(hasQueueError).toBe(false)
 
-    // Should show doctor UI elements (sidebar or navigation)
-    const hasSidebar = await page.locator('[data-testid="doctor-sidebar"]').or(page.locator("nav")).isVisible().catch(() => false)
-    const hasHeading = await page.getByRole("heading").first().isVisible().catch(() => false)
-
-    expect(hasSidebar || hasHeading).toBe(true)
+    await expect(page.getByRole("region", { name: "Doctor request queue" })).toBeVisible({
+      timeout: PORTAL_RENDER_TIMEOUT_MS,
+    })
 
     tracker.assertNoErrors()
   })
@@ -264,7 +267,9 @@ test.describe("Operator Portal Access - Admin + Doctor", () => {
 
     // Wait for the page heading to stream in - domcontentloaded fires before
     // Suspense boundaries resolve in the dev server.
-    await page.getByRole("heading").first().waitFor({ state: "visible", timeout: 30000 }).catch(() => {})
+    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible({
+      timeout: PORTAL_RENDER_TIMEOUT_MS,
+    })
 
     // Should NOT show 404 - scope to <main> to avoid sidebar nav false positives
     const main = page.locator("main")
@@ -272,11 +277,8 @@ test.describe("Operator Portal Access - Admin + Doctor", () => {
     expect(has404).toBe(false)
 
     // Should show admin UI elements
-    const hasHeading = await page.getByRole("heading").first().isVisible().catch(() => false)
-    expect(hasHeading).toBe(true)
-
-    // Should be on /admin
-    expect(page.url()).toContain("/admin")
+    // /admin is a legacy alias that resolves to the canonical unified staff dashboard.
+    expect(page.url()).toMatch(/\/(admin|dashboard)/)
 
     tracker.assertNoErrors()
   })
@@ -292,17 +294,15 @@ test.describe("Operator Portal Access - Admin + Doctor", () => {
     const main = page.locator("main")
 
     // Wait for studio content to stream in.
-    await main.getByText(/template|studio|certificate/i).first().waitFor({ state: "visible", timeout: 30000 }).catch(() => {})
+    await expect(main.getByText(/template|studio|certificate/i).first()).toBeVisible({
+      timeout: PORTAL_RENDER_TIMEOUT_MS,
+    })
 
     const has404 = await main.getByText(/404|not found/i).isVisible().catch(() => false)
     const hasError = await main.getByText(/something went wrong|failed to load/i).isVisible().catch(() => false)
 
     expect(has404).toBe(false)
     expect(hasError).toBe(false)
-
-    // Should show certificate template UI.
-    const hasStudioContent = await main.getByText(/template|studio|certificate/i).first().isVisible().catch(() => false)
-    expect(hasStudioContent).toBe(true)
 
     tracker.assertNoErrors()
   })

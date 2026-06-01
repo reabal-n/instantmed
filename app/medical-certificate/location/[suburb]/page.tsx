@@ -292,7 +292,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                 Get a Medical Certificate Online in {data.name}
               </h1>
               <p className="text-muted-foreground text-lg max-w-xl mx-auto mb-8">
-                Skip the waiting room. Get your medical certificate reviewed by an Australian doctor and delivered to your inbox - typically in <strong>under 30 minutes</strong>, 24/7.
+                Skip the waiting room. Get your medical certificate reviewed by an Australian doctor and delivered digitally if approved.
               </p>
 
               <Link href="/request?service=med-cert">
@@ -306,7 +306,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
               <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full">
                   <Zap className="h-4 w-4 text-primary" />
-                  <span className="font-medium">15 min turnaround</span>
+                  <span className="font-medium">Fast doctor review</span>
                 </div>
                 <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full">
                   <Shield className="h-4 w-4 text-primary" />
@@ -329,8 +329,8 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                   <div className="text-sm text-background/70">to complete questionnaire</div>
                 </div>
                 <div>
-                  <div className="text-4xl font-semibold text-primary mb-1">15 min</div>
-                  <div className="text-sm text-background/70">typical doctor review</div>
+                  <div className="text-4xl font-semibold text-primary mb-1">Fast</div>
+                  <div className="text-sm text-background/70">doctor review</div>
                 </div>
                 <div>
                   <div className="text-4xl font-semibold text-primary mb-1">Instant</div>
@@ -377,7 +377,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                     step: "2",
                     title: "Doctor reviews",
                     desc: "An AHPRA-registered doctor assesses your request.",
-                    time: "~15 min",
+                    time: "Fast review",
                   },
                   {
                     step: "3",
@@ -427,7 +427,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                   },
                   {
                     q: "What does it cost?",
-                    a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. One flat fee, no hidden costs. If your request isn't approved, you'll receive a refund minus a small admin fee.`,
+                    a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. One flat fee, no hidden costs. If your request isn't approved, you'll receive a full refund.`,
                   },
                 ].map((faq, i) => (
                   <div key={i} className="p-5 rounded-xl bg-background">
@@ -442,9 +442,9 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
           {/* CTA */}
           <section className="px-4 py-12">
             <div className="mx-auto max-w-xl text-center">
-              <h2 className="text-2xl font-semibold mb-4">Ready in 15 minutes</h2>
+              <h2 className="text-2xl font-semibold mb-4">Fast doctor review</h2>
               <p className="text-muted-foreground mb-6">
-                Join hundreds of {data.name} residents who skip the waiting room with InstantMed.
+                When recent med-cert queue data is green. Doctor review is required before any certificate is issued.
               </p>
               <Link href="/request?service=med-cert">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">

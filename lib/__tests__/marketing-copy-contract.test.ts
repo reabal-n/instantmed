@@ -29,6 +29,7 @@ const medCertIntentSource = readFileSync(join(root, "lib/marketing/med-cert-inte
 const nextConfigSource = readFileSync(join(root, "next.config.mjs"), "utf8")
 const trustBadgesSource = readFileSync(join(root, "lib/marketing/trust-badges.ts"), "utf8")
 const howItWorksContentSource = readFileSync(join(root, "components/marketing/how-it-works-content.tsx"), "utf8")
+const speedClaimsSource = readFileSync(join(root, "lib/marketing/speed-claims.ts"), "utf8")
 const workplaceClaimSources = [
   readFileSync(join(root, "app/employers/page.tsx"), "utf8"),
   readFileSync(join(root, "components/employers/bulk-verification-panel.tsx"), "utf8"),
@@ -48,6 +49,25 @@ const workplaceClaimSources = [
   readFileSync(join(root, "app/trust/trust-client.tsx"), "utf8"),
   readFileSync(join(root, "lib/seo/data/deep-city-content/sa.ts"), "utf8"),
 ].join("\n")
+
+const staleCommercialPolicySources = [
+  "app/about/about-client.tsx",
+  "app/telehealth-australia/page.tsx",
+  "app/for/[audience]/page.tsx",
+  "app/for/students/page.tsx",
+  "app/for/tradies/page.tsx",
+  "app/medical-certificate/[slug]/page.tsx",
+  "app/medical-certificate/location/[suburb]/page.tsx",
+  "components/marketing/blog-cta-card.tsx",
+  "components/marketing/how-it-works-content.tsx",
+  "docs/AI_ONBOARDING.md",
+  "docs/CLINICAL.md",
+  "docs/TESTING.md",
+  "lib/data/general-faq.ts",
+  "lib/marketing/services.ts",
+  "lib/seo/data/competitor-comparisons.ts",
+  "lib/seo/pages/definitions.ts",
+].map((file) => readFileSync(join(root, file), "utf8")).join("\n")
 
 describe("marketing copy contracts", () => {
   it("keeps the homepage hero kicker calm and clinically grounded", () => {
@@ -183,5 +203,16 @@ describe("marketing copy contracts", () => {
     expect(howItWorksContentSource).not.toContain("fully async")
     expect(howItWorksContentSource).not.toContain("legally valid under the Fair Work Act")
 
+  })
+
+  it("removes stale refund, retired general-consult, and static 15-minute claims from acquisition copy", () => {
+    expect(staleCommercialPolicySources).not.toMatch(/refund minus a small admin fee/i)
+    expect(staleCommercialPolicySources).not.toMatch(/small admin fee may apply/i)
+    expect(staleCommercialPolicySources).not.toMatch(/50%\s+(?:partial\s+)?refund/i)
+    expect(staleCommercialPolicySources).not.toMatch(/general consultations/i)
+    expect(staleCommercialPolicySources).not.toMatch(/general consults/i)
+    expect(staleCommercialPolicySources).not.toMatch(/\b(?:in|within|sorted in|ready in)\s+15 minutes\b/i)
+    expect(speedClaimsSource).toContain("buildMedCertSpeedClaim")
+    expect(speedClaimsSource).toContain("newestSampleAgeMinutes")
   })
 })

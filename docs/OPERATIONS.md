@@ -837,7 +837,7 @@ Required env vars validated at startup via Zod in `lib/env.ts`:
 - **Email**: `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `RESEND_WEBHOOK_SECRET`
 - **Security**: `PHI_MASTER_KEY`, `ENCRYPTION_KEY`, `PHI_ENCRYPTION_ENABLED`, `INTERNAL_API_SECRET`
 - **Redis**: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
-- **AI**: `ANTHROPIC_API_KEY`, `VERCEL_AI_GATEWAY_API_KEY`
+- **AI**: `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `VERCEL_AI_GATEWAY_API_KEY`
 - **Cron**: `CRON_SECRET`
 - **Monitoring**: `SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`
 - **Analytics**: `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`
@@ -942,6 +942,7 @@ pg_restore --no-owner --dbname="$NEW_DATABASE_URL" backup-YYYYMMDD.dump
 | `UPSTASH_REDIS_REST_TOKEN` | Regenerate in Upstash → update env → redeploy | Brief (rate limits fail open) |
 | `CRON_SECRET` | Generate new value → update env → redeploy | Zero (crons use header auth) |
 | `ANTHROPIC_API_KEY` | Regenerate in Anthropic console → update env → redeploy | Zero |
+| `GEMINI_API_KEY` | Regenerate in Google AI Studio → update env → redeploy | Zero |
 
 ### Recovery Time Objectives
 

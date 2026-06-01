@@ -9,14 +9,19 @@ import {
   CreditCard,
   DollarSign,
   ExternalLink,
+  Gauge,
+  Headphones,
   MailCheck,
   Megaphone,
   Pill,
   Receipt,
   Send,
   SkipForward,
+  Timer,
   TrendingUp,
   UploadCloud,
+  UserPlus,
+  WalletCards,
   Webhook,
 } from "lucide-react"
 import Link from "next/link"
@@ -26,6 +31,7 @@ import {
   DashboardCard,
   DashboardGrid,
   StatCard,
+  type StatCardStatus,
   StatusBadge,
   type StatusBadgeStatus,
 } from "@/components/dashboard"
@@ -91,11 +97,27 @@ function notificationStatusLabel(status: AnalyticsData["prescriptionFulfilment"]
   return null
 }
 
+type BusinessScorecardStatus = NonNullable<AnalyticsData["businessScorecard"]>["monthlyGrossCents"]["status"]
+
+function scorecardStatus(status: BusinessScorecardStatus): StatCardStatus {
+  if (status === "healthy") return "success"
+  if (status === "watch") return "warning"
+  if (status === "triggered") return "error"
+  return "neutral"
+}
+
+function scorecardBadgeStatus(status: BusinessScorecardStatus): StatusBadgeStatus {
+  if (status === "healthy") return "success"
+  if (status === "watch") return "warning"
+  if (status === "triggered") return "error"
+  return "neutral"
+}
+
 export function AnalyticsDashboardClient({
   analytics,
   geographic,
 }: AnalyticsDashboardClientProps) {
-  const { funnel, googleAds, prescriptionFulfilment, revenue, queueHealth } = analytics
+  const { businessScorecard, funnel, googleAds, prescriptionFulfilment, revenue, queueHealth } = analytics
   const payRate = funnel.started > 0 ? Math.round((funnel.paid / funnel.started) * 100) : 0
   const completeRate = funnel.paid > 0 ? Math.round((funnel.completed / funnel.paid) * 100) : 0
   const googleAdsStatus = uploadHealthStatus(googleAds)
@@ -147,6 +169,105 @@ export function AnalyticsDashboardClient({
             />
           </DashboardGrid>
         </section>
+
+        {businessScorecard ? (
+          <section aria-labelledby="operating-scorecard-heading" className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 id="operating-scorecard-heading" className="text-sm font-semibold text-foreground">
+                  Operating scorecard
+                </h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Live 30-day commercial and capacity gates before paid-ramp decisions.
+                </p>
+              </div>
+              <StatusBadge status={scorecardBadgeStatus(businessScorecard.hireTriggerState.status)} size="sm">
+                {businessScorecard.hireTriggerState.display}
+              </StatusBadge>
+            </div>
+
+            <DashboardGrid columns={4} gap="md">
+              <StatCard
+                label="Monthly gross"
+                value={businessScorecard.monthlyGrossCents.display}
+                icon={<DollarSign className="h-5 w-5" />}
+                status={scorecardStatus(businessScorecard.monthlyGrossCents.status)}
+              />
+              <StatCard
+                label="Paid volume"
+                value={businessScorecard.paidOrderVolume.display}
+                icon={<CreditCard className="h-5 w-5" />}
+                status={scorecardStatus(businessScorecard.paidOrderVolume.status)}
+              />
+              <StatCard
+                label="CAC ceiling"
+                value={businessScorecard.cacCeilingCents.display}
+                icon={<WalletCards className="h-5 w-5" />}
+                status={scorecardStatus(businessScorecard.cacCeilingCents.status)}
+              />
+              <StatCard
+                label="Refund rate"
+                value={businessScorecard.refundRate.display}
+                icon={<Receipt className="h-5 w-5" />}
+                status={scorecardStatus(businessScorecard.refundRate.status)}
+              />
+              <StatCard
+                label="Chargeback rate"
+                value={businessScorecard.chargebackRate.display}
+                icon={<AlertCircle className="h-5 w-5" />}
+                status={scorecardStatus(businessScorecard.chargebackRate.status)}
+              />
+              <StatCard
+                label="Support tickets/100 orders"
+                value={businessScorecard.supportTicketsPer100Orders.display}
+                icon={<Headphones className="h-5 w-5" />}
+                status={scorecardStatus(businessScorecard.supportTicketsPer100Orders.status)}
+              />
+              <StatCard
+                label="Doctor minutes/order"
+                value={businessScorecard.doctorMinutesPerOrder.display}
+                icon={<Timer className="h-5 w-5" />}
+                status={scorecardStatus(businessScorecard.doctorMinutesPerOrder.status)}
+              />
+              <StatCard
+                label="Queue P95"
+                value={businessScorecard.queueP95Minutes.display}
+                icon={<Gauge className="h-5 w-5" />}
+                status={scorecardStatus(businessScorecard.queueP95Minutes.status)}
+              />
+            </DashboardGrid>
+
+            <DashboardCard padding="md">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <UserPlus className="h-4 w-4 text-muted-foreground" />
+                    <h3 className="text-sm font-semibold text-foreground">Hire trigger state</h3>
+                  </div>
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                    Tracks the revenue, queue, support, and workload thresholds that should block paid ramp until staffing or process capacity catches up.
+                  </p>
+                </div>
+                <StatusBadge status={scorecardBadgeStatus(businessScorecard.hireTriggerState.status)} size="sm">
+                  {businessScorecard.hireTriggerState.display}
+                </StatusBadge>
+              </div>
+              {businessScorecard.hireTriggerState.triggeredBy.length > 0 ? (
+                <ul className="mt-3 grid gap-2 text-xs text-muted-foreground md:grid-cols-2">
+                  {businessScorecard.hireTriggerState.triggeredBy.map((trigger) => (
+                    <li key={trigger} className="rounded-lg border border-border/60 bg-muted/30 px-3 py-2">
+                      {trigger}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+                  No hire triggers active.
+                </p>
+              )}
+            </DashboardCard>
+          </section>
+        ) : null}
 
         <section aria-labelledby="conversion-heading" className="space-y-3">
           <h2 id="conversion-heading" className="text-sm font-semibold text-foreground">Conversion</h2>

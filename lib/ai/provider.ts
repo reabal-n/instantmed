@@ -9,12 +9,12 @@ import { createAnthropic } from "@ai-sdk/anthropic"
  */
 
 // Model configurations
-// NOTE: claude-opus-4-7 deprecated the `temperature` param. Do NOT add a
+// NOTE: current Claude Opus models reject the `temperature` param. Do NOT add a
 // temperature key here; the SDK will pass it through and the API will 400.
 export const AI_MODEL_CONFIG = {
   // For medical documentation - requires high accuracy
   clinical: {
-    model: 'claude-opus-4-7',
+    model: process.env.ANTHROPIC_CLINICAL_MODEL || process.env.CLAUDE_MODEL || 'claude-opus-4-8',
     maxTokens: 2000,
   },
 } as const
@@ -60,8 +60,8 @@ function getAnthropic() {
 /**
  * Get model with specific configuration.
  *
- * Note: `temperature` is intentionally NOT returned. claude-opus-4-7
- * deprecated the param and rejects requests that include it. Callers
+ * Note: `temperature` is intentionally NOT returned. Current Opus models
+ * reject the param on this workflow. Callers
  * should NOT pass temperature to the SDK; rely on model defaults.
  */
 export function getModelWithConfig(type: AIModelType) {

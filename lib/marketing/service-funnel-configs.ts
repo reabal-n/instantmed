@@ -63,7 +63,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
       {
         icon: 'AlertCircle',
         title: 'Call may be required',
-        description: 'Unlike med certs, general consults often require a brief phone or video call so the doctor can properly assess you.',
+        description: 'Unlike med certs, specialty assessments may require a brief phone or video call so the doctor can properly assess you.',
         type: 'info',
       },
       {
@@ -91,7 +91,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
         icon: 'Stethoscope',
         title: 'Doctor assessment',
         description: 'A doctor reviews your information and follows up only when something important is missing.',
-        time: 'Within 2 hours',
+        time: 'Queue-dependent',
       },
       {
         number: '3',
@@ -105,17 +105,17 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
 
   afterSubmit: {
     title: 'What happens after you submit?',
-    subtitle: 'General consults involve more assessment than our other services. Here\'s what to expect.',
+    subtitle: 'Specialty assessments involve more screening than our certificate pathway. Here\'s what to expect.',
     items: [
       {
         icon: 'Clock',
-        title: 'Review within 2 hours',
+        title: 'Doctor review',
         description: 'A doctor will review your submission and prepare for your consultation. Response times may be longer for complex cases.',
       },
       {
         icon: 'Phone',
         title: 'Expect a call',
-        description: 'For most general consults, the doctor will call you to discuss your symptoms. Please keep your phone nearby.',
+        description: 'The doctor may call you to discuss your symptoms if important information is missing. Please keep your phone nearby.',
       },
       {
         icon: 'MessageCircle',
@@ -179,7 +179,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
     items: [
       {
         question: 'Will the doctor call me?',
-        answer: 'For most general consults, yes. The doctor will review your questionnaire first, then call to discuss your symptoms. Keep your phone nearby after submitting.',
+        answer: 'The doctor will review your questionnaire first, then call or message only when clinically needed. Keep your phone nearby after submitting.',
       },
       {
         question: 'Can I get a prescription from a consult?',

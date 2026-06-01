@@ -1,14 +1,14 @@
 import type { FAQItem } from "@/types/faq"
 
 /**
- * Single source of truth for general consult FAQ data.
+ * Single source of truth for specialty consult FAQ data.
  * Used by both the landing page accordion and the structured data schema.
  */
 export const CONSULT_FAQ: readonly FAQItem[] = [
   {
     question: "Will the doctor call me?",
     answer:
-      "For most general consults, yes. The doctor will review your questionnaire first, then call to discuss your symptoms. Keep your phone nearby after submitting.",
+      "The doctor reviews your questionnaire first, then calls or messages only when clinically needed. Keep your phone nearby after submitting.",
   },
   {
     question: "Can I get a prescription from a consult?",
@@ -33,11 +33,11 @@ export const CONSULT_FAQ: readonly FAQItem[] = [
   {
     question: "What can I consult about?",
     answer:
-      "Most non-urgent health concerns including skin conditions, minor infections, cold/flu symptoms, allergies, mental health check-ins, and requests for new medications or treatment advice.",
+      "InstantMed currently accepts structured ED and hair-loss assessment pathways. Broad new-health-concern consult requests are retired publicly until launch readiness changes.",
   },
   {
     question: "How long does the consultation take?",
     answer:
-      "Most consults are completed within 2 hours of submission. The doctor may call for 5-15 minutes depending on the complexity of your concern.",
+      "Review timing depends on doctor availability, queue volume, and clinical complexity. The doctor may call or message if important information is missing.",
   },
 ]

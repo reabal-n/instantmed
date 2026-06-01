@@ -175,8 +175,8 @@ export const serviceCategories = [
 
 export const proofMetrics = [
   {
-    label: "Typical turnaround",
-    value: "Under 1 hour",
+    label: "Review timing",
+    value: "Fast doctor review",
     icon: "Zap",
   },
   {

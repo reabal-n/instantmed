@@ -24,7 +24,7 @@ Entry and server checkout validation are blocked by
 `lib/request/consult-subtypes.ts` (BLOCKED_CONSULT_SUBTYPES) until launch
 readiness is explicitly changed.
 
-General consults remain a fallback pathway, not the primary business positioning.
+General Consult is retired publicly; the consult service type remains only as the parent category for active ED and hair-loss pathways.
 
 **Audit narrative (must always remain true):**
 

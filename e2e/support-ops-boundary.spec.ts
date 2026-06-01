@@ -24,9 +24,21 @@ test.describe("Support Ops Boundary", () => {
     await expect(sidebar).toBeVisible({ timeout: 10_000 })
 
     await expect(sidebar.getByRole("link", { name: "Operations" })).toHaveAttribute("href", STAFF_TEST_ROUTES.adminOps)
-    await expect(sidebar.getByRole("link", { name: "Webhook retries" })).toHaveAttribute("href", STAFF_TEST_ROUTES.adminWebhookDlq)
-    await expect(sidebar.getByRole("link", { name: "Parchment recovery" })).toHaveAttribute("href", STAFF_TEST_ROUTES.adminOpsParchment)
-    await expect(sidebar.getByRole("link", { name: "Identity chase-ups" })).toHaveAttribute("href", STAFF_TEST_ROUTES.adminPrescribingIdentity)
+    await expect(sidebar.getByRole("link", { name: "Requests" })).toHaveAttribute("href", STAFF_TEST_ROUTES.adminIntakes)
+
+    const recoveryCounters = page.getByRole("region", { name: "Recovery counters" })
+    await expect(recoveryCounters.getByRole("link", { name: /Webhook DLQ/ })).toHaveAttribute(
+      "href",
+      STAFF_TEST_ROUTES.adminWebhookDlq,
+    )
+    await expect(recoveryCounters.getByRole("link", { name: /Parchment unsynced/ })).toHaveAttribute(
+      "href",
+      STAFF_TEST_ROUTES.adminOpsParchment,
+    )
+    await expect(recoveryCounters.getByRole("link", { name: /Missing identity/ })).toHaveAttribute(
+      "href",
+      STAFF_TEST_ROUTES.adminPrescribingIdentity,
+    )
 
     await expect(sidebar.getByRole("link", { name: "Dashboard" })).toHaveCount(0)
     await expect(sidebar.getByRole("link", { name: "Queue" })).toHaveCount(0)
@@ -60,8 +72,8 @@ test.describe("Support Ops Boundary", () => {
     if (!isMobile) {
       const sidebar = page.getByRole("complementary", { name: "Staff sidebar" })
       await expect(sidebar.locator('a[aria-current="page"]')).toHaveCount(1)
-      await expect(sidebar.getByRole("link", { name: "Parchment recovery" })).toHaveAttribute("aria-current", "page")
-      await expect(sidebar.getByRole("link", { name: "Operations" })).not.toHaveAttribute("aria-current", "page")
+      await expect(sidebar.getByRole("link", { name: "Operations" })).toHaveAttribute("aria-current", "page")
+      await expect(sidebar.getByRole("link", { name: "Requests" })).not.toHaveAttribute("aria-current", "page")
     }
 
     await page.goto(STAFF_TEST_ROUTES.adminPrescribingIdentity)

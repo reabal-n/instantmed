@@ -14,7 +14,7 @@ import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 export const metadata: Metadata = {
   title: "Medical Certificates for Shift Workers | 24/7 Available",
-  description: "Get a medical certificate any time of day or night. 15-minute turnaround. Perfect for nurses, hospitality, retail, and anyone working outside 9-5. Employer policies vary.",
+  description: "Get a medical certificate any time of day or night. Fast doctor review with live wait messaging. Built for nurses, hospitality, retail, and anyone working outside 9-5. Employer policies vary.",
   keywords: [
     "medical certificate shift workers",
     "night shift sick certificate",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "Medical Certificates for Shift Workers | 24/7 | InstantMed",
-    description: "Get your med cert any time. 15-minute turnaround. Perfect for shift workers.",
+    description: "Get your med cert any time. Fast doctor review with live wait messaging. Built for shift workers.",
     url: "https://instantmed.com.au/for/shift-workers",
   },
   alternates: {
@@ -100,7 +100,7 @@ export default function ShiftWorkersPage() {
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Zap className="h-3.5 w-3.5 text-blue-600" />
-                      <span className="font-medium text-muted-foreground">15 min turnaround</span>
+                      <span className="font-medium text-muted-foreground">Fast doctor review</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Shield className="h-3.5 w-3.5 text-blue-600" />
@@ -221,7 +221,7 @@ export default function ShiftWorkersPage() {
                       step: "2",
                       title: "Doctor reviews",
                       desc: "An AHPRA-registered doctor assesses your request.",
-                      time: "~15 min",
+                      time: "Fast review",
                     },
                     {
                       step: "3",

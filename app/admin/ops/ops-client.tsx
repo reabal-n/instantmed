@@ -28,6 +28,7 @@ export interface OpsDashboardClientProps {
     slaBreachBacklog: CounterCellData
     certRefundOrphans: CounterCellData
     refundRecordAnomalies: CounterCellData
+    queryFailures: CounterCellData
   }
   recoveries: Array<{
     id: string
@@ -85,7 +86,7 @@ export function OpsDashboardClient({ counters, invariants, recoveries }: OpsDash
           <h2 className="mb-3 text-sm font-semibold tracking-tight text-foreground">
             Integrity (weekly invariants)
           </h2>
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             <CounterCard
               count={invariants.slaBreachBacklog.count}
               label="Review SLA backlog"
@@ -106,6 +107,13 @@ export function OpsDashboardClient({ counters, invariants, recoveries }: OpsDash
               helperText={invariants.refundRecordAnomalies.helperText}
               tone={invariants.refundRecordAnomalies.tone}
               href={invariants.refundRecordAnomalies.href}
+            />
+            <CounterCard
+              count={invariants.queryFailures.count}
+              label="Invariant query failures"
+              helperText={invariants.queryFailures.helperText}
+              tone={invariants.queryFailures.tone}
+              href={invariants.queryFailures.href}
             />
           </div>
         </section>

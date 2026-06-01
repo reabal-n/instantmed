@@ -275,8 +275,6 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # Only run E2E if Supabase secrets are configured
-    if: ${{ vars.E2E_ENABLED == 'true' }}
     steps:
       - uses: actions/checkout@v6.0.2
 
@@ -295,6 +293,25 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
 
+      - name: Verify required E2E secrets
+        env:
+          E2E_SECRET: ${{ secrets.E2E_SECRET }}
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          PARCHMENT_WEBHOOK_SECRET: ${{ secrets.PARCHMENT_WEBHOOK_SECRET }}
+        run: |
+          missing=0
+          for name in E2E_SECRET ENCRYPTION_KEY NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY STRIPE_WEBHOOK_SECRET PARCHMENT_WEBHOOK_SECRET; do
+            if [ -z "${!name}" ]; then
+              echo "::error::$name is required for the paid-flow E2E gate"
+              missing=1
+            fi
+          done
+          exit "$missing"
+
       - name: Run ops E2E smoke (Chromium)
         env:
           PLAYWRIGHT: '1'
@@ -306,20 +323,6 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           NEXT_PUBLIC_APP_URL: http://localhost:3001
         run: pnpm exec playwright test --project=chromium e2e/admin.ops-index.spec.ts
-
-      - name: Verify paid-flow E2E secrets
-        env:
-          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
-          PARCHMENT_WEBHOOK_SECRET: ${{ secrets.PARCHMENT_WEBHOOK_SECRET }}
-        run: |
-          missing=0
-          for name in STRIPE_WEBHOOK_SECRET PARCHMENT_WEBHOOK_SECRET; do
-            if [ -z "${!name}" ]; then
-              echo "::error::$name is required for the paid-flow E2E gate"
-              missing=1
-            fi
-          done
-          exit "$missing"
 
       - name: Run med cert readiness E2E gate (Chromium)
         env:
