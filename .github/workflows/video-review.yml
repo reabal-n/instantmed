@@ -59,29 +59,37 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Loop guard - skip if HEAD says [skip review]
+        id: skip-review-guard
         run: |
           MSG=$(git log -1 --pretty=%B)
           if echo "$MSG" | grep -q '\[skip review\]'; then
-            echo "::notice::HEAD commit has [skip review], aborting."
-            exit 0
+            echo "::notice::HEAD commit has [skip review], skipping video review."
+            echo "skip_review=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip_review=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Setup pnpm
+        if: steps.skip-review-guard.outputs.skip_review != 'true'
         uses: pnpm/action-setup@v6.0.5
 
       - name: Use Node.js from .nvmrc
+        if: steps.skip-review-guard.outputs.skip_review != 'true'
         uses: actions/setup-node@v6.4.0
         with:
           node-version-file: ".nvmrc"
           cache: pnpm
 
       - name: Install dependencies
+        if: steps.skip-review-guard.outputs.skip_review != 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Install Playwright chromium
+        if: steps.skip-review-guard.outputs.skip_review != 'true'
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Run video review pipeline
+        if: steps.skip-review-guard.outputs.skip_review != 'true'
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -104,6 +112,7 @@ jobs:
             --url="$URL"
 
       - name: Stage + commit + push report
+        if: steps.skip-review-guard.outputs.skip_review != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

@@ -95,6 +95,14 @@ describe("video review multi-model contract", () => {
     expect(workflow).toContain('URL="${URL_INPUT:-${DEPLOY_URL:-$AUTO_URL}}"')
   })
 
+  it("skips every expensive video-review step when HEAD says skip review", () => {
+    const workflow = read(".github/workflows/video-review.yml")
+
+    expect(workflow).toContain("id: skip-review-guard")
+    expect(workflow).toContain('skip_review=true" >> "$GITHUB_OUTPUT"')
+    expect(workflow).toContain("steps.skip-review-guard.outputs.skip_review != 'true'")
+  })
+
   it("hydrates blank video-review credentials from local env files", () => {
     const localEnv = read("scripts/video-review/local-env.ts")
     const doctor = read("scripts/video-review/doctor.ts")
