@@ -12,6 +12,7 @@ import { BrandLogo } from "@/components/shared/brand-logo"
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { getPostAuthRedirectParam } from '@/lib/auth/redirects'
+import { buildPostSignInRedirectHref } from '@/lib/navigation/auth-handoff'
 import { getPatientCount } from '@/lib/social-proof'
 import { createClient } from '@/lib/supabase/client'
 
@@ -29,16 +30,6 @@ const trustMarks = [
 // ─── Sign In Form ─────────────────────────────────────────────────────
 
 type FormState = 'idle' | 'loading' | 'success' | 'error'
-
-function buildPostSignInHref(redirectUrl: string) {
-  if (redirectUrl.startsWith("/auth/post-signin") && !redirectUrl.startsWith("//")) {
-    return redirectUrl
-  }
-  if (redirectUrl.startsWith("/") && !redirectUrl.startsWith("//")) {
-    return `/auth/post-signin?redirect=${encodeURIComponent(redirectUrl)}`
-  }
-  return "/auth/post-signin"
-}
 
 function SignInForm() {
   const searchParams = useSearchParams()
@@ -117,7 +108,7 @@ function SignInForm() {
       return
     }
 
-    window.location.assign(buildPostSignInHref(redirectUrl))
+    window.location.assign(buildPostSignInRedirectHref(redirectUrl))
   }, [email, password, redirectUrl, supabase.auth])
 
   const handleGoogleSignIn = useCallback(async () => {

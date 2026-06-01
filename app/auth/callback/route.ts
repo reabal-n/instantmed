@@ -1,13 +1,14 @@
-import { type NextRequest,NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 
 import { resolvePostAuthDestination } from "@/lib/auth/post-auth-destination"
+import { AUTH_POST_SIGNIN_HREF } from "@/lib/navigation/auth-handoff"
 import { createLogger } from "@/lib/observability/logger"
 import { createClient } from "@/lib/supabase/server"
 
 const log = createLogger("auth-callback")
 
 function destinationKind(destination: string): string {
-  if (destination.startsWith("/auth/post-signin")) return "post_signin"
+  if (destination.startsWith(AUTH_POST_SIGNIN_HREF)) return "post_signin"
   if (destination.startsWith("/patient")) return "patient"
   if (destination.startsWith("/doctor")) return "doctor"
   return "other"
@@ -20,7 +21,7 @@ function destinationKind(destination: string): string {
  *   1. User clicks magic link or completes Google OAuth
  *   2. Supabase redirects here with ?code=xxx
  *   3. We exchange the code for a session
- *   4. Redirect to ?next destination or /auth/post-signin for profile linking
+ *   4. Redirect to ?next destination or the post-sign-in handoff for profile linking
  */
 export async function GET(request: NextRequest) {
   const { searchParams, origin: requestOrigin } = new URL(request.url)

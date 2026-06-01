@@ -10,6 +10,7 @@ import {
 import { normalizePostAuthRedirect } from "@/lib/auth/redirects"
 import { hasAdminAccess, hasDoctorAccess } from "@/lib/auth/staff-capabilities"
 import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
+import { AUTH_POST_SIGNIN_HREF } from "@/lib/navigation/auth-handoff"
 import { createLogger } from "@/lib/observability/logger"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -145,6 +146,7 @@ export default async function PostSignInPage({
 }: {
   searchParams: Promise<{ redirect?: string; intake_id?: string }>
 }) {
+  const startedAt = Date.now()
   const params = await searchParams
   const paramsString = new URLSearchParams(params as Record<string, string>).toString()
 
@@ -154,7 +156,7 @@ export default async function PostSignInPage({
 
   // Not authenticated - render a client-side auth waiter
   if (!user) {
-    log.info("No user, rendering auth waiter (avoids redirect loop)")
+    log.info("No user, rendering auth waiter (avoids redirect loop)", { elapsedMs: Date.now() - startedAt })
     return (
       <Suspense fallback={<AuthWaiterFallback />}>
         <PostSignInAuthWaiter paramsString={paramsString} />
@@ -286,7 +288,10 @@ export default async function PostSignInPage({
 
   // Error state
   if (!profile) {
-    log.error("Failed to create or find profile after all attempts", { hasEmail: Boolean(primaryEmail) })
+    log.error("Failed to create or find profile after all attempts", {
+      elapsedMs: Date.now() - startedAt,
+      hasEmail: Boolean(primaryEmail),
+    })
 
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -302,7 +307,7 @@ export default async function PostSignInPage({
           </p>
           <div className="space-y-3">
             <Link
-              href="/auth/post-signin"
+              href={AUTH_POST_SIGNIN_HREF}
               className="block w-full px-4 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
             >
               Try Again
@@ -357,7 +362,12 @@ export default async function PostSignInPage({
     }
   }
 
-  log.info("Post sign-in complete, redirecting", { destinationKind: destinationKind(destination), profileFound: true, role: profile.role })
+  log.info("Post sign-in complete, redirecting", {
+    destinationKind: destinationKind(destination),
+    elapsedMs: Date.now() - startedAt,
+    profileFound: true,
+    role: profile.role,
+  })
 
   redirect(destination)
 }

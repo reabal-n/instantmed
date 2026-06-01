@@ -32,6 +32,7 @@ import {
   STAFF_DOCTOR_SCRIPTS_HREF,
   STAFF_QUEUE_HREF,
 } from "@/lib/dashboard/routes"
+import { AUTH_POST_SIGNIN_HREF } from "@/lib/navigation/auth-handoff"
 
 interface UserMenuProps {
   variant: "marketing" | "patient" | "doctor"
@@ -85,7 +86,7 @@ export function UserMenu({
           />
         ) : user ? (
           <a
-            href="/auth/post-signin"
+            href={AUTH_POST_SIGNIN_HREF}
             className="flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors border border-border/40"
           >
             <div className="h-4 w-4 rounded-full bg-primary/10 flex items-center justify-center shrink-0">

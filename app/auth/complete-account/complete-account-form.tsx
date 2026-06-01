@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Confetti } from "@/components/ui/confetti"
 import { getAttribution } from "@/lib/analytics/attribution"
 import { trackPurchase } from "@/lib/analytics/conversion-tracking"
+import { buildPostSignInHref } from "@/lib/navigation/auth-handoff"
 import { useAuth } from "@/lib/supabase/auth-provider"
 
 export function CompleteAccountForm({
@@ -30,6 +31,7 @@ export function CompleteAccountForm({
   const router = useRouter()
   const { isSignedIn, isLoaded } = useAuth()
   const posthog = usePostHog()
+  const postSignInHref = buildPostSignInHref({ intake_id: intakeId })
 
   const [showConfetti, setShowConfetti] = useState(false)
   const purchaseTrackedRef = useRef(false)
@@ -98,7 +100,7 @@ export function CompleteAccountForm({
       }, 0)
 
       const redirectTimer = setTimeout(() => {
-        router.push(`/auth/post-signin?intake_id=${intakeId}`)
+        router.push(postSignInHref)
       }, 1000)
 
       return () => {
@@ -106,10 +108,10 @@ export function CompleteAccountForm({
         clearTimeout(redirectTimer)
       }
     }
-  }, [isLoaded, isSignedIn, intakeId, router])
+  }, [isLoaded, isSignedIn, intakeId, postSignInHref, router])
 
   const handleCreateAccount = () => {
-    const returnUrl = encodeURIComponent(`/auth/post-signin?intake_id=${intakeId}`)
+    const returnUrl = encodeURIComponent(postSignInHref)
     const params = new URLSearchParams({ redirect: returnUrl })
     if (email) params.set("email", email)
     router.push(`/sign-up?${params.toString()}`)
@@ -176,7 +178,7 @@ export function CompleteAccountForm({
 
       <p className="text-xs text-center text-muted-foreground mt-4">
         Already have an account?{" "}
-        <a href={`/sign-in?redirect=${encodeURIComponent(`/auth/post-signin?intake_id=${intakeId}`)}`} className="text-primary hover:underline">
+        <a href={`/sign-in?redirect=${encodeURIComponent(postSignInHref)}`} className="text-primary hover:underline">
           Sign in
         </a>
       </p>

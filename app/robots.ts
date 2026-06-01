@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next"
 
+import { AUTH_POST_SIGNIN_HREF } from "@/lib/navigation/auth-handoff"
+
 /**
  * Robots.txt configuration
  * 
@@ -28,7 +30,7 @@ export default function robots(): MetadataRoute.Robots {
           // in the index indefinitely. Allow crawl, let noindex do the work.
           "/auth/callback",   // OAuth callback — no content, pure redirect
           "/auth/confirm",    // Email confirm — no content, pure redirect
-          "/auth/post-signin", // Post-signin redirect — no content
+          AUTH_POST_SIGNIN_HREF, // Post-signin redirect — no content
           "/_next/",        // Next.js build output (JS/CSS chunks)
           "/search",        // Internal search
           "/*/search",      // Category search pages

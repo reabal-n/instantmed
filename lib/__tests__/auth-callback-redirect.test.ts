@@ -35,8 +35,8 @@ describe("resolvePostAuthDestination", () => {
   })
 
   it("keeps sign-in redirects role-aware after session creation", () => {
-    expect(signInSource).toContain("buildPostSignInHref")
-    expect(signInSource).toContain("window.location.assign(buildPostSignInHref(redirectUrl))")
+    expect(signInSource).toContain("buildPostSignInRedirectHref")
+    expect(signInSource).toContain("window.location.assign(buildPostSignInRedirectHref(redirectUrl))")
     expect(postSignInSource).toContain("hasAdminAccess(profile)")
     // Phase 2 of dashboard remaster + dashboard-audit follow-up (2026-05-12):
     // staff (admin + doctor) login goes straight to the unified `/dashboard`

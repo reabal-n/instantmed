@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
 
+import { buildPostSignInHref } from "@/lib/navigation/auth-handoff"
 import { useAuth } from "@/lib/supabase/auth-provider"
 
 /**
@@ -37,10 +38,7 @@ export function PostSignInAuthWaiter({ paramsString = "" }: { paramsString?: str
     if (isSignedIn) {
       hasNavigated.current = true
       // Session is established - reload so server component handles redirect
-      const destination = paramsString
-        ? `/auth/post-signin?${paramsString}`
-        : `/auth/post-signin`
-      window.location.href = destination
+      window.location.href = buildPostSignInHref(paramsString)
       return
     }
 

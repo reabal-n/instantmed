@@ -18,6 +18,7 @@ import {
 } from "@/lib/auth/guest-profile-linking"
 import { hasAdminAccess, hasDoctorAccess, hasSupportAccess, type RoleCapability, roleHasAnyCapability } from "@/lib/auth/staff-capabilities"
 import { PATIENT_DASHBOARD_HREF, STAFF_DASHBOARD_HREF, STAFF_OPS_HREF } from "@/lib/dashboard/routes"
+import { AUTH_POST_SIGNIN_HREF } from "@/lib/navigation/auth-handoff"
 import { createLogger } from "@/lib/observability/logger"
 import { decryptField } from "@/lib/security/encryption"
 import { createClient } from "@/lib/supabase/server"
@@ -476,7 +477,7 @@ export async function requireRole(
     const { data: { user } } = await supabaseAuth.auth.getUser()
     if (user) {
       // Authenticated but no profile - send to post-signin for profile creation
-      redirect("/auth/post-signin")
+      redirect(AUTH_POST_SIGNIN_HREF)
     }
     redirect("/sign-in")
   }
