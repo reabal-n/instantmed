@@ -89,7 +89,14 @@ jobs:
           JOURNEY="${{ github.event.inputs.journey || 'paid-funnel' }}"
           URL_INPUT="${{ github.event.inputs.url }}"
           DEPLOY_URL="${{ github.event.deployment_status.target_url }}"
-          URL="${URL_INPUT:-${DEPLOY_URL:-https://instantmed.com.au}}"
+          AUTO_URL="https://instantmed.com.au"
+          if [ "${{ github.event_name }}" = "deployment_status" ]; then
+            # Production deployment target_url can be a protected Vercel URL;
+            # auto reviews need the public canonical domain.
+            URL="${URL_INPUT:-$AUTO_URL}"
+          else
+            URL="${URL_INPUT:-${DEPLOY_URL:-$AUTO_URL}}"
+          fi
           echo "Journey: $JOURNEY"
           echo "URL:     $URL"
           pnpm tsx scripts/video-review/index.ts \

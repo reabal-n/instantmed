@@ -86,6 +86,15 @@ describe("video review multi-model contract", () => {
     expect(preflight).toContain("15000")
   })
 
+  it("captures the live production domain for automatic deployment reviews", () => {
+    const workflow = read(".github/workflows/video-review.yml")
+
+    expect(workflow).toContain('AUTO_URL="https://instantmed.com.au"')
+    expect(workflow).toContain('if [ "${{ github.event_name }}" = "deployment_status" ]; then')
+    expect(workflow).toContain('URL="${URL_INPUT:-$AUTO_URL}"')
+    expect(workflow).toContain('URL="${URL_INPUT:-${DEPLOY_URL:-$AUTO_URL}}"')
+  })
+
   it("hydrates blank video-review credentials from local env files", () => {
     const localEnv = read("scripts/video-review/local-env.ts")
     const doctor = read("scripts/video-review/doctor.ts")
