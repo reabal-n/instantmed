@@ -9,6 +9,12 @@ const ciWorkflowSource = readFileSync(
 )
 
 describe("CI workflow contract", () => {
+  it("cancels stale same-branch runs before E2E fixtures can race", () => {
+    expect(ciWorkflowSource).toContain("concurrency:")
+    expect(ciWorkflowSource).toContain("group: ci-${{ github.ref }}")
+    expect(ciWorkflowSource).toContain("cancel-in-progress: true")
+  })
+
   it("checks the active Node runtime before install and build", () => {
     expect(ciWorkflowSource).toContain("Check active Node runtime")
     expect(ciWorkflowSource).toContain("run: bash scripts/check-node-runtime.sh")
