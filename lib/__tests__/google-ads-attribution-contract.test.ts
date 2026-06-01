@@ -45,6 +45,14 @@ describe("Google Ads attribution contract", () => {
     expect(heartbeat).toContain('"google-ads-conversions"')
   })
 
+  it("does not expose Google Ads account mutation from the scheduled backfill route", () => {
+    const cron = read("app/api/cron/google-ads-conversions/route.ts")
+
+    expect(cron).not.toContain("create_upload_click_action")
+    expect(cron).not.toContain("createGoogleAdsUploadClickConversionAction")
+    expect(cron).not.toContain("conversionActions:mutate")
+  })
+
   it("does not retry Google's non-retryable conversion-action configuration error", () => {
     expect(
       isNonRetryableGoogleAdsConversionError(

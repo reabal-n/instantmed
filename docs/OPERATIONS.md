@@ -1227,6 +1227,8 @@ ORDER BY i.refunded_at DESC NULLS LAST;
 
 2026-05-23 evening snapshot: **2 orphans**. Per-orphan operator decision needed (revoke vs goodwill-accept). The auto-revoke-on-refund question is clinical/legal policy, not engineering — needs an explicit decision before any contract test or code path is added.
 
+2026-06-01 reconciliation: **0 orphans** after revoking the two fully refunded legacy certificates via production service-role reconciliation. Certificate revocation audit rows and system audit rows were written. No automatic revoke-on-refund product policy was added.
+
 ### Q3 — INVALID_TYPE pattern audit across integrations
 
 The Google Ads `INVALID_CONVERSION_ACTION_TYPE` bug (env var points at a resource ID that exists but is the wrong TYPE) is a recurring pattern. Other integrations could have the same hole:
@@ -1242,7 +1244,7 @@ The Google Ads `INVALID_CONVERSION_ACTION_TYPE` bug (env var points at a resourc
 Recommended next work: add `pnpm check:integrations` that:
 1. Fetches each `STRIPE_PRICE_*` from Stripe API and asserts `type: "one_time"`.
 2. Fetches the configured Google Ads conversion action and asserts `type: "UPLOAD_CLICKS"`.
-3. Confirms Resend domain ownership for the `RESEND_FROM_EMAIL` domain.
+3. Confirms Resend domain ownership for the `RESEND_FROM_EMAIL` domain. If Resend returns `restricted_api_key` for a send-only/domain-scoped production key, strict mode sends a smoke email to Resend's documented `delivered@resend.dev` test sink instead of failing on a Domains API permission the runtime key intentionally lacks.
 4. Confirms the Anthropic model name in `lib/ai/provider.ts` resolves to a valid model.
 
 Wire into `pnpm release:check` so launch gates catch any of these at promotion time.
@@ -1261,6 +1263,8 @@ ORDER BY paid_at DESC;
 ```
 
 2026-05-23 evening snapshot: 1 row (intake `4fc90333-...`, study cert issued 2026-04-14, marked refunded with no refund record). Operator action: backfill `refund_status` + `refunded_at` from Stripe dashboard OR mark as `not_applicable` with explicit reason.
+
+2026-06-01 reconciliation: **0 anomalies** after backfilling the legacy study-certificate refund from Stripe (`refund_status='succeeded'`, Stripe refund ID, `refunded_at`, and corrected charged amount to match the Stripe PaymentIntent). A system audit row was written.
 
 ### How these become alerts
 

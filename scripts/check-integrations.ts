@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto"
+
 import Stripe from "stripe"
 
 import { AI_MODEL_CONFIG } from "@/lib/ai/provider"
@@ -57,6 +59,7 @@ hydrateLocalEnv([
   "PARCHMENT_SMOKE_USER_ID",
   "RESEND_API_KEY",
   "RESEND_FROM_EMAIL",
+  "RESEND_SEND_SMOKE",
   "STRIPE_SECRET_KEY",
   ...STRIPE_PRICE_ENV_KEYS,
 ])
@@ -213,6 +216,10 @@ async function checkResendDomainOwnership(): Promise<CheckResult[]> {
     return [result("warn", "Resend domain", "RESEND_API_KEY or RESEND_FROM_EMAIL is not configured; skipped domain ownership validation.")]
   }
 
+  if (!isValidResendFromEmail(fromEmail)) {
+    return [result("fail", "Resend sender", "RESEND_FROM_EMAIL must be email@example.com or Name <email@example.com> without wrapping quote characters.")]
+  }
+
   const domain = parseEmailDomain(fromEmail)
   if (!domain) {
     return [result("fail", "Resend domain", "RESEND_FROM_EMAIL must include a domain.")]
@@ -223,6 +230,21 @@ async function checkResendDomainOwnership(): Promise<CheckResult[]> {
   })
 
   if (!response.ok) {
+    const payload = await response.json().catch(() => null) as ResendErrorPayload | null
+    if (response.status === 401 && isResendRestrictedKeyError(payload)) {
+      if (shouldRunResendSendSmoke()) {
+        return [await checkResendRestrictedSendSmoke(apiKey, fromEmail, domain)]
+      }
+
+      return [
+        result(
+          "warn",
+          "Resend domain",
+          `${domain} uses a restricted send-only API key; skipped Domains API validation. Strict mode runs a Resend test-sink send smoke.`,
+        ),
+      ]
+    }
+
     return [result(strictStatus(), "Resend domain", `Resend domains API returned ${response.status}.`)]
   }
 
@@ -237,6 +259,86 @@ async function checkResendDomainOwnership(): Promise<CheckResult[]> {
   }
 
   return [result("pass", "Resend domain", `${domain} is verified.`)]
+}
+
+type ResendErrorPayload = {
+  name?: string
+  message?: string
+  error?: {
+    name?: string
+    code?: string
+    message?: string
+  }
+  code?: string
+}
+
+function isValidResendFromEmail(value: string): boolean {
+  const trimmed = value.trim()
+  if (!trimmed || trimmed.startsWith("\"") || trimmed.endsWith("\"") || trimmed.startsWith("'") || trimmed.endsWith("'")) {
+    return false
+  }
+
+  const emailPattern = "[^@<>\\s]+@[^@<>\\s]+\\.[^@<>\\s]+"
+  const plain = new RegExp(`^${emailPattern}$`)
+  const display = new RegExp(`^[^<>\\r\\n]+ <${emailPattern}>$`)
+  return plain.test(trimmed) || display.test(trimmed)
+}
+
+function isResendRestrictedKeyError(payload: ResendErrorPayload | null): boolean {
+  const values = [
+    payload?.name,
+    payload?.code,
+    payload?.message,
+    payload?.error?.name,
+    payload?.error?.code,
+    payload?.error?.message,
+  ].filter(Boolean).map((value) => String(value).toLowerCase())
+
+  return values.some((value) => value.includes("restricted_api_key"))
+}
+
+function shouldRunResendSendSmoke(): boolean {
+  return CHECK_INTEGRATIONS_STRICT || process.env.RESEND_SEND_SMOKE === "1"
+}
+
+function resendSmokeIdempotencyKey(domain: string): string {
+  const today = new Date().toISOString().slice(0, 10)
+  const digest = createHash("sha256").update(`${domain}:${today}`).digest("hex").slice(0, 12)
+  return `instantmed-check-integrations-${today}-${digest}`
+}
+
+function sanitizeResendMessage(message: string | undefined): string {
+  return (message || "unknown error").replace(/re_[A-Za-z0-9_]+/g, "[redacted_key]")
+}
+
+async function checkResendRestrictedSendSmoke(
+  apiKey: string,
+  fromEmail: string,
+  domain: string,
+): Promise<CheckResult> {
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      "Idempotency-Key": resendSmokeIdempotencyKey(domain),
+    },
+    body: JSON.stringify({
+      from: fromEmail,
+      to: ["delivered@resend.dev"],
+      subject: `InstantMed integration smoke ${new Date().toISOString().slice(0, 10)}`,
+      html: "<p>InstantMed Resend integration smoke.</p>",
+      text: "InstantMed Resend integration smoke.",
+    }),
+  })
+
+  const payload = await response.json().catch(() => null) as (ResendErrorPayload & { id?: string }) | null
+  if (!response.ok || !payload?.id) {
+    const message = sanitizeResendMessage(payload?.message || payload?.error?.message)
+    return result("fail", "Resend send smoke", `Restricted Resend send smoke returned ${response.status}: ${message}.`)
+  }
+
+  return result("pass", "Resend send smoke", `Restricted send key accepted a test-sink email from ${domain}.`)
 }
 
 function parseEmailDomain(value: string): string | null {
