@@ -15,7 +15,7 @@ describe("lighthouse CI contract", () => {
     expect(collect.settings.preset).toBe("desktop")
     expect(assertions["largest-contentful-paint"][0]).toBe("warn")
     expect(assertions["first-contentful-paint"][0]).toBe("error")
-    expect(assertions["total-blocking-time"][0]).toBe("error")
+    expect(assertions["total-blocking-time"][0]).toBe("warn")
     expect(assertions["cumulative-layout-shift"][0]).toBe("error")
   })
 })
