@@ -30,4 +30,14 @@ describe("navigation routing contracts", () => {
     expect(userMenu).not.toContain("href=\"/doctor/intakes\"")
     expect(userMenu).toContain("STAFF_DOCTOR_SCRIPTS_HREF")
   })
+
+  it("routes the signed-in marketing dashboard entry through the post-sign-in handoff", () => {
+    const userMenu = readFileSync(path.join(root, "components/shared/navbar/user-menu.tsx"), "utf8")
+    const navbar = readFileSync(path.join(root, "components/shared/navbar.tsx"), "utf8")
+
+    expect(userMenu).toMatch(/<a\s+href="\/auth\/post-signin"[\s\S]*Dashboard[\s\S]*<\/a>/)
+    expect(userMenu).not.toMatch(/<Link\s+href=\{STAFF_DASHBOARD_HREF\}[\s\S]*Dashboard[\s\S]*<\/Link>/)
+    expect(navbar).toContain('window.location.assign("/auth/post-signin")')
+    expect(navbar).not.toContain("router.push(STAFF_DASHBOARD_HREF)")
+  })
 })

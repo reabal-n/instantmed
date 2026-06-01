@@ -2,7 +2,7 @@
 
 import { LayoutDashboard, LogOut } from "lucide-react"
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { useTheme } from "next-themes"
 import { useEffect, useState } from "react"
 
@@ -16,7 +16,6 @@ import { ThemeSwitch } from "@/components/shared/navbar/theme-switch"
 import { UserMenu } from "@/components/shared/navbar/user-menu"
 import { AnimatedMobileMenu, MenuToggle } from "@/components/ui/animated-mobile-menu"
 import { Button } from "@/components/uix"
-import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { cn } from "@/lib/utils"
 
@@ -29,7 +28,6 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const router = useRouter()
   const pathname = usePathname()
   const { theme } = useTheme()
   const isDarkTheme = theme === "dark"
@@ -168,7 +166,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     className="w-full rounded-xl bg-white dark:bg-card hover:bg-muted/50 dark:hover:bg-white/10 border-border/40 transition-colors flex items-center justify-center gap-2"
                     onClick={() => {
                       setMobileMenuOpen(false)
-                      router.push(STAFF_DASHBOARD_HREF)
+                      window.location.assign("/auth/post-signin")
                     }}
                   >
                     <LayoutDashboard className="h-4 w-4" />
