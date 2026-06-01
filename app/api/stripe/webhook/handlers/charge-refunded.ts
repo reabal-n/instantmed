@@ -24,6 +24,16 @@ function greetingFirstName(name: string | null | undefined): string {
   return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase()
 }
 
+function latestRefundFromCharge(charge: Stripe.Charge): Stripe.Refund | null {
+  const refunds = charge.refunds?.data ?? []
+  if (!refunds.length) return null
+
+  return refunds.reduce((latest, refund) => {
+    if (!latest) return refund
+    return (refund.created ?? 0) > (latest.created ?? 0) ? refund : latest
+  }, null as Stripe.Refund | null)
+}
+
 export async function handleChargeRefunded(ctx: WebhookContext): Promise<HandlerResult> {
   const { event, supabase } = ctx
   const charge = event.data.object as Stripe.Charge
@@ -46,15 +56,25 @@ export async function handleChargeRefunded(ctx: WebhookContext): Promise<Handler
   if (paymentIntentId) {
     // Update intake payment_status based on refund
     const isFullRefund = charge.amount_refunded === charge.amount
+    const timestamp = new Date().toISOString()
+    const latestRefund = latestRefundFromCharge(charge)
+    const refundedAt = latestRefund?.created
+      ? new Date(latestRefund.created * 1000).toISOString()
+      : timestamp
+    const refundStripeId = latestRefund?.id ?? null
+    const intakeRefundUpdate = {
+      payment_status: isFullRefund ? "refunded" : "partially_refunded",
+      refund_status: "succeeded",
+      refund_stripe_id: refundStripeId,
+      refund_amount_cents: charge.amount_refunded,
+      refunded_at: refundedAt,
+      updated_at: timestamp,
+    }
 
     // First try to find intake by stripe_payment_intent_id if we stored it
     let updateResult = await supabase
       .from("intakes")
-      .update({
-        payment_status: isFullRefund ? "refunded" : "partially_refunded",
-        refund_amount_cents: charge.amount_refunded,
-        updated_at: new Date().toISOString(),
-      })
+      .update(intakeRefundUpdate)
       .eq("stripe_payment_intent_id", paymentIntentId)
       .select("id")
 
@@ -68,21 +88,13 @@ export async function handleChargeRefunded(ctx: WebhookContext): Promise<Handler
         if (metadataIntakeId) {
           updateResult = await supabase
             .from("intakes")
-            .update({
-              payment_status: isFullRefund ? "refunded" : "partially_refunded",
-              refund_amount_cents: charge.amount_refunded,
-              updated_at: new Date().toISOString(),
-            })
+            .update(intakeRefundUpdate)
             .eq("id", metadataIntakeId)
             .select("id")
         } else if (sessionId) {
           updateResult = await supabase
             .from("intakes")
-            .update({
-              payment_status: isFullRefund ? "refunded" : "partially_refunded",
-              refund_amount_cents: charge.amount_refunded,
-              updated_at: new Date().toISOString(),
-            })
+            .update(intakeRefundUpdate)
             .eq("payment_id", sessionId)
             .select("id")
         }
@@ -99,10 +111,11 @@ export async function handleChargeRefunded(ctx: WebhookContext): Promise<Handler
       .from("payments")
       .update({
         status: "refunded",
-        refund_status: isFullRefund ? "refunded" : "partially_refunded",
+        refund_status: "refunded",
         refund_amount: charge.amount_refunded,
-        refunded_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        stripe_refund_id: refundStripeId,
+        refunded_at: refundedAt,
+        updated_at: timestamp,
       })
       .eq("stripe_payment_intent_id", paymentIntentId)
 

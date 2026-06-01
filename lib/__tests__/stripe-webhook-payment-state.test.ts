@@ -69,6 +69,7 @@ vi.mock("@sentry/nextjs", () => ({
   captureMessage: vi.fn(),
 }))
 
+import { handleChargeRefunded } from "@/app/api/stripe/webhook/handlers/charge-refunded"
 import { handleAsyncPaymentFailed } from "@/app/api/stripe/webhook/handlers/checkout-session-async-payment-failed"
 import { handleAsyncPaymentSucceeded } from "@/app/api/stripe/webhook/handlers/checkout-session-async-payment-succeeded"
 import { handleCheckoutSessionCompleted } from "@/app/api/stripe/webhook/handlers/checkout-session-completed"
@@ -86,7 +87,7 @@ interface UpdateRecord {
 }
 
 interface UpdateResult {
-  data: { id: string } | null
+  data: { id: string } | Array<{ id: string }> | null
   error: null
 }
 
@@ -100,10 +101,15 @@ function createUpdateChain(record: UpdateRecord, result: UpdateResult = { data: 
       record.filters.push({ column, method: "in", value })
       return chain
     }),
-    select: vi.fn(() => ({
-      maybeSingle: vi.fn(async () => result),
-      single: vi.fn(async () => result),
-    })),
+    select: vi.fn(() => {
+      const selectResult = {
+        maybeSingle: vi.fn(async () => result),
+        single: vi.fn(async () => result),
+        then: (resolve: (value: typeof result) => void) => Promise.resolve(result).then(resolve),
+      }
+
+      return selectResult
+    }),
     then: (resolve: (value: typeof result) => void) => Promise.resolve(result).then(resolve),
   }
 
@@ -330,6 +336,53 @@ describe("Stripe webhook payment state transitions", () => {
         payment_status: "failed",
         status: "checkout_failed",
       },
+    })
+  })
+
+  it("records canonical refund metadata when Stripe reports a partial charge refund", async () => {
+    const refundedAt = "2026-04-14T12:37:28.000Z"
+    const { supabase, updates } = createWebhookSupabaseMock({
+      data: [{ id: "intake-1" }],
+      error: null,
+    })
+
+    await handleChargeRefunded({
+      event: makeEvent("charge.refunded", {
+        amount: 4995,
+        amount_refunded: 1995,
+        id: "ch_refunded",
+        payment_intent: "pi_refunded",
+        refunds: {
+          data: [
+            {
+              amount: 1995,
+              created: Math.floor(Date.parse(refundedAt) / 1000),
+              id: "re_partial",
+              status: "succeeded",
+            },
+          ],
+        },
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    const intakeUpdate = updates.find((update) => update.table === "intakes")
+    expect(intakeUpdate?.payload).toMatchObject({
+      payment_status: "partially_refunded",
+      refund_amount_cents: 1995,
+      refund_status: "succeeded",
+      refund_stripe_id: "re_partial",
+      refunded_at: refundedAt,
+    })
+
+    const paymentUpdate = updates.find((update) => update.table === "payments")
+    expect(paymentUpdate?.payload).toMatchObject({
+      refund_amount: 1995,
+      refund_status: "refunded",
+      refunded_at: refundedAt,
+      status: "refunded",
+      stripe_refund_id: "re_partial",
     })
   })
 
