@@ -85,4 +85,11 @@ describe("auth post-sign-in handoff", () => {
     expect(source).toContain("elapsedMs")
     expect(source).toContain("Post sign-in complete, redirecting")
   })
+
+  it("classifies the unified staff dashboard in post-sign-in logs", () => {
+    const source = readFileSync(join(process.cwd(), "app/auth/post-signin/page.tsx"), "utf8")
+
+    expect(source).toContain('destination.startsWith(STAFF_DASHBOARD_HREF)')
+    expect(source).toContain('"staff_dashboard"')
+  })
 })

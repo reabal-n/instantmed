@@ -56,6 +56,39 @@ function scheduleIdle(callback: () => void, timeout = 1500) {
   return () => clearTimeout(id)
 }
 
+function readCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null
+
+  const prefix = `${name}=`
+  return document.cookie
+    .split(';')
+    .map((cookie) => cookie.trim())
+    .find((cookie) => cookie.startsWith(prefix))
+    ?.slice(prefix.length) ?? null
+}
+
+function buildE2EClientUser(): User | null {
+  const role = readCookie('__e2e_auth_role')
+  if (!role) return null
+
+  const isAdmin = readCookie('__e2e_auth_is_admin') === 'true'
+  const label = isAdmin
+    ? 'E2E Operator'
+    : role === 'support'
+      ? 'E2E Support'
+      : role === 'doctor'
+        ? 'E2E Doctor'
+        : 'E2E Patient'
+
+  return {
+    id: `e2e-${role}`,
+    app_metadata: { provider: 'e2e', providers: ['e2e'] },
+    aud: 'authenticated',
+    created_at: '1970-01-01T00:00:00.000Z',
+    user_metadata: { full_name: label, role },
+  } as User
+}
+
 // ─── Types ────────────────────────────────────────────────────────────
 
 interface AuthContext {
@@ -118,7 +151,9 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
 
     // E2E bypass: __e2e_auth_role cookie is readable client-side (non-httpOnly).
     // Skip Supabase session check to prevent SIGNED_OUT → router.refresh() redirect chain.
-    if (typeof document !== 'undefined' && document.cookie.includes('__e2e_auth_role=')) {
+    const e2eUser = buildE2EClientUser()
+    if (e2eUser) {
+      setUser(e2eUser)
       setIsLoaded(true)
       return
     }

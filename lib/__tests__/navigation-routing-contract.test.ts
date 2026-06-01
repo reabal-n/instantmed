@@ -4,6 +4,11 @@ import path from "node:path"
 import { describe, expect, it } from "vitest"
 
 const root = process.cwd()
+const marketingNavFiles = [
+  "components/shared/navbar.tsx",
+  "components/shared/navbar/user-menu.tsx",
+  "components/shared/navbar/mobile-menu-content.tsx",
+]
 
 describe("navigation routing contracts", () => {
   it("keeps /start available as a legacy request handoff", () => {
@@ -44,5 +49,28 @@ describe("navigation routing contracts", () => {
     expect(navbar).toContain("navigateToPostSignIn(window)")
     expect(navbar).not.toContain('window.location.assign("/auth/post-signin")')
     expect(navbar).not.toContain("router.push(STAFF_DASHBOARD_HREF)")
+  })
+
+  it("blocks direct dashboard navigation from marketing nav files", () => {
+    const forbiddenPatterns = [
+      'href="/dashboard"',
+      "href='/dashboard'",
+      "href={STAFF_DASHBOARD_HREF}",
+      'window.location.assign("/dashboard")',
+      "window.location.assign('/dashboard')",
+      'router.push("/dashboard")',
+      "router.push('/dashboard')",
+      "router.push(STAFF_DASHBOARD_HREF)",
+      "navigate.push(STAFF_DASHBOARD_HREF)",
+    ]
+
+    for (const relativePath of marketingNavFiles) {
+      const source = readFileSync(path.join(root, relativePath), "utf8")
+
+      for (const forbiddenPattern of forbiddenPatterns) {
+        expect(source, `${relativePath} must use the post-sign-in handoff, not ${forbiddenPattern}`)
+          .not.toContain(forbiddenPattern)
+      }
+    }
   })
 })

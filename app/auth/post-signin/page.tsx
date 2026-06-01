@@ -7,6 +7,7 @@ import {
   buildGuestProfileAuthLinkUpdate,
   selectGuestProfileForAuthLink,
 } from "@/lib/auth/guest-profile-linking"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { normalizePostAuthRedirect } from "@/lib/auth/redirects"
 import { hasAdminAccess, hasDoctorAccess } from "@/lib/auth/staff-capabilities"
 import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
@@ -14,6 +15,7 @@ import { AUTH_POST_SIGNIN_HREF } from "@/lib/navigation/auth-handoff"
 import { createLogger } from "@/lib/observability/logger"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import type { Profile } from "@/types/db"
 
 import { PostSignInAuthWaiter } from "./auth-waiter"
 
@@ -50,6 +52,7 @@ function destinationKind(destination: string): string {
   if (destination.startsWith("/patient/intakes/success")) return "patient_intake_success"
   if (destination.startsWith("/patient/onboarding")) return "patient_onboarding"
   if (destination.startsWith("/patient")) return "patient_dashboard"
+  if (destination.startsWith(STAFF_DASHBOARD_HREF)) return "staff_dashboard"
   if (destination.startsWith("/doctor")) return "doctor_dashboard"
   return "other"
 }
@@ -65,6 +68,8 @@ type GuestProfileCandidateRow = {
 type GuestProfileLinkCandidate = GuestProfileCandidateRow & {
   has_paid_intake: boolean
 }
+
+type PostSignInProfile = Pick<Profile, "id" | "role" | "onboarding_completed">
 
 async function getPreferredGuestProfileIdForIntake(
   supabase: ReturnType<typeof createServiceRoleClient>,
@@ -150,13 +155,40 @@ export default async function PostSignInPage({
   const params = await searchParams
   const paramsString = new URLSearchParams(params as Record<string, string>).toString()
 
-  // Check Supabase Auth session
-  const supabaseAuth = await createClient()
-  const { data: { user } } = await supabaseAuth.auth.getUser()
+  const authenticated = await getAuthenticatedUserWithProfile()
+  let profile: PostSignInProfile | null = authenticated
+    ? {
+      id: authenticated.profile.id,
+      role: authenticated.profile.role,
+      onboarding_completed: authenticated.profile.onboarding_completed,
+    }
+    : null
+  let primaryEmail = authenticated?.user.email?.toLowerCase() ?? null
+  let userId = authenticated?.user.id ?? null
+  let userMetadata: Record<string, unknown> | null | undefined = authenticated?.user.user_metadata
 
-  // Not authenticated - render a client-side auth waiter
-  if (!user) {
-    log.info("No user, rendering auth waiter (avoids redirect loop)", { elapsedMs: Date.now() - startedAt })
+  if (!authenticated) {
+    // Check Supabase Auth session
+    const supabaseAuth = await createClient()
+    const { data: { user } } = await supabaseAuth.auth.getUser()
+
+    // Not authenticated - render a client-side auth waiter
+    if (!user) {
+      log.info("No user, rendering auth waiter (avoids redirect loop)", { elapsedMs: Date.now() - startedAt })
+      return (
+        <Suspense fallback={<AuthWaiterFallback />}>
+          <PostSignInAuthWaiter paramsString={paramsString} />
+        </Suspense>
+      )
+    }
+
+    primaryEmail = user.email?.toLowerCase() ?? null
+    userId = user.id
+    userMetadata = user.user_metadata
+  }
+
+  if (!userId) {
+    log.info("No user id, rendering auth waiter (avoids redirect loop)", { elapsedMs: Date.now() - startedAt })
     return (
       <Suspense fallback={<AuthWaiterFallback />}>
         <PostSignInAuthWaiter paramsString={paramsString} />
@@ -164,19 +196,15 @@ export default async function PostSignInPage({
     )
   }
 
-  const primaryEmail = user.email?.toLowerCase()
-  const userId = user.id
-
   log.info("Post sign-in check started", { hasEmail: Boolean(primaryEmail) })
 
   const supabase = createServiceRoleClient()
 
   // Try to find profile with retries (handles race condition with trigger)
-  let profile = null
   const maxRetries = 5
   const retryDelayMs = 500
 
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+  for (let attempt = 1; !profile && attempt <= maxRetries; attempt++) {
     // Check by auth_user_id
     const { data: existingProfile, error: lookupError } = await supabase
       .from("profiles")
@@ -209,7 +237,7 @@ export default async function PostSignInPage({
             profile: guestProfile,
             userId,
             primaryEmail,
-            userMetadata: user.user_metadata,
+            userMetadata,
           }))
           .eq("id", guestProfile.id)
           .eq("role", "patient")
@@ -249,9 +277,13 @@ export default async function PostSignInPage({
 
   // If still no profile after retries, create one manually (safety net)
   if (!profile && primaryEmail) {
-    const fullName = user.user_metadata?.full_name
-      || user.user_metadata?.name
-      || primaryEmail.split('@')[0]
+    const metadataFullName = typeof userMetadata?.full_name === "string"
+      ? userMetadata.full_name.trim()
+      : ""
+    const metadataName = typeof userMetadata?.name === "string"
+      ? userMetadata.name.trim()
+      : ""
+    const fullName = metadataFullName || metadataName || primaryEmail.split('@')[0]
 
     const { data: newProfile, error: createError } = await supabase
       .from("profiles")
@@ -259,9 +291,9 @@ export default async function PostSignInPage({
         auth_user_id: userId,
         email: primaryEmail,
         full_name: fullName,
-        first_name: user.user_metadata?.first_name || null,
-        last_name: user.user_metadata?.last_name || null,
-        avatar_url: user.user_metadata?.avatar_url || null,
+        first_name: typeof userMetadata?.first_name === "string" ? userMetadata.first_name : null,
+        last_name: typeof userMetadata?.last_name === "string" ? userMetadata.last_name : null,
+        avatar_url: typeof userMetadata?.avatar_url === "string" ? userMetadata.avatar_url : null,
         role: "patient",
         onboarding_completed: false,
         email_verified: true,
