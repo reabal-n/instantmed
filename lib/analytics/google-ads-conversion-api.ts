@@ -497,7 +497,6 @@ export async function preflightGoogleAdsPurchaseConversionAction(): Promise<Goog
       method: "POST",
       headers: buildGoogleAdsAuthHeaders(config, accessToken),
       body: JSON.stringify({
-        pageSize: 1,
         query: buildGoogleAdsConversionActionPreflightQuery(config.conversionActionId),
       }),
     })

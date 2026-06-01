@@ -181,6 +181,13 @@ describe("google ads conversion api", () => {
     expect(global.fetch).toHaveBeenLastCalledWith(
       "https://googleads.googleapis.com/v24/customers/1234567890/googleAds:search",
       expect.objectContaining({
+        body: expect.not.stringContaining("pageSize"),
+        method: "POST",
+      }),
+    )
+    expect(global.fetch).toHaveBeenLastCalledWith(
+      "https://googleads.googleapis.com/v24/customers/1234567890/googleAds:search",
+      expect.objectContaining({
         body: expect.stringContaining("conversion_action.id = 9876543210"),
         method: "POST",
       }),
