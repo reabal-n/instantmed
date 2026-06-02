@@ -105,6 +105,8 @@ interface AccessTokenCache {
   expiresAt: number
 }
 
+export type GoogleAdsSearchRow = Record<string, unknown>
+
 let tokenCache: AccessTokenCache | null = null
 
 const INSTANTMED_PURCHASE_CONVERSION_ACTION_ID = "7530736987"
@@ -519,6 +521,31 @@ export async function preflightGoogleAdsPurchaseConversionAction(): Promise<Goog
   } catch (error) {
     return getUnknownPreflightError(error)
   }
+}
+
+export async function searchGoogleAds<T extends GoogleAdsSearchRow = GoogleAdsSearchRow>(
+  query: string,
+): Promise<T[]> {
+  const config = getGoogleAdsPurchaseConversionConfig()
+  if (!config) throw new Error("missing_env")
+
+  const accessToken = await fetchAccessToken()
+  if (!accessToken) throw new Error("no_access_token")
+
+  const response = await fetch(getGoogleAdsSearchUrl(config.customerId, config.apiVersion), {
+    method: "POST",
+    headers: buildGoogleAdsAuthHeaders(config, accessToken),
+    body: JSON.stringify({ query }),
+  })
+
+  const responseBody = await response.text()
+  const payload = responseBody ? JSON.parse(responseBody) as { results?: T[] } : {}
+
+  if (!response.ok) {
+    throw new Error(extractGoogleAdsErrorCode(responseBody, response.status))
+  }
+
+  return Array.isArray(payload.results) ? payload.results : []
 }
 
 /**
