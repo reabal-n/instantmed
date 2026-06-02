@@ -1,14 +1,14 @@
 {
-  "dateFrom": "2026-05-03T08:42:58.901Z",
-  "dateTo": "2026-06-02T08:42:58.901Z",
+  "dateFrom": "2026-05-03T09:12:20.114Z",
+  "dateTo": "2026-06-02T09:12:20.114Z",
   "days": 30,
   "errors": [],
   "emailRecovery": {
     "partial_intake_recovery": {
-      "count": 66,
-      "sent": 66,
+      "count": 63,
+      "sent": 63,
       "delivered": 0,
-      "failed": 3
+      "failed": 2
     }
   },
   "intakes": {

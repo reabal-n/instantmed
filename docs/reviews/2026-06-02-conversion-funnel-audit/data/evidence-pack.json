@@ -54,7 +54,7 @@
                 "MOBILE",
                 "TABLET"
               ],
-              "impressions": 481,
+              "impressions": 480,
               "localGrossRevenueAud": 29.95,
               "localNetRevenueAud": 29.95,
               "localOrders": 1,
@@ -100,7 +100,7 @@
             "totalClicks": 511,
             "totalConversions": 22,
             "totalConversionValueAud": 324.55,
-            "totalImpressions": 4781,
+            "totalImpressions": 4780,
             "totalLocalGrossRevenueAud": 449.1,
             "totalLocalNetRevenueAud": 419.15,
             "totalLocalOrders": 18,
@@ -3789,7 +3789,7 @@
             }
           }
         ],
-        "generatedAt": "2026-06-02T08:42:57.189Z",
+        "generatedAt": "2026-06-02T09:12:15.313Z",
         "local": {
           "byCampaign": [
             {
@@ -7212,7 +7212,7 @@
                 "MOBILE",
                 "TABLET"
               ],
-              "impressions": 481,
+              "impressions": 480,
               "localGrossRevenueAud": 29.95,
               "localNetRevenueAud": 29.95,
               "localOrders": 1,
@@ -7258,7 +7258,7 @@
             "totalClicks": 693,
             "totalConversions": 22,
             "totalConversionValueAud": 324.55,
-            "totalImpressions": 6857,
+            "totalImpressions": 6856,
             "totalLocalGrossRevenueAud": 449.1,
             "totalLocalNetRevenueAud": 419.15,
             "totalLocalOrders": 18,
@@ -10947,7 +10947,7 @@
             }
           }
         ],
-        "generatedAt": "2026-06-02T08:42:57.400Z",
+        "generatedAt": "2026-06-02T09:12:18.512Z",
         "local": {
           "byCampaign": [
             {
@@ -14322,17 +14322,17 @@
         "consoleErrors": [],
         "consoleWarnings": [],
         "domPath": "captures/medical-certificate-landing-desktop/dom-evidence.json",
-        "durationMs": 6389,
+        "durationMs": 4510,
         "finalUrl": "https://instantmed.com.au/medical-certificate?utm_source=google&utm_medium=cpc&utm_campaign=conversion_audit_synthetic&utm_id=conversion_audit&utm_term=medical+certificate+online&campaignid=conversion_audit&adgroupid=conversion_audit&keyword=medical+certificate+online&creative=conversion_audit&matchtype=e&device=m&network=g&gclid=[redacted]",
         "harPath": "captures/medical-certificate-landing-desktop/network.har",
         "journey": "landing",
         "networkPath": "captures/medical-certificate-landing-desktop/network-events.json",
         "requestFailures": [
-          "POST https://analytics.google.com/g/collect?v=2&tid=G-X0QJQRLL2Y&gtm=45je65t1v9251332398za200zb9239393964zd9239393964&_p=1780389784690&_gaz=1&gcs=G111&gcd=13t3t3Z3t5l1&npa=0&dma=0&_eu=AEAEAGAC&ae=a&are=1&cid=1411791518.1780389785&frm=0&lps=1&pscdl=noapi&rcb=1&sr=1440x1100&uaa=arm&uab=64&uafvl=Chromium%3B148.0.7778.96%7CHeadlessChrome%3B148.0.7778.96%7CNot%252FA)Brand%3B99.0.0.0&uam=&uamb=0&uap=macOS&uapv=26.3.1&uaw=0&ul=en-au&gaf=2&_s=1&tag_exp=0~115938465~115938469~119027224&sid=1780389785&sct=1&seg=0&dl=https%3A%2F%2Finstantmed.com.au%2Fmedical-certificate%3Futm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_campaign%3Dconversion_audit_synthetic%26utm_id%3Dconversion_audit%26utm_term%3Dmedical%2Bcertificate%2Bonline%26campaignid%3Dconversion_audit%26adgroupid%3Dconversion_audit%26keyword%3Dmedical%2Bcertificate%2Bonline%26creative%3Dconversion_audit%26matchtype%3De%26device%3Dm%26network%3Dg%26gclid%3Dconversion_audit_click_id&dt=Online%20Medical%20Certificate%20%7C%20AHPRA%20Doctor%20Review%20%7C%20InstantMed&en=view_search_results&_fv=1&_nsi=1&_ss=1&ep.search_term=medical%20certificate%20online&tfd=4069: net::ERR_ABORTED"
+          "POST https://analytics.google.com/g/collect?v=2&tid=G-X0QJQRLL2Y&gtm=45je65t1v9251332398za200zb9239393964zd9239393964&_p=1780391551860&_gaz=1&gcs=G111&gcd=13t3t3Z3t5l1&npa=0&dma=0&_eu=AEAEAGAC&ae=a&are=1&cid=874423266.1780391552&frm=0&lps=1&pscdl=noapi&rcb=2&sr=1440x1100&uaa=arm&uab=64&uafvl=Chromium%3B148.0.7778.96%7CHeadlessChrome%3B148.0.7778.96%7CNot%252FA)Brand%3B99.0.0.0&uam=&uamb=0&uap=macOS&uapv=26.3.1&uaw=0&ul=en-au&gaf=2&_s=1&tag_exp=0~115616986~115938466~115938469~118128922&sid=1780391552&sct=1&seg=0&dl=https%3A%2F%2Finstantmed.com.au%2Fmedical-certificate%3Futm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_campaign%3Dconversion_audit_synthetic%26utm_id%3Dconversion_audit%26utm_term%3Dmedical%2Bcertificate%2Bonline%26campaignid%3Dconversion_audit%26adgroupid%3Dconversion_audit%26keyword%3Dmedical%2Bcertificate%2Bonline%26creative%3Dconversion_audit%26matchtype%3De%26device%3Dm%26network%3Dg%26gclid%3Dconversion_audit_click_id&dt=Online%20Medical%20Certificate%20%7C%20AHPRA%20Doctor%20Review%20%7C%20InstantMed&en=view_search_results&_fv=1&_nsi=1&_ss=1&ep.search_term=medical%20certificate%20online&tfd=3594: net::ERR_ABORTED"
         ],
         "screenshotPath": "captures/medical-certificate-landing-desktop/final.png",
         "service": "medical-certificate",
-        "startedAt": "2026-06-02T08:43:01.089Z",
+        "startedAt": "2026-06-02T09:12:28.535Z",
         "status": "ok",
         "tracePath": "captures/medical-certificate-landing-desktop/trace.zip",
         "viewport": "desktop",
@@ -14343,17 +14343,19 @@
         "consoleErrors": [],
         "consoleWarnings": [],
         "domPath": "captures/medical-certificate-landing-mobile/dom-evidence.json",
-        "durationMs": 4377,
+        "durationMs": 3756,
         "finalUrl": "https://instantmed.com.au/medical-certificate?utm_source=google&utm_medium=cpc&utm_campaign=conversion_audit_synthetic&utm_id=conversion_audit&utm_term=medical+certificate+online&campaignid=conversion_audit&adgroupid=conversion_audit&keyword=medical+certificate+online&creative=conversion_audit&matchtype=e&device=m&network=g&gclid=[redacted]",
         "harPath": "captures/medical-certificate-landing-mobile/network.har",
         "journey": "landing",
         "networkPath": "captures/medical-certificate-landing-mobile/network-events.json",
         "requestFailures": [
-          "POST https://analytics.google.com/g/collect?v=2&tid=G-X0QJQRLL2Y&gtm=45je65t1h1v9251332398za200zb9239393964zd9239393964&_p=1780389790448&_gaz=1&gcs=G111&gcd=13t3t3Z3t5l1&npa=0&dma=0&_eu=AEAEAGAC&ae=a&are=1&cid=53783332.1780389791&frm=0&lps=1&pscdl=noapi&rcb=7&sr=390x844&uaa=arm&uab=64&uafvl=Chromium%3B148.0.7778.96%7CHeadlessChrome%3B148.0.7778.96%7CNot%252FA)Brand%3B99.0.0.0&uam=&uamb=1&uap=iOS&uapv=15_0&uaw=0&ul=en-au&gaf=2&_s=1&tag_exp=0~115616986~115938465~115938469~119027224&sid=1780389790&sct=1&seg=0&dl=https%3A%2F%2Finstantmed.com.au%2Fmedical-certificate%3Futm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_campaign%3Dconversion_audit_synthetic%26utm_id%3Dconversion_audit%26utm_term%3Dmedical%2Bcertificate%2Bonline%26campaignid%3Dconversion_audit%26adgroupid%3Dconversion_audit%26keyword%3Dmedical%2Bcertificate%2Bonline%26creative%3Dconversion_audit%26matchtype%3De%26device%3Dm%26network%3Dg%26gclid%3Dconversion_audit_click_id&dt=Online%20Medical%20Certificate%20%7C%20AHPRA%20Doctor%20Review%20%7C%20InstantMed&en=view_search_results&_fv=1&_nsi=1&_ss=1&ep.search_term=medical%20certificate%20online&tfd=3172: net::ERR_ABORTED"
+          "GET https://instantmed.com.au/_next/image?url=%2Fbranding%2Fwordmark.png&w=256&q=75: net::ERR_ABORTED",
+          "GET https://instantmed.com.au/_next/image?url=%2Fbranding%2Flogo.png&w=64&q=75: net::ERR_ABORTED",
+          "POST https://analytics.google.com/g/collect?v=2&tid=G-X0QJQRLL2Y&gtm=45je65t1v9251332398za200zb9239393964zd9239393964&_p=1780391555849&_gaz=1&gcs=G111&gcd=13t3t3Z3t5l1&npa=0&dma=0&_eu=AEAEAGAC&ae=a&are=1&cid=741996316.1780391556&frm=0&lps=1&pscdl=noapi&rcb=12&sr=390x844&uaa=arm&uab=64&uafvl=Chromium%3B148.0.7778.96%7CHeadlessChrome%3B148.0.7778.96%7CNot%252FA)Brand%3B99.0.0.0&uam=&uamb=1&uap=iOS&uapv=15_0&uaw=0&ul=en-au&gaf=2&_s=1&tag_exp=0~115616985~115938466~115938468~118012008~119027222~119064590&sid=1780391556&sct=1&seg=0&dl=https%3A%2F%2Finstantmed.com.au%2Fmedical-certificate%3Futm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_campaign%3Dconversion_audit_synthetic%26utm_id%3Dconversion_audit%26utm_term%3Dmedical%2Bcertificate%2Bonline%26campaignid%3Dconversion_audit%26adgroupid%3Dconversion_audit%26keyword%3Dmedical%2Bcertificate%2Bonline%26creative%3Dconversion_audit%26matchtype%3De%26device%3Dm%26network%3Dg%26gclid%3Dconversion_audit_click_id&dt=Online%20Medical%20Certificate%20%7C%20AHPRA%20Doctor%20Review%20%7C%20InstantMed&en=view_search_results&_fv=1&_nsi=1&_ss=1&ep.search_term=medical%20certificate%20online&tfd=3032: net::ERR_ABORTED"
         ],
         "screenshotPath": "captures/medical-certificate-landing-mobile/final.png",
         "service": "medical-certificate",
-        "startedAt": "2026-06-02T08:43:07.639Z",
+        "startedAt": "2026-06-02T09:12:33.185Z",
         "status": "ok",
         "tracePath": "captures/medical-certificate-landing-mobile/trace.zip",
         "viewport": "mobile",
@@ -14364,17 +14366,17 @@
         "consoleErrors": [],
         "consoleWarnings": [],
         "domPath": "captures/repeat-prescriptions-landing-desktop/dom-evidence.json",
-        "durationMs": 4548,
+        "durationMs": 4700,
         "finalUrl": "https://instantmed.com.au/prescriptions?utm_source=google&utm_medium=cpc&utm_campaign=conversion_audit_synthetic&utm_id=conversion_audit&utm_term=online+prescription+refill&campaignid=conversion_audit&adgroupid=conversion_audit&keyword=online+prescription+refill&creative=conversion_audit&matchtype=e&device=m&network=g&gclid=[redacted]",
         "harPath": "captures/repeat-prescriptions-landing-desktop/network.har",
         "journey": "landing",
         "networkPath": "captures/repeat-prescriptions-landing-desktop/network-events.json",
         "requestFailures": [
-          "POST https://analytics.google.com/g/collect?v=2&tid=G-X0QJQRLL2Y&gtm=45je65t1v9251332398za200zb9239393964zd9239393964&_p=1780389794901&_gaz=1&gcs=G111&gcd=13v3v3_3v5l1&npa=0&dma=0&_eu=AEAEAGAC&ae=a&are=1&cid=1395396581.1780389795&frm=0&lps=1&pscdl=noapi&rcb=7&sr=1440x1100&uaa=arm&uab=64&uafvl=Chromium%3B148.0.7778.96%7CHeadlessChrome%3B148.0.7778.96%7CNot%252FA)Brand%3B99.0.0.0&uam=&uamb=0&uap=macOS&uapv=26.3.1&uaw=0&ul=en-au&gaf=2&_s=1&tag_exp=0~115938466~115938469&sid=1780389795&sct=1&seg=0&dl=https%3A%2F%2Finstantmed.com.au%2Fprescriptions%3Futm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_campaign%3Dconversion_audit_synthetic%26utm_id%3Dconversion_audit%26utm_term%3Donline%2Bprescription%2Brefill%26campaignid%3Dconversion_audit%26adgroupid%3Dconversion_audit%26keyword%3Donline%2Bprescription%2Brefill%26creative%3Dconversion_audit%26matchtype%3De%26device%3Dm%26network%3Dg%26gclid%3Dconversion_audit_click_id&dt=Repeat%20Prescription%20Online%20%7C%20Doctor%20Review%20%7C%20InstantMed&en=view_search_results&_fv=1&_nsi=1&_ss=1&ep.search_term=online%20prescription%20refill&tfd=3230: net::ERR_ABORTED"
+          "POST https://analytics.google.com/g/collect?v=2&tid=G-X0QJQRLL2Y&gtm=45je65t1v9251332398za200zb9239393964zd9239393964&_p=1780391560571&_gaz=1&gcs=G111&gcd=13t3t3Z3t5l1&npa=0&dma=0&_eu=AEAEAGAC&ae=a&are=1&cid=1250734177.1780391561&frm=0&lps=1&pscdl=noapi&rcb=2&sr=1440x1100&uaa=arm&uab=64&uafvl=Chromium%3B148.0.7778.96%7CHeadlessChrome%3B148.0.7778.96%7CNot%252FA)Brand%3B99.0.0.0&uam=&uamb=0&uap=macOS&uapv=26.3.1&uaw=0&ul=en-au&gaf=2&_s=1&tag_exp=0~115938466~115938468&sid=1780391561&sct=1&seg=0&dl=https%3A%2F%2Finstantmed.com.au%2Fprescriptions%3Futm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_campaign%3Dconversion_audit_synthetic%26utm_id%3Dconversion_audit%26utm_term%3Donline%2Bprescription%2Brefill%26campaignid%3Dconversion_audit%26adgroupid%3Dconversion_audit%26keyword%3Donline%2Bprescription%2Brefill%26creative%3Dconversion_audit%26matchtype%3De%26device%3Dm%26network%3Dg%26gclid%3Dconversion_audit_click_id&dt=Repeat%20Prescription%20Online%20%7C%20Doctor%20Review%20%7C%20InstantMed&en=view_search_results&_fv=1&_nsi=1&_ss=1&ep.search_term=online%20prescription%20refill&tfd=4017: net::ERR_ABORTED"
         ],
         "screenshotPath": "captures/repeat-prescriptions-landing-desktop/final.png",
         "service": "repeat-prescriptions",
-        "startedAt": "2026-06-02T08:43:12.071Z",
+        "startedAt": "2026-06-02T09:12:36.978Z",
         "status": "ok",
         "tracePath": "captures/repeat-prescriptions-landing-desktop/trace.zip",
         "viewport": "desktop",
@@ -14385,17 +14387,17 @@
         "consoleErrors": [],
         "consoleWarnings": [],
         "domPath": "captures/repeat-prescriptions-landing-mobile/dom-evidence.json",
-        "durationMs": 4147,
+        "durationMs": 3928,
         "finalUrl": "https://instantmed.com.au/prescriptions?utm_source=google&utm_medium=cpc&utm_campaign=conversion_audit_synthetic&utm_id=conversion_audit&utm_term=online+prescription+refill&campaignid=conversion_audit&adgroupid=conversion_audit&keyword=online+prescription+refill&creative=conversion_audit&matchtype=e&device=m&network=g&gclid=[redacted]",
         "harPath": "captures/repeat-prescriptions-landing-mobile/network.har",
         "journey": "landing",
         "networkPath": "captures/repeat-prescriptions-landing-mobile/network-events.json",
         "requestFailures": [
-          "POST https://analytics.google.com/g/collect?v=2&tid=G-X0QJQRLL2Y&gtm=45je65t1v9251332398za200zb9239393964zd9239393964&_p=1780389799164&_gaz=1&gcs=G111&gcd=13v3v3_3v5l1&npa=0&dma=0&_eu=AEAEAGAC&ae=a&are=1&cid=1997163784.1780389800&frm=0&lps=1&pscdl=noapi&rcb=1&sr=390x844&uaa=arm&uab=64&uafvl=Chromium%3B148.0.7778.96%7CHeadlessChrome%3B148.0.7778.96%7CNot%252FA)Brand%3B99.0.0.0&uam=&uamb=1&uap=iOS&uapv=15_0&uaw=0&ul=en-au&gaf=2&_s=1&tag_exp=0~115938465~115938469~119027223&sid=1780389799&sct=1&seg=0&dl=https%3A%2F%2Finstantmed.com.au%2Fprescriptions%3Futm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_campaign%3Dconversion_audit_synthetic%26utm_id%3Dconversion_audit%26utm_term%3Donline%2Bprescription%2Brefill%26campaignid%3Dconversion_audit%26adgroupid%3Dconversion_audit%26keyword%3Donline%2Bprescription%2Brefill%26creative%3Dconversion_audit%26matchtype%3De%26device%3Dm%26network%3Dg%26gclid%3Dconversion_audit_click_id&dt=Repeat%20Prescription%20Online%20%7C%20Doctor%20Review%20%7C%20InstantMed&en=view_search_results&_fv=1&_nsi=1&_ss=1&ep.search_term=online%20prescription%20refill&tfd=2804: net::ERR_ABORTED"
+          "POST https://analytics.google.com/g/collect?v=2&tid=G-X0QJQRLL2Y&gtm=45je65t1v9251332398za200zb9239393964zd9239393964&_p=1780391564230&_gaz=1&gcs=G111&gcd=13v3v3_3v5l1&npa=0&dma=0&_eu=AEAEAGAC&ae=a&are=1&cid=598212447.1780391565&frm=0&lps=1&pscdl=noapi&rcb=11&sr=390x844&uaa=arm&uab=64&uafvl=Chromium%3B148.0.7778.96%7CHeadlessChrome%3B148.0.7778.96%7CNot%252FA)Brand%3B99.0.0.0&uam=&uamb=1&uap=iOS&uapv=15_0&uaw=0&ul=en-au&gaf=2&_s=1&tag_exp=0~115938466~115938468&sid=1780391564&sct=1&seg=0&dl=https%3A%2F%2Finstantmed.com.au%2Fprescriptions%3Futm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_campaign%3Dconversion_audit_synthetic%26utm_id%3Dconversion_audit%26utm_term%3Donline%2Bprescription%2Brefill%26campaignid%3Dconversion_audit%26adgroupid%3Dconversion_audit%26keyword%3Donline%2Bprescription%2Brefill%26creative%3Dconversion_audit%26matchtype%3De%26device%3Dm%26network%3Dg%26gclid%3Dconversion_audit_click_id&dt=Repeat%20Prescription%20Online%20%7C%20Doctor%20Review%20%7C%20InstantMed&en=view_search_results&_fv=1&_nsi=1&_ss=1&ep.search_term=online%20prescription%20refill&tfd=2896: net::ERR_ABORTED"
         ],
         "screenshotPath": "captures/repeat-prescriptions-landing-mobile/final.png",
         "service": "repeat-prescriptions",
-        "startedAt": "2026-06-02T08:43:16.735Z",
+        "startedAt": "2026-06-02T09:12:41.728Z",
         "status": "ok",
         "tracePath": "captures/repeat-prescriptions-landing-mobile/trace.zip",
         "viewport": "mobile",
@@ -14406,17 +14408,17 @@
         "consoleErrors": [],
         "consoleWarnings": [],
         "domPath": "captures/erectile-dysfunction-landing-desktop/dom-evidence.json",
-        "durationMs": 5238,
+        "durationMs": 3751,
         "finalUrl": "https://instantmed.com.au/erectile-dysfunction?utm_source=google&utm_medium=cpc&utm_campaign=conversion_audit_synthetic&utm_id=conversion_audit&utm_term=erectile+dysfunction+online+doctor&campaignid=conversion_audit&adgroupid=conversion_audit&keyword=erectile+dysfunction+online+doctor&creative=conversion_audit&matchtype=e&device=m&network=g&gclid=[redacted]",
         "harPath": "captures/erectile-dysfunction-landing-desktop/network.har",
         "journey": "landing",
         "networkPath": "captures/erectile-dysfunction-landing-desktop/network-events.json",
         "requestFailures": [
-          "POST https://analytics.google.com/g/collect?v=2&tid=G-X0QJQRLL2Y&gtm=45je65t1v9251332398za200zb9239393964zd9239393964&_p=1780389804076&_gaz=1&gcs=G111&gcd=13v3v3_3v5l1&npa=0&dma=0&_eu=AEAEAGAC&ae=a&are=1&cid=1396528786.1780389805&frm=0&lps=1&pscdl=noapi&rcb=10&sr=1440x1100&uaa=arm&uab=64&uafvl=Chromium%3B148.0.7778.96%7CHeadlessChrome%3B148.0.7778.96%7CNot%252FA)Brand%3B99.0.0.0&uam=&uamb=0&uap=macOS&uapv=26.3.1&uaw=0&ul=en-au&gaf=2&_s=1&tag_exp=0~115938465~115938469~119064591&sid=1780389804&sct=1&seg=0&dl=https%3A%2F%2Finstantmed.com.au%2Ferectile-dysfunction%3Futm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_campaign%3Dconversion_audit_synthetic%26utm_id%3Dconversion_audit%26utm_term%3Derectile%2Bdysfunction%2Bonline%2Bdoctor%26campaignid%3Dconversion_audit%26adgroupid%3Dconversion_audit%26keyword%3Derectile%2Bdysfunction%2Bonline%2Bdoctor%26creative%3Dconversion_audit%26matchtype%3De%26device%3Dm%26network%3Dg%26gclid%3Dconversion_audit_click_id&dt=ED%20Assessment%20%7C%20Private%2C%20No%20Waiting%20Room%20%7C%20InstantMed&en=view_search_results&_fv=1&_nsi=1&_ss=1&ep.search_term=erectile%20dysfunction%20online%20doctor&tfd=3704: net::ERR_ABORTED"
+          "POST https://analytics.google.com/g/collect?v=2&tid=G-X0QJQRLL2Y&gtm=45je65t1v9251332398za200zb9239393964zd9239393964&_p=1780391568242&_gaz=1&gcs=G111&gcd=13t3t3Z3t5l1&npa=0&dma=0&_eu=AEAEAGAC&ae=a&are=1&cid=1983955634.1780391569&frm=0&lps=1&pscdl=noapi&rcb=10&sr=1440x1100&uaa=arm&uab=64&uafvl=Chromium%3B148.0.7778.96%7CHeadlessChrome%3B148.0.7778.96%7CNot%252FA)Brand%3B99.0.0.0&uam=&uamb=0&uap=macOS&uapv=26.3.1&uaw=0&ul=en-au&gaf=2&_s=1&tag_exp=0~115938466~115938469&sid=1780391568&sct=1&seg=0&dl=https%3A%2F%2Finstantmed.com.au%2Ferectile-dysfunction%3Futm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_campaign%3Dconversion_audit_synthetic%26utm_id%3Dconversion_audit%26utm_term%3Derectile%2Bdysfunction%2Bonline%2Bdoctor%26campaignid%3Dconversion_audit%26adgroupid%3Dconversion_audit%26keyword%3Derectile%2Bdysfunction%2Bonline%2Bdoctor%26creative%3Dconversion_audit%26matchtype%3De%26device%3Dm%26network%3Dg%26gclid%3Dconversion_audit_click_id&dt=ED%20Assessment%20%7C%20Private%2C%20No%20Waiting%20Room%20%7C%20InstantMed&en=view_search_results&_fv=1&_nsi=1&_ss=1&ep.search_term=erectile%20dysfunction%20online%20doctor&tfd=2988: net::ERR_ABORTED"
         ],
         "screenshotPath": "captures/erectile-dysfunction-landing-desktop/final.png",
         "service": "erectile-dysfunction",
-        "startedAt": "2026-06-02T08:43:20.924Z",
+        "startedAt": "2026-06-02T09:12:45.692Z",
         "status": "ok",
         "tracePath": "captures/erectile-dysfunction-landing-desktop/trace.zip",
         "viewport": "desktop",
@@ -14427,17 +14429,17 @@
         "consoleErrors": [],
         "consoleWarnings": [],
         "domPath": "captures/erectile-dysfunction-landing-mobile/dom-evidence.json",
-        "durationMs": 4086,
+        "durationMs": 3634,
         "finalUrl": "https://instantmed.com.au/erectile-dysfunction?utm_source=google&utm_medium=cpc&utm_campaign=conversion_audit_synthetic&utm_id=conversion_audit&utm_term=erectile+dysfunction+online+doctor&campaignid=conversion_audit&adgroupid=conversion_audit&keyword=erectile+dysfunction+online+doctor&creative=conversion_audit&matchtype=e&device=m&network=g&gclid=[redacted]",
         "harPath": "captures/erectile-dysfunction-landing-mobile/network.har",
         "journey": "landing",
         "networkPath": "captures/erectile-dysfunction-landing-mobile/network-events.json",
         "requestFailures": [
-          "POST https://analytics.google.com/g/collect?v=2&tid=G-X0QJQRLL2Y&gtm=45je65t1v9251332398za200zb9239393964zd9239393964&_p=1780389808973&_gaz=1&gcs=G111&gcd=13t3t3Z3t5l1&npa=0&dma=0&_eu=AEAEAGAC&ae=a&are=1&cid=862320398.1780389809&frm=0&lps=1&pscdl=noapi&rcb=0&sr=390x844&uaa=arm&uab=64&uafvl=Chromium%3B148.0.7778.96%7CHeadlessChrome%3B148.0.7778.96%7CNot%252FA)Brand%3B99.0.0.0&uam=&uamb=1&uap=iOS&uapv=15_0&uaw=0&ul=en-au&gaf=2&_s=1&tag_exp=0~115938465~115938468~119312824&sid=1780389809&sct=1&seg=0&dl=https%3A%2F%2Finstantmed.com.au%2Ferectile-dysfunction%3Futm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_campaign%3Dconversion_audit_synthetic%26utm_id%3Dconversion_audit%26utm_term%3Derectile%2Bdysfunction%2Bonline%2Bdoctor%26campaignid%3Dconversion_audit%26adgroupid%3Dconversion_audit%26keyword%3Derectile%2Bdysfunction%2Bonline%2Bdoctor%26creative%3Dconversion_audit%26matchtype%3De%26device%3Dm%26network%3Dg%26gclid%3Dconversion_audit_click_id&dt=ED%20Assessment%20%7C%20Private%2C%20No%20Waiting%20Room%20%7C%20InstantMed&en=view_search_results&_fv=1&_nsi=1&_ss=1&ep.search_term=erectile%20dysfunction%20online%20doctor&tfd=3101: net::ERR_ABORTED"
+          "POST https://analytics.google.com/g/collect?v=2&tid=G-X0QJQRLL2Y&gtm=45je65t1v9251332398za200zb9239393964zd9239393964&_p=1780391571916&_gaz=1&gcs=G111&gcd=13t3t3Z3t5l1&npa=0&dma=0&_eu=AEAEAGAC&ae=a&are=1&cid=1142434131.1780391572&frm=0&lps=1&pscdl=noapi&rcb=16&sr=390x844&uaa=arm&uab=64&uafvl=Chromium%3B148.0.7778.96%7CHeadlessChrome%3B148.0.7778.96%7CNot%252FA)Brand%3B99.0.0.0&uam=&uamb=1&uap=iOS&uapv=15_0&uaw=0&ul=en-au&gaf=2&_s=1&tag_exp=0~115616986~115938465~115938469~118228214&sid=1780391572&sct=1&seg=0&dl=https%3A%2F%2Finstantmed.com.au%2Ferectile-dysfunction%3Futm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_campaign%3Dconversion_audit_synthetic%26utm_id%3Dconversion_audit%26utm_term%3Derectile%2Bdysfunction%2Bonline%2Bdoctor%26campaignid%3Dconversion_audit%26adgroupid%3Dconversion_audit%26keyword%3Derectile%2Bdysfunction%2Bonline%2Bdoctor%26creative%3Dconversion_audit%26matchtype%3De%26device%3Dm%26network%3Dg%26gclid%3Dconversion_audit_click_id&dt=ED%20Assessment%20%7C%20Private%2C%20No%20Waiting%20Room%20%7C%20InstantMed&en=view_search_results&_fv=1&_nsi=1&_ss=1&ep.search_term=erectile%20dysfunction%20online%20doctor&tfd=2801: net::ERR_ABORTED"
         ],
         "screenshotPath": "captures/erectile-dysfunction-landing-mobile/final.png",
         "service": "erectile-dysfunction",
-        "startedAt": "2026-06-02T08:43:26.212Z",
+        "startedAt": "2026-06-02T09:12:49.493Z",
         "status": "ok",
         "tracePath": "captures/erectile-dysfunction-landing-mobile/trace.zip",
         "viewport": "mobile",
@@ -14448,17 +14450,18 @@
         "consoleErrors": [],
         "consoleWarnings": [],
         "domPath": "captures/hair-loss-landing-desktop/dom-evidence.json",
-        "durationMs": 4901,
+        "durationMs": 3853,
         "finalUrl": "https://instantmed.com.au/hair-loss?utm_source=google&utm_medium=cpc&utm_campaign=conversion_audit_synthetic&utm_id=conversion_audit&utm_term=hair+loss+treatment+online&campaignid=conversion_audit&adgroupid=conversion_audit&keyword=hair+loss+treatment+online&creative=conversion_audit&matchtype=e&device=m&network=g&gclid=[redacted]",
         "harPath": "captures/hair-loss-landing-desktop/network.har",
         "journey": "landing",
         "networkPath": "captures/hair-loss-landing-desktop/network-events.json",
         "requestFailures": [
-          "POST https://analytics.google.com/g/collect?v=2&tid=G-X0QJQRLL2Y&gtm=45je65t1v9251332398za200zb9239393964zd9239393964&_p=1780389813320&_gaz=1&gcs=G111&gcd=13t3t3Z3t5l1&npa=0&dma=0&_eu=AEAEAGAC&ae=a&are=1&cid=139336756.1780389814&frm=0&lps=1&pscdl=noapi&rcb=14&sr=1440x1100&uaa=arm&uab=64&uafvl=Chromium%3B148.0.7778.96%7CHeadlessChrome%3B148.0.7778.96%7CNot%252FA)Brand%3B99.0.0.0&uam=&uamb=0&uap=macOS&uapv=26.3.1&uaw=0&ul=en-au&gaf=2&_s=1&tag_exp=0~115938465~115938468~119027223&sid=1780389813&sct=1&seg=0&dl=https%3A%2F%2Finstantmed.com.au%2Fhair-loss%3Futm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_campaign%3Dconversion_audit_synthetic%26utm_id%3Dconversion_audit%26utm_term%3Dhair%2Bloss%2Btreatment%2Bonline%26campaignid%3Dconversion_audit%26adgroupid%3Dconversion_audit%26keyword%3Dhair%2Bloss%2Btreatment%2Bonline%26creative%3Dconversion_audit%26matchtype%3De%26device%3Dm%26network%3Dg%26gclid%3Dconversion_audit_click_id&dt=Hair%20Loss%20Assessment%20%7C%20Doctor%20Review%20%7C%20InstantMed&en=view_search_results&_fv=1&_nsi=1&_ss=1&ep.search_term=hair%20loss%20treatment%20online&tfd=3377: net::ERR_ABORTED"
+          "GET https://instantmed.com.au/sign-in?_rsc=2wChrVHUL-F6nIB8: net::ERR_ABORTED",
+          "POST https://analytics.google.com/g/collect?v=2&tid=G-X0QJQRLL2Y&gtm=45je65t1v9251332398za200zb9239393964zd9239393964&_p=1780391575776&_gaz=1&gcs=G111&gcd=13v3v3_3v5l1&npa=0&dma=0&_eu=AEAEAGAC&ae=a&are=1&cid=789391767.1780391576&frm=0&lps=1&pscdl=noapi&rcb=5&sr=1440x1100&uaa=arm&uab=64&uafvl=Chromium%3B148.0.7778.96%7CHeadlessChrome%3B148.0.7778.96%7CNot%252FA)Brand%3B99.0.0.0&uam=&uamb=0&uap=macOS&uapv=26.3.1&uaw=0&ul=en-au&gaf=2&_s=1&tag_exp=0~115616986~115938466~115938469~118128923&sid=1780391576&sct=1&seg=0&dl=https%3A%2F%2Finstantmed.com.au%2Fhair-loss%3Futm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_campaign%3Dconversion_audit_synthetic%26utm_id%3Dconversion_audit%26utm_term%3Dhair%2Bloss%2Btreatment%2Bonline%26campaignid%3Dconversion_audit%26adgroupid%3Dconversion_audit%26keyword%3Dhair%2Bloss%2Btreatment%2Bonline%26creative%3Dconversion_audit%26matchtype%3De%26device%3Dm%26network%3Dg%26gclid%3Dconversion_audit_click_id&dt=Hair%20Loss%20Assessment%20%7C%20Doctor%20Review%20%7C%20InstantMed&en=view_search_results&_fv=1&_nsi=1&_ss=1&ep.search_term=hair%20loss%20treatment%20online&tfd=3054: net::ERR_ABORTED"
         ],
         "screenshotPath": "captures/hair-loss-landing-desktop/final.png",
         "service": "hair-loss",
-        "startedAt": "2026-06-02T08:43:30.378Z",
+        "startedAt": "2026-06-02T09:12:53.163Z",
         "status": "ok",
         "tracePath": "captures/hair-loss-landing-desktop/trace.zip",
         "viewport": "desktop",
@@ -14469,15 +14472,17 @@
         "consoleErrors": [],
         "consoleWarnings": [],
         "domPath": "captures/hair-loss-landing-mobile/dom-evidence.json",
-        "durationMs": 4166,
+        "durationMs": 3910,
         "finalUrl": "https://instantmed.com.au/hair-loss?utm_source=google&utm_medium=cpc&utm_campaign=conversion_audit_synthetic&utm_id=conversion_audit&utm_term=hair+loss+treatment+online&campaignid=conversion_audit&adgroupid=conversion_audit&keyword=hair+loss+treatment+online&creative=conversion_audit&matchtype=e&device=m&network=g&gclid=[redacted]",
         "harPath": "captures/hair-loss-landing-mobile/network.har",
         "journey": "landing",
         "networkPath": "captures/hair-loss-landing-mobile/network-events.json",
-        "requestFailures": [],
+        "requestFailures": [
+          "POST https://analytics.google.com/g/collect?v=2&tid=G-X0QJQRLL2Y&gtm=45je65t1v9251332398za200zb9239393964zd9239393964&_p=1780391579659&_gaz=1&gcs=G111&gcd=13t3t3Z3t5l1&npa=0&dma=0&_eu=AEAEAGAC&ae=a&are=1&cid=1986868271.1780391580&frm=0&lps=1&pscdl=noapi&rcb=16&sr=390x844&uaa=arm&uab=64&uafvl=Chromium%3B148.0.7778.96%7CHeadlessChrome%3B148.0.7778.96%7CNot%252FA)Brand%3B99.0.0.0&uam=&uamb=1&uap=iOS&uapv=15_0&uaw=0&ul=en-au&gaf=2&_s=1&tag_exp=0~115616985~115938465~115938468~119027223&sid=1780391580&sct=1&seg=0&dl=https%3A%2F%2Finstantmed.com.au%2Fhair-loss%3Futm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_campaign%3Dconversion_audit_synthetic%26utm_id%3Dconversion_audit%26utm_term%3Dhair%2Bloss%2Btreatment%2Bonline%26campaignid%3Dconversion_audit%26adgroupid%3Dconversion_audit%26keyword%3Dhair%2Bloss%2Btreatment%2Bonline%26creative%3Dconversion_audit%26matchtype%3De%26device%3Dm%26network%3Dg%26gclid%3Dconversion_audit_click_id&dt=Hair%20Loss%20Assessment%20%7C%20Doctor%20Review%20%7C%20InstantMed&en=view_search_results&_fv=1&_nsi=1&_ss=1&ep.search_term=hair%20loss%20treatment%20online&tfd=2992: net::ERR_ABORTED"
+        ],
         "screenshotPath": "captures/hair-loss-landing-mobile/final.png",
         "service": "hair-loss",
-        "startedAt": "2026-06-02T08:43:35.324Z",
+        "startedAt": "2026-06-02T09:12:57.051Z",
         "status": "ok",
         "tracePath": "captures/hair-loss-landing-mobile/trace.zip",
         "viewport": "mobile",
@@ -14488,19 +14493,20 @@
         "consoleErrors": [],
         "consoleWarnings": [],
         "domPath": "captures/medical-certificate-attribution-continuity-mobile/dom-evidence.json",
-        "durationMs": 5099,
+        "durationMs": 4327,
         "finalUrl": "https://instantmed.com.au/request?service=med-cert&duration=1",
         "harPath": "captures/medical-certificate-attribution-continuity-mobile/network.har",
         "journey": "attribution-continuity",
         "networkPath": "captures/medical-certificate-attribution-continuity-mobile/network-events.json",
         "requestFailures": [
+          "POST https://analytics.google.com/g/collect?v=2&tid=G-X0QJQRLL2Y&gtm=45je65t1h1v9251332398za200zb9239393964zd9239393964&_p=1780391583293&_gaz=1&gcs=G111&gcd=13t3t3Z3t5l1&npa=0&dma=0&_eu=AEAEAGAC&ae=a&are=1&cid=1040807186.1780391584&frm=0&lps=1&pscdl=noapi&rcb=14&sr=390x844&uaa=arm&uab=64&uafvl=Chromium%3B148.0.7778.96%7CHeadlessChrome%3B148.0.7778.96%7CNot%252FA)Brand%3B99.0.0.0&uam=&uamb=1&uap=iOS&uapv=15_0&uaw=0&ul=en-au&gaf=2&_s=1&tag_exp=0~115938466~115938468~118128923~119027224&sid=1780391583&sct=1&seg=0&dl=https%3A%2F%2Finstantmed.com.au%2Fmedical-certificate%3Futm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_campaign%3Dconversion_audit_synthetic%26utm_id%3Dconversion_audit%26utm_term%3Dmedical%2Bcertificate%2Bonline%26campaignid%3Dconversion_audit%26adgroupid%3Dconversion_audit%26keyword%3Dmedical%2Bcertificate%2Bonline%26creative%3Dconversion_audit%26matchtype%3De%26device%3Dm%26network%3Dg%26gclid%3Dconversion_audit_click_id&dt=Online%20Medical%20Certificate%20%7C%20AHPRA%20Doctor%20Review%20%7C%20InstantMed&en=view_search_results&_fv=1&_nsi=1&_ss=1&ep.search_term=medical%20certificate%20online&tfd=2668: net::ERR_ABORTED",
           "POST https://o4510623218860032.ingest.us.sentry.io/api/4510623223644160/envelope/?sentry_version=7&sentry_key=5c1c1811d5a14c786199c1dbe958d256&sentry_client=%5Bredacted%5D: net::ERR_ABORTED",
-          "POST https://analytics.google.com/g/collect?v=2&tid=G-X0QJQRLL2Y&gtm=45je65t1v9251332398za200zb9239393964zd9239393964&_p=1780389822081&gcs=G111&gcd=13t3t3Z3t5l1&npa=0&dma=0&_eu=AAAAAGQC&are=1&cid=1881987835.1780389822&frm=0&lps=1&pscdl=noapi&rcb=17&sr=390x844&uaa=arm&uab=64&uafvl=Chromium%3B148.0.7778.96%7CHeadlessChrome%3B148.0.7778.96%7CNot%252FA)Brand%3B99.0.0.0&uam=&uamb=1&uap=iOS&uapv=15_0&uaw=0&ul=en-au&gaf=2&_s=2&tag_exp=0~115616986~115938465~115938468~118228215&sid=1780389822&sct=1&seg=1&dl=https%3A%2F%2Finstantmed.com.au%2Fmedical-certificate%3Futm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_campaign%3Dconversion_audit_synthetic%26utm_id%3Dconversion_audit%26utm_term%3Dmedical%2Bcertificate%2Bonline%26campaignid%3Dconversion_audit%26adgroupid%3Dconversion_audit%26keyword%3Dmedical%2Bcertificate%2Bonline%26creative%3Dconversion_audit%26matchtype%3De%26device%3Dm%26network%3Dg%26gclid%3Dconversion_audit_click_id&dt=Online%20Medical%20Certificate%20%7C%20AHPRA%20Doctor%20Review%20%7C%20InstantMed&en=page_view&_ee=1&_et=2&tfd=3164: net::ERR_ABORTED",
-          "POST https://analytics.google.com/g/collect?v=2&tid=G-X0QJQRLL2Y&gtm=45je65t1v9251332398za200zb9239393964zd9239393964&_p=1780389822081&_gaz=1&gcs=G111&gcd=13t3t3Z3t5l1&npa=0&dma=0&_eu=AEAEAGAC&ae=a&are=1&cid=1881987835.1780389822&frm=0&lps=1&pscdl=noapi&rcb=17&sr=390x844&uaa=arm&uab=64&uafvl=Chromium%3B148.0.7778.96%7CHeadlessChrome%3B148.0.7778.96%7CNot%252FA)Brand%3B99.0.0.0&uam=&uamb=1&uap=iOS&uapv=15_0&uaw=0&ul=en-au&gaf=2&_s=1&tag_exp=0~115616986~115938465~115938468~118228215&sid=1780389822&sct=1&seg=0&dl=https%3A%2F%2Finstantmed.com.au%2Fmedical-certificate%3Futm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_campaign%3Dconversion_audit_synthetic%26utm_id%3Dconversion_audit%26utm_term%3Dmedical%2Bcertificate%2Bonline%26campaignid%3Dconversion_audit%26adgroupid%3Dconversion_audit%26keyword%3Dmedical%2Bcertificate%2Bonline%26creative%3Dconversion_audit%26matchtype%3De%26device%3Dm%26network%3Dg%26gclid%3Dconversion_audit_click_id&dt=Online%20Medical%20Certificate%20%7C%20AHPRA%20Doctor%20Review%20%7C%20InstantMed&en=view_search_results&_fv=1&_nsi=1&_ss=1&ep.search_term=medical%20certificate%20online&tfd=2923: net::ERR_ABORTED"
+          "POST https://analytics.google.com/g/collect?v=2&tid=G-X0QJQRLL2Y&gtm=45je65t1h1v9251332398za200zb9239393964zd9239393964&_p=1780391583293&gcs=G111&gcd=13t3t3Z3t5l1&npa=0&dma=0&_eu=AAAAAGQC&are=1&cid=1040807186.1780391584&frm=0&lps=1&pscdl=noapi&rcb=14&sr=390x844&uaa=arm&uab=64&uafvl=Chromium%3B148.0.7778.96%7CHeadlessChrome%3B148.0.7778.96%7CNot%252FA)Brand%3B99.0.0.0&uam=&uamb=1&uap=iOS&uapv=15_0&uaw=0&ul=en-au&gaf=2&_s=2&tag_exp=0~115938466~115938468~118128923~119027224&sid=1780391583&sct=1&seg=1&dl=https%3A%2F%2Finstantmed.com.au%2Fmedical-certificate%3Futm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_campaign%3Dconversion_audit_synthetic%26utm_id%3Dconversion_audit%26utm_term%3Dmedical%2Bcertificate%2Bonline%26campaignid%3Dconversion_audit%26adgroupid%3Dconversion_audit%26keyword%3Dmedical%2Bcertificate%2Bonline%26creative%3Dconversion_audit%26matchtype%3De%26device%3Dm%26network%3Dg%26gclid%3Dconversion_audit_click_id&dt=Online%20Medical%20Certificate%20%7C%20AHPRA%20Doctor%20Review%20%7C%20InstantMed&en=page_view&_ee=1&_et=2&tfd=2711: net::ERR_ABORTED",
+          "GET https://www.google.com.au/ads/ga-audiences?v=1&t=sr&slf_rd=1&_r=4&tid=G-X0QJQRLL2Y&cid=1040807186.1780391584&gtm=45je65t1h1v9251332398za200zb9239393964zd9239393964&rcb=14&aip=1&dma=0&gcs=G111&gcd=13t3t3Z3t5l1&npa=0&frm=0&tag_exp=0~115938466~115938468~118128923~119027224&z=48609214: net::ERR_ABORTED"
         ],
         "screenshotPath": "captures/medical-certificate-attribution-continuity-mobile/final.png",
         "service": "medical-certificate",
-        "startedAt": "2026-06-02T08:43:39.524Z",
+        "startedAt": "2026-06-02T09:13:00.995Z",
         "status": "ok",
         "tracePath": "captures/medical-certificate-attribution-continuity-mobile/trace.zip",
         "viewport": "mobile",
@@ -14513,7 +14519,7 @@
         ],
         "consoleWarnings": [],
         "domPath": "captures/medical-certificate-request-to-checkout-mobile/dom-evidence.json",
-        "durationMs": 25533,
+        "durationMs": 21157,
         "finalUrl": "http://localhost:3060/request?service=med-cert",
         "harPath": "captures/medical-certificate-request-to-checkout-mobile/network.har",
         "journey": "request-to-checkout",
@@ -14521,7 +14527,7 @@
         "requestFailures": [],
         "screenshotPath": "captures/medical-certificate-request-to-checkout-mobile/final.png",
         "service": "medical-certificate",
-        "startedAt": "2026-06-02T08:43:44.665Z",
+        "startedAt": "2026-06-02T09:13:05.359Z",
         "status": "failed",
         "tracePath": "captures/medical-certificate-request-to-checkout-mobile/trace.zip",
         "viewport": "mobile",
@@ -14534,7 +14540,7 @@
         ],
         "consoleWarnings": [],
         "domPath": "captures/repeat-prescriptions-request-to-checkout-mobile/dom-evidence.json",
-        "durationMs": 35064,
+        "durationMs": 34947,
         "finalUrl": "http://localhost:3060/request?service=repeat-script",
         "harPath": "captures/repeat-prescriptions-request-to-checkout-mobile/network.har",
         "journey": "request-to-checkout",
@@ -14542,7 +14548,7 @@
         "requestFailures": [],
         "screenshotPath": "captures/repeat-prescriptions-request-to-checkout-mobile/final.png",
         "service": "repeat-prescriptions",
-        "startedAt": "2026-06-02T08:44:10.239Z",
+        "startedAt": "2026-06-02T09:13:26.551Z",
         "status": "failed",
         "tracePath": "captures/repeat-prescriptions-request-to-checkout-mobile/trace.zip",
         "viewport": "mobile",
@@ -14555,7 +14561,7 @@
         ],
         "consoleWarnings": [],
         "domPath": "captures/erectile-dysfunction-request-to-checkout-mobile/dom-evidence.json",
-        "durationMs": 18357,
+        "durationMs": 18639,
         "finalUrl": "http://localhost:3060/request?service=consult&subtype=ed",
         "harPath": "captures/erectile-dysfunction-request-to-checkout-mobile/network.har",
         "journey": "request-to-checkout",
@@ -14563,7 +14569,7 @@
         "requestFailures": [],
         "screenshotPath": "captures/erectile-dysfunction-request-to-checkout-mobile/final.png",
         "service": "erectile-dysfunction",
-        "startedAt": "2026-06-02T08:44:45.342Z",
+        "startedAt": "2026-06-02T09:14:01.528Z",
         "status": "failed",
         "tracePath": "captures/erectile-dysfunction-request-to-checkout-mobile/trace.zip",
         "viewport": "mobile",
@@ -14576,7 +14582,7 @@
         ],
         "consoleWarnings": [],
         "domPath": "captures/hair-loss-request-to-checkout-mobile/dom-evidence.json",
-        "durationMs": 33745,
+        "durationMs": 33373,
         "finalUrl": "http://localhost:3060/request?service=consult&subtype=hair_loss",
         "harPath": "captures/hair-loss-request-to-checkout-mobile/network.har",
         "journey": "request-to-checkout",
@@ -14584,7 +14590,7 @@
         "requestFailures": [],
         "screenshotPath": "captures/hair-loss-request-to-checkout-mobile/final.png",
         "service": "hair-loss",
-        "startedAt": "2026-06-02T08:45:03.733Z",
+        "startedAt": "2026-06-02T09:14:20.217Z",
         "status": "failed",
         "tracePath": "captures/hair-loss-request-to-checkout-mobile/trace.zip",
         "viewport": "mobile",
@@ -14594,16 +14600,16 @@
     "localBaseUrlReachable": true
   },
   "funnel30": {
-    "dateFrom": "2026-05-03T08:42:58.901Z",
-    "dateTo": "2026-06-02T08:42:58.901Z",
+    "dateFrom": "2026-05-03T09:12:20.114Z",
+    "dateTo": "2026-06-02T09:12:20.114Z",
     "days": 30,
     "errors": [],
     "emailRecovery": {
       "partial_intake_recovery": {
-        "count": 66,
-        "sent": 66,
+        "count": 63,
+        "sent": 63,
         "delivered": 0,
-        "failed": 3
+        "failed": 2
       }
     },
     "intakes": {
@@ -15281,8 +15287,8 @@
     "postPaymentAbandonment": "[redacted:b28c94b219]"
   },
   "funnel90": {
-    "dateFrom": "2026-03-04T08:42:58.903Z",
-    "dateTo": "2026-06-02T08:42:58.903Z",
+    "dateFrom": "2026-03-04T09:12:20.115Z",
+    "dateTo": "2026-06-02T09:12:20.115Z",
     "days": 90,
     "errors": [],
     "emailRecovery": {
@@ -16013,8 +16019,8 @@
     "ok": true,
     "status": 200,
     "days": 30,
-    "dateFrom": "2026-05-03T08:42:58.903Z",
-    "dateTo": "2026-06-02T08:42:58.903Z",
+    "dateFrom": "2026-05-03T09:12:20.115Z",
+    "dateTo": "2026-06-02T09:12:20.115Z",
     "events": [
       {
         "event": "intake_started",
@@ -16026,7 +16032,7 @@
       },
       {
         "event": "step_completed",
-        "count": 1308
+        "count": 1307
       },
       {
         "event": "checkout_viewed",
@@ -16066,8 +16072,8 @@
     "ok": true,
     "status": 200,
     "days": 90,
-    "dateFrom": "2026-03-04T08:42:58.906Z",
-    "dateTo": "2026-06-02T08:42:58.906Z",
+    "dateFrom": "2026-03-04T09:12:20.116Z",
+    "dateTo": "2026-06-02T09:12:20.116Z",
     "events": [
       {
         "event": "intake_started",

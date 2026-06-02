@@ -115,6 +115,7 @@ describe("Google Ads post-payment attribution", () => {
       expect.objectContaining({
         event: "google_ads_server_conversion_attempt",
         properties: expect.objectContaining({
+          $insert_id: "google_ads_server_conversion_attempt:intake_google_failed:cron_backfill:failed:conversionUploadError:TOO_RECENT_CONVERSION_ACTION",
           status: "failed",
         }),
       }),
@@ -160,9 +161,19 @@ describe("Google Ads post-payment attribution", () => {
       distinctId: "patient_google_success",
       event: "google_ads_server_conversion",
       properties: expect.objectContaining({
+        $insert_id: "google_ads_server_conversion:intake_google_success",
         amount_cents: 2995,
         intake_id: "intake_google_success",
         status: "success",
+      }),
+    })
+
+    const attemptEvents = mocks.capture.mock.calls.filter(
+      ([payload]) => payload?.event === "google_ads_server_conversion_attempt",
+    )
+    expect(attemptEvents[0]?.[0]).toMatchObject({
+      properties: expect.objectContaining({
+        $insert_id: "google_ads_server_conversion_attempt:intake_google_success:checkout_session_completed:success:no_error",
       }),
     })
   })

@@ -68,6 +68,13 @@ function readStoredAttribution(): AttributionData {
   }
 
   try {
+    const raw = localStorage.getItem(ATTRIBUTION_STORAGE_KEY)
+    if (raw) return JSON.parse(raw) as AttributionData
+  } catch {
+    // localStorage can be unavailable in privacy-restricted contexts.
+  }
+
+  try {
     const cookiePrefix = `${ATTRIBUTION_COOKIE_KEY}=`
     const rawCookie = document.cookie
       .split("; ")
@@ -85,6 +92,12 @@ function writeStoredAttribution(data: AttributionData): void {
   const encoded = encodeURIComponent(JSON.stringify(data))
   try {
     sessionStorage.setItem(ATTRIBUTION_STORAGE_KEY, JSON.stringify(data))
+  } catch {
+    // localStorage + cookie fallbacks below still give checkout a durable copy.
+  }
+
+  try {
+    localStorage.setItem(ATTRIBUTION_STORAGE_KEY, JSON.stringify(data))
   } catch {
     // Cookie fallback below still gives server actions a durable copy.
   }

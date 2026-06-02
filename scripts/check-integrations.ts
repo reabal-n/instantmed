@@ -59,6 +59,10 @@ hydrateLocalEnv([
   "ANTHROPIC_API_KEY",
   "ANTHROPIC_CLINICAL_MODEL",
   "CLAUDE_MODEL",
+  "CRON_SECRET",
+  "INSTANTMED_INTEGRATION_BASE_URL",
+  "NEXT_PUBLIC_APP_URL",
+  "NEXT_PUBLIC_SITE_URL",
   "OPENAI_API_KEY",
   "OPENAI_REVIEW_MODEL",
   "ANTHROPIC_MODEL",
@@ -90,6 +94,96 @@ function normalizeGoogleAdsNumericId(value?: string | null): string | null {
   const resourceId = trimmed.match(/\/(\d+)$/)?.[1]
   const normalized = (resourceId || trimmed).replace(/-/g, "")
   return /^\d+$/.test(normalized) ? normalized : null
+}
+
+type GoogleAdsProductionReportPayload = {
+  success?: boolean
+  error?: string
+  report?: {
+    preflight?: {
+      action?: string
+      code?: string | null
+      conversionAction?: {
+        id?: string
+        name?: string
+        resourceName?: string
+        status?: string
+        type?: string
+      } | null
+      detail?: string
+      label?: string
+      ok?: boolean
+      severity?: "ok" | "warning" | "error"
+    } | null
+    queryErrors?: Array<{ name?: string; error?: string }>
+  }
+}
+
+function getIntegrationBaseUrl(): string | null {
+  const configured =
+    process.env.INSTANTMED_INTEGRATION_BASE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    "https://instantmed.com.au"
+  try {
+    const url = new URL(configured)
+    url.pathname = ""
+    url.search = ""
+    url.hash = ""
+    return url.toString().replace(/\/$/, "")
+  } catch {
+    return null
+  }
+}
+
+async function preflightProductionGoogleAdsConversionAction(localIssue: string): Promise<CheckResult | null> {
+  const cronSecret = process.env.CRON_SECRET
+  const baseUrl = getIntegrationBaseUrl()
+  if (!isConfigured(cronSecret) || !baseUrl) return null
+
+  const url = new URL("/api/internal/google-ads-report", baseUrl)
+  url.searchParams.set("days", "1")
+
+  let response: Response
+  try {
+    response = await fetch(url, {
+      headers: { Authorization: `Bearer ${cronSecret}` },
+    })
+  } catch {
+    return result(
+      strictStatus(),
+      "Google Ads conversion action",
+      `Local ${localIssue}; production runtime fallback could not be reached.`,
+    )
+  }
+
+  if (!response.ok) {
+    return result(
+      strictStatus(),
+      "Google Ads conversion action",
+      `Local ${localIssue}; production runtime fallback returned ${response.status}.`,
+    )
+  }
+
+  const payload = await response.json().catch(() => null) as GoogleAdsProductionReportPayload | null
+  const preflight = payload?.report?.preflight
+  if (preflight?.ok && preflight.conversionAction?.type === "UPLOAD_CLICKS" && preflight.conversionAction.status === "ENABLED") {
+    const name = preflight.conversionAction.name || "purchase conversion action"
+    return result(
+      "pass",
+      "Google Ads conversion action",
+      `Production runtime verified "${name}" is enabled UPLOAD_CLICKS.`,
+    )
+  }
+
+  const detail = [preflight?.label, preflight?.detail].filter(Boolean).join(": ")
+  return result(
+    "fail",
+    "Google Ads conversion action",
+    detail
+      ? `Production runtime Google Ads preflight failed: ${detail}`
+      : "Production runtime Google Ads preflight did not return an enabled UPLOAD_CLICKS action.",
+  )
 }
 
 async function fetchGoogleAdsAccessToken(): Promise<string | null> {
@@ -129,10 +223,14 @@ async function preflightGoogleAdsPurchaseConversionAction(): Promise<CheckResult
 
   const missingCoreKeys = missingGoogleAdsCoreEnvKeys(customerId, conversionActionId, developerToken)
   if (missingCoreKeys.length > 0) {
+    const localIssue = `Google Ads env is incomplete (${formatEnvList(missingCoreKeys)})`
+    const productionFallback = await preflightProductionGoogleAdsConversionAction(localIssue)
+    if (productionFallback) return productionFallback
+
     return result(
       "warn",
       "Google Ads conversion action",
-      `Google Ads env is incomplete (${formatEnvList(missingCoreKeys)}); skipped UPLOAD_CLICKS validation.`,
+      `${localIssue}; skipped UPLOAD_CLICKS validation.`,
     )
   }
 
@@ -142,16 +240,23 @@ async function preflightGoogleAdsPurchaseConversionAction(): Promise<CheckResult
     "GOOGLE_ADS_REFRESH_TOKEN",
   ])
   if (missingOauthKeys.length > 0) {
+    const localIssue = `Google Ads OAuth env is incomplete (${formatEnvList(missingOauthKeys)})`
+    const productionFallback = await preflightProductionGoogleAdsConversionAction(localIssue)
+    if (productionFallback) return productionFallback
+
     return result(
       "warn",
       "Google Ads conversion action",
-      `Google Ads OAuth env is incomplete (${formatEnvList(missingOauthKeys)}); skipped UPLOAD_CLICKS validation.`,
+      `${localIssue}; skipped UPLOAD_CLICKS validation.`,
     )
   }
   const configuredDeveloperToken = developerToken?.trim() || ""
 
   const accessToken = await fetchGoogleAdsAccessToken()
   if (!accessToken) {
+    const productionFallback = await preflightProductionGoogleAdsConversionAction("Google Ads OAuth token could not be minted locally")
+    if (productionFallback) return productionFallback
+
     return result(
       "warn",
       "Google Ads conversion action",
@@ -192,6 +297,9 @@ async function preflightGoogleAdsPurchaseConversionAction(): Promise<CheckResult
   )
 
   if (!response.ok) {
+    const productionFallback = await preflightProductionGoogleAdsConversionAction(`Google Ads search returned ${response.status} locally`)
+    if (productionFallback) return productionFallback
+
     return result("fail", "Google Ads conversion action", `Google Ads search returned ${response.status}; expected UPLOAD_CLICKS validation to succeed.`)
   }
 

@@ -28,7 +28,7 @@
   "bodyText": "You're back online Skip to main content Your hair loss pattern Step 2 of 7 Which pattern looks closest? Choose the closest match. It does not need to be perfect. Which pattern best describes your hair loss? * No noticeable loss Minimal Slight recession at temples Mild Noticeable thinning / recession Moderate Crown thinning + hairline recession Notable Significant overall thinning Advanced Extensive loss Significant Continue",
   "hasAttributionCookie": true,
   "storage": {
-    "instantmed_attribution": "{\"landing_page\":\"/request\",\"captured_at\":\"2026-06-02T08:45:04.344Z\"}",
-    "instantmed-request-draft": "{\"state\":{\"serviceType\":\"consult\",\"currentStepId\":\"hair-loss-assessment\",\"safetyConfirmed\":false,\"safetyTimestamp\":null,\"answers\":{\"consultSubtype\":\"hair_loss\",\"hairGoal\":\"prevent\",\"hairOnset\":\"few_months\"},\"firstName\":\"\",\"lastName\":\"\",\"email\":\"\",\"phone\":\"\",\"dob\":\"\",\"lastSavedAt\":\"2026-06-02T08:45:06.453Z\"},\"version\":0}"
+    "instantmed_attribution": "{\"landing_page\":\"/request\",\"captured_at\":\"2026-06-02T09:14:20.696Z\"}",
+    "instantmed-request-draft": "{\"state\":{\"serviceType\":\"consult\",\"currentStepId\":\"hair-loss-assessment\",\"safetyConfirmed\":false,\"safetyTimestamp\":null,\"answers\":{\"consultSubtype\":\"hair_loss\",\"hairGoal\":\"prevent\",\"hairOnset\":\"few_months\"},\"firstName\":\"\",\"lastName\":\"\",\"email\":\"\",\"phone\":\"\",\"dob\":\"\",\"lastSavedAt\":\"2026-06-02T09:14:22.711Z\"},\"version\":0}"
   }
 }

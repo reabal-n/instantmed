@@ -1,99 +1,99 @@
 {
   "model": "opus-claude-opus-4-8 (anthropic-models-api)",
   "status": "ok",
-  "summary": "Funnel reveals a severe intake-to-purchase collapse (75 checkout views -> 27 paid in 30d) concentrated in medical-certificate, plus serious measurement integrity problems: Google Ads server conversions (100) and ads-reported conversions (22) wildly diverge from actual paid orders (27 total, 18 ads-attributed local), inflating CAC truth. Recovery email program is effectively dead (0 conversions from 119 partials). Request-to-checkout captures failed across all services with console errors, indicating a likely intake progression defect that warrants manual verification before scaling spend.",
+  "summary": "InstantMed's funnel is leaking spend through severe attribution inflation (Google Ads reporting ~100 server conversions vs 18-27 real paid orders) and a recovery system that converts 0 of 119 abandoned intakes. Medical-certificate dominates volume but carries all the abandonment and refund risk. Request-to-checkout captures failed with console errors across all four services, warranting investigation but not yet confirmed as a live user outage.",
   "findings": [
     {
       "severity": "P0",
-      "blocker": "Google Ads conversion signal is decoupled from real revenue: google_ads_server_conversion=100 and ads_conversions=22 vs only 27 total paid orders (18 ads-attributed) in 30d. purchase_completed (client)=6 vs purchase_completed_server=24 also disagree.",
-      "evidence": "PostHog 30d: google_ads_server_conversion=100, purchase_completed=6, purchase_completed_server=24; Ads 30d ads_conversions=22 local_orders=18; Supabase 30d paid=27 adAttributed=26",
+      "blocker": "Google Ads server conversion count (100) grossly exceeds actual paid orders (Supabase 30d paid=27, local_orders=18). Conversion signal sent to Ads is inflated ~4-5x.",
+      "evidence": "PostHog google_ads_server_conversion=100 (30d and 90d identical) vs Supabase 30d paid=27, Ads local_orders=18; purchase_completed_server=24 also static across 30d/90d windows",
       "affected_service": "all",
       "likely_funnel_stage": "attribution",
-      "cac_impact": "Smart Bidding optimizes on inflated 100 conversions vs ~18-27 real; true ads_cac is $92.71 local but reported ads_cpa $75.85 understates by ~22%. Misfeeding signal sustains overspend on low-value clicks.",
+      "cac_impact": "Inflated conversions train Smart Bidding toward non-converting traffic; true CAC ($92.71 local) is masked. Ads CPA $75.85 understates real acquisition cost, driving overspend.",
       "compliance_risk": "low",
       "confidence": "high",
-      "recommended_fix": "Audit the server conversion upload pipeline; reconcile google_ads_server_conversion to deduped purchase_completed_server. Stop counting non-purchase events as conversions. Align Ads conversion action to one verified server purchase event before any budget increase."
+      "recommended_fix": "Audit server-side conversion pipeline; the identical 100/24 counts across 30d and 90d windows indicate a stuck/duplicating or cached export. Reconcile conversion events to Supabase paid orders before trusting any bid optimization."
     },
     {
       "severity": "P0",
-      "blocker": "All request-to-checkout mobile captures failed with consoleErrors=1, halting on /request URLs across med-cert, repeat-script, ED, and hair-loss.",
-      "evidence": "Browser Captures: 4x 'request-to-checkout mobile: failed ... consoleErrors=1' for medical-certificate, repeat-prescriptions, erectile-dysfunction, hair-loss",
-      "affected_service": "all",
-      "likely_funnel_stage": "intake",
-      "cac_impact": "If reproducible on production, this caps paid conversion regardless of ad spend; mobile is the dominant device (device=m in ad URLs). Could explain checkout_viewed=75 -> paid=27 drop.",
-      "compliance_risk": "medium - broken intake may present incomplete medical screening flow",
-      "confidence": "medium",
-      "recommended_fix": "Note: captures ran against localhost:3060, not production; manually reproduce on instantmed.com.au mobile before concluding outage. Capture the console error stack and the failing step. Block spend scaling until verified."
-    },
-    {
-      "severity": "P1",
-      "blocker": "Recovery/abandonment program produces zero conversions despite 119 partials and 6 recovery emails sent; 21 partials have email captured but no recovered purchase.",
-      "evidence": "Supabase 30d partial totals: count=119, converted=0, recoverySent=6, withEmail=21; abandonedEmailSent=8 at totals level",
+      "blocker": "Recovery funnel converts 0 of 119 partial intakes despite 6 recovery emails and 21 captured emails. Zero recovered revenue across both 30d and 90d.",
+      "evidence": "30d & 90d partial totals: count=119, converted=0, recoverySent=6, withEmail=21; abandonedEmailSent=8 (30d) with converted=0",
       "affected_service": "medical-certificate (75 of 119 partials at certificate step)",
       "likely_funnel_stage": "recovery",
-      "cac_impact": "119 partials vs 27 paid = large recoverable pool. Even 10% recovery (~12 orders) at AOV ~$39.93 adds ~$479 net at near-zero CAC, materially lowering blended CAC.",
+      "cac_impact": "119 abandoned intakes at AOV ~$38-40 = ~$4,500 recoverable pipeline fully lost. Recovery sends are firing but converting nobody, wasting the abandonment capture investment.",
       "compliance_risk": "low",
       "confidence": "high",
-      "recommended_fix": "Fix recovery email targeting/coverage: only 6 of 119 partials and 21 with email were contacted. Expand triggers to all email-captured partials, verify deliverability, add med-cert-specific recovery copy."
+      "recommended_fix": "Verify recovery email links resume the correct intake/session; only 21 of 119 partials have emails captured, so move email capture earlier (before certificate step). Test the recovery link end-to-end against checkout."
     },
     {
       "severity": "P1",
-      "blocker": "Massive intake-to-checkout funnel drop: intake_started=384, step_completed=1308, checkout_viewed=75, paid=27 (30d). ~80% of those who view checkout do not pay.",
-      "evidence": "PostHog 30d: intake_started=384, checkout_viewed=75; Supabase paid=27, paidRate=0.7297; failedPayment=2, pendingPayment=1",
+      "blocker": "Massive top-of-funnel drop: 384 intake_started vs 75 checkout_viewed vs 6 client purchase_completed (30d). Only ~20% reach checkout.",
+      "evidence": "PostHog 30d: intake_started=384, checkout_viewed=75, purchase_completed=6, intake_abandoned_passive=50; certificate partial step count=75",
       "affected_service": "medical-certificate",
-      "likely_funnel_stage": "checkout",
-      "cac_impact": "Only ~20% (75/384) reach checkout. Recovering intake->checkout to 30% could roughly double orders without added spend, halving effective CAC.",
+      "likely_funnel_stage": "intake",
+      "cac_impact": "80% of started intakes never reach checkout. Even small intake-completion gains multiply against $1,668 spend; closing certificate-step drop is the highest-leverage conversion win.",
       "compliance_risk": "low",
       "confidence": "medium",
-      "recommended_fix": "Instrument step-level drop-off between step_completed and checkout_viewed; identify which intake step (certificate step holds 75 partials) sheds users; reduce required fields / clarify pricing pre-checkout."
+      "recommended_fix": "Instrument per-step drop on the certificate intake (75 partials stall there); review certificate-step form length/validation. Note client purchase_completed (6) vs server (24) gap suggests client event under-fires—verify before trusting client funnel rates."
     },
     {
-      "severity": "P2",
-      "blocker": "Spend concentrated on medical-certificate keywords while higher-AOV services (ED $49.95, general $49.95) get near-zero ad attribution (adAttributed=0).",
-      "evidence": "Supabase 30d: med-cert adAttributed=25 AOV=$38.02; erectile-dysfunction adAttributed=0 AOV=$49.95; general adAttributed=0 AOV=$49.95",
-      "affected_service": "erectile-dysfunction, general",
-      "likely_funnel_stage": "ads",
-      "cac_impact": "Blended AOV is dragged to $39.93 by low-value med-cert. Shifting budget toward higher-AOV intents could improve revenue per conversion and lower CAC-to-LTV ratio.",
+      "severity": "P1",
+      "blocker": "Request-to-checkout automation failed for all four services with consoleErrors=1 each, against localhost:3060 base.",
+      "evidence": "medical-certificate/repeat-prescriptions/erectile-dysfunction/hair-loss request-to-checkout mobile: failed, final=http://localhost:3060/request..., consoleErrors=1, requestFailures=0",
+      "affected_service": "all",
+      "likely_funnel_stage": "checkout",
+      "cac_impact": "If a real checkout JS error exists, every paid click is wasted at the final step. Cannot confirm live outage—captures ran against localhost not production—but blast radius is total if confirmed.",
       "compliance_risk": "low",
       "confidence": "low",
-      "recommended_fix": "Review campaign allocation; test budget toward ED/higher-AOV landing pages that currently get organic-only conversions. Validate landing pages convert before reallocating."
+      "recommended_fix": "Re-run request-to-checkout against production (instantmed.com.au) not localhost:3060; capture the console error text. Per evidence-pack rule, scripted completion is not a confirmed outage—triage the console error before drawing conclusions."
     },
     {
       "severity": "P2",
-      "blocker": "Refunds concentrated and notable: general service refunded 1 of 2 orders (50%), 30d total refundAud=$79.90 on netAud=$998.25.",
-      "evidence": "Supabase 30d service general: paid=2 refunded=1 refundAud=49.95; totals refunded=2 refundAud=79.9",
-      "affected_service": "general",
-      "likely_funnel_stage": "checkout",
-      "cac_impact": "High refund rate on general erodes net revenue and signals possible expectation mismatch; small volume limits dollar impact now but scales badly.",
-      "compliance_risk": "medium - refunds may indicate service/clinical expectation mismatch worth review",
+      "blocker": "Medical-certificate carries disproportionate refund and abandonment load; paidRate 0.6774 (30d) vs 1.0 for ED/general/repeat-scripts.",
+      "evidence": "30d medical-certificate: paidRate=0.6774, refunded=1, refundAud=29.95, abandonedEmailSent=8; other services paidRate=1.0",
+      "affected_service": "medical-certificate",
+      "likely_funnel_stage": "intake",
+      "cac_impact": "med-cert is the only ad-attributed service (adAttributed=25 of 26) yet has lowest paid rate, so ad spend funds the weakest-converting funnel. Higher-AOV ED ($49.95) gets zero ad support.",
+      "compliance_risk": "medium",
       "confidence": "medium",
-      "recommended_fix": "Review general-service refund reasons; clarify scope/eligibility on landing and pre-payment. Low volume so monitor rather than act on spend."
+      "recommended_fix": "Consider testing ad budget allocation toward ED/repeat-scripts which convert at 100%; investigate med-cert refund driver (eligibility rejection) to reduce wasted paid intakes."
+    },
+    {
+      "severity": "P2",
+      "blocker": "Mobile landing pages show elevated request failures (med-cert mobile=3, attribution-continuity mobile=4) vs desktop=1.",
+      "evidence": "medical-certificate landing mobile requestFailures=3; medical-certificate attribution-continuity mobile requestFailures=4; consoleErrors=0 throughout",
+      "affected_service": "medical-certificate",
+      "likely_funnel_stage": "landing",
+      "cac_impact": "device=m traffic dominates ad params; mobile request failures may degrade LCP/conversion on the highest-volume device, inflating CAC for mobile clicks.",
+      "compliance_risk": "low",
+      "confidence": "low",
+      "recommended_fix": "Identify the failing mobile requests (likely analytics/pixel or asset); confirm none are conversion-critical. consoleErrors=0 suggests non-blocking, verify before action."
     },
     {
       "severity": "P3",
-      "blocker": "Persistent requestFailures=1 on all landing page captures (desktop+mobile), excluding hair-loss mobile.",
-      "evidence": "Browser Captures: requestFailures=1 across med-cert/prescriptions/ED/hair-loss landings; attribution-continuity mobile requestFailures=3",
+      "blocker": "Ads spend efficiency degrades over window: 90d local_cac=$119.44 vs 30d local_cac=$92.71, with identical order counts (18) across both windows.",
+      "evidence": "90d local_orders=18 local_cac=$119.44 vs 30d local_orders=18 local_cac=$92.71; identical 18 orders implies stale/duplicated local order export",
       "affected_service": "all",
-      "likely_funnel_stage": "landing",
-      "cac_impact": "Likely a non-blocking asset/beacon failure given consoleErrors=0 and ok status, but a failed analytics/pixel request could undercount attribution.",
+      "likely_funnel_stage": "attribution",
+      "cac_impact": "Identical local_orders=18 and local_net=$419.15 across 30d and 90d windows indicates a data freshness/snapshot bug, undermining any CAC trend conclusion.",
       "compliance_risk": "low",
-      "confidence": "low",
-      "recommended_fix": "Identify the failing request on landings; if it is a tracking pixel/beacon, fix to protect attribution accuracy. Cosmetic if it is a third-party asset."
+      "confidence": "medium",
+      "recommended_fix": "Fix the local order export so 30d and 90d windows are independently computed; current identical values make CAC tracking unreliable."
     }
   ],
   "ads_triage": [
-    "Do not increase budgets until the conversion signal discrepancy (100 server conversions vs ~27 real paid) is reconciled - current Smart Bidding is likely optimizing on inflated data.",
-    "Recommend holding med-cert spend flat and adding negative review only after intake->checkout instrumentation identifies the drop step; no live mutation approved.",
-    "Consider capping spend on keywords feeding only med-cert until blended AOV/CAC improves; evaluate reallocation to ED/general after landing-page conversion is verified.",
-    "No live Ads mutations performed or approved in this audit."
+    "Do NOT scale spend until server conversion inflation (100 vs ~27 real) is reconciled — Smart Bidding is optimizing on bad signal (no live mutation performed).",
+    "Recommend capping med-cert spend pending refund/paidRate investigation (0.6774 paid rate absorbs nearly all ad budget).",
+    "Recommend testing reallocation toward ED/repeat-scripts (100% paid rate, higher AOV) once checkout capture failures are cleared.",
+    "Add negative-keyword review only after re-running production checkout captures; no keyword data quality issues evidenced yet."
   ],
   "measurement_notes": [
-    "Conversion event chaos: purchase_completed (client)=6 vs purchase_completed_server=24 (30d) vs Supabase paid=27 - three different purchase counts; pick server-side as source of truth and dedupe.",
-    "google_ads_server_conversion=100 is identical in 30d and 90d windows, suggesting a stale/cached or misconfigured counter - verify the event is firing per-conversion and not a constant.",
-    "ads_conversions frozen at 22 across both 30d and 90d while spend differs ($1,668.80 vs $2,149.93) - conversion reporting may be stalled or capped; investigate Ads conversion import lag.",
-    "Browser captures for request-to-checkout ran against localhost:3060, not production instantmed.com.au - failures must be reproduced on production before treating as a live outage.",
-    "PostHog intake_funnel_payment_completed=83 (30d) far exceeds Supabase paid=27, indicating event-to-order mapping is unreliable; reconcile before trusting funnel ratios.",
-    "adAttributed=26 (30d) and =26 (90d) identical, mirroring the frozen ads metrics - attribution window or sync appears stuck."
+    "google_ads_server_conversion=100 and purchase_completed_server=24 are IDENTICAL across 30d and 90d windows — strong indicator of a stuck/cached export or duplicated event; treat all conversion counts as suspect.",
+    "Supabase local_orders=18 and local_net=$419.15 also identical across 30d/90d — same snapshot/freshness concern.",
+    "Client purchase_completed (6) << server purchase_completed (24) and << Supabase paid (27): client-side purchase event under-fires; rely on server/Supabase for true conversion.",
+    "intake_funnel_payment_completed (83, 30d) far exceeds purchase_completed and Supabase paid (27) — event naming/definition mismatch; reconcile event taxonomy before trusting funnel rates.",
+    "Only 21 of 119 partial intakes have email captured, limiting recovery reach; email capture occurs too late in flow.",
+    "Request-to-checkout captures ran against localhost:3060, not production — per evidence-pack rule these are not confirmed user-facing outages and require production re-run."
   ],
   "errors": []
 }

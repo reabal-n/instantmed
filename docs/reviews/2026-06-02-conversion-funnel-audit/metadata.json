@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-02T08:46:29.770Z",
+  "generatedAt": "2026-06-02T09:15:45.622Z",
   "baseUrl": "https://instantmed.com.au",
   "localUrl": "http://localhost:3060",
   "services": [
@@ -44,7 +44,7 @@
     {
       "model": "gemini-gemini-3.5-flash",
       "status": "ok",
-      "findings": 4
+      "findings": 3
     },
     {
       "model": "opus-claude-opus-4-8 (anthropic-models-api)",

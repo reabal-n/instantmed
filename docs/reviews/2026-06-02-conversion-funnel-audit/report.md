@@ -1,6 +1,6 @@
 # Conversion Funnel Audit
 
-Generated: 2026-06-02T08:46:29.769Z
+Generated: 2026-06-02T09:15:45.621Z
 
 ## Executive Verdict
 
@@ -30,87 +30,51 @@ Three-model panel status: gemini-gemini-3.5-flash=ok, opus-claude-opus-4-8 (anth
 - Compliance risk: Low
 - Confidence: high
 - Recommended fix: Pause or cap spend outside proven exact/high-intent terms, move bidding to local purchase truth, and do not scale until CAC is below service gross margin.
-### 2. P0 - Google Ads conversion signal is decoupled from real revenue: google_ads_server_conversion=100 and ads_conversions=22 vs only 27 total paid orders (18 ads-attributed) in 30d. purchase_completed (client)=6 vs purchase_completed_server=24 also disagree.
+### 2. P0 - Recovery funnel converts 0 of 119 partial intakes despite 6 recovery emails and 21 captured emails. Zero recovered revenue across both 30d and 90d.
 
-- Evidence: PostHog 30d: google_ads_server_conversion=100, purchase_completed=6, purchase_completed_server=24; Ads 30d ads_conversions=22 local_orders=18; Supabase 30d paid=27 adAttributed=26
-- Affected service: all
-- Funnel stage: attribution
-- CAC impact: Smart Bidding optimizes on inflated 100 conversions vs ~18-27 real; true ads_cac is $92.71 local but reported ads_cpa $75.85 understates by ~22%. Misfeeding signal sustains overspend on low-value clicks.
-- Compliance risk: low
-- Confidence: high
-- Recommended fix: Audit the server conversion upload pipeline; reconcile google_ads_server_conversion to deduped purchase_completed_server. Stop counting non-purchase events as conversions. Align Ads conversion action to one verified server purchase event before any budget increase.
-### 3. P1 - Draft-to-intake conversion is low enough to indicate intake friction or recovery weakness.
-
-- Evidence: 30d partial intakes 119, converted 0, recovery sent 6, stale recovery eligible approx 1.
-- Affected service: All active request flows
-- Funnel stage: Intake step progression and abandoned-draft recovery
-- CAC impact: High: paid clicks are leaking before checkout creation.
-- Compliance risk: Low
-- Confidence: medium
-- Recommended fix: Prioritize the highest-volume partial-intake steps in the report, shorten pre-payment fields where clinically safe, and tighten recovery eligibility/delivery metrics.
-### 4. P1 - Recovery/abandonment program produces zero conversions despite 119 partials and 6 recovery emails sent; 21 partials have email captured but no recovered purchase.
-
-- Evidence: Supabase 30d partial totals: count=119, converted=0, recoverySent=6, withEmail=21; abandonedEmailSent=8 at totals level
+- Evidence: 30d & 90d partial totals: count=119, converted=0, recoverySent=6, withEmail=21; abandonedEmailSent=8 (30d) with converted=0
 - Affected service: medical-certificate (75 of 119 partials at certificate step)
 - Funnel stage: recovery
-- CAC impact: 119 partials vs 27 paid = large recoverable pool. Even 10% recovery (~12 orders) at AOV ~$39.93 adds ~$479 net at near-zero CAC, materially lowering blended CAC.
+- CAC impact: 119 abandoned intakes at AOV ~$38-40 = ~$4,500 recoverable pipeline fully lost. Recovery sends are firing but converting nobody, wasting the abandonment capture investment.
 - Compliance risk: low
 - Confidence: high
-- Recommended fix: Fix recovery email targeting/coverage: only 6 of 119 partials and 21 with email were contacted. Expand triggers to all email-captured partials, verify deliverability, add med-cert-specific recovery copy.
-### 5. P1 - Massive intake-to-checkout funnel drop: intake_started=384, step_completed=1308, checkout_viewed=75, paid=27 (30d). ~80% of those who view checkout do not pay.
+- Recommended fix: Verify recovery email links resume the correct intake/session; only 21 of 119 partials have emails captured, so move email capture earlier (before certificate step). Test the recovery link end-to-end against checkout.
+### 3. P0 - Attribution tracking pipeline broken/frozen, resulting in zero new ad-attributed orders recorded in Supabase or Google Ads over the last 60 days.
 
-- Evidence: PostHog 30d: intake_started=384, checkout_viewed=75; Supabase paid=27, paidRate=0.7297; failedPayment=2, pendingPayment=1
-- Affected service: medical-certificate
-- Funnel stage: checkout
-- CAC impact: Only ~20% (75/384) reach checkout. Recovering intake->checkout to 30% could roughly double orders without added spend, halving effective CAC.
+- Evidence: Supabase 30d and 90d 'adAttributed' counts are frozen at exactly 26. Google Ads 30d and 90d conversions are identical at 22, and 'local_orders' is identical at 18, despite Supabase showing 50 new paid orders (77 in 90d vs 27 in 30d).
+- Affected service: attribution
+- Funnel stage: attribution
+- CAC impact: Artificially inflates local CAC from $92.71 to $119.44 (a 28.8% increase) and starves Google Ads Smart Bidding algorithms of critical conversion data.
 - Compliance risk: low
-- Confidence: medium
-- Recommended fix: Instrument step-level drop-off between step_completed and checkout_viewed; identify which intake step (certificate step holds 75 partials) sheds users; reduce required fields / clarify pricing pre-checkout.
-### 6. P2 - Inverted funnel event logic and duplicate payment completions reported in analytics
-
-- Evidence: PostHog 30d metrics show 83 'intake_funnel_payment_completed' events but only 38 'intake_funnel_payment_initiated' and 'intake_funnel_intake_started' events.
-- Affected service: all
-- Funnel stage: checkout
-- CAC impact: Distorts conversion funnel visualization and reporting, rendering quantitative optimizations of checkout layout impossible.
-- Compliance risk: low with reason: Analytics tracking bug only.
 - Confidence: high
-- Recommended fix: Add idempotent event tracking or state checks on the payment completion client trigger to prevent multi-firing on page refreshes or automatic redirect polls.
-### 7. P2 - Static partial step tracking database queries preventing recovery automation flow updates
+- Recommended fix: Implement persistent client-side storage (e.g., localStorage) for UTM and gclid parameters on landing page load, and ensure they are attached to the API payload during intake creation and synced back via Google Ads Offline Conversion Tracking.
+### 4. P2 - Database logging of partials/drafts and recovery email triggers are completely frozen.
 
-- Evidence: Supabase 30d and 90d partial totals are identical down to every integer (e.g., both show count=119, withEmail=21, certificate=75, medication=14).
-- Affected service: all
+- Evidence: 30d and 90d partial totals are identical down to the exact integer (count=119, converted=0, expired=3, recoverySent=6, withEmail=21), indicating no new drafts have been saved or processed in the last 60 days.
+- Affected service: recovery
 - Funnel stage: recovery
-- CAC impact: Indicates that cart recovery emails (recoverySent) are not executing dynamically for fresh drop-offs, directly lowering potential revenue and increasing CAC.
-- Compliance risk: low with reason: Cart recovery cron failure only.
+- CAC impact: Completely disables the abandoned cart recovery mechanism, resulting in 0% recovery conversion rate for highly qualified warm leads.
+- Compliance risk: low
 - Confidence: high
-- Recommended fix: Audit the Supabase cron job or PostgreSQL query tracking partial completions to ensure date filtering parameter (30d vs 90d) is correctly parsed and not returning cached static datasets.
-### 8. P2 - Refunds concentrated and notable: general service refunded 1 of 2 orders (50%), 30d total refundAud=$79.90 on netAud=$998.25.
+- Recommended fix: Repair the database triggers or serverless cron jobs responsible for capturing partial intake states and launching email recovery templates.
+### 5. P2 - Medical-certificate carries disproportionate refund and abandonment load; paidRate 0.6774 (30d) vs 1.0 for ED/general/repeat-scripts.
 
-- Evidence: Supabase 30d service general: paid=2 refunded=1 refundAud=49.95; totals refunded=2 refundAud=79.9
-- Affected service: general
-- Funnel stage: checkout
-- CAC impact: High refund rate on general erodes net revenue and signals possible expectation mismatch; small volume limits dollar impact now but scales badly.
-- Compliance risk: medium - refunds may indicate service/clinical expectation mismatch worth review
+- Evidence: 30d medical-certificate: paidRate=0.6774, refunded=1, refundAud=29.95, abandonedEmailSent=8; other services paidRate=1.0
+- Affected service: medical-certificate
+- Funnel stage: intake
+- CAC impact: med-cert is the only ad-attributed service (adAttributed=25 of 26) yet has lowest paid rate, so ad spend funds the weakest-converting funnel. Higher-AOV ED ($49.95) gets zero ad support.
+- Compliance risk: medium
 - Confidence: medium
-- Recommended fix: Review general-service refund reasons; clarify scope/eligibility on landing and pre-payment. Low volume so monitor rather than act on spend.
-### 9. P2 - High partial/abandonment volume with limited recovery
+- Recommended fix: Consider testing ad budget allocation toward ED/repeat-scripts which convert at 100%; investigate med-cert refund driver (eligibility rejection) to reduce wasted paid intakes.
+### 6. P2 - Low recovery email coverage relative to partials; abandonedEmailSent appears small vs partial withEmail.
 
-- Evidence: Supabase 30d partial totals: count=119 converted=0 recoverySent=6 withEmail=21; many partial-step counts (certificate=75, medication=14, checkout=7) with converted=0
-- Affected service: intake|recovery
-- Funnel stage: intake|recovery
-- CAC impact: Large number of unfinished intakes wastes acquisition spend and depresses conversion rate; low recovery sends means recoverable revenue is being lost
-- Compliance risk: low with reason: abandonment is a business performance issue, not a compliance violation in the evidence
+- Evidence: Supabase 30d: abandonedEmailSent=8 partial totals: count=119 withEmail=21 recoverySent=6
+- Affected service: recovery
+- Funnel stage: recovery
+- CAC impact: Low recovery throughput wastes existing acquisition spend — improving recovery could increase conversion rate and lower effective CAC.
+- Compliance risk: low with reason
 - Confidence: medium
-- Recommended fix: Increase recovery coverage: capture email earlier in flow, send automated abandoned-intake emails/SMS for all partials, instrument and A/B test earlier email capture and visible CTA to complete checkout.
-### 10. P3 - Failed payments and refunds present but low-volume
-
-- Evidence: Supabase 30d failedPayment=2 refunded=2 refundAud=79.9; 90d failedPayment=5 refunded=4 refundAud=119.8
-- Affected service: checkout|payments
-- Funnel stage: checkout
-- CAC impact: Small effect on CAC now; if systemic could increase churn and support costs
-- Compliance risk: low with reason: small number of refunds/failures documented, no evidence of data breach
-- Confidence: high
-- Recommended fix: Inspect payment gateway logs for failure reasons, add retry/clear error messages, surface payment failure reasons to users and recovery emails.
+- Recommended fix: Increase abandoned-cart/recovery email triggers and cadence, ensure gclid/email captured at first step, and A/B test recovery timing and subject lines. Use the 21 withEmail partials as primary recovery targets.
 
 ## Immediate Ads Triage
 
@@ -119,13 +83,15 @@ Three-model panel status: gemini-gemini-3.5-flash=ok, opus-claude-opus-4-8 (anth
 3. Segment Search Partners separately and disable it unless it proves lower local CAC than Google Search.
 4. Add negatives for low-intent or off-scope terms surfaced in the search-term extract; do not mutate live campaigns until approved.
 5. Compare 30d vs 90d terms before re-enabling old terms; recent spend concentration is still not profitable.
-6. Avoid using automated Target CPA or Maximize Conversions bidding models while the server conversion pixel is frozen at 100 events, as the algorithm will optimize on stale data.
-7. Do not increase budgets until the conversion signal discrepancy (100 server conversions vs ~27 real paid) is reconciled - current Smart Bidding is likely optimizing on inflated data.
-8. Recommend holding med-cert spend flat and adding negative review only after intake->checkout instrumentation identifies the drop step; no live mutation approved.
-9. Consider capping spend on keywords feeding only med-cert until blended AOV/CAC improves; evaluate reallocation to ED/general after landing-page conversion is verified.
-10. No live Ads mutations performed or approved in this audit.
-11. Cap budgets on campaigns where reported local_CAC > observed avgOrderValue (Google Ads 30d local_cac=$92.71 vs Supabase avgOrderValueAud=39.93).
-12. Avoid aggressive bidding/expansion while server-side conversion counts are inconsistent (google_ads_server_conversion=100 vs Ads conversions=22).
+6. Temporarily cap daily Google Ads spend or switch from CPA/Maximize Conversions to Maximize Clicks/Manual CPC bidding to prevent budget waste while conversion tracking is broken.
+7. Do not scale budget on high-performing keyword sets until attribution parameters are successfully persisting to Supabase and syncing to Google Ads.
+8. Do NOT scale spend until server conversion inflation (100 vs ~27 real) is reconciled — Smart Bidding is optimizing on bad signal (no live mutation performed).
+9. Recommend capping med-cert spend pending refund/paidRate investigation (0.6774 paid rate absorbs nearly all ad budget).
+10. Recommend testing reallocation toward ED/repeat-scripts (100% paid rate, higher AOV) once checkout capture failures are cleared.
+11. Add negative-keyword review only after re-running production checkout captures; no keyword data quality issues evidenced yet.
+12. Pause or heavily cap Google search/conversion campaigns until attribution and server-side conversion deduplication are fixed (evidence: Google Ads 30d ads_cpa=$75.85 local_cac=$92.71 vs AOV ~$39.93).
+13. Do not create new bid or conversion-based optimisations until conversion events are reconciled (PostHog google_ads_server_conversion=100 vs Google ads_conversions=22).
+14. If immediate pause is not acceptable, reduce daily budgets materially and run a small validation budget only after fixes.
 
 ## Tracking Continuity
 
@@ -141,14 +107,14 @@ Video links point to generated local `.webm` captures in this workspace. The rep
 | Service | Journey | Viewport | Status | Screenshot | Video | Trace | Notes |
 |---|---|---:|---|---|---|---|---|
 | medical-certificate | landing | desktop | ok | [captures/medical-certificate-landing-desktop/final.png](captures/medical-certificate-landing-desktop/final.png) | [captures/medical-certificate-landing-desktop/capture.webm](captures/medical-certificate-landing-desktop/capture.webm) | [captures/medical-certificate-landing-desktop/trace.zip](captures/medical-certificate-landing-desktop/trace.zip) | console=0, failed_requests=1 |
-| medical-certificate | landing | mobile | ok | [captures/medical-certificate-landing-mobile/final.png](captures/medical-certificate-landing-mobile/final.png) | [captures/medical-certificate-landing-mobile/capture.webm](captures/medical-certificate-landing-mobile/capture.webm) | [captures/medical-certificate-landing-mobile/trace.zip](captures/medical-certificate-landing-mobile/trace.zip) | console=0, failed_requests=1 |
+| medical-certificate | landing | mobile | ok | [captures/medical-certificate-landing-mobile/final.png](captures/medical-certificate-landing-mobile/final.png) | [captures/medical-certificate-landing-mobile/capture.webm](captures/medical-certificate-landing-mobile/capture.webm) | [captures/medical-certificate-landing-mobile/trace.zip](captures/medical-certificate-landing-mobile/trace.zip) | console=0, failed_requests=3 |
 | repeat-prescriptions | landing | desktop | ok | [captures/repeat-prescriptions-landing-desktop/final.png](captures/repeat-prescriptions-landing-desktop/final.png) | [captures/repeat-prescriptions-landing-desktop/capture.webm](captures/repeat-prescriptions-landing-desktop/capture.webm) | [captures/repeat-prescriptions-landing-desktop/trace.zip](captures/repeat-prescriptions-landing-desktop/trace.zip) | console=0, failed_requests=1 |
 | repeat-prescriptions | landing | mobile | ok | [captures/repeat-prescriptions-landing-mobile/final.png](captures/repeat-prescriptions-landing-mobile/final.png) | [captures/repeat-prescriptions-landing-mobile/capture.webm](captures/repeat-prescriptions-landing-mobile/capture.webm) | [captures/repeat-prescriptions-landing-mobile/trace.zip](captures/repeat-prescriptions-landing-mobile/trace.zip) | console=0, failed_requests=1 |
 | erectile-dysfunction | landing | desktop | ok | [captures/erectile-dysfunction-landing-desktop/final.png](captures/erectile-dysfunction-landing-desktop/final.png) | [captures/erectile-dysfunction-landing-desktop/capture.webm](captures/erectile-dysfunction-landing-desktop/capture.webm) | [captures/erectile-dysfunction-landing-desktop/trace.zip](captures/erectile-dysfunction-landing-desktop/trace.zip) | console=0, failed_requests=1 |
 | erectile-dysfunction | landing | mobile | ok | [captures/erectile-dysfunction-landing-mobile/final.png](captures/erectile-dysfunction-landing-mobile/final.png) | [captures/erectile-dysfunction-landing-mobile/capture.webm](captures/erectile-dysfunction-landing-mobile/capture.webm) | [captures/erectile-dysfunction-landing-mobile/trace.zip](captures/erectile-dysfunction-landing-mobile/trace.zip) | console=0, failed_requests=1 |
-| hair-loss | landing | desktop | ok | [captures/hair-loss-landing-desktop/final.png](captures/hair-loss-landing-desktop/final.png) | [captures/hair-loss-landing-desktop/capture.webm](captures/hair-loss-landing-desktop/capture.webm) | [captures/hair-loss-landing-desktop/trace.zip](captures/hair-loss-landing-desktop/trace.zip) | console=0, failed_requests=1 |
-| hair-loss | landing | mobile | ok | [captures/hair-loss-landing-mobile/final.png](captures/hair-loss-landing-mobile/final.png) | [captures/hair-loss-landing-mobile/capture.webm](captures/hair-loss-landing-mobile/capture.webm) | [captures/hair-loss-landing-mobile/trace.zip](captures/hair-loss-landing-mobile/trace.zip) | console=0, failed_requests=0 |
-| medical-certificate | attribution-continuity | mobile | ok | [captures/medical-certificate-attribution-continuity-mobile/final.png](captures/medical-certificate-attribution-continuity-mobile/final.png) | [captures/medical-certificate-attribution-continuity-mobile/capture.webm](captures/medical-certificate-attribution-continuity-mobile/capture.webm) | [captures/medical-certificate-attribution-continuity-mobile/trace.zip](captures/medical-certificate-attribution-continuity-mobile/trace.zip) | console=0, failed_requests=3 |
+| hair-loss | landing | desktop | ok | [captures/hair-loss-landing-desktop/final.png](captures/hair-loss-landing-desktop/final.png) | [captures/hair-loss-landing-desktop/capture.webm](captures/hair-loss-landing-desktop/capture.webm) | [captures/hair-loss-landing-desktop/trace.zip](captures/hair-loss-landing-desktop/trace.zip) | console=0, failed_requests=2 |
+| hair-loss | landing | mobile | ok | [captures/hair-loss-landing-mobile/final.png](captures/hair-loss-landing-mobile/final.png) | [captures/hair-loss-landing-mobile/capture.webm](captures/hair-loss-landing-mobile/capture.webm) | [captures/hair-loss-landing-mobile/trace.zip](captures/hair-loss-landing-mobile/trace.zip) | console=0, failed_requests=1 |
+| medical-certificate | attribution-continuity | mobile | ok | [captures/medical-certificate-attribution-continuity-mobile/final.png](captures/medical-certificate-attribution-continuity-mobile/final.png) | [captures/medical-certificate-attribution-continuity-mobile/capture.webm](captures/medical-certificate-attribution-continuity-mobile/capture.webm) | [captures/medical-certificate-attribution-continuity-mobile/trace.zip](captures/medical-certificate-attribution-continuity-mobile/trace.zip) | console=0, failed_requests=4 |
 | medical-certificate | request-to-checkout | mobile | failed | [captures/medical-certificate-request-to-checkout-mobile/final.png](captures/medical-certificate-request-to-checkout-mobile/final.png) | [captures/medical-certificate-request-to-checkout-mobile/capture.webm](captures/medical-certificate-request-to-checkout-mobile/capture.webm) | [captures/medical-certificate-request-to-checkout-mobile/trace.zip](captures/medical-certificate-request-to-checkout-mobile/trace.zip) | console=1, failed_requests=0 |
 | repeat-prescriptions | request-to-checkout | mobile | failed | [captures/repeat-prescriptions-request-to-checkout-mobile/final.png](captures/repeat-prescriptions-request-to-checkout-mobile/final.png) | [captures/repeat-prescriptions-request-to-checkout-mobile/capture.webm](captures/repeat-prescriptions-request-to-checkout-mobile/capture.webm) | [captures/repeat-prescriptions-request-to-checkout-mobile/trace.zip](captures/repeat-prescriptions-request-to-checkout-mobile/trace.zip) | console=1, failed_requests=0 |
 | erectile-dysfunction | request-to-checkout | mobile | failed | [captures/erectile-dysfunction-request-to-checkout-mobile/final.png](captures/erectile-dysfunction-request-to-checkout-mobile/final.png) | [captures/erectile-dysfunction-request-to-checkout-mobile/capture.webm](captures/erectile-dysfunction-request-to-checkout-mobile/capture.webm) | [captures/erectile-dysfunction-request-to-checkout-mobile/trace.zip](captures/erectile-dysfunction-request-to-checkout-mobile/trace.zip) | console=1, failed_requests=0 |
@@ -160,38 +126,36 @@ Video links point to generated local `.webm` captures in this workspace. The rep
 
 Status: ok
 
-Critical mobile intake script failures are blocking checkout conversions, compounded by frozen attribution reporting and flawed funnel measurement logic.
+Severe tracking and attribution freeze detected alongside mobile intake failures, inflating reported CAC by 28.8% and starving Google Ads algorithms.
 
-- P1: Server-side conversion and ad attribution tracking are frozen, hiding real performance metrics (high)
-- P2: Inverted funnel event logic and duplicate payment completions reported in analytics (high)
-- P2: Static partial step tracking database queries preventing recovery automation flow updates (high)
+- P0: Attribution tracking pipeline broken/frozen, resulting in zero new ad-attributed orders recorded in Supabase or Google Ads over the last 60 days. (high)
+- P2: Database logging of partials/drafts and recovery email triggers are completely frozen. (high)
 
 Rejected unsupported or duplicate raw findings: 1.
 ### opus-claude-opus-4-8 (anthropic-models-api)
 
 Status: ok
 
-Funnel reveals a severe intake-to-purchase collapse (75 checkout views -> 27 paid in 30d) concentrated in medical-certificate, plus serious measurement integrity problems: Google Ads server conversions (100) and ads-reported conversions (22) wildly diverge from actual paid orders (27 total, 18 ads-attributed local), inflating CAC truth. Recovery email program is effectively dead (0 conversions from 119 partials). Request-to-checkout captures failed across all services with console errors, indicating a likely intake progression defect that warrants manual verification before scaling spend.
+InstantMed's funnel is leaking spend through severe attribution inflation (Google Ads reporting ~100 server conversions vs 18-27 real paid orders) and a recovery system that converts 0 of 119 abandoned intakes. Medical-certificate dominates volume but carries all the abandonment and refund risk. Request-to-checkout captures failed with console errors across all four services, warranting investigation but not yet confirmed as a live user outage.
 
-- P0: Google Ads conversion signal is decoupled from real revenue: google_ads_server_conversion=100 and ads_conversions=22 vs only 27 total paid orders (18 ads-attributed) in 30d. purchase_completed (client)=6 vs purchase_completed_server=24 also disagree. (high)
-- P1: Recovery/abandonment program produces zero conversions despite 119 partials and 6 recovery emails sent; 21 partials have email captured but no recovered purchase. (high)
-- P1: Massive intake-to-checkout funnel drop: intake_started=384, step_completed=1308, checkout_viewed=75, paid=27 (30d). ~80% of those who view checkout do not pay. (medium)
-- P2: Spend concentrated on medical-certificate keywords while higher-AOV services (ED $49.95, general $49.95) get near-zero ad attribution (adAttributed=0). (low)
-- P2: Refunds concentrated and notable: general service refunded 1 of 2 orders (50%), 30d total refundAud=$79.90 on netAud=$998.25. (medium)
-- P3: Persistent requestFailures=1 on all landing page captures (desktop+mobile), excluding hair-loss mobile. (low)
+- P0: Google Ads server conversion count (100) grossly exceeds actual paid orders (Supabase 30d paid=27, local_orders=18). Conversion signal sent to Ads is inflated ~4-5x. (high)
+- P0: Recovery funnel converts 0 of 119 partial intakes despite 6 recovery emails and 21 captured emails. Zero recovered revenue across both 30d and 90d. (high)
+- P1: Massive top-of-funnel drop: 384 intake_started vs 75 checkout_viewed vs 6 client purchase_completed (30d). Only ~20% reach checkout. (medium)
+- P2: Medical-certificate carries disproportionate refund and abandonment load; paidRate 0.6774 (30d) vs 1.0 for ED/general/repeat-scripts. (medium)
+- P3: Ads spend efficiency degrades over window: 90d local_cac=$119.44 vs 30d local_cac=$92.71, with identical order counts (18) across both windows. (medium)
 
-Rejected unsupported or duplicate raw findings: 1.
+Rejected unsupported or duplicate raw findings: 2.
 ### gpt-gpt-5-mini
 
 Status: ok
 
-Raw model summary included an unsupported local-capture-as-production interpretation. Accepted findings below were filtered against the actual artifacts.
+Ads are losing money and measurement is broken. High CAC > AOV plus multiple attribution/count mismatches and request-to-checkout automation failures need urgent fixes before scaling spend.
 
-- P0: Unit economics are negative: CAC materially exceeds order value (high)
-- P1: Attribution wiring inconsistent between systems (Google Ads, PostHog, Supabase) (high)
-- P1: Client/server event duplication and missing client events (high)
-- P2: High partial/abandonment volume with limited recovery (medium)
-- P3: Failed payments and refunds present but low-volume (high)
+- P0: Ads unit economics are negative (CAC materially exceeds AOV). (high)
+- P0: Attribution/measurement mismatch and probable duplicate server-side conversions are inflating or misreporting conversions. (high)
+- P1: Large intake/request drop-offs; many partials are not converted and recovery is limited. (medium)
+- P2: Low recovery email coverage relative to partials; abandonedEmailSent appears small vs partial withEmail. (medium)
+- P2: Revenue and conversion counts do not reconcile across systems (Google Ads, PostHog, Supabase). (high)
 
 Rejected unsupported or duplicate raw findings: 1.
 

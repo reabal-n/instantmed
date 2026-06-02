@@ -8,14 +8,8 @@
   {
     "status": 200,
     "method": "GET",
-    "resourceType": "image",
-    "url": "https://instantmed.com.au/_next/image?url=%2Fbranding%2Flogo.png&w=32&q=75"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "stylesheet",
-    "url": "https://instantmed.com.au/_next/static/css/adae570415b55350.css?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+    "resourceType": "font",
+    "url": "https://instantmed.com.au/_next/static/media/9cf9c6e84ed13b5e-s.p.woff2"
   },
   {
     "status": 200,
@@ -26,20 +20,20 @@
   {
     "status": 200,
     "method": "GET",
+    "resourceType": "stylesheet",
+    "url": "https://instantmed.com.au/_next/static/css/adae570415b55350.css?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/59550-7fbb478a5457edf4.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
     "resourceType": "script",
     "url": "https://instantmed.com.au/_next/static/chunks/webpack-1b17839ec63a042e.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "image",
-    "url": "https://instantmed.com.au/_next/image?url=%2Fbranding%2Fwordmark.png&w=96&q=75"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "font",
-    "url": "https://instantmed.com.au/_next/static/media/9cf9c6e84ed13b5e-s.p.woff2"
   },
   {
     "status": 200,
@@ -51,31 +45,61 @@
     "status": 200,
     "method": "GET",
     "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/716c89d5-c8f069a5df807a57.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/app/layout-e9b1e81a8dbe7c61.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
     "url": "https://instantmed.com.au/_next/static/chunks/12303-676e355939bf030a.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
   },
   {
     "status": 200,
     "method": "GET",
     "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/app/error-5b586ffb1247229b.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+    "url": "https://instantmed.com.au/_next/static/chunks/5360-8bc4390797afd196.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "image",
+    "url": "https://instantmed.com.au/_next/image?url=%2Fbranding%2Flogo.png&w=32&q=75"
   },
   {
     "status": 200,
     "method": "GET",
     "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/9101-fdf8014bddc8ae83.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+    "url": "https://instantmed.com.au/_next/static/chunks/716c89d5-c8f069a5df807a57.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/72104-cbe59903cf3c9a6b.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/44203-563a88c7ec5c6759.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/19850-8d38966e59e4cdc3.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/37921-043a3a1de3fe93ce.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/25921-bd273cecc01dff7d.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/39441-89da6cd2bfb81642.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
   },
   {
     "status": 200,
@@ -87,7 +111,115 @@
     "status": 200,
     "method": "GET",
     "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/app/layout-e9b1e81a8dbe7c61.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/76668-288dbb73d13070de.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/65055-dccebf71f4a7a822.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/28559-f00e16a2f2798c67.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/29073-12ce90d30de7b3a2.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/app/prescriptions/error-b2ab2267ecc25f41.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/59091-bcc255eec7aeefd9.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/93327-563333d3243d4b1c.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "image",
+    "url": "https://instantmed.com.au/_next/image?url=%2Fbranding%2Fwordmark.png&w=96&q=75"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/64715-d18cf25f7e1325bd.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/9101-fdf8014bddc8ae83.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/app/error-5b586ffb1247229b.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/91549-f87d350b077d32d6.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/app/global-error-adc1ad701ce7a237.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/7796-9edc4d6505427e27.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/app/prescriptions/page-778f83885f3baf92.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
     "url": "https://instantmed.com.au/_next/static/chunks/49400-bdb6c6187bee1b72.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/4239-f6df79499ae7ef39.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/app/(marketing)/page-e7daebf6e2175503.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
   },
   {
     "status": 200,
@@ -105,13 +237,13 @@
     "status": 200,
     "method": "GET",
     "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/64715-d18cf25f7e1325bd.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+    "url": "https://instantmed.com.au/_next/static/chunks/678-8512ece45c16f512.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
   },
   {
     "status": 200,
     "method": "GET",
     "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/7796-9edc4d6505427e27.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+    "url": "https://instantmed.com.au/_next/static/chunks/36590-506385f2a05a79f9.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
   },
   {
     "status": 200,
@@ -129,223 +261,13 @@
     "status": 200,
     "method": "GET",
     "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/4239-f6df79499ae7ef39.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/91549-f87d350b077d32d6.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/28559-f00e16a2f2798c67.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/72104-cbe59903cf3c9a6b.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/76668-288dbb73d13070de.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/25921-bd273cecc01dff7d.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/29073-12ce90d30de7b3a2.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/59091-bcc255eec7aeefd9.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
     "url": "https://instantmed.com.au/_next/static/chunks/20824-91a976bf008a2b12.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
   },
   {
     "status": 200,
     "method": "GET",
     "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/65055-dccebf71f4a7a822.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/37921-043a3a1de3fe93ce.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/44203-563a88c7ec5c6759.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/app/global-error-adc1ad701ce7a237.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/59550-7fbb478a5457edf4.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/app/(marketing)/page-e7daebf6e2175503.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/19850-8d38966e59e4cdc3.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/678-8512ece45c16f512.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/app/prescriptions/page-778f83885f3baf92.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/5360-8bc4390797afd196.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/39441-89da6cd2bfb81642.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/app/prescriptions/error-b2ab2267ecc25f41.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/36590-506385f2a05a79f9.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/93327-563333d3243d4b1c.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/17299.d6816923da0b48b2.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
     "url": "https://instantmed.com.au/_next/static/chunks/6813.730bdb79e148738e.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "font",
-    "url": "https://instantmed.com.au/_next/static/media/636a5ac981f94f8b-s.woff2"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/15078.7a9ee15c311aee07.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "font",
-    "url": "https://instantmed.com.au/_next/static/media/427e4a37d3642943-s.woff2"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/84620.eea62611753b0424.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "other",
-    "url": "https://instantmed.com.au/_next/image?url=%2Fbranding%2Flogo.png&w=32&q=75"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "other",
-    "url": "https://instantmed.com.au/_next/image?url=%2Fbranding%2Fwordmark.png&w=96&q=75"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "image",
-    "url": "https://instantmed.com.au/logos/legitscript.png"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/10441.01aeda26f5ceacd0.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "image",
-    "url": "https://instantmed.com.au/icons/stickers/synchronize.svg"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "image",
-    "url": "https://instantmed.com.au/icons/stickers/stethoscope.svg"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "image",
-    "url": "https://instantmed.com.au/_next/image?url=%2Fbranding%2Fwordmark.png&w=96&q=75"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "image",
-    "url": "https://instantmed.com.au/_next/image?url=%2Fbranding%2Flogo.png&w=32&q=75"
   },
   {
     "status": 200,
@@ -357,13 +279,19 @@
     "status": 200,
     "method": "GET",
     "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/63597.5732a1627afefa5b.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+    "url": "https://instantmed.com.au/_next/static/chunks/98565-743c3883ec87ffec.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
   },
   {
     "status": 200,
     "method": "GET",
     "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/98565-743c3883ec87ffec.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+    "url": "https://instantmed.com.au/_next/static/chunks/84620.eea62611753b0424.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "font",
+    "url": "https://instantmed.com.au/_next/static/media/427e4a37d3642943-s.woff2"
   },
   {
     "status": 200,
@@ -374,8 +302,80 @@
   {
     "status": 200,
     "method": "GET",
+    "resourceType": "font",
+    "url": "https://instantmed.com.au/_next/static/media/636a5ac981f94f8b-s.woff2"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/10441.01aeda26f5ceacd0.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/15078.7a9ee15c311aee07.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/63597.5732a1627afefa5b.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "image",
+    "url": "https://instantmed.com.au/_next/image?url=%2Fbranding%2Flogo.png&w=32&q=75"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "image",
+    "url": "https://instantmed.com.au/_next/image?url=%2Fbranding%2Fwordmark.png&w=96&q=75"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "image",
+    "url": "https://instantmed.com.au/icons/stickers/stethoscope.svg"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "image",
+    "url": "https://instantmed.com.au/logos/legitscript.png"
+  },
+  {
+    "status": 200,
+    "method": "GET",
     "resourceType": "image",
     "url": "https://instantmed.com.au/_next/image?url=%2Fimages%2Frx-2.webp&w=828&q=75"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "image",
+    "url": "https://instantmed.com.au/icons/stickers/synchronize.svg"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "other",
+    "url": "https://instantmed.com.au/_next/image?url=%2Fbranding%2Fwordmark.png&w=96&q=75"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "other",
+    "url": "https://instantmed.com.au/_next/image?url=%2Fbranding%2Flogo.png&w=32&q=75"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/17299.d6816923da0b48b2.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
   },
   {
     "status": 200,
@@ -393,55 +393,7 @@
     "status": 200,
     "method": "GET",
     "resourceType": "fetch",
-    "url": "https://instantmed.com.au/blog?_rsc=q1BLXABhbAdvlvwd"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "fetch",
     "url": "https://instantmed.com.au/api/availability"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "image",
-    "url": "https://instantmed.com.au/icons/stickers/sent.svg"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "image",
-    "url": "https://instantmed.com.au/icons/stickers/stethoscope.svg"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "image",
-    "url": "https://instantmed.com.au/_next/image?url=%2Fimages%2Frx-1.webp&w=828&q=85"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "image",
-    "url": "https://instantmed.com.au/icons/stickers/medical-history.svg"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/66972-e6bd87dc315dd649.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/47879-affda51b425f4062.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/33030-e99c2aa98e2bc5e3.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
   },
   {
     "status": 200,
@@ -453,7 +405,49 @@
     "status": 200,
     "method": "GET",
     "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/app/pricing/loading-a17f4a1c6a7b624e.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+    "url": "https://instantmed.com.au/_next/static/chunks/47879-affda51b425f4062.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "fetch",
+    "url": "https://instantmed.com.au/blog?_rsc=q1BLXABhbAdvlvwd"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/66972-e6bd87dc315dd649.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/33030-e99c2aa98e2bc5e3.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "image",
+    "url": "https://instantmed.com.au/icons/stickers/medical-history.svg"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "image",
+    "url": "https://instantmed.com.au/icons/stickers/stethoscope.svg"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "image",
+    "url": "https://instantmed.com.au/icons/stickers/sent.svg"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "image",
+    "url": "https://instantmed.com.au/_next/image?url=%2Fimages%2Frx-1.webp&w=828&q=85"
   },
   {
     "status": 200,
@@ -465,13 +459,19 @@
     "status": 200,
     "method": "GET",
     "resourceType": "fetch",
-    "url": "https://instantmed.com.au/sign-in?_rsc=q1BLXABhbAdvlvwd"
+    "url": "https://instantmed.com.au/request?_rsc=q1BLXABhbAdvlvwd"
   },
   {
     "status": 200,
     "method": "GET",
     "resourceType": "fetch",
-    "url": "https://instantmed.com.au/request?_rsc=q1BLXABhbAdvlvwd"
+    "url": "https://instantmed.com.au/sign-in?_rsc=q1BLXABhbAdvlvwd"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/app/pricing/loading-a17f4a1c6a7b624e.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
   },
   {
     "status": 200,
@@ -483,7 +483,37 @@
     "status": 200,
     "method": "GET",
     "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/2c0f1efb.fe0600cb4bd895fa.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
     "url": "https://instantmed.com.au/_next/static/chunks/66516-be8527947e1fdd70.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/a4f8d8fb.6eb44e922533ac07.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/63754.0c5d9bda3d3d6e99.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/28303.89ef578cae918ef0.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/26619.317e789a00cf9f91.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
   },
   {
     "status": 200,
@@ -495,19 +525,31 @@
     "status": 200,
     "method": "GET",
     "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/29056.54c67718e9286557.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_next/static/chunks/2099.70c11b84708b6e89.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
     "url": "https://instantmed.com.au/_next/static/chunks/86769.0b9deebbd684de2f.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
   },
   {
     "status": 200,
     "method": "GET",
     "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/2c0f1efb.fe0600cb4bd895fa.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+    "url": "https://instantmed.com.au/_next/static/chunks/89537.de165861c726f3c6.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
   },
   {
     "status": 200,
     "method": "GET",
     "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/29056.54c67718e9286557.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+    "url": "https://instantmed.com.au/_next/static/chunks/6069.90369a51579887b2.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
   },
   {
     "status": 200,
@@ -525,13 +567,7 @@
     "status": 200,
     "method": "GET",
     "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/a4f8d8fb.6eb44e922533ac07.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/6069.90369a51579887b2.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
+    "url": "https://instantmed.com.au/_next/static/chunks/99702.b8b057defc9f706f.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
   },
   {
     "status": 200,
@@ -543,55 +579,31 @@
     "status": 200,
     "method": "GET",
     "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/2099.70c11b84708b6e89.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/99702.b8b057defc9f706f.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/28303.89ef578cae918ef0.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/89537.de165861c726f3c6.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/26619.317e789a00cf9f91.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_next/static/chunks/63754.0c5d9bda3d3d6e99.js?dpl=dpl_4EVp8a4KG32VkvaSzcZ3UpysDUwU"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
     "url": "https://instantmed.com.au/ingest/static/web-vitals.js?v=1.364.7"
   },
   {
     "status": 200,
     "method": "GET",
     "resourceType": "image",
-    "url": "https://instantmed.com.au/_next/image?url=%2Fbranding%2Flogo.png&w=32&q=75"
+    "url": "https://instantmed.com.au/icons/stickers/stethoscope.svg"
   },
   {
     "status": 200,
     "method": "GET",
     "resourceType": "image",
-    "url": "https://instantmed.com.au/_next/image?url=%2Fbranding%2Fwordmark.png&w=96&q=75"
+    "url": "https://instantmed.com.au/logos/legitscript.png"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "script",
+    "url": "https://instantmed.com.au/_vercel/insights/script.js"
+  },
+  {
+    "status": 200,
+    "method": "GET",
+    "resourceType": "image",
+    "url": "https://instantmed.com.au/icons/stickers/sent.svg"
   },
   {
     "status": 200,
@@ -615,25 +627,13 @@
     "status": 200,
     "method": "GET",
     "resourceType": "image",
-    "url": "https://instantmed.com.au/logos/legitscript.png"
+    "url": "https://instantmed.com.au/_next/image?url=%2Fbranding%2Fwordmark.png&w=96&q=75"
   },
   {
     "status": 200,
     "method": "GET",
     "resourceType": "image",
-    "url": "https://instantmed.com.au/icons/stickers/stethoscope.svg"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "image",
-    "url": "https://instantmed.com.au/icons/stickers/sent.svg"
-  },
-  {
-    "status": 200,
-    "method": "GET",
-    "resourceType": "script",
-    "url": "https://instantmed.com.au/_vercel/insights/script.js"
+    "url": "https://instantmed.com.au/_next/image?url=%2Fbranding%2Flogo.png&w=32&q=75"
   },
   {
     "status": 200,
@@ -669,25 +669,25 @@
     "status": 200,
     "method": "GET",
     "resourceType": "fetch",
-    "url": "https://www.googleadservices.com/pagead/set_partitioned_cookie?rcb=10&frm=0&apvc=1&auid=1683026281.1780389795&dt=Repeat+Prescription+Online+%7C+Doctor+Review+%7C+InstantMed&tid=AW-17795889471&en=page_view&gclid=[redacted]&url=https%3A%2F%2Finstantmed.com.au%2Fprescriptions&scrsrc=www.googletagmanager.com&lps=1&rnd=201037009.1780389795&gclaw=conversion_audit_click_id&navt=n&npa=0&gtm=45be65t1v9239393964za200zd9239393964xec&gcs=G111&gcd=13v3v3_3v5l1&dma=0&tag_exp=0%7E115938466%7E115938469&tft=1780389794912&tfd=2719&apve=1&apvf=f"
+    "url": "https://www.googleadservices.com/pagead/set_partitioned_cookie?rcb=8&frm=0&apvc=1&auid=2146236141.1780391561&dt=Repeat+Prescription+Online+%7C+Doctor+Review+%7C+InstantMed&tid=AW-17795889471&en=page_view&gclid=[redacted]&url=https%3A%2F%2Finstantmed.com.au%2Fprescriptions&scrsrc=www.googletagmanager.com&lps=1&rnd=499318096.1780391561&gclaw=conversion_audit_click_id&navt=n&npa=0&gtm=45be65t1v9239393964za200zd9239393964xec&gcs=G111&gcd=13t3t3Z3t5l1&dma=0&tag_exp=0%7E115938466%7E115938469%7E119064971&tft=1780391560582&tfd=3553&apve=1&apvf=f"
   },
   {
     "status": 200,
     "method": "POST",
     "resourceType": "fetch",
-    "url": "https://www.google.com/rmkt/collect/17795889471/?random=1780389794905&cv=11&fst=1780389794905&fmt=8&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be65t1v9239393964za200zd9239393964xec&gcd=13v3v3_3v5l1&dma=0&tag_exp=0~115938466~115938469&u_w=1440&u_h=1100&url=https%3A%2F%2Finstantmed.com.au%2Fprescriptions%3Futm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_campaign%3Dconversion_audit_synthetic%26utm_id%3Dconversion_audit%26utm_term%3Donline%2Bprescription%2Brefill%26campaignid%3Dconversion_audit%26adgroupid%3Dconversion_audit%26keyword%3Donline%2Bprescription%2Brefill%26creative%3Dconversion_audit%26matchtype%3De%26device%3Dm%26network%3Dg%26gclid%3Dconversion_audit_click_id&gclaw_src=2_3&rcb=10&frm=0&tiba=Repeat%20Prescription%20Online%20%7C%20Doctor%20Review%20%7C%20InstantMed&hn=www.googleadservices.com&npa=0&gclaw=conversion_audit_click_id&pscdl=noapi&auid=1683026281.1780389795&data=event%3Dgtag.config&gcp=5"
-  },
-  {
-    "status": 200,
-    "method": "POST",
-    "resourceType": "fetch",
-    "url": "https://www.google.com/ccm/collect?rcb=10&frm=0&auid=1683026281.1780389795&dt=Repeat+Prescription+Online+%7C+Doctor+Review+%7C+InstantMed&en=page_view&gclid=[redacted]&dl=https%3A%2F%2Finstantmed.com.au%2Fprescriptions&scrsrc=www.googletagmanager.com&lps=1&rnd=201037009.1780389795&gclaw=conversion_audit_click_id&navt=n&npa=0&gtm=45be65t1v9239393964za200zd9239393964xec&gcs=G111&gcd=13v3v3_3v5l1&dma=0&tag_exp=0%7E115938466%7E115938469&apve=1&apvf=f&apvc=1&tids=AW-17795889471&tid=AW-17795889471&tft=1780389794921&tfd=2728"
+    "url": "https://www.google.com/rmkt/collect/17795889471/?random=1780391560575&cv=11&fst=1780391560575&fmt=8&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be65t1v9239393964za200zd9239393964xec&gcd=13t3t3Z3t5l1&dma=0&tag_exp=0~115938466~115938469~119064971&u_w=1440&u_h=1100&url=https%3A%2F%2Finstantmed.com.au%2Fprescriptions%3Futm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_campaign%3Dconversion_audit_synthetic%26utm_id%3Dconversion_audit%26utm_term%3Donline%2Bprescription%2Brefill%26campaignid%3Dconversion_audit%26adgroupid%3Dconversion_audit%26keyword%3Donline%2Bprescription%2Brefill%26creative%3Dconversion_audit%26matchtype%3De%26device%3Dm%26network%3Dg%26gclid%3Dconversion_audit_click_id&gclaw_src=2_3&rcb=8&frm=0&tiba=Repeat%20Prescription%20Online%20%7C%20Doctor%20Review%20%7C%20InstantMed&hn=www.googleadservices.com&npa=0&gclaw=conversion_audit_click_id&pscdl=noapi&auid=2146236141.1780391561&data=event%3Dgtag.config&gcp=5"
   },
   {
     "status": 200,
     "method": "GET",
     "resourceType": "script",
-    "url": "https://googleads.g.doubleclick.net/pagead/viewthroughconversion/17795889471/?random=1780389794905&cv=11&fst=1780389794905&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be65t1v9239393964za200zd9239393964xec&gcd=13v3v3_3v5l1&dma=0&tag_exp=0~115938466~115938469&u_w=1440&u_h=1100&url=https%3A%2F%2Finstantmed.com.au%2Fprescriptions%3Futm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_campaign%3Dconversion_audit_synthetic%26utm_id%3Dconversion_audit%26utm_term%3Donline%2Bprescription%2Brefill%26campaignid%3Dconversion_audit%26adgroupid%3Dconversion_audit%26keyword%3Donline%2Bprescription%2Brefill%26creative%3Dconversion_audit%26matchtype%3De%26device%3Dm%26network%3Dg%26gclid%3Dconversion_audit_click_id&rcb=10&frm=0&tiba=Repeat%20Prescription%20Online%20%7C%20Doctor%20Review%20%7C%20InstantMed&hn=www.googleadservices.com&npa=0&pscdl=noapi&auid=1683026281.1780389795&data=event%3Dgtag.config&rfmt=3&fmt=4"
+    "url": "https://googleads.g.doubleclick.net/pagead/viewthroughconversion/17795889471/?random=1780391560575&cv=11&fst=1780391560575&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be65t1v9239393964za200zd9239393964xec&gcd=13t3t3Z3t5l1&dma=0&tag_exp=0~115938466~115938469~119064971&u_w=1440&u_h=1100&url=https%3A%2F%2Finstantmed.com.au%2Fprescriptions%3Futm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_campaign%3Dconversion_audit_synthetic%26utm_id%3Dconversion_audit%26utm_term%3Donline%2Bprescription%2Brefill%26campaignid%3Dconversion_audit%26adgroupid%3Dconversion_audit%26keyword%3Donline%2Bprescription%2Brefill%26creative%3Dconversion_audit%26matchtype%3De%26device%3Dm%26network%3Dg%26gclid%3Dconversion_audit_click_id&rcb=8&frm=0&tiba=Repeat%20Prescription%20Online%20%7C%20Doctor%20Review%20%7C%20InstantMed&hn=www.googleadservices.com&npa=0&pscdl=noapi&auid=2146236141.1780391561&data=event%3Dgtag.config&rfmt=3&fmt=4"
+  },
+  {
+    "status": 200,
+    "method": "POST",
+    "resourceType": "fetch",
+    "url": "https://www.google.com/ccm/collect?rcb=8&frm=0&auid=2146236141.1780391561&dt=Repeat+Prescription+Online+%7C+Doctor+Review+%7C+InstantMed&en=page_view&gclid=[redacted]&dl=https%3A%2F%2Finstantmed.com.au%2Fprescriptions&scrsrc=www.googletagmanager.com&lps=1&rnd=499318096.1780391561&gclaw=conversion_audit_click_id&navt=n&npa=0&gtm=45be65t1v9239393964za200zd9239393964xec&gcs=G111&gcd=13t3t3Z3t5l1&dma=0&tag_exp=0%7E115938466%7E115938469%7E119064971&apve=1&apvf=f&apvc=1&tids=AW-17795889471&tid=AW-17795889471&tft=1780391560589&tfd=3560"
   },
   {
     "status": 200,

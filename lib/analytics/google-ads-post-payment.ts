@@ -191,8 +191,17 @@ function trackGoogleAdsPostHogEvent({
 }) {
   try {
     const posthog = getPostHogClient()
+    const attemptInsertId = [
+      "google_ads_server_conversion_attempt",
+      intakeId,
+      source,
+      status,
+      error || "no_error",
+    ].join(":")
+    const successInsertId = ["google_ads_server_conversion", intakeId].join(":")
     const properties = {
       ...getPostHogBaselineProperties(),
+      $insert_id: attemptInsertId,
       adgroupid: row.adgroupid || null,
       amount_cents: amountCents,
       attempted: result.attempted,
@@ -224,7 +233,10 @@ function trackGoogleAdsPostHogEvent({
       posthog.capture({
         distinctId: posthogDistinctId,
         event: "google_ads_server_conversion",
-        properties,
+        properties: {
+          ...properties,
+          $insert_id: successInsertId,
+        },
       })
     }
   } catch {

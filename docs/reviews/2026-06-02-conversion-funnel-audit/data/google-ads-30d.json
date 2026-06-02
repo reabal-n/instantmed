@@ -53,7 +53,7 @@
               "MOBILE",
               "TABLET"
             ],
-            "impressions": 481,
+            "impressions": 480,
             "localGrossRevenueAud": 29.95,
             "localNetRevenueAud": 29.95,
             "localOrders": 1,
@@ -99,7 +99,7 @@
           "totalClicks": 511,
           "totalConversions": 22,
           "totalConversionValueAud": 324.55,
-          "totalImpressions": 4781,
+          "totalImpressions": 4780,
           "totalLocalGrossRevenueAud": 449.1,
           "totalLocalNetRevenueAud": 419.15,
           "totalLocalOrders": 18,
@@ -3788,7 +3788,7 @@
           }
         }
       ],
-      "generatedAt": "2026-06-02T08:42:57.189Z",
+      "generatedAt": "2026-06-02T09:12:15.313Z",
       "local": {
         "byCampaign": [
           {

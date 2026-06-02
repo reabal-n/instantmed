@@ -28,7 +28,7 @@
   "bodyText": "You're back online Skip to main content Your details Step 3 of 4 Your details Needed for your medical record and result delivery. First name * (required) First name is required Last name * (required) Last name is required Email * (required) Email is required Date of birth * (required) Date of birth is required Mobile phone Optional - we'll only call if your doctor needs to follow up 256-bit encrypted Never shared with third parties Continue",
   "hasAttributionCookie": true,
   "storage": {
-    "instantmed_attribution": "{\"landing_page\":\"/request\",\"captured_at\":\"2026-06-02T08:43:48.252Z\"}",
-    "instantmed-request-draft": "{\"state\":{\"serviceType\":\"med-cert\",\"currentStepId\":\"details\",\"safetyConfirmed\":false,\"safetyTimestamp\":null,\"answers\":{\"startDate\":\"2026-06-02\",\"duration\":\"1\",\"certType\":\"work\",\"symptomDuration\":\"1_2_days\",\"symptomDetails\":\"I have had a cold and headache since yesterday with body aches and a runny nose.\"},\"firstName\":\"\",\"lastName\":\"\",\"email\":\"\",\"phone\":\"\",\"dob\":\"\",\"lastSavedAt\":\"2026-06-02T08:43:54.297Z\"},\"version\":0}"
+    "instantmed_attribution": "{\"landing_page\":\"/request\",\"captured_at\":\"2026-06-02T09:13:05.934Z\"}",
+    "instantmed-request-draft": "{\"state\":{\"serviceType\":\"med-cert\",\"currentStepId\":\"details\",\"safetyConfirmed\":false,\"safetyTimestamp\":null,\"answers\":{\"startDate\":\"2026-06-02\",\"duration\":\"1\",\"certType\":\"work\",\"symptomDuration\":\"1_2_days\",\"symptomDetails\":\"I have had a cold and headache since yesterday with body aches and a runny nose.\"},\"firstName\":\"\",\"lastName\":\"\",\"email\":\"\",\"phone\":\"\",\"dob\":\"\",\"lastSavedAt\":\"2026-06-02T09:13:10.677Z\"},\"version\":0}"
   }
 }

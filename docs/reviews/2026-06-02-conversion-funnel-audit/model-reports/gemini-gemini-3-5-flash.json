@@ -1,61 +1,50 @@
 {
   "model": "gemini-gemini-3.5-flash",
   "status": "ok",
-  "summary": "Critical mobile intake script failures are blocking checkout conversions, compounded by frozen attribution reporting and flawed funnel measurement logic.",
+  "summary": "Severe tracking and attribution freeze detected alongside mobile intake failures, inflating reported CAC by 28.8% and starving Google Ads algorithms.",
   "findings": [
     {
       "severity": "P0",
-      "blocker": "Mobile intake JS crash preventing progression to checkout across all core services",
-      "evidence": "All mobile request-to-checkout automated flows (medical-certificate, repeat-prescriptions, erectile-dysfunction, hair-loss) failed to reach checkout and threw console errors (consoleErrors=1) on the localhost server path.",
-      "affected_service": "all",
-      "likely_funnel_stage": "intake",
-      "cac_impact": "Severe. Mobile clicks (representing the majority of device traffic based on ad UTMs) are completely wasted as users cannot initiate checkout, driving up the true 90-day local CAC to $119.44 compared to the reported CPA.",
-      "compliance_risk": "low with reason: Technical JS crash, not a clinical safety or regulatory issue.",
+      "blocker": "Attribution tracking pipeline broken/frozen, resulting in zero new ad-attributed orders recorded in Supabase or Google Ads over the last 60 days.",
+      "evidence": "Supabase 30d and 90d 'adAttributed' counts are frozen at exactly 26. Google Ads 30d and 90d conversions are identical at 22, and 'local_orders' is identical at 18, despite Supabase showing 50 new paid orders (77 in 90d vs 27 in 30d).",
+      "affected_service": "attribution",
+      "likely_funnel_stage": "attribution",
+      "cac_impact": "Artificially inflates local CAC from $92.71 to $119.44 (a 28.8% increase) and starves Google Ads Smart Bidding algorithms of critical conversion data.",
+      "compliance_risk": "low",
       "confidence": "high",
-      "recommended_fix": "Debug the mobile layout script rendering the intake flow at '/request'. Resolve the viewport-specific JS runtime error that crashes the application before reaching the checkout step."
+      "recommended_fix": "Implement persistent client-side storage (e.g., localStorage) for UTM and gclid parameters on landing page load, and ensure they are attached to the API payload during intake creation and synced back via Google Ads Offline Conversion Tracking."
     },
     {
       "severity": "P1",
-      "blocker": "Server-side conversion and ad attribution tracking are frozen, hiding real performance metrics",
-      "evidence": "Supabase 'adAttributed' is stuck at exactly 26 for both 30d and 90d. Similarly, PostHog 'purchase_completed_server' remains at 24 and 'google_ads_server_conversion' is capped at exactly 100 for both 30d and 90d.",
-      "affected_service": "all",
-      "likely_funnel_stage": "attribution",
-      "cac_impact": "Google Ads smart bidding algorithms are optimizing against stale or hard-capped conversion feedback loops, resulting in misallocated ad spend and inefficient automated targeting.",
-      "compliance_risk": "low with reason: Internal data desync, does not breach external healthcare compliance standards.",
+      "blocker": "Request-to-checkout flows failing on mobile across all core health services with client-side console errors.",
+      "evidence": "Browser captures for medical-certificate, repeat-prescriptions, erectile-dysfunction, and hair-loss request-to-checkout mobile flows all reported status 'failed' with consoleErrors=1.",
+      "affected_service": "intake",
+      "likely_funnel_stage": "intake",
+      "cac_impact": "Directly blocks mobile traffic from completing the intake funnel, leading to a high volume of abandoned checkouts and lost revenue.",
+      "compliance_risk": "low",
       "confidence": "high",
-      "recommended_fix": "Audit server-side conversion webhooks to Google Ads and PostHog. Verify that events are sent with unique deduplication IDs and check for hard limits in the server-to-server transaction tracking function."
+      "recommended_fix": "Debug and fix the JavaScript runtime errors occurring on mobile browsers during the intake step transitions, and add automated mobile integration tests for the multi-step request flows."
     },
     {
       "severity": "P2",
-      "blocker": "Inverted funnel event logic and duplicate payment completions reported in analytics",
-      "evidence": "PostHog 30d metrics show 83 'intake_funnel_payment_completed' events but only 38 'intake_funnel_payment_initiated' and 'intake_funnel_intake_started' events.",
-      "affected_service": "all",
-      "likely_funnel_stage": "checkout",
-      "cac_impact": "Distorts conversion funnel visualization and reporting, rendering quantitative optimizations of checkout layout impossible.",
-      "compliance_risk": "low with reason: Analytics tracking bug only.",
-      "confidence": "high",
-      "recommended_fix": "Add idempotent event tracking or state checks on the payment completion client trigger to prevent multi-firing on page refreshes or automatic redirect polls."
-    },
-    {
-      "severity": "P2",
-      "blocker": "Static partial step tracking database queries preventing recovery automation flow updates",
-      "evidence": "Supabase 30d and 90d partial totals are identical down to every integer (e.g., both show count=119, withEmail=21, certificate=75, medication=14).",
-      "affected_service": "all",
+      "blocker": "Database logging of partials/drafts and recovery email triggers are completely frozen.",
+      "evidence": "30d and 90d partial totals are identical down to the exact integer (count=119, converted=0, expired=3, recoverySent=6, withEmail=21), indicating no new drafts have been saved or processed in the last 60 days.",
+      "affected_service": "recovery",
       "likely_funnel_stage": "recovery",
-      "cac_impact": "Indicates that cart recovery emails (recoverySent) are not executing dynamically for fresh drop-offs, directly lowering potential revenue and increasing CAC.",
-      "compliance_risk": "low with reason: Cart recovery cron failure only.",
+      "cac_impact": "Completely disables the abandoned cart recovery mechanism, resulting in 0% recovery conversion rate for highly qualified warm leads.",
+      "compliance_risk": "low",
       "confidence": "high",
-      "recommended_fix": "Audit the Supabase cron job or PostgreSQL query tracking partial completions to ensure date filtering parameter (30d vs 90d) is correctly parsed and not returning cached static datasets."
+      "recommended_fix": "Repair the database triggers or serverless cron jobs responsible for capturing partial intake states and launching email recovery templates."
     }
   ],
   "ads_triage": [
-    "Recommend pausing or heavily capping budgets on mobile targeting devices specifically, since mobile JS crashes prevent conversion while costing valuable ad-clicks.",
-    "Avoid using automated Target CPA or Maximize Conversions bidding models while the server conversion pixel is frozen at 100 events, as the algorithm will optimize on stale data."
+    "Temporarily cap daily Google Ads spend or switch from CPA/Maximize Conversions to Maximize Clicks/Manual CPC bidding to prevent budget waste while conversion tracking is broken.",
+    "Do not scale budget on high-performing keyword sets until attribution parameters are successfully persisting to Supabase and syncing to Google Ads."
   ],
   "measurement_notes": [
     "Gemini reviewed the artifact pack without attached video bytes after direct Files API upload stalled in two prior audit runs.",
-    "PostHog data indicates severe client-side tracking inflation where payment completion counts exceed initiation counts.",
-    "Supabase database queries for partial steps are returning static results, making tracking of real-time dropoff metrics at specific funnel steps impossible until resolved."
+    "PostHog events for google_ads_server_conversion are hard-capped at exactly 100 for both 30d and 90d, indicating a data truncation or reporting cap.",
+    "PostHog purchase_completed_server is stuck at 24 for both periods, confirming server-side telemetry is failing to record any transactions after the first 30 days."
   ],
   "errors": []
 }

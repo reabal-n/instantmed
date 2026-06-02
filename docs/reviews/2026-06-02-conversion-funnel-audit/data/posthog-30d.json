@@ -2,8 +2,8 @@
   "ok": true,
   "status": 200,
   "days": 30,
-  "dateFrom": "2026-05-03T08:42:58.903Z",
-  "dateTo": "2026-06-02T08:42:58.903Z",
+  "dateFrom": "2026-05-03T09:12:20.115Z",
+  "dateTo": "2026-06-02T09:12:20.115Z",
   "events": [
     {
       "event": "intake_started",
@@ -15,7 +15,7 @@
     },
     {
       "event": "step_completed",
-      "count": 1308
+      "count": 1307
     },
     {
       "event": "checkout_viewed",

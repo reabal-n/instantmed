@@ -6,7 +6,8 @@ import {
   getAttribution,
 } from "@/lib/analytics/attribution"
 
-let storage: Record<string, string>
+let sessionStorageState: Record<string, string>
+let localStorageState: Record<string, string>
 let cookieJar: string
 let locationState: { search: string; pathname: string; protocol: string }
 
@@ -35,12 +36,25 @@ function installBrowserGlobals() {
 
   Object.defineProperty(global, "sessionStorage", {
     value: {
-      getItem: (key: string) => storage[key] ?? null,
+      getItem: (key: string) => sessionStorageState[key] ?? null,
       setItem: (key: string, value: string) => {
-        storage[key] = value
+        sessionStorageState[key] = value
       },
       removeItem: (key: string) => {
-        delete storage[key]
+        delete sessionStorageState[key]
+      },
+    },
+    writable: true,
+  })
+
+  Object.defineProperty(global, "localStorage", {
+    value: {
+      getItem: (key: string) => localStorageState[key] ?? null,
+      setItem: (key: string, value: string) => {
+        localStorageState[key] = value
+      },
+      removeItem: (key: string) => {
+        delete localStorageState[key]
       },
     },
     writable: true,
@@ -48,7 +62,8 @@ function installBrowserGlobals() {
 }
 
 beforeEach(() => {
-  storage = {}
+  sessionStorageState = {}
+  localStorageState = {}
   cookieJar = ""
   locationState = { search: "", pathname: "/", protocol: "https:" }
   installBrowserGlobals()
@@ -84,6 +99,7 @@ describe("attribution capture", () => {
       referrer: "https://www.google.com/",
     })
     expect(cookieJar.startsWith(`${ATTRIBUTION_COOKIE_KEY}=`)).toBe(true)
+    expect(localStorageState[ATTRIBUTION_COOKIE_KEY]).toBeTruthy()
   })
 
   it("lets a later paid click replace earlier direct-session context", () => {
@@ -111,6 +127,24 @@ describe("attribution capture", () => {
     expect(getAttribution()).toMatchObject({
       gclid: "cookie-click",
       landing_page: "/request",
+    })
+  })
+
+  it("falls back to local storage when a new tab has no session attribution", () => {
+    locationState = {
+      search: "?gclid=durable-click&utm_source=google",
+      pathname: "/medical-certificate",
+      protocol: "https:",
+    }
+
+    captureAttribution()
+    sessionStorageState = {}
+    cookieJar = ""
+
+    expect(getAttribution()).toMatchObject({
+      gclid: "durable-click",
+      utm_source: "google",
+      landing_page: "/medical-certificate",
     })
   })
 })
