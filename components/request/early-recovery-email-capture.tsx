@@ -17,6 +17,7 @@ interface EarlyRecoveryEmailCaptureProps {
   certType?: string
   selectedDays: number | null
   startOffset: number | null
+  medicationCount?: number
 }
 
 interface EarlyRecoveryEmailCaptureState {
@@ -26,6 +27,7 @@ interface EarlyRecoveryEmailCaptureState {
   certType?: string
   selectedDays: number | null
   startOffset: number | null
+  medicationCount?: number
 }
 
 export function normalizeRecoveryEmailInput(value: string) {
@@ -39,11 +41,17 @@ export function shouldShowEarlyRecoveryEmailCapture({
   certType,
   selectedDays,
   startOffset,
+  medicationCount,
 }: EarlyRecoveryEmailCaptureState) {
+  const hasKnownIdentity = hasProfile || Boolean(email?.trim())
+  if (hasKnownIdentity) return false
+
+  if (serviceType === "prescription" || serviceType === "repeat-script") {
+    return (medicationCount ?? 0) > 0
+  }
+
   return (
     serviceType === "med-cert" &&
-    !hasProfile &&
-    !email?.trim() &&
     Boolean(certType) &&
     selectedDays !== null &&
     startOffset !== null
@@ -55,6 +63,7 @@ export function EarlyRecoveryEmailCapture({
   certType,
   selectedDays,
   startOffset,
+  medicationCount,
 }: EarlyRecoveryEmailCaptureProps) {
   const { email, authContext, setIdentity } = useRequestStore()
   const posthog = usePostHog()
@@ -72,8 +81,9 @@ export function EarlyRecoveryEmailCapture({
         certType,
         selectedDays,
         startOffset,
+        medicationCount,
       }),
-    [authContext.hasProfile, certType, email, selectedDays, serviceType, startOffset],
+    [authContext.hasProfile, certType, email, medicationCount, selectedDays, serviceType, startOffset],
   )
 
   const handleSave = useCallback(() => {
@@ -91,11 +101,12 @@ export function EarlyRecoveryEmailCapture({
     setSaved(true)
     posthog?.capture("early_recovery_email_captured", {
       service_type: serviceType,
-      step: "certificate",
+      step: serviceType === "med-cert" ? "certificate" : "medication",
       has_cert_type: Boolean(certType),
       duration: selectedDays,
+      medication_count: medicationCount,
     })
-  }, [certType, inputValue, posthog, selectedDays, serviceType, setIdentity])
+  }, [certType, inputValue, medicationCount, posthog, selectedDays, serviceType, setIdentity])
 
   if (!shouldShow && !saved) return null
 
