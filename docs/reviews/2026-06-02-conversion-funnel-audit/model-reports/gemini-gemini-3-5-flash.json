@@ -1,61 +1,61 @@
 {
   "model": "gemini-gemini-3.5-flash",
   "status": "ok",
-  "summary": "Critical funnel failures identified: Mobile flows are redirecting to localhost:3060 breaking conversion entirely on mobile devices, database-level schema error is blocking the abandonment tracking, and retired CTA links on the prescription landing page redirect users to a non-payable service hub. Conversion tracking is also heavily inflated.",
+  "summary": "Critical mobile intake script failures are blocking checkout conversions, compounded by frozen attribution reporting and flawed funnel measurement logic.",
   "findings": [
     {
       "severity": "P0",
-      "blocker": "Mobile request-to-checkout flows redirect users to localhost:3060, completely blocking transaction progression",
-      "evidence": "Browser Captures: medical-certificate, repeat-prescriptions, erectile-dysfunction, and hair-loss request-to-checkout mobile tests all failed with consoleErrors=1 and final URLs pointing to http://localhost:3060/request?service=...",
+      "blocker": "Mobile intake JS crash preventing progression to checkout across all core services",
+      "evidence": "All mobile request-to-checkout automated flows (medical-certificate, repeat-prescriptions, erectile-dysfunction, hair-loss) failed to reach checkout and threw console errors (consoleErrors=1) on the localhost server path.",
       "affected_service": "all",
       "likely_funnel_stage": "intake",
-      "cac_impact": "Infinite CAC on mobile campaigns as users cannot complete the funnel, burning all mobile-allocated ad spend.",
-      "compliance_risk": "low with reason (Purely functional/technical routing failure)",
+      "cac_impact": "Severe. Mobile clicks (representing the majority of device traffic based on ad UTMs) are completely wasted as users cannot initiate checkout, driving up the true 90-day local CAC to $119.44 compared to the reported CPA.",
+      "compliance_risk": "low with reason: Technical JS crash, not a clinical safety or regulatory issue.",
       "confidence": "high",
-      "recommended_fix": "Fix base URL routing configuration in production environments. Ensure absolute URLs for the intake funnel resolve to the production domain (https://instantmed.com.au) rather than falling back to local development environment variables."
+      "recommended_fix": "Debug the mobile layout script rendering the intake flow at '/request'. Resolve the viewport-specific JS runtime error that crashes the application before reaching the checkout step."
     },
     {
       "severity": "P1",
-      "blocker": "Prescription landing page has a CTA leading to a retired bare consult flow redirecting to the general service hub",
-      "evidence": "Static Checks: components/marketing/prescriptions-landing.tsx contains '/request?service=consult' which redirects to the service hub/overview rather than starting a payable new-prescription intake.",
-      "affected_service": "repeat-prescriptions",
-      "likely_funnel_stage": "cta",
-      "cac_impact": "Directly inflates CAC on prescription-related ads since the landing CTA drops users off into an un-payable loop.",
-      "compliance_risk": "medium with reason (Confusing user UX and misleading CTAs can raise dark pattern/regulatory concerns regarding telehealth clarity)",
-      "confidence": "high",
-      "recommended_fix": "Replace the CTA in components/marketing/prescriptions-landing.tsx with an active structured pathway (e.g., /request?service=repeat-script) or remove the CTA option until a valid replacement is deployed."
-    },
-    {
-      "severity": "P1",
-      "blocker": "Database schema error prevents tracking and populating the 'public.intake_abandonment' table",
-      "evidence": "Supabase Funnel (30d and 90d query errors): 'Could not find the table public.intake_abandonment in the schema cache'.",
+      "blocker": "Server-side conversion and ad attribution tracking are frozen, hiding real performance metrics",
+      "evidence": "Supabase 'adAttributed' is stuck at exactly 26 for both 30d and 90d. Similarly, PostHog 'purchase_completed_server' remains at 24 and 'google_ads_server_conversion' is capped at exactly 100 for both 30d and 90d.",
       "affected_service": "all",
-      "likely_funnel_stage": "recovery",
-      "cac_impact": "Prevents recovery campaigns from correctly executing and retrieving abandoned carts, causing a lack of automated conversion uplift.",
-      "compliance_risk": "low with reason (Internal backend database schema error)",
+      "likely_funnel_stage": "attribution",
+      "cac_impact": "Google Ads smart bidding algorithms are optimizing against stale or hard-capped conversion feedback loops, resulting in misallocated ad spend and inefficient automated targeting.",
+      "compliance_risk": "low with reason: Internal data desync, does not breach external healthcare compliance standards.",
       "confidence": "high",
-      "recommended_fix": "Run database migrations to generate the missing 'public.intake_abandonment' table and clear/reload the Supabase schema cache."
+      "recommended_fix": "Audit server-side conversion webhooks to Google Ads and PostHog. Verify that events are sent with unique deduplication IDs and check for hard limits in the server-to-server transaction tracking function."
     },
     {
       "severity": "P2",
-      "blocker": "Severe attribution mapping discrepancies between server-side triggers, Google Ads, and local database orders",
-      "evidence": "Google Ads shows 22 conversions; PostHog shows exactly 100 'google_ads_server_conversion' events; local orders are only 18. Net earnings are $419.15 against a 30d spend of $1,657.68.",
+      "blocker": "Inverted funnel event logic and duplicate payment completions reported in analytics",
+      "evidence": "PostHog 30d metrics show 83 'intake_funnel_payment_completed' events but only 38 'intake_funnel_payment_initiated' and 'intake_funnel_intake_started' events.",
       "affected_service": "all",
-      "likely_funnel_stage": "attribution",
-      "cac_impact": "Inaccurate smart bidding optimization. Google Ads is optimizing for 22 (or 100) conversions while local paid orders are only 18, leading to a massive actual local CAC of $92.09 (30d) / $118.82 (90d) relative to a low AOV of ~$31-$39.",
-      "compliance_risk": "low with reason (Tracking mismatches affect bidding efficiency but not medical regulatory compliance)",
+      "likely_funnel_stage": "checkout",
+      "cac_impact": "Distorts conversion funnel visualization and reporting, rendering quantitative optimizations of checkout layout impossible.",
+      "compliance_risk": "low with reason: Analytics tracking bug only.",
       "confidence": "high",
-      "recommended_fix": "Audit the server conversion script triggering 'google_ads_server_conversion'. Restrict the firing trigger exclusively to confirmed paid webhook responses from Stripe/payment gateway, rather than checkout initiations or pageviews."
+      "recommended_fix": "Add idempotent event tracking or state checks on the payment completion client trigger to prevent multi-firing on page refreshes or automatic redirect polls."
+    },
+    {
+      "severity": "P2",
+      "blocker": "Static partial step tracking database queries preventing recovery automation flow updates",
+      "evidence": "Supabase 30d and 90d partial totals are identical down to every integer (e.g., both show count=119, withEmail=21, certificate=75, medication=14).",
+      "affected_service": "all",
+      "likely_funnel_stage": "recovery",
+      "cac_impact": "Indicates that cart recovery emails (recoverySent) are not executing dynamically for fresh drop-offs, directly lowering potential revenue and increasing CAC.",
+      "compliance_risk": "low with reason: Cart recovery cron failure only.",
+      "confidence": "high",
+      "recommended_fix": "Audit the Supabase cron job or PostgreSQL query tracking partial completions to ensure date filtering parameter (30d vs 90d) is correctly parsed and not returning cached static datasets."
     }
   ],
   "ads_triage": [
-    "Pause or severely cap budgets on all mobile-targeted campaigns immediately until the localhost routing leak is fixed to stop spending on broken mobile checkouts.",
-    "Pause prescription-specific keyword ad groups and campaigns targeting the prescription landing page until the CTA redirection mismatch is corrected."
+    "Recommend pausing or heavily capping budgets on mobile targeting devices specifically, since mobile JS crashes prevent conversion while costing valuable ad-clicks.",
+    "Avoid using automated Target CPA or Maximize Conversions bidding models while the server conversion pixel is frozen at 100 events, as the algorithm will optimize on stale data."
   ],
   "measurement_notes": [
     "Gemini reviewed the artifact pack without attached video bytes after direct Files API upload stalled in two prior audit runs.",
-    "PostHog reports 100 server conversions for both 30-day and 90-day intervals, indicating a static, broken, or mocked attribution trigger.",
-    "The 5 recovery emails sent in 30 days is exceptionally low compared to 113 partial dropoffs; this confirms the missing table error is severely limiting the intake recovery capability."
+    "PostHog data indicates severe client-side tracking inflation where payment completion counts exceed initiation counts.",
+    "Supabase database queries for partial steps are returning static results, making tracking of real-time dropoff metrics at specific funnel steps impossible until resolved."
   ],
   "errors": []
 }

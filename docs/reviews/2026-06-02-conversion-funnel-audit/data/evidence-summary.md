@@ -1,8 +1,8 @@
-Generated: 2026-06-02T05:43:12.104Z
+Generated: 2026-06-02T08:45:37.657Z
 
 ## Google Ads
-30d: spend=$1,657.68 clicks=509 ads_conversions=22 ads_cpa=$75.35 local_orders=18 local_net=$419.15 local_cac=$92.09
-90d: spend=$2,138.81 clicks=691 ads_conversions=22 ads_cpa=$97.22 local_orders=18 local_net=$419.15 local_cac=$118.82
+30d: spend=$1,668.80 clicks=511 ads_conversions=22 ads_cpa=$75.85 local_orders=18 local_net=$419.15 local_cac=$92.71
+90d: spend=$2,149.93 clicks=693 ads_conversions=22 ads_cpa=$97.72 local_orders=18 local_net=$419.15 local_cac=$119.44
 
 ## Supabase Funnel
 30d totals: {"abandonedEmailSent":8,"adAttributed":26,"avgOrderValueAud":39.93,"count":37,"failedPayment":2,"grossAud":1078.15,"netAud":998.25,"paid":27,"paidRate":0.7297,"pendingPayment":1,"refundAud":79.9,"refunded":2}
@@ -10,10 +10,10 @@ Generated: 2026-06-02T05:43:12.104Z
 30d service erectile-dysfunction: {"abandonedEmailSent":0,"adAttributed":0,"avgOrderValueAud":49.95,"count":3,"failedPayment":0,"grossAud":149.85,"netAud":149.85,"paid":3,"paidRate":1,"pendingPayment":0,"refundAud":0,"refunded":0}
 30d service general: {"abandonedEmailSent":0,"adAttributed":0,"avgOrderValueAud":49.95,"count":2,"failedPayment":0,"grossAud":99.9,"netAud":49.95,"paid":2,"paidRate":1,"pendingPayment":0,"refundAud":49.95,"refunded":1}
 30d service repeat-prescriptions: {"abandonedEmailSent":0,"adAttributed":1,"avgOrderValueAud":29.95,"count":1,"failedPayment":0,"grossAud":29.95,"netAud":29.95,"paid":1,"paidRate":1,"pendingPayment":0,"refundAud":0,"refunded":0}
-30d partial totals: {"converted":0,"count":113,"expired":1,"recoverySent":5,"staleEligibleApprox":0,"withEmail":19}
-30d partial step certificate: {"converted":0,"count":70,"expired":1,"recoverySent":1,"staleEligibleApprox":0,"withEmail":1}
-30d partial step medication: {"converted":0,"count":13,"expired":0,"recoverySent":1,"staleEligibleApprox":0,"withEmail":1}
-30d partial step review: {"converted":0,"count":8,"expired":0,"recoverySent":1,"staleEligibleApprox":0,"withEmail":8}
+30d partial totals: {"converted":0,"count":119,"expired":3,"recoverySent":6,"staleEligibleApprox":1,"withEmail":21}
+30d partial step certificate: {"converted":0,"count":75,"expired":2,"recoverySent":2,"staleEligibleApprox":0,"withEmail":2}
+30d partial step medication: {"converted":0,"count":14,"expired":0,"recoverySent":1,"staleEligibleApprox":1,"withEmail":2}
+30d partial step review: {"converted":0,"count":8,"expired":1,"recoverySent":1,"staleEligibleApprox":0,"withEmail":8}
 30d partial step checkout: {"converted":0,"count":7,"expired":0,"recoverySent":0,"staleEligibleApprox":0,"withEmail":7}
 30d partial step details: {"converted":0,"count":4,"expired":0,"recoverySent":1,"staleEligibleApprox":0,"withEmail":1}
 30d partial step ed-goals: {"converted":0,"count":3,"expired":0,"recoverySent":0,"staleEligibleApprox":0,"withEmail":0}
@@ -22,7 +22,6 @@ Generated: 2026-06-02T05:43:12.104Z
 30d partial step medication-history: {"converted":0,"count":1,"expired":0,"recoverySent":0,"staleEligibleApprox":0,"withEmail":0}
 30d partial step hair-loss-goals: {"converted":0,"count":1,"expired":0,"recoverySent":0,"staleEligibleApprox":0,"withEmail":0}
 30d partial step ed-preferences: {"converted":0,"count":1,"expired":0,"recoverySent":0,"staleEligibleApprox":0,"withEmail":0}
-30d query errors: intake_abandonment: Could not find the table 'public.intake_abandonment' in the schema cache
 90d totals: {"abandonedEmailSent":14,"adAttributed":26,"avgOrderValueAud":31.21,"count":97,"failedPayment":5,"grossAud":2402.8,"netAud":2283,"paid":77,"paidRate":0.7938,"pendingPayment":4,"refundAud":119.8,"refunded":4}
 90d service medical-certificate: {"abandonedEmailSent":14,"adAttributed":25,"avgOrderValueAud":27.63,"count":82,"failedPayment":4,"grossAud":1768.4,"netAud":1698.55,"paid":64,"paidRate":0.7805,"pendingPayment":3,"refundAud":69.85,"refunded":3}
 90d service repeat-prescriptions: {"abandonedEmailSent":0,"adAttributed":1,"avgOrderValueAud":33.73,"count":5,"failedPayment":1,"grossAud":134.9,"netAud":134.9,"paid":4,"paidRate":0.8,"pendingPayment":1,"refundAud":0,"refunded":0}
@@ -30,10 +29,10 @@ Generated: 2026-06-02T05:43:12.104Z
 90d service general: {"abandonedEmailSent":0,"adAttributed":0,"avgOrderValueAud":49.95,"count":3,"failedPayment":0,"grossAud":149.85,"netAud":99.9,"paid":3,"paidRate":1,"pendingPayment":0,"refundAud":49.95,"refunded":1}
 90d service infection: {"abandonedEmailSent":0,"adAttributed":0,"avgOrderValueAud":49.95,"count":1,"failedPayment":0,"grossAud":49.95,"netAud":49.95,"paid":1,"paidRate":1,"pendingPayment":0,"refundAud":0,"refunded":0}
 90d service mental_health: {"abandonedEmailSent":0,"adAttributed":0,"avgOrderValueAud":49.95,"count":1,"failedPayment":0,"grossAud":49.95,"netAud":49.95,"paid":1,"paidRate":1,"pendingPayment":0,"refundAud":0,"refunded":0}
-90d partial totals: {"converted":0,"count":113,"expired":1,"recoverySent":5,"staleEligibleApprox":0,"withEmail":19}
-90d partial step certificate: {"converted":0,"count":70,"expired":1,"recoverySent":1,"staleEligibleApprox":0,"withEmail":1}
-90d partial step medication: {"converted":0,"count":13,"expired":0,"recoverySent":1,"staleEligibleApprox":0,"withEmail":1}
-90d partial step review: {"converted":0,"count":8,"expired":0,"recoverySent":1,"staleEligibleApprox":0,"withEmail":8}
+90d partial totals: {"converted":0,"count":119,"expired":3,"recoverySent":6,"staleEligibleApprox":1,"withEmail":21}
+90d partial step certificate: {"converted":0,"count":75,"expired":2,"recoverySent":2,"staleEligibleApprox":0,"withEmail":2}
+90d partial step medication: {"converted":0,"count":14,"expired":0,"recoverySent":1,"staleEligibleApprox":1,"withEmail":2}
+90d partial step review: {"converted":0,"count":8,"expired":1,"recoverySent":1,"staleEligibleApprox":0,"withEmail":8}
 90d partial step checkout: {"converted":0,"count":7,"expired":0,"recoverySent":0,"staleEligibleApprox":0,"withEmail":7}
 90d partial step details: {"converted":0,"count":4,"expired":0,"recoverySent":1,"staleEligibleApprox":0,"withEmail":1}
 90d partial step ed-goals: {"converted":0,"count":3,"expired":0,"recoverySent":0,"staleEligibleApprox":0,"withEmail":0}
@@ -42,11 +41,10 @@ Generated: 2026-06-02T05:43:12.104Z
 90d partial step medication-history: {"converted":0,"count":1,"expired":0,"recoverySent":0,"staleEligibleApprox":0,"withEmail":0}
 90d partial step hair-loss-goals: {"converted":0,"count":1,"expired":0,"recoverySent":0,"staleEligibleApprox":0,"withEmail":0}
 90d partial step ed-preferences: {"converted":0,"count":1,"expired":0,"recoverySent":0,"staleEligibleApprox":0,"withEmail":0}
-90d query errors: intake_abandonment: Could not find the table 'public.intake_abandonment' in the schema cache
 
 ## PostHog
-{"ok":true,"status":200,"days":30,"dateFrom":"2026-05-03T05:43:10.225Z","dateTo":"2026-06-02T05:43:10.225Z","events":[{"event":"intake_started","count":383},{"event":"step_viewed","count":1093},{"event":"step_completed","count":1314},{"event":"checkout_viewed","count":75},{"event":"intake_funnel_intake_started","count":38},{"event":"intake_funnel_payment_initiated","count":38},{"event":"intake_funnel_payment_completed","count":116},{"event":"purchase_completed","count":6},{"event":"purchase_completed_server","count":24},{"event":"google_ads_server_conversion","count":100},{"event":"intake_abandoned_passive","count":50}]}
-{"ok":true,"status":200,"days":90,"dateFrom":"2026-03-04T05:43:10.226Z","dateTo":"2026-06-02T05:43:10.226Z","events":[{"event":"intake_started","count":454},{"event":"step_viewed","count":1298},{"event":"step_completed","count":1624},{"event":"checkout_viewed","count":100},{"event":"intake_funnel_intake_started","count":92},{"event":"intake_funnel_payment_initiated","count":86},{"event":"intake_funnel_payment_completed","count":193},{"event":"purchase_completed","count":26},{"event":"purchase_completed_server","count":24},{"event":"google_ads_server_conversion","count":100},{"event":"intake_abandoned_passive","count":70}]}
+{"ok":true,"status":200,"days":30,"dateFrom":"2026-05-03T08:42:58.903Z","dateTo":"2026-06-02T08:42:58.903Z","events":[{"event":"intake_started","count":384},{"event":"step_viewed","count":1094},{"event":"step_completed","count":1308},{"event":"checkout_viewed","count":75},{"event":"intake_funnel_intake_started","count":38},{"event":"intake_funnel_payment_initiated","count":38},{"event":"intake_funnel_payment_completed","count":83},{"event":"purchase_completed","count":6},{"event":"purchase_completed_server","count":24},{"event":"google_ads_server_conversion","count":100},{"event":"intake_abandoned_passive","count":50}]}
+{"ok":true,"status":200,"days":90,"dateFrom":"2026-03-04T08:42:58.906Z","dateTo":"2026-06-02T08:42:58.906Z","events":[{"event":"intake_started","count":456},{"event":"step_viewed","count":1300},{"event":"step_completed","count":1624},{"event":"checkout_viewed","count":100},{"event":"intake_funnel_intake_started","count":92},{"event":"intake_funnel_payment_initiated","count":86},{"event":"intake_funnel_payment_completed","count":193},{"event":"purchase_completed","count":26},{"event":"purchase_completed_server","count":24},{"event":"google_ads_server_conversion","count":100},{"event":"intake_abandoned_passive","count":70}]}
 
 ## Browser Captures
 Request-to-checkout capture status is scripted automation completion, not a confirmed user-facing outage by itself. Treat final DOM, validation state, console errors, and network evidence as the proof.
@@ -58,7 +56,7 @@ Local request base reachable: true
 - erectile-dysfunction landing desktop: ok, final=https://instantmed.com.au/erectile-dysfunction?utm_source=google&utm_medium=cpc&utm_campaign=conversion_audit_synthetic&utm_id=conversion_audit&utm_term=erectile+dysfunction+online+doctor&campaignid=conversion_audit&adgroupid=conversion_audit&keyword=erectile+dysfunction+online+doctor&creative=conversion_audit&matchtype=e&device=m&network=g&gclid=[redacted], screenshot=captures/erectile-dysfunction-landing-desktop/final.png, video=captures/erectile-dysfunction-landing-desktop/capture.webm, consoleErrors=0, requestFailures=1
 - erectile-dysfunction landing mobile: ok, final=https://instantmed.com.au/erectile-dysfunction?utm_source=google&utm_medium=cpc&utm_campaign=conversion_audit_synthetic&utm_id=conversion_audit&utm_term=erectile+dysfunction+online+doctor&campaignid=conversion_audit&adgroupid=conversion_audit&keyword=erectile+dysfunction+online+doctor&creative=conversion_audit&matchtype=e&device=m&network=g&gclid=[redacted], screenshot=captures/erectile-dysfunction-landing-mobile/final.png, video=captures/erectile-dysfunction-landing-mobile/capture.webm, consoleErrors=0, requestFailures=1
 - hair-loss landing desktop: ok, final=https://instantmed.com.au/hair-loss?utm_source=google&utm_medium=cpc&utm_campaign=conversion_audit_synthetic&utm_id=conversion_audit&utm_term=hair+loss+treatment+online&campaignid=conversion_audit&adgroupid=conversion_audit&keyword=hair+loss+treatment+online&creative=conversion_audit&matchtype=e&device=m&network=g&gclid=[redacted], screenshot=captures/hair-loss-landing-desktop/final.png, video=captures/hair-loss-landing-desktop/capture.webm, consoleErrors=0, requestFailures=1
-- hair-loss landing mobile: ok, final=https://instantmed.com.au/hair-loss?utm_source=google&utm_medium=cpc&utm_campaign=conversion_audit_synthetic&utm_id=conversion_audit&utm_term=hair+loss+treatment+online&campaignid=conversion_audit&adgroupid=conversion_audit&keyword=hair+loss+treatment+online&creative=conversion_audit&matchtype=e&device=m&network=g&gclid=[redacted], screenshot=captures/hair-loss-landing-mobile/final.png, video=captures/hair-loss-landing-mobile/capture.webm, consoleErrors=0, requestFailures=1
+- hair-loss landing mobile: ok, final=https://instantmed.com.au/hair-loss?utm_source=google&utm_medium=cpc&utm_campaign=conversion_audit_synthetic&utm_id=conversion_audit&utm_term=hair+loss+treatment+online&campaignid=conversion_audit&adgroupid=conversion_audit&keyword=hair+loss+treatment+online&creative=conversion_audit&matchtype=e&device=m&network=g&gclid=[redacted], screenshot=captures/hair-loss-landing-mobile/final.png, video=captures/hair-loss-landing-mobile/capture.webm, consoleErrors=0, requestFailures=0
 - medical-certificate attribution-continuity mobile: ok, final=https://instantmed.com.au/request?service=med-cert&duration=1, screenshot=captures/medical-certificate-attribution-continuity-mobile/final.png, video=captures/medical-certificate-attribution-continuity-mobile/capture.webm, consoleErrors=0, requestFailures=3
 - medical-certificate request-to-checkout mobile: failed, final=http://localhost:3060/request?service=med-cert, screenshot=captures/medical-certificate-request-to-checkout-mobile/final.png, video=captures/medical-certificate-request-to-checkout-mobile/capture.webm, consoleErrors=1, requestFailures=0
 - repeat-prescriptions request-to-checkout mobile: failed, final=http://localhost:3060/request?service=repeat-script, screenshot=captures/repeat-prescriptions-request-to-checkout-mobile/final.png, video=captures/repeat-prescriptions-request-to-checkout-mobile/capture.webm, consoleErrors=1, requestFailures=0
@@ -66,4 +64,3 @@ Local request base reachable: true
 - hair-loss request-to-checkout mobile: failed, final=http://localhost:3060/request?service=consult&subtype=hair_loss, screenshot=captures/hair-loss-request-to-checkout-mobile/final.png, video=captures/hair-loss-request-to-checkout-mobile/capture.webm, consoleErrors=1, requestFailures=0
 
 ## Static Checks
-- P1 Prescription landing page has a new-prescription CTA to the retired bare consult flow. Evidence: components/marketing/prescriptions-landing.tsx contains /request?service=consult; /request?service=consult now redirects to the service hub/services overview rather than a payable new-prescription intake. Recommended fix: Replace the CTA with an explicit active pathway or remove it until a compliant structured new-prescription subtype exists.

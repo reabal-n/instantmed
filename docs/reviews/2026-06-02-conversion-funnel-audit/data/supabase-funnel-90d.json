@@ -1,10 +1,8 @@
 {
-  "dateFrom": "2026-03-04T05:43:10.225Z",
-  "dateTo": "2026-06-02T05:43:10.225Z",
+  "dateFrom": "2026-03-04T08:42:58.903Z",
+  "dateTo": "2026-06-02T08:42:58.903Z",
   "days": 90,
-  "errors": [
-    "intake_abandonment: Could not find the table 'public.intake_abandonment' in the schema cache"
-  ],
+  "errors": [],
   "emailRecovery": {
     "partial_intake_recovery": {
       "count": 85,
@@ -604,28 +602,28 @@
   "partialIntakes": {
     "totals": {
       "converted": 0,
-      "count": 113,
-      "expired": 1,
-      "recoverySent": 5,
-      "staleEligibleApprox": 0,
-      "withEmail": 19
+      "count": 119,
+      "expired": 3,
+      "recoverySent": 6,
+      "staleEligibleApprox": 1,
+      "withEmail": 21
     },
     "byService": {
       "med-cert": {
         "converted": 0,
-        "count": 78,
-        "expired": 1,
-        "recoverySent": 2,
+        "count": 83,
+        "expired": 2,
+        "recoverySent": 3,
         "staleEligibleApprox": 0,
-        "withEmail": 7
+        "withEmail": 8
       },
       "prescription": {
         "converted": 0,
-        "count": 27,
-        "expired": 0,
+        "count": 28,
+        "expired": 1,
         "recoverySent": 3,
-        "staleEligibleApprox": 0,
-        "withEmail": 10
+        "staleEligibleApprox": 1,
+        "withEmail": 11
       },
       "consult": {
         "converted": 0,
@@ -639,24 +637,24 @@
     "byStep": {
       "certificate": {
         "converted": 0,
-        "count": 70,
-        "expired": 1,
-        "recoverySent": 1,
+        "count": 75,
+        "expired": 2,
+        "recoverySent": 2,
         "staleEligibleApprox": 0,
-        "withEmail": 1
+        "withEmail": 2
       },
       "medication": {
         "converted": 0,
-        "count": 13,
+        "count": 14,
         "expired": 0,
         "recoverySent": 1,
-        "staleEligibleApprox": 0,
-        "withEmail": 1
+        "staleEligibleApprox": 1,
+        "withEmail": 2
       },
       "review": {
         "converted": 0,
         "count": 8,
-        "expired": 0,
+        "expired": 1,
         "recoverySent": 1,
         "staleEligibleApprox": 0,
         "withEmail": 8

@@ -53,8 +53,8 @@ function calculateDurationDays(startDate: string, endDate: string): number {
 
 /**
  * Signed day difference (end - start) without Math.abs(). Positive = end is
- * after start. Used to detect future-dated certificates and date-ordering
- * rules. AEST-anchored via resolveAEST (see comment above).
+ * after start. Used to detect dates beyond the configured forward window and
+ * date-ordering rules. AEST-anchored via resolveAEST (see comment above).
  */
 function calculateSignedDays(startDate: string, endDate: string): number {
   return dayDiff(startDate, endDate)

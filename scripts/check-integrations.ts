@@ -29,6 +29,26 @@ function strictStatus(): CheckStatus {
   return CHECK_INTEGRATIONS_STRICT ? "fail" : "warn"
 }
 
+function missingConfiguredEnvKeys(keys: string[]): string[] {
+  return keys.filter((key) => !isConfigured(process.env[key]))
+}
+
+function missingGoogleAdsCoreEnvKeys(
+  customerId: string | null,
+  conversionActionId: string | null,
+  developerToken?: string,
+): string[] {
+  const missing: string[] = []
+  if (!customerId) missing.push("GOOGLE_ADS_CUSTOMER_ID")
+  if (!conversionActionId) missing.push("GOOGLE_ADS_CONVERSION_ACTION_PURCHASE")
+  if (!isConfigured(developerToken)) missing.push("GOOGLE_ADS_DEVELOPER_TOKEN")
+  return missing
+}
+
+function formatEnvList(keys: string[]): string {
+  return keys.join(", ")
+}
+
 const CHECK_INTEGRATIONS_STRICT =
   process.argv.includes("--strict") ||
   process.env.CHECK_INTEGRATIONS_STRICT === "1" ||
@@ -107,20 +127,43 @@ async function preflightGoogleAdsPurchaseConversionAction(): Promise<CheckResult
   const conversionActionId = normalizeGoogleAdsNumericId(process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE)
   const developerToken = process.env.GOOGLE_ADS_DEVELOPER_TOKEN
 
-  if (!customerId || !conversionActionId || !isConfigured(developerToken)) {
-    return result("warn", "Google Ads conversion action", "Google Ads env is incomplete; skipped UPLOAD_CLICKS validation.")
+  const missingCoreKeys = missingGoogleAdsCoreEnvKeys(customerId, conversionActionId, developerToken)
+  if (missingCoreKeys.length > 0) {
+    return result(
+      "warn",
+      "Google Ads conversion action",
+      `Google Ads env is incomplete (${formatEnvList(missingCoreKeys)}); skipped UPLOAD_CLICKS validation.`,
+    )
   }
+
+  const missingOauthKeys = missingConfiguredEnvKeys([
+    "GOOGLE_ADS_CLIENT_ID",
+    "GOOGLE_ADS_CLIENT_SECRET",
+    "GOOGLE_ADS_REFRESH_TOKEN",
+  ])
+  if (missingOauthKeys.length > 0) {
+    return result(
+      "warn",
+      "Google Ads conversion action",
+      `Google Ads OAuth env is incomplete (${formatEnvList(missingOauthKeys)}); skipped UPLOAD_CLICKS validation.`,
+    )
+  }
+  const configuredDeveloperToken = developerToken?.trim() || ""
 
   const accessToken = await fetchGoogleAdsAccessToken()
   if (!accessToken) {
-    return result("warn", "Google Ads conversion action", "Google Ads OAuth token could not be minted; skipped UPLOAD_CLICKS validation.")
+    return result(
+      "warn",
+      "Google Ads conversion action",
+      "Google Ads OAuth token could not be minted; refresh token or OAuth client credentials may be invalid.",
+    )
   }
 
   const apiVersion = process.env.GOOGLE_ADS_API_VERSION || "v24"
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${accessToken}`,
-    "developer-token": developerToken,
+    "developer-token": configuredDeveloperToken,
   }
   const loginCustomerId = normalizeGoogleAdsNumericId(process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID)
   if (loginCustomerId) headers["login-customer-id"] = loginCustomerId
@@ -170,11 +213,15 @@ async function preflightGoogleAdsPurchaseConversionAction(): Promise<CheckResult
     return result("fail", "Google Ads conversion action", `${action.name || "Configured action"} is ${action.type || "unknown"}, expected UPLOAD_CLICKS.`)
   }
 
-  if (action.status === "REMOVED") {
-    return result("fail", "Google Ads conversion action", "Configured UPLOAD_CLICKS conversion action is removed.")
+  if (action.status !== "ENABLED") {
+    return result(
+      "fail",
+      "Google Ads conversion action",
+      `Configured UPLOAD_CLICKS conversion action is ${action.status || "not enabled"}; expected ENABLED.`,
+    )
   }
 
-  return result("pass", "Google Ads conversion action", "Purchase conversion action is UPLOAD_CLICKS.")
+  return result("pass", "Google Ads conversion action", "Purchase conversion action is enabled UPLOAD_CLICKS.")
 }
 
 async function checkStripePriceTypes(): Promise<CheckResult[]> {

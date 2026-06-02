@@ -1235,19 +1235,13 @@ The Google Ads `INVALID_CONVERSION_ACTION_TYPE` bug (env var points at a resourc
 
 | Integration | Existence check | Type check at boot | Risk |
 |---|---|---|---|
-| **Stripe price IDs** (`STRIPE_PRICE_*`) | ✅ Zod validates env var is set | ❌ No type check — if `STRIPE_PRICE_MEDCERT` is accidentally set to a subscription price, checkout silently mis-charges | **Medium** — Stripe API rejects at session.create, but only after customer initiates |
+| **Stripe price IDs** (`STRIPE_PRICE_*`) | ✅ Zod validates env var is set | ✅ `pnpm check:integrations` fetches each price and asserts `type = one_time` | Medium |
 | **Parchment org/partner IDs** | ✅ daily smoke | ✅ smoke validates org access (indirect type check) | Low |
-| **Resend** | ✅ API key validated at boot | ❌ no `from` domain ownership check | Low — Resend rejects at send |
-| **Anthropic model name** | ✅ string declared in source | ❌ no runtime model-exists check | Low — fails on first call, Sentry catches |
-| **Google Ads conversion action ID** | ✅ if env var present | ❌ **THE BUG** — `7530736987` exists but is wrong type | **High (confirmed broken)** |
+| **Resend** | ✅ API key validated at boot | ✅ `pnpm check:integrations` validates sender/domain or restricted-key smoke send | Low |
+| **Anthropic/OpenAI model names** | ✅ string declared in source | ✅ `pnpm check:integrations` checks configured review/clinical model availability | Low |
+| **Google Ads conversion action ID** | ✅ if env var present | ✅ `pnpm check:integrations` fetches the configured action and asserts `type = UPLOAD_CLICKS` and `status = ENABLED` | **High when failing** |
 
-Recommended next work: add `pnpm check:integrations` that:
-1. Fetches each `STRIPE_PRICE_*` from Stripe API and asserts `type: "one_time"`.
-2. Fetches the configured Google Ads conversion action and asserts `type: "UPLOAD_CLICKS"`.
-3. Confirms Resend domain ownership for the `RESEND_FROM_EMAIL` domain. If Resend returns `restricted_api_key` for a send-only/domain-scoped production key, strict mode sends a smoke email to Resend's documented `delivered@resend.dev` test sink instead of failing on a Domains API permission the runtime key intentionally lacks.
-4. Confirms the Anthropic model name in `lib/ai/provider.ts` resolves to a valid model.
-
-Wire into `pnpm release:check` so launch gates catch any of these at promotion time.
+Current gate: `pnpm release:check` runs `CHECK_INTEGRATIONS_STRICT=1 pnpm check:integrations`. Treat any strict warning/failure as a release blocker before paid ramp. Google Ads remains blocked until production-scoped Vercel env/runtime preflight proves `GOOGLE_ADS_CONVERSION_ACTION_PURCHASE` is a live offline click-import purchase action, not a browser website purchase tag.
 
 ### Q4 — Refund record invariant check
 

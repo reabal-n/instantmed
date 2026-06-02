@@ -2,20 +2,20 @@
   "ok": true,
   "status": 200,
   "days": 30,
-  "dateFrom": "2026-05-03T05:43:10.225Z",
-  "dateTo": "2026-06-02T05:43:10.225Z",
+  "dateFrom": "2026-05-03T08:42:58.903Z",
+  "dateTo": "2026-06-02T08:42:58.903Z",
   "events": [
     {
       "event": "intake_started",
-      "count": 383
+      "count": 384
     },
     {
       "event": "step_viewed",
-      "count": 1093
+      "count": 1094
     },
     {
       "event": "step_completed",
-      "count": 1314
+      "count": 1308
     },
     {
       "event": "checkout_viewed",
@@ -31,7 +31,7 @@
     },
     {
       "event": "intake_funnel_payment_completed",
-      "count": 116
+      "count": 83
     },
     {
       "event": "purchase_completed",

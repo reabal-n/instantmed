@@ -109,7 +109,6 @@ export type GoogleAdsSearchRow = Record<string, unknown>
 
 let tokenCache: AccessTokenCache | null = null
 
-const INSTANTMED_PURCHASE_CONVERSION_ACTION_ID = "7530736987"
 const REQUIRED_UPLOAD_CLICK_CONVERSION_ACTION_TYPE = "UPLOAD_CLICKS"
 
 export function resetGoogleAdsAccessTokenCacheForTests(): void {
@@ -125,11 +124,8 @@ function normalizeGoogleAdsNumericId(value?: string | null): string | null {
   return /^\d+$/.test(normalized) ? normalized : null
 }
 
-function getConfiguredPurchaseConversionActionId(customerId: string | null): string | null {
-  return normalizeGoogleAdsNumericId(
-    process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE ||
-      (customerId === "9205010513" ? INSTANTMED_PURCHASE_CONVERSION_ACTION_ID : undefined),
-  )
+function getConfiguredPurchaseConversionActionId(): string | null {
+  return normalizeGoogleAdsNumericId(process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE)
 }
 
 function getGoogleAdsPurchaseConversionConfig(): {
@@ -142,7 +138,7 @@ function getGoogleAdsPurchaseConversionConfig(): {
 } | null {
   const customerId = normalizeGoogleAdsNumericId(process.env.GOOGLE_ADS_CUSTOMER_ID)
   const developerToken = process.env.GOOGLE_ADS_DEVELOPER_TOKEN
-  const conversionActionId = getConfiguredPurchaseConversionActionId(customerId)
+  const conversionActionId = getConfiguredPurchaseConversionActionId()
 
   if (!customerId || !developerToken || !conversionActionId) return null
 

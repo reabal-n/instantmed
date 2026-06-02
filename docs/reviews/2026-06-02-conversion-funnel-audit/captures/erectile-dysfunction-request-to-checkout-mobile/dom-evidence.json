@@ -28,7 +28,7 @@
   "bodyText": "You're back online Skip to main content How it's affecting you Step 2 of 7 A few questions about your experience One question at a time. There are no wrong answers. Question 1 of 5 0/5 answered How confident are you that you can get and keep an erection? 1 2 3 4 5 Not at all Very confident These questions are from the IIEF-5, a clinically validated assessment used by doctors in over 30 countries.(Rosen et al., J Urology, 1999) Continue",
   "hasAttributionCookie": true,
   "storage": {
-    "instantmed_attribution": "{\"landing_page\":\"/request\",\"captured_at\":\"2026-06-02T05:33:08.215Z\"}",
-    "instantmed-request-draft": "{\"state\":{\"serviceType\":\"consult\",\"currentStepId\":\"ed-assessment\",\"safetyConfirmed\":false,\"safetyTimestamp\":null,\"answers\":{\"consultSubtype\":\"ed\",\"edAgeConfirmed\":true,\"edGoal\":\"improve_erections\",\"edDuration\":\"less_than_3_months\"},\"firstName\":\"\",\"lastName\":\"\",\"email\":\"\",\"phone\":\"\",\"dob\":\"\",\"lastSavedAt\":\"2026-06-02T05:33:10.620Z\"},\"version\":0}"
+    "instantmed_attribution": "{\"landing_page\":\"/request\",\"captured_at\":\"2026-06-02T08:44:45.972Z\"}",
+    "instantmed-request-draft": "{\"state\":{\"serviceType\":\"consult\",\"currentStepId\":\"ed-assessment\",\"safetyConfirmed\":false,\"safetyTimestamp\":null,\"answers\":{\"consultSubtype\":\"ed\",\"edAgeConfirmed\":true,\"edGoal\":\"improve_erections\",\"edDuration\":\"less_than_3_months\"},\"firstName\":\"\",\"lastName\":\"\",\"email\":\"\",\"phone\":\"\",\"dob\":\"\",\"lastSavedAt\":\"2026-06-02T08:44:48.382Z\"},\"version\":0}"
   }
 }

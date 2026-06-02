@@ -162,10 +162,21 @@ describe("Safety Rules Engine", () => {
       ).toBe(true)
     })
 
-    it("should DECLINE future-dated certificates", () => {
+    it("allows medical certificates inside the 14-day forward window", () => {
       const result = evaluateSafety("medical-certificate", {
         emergency_symptoms: [],
         start_date: offsetDate(3),
+      })
+      expect(result.outcome).toBe("ALLOW")
+      expect(
+        result.triggeredRules.some((r) => r.ruleId === "medcert_future_date")
+      ).toBe(false)
+    })
+
+    it("should DECLINE certificates more than 14 days in the future", () => {
+      const result = evaluateSafety("medical-certificate", {
+        emergency_symptoms: [],
+        start_date: offsetDate(15),
       })
       expect(result.outcome).toBe("DECLINE")
       expect(

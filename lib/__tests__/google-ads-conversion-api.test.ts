@@ -232,6 +232,30 @@ describe("google ads conversion api", () => {
     process.env = originalEnv
   })
 
+  it("does not fall back to a hard-coded purchase conversion action", async () => {
+    const originalEnv = { ...process.env }
+    const originalFetch = global.fetch
+    global.fetch = vi.fn() as typeof fetch
+
+    process.env.GOOGLE_ADS_CUSTOMER_ID = "9205010513"
+    process.env.GOOGLE_ADS_DEVELOPER_TOKEN = "developer-token"
+    process.env.GOOGLE_ADS_CLIENT_ID = "client-id"
+    process.env.GOOGLE_ADS_CLIENT_SECRET = "client-secret"
+    process.env.GOOGLE_ADS_REFRESH_TOKEN = "refresh-token"
+    delete process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE
+
+    await expect(preflightGoogleAdsPurchaseConversionAction()).resolves.toMatchObject({
+      code: "missing_env",
+      conversionAction: null,
+      ok: false,
+      severity: "error",
+    })
+
+    expect(global.fetch).not.toHaveBeenCalled()
+    global.fetch = originalFetch
+    process.env = originalEnv
+  })
+
   it("extracts compact Google Ads API error codes from REST error bodies", () => {
     const body = JSON.stringify({
       error: {

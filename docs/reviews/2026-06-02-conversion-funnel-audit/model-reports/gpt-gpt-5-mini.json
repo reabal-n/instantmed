@@ -1,86 +1,86 @@
 {
   "model": "gpt-gpt-5-mini",
   "status": "ok",
-  "summary": "Measurement and attribution wiring are unreliable and ads unit economics look loss-making; recovery and intake tracking gaps plus a retired CTA on prescription landing are preventing capture of obvious conversion volume.",
+  "summary": "Immediate problems: unit economics are loss-making (CAC >> AOV), critical broken request-to-checkout flows (automation captured production final URLs resolving to localhost), and measurement/attribution is inconsistent (server vs client duplication and mismatched counts). Fix attribution and the localhost routing before reallocating ad spend.",
   "findings": [
     {
       "severity": "P0",
-      "blocker": "Attribution/event duplication and misalignment between Google Ads, PostHog, and Supabase making CAC unreliable",
-      "evidence": "Google Ads 30d ads_conversions=22 spend=$1,657.68; PostHog (30d) google_ads_server_conversion=count=100; Supabase (30d) adAttributed=26 and paid=27; PostHog purchase_completed=6 vs purchase_completed_server=24",
-      "affected_service": "attribution",
-      "likely_funnel_stage": "attribution",
-      "cac_impact": "Cannot reliably compute CAC (Google ads conversions 22 vs Supabase adAttributed 26 vs PostHog server conversions 100) — billing/bid decisions at risk of large errors and wasted spend",
-      "compliance_risk": "low with reason: measurement mismatch is not a regulatory compliance issue but critically impacts financial decisions",
-      "confidence": "high",
-      "recommended_fix": "Stop duplicate server->Google conversion calls; map server conversions only to final Supabase paid rows, deduplicate by order id/gclid, align PostHog server events with Supabase paid (paid timestamp) and remove extra google_ads_server_conversion emissions until reconciled"
-    },
-    {
-      "severity": "P1",
-      "blocker": "Ads unit economics appear negative: CAC materially exceeds average order value",
-      "evidence": "Google Ads 30d spend=$1,657.68 local_net=$419.15 local_cac=$92.09 avgOrderValueAud=39.93 (Supabase 30d totals)",
-      "affected_service": "ads",
-      "likely_funnel_stage": "ads",
-      "cac_impact": "At current rates each paid acquisition (~$92 local_cac) exceeds AOV (~$40) — likely negative unit economics and cash loss per new customer",
-      "compliance_risk": "low with reason: economic issue not regulatory",
-      "confidence": "high",
-      "recommended_fix": "Pause or cap spend on campaigns where per-conversion cost > AOV immediately; lower bids/target CPA, restrict to highest-intent keywords, and/or shift budget to organically/CRM-driven recovery until attribution is reconciled"
-    },
-    {
-      "severity": "P1",
-      "blocker": "Prescription landing CTA points to retired bare consult flow (non-payable) instead of an active payable new-prescription intake",
-      "evidence": "Static check: components/marketing/prescriptions-landing.tsx contains /request?service=consult; note: /request?service=consult now redirects to the service hub/services overview rather than a payable new-prescription intake",
+      "blocker": "Unit economics are negative: CAC materially exceeds order value",
+      "evidence": "Google Ads 30d local_cac=$92.71; Supabase 30d avgOrderValueAud=39.93; Supabase 30d paid=27 netAud=998.25",
       "affected_service": "all",
-      "likely_funnel_stage": "landing|cta",
-      "cac_impact": "Prescriptions traffic may not reach payable intake, reducing conversions from paid clicks and increasing apparent CAC for that channel",
-      "compliance_risk": "medium with reason: misrouting can cause customer confusion and may cause clinical/process compliance gaps if users receive incorrect pathways",
+      "likely_funnel_stage": "ads",
+      "cac_impact": "Current reported CAC (~$92.71) is ~2.3x the average order value (~AUD 39.93) — continued ad spend will lose money per acquisition",
+      "compliance_risk": "medium with reason: poor economics itself is not a regulatory fault but sustained loss can force abrupt service changes affecting patient access",
       "confidence": "high",
-      "recommended_fix": "Replace CTA with explicit active pathway (e.g., /request?service=repeat-script or the correct new-prescription subtype) or remove CTA until a compliant payable intake path exists"
+      "recommended_fix": "Immediately suspend or cap budgets on campaigns with CAC > AOV; pause aggressive bidding until attribution and checkout flow issues are fixed. Simultaneously assess price, funnels, or cheaper channels to reach sustainable CAC."
+    },
+    {
+      "severity": "P0",
+      "blocker": "Request-to-checkout flows resolved to localhost in capture (users may not reach checkout)",
+      "evidence": "Browser Captures: 'medical-certificate request-to-checkout mobile: failed, final=http://localhost:3060/request?service=med-cert'; similar localhost finals for repeat-prescriptions, erectile-dysfunction, hair-loss; consoleErrors=1 on those captures",
+      "affected_service": "medical-certificate, repeat-prescriptions, erectile-dysfunction, hair-loss (production request path)",
+      "likely_funnel_stage": "intake|checkout",
+      "cac_impact": "Likely causes drop-offs prior to checkout, wasting ad clicks and increasing effective CAC (ads clicks=511 over 30d vs local_orders=18)",
+      "compliance_risk": "high with reason: patient requests failing to reach checkout or clinician intake could result in unmet care obligations or data loss; evidence shows client-side console errors and wrong host resolution",
+      "confidence": "high",
+      "recommended_fix": "Remove any localhost routing/resolver from production builds; deploy corrected client routing that posts to production request endpoints. Verify with synthetic flows across services and confirm no further localhost origins in final URLs."
     },
     {
       "severity": "P1",
-      "blocker": "Missing intake_abandonment table causing Supabase query errors and a blind spot for recovery",
-      "evidence": "Supabase 30d/90d query errors: intake_abandonment: Could not find the table 'public.intake_abandonment' in the schema cache",
-      "affected_service": "recovery",
-      "likely_funnel_stage": "intake|recovery",
-      "cac_impact": "Automated recovery cannot target abandoned intakes reliably, reducing recovered orders and inflating effective CAC by losing low-effort recoverable revenue",
-      "compliance_risk": "low with reason: operational/data issue rather than regulatory",
+      "blocker": "Attribution wiring inconsistent between systems (Google Ads, PostHog, Supabase)",
+      "evidence": "Google Ads 30d ads_conversions=22 and local_orders=18; Supabase 30d adAttributed=26; PostHog 30d google_ads_server_conversion=count 100",
+      "affected_service": "attribution pipeline (ads → analytics → datastore)",
+      "likely_funnel_stage": "attribution",
+      "cac_impact": "Misreporting conversions leads to incorrect CAC and bid/optimization decisions (ads conversions 22 vs server conversions 100 creates false signals)",
+      "compliance_risk": "medium with reason: inaccurate ad reporting can produce misleading financial reporting/advertising billing",
       "confidence": "high",
-      "recommended_fix": "Restore or recreate public.intake_abandonment table/schema, ensure recovery jobs point to the correct table, and backfill recent abandonment records so recovery emails can run"
+      "recommended_fix": "Stop accepting ambiguous server conversions until dedup strategy is implemented. Reconcile gclid/transactionId between Ads, PostHog server events, and Supabase; implement dedupe rules and map a single canonical conversion per order."
+    },
+    {
+      "severity": "P1",
+      "blocker": "Client/server event duplication and missing client events",
+      "evidence": "PostHog 30d purchase_completed=6 vs purchase_completed_server=24; Supabase 30d paid=27",
+      "affected_service": "measurement (PostHog) and analytics ingestion",
+      "likely_funnel_stage": "measurement|attribution",
+      "cac_impact": "Leads to undercounting client conversions (hurting client-side optimization) and/or double-counting server events (misleading Ads/analytics), both causing inefficient ad spend",
+      "compliance_risk": "low with reason: instrumentation issues are not directly a regulatory breach but affect reporting accuracy",
+      "confidence": "high",
+      "recommended_fix": "Instrument order-level transaction IDs in both client and server payloads; enforce deduplication in PostHog and Ads server conversion ingestion (use same transaction/order id to dedupe). Audit event naming to avoid double-counted 'payment_completed' variants."
     },
     {
       "severity": "P2",
-      "blocker": "High volume of partial intakes lack captured email addresses, limiting recovery potential",
-      "evidence": "Supabase 30d partial totals: count=113 withEmail=19 recoverySent=5 abandonedEmailSent=8; PostHog (30d) intake_started=383 and intake_abandoned_passive=50",
-      "affected_service": "recovery",
+      "blocker": "High partial/abandonment volume with limited recovery",
+      "evidence": "Supabase 30d partial totals: count=119 converted=0 recoverySent=6 withEmail=21; many partial-step counts (certificate=75, medication=14, checkout=7) with converted=0",
+      "affected_service": "intake|recovery",
       "likely_funnel_stage": "intake|recovery",
-      "cac_impact": "Many partials are unrecoverable by email (only 19/113 have emails), leaving recoverable revenue unrealised and increasing net CAC per paid order",
-      "compliance_risk": "low with reason: UX/measurement issue not regulatory",
+      "cac_impact": "Large number of unfinished intakes wastes acquisition spend and depresses conversion rate; low recovery sends means recoverable revenue is being lost",
+      "compliance_risk": "low with reason: abandonment is a business performance issue, not a compliance violation in the evidence",
       "confidence": "medium",
-      "recommended_fix": "Require or surface email capture earlier in the intake (or add an exit intent/email capture), ensure opt-in language is compliant, and route captured emails into the recovery queue for immediate follow-up"
+      "recommended_fix": "Increase recovery coverage: capture email earlier in flow, send automated abandoned-intake emails/SMS for all partials, instrument and A/B test earlier email capture and visible CTA to complete checkout."
     },
     {
-      "severity": "P2",
-      "blocker": "Request-to-checkout automation runs failed with console errors and localhost final URLs indicating client-side checkout path issues in captures",
-      "evidence": "Browser captures: multiple request-to-checkout mobile captures failed; e.g. medical-certificate request-to-checkout mobile final=http://localhost:3060/request?service=med-cert consoleErrors=1; similar failures for repeat-prescriptions, erectile-dysfunction, hair-loss request-to-checkout captures",
-      "affected_service": "checkout",
+      "severity": "P3",
+      "blocker": "Failed payments and refunds present but low-volume",
+      "evidence": "Supabase 30d failedPayment=2 refunded=2 refundAud=79.9; 90d failedPayment=5 refunded=4 refundAud=119.8",
+      "affected_service": "checkout|payments",
       "likely_funnel_stage": "checkout",
-      "cac_impact": "If checkout navigation or client-side code is failing for real users, conversion is blocked for affected sessions causing lost orders and higher CAC",
-      "compliance_risk": "low with reason: technical outage rather than a regulatory violation",
-      "confidence": "medium",
-      "recommended_fix": "Reproduce failures on real devices/browsers, capture full console/network logs, remove any dev/localhost references from production bundles, and fix the client-side error that stops navigation to payable checkout"
+      "cac_impact": "Small effect on CAC now; if systemic could increase churn and support costs",
+      "compliance_risk": "low with reason: small number of refunds/failures documented, no evidence of data breach",
+      "confidence": "high",
+      "recommended_fix": "Inspect payment gateway logs for failure reasons, add retry/clear error messages, surface payment failure reasons to users and recovery emails."
     }
   ],
   "ads_triage": [
-    "Cap daily budgets on Google Ads immediately until attribution is reconciled",
-    "Pause or reduce bids for campaigns where reported local_cac ($92.09) > avg order value (~$40)",
-    "Add negatives for low-intent keywords and restrict broad match where CAC is high",
-    "Do not perform live creative/targeting mutations in this audit — only pause/cap is recommended"
+    "Cap or pause Google Ads spend until request-to-checkout localhost routing and attribution dedup are fixed (do not mutate live campaigns until fixes verified).",
+    "Cap budgets on campaigns where reported local_CAC > observed avgOrderValue (Google Ads 30d local_cac=$92.71 vs Supabase avgOrderValueAud=39.93).",
+    "Avoid aggressive bidding/expansion while server-side conversion counts are inconsistent (google_ads_server_conversion=100 vs Ads conversions=22)."
   ],
   "measurement_notes": [
-    "Server-side conversions count (PostHog google_ads_server_conversion=100) does not reconcile with Google Ads conversions=22 and Supabase adAttributed=26 — deduplication and mapping to Supabase paid rows required",
-    "Client-side purchase event undercount: PostHog purchase_completed=6 vs purchase_completed_server=24 and Supabase paid=27 — investigate client->server event path and event suppression",
-    "Schema blind spot: public.intake_abandonment table missing (Supabase query errors) preventing reliable recovery metrics and automation",
-    "Browser captures show request-to-checkout failures with consoleErrors=1 and localhost final URLs — capture full production console/network logs when reproducing"
+    "Server vs client event mismatch: PostHog purchase_completed (client)=6 vs purchase_completed_server=24 vs Supabase paid=27 — dedupe and canonical transaction id missing.",
+    "Google Ads server conversion count (PostHog google_ads_server_conversion=100) does not match Google Ads UI conversions (ads_conversions=22) or Supabase adAttributed (26) — investigate server-to-Ads payload mapping and conversion event filtering.",
+    "High discrepancy in funnel starts: PostHog intake_started=384 (30d) vs Supabase count=37 (30d) — possible duplicate event emission, synthetic/test traffic, or missing persistence.",
+    "Browser captures show automation failures: several request-to-checkout flows finalize at http://localhost:3060/... with consoleErrors recorded — treat as production routing/config build error and re-run synthetic tests after fix.",
+    "Recommendation: add order-level transaction id to every client and server analytics/send to Ads conversions to enable deterministic reconciliation and deduplication."
   ],
   "errors": []
 }

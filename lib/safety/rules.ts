@@ -1,3 +1,8 @@
+import {
+  CERTIFICATE_FUTURE_START_ERROR,
+  CERTIFICATE_MAX_FORWARD_DAYS_DEFAULT,
+} from '@/lib/medical-certificates/date-policy'
+
 import type { SafetyRule, SafetyRulesConfig } from './types'
 
 // ============================================
@@ -135,17 +140,18 @@ const medCertRules: SafetyRule[] = [
     priority: 500,
     services: ['medical-certificate'],
   },
-  // AUDIT FIX: Future-dated certificates must be declined.
+  // Certificates can be requested for planned absence/recovery dates, but the
+  // revenue-protecting forward window is capped by the shared date policy.
   // Uses signed_days (start_date - today): positive = future date.
   {
     id: 'medcert_future_date',
-    name: 'Future-dated certificate',
-    description: 'Certificate start date cannot be in the future',
+    name: 'Far future-dated certificate',
+    description: 'Certificate start date cannot be more than 14 days in the future',
     conditions: [
       {
         fieldId: 'future_days',
         operator: 'gt',
-        value: 0,
+        value: CERTIFICATE_MAX_FORWARD_DAYS_DEFAULT,
         derivedFrom: {
           type: 'signed_days',
           fields: ['today', 'start_date'], // positive when start_date is after today
@@ -154,8 +160,8 @@ const medCertRules: SafetyRule[] = [
     ],
     outcome: 'DECLINE',
     riskTier: 'high',
-    patientMessage: 'Medical certificates cannot be issued for future dates. The start date must be today or in the past.',
-    doctorNote: 'Future-dated certificate requested - declined. Certificates can only cover past or current dates.',
+    patientMessage: CERTIFICATE_FUTURE_START_ERROR,
+    doctorNote: 'Certificate requested beyond the 14-day forward window - declined.',
     priority: 600,
     services: ['medical-certificate'],
   },

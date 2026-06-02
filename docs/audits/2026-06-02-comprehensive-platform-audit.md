@@ -4,6 +4,8 @@
 
 > **Status: findings only — no remediation performed.** This is an audit record. Every fix below is a recommendation, not an applied change.
 
+> **Reconciliation update (2026-06-02):** Current source has already closed some audit-era items. `pnpm check:integrations` is wired into `release:check`; the active Google Ads task is now strict production env/action preflight, not adding env names or a missing release gate. The prescriptions CTA dead-end was fixed in source and is guarded by `lib/__tests__/canonical-prescription-routes.test.ts`. The medical-certificate +14-day forward window is intentional product scope for tomorrow/day-after requests and must not be reverted to today/past-only policy.
+
 ---
 
 ## Context
@@ -50,15 +52,15 @@ Method: 3 parallel codebase sweeps + 2 deep-dives (UX, Business) + firsthand rea
 
 | # | Cat | Finding | The number | Fix |
 |---|-----|---------|-----------|-----|
-| P1-4 | Conv/**Compliance** | **Prescriptions landing CTA dead-ends into the retired bare-consult flow** — double-hit: wastes paid clicks AND revives a gated-service back-channel | `components/marketing/prescriptions-landing.tsx` → `/request?service=consult` (now redirects to hub) | Replace with an active payable pathway or remove. Pause repeat-Rx paid until fixed. |
+| P1-4 | Conv/**Compliance** | **Historical: prescriptions landing CTA dead-ended into the retired bare-consult flow** — double-hit: wastes paid clicks AND revived a gated-service back-channel | Fixed in current source and guarded by `lib/__tests__/canonical-prescription-routes.test.ts` | Keep the contract test; do not pause on this item unless the test regresses. |
 | P1-5 | Conv/UX | **80% intake abandonment with 0 recovery** — every paid click has an 80% pre-payment fail rate | 383 started → 75 checkout. 113 partials, **0 converted, 5 sent, only 19 have email**. Cert step alone = 70 partials | Capture email **at `/request` entry**, not mid-form (verified: capture currently fires after cert details / med selection). Build a working recovery sequence. Send to the **15 review+checkout abandoners with email already on file**. |
 
 ### 🟡 P1 — This month
 
 | # | Cat | Finding | Fix |
 |---|-----|---------|-----|
-| P1-6 | Ops | **No integration-type validation at boot.** Google Ads conversion action is the *wrong type* (documented, unwatched); Stripe price IDs not checked as `one_time`; Anthropic model + Resend domain unchecked | Add `pnpm check:integrations`, wire into `pnpm release:check`. (OPERATIONS.md Q3) |
-| P1-7 | Analytics | **`intake_abandonment` table missing from schema cache** — blocks recovery analytics | Verify migration `20260602070000` reloaded in prod (committed; status TBD). |
+| P1-6 | Ops | **Integration-type validation now exists; production Google Ads preflight still needs proof.** Google Ads env names exist in Vercel, but paid ramp is blocked until strict preflight proves production values hydrate and purchase action is enabled `UPLOAD_CLICKS`. | Run `CHECK_INTEGRATIONS_STRICT=1 pnpm check:integrations` against production-scoped Vercel env. If it fails, investigate env scope/empty values, OAuth refresh-token validity, action status/type, or project/team mismatch. |
+| P1-7 | Analytics | **Historical: `intake_abandonment` table was missing from PostgREST schema cache** — blocked recovery analytics during the first audit run | Fixed 2026-06-02 by applying `20260602070000_restore_intake_abandonment_tracking.sql`, issuing `NOTIFY pgrst`, and marking migration `20260602070000` applied. Current conversion audit has no `intake_abandonment` schema errors. |
 
 ### 🟢 P2 — Opportunistic / hygiene
 
@@ -104,9 +106,9 @@ Sub-agents over-claimed four times; each was verified against source and correct
 3. Decide the queue-capacity lever (auto-decline threshold vs second doctor).
 
 **This month (P1):**
-4. Attribution reconciliation: dedup server conversions to Supabase paid rows; verify the wrong-type Google Ads conversion action; confirm `intake_abandonment` schema reload.
-5. Move email capture to `/request` entry + build/measure the recovery sequence to the 15 warm abandoners.
-6. Ship `pnpm check:integrations` into `release:check`.
+4. Attribution reconciliation: dedup server conversions to Supabase paid rows; verify production Google Ads preflight and `intake_abandonment` schema reload.
+5. Measure the latest early email-capture/recovery sequence by service before moving capture earlier again.
+6. Keep `pnpm check:integrations` in `release:check`; treat failures as launch blockers.
 
 **Later (P2/P3):**
 7. `/audit` + `/typeset` pass on intake microcopy; fail-closed the capability gate before multi-doctor; migration-tracker hygiene; status-dot palette fix.

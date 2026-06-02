@@ -7,23 +7,23 @@
       "ads": {
         "campaigns": [
           {
-            "allConversions": 265,
-            "allConversionsValueAud": 1221.07,
-            "avgCpcAud": 2.98,
+            "allConversions": 267,
+            "allConversionsValueAud": 1222.07,
+            "avgCpcAud": 2.99,
             "campaignId": "23651537255",
             "campaignName": "JDM | Search | Med Certs",
             "channel": "SEARCH",
-            "clicks": 647,
+            "clicks": 649,
             "conversions": 21,
             "conversionValueAud": 274.6,
-            "costPerLocalOrderAud": 128.67,
-            "cpaAud": 91.91,
+            "costPerLocalOrderAud": 129.41,
+            "cpaAud": 92.44,
             "devices": [
               "DESKTOP",
               "MOBILE",
               "TABLET"
             ],
-            "impressions": 6362,
+            "impressions": 6376,
             "localGrossRevenueAud": 369.25,
             "localNetRevenueAud": 339.3,
             "localOrders": 15,
@@ -32,8 +32,8 @@
               "SEARCH",
               "SEARCH_PARTNERS"
             ],
-            "roas": 0.142,
-            "spendAud": 1930.03,
+            "roas": 0.141,
+            "spendAud": 1941.15,
             "status": "ENABLED"
           },
           {
@@ -53,7 +53,7 @@
               "MOBILE",
               "TABLET"
             ],
-            "impressions": 477,
+            "impressions": 481,
             "localGrossRevenueAud": 29.95,
             "localNetRevenueAud": 29.95,
             "localOrders": 1,
@@ -92,18 +92,18 @@
         ],
         "summary": {
           "avgCpcAud": 3.1,
-          "cpaAud": 97.22,
-          "roas": 0.152,
-          "totalAllConversions": 311,
-          "totalAllConversionsValueAud": 1355.97,
-          "totalClicks": 691,
+          "cpaAud": 97.72,
+          "roas": 0.151,
+          "totalAllConversions": 313,
+          "totalAllConversionsValueAud": 1356.97,
+          "totalClicks": 693,
           "totalConversions": 22,
           "totalConversionValueAud": 324.55,
-          "totalImpressions": 6839,
+          "totalImpressions": 6857,
           "totalLocalGrossRevenueAud": 449.1,
           "totalLocalNetRevenueAud": 419.15,
           "totalLocalOrders": 18,
-          "totalSpendAud": 2138.81
+          "totalSpendAud": 2149.93
         }
       },
       "conversionActions": [
@@ -2066,6 +2066,42 @@
             "id": "23651537255"
           },
           "adGroup": {
+            "resourceName": "customers/9205010513/adGroups/193332422542",
+            "id": "193332422542",
+            "name": "medical certificate for work online"
+          },
+          "metrics": {
+            "clicks": "3",
+            "conversionsValue": 0,
+            "conversions": 0,
+            "costMicros": "13483625",
+            "impressions": "8"
+          },
+          "adGroupAd": {
+            "resourceName": "customers/9205010513/adGroupAds/193332422542~807352659804",
+            "status": "ENABLED",
+            "ad": {
+              "resourceName": "customers/9205010513/ads/807352659804",
+              "id": "807352659804",
+              "finalUrls": [
+                "https://instantmed.com.au/medical-certificate"
+              ]
+            },
+            "policySummary": {
+              "approvalStatus": "APPROVED_LIMITED"
+            }
+          },
+          "segments": {
+            "date": "2026-06-02"
+          }
+        },
+        {
+          "campaign": {
+            "resourceName": "customers/9205010513/campaigns/23651537255",
+            "name": "JDM | Search | Med Certs",
+            "id": "23651537255"
+          },
+          "adGroup": {
             "resourceName": "customers/9205010513/adGroups/193332422342",
             "id": "193332422342",
             "name": "get medical certificate now"
@@ -3038,6 +3074,42 @@
             "id": "23651537255"
           },
           "adGroup": {
+            "resourceName": "customers/9205010513/adGroups/197380155482",
+            "id": "197380155482",
+            "name": "ag_telehealth"
+          },
+          "metrics": {
+            "clicks": "2",
+            "conversionsValue": 0,
+            "conversions": 0,
+            "costMicros": "10013062",
+            "impressions": "14"
+          },
+          "adGroupAd": {
+            "resourceName": "customers/9205010513/adGroupAds/197380155482~806447464747",
+            "status": "ENABLED",
+            "ad": {
+              "resourceName": "customers/9205010513/ads/806447464747",
+              "id": "806447464747",
+              "finalUrls": [
+                "https://instantmed.com.au/medical-certificate"
+              ]
+            },
+            "policySummary": {
+              "approvalStatus": "APPROVED_LIMITED"
+            }
+          },
+          "segments": {
+            "date": "2026-06-02"
+          }
+        },
+        {
+          "campaign": {
+            "resourceName": "customers/9205010513/campaigns/23651537255",
+            "name": "JDM | Search | Med Certs",
+            "id": "23651537255"
+          },
+          "adGroup": {
             "resourceName": "customers/9205010513/adGroups/194546863806",
             "id": "194546863806",
             "name": "ag_work_cert"
@@ -3714,81 +3786,9 @@
           "segments": {
             "date": "2026-05-27"
           }
-        },
-        {
-          "campaign": {
-            "resourceName": "customers/9205010513/campaigns/23651537255",
-            "name": "JDM | Search | Med Certs",
-            "id": "23651537255"
-          },
-          "adGroup": {
-            "resourceName": "customers/9205010513/adGroups/200985427412",
-            "id": "200985427412",
-            "name": "ag_carer"
-          },
-          "metrics": {
-            "clicks": "3",
-            "conversionsValue": 0,
-            "conversions": 0,
-            "costMicros": "7520000",
-            "impressions": "27"
-          },
-          "adGroupAd": {
-            "resourceName": "customers/9205010513/adGroupAds/200985427412~806447421298",
-            "status": "ENABLED",
-            "ad": {
-              "resourceName": "customers/9205010513/ads/806447421298",
-              "id": "806447421298",
-              "finalUrls": [
-                "https://instantmed.com.au/medical-certificate"
-              ]
-            },
-            "policySummary": {
-              "approvalStatus": "APPROVED_LIMITED"
-            }
-          },
-          "segments": {
-            "date": "2026-05-05"
-          }
-        },
-        {
-          "campaign": {
-            "resourceName": "customers/9205010513/campaigns/23651537255",
-            "name": "JDM | Search | Med Certs",
-            "id": "23651537255"
-          },
-          "adGroup": {
-            "resourceName": "customers/9205010513/adGroups/200985427412",
-            "id": "200985427412",
-            "name": "ag_carer"
-          },
-          "metrics": {
-            "clicks": "3",
-            "conversionsValue": 0,
-            "conversions": 0,
-            "costMicros": "7400000",
-            "impressions": "12"
-          },
-          "adGroupAd": {
-            "resourceName": "customers/9205010513/adGroupAds/200985427412~806447421298",
-            "status": "ENABLED",
-            "ad": {
-              "resourceName": "customers/9205010513/ads/806447421298",
-              "id": "806447421298",
-              "finalUrls": [
-                "https://instantmed.com.au/medical-certificate"
-              ]
-            },
-            "policySummary": {
-              "approvalStatus": "APPROVED_LIMITED"
-            }
-          },
-          "segments": {
-            "date": "2026-04-26"
-          }
         }
       ],
-      "generatedAt": "2026-06-02T05:43:08.938Z",
+      "generatedAt": "2026-06-02T08:42:57.400Z",
       "local": {
         "byCampaign": [
           {
@@ -4641,6 +4641,39 @@
                 "matchType": "EXACT"
               },
               "adGroupCriterion": "customers/9205010513/adGroupCriteria/200985427412~296973869174"
+            }
+          }
+        },
+        {
+          "campaign": {
+            "resourceName": "customers/9205010513/campaigns/23651537255",
+            "name": "JDM | Search | Med Certs",
+            "id": "23651537255"
+          },
+          "adGroup": {
+            "resourceName": "customers/9205010513/adGroups/193332422542",
+            "id": "193332422542",
+            "name": "medical certificate for work online"
+          },
+          "metrics": {
+            "clicks": "1",
+            "conversionsValue": 0,
+            "conversions": 0,
+            "costMicros": "7389084",
+            "impressions": "1"
+          },
+          "searchTermView": {
+            "resourceName": "customers/9205010513/searchTermViews/23651537255~193332422542~b25saW5lIGZpdCBmb3Igd29yayBjZXJ0aWZpY2F0ZQ",
+            "status": "NONE",
+            "searchTerm": "online fit for work certificate"
+          },
+          "segments": {
+            "device": "MOBILE",
+            "keyword": {
+              "info": {
+                "matchType": "PHRASE"
+              },
+              "adGroupCriterion": "customers/9205010513/adGroupCriteria/193332422542~943916669979"
             }
           }
         },
@@ -5914,7 +5947,7 @@
             "conversionsValue": 0,
             "conversions": 0,
             "costMicros": "4590000",
-            "impressions": "1"
+            "impressions": "2"
           },
           "searchTermView": {
             "resourceName": "customers/9205010513/searchTermViews/23651537255~193332422622~Zml0IHRvIHdvcmsgbWVkaWNhbCBjZXJ0aWZpY2F0ZQ",
@@ -6192,6 +6225,39 @@
                 "matchType": "PHRASE"
               },
               "adGroupCriterion": "customers/9205010513/adGroupCriteria/194240074237~932877148505"
+            }
+          }
+        },
+        {
+          "campaign": {
+            "resourceName": "customers/9205010513/campaigns/23651537255",
+            "name": "JDM | Search | Med Certs",
+            "id": "23651537255"
+          },
+          "adGroup": {
+            "resourceName": "customers/9205010513/adGroups/197380155482",
+            "id": "197380155482",
+            "name": "ag_telehealth"
+          },
+          "metrics": {
+            "clicks": "1",
+            "conversionsValue": 0,
+            "conversions": 0,
+            "costMicros": "3723062",
+            "impressions": "10"
+          },
+          "searchTermView": {
+            "resourceName": "customers/9205010513/searchTermViews/23651537255~197380155482~ZG9jdG9yIGNsZWFyYW5jZSBjZXJ0aWZpY2F0ZQ",
+            "status": "NONE",
+            "searchTerm": "doctor clearance certificate"
+          },
+          "segments": {
+            "device": "MOBILE",
+            "keyword": {
+              "info": {
+                "matchType": "PHRASE"
+              },
+              "adGroupCriterion": "customers/9205010513/adGroupCriteria/197380155482~336474458109"
             }
           }
         },
@@ -7083,72 +7149,6 @@
                 "matchType": "PHRASE"
               },
               "adGroupCriterion": "customers/9205010513/adGroupCriteria/193332422342~2480480586469"
-            }
-          }
-        },
-        {
-          "campaign": {
-            "resourceName": "customers/9205010513/campaigns/23651537255",
-            "name": "JDM | Search | Med Certs",
-            "id": "23651537255"
-          },
-          "adGroup": {
-            "resourceName": "customers/9205010513/adGroups/194546863806",
-            "id": "194546863806",
-            "name": "ag_work_cert"
-          },
-          "metrics": {
-            "clicks": "1",
-            "conversionsValue": 0,
-            "conversions": 0,
-            "costMicros": "3030000",
-            "impressions": "1"
-          },
-          "searchTermView": {
-            "resourceName": "customers/9205010513/searchTermViews/23651537255~194546863806~Zml0IGZvciB3b3JrIGNlcnRpZmljYXRlIHZpY3Rvcmlh",
-            "status": "EXCLUDED",
-            "searchTerm": "fit for work certificate victoria"
-          },
-          "segments": {
-            "device": "MOBILE",
-            "keyword": {
-              "info": {
-                "matchType": "PHRASE"
-              },
-              "adGroupCriterion": "customers/9205010513/adGroupCriteria/194546863806~1585943389168"
-            }
-          }
-        },
-        {
-          "campaign": {
-            "resourceName": "customers/9205010513/campaigns/23651537255",
-            "name": "JDM | Search | Med Certs",
-            "id": "23651537255"
-          },
-          "adGroup": {
-            "resourceName": "customers/9205010513/adGroups/194546863806",
-            "id": "194546863806",
-            "name": "ag_work_cert"
-          },
-          "metrics": {
-            "clicks": "1",
-            "conversionsValue": 0,
-            "conversions": 0,
-            "costMicros": "3020000",
-            "impressions": "9"
-          },
-          "searchTermView": {
-            "resourceName": "customers/9205010513/searchTermViews/23651537255~194546863806~cmV0dXJuIHRvIHdvcmsgY2VydGlmaWNhdGU",
-            "status": "EXCLUDED",
-            "searchTerm": "return to work certificate"
-          },
-          "segments": {
-            "device": "MOBILE",
-            "keyword": {
-              "info": {
-                "matchType": "PHRASE"
-              },
-              "adGroupCriterion": "customers/9205010513/adGroupCriteria/194546863806~1585943389168"
             }
           }
         }
