@@ -1,0 +1,99 @@
+{
+  "model": "opus-claude-opus-4-8 (anthropic-models-api)",
+  "status": "ok",
+  "summary": "Funnel is functional at landing but conversion is choking on intake abandonment and broken/ambiguous CTA routing. Highest-impact issues: med-cert intake abandonment (113 partials, 0 recovered conversions), prescription landing CTA pointing at a retired consult flow, and severe measurement fragmentation that makes Ads conversion data and CAC untrustworthy. No confirmed user-facing checkout outage from synthetic localhost failures.",
+  "findings": [
+    {
+      "severity": "P1",
+      "blocker": "Prescription landing CTA routes to retired bare consult flow that redirects away from a payable intake",
+      "evidence": "Static check: components/marketing/prescriptions-landing.tsx contains /request?service=consult; that route now redirects to service hub instead of payable new-prescription intake. repeat-prescriptions paid orders only 1 (30d) / 4 (90d).",
+      "affected_service": "repeat-prescriptions",
+      "likely_funnel_stage": "cta",
+      "cac_impact": "Paid prescription clicks land on a dead-end CTA, wasting ad spend with near-zero conversion (repeat-prescriptions adAttributed=1). Direct leakage of acquisition cost with no revenue capture.",
+      "compliance_risk": "medium - routing users into an unstructured/retired consult path for prescriptions risks non-compliant new-prescription handling",
+      "confidence": "high",
+      "recommended_fix": "Replace CTA with an active structured new-prescription subtype, or remove the CTA until a compliant payable path exists."
+    },
+    {
+      "severity": "P1",
+      "blocker": "Massive intake abandonment with effectively zero recovery conversions",
+      "evidence": "Supabase partial totals: count=113, converted=0, recoverySent=5, withEmail=19. certificate step alone count=70 converted=0. PostHog intake_started=383 but checkout_viewed=75 (30d); intake_abandoned_passive=50.",
+      "affected_service": "medical-certificate",
+      "likely_funnel_stage": "intake",
+      "cac_impact": "~80% of intake starts never reach checkout; given local_cac $92.09 and AOV ~$39.93, abandonment is the dominant CAC inflator. Recovering even a fraction materially lowers blended CAC.",
+      "compliance_risk": "low",
+      "confidence": "high",
+      "recommended_fix": "Instrument per-step drop-off, capture email earlier (only 19/113 have email), and build a working recovery sequence; 0 converted from 5 recoverySent indicates broken or ineffective recovery."
+    },
+    {
+      "severity": "P1",
+      "blocker": "Conversion tracking fragmentation makes Ads CAC and optimization untrustworthy",
+      "evidence": "PostHog 30d: purchase_completed=6 vs purchase_completed_server=24 vs google_ads_server_conversion=100; ads_conversions=22 vs Supabase paid=27. intake_funnel_payment_completed=116 >> actual paid 27. 90d google_ads_server_conversion=100 identical to 30d (stale/duplicate).",
+      "affected_service": "all",
+      "likely_funnel_stage": "attribution",
+      "cac_impact": "Google Ads is optimizing toward inflated conversion signals (100 server conversions vs 27 real paid orders), driving misallocated spend and understated true CAC. ads_cpa $75.35 likely understated vs real local_cac $92.09.",
+      "compliance_risk": "low",
+      "confidence": "high",
+      "recommended_fix": "Reconcile server-side conversion event to a single source of truth (Supabase paid). Fix google_ads_server_conversion overcounting/duplication before trusting Smart Bidding."
+    },
+    {
+      "severity": "P1",
+      "blocker": "Missing intake_abandonment table breaks abandonment analytics pipeline",
+      "evidence": "Supabase query errors (30d and 90d): intake_abandonment: Could not find the table 'public.intake_abandonment' in the schema cache.",
+      "affected_service": "all",
+      "likely_funnel_stage": "recovery",
+      "cac_impact": "Abandonment recovery and segmentation cannot run reliably, capping ability to recover near-checkout intent (checkout step count=7 withEmail=7 = recoverable but recoverySent=0).",
+      "compliance_risk": "low",
+      "confidence": "high",
+      "recommended_fix": "Create/restore public.intake_abandonment table and backfill; wire recovery triggers to checkout-step abandoners with captured email."
+    },
+    {
+      "severity": "P2",
+      "blocker": "Checkout-step abandoners with email are not being sent recovery",
+      "evidence": "Supabase partial step checkout: count=7, withEmail=7, recoverySent=0, converted=0. review step: count=8, withEmail=8, recoverySent=1.",
+      "affected_service": "medical-certificate",
+      "likely_funnel_stage": "recovery",
+      "cac_impact": "15 highest-intent abandoners (review+checkout) with email captured are being left unrecovered; these are the cheapest incremental conversions available.",
+      "compliance_risk": "low",
+      "confidence": "high",
+      "recommended_fix": "Prioritize automated recovery emails to checkout/review abandoners with email on file; measure recovered conversion rate."
+    },
+    {
+      "severity": "P2",
+      "blocker": "CAC exceeds gross AOV on medical-certificate, core paid service is unprofitable per order",
+      "evidence": "30d local_cac=$92.09; medical-certificate avgOrderValueAud=$38.02, netAud per paid order ~$36.6 (768.5/21). Ads spend $1,657.68 for local_net $419.15 (30d).",
+      "affected_service": "medical-certificate",
+      "likely_funnel_stage": "ads",
+      "cac_impact": "Negative contribution margin per acquired order on the primary advertised service; spend is destroying value at current conversion rate unless LTV/repeat justifies it.",
+      "compliance_risk": "low",
+      "confidence": "high",
+      "recommended_fix": "Reduce spend or tighten targeting on med-cert until intake conversion improves; recompute with LTV. Do not scale until CAC < contribution margin."
+    },
+    {
+      "severity": "P3",
+      "blocker": "Recurring single request failure on production landing captures",
+      "evidence": "All production landing captures (desktop+mobile) show requestFailures=1, consoleErrors=0. Attribution-continuity mobile requestFailures=3.",
+      "affected_service": "all",
+      "likely_funnel_stage": "landing",
+      "cac_impact": "Likely a non-blocking asset/beacon failure; low direct conversion impact but should be confirmed it is not a tracking pixel (which would compound attribution issues).",
+      "compliance_risk": "low",
+      "confidence": "low",
+      "recommended_fix": "Inspect the failing request on landing pages; confirm it is not an analytics/conversion beacon."
+    }
+  ],
+  "ads_triage": [
+    "Do not scale med-cert campaigns: real local_cac $92.09 exceeds gross AOV $38.02; cap budget until intake conversion and CTA fixes ship.",
+    "Pause or reduce repeat-prescriptions paid traffic until the consult CTA dead-end is fixed (adAttributed=1, near-zero conversion).",
+    "Hold Smart Bidding / value-based bidding changes until google_ads_server_conversion overcounting (100 vs 27 real paid) is reconciled.",
+    "No live mutations performed; recommendations only."
+  ],
+  "measurement_notes": [
+    "google_ads_server_conversion=100 is identical across 30d and 90d windows, indicating stale or capped/duplicated reporting.",
+    "purchase_completed (6) vs purchase_completed_server (24) vs Supabase paid (27) do not reconcile; pick one authoritative source.",
+    "intake_funnel_payment_completed=116 vastly exceeds actual paid orders (27), suggesting event fires on initiation/non-payment states.",
+    "public.intake_abandonment table missing breaks abandonment tracking continuity for both 30d and 90d.",
+    "request-to-checkout failures are against localhost:3060 with consoleErrors=1 — scripted automation artifacts, not confirmed production outages; needs production re-test before treating as a checkout blocker.",
+    "Only 19/113 intake partials have email captured, limiting recovery addressability — capture email earlier in intake."
+  ],
+  "errors": []
+}

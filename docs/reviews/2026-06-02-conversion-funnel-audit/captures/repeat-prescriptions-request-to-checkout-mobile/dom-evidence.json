@@ -1,0 +1,34 @@
+{
+  "url": "http://localhost:3060/request?service=repeat-script",
+  "title": "Get Started | InstantMed",
+  "headings": [
+    "Notes & history",
+    "Medication safety"
+  ],
+  "ctas": [
+    {
+      "tag": "button",
+      "text": "Pay",
+      "href": null,
+      "disabled": true
+    },
+    {
+      "tag": "button",
+      "text": "Continue",
+      "href": null,
+      "disabled": true
+    },
+    {
+      "tag": "button",
+      "text": "Continue",
+      "href": null,
+      "disabled": true
+    }
+  ],
+  "bodyText": "You're back online Skip to main content Notes & history Step 3 of 5 Health 2 of 2 Medication safety Two final safety checks for the doctor. SAFETY SCREENING Currently pregnant or breastfeeding? * Important for medication safety No Yes Previous adverse reactions to medications? * Allergic reactions, side effects, intolerances No reactions Yes Continue",
+  "hasAttributionCookie": true,
+  "storage": {
+    "instantmed_attribution": "{\"landing_page\":\"/request\",\"captured_at\":\"2026-06-02T05:32:32.968Z\"}",
+    "instantmed-request-draft": "{\"state\":{\"serviceType\":\"repeat-script\",\"currentStepId\":\"medical-history\",\"safetyConfirmed\":false,\"safetyTimestamp\":null,\"answers\":{\"medications\":[{\"product\":{\"pbs_code\":\"MANUAL\",\"drug_name\":\"E2E test medication\",\"brand_name\":null,\"active_ingredient\":null,\"form\":null,\"strength\":null},\"name\":\"E2E test medication\",\"strength\":\"500 mg\",\"form\":\"capsule\",\"pbsCode\":\"MANUAL\"}],\"selectedMedication\":{\"pbs_code\":\"MANUAL\",\"drug_name\":\"E2E test medication\",\"brand_name\":null,\"active_ingredient\":null,\"form\":null,\"strength\":null},\"medicationName\":\"E2E test medication\",\"medicationStrength\":\"500 mg\",\"medicationForm\":\"capsule\",\"pbsCode\":\"MANUAL\",\"prescriptionHistory\":\"less_than_3_months\",\"currentDose\":\"1 tablet daily\",\"dosageInstructions\":\"1 tablet daily\",\"hasSideEffects\":false,\"sideEffects\":\"\",\"hasAllergies\":false,\"allergies\":\"\",\"hasConditions\":false,\"conditions\":\"\",\"hasOtherMedications\":false,\"otherMedications\":\"\"},\"firstName\":\"\",\"lastName\":\"\",\"email\":\"\",\"phone\":\"\",\"dob\":\"\",\"lastSavedAt\":\"2026-06-02T05:32:36.787Z\"},\"version\":0}"
+  }
+}

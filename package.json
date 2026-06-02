@@ -32,6 +32,7 @@
     "content:audit:images": "node scripts/audit-health-guides.mjs --fail-on-image",
     "content:audit:strict": "node scripts/audit-health-guides.mjs --fail-on=P1",
     "review": "tsx --env-file=.env.local scripts/video-review/index.ts",
+    "audit:conversion": "tsx --env-file=.env.local scripts/conversion-funnel-audit.ts",
     "review:reindex": "tsx scripts/video-review/index-update.ts",
     "review:doctor": "tsx --env-file=.env.local scripts/video-review/doctor.ts",
     "smoke:backend": "npx tsx scripts/smoke-backend.ts",

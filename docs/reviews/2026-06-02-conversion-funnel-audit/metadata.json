@@ -1,0 +1,60 @@
+{
+  "generatedAt": "2026-06-02T05:43:52.165Z",
+  "baseUrl": "https://instantmed.com.au",
+  "localUrl": "http://localhost:3060",
+  "services": [
+    {
+      "key": "medical-certificate",
+      "label": "Medical certificate",
+      "service": "med-cert",
+      "subtype": null,
+      "landingPath": "/medical-certificate",
+      "requestPath": "/request?service=med-cert",
+      "searchTerm": "medical certificate online"
+    },
+    {
+      "key": "repeat-prescriptions",
+      "label": "Repeat prescriptions",
+      "service": "repeat-script",
+      "subtype": null,
+      "landingPath": "/prescriptions",
+      "requestPath": "/request?service=repeat-script",
+      "searchTerm": "online prescription refill"
+    },
+    {
+      "key": "erectile-dysfunction",
+      "label": "ED consult",
+      "service": "consult",
+      "subtype": "ed",
+      "landingPath": "/erectile-dysfunction",
+      "requestPath": "/request?service=consult&subtype=ed",
+      "searchTerm": "erectile dysfunction online doctor"
+    },
+    {
+      "key": "hair-loss",
+      "label": "Hair loss consult",
+      "service": "consult",
+      "subtype": "hair_loss",
+      "landingPath": "/hair-loss",
+      "requestPath": "/request?service=consult&subtype=hair_loss",
+      "searchTerm": "hair loss treatment online"
+    }
+  ],
+  "modelReports": [
+    {
+      "model": "gemini-gemini-3.5-flash",
+      "status": "ok",
+      "findings": 4
+    },
+    {
+      "model": "opus-claude-opus-4-8 (anthropic-models-api)",
+      "status": "ok",
+      "findings": 7
+    },
+    {
+      "model": "gpt-gpt-5-mini",
+      "status": "ok",
+      "findings": 6
+    }
+  ]
+}

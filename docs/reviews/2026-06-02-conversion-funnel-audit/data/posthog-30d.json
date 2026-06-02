@@ -1,0 +1,53 @@
+{
+  "ok": true,
+  "status": 200,
+  "days": 30,
+  "dateFrom": "2026-05-03T05:43:10.225Z",
+  "dateTo": "2026-06-02T05:43:10.225Z",
+  "events": [
+    {
+      "event": "intake_started",
+      "count": 383
+    },
+    {
+      "event": "step_viewed",
+      "count": 1093
+    },
+    {
+      "event": "step_completed",
+      "count": 1314
+    },
+    {
+      "event": "checkout_viewed",
+      "count": 75
+    },
+    {
+      "event": "intake_funnel_intake_started",
+      "count": 38
+    },
+    {
+      "event": "intake_funnel_payment_initiated",
+      "count": 38
+    },
+    {
+      "event": "intake_funnel_payment_completed",
+      "count": 116
+    },
+    {
+      "event": "purchase_completed",
+      "count": 6
+    },
+    {
+      "event": "purchase_completed_server",
+      "count": 24
+    },
+    {
+      "event": "google_ads_server_conversion",
+      "count": 100
+    },
+    {
+      "event": "intake_abandoned_passive",
+      "count": 50
+    }
+  ]
+}
