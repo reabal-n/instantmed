@@ -667,7 +667,7 @@ export const musculoskeletalConditions: Record<string, ConditionData> = {
     relatedConditions: ["arthritis", "back-pain", "joint-pain"],
     serviceType: "both",
     ctaText: "Get assessed",
-    ctaHref: "/request?service=consult&condition=gout",
+    ctaHref: "/consult",
     stats: { avgTime: "45 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Gout is one of the most painful conditions I see in practice, and it is frequently mismanaged. An acute gout attack causes sudden, excruciating joint pain - most commonly in the big toe - with swelling, redness, and heat. The pain is so severe that even a bedsheet touching the joint can be unbearable. The good news is that gout is one of the most treatable forms of arthritis. The priority during an acute attack is anti-inflammatory treatment (typically NSAIDs or colchicine), started as early as possible. The longer-term conversation is about urate-lowering therapy (allopurinol) to prevent future attacks - this is underused in Australia. Contrary to outdated advice, gout is not simply caused by 'eating too much rich food.' It is a metabolic condition driven primarily by genetics, kidney function, and medication use. Diet plays a smaller role than most patients believe.",
     auStats: [

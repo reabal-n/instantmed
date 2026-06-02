@@ -39,7 +39,7 @@ function getServiceDisplayName(input: ServiceDisplayNameInput): string {
       womens_health: "Women's Health Consultation",
       weight_loss: "Weight Loss Consultation",
       new_medication: "New Medication Request",
-      general: "General Consultation",
+      general: "Specialty Consultation",
     }
     return subtypeLabels[subtype] ?? "Consultation"
   }

@@ -70,7 +70,7 @@ export const mentalHealthConditions: Record<string, ConditionData> = {
     relatedConditions: ["stress", "panic-attacks", "depression", "insomnia"],
     serviceType: "both",
     ctaText: "Get support today",
-    ctaHref: "/request?service=consult&condition=anxiety",
+    ctaHref: "/consult",
     stats: { avgTime: "60 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Anxiety is the most common mental health condition in Australia, and it is significantly under-treated. When someone requests a mental health day certificate, I take that seriously - anxiety is not a character flaw or a lack of willpower. It is a medical condition involving changes in brain chemistry that produce real physical symptoms: racing heart, chest tightness, difficulty breathing, nausea, and insomnia. What I look for in a telehealth assessment is whether the anxiety is situational (a stressful period at work, a life event) or whether it represents a pattern that would benefit from ongoing support. For many people, a medical certificate acknowledging their need for rest is the first step toward getting help. I routinely recommend a Mental Health Care Plan through their regular GP, which provides 10 Medicare-subsidised psychology sessions per year - something many Australians do not realise they are entitled to.",
     auStats: [
@@ -322,7 +322,7 @@ export const mentalHealthConditions: Record<string, ConditionData> = {
     relatedConditions: ["anxiety", "stress", "burnout", "insomnia"],
     serviceType: "both",
     ctaText: "Get support",
-    ctaHref: "/request?service=consult&condition=anxiety",
+    ctaHref: "/consult",
     stats: { avgTime: "50 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Depression is a clinical condition, not a mood or a mindset. It involves measurable changes in brain chemistry - serotonin, norepinephrine, and dopamine pathways - that affect thinking, feeling, and physical function. When I assess someone for depression, I use validated screening tools (PHQ-9) and look for core symptoms: persistent low mood, loss of interest or pleasure in things you normally enjoy, changes in sleep, appetite, energy, and concentration. Suicidal thoughts are not uncommon in depression and should always be taken seriously and asked about directly. Treatment is effective for the majority of people: psychological therapy (particularly CBT), medication, or a combination. The evidence shows that for moderate-to-severe depression, combined therapy and medication is more effective than either alone. A telehealth assessment for depression is a good first step - I can assess severity, provide a medical certificate if needed, and connect you with appropriate ongoing care. Recovery is possible and expected.",
     auStats: [
@@ -419,7 +419,7 @@ export const mentalHealthConditions: Record<string, ConditionData> = {
     relatedConditions: ["anxiety", "stress", "depression", "chest-pain"],
     serviceType: "both",
     ctaText: "Get support",
-    ctaHref: "/request?service=consult&condition=anxiety",
+    ctaHref: "/consult",
     stats: { avgTime: "45 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Panic attacks are one of the most frightening experiences a person can have - the combination of chest pain, breathlessness, racing heart, and a sense of impending doom genuinely mimics a heart attack. The first clinical priority is ruling out cardiac causes, which is why I always take a first-ever panic attack seriously. Once cardiac causes are excluded (based on age, risk factors, and symptom pattern), the focus shifts to management. The most important thing I tell patients is: panic attacks are terrifying but not dangerous. Your body is activating its fight-or-flight response inappropriately - the adrenaline surge causes every symptom you feel, but it cannot harm you. CBT for panic disorder has one of the highest success rates of any psychological treatment - around 80%. The key technique is learning to ride the wave of panic rather than fighting it, combined with addressing the catastrophic thoughts that fuel the cycle.",
     auStats: [
@@ -554,7 +554,7 @@ export const mentalHealthConditions: Record<string, ConditionData> = {
     relatedConditions: ["anxiety", "insomnia", "burnout"],
     serviceType: "both",
     ctaText: "Get support",
-    ctaHref: "/request?service=consult&condition=anxiety",
+    ctaHref: "/consult",
     stats: { avgTime: "55 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Stress is not a diagnosis in itself, but chronic stress produces real physiological effects - elevated cortisol disrupts sleep, digestion, immune function, and cardiovascular health. When I assess someone for stress-related symptoms, I am looking at whether the stress is situational (a specific stressor like a work deadline, relationship breakdown, or financial pressure) or whether it has progressed to a clinical condition like anxiety disorder, depression, or adjustment disorder. The distinction matters because the treatment pathways differ. For acute situational stress, practical support - a mental health day, workplace modifications, or connecting with support services - may be sufficient. For chronic stress that has crossed into persistent anxiety or depression, a more structured approach involving therapy and potentially medication is warranted. I never dismiss stress as trivial - chronic stress is a risk factor for heart disease, type 2 diabetes, and immune dysfunction.",
     auStats: [
@@ -677,7 +677,7 @@ export const mentalHealthConditions: Record<string, ConditionData> = {
     relatedConditions: ["stress", "anxiety", "depression"],
     serviceType: "both",
     ctaText: "Get support",
-    ctaHref: "/request?service=consult&condition=anxiety",
+    ctaHref: "/consult",
     stats: { avgTime: "55 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Burnout is now recognised by the WHO as an occupational phenomenon, not a personal failing. It develops gradually through three stages: emotional exhaustion (feeling drained), depersonalisation (becoming cynical or detached), and reduced personal accomplishment (feeling ineffective). By the time someone seeks help, they are usually in the later stages. What makes burnout different from depression - though they frequently co-occur - is that burnout is specifically tied to work or caregiving demands. Remove the demand, and burnout improves. Depression persists regardless of circumstances. When I assess burnout, I look for how entrenched the pattern is: are you just tired, or have you lost the ability to enjoy anything? Is your sleep disrupted? Are you physically unwell more often? A medical certificate for burnout recovery is appropriate - continuing to push through prolonged burnout typically leads to clinical depression, anxiety disorders, or physical health consequences.",
     auStats: [
@@ -800,7 +800,7 @@ export const mentalHealthConditions: Record<string, ConditionData> = {
     relatedConditions: ["anxiety", "fatigue", "stress", "depression"],
     serviceType: "both",
     ctaText: "Speak with a doctor",
-    ctaHref: "/request?service=consult&condition=insomnia",
+    ctaHref: "/consult",
     stats: { avgTime: "55 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Insomnia is both underdiagnosed and overtreated with the wrong interventions. Many people assume they need sleeping tablets, but the evidence strongly favours Cognitive Behavioural Therapy for Insomnia (CBT-I) as the first-line treatment - it is more effective than medication in the long term and has no side effects. When assessing insomnia, I look for underlying causes: is it anxiety or depression driving the sleeplessness? Pain? Medication side effects? Shift work? Sleep apnoea? These need different approaches. A medical certificate for insomnia-related exhaustion is entirely appropriate - chronic sleep deprivation impairs cognitive function to a degree comparable to alcohol intoxication. If you are too exhausted to function safely, taking a day off is not indulgent, it is sensible.",
     auStats: [

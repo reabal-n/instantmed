@@ -32,11 +32,11 @@ export function getCrossSell(serviceType: ServiceType | undefined): CrossSellCon
       }
     case "common_scripts":
       return {
-        headline: "Need a GP consultation?",
-        description: "For ongoing conditions, referrals, or anything that needs a more detailed review.",
+        headline: "Need another service?",
+        description: "Compare active specialty pathways for ED and hair loss, or choose a medical certificate.",
         price: `from ${PRICING_DISPLAY.CONSULT}`,
         href: REQUEST_CONSULT_HREF,
-        cta: "Start a consultation",
+        cta: "See services",
       }
     case "weight_loss":
     case "womens_health":

@@ -73,7 +73,7 @@ export const cardiovascularSymptoms: Record<string, SymptomData> = {
     serviceRecommendation: {
       type: "consult",
       text: "Get follow-up care",
-      href: "/request?service=consult"
+      href: "/consult"
     },
     doctorPerspective: "Chest pain always warrants careful assessment, but it is important to know that the majority of chest pain in young, otherwise healthy adults is NOT cardiac. Musculoskeletal chest pain (from strained muscles, costochondritis, or poor posture), acid reflux, and anxiety-related chest tightness are far more common causes. However, I never dismiss chest pain without a proper assessment. The features that raise cardiac concern are: pain with exertion that resolves with rest, pain radiating to the jaw or left arm, pain with breathlessness and sweating, a family history of early heart disease, and age over 40 with risk factors. If you are experiencing any of these features, call 000 immediately - do not wait for a telehealth appointment. For non-urgent, recurrent chest discomfort without alarm features, telehealth can help identify the likely cause and guide next steps.",
     certGuidance: "Any chest pain that required emergency assessment legitimately warrants time off for recovery and follow-up. For musculoskeletal or reflux-related chest pain, a certificate is appropriate if symptoms are affecting your ability to work comfortably.",
@@ -99,7 +99,7 @@ export const cardiovascularSymptoms: Record<string, SymptomData> = {
       { q: "Should I see a cardiologist?", a: "Not usually as a first step. Your GP can arrange an ECG and blood tests. Specialist referral is needed if an arrhythmia is detected or palpitations are frequent and unexplained." },
       { q: "Can anxiety cause heart palpitations?", a: "Yes - anxiety is one of the most common causes. Adrenaline from the fight-or-flight response directly increases heart rate and force of contraction." }
     ],
-    serviceRecommendation: { type: "consult", text: "Get assessed", href: "/request?service=consult" },
+    serviceRecommendation: { type: "consult", text: "Get assessed", href: "/consult" },
     doctorPerspective: "Heart palpitations are one of the most anxiety-provoking symptoms patients experience, but the vast majority are benign. When I assess palpitations, I first determine the pattern: are they regular or irregular? Brief or sustained? Associated with exertion or at rest? Palpitations during stress, after caffeine, or during exercise are almost always normal physiological responses. The features that raise concern are palpitations at rest that are irregular, sustained (more than 15 minutes), associated with dizziness or fainting, or occurring with chest pain. These may indicate an arrhythmia requiring investigation with an ECG or Holter monitor. Importantly, many patients with benign palpitations enter a cycle where anxiety about the palpitations causes more adrenaline, which causes more palpitations - breaking this cycle with reassurance and breathing techniques is often the most effective treatment.",
     certGuidance: "Palpitations alone rarely prevent work unless they cause significant dizziness or anxiety. If palpitations required emergency assessment or investigation, time off for recovery and follow-up is appropriate.",
   },

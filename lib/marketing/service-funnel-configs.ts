@@ -8,19 +8,19 @@ import type { ServiceFunnelConfig } from '@/types/marketing'
 // canonical pattern.
 
 // ===========================================
-// GENERAL CONSULT LANDING PAGE
+// CONSULT SERVICES OVERVIEW
 // ===========================================
 export const generalConsultFunnelConfig: ServiceFunnelConfig = {
   serviceId: 'consult',
-  serviceName: 'General Consult',
+  serviceName: 'Specialty Services',
   serviceSlug: 'consult',
 
   hero: {
-    badge: 'Australian doctor consultations',
-    headline: 'See a doctor today. From your phone.',
-    subheadline: `Talk to an AHPRA-registered doctor about health concerns, treatment options, or anything you'd normally see a doctor for. Medication may be prescribed by your doctor if clinically appropriate.`,
-    ctaText: `Start your consult · ${PRICING_DISPLAY.CONSULT}`,
-    ctaHref: '/request?service=consult',
+    badge: 'Australian doctor-reviewed services',
+    headline: 'Choose the pathway that fits.',
+    subheadline: 'General consults are retired. Start with repeat prescriptions, ED, hair loss, or medical certificates so the doctor receives the right structured safety information.',
+    ctaText: 'Compare services',
+    ctaHref: '/consult',
   },
 
   specializedServices: {

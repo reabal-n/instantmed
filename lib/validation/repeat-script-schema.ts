@@ -213,7 +213,7 @@ export function validateRepeatScriptPayload(
   if (prescribedBefore !== true) {
     return {
       valid: false,
-      error: "New medications require a General Consult. Please book a consultation.",
+      error: "This repeat prescription service is only for medicines you have already been prescribed. For a new medicine, see your regular GP unless your request matches an active specialty pathway.",
       requiresConsult: true,
     }
   }
@@ -229,7 +229,7 @@ export function validateRepeatScriptPayload(
   if (doseChanged !== false) {
     return {
       valid: false,
-      error: "Dose changes require a General Consult. Please book a consultation.",
+      error: "Dose changes need review by your regular GP or specialist unless your request matches an active specialty pathway.",
       requiresConsult: true,
     }
   }

@@ -191,32 +191,42 @@ function trackGoogleAdsPostHogEvent({
 }) {
   try {
     const posthog = getPostHogClient()
+    const properties = {
+      ...getPostHogBaselineProperties(),
+      adgroupid: row.adgroupid || null,
+      amount_cents: amountCents,
+      attempted: result.attempted,
+      campaignid: row.campaignid || null,
+      creative: row.creative || null,
+      device: row.device || null,
+      error: error || null,
+      has_gbraid: Boolean(row.gbraid),
+      has_gclid: Boolean(row.gclid),
+      has_wbraid: Boolean(row.wbraid),
+      intake_id: intakeId,
+      keyword: row.keyword || null,
+      likely_google_attributed: isLikelyGoogleAttributed(row),
+      matchtype: row.matchtype || null,
+      network: row.network || null,
+      ok: result.ok ?? false,
+      service_category: row.category || null,
+      source,
+      status,
+    }
+
     posthog.capture({
       distinctId: posthogDistinctId,
-      event: "google_ads_server_conversion",
-      properties: {
-        ...getPostHogBaselineProperties(),
-        adgroupid: row.adgroupid || null,
-        amount_cents: amountCents,
-        attempted: result.attempted,
-        campaignid: row.campaignid || null,
-        creative: row.creative || null,
-        device: row.device || null,
-        error: error || null,
-        has_gbraid: Boolean(row.gbraid),
-        has_gclid: Boolean(row.gclid),
-        has_wbraid: Boolean(row.wbraid),
-        intake_id: intakeId,
-        keyword: row.keyword || null,
-        likely_google_attributed: isLikelyGoogleAttributed(row),
-        matchtype: row.matchtype || null,
-        network: row.network || null,
-        ok: result.ok ?? false,
-        service_category: row.category || null,
-        source,
-        status,
-      },
+      event: "google_ads_server_conversion_attempt",
+      properties,
     })
+
+    if (status === "success") {
+      posthog.capture({
+        distinctId: posthogDistinctId,
+        event: "google_ads_server_conversion",
+        properties,
+      })
+    }
   } catch {
     // Analytics must never block Stripe webhook completion.
   }

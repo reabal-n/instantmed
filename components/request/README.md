@@ -24,8 +24,9 @@ import { RequestFlow } from "@/components/request"
 |-------|-------------|
 | `/request?service=med-cert` | Medical certificate flow |
 | `/request?service=repeat-script` | Repeat prescription |
-| `/request?service=consult` | New prescription request via general consult |
-| `/request?service=consult` | Doctor consultation |
+| `/consult` | Services overview for active specialty pathways |
+| `/request?service=consult&subtype=ed` | ED specialty consult |
+| `/request?service=consult&subtype=hair_loss` | Hair loss specialty consult |
 
 Supported service params are defined by `SUPPORTED_SERVICE_SLUGS` and
 `mapServiceParam` in `lib/request/step-registry.ts`. Referral and pathology

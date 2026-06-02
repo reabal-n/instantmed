@@ -74,7 +74,7 @@ export const urologicalSymptoms: Record<string, SymptomData> = {
     serviceRecommendation: {
       type: "consult",
       text: "Get UTI treatment online",
-      href: "/request?service=consult&condition=uti"
+      href: "/consult"
     },
     doctorPerspective: "Dysuria (burning on urination) in an otherwise healthy woman is UTI until proven otherwise - the positive predictive value of this symptom is over 90%. This is one of the most straightforward telehealth consultations: the symptom pattern (burning, frequency, urgency, sometimes blood in urine) is so characteristic that urine testing is not required before starting treatment in uncomplicated cases. In men, burning on urination is more complex - UTIs in men always warrant investigation as they suggest an underlying structural or functional issue. I also consider STI screening in sexually active patients with dysuria, particularly if there is urethral discharge. The key red flags I screen for are flank pain, fever, and rigors - these suggest the infection has reached the kidneys (pyelonephritis) and may need more aggressive treatment.",
     certGuidance: "A UTI can make concentration difficult and require frequent bathroom trips. Most people can work with mild symptoms, but severe burning, urgency, or associated fever warrants 1-2 days off. With antibiotics, significant relief usually comes within 24-48 hours.",
@@ -152,7 +152,7 @@ export const urologicalSymptoms: Record<string, SymptomData> = {
     serviceRecommendation: {
       type: "consult",
       text: "Get assessed online",
-      href: "/request?service=consult&condition=uti"
+      href: "/consult"
     },
     doctorPerspective: "Frequent urination has a broad differential, and the clinical approach depends on whether it is accompanied by other symptoms. In women, the most common cause is UTI - frequency with burning and urgency. In men over 50, benign prostatic hyperplasia (BPH) is the leading cause. New-onset frequent urination with excessive thirst and weight loss raises immediate concern for diabetes and warrants a blood glucose test. Overactive bladder (urge incontinence) is another common cause that responds well to treatment. I also ask about fluid intake - many people drink excessive caffeine or water and mistake normal physiological output for a problem. Nocturia (waking at night to urinate) more than once is worth investigating, particularly in older adults.",
     certGuidance: "Frequent urination itself rarely prevents work but can be highly disruptive. If caused by a UTI, 1-2 days with treatment usually resolves urgency. Ensure easy bathroom access at work during recovery.",

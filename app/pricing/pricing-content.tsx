@@ -77,10 +77,10 @@ const services = [
     price: PRICING.HAIR_LOSS,
     priceLabel: `From $${PRICING.HAIR_LOSS}`,
     priceSubtext: `ED and hair loss assessments: $${PRICING.HAIR_LOSS}`,
-    description: "New scripts, ED, and hair loss",
+    description: "ED and hair loss assessments",
     features: [
       "Hair loss and ED assessments",
-      "New medication prescribing",
+      "Structured safety screening",
       "Doctor-led treatment advice",
       "No subscription",
     ],

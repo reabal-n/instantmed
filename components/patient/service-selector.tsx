@@ -1,6 +1,6 @@
 'use client'
 
-import { FileText, MessageSquare,Pill } from 'lucide-react'
+import { FileText, MessageSquare, Pill } from 'lucide-react'
 
 import { Heading } from '@/components/ui/heading'
 import { PerspectiveTiltCard } from '@/components/ui/morning/perspective-tilt-card'
@@ -40,8 +40,8 @@ const SERVICES = [
   {
     id: 'consultation' as const,
     icon: MessageSquare,
-    label: 'General Consultation',
-    description: 'Speak to a doctor about your health',
+    label: 'Specialty pathways',
+    description: 'ED and hair loss assessments',
     color: 'bg-sky-50 dark:bg-sky-950/30',
     iconColor: 'text-sky-600 dark:text-sky-400',
   },

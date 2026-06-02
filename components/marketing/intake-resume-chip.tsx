@@ -20,7 +20,7 @@ const SERVICE_LABELS: Record<ServiceKey, string> = {
 const SERVICE_ROUTES: Record<ServiceKey, string> = {
   'med-cert': '/request?service=med-cert',
   'prescription': '/request?service=repeat-script',
-  'consult': '/request?service=consult',
+  'consult': '/consult',
 }
 
 const DISMISS_KEY = 'intake_resume_chip_dismissed_at'

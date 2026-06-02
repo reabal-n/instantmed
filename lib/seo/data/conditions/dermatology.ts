@@ -68,7 +68,7 @@ export const dermatologyConditions: Record<string, ConditionData> = {
     relatedConditions: ["eczema", "hives", "allergic-reaction"],
     serviceType: "consult",
     ctaText: "Get your rash assessed",
-    ctaHref: "/request?service=consult&condition=skin-rash",
+    ctaHref: "/consult",
     stats: { avgTime: "45 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Skin rashes are one of the trickier conditions to assess remotely, but many common rashes - contact dermatitis, fungal infections, hives, mild eczema flares - can be diagnosed from a clear photo and a good history. What matters most is the pattern: Is it localised or widespread? Itchy or painful? Did it appear suddenly or gradually? Is there a trigger you can identify - a new detergent, medication, or food? The red flags I look for are rashes that are rapidly spreading, blistering, accompanied by fever, or causing swelling of the face or throat (which can indicate anaphylaxis). For a simple allergic rash or contact dermatitis, a telehealth consultation can get you started on the right treatment quickly - often an antihistamine or topical steroid - without waiting days for a GP appointment.",
     auStats: [
@@ -164,7 +164,7 @@ export const dermatologyConditions: Record<string, ConditionData> = {
     relatedConditions: ["skin-rash", "shingles", "stress"],
     serviceType: "consult",
     ctaText: "Get treatment",
-    ctaHref: "/request?service=consult&condition=cold-sores",
+    ctaHref: "/consult",
     stats: { avgTime: "25 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Cold sores are caused by HSV-1, which lies dormant in nerve cells after initial infection and reactivates periodically. The key clinical point is that antiviral treatment is time-sensitive - valaciclovir or aciclovir is most effective when started during the prodromal phase (the tingling/itching before blisters appear) or within the first 24 hours of blisters forming. This is why telehealth is particularly useful for cold sores: fast access to a prescription at the first sign of an outbreak. For patients with frequent recurrences (6 or more per year), daily suppressive therapy with low-dose valaciclovir is highly effective and well-tolerated. Over-the-counter treatments like aciclovir cream are modestly effective but far less so than oral antivirals.",
     auStats: [
@@ -241,7 +241,7 @@ export const dermatologyConditions: Record<string, ConditionData> = {
     relatedConditions: ["eczema", "skin-rash", "hives"],
     serviceType: "both",
     ctaText: "Get assessed",
-    ctaHref: "/request?service=consult&condition=contact-dermatitis",
+    ctaHref: "/consult",
     stats: { avgTime: "35 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Contact dermatitis is one of the most common occupational diseases in Australia, particularly in healthcare (hand washing/gloves), hairdressing (dyes/chemicals), construction (cement), and food handling. The clinical distinction between irritant and allergic contact dermatitis is important: irritant dermatitis happens because a substance directly damages the skin barrier (anyone would react with enough exposure), while allergic dermatitis involves an immune reaction to a specific allergen (only sensitised individuals react). Telehealth assessment via clear photos of the rash pattern and a detailed occupational history can often identify the cause. Treatment involves two things: avoiding the trigger (sometimes requiring workplace modifications) and managing the inflammation with topical steroids and emollients. Patch testing by a dermatologist may be needed for allergic cases.",
     auStats: [
@@ -375,7 +375,7 @@ export const dermatologyConditions: Record<string, ConditionData> = {
     relatedConditions: ["skin-rash", "hay-fever", "allergies"],
     serviceType: "both",
     ctaText: "Get assessed",
-    ctaHref: "/request?service=consult&condition=eczema",
+    ctaHref: "/consult",
     stats: { avgTime: "45 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Eczema is a chronic condition that requires ongoing management rather than a one-off cure. The foundation of eczema management is moisturising - and most people do not moisturise enough or use the right products. Thick, fragrance-free ointments (like emulsifying ointment or sorbolene) applied liberally and frequently (at least twice daily, more during flares) are far more effective than light lotions. Topical corticosteroids get an unfairly bad reputation - when used correctly, they are safe and highly effective for managing flares. The common fear of 'steroid damage' leads many patients to under-treat, resulting in prolonged flares and more discomfort than if the steroid had been used properly from the outset. A telehealth assessment is well-suited for eczema management because photos of the affected skin, combined with your history, allow us to assess severity and adjust treatment.",
     auStats: [
@@ -514,7 +514,7 @@ export const dermatologyConditions: Record<string, ConditionData> = {
     relatedConditions: ["skin-rash", "chickenpox", "nerve-pain"],
     serviceType: "both",
     ctaText: "Get assessed",
-    ctaHref: "/request?service=consult&condition=shingles",
+    ctaHref: "/consult",
     stats: { avgTime: "45 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Shingles is a reactivation of the varicella-zoster virus (the same virus that causes chickenpox) that has been dormant in your nerve cells, sometimes for decades. The single most important thing about shingles treatment is timing - antiviral medication (valaciclovir) is most effective when started within 72 hours of the rash appearing, ideally within 24 hours. This is why telehealth is particularly well-suited for shingles: if you recognise the characteristic painful, blistering rash in a band on one side of your body, getting a quick telehealth consultation can start treatment hours faster than waiting for a GP appointment. The risk of postherpetic neuralgia (persistent nerve pain after the rash heals) increases with age and with delayed treatment. If the rash involves the forehead or area around the eye, this is ophthalmic shingles and requires urgent in-person review due to the risk of eye damage.",
     auStats: [
@@ -652,7 +652,7 @@ export const dermatologyConditions: Record<string, ConditionData> = {
     relatedConditions: ["skin-rash", "eczema", "hay-fever"],
     serviceType: "both",
     ctaText: "Get assessed",
-    ctaHref: "/request?service=consult&condition=hives",
+    ctaHref: "/consult",
     stats: { avgTime: "35 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Hives (urticaria) are extremely common - about 20% of people will experience at least one episode in their lifetime. The most important thing I assess is whether the hives are part of an allergic reaction that could progress to anaphylaxis. The warning signs are swelling of the lips, tongue, or throat, difficulty breathing, dizziness, or abdominal pain - these require immediate emergency care (call 000). In the vast majority of cases, hives are benign, self-limiting, and respond well to antihistamines. What frustrates many patients is that a specific trigger is identified in fewer than 50% of acute hives cases. Chronic urticaria (lasting more than 6 weeks) is almost never allergic in origin - it is typically autoimmune and requires a different treatment approach. Via telehealth, I can assess the pattern, recommend appropriate treatment, and determine whether specialist referral is needed.",
     auStats: [
@@ -748,7 +748,7 @@ export const dermatologyConditions: Record<string, ConditionData> = {
     relatedConditions: ["uti", "skin-rash", "itching"],
     serviceType: "consult",
     ctaText: "Get treatment",
-    ctaHref: "/request?service=consult&condition=thrush",
+    ctaHref: "/consult",
     stats: { avgTime: "25 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Thrush is extremely common - about 75% of women will experience at least one episode of vaginal thrush in their lifetime. For women who recognise their symptoms from previous episodes, telehealth can provide a fast prescription without an examination. A single dose of fluconazole 150mg is effective for most uncomplicated episodes. What I look for in the history is whether this is a straightforward recurrence or whether there are features suggesting something else - unusual discharge colour, strong odour (more suggestive of bacterial vaginosis), or systemic symptoms. Recurrent thrush (4+ episodes per year) warrants investigation for underlying causes - poorly controlled diabetes, immunosuppression, or hormonal factors - and may benefit from a longer course or maintenance antifungal therapy.",
     auStats: [

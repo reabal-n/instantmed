@@ -25,7 +25,7 @@ export const sensorySleepSymptoms: Record<string, SymptomData> = {
       { q: "Do blue light glasses help?", a: "Evidence is mixed. Current research suggests blue light glasses have minimal effect on eye strain. Better strategies are the 20-20-20 rule, proper screen positioning, and adequate lighting." },
       { q: "Can I get a medical certificate for eye strain?", a: "Severe eye strain with headaches can affect your ability to do screen-based work. A certificate may be appropriate, along with recommendations for workplace ergonomic assessment." }
     ],
-    serviceRecommendation: { type: "consult", text: "Get assessed", href: "/request?service=consult" },
+    serviceRecommendation: { type: "consult", text: "Get assessed", href: "/consult" },
     doctorPerspective: "Digital eye strain is the occupational health epidemic of the modern workplace. Nearly everyone who works at a screen for more than 2 hours daily experiences it to some degree, yet very few seek help or make the simple adjustments that resolve it. The root cause is that our eyes evolved for distance vision and outdoor light - sustained near-focus on a backlit screen in an air-conditioned room is physiologically demanding. The most effective intervention is the 20-20-20 rule, combined with deliberate blinking and appropriate screen positioning. I also always recommend an eye test to rule out uncorrected refractive error - even a mild prescription that you 'don't really need' can eliminate eye strain entirely.",
     certGuidance: "Severe eye strain can make screen-based work impossible. If headaches and eye fatigue are debilitating despite ergonomic adjustments, a certificate and optometry referral are appropriate.",
   },
@@ -46,7 +46,7 @@ export const sensorySleepSymptoms: Record<string, SymptomData> = {
       { q: "What is CPAP?", a: "Continuous Positive Airway Pressure - a machine that gently blows air through a mask to keep your airway open during sleep. It is the most effective treatment for moderate-severe OSA." },
       { q: "Is sleep apnoea dangerous?", a: "Untreated OSA significantly increases risk of heart attack, stroke, type 2 diabetes, and car accidents (due to daytime sleepiness). Treatment with CPAP dramatically reduces these risks." }
     ],
-    serviceRecommendation: { type: "consult", text: "Get assessed", href: "/request?service=consult" },
+    serviceRecommendation: { type: "consult", text: "Get assessed", href: "/consult" },
     doctorPerspective: "Sleep apnoea is one of the most underdiagnosed conditions in Australia - up to 80% of moderate-to-severe cases remain undiagnosed. The classic presentation is a middle-aged, overweight male with loud snoring and daytime sleepiness, but it affects women too (particularly after menopause) and can occur at any weight. Via telehealth, I can screen using validated questionnaires (STOP-BANG, Epworth Sleepiness Scale), arrange home sleep study referrals, and discuss treatment options. The most important reason to diagnose and treat OSA is cardiovascular risk reduction - untreated severe OSA doubles the risk of heart attack and stroke. CPAP compliance is the main challenge, but modern machines are quieter, smaller, and more comfortable than older models.",
     certGuidance: "Untreated severe OSA with excessive daytime sleepiness is a safety risk for driving and operating machinery. A certificate may be appropriate while awaiting diagnosis and treatment initiation.",
   },

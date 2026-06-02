@@ -89,7 +89,7 @@ export const painSymptoms: Record<string, SymptomData> = {
     serviceRecommendation: {
       type: "both",
       text: "Speak with a doctor",
-      href: "/request?service=consult&symptom=headache"
+      href: "/consult"
     },
     doctorPerspective: "Headaches are incredibly common and almost always benign, but the clinical skill lies in recognising the rare dangerous headache. The red flags I screen for are: sudden onset 'thunderclap' headache (reaching maximum intensity within seconds - possible subarachnoid haemorrhage), headache with fever and neck stiffness (possible meningitis), headache after head injury, new headache in someone over 50, headache with visual changes or neurological symptoms, and headache that wakes you from sleep. If none of these are present, the headache is almost certainly a tension headache or migraine. Tension headaches feel like a band squeezing around the head. Migraines are typically one-sided, throbbing, and accompanied by nausea or light sensitivity. For chronic headaches, medication overuse is a paradoxically common cause - regular use of painkillers more than 10-15 days per month can create a cycle of rebound headaches.",
     certGuidance: "Severe headaches - particularly migraines with nausea, visual disturbances, or light sensitivity - legitimately prevent work. Most people need 1-2 days. If headaches are causing frequent absences, discuss preventive treatment with your GP.",
@@ -136,7 +136,7 @@ export const painSymptoms: Record<string, SymptomData> = {
       { q: "When does joint pain need investigation?", a: "See a doctor if pain persists beyond 2 weeks, if the joint is swollen/hot/red, if multiple joints are affected, or if you have morning stiffness lasting more than 30 minutes (possible inflammatory arthritis)." },
       { q: "Should I use heat or ice?", a: "Ice for acute pain and swelling (first 48 hours of a new injury). Heat for chronic stiffness and muscle tension. Many people benefit from alternating both." }
     ],
-    serviceRecommendation: { type: "both", text: "Get assessed", href: "/request?service=consult" },
+    serviceRecommendation: { type: "both", text: "Get assessed", href: "/consult" },
     doctorPerspective: "Joint pain is one of the broadest symptom categories in medicine, and the approach depends on whether it is one joint or many, acute or chronic, and inflammatory or mechanical. A single hot, red, swollen joint with fever is septic arthritis until proven otherwise - this is a medical emergency requiring urgent in-person assessment and joint aspiration. In contrast, gradual knee stiffness in a 55-year-old is almost certainly osteoarthritis and can be managed with exercise and weight management. The key features I assess remotely are: which joints, how many, morning stiffness duration (more than 30 minutes suggests inflammatory arthritis), and associated symptoms (fever, rash, eye inflammation). This allows me to triage effectively between conditions that need urgent attention and those that can be managed conservatively.",
     certGuidance: "Joint pain affecting weight-bearing joints (knees, hips, ankles) or hands can prevent physical work and desk work respectively. Gout attacks are among the most painful conditions and typically warrant 3-5 days off.",
   },
@@ -180,7 +180,7 @@ export const painSymptoms: Record<string, SymptomData> = {
       { q: "Do I need antibiotics for an ear infection?", a: "Many ear infections are viral and resolve on their own. Antibiotics may be needed for bacterial infections - a doctor can assess." },
       { q: "Can I get a medical certificate for earache?", a: "Yes. Ear infections can be painful and affect concentration. Our doctors can provide a certificate." }
     ],
-    serviceRecommendation: { type: "both", text: "Get assessed", href: "/request?service=consult" },
+    serviceRecommendation: { type: "both", text: "Get assessed", href: "/consult" },
     doctorPerspective: "Earache in adults most commonly comes from otitis externa (outer ear infection) or referred pain from the throat or jaw - not from middle ear infections, which are far more common in children. The key clinical distinction is whether the pain worsens when you tug on the earlobe (otitis externa - treated with ear drops) or is deep in the ear with hearing changes (otitis media - may need oral antibiotics). Eustachian tube dysfunction during or after a cold is another very common cause of ear discomfort and fullness. I always ask about hearing changes, discharge, and recent swimming or water exposure. The red flag is swelling or tenderness behind the ear (mastoiditis), which requires urgent in-person assessment.",
     certGuidance: "Ear infections can cause significant pain and reduced hearing that affects work performance. A certificate for 1-3 days is appropriate for acute ear infections, particularly if pain disrupts sleep.",
   },

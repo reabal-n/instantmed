@@ -16,8 +16,20 @@ describe("legacy prescription routes", () => {
     expect(nextConfig).toContain('source: "/prescriptions/chronic"')
     expect(nextConfig).toContain('destination: "/request?service=repeat-script"')
     expect(nextConfig).toContain('source: "/prescriptions/new-medication"')
-    expect(nextConfig).toContain('destination: "/request?service=consult"')
+    expect(nextConfig).toContain('destination: "/consult"')
     expect(nextConfig).toContain('source: "/prescriptions/:subtype"')
+  })
+
+  it("does not route prescription marketing CTAs into retired bare consult intake", () => {
+    const prescriptionsLanding = readFileSync(
+      path.join(root, "components/marketing/prescriptions-landing.tsx"),
+      "utf8",
+    )
+    const nextConfig = readFileSync(path.join(root, "next.config.mjs"), "utf8")
+
+    expect(prescriptionsLanding).not.toContain("/request?service=consult")
+    expect(prescriptionsLanding).toContain('href: "/consult"')
+    expect(nextConfig).not.toContain('destination: "/request?service=consult"')
   })
 
   it("retires the legacy repeat_rx_requests API and doctor review stack", () => {

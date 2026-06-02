@@ -68,7 +68,7 @@ export const MED_CERT_COPY = {
     },
     durationHint: "Most requests are for 1–2 days",
     longerDurationLink: "More than 2 days?",
-    longerDurationNote: "Longer absences are handled through a general consultation, where a doctor can assess your situation and provide appropriate documentation.",
+    longerDurationNote: "Longer absences are usually better handled by your regular GP, where a doctor can assess your situation in more detail.",
     
     // Start date
     startDateLabel: "Start date",

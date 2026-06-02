@@ -197,7 +197,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       results: [],
       blocked: true,
-      message: "Schedule 8 medications cannot be prescribed via repeat script. Please book a General Consult.",
+      message: "Schedule 8 medications cannot be prescribed via repeat script. Please see your regular GP or specialist.",
     })
   }
 

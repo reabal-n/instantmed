@@ -110,5 +110,5 @@ export function getConsultDraftResumeHref(
     return `/request?service=consult&subtype=${encodeURIComponent(subtype)}`
   }
 
-  return "/request?service=consult"
+  return "/consult"
 }

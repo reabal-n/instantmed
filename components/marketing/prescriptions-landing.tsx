@@ -121,7 +121,7 @@ const LANDING_CONFIG: LandingPageConfig = {
 // =============================================================================
 
 
-/** Service differentiation - repeat ($29.95) vs new prescription ($49.95) */
+/** Service differentiation - repeat prescription vs active specialty pathways */
 function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
   const services = [
     {
@@ -141,18 +141,18 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
     },
     {
       sticker: "stethoscope" as const,
-      title: "New prescription",
-      subtitle: "Starting a medication for the first time",
-      price: PRICING.NEW_SCRIPT,
-      href: "/request?service=consult",
+      title: "Specialty pathways",
+      subtitle: "Structured ED or hair loss assessment",
+      price: PRICING.CONSULT,
+      href: "/consult",
       badge: null,
       highlight: false,
       bullets: [
-        "Doctor assessment included",
-        "eScript sent to your phone",
-        "Full refund if we can’t help",
+        "Use a dedicated safety screener",
+        "Doctor contacts you if clinically needed",
+        "General new medicines stay with your GP",
       ],
-      ctaText: "New prescription",
+      ctaText: "See specialty options",
     },
   ]
 
@@ -162,10 +162,10 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
         <Reveal className="text-center mb-10">
           <SectionPill>Pricing</SectionPill>
           <Heading level="h2" className="mt-4 mb-3">
-            Two paths, both flat-fee.
+            Renewals first. Specialty care when it fits.
           </Heading>
           <p className="text-muted-foreground max-w-xl mx-auto text-balance">
-            No hidden costs. Full refund if we can&apos;t help.
+            Repeat prescription requests are active here. New medicine starts only through supported specialty pathways.
           </p>
         </Reveal>
 
@@ -268,7 +268,7 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
         <p className="text-center text-xs text-muted-foreground mt-6">
           Not sure which you need?{" "}
           <span className="font-medium text-foreground">
-            Repeat = medication you already take. New = something you haven&apos;t been prescribed.
+            Repeat means medication you already take. New medicines need your regular GP unless they match an active specialty pathway.
           </span>
         </p>
       </div>
@@ -322,8 +322,8 @@ export function PrescriptionsLanding() {
               ref: heroCTARef,
             }}
             secondaryCta={{
-              text: "New prescription",
-              href: isDisabled ? "/contact" : "/request?service=consult",
+              text: "Specialty options",
+              href: isDisabled ? "/contact" : "/consult",
             }}
             mockup={<EScriptHeroMockup />}
           >
@@ -357,7 +357,7 @@ export function PrescriptionsLanding() {
             />
           </div>
 
-          {/* 2. Service comparison — repeat vs new Rx, pricing up front */}
+          {/* 2. Service comparison — repeat Rx plus active specialty pathways */}
           <ServiceComparisonSection isDisabled={isDisabled} />
 
           {/* PBS callout strip — addresses pharmacy cost anxiety right after pricing */}

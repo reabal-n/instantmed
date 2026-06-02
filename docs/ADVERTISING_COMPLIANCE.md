@@ -159,7 +159,7 @@ Do not include medicine names in URLs used by paid traffic or checkout routing.
 Avoid:
 
 - `/request?service=prescription&medication=sildenafil`
-- `/request?service=consult&drug=finasteride`
+- hair-loss request URLs with `drug=finasteride`
 - paid traffic to `/prescriptions/med/sildenafil`
 
 Use:

@@ -1,7 +1,7 @@
 /**
- * General Consultation Approved Email Template
+ * Specialty Consultation Approved Email Template
  *
- * Sent to patient when their general consultation is approved.
+ * Sent to the patient when their specialty consultation is approved.
  */
 
 import * as React from "react"

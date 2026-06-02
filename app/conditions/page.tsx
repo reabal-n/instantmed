@@ -72,7 +72,7 @@ const conditionsFaqs = [
   },
   {
     question: "What if I have a condition that's not listed here?",
-    answer: "Start a general consultation and describe what's going on. The reviewing doctor can assess a wide range of concerns beyond what's listed. If telehealth isn't appropriate for your situation, they'll point you in the right direction.",
+    answer: "Choose one of the active services if it fits your concern, or see your regular GP for broader care. The reviewing doctor will only proceed where telehealth is clinically appropriate.",
   },
 ]
 
@@ -175,7 +175,7 @@ export default function ConditionsIndexPage() {
                 Not sure which service you need?
               </h2>
               <p className="text-muted-foreground mb-8">
-                Start a consultation and the reviewing doctor will help you figure out the best path forward.
+                Compare medical certificates, repeat prescriptions, ED, and hair loss pathways before you start.
               </p>
               <Button asChild size="lg" className="rounded-full">
                 <Link href="/request">

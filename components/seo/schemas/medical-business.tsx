@@ -16,7 +16,7 @@ export function MedicalBusinessSchema({ baseUrl = "https://instantmed.com.au" }:
     "@context": "https://schema.org",
     "@type": "MedicalBusiness",
     name: "InstantMed",
-    description: "Australian telehealth platform for medical certificates, prescriptions, and doctor consultations",
+    description: "Australian telehealth platform for medical certificates, repeat prescriptions, and specialty doctor-reviewed pathways",
     url: baseUrl,
     logo: `${baseUrl}/branding/logo.png`,
     telephone: CONTACT_PHONE,
@@ -51,8 +51,8 @@ export function MedicalBusinessSchema({ baseUrl = "https://instantmed.com.au" }:
       },
       {
         "@type": "MedicalProcedure",
-        name: "General Consultation",
-        description: "Online doctor consultations for common health concerns"
+        name: "Specialty Consultations",
+        description: "Structured doctor-reviewed pathways for eligible ED and hair loss requests"
       }
     ],
     areaServed: {

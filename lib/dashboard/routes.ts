@@ -27,9 +27,13 @@ export function buildStaffPatientHref(patientId: string): string {
 export const REQUEST_HREF = "/request" as const
 export const REQUEST_REPEAT_SCRIPT_HREF = "/request?service=repeat-script" as const
 export const REQUEST_MED_CERT_HREF = "/request?service=med-cert" as const
-export const REQUEST_CONSULT_HREF = "/request?service=consult" as const
+export const REQUEST_CONSULT_HREF = "/consult" as const
 
 export function buildRequestServiceHref(options: { service: string; subtype?: string | null }): string {
+  if (options.service === "consult" && !options.subtype) {
+    return REQUEST_CONSULT_HREF
+  }
+
   const params = new URLSearchParams({ service: options.service })
   if (options.subtype) params.set("subtype", options.subtype)
   return `${REQUEST_HREF}?${params.toString()}`

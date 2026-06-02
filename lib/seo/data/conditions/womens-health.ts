@@ -67,7 +67,7 @@ export const womensHealthConditions: Record<string, ConditionData> = {
     relatedConditions: ["anxiety", "fatigue", "migraine"],
     serviceType: "both",
     ctaText: "Get assessed",
-    ctaHref: "/request?service=consult&condition=period-pain",
+    ctaHref: "/consult",
     stats: { avgTime: "50 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Period pain is one of the most common and most dismissed health complaints. When someone tells me their period pain is bad enough to miss work, I believe them - studies show that dysmenorrhoea can produce pain comparable to a heart attack in severity. Primary dysmenorrhoea (pain without underlying disease) affects up to 90% of menstruating women and peaks in the teens and twenties. Secondary dysmenorrhoea (pain caused by endometriosis, fibroids, or other conditions) tends to develop later and worsen over time. What I look for in assessment is whether the pain pattern has changed, whether it is getting progressively worse, and whether there are associated symptoms like heavy bleeding, pain during sex, or pain between periods - these may suggest endometriosis, which affects 1 in 9 Australian women and takes an average of 7 years to diagnose. A medical certificate for period pain is entirely legitimate, and effective management options exist beyond just 'taking a Nurofen.'",
     auStats: [
@@ -209,7 +209,7 @@ export const womensHealthConditions: Record<string, ConditionData> = {
     relatedConditions: ["kidney-infection", "cystitis"],
     serviceType: "consult",
     ctaText: "Get assessed now",
-    ctaHref: "/request?service=consult&condition=uti",
+    ctaHref: "/consult",
     stats: { avgTime: "35 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "UTIs are one of the most common conditions we see in telehealth, and they are well-suited to remote assessment because the diagnosis is primarily symptom-based. If you are experiencing the classic triad - burning when you urinate, increased frequency, and urgency - and you are an otherwise healthy woman under 65, the probability of a UTI is over 90%. This is why guidelines in Australia and internationally support empiric antibiotic treatment based on symptoms alone, without requiring a urine test first. However, there are important exceptions: recurrent UTIs (three or more per year), UTIs in men (which always warrant investigation), symptoms suggesting the infection has reached the kidneys (back pain, fever, chills), and UTIs during pregnancy all require more careful assessment. I always ask about these factors in a consultation. Left untreated, a simple bladder infection can ascend to the kidneys, so prompt treatment matters.",
     auStats: [

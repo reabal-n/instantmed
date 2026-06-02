@@ -90,7 +90,7 @@ export const respiratorySymptoms: Record<string, SymptomData> = {
     serviceRecommendation: {
       type: "both",
       text: "Get assessed by a doctor",
-      href: "/request?service=consult&symptom=sore-throat"
+      href: "/consult"
     },
     doctorPerspective: "When assessing a sore throat, the first question I ask myself is whether this is likely viral or bacterial - because the treatment is completely different. The majority of sore throats (around 70-80%) are viral and will resolve on their own. I use the modified Centor criteria to estimate the probability of strep throat: sudden onset, high fever, tonsillar exudate, swollen anterior cervical lymph nodes, and absence of cough each score a point. A score of 3 or more raises the probability enough to consider antibiotics. What I am most alert to is peritonsillar abscess (quinsy) - a unilateral swelling that causes difficulty opening the mouth, a muffled voice, and drooling. This requires urgent drainage. For most sore throats, effective pain management with paracetamol, ibuprofen, and salt water gargles is genuinely all that is needed.",
     certGuidance: "A sore throat severe enough to prevent speaking normally, swallowing, or concentrating warrants a medical certificate. Most people need 2-3 days. If you work in a customer-facing or phone-based role, voice rest may require slightly longer.",
@@ -178,7 +178,7 @@ export const respiratorySymptoms: Record<string, SymptomData> = {
     serviceRecommendation: {
       type: "both",
       text: "Get your cough assessed",
-      href: "/request?service=consult&symptom=cough"
+      href: "/consult"
     },
     doctorPerspective: "A cough is the body's protective reflex - it clears the airways of mucus, irritants, and microbes. The clinical approach to cough depends entirely on duration. Acute cough (under 3 weeks) is almost always post-viral and requires no treatment beyond symptomatic relief - it resolves on its own. A cough that persists for 3-8 weeks after a respiratory infection is called a 'post-infectious cough' and is very common - the airways remain irritated and hyperreactive even though the infection has cleared. Chronic cough (over 8 weeks) warrants investigation: the three most common causes are asthma, postnasal drip (upper airway cough syndrome), and gastric reflux - often in combination. The most important red flag is coughing up blood (haemoptysis), which always needs investigation, as does a new persistent cough in a smoker or ex-smoker.",
     certGuidance: "A cough that disrupts sleep, causes vomiting, or makes it difficult to speak for sustained periods can warrant a certificate. Post-viral cough commonly persists for 2-3 weeks - this duration is normal and does not indicate something serious, but may still affect work capacity.",
@@ -224,7 +224,7 @@ export const respiratorySymptoms: Record<string, SymptomData> = {
       { q: "When is shortness of breath an emergency?", a: "Call 000 if severe, sudden, or with chest pain, blue lips, or inability to speak." },
       { q: "Can anxiety cause shortness of breath?", a: "Yes. Panic attacks often cause breathlessness. But new or unexplained breathlessness should be checked." }
     ],
-    serviceRecommendation: { type: "consult", text: "Get assessed", href: "/request?service=consult" },
+    serviceRecommendation: { type: "consult", text: "Get assessed", href: "/consult" },
     doctorPerspective: "Shortness of breath is a symptom I take seriously because the range of causes spans from harmless (anxiety-related hyperventilation) to life-threatening (pulmonary embolism, heart failure). The key clinical question is: is this acute (sudden onset) or chronic (gradual)? Sudden breathlessness in an otherwise well person needs urgent assessment - especially with chest pain, leg swelling, or recent immobilisation. Gradual breathlessness that worsens over weeks often points to asthma, anaemia, deconditioning, or early heart failure. Anxiety is a very common cause but should only be attributed after other causes are excluded. If you are unsure, err on the side of seeking help - breathing difficulty is always taken seriously.",
     certGuidance: "Any significant breathlessness affecting your ability to walk, climb stairs, or perform normal tasks warrants time off. If breathlessness required emergency assessment, follow-up rest is appropriate. Always discuss return to work with your treating doctor.",
   },
@@ -249,7 +249,7 @@ export const respiratorySymptoms: Record<string, SymptomData> = {
       { q: "What tests might I need?", a: "Depending on the likely cause: spirometry (for asthma), chest X-ray (for smokers or if lung pathology suspected), trial of PPI medication (for reflux), or nasal endoscopy (for postnasal drip)." },
       { q: "Can I get a medical certificate for chronic cough?", a: "Yes. A persistent cough can disrupt sleep, cause voice strain, and make certain work environments difficult (quiet offices, phone-based work)." }
     ],
-    serviceRecommendation: { type: "consult", text: "Get assessed", href: "/request?service=consult" },
+    serviceRecommendation: { type: "consult", text: "Get assessed", href: "/consult" },
     doctorPerspective: "Chronic cough is one of the most common reasons for GP referral, and the diagnosis often involves treating the three most common causes (asthma, postnasal drip, reflux) sequentially or simultaneously. The key in telehealth assessment is ruling out serious causes first: any smoker or ex-smoker with a new or changed cough needs a chest X-ray. Coughing blood (haemoptysis) always warrants investigation. Unexplained weight loss with cough raises concern for malignancy. Once these are excluded, the 'big three' account for over 90% of chronic cough cases. A structured trial of treatment - inhaler for possible asthma, nasal steroid for postnasal drip, PPI for reflux - often identifies the cause by which treatment works. ACE inhibitor cough is a commonly overlooked cause that resolves within 1-4 weeks of switching medication.",
     certGuidance: "Chronic cough can be disruptive at work - particularly in quiet environments. If cough is severe enough to cause vomiting, urinary incontinence, or significant sleep disruption, a certificate is appropriate.",
   }

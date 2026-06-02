@@ -16,7 +16,7 @@ export const PRESCRIPTION_FAQ = [
   {
     question: "Do I need a previous prescription?",
     answer:
-      "This service is for medications you've already been prescribed. If you need a new medication, our general consult service is more appropriate.",
+      "Yes. This pathway is for medications you've already been prescribed. If you need a new medicine, see your regular GP unless your request matches one of our active specialty pathways.",
   },
   {
     question: "Will my PBS subsidies still apply?",

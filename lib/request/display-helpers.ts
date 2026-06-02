@@ -19,7 +19,7 @@ export const SERVICE_DISPLAY_LABELS: Record<UnifiedServiceType, string> = {
 }
 
 export const CONSULT_SUBTYPE_DISPLAY_LABELS: Record<string, string> = {
-  general: 'General Consultation',
+  general: 'Specialty Consultation',
   ed: 'ED Consultation',
   hair_loss: 'Hair Loss Consultation',
   womens_health: "Women's Health Consultation",

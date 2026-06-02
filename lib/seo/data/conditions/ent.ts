@@ -70,7 +70,7 @@ export const entConditions: Record<string, ConditionData> = {
     relatedConditions: ["cold-and-flu", "sinusitis", "conjunctivitis"],
     serviceType: "both",
     ctaText: "Get assessed",
-    ctaHref: "/request?service=consult",
+    ctaHref: "/consult",
     stats: { avgTime: "40 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Tonsillitis is overwhelmingly viral in origin - around 70-80% of cases - which means antibiotics will not help in most instances. The clinical challenge is distinguishing viral tonsillitis from Group A Streptococcal (GAS) infection, which does benefit from antibiotic treatment. Classic GAS features include sudden onset, severe throat pain, high fever, tonsillar exudate (white patches), tender anterior cervical lymph nodes, and absence of cough. The Centor criteria help quantify the probability. Even without antibiotics, most viral tonsillitis resolves in 5-7 days. Recurrent tonsillitis (7+ episodes in a year, or 5+ per year for 2 years) may warrant tonsillectomy referral. Via telehealth, I can assess the history pattern and decide whether antibiotics are appropriate or whether symptomatic management is the better approach.",
     auStats: [
@@ -211,7 +211,7 @@ export const entConditions: Record<string, ConditionData> = {
     relatedConditions: ["cold-and-flu", "sinusitis", "tonsillitis"],
     serviceType: "both",
     ctaText: "Get assessed",
-    ctaHref: "/request?service=consult",
+    ctaHref: "/consult",
     stats: { avgTime: "35 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Ear infections are very common, particularly in children, and can be assessed effectively via telehealth using a detailed symptom history. In adults, the most common presentation is otitis externa (outer ear infection or 'swimmer's ear') - pain that worsens when you tug the earlobe, with possible discharge. This is usually treated with antibiotic-steroid ear drops. Otitis media (middle ear infection) causes deep ear pain, sometimes with fever and hearing changes, and often follows a cold. In adults, most middle ear infections are viral and resolve without antibiotics in 2-3 days. Antibiotics are reserved for severe symptoms, bilateral infection, or symptoms persisting beyond 48 hours. The key red flag I screen for is mastoiditis - pain and swelling behind the ear - which requires urgent in-person assessment. I also ask about hearing changes, as sudden hearing loss needs prompt investigation.",
     auStats: [
@@ -491,7 +491,7 @@ export const entConditions: Record<string, ConditionData> = {
     relatedConditions: ["hay-fever", "cold-and-flu", "skin-rash"],
     serviceType: "both",
     ctaText: "Get assessed",
-    ctaHref: "/request?service=consult&condition=conjunctivitis",
+    ctaHref: "/consult",
     stats: { avgTime: "40 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Conjunctivitis is common and almost always straightforward, but the type matters for treatment. Viral conjunctivitis - the most common form - causes watery discharge, often starts in one eye and spreads to the other, and resolves on its own in 1-2 weeks. There is no effective treatment; antibiotics do not help. Bacterial conjunctivitis causes thick, yellow-green discharge that crusts the eyelids overnight and may benefit from antibiotic eye drops. Allergic conjunctivitis causes intense itching with clear, watery discharge and often occurs alongside hay fever. The key thing I assess remotely is whether the presentation is consistent with simple conjunctivitis or whether there are warning signs - significant pain (not just irritation), sensitivity to light, blurred vision, or a history of contact lens wear with a red eye. These need same-day in-person assessment to rule out more serious conditions like keratitis or uveitis.",
     auStats: [
@@ -769,7 +769,7 @@ export const entConditions: Record<string, ConditionData> = {
     relatedConditions: ["migraine", "anxiety", "ear-infection"],
     serviceType: "both",
     ctaText: "Get assessed",
-    ctaHref: "/request?service=consult&condition=vertigo",
+    ctaHref: "/consult",
     stats: { avgTime: "50 mins", reviewModel: "Doctor-reviewed" },
     doctorPerspective: "Vertigo is one of the most distressing symptoms patients describe - the sensation that the room is spinning can be genuinely terrifying. The most important distinction I make during assessment is between peripheral vertigo (inner ear causes, generally benign) and central vertigo (brain causes, potentially serious). Benign Paroxysmal Positional Vertigo (BPPV) is by far the most common cause - it is triggered by specific head movements, lasts seconds to minutes, and is caused by calcium crystals dislodging in the inner ear. It can be treated very effectively with specific head positioning exercises (the Epley manoeuvre). Vestibular neuritis causes prolonged vertigo lasting days and is usually viral. The red flags I screen for are vertigo with neurological symptoms - slurred speech, weakness on one side, difficulty walking, severe headache, or double vision - which require urgent assessment to rule out stroke.",
     auStats: [

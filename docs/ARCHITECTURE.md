@@ -725,7 +725,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 ## Directory Index
 
-### `app/` — 537 files, 218 route files
+### `app/` — 538 files, 219 route files
 
 Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-contract.test.ts`; `pnpm build` remains the source of truth for expanded static/SSG route output.
 
@@ -735,7 +735,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `app/admin/` | Admin dashboard | `patients/`, `intakes/`, `emails/`, `features/`, `settings/`, `ops/`, `analytics/` |
 | `app/doctor/` | Doctor portal under the shared staff shell | `intakes/[id]/` (review detail), `patients/`, `settings/`; queue/scripts entry points resolve through `/dashboard` |
 | `app/patient/` | Patient dashboard | `intakes/` (history + success), `settings/`, `onboarding/`, `documents/` |
-| `app/api/` | API routes (80 route files) | `stripe/webhook/`, `cron/`, `health/`, `certificates/`, `intakes/` |
+| `app/api/` | API routes (81 route files) | `stripe/webhook/`, `cron/`, `health/`, `certificates/`, `intakes/` |
 | `app/api/cron/` | Scheduled jobs (23) | `stale-queue/`, `email-dispatcher/`, `health-check`, `google-ads-conversions`, `parchment-smoke`, etc. See OPERATIONS.md |
 | `app/api/stripe/webhook/` | Stripe handlers | 7 handlers: `checkout-session-completed`, `checkout-session-expired`, `checkout-session-async-payment-succeeded/failed`, `charge-refunded`, `charge-dispute-created`, `payment-intent-payment-failed`. Repeat Rx subscription handlers are retired; unsupported Stripe events are acknowledged and claimed by the dispatcher without running business logic. Registered in `handlers/index.ts`. |
 | `app/request/` | **Sole canonical intake flow.** Single page, step-based wizard. |
@@ -814,7 +814,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `types/certificate-template.ts` | PDF template field definitions |
 | `hooks/` | 5 custom hooks (use-connection-status, use-debounce, use-doctor-shortcuts, use-keyboard-navigation, use-landing-analytics) |
 | `e2e/` | 62 Playwright specs, `helpers/` (seed/teardown, auth bypass). Focused paid-flow and ops smoke specs are the blocking CI gate. |
-| `supabase/migrations/` | 73 SQL migration files (1 squashed baseline + 72 incremental). Most recent: `20260521010000_add_paid_request_telegram_message_id.sql` |
+| `supabase/migrations/` | 79 SQL migration files (1 squashed baseline + 78 incremental). Most recent: `20260602070000_restore_intake_abandonment_tracking.sql` |
 | `public/templates/` | Static PDF templates for certificate generation |
 | `content/blog/` | 108 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. Rewritten articles must be comprehensive, source-backed, and backed by at least two GPT-generated local visuals. |
 | `public/images/blog/` | Local WebP hero and article visual assets for health guides. New generated guide visuals carry a deterministic `InstantMed` wordmark added after image generation. |

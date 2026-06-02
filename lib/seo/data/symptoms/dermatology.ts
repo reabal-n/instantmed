@@ -71,7 +71,7 @@ export const dermatologySymptoms: Record<string, SymptomData> = {
     serviceRecommendation: {
       type: "consult",
       text: "Get hair loss treatment",
-      href: "/request?service=consult"
+      href: "/consult"
     },
     doctorPerspective: "Hair thinning is a sensitive topic and patients often delay seeking help. The most common cause by far is androgenetic alopecia (male or female pattern hair loss) - a genetic condition that responds well to treatment when started early. The key is early intervention: finasteride and minoxidil are most effective at preventing further loss rather than regrowing what has already gone. Other causes I consider include thyroid dysfunction, iron deficiency, stress-related telogen effluvium (which typically occurs 2-3 months after a significant stressor), autoimmune alopecia, and medication side effects. A thorough history usually identifies the pattern, and blood tests may be needed to rule out medical causes. Telehealth is well-suited for hair loss assessment because the diagnosis is largely visual and history-based.",
     certGuidance: "Hair thinning itself is unlikely to require a medical certificate, though the psychological impact (anxiety, depression) may. If hair loss is causing significant distress affecting your work or daily function, that is a legitimate reason to seek support.",
@@ -95,7 +95,7 @@ export const dermatologySymptoms: Record<string, SymptomData> = {
       { q: "When is itching serious?", a: "See a doctor if itching is severe, widespread without rash, or doesn't improve. Itching with breathing difficulty is an emergency." },
       { q: "Can I get a medical certificate for itching?", a: "If severe itching (e.g. from eczema flare) affects sleep or work, yes." }
     ],
-    serviceRecommendation: { type: "consult", text: "Get assessed", href: "/request?service=consult" },
+    serviceRecommendation: { type: "consult", text: "Get assessed", href: "/consult" },
     doctorPerspective: "Itching (pruritus) without a visible rash is a diagnostically interesting symptom. If there is a rash, the cause is usually dermatological - eczema, contact dermatitis, fungal infection, hives, or insect bites. But generalised itching without any rash can indicate systemic conditions: liver disease (bile salt deposition), kidney disease (uraemia), thyroid dysfunction, iron deficiency, or rarely, lymphoma. This is why persistent, unexplained itching warrants blood tests. For itching with a clear skin cause, treatment is usually straightforward - moisturisers for dry skin, topical steroids for eczema, antifungals for fungal infections, and antihistamines for allergic reactions. The most important self-care advice is to avoid scratching - it creates an itch-scratch cycle that worsens the condition.",
     certGuidance: "Severe itching - particularly from eczema flares or allergic reactions - can be genuinely debilitating and affect sleep and concentration. A certificate is appropriate when itching significantly impairs your ability to work.",
   },
@@ -119,7 +119,7 @@ export const dermatologySymptoms: Record<string, SymptomData> = {
       { q: "Is hair loss reversible?", a: "It depends on the cause. Telogen effluvium (stress-related) is fully reversible. Iron/thyroid-related hair loss reverses with treatment. Pattern hair loss can be slowed and partially reversed with early treatment but is progressive without it." },
       { q: "What treatments are available?", a: "Minoxidil (topical, OTC), finasteride (prescription, for men), iron/vitamin supplements if deficient, and referral for PRP therapy or specialist treatments for resistant cases." }
     ],
-    serviceRecommendation: { type: "consult", text: "Get assessed", href: "/request?service=consult" },
+    serviceRecommendation: { type: "consult", text: "Get assessed", href: "/consult" },
     doctorPerspective: "Hair loss consultations have increased significantly in telehealth - likely because patients find it easier to discuss a sensitive topic from home. The diagnostic approach starts with the pattern: is it diffuse (all over) or patchy? Gradual or sudden? Diffuse gradual thinning in a typical pattern strongly suggests androgenetic alopecia (genetic). Diffuse shedding 2-3 months after a stressor (illness, surgery, childbirth, severe stress) is telogen effluvium - this is fully reversible. Patchy loss with smooth skin suggests alopecia areata. I always check for treatable causes: iron, ferritin, thyroid function, zinc, and vitamin D - these are all correctable and commonly overlooked. For androgenetic alopecia, the key message is that early treatment (minoxidil ± finasteride for men) is far more effective at preventing further loss than trying to regrow what's already gone.",
     certGuidance: "Hair loss itself is unlikely to require a medical certificate, but the psychological impact can be significant. If hair loss is causing anxiety or depression that affects work, that is a legitimate reason for support.",
   },

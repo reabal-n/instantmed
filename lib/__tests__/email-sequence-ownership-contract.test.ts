@@ -43,12 +43,18 @@ const vercelConfig = JSON.parse(readFileSync(join(process.cwd(), "vercel.json"),
 }
 
 describe("email sequence ownership contract", () => {
-  it("keeps pre-checkout draft recovery separate from payment-stage abandoned checkout", () => {
-    expect(partialRecoverySource).toContain('const PAYMENT_STAGE_DRAFT_STEPS = ["review", "checkout"] as const')
-    expect(partialRecoverySource).toContain('.not("current_step_id", "in"')
+  it("keeps draft recovery responsible for pre-intake review and checkout drafts", () => {
+    expect(partialRecoverySource).not.toContain('const PAYMENT_STAGE_DRAFT_STEPS = ["review", "checkout"] as const')
+    expect(partialRecoverySource).not.toContain('.not("current_step_id", "in"')
     expect(partialRecoverySource).toContain('emailType: "partial_intake_recovery"')
     expect(partialRecoverySource).not.toContain('emailType: "abandoned_checkout"')
 
+    expect(partialRecoverySource).toContain("review/checkout drafts that have not created an intake")
+    expect(partialRecoverySource).toContain("answers.consultSubtype")
+    expect(partialRecoverySource).toContain('return `/consult?d=${encodeURIComponent(draft.session_id)}`')
+    expect(partialRecoverySource).not.toContain(
+      "`${appUrl}/request?service=${encodeURIComponent(draft.service_type)}&d=${encodeURIComponent(draft.session_id)}",
+    )
     expect(abandonedCheckoutSource).toContain('.eq("status", "pending_payment")')
     expect(abandonedCheckoutSource).toContain('emailType: "abandoned_checkout"')
     expect(abandonedCheckoutSource).toContain('emailType: "abandoned_checkout_followup"')

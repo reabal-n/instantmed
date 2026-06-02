@@ -4,6 +4,7 @@ import * as React from "react"
 
 import { getAppUrl } from "@/lib/config/env"
 import { createLogger } from "@/lib/observability/logger"
+import { decryptJSONB, type EncryptedPHI } from "@/lib/security/phi-encryption"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import {
@@ -26,7 +27,6 @@ const SERVICE_NAMES: Record<string, string> = {
 // rescue rate and we don't want to feel like spam to occasional visitors.
 const MIN_IDLE_MINUTES = 60
 const MAX_IDLE_HOURS = 6
-const PAYMENT_STAGE_DRAFT_STEPS = ["review", "checkout"] as const
 
 interface PartialDraft {
   session_id: string
@@ -34,6 +34,47 @@ interface PartialDraft {
   email: string
   first_name: string | null
   updated_at: string
+  answers_encrypted: EncryptedPHI | null
+}
+
+function isEncryptedPHI(value: unknown): value is EncryptedPHI {
+  if (!value || typeof value !== "object") return false
+
+  const candidate = value as Partial<EncryptedPHI>
+  return (
+    typeof candidate.ciphertext === "string" &&
+    typeof candidate.encryptedDataKey === "string" &&
+    typeof candidate.iv === "string" &&
+    typeof candidate.authTag === "string" &&
+    typeof candidate.keyId === "string" &&
+    typeof candidate.version === "number"
+  )
+}
+
+async function getRecoveryResumePath(draft: PartialDraft): Promise<string> {
+  if (draft.service_type !== "consult") {
+    return `/request?service=${encodeURIComponent(draft.service_type)}&d=${encodeURIComponent(draft.session_id)}`
+  }
+
+  if (isEncryptedPHI(draft.answers_encrypted)) {
+    try {
+      const answers = await decryptJSONB<Record<string, unknown>>(draft.answers_encrypted)
+      const subtype = answers.consultSubtype
+
+      if (subtype === "ed" || subtype === "hair_loss") {
+        return `/request?service=consult&subtype=${encodeURIComponent(subtype)}&d=${encodeURIComponent(draft.session_id)}`
+      }
+    } catch (err) {
+      logger.warn("Could not decrypt consult subtype for partial-intake recovery URL", {
+        sessionId: draft.session_id,
+        error: err instanceof Error ? err.message : String(err),
+      })
+    }
+  }
+
+  // Retired bare consult drafts cannot safely resume into checkout. Send them
+  // to the services overview instead of a dead `/request?service=consult` URL.
+  return `/consult?d=${encodeURIComponent(draft.session_id)}`
 }
 
 /**
@@ -42,9 +83,12 @@ interface PartialDraft {
  * Eligibility:
  *   - email is captured (otherwise we have nothing to send to)
  *   - converted_to_intake_id is null (real intake not yet submitted)
- *   - current_step_id is not review/checkout (payment-stage recovery is owned by abandoned checkout)
+ *   - includes review/checkout drafts that have not created an intake yet
  *   - recovery_email_sent_at is null (one email per draft, ever)
  *   - updated_at is between MIN_IDLE_MINUTES and MAX_IDLE_HOURS old
+ *
+ * Real payment-stage abandoned checkout remains owned by
+ * lib/email/abandoned-checkout.ts once a pending_payment intake exists.
  */
 async function findEligibleDrafts(): Promise<PartialDraft[]> {
   const supabase = createServiceRoleClient()
@@ -54,10 +98,9 @@ async function findEligibleDrafts(): Promise<PartialDraft[]> {
 
   const { data, error } = await supabase
     .from("partial_intakes")
-    .select("session_id, service_type, email, first_name, updated_at")
+    .select("session_id, service_type, email, first_name, updated_at, answers_encrypted")
     .not("email", "is", null)
     .is("converted_to_intake_id", null)
-    .not("current_step_id", "in", `(${PAYMENT_STAGE_DRAFT_STEPS.join(",")})`)
     .is("recovery_email_sent_at", null)
     .lte("updated_at", idleSince)
     .gte("updated_at", tooOld)
@@ -115,7 +158,9 @@ export async function processPartialIntakeRecoveries(): Promise<{
       "utm_campaign=partial_intake_recovery",
       `utm_content=${encodeURIComponent(draft.service_type)}`,
     ].join("&")
-    const resumeUrl = `${appUrl}/request?service=${encodeURIComponent(draft.service_type)}&d=${encodeURIComponent(draft.session_id)}&${utmParams}`
+    const resumePath = await getRecoveryResumePath(draft)
+    const separator = resumePath.includes("?") ? "&" : "?"
+    const resumeUrl = `${appUrl}${resumePath}${separator}${utmParams}`
 
     try {
       const result = await sendEmail({

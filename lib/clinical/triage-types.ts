@@ -200,7 +200,7 @@ export const REQUEST_TYPE_CONFIGS: Record<RequestType, RequestTypeConfig> = {
   },
   general_consult: {
     type: "general_consult",
-    displayName: "General Consultation",
+    displayName: "Specialty Consultation",
     defaultAsyncEligible: false,
     requiresPrescribing: false,
   },

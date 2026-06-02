@@ -123,6 +123,27 @@ const nextConfig = {
   // Redirects for removed medication pages (Google Ads compliance) and duplicate routes consolidation
   async redirects() {
     return [
+      // General Consult is retired. Catch paid or stale links to the bare
+      // consult intake before React renders; valid specialty subtype links
+      // such as /request?service=consult&subtype=ed must continue through.
+      {
+        source: "/request",
+        has: [
+          {
+            type: "query",
+            key: "service",
+            value: "consult",
+          },
+        ],
+        missing: [
+          {
+            type: "query",
+            key: "subtype",
+          },
+        ],
+        destination: "/consult",
+        permanent: false,
+      },
       // Medication pages redirect (Google Ads compliance)
       {
         source: "/medications",
@@ -417,15 +438,15 @@ const nextConfig = {
       { source: "/patient/new-request", destination: "/request", permanent: false },
       { source: "/womens-health", destination: "/request", permanent: false },
       { source: "/request/med-cert", destination: "/request?service=med-cert", permanent: true },
-      { source: "/request/consult", destination: "/request?service=consult", permanent: true },
+      { source: "/request/consult", destination: "/consult", permanent: true },
       { source: "/medical-certificate/request", destination: "/request?service=med-cert", permanent: true },
-      { source: "/consult/request", destination: "/request?service=consult", permanent: true },
+      { source: "/consult/request", destination: "/consult", permanent: true },
       { source: "/prescriptions/request", destination: "/request?service=repeat-script", permanent: true },
       { source: "/prescriptions/repeat", destination: "/request?service=repeat-script", permanent: true },
       { source: "/prescriptions/repeat-script", destination: "/request?service=repeat-script", permanent: true },
       { source: "/prescriptions/chronic", destination: "/request?service=repeat-script", permanent: true },
-      { source: "/prescriptions/new", destination: "/request?service=consult", permanent: true },
-      { source: "/prescriptions/new-medication", destination: "/request?service=consult", permanent: true },
+      { source: "/prescriptions/new", destination: "/consult", permanent: true },
+      { source: "/prescriptions/new-medication", destination: "/consult", permanent: true },
       { source: "/prescriptions/:subtype", destination: "/request?service=repeat-script", permanent: false },
       // /flow was the deprecated parallel intake system — deleted in 2026-04-08.
       // Any bookmarks or stale external links 301 to the canonical /request flow.

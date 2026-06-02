@@ -153,7 +153,7 @@ They must not pass medicine names into request URLs.
 Avoid:
 
 - `/request?service=prescription&medication=sildenafil`
-- `/request?service=consult&drug=finasteride`
+- hair-loss request URLs with `drug=finasteride`
 
 Use:
 

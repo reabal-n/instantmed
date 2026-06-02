@@ -39,7 +39,7 @@ export const PRICING = {
   MED_CERT_2DAY: 29.95,   // 2-day medical certificate
   MED_CERT_3DAY: 39.95,   // 3-day medical certificate
   REPEAT_SCRIPT: 29.95,   // Repeat prescription
-  NEW_SCRIPT: 49.95,      // New prescription (same as consult)
+  NEW_SCRIPT: 49.95,      // Reserved historical new-script price; not publicly routed
   CONSULT: 49.95,         // General consultation
   MENS_HEALTH: 49.95,     // ED consultation
   WOMENS_HEALTH: 59.95,   // Women's health

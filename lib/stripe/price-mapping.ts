@@ -164,7 +164,7 @@ export function getPriceIdForRequest({ category, subtype, answers }: PriceIdInpu
   }
 
   // Prescriptions - the intake flow is always for repeats ($29.95).
-  // New prescriptions route through the consult flow and use STRIPE_PRICE_CONSULT ($49.95).
+  // Specialty consult subtypes use STRIPE_PRICE_CONSULT ($49.95).
   if (category === "prescription") {
     return getRequiredStripePriceEnv("STRIPE_PRICE_REPEAT_SCRIPT")
   }

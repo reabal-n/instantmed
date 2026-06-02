@@ -80,7 +80,8 @@ describe("dashboard route contracts", () => {
     expect(REQUEST_HREF).toBe("/request")
     expect(REQUEST_REPEAT_SCRIPT_HREF).toBe("/request?service=repeat-script")
     expect(REQUEST_MED_CERT_HREF).toBe("/request?service=med-cert")
-    expect(REQUEST_CONSULT_HREF).toBe("/request?service=consult")
+    expect(REQUEST_CONSULT_HREF).toBe("/consult")
+    expect(buildRequestServiceHref({ service: "consult" })).toBe("/consult")
     expect(buildRequestServiceHref({ service: "consult", subtype: "hair_loss" })).toBe(
       "/request?service=consult&subtype=hair_loss",
     )

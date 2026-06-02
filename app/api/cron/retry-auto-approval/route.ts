@@ -15,7 +15,11 @@ export const maxDuration = 60
 function formatRequestType(category: string | null, subtype: string | null): string {
   if (category === "medical_certificate") return "medical certificate"
   if (category === "prescription") return "prescription"
-  if (category === "consult") return "general consultation"
+  if (category === "consult") {
+    if (subtype === "ed") return "ED consultation"
+    if (subtype === "hair_loss") return "hair loss consultation"
+    return "specialty consultation"
+  }
   if (category === "referral") {
     if (subtype === "imaging") return "imaging referral"
     if (subtype === "pathology") return "pathology referral"

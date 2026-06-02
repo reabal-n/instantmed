@@ -113,7 +113,31 @@ describe("general consult retirement contract", () => {
 
   it("/request page redirects bare consult (no subtype) to the services index", () => {
     const source = read("app/request/page.tsx")
+    const nextConfig = read("next.config.mjs")
+
     expect(source).toContain('redirect("/consult")')
     expect(source).toContain('initialService === "consult" && !initialSubtype')
+    expect(nextConfig).toContain('source: "/request"')
+    expect(nextConfig).toContain('key: "service"')
+    expect(nextConfig).toContain('value: "consult"')
+    expect(nextConfig).toContain('missing: [')
+    expect(nextConfig).toContain('key: "subtype"')
+    expect(nextConfig).toContain('destination: "/consult"')
+  })
+
+  it("public and patient-facing prompts do not route people to retired General Consult", () => {
+    const sources = [
+      read("lib/validation/repeat-script-schema.ts"),
+      read("app/api/terminology/amt/search/route.ts"),
+      read("app/conditions/page.tsx"),
+      read("components/patient/service-selector.tsx"),
+      read("components/seo/schemas/medical-business.tsx"),
+      read("lib/microcopy/med-cert-v2.ts"),
+    ].join("\n")
+
+    expect(sources).not.toMatch(/book a General Consult/i)
+    expect(sources).not.toMatch(/Start a general consultation/i)
+    expect(sources).not.toMatch(/General Consultation/i)
+    expect(sources).not.toMatch(/general consultation, where/i)
   })
 })

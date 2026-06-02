@@ -92,7 +92,7 @@ export const generalSystemicSymptoms: Record<string, SymptomData> = {
     serviceRecommendation: {
       type: "both",
       text: "Get assessed by a doctor",
-      href: "/request?service=consult&symptom=fatigue"
+      href: "/consult"
     },
     doctorPerspective: "Fatigue is one of the most challenging symptoms in medicine because it has so many possible causes. When someone tells me they are always tired, my approach is systematic: first, I assess lifestyle factors - sleep quality, work hours, stress, diet, exercise, alcohol, caffeine. These account for the majority of fatigue. Second, I consider medical causes that need screening: iron deficiency (very common in menstruating women), thyroid dysfunction, diabetes, vitamin D deficiency, sleep apnoea, depression, and chronic infections. Third, I ask about the pattern - is the fatigue constant or episodic? Does rest help? Is it physical exhaustion or mental fog? These distinctions guide investigation. Blood tests are often warranted to rule out treatable causes. The reassurance I give patients is that most causes of fatigue are identifiable and treatable.",
     certGuidance: "Fatigue severe enough to impair concentration, reaction time, or physical function is a legitimate reason for time off. If your work involves driving, operating machinery, or making safety-critical decisions, working while severely fatigued is genuinely dangerous.",
@@ -173,7 +173,7 @@ export const generalSystemicSymptoms: Record<string, SymptomData> = {
     serviceRecommendation: {
       type: "both",
       text: "Get assessed now",
-      href: "/request?service=consult&symptom=fever"
+      href: "/consult"
     },
     doctorPerspective: "Fever is not a disease - it is the immune system's response to infection, and in most cases it is actually helpful. A temperature of 37.5-38.5°C in an otherwise well adult does not usually need treatment. Paracetamol and ibuprofen are for comfort, not to 'treat' the fever. What I assess when someone presents with fever is the clinical context: a fever with cold symptoms is almost certainly viral. A fever with a productive cough and breathlessness raises concern for pneumonia. A fever with urinary symptoms suggests UTI. Fever with rash, neck stiffness, or confusion requires urgent assessment. The height of the fever is less important than the overall clinical picture - a person with 38°C who looks unwell concerns me more than someone with 39°C who is drinking fluids and alert. In adults, fever rarely causes brain damage (that concern applies to very young children with febrile convulsions).",
     certGuidance: "A fever above 38°C typically warrants staying home - both for your recovery and to avoid spreading infection to colleagues. Most febrile illnesses resolve in 2-5 days. You should be fever-free for 24 hours without medication before returning to work.",
@@ -197,7 +197,7 @@ export const generalSystemicSymptoms: Record<string, SymptomData> = {
       { q: "Can I get a medical certificate for dizziness?", a: "Yes. Dizziness can make driving and many jobs unsafe. Our doctors can provide a certificate." },
       { q: "What's the difference between dizziness and vertigo?", a: "Dizziness is a general term. Vertigo specifically means a spinning sensation. Both need assessment if persistent." }
     ],
-    serviceRecommendation: { type: "both", text: "Get assessed", href: "/request?service=consult" },
+    serviceRecommendation: { type: "both", text: "Get assessed", href: "/consult" },
     doctorPerspective: "Dizziness is a vague term that can mean different things to different people, so the first thing I clarify is what they actually feel. True vertigo (the room is spinning) suggests an inner ear or vestibular problem. Lightheadedness (feeling faint) suggests blood pressure, dehydration, or cardiac causes. Unsteadiness (feeling off-balance) may be neurological or musculoskeletal. BPPV is the most common vestibular cause and is highly treatable with the Epley manoeuvre. The key safety question is whether dizziness makes driving unsafe - if so, a medical certificate is not just appropriate, it is a duty-of-care issue.",
     certGuidance: "If dizziness makes driving or operating machinery unsafe, you must not work in those roles until the symptom resolves. A medical certificate is appropriate and important for safety. Most vestibular dizziness resolves within 1-2 weeks.",
   },
@@ -222,7 +222,7 @@ export const generalSystemicSymptoms: Record<string, SymptomData> = {
       { q: "When is nausea serious?", a: "Seek urgent care for severe abdominal pain, vomiting blood, confusion, or inability to keep any fluids down for 24 hours." },
       { q: "What helps nausea?", a: "Small sips of water, bland foods, ginger, and avoiding triggers. Some medications can help - a doctor can advise." }
     ],
-    serviceRecommendation: { type: "both", text: "Get assessed", href: "/request?service=consult" },
+    serviceRecommendation: { type: "both", text: "Get assessed", href: "/consult" },
     doctorPerspective: "Nausea is a symptom, not a diagnosis, and it has dozens of possible causes. The clinical approach starts with context: sudden onset with vomiting and diarrhoea points to gastro or food poisoning. Nausea with a missed period - pregnancy test first. Nausea after starting a new medication - likely a side effect. Nausea worse after meals - consider reflux or gallbladder issues. Morning nausea with headache - check blood pressure and consider raised intracranial pressure if persistent. Isolated nausea with anxiety is also extremely common. The key red flags are nausea with severe abdominal pain, vomiting blood, black stools, or inability to keep any fluids down for 12 hours - these need urgent assessment.",
     certGuidance: "Persistent nausea that prevents eating, concentrating, or travelling safely to work is a valid reason for a certificate. Most nausea from viral causes resolves in 1-2 days.",
   },
@@ -246,7 +246,7 @@ export const generalSystemicSymptoms: Record<string, SymptomData> = {
       { q: "Which medications cause weight gain?", a: "Common culprits include some antidepressants (mirtazapine, amitriptyline), antipsychotics, corticosteroids, insulin, sulfonylureas, beta-blockers, and some contraceptives." },
       { q: "Should I get blood tests?", a: "Yes, if weight gain is genuinely unexplained. A basic panel should include thyroid function (TSH), fasting glucose and HbA1c, cortisol, and a full blood count. PCOS testing may be appropriate for women." }
     ],
-    serviceRecommendation: { type: "consult", text: "Get assessed", href: "/request?service=consult" },
+    serviceRecommendation: { type: "consult", text: "Get assessed", href: "/consult" },
     doctorPerspective: "When a patient tells me they are gaining weight without eating more, I take it seriously - but I also investigate honestly. Research shows that most people significantly underestimate their caloric intake (by 40-50% on average). That said, genuine unexplained weight gain does occur and has identifiable medical causes. The most common is hypothyroidism, followed by medication side effects (which are vastly underappreciated - many commonly prescribed medications cause 5-10kg of weight gain). PCOS in women is another major cause. The investigation is straightforward: thyroid function, fasting glucose, and in some cases hormone panels. Via telehealth, I can order the appropriate blood tests, review medications for weight-gaining culprits, and provide evidence-based guidance.",
     certGuidance: "Unexplained weight gain itself rarely requires a certificate, but the underlying cause (hypothyroidism, depression) or associated symptoms (severe fatigue, mobility limitation) may.",
   },
