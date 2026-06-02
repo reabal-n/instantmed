@@ -32,15 +32,24 @@
  *    `med-cert` vs `med_cert` typo in the gate. (Pinned separately by
  *    prescribing-identity-gate-contract.test.ts; cross-referenced here.)
  */
-import { readFileSync } from "fs"
+import { existsSync, readFileSync } from "fs"
 import { join } from "path"
 import { describe, expect, it } from "vitest"
 
+import {
+  normalizeRecoveryEmailInput,
+  shouldShowEarlyRecoveryEmailCapture,
+} from "@/components/request/early-recovery-email-capture"
 import { getCertChipRangeState } from "@/components/request/steps/certificate-step"
 
 const certStepSource = readFileSync(
   join(process.cwd(), "components/request/steps/certificate-step.tsx"),
   "utf8",
+)
+
+const earlyRecoveryEmailPath = join(
+  process.cwd(),
+  "components/request/early-recovery-email-capture.tsx",
 )
 
 describe("cert-step revenue contract", () => {
@@ -137,6 +146,82 @@ describe("cert-step revenue contract", () => {
         matches ?? [],
         "Suspect hidden-on-mobile pattern near revenue-critical copy: " + JSON.stringify(matches),
       ).toEqual([])
+    })
+  })
+
+  // ── paid traffic recovery ─────────────────────────────────────────────────
+  describe("early recovery email capture", () => {
+    it("only prompts anonymous med-cert users once the certificate basics are selected", () => {
+      expect(
+        shouldShowEarlyRecoveryEmailCapture({
+          serviceType: "med-cert",
+          email: "",
+          hasProfile: false,
+          certType: "work",
+          selectedDays: 1,
+          startOffset: 0,
+        }),
+      ).toBe(true)
+
+      expect(
+        shouldShowEarlyRecoveryEmailCapture({
+          serviceType: "prescription",
+          email: "",
+          hasProfile: false,
+          certType: "work",
+          selectedDays: 1,
+          startOffset: 0,
+        }),
+      ).toBe(false)
+
+      expect(
+        shouldShowEarlyRecoveryEmailCapture({
+          serviceType: "med-cert",
+          email: "patient@example.com",
+          hasProfile: false,
+          certType: "work",
+          selectedDays: 1,
+          startOffset: 0,
+        }),
+      ).toBe(false)
+
+      expect(
+        shouldShowEarlyRecoveryEmailCapture({
+          serviceType: "med-cert",
+          email: "",
+          hasProfile: false,
+          certType: undefined,
+          selectedDays: 1,
+          startOffset: 0,
+        }),
+      ).toBe(false)
+    })
+
+    it("normalizes recovery email before persisting identity", () => {
+      expect(normalizeRecoveryEmailInput("  Patient+Cert@Example.COM  ")).toBe("patient+cert@example.com")
+    })
+
+    it("renders an optional recovery email capture inside the med-cert first step", () => {
+      expect(certStepSource).toContain("EarlyRecoveryEmailCapture")
+      expect(certStepSource).toMatch(/<EarlyRecoveryEmailCapture[\s\S]*serviceType=\{serviceType\}/)
+    })
+
+    it("persists recovery email as identity data without gating the primary Continue action", () => {
+      expect(
+        existsSync(earlyRecoveryEmailPath),
+        "Expected components/request/early-recovery-email-capture.tsx to exist",
+      ).toBe(true)
+
+      const source = existsSync(earlyRecoveryEmailPath)
+        ? readFileSync(earlyRecoveryEmailPath, "utf8")
+        : ""
+
+      expect(source).toContain("validateEmail")
+      expect(source).toContain("setIdentity")
+      expect(source).toMatch(/inputRef\.current\?\.value/)
+      expect(source).toContain("early_recovery_email_captured")
+      expect(source).not.toContain("onNext")
+      expect(source).not.toMatch(/setAnswer\(\s*["']email["']/)
     })
   })
 
