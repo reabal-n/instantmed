@@ -18,6 +18,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PageBreadcrumbs } from "@/components/uix"
+import { ICEBOX_ROBOTS } from "@/lib/seo/index-policy"
 import {
   getAllIntentSlugs,
   getIntentPageBySlug,
@@ -36,6 +37,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: page.title,
     description: page.description,
+    robots: ICEBOX_ROBOTS,
     keywords: page.metadata.keywords,
     openGraph: {
       title: page.title,

@@ -18,6 +18,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CONTACT_EMAIL, PRICING } from "@/lib/constants"
+import { ICEBOX_ROBOTS } from "@/lib/seo/index-policy"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 const EMPLOYER_DATA: Record<string, { name: string; logo: string; logoWidth: number; industry: string }> = {
@@ -52,6 +53,7 @@ export async function generateMetadata({ params }: { params: Promise<{ company: 
 
   return {
     title: `Verify Medical Certificates | ${employer.name} Employees`,
+    robots: ICEBOX_ROBOTS,
     description: `${employer.name} employees and HR teams can verify InstantMed medical certificates instantly. Issued by AHPRA-registered doctors; employer policies may vary.`,
     openGraph: {
       title: `Verify Medical Certificates | ${employer.name}`,

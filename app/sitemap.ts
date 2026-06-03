@@ -1,12 +1,11 @@
 import type { MetadataRoute } from "next"
 
 import { getSupportedMedCertIntentSlugs } from "@/lib/medical-cert/unsupported-use-cases"
+import { isIceboxedSurfacePath } from "@/lib/seo/index-policy"
 
 const ROOT_SITEMAP_LAST_MODIFIED = new Date("2026-04-30")
 const SERVICE_PAGES_LAST_MODIFIED = new Date("2026-04-28")
 const MED_CERT_LOCATION_LAST_MODIFIED = new Date("2026-04-24")
-const AUDIENCE_PAGES_LAST_MODIFIED = new Date("2026-04-12")
-const EMPLOYER_PAGES_LAST_MODIFIED = new Date("2026-04-12")
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
 
 /**
@@ -38,13 +37,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/trust",
     "/blog",
     "/locations",
-    "/guides",
-    "/compare",
     "/conditions",
     "/symptoms",
-    "/for",
     "/employers",
-    "/intent",
     "/sitemap-html",
     "/clinical-governance",
     "/our-doctors",
@@ -64,45 +59,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/consult",
     ...medCertIntentPages,
     "/medical-certificate/employer-acceptance",
-  ]
-
-  // Audience-specific landing pages
-  const audiencePages = [
-    "/for/shift-workers",
-    "/for/tradies",
-    "/for/students",
-    "/for/corporate",
-  ]
-
-  // Employer verification pages - high-intent long-tail SEO
-  const employerPages = [
-    "/for/universities",
-    "/for/employers/woolworths",
-    "/for/employers/coles",
-    "/for/employers/telstra",
-    "/for/employers/commonwealth-bank",
-    "/for/employers/anz",
-    "/for/employers/westpac",
-    "/for/employers/nab",
-    "/for/employers/amazon",
-    "/for/employers/bhp",
-    "/for/employers/bunnings",
-    "/for/employers/jb-hi-fi",
-    "/for/employers/mcdonalds",
-    "/for/employers/sonic-healthcare",
-    "/for/employers/qantas",
-    "/for/employers/deloitte",
-    "/for/employers/pwc",
-    "/for/employers/kpmg",
-    "/for/employers/bupa",
     "/verify",
   ]
+
+  // /for is wholesale-iceboxed: the audience landing pages, the 18 employer
+  // verification pages, and /for/universities are dropped from the sitemap and
+  // render noindex,follow. /verify (above) is the canonical verification page
+  // and stays indexed. See lib/seo/index-policy.ts.
 
   const medCertLocationSlugs = [
     "parramatta", "canberra", "hobart", "darwin",
   ]
 
-  return [
+  const entries = [
     ...pillarPages.map((route) => ({
       url: `${baseUrl}${route}`,
       lastModified: ROOT_SITEMAP_LAST_MODIFIED,
@@ -127,17 +96,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly" as const,
       priority: 0.7,
     })),
-    ...audiencePages.map((route) => ({
-      url: `${baseUrl}${route}`,
-      lastModified: AUDIENCE_PAGES_LAST_MODIFIED,
-      changeFrequency: "monthly" as const,
-      priority: 0.7,
-    })),
-    ...employerPages.map((route) => ({
-      url: `${baseUrl}${route}`,
-      lastModified: EMPLOYER_PAGES_LAST_MODIFIED,
-      changeFrequency: "monthly" as const,
-      priority: 0.6,
-    })),
   ]
+
+  // Safety net: never advertise a wholesale-iceboxed surface (compare/for/
+  // guides/intent) in the sitemap, even if an entry is re-added above by
+  // mistake. The per-surface sitemaps return [] too. See lib/seo/index-policy.ts.
+  return entries.filter(
+    (entry) => !isIceboxedSurfacePath(new URL(entry.url).pathname),
+  )
 }

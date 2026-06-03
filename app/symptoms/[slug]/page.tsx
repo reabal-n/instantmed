@@ -18,6 +18,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { PageBreadcrumbs } from "@/components/uix"
 import { symptoms } from "@/lib/seo/data/symptoms"
+import { ICEBOX_ROBOTS, shouldIndexSymptom } from "@/lib/seo/index-policy"
 
 const SHARED_SYMPTOM_FAQS: Array<{ q: string; a: string }> = [
   {
@@ -69,6 +70,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description,
+    robots: shouldIndexSymptom(slug) ? { index: true, follow: true } : ICEBOX_ROBOTS,
     keywords: [
       `${symptom.name.toLowerCase()} causes`,
       `${symptom.name.toLowerCase()} when to see doctor`,

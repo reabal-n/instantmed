@@ -7,6 +7,7 @@ import { Footer } from "@/components/shared/footer"
 import { Navbar } from "@/components/shared/navbar"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { DEEP_CITY_CONTENT } from "@/lib/seo/data/deep-city-content"
+import { ICEBOX_ROBOTS, shouldIndexLocation } from "@/lib/seo/index-policy"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 // City-specific content paragraphs for unique SEO value
@@ -367,6 +368,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: { absolute: `Online Doctor ${cityData.name} | Med Certs from ${PRICING_DISPLAY.MED_CERT} | InstantMed` },
     description: `Skip the ${cityData.name} GP queue. AHPRA-registered Australian doctors review online. Med certs from ${PRICING_DISPLAY.MED_CERT}, repeat scripts. No appointment needed.`,
+    robots: shouldIndexLocation(city) ? { index: true, follow: true } : ICEBOX_ROBOTS,
     keywords: [
       `online doctor ${cityData.name.toLowerCase()}`,
       `telehealth ${cityData.name.toLowerCase()}`,

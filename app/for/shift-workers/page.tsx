@@ -10,9 +10,11 @@ import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { ICEBOX_ROBOTS } from "@/lib/seo/index-policy"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 export const metadata: Metadata = {
+  robots: ICEBOX_ROBOTS,
   title: "Medical Certificates for Shift Workers | 24/7 Available",
   description: "Get a medical certificate any time of day or night. Fast doctor review with live wait messaging. Built for nurses, hospitality, retail, and anyone working outside 9-5. Employer policies vary.",
   keywords: [

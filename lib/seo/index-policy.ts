@@ -81,6 +81,17 @@ export const KEEP_INDEXED_LOCATIONS = new Set<string>([
  */
 export const ICEBOXED_SURFACES = new Set<string>(["compare", "for", "guides", "intent"])
 
+/**
+ * True if a root-sitemap path lives under a wholesale-iceboxed surface
+ * (compare / for / guides / intent). Used to keep those URLs — the surface hub
+ * AND every static child (`/for/corporate`, `/for/employers/woolworths`, …) —
+ * out of the root sitemap, mirroring the per-surface sitemaps that return [].
+ */
+export function isIceboxedSurfacePath(path: string): boolean {
+  const firstSegment = path.replace(/^\//, "").split("/")[0]
+  return ICEBOXED_SURFACES.has(firstSegment)
+}
+
 export function shouldIndexBlog(slug: string): boolean {
   return KEEP_INDEXED_BLOG.has(slug)
 }

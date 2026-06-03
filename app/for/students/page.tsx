@@ -7,9 +7,11 @@ import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { ICEBOX_ROBOTS } from "@/lib/seo/index-policy"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 export const metadata: Metadata = {
+  robots: ICEBOX_ROBOTS,
   title: "Medical Certificates for Uni Students | InstantMed",
   description: "Get a doctor-reviewed medical certificate for study absence documentation. Fast doctor review with live wait messaging. Institution policies vary.",
   keywords: [

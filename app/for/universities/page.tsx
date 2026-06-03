@@ -28,9 +28,11 @@ import { Navbar } from "@/components/shared/navbar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CONTACT_EMAIL } from "@/lib/constants"
+import { ICEBOX_ROBOTS } from "@/lib/seo/index-policy"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 export const metadata: Metadata = {
+  robots: ICEBOX_ROBOTS,
   title: "For Universities | Verify Medical Certificates",
   description:
     "Information for universities and educational institutions on verifying InstantMed medical certificates for study absence documentation.",

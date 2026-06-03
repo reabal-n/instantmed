@@ -16,6 +16,7 @@ import { getWaitState } from "@/lib/brand/wait-counter"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { buildMedCertSpeedClaimFromWaitState } from "@/lib/marketing/speed-claims"
 import { getAllAudiencePageSlugs, getAudiencePageConfig } from "@/lib/seo/data/audience-pages"
+import { ICEBOX_ROBOTS } from "@/lib/seo/index-policy"
 
 interface PageProps {
   params: Promise<{ audience: string }>
@@ -30,6 +31,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: config.metadata.title,
     description: config.metadata.description,
+    robots: ICEBOX_ROBOTS,
     keywords: config.metadata.keywords,
     openGraph: {
       title: `${config.h1} | InstantMed`,

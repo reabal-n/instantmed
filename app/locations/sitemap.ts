@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next"
 
-import { getAllStateSlugs } from "@/lib/seo/data/states"
+import { shouldIndexLocation } from "@/lib/seo/index-policy"
 
 const CONTENT_ENRICHED = new Date("2026-04-24")
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
@@ -21,22 +21,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "canberra",
   ]
 
-  const cityEntries = citySlugs.map((slug) => ({
-    url: `${baseUrl}/locations/${slug}`,
-    lastModified: CONTENT_ENRICHED,
-    changeFrequency: "monthly" as const,
-    priority: 0.7,
-  }))
+  // Allow-list icebox: only keep-set metros stay in the sitemap; other cities
+  // are live but noindexed. State hub pages (/locations/state/*) are dropped
+  // entirely — 0 GSC impressions in 90d, iceboxed. See lib/seo/index-policy.ts.
+  const cityEntries = citySlugs
+    .filter((slug) => shouldIndexLocation(slug))
+    .map((slug) => ({
+      url: `${baseUrl}/locations/${slug}`,
+      lastModified: CONTENT_ENRICHED,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    }))
 
-  // State-level hub pages - canonical route /locations/state/<slug>
-  // Higher priority than city pages because they rank for head terms
-  // ("online doctor new south wales") that funnel down to city pages.
-  const stateEntries = getAllStateSlugs().map((slug) => ({
-    url: `${baseUrl}/locations/state/${slug}`,
-    lastModified: CONTENT_ENRICHED,
-    changeFrequency: "monthly" as const,
-    priority: 0.8,
-  }))
-
-  return [...stateEntries, ...cityEntries]
+  return cityEntries
 }

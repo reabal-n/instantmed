@@ -7,8 +7,10 @@ import { Footer } from "@/components/shared/footer"
 import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
+import { ICEBOX_ROBOTS } from "@/lib/seo/index-policy"
 
 export const metadata: Metadata = {
+  robots: ICEBOX_ROBOTS,
   title: "Compare Healthcare Options | Telehealth vs GP",
   description: "Compare telehealth with traditional GP visits and other healthcare options. Honest comparisons to help you choose the right care for your needs.",
   openGraph: {

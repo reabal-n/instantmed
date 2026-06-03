@@ -8,8 +8,10 @@ import { BreadcrumbSchema, FAQSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { ICEBOX_ROBOTS } from "@/lib/seo/index-policy"
 
 export const metadata: Metadata = {
+  robots: ICEBOX_ROBOTS,
   title: "Telehealth for Your Industry",
   description: "Find out how InstantMed works for your profession. Medical certificates, prescriptions, and consultations tailored for students, nurses, tradies, shift workers, and more.",
   openGraph: {

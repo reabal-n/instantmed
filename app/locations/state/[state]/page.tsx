@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { getAllStateSlugs, getStateBySlug } from "@/lib/seo/data/states"
+import { ICEBOX_ROBOTS } from "@/lib/seo/index-policy"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 // ============================================================================
@@ -79,6 +80,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   return {
     title: `Online Doctor ${data.fullName} | Telehealth ${data.shortName}`,
+    robots: ICEBOX_ROBOTS,
     description: `Medical certificates, prescriptions, and consultations for ${data.fullName} residents. AHPRA-registered doctors serving ${data.cities.length}+ cities across ${data.shortName}.`,
     keywords: [
       `online doctor ${data.fullName.toLowerCase()}`,

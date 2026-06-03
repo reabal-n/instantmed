@@ -24,6 +24,7 @@ import {
   commercialPrescriptionLinks,
 } from "@/lib/seo/commercial-links"
 import { GUIDE_INDEX, guides } from "@/lib/seo/data/guides"
+import { ICEBOX_ROBOTS } from "@/lib/seo/index-policy"
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -37,6 +38,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: guide.title,
     description: guide.description,
+    robots: ICEBOX_ROBOTS,
     keywords: [
       guide.slug.split('-').join(' '),
       'medical certificate australia',

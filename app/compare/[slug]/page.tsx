@@ -23,6 +23,7 @@ import {
   type ComparisonEntry,
   COMPETITOR_COMPARISONS,
 } from "@/lib/seo/data/competitor-comparisons"
+import { ICEBOX_ROBOTS } from "@/lib/seo/index-policy"
 
 // Built-in comparisons - general telehealth educational pages.
 // Competitor-specific comparisons live in lib/seo/data/competitor-comparisons.ts
@@ -645,6 +646,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: comparison.title,
     description: comparison.description,
+    robots: ICEBOX_ROBOTS,
     keywords: comparison.keywords ?? DEFAULT_COMPARISON_KEYWORDS,
     openGraph: {
       title: comparison.title,

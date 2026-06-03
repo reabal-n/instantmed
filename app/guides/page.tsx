@@ -8,8 +8,10 @@ import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
 import { getGuideIndex } from "@/lib/seo/data/guides"
+import { ICEBOX_ROBOTS } from "@/lib/seo/index-policy"
 
 export const metadata: Metadata = {
+  robots: ICEBOX_ROBOTS,
   title: "Healthcare Guides | How-To Articles",
   description: "Practical guides on getting medical certificates, using telehealth in Australia, and navigating the healthcare system. Written and reviewed by healthcare professionals.",
   openGraph: {

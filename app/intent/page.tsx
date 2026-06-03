@@ -7,12 +7,14 @@ import { AccordionSection } from "@/components/sections/accordion-section"
 import { BreadcrumbSchema, FAQSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
+import { ICEBOX_ROBOTS } from "@/lib/seo/index-policy"
 import {
   type CommercialIntentCluster,
   intentPages,
 } from "@/lib/seo/intents"
 
 export const metadata: Metadata = {
+  robots: ICEBOX_ROBOTS,
   title: "Commercial Telehealth Pages | InstantMed",
   description: "Find InstantMed's highest-intent service pages: medical certificates, repeat prescription review, city pages, and service comparisons.",
   openGraph: {
