@@ -17,6 +17,7 @@ import { Footer } from "@/components/shared/footer"
 import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { PageBreadcrumbs } from "@/components/uix"
+import { medicalReviewer } from "@/lib/blog/medical-reviewer"
 import { symptoms } from "@/lib/seo/data/symptoms"
 
 const SHARED_SYMPTOM_FAQS: Array<{ q: string; a: string }> = [
@@ -328,7 +329,7 @@ export default async function SymptomPage({ params }: PageProps) {
                   <div className="mt-6 pt-4 border-t border-border/50 dark:border-white/10 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Shield className="w-3.5 h-3.5" />
-                      Clinically reviewed by the InstantMed Medical Team
+                      Clinically reviewed by {medicalReviewer.name} (AHPRA {medicalReviewer.ahpraNumber})
                     </span>
                     <span className="flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5" />
@@ -363,7 +364,7 @@ export default async function SymptomPage({ params }: PageProps) {
                   <div className="mt-6 pt-4 border-t border-border/50 dark:border-white/10 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Shield className="w-3.5 h-3.5" />
-                      Clinically reviewed by the InstantMed Medical Team
+                      Clinically reviewed by {medicalReviewer.name} (AHPRA {medicalReviewer.ahpraNumber})
                     </span>
                     <span className="flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5" />

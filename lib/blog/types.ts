@@ -150,45 +150,6 @@ export const defaultAuthor: ArticleAuthor = {
   name: 'InstantMed Medical Team',
   credentials: '',
   ahpraNumber: '',
-  bio: 'Written and medically reviewed by AHPRA-registered doctors at InstantMed, committed to making quality healthcare more accessible through responsible telehealth.',
+  bio: 'Practical, plain-English health guides from the InstantMed editorial team, medically reviewed by an AHPRA-registered doctor.',
   image: 'https://api.dicebear.com/7.x/notionists/svg?seed=InstantMedTeam'
 }
-
-// Content team authors (non-medical, for informational articles)
-export const contentAuthors = {
-  sarahChen: {
-    name: 'Sarah Chen',
-    credentials: '',
-    ahpraNumber: '',
-    bio: 'Sarah writes about healthcare access and patient rights. She believes everyone deserves clear, straightforward health information.',
-    image: 'https://api.dicebear.com/7.x/notionists/svg?seed=SarahChen'
-  },
-  marcusThompson: {
-    name: 'Marcus Thompson',
-    credentials: '',
-    ahpraNumber: '',
-    bio: 'Marcus covers telehealth and digital health trends. He\'s passionate about technology that makes healthcare more convenient.',
-    image: 'https://api.dicebear.com/7.x/notionists/svg?seed=MarcusThompson'
-  },
-  emmaWilson: {
-    name: 'Emma Wilson',
-    credentials: '',
-    ahpraNumber: '',
-    bio: 'Emma focuses on workplace health and employee rights. She helps readers navigate the intersection of health and work.',
-    image: 'https://api.dicebear.com/7.x/notionists/svg?seed=EmmaWilson'
-  },
-  jamesPatel: {
-    name: 'James Patel',
-    credentials: '',
-    ahpraNumber: '',
-    bio: 'James writes about the Australian healthcare system and how to access services. He makes complex topics simple.',
-    image: 'https://api.dicebear.com/7.x/notionists/svg?seed=JamesPatel'
-  },
-  oliviaNguyen: {
-    name: 'Olivia Nguyen',
-    credentials: '',
-    ahpraNumber: '',
-    bio: 'Olivia covers student health and university life. She understands the unique challenges students face accessing healthcare.',
-    image: 'https://api.dicebear.com/7.x/notionists/svg?seed=OliviaNguyen'
-  }
-} as const

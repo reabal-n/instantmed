@@ -4,8 +4,8 @@
     {
       "name": "instantmed",
       "runtimeExecutable": "/bin/sh",
-      "runtimeArgs": ["-c", "cd /Users/rey/Desktop/instantmed && PATH=/opt/homebrew/bin:/usr/bin:/bin /opt/homebrew/bin/pnpm dev"],
-      "port": 3000,
+      "runtimeArgs": ["-c", "cd /Users/rey/Developer/instantmed && PATH=/opt/homebrew/bin:/usr/bin:/bin /opt/homebrew/bin/pnpm dev"],
+      "port": 3060,
       "autoPort": true
     }
   ]

@@ -1,3 +1,5 @@
+import { medicalReviewer } from "@/lib/blog/medical-reviewer"
+
 import { JsonLdScript } from "./json-ld-script"
 
 interface MedicalConditionSchemaProps {
@@ -86,6 +88,16 @@ export function MedicalConditionSchema({
     mainEntityOfPage: {
       "@type": "MedicalWebPage",
       "@id": `${baseUrl}${url}`,
+      reviewedBy: {
+        "@type": "Person",
+        name: medicalReviewer.name,
+        jobTitle: medicalReviewer.title,
+        identifier: {
+          "@type": "PropertyValue",
+          propertyID: "AHPRA",
+          value: medicalReviewer.ahpraNumber,
+        },
+      },
       ...(reviewedDate && { lastReviewed: reviewedDate }),
       ...(guidelineSource && {
         citation: {

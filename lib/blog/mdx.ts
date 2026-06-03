@@ -3,7 +3,7 @@ import matter from 'gray-matter'
 import path from 'path'
 
 import type { Article, ArticleAuthor, ArticleCategory, ArticleFAQ, ArticleSection, ArticleSeries } from './types'
-import { contentAuthors, defaultAuthor } from './types'
+import { defaultAuthor } from './types'
 
 const CONTENT_DIR = path.join(process.cwd(), 'content', 'blog')
 
@@ -44,11 +44,6 @@ interface MDXFrontmatter {
  */
 const authorRegistry: Record<string, ArticleAuthor> = {
   default: defaultAuthor,
-  sarahChen: contentAuthors.sarahChen,
-  marcusThompson: contentAuthors.marcusThompson,
-  emmaWilson: contentAuthors.emmaWilson,
-  jamesPatel: contentAuthors.jamesPatel,
-  oliviaNguyen: contentAuthors.oliviaNguyen,
 }
 
 function resolveAuthor(key: string): ArticleAuthor {

@@ -25,10 +25,29 @@ export function getRelatedArticles(currentSlug: string, limit: number = 3): Arti
   const current = getArticleBySlug(currentSlug)
   if (!current) return []
 
-  return allArticles
-    .filter(article =>
-      article.slug !== currentSlug &&
-      article.category === current.category
-    )
-    .slice(0, limit)
+  const result: Article[] = []
+  const seen = new Set<string>([currentSlug])
+
+  // 1. Curated related articles from frontmatter, in the author-specified order.
+  //    Lets us concentrate internal-link equity on the pages we want to rank,
+  //    including cross-category links. Stale slugs (e.g. merged-away articles)
+  //    are skipped automatically.
+  for (const slug of current.relatedArticles ?? []) {
+    if (seen.has(slug) || result.length >= limit) continue
+    const article = getArticleBySlug(slug)
+    if (article) {
+      result.push(article)
+      seen.add(slug)
+    }
+  }
+
+  // 2. Fill any remaining slots with same-category articles.
+  for (const article of allArticles) {
+    if (result.length >= limit) break
+    if (seen.has(article.slug) || article.category !== current.category) continue
+    result.push(article)
+    seen.add(article.slug)
+  }
+
+  return result
 }

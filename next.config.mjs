@@ -469,6 +469,11 @@ const nextConfig = {
       // antibiotic-prescription-online-australia and can-you-get-antibiotics-online-australia target
       // identical queries -- the latter is already indexed with 1,000+ impressions, consolidate traffic
       { source: "/blog/antibiotic-prescription-online-australia", destination: "/blog/can-you-get-antibiotics-online-australia", permanent: true },
+      // are-antibiotics-prescription-only-australia consolidated into can-you-get-antibiotics-online-australia
+      // (2026-06-03 GSC audit) -- the latter holds the ranking equity (pos ~6, ~2.6k impressions/90d).
+      { source: "/blog/are-antibiotics-prescription-only-australia", destination: "/blog/can-you-get-antibiotics-online-australia", permanent: true },
+      // how-escripts-work-australia consolidated into how-escripts-work (2026-06-03 audit) -- duplicate pair, neither indexed.
+      { source: "/blog/how-escripts-work-australia", destination: "/blog/how-escripts-work", permanent: true },
       // NOTE: /blog/repeat-prescription-online-australia redirect removed -- MDX article now live at that slug
       // /performance-anxiety was an old ED landing page -- redirect to canonical ED page
       { source: "/performance-anxiety", destination: "/erectile-dysfunction", permanent: true },
