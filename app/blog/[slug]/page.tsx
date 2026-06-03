@@ -9,7 +9,7 @@ import { BreadcrumbSchema, HowToSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared/navbar"
 import { PageBreadcrumbs } from "@/components/uix"
 import { allArticles, getAllArticleSlugs, getArticleBySlug, getRelatedArticles } from "@/lib/blog/articles"
-import { medicalReviewer } from "@/lib/blog/medical-reviewer"
+import { reviewedBySchema } from "@/lib/blog/medical-reviewer"
 import { getArticleVisualsForRender } from "@/lib/blog/visuals"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
@@ -122,21 +122,7 @@ export default async function BlogPostPage({ params }: PageProps) {
       name: "InstantMed",
       url: "https://instantmed.com.au",
     },
-    reviewedBy: {
-      "@type": "Person",
-      name: medicalReviewer.name,
-      jobTitle: medicalReviewer.title,
-      identifier: {
-        "@type": "PropertyValue",
-        propertyID: "AHPRA",
-        value: medicalReviewer.ahpraNumber,
-      },
-      affiliation: {
-        "@type": "MedicalOrganization",
-        "@id": "https://instantmed.com.au/#organization",
-        name: "InstantMed",
-      },
-    },
+    reviewedBy: reviewedBySchema(slug),
     lastReviewed: article.updatedAt,
     datePublished: article.publishedAt,
     dateModified: article.updatedAt,

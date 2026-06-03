@@ -26,7 +26,7 @@ import { SocialShare } from "@/components/blog/social-share"
 import { TableOfContents } from "@/components/blog/table-of-contents"
 import { Badge } from "@/components/ui/badge"
 import { slugifyHeading } from "@/lib/blog/heading"
-import { medicalReviewer } from "@/lib/blog/medical-reviewer"
+import { getReviewer } from "@/lib/blog/medical-reviewer"
 import type { Article, ArticleFAQ, ArticleLink, ArticleSection } from "@/lib/blog/types"
 import type { RenderableArticleVisual } from "@/lib/blog/visuals"
 import { cn } from "@/lib/utils"
@@ -555,22 +555,37 @@ export function ArticleTemplate({
       <div className="mt-8 pt-6 border-t border-border">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            <span className="font-medium">Medically reviewed by</span>{' '}
-            <a
-              href={medicalReviewer.registerUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 font-medium text-foreground underline-offset-2 hover:underline"
-            >
-              {medicalReviewer.name}
-              <BadgeCheck className="w-3.5 h-3.5 text-primary inline-block" />
-            </a>
-            {` · ${medicalReviewer.title} · AHPRA ${medicalReviewer.ahpraNumber} · Last updated `}
-            {new Date(article.updatedAt).toLocaleDateString('en-AU', {
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric'
-            })}
+            {(() => {
+              const reviewer = getReviewer(article.slug)
+              const updated = new Date(article.updatedAt).toLocaleDateString('en-AU', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })
+              if (reviewer.kind === 'person') {
+                return (
+                  <>
+                    <span className="font-medium">Medically reviewed by</span>{' '}
+                    <a
+                      href={reviewer.registerUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 font-medium text-foreground underline-offset-2 hover:underline"
+                    >
+                      {reviewer.name}
+                      <BadgeCheck className="w-3.5 h-3.5 text-primary inline-block" />
+                    </a>
+                    {` · ${reviewer.title} · AHPRA ${reviewer.ahpraNumber} · Last updated ${updated}`}
+                  </>
+                )
+              }
+              return (
+                <>
+                  <span className="font-medium">Reviewed by the {reviewer.name}</span>
+                  {` · Last updated ${updated}`}
+                </>
+              )
+            })()}
           </p>
           <SocialShare 
             url={`https://instantmed.com.au/blog/${article.slug}`}

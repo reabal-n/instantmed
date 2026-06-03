@@ -29,7 +29,6 @@ import { BreadcrumbSchema, FAQSchema, MedicalConditionSchema } from "@/component
 import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { PageBreadcrumbs } from "@/components/uix"
-import { medicalReviewer } from "@/lib/blog/medical-reviewer"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { conditionsData } from "@/lib/seo/data/conditions"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
@@ -289,9 +288,9 @@ export default async function ConditionPage({ params }: PageProps) {
                         <StickerIcon name="stethoscope" size={40} />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-foreground mb-0.5">{medicalReviewer.name}</p>
+                        <p className="text-sm font-semibold text-foreground mb-0.5">InstantMed Clinical Team</p>
                         <p className="text-xs text-muted-foreground mb-5">
-                          {medicalReviewer.title} · AHPRA {medicalReviewer.ahpraNumber}
+                          AHPRA-registered medical team
                           {condition.reviewedDate ? ` · Reviewed ${condition.reviewedDate}` : ""}
                         </p>
                         <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
