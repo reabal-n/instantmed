@@ -562,60 +562,27 @@ function getAssetOrientation(size: GatewayImageSize): string {
   return "portrait"
 }
 
-function getDefaultTextMode(visual: ArticleVisual, format: VisualFormat): NonNullable<ArticleVisual["textMode"]> {
-  if (format === "lifestyle-illustration" || format === "hero-image") return "none"
-  if (format === "anatomical-explainer" || format === "body-map" || format === "mechanism-diagram") {
-    return "diagram-callouts"
-  }
-  if (visual.kind === "comparison" || visual.kind === "flow" || visual.kind === "timeline") return "labels"
-  return "diagram-callouts"
-}
-
-function getTextPlanPrompt(visual: ArticleVisual, format: VisualFormat): string {
-  const mode = visual.textMode ?? getDefaultTextMode(visual, format)
-  const maxItems = mode === "title-and-labels" ? 3 : 4
-  const textItems = (visual.textItems && visual.textItems.length > 0 ? visual.textItems : visual.items.map((item) => item.label))
-    .slice(0, maxItems)
-  const exactTextList = textItems.map((item) => `- ${item}`).join("\n")
-
-  if (mode === "none") {
-    return [
-      "Visible text plan: no readable text is needed for this image.",
-      "Do not render headings, labels, captions, numbers, tables, buttons, UI copy, fake document copy, chart labels, annotations, footers, field names, legal copy, signatures, or logo-like marks. Use visual structure instead.",
-      `Composition cue only, not visible copy: ${visual.eyebrow}; ${visual.title}; ${textItems.join(", ")}.`,
-    ].join("\n")
-  }
-
-  if (mode === "title-and-labels") {
-    return [
-      "Visible text plan: use a small amount of exact text because this visual benefits from orientation copy.",
-      "Maximum visible text elements: 4 total.",
-      "Use ONLY the exact text below. Do not invent extra headings, explanatory copy, legal claims, symptoms, fake UI text, numbers, captions, source labels, footers, or calls to action.",
-      `Optional short title: ${visual.title}`,
-      "Optional labels, use only if they fit cleanly:",
-      exactTextList,
-      "If any word is hard to fit or spell correctly, omit that text element rather than invent or distort it.",
-    ].join("\n")
-  }
-
-  if (mode === "diagram-callouts") {
-    return [
-      "Visible text plan: use short diagram callouts only where they make the visual easier to understand.",
-      "Maximum visible text elements: 4 total.",
-      "Use ONLY these exact callout labels:",
-      exactTextList,
-      "Do not add a title, paragraph, caption, table, legal claim, fake document copy, fake UI text, source label, footer, number, or call to action. Use unlabeled diagrams and abstract line placeholders for everything else.",
-      "If any label is misspelled or cramped, omit it rather than adding more copy.",
-    ].join("\n")
-  }
+function getTextPlanPrompt(visual: ArticleVisual, _format: VisualFormat): string {
+  // gpt-image-2 renders text accurately, so this is a TEACHING infographic that
+  // should contain legible, informative text. All visible text is drawn ONLY from
+  // the registry (eyebrow, title, and each item's label + detail) so it stays
+  // controlled and accurate — the model must not invent copy. The same labels also
+  // render in React/HTML via components/blog/article-visuals.tsx for accessibility.
+  const labelLines = visual.items
+    .map((item) => (item.detail ? `- "${item.label}" — ${item.detail}` : `- "${item.label}"`))
+    .join("\n")
 
   return [
-    "Visible text plan: use short labels only, because labels clarify this diagram without turning it into a poster.",
-    "Maximum visible text elements: 4 total.",
-    "Use ONLY these exact labels:",
-    exactTextList,
-    "Do not add a title, paragraph, caption, table, legal claim, fake document copy, fake UI text, source label, footer, number, or call to action. Use visual diagrams for the rest.",
-    "If any label is misspelled or cramped, omit it rather than adding more copy.",
+    "Visible text plan: this is a teaching infographic, so it SHOULD contain accurate, legible text. Integrate the exact wording below as crisp, correctly spelled, high-contrast text: a clear headline, labelled sections/columns/steps, and short callouts. Do not leave it as a near-textless graphic.",
+    `Kicker / eyebrow (small, above or near the headline): "${visual.eyebrow}"`,
+    `Headline (most prominent text): "${visual.title}"`,
+    "Section labels with their short callouts — render each label clearly, and include the short callout text beside or under it where it fits:",
+    labelLines,
+    "Hard text rules:",
+    "- Use ONLY the exact wording provided above. Do NOT invent extra headings, statistics, prices, percentages, dates, drug or brand names, legal claims, source names, captions, footers, or calls to action.",
+    "- Spell every word correctly and exactly as written. If a word risks rendering garbled, render it again cleanly rather than distorting or abbreviating it.",
+    "- Keep callouts short (the full explanation lives in the article), but the headline and every section label must be present and readable.",
+    "- No fake document body text, no fake UI text, no fake form fields, no signatures, no fake percentages or chart numbers.",
   ].join("\n")
 }
 
@@ -639,7 +606,7 @@ function buildGatewayPrompt(
     "",
     getVisualFormatPrompt(format),
     "Create a polished visual teaching asset that looks art-directed by a senior editorial designer. It should support the article, not try to replace the article.",
-    "Teaching-value floor: the viewer should understand one clear idea, distinction, warning boundary, or process from the image. The full explanation lives in the HTML article, so do not cram the image with copy.",
+    "Teaching-value floor: the viewer should understand one clear idea, distinction, warning boundary, or process from the image. The full explanation lives in the HTML article, so keep callouts short — but DO render the labelled text from the visible text plan accurately and legibly. This is a teaching infographic, not a textless graphic.",
     "Quality floor: this must not look like a thumbnail, placeholder, clip-art hero image, sterile SaaS illustration, minimal still life, stock-photo desk scene, or low-information metaphor. A single phone, inhaler, document, medicine box, warning triangle, shield, scale, checklist, blank card, abstract blob cluster, or generic icon row is an automatic failure.",
     "Composition floor: use 2 to 4 strong visual regions, one clear focal diagram, and generous breathing room. Prefer a memorable central scene or diagram with a few supporting callouts over a dense poster grid.",
     "Premium floor: make the composition feel designed and specific to this article. Use hierarchy, restrained callout arrows, diagrams, and a clear reading path. Leave enough negative space that the image feels premium, not cluttered.",
@@ -649,7 +616,7 @@ function buildGatewayPrompt(
     getArtDirectionPrompt(slug, visual, format, styleShift),
     "",
     getTextPlanPrompt(visual, format),
-    "Text quality rule: visible text must be crisp, correctly spelled, and sparse. No more than one short label per visual region. Document/forms may use abstract grey line placeholders only, with no legible fake document wording.",
+    "Text quality rule: visible text must be crisp, correctly spelled, and accurate to the visible text plan above. Render the headline and every section label clearly and legibly, and include the short callouts where they remain readable. Only fake document bodies or form fields should use abstract grey line placeholders — never legible fake document wording.",
     "Use visual diagrams for the rest of the meaning: route lines, icons, colour zones, magnified document regions, abstract verification nodes, privacy locks, decision branches, and safe/uncertain/escalate pathways.",
     "",
     "Style:",
@@ -657,7 +624,7 @@ function buildGatewayPrompt(
     "Typography should match the selected art direction: clean sans-led systems for process, comparison, regulatory, workflow, and lab visuals; atlas labels for anatomy; only occasional hand lettering for small annotations. Do not use the repeated giant navy display-serif headline treatment unless the individual prompt explicitly asks for an editorial poster.",
     "Use the selected art direction above as the main style contract. Keep the information readable, structured, and specific, but make each visual feel art-directed for its own topic.",
     "Avoid bland corporate gradients, generic hospital stock art, excessive symmetry, plastic 3D icons, over-polished AI faces, fake app screenshots, vague wellness imagery, and beige wellness mush.",
-    "Create the complete final poster inside the generated image. No deterministic copy layer, brand badge, logo, wordmark, or layout overlay will be added after generation.",
+    "Create the complete final poster inside the generated image. A small InstantMed wordmark badge is composited into the bottom-right corner after generation, so keep roughly a 270x64px zone in the very bottom-right corner clear of essential text, labels, or focal diagram content.",
     "",
     "Hard constraints:",
     "No brand logos, no official seals, no medical crosses, no plus-sign medical symbols, no balance scales, no medication brand names, no pill imprints, no celebrity likenesses, no gore, no graphic symptoms, no consultation CTA, no website UI, no fake doctor-patient chat. If a person appears, make them non-identifiable, natural, and secondary. Do not draw the InstantMed logo or wordmark.",
@@ -698,12 +665,12 @@ function buildGatewayCompositeUnderlayPrompt(slug: string, visual: ArticleVisual
   ].join("\n")
 }
 
-function renderBrandBadgeBackgroundSvg(): string {
-  const x = WIDTH - BRAND_BADGE_WIDTH - BRAND_BADGE_MARGIN
-  const y = HEIGHT - BRAND_BADGE_HEIGHT - BRAND_BADGE_MARGIN
+function renderBrandBadgeBackgroundSvg(imgW: number, imgH: number): string {
+  const x = imgW - BRAND_BADGE_WIDTH - BRAND_BADGE_MARGIN
+  const y = imgH - BRAND_BADGE_HEIGHT - BRAND_BADGE_MARGIN
 
   return `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">
+    <svg xmlns="http://www.w3.org/2000/svg" width="${imgW}" height="${imgH}" viewBox="0 0 ${imgW} ${imgH}">
       <rect x="${x}" y="${y}" width="${BRAND_BADGE_WIDTH}" height="${BRAND_BADGE_HEIGHT}" rx="18" fill="#f8f7f4" fill-opacity="0.84" stroke="#d8e4f8" stroke-width="1.25"/>
     </svg>
   `
@@ -711,8 +678,11 @@ function renderBrandBadgeBackgroundSvg(): string {
 
 async function addInstantMedWordmark(filepath: string) {
   const tmpPath = `${filepath}.wordmark-tmp.webp`
-  const x = WIDTH - BRAND_BADGE_WIDTH - BRAND_BADGE_MARGIN
-  const y = HEIGHT - BRAND_BADGE_HEIGHT - BRAND_BADGE_MARGIN
+  const meta = await sharp(filepath).metadata()
+  const imgW = meta.width ?? WIDTH
+  const imgH = meta.height ?? HEIGHT
+  const x = imgW - BRAND_BADGE_WIDTH - BRAND_BADGE_MARGIN
+  const y = imgH - BRAND_BADGE_HEIGHT - BRAND_BADGE_MARGIN
   const contentGap = 10
   const contentWidth = BRAND_LOGO_SIZE + contentGap + BRAND_WORDMARK_WIDTH
   const contentX = x + Math.round((BRAND_BADGE_WIDTH - contentWidth) / 2)
@@ -729,7 +699,7 @@ async function addInstantMedWordmark(filepath: string) {
 
   await sharp(filepath)
     .composite([
-      { input: Buffer.from(renderBrandBadgeBackgroundSvg()), left: 0, top: 0 },
+      { input: Buffer.from(renderBrandBadgeBackgroundSvg(imgW, imgH)), left: 0, top: 0 },
       { input: logo, left: contentX, top: logoY },
       { input: wordmark, left: contentX + BRAND_LOGO_SIZE + contentGap, top: wordmarkY },
     ])
@@ -902,6 +872,7 @@ async function saveGatewayInfographic(
     .webp({ quality: 88, effort: 5 })
     .toFile(filepath)
 
+  await addInstantMedWordmark(filepath)
   return filepath
 }
 
