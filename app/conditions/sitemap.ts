@@ -1,12 +1,15 @@
 import type { MetadataRoute } from "next"
 
 import { getAllConditionSlugs } from "@/lib/seo/data/conditions"
+import { shouldIndexCondition } from "@/lib/seo/index-policy"
 
 const CONTENT_ENRICHED = new Date("2026-04-13")
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  return getAllConditionSlugs().map((slug) => ({
+  return getAllConditionSlugs()
+    .filter((slug) => shouldIndexCondition(slug))
+    .map((slug) => ({
     url: `${baseUrl}/conditions/${slug}`,
     lastModified: CONTENT_ENRICHED,
     changeFrequency: "monthly" as const,

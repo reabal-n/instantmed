@@ -31,6 +31,7 @@ import { Button } from "@/components/ui/button"
 import { PageBreadcrumbs } from "@/components/uix"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { conditionsData } from "@/lib/seo/data/conditions"
+import { ICEBOX_ROBOTS, shouldIndexCondition } from "@/lib/seo/index-policy"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 const conditions = conditionsData
@@ -50,6 +51,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: { absolute: title },
     description,
+    robots: shouldIndexCondition(slug) ? { index: true, follow: true } : ICEBOX_ROBOTS,
     keywords: [
       `${condition.name.toLowerCase()} medical certificate`,
       `${condition.name.toLowerCase()} doctor online`,

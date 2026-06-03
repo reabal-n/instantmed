@@ -12,6 +12,7 @@ import { allArticles, getAllArticleSlugs, getArticleBySlug, getRelatedArticles }
 import { reviewedBySchema } from "@/lib/blog/medical-reviewer"
 import { getArticleVisualsForRender } from "@/lib/blog/visuals"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
+import { ICEBOX_ROBOTS, shouldIndexBlog } from "@/lib/seo/index-policy"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 interface PageProps {
@@ -38,7 +39,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: { absolute: article.seo.title },
     description: article.seo.description,
     keywords: article.seo.keywords,
-    robots: { index: true, follow: true },
+    robots: shouldIndexBlog(slug) ? { index: true, follow: true } : ICEBOX_ROBOTS,
     openGraph: {
       title: article.title,
       description: article.excerpt,
