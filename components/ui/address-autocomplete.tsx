@@ -39,6 +39,7 @@ interface AddressAutocompleteProps {
   className?: string
   error?: string
   disabled?: boolean
+  id?: string
   /** If true, user MUST select from suggestions */
   requireVerified?: boolean
   /** Callback when verification status changes */
@@ -55,6 +56,7 @@ export function AddressAutocomplete({
   className,
   error,
   disabled,
+  id,
   requireVerified = false,
   onVerificationChange,
   onManualEntry,
@@ -263,6 +265,7 @@ export function AddressAutocomplete({
     <div ref={containerRef} className="relative">
       <Input
         ref={inputRef}
+        id={id}
         value={value}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}

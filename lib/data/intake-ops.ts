@@ -173,7 +173,7 @@ export async function getStuckIntakesDirect(
       query = query.eq("status", filters.status)
     }
 
-    const { data, error } = await query
+    const { data, error } = await query.limit(500)
 
     if (error) {
       logger.error("[IntakeOps] Direct query failed", { error: error.message })

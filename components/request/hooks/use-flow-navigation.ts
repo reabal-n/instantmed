@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useCallback } from "react"
+import { useCallback, useEffect, useRef } from "react"
 
 import { getConsultSubtypeFirstStep, getConsultSubtypeResetKeys } from "@/lib/request/consult-flow"
 import type { StepDefinition, UnifiedServiceType } from "@/lib/request/step-registry"
@@ -99,6 +99,32 @@ export function useFlowNavigation({
   const router = useRouter()
   const { nextStep, prevStep, goToStep, setServiceType, setAnswer, reset } = useRequestStore()
 
+  // Tracks how many history.pushState entries we've added for step advances so the
+  // popstate handler knows whether Back is "previous step" or "leave the flow".
+  const flowHistoryDepth = useRef(0)
+  // Set by handleBack before calling history.back() so the popstate handler
+  // doesn't call prevStep() again (the step was already decremented by the click).
+  const skippingPopState = useRef(false)
+  // Always-current ref so the static popstate listener never captures a stale closure.
+  const prevStepRef = useRef(prevStep)
+  prevStepRef.current = prevStep
+
+  useEffect(() => {
+    const onPopState = () => {
+      if (skippingPopState.current) {
+        skippingPopState.current = false
+        return
+      }
+      if (flowHistoryDepth.current > 0) {
+        flowHistoryDepth.current--
+        prevStepRef.current()
+      }
+      // depth === 0 → browser is navigating past the flow entirely; let it happen
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
+
   const clearConsultSubtypeAnswers = useCallback(() => {
     for (const key of getConsultSubtypeResetKeys()) {
       setAnswer(key, undefined)
@@ -113,6 +139,13 @@ export function useFlowNavigation({
     })
     if (currentStepIndex > 0) {
       prevStep()
+      // Pop the matching history entry to keep the browser stack in sync.
+      // Set the skip flag so the resulting popstate doesn't call prevStep() again.
+      if (flowHistoryDepth.current > 0) {
+        skippingPopState.current = true
+        flowHistoryDepth.current--
+        history.back()
+      }
     } else {
       router.back()
     }
@@ -126,24 +159,35 @@ export function useFlowNavigation({
     // more time filling out details + payment. Full server-side check still
     // runs at checkout as a backstop.
     if (effectiveService && SAFETY_PRE_CHECK_STEPS.has(currentStepId)) {
-      const slug = getSafetySlug(effectiveService, answers)
-      const { evaluateSafety } = await import("@/lib/safety/evaluate")
-      const result = evaluateSafety(slug, answers)
+      try {
+        const slug = getSafetySlug(effectiveService, answers)
+        const { evaluateSafety } = await import("@/lib/safety/evaluate")
+        const result = evaluateSafety(slug, answers)
 
-      if (result.outcome === 'DECLINE' || result.outcome === 'REQUIRES_CALL') {
-        posthog?.capture('safety_precheck_blocked', {
-          service_type: analyticsServiceType,
-          step_id: currentStepId,
-          outcome: result.outcome,
-          risk_tier: result.riskTier,
-          triggered_rules: result.triggeredRules.map(r => r.ruleId),
-        })
-        setSafetyBlock(result)
-        return // Don't advance — show safety block dialog
+        if (result.outcome === 'DECLINE' || result.outcome === 'REQUIRES_CALL') {
+          posthog?.capture('safety_precheck_blocked', {
+            service_type: analyticsServiceType,
+            step_id: currentStepId,
+            outcome: result.outcome,
+            risk_tier: result.riskTier,
+            triggered_rules: result.triggeredRules.map(r => r.ruleId),
+          })
+          setSafetyBlock(result)
+          return // Don't advance — show safety block dialog
+        }
+      } catch (err) {
+        // Dynamic import failure (e.g. ChunkLoadError on flaky connection).
+        // Fail open — proceed to next step; full server-side safety check runs at checkout.
+        import("@sentry/nextjs").then(({ captureException }) => captureException(err)).catch(() => {})
       }
     }
 
     nextStep()
+    // Push a history entry so the browser's Back button maps to "previous step"
+    // rather than "leave the flow entirely". The popstate listener calls prevStep()
+    // to sync Zustand when the browser pops this entry.
+    history.pushState({ instantmedFlow: true }, '')
+    flowHistoryDepth.current++
   }, [trackStepCompleted, analyticsServiceType, currentStepId, nextStep, posthog, effectiveService, answers, setSafetyBlock])
 
   const handleComplete = useCallback(() => {

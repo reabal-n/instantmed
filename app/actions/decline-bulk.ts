@@ -9,6 +9,8 @@
  * Extracted from decline-intake.ts for single-responsibility.
  */
 
+import { requireRoleOrNull } from "@/lib/auth/helpers"
+
 import { declineIntake } from "./decline-intake"
 
 // ============================================================================
@@ -26,6 +28,11 @@ export async function declineIntakesBulk(
   succeeded: string[]
   failed: Array<{ intakeId: string; error: string }>
 }> {
+  const authUser = await requireRoleOrNull(["doctor", "admin"])
+  if (!authUser) {
+    return { succeeded: [], failed: intakeIds.map(intakeId => ({ intakeId, error: "Only doctors and admins can decline requests" })) }
+  }
+
   const succeeded: string[] = []
   const failed: Array<{ intakeId: string; error: string }> = []
 

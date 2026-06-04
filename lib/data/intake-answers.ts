@@ -143,9 +143,14 @@ export async function saveIntakeAnswers(
 }
 
 /**
- * Update existing intake answers
+ * Update existing intake answers — NOT exported.
+ * This function uses the service-role client (bypasses RLS) and has no ownership check.
+ * Any future caller MUST verify that the authenticated user owns the parent intake before
+ * calling this (SELECT intake_id FROM intake_answers WHERE id=X; assert intake.patient_id === caller).
+ * Export only when a concrete, guarded caller exists.
  */
-export async function updateIntakeAnswers(
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function updateIntakeAnswers(
   id: string,
   answers: Record<string, unknown>
 ): Promise<{ success: boolean; error?: string }> {

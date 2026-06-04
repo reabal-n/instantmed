@@ -1,3 +1,5 @@
+import { Suspense } from "react"
+
 import { getEmailPreferences } from "@/app/actions/email-preferences"
 import { resolveProfileAvatarUrl } from "@/lib/account/avatar-storage"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
@@ -40,11 +42,13 @@ export default async function PatientSettingsPage() {
   ])
 
   return (
-    <PatientSettingsClient
-      profile={profileWithDecryptedFields}
-      email={authUser.user.email || ""}
-      avatarUrl={avatarUrl}
-      emailPreferences={emailPreferences}
-    />
+    <Suspense fallback={null}>
+      <PatientSettingsClient
+        profile={profileWithDecryptedFields}
+        email={authUser.user.email || ""}
+        avatarUrl={avatarUrl}
+        emailPreferences={emailPreferences}
+      />
+    </Suspense>
   )
 }

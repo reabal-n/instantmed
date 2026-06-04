@@ -206,6 +206,7 @@ export function ServicesConfigClient({ initialServices }: ServicesConfigClientPr
         filteredServices={filteredServices}
         onEditService={handleEditService}
         onToggleActive={handleToggleActive}
+        isToggling={isToggling}
       />
 
       {/* Edit Dialog */}

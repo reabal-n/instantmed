@@ -23,6 +23,7 @@
 import { Beaker, EyeOff, X } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
+import { Suspense } from "react"
 
 import { Button } from "@/components/ui/button"
 import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
@@ -49,7 +50,7 @@ function withTestDataParam(
  * removes `?showTestData=1` from the URL while preserving every other
  * query param.
  */
-export function TestDataBanner() {
+function TestDataBannerInner() {
   const pathname = usePathname() ?? STAFF_DASHBOARD_HREF
   const params = useSearchParams()
   const searchParams = new URLSearchParams(params?.toString() ?? "")
@@ -83,13 +84,21 @@ export function TestDataBanner() {
   )
 }
 
+export function TestDataBanner() {
+  return (
+    <Suspense fallback={null}>
+      <TestDataBannerInner />
+    </Suspense>
+  )
+}
+
 /**
  * Toggle button rendered in the dashboard header. When inactive it
  * adds `?showTestData=1`; when active it removes the param. Always
  * preserves the rest of the URL state. Admin-only: the parent page
  * is responsible for not rendering this for non-admin roles.
  */
-export function TestDataToggleButton({ active }: { active: boolean }) {
+function TestDataToggleButtonInner({ active }: { active: boolean }) {
   const pathname = usePathname() ?? STAFF_DASHBOARD_HREF
   const params = useSearchParams()
   const searchParams = new URLSearchParams(params?.toString() ?? "")
@@ -122,5 +131,13 @@ export function TestDataToggleButton({ active }: { active: boolean }) {
         )}
       </Link>
     </Button>
+  )
+}
+
+export function TestDataToggleButton({ active }: { active: boolean }) {
+  return (
+    <Suspense fallback={null}>
+      <TestDataToggleButtonInner active={active} />
+    </Suspense>
   )
 }

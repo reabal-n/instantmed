@@ -90,13 +90,18 @@ export async function approveAndSendCert(
     // but we need to do a lightweight self-approval check first
     const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
     const supabase = createServiceRoleClient()
-    const { data: intakeCheck } = await supabase
+    const { data: intakeCheck, error: intakeCheckError } = await supabase
       .from("intakes")
       .select("patient_id")
       .eq("id", intakeId)
       .single()
 
-    if (intakeCheck && intakeCheck.patient_id === doctorProfile.id) {
+    if (intakeCheckError || !intakeCheck) {
+      log.error("Self-approval check: failed to fetch intake", { intakeId }, intakeCheckError ?? undefined)
+      return { success: false, error: "Could not verify intake ownership. Please try again." }
+    }
+
+    if (intakeCheck.patient_id === doctorProfile.id) {
       log.warn("Doctor attempted self-approval", { doctorId: doctorProfile.id, intakeId })
       return {
         success: false,

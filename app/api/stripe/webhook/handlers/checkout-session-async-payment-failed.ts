@@ -4,6 +4,7 @@ import { sendPaymentFailedEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
 
 import type { HandlerResult,WebhookContext } from "./types"
+import { addToDeadLetterQueue, tryClaimEvent } from "./utils"
 
 const log = createLogger("stripe-webhook:async-payment-failed")
 
@@ -18,6 +19,13 @@ export async function handleAsyncPaymentFailed(ctx: WebhookContext): Promise<Han
     intakeId,
   })
 
+  // Idempotency: skip if already processed (Stripe retries same event on 2xx non-200 or timeout)
+  const shouldProcess = ctx.adminReplay || await tryClaimEvent(supabase, event.id, event.type, intakeId ?? undefined, session.id, {})
+  if (!shouldProcess) {
+    log.info("checkout.session.async_payment_failed already processed, skipping", { eventId: event.id })
+    return
+  }
+
   if (intakeId) {
     const { data: failedIntake, error: updateError } = await supabase
       .from("intakes")
@@ -29,12 +37,13 @@ export async function handleAsyncPaymentFailed(ctx: WebhookContext): Promise<Han
       .eq("id", intakeId)
       .eq("status", "pending_payment")
       .eq("payment_id", session.id)
-      .in("payment_status", ["pending", "unpaid", "failed"])
+      .in("payment_status", ["pending", "unpaid"])
       .select("id")
       .maybeSingle()
 
     if (updateError) {
       log.error("Failed to mark async checkout payment failure", { eventId: event.id, sessionId: session.id }, updateError)
+      await addToDeadLetterQueue(supabase, event.id, event.type, session.id, intakeId, updateError.message, "DB_UPDATE_FAILED")
       return
     }
 

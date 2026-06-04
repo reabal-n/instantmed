@@ -192,26 +192,78 @@ export async function sendTemplateEmail(params: SendTemplateEmailParams): Promis
 
   let result
   if (isCritical) {
+    // sendCriticalEmail already manages its own outbox record.
     result = await sendCriticalEmail(emailParams, {
       emailType: templateSlug,
       intakeId,
       patientId,
     })
+    await logEmailSend({
+      templateSlug,
+      recipient: to,
+      intakeId,
+      patientId,
+      subject,
+      success: result.success,
+      resendId: result.id,
+      error: result.error,
+    })
   } else {
-    result = await sendViaResend(emailParams)
-  }
+    // TWO-PHASE WRITE: insert a pending outbox row BEFORE attempting the send.
+    // If the process crashes between sendViaResend() and the status update, the
+    // dispatcher can retry the pending row. Mirrors the pattern in send-email.ts.
+    const supabase = createServiceRoleClient()
+    let outboxId: string | null = null
+    try {
+      const { data: pendingRow } = await supabase
+        .from("email_outbox")
+        .insert({
+          email_type: templateSlug,
+          to_email: to,
+          intake_id: intakeId ?? null,
+          patient_id: patientId ?? null,
+          subject,
+          status: "pending",
+        })
+        .select("id")
+        .single()
+      outboxId = pendingRow?.id ?? null
+    } catch {
+      // Non-blocking — proceed even if pre-send record fails
+    }
 
-  // Log the send attempt
-  await logEmailSend({
-    templateSlug,
-    recipient: to,
-    intakeId,
-    patientId,
-    subject,
-    success: result.success,
-    resendId: result.id,
-    error: result.error,
-  })
+    result = await sendViaResend(emailParams)
+
+    // Update the pending row with the final status.
+    if (outboxId) {
+      try {
+        await supabase
+          .from("email_outbox")
+          .update({
+            status: result.success ? "sent" : "failed",
+            provider_message_id: result.id ?? null,
+            sent_at: result.success ? new Date().toISOString() : null,
+            error_message: result.error ?? null,
+            metadata: { sent: result.success },
+          })
+          .eq("id", outboxId)
+      } catch {
+        // Non-blocking — the pending row is enough for the dispatcher to retry
+      }
+    } else {
+      // Fallback: pre-send insert failed; write a post-send record so the row exists.
+      await logEmailSend({
+        templateSlug,
+        recipient: to,
+        intakeId,
+        patientId,
+        subject,
+        success: result.success,
+        resendId: result.id,
+        error: result.error,
+      })
+    }
+  }
 
   if (result.success) {
     log.info("Template email sent", { templateSlug, to: sanitizeEmailForLog(to), resendId: result.id })

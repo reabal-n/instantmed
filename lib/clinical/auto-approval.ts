@@ -21,7 +21,7 @@ import { checkEmergencySymptoms, checkRedFlagPatterns } from "./triage-rules-eng
  *
  * Format: MAJOR.MINOR (major = structural changes, minor = keyword/threshold updates)
  */
-export const ELIGIBILITY_ENGINE_VERSION = "2.5"
+export const ELIGIBILITY_ENGINE_VERSION = "3.0"
 
 /**
  * Human-readable manifest of all checks the engine applies.
@@ -332,10 +332,15 @@ export function evaluateAutoApprovalEligibility(
     flags.push("overlapping_cert_dates")
   }
 
-  // 2. Age check - minors (under 18) always require doctor review
-  if (patient?.date_of_birth) {
+  // 2. Age check - minors (under 18) always require doctor review.
+  // Missing or unparseable DOB is treated as disqualifying: cannot confirm 18+.
+  if (!patient?.date_of_birth) {
+    flags.push("patient_dob_missing")
+  } else {
     const dob = new Date(patient.date_of_birth)
-    if (!isNaN(dob.getTime())) {
+    if (isNaN(dob.getTime())) {
+      flags.push("patient_dob_invalid")
+    } else {
       const today = new Date()
       let age = today.getFullYear() - dob.getFullYear()
       const monthDiff = today.getMonth() - dob.getMonth()

@@ -269,6 +269,12 @@ export async function getProfileById(profileId: string): Promise<Profile | null>
 
 /**
  * Update an existing profile.
+ *
+ * OWNERSHIP REQUIREMENT: This function uses the service-role client (bypasses RLS).
+ * Every caller MUST verify ownership before calling this:
+ *   - Admin actions: gate on requireRole(["admin"]) before using a client-supplied profileId.
+ *   - Patient/doctor actions: use `authUser.profile.id` (session-derived), never a request-body value.
+ * Never pass a profileId sourced from client input without an ownership pre-check.
  */
 export async function updateProfile(
   profileId: string,

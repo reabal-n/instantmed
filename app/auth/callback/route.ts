@@ -52,7 +52,8 @@ export async function GET(request: NextRequest) {
     log.error("Supabase code exchange failed", { error: error.message })
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
-      const destination = resolvePostAuthDestination(next)
+      // Pass origin so absolute return URLs on preview/dev deployments are trusted.
+      const destination = resolvePostAuthDestination(next, origin)
       log.info("Code exchange failed but session exists, continuing", {
         destinationKind: destinationKind(destination),
       })

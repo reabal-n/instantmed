@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       .from("intakes")
       .select("id")
       .eq("id", intakeId)
-      .eq("profile_id", authResult.profile.id)
+      .eq("patient_id", authResult.profile.id)
       .maybeSingle()
 
     if (!intake) {

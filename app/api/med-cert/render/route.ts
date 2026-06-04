@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { getApiAuth } from "@/lib/auth/helpers"
-import { hasDoctorAccess } from "@/lib/auth/staff-capabilities"
+import { hasAdminAccess, hasDoctorAccess } from "@/lib/auth/staff-capabilities"
 import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
 import { validateCertificateDateRange } from "@/lib/medical-certificates/date-policy"
 import { createLogger } from "@/lib/observability/logger"
@@ -54,6 +54,21 @@ export async function POST(request: NextRequest) {
         { success: false, error: "Missing required parameters" },
         { status: 400 }
       )
+    }
+
+    const supabase = createServiceRoleClient()
+
+    // Verify the calling doctor has a relationship to this intake (or is admin)
+    if (!hasAdminAccess(profile)) {
+      const { data: intakeOwnership } = await supabase
+        .from("intakes")
+        .select("id")
+        .eq("id", requestId)
+        .or(`claimed_by.eq.${profile.id},reviewing_doctor_id.eq.${profile.id},reviewed_by.eq.${profile.id}`)
+        .maybeSingle()
+      if (!intakeOwnership) {
+        return NextResponse.json({ error: "Forbidden: intake not assigned to this doctor" }, { status: 403 })
+      }
     }
 
     log.info("Generating medical certificate PDF", {
@@ -132,7 +147,6 @@ export async function POST(request: NextRequest) {
     })
 
     // Upload to Supabase Storage (documents bucket - matches canonical approve-cert pipeline)
-    const supabase = createServiceRoleClient()
     const fileName = `med-cert-${requestId}-${draftId}.pdf`
     const filePath = `certificates/${fileName}`
 

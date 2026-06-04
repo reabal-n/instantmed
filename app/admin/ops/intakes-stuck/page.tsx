@@ -1,3 +1,5 @@
+import { Suspense } from "react"
+
 import { requireRole } from "@/lib/auth/helpers"
 import { getDistinctServiceTypes,getStuckIntakes } from "@/lib/data/intake-ops"
 
@@ -31,12 +33,14 @@ export default async function IntakesStuckPage({ searchParams }: PageProps) {
   ])
 
   return (
-    <IntakesStuckClient
-      initialData={result.data}
-      counts={result.counts}
-      serviceTypes={serviceTypes}
-      filters={filters}
-      error={result.error}
-    />
+    <Suspense fallback={null}>
+      <IntakesStuckClient
+        initialData={result.data}
+        counts={result.counts}
+        serviceTypes={serviceTypes}
+        filters={filters}
+        error={result.error}
+      />
+    </Suspense>
   )
 }

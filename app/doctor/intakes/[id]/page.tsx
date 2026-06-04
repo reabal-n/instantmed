@@ -41,14 +41,13 @@ export default async function DoctorIntakeDetailPage({
   }
 
   // Compliance audit logging (AUDIT_LOGGING_REQUIREMENTS.md)
+  // Note: still sequential because it must happen before data reads for compliance ordering.
   await logClinicianOpenedRequest(id, "intake", profile.id)
 
-  // Fetch patient's previous intakes for history
-  const { data: patientHistory } = await getPatientIntakes(intake.patient.id, { pageSize: 6 })
-  const previousIntakes = patientHistory.filter((r: { id: string }) => r.id !== id).slice(0, 5)
-
-  // Fetch AI drafts, next intake, cert delivery status in parallel
-  const [aiDrafts, nextIntakeId, medCertDraft, pendingCorrection, certDelivery, featureFlags, patientMessages, patientNotes] = await Promise.all([
+  // Fetch all supplementary data in parallel — patientHistory moved into the batch
+  // to match the admin page pattern and save ~60ms sequential round-trip.
+  const [patientHistoryResult, aiDrafts, nextIntakeId, medCertDraft, pendingCorrection, certDelivery, featureFlags, patientMessages, patientNotes] = await Promise.all([
+    getPatientIntakes(intake.patient.id, { pageSize: 6 }),
     getAIDraftsForIntake(id),
     getNextQueueIntakeId(id),
     (intake.service as { type?: string } | undefined)?.type === "med_certs"
@@ -60,6 +59,7 @@ export default async function DoctorIntakeDetailPage({
     getPatientMessagesForIntake(id),
     getPatientNotes(intake.patient.id, undefined, 5),
   ])
+  const previousIntakes = patientHistoryResult.data.filter((r: { id: string }) => r.id !== id).slice(0, 5)
 
   // Phase 3: fetch follow-ups for ED/hair-loss consults
   let followups: DoctorFollowupRow[] = []

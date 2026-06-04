@@ -29,11 +29,14 @@ export const metadata = {
 
 function formatDateTime(value: string | null | undefined): string {
   if (!value) return "Not recorded"
+  // timeZone required: Vercel runs UTC, browsers run AEST/AEDT — without it,
+  // the server-rendered string and client string differ → React hydration mismatch.
   return new Date(value).toLocaleString("en-AU", {
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
     month: "short",
+    timeZone: "Australia/Sydney",
   })
 }
 

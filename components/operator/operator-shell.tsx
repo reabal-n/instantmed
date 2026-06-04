@@ -1,8 +1,19 @@
-import type { ReactNode } from "react"
+import { type ReactNode,Suspense } from "react"
 
 import { AdminSidebar, MobileAdminNav } from "@/components/admin/admin-sidebar"
 import { operatorNavSections, type StaffNavCounts, type StaffNavSection } from "@/lib/dashboard/staff-navigation"
 import { cn } from "@/lib/utils"
+
+// Width-preserving placeholder shown while AdminSidebar's useSearchParams() resolves.
+// Matches the expanded sidebar default (w-64) to prevent main content from shifting.
+function AdminSidebarFallback() {
+  return (
+    <div
+      className="hidden w-64 shrink-0 border-r border-border/45 bg-[#FCFBF8] dark:bg-card lg:block"
+      aria-hidden
+    />
+  )
+}
 
 interface OperatorShellProps {
   userName: string
@@ -41,13 +52,15 @@ export function OperatorShell({
       data-operator-shell
       className="flex min-h-screen bg-[#F7F3EC] text-foreground dark:bg-background"
     >
-      <AdminSidebar
-        userName={userName}
-        userRole={userRole}
-        navCounts={navCounts}
-        navSections={resolvedSections}
-        brandLabel={brandLabel}
-      />
+      <Suspense fallback={<AdminSidebarFallback />}>
+        <AdminSidebar
+          userName={userName}
+          userRole={userRole}
+          navCounts={navCounts}
+          navSections={resolvedSections}
+          brandLabel={brandLabel}
+        />
+      </Suspense>
       <main
         className={cn(
           "min-w-0 flex-1 bg-[#F7F3EC] px-4 py-8 transition-colors duration-150 dark:bg-background sm:px-6 lg:px-8",
@@ -62,11 +75,13 @@ export function OperatorShell({
         >
           {!hideMobileHamburger && (
             <div className="mb-4 lg:hidden">
-              <MobileAdminNav
-                navCounts={navCounts}
-                navSections={navSections}
-                brandLabel={brandLabel}
-              />
+              <Suspense fallback={null}>
+                <MobileAdminNav
+                  navCounts={navCounts}
+                  navSections={navSections}
+                  brandLabel={brandLabel}
+                />
+              </Suspense>
             </div>
           )}
           {children}

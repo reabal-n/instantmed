@@ -124,6 +124,7 @@ interface ServicesTableCardProps {
   filteredServices: Service[]
   onEditService: (service: Service) => void
   onToggleActive: (service: Service) => void
+  isToggling?: boolean
 }
 
 export function ServicesTableCard({
@@ -134,6 +135,7 @@ export function ServicesTableCard({
   filteredServices,
   onEditService,
   onToggleActive,
+  isToggling = false,
 }: ServicesTableCardProps) {
   return (
     <Card>
@@ -227,6 +229,7 @@ export function ServicesTableCard({
                       <Switch
                         checked={service.is_active}
                         onCheckedChange={() => onToggleActive(service)}
+                        disabled={isToggling}
                       />
                     </TableCell>
                     <TableCell className="text-right">

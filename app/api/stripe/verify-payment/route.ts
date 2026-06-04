@@ -172,6 +172,7 @@ export async function POST(req: NextRequest) {
         stripe_customer_id: stripeCustomerId,
       })
       .eq("id", intakeId)
+      .eq("payment_id", session.id)
       .in("status", ["pending_payment", "checkout_failed"])
       .in("payment_status", ["pending", "unpaid", "failed"])
 

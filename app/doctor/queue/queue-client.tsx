@@ -647,7 +647,20 @@ export function QueueClient({
       const newStatus: IntakeStatus = serviceType === SERVICE_TYPES.COMMON_SCRIPTS || serviceType === SERVICE_TYPES.REPEAT_RX
         ? "awaiting_script"
         : "approved"
-      const result = await updateStatusAction(intakeId, newStatus)
+      let result: Awaited<ReturnType<typeof updateStatusAction>>
+      try {
+        result = await updateStatusAction(intakeId, newStatus)
+      } catch (_err) {
+        // Thrown exception (network error, unhandled server exception) — restore the row.
+        setIntakes((prev) => {
+          const safeIndex = Math.min(removedIndex, prev.length)
+          const next = prev.slice()
+          next.splice(Math.max(0, safeIndex), 0, removedIntake)
+          return next
+        })
+        toast.error("Failed to approve — please try again")
+        return
+      }
       if (result.success) {
         refreshQueue(true)
         if (serviceType === SERVICE_TYPES.COMMON_SCRIPTS || serviceType === SERVICE_TYPES.REPEAT_RX) {
@@ -831,6 +844,8 @@ export function QueueClient({
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
       // Preserve global browser/app chords such as Cmd/Ctrl+K for the staff palette.
       if (e.metaKey || e.ctrlKey || e.altKey) return
+      // Don't fire queue shortcuts while a panel is open — the focus trap handles keyboard there.
+      if (panelOpenRef.current) return
 
       const currentIndex = expandedId ? filteredIntakes.findIndex((r) => r.id === expandedId) : -1
 

@@ -296,7 +296,32 @@ export function AdminIntakesLedgerClient({
   const [smartSort, setSmartSort] = useState<boolean>(initialSmart)
   const [density, setDensity] = useDensity()
 
-  // Mirror to URL so the view is shareable.
+  // Sync URL params → state on SPA navigation (e.g. deep-linked filter views).
+  // Uses functional setState that returns `prev` when unchanged so React bails out
+  // and the state→URL write-back effect doesn't re-fire (no infinite loop).
+  useEffect(() => {
+    const field = searchParams.get("sort")
+    const dir = searchParams.get("dir")
+    const newSort: SortState = isSortField(field) && (dir === "asc" || dir === "desc")
+      ? { field, direction: dir }
+      : DEFAULT_SORT
+    setSortState(prev =>
+      prev.field === newSort.field && prev.direction === newSort.direction ? prev : newSort
+    )
+
+    const raw = searchParams.get("chips")
+    const newChipValues = (raw ?? "").split(",").filter(Boolean)
+    setActiveChips(prev => {
+      if (prev.size === newChipValues.length && newChipValues.every(c => prev.has(c))) return prev
+      return new Set(newChipValues)
+    })
+
+    const newSmart = searchParams.get("smart") === "1"
+    setSmartSort(prev => prev === newSmart ? prev : newSmart)
+   
+  }, [searchParams])
+
+  // Mirror state → URL so the view is shareable.
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString())
     if (sortState.field === DEFAULT_SORT.field && sortState.direction === DEFAULT_SORT.direction) {

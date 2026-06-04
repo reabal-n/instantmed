@@ -9,6 +9,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
+import { Suspense } from "react"
 
 import { ServiceIconTile } from "@/components/icons/service-icons"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
@@ -34,6 +35,56 @@ import {
 } from "@/lib/dashboard/routes"
 import { AUTH_POST_SIGNIN_HREF } from "@/lib/navigation/auth-handoff"
 
+// Isolated to its own component so useSearchParams() is scoped to the doctor
+// variant only. Without this, every Navbar call site — including statically
+// generated marketing pages — would opt out of static rendering.
+function DoctorNavItems({
+  firstName,
+  isActivePath,
+  pathname,
+}: {
+  firstName: string
+  isActivePath: (path: string) => boolean
+  pathname: string
+}) {
+  const searchParams = useSearchParams()
+  const dashboardStatus = searchParams.get("status")
+  const isDashboard = pathname === STAFF_DASHBOARD_HREF
+
+  return (
+    <>
+      <AnimatedNavLink
+        href={STAFF_QUEUE_HREF}
+        icon={<LayoutDashboard className="h-4 w-4" aria-hidden="true" />}
+        isActive={isDashboard && dashboardStatus !== "scripts"}
+      >
+        Queue
+      </AnimatedNavLink>
+      <AnimatedNavLink
+        href={STAFF_DOCTOR_SCRIPTS_HREF}
+        icon={<ClipboardList className="h-4 w-4" aria-hidden="true" />}
+        isActive={isDashboard && dashboardStatus === "scripts"}
+      >
+        Scripts
+      </AnimatedNavLink>
+      <AnimatedNavLink
+        href={STAFF_DOCTOR_PATIENTS_HREF}
+        icon={<User className="h-4 w-4" aria-hidden="true" />}
+        isActive={isActivePath(STAFF_DOCTOR_PATIENTS_HREF)}
+      >
+        Patients
+      </AnimatedNavLink>
+
+      {/* Static avatar - settings & sign out live in the sidebar */}
+      <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0 ml-2" aria-hidden="true">
+        <span className="text-xs font-semibold text-primary leading-none">
+          {firstName?.[0]?.toUpperCase() ?? "D"}
+        </span>
+      </div>
+    </>
+  )
+}
+
 interface UserMenuProps {
   variant: "marketing" | "patient" | "doctor"
   firstName: string
@@ -52,7 +103,6 @@ export function UserMenu({
   user,
 }: UserMenuProps) {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const { isServiceDisabled } = useServiceAvailability()
 
   if (variant === "marketing") {
@@ -181,40 +231,10 @@ export function UserMenu({
   }
 
   if (variant === "doctor") {
-    const dashboardStatus = searchParams.get("status")
-    const isDashboard = pathname === STAFF_DASHBOARD_HREF
-
     return (
-      <>
-        <AnimatedNavLink
-          href={STAFF_QUEUE_HREF}
-          icon={<LayoutDashboard className="h-4 w-4" aria-hidden="true" />}
-          isActive={isDashboard && dashboardStatus !== "scripts"}
-        >
-          Queue
-        </AnimatedNavLink>
-        <AnimatedNavLink
-          href={STAFF_DOCTOR_SCRIPTS_HREF}
-          icon={<ClipboardList className="h-4 w-4" aria-hidden="true" />}
-          isActive={isDashboard && dashboardStatus === "scripts"}
-        >
-          Scripts
-        </AnimatedNavLink>
-        <AnimatedNavLink
-          href={STAFF_DOCTOR_PATIENTS_HREF}
-          icon={<User className="h-4 w-4" aria-hidden="true" />}
-          isActive={isActivePath(STAFF_DOCTOR_PATIENTS_HREF)}
-        >
-          Patients
-        </AnimatedNavLink>
-
-        {/* Static avatar - settings & sign out live in the sidebar */}
-        <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0 ml-2" aria-hidden="true">
-          <span className="text-xs font-semibold text-primary leading-none">
-            {firstName?.[0]?.toUpperCase() ?? "D"}
-          </span>
-        </div>
-      </>
+      <Suspense fallback={null}>
+        <DoctorNavItems firstName={firstName} isActivePath={isActivePath} pathname={pathname} />
+      </Suspense>
     )
   }
 

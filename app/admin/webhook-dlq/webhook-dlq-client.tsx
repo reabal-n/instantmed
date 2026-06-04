@@ -233,7 +233,7 @@ export function WebhookDlqClient() {
                     size="sm"
                     variant="outline"
                     onClick={() => handleAction("retry", selectedEntry.id)}
-                    disabled={actionLoading === selectedEntry.id}
+                    disabled={actionLoading !== null}
                   >
                     <RotateCcw className={cn("mr-1.5 h-3.5 w-3.5", actionLoading === selectedEntry.id && "animate-spin")} />
                     Retry
@@ -242,7 +242,7 @@ export function WebhookDlqClient() {
                     type="button"
                     size="sm"
                     onClick={() => handleAction("resolve", selectedEntry.id)}
-                    disabled={actionLoading === selectedEntry.id}
+                    disabled={actionLoading !== null}
                   >
                     <CheckCircle className="mr-1.5 h-3.5 w-3.5" />
                     Mark resolved
@@ -324,7 +324,7 @@ export function WebhookDlqClient() {
             size="sm"
             variant="outline"
             onClick={() => handleAction("resolve_all")}
-            disabled={actionLoading === "resolve_all"}
+            disabled={actionLoading !== null}
           >
             Resolve all
           </Button>

@@ -403,6 +403,13 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
   let patientIds = [patientId]
   let canonicalPatient = decryptedPatient
 
+  // Scope duplicate candidates to profiles that share email or name with this patient.
+  // Avoids a full-table scan (which transfers wide PHI rows for every patient on every page view).
+  const dupFilters: string[] = []
+  if (decryptedPatient.email) dupFilters.push(`email.eq.${decryptedPatient.email}`)
+  if (decryptedPatient.full_name) dupFilters.push(`full_name.eq.${decryptedPatient.full_name}`)
+  const dupFilter = dupFilters.length > 0 ? dupFilters.join(",") : `id.eq.${patientId}`
+
   const { data: duplicateCandidates, error: duplicateCandidatesError } = await supabase
     .from("profiles")
     .select(`
@@ -420,7 +427,9 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
     `)
     .eq("role", "patient")
     .is("merged_into_profile_id", null)
+    .or(dupFilter)
     .order("created_at", { ascending: false })
+    .limit(50)
 
   if (duplicateCandidatesError) {
     logger.warn("Could not fetch duplicate patient candidates", { patientId }, duplicateCandidatesError)

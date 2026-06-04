@@ -106,8 +106,8 @@ export async function revokeCertificateAction(
       reason,
     })
 
-    // 5. AUDIT LOG - fire-and-forget, non-blocking
-    supabase
+    // 5. AUDIT LOG - awaited; failures are captured to Sentry but do not abort the revocation
+    const { error: auditError } = await supabase
       .from("certificate_audit_log")
       .insert({
         certificate_id: cert.id,
@@ -116,7 +116,9 @@ export async function revokeCertificateAction(
         actor_role: user.profile.role || "doctor",
         event_data: { reason, revoked_at: timestamp },
       })
-      .then(() => {}, () => {})
+    if (auditError) {
+      logger.error("[RevokeCert] Audit log insert failed — revocation succeeded but trail has gap", { certId: cert.id }, auditError)
+    }
 
     // 6. REVALIDATE
     revalidateStaff({ intakeId })

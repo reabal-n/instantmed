@@ -104,6 +104,7 @@ export async function deletePatientNoteAction(noteId: string): Promise<{ success
       .from("patient_notes")
       .delete()
       .eq("id", noteId)
+      .eq("created_by", profile.id)
 
     if (error) {
       log.error("Failed to delete patient note", { noteId, error })

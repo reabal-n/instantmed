@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { redirect } from "next/navigation"
+import { Suspense } from "react"
 
 import { QueueClient } from "@/app/doctor/queue/queue-client"
 import { OwnerOperatorSetupCard } from "@/components/admin/owner-operator-setup-card"
@@ -14,6 +15,7 @@ import {
   TestDataToggleButton,
 } from "@/components/operator"
 import { PanelProvider } from "@/components/panels/panel-provider"
+import { SkeletonList } from "@/components/ui/skeleton"
 import { requireRole } from "@/lib/auth/helpers"
 import {
   hasAdminAccess,
@@ -79,7 +81,7 @@ export default async function StaffDashboardPage({
     onlyTestData?: string
   }>
 }) {
-  const auth = await requireRole(["admin", "doctor", "support"], { redirectTo: "/sign-in" })
+  const auth = await requireRole(["admin", "doctor", "support"])
   const { profile } = auth
 
   // Support role has no clinical surface yet; forward to recovery.
@@ -231,6 +233,7 @@ export default async function StaffDashboardPage({
           */}
 
           <section id="doctor-queue" className="min-h-0 flex-1">
+            <Suspense fallback={<SkeletonList count={5} />}>
             <QueueClient
               intakes={queueResult.data}
               doctorId={profile.id}
@@ -250,6 +253,7 @@ export default async function StaffDashboardPage({
               doctorAvailable={doctorAvailable}
               compactShell
             />
+            </Suspense>
           </section>
         </OperatorScrollArea>
       </OperatorPage>

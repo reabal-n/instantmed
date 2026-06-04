@@ -59,6 +59,7 @@ export function MedicationSearch({
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const valueRef = useRef(value)
+  const abortRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
     valueRef.current = value
@@ -77,12 +78,18 @@ export function MedicationSearch({
       return
     }
 
+    // Cancel any in-flight request before starting a new one
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
+
     setIsLoading(true)
 
     try {
       // Direct PBS search
       const response = await fetch(
-        `/api/medications/search?q=${encodeURIComponent(query)}&limit=15`
+        `/api/medications/search?q=${encodeURIComponent(query)}&limit=15`,
+        { signal: controller.signal }
       )
       if (!response.ok) {
         throw new Error("Medication search request failed")
@@ -103,12 +110,13 @@ export function MedicationSearch({
           setAnnouncement("No medications found")
         }
       }
-    } catch {
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") return
       setOptions([])
       setIsOpen(true)
       setAnnouncement("Medication search is temporarily unavailable")
     } finally {
-      setIsLoading(false)
+      if (!controller.signal.aborted) setIsLoading(false)
     }
   }, [])
 
@@ -229,6 +237,13 @@ export function MedicationSearch({
       item?.scrollIntoView({ block: "nearest" })
     }
   }, [highlightedIndex])
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+      abortRef.current?.abort()
+    }
+  }, [])
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

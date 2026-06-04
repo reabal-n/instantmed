@@ -9,7 +9,7 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js"
-import { cookies } from "next/headers"
+import { cookies, headers } from "next/headers"
 import { redirect } from "next/navigation"
 
 import {
@@ -18,7 +18,7 @@ import {
 } from "@/lib/auth/guest-profile-linking"
 import { hasAdminAccess, hasDoctorAccess, hasSupportAccess, type RoleCapability, roleHasAnyCapability } from "@/lib/auth/staff-capabilities"
 import { PATIENT_DASHBOARD_HREF, STAFF_DASHBOARD_HREF, STAFF_OPS_HREF } from "@/lib/dashboard/routes"
-import { AUTH_POST_SIGNIN_HREF } from "@/lib/navigation/auth-handoff"
+import { buildPostSignInRedirectHref } from "@/lib/navigation/auth-handoff"
 import { createLogger } from "@/lib/observability/logger"
 import { decryptField } from "@/lib/security/encryption"
 import { createClient } from "@/lib/supabase/server"
@@ -476,8 +476,11 @@ export async function requireRole(
     const supabaseAuth = await createClient()
     const { data: { user } } = await supabaseAuth.auth.getUser()
     if (user) {
-      // Authenticated but no profile - send to post-signin for profile creation
-      redirect(AUTH_POST_SIGNIN_HREF)
+      // Authenticated but no profile (DB trigger race) — preserve the destination
+      // so post-signin can redirect back after profile creation.
+      const hdrs = await headers()
+      const currentPath = hdrs.get("x-invoke-path") ?? null
+      redirect(buildPostSignInRedirectHref(currentPath))
     }
     redirect("/sign-in")
   }

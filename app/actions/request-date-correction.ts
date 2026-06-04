@@ -167,6 +167,10 @@ export async function approveDateCorrection(
     return { success: false, error: "Correction request not found" }
   }
 
+  if (event.intake_id !== intakeId) {
+    return { success: false, error: "Correction event does not belong to this intake" }
+  }
+
   const meta = event.metadata as Record<string, unknown>
   const startDate = meta.requested_start_date as string
   const endDate = meta.requested_end_date as string

@@ -214,6 +214,47 @@ const eslintConfig = [
       "no-restricted-syntax": "off",
     },
   },
+  // ── Navigation safety: hard nav in client components ─────────────────────
+  // window.location.href/assign/replace races with SupabaseAuthProvider's
+  // router.refresh() when both fire against the same React app context.
+  // The crash is "Application error: a client-side exception has occurred" —
+  // silent, hard to reproduce, and non-obvious. See CLAUDE.md gotchas.
+  //
+  // WHITELISTED EXCEPTIONS (add a disable comment with the reason):
+  //   lib/supabase/auth-provider.tsx — intentional full-reset after sign-out
+  //   app/sign-in/**/page.tsx         — fires before SIGNED_IN microtask
+  //   components/request/steps/*.tsx  — external Stripe URL, app context destroyed
+  //   app/patient/intakes/**/client.tsx — external Stripe URL
+  {
+    files: ["app/**/*.{ts,tsx}", "components/**/*.{ts,tsx}"],
+    ignores: [
+      "lib/supabase/auth-provider.tsx",
+      "app/sign-in/**",
+      "components/request/steps/review-step.tsx",
+      "components/request/steps/checkout-step.tsx",
+      "app/patient/intakes/**/client.tsx",
+    ],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "AssignmentExpression[left.object.name='location'][left.property.name='href']",
+          message:
+            "Nav safety: don't assign window.location.href in client components. Use router.push/replace/refresh — hard nav races with SupabaseAuthProvider's router.refresh(). See CLAUDE.md gotchas.",
+        },
+        {
+          selector: "MemberExpression[object.name='location'][property.name='href'] ~ *",
+          message:
+            "Nav safety: don't assign window.location.href in client components. Use router.push/replace/refresh. See CLAUDE.md gotchas.",
+        },
+        {
+          selector: "CallExpression[callee.type='MemberExpression'][callee.object.name='location'][callee.property.name=/^(assign|replace)$/]",
+          message:
+            "Nav safety: don't call window.location.assign/replace in client components. Use router.push/replace/refresh — hard nav races with SupabaseAuthProvider's router.refresh(). See CLAUDE.md gotchas.",
+        },
+      ],
+    },
+  },
   // Import boundary: types/ must be pure type definitions — no runtime imports
   {
     files: ["types/**/*.ts"],

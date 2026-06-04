@@ -1,6 +1,8 @@
 'use client'
 
-import { createContext, type ReactNode,useCallback, useContext, useState } from 'react'
+import { AnimatePresence } from 'framer-motion'
+import { usePathname } from 'next/navigation'
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react'
 
 /**
  * Panel System - Core interaction model
@@ -39,6 +41,57 @@ const PanelContext = createContext<PanelContextValue | null>(null)
 
 export function PanelProvider({ children }: { children: ReactNode }) {
   const [activePanel, setActivePanel] = useState<Panel | null>(null)
+  const pathname = usePathname()
+
+  // Close panel on route change so it doesn't persist across soft navigations.
+  // Intentionally uses pathname (not the full URL) so query-only changes (pagination,
+  // filters) don't close the panel — only actual page transitions do.
+  useEffect(() => {
+    if (activePanel) {
+      activePanel.onClose?.()
+      setActivePanel(null)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname])
+
+  // Minimal focus trap: while a panel is open, Tab key cycles within the panel's
+  // focusable elements and focus is moved into the panel on open.
+  // This prevents keyboard users from tabbing into dimmed background content
+  // and prevents background keyboard shortcuts (e.g. queue 'a'/'d') from firing.
+  useEffect(() => {
+    if (!activePanel) return
+
+    const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+
+    // Defer so the panel has time to animate in before we query its contents.
+    const rafId = requestAnimationFrame(() => {
+      const dialogEl = document.querySelector<HTMLElement>('[role="dialog"]')
+      if (!dialogEl) return
+      const getFocusables = () => Array.from(dialogEl.querySelectorAll<HTMLElement>(FOCUSABLE))
+      getFocusables()[0]?.focus()
+    })
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return
+      const dialogEl = document.querySelector<HTMLElement>('[role="dialog"]')
+      if (!dialogEl) return
+      const focusables = Array.from(dialogEl.querySelectorAll<HTMLElement>(FOCUSABLE))
+      if (!focusables.length) return
+      const first = focusables[0]
+      const last = focusables[focusables.length - 1]
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last.focus() }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first.focus() }
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown, true)
+    return () => {
+      cancelAnimationFrame(rafId)
+      document.removeEventListener('keydown', handleKeyDown, true)
+    }
+  }, [activePanel])
 
   const openPanel = useCallback((panel: Panel) => {
     // Only one panel at a time - close existing before opening new
@@ -62,21 +115,23 @@ export function PanelProvider({ children }: { children: ReactNode }) {
   }, [activePanel])
 
   return (
-    <PanelContext.Provider 
-      value={{ 
-        activePanel, 
-        openPanel, 
-        closePanel, 
+    <PanelContext.Provider
+      value={{
+        activePanel,
+        openPanel,
+        closePanel,
         updatePanel,
-        isPanelOpen: !!activePanel 
+        isPanelOpen: !!activePanel
       }}
     >
       {children}
-      {activePanel && (
-        <div key={activePanel.id}>
-          {activePanel.component}
-        </div>
-      )}
+      <AnimatePresence mode="wait">
+        {activePanel && (
+          <div key={activePanel.id}>
+            {activePanel.component}
+          </div>
+        )}
+      </AnimatePresence>
     </PanelContext.Provider>
   )
 }

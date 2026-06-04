@@ -459,7 +459,10 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
         templateType: emailType,
         providerId: data.id,
         recipient: to,
-      }).catch(() => {}) // Non-blocking
+      }).catch((err) => {
+        // Non-blocking but observable — silent failures corrupt CertHealthChip and ops dashboard.
+        logger.warn("[Email] recordDeliverySent failed", { to: sanitizeEmailForLog(to), emailType }, err)
+      })
 
       // TWO-PHASE WRITE: Update existing row to sent
       if (outboxId) {
@@ -471,7 +474,9 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
 
       // Increment daily warmup counter for marketing sends only.
       if (isMarketingEmail) {
-        incrementDailySendCount().catch(() => {})
+        incrementDailySendCount().catch((err) => {
+          logger.warn("[Email] incrementDailySendCount failed — warmup counter may under-count", {}, err)
+        })
       }
 
       return { success: true, messageId: data.id, outboxId: outboxId || undefined }

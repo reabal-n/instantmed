@@ -363,6 +363,18 @@ export const useRequestStore = create<RequestState & RequestActions>()(
             const parsed = JSON.parse(stored) as StorageValue<Partial<RequestState>>
             parsed.state = normalizePersistedState(parsed.state)
 
+            // Enforce 24h expiry before hydration — mirrors request-flow.tsx banner logic.
+            // If the draft is stale, discard it so the form starts fresh rather than
+            // silently pre-filling with old illness dates.
+            const lastSavedAt = parsed.state?.lastSavedAt
+            if (lastSavedAt) {
+              const hoursSinceSave = (Date.now() - new Date(lastSavedAt).getTime()) / (1000 * 60 * 60)
+              if (hoursSinceSave >= 24) {
+                localStorage.removeItem(name)
+                return null
+              }
+            }
+
             // Validate currentStepId against the actual step list BEFORE hydration.
             // Subtypes (e.g. ED, hair loss) change the step sequence, so a persisted
             // currentStepId (e.g. "consult-reason") may not exist in the subtype's

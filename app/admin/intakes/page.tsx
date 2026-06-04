@@ -1,3 +1,5 @@
+import { Suspense } from "react"
+
 import {
   AdminIntakesLedgerClient,
   type AdminIntakesLedgerInitialFilters,
@@ -96,10 +98,12 @@ export default async function AdminIntakeLedgerPage({
 
         <OperatorScrollArea>
           <div id="intakes" className="min-h-[520px]">
-            <AdminIntakesLedgerClient
-              allIntakes={intakesResult.data || []}
-              initialFilters={initialFilters}
-            />
+            <Suspense fallback={null}>
+              <AdminIntakesLedgerClient
+                allIntakes={intakesResult.data || []}
+                initialFilters={initialFilters}
+              />
+            </Suspense>
           </div>
         </OperatorScrollArea>
       </OperatorPage>

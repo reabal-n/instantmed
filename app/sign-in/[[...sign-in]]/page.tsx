@@ -108,6 +108,11 @@ function SignInForm() {
       return
     }
 
+    // Hard nav fires synchronously before Supabase's onAuthStateChange microtask
+    // can deliver SIGNED_IN to SupabaseAuthProvider's router.refresh(). By the
+    // time the auth event propagates the browser has already navigated away, so
+    // the hard nav / soft nav conflict that affects PostSignInAuthWaiter cannot
+    // occur here.
     window.location.assign(buildPostSignInRedirectHref(redirectUrl))
   }, [email, password, redirectUrl, supabase.auth])
 

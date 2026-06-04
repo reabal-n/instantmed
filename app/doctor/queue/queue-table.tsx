@@ -225,7 +225,7 @@ export function QueueTable({
 }: QueueTableProps) {
   const router = useRouter()
   const { openPanel } = usePanel()
-  const [, startTransition] = useTransition()
+  const [isRevokePending, startTransition] = useTransition()
   const [completedExpanded, setCompletedExpanded] = useState(false)
   const [aiExpanded, setAiExpanded] = useState(false)
 
@@ -1015,7 +1015,7 @@ export function QueueTable({
             </Button>
             <Button
               variant="destructive"
-              disabled={revokeReason.trim().length < 5 || isPending}
+              disabled={revokeReason.trim().length < 5 || isRevokePending}
               onClick={() => {
                 if (!revokeDialog) return
                 startTransition(async () => {
@@ -1031,7 +1031,7 @@ export function QueueTable({
                 })
               }}
             >
-              {isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+              {isRevokePending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
               Revoke Certificate
             </Button>
           </DialogFooter>

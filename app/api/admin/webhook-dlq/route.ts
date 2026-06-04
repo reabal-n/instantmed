@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 
 import { getApiAuth } from "@/lib/auth/helpers"
 import { hasAdminAccess, hasSupportAccess } from "@/lib/auth/staff-capabilities"
@@ -8,6 +9,12 @@ import { logAdminAction } from "@/lib/security/audit-log"
 import { requireValidCsrf } from "@/lib/security/csrf"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { Profile } from "@/types/db"
+
+const dlqActionSchema = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("retry"), entryId: z.string().uuid(), notes: z.string().optional() }),
+  z.object({ action: z.literal("resolve"), entryId: z.string().uuid(), notes: z.string().optional() }),
+  z.object({ action: z.literal("resolve_all"), notes: z.string().optional() }),
+])
 
 const logger = createLogger("admin-webhook-dlq")
 
@@ -131,10 +138,17 @@ export async function POST(request: NextRequest) {
     if (csrfError) return csrfError
 
     const body = await request.json()
-    const { action, entryId, notes } = body as {
-      action: "retry" | "resolve" | "resolve_all"
-      entryId?: string
-      notes?: string
+    const parsed = dlqActionSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid request body", details: parsed.error.flatten() }, { status: 400 })
+    }
+    const { action } = parsed.data
+    const entryId = "entryId" in parsed.data ? parsed.data.entryId : undefined
+    const notes = parsed.data.notes
+
+    // retry replays the full Stripe pipeline (clinical PHI, AI drafts, payments) — admin only
+    if (action === "retry" && !hasAdminAccess(profile)) {
+      return NextResponse.json({ error: "Only admins can replay webhook events" }, { status: 403 })
     }
 
     const supabase = createServiceRoleClient()

@@ -2,9 +2,9 @@
 
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 
-import { buildPostSignInHref } from "@/lib/navigation/auth-handoff"
 import { useAuth } from "@/lib/supabase/auth-provider"
 
 /**
@@ -13,13 +13,14 @@ import { useAuth } from "@/lib/supabase/auth-provider"
  * With Supabase Auth the session cookie is set by the callback route,
  * so this mostly handles the race condition where the page renders
  * before the auth state listener fires. If the user is signed in,
- * we reload the page so the server component can read the session
- * and redirect. If auth never resolves, show retry UI.
+ * we soft-refresh so the server component can read the session and
+ * redirect. If auth never resolves, show retry UI.
  */
-export function PostSignInAuthWaiter({ paramsString = "" }: { paramsString?: string }) {
+export function PostSignInAuthWaiter(_props: { paramsString?: string }) {
   const { isSignedIn, isLoaded } = useAuth()
   const hasNavigated = useRef(false)
   const [timedOut, setTimedOut] = useState(false)
+  const router = useRouter()
 
   // Master timeout: 15s for Supabase session to establish
   useEffect(() => {
@@ -37,8 +38,11 @@ export function PostSignInAuthWaiter({ paramsString = "" }: { paramsString?: str
 
     if (isSignedIn) {
       hasNavigated.current = true
-      // Session is established - reload so server component handles redirect
-      window.location.href = buildPostSignInHref(paramsString)
+      // Soft-refresh so the server component re-runs and calls redirect().
+      // window.location.href (hard nav) raced with SupabaseAuthProvider's
+      // router.refresh() on TOKEN_REFRESHED/SIGNED_IN and corrupted the
+      // Next.js router state, producing "Application error" on the second click.
+      router.refresh()
       return
     }
 
@@ -50,7 +54,7 @@ export function PostSignInAuthWaiter({ paramsString = "" }: { paramsString?: str
     }, 8000)
 
     return () => clearTimeout(timer)
-  }, [isLoaded, isSignedIn, paramsString])
+  }, [isLoaded, isSignedIn, router])
 
   if (timedOut) {
     return (

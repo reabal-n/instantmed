@@ -1,3 +1,5 @@
+import { Suspense } from "react"
+
 import { requireRole } from "@/lib/auth/helpers"
 import { getDistinctCategories,getReconciliationRecords } from "@/lib/data/reconciliation"
 
@@ -30,13 +32,15 @@ export default async function ReconciliationPage({ searchParams }: PageProps) {
   ])
 
   return (
-    <ReconciliationClient
-      initialData={result.data}
-      summary={result.summary}
-      categories={categories}
-      mismatchOnly={mismatchOnly}
-      selectedCategory={category}
-      error={result.error}
-    />
+    <Suspense fallback={null}>
+      <ReconciliationClient
+        initialData={result.data}
+        summary={result.summary}
+        categories={categories}
+        mismatchOnly={mismatchOnly}
+        selectedCategory={category}
+        error={result.error}
+      />
+    </Suspense>
   )
 }

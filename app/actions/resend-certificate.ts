@@ -4,6 +4,7 @@ import { z } from "zod"
 
 import { getApiAuth, requireRole } from "@/lib/auth/helpers"
 import { env } from "@/lib/config/env"
+import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import {
   getCertificateForIntake,
   incrementEmailRetry,
@@ -246,6 +247,7 @@ export async function resendCertificateAsStaff(intakeId: string): Promise<Resend
           certificateId: certificate.id,
           resentBy: profile.id,
         })
+        revalidateStaff({ intakeId })
         return { success: true }
       }
 

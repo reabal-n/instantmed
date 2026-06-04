@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode } from 'react'
+import { type ReactNode,Suspense } from 'react'
 
 import { IntakeNotificationListener } from '@/components/doctor/intake-notification-listener'
 import { PanelProvider } from '@/components/panels/panel-provider'
@@ -32,7 +32,9 @@ export function DoctorShell({ children, isAdmin = false }: DoctorShellProps) {
     <PanelProvider>
       {user && <IntakeNotificationListener />}
       {children}
-      <DoctorMobileNav isAdmin={isAdmin} />
+      <Suspense fallback={null}>
+        <DoctorMobileNav isAdmin={isAdmin} />
+      </Suspense>
     </PanelProvider>
   )
 }
