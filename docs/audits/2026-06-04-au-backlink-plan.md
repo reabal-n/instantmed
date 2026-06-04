@@ -54,7 +54,7 @@ Genuinely relevant AU placements (not spam):
 ---
 
 ## 90-day sequence
-- **Weeks 1–2:** NAP standardised → GBP/Bing + 10–15 AU directories (Pillar 3). Sign up to HARO/Featured, Qwoted, JournoFinder, #journorequest, SourceBottle. Write Dr Najjar's expert bio + 3–4 commentary lanes + a quote bank. Start pitching (Pillar 1).
+- **Weeks 1–2:** NAP standardised → GBP/Bing + 10–15 AU directories (Pillar 3 — see `2026-06-04-citation-kit.md`). Sign up to HARO/Featured, Qwoted, JournoFinder, #journorequest, SourceBottle with the **company-attributed** source profile + 4 commentary lanes + response bank (Pillar 1 — see `2026-06-04-reactive-pr-kit.md`). **No personal/doctor name or bio anywhere — company attribution only** (per the privacy constraint above; supersedes any earlier "named expert bio" note). Start pitching.
 - **Weeks 3–8:** Sustained 2–3 PR responses/week. Build edition 1 of the data asset (pull + anonymise + legal sign-off + visuals + page).
 - **Weeks 6–10:** Launch the data report; pitch it to 10–15 AU outlets. Begin Pillar 4 outreach (HR/Fair Work + student + founder).
 - **Ongoing:** track new referring domains; double down on whatever earns links; refresh the data asset quarterly.
