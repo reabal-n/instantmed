@@ -40,6 +40,8 @@ export const KEEP_INDEXED_BLOG = new Set<string>([
   "uti-antibiotics-online-australia",
   "medical-certificate-for-work",
   "medical-certificate-backdating",
+  "doctors-note-australia",
+  "medications-not-prescribed-online",
 ])
 
 /** Conditions: the ~15 with any GSC impressions in 90 days. */
