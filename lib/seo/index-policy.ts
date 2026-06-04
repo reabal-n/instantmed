@@ -39,6 +39,7 @@ export const KEEP_INDEXED_BLOG = new Set<string>([
   "repeat-prescription-online-australia",
   "uti-antibiotics-online-australia",
   "medical-certificate-for-work",
+  "medical-certificate-backdating",
 ])
 
 /** Conditions: the ~15 with any GSC impressions in 90 days. */
