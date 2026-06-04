@@ -1,5 +1,18 @@
 # Data Asset Spec — "The Australian Sick Day Report" (2026-06-04)
 
+## 🚦 VIABILITY GATE — checked 2026-06-04 (SESSION 2): NOT YET VIABLE — DEFERRED
+Operator signed off the privacy gate (clause added to privacy policy §3; de-id standard approved) and said "go." On running the **read-only aggregate counts first** (the right order), the sample is far too small to publish:
+- **101 paid requests total** (122 incl. unpaid), over ~4 months (2026-01-28 → 2026-06-04). Excludes the seeded E2E patient.
+- **Every reportable cell is under the <30 de-id suppression floor:** day-of-week peaks at Wed 22 / Thu 19 / Mon 16 (all <30); states are 85/101 **unknown** (med certs don't collect address/state) then NSW 9 / VIC 3 / QLD 2 / WA 2; **express = 0** (no one bought priority); category = med cert 86 / consult 9 / prescription 6 (only med cert clears 30).
+- **Three disqualifiers:** (1) credibility — no outlet cites N≈100, and it broadcasts pre-traction scale to journalists + competitors; (2) the approved <30 suppression would blank almost the entire report; (3) the relatable "Monday sickie" headline is **false on this data** (Wednesday is the peak).
+
+**Decision: do NOT build/publish until volume is sufficient. Threshold ≈ 1,000+ paid requests** (day-of-week + seasonal cells clear suppression there; state-level needs more, or growth in the address-collecting services since `profiles.state` is null for most med-cert patients). Re-run the counts below at that point. The privacy clause was kept (it's correct hygiene regardless + pre-clears the report for when it's viable). **The build plan below stands for the future; it is parked, not cancelled.**
+
+Schema note for the future build: service field is `intakes.category` (text) + `intakes.subtype`; there is **no `service_type` column**. Patient link is `intakes.patient_id` → `profiles.id`. State is `profiles.state`. Exclude seeded patient `e2e00000-0000-0000-0000-000000000002`. Genuine demand = `payment_status in ('paid','refunded','partially_refunded')`.
+
+---
+
+
 The highest-leverage FREE backlink play (per `docs/audits/2026-06-04-au-backlink-plan.md`, Pillar 2): an original, company-attributed AU data report built from InstantMed's own aggregate request data. Original AU stats are what journalists link to, it needs no personal name (privacy-safe), and it reuses the existing infographic pipeline for genuine charts. Refresh quarterly so it stays citable.
 
 ## ⛔ PRIVACY HARD STOP — operator sign-off required BEFORE any data pull or publish

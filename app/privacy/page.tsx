@@ -113,8 +113,19 @@ export default function PrivacyPage() {
                     <li>Communicate with you about your care</li>
                     <li>Comply with legal and regulatory requirements</li>
                     <li>Improve our services and user experience</li>
+                    <li>
+                      Create aggregated, de-identified insights and reports about how our services
+                      are used (for example, anonymous trends in demand by day, season, or state)
+                    </li>
                     <li>Prevent fraud and ensure platform security</li>
                   </ul>
+                  <p>
+                    When we use information for research, reporting, or to promote our services —
+                    including any public reports — we use only aggregated, de-identified data that
+                    cannot reasonably be used to identify you. We never publish your individual
+                    health information, and small groups are suppressed so individuals cannot be
+                    re-identified.
+                  </p>
                 </LegalSection>
 
                 <LegalSection number="4" title="AI-Assisted Documentation" id="ai">
