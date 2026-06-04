@@ -223,6 +223,18 @@ export default async function ConditionPage({ params }: PageProps) {
                   </ul>
                 </div>
               </div>
+
+              <p className="mx-auto mt-8 max-w-4xl text-center text-sm text-muted-foreground">
+                Depending on your situation, an AHPRA-registered doctor may be able to issue a{" "}
+                <Link href="/medical-certificate" className="font-medium text-primary hover:underline">
+                  medical certificate
+                </Link>{" "}
+                or arrange a{" "}
+                <Link href="/prescriptions" className="font-medium text-primary hover:underline">
+                  repeat prescription
+                </Link>{" "}
+                after reviewing your request online.
+              </p>
             </section>
 
             {/* When to Seek Help */}
