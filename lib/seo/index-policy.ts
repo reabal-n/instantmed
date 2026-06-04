@@ -43,6 +43,7 @@ export const KEEP_INDEXED_BLOG = new Set<string>([
   "doctors-note-australia",
   "medications-not-prescribed-online",
   "are-online-medical-certificates-valid-australia",
+  "medical-certificate-carers-leave",
 ])
 
 /** Conditions: the ~15 with any GSC impressions in 90 days. */

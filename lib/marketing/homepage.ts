@@ -67,7 +67,7 @@ export const serviceCategories = [
     icon: "FileText",
     color: "emerald",
     priceFrom: 19.95,
-    href: "/medical-certificate",
+    href: "/request?service=med-cert",
     popular: true,
     cta: "Get your certificate",
     benefits: [
@@ -86,7 +86,7 @@ export const serviceCategories = [
     icon: "Pill",
     color: "cyan",
     priceFrom: 29.95,
-    href: "/prescriptions",
+    href: "/request?service=repeat-script",
     popular: false,
     cta: "Renew medication",
     benefits: [
@@ -222,14 +222,14 @@ export const featuredServices = [
     title: "Medical Certificates",
     description: "Feeling too sick to visit a GP? Get a valid, employer-ready certificate from an AHPRA-registered doctor, without leaving bed.",
     priceFrom: 19.95,
-    href: "/medical-certificate",
+    href: "/request?service=med-cert",
     features: ["Sick leave", "Carer's leave", "Uni extensions", "Same-day delivery"],
   },
   {
     title: "Repeat Medication",
     description: "Running low on your regular medication? A doctor reviews your request and sends to your phone. Any pharmacy, Australia-wide.",
     priceFrom: 29.95,
-    href: "/prescriptions",
+    href: "/request?service=repeat-script",
     features: ["Contraception", "Blood pressure", "Skin treatments", "Sent to your phone"],
   },
   {
