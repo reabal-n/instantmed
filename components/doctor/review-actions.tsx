@@ -32,7 +32,7 @@ import { resolveClinicalDecisionNote } from "@/lib/doctor/clinical-notes"
 import { DECLINE_REASONS } from "@/lib/doctor/constants"
 import { buildParchmentPrescriptionContext } from "@/lib/doctor/parchment-prescribing-context"
 import { useDoctorShortcuts } from "@/lib/hooks/use-doctor-shortcuts"
-import type { DeclineReasonCode,IntakeStatus } from "@/types/db"
+import type { DeclineReasonCode, IntakeStatus } from "@/types/db"
 
 // ---- Public interface ----
 
@@ -90,6 +90,7 @@ export interface ReviewActionsState {
   handleApprovePrescribedScript: () => Promise<void>
   handleResend: () => Promise<void>
   handleViewCertificate: () => Promise<void>
+
 }
 
 interface UseReviewActionsOptions {
@@ -146,7 +147,6 @@ export function useReviewActions({
   const [isRegenerating, setIsRegenerating] = useState(false)
   const [isResending, setIsResending] = useState(false)
   const [isViewingCert, setIsViewingCert] = useState(false)
-
   const intake = data?.intake
   const service = intake?.service as { name?: string; type?: string; short_name?: string } | undefined
   const hasClinicalDraft = !!findClinicalNoteDraft(data?.aiDrafts || [])
@@ -154,6 +154,7 @@ export function useReviewActions({
   // Auto-save: debounced 800 ms after last keystroke.
   const intakeId = intake?.id
   const intakeStatus = intake?.status
+
   useEffect(() => {
     if (!intakeId) return
     if (intakeStatus && ["approved", "completed", "awaiting_script"].includes(intakeStatus)) return

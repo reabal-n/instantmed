@@ -35,6 +35,7 @@ import {
   getParchmentScriptCompletionEligibility,
   isParchmentClaimSatisfied,
 } from "@/lib/doctor/parchment-claim"
+import { isPrescribingServiceRequest } from "@/lib/doctor/service-types"
 import {
   editPaidRequestTelegramMessageToApproved,
   editPaidRequestTelegramMessageToDeclined,
@@ -343,6 +344,14 @@ export async function updateStatusAction(
       }
     }
 
+    if (status === "approved" && isPrescribingServiceRequest(serviceType, subtype)) {
+      return {
+        success: false,
+        error: "Complete or record the prescription in Parchment before approving.",
+        code: "PRESCRIPTION_REQUIRES_SCRIPT_EVIDENCE",
+      }
+    }
+
     if (!doctorCanReviewService(profile, serviceType, subtype)) {
       logger.warn("Doctor lacks capability for service", {
         doctorId: profile.id,
@@ -611,7 +620,7 @@ export async function markScriptSentAction(
   intakeId: string,
   scriptNotes?: string,
   parchmentReference?: string,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; code?: string }> {
   const { profile } = await requireRole(["doctor", "admin"])
   if (!profile) {
     return { success: false, error: "Unauthorized" }
@@ -630,6 +639,26 @@ export async function markScriptSentAction(
       reviewing_doctor_id,
       reviewed_by,
       script_sent,
+      patient:profiles!patient_id (
+        id,
+        full_name,
+        date_of_birth,
+        sex,
+        medicare_number,
+        medicare_irn,
+        medicare_expiry,
+        ihi_number,
+        phone,
+        email,
+        address_line1,
+        suburb,
+        state,
+        postcode
+      ),
+      answers:intake_answers (
+        answers,
+        answers_encrypted
+      ),
       service:services!service_id(type)
     `)
     .eq("id", intakeId)
@@ -663,6 +692,48 @@ export async function markScriptSentAction(
     }
   }
 
+  const evidenceNote = scriptNotes?.trim()
+  const evidenceReference = parchmentReference?.trim()
+  if (!evidenceNote && !evidenceReference) {
+    return {
+      success: false,
+      error: "Add the external script reference or channel used before recording the script as sent.",
+      code: "SCRIPT_SENT_EVIDENCE_REQUIRED",
+    }
+  }
+
+  const identityEligibility = getParchmentPatientSyncEligibility({
+    status: intake.status,
+    payment_status: intake.payment_status,
+    category: intake.category,
+    subtype: intake.subtype,
+    serviceType,
+  })
+
+  if (identityEligibility.eligible) {
+    const patient = firstRelation(intake.patient as RelationValue<PrescribingIdentityPatient>)
+    const answerRow = firstRelation(intake.answers as RelationValue<IntakeAnswersRow>)
+    const answers = answerRow
+      ? (await readAnswers({
+          answers: answerRow.answers,
+          answers_enc: answerRow.answers_encrypted,
+        })) ?? undefined
+      : undefined
+
+    if (!patient) {
+      return { success: false, error: "Patient profile not found" }
+    }
+
+    const missingFields = getParchmentPatientIdentityIssues(patient, answers)
+    if (missingFields.length > 0) {
+      return {
+        success: false,
+        error: `Cannot record script completion until patient identity is complete: ${missingFields.join(", ")}`,
+        code: "INCOMPLETE_PRESCRIBING_IDENTITY",
+      }
+    }
+  }
+
   let completionStatus = intake.status
   if (completionStatus !== "awaiting_script") {
     const prescribingStarted = await startParchmentPrescribing(intakeId, profile.id)
@@ -687,7 +758,7 @@ export async function markScriptSentAction(
     }
   }
 
-  const success = await updateScriptSent(intakeId, true, scriptNotes, parchmentReference, profile.id)
+  const success = await updateScriptSent(intakeId, true, evidenceNote, evidenceReference, profile.id)
   if (!success) {
     return { success: false, error: "Failed to mark script sent" }
   }
@@ -697,7 +768,7 @@ export async function markScriptSentAction(
       intakeId,
       getScriptCompletionRequestType(intake.category ?? null, serviceType),
       profile.id,
-      parchmentReference || "parchment",
+      evidenceReference || "manual_external_prescribing",
     )
   } catch (auditError) {
     logger.warn(

@@ -31,10 +31,27 @@ export function selectParchmentWebhookIntake(
 ): ParchmentWebhookIntakeCandidate | null {
   if (!prescriberProfileIds || prescriberProfileIds.length === 0) return null
 
-  return candidates.find((candidate) => (
-    isParchmentPrescribingCandidate(candidate) &&
-    selectParchmentWebhookPrescriberId(candidate, prescriberProfileIds) !== null
-  )) ?? null
+  const matches = candidates
+    .map((candidate) => ({
+      candidate,
+      prescriberId: isParchmentPrescribingCandidate(candidate)
+        ? selectParchmentWebhookPrescriberId(candidate, prescriberProfileIds)
+        : null,
+    }))
+    .filter((match): match is { candidate: ParchmentWebhookIntakeCandidate; prescriberId: string } => (
+      match.prescriberId !== null
+    ))
+
+  const matchesByPrescriber = new Map<string, number>()
+  for (const match of matches) {
+    matchesByPrescriber.set(match.prescriberId, (matchesByPrescriber.get(match.prescriberId) ?? 0) + 1)
+  }
+
+  if ([...matchesByPrescriber.values()].some((count) => count > 1)) {
+    return null
+  }
+
+  return matches[0]?.candidate ?? null
 }
 
 export function selectParchmentWebhookPrescriberId(

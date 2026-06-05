@@ -517,17 +517,20 @@ export function IntakeDetailHeader({
           </AlertDialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Parchment Reference (optional)</Label>
+              <Label>Parchment or external reference</Label>
               <Input
                 placeholder="e.g., PAR-12345"
                 value={dialogs.parchmentReference}
                 onChange={(e) => dialogs.setParchmentReference(e.target.value)}
               />
+              <p className="text-xs text-muted-foreground">
+                Required for manual script evidence.
+              </p>
             </div>
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={onMarkScriptSent} disabled={isPending} className="bg-blue-600">
+            <AlertDialogAction onClick={onMarkScriptSent} disabled={isPending || !dialogs.parchmentReference.trim()} className="bg-blue-600">
               {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Confirm Sent
             </AlertDialogAction>

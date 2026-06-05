@@ -3,12 +3,21 @@
 import { ArrowUpRight, CheckCircle, ClipboardCheck, Clock, Loader2, Send } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useMemo, useState, useTransition } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { markScriptSentAction } from "@/app/doctor/queue/actions"
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
@@ -26,7 +35,7 @@ import { formatCurrency } from "@/lib/format"
 import { formatMinutes } from "@/lib/format/dates"
 import { cn } from "@/lib/utils"
 
-const DECISION_WAIT_SIGNAL_CADENCE_MS = 1_000
+const DECISION_WAIT_SIGNAL_CADENCE_MS = 60_000
 
 function ShortcutHint({
   children,
@@ -318,6 +327,7 @@ export function IntakeActionButtons({
           : "sticky bottom-0 z-30 shrink-0 border-t border-border bg-background/95 px-2 py-1.5 shadow-lg shadow-primary/[0.08] backdrop-blur supports-[backdrop-filter]:bg-background/90"
       }
       data-testid="operator-action-rail"
+      data-review-action-rail="true"
       data-action-rail-pinned
       data-action-rail-outside-scroll
     >
@@ -518,85 +528,56 @@ export function IntakeActionButtons({
 function MarkSentManuallyButton({ intakeId, disabled = false }: { intakeId: string; disabled?: boolean }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
-  const [parchmentReference, setParchmentReference] = useState("")
-  const [reason, setReason] = useState("")
   const [isPending, startTransition] = useTransition()
-  const storageKey = `instantmed:manual-script-panel:${intakeId}`
-
-  const reset = () => {
-    setParchmentReference("")
-    setReason("")
-    try {
-      window.sessionStorage.removeItem(storageKey)
-    } catch {
-      // Session storage is a resilience layer only; ignore browser restrictions.
-    }
-  }
-
-  const openPanel = () => {
-    try {
-      window.sessionStorage.setItem(
-        storageKey,
-        JSON.stringify({
-          openedAt: Date.now(),
-          parchmentReference,
-          reason,
-        }),
-      )
-    } catch {
-      // Session storage is a resilience layer only; ignore browser restrictions.
-    }
-    setOpen(true)
-  }
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const referenceInputRef = useRef<HTMLInputElement>(null)
+  const reasonInputRef = useRef<HTMLInputElement>(null)
+  const referenceInputId = `mark-sent-parchment-reference-${intakeId}`
+  const reasonInputId = `mark-sent-reason-${intakeId}`
+  const reset = useCallback(() => {
+    if (referenceInputRef.current) referenceInputRef.current.value = ""
+    if (reasonInputRef.current) reasonInputRef.current.value = ""
+  }, [])
 
   useEffect(() => {
-    try {
-      const raw = window.sessionStorage.getItem(storageKey)
-      if (!raw) return
-      const draft = JSON.parse(raw) as {
-        openedAt?: number
-        parchmentReference?: string
-        reason?: string
-      }
-      if (!draft.openedAt || Date.now() - draft.openedAt > 60_000) {
-        window.sessionStorage.removeItem(storageKey)
-        return
-      }
-      setParchmentReference(draft.parchmentReference ?? "")
-      setReason(draft.reason ?? "")
-      setOpen(true)
-    } catch {
-      try {
-        window.sessionStorage.removeItem(storageKey)
-      } catch {
-        // Session storage is a resilience layer only; ignore browser restrictions.
-      }
-    }
-  }, [storageKey])
+    reset()
+  }, [intakeId, reset])
+
+  const closeManualPanel = useCallback(() => {
+    reset()
+    setOpen(false)
+    window.requestAnimationFrame(() => triggerRef.current?.focus())
+  }, [reset, setOpen])
 
   useEffect(() => {
     if (!open) return
-    try {
-      window.sessionStorage.setItem(
-        storageKey,
-        JSON.stringify({
-          openedAt: Date.now(),
-          parchmentReference,
-          reason,
-        }),
-      )
-    } catch {
-      // Session storage is a resilience layer only; ignore browser restrictions.
+    window.setTimeout(() => referenceInputRef.current?.focus(), 0)
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !isPending) {
+        event.preventDefault()
+        closeManualPanel()
+      }
     }
-  }, [open, parchmentReference, reason, storageKey])
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [closeManualPanel, isPending, open])
 
   const handleConfirm = () => {
+    const externalReference = referenceInputRef.current?.value.trim() || ""
+    const reasonNote = reasonInputRef.current?.value.trim() || ""
+    if (!externalReference && !reasonNote) {
+      toast.error("Reference or channel is required.")
+      referenceInputRef.current?.focus()
+      return
+    }
+
     startTransition(async () => {
-      const reasonNote = reason.trim()
       const result = await markScriptSentAction(
         intakeId,
         reasonNote ? `Sent outside Parchment: ${reasonNote}` : undefined,
-        parchmentReference.trim() || undefined,
+        externalReference || undefined,
       )
       if (result.success) {
         toast.success("Script recorded. Approve the request when ready.")
@@ -609,59 +590,69 @@ function MarkSentManuallyButton({ intakeId, disabled = false }: { intakeId: stri
     })
   }
 
-  if (open) {
-    return (
-      <div
-        className="w-full rounded-lg border border-blue-200 bg-blue-50/70 p-3 text-blue-950 shadow-sm sm:min-w-[360px] sm:max-w-xl dark:border-blue-500/25 dark:bg-blue-500/10 dark:text-blue-100"
-        aria-label="Confirm sent outside Parchment"
-      >
-        <div className="space-y-1">
-          <p className="text-sm font-semibold">Confirm sent outside Parchment</p>
-          <p className="text-xs leading-relaxed text-blue-900/75 dark:text-blue-100/75">
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (nextOpen) {
+          setOpen(true)
+          return
+        }
+        closeManualPanel()
+      }}
+    >
+      <DialogTrigger asChild>
+        <Button
+          ref={triggerRef}
+          variant="outline"
+          size="sm"
+          disabled={disabled || isPending}
+          aria-expanded={open}
+        >
+          <ClipboardCheck className="h-4 w-4 mr-1.5" />
+          {open ? "Recording outside Parchment" : "Sent outside Parchment"}
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Confirm sent outside Parchment</DialogTitle>
+          <DialogDescription>
             Record this only after the script was sent through another channel.
             The patient is notified after you press Approve.
-          </p>
-        </div>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-2 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="mark-sent-parchment-reference">
-              Parchment reference (if applicable)
+            <Label htmlFor={referenceInputId}>
+              Parchment or external reference
             </Label>
             <Input
-              id="mark-sent-parchment-reference"
+              id={referenceInputId}
+              ref={referenceInputRef}
               placeholder="e.g., PAR-12345"
-              value={parchmentReference}
-              onChange={(event) => setParchmentReference(event.target.value)}
-              disabled={isPending}
+              disabled={isPending || !open}
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="mark-sent-reason">
+            <Label htmlFor={reasonInputId}>
               Channel used (recorded in the audit log)
             </Label>
             <Input
-              id="mark-sent-reason"
+              id={reasonInputId}
+              ref={reasonInputRef}
               placeholder="e.g., Paper script handed to patient"
-              value={reason}
-              onChange={(event) => setReason(event.target.value)}
-              disabled={isPending}
+              disabled={isPending || !open}
             />
           </div>
         </div>
-        <div className="mt-3 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              reset()
-              setOpen(false)
-            }}
-            disabled={isPending}
-          >
+        <p className="text-xs font-medium text-muted-foreground" aria-live="polite">
+          Reference or channel is required.
+        </p>
+        <DialogFooter>
+          <Button variant="outline" onClick={closeManualPanel} disabled={isPending}>
             Cancel
           </Button>
           <Button
-            size="sm"
             onClick={handleConfirm}
             disabled={isPending}
             className="bg-blue-600 hover:bg-blue-700"
@@ -669,20 +660,8 @@ function MarkSentManuallyButton({ intakeId, disabled = false }: { intakeId: stri
             {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             Confirm sent
           </Button>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={openPanel}
-      disabled={disabled || isPending}
-    >
-      <ClipboardCheck className="h-4 w-4 mr-1.5" />
-      Sent outside Parchment
-    </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

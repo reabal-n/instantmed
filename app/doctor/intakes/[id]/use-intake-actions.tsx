@@ -449,7 +449,7 @@ export function useIntakeActions({
 
   const handleMarkScriptSent = useCallback(async () => {
     startTransition(async () => {
-      const result = await markScriptSentAction(intake.id, undefined, dialogs.parchmentReference || undefined)
+      const result = await markScriptSentAction(intake.id, undefined, dialogs.parchmentReference.trim() || undefined)
       if (result.success) {
         dialogs.closeScriptDialog()
         toast.success("Script recorded. Approve the request when ready.")

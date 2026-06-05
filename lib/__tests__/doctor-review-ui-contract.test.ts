@@ -23,6 +23,11 @@ const queueTableSource = readFileSync(
   "utf8",
 )
 
+const queueClientSource = readFileSync(
+  join(process.cwd(), "app/doctor/queue/queue-client.tsx"),
+  "utf8",
+)
+
 describe("doctor review prescribing controls", () => {
   it("keeps prescribing as separate Prescribe then Approve controls in the review rail", () => {
     expect(queueSheetActionsSource).not.toContain("Approve + Prescribe")
@@ -51,6 +56,32 @@ describe("doctor review prescribing controls", () => {
     expect(queueSheetActionsSource).toContain("Complete patient identity")
   })
 
+  it("keeps manual script evidence out of browser session storage", () => {
+    expect(queueSheetActionsSource).not.toContain("sessionStorage")
+    expect(queueSheetActionsSource).not.toContain("instantmed:manual-script-panel")
+  })
+
+  it("requires explicit manual script evidence before recording script_sent", () => {
+    expect(queueSheetActionsSource).toContain("referenceInputRef.current?.value.trim()")
+    expect(queueSheetActionsSource).toContain("reasonInputRef.current?.value.trim()")
+    expect(queueSheetActionsSource).toContain("if (!externalReference && !reasonNote)")
+    expect(queueSheetActionsSource).toContain("Reference or channel is required.")
+  })
+
+  it("keeps manual evidence dialog state local to the fallback control", () => {
+    expect(queueSheetActionsSource).toContain("const [open, setOpen] = useState(false)")
+    expect(reviewActionsSource).not.toContain("manualScriptPanelOpen")
+    expect(reviewActionsSource).not.toContain("setManualScriptPanelOpen")
+  })
+
+  it("gives the inline manual script panel dialog-like keyboard and screen-reader semantics", () => {
+    expect(queueSheetActionsSource).toContain('data-review-action-rail="true"')
+    expect(queueSheetActionsSource).toContain("DialogContent")
+    expect(queueSheetActionsSource).toContain("DialogTitle")
+    expect(queueSheetActionsSource).toContain("Confirm sent outside Parchment")
+    expect(queueSheetActionsSource).toContain('event.key === "Escape"')
+  })
+
   it("surfaces incomplete prescribing identity before full-case approve and Parchment actions", () => {
     expect(fullCaseHeaderSource).toContain("missingPrescribingIdentityFields")
     expect(fullCaseHeaderSource).toContain("Complete patient identity")
@@ -73,5 +104,15 @@ describe("doctor review prescribing controls", () => {
   it("exposes case-specific queue open controls for operator smoke tests and screen readers", () => {
     expect(queueTableSource).toContain("Open case for")
     expect(queueTableSource).toContain("intake.patient.full_name")
+  })
+
+  it("routes ED and hair-loss prescribing consult quick actions through the review panel", () => {
+    expect(queueClientSource).toContain("isQueuePrescribingConsult")
+    expect(queueClientSource).toContain("subtype === \"ed\"")
+    expect(queueClientSource).toContain("subtype === \"hair_loss\"")
+    expect(queueClientSource).toContain("handleApprove(intake.id, service?.type, intake.subtype")
+    expect(queueTableSource).toContain("isPrescribingConsult")
+    expect(queueTableSource).toContain("? \"Prescribe\"")
+    expect(queueTableSource).toContain("onApprove(intake.id, service?.type, intake.subtype)")
   })
 })

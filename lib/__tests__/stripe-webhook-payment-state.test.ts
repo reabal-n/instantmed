@@ -332,6 +332,25 @@ describe("Stripe webhook payment state transitions", () => {
     expect(after).not.toHaveBeenCalled()
   })
 
+  it("does not consume failed-payment webhook events when Stripe checkout lookup is transiently unavailable", async () => {
+    mocks.listCheckoutSessions.mockRejectedValue(new Error("Stripe unavailable"))
+    const { supabase } = createWebhookSupabaseMock()
+
+    const response = await handlePaymentIntentFailed({
+      event: makeEvent("payment_intent.payment_failed", {
+        id: "pi_failed",
+        last_payment_error: { message: "Card declined" },
+        metadata: { intake_id: "intake-1", patient_id: "patient-1" },
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect((response as Response).status).toBe(500)
+    expect(mocks.trackBusinessMetric).not.toHaveBeenCalled()
+    expect(after).not.toHaveBeenCalled()
+  })
+
   it("does not notify payment failure when the guarded failure update matches no row", async () => {
     const { supabase } = createWebhookSupabaseMock({ data: null, error: null })
 

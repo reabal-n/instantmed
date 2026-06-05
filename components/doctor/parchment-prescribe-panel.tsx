@@ -109,7 +109,7 @@ export function ParchmentPrescribePanel({
   const canEditPatientDetails = Boolean(patientDetailsHref && canFixParchmentErrorFromPatientProfile(error))
 
   const closeAndRefresh = useCallback(() => {
-    if (intakeId && iframeLoaded) {
+    if (intakeId) {
       onIntakeRefresh?.()
     }
     if (patientId && iframeLoaded && onPrescriptionsRefresh) {
@@ -290,6 +290,9 @@ export function ParchmentPrescribePanel({
                     </div>
                   </div>
                   <p className="mt-2 text-xs text-muted-foreground">
+                    Directions context: {prescriptionContext.directionsTemplate}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
                     Confirm medicine, dose and all prescribing details in Parchment.
                   </p>
                 </div>

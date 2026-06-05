@@ -76,16 +76,38 @@ describe("script sent mutation production contract", () => {
     expect(body).toContain("isParchmentClaimSatisfied(intake, profile.id)")
     expect(body).toContain("doctorCanReviewService(profile, serviceType, subtype)")
     expect(body).toContain("Doctor lacks capability to record prescription completion")
+    expect(body).toContain("getParchmentPatientIdentityIssues(patient, answers)")
+    expect(body).toContain("INCOMPLETE_PRESCRIBING_IDENTITY")
+    expect(body).toContain("const evidenceNote = scriptNotes?.trim()")
+    expect(body).toContain("const evidenceReference = parchmentReference?.trim()")
+    expect(body).toContain("SCRIPT_SENT_EVIDENCE_REQUIRED")
     expect(body).toContain("startParchmentPrescribing(intakeId, profile.id)")
     expect(body).toContain("getParchmentScriptCompletionEligibility(")
-    expect(body).toContain("updateScriptSent(intakeId, true, scriptNotes, parchmentReference, profile.id)")
+    expect(body).toContain("updateScriptSent(intakeId, true, evidenceNote, evidenceReference, profile.id)")
     expect(body).toContain("logExternalPrescribingIndicated(")
     expect(body).not.toContain("sendEmail")
     expect(body.indexOf("isParchmentClaimSatisfied(intake, profile.id)")).toBeLessThan(
       body.indexOf("updateScriptSent(intakeId, true"),
     )
+    expect(body.indexOf("getParchmentPatientIdentityIssues(patient, answers)")).toBeLessThan(
+      body.indexOf("startParchmentPrescribing(intakeId, profile.id)"),
+    )
+    expect(body.indexOf("SCRIPT_SENT_EVIDENCE_REQUIRED")).toBeLessThan(
+      body.indexOf("updateScriptSent(intakeId, true"),
+    )
     expect(body.indexOf("getParchmentScriptCompletionEligibility(")).toBeLessThan(
       body.indexOf("updateScriptSent(intakeId, true"),
+    )
+  })
+
+  it("blocks direct approval of prescribing services before durable script evidence exists", () => {
+    const body = queueActionBody("updateStatusAction")
+
+    expect(body).toContain("isPrescribingServiceRequest(serviceType, subtype)")
+    expect(body).toContain("Complete or record the prescription in Parchment before approving.")
+    expect(body).toContain("PRESCRIPTION_REQUIRES_SCRIPT_EVIDENCE")
+    expect(body.indexOf("PRESCRIPTION_REQUIRES_SCRIPT_EVIDENCE")).toBeLessThan(
+      body.indexOf("updateIntakeStatus(intakeId, status, profile.id)"),
     )
   })
 

@@ -11,21 +11,25 @@ import { tryClaimEvent } from "./utils"
 
 const log = createLogger("stripe-webhook:payment-failed")
 
-async function resolveCheckoutSessionIdForPaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise<string | null> {
+type CheckoutSessionResolution =
+  | { success: true; checkoutSessionId: string | null }
+  | { success: false; error: unknown }
+
+async function resolveCheckoutSessionIdForPaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise<CheckoutSessionResolution> {
   const metadataSessionId = paymentIntent.metadata?.checkout_session_id || paymentIntent.metadata?.session_id
-  if (metadataSessionId) return metadataSessionId
+  if (metadataSessionId) return { success: true, checkoutSessionId: metadataSessionId }
 
   try {
     const sessions = await stripe.checkout.sessions.list({
       limit: 1,
       payment_intent: paymentIntent.id,
     })
-    return sessions.data[0]?.id ?? null
+    return { success: true, checkoutSessionId: sessions.data[0]?.id ?? null }
   } catch (error) {
     log.warn("Could not resolve Checkout Session for failed PaymentIntent", {
       paymentIntentId: paymentIntent.id,
     }, error instanceof Error ? error : undefined)
-    return null
+    return { success: false, error }
   }
 }
 
@@ -47,7 +51,12 @@ export async function handlePaymentIntentFailed(ctx: WebhookContext): Promise<Ha
   }
 
   if (intakeId) {
-    const checkoutSessionId = await resolveCheckoutSessionIdForPaymentIntent(paymentIntent)
+    const checkoutSessionResolution = await resolveCheckoutSessionIdForPaymentIntent(paymentIntent)
+    if (!checkoutSessionResolution.success) {
+      return NextResponse.json({ error: "Failed to verify checkout session" }, { status: 500 })
+    }
+
+    const checkoutSessionId = checkoutSessionResolution.checkoutSessionId
     if (!checkoutSessionId) {
       log.warn("Payment failure ignored because current checkout session could not be verified", {
         eventId: event.id,
