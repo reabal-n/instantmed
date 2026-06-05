@@ -1,9 +1,9 @@
 # Doc File Map
 
-> **Last updated:** 2026-05-29.
+> **Last updated:** 2026-06-05.
 > Single source of truth for the full canonical doc surface. A fresh contributor reads this file and knows the doc tree without grepping.
 >
-> **Doc-surface count:** 67 `.md` files per `scripts/doc-audit.sh` (which counts `docs/plans/**` working + archived plans and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-05-29: 53 -> 69 (plans accumulated since 2026-05-26; the CI gate had been masked by a unit-test step failing earlier in the same job), then 69 -> 67 after re-deleting `docs/RELEASE_LOG.md` + `docs/DESIGN_SYSTEM.md`, which were deleted in `a80d664a9` and accidentally resurrected by `29a3ffbb8`.
+> **Doc-surface count:** 77 `.md` files per `scripts/doc-audit.sh` (which counts `docs/plans/**` working + archived plans and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-06-05: 67 -> 77 after audit/growth docs and root-level active plan files were present in the tree but not reflected in this bookkeeping map.
 >
 > **Owner:** Operator. Update on every doc add, move, or delete. Bump the timestamp.
 
@@ -18,7 +18,7 @@
 | [PRODUCT.md](../../PRODUCT.md) | Operator | `project-docs-drift-contract` |
 | [DESIGN.md](../../DESIGN.md) | Operator | `project-docs-drift-contract`; `marketing-copy-contract` |
 
-## docs/ — 19 canonical satellites
+## docs/ — 20 canonical satellites
 
 | File | Purpose | Pinned by |
 |------|---------|-----------|
@@ -49,24 +49,47 @@
 |------|---------|
 | [docs/runbooks/comparative-tagline-complaint.md](../runbooks/comparative-tagline-complaint.md) | AHPRA/TGA/Medical Board/Google complaint runbook for the "Faster than your GP." tagline |
 
-## docs/audits/ — 4 (historical records)
+## docs/audits/ — 14 (historical + growth records)
 
 | File | Purpose |
 |------|---------|
 | [docs/audits/2026-04-21-migration-drift-audit.md](../audits/2026-04-21-migration-drift-audit.md) | Migration drift audit; CLAUDE.md references it for current migration history context |
 | [docs/audits/2026-05-03-supabase-conversion-audit.md](../audits/2026-05-03-supabase-conversion-audit.md) | Current migration/conversion audit; CLAUDE.md references it |
 | [docs/audits/2026-05-11-patient-portal-post-rebuild-audit.md](../audits/2026-05-11-patient-portal-post-rebuild-audit.md) | Patient portal post-rebuild audit (v2.0.2) |
+| [docs/audits/2026-06-02-comprehensive-platform-audit.md](../audits/2026-06-02-comprehensive-platform-audit.md) | Comprehensive platform audit snapshot |
+| [docs/audits/2026-06-03-3llm-brain-review.md](../audits/2026-06-03-3llm-brain-review.md) | Three-model review record |
+| [docs/audits/2026-06-03-gsc-seo-content-audit.md](../audits/2026-06-03-gsc-seo-content-audit.md) | Google Search Console / SEO content audit |
+| [docs/audits/2026-06-04-3llm-educational-content-review.md](../audits/2026-06-04-3llm-educational-content-review.md) | Educational content review record |
+| [docs/audits/2026-06-04-au-backlink-plan.md](../audits/2026-06-04-au-backlink-plan.md) | Australian backlink plan |
+| [docs/audits/2026-06-04-citation-kit.md](../audits/2026-06-04-citation-kit.md) | Citation outreach kit |
+| [docs/audits/2026-06-04-content-specs-batch-1.md](../audits/2026-06-04-content-specs-batch-1.md) | Batch 1 content specifications |
+| [docs/audits/2026-06-04-data-asset-spec.md](../audits/2026-06-04-data-asset-spec.md) | Data asset specification |
+| [docs/audits/2026-06-04-reactive-pr-kit.md](../audits/2026-06-04-reactive-pr-kit.md) | Reactive PR kit |
+| [docs/audits/2026-06-04-session-handoff.md](../audits/2026-06-04-session-handoff.md) | Session handoff notes |
 | [docs/audits/google-ads-audit.md](../audits/google-ads-audit.md) | Google Ads audit (historical) |
 
 ## docs/plans/ — active
 
 | File | Purpose |
 |------|---------|
+| [docs/plans/2026-03-25-blood-test-referrals.md](../plans/2026-03-25-blood-test-referrals.md) | Active root copy of blood-test referrals plan |
+| [docs/plans/2026-04-06-revenue-engagement-design.md](../plans/2026-04-06-revenue-engagement-design.md) | Active root copy of revenue engagement design |
+| [docs/plans/2026-04-06-revenue-engagement-plan.md](../plans/2026-04-06-revenue-engagement-plan.md) | Active root copy of revenue engagement plan |
+| [docs/plans/2026-04-13-god-component-decomposition.md](../plans/2026-04-13-god-component-decomposition.md) | Active root copy of god-component decomposition plan |
+| [docs/plans/2026-04-13-lib-restructure-and-script-wiring.md](../plans/2026-04-13-lib-restructure-and-script-wiring.md) | Active root copy of lib restructure and script-wiring plan |
+| [docs/plans/2026-04-20-design-system-95-sprint.md](../plans/2026-04-20-design-system-95-sprint.md) | Active root copy of design-system sprint plan |
+| [docs/plans/2026-05-04-health-guides-rehaul.md](../plans/2026-05-04-health-guides-rehaul.md) | Active root copy of health-guides rehaul plan |
+| [docs/plans/2026-05-20-admin-ops-cockpit-reshape-design.md](../plans/2026-05-20-admin-ops-cockpit-reshape-design.md) | Active root copy of admin ops cockpit reshape design |
+| [docs/plans/2026-05-20-admin-ops-cockpit-reshape-plan.md](../plans/2026-05-20-admin-ops-cockpit-reshape-plan.md) | Active root copy of admin ops cockpit reshape plan |
+| [docs/plans/2026-05-20-staff-cockpit-overhaul-design.md](../plans/2026-05-20-staff-cockpit-overhaul-design.md) | Active root copy of staff cockpit overhaul design |
+| [docs/plans/2026-05-20-staff-cockpit-overhaul-plan.md](../plans/2026-05-20-staff-cockpit-overhaul-plan.md) | Active root copy of staff cockpit overhaul plan |
 | [docs/plans/2026-05-23-archived-plan-followups.md](../plans/2026-05-23-archived-plan-followups.md) | Active backlog stub: 6 open follow-ups carried out of archived plans (lib restructure deferrals + health guides remaining rewrite + /admin/ops release feed idea) |
+| [docs/plans/2026-05-23-doc-cleanup-plan.md](../plans/2026-05-23-doc-cleanup-plan.md) | Active root copy of doc cleanup plan |
+| [docs/plans/2026-05-23-doc-content-audit-plan.md](../plans/2026-05-23-doc-content-audit-plan.md) | Active root copy of doc content audit plan |
 | [docs/plans/2026-05-26-minimal-slide-modal-design.md](../plans/2026-05-26-minimal-slide-modal-design.md) | Design doc for the 2026-05-26 cockpit cleanup bundle (2-day auto-approve widening, single-column slide modal, ED prescription preset). |
 | [docs/plans/2026-05-26-minimal-slide-modal-plan.md](../plans/2026-05-26-minimal-slide-modal-plan.md) | 8-task TDD implementation plan companion to the 2026-05-26 design doc. |
 
-The cleanup plan that produced this state lives in archive: [docs/plans/archive/2026-05-23-doc-cleanup-plan.md](../plans/archive/2026-05-23-doc-cleanup-plan.md).
+Some active root plan files also have archived copies. Keep this mapped until the plan-retention decision is reconciled.
 
 ## docs/plans/archive/ — completed/superseded plans (90-day retention)
 
@@ -85,14 +108,15 @@ See [docs/plans/archive/README.md](../plans/archive/README.md) for the retention
 |------|---------|
 | [docs/reviews/INDEX.md](../reviews/INDEX.md) | Auto-generated video-review log. Maintained by `scripts/video-review/index-update.ts` (runs at the end of every `pnpm review`). Per-run `report.md` files under `docs/reviews/<runId>/` are gitignored from the count by being inside subdirectories — only INDEX.md sits at the top. |
 
-## components/*/README.md — 2 colocated docs
+## components/*/README.md — 3 colocated docs
 
 | File | Purpose | Pinned by |
 |------|---------|-----------|
 | [components/operator/README.md](../../components/operator/README.md) | Unified staff cockpit primitives doctrine | `project-docs-drift-contract` |
 | [components/request/README.md](../../components/request/README.md) | Unified intake flow how-to (orchestrator + step registry + Zustand store) | Colocated with code; no test pin |
+| [components/uix/README.md](../../components/uix/README.md) | Legacy UIX component library notes still present in tree; reconcile with `docs/ARCHITECTURE.md` before retiring again | No current pin |
 
-`components/uix/README.md` was folded into `docs/ARCHITECTURE.md` UIX Component Library subsection on 2026-05-23 and deleted.
+`components/uix/README.md` was previously marked as deleted, but is currently present and counted by `scripts/doc-audit.sh`.
 
 ## scripts/*/README.md — 1
 
