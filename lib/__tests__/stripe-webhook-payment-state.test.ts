@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => ({
     info: vi.fn(),
     warn: vi.fn(),
   },
+  listCheckoutSessions: vi.fn(),
   notifyPaymentReceived: vi.fn(),
   sendPaymentFailedEmail: vi.fn(),
   sendPaidRequestTelegramNotification: vi.fn(),
@@ -58,6 +59,16 @@ vi.mock("@/lib/notifications/service", () => ({
 
 vi.mock("@/lib/observability/logger", () => ({
   createLogger: () => mocks.logger,
+}))
+
+vi.mock("@/lib/stripe/client", () => ({
+  stripe: {
+    checkout: {
+      sessions: {
+        list: mocks.listCheckoutSessions,
+      },
+    },
+  },
 }))
 
 vi.mock("@/lib/stripe/post-payment", () => ({
@@ -225,6 +236,7 @@ function makeEvent(type: string, object: Record<string, unknown>): Stripe.Event 
 describe("Stripe webhook payment state transitions", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mocks.listCheckoutSessions.mockResolvedValue({ data: [{ id: "cs_current" }] })
   })
 
   it("only expires the intake for the currently stored checkout session", async () => {
@@ -290,10 +302,34 @@ describe("Stripe webhook payment state transitions", () => {
     })
     expect(updates[0].filters).toEqual(expect.arrayContaining([
       { column: "id", method: "eq", value: "intake-1" },
+      { column: "payment_id", method: "eq", value: "cs_current" },
       { column: "status", method: "in", value: ["pending_payment", "checkout_failed"] },
       { column: "payment_status", method: "in", value: ["pending", "unpaid", "failed"] },
     ]))
+    expect(mocks.listCheckoutSessions).toHaveBeenCalledWith({ limit: 1, payment_intent: "pi_failed" })
     expect(after).toHaveBeenCalledTimes(1)
+  })
+
+  it("does not notify payment failure when the failed PaymentIntent belongs to a stale checkout session", async () => {
+    mocks.listCheckoutSessions.mockResolvedValue({ data: [{ id: "cs_stale" }] })
+    const { supabase, updates } = createWebhookSupabaseMock({ data: null, error: null })
+
+    await handlePaymentIntentFailed({
+      event: makeEvent("payment_intent.payment_failed", {
+        id: "pi_failed",
+        last_payment_error: { message: "Card declined" },
+        metadata: { intake_id: "intake-1", patient_id: "patient-1" },
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect(updates[0].filters).toEqual(expect.arrayContaining([
+      { column: "id", method: "eq", value: "intake-1" },
+      { column: "payment_id", method: "eq", value: "cs_stale" },
+    ]))
+    expect(mocks.trackBusinessMetric).not.toHaveBeenCalled()
+    expect(after).not.toHaveBeenCalled()
   })
 
   it("does not notify payment failure when the guarded failure update matches no row", async () => {

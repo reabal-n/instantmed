@@ -20,6 +20,7 @@ type ParchmentPrescribePanelProps = {
   patientName: string
   patientProfileHref?: string
   prescriptionContext?: ParchmentPrescriptionContext | null
+  onIntakeRefresh?: () => void
   onScriptSent?: () => void
   onPrescriptionsRefresh?: () => void
   prescriptionsRefreshPending?: boolean
@@ -29,10 +30,6 @@ type ParchmentPrescribePanelProps = {
 )
 
 const PARCHMENT_IFRAME_SLOW_LOAD_MS = 8000
-
-function getCopiedMedicineLabel(context: ParchmentPrescriptionContext | null | undefined): string {
-  return context?.medicationLabel || context?.presetLabel || "medicine"
-}
 
 function getParchmentErrorCopy(error: string | null): { title: string; detail: string } {
   if (!error) {
@@ -90,6 +87,7 @@ export function ParchmentPrescribePanel({
   patientName,
   patientProfileHref,
   prescriptionContext,
+  onIntakeRefresh,
   onScriptSent,
   onPrescriptionsRefresh,
   prescriptionsRefreshPending = false,
@@ -111,11 +109,14 @@ export function ParchmentPrescribePanel({
   const canEditPatientDetails = Boolean(patientDetailsHref && canFixParchmentErrorFromPatientProfile(error))
 
   const closeAndRefresh = useCallback(() => {
+    if (intakeId && iframeLoaded) {
+      onIntakeRefresh?.()
+    }
     if (patientId && iframeLoaded && onPrescriptionsRefresh) {
       onPrescriptionsRefresh()
     }
     closePanel()
-  }, [closePanel, iframeLoaded, onPrescriptionsRefresh, patientId])
+  }, [closePanel, iframeLoaded, intakeId, onIntakeRefresh, onPrescriptionsRefresh, patientId])
 
   const loadFreshParchmentUrl = useCallback(async (): Promise<{ success: boolean; error?: string; ssoUrl?: string }> => {
     if (intakeId) return getParchmentPrescribeUrlAction(intakeId)
@@ -131,16 +132,6 @@ export function ParchmentPrescribePanel({
       toast.error(freshResult.error || "Failed to generate new Parchment session")
     }
   }, [loadFreshParchmentUrl])
-
-  const copyPrescriptionContext = useCallback(async () => {
-    if (!prescriptionContext?.clipboardText) return
-    try {
-      await navigator.clipboard.writeText(prescriptionContext.clipboardText)
-      toast.success(`Copied ${getCopiedMedicineLabel(prescriptionContext)} to Parchment`)
-    } catch {
-      toast.error("Could not copy prescription details")
-    }
-  }, [prescriptionContext])
 
   const copyPrescriptionSearchHint = useCallback(async () => {
     if (!prescriptionContext?.searchHint) return
@@ -266,7 +257,7 @@ export function ParchmentPrescribePanel({
               </h2>
               <p className="text-sm text-muted-foreground mt-0.5">
                 {intakeId
-                  ? "Write the prescription in Parchment below. It will be confirmed automatically."
+                  ? "Write the prescription in Parchment below. When it is confirmed, close this panel and press Approve."
                   : "Write the prescription in Parchment below. It will sync back to this patient profile."}
               </p>
               {prescriptionContext && (
@@ -297,11 +288,10 @@ export function ParchmentPrescribePanel({
                         </div>
                       )}
                     </div>
-                    <Button type="button" variant="outline" size="sm" onClick={copyPrescriptionContext}>
-                      <Clipboard className="mr-1.5 h-3.5 w-3.5" />
-                      Copy
-                    </Button>
                   </div>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Confirm medicine, dose and all prescribing details in Parchment.
+                  </p>
                 </div>
               )}
             </div>
@@ -384,7 +374,7 @@ export function ParchmentPrescribePanel({
                       <>
                         <p className="text-sm font-medium text-foreground">Parchment is taking a little longer</p>
                         <p className="text-sm text-muted-foreground">
-                          You can keep waiting, open it in a new tab, or copy the requested medicine and continue there.
+                          You can keep waiting, open it in a new tab, or copy the search term and continue there.
                         </p>
                         <div className="flex flex-wrap justify-center gap-2">
                           <Button type="button" variant="outline" size="sm" onClick={retryIframeOnly}>
@@ -395,12 +385,6 @@ export function ParchmentPrescribePanel({
                             <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
                             Open in new tab
                           </Button>
-                          {prescriptionContext?.clipboardText && (
-                            <Button type="button" variant="ghost" size="sm" onClick={copyPrescriptionContext}>
-                              <Clipboard className="mr-1.5 h-3.5 w-3.5" />
-                              Copy medicine
-                            </Button>
-                          )}
                         </div>
                       </>
                     ) : (
@@ -449,7 +433,7 @@ export function ParchmentPrescribePanel({
               <CheckCircle className="h-3.5 w-3.5" />
               <span>
                 {intakeId
-                  ? "Script will be confirmed automatically via webhook when completed in Parchment"
+                  ? "Webhook confirmation unlocks the separate Approve step after refresh"
                   : "Prescription will sync back to the PMS via Parchment webhook"}
               </span>
             </div>

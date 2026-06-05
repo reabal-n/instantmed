@@ -1,8 +1,10 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import withBundleAnalyzer from "@next/bundle-analyzer";
+
 const bundleAnalyzer = withBundleAnalyzer({
   enabled: process.env.ANALYZE === "true"
 });
+const projectRoot = process.cwd();
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -61,6 +63,9 @@ const nextConfig = {
       hostname: "api.dicebear.com"
     }]
   },
+  // Explicit tracing root keeps isolated git worktrees from inheriting the
+  // parent checkout's lockfile during local builds and Playwright web servers.
+  outputFileTracingRoot: projectRoot,
   webpack(config, { dev, isServer }) {
     // Walk ALL rules (including nested oneOf arrays) and exclude SVGs from
     // any existing rule that would otherwise match them. Next.js 15 may nest

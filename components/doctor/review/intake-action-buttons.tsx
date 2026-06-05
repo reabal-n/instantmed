@@ -8,16 +8,6 @@ import { toast } from "sonner"
 
 import { markScriptSentAction } from "@/app/doctor/queue/actions"
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -202,9 +192,14 @@ export function IntakeActionButtons({
     handleMedCertApprove,
     handleStatusChange,
     handleOpenParchmentPrescribe,
-    handleApproveAndOpenParchment,
+    handleApprovePrescribedScript,
     setShowDeclineDialog,
   } = useIntakeReview()
+  const [isHydrated, setIsHydrated] = useState(false)
+
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
 
   const caseSummary = useMemo(
     () =>
@@ -236,6 +231,10 @@ export function IntakeActionButtons({
   const isRepeatScript = service?.type === "repeat_rx" || service?.type === "common_scripts"
   const isPrescribingConsult = intake.category === "consult" && ["ed", "hair_loss"].includes(intake.subtype || "")
   const shouldPrescribeFromConsult = isPrescribingConsult && hasPrescriptionIntent
+  const isActivePrescribingStatus = ["paid", "in_review", "awaiting_script"].includes(intake.status)
+  const canPrescribeInParchment =
+    isActivePrescribingStatus &&
+    ((isRepeatScript && caseSummary.recommendedPlan.action === "prescribe") || shouldPrescribeFromConsult)
   const needsClinicalNotes = !isClinicalNoteSufficient(doctorNotes)
   const approvalNeedsClinicalNotes =
     (service?.type === "med_certs" && ["paid", "in_review"].includes(intake.status)) ||
@@ -294,6 +293,22 @@ export function IntakeActionButtons({
     intake.requires_live_consult !== true &&
     intake.risk_tier !== "high"
   const queueEnteredAt = getQueueEnteredAt(intake)
+  const canApproveAfterPrescribe = intake.script_sent === true
+  const isActionDisabled = isPending || !isHydrated
+  const approveAfterPrescribeTitle = hasPrescribingIdentityBlocker
+    ? prescribingIdentityTitle
+    : canApproveAfterPrescribe
+      ? "Approve after the prescription has been completed in Parchment."
+      : "Complete or record the prescription in Parchment first."
+  const prescribingApproveHint =
+    canPrescribeInParchment && !hasPrescribingIdentityBlocker && !canApproveAfterPrescribe
+      ? "Complete or record the prescription in Parchment first."
+      : null
+  const visibleDisabledHint = disabledApproveHint ?? prescribingApproveHint
+
+  const handlePrescribeClick = () => {
+    handleOpenParchmentPrescribe()
+  }
 
   return (
     <div
@@ -355,7 +370,7 @@ export function IntakeActionButtons({
               onClick={handleMedCertApprove}
               aria-label={medCertApproveAriaLabel}
               className="h-7 bg-[#2563EB] px-2.5 text-xs text-white transition-colors hover:bg-[#1D4ED8]"
-              disabled={isPending || isLoadingPreview || Boolean(approveDisabledReason)}
+              disabled={isActionDisabled || isLoadingPreview || Boolean(approveDisabledReason)}
               title={approveDisabledReason || undefined}
               size="sm"
             >
@@ -372,7 +387,7 @@ export function IntakeActionButtons({
                 onClick={onRequestClinicalDetail}
                 variant="outline"
                 className="h-7 border-border/70 bg-background px-2.5 text-xs text-foreground hover:bg-muted/40"
-                disabled={isPending || isRequestingClinicalDetail || !onRequestClinicalDetail}
+                disabled={isActionDisabled || isRequestingClinicalDetail || !onRequestClinicalDetail}
                 title="Ask the patient to describe symptoms before issuing a certificate."
                 size="sm"
               >
@@ -387,68 +402,30 @@ export function IntakeActionButtons({
           </>
         )}
 
-      {/* Repeat scripts: approve and open Parchment when the request is clinically prescribable */}
-      {isRepeatScript && intake.status === "paid" && hasPrescriptionIntent && (
-        <Button
-          onClick={handleApproveAndOpenParchment}
-          className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
-          disabled={isPending || hasPrescribingIdentityBlocker}
-          title={prescribingIdentityTitle}
-          size="sm"
-        >
-          {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Send className="h-4 w-4 mr-1.5" />}
-          {isPending ? "Approving..." : prescribingActionLabel ?? "Approve + Prescribe"}
-        </Button>
-      )}
-
-      {isRepeatScript && intake.status === "paid" && !hasPrescriptionIntent && (
-        <Button
-          onClick={() => handleStatusChange("awaiting_script")}
-          className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
-          disabled={isPending || hasPrescribingIdentityBlocker}
-          title={prescribingIdentityTitle}
-          size="sm"
-        >
-          {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
-          {isPending ? "Approving..." : prescribingActionLabel ?? "Approve Script"}
-        </Button>
-      )}
-
-      {shouldPrescribeFromConsult && ["paid", "in_review"].includes(intake.status) && (
-        <Button
-          onClick={handleApproveAndOpenParchment}
-          className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
-          disabled={isPending || hasPrescribingIdentityBlocker}
-          title={prescribingIdentityTitle}
-          size="sm"
-        >
-          {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Send className="h-4 w-4 mr-1.5" />}
-          {isPending ? "Approving..." : prescribingActionLabel ?? "Approve + Prescribe"}
-        </Button>
-      )}
-
-      {hasPrescriptionIntent && intake.status === "awaiting_script" && (
+      {canPrescribeInParchment && (
         <>
           <Button
-            onClick={handleOpenParchmentPrescribe}
+            onClick={handlePrescribeClick}
             className="h-7 px-2.5 text-xs bg-blue-600 hover:bg-blue-700"
-            disabled={isPending || hasPrescribingIdentityBlocker}
+            disabled={isActionDisabled || hasPrescribingIdentityBlocker}
             title={prescribingIdentityTitle}
             size="sm"
           >
             <Send className="h-4 w-4 mr-1.5" />
-            {prescribingActionLabel ?? "Open Parchment"}
+            {prescribingActionLabel ?? "Prescribe"}
           </Button>
-          {/*
-            Mark Sent Manually fallback (added 2026-05-12).
-            Used when prescribing happened outside InstantMed (e.g. real
-            Parchment when only the sandbox is wired, or any other
-            external prescribing path). Without this the slide-over
-            traps the operator on the Parchment iframe — the
-            full-page case header has the same button but the slide-over
-            was missing it.
-          */}
-          <MarkSentManuallyButton intakeId={intake.id} />
+          <Button
+            onClick={handleApprovePrescribedScript}
+            className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
+            disabled={isActionDisabled || hasPrescribingIdentityBlocker || !canApproveAfterPrescribe}
+            title={approveAfterPrescribeTitle}
+            aria-describedby={prescribingApproveHint ? "queue-prescribing-approve-hint" : undefined}
+            size="sm"
+          >
+            {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
+            {isPending ? "Approving..." : "Approve"}
+          </Button>
+          {intake.script_sent === true ? null : <MarkSentManuallyButton intakeId={intake.id} disabled={!isHydrated} />}
         </>
       )}
 
@@ -457,7 +434,7 @@ export function IntakeActionButtons({
         <Button
           onClick={() => handleStatusChange("approved")}
           className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
-          disabled={isPending || Boolean(approveDisabledReason)}
+          disabled={isActionDisabled || Boolean(approveDisabledReason)}
           title={approveDisabledReason || undefined}
           size="sm"
         >
@@ -472,7 +449,7 @@ export function IntakeActionButtons({
             <Button
               onClick={() => handleStatusChange("approved")}
               className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
-              disabled={isPending || Boolean(approveDisabledReason)}
+              disabled={isActionDisabled || Boolean(approveDisabledReason)}
               title={approveDisabledReason || undefined}
               size="sm"
           >
@@ -492,7 +469,7 @@ export function IntakeActionButtons({
             variant="ghost"
             onClick={() => setShowDeclineDialog(true)}
             className="h-7 bg-transparent px-2 text-[11px] font-semibold text-destructive/85 shadow-none transition-colors hover:bg-destructive/5 hover:text-destructive focus-visible:text-destructive"
-            disabled={isPending}
+            disabled={isActionDisabled}
             size="sm"
             title={showRefundOnDecline ? "Shortcut: Cmd+Shift+D. Opens confirmation before refunding the patient." : "Shortcut: Cmd+Shift+D."}
             aria-keyshortcuts="Meta+Shift+D"
@@ -513,9 +490,12 @@ export function IntakeActionButtons({
         </div>
       )}
       </div>
-      {disabledApproveHint && (
-        <p className="mt-2 inline-flex w-fit items-center rounded-md border border-border/60 bg-muted/25 px-2 py-1 text-xs font-medium text-slate-600 dark:text-muted-foreground">
-          {disabledApproveHint}
+      {visibleDisabledHint && (
+        <p
+          id={prescribingApproveHint ? "queue-prescribing-approve-hint" : undefined}
+          className="mt-2 inline-flex w-fit items-center rounded-md border border-border/60 bg-muted/25 px-2 py-1 text-xs font-medium text-slate-600 dark:text-muted-foreground"
+        >
+          {visibleDisabledHint}
         </p>
       )}
     </div>
@@ -527,24 +507,88 @@ export function IntakeActionButtons({
  * intake-review slide-over. Added 2026-05-12 to mirror the full-page case
  * header's fallback path. Without it, an operator stuck on a broken
  * Parchment iframe (sandbox connected, real prescribing done externally)
- * cannot clear the request from the queue or trigger the patient email.
+ * can record durable script completion and then press the separate Approve
+ * button after the case refreshes.
  *
  * Kept local to this file so the slide-over's existing action-rail
  * `useTransition` is not disturbed. On success, `router.refresh()` reloads
- * the page state and the slide-over re-fetches the intake (now in
- * `script_sent` status) so the operator can close it / advance.
+ * the page state and the slide-over re-fetches the intake (now with
+ * `script_sent=true`) so the operator can approve deliberately.
  */
-function MarkSentManuallyButton({ intakeId }: { intakeId: string }) {
+function MarkSentManuallyButton({ intakeId, disabled = false }: { intakeId: string; disabled?: boolean }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [parchmentReference, setParchmentReference] = useState("")
   const [reason, setReason] = useState("")
   const [isPending, startTransition] = useTransition()
+  const storageKey = `instantmed:manual-script-panel:${intakeId}`
 
   const reset = () => {
     setParchmentReference("")
     setReason("")
+    try {
+      window.sessionStorage.removeItem(storageKey)
+    } catch {
+      // Session storage is a resilience layer only; ignore browser restrictions.
+    }
   }
+
+  const openPanel = () => {
+    try {
+      window.sessionStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          openedAt: Date.now(),
+          parchmentReference,
+          reason,
+        }),
+      )
+    } catch {
+      // Session storage is a resilience layer only; ignore browser restrictions.
+    }
+    setOpen(true)
+  }
+
+  useEffect(() => {
+    try {
+      const raw = window.sessionStorage.getItem(storageKey)
+      if (!raw) return
+      const draft = JSON.parse(raw) as {
+        openedAt?: number
+        parchmentReference?: string
+        reason?: string
+      }
+      if (!draft.openedAt || Date.now() - draft.openedAt > 60_000) {
+        window.sessionStorage.removeItem(storageKey)
+        return
+      }
+      setParchmentReference(draft.parchmentReference ?? "")
+      setReason(draft.reason ?? "")
+      setOpen(true)
+    } catch {
+      try {
+        window.sessionStorage.removeItem(storageKey)
+      } catch {
+        // Session storage is a resilience layer only; ignore browser restrictions.
+      }
+    }
+  }, [storageKey])
+
+  useEffect(() => {
+    if (!open) return
+    try {
+      window.sessionStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          openedAt: Date.now(),
+          parchmentReference,
+          reason,
+        }),
+      )
+    } catch {
+      // Session storage is a resilience layer only; ignore browser restrictions.
+    }
+  }, [open, parchmentReference, reason, storageKey])
 
   const handleConfirm = () => {
     startTransition(async () => {
@@ -555,7 +599,7 @@ function MarkSentManuallyButton({ intakeId }: { intakeId: string }) {
         parchmentReference.trim() || undefined,
       )
       if (result.success) {
-        toast.success("Script marked as sent. Patient email queued.")
+        toast.success("Script recorded. Approve the request when ready.")
         setOpen(false)
         reset()
         router.refresh()
@@ -565,74 +609,80 @@ function MarkSentManuallyButton({ intakeId }: { intakeId: string }) {
     })
   }
 
-  return (
-    <>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setOpen(true)}
-        disabled={isPending}
+  if (open) {
+    return (
+      <div
+        className="w-full rounded-lg border border-blue-200 bg-blue-50/70 p-3 text-blue-950 shadow-sm sm:min-w-[360px] sm:max-w-xl dark:border-blue-500/25 dark:bg-blue-500/10 dark:text-blue-100"
+        aria-label="Confirm sent outside Parchment"
       >
-        <ClipboardCheck className="h-4 w-4 mr-1.5" />
-        Sent outside Parchment
-      </Button>
-      <AlertDialog
-        open={open}
-        onOpenChange={(next) => {
-          if (!next && isPending) return
-          if (!next) reset()
-          setOpen(next)
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirm sent outside Parchment</AlertDialogTitle>
-            <AlertDialogDescription>
-              Use this when you've sent the script through a different channel
-              (paper script, alternate pharmacy portal, fax) and the Parchment
-              webhook will not fire. The case leaves the queue and the patient
-              is emailed.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="space-y-3 py-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="mark-sent-parchment-reference">
-                Parchment reference (if applicable)
-              </Label>
-              <Input
-                id="mark-sent-parchment-reference"
-                placeholder="e.g., PAR-12345"
-                value={parchmentReference}
-                onChange={(event) => setParchmentReference(event.target.value)}
-                disabled={isPending}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="mark-sent-reason">
-                Channel used (recorded in the audit log)
-              </Label>
-              <Input
-                id="mark-sent-reason"
-                placeholder="e.g., Paper script handed to patient"
-                value={reason}
-                onChange={(event) => setReason(event.target.value)}
-                disabled={isPending}
-              />
-            </div>
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirm}
+        <div className="space-y-1">
+          <p className="text-sm font-semibold">Confirm sent outside Parchment</p>
+          <p className="text-xs leading-relaxed text-blue-900/75 dark:text-blue-100/75">
+            Record this only after the script was sent through another channel.
+            The patient is notified after you press Approve.
+          </p>
+        </div>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="mark-sent-parchment-reference">
+              Parchment reference (if applicable)
+            </Label>
+            <Input
+              id="mark-sent-parchment-reference"
+              placeholder="e.g., PAR-12345"
+              value={parchmentReference}
+              onChange={(event) => setParchmentReference(event.target.value)}
               disabled={isPending}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Confirm sent
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="mark-sent-reason">
+              Channel used (recorded in the audit log)
+            </Label>
+            <Input
+              id="mark-sent-reason"
+              placeholder="e.g., Paper script handed to patient"
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+              disabled={isPending}
+            />
+          </div>
+        </div>
+        <div className="mt-3 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              reset()
+              setOpen(false)
+            }}
+            disabled={isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleConfirm}
+            disabled={isPending}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            Confirm sent
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={openPanel}
+      disabled={disabled || isPending}
+    >
+      <ClipboardCheck className="h-4 w-4 mr-1.5" />
+      Sent outside Parchment
+    </Button>
   )
 }

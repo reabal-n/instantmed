@@ -9,7 +9,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Suspense } from "react"
+import { type MouseEvent, Suspense } from "react"
 
 import { ServiceIconTile } from "@/components/icons/service-icons"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
@@ -33,7 +33,7 @@ import {
   STAFF_DOCTOR_SCRIPTS_HREF,
   STAFF_QUEUE_HREF,
 } from "@/lib/dashboard/routes"
-import { AUTH_POST_SIGNIN_HREF } from "@/lib/navigation/auth-handoff"
+import { AUTH_POST_SIGNIN_HREF, navigateToPostSignIn } from "@/lib/navigation/auth-handoff"
 
 // Isolated to its own component so useSearchParams() is scoped to the doctor
 // variant only. Without this, every Navbar call site — including statically
@@ -94,6 +94,10 @@ interface UserMenuProps {
   user: SupabaseUser | null
 }
 
+function shouldLetBrowserHandleClick(event: MouseEvent<HTMLAnchorElement>): boolean {
+  return event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey
+}
+
 export function UserMenu({
   variant,
   firstName,
@@ -137,6 +141,11 @@ export function UserMenu({
         ) : user ? (
           <a
             href={AUTH_POST_SIGNIN_HREF}
+            onClick={(event) => {
+              if (shouldLetBrowserHandleClick(event)) return
+              event.preventDefault()
+              navigateToPostSignIn(window)
+            }}
             className="flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors border border-border/40"
           >
             <div className="h-4 w-4 rounded-full bg-primary/10 flex items-center justify-center shrink-0">

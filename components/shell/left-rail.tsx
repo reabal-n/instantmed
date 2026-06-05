@@ -17,6 +17,7 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import type { MouseEvent } from 'react'
 import { useState } from 'react'
 
 import { BrandLogo } from '@/components/shared/brand-logo'
@@ -95,6 +96,14 @@ export function LeftRail({
     router.push(REQUEST_HREF)
   }
 
+  const patientOverviewActive = pathname === PATIENT_DASHBOARD_HREF || pathname === `${PATIENT_DASHBOARD_HREF}/`
+
+  const handleCurrentRouteClick = (event: MouseEvent<HTMLAnchorElement>, isActive: boolean) => {
+    if (!isActive) return
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return
+    event.preventDefault()
+  }
+
   return (
     <aside
       className={cn(
@@ -105,9 +114,18 @@ export function LeftRail({
       {/* Header */}
       <div className="h-16 border-b border-border flex items-center justify-between px-4 shrink-0">
         {isExpanded ? (
-          <BrandLogo size="sm" href={PATIENT_DASHBOARD_HREF} />
+          <BrandLogo
+            size="sm"
+            href={PATIENT_DASHBOARD_HREF}
+            onClick={(event) => handleCurrentRouteClick(event, patientOverviewActive)}
+          />
         ) : (
-          <BrandLogo size="sm" iconOnly href={PATIENT_DASHBOARD_HREF} />
+          <BrandLogo
+            size="sm"
+            iconOnly
+            href={PATIENT_DASHBOARD_HREF}
+            onClick={(event) => handleCurrentRouteClick(event, patientOverviewActive)}
+          />
         )}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
@@ -179,13 +197,14 @@ export function LeftRail({
           const Icon = item.icon
           // Overview (/patient) uses exact match only - child routes like /patient/intakes, /patient/onboarding are distinct
           const isActive = item.href === PATIENT_DASHBOARD_HREF
-            ? pathname === PATIENT_DASHBOARD_HREF || pathname === `${PATIENT_DASHBOARD_HREF}/`
+            ? patientOverviewActive
             : pathname === item.href || pathname?.startsWith(item.href + '/')
 
           return (
             <Link
               key={item.href}
               href={item.href}
+              onClick={(event) => handleCurrentRouteClick(event, isActive)}
               className={cn(
                 "flex items-center gap-3 px-3 py-3 rounded-lg mb-1.5 transition-colors",
                 "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",

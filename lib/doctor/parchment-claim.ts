@@ -21,7 +21,11 @@ export const PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES = ["ed", "hair_loss"] as con
 const PRESCRIBING_CONSULT_SUBTYPES = new Set<string>(PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES)
 const PRESCRIBING_SERVICE_TYPES = new Set(["common_scripts", "repeat_rx", "prescription", "repeat-script"])
 export const PARCHMENT_PATIENT_SYNC_STATUSES = ["paid", "in_review", "pending_info", "approved", "awaiting_script"] as const
+export const PARCHMENT_PRESCRIBING_STATUSES = ["paid", "in_review", "awaiting_script"] as const
+export const PARCHMENT_SCRIPT_COMPLETION_STATUSES = ["awaiting_script"] as const
 const ACTIVE_PATIENT_SYNC_STATUSES = new Set<string>(PARCHMENT_PATIENT_SYNC_STATUSES)
+const ACTIVE_PRESCRIBING_STATUSES = new Set<string>(PARCHMENT_PRESCRIBING_STATUSES)
+const ACTIVE_SCRIPT_COMPLETION_STATUSES = new Set<string>(PARCHMENT_SCRIPT_COMPLETION_STATUSES)
 
 function isParchmentPrescribingCase(intake: ParchmentPrescribingEligibilityState): boolean {
   const isPrescribingConsult =
@@ -63,10 +67,10 @@ export function getParchmentPrescribingEligibility(
     }
   }
 
-  if (intake.status !== "awaiting_script") {
+  if (!ACTIVE_PRESCRIBING_STATUSES.has(intake.status ?? "")) {
     return {
       eligible: false,
-      error: "Approve the prescribing case before opening Parchment.",
+      error: "Parchment can only be opened for active prescribing cases under doctor review.",
     }
   }
 
@@ -85,12 +89,12 @@ export function getParchmentScriptCompletionEligibility(
 ): ParchmentPrescribingEligibility {
   if (
     intake.payment_status !== "paid" ||
-    intake.status !== "awaiting_script" ||
+    !ACTIVE_SCRIPT_COMPLETION_STATUSES.has(intake.status ?? "") ||
     !isParchmentPrescribingCase(intake)
   ) {
     return {
       eligible: false,
-      error: "Scripts can only be marked sent for paid prescribing requests awaiting script completion.",
+      error: "Scripts can only be approved after Parchment prescribing for active paid prescribing requests.",
     }
   }
 

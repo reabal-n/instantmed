@@ -9,7 +9,7 @@ function render(element: React.ReactElement): string {
 }
 
 const baseIntent = {
-  presetLabel: "ED prescribing preset",
+  presetLabel: "ED Parchment handoff context",
   medicationName: "Tadalafil",
   strength: "5mg",
   form: "tablet",
@@ -23,22 +23,24 @@ const baseIntent = {
 }
 
 describe("PrescriptionRecommendationCard", () => {
-  it("renders medication name, strength, quantity, repeats and directions", () => {
+  it("renders medication name, strength, quantity, repeats and concise handoff context", () => {
     const html = render(<PrescriptionRecommendationCard intent={baseIntent} />)
+    expect(html).toContain("Parchment handoff context")
     expect(html).toContain("Tadalafil")
     expect(html).toContain("5mg")
     expect(html).toContain("30 tablets")
     expect(html).toContain("Repeats: 2")
     expect(html).toContain("Take 1 tablet once daily")
+    expect(html).toContain("Confirm medicine, dose and all prescribing details")
   })
 
-  it("renders Copy all and Copy medication buttons", () => {
+  it("does not render one-click prescription copy controls", () => {
     const html = render(<PrescriptionRecommendationCard intent={baseIntent} />)
-    expect(html).toMatch(/<button[^>]*>[\s\S]*?Copy all[\s\S]*?<\/button>/i)
-    expect(html).toMatch(/<button[^>]*>[\s\S]*?Copy medication[\s\S]*?<\/button>/i)
+    expect(html).not.toMatch(/Copy context/i)
+    expect(html).not.toMatch(/Copy medication/i)
   })
 
-  it("renders the alternative note when present", () => {
+  it("renders the alternative context note when present", () => {
     const html = render(
       <PrescriptionRecommendationCard
         intent={{
@@ -52,7 +54,7 @@ describe("PrescriptionRecommendationCard", () => {
     expect(html).toContain("Tadalafil 5mg daily is an alternative")
   })
 
-  it("renders caution checks without hiding the preset", () => {
+  it("renders caution checks without hiding the handoff context", () => {
     const html = render(
       <PrescriptionRecommendationCard
         intent={{
@@ -93,6 +95,6 @@ describe("PrescriptionRecommendationCard", () => {
       />,
     )
     expect(html).not.toMatch(/Copy medication/i)
-    expect(html).toMatch(/Copy all/i)
+    expect(html).not.toMatch(/Copy context/i)
   })
 })

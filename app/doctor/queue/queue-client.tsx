@@ -626,9 +626,14 @@ export function QueueClient({
   }, [])
 
   const handleApprove = useCallback(async (intakeId: string, serviceType?: string | null) => {
-    if (serviceType === SERVICE_TYPES.MED_CERTS) {
-      // Med certs go through the review panel because the doctor confirms
-      // via the certificate preview dialog. No optimistic path here.
+    if (
+      serviceType === SERVICE_TYPES.MED_CERTS ||
+      serviceType === SERVICE_TYPES.COMMON_SCRIPTS ||
+      serviceType === SERVICE_TYPES.REPEAT_RX
+    ) {
+      // Med certs and prescribing cases go through the review panel. The
+      // doctor either confirms the certificate preview or opens Parchment
+      // before approving the prescription.
       openReviewPanel(intakeId)
       return
     }
@@ -644,9 +649,7 @@ export function QueueClient({
     setIntakes((prev) => prev.filter((r) => r.id !== intakeId))
 
     startTransition(async () => {
-      const newStatus: IntakeStatus = serviceType === SERVICE_TYPES.COMMON_SCRIPTS || serviceType === SERVICE_TYPES.REPEAT_RX
-        ? "awaiting_script"
-        : "approved"
+      const newStatus: IntakeStatus = "approved"
       let result: Awaited<ReturnType<typeof updateStatusAction>>
       try {
         result = await updateStatusAction(intakeId, newStatus)
@@ -663,10 +666,7 @@ export function QueueClient({
       }
       if (result.success) {
         refreshQueue(true)
-        if (serviceType === SERVICE_TYPES.COMMON_SCRIPTS || serviceType === SERVICE_TYPES.REPEAT_RX) {
-          openReviewPanel(intakeId)
-        } else {
-          toast.success("Request approved", {
+        toast.success("Request approved", {
             action: {
               label: "Undo",
               onClick: async () => {
@@ -689,8 +689,7 @@ export function QueueClient({
               },
             },
             duration: 5000,
-          })
-        }
+        })
       } else if (result.code === "INSUFFICIENT_CLINICAL_NOTES") {
         // Optimistic rollback. Restore the row at its original position.
         setIntakes((prev) => {

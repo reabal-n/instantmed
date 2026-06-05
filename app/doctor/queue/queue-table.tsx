@@ -673,7 +673,11 @@ export function QueueTable({
                         title={!identityComplete ? "Complete your Certificate Identity in Settings first" : undefined}
                       >
                         {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle className="h-3 w-3 mr-1" />}
-                        {service?.type === SERVICE_TYPES.MED_CERTS ? "Review" : service?.type === SERVICE_TYPES.COMMON_SCRIPTS ? "Script" : "Approve"}
+                        {service?.type === SERVICE_TYPES.MED_CERTS
+                          ? "Review"
+                          : service?.type === SERVICE_TYPES.COMMON_SCRIPTS || service?.type === SERVICE_TYPES.REPEAT_RX
+                            ? "Prescribe"
+                            : "Approve"}
                       </Button>
                       <Button
                         variant="ghost"

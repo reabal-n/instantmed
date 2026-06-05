@@ -8,17 +8,23 @@ import {
 const candidates: ParchmentWebhookIntakeCandidate[] = [
   {
     id: "newest-duplicate-profile",
+    category: "prescription",
+    subtype: null,
     claimed_by: "doctor-other",
     reviewing_doctor_id: null,
     reviewed_by: null,
     created_at: "2026-04-30T06:00:00.000Z",
+    service: { type: "repeat_rx" },
   },
   {
     id: "matching-claimed-doctor",
+    category: "prescription",
+    subtype: null,
     claimed_by: "doctor-linked",
     reviewing_doctor_id: null,
     reviewed_by: null,
     created_at: "2026-04-30T05:00:00.000Z",
+    service: { type: "repeat_rx" },
   },
 ]
 
@@ -31,10 +37,13 @@ describe("selectParchmentWebhookIntake", () => {
     expect(selectParchmentWebhookIntake([
       {
         id: "reviewing-doctor-match",
+        category: "consult",
+        subtype: "ed",
         claimed_by: null,
         reviewing_doctor_id: "doctor-linked",
         reviewed_by: null,
         created_at: "2026-04-30T05:00:00.000Z",
+        service: { type: "consult" },
       },
     ], ["doctor-linked"])?.id).toBe("reviewing-doctor-match")
   })
@@ -45,5 +54,21 @@ describe("selectParchmentWebhookIntake", () => {
 
   it("refuses to auto-complete when the Parchment user is not linked to a local prescriber", () => {
     expect(selectParchmentWebhookIntake(candidates, null)).toBeNull()
+  })
+
+  it("does not claim a non-prescribing active intake for the same patient and doctor", () => {
+    expect(selectParchmentWebhookIntake([
+      {
+        id: "med-cert",
+        category: "medical_certificate",
+        subtype: null,
+        claimed_by: "doctor-linked",
+        reviewing_doctor_id: null,
+        reviewed_by: null,
+        created_at: "2026-04-30T06:00:00.000Z",
+        service: { type: "med_certs" },
+      },
+      ...candidates,
+    ], ["doctor-linked"])?.id).toBe("matching-claimed-doctor")
   })
 })

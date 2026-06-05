@@ -81,7 +81,7 @@ export interface IntakeReviewContextValue {
   handleSaveNotes: (nextNotes?: string) => Promise<void>
   handleGenerateOrRegenerateNote: () => Promise<void>
   handleOpenParchmentPrescribe: () => void
-  handleApproveAndOpenParchment: () => Promise<void>
+  handleApprovePrescribedScript: () => Promise<void>
   handleResend?: () => Promise<void>
   handleViewCertificate?: () => Promise<void>
 

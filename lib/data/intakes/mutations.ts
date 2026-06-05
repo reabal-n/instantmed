@@ -2,7 +2,10 @@ import "server-only"
 
 import { revalidateTag } from "next/cache"
 
-import { getParchmentScriptCompletionEligibility } from "@/lib/doctor/parchment-claim"
+import {
+  getParchmentPrescribingEligibility,
+  getParchmentScriptCompletionEligibility,
+} from "@/lib/doctor/parchment-claim"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
 import { prepareDoctorNotesWrite } from "@/lib/security/phi-field-wrappers"
@@ -13,7 +16,7 @@ import type {
 } from "@/types/db"
 import { asIntake } from "@/types/db"
 
-import { logStatusChange } from "../intake-events"
+import { logScriptSent, logStatusChange } from "../intake-events"
 import {
   IntakeLifecycleError,
   logTransitionAttempt,
@@ -205,8 +208,70 @@ export async function updateIntakeStatus(
 }
 
 /**
- * Update script sent status and mark as approved
- * Uses lifecycle validation to ensure valid state transition
+ * Move a paid prescribing request into the explicit internal state used for a
+ * live Parchment/manual prescribing session. This is not final clinical
+ * approval; it creates a narrow webhook target before script_sent evidence is
+ * accepted.
+ */
+export async function startParchmentPrescribing(
+  intakeId: string,
+  reviewedBy: string,
+): Promise<boolean> {
+  const supabase = createServiceRoleClient()
+
+  const { data: intake, error: intakeError } = await supabase
+    .from("intakes")
+    .select(`
+      status, payment_status, category, subtype,
+      service:services!service_id(type)
+    `)
+    .eq("id", intakeId)
+    .single()
+
+  if (intakeError || !intake) {
+    logger.warn("[startParchmentPrescribing] Failed to fetch intake", { intakeId })
+    return false
+  }
+
+  if (intake.status === "awaiting_script") {
+    return true
+  }
+
+  const serviceType = getServiceType(intake.service as ServiceRelation)
+  const eligibility = getParchmentPrescribingEligibility({
+    status: intake.status,
+    payment_status: intake.payment_status,
+    category: intake.category,
+    subtype: intake.subtype,
+    serviceType,
+  })
+
+  if (!eligibility.eligible) {
+    logger.warn("[startParchmentPrescribing] Blocked prescribing-session start for ineligible intake", {
+      intakeId,
+      status: intake.status,
+      paymentStatus: intake.payment_status,
+      category: intake.category,
+      subtype: intake.subtype,
+      serviceType,
+    })
+    return false
+  }
+
+  try {
+    const result = await updateIntakeStatus(intakeId, "awaiting_script", reviewedBy)
+    return Boolean(result)
+  } catch (error) {
+    logger.warn("[startParchmentPrescribing] Failed to transition intake to awaiting_script", { intakeId }, toError(error))
+    return false
+  }
+}
+
+/**
+ * Record durable evidence that the prescription was sent.
+ *
+ * This intentionally does not approve/complete the intake. The doctor-facing
+ * flow is prescribe first, then final approval once script_sent is present.
  */
 export async function updateScriptSent(
   intakeId: string,
@@ -238,7 +303,7 @@ export async function updateScriptSent(
       return false
     }
 
-    if (intake.script_sent === true && intake.status === "completed") {
+    if (intake.script_sent === true) {
       return true
     }
 
@@ -264,43 +329,162 @@ export async function updateScriptSent(
     }
   }
 
-  // First, update only the script-related fields
-  const { error: scriptError } = await supabase
+  const scriptUpdate: Record<string, unknown> = {
+    script_sent: scriptSent,
+    script_sent_at: now,
+    updated_at: now,
+  }
+
+  if (scriptNotes) {
+    scriptUpdate.script_notes = scriptNotes
+  }
+
+  if (parchmentReference) {
+    scriptUpdate.parchment_reference = parchmentReference
+  }
+
+  const { data: scriptRow, error: scriptError } = await supabase
     .from("intakes")
-    .update({
-      script_sent: scriptSent,
-      script_sent_at: scriptSent ? now : null,
-      script_notes: scriptNotes || null,
-      parchment_reference: parchmentReference || null,
-      updated_at: now,
-    })
+    .update(scriptUpdate)
     .eq("id", intakeId)
+    .eq("status", "awaiting_script")
+    .eq("payment_status", "paid")
+    .eq("script_sent", false)
+    .select("id")
+    .maybeSingle()
 
   if (scriptError) {
     logger.error("Error updating script sent status", {}, scriptError instanceof Error ? scriptError : new Error(String(scriptError)))
     return false
   }
 
-  // If marking script as sent, transition to completed (awaiting_script → completed).
-  // Prescription flow terminal state: paid → in_review → awaiting_script → completed.
-  if (scriptSent) {
-    try {
-      const result = await updateIntakeStatus(intakeId, "completed", reviewedBy)
-      if (!result) {
-        logger.warn("[updateScriptSent] Status update returned null, script fields already saved", { intakeId })
-        return true
-      }
-    } catch (error) {
-      // If already completed, that's fine - script fields are saved
-      if (error instanceof IntakeLifecycleError &&
-          (error.code === "TERMINAL_STATE" || error.code === "INVALID_TRANSITION")) {
-        logger.info("[updateScriptSent] Intake already in terminal state, script fields saved", { intakeId })
-        return true
-      }
-      logger.error("Error transitioning intake to completed", {}, toError(error))
-      return false
-    }
+  if (!scriptRow) {
+    logger.warn("[updateScriptSent] Script sent update matched no eligible intake", { intakeId })
+    return false
   }
+
+  logScriptSent(intakeId, reviewedBy || null, {
+    parchmentReference,
+    scriptNotes,
+  }).catch((err) => {
+    logger.warn("[updateScriptSent] Failed to log script_sent event", { intakeId }, toError(err))
+  })
+
+  revalidateTag("patient-intakes")
+  revalidateTag("patient-dashboard")
+
+  return true
+}
+
+/**
+ * Final doctor approval after Parchment/manual prescribing has already
+ * recorded script_sent. This closes and notifies the request.
+ */
+export async function approvePrescribedScript(
+  intakeId: string,
+  reviewedBy: string,
+): Promise<boolean> {
+  const supabase = createServiceRoleClient()
+  const now = new Date().toISOString()
+
+  const { data: intake, error: intakeError } = await supabase
+    .from("intakes")
+    .select(`
+      status, payment_status, category, subtype, script_sent,
+      service:services!service_id(type)
+    `)
+    .eq("id", intakeId)
+    .single()
+
+  if (intakeError || !intake) {
+    logger.warn("[approvePrescribedScript] Failed to fetch intake before approval", { intakeId })
+    return false
+  }
+
+  if (intake.script_sent === true && intake.status === "completed") {
+    return true
+  }
+
+  const serviceType = getServiceType(intake.service as ServiceRelation)
+  const eligibility = getParchmentScriptCompletionEligibility({
+    status: intake.status,
+    payment_status: intake.payment_status,
+    category: intake.category,
+    subtype: intake.subtype,
+    serviceType,
+  })
+
+  if (!eligibility.eligible || intake.script_sent !== true) {
+    logger.warn("[approvePrescribedScript] Blocked approval before script completion", {
+      intakeId,
+      status: intake.status,
+      paymentStatus: intake.payment_status,
+      category: intake.category,
+      subtype: intake.subtype,
+      serviceType,
+      scriptSent: intake.script_sent,
+    })
+    return false
+  }
+
+  const validation = validateIntakeStatusTransition(
+    intake.status as IntakeStatus,
+    "completed",
+    intake.payment_status,
+  )
+
+  if (!validation.valid) {
+    logger.warn("[approvePrescribedScript] Lifecycle validation blocked completion", {
+      intakeId,
+      status: intake.status,
+      paymentStatus: intake.payment_status,
+      error: validation.error,
+    })
+    return false
+  }
+
+  const { data: completedRow, error: completionError } = await supabase
+    .from("intakes")
+    .update({
+      status: "completed",
+      decision: "approved",
+      decided_at: now,
+      approved_at: now,
+      completed_at: now,
+      reviewed_by: reviewedBy,
+      reviewed_at: now,
+      updated_at: now,
+    })
+    .eq("id", intakeId)
+    .eq("script_sent", true)
+    .eq("status", "awaiting_script")
+    .eq("payment_status", "paid")
+    .select("id, status")
+    .maybeSingle()
+
+  if (completionError) {
+    logger.error("Error approving prescribed script", {}, toError(completionError))
+    return false
+  }
+
+  if (!completedRow) {
+    logger.warn("[approvePrescribedScript] Status update returned null", { intakeId })
+    return false
+  }
+
+  logStatusChange(
+    intakeId,
+    intake.status as IntakeStatus,
+    "completed",
+    reviewedBy,
+    "doctor",
+    { source: "approvePrescribedScript" },
+  ).catch((err) => {
+    logger.warn("[approvePrescribedScript] Failed to log intake event", { intakeId }, toError(err))
+  })
+
+  revalidateTag("patient-intakes")
+  revalidateTag("patient-dashboard")
 
   return true
 }

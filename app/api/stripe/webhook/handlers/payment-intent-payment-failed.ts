@@ -4,11 +4,30 @@ import type Stripe from "stripe"
 import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
 import { sendPaymentFailedEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
+import { stripe } from "@/lib/stripe/client"
 
 import type { HandlerResult,WebhookContext } from "./types"
 import { tryClaimEvent } from "./utils"
 
 const log = createLogger("stripe-webhook:payment-failed")
+
+async function resolveCheckoutSessionIdForPaymentIntent(paymentIntent: Stripe.PaymentIntent): Promise<string | null> {
+  const metadataSessionId = paymentIntent.metadata?.checkout_session_id || paymentIntent.metadata?.session_id
+  if (metadataSessionId) return metadataSessionId
+
+  try {
+    const sessions = await stripe.checkout.sessions.list({
+      limit: 1,
+      payment_intent: paymentIntent.id,
+    })
+    return sessions.data[0]?.id ?? null
+  } catch (error) {
+    log.warn("Could not resolve Checkout Session for failed PaymentIntent", {
+      paymentIntentId: paymentIntent.id,
+    }, error instanceof Error ? error : undefined)
+    return null
+  }
+}
 
 export async function handlePaymentIntentFailed(ctx: WebhookContext): Promise<HandlerResult> {
   const { event, supabase } = ctx
@@ -28,6 +47,16 @@ export async function handlePaymentIntentFailed(ctx: WebhookContext): Promise<Ha
   }
 
   if (intakeId) {
+    const checkoutSessionId = await resolveCheckoutSessionIdForPaymentIntent(paymentIntent)
+    if (!checkoutSessionId) {
+      log.warn("Payment failure ignored because current checkout session could not be verified", {
+        eventId: event.id,
+        intakeId,
+        paymentIntentId: paymentIntent.id,
+      })
+      return NextResponse.json({ received: true, skipped: true, reason: "missing_checkout_session" })
+    }
+
     const { data: failedIntake, error: updateError } = await supabase
       .from("intakes")
       .update({
@@ -36,6 +65,7 @@ export async function handlePaymentIntentFailed(ctx: WebhookContext): Promise<Ha
         updated_at: new Date().toISOString(),
       })
       .eq("id", intakeId)
+      .eq("payment_id", checkoutSessionId)
       .in("status", ["pending_payment", "checkout_failed"])
       .in("payment_status", ["pending", "unpaid", "failed"])
       .select("id")
@@ -48,6 +78,7 @@ export async function handlePaymentIntentFailed(ctx: WebhookContext): Promise<Ha
 
     if (!failedIntake) {
       log.info("Payment failure ignored because intake is no longer retryable", {
+        checkoutSessionId,
         eventId: event.id,
         paymentIntentId: paymentIntent.id,
       })

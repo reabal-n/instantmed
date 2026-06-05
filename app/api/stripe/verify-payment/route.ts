@@ -161,7 +161,7 @@ export async function POST(req: NextRequest) {
       ? session.customer
       : session.customer?.id || null
 
-    const { error: updateError } = await supabase
+    const { data: updatedIntake, error: updateError } = await supabase
       .from("intakes")
       .update({
         payment_status: "paid",
@@ -175,6 +175,8 @@ export async function POST(req: NextRequest) {
       .eq("payment_id", session.id)
       .in("status", ["pending_payment", "checkout_failed"])
       .in("payment_status", ["pending", "unpaid", "failed"])
+      .select("id")
+      .maybeSingle()
 
     if (updateError) {
       log.error("Failed to update intake via fallback", { intakeId }, updateError)
@@ -182,6 +184,18 @@ export async function POST(req: NextRequest) {
         success: false, 
         error: "Failed to update intake status" 
       }, { status: 500 })
+    }
+
+    if (!updatedIntake) {
+      log.warn("Payment verification skipped because checkout session is no longer current", {
+        intakeId,
+        sessionId: session.id,
+      })
+      return NextResponse.json({
+        success: false,
+        status: intake.status,
+        error: "Payment session is no longer current",
+      }, { status: 409 })
     }
 
     log.info("Intake marked as paid via fallback verification", { intakeId })

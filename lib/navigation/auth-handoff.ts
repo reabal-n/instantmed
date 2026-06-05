@@ -1,5 +1,6 @@
 export const AUTH_POST_SIGNIN_HREF = "/auth/post-signin" as const
 export const AUTH_HANDOFF_EVENT = "instantmed:auth-handoff" as const
+export const AUTH_HANDOFF_REFRESH_SUPPRESSION_MS = 5000
 
 type SearchParamsInput =
   | URLSearchParams
@@ -15,6 +16,19 @@ type AuthHandoffWindow = {
 export type AuthHandoffEventDetail = {
   destination: typeof AUTH_POST_SIGNIN_HREF
   href: string
+}
+
+export function createAuthHandoffRefreshGuard(now: () => number = () => Date.now()) {
+  let suppressedUntil = 0
+
+  return {
+    suppress() {
+      suppressedUntil = now() + AUTH_HANDOFF_REFRESH_SUPPRESSION_MS
+    },
+    shouldSuppress() {
+      return now() < suppressedUntil
+    },
+  }
 }
 
 export function buildPostSignInHref(searchParams?: SearchParamsInput): string {

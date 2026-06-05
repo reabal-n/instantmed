@@ -9,8 +9,8 @@ import {
 } from "@/lib/auth/guest-profile-linking"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { normalizePostAuthRedirect } from "@/lib/auth/redirects"
-import { hasAdminAccess, hasDoctorAccess } from "@/lib/auth/staff-capabilities"
-import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
+import { hasAdminAccess, hasDoctorAccess, hasSupportAccess } from "@/lib/auth/staff-capabilities"
+import { STAFF_DASHBOARD_HREF, STAFF_OPS_HREF } from "@/lib/dashboard/routes"
 import { AUTH_POST_SIGNIN_HREF } from "@/lib/navigation/auth-handoff"
 import { createLogger } from "@/lib/observability/logger"
 import { createClient } from "@/lib/supabase/server"
@@ -53,8 +53,35 @@ function destinationKind(destination: string): string {
   if (destination.startsWith("/patient/onboarding")) return "patient_onboarding"
   if (destination.startsWith("/patient")) return "patient_dashboard"
   if (destination.startsWith(STAFF_DASHBOARD_HREF)) return "staff_dashboard"
+  if (destination.startsWith(STAFF_OPS_HREF)) return "staff_ops"
   if (destination.startsWith("/doctor")) return "doctor_dashboard"
   return "other"
+}
+
+function defaultDestinationForProfile(profile: PostSignInProfile): string {
+  if (hasAdminAccess(profile) || hasDoctorAccess(profile)) return STAFF_DASHBOARD_HREF
+  if (hasSupportAccess(profile)) return STAFF_OPS_HREF
+  return profile.onboarding_completed ? "/patient" : "/patient/onboarding"
+}
+
+function isRedirectAllowedForProfile(destination: string, profile: PostSignInProfile): boolean {
+  if (destination.startsWith(STAFF_OPS_HREF)) {
+    return hasAdminAccess(profile) || hasSupportAccess(profile)
+  }
+
+  if (
+    destination.startsWith(STAFF_DASHBOARD_HREF) ||
+    destination.startsWith("/admin") ||
+    destination.startsWith("/doctor")
+  ) {
+    return hasAdminAccess(profile) || hasDoctorAccess(profile) || hasSupportAccess(profile)
+  }
+
+  if (destination.startsWith("/patient")) {
+    return profile.role === "patient"
+  }
+
+  return true
 }
 
 type GuestProfileCandidateRow = {
@@ -364,10 +391,14 @@ export default async function PostSignInPage({
 
   if (params.redirect) {
     const safeRedirect = normalizePostAuthRedirect(params.redirect, "")
-    if (safeRedirect && !safeRedirect.startsWith("/auth/")) {
+    if (
+      safeRedirect &&
+      !safeRedirect.startsWith("/auth/") &&
+      isRedirectAllowedForProfile(safeRedirect, profile)
+    ) {
       destination = safeRedirect
     } else {
-      destination = profile.onboarding_completed ? "/patient" : "/patient/onboarding"
+      destination = defaultDestinationForProfile(profile)
     }
   } else if (params.intake_id) {
     destination = `/patient/intakes/success?intake_id=${params.intake_id}`
@@ -389,8 +420,10 @@ export default async function PostSignInPage({
         ),
         import("@/lib/data/staff-nav-counts").then((m) => m.getStaffNavCounts()),
       ]).catch(() => undefined)
+    } else if (hasSupportAccess(profile)) {
+      destination = STAFF_OPS_HREF
     } else {
-      destination = profile.onboarding_completed ? "/patient" : "/patient/onboarding"
+      destination = defaultDestinationForProfile(profile)
     }
   }
 

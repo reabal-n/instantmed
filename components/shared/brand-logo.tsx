@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
+import type { MouseEventHandler } from "react"
 
 import { cn } from "@/lib/utils"
 
@@ -11,7 +12,7 @@ interface BrandLogoProps {
   iconOnly?: boolean
   className?: string
   href?: string
-  onClick?: () => void
+  onClick?: MouseEventHandler<HTMLAnchorElement>
 }
 
 const sizeConfig = {

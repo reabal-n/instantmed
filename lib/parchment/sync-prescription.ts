@@ -76,6 +76,14 @@ function buildMedicationName(prescription: ParchmentPrescription, scid: string):
     || `Parchment prescription ${scid}`
 }
 
+function shouldSkipExternalParchmentReadForE2E(): boolean {
+  const isDeployedRuntime = process.env.NODE_ENV === "production"
+    || process.env.VERCEL === "1"
+    || Boolean(process.env.VERCEL_ENV)
+
+  return process.env.PLAYWRIGHT === "1" && !isDeployedRuntime
+}
+
 async function upsertParchmentPrescriptionToPms(
   input: BasePrescriptionSyncInput,
   prescription: ParchmentPrescription,
@@ -128,6 +136,10 @@ async function upsertParchmentPrescriptionToPms(
 export async function syncParchmentPrescriptionToPms(
   input: SyncParchmentPrescriptionInput,
 ): Promise<SyncParchmentPrescriptionResult> {
+  if (shouldSkipExternalParchmentReadForE2E()) {
+    return { success: false, reason: "e2e_prescription_sync_skipped" }
+  }
+
   const response = await getPatientPrescriptions({
     userId: input.userId,
     patientId: input.parchmentPatientId,
@@ -145,6 +157,15 @@ export async function syncParchmentPrescriptionToPms(
 export async function syncParchmentPrescriptionListToPms(
   input: SyncParchmentPrescriptionListInput,
 ): Promise<SyncParchmentPrescriptionListResult> {
+  if (shouldSkipExternalParchmentReadForE2E()) {
+    return {
+      success: false,
+      syncedCount: 0,
+      failedCount: 0,
+      errors: [{ scid: "e2e", reason: "e2e_prescription_sync_skipped" }],
+    }
+  }
+
   const response = await getPatientPrescriptions({
     userId: input.userId,
     patientId: input.parchmentPatientId,

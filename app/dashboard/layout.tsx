@@ -33,7 +33,7 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const authUser = await requireRole(["admin", "doctor", "support"], { redirectTo: "/sign-in" })
+  const authUser = await requireRole(["admin", "doctor", "support"])
 
   const navSections = getStaffNav(authUser.profile)
   const staffRoleLabel = getStaffDisplayRole(authUser.profile)

@@ -181,9 +181,9 @@ export function HeroDoctorReviewMockup() {
               AHPRA registered
             </p>
           </div>
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-950">
+          <span className="inline-flex items-center gap-1 rounded-full border border-[#047857]/20 bg-[#DCFCE7] px-2 py-0.5 text-[10px] font-medium text-[#064E3B] dark:border-[#6EE7B7]/30 dark:bg-[#052E1B] dark:text-[#D1FAE5]">
             <span
-              className="w-1.5 h-1.5 rounded-full bg-emerald-500"
+              className="w-1.5 h-1.5 rounded-full bg-[#059669] dark:bg-[#6EE7B7]"
               style={{ animation: animate ? "pulse 2.5s ease-in-out infinite" : undefined }}
               aria-hidden="true"
             />

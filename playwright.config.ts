@@ -5,6 +5,8 @@ import { loadE2EEnv } from "./e2e/load-env"
 // Load env from this checkout first, then the primary checkout for git worktrees.
 loadE2EEnv()
 
+delete process.env.NO_COLOR
+
 /**
  * Playwright E2E Test Configuration
  * 
@@ -107,7 +109,7 @@ export default defineConfig({
   // Run local dev server before starting the tests
   // Fixed port 3001 ensures no conflict with existing dev server on 3000
   webServer: {
-    command: `pnpm dev --port ${E2E_PORT}`,
+    command: `env -u NO_COLOR pnpm dev --port ${E2E_PORT}`,
     url: E2E_BASE_URL,
     reuseExistingServer: false, // CRITICAL: Always start fresh for deterministic runs
     timeout: 180 * 1000, // 3 minutes for Next.js cold start

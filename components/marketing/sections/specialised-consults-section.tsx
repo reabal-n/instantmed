@@ -20,7 +20,7 @@ const consults: Array<{
     icon: 'security-shield',
     title: "Erectile Dysfunction",
     description:
-      "Discreet assessment and treatment. Clinically proven medications prescribed if appropriate.",
+      "Discreet assessment with treatment considered if clinically appropriate.",
     price: PRICING_DISPLAY.MENS_HEALTH,
     href: "/erectile-dysfunction",
   },
@@ -28,7 +28,7 @@ const consults: Array<{
     icon: 'hair-brush',
     title: "Hair Loss",
     description:
-      "Medical assessment for hair loss. Evidence-based treatments prescribed by an Australian doctor.",
+      "Medical assessment for hair loss with doctor-reviewed treatment options.",
     price: PRICING_DISPLAY.HAIR_LOSS,
     href: "/hair-loss",
   },

@@ -16,7 +16,7 @@ import { PRESCRIPTION_FAQ } from '@/lib/data/prescription-faq'
 
 export const metadata: Metadata = {
   title: 'Repeat Prescription Online | Doctor Review',
-  description: `Renew your regular medications or get a new prescription online. Fill out a form, no appointment needed, no waiting room. eScript sent to your phone. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`,
+  description: `Request doctor review for regular repeat medications online. Fill out a form, no appointment needed, no waiting room. eScript sent if approved. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`,
   keywords: [
     'online prescription australia',
     'repeat prescription online',
@@ -27,11 +27,11 @@ export const metadata: Metadata = {
     'online doctor prescription',
     'get prescription online australia',
     'repeat medication online',
-    'new prescription online australia',
+    'repeat medication review australia',
   ],
   openGraph: {
     title: 'Repeat Prescription Online | Doctor Review | InstantMed',
-    description: `Fill out a form, no appointment needed. eScript sent to your phone, valid at any pharmacy. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`,
+    description: `Fill out a form, no appointment needed. If approved, an eScript is sent to your phone. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`,
     type: 'website',
     url: 'https://instantmed.com.au/prescriptions',
     locale: 'en_AU',
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Repeat Prescription Online | Doctor Review | InstantMed',
-    description: `Online prescription, no appointment, no waiting room. eScript to your phone. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`,
+    description: `Repeat medication review online. eScript to your phone if approved. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`,
   },
   alternates: {
     canonical: 'https://instantmed.com.au/prescriptions',
@@ -58,19 +58,19 @@ export default function PrescriptionsPage() {
       />
       <MedicalServiceSchema
         name="Online Prescription Australia"
-        description={`Renew your regular medications or get a new prescription online. AHPRA-registered Australian doctors review your request and send an eScript to your phone. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`}
+        description={`Request doctor review for regular repeat medications online. AHPRA-registered Australian doctors review your request and send an eScript to your phone if approved. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`}
         price={PRICING.REPEAT_SCRIPT.toFixed(2)}
       />
       <PrescriptionHowToSchema />
       <SpeakableSchema
         name="Online Prescription Australia"
-        description={`Renew your regular medications or get a new prescription online. AHPRA-registered Australian doctors review your request and send an eScript to your phone if approved. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`}
+        description={`Request doctor review for regular repeat medications online. AHPRA-registered Australian doctors review your request and send an eScript to your phone if approved. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`}
         url="/prescriptions"
       />
       <FAQSchema faqs={[...PRESCRIPTION_FAQ]} />
       <HealthArticleSchema
         title="Online Prescription Australia"
-        description={`Renew your regular medications or get a new prescription online. AHPRA-registered Australian doctors send an eScript to your phone. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`}
+        description={`Request doctor review for regular repeat medications online. AHPRA-registered Australian doctors send an eScript to your phone if approved. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`}
         url="/prescriptions"
       />
       <PrescriptionsLanding />

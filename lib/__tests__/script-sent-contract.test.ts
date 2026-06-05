@@ -39,7 +39,7 @@ describe("script sent mutation production contract", () => {
     expect(body).toContain("if (!scriptSent)")
     expect(body).toContain("Script sent reversal blocked")
     expect(body.indexOf("if (!scriptSent)")).toBeLessThan(
-      body.indexOf(".update({\n      script_sent: scriptSent"),
+      body.indexOf("script_sent: scriptSent"),
     )
   })
 
@@ -49,24 +49,60 @@ describe("script sent mutation production contract", () => {
     expect(mutationSource).toContain("getParchmentScriptCompletionEligibility")
     expect(body).toContain("getParchmentScriptCompletionEligibility(")
     expect(body).toContain("status, payment_status, category, subtype, script_sent")
+    expect(body).toContain('.eq("status", "awaiting_script")')
+    expect(body).toContain('.eq("payment_status", "paid")')
+    expect(body).toContain("[updateScriptSent] Script sent update matched no eligible intake")
     expect(body.indexOf("getParchmentScriptCompletionEligibility(")).toBeLessThan(
-      body.indexOf(".update({\n      script_sent: scriptSent"),
+      body.indexOf("script_sent: scriptSent"),
     )
+  })
+
+  it("keeps script recording separate from final prescription approval", () => {
+    const recordBody = functionBody("updateScriptSent")
+    const approveBody = functionBody("approvePrescribedScript")
+
+    expect(recordBody).not.toContain('status: "completed"')
+    expect(recordBody).not.toContain('decision: "approved"')
+    expect(approveBody).toContain("intake.script_sent !== true")
+    expect(approveBody).toContain("validateIntakeStatusTransition(")
+    expect(approveBody).toContain('status: "completed"')
+    expect(approveBody).toContain('.eq("status", "awaiting_script")')
+    expect(approveBody).toContain('{ source: "approvePrescribedScript" }')
   })
 
   it("keeps the doctor manual completion action on the canonical guarded path", () => {
     const body = queueActionBody("markScriptSentAction")
 
     expect(body).toContain("isParchmentClaimSatisfied(intake, profile.id)")
+    expect(body).toContain("doctorCanReviewService(profile, serviceType, subtype)")
+    expect(body).toContain("Doctor lacks capability to record prescription completion")
+    expect(body).toContain("startParchmentPrescribing(intakeId, profile.id)")
     expect(body).toContain("getParchmentScriptCompletionEligibility(")
     expect(body).toContain("updateScriptSent(intakeId, true, scriptNotes, parchmentReference, profile.id)")
     expect(body).toContain("logExternalPrescribingIndicated(")
+    expect(body).not.toContain("sendEmail")
     expect(body.indexOf("isParchmentClaimSatisfied(intake, profile.id)")).toBeLessThan(
       body.indexOf("updateScriptSent(intakeId, true"),
     )
     expect(body.indexOf("getParchmentScriptCompletionEligibility(")).toBeLessThan(
       body.indexOf("updateScriptSent(intakeId, true"),
     )
+  })
+
+  it("keeps patient notification in the separate doctor approval action", () => {
+    const body = queueActionBody("approvePrescribedScriptAction")
+
+    expect(body).toContain("approvePrescribedScript(intakeId, profile.id)")
+    expect(body).toContain("Complete or record the prescription in Parchment before approving.")
+    expect(body).toContain("doctorCanReviewService(profile, serviceType, subtype)")
+    expect(body).toContain("Doctor lacks capability to approve prescription")
+    expect(body).toContain("ensureClinicalDecisionNoteForApproval(intakeId)")
+    expect(body).toContain("sendScriptSentEmailIfNeeded(supabase, intakeId)")
+    expect(body).toContain("emailNotification")
+    expect(body).toContain('emailNotification: "sent"')
+    expect(body).toContain('emailNotification = "failed"')
+    expect(queueActionSource).toContain("sendEmail")
+    expect(queueActionSource).toContain("ScriptSentEmail")
   })
 
   it("retired duplicate legacy script-sent entry points", () => {

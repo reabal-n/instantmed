@@ -14,7 +14,7 @@ import {
   XCircle,
 } from "lucide-react"
 import Link from "next/link"
-import type { ReactNode } from "react"
+import { type ReactNode } from "react"
 
 import { AttributionChip, CertHealthChip, type CertificatePreviewData, CertificatePreviewDialog, PdfViewerDialog } from "@/components/doctor"
 import {
@@ -93,7 +93,7 @@ interface IntakeDetailHeaderProps {
   onViewCertificate: () => void
   onCertPreviewConfirm: (data: CertificatePreviewData) => void
   onOpenParchmentPrescribe?: () => void
-  onApproveAndOpenParchment?: () => void
+  onApprovePrescribedScript?: () => void
   hasPrescriptionIntent?: boolean
   showReissueDialog: boolean
   setShowReissueDialog: (val: boolean) => void
@@ -131,7 +131,7 @@ export function IntakeDetailHeader({
   onViewCertificate,
   onCertPreviewConfirm,
   onOpenParchmentPrescribe,
-  onApproveAndOpenParchment,
+  onApprovePrescribedScript,
   hasPrescriptionIntent,
   showReissueDialog,
   setShowReissueDialog,
@@ -149,6 +149,11 @@ export function IntakeDetailHeader({
   const answers = (intake.answers?.answers ?? {}) as Record<string, unknown>
   const isPrescribingConsult = intake.category === "consult" && ["ed", "hair_loss"].includes(intake.subtype || "")
   const shouldPrescribeFromConsult = isPrescribingConsult && hasPrescriptionIntent === true
+  const isRepeatScript = service?.type === SERVICE_TYPES.REPEAT_RX || service?.type === SERVICE_TYPES.COMMON_SCRIPTS
+  const canPrescribeInParchment =
+    ["paid", "in_review", "awaiting_script"].includes(intake.status) &&
+    hasPrescriptionIntent === true &&
+    (isRepeatScript || shouldPrescribeFromConsult)
   const snapshotContext = {
     answers,
     category: intake.category,
@@ -176,6 +181,20 @@ export function IntakeDetailHeader({
     return INTAKE_STATUS[status as StatusType]?.color ?? "bg-primary/10 text-primary"
   }
   const actionButtonSize = compact ? "sm" : "default"
+  const canApproveAfterPrescribe = intake.script_sent === true
+  const approveAfterPrescribeTitle = hasPrescribingIdentityBlocker
+    ? prescribingIdentityTitle
+    : canApproveAfterPrescribe
+      ? "Approve after the prescription has been completed in Parchment."
+      : "Complete or record the prescription in Parchment first."
+  const prescribingApproveHint =
+    canPrescribeInParchment && !hasPrescribingIdentityBlocker && !canApproveAfterPrescribe
+      ? "Complete or record the prescription in Parchment first."
+      : null
+
+  const handlePrescribeClick = () => {
+    onOpenParchmentPrescribe?.()
+  }
 
   return (
     <>
@@ -191,6 +210,11 @@ export function IntakeDetailHeader({
           <Badge className={getStatusColor(intake.status)}>
             {formatIntakeStatus(intake.status)}
           </Badge>
+          {intake.script_sent === true ? (
+            <Badge className="border-success/20 bg-success-light text-success">
+              Script sent
+            </Badge>
+          ) : null}
           {/* Phase 3 of dashboard remaster (2026-05-12): consolidated badge */}
           <CertHealthChip certificate={certDelivery ?? null} intakeId={intake.id} />
           {supplementaryActions}
@@ -319,27 +343,12 @@ export function IntakeDetailHeader({
               </Button>
             )}
 
-            {/* For repeat scripts - approve then mark sent externally */}
-            {(service?.type === SERVICE_TYPES.REPEAT_RX || service?.type === SERVICE_TYPES.COMMON_SCRIPTS) && intake.status === "paid" && (
-              <Button
-                size={actionButtonSize}
-                onClick={() => onStatusChange("awaiting_script")}
-                className="bg-primary hover:bg-primary/90"
-                disabled={isPending || hasPrescribingIdentityBlocker}
-                title={prescribingIdentityTitle}
-              >
-                {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
-                {isPending ? "Approving..." : prescribingActionLabel ?? "Approve Script"}
-              </Button>
-            )}
-
-            {/* Prescribe / Mark script as sent (for awaiting_script status) */}
-            {intake.status === "awaiting_script" && (
+            {canPrescribeInParchment && (
               <>
                 {onOpenParchmentPrescribe && (
                   <Button
                     size={actionButtonSize}
-                    onClick={onOpenParchmentPrescribe}
+                    onClick={handlePrescribeClick}
                     className="bg-blue-600 hover:bg-blue-700"
                     disabled={isPending || hasPrescribingIdentityBlocker}
                     title={prescribingIdentityTitle}
@@ -348,29 +357,29 @@ export function IntakeDetailHeader({
                     {prescribingActionLabel ?? "Prescribe"}
                   </Button>
                 )}
-                <Button
-                  size={actionButtonSize}
-                  variant={onOpenParchmentPrescribe ? "outline" : "default"}
-                  onClick={dialogs.openScriptDialog}
-                  className={onOpenParchmentPrescribe ? "" : "bg-blue-600 hover:bg-blue-700"}
-                >
-                  {!onOpenParchmentPrescribe && <Send className="h-4 w-4 mr-2" />}
-                  Sent outside Parchment
-                </Button>
+                {onApprovePrescribedScript && (
+                  <Button
+                    size={actionButtonSize}
+                    onClick={onApprovePrescribedScript}
+                    className="bg-primary hover:bg-primary/90"
+                    disabled={isPending || hasPrescribingIdentityBlocker || !canApproveAfterPrescribe}
+                    title={approveAfterPrescribeTitle}
+                    aria-describedby={prescribingApproveHint ? "full-case-prescribing-approve-hint" : undefined}
+                  >
+                    {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+                    {isPending ? "Approving..." : "Approve"}
+                  </Button>
+                )}
+                {intake.script_sent === true ? null : (
+                  <Button
+                    size={actionButtonSize}
+                    variant="outline"
+                    onClick={dialogs.openScriptDialog}
+                  >
+                    Sent outside Parchment
+                  </Button>
+                )}
               </>
-            )}
-
-            {shouldPrescribeFromConsult && ["paid", "in_review"].includes(intake.status) && onApproveAndOpenParchment && (
-              <Button
-                size={actionButtonSize}
-                onClick={onApproveAndOpenParchment}
-                className="bg-primary hover:bg-primary/90"
-                disabled={isPending || hasPrescribingIdentityBlocker}
-                title={prescribingIdentityTitle}
-              >
-                {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
-                {isPending ? "Approving..." : prescribingActionLabel ?? "Approve + Prescribe"}
-              </Button>
             )}
 
             {/* For consults - approve after call with notes */}
@@ -440,6 +449,11 @@ export function IntakeDetailHeader({
           {approveDisabledReason && (
             <p className="mt-3 text-xs font-medium text-warning">{approveDisabledReason}</p>
           )}
+          {prescribingApproveHint && (
+            <p id="full-case-prescribing-approve-hint" className="mt-3 text-xs font-medium text-muted-foreground">
+              {prescribingApproveHint}
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -496,9 +510,9 @@ export function IntakeDetailHeader({
       <AlertDialog open={dialogs.showScriptDialog} onOpenChange={(open) => { if (!open) dialogs.closeScriptDialog() }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Mark Script as Sent</AlertDialogTitle>
+            <AlertDialogTitle>Record script sent</AlertDialogTitle>
             <AlertDialogDescription>
-              Confirm that you have sent the prescription via Parchment or other means.
+              Confirm the prescription was sent outside the embedded Parchment flow. This records script completion; the patient is notified only after you press Approve.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-4 py-4">

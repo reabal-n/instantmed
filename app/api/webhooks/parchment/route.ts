@@ -36,6 +36,16 @@ async function acquireWebhookLock(scid: string): Promise<boolean> {
 }
 
 const log = createLogger("parchment-webhook")
+const E2E_PARCHMENT_SYNC_SKIPPED_REASON = "e2e_prescription_sync_skipped"
+
+type PrescriptionSyncOutcome = {
+  success: boolean
+  reason?: string
+}
+
+function isE2EParchmentSyncSkip(outcome: PrescriptionSyncOutcome): boolean {
+  return outcome.reason === E2E_PARCHMENT_SYNC_SKIPPED_REASON
+}
 
 /**
  * Parchment webhook handler.
@@ -46,9 +56,9 @@ const log = createLogger("parchment-webhook")
  * Flow:
  * 1. Verify HMAC-SHA256 signature (replay protection: 5-min window)
  * 2. Parse and validate payload
- * 3. Match patient → find their most recent `awaiting_script` intake
- * 4. Auto-mark script sent with the SCID as parchment_reference
- * 5. Patient email notification is triggered by updateScriptSent → markScriptSentAction
+ * 3. Match patient and prescriber to the active prescribing intake
+ * 4. Record script_sent with the SCID as parchment_reference
+ * 5. The doctor completes the separate approval step from InstantMed
  */
 // Parchment prescription payloads are tiny JSON (<1KB). Cap at 64KB so a
 // flood of oversized bodies with invalid signatures can't chew up memory.
@@ -217,13 +227,16 @@ export async function POST(request: Request) {
     }
 
     // PostgREST does not support UPDATE + ORDER BY + LIMIT, so we SELECT the
-    // target row first, then UPDATE by ID. Redis dedup + the parchment_reference
-    // IS NULL guard on the UPDATE prevent double-processing under concurrent retries.
+    // target row first, then UPDATE by ID. Only explicit awaiting_script rows
+    // are eligible: opening Parchment/manual fallback moves the case there
+    // before a webhook can attach SCID evidence.
     const { data: candidates, error: selectError } = await supabase
       .from("intakes")
-      .select("id, claimed_by, reviewing_doctor_id, reviewed_by, created_at")
+      .select("id, status, category, subtype, claimed_by, reviewing_doctor_id, reviewed_by, created_at, service:services!service_id(type)")
       .eq("patient_id", patientProfileId)
       .eq("status", "awaiting_script")
+      .eq("payment_status", "paid")
+      .eq("script_sent", false)
       .is("parchment_reference", null)
       .order("created_at", { ascending: false })
       .limit(10)
@@ -245,7 +258,7 @@ export async function POST(request: Request) {
     const standalonePrescriberId = prescriberProfileIds.length === 1 ? prescriberProfileIds[0] : null
     let claimed: { id: string; parchment_reference: string | null } | null = null
 
-    if (candidate) {
+    if (candidate && webhookPrescriberId) {
       const { data: claimedRow, error: claimError } = await supabase
         .from("intakes")
         .update({
@@ -253,6 +266,10 @@ export async function POST(request: Request) {
           updated_at: new Date().toISOString(),
         })
         .eq("id", candidate.id)
+        .eq("patient_id", patientProfileId)
+        .eq("status", "awaiting_script")
+        .eq("payment_status", "paid")
+        .eq("script_sent", false)
         .is("parchment_reference", null)
         .select("id, parchment_reference")
         .maybeSingle()
@@ -267,6 +284,8 @@ export async function POST(request: Request) {
       }
 
       claimed = claimedRow
+    } else if (candidate) {
+      log.warn("Matched Parchment webhook intake without a verified prescriber claim", { eventId: payload.event_id })
     }
 
     // Include event_id in script_notes for webhook idempotency audit trail
@@ -275,7 +294,7 @@ export async function POST(request: Request) {
     const syncPrescription = async (
       intakeId: string | null,
       prescriberProfileId: string | null,
-    ): Promise<boolean> => {
+    ): Promise<PrescriptionSyncOutcome> => {
       try {
         const result = await syncParchmentPrescriptionToPms({
           supabase,
@@ -288,8 +307,13 @@ export async function POST(request: Request) {
         })
 
         if (!result.success) {
+          const reason = result.reason || "prescription_sync_failed"
+          if (reason === E2E_PARCHMENT_SYNC_SKIPPED_REASON) {
+            return { success: false, reason }
+          }
+
           await recordParchmentPrescriptionSyncFailure(
-            result.reason || "prescription_sync_failed",
+            reason,
             payload.event_id,
             intakeId,
             buildParchmentWebhookFailureMetadata({
@@ -301,10 +325,10 @@ export async function POST(request: Request) {
               prescriberProfileId,
             }),
           )
-          return false
+          return { success: false, reason }
         }
 
-        return true
+        return { success: true }
       } catch (syncError) {
         log.error(
           "Failed to sync Parchment prescription to PMS",
@@ -324,13 +348,13 @@ export async function POST(request: Request) {
             prescriberProfileId,
           }),
         )
-        return false
+        return { success: false, reason: "prescription_sync_failed" }
       }
     }
 
     // Check if already processed (idempotency) or no intake found
     if (!claimed) {
-      // Could be: (a) parchment_reference already set for this SCID, (b) manually marked sent, (c) no awaiting_script intake
+      // Could be: (a) parchment_reference already set for this SCID, (b) manually marked sent, (c) no active prescribing intake
       const { data: existing } = await supabase
         .from("intakes")
         .select("id, parchment_reference, script_sent, claimed_by, reviewing_doctor_id, reviewed_by, created_at")
@@ -340,8 +364,8 @@ export async function POST(request: Request) {
 
       if (existing?.script_sent) {
         const existingPrescriberId = selectParchmentWebhookPrescriberId(existing, prescriberProfileIds)
-        const existingSyncSuccess = await syncPrescription(existing.id, existingPrescriberId)
-        if (!existingSyncSuccess) {
+        const existingSync = await syncPrescription(existing.id, existingPrescriberId)
+        if (!existingSync.success) {
           await recordParchmentWebhookSuccess({
             actionType: "parchment_webhook_already_processed",
             eventId: payload.event_id,
@@ -355,6 +379,10 @@ export async function POST(request: Request) {
             scid,
             scriptSent: true,
           })
+          if (isE2EParchmentSyncSkip(existingSync)) {
+            log.info("Webhook already processed; E2E prescription PMS sync skipped", { eventId: payload.event_id })
+            return NextResponse.json({ received: true, syncSkipped: true })
+          }
           log.warn("Webhook already processed; prescription PMS sync still pending", { eventId: payload.event_id })
           return NextResponse.json({ received: true, syncPending: true })
         }
@@ -379,7 +407,7 @@ export async function POST(request: Request) {
         // Claimed (parchment_reference set) but updateScriptSent failed previously - resume
         log.info("Resuming partially-processed webhook", { eventId: payload.event_id })
         const resumePrescriberId = selectParchmentWebhookPrescriberId(existing, prescriberProfileIds)
-        const resumeSyncSuccess = await syncPrescription(existing.id, resumePrescriberId)
+        const resumeSync = await syncPrescription(existing.id, resumePrescriberId)
         const resumeSuccess = await updateScriptSent(existing.id, true, scriptNotes, scid, resumePrescriberId ?? undefined)
         if (!resumeSuccess) {
           log.error("Failed to mark script sent (resumed)", { eventId: payload.event_id })
@@ -403,7 +431,7 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: "Failed to update intake" }, { status: 500 })
         }
         await logWebhookPrescribingBoundary(existing.id, resumePrescriberId, scid, payload.event_id)
-        if (!resumeSyncSuccess) {
+        if (!resumeSync.success) {
           await recordParchmentWebhookSuccess({
             actionType: "parchment_webhook_script_sent",
             eventId: payload.event_id,
@@ -417,6 +445,10 @@ export async function POST(request: Request) {
             scid,
             scriptSent: true,
           })
+          if (isE2EParchmentSyncSkip(resumeSync)) {
+            log.info("Webhook resumed script completion; E2E prescription PMS sync skipped", { eventId: payload.event_id })
+            return NextResponse.json({ received: true, resumed: true, syncSkipped: true })
+          }
           log.warn("Webhook resumed script completion; prescription PMS sync still pending", { eventId: payload.event_id })
           return NextResponse.json({ received: true, resumed: true, syncPending: true })
         }
@@ -437,8 +469,8 @@ export async function POST(request: Request) {
         return NextResponse.json({ received: true, resumed: true })
       }
 
-      const standaloneSyncSuccess = await syncPrescription(null, standalonePrescriberId)
-      if (standaloneSyncSuccess) {
+      const standaloneSync = await syncPrescription(null, standalonePrescriberId)
+      if (standaloneSync.success) {
         await recordParchmentWebhookSuccess({
           actionType: "parchment_webhook_prescription_synced",
           eventId: payload.event_id,
@@ -456,7 +488,12 @@ export async function POST(request: Request) {
         return NextResponse.json({ received: true, syncedPrescription: true })
       }
 
-      log.warn("No matching awaiting_script intake found and prescription sync failed for webhook", { eventId: payload.event_id })
+      if (isE2EParchmentSyncSkip(standaloneSync)) {
+        log.info("No matching active prescribing intake found; E2E prescription sync skipped", { eventId: payload.event_id })
+        return NextResponse.json({ received: true, syncSkipped: true })
+      }
+
+      log.warn("No matching active prescribing intake found and prescription sync failed for webhook", { eventId: payload.event_id })
       await recordParchmentWebhookMismatch(
         "no_awaiting_script_intake",
         payload.event_id,
@@ -469,13 +506,14 @@ export async function POST(request: Request) {
           prescriberProfileId: standalonePrescriberId,
         }),
       )
-      return NextResponse.json({ received: true, warning: "No awaiting_script intake found", syncPending: true })
+      return NextResponse.json({ received: true, warning: "No active prescribing intake found", syncPending: true })
     }
 
     const intake = claimed
-    const prescriptionSyncSuccess = await syncPrescription(intake.id, webhookPrescriberId)
+    const prescriptionSync = await syncPrescription(intake.id, webhookPrescriberId)
 
-    // Mark script as sent and transition status
+    // Record durable script-sent evidence. The doctor still approves the
+    // request separately from InstantMed after the webhook refreshes the case.
     const success = await updateScriptSent(intake.id, true, scriptNotes, scid, webhookPrescriberId ?? undefined)
 
     if (!success) {
@@ -502,42 +540,7 @@ export async function POST(request: Request) {
 
     await logWebhookPrescribingBoundary(intake.id, webhookPrescriberId, scid, payload.event_id)
 
-    // Send patient notification email
-    try {
-      const React = await import("react")
-      const { sendEmail } = await import("@/lib/email/send-email")
-      const { ScriptSentEmail, scriptSentEmailSubject } = await import("@/lib/email/components/templates/script-sent")
-      const { getIntakeWithDetails } = await import("@/lib/data/intakes")
-
-      const fullIntake = await getIntakeWithDetails(intake.id)
-      if (fullIntake?.patient?.email) {
-        const patientName = fullIntake.patient.full_name || "Patient"
-        await sendEmail({
-          to: fullIntake.patient.email,
-          toName: patientName,
-          subject: scriptSentEmailSubject(patientName?.split(" ")[0]),
-          template: React.createElement(ScriptSentEmail, {
-            patientName,
-            requestId: intake.id,
-            escriptReference: scid,
-          }),
-          emailType: "script_sent",
-          intakeId: intake.id,
-          patientId: fullIntake.patient.id,
-          metadata: { parchmentReference: scid, source: "webhook" },
-        })
-        log.info("Patient notification email sent via webhook", { eventId: payload.event_id })
-      }
-    } catch (emailError) {
-      // Non-fatal - script is already marked as sent, but alert so we can follow up
-      log.error("Failed to send notification email from webhook", { eventId: payload.event_id }, emailError instanceof Error ? emailError : new Error(String(emailError)))
-      Sentry.captureException(emailError instanceof Error ? emailError : new Error(String(emailError)), {
-        level: "warning",
-        extra: { eventId: payload.event_id, context: "parchment_webhook_email" },
-      })
-    }
-
-    if (!prescriptionSyncSuccess) {
+    if (!prescriptionSync.success) {
       await recordParchmentWebhookSuccess({
         actionType: "parchment_webhook_script_sent",
         eventId: payload.event_id,
@@ -551,6 +554,10 @@ export async function POST(request: Request) {
         scid,
         scriptSent: true,
       })
+      if (isE2EParchmentSyncSkip(prescriptionSync)) {
+        log.info("Webhook marked script sent; E2E prescription PMS sync skipped", { eventId: payload.event_id })
+        return NextResponse.json({ received: true, scriptSent: true, syncSkipped: true })
+      }
       log.warn("Webhook marked script sent; prescription PMS sync still pending", { eventId: payload.event_id })
       return NextResponse.json({ received: true, scriptSent: true, syncPending: true })
     }

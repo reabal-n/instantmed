@@ -1,6 +1,6 @@
 /**
- * ED prescribing presets: concrete medication recommendations derived from
- * the patient's stated `treatment_preference` on the ED consult intake.
+ * ED doctor-only Parchment handoff presets derived from the patient's stated
+ * `treatment_preference` on the ED consult intake.
  *
  * Doses follow standard adult starting prescriptions:
  *   - Tadalafil 5mg: lowest effective daily dose (10mg reserved for poor
@@ -13,7 +13,8 @@
  *
  * Hard contraindications (nitrate use, recent cardiac event, severe heart
  * condition) are gated upstream in `edSummary`; this preset table is only
- * read when the safety screen is already clear.
+ * read when the safety screen is already clear. The doctor still confirms the
+ * final medicine, dose, quantity, repeats and directions in Parchment.
  */
 export interface EdPreset {
   medicationName: string

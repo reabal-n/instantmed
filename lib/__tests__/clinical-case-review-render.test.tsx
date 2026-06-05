@@ -10,7 +10,7 @@ function render(element: React.ReactElement): string {
 }
 
 describe("ClinicalCaseReview", () => {
-  it("renders the doctor-first patient story, plan, visible note, and Parchment preset before raw answers", () => {
+  it("renders the doctor-first patient story, plan, visible note, and Parchment handoff context before raw answers", () => {
     const html = render(
       <ClinicalCaseReview
         category="consult"
@@ -31,9 +31,9 @@ describe("ClinicalCaseReview", () => {
     )
 
     expect(html).toContain("Reason for visit")
-    expect(html).toContain("Prescribing plan")
+    expect(html).toContain("Prescribing context")
     expect(html).toContain("Check before you send.")
-    expect(html).toContain("Parchment preset")
+    expect(html).toContain("Parchment handoff context")
     expect(html).toContain("Full answers")
     expect(html.indexOf("Reason for visit")).toBeLessThan(html.indexOf("Full answers"))
   })
@@ -56,7 +56,7 @@ describe("ClinicalCaseReview", () => {
       />,
     )
 
-    expect(html).not.toContain("Recommended plan")
+    expect(html).not.toContain("Clinical plan")
     expect(html).toContain("Check before you send.")
     expect(html).toContain("contenteditable")
     expect(html).toContain("Patient requests a one-day work certificate")

@@ -3,7 +3,7 @@
 import { ChevronLeft, ChevronRight, Menu, X } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { type MouseEvent, useCallback, useEffect, useMemo, useState } from "react"
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
@@ -15,6 +15,7 @@ import {
 } from "@/lib/dashboard/staff-navigation"
 import {
   hasStatusFilteredDashboardItems,
+  isStaffNavHrefCurrent,
   isStaffNavItemActive,
 } from "@/lib/dashboard/staff-navigation-active"
 import { useLiveStaffNavCounts } from "@/lib/dashboard/use-staff-nav-counts"
@@ -43,6 +44,10 @@ interface AdminSidebarProps {
 const ACTIVE_NAV = "border border-primary/15 bg-primary/[0.08] text-primary shadow-sm shadow-primary/[0.04]"
 const INACTIVE_NAV = "border border-transparent text-slate-600 hover:border-border/45 hover:bg-white/65 hover:text-foreground dark:text-muted-foreground dark:hover:bg-white/[0.06]"
 const STAFF_SIDEBAR_EXPANDED_STORAGE_KEY = "instantmed.staff.sidebar.expanded"
+
+function shouldNoopCurrentNavigation(event: MouseEvent<HTMLAnchorElement>, current: boolean): boolean {
+  return current && !event.defaultPrevented && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey
+}
 
 function NavBadge({
   count,
@@ -95,24 +100,34 @@ function InlineNavBadge({
 function NavIconLink({
   item,
   active,
+  current,
   count,
   expanded,
   onClick,
 }: {
   item: StaffNavItem
   active: boolean
+  current: boolean
   count?: number
   expanded: boolean
   onClick?: () => void
 }) {
   const badgeCount = count ?? 0
   const Icon = STAFF_NAV_ICONS[item.icon] ?? STAFF_NAV_ICONS.dashboard
+  const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (shouldNoopCurrentNavigation(event, current)) {
+      event.preventDefault()
+      return
+    }
+
+    onClick?.()
+  }
 
   const link = (
     <Link
       href={item.href}
       prefetch={false}
-      onClick={onClick}
+      onClick={handleClick}
       className={cn(
         "relative flex h-10 rounded-lg text-sm font-medium transition-[background-color,border-color,color,box-shadow] duration-150",
         expanded ? "w-full items-center justify-start gap-3 px-3" : "w-10 items-center justify-center",
@@ -152,11 +167,18 @@ function NavIconLink({
   )
 }
 
-function Brand({ expanded, brandLabel }: { expanded: boolean; brandLabel: string }) {
+function Brand({ expanded, brandLabel, current }: { expanded: boolean; brandLabel: string; current: boolean }) {
+  const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (shouldNoopCurrentNavigation(event, current)) {
+      event.preventDefault()
+    }
+  }
+
   return (
     <Link
       href={STAFF_DASHBOARD_HREF}
       prefetch={false}
+      onClick={handleClick}
       className={cn(
         "flex rounded-lg transition-colors",
         expanded
@@ -249,6 +271,7 @@ export function AdminSidebar({
   const counts = useLiveStaffNavCounts(navCounts)
   const currentStatus = searchParams.get("status")
   const sections = navSections ?? operatorNavSections
+  const currentSearch = searchParams.toString()
   const navHrefs = useMemo(
     () => sections.flatMap((section) => section.items.map((item) => item.href)),
     [sections],
@@ -297,7 +320,15 @@ export function AdminSidebar({
           )}
         >
           <div className={cn("flex w-full items-center", expanded ? "gap-2" : "flex-col gap-2")}>
-            <Brand expanded={expanded} brandLabel={brandLabel} />
+            <Brand
+              expanded={expanded}
+              brandLabel={brandLabel}
+              current={isStaffNavHrefCurrent({
+                pathname,
+                href: STAFF_DASHBOARD_HREF,
+                currentSearch,
+              })}
+            />
             <button
               type="button"
               onClick={toggleExpanded}
@@ -332,6 +363,11 @@ export function AdminSidebar({
                       statusFilteredDashboard,
                       allHrefs: navHrefs,
                     })}
+                    current={isStaffNavHrefCurrent({
+                      pathname,
+                      href: item.href,
+                      currentSearch,
+                    })}
                     count={item.badgeKey ? counts[item.badgeKey] : 0}
                     expanded={expanded}
                   />
@@ -365,6 +401,7 @@ export function MobileAdminNav({ navCounts, navSections, brandLabel: _brandLabel
   const counts = useLiveStaffNavCounts(navCounts)
   const currentStatus = searchParams.get("status")
   const sections = navSections ?? operatorNavSections
+  const currentSearch = searchParams.toString()
   const navHrefs = useMemo(
     () => sections.flatMap((section) => section.items.map((item) => item.href)),
     [sections],
@@ -389,83 +426,102 @@ export function MobileAdminNav({ navCounts, navSections, brandLabel: _brandLabel
         <Menu className="h-5 w-5" />
       </button>
 
-      {open && (
+      <>
         <button
-          className="fixed inset-0 z-40 bg-black/40"
+          className={cn(
+            "fixed inset-0 z-40 bg-black/40 transition-opacity duration-200 ease-out",
+            open ? "opacity-100" : "pointer-events-none opacity-0",
+          )}
           onClick={() => setOpen(false)}
           aria-label="Close staff navigation"
           type="button"
+          tabIndex={open ? undefined : -1}
+          inert={!open ? true : undefined}
         />
-      )}
 
-      <nav
-        className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col border-r border-border bg-[#FCFBF8] shadow-xl shadow-primary/[0.08] transition-transform duration-200 ease-out dark:bg-card",
-          open ? "translate-x-0" : "-translate-x-full",
-        )}
-        aria-label="Staff navigation"
-      >
-        <div className="flex items-center justify-between border-b border-border/40 px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <span className="text-sm font-semibold tracking-tight">IM</span>
+        <nav
+          className={cn(
+            "fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col border-r border-border bg-[#FCFBF8] shadow-xl shadow-primary/[0.08] transition-transform duration-200 ease-out dark:bg-card",
+            open ? "translate-x-0" : "-translate-x-full",
+          )}
+          aria-label="Staff navigation"
+          inert={!open ? true : undefined}
+        >
+            <div className="flex items-center justify-between border-b border-border/40 px-4 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                  <span className="text-sm font-semibold tracking-tight">IM</span>
+                </div>
+                <span className="text-base font-semibold tracking-tight text-foreground">InstantMed</span>
+              </div>
+              <button
+                onClick={() => setOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+                aria-label="Close navigation"
+                type="button"
+                tabIndex={open ? undefined : -1}
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
-            <span className="text-base font-semibold tracking-tight text-foreground">InstantMed</span>
-          </div>
-          <button
-            onClick={() => setOpen(false)}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
-            aria-label="Close navigation"
-            type="button"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
 
-        <div className="flex-1 space-y-4 overflow-y-auto px-3 py-3">
-          {sections.map((section, index) => (
-            <div key={section.title} className="space-y-1">
-              {index > 0 ? <div className="border-t border-border/30" /> : null}
-              <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-muted-foreground">
-                {section.title}
-              </p>
-              {section.items.map((item) => {
-                const active = isStaffNavItemActive({
-                  pathname,
-                  href: item.href,
-                  currentStatus,
-                  statusFilteredDashboard,
-                  allHrefs: navHrefs,
-                })
-                const count = item.badgeKey ? counts[item.badgeKey] : 0
-                const Icon = STAFF_NAV_ICONS[item.icon]
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    prefetch={false}
-                    onClick={() => setOpen(false)}
-                    className={cn(
-                      "flex items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150",
-                      active ? ACTIVE_NAV : INACTIVE_NAV,
-                    )}
-                  >
-                    <span className="flex items-center gap-2.5">
-                      <Icon className="h-[18px] w-[18px]" aria-hidden />
-                      {item.label}
-                    </span>
-                    {count > 0 ? (
-                      <span className="inline-flex min-w-5 items-center justify-center rounded-full border border-primary/20 bg-primary/10 px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-primary">
-                        {count > 99 ? "99+" : count}
-                      </span>
-                    ) : null}
-                  </Link>
-                )
-              })}
+            <div className="flex-1 space-y-4 overflow-y-auto px-3 py-3">
+              {sections.map((section, index) => (
+                <div key={section.title} className="space-y-1">
+                  {index > 0 ? <div className="border-t border-border/30" /> : null}
+                  <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-muted-foreground">
+                    {section.title}
+                  </p>
+                  {section.items.map((item) => {
+                    const active = isStaffNavItemActive({
+                      pathname,
+                      href: item.href,
+                      currentStatus,
+                      statusFilteredDashboard,
+                      allHrefs: navHrefs,
+                    })
+                    const count = item.badgeKey ? counts[item.badgeKey] : 0
+                    const Icon = STAFF_NAV_ICONS[item.icon]
+                    const current = isStaffNavHrefCurrent({
+                      pathname,
+                      href: item.href,
+                      currentSearch,
+                    })
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        prefetch={false}
+                        onClick={(event) => {
+                          if (shouldNoopCurrentNavigation(event, current)) {
+                            event.preventDefault()
+                          }
+                          setOpen(false)
+                        }}
+                        tabIndex={open ? undefined : -1}
+                        aria-current={active ? "page" : undefined}
+                        className={cn(
+                          "flex items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150",
+                          active ? ACTIVE_NAV : INACTIVE_NAV,
+                        )}
+                      >
+                        <span className="flex items-center gap-2.5">
+                          <Icon className="h-[18px] w-[18px]" aria-hidden />
+                          {item.label}
+                        </span>
+                        {count > 0 ? (
+                          <span className="inline-flex min-w-5 items-center justify-center rounded-full border border-primary/20 bg-primary/10 px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-primary">
+                            {count > 99 ? "99+" : count}
+                          </span>
+                        ) : null}
+                      </Link>
+                    )
+                  })}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </nav>
+        </nav>
+      </>
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 
 import { onFirstInteraction } from '@/lib/browser/first-interaction'
+import { AUTH_HANDOFF_EVENT, createAuthHandoffRefreshGuard } from '@/lib/navigation/auth-handoff'
 
 const AUTH_IMMEDIATE_PATH_PREFIXES = [
   '/account',
@@ -125,6 +126,11 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
     let cancelIdleLoad: (() => void) | null = null
     let cancelSentryUserInteraction: (() => void) | null = null
     let cancelSentryUserIdle: (() => void) | null = null
+    const authHandoffRefreshGuard = createAuthHandoffRefreshGuard()
+
+    const suppressAuthRefreshForHandoff = () => {
+      authHandoffRefreshGuard.suppress()
+    }
 
     const syncSentryUserContext = (newSession: Session | null) => {
       cancelSentryUserInteraction?.()
@@ -158,6 +164,8 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
       return
     }
 
+    window.addEventListener(AUTH_HANDOFF_EVENT, suppressAuthRefreshForHandoff)
+
     const loadAuth = () => {
       void import('@/lib/supabase/client')
         .then(async ({ createClient }) => {
@@ -172,6 +180,7 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
 
               // Refresh server-side state when auth changes
               if (_event === 'SIGNED_IN' || _event === 'SIGNED_OUT' || _event === 'TOKEN_REFRESHED') {
+                if (authHandoffRefreshGuard.shouldSuppress()) return
                 router.refresh()
               }
 
@@ -213,6 +222,7 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
       cancelIdleLoad?.()
       cancelSentryUserInteraction?.()
       cancelSentryUserIdle?.()
+      window.removeEventListener(AUTH_HANDOFF_EVENT, suppressAuthRefreshForHandoff)
       subscription?.unsubscribe()
     }
   }, [router])

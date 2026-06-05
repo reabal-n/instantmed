@@ -9,6 +9,7 @@ import {
 import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { acquireIntakeLock } from "@/lib/data/intake-lock"
+import { startParchmentPrescribing } from "@/lib/data/intakes"
 import { getProfileById } from "@/lib/data/profiles"
 import {
   getParchmentPatientSyncEligibility,
@@ -281,6 +282,14 @@ export async function getParchmentPrescribeUrlAction(
       doctorProfile.parchment_user_id,
       `/embed/patients/${parchmentPatientId}/prescriptions`,
     )
+
+    const prescribingStarted = await startParchmentPrescribing(intakeId, authResult.profile.id)
+    if (!prescribingStarted) {
+      return {
+        success: false,
+        error: "Could not start the prescribing session. Refresh the case and try again.",
+      }
+    }
 
     try {
       await logNoPrescribingInPlatform(
