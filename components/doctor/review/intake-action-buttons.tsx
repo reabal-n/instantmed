@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowUpRight, CheckCircle, ClipboardCheck, Clock, Loader2, Send } from "lucide-react"
+import { ArrowUpRight, CheckCircle, ClipboardCheck, Clock, Loader2, Send, X } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
@@ -9,15 +9,6 @@ import { toast } from "sonner"
 import { markScriptSentAction } from "@/app/doctor/queue/actions"
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
@@ -36,6 +27,36 @@ import { formatMinutes } from "@/lib/format/dates"
 import { cn } from "@/lib/utils"
 
 const DECISION_WAIT_SIGNAL_CADENCE_MS = 60_000
+const MANUAL_SCRIPT_PANEL_STORAGE_KEY = "instantmed:manual-script-panel-intake-id"
+
+function getStoredManualScriptPanelIntakeId() {
+  if (typeof window === "undefined") return null
+  try {
+    return window.sessionStorage.getItem(MANUAL_SCRIPT_PANEL_STORAGE_KEY)
+  } catch {
+    return null
+  }
+}
+
+function persistManualScriptPanelIntakeId(intakeId: string) {
+  if (typeof window === "undefined") return
+  try {
+    window.sessionStorage.setItem(MANUAL_SCRIPT_PANEL_STORAGE_KEY, intakeId)
+  } catch {
+    // Non-critical UI restoration only.
+  }
+}
+
+function clearManualScriptPanelIntakeId(intakeId: string) {
+  if (typeof window === "undefined") return
+  try {
+    if (window.sessionStorage.getItem(MANUAL_SCRIPT_PANEL_STORAGE_KEY) === intakeId) {
+      window.sessionStorage.removeItem(MANUAL_SCRIPT_PANEL_STORAGE_KEY)
+    }
+  } catch {
+    // Non-critical UI restoration only.
+  }
+}
 
 function ShortcutHint({
   children,
@@ -534,6 +555,17 @@ function MarkSentManuallyButton({ intakeId, disabled = false }: { intakeId: stri
   const reasonInputRef = useRef<HTMLInputElement>(null)
   const referenceInputId = `mark-sent-parchment-reference-${intakeId}`
   const reasonInputId = `mark-sent-reason-${intakeId}`
+  const panelId = `mark-sent-panel-${intakeId}`
+  const titleId = `mark-sent-title-${intakeId}`
+  const descriptionId = `mark-sent-description-${intakeId}`
+  const setManualPanelOpen = useCallback((nextOpen: boolean) => {
+    if (nextOpen) {
+      persistManualScriptPanelIntakeId(intakeId)
+    } else {
+      clearManualScriptPanelIntakeId(intakeId)
+    }
+    setOpen(nextOpen)
+  }, [intakeId])
   const reset = useCallback(() => {
     if (referenceInputRef.current) referenceInputRef.current.value = ""
     if (reasonInputRef.current) reasonInputRef.current.value = ""
@@ -541,13 +573,14 @@ function MarkSentManuallyButton({ intakeId, disabled = false }: { intakeId: stri
 
   useEffect(() => {
     reset()
+    setOpen(getStoredManualScriptPanelIntakeId() === intakeId)
   }, [intakeId, reset])
 
   const closeManualPanel = useCallback(() => {
     reset()
-    setOpen(false)
+    setManualPanelOpen(false)
     window.requestAnimationFrame(() => triggerRef.current?.focus())
-  }, [reset, setOpen])
+  }, [reset, setManualPanelOpen])
 
   useEffect(() => {
     if (!open) return
@@ -581,7 +614,7 @@ function MarkSentManuallyButton({ intakeId, disabled = false }: { intakeId: stri
       )
       if (result.success) {
         toast.success("Script recorded. Approve the request when ready.")
-        setOpen(false)
+        setManualPanelOpen(false)
         reset()
         router.refresh()
       } else {
@@ -591,77 +624,91 @@ function MarkSentManuallyButton({ intakeId, disabled = false }: { intakeId: stri
   }
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(nextOpen) => {
-        if (nextOpen) {
-          setOpen(true)
-          return
-        }
-        closeManualPanel()
-      }}
-    >
-      <DialogTrigger asChild>
-        <Button
-          ref={triggerRef}
-          variant="outline"
-          size="sm"
-          disabled={disabled || isPending}
-          aria-expanded={open}
+    <div className="relative">
+      {open ? (
+        <div
+          id={panelId}
+          role="dialog"
+          aria-modal="false"
+          aria-labelledby={titleId}
+          aria-describedby={descriptionId}
+          className="fixed bottom-[4.5rem] left-2 right-2 z-50 grid gap-4 rounded-xl border border-border bg-card/95 p-4 text-left shadow-xl shadow-primary/[0.12] backdrop-blur-xl sm:left-auto sm:right-4 sm:w-[min(92vw,36rem)]"
         >
-          <ClipboardCheck className="h-4 w-4 mr-1.5" />
-          {open ? "Recording outside Parchment" : "Sent outside Parchment"}
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Confirm sent outside Parchment</DialogTitle>
-          <DialogDescription>
-            Record this only after the script was sent through another channel.
-            The patient is notified after you press Approve.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-2 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label htmlFor={referenceInputId}>
-              Parchment or external reference
-            </Label>
-            <Input
-              id={referenceInputId}
-              ref={referenceInputRef}
-              placeholder="e.g., PAR-12345"
-              disabled={isPending || !open}
-            />
+          <div className="flex items-start justify-between gap-3 border-b border-border pb-3">
+            <div className="min-w-0 space-y-1.5">
+              <h2 id={titleId} className="text-base font-semibold leading-tight">
+                Confirm sent outside Parchment
+              </h2>
+              <p id={descriptionId} className="text-sm leading-relaxed text-muted-foreground">
+                Record this only after the script was sent through another channel.
+                The patient is notified after you press Approve.
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={closeManualPanel}
+              disabled={isPending}
+              aria-label="Close"
+              className="shrink-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor={reasonInputId}>
-              Channel used (recorded in the audit log)
-            </Label>
-            <Input
-              id={reasonInputId}
-              ref={reasonInputRef}
-              placeholder="e.g., Paper script handed to patient"
-              disabled={isPending || !open}
-            />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor={referenceInputId}>
+                Parchment or external reference
+              </Label>
+              <Input
+                id={referenceInputId}
+                ref={referenceInputRef}
+                placeholder="e.g., PAR-12345"
+                disabled={isPending || !open}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor={reasonInputId}>
+                Channel used (recorded in the audit log)
+              </Label>
+              <Input
+                id={reasonInputId}
+                ref={reasonInputRef}
+                placeholder="e.g., Paper script handed to patient"
+                disabled={isPending || !open}
+              />
+            </div>
+          </div>
+          <p className="text-xs font-medium text-muted-foreground" aria-live="polite">
+            Reference or channel is required.
+          </p>
+          <div className="flex flex-col-reverse gap-2 border-t border-border pt-3 sm:flex-row sm:justify-end">
+            <Button variant="outline" onClick={closeManualPanel} disabled={isPending}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirm}
+              disabled={isPending}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Confirm sent
+            </Button>
           </div>
         </div>
-        <p className="text-xs font-medium text-muted-foreground" aria-live="polite">
-          Reference or channel is required.
-        </p>
-        <DialogFooter>
-          <Button variant="outline" onClick={closeManualPanel} disabled={isPending}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleConfirm}
-            disabled={isPending}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            Confirm sent
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      ) : null}
+      <Button
+        ref={triggerRef}
+        variant="outline"
+        size="sm"
+        disabled={disabled || isPending}
+        aria-expanded={open}
+        aria-controls={open ? panelId : undefined}
+        onClick={() => setManualPanelOpen(true)}
+      >
+        <ClipboardCheck className="h-4 w-4 mr-1.5" />
+        {open ? "Recording outside Parchment" : "Sent outside Parchment"}
+      </Button>
+    </div>
   )
 }

@@ -56,9 +56,14 @@ describe("doctor review prescribing controls", () => {
     expect(queueSheetActionsSource).toContain("Complete patient identity")
   })
 
-  it("keeps manual script evidence out of browser session storage", () => {
-    expect(queueSheetActionsSource).not.toContain("sessionStorage")
-    expect(queueSheetActionsSource).not.toContain("instantmed:manual-script-panel")
+  it("keeps manual script evidence values out of browser session storage", () => {
+    expect(queueSheetActionsSource).toContain(
+      'MANUAL_SCRIPT_PANEL_STORAGE_KEY = "instantmed:manual-script-panel-intake-id"',
+    )
+    expect(queueSheetActionsSource).not.toContain("sessionStorage.setItem(MANUAL_SCRIPT_PANEL_STORAGE_KEY, externalReference")
+    expect(queueSheetActionsSource).not.toContain("sessionStorage.setItem(MANUAL_SCRIPT_PANEL_STORAGE_KEY, reasonNote")
+    expect(queueSheetActionsSource).not.toContain("sessionStorage.setItem(MANUAL_SCRIPT_PANEL_STORAGE_KEY, referenceInputRef")
+    expect(queueSheetActionsSource).not.toContain("sessionStorage.setItem(MANUAL_SCRIPT_PANEL_STORAGE_KEY, reasonInputRef")
   })
 
   it("requires explicit manual script evidence before recording script_sent", () => {
@@ -76,8 +81,11 @@ describe("doctor review prescribing controls", () => {
 
   it("gives the inline manual script panel dialog-like keyboard and screen-reader semantics", () => {
     expect(queueSheetActionsSource).toContain('data-review-action-rail="true"')
-    expect(queueSheetActionsSource).toContain("DialogContent")
-    expect(queueSheetActionsSource).toContain("DialogTitle")
+    expect(queueSheetActionsSource).toContain('role="dialog"')
+    expect(queueSheetActionsSource).toContain('aria-modal="false"')
+    expect(queueSheetActionsSource).toContain("aria-labelledby={titleId}")
+    expect(queueSheetActionsSource).toContain("MANUAL_SCRIPT_PANEL_STORAGE_KEY")
+    expect(queueSheetActionsSource).toContain("sessionStorage.setItem")
     expect(queueSheetActionsSource).toContain("Confirm sent outside Parchment")
     expect(queueSheetActionsSource).toContain('event.key === "Escape"')
   })

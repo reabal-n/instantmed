@@ -63,6 +63,12 @@ function isPostConversionPath() {
   return POST_CONVERSION_PATH_PREFIXES.some((prefix) => path.startsWith(prefix))
 }
 
+function isAuthenticatedAppPath() {
+  if (typeof window === "undefined") return false
+  const path = window.location.pathname
+  return AUTHENTICATED_APP_PATH_PREFIXES.some((prefix) => path.startsWith(prefix))
+}
+
 function shouldLoadCookieBanner() {
   if (typeof window === "undefined") return false
   const path = window.location.pathname
@@ -134,9 +140,10 @@ export function GlobalDeferredClients() {
       )
     }
 
-    // Post-conversion pages bypass the first-interaction gate so gtag
-    // purchase events fire even for users who leave without scrolling.
-    if (isPostConversionPath()) {
+    // Post-conversion and authenticated app shells bypass the first-interaction
+    // gate. Staff/patient clinical actions should not be the trigger that loads
+    // global deferred clients and remounts late overlays.
+    if (isPostConversionPath() || isAuthenticatedAppPath()) {
       loadClients()
     } else {
       cleanup.push(onFirstInteraction(loadClients))
