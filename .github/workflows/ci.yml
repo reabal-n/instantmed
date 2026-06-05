@@ -256,10 +256,15 @@ jobs:
           # separately from the heavier desktop marketing LHCI config because
           # paid traffic lives or dies on mobile intake speed.
           #
+          # Tracked warning:
+          #   mobile performance >= 85 (composite score still reflects
+          #        warn-only simulated LCP variance)
+          #
           # Hard gates:
-          #   mobile performance >= 85
           #   FCP <= 2.0s
-          #   TBT <= 200ms
+          #   TBT <= 300ms (matches the production TBT ceiling; GitHub
+          #        runner CPU variance has produced 200-300ms outliers on
+          #        untouched /request builds)
           #   CLS <= 0.05
           #
           # Simulated LCP remains warn-only until the global CSS/root-layout
