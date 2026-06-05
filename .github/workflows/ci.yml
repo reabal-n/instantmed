@@ -278,6 +278,7 @@ jobs:
         with:
           name: lighthouse-report
           path: .lighthouseci/
+          if-no-files-found: ignore
           retention-days: 14
 
   e2e:
