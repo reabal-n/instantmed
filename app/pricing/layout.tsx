@@ -9,7 +9,7 @@ export const revalidate = 86400
 export const metadata: Metadata = {
   title: "Telehealth Pricing | No Hidden Fees",
   description:
-    `Med certs from ${PRICING_DISPLAY.MED_CERT}, prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}. No subscriptions, no hidden fees. Full refund if we can't help.`,
+    `Med certs from ${PRICING_DISPLAY.MED_CERT}, prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}. No subscriptions, no hidden fees. Full refund if the doctor declines.`,
   keywords: [
     "telehealth pricing australia",
     "online doctor cost",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "Telehealth Pricing | Simple & Transparent | InstantMed",
-    description: `Medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}. No subscriptions, no hidden fees. 100% refund if we can't help.`,
+    description: `Medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}. No subscriptions, no hidden fees. Full refund if the doctor declines.`,
     url: "https://instantmed.com.au/pricing",
     type: "website",
   },

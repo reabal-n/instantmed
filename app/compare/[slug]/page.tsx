@@ -105,7 +105,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
         a: "A reasonable rule of thumb: if you could describe the problem over the phone and the doctor wouldn't need to touch you, it's probably suitable. Cold and flu symptoms, repeat scripts, medical certificates, and skin concerns visible in photos are all good fits. Chest pain, severe injuries, or breathing difficulties need in-person or emergency care."
       },
       {
-        q: "What happens if the telehealth doctor can't help me?",
+        q: "What happens if the telehealth doctor declines my request?",
         a: "A responsible telehealth service will tell you when your issue needs in-person care. At InstantMed, if a doctor can't safely help through telehealth, they'll advise you to see a GP or attend an emergency department - and you'll receive a full refund."
       },
       {

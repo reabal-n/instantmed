@@ -81,7 +81,7 @@ export function MedCertClientControls({ stickyTargetId }: MedCertClientControlsP
         mobileFooter={<StripePaymentLogos className="mt-1.5 opacity-60" />}
         // The CertComparisonViz above already uses certTurnaroundMinutes
         // (20) as the headline number. The sticky used to read
-        // "Avg response: 44 min", which conflicted with the 20 min number
+        // the generic response-time copy, which conflicted with the 20 min number
         // higher up the page (Tier 1 review 2026-05-26 /medical-certificate
         // #6). Now both label the same journey: certificate ready in
         // about 20 min, doctor-review-driven.

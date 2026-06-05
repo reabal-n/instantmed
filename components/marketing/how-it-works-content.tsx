@@ -34,7 +34,7 @@ const processSteps = [
   {
     title: "Get your document",
     description:
-      "If approved: med cert emailed as PDF, medication sent to your phone for any pharmacy. If not approved, you get a full refund. No questions asked.",
+      "If approved: med cert emailed as PDF, medication sent to your phone for any pharmacy. If declined, you get a full refund automatically.",
   },
 ]
 
@@ -43,7 +43,7 @@ const features = [
     icon: <StickerIcon name="clock" size={44} />,
     title: "Fast turnaround",
     description:
-      "Doctor review follows when available. If we can't help, you get a full refund.",
+      "Doctor review follows when available. If declined, you get a full refund.",
   },
   {
     icon: <StickerIcon name="security-shield" size={44} />,
@@ -143,7 +143,7 @@ const HOW_IT_WORKS_FAQ = [
   { question: "Will my employer accept an online medical certificate?", answer: "Certificates from AHPRA-registered doctors can support workplace evidence requirements. Employer policies and individual circumstances may vary." },
   { question: "Do I need to be available for a call?", answer: "Usually no booked appointment is needed. You submit your form, the doctor reviews it, and we only interrupt you if something important is missing." },
   { question: "Do I need a Medicare card?", answer: "For medical certificates, no. For prescriptions and consultations, Medicare details are requested for identity and prescribing history verification, but this is a private service." },
-  { question: "What if the doctor can't help me?", answer: "You get a full refund. If your situation requires in-person care or falls outside telehealth scope, the doctor will recommend appropriate next steps." },
+  { question: "What if my request is declined?", answer: "You get a full refund. If your situation requires in-person care or falls outside telehealth scope, the doctor will recommend appropriate next steps." },
   { question: "Is my information private?", answer: "Completely. Your health data is encrypted with bank-level security and never shared with employers, insurers, or anyone else without your consent." },
   { question: "Can I use this for my kids?", answer: "We primarily serve adults (18+). Minors may be assessed with parental consent for certain services, but complex paediatric cases should be seen by a GP in person." },
   { question: "How do I receive my documents?", answer: "Medical certificates are emailed as PDFs and available in your patient dashboard. Prescriptions are sent as eScripts via SMS. Take your phone to any pharmacy." },

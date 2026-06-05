@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useMemo,useRef } from "react"
+import { useEffect, useMemo, useRef } from "react"
 
+import { shouldTrackIntakeComplete } from "@/lib/analytics/funnel-milestones"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { onFirstInteraction } from "@/lib/browser/first-interaction"
 import { canonicalizeServiceType } from "@/lib/request/draft-storage"
@@ -137,7 +138,7 @@ export function useFlowAnalytics({
       tracked.add("start")
     }
 
-    if (currentStepId === "checkout" && !tracked.has("intake_complete")) {
+    if (shouldTrackIntakeComplete({ currentStepId, serviceType }) && !tracked.has("intake_complete")) {
       trackFunnelStepDeferred("intake_complete", analyticsServiceType, patientEmail)
       tracked.add("intake_complete")
     }

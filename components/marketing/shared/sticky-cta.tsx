@@ -23,7 +23,7 @@ interface StickyCTAProps {
   onCTAClick?: () => void
   /** Extra mobile content (e.g. payment icons) */
   mobileFooter?: React.ReactNode
-  /** Optional response time text (e.g. "Avg response: ~44 min") */
+  /** Optional response-time text. */
   responseTime?: string
 }
 

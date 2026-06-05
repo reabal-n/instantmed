@@ -21,7 +21,7 @@ export const GENERAL_FAQ: FAQGroup[] = [
       {
         question: 'How long does it take?',
         answer:
-          "Requests can be submitted any time. Medical certificates are typically reviewed quickly, and prescriptions or consultations are reviewed when a doctor is available. If we can\u2019t help you, you get a full refund \u2014 no questions asked.",
+          "Requests can be submitted any time. Medical certificates are typically reviewed quickly, and prescriptions or consultations are reviewed when a doctor is available. If the doctor declines your request, you get a full refund.",
       },
       {
         question: 'How do I know if I need an in-person visit instead?',

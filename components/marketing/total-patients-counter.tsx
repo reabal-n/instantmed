@@ -38,7 +38,7 @@ export const STAT_PRESETS: Record<string, readonly StatEntry[]> = {
     { icon: Clock, value: SOCIAL_PROOF.averageResponseMinutes, suffix: ' min', label: 'avg response', color: 'text-primary' },
     { icon: TrendingUp, value: SOCIAL_PROOF.operatingDays, suffix: '', label: 'days a week', color: 'text-primary' },
     { icon: ShieldCheck, value: SOCIAL_PROOF.ahpraVerifiedPercent, suffix: '%', label: 'doctor reviewed', color: 'text-success' },
-    { icon: CheckCircle2, value: SOCIAL_PROOF.refundPercent, suffix: '%', label: "refund if we can't help", color: 'text-success' },
+    { icon: CheckCircle2, value: SOCIAL_PROOF.refundPercent, suffix: '%', label: "refund if declined", color: 'text-success' },
   ],
 } as const
 

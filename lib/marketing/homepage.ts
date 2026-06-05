@@ -265,7 +265,7 @@ export const featuredServices = [
 export const faqItems = [
   {
     question: "What if the doctor says no?",
-    answer: "Full refund if we can't help. We'd rather be upfront than charge for something a doctor can't clinically assist with.",
+    answer: "Full refund if the doctor declines. We'd rather be upfront than charge for something outside online care scope.",
   },
   {
     question: "How fast is it really?",
@@ -317,5 +317,5 @@ export const slaPolicy = {
     "High-demand periods (public holidays, flu season)",
   ],
   escalationNote: "If your request needs clarification, a doctor may message you or offer a brief call at no extra charge.",
-  refundNote: "If we can't help you, you'll receive a full refund. No questions asked.",
+  refundNote: "If the doctor declines your request, you'll receive a full refund automatically.",
 }

@@ -73,7 +73,7 @@ Service-specific stat configurations for social proof strips.
 | `WEDGE` | `string` | Default platform wedge: no appointment, no waiting room, secure clinical form. |
 | `MED_CERT_WEDGE` | `string` | Med-cert-only wedge: "No video. No call. No appointment." |
 | `FORM_FIRST_WEDGE` | `string` | Prescribing/specialty wedge: doctor contacts the patient only if clinically needed. |
-| `GUARANTEE` | `string` | Outcome guarantee: "Full refund if our doctor can't help." |
+| `GUARANTEE` | `string` | Outcome guarantee: "Full refund if the doctor declines." |
 | `BANNED_PHRASES` | `readonly string[]` | Brand voice banned phrases enforced by tests. |
 
 **Rule:** Marketing surfaces must import voice constants instead of hardcoding wedge/guarantee copy. Healthcare advertising rules live in `docs/ADVERTISING_COMPLIANCE.md`; SEO rules live in `docs/SEO_CONTENT_POLICY.md`.

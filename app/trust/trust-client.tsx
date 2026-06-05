@@ -289,7 +289,7 @@ export default function TrustPage() {
               {[
                 "Every request is human-reviewed",
                 "General complaints responded to within 48 hours",
-                "Full refund if we can't help",
+                "Full refund if the doctor declines",
                 "Escalation to Health Complaints Commissioner",
               ].map((point) => (
                 <li

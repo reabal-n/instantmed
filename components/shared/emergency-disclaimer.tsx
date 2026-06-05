@@ -20,7 +20,7 @@ export const SAFETY_COPY = {
   full: {
     title: "Important safety information",
     body: "This is a telehealth service for non-urgent conditions. If you're experiencing a medical emergency, please call 000 immediately.",
-    refundNote: "If we can't help with your request, you'll receive a full refund.",
+    refundNote: "If the doctor declines your request, you'll receive a full refund.",
   },
   // Compact one-liner
   compact: {

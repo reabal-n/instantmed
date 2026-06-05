@@ -1,8 +1,11 @@
 import { EMPTY_GOOGLE_ADS_HEALTH, getGoogleAdsHealth } from "@/lib/analytics/google-ads-health"
+import { buildGoogleAdsProfitSnapshot } from "@/lib/analytics/google-ads-profit-summary"
+import { getGoogleAdsSpendAuditReport } from "@/lib/analytics/google-ads-report"
 import { requireRole } from "@/lib/auth/helpers"
 import { getGeographicBreakdown } from "@/lib/data/analytics-geographic"
 import { getBusinessOperatingScorecard } from "@/lib/data/business-scorecard"
 import { getIntakeMonitoringStats } from "@/lib/data/intakes"
+import { getRecoveryScorecard } from "@/lib/data/recovery-scorecard"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import {
   EMPTY_PRESCRIPTION_FULFILMENT_DASHBOARD,
@@ -82,6 +85,12 @@ export default async function AnalyticsDashboardPage() {
 
     // [10] Operating scorecard: revenue, capacity, support load, and hire triggers
     getBusinessOperatingScorecard(supabase, now),
+
+    // [11] Google Ads profit truth: spend joined to local paid-order revenue
+    getGoogleAdsSpendAuditReport({ days: 30, now, supabase }),
+
+    // [12] Recovery funnel: partial intakes, recovery sends, and recovered revenue
+    getRecoveryScorecard(supabase, now, 30),
   ])
 
   // Extract results with safe fallbacks
@@ -105,6 +114,12 @@ export default async function AnalyticsDashboardPage() {
     : { windowDays: 30, totalPatients: 0, topStates: [], unknownCount: 0 }
   const businessScorecard = results[10].status === "fulfilled"
     ? results[10].value
+    : null
+  const googleAdsProfit = results[11].status === "fulfilled"
+    ? buildGoogleAdsProfitSnapshot(results[11].value)
+    : null
+  const recoveryScorecard = results[12].status === "fulfilled"
+    ? results[12].value
     : null
 
   // Calculate revenue totals
@@ -135,6 +150,8 @@ export default async function AnalyticsDashboardPage() {
       oldestInQueueMinutes: monitoringStats.oldestInQueueMinutes,
     },
     googleAds,
+    googleAdsProfit,
+    recoveryScorecard,
     prescriptionFulfilment,
     businessScorecard,
   }

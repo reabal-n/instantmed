@@ -143,7 +143,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
       'Follow-up messaging with your doctor',
       'Written summary of your consultation',
     ],
-    refundNote: 'Full refund if we can\'t help with your concern',
+    refundNote: 'Full refund if the doctor declines your request',
     medicareNote: 'Medicare rebates do not apply to telehealth consultations',
   },
 

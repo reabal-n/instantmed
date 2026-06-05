@@ -37,7 +37,7 @@ Four strings, four jobs. Do not mix them up.
 
 **Plus one guarantee, always visible at conversion points:**
 
-> *Full refund if our doctor can't help.*
+> *Full refund if the doctor declines.*
 
 This is the merchandised promise. It lives above checkout CTAs, inline on hero CTAs, and on `/guarantee`. It is not a tagline, not a wedge, and not a time guarantee.
 
@@ -74,7 +74,7 @@ This is the merchandised promise. It lives above checkout CTAs, inline on hero C
 9. *No video. No call. No appointment.*
 10. *Complete a secure clinical form. A doctor contacts you only if more information is clinically needed.*
 11. *The doctor is in.* (legacy / alternative hook)
-12. *Full refund if our doctor can't help.*
+12. *Full refund if the doctor declines.*
 13. *Real doctors. No runaround.*
 14. *A doctor, not a queue.*
 15. *AHPRA doctors. Every single time.*

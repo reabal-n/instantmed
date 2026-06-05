@@ -30,7 +30,7 @@ import { PRICING } from "@/lib/constants"
 import { PRESCRIPTION_FAQ } from "@/lib/data/prescription-faq"
 import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
 import { commercialPrescriptionLinks } from "@/lib/seo/commercial-links"
-import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
+import { SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 import { cn } from "@/lib/utils"
 
 // Below-fold lazy loads
@@ -94,7 +94,7 @@ const HOW_IT_WORKS_STEPS = [
     step: 2,
     title: "A real doctor reviews it",
     description: "An AHPRA-registered doctor checks your request and medical history.",
-    time: `~${SOCIAL_PROOF.averageResponseMinutes} min`,
+    time: "Reviewed when available",
   },
   {
     sticker: "sent" as const,
@@ -112,7 +112,7 @@ const LANDING_CONFIG: LandingPageConfig = {
     ctaText: `Renew your medication · $${PRICING.REPEAT_SCRIPT.toFixed(2)}`,
     ctaHref: "/request?service=repeat-script",
     mobileSummary: `Need your medication? Open ${SOCIAL_PROOF_DISPLAY.operatingHours} AEST.`,
-    responseTime: `Avg response: ${SOCIAL_PROOF_DISPLAY.responseTime}`,
+    responseTime: "Doctor-reviewed after submission",
   },
 }
 

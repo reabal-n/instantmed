@@ -78,7 +78,7 @@ const PLATFORM_STATS: StatItem[] = [
   { value: SOCIAL_PROOF.certTurnaroundMinutes, suffix: " min", label: "avg cert turnaround" },
   { value: SOCIAL_PROOF.averageResponseMinutes, suffix: " min", label: "avg doctor review" },
   { value: SOCIAL_PROOF.operatingDays, suffix: "", label: "days a week" },
-  { value: SOCIAL_PROOF.refundPercent, suffix: "%", label: "refund if we can't help" },
+  { value: SOCIAL_PROOF.refundPercent, suffix: "%", label: "refund if declined" },
 ]
 
 export default async function ConditionPage({ params }: PageProps) {

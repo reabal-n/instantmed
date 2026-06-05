@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
  * GuaranteeBadge - the outcome refund promise pill.
  *
  * Single source of truth is `GUARANTEE` in lib/marketing/voice.ts
- * ("Full refund if our doctor can't help.")
+ * ("Full refund if the doctor declines.")
  *
  * Renders in three sizes so it can live above a checkout CTA (`md`),
  * inline on heroes (`sm`), or on a dedicated standalone block (`lg`).

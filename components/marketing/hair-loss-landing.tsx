@@ -25,7 +25,6 @@ import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING } from "@/lib/constants"
 import { HAIR_LOSS_FAQ } from "@/lib/data/hair-loss-faq"
 import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 // Below-fold lazy loads
 const HowItWorksInline = dynamic(
@@ -66,7 +65,7 @@ const HOW_IT_WORKS_STEPS = [
     step: 2,
     title: "A real doctor reviews it",
     description: "An AHPRA-registered doctor reviews your assessment and decides the next step.",
-    time: `~${SOCIAL_PROOF.averageResponseMinutes} min`,
+    time: "Reviewed when available",
   },
   {
     sticker: "pill-bottle" as const,
@@ -81,8 +80,8 @@ const PRICING_BULLETS = [
   "AHPRA-registered Australian doctor reviews your form",
   "eScript sent to your phone once approved",
   "Collect from any Australian pharmacy",
-  "We'll reach out only if one more detail is needed",
-  "Full refund if we can't help",
+  "The doctor contacts you if more information is clinically needed",
+  "Full refund if the doctor declines",
 ]
 
 const ASSESSMENT_AREAS = [
@@ -131,7 +130,7 @@ const LANDING_CONFIG: LandingPageConfig = {
     ctaText: `Start assessment · $${PRICING.HAIR_LOSS.toFixed(2)}`,
     ctaHref: "/request?service=consult&subtype=hair_loss",
     mobileSummary: "2-min form · Doctor-reviewed · No waiting room",
-    responseTime: `Avg response: ${SOCIAL_PROOF.averageResponseMinutes} min`,
+    responseTime: "Doctor-reviewed after submission",
   },
 }
 
@@ -208,7 +207,7 @@ function HairLossComparisonViz() {
       <TimeComparisonViz
         pill="Why go online?"
         heading="Start the review from home."
-        ours={{ label: "InstantMed", value: "~1", unit: "hr" }}
+        ours={{ label: "InstantMed", value: "Form", unit: "first" }}
         theirs={{ label: "GP clinic", value: "2", valueSuffix: "+", unit: "hrs" }}
         ourSteps={["2-min health form", "Doctor reviews privately", "Outcome by SMS"]}
         theirSteps={["Book appointment", "Travel + wait in clinic", "Face-to-face consult"]}
@@ -228,7 +227,7 @@ function HairLossPricingSection({ isDisabled }: { isDisabled?: boolean }) {
             One flat fee. No hidden costs.
           </Heading>
           <p className="text-muted-foreground max-w-xl mx-auto text-balance">
-            You only pay if the doctor can help.
+            Doctor review first. Full refund if declined.
           </p>
         </Reveal>
 

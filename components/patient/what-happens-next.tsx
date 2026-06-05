@@ -53,7 +53,7 @@ const FAQ_ITEMS = [
   },
   {
     question: "What if my request isn't approved?",
-    answer: "You get a full refund, no questions asked. The doctor will explain why and suggest next steps if appropriate.",
+    answer: "You get a full refund. The doctor will explain why and suggest next steps if appropriate.",
   },
   {
     question: "How do I get my document?",

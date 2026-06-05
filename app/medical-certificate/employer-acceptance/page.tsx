@@ -310,7 +310,7 @@ export default function EmployerAcceptancePage() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <p className="mt-4 text-sm text-muted-foreground">{PRICING_DISPLAY.MED_CERT} • Refund if we can&apos;t help</p>
+              <p className="mt-4 text-sm text-muted-foreground">{PRICING_DISPLAY.MED_CERT} • Refund if declined</p>
             </div>
           </section>
 

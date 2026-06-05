@@ -19,7 +19,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
 export const metadata: Metadata = {
   title: { absolute: "What we won't do | InstantMed" },
   description:
-    "The limits we lead with. Most platforms hide them. We don't. Clinical scope, what we refuse to prescribe, and how we treat you when we can't help.",
+    "The limits we lead with. Most platforms hide them. We don't. Clinical scope, what we refuse to prescribe, and how we handle declines.",
   alternates: { canonical: "/what-we-wont-do" },
   openGraph: {
     title: "What we won't do | InstantMed",
@@ -155,7 +155,7 @@ export default function WhatWeWontDoPage() {
             pill="The limits we lead with"
             title="What we won't do."
             highlightWords={["won't"]}
-            subtitle="Most platforms hide their limits. We lead with ours. Clinical scope, what we refuse to prescribe, and how we treat you when we can't help."
+            subtitle="Most platforms hide their limits. We lead with ours: clinical scope, what we refuse to prescribe, and how we handle declines."
           />
 
           <ServiceClaimSection
@@ -194,7 +194,7 @@ export default function WhatWeWontDoPage() {
 
           <CTABanner
             title="Ready when you are."
-            subtitle="Start with a secure form. Takes about 3 minutes. If our doctor can't help, you pay nothing."
+            subtitle="Start with a secure form. Takes about 3 minutes. If the doctor declines, you pay nothing."
             ctaText="Get started"
             ctaHref="/request"
             secondaryText="Read the guarantee"

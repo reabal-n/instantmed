@@ -63,7 +63,7 @@ export function PartialIntakeRecoveryEmail({
             "A real Australian doctor reviews your request",
             "Doctor review follows when available",
             "Your certificate is emailed to you as a PDF",
-            "Full refund if our doctor cannot help",
+            "Full refund if declined",
           ]}
         />
       </Box>

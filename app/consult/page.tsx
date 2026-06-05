@@ -76,7 +76,7 @@ const services: DetailedService[] = [
       "1, 2, or 3-day duration",
       "PDF certificate with a verifiable reference number",
       "Reviewed during AEST hours by an Australian doctor",
-      "Full refund if we can't help",
+      "Full refund if declined",
     ],
     steps: [
       "Tell us what's going on (4 short questions)",
@@ -204,12 +204,12 @@ const overviewFaqs = [
   },
   {
     question: "How much does it cost?",
-    answer: `Medical certificates from ${PRICING_DISPLAY.MED_CERT}. Repeat prescriptions ${PRICING_DISPLAY.REPEAT_SCRIPT}. ED and hair loss assessments ${PRICING_DISPLAY.MENS_HEALTH}. Flat fee, no Medicare rebate, full refund if we can't help.`,
+    answer: `Medical certificates from ${PRICING_DISPLAY.MED_CERT}. Repeat prescriptions ${PRICING_DISPLAY.REPEAT_SCRIPT}. ED and hair loss assessments ${PRICING_DISPLAY.MENS_HEALTH}. Flat fee, no Medicare rebate, full refund if the doctor declines.`,
   },
   {
     question: "What if my concern doesn't fit any of these?",
     answer:
-      "See your regular GP. We're a focused service; sending you to the right person beats taking your money for something we can't help with. If it's urgent, call your GP, an after-hours service, or 000.",
+      "See your regular GP. We're a focused service; sending you to the right person beats taking your money for something outside our scope. If it's urgent, call your GP, an after-hours service, or 000.",
   },
   {
     question: "What about referrals or pathology requests?",
@@ -303,7 +303,7 @@ export default async function ConsultOverviewPage() {
             </li>
             <li className="inline-flex items-center gap-1.5">
               <CheckCircle2 className="h-3.5 w-3.5 text-success" aria-hidden="true" />
-              Refund if we can't help
+              Refund if declined
             </li>
           </ul>
         </div>
@@ -467,7 +467,7 @@ export default async function ConsultOverviewPage() {
             </li>
             <li>
               <ShieldCheck className="mx-auto mb-2 h-5 w-5 text-primary" aria-hidden="true" />
-              <p className="text-sm font-medium text-foreground">Refund if we can't help</p>
+              <p className="text-sm font-medium text-foreground">Refund if declined</p>
               <p className="mt-1 text-xs text-muted-foreground">
                 Decline = full refund. We'd rather route you correctly than keep your money.
               </p>

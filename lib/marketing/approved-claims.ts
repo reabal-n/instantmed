@@ -113,10 +113,10 @@ export const APPROVED_CLAIMS: Record<ApprovedClaimId, ApprovedClaim> = {
   },
   refund_guarantee: {
     id: "refund_guarantee",
-    text: "Full refund if our doctor can't help.",
+    text: "Full refund if the doctor declines.",
     contexts: ["platform", "checkout"],
-    risk: "medium",
-    notes: "Outcome guarantee only. Do not add time-bound review promises.",
+    risk: "low",
+    notes: "Outcome guarantee tied to documented clinical decline. Do not add time-bound review promises.",
   },
   trust_no_appointment_label: {
     id: "trust_no_appointment_label",

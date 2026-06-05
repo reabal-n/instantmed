@@ -102,7 +102,7 @@ export function LimitationsSection() {
             </ul>
             <p className="mt-4 text-xs text-muted-foreground italic leading-relaxed">
               If your request isn&apos;t suitable, we&apos;ll refund your
-              payment and explain why - no questions asked.
+              payment and explain why.
             </p>
           </div>
         </div>

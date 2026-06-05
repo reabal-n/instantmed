@@ -383,7 +383,7 @@ export default async function StatePage({ params }: PageProps) {
                 </Link>
               </Button>
               <p className="text-xs text-muted-foreground mt-4">
-                {PRICING_DISPLAY.FROM_MED_CERT} · AHPRA-registered doctors · Refund if we can&apos;t help
+                {PRICING_DISPLAY.FROM_MED_CERT} · AHPRA-registered doctors · Refund if declined
               </p>
             </div>
           </section>

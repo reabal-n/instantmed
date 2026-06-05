@@ -18,7 +18,7 @@ export const ANXIETY_REDUCERS = {
   process: {
     whatHappens: "A real doctor reviews every request. Not a bot, not an algorithm.",
     moreInfo: "If they need more info, they'll reach out",
-    decline: "If we can't help, full refund. No awkward conversations.",
+    decline: "If the doctor declines, full refund. No awkward conversations.",
   },
 
   // Medicare validation
@@ -47,7 +47,7 @@ export const ANXIETY_REDUCERS = {
   // Trust builders
   trust: {
     doctors: "Reviewed by AHPRA-registered Australian doctors",
-    refund: "Full refund if we can't help. No questions.",
+    refund: "Full refund if the doctor declines.",
     privacy: "We never share your data",
     support: "Real humans if you need help",
   },

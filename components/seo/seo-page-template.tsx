@@ -275,7 +275,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
                 Ready to get started?
               </h2>
               <p className="text-muted-foreground mb-6">
-                Complete your request in under 2 minutes. Only pay if we can help.
+                Complete your request in under 2 minutes. Full refund if the doctor declines.
               </p>
               <Button asChild size="lg" className="rounded-full">
                 <Link href="/request">

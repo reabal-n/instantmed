@@ -18,6 +18,7 @@ import {
   Send,
   SkipForward,
   Timer,
+  TrendingDown,
   TrendingUp,
   UploadCloud,
   UserPlus,
@@ -56,6 +57,18 @@ interface AnalyticsDashboardClientProps {
 
 function formatNullableTime(value: string | null): string {
   return value ? formatTimeAgo(value) : "Not recorded"
+}
+
+function formatAud(value: number | null | undefined): string {
+  return value == null ? "No data" : formatCurrency(value)
+}
+
+function formatRatio(value: number | null | undefined): string {
+  return value == null ? "No data" : `${value.toFixed(2)}x`
+}
+
+function formatPercentValue(value: number | null | undefined): string {
+  return value == null ? "No data" : `${value}%`
 }
 
 function uploadHealthStatus(analytics: AnalyticsData["googleAds"]): StatusBadgeStatus {
@@ -113,11 +126,35 @@ function scorecardBadgeStatus(status: BusinessScorecardStatus): StatusBadgeStatu
   return "neutral"
 }
 
+type GoogleAdsProfitStatus = NonNullable<AnalyticsData["googleAdsProfit"]>["status"]
+
+function profitBadgeStatus(status: GoogleAdsProfitStatus): StatusBadgeStatus {
+  if (status === "profitable") return "success"
+  if (status === "losing" || status === "no_local_orders") return "error"
+  if (status === "unknown") return "warning"
+  return "neutral"
+}
+
+function profitCardStatus(status: GoogleAdsProfitStatus): StatCardStatus {
+  if (status === "profitable") return "success"
+  if (status === "losing" || status === "no_local_orders") return "error"
+  if (status === "unknown") return "warning"
+  return "neutral"
+}
+
+function profitStatusLabel(status: GoogleAdsProfitStatus): string {
+  if (status === "profitable") return "Profitable"
+  if (status === "losing") return "Losing"
+  if (status === "no_local_orders") return "No local orders"
+  if (status === "no_spend") return "No spend"
+  return "Incomplete"
+}
+
 export function AnalyticsDashboardClient({
   analytics,
   geographic,
 }: AnalyticsDashboardClientProps) {
-  const { businessScorecard, funnel, googleAds, prescriptionFulfilment, revenue, queueHealth } = analytics
+  const { businessScorecard, funnel, googleAds, googleAdsProfit, recoveryScorecard, prescriptionFulfilment, revenue, queueHealth } = analytics
   const payRate = funnel.started > 0 ? Math.round((funnel.paid / funnel.started) * 100) : 0
   const completeRate = funnel.paid > 0 ? Math.round((funnel.completed / funnel.paid) * 100) : 0
   const googleAdsStatus = uploadHealthStatus(googleAds)
@@ -269,6 +306,131 @@ export function AnalyticsDashboardClient({
           </section>
         ) : null}
 
+        {googleAdsProfit ? (
+          <section aria-labelledby="google-ads-profit-heading" className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 id="google-ads-profit-heading" className="text-sm font-semibold text-foreground">
+                  Paid acquisition P&amp;L
+                </h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Google Ads spend joined to local paid-order revenue over {googleAdsProfit.range.days} days.
+                </p>
+              </div>
+              <StatusBadge status={profitBadgeStatus(googleAdsProfit.status)} size="sm">
+                {profitStatusLabel(googleAdsProfit.status)}
+              </StatusBadge>
+            </div>
+
+            <DashboardGrid columns={4} gap="md">
+              <StatCard
+                label="Spend"
+                value={formatAud(googleAdsProfit.summary.spendAud)}
+                icon={<Megaphone className="h-5 w-5" />}
+                status={googleAdsProfit.summary.spendAud > 0 ? "warning" : "neutral"}
+              />
+              <StatCard
+                label="Local orders"
+                value={googleAdsProfit.summary.localOrders}
+                icon={<CreditCard className="h-5 w-5" />}
+                status={googleAdsProfit.summary.localOrders > 0 ? "success" : "error"}
+              />
+              <StatCard
+                label="Local CAC"
+                value={formatAud(googleAdsProfit.summary.costPerLocalOrderAud)}
+                icon={<WalletCards className="h-5 w-5" />}
+                status={profitCardStatus(googleAdsProfit.status)}
+              />
+              <StatCard
+                label="Net ROAS"
+                value={formatRatio(googleAdsProfit.summary.localRoas)}
+                icon={googleAdsProfit.status === "profitable" ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
+                status={profitCardStatus(googleAdsProfit.status)}
+              />
+            </DashboardGrid>
+
+            <DashboardCard padding="md">
+              <div className="grid gap-4 md:grid-cols-3">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-[0.10em] text-muted-foreground">
+                    Local net revenue
+                  </p>
+                  <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">
+                    {formatAud(googleAdsProfit.summary.localNetRevenueAud)}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Paid intake revenue after local refund adjustments.
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-[0.10em] text-muted-foreground">
+                    Net profit
+                  </p>
+                  <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">
+                    {formatAud(googleAdsProfit.summary.netProfitAud)}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Revenue minus Google Ads spend.
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-[0.10em] text-muted-foreground">
+                    Refunded
+                  </p>
+                  <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">
+                    {formatAud(googleAdsProfit.summary.refundedAud)}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Google-attributed refund amount in this window.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4 border-t border-border/60 pt-4">
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <h3 className="text-sm font-semibold text-foreground">Campaigns by spend</h3>
+                  <span className="text-xs text-muted-foreground">Local attribution only</span>
+                </div>
+                <div className="grid gap-2">
+                  {googleAdsProfit.campaigns.length > 0 ? (
+                    googleAdsProfit.campaigns.map((campaign) => (
+                      <div
+                        key={campaign.campaignId}
+                        className="grid gap-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-3 text-xs md:grid-cols-[minmax(0,1fr)_repeat(4,minmax(80px,auto))]"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-foreground">{campaign.campaignName}</p>
+                          <p className="mt-1 truncate text-muted-foreground">{campaign.primaryServiceLabel}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Spend</p>
+                          <p className="font-medium tabular-nums text-foreground">{formatAud(campaign.spendAud)}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Orders</p>
+                          <p className="font-medium tabular-nums text-foreground">{campaign.localOrders}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">CAC</p>
+                          <p className="font-medium tabular-nums text-foreground">{formatAud(campaign.costPerLocalOrderAud)}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Profit</p>
+                          <p className="font-medium tabular-nums text-foreground">{formatAud(campaign.netProfitAud)}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="rounded-lg border border-border/60 bg-muted/30 px-3 py-3 text-xs text-muted-foreground">
+                      No campaign spend rows in this window.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </DashboardCard>
+          </section>
+        ) : null}
+
         <section aria-labelledby="conversion-heading" className="space-y-3">
           <h2 id="conversion-heading" className="text-sm font-semibold text-foreground">Conversion</h2>
           <DashboardGrid columns={3} gap="md">
@@ -294,6 +456,109 @@ export function AnalyticsDashboardClient({
             />
           </DashboardGrid>
         </section>
+
+        {recoveryScorecard ? (
+          <section aria-labelledby="recovery-scorecard-heading" className="space-y-3">
+            <div>
+              <h2 id="recovery-scorecard-heading" className="text-sm font-semibold text-foreground">
+                Checkout recovery
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Partial-intake capture, recovery email coverage, and paid recovery over {recoveryScorecard.windowDays} days.
+              </p>
+            </div>
+
+            <DashboardGrid columns={4} gap="md">
+              <StatCard
+                label="Partial drafts"
+                value={recoveryScorecard.captured}
+                icon={<Activity className="h-5 w-5" />}
+                status={recoveryScorecard.captured > 0 ? "info" : "neutral"}
+              />
+              <StatCard
+                label="Email capture"
+                value={formatPercentValue(recoveryScorecard.emailCaptureRate)}
+                icon={<MailCheck className="h-5 w-5" />}
+                status={
+                  recoveryScorecard.emailCaptureRate == null
+                    ? "neutral"
+                    : recoveryScorecard.emailCaptureRate >= 60
+                      ? "success"
+                      : "warning"
+                }
+              />
+              <StatCard
+                label="Recovery sent"
+                value={recoveryScorecard.emailed}
+                icon={<Send className="h-5 w-5" />}
+                status={recoveryScorecard.emailed > 0 ? "info" : "neutral"}
+              />
+              <StatCard
+                label="Recovered net"
+                value={formatAud(recoveryScorecard.recoveredNetRevenueCents / 100)}
+                icon={<Receipt className="h-5 w-5" />}
+                status={recoveryScorecard.recoveredNetRevenueCents > 0 ? "success" : "neutral"}
+              />
+            </DashboardGrid>
+
+            <DashboardCard padding="md">
+              <div className="grid gap-4 md:grid-cols-4">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-[0.10em] text-muted-foreground">
+                    Recovered paid
+                  </p>
+                  <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">
+                    {recoveryScorecard.recoveredPaidCount}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Paid orders attributed to recovery email.
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-[0.10em] text-muted-foreground">
+                    Converted drafts
+                  </p>
+                  <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">
+                    {recoveryScorecard.converted}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Partial intakes linked to a final intake.
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-[0.10em] text-muted-foreground">
+                    Email coverage
+                  </p>
+                  <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">
+                    {formatPercentValue(recoveryScorecard.recoveryEmailCoverageRate)}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Captured emails that received a recovery send.
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-[0.10em] text-muted-foreground">
+                    Clicks
+                  </p>
+                  <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">
+                    {recoveryScorecard.emailClickCount}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Tracked recovery-link clicks in email events.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2 border-t border-border/60 pt-4 text-xs text-muted-foreground">
+                <span className="rounded-full bg-muted px-2.5 py-1">
+                  Partial recovery emails: {recoveryScorecard.partialRecoverySent}
+                </span>
+                <span className="rounded-full bg-muted px-2.5 py-1">
+                  Checkout recovery emails: {recoveryScorecard.abandonedCheckoutSent}
+                </span>
+              </div>
+            </DashboardCard>
+          </section>
+        ) : null}
 
         <GeographicBreakdownCard breakdown={geographic} />
 

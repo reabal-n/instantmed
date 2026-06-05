@@ -8,7 +8,7 @@ import { PricingContent } from "./pricing-content"
 export const metadata: Metadata = {
   title: "Pricing | Transparent Telehealth Costs",
   description:
-    `Simple, transparent pricing for all InstantMed telehealth services. Medical certificates from ${PRICING_DISPLAY.MED_CERT}, prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}. No hidden fees, full refund if we can't help.`,
+    `Simple, transparent pricing for all InstantMed telehealth services. Medical certificates from ${PRICING_DISPLAY.MED_CERT}, prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}. No hidden fees, full refund if the doctor declines.`,
   keywords: [
     "telehealth pricing australia",
     "online doctor cost",

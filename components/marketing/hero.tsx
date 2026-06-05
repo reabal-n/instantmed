@@ -244,7 +244,7 @@ export function Hero({
                 Tier 1 video-review fix 2026-05-26 (homepage-clkf). */}
             <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-x-3 gap-y-1 mb-6 sm:mb-7 justify-center lg:justify-start">
               <p className="text-xs text-muted-foreground text-center lg:text-left">
-                Takes about 3 minutes. Full refund if our doctor can&apos;t help.
+                Takes about 3 minutes. Full refund if the doctor declines.
               </p>
               <LastReviewedSignal className="justify-center lg:justify-start" />
             </div>

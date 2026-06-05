@@ -136,7 +136,7 @@ const businessFaqs = [
   {
     question: "What happens if a request is declined?",
     answer:
-      "Full refund to the employee. Declined requests don't appear on your invoice. We'd rather route someone to their GP than charge for something we can't help with.",
+      "Full refund to the employee. Declined requests don't appear on your invoice. We'd rather route someone to their GP than charge for something outside online care scope.",
   },
   {
     question: "How long do reviews take?",

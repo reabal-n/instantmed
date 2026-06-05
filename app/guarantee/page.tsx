@@ -22,16 +22,16 @@ import { GUARANTEE } from "@/lib/marketing/voice"
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
 
 export const metadata: Metadata = {
-  title: "Our Guarantee | Full Refund If We Can't Help",
+  title: "Our Guarantee | Full Refund If Declined",
   description:
-    "Full refund if our doctor can't help. No fine print. Here is exactly what counts, what does not, and how the refund works.",
+    "Full refund if the doctor declines. No fine print. Here is exactly what counts, what does not, and how the refund works.",
   alternates: {
     canonical: "/guarantee",
   },
   openGraph: {
     title: "Our Guarantee | InstantMed",
     description:
-      "Full refund if our doctor can't help. Plain English. No fine print.",
+      "Full refund if the doctor declines. Plain English. No fine print.",
     url: `${SITE_URL}/guarantee`,
     siteName: "InstantMed",
     type: "website",
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Our Guarantee | InstantMed",
-    description: "Full refund if our doctor can't help.",
+    description: "Full refund if the doctor declines.",
   },
 }
 
@@ -50,14 +50,14 @@ export const metadata: Metadata = {
 
 const guaranteeFaqs = [
   {
-    question: "What does 'we can't help' mean exactly?",
+    question: "What does a doctor decline mean exactly?",
     answer:
       "Two cases. (1) Our doctor reviews your request and decides they cannot safely issue what you asked for, given your symptoms or history. That is a clinical decline. (2) Our doctor needs you to see someone in person instead, and tells you so. Either way, you pay nothing.",
   },
   {
-    question: "How long until I know if a doctor can help me?",
+    question: "How long until I know the doctor's decision?",
     answer:
-      "Requests can be submitted 24/7. Prescriptions and consultations are reviewed during review hours (8am to 10pm AEST, 7 days), and medical certificate review follows when a doctor is available. You will get email updates. We do not guarantee a specific review time, only the refund outcome if our doctor cannot help.",
+      "Requests can be submitted 24/7. Prescriptions and consultations are reviewed during review hours (8am to 10pm AEST, 7 days), and medical certificate review follows when a doctor is available. You will get email updates. We do not guarantee a specific review time, only the refund outcome if the doctor declines.",
   },
   {
     question: "What if the doctor needs more information from me?",
@@ -124,7 +124,7 @@ const qualifyingFeatures: FeatureItem[] = [
 
 const whatYouGet: ChecklistItem[] = [
   {
-    text: "If our doctor can't issue what you asked for, full refund",
+    text: "If the doctor declines, full refund",
     subtext:
       "Clinical declines, 'see someone in person' outcomes, and partial-issue cases all trigger the full refund automatically.",
   },
@@ -177,8 +177,8 @@ export default function GuaranteePage() {
           <CenteredHero
             pill="Our Guarantee"
             title={GUARANTEE}
-            highlightWords={["doctor can't help."]}
-            subtitle="No fine print, no asterisks. If our doctor cannot safely issue what you asked for, you pay nothing. Refunds are automatic."
+            highlightWords={["doctor declines."]}
+            subtitle="No fine print, no asterisks. If the doctor declines your request, you pay nothing. Refunds are automatic."
           >
             <div className="mt-8 flex justify-center">
               <GuaranteeBadge size="lg" linked={false} />
@@ -225,7 +225,7 @@ export default function GuaranteePage() {
 
           <CTABanner
             title="Ready to see a doctor?"
-            subtitle="Start a request. If our doctor can't help, you pay nothing."
+            subtitle="Start a request. If the doctor declines, you pay nothing."
             ctaText="Start a request"
             ctaHref="/request"
             secondaryText="Read the full terms"

@@ -92,7 +92,7 @@ const VALUES = [
     icon: <StickerIcon name="eye" size={48} />,
     title: "Full transparency",
     description:
-      "Flat fees, no hidden costs. Full refund if we can't help. You'll always know exactly what you're paying for.",
+      "Flat fees, no hidden costs. Full refund if the doctor declines. You'll always know exactly what you're paying for.",
   },
 ]
 
@@ -152,7 +152,7 @@ export function AboutClient() {
                   </Link>
                 </Button>
                 <p className="text-xs text-muted-foreground">
-                  Takes about 3 minutes. Refund if we can&apos;t help.
+                  Takes about 3 minutes. Refund if declined.
                 </p>
               </div>
             </div>

@@ -254,7 +254,7 @@ export default function AlternativesPage() {
               If online telehealth fits your situation
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-              An AHPRA-registered Australian doctor reviews your request and emails the certificate to you as a PDF if approved. Full refund if our doctor cannot help.
+              An AHPRA-registered Australian doctor reviews your request and emails the certificate to you as a PDF if approved. Full refund if declined.
             </p>
             <div className="pt-2">
               <Link

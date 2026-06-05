@@ -71,7 +71,7 @@ const STATS = [
   { value: "AHPRA", label: "Registered doctors", context: "Every review by an Australian-registered doctor" },
   { value: "8am-10pm", label: "Review window", context: "Requests can be submitted 24/7" },
   { value: "24/7", label: "Request submission", context: "Rx + consult review follows when available" },
-  { value: `${PRICING_DISPLAY.MED_CERT}`, label: "From", context: "Full refund if we can't help" },
+  { value: `${PRICING_DISPLAY.MED_CERT}`, label: "From", context: "Full refund if declined" },
 ]
 
 const SERVICES = [
@@ -651,7 +651,7 @@ export default function OnlineDoctorAustraliaPage() {
               </Heading>
               <p className="text-muted-foreground mb-8">
                 Fill in the form, a doctor reviews it, your certificate or prescription is on the
-                way. Refund if we can&apos;t help.
+                way. Full refund if declined.
               </p>
               <div className="flex flex-wrap justify-center gap-3">
                 <Button asChild size="lg" className="rounded-full px-8">

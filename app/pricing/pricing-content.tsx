@@ -42,7 +42,7 @@ const services = [
     priceSubtext: `1 day: $${PRICING.MED_CERT} · 2 days: $${PRICING.MED_CERT_2DAY}`,
     description: "Work, uni, or carer's leave",
     features: [
-      "Same-day delivery",
+      "Digital delivery if approved",
       "Standard workplace evidence",
       "AHPRA-registered doctor",
       "PDF via email",
@@ -113,7 +113,7 @@ const pricingFaqs = [
       {
         question: "What if my request is declined?",
         answer:
-          "Full refund, no questions asked. We only charge if we can actually help you.",
+          "You receive a full refund if a doctor declines your request. We only charge when the request can proceed clinically.",
       },
       {
         question: "What payment methods do you accept?",
@@ -183,7 +183,7 @@ export function PricingContent() {
           pill="Simple pricing"
           title="Pay per consult. No hidden fees."
           highlightWords={["hidden fees"]}
-          subtitle="Transparent pricing with no hidden fees. Only pay when you need care - and only if we can help."
+          subtitle="Transparent pricing with no hidden fees. Doctor review first, with a full refund if declined."
           stats={[
             { value: SOCIAL_PROOF.refundPercent, suffix: "%", label: "Refund if declined" },
             { value: 0, prefix: "$", label: "Hidden fees" },
@@ -206,10 +206,10 @@ export function PricingContent() {
           eyebrow="No surprises at the counter"
           headline={
             <>
-              <span className="text-primary">One flat fee</span>, only when we can help.
+              <span className="text-primary">One flat fee</span>, doctor-reviewed before issue.
             </>
           }
-          body="No subscription. No gap fee. No surprise add-ons. If our doctor can't issue what you asked for, the system refunds you automatically. The same care a clinic GP would deliver, priced like software."
+          body="No subscription. No gap fee. No surprise add-ons. If the doctor declines your request, the system refunds you automatically. The same care a clinic GP would deliver, priced like software."
         />
 
         {/* Pricing Cards */}
@@ -310,7 +310,7 @@ export function PricingContent() {
               </div>
               <div className="flex items-center gap-2 bg-muted/50 dark:bg-white/[0.06] rounded-full px-3 py-1.5 border border-border/50">
                 <Clock className="w-3.5 h-3.5 text-primary" />
-                <span>Same-day response</span>
+                <span>Doctor-reviewed</span>
               </div>
               <div className="flex items-center gap-2 bg-muted/50 dark:bg-white/[0.06] rounded-full px-3 py-1.5 border border-border/50">
                 <Zap className="w-3.5 h-3.5 text-success" />
@@ -410,7 +410,7 @@ export function PricingContent() {
         {/* CTA */}
         <CTABanner
           title="Ready to get started?"
-          subtitle={`Trusted by ${getPatientCount().toLocaleString()}+ Australians. Get started in under 2 minutes. Only pay if we can help.`}
+          subtitle={`Trusted by ${getPatientCount().toLocaleString()}+ Australians. Get started in under 2 minutes. Full refund if the doctor declines.`}
           ctaText="Start a consult"
           ctaHref="/medical-certificate"
         />

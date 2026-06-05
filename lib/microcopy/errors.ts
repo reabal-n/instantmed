@@ -45,7 +45,7 @@ export const ERROR_MESSAGES = {
   cardExpired: "That card's expired. Try a different one.",
   
   // Medical/Clinical
-  ineligibleService: "We can't help with that through this service. Call your GP or 000 if urgent.",
+  ineligibleService: "That request is outside this service. Call your GP or 000 if urgent.",
   prescriptionNotAllowed: "We can't prescribe that medication through telehealth.",
   s8Medication: "No Schedule 8 medications. Requests for these will be declined.",
   

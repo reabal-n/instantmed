@@ -1065,7 +1065,7 @@ export const benefitPages: BenefitPage[] = [
       {
         title: "Affordability",
         content:
-          "Flat $29 fee. No surprise costs, no doctor visit surcharge. Only pay if we can help.",
+          "Flat $29 fee. No surprise costs, no doctor visit surcharge. Full refund if the doctor declines.",
       },
       {
         title: "Privacy",
@@ -1184,7 +1184,7 @@ export const resourcePages: ResourcePage[] = [
       },
       {
         q: "Can I get a refund?",
-        a: "If we can't help after doctor review, declined refundable categories receive a full refund.",
+        a: "If the doctor declines after review, refundable categories receive a full refund.",
       },
     ],
   },

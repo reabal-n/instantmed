@@ -107,12 +107,12 @@ const doctorFaqs: FAQGroup[] = [
       {
         question: "Is the reviewing doctor a real, registered Australian doctor?",
         answer:
-          "Yes. Your request is reviewed by an AHPRA-registered Australian general practitioner whose name and registration number you can independently verify on the AHPRA public register at ahpra.gov.au. We do not use overseas practitioners, nurse practitioners, or AI to make clinical decisions.",
+          "Yes. Your request is reviewed by an AHPRA-registered Australian doctor. Registration and scope are verified internally before clinical work begins. We do not use overseas practitioners, nurse practitioners, or AI to make clinical decisions.",
       },
       {
         question: "Who actually reviews my request?",
         answer:
-          "A named, AHPRA-registered Australian doctor reviews your request. Their name and AHPRA number appear on documents where a document is issued, and registration can be checked on the AHPRA public register.",
+          "An AHPRA-registered Australian doctor reviews your request. Clinical accountability is recorded in the patient record and on issued clinical documents where applicable.",
       },
       {
         question: "What qualifications does the reviewing doctor hold?",
@@ -152,7 +152,7 @@ const doctorFaqs: FAQGroup[] = [
       {
         question: "Do you use anonymous reviewers?",
         answer:
-          "No. We do not hide clinical accountability behind a logo. The treating doctor's name and AHPRA registration details appear on documents where a document is issued.",
+          "No. We do not hide clinical accountability behind a logo. Reviewer identity and registration details are recorded in the clinical record and on issued clinical documents where applicable.",
       },
     ],
   },
@@ -194,19 +194,17 @@ export default function OurDoctorsClient() {
           </div>
         </CenteredHero>
 
-        {/* Page superpower — distinguishes from "telehealth platforms staffed
-            by anonymous overseas doctors" by anchoring the named-AHPRA-doctor
-            promise that this page is built to make. Per CLAUDE.md identity
-            constraint, we do NOT name the individual doctor; the verifiable
-            registration is the claim. */}
+        {/* Page superpower — distinguishes from anonymous or offshore care by
+            anchoring registration and governance without publicly marketing
+            individual doctor identity. */}
         <ServiceClaimSection
-          eyebrow="Named, registered, verifiable"
+          eyebrow="Registered, governed, accountable"
           headline={
             <>
               The doctor reviewing your case is <span className="text-primary">on the AHPRA register</span>.
             </>
           }
-          body="Their name appears on every certificate and prescription we issue. You can independently verify their registration on ahpra.gov.au at any time. No anonymous reviewers, no offshore prescribers, no AI standing in for clinical judgment."
+          body="Registration, scope, and clinical accountability are verified before any doctor reviews requests on InstantMed. No offshore prescribers, no anonymous decision-making, no AI standing in for clinical judgment."
         />
 
         {/* Credentials Grid */}
@@ -248,9 +246,9 @@ export default function OurDoctorsClient() {
               Verify the registration yourself
             </Heading>
             <p className="text-muted-foreground mb-6">
-              The treating doctor&apos;s registration can be independently
-              verified on the AHPRA public register. Their name appears on
-              every certificate we issue, so you are welcome to check.
+              Doctor registration is checked against the AHPRA public register
+              before clinical work begins, with ongoing monitoring for any
+              registration change.
             </p>
             <Button asChild variant="outline" className="rounded-full bg-transparent">
               <Link

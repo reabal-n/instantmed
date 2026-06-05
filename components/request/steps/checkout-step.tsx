@@ -349,7 +349,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
         </span>
         <span className="flex items-center gap-1.5">
           <RefreshCw className="w-3 h-3" />
-          Full refund if we can&apos;t help
+          Full refund if declined
         </span>
       </div>
 
@@ -401,15 +401,11 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             variant="prominent"
           />
 
-          {/* Refund guarantee - full for med cert/Rx, partial for consults */}
+          {/* Refund guarantee - full on doctor decline */}
           {!isMedCertCheckout && (
             <div className="flex items-center justify-center gap-2 text-xs text-primary">
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span className="font-medium">
-                {serviceType === 'consult'
-                  ? "Refund if we can't help"
-                  : "Full refund if we can't help"}
-              </span>
+              <span className="font-medium">Full refund if the doctor declines</span>
             </div>
           )}
 

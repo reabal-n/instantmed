@@ -54,7 +54,7 @@ export function FinalCtaSection({
             From ${price.toFixed(2)} &middot; No account required
           </p>
           <p className="mt-1 text-muted-foreground text-xs">
-            Takes about 2 minutes &middot; Full refund if we can&apos;t help
+            Takes about 2 minutes &middot; Full refund if declined
           </p>
 
         </Reveal>
