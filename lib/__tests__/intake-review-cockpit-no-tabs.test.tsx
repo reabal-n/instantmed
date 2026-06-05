@@ -25,7 +25,7 @@ describe("IntakeReviewCockpit source contract", () => {
     )
   })
 
-  it("renders the prescription recommendation card", () => {
+  it("renders the prescription handoff card", () => {
     expect(cockpitSource).toMatch(/PrescriptionRecommendationCard/)
     expect(cockpitSource).toMatch(
       /from\s+["']@\/components\/doctor\/review\/prescription-recommendation-card["']/,
@@ -43,9 +43,15 @@ describe("IntakeReviewCockpit source contract", () => {
     expect(cockpitSource).not.toMatch(/ClinicalNotesEditor/)
   })
 
-  it("hides the duplicate prescription preset in RequestInfoCard", () => {
-    // RequestInfoCard owns the legacy inline preset block; the cockpit must
+  it("hides the duplicate prescription handoff context in RequestInfoCard", () => {
+    // RequestInfoCard owns the legacy inline handoff block; the cockpit must
     // suppress it so PrescriptionRecommendationCard does not double-render.
     expect(cockpitSource).toMatch(/hidePrescriptionIntent/)
+  })
+
+  it("opens Parchment from the prescribing shortcut instead of approving first", () => {
+    expect(cockpitSource).toContain("review.handleOpenParchmentPrescribe()")
+    expect(cockpitSource).not.toContain("review.handleApproveAndOpenParchment")
+    expect(cockpitSource).not.toContain('review.handleStatusChange("awaiting_script")')
   })
 })

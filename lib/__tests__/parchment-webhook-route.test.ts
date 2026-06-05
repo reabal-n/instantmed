@@ -89,6 +89,10 @@ function createQuery(table: string, operation: "select" | "update") {
       filters[column] = value
       return query
     },
+    or(value: string) {
+      filters.or = value
+      return query
+    },
     limit() {
       return Promise.resolve({
         data: mocks.state.candidateRows,
@@ -174,6 +178,8 @@ describe("Parchment webhook route", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     process.env.PARCHMENT_WEBHOOK_SECRET = "webhook-secret"
+    delete process.env.PLAYWRIGHT
+    delete process.env.NEXT_PUBLIC_PLAYWRIGHT
     delete process.env.PARCHMENT_ORGANIZATION_ID
     delete process.env.PARCHMENT_PARTNER_ID
     mocks.verifyWebhookSignature.mockReturnValue({ valid: true })
@@ -199,11 +205,14 @@ describe("Parchment webhook route", () => {
     mocks.state.prescriberRows = [{ id: PRESCRIBER_PROFILE_ID }]
     mocks.state.candidateRows = [
       {
+        category: "prescription",
         claimed_by: PRESCRIBER_PROFILE_ID,
         created_at: "2026-05-01T00:00:00.000Z",
         id: INTAKE_ID,
         reviewed_by: null,
         reviewing_doctor_id: null,
+        service: { type: "repeat_rx" },
+        subtype: null,
       },
     ]
   })
@@ -245,6 +254,34 @@ describe("Parchment webhook route", () => {
     )
   })
 
+  it("keeps the Playwright-only Parchment sync skip quiet after script evidence", async () => {
+    process.env.PLAYWRIGHT = "1"
+
+    const response = await POST(makeWebhookRequest())
+    const body = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(body).toEqual({ received: true, scriptSent: true, syncSkipped: true })
+    expect(mocks.updateScriptSent).toHaveBeenCalledWith(
+      INTAKE_ID,
+      true,
+      "Webhook event: evt_route_1",
+      SCID,
+      PRESCRIBER_PROFILE_ID,
+    )
+    expect(mocks.getPatientPrescriptions).not.toHaveBeenCalled()
+    expect(mocks.logWebhookFailure).not.toHaveBeenCalled()
+    expect(mocks.captureMessage).not.toHaveBeenCalled()
+    expect(mocks.logger.warn).not.toHaveBeenCalledWith(
+      "Webhook marked script sent; prescription PMS sync still pending",
+      expect.anything(),
+    )
+    expect(mocks.logger.info).toHaveBeenCalledWith(
+      "Webhook marked script sent; E2E prescription PMS sync skipped",
+      { eventId: "evt_route_1" },
+    )
+  })
+
   it("alerts operators when a standalone Parchment prescription cannot be synced", async () => {
     mocks.state.candidateRows = []
     mocks.getPatientPrescriptions.mockRejectedValue(new Error("Parchment read failed"))
@@ -255,7 +292,7 @@ describe("Parchment webhook route", () => {
     expect(response.status).toBe(200)
     expect(body).toEqual({
       received: true,
-      warning: "No awaiting_script intake found",
+      warning: "No active prescribing intake found",
       syncPending: true,
     })
     expect(mocks.updateScriptSent).not.toHaveBeenCalled()

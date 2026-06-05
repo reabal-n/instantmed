@@ -20,6 +20,7 @@ type ParchmentPrescribePanelProps = {
   patientName: string
   patientProfileHref?: string
   prescriptionContext?: ParchmentPrescriptionContext | null
+  onIntakeRefresh?: () => void
   onScriptSent?: () => void
   onPrescriptionsRefresh?: () => void
   prescriptionsRefreshPending?: boolean
@@ -90,6 +91,7 @@ export function ParchmentPrescribePanel({
   patientName,
   patientProfileHref,
   prescriptionContext,
+  onIntakeRefresh,
   onScriptSent,
   onPrescriptionsRefresh,
   prescriptionsRefreshPending = false,
@@ -111,11 +113,14 @@ export function ParchmentPrescribePanel({
   const canEditPatientDetails = Boolean(patientDetailsHref && canFixParchmentErrorFromPatientProfile(error))
 
   const closeAndRefresh = useCallback(() => {
+    if (intakeId) {
+      onIntakeRefresh?.()
+    }
     if (patientId && iframeLoaded && onPrescriptionsRefresh) {
       onPrescriptionsRefresh()
     }
     closePanel()
-  }, [closePanel, iframeLoaded, onPrescriptionsRefresh, patientId])
+  }, [closePanel, iframeLoaded, intakeId, onIntakeRefresh, onPrescriptionsRefresh, patientId])
 
   const loadFreshParchmentUrl = useCallback(async (): Promise<{ success: boolean; error?: string; ssoUrl?: string }> => {
     if (intakeId) return getParchmentPrescribeUrlAction(intakeId)
@@ -133,9 +138,9 @@ export function ParchmentPrescribePanel({
   }, [loadFreshParchmentUrl])
 
   const copyPrescriptionContext = useCallback(async () => {
-    if (!prescriptionContext?.clipboardText) return
+    if (!prescriptionContext?.copyText) return
     try {
-      await navigator.clipboard.writeText(prescriptionContext.clipboardText)
+      await navigator.clipboard.writeText(prescriptionContext.copyText)
       toast.success(`Copied ${getCopiedMedicineLabel(prescriptionContext)} to Parchment`)
     } catch {
       toast.error("Could not copy prescription details")
@@ -266,7 +271,7 @@ export function ParchmentPrescribePanel({
               </h2>
               <p className="text-sm text-muted-foreground mt-0.5">
                 {intakeId
-                  ? "Write the prescription in Parchment below. It will be confirmed automatically."
+                  ? "Write the prescription in Parchment below. When it is confirmed, close this panel and press Approve."
                   : "Write the prescription in Parchment below. It will sync back to this patient profile."}
               </p>
               {prescriptionContext && (
@@ -297,11 +302,19 @@ export function ParchmentPrescribePanel({
                         </div>
                       )}
                     </div>
-                    <Button type="button" variant="outline" size="sm" onClick={copyPrescriptionContext}>
-                      <Clipboard className="mr-1.5 h-3.5 w-3.5" />
-                      Copy
-                    </Button>
+                    {prescriptionContext.copyText && (
+                      <Button type="button" variant="outline" size="sm" onClick={copyPrescriptionContext}>
+                        <Clipboard className="mr-1.5 h-3.5 w-3.5" />
+                        Copy
+                      </Button>
+                    )}
                   </div>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Directions context: {prescriptionContext.directionsTemplate}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Confirm medicine, dose and all prescribing details in Parchment.
+                  </p>
                 </div>
               )}
             </div>
@@ -395,7 +408,7 @@ export function ParchmentPrescribePanel({
                             <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
                             Open in new tab
                           </Button>
-                          {prescriptionContext?.clipboardText && (
+                          {prescriptionContext?.copyText && (
                             <Button type="button" variant="ghost" size="sm" onClick={copyPrescriptionContext}>
                               <Clipboard className="mr-1.5 h-3.5 w-3.5" />
                               Copy medicine
@@ -449,7 +462,7 @@ export function ParchmentPrescribePanel({
               <CheckCircle className="h-3.5 w-3.5" />
               <span>
                 {intakeId
-                  ? "Script will be confirmed automatically via webhook when completed in Parchment"
+                  ? "Webhook confirmation unlocks the separate Approve step after refresh"
                   : "Prescription will sync back to the PMS via Parchment webhook"}
               </span>
             </div>

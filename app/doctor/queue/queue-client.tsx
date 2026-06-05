@@ -131,6 +131,13 @@ function IntakeReviewPanelLoading() {
   )
 }
 
+function isQueuePrescribingConsult(serviceType?: string | null, subtype?: string | null): boolean {
+  return (
+    (serviceType === SERVICE_TYPES.CONSULT || serviceType === SERVICE_TYPES.CONSULTS) &&
+    (subtype === "ed" || subtype === "hair_loss")
+  )
+}
+
 const loadIntakeReviewPanel = () =>
   import("@/components/doctor/intake-review-panel").then((mod) => mod.IntakeReviewPanel)
 
@@ -549,14 +556,19 @@ export function QueueClient({
   // Inline mode (`/dashboard` two-pane) and slide-over mode share this.
   const handleIntakeActionComplete = useCallback(
     (intakeId: string, options?: { advance?: boolean }) => {
+      if (options?.advance === false) {
+        refreshQueue(true)
+        return
+      }
+
       const { nextIntake } = removeCompletedIntakeFromQueue(filteredIntakesRef.current, intakeId)
       setIntakes((prev) => removeCompletedIntakeFromQueue(prev, intakeId).remaining)
       refreshQueue(true)
-      if (options?.advance !== false && nextIntake) {
+      if (nextIntake) {
         rememberOpenedCase(nextIntake.id)
         setExpandedId(nextIntake.id)
         toast.success("Case done. Opening next.")
-      } else if (options?.advance !== false) {
+      } else {
         setExpandedId(null)
         toast.success("Case done. Queue clear.")
       }
@@ -625,10 +637,16 @@ export function QueueClient({
     void loadIntakeReviewPanel()
   }, [])
 
-  const handleApprove = useCallback(async (intakeId: string, serviceType?: string | null) => {
-    if (serviceType === SERVICE_TYPES.MED_CERTS) {
-      // Med certs go through the review panel because the doctor confirms
-      // via the certificate preview dialog. No optimistic path here.
+  const handleApprove = useCallback(async (intakeId: string, serviceType?: string | null, subtype?: string | null) => {
+    if (
+      serviceType === SERVICE_TYPES.MED_CERTS ||
+      serviceType === SERVICE_TYPES.COMMON_SCRIPTS ||
+      serviceType === SERVICE_TYPES.REPEAT_RX ||
+      isQueuePrescribingConsult(serviceType, subtype)
+    ) {
+      // Med certs and prescribing cases go through the review panel. The
+      // doctor either confirms the certificate preview or opens Parchment
+      // before approving the prescription.
       openReviewPanel(intakeId)
       return
     }
@@ -644,9 +662,7 @@ export function QueueClient({
     setIntakes((prev) => prev.filter((r) => r.id !== intakeId))
 
     startTransition(async () => {
-      const newStatus: IntakeStatus = serviceType === SERVICE_TYPES.COMMON_SCRIPTS || serviceType === SERVICE_TYPES.REPEAT_RX
-        ? "awaiting_script"
-        : "approved"
+      const newStatus: IntakeStatus = "approved"
       let result: Awaited<ReturnType<typeof updateStatusAction>>
       try {
         result = await updateStatusAction(intakeId, newStatus)
@@ -663,10 +679,7 @@ export function QueueClient({
       }
       if (result.success) {
         refreshQueue(true)
-        if (serviceType === SERVICE_TYPES.COMMON_SCRIPTS || serviceType === SERVICE_TYPES.REPEAT_RX) {
-          openReviewPanel(intakeId)
-        } else {
-          toast.success("Request approved", {
+        toast.success("Request approved", {
             action: {
               label: "Undo",
               onClick: async () => {
@@ -689,8 +702,7 @@ export function QueueClient({
               },
             },
             duration: 5000,
-          })
-        }
+        })
       } else if (result.code === "INSUFFICIENT_CLINICAL_NOTES") {
         // Optimistic rollback. Restore the row at its original position.
         setIntakes((prev) => {
@@ -884,7 +896,7 @@ export function QueueClient({
             const intake = filteredIntakes.find((r) => r.id === expandedId)
             if (intake) {
               const service = intake.service as { type?: string } | undefined
-              handleApprove(intake.id, service?.type)
+              handleApprove(intake.id, service?.type, intake.subtype)
             }
           }
           break

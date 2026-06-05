@@ -176,10 +176,6 @@ function CockpitIntakeDetailClient({
     } else {
       actions.setInitialNotes(existingNotes, existingNotes)
     }
-
-    if (isReviewable) {
-      setTimeout(() => actions.notesRef.current?.focus(), 100)
-    }
     // Only run once after initial full-page data is mounted.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -223,7 +219,7 @@ function CockpitIntakeDetailClient({
     handleSaveNotes: actions.handleSaveNotes,
     handleGenerateOrRegenerateNote: actions.handleGenerateOrRegenerateNote,
     handleOpenParchmentPrescribe: actions.handleOpenParchmentPrescribe,
-    handleApproveAndOpenParchment: actions.handleApproveAndOpenParchment,
+    handleApprovePrescribedScript: actions.handleApprovePrescribedScript,
     handleResend: actions.handleResend,
     handleViewCertificate: actions.handleViewCertificate,
     showDeclineDialog: actions.showDeclineDialog,
@@ -255,6 +251,11 @@ function CockpitIntakeDetailClient({
                   <Badge className={getStatusColor(reviewData.intake.status)}>
                     {formatIntakeStatus(reviewData.intake.status)}
                   </Badge>
+                  {reviewData.intake.script_sent === true ? (
+                    <Badge className="border-success/20 bg-success-light text-success">
+                      Script sent
+                    </Badge>
+                  ) : null}
                 </div>
                 <p className="mt-1 truncate text-sm text-muted-foreground">
                   {(service?.short_name || formatServiceType(service?.type || ""))} · {reviewData.intake.reference_number || reviewData.intake.id}
@@ -414,13 +415,13 @@ function LegacyIntakeDetailClient({
           intake.category === "consult" &&
           ["ed", "hair_loss"].includes(intake.subtype || "") &&
           hasPrescriptionIntent &&
-          actions.handleApproveAndOpenParchment
+          actions.handleOpenParchmentPrescribe
         ) {
-          actions.handleApproveAndOpenParchment()
+          actions.handleOpenParchmentPrescribe()
         } else if (service?.type === "med_certs") {
           actions.handleMedCertApprove()
         } else if (service?.type === "repeat_rx" || service?.type === "common_scripts") {
-          actions.handleStatusChange("awaiting_script")
+          actions.handleOpenParchmentPrescribe?.()
         } else {
           actions.handleStatusChange("approved")
         }
@@ -476,7 +477,7 @@ function LegacyIntakeDetailClient({
         onViewCertificate={actions.handleViewCertificate}
         onCertPreviewConfirm={actions.handleCertPreviewConfirm}
         onOpenParchmentPrescribe={actions.handleOpenParchmentPrescribe}
-        onApproveAndOpenParchment={actions.handleApproveAndOpenParchment}
+        onApprovePrescribedScript={actions.handleApprovePrescribedScript}
         hasPrescriptionIntent={hasPrescriptionIntent}
         showReissueDialog={dialogs.showReissueDialog}
         setShowReissueDialog={dialogs.setShowReissueDialog}

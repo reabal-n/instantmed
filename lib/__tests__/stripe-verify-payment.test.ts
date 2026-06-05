@@ -63,6 +63,7 @@ function makeRequest(body: Record<string, unknown>) {
 function setupSupabase(overrides: {
   intake?: Record<string, unknown>
   profile?: Record<string, unknown>
+  updateResult?: { data: { id: string } | null; error: null }
 } = {}) {
   const updates: Record<string, unknown>[] = []
   const profile = overrides.profile ?? { id: "profile-1" }
@@ -73,6 +74,7 @@ function setupSupabase(overrides: {
     payment_status: "pending",
     status: "pending_payment",
   }
+  const updateResult = overrides.updateResult ?? { data: { id: "intake-1" }, error: null }
 
   const profileSelect = {
     eq: vi.fn(() => profileSelect),
@@ -85,7 +87,9 @@ function setupSupabase(overrides: {
   const intakeUpdate = {
     eq: vi.fn(() => intakeUpdate),
     in: vi.fn(() => intakeUpdate),
-    then: (resolve: (value: { error: null }) => void) => Promise.resolve({ error: null }).then(resolve),
+    select: vi.fn(() => intakeUpdate),
+    maybeSingle: vi.fn(async () => updateResult),
+    then: (resolve: (value: typeof updateResult) => void) => Promise.resolve(updateResult).then(resolve),
   }
 
   const supabase = {
@@ -219,6 +223,33 @@ describe("POST /api/stripe/verify-payment", () => {
       stripe_payment_intent_id: "pi_retry_paid",
     })
     expect(intakeUpdate.in).toHaveBeenCalledWith("payment_status", ["pending", "unpaid", "failed"])
+  })
+
+  it("does not report fallback success when the guarded paid update matches no rows", async () => {
+    setupSupabase({
+      updateResult: { data: null, error: null },
+    })
+    mocks.retrieveCheckoutSession.mockResolvedValue({
+      id: "cs_stored",
+      customer: "cus_test",
+      metadata: { intake_id: "intake-1" },
+      payment_intent: "pi_paid",
+      payment_status: "paid",
+    })
+
+    const response = await POST(makeRequest({
+      intakeId: "intake-1",
+      sessionId: "cs_stored",
+    }))
+    const body = await response.json()
+
+    expect(response.status).toBe(409)
+    expect(body).toEqual({
+      error: "Payment session is no longer current",
+      status: "pending_payment",
+      success: false,
+    })
+    expect(mocks.startPostPaymentReviewWork).not.toHaveBeenCalled()
   })
 
   it("does not resurrect a cancelled intake during fallback verification", async () => {

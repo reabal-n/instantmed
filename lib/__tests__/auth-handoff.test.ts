@@ -5,10 +5,12 @@ import { describe, expect, it } from "vitest"
 
 import {
   AUTH_HANDOFF_EVENT,
+  AUTH_HANDOFF_REFRESH_SUPPRESSION_MS,
   AUTH_POST_SIGNIN_HREF,
   type AuthHandoffEventDetail,
   buildPostSignInHref,
   buildPostSignInRedirectHref,
+  createAuthHandoffRefreshGuard,
   navigateToPostSignIn,
 } from "@/lib/navigation/auth-handoff"
 
@@ -76,6 +78,34 @@ describe("auth post-sign-in handoff", () => {
     expect(signInSource).not.toContain("function buildPostSignInHref")
     expect(signInSource).toContain("buildPostSignInRedirectHref")
     expect(postAuthDestinationSource).toContain("buildPostSignInRedirectHref")
+  })
+
+  it("suppresses auth-provider refreshes while the dashboard handoff is leaving the page", () => {
+    let now = 10_000
+    const guard = createAuthHandoffRefreshGuard(() => now)
+
+    expect(guard.shouldSuppress()).toBe(false)
+
+    guard.suppress()
+    expect(guard.shouldSuppress()).toBe(true)
+
+    now += AUTH_HANDOFF_REFRESH_SUPPRESSION_MS - 1
+    expect(guard.shouldSuppress()).toBe(true)
+
+    now += 1
+    expect(guard.shouldSuppress()).toBe(false)
+  })
+
+  it("keeps the provider handoff listener off the E2E early-return path", () => {
+    const authProviderSource = readFileSync(join(process.cwd(), "lib/supabase/auth-provider.tsx"), "utf8")
+    const e2eCheckIndex = authProviderSource.indexOf("const e2eUser = buildE2EClientUser()")
+    const listenerIndex = authProviderSource.indexOf("window.addEventListener(AUTH_HANDOFF_EVENT")
+
+    expect(e2eCheckIndex).toBeGreaterThan(-1)
+    expect(listenerIndex).toBeGreaterThan(e2eCheckIndex)
+    expect(authProviderSource).toContain("createAuthHandoffRefreshGuard")
+    expect(authProviderSource).toContain("authHandoffRefreshGuard.shouldSuppress()")
+    expect(authProviderSource).toContain("window.removeEventListener(AUTH_HANDOFF_EVENT")
   })
 
   it("logs post-sign-in elapsed time on the server handoff", () => {

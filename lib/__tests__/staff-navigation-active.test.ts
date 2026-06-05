@@ -10,6 +10,7 @@ import {
   getStaffNavHrefPath,
   getStaffNavHrefStatus,
   hasStatusFilteredDashboardItems,
+  isStaffNavHrefCurrent,
   isStaffNavItemActive,
 } from "@/lib/dashboard/staff-navigation-active"
 
@@ -71,6 +72,29 @@ describe("staff navigation active matching", () => {
       currentStatus: "review",
       statusFilteredDashboard: false,
     })).toBe(true)
+  })
+
+  it("detects exact current hrefs so active nav clicks can no-op without blocking anchor jumps", () => {
+    expect(isStaffNavHrefCurrent({
+      pathname: "/dashboard",
+      href: "/dashboard",
+      currentSearch: "",
+    })).toBe(true)
+    expect(isStaffNavHrefCurrent({
+      pathname: "/dashboard",
+      href: "/dashboard?status=review",
+      currentSearch: "status=review",
+    })).toBe(true)
+    expect(isStaffNavHrefCurrent({
+      pathname: "/dashboard",
+      href: "/dashboard?status=review#doctor-queue",
+      currentSearch: "status=review",
+    })).toBe(false)
+    expect(isStaffNavHrefCurrent({
+      pathname: "/dashboard",
+      href: "/dashboard",
+      currentSearch: "status=review",
+    })).toBe(false)
   })
 
   it("matches nested admin sections without lighting unrelated siblings", () => {

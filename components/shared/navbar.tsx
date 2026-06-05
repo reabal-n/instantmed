@@ -161,7 +161,12 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
             <ThemeSwitch variant="mobile" />
             {variant === "marketing" && (
               <>
-                {isLoaded && user ? (
+                {!isLoaded ? (
+                  <div
+                    className="h-10 w-full rounded-xl border border-border/40 bg-muted/40"
+                    aria-hidden="true"
+                  />
+                ) : user ? (
                   <Button
                     variant="outline"
                     className="w-full rounded-xl bg-white dark:bg-card hover:bg-muted/50 dark:hover:bg-white/10 border-border/40 transition-colors flex items-center justify-center gap-2"

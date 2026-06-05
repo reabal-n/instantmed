@@ -120,8 +120,8 @@ export default function PrivacyPage() {
                     <li>Prevent fraud and ensure platform security</li>
                   </ul>
                   <p>
-                    When we use information for research, reporting, or to promote our services —
-                    including any public reports — we use only aggregated, de-identified data that
+                    When we use information for research, reporting, or to promote our services,
+                    including any public reports, we use only aggregated, de-identified data that
                     cannot reasonably be used to identify you. We never publish your individual
                     health information, and small groups are suppressed so individuals cannot be
                     re-identified.

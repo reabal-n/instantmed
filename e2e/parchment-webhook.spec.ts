@@ -6,7 +6,7 @@
  *
  * Covers:
  * - Signature verification (valid, invalid, missing, expired)
- * - prescription.created: intake transitions to script_sent
+ * - prescription.created: active prescribing intake records script_sent
  * - Non-prescription events are acknowledged but ignored
  * - Patient not found: returns 200 with warning
  * - Idempotency: duplicate SCIDs are skipped
@@ -270,18 +270,19 @@ test.describe.serial("Parchment Webhook: prescription.created", () => {
     expect(intake).toBeTruthy()
     expect(intake!.parchment_reference).toBe(scid)
     expect(intake!.script_sent).toBe(true)
+    expect(intake!.status).toBe("awaiting_script")
   })
 
-  test("returns 200 with warning when no awaiting_script intake exists", async ({
+  test("does not claim in-review intake before a prescribing session starts", async ({
     request,
   }) => {
     test.skip(!PARCHMENT_WEBHOOK_SECRET, "PARCHMENT_WEBHOOK_SECRET required")
     test.skip(!isDbAvailable(), "Supabase credentials required")
 
-    // Seed an intake that is NOT in awaiting_script status
     const seed = await seedTestIntake({
       status: "in_review",
       payment_status: "paid",
+      category: "common_scripts",
       claimed_by: E2E_DOCTOR_ID,
     })
     expect(seed.success, `Seed should succeed: ${seed.error}`).toBe(true)
@@ -296,7 +297,13 @@ test.describe.serial("Parchment Webhook: prescription.created", () => {
 
     expect(response.status()).toBe(200)
     const body = await response.json()
-    expect(body.warning).toContain("No awaiting_script intake found")
+    expect(body.received).toBe(true)
+
+    const intake = await getIntakeById(seed.intakeId!)
+    expect(intake).toBeTruthy()
+    expect(intake!.script_sent).not.toBe(true)
+    expect(intake!.parchment_reference).toBeFalsy()
+    expect(intake!.status).toBe("in_review")
   })
 
   test("handles duplicate SCID idempotently", async ({ request }) => {

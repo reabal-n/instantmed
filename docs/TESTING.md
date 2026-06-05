@@ -248,7 +248,7 @@ steps:
 
 **Monthly stack health:** `.github/workflows/stack-drift.yml` runs on the first day of each month and can be triggered manually. It verifies active Node 24, stack pins, lockfile dedupe, high-severity audit, and writes a non-blocking outdated-package report to the workflow summary. Framework upgrades remain separate planned windows, not opportunistic dependency bumps.
 
-**Lighthouse gates** (commit `99fc1c843`, updated 2026-05-02): PR CI blocks on accessibility, SEO, FCP, and CLS. LCP and TBT are warning-only in PR CI because simulated throttling on GitHub runners is too noisy for untouched marketing pages. The scheduled production Lighthouse workflow remains stricter for performance, including TBT.
+**Lighthouse gates** (commit `99fc1c843`, updated 2026-06-05): PR CI blocks on accessibility, SEO, FCP, and CLS. LCP and TBT are warning-only in the general PR Lighthouse config because simulated throttling on GitHub runners is too noisy for untouched marketing pages. The dedicated mobile `/request` Lighthouse gate hard-gates stable paid-intake metrics (FCP ≤2s, TBT ≤300ms, CLS ≤0.05) while keeping composite performance score and simulated LCP warning-only.
 
 ---
 

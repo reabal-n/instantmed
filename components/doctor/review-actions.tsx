@@ -10,8 +10,12 @@ import {
   approveWithPreviewDataAction,
   fetchCertPreviewDataAction,
 } from "@/app/doctor/intakes/[id]/document/actions"
-import { declineIntakeAction,saveDoctorNotesAction } from "@/app/doctor/queue/actions"
-import { updateStatusAction } from "@/app/doctor/queue/actions"
+import {
+  approvePrescribedScriptAction,
+  declineIntakeAction,
+  saveDoctorNotesAction,
+  updateStatusAction,
+} from "@/app/doctor/queue/actions"
 import { showCertApprovalUndoToast } from "@/components/doctor/cert-approval-undo-toast"
 import type { CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
 import { ParchmentPrescribePanel } from "@/components/doctor/parchment-prescribe-panel"
@@ -28,7 +32,7 @@ import { resolveClinicalDecisionNote } from "@/lib/doctor/clinical-notes"
 import { DECLINE_REASONS } from "@/lib/doctor/constants"
 import { buildParchmentPrescriptionContext } from "@/lib/doctor/parchment-prescribing-context"
 import { useDoctorShortcuts } from "@/lib/hooks/use-doctor-shortcuts"
-import type { DeclineReasonCode,IntakeStatus } from "@/types/db"
+import type { DeclineReasonCode, IntakeStatus } from "@/types/db"
 
 // ---- Public interface ----
 
@@ -83,9 +87,10 @@ export interface ReviewActionsState {
   handleSaveNotes: (nextNotes?: string) => Promise<void>
   handleGenerateOrRegenerateNote: () => Promise<void>
   handleOpenParchmentPrescribe: () => void
-  handleApproveAndOpenParchment: () => Promise<void>
+  handleApprovePrescribedScript: () => Promise<void>
   handleResend: () => Promise<void>
   handleViewCertificate: () => Promise<void>
+
 }
 
 interface UseReviewActionsOptions {
@@ -142,7 +147,6 @@ export function useReviewActions({
   const [isRegenerating, setIsRegenerating] = useState(false)
   const [isResending, setIsResending] = useState(false)
   const [isViewingCert, setIsViewingCert] = useState(false)
-
   const intake = data?.intake
   const service = intake?.service as { name?: string; type?: string; short_name?: string } | undefined
   const hasClinicalDraft = !!findClinicalNoteDraft(data?.aiDrafts || [])
@@ -150,6 +154,7 @@ export function useReviewActions({
   // Auto-save: debounced 800 ms after last keystroke.
   const intakeId = intake?.id
   const intakeStatus = intake?.status
+
   useEffect(() => {
     if (!intakeId) return
     if (intakeStatus && ["approved", "completed", "awaiting_script"].includes(intakeStatus)) return
@@ -188,9 +193,8 @@ export function useReviewActions({
     closePanel()
     if (onActionComplete) {
       onActionComplete({ advance: true })
-      return
     }
-    router.refresh()
+    if (!onActionComplete) router.refresh()
   }, [closePanel, onActionComplete, router])
 
   const handleDeclineReasonCodeChange = (code: DeclineReasonCode) => {
@@ -226,10 +230,11 @@ export function useReviewActions({
           patientName={intake.patient?.full_name || "Patient"}
           patientProfileHref={intake.patient?.id ? buildStaffPatientHref(intake.patient.id) : undefined}
           prescriptionContext={buildParchmentPrescriptionContext(getClinicalCaseSummary())}
+          onIntakeRefresh={() => router.refresh()}
         />
       ),
     })
-  }, [getClinicalCaseSummary, intake, openPanel])
+  }, [getClinicalCaseSummary, intake, openPanel, router])
 
   const resolveDecisionNote = useCallback(() => {
     const caseSummary = getClinicalCaseSummary()
@@ -367,15 +372,17 @@ export function useReviewActions({
 
   const handleOpenParchmentPrescribe = () => {
     openParchmentPanel()
+    onActionComplete?.({ advance: false })
   }
 
-  const handleApproveAndOpenParchment = async () => {
-    if (!intake || !data) return
+  const handleApprovePrescribedScript = async () => {
+    if (!intake) return
 
     if (hasRedFlags && !redFlagsAcknowledged) {
       toast.error("Review and acknowledge safety flags before approving.")
       return
     }
+
     const decisionNote = resolveDecisionNote()
     if (!decisionNote) {
       toast.error("Use the draft note or add a brief clinical note.")
@@ -389,7 +396,9 @@ export function useReviewActions({
         toast.error(saveResult.error || "Failed to save clinical notes")
         return
       }
-      const result = await updateStatusAction(intake.id, "awaiting_script")
+
+      const result = await approvePrescribedScriptAction(intake.id)
+
       if (result.success) {
         lastSavedNotesRef.current = decisionNote
         setDoctorNotes(decisionNote)
@@ -397,21 +406,17 @@ export function useReviewActions({
         setSavedAt(new Date())
         setAutoSaveError(false)
         setIsAiPrefilled(false)
-        setData({
-          ...data,
-          intake: {
-            ...data.intake,
-            status: "awaiting_script",
-            doctor_notes: decisionNote,
-          },
-        })
         playApprovalSound()
-        toast.success("Approved. Opening Parchment.")
-        onActionComplete?.({ advance: false })
-        if (!onActionComplete) router.refresh()
-        openParchmentPanel()
+        toast.success(
+          result.emailNotification === "sent"
+            ? "Prescription approved and patient notified"
+            : result.emailNotification === "failed"
+              ? "Prescription approved. Patient notification needs follow-up."
+              : "Prescription approved",
+        )
+        closeAndRefresh()
       } else {
-        toast.error(result.error || "Failed to approve script")
+        toast.error(result.error || "Failed to approve prescription")
       }
     })
   }
@@ -530,7 +535,7 @@ export function useReviewActions({
       if (service?.type === "med_certs") {
         handleMedCertApprove()
       } else if (service?.type === "repeat_rx" || service?.type === "common_scripts") {
-        handleStatusChange("awaiting_script")
+        handleOpenParchmentPrescribe()
       } else {
         handleStatusChange("approved")
       }
@@ -584,7 +589,7 @@ export function useReviewActions({
     handleSaveNotes,
     handleGenerateOrRegenerateNote,
     handleOpenParchmentPrescribe,
-    handleApproveAndOpenParchment,
+    handleApprovePrescribedScript,
     handleResend,
     handleViewCertificate,
   }

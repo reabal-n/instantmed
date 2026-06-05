@@ -127,7 +127,7 @@ export interface QueueTableProps {
   expandedId: string | null
   isPending: boolean
   identityComplete: boolean
-  onApprove: (intakeId: string, serviceType?: string | null) => void
+  onApprove: (intakeId: string, serviceType?: string | null, subtype?: string | null) => void
   hasRedFlags: (intake: IntakeWithPatient) => boolean
   calculateWaitTime: (createdAt: string) => string
   getWaitTimeSeverity: (createdAt: string, slaDeadline?: string | null) => "normal" | "warning" | "critical"
@@ -370,6 +370,9 @@ export function QueueTable({
               patientSnapshot.missingCriticalFields.length > 0
             const identityFixHref = `${ADMIN_PRESCRIBING_IDENTITY_HREF}#identity-${intake.id}`
             const subtypeLabel = getConsultSubtypeLabel(intake.subtype)
+            const isPrescribingConsult =
+              (service?.type === SERVICE_TYPES.CONSULT || service?.type === SERVICE_TYPES.CONSULTS) &&
+              (intake.subtype === "ed" || intake.subtype === "hair_loss")
             const serviceBadgeLabel = compactShell && subtypeLabel
               ? `${subtypeLabel} consult`
               : service?.short_name || formatServiceType(service?.type || "")
@@ -668,12 +671,18 @@ export function QueueTable({
                       <Button
                         size="sm"
                         className="h-8 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
-                        onClick={(e) => { e.stopPropagation(); onApprove(intake.id, service?.type) }}
+                        onClick={(e) => { e.stopPropagation(); onApprove(intake.id, service?.type, intake.subtype) }}
                         disabled={isPending || !identityComplete}
                         title={!identityComplete ? "Complete your Certificate Identity in Settings first" : undefined}
                       >
                         {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle className="h-3 w-3 mr-1" />}
-                        {service?.type === SERVICE_TYPES.MED_CERTS ? "Review" : service?.type === SERVICE_TYPES.COMMON_SCRIPTS ? "Script" : "Approve"}
+                        {service?.type === SERVICE_TYPES.MED_CERTS
+                          ? "Review"
+                          : service?.type === SERVICE_TYPES.COMMON_SCRIPTS || service?.type === SERVICE_TYPES.REPEAT_RX
+                            ? "Prescribe"
+                            : isPrescribingConsult
+                              ? "Prescribe"
+                            : "Approve"}
                       </Button>
                       <Button
                         variant="ghost"

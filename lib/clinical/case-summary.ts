@@ -143,16 +143,17 @@ function factHumanized(label: string, value: unknown): ClinicalKeyFact | null {
 }
 
 function createClipboardText(intent: Omit<PrescriptionIntent, "clipboardText" | "parchmentMode">): string {
+  const medicationLine = [
+    intent.medicationName,
+    intent.strength,
+    intent.form,
+  ].filter(Boolean).join(" ")
   const lines = [
-    intent.presetLabel,
-    intent.medicationName ? `Medication: ${intent.medicationName}` : null,
-    intent.strength ? `Strength: ${intent.strength}` : null,
-    intent.form ? `Form: ${intent.form}` : null,
+    "Doctor-only prescribing context",
+    medicationLine ? `Medicine context: ${medicationLine}` : null,
     intent.medicationSearchHint ? `Search hint: ${intent.medicationSearchHint}` : null,
-    `Directions: ${intent.directionsTemplate}`,
-    intent.quantityTemplate ? `Quantity: ${intent.quantityTemplate}` : null,
-    intent.repeatsTemplate ? `Repeats: ${intent.repeatsTemplate}` : null,
-    intent.safetyChecks.length > 0 ? `Safety checks: ${intent.safetyChecks.join("; ")}` : null,
+    `Dose/directions context: ${intent.directionsTemplate}`,
+    "Confirm medicine, dose and all prescribing details in Parchment.",
     intent.cautionChecks && intent.cautionChecks.length > 0 ? `Cautions: ${intent.cautionChecks.join("; ")}` : null,
   ].filter(Boolean)
 
@@ -334,7 +335,7 @@ function edSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
 
   const edPreset = getEdPreset(preference)
   const prescriptionIntent = hasBlock ? undefined : makeIntent({
-    presetLabel: "ED prescribing preset",
+    presetLabel: "ED Parchment handoff context",
     medicationName: edPreset.medicationName,
     strength: edPreset.strength,
     form: edPreset.form,
@@ -461,7 +462,7 @@ function hairSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     .map((item) => item.label)
   const hairPreset = resolveHairLossPreset(preference, reproductiveBlock)
   const prescriptionIntent = hasBlock ? undefined : makeIntent({
-    presetLabel: "Hair loss prescribing preset",
+    presetLabel: "Hair loss Parchment handoff context",
     medicationName: hairPreset.medicationName,
     strength: hairPreset.strength,
     form: hairPreset.form,
@@ -657,7 +658,7 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
       }
 
   const prescriptionIntent = controlled ? undefined : makeIntent({
-    presetLabel: "Repeat prescription preset",
+    presetLabel: "Repeat prescription Parchment context",
     medicationName,
     strength,
     form,

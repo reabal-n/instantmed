@@ -143,14 +143,14 @@ const services: DetailedService[] = [
       "You're noticing thinning or recession and want to slow or reverse it without the GP back-and-forth.",
     includes: [
       "Norwood-scale visual + medical history",
-      "Finasteride and/or minoxidil considered",
-      "eScript if appropriate",
+      "Doctor reviews treatment suitability",
+      "eScript if clinically appropriate",
       "Free decline if not clinically suitable",
     ],
     steps: [
       "Tell us your goals and history",
       "Doctor reviews against safety screen",
-      "eScript or referral if a clinic visit is the right call",
+      "Approved treatment, referral, or a clear next step",
     ],
     ctaLabel: "Start hair loss assessment",
   },

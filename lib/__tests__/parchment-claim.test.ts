@@ -8,6 +8,8 @@ import {
   isParchmentClaimSatisfied,
   PARCHMENT_PATIENT_SYNC_STATUSES,
   PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES,
+  PARCHMENT_PRESCRIBING_STATUSES,
+  PARCHMENT_SCRIPT_COMPLETION_STATUSES,
 } from "@/lib/doctor/parchment-claim"
 
 describe("isParchmentClaimSatisfied", () => {
@@ -47,26 +49,28 @@ describe("getParchmentPrescriberCandidateIds", () => {
 })
 
 describe("getParchmentPrescribingEligibility", () => {
-  it("allows a paid prescribing case only after it is awaiting script", () => {
-    expect(getParchmentPrescribingEligibility({
-      category: "consult",
-      payment_status: "paid",
-      serviceType: "consult",
-      status: "awaiting_script",
-      subtype: "ed",
-    })).toMatchObject({ eligible: true })
+  it("allows paid prescribing cases before and after the legacy awaiting-script state", () => {
+    for (const status of PARCHMENT_PRESCRIBING_STATUSES) {
+      expect(getParchmentPrescribingEligibility({
+        category: "consult",
+        payment_status: "paid",
+        serviceType: "consult",
+        status,
+        subtype: "ed",
+      })).toMatchObject({ eligible: true })
+    }
   })
 
-  it("blocks paid prescribing consults before approval", () => {
+  it("blocks prescribing consults that are no longer active", () => {
     expect(getParchmentPrescribingEligibility({
       category: "consult",
       payment_status: "paid",
       serviceType: "consult",
-      status: "paid",
+      status: "completed",
       subtype: "ed",
     })).toMatchObject({
       eligible: false,
-      error: "Approve the prescribing case before opening Parchment.",
+      error: "Parchment can only be opened for active prescribing cases under doctor review.",
     })
   })
 
@@ -90,6 +94,11 @@ describe("getParchmentPatientSyncEligibility", () => {
 
   it("keeps patient sync statuses aligned with active prescribing recovery states", () => {
     expect(PARCHMENT_PATIENT_SYNC_STATUSES).toEqual(["paid", "in_review", "pending_info", "approved", "awaiting_script"])
+  })
+
+  it("keeps prescribe-first statuses explicit for the Parchment handoff", () => {
+    expect(PARCHMENT_PRESCRIBING_STATUSES).toEqual(["paid", "in_review", "awaiting_script"])
+    expect(PARCHMENT_SCRIPT_COMPLETION_STATUSES).toEqual(["awaiting_script"])
   })
 
   it("allows active paid prescription requests to sync identity to Parchment", () => {
@@ -124,13 +133,23 @@ describe("getParchmentPatientSyncEligibility", () => {
 })
 
 describe("getParchmentScriptCompletionEligibility", () => {
-  it("allows paid prescribing requests awaiting script completion to be marked sent", () => {
+  it("allows only explicit prescribing-session requests to record script completion", () => {
     expect(getParchmentScriptCompletionEligibility({
       category: "prescription",
       payment_status: "paid",
       serviceType: "repeat_rx",
       status: "awaiting_script",
     })).toMatchObject({ eligible: true })
+
+    expect(getParchmentScriptCompletionEligibility({
+      category: "prescription",
+      payment_status: "paid",
+      serviceType: "repeat_rx",
+      status: "in_review",
+    })).toMatchObject({
+      eligible: false,
+      error: "Scripts can only be approved after Parchment prescribing for active paid prescribing requests.",
+    })
   })
 
   it("blocks non-prescribing requests from being marked script sent", () => {
@@ -141,19 +160,19 @@ describe("getParchmentScriptCompletionEligibility", () => {
       status: "awaiting_script",
     })).toMatchObject({
       eligible: false,
-      error: "Scripts can only be marked sent for paid prescribing requests awaiting script completion.",
+      error: "Scripts can only be approved after Parchment prescribing for active paid prescribing requests.",
     })
   })
 
-  it("blocks prescribing requests that have not reached script completion", () => {
+  it("blocks prescribing requests that are no longer active", () => {
     expect(getParchmentScriptCompletionEligibility({
       category: "prescription",
       payment_status: "paid",
       serviceType: "repeat_rx",
-      status: "paid",
+      status: "completed",
     })).toMatchObject({
       eligible: false,
-      error: "Scripts can only be marked sent for paid prescribing requests awaiting script completion.",
+      error: "Scripts can only be approved after Parchment prescribing for active paid prescribing requests.",
     })
   })
 })

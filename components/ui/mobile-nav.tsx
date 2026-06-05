@@ -211,6 +211,7 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
                     key={item.href}
                     onClick={() => {
                       setMoreOpen(false)
+                      if (isActive) return
                       router.push(item.href)
                     }}
                     className={cn(
@@ -270,6 +271,7 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
                     setMoreOpen(!moreOpen)
                   } else {
                     setMoreOpen(false)
+                    if (isActive) return
                     router.push(item.href)
                   }
                 }}

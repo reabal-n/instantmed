@@ -16,7 +16,7 @@ describe("buildParchmentPrescriptionContext", () => {
         nextSteps: [],
       },
       prescriptionIntent: {
-        presetLabel: "Repeat prescription preset",
+        presetLabel: "Repeat prescription Parchment context",
         medicationName: "Rosuvastatin",
         strength: "10 mg",
         form: "tablet",
@@ -30,11 +30,11 @@ describe("buildParchmentPrescriptionContext", () => {
     })
 
     expect(context).toEqual({
-      presetLabel: "Repeat prescription preset",
+      presetLabel: "Repeat prescription Parchment context",
       medicationLabel: "Rosuvastatin 10 mg tablet",
       searchHint: "Rosuvastatin 10 mg tablet",
       directionsTemplate: "Confirm regimen in Parchment.",
-      clipboardText: "Medication: Rosuvastatin\nStrength: 10 mg",
+      copyText: "Medication: Rosuvastatin\nStrength: 10 mg",
     })
   })
 

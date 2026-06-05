@@ -44,11 +44,37 @@ describe("navigation routing contracts", () => {
     expect(existsSync(authHandoff)).toBe(true)
     expect(readFileSync(authHandoff, "utf8")).toContain('AUTH_POST_SIGNIN_HREF = "/auth/post-signin"')
     expect(userMenu).toContain("AUTH_POST_SIGNIN_HREF")
+    expect(userMenu).toContain("navigateToPostSignIn(window)")
     expect(userMenu).not.toContain('href="/auth/post-signin"')
     expect(userMenu).not.toMatch(/<Link\s+href=\{STAFF_DASHBOARD_HREF\}[\s\S]*Dashboard[\s\S]*<\/Link>/)
     expect(navbar).toContain("navigateToPostSignIn(window)")
     expect(navbar).not.toContain('window.location.assign("/auth/post-signin")')
     expect(navbar).not.toContain("router.push(STAFF_DASHBOARD_HREF)")
+  })
+
+  it("keeps signed-in mobile users out of the transient log-in CTA while auth is loading", () => {
+    const navbar = readFileSync(path.join(root, "components/shared/navbar.tsx"), "utf8")
+
+    expect(navbar).toContain("!isLoaded ?")
+    expect(navbar).toContain('aria-hidden="true"')
+    expect(navbar).not.toContain("!(isLoaded && user)")
+  })
+
+  it("makes active mobile and patient left-rail nav clicks no-op instead of soft-refreshing", () => {
+    const mobileNav = readFileSync(path.join(root, "components/ui/mobile-nav.tsx"), "utf8")
+    const leftRail = readFileSync(path.join(root, "components/shell/left-rail.tsx"), "utf8")
+
+    expect(mobileNav).toContain("if (isActive) return")
+    expect(leftRail).toContain("handleCurrentRouteClick")
+    expect(leftRail).toContain("event.preventDefault()")
+    expect(leftRail).toContain("patientOverviewActive")
+  })
+
+  it("lets the staff dashboard layout use role-aware wrong-role fallback", () => {
+    const dashboardLayout = readFileSync(path.join(root, "app/dashboard/layout.tsx"), "utf8")
+
+    expect(dashboardLayout).toContain('requireRole(["admin", "doctor", "support"])')
+    expect(dashboardLayout).not.toContain('redirectTo: "/sign-in"')
   })
 
   it("blocks direct dashboard navigation from marketing nav files", () => {

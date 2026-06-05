@@ -183,7 +183,7 @@ export async function retryParchmentWebhookFailureAction(
         prescriberProfileId,
       )
       if (!markedScriptSent) {
-        return { success: false, error: "Prescription synced, but the linked intake could not be marked completed." }
+        return { success: false, error: "Prescription synced, but the linked intake could not be marked script sent." }
       }
     }
 

@@ -223,11 +223,11 @@ export function IntakeReviewCockpit({
         ["ed", "hair_loss"].includes(intake.subtype || "") &&
         hasPrescriptionIntent
       ) {
-        review.handleApproveAndOpenParchment()
+        review.handleOpenParchmentPrescribe()
       } else if (service?.type === "med_certs") {
         review.handleMedCertApprove()
       } else if (service?.type === "repeat_rx" || service?.type === "common_scripts") {
-        review.handleStatusChange("awaiting_script")
+        review.handleOpenParchmentPrescribe()
       } else {
         review.handleStatusChange("approved")
       }

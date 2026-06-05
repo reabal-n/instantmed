@@ -12,7 +12,7 @@ import { reissueCertificateAction } from "@/app/actions/reissue-cert"
 import { approveDateCorrection } from "@/app/actions/request-date-correction"
 import { resendCertificateAsStaff } from "@/app/actions/resend-certificate"
 import { approveWithPreviewDataAction,fetchCertPreviewDataAction } from "@/app/doctor/intakes/[id]/document/actions"
-import { declineIntakeAction, issueRefundAction,markScriptSentAction, saveDoctorNotesAction, updateStatusAction } from "@/app/doctor/queue/actions"
+import { approvePrescribedScriptAction, declineIntakeAction, issueRefundAction,markScriptSentAction, saveDoctorNotesAction, updateStatusAction } from "@/app/doctor/queue/actions"
 import type { CertificatePreviewData } from "@/components/doctor"
 import { ParchmentPrescribePanel } from "@/components/doctor"
 import { usePanel } from "@/components/panels/panel-provider"
@@ -449,40 +449,18 @@ export function useIntakeActions({
 
   const handleMarkScriptSent = useCallback(async () => {
     startTransition(async () => {
-      const result = await markScriptSentAction(intake.id, undefined, dialogs.parchmentReference || undefined)
+      const result = await markScriptSentAction(intake.id, undefined, dialogs.parchmentReference.trim() || undefined)
       if (result.success) {
         dialogs.closeScriptDialog()
-        toast.success("Script marked as sent")
-        setTimeout(advanceToNext, 1000)
+        toast.success("Script recorded. Approve the request when ready.")
+        router.refresh()
       } else {
         toast.error(result.error || "Failed to mark script sent")
       }
     })
-  }, [intake.id, dialogs, advanceToNext])
+  }, [intake.id, dialogs, router])
 
-  const { openPanel } = usePanel()
-  const handleOpenParchmentPrescribe = useCallback(() => {
-    if (!parchmentEnabled) return
-    openPanel({
-      id: `parchment-prescribe-${intake.id}`,
-      type: "sheet",
-      component: (
-        <ParchmentPrescribePanel
-          intakeId={intake.id}
-          patientName={intake.patient?.full_name || "Patient"}
-          patientProfileHref={intake.patient?.id ? buildStaffPatientHref(intake.patient.id) : undefined}
-          prescriptionContext={buildParchmentPrescriptionContext(getClinicalCaseSummary())}
-          onScriptSent={() => {
-            dialogs.openScriptDialog()
-          }}
-        />
-      ),
-    })
-  }, [getClinicalCaseSummary, intake.id, intake.patient?.full_name, intake.patient?.id, parchmentEnabled, openPanel, dialogs])
-
-  const handleApproveAndOpenParchment = useCallback(async () => {
-    if (!parchmentEnabled) return
-
+  const handleApprovePrescribedScript = useCallback(async () => {
     const decisionNote = resolveDecisionNote()
     if (!decisionNote) {
       toast.error("Use the draft note or add a brief clinical note.")
@@ -497,7 +475,7 @@ export function useIntakeActions({
         return
       }
 
-      const result = await updateStatusAction(intake.id, "awaiting_script")
+      const result = await approvePrescribedScriptAction(intake.id)
       if (result.success) {
         setDoctorNotes(decisionNote)
         lastSavedDoctorNotesRef.current = decisionNote
@@ -505,14 +483,40 @@ export function useIntakeActions({
         setLastSavedDoctorNotesAt(new Date().toISOString())
         setNoteSaved(true)
         setIsAiPrefilled(false)
-        toast.success("Approved. Opening Parchment.")
-        router.refresh()
-        handleOpenParchmentPrescribe()
+        toast.success(
+          result.emailNotification === "sent"
+            ? "Prescription approved and patient notified"
+            : result.emailNotification === "failed"
+              ? "Prescription approved. Patient notification needs follow-up."
+              : "Prescription approved",
+        )
+        setTimeout(advanceToNext, 1000)
       } else {
-        toast.error(result.error || "Failed to approve script")
+        toast.error(result.error || "Failed to approve prescription")
       }
     })
-  }, [handleOpenParchmentPrescribe, intake.id, parchmentEnabled, resolveDecisionNote, router])
+  }, [advanceToNext, intake.id, resolveDecisionNote])
+
+  const { openPanel } = usePanel()
+  const handleOpenParchmentPrescribe = useCallback(() => {
+    if (!parchmentEnabled) return
+    openPanel({
+      id: `parchment-prescribe-${intake.id}`,
+      type: "sheet",
+      component: (
+        <ParchmentPrescribePanel
+          intakeId={intake.id}
+          patientName={intake.patient?.full_name || "Patient"}
+          patientProfileHref={intake.patient?.id ? buildStaffPatientHref(intake.patient.id) : undefined}
+          prescriptionContext={buildParchmentPrescriptionContext(getClinicalCaseSummary())}
+          onIntakeRefresh={() => router.refresh()}
+          onScriptSent={() => {
+            dialogs.openScriptDialog()
+          }}
+        />
+      ),
+    })
+  }, [getClinicalCaseSummary, intake.id, intake.patient?.full_name, intake.patient?.id, parchmentEnabled, openPanel, dialogs, router])
 
   const handleMarkRefunded = useCallback(async () => {
     startTransition(async () => {
@@ -643,7 +647,7 @@ export function useIntakeActions({
     handleSaveNotes,
     handleMarkScriptSent,
     handleOpenParchmentPrescribe: parchmentEnabled ? handleOpenParchmentPrescribe : undefined,
-    handleApproveAndOpenParchment: parchmentEnabled ? handleApproveAndOpenParchment : undefined,
+    handleApprovePrescribedScript,
     handleMarkRefunded,
     handleApproveDateCorrection,
     handleResendCertificate,

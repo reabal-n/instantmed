@@ -20,9 +20,11 @@ import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-s
 import { IntakeLifecycleError } from "@/lib/data/intake-lifecycle"
 import { formatClaimWarning } from "@/lib/data/intake-lock-warning"
 import {
+  approvePrescribedScript,
   flagForFollowup,
   markAsReviewed,
   saveDoctorNotes,
+  startParchmentPrescribing,
   updateIntakeStatus,
   updateScriptSent,
 } from "@/lib/data/intakes"
@@ -33,6 +35,7 @@ import {
   getParchmentScriptCompletionEligibility,
   isParchmentClaimSatisfied,
 } from "@/lib/doctor/parchment-claim"
+import { isPrescribingServiceRequest } from "@/lib/doctor/service-types"
 import {
   editPaidRequestTelegramMessageToApproved,
   editPaidRequestTelegramMessageToDeclined,
@@ -85,6 +88,120 @@ function getScriptCompletionRequestType(category: string | null, serviceType?: s
     return "repeat_rx"
   }
   return "intake"
+}
+
+async function ensureClinicalDecisionNoteForApproval(
+  intakeId: string,
+): Promise<{ success: true } | { success: false; error: string }> {
+  const supabase = createServiceRoleClient()
+  const { data: intake } = await supabase
+    .from("intakes")
+    .select(`
+      doctor_notes,
+      category,
+      subtype,
+      risk_tier,
+      requires_live_consult,
+      patient:profiles!patient_id (
+        full_name,
+        date_of_birth,
+        sex
+      ),
+      answers:intake_answers (
+        answers,
+        answers_encrypted
+      ),
+      service:services!service_id(type)
+    `)
+    .eq("id", intakeId)
+    .single()
+
+  const answerRow = firstRelation(intake?.answers as RelationValue<IntakeAnswersRow>)
+  const answers = answerRow
+    ? (await readAnswers({
+        answers: answerRow.answers,
+        answers_enc: answerRow.answers_encrypted,
+      })) ?? {}
+    : {}
+  const patient = firstRelation(intake?.patient as RelationValue<ClinicalDecisionPatient>)
+  const serviceType = getServiceType(intake?.service as ServiceRelation)
+  const fallbackDraftNote = intake
+    ? buildClinicalCaseSummary({
+        answers,
+        category: intake.category,
+        subtype: intake.subtype,
+        serviceType,
+        patientName: patient?.full_name,
+        patientDateOfBirth: patient?.date_of_birth ?? null,
+        patientSex: patient?.sex ?? null,
+        riskTier: intake.risk_tier,
+        requiresLiveConsult: intake.requires_live_consult,
+      }).draftNote
+    : null
+  const existingNotes = intake?.doctor_notes?.trim() || ""
+  const decisionNote = resolveClinicalDecisionNote({
+    doctorNotes: existingNotes,
+    fallbackDraftNote,
+  })
+
+  if (!decisionNote) {
+    return {
+      success: false,
+      error: "Use the draft note or add a brief clinical note before approving.",
+    }
+  }
+
+  if (decisionNote !== existingNotes) {
+    const saved = await saveDoctorNotes(intakeId, decisionNote)
+    if (!saved) {
+      return { success: false, error: "Failed to save clinical notes" }
+    }
+  }
+
+  return { success: true }
+}
+
+async function sendScriptSentEmailIfNeeded(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  intakeId: string,
+): Promise<"sent" | "already_sent" | "skipped_no_patient"> {
+  const React = await import("react")
+  const { sendEmail } = await import("@/lib/email/send-email")
+  const { ScriptSentEmail, scriptSentEmailSubject } = await import("@/lib/email/components/templates/script-sent")
+  const { getIntakeWithDetails } = await import("@/lib/data/intakes")
+
+  const { data: existingEmail } = await supabase
+    .from("email_outbox")
+    .select("id")
+    .eq("intake_id", intakeId)
+    .eq("email_type", "script_sent")
+    .limit(1)
+    .maybeSingle()
+
+  if (existingEmail) {
+    logger.info("Skipping script_sent email - already sent", { intakeId })
+    return "already_sent"
+  }
+
+  const intake = await getIntakeWithDetails(intakeId)
+  if (!intake?.patient?.email) return "skipped_no_patient"
+
+  const patientName = intake.patient.full_name || "Patient"
+  await sendEmail({
+    to: intake.patient.email,
+    toName: patientName,
+    subject: scriptSentEmailSubject(patientName.split(" ")[0]),
+    template: React.createElement(ScriptSentEmail, {
+      patientName,
+      requestId: intakeId,
+      escriptReference: intake.parchment_reference ?? undefined,
+    }),
+    emailType: "script_sent",
+    intakeId,
+    patientId: intake.patient.id,
+    metadata: intake.parchment_reference ? { parchmentReference: intake.parchment_reference } : {},
+  })
+  return "sent"
 }
 
 async function ensureDoctorCaseActionAllowed(
@@ -224,6 +341,14 @@ export async function updateStatusAction(
         success: false,
         error: "Medical certificates must be approved through the document builder to generate PDFs and send emails.",
         code: "MED_CERT_REQUIRES_DOCUMENT_BUILDER",
+      }
+    }
+
+    if (status === "approved" && isPrescribingServiceRequest(serviceType, subtype)) {
+      return {
+        success: false,
+        error: "Complete or record the prescription in Parchment before approving.",
+        code: "PRESCRIPTION_REQUIRES_SCRIPT_EVIDENCE",
       }
     }
 
@@ -495,7 +620,7 @@ export async function markScriptSentAction(
   intakeId: string,
   scriptNotes?: string,
   parchmentReference?: string,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; code?: string }> {
   const { profile } = await requireRole(["doctor", "admin"])
   if (!profile) {
     return { success: false, error: "Unauthorized" }
@@ -514,6 +639,26 @@ export async function markScriptSentAction(
       reviewing_doctor_id,
       reviewed_by,
       script_sent,
+      patient:profiles!patient_id (
+        id,
+        full_name,
+        date_of_birth,
+        sex,
+        medicare_number,
+        medicare_irn,
+        medicare_expiry,
+        ihi_number,
+        phone,
+        email,
+        address_line1,
+        suburb,
+        state,
+        postcode
+      ),
+      answers:intake_answers (
+        answers,
+        answers_encrypted
+      ),
       service:services!service_id(type)
     `)
     .eq("id", intakeId)
@@ -532,8 +677,74 @@ export async function markScriptSentAction(
   }
 
   const serviceType = getServiceType(intake.service as ServiceRelation)
-  const eligibility = getParchmentScriptCompletionEligibility({
+  const subtype = intake.subtype ?? null
+
+  if (!doctorCanReviewService(profile, serviceType, subtype)) {
+    logger.warn("Doctor lacks capability to record prescription completion", {
+      doctorId: profile.id,
+      intakeId,
+      serviceType,
+      subtype,
+    })
+    return {
+      success: false,
+      error: `Your account is not configured to review ${describeServiceCapability(serviceType, subtype)}. Contact the medical director.`,
+    }
+  }
+
+  const evidenceNote = scriptNotes?.trim()
+  const evidenceReference = parchmentReference?.trim()
+  if (!evidenceNote && !evidenceReference) {
+    return {
+      success: false,
+      error: "Add the external script reference or channel used before recording the script as sent.",
+      code: "SCRIPT_SENT_EVIDENCE_REQUIRED",
+    }
+  }
+
+  const identityEligibility = getParchmentPatientSyncEligibility({
     status: intake.status,
+    payment_status: intake.payment_status,
+    category: intake.category,
+    subtype: intake.subtype,
+    serviceType,
+  })
+
+  if (identityEligibility.eligible) {
+    const patient = firstRelation(intake.patient as RelationValue<PrescribingIdentityPatient>)
+    const answerRow = firstRelation(intake.answers as RelationValue<IntakeAnswersRow>)
+    const answers = answerRow
+      ? (await readAnswers({
+          answers: answerRow.answers,
+          answers_enc: answerRow.answers_encrypted,
+        })) ?? undefined
+      : undefined
+
+    if (!patient) {
+      return { success: false, error: "Patient profile not found" }
+    }
+
+    const missingFields = getParchmentPatientIdentityIssues(patient, answers)
+    if (missingFields.length > 0) {
+      return {
+        success: false,
+        error: `Cannot record script completion until patient identity is complete: ${missingFields.join(", ")}`,
+        code: "INCOMPLETE_PRESCRIBING_IDENTITY",
+      }
+    }
+  }
+
+  let completionStatus = intake.status
+  if (completionStatus !== "awaiting_script") {
+    const prescribingStarted = await startParchmentPrescribing(intakeId, profile.id)
+    if (!prescribingStarted) {
+      return { success: false, error: "Could not start the prescribing step for this request. Refresh and try again." }
+    }
+    completionStatus = "awaiting_script"
+  }
+
+  const eligibility = getParchmentScriptCompletionEligibility({
+    status: completionStatus,
     payment_status: intake.payment_status,
     category: intake.category,
     subtype: intake.subtype,
@@ -547,7 +758,7 @@ export async function markScriptSentAction(
     }
   }
 
-  const success = await updateScriptSent(intakeId, true, scriptNotes, parchmentReference, profile.id)
+  const success = await updateScriptSent(intakeId, true, evidenceNote, evidenceReference, profile.id)
   if (!success) {
     return { success: false, error: "Failed to mark script sent" }
   }
@@ -557,7 +768,7 @@ export async function markScriptSentAction(
       intakeId,
       getScriptCompletionRequestType(intake.category ?? null, serviceType),
       profile.id,
-      parchmentReference || "parchment",
+      evidenceReference || "manual_external_prescribing",
     )
   } catch (auditError) {
     logger.warn(
@@ -567,48 +778,120 @@ export async function markScriptSentAction(
     )
   }
 
-  // Send email notification to patient via the centralized sendEmail pipeline
-  // This ensures outbox logging, retry support, Sentry capture, and the modern React template
-  // Skip email if the webhook already sent one (check email_outbox for existing script_sent)
-  try {
-    const React = await import("react")
-    const { sendEmail } = await import("@/lib/email/send-email")
-    const { ScriptSentEmail, scriptSentEmailSubject } = await import("@/lib/email/components/templates/script-sent")
-    const { getIntakeWithDetails } = await import("@/lib/data/intakes")
+  revalidateStaff({ intakeId, scripts: true })
+  revalidatePatient({ intakeId })
 
-    // Dedup: skip email if webhook already sent one for this intake
-    const { data: existingEmail } = await supabase
-      .from("email_outbox")
-      .select("id")
-      .eq("intake_id", intakeId)
-      .eq("email_type", "script_sent")
-      .limit(1)
-      .maybeSingle()
+  return { success: true }
+}
 
-    if (existingEmail) {
-      logger.info("Skipping script_sent email - already sent (likely via webhook)", { intakeId })
-    } else {
-      const intake = await getIntakeWithDetails(intakeId)
-      if (intake?.patient?.email) {
-        const patientName = intake.patient.full_name || "Patient"
+export async function approvePrescribedScriptAction(
+  intakeId: string,
+): Promise<{ success: boolean; error?: string; emailNotification?: "sent" | "already_sent" | "skipped_no_patient" | "failed" }> {
+  const { profile } = await requireRole(["doctor", "admin"])
+  if (!profile) {
+    return { success: false, error: "Unauthorized" }
+  }
 
-        await sendEmail({
-          to: intake.patient.email,
-          toName: patientName,
-          subject: scriptSentEmailSubject(patientName?.split(" ")[0]),
-          template: React.createElement(ScriptSentEmail, {
-            patientName,
-            requestId: intakeId,
-            escriptReference: parchmentReference,
-          }),
-          emailType: "script_sent",
-          intakeId,
-          patientId: intake.patient.id,
-          metadata: parchmentReference ? { parchmentReference } : {},
-        })
-      }
+  const supabase = createServiceRoleClient()
+  const { data: intake, error: intakeError } = await supabase
+    .from("intakes")
+    .select(`
+      id,
+      status,
+      payment_status,
+      category,
+      subtype,
+      claimed_by,
+      reviewing_doctor_id,
+      reviewed_by,
+      script_sent,
+      parchment_reference,
+      service:services!service_id(type)
+    `)
+    .eq("id", intakeId)
+    .single()
+
+  if (intakeError || !intake) {
+    return { success: false, error: "Intake not found" }
+  }
+
+  if (!hasAdminAccess(profile) && !isParchmentClaimSatisfied(intake, profile.id)) {
+    return { success: false, error: "You must claim this intake before approving the prescription" }
+  }
+
+  const serviceType = getServiceType(intake.service as ServiceRelation)
+  const subtype = intake.subtype ?? null
+
+  if (!doctorCanReviewService(profile, serviceType, subtype)) {
+    logger.warn("Doctor lacks capability to approve prescription", {
+      doctorId: profile.id,
+      intakeId,
+      serviceType,
+      subtype,
+    })
+    return {
+      success: false,
+      error: `Your account is not configured to review ${describeServiceCapability(serviceType, subtype)}. Contact the medical director.`,
     }
+  }
+
+  if (intake.script_sent === true && intake.status === "completed") {
+    let emailNotification: "sent" | "already_sent" | "skipped_no_patient" | "failed" = "failed"
+    try {
+      emailNotification = await sendScriptSentEmailIfNeeded(supabase, intakeId)
+    } catch (emailErr) {
+      emailNotification = "failed"
+      Sentry.captureException(emailErr, {
+        tags: { email_type: "script_sent", intake_id: intakeId },
+        level: "warning",
+      })
+      logger.warn("Failed to send script_sent email", { intakeId, error: emailErr })
+    }
+    revalidateStaff({ intakeId, scripts: true })
+    revalidatePatient({ intakeId })
+    return { success: true, emailNotification }
+  }
+
+  const eligibility = getParchmentScriptCompletionEligibility({
+    status: intake.status,
+    payment_status: intake.payment_status,
+    category: intake.category,
+    subtype: intake.subtype,
+    serviceType,
+  })
+
+  if (!eligibility.eligible) {
+    return {
+      success: false,
+      error: eligibility.error || "This request is not ready for prescription approval",
+    }
+  }
+
+  if (intake.script_sent !== true) {
+    return {
+      success: false,
+      error: "Complete or record the prescription in Parchment before approving.",
+    }
+  }
+
+  const clinicalNote = await ensureClinicalDecisionNoteForApproval(intakeId)
+  if (!clinicalNote.success) {
+    return { success: false, error: clinicalNote.error }
+  }
+
+  const success = await approvePrescribedScript(intakeId, profile.id)
+  if (!success) {
+    return { success: false, error: "Failed to approve prescription" }
+  }
+
+  // Send email notification to patient via the centralized sendEmail pipeline.
+  // This happens only after the doctor explicitly approves the already-sent
+  // script, preserving the two-step prescribing workflow.
+  let emailNotification: "sent" | "already_sent" | "skipped_no_patient" | "failed" = "failed"
+  try {
+    emailNotification = await sendScriptSentEmailIfNeeded(supabase, intakeId)
   } catch (emailErr) {
+    emailNotification = "failed"
     // Email is non-critical, don't fail the action -- but log to Sentry
     Sentry.captureException(emailErr, {
       tags: { email_type: "script_sent", intake_id: intakeId },
@@ -619,8 +902,9 @@ export async function markScriptSentAction(
 
   revalidateStaff({ intakeId, scripts: true })
   revalidatePatient({ intakeId })
+  void editPaidRequestTelegramMessageToApproved(intakeId)
 
-  return { success: true }
+  return { success: true, emailNotification }
 }
 
 /**

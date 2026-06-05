@@ -10,6 +10,30 @@ export function getStaffNavHrefStatus(href: string): string | null {
   return new URLSearchParams(query).get("status")
 }
 
+function normalizeSearch(search: string | null | undefined): string {
+  const trimmed = search?.replace(/^\?/, "") ?? ""
+  if (!trimmed) return ""
+
+  const params = new URLSearchParams(trimmed)
+  params.sort()
+  return params.toString()
+}
+
+export function isStaffNavHrefCurrent({
+  pathname,
+  href,
+  currentSearch,
+}: {
+  pathname: string | null
+  href: string
+  currentSearch: string | null
+}): boolean {
+  if (!pathname || href.includes("#")) return false
+
+  const [hrefPath, hrefSearch] = href.split("?")
+  return hrefPath === pathname && normalizeSearch(hrefSearch) === normalizeSearch(currentSearch)
+}
+
 export function hasStatusFilteredDashboardItems(hrefs: string[]): boolean {
   return hrefs.some(
     (href) => getStaffNavHrefPath(href) === STAFF_DASHBOARD_HREF && getStaffNavHrefStatus(href),

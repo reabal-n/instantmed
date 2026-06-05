@@ -7,10 +7,7 @@ import { toast } from "sonner"
 import { ClinicalSummary } from "@/components/doctor/clinical-summary"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import {
-  buildClinicalCaseSummary,
-  type PrescriptionIntent,
-} from "@/lib/clinical/case-summary"
+import { buildClinicalCaseSummary, type PrescriptionIntent } from "@/lib/clinical/case-summary"
 import { isClinicalNoteSufficient } from "@/lib/doctor/clinical-notes"
 import { cn } from "@/lib/utils"
 
@@ -40,21 +37,11 @@ interface ClinicalCaseReviewProps {
   draftNoteSaveError?: boolean
   doctorSignOffLabel?: string | null
   /**
-   * Suppress the inline Parchment-preset block. Callers that render the
+   * Suppress the inline Parchment handoff block. Callers that render the
    * canonical PrescriptionRecommendationCard alongside this component
    * (the intake-review cockpit) set this to true to avoid double-render.
    */
   hidePrescriptionIntent?: boolean
-}
-
-function getPrescriptionCopyLabel(intent: PrescriptionIntent): string {
-  const medicationLabel = [
-    intent.medicationName,
-    intent.strength,
-    intent.form,
-  ].filter(Boolean).join(" ")
-
-  return medicationLabel || intent.presetLabel || "medicine"
 }
 
 const SOAP_SECTIONS = [
@@ -65,6 +52,16 @@ const SOAP_SECTIONS = [
 ] as const
 const COMPACT_FACT_LIMIT = 4
 const PINNED_DRAFT_FACT_LIMIT = 4
+
+function getPrescriptionCopyLabel(intent: PrescriptionIntent): string {
+  const medicationLabel = [
+    intent.medicationName,
+    intent.strength,
+    intent.form,
+  ].filter(Boolean).join(" ")
+
+  return medicationLabel || intent.presetLabel || "medicine"
+}
 
 type SoapSectionKey = typeof SOAP_SECTIONS[number]["key"]
 type SoapSections = Record<SoapSectionKey, string>
@@ -172,7 +169,7 @@ export function ClinicalCaseReview({
       await navigator.clipboard.writeText(summary.prescriptionIntent.clipboardText)
       toast.success(`Copied ${getPrescriptionCopyLabel(summary.prescriptionIntent)} for Parchment`)
     } catch {
-      toast.error("Could not copy preset")
+      toast.error("Could not copy prescribing context")
     }
   }
 
@@ -506,7 +503,7 @@ export function ClinicalCaseReview({
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-medium text-muted-foreground">
-                    {summary.prescriptionIntent ? "Prescribing plan" : "Recommended plan"}
+                    {summary.prescriptionIntent ? "Prescribing context" : "Clinical plan"}
                   </p>
                   <p className="mt-1 text-sm font-semibold text-foreground">
                     {summary.recommendedPlan.title}
@@ -542,7 +539,7 @@ export function ClinicalCaseReview({
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 flex-1 space-y-1">
                   <p className="text-xs font-medium text-blue-700">
-                    Parchment preset
+                    Parchment handoff context
                   </p>
                   <p className="text-sm font-semibold text-blue-950">
                     {summary.prescriptionIntent.presetLabel}
@@ -570,11 +567,16 @@ export function ClinicalCaseReview({
                   <p className="text-sm text-blue-900">
                     {summary.prescriptionIntent.directionsTemplate}
                   </p>
+                  <p className="text-xs text-blue-800">
+                    Confirm medicine, dose and all prescribing details in Parchment.
+                  </p>
                 </div>
-                <Button type="button" variant="outline" size="sm" className="bg-white" onClick={copyPreset}>
-                  <Clipboard className="mr-1.5 h-3.5 w-3.5" />
-                  Copy
-                </Button>
+                {summary.prescriptionIntent.clipboardText && (
+                  <Button type="button" variant="outline" size="sm" className="bg-white" onClick={copyPreset}>
+                    <Clipboard className="mr-1.5 h-3.5 w-3.5" />
+                    Copy
+                  </Button>
+                )}
               </div>
             </section>
           )}

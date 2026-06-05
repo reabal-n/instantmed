@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import { ED_PRESCRIBING_PRESETS, getEdPreset } from "@/lib/clinical/ed-prescribing-presets"
 
-describe("ED prescribing presets", () => {
+describe("ED Parchment handoff presets", () => {
   it("daily preference returns Tadalafil 5mg with daily directions", () => {
     const preset = getEdPreset("daily")
     expect(preset.medicationName).toBe("Tadalafil")

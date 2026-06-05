@@ -576,7 +576,7 @@ export function IntakeReviewPanel({
     handleSaveNotes: actions.handleSaveNotes,
     handleGenerateOrRegenerateNote: actions.handleGenerateOrRegenerateNote,
     handleOpenParchmentPrescribe: actions.handleOpenParchmentPrescribe,
-    handleApproveAndOpenParchment: actions.handleApproveAndOpenParchment,
+    handleApprovePrescribedScript: actions.handleApprovePrescribedScript,
     handleResend: actions.handleResend,
     handleViewCertificate: actions.handleViewCertificate,
     showDeclineDialog: actions.showDeclineDialog,

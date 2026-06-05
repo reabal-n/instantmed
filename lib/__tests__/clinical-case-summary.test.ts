@@ -66,7 +66,7 @@ describe("buildClinicalCaseSummary", () => {
     )
   })
 
-  it("keeps the ED prescribing preset visible when caution history is GP-cleared", () => {
+  it("keeps ED handoff context visible when caution history is GP-cleared", () => {
     const summary = buildClinicalCaseSummary({
       category: "consult",
       subtype: "ed",
@@ -135,7 +135,7 @@ describe("buildClinicalCaseSummary", () => {
     expect(summary.prescriptionIntent).toBeUndefined()
   })
 
-  it("turns safe oral hair loss requests into a concrete finasteride preset", () => {
+  it("turns safe oral hair loss requests into concise finasteride handoff context", () => {
     const summary = buildClinicalCaseSummary({
       category: "consult",
       subtype: "hair_loss",
@@ -397,7 +397,7 @@ describe("buildClinicalCaseSummary", () => {
     expect(summary.prescriptionIntent).toBeUndefined()
   })
 
-  describe("ED preset wiring (2026-05-26)", () => {
+  describe("ED handoff context wiring (2026-05-26)", () => {
     it("daily preference fills prescriptionIntent with Tadalafil 5mg", () => {
       const summary = buildClinicalCaseSummary({
         category: "consult",
@@ -420,7 +420,7 @@ describe("buildClinicalCaseSummary", () => {
       expect(summary.prescriptionIntent?.quantityTemplate).toBe("30 tablets")
       expect(summary.prescriptionIntent?.directionsTemplate).toMatch(/once daily/i)
       expect(summary.prescriptionIntent?.clipboardText).toContain("Tadalafil")
-      expect(summary.prescriptionIntent?.clipboardText).toContain("30 tablets")
+      expect(summary.prescriptionIntent?.clipboardText).not.toContain("30 tablets")
     })
 
     it("prn preference fills prescriptionIntent with Sildenafil 50mg", () => {
