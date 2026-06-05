@@ -7,11 +7,14 @@ import {
 import {
   GOOGLE_ADS_ATTRIBUTION_SELECT,
   type GoogleAdsAttributionRow,
-  hasGoogleClickId,
   isLikelyGoogleAttributed,
-  isNonRetryableGoogleAdsConversionError,
   runGoogleAdsPostPaymentAttribution,
 } from "@/lib/analytics/google-ads-post-payment"
+import {
+  bestGoogleAdsUploadAuditByIntake,
+  type GoogleAdsUploadAuditRow,
+  shouldRetryGoogleAdsUploadCandidate,
+} from "@/lib/analytics/google-ads-upload-audit"
 import { acquireCronLock, releaseCronLock, verifyCronRequest } from "@/lib/api/cron-auth"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
@@ -23,35 +26,12 @@ const logger = createLogger("cron-google-ads-conversions")
 
 const LOOKBACK_DAYS = 90
 const BATCH_LIMIT = 25
+const GOOGLE_ADS_BACKFILL_PAYMENT_STATUSES = ["paid", "partially_refunded", "refunded"] as const
 
 type GoogleAdsCandidate = GoogleAdsAttributionRow & {
   id: string
   patient_id?: string | null
   paid_at?: string | null
-}
-
-type UploadAuditRow = {
-  intake_id: string | null
-  metadata: {
-    error_code?: string
-    status?: string
-  } | null
-}
-
-function shouldRetryCandidate(
-  row: GoogleAdsCandidate,
-  latestAudit: UploadAuditRow | undefined,
-  options: { force: boolean },
-): boolean {
-  const latestStatus = latestAudit?.metadata?.status
-  const latestError = latestAudit?.metadata?.error_code || ""
-
-  if (options.force) return true
-  if (latestStatus === "success") return false
-  if (latestStatus === "skipped_missing_click_id" && !hasGoogleClickId(row)) return false
-  if (isNonRetryableGoogleAdsConversionError(latestError)) return false
-
-  return true
 }
 
 function shouldSkipBackfillForPreflight(
@@ -122,7 +102,7 @@ export async function GET(request: NextRequest) {
     const candidateQuery = supabase
       .from("intakes")
       .select(`id, patient_id, paid_at, ${GOOGLE_ADS_ATTRIBUTION_SELECT}`)
-      .eq("payment_status", "paid")
+      .in("payment_status", [...GOOGLE_ADS_BACKFILL_PAYMENT_STATUSES])
       .not("paid_at", "is", null)
       .gte("paid_at", since)
       .order("paid_at", { ascending: true })
@@ -134,27 +114,22 @@ export async function GET(request: NextRequest) {
     const candidates = ((data || []) as GoogleAdsCandidate[]).filter(isLikelyGoogleAttributed)
     const candidateIds = candidates.map((row) => row.id)
 
-    let latestAuditByIntake = new Map<string, UploadAuditRow>()
+    let latestAuditByIntake = new Map<string, GoogleAdsUploadAuditRow>()
     if (candidateIds.length > 0) {
       const { data: audits, error: auditError } = await supabase
         .from("audit_logs")
-        .select("intake_id, metadata")
+        .select("intake_id, created_at, metadata")
         .eq("action", "google_ads_conversion_upload")
         .in("intake_id", candidateIds)
         .order("created_at", { ascending: false })
 
       if (auditError) throw new Error(`Google Ads audit query failed: ${auditError.message}`)
 
-      latestAuditByIntake = new Map()
-      for (const audit of (audits || []) as UploadAuditRow[]) {
-        if (audit.intake_id && !latestAuditByIntake.has(audit.intake_id)) {
-          latestAuditByIntake.set(audit.intake_id, audit)
-        }
-      }
+      latestAuditByIntake = bestGoogleAdsUploadAuditByIntake((audits || []) as GoogleAdsUploadAuditRow[])
     }
 
     const retryable = candidates
-      .filter((row) => shouldRetryCandidate(row, latestAuditByIntake.get(row.id), { force }))
+      .filter((row) => shouldRetryGoogleAdsUploadCandidate(row, latestAuditByIntake.get(row.id), { force }))
       .slice(0, BATCH_LIMIT)
 
     let preflight: GoogleAdsConversionActionPreflightResult | null = null

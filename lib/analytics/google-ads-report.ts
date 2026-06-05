@@ -46,6 +46,26 @@ export type GoogleAdsCampaignRow = {
   }
 }
 
+export type GoogleAdsPurchaseConversionRow = {
+  campaign?: {
+    advertisingChannelType?: string
+    id?: string | number
+    name?: string
+    status?: string
+  }
+  metrics?: {
+    allConversions?: number | string
+    allConversionsValue?: number | string
+    conversions?: number | string
+    conversionsValue?: number | string
+  }
+  segments?: {
+    conversionAction?: string
+    conversionActionName?: string
+    date?: string
+  }
+}
+
 export type LocalGoogleAdsPurchaseRow = GoogleAdsAttributionRow & {
   amount_cents?: number | null
   payment_status?: string | null
@@ -79,6 +99,14 @@ export type GoogleAdsCampaignSummary = {
   localNetRevenueAud: number
   localOrders: number
   localRefundedAud: number
+  purchaseAllConversions: number
+  purchaseAllConversionsValueAud: number
+  purchaseConversionActionName: string | null
+  purchaseConversionActionResourceName: string | null
+  purchaseConversions: number
+  purchaseConversionValueAud: number
+  purchaseCpaAud: number | null
+  purchaseRoas: number | null
   networks: string[]
   roas: number | null
   spendAud: number
@@ -98,7 +126,13 @@ export type GoogleAdsSpendSummary = {
   totalLocalGrossRevenueAud: number
   totalLocalNetRevenueAud: number
   totalLocalOrders: number
+  totalPurchaseAllConversions: number
+  totalPurchaseAllConversionsValueAud: number
+  totalPurchaseConversions: number
+  totalPurchaseConversionValueAud: number
   totalSpendAud: number
+  purchaseCpaAud: number | null
+  purchaseRoas: number | null
 }
 
 export type GoogleAdsSpendReport = {
@@ -209,6 +243,32 @@ export function buildGoogleAdsCampaignPerformanceQuery(range: GoogleAdsReportRan
     "FROM campaign",
     `WHERE segments.date BETWEEN '${range.startDate}' AND '${range.endDate}'`,
     "ORDER BY metrics.cost_micros DESC",
+  ].join(" ")
+}
+
+export function buildGoogleAdsPurchaseConversionQuery(
+  range: GoogleAdsReportRange,
+  conversionActionResourceName: string,
+): string {
+  const resourceName = conversionActionResourceName.replace(/'/g, "\\'")
+
+  return [
+    "SELECT",
+    "segments.date,",
+    "segments.conversion_action,",
+    "segments.conversion_action_name,",
+    "campaign.id,",
+    "campaign.name,",
+    "campaign.status,",
+    "campaign.advertising_channel_type,",
+    "metrics.conversions,",
+    "metrics.conversions_value,",
+    "metrics.all_conversions,",
+    "metrics.all_conversions_value",
+    "FROM campaign",
+    `WHERE segments.date BETWEEN '${range.startDate}' AND '${range.endDate}'`,
+    `AND segments.conversion_action = '${resourceName}'`,
+    "ORDER BY metrics.conversions_value DESC",
   ].join(" ")
 }
 
@@ -336,6 +396,7 @@ export function summarizeLocalGoogleAdsPurchases(rows: LocalGoogleAdsPurchaseRow
 export function summarizeGoogleAdsCampaignRows(
   rows: GoogleAdsCampaignRow[],
   localByCampaign = new Map<string, LocalGoogleAdsCampaignSummary>(),
+  purchaseRows: GoogleAdsPurchaseConversionRow[] = [],
 ): GoogleAdsSpendReport {
   const campaignMap = new Map<string, GoogleAdsCampaignSummary & { deviceSet: Set<string>; networkSet: Set<string> }>()
 
@@ -360,6 +421,14 @@ export function summarizeGoogleAdsCampaignRows(
       localNetRevenueAud: 0,
       localOrders: 0,
       localRefundedAud: 0,
+      purchaseAllConversions: 0,
+      purchaseAllConversionsValueAud: 0,
+      purchaseConversionActionName: null,
+      purchaseConversionActionResourceName: null,
+      purchaseConversions: 0,
+      purchaseConversionValueAud: 0,
+      purchaseCpaAud: null,
+      purchaseRoas: null,
       networkSet: new Set<string>(),
       networks: [],
       roas: null,
@@ -399,6 +468,14 @@ export function summarizeGoogleAdsCampaignRows(
       localNetRevenueAud: 0,
       localOrders: 0,
       localRefundedAud: 0,
+      purchaseAllConversions: 0,
+      purchaseAllConversionsValueAud: 0,
+      purchaseConversionActionName: null,
+      purchaseConversionActionResourceName: null,
+      purchaseConversions: 0,
+      purchaseConversionValueAud: 0,
+      purchaseCpaAud: null,
+      purchaseRoas: null,
       networkSet: new Set<string>(),
       networks: [],
       roas: null,
@@ -413,6 +490,55 @@ export function summarizeGoogleAdsCampaignRows(
     campaignMap.set(campaignId, current)
   }
 
+  for (const row of purchaseRows) {
+    const campaignId = clean(row.campaign?.id) || "unknown_campaign"
+    const current = campaignMap.get(campaignId) || {
+      allConversions: 0,
+      allConversionsValueAud: 0,
+      avgCpcAud: null,
+      campaignId,
+      campaignName: clean(row.campaign?.name) || campaignId,
+      channel: clean(row.campaign?.advertisingChannelType) || null,
+      clicks: 0,
+      conversions: 0,
+      conversionValueAud: 0,
+      costPerLocalOrderAud: null,
+      cpaAud: null,
+      deviceSet: new Set<string>(),
+      devices: [],
+      impressions: 0,
+      localGrossRevenueAud: 0,
+      localNetRevenueAud: 0,
+      localOrders: 0,
+      localRefundedAud: 0,
+      purchaseAllConversions: 0,
+      purchaseAllConversionsValueAud: 0,
+      purchaseConversionActionName: null,
+      purchaseConversionActionResourceName: null,
+      purchaseConversions: 0,
+      purchaseConversionValueAud: 0,
+      purchaseCpaAud: null,
+      purchaseRoas: null,
+      networkSet: new Set<string>(),
+      networks: [],
+      roas: null,
+      spendAud: 0,
+      status: clean(row.campaign?.status) || null,
+    }
+
+    current.purchaseConversions += toNumber(row.metrics?.conversions)
+    current.purchaseConversionValueAud = roundMoney(
+      current.purchaseConversionValueAud + toNumber(row.metrics?.conversionsValue),
+    )
+    current.purchaseAllConversions += toNumber(row.metrics?.allConversions)
+    current.purchaseAllConversionsValueAud = roundMoney(
+      current.purchaseAllConversionsValueAud + toNumber(row.metrics?.allConversionsValue),
+    )
+    current.purchaseConversionActionResourceName ||= clean(row.segments?.conversionAction) || null
+    current.purchaseConversionActionName ||= clean(row.segments?.conversionActionName) || null
+    campaignMap.set(campaignId, current)
+  }
+
   const campaigns = Array.from(campaignMap.values()).map((campaign) => {
     const devices = Array.from(campaign.deviceSet).sort()
     const networks = Array.from(campaign.networkSet).sort()
@@ -422,6 +548,8 @@ export function summarizeGoogleAdsCampaignRows(
       avgCpcAud: divideMoney(campaign.spendAud, campaign.clicks),
       costPerLocalOrderAud: divideMoney(campaign.spendAud, campaign.localOrders),
       cpaAud: divideMoney(campaign.spendAud, campaign.conversions),
+      purchaseCpaAud: divideMoney(campaign.spendAud, campaign.purchaseConversions),
+      purchaseRoas: divideRatio(campaign.purchaseConversionValueAud, campaign.spendAud),
       devices,
       networks,
       roas: divideRatio(campaign.conversionValueAud, campaign.spendAud),
@@ -441,6 +569,10 @@ export function summarizeGoogleAdsCampaignRows(
     acc.totalLocalGrossRevenueAud = roundMoney(acc.totalLocalGrossRevenueAud + campaign.localGrossRevenueAud)
     acc.totalLocalNetRevenueAud = roundMoney(acc.totalLocalNetRevenueAud + campaign.localNetRevenueAud)
     acc.totalLocalOrders += campaign.localOrders
+    acc.totalPurchaseAllConversions += campaign.purchaseAllConversions
+    acc.totalPurchaseAllConversionsValueAud = roundMoney(acc.totalPurchaseAllConversionsValueAud + campaign.purchaseAllConversionsValueAud)
+    acc.totalPurchaseConversions += campaign.purchaseConversions
+    acc.totalPurchaseConversionValueAud = roundMoney(acc.totalPurchaseConversionValueAud + campaign.purchaseConversionValueAud)
     acc.totalSpendAud = roundMoney(acc.totalSpendAud + campaign.spendAud)
     return acc
   }, {
@@ -456,12 +588,20 @@ export function summarizeGoogleAdsCampaignRows(
     totalLocalGrossRevenueAud: 0,
     totalLocalNetRevenueAud: 0,
     totalLocalOrders: 0,
+    totalPurchaseAllConversions: 0,
+    totalPurchaseAllConversionsValueAud: 0,
+    totalPurchaseConversions: 0,
+    totalPurchaseConversionValueAud: 0,
     totalSpendAud: 0,
+    purchaseCpaAud: null,
+    purchaseRoas: null,
   })
 
   summary.avgCpcAud = divideMoney(summary.totalSpendAud, summary.totalClicks)
   summary.cpaAud = divideMoney(summary.totalSpendAud, summary.totalConversions)
   summary.roas = divideRatio(summary.totalConversionValueAud, summary.totalSpendAud)
+  summary.purchaseCpaAud = divideMoney(summary.totalSpendAud, summary.totalPurchaseConversions)
+  summary.purchaseRoas = divideRatio(summary.totalPurchaseConversionValueAud, summary.totalSpendAud)
 
   return { campaigns, summary }
 }
@@ -523,8 +663,16 @@ export async function getGoogleAdsSpendAuditReport({
     runOptionalGoogleAdsQuery("conversion_actions", buildGoogleAdsConversionActionsQuery(), queryErrors),
   ])
 
+  const purchaseConversionActionResourceName = preflight.conversionAction?.resourceName || null
+  const purchaseConversionRows = purchaseConversionActionResourceName
+    ? await runOptionalGoogleAdsQuery<GoogleAdsPurchaseConversionRow>(
+      "purchase_conversion_performance",
+      buildGoogleAdsPurchaseConversionQuery(range, purchaseConversionActionResourceName),
+      queryErrors,
+    )
+    : []
   const local = summarizeLocalGoogleAdsPurchases(localRows)
-  const ads = summarizeGoogleAdsCampaignRows(campaignRows, local.byCampaign)
+  const ads = summarizeGoogleAdsCampaignRows(campaignRows, local.byCampaign, purchaseConversionRows)
 
   return {
     ads,

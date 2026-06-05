@@ -98,4 +98,48 @@ describe("Google Ads health", () => {
     expect(health.configuration.code).toBe("server_disabled")
     expect(health.configuration.label).toBe("Server uploads disabled")
   })
+
+  it("does not downgrade an order after an earlier successful upload", () => {
+    const health = buildGoogleAdsHealth({
+      audits: [
+        {
+          intake_id: "uploaded-intake",
+          created_at: "2026-06-05T05:00:00.000Z",
+          metadata: {
+            error_code: "conversionUploadError:INVALID_CONVERSION_ACTION_TYPE:The_conversion_action_specified",
+            status: "failed",
+          },
+        },
+        {
+          intake_id: "uploaded-intake",
+          created_at: "2026-06-05T04:00:00.000Z",
+          metadata: { status: "success" },
+        },
+      ],
+      candidates: [
+        { id: "uploaded-intake", paid_at: "2026-06-05T03:00:00.000Z", gclid: "gclid-1" },
+      ],
+      conversionActionPreflight: {
+        action: "No action needed.",
+        code: null,
+        conversionAction: {
+          id: "9876543210",
+          name: "InstantMed purchase upload",
+          resourceName: "customers/1234567890/conversionActions/9876543210",
+          status: "ENABLED",
+          type: "UPLOAD_CLICKS",
+        },
+        detail: "InstantMed purchase upload is enabled and accepts uploadClickConversions imports.",
+        label: "Conversion action accepts uploads",
+        ok: true,
+        severity: "ok",
+      },
+    })
+
+    expect(health.uploaded).toBe(1)
+    expect(health.failed).toBe(0)
+    expect(health.retryPaused).toBe(0)
+    expect(health.latestErrorCode).toBeNull()
+    expect(health.configuration.severity).toBe("ok")
+  })
 })

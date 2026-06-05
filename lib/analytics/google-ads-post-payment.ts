@@ -4,6 +4,10 @@ import * as Sentry from "@sentry/nextjs"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { fireGoogleAdsPurchaseConversion } from "@/lib/analytics/google-ads-conversion-api"
+import {
+  hasGoogleAdsUploadClickId,
+  isNonRetryableGoogleAdsUploadError,
+} from "@/lib/analytics/google-ads-upload-audit"
 import { getPostHogBaselineProperties, getPostHogClient } from "@/lib/analytics/posthog-server"
 import { createLogger } from "@/lib/observability/logger"
 import { sanitizeAuditMetadata } from "@/lib/security/sanitize-audit"
@@ -58,7 +62,7 @@ function clean(value?: string | null): string {
 }
 
 export function hasGoogleClickId(row: GoogleAdsAttributionRow): boolean {
-  return Boolean(clean(row.gclid) || clean(row.gbraid) || clean(row.wbraid))
+  return hasGoogleAdsUploadClickId(row)
 }
 
 export function isLikelyGoogleAttributed(row: GoogleAdsAttributionRow): boolean {
@@ -96,7 +100,7 @@ export function isLikelyGoogleAttributed(row: GoogleAdsAttributionRow): boolean 
 }
 
 export function isNonRetryableGoogleAdsConversionError(errorCode?: string | null): boolean {
-  return Boolean(errorCode?.includes("INVALID_CONVERSION_ACTION_TYPE"))
+  return isNonRetryableGoogleAdsUploadError(errorCode)
 }
 
 function statusFromResult(result: {

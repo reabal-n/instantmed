@@ -10,13 +10,22 @@ import {
   GOOGLE_ADS_ATTRIBUTION_SELECT,
   GOOGLE_ADS_CONVERSION_UPLOAD_AUDIT_ACTION,
   type GoogleAdsAttributionRow,
-  hasGoogleClickId,
   isLikelyGoogleAttributed,
-  isNonRetryableGoogleAdsConversionError,
 } from "@/lib/analytics/google-ads-post-payment"
+import {
+  bestGoogleAdsUploadAuditByIntake,
+  type GoogleAdsUploadAuditRow,
+  hasGoogleAdsUploadClickId,
+  isNonRetryableGoogleAdsUploadError,
+} from "@/lib/analytics/google-ads-upload-audit"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 
 const DEFAULT_LOOKBACK_DAYS = 90
+const GOOGLE_ADS_HEALTH_PAYMENT_STATUSES = ["paid", "partially_refunded", "refunded"] as const
+
+function auditTimestampMs(row: GoogleAdsUploadAuditRow): number {
+  return row.created_at ? Date.parse(row.created_at) : 0
+}
 
 export type GoogleAdsConfigurationIssueCode =
   | "conversion_action_not_enabled"
@@ -40,15 +49,6 @@ export interface GoogleAdsConfigurationDiagnosis {
 type GoogleAdsCandidateRow = GoogleAdsAttributionRow & {
   id: string
   paid_at: string | null
-}
-
-type GoogleAdsUploadAuditRow = {
-  intake_id: string | null
-  created_at: string
-  metadata: {
-    error_code?: string | null
-    status?: string | null
-  } | null
 }
 
 export interface GoogleAdsHealth {
@@ -99,18 +99,6 @@ export const EMPTY_GOOGLE_ADS_HEALTH: GoogleAdsHealth = {
   lastSuccessfulUploadAt: null,
   retryPaused: 0,
   lookbackDays: DEFAULT_LOOKBACK_DAYS,
-}
-
-function latestAuditByIntake(rows: GoogleAdsUploadAuditRow[]): Map<string, GoogleAdsUploadAuditRow> {
-  const latest = new Map<string, GoogleAdsUploadAuditRow>()
-
-  for (const row of rows) {
-    if (row.intake_id && !latest.has(row.intake_id)) {
-      latest.set(row.intake_id, row)
-    }
-  }
-
-  return latest
 }
 
 function getUploadStatus(row: GoogleAdsUploadAuditRow | undefined): string | null {
@@ -204,7 +192,7 @@ export function buildGoogleAdsHealth({
   conversionActionPreflight?: GoogleAdsConversionActionPreflightResult | null
   lookbackDays?: number
 }): GoogleAdsHealth {
-  const latest = latestAuditByIntake(audits)
+  const best = bestGoogleAdsUploadAuditByIntake(audits)
   let uploaded = 0
   let skipped = 0
   let failed = 0
@@ -213,11 +201,11 @@ export function buildGoogleAdsHealth({
   let latestStatus: string | null = null
 
   for (const candidate of candidates) {
-    const latestAudit = latest.get(candidate.id)
-    const status = getUploadStatus(latestAudit)
-    const errorCode = latestAudit?.metadata?.error_code || null
+    const bestAudit = best.get(candidate.id)
+    const status = getUploadStatus(bestAudit)
+    const errorCode = bestAudit?.metadata?.error_code || null
 
-    if (!latestAudit) {
+    if (!bestAudit) {
       missingUpload += 1
     } else if (status === "success") {
       uploaded += 1
@@ -227,15 +215,17 @@ export function buildGoogleAdsHealth({
       failed += 1
     }
 
-    if (isNonRetryableGoogleAdsConversionError(errorCode)) {
+    if (isNonRetryableGoogleAdsUploadError(errorCode)) {
       retryPaused += 1
     }
   }
 
-  const latestError = audits.find((row) => row.metadata?.error_code)
-  const lastSuccess = audits.find((row) => row.metadata?.status === "success")
-  latestStatus = getUploadStatus(audits[0])
-  const candidatesWithClickId = candidates.filter(hasGoogleClickId).length
+  const currentAudits = Array.from(best.values())
+    .sort((a, b) => auditTimestampMs(b) - auditTimestampMs(a))
+  const latestError = currentAudits.find((row) => row.metadata?.error_code)
+  const lastSuccess = currentAudits.find((row) => row.metadata?.status === "success")
+  latestStatus = getUploadStatus(currentAudits[0])
+  const candidatesWithClickId = candidates.filter(hasGoogleAdsUploadClickId).length
   const candidatesMissingClickId = candidates.length - candidatesWithClickId
   const latestErrorCode = latestError?.metadata?.error_code || null
 
@@ -276,7 +266,7 @@ export async function getGoogleAdsHealth(
   const candidateQuery = supabase
     .from("intakes")
     .select(`id, paid_at, ${GOOGLE_ADS_ATTRIBUTION_SELECT}`)
-    .eq("payment_status", "paid")
+    .in("payment_status", [...GOOGLE_ADS_HEALTH_PAYMENT_STATUSES])
     .not("paid_at", "is", null)
     .gte("paid_at", since)
     .order("paid_at", { ascending: false })
