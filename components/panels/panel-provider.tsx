@@ -1,6 +1,5 @@
 'use client'
 
-import { AnimatePresence } from 'framer-motion'
 import { usePathname } from 'next/navigation'
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react'
 
@@ -125,13 +124,11 @@ export function PanelProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
-      <AnimatePresence mode="wait">
-        {activePanel && (
-          <div key={activePanel.id}>
-            {activePanel.component}
-          </div>
-        )}
-      </AnimatePresence>
+      {activePanel && (
+        <div key={activePanel.id}>
+          {activePanel.component}
+        </div>
+      )}
     </PanelContext.Provider>
   )
 }

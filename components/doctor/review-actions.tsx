@@ -193,9 +193,8 @@ export function useReviewActions({
     closePanel()
     if (onActionComplete) {
       onActionComplete({ advance: true })
-      return
     }
-    router.refresh()
+    if (!onActionComplete) router.refresh()
   }, [closePanel, onActionComplete, router])
 
   const handleDeclineReasonCodeChange = (code: DeclineReasonCode) => {
@@ -373,6 +372,7 @@ export function useReviewActions({
 
   const handleOpenParchmentPrescribe = () => {
     openParchmentPanel()
+    onActionComplete?.({ advance: false })
   }
 
   const handleApprovePrescribedScript = async () => {

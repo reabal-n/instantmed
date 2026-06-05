@@ -16,6 +16,8 @@ function makeIntake(overrides?: Partial<{ service_type: string; subtype: string 
   return { service_type: "med_certs", subtype: "work", ...overrides }
 }
 
+const ADULT_PATIENT = { date_of_birth: "1990-01-15" }
+
 function makeAnswers(overrides?: Record<string, unknown>) {
   return {
     symptoms: ["Cold", "Runny nose"],
@@ -141,18 +143,20 @@ describe("evaluateAutoApprovalEligibility", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({ duration: "3" }),
-      makeReadyDraft()
+      makeReadyDraft(),
+      ADULT_PATIENT,
     )
     expect(result.eligible).toBe(true)
   })
 
-  it("approves when patient info is not provided (backwards compat)", () => {
+  it("rejects when patient DOB is not provided", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({ duration: "1" }),
       makeReadyDraft()
     )
-    expect(result.eligible).toBe(true)
+    expect(result.eligible).toBe(false)
+    expect(result.disqualifyingFlags).toContain("patient_dob_missing")
   })
 
   // ---- Service type ----
@@ -207,7 +211,8 @@ describe("evaluateAutoApprovalEligibility", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({ symptomDetails: "Severe anxiety making it hard to work" }),
-      makeReadyDraft()
+      makeReadyDraft(),
+      ADULT_PATIENT,
     )
     expect(result.eligible).toBe(true)
     expect(result.disqualifyingFlags).toHaveLength(0)
@@ -217,7 +222,8 @@ describe("evaluateAutoApprovalEligibility", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({ symptoms: ["Anxiety"], symptomDetails: "Severe anxiety making it hard to work" }),
-      makeReadyDraft()
+      makeReadyDraft(),
+      ADULT_PATIENT,
     )
     expect(result.eligible).toBe(true)
   })
@@ -228,7 +234,8 @@ describe("evaluateAutoApprovalEligibility", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({ symptomDetails: "Had a car accident yesterday, back is sore" }),
-      makeReadyDraft()
+      makeReadyDraft(),
+      ADULT_PATIENT,
     )
     expect(result.eligible).toBe(true)
     expect(result.softFlags).toContain("accident_co_symptom")
@@ -248,7 +255,8 @@ describe("evaluateAutoApprovalEligibility", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({ symptomDetails: "Back injury making it hard to work" }),
-      makeReadyDraft()
+      makeReadyDraft(),
+      ADULT_PATIENT,
     )
     expect(result.eligible).toBe(true)
     expect(result.disqualifyingFlags).toHaveLength(0)
@@ -258,7 +266,8 @@ describe("evaluateAutoApprovalEligibility", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({ symptomDetails: "Injured my knee at the gym" }),
-      makeReadyDraft()
+      makeReadyDraft(),
+      ADULT_PATIENT,
     )
     expect(result.eligible).toBe(true)
     expect(result.disqualifyingFlags).toHaveLength(0)
@@ -290,7 +299,8 @@ describe("evaluateAutoApprovalEligibility", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({ symptomDetails: "Back pain flare up" }),
-      makeReadyDraft()
+      makeReadyDraft(),
+      ADULT_PATIENT,
     )
     expect(result.eligible).toBe(true)
     expect(result.disqualifyingFlags).toHaveLength(0)
@@ -339,7 +349,8 @@ describe("evaluateAutoApprovalEligibility", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({ start_date: threeDaysAgo.toISOString().split("T")[0] }),
-      makeReadyDraft()
+      makeReadyDraft(),
+      ADULT_PATIENT,
     )
     expect(result.eligible).toBe(true)
     expect(result.disqualifyingFlags).not.toContain("backdated_too_far")
@@ -376,7 +387,8 @@ describe("evaluateAutoApprovalEligibility", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers(),
-      makeReadyDraft({ flags: { requiresReview: true, flagReason: "Ambiguous symptoms" } })
+      makeReadyDraft({ flags: { requiresReview: true, flagReason: "Ambiguous symptoms" } }),
+      ADULT_PATIENT,
     )
     expect(result.eligible).toBe(true)
     expect(result.disqualifyingFlags).toHaveLength(0)
@@ -503,7 +515,8 @@ describe("evaluateAutoApprovalEligibility", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({ symptomDetails: "Feeling very anxious and can't sleep" }),
-      makeReadyDraft()
+      makeReadyDraft(),
+      ADULT_PATIENT,
     )
     expect(result.eligible).toBe(true)
     expect(result.disqualifyingFlags).toHaveLength(0)
@@ -533,7 +546,8 @@ describe("evaluateAutoApprovalEligibility", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({ symptomDetails: "Endometriosis flare up" }),
-      makeReadyDraft()
+      makeReadyDraft(),
+      ADULT_PATIENT,
     )
     expect(result.eligible).toBe(true)
     expect(result.disqualifyingFlags).toHaveLength(0)
@@ -641,7 +655,8 @@ describe("evaluateAutoApprovalEligibility", () => {
         symptoms: ["Anxiety", "Nausea", "Period pain", "Back pain", "Fatigue", "Fever", "Other"],
         symptomDetails: "Body chills. Feeling faint.",
       }),
-      makeReadyDraft()
+      makeReadyDraft(),
+      ADULT_PATIENT,
     )
     expect(result.eligible).toBe(true)
     expect(result.disqualifyingFlags).toHaveLength(0)
@@ -654,7 +669,8 @@ describe("evaluateAutoApprovalEligibility", () => {
         symptoms: ["Panic", "Headache", "Fatigue"],
         symptomDetails: "Headache and tired",
       }),
-      makeReadyDraft()
+      makeReadyDraft(),
+      ADULT_PATIENT,
     )
     expect(result.eligible).toBe(true)
     expect(result.softFlags).toContain("panic_co_symptom")
@@ -667,7 +683,8 @@ describe("evaluateAutoApprovalEligibility", () => {
         symptoms: ["Burnout", "Fatigue", "Headache"],
         symptomDetails: "Exhausted and headaches",
       }),
-      makeReadyDraft()
+      makeReadyDraft(),
+      ADULT_PATIENT,
     )
     expect(result.eligible).toBe(true)
     expect(result.softFlags).toContain("burnout_co_symptom")
@@ -680,7 +697,8 @@ describe("evaluateAutoApprovalEligibility", () => {
         symptoms: ["Back pain", "Bruising"],
         symptomDetails: "Had a fall yesterday",
       }),
-      makeReadyDraft()
+      makeReadyDraft(),
+      ADULT_PATIENT,
     )
     expect(result.eligible).toBe(true)
     expect(result.softFlags).toContain("fall_co_symptom")
@@ -693,7 +711,8 @@ describe("evaluateAutoApprovalEligibility", () => {
         symptoms: ["Ankle pain", "Swelling"],
         symptomDetails: "Sprained ankle at gym",
       }),
-      makeReadyDraft()
+      makeReadyDraft(),
+      ADULT_PATIENT,
     )
     expect(result.eligible).toBe(true)
     expect(result.disqualifyingFlags).toHaveLength(0)
@@ -706,7 +725,8 @@ describe("evaluateAutoApprovalEligibility", () => {
         symptoms: ["Gastro", "Nausea"],
         symptomDetails: "IBS acting up with nausea",
       }),
-      makeReadyDraft()
+      makeReadyDraft(),
+      ADULT_PATIENT,
     )
     expect(result.eligible).toBe(true)
     expect(result.disqualifyingFlags).toHaveLength(0)
@@ -719,7 +739,8 @@ describe("evaluateAutoApprovalEligibility", () => {
         symptoms: ["Fatigue", "Headache"],
         symptomDetails: "Need stress leave from work",
       }),
-      makeReadyDraft()
+      makeReadyDraft(),
+      ADULT_PATIENT,
     )
     expect(result.eligible).toBe(true)
     expect(result.disqualifyingFlags).toHaveLength(0)
@@ -960,8 +981,8 @@ describe("evaluateAutoApprovalEligibility", () => {
       expect(result.eligible).toBe(true)
     })
 
-    it("bumps engine version to 2.5 with the 2-day widening", () => {
-      expect(ELIGIBILITY_ENGINE_VERSION).toBe("2.5")
+    it("runs the v3.0 engine with DOB-required age checks", () => {
+      expect(ELIGIBILITY_ENGINE_VERSION).toBe("3.0")
     })
   })
 })

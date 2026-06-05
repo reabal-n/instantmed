@@ -34,6 +34,7 @@ describe("buildParchmentPrescriptionContext", () => {
       medicationLabel: "Rosuvastatin 10 mg tablet",
       searchHint: "Rosuvastatin 10 mg tablet",
       directionsTemplate: "Confirm regimen in Parchment.",
+      copyText: "Medication: Rosuvastatin\nStrength: 10 mg",
     })
   })
 

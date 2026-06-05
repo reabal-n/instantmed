@@ -42,7 +42,9 @@ vi.mock("@/lib/supabase/service-role", () => ({
         return {
           select: () => ({
             in: () => ({
-              eq: () => Promise.resolve({ data: intakes, error: null }),
+              eq: () => ({
+                limit: () => Promise.resolve({ data: intakes, error: null }),
+              }),
             }),
           }),
         }

@@ -556,14 +556,19 @@ export function QueueClient({
   // Inline mode (`/dashboard` two-pane) and slide-over mode share this.
   const handleIntakeActionComplete = useCallback(
     (intakeId: string, options?: { advance?: boolean }) => {
+      if (options?.advance === false) {
+        refreshQueue(true)
+        return
+      }
+
       const { nextIntake } = removeCompletedIntakeFromQueue(filteredIntakesRef.current, intakeId)
       setIntakes((prev) => removeCompletedIntakeFromQueue(prev, intakeId).remaining)
       refreshQueue(true)
-      if (options?.advance !== false && nextIntake) {
+      if (nextIntake) {
         rememberOpenedCase(nextIntake.id)
         setExpandedId(nextIntake.id)
         toast.success("Case done. Opening next.")
-      } else if (options?.advance !== false) {
+      } else {
         setExpandedId(null)
         toast.success("Case done. Queue clear.")
       }

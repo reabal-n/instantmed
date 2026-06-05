@@ -31,6 +31,10 @@ type ParchmentPrescribePanelProps = {
 
 const PARCHMENT_IFRAME_SLOW_LOAD_MS = 8000
 
+function getCopiedMedicineLabel(context: ParchmentPrescriptionContext | null | undefined): string {
+  return context?.medicationLabel || context?.presetLabel || "medicine"
+}
+
 function getParchmentErrorCopy(error: string | null): { title: string; detail: string } {
   if (!error) {
     return {
@@ -132,6 +136,16 @@ export function ParchmentPrescribePanel({
       toast.error(freshResult.error || "Failed to generate new Parchment session")
     }
   }, [loadFreshParchmentUrl])
+
+  const copyPrescriptionContext = useCallback(async () => {
+    if (!prescriptionContext?.copyText) return
+    try {
+      await navigator.clipboard.writeText(prescriptionContext.copyText)
+      toast.success(`Copied ${getCopiedMedicineLabel(prescriptionContext)} to Parchment`)
+    } catch {
+      toast.error("Could not copy prescription details")
+    }
+  }, [prescriptionContext])
 
   const copyPrescriptionSearchHint = useCallback(async () => {
     if (!prescriptionContext?.searchHint) return
@@ -288,6 +302,12 @@ export function ParchmentPrescribePanel({
                         </div>
                       )}
                     </div>
+                    {prescriptionContext.copyText && (
+                      <Button type="button" variant="outline" size="sm" onClick={copyPrescriptionContext}>
+                        <Clipboard className="mr-1.5 h-3.5 w-3.5" />
+                        Copy
+                      </Button>
+                    )}
                   </div>
                   <p className="mt-2 text-xs text-muted-foreground">
                     Directions context: {prescriptionContext.directionsTemplate}
@@ -377,7 +397,7 @@ export function ParchmentPrescribePanel({
                       <>
                         <p className="text-sm font-medium text-foreground">Parchment is taking a little longer</p>
                         <p className="text-sm text-muted-foreground">
-                          You can keep waiting, open it in a new tab, or copy the search term and continue there.
+                          You can keep waiting, open it in a new tab, or copy the requested medicine and continue there.
                         </p>
                         <div className="flex flex-wrap justify-center gap-2">
                           <Button type="button" variant="outline" size="sm" onClick={retryIframeOnly}>
@@ -388,6 +408,12 @@ export function ParchmentPrescribePanel({
                             <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
                             Open in new tab
                           </Button>
+                          {prescriptionContext?.copyText && (
+                            <Button type="button" variant="ghost" size="sm" onClick={copyPrescriptionContext}>
+                              <Clipboard className="mr-1.5 h-3.5 w-3.5" />
+                              Copy medicine
+                            </Button>
+                          )}
                         </div>
                       </>
                     ) : (

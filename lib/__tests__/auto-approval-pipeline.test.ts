@@ -692,7 +692,8 @@ describe("Auto-Approval Pipeline Helpers", () => {
               flags: { requiresReview: false, flagReason: null },
             },
           },
-        }
+        },
+        { date_of_birth: "1990-01-15" },
       )
 
       expect(result.eligible).toBe(true)

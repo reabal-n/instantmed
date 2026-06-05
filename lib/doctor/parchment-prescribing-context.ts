@@ -5,6 +5,7 @@ export interface ParchmentPrescriptionContext {
   medicationLabel?: string
   searchHint?: string
   directionsTemplate: string
+  copyText: string
 }
 
 export function buildParchmentPrescriptionContext(
@@ -24,5 +25,6 @@ export function buildParchmentPrescriptionContext(
     medicationLabel: medicationLabel || undefined,
     searchHint: intent.medicationSearchHint || undefined,
     directionsTemplate: intent.directionsTemplate,
+    copyText: intent.clipboardText,
   }
 }

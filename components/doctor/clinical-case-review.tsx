@@ -7,7 +7,7 @@ import { toast } from "sonner"
 import { ClinicalSummary } from "@/components/doctor/clinical-summary"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
+import { buildClinicalCaseSummary, type PrescriptionIntent } from "@/lib/clinical/case-summary"
 import { isClinicalNoteSufficient } from "@/lib/doctor/clinical-notes"
 import { cn } from "@/lib/utils"
 
@@ -52,6 +52,16 @@ const SOAP_SECTIONS = [
 ] as const
 const COMPACT_FACT_LIMIT = 4
 const PINNED_DRAFT_FACT_LIMIT = 4
+
+function getPrescriptionCopyLabel(intent: PrescriptionIntent): string {
+  const medicationLabel = [
+    intent.medicationName,
+    intent.strength,
+    intent.form,
+  ].filter(Boolean).join(" ")
+
+  return medicationLabel || intent.presetLabel || "medicine"
+}
 
 type SoapSectionKey = typeof SOAP_SECTIONS[number]["key"]
 type SoapSections = Record<SoapSectionKey, string>
@@ -152,6 +162,16 @@ export function ClinicalCaseReview({
     riskTier,
     requiresLiveConsult,
   })
+
+  const copyPreset = async () => {
+    if (!summary.prescriptionIntent?.clipboardText) return
+    try {
+      await navigator.clipboard.writeText(summary.prescriptionIntent.clipboardText)
+      toast.success(`Copied ${getPrescriptionCopyLabel(summary.prescriptionIntent)} for Parchment`)
+    } catch {
+      toast.error("Could not copy prescribing context")
+    }
+  }
 
   const copySearchHint = async () => {
     if (!summary.prescriptionIntent?.medicationSearchHint) return
@@ -551,6 +571,12 @@ export function ClinicalCaseReview({
                     Confirm medicine, dose and all prescribing details in Parchment.
                   </p>
                 </div>
+                {summary.prescriptionIntent.clipboardText && (
+                  <Button type="button" variant="outline" size="sm" className="bg-white" onClick={copyPreset}>
+                    <Clipboard className="mr-1.5 h-3.5 w-3.5" />
+                    Copy
+                  </Button>
+                )}
               </div>
             </section>
           )}
