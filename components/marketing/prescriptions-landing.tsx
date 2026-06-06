@@ -7,9 +7,9 @@ import {
 import dynamic from "next/dynamic"
 import Image from "next/image"
 import Link from "next/link"
+import type { ReactNode } from "react"
 
 import { StickerIcon } from "@/components/icons/stickers"
-import { CitationFacts } from "@/components/marketing/citation-facts"
 import { Hero } from "@/components/marketing/hero"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
 import { EScriptHeroMockup } from "@/components/marketing/mockups/escript-hero-mockup"
@@ -296,7 +296,11 @@ function PrescriptionComparisonViz() {
 // MAIN PAGE COMPONENT
 // =============================================================================
 
-export function PrescriptionsLanding() {
+interface PrescriptionsLandingProps {
+  children?: ReactNode
+}
+
+export function PrescriptionsLanding({ children }: PrescriptionsLandingProps) {
   return (
     <LandingPageShell
       config={LANDING_CONFIG}
@@ -333,29 +337,7 @@ export function PrescriptionsLanding() {
             </p>
           </Hero>
 
-          <CitationFacts variant="muted" />
-
-          <section className="px-4 py-6 sm:px-6">
-            <div className="mx-auto max-w-5xl">
-              <Link
-                href="/resources/secure-online-prescription-requests"
-                className="group flex flex-col gap-3 rounded-2xl border border-border/50 bg-white p-5 shadow-md shadow-primary/[0.06] transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-                    Source-backed explainer
-                  </p>
-                  <p className="mt-2 text-base font-semibold text-foreground">
-                    How secure online prescription requests work in Australia
-                  </p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    eScript tokens, doctor review, safety boundaries, and medicine-neutral public language.
-                  </p>
-                </div>
-                <ArrowRight className="h-5 w-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
-              </Link>
-            </div>
-          </section>
+          {children}
 
           {/* Live wait time */}
           <LiveWaitTime variant="strip" services={["scripts"]} />
