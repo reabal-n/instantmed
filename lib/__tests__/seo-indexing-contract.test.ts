@@ -53,12 +53,17 @@ describe("SEO indexing contracts", () => {
       "app/online-doctor-australia/page.tsx",
       "app/telehealth-australia/page.tsx",
       "components/marketing/med-cert-landing.tsx",
-      "components/marketing/prescriptions-landing.tsx",
     ]
 
     for (const pageFile of priorityPageFiles) {
       expect(read(pageFile), pageFile).toContain("<CitationFacts")
     }
+
+    const prescriptionsPage = read("app/prescriptions/page.tsx")
+    const prescriptionsLanding = read("components/marketing/prescriptions-landing.tsx")
+    expect(prescriptionsPage).toContain("PrescriptionAuthorityResourceLink")
+    expect(prescriptionsPage).toContain("/resources/secure-online-prescription-requests")
+    expect(prescriptionsLanding).toContain("{children}")
   })
 
   it("enforces www to apex redirects at the Vercel edge", () => {
