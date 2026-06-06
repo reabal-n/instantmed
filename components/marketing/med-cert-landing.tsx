@@ -156,6 +156,23 @@ function WorkplaceProofPanel() {
             Verify a Certificate
           </Link>
         </div>
+        <div className="flex flex-wrap items-center justify-center gap-3 border-t border-border/40 pt-4 text-xs text-muted-foreground dark:border-white/10">
+          <span className="font-medium text-foreground">Source-backed references:</span>
+          <Link
+            href="/resources/medical-certificate-employer-policy"
+            className="inline-flex items-center gap-1 font-medium text-primary hover:text-primary/80"
+          >
+            Employer policy explainer
+            <ArrowRight className="h-3 w-3" aria-hidden="true" />
+          </Link>
+          <Link
+            href="/resources/online-medical-certificate-verification"
+            className="inline-flex items-center gap-1 font-medium text-primary hover:text-primary/80"
+          >
+            Verification guide
+            <ArrowRight className="h-3 w-3" aria-hidden="true" />
+          </Link>
+        </div>
       </ServiceClaimSection>
     </div>
   )

@@ -328,15 +328,26 @@ export default function ClinicalGovernanceClient() {
               A source-backed explainer on complaint handling, practitioner accountability,
               privacy escalation, and clinical governance records.
             </p>
-            <Button
-              asChild
-              variant="outline"
-              className="rounded-full bg-transparent"
-            >
-              <Link href="/resources/complaints-clinical-governance">
-                Read the explainer
-              </Link>
-            </Button>
+            <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Button
+                asChild
+                variant="outline"
+                className="rounded-full bg-transparent"
+              >
+                <Link href="/resources/complaints-clinical-governance">
+                  Read the explainer
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="rounded-full bg-transparent"
+              >
+                <Link href="/resources/repeat-prescription-safety-checklist">
+                  Prescription safety checklist
+                </Link>
+              </Button>
+            </div>
           </div>
         </section>
 

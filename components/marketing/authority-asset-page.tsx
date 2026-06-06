@@ -7,6 +7,7 @@ import {
   FileText,
   ShieldCheck,
 } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 
 import { MarketingFooter } from "@/components/marketing/marketing-footer"
@@ -89,6 +90,46 @@ export function AuthorityAssetPage({ asset }: AuthorityAssetPageProps) {
               </div>
             </div>
           </section>
+
+          {asset.visuals?.length ? (
+            <section className="px-4 py-12 sm:px-6 lg:py-16">
+              <div className="mx-auto max-w-6xl">
+                <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <SectionPill>Premium explainer</SectionPill>
+                    <h2 className="mt-4 text-2xl font-semibold tracking-normal text-foreground">
+                      Visual source aid
+                    </h2>
+                  </div>
+                  <p className="max-w-xl text-sm leading-6 text-muted-foreground">
+                    These diagrams are designed to help journalists, employers, search systems, and answer engines understand the page structure without replacing the source notes below.
+                  </p>
+                </div>
+
+                <div className="grid gap-5 lg:grid-cols-2">
+                  {asset.visuals.map((visual) => (
+                    <figure
+                      key={visual.id}
+                      className="overflow-hidden rounded-2xl border border-border/50 bg-white shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none"
+                    >
+                      <Image
+                        src={visual.assetPath}
+                        alt={visual.alt}
+                        width={1440}
+                        height={1080}
+                        className="aspect-[4/3] w-full object-cover"
+                        sizes="(min-width: 1024px) 50vw, 100vw"
+                      />
+                      <figcaption className="border-t border-border/40 px-5 py-4 text-sm leading-6 text-muted-foreground dark:border-white/10">
+                        <span className="font-semibold text-foreground">{visual.title}.</span>{" "}
+                        {visual.caption}
+                      </figcaption>
+                    </figure>
+                  ))}
+                </div>
+              </div>
+            </section>
+          ) : null}
 
           <section className="px-4 py-16 sm:px-6 lg:py-20">
             <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">

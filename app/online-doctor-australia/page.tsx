@@ -521,6 +521,54 @@ export default function OnlineDoctorAustraliaPage() {
             </div>
           </section>
 
+          <section className="px-4 py-16 border-y border-border/40 dark:border-white/10">
+            <div className="mx-auto max-w-5xl">
+              <div className="text-center mb-10">
+                <SectionPill>Source-backed references</SectionPill>
+                <Heading level="h2" className="mt-4 mb-3">
+                  Online doctor questions that need careful answers
+                </Heading>
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                  Neutral explainers on billing and telehealth suitability, written for citation rather than promotion.
+                </p>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Link
+                  href="/resources/medicare-bulk-billing-private-telehealth"
+                  className="group rounded-2xl border border-border/50 bg-white p-6 shadow-md shadow-primary/[0.06] transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none"
+                >
+                  <Shield className="mb-3 h-5 w-5 text-primary" />
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Medicare, bulk billing, and private telehealth
+                  </h2>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    A plain-English guide to Medicare eligibility, MBS items, bulk billing, private fees, and gaps.
+                  </p>
+                  <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary">
+                    Read billing explainer
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </span>
+                </Link>
+                <Link
+                  href="/resources/when-telehealth-is-not-appropriate"
+                  className="group rounded-2xl border border-border/50 bg-white p-6 shadow-md shadow-primary/[0.06] transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none"
+                >
+                  <XCircle className="mb-3 h-5 w-5 text-primary" />
+                  <h2 className="text-lg font-semibold text-foreground">
+                    When telehealth is not appropriate
+                  </h2>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    Emergency, examination, testing, and continuity boundaries for online doctor requests.
+                  </p>
+                  <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary">
+                    Read safety limits
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </span>
+                </Link>
+              </div>
+            </div>
+          </section>
+
           {/* ─────────────── Cross-links to key hubs ─────────────── */}
           <section className="px-4 py-16 bg-muted/30 dark:bg-white/[0.02] border-y border-border/40 dark:border-white/10">
             <div className="mx-auto max-w-5xl">

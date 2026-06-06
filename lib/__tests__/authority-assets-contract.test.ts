@@ -12,7 +12,15 @@ const requiredSlugs = [
   "secure-online-prescription-requests",
   "gp-wait-times-telehealth-access",
   "complaints-clinical-governance",
+  "online-medical-certificate-verification",
+  "telehealth-privacy-health-data-checklist",
+  "when-telehealth-is-not-appropriate",
+  "medicare-bulk-billing-private-telehealth",
+  "rural-remote-telehealth-access",
+  "repeat-prescription-safety-checklist",
 ] as const
+
+const waveTwoSlugs = requiredSlugs.slice(5)
 
 function read(path: string) {
   return readFileSync(join(root, path), "utf8")
@@ -66,6 +74,38 @@ describe("Phase 3 authority asset contracts", () => {
       expect(asset.description.length, `${slug} should have metadata copy`).toBeGreaterThan(70)
       expect(asset.sections.length, `${slug} should not be a thin post`).toBeGreaterThanOrEqual(4)
       expect(asset.sources.length, `${slug} should expose visible sources`).toBeGreaterThanOrEqual(2)
+    }
+  })
+
+  it("defines wave two resources as comprehensive citation pages with GPT image 2 visuals", async () => {
+    const { getAuthorityAsset } = await loadAuthorityAssets()
+    const packageJson = JSON.parse(read("package.json")) as {
+      scripts?: Record<string, string>
+    }
+
+    expect(packageJson.scripts?.["authority:generate-visuals"]).toBe(
+      "tsx scripts/generate-authority-resource-visuals.ts",
+    )
+    expect(read("scripts/generate-authority-resource-visuals.ts")).toContain(
+      'const GPT_IMAGE_MODEL = "openai/gpt-image-2"',
+    )
+
+    for (const slug of waveTwoSlugs) {
+      const asset = getAuthorityAsset(slug)
+
+      expect(asset.sections.length, `${slug} should be in-depth enough to cite`).toBeGreaterThanOrEqual(6)
+      expect(asset.sources.length, `${slug} should cite multiple public authorities`).toBeGreaterThanOrEqual(3)
+      expect(asset.visuals?.length, `${slug} should include at least one premium explainer visual`).toBeGreaterThanOrEqual(1)
+
+      for (const visual of asset.visuals ?? []) {
+        expect(visual.assetPath, `${slug}:${visual.id} should use the resource image directory`).toMatch(
+          new RegExp(`^/images/resources/${slug}/[a-z0-9-]+\\.webp$`),
+        )
+        expect(visual.alt, `${slug}:${visual.id} should have useful alt text`).toMatch(/\b(checklist|diagram|map|pathway|privacy|evidence|telehealth|prescription|regional)\b/i)
+        expect(visual.caption.length, `${slug}:${visual.id} should explain the visual`).toBeGreaterThan(60)
+        expect(visual.prompt, `${slug}:${visual.id} should retain the GPT image 2 generation brief`).toContain("GPT image 2")
+        expect(existsSync(join(root, "public", visual.assetPath)), `${slug}:${visual.id} asset file should exist`).toBe(true)
+      }
     }
   })
 
@@ -136,11 +176,37 @@ describe("Phase 3 authority asset contracts", () => {
     expect(nav).toContain("/resources")
     expect(renderer).toContain("Last reviewed")
     expect(renderer).toContain("Sources")
+    expect(renderer).toContain("asset.visuals")
+    expect(renderer).toContain("Premium explainer")
 
     for (const slug of requiredSlugs) {
       expect(llms, `${slug} should be listed for AI citation discovery`).toContain(
         `https://instantmed.com.au/resources/${slug}`,
       )
+    }
+  })
+
+  it("surfaces authority visuals in metadata, structured data, and grouped hub sections", () => {
+    const dynamicRoute = read("app/resources/[slug]/page.tsx")
+    const hubRoute = read("app/resources/page.tsx")
+    const registry = read("lib/authority-assets.ts")
+
+    expect(dynamicRoute).toContain("buildAuthorityAssetImages")
+    expect(dynamicRoute).toContain("images: authorityImages")
+    expect(dynamicRoute).toContain("thumbnailUrl")
+    expect(dynamicRoute).toContain("primaryImageOfPage")
+
+    expect(registry).toContain("category:")
+    expect(registry).toContain("getAuthorityAssetGroups")
+    expect(hubRoute).toContain("getAuthorityAssetGroups")
+
+    for (const label of [
+      "Certificate evidence",
+      "Prescription safety",
+      "Telehealth access",
+      "Privacy and governance",
+    ]) {
+      expect(hubRoute, label).toContain(label)
     }
   })
 })

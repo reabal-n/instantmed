@@ -559,6 +559,54 @@ export default function TelehealthAustraliaPage() {
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </span>
                 </Link>
+                <Link
+                  href="/resources/when-telehealth-is-not-appropriate"
+                  className="group rounded-2xl border border-border/50 bg-white p-6 shadow-md shadow-primary/[0.06] transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none"
+                >
+                  <MonitorSmartphone className="mb-3 h-5 w-5 text-primary" />
+                  <h2 className="text-lg font-semibold text-foreground">
+                    When telehealth is not appropriate
+                  </h2>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    Emergency care, in-person examination, tests, imaging, and continuity boundaries.
+                  </p>
+                  <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary">
+                    Read limits
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </span>
+                </Link>
+                <Link
+                  href="/resources/medicare-bulk-billing-private-telehealth"
+                  className="group rounded-2xl border border-border/50 bg-white p-6 shadow-md shadow-primary/[0.06] transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none"
+                >
+                  <Scale className="mb-3 h-5 w-5 text-primary" />
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Medicare, bulk billing, and private telehealth
+                  </h2>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    Plain-English billing distinctions without implying every online service is bulk billed.
+                  </p>
+                  <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary">
+                    Read billing explainer
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </span>
+                </Link>
+                <Link
+                  href="/resources/rural-remote-telehealth-access"
+                  className="group rounded-2xl border border-border/50 bg-white p-6 shadow-md shadow-primary/[0.06] transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none"
+                >
+                  <MapPin className="mb-3 h-5 w-5 text-primary" />
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Rural and remote telehealth access brief
+                  </h2>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    Public-source access barriers, travel friction, and where local care still matters.
+                  </p>
+                  <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary">
+                    Read access brief
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </span>
+                </Link>
               </div>
             </div>
           </section>

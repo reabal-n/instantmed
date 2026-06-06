@@ -143,6 +143,34 @@ export default function TrustPage() {
 
         <CitationFacts variant="muted" />
 
+        <section className="px-4 py-10 border-y border-border/40 bg-muted/30 dark:border-white/10 dark:bg-white/[0.02]">
+          <div className="mx-auto max-w-4xl">
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+              Source-backed safety references
+            </p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <Link
+                href="/resources/telehealth-safety-checklist"
+                className="group rounded-2xl border border-border/50 bg-white p-5 text-sm shadow-md shadow-primary/[0.06] transition-colors hover:border-primary/30 dark:border-white/15 dark:bg-card dark:shadow-none"
+              >
+                <span className="font-semibold text-foreground">Australian telehealth safety checklist</span>
+                <span className="mt-2 block leading-6 text-muted-foreground">
+                  Practitioner identity, privacy, clinical fit, and emergency boundaries.
+                </span>
+              </Link>
+              <Link
+                href="/resources/when-telehealth-is-not-appropriate"
+                className="group rounded-2xl border border-border/50 bg-white p-5 text-sm shadow-md shadow-primary/[0.06] transition-colors hover:border-primary/30 dark:border-white/15 dark:bg-card dark:shadow-none"
+              >
+                <span className="font-semibold text-foreground">When telehealth is not appropriate</span>
+                <span className="mt-2 block leading-6 text-muted-foreground">
+                  Emergency care, in-person examination, tests, and continuity limits.
+                </span>
+              </Link>
+            </div>
+          </div>
+        </section>
+
         {/* Page superpower — anchors human-decision accountability above the
             stats so the stats reinforce the claim rather than carry it alone. */}
         <ServiceClaimSection
