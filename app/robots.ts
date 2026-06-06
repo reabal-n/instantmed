@@ -39,6 +39,11 @@ export default function robots(): MetadataRoute.Robots {
       // Explicitly allow AI crawlers to index public content
       // These bots power ChatGPT, Perplexity, Gemini, etc.
       {
+        userAgent: "OAI-SearchBot",
+        allow: ["/", "/llms.txt", "/llms-full.txt"],
+        disallow: ["/patient/", "/doctor/", "/admin/", "/api/", "/auth/"],
+      },
+      {
         userAgent: "GPTBot",
         allow: ["/", "/llms.txt", "/llms-full.txt"],
         disallow: ["/patient/", "/doctor/", "/admin/", "/api/", "/auth/"],

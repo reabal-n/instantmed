@@ -4,6 +4,7 @@ import { ArrowRight, ShieldOff } from "lucide-react"
 import Link from "next/link"
 
 import { StickerIcon } from "@/components/icons/stickers"
+import { CitationFacts } from "@/components/marketing/citation-facts"
 import { AboutGuideSection } from "@/components/marketing/sections/about-guide-section"
 import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
 import { AnimatedDonutChart, ComparisonBar } from "@/components/marketing/shared/data-viz"
@@ -157,6 +158,8 @@ export function AboutClient() {
               </div>
             </div>
           </section>
+
+          <CitationFacts variant="muted" />
 
           {/* Origin story with stat callouts */}
           <EditorialStoryBlock

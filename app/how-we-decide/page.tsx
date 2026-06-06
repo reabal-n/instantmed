@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 
 import { CenteredHero } from "@/components/heroes"
 import { StickerIcon } from "@/components/icons/stickers"
+import { CitationFacts } from "@/components/marketing/citation-facts"
 import { MarketingFooter } from "@/components/marketing/marketing-footer"
 import { HowWeDecideGuideSection } from "@/components/marketing/sections/how-we-decide-guide-section"
 import { AccordionSection } from "@/components/sections/accordion-section"
@@ -191,6 +192,8 @@ export default function HowWeDecidePage() {
           highlightWords={["real review"]}
           subtitle="No algorithms deciding your health. No rubber stamps. Just a doctor looking at your request and making a call - the same way they would if you were sitting across from them."
         />
+
+        <CitationFacts variant="muted" />
 
         <FeatureGrid
           title="What the doctor looks at"

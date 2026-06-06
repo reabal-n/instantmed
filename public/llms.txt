@@ -1,58 +1,46 @@
-# InstantMed — Australian Telehealth Platform
+# InstantMed - Australian Telehealth Platform
 
-> InstantMed is an Australian telehealth platform where patients can request medical certificates, prescriptions, and specialised consultations online. All requests are reviewed by AHPRA-registered Australian doctors.
+> InstantMed Pty Ltd (ABN 64 694 559 334) is an Australian telehealth platform for one-off medical certificate, repeat prescription, ED, and hair loss requests. AHPRA-registered doctors review requests and decide what is clinically appropriate.
+
+## Quote-Ready Facts
+
+- **Registered entity:** InstantMed Pty Ltd (ABN 64 694 559 334)
+- **Address:** Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010
+- **Service area:** Australia-wide telehealth
+- **Clinical model:** AHPRA-registered doctors review each request. Clinical decisions are not automated.
+- **Active services:** Medical certificates, repeat prescriptions, ED, and hair loss requests
+- **Hours:** Requests can be submitted 24/7. Prescription and consultation review timing is 8am-10pm AEST, 7 days.
+- **Refund policy:** Full refund if the doctor declines the request.
+- **Complaints:** complaints@instantmed.com.au, 24h acknowledgement, 14-day clinical review.
 
 ## What InstantMed Does
 
-InstantMed provides telehealth services to Australian residents (18+):
+1. **Medical certificates** - Routine sick leave, study absence, and carer's leave evidence requests. Issued only if clinically appropriate after doctor review. Employer and institution policies may vary. From $19.95.
 
-1. **Medical Certificates** — Online medical certificates for work, study, or carer's leave. Typically issued in under 30 minutes, available 24/7. Valid for Australian employers and educational institutions. From $19.95.
+2. **Repeat prescriptions** - Doctor review for existing regular medications. Prescription only if clinically appropriate after doctor review. eScript sent if approved. From $29.95.
 
-2. **Prescriptions** — Repeat prescription requests for existing medications. A doctor reviews your history and, if appropriate, issues an electronic prescription (eScript) sent to your phone. From $29.95.
+3. **Hair loss requests** - Structured form-first assessment for hair loss concerns. The doctor reviews safety information and contacts the patient if more information is clinically needed. $49.95.
 
-3. **Hair Loss Consultations** — Assessment and treatment for male and female pattern hair loss. Doctor reviews your history and can prescribe finasteride, minoxidil, or other appropriate treatments. $49.95.
-
-4. **ED Consultations** — Erectile dysfunction assessment. Doctor reviews medical history and safety screening (including nitrate use), and can prescribe sildenafil or tadalafil if appropriate. $49.95.
-
-## Key Facts
-
-- **Location:** Australia-wide (telehealth, no physical clinics)
-- **Registered entity:** InstantMed Pty Ltd (ABN 64 694 559 334)
-- **Address:** Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010
-- **Doctors:** AHPRA-registered Australian general practitioners
-- **Hours:** Requests accepted 24/7. Doctor review 8am–10pm AEST, 7 days a week
-- **Turnaround:** Medical certificates typically under 30 minutes. Other requests reviewed within 1–2 hours
-- **Payment:** Secure online payment (credit/debit card)
-- **Refund policy:** Full refund if a doctor cannot approve your request
-- **Medicare:** Optional for medical certificates, required for prescriptions
+4. **ED requests** - Structured form-first assessment for erectile dysfunction concerns. The doctor reviews safety screening and contacts the patient if more information is clinically needed. $49.95.
 
 ## How It Works
 
-1. Choose your service (medical certificate, prescription, hair loss, or ED)
-2. Fill in a short health questionnaire (2–3 minutes)
-3. Pay securely online
-4. A doctor reviews your request (typically within 1–2 hours)
-5. Receive your certificate (PDF), eScript (SMS), or treatment plan digitally
+1. Choose a service.
+2. Complete a secure clinical form.
+3. Pay securely online.
+4. A doctor reviews the request.
+5. If approved, the patient receives the certificate, eScript, or written outcome digitally.
+6. If declined, the patient receives a full refund.
 
-## Services & Pricing
+## Important Boundaries
 
-| Service | Price |
-|---------|-------|
-| Medical certificate (1 day) | $19.95 |
-| Medical certificate (2 days) | $29.95 |
-| Medical certificate (3 days) | $39.95 |
-| Repeat prescription | $29.95 |
-| New prescription | $49.95 |
-| Hair loss consultation | $49.95 |
-| ED consultation | $49.95 |
-| Express review (priority) | +$9.95 |
-
-## Contact
-
-- Website: https://instantmed.com.au
-- Email: support@instantmed.com.au
-- Phone: 0450 722 549
-- Complaints: complaints@instantmed.com.au (14-day response)
+- InstantMed is not an emergency service. Call 000 for emergencies.
+- Some symptoms, risks, documents, or medicines require in-person care.
+- Medical certificates are issued only when clinically appropriate.
+- Employer and institution policies may vary.
+- Prescription only if clinically appropriate after doctor review.
+- The doctor may contact the patient if more information is clinically needed.
+- Public marketing does not guarantee treatment, approval, acceptance, or prescription.
 
 ## Important Pages
 
@@ -61,16 +49,14 @@ InstantMed provides telehealth services to Australian residents (18+):
 - Prescriptions: https://instantmed.com.au/prescriptions
 - Hair loss: https://instantmed.com.au/hair-loss
 - Erectile dysfunction: https://instantmed.com.au/erectile-dysfunction
-- How it works: https://instantmed.com.au/how-it-works
-- Pricing: https://instantmed.com.au/pricing
-- FAQ: https://instantmed.com.au/faq
 - About: https://instantmed.com.au/about
-- Trust & safety: https://instantmed.com.au/trust
-- Blog: https://instantmed.com.au/blog
+- Trust and safety: https://instantmed.com.au/trust
+- Clinical governance: https://instantmed.com.au/clinical-governance
+- How doctors decide: https://instantmed.com.au/how-we-decide
+- Complaints: https://instantmed.com.au/complaints
 - Privacy policy: https://instantmed.com.au/privacy
 - Terms of service: https://instantmed.com.au/terms
-- Contact: https://instantmed.com.au/contact
 
-## Full Content
+## Full Reference
 
-For detailed information about all services, conditions, guides, and locations, see: https://instantmed.com.au/llms-full.txt
+For a longer AI-readable service reference, see: https://instantmed.com.au/llms-full.txt

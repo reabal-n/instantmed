@@ -10,6 +10,57 @@ function read(path: string) {
 }
 
 describe("SEO indexing contracts", () => {
+  it("allows ChatGPT Search crawler to discover public source pages", () => {
+    const robots = read("app/robots.ts")
+
+    expect(robots).toContain('userAgent: "OAI-SearchBot"')
+    expect(robots).toContain('allow: ["/", "/llms.txt", "/llms-full.txt"]')
+    expect(robots).toContain('disallow: ["/patient/", "/doctor/", "/admin/", "/api/", "/auth/"]')
+  })
+
+  it("keeps llms source files compliant and citation-friendly", () => {
+    const llms = read("public/llms.txt")
+    const llmsFull = read("public/llms-full.txt")
+    const combined = `${llms}\n${llmsFull}`
+
+    expect(combined).toContain("InstantMed Pty Ltd (ABN 64 694 559 334)")
+    expect(combined).toContain("Employer and institution policies may vary.")
+    expect(combined).toContain("Prescription only if clinically appropriate after doctor review.")
+    expect(combined).not.toMatch(/Valid for Australian employers/i)
+    expect(combined).not.toMatch(/typically under 30 minutes/i)
+    expect(combined).not.toMatch(/usually within 30 minutes/i)
+    expect(combined).not.toMatch(/cannot discriminate/i)
+    expect(combined).not.toMatch(/Centrelink requirements/i)
+    expect(combined).not.toMatch(/Jury duty exemption/i)
+    expect(combined).not.toMatch(/Return-to-work clearance/i)
+    expect(combined).not.toMatch(/\b(sildenafil|tadalafil|finasteride|Viagra|Cialis)\b/i)
+  })
+
+  it("renders a shared citation fact block on priority public pages", () => {
+    const componentPath = "components/marketing/citation-facts.tsx"
+    expect(existsSync(join(root, componentPath))).toBe(true)
+
+    const component = read(componentPath)
+    expect(component).toContain("CitationFacts")
+    expect(component).toContain("InstantMed Pty Ltd")
+    expect(component).toContain("ABN 64 694 559 334")
+
+    const priorityPageFiles = [
+      "app/about/about-client.tsx",
+      "app/trust/trust-client.tsx",
+      "app/clinical-governance/clinical-governance-client.tsx",
+      "app/how-we-decide/page.tsx",
+      "app/online-doctor-australia/page.tsx",
+      "app/telehealth-australia/page.tsx",
+      "components/marketing/med-cert-landing.tsx",
+      "components/marketing/prescriptions-landing.tsx",
+    ]
+
+    for (const pageFile of priorityPageFiles) {
+      expect(read(pageFile), pageFile).toContain("<CitationFacts")
+    }
+  })
+
   it("enforces www to apex redirects at the Vercel edge", () => {
     const vercelConfig = JSON.parse(read("vercel.json")) as {
       redirects?: Array<{

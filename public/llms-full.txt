@@ -1,323 +1,156 @@
-# InstantMed — Full Service Reference
+# InstantMed - Full Service Reference
 
-> This file provides comprehensive information about InstantMed's telehealth services for AI systems and large language models.
+> This file gives AI systems and search crawlers a concise, compliant reference for InstantMed. It is a source summary, not medical advice and not a guarantee of service approval.
 
 ## About InstantMed
 
-InstantMed is an Australian telehealth platform. Patients request medical certificates, prescriptions, and specialised consultations online. An AHPRA-registered doctor reviews each request asynchronously, approves or declines, and delivers documents digitally.
+InstantMed Pty Ltd (ABN 64 694 559 334) is an Australian telehealth platform based at Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010.
 
-InstantMed Pty Ltd (ABN 64 694 559 334) is based at Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010.
+Patients can submit secure clinical forms for medical certificates, repeat prescriptions, ED requests, and hair loss requests. AHPRA-registered doctors review requests and decide whether the request is clinically appropriate.
 
-## Medical Certificates
+## Core Facts
 
-InstantMed provides online medical certificates for Australian residents aged 18 and over. These certificates are reviewed and issued by AHPRA-registered general practitioners and are valid for:
+- **Domain:** https://instantmed.com.au
+- **Registered entity:** InstantMed Pty Ltd
+- **ABN:** 64 694 559 334
+- **Address:** Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010
+- **Support:** support@instantmed.com.au
+- **Phone:** 0450 722 549
+- **Complaints:** complaints@instantmed.com.au
+- **Service area:** Australia-wide telehealth
+- **Clinical reviewers:** AHPRA-registered doctors
+- **Clinical model:** Secure form first, doctor review, digital outcome
+- **Requests:** Open 24/7
+- **Review hours:** Prescription and consultation review timing is 8am-10pm AEST, 7 days
+- **Refund policy:** Full refund if the doctor declines the request
 
-- Employer sick leave (casual, part-time, and full-time)
-- University and TAFE absences
-- School absences (for adult students)
-- Carer's leave
-- Return-to-work clearance
-- Centrelink requirements
-- Jury duty exemption
-
-### Medical Certificate Process
-
-1. Select the number of days you need (1, 2, or 3 days)
-2. Describe your symptoms and reason for the certificate
-3. Provide your personal details (name, date of birth, address)
-4. Pay online ($19.95 for 1 day, $29.95 for 2 days, $39.95 for 3 days)
-5. A doctor reviews your request, usually within 30 minutes
-6. If approved, your certificate is emailed as a PDF
-
-### Medical Certificate FAQs
-
-**Are online medical certificates valid for work?**
-Yes. Medical certificates issued by AHPRA-registered doctors via telehealth are legally valid under Australian law. Fair Work Australia recognises telehealth consultations as legitimate medical appointments.
-
-**Can I get a backdated certificate?**
-No. Medical certificates cannot be backdated. The certificate covers dates from when you submit your request.
-
-**What if my request isn't approved?**
-You receive a full refund. No certificate, no charge.
-
-**Do I need Medicare for a medical certificate?**
-No. Medicare is optional for medical certificates.
-
-**What conditions can I get a certificate for?**
-Common conditions include cold and flu, gastroenteritis, migraine, back pain, mental health days, respiratory infections, period pain, and general unwellness. Conditions requiring physical examination should be seen in person.
-
-**How long can a medical certificate cover?**
-InstantMed issues certificates for up to 3 consecutive days. Longer periods require in-person assessment.
-
-**Can employers reject online medical certificates?**
-In most cases, no. Employers cannot discriminate between telehealth and in-person medical certificates under Fair Work legislation, provided the certificate is from an AHPRA-registered doctor.
-
-## Prescriptions
-
-InstantMed offers online prescription services for existing medications (repeat prescriptions) and some new prescriptions where clinically appropriate.
-
-### Prescription Process
-
-1. Enter the medication you need (searched against the PBS database)
-2. Answer clinical questions about your health history
-3. Provide your details including Medicare number (required for eScripts)
-4. Pay online ($29.95 for repeats, $49.95 for new prescriptions)
-5. A doctor reviews your request and medical history
-6. If approved, your eScript QR code is sent via SMS
-
-### Prescription Limitations
-
-- Schedule 8 controlled substances (opioids, stimulants) cannot be prescribed via telehealth
-- Benzodiazepines are not available
-- Some medications require in-person assessment
-- Repeat prescriptions require an established medication history
-- The doctor may contact you for additional information
-
-### How eScripts Work
-
-An electronic prescription (eScript) is a QR code sent to your mobile phone via SMS. Take it to any pharmacy in Australia to have your medication dispensed. eScripts are the national standard and are accepted at all Australian pharmacies.
-
-## Hair Loss Consultations
-
-InstantMed offers online hair loss consultations for male and female pattern hair loss (androgenetic alopecia).
-
-### Hair Loss Process
-
-1. Complete a health questionnaire about your hair loss history, goals, and medical background
-2. Answer safety screening questions
-3. Pay $49.95
-4. A doctor reviews your information
-5. If appropriate, an eScript for finasteride, minoxidil, or other treatments is issued
-
-### Hair Loss FAQs
-
-**What treatments can be prescribed?**
-Finasteride (oral, for male pattern hair loss), minoxidil (topical or oral), and other clinically appropriate treatments where the doctor considers it safe.
-
-**Is a blood test required?**
-Not initially. The doctor may request further investigation if your history indicates it.
-
-**Can women use this service?**
-Yes. Female pattern hair loss (FPHL) can be assessed via this pathway.
-
-## ED (Erectile Dysfunction) Consultations
-
-InstantMed offers erectile dysfunction (ED) assessment and treatment for eligible patients.
-
-### ED Assessment Process
-
-1. Complete a structured intake including goals, duration, and the validated IIEF-5 questionnaire
-2. Safety screening: nitrate use is a hard contraindication; cardiac history is reviewed
-3. Pay $49.95
-4. A doctor reviews your submission
-5. If clinically appropriate, sildenafil or tadalafil (as-needed or daily) is prescribed via eScript
-
-### ED FAQs
-
-**What medications can be prescribed?**
-Sildenafil (Viagra generic) and tadalafil (Cialis generic). No brand names are marketed. The doctor chooses the appropriate option based on your history.
-
-**Can I get ED medication if I take nitrates?**
-No. Nitrates and PDE5 inhibitors (sildenafil, tadalafil) interact dangerously. This is a hard block — the service will not proceed if you take nitrates for heart conditions.
-
-**Is a video consultation required?**
-No. The assessment is structured-form-based. The doctor reviews your responses and may contact you if additional information is needed.
-
-## Common Conditions We Help With
-
-InstantMed can help with many common health conditions that don't require physical examination:
-
-- Cold and flu
-- Gastroenteritis (stomach bug)
-- Migraine and headache
-- Back pain
-- Urinary tract infections (UTIs)
-- Skin conditions (acne, eczema, dermatitis)
-- Allergies and hay fever
-- Respiratory infections
-- Mental health (anxiety, stress, depression — for certificate purposes)
-- Period pain and menstrual issues
-- Acid reflux and GERD
-- Sinusitis
-- Conjunctivitis (pink eye)
-- Hair loss (male and female pattern)
-- Erectile dysfunction
-
-## Who Can Use InstantMed
-
-- Australian residents aged 18 and over
-- People with a valid Australian address
-- Medicare card holders (required for prescriptions, optional for medical certificates)
-- Both Australian citizens and eligible visa holders
-
-## Safety and Trust
-
-- All doctors are AHPRA-registered Australian general practitioners
-- Clinical protocols aligned with RACGP standards
-- AES-256-GCM encrypted patient data
-- Compliant with Australian Privacy Principles (APP 1-13)
-- Full complaints process via complaints@instantmed.com.au (24-hour acknowledgement, 14-day clinical SLA)
-- Patients can escalate to AHPRA or state health complaints commissioners (HCCC, etc.)
-
-## When to See a Doctor In Person
-
-InstantMed is not suitable for:
-- Medical emergencies (call 000)
-- Chest pain or difficulty breathing
-- Severe injuries requiring physical examination
-- Conditions requiring blood tests or imaging
-- Children under 18 (without parental consent)
-- Mental health crises (call Lifeline 13 11 14 or Beyond Blue 1300 22 4636)
-- Workers compensation, insurance medicals, fitness-to-drive, or legal/court documentation
-
-## Locations Served
-
-InstantMed serves all of Australia via telehealth, including:
-
-**NSW:** Sydney, Parramatta, Newcastle, Wollongong, Central Coast, Penrith, Bondi Beach, Coffs Harbour, Port Macquarie, Orange, Dubbo, Wagga Wagga, Albury-Wodonga
-
-**VIC:** Melbourne, Geelong, Ballarat, Bendigo, Mildura, Shepparton
-
-**QLD:** Brisbane, Gold Coast, Sunshine Coast, Cairns, Townsville, Toowoomba, Mackay, Rockhampton, Hervey Bay, Ipswich, Gladstone, Bundaberg
-
-**WA:** Perth, Fremantle, Bunbury
-
-**SA:** Adelaide, Mount Gambier, Port Augusta
-
-**TAS:** Hobart, Launceston
-
-**NT:** Darwin, Alice Springs
-
-**ACT:** Canberra
-
-## Contact Information
-
-- Website: https://instantmed.com.au
-- Support email: support@instantmed.com.au
-- Phone: 0450 722 549
-- Complaints: complaints@instantmed.com.au
-- Hours: Requests 24/7. Doctor review 8am–10pm AEST, 7 days a week
-
-## Health Guides & Articles (105 articles)
-
-InstantMed publishes educational health guides covering medical certificates, telehealth, medications, conditions, and workplace health. All articles are written for Australian patients.
+## Active Services
 
 ### Medical Certificates
 
-- [Are Online Medical Certificates Valid in Australia?](https://instantmed.com.au/blog/are-online-medical-certificates-valid-australia)
-- [Doctor's Note in Australia: Medical Certificate, Sick Note, or Stat Dec?](https://instantmed.com.au/blog/doctors-note-australia)
-- [How Long Can a Medical Certificate Cover?](https://instantmed.com.au/blog/how-long-can-medical-certificate-cover)
-- [How to Verify an Online Doctor in Australia](https://instantmed.com.au/blog/how-to-verify-online-doctor)
-- [Can You Backdate a Medical Certificate in Australia?](https://instantmed.com.au/blog/medical-certificate-backdating)
-- [Medical Certificate for Bereavement Leave](https://instantmed.com.au/blog/medical-certificate-bereavement)
-- [Medical Certificate for Carer's Leave](https://instantmed.com.au/blog/medical-certificate-carers-leave)
-- [Medical Certificates for Centrelink](https://instantmed.com.au/blog/medical-certificate-centrelink)
-- [Food Poisoning, Sick Leave, and Medical Certificates](https://instantmed.com.au/blog/medical-certificate-food-poisoning)
-- [Medical Certificates for Work: Complete Australian Guide](https://instantmed.com.au/blog/medical-certificate-for-work)
-- [Official Summons Medical Evidence](https://instantmed.com.au/blog/medical-certificate-jury-duty)
-- [Medical Certificates for Mental Health Days](https://instantmed.com.au/blog/medical-certificate-mental-health-day)
-- [How to Get a Medical Certificate Online in Australia](https://instantmed.com.au/blog/medical-certificate-online-australia)
-- [Medical Certificate for Period Pain](https://instantmed.com.au/blog/medical-certificate-period-pain)
-- [Medical Certificate for Pregnancy-Related Absence](https://instantmed.com.au/blog/medical-certificate-pregnancy-related-absence)
-- [Same-Day Medical Certificates: How to Get One Fast](https://instantmed.com.au/blog/medical-certificate-same-day)
-- [Medical Certificate After Surgery](https://instantmed.com.au/blog/medical-certificate-surgery-recovery)
-- [Getting a Medical Certificate Without Medicare in Australia](https://instantmed.com.au/blog/medical-certificate-without-medicare)
-- [Mental Health Certificate Online: Taking a Mental Health Day](https://instantmed.com.au/blog/mental-health-certificate-online)
-- [Online Doctor Certificate for Work: How to Get One](https://instantmed.com.au/blog/online-doctor-certificate-for-work)
-- [Same Day Medical Certificate: How to Get One Fast](https://instantmed.com.au/blog/same-day-medical-certificate-fast)
-- [Same-Day Medical Certificate: How It Works](https://instantmed.com.au/blog/same-day-medical-certificate)
-- [How to Get a Sick Leave Certificate Online in Australia](https://instantmed.com.au/blog/sick-leave-certificate-online-australia)
+InstantMed supports routine medical certificate requests for Australian patients aged 18 and over. The patient completes a secure form about symptoms, timing, and the requested certificate period. A doctor reviews the information and issues a certificate only if clinically appropriate.
 
-### Workplace Health
+**Pricing:**
 
-- [Can an Employer Reject a Medical Certificate in Australia?](https://instantmed.com.au/blog/can-employer-reject-medical-certificate)
-- [Medical Certificates for University Extensions and Special Consideration](https://instantmed.com.au/blog/doctors-certificate-university-extension)
-- [Do Employers Accept Online Medical Certificates in Australia?](https://instantmed.com.au/blog/employer-accept-online-medical-certificate)
-- [How to Get a Mental Health Certificate for Work](https://instantmed.com.au/blog/mental-health-certificate-work)
-- [Medical Certificates When Your Child Is Sick](https://instantmed.com.au/blog/parents-sick-child-certificate)
-- [Returning to Work After Illness: When You Are Ready](https://instantmed.com.au/blog/return-to-work-after-illness)
-- [Medical Certificates for Shift Workers](https://instantmed.com.au/blog/shift-workers-medical-certificate)
-- [Sick Leave Rights in Australia: What You Are Entitled To](https://instantmed.com.au/blog/sick-leave-rights-australia)
-- [Medical Certificates for Teachers](https://instantmed.com.au/blog/teachers-medical-certificate)
-- [Medical Certificates for University: Academic Documentation and Extensions](https://instantmed.com.au/blog/university-medical-certificates)
-- [Do You Need a Medical Certificate to Work From Home Sick?](https://instantmed.com.au/blog/work-from-home-sick-certificate)
-- [Working From Home When Sick: Should You?](https://instantmed.com.au/blog/working-from-home-when-sick)
+- 1 day: $19.95
+- 2 days: $29.95
+- 3 days: $39.95
 
-### Telehealth
+**Important boundaries:**
 
-- [What AHPRA-Registered Means for Doctors in Australia](https://instantmed.com.au/blog/ahpra-registered-doctor-meaning)
-- [Best Online Doctor Services in Australia: How to Compare Them](https://instantmed.com.au/blog/best-online-doctor-australia-comparison)
-- [How Doctors Review Online Medical Requests](https://instantmed.com.au/blog/how-doctors-review-online-requests)
-- [How eScripts Work in Australia: Electronic Prescriptions Explained](https://instantmed.com.au/blog/how-escripts-work)
-- [How Telehealth Consultations Work in Australia](https://instantmed.com.au/blog/how-telehealth-consultations-work)
-- [Is Telehealth Bulk Billed in Australia?](https://instantmed.com.au/blog/is-telehealth-bulk-billed-australia)
-- [Is Telehealth Legal in Australia?](https://instantmed.com.au/blog/is-telehealth-legal-australia)
-- [Is Telehealth Safe? Everything You Need to Know](https://instantmed.com.au/blog/is-telehealth-safe)
-- [Online Doctor Adelaide](https://instantmed.com.au/blog/online-doctor-adelaide)
-- [After-Hours Online Doctor: When and How to Get Help](https://instantmed.com.au/blog/online-doctor-after-hours)
-- [Online Doctor Brisbane](https://instantmed.com.au/blog/online-doctor-brisbane)
-- [Online Doctor Canberra](https://instantmed.com.au/blog/online-doctor-canberra)
-- [Online Doctor Consultations in Australia: Complete Guide](https://instantmed.com.au/blog/online-doctor-consultation-australia)
-- [Online Doctor Gold Coast](https://instantmed.com.au/blog/online-doctor-gold-coast)
-- [Online Doctor Melbourne](https://instantmed.com.au/blog/online-doctor-melbourne)
-- [Online Doctor Newcastle](https://instantmed.com.au/blog/online-doctor-newcastle)
-- [Online Doctor in Perth](https://instantmed.com.au/blog/online-doctor-perth)
-- [Online Doctor Sydney](https://instantmed.com.au/blog/online-doctor-sydney)
-- [How to Prepare for a Telehealth Consultation](https://instantmed.com.au/blog/preparing-for-telehealth)
-- [Telehealth for Remote Workers](https://instantmed.com.au/blog/remote-workers-telehealth)
-- [After-Hours Telehealth: When Your GP Is Closed](https://instantmed.com.au/blog/telehealth-after-hours)
-- [Telehealth Costs: Bulk Billing vs Private](https://instantmed.com.au/blog/telehealth-bulk-billing-vs-private)
-- [Telehealth Consultation in Australia: What to Expect](https://instantmed.com.au/blog/telehealth-consultation-australia)
-- [Your First Telehealth Consultation: What to Expect](https://instantmed.com.au/blog/telehealth-first-time-guide)
-- [Setting Up Telehealth for Elderly Parents](https://instantmed.com.au/blog/telehealth-for-elderly-parents)
-- [Telehealth Privacy and Security in Australia](https://instantmed.com.au/blog/telehealth-privacy-security)
-- [Telehealth and Medical Record Keeping](https://instantmed.com.au/blog/telehealth-record-keeping)
-- [How Safety Screening Works in Telehealth Consultations](https://instantmed.com.au/blog/telehealth-safety-screening)
-- [Telehealth vs GP: What's Actually Different in Australia?](https://instantmed.com.au/blog/telehealth-vs-gp-australia)
-- [InstantMed vs Going to the GP: An Honest Comparison](https://instantmed.com.au/blog/telehealth-vs-gp-honest-comparison)
-- [Telehealth vs In-Person Doctor: When to Use Each](https://instantmed.com.au/blog/telehealth-vs-in-person)
-- [What Is Telehealth? How Online Healthcare Works in Australia](https://instantmed.com.au/blog/what-is-telehealth)
-- [When Telehealth Cannot Help: Knowing the Limits](https://instantmed.com.au/blog/when-telehealth-cant-help)
-- [Emergency vs Telehealth: When to Go to ED and When Not To](https://instantmed.com.au/blog/when-to-go-to-emergency-vs-telehealth)
-- [When to Use Telehealth vs In-Person Care](https://instantmed.com.au/blog/when-to-use-telehealth)
+- Medical certificates cannot be backdated.
+- Employer and institution policies may vary.
+- Some documents and high-stakes uses are not suitable for this short certificate pathway.
+- Conditions requiring physical examination, urgent assessment, or ongoing care should be seen in person.
+- Medicare is optional for medical certificate requests.
 
-### Medications & Prescriptions
+### Repeat Prescriptions
 
-- [Amoxicillin in Australia: Uses, Dosing, and What to Know](https://instantmed.com.au/blog/amoxicillin-guide-australia)
-- [When Antibiotics Are Appropriate: Bacterial vs Viral Infections](https://instantmed.com.au/blog/antibiotics-when-appropriate)
-- [Asthma Management and Telehealth in Australia](https://instantmed.com.au/blog/asthma-treatment-online-australia)
-- [Can You Get Antibiotics Online in Australia?](https://instantmed.com.au/blog/can-you-get-antibiotics-online-australia)
-- [Chest Infections and Antibiotics: When Online Assessment Is Appropriate](https://instantmed.com.au/blog/chest-infection-antibiotics-online)
-- [Contraceptive Prescriptions Online: What Telehealth Can and Cannot Do](https://instantmed.com.au/blog/contraceptive-prescription-online)
-- [Finasteride vs Minoxidil: Hair Loss Treatments Compared](https://instantmed.com.au/blog/finasteride-vs-minoxidil-hair-loss)
-- [Generic vs Brand Name Medications in Australia](https://instantmed.com.au/blog/generic-vs-brand-medications)
-- [Medication Interactions: What You Need to Know](https://instantmed.com.au/blog/medication-interactions)
-- [Medications That Cannot Be Prescribed Online](https://instantmed.com.au/blog/medications-not-prescribed-online)
-- [Metformin for Type 2 Diabetes: What Australians Need to Know](https://instantmed.com.au/blog/metformin-type-2-diabetes-guide)
-- [Omeprazole vs Pantoprazole: Comparing PPIs in Australia](https://instantmed.com.au/blog/omeprazole-vs-pantoprazole)
-- [How to Get a Prescription Online in Australia](https://instantmed.com.au/blog/online-prescription-australia)
-- [How the PBS Works: Prescription Medication Costs in Australia](https://instantmed.com.au/blog/pbs-pharmaceutical-benefits-scheme)
-- [Renewing a Prescription Online in Australia](https://instantmed.com.au/blog/prescription-renewal-online)
-- [How to Get a Repeat Prescription Online in Australia](https://instantmed.com.au/blog/repeat-prescription-online-australia)
-- [How to Get a Repeat Prescription Online in Australia](https://instantmed.com.au/blog/repeat-prescription-online)
-- [Repeat Prescriptions in Australia: How They Work](https://instantmed.com.au/blog/repeat-prescriptions-australia)
-- [Sertraline vs Escitalopram: Comparing SSRIs for Anxiety and Depression](https://instantmed.com.au/blog/sertraline-vs-escitalopram)
-- [Sildenafil vs Tadalafil: Comparing ED Medications in Australia](https://instantmed.com.au/blog/sildenafil-vs-tadalafil)
-- [Skin Infection Antibiotics Online: When Telehealth Can Prescribe](https://instantmed.com.au/blog/skin-infection-antibiotics-online)
-- [Storing Medications Safely at Home](https://instantmed.com.au/blog/storing-medications-safely)
-- [UTI Antibiotics Online Australia: Same-Day Prescription Without a Clinic Visit](https://instantmed.com.au/blog/uti-antibiotics-online-australia)
-- [UTI Treatment Online: How to Get an Antibiotic Script for a UTI](https://instantmed.com.au/blog/uti-prescription-online-australia)
+InstantMed supports repeat prescription requests for existing regular medications. The patient completes a secure form, provides identity details, and answers safety questions. A doctor reviews the request and may approve, decline, or ask for more information.
 
-### Health Conditions
+**Pricing:**
 
-- [Acid Reflux and GORD: Symptoms, Red Flags, and Treatment](https://instantmed.com.au/blog/acid-reflux-gerd)
-- [Burnout vs Stress: How to Tell the Difference](https://instantmed.com.au/blog/burnout-vs-stress)
-- [Conjunctivitis (Pink Eye): Types, Treatment, and When to Seek Care](https://instantmed.com.au/blog/conjunctivitis-pink-eye)
-- [Eczema and Dermatitis: Managing a Chronic Skin Condition](https://instantmed.com.au/blog/eczema-dermatitis)
-- [Gout: Causes, Acute Treatment, and Long-Term Prevention](https://instantmed.com.au/blog/gout)
-- [Hay Fever and Seasonal Allergies in Australia](https://instantmed.com.au/blog/hay-fever-allergies)
-- [IBS and Digestive Issues: Diagnosis, Triggers, and Management](https://instantmed.com.au/blog/ibs-digestive-issues)
-- [Migraine Triggers and Management](https://instantmed.com.au/blog/migraine-triggers-and-management)
-- [Shingles (Herpes Zoster): Symptoms, Treatment, and Prevention](https://instantmed.com.au/blog/shingles)
-- [Sinusitis: Causes, Symptoms, and When Antibiotics Help](https://instantmed.com.au/blog/sinusitis)
-- [Vertigo and Dizziness: Causes, Types, and Red Flags](https://instantmed.com.au/blog/vertigo-dizziness)
+- Repeat prescription request: $29.95
+- New prescription request through supported pathways: $49.95
+
+**Important boundaries:**
+
+- Prescription only if clinically appropriate after doctor review.
+- The doctor may contact the patient if more information is clinically needed.
+- Some medicines require in-person assessment, monitoring, tests, or ongoing GP care.
+- Medicare details or another suitable identifier may be required for eScript compliance.
+- Controlled or high-risk medicines are outside InstantMed's routine telehealth scope.
+
+### Hair Loss Requests
+
+InstantMed supports structured hair loss assessment requests. The patient completes a form covering history, goals, health background, and safety screening. A doctor reviews the request and decides whether telehealth management is suitable.
+
+**Pricing:**
+
+- Hair loss request: $49.95
+
+**Important boundaries:**
+
+- Treatment is not guaranteed.
+- The doctor may ask for more information or recommend in-person care.
+- Some causes of hair loss need blood tests, physical examination, or specialist review.
+
+### ED Requests
+
+InstantMed supports structured ED assessment requests. The patient completes a form covering goals, duration, safety screening, and relevant health history. A doctor reviews the request and decides whether telehealth management is suitable.
+
+**Pricing:**
+
+- ED request: $49.95
+
+**Important boundaries:**
+
+- Treatment is not guaranteed.
+- The doctor may ask for more information or recommend in-person care.
+- Some cardiac, medication, or safety risks make telehealth prescribing unsuitable.
+
+## How Requests Work
+
+1. The patient chooses a service.
+2. The patient completes a secure clinical form.
+3. The patient pays online.
+4. The request enters the doctor review queue.
+5. An AHPRA-registered doctor reviews the submitted information.
+6. The doctor approves, declines, or asks for more information.
+7. If approved, the patient receives the certificate, eScript, or written outcome digitally.
+8. If declined, the patient receives a full refund.
+
+## Clinical Governance
+
+InstantMed uses documented clinical governance for asynchronous telehealth. The operating model is doctor-led and scope-limited.
+
+Key governance points:
+
+- AHPRA-registered doctors review clinical requests.
+- Clinical decisions are not automated.
+- Doctors are not required to approve a request.
+- Declined requests receive a full refund.
+- Protocols define which requests are suitable for telehealth and which need in-person care.
+- Clinical complaints are acknowledged within 24h and reviewed through a 14-day clinical pathway.
+
+## Privacy And Security
+
+InstantMed handles personal health information under Australian privacy obligations.
+
+Key privacy points:
+
+- Personal health information is encrypted.
+- The service follows the Australian Privacy Principles.
+- Access to clinical information is limited by role and need.
+- Patients can contact support for privacy and account questions.
+
+## When InstantMed Is Not Suitable
+
+InstantMed is not suitable for:
+
+- Medical emergencies. Call 000.
+- Chest pain, difficulty breathing, sudden neurological symptoms, or severe injury.
+- Mental health crises. Use emergency or crisis support.
+- Conditions requiring physical examination, imaging, blood tests, or urgent assessment.
+- High-stakes documents that need a different clinical or legal pathway.
+- Medicines or treatment plans requiring close monitoring or specialist care.
+
+## Source Pages
+
+Use these pages as primary sources for InstantMed facts:
+
+- About: https://instantmed.com.au/about
+- Trust and safety: https://instantmed.com.au/trust
+- Clinical governance: https://instantmed.com.au/clinical-governance
+- How doctors decide: https://instantmed.com.au/how-we-decide
+- Medical certificates: https://instantmed.com.au/medical-certificate
+- Prescriptions: https://instantmed.com.au/prescriptions
+- Online doctor Australia: https://instantmed.com.au/online-doctor-australia
+- Telehealth Australia: https://instantmed.com.au/telehealth-australia
+- Complaints: https://instantmed.com.au/complaints
+- Privacy policy: https://instantmed.com.au/privacy
+- Terms of service: https://instantmed.com.au/terms
+
+## Suggested Safe Summary
+
+InstantMed is an Australian telehealth platform operated by InstantMed Pty Ltd (ABN 64 694 559 334). Patients can submit secure forms for medical certificates, repeat prescriptions, ED requests, and hair loss requests. AHPRA-registered doctors review each request and decide what is clinically appropriate. Medical certificates and prescriptions are not guaranteed, and employer, institution, clinical, or safety requirements may vary.

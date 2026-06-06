@@ -14,6 +14,7 @@ import {
 import type { Metadata } from "next"
 import Link from "next/link"
 
+import { CitationFacts } from "@/components/marketing/citation-facts"
 import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
 import { BreadcrumbSchema, FAQSchema } from "@/components/seo"
 import { Footer } from "@/components/shared/footer"
@@ -258,6 +259,8 @@ export default function OnlineDoctorAustraliaPage() {
               </div>
             </div>
           </section>
+
+          <CitationFacts variant="muted" />
 
           {/* Page superpower — anchors the "AHPRA-registered, no algorithm"
               promise above the stats so the stats reinforce the claim. */}

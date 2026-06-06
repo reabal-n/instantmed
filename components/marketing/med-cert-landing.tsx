@@ -11,6 +11,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 
+import { CitationFacts } from "@/components/marketing/citation-facts"
 import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
 import { IntakeResumeChip } from "@/components/marketing/intake-resume-chip"
 import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
@@ -331,6 +332,7 @@ export function MedCertLanding() {
         <main className="relative">
           <IntakeResumeChip className="mx-4 mt-3 max-w-5xl sm:mx-auto" />
           <MedCertHero />
+          <CitationFacts variant="muted" />
           <WorkplaceProofPanel />
 
           {/* Day-selector was retired 2026-05-26 (Tier 1 review #5). The

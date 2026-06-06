@@ -5,6 +5,7 @@ import Link from "next/link"
 
 import { StatsHero } from "@/components/heroes"
 import { StickerIcon } from "@/components/icons/stickers"
+import { CitationFacts } from "@/components/marketing/citation-facts"
 import { MarketingFooter } from "@/components/marketing/marketing-footer"
 import type { GuideSectionData } from "@/components/marketing/sections/data-driven-guide-section"
 import { DataDrivenGuideSection } from "@/components/marketing/sections/data-driven-guide-section"
@@ -233,6 +234,8 @@ export default function ClinicalGovernanceClient() {
           }
           body="An AHPRA-registered Medical Director sets the protocols and reviews the edge cases. No business team overrides a clinical decline. The named, registered doctor on every certificate is the one accountable for it."
         />
+
+        <CitationFacts variant="muted" />
 
         {/* Standards we follow */}
         <IconChecklist

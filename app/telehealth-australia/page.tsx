@@ -17,6 +17,7 @@ import {
 import type { Metadata } from "next"
 import Link from "next/link"
 
+import { CitationFacts } from "@/components/marketing/citation-facts"
 import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
 import { BreadcrumbSchema, FAQSchema } from "@/components/seo"
 import { Footer } from "@/components/shared/footer"
@@ -252,6 +253,8 @@ export default function TelehealthAustraliaPage() {
               </div>
             </div>
           </section>
+
+          <CitationFacts variant="muted" />
 
           {/* Page superpower — anchors the "regulated, governed, doctor-led"
               positioning that distinguishes legitimate AU telehealth from

@@ -10,6 +10,7 @@ import { useSyncExternalStore } from "react"
 // Morning Canvas components
 import { SplitHero } from "@/components/heroes"
 import { StickerIcon } from "@/components/icons/stickers"
+import { CitationFacts } from "@/components/marketing/citation-facts"
 import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
 import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
 import { MarketingFooter } from "@/components/marketing/marketing-footer"
@@ -139,6 +140,8 @@ export default function TrustPage() {
             </div>
           </div>
         </SplitHero>
+
+        <CitationFacts variant="muted" />
 
         {/* Page superpower — anchors human-decision accountability above the
             stats so the stats reinforce the claim rather than carry it alone. */}

@@ -9,6 +9,7 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { StickerIcon } from "@/components/icons/stickers"
+import { CitationFacts } from "@/components/marketing/citation-facts"
 import { Hero } from "@/components/marketing/hero"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
 import { EScriptHeroMockup } from "@/components/marketing/mockups/escript-hero-mockup"
@@ -331,6 +332,8 @@ export function PrescriptionsLanding() {
               {FORM_FIRST_WEDGE} Tell us what you already take. Once approved, your eScript is sent to your phone for any Australian pharmacy. {GUARANTEE}
             </p>
           </Hero>
+
+          <CitationFacts variant="muted" />
 
           {/* Live wait time */}
           <LiveWaitTime variant="strip" services={["scripts"]} />
