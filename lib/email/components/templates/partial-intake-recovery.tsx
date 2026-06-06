@@ -21,17 +21,13 @@ export interface PartialIntakeRecoveryEmailProps {
 }
 
 export function partialIntakeRecoverySubject(serviceName: string) {
-  return `Your ${serviceName.toLowerCase()} is still here. Finish in 90 seconds.`
+  void serviceName
+  return "Your request is still saved"
 }
 
 /**
  * Partial intake recovery email. Sent ~1 hour after a user starts an intake
- * (and has provided email) but doesn't complete it. Industry-standard 5-15%
- * recovery rate.
- *
- * Calm, low-pressure tone. No countdown timers or guilt language. The whole
- * point of the brand voice is that getting a cert should feel easy, not
- * harassed.
+ * and has provided email, but does not complete it.
  */
 export function PartialIntakeRecoveryEmail({
   firstName,
@@ -40,18 +36,17 @@ export function PartialIntakeRecoveryEmail({
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
 }: PartialIntakeRecoveryEmailProps) {
   return (
-    <BaseEmail previewText={`Your ${serviceName.toLowerCase()} request is still saved`} appUrl={appUrl}>
+    <BaseEmail previewText="Your request is saved if you still need it" appUrl={appUrl}>
       <HeroBlock
-        icon="📝"
-        headline="Picking up where you left off"
+        icon="IM"
+        headline="Your request is still saved"
         variant="info"
       />
 
       <NameFirstGreeting name={firstName} />
       <Text>
-        You started a <strong>{serviceName}</strong> request earlier today and
-        didn&apos;t quite finish. Everything you entered is saved. Most people
-        wrap up the rest in under 90 seconds.
+        You started a <strong>{serviceName}</strong> request earlier. If you still
+        need it, you can keep going from the same place.
       </Text>
 
       <Button href={resumeUrl}>Continue your request</Button>
@@ -60,17 +55,15 @@ export function PartialIntakeRecoveryEmail({
         <Heading as="h3">If you do come back</Heading>
         <List
           items={[
-            "A real Australian doctor reviews your request",
-            "Doctor review follows when available",
-            "Your certificate is emailed to you as a PDF",
-            "Full refund if declined",
+            "A doctor reviews your request",
+            "Full refund if the doctor declines",
+            "We contact you only if more information is clinically needed",
           ]}
         />
       </Box>
 
       <Text muted small>
-        Already finished, or sorted things another way? You can safely ignore
-        this email and nothing else will arrive from us.
+        Already finished or sorted this another way? You can ignore this email.
       </Text>
     </BaseEmail>
   )

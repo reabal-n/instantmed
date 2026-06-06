@@ -30,8 +30,8 @@ describe("recovery scorecard", () => {
         },
       ],
       recoveredPaidRows: [
-        { amount_cents: 2995, refund_amount_cents: 0 },
-        { amount_cents: 4995, refund_amount_cents: 4995 },
+        { amount_cents: 2995, refund_amount_cents: 0, utm_campaign: "partial_intake_recovery" },
+        { amount_cents: 4995, refund_amount_cents: 4995, utm_campaign: "abandoned_checkout" },
       ],
     })
 
@@ -41,10 +41,42 @@ describe("recovery scorecard", () => {
       emailed: 1,
       emailCaptured: 2,
       emailClickCount: 1,
+      measurementWarnings: [],
+      partialRecoveryPaidCount: 1,
+      partialRecoveryPaidRate: 100,
       recoveredNetRevenueCents: 2995,
     })
     expect(scorecard.emailCaptureRate).toBe(66.7)
     expect(scorecard.recoveryEmailCoverageRate).toBe(50)
     expect(scorecard.recoveredPaidCount).toBe(2)
+  })
+
+  it("warns when recovery-attributed paid orders exist but partial draft markers are zero", () => {
+    const scorecard = buildRecoveryScorecard({
+      abandonedCheckoutEmailRows: [
+        { delivery_status: null, email_type: "partial_intake_recovery", status: "sent" },
+      ],
+      partialIntakeRows: [
+        {
+          converted_to_intake_id: null,
+          email: "patient@example.com",
+          recovery_email_sent_at: "2026-06-05T00:00:00.000Z",
+          service_type: "med-cert",
+        },
+      ],
+      recoveredPaidRows: [
+        { amount_cents: 2995, refund_amount_cents: 0, utm_campaign: "partial_intake_recovery" },
+      ],
+    })
+
+    expect(scorecard).toMatchObject({
+      converted: 0,
+      partialRecoveryPaidCount: 1,
+      partialRecoveryPaidRate: 100,
+      recoveredPaidCount: 1,
+    })
+    expect(scorecard.measurementWarnings).toContain(
+      "Recovery-attributed paid orders exist but no partial drafts are marked converted.",
+    )
   })
 })

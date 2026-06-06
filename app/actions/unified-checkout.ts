@@ -52,6 +52,7 @@ interface UnifiedCheckoutInput {
     captured_at?: string
   }
   posthogDistinctId?: string
+  serverDraftSessionId?: string
 }
 
 interface CheckoutResult {
@@ -100,7 +101,7 @@ function mapServiceToCategory(serviceType: UnifiedServiceType): { category: Serv
 export async function createCheckoutFromUnifiedFlow(
   input: UnifiedCheckoutInput
 ): Promise<CheckoutResult> {
-  const { serviceType, answers, identity, attribution, posthogDistinctId } = input
+  const { serviceType, answers, identity, attribution, posthogDistinctId, serverDraftSessionId } = input
   const { category, subtype } = mapServiceToCategory(serviceType)
   
   // Update subtype based on answers
@@ -143,6 +144,7 @@ export async function createCheckoutFromUnifiedFlow(
         .slice(0, 32),
       attribution,
       posthogDistinctId,
+      serverDraftSessionId,
     })
   } else {
     // Guest checkout - requires identity info
@@ -174,6 +176,7 @@ export async function createCheckoutFromUnifiedFlow(
       guestPhone: identity.phone,
       attribution,
       posthogDistinctId,
+      serverDraftSessionId,
     })
   }
 }

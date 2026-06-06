@@ -24,6 +24,7 @@ import { PRICING as APP_PRICING } from "@/lib/constants"
 import { getAddressReviewSummary } from "@/lib/request/address-metadata"
 import { getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
 import { normalizeMedicationEntriesAnswer, stringAnswer, stringArrayAnswer } from "@/lib/request/intake-answer-normalizers"
+import { getActiveServerDraftSessionId } from "@/lib/request/server-draft"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 import { useRequestStore } from "../store"
@@ -204,6 +205,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
         identity,
         attribution: getAttribution(),
         posthogDistinctId: posthog?.get_distinct_id() || undefined,
+        serverDraftSessionId: getActiveServerDraftSessionId(serviceType) ?? undefined,
       })
 
       if (!result.success) {

@@ -24,6 +24,7 @@ type RecoveryEmailRow = {
 type RecoveredPaidRow = {
   amount_cents: number | null
   refund_amount_cents: number | null
+  utm_campaign?: string | null
 }
 
 type RecoveredPaidAttributionRow = RecoveredPaidRow & {
@@ -42,6 +43,9 @@ export type RecoveryScorecard = {
   emailClickCount: number
   emailOpenCount: number
   emailed: number
+  measurementWarnings: string[]
+  partialRecoveryPaidCount: number
+  partialRecoveryPaidRate: number | null
   partialRecoverySent: number
   recoveredGrossRevenueCents: number
   recoveredNetRevenueCents: number
@@ -75,6 +79,10 @@ function isClickedEmail(row: RecoveryEmailRow): boolean {
   return row.delivery_status === "clicked"
 }
 
+function isPartialRecoveryPaid(row: RecoveredPaidRow): boolean {
+  return row.utm_campaign === "partial_intake_recovery"
+}
+
 export function buildRecoveryScorecard({
   abandonedCheckoutEmailRows,
   partialIntakeRows,
@@ -85,8 +93,12 @@ export function buildRecoveryScorecard({
   const emailed = partialIntakeRows.filter((row) => Boolean(row.recovery_email_sent_at)).length
   const converted = partialIntakeRows.filter((row) => Boolean(row.converted_to_intake_id)).length
   const acceptedRecoveryEmails = abandonedCheckoutEmailRows.filter(isAcceptedEmail)
+  const partialRecoveryPaidCount = recoveredPaidRows.filter(isPartialRecoveryPaid).length
   const recoveredGrossRevenueCents = recoveredPaidRows.reduce((sum, row) => sum + Number(row.amount_cents ?? 0), 0)
   const recoveredRefundedCents = recoveredPaidRows.reduce((sum, row) => sum + Number(row.refund_amount_cents ?? 0), 0)
+  const measurementWarnings = recoveredPaidRows.length > 0 && converted === 0
+    ? ["Recovery-attributed paid orders exist but no partial drafts are marked converted."]
+    : []
 
   return {
     abandonedCheckoutSent: acceptedRecoveryEmails.filter((row) => row.email_type !== "partial_intake_recovery").length,
@@ -97,6 +109,9 @@ export function buildRecoveryScorecard({
     emailClickCount: abandonedCheckoutEmailRows.filter(isClickedEmail).length,
     emailOpenCount: abandonedCheckoutEmailRows.filter(isOpenedEmail).length,
     emailed,
+    measurementWarnings,
+    partialRecoveryPaidCount,
+    partialRecoveryPaidRate: roundRate(partialRecoveryPaidCount, emailed),
     partialRecoverySent: acceptedRecoveryEmails.filter((row) => row.email_type === "partial_intake_recovery").length,
     recoveredGrossRevenueCents,
     recoveredNetRevenueCents: recoveredGrossRevenueCents - recoveredRefundedCents,

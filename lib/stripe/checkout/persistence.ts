@@ -27,6 +27,7 @@ import {
 import { TELEHEALTH_CONSENT_VERSION,TERMS_VERSION } from "@/lib/constants"
 import { createLogger } from "@/lib/observability/logger"
 import { buildAddressAuditMetadata } from "@/lib/request/address-metadata"
+import { markPartialIntakeConverted } from "@/lib/request/server-draft-conversion"
 import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
 import type { ServerSafetyCheck } from "@/lib/safety/evaluate"
 import { type FraudCheckResult, saveFraudFlags } from "@/lib/security/fraud-detector"
@@ -38,6 +39,19 @@ import type { CreateCheckoutInput, StepResult } from "./types"
 import { stepFail, stepOk } from "./types"
 
 const logger = createLogger("stripe-checkout-persistence")
+
+async function markDraftConvertedIfPresent(
+  supabase: SupabaseClient,
+  input: CreateCheckoutInput,
+  intakeId: string,
+): Promise<void> {
+  if (!input.serverDraftSessionId) return
+
+  await markPartialIntakeConverted(supabase, {
+    intakeId,
+    sessionId: input.serverDraftSessionId,
+  })
+}
 
 interface NormalizedAttribution {
   utm_source: string | null
@@ -165,6 +179,7 @@ export async function createIntakeWithAnswers(
         .single<{ id: string; status: string; payment_status: string }>()
 
       if (existingIntake) {
+        await markDraftConvertedIfPresent(supabase, input, existingIntake.id)
         logger.info("Returning existing intake for idempotency key", {
           intakeId: existingIntake.id,
           idempotencyKey: input.idempotencyKey,
@@ -218,6 +233,8 @@ export async function createIntakeWithAnswers(
     await supabase.from("intakes").delete().eq("id", intake.id)
     return stepFail("Failed to save your clinical information. Please try again.")
   }
+
+  await markDraftConvertedIfPresent(supabase, input, intake.id)
 
   return stepOk({ kind: "created", intake })
 }

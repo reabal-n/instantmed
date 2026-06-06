@@ -11,6 +11,7 @@ import {
   PartialIntakeRecoveryEmail,
   partialIntakeRecoverySubject,
 } from "./components/templates/partial-intake-recovery"
+import { buildPartialIntakeRecoveryUrl } from "./recovery-links"
 import { sendEmail } from "./send-email"
 
 const logger = createLogger("partial-intake-recovery")
@@ -51,30 +52,24 @@ function isEncryptedPHI(value: unknown): value is EncryptedPHI {
   )
 }
 
-async function getRecoveryResumePath(draft: PartialDraft): Promise<string> {
-  if (draft.service_type !== "consult") {
-    return `/request?service=${encodeURIComponent(draft.service_type)}&d=${encodeURIComponent(draft.session_id)}`
-  }
-
+async function getRecoveryConsultSubtype(draft: PartialDraft): Promise<"ed" | "hair_loss" | null> {
+  if (draft.service_type !== "consult") return null
   if (isEncryptedPHI(draft.answers_encrypted)) {
     try {
       const answers = await decryptJSONB<Record<string, unknown>>(draft.answers_encrypted)
       const subtype = answers.consultSubtype
 
       if (subtype === "ed" || subtype === "hair_loss") {
-        return `/request?service=consult&subtype=${encodeURIComponent(subtype)}&d=${encodeURIComponent(draft.session_id)}`
+        return subtype
       }
     } catch (err) {
       logger.warn("Could not decrypt consult subtype for partial-intake recovery URL", {
-        sessionId: draft.session_id,
         error: err instanceof Error ? err.message : String(err),
       })
     }
   }
 
-  // Retired bare consult drafts cannot safely resume into checkout. Send them
-  // to the services overview instead of a dead `/request?service=consult` URL.
-  return `/consult?d=${encodeURIComponent(draft.session_id)}`
+  return null
 }
 
 /**
@@ -152,15 +147,14 @@ export async function processPartialIntakeRecoveries(): Promise<{
     // purchase. captureAttribution() in lib/analytics/attribution.ts persists
     // these to sessionStorage on landing, then the success page surfaces them
     // back into the purchase_completed event.
-    const utmParams = [
-      "utm_source=recovery_email",
-      "utm_medium=email",
-      "utm_campaign=partial_intake_recovery",
-      `utm_content=${encodeURIComponent(draft.service_type)}`,
-    ].join("&")
-    const resumePath = await getRecoveryResumePath(draft)
-    const separator = resumePath.includes("?") ? "&" : "?"
-    const resumeUrl = `${appUrl}${resumePath}${separator}${utmParams}`
+    const resumeUrl = buildPartialIntakeRecoveryUrl({
+      appUrl,
+      draft: {
+        consultSubtype: await getRecoveryConsultSubtype(draft),
+        serviceType: draft.service_type,
+        sessionId: draft.session_id,
+      },
+    })
 
     try {
       const result = await sendEmail({

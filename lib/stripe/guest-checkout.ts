@@ -23,6 +23,7 @@ import { getMedicationBlocklistCandidate } from "@/lib/operational-controls/medi
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { buildAddressAuditMetadata } from "@/lib/request/address-metadata"
 import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing-identity"
+import { markPartialIntakeConverted } from "@/lib/request/server-draft-conversion"
 import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -40,6 +41,19 @@ import {
 } from "./prescribing-profile-fields"
 
 const logger = createLogger("guest-checkout")
+
+async function markGuestDraftConvertedIfPresent(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  input: GuestCheckoutInput,
+  intakeId: string,
+): Promise<void> {
+  if (!input.serverDraftSessionId) return
+
+  await markPartialIntakeConverted(supabase, {
+    intakeId,
+    sessionId: input.serverDraftSessionId,
+  })
+}
 
 function mapCategoryToRequestType(category: string, subtype: string): RequestType {
   if (category === "medical_certificate") return "med_cert"
@@ -79,6 +93,7 @@ interface GuestCheckoutInput {
     captured_at?: string
   }
   posthogDistinctId?: string // Client-side PostHog distinct ID for identity stitching
+  serverDraftSessionId?: string
 }
 
 interface CheckoutResult {
@@ -650,6 +665,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
           })
 
           if (recovery.success) {
+            await markGuestDraftConvertedIfPresent(supabase, input, recovery.intakeId)
             logger.info("Recovered duplicate guest checkout attempt", {
               intakeId: recovery.intakeId,
               hasCheckoutUrl: !!checkoutUrl,
@@ -696,6 +712,8 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       await supabase.from("intakes").delete().eq("id", intake.id)
       return { success: false, error: "Failed to save your clinical information. Please try again." }
     }
+
+    await markGuestDraftConvertedIfPresent(supabase, input, intake.id)
 
     await Promise.all([
       recordSafetyEvaluationForOperators({

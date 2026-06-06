@@ -18,7 +18,8 @@ export interface AbandonedCheckoutEmailProps {
 }
 
 export function abandonedCheckoutSubject(serviceName: string) {
-  return `Hey, you left something behind. Your ${serviceName} request is waiting`
+  void serviceName
+  return "Complete your request"
 }
 
 export function AbandonedCheckoutEmail({
@@ -31,38 +32,36 @@ export function AbandonedCheckoutEmail({
   const firstName = patientName.split(" ")[0]
 
   return (
-    <BaseEmail previewText={`No rush, your ${serviceName} request is still here ⏱️`} appUrl={appUrl}>
+    <BaseEmail previewText="Payment is still open if you need this request" appUrl={appUrl}>
       <HeroBlock
-        icon="⏱️"
-        headline="Your request is still here"
+        icon="IM"
+        headline="Payment is still open"
         variant="info"
       />
 
       <NameFirstGreeting name={firstName} />
       <Text>
         You started a <strong>{serviceName}</strong> request about {hoursAgo} hours ago
-        but didn&apos;t finish checkout. No worries, everything is saved and
-        ready when you are.
+        and stopped before payment. If you still need it, return to the saved
+        request and finish payment.
       </Text>
 
-      <Button href={resumeUrl}>Resume your request</Button>
+      <Button href={resumeUrl}>Return to payment</Button>
 
       <Box>
         <Heading as="h3">What happens next</Heading>
         <List
           items={[
-            "A doctor reviews your request when available",
-            "You'll receive your document via email",
-            "Form-first review, with follow-up only if something important is missing",
+            "A doctor reviews your request",
+            "Full refund if the doctor declines",
+            "We contact you only if more information is clinically needed",
           ]}
         />
       </Box>
 
       <Text muted small>
-        If you&apos;ve already completed your request or no longer need it,
-        you can safely ignore this email.
+        Already finished or changed your mind? You can ignore this email.
       </Text>
-
     </BaseEmail>
   )
 }

@@ -15,7 +15,7 @@
  *     A network failure must never break the intake flow.
  */
 
-import type { CanonicalServiceType } from "./draft-storage"
+import { canonicalizeServiceType, type CanonicalServiceType } from "./draft-storage"
 
 const SERVER_SESSION_KEY_PREFIX = "instantmed-server-draft-"
 
@@ -59,6 +59,14 @@ function getStoredSessionId(service: CanonicalServiceType): string | null {
   } catch {
     return null
   }
+}
+
+export function getActiveServerDraftSessionId(
+  service: CanonicalServiceType | string | null | undefined,
+): string | null {
+  const canonicalService = canonicalizeServiceType(service)
+  if (!canonicalService) return null
+  return getStoredSessionId(canonicalService)
 }
 
 function setStoredSessionId(service: CanonicalServiceType, sessionId: string): void {

@@ -15,33 +15,62 @@ import { describe, expect,it } from "vitest"
 
 // All templates
 import {
-  AbandonedCheckoutEmail,   AbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject,
-abandonedCheckoutSubject,
-  ConsultApprovedEmail, consultApprovedSubject,
-  EdApprovedEmail, edApprovedSubject,
-  GuestCompleteAccountEmail, guestCompleteAccountSubject,
-  HairLossApprovedEmail, hairLossApprovedSubject,
-  IntakeSubmittedEmail, intakeSubmittedSubject,
-  MagicLinkEmail, magicLinkEmailSubject,
-  MedCertEmployerEmail, medCertEmployerEmailSubject,
-  MedCertPatientEmail, medCertPatientEmailSubject,
-  NeedsMoreInfoEmail, needsMoreInfoSubject,
-  PaymentConfirmedEmail, paymentConfirmedSubject,
-  PaymentFailedEmail, paymentFailedSubject,
-  PaymentReceiptEmail, paymentReceiptEmailSubject,
-  PaymentRetryEmail, paymentRetrySubject,
-  PrescriptionApprovedEmail, prescriptionApprovedSubject,
-  ReferralCreditEmail, referralCreditSubject,
-  RefundIssuedEmail, refundIssuedEmailSubject,
-  RequestDeclinedEmail, requestDeclinedEmailSubject,
-  RequestReceivedEmail, requestReceivedSubject,
-  ReviewRequestEmail, reviewRequestSubject,
-  ScriptSentEmail, scriptSentEmailSubject,
-  StillReviewingEmail, stillReviewingSubject,
-  VerificationCodeEmail, verificationCodeSubject,
-  WeightLossApprovedEmail, weightLossApprovedSubject,
-  WelcomeEmail, welcomeEmailSubject,
-  WomensHealthApprovedEmail, womensHealthApprovedSubject,
+  AbandonedCheckoutEmail,
+  AbandonedCheckoutFollowupEmail,
+  abandonedCheckoutFollowupSubject,
+  abandonedCheckoutSubject,
+  ConsultApprovedEmail,
+  consultApprovedSubject,
+  EdApprovedEmail,
+  edApprovedSubject,
+  GuestCompleteAccountEmail,
+  guestCompleteAccountSubject,
+  HairLossApprovedEmail,
+  hairLossApprovedSubject,
+  IntakeSubmittedEmail,
+  intakeSubmittedSubject,
+  MagicLinkEmail,
+  magicLinkEmailSubject,
+  MedCertEmployerEmail,
+  medCertEmployerEmailSubject,
+  MedCertPatientEmail,
+  medCertPatientEmailSubject,
+  NeedsMoreInfoEmail,
+  needsMoreInfoSubject,
+  PartialIntakeRecoveryEmail,
+  partialIntakeRecoverySubject,
+  PaymentConfirmedEmail,
+  paymentConfirmedSubject,
+  PaymentFailedEmail,
+  paymentFailedSubject,
+  PaymentReceiptEmail,
+  paymentReceiptEmailSubject,
+  PaymentRetryEmail,
+  paymentRetrySubject,
+  PrescriptionApprovedEmail,
+  prescriptionApprovedSubject,
+  ReferralCreditEmail,
+  referralCreditSubject,
+  RefundIssuedEmail,
+  refundIssuedEmailSubject,
+  RequestDeclinedEmail,
+  requestDeclinedEmailSubject,
+  RequestReceivedEmail,
+  requestReceivedSubject,
+  ReviewRequestEmail,
+  reviewRequestSubject,
+  ScriptSentEmail,
+  scriptSentEmailSubject,
+  StillReviewingEmail,
+  stillReviewingSubject,
+  VerificationCodeEmail,
+  verificationCodeSubject,
+  WeightLossApprovedEmail,
+  weightLossApprovedSubject,
+  WelcomeEmail,
+  welcomeEmailSubject,
+  WomensHealthApprovedEmail,
+  womensHealthApprovedSubject,
 } from "@/lib/email/components/templates"
 
 // ============================================================================
@@ -483,6 +512,37 @@ describe("Email Templates", () => {
           requestType="Medical Certificate"
           intakeId="test-intake"
           completeAccountUrl="https://instantmed.com.au/auth/complete-account?intake_id=test"
+          appUrl={APP_URL}
+        />
+      )
+      expect(html).toMatchSnapshot()
+    })
+  })
+
+  describe("PartialIntakeRecoveryEmail", () => {
+    it("renders with resume link", () => {
+      const html = render(
+        <PartialIntakeRecoveryEmail
+          firstName="Jamie"
+          serviceName="Medical Certificate"
+          resumeUrl="https://instantmed.com.au/request?service=med-cert&d=abc"
+          appUrl={APP_URL}
+        />
+      )
+      expectBaseEmailStructure(html)
+      expectContains(html, "Jamie", "Continue your request", "service=med-cert", "A doctor reviews your request")
+    })
+
+    it("subject factory works", () => {
+      expect(partialIntakeRecoverySubject("Medical Certificate")).toBe("Your request is still saved")
+    })
+
+    it("matches snapshot", () => {
+      const html = render(
+        <PartialIntakeRecoveryEmail
+          firstName="Test"
+          serviceName="Medical Certificate"
+          resumeUrl="https://instantmed.com.au/request?service=med-cert&d=test"
           appUrl={APP_URL}
         />
       )
@@ -1002,7 +1062,8 @@ describe("Email Template Cross-Checks", () => {
       <PaymentRetryEmail key="9" patientName="Test" requestType="Med Cert" amount="$19.95" paymentUrl="https://example.com" appUrl={APP_URL} />,
       <NeedsMoreInfoEmail key="10" patientName="Test" requestType="Med Cert" requestId="R4" doctorMessage="More info needed" appUrl={APP_URL} />,
       <GuestCompleteAccountEmail key="11" patientName="Test" requestType="Med Cert" intakeId="i1" completeAccountUrl="https://example.com" appUrl={APP_URL} />,
-      <AbandonedCheckoutEmail key="12" patientName="Test" serviceName="Med Cert" resumeUrl="https://example.com" hoursAgo={2} appUrl={APP_URL} />,
+      <PartialIntakeRecoveryEmail key="12" firstName="Test" serviceName="Med Cert" resumeUrl="https://example.com" appUrl={APP_URL} />,
+      <AbandonedCheckoutEmail key="12b" patientName="Test" serviceName="Med Cert" resumeUrl="https://example.com" hoursAgo={2} appUrl={APP_URL} />,
       <ConsultApprovedEmail key="13" patientName="Test" requestId="R5" appUrl={APP_URL} />,
       <EdApprovedEmail key="14" patientName="Test" medicationName="Sildenafil" requestId="R6" appUrl={APP_URL} />,
       <HairLossApprovedEmail key="15" patientName="Test" medicationName="Finasteride" requestId="R7" appUrl={APP_URL} />,
@@ -1037,7 +1098,8 @@ describe("Email Template Cross-Checks", () => {
       <PaymentFailedEmail key="2" patientName="Test" serviceName="Med Cert" failureReason="Declined" retryUrl="https://example.com" appUrl={APP_URL} />,
       <VerificationCodeEmail key="3" code="123456" appUrl={APP_URL} />,
       <StillReviewingEmail key="4" patientName="Test" requestType="Med Cert" requestId="R1" appUrl={APP_URL} />,
-      <AbandonedCheckoutEmail key="5" patientName="Test" serviceName="Med Cert" resumeUrl="https://example.com" hoursAgo={2} appUrl={APP_URL} />,
+      <PartialIntakeRecoveryEmail key="5" firstName="Test" serviceName="Med Cert" resumeUrl="https://example.com" appUrl={APP_URL} />,
+      <AbandonedCheckoutEmail key="6" patientName="Test" serviceName="Med Cert" resumeUrl="https://example.com" hoursAgo={2} appUrl={APP_URL} />,
     ]
 
     for (const template of templates) {
@@ -1166,6 +1228,14 @@ describe("Link validation", () => {
         requestType="Medical Certificate"
         intakeId="intake-123"
         completeAccountUrl="https://instantmed.com.au/auth/complete-account?intake_id=intake-123"
+        appUrl={APP_URL}
+      />
+    ),
+    PartialIntakeRecoveryEmail: (
+      <PartialIntakeRecoveryEmail
+        firstName="Test"
+        serviceName="Medical Certificate"
+        resumeUrl="https://instantmed.com.au/request?service=med-cert&d=abc"
         appUrl={APP_URL}
       />
     ),

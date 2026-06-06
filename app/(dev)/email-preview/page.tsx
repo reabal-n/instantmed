@@ -39,6 +39,12 @@ const templates = [
     description: "Passwordless sign-in email sent from the Supabase auth hook",
     category: "lifecycle",
   },
+  {
+    slug: "partial-intake-recovery",
+    name: "Partial Intake Recovery",
+    description: "Reminder for patients who started a request but did not finish it",
+    category: "lifecycle",
+  },
 
   // ── Request Flow ──
   {
@@ -176,7 +182,7 @@ const templates = [
   {
     slug: "abandoned-checkout-followup",
     name: "Abandoned Checkout Followup (24h)",
-    description: "Last-call email sent 24h after abandoned checkout with social proof",
+    description: "Second reminder for patients who left during checkout",
     category: "engagement",
   },
   {

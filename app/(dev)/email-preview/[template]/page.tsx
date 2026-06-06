@@ -11,8 +11,8 @@ import * as React from "react"
 
 import { COMPANY_NAME,CONTACT_EMAIL_NOREPLY } from "@/lib/constants"
 import { canAccessDevOnlyRoute } from "@/lib/dev-only-routes"
-import { AbandonedCheckoutEmail } from "@/lib/email/components/templates/abandoned-checkout"
-import { AbandonedCheckoutFollowupEmail } from "@/lib/email/components/templates/abandoned-checkout-followup"
+import { AbandonedCheckoutEmail, abandonedCheckoutSubject } from "@/lib/email/components/templates/abandoned-checkout"
+import { AbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject } from "@/lib/email/components/templates/abandoned-checkout-followup"
 import { ConsultApprovedEmail } from "@/lib/email/components/templates/consult-approved"
 import { EdApprovedEmail } from "@/lib/email/components/templates/ed-approved"
 import { GuestCompleteAccountEmail } from "@/lib/email/components/templates/guest-complete-account"
@@ -22,6 +22,7 @@ import { MagicLinkEmail, magicLinkEmailSubject } from "@/lib/email/components/te
 import { MedCertEmployerEmail } from "@/lib/email/components/templates/med-cert-employer"
 import { MedCertPatientEmail } from "@/lib/email/components/templates/med-cert-patient"
 import { NeedsMoreInfoEmail } from "@/lib/email/components/templates/needs-more-info"
+import { PartialIntakeRecoveryEmail, partialIntakeRecoverySubject } from "@/lib/email/components/templates/partial-intake-recovery"
 import { PaymentConfirmedEmail } from "@/lib/email/components/templates/payment-confirmed"
 import { PaymentFailedEmail } from "@/lib/email/components/templates/payment-failed"
 import { PaymentReceiptEmail } from "@/lib/email/components/templates/payment-receipt"
@@ -120,6 +121,18 @@ const templates: Record<string, {
         appUrl={mock.appUrl}
         firstName="Sarah"
         actionType="recovery"
+      />
+    ),
+  },
+  "partial-intake-recovery": {
+    name: "Partial Intake Recovery",
+    subject: partialIntakeRecoverySubject("Medical Certificate"),
+    render: () => (
+      <PartialIntakeRecoveryEmail
+        firstName="Sarah"
+        serviceName="Medical Certificate"
+        resumeUrl={`${mock.appUrl}/request?service=med-cert&d=00000000-0000-4000-8000-000000000000&utm_source=recovery_email&utm_medium=email&utm_campaign=partial_intake_recovery`}
+        appUrl={mock.appUrl}
       />
     ),
   },
@@ -380,12 +393,12 @@ const templates: Record<string, {
   // Engagement
   "abandoned-checkout": {
     name: "Abandoned Checkout",
-    subject: "Still thinking? Your medical certificate is ready when you are",
+    subject: abandonedCheckoutSubject("Medical Certificate"),
     render: () => (
       <AbandonedCheckoutEmail
         patientName={mock.patientName}
-        serviceName="medical certificate"
-        resumeUrl={`${mock.appUrl}/request?resume=${mock.requestId}`}
+        serviceName="Medical Certificate"
+        resumeUrl={`${mock.appUrl}/patient/intakes/${mock.requestId}?retry=true&utm_source=recovery_email&utm_medium=email&utm_campaign=abandoned_checkout`}
         hoursAgo={2}
         appUrl={mock.appUrl}
       />
@@ -405,12 +418,12 @@ const templates: Record<string, {
   },
   "abandoned-checkout-followup": {
     name: "Abandoned Checkout Followup (24h)",
-    subject: "Last call: your Medical Certificate request expires soon",
+    subject: abandonedCheckoutFollowupSubject("Medical Certificate"),
     render: () => (
       <AbandonedCheckoutFollowupEmail
         patientName={mock.patientName}
         serviceName="Medical Certificate"
-        resumeUrl={`${mock.appUrl}/request?resume=${mock.requestId}`}
+        resumeUrl={`${mock.appUrl}/patient/intakes/${mock.requestId}?retry=true&utm_source=recovery_email&utm_medium=email&utm_campaign=abandoned_checkout_followup`}
         appUrl={mock.appUrl}
       />
     ),

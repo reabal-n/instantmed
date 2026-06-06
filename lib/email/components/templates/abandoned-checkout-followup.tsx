@@ -2,8 +2,9 @@ import {
   BaseEmail,
   Box,
   Button,
-  colors,
+  Heading,
   HeroBlock,
+  List,
   NameFirstGreeting,
   Text,
 } from "../base-email"
@@ -16,7 +17,8 @@ export interface AbandonedCheckoutFollowupProps {
 }
 
 export function abandonedCheckoutFollowupSubject(serviceName: string) {
-  return `Last call! Your ${serviceName} expires soon`
+  void serviceName
+  return "Still need this request?"
 }
 
 export function AbandonedCheckoutFollowupEmail({
@@ -28,33 +30,35 @@ export function AbandonedCheckoutFollowupEmail({
   const firstName = patientName.split(" ")[0]
 
   return (
-    <BaseEmail previewText={`Your ${serviceName} request won't be saved much longer`} appUrl={appUrl}>
+    <BaseEmail previewText="Your saved request is still available" appUrl={appUrl}>
       <HeroBlock
-        icon="⚡"
-        headline="Your request expires soon"
-        variant="warning"
+        icon="IM"
+        headline="Still need this request?"
+        variant="info"
       />
 
       <NameFirstGreeting name={firstName} />
       <Text>
-        Just a heads up, your <strong>{serviceName}</strong> request is still waiting,
-        but we can&apos;t hold it forever. Most people finish in under 2 minutes.
+        Your <strong>{serviceName}</strong> request is still saved. If you need it,
+        finish payment and a doctor will review it when available.
       </Text>
 
       <Box>
-        <Text style={{ margin: 0, fontSize: "14px", color: colors.textBody }}>
-          <strong>1,200+ Australians</strong> used InstantMed this month for fast,
-          hassle-free medical documents. Form-first review, no waiting room.
-        </Text>
+        <Heading as="h3">Before you pay</Heading>
+        <List
+          items={[
+            "A doctor reviews your request",
+            "Full refund if the doctor declines",
+            "We contact you only if more information is clinically needed",
+          ]}
+        />
       </Box>
 
-      <Button href={resumeUrl}>Complete your request</Button>
+      <Button href={resumeUrl}>Finish payment</Button>
 
       <Text muted small>
-        If you&apos;ve already sorted this out or changed your mind, no worries.
-        Just ignore this email.
+        Already sorted this out or changed your mind? You can ignore this email.
       </Text>
-
     </BaseEmail>
   )
 }

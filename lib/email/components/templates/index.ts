@@ -49,6 +49,10 @@ export { NeedsMoreInfoEmail, needsMoreInfoSubject } from "./needs-more-info"
 export type { GuestCompleteAccountEmailProps } from "./guest-complete-account"
 export { GuestCompleteAccountEmail, guestCompleteAccountSubject } from "./guest-complete-account"
 
+// --- Partial Intake Recovery ---
+export type { PartialIntakeRecoveryEmailProps } from "./partial-intake-recovery"
+export { PartialIntakeRecoveryEmail, partialIntakeRecoverySubject } from "./partial-intake-recovery"
+
 // --- Abandoned Checkout ---
 export type { AbandonedCheckoutEmailProps } from "./abandoned-checkout"
 export { AbandonedCheckoutEmail, abandonedCheckoutSubject } from "./abandoned-checkout"
@@ -101,7 +105,7 @@ export { VerificationCodeEmail, verificationCodeSubject } from "./verification-c
 export type { StillReviewingEmailProps } from "./still-reviewing"
 export { StillReviewingEmail, stillReviewingSubject } from "./still-reviewing"
 
-// --- Abandoned Checkout Follow-Up (urgency reminder) ---
+// --- Abandoned Checkout Follow-Up ---
 export type { AbandonedCheckoutFollowupProps } from "./abandoned-checkout-followup"
 export { AbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject } from "./abandoned-checkout-followup"
 

@@ -38,6 +38,8 @@ export interface CreateCheckoutInput {
   }
   /** Client-side PostHog distinct ID for identity stitching. */
   posthogDistinctId?: string
+  /** Server draft session id used to mark a recovered partial intake converted. */
+  serverDraftSessionId?: string
   /** Legacy fields. Patient info now comes from auth. */
   patientId?: string
   patientEmail?: string

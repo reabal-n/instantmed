@@ -14,6 +14,10 @@ const abandonedCheckoutSource = readFileSync(
   join(process.cwd(), "lib/email/abandoned-checkout.ts"),
   "utf8",
 )
+const recoveryLinksSource = readFileSync(
+  join(process.cwd(), "lib/email/recovery-links.ts"),
+  "utf8",
+)
 const reviewRequestSource = readFileSync(
   join(process.cwd(), "lib/email/review-request.ts"),
   "utf8",
@@ -51,7 +55,9 @@ describe("email sequence ownership contract", () => {
 
     expect(partialRecoverySource).toContain("review/checkout drafts that have not created an intake")
     expect(partialRecoverySource).toContain("answers.consultSubtype")
-    expect(partialRecoverySource).toContain('return `/consult?d=${encodeURIComponent(draft.session_id)}`')
+    expect(partialRecoverySource).toContain("buildPartialIntakeRecoveryUrl")
+    expect(recoveryLinksSource).toContain('new URL(draft.serviceType === "consult" && !draft.consultSubtype ? "/consult" : "/request"')
+    expect(recoveryLinksSource).toContain('url.searchParams.set("d", draft.sessionId)')
     expect(partialRecoverySource).not.toContain(
       "`${appUrl}/request?service=${encodeURIComponent(draft.service_type)}&d=${encodeURIComponent(draft.session_id)}",
     )

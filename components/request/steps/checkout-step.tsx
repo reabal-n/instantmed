@@ -24,6 +24,7 @@ import { usePostHog } from "@/lib/analytics/posthog-context"
 import { PRICING as APP_PRICING } from "@/lib/constants"
 import { getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
 import { normalizeMedicationEntriesAnswer, stringAnswer } from "@/lib/request/intake-answer-normalizers"
+import { getActiveServerDraftSessionId } from "@/lib/request/server-draft"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 // getConsultSubtypePrice from @/lib/stripe/price-mapping available if needed
@@ -130,6 +131,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
         identity,
         attribution,
         posthogDistinctId: posthog?.get_distinct_id() || undefined,
+        serverDraftSessionId: getActiveServerDraftSessionId(serviceType) ?? undefined,
       })
 
       if (!result.success) {

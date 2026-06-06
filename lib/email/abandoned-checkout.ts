@@ -3,9 +3,10 @@
 import * as React from "react"
 
 import { getAppUrl } from "@/lib/config/env"
-import { AbandonedCheckoutEmail } from "@/lib/email/components/templates/abandoned-checkout"
+import { AbandonedCheckoutEmail, abandonedCheckoutSubject } from "@/lib/email/components/templates/abandoned-checkout"
 import { AbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject } from "@/lib/email/components/templates/abandoned-checkout-followup"
 import { canSendMarketingEmail } from "@/lib/email/preferences"
+import { buildAbandonedCheckoutResumeUrl } from "@/lib/email/recovery-links"
 import { createLogger } from "@/lib/observability/logger"
 import { captureRedisWarning } from "@/lib/observability/redis-sentry"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -103,11 +104,15 @@ export async function sendAbandonedCheckoutEmail(intake: AbandonedIntake): Promi
   const patientName = patient.first_name || "there"
   const serviceName = SERVICE_NAMES[intake.category || ""] || "your request"
   const hoursAgo = Math.round((Date.now() - new Date(intake.created_at).getTime()) / (1000 * 60 * 60))
-  const resumeUrl = `${appUrl}/patient/intakes/${intake.id}?retry=true`
+  const resumeUrl = buildAbandonedCheckoutResumeUrl({
+    appUrl,
+    campaign: "abandoned_checkout",
+    intakeId: intake.id,
+  })
   
   const result = await sendEmail({
     to: patient.email,
-    subject: `Complete your ${serviceName} request`,
+    subject: abandonedCheckoutSubject(serviceName),
     template: React.createElement(AbandonedCheckoutEmail, {
       patientName,
       serviceName,
@@ -205,7 +210,11 @@ export async function sendAbandonedFollowupEmail(intake: AbandonedIntake): Promi
 
   const patientName = patient.first_name || "there"
   const serviceName = SERVICE_NAMES[intake.category || ""] || "your request"
-  const resumeUrl = `${appUrl}/patient/intakes/${intake.id}?retry=true`
+  const resumeUrl = buildAbandonedCheckoutResumeUrl({
+    appUrl,
+    campaign: "abandoned_checkout_followup",
+    intakeId: intake.id,
+  })
 
   const result = await sendEmail({
     to: patient.email,
