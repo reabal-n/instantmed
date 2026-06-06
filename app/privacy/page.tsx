@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Link from "next/link"
 
 import { CenteredHero } from "@/components/heroes"
 import { MarketingFooter } from "@/components/marketing/marketing-footer"
@@ -192,6 +193,15 @@ export default function PrivacyPage() {
                     <li>Never sold or shared for marketing purposes</li>
                     <li>Retained for a minimum of 7 years as required by law</li>
                   </ul>
+                  <p>
+                    For a source-backed checklist on telehealth health data, collection notices,
+                    access controls, disclosure limits, correction rights, and privacy complaints,
+                    see our{" "}
+                    <Link href="/resources/telehealth-privacy-health-data-checklist">
+                      telehealth privacy and health data checklist
+                    </Link>
+                    .
+                  </p>
                 </LegalSection>
 
                 <LegalSection number="7" title="Data Security">

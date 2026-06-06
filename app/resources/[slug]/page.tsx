@@ -6,6 +6,7 @@ import { BreadcrumbSchema } from "@/components/seo"
 import {
   AUTHORITY_ASSET_SLUGS,
   AUTHORITY_ASSETS,
+  type AuthorityAsset,
   getAuthorityAsset,
 } from "@/lib/authority-assets"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
@@ -20,6 +21,15 @@ function hasAuthorityAsset(slug: string) {
   return AUTHORITY_ASSET_SLUGS.some((knownSlug) => knownSlug === slug)
 }
 
+function buildAuthorityAssetImages(asset: AuthorityAsset) {
+  return (asset.visuals ?? []).map((visual) => ({
+    url: `${baseUrl}${visual.assetPath}`,
+    width: 1440,
+    height: 1080,
+    alt: visual.alt,
+  }))
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
 
@@ -28,6 +38,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const asset = getAuthorityAsset(slug)
+  const authorityImages = buildAuthorityAssetImages(asset)
 
   return {
     title: { absolute: asset.metadataTitle },
@@ -41,7 +52,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: asset.description,
       url: `${baseUrl}/resources/${asset.slug}`,
       type: "article",
+      images: authorityImages,
     },
+    twitter: authorityImages.length
+      ? {
+          card: "summary_large_image",
+          images: authorityImages.map((image) => image.url),
+        }
+      : undefined,
   }
 }
 
@@ -58,6 +76,8 @@ export default async function AuthorityAssetRoute({ params }: PageProps) {
 
   const asset = getAuthorityAsset(slug)
   const assetUrl = `${baseUrl}/resources/${asset.slug}`
+  const authorityImages = buildAuthorityAssetImages(asset)
+  const imageUrls = authorityImages.map((image) => image.url)
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "MedicalWebPage",
@@ -68,6 +88,17 @@ export default async function AuthorityAssetRoute({ params }: PageProps) {
     lastReviewed: "2026-06-06",
     inLanguage: "en-AU",
     isAccessibleForFree: true,
+    image: imageUrls,
+    thumbnailUrl: imageUrls[0],
+    primaryImageOfPage: authorityImages[0]
+      ? {
+          "@type": "ImageObject",
+          url: authorityImages[0].url,
+          width: authorityImages[0].width,
+          height: authorityImages[0].height,
+          caption: authorityImages[0].alt,
+        }
+      : undefined,
     publisher: {
       "@type": "MedicalOrganization",
       "@id": `${baseUrl}/#organization`,

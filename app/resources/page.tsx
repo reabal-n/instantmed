@@ -8,9 +8,18 @@ import { BreadcrumbSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared/navbar"
 import { Heading } from "@/components/ui/heading"
 import { SectionPill } from "@/components/ui/section-pill"
-import { getAuthorityAssetSummaries } from "@/lib/authority-assets"
+import { getAuthorityAssetGroups } from "@/lib/authority-assets"
 
 const baseUrl = "https://instantmed.com.au"
+const authorityResourceGroupLabels = [
+  "Certificate evidence",
+  "Prescription safety",
+  "Telehealth access",
+  "Privacy and governance",
+] as const
+const authorityResourceGroupRank: ReadonlyMap<string, number> = new Map(
+  authorityResourceGroupLabels.map((label, index) => [label, index]),
+)
 
 export const metadata: Metadata = {
   title: "Australian Telehealth Authority Resources | InstantMed",
@@ -31,7 +40,11 @@ export const metadata: Metadata = {
 export const revalidate = 86400
 
 export default function ResourcesPage() {
-  const assets = getAuthorityAssetSummaries()
+  const groups = getAuthorityAssetGroups().sort(
+    (a, b) =>
+      (authorityResourceGroupRank.get(a.title) ?? 99) -
+      (authorityResourceGroupRank.get(b.title) ?? 99),
+  )
 
   return (
     <>
@@ -56,7 +69,7 @@ export default function ResourcesPage() {
                   <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
                     These are not generic blog posts. They are citeable resources with visible sources,
                     reviewed dates, plain clinical limits, and careful language around employer policy,
-                    prescription requests, telehealth access, complaints, and governance.
+                    prescription requests, telehealth access, privacy, billing, complaints, and governance.
                   </p>
                 </div>
 
@@ -93,36 +106,54 @@ export default function ResourcesPage() {
             </section>
 
             <section className="px-4 pb-20 sm:px-6">
-              <div className="mx-auto grid max-w-6xl gap-5 md:grid-cols-2">
-                {assets.map((asset) => (
-                  <Link
-                    key={asset.slug}
-                    href={`/resources/${asset.slug}`}
-                    className="group rounded-2xl border border-border/50 bg-white p-6 shadow-md shadow-primary/[0.06] transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-                          {asset.eyebrow}
-                        </p>
-                        <h2 className="mt-3 text-xl font-semibold tracking-[-0.02em] text-foreground">
-                          {asset.title}
-                        </h2>
-                      </div>
-                      <ArrowRight className="mt-1 h-5 w-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
+              <div className="mx-auto max-w-6xl space-y-12">
+                {groups.map((group) => (
+                  <section key={group.id} aria-labelledby={`${group.id}-heading`}>
+                    <div className="mb-5 max-w-3xl">
+                      <h2
+                        id={`${group.id}-heading`}
+                        className="text-2xl font-semibold tracking-normal text-foreground"
+                      >
+                        {group.title}
+                      </h2>
+                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                        {group.description}
+                      </p>
                     </div>
-                    <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                      {asset.description}
-                    </p>
-                    <div className="mt-6 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                      <span className="rounded-full border border-border/50 px-3 py-1 dark:border-white/15">
-                        Last reviewed: {asset.lastReviewed}
-                      </span>
-                      <span className="rounded-full border border-border/50 px-3 py-1 dark:border-white/15">
-                        {asset.readingTime}
-                      </span>
+
+                    <div className="grid gap-5 md:grid-cols-2">
+                      {group.assets.map((asset) => (
+                        <Link
+                          key={asset.slug}
+                          href={`/resources/${asset.slug}`}
+                          className="group rounded-2xl border border-border/50 bg-white p-6 shadow-md shadow-primary/[0.06] transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none"
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+                                {asset.eyebrow}
+                              </p>
+                              <h3 className="mt-3 text-xl font-semibold tracking-normal text-foreground">
+                                {asset.title}
+                              </h3>
+                            </div>
+                            <ArrowRight className="mt-1 h-5 w-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
+                          </div>
+                          <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                            {asset.description}
+                          </p>
+                          <div className="mt-6 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                            <span className="rounded-full border border-border/50 px-3 py-1 dark:border-white/15">
+                              Last reviewed: {asset.lastReviewed}
+                            </span>
+                            <span className="rounded-full border border-border/50 px-3 py-1 dark:border-white/15">
+                              {asset.readingTime}
+                            </span>
+                          </div>
+                        </Link>
+                      ))}
                     </div>
-                  </Link>
+                  </section>
                 ))}
               </div>
             </section>

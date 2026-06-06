@@ -50,6 +50,12 @@
 - Secure online prescription request explainer: https://instantmed.com.au/resources/secure-online-prescription-requests
 - GP wait-time and telehealth access brief: https://instantmed.com.au/resources/gp-wait-times-telehealth-access
 - Plain-English complaints and clinical governance page: https://instantmed.com.au/resources/complaints-clinical-governance
+- Online medical certificate verification guide: https://instantmed.com.au/resources/online-medical-certificate-verification
+- Telehealth privacy and health data checklist: https://instantmed.com.au/resources/telehealth-privacy-health-data-checklist
+- When telehealth is not appropriate: https://instantmed.com.au/resources/when-telehealth-is-not-appropriate
+- Medicare, bulk billing, and private telehealth explainer: https://instantmed.com.au/resources/medicare-bulk-billing-private-telehealth
+- Rural and remote telehealth access brief: https://instantmed.com.au/resources/rural-remote-telehealth-access
+- Repeat prescription safety checklist: https://instantmed.com.au/resources/repeat-prescription-safety-checklist
 
 ## Important Pages
 

@@ -66,6 +66,47 @@ describe("SEO indexing contracts", () => {
     expect(prescriptionsLanding).toContain("{children}")
   })
 
+  it("hard-links new authority resources from relevant public source pages", () => {
+    const expectedLinks: Record<string, string[]> = {
+      "components/marketing/med-cert-landing.tsx": [
+        "/resources/medical-certificate-employer-policy",
+        "/resources/online-medical-certificate-verification",
+      ],
+      "app/prescriptions/page.tsx": [
+        "/resources/secure-online-prescription-requests",
+        "/resources/repeat-prescription-safety-checklist",
+      ],
+      "app/privacy/page.tsx": [
+        "/resources/telehealth-privacy-health-data-checklist",
+      ],
+      "app/trust/trust-client.tsx": [
+        "/resources/telehealth-safety-checklist",
+        "/resources/when-telehealth-is-not-appropriate",
+      ],
+      "app/clinical-governance/clinical-governance-client.tsx": [
+        "/resources/complaints-clinical-governance",
+        "/resources/repeat-prescription-safety-checklist",
+      ],
+      "app/telehealth-australia/page.tsx": [
+        "/resources/gp-wait-times-telehealth-access",
+        "/resources/when-telehealth-is-not-appropriate",
+        "/resources/medicare-bulk-billing-private-telehealth",
+        "/resources/rural-remote-telehealth-access",
+      ],
+      "app/online-doctor-australia/page.tsx": [
+        "/resources/medicare-bulk-billing-private-telehealth",
+        "/resources/when-telehealth-is-not-appropriate",
+      ],
+    }
+
+    for (const [file, links] of Object.entries(expectedLinks)) {
+      const source = read(file)
+      for (const link of links) {
+        expect(source, `${file} should link ${link}`).toContain(link)
+      }
+    }
+  })
+
   it("enforces www to apex redirects at the Vercel edge", () => {
     const vercelConfig = JSON.parse(read("vercel.json")) as {
       redirects?: Array<{
