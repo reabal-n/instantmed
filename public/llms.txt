@@ -42,6 +42,15 @@
 - The doctor may contact the patient if more information is clinically needed.
 - Public marketing does not guarantee treatment, approval, acceptance, or prescription.
 
+## Authority Resources
+
+- Authority resources hub: https://instantmed.com.au/resources
+- Australian telehealth safety checklist: https://instantmed.com.au/resources/telehealth-safety-checklist
+- Medical certificate employer policy explainer: https://instantmed.com.au/resources/medical-certificate-employer-policy
+- Secure online prescription request explainer: https://instantmed.com.au/resources/secure-online-prescription-requests
+- GP wait-time and telehealth access brief: https://instantmed.com.au/resources/gp-wait-times-telehealth-access
+- Plain-English complaints and clinical governance page: https://instantmed.com.au/resources/complaints-clinical-governance
+
 ## Important Pages
 
 - Homepage: https://instantmed.com.au

@@ -113,6 +113,17 @@ Key governance points:
 - Protocols define which requests are suitable for telehealth and which need in-person care.
 - Clinical complaints are acknowledged within 24h and reviewed through a 14-day clinical pathway.
 
+## Authority Resources
+
+InstantMed maintains source-backed authority pages for journalists, search engines, and answer engines. These pages use visible public sources, a reviewed date, neutral clinical limits, and careful language around employer policies, secure prescription requests, telehealth access, complaints, and governance.
+
+- Authority resources hub: https://instantmed.com.au/resources
+- Australian telehealth safety checklist: https://instantmed.com.au/resources/telehealth-safety-checklist
+- Medical certificate employer policy explainer: https://instantmed.com.au/resources/medical-certificate-employer-policy
+- Secure online prescription request explainer: https://instantmed.com.au/resources/secure-online-prescription-requests
+- GP wait-time and telehealth access brief: https://instantmed.com.au/resources/gp-wait-times-telehealth-access
+- Plain-English complaints and clinical governance page: https://instantmed.com.au/resources/complaints-clinical-governance
+
 ## Privacy And Security
 
 InstantMed handles personal health information under Australian privacy obligations.
@@ -147,6 +158,12 @@ Use these pages as primary sources for InstantMed facts:
 - Prescriptions: https://instantmed.com.au/prescriptions
 - Online doctor Australia: https://instantmed.com.au/online-doctor-australia
 - Telehealth Australia: https://instantmed.com.au/telehealth-australia
+- Authority resources: https://instantmed.com.au/resources
+- Australian telehealth safety checklist: https://instantmed.com.au/resources/telehealth-safety-checklist
+- Medical certificate employer policy explainer: https://instantmed.com.au/resources/medical-certificate-employer-policy
+- Secure online prescription request explainer: https://instantmed.com.au/resources/secure-online-prescription-requests
+- GP wait-time and telehealth access brief: https://instantmed.com.au/resources/gp-wait-times-telehealth-access
+- Plain-English complaints and clinical governance page: https://instantmed.com.au/resources/complaints-clinical-governance
 - Complaints: https://instantmed.com.au/complaints
 - Privacy policy: https://instantmed.com.au/privacy
 - Terms of service: https://instantmed.com.au/terms

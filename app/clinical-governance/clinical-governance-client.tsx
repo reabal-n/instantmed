@@ -319,6 +319,27 @@ export default function ClinicalGovernanceClient() {
           ]}
         />
 
+        <section className="px-4 py-16 bg-muted/30 dark:bg-white/[0.02] border-y border-border/40 dark:border-white/10">
+          <div className="mx-auto max-w-2xl text-center">
+            <Heading level="h2" className="mb-4">
+              Plain-English complaints and governance
+            </Heading>
+            <p className="text-muted-foreground mb-6">
+              A source-backed explainer on complaint handling, practitioner accountability,
+              privacy escalation, and clinical governance records.
+            </p>
+            <Button
+              asChild
+              variant="outline"
+              className="rounded-full bg-transparent"
+            >
+              <Link href="/resources/complaints-clinical-governance">
+                Read the explainer
+              </Link>
+            </Button>
+          </div>
+        </section>
+
         {/* CTA */}
         <CTABanner
           title="Questions about our clinical standards?"

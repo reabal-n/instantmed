@@ -329,6 +329,10 @@ export default function EmployerAcceptancePage() {
                 <Link href="/medical-certificate" className={linkClass}>
                   All certificate types
                 </Link>
+                {' • '}
+                <Link href="/resources/medical-certificate-employer-policy" className={linkClass}>
+                  Employer policy explainer
+                </Link>
               </p>
             </div>
           </section>

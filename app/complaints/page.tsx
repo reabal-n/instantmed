@@ -157,6 +157,10 @@ export default function ComplaintsPage() {
                     See our <Link href="/clinical-governance">clinical governance framework</Link> for how protocols are
                     designed, audited, and updated.
                   </p>
+                  <p>
+                    For a source-backed plain-English version, see our{" "}
+                    <Link href="/resources/complaints-clinical-governance">complaints and governance explainer</Link>.
+                  </p>
                 </LegalSection>
 
                 <LegalSection number="5" title="Escalation: AHPRA">

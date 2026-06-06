@@ -5,6 +5,7 @@ import { CenteredHero } from "@/components/heroes";
 import { MarketingFooter } from "@/components/marketing/marketing-footer"
 import { CTABanner } from "@/components/sections/cta-banner"
 import { Navbar } from "@/components/shared/navbar"
+import { getAuthorityAssetSummaries } from "@/lib/authority-assets"
 import { audiencePageConfigs } from "@/lib/seo/data/audience-pages";
 import { getAllComparisonSlugs } from "@/lib/seo/data/comparisons";
 import { getAllConditionSlugs, getConditionBySlug } from "@/lib/seo/data/conditions";
@@ -62,6 +63,17 @@ function buildSections(): SitemapSection[] {
       { label: "Erectile Dysfunction", href: "/erectile-dysfunction" },
       { label: "Hair Loss", href: "/hair-loss" },
       { label: "Consult", href: "/consult" },
+    ],
+  };
+
+  const authorityResources: SitemapSection = {
+    title: "Authority Resources",
+    links: [
+      { label: "Authority resources hub", href: "/resources" },
+      ...getAuthorityAssetSummaries().map((asset) => ({
+        label: asset.title,
+        href: `/resources/${asset.slug}`,
+      })),
     ],
   };
 
@@ -194,6 +206,7 @@ function buildSections(): SitemapSection[] {
   return [
     mainPages,
     services,
+    authorityResources,
     conditions,
     symptomsSection,
     guides,

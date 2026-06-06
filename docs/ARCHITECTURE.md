@@ -725,7 +725,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 ## Directory Index
 
-### `app/` — 538 files, 219 route files
+### `app/` — 540 files, 221 route files
 
 Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-contract.test.ts`; `pnpm build` remains the source of truth for expanded static/SSG route output.
 
@@ -741,6 +741,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `app/request/` | **Sole canonical intake flow.** Single page, step-based wizard. |
 | `app/(dev)/` | Dev-only routes | Email preview only; retired `/cert-preview` and `/sentry-test` prefixes remain fail-closed in middleware |
 | `app/blog/` | Guide-only health articles | MDX content from `content/blog/`, ISR 12h, `[slug]/page.tsx` |
+| `app/resources/` | Linkable authority assets | Source-backed public references for telehealth safety, employer evidence, secure prescription requests, GP access, complaints, and governance |
 | `app/conditions/[slug]/` | SEO: conditions | Programmatic from `lib/seo/data/` |
 | `app/symptoms/[slug]/` | SEO: symptoms | Programmatic from `lib/seo/data/` |
 | `app/guides/[slug]/` | SEO: guides | Programmatic from `lib/seo/data/` |
@@ -940,6 +941,7 @@ Models in `lib/ai/provider.ts`. Routed through Vercel AI Gateway in production (
 | `/hair-loss` | Bespoke hair loss specialty landing (`HairLossLanding`). Routes into `/request?service=consult&subtype=hair_loss`. Form-first doctor review; doctor may call/message if clinically needed. |
 | `/consult` | Services overview page (no intake funnel). General Consult was retired on 2026-05-20; the URL preserves the SEO surface for "online doctor" queries and routes visitors to the 4 active services (med-cert, repeat Rx, ED, hair loss). `/general-consult` 301s here. |
 | `/blog` | Doctor-reviewed, guide-only health articles (12h ISR revalidation) |
+| `/resources` | Source-backed authority resources for journalists, search engines, and answer engines. Individual assets cover telehealth safety, employer policy, secure prescription requests, GP access, complaints, and governance. |
 | `/faq` | 34 FAQs across 7 categories |
 | `/contact` | Contact form → support@instantmed.com.au |
 | `/terms` | Terms of Service (Feb 2026). §5 "Clinical Governance Model" discloses the solo AHPRA-registered Medical Director and links to `/clinical-governance`. §13 links to `/complaints`. |

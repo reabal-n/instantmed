@@ -1,11 +1,13 @@
 import type { MetadataRoute } from "next"
 
+import { getAuthorityAssetSummaries } from "@/lib/authority-assets"
 import { getSupportedMedCertIntentSlugs } from "@/lib/medical-cert/unsupported-use-cases"
 import { isIceboxedSurfacePath } from "@/lib/seo/index-policy"
 
 const ROOT_SITEMAP_LAST_MODIFIED = new Date("2026-04-30")
 const SERVICE_PAGES_LAST_MODIFIED = new Date("2026-04-28")
 const MED_CERT_LOCATION_LAST_MODIFIED = new Date("2026-04-24")
+const AUTHORITY_ASSETS_LAST_MODIFIED = new Date("2026-06-06")
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
 
 /**
@@ -35,6 +37,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/terms",
     "/about",
     "/trust",
+    "/resources",
     "/blog",
     "/locations",
     "/conditions",
@@ -71,6 +74,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "parramatta", "canberra", "hobart", "darwin",
   ]
 
+  const authorityAssetPages = getAuthorityAssetSummaries().map(
+    (asset) => `/resources/${asset.slug}`,
+  )
+
   const entries = [
     ...pillarPages.map((route) => ({
       url: `${baseUrl}${route}`,
@@ -89,6 +96,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: SERVICE_PAGES_LAST_MODIFIED,
       changeFrequency: "weekly" as const,
       priority: 0.8,
+    })),
+    ...authorityAssetPages.map((route) => ({
+      url: `${baseUrl}${route}`,
+      lastModified: AUTHORITY_ASSETS_LAST_MODIFIED,
+      changeFrequency: "monthly" as const,
+      priority: 0.85,
     })),
     ...medCertLocationSlugs.map((slug) => ({
       url: `${baseUrl}/medical-certificate/${slug}`,

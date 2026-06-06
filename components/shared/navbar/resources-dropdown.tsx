@@ -21,6 +21,7 @@ const resourceLinks: Array<{ title: string; href: string; description: string; s
   { title: "How It Works",   href: "/how-it-works",  description: "Our 3-step process",    sticker: "lightning"     },
   { title: "FAQs",           href: "/faq",           description: "Common questions",       sticker: "speech-bubble" },
   { title: "Health Guides",  href: "/blog",          description: "Articles and advice",    sticker: "open-book"     },
+  { title: "Authority Resources", href: "/resources", description: "Source-backed explainers", sticker: "checklist" },
 ]
 
 const companyLinks: Array<{ title: string; href: string; sticker: StickerIconName }> = [
@@ -43,6 +44,7 @@ export function ResourcesDropdown({ isActivePath }: ResourcesDropdownProps) {
   const isResourceActive =
     isActivePath("/how-it-works") ||
     isActivePath("/blog") ||
+    isActivePath("/resources") ||
     isActivePath("/faq") ||
     isActivePath("/about") ||
     isActivePath("/trust") ||

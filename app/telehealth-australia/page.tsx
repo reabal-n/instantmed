@@ -515,6 +515,54 @@ export default function TelehealthAustraliaPage() {
             </div>
           </section>
 
+          <section className="px-4 py-16 border-y border-border/40 dark:border-white/10">
+            <div className="mx-auto max-w-5xl">
+              <div className="mb-10 text-center">
+                <SectionPill>Authority briefs</SectionPill>
+                <Heading level="h2" className="mt-4 mb-3">
+                  Source-backed telehealth resources
+                </Heading>
+                <p className="mx-auto max-w-2xl text-muted-foreground">
+                  Neutral references for safety checks, GP access pressure, and where telehealth fits.
+                </p>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Link
+                  href="/resources/telehealth-safety-checklist"
+                  className="group rounded-2xl border border-border/50 bg-white p-6 shadow-md shadow-primary/[0.06] transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none"
+                >
+                  <Shield className="mb-3 h-5 w-5 text-primary" />
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Australian telehealth safety checklist
+                  </h2>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    Practitioner identity, patient identity, privacy, prescribing boundaries, and emergency limits.
+                  </p>
+                  <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary">
+                    Read checklist
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </span>
+                </Link>
+                <Link
+                  href="/resources/gp-wait-times-telehealth-access"
+                  className="group rounded-2xl border border-border/50 bg-white p-6 shadow-md shadow-primary/[0.06] transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none"
+                >
+                  <Landmark className="mb-3 h-5 w-5 text-primary" />
+                  <h2 className="text-lg font-semibold text-foreground">
+                    GP wait-time and telehealth access brief
+                  </h2>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    Public ABS, Productivity Commission, and government signals on Australian access pressure.
+                  </p>
+                  <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary">
+                    Read brief
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </span>
+                </Link>
+              </div>
+            </div>
+          </section>
+
           {/* ─────────────── Cross-links ─────────────── */}
           <section className="px-4 py-16 bg-muted/30 dark:bg-white/[0.02] border-y border-border/40 dark:border-white/10">
             <div className="mx-auto max-w-5xl">
