@@ -1,0 +1,29 @@
+{
+  "dateFrom": "2026-05-07T07:46:17.517Z",
+  "dateTo": "2026-06-06T07:46:17.517Z",
+  "days": 30,
+  "events": [
+    {
+      "count": 415,
+      "event": "intake_started"
+    },
+    {
+      "count": 87,
+      "event": "checkout_viewed"
+    },
+    {
+      "count": 6,
+      "event": "purchase_completed"
+    },
+    {
+      "count": 31,
+      "event": "purchase_completed_server"
+    },
+    {
+      "count": 104,
+      "event": "google_ads_server_conversion"
+    }
+  ],
+  "ok": true,
+  "status": 200
+}

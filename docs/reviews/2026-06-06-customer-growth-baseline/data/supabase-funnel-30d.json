@@ -1,0 +1,52 @@
+{
+  "dateFrom": "2026-05-07T07:46:17.517Z",
+  "dateTo": "2026-06-06T07:46:17.517Z",
+  "days": 30,
+  "intakes": {
+    "averageOrderValueAud": 29.34,
+    "byService": [
+      {
+        "grossRevenueAud": 658.7,
+        "intakes": 36,
+        "paid": 26,
+        "service": "medical_certificate"
+      },
+      {
+        "grossRevenueAud": 149.85,
+        "intakes": 3,
+        "paid": 3,
+        "service": "ed"
+      },
+      {
+        "grossRevenueAud": 99.9,
+        "intakes": 2,
+        "paid": 2,
+        "service": "consult"
+      },
+      {
+        "grossRevenueAud": 59.9,
+        "intakes": 2,
+        "paid": 2,
+        "service": "repeat_prescription"
+      }
+    ],
+    "grossRevenueAud": 968.35,
+    "intakes": 43,
+    "netRevenueAud": 888.45,
+    "paid": 33,
+    "paidRate": 76.7,
+    "refundedAud": 79.9
+  },
+  "recovery": {
+    "abandonedCheckoutSent": 7,
+    "convertedPartials": 0,
+    "emailCaptured": 18,
+    "emailCaptureRate": 14.8,
+    "partialRecoverySent": 14,
+    "partialsCaptured": 122,
+    "recoveredGrossRevenueAud": 69.9,
+    "recoveredNetRevenueAud": 69.9,
+    "recoveredPaidCount": 2,
+    "recoveryEmailCoverageRate": 77.8
+  }
+}

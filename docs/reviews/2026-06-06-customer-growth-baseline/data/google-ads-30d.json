@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "source": "protected-endpoint",
+  "status": 200,
+  "summary": {
+    "clicks": 459,
+    "localCacAud": 72.33,
+    "localNetRevenueAud": 518.95,
+    "localOrders": 22,
+    "localRoas": 0.326,
+    "spendAud": 1591.23
+  }
+}
