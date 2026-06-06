@@ -1,9 +1,9 @@
 # Doc File Map
 
-> **Last updated:** 2026-06-05.
+> **Last updated:** 2026-06-06.
 > Single source of truth for the full canonical doc surface. A fresh contributor reads this file and knows the doc tree without grepping.
 >
-> **Doc-surface count:** 77 `.md` files per `scripts/doc-audit.sh` (which counts `docs/plans/**` working + archived plans and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-06-05: 67 -> 77 after audit/growth docs and root-level active plan files were present in the tree but not reflected in this bookkeeping map.
+> **Doc-surface count:** 79 `.md` files per `scripts/doc-audit.sh` (which counts `docs/plans/**` working + archived plans, `docs/superpowers/plans/**`, and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-06-06: 77 -> 79 after the profitability audit record and customer-growth phased plan were present in the tree but not reflected in this bookkeeping map.
 >
 > **Owner:** Operator. Update on every doc add, move, or delete. Bump the timestamp.
 
@@ -49,7 +49,7 @@
 |------|---------|
 | [docs/runbooks/comparative-tagline-complaint.md](../runbooks/comparative-tagline-complaint.md) | AHPRA/TGA/Medical Board/Google complaint runbook for the "Faster than your GP." tagline |
 
-## docs/audits/ — 14 (historical + growth records)
+## docs/audits/ — 15 (historical + growth records)
 
 | File | Purpose |
 |------|---------|
@@ -66,6 +66,7 @@
 | [docs/audits/2026-06-04-data-asset-spec.md](../audits/2026-06-04-data-asset-spec.md) | Data asset specification |
 | [docs/audits/2026-06-04-reactive-pr-kit.md](../audits/2026-06-04-reactive-pr-kit.md) | Reactive PR kit |
 | [docs/audits/2026-06-04-session-handoff.md](../audits/2026-06-04-session-handoff.md) | Session handoff notes |
+| [docs/audits/2026-06-05-profitability-3llm-audit.md](../audits/2026-06-05-profitability-3llm-audit.md) | Three-model profitability audit and paid-restart gate record |
 | [docs/audits/google-ads-audit.md](../audits/google-ads-audit.md) | Google Ads audit (historical) |
 
 ## docs/plans/ — active
@@ -90,6 +91,12 @@
 | [docs/plans/2026-05-26-minimal-slide-modal-plan.md](../plans/2026-05-26-minimal-slide-modal-plan.md) | 8-task TDD implementation plan companion to the 2026-05-26 design doc. |
 
 Some active root plan files also have archived copies. Keep this mapped until the plan-retention decision is reconciled.
+
+## docs/superpowers/plans/ — 1
+
+| File | Purpose |
+|------|---------|
+| [docs/superpowers/plans/2026-06-06-customer-growth-phased-plan.md](../superpowers/plans/2026-06-06-customer-growth-phased-plan.md) | Phased customer-growth execution plan covering recovery, paid ads, and organic/LLM authority work |
 
 ## docs/plans/archive/ — completed/superseded plans (90-day retention)
 

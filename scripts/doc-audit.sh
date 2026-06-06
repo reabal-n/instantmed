@@ -32,7 +32,7 @@ pnpm exec vitest run --reporter=dot \
 
 echo "==> Doc surface count"
 ACTUAL=$(find . -name "*.md" \
-  -not -path "./node_modules/*" \
+  -not -path "*/node_modules/*" \
   -not -path "./.next/*" \
   -not -path "./.next-stale-*/*" \
   -not -path "./.git/*" \
