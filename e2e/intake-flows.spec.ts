@@ -501,38 +501,41 @@ test.describe("Intake: Validation & edge cases", () => {
     await expect(btn).toBeDisabled()
   })
 
-  test("symptoms step enforces minimum 20 character detail", async ({ page }) => {
+  test("symptoms step: Continue is always clickable and surfaces blocking reasons; chips seed detail", async ({ page }) => {
     await page.goto("/request?service=med-cert")
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
-    // Complete certificate step first
+    // Complete certificate step first (type + duration + start date).
     await waitForStep(page, /Certificate details/i)
     const certGrp = page.getByRole("radiogroup", { name: /Certificate type/i })
     const workR = certGrp.getByRole("radio", { name: /^Work$/i })
     await workR.click()
     await expect(workR).toHaveAttribute("aria-checked", "true", { timeout: 5000 })
+    await clickChip(page, /1 day/i)
+    await page.getByRole("radio", { name: /^Today$/i }).click()
     await clickContinue(page)
 
-    // On symptoms step
-    await waitForStep(page, /What symptoms do you have/i)
-    await clickChip(page, /Cold\/Flu/i)
-    await clickChip(page, /1-2 days/i)
+    // On symptoms step (title: "What is stopping you today?").
+    await waitForStep(page, /What is stopping you today/i)
 
-    // Enter short text (< 20 chars) - Continue should remain disabled
-    await fillTextarea(page, "I feel sick")
-    // Wait for React state to propagate after fill
-    await page.waitForTimeout(500)
-    await expect(page.getByRole("button", { name: /^Continue$/i }).last()).toBeDisabled({ timeout: 5000 })
+    // The Continue button is always clickable — no silently-disabled dead end.
+    // Tapping it with nothing entered surfaces the blocking reasons and stays put.
+    const continueBtn = page.getByRole("button", { name: /^Continue$/i }).last()
+    await expect(continueBtn).toBeEnabled()
+    await continueBtn.click()
+    await expect(page.getByRole("alert")).toContainText(/Add (this|these) to continue/i)
+    await expect(page.getByText(/What is stopping you today/i).first()).toBeVisible()
 
-    // Extend text past 20 chars - Continue should become enabled.
-    // When canContinue=true the button label changes to "Continue to your details",
-    // so we look for that specific label rather than the generic "Continue".
-    await fillTextarea(page, "I feel sick with a fever and body aches since yesterday.")
-    await page.waitForTimeout(500)
-    await expect(
-      page.getByRole("button", { name: /Continue to your details/i }).last()
-    ).toBeEnabled({ timeout: 5000 })
+    // Tapping a quick-add chip seeds the textarea — no typing required, and it
+    // satisfies the symptom-text quality gate on its own.
+    await clickChip(page, /^Cold or flu$/i)
+    await expect(page.getByRole("textbox").first()).toHaveValue(/cold or flu/i)
+
+    // Pick a duration, then the step is valid and advances to the details step.
+    await clickChip(page, /^1-2 days$/i)
+    await clickContinue(page)
+    await waitForStep(page, /Your details/i)
   })
 
   test("prescription medication-history 'never prescribed' shows warning", async ({ page }) => {

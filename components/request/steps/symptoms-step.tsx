@@ -38,6 +38,23 @@ const SYMPTOM_DURATION_OPTIONS = [
   { value: "week_plus", label: "A week+" },
 ] as const
 
+// Tap-to-add starters so patients don't have to find the words while unwell.
+// Each phrase contains a recognised symptom-vocabulary stem, so a tapped chip
+// always satisfies validateSymptomTextQuality. The textarea stays the source of
+// truth: chips just seed it, and the patient adds specifics.
+const COMMON_SYMPTOM_STARTERS = [
+  "Cold or flu",
+  "Fever",
+  "Headache or migraine",
+  "Stomach bug or nausea",
+  "Cough or sore throat",
+  "Back or muscle pain",
+] as const
+
+function escapeForRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
+
 export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
@@ -49,6 +66,11 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
+  // Top-of-step blocking reasons, shown (and screen-reader announced) when a
+  // Continue attempt fails. Without this the only feedback was a silent
+  // scroll-to-field, which reads as "nothing happened" on mobile where the
+  // sticky CTA mirrors a now-always-clickable button.
+  const [validationSummary, setValidationSummary] = useState<string[]>([])
   const [emergencyWarning, setEmergencyWarning] = useState<{ isEmergency: boolean; matchedKeywords: string[] }>({
     isEmergency: false,
     matchedKeywords: [],
@@ -80,6 +102,23 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
     .split(/[^a-z]+/)
     .filter((word) => word.length >= 2).length
 
+  const emergencyRequiresAck = emergencyWarning.isEmergency && !emergencyWarningAcknowledged
+
+  // Plain-English reasons the step is blocked, for the top-of-step summary.
+  const buildBlockingReasons = useCallback(() => {
+    const reasons: string[] = []
+    if (!validateSymptomTextQuality(symptomDetails).valid) {
+      reasons.push(symptomDetails.trim() ? "a clearer symptom description" : "a short symptom description")
+    }
+    if (!symptomDuration) {
+      reasons.push("how long you've felt unwell")
+    }
+    if (emergencyRequiresAck) {
+      reasons.push("the emergency notice acknowledged")
+    }
+    return reasons
+  }, [symptomDetails, symptomDuration, emergencyRequiresAck])
+
   const validate = useCallback(() => {
     const newErrors: Record<string, string> = {}
     const qualityResult = validateSymptomTextQuality(symptomDetails)
@@ -93,8 +132,31 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
 
     setErrors(newErrors)
     setTouched({ symptomDetails: true, symptomDuration: true })
-    return Object.keys(newErrors).length === 0
-  }, [symptomDetails, symptomDuration])
+    setValidationSummary(buildBlockingReasons())
+    return Object.keys(newErrors).length === 0 && !emergencyRequiresAck
+  }, [symptomDetails, symptomDuration, emergencyRequiresAck, buildBlockingReasons])
+
+  // Tap a starter to seed/clear the textarea. Source of truth stays the textarea
+  // so downstream validation, AI notes, and the doctor view are unchanged.
+  const toggleSymptomStarter = useCallback(
+    (phrase: string) => {
+      const current = symptomDetails
+      const alreadyPresent = current.toLowerCase().includes(phrase.toLowerCase())
+      let next: string
+      if (alreadyPresent) {
+        next = current
+          .replace(new RegExp(`(^|,\\s*)${escapeForRegExp(phrase)}`, "i"), "")
+          .replace(/^[,\s]+/, "")
+          .replace(/\s*,\s*,/g, ", ")
+          .trim()
+      } else {
+        next = current.trim() ? `${current.trim()}, ${phrase}` : phrase
+      }
+      setAnswer("symptomDetails", next)
+      setTouched((prev) => ({ ...prev, symptomDetails: true }))
+    },
+    [symptomDetails, setAnswer],
+  )
 
   const handleNext = useCallback(() => {
     if (validate()) {
@@ -109,10 +171,29 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
     }
   }, [validate, serviceType, symptomDuration, detailsWordCount, posthog, onNext])
 
+  // Readiness is computed live from the answers, NOT from the `errors` object —
+  // `errors` is set by validate() for display and would otherwise stay stale
+  // after the patient fixes a field, leaving the button looking not-ready.
   const isComplete = Boolean(symptomDuration) && detailsQuality.valid
-  const hasNoErrors = Object.keys(errors).length === 0
-  const emergencyRequiresAck = emergencyWarning.isEmergency && !emergencyWarningAcknowledged
-  const canContinue = isComplete && hasNoErrors && !emergencyRequiresAck
+  const canContinue = isComplete && !emergencyRequiresAck
+
+  // Prune stale field errors + the blocking summary as soon as each field
+  // becomes valid, so a fixed form stops showing "Add this to continue".
+  useEffect(() => {
+    setErrors((prev) => {
+      if (!prev.symptomDetails && !prev.symptomDuration) return prev
+      const next = { ...prev }
+      if (detailsQuality.valid) delete next.symptomDetails
+      if (symptomDuration) delete next.symptomDuration
+      return next
+    })
+  }, [detailsQuality.valid, symptomDuration])
+
+  useEffect(() => {
+    if (canContinue && validationSummary.length > 0) {
+      setValidationSummary([])
+    }
+  }, [canContinue, validationSummary.length])
 
   useKeyboardNavigation({
     onNext: canContinue ? handleNext : undefined,
@@ -126,22 +207,40 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
         description="A short, specific sentence is enough for the doctor to review."
       />
 
+      {validationSummary.length > 0 ? (
+        <Alert variant="destructive" role="alert" aria-live="assertive">
+          <AlertDescription>
+            {validationSummary.length === 1 ? "Add this to continue: " : "Add these to continue: "}
+            {validationSummary.join(", ")}.
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
       <QuestionCard compact>
         <FormField
           label={isCarer ? "Describe the symptoms" : "Describe your symptoms"}
           required
           error={touched.symptomDetails ? errors.symptomDetails : undefined}
-          hint="Include what started, when it started, and how it affects work or study."
+          hint="Tap any that fit, then add detail like when it started."
         >
+          <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Common reasons">
+            {COMMON_SYMPTOM_STARTERS.map((starter) => (
+              <EnhancedSelectionButton
+                key={starter}
+                variant="chip"
+                selected={symptomDetails.toLowerCase().includes(starter.toLowerCase())}
+                onClick={() => toggleSymptomStarter(starter)}
+                className="touch-manipulation"
+              >
+                {starter}
+              </EnhancedSelectionButton>
+            ))}
+          </div>
           <Textarea
             value={symptomDetails}
             onChange={(e) => setAnswer("symptomDetails", e.target.value)}
             onBlur={() => setTouched((prev) => ({ ...prev, symptomDetails: true }))}
-            placeholder={
-              isCarer
-                ? "e.g., Fever, sore throat, and fatigue since yesterday."
-                : "e.g., Fever, sore throat, and fatigue since yesterday."
-            }
+            placeholder="e.g. Fever, sore throat, and fatigue since yesterday."
             className={`mt-2 min-h-[88px] resize-none ${touched.symptomDetails && errors.symptomDetails ? "border-destructive" : ""}`}
           />
         </FormField>
@@ -212,7 +311,16 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
         </Alert>
       )}
 
-      <Button data-intake-primary-action="true" data-intake-primary-label="Continue" onClick={handleNext} className="h-12 w-full max-sm:hidden" disabled={!canContinue}>
+      {/* Always clickable so a tap runs validate() and surfaces the blocking
+          reason, instead of a silently greyed-out button (mobile reads that as
+          a dead end). Variant signals readiness; handleNext gates progression. */}
+      <Button
+        data-intake-primary-action="true"
+        data-intake-primary-label="Continue"
+        onClick={handleNext}
+        variant={canContinue ? "default" : "secondary"}
+        className="h-12 w-full max-sm:hidden"
+      >
         {canContinue ? (
           <>
             Continue
