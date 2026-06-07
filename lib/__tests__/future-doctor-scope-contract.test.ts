@@ -37,6 +37,18 @@ describe("future doctor scope contract", () => {
     expect(healthProfileSource).toContain('NextResponse.json({ error: "Not found" }, { status: 404 })')
   })
 
+  it("scopes /api/search patient results to a non-admin doctor's accessible patients", () => {
+    const source = read("app/api/search/route.ts")
+
+    // The caller profile must expose `id` so we can resolve the doctor's scope.
+    expect(source).toContain('.select("id, role")')
+    // Non-admin doctors are constrained to patients they have a relationship with;
+    // admins remain unscoped. Without this, any doctor could enumerate the full roster.
+    expect(source).toContain("hasAdminAccess(")
+    expect(source).toContain("getDoctorAccessiblePatientIds(")
+    expect(source).toContain('.in("id"')
+  })
+
   it("keeps analytics out of the future-doctor operating surface", () => {
     const nextConfigSource = read("next.config.mjs")
 

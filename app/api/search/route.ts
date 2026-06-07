@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { auth } from "@/lib/auth/helpers"
-import { hasDoctorAccess } from "@/lib/auth/staff-capabilities"
+import { hasAdminAccess, hasDoctorAccess } from "@/lib/auth/staff-capabilities"
 import { buildDoctorIntakeHref, buildStaffPatientHref } from "@/lib/dashboard/routes"
+import { getDoctorAccessiblePatientIds } from "@/lib/doctor/patient-access"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -37,10 +38,16 @@ export async function GET(request: NextRequest) {
 
   // SECURITY: Enforce role-based access - patients cannot use doctor/admin search variants
   const effectiveVariant = variant
+  // Patient-search scope for the doctor/admin variants. `null` = unscoped (admin
+  // sees everyone); a string[] = a non-admin doctor restricted to patients they
+  // have a concrete clinical relationship with. Without this, any non-admin
+  // doctor could enumerate the entire patient roster (PHI / APP-11). Mirrors the
+  // patient-directory boundary in lib/data/patient-directory.ts.
+  let accessiblePatientIds: string[] | null = null
   if (variant === "doctor" || variant === "admin") {
     const { data: callerProfile } = await supabase
       .from("profiles")
-      .select("role")
+      .select("id, role")
       .eq("auth_user_id", userId)
       .single()
 
@@ -53,6 +60,11 @@ export async function GET(request: NextRequest) {
         { error: "Insufficient permissions for this search variant" },
         { status: 403 }
       )
+    }
+
+    if (!hasAdminAccess(callerProfile)) {
+      const ids = await getDoctorAccessiblePatientIds(callerProfile.id, supabase)
+      accessiblePatientIds = Array.from(ids)
     }
   }
 
@@ -67,13 +79,21 @@ export async function GET(request: NextRequest) {
 
   try {
     if (effectiveVariant === "doctor" || effectiveVariant === "admin") {
+      // A non-admin doctor with no accessible patients has nothing to search.
+      if (accessiblePatientIds !== null && accessiblePatientIds.length === 0) {
+        return NextResponse.json({ results: [] })
+      }
+
       // Step 1: Find matching patients by name/medicare at the DB level (not in-memory JS)
-      const { data: matchingPatients } = await supabase
+      let matchingPatientsQuery = supabase
         .from("profiles")
         .select("id, full_name, medicare_number")
         .eq("role", "patient")
         .or(`full_name.ilike.%${escapeIlike(query)}%,medicare_number.ilike.%${escapeIlike(query)}%`)
-        .limit(20)
+      if (accessiblePatientIds !== null) {
+        matchingPatientsQuery = matchingPatientsQuery.in("id", accessiblePatientIds)
+      }
+      const { data: matchingPatients } = await matchingPatientsQuery.limit(20)
 
       const patientIds = matchingPatients?.map(p => p.id) ?? []
 
@@ -104,11 +124,15 @@ export async function GET(request: NextRequest) {
       }
 
       // Search patients directly
-      const { data: patients } = await supabase
+      let patientsQuery = supabase
         .from("profiles")
         .select("id, full_name, medicare_number, created_at")
         .eq("role", "patient")
         .or(`full_name.ilike.%${escapeIlike(query)}%,medicare_number.ilike.%${escapeIlike(query)}%`)
+      if (accessiblePatientIds !== null) {
+        patientsQuery = patientsQuery.in("id", accessiblePatientIds)
+      }
+      const { data: patients } = await patientsQuery
         .order("created_at", { ascending: false })
         .limit(5)
 
