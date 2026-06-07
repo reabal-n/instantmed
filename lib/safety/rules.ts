@@ -271,10 +271,15 @@ const prescriptionRules: SafetyRule[] = [
         fieldId: 'is_controlled',
         operator: 'equals',
         value: true,
-        // Derived: determined by isControlledSubstance() regex against the selected
-        // medication name. The medication step blocks S8 drugs client-side and the
-        // checkout action blocks them server-side, so this rule is a safety net.
-        derivedFrom: { type: 'duration_days', fields: ['medicationName'] },
+        // Derived: runs isControlledSubstance() against any medication field the
+        // answers may carry. The medication step blocks S8 drugs client-side and
+        // the checkout action blocks them server-side; this rule is the safety net
+        // for any caller of the safety engine. (Previously mis-typed as
+        // `duration_days`, which always returned null and made the rule dead.)
+        derivedFrom: {
+          type: 'is_controlled',
+          fields: ['medicationName', 'medication_name', 'medication_display', 'consult_details'],
+        },
       },
     ],
     outcome: 'DECLINE',

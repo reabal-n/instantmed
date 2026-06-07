@@ -278,6 +278,10 @@ PBS (Pharmaceutical Benefits Scheme) public API. Fields are reference metadata o
 - **Schedule 8: Hard block** -- no override possible (`lib/clinical/intake-validation.ts`)
 - Controlled substances blocked at the medication search level
 - Messaging must use "controlled substance" (not "S8") for non-S8 controlled drugs
+- **Defense in depth — three independent layers**, all using `isControlledSubstance()`:
+  1. **Medication step UI** — client-side block on the selected medication.
+  2. **Checkout clinical validation** — `lib/stripe/checkout/clinical-validation.ts` and `lib/stripe/guest-checkout.ts` hard-block on `getMedicationBlocklistCandidate()` (reads `medication_name`/`medication_display`/repeat-script arrays **and** free-text `consult_details`) for the repeat-script **and** consult branches. Consult is not a back-channel around the block (fixed 2026-06-07; the consult branch previously ran only the DB blocklist).
+  3. **Safety rules engine** — the `rx_controlled_substance` rule (`lib/safety/rules.ts`) uses the `is_controlled` derivation (`lib/safety/evaluate.ts`) to DECLINE prescription requests naming a controlled substance. (Previously mis-typed as a `duration_days` derivation that always returned null, leaving the rule dead — fixed 2026-06-07.)
 
 ### Patient-Facing Rules
 

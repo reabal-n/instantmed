@@ -47,7 +47,7 @@ export interface RuleCondition {
   value?: unknown
   // For derived values (e.g., calculate BMI from weight/height)
   derivedFrom?: {
-    type: 'bmi' | 'age' | 'duration_days' | 'signed_days'
+    type: 'bmi' | 'age' | 'duration_days' | 'signed_days' | 'is_controlled'
     fields: string[]
   }
   // When true, validateSafetyFieldsPresent requires this field in the answers.
