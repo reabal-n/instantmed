@@ -11,9 +11,10 @@
  */
 
 import { ArrowRight } from "lucide-react"
-import { useCallback,useState } from "react"
+import { useCallback,useEffect,useState } from "react"
 
 import { BinaryChoice, IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
+import { StepBlockedSummary } from "@/components/request/shared/step-blocked-summary"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { usePostHog } from "@/lib/analytics/posthog-context"
@@ -104,6 +105,7 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const [blockedReasons, setBlockedReasons] = useState<string[]>([])
 
   const validate = useCallback(() => {
     const newErrors: Record<string, string> = {}
@@ -138,6 +140,7 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
     }
 
     setErrors(newErrors)
+    setBlockedReasons(Object.values(newErrors))
     setTouched({
       allergies: true,
       conditions: true,
@@ -163,12 +166,16 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
       isPregnantOrBreastfeeding !== undefined &&
       hasAdverseMedicationReactions !== undefined
     ))
-  const hasNoErrors = Object.keys(errors).length === 0
-  const canContinue = isComplete && hasNoErrors
+  // Live-computed (not gated on the stale `errors` object).
+  const canContinue = Boolean(isComplete)
   const clinicalHistoryComplete =
     hasAllergies !== undefined && (!hasAllergies || allergies.trim()) &&
     hasConditions !== undefined && (!hasConditions || conditions.trim()) &&
     hasOtherMedications !== undefined && (!hasOtherMedications || otherMedications.trim())
+
+  useEffect(() => {
+    if (canContinue && blockedReasons.length > 0) setBlockedReasons([])
+  }, [canContinue, blockedReasons.length])
 
   // Keyboard navigation
   useKeyboardNavigation({
@@ -183,6 +190,8 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
         title={clinicalHistoryComplete && requiresMedicationSafety ? "Medication safety" : "Anything the doctor should know?"}
         description={clinicalHistoryComplete && requiresMedicationSafety ? "Two final safety checks for the doctor." : "Clear answers here make the review safer and faster."}
       />
+
+      <StepBlockedSummary reasons={blockedReasons} />
 
       {/* Clinical questions - required */}
       {(!requiresMedicationSafety || !clinicalHistoryComplete) && (
@@ -271,13 +280,14 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
         </QuestionCard>
       )}
 
-      {/* Continue button */}
+      {/* Always clickable so a tap surfaces the blocking reason (incl. the
+          progressively-revealed safety questions) instead of a silently greyed
+          mobile dead-end. */}
       <Button
         data-intake-primary-action="true"
         data-intake-primary-label="Continue"
         onClick={handleNext}
-        className="w-full h-12 max-sm:hidden"
-        disabled={!canContinue}
+        className={`w-full h-12 max-sm:hidden ${canContinue ? "" : "opacity-60"}`}
       >
         {canContinue ? (
           <>

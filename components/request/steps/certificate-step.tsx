@@ -18,6 +18,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { RequestButton } from "@/components/request/request-button"
 import { requestCx } from "@/components/request/request-cx"
 import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
+import { StepBlockedSummary } from "@/components/request/shared/step-blocked-summary"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { MED_CERT_DURATIONS } from "@/lib/constants"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
@@ -156,6 +157,7 @@ export default function CertificateStep({ onNext, initialDuration, hideIntro = f
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const [blockedReasons, setBlockedReasons] = useState<string[]>([])
 
   const durationRef = useRef<HTMLDivElement>(null)
   const startDateRef = useRef<HTMLDivElement>(null)
@@ -284,6 +286,7 @@ export default function CertificateStep({ onNext, initialDuration, hideIntro = f
     if (!selectedDays) newErrors.duration = "Please select how many days"
     if (startOffset === null) newErrors.startDate = "Please select a start date"
     setErrors(newErrors)
+    setBlockedReasons(Object.values(newErrors))
     setTouched({ certType: true, duration: true, startDate: true })
     return Object.keys(newErrors).length === 0
   }, [certType, selectedDays, startOffset])
@@ -301,11 +304,14 @@ export default function CertificateStep({ onNext, initialDuration, hideIntro = f
     }
   }, [validate, certType, selectedDays, posthog, onNext])
 
-  const canContinue =
-    !!certType &&
-    selectedDays !== null &&
-    startOffset !== null &&
-    Object.keys(errors).length === 0
+  // Live-computed from the selections, NOT the `errors` object (which would stay
+  // stale after the patient fixes a field, leaving the button looking not-ready).
+  const canContinue = !!certType && selectedDays !== null && startOffset !== null
+
+  // Clear the blocking summary the moment the step becomes valid.
+  useEffect(() => {
+    if (canContinue && blockedReasons.length > 0) setBlockedReasons([])
+  }, [canContinue, blockedReasons.length])
 
   useKeyboardNavigation({
     onNext: canContinue ? handleNext : undefined,
@@ -322,6 +328,8 @@ export default function CertificateStep({ onNext, initialDuration, hideIntro = f
           description="Pick the certificate type, dates, and duration."
         />
       )}
+
+      <StepBlockedSummary reasons={blockedReasons} />
 
       {/* Certificate type */}
       <QuestionCard compact>
@@ -507,7 +515,15 @@ export default function CertificateStep({ onNext, initialDuration, hideIntro = f
       </p>
 
       {/* Continue */}
-      <RequestButton data-intake-primary-action="true" data-intake-primary-label="Continue" onClick={handleNext} className="w-full h-12 max-sm:hidden" disabled={!canContinue}>
+      {/* Always clickable so a tap runs validate() and surfaces the blocking
+          reason (StepBlockedSummary), instead of a silently greyed button that
+          dead-ends the mobile sticky CTA. */}
+      <RequestButton
+        data-intake-primary-action="true"
+        data-intake-primary-label="Continue"
+        onClick={handleNext}
+        className={`w-full h-12 max-sm:hidden ${canContinue ? "" : "opacity-60"}`}
+      >
         {canContinue ? (
           <>
             Continue
