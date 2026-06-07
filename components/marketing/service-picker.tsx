@@ -213,7 +213,7 @@ export function ServicePicker() {
                   </div>
                 ) : (
                   <Link
-                    href={service.href || `/${service.slug}/request`}
+                    href={service.href ?? "/request"}
                     className="group block h-full"
                   >
                     {cardContent}

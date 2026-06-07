@@ -260,8 +260,12 @@ export function IntakeReviewPanel({
         window.clearTimeout(timeout)
       }
     }
-    fetchData()
+    // Debounce ~150ms so holding j/k to skim the queue doesn't fire a
+    // /review-data roundtrip for every intermediate selection — only the settled
+    // selection fetches (an unmount before then clears the timer via cleanup).
+    const debounce = window.setTimeout(fetchData, 150)
     return () => {
+      window.clearTimeout(debounce)
       window.clearTimeout(timeout)
       controller.abort()
     }

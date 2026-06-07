@@ -704,6 +704,14 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       {/* Medicare or IHI - required for prescribing pathways */}
       {needsPrescriptionDetails && (
         <div className="space-y-3">
+          {/* Group divider so the prescribing-identity fields read as one set
+              with a clear rationale, not a wall of independent asks. */}
+          <div className="space-y-0.5 border-t border-border/50 pt-4">
+            <Label className="text-sm font-medium">Prescribing details</Label>
+            <p className="text-xs text-muted-foreground">
+              Required to issue your eScript under your name. Encrypted and never shared.
+            </p>
+          </div>
           <FormField
             label="Medicare number"
             required={!ihiReady}

@@ -2,7 +2,7 @@
 
 import type { Session, User } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 
 import { onFirstInteraction } from '@/lib/browser/first-interaction'
 import { AUTH_HANDOFF_EVENT, createAuthHandoffRefreshGuard } from '@/lib/navigation/auth-handoff'
@@ -118,6 +118,9 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
   const [session, setSession] = useState<Session | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
   const router = useRouter()
+  // Tracks the prior auth user id so we only router.refresh() on a real identity
+  // transition (see the onAuthStateChange handler below).
+  const prevUserIdRef = useRef<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -178,9 +181,17 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
               setUser(newSession?.user ?? null)
               setIsLoaded(true)
 
+              const nextUserId = newSession?.user?.id ?? null
+              const prevUserId = prevUserIdRef.current
+              prevUserIdRef.current = nextUserId
+
               // Refresh server-side state when auth changes
               if (_event === 'SIGNED_IN' || _event === 'SIGNED_OUT' || _event === 'TOKEN_REFRESHED') {
                 if (authHandoffRefreshGuard.shouldSuppress()) return
+                // A guest with a stale/dead session cookie fires SIGNED_OUT with no
+                // real identity change (null -> null). Refreshing then visibly
+                // reloads the page (e.g. mid-/request) for nothing — skip it.
+                if (prevUserId === null && nextUserId === null) return
                 router.refresh()
               }
 
