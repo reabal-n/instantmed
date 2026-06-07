@@ -506,6 +506,7 @@ describe("Stripe webhook payment state transitions", () => {
 
     expect(updates[0]).toMatchObject({
       payload: {
+        amount_cents: 3900,
         payment_status: "paid",
         status: "paid",
         stripe_payment_intent_id: "pi_current",
@@ -542,6 +543,7 @@ describe("Stripe webhook payment state transitions", () => {
 
     expect(updates[0]).toMatchObject({
       payload: {
+        amount_cents: 3900,
         payment_status: "paid",
         status: "paid",
         stripe_payment_intent_id: "pi_current",
@@ -554,5 +556,66 @@ describe("Stripe webhook payment state transitions", () => {
       { column: "status", method: "in", value: ["pending_payment", "checkout_failed"] },
       { column: "payment_status", method: "in", value: ["pending", "unpaid", "failed"] },
     ]))
+  })
+
+  // Regression: refunds were computed from intakes.amount_cents (the list price),
+  // but referral credits apply as a Stripe coupon and the Express fee adds a line
+  // item, so the true charge (session.amount_total) differs. Storing the list
+  // price made manual refunds exceed the charge for coupon customers ("Refund
+  // amount > charge amount") and under-refund Express customers by $9.95. The
+  // paid transition must reconcile amount_cents to the real amount charged.
+  it("reconciles amount_cents to the true Stripe amount_total on the completed paid transition", async () => {
+    const { intakeId, supabase, updates } = createPaymentSuccessSupabaseMock()
+
+    // $19.95 med cert with a $5.00 referral credit -> customer charged $14.95.
+    await handleCheckoutSessionCompleted({
+      event: makeEvent("checkout.session.completed", {
+        amount_total: 1495,
+        customer: "cus_test",
+        id: "cs_current",
+        metadata: {
+          category: "medical_certificate",
+          intake_id: intakeId,
+          patient_id: "patient-1",
+          service_slug: "med-cert-sick",
+        },
+        payment_intent: "pi_current",
+        payment_status: "paid",
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect(updates[0]).toMatchObject({
+      payload: { amount_cents: 1495, payment_status: "paid", status: "paid" },
+      table: "intakes",
+    })
+  })
+
+  it("reconciles amount_cents to the true Stripe amount_total on the async paid transition", async () => {
+    const { intakeId, supabase, updates } = createPaymentSuccessSupabaseMock()
+
+    // Express add-on: base $19.95 + $9.95 priority fee -> customer charged $29.90.
+    await handleAsyncPaymentSucceeded({
+      event: makeEvent("checkout.session.async_payment_succeeded", {
+        amount_total: 2990,
+        customer: "cus_test",
+        id: "cs_current",
+        metadata: {
+          category: "medical_certificate",
+          intake_id: intakeId,
+          patient_id: "patient-1",
+          service_slug: "med-cert-sick",
+        },
+        payment_intent: "pi_current",
+      }),
+      startTime: Date.now(),
+      supabase: supabase as never,
+    })
+
+    expect(updates[0]).toMatchObject({
+      payload: { amount_cents: 2990, payment_status: "paid", status: "paid" },
+      table: "intakes",
+    })
   })
 })
