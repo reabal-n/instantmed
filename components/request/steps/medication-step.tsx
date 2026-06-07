@@ -14,6 +14,7 @@ import { ArrowRight, Plus, ShieldAlert, X } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 
 import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
+import { StepBlockedSummary } from "@/components/request/shared/step-blocked-summary"
 import type { SelectedPBSProduct } from "@/components/shared/medication-search"
 import { MedicationSearch } from "@/components/shared/medication-search"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -84,6 +85,7 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [controlledBlock, setControlledBlock] = useState<string | null>(null)
+  const [blockedReasons, setBlockedReasons] = useState<string[]>([])
   const [recentMeds, setRecentMeds] = useState<RecentMedication[]>([])
 
   // Load recent medications on mount
@@ -209,10 +211,14 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
       }
     })
     setErrors(newErrors)
+    setBlockedReasons(Object.values(newErrors))
     return Object.keys(newErrors).length === 0
   }, [medications])
 
   const handleNext = useCallback(() => {
+    // A controlled substance is a hard clinical block — the destructive alert
+    // above already explains it; never advance past it.
+    if (controlledBlock) return
     if (validate()) {
       // Save to recent medications
       for (const med of medications) {
@@ -230,12 +236,17 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
       posthog?.capture('step_completed', { step: 'medication', medication_count: medications.filter(m => m.product || m.name).length })
       onNext()
     }
-  }, [validate, medications, posthog, onNext])
+  }, [controlledBlock, validate, medications, posthog, onNext])
 
   const activeMedications = medications.filter(m => m.product || m.name)
   const isComplete = activeMedications.length > 0 && activeMedications.every((med) => med.strength?.trim() && med.form?.trim())
-  const hasNoErrors = Object.keys(errors).length === 0
-  const canContinue = isComplete && hasNoErrors && !controlledBlock
+  // Live-computed; controlledBlock stays (a real clinical block), the stale
+  // `errors` object does not gate readiness.
+  const canContinue = Boolean(isComplete) && !controlledBlock
+
+  useEffect(() => {
+    if (canContinue && blockedReasons.length > 0) setBlockedReasons([])
+  }, [canContinue, blockedReasons.length])
 
   // Keyboard navigation
   useKeyboardNavigation({
@@ -249,6 +260,8 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
         title="Which medication do you need?"
         description="Search first. If the exact item is not listed, enter it manually."
       />
+
+      <StepBlockedSummary reasons={blockedReasons} />
 
       {/* Controlled substance block */}
       {controlledBlock && (
@@ -379,13 +392,14 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
         Your details save automatically if you leave.
       </p>
 
-      {/* Continue button */}
+      {/* Always clickable so a tap surfaces the blocking reason instead of a
+          silently greyed mobile dead-end (controlled-substance block excepted —
+          handleNext refuses and the alert above explains it). */}
       <Button
         data-intake-primary-action="true"
         data-intake-primary-label="Continue"
         onClick={handleNext}
-        className="w-full h-12 max-sm:hidden"
-        disabled={!canContinue}
+        className={`w-full h-12 max-sm:hidden ${canContinue ? "" : "opacity-60"}`}
       >
         {canContinue ? (
           <>

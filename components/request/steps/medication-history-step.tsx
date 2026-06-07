@@ -10,9 +10,10 @@
  */
 
 import { ArrowLeft, ArrowRight, Stethoscope } from "lucide-react"
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 import { IntakeStepIntro, QuestionCard, SegmentedChoiceGroup } from "@/components/request/shared/intake-step-primitives"
+import { StepBlockedSummary } from "@/components/request/shared/step-blocked-summary"
 import { EnhancedSelectionButton } from "@/components/shared/enhanced-selection-button"
 import { AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -52,6 +53,7 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
   
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const [blockedReasons, setBlockedReasons] = useState<string[]>([])
 
   const validate = useCallback(() => {
     const newErrors: Record<string, string> = {}
@@ -73,6 +75,7 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
     }
 
     setErrors(newErrors)
+    setBlockedReasons(Object.values(newErrors))
     setTouched({ prescriptionHistory: true, currentDose: true, sideEffects: true })
     return Object.keys(newErrors).length === 0
   }, [prescriptionHistory, currentDose, hasSideEffects, sideEffects])
@@ -86,8 +89,12 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
 
   const isNeverPrescribed = prescriptionHistory === "never"
   const isComplete = prescriptionHistory && !isNeverPrescribed && currentDose.trim() && (hasSideEffects === false || (hasSideEffects && sideEffects.trim()))
-  const hasNoErrors = Object.keys(errors).length === 0
-  const canContinue = isComplete && hasNoErrors
+  // Live-computed (not gated on the stale `errors` object).
+  const canContinue = Boolean(isComplete)
+
+  useEffect(() => {
+    if (canContinue && blockedReasons.length > 0) setBlockedReasons([])
+  }, [canContinue, blockedReasons.length])
   const hasPrescriptionHistory = Boolean(prescriptionHistory)
   const needsDose = hasPrescriptionHistory && !isNeverPrescribed
   const needsSideEffects = needsDose && Boolean(currentDose.trim())
@@ -105,6 +112,8 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
         title={!hasPrescriptionHistory ? "Confirm your prescription history" : !currentDose.trim() ? "Current dose" : "Side effects"}
         description={!hasPrescriptionHistory ? "This helps the doctor check this is a safe repeat request." : "Keep it short and copy your label if you can."}
       />
+
+      <StepBlockedSummary reasons={blockedReasons} />
 
       {/* Prescription history */}
       {(!hasPrescriptionHistory || isNeverPrescribed) && (
@@ -251,13 +260,13 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
         </QuestionCard>
       )}
 
-      {/* Continue button */}
+      {/* Always clickable so a tap surfaces the blocking reason instead of a
+          silently greyed mobile dead-end. */}
       <Button
         data-intake-primary-action="true"
         data-intake-primary-label="Continue"
         onClick={handleNext}
-        className="w-full h-12 max-sm:hidden"
-        disabled={!canContinue}
+        className={`w-full h-12 max-sm:hidden ${canContinue ? "" : "opacity-60"}`}
       >
         {canContinue ? (
           <>
