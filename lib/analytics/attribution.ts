@@ -12,6 +12,8 @@
  *   getAttribution()      - call at checkout to retrieve persisted data
  */
 
+import { deriveChannelFromClickIds } from "@/lib/analytics/click-id-channels"
+
 const CLICK_IDS = ["gclid", "gbraid", "wbraid"] as const
 const UTM_PARAMS = [
   "utm_source",
@@ -147,6 +149,19 @@ export function captureAttribution(): void {
   }
 
   const existing = readStoredAttribution()
+
+  // A non-Google ad click (Meta fbclid, Microsoft msclkid, TikTok ttclid,
+  // LinkedIn li_fat_id) carries no utm_source, so without this the paid order
+  // would land as "direct". Derive its channel into utm_source/utm_medium so
+  // it attributes as other_paid. Only when no utm_source is already present.
+  if (!current.utm_source && !existing.utm_source) {
+    const derived = deriveChannelFromClickIds(params)
+    if (derived) {
+      current.utm_source = derived.utm_source
+      current.utm_medium = current.utm_medium || derived.utm_medium
+    }
+  }
+
   const currentHasCampaign = hasPaidOrCampaignData(current)
 
   const data: AttributionData = {

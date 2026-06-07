@@ -102,6 +102,26 @@ describe("attribution capture", () => {
     expect(localStorageState[ATTRIBUTION_COOKIE_KEY]).toBeTruthy()
   })
 
+  it("attributes a Meta fbclid click to facebook / paid instead of direct", () => {
+    locationState = { search: "?fbclid=fb_abc123", pathname: "/medical-certificate", protocol: "https:" }
+
+    captureAttribution()
+
+    expect(getAttribution()).toMatchObject({ utm_source: "facebook", utm_medium: "paid" })
+  })
+
+  it("does not override an explicit utm_source even when a non-Google click id is present", () => {
+    locationState = {
+      search: "?fbclid=fb_abc123&utm_source=newsletter&utm_medium=email",
+      pathname: "/",
+      protocol: "https:",
+    }
+
+    captureAttribution()
+
+    expect(getAttribution().utm_source).toBe("newsletter")
+  })
+
   it("lets a later paid click replace earlier direct-session context", () => {
     captureAttribution()
 
