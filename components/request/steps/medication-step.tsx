@@ -287,7 +287,6 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
             label={medications.length > 1 ? `Medication ${index + 1}` : "Medication name"}
             required={index === 0}
             error={index === 0 ? errors.medication : undefined}
-            hint={index === 0 ? "Start typing the name on your box or label" : undefined}
             helpContent={index === 0 ? {
               title: "Why do we ask this?",
               content: "This is for reference only. The doctor will review and confirm the correct medication. All prescribing decisions are made by the clinician."

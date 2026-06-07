@@ -81,6 +81,7 @@ export const CheckoutButton = forwardRef<HTMLButtonElement, CheckoutButtonProps>
       return (
         <button
           ref={ref}
+          type="button"
           onClick={onClick}
           disabled={isDisabled}
           className={cn(

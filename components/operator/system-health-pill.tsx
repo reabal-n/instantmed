@@ -50,7 +50,7 @@ const EMPTY_HEALTH: SystemHealth = {
   totalIssues: 0,
 }
 
-const POLL_INTERVAL_MS = 45_000
+const POLL_INTERVAL_MS = 90_000
 
 const HEALTH_ISSUE_LABELS = [
   { key: "stuckIntakes", singular: "waiting at intake", plural: "waiting at intake" },
@@ -101,11 +101,21 @@ export function SystemHealthPill({ initial }: { initial?: SystemHealth }) {
       }
     }
 
+    // Only poll while the tab is visible (a backgrounded cockpit doesn't need a
+    // 4-query health check every cycle); refresh immediately on re-show.
+    const refreshIfVisible = () => {
+      if (document.visibilityState === "visible") refresh()
+    }
+
     refresh()
-    const interval = window.setInterval(refresh, POLL_INTERVAL_MS)
+    const interval = window.setInterval(refreshIfVisible, POLL_INTERVAL_MS)
+    window.addEventListener("focus", refreshIfVisible)
+    document.addEventListener("visibilitychange", refreshIfVisible)
     return () => {
       cancelled = true
       window.clearInterval(interval)
+      window.removeEventListener("focus", refreshIfVisible)
+      document.removeEventListener("visibilitychange", refreshIfVisible)
     }
   }, [])
 

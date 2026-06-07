@@ -58,12 +58,14 @@ describe("system-health endpoint contract", () => {
     expect(source).toContain("return 0")
   })
 
-  it("renders the SystemHealthPill with a 45s poll and a last-known-state fallback", () => {
+  it("renders the SystemHealthPill with a 90s visibility-gated poll and a last-known-state fallback", () => {
     const source = read("components/operator/system-health-pill.tsx")
 
     expect(source).toContain('fetch("/api/admin/system-health", { cache: "no-store" })')
-    // 45_000 ms poll interval per the Phase 2 design.
-    expect(source).toContain("POLL_INTERVAL_MS = 45_000")
+    // 90s poll, paused while the tab is hidden (was an unconditional 45s poll that
+    // doubled idle server load alongside the queue's own poll).
+    expect(source).toContain("POLL_INTERVAL_MS = 90_000")
+    expect(source).toContain('document.addEventListener("visibilitychange"')
     expect(source).toContain("stripePriceIssues")
     expect(source).toContain("Stripe price config")
     // On fetch failure we explicitly keep the prior state — no flashing

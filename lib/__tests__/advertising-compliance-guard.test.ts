@@ -199,7 +199,6 @@ const PUBLIC_FIXED_TURNAROUND_SURFACES = [
   "lib/microcopy",
   "lib/seo/data/competitor-comparisons.ts",
   "lib/seo/data/audience-pages.ts",
-  "lib/seo/data/condition-location-combos.ts",
   "lib/seo/data/deep-city-content",
   "lib/seo/data/guides",
   "lib/seo/data/states.ts",

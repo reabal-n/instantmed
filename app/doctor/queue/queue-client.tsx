@@ -34,7 +34,11 @@ import { QueueTable } from "./queue-table"
 import type { QueueClientProps } from "./types"
 import { useQueueDialogs } from "./use-queue-dialogs"
 
-const QUEUE_VISIBLE_WAIT_SECONDS_CADENCE = 1
+// After a case's first minute in queue, the live wait label (and its driving
+// clock tick) only needs coarse updates. 1s ticked the entire queue every second
+// for the whole session — pure jank. 15s keeps the label sane without the
+// per-second re-render storm.
+const QUEUE_VISIBLE_WAIT_SECONDS_CADENCE = 15
 
 interface QueueEmptyState {
   title: string
@@ -375,6 +379,9 @@ export function QueueClient({
   const [isApprovePending, startTransition] = useTransition()
   const [isQueueRefreshPending, startQueueRefreshTransition] = useTransition()
   const lastQueueRefreshAtRef = useRef(0)
+  // Mirror of useQueueRealtime's `isStale` (declared lower) so the blanket
+  // safety-refresh interval can gate on realtime health without re-ordering hooks.
+  const isStaleRef = useRef(false)
   const dialogs = useQueueDialogs({ intakes, setIntakes })
   const [clockNow, setClockNow] = useState<Date>(() => new Date())
 
@@ -428,7 +435,15 @@ export function QueueClient({
       if (document.visibilityState === "visible") refreshQueue()
     }
 
-    const interval = window.setInterval(refreshIfVisible, 45000)
+    // Blanket safety poll: only fire when realtime has actually fallen behind
+    // (isStale). When the channel is healthy it already keeps the queue current,
+    // so a periodic full server re-render (2x requireRole + nav-count decrypt +
+    // the page queries) is pure waste. Lengthened 45s -> 3min as a backstop.
+    const interval = window.setInterval(() => {
+      if (isStaleRef.current) refreshIfVisible()
+    }, 180000)
+    // Focus / visibility refreshes stay unconditional — they're cheap,
+    // user-initiated, and useful after backgrounding the tab.
     window.addEventListener("focus", refreshIfVisible)
     document.addEventListener("visibilitychange", refreshIfVisible)
 
@@ -550,6 +565,11 @@ export function QueueClient({
     onUpdate: handleUpdate,
     onDelete: handleDelete,
   })
+
+  // Keep the ref read by the blanket-refresh interval (declared above) in sync.
+  useEffect(() => {
+    isStaleRef.current = isStale
+  }, [isStale])
 
   // Shared action-complete handler. Removes the case from the live queue,
   // refreshes data, and advances selection / opens the next case.

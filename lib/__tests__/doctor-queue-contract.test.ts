@@ -136,7 +136,10 @@ describe("doctor queue production contract", () => {
 
   it("keeps queue refreshes throttled and runs a refresh after successful decisions", () => {
     expect(queueClientSource).toContain("lastQueueRefreshAtRef")
-    expect(queueClientSource).toContain("window.setInterval(refreshIfVisible, 45000)")
+    // The blanket safety poll now fires only when realtime has fallen behind
+    // (isStaleRef), at a 3min backstop (was an unconditional 45s full re-render).
+    expect(queueClientSource).toContain("isStaleRef.current")
+    expect(queueClientSource).toContain("}, 180000)")
     expect(queueClientSource).toContain("refreshQueue(true)")
     expect(queueClientSource).toContain("onActionComplete={(options)")
     expect(queueClientSource).not.toContain("onActionComplete={(options) => {\n            router.refresh()")
