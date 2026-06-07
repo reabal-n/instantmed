@@ -15,6 +15,7 @@ import { trackPurchase } from "@/lib/analytics/conversion-tracking"
 import type { WaitState } from "@/lib/brand/wait-counter"
 import { PATIENT_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
+import { fetchWithCsrf } from "@/lib/security/csrf-client"
 
 const RESEND_COOLDOWN_SECONDS = 60
 
@@ -54,6 +55,7 @@ export function SuccessClient({
   const [resendingEmail, setResendingEmail] = useState(false)
   const [emailResent, setEmailResent] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
+  const [resendError, setResendError] = useState<string | null>(null)
   // Track amountCents in state so polling can update it when the server
   // value lands after the page mounts. Conversion firing reads this state
   // (NOT the initial prop) so payments that resolve during the polling
@@ -77,14 +79,19 @@ export function SuccessClient({
     if (!intakeId || resendingEmail || resendCooldown > 0) return
     
     setResendingEmail(true)
+    setResendError(null)
     try {
-      const response = await fetch("/api/patient/resend-confirmation", {
+      // Must use fetchWithCsrf: the endpoint enforces requireValidCsrf, so a raw
+      // fetch always 403s and the button silently does nothing (it looked like it
+      // worked). This is the only self-serve recovery for a paid patient whose
+      // confirmation email didn't arrive.
+      const response = await fetchWithCsrf("/api/patient/resend-confirmation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ intakeId }),
       })
-      const result = await response.json()
-      if (result.success) {
+      const result = await response.json().catch(() => ({}))
+      if (response.ok && result.success) {
         setEmailResent(true)
         // Start cooldown timer
         setResendCooldown(RESEND_COOLDOWN_SECONDS)
@@ -98,9 +105,13 @@ export function SuccessClient({
             return prev - 1
           })
         }, 1000)
+      } else {
+        setResendError(
+          result.error || "We couldn't resend it just now. Please try again in a moment, or contact support@instantmed.com.au."
+        )
       }
     } catch {
-      // Silently fail - user can try again
+      setResendError("We couldn't resend it just now. Check your connection and try again.")
     } finally {
       setResendingEmail(false)
     }
@@ -348,15 +359,18 @@ export function SuccessClient({
             className="gap-2"
           >
             <Mail className="w-4 h-4" />
-            {resendCooldown > 0 
-              ? `Resend in ${resendCooldown}s` 
-              : resendingEmail 
-                ? "Sending..." 
-                : emailResent 
-                  ? "Email sent!" 
+            {resendCooldown > 0
+              ? `Resend in ${resendCooldown}s`
+              : resendingEmail
+                ? "Sending..."
+                : emailResent
+                  ? "Email sent!"
                   : "Resend confirmation email"
             }
           </Button>
+          {resendError && (
+            <p className="text-xs text-destructive" role="alert" aria-live="assertive">{resendError}</p>
+          )}
         </div>
       </div>
     )
