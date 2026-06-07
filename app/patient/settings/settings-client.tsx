@@ -211,6 +211,10 @@ export function PatientSettingsClient({ profile, email, avatarUrl, emailPreferen
   }, [email, user?.app_metadata?.providers, user?.identities])
 
   const googleLinked = linkedAuthProviders.includes("google")
+  // A Google-/OAuth-only account has no email+password identity, so it has no
+  // "current password" to confirm. Offer a no-current-password "Set a password"
+  // flow so these users can add email/password sign-in alongside Google.
+  const hasPasswordLogin = linkedAuthProviders.includes("email")
   const linkedProviderLabels = linkedAuthProviders.map((provider) =>
     provider === "email"
       ? "Email"
@@ -382,6 +386,33 @@ export function PatientSettingsClient({ profile, email, avatarUrl, emailPreferen
       }
     } catch {
       toast.error("Failed to change password")
+    } finally {
+      setIsChangingPassword(false)
+    }
+  }
+
+  // Set a password on an OAuth-only account (no current password to confirm).
+  // updateUser adds the email/password identity for the already-authenticated user.
+  const handleSetPassword = async () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error("Passwords do not match")
+      return
+    }
+    if (passwordData.newPassword.length < 8) {
+      toast.error("Password must be at least 8 characters")
+      return
+    }
+    setIsChangingPassword(true)
+    try {
+      const { error } = await supabase.auth.updateUser({ password: passwordData.newPassword })
+      if (error) {
+        toast.error(error.message || "Failed to set password")
+      } else {
+        toast.success("Password set — you can now sign in with email and password too.")
+        setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" })
+      }
+    } catch {
+      toast.error("Failed to set password")
     } finally {
       setIsChangingPassword(false)
     }
@@ -841,31 +872,35 @@ export function PatientSettingsClient({ profile, email, avatarUrl, emailPreferen
 
             <DashboardCard tier="elevated" padding="none" className="p-6 space-y-6">
               <div>
-                <h3 className="font-medium text-foreground mb-4">Change Password</h3>
+                <h3 className="font-medium text-foreground mb-4">{hasPasswordLogin ? "Change Password" : "Set a password"}</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Password changes are managed through your secure account portal for added security.
+                {hasPasswordLogin
+                  ? "Password changes are managed through your secure account portal for added security."
+                  : "Your account currently uses Google sign-in only. Set a password to also sign in with your email."}
               </p>
 
               <div className="space-y-4 max-w-md">
-                <div className="space-y-2">
-                  <Label htmlFor="currentPassword">Current Password</Label>
-                  <Input
-                    id="currentPassword"
-                    type={showCurrentPassword ? "text" : "password"}
-                    value={passwordData.currentPassword}
-                    onChange={(e) => setPasswordData((prev) => ({ ...prev, currentPassword: e.target.value }))}
-                    endContent={
-                      <button
-                        type="button"
-                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                        className="text-muted-foreground hover:text-foreground transition-colors"
-                        aria-label={showCurrentPassword ? "Hide password" : "Show password"}
-                      >
-                        {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    }
-                  />
-                </div>
+                {hasPasswordLogin ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="currentPassword">Current Password</Label>
+                    <Input
+                      id="currentPassword"
+                      type={showCurrentPassword ? "text" : "password"}
+                      value={passwordData.currentPassword}
+                      onChange={(e) => setPasswordData((prev) => ({ ...prev, currentPassword: e.target.value }))}
+                      endContent={
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                          className="text-muted-foreground hover:text-foreground transition-colors"
+                          aria-label={showCurrentPassword ? "Hide password" : "Show password"}
+                        >
+                          {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      }
+                    />
+                  </div>
+                ) : null}
 
                 <div className="space-y-2">
                   <Label htmlFor="newPassword">New Password</Label>
@@ -898,10 +933,10 @@ export function PatientSettingsClient({ profile, email, avatarUrl, emailPreferen
                 </div>
 
                 <Button
-                  onClick={handlePasswordChange}
+                  onClick={hasPasswordLogin ? handlePasswordChange : handleSetPassword}
                   disabled={
                     isChangingPassword ||
-                    !passwordData.currentPassword ||
+                    (hasPasswordLogin && !passwordData.currentPassword) ||
                     !passwordData.newPassword ||
                     !passwordData.confirmPassword
                   }
@@ -910,10 +945,10 @@ export function PatientSettingsClient({ profile, email, avatarUrl, emailPreferen
                   {isChangingPassword ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Changing...
+                      {hasPasswordLogin ? "Changing..." : "Setting..."}
                     </>
                   ) : (
-                    "Change Password"
+                    hasPasswordLogin ? "Change Password" : "Set Password"
                   )}
                 </Button>
               </div>

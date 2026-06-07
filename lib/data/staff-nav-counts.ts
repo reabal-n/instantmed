@@ -1,5 +1,7 @@
 import "server-only"
 
+import { unstable_cache } from "next/cache"
+
 import type { StaffNavCounts } from "@/lib/dashboard/staff-navigation"
 import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
 import { getPrescribingIdentityBlockerReport } from "@/lib/doctor/patient-identity-report"
@@ -8,7 +10,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("staff-nav-counts")
 
-export async function getStaffNavCounts(): Promise<StaffNavCounts> {
+async function computeStaffNavCounts(): Promise<StaffNavCounts> {
   const supabase = createServiceRoleClient()
 
   const [scriptsResult, identityResult, queueResult] = await Promise.allSettled([
@@ -55,3 +57,21 @@ export async function getStaffNavCounts(): Promise<StaffNavCounts> {
     inQueue: queueResult.status === "fulfilled" ? queueResult.value.count ?? 0 : 0,
   }
 }
+
+/**
+ * Staff nav badge counts, cached for 30s.
+ *
+ * Without the cache, every dashboard render — each `router.refresh()`, the 45s
+ * poll, and every approve — re-ran the up-to-100-row PHI decrypt in
+ * getPrescribingIdentityBlockerReport just to refresh one nav badge. That was
+ * the dashboard's single biggest first-paint/jank cost. The counts are global
+ * (not per-user), so a shared cache is correct, and 30s of staleness on a nav
+ * badge is imperceptible. Pages that need live identity data (/admin/ops,
+ * /admin/ops/prescribing-identity) call getPrescribingIdentityBlockerReport
+ * directly and are unaffected.
+ */
+export const getStaffNavCounts = unstable_cache(
+  computeStaffNavCounts,
+  ["staff-nav-counts"],
+  { revalidate: 30, tags: ["staff-nav-counts"] },
+)
