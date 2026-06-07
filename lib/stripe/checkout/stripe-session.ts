@@ -17,6 +17,7 @@ import {
 
 import { createLogger } from "@/lib/observability/logger"
 
+import { reportCheckoutSessionFailure } from "../checkout-error-alarm"
 import { stripe } from "../client"
 import { inferStripeLineItemFailureRole, stripePriceErrorUserMessage } from "../line-item-error"
 import { buildPaymentIntentMetadata } from "../payment-integrity"
@@ -188,14 +189,15 @@ export async function createStripeSessionWithRollback(args: {
       })
       .eq("id", intakeId)
 
-    logger.error("Stripe checkout session creation failed", {
-      error: errorMessage,
+    // Escalate to Sentry. "No such price" is a config catastrophe (every checkout
+    // for that tier fails until the env is fixed) and previously fired no alarm.
+    const { isMisconfiguredPrice } = await reportCheckoutSessionFailure(stripeError, {
       intakeId,
       category,
       failedPriceRole,
     })
 
-    if (errorMessage.includes("No such price")) {
+    if (isMisconfiguredPrice) {
       return stepFail(stripePriceErrorUserMessage(failedPriceRole))
     }
     return stepFail("Payment system error. Please try again or contact support if the issue persists.")

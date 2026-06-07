@@ -31,6 +31,7 @@ import { validateMedCertPayload } from "@/lib/validation/med-cert-schema"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 import type { ServiceCategory } from "@/types/services"
 
+import { reportCheckoutSessionFailure } from "./checkout-error-alarm"
 import { getAmountCentsForRequest, getOptionalStripePriceEnv, getPriceIdForRequest, stripe } from "./client"
 import { shouldReuseGuestProfileForCheckout } from "./guest-profile-dedupe"
 import { inferStripeLineItemFailureRole, stripePriceErrorUserMessage } from "./line-item-error"
@@ -840,22 +841,25 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       const errorMessage = stripeError instanceof Error ? stripeError.message : String(stripeError)
       const failedPriceRole = inferStripeLineItemFailureRole(errorMessage, lineItems)
       await markGuestCheckoutFailed(supabase, intake.id, errorMessage)
-      logger.error("Stripe checkout session creation failed", { 
-        error: errorMessage, 
+
+      // Escalate to Sentry. "No such price" is a config catastrophe (every guest
+      // checkout for that tier fails until the env is fixed) and previously fired
+      // no alarm — logger.error only reaches Sentry when given an Error object.
+      const { isMisconfiguredPrice } = await reportCheckoutSessionFailure(stripeError, {
         intakeId: intake.id,
         category: input.category,
         failedPriceRole,
       })
 
-      if (errorMessage.includes("No such price")) {
-        return { 
-          success: false, 
+      if (isMisconfiguredPrice) {
+        return {
+          success: false,
           error: stripePriceErrorUserMessage(failedPriceRole),
         }
       }
-      return { 
-        success: false, 
-        error: "Payment system error. Please try again or contact support if the issue persists." 
+      return {
+        success: false,
+        error: "Payment system error. Please try again or contact support if the issue persists.",
       }
     }
 
