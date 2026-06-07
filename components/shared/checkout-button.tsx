@@ -19,6 +19,14 @@ export interface CheckoutButtonProps {
   onClick: () => void
   isLoading?: boolean
   disabled?: boolean
+  /**
+   * Soft-disabled: keeps the button clickable (so onClick can scroll to / focus
+   * the blocker and announce why) while signalling "not ready" to assistive tech
+   * and dimming it. Use instead of `disabled` when a tap should DO something
+   * (e.g. scroll to an unticked consent box) rather than be inert.
+   */
+  ariaDisabled?: boolean
+  ariaDescribedby?: string
   price?: string
   label?: string
   loadingLabel?: string
@@ -34,6 +42,8 @@ export const CheckoutButton = forwardRef<HTMLButtonElement, CheckoutButtonProps>
       onClick,
       isLoading = false,
       disabled = false,
+      ariaDisabled,
+      ariaDescribedby,
       price,
       label = "Continue to payment",
       loadingLabel = "Processing...",
@@ -84,12 +94,15 @@ export const CheckoutButton = forwardRef<HTMLButtonElement, CheckoutButtonProps>
           type="button"
           onClick={onClick}
           disabled={isDisabled}
+          aria-disabled={ariaDisabled}
+          aria-describedby={ariaDescribedby}
           className={cn(
             "w-full group relative overflow-hidden rounded-2xl p-[2px]",
             "bg-linear-to-r from-primary via-primary/80 to-primary",
             "hover:shadow-lg hover:shadow-primary/30",
             "transition-[transform,box-shadow] duration-300",
             "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none",
+            ariaDisabled && "opacity-60 hover:shadow-none",
             className
           )}
         >

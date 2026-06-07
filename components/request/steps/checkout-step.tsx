@@ -7,7 +7,7 @@
 
 import { motion } from "framer-motion"
 import { Check, Clock, Lock, MessageSquare, RefreshCw, ShieldCheck, Smartphone, UserX } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
 import { PaymentLogos } from "@/components/checkout/payment-logos"
@@ -71,6 +71,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
   const [consentGiven, setConsentGiven] = useState(false)
   // Express Review defaults OFF - patient opts in consciously
   const [isPriority, setIsPriority] = useState(false)
+  const consentRef = useRef<HTMLDivElement>(null)
 
   const duration = answers.duration as string | undefined
   const consultSubtype = answers.consultSubtype as string | undefined
@@ -97,6 +98,22 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
   }
 
   const canCheckout = consentGiven
+
+  // When the patient taps Pay without ticking consent, don't sit on a dead
+  // greyed button (especially the mobile sticky one) — scroll the consent box
+  // into view, focus it, and let the aria-live hint explain what's needed.
+  const handleDisabledCheckout = () => {
+    consentRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+    consentRef.current?.querySelector("button")?.focus()
+  }
+
+  const handlePayClick = () => {
+    if (!canCheckout) {
+      handleDisabledCheckout()
+      return
+    }
+    void handleCheckout()
+  }
 
   const handleCheckout = async () => {
     if (!canCheckout) return
@@ -310,7 +327,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
       )}
 
       {/* Single combined consent - Checkbox (not Switch) for legal acknowledgment semantics */}
-      <div>
+      <div ref={consentRef}>
         <label
           htmlFor="consent-checkbox"
           className={`w-full p-3.5 rounded-xl border-2 text-left transition-[background-color,border-color] duration-200 flex items-start gap-3 cursor-pointer ${
@@ -386,38 +403,38 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
       {/* Checkout button - sticky on mobile, inline on desktop */}
       <div className="fixed bottom-0 left-0 right-0 z-30 bg-background border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:static sm:bg-transparent sm:border-0 sm:p-0 sm:z-auto">
         <div className="max-w-lg mx-auto space-y-2">
-          {/* Time-bound guarantee - sits directly above the pay button */}
-          {!isMedCertCheckout && (
-            <div className="flex justify-center pb-1">
-              <GuaranteeBadge size="md" />
-            </div>
+          {/* Refund guarantee pill - sits directly above the pay button. Shown
+              for every service incl. med-cert (highest volume, most price-
+              sensitive): the refund-on-decline promise is the strongest
+              objection-killer at the pay moment. */}
+          <div className="flex justify-center pb-1">
+            <GuaranteeBadge size="md" />
+          </div>
+
+          {!canCheckout && (
+            <p id="checkout-consent-hint" className="text-center text-xs text-warning" aria-live="polite">
+              Tick the box above to pay
+            </p>
           )}
 
           <CheckoutButton
-            onClick={handleCheckout}
+            onClick={handlePayClick}
             isLoading={isProcessing}
-            disabled={!canCheckout}
+            disabled={isProcessing}
+            ariaDisabled={!canCheckout}
+            ariaDescribedby={!canCheckout ? "checkout-consent-hint" : undefined}
             price={`$${(price + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)).toFixed(2)}`}
             label="Pay"
             loadingLabel="Processing..."
             variant="prominent"
           />
 
-          {/* Refund guarantee - full on doctor decline */}
-          {!isMedCertCheckout && (
-            <div className="flex items-center justify-center gap-2 text-xs text-primary">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span className="font-medium">Full refund if the doctor declines</span>
-            </div>
-          )}
-
-          {/* Stripe + payment method logos */}
-          {!isMedCertCheckout && (
-            <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-              <Lock className="h-3 w-3 shrink-0" aria-hidden="true" />
-              <PaymentLogos />
-            </div>
-          )}
+          {/* Stripe + payment method logos - payment trust at the pay moment,
+              shown for every service. */}
+          <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+            <Lock className="h-3 w-3 shrink-0" aria-hidden="true" />
+            <PaymentLogos />
+          </div>
         </div>
       </div>
 
