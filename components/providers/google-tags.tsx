@@ -5,24 +5,11 @@ import { useEffect, useState } from "react"
 
 import { GOOGLE_ADS_ID, GOOGLE_ANALYTICS_ID } from "@/lib/analytics/google-tag-ids"
 import { onFirstInteraction } from "@/lib/browser/first-interaction"
+import { isPostConversionPath } from "@/lib/browser/post-conversion-path"
 
 // Only load Google tags on Vercel production - skip preview deployments and local dev.
 // NEXT_PUBLIC_VERCEL_ENV is set automatically by Vercel: 'production' | 'preview' | 'development'
 const IS_PROD = process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-
-// Post-conversion paths where the purchase fire MUST land before the user
-// leaves the tab. The first-interaction protection exists for acquisition
-// pages and /request; it actively breaks measurement here.
-const POST_CONVERSION_PATH_PREFIXES = [
-  "/patient/intakes/success",
-  "/auth/complete-account",
-] as const
-
-function isPostConversionPath() {
-  if (typeof window === "undefined") return false
-  const path = window.location.pathname
-  return POST_CONVERSION_PATH_PREFIXES.some((prefix) => path.startsWith(prefix))
-}
 
 const CONSENT_INIT = `
 window.dataLayer=window.dataLayer||[];
