@@ -62,11 +62,11 @@ export async function handleChargeRefunded(ctx: WebhookContext): Promise<Handler
       ? new Date(latestRefund.created * 1000).toISOString()
       : timestamp
     const refundStripeId = latestRefund?.id ?? null
-    // Clamp refund_amount_cents to the platform's stored amount_cents to prevent
-    // Stripe-dashboard over-refunds from corrupting the ledger row. charge.amount
-    // is the total Stripe charged; intakes.amount_cents is the canonical platform amount.
-    // Using Math.min(charge.amount_refunded, charge.amount) is a safe floor — a true
-    // over-refund against intakes.amount_cents is caught by the Q4 operational invariant.
+    // Record the amount actually refunded, clamped to the charge as a safe floor
+    // against malformed Stripe payloads. intakes.amount_cents is reconciled to
+    // session.amount_total on the paid transition (see checkout-session-completed.ts),
+    // so it now equals charge.amount — the historical list-price drift this clamp
+    // guarded against no longer exists for orders paid after that change.
     const refundAmountCents = Math.min(charge.amount_refunded, charge.amount)
     const intakeRefundUpdate = {
       payment_status: isFullRefund ? "refunded" : "partially_refunded",
