@@ -30,6 +30,7 @@ import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { validateDOB, validateEmail, validateName, validatePhone } from "@/lib/request/validation"
 import { cn } from "@/lib/utils"
 import { suggestStateFromPostcode, validatePostcodeState } from "@/lib/validation/australian-address"
+import { detectEmailTypo } from "@/lib/validation/email-typo"
 import { formatIHI, validateIHI } from "@/lib/validation/ihi"
 import { formatMedicareNumber, validateMedicareNumber } from "@/lib/validation/medicare"
 
@@ -105,6 +106,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   const posthog = usePostHog()
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const [emailSuggestion, setEmailSuggestion] = useState<string | null>(null)
   // Field labels to surface in the top-of-step validation summary when a
   // Continue attempt fails (otherwise the only feedback is a silent scroll-to-
   // field, which reads as "nothing happened" — esp. on mobile where the desktop
@@ -333,6 +335,23 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   const handleBlur = (field: string, value: string | undefined) => {
     setTouched(prev => ({ ...prev, [field]: true }))
     validateField(field, value)
+  }
+
+  // gamil.com / gmial.com etc. are structurally valid emails, so validateEmail
+  // passes and the patient's certificate silently goes nowhere. Suggest the
+  // likely correction on blur (non-blocking — they can keep their address).
+  const handleEmailBlur = () => {
+    handleBlur('email', email)
+    const result = detectEmailTypo(email || "")
+    setEmailSuggestion(result.hasTypo ? result.suggested : null)
+  }
+
+  const acceptEmailSuggestion = () => {
+    if (!emailSuggestion) return
+    setIdentity({ email: emailSuggestion })
+    setTouched(prev => ({ ...prev, email: true }))
+    validateField('email', emailSuggestion)
+    setEmailSuggestion(null)
   }
 
   const handleDateOfBirthChange = (value: string) => {
@@ -601,8 +620,11 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         <Input
           type="email"
           value={email}
-          onChange={(e) => setIdentity({ email: e.target.value })}
-          onBlur={() => handleBlur('email', email)}
+          onChange={(e) => {
+            setIdentity({ email: e.target.value })
+            if (emailSuggestion) setEmailSuggestion(null)
+          }}
+          onBlur={handleEmailBlur}
           placeholder="jane@example.com"
           autoComplete="email"
           inputMode="email"
@@ -610,6 +632,23 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           data-error={touched.email && errors.email ? "true" : undefined}
           className={cn("h-11", touched.email && errors.email && "border-destructive")}
         />
+        {emailSuggestion && !errors.email && (
+          <p className="text-xs text-muted-foreground mt-1" aria-live="polite">
+            Did you mean{" "}
+            <button
+              type="button"
+              // preventDefault on mousedown keeps focus on the active field so it
+              // does not blur + re-render between mousedown and mouseup, which
+              // would cancel the click and swallow the correction.
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={acceptEmailSuggestion}
+              className="font-medium text-primary underline underline-offset-2 hover:opacity-80"
+            >
+              {emailSuggestion}
+            </button>
+            ?
+          </p>
+        )}
       </FormField>
 
       {/* Date of birth */}
