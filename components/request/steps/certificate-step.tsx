@@ -15,7 +15,6 @@
 import { ArrowRight, Briefcase, GraduationCap, Heart } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 
-import { EarlyRecoveryEmailCapture } from "@/components/request/early-recovery-email-capture"
 import { RequestButton } from "@/components/request/request-button"
 import { requestCx } from "@/components/request/request-cx"
 import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
@@ -135,7 +134,7 @@ function summaryLabel(offset: number): string {
 
 // ─── Component ────────────────────────────────────────────────────────────
 
-export default function CertificateStep({ serviceType, onNext, initialDuration, hideIntro = false }: CertificateStepProps) {
+export default function CertificateStep({ onNext, initialDuration, hideIntro = false }: CertificateStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
   const initialUrlDurationRef = useRef<Duration | null>(parseDuration(initialDuration))
@@ -503,12 +502,9 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
         Need more than 3 days off? Please visit your GP for an extended certificate.
       </p>
 
-      <EarlyRecoveryEmailCapture
-        serviceType={serviceType}
-        certType={certType}
-        selectedDays={selectedDays}
-        startOffset={startOffset}
-      />
+      <p className="px-1 text-xs text-muted-foreground">
+        Your details save automatically if you leave.
+      </p>
 
       {/* Continue */}
       <RequestButton data-intake-primary-action="true" data-intake-primary-label="Continue" onClick={handleNext} className="w-full h-12 max-sm:hidden" disabled={!canContinue}>

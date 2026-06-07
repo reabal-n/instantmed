@@ -362,7 +362,9 @@ export function PatientDetailClient({
   }> = [
     {
       label: "Identity",
-      value: snapshot.completenessTone === "complete" ? "Details complete" : snapshot.completenessLabel,
+      value: snapshot.completenessTone === "complete"
+        ? "Details complete"
+        : `${snapshot.missingCriticalFields.length} ${snapshot.missingCriticalFields.length === 1 ? "field" : "fields"} missing`,
       tone: snapshot.completenessTone === "complete"
         ? "muted"
         : snapshot.completenessTone === "partial"
@@ -373,7 +375,7 @@ export function PatientDetailClient({
     {
       label: "Prescribing",
       value: hasPrescribingIdentityBlocker
-        ? `Verify identity: ${missingPrescribingIdentityFields.join(", ")}`
+        ? "Verify identity"
         : patient.parchment_patient_id ? "Ready" : parchmentStatusLabel,
       tone: hasPrescribingIdentityBlocker ? "warning" : patient.parchment_patient_id ? "muted" : parchmentStatusTone === "warning" ? "warning" : "destructive",
       icon: hasPrescribingIdentityBlocker ? AlertTriangle : patient.parchment_patient_id ? CheckCircle : Pill,
@@ -416,7 +418,9 @@ export function PatientDetailClient({
                 size="sm"
                 className={snapshot.completenessTone === "complete" ? "text-muted-foreground" : undefined}
               >
-                {snapshot.completenessTone === "complete" ? "Details complete" : snapshot.completenessLabel}
+                {snapshot.completenessTone === "complete"
+                  ? "Details complete"
+                  : `Identity incomplete · ${snapshot.missingCriticalFields.length} ${snapshot.missingCriticalFields.length === 1 ? "field" : "fields"}`}
               </Badge>
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -572,14 +576,6 @@ export function PatientDetailClient({
                 Merge
               </Button>
             ) : null}
-          </div>
-        ) : null}
-        {snapshot.missingCriticalFields.length > 0 ? (
-          <div className="border-b border-warning-border bg-warning-light/45 px-4 py-2 text-xs text-warning">
-            <span className="inline-flex items-start gap-2">
-              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-              {snapshot.completenessLabel}. Check the active intake before relying on this profile.
-            </span>
           </div>
         ) : null}
         {/*

@@ -100,7 +100,10 @@ function SignInForm() {
       if (error.message?.includes('rate') || error.status === 429) {
         setErrorMessage('Too many attempts. Please wait a few minutes.')
       } else if (error.message?.includes('Invalid login credentials')) {
-        setErrorMessage('Incorrect email or password.')
+        // Many accounts are Google-/link-only and have no password, so a flat
+        // "incorrect password" dead-ends them. Point at the other options without
+        // confirming whether the account exists (avoids account enumeration).
+        setErrorMessage('Incorrect email or password. If you signed up with Google or a sign-in link, use one of the options below.')
       } else {
         setErrorMessage(error.message || 'Something went wrong. Please try again.')
       }

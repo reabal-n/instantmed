@@ -13,7 +13,6 @@
 import { ArrowRight, Plus, ShieldAlert, X } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 
-import { EarlyRecoveryEmailCapture } from "@/components/request/early-recovery-email-capture"
 import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
 import type { SelectedPBSProduct } from "@/components/shared/medication-search"
 import { MedicationSearch } from "@/components/shared/medication-search"
@@ -56,7 +55,7 @@ interface MedicationEntry {
   pbsCode?: string
 }
 
-export default function MedicationStep({ serviceType, onNext }: MedicationStepProps) {
+export default function MedicationStep({ onNext }: MedicationStepProps) {
   const { answers, setAnswers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
 
@@ -377,12 +376,9 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
         </Button>
       )}
 
-      <EarlyRecoveryEmailCapture
-        serviceType={serviceType}
-        selectedDays={null}
-        startOffset={null}
-        medicationCount={activeMedications.length}
-      />
+      <p className="px-1 text-xs text-muted-foreground">
+        Your details save automatically if you leave.
+      </p>
 
       {/* Continue button */}
       <Button

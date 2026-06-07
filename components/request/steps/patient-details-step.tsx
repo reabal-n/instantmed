@@ -105,6 +105,11 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   const posthog = usePostHog()
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
+  // Field labels to surface in the top-of-step validation summary when a
+  // Continue attempt fails (otherwise the only feedback is a silent scroll-to-
+  // field, which reads as "nothing happened" — esp. on mobile where the desktop
+  // button is hidden and the sticky CTA mirrors it).
+  const [validationSummary, setValidationSummary] = useState<string[]>([])
   const [showAutofillBanner, setShowAutofillBanner] = useState(false)
   const [savedData, setSavedData] = useState<ReturnType<typeof getSavedIdentity>>(undefined)
   const [dobInput, setDobInput] = useState(() => formatIsoDateToAu(dob))
@@ -435,7 +440,19 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       sex: true,
     })
     const isValid = Object.keys(newErrors).length === 0
-    if (!isValid) focusFirstError()
+    if (!isValid) {
+      const FIELD_LABELS: Record<string, string> = {
+        firstName: "First name", lastName: "Last name", email: "Email",
+        dob: "Date of birth", phone: "Phone", sex: "Sex",
+        medicareNumber: "Medicare number", medicareIrn: "Medicare IRN",
+        ihiNumber: "IHI", addressLine1: "Street address", suburb: "Suburb",
+        state: "State", postcode: "Postcode",
+      }
+      setValidationSummary(Object.keys(newErrors).map((k) => FIELD_LABELS[k] ?? k))
+      focusFirstError()
+    } else {
+      setValidationSummary([])
+    }
     return isValid
   }
 
@@ -492,6 +509,20 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         title="Your details"
         description={needsPrescriptionDetails ? "Needed for your medical record, eScript, and identity match." : "Needed for your medical record and result delivery."}
       />
+
+      {/* Top-of-step validation summary — gives a visible, screen-reader-announced
+          reason when a Continue attempt is blocked, instead of only scrolling to
+          the first invalid field. */}
+      {validationSummary.length > 0 ? (
+        <Alert variant="destructive" role="alert" aria-live="assertive">
+          <AlertDescription>
+            {validationSummary.length === 1
+              ? "Add or fix this detail to continue: "
+              : `Add or fix these ${validationSummary.length} details to continue: `}
+            {validationSummary.join(", ")}.
+          </AlertDescription>
+        </Alert>
+      ) : null}
 
       {/* Autofill banner */}
       {showAutofillBanner && savedData && (
