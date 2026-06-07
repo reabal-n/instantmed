@@ -106,32 +106,37 @@ export async function getPrescribingIdentityBlockerReport(
     return buildPrescribingIdentityBlockerReport([])
   }
 
-  const rows: PrescribingIdentityIntakeRow[] = []
+  // Decrypt the up-to-100 rows CONCURRENTLY rather than serially. The serial
+  // `for...await` made the dashboard layout block first paint while it decrypted
+  // every intake's answers one at a time just to compute a single nav badge.
+  const rows = (
+    await Promise.all(
+      (data as PrescribingIdentityDbRow[]).map(async (row): Promise<PrescribingIdentityIntakeRow | null> => {
+        const patient = firstRelated(row.patient)
+        if (!patient) return null
 
-  for (const row of data as PrescribingIdentityDbRow[]) {
-    const patient = firstRelated(row.patient)
-    if (!patient) continue
+        const answerRow = firstRelated(row.intake_answers)
+        const answers = answerRow
+          ? await readAnswers({
+              answers: answerRow.answers,
+              answers_enc: answerRow.answers_encrypted,
+            })
+          : null
 
-    const answerRow = firstRelated(row.intake_answers)
-    const answers = answerRow
-      ? await readAnswers({
-          answers: answerRow.answers,
-          answers_enc: answerRow.answers_encrypted,
-        })
-      : null
-
-    rows.push({
-      id: row.id,
-      reference_number: row.reference_number,
-      status: row.status,
-      category: row.category,
-      subtype: row.subtype,
-      created_at: row.created_at,
-      paid_at: row.paid_at,
-      patient: asProfile(decryptProfilePhi(patient)),
-      answers,
-    })
-  }
+        return {
+          id: row.id,
+          reference_number: row.reference_number,
+          status: row.status,
+          category: row.category,
+          subtype: row.subtype,
+          created_at: row.created_at,
+          paid_at: row.paid_at,
+          patient: asProfile(decryptProfilePhi(patient)),
+          answers,
+        }
+      }),
+    )
+  ).filter((r): r is PrescribingIdentityIntakeRow => r !== null)
 
   return buildPrescribingIdentityBlockerReport(rows)
 }

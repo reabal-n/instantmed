@@ -779,9 +779,28 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
         </Button>
 
         {error && (
-          <Alert variant="destructive" role="alert">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
+          error.toLowerCase().includes("account already exists") ? (
+            // Mirror checkout-step.tsx: an account-owning email is intentionally
+            // bounced to sign-in; without the inline CTA this reads as
+            // "nothing happened". Keep the matcher byte-identical to that surface.
+            <Alert variant="destructive" role="alert">
+              <AlertDescription className="space-y-2">
+                <p>An account already exists with this email address.</p>
+                <p>
+                  <a
+                    href={`/sign-in?redirect_url=${encodeURIComponent('/request' + window.location.search)}`}
+                    className="underline font-medium hover:opacity-80"
+                  >
+                    Sign in to continue →
+                  </a>
+                </p>
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <Alert variant="destructive" role="alert">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )
         )}
 
         <div className="flex flex-col items-center gap-3">
