@@ -3,6 +3,7 @@
 import { type ComponentType, useEffect, useState } from "react"
 
 import { onFirstInteraction } from "@/lib/browser/first-interaction"
+import { isPostConversionPath } from "@/lib/browser/post-conversion-path"
 
 type ToasterProps = {
   position?: "top-center"
@@ -39,16 +40,6 @@ function shouldLoadVercelAnalytics() {
   return hostname !== "localhost" && hostname !== "127.0.0.1" && hostname !== "::1"
 }
 
-/**
- * Post-conversion pages where measurement matters more than mobile LCP. We
- * cannot wait for first-interaction here because a user who lands and
- * immediately leaves still needs to fire the gtag purchase event.
- */
-const POST_CONVERSION_PATH_PREFIXES = [
-  "/patient/intakes/success",
-  "/auth/complete-account",
-] as const
-
 const AUTHENTICATED_APP_PATH_PREFIXES = [
   "/account",
   "/admin",
@@ -56,12 +47,6 @@ const AUTHENTICATED_APP_PATH_PREFIXES = [
   "/doctor",
   "/patient",
 ] as const
-
-function isPostConversionPath() {
-  if (typeof window === "undefined") return false
-  const path = window.location.pathname
-  return POST_CONVERSION_PATH_PREFIXES.some((prefix) => path.startsWith(prefix))
-}
 
 function isAuthenticatedAppPath() {
   if (typeof window === "undefined") return false

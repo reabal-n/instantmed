@@ -3,7 +3,23 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import { onFirstInteraction } from "@/lib/browser/first-interaction";
+import { isPostConversionPath } from "@/lib/browser/post-conversion-path";
 import { scrubSentryBreadcrumb, scrubSentryEvent } from "@/lib/observability/scrub-phi";
+
+/**
+ * Start telemetry immediately on post-conversion pages, otherwise defer to first
+ * interaction (LCP/TBT protection on acquisition + /request). Confirmation pages
+ * are where `purchase_completed` and the gtag purchase fire — a user who lands
+ * and bounces without clicking must still be measured. This is the fix for the
+ * client-pixel decay where PostHog never initialized on the success page.
+ */
+function startTelemetryWhenReady(callback: () => void) {
+  if (isPostConversionPath()) {
+    callback();
+  } else {
+    onFirstInteraction(callback);
+  }
+}
 
 // Sentry module reference — populated after lazy load.
 // Exported as a function ref so Next.js router can capture transitions even if
@@ -104,14 +120,15 @@ async function loadAndInitSentry() {
 }
 
 // Gate telemetry behind first user interaction. Passive bounces should not pay
-// the parse/compile cost for Sentry, PostHog, or session replay on /request.
-onFirstInteraction(() => loadAndInitSentry());
+// the parse/compile cost for Sentry, PostHog, or session replay on /request —
+// except on post-conversion pages, where measurement must not wait for a click.
+startTelemetryWhenReady(() => loadAndInitSentry());
 
 // PostHog Analytics initialization (single source of truth - do not duplicate in provider)
 // Dynamic import to avoid module-level crash when posthog-js can't initialize
 if (!isPlaywrightMode && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
   const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-  onFirstInteraction(() => {
+  startTelemetryWhenReady(() => {
   import("posthog-js").then(({ default: posthog }) => {
     posthog.init(posthogKey, {
       api_host: "/ingest",
