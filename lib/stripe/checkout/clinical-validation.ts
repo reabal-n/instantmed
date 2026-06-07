@@ -65,10 +65,21 @@ export async function runClinicalValidation(
   }
 
   if (input.category === "consult") {
-    const medCheck = await isMedicationBlocked(getMedicationBlocklistCandidate(input.answers))
+    const medicationBlocklistCandidate = getMedicationBlocklistCandidate(input.answers)
+    const medCheck = await isMedicationBlocked(medicationBlocklistCandidate)
     if (medCheck.blocked) {
       return stepFail(
         `This medication cannot be prescribed through our online service for compliance reasons. Please consult your regular doctor. [${SERVICE_DISABLED_ERRORS.MEDICATION_BLOCKED}]`,
+      )
+    }
+
+    // Hard-block Schedule 8 / controlled substances named in free-text consult
+    // details (the candidate already reads consult_details). The repeat-script
+    // branch above does the same; consult must not be a back-channel around it.
+    if (medicationBlocklistCandidate && isControlledSubstance(medicationBlocklistCandidate)) {
+      logger.warn("Controlled substance blocked at checkout", { category: input.category })
+      return stepFail(
+        "This medication cannot be prescribed through our online service. Controlled substances require an in-person consultation with your regular GP.",
       )
     }
   }

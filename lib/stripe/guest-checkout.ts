@@ -310,11 +310,22 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
     // Check blocked medication terms in consult details as a defense-in-depth policy gate.
     if (input.category === "consult") {
-      const medCheck = await isMedicationBlocked(getMedicationBlocklistCandidate(input.answers))
+      const medicationBlocklistCandidate = getMedicationBlocklistCandidate(input.answers)
+      const medCheck = await isMedicationBlocked(medicationBlocklistCandidate)
       if (medCheck.blocked) {
         return {
           success: false,
           error: `This medication cannot be prescribed through our online service for compliance reasons. Please consult your regular doctor. [${SERVICE_DISABLED_ERRORS.MEDICATION_BLOCKED}]`,
+        }
+      }
+
+      // CLINICAL AUDIT: Hard-block Schedule 8 / controlled substances named in
+      // free-text consult details (same regex net as the repeat-script branch).
+      if (medicationBlocklistCandidate && isControlledSubstance(medicationBlocklistCandidate)) {
+        logger.warn("Controlled substance blocked at guest checkout", { category: input.category })
+        return {
+          success: false,
+          error: "This medication cannot be prescribed through our online service. Controlled substances require an in-person consultation with your regular GP.",
         }
       }
     }

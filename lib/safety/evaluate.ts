@@ -1,3 +1,5 @@
+import { isControlledSubstance } from '@/lib/clinical/intake-validation'
+
 import { getSafetyConfig } from './rules'
 import type {
   AdditionalInfoItem,
@@ -119,6 +121,18 @@ function getDerivedValue(
         return calculateAge(val1)
       }
       return null
+
+    case 'is_controlled':
+      // True if ANY listed answer field names a Schedule 8 / controlled substance.
+      // Returns a definite false (not null) when no field matches so the rule
+      // simply does not fire — missing medication fields never produce a block.
+      for (const field of derivedFrom.fields) {
+        const candidate = answers[field]
+        if (typeof candidate === 'string' && candidate.trim() && isControlledSubstance(candidate)) {
+          return true
+        }
+      }
+      return false
 
     default:
       return null

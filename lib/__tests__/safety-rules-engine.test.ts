@@ -298,6 +298,29 @@ describe("Safety Rules Engine", () => {
       expect(result.outcome).toBe("ALLOW")
     })
 
+    it("should DECLINE a controlled substance (S8) request — defense-in-depth net", () => {
+      const result = evaluateSafety("prescription", {
+        emergency_symptoms: [],
+        prescriptionHistory: "repeat",
+        medicationName: "Diazepam 5mg",
+      })
+      expect(result.outcome).toBe("DECLINE")
+      expect(
+        result.triggeredRules.some((r) => r.ruleId === "rx_controlled_substance")
+      ).toBe(true)
+    })
+
+    it("should NOT trigger the controlled-substance rule for a non-controlled medication", () => {
+      const result = evaluateSafety("prescription", {
+        emergency_symptoms: [],
+        prescriptionHistory: "repeat",
+        medicationName: "Rosuvastatin 10mg",
+      })
+      expect(
+        result.triggeredRules.some((r) => r.ruleId === "rx_controlled_substance")
+      ).toBe(false)
+    })
+
     it("should REQUIRES_CALL for new chronic medication", () => {
       const result = evaluateSafety("prescription", {
         emergency_symptoms: [],
