@@ -740,7 +740,11 @@ describe("Auto-Approval Pipeline Helpers", () => {
       expect(actual.isDeterministicFailure(["patient_under_18"])).toBe(true)
       expect(actual.isDeterministicFailure(["mental_health:depression"])).toBe(true)
       expect(actual.isDeterministicFailure(["injury:fracture"])).toBe(true)
-      expect(actual.isDeterministicFailure(["draft_requires_review:flagged"])).toBe(true)
+      // high_stakes_use_case is deterministic — the production incident was caused
+      // by it being misclassified as transient and burning all 10 retries.
+      expect(actual.isDeterministicFailure(["high_stakes_use_case: exam, exams"])).toBe(true)
+      expect(actual.isDeterministicFailure(["red_flags: suicidal_ideation"])).toBe(true)
+      expect(actual.isDeterministicFailure(["duration_too_long: 5 days (max 3)"])).toBe(true)
     })
 
     it("does not classify transient failures as deterministic", async () => {

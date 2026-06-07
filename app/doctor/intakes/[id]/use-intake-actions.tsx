@@ -262,15 +262,21 @@ export function useIntakeActions({
   const advanceToNext = useCallback(() => {
     if (nextIntakeId) {
       router.push(buildDoctorIntakeHref(nextIntakeId))
+      // Same route family (intake detail → intake detail): the cached segment can
+      // be stale, so refresh to pull the next case's fresh server data.
+      router.refresh()
     } else {
       try {
         sessionStorage.setItem(DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY, "1")
       } catch {
         // Best effort only. Navigation still works if storage is unavailable.
       }
+      // Cross-route push to the dashboard: the dashboard server component already
+      // fetches fresh data on navigation. The extra router.refresh() here forced a
+      // redundant re-invalidation that re-showed the white dashboard loading
+      // skeleton — a visible flash right after approve. Drop it.
       router.push(STAFF_DASHBOARD_HREF)
     }
-    router.refresh()
   }, [nextIntakeId, router])
 
   // ── Handlers ──

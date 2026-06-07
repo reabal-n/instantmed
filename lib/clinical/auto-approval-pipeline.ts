@@ -562,10 +562,19 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
         hasMedicalReason: Boolean(reviewData.medicalReason),
       })
       trackOutcome("dry_run", "would_approve", { doctor_id: doctor.id })
-      // Transition back: attempting → pending (so it can be picked up again)
-      // Uses CAS guard to ensure we only roll back if still in "attempting"
+      // Transition back: attempting → pending (so it can be picked up again).
+      // Uses CAS guard to ensure we only roll back if still in "attempting".
+      // Clear the system claim too — dry-run still calls claimForProcessing, so
+      // without this every dry-run cycle re-claims and leaves the intake showing
+      // a phantom "Auto-approval check is running" lock for as long as dry-run is
+      // enabled (the exact state operators turn dry-run on to observe safely).
       await supabase.from("intakes")
-        .update({ auto_approval_state: "pending", auto_approval_state_updated_at: new Date().toISOString() })
+        .update({
+          auto_approval_state: "pending",
+          auto_approval_state_updated_at: new Date().toISOString(),
+          claimed_by: null,
+          claimed_at: null,
+        })
         .eq("id", intakeId)
         .eq("auto_approval_state", "attempting")
       return { success: true, autoApproved: false, reason: "Dry run - would have approved" }
