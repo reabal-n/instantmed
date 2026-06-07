@@ -52,6 +52,8 @@ describe("auto-approval-state transitions", () => {
     // guard passes without a separate claim_intake_for_review RPC call.
     expect(updateArg.auto_approval_state).toBe("attempting")
     expect(updateArg.claimed_by).toBe(SYSTEM_AUTO_APPROVE_ID)
+    // claimed_at MUST be set so the stale-claim release cron + 30-min takeover math work.
+    expect(updateArg.claimed_at).toBeTruthy()
     expect(chain.in).toHaveBeenCalled() // in("auto_approval_state", ["pending", "failed_retrying"])
   })
 
@@ -85,6 +87,9 @@ describe("auto-approval-state transitions", () => {
     const updateArg = (chain.update as ReturnType<typeof vi.fn>).mock.calls[0][0]
     expect(updateArg.auto_approval_state).toBe("needs_doctor")
     expect(updateArg.auto_approval_state_reason).toBe("emergency: chest pain")
+    // Handoff must release the system claim so no phantom lock remains.
+    expect(updateArg.claimed_by).toBeNull()
+    expect(updateArg.claimed_at).toBeNull()
   })
 
   it("markFailedRetrying transitions attempting → failed_retrying and increments attempts", async () => {
@@ -95,6 +100,9 @@ describe("auto-approval-state transitions", () => {
     expect(result).toBe(true)
     const updateArg = (chain.update as ReturnType<typeof vi.fn>).mock.calls[0][0]
     expect(updateArg.auto_approval_state).toBe("failed_retrying")
+    // Release the claim between attempts so no stale system lock lingers.
+    expect(updateArg.claimed_by).toBeNull()
+    expect(updateArg.claimed_at).toBeNull()
   })
 
   it("markDraftsReady transitions awaiting_drafts → pending", async () => {
@@ -126,6 +134,8 @@ describe("auto-approval-state transitions", () => {
     const updateArg = (chain.update as ReturnType<typeof vi.fn>).mock.calls[0][0]
     expect(updateArg.auto_approval_state).toBe("failed_retrying")
     expect(updateArg.auto_approval_state_reason).toBe("timeout_recovery")
+    expect(updateArg.claimed_by).toBeNull()
+    expect(updateArg.claimed_at).toBeNull()
   })
 
   it("markIneligible routes deterministic failures to needs_doctor", async () => {
@@ -136,6 +146,25 @@ describe("auto-approval-state transitions", () => {
     expect(result).toBe(true)
     const updateArg = (chain.update as ReturnType<typeof vi.fn>).mock.calls[0][0]
     expect(updateArg.auto_approval_state).toBe("needs_doctor")
+  })
+
+  it("markIneligible routes high-stakes use cases straight to needs_doctor (no retry loop)", async () => {
+    const { from, chain } = mockSupabase({ data: [{ id: INTAKE_ID }], error: null })
+    const { markIneligible } = await import("@/lib/clinical/auto-approval-state")
+    // Regression for the production incident: high-stakes (exam/forklift/driving)
+    // is deterministic and must NOT burn all 10 retries before reaching a doctor.
+    const result = await markIneligible(
+      { from } as never,
+      INTAKE_ID,
+      "Disqualified: high_stakes_use_case: exam, exams",
+      ["high_stakes_use_case: exam, exams"],
+      0,
+    )
+
+    expect(result).toBe(true)
+    const updateArg = (chain.update as ReturnType<typeof vi.fn>).mock.calls[0][0]
+    expect(updateArg.auto_approval_state).toBe("needs_doctor")
+    expect(updateArg.auto_approval_state_reason).not.toContain("max_retries_exhausted")
   })
 
   it("markIneligible routes transient failures under max to failed_retrying", async () => {

@@ -275,7 +275,7 @@ function QueueIdlePanel({
   const showNextUp = filteredCount > 0
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-[linear-gradient(180deg,#FFFFFF_0%,#FFFEFB_100%)] dark:bg-card motion-safe:animate-[fade-in_180ms_ease-out]">
+    <div className="flex h-full min-h-0 flex-col bg-[linear-gradient(180deg,#FBF8F2_0%,#FFFEFB_100%)] dark:bg-card motion-safe:animate-[fade-in_180ms_ease-out]">
       {showNextUp ? (
         <div className="border-b border-border/45 px-5 py-3">
           <p className="text-xs font-medium leading-relaxed text-slate-500 dark:text-muted-foreground">
@@ -563,7 +563,12 @@ export function QueueClient({
 
       const { nextIntake } = removeCompletedIntakeFromQueue(filteredIntakesRef.current, intakeId)
       setIntakes((prev) => removeCompletedIntakeFromQueue(prev, intakeId).remaining)
-      refreshQueue(true)
+      // The row is already gone optimistically and realtime will reconcile the
+      // server state, so use the THROTTLED refresh (not force) here. Forcing a
+      // full server re-render on every approve made clearing several cases in a
+      // row fire a render storm — the visible "flashes several times" on approve.
+      // The 5s throttle coalesces rapid approvals into a single background sync.
+      refreshQueue()
       if (nextIntake) {
         rememberOpenedCase(nextIntake.id)
         setExpandedId(nextIntake.id)
@@ -1144,7 +1149,13 @@ export function QueueClient({
               // for the new case (releases the old lock automatically).
               <div
                 key={expandedId}
-                className="flex h-full min-h-0 flex-col motion-safe:animate-[review-pane-in_280ms_cubic-bezier(0.16,1,0.3,1)]"
+                // No fade-from-transparent entrance here: the keyed remount on
+                // advance replayed `review-pane-in` (opacity:0 → 1) on every
+                // approve, flashing the pane's background through before content
+                // painted. The pane now appears opaque immediately; the cockpit's
+                // own `review-body-in` still gives a gentle content entrance once
+                // data loads. (Fixes the "flashes white several times" on approve.)
+                className="flex h-full min-h-0 flex-col bg-card"
                 data-review-pane-entry
               >
                 <div className="min-h-0 flex-1">

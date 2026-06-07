@@ -674,18 +674,17 @@ export function IntakeReviewPanel({
                   ) : null}
                 </div>
                 {patientVisibleStatus ? (
-                  <div
-                    className="mt-2 max-w-[72ch] rounded-lg border border-border/55 border-l-slate-300 bg-background/75 px-2.5 py-2 pl-3 shadow-sm shadow-primary/[0.025]"
+                  <p
+                    className="mt-2 max-w-[72ch] truncate text-[11px] font-medium text-muted-foreground/80"
                     data-patient-visible-status
                     aria-label="Patient-visible status preview"
+                    title={patientVisibleStatus}
                   >
-                    <p className="text-[11px] font-semibold text-muted-foreground/75">
-                      {patientFirstName ? `What ${patientFirstName} sees right now` : "What the patient sees right now"}
-                    </p>
-                    <p className="mt-1 text-[11px] font-medium leading-relaxed text-muted-foreground">
-                      {patientVisibleStatus}
-                    </p>
-                  </div>
+                    <span className="text-muted-foreground/60">
+                      {patientFirstName ? `${patientFirstName} sees: ` : "Patient sees: "}
+                    </span>
+                    {patientVisibleStatus}
+                  </p>
                 ) : null}
               </div>
               <div className="flex flex-wrap items-center justify-end gap-1.5" aria-label="Patient actions">

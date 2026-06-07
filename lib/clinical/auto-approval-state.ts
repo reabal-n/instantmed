@@ -26,13 +26,36 @@ export type AutoApprovalState =
 
 const MAX_AUTO_APPROVAL_ATTEMPTS = 10
 
-// Prefixes for failures that will never change on retry (patient data doesn't change)
-const DETERMINISTIC_FAILURE_PREFIXES = [
-  "emergency:", "patient_under_18", "wrong_service_type", "service_type_mismatch",
+// Prefixes for failures that will never change on retry (patient data, use-case,
+// duration, and age do not change between cron ticks). A failure matching one of
+// these short-circuits straight to needs_doctor instead of burning the retry
+// budget. EVERY entry here must correspond to a disqualifying flag that
+// `evaluateAutoApprovalEligibility` can actually emit, and every deterministic
+// flag the engine emits must be covered — both directions are pinned by
+// `lib/__tests__/auto-approval-deterministic-routing-contract.test.ts`.
+//
+// Deliberately NOT here (genuinely transient — re-evaluating later can change the
+// verdict): `repeat_request_within_7d:` (the 7-day window slides),
+// `missing_clinical_note_draft` / `draft_not_ready:` (the draft can be generated
+// on a later pass), and the pipeline-level reasons routed directly through
+// markFailedRetrying (no_doctor_available, no_review_data, pipeline_error, etc).
+export const DETERMINISTIC_FAILURE_PREFIXES = [
+  // Clinical / safety hard-blocks — symptom text and risk never change on retry.
+  "emergency:", "red_flags:",
   "mental_health:", "injury:", "chronic:", "pregnancy:",
-  "empty_symptom_text", "backdated_too_far",
+  // High-stakes use cases (exam deferral, fitness-to-drive/operate, court,
+  // workers comp) MUST go straight to a doctor — never loop in the retry queue.
+  "high_stakes_use_case:",
+  // Patient identity / age — a minor stays a minor; a missing/invalid DOB will
+  // not fix itself between ticks. Safest landing is doctor review.
+  "patient_under_18", "patient_dob_missing", "patient_dob_invalid",
+  // Service routing — a non-med-cert never becomes eligible.
+  "service_type_mismatch",
+  // Duration is fixed in the saved answers — same verdict every time.
+  "duration_too_long:", "duration_unknown", "duration_invalid",
+  // Structural — empty symptom text / overlapping cert dates are answer-derived.
+  "empty_symptom_text",
   "overlapping_cert_dates",
-  "draft_requires_review:",
 ]
 
 export function isDeterministicFailure(flags: string[]): boolean {
@@ -127,7 +150,12 @@ export async function claimForProcessing(
     supabase, intakeId,
     ["pending", "failed_retrying"],
     "attempting",
-    { claimed_by: SYSTEM_AUTO_APPROVE_ID },
+    // claimed_at MUST be set alongside claimed_by: release_stale_intake_claims
+    // only releases rows where claimed_at IS NOT NULL, and claim_intake_for_review's
+    // 30-min timeout-takeover math is NULL (never true) when claimed_at is NULL.
+    // Without it, a crashed/abandoned attempt leaves a phantom system lock that no
+    // cron can clear and no doctor can take over without force.
+    { claimed_by: SYSTEM_AUTO_APPROVE_ID, claimed_at: new Date().toISOString() },
   )
 }
 
@@ -176,7 +204,10 @@ export async function markNeedsDoctor(
     supabase, intakeId,
     "attempting",
     "needs_doctor",
-    { auto_approval_state_reason: reason },
+    // Relinquish the system claim on handoff so the doctor surface never shows a
+    // phantom "Auto-approval check is running" lock on a terminal case, and a
+    // doctor can claim it normally (claimed_by IS NULL path).
+    { auto_approval_state_reason: reason, claimed_by: null, claimed_at: null },
   )
 
   if (result) {
@@ -205,7 +236,10 @@ export async function markFailedRetrying(
     supabase, intakeId,
     "attempting",
     "failed_retrying",
-    { auto_approval_state_reason: reason },
+    // Release the claim between attempts. The next cron tick re-claims via
+    // claimForProcessing (CAS keys off auto_approval_state, not claimed_by), so
+    // retries still work — but in the gap the row carries no stale system lock.
+    { auto_approval_state_reason: reason, claimed_by: null, claimed_at: null },
   )
 
   if (result) {
@@ -238,7 +272,9 @@ export async function recoverStale(
     supabase, intakeId,
     "attempting",
     "failed_retrying",
-    { auto_approval_state_reason: "timeout_recovery" },
+    // Stale-attempt recovery also clears the claim so the row is fully released
+    // back to the pool (claimed_by IS NULL) before the next claim attempt.
+    { auto_approval_state_reason: "timeout_recovery", claimed_by: null, claimed_at: null },
   )
 
   if (result) {
