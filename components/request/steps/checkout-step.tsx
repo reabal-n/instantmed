@@ -22,7 +22,7 @@ import { getAttribution } from "@/lib/analytics/attribution"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { PRICING as APP_PRICING } from "@/lib/constants"
-import { getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
+import { getDisplayPrice, getMedCertExtraDayOffer, getServiceDisplayLabel } from "@/lib/request/display-helpers"
 import { normalizeMedicationEntriesAnswer, stringAnswer } from "@/lib/request/intake-answer-normalizers"
 import { getActiveServerDraftSessionId } from "@/lib/request/server-draft"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
@@ -62,7 +62,7 @@ function ReviewItem({ label, value }: { label: string; value: string }) {
 }
 
 export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServiceType }) {
-  const { answers, getIdentity, setConsent, authContext } = useRequestStore()
+  const { answers, getIdentity, setConsent, setAnswer, authContext } = useRequestStore()
   const posthog = usePostHog()
   const prefersReducedMotion = useReducedMotion()
   const [isProcessing, setIsProcessing] = useState(false)
@@ -89,6 +89,19 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
   const displayLabel = getServiceDisplayLabel(serviceType, consultSubtype)
   const certTypeLabel = certType ? certType.charAt(0).toUpperCase() + certType.slice(1) : "Certificate"
   const durationLabel = duration ? `${duration} day${duration !== "1" ? "s" : ""}` : undefined
+
+  // Optional "add a second day" offer for 1-day med certs. The patient self-
+  // reports duration and the doctor reviews every certificate; this only makes
+  // the existing 2-day tier one tap away, it does not change the default.
+  const medCertExtraDayOffer = getMedCertExtraDayOffer(serviceType, answers)
+  const acceptExtraDay = () => {
+    if (!medCertExtraDayOffer) return
+    setAnswer("duration", medCertExtraDayOffer.nextDuration)
+    posthog?.capture("medcert_extra_day_added", {
+      from_duration: duration,
+      to_duration: medCertExtraDayOffer.nextDuration,
+    })
+  }
 
   // Single consent controls both toggles
   const handleConsentChange = (checked: boolean) => {
@@ -261,6 +274,28 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             </>
           )}
         </div>
+
+        {/* Optional one-tap extension for 1-day certs (default unchanged) */}
+        {medCertExtraDayOffer && (
+          <button
+            type="button"
+            onClick={acceptExtraDay}
+            data-testid="medcert-extra-day"
+            className="flex w-full items-center justify-between gap-3 rounded-xl border border-border/50 bg-primary/[0.03] px-3.5 py-2.5 text-left transition-colors hover:border-primary/30"
+          >
+            <span>
+              <span className="block text-sm font-medium text-foreground">
+                Need to cover a second day?
+              </span>
+              <span className="block text-xs text-muted-foreground">
+                Extend to 2 days — ${medCertExtraDayOffer.delta.toFixed(0)} more (${medCertExtraDayOffer.nextPrice.toFixed(2)} total)
+              </span>
+            </span>
+            <span className="shrink-0 rounded-full border border-primary/30 bg-white px-3 py-1 text-xs font-medium text-primary dark:bg-card">
+              Add a day
+            </span>
+          </button>
+        )}
 
         {/* Price section */}
         <div className="pt-3 border-t space-y-1">
