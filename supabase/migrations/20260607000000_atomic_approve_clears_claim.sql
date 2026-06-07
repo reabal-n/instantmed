@@ -281,16 +281,43 @@ $function$;
 -- 2. Backfill: clear residual claims left by the prior behaviour.
 -- ---------------------------------------------------------------------------
 
--- 2a. Terminal intakes (moved past the review window) that still carry a claim.
-UPDATE public.intakes
-SET claimed_by = NULL, claimed_at = NULL, updated_at = NOW()
-WHERE claimed_by IS NOT NULL
-  AND status NOT IN ('paid', 'in_review', 'pending_info', 'awaiting_script');
+-- Done per-row in a loop so a legacy row that violates a CHECK constraint added
+-- AFTER it was created (e.g. retired consult subtype 'general', forbidden by
+-- intakes_consult_subtype_not_general) is skipped rather than aborting the whole
+-- migration. The claim on such legacy/terminal rows is cosmetic only.
+DO $$
+DECLARE r record;
+BEGIN
+  -- 2a. Terminal intakes (moved past the review window) that still carry a claim.
+  FOR r IN
+    SELECT id FROM public.intakes
+    WHERE claimed_by IS NOT NULL
+      AND status NOT IN ('paid', 'in_review', 'pending_info', 'awaiting_script')
+  LOOP
+    BEGIN
+      UPDATE public.intakes
+      SET claimed_by = NULL, claimed_at = NULL, updated_at = NOW()
+      WHERE id = r.id;
+    EXCEPTION WHEN check_violation THEN
+      -- Legacy row violates a later-added CHECK constraint; leave its (cosmetic) claim.
+      NULL;
+    END;
+  END LOOP;
 
--- 2b. Phantom "System (Auto-Approve)" locks (claimed_by = system id) on any
---     intake the system is no longer actively processing. Never touch a row
---     mid-attempt (auto_approval_state = 'attempting').
-UPDATE public.intakes
-SET claimed_by = NULL, claimed_at = NULL, updated_at = NOW()
-WHERE claimed_by = '00000000-0000-0000-0000-000000000000'
-  AND (auto_approval_state IS NULL OR auto_approval_state <> 'attempting');
+  -- 2b. Phantom "System (Auto-Approve)" locks (claimed_by = system id) on any
+  --     intake the system is no longer actively processing. Never touch a row
+  --     mid-attempt (auto_approval_state = 'attempting').
+  FOR r IN
+    SELECT id FROM public.intakes
+    WHERE claimed_by = '00000000-0000-0000-0000-000000000000'
+      AND (auto_approval_state IS NULL OR auto_approval_state <> 'attempting')
+  LOOP
+    BEGIN
+      UPDATE public.intakes
+      SET claimed_by = NULL, claimed_at = NULL, updated_at = NOW()
+      WHERE id = r.id;
+    EXCEPTION WHEN check_violation THEN
+      NULL;
+    END;
+  END LOOP;
+END $$;
