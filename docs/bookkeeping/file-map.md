@@ -49,7 +49,7 @@
 |------|---------|
 | [docs/runbooks/comparative-tagline-complaint.md](../runbooks/comparative-tagline-complaint.md) | AHPRA/TGA/Medical Board/Google complaint runbook for the "Faster than your GP." tagline |
 
-## docs/audits/ — 15 (historical + growth records)
+## docs/audits/ — 16 (historical + growth records)
 
 | File | Purpose |
 |------|---------|
@@ -58,6 +58,7 @@
 | [docs/audits/2026-05-11-patient-portal-post-rebuild-audit.md](../audits/2026-05-11-patient-portal-post-rebuild-audit.md) | Patient portal post-rebuild audit (v2.0.2) |
 | [docs/audits/2026-06-02-comprehensive-platform-audit.md](../audits/2026-06-02-comprehensive-platform-audit.md) | Comprehensive platform audit snapshot |
 | [docs/audits/2026-06-03-3llm-brain-review.md](../audits/2026-06-03-3llm-brain-review.md) | Three-model review record |
+| [docs/audits/2026-06-06-authority-distribution-execution.md](../audits/2026-06-06-authority-distribution-execution.md) | Authority resource distribution execution record |
 | [docs/audits/2026-06-03-gsc-seo-content-audit.md](../audits/2026-06-03-gsc-seo-content-audit.md) | Google Search Console / SEO content audit |
 | [docs/audits/2026-06-04-3llm-educational-content-review.md](../audits/2026-06-04-3llm-educational-content-review.md) | Educational content review record |
 | [docs/audits/2026-06-04-au-backlink-plan.md](../audits/2026-06-04-au-backlink-plan.md) | Australian backlink plan |
