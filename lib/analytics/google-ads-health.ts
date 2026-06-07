@@ -15,8 +15,10 @@ import {
 import {
   bestGoogleAdsUploadAuditByIntake,
   type GoogleAdsUploadAuditRow,
+  type GoogleAdsUploadFailureSummary,
   hasGoogleAdsUploadClickId,
   isNonRetryableGoogleAdsUploadError,
+  summarizeGoogleAdsUploadFailures,
 } from "@/lib/analytics/google-ads-upload-audit"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 
@@ -254,6 +256,41 @@ export function buildGoogleAdsHealth({
     retryPaused,
     lookbackDays,
   }
+}
+
+export type GoogleAdsConversionUploadHealthCounter = GoogleAdsUploadFailureSummary & {
+  queryFailed: boolean
+  lookbackDays: number
+}
+
+/**
+ * Lightweight DB-only counter of failed server-side conversion uploads in the
+ * recent window, for the /admin/ops "Google Ads conversions" card. Unlike
+ * getGoogleAdsHealth this makes NO live Google Ads API preflight call, so it is
+ * safe on a frequently-rendered ops page. Fail-soft: a query error returns a
+ * zeroed counter (with queryFailed=true) rather than throwing the whole page.
+ */
+export async function getGoogleAdsConversionUploadHealth(
+  supabase: SupabaseClient,
+  options: { lookbackDays?: number } = {},
+): Promise<GoogleAdsConversionUploadHealthCounter> {
+  const lookbackDays = options.lookbackDays ?? 7
+  const since = new Date(Date.now() - lookbackDays * 24 * 60 * 60 * 1000).toISOString()
+
+  const { data, error } = await supabase
+    .from("audit_logs")
+    .select("intake_id, created_at, metadata")
+    .eq("action", GOOGLE_ADS_CONVERSION_UPLOAD_AUDIT_ACTION)
+    .gte("created_at", since)
+    .order("created_at", { ascending: false })
+    .limit(2000)
+
+  if (error) {
+    return { failed: 0, total: 0, latestErrorCode: null, latestFailedAt: null, queryFailed: true, lookbackDays }
+  }
+
+  const summary = summarizeGoogleAdsUploadFailures((data || []) as GoogleAdsUploadAuditRow[])
+  return { ...summary, queryFailed: false, lookbackDays }
 }
 
 export async function getGoogleAdsHealth(

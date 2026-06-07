@@ -7,12 +7,14 @@ import {
   SLA_BREACH_CRITICAL,
   slaBacklogHelper,
 } from "@/lib/admin/ops-invariants"
+import { getGoogleAdsConversionUploadHealth } from "@/lib/analytics/google-ads-health"
 import { requireRole } from "@/lib/auth/helpers"
 import {
   ADMIN_PARCHMENT_OPS_HREF,
   ADMIN_PRESCRIBING_IDENTITY_HREF,
   ADMIN_WEBHOOK_DLQ_HREF,
   buildStaffLedgerHref,
+  STAFF_ANALYTICS_HREF,
   STAFF_OPS_HREF,
 } from "@/lib/dashboard/routes"
 import { getPrescribingIdentityBlockerReport } from "@/lib/doctor/patient-identity-report"
@@ -67,6 +69,17 @@ function helperTextForWebhook(count: number): string {
   return "Action needed"
 }
 
+// Failed server-side Google Ads conversion uploads in the last 7d: these are
+// paid orders whose conversion never reached Google, so Smart Bidding optimises
+// blind on wasted spend until the conversion-action env is fixed (the May–Jun
+// 2026 NO_CONVERSION_ACTION_FOUND outage). queryFailed surfaces as a warning so
+// a broken health read is never silently green.
+function helperTextForGoogleAds(failed: number, queryFailed: boolean): string {
+  if (queryFailed) return "Health check unavailable"
+  if (failed === 0) return "All reaching Google"
+  return `${failed} not reaching Google`
+}
+
 export default async function OpsDashboardPage() {
   await requireRole(["admin", "support"])
 
@@ -85,6 +98,7 @@ export default async function OpsDashboardPage() {
     refundFailuresResult,
     prescribingIdentityResult,
     operationalInvariants,
+    googleAdsConversionHealth,
   ] = await Promise.all([
     supabase
       .from("stripe_webhook_dead_letter")
@@ -143,6 +157,7 @@ export default async function OpsDashboardPage() {
       .then((r) => (r.error ? { data: [] } : r)),
     getPrescribingIdentityBlockerReport(supabase),
     getOperationalInvariants(supabase),
+    getGoogleAdsConversionUploadHealth(supabase, { lookbackDays: 7 }),
   ])
 
   const prescriptionWebhookFailures = (
@@ -197,6 +212,19 @@ export default async function OpsDashboardPage() {
       tone: missingIdentityCount > 0 ? "warning" : "neutral",
       helperText: helperTextForIdentity(missingIdentityCount),
       href: ADMIN_PRESCRIBING_IDENTITY_HREF,
+    },
+    googleAdsConversions: {
+      count: googleAdsConversionHealth.failed,
+      tone: googleAdsConversionHealth.failed > 0
+        ? "critical"
+        : googleAdsConversionHealth.queryFailed
+          ? "warning"
+          : "neutral",
+      helperText: helperTextForGoogleAds(
+        googleAdsConversionHealth.failed,
+        googleAdsConversionHealth.queryFailed,
+      ),
+      href: STAFF_ANALYTICS_HREF,
     },
   }
 

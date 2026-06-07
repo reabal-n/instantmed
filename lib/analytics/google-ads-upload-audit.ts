@@ -44,6 +44,45 @@ export function shouldRetryGoogleAdsUploadCandidate(
   return true
 }
 
+export type GoogleAdsUploadFailureSummary = {
+  failed: number
+  total: number
+  latestErrorCode: string | null
+  latestFailedAt: string | null
+}
+
+/**
+ * Reduce raw `google_ads_conversion_upload` audit rows to a failure summary,
+ * deduped to the best (latest, highest-rank) upload per intake. An intake that
+ * failed then later succeeded on retry does NOT count as failed. Powers the
+ * "is the conversion pipeline leaking right now" counter on /admin/ops without
+ * a live Google Ads API call.
+ */
+export function summarizeGoogleAdsUploadFailures(
+  rows: GoogleAdsUploadAuditRow[],
+): GoogleAdsUploadFailureSummary {
+  const best = bestGoogleAdsUploadAuditByIntake(rows)
+
+  let failed = 0
+  let latestErrorCode: string | null = null
+  let latestFailedAtMs = -1
+  let latestFailedAt: string | null = null
+
+  for (const audit of best.values()) {
+    if (audit.metadata?.status !== "failed") continue
+    failed += 1
+
+    const at = audit.created_at ? Date.parse(audit.created_at) : 0
+    if (at > latestFailedAtMs) {
+      latestFailedAtMs = at
+      latestFailedAt = audit.created_at ?? null
+      latestErrorCode = audit.metadata?.error_code || null
+    }
+  }
+
+  return { failed, total: best.size, latestErrorCode, latestFailedAt }
+}
+
 export function bestGoogleAdsUploadAuditByIntake(
   rows: GoogleAdsUploadAuditRow[],
 ): Map<string, GoogleAdsUploadAuditRow> {
