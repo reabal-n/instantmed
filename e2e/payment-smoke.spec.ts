@@ -28,6 +28,18 @@ const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3001"
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || ""
 const cents = (amount: number) => Math.round(amount * 100)
 
+// Safety guard: this test posts fake signed Stripe events using the real webhook
+// secret. Running it against production would flood the DLQ with test noise
+// (2026-06-09 incident: 141 evt_smoke_* entries). The webhook now rejects
+// livemode=false in production, so harm is contained — but the guard prevents
+// the test from wasting time and generating misleading Sentry noise at all.
+if (BASE_URL.includes("instantmed.com.au")) {
+  throw new Error(
+    "payment-smoke.spec.ts must not run against production. " +
+    "Set PLAYWRIGHT_BASE_URL to a local or preview URL.",
+  )
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function generateStripeSignature(payload: string, secret: string): string {
