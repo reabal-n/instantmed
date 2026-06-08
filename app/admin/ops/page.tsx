@@ -38,11 +38,17 @@ function metadataString(metadata: Record<string, unknown> | null, key: string): 
 }
 
 function isNonActionableParchmentSandboxError(row: AuditRow): boolean {
-  return (
-    row.action === "webhook_failed"
-    && metadataString(row.metadata, "eventType") === "parchment:prescription.created"
-    && metadataString(row.metadata, "error") === "no_awaiting_script_intake"
-  )
+  if (row.action !== "webhook_failed") return false
+  if (metadataString(row.metadata, "eventType") !== "parchment:prescription.created") return false
+  const error = metadataString(row.metadata, "error")
+  // no_awaiting_script_intake: real patient, prescription written outside an active InstantMed intake
+  if (error === "no_awaiting_script_intake") return true
+  // patient_not_found with Parchment's own sandbox sentinel — pre-fix test noise
+  if (
+    error === "patient_not_found"
+    && metadataString(row.metadata, "parchment_patient_id") === "nonexistent-parchment-patient"
+  ) return true
+  return false
 }
 
 // Counter buckets that merge two source categories (Payment = checkout +
