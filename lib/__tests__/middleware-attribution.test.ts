@@ -32,6 +32,31 @@ describe("captureAttributionToCookie", () => {
     expect(out.cookies.get(ATTRIBUTION_COOKIE_KEY)).toBeUndefined()
   })
 
+  it("attributes a Meta fbclid-only URL to facebook / paid (not a no-op)", () => {
+    // fbclid is not in ATTRIBUTION_PARAM_KEYS, so without the derivation this
+    // would be a no-op and the paid click would be lost as "direct".
+    const req = buildRequest("https://instantmed.com.au/medical-certificate?fbclid=fb_abc")
+    const res = NextResponse.next()
+    const out = captureAttributionToCookie(req, res)
+
+    const cookie = out.cookies.get(ATTRIBUTION_COOKIE_KEY)
+    expect(cookie).toBeDefined()
+    const data = decodeAttributionCookie(cookie!.value)
+    expect(data.utm_source).toBe("facebook")
+    expect(data.utm_medium).toBe("paid")
+  })
+
+  it("does not override an explicit utm_source when a click id is also present", () => {
+    const req = buildRequest(
+      "https://instantmed.com.au/?fbclid=fb&utm_source=newsletter&utm_medium=email",
+    )
+    const res = NextResponse.next()
+    const out = captureAttributionToCookie(req, res)
+
+    const data = decodeAttributionCookie(out.cookies.get(ATTRIBUTION_COOKIE_KEY)!.value)
+    expect(data.utm_source).toBe("newsletter")
+  })
+
   it("writes gclid + utm + landing page when present", () => {
     const req = buildRequest(
       "https://instantmed.com.au/medical-certificate?gclid=abc123&utm_source=google&utm_medium=cpc&utm_campaign=medcert_au",

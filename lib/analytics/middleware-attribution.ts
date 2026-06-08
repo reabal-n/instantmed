@@ -1,5 +1,7 @@
 import type { NextRequest, NextResponse } from "next/server"
 
+import { deriveChannelFromClickIds } from "@/lib/analytics/click-id-channels"
+
 /**
  * Server-side attribution capture, called from middleware so the
  * `instantmed_attribution` cookie is set before any client JS runs.
@@ -54,6 +56,17 @@ export function captureAttributionToCookie<R extends NextResponse>(
   for (const key of ATTRIBUTION_PARAM_KEYS) {
     const value = params.get(key)
     if (value) captured[key] = value
+  }
+
+  // Attribute non-Google ad clicks (fbclid/msclkid/ttclid/li_fat_id) to their
+  // paid channel via utm_source/utm_medium so the order is not lost as "direct".
+  // Run before the empty-check so a click-id-only URL still sets the cookie.
+  if (!captured.utm_source) {
+    const derived = deriveChannelFromClickIds(params)
+    if (derived) {
+      captured.utm_source = derived.utm_source
+      if (!captured.utm_medium) captured.utm_medium = derived.utm_medium
+    }
   }
 
   if (Object.keys(captured).length === 0) return response
