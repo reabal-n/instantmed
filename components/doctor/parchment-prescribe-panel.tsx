@@ -389,50 +389,69 @@ export function ParchmentPrescribePanel({
           {/* Iframe */}
           {ssoUrl && (
             <>
-              {canUseIframe && !iframeLoaded && !error && (
-                <div className="absolute inset-0 flex items-center justify-center bg-background z-10">
-                  <div className="max-w-sm px-6 text-center space-y-3">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-                    {iframeSlowToLoad ? (
-                      <>
-                        <p className="text-sm font-medium text-foreground">Parchment is taking a little longer</p>
-                        <p className="text-sm text-muted-foreground">
-                          You can keep waiting, open it in a new tab, or copy the requested medicine and continue there.
-                        </p>
-                        <div className="flex flex-wrap justify-center gap-2">
-                          <Button type="button" variant="outline" size="sm" onClick={retryIframeOnly}>
-                            <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
-                            Retry iframe
-                          </Button>
-                          <Button type="button" variant="outline" size="sm" onClick={openInNewTab}>
-                            <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
-                            Open in new tab
-                          </Button>
-                          {prescriptionContext?.copyText && (
-                            <Button type="button" variant="ghost" size="sm" onClick={copyPrescriptionContext}>
-                              <Clipboard className="mr-1.5 h-3.5 w-3.5" />
-                              Copy medicine
-                            </Button>
-                          )}
-                        </div>
-                      </>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Loading Parchment...</p>
-                    )}
-                  </div>
-                </div>
-              )}
               {canUseIframe ? (
-                <iframe
-                  key={iframeReloadKey}
-                  src={ssoUrl}
-                  className="w-full h-full border-0"
-                  onLoad={() => setIframeLoaded(true)}
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
-                  allow="clipboard-write; publickey-credentials-get *; publickey-credentials-create *"
-                  referrerPolicy="strict-origin-when-cross-origin"
-                  title="Parchment Prescribing"
-                />
+                <>
+                  {/* Overlay fades out instead of snapping away — prevents the
+                      white-flash that happens when onLoad fires before Parchment's
+                      React app has painted its first frame. opacity-0 + pointer-
+                      events-none keeps it inert after the fade completes. */}
+                  <div
+                    className={cn(
+                      "absolute inset-0 flex items-center justify-center bg-background z-10 transition-opacity duration-300",
+                      iframeLoaded ? "opacity-0 pointer-events-none" : "opacity-100",
+                    )}
+                    aria-live="polite"
+                  >
+                    <div className="max-w-sm px-6 text-center space-y-3">
+                      {!iframeLoaded && <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />}
+                      {iframeSlowToLoad ? (
+                        <>
+                          <p className="text-sm font-medium text-foreground">Parchment is taking a little longer</p>
+                          <p className="text-sm text-muted-foreground">
+                            You can keep waiting, open it in a new tab, or copy the requested medicine and continue there.
+                          </p>
+                          <div className="flex flex-wrap justify-center gap-2">
+                            <Button type="button" variant="outline" size="sm" onClick={retryIframeOnly}>
+                              <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+                              Retry iframe
+                            </Button>
+                            <Button type="button" variant="outline" size="sm" onClick={openInNewTab}>
+                              <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+                              Open in new tab
+                            </Button>
+                            {prescriptionContext?.copyText && (
+                              <Button type="button" variant="ghost" size="sm" onClick={copyPrescriptionContext}>
+                                <Clipboard className="mr-1.5 h-3.5 w-3.5" />
+                                Copy medicine
+                              </Button>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">Loading Parchment...</p>
+                      )}
+                    </div>
+                  </div>
+                  <iframe
+                    key={iframeReloadKey}
+                    src={ssoUrl}
+                    className={cn(
+                      "w-full h-full border-0 transition-opacity duration-300",
+                      iframeLoaded ? "opacity-100" : "opacity-0",
+                    )}
+                    onLoad={() => {
+                      // Delay reveal so Parchment's React app finishes painting
+                      // before the loading overlay fades out. onLoad fires on
+                      // document-ready, not first-paint — without this delay the
+                      // overlay snaps away to a white iframe for ~1s.
+                      setTimeout(() => setIframeLoaded(true), 600)
+                    }}
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
+                    allow="clipboard-write; publickey-credentials-get *; publickey-credentials-create *"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    title="Parchment Prescribing"
+                  />
+                </>
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center bg-background z-20">
                   <div className="text-center space-y-4 max-w-md px-6">
