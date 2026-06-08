@@ -16,6 +16,7 @@ import {
   hasSupportAccess,
 } from "@/lib/auth/staff-capabilities"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
+import { isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { revalidatePatient, revalidateStaff } from "@/lib/dashboard/revalidate-staff"
 import { IntakeLifecycleError } from "@/lib/data/intake-lifecycle"
 import { formatClaimWarning } from "@/lib/data/intake-lock-warning"
@@ -35,7 +36,7 @@ import {
   getParchmentScriptCompletionEligibility,
   isParchmentClaimSatisfied,
 } from "@/lib/doctor/parchment-claim"
-import { isPrescribingServiceRequest } from "@/lib/doctor/service-types"
+import { isPrescribingServiceRequest, isPrescribingServiceType } from "@/lib/doctor/service-types"
 import {
   editPaidRequestTelegramMessageToApproved,
   editPaidRequestTelegramMessageToDeclined,
@@ -1314,4 +1315,170 @@ export async function issueRefundAction(
     Sentry.captureException(error, { tags: { action: "issue_refund", intake_id: intakeId } })
     return { success: false, error: `Failed to process refund: ${msg}` }
   }
+}
+
+/**
+ * One-tap renewal prescribing lane (B2).
+ *
+ * For repeat-script intakes where the patient already holds an active
+ * prescription for the same non-controlled medication, this action skips the
+ * full review → note → move-to-prescribing manual sequence and does it
+ * atomically in one call:
+ *   1. Verify renewal eligibility (prior prescription + non-S4/S8)
+ *   2. Check prescribing identity completeness
+ *   3. Claim the intake (if unclaimed)
+ *   4. Auto-write a standard renewal clinical note
+ *   5. Mark as reviewed
+ *   6. Transition to awaiting_script
+ *
+ * Doctor still opens Parchment to write the actual eScript — this action
+ * only removes the intake-review phase, not the prescribing act itself.
+ */
+export async function quickPrescribeRenewalAction(
+  intakeId: string,
+): Promise<{ success: boolean; error?: string; code?: string }> {
+  if (!isValidUUID(intakeId)) return { success: false, error: "Invalid intake ID" }
+
+  const { profile } = await requireRole(["doctor", "admin"])
+  if (!profile) return { success: false, error: "Unauthorized" }
+
+  const supabase = createServiceRoleClient()
+
+  const { data: intake, error: intakeError } = await supabase
+    .from("intakes")
+    .select(`
+      id, status, category, subtype, patient_id, claimed_by,
+      service:services!service_id(type),
+      answers:intake_answers(answers, answers_encrypted),
+      patient:profiles!patient_id(
+        id, full_name, date_of_birth, sex,
+        medicare_number, medicare_irn, medicare_expiry,
+        ihi_number, phone, email,
+        address_line1, suburb, state, postcode
+      )
+    `)
+    .eq("id", intakeId)
+    .single()
+
+  if (intakeError || !intake) return { success: false, error: "Intake not found" }
+
+  const serviceType = firstRelation(intake.service as RelationValue<{ type?: string | null }>)?.type ?? null
+
+  if (!isPrescribingServiceType(serviceType)) {
+    return {
+      success: false,
+      error: "Quick prescribe is only available for repeat prescription requests",
+      code: "NOT_PRESCRIBING",
+    }
+  }
+
+  if (intake.status !== "paid") {
+    return { success: false, error: `Intake is already ${intake.status}` }
+  }
+
+  if (!doctorCanReviewService(profile, serviceType, intake.subtype)) {
+    return {
+      success: false,
+      error: `Your account is not configured to review ${describeServiceCapability(serviceType, intake.subtype)}. Contact the medical director.`,
+      code: "DOCTOR_CAPABILITY_DENIED",
+    }
+  }
+
+  if (!hasAdminAccess(profile) && intake.claimed_by && intake.claimed_by !== profile.id) {
+    return { success: false, error: "This intake is claimed by another doctor", code: "CASE_NOT_CLAIMED" }
+  }
+
+  const answerRow = firstRelation(intake.answers as RelationValue<IntakeAnswersRow>)
+  const answers = answerRow
+    ? (await readAnswers({ answers: answerRow.answers, answers_enc: answerRow.answers_encrypted })) ?? {}
+    : {}
+
+  const medicationName: string =
+    ((answers.medicationName as string) || (answers.medication_name as string) || "").trim()
+
+  if (medicationName && isControlledSubstance(medicationName)) {
+    return {
+      success: false,
+      error: "Quick prescribe is not available for controlled substances. Use the standard review flow.",
+      code: "CONTROLLED_SUBSTANCE",
+    }
+  }
+
+  const { data: priorScripts } = await supabase
+    .from("prescriptions")
+    .select("id, medication_name, medication_strength")
+    .eq("patient_id", intake.patient_id)
+    .in("status", ["active", "completed"])
+    .order("created_at", { ascending: false })
+    .limit(20)
+
+  const priorScript = priorScripts?.find(
+    (p) =>
+      typeof p.medication_name === "string" &&
+      p.medication_name.trim().toLowerCase() === medicationName.toLowerCase(),
+  )
+
+  if (!priorScript) {
+    return {
+      success: false,
+      error: "No prior prescription found for this medication. Use the standard review flow.",
+      code: "NOT_A_RENEWAL",
+    }
+  }
+
+  const patient = firstRelation(intake.patient as RelationValue<PrescribingIdentityPatient>)
+  if (!patient) return { success: false, error: "Patient profile not found" }
+
+  const missingFields = getParchmentPatientIdentityIssues(patient, answers)
+  if (missingFields.length > 0) {
+    return {
+      success: false,
+      error: `Cannot prescribe until patient identity is complete: ${missingFields.join(", ")}`,
+      code: "INCOMPLETE_PRESCRIBING_IDENTITY",
+    }
+  }
+
+  if (!intake.claimed_by) {
+    const { error: claimError } = await supabase.rpc("claim_intake_for_review", {
+      p_intake_id: intakeId,
+      p_doctor_id: profile.id,
+      p_force: false,
+    })
+    if (claimError) {
+      logger.warn("[QuickPrescribe] Claim RPC failed (proceeding)", { intakeId, error: claimError.message })
+    }
+  }
+
+  const medDesc =
+    priorScript.medication_strength &&
+    typeof priorScript.medication_strength === "string" &&
+    priorScript.medication_strength.trim()
+      ? `${priorScript.medication_name} ${priorScript.medication_strength}`
+      : priorScript.medication_name
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Sydney" })
+  const renewalNote = `Renewal reviewed ${today}. Patient has an established prescription for ${medDesc}. Clinically appropriate for repeat supply. Prescribing via Parchment.`
+
+  await saveDoctorNotes(intakeId, renewalNote)
+  await markAsReviewed(intakeId, profile.id)
+
+  try {
+    const result = await updateIntakeStatus(intakeId, "awaiting_script", profile.id)
+    if (!result) return { success: false, error: "Failed to move intake to prescribing" }
+  } catch (error) {
+    if (error instanceof IntakeLifecycleError) {
+      return { success: false, error: error.message, code: error.code }
+    }
+    throw error
+  }
+
+  void editPaidRequestTelegramMessageToApproved(intakeId)
+  revalidateStaff({ intakeId, scripts: true })
+
+  logger.info("[QuickPrescribe] Moved to awaiting_script", {
+    intakeId,
+    doctorId: profile.id,
+    medication: medDesc,
+  })
+
+  return { success: true }
 }
