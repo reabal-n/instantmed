@@ -289,6 +289,9 @@ export function IntakeReviewCockpit({
               hidePatientStory
               hidePrescriptionIntent
             />
+            {/* Rx rec sits directly below the clinical facts + note so the
+                doctor sees what to prescribe before confirming identity. */}
+            <PrescriptionRecommendationCard intent={caseSummary.prescriptionIntent} />
             {showDecisionStrip ? (
               <PatientDecisionStrip
                 intake={intake}
@@ -310,7 +313,6 @@ export function IntakeReviewCockpit({
                 status={intake.status}
               />
             ) : null}
-            <PrescriptionRecommendationCard intent={caseSummary.prescriptionIntent} />
             <CertificateDeliveryCard />
 
             <IntakeSecondaryDisclosure

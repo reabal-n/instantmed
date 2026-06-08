@@ -195,7 +195,10 @@ export function ClinicalCaseReview({
   const pinnedDraftFacts = compact ? [] : summary.keyFacts.slice(0, PINNED_DRAFT_FACT_LIMIT)
   const signOffParts = doctorSignOffLabel?.split(/\s+·\s+/, 2) ?? null
   const structuredSoapDraft = isEditableDraftNote ? parseSoapDraft(visibleDraftNote) : null
-  const showClinicalNoteBeforeAnswers = compact && isEditableDraftNote
+  // In compact mode (cockpit panel) facts come first so the doctor can scan
+  // clinical context before reviewing the draft note. Full-page view keeps
+  // the note at the top as the primary work surface.
+  const showClinicalNoteBeforeAnswers = !compact && isEditableDraftNote
   const setDraftNoteEditableRef = (node: HTMLDivElement | null) => {
     if (!draftNoteTextareaRef) return
     ;(draftNoteTextareaRef as unknown as { current: HTMLTextAreaElement | null }).current =
