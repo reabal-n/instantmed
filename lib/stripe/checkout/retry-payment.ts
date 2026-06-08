@@ -19,7 +19,7 @@ import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { ServiceCategory } from "@/types/services"
 
-import { getPriceIdForRequest, normalizeStripePriceId, stripe } from "../client"
+import { getOptionalStripePriceEnv, getPriceIdForRequest, normalizeStripePriceId, stripe } from "../client"
 import { buildPaymentIntentMetadata, canRetryPaymentForIntake } from "../payment-integrity"
 import { createReferralCouponIfEligible } from "../referral-coupon"
 import { getBaseUrl, getServiceSlug, isValidUrl } from "./helpers"
@@ -190,8 +190,22 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
         : {}),
     }
 
+    // Preserve the Express Review ($9.95) add-on on retry. Without re-appending
+    // it the patient silently loses the priority fee AND the queue priority they
+    // paid for; the webhook reconciles amount_cents from session.amount_total so
+    // the charge stays correct.
+    const isPriority = (intake as { is_priority?: boolean | null }).is_priority === true
+    const priorityPriceId = isPriority ? getOptionalStripePriceEnv("STRIPE_PRICE_PRIORITY_FEE") : null
+    if (isPriority && !priorityPriceId) {
+      logger.warn("Priority retry without STRIPE_PRICE_PRIORITY_FEE; charging base only", { intakeId })
+    }
+    const lineItems: Array<{ price: string; quantity: number }> = [{ price: priceId, quantity: 1 }]
+    if (priorityPriceId) {
+      lineItems.push({ price: priorityPriceId, quantity: 1 })
+    }
+
     const sessionParams = {
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: lineItems,
       ...(referralCoupon ? { discounts: [{ coupon: referralCoupon.couponId }] } : {}),
       mode: "payment" as const,
       success_url: `${baseUrl}/patient/intakes/success?intake_id=${intake.id}&session_id={CHECKOUT_SESSION_ID}&payment_retry=1`,

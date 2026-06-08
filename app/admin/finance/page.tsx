@@ -25,7 +25,7 @@ export default async function FinanceDashboardPage() {
       .gte("paid_at", monthAgo.toISOString()),
     supabase
       .from("intakes")
-      .select("amount_cents, refunded_at")
+      .select("refund_amount_cents, refund_status, refunded_at")
       .not("refunded_at", "is", null)
       .gte("refunded_at", monthAgo.toISOString()),
     supabase
@@ -49,7 +49,14 @@ export default async function FinanceDashboardPage() {
     : { eligible: 0, processing: 0, refunded: 0, failed: 0, totalRefunded: 0 }
 
   const totalRevenue = revenueResult.data?.reduce((sum, i) => sum + (i.amount_cents || 0), 0) || 0
-  const totalRefunds = refundsResult.data?.reduce((sum, i) => sum + (i.amount_cents || 0), 0) || 0
+  // Sum the actual refunded amount, not the full charge. A partially-refunded
+  // intake keeps amount_cents at the full price, so summing it over-reports
+  // refunds and breaks on partials. Skip rows where the attempt failed but
+  // still stamped refunded_at (Q4 invariant edge).
+  const totalRefunds = refundsResult.data?.reduce(
+    (sum, i) => (i.refund_status === "failed" ? sum : sum + (i.refund_amount_cents || 0)),
+    0,
+  ) || 0
   const transactionCount = revenueResult.data?.length || 0
   const refundRate = totalRevenue > 0 ? (totalRefunds / totalRevenue) * 100 : 0
 
