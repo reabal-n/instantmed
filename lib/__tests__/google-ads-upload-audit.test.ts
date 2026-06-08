@@ -18,10 +18,43 @@ describe("summarizeGoogleAdsUploadFailures", () => {
   it("returns an all-clear summary for no rows", () => {
     expect(summarizeGoogleAdsUploadFailures([])).toEqual({
       failed: 0,
+      configSkipped: 0,
+      notReaching: 0,
       total: 0,
       latestErrorCode: null,
       latestFailedAt: null,
     })
+  })
+
+  it("counts config-wide skips (missing env / no access token) as not reaching Google", () => {
+    const summary = summarizeGoogleAdsUploadFailures([
+      row("a", "skipped_missing_env", "2026-06-01T10:00:00Z"),
+      row("b", "skipped_no_access_token", "2026-06-02T10:00:00Z"),
+      row("c", "success", "2026-06-01T11:00:00Z"),
+    ])
+    // These orders never reached Google even though status !== "failed".
+    expect(summary.failed).toBe(0)
+    expect(summary.configSkipped).toBe(2)
+    expect(summary.notReaching).toBe(2)
+    expect(summary.latestFailedAt).toBe("2026-06-02T10:00:00Z")
+  })
+
+  it("does NOT count a per-order missing-click-id skip as not reaching Google", () => {
+    const summary = summarizeGoogleAdsUploadFailures([
+      row("a", "skipped_missing_click_id", "2026-06-01T10:00:00Z"),
+    ])
+    expect(summary.configSkipped).toBe(0)
+    expect(summary.notReaching).toBe(0)
+  })
+
+  it("notReaching sums failed + config skips", () => {
+    const summary = summarizeGoogleAdsUploadFailures([
+      row("a", "failed", "2026-06-01T10:00:00Z", "http_500"),
+      row("b", "skipped_missing_env", "2026-06-02T10:00:00Z"),
+    ])
+    expect(summary.failed).toBe(1)
+    expect(summary.configSkipped).toBe(1)
+    expect(summary.notReaching).toBe(2)
   })
 
   it("counts one intake whose latest upload failed", () => {

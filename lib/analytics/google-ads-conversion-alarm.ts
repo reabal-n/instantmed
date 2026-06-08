@@ -69,6 +69,11 @@ export function classifyGoogleAdsConfigFailure(input: {
   }
 
   const raw = input.uploadErrorCode ?? ""
+  // The webhook upload path passes the raw `result.error`, which for config-wide
+  // failures is exactly "missing_env" / "no_access_token" (the same codes the
+  // preflight emits) — every paid conversion keeps skipping until the env is
+  // fixed, so these must alarm. "missing_click_id" is per-order and excluded.
+  if (CONFIG_PREFLIGHT_CODES.has(raw)) return raw
   if (raw.includes("NO_CONVERSION_ACTION_FOUND")) return "conversion_action_not_found"
   if (raw.includes("INVALID_CONVERSION_ACTION_TYPE")) return "invalid_conversion_action_type"
 

@@ -277,6 +277,16 @@ export async function getGoogleAdsConversionUploadHealth(
   const lookbackDays = options.lookbackDays ?? 7
   const since = new Date(Date.now() - lookbackDays * 24 * 60 * 60 * 1000).toISOString()
 
+  const emptyCounter = {
+    failed: 0,
+    configSkipped: 0,
+    notReaching: 0,
+    total: 0,
+    latestErrorCode: null,
+    latestFailedAt: null,
+    lookbackDays,
+  }
+
   const { data, error } = await supabase
     .from("audit_logs")
     .select("intake_id, created_at, metadata")
@@ -286,10 +296,29 @@ export async function getGoogleAdsConversionUploadHealth(
     .limit(2000)
 
   if (error) {
-    return { failed: 0, total: 0, latestErrorCode: null, latestFailedAt: null, queryFailed: true, lookbackDays }
+    return { ...emptyCounter, queryFailed: true }
   }
 
-  const summary = summarizeGoogleAdsUploadFailures((data || []) as GoogleAdsUploadAuditRow[])
+  const rows = (data || []) as GoogleAdsUploadAuditRow[]
+
+  // Constrain to REPORTABLE intakes only — a seeded/E2E or excluded intake with
+  // a failed upload row must not surface as a critical production conversion
+  // leak on /admin/ops. Mirrors the filterReportableIntakes() boundary the
+  // heavier getGoogleAdsHealth path applies. Fail-soft: if this lookup errors,
+  // fall back to the unfiltered rows rather than throwing the ops page.
+  let reportableRows = rows
+  const intakeIds = [...new Set(rows.map((r) => r.intake_id).filter((id): id is string => Boolean(id)))]
+  if (intakeIds.length > 0) {
+    const { data: reportable, error: reportableError } = await filterReportableIntakes(
+      supabase.from("intakes").select("id").in("id", intakeIds),
+    )
+    if (!reportableError && reportable) {
+      const reportableIds = new Set((reportable as Array<{ id: string }>).map((r) => r.id))
+      reportableRows = rows.filter((r) => r.intake_id != null && reportableIds.has(r.intake_id))
+    }
+  }
+
+  const summary = summarizeGoogleAdsUploadFailures(reportableRows)
   return { ...summary, queryFailed: false, lookbackDays }
 }
 

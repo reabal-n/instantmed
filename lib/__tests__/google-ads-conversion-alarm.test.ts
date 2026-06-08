@@ -42,6 +42,15 @@ describe("classifyGoogleAdsConfigFailure", () => {
     expect(classifyGoogleAdsConfigFailure({ uploadErrorCode: "http_500" })).toBeNull()
   })
 
+  it("flags webhook-path missing_env / no_access_token (config-wide, every upload skips)", () => {
+    expect(classifyGoogleAdsConfigFailure({ uploadErrorCode: "missing_env" })).toBe("missing_env")
+    expect(classifyGoogleAdsConfigFailure({ uploadErrorCode: "no_access_token" })).toBe("no_access_token")
+  })
+
+  it("does NOT flag missing_click_id (per-order, not a config failure)", () => {
+    expect(classifyGoogleAdsConfigFailure({ uploadErrorCode: "missing_click_id" })).toBeNull()
+  })
+
   it("does NOT flag a healthy preflight", () => {
     expect(
       classifyGoogleAdsConfigFailure({ preflightCode: null, preflightSeverity: "ok" }),
@@ -94,6 +103,21 @@ describe("reportGoogleAdsConversionFailure", () => {
     const [, opts] = captureException.mock.calls[0] as [unknown, Record<string, unknown>]
     expect(opts.level).toBe("fatal")
     expect(opts.fingerprint).toEqual(["google-ads-conversion-action", "conversion_action_not_found"])
+  })
+
+  it("alarms on a webhook-path missing_env config failure (every upload skips until fixed)", async () => {
+    const result = await reportGoogleAdsConversionFailure({
+      source: "upload",
+      uploadErrorCode: "missing_env",
+      intakeId: "i-9",
+    })
+
+    expect(result.isConfigFailure).toBe(true)
+    expect(result.code).toBe("missing_env")
+    expect(captureException).toHaveBeenCalledTimes(1)
+    const [, opts] = captureException.mock.calls[0] as [unknown, Record<string, unknown>]
+    expect(opts.level).toBe("fatal")
+    expect(opts.fingerprint).toEqual(["google-ads-conversion-action", "missing_env"])
   })
 
   it("does NOT fire a fatal alarm for a transient upload failure", async () => {

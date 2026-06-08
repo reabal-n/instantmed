@@ -9,6 +9,7 @@ import {
 } from "@/lib/admin/ops-invariants"
 import { getGoogleAdsConversionUploadHealth } from "@/lib/analytics/google-ads-health"
 import { requireRole } from "@/lib/auth/helpers"
+import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import {
   ADMIN_PARCHMENT_OPS_HREF,
   ADMIN_PRESCRIBING_IDENTITY_HREF,
@@ -74,14 +75,18 @@ function helperTextForWebhook(count: number): string {
 // blind on wasted spend until the conversion-action env is fixed (the May–Jun
 // 2026 NO_CONVERSION_ACTION_FOUND outage). queryFailed surfaces as a warning so
 // a broken health read is never silently green.
-function helperTextForGoogleAds(failed: number, queryFailed: boolean): string {
+function helperTextForGoogleAds(notReaching: number, queryFailed: boolean): string {
   if (queryFailed) return "Health check unavailable"
-  if (failed === 0) return "All reaching Google"
-  return `${failed} not reaching Google`
+  if (notReaching === 0) return "All reaching Google"
+  return `${notReaching} not reaching Google`
 }
 
 export default async function OpsDashboardPage() {
-  await requireRole(["admin", "support"])
+  const auth = await requireRole(["admin", "support"])
+  // Only admins can open /admin/analytics (the full Google Ads health panel);
+  // support staff are kept out of analytics, so route them to a page they can
+  // actually use instead of a 403.
+  const isAdmin = hasAdminAccess(auth.profile)
 
   const supabase = createServiceRoleClient()
   const now = new Date()
@@ -214,17 +219,17 @@ export default async function OpsDashboardPage() {
       href: ADMIN_PRESCRIBING_IDENTITY_HREF,
     },
     googleAdsConversions: {
-      count: googleAdsConversionHealth.failed,
-      tone: googleAdsConversionHealth.failed > 0
+      count: googleAdsConversionHealth.notReaching,
+      tone: googleAdsConversionHealth.notReaching > 0
         ? "critical"
         : googleAdsConversionHealth.queryFailed
           ? "warning"
           : "neutral",
       helperText: helperTextForGoogleAds(
-        googleAdsConversionHealth.failed,
+        googleAdsConversionHealth.notReaching,
         googleAdsConversionHealth.queryFailed,
       ),
-      href: STAFF_ANALYTICS_HREF,
+      href: isAdmin ? STAFF_ANALYTICS_HREF : STAFF_OPS_HREF,
     },
   }
 
