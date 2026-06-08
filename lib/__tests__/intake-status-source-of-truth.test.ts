@@ -120,6 +120,10 @@ describe("intake status source of truth", () => {
     expect(transitionBlock(source, "pending_payment"), file).toContain("'checkout_failed'")
     expect(transitionBlock(source, "pending_payment"), file).toContain("'cancelled'")
     expect(transitionBlock(source, "checkout_failed"), file).toContain("'pending_payment'")
+    // checkout_failed -> paid is the exact DB-layer surface of the 2026-06-09
+    // incident: a paid retry after a checkout_failed session was rejected by the
+    // trigger and the intake sat stuck 10 days. Pin it so it can't silently regress.
+    expect(transitionBlock(source, "checkout_failed"), file).toContain("'paid'")
     expect(transitionBlock(source, "checkout_failed"), file).toContain("'cancelled'")
     expect(transitionBlock(source, "paid"), file).toContain("'cancelled'")
     expect(transitionBlock(source, "in_review"), file).toContain("'cancelled'")

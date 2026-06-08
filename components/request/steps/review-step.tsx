@@ -150,11 +150,16 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
   // med-cert + consult (review-step previously only fired checkout_initiated,
   // leaving prescription/repeat funnels blind at the "reached checkout" step).
   useEffect(() => {
+    // Only fire checkout_viewed here when review-step IS the pay step
+    // (prescription / repeat-script). For consult, review-step leads to a
+    // separate checkout-step that fires checkout_viewed itself; firing here too
+    // double-counts consult's reached-checkout denominator.
+    if (!isPrescriptionCheckout) return
     posthog?.capture("checkout_viewed", {
       service_type: serviceType,
       consult_subtype: answers.consultSubtype,
     })
-  }, [posthog, serviceType, answers.consultSubtype])
+  }, [posthog, serviceType, answers.consultSubtype, isPrescriptionCheckout])
 
   const handleConsentChange = (checked: boolean) => {
     setSafetyConfirmed(checked)
