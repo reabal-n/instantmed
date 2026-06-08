@@ -15,6 +15,7 @@ import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import type { ParchmentPrescriptionContext } from "@/lib/doctor/parchment-prescribing-context"
 import { backdropVariants, sheetVariants } from "@/lib/motion/panel-variants"
 import { canEmbedParchmentForHost } from "@/lib/parchment/embed-policy"
+import { cn } from "@/lib/utils"
 
 type ParchmentPrescribePanelProps = {
   patientName: string

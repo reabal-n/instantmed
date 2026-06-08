@@ -60,6 +60,15 @@ vi.mock("@/lib/observability/logger", () => ({
 vi.mock("@/lib/parchment/client", () => ({
   getPatientPrescriptions: mocks.getPatientPrescriptions,
   verifyWebhookSignature: mocks.verifyWebhookSignature,
+  // The route early-returns on sandbox webhooks; these tests exercise the
+  // production processing path, so report a production environment.
+  getParchmentEnvironment: () => ({
+    environment: "production",
+    label: "Production",
+    apiHost: "api.parchment.com.au",
+    isSandbox: false,
+    isProduction: true,
+  }),
 }))
 
 const PATIENT_PROFILE_ID = "11111111-1111-4111-8111-111111111111"
