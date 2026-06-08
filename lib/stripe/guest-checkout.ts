@@ -1,7 +1,7 @@
 "use server"
 
 import { normalizeAttributionForStorage } from "@/lib/analytics/attribution-storage"
-import { trackIntakeFunnelStep,trackOperationalBlock, trackSafetyBlock, trackSafetyOutcome } from "@/lib/analytics/posthog-server"
+import { trackIntakeFunnelStep, trackOperationalBlock } from "@/lib/analytics/posthog-server"
 import { resolveCheckoutAttribution } from "@/lib/analytics/server-attribution"
 import {
   logAccuracyAttestationGiven,
@@ -10,32 +10,28 @@ import {
   logTermsConsentGiven,
   type RequestType,
 } from "@/lib/audit/compliance-audit"
-import { isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { getAppUrl } from "@/lib/config/env"
 import { checkCheckoutBlocked } from "@/lib/config/kill-switches"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { TELEHEALTH_CONSENT_VERSION,TERMS_VERSION } from "@/lib/constants"
 import { decryptProfilePhi, updateProfile } from "@/lib/data/profiles"
-import { isMedicationBlocked, isServiceDisabled, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
+import { isServiceDisabled, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import { isAtCapacity } from "@/lib/operational-controls/config"
-import { getMedicationBlocklistCandidate } from "@/lib/operational-controls/medication-blocklist"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { buildAddressAuditMetadata } from "@/lib/request/address-metadata"
 import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing-identity"
 import { markPartialIntakeConverted } from "@/lib/request/server-draft-conversion"
 import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
-import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { validateMedCertPayload } from "@/lib/validation/med-cert-schema"
-import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 import type { ServiceCategory } from "@/types/services"
 
+import { runClinicalValidation } from "./checkout/clinical-validation"
 import { reportCheckoutSessionFailure } from "./checkout-error-alarm"
 import { getAmountCentsForRequest, getOptionalStripePriceEnv, getPriceIdForRequest, stripe } from "./client"
 import { shouldReuseGuestProfileForCheckout } from "./guest-profile-dedupe"
 import { inferStripeLineItemFailureRole, stripePriceErrorUserMessage } from "./line-item-error"
-import { buildPaymentIntentMetadata, resolveGuestDuplicateCheckoutRecovery } from "./payment-integrity"
+import { buildPaymentIntentMetadata, canRetryPaymentForIntake, resolveGuestDuplicateCheckoutRecovery } from "./payment-integrity"
 import {
   buildPrescribingProfileUpdates,
   validateRequiredPrescribingProfileAnswers,
@@ -167,6 +163,99 @@ function getServiceSlug(category: ServiceCategory, subtype: string): string {
   return slugMap[`${category}:${subtype}`] || categoryFallback[category] || "consult"
 }
 
+/**
+ * Rebuild a Stripe checkout session for a guest intake whose prior session
+ * has expired or was never created (checkout_failed / pending with null URL).
+ * Mirrors the retry-payment flow: expire old session → create new → update intake.
+ */
+async function rebuildExpiredGuestSession(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  intake: {
+    id: string
+    category: string | null
+    subtype: string | null
+    stripe_price_id: string | null
+    is_priority: boolean | null
+    guest_email: string | null
+    payment_id: string | null
+  },
+  fallbackGuestEmail: string,
+  baseUrl: string,
+): Promise<string | null> {
+  if (intake.payment_id) {
+    try {
+      await stripe.checkout.sessions.expire(intake.payment_id)
+    } catch {
+      // Already expired or completed — safe to continue
+    }
+  }
+
+  const priceId =
+    intake.stripe_price_id ||
+    getPriceIdForRequest({
+      category: (intake.category || "medical_certificate") as ServiceCategory,
+      subtype: intake.subtype || "",
+      answers: {},
+    })
+  if (!priceId) return null
+
+  const isPriority = intake.is_priority === true
+  const priorityPriceId = isPriority ? getOptionalStripePriceEnv("STRIPE_PRICE_PRIORITY_FEE") : null
+  const lineItems: Array<{ price: string; quantity: number }> = [{ price: priceId, quantity: 1 }]
+  if (isPriority && priorityPriceId) lineItems.push({ price: priorityPriceId, quantity: 1 })
+
+  const guestEmail = intake.guest_email || fallbackGuestEmail
+
+  try {
+    const session = await stripe.checkout.sessions.create(
+      {
+        line_items: lineItems,
+        mode: "payment",
+        success_url: `${baseUrl}/auth/complete-account?intake_id=${intake.id}&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${baseUrl}/patient/intakes/cancelled?intake_id=${intake.id}`,
+        customer_email: guestEmail,
+        customer_creation: "always",
+        metadata: {
+          intake_id: intake.id,
+          is_retry: "true",
+          category: intake.category || "",
+          subtype: intake.subtype || "",
+          guest_checkout: "true",
+        },
+      },
+      { idempotencyKey: `resume_${intake.id}_${intake.payment_id || "initial"}` },
+    )
+
+    if (!session.url) return null
+
+    const { error: updateError } = await supabase
+      .from("intakes")
+      .update({
+        payment_id: session.id,
+        payment_status: "pending",
+        status: "pending_payment",
+        checkout_error: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", intake.id)
+      .in("status", ["pending_payment", "checkout_failed"])
+      .in("payment_status", ["pending", "unpaid", "failed"])
+
+    if (updateError) {
+      logger.error("Failed to update intake after session rebuild", { intakeId: intake.id }, updateError)
+      return null
+    }
+
+    return session.url
+  } catch (error) {
+    logger.error("Failed to rebuild guest checkout session", {
+      intakeId: intake.id,
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return null
+  }
+}
+
 async function markGuestCheckoutFailed(
   supabase: ReturnType<typeof createServiceRoleClient>,
   intakeId: string,
@@ -268,149 +357,19 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       }
     }
 
-    // Server-side validation for medical certificates
-    if (input.category === "medical_certificate") {
-      const validation = validateMedCertPayload(input.answers)
-      if (!validation.valid) {
-        return {
-          success: false,
-          error: validation.error || "Invalid medical certificate request.",
-        }
-      }
-    }
-
-    // Server-side validation for repeat scripts
-    if (input.category === "prescription" && input.subtype === "repeat") {
-      const validation = validateRepeatScriptPayload(input.answers)
-      if (!validation.valid) {
-        return {
-          success: false,
-          error: validation.error || "Invalid repeat script request.",
-        }
-      }
-
-      // KILL SWITCH: Check for blocked medications (DB-based blocklist)
-      const medicationBlocklistCandidate = getMedicationBlocklistCandidate(input.answers)
-      const medCheck = await isMedicationBlocked(medicationBlocklistCandidate)
-      if (medCheck.blocked) {
-        return {
-          success: false,
-          error: `This medication cannot be prescribed through our online service for compliance reasons. Please consult your regular doctor. [${SERVICE_DISABLED_ERRORS.MEDICATION_BLOCKED}]`,
-        }
-      }
-
-      // CLINICAL AUDIT: Hard-block Schedule 8 / controlled substances (regex patterns)
-      if (medicationBlocklistCandidate && isControlledSubstance(medicationBlocklistCandidate)) {
-        logger.warn("Controlled substance blocked at guest checkout", { category: input.category })
-        return {
-          success: false,
-          error: "This medication cannot be prescribed through our online service. Controlled substances require an in-person consultation with your regular GP.",
-        }
-      }
-    }
-
-    // Check blocked medication terms in consult details as a defense-in-depth policy gate.
-    if (input.category === "consult") {
-      const medicationBlocklistCandidate = getMedicationBlocklistCandidate(input.answers)
-      const medCheck = await isMedicationBlocked(medicationBlocklistCandidate)
-      if (medCheck.blocked) {
-        return {
-          success: false,
-          error: `This medication cannot be prescribed through our online service for compliance reasons. Please consult your regular doctor. [${SERVICE_DISABLED_ERRORS.MEDICATION_BLOCKED}]`,
-        }
-      }
-
-      // CLINICAL AUDIT: Hard-block Schedule 8 / controlled substances named in
-      // free-text consult details (same regex net as the repeat-script branch).
-      if (medicationBlocklistCandidate && isControlledSubstance(medicationBlocklistCandidate)) {
-        logger.warn("Controlled substance blocked at guest checkout", { category: input.category })
-        return {
-          success: false,
-          error: "This medication cannot be prescribed through our online service. Controlled substances require an in-person consultation with your regular GP.",
-        }
-      }
-    }
-
-    // SERVER-SIDE SAFETY ENFORCEMENT (same as authenticated flow)
-    const serviceSlugForSafety = input.serviceSlug || getServiceSlug(input.category, input.subtype)
-
-    // AUDIT FIX: Validate safety-critical fields are present before evaluating rules
-    const fieldCheck = validateSafetyFieldsPresent(serviceSlugForSafety, input.answers)
-    if (!fieldCheck.valid) {
-      logger.warn("Safety fields missing at checkout", {
-        serviceSlug: serviceSlugForSafety,
-        missingFields: fieldCheck.missingFields,
-      })
-      await recordSafetyEvaluationForOperators({
-        answers: input.answers,
-        context: "checkout",
-        result: {
-          isAllowed: false,
-          outcome: "REQUEST_MORE_INFO",
-          riskTier: "high",
-          blockReason: "Required medical information is missing.",
-          requiresCall: false,
-          triggeredRuleIds: ["missing_safety_fields"],
-        },
-        serviceSlug: serviceSlugForSafety,
-      })
-      return {
-        success: false,
-        error: `Required medical information is missing. Please go back and complete all questions. Missing: ${fieldCheck.missingFields.join(", ")}`,
-      }
-    }
-
-    const safetyCheck = checkSafetyForServer(serviceSlugForSafety, input.answers)
-    
-    trackSafetyOutcome({
-      serviceSlug: serviceSlugForSafety,
-      outcome: safetyCheck.outcome,
-      riskTier: safetyCheck.riskTier,
-      triggeredRuleIds: safetyCheck.triggeredRuleIds,
-      triggeredRuleCount: safetyCheck.triggeredRuleIds.length,
-      evaluationDurationMs: 0,
+    // Zod payload validation + blocklist + S8 hard-block + safety fields + safety rules
+    const clinicalResult = await runClinicalValidation({
+      category: input.category,
+      subtype: input.subtype,
+      type: input.type,
+      answers: input.answers,
+      serviceSlug: input.serviceSlug,
+      idempotencyKey: "",
     })
-    
-    if (!safetyCheck.isAllowed) {
-      logger.warn("Safety check blocked guest checkout", {
-        serviceSlug: serviceSlugForSafety,
-        outcome: safetyCheck.outcome,
-        riskTier: safetyCheck.riskTier,
-        triggeredRules: safetyCheck.triggeredRuleIds,
-      })
-      
-      trackSafetyBlock({
-        serviceSlug: serviceSlugForSafety,
-        outcome: safetyCheck.outcome,
-        blockReason: safetyCheck.blockReason || "Unknown reason",
-        triggeredRuleIds: safetyCheck.triggeredRuleIds,
-      })
-      await recordSafetyEvaluationForOperators({
-        answers: input.answers,
-        context: "checkout",
-        result: safetyCheck,
-        serviceSlug: serviceSlugForSafety,
-      })
-      
-      if (safetyCheck.outcome === 'DECLINE') {
-        return {
-          success: false,
-          error: safetyCheck.blockReason || "This request cannot be processed online. Please see your regular doctor.",
-        }
-      }
-      
-      if (safetyCheck.outcome === 'REQUIRES_CALL') {
-        return {
-          success: false,
-          error: safetyCheck.blockReason || "This request requires a phone consultation. Please contact us to proceed.",
-        }
-      }
-      
-      return {
-        success: false,
-        error: safetyCheck.blockReason || "Additional information is required. Please go back and complete all questions.",
-      }
+    if (!clinicalResult.ok) {
+      return { success: false, error: clinicalResult.error }
     }
+    const { serviceSlugForSafety, safetyCheck } = clinicalResult.data
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -651,7 +610,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       if (intakeError?.code === "23505") {
         const { data: existingIntake } = await supabase
           .from("intakes")
-          .select("id, status, payment_status, payment_id")
+          .select("id, status, payment_status, payment_id, category, subtype, stripe_price_id, is_priority, guest_email")
           .eq("idempotency_key", guestIdempotencyKey)
           .eq("patient_id", guestProfileId)
           .maybeSingle()
@@ -667,6 +626,21 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
                 intakeId: existingIntake.id,
                 error: stripeError instanceof Error ? stripeError.message : String(stripeError),
               })
+            }
+          }
+
+          // Retryable intake with no live Stripe URL (expired or failed session) — rebuild.
+          if (!checkoutUrl && canRetryPaymentForIntake(existingIntake.status, existingIntake.payment_status)) {
+            const rebuiltUrl = await rebuildExpiredGuestSession(
+              supabase,
+              existingIntake,
+              input.guestEmail,
+              baseUrl,
+            )
+            if (rebuiltUrl) {
+              await markGuestDraftConvertedIfPresent(supabase, input, existingIntake.id)
+              logger.info("Rebuilt expired guest checkout session", { intakeId: existingIntake.id })
+              return { success: true, checkoutUrl: rebuiltUrl, intakeId: existingIntake.id }
             }
           }
 
