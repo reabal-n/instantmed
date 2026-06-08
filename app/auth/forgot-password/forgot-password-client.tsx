@@ -73,6 +73,17 @@ export function ForgotPasswordClient() {
                   Send another reset email
                 </button>
               </p>
+              <div className="mt-6 border-t border-border/50 pt-5 text-sm text-muted-foreground">
+                Checked out as a guest? You may not have an account yet — reset
+                links only work once you&apos;ve set a password.{" "}
+                <Link
+                  href={`/sign-up${email.trim() ? `?email=${encodeURIComponent(email.trim())}` : ""}`}
+                  className="font-medium text-primary hover:text-primary/80 hover:underline"
+                >
+                  Set up your account
+                </Link>{" "}
+                with this email to access your certificate.
+              </div>
             </div>
           </div>
         </main>

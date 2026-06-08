@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { usePostHog } from "@/lib/analytics/posthog-context"
+import { checkHighStakesUseCase, type HighStakesCheck } from "@/lib/clinical/intake-validation"
 import { validateSymptomTextQuality } from "@/lib/clinical/symptom-text-quality"
 import { checkEmergencySymptoms } from "@/lib/clinical/triage-rules-engine"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
@@ -63,6 +64,7 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
   const symptomDuration = answers.symptomDuration as string | undefined
   const certType = answers.certType as string | undefined
   const emergencyWarningAcknowledged = answers.emergencyWarningAcknowledged as boolean | undefined
+  const highStakesAcknowledged = answers.highStakesAcknowledged as boolean | undefined
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
@@ -104,6 +106,14 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
 
   const emergencyRequiresAck = emergencyWarning.isEmergency && !emergencyWarningAcknowledged
 
+  // High-stakes use cases (exam deferral, court, fitness-for-duty, workers
+  // comp, etc.) cannot be issued as a standard illness certificate. We surface
+  // a SOFT gate here — before payment — so the patient self-selects out instead
+  // of paying, waiting, and getting declined + refunded (the Li Enze case).
+  const highStakes: HighStakesCheck =
+    symptomDetails.length >= 10 ? checkHighStakesUseCase(symptomDetails) : { isHighStakes: false }
+  const highStakesRequiresAck = highStakes.isHighStakes && !highStakesAcknowledged
+
   // Plain-English reasons the step is blocked, for the top-of-step summary.
   const buildBlockingReasons = useCallback(() => {
     const reasons: string[] = []
@@ -116,8 +126,11 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
     if (emergencyRequiresAck) {
       reasons.push("the emergency notice acknowledged")
     }
+    if (highStakesRequiresAck) {
+      reasons.push("the certificate-scope notice acknowledged")
+    }
     return reasons
-  }, [symptomDetails, symptomDuration, emergencyRequiresAck])
+  }, [symptomDetails, symptomDuration, emergencyRequiresAck, highStakesRequiresAck])
 
   const validate = useCallback(() => {
     const newErrors: Record<string, string> = {}
@@ -133,8 +146,8 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
     setErrors(newErrors)
     setTouched({ symptomDetails: true, symptomDuration: true })
     setValidationSummary(buildBlockingReasons())
-    return Object.keys(newErrors).length === 0 && !emergencyRequiresAck
-  }, [symptomDetails, symptomDuration, emergencyRequiresAck, buildBlockingReasons])
+    return Object.keys(newErrors).length === 0 && !emergencyRequiresAck && !highStakesRequiresAck
+  }, [symptomDetails, symptomDuration, emergencyRequiresAck, highStakesRequiresAck, buildBlockingReasons])
 
   // Tap a starter to seed/clear the textarea. Source of truth stays the textarea
   // so downstream validation, AI notes, and the doctor view are unchanged.
@@ -166,16 +179,17 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
         service_type: serviceType,
         duration: symptomDuration,
         symptom_word_count: detailsWordCount,
+        high_stakes: highStakes.isHighStakes,
       })
       onNext()
     }
-  }, [validate, serviceType, symptomDuration, detailsWordCount, posthog, onNext])
+  }, [validate, serviceType, symptomDuration, detailsWordCount, highStakes.isHighStakes, posthog, onNext])
 
   // Readiness is computed live from the answers, NOT from the `errors` object —
   // `errors` is set by validate() for display and would otherwise stay stale
   // after the patient fixes a field, leaving the button looking not-ready.
   const isComplete = Boolean(symptomDuration) && detailsQuality.valid
-  const canContinue = isComplete && !emergencyRequiresAck
+  const canContinue = isComplete && !emergencyRequiresAck && !highStakesRequiresAck
 
   // Prune stale field errors + the blocking summary as soon as each field
   // becomes valid, so a fixed form stops showing "Add this to continue".
@@ -194,6 +208,22 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
       setValidationSummary([])
     }
   }, [canContinue, validationSummary.length])
+
+  // Drop a stale high-stakes acknowledgement once the text no longer trips it,
+  // so an edit that removes the trigger doesn't leave a phantom ack.
+  useEffect(() => {
+    if (!highStakes.isHighStakes && highStakesAcknowledged) {
+      setAnswer("highStakesAcknowledged", undefined)
+    }
+  }, [highStakes.isHighStakes, highStakesAcknowledged, setAnswer])
+
+  // Measure how often the gate fires (and later, how many proceed anyway).
+  useEffect(() => {
+    if (highStakes.isHighStakes) {
+      posthog?.capture("med_cert_high_stakes_warning_shown", { matched: highStakes.matched })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highStakes.isHighStakes])
 
   useKeyboardNavigation({
     onNext: canContinue ? handleNext : undefined,
@@ -309,6 +339,35 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
             </div>
           </AlertDescription>
         </Alert>
+      )}
+
+      {highStakes.isHighStakes && !emergencyWarning.isEmergency && (
+        <div className="rounded-lg border border-warning-border bg-warning-light p-4" role="alert">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
+            <div className="space-y-3 text-sm text-warning">
+              <div className="space-y-1.5">
+                <p className="font-semibold">This may not be the right certificate</p>
+                <p>{highStakes.reason}</p>
+                <p>
+                  We can issue a standard certificate confirming you were unwell and unable to
+                  attend. We can&apos;t provide documentation describing a diagnosis, functional
+                  limitations, exam deferrals, or fitness-for-duty — your regular GP can help with those.
+                </p>
+              </div>
+              <div className="flex items-center gap-3 border-t border-warning-border pt-2">
+                <Switch
+                  id="high-stakes-ack"
+                  checked={highStakesAcknowledged === true}
+                  onCheckedChange={(checked) => setAnswer("highStakesAcknowledged", checked)}
+                />
+                <Label htmlFor="high-stakes-ack" className="cursor-pointer leading-snug">
+                  I understand, and a standard illness certificate is fine.
+                </Label>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Always clickable so a tap runs validate() and surfaces the blocking

@@ -24,7 +24,7 @@ import { validateCertificateDateRange } from "@/lib/medical-certificates/date-po
 import { editPaidRequestTelegramMessageToApproved } from "@/lib/notifications/edit-paid-request-telegram"
 import { createNotification } from "@/lib/notifications/service"
 import { logger } from "@/lib/observability/logger"
-import { getPatientIntakeDetailHref } from "@/lib/patient/certificate-download"
+import { getGuestCertificateAccessHref, getPatientIntakeDetailHref } from "@/lib/patient/certificate-download"
 import { generateCertificateNumber, generateCertificateRef,generateVerificationCode } from "@/lib/pdf/cert-identifiers"
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import { getAbsenceDays } from "@/lib/stripe/price-mapping"
@@ -115,7 +115,8 @@ export async function executeCertApproval(
         full_name,
         email,
         date_of_birth,
-        referral_code
+        referral_code,
+        auth_user_id
       ),
       answers:intake_answers(
         answers
@@ -188,7 +189,7 @@ export async function executeCertApproval(
   // When skipClaim=true (auto-approval), we proceed without claiming.
   // The atomicApproveCertificate RPC validates intake state internally.
 
-  const patient = intake.patient as { id: string; full_name: string; email: string; date_of_birth: string | null; referral_code: string | null } | null
+  const patient = intake.patient as { id: string; full_name: string; email: string; date_of_birth: string | null; referral_code: string | null; auth_user_id: string | null } | null
   if (!patient || !patient.email) {
     return { success: false, error: "Patient email not found" }
   }
@@ -520,7 +521,16 @@ export async function executeCertApproval(
   // immediately because there's no UI toast to undo. Idempotent re-approvals
   // already returned above without queueing a new email.
   Sentry.addBreadcrumb({ category: "cert.flow", message: "Sending patient email", level: "info", data: { intakeId, certificateId } })
-  const dashboardUrl = `${env.appUrl}${getPatientIntakeDetailHref(intakeId)}`
+  // Guest patients (no linked auth account) can't pass the portal login wall,
+  // so the cert email button would dead-end for them. Route them to set up
+  // their account (which links the guest profile, then shows the audited
+  // download) instead of the auth-walled portal. Account holders get the
+  // portal as before. We deliberately do NOT email a raw signed PDF URL —
+  // downloads stay ownership-checked and audit-logged through the app route.
+  const isGuest = !patient.auth_user_id
+  const dashboardUrl = isGuest
+    ? `${env.appUrl}${getGuestCertificateAccessHref(intakeId, patient.email)}`
+    : `${env.appUrl}${getPatientIntakeDetailHref(intakeId)}`
 
   const deferEmail = !skipClaim && !aiApproved
   const emailScheduledFor = deferEmail
@@ -537,6 +547,7 @@ export async function executeCertApproval(
       verificationCode,
       certType: certificateType === "study" ? "study" : certificateType === "carer" ? "carer" : "work",
       appUrl: env.appUrl,
+      isGuest,
     }),
     emailType: "med_cert_patient",
     intakeId,

@@ -39,7 +39,7 @@ export interface IntakeDialogState {
 export function useIntakeDialogs(initialOpenDecline = false): IntakeDialogState {
   const [showDeclineDialog, setShowDeclineDialog] = useState(initialOpenDecline)
   const [declineReason, setDeclineReason] = useState(DECLINE_REASONS[0].template)
-  const [declineReasonCode, setDeclineReasonCode] = useState<DeclineReasonCode>("requires_examination")
+  const [declineReasonCode, setDeclineReasonCode] = useState<DeclineReasonCode>(DECLINE_REASONS[0].code)
 
   const [showScriptDialog, setShowScriptDialog] = useState(false)
   const [parchmentReference, setParchmentReference] = useState("")
@@ -52,7 +52,7 @@ export function useIntakeDialogs(initialOpenDecline = false): IntakeDialogState 
   const closeDeclineDialog = useCallback(() => {
     setShowDeclineDialog(false)
     setDeclineReason(DECLINE_REASONS[0].template)
-    setDeclineReasonCode("requires_examination")
+    setDeclineReasonCode(DECLINE_REASONS[0].code)
   }, [])
 
   const onDeclineReasonCodeChange = useCallback((code: DeclineReasonCode) => {

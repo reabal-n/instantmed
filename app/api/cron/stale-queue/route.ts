@@ -86,6 +86,11 @@ export async function GET(request: NextRequest) {
         .eq("status", "paid")
         .lt("paid_at", patientEmailThreshold.toISOString())
         .is("delay_notification_sent_at", null)
+        // Cross-guard with the retry-auto-approval cron, which sends the SAME
+        // still_reviewing email but tracks it on follow_up_sent_at. Without
+        // this, the patient gets the identical email twice. Whichever cron
+        // sends first now blocks the other.
+        .is("follow_up_sent_at", null)
         .not("patient_id", "is", null)
         .limit(20)
 
