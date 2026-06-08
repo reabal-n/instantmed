@@ -33,7 +33,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { Profile } from "@/types/db"
 import type { ActionResult } from "@/types/shared"
 
-type UserRole = "patient" | "doctor" | "admin"
+type UserRole = "patient" | "doctor" | "admin" | "support"
 
 export interface ActionContext {
   supabase: SupabaseClient

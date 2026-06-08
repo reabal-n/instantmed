@@ -110,3 +110,6 @@ Uiverse-Component-MuhammadHasann.md
 # Retired docs: canonical design system is DESIGN.md, release evidence lives in CI/GitHub/Sentry.
 docs/DESIGN_SYSTEM.md
 docs/RELEASE_LOG.md
+
+# Supabase CLI local link artifacts
+supabase/.temp/

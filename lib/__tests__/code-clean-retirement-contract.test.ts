@@ -293,8 +293,10 @@ describe("code-clean retirement contracts", () => {
     expect(read(".env.example")).not.toContain("STRIPE_PRICE_REPEAT_RX_MONTHLY")
     expect(read("lib/constants/index.ts")).not.toContain("REPEAT_RX_MONTHLY")
     expect(read("lib/stripe/checkout.ts")).not.toContain('mode: "subscription"')
-    expect(read("lib/sms/templates.ts")).not.toContain("REFILL_REMINDER")
-    expect(read("lib/sms/templates.ts")).not.toContain("/prescriptions/request")
+    // The entire Twilio SMS subsystem was deleted (zero callers). Assert it
+    // stays gone rather than asserting on contents of files that no longer exist.
+    expect(existsSync(join(root, "lib/sms")), "lib/sms").toBe(false)
+    expect(existsSync(join(root, "lib/sms/templates.ts")), "lib/sms/templates.ts").toBe(false)
 
     const checkoutCompletedHandler = read("app/api/stripe/webhook/handlers/checkout-session-completed.ts")
     expect(checkoutCompletedHandler).not.toMatch(/from\("subscriptions"\)\.upsert/)
