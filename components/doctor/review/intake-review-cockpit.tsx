@@ -269,20 +269,20 @@ export function IntakeReviewCockpit({
                 />
               </div>
             ) : null}
-            <section className="rounded-xl border border-border/50 bg-card p-3.5 shadow-sm shadow-primary/[0.04]">
-              <p className="text-xs font-medium text-muted-foreground">Reason for visit</p>
-              <p className="mt-1 text-sm leading-relaxed text-foreground">
-                {reasonForVisitText}
-              </p>
+            <div className="space-y-1.5">
+              <div className="flex items-baseline gap-1.5">
+                <span className="shrink-0 text-[11px] font-medium text-muted-foreground">Reason for visit</span>
+                <span className="text-sm font-medium text-foreground leading-5">{reasonForVisitText}</span>
+              </div>
               {showThinMedCertWarning && hasThinMedCertIntake ? (
-                <div className="mt-3 flex items-start gap-2 rounded-lg border border-border/60 bg-muted/25 px-3 py-2 text-slate-600 dark:text-muted-foreground">
+                <div className="flex items-start gap-2 rounded-lg border border-border/60 bg-muted/25 px-3 py-2 text-slate-600 dark:text-muted-foreground">
                   <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
                   <p className="text-xs font-medium leading-relaxed">
                     No symptoms yet. Ask the patient for detail.
                   </p>
                 </div>
               ) : null}
-            </section>
+            </div>
             <RequestInfoCard
               compact
               hideFullAnswers

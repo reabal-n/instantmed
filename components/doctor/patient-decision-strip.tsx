@@ -177,26 +177,45 @@ export function PatientDecisionStrip({
       ))}
     </dl>
   )
-  const renderCompactSummaryFacts = () => (
-    <dl className="mt-2 flex flex-wrap gap-x-3 gap-y-1.5 text-xs" data-compact-identity-summary>
-      {summaryFacts.map((item) => (
-        <div key={item.label} className="flex min-w-0 max-w-full items-baseline gap-1.5">
-          <dt className="shrink-0 text-[11px] font-medium text-muted-foreground/75">
-            {item.label}
-          </dt>
-          <dd
-            className={cn(
-              "min-w-0 max-w-[16rem] truncate font-semibold text-foreground tabular-nums",
-              item.label === "Address" && "max-w-[22rem]",
-              item.mono && "font-mono",
-            )}
-          >
-            {item.value}
-          </dd>
-        </div>
-      ))}
-    </dl>
+  // In compact+summaryOnly mode the panel header already shows name, age, location, and
+  // visit history. Only surface prescribing-critical identifiers (Medicare + Phone).
+  const prescribingFacts = summaryFacts.filter(
+    (f) => f.label === "Medicare" || f.label === "Phone",
   )
+
+  if (compact && summaryOnly) {
+    return (
+      <section aria-label="Prescribing identity" className={className}>
+        <dl className="flex flex-wrap items-baseline gap-x-4 gap-y-1" data-compact-identity-summary>
+          {prescribingFacts.map((item) => (
+            <div key={item.label} className="flex min-w-0 items-baseline gap-1.5">
+              <dt className="shrink-0 text-[11px] font-medium text-muted-foreground/75">
+                {item.label}
+              </dt>
+              <dd
+                className={cn(
+                  "min-w-0 font-semibold text-foreground tabular-nums text-[13px]",
+                  item.mono && "font-mono",
+                )}
+              >
+                {item.value}
+              </dd>
+            </div>
+          ))}
+          {hiddenIdentifiers.length > 0 ? (
+            <button
+              type="button"
+              className="text-[11px] font-semibold text-muted-foreground underline underline-offset-2 hover:text-foreground"
+              onClick={() => revealIdentifiers(hiddenIdentifiers)}
+              aria-label="Show patient identity"
+            >
+              Reveal
+            </button>
+          ) : null}
+        </dl>
+      </section>
+    )
+  }
 
   return (
     <section
@@ -216,58 +235,34 @@ export function PatientDecisionStrip({
             {compactSubheading}
           </p>
         </div>
-        {compact && summaryOnly ? (
-          hiddenIdentifiers.length > 0 ? (
-            <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-muted-foreground">
-              <button
-                type="button"
-                className="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-semibold text-muted-foreground underline underline-offset-2 hover:text-foreground"
-                onClick={() => revealIdentifiers(hiddenIdentifiers)}
-                aria-label="Show patient identity"
-              >
-                Show identity
-              </button>
-            </div>
-          ) : null
-        ) : (
-          <div className="flex flex-wrap items-center gap-1.5">
-            <Badge
-              variant={snapshot.completenessTone === "complete" ? "outline" : snapshot.completenessTone === "partial" ? "warning" : "destructive"}
-              size="sm"
-              className={cn("shrink-0", snapshot.completenessTone === "complete" && "text-muted-foreground")}
-            >
-              <ClipboardCheck className="h-3 w-3" />
-              {snapshot.completenessTone === "complete" ? "Details complete" : snapshot.completenessLabel}
-            </Badge>
-            <Badge
-              variant={summary.notesReady ? "outline" : "warning"}
-              size="sm"
-              className={cn("shrink-0", summary.notesReady && "text-muted-foreground")}
-            >
-              <FileText className="h-3 w-3" />
-              {summary.notesLabel}
-            </Badge>
-          </div>
-        )}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Badge
+            variant={snapshot.completenessTone === "complete" ? "outline" : snapshot.completenessTone === "partial" ? "warning" : "destructive"}
+            size="sm"
+            className={cn("shrink-0", snapshot.completenessTone === "complete" && "text-muted-foreground")}
+          >
+            <ClipboardCheck className="h-3 w-3" />
+            {snapshot.completenessTone === "complete" ? "Details complete" : snapshot.completenessLabel}
+          </Badge>
+          <Badge
+            variant={summary.notesReady ? "outline" : "warning"}
+            size="sm"
+            className={cn("shrink-0", summary.notesReady && "text-muted-foreground")}
+          >
+            <FileText className="h-3 w-3" />
+            {summary.notesLabel}
+          </Badge>
+        </div>
       </div>
       {summaryOnly ? (
-        <div className={cn("mt-3", compact ? "mt-2" : "space-y-2")}>
-          {compact ? (
-            <div>
-              <p className="sr-only">Identity details</p>
-              {renderCompactSummaryFacts()}
-            </div>
-          ) : (
-            <details open>
-              <summary className="sr-only">Identity details</summary>
-              {renderSummaryFacts(false)}
-            </details>
-          )}
-          {!compact ? (
-            <p className="truncate text-xs text-muted-foreground">
-              {summary.previousLabel && summary.previousLabel !== "First request" ? summary.previousLabel : "First visit"}
-            </p>
-          ) : null}
+        <div className="mt-3 space-y-2">
+          <details open>
+            <summary className="sr-only">Identity details</summary>
+            {renderSummaryFacts(false)}
+          </details>
+          <p className="truncate text-xs text-muted-foreground">
+            {summary.previousLabel && summary.previousLabel !== "First request" ? summary.previousLabel : "First visit"}
+          </p>
         </div>
       ) : (
       <dl className={cn("mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3", compact && "mt-2")}>

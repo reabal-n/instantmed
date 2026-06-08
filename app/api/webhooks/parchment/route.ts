@@ -5,7 +5,7 @@ import { NextResponse } from "next/server"
 import { logExternalPrescribingIndicated } from "@/lib/audit/compliance-audit"
 import { updateScriptSent } from "@/lib/data/intakes"
 import { createLogger } from "@/lib/observability/logger"
-import { verifyWebhookSignature } from "@/lib/parchment/client"
+import { getParchmentEnvironment, verifyWebhookSignature } from "@/lib/parchment/client"
 import { syncParchmentPrescriptionToPms } from "@/lib/parchment/sync-prescription"
 import { webhookPayloadSchema } from "@/lib/parchment/types"
 import { selectParchmentWebhookIntake, selectParchmentWebhookPrescriberId } from "@/lib/parchment/webhook-matching"
@@ -130,10 +130,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Partner mismatch" }, { status: 403 })
   }
 
+  // Block all webhook processing when Parchment is configured in sandbox mode.
+  // Sandbox environment fires test prescriptions at the production endpoint;
+  // none should touch real patient data or generate DLQ noise.
+  const { isSandbox: parchmentIsSandbox } = getParchmentEnvironment()
+  if (parchmentIsSandbox) {
+    log.info("Parchment sandbox mode active; discarding webhook", { eventId: payload.event_id })
+    return NextResponse.json({ received: true })
+  }
+
   const { patient_id, partner_patient_id, scid, user_id } = payload.data
 
-  // Parchment sandbox fires test webhooks with a sentinel patient_id at the
-  // production endpoint. Silently ack them — no audit log, no DLQ noise.
+  // Defense-in-depth: Parchment sandbox fires test webhooks with a sentinel
+  // patient_id even when org/partner IDs match production. Silently ack.
   if (patient_id === "nonexistent-parchment-patient") {
     log.info("Discarding Parchment sandbox test webhook", { eventId: payload.event_id })
     return NextResponse.json({ received: true })
