@@ -39,6 +39,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
+import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { cn } from "@/lib/utils"
 
@@ -213,12 +214,26 @@ export default function HairLossHealthStep({
     [reproductiveComplete, scalpComplete, bpComplete, medicalComplete, isBlocked]
   )
 
+  const { validationSummary, showBlockingReasons } = useStepValidationSummary(
+    canContinue,
+    useCallback(() => {
+      const reasons: string[] = []
+      if (!reproductiveComplete) reasons.push("the reproductive health section")
+      if (!scalpComplete) reasons.push("the scalp conditions section")
+      if (!bpComplete) reasons.push("the blood pressure section")
+      if (!medicalComplete) reasons.push("the medical history section")
+      return reasons
+    }, [reproductiveComplete, scalpComplete, bpComplete, medicalComplete])
+  )
+
   const handleNext = useCallback(() => {
-    if (canContinue) {
-      posthog?.capture("step_completed", { step: "hair-loss-health" })
-      onNext()
+    if (!canContinue) {
+      showBlockingReasons()
+      return
     }
-  }, [canContinue, posthog, onNext])
+    posthog?.capture("step_completed", { step: "hair-loss-health" })
+    onNext()
+  }, [canContinue, showBlockingReasons, posthog, onNext])
 
   // Keyboard navigation
   useKeyboardNavigation({
@@ -553,13 +568,23 @@ export default function HairLossHealthStep({
         </QuestionCard>
       )}
 
-      {/* Continue button */}
+      {/* Validation summary — announced to screen readers on first Continue tap */}
+      {validationSummary.length > 0 && (
+        <Alert variant="destructive" role="alert" aria-live="assertive">
+          <AlertDescription>
+            {validationSummary.length === 1 ? "Complete this to continue: " : "Complete these to continue: "}
+            {validationSummary.join(", ")}.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Always clickable — variant signals readiness; handleNext gates progression */}
       <Button
         data-intake-primary-action="true"
         data-intake-primary-label="Continue"
         onClick={handleNext}
+        variant={canContinue ? "default" : "secondary"}
         className="w-full h-12 max-sm:hidden"
-        disabled={!canContinue}
       >
         {canContinue ? (
           <>

@@ -37,6 +37,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
+import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { cn } from "@/lib/utils"
 
@@ -208,12 +209,33 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
     previousTreatmentComplete,
   ])
 
+  const { validationSummary, showBlockingReasons } = useStepValidationSummary(
+    canContinue,
+    useCallback(() => {
+      const reasons: string[] = []
+      if (edNitrates === undefined) {
+        reasons.push("whether you take nitrates")
+      } else if (gpClearanceRequired) {
+        reasons.push("GP clearance confirmation")
+      } else {
+        if (!heartComplete) reasons.push("the cardiac safety section")
+        if (!medicationsComplete) reasons.push("the medications section")
+        if (!allergiesComplete) reasons.push("the allergies section")
+        if (!conditionsComplete) reasons.push("the other conditions section")
+        if (!previousTreatmentComplete) reasons.push("the previous treatment section")
+      }
+      return reasons
+    }, [edNitrates, gpClearanceRequired, heartComplete, medicationsComplete, allergiesComplete, conditionsComplete, previousTreatmentComplete])
+  )
+
   const handleNext = useCallback(() => {
-    if (canContinue) {
-      posthog?.capture('step_completed', { step: 'ed-health' })
-      onNext()
+    if (!canContinue) {
+      showBlockingReasons()
+      return
     }
-  }, [canContinue, posthog, onNext])
+    posthog?.capture('step_completed', { step: 'ed-health' })
+    onNext()
+  }, [canContinue, showBlockingReasons, posthog, onNext])
 
   // Keyboard navigation
   useKeyboardNavigation({
@@ -549,13 +571,23 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
         </QuestionCard>
       )}
 
-      {/* Continue button */}
+      {/* Validation summary — announced to screen readers on first Continue tap */}
+      {validationSummary.length > 0 && (
+        <Alert variant="destructive" role="alert" aria-live="assertive">
+          <AlertDescription>
+            {validationSummary.length === 1 ? "Complete this to continue: " : "Complete these to continue: "}
+            {validationSummary.join(", ")}.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Always clickable — variant signals readiness; handleNext gates progression */}
       <Button
         data-intake-primary-action="true"
         data-intake-primary-label="Continue"
         onClick={handleNext}
+        variant={canContinue ? "default" : "secondary"}
         className="w-full h-12 max-sm:hidden"
-        disabled={!canContinue}
       >
         {canContinue ? (
           <>

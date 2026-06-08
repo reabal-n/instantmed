@@ -11,12 +11,15 @@
 import { motion } from "framer-motion"
 import type { LucideIcon } from "lucide-react"
 import { ArrowRight,CalendarDays, Clock, ShieldCheck, Stethoscope } from "lucide-react"
+import { useCallback } from "react"
 
 import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
+import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
 import { stagger } from "@/lib/motion"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { cn } from "@/lib/utils"
@@ -74,15 +77,22 @@ export default function EdPreferencesStep({ onNext }: EdPreferencesStepProps) {
 
   const isComplete = !!edPreference
 
+  const { validationSummary, showBlockingReasons } = useStepValidationSummary(
+    isComplete,
+    useCallback(() => ["a treatment preference"], [])
+  )
+
   const handleNext = () => {
-    if (isComplete) {
-      posthog?.capture('step_completed', { step: 'ed-preferences', preference: edPreference })
-      onNext()
+    if (!isComplete) {
+      showBlockingReasons()
+      return
     }
+    posthog?.capture('step_completed', { step: 'ed-preferences', preference: edPreference })
+    onNext()
   }
 
   useKeyboardNavigation({
-    onNext: handleNext,
+    onNext: isComplete ? handleNext : undefined,
     enabled: isComplete,
   })
 
@@ -169,12 +179,21 @@ export default function EdPreferencesStep({ onNext }: EdPreferencesStepProps) {
         </p>
       </QuestionCard>
 
-      {/* Continue button */}
+      {/* Validation summary — announced to screen readers on first Continue tap */}
+      {validationSummary.length > 0 && (
+        <Alert variant="destructive" role="alert" aria-live="assertive">
+          <AlertDescription>
+            Select a treatment preference to continue.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Always clickable — variant signals readiness; handleNext gates progression */}
       <Button
         data-intake-primary-action="true"
         data-intake-primary-label="Continue"
         onClick={handleNext}
-        disabled={!isComplete}
+        variant={isComplete ? "default" : "secondary"}
         className="w-full h-12 text-base font-medium max-sm:hidden"
       >
         {isComplete ? (
