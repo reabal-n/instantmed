@@ -255,9 +255,11 @@ export async function getDoctorQueue(
     return { data: [], total: 0, page, pageSize, degraded: false }
   }
 
-  // Get total count first. If this count path fails, still fetch the queue
-  // data; a count problem should not blank the staff cockpit.
-  const countResult = await readDashboardQuery({
+  // Count and page-data are independent; build both and run them together so
+  // the hottest staff path doesn't pay COUNT latency before data starts. If the
+  // count path fails, still fetch the queue data; a count problem should not
+  // blank the staff cockpit.
+  const countPromise = readDashboardQuery({
     label: "staff review queue count",
     fallback: { count: 0, degraded: true },
     context: { surface: "staff-dashboard" },
@@ -280,7 +282,6 @@ export async function getDoctorQueue(
       return { data: error ? null : { count: count ?? 0, degraded: false }, error }
     },
   })
-  const countFallback = countResult.degraded
 
   // Fetch paginated data with only necessary fields for queue view
   let dataQuery = filterSeededE2EIntakes(supabase
@@ -330,13 +331,16 @@ export async function getDoctorQueue(
     dataQuery = dataQuery.eq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
   }
 
-  const { data, error } = await dataQuery
+  const dataPromise = dataQuery
     .order("is_priority", { ascending: false })
     .order("sla_deadline", { ascending: true, nullsFirst: false })
     .order("paid_at", { ascending: true, nullsFirst: false })
     .order("submitted_at", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: true })
     .range(offset, offset + pageSize - 1)
+
+  const [countResult, { data, error }] = await Promise.all([countPromise, dataPromise])
+  const countFallback = countResult.degraded
 
   if (error) {
     logger.error("Error fetching doctor queue", {}, toError(error))
@@ -645,14 +649,6 @@ export async function getAllIntakesForAdmin(
     countQuery = countQuery.in("status", options.status)
   }
 
-  // Get total count first
-  const { count, error: countError } = await countQuery
-
-  if (countError) {
-    logger.error("Error fetching admin intake count", {}, countError instanceof Error ? countError : new Error(String(countError)))
-    return { data: [], total: 0, page, pageSize }
-  }
-
   // Fetch paginated data with only necessary fields
   let dataQuery = supabase
     .from("intakes")
@@ -710,10 +706,16 @@ export async function getAllIntakesForAdmin(
     dataQuery = dataQuery.in("status", options.status)
   }
 
-  const { data, error } = await dataQuery
-    .order("created_at", { ascending: false })
-    .range(offset, offset + pageSize - 1)
+  // Count and page-data share filters but are independent; run them together.
+  const [{ count, error: countError }, { data, error }] = await Promise.all([
+    countQuery,
+    dataQuery.order("created_at", { ascending: false }).range(offset, offset + pageSize - 1),
+  ])
 
+  if (countError) {
+    logger.error("Error fetching admin intake count", {}, countError instanceof Error ? countError : new Error(String(countError)))
+    return { data: [], total: 0, page, pageSize }
+  }
   if (error) {
     logger.error("Error fetching all intakes", {}, toError(error))
     return { data: [], total: count ?? 0, page, pageSize }

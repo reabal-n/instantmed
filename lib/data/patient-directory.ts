@@ -305,11 +305,22 @@ async function getLastScriptMap(patientIds: string[]): Promise<Map<string, Patie
     })
   }
 
+  // Scope script_tasks to the page's intakes. A global newest-1000 scan silently
+  // drops a patient's most recent script once 1000 newer tasks exist platform-wide,
+  // corrupting the directory's "last script" column and its sort. idx_script_tasks_intake
+  // covers this filter. Mirrors the patient-scoped prescriptions branch above.
+  const { data: pageIntakes } = await supabase
+    .from("intakes")
+    .select("id")
+    .in("patient_id", patientIds)
+  const pageIntakeIds = (pageIntakes ?? []).map((row) => row.id)
+  if (pageIntakeIds.length === 0) return map
+
   const { data, error } = await supabase
     .from("script_tasks")
     .select("id, intake_id, medication_name, status, created_at, sent_at, intake:intakes(patient_id)")
+    .in("intake_id", pageIntakeIds)
     .order("created_at", { ascending: false })
-    .limit(1000)
 
   if (error || !data) {
     log.warn("Failed to fetch patient directory script summaries", { error: error?.message })
