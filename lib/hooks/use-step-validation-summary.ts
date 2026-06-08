@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 
 /**
  * Manages the "add these to continue" blocking-reason summary shown when a
@@ -11,6 +11,10 @@ import { useCallback, useEffect, useState } from "react"
  * only feedback would otherwise be "nothing happened." The button uses
  * variant="secondary" when incomplete and the summary tells the patient
  * exactly what to fill in.
+ *
+ * Once the patient has tapped Continue at least once ("attempted"), the
+ * summary recomputes live as they fill fields — resolved blockers disappear
+ * immediately without needing another tap.
  *
  * Usage:
  *   const { validationSummary, showBlockingReasons } = useStepValidationSummary(
@@ -40,18 +44,23 @@ export function useStepValidationSummary(
   canContinue: boolean,
   computeReasons: () => string[]
 ) {
-  const [validationSummary, setValidationSummary] = useState<string[]>([])
+  const [hasAttempted, setHasAttempted] = useState(false)
 
-  // Auto-clear the moment the step becomes completable
+  // Recompute live once the patient has attempted — resolved blockers clear immediately
+  const liveReasons = useMemo(
+    () => (hasAttempted && !canContinue ? computeReasons() : []),
+      [hasAttempted, canContinue, computeReasons]
+  )
+
+  // Clear attempted state when the step becomes completable so the alert doesn't
+  // flash back if the patient undoes an answer on another visit to this step
   useEffect(() => {
-    if (canContinue && validationSummary.length > 0) {
-      setValidationSummary([])
-    }
-  }, [canContinue, validationSummary.length])
+    if (canContinue) setHasAttempted(false)
+  }, [canContinue])
 
   const showBlockingReasons = useCallback(() => {
-    setValidationSummary(computeReasons())
-  }, [computeReasons])
+    setHasAttempted(true)
+  }, [])
 
-  return { validationSummary, showBlockingReasons }
+  return { validationSummary: liveReasons, showBlockingReasons }
 }

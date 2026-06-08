@@ -49,7 +49,7 @@
 |------|---------|
 | [docs/runbooks/comparative-tagline-complaint.md](../runbooks/comparative-tagline-complaint.md) | AHPRA/TGA/Medical Board/Google complaint runbook for the "Faster than your GP." tagline |
 
-## docs/audits/ — 16 (historical + growth records)
+## docs/audits/ — 19 (historical + growth records)
 
 | File | Purpose |
 |------|---------|
@@ -69,6 +69,9 @@
 | [docs/audits/2026-06-04-session-handoff.md](../audits/2026-06-04-session-handoff.md) | Session handoff notes |
 | [docs/audits/2026-06-05-profitability-3llm-audit.md](../audits/2026-06-05-profitability-3llm-audit.md) | Three-model profitability audit and paid-restart gate record |
 | [docs/audits/google-ads-audit.md](../audits/google-ads-audit.md) | Google Ads audit (historical) |
+| [docs/audits/2026-06-07-conversion-gaps.md](../audits/2026-06-07-conversion-gaps.md) | Conversion gaps audit record 2026-06-07 |
+| [docs/audits/2026-06-07-platform-audit.md](../audits/2026-06-07-platform-audit.md) | Comprehensive platform audit 2026-06-07 |
+| [docs/audits/2026-06-08-scale-reaudit.md](../audits/2026-06-08-scale-reaudit.md) | 11-lens scale re-audit 2026-06-08; shipped Bucket A; Bucket B greenlit |
 
 ## docs/plans/ — active
 
