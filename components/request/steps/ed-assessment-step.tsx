@@ -5,10 +5,12 @@ import { ArrowRight,Info, TrendingUp } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
+import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
 import { ED_HOOK_QUIZ_KEY, type EdHookQuizResult } from "@/lib/marketing/ed-hook-quiz"
 import { fadeUp,stagger } from "@/lib/motion"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
@@ -261,6 +263,14 @@ export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepPro
   const activeQuestion = IIEF_QUESTIONS[activeQuestionIndex]
   const activeValue = (answers[activeQuestion.id] as number | undefined) ?? null
 
+  const { validationSummary, showBlockingReasons } = useStepValidationSummary(
+    allAnswered,
+    useCallback(() => {
+      const remaining = IIEF_QUESTIONS.length - answeredCount
+      return [`${remaining} more ${remaining === 1 ? "question" : "questions"}`]
+    }, [answeredCount])
+  )
+
   const handleScaleChange = useCallback((questionId: IIEFQuestion["id"], value: number, index: number) => {
     setAnswer(questionId, value)
     if (index < IIEF_QUESTIONS.length - 1) {
@@ -269,11 +279,13 @@ export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepPro
   }, [setAnswer])
 
   const handleNext = useCallback(() => {
-    if (allAnswered && iiefTotal !== null) {
-      posthog?.capture('step_completed', { step: 'ed-assessment', iief_total: iiefTotal, severity: interpretation?.label })
-      onNext()
+    if (!allAnswered) {
+      showBlockingReasons()
+      return
     }
-  }, [allAnswered, iiefTotal, interpretation, posthog, onNext])
+    posthog?.capture('step_completed', { step: 'ed-assessment', iief_total: iiefTotal, severity: interpretation?.label })
+    onNext()
+  }, [allAnswered, showBlockingReasons, iiefTotal, interpretation, posthog, onNext])
 
   useKeyboardNavigation({
     onNext: allAnswered ? handleNext : undefined,
@@ -406,13 +418,24 @@ export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepPro
         </p>
       </motion.div>
 
-      {/* Continue button */}
+      {/* Validation summary — announced to screen readers on first Continue tap */}
+      {validationSummary.length > 0 && (
+        <motion.div variants={itemVariants}>
+          <Alert variant="destructive" role="alert" aria-live="assertive">
+            <AlertDescription>
+              Add {validationSummary.join(", ")} to continue.
+            </AlertDescription>
+          </Alert>
+        </motion.div>
+      )}
+
+      {/* Always clickable — variant signals readiness; handleNext gates progression */}
       <motion.div variants={itemVariants}>
         <Button
           data-intake-primary-action="true"
           data-intake-primary-label="Continue"
           onClick={handleNext}
-          disabled={!allAnswered}
+          variant={allAnswered ? "default" : "secondary"}
           className="w-full h-12 text-base font-medium max-sm:hidden"
         >
           {allAnswered ? (

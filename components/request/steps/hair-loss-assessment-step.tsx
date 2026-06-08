@@ -2,16 +2,18 @@
 
 import { motion } from "framer-motion"
 import { AlertCircle, ArrowRight } from "lucide-react"
-import { useEffect,useRef, useState } from "react"
+import { useCallback, useEffect,useRef, useState } from "react"
 
 import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
 import { MedicalHistoryToggles } from "@/components/request/shared/medical-history-toggles"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { useReducedMotion } from "@/components/ui/motion"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
+import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
 import { stagger } from "@/lib/motion"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { cn } from "@/lib/utils"
@@ -162,14 +164,26 @@ export default function HairLossAssessmentStep({
 
   const isComplete = !!hairPattern && !!hairFamilyHistory
 
+  const { validationSummary, showBlockingReasons } = useStepValidationSummary(
+    isComplete,
+    useCallback(() => {
+      const reasons: string[] = []
+      if (!hairPattern) reasons.push("your hair loss pattern")
+      if (!hairFamilyHistory) reasons.push("your family history")
+      return reasons
+    }, [hairPattern, hairFamilyHistory])
+  )
+
   const handleNext = () => {
-    if (validate()) {
-      posthog?.capture("step_completed", {
-        step: "hair-loss-assessment",
-        pattern: hairPattern,
-      })
-      onNext()
+    if (!validate()) {
+      showBlockingReasons()
+      return
     }
+    posthog?.capture("step_completed", {
+      step: "hair-loss-assessment",
+      pattern: hairPattern,
+    })
+    onNext()
   }
 
   useKeyboardNavigation({
@@ -336,13 +350,25 @@ export default function HairLossAssessmentStep({
         </motion.div>
       )}
 
-      {/* Continue button */}
+      {/* Validation summary — announced to screen readers on first Continue tap */}
+      {validationSummary.length > 0 && (
+        <motion.div variants={itemVariants}>
+          <Alert variant="destructive" role="alert" aria-live="assertive">
+            <AlertDescription>
+              {validationSummary.length === 1 ? "Add this to continue: " : "Add these to continue: "}
+              {validationSummary.join(", ")}.
+            </AlertDescription>
+          </Alert>
+        </motion.div>
+      )}
+
+      {/* Always clickable — variant signals readiness; handleNext gates progression */}
       <motion.div variants={itemVariants}>
         <Button
           data-intake-primary-action="true"
           data-intake-primary-label="Continue"
           onClick={handleNext}
-          disabled={!isComplete}
+          variant={isComplete ? "default" : "secondary"}
           className="w-full h-12 text-base font-medium max-sm:hidden"
         >
           {isComplete ? (
