@@ -32,6 +32,27 @@ const PHI_PATTERNS = {
 
 const REDACTED = "[REDACTED]"
 
+// Field names whose values are redacted wholesale before logging. The lookup
+// does key.toLowerCase(), so every entry MUST be lowercase. A camelCase entry
+// like "firstName" would never match its own key ("firstname") and the value
+// would ship to Sentry in cleartext via the weaker regex fallback. This bit us.
+const SENSITIVE_FIELDS = new Set([
+  "medicare", "medicarenumber", "medicare_number",
+  "phone", "phonenumber", "phone_number", "mobile",
+  "email", "emailaddress", "email_address",
+  "dob", "dateofbirth", "date_of_birth", "birthdate",
+  "name", "fullname", "full_name", "firstname", "lastname",
+  "first_name", "last_name", "patientname", "patient_name",
+  "address", "streetaddress", "street_address",
+  "ihi", "dva", "dvanumber", "dva_number",
+  "password", "token", "secret", "apikey", "api_key",
+])
+
+// Fields never logged at all (not even sanitized). Lowercase for the same reason.
+const FORBIDDEN_FIELDS = new Set([
+  "password", "token", "secret", "apikey", "api_key", "authorization",
+])
+
 /**
  * Sanitize a string by removing potential PHI
  */
@@ -67,20 +88,8 @@ export function sanitizeObject<T>(obj: T): T {
     const sanitized: Record<string, unknown> = {}
     
     for (const [key, value] of Object.entries(obj)) {
-      // Completely redact known PHI fields
-      const sensitiveFields = [
-        "medicare", "medicareNumber", "medicare_number",
-        "phone", "phoneNumber", "phone_number", "mobile",
-        "email", "emailAddress", "email_address",
-        "dob", "dateOfBirth", "date_of_birth", "birthDate",
-        "name", "fullName", "full_name", "firstName", "lastName",
-        "first_name", "last_name", "patientName", "patient_name",
-        "address", "streetAddress", "street_address",
-        "ihi", "dva", "dvaNumber", "dva_number",
-        "password", "token", "secret", "apiKey", "api_key",
-      ]
-
-      if (sensitiveFields.includes(key.toLowerCase())) {
+      // Completely redact known PHI fields (case-insensitive)
+      if (SENSITIVE_FIELDS.has(key.toLowerCase())) {
         sanitized[key] = REDACTED
       } else {
         sanitized[key] = sanitizeObject(value)
@@ -158,13 +167,11 @@ export function sanitizeUrl(url: string): string {
  * Use this before any external logging (Sentry, PostHog, etc.)
  */
 export function createSafeLogContext(context: Record<string, unknown>): Record<string, unknown> {
-  // Never log these fields at all
-  const forbiddenFields = ["password", "token", "secret", "apiKey", "api_key", "authorization"]
-  
   const filtered: Record<string, unknown> = {}
-  
+
   for (const [key, value] of Object.entries(context)) {
-    if (!forbiddenFields.includes(key.toLowerCase())) {
+    // Never log forbidden fields at all (case-insensitive)
+    if (!FORBIDDEN_FIELDS.has(key.toLowerCase())) {
       filtered[key] = sanitizeObject(value)
     }
   }

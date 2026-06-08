@@ -74,6 +74,8 @@ const serverEnvSchema = z.object({
 
   // PHI encryption
   PHI_ENCRYPTION_ENABLED: z.string().optional(),
+  PHI_ENCRYPTION_WRITE_ENABLED: z.string().optional(),
+  PHI_ENCRYPTION_READ_ENABLED: z.string().optional(),
   PHI_MASTER_KEY: z.string().optional(),
 
   // Monitoring
@@ -141,6 +143,13 @@ const productionRequirements = z.object({
   TELEGRAM_BOT_TOKEN: z.string().min(1, "Production requires TELEGRAM_BOT_TOKEN for paid request alerts"),
   TELEGRAM_CHAT_ID: z.string().min(1, "Production requires TELEGRAM_CHAT_ID for paid request alerts"),
   PHI_ENCRYPTION_ENABLED: z.literal("true", { error: "Production requires PHI_ENCRYPTION_ENABLED=true" }),
+  // WRITE/READ gate the actual encrypt-on-write and decrypt-on-read paths
+  // (lib/security/phi-encryption.ts reads them straight off process.env). With
+  // only the master flag required, prod could run with these unset and silently
+  // store/serve PHI in cleartext with no alarm. Pin all three together so a
+  // missing flag is a loud preflight failure, not a silent posture downgrade.
+  PHI_ENCRYPTION_WRITE_ENABLED: z.literal("true", { error: "Production requires PHI_ENCRYPTION_WRITE_ENABLED=true" }),
+  PHI_ENCRYPTION_READ_ENABLED: z.literal("true", { error: "Production requires PHI_ENCRYPTION_READ_ENABLED=true" }),
   PHI_MASTER_KEY: z.string().min(32, "Production requires PHI_MASTER_KEY (min 32 chars)"),
 })
 
