@@ -89,6 +89,14 @@ export async function POST(request: Request) {
     }
   }
 
+  // Reject test-mode events in production. E2E tests post fake smoke events signed
+  // with the real webhook secret — they pass signature verification but must not be
+  // processed or DLQ'd. Admin replays are always synthetic and bypass this check.
+  if (!isAdminReplay && !event.livemode && process.env.NODE_ENV === "production") {
+    log.info("Discarding test-mode event in production", { eventId: event.id, eventType: event.type })
+    return NextResponse.json({ received: true })
+  }
+
   const supabase = getServiceClient()
 
   // Route to handler

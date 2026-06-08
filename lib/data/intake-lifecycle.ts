@@ -13,6 +13,7 @@ const logger = createLogger("intake-lifecycle")
 // INTAKE STATUS LIFECYCLE:
 //   draft → pending_payment       (patient submits)
 //   pending_payment → paid        (Stripe webhook)
+//   checkout_failed → paid        (Stripe webhook after customer retries payment)
 //   paid → in_review              (doctor starts review)
 //   paid → approved               (doctor approves directly)
 //   paid → declined               (doctor declines directly)
@@ -38,7 +39,7 @@ export type { IntakeStatus, PaymentStatus }
 const VALID_STATUS_TRANSITIONS: Record<IntakeStatus, IntakeStatus[]> = {
   draft: ["pending_payment", "cancelled"],
   pending_payment: ["paid", "checkout_failed", "cancelled", "expired"],
-  checkout_failed: ["pending_payment", "cancelled"], // Retry or abandon
+  checkout_failed: ["pending_payment", "paid", "cancelled"], // Retry, pay on retry, or abandon
   paid: ["in_review", "approved", "awaiting_script", "cancelled"],
   in_review: ["approved", "declined", "pending_info", "escalated", "awaiting_script"],
   pending_info: ["in_review", "paid", "cancelled", "expired"],

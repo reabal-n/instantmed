@@ -132,6 +132,13 @@ export async function POST(request: Request) {
 
   const { patient_id, partner_patient_id, scid, user_id } = payload.data
 
+  // Parchment sandbox fires test webhooks with a sentinel patient_id at the
+  // production endpoint. Silently ack them — no audit log, no DLQ noise.
+  if (patient_id === "nonexistent-parchment-patient") {
+    log.info("Discarding Parchment sandbox test webhook", { eventId: payload.event_id })
+    return NextResponse.json({ received: true })
+  }
+
   // Fast-path dedup: Redis lock prevents duplicate processing within 60s.
   // Falls through to DB-level idempotency check on cache miss or Redis error.
   const lockAcquired = await acquireWebhookLock(scid)

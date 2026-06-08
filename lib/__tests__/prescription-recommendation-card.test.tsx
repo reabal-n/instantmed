@@ -23,24 +23,24 @@ const baseIntent = {
 }
 
 describe("PrescriptionRecommendationCard", () => {
-  it("renders medication name, strength, quantity, repeats and concise handoff context", () => {
+  it("renders medication name, strength, quantity, and repeat count", () => {
     const html = render(<PrescriptionRecommendationCard intent={baseIntent} />)
-    expect(html).toContain("Parchment handoff context")
     expect(html).toContain("Tadalafil")
     expect(html).toContain("5mg")
     expect(html).toContain("30 tablets")
-    expect(html).toContain("Repeats: 2")
-    expect(html).toContain("Take 1 tablet once daily")
-    expect(html).toContain("Confirm medicine, dose and all prescribing details")
+    expect(html).toContain("2 rpts")
+    expect(html).toContain("Parchment")
   })
 
-  it("does not render one-click prescription copy controls", () => {
+  it("does not render directions, footer copy, or copy controls", () => {
     const html = render(<PrescriptionRecommendationCard intent={baseIntent} />)
+    expect(html).not.toContain("Take 1 tablet once daily")
+    expect(html).not.toContain("Confirm medicine")
     expect(html).not.toMatch(/Copy context/i)
     expect(html).not.toMatch(/Copy medication/i)
   })
 
-  it("renders the alternative context note when present", () => {
+  it("does not render alternativeNote — distilled card omits verbose context", () => {
     const html = render(
       <PrescriptionRecommendationCard
         intent={{
@@ -51,10 +51,10 @@ describe("PrescriptionRecommendationCard", () => {
         }}
       />,
     )
-    expect(html).toContain("Tadalafil 5mg daily is an alternative")
+    expect(html).not.toContain("Tadalafil 5mg daily is an alternative")
   })
 
-  it("renders caution checks without hiding the handoff context", () => {
+  it("renders caution checks as joined text without a Cautions heading", () => {
     const html = render(
       <PrescriptionRecommendationCard
         intent={{
@@ -63,19 +63,15 @@ describe("PrescriptionRecommendationCard", () => {
         }}
       />,
     )
-
     expect(html).toContain("Tadalafil")
-    expect(html).toContain("Cautions")
     expect(html).toContain("Alpha blocker use")
     expect(html).toContain("GP-cleared cardiac history")
+    expect(html).not.toContain("Cautions")
   })
 
-  it("omits the alternative note when not provided", () => {
+  it("omits caution section when cautionChecks is empty", () => {
     const html = render(<PrescriptionRecommendationCard intent={baseIntent} />)
-    // Use the specific fixture phrasing rather than the bare word "alternative",
-    // so unrelated future copy changes that happen to use that word do not
-    // silently break this regression guard.
-    expect(html).not.toContain("Tadalafil 5mg daily is an alternative")
+    expect(html).not.toContain("amber")
   })
 
   it("renders nothing when intent is undefined", () => {
@@ -83,7 +79,7 @@ describe("PrescriptionRecommendationCard", () => {
     expect(html).toBe("")
   })
 
-  it("hides the Copy medication button when no medication name is set", () => {
+  it("renders only qty/repeats when medication name is absent", () => {
     const html = render(
       <PrescriptionRecommendationCard
         intent={{
@@ -94,6 +90,7 @@ describe("PrescriptionRecommendationCard", () => {
         }}
       />,
     )
+    expect(html).toContain("30 tablets")
     expect(html).not.toMatch(/Copy medication/i)
     expect(html).not.toMatch(/Copy context/i)
   })

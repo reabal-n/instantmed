@@ -503,7 +503,9 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(reviewPanelSource).toContain("A doctor is looking at your request now.")
     expect(clinicalCaseReviewSource).toContain("visibleFacts.length > 0")
     expect(clinicalCaseReviewSource).toContain('<details open className="rounded-lg bg-muted/30')
-    expect(clinicalCaseReviewSource).toContain("Patient answers")
+    // "Patient answers" heading was removed in the distill pass; the section now
+    // uses aria-label="Request" and renders an inline dl in compact mode.
+    expect(clinicalCaseReviewSource).toContain('aria-label="Request"')
     expect(clinicalCaseReviewSource).not.toContain("What the patient told us")
     expect(clinicalCaseReviewSource).not.toContain("Patient-submitted facts")
     expect(clinicalCaseReviewSource).toContain("Draft note")
@@ -592,9 +594,10 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(decisionStripSource).not.toContain('? "Patient details"')
     expect(decisionStripSource).not.toContain("Identity and notes")
     expect(decisionStripSource).toContain("Hidden ending")
-    expect(decisionStripSource).toContain("Show identity")
+    expect(decisionStripSource).toContain("Show patient identity")
     expect(decisionStripSource).toContain("renderSummaryFacts")
-    expect(decisionStripSource).toContain("renderCompactSummaryFacts")
+    // renderCompactSummaryFacts was removed in the distill pass; compact+summaryOnly
+    // now renders an inline prescribing-identity section directly.
     expect(decisionStripSource).toContain("data-compact-identity-summary")
     expect(decisionStripSource).not.toContain("rounded-lg border border-border/50 bg-background/70")
     expect(decisionStripSource).toContain("line-clamp-2 max-w-full whitespace-normal break-words")
