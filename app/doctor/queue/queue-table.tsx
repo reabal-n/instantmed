@@ -21,6 +21,7 @@ import { useMemo, useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { revokeAIApproval } from "@/app/actions/revoke-ai-approval"
+import { quickPrescribeRenewalAction } from "@/app/doctor/queue/actions"
 import { PatientProfilePanel } from "@/components/doctor/patient-profile-panel"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Badge } from "@/components/ui/badge"
@@ -226,6 +227,7 @@ export function QueueTable({
   const router = useRouter()
   const { openPanel } = usePanel()
   const [isRevokePending, startTransition] = useTransition()
+  const [quickPrescribePending, startQuickPrescribeTransition] = useTransition()
   const [completedExpanded, setCompletedExpanded] = useState(false)
   const [aiExpanded, setAiExpanded] = useState(false)
 
@@ -684,6 +686,35 @@ export function QueueTable({
                               ? "Prescribe"
                             : "Approve"}
                       </Button>
+                      {/* Quick Prescribe — renewal repeat scripts only */}
+                      {Boolean((intake as IntakeWithPatient & { is_renewal?: boolean }).is_renewal) &&
+                        (service?.type === SERVICE_TYPES.REPEAT_RX || service?.type === SERVICE_TYPES.COMMON_SCRIPTS) && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 px-2.5 text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-500/40 dark:text-emerald-400 dark:hover:bg-emerald-500/10"
+                            disabled={isPending || quickPrescribePending}
+                            title="Renewal detected — claim, auto-note, and move to prescribing in one step"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              startQuickPrescribeTransition(async () => {
+                                const result = await quickPrescribeRenewalAction(intake.id)
+                                if (result.success) {
+                                  router.push(buildDoctorIntakeHref(intake.id))
+                                } else {
+                                  toast.error(result.error ?? "Quick prescribe failed")
+                                }
+                              })
+                            }}
+                          >
+                            {quickPrescribePending ? (
+                              <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                            ) : (
+                              <RotateCw className="h-3 w-3 mr-1" />
+                            )}
+                            Quick Prescribe
+                          </Button>
+                        )}
                       <Button
                         variant="ghost"
                         size="sm"

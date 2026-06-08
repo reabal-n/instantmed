@@ -61,7 +61,7 @@ describe("email sequence ownership contract", () => {
     expect(partialRecoverySource).not.toContain(
       "`${appUrl}/request?service=${encodeURIComponent(draft.service_type)}&d=${encodeURIComponent(draft.session_id)}",
     )
-    expect(abandonedCheckoutSource).toContain('.eq("status", "pending_payment")')
+    expect(abandonedCheckoutSource).toContain('.in("status", ["pending_payment", "checkout_failed"])')
     expect(abandonedCheckoutSource).toContain('emailType: "abandoned_checkout"')
     expect(abandonedCheckoutSource).toContain('emailType: "abandoned_checkout_followup"')
   })

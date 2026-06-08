@@ -21,6 +21,7 @@ interface AbandonedIntake {
   category: string | null
   subtype: string | null
   created_at: string
+  isGuest: boolean
   patient: {
     email: string | null
     first_name: string | null
@@ -56,8 +57,8 @@ export async function findAbandonedCheckouts(): Promise<AbandonedIntake[]> {
       guest_email,
       patient:profiles!patient_id(email, first_name)
     `)
-    .eq("status", "pending_payment")
-    .or("payment_status.eq.pending,payment_status.is.null")
+    .in("status", ["pending_payment", "checkout_failed"])
+    .or("payment_status.eq.pending,payment_status.is.null,payment_status.eq.failed")
     .gte("created_at", twentyFourHoursAgo)
     .lte("created_at", oneHourAgo)
     .is("abandoned_email_sent_at", null)
@@ -71,11 +72,11 @@ export async function findAbandonedCheckouts(): Promise<AbandonedIntake[]> {
   // P1 FIX: Include guest_email for guest checkout recovery
   return (data || []).map(item => {
     const patient = Array.isArray(item.patient) ? item.patient[0] : item.patient
-    // For guest checkouts, use guest_email if no profile email
     const guestEmail = (item as { guest_email?: string }).guest_email
     return {
       ...item,
-      patient: patient?.email ? patient : (guestEmail ? { email: guestEmail, first_name: null } : patient)
+      isGuest: !!guestEmail,
+      patient: patient?.email ? patient : (guestEmail ? { email: guestEmail, first_name: null } : patient),
     }
   }) as AbandonedIntake[]
 }
@@ -108,6 +109,7 @@ export async function sendAbandonedCheckoutEmail(intake: AbandonedIntake): Promi
     appUrl,
     campaign: "abandoned_checkout",
     intakeId: intake.id,
+    isGuest: intake.isGuest,
   })
   
   const result = await sendEmail({
@@ -166,8 +168,8 @@ export async function findAbandonedFollowups(): Promise<AbandonedIntake[]> {
       guest_email,
       patient:profiles!patient_id(email, first_name)
     `)
-    .eq("status", "pending_payment")
-    .or("payment_status.eq.pending,payment_status.is.null")
+    .in("status", ["pending_payment", "checkout_failed"])
+    .or("payment_status.eq.pending,payment_status.is.null,payment_status.eq.failed")
     .gte("abandoned_email_sent_at", seventyTwoHoursAgo)
     .lte("abandoned_email_sent_at", twentyFourHoursAgo)
     .not("abandoned_email_sent_at", "is", null)
@@ -183,7 +185,8 @@ export async function findAbandonedFollowups(): Promise<AbandonedIntake[]> {
     const guestEmail = (item as { guest_email?: string }).guest_email
     return {
       ...item,
-      patient: patient?.email ? patient : (guestEmail ? { email: guestEmail, first_name: null } : patient)
+      isGuest: !!guestEmail,
+      patient: patient?.email ? patient : (guestEmail ? { email: guestEmail, first_name: null } : patient),
     }
   }) as AbandonedIntake[]
 }
@@ -214,6 +217,7 @@ export async function sendAbandonedFollowupEmail(intake: AbandonedIntake): Promi
     appUrl,
     campaign: "abandoned_checkout_followup",
     intakeId: intake.id,
+    isGuest: intake.isGuest,
   })
 
   const result = await sendEmail({

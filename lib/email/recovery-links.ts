@@ -31,18 +31,36 @@ export function buildPartialIntakeRecoveryUrl({
   return url.toString()
 }
 
+import { signCheckoutResumeToken } from "@/lib/crypto/checkout-resume-token"
+
 export type AbandonedCheckoutRecoveryCampaign = "abandoned_checkout" | "abandoned_checkout_followup"
 
+/**
+ * Build a checkout resume URL.
+ * Guests use a signed /resume/[token] route (unauthenticated).
+ * Authenticated patients keep the existing /patient/intakes/[id]?retry=true route.
+ */
 export function buildAbandonedCheckoutResumeUrl({
   appUrl,
   campaign,
   intakeId,
+  isGuest,
 }: {
   appUrl: string
   campaign: AbandonedCheckoutRecoveryCampaign
   intakeId: string
+  isGuest?: boolean
 }): string {
-  const url = new URL(`/patient/intakes/${encodeURIComponent(intakeId)}`, appUrl.replace(/\/$/, ""))
+  const base = appUrl.replace(/\/$/, "")
+  if (isGuest) {
+    const token = signCheckoutResumeToken(intakeId)
+    const url = new URL(`/resume/${encodeURIComponent(token)}`, base)
+    url.searchParams.set("utm_source", "recovery_email")
+    url.searchParams.set("utm_medium", "email")
+    url.searchParams.set("utm_campaign", campaign)
+    return url.toString()
+  }
+  const url = new URL(`/patient/intakes/${encodeURIComponent(intakeId)}`, base)
   url.searchParams.set("retry", "true")
   url.searchParams.set("utm_source", "recovery_email")
   url.searchParams.set("utm_medium", "email")
