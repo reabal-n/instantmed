@@ -23,6 +23,7 @@ export interface OpsDashboardClientProps {
     webhookDlq: CounterCellData
     parchmentUnsynced: CounterCellData
     missingIdentity: CounterCellData
+    googleAdsConversions: CounterCellData
   }
   invariants: {
     slaBreachBacklog: CounterCellData
@@ -50,7 +51,7 @@ export function OpsDashboardClient({ counters, invariants, recoveries }: OpsDash
       <OperatorScrollArea>
         <section
           aria-label="Recovery counters"
-          className="grid gap-3 md:grid-cols-2 xl:grid-cols-4"
+          className="grid gap-3 md:grid-cols-2 xl:grid-cols-5"
         >
           <CounterCard
             count={counters.paymentFailures.count}
@@ -79,6 +80,13 @@ export function OpsDashboardClient({ counters, invariants, recoveries }: OpsDash
             helperText={counters.missingIdentity.helperText}
             tone={counters.missingIdentity.tone}
             href={counters.missingIdentity.href}
+          />
+          <CounterCard
+            count={counters.googleAdsConversions.count}
+            label="Google Ads conversions"
+            helperText={counters.googleAdsConversions.helperText}
+            tone={counters.googleAdsConversions.tone}
+            href={counters.googleAdsConversions.href}
           />
         </section>
 

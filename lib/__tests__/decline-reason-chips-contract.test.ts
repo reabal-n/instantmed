@@ -30,13 +30,17 @@ describe("Decline reason chips contract", () => {
     )
   })
 
-  it("decline dialog renders a chip per reason that sets declineReason and declineReasonCode", () => {
-    expect(dialogSource).toMatch(/setDeclineReason\(reason\.template\)/)
-    expect(dialogSource).toMatch(/setDeclineReasonCode\(reason\.code\)/)
+  it("decline dialog renders one button per reason via the canonical handler", () => {
+    // Flattened single-grid layout (2026-06-08): one button per reason, each
+    // routing through handleDeclineReasonCodeChange so the reason code and the
+    // pre-filled template text can never drift apart.
+    expect(dialogSource).toMatch(/DECLINE_REASONS\.map\(/)
+    expect(dialogSource).toMatch(/handleDeclineReasonCodeChange\(reason\.code\)/)
   })
 
-  it("decline dialog renders a Common reasons quick-pick row with top 4 reasons", () => {
-    expect(dialogSource).toMatch(/Common reasons/)
-    expect(dialogSource).toMatch(/DECLINE_REASONS\.filter\(.*r\.code !== "other".*\)\.slice\(0,\s*4\)/)
+  it("decline dialog no longer splits into Common/All sections", () => {
+    // With the reason list trimmed to 5, the two-section split was redundant.
+    expect(dialogSource).not.toMatch(/Common reasons/)
+    expect(dialogSource).not.toMatch(/All reasons/)
   })
 })

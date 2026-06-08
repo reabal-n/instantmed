@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
+import { reportGoogleAdsConversionFailure } from "@/lib/analytics/google-ads-conversion-alarm"
 import {
   type GoogleAdsConversionActionPreflightResult,
   preflightGoogleAdsPurchaseConversionAction,
@@ -140,6 +141,16 @@ export async function GET(request: NextRequest) {
           candidates: candidates.length,
           code: preflight.code,
           retryable: retryable.length,
+        })
+
+        // A blocking preflight means a misconfigured conversion action / creds:
+        // EVERY upload fails until a human fixes the env. Escalate to a fatal,
+        // fingerprinted Sentry alarm so this never silently burns ad spend for
+        // weeks again (the May 19–Jun 1 2026 NO_CONVERSION_ACTION_FOUND outage).
+        await reportGoogleAdsConversionFailure({
+          source: "cron_preflight",
+          preflightCode: preflight.code,
+          preflightSeverity: preflight.severity,
         })
 
         return NextResponse.json({

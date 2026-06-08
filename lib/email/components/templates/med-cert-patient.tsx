@@ -22,6 +22,12 @@ export interface MedCertPatientEmailProps {
   verificationCode?: string
   certType?: "work" | "study" | "carer"
   appUrl?: string
+  /**
+   * True when the recipient checked out as a guest (no linked account). The CTA
+   * then points at account setup rather than the auth-walled portal, and we
+   * explain why there's no password to reset.
+   */
+  isGuest?: boolean
 }
 
 export function MedCertPatientEmail({
@@ -30,6 +36,7 @@ export function MedCertPatientEmail({
   verificationCode,
   certType: _certType = "work",
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+  isGuest = false,
 }: MedCertPatientEmailProps) {
   const firstName = patientName.split(" ")[0]
 
@@ -58,8 +65,15 @@ export function MedCertPatientEmail({
         .
       </Text>
 
+      {isGuest && (
+        <Text>
+          You checked out as a guest, so the first time you open your certificate
+          you&apos;ll set a password — there&apos;s no existing login to reset.
+        </Text>
+      )}
+
       <Button href={dashboardUrl}>
-        View Certificate
+        {isGuest ? "Set up access & view certificate" : "View Certificate"}
       </Button>
 
       {verificationCode && (

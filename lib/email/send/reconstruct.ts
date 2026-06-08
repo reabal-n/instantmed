@@ -9,7 +9,7 @@ import * as Sentry from "@sentry/nextjs"
 
 import { env } from "@/lib/config/env"
 import { logger } from "@/lib/observability/logger"
-import { getPatientIntakeDetailHref } from "@/lib/patient/certificate-download"
+import { getGuestCertificateAccessHref, getPatientIntakeDetailHref } from "@/lib/patient/certificate-download"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { renderEmailToHtml } from "../react-renderer-server"
@@ -41,7 +41,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
     // Fetch certificate and patient data
     const { data: cert, error: certError } = await supabase
       .from("issued_certificates")
-      .select("intake_id, patient_name, verification_code, certificate_type, storage_path")
+      .select("intake_id, patient_id, patient_name, verification_code, certificate_type, storage_path")
       .eq("id", row.certificate_id)
       .single()
 
@@ -49,9 +49,27 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       return { success: false, error: "Certificate not found for retry" }
     }
 
+    // Guest-aware CTA, mirroring execute-cert-approval.ts. Fall back to the
+    // portal link if the profile lookup fails — never block a retry on it.
+    let isGuest = false
+    let guestEmail: string | null = null
+    if (cert.patient_id) {
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("auth_user_id, email")
+        .eq("id", cert.patient_id)
+        .maybeSingle()
+      if (prof && !prof.auth_user_id) {
+        isGuest = true
+        guestEmail = prof.email
+      }
+    }
+
     // Render the template
     const { MedCertPatientEmail } = await import("@/lib/email/components/templates")
-    const dashboardUrl = `${env.appUrl}${getPatientIntakeDetailHref(cert.intake_id)}`
+    const dashboardUrl = isGuest
+      ? `${env.appUrl}${getGuestCertificateAccessHref(cert.intake_id, guestEmail)}`
+      : `${env.appUrl}${getPatientIntakeDetailHref(cert.intake_id)}`
 
     const template = MedCertPatientEmail({
       patientName: cert.patient_name,
@@ -59,6 +77,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       verificationCode: cert.verification_code,
       certType: cert.certificate_type as "work" | "study" | "carer",
       appUrl: env.appUrl,
+      isGuest,
     })
 
     const html = await renderEmailToHtml(template)

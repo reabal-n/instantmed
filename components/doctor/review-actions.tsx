@@ -138,7 +138,7 @@ export function useReviewActions({
   // Decline dialog
   const [showDeclineDialog, setShowDeclineDialog] = useState(false)
   const [declineReason, setDeclineReason] = useState(DECLINE_REASONS[0].template)
-  const [declineReasonCode, setDeclineReasonCode] = useState<DeclineReasonCode>("requires_examination")
+  const [declineReasonCode, setDeclineReasonCode] = useState<DeclineReasonCode>(DECLINE_REASONS[0].code)
 
   // Certificate preview
   const [showCertPreview, setShowCertPreview] = useState(false)

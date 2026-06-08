@@ -14,7 +14,7 @@ import {
 import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/lib/email/components/templates"
 import { sendEmail } from "@/lib/email/send-email"
 import { createLogger } from "@/lib/observability/logger"
-import { getPatientIntakeDetailHref } from "@/lib/patient/certificate-download"
+import { getGuestCertificateAccessHref, getPatientIntakeDetailHref } from "@/lib/patient/certificate-download"
 import { checkResendRateLimit } from "@/lib/rate-limit/resend-cert"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -29,6 +29,7 @@ const patientDataSchema = z.object({
   id: z.string(),
   full_name: z.string(),
   email: z.string().email(),
+  auth_user_id: z.string().nullable().optional(),
 })
 
 /**
@@ -55,7 +56,8 @@ async function fetchIntakeForResend(supabase: ReturnType<typeof createServiceRol
       patient:profiles!patient_id(
         id,
         full_name,
-        email
+        email,
+        auth_user_id
       )
     `)
     .eq("id", intakeId)
@@ -67,8 +69,13 @@ function pickPatient(rawPatient: unknown) {
   return patientDataSchema.safeParse(candidate)
 }
 
-function dashboardLink(intakeId: string) {
-  return `${env.appUrl}${getPatientIntakeDetailHref(intakeId)}`
+// Guest patients (no linked auth account) get the account-setup entry point so
+// the cert email doesn't dead-end at the portal login wall; account holders get
+// the portal as before. Mirrors execute-cert-approval.ts.
+function accessLink(intakeId: string, patient: { email: string; auth_user_id?: string | null }) {
+  return patient.auth_user_id
+    ? `${env.appUrl}${getPatientIntakeDetailHref(intakeId)}`
+    : `${env.appUrl}${getGuestCertificateAccessHref(intakeId, patient.email)}`
 }
 
 export async function resendCertificate(intakeId: string): Promise<ResendCertificateResult> {
@@ -122,10 +129,11 @@ export async function resendCertificate(intakeId: string): Promise<ResendCertifi
       subject: `${medCertPatientEmailSubject(patient.full_name?.split(" ")[0])} (Resent)`,
       template: MedCertPatientEmail({
         patientName: patient.full_name,
-        dashboardUrl: dashboardLink(intakeId),
+        dashboardUrl: accessLink(intakeId, patient),
         verificationCode: certificate.verification_code,
         certType: certificate.certificate_type === "study" ? "study" : certificate.certificate_type === "carer" ? "carer" : "work",
         appUrl: env.appUrl,
+        isGuest: !patient.auth_user_id,
       }),
       emailType: "med_cert_patient",
       intakeId,
@@ -200,10 +208,11 @@ export async function resendCertificateAsStaff(intakeId: string): Promise<Resend
         subject: `${medCertPatientEmailSubject(patient.full_name?.split(" ")[0])} (Resent)`,
         template: MedCertPatientEmail({
           patientName: patient.full_name,
-          dashboardUrl: dashboardLink(intakeId),
+          dashboardUrl: accessLink(intakeId, patient),
           verificationCode: certificate.verification_code,
           certType: certificate.certificate_type === "study" ? "study" : certificate.certificate_type === "carer" ? "carer" : "work",
           appUrl: env.appUrl,
+          isGuest: !patient.auth_user_id,
         }),
         emailType: "med_cert_patient",
         intakeId,

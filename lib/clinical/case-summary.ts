@@ -4,6 +4,10 @@ import {
 } from "@/lib/clinical/consult-validators"
 import { getEdPreset } from "@/lib/clinical/ed-prescribing-presets"
 import { isControlledSubstance } from "@/lib/clinical/intake-validation"
+import {
+  hasUncertainMedicationAnswer,
+  requiresClinicalAdministration,
+} from "@/lib/clinical/medication-flags"
 import { normaliseSymptomText } from "@/lib/clinical/symptom-normaliser"
 import {
   buildRepeatScriptMedicationValidationText,
@@ -635,13 +639,50 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     adverseReactionAnswer !== undefined ? { label: "Adverse medication reactions", value: yesNo(adverseReactionAnswer) } : null,
   ])
 
-  const safetyItems: ClinicalSafetyItem[] = controlled
-    ? [{
-        severity: "block",
-        label: "Controlled substance",
-        detail: "Schedule 8 or controlled medicines are outside this repeat prescription workflow.",
-      }]
-    : []
+  // Non-blocking review cautions. A controlled-substance block short-circuits
+  // everything else; otherwise surface "patient unsure" and "clinician-
+  // administered" flags so the doctor verifies the exact product before
+  // prescribing. Neither gates the approve flow — see lib/clinical/medication-flags.ts.
+  const medicationFlagText = [
+    requestedMedicationValue,
+    strength,
+    form,
+    currentDose,
+    ...medications.map((medication) => buildRepeatScriptMedicationValidationText(medication)),
+  ]
+    .filter(Boolean)
+    .join(" ")
+  const patientUnsure = hasUncertainMedicationAnswer([
+    primaryMedicationParts?.name,
+    strength,
+    form,
+    ...medicationLabels,
+  ])
+  const clinicianAdministered = requiresClinicalAdministration(medicationFlagText)
+
+  const safetyItems: ClinicalSafetyItem[] = []
+  if (controlled) {
+    safetyItems.push({
+      severity: "block",
+      label: "Controlled substance",
+      detail: "Schedule 8 or controlled medicines are outside this repeat prescription workflow.",
+    })
+  } else {
+    if (clinicianAdministered) {
+      safetyItems.push({
+        severity: "caution",
+        label: "Clinician-administered medicine",
+        detail: "This looks like an injection, vaccine, infusion, or implant that must be given in a clinical setting. A telehealth script alone may not resolve the patient's need — confirm they can have it administered before prescribing.",
+      })
+    }
+    if (patientUnsure) {
+      safetyItems.push({
+        severity: "caution",
+        label: "Patient unsure of medication details",
+        detail: "The patient could not confirm the medicine name, strength, or form. Verify the exact product and regimen in Parchment before prescribing.",
+      })
+    }
+  }
 
   const recommendedPlan: ClinicalPlan = controlled
     ? {

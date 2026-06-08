@@ -36,14 +36,10 @@ const TYPED_CONFIRM_REASONS: ReadonlySet<DeclineReasonCode> = new Set([
  * to a row in the dialog without wrapping at common dialog widths.
  */
 const CHIP_LABELS: Partial<Record<DeclineReasonCode, string>> = {
-  requires_examination: "In-person exam needed",
   not_telehealth_suitable: "Not suitable for telehealth",
   prescribing_guidelines: "Against guidelines",
   controlled_substance: "Controlled substance",
   urgent_care_needed: "Refer to urgent care",
-  insufficient_info: "Insufficient info",
-  patient_not_eligible: "Not eligible",
-  outside_scope: "Outside scope",
   other: "Other",
 }
 
@@ -57,7 +53,6 @@ export function DeclineIntakeDialog() {
     showDeclineDialog,
     setShowDeclineDialog,
     declineReasonCode,
-    setDeclineReasonCode,
     handleDeclineReasonCodeChange,
     declineReason,
     setDeclineReason,
@@ -102,38 +97,7 @@ export function DeclineIntakeDialog() {
         <div className="space-y-4 py-2">
           <div className="space-y-2">
             <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Common reasons
-            </Label>
-            <div className="flex flex-wrap gap-1.5">
-              {DECLINE_REASONS.filter((r) => r.code !== "other").slice(0, 4).map((reason) => {
-                const active = reason.code === declineReasonCode
-                return (
-                  <button
-                    key={reason.code}
-                    type="button"
-                    aria-pressed={active}
-                    disabled={isPending}
-                    onClick={() => {
-                      setDeclineReason(reason.template)
-                      setDeclineReasonCode(reason.code)
-                      setTypedConfirm("")
-                    }}
-                    className={cn(
-                      "rounded-full border px-2.5 py-0.5 text-xs transition-colors",
-                      active
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border/60 text-muted-foreground hover:bg-muted hover:text-foreground",
-                    )}
-                  >
-                    {chipLabel(reason.code)}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              All reasons
+              Reason
             </Label>
             <div className="grid grid-cols-2 gap-2">
               {DECLINE_REASONS.map((reason) => {

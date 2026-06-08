@@ -63,6 +63,12 @@ export async function GET(request: NextRequest) {
       `)
       .eq("status", "paid")
       .is("follow_up_sent_at", null)
+      // Cross-guard with the stale-queue cron, which sends the SAME
+      // still_reviewing email but tracks it on delay_notification_sent_at.
+      // Without this, a patient gets the identical email twice (a 45-min
+      // reassurance here + a 2h "running late" from stale-queue). Whichever
+      // cron sends first now blocks the other.
+      .is("delay_notification_sent_at", null)
       .lt("paid_at", fortyFiveMinAgo)
       .gt("paid_at", fourHoursAgo)
       .not("patient_id", "is", null)

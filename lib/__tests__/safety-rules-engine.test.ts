@@ -176,7 +176,11 @@ describe("Safety Rules Engine", () => {
     it("should DECLINE certificates more than 14 days in the future", () => {
       const result = evaluateSafety("medical-certificate", {
         emergency_symptoms: [],
-        start_date: offsetDate(15),
+        // +20 (not +15) keeps this clear of the 14-day boundary regardless of
+        // runner timezone: offsetDate() builds the date from local `new Date()`
+        // then formats UTC, while the rule computes "today" in AEST, so a +15
+        // offset can land exactly on 14 days on a UTC CI runner and flip ALLOW.
+        start_date: offsetDate(20),
       })
       expect(result.outcome).toBe("DECLINE")
       expect(
