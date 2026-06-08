@@ -38,6 +38,8 @@ export type EmailType =
   | "verification_code"
   // Review lifecycle emails (cron-triggered)
   | "review_request"
+  // Reactivation / refill reminder (cron-triggered, marketing-consent gated)
+  | "refill_reminder"
   | "payment_retry"
   | "ops_test"
 
@@ -48,6 +50,7 @@ export const MARKETING_EMAIL_TYPES: ReadonlySet<EmailType> = new Set([
   "partial_intake_recovery",
   "review_request",
   "referral_credit",
+  "refill_reminder",
 ])
 
 export interface SendEmailParams {

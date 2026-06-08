@@ -98,6 +98,10 @@ const serverEnvSchema = z.object({
   // Cron job authentication
   CRON_SECRET: z.string().optional(),
 
+  // Reactivation: master kill-switch for the refill-reminder cron. Ships OFF.
+  // Set to "true" in production only after the email copy has been reviewed.
+  REFILL_REMINDER_EMAILS_ENABLED: z.enum(["true", "false"]).optional(),
+
   // Parchment ePrescribing
   PARCHMENT_API_URL: z.string().url().optional(),
   PARCHMENT_PARTNER_ID: z.string().optional(),
