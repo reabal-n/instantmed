@@ -3,6 +3,7 @@ import "server-only"
 import * as Sentry from "@sentry/nextjs"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
+import { reportGoogleAdsConversionFailure } from "@/lib/analytics/google-ads-conversion-alarm"
 import { fireGoogleAdsPurchaseConversion } from "@/lib/analytics/google-ads-conversion-api"
 import {
   hasGoogleAdsUploadClickId,
@@ -381,6 +382,16 @@ export async function runGoogleAdsPostPaymentAttribution({
         has_wbraid: Boolean(row.wbraid),
         has_valuetrack: Boolean(row.campaignid || row.adgroupid || row.creative),
       },
+    })
+
+    // The webhook path never preflights, so a misconfigured conversion action
+    // (NO_CONVERSION_ACTION_FOUND) surfaces here. Escalate config-class failures
+    // to a fatal, fingerprinted alarm — one alert per config break, not one per
+    // failed upload. Transient errors return false and keep the warn/error above.
+    await reportGoogleAdsConversionFailure({
+      source: "upload",
+      uploadErrorCode: error,
+      intakeId,
     })
   }
 

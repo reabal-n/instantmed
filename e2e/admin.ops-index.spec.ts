@@ -18,17 +18,18 @@ test.describe("Ops Index Page", () => {
 
     await expect(page.getByRole("heading", { name: "Operations" })).toBeVisible({ timeout: 10_000 })
 
-    // 4 recovery counter cards. Operational invariants below reuse CounterCard
+    // 5 recovery counter cards. Operational invariants below reuse CounterCard
     // but are a separate block with different behavior.
     const recoveryCounters = page.getByRole("region", { name: "Recovery counters" })
     const counterCards = recoveryCounters.getByTestId("counter-card")
-    await expect(counterCards).toHaveCount(4)
+    await expect(counterCards).toHaveCount(5)
 
-    // Visible labels in the 4 tiles
+    // Visible labels in the 5 tiles
     await expect(page.getByText("Payment failures")).toBeVisible()
     await expect(page.getByText("Webhook DLQ")).toBeVisible()
     await expect(page.getByText("Parchment unsynced")).toBeVisible()
     await expect(page.getByText("Missing identity")).toBeVisible()
+    await expect(page.getByText("Google Ads conversions")).toBeVisible()
 
     // Recent (last 24h) block heading visible regardless of content
     await expect(page.getByRole("heading", { name: /Recent \(last 24h\)/ })).toBeVisible()
@@ -45,7 +46,8 @@ test.describe("Ops Index Page", () => {
     await page.waitForLoadState("networkidle")
 
     const cards = page.getByRole("region", { name: "Recovery counters" }).getByTestId("counter-card")
-    // Order matches the page: Payment failures, Webhook DLQ, Parchment unsynced, Missing identity
+    // Order matches the page: Payment failures, Webhook DLQ, Parchment unsynced,
+    // Missing identity, Google Ads conversions
     await expect(cards.nth(0)).toHaveAttribute(
       "href",
       /\/admin\/intakes\?chips=failed_payment%2Crefund_failed/,
@@ -53,6 +55,7 @@ test.describe("Ops Index Page", () => {
     await expect(cards.nth(1)).toHaveAttribute("href", "/admin/webhook-dlq")
     await expect(cards.nth(2)).toHaveAttribute("href", "/admin/ops/parchment")
     await expect(cards.nth(3)).toHaveAttribute("href", "/admin/ops/prescribing-identity")
+    await expect(cards.nth(4)).toHaveAttribute("href", "/admin/analytics")
   })
 
   test("sidebar ops navigation is visible", async ({ page, isMobile }) => {
