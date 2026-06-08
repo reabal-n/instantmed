@@ -70,3 +70,33 @@ export function getDisplayPrice(
 
   return PRICING.CONSULT
 }
+
+export interface MedCertExtraDayOffer {
+  nextDuration: '2'
+  nextDays: 2
+  nextPrice: number
+  delta: number
+}
+
+/**
+ * The one-tap "add a second day" offer shown at med-cert checkout when the
+ * patient is on the 1-day floor tier. Returns null otherwise — we only nudge the
+ * floor cohort once (no 2->3 chaining), the patient self-reports duration and
+ * the doctor reviews every certificate, and the 3-day cap is unchanged.
+ */
+export function getMedCertExtraDayOffer(
+  serviceType: UnifiedServiceType,
+  answers: Record<string, unknown>,
+): MedCertExtraDayOffer | null {
+  if (serviceType !== 'med-cert') return null
+  if (String(answers.duration || '') !== '1') return null
+
+  const oneDay = MED_CERT_DURATIONS.prices[1]
+  const twoDay = MED_CERT_DURATIONS.prices[2]
+  return {
+    nextDuration: '2',
+    nextDays: 2,
+    nextPrice: twoDay,
+    delta: Math.round((twoDay - oneDay) * 100) / 100,
+  }
+}
