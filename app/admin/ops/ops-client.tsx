@@ -39,9 +39,19 @@ export interface OpsDashboardClientProps {
     severity: RecoverySeverity
     href: string
   }>
+  heardAboutUs: {
+    answered: number
+    paidTotal: number
+    rows: Array<{ value: string; label: string; count: number }>
+  }
 }
 
-export function OpsDashboardClient({ counters, invariants, recoveries }: OpsDashboardClientProps) {
+export function OpsDashboardClient({ counters, invariants, recoveries, heardAboutUs }: OpsDashboardClientProps) {
+  const answerRate =
+    heardAboutUs.paidTotal > 0
+      ? Math.round((heardAboutUs.answered / heardAboutUs.paidTotal) * 100)
+      : 0
+  const heardRows = heardAboutUs.rows.filter((r) => r.count > 0)
   return (
     <OperatorPage>
       <OperatorPageHeader
@@ -123,6 +133,32 @@ export function OpsDashboardClient({ counters, invariants, recoveries }: OpsDash
               tone={invariants.queryFailures.tone}
               href={invariants.queryFailures.href}
             />
+          </div>
+        </section>
+
+        <section aria-label="Acquisition source">
+          <h2 className="mb-3 text-sm font-semibold tracking-tight text-foreground">
+            How did you hear about us? (30 days)
+          </h2>
+          <div className="rounded-xl border border-border/50 bg-card px-4 py-3 shadow-sm shadow-primary/[0.04]">
+            {heardAboutUs.answered === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No self-reported answers yet. The survey is forward-only (live since 9 Jun 2026);
+                answers appear here as new paid orders come in.
+              </p>
+            ) : (
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+                {heardRows.map((r) => (
+                  <span key={r.value} className="inline-flex items-baseline gap-1.5">
+                    <span className="font-semibold tabular-nums text-foreground">{r.count}</span>
+                    <span className="text-muted-foreground">{r.label}</span>
+                  </span>
+                ))}
+                <span className="ml-auto text-xs text-muted-foreground">
+                  {heardAboutUs.answered}/{heardAboutUs.paidTotal} answered ({answerRate}%)
+                </span>
+              </div>
+            )}
           </div>
         </section>
 
