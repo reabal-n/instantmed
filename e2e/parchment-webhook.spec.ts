@@ -226,8 +226,8 @@ test.describe.serial("Parchment Webhook: prescription.created", () => {
     test.skip(!isDbAvailable(), "Supabase credentials required")
 
     const payload = buildPrescriptionCreatedEvent({
-      patientId: "nonexistent-parchment-patient",
-      partnerPatientId: randomUUID(), // random UUID guaranteed not in DB
+      patientId: randomUUID(), // random UUID not in DB — NOT the sandbox sentinel
+      partnerPatientId: randomUUID(),
     })
     const response = await postWebhook(request, payload)
 

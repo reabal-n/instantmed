@@ -147,6 +147,9 @@ export default async function OpsDashboardPage() {
       .select("id, action, created_at, metadata")
       .eq("action", "webhook_failed")
       .gte("created_at", weekAgo.toISOString())
+      // Exclude Parchment's own sandbox sentinel at DB level so it can't exhaust
+      // the 50-row cap and hide real actionable failures.
+      .not("metadata", "cs", JSON.stringify({ parchment_patient_id: "nonexistent-parchment-patient" }))
       .order("created_at", { ascending: false })
       .limit(50)
       .then((r) => (r.error ? { data: [] } : r)),
