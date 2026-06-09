@@ -17,6 +17,7 @@ import { ConsultApprovedEmail } from "@/lib/email/components/templates/consult-a
 import { EdApprovedEmail } from "@/lib/email/components/templates/ed-approved"
 import { GuestCompleteAccountEmail } from "@/lib/email/components/templates/guest-complete-account"
 import { HairLossApprovedEmail } from "@/lib/email/components/templates/hair-loss-approved"
+import { HeardAboutUsAskEmail } from "@/lib/email/components/templates/heard-about-us-ask"
 import { IntakeSubmittedEmail } from "@/lib/email/components/templates/intake-submitted"
 import { MagicLinkEmail, magicLinkEmailSubject } from "@/lib/email/components/templates/magic-link"
 import { MedCertEmployerEmail } from "@/lib/email/components/templates/med-cert-employer"
@@ -437,6 +438,17 @@ const templates: Record<string, {
         serviceName="Medical Certificate"
         appUrl={mock.appUrl}
         intakeId="preview-intake-id"
+        heardToken="preview-token"
+      />
+    ),
+  },
+  "heard-about-us-ask": {
+    name: "Attribution backfill (one-time)",
+    subject: "Quick question — how did you find us? 👋",
+    render: () => (
+      <HeardAboutUsAskEmail
+        patientName={mock.patientName}
+        appUrl={mock.appUrl}
         heardToken="preview-token"
       />
     ),

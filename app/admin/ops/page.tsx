@@ -1,3 +1,4 @@
+import { getHeardAboutUsBreakdown } from "@/lib/admin/heard-about-us-breakdown"
 import { buildOperationalFailureOverview } from "@/lib/admin/ops-failures"
 import {
   certOrphanHelper,
@@ -110,6 +111,7 @@ export default async function OpsDashboardPage() {
     prescribingIdentityResult,
     operationalInvariants,
     googleAdsConversionHealth,
+    heardAboutUsBreakdown,
   ] = await Promise.all([
     supabase
       .from("stripe_webhook_dead_letter")
@@ -172,6 +174,7 @@ export default async function OpsDashboardPage() {
     getPrescribingIdentityBlockerReport(supabase),
     getOperationalInvariants(supabase),
     getGoogleAdsConversionUploadHealth(supabase, { lookbackDays: 7 }),
+    getHeardAboutUsBreakdown(supabase, { days: 30 }),
   ])
 
   const prescriptionWebhookFailures = (
@@ -280,5 +283,12 @@ export default async function OpsDashboardPage() {
       href: item.href,
     }))
 
-  return <OpsDashboardClient counters={counters} invariants={invariants} recoveries={recoveries} />
+  return (
+    <OpsDashboardClient
+      counters={counters}
+      invariants={invariants}
+      recoveries={recoveries}
+      heardAboutUs={heardAboutUsBreakdown}
+    />
+  )
 }

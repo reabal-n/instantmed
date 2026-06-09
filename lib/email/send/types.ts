@@ -40,6 +40,8 @@ export type EmailType =
   | "review_request"
   // Reactivation / refill reminder (cron-triggered, marketing-consent gated)
   | "refill_reminder"
+  // One-time self-reported attribution backfill (script-triggered, marketing-consent gated)
+  | "heard_about_us_backfill"
   | "payment_retry"
   | "ops_test"
 
@@ -51,6 +53,7 @@ export const MARKETING_EMAIL_TYPES: ReadonlySet<EmailType> = new Set([
   "review_request",
   "referral_credit",
   "refill_reminder",
+  "heard_about_us_backfill",
 ])
 
 export interface SendEmailParams {
