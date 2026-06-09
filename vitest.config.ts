@@ -42,8 +42,6 @@ export default defineConfig({
         'lib/security/csrf-client.ts',
         'lib/security/fraud-detector.ts',
         'lib/security/immutable-dates.ts',
-        'lib/clinical/decision-support.ts',
-        'lib/clinical/approval-invariants.ts',
         'lib/clinical/consent-versioning.ts',
         'lib/clinical/execute-cert-approval.ts',
         'lib/clinical/pbs-client.ts',
