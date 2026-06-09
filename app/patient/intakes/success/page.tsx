@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { getWaitState } from "@/lib/brand/wait-counter"
+import { signHeardAboutUsToken } from "@/lib/crypto/heard-about-us-token"
 import { buildPatientIntakeSuccessHref } from "@/lib/dashboard/routes"
 import { logAuditEvent } from "@/lib/security/audit-log"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -134,6 +135,17 @@ export default async function PaymentSuccessPage({
   // (docs/BRAND.md §6.5). Powers the "Average wait today: ~X min" line.
   const waitState = await getWaitState()
 
+  // Signed token for the optional "how did you hear about us?" survey. Lets the
+  // post-payment card write self-reported attribution without an auth round-trip.
+  let heardToken: string | undefined
+  if (intakeId) {
+    try {
+      heardToken = signHeardAboutUsToken(intakeId)
+    } catch {
+      heardToken = undefined
+    }
+  }
+
   return (
     <div className="min-h-[60vh] flex items-center justify-center py-12">
       <div className="w-full max-w-lg mx-auto">
@@ -149,6 +161,7 @@ export default async function PaymentSuccessPage({
           isNewCustomer={isNewCustomer}
           waitState={waitState}
           paymentRetry={paymentRetry}
+          heardToken={heardToken}
         />
       </div>
     </div>

@@ -4,6 +4,7 @@ import { motion } from "framer-motion"
 import { AlertTriangle, Check,Mail } from "lucide-react"
 import { useCallback, useEffect, useRef,useState } from "react"
 
+import { HeardAboutUsCard } from "@/components/patient/heard-about-us-card"
 import { ReferralCard } from "@/components/patient/referral-card"
 import { WhatHappensNext } from "@/components/patient/what-happens-next"
 import { usePostHog } from "@/components/providers/posthog-provider"
@@ -31,6 +32,7 @@ interface SuccessClientProps {
   isNewCustomer?: boolean
   waitState?: WaitState
   paymentRetry?: boolean
+  heardToken?: string
 }
 
 export function SuccessClient({
@@ -45,6 +47,7 @@ export function SuccessClient({
   isNewCustomer,
   waitState,
   paymentRetry = false,
+  heardToken,
 }: SuccessClientProps) {
   const prefersReducedMotion = useReducedMotion()
   const posthog = usePostHog()
@@ -433,6 +436,7 @@ export function SuccessClient({
           <ReferralCard patientId={patientId} />
         </div>
       )}
+      {heardToken && <HeardAboutUsCard token={heardToken} />}
     </div>
   )
 }

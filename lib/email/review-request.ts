@@ -3,6 +3,7 @@ import "server-only"
 import * as React from "react"
 
 import { getAppUrl } from "@/lib/config/env"
+import { signHeardAboutUsToken } from "@/lib/crypto/heard-about-us-token"
 import { ReviewRequestEmail,reviewRequestSubject } from "@/lib/email/components/templates/review-request"
 import { canSendMarketingEmail } from "@/lib/email/preferences"
 import { createLogger } from "@/lib/observability/logger"
@@ -91,10 +92,24 @@ export async function sendReviewRequestEmail(intake: ApprovedIntake): Promise<bo
 
   const patientName = patient.first_name || "there"
   const serviceName = SERVICE_NAMES[intake.category || ""] || "your request"
+  // Best-effort: skip the attribution links if the signing secret is unset
+  // rather than failing the whole review email.
+  let heardToken: string | undefined
+  try {
+    heardToken = signHeardAboutUsToken(intake.id)
+  } catch {
+    heardToken = undefined
+  }
   const result = await sendEmail({
     to: patient.email,
     subject: reviewRequestSubject,
-    template: React.createElement(ReviewRequestEmail, { patientName, serviceName, appUrl }),
+    template: React.createElement(ReviewRequestEmail, {
+      patientName,
+      serviceName,
+      appUrl,
+      intakeId: intake.id,
+      heardToken,
+    }),
     emailType: "review_request" as import("./send-email").EmailType,
     intakeId: intake.id,
     patientId: intake.patient_id,
