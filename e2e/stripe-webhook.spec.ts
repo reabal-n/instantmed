@@ -29,10 +29,26 @@ import {
 } from "./helpers/db"
 
 // ============================================================================
+// PRODUCTION GUARD
+// ============================================================================
+// This test constructs fake Stripe events signed with the real STRIPE_WEBHOOK_SECRET
+// and posts them directly to the webhook endpoint. Running against instantmed.com.au
+// writes fake DLQ entries to the production database.
+// See CLAUDE.md gotcha: "payment-smoke.spec.ts must never run against production"
+const PRODUCTION_HOSTS = ["instantmed.com.au", "www.instantmed.com.au"]
+const rawBaseUrl = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3001"
+if (PRODUCTION_HOSTS.some((host) => rawBaseUrl.includes(host))) {
+  throw new Error(
+    `[stripe-webhook.spec.ts] Refusing to run against production URL: ${rawBaseUrl}. ` +
+    "This test POSTs fake signed Stripe events to the webhook endpoint and will flood the DLQ.",
+  )
+}
+
+// ============================================================================
 // CONFIGURATION
 // ============================================================================
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3001"
+const BASE_URL = rawBaseUrl
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || ""
 
 // ============================================================================
