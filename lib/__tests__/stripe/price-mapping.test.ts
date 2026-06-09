@@ -571,14 +571,14 @@ describe("getDisplayPriceForCategory", () => {
 // ===========================================================================
 
 describe("getBasePriceCents", () => {
-  it("returns 1-day med cert in cents (1995)", async () => {
+  it("returns 1-day med cert in cents (2495)", async () => {
     const { getBasePriceCents } = await importModule()
-    expect(getBasePriceCents("medical_certificate")).toBe(1995)
+    expect(getBasePriceCents("medical_certificate")).toBe(2495)
   })
 
   it("returns 1-day med cert in cents for absenceDays=1", async () => {
     const { getBasePriceCents } = await importModule()
-    expect(getBasePriceCents("medical_certificate", 1)).toBe(1995)
+    expect(getBasePriceCents("medical_certificate", 1)).toBe(2495)
   })
 
   it("returns 2-day med cert in cents (2995)", async () => {

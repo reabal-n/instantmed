@@ -221,7 +221,7 @@ export function SuccessClient({
     // webhook-processing window, the server render can complete before
     // `intakes.amount_cents` is set; the old code defaulted that to $1
     // and fired the Google Ads conversion at $1 instead of the real
-    // $19.95-$89.95 price, dragging campaign optimization toward
+    // $24.95-$89.95 price, dragging campaign optimization toward
     // low-value clicks. The polling loop above now refreshes
     // `resolvedAmountCents` from the API; wait for it.
     if (resolvedAmountCents == null) return

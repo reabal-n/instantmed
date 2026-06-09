@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
   // alongside `status` so the success page can update its conversion-value
   // before firing `trackPurchase`. Without them, a page that mounted during
   // the webhook-pending window fired the purchase conversion at the $1
-  // fallback instead of the real $19.95-$89.95 price.
+  // fallback instead of the real $24.95-$89.95 price.
   const { data: intake } = await supabase
     .from("intakes")
     .select("status, amount_cents, is_priority")

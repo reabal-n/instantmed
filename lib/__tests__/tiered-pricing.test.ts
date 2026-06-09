@@ -153,9 +153,9 @@ describe('Tiered Pricing for Medical Certificates', () => {
   })
 
   describe('PRICING constants', () => {
-    it('MED_CERT should be 19.95', async () => {
+    it('MED_CERT should be 24.95', async () => {
       const { PRICING } = await import('@/lib/constants')
-      expect(PRICING.MED_CERT).toBe(19.95)
+      expect(PRICING.MED_CERT).toBe(24.95)
     })
 
     it('MED_CERT_2DAY should be 29.95', async () => {
@@ -165,7 +165,7 @@ describe('Tiered Pricing for Medical Certificates', () => {
 
     it('PRICING_DISPLAY should format prices correctly', async () => {
       const { PRICING_DISPLAY } = await import('@/lib/constants')
-      expect(PRICING_DISPLAY.MED_CERT).toBe('$19.95')
+      expect(PRICING_DISPLAY.MED_CERT).toBe('$24.95')
       expect(PRICING_DISPLAY.MED_CERT_2DAY).toBe('$29.95')
     })
   })

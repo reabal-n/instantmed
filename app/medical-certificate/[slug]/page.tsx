@@ -229,7 +229,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
         <MedicalServiceSchema
           name={config.metadata.title.split("|")[0]?.trim() ?? config.h1}
           description={config.metadata.description}
-          price="19.95"
+          price="24.95"
         />
         <FAQSchema faqs={config.faqs} />
         <MedCertIntentPage config={config} />

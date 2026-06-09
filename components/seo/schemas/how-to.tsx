@@ -78,7 +78,7 @@ export function MedCertHowToSchema({ baseUrl = "https://instantmed.com.au" }: { 
       name="How to Get a Medical Certificate Online in Australia"
       description="Request a routine sick, study, or carer's leave certificate from an AHPRA-registered doctor online. No appointment needed."
       totalTime="PT120M"
-      estimatedCost="19.95"
+      estimatedCost="24.95"
       baseUrl={baseUrl}
       steps={[
         {
