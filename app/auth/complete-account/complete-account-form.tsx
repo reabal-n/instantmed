@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import type React from "react"
 import { useEffect, useRef, useState } from "react"
 
+import { HeardAboutUsCard } from "@/components/patient/heard-about-us-card"
 import { usePostHog } from "@/components/providers/posthog-provider"
 import { Button } from "@/components/ui/button"
 import { Confetti } from "@/components/ui/confetti"
@@ -20,6 +21,7 @@ export function CompleteAccountForm({
   serviceSlug,
   serviceName,
   isNewCustomer,
+  heardToken,
 }: {
   intakeId?: string
   email?: string
@@ -27,6 +29,7 @@ export function CompleteAccountForm({
   serviceSlug?: string
   serviceName?: string
   isNewCustomer?: boolean
+  heardToken?: string
 }) {
   const router = useRouter()
   const { isSignedIn, isLoaded } = useAuth()
@@ -137,6 +140,7 @@ export function CompleteAccountForm({
   }
 
   return (
+    <div className="space-y-4">
     <div className="p-8 rounded-2xl bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06]">
       <div className="text-center mb-6">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-success-light mb-4">
@@ -182,6 +186,8 @@ export function CompleteAccountForm({
           Sign in
         </a>
       </p>
+    </div>
+      {heardToken && <HeardAboutUsCard token={heardToken} />}
     </div>
   )
 }

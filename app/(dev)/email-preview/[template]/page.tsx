@@ -436,6 +436,8 @@ const templates: Record<string, {
         patientName={mock.patientName}
         serviceName="Medical Certificate"
         appUrl={mock.appUrl}
+        intakeId="preview-intake-id"
+        heardToken="preview-token"
       />
     ),
   },

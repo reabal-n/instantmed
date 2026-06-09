@@ -3,6 +3,7 @@ import { Suspense } from "react"
 import { Footer } from "@/components/shared/footer"
 import { Navbar } from "@/components/shared/navbar"
 import { Skeleton } from "@/components/ui/skeleton"
+import { signHeardAboutUsToken } from "@/lib/crypto/heard-about-us-token"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { CompleteAccountForm } from "./complete-account-form"
@@ -64,6 +65,18 @@ export default async function CompleteAccountPage({
     }
   }
 
+  // Signed token for the optional "how did you hear about us?" survey. Guest
+  // checkouts land here (not the success page) and are the Direct/Unknown cohort
+  // we most need to attribute, so the survey must render on this surface too.
+  let heardToken: string | undefined
+  if (intakeId) {
+    try {
+      heardToken = signHeardAboutUsToken(intakeId)
+    } catch {
+      heardToken = undefined
+    }
+  }
+
   return (
     <>
       <Navbar />
@@ -85,6 +98,7 @@ export default async function CompleteAccountPage({
               serviceSlug={serviceSlug}
               serviceName={serviceName}
               isNewCustomer={isNewCustomer}
+              heardToken={heardToken}
             />
           </Suspense>
         </div>
