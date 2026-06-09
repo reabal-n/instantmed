@@ -56,6 +56,7 @@ export const paidFunnel: Journey = {
       .filter({ hasText: /^continue$/i })
       .first()
     if (await continueBtn.isEnabled().catch(() => false)) {
+      await continueBtn.scrollIntoViewIfNeeded().catch(() => {})
       await continueBtn.click()
       await page.waitForTimeout(2500)
     }
@@ -74,6 +75,7 @@ export const paidFunnel: Journey = {
       .filter({ hasText: /^continue$/i })
       .first()
     if (await continueBtn2.isEnabled().catch(() => false)) {
+      await continueBtn2.scrollIntoViewIfNeeded().catch(() => {})
       await continueBtn2.click()
       await page.waitForTimeout(2500)
     }
