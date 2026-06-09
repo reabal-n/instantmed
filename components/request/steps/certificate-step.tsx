@@ -228,6 +228,13 @@ export default function CertificateStep({ onNext, initialDuration, hideIntro = f
   const price = selectedDays ? MED_CERT_DURATIONS.prices[selectedDays] : null
   const endOffset =
     startOffset !== null && selectedDays !== null ? startOffset + selectedDays - 1 : null
+  // Honest tier-anchor (2026-06-09): an optional one-tap "add the day back"
+  // nudge for the 1-day floor cohort, framed on the real $-delta to 2 days
+  // (narrowed to $5 by the floor-price test). NOT a default change and NOT a
+  // "most chosen" claim — ~85% pick 1 day, so social-proof framing would be
+  // false. Keeps 1 day the lowest-commitment default; this only invites an
+  // intentional upgrade. Delta is computed so it can never drift from PRICING.
+  const twoDayUpsellDelta = MED_CERT_DURATIONS.prices[2] - MED_CERT_DURATIONS.prices[1]
 
   // ── Cert type click ───────────────────────────────────────────────────
 
@@ -424,6 +431,26 @@ export default function CertificateStep({ onNext, initialDuration, hideIntro = f
               })}
             </div>
           </FormField>
+          {/* Honest one-tap upgrade for the 1-day floor cohort. Only shown on
+              1 day; framed on the true $-delta to 2 days, no popularity claim,
+              no default change. Clinically neutral — the doctor still reviews
+              the requested duration. */}
+          {selectedDays === 1 && (
+            <button
+              type="button"
+              onClick={() => {
+                handleDaysClick(2)
+                posthog?.capture("medcert_duration_nudge_taken", { from: 1, to: 2 })
+              }}
+              className="mt-2 flex w-full items-center justify-between gap-2 rounded-xl border border-primary/30 bg-primary/[0.04] px-3 py-2.5 text-left text-sm transition-colors hover:bg-primary/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <span className="text-foreground">
+                Make it 2 days{" "}
+                <span className="text-muted-foreground">to cover the day you&apos;re back</span>
+              </span>
+              <span className="shrink-0 font-semibold text-primary">+${twoDayUpsellDelta}</span>
+            </button>
+          )}
         </QuestionCard>
       </div>
 
