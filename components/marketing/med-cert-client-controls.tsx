@@ -68,9 +68,9 @@ export function MedCertClientControls({ stickyTargetId }: MedCertClientControlsP
       <StickyCTA
         show={showStickyCTA}
         // Drop the price from the sticky CTA. The med-cert day selector
-        // already shows per-day pricing inline ($19.95 / $29.95 / $39.95)
+        // already shows per-day pricing inline ($24.95 / $29.95 / $39.95)
         // and the sticky has no read access to the user's current selection.
-        // Hardcoding $19.95 here lied to anyone who picked 2 or 3 days
+        // Hardcoding $24.95 here lied to anyone who picked 2 or 3 days
         // (Tier 1 review 2026-05-25 #1). Generic CTA + price in the page
         // body is clearer than a sticky number that drifts.
         ctaText="Get your certificate"

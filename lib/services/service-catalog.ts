@@ -57,7 +57,7 @@ export interface ServiceDef {
   subtitle: string
   /** Canonical marketing slug (matches app route directory). */
   slug: string
-  /** Fully-qualified price display string ("$19.95", "From $49.95"). */
+  /** Fully-qualified price display string ("$24.95", "From $49.95"). */
   price: string
   /** Optional price prefix ("From", "Starts at"). */
   pricePrefix?: string
@@ -89,7 +89,7 @@ export const SERVICE_CATALOG: Record<CanonicalServiceId, ServiceDef> = {
     slug: "medical-certificate",
     price: PRICING_DISPLAY.MED_CERT,
     pricePrefix: "From",
-    priceFrom: 19.95,
+    priceFrom: 24.95,
     effort: "~2 min",
     iconKey: "FileText",
     colorToken: "emerald",

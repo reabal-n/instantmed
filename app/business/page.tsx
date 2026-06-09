@@ -196,7 +196,7 @@ export default async function BusinessLandingPage() {
       <MedicalServiceSchema
         name="InstantMed for Business · Medical Certificates"
         description="Sick and carer leave certificates for Australian employees. Co-branded URL, monthly invoicing, AHPRA-registered doctors."
-        price={String(19.95)}
+        price={String(24.95)}
       />
       <FAQSchema faqs={businessFaqs} />
 

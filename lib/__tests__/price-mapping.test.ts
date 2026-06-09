@@ -420,8 +420,8 @@ describe('getBasePriceCents', () => {
 
   it('returns correct cent values (no floating point errors)', async () => {
     const { getBasePriceCents } = await import('@/lib/stripe/price-mapping')
-    // 19.95 * 100 = 1995 exactly (Math.round handles float edge cases)
-    expect(getBasePriceCents('medical_certificate')).toBe(1995)
+    // 24.95 * 100 = 2495 exactly (Math.round handles float edge cases)
+    expect(getBasePriceCents('medical_certificate')).toBe(2495)
     expect(getBasePriceCents('medical_certificate', 2)).toBe(2995)
     expect(getBasePriceCents('medical_certificate', 3)).toBe(3995)
     expect(getBasePriceCents('prescription')).toBe(2995)

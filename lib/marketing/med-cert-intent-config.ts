@@ -55,7 +55,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "work",
     h1: "Medical certificate for work.",
     heroSubheadline:
-      "Your employer asked for a sick note. A real Australian doctor reviews your request. No appointments, no waiting rooms. From $19.95.",
+      "Your employer asked for a sick note. A real Australian doctor reviews your request. No appointments, no waiting rooms. From $24.95.",
     explainerTitle: "When you might need one",
     explainerSubtitle: "Work certificates cover most short-term absences. Here's what to know.",
     explainerParagraphs: [
@@ -75,9 +75,9 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "Two minutes to complete the form. A doctor reviews it. Certificate to your inbox.",
     ctaButtonText: "Get your certificate",
     metadata: {
-      title: "Medical Certificate for Work | Sick Note Online $19.95",
+      title: "Medical Certificate for Work | Sick Note Online $24.95",
       description:
-        "Medical certificate for work absence. AHPRA-registered doctors review your request. From $19.95. Employer policies may vary.",
+        "Medical certificate for work absence. AHPRA-registered doctors review your request. From $24.95. Employer policies may vary.",
       keywords: [
         "medical certificate for work",
         "sick certificate work",
@@ -119,7 +119,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "study",
     h1: "Medical certificate for study.",
     heroSubheadline:
-      "Study absence documentation. A doctor reviews your request. From $19.95.",
+      "Study absence documentation. A doctor reviews your request. From $24.95.",
     explainerTitle: "When students need documentation",
     explainerSubtitle: "Universities and TAFEs often require medical evidence for study absences.",
     explainerParagraphs: [
@@ -139,9 +139,9 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "Quick form, real doctor review. Certificate to your inbox if approved.",
     ctaButtonText: "Get your certificate",
     metadata: {
-      title: "Medical Certificate for Study | Uni & TAFE $19.95",
+      title: "Medical Certificate for Study | Uni & TAFE $24.95",
       description:
-        "Medical certificate for study absences. AHPRA-registered doctors review your request. From $19.95. Education provider policies vary.",
+        "Medical certificate for study absences. AHPRA-registered doctors review your request. From $24.95. Education provider policies vary.",
       keywords: [
         "medical certificate for study",
         "uni medical certificate",
@@ -173,7 +173,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "carer",
     h1: "Carer medical certificate.",
     heroSubheadline:
-      "Time off to look after a sick family member. A doctor reviews your request. No appointments. From $19.95.",
+      "Time off to look after a sick family member. A doctor reviews your request. No appointments. From $24.95.",
     explainerTitle: "When carers need documentation",
     explainerSubtitle: "Carer's leave certificates support absences when you're looking after someone who needs you.",
     explainerParagraphs: [
@@ -193,9 +193,9 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "Two minutes to complete the form. Doctor review. Certificate to your inbox.",
     ctaButtonText: "Get your certificate",
     metadata: {
-      title: "Carer Medical Certificate | Carer's Leave $19.95",
+      title: "Carer Medical Certificate | Carer's Leave $24.95",
       description:
-        "Medical certificate for carer's leave. Document absences when caring for a sick family member. AHPRA-registered doctors review your request. From $19.95.",
+        "Medical certificate for carer's leave. Document absences when caring for a sick family member. AHPRA-registered doctors review your request. From $24.95.",
       keywords: [
         "carer medical certificate",
         "carers leave certificate",
@@ -226,7 +226,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "sick-leave",
     h1: "Sick leave certificate online.",
     heroSubheadline:
-      "Too sick to visit a GP? Request a certificate from bed. A doctor reviews your request. From $19.95.",
+      "Too sick to visit a GP? Request a certificate from bed. A doctor reviews your request. From $24.95.",
     explainerTitle: "Sick leave without the waiting room",
     explainerSubtitle: "When you need documentation for time off, but leaving the house isn't an option.",
     explainerParagraphs: [
@@ -246,9 +246,9 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "Two minutes on your phone. A doctor reviews it. Certificate delivered. No clinic visit required.",
     ctaButtonText: "Get your certificate",
     metadata: {
-      title: "Sick Leave Certificate Online | $19.95 Under 1 Hour",
+      title: "Sick Leave Certificate Online | $24.95 Under 1 Hour",
       description:
-        "Get a sick leave certificate online. AHPRA-registered doctors review your request. From $19.95. No appointments, no waiting rooms.",
+        "Get a sick leave certificate online. AHPRA-registered doctors review your request. From $24.95. No appointments, no waiting rooms.",
       keywords: [
         "sick leave certificate online",
         "sick note online australia",
@@ -279,7 +279,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "university",
     h1: "Medical certificate for university.",
     heroSubheadline:
-      "Study absence documentation. A doctor reviews your request. From $19.95.",
+      "Study absence documentation. A doctor reviews your request. From $24.95.",
     explainerTitle: "When uni requires medical evidence",
     explainerSubtitle: "Universities often need a medical certificate to support absence documentation.",
     explainerParagraphs: [
@@ -299,9 +299,9 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "Quick form, real doctor review. Certificate to your inbox if approved.",
     ctaButtonText: "Get your certificate",
     metadata: {
-      title: "Medical Certificate for University | Student Absence $19.95",
+      title: "Medical Certificate for University | Student Absence $24.95",
       description:
-        "Medical certificate for university absences. AHPRA-registered doctors review your request. From $19.95. University policies vary.",
+        "Medical certificate for university absences. AHPRA-registered doctors review your request. From $24.95. University policies vary.",
       keywords: [
         "medical certificate for university",
         "uni medical certificate",
@@ -337,7 +337,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "school",
     h1: "Medical certificate for school.",
     heroSubheadline:
-      "Documentation for your child's school absence. A doctor reviews your request. From $19.95.",
+      "Documentation for your child's school absence. A doctor reviews your request. From $24.95.",
     explainerTitle: "When schools require medical evidence",
     explainerSubtitle: "Some schools ask for a medical certificate to excuse a child's absence.",
     explainerParagraphs: [
@@ -357,9 +357,9 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "Quick form, doctor review. Certificate to your inbox if approved.",
     ctaButtonText: "Get your certificate",
     metadata: {
-      title: "Medical Certificate for School | Child Absence $19.95",
+      title: "Medical Certificate for School | Child Absence $24.95",
       description:
-        "Medical certificate for school absence. Document your child's illness for the school. AHPRA-registered doctors review your request. From $19.95.",
+        "Medical certificate for school absence. Document your child's illness for the school. AHPRA-registered doctors review your request. From $24.95.",
       keywords: [
         "medical certificate for school",
         "school absence certificate",
@@ -410,9 +410,9 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "Use the main certificate pathway only for simple sick, study, or carer's leave.",
     ctaButtonText: "Get your certificate",
     metadata: {
-      title: "Return to Work Certificate | Doctor Assessment $19.95",
+      title: "Return to Work Certificate | Doctor Assessment $24.95",
       description:
-        "Return to work certificate from AHPRA-registered doctors. Doctor assesses your recovery and may issue a certificate if appropriate. From $19.95. Employer policies vary.",
+        "Return to work certificate from AHPRA-registered doctors. Doctor assesses your recovery and may issue a certificate if appropriate. From $24.95. Employer policies vary.",
       keywords: [
         "return to work medical evidence",
         "fitness for duty medical pathway",
@@ -500,7 +500,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "anxiety",
     h1: "Medical certificate for anxiety.",
     heroSubheadline:
-      "Anxiety is a legitimate medical condition. A doctor reviews your request. No judgement, no waiting rooms. From $19.95.",
+      "Anxiety is a legitimate medical condition. A doctor reviews your request. No judgement, no waiting rooms. From $24.95.",
     explainerTitle: "Anxiety is a valid reason to take time off",
     explainerSubtitle: "Mental health conditions, including anxiety, are covered under sick leave laws in Australia.",
     explainerParagraphs: [
@@ -520,9 +520,9 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "A two-minute form, real doctor review. Certificate to your inbox. No appointment needed.",
     ctaButtonText: "Get your certificate",
     metadata: {
-      title: "Medical Certificate for Anxiety | Mental Health Days $19.95",
+      title: "Medical Certificate for Anxiety | Mental Health Days $24.95",
       description:
-        "Get a medical certificate for anxiety or mental health days. AHPRA-registered doctors review your request. From $19.95. No waiting rooms.",
+        "Get a medical certificate for anxiety or mental health days. AHPRA-registered doctors review your request. From $24.95. No waiting rooms.",
       keywords: [
         "medical certificate for anxiety",
         "anxiety medical certificate",
@@ -559,7 +559,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "flu",
     h1: "Medical certificate for the flu.",
     heroSubheadline:
-      "Fever, aches, can't get out of bed? Request your sick note from home. A doctor reviews your request. From $19.95.",
+      "Fever, aches, can't get out of bed? Request your sick note from home. A doctor reviews your request. From $24.95.",
     explainerTitle: "Get your certificate without leaving the house",
     explainerSubtitle: "Influenza and flu-like illness are among the most common reasons for work absence.",
     explainerParagraphs: [
@@ -579,9 +579,9 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "Two minutes on your phone. Doctor review. Certificate to your inbox.",
     ctaButtonText: "Get your certificate",
     metadata: {
-      title: "Medical Certificate for Flu | Sick Note Online $19.95",
+      title: "Medical Certificate for Flu | Sick Note Online $24.95",
       description:
-        "Get a medical certificate for flu or influenza. AHPRA-registered doctors review your request online. Stay home, no clinic visit needed. From $19.95.",
+        "Get a medical certificate for flu or influenza. AHPRA-registered doctors review your request online. Stay home, no clinic visit needed. From $24.95.",
       keywords: [
         "medical certificate for flu",
         "flu sick certificate",
@@ -618,7 +618,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "work-from-home",
     h1: "Medical certificate for working from home.",
     heroSubheadline:
-      "Your employer wants documentation before approving remote work. A doctor reviews your request. From $19.95.",
+      "Your employer wants documentation before approving remote work. A doctor reviews your request. From $24.95.",
     explainerTitle: "When employers need medical justification for WFH",
     explainerSubtitle: "Some employers require a medical certificate before approving temporary work from home arrangements due to illness.",
     explainerParagraphs: [
@@ -638,9 +638,9 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "Quick form, doctor assessment. Certificate to your inbox if approved.",
     ctaButtonText: "Get your certificate",
     metadata: {
-      title: "Medical Certificate Work From Home | WFH Documentation $19.95",
+      title: "Medical Certificate Work From Home | WFH Documentation $24.95",
       description:
-        "Get a routine sick certificate for work-from-home situations. AHPRA-registered doctors review your request. From $19.95. Employer WFH policies vary.",
+        "Get a routine sick certificate for work-from-home situations. AHPRA-registered doctors review your request. From $24.95. Employer WFH policies vary.",
       keywords: [
         "medical certificate work from home",
         "wfh medical certificate australia",
@@ -677,7 +677,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "migraine",
     h1: "Medical certificate for migraine.",
     heroSubheadline:
-      "Migraines can be debilitating. Get your sick note from home, no bright screens required. A doctor reviews your request. From $19.95.",
+      "Migraines can be debilitating. Get your sick note from home, no bright screens required. A doctor reviews your request. From $24.95.",
     explainerTitle: "When a migraine stops you from working",
     explainerSubtitle: "Migraine is a recognised medical condition that can make it impossible to work safely.",
     explainerParagraphs: [
@@ -697,9 +697,9 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "Two minutes. A doctor reviews it. Certificate to your inbox.",
     ctaButtonText: "Get your certificate",
     metadata: {
-      title: "Medical Certificate for Migraine | Sick Note Online $19.95",
+      title: "Medical Certificate for Migraine | Sick Note Online $24.95",
       description:
-        "Get a medical certificate for a migraine. AHPRA-registered doctors review your request online. From $19.95.",
+        "Get a medical certificate for a migraine. AHPRA-registered doctors review your request online. From $24.95.",
       keywords: [
         "medical certificate for migraine",
         "migraine sick certificate",
@@ -731,7 +731,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "gastro",
     h1: "Medical certificate for gastro.",
     heroSubheadline:
-      "Gastro is one of the most common reasons Australians need a sick note. Get yours from home, no waiting rooms. From $19.95.",
+      "Gastro is one of the most common reasons Australians need a sick note. Get yours from home, no waiting rooms. From $24.95.",
     explainerTitle: "Gastro and stomach illness",
     explainerSubtitle: "Gastroenteritis (gastro) is highly contagious. Staying away from work is the responsible call.",
     explainerParagraphs: [
@@ -751,9 +751,9 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "Two-minute form. A doctor reviews it. Certificate to your inbox.",
     ctaButtonText: "Get your certificate",
     metadata: {
-      title: "Medical Certificate for Gastro | Sick Note Online $19.95",
+      title: "Medical Certificate for Gastro | Sick Note Online $24.95",
       description:
-        "Get a medical certificate for gastro or gastroenteritis. AHPRA-registered doctors review your request online. Stay home, no clinic visit needed. From $19.95.",
+        "Get a medical certificate for gastro or gastroenteritis. AHPRA-registered doctors review your request online. Stay home, no clinic visit needed. From $24.95.",
       keywords: [
         "medical certificate for gastro",
         "gastroenteritis sick certificate",
@@ -785,7 +785,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "back-pain",
     h1: "Medical certificate for back pain.",
     heroSubheadline:
-      "Back pain can make it impossible to sit, stand, or drive. Get your certificate without the commute. From $19.95.",
+      "Back pain can make it impossible to sit, stand, or drive. Get your certificate without the commute. From $24.95.",
     explainerTitle: "When back pain stops you working",
     explainerSubtitle: "Acute and chronic back pain are among the leading causes of workplace absence in Australia.",
     explainerParagraphs: [
@@ -805,9 +805,9 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "Quick form. Doctor review. Certificate to your inbox. No driving required.",
     ctaButtonText: "Get your certificate",
     metadata: {
-      title: "Medical Certificate for Back Pain | Sick Note Online $19.95",
+      title: "Medical Certificate for Back Pain | Sick Note Online $24.95",
       description:
-        "Get a medical certificate for back pain. AHPRA-registered doctors review your request online. No commute required. From $19.95.",
+        "Get a medical certificate for back pain. AHPRA-registered doctors review your request online. No commute required. From $24.95.",
       keywords: [
         "medical certificate for back pain",
         "back pain sick certificate",
@@ -844,7 +844,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "covid",
     h1: "Medical certificate for COVID-19.",
     heroSubheadline:
-      "Tested positive? Get your isolation certificate without leaving home. A doctor reviews your request. From $19.95.",
+      "Tested positive? Get your isolation certificate without leaving home. A doctor reviews your request. From $24.95.",
     explainerTitle: "COVID certificates and isolation documentation",
     explainerSubtitle: "Many employers still require documentation for COVID-related absences.",
     explainerParagraphs: [
@@ -864,9 +864,9 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "Two-minute form. Doctor review. Certificate to your inbox.",
     ctaButtonText: "Get your certificate",
     metadata: {
-      title: "Medical Certificate for COVID-19 | Isolation Certificate $19.95",
+      title: "Medical Certificate for COVID-19 | Isolation Certificate $24.95",
       description:
-        "Get a medical certificate for COVID-19. AHPRA-registered doctors review your request. Stay isolated, no clinic visit needed. From $19.95.",
+        "Get a medical certificate for COVID-19. AHPRA-registered doctors review your request. Stay isolated, no clinic visit needed. From $24.95.",
       keywords: [
         "medical certificate for covid",
         "covid sick certificate australia",

@@ -123,7 +123,7 @@ export const medicalCertificatesConfig: ServiceConfig = {
     'Backdating beyond 48 hours',
   ],
   
-  priceFrom: 19.95,
+  priceFrom: 24.95,
   pricingNote: 'One flat fee. No hidden costs.',
   pricingFeatures: [
     'Same-day certificate',

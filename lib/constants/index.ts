@@ -35,7 +35,7 @@ export const GOOGLE_REVIEW_URL = "https://g.page/r/CWqy3A7IKcX6EAE/review"
 // Service pricing (in AUD) - SINGLE SOURCE OF TRUTH
 // All display prices MUST use PRICING_DISPLAY, never hardcoded strings
 export const PRICING = {
-  MED_CERT: 19.95,        // 1-day medical certificate
+  MED_CERT: 24.95,        // 1-day medical certificate (floor price test 2026-06-09, was 19.95)
   MED_CERT_2DAY: 29.95,   // 2-day medical certificate
   MED_CERT_3DAY: 39.95,   // 3-day medical certificate
   REPEAT_SCRIPT: 29.95,   // Repeat prescription
@@ -119,6 +119,6 @@ export const PATTERNS = {
 export const MED_CERT_DURATIONS = {
   options: [1, 2, 3] as const,
   labels: { 1: '1 day', 2: '2 days', 3: '3 days' },
-  prices: { 1: 19.95, 2: 29.95, 3: 39.95 },
+  prices: { 1: 24.95, 2: 29.95, 3: 39.95 },
   maxDays: 3,
 } as const

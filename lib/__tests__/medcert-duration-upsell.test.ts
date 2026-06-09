@@ -3,12 +3,14 @@ import { describe, expect, it } from "vitest"
 import { getMedCertExtraDayOffer } from "@/lib/request/display-helpers"
 
 describe("getMedCertExtraDayOffer", () => {
-  it("offers a 2nd day (+$10) when a med-cert is on the 1-day floor tier", () => {
+  it("offers a 2nd day (+$5) when a med-cert is on the 1-day floor tier", () => {
+    // Delta narrowed from $10 to $5 after the 2026-06-09 floor price test
+    // raised the 1-day cert to $24.95 (2-day stays $29.95). Computed dynamically.
     expect(getMedCertExtraDayOffer("med-cert", { duration: "1" })).toEqual({
       nextDuration: "2",
       nextDays: 2,
       nextPrice: 29.95,
-      delta: 10,
+      delta: 5,
     })
   })
 

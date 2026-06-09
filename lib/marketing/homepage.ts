@@ -66,7 +66,7 @@ export const serviceCategories = [
     description: "Get a certificate for work, study, or carer's leave, without leaving bed",
     icon: "FileText",
     color: "emerald",
-    priceFrom: 19.95,
+    priceFrom: 24.95,
     href: "/request?service=med-cert",
     popular: true,
     cta: "Get your certificate",
@@ -221,7 +221,7 @@ export const featuredServices = [
   {
     title: "Medical Certificates",
     description: "Feeling too sick to visit a GP? Get a valid, employer-ready certificate from an AHPRA-registered doctor, without leaving bed.",
-    priceFrom: 19.95,
+    priceFrom: 24.95,
     href: "/request?service=med-cert",
     features: ["Sick leave", "Carer's leave", "Uni extensions", "Same-day delivery"],
   },
