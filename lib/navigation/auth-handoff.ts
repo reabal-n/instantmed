@@ -1,6 +1,13 @@
 export const AUTH_POST_SIGNIN_HREF = "/auth/post-signin" as const
 export const AUTH_HANDOFF_EVENT = "instantmed:auth-handoff" as const
 export const AUTH_HANDOFF_REFRESH_SUPPRESSION_MS = 5000
+// sessionStorage key that persists the suppression across a full-page
+// navigation. The in-memory AUTH_HANDOFF_EVENT guard is destroyed when the
+// browser navigates away; this flag survives so the new page's
+// SupabaseAuthProvider can suppress the router.refresh() that fires on
+// TOKEN_REFRESHED/SIGNED_IN and would otherwise race with React hydration,
+// producing "Application error: a client-side exception has occurred".
+export const AUTH_HANDOFF_STORAGE_KEY = "instantmed:auth-handoff-ts" as const
 
 type SearchParamsInput =
   | URLSearchParams
@@ -87,6 +94,17 @@ export function navigateToPostSignIn(
 ): string {
   const href = buildPostSignInHref(searchParams)
   emitAuthHandoffEvent(windowLike, href)
+  // Stamp sessionStorage so the destination page's SupabaseAuthProvider can
+  // suppress the router.refresh() that fires on TOKEN_REFRESHED/SIGNED_IN.
+  // The AUTH_HANDOFF_EVENT in-memory guard does not survive a full-page
+  // navigation — sessionStorage does.
+  try {
+    sessionStorage.setItem(AUTH_HANDOFF_STORAGE_KEY, String(Date.now()))
+  } catch {
+    // sessionStorage unavailable (private browsing, storage blocked) — fall
+    // through; the race condition is rare and the page still loads, just with
+    // the "Application error" flash the user reported.
+  }
   windowLike.location.assign(href)
   return href
 }
