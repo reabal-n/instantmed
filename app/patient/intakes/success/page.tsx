@@ -63,6 +63,7 @@ export default async function PaymentSuccessPage({
   let patientEmail: string | undefined
   let queuePosition: number | null = null
   let isNewCustomer: boolean | undefined
+  let intakeSubtype: string | undefined
 
   // Get authenticated user for ownership verification
   const authUser = await getAuthenticatedUserWithProfile()
@@ -78,6 +79,7 @@ export default async function PaymentSuccessPage({
           is_priority,
           patient_id,
           amount_cents,
+          subtype,
           service:services(name, short_name)
         `)
         .eq("id", intakeId)
@@ -104,6 +106,7 @@ export default async function PaymentSuccessPage({
     amountCents = data?.amount_cents ?? undefined
     const serviceData = data?.service as { name?: string; short_name?: string } | null
     serviceName = serviceData?.short_name || serviceData?.name || undefined
+    intakeSubtype = data?.subtype ?? undefined
 
     // Determine new_customer for Google Ads conversion optimization.
     // Count previous paid intakes for this patient (excluding current one).
@@ -162,6 +165,7 @@ export default async function PaymentSuccessPage({
           waitState={waitState}
           paymentRetry={paymentRetry}
           heardToken={heardToken}
+          intakeSubtype={intakeSubtype}
         />
       </div>
     </div>

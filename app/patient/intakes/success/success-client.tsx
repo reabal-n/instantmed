@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef,useState } from "react"
 
 import { HeardAboutUsCard } from "@/components/patient/heard-about-us-card"
 import { ReferralCard } from "@/components/patient/referral-card"
+import { RelatedServicesProbe } from "@/components/patient/related-services-probe"
 import { WhatHappensNext } from "@/components/patient/what-happens-next"
 import { usePostHog } from "@/components/providers/posthog-provider"
 import { Button } from "@/components/ui/button"
@@ -33,6 +34,7 @@ interface SuccessClientProps {
   waitState?: WaitState
   paymentRetry?: boolean
   heardToken?: string
+  intakeSubtype?: string
 }
 
 export function SuccessClient({
@@ -48,6 +50,7 @@ export function SuccessClient({
   waitState,
   paymentRetry = false,
   heardToken,
+  intakeSubtype,
 }: SuccessClientProps) {
   const prefersReducedMotion = useReducedMotion()
   const posthog = usePostHog()
@@ -437,6 +440,7 @@ export function SuccessClient({
         </div>
       )}
       {heardToken && <HeardAboutUsCard token={heardToken} />}
+      <RelatedServicesProbe currentSubtype={intakeSubtype} />
     </div>
   )
 }
