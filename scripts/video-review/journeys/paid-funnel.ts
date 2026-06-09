@@ -51,13 +51,11 @@ export const paidFunnel: Journey = {
       await page.waitForTimeout(1200)
     }
 
-    const continueBtn = page
-      .locator("button")
-      .filter({ hasText: /^continue$/i })
-      .first()
-    if (await continueBtn.isEnabled().catch(() => false)) {
-      await continueBtn.scrollIntoViewIfNeeded().catch(() => {})
-      await continueBtn.click()
+    // Script runs at mobile viewport (375×812). The inline Continue button
+    // is max-sm:hidden at this width — click the sticky bottom action bar instead.
+    const mobileCta1 = page.locator("[data-intake-mobile-action-bar='true'] button").last()
+    if (await mobileCta1.isEnabled().catch(() => false)) {
+      await mobileCta1.click()
       await page.waitForTimeout(2500)
     }
 
@@ -70,13 +68,9 @@ export const paidFunnel: Journey = {
       await page.waitForTimeout(1500)
     }
 
-    const continueBtn2 = page
-      .locator("button")
-      .filter({ hasText: /^continue$/i })
-      .first()
-    if (await continueBtn2.isEnabled().catch(() => false)) {
-      await continueBtn2.scrollIntoViewIfNeeded().catch(() => {})
-      await continueBtn2.click()
+    const mobileCta2 = page.locator("[data-intake-mobile-action-bar='true'] button").last()
+    if (await mobileCta2.isEnabled().catch(() => false)) {
+      await mobileCta2.click()
       await page.waitForTimeout(2500)
     }
 
