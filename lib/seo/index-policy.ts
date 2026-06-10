@@ -57,6 +57,12 @@ export const KEEP_INDEXED_BLOG = new Set<string>([
   "how-long-can-medical-certificate-cover",
   "university-medical-certificates",
   "medical-certificate-same-day",
+  "medical-certificate-period-pain",
+  "telehealth-after-hours",
+  "medical-certificate-food-poisoning",
+  "generic-vs-brand-medications",
+  "when-telehealth-cant-help",
+  "is-telehealth-legal-australia",
 ])
 
 /** Conditions: the ~15 with any GSC impressions in 90 days. */
