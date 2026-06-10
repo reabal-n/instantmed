@@ -110,6 +110,16 @@ export async function addToDeadLetterQueue(
   errorCode?: string,
   payload?: Record<string, unknown>
 ): Promise<void> {
+  // Synthetic E2E / smoke fixtures (evt_test_*, evt_smoke_*) are not real Stripe
+  // events — never let them pollute the production DLQ or trip DLQ alarms. No
+  // real Stripe event id uses these prefixes. This is the source-side guard for
+  // the 21 synthetic rows found in the 2026-06-10 audit
+  // (docs/audits/2026-06-10-comprehensive-audit.md).
+  if (eventId.startsWith("evt_test_") || eventId.startsWith("evt_smoke_")) {
+    log.info("Skipping DLQ write for synthetic test event", { eventId, eventType })
+    return
+  }
+
   try {
     await supabase.from("stripe_webhook_dead_letter").insert({
       event_id: eventId,
