@@ -47,6 +47,7 @@ export const KEEP_INDEXED_BLOG = new Set<string>([
   "erectile-dysfunction-treatment-online-australia",
   "hair-loss-treatment-online-australia",
   "how-escripts-work",
+  "can-employer-reject-medical-certificate",
 ])
 
 /** Conditions: the ~15 with any GSC impressions in 90 days. */
