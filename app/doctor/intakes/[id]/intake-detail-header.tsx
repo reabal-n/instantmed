@@ -56,6 +56,7 @@ import { isConsultServiceType, isKnownDoctorServiceType, SERVICE_TYPES } from "@
 import { formatIntakeStatus } from "@/lib/format/intake"
 import type { DeclineReasonCode, IntakeStatus, IntakeWithDetails } from "@/types/db"
 
+import { formatAutoApprovalReason } from "./intake-helpers"
 import { IntakeRefundDialog } from "./intake-refund-dialog"
 import type { IntakeDialogState } from "./use-intake-dialogs"
 
@@ -217,6 +218,23 @@ export function IntakeDetailHeader({
           ) : null}
           {/* Phase 3 of dashboard remaster (2026-05-12): consolidated badge */}
           <CertHealthChip certificate={certDelivery ?? null} intakeId={intake.id} />
+          {/* Why auto-approval routed this to a human (B4 visibility, 2026-06-11
+              review): the deterministic net writes the reason to
+              auto_approval_state_reason but it rendered nowhere — the doctor had
+              to re-spot "exam deferral" etc. in free text. Calm chrome: dot +
+              plain text; full raw reason in the tooltip. */}
+          {(intake.auto_approval_state === "needs_doctor" ||
+            intake.auto_approval_state === "failed_retrying") &&
+          intake.auto_approval_state_reason &&
+          ["paid", "in_review"].includes(intake.status) ? (
+            <span
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground"
+              title={`Auto-approval routed this to doctor review. Reason: ${intake.auto_approval_state_reason}`}
+            >
+              <span className="h-2 w-2 rounded-full bg-amber-500" aria-hidden />
+              Auto-approval skipped: {formatAutoApprovalReason(intake.auto_approval_state_reason)}
+            </span>
+          ) : null}
           {supplementaryActions}
         </div>
       </div>

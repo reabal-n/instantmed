@@ -53,3 +53,16 @@ export function formatConsultSubtype(subtype: string): string {
   }
   return labels[subtype] || subtype.replace(/_/g, ' ')
 }
+
+/**
+ * Staff-facing one-liner for intakes the auto-approval engine deliberately
+ * routed to a doctor (auto_approval_state = needs_doctor / failed_retrying).
+ * Reasons are machine-shaped ("high_stakes_use_case: exam deferral");
+ * humanise the prefix and keep it short — the full raw reason belongs in the
+ * tooltip, not the chip.
+ */
+export function formatAutoApprovalReason(reason: string): string {
+  const firstLine = reason.split("\n")[0] ?? reason
+  const humanised = firstLine.replace(/^([a-z0-9_]+):/i, (m) => m.replace(/_/g, " "))
+  return humanised.length > 64 ? `${humanised.slice(0, 61)}...` : humanised
+}

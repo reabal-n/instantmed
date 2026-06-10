@@ -12,7 +12,7 @@
  */
 
 import { trackSafetyBlock,trackSafetyOutcome } from "@/lib/analytics/posthog-server"
-import { isControlledSubstance } from "@/lib/clinical/intake-validation"
+import { checkHighStakesUseCase, isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { isMedicationBlocked, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import { getMedicationBlocklistCandidate } from "@/lib/operational-controls/medication-blocklist"
@@ -39,6 +39,46 @@ export async function runClinicalValidation(
     const validation = validateMedCertPayload(input.answers)
     if (!validation.valid) {
       return stepFail(validation.error || "Invalid medical certificate request.")
+    }
+
+    // Server-side high-stakes block (exam deferral, court, fitness-to-X,
+    // workers comp, Centrelink...). The client gate in symptoms-step is
+    // advisory only and the auto-approval net fires AFTER payment; this is
+    // the authoritative pre-payment enforcement so a structurally
+    // un-issuable cert never takes money (pay-then-decline refund churn).
+    // Same alias set as validateMedCertPayload reads, plus additional-info fields.
+    const highStakesText = [
+      input.answers["symptoms_description"],
+      input.answers["symptom_details"],
+      input.answers["symptomDetails"],
+      input.answers["symptomsDescription"],
+      input.answers["additional_info"],
+      input.answers["additionalInfo"],
+      input.answers["additional_information"],
+    ]
+      .filter((value): value is string => typeof value === "string" && value.length > 0)
+      .join("\n")
+    const highStakes = checkHighStakesUseCase(highStakesText)
+    if (highStakes.isHighStakes) {
+      logger.warn("High-stakes use case blocked at checkout", {
+        matched: highStakes.matched,
+      })
+      await recordSafetyEvaluationForOperators({
+        answers: input.answers,
+        context: "checkout",
+        result: {
+          isAllowed: false,
+          outcome: "DECLINE",
+          riskTier: "high",
+          blockReason: highStakes.reason || "High-stakes certificate use case.",
+          requiresCall: false,
+          triggeredRuleIds: ["high_stakes_use_case"],
+        },
+        serviceSlug: input.serviceSlug || getServiceSlug(input.category, input.subtype),
+      })
+      return stepFail(
+        `${highStakes.reason || "This type of certificate cannot be issued through an online assessment."} You have not been charged. Please see a GP in person, who can carry out the assessment this document requires.`,
+      )
     }
   }
 
