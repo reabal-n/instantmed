@@ -12,6 +12,9 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("cron-business-alerts")
 
+/** Re-page a still-standing alert signature at most once per this window (4h). */
+const TELEGRAM_ALERT_COOLDOWN_MS = 4 * 60 * 60 * 1000
+
 /**
  * Business Alerts Monitor
  *
@@ -221,10 +224,36 @@ export async function GET(request: NextRequest) {
       (a) => a.severity === "critical" || a.metric === "ops_sla_breach_backlog",
     )
     if (telegramWorthy.length > 0) {
-      const lines = telegramWorthy.map((a) => `• ${a.detail}`).join("\n")
-      await sendTelegramAlert(escapeMarkdown(`⚠️ InstantMed business alert\n${lines}`), {
-        severity: "critical",
-      })
+      // This cron runs every 30 min and standing conditions (SLA backlog, cert/refund
+      // orphans, a high-risk intake sitting in the queue) persist for hours — so
+      // without a cooldown the operator gets the SAME page every 30 min. Page once
+      // per distinct alert signature per TELEGRAM_ALERT_COOLDOWN_MS, tracked in
+      // audit_logs. A genuinely new condition (different fingerprint) still pages
+      // immediately.
+      const fingerprint = [...new Set(telegramWorthy.map((a) => a.metric))].sort().join(",")
+      const cooldownSince = new Date(now.getTime() - TELEGRAM_ALERT_COOLDOWN_MS).toISOString()
+      const { data: recentAlert } = await supabase
+        .from("audit_logs")
+        .select("id")
+        .eq("action", "telegram_business_alert")
+        .eq("metadata->>fingerprint", fingerprint)
+        .gte("created_at", cooldownSince)
+        .limit(1)
+
+      if (!recentAlert || recentAlert.length === 0) {
+        const lines = telegramWorthy.map((a) => `• ${a.detail}`).join("\n")
+        await sendTelegramAlert(escapeMarkdown(`⚠️ InstantMed business alert\n${lines}`), {
+          severity: "critical",
+        })
+        await supabase.from("audit_logs").insert({
+          action: "telegram_business_alert",
+          actor_type: "system",
+          metadata: { fingerprint, metrics: [...new Set(telegramWorthy.map((a) => a.metric))] },
+          created_at: new Date().toISOString(),
+        })
+      } else {
+        logger.info("Business alert Telegram suppressed (within cooldown)", { fingerprint })
+      }
     }
 
     if (alerts.length > 0) {

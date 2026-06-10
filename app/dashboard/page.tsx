@@ -109,7 +109,7 @@ export default async function StaffDashboardPage({
   const results = await Promise.allSettled([
     getDoctorQueue({ page, pageSize, doctorId: profile.id, allowSeeded: showTestData, onlySeeded: onlyTestData }),
     isAdmin ? getAIApprovedIntakes({ limit: 20 }) : Promise.resolve([]),
-    isAdmin ? getRecentlyCompletedIntakes({ limit: 8 }) : Promise.resolve([]),
+    isAdmin ? getRecentlyCompletedIntakes({ limit: 50 }) : Promise.resolve([]),
     getDoctorIdentity(profile.id),
     isAdmin ? getTodayEarnings() : Promise.resolve(0),
     getFormToInboxStats(),

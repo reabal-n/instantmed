@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
+import { ApprovedTodayList } from "@/components/doctor/approved-today-list"
 import { OperatorSplitPane } from "@/components/operator"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
@@ -1135,31 +1136,35 @@ export function QueueClient({
               key={`${statusFilter}:${debouncedSearch}`}
               className="flex h-full min-h-0 flex-col overflow-hidden"
             >
-              <QueueTable
-                filteredIntakes={filteredIntakes}
-                expandedId={expandedId}
-                openIntakeId={openIntakeId}
-                doctorId={doctorId}
-                lastOpenedIntakeId={lastOpenedIntakeId}
-                onRememberOpenedCase={rememberOpenedCase}
-                isPending={dialogs.isPending || isApprovePending}
-                identityComplete={identityComplete}
-                onApprove={handleApprove}
-                hasRedFlags={hasRedFlags}
-                calculateWaitTime={calculateStableWaitTime}
-                getWaitTimeSeverity={getStableWaitTimeSeverity}
-                openReviewPanel={openReviewPanel}
-                onPrimeReviewPanelCode={primeReviewPanelCode}
-                dialogs={dialogs}
-                aiApprovedIntakes={aiApprovedIntakes}
-                recentlyCompleted={recentlyCompleted}
-                pagination={pagination}
-                baseHref={baseHref}
-                emptyState={queueEmptyState}
-                compactShell={compactShell}
-                searchQuery={debouncedSearch}
-                newlyArrivedIds={newlyArrivedIds}
-              />
+              <div className="min-h-0 flex-1 overflow-hidden">
+                <QueueTable
+                  filteredIntakes={filteredIntakes}
+                  expandedId={expandedId}
+                  openIntakeId={openIntakeId}
+                  doctorId={doctorId}
+                  lastOpenedIntakeId={lastOpenedIntakeId}
+                  onRememberOpenedCase={rememberOpenedCase}
+                  isPending={dialogs.isPending || isApprovePending}
+                  identityComplete={identityComplete}
+                  onApprove={handleApprove}
+                  hasRedFlags={hasRedFlags}
+                  calculateWaitTime={calculateStableWaitTime}
+                  getWaitTimeSeverity={getStableWaitTimeSeverity}
+                  openReviewPanel={openReviewPanel}
+                  onPrimeReviewPanelCode={primeReviewPanelCode}
+                  dialogs={dialogs}
+                  aiApprovedIntakes={aiApprovedIntakes}
+                  recentlyCompleted={recentlyCompleted}
+                  pagination={pagination}
+                  baseHref={baseHref}
+                  emptyState={queueEmptyState}
+                  compactShell={compactShell}
+                  searchQuery={debouncedSearch}
+                  newlyArrivedIds={newlyArrivedIds}
+                />
+              </div>
+              {/* Day's approved requests at a glance, no separate navigation. */}
+              <ApprovedTodayList intakes={recentlyCompleted} />
             </div>
           )}
           detail={(
