@@ -194,6 +194,7 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       requestId: "abc-123",
       doctorNotes: d.doctorNotes,
       appUrl: APP_URL,
+      heardToken: "PREVIEW_SAMPLE_TOKEN",
     }),
   },
   {
@@ -207,6 +208,7 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       medicationName: d.medicationName,
       intakeId: "abc-123",
       appUrl: APP_URL,
+      heardToken: "PREVIEW_SAMPLE_TOKEN",
     }),
   },
   {
@@ -220,6 +222,7 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       requestId: "abc-123",
       escriptReference: d.escriptReference,
       appUrl: APP_URL,
+      heardToken: "PREVIEW_SAMPLE_TOKEN",
     }),
   },
   {
@@ -233,6 +236,7 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       medicationName: d.medicationName,
       requestId: "abc-123",
       appUrl: APP_URL,
+      heardToken: "PREVIEW_SAMPLE_TOKEN",
     }),
   },
   {
@@ -246,6 +250,7 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       medicationName: d.medicationName,
       requestId: "abc-123",
       appUrl: APP_URL,
+      heardToken: "PREVIEW_SAMPLE_TOKEN",
     }),
   },
   {
@@ -259,6 +264,7 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       medicationName: d.medicationName,
       requestId: "abc-123",
       appUrl: APP_URL,
+      heardToken: "PREVIEW_SAMPLE_TOKEN",
     }),
   },
   {
@@ -273,6 +279,7 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       treatmentType: d.treatmentType,
       requestId: "abc-123",
       appUrl: APP_URL,
+      heardToken: "PREVIEW_SAMPLE_TOKEN",
     }),
   },
   {

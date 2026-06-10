@@ -16,6 +16,16 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { renderEmailToHtml } from "../react-renderer-server"
 import type { OutboxRow } from "./types"
 
+/** Best-effort heard-about-us token; never throws (a missing INTERNAL_API_SECRET must not break an approval email). */
+function safeHeardToken(intakeId: string | null | undefined): string | undefined {
+  if (!intakeId) return undefined
+  try {
+    return signHeardAboutUsToken(intakeId)
+  } catch {
+    return undefined
+  }
+}
+
 /**
  * Reconstruct email HTML from intake/certificate data based on email_type.
  * Also handles PDF generation for certificates that need it (needs_pdf_generation in metadata).
@@ -75,12 +85,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
     // One-click "how did you find us?" attribution MCQ, shown below the Google
     // review CTA in the approval email. Best-effort: a missing INTERNAL_API_SECRET
     // must not break the cert email.
-    let heardToken: string | undefined
-    try {
-      heardToken = cert.intake_id ? signHeardAboutUsToken(cert.intake_id) : undefined
-    } catch {
-      heardToken = undefined
-    }
+    const heardToken = safeHeardToken(cert.intake_id)
 
     const template = MedCertPatientEmail({
       patientName: cert.patient_name,
@@ -218,6 +223,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       requestId: ctx.intake.id,
       escriptReference: ctx.intake.parchment_reference || undefined,
       appUrl: env.appUrl,
+      heardToken: safeHeardToken(ctx.intake.id),
     })
 
     const html = await renderEmailToHtml(template)
@@ -277,6 +283,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       medicationName,
       intakeId: ctx.intake.id,
       appUrl: env.appUrl,
+      heardToken: safeHeardToken(ctx.intake.id),
     })
 
     const html = await renderEmailToHtml(template)
@@ -494,6 +501,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       requestId: ctx.intake.id,
       doctorNotes: metadata?.doctorNotes || undefined,
       appUrl: env.appUrl,
+      heardToken: safeHeardToken(ctx.intake.id),
     })
 
     const html = await renderEmailToHtml(template)
@@ -523,6 +531,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       medicationName,
       requestId: ctx.intake.id,
       appUrl: env.appUrl,
+      heardToken: safeHeardToken(ctx.intake.id),
     })
 
     const html = await renderEmailToHtml(template)
@@ -552,6 +561,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       medicationName,
       requestId: ctx.intake.id,
       appUrl: env.appUrl,
+      heardToken: safeHeardToken(ctx.intake.id),
     })
 
     const html = await renderEmailToHtml(template)
@@ -581,6 +591,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       medicationName,
       requestId: ctx.intake.id,
       appUrl: env.appUrl,
+      heardToken: safeHeardToken(ctx.intake.id),
     })
 
     const html = await renderEmailToHtml(template)
@@ -611,6 +622,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       treatmentType: metadata?.treatmentType || undefined,
       requestId: ctx.intake.id,
       appUrl: env.appUrl,
+      heardToken: safeHeardToken(ctx.intake.id),
     })
 
     const html = await renderEmailToHtml(template)

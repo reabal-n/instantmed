@@ -23,6 +23,11 @@ export interface WeightLossApprovedEmailProps {
   medicationName: string
   requestId: string
   appUrl?: string
+  /**
+   * Signed heard-about-us token. When present, renders the one-click
+   * "how did you find us?" attribution question below the Google review CTA.
+   */
+  heardToken?: string
 }
 
 function isGLP1(name: string): boolean {
@@ -41,6 +46,7 @@ export function WeightLossApprovedEmail({
   medicationName,
   requestId,
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+  heardToken,
 }: WeightLossApprovedEmailProps) {
   const firstName = patientName.split(" ")[0]
   const glp1 = isGLP1(medicationName)
@@ -50,6 +56,7 @@ export function WeightLossApprovedEmail({
       previewText={`✅ ${firstName}, your ${medicationName} prescription is ready`}
       appUrl={appUrl}
       showReviewCTA
+      heardToken={heardToken}
       showReferral
     >
       <HeroBlock
