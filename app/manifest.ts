@@ -1,14 +1,25 @@
 import type { MetadataRoute } from "next"
 
+import { PRICING_DISPLAY } from "@/lib/constants"
+
+/**
+ * Single source of truth for the PWA manifest, served at /manifest.webmanifest.
+ *
+ * A static public/manifest.webmanifest used to shadow this route and the two
+ * diverged (the static copy shipped a hardcoded stale price). Consolidated
+ * 2026-06-11: branding colors/icons came from the static file, shortcuts from
+ * here, and the price now reads PRICING_DISPLAY so a price change can never
+ * strand this surface again. Do not re-add a static manifest under public/.
+ */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "InstantMed - Online Doctor Consultations",
+    name: "InstantMed",
     short_name: "InstantMed",
-    description: "Medical certificates, prescriptions, and referrals online from AHPRA-registered Australian doctors",
+    description: `Online Doctor Australia — Medical certificates, prescriptions & consults from ${PRICING_DISPLAY.MED_CERT}`,
     start_url: "/",
     display: "standalone",
-    background_color: "#fafbfc",
-    theme_color: "#3B82F6",
+    background_color: "#F8F7F4",
+    theme_color: "#2563EB",
     orientation: "portrait",
     categories: ["health", "medical", "lifestyle"],
     // Deep link shortcuts for quick access to services
@@ -32,22 +43,28 @@ export default function manifest(): MetadataRoute.Manifest {
         url: "/request?service=repeat-script",
       },
     ],
-    // PWA icons - using apple-icon.png as fallback
-    // For full PWA support, add icons at /public/icons/ with sizes: 192x192, 512x512
     icons: [
       {
-        src: "/apple-icon.png",
-        sizes: "180x180",
+        src: "/branding/logo-192.png",
+        sizes: "192x192",
         type: "image/png",
-        purpose: "any",
       },
       {
-        src: "/apple-icon.png",
-        sizes: "180x180",
+        src: "/branding/logo.png",
+        sizes: "512x512",
+        type: "image/png",
+      },
+      {
+        src: "/branding/logo.png",
+        sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
       },
+      {
+        src: "/apple-icon.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
     ],
-    // screenshots omitted - files not yet created
   }
 }

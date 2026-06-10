@@ -1,5 +1,17 @@
 'use client'
 
+/**
+ * GATED FUTURE SERVICE — intentionally orphaned, do not delete.
+ *
+ * Weight loss is a planned future line (operator decision 2026-06-10: stay
+ * OFF for now; revisit later as a call-based continuation/renewal lane).
+ * app/weight-loss/page.tsx deliberately redirects to /request and does NOT
+ * import this client, so none of this copy or its CTAs is reachable in
+ * production. The file is kept as the launch-ready marketing surface and is
+ * pinned by lib/__tests__/advertising-compliance-guard.test.ts (existence +
+ * copy rules), so a future launch only needs page.tsx rewired. Any audit
+ * flagging this as dead code: it is dead by design, not by accident.
+ */
 import {
   Activity,
   ArrowRight,
