@@ -36,7 +36,6 @@ const workplaceClaimSources = [
   medCertIntentSource,
   employerEvidenceSource,
   readFileSync(join(root, "components/marketing/med-cert-intent-page.tsx"), "utf8"),
-  readFileSync(join(root, "lib/marketing/services.ts"), "utf8"),
   readFileSync(join(root, "lib/seo/intents.ts"), "utf8"),
   readFileSync(join(root, "lib/seo/service-metadata.ts"), "utf8"),
   readFileSync(join(root, "lib/data/general-faq.ts"), "utf8"),
@@ -63,7 +62,6 @@ const staleCommercialPolicySources = [
   "docs/CLINICAL.md",
   "docs/TESTING.md",
   "lib/data/general-faq.ts",
-  "lib/marketing/services.ts",
   "lib/seo/data/competitor-comparisons.ts",
   "lib/seo/pages/definitions.ts",
 ].map((file) => readFileSync(join(root, file), "utf8")).join("\n")
