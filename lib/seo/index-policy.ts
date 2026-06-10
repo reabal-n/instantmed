@@ -48,6 +48,9 @@ export const KEEP_INDEXED_BLOG = new Set<string>([
   "hair-loss-treatment-online-australia",
   "how-escripts-work",
   "can-employer-reject-medical-certificate",
+  "sick-leave-rights-australia",
+  "telehealth-vs-gp-australia",
+  "how-to-verify-online-doctor",
 ])
 
 /** Conditions: the ~15 with any GSC impressions in 90 days. */
