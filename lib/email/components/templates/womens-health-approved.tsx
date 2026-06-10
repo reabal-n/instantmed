@@ -24,6 +24,11 @@ export interface WomensHealthApprovedEmailProps {
   treatmentType?: string // "contraception" | "uti" | "hormonal" | undefined
   requestId: string
   appUrl?: string
+  /**
+   * Signed heard-about-us token. When present, renders the one-click
+   * "how did you find us?" attribution question below the Google review CTA.
+   */
+  heardToken?: string
 }
 
 export function WomensHealthApprovedEmail({
@@ -32,6 +37,7 @@ export function WomensHealthApprovedEmail({
   treatmentType,
   requestId,
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+  heardToken,
 }: WomensHealthApprovedEmailProps) {
   const firstName = patientName.split(" ")[0]
   const isContraception = treatmentType === "contraception" || treatmentType === "oral_contraceptive"
@@ -42,6 +48,7 @@ export function WomensHealthApprovedEmail({
       previewText={`✅ ${firstName}, your ${medicationName} prescription is ready`}
       appUrl={appUrl}
       showReviewCTA
+      heardToken={heardToken}
       showReferral
     >
       <HeroBlock

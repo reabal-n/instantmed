@@ -23,6 +23,11 @@ export interface HairLossApprovedEmailProps {
   medicationName: string
   requestId: string
   appUrl?: string
+  /**
+   * Signed heard-about-us token. When present, renders the one-click
+   * "how did you find us?" attribution question below the Google review CTA.
+   */
+  heardToken?: string
 }
 
 function isFinasteride(name: string): boolean {
@@ -38,6 +43,7 @@ export function HairLossApprovedEmail({
   medicationName,
   requestId,
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+  heardToken,
 }: HairLossApprovedEmailProps) {
   const firstName = patientName.split(" ")[0]
   const finasteride = isFinasteride(medicationName)
@@ -48,6 +54,7 @@ export function HairLossApprovedEmail({
       previewText={`✅ ${firstName}, your ${medicationName} treatment is ready`}
       appUrl={appUrl}
       showReviewCTA
+      heardToken={heardToken}
       showReferral
     >
       <HeroBlock

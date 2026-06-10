@@ -22,6 +22,11 @@ export interface ScriptSentEmailProps {
   requestId: string
   escriptReference?: string
   appUrl?: string
+  /**
+   * Signed heard-about-us token. When present, renders the one-click
+   * "how did you find us?" attribution question below the Google review CTA.
+   */
+  heardToken?: string
 }
 
 export function ScriptSentEmail({
@@ -29,6 +34,7 @@ export function ScriptSentEmail({
   requestId,
   escriptReference,
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+  heardToken,
 }: ScriptSentEmailProps) {
   const firstName = patientName.split(" ")[0]
 
@@ -37,6 +43,7 @@ export function ScriptSentEmail({
       previewText="Your eScript is ready! Check your phone 💊"
       appUrl={appUrl}
       showReviewCTA
+      heardToken={heardToken}
       showReferral
     >
       <HeroBlock

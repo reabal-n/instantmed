@@ -21,6 +21,11 @@ export interface ConsultApprovedEmailProps {
   requestId: string
   doctorNotes?: string
   appUrl?: string
+  /**
+   * Signed heard-about-us token. When present, renders the one-click
+   * "how did you find us?" attribution question below the Google review CTA.
+   */
+  heardToken?: string
 }
 
 export function ConsultApprovedEmail({
@@ -28,6 +33,7 @@ export function ConsultApprovedEmail({
   requestId,
   doctorNotes,
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+  heardToken,
 }: ConsultApprovedEmailProps) {
   const firstName = patientName.split(" ")[0]
 
@@ -36,6 +42,7 @@ export function ConsultApprovedEmail({
       previewText={`${firstName}, your consultation is complete. Here's what's next ✅`}
       appUrl={appUrl}
       showReviewCTA
+      heardToken={heardToken}
       showReferral
     >
       <HeroBlock

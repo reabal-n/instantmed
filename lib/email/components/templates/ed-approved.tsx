@@ -23,6 +23,11 @@ export interface EdApprovedEmailProps {
   medicationName: string
   requestId: string
   appUrl?: string
+  /**
+   * Signed heard-about-us token. When present, renders the one-click
+   * "how did you find us?" attribution question below the Google review CTA.
+   */
+  heardToken?: string
 }
 
 function isTadalafil(name: string): boolean {
@@ -38,6 +43,7 @@ export function EdApprovedEmail({
   medicationName,
   requestId,
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+  heardToken,
 }: EdApprovedEmailProps) {
   const firstName = patientName.split(" ")[0]
   const tadalafil = isTadalafil(medicationName)
@@ -48,6 +54,7 @@ export function EdApprovedEmail({
       previewText={`✅ ${firstName}, your ${medicationName} prescription is ready`}
       appUrl={appUrl}
       showReviewCTA
+      heardToken={heardToken}
       showReferral
     >
       <HeroBlock
