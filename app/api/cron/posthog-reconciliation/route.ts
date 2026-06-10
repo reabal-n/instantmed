@@ -105,7 +105,26 @@ export async function GET(request: NextRequest) {
         cache: "no-store",
       },
     )
-    if (!phRes.ok) throw new Error(`PostHog trends API ${phRes.status}`)
+    if (!phRes.ok) {
+      // A 401/403/404 here is a configuration problem (bad/expired
+      // POSTHOG_PROJECT_API_KEY, missing scope, or wrong project id), not a
+      // runtime failure. Do NOT captureCronError on these — the cron runs hourly
+      // and this exact flood (INSTANTMED-2A, "PostHog trends API 403") helped
+      // exhaust the Sentry quota and kill ingestion in June 2026. Skip gracefully
+      // like the missing-credentials branch; fix the key in Vercel prod instead.
+      // See docs/audits/2026-06-10-comprehensive-audit.md.
+      if (phRes.status === 401 || phRes.status === 403 || phRes.status === 404) {
+        logger.warn("PostHog reconciliation skipped: trends API auth/config failure", {
+          status: phRes.status,
+        })
+        return NextResponse.json({
+          success: false,
+          skipped: true,
+          reason: `posthog_trends_${phRes.status}`,
+        })
+      }
+      throw new Error(`PostHog trends API ${phRes.status}`)
+    }
     const phPayload = (await phRes.json()) as {
       result?: Array<{ aggregated_value?: number; count?: number }>
     }
