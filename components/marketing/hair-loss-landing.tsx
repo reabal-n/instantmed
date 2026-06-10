@@ -80,7 +80,7 @@ const PRICING_BULLETS = [
   "AHPRA-registered Australian doctor reviews your form",
   "eScript sent to your phone once approved",
   "Collect from any Australian pharmacy",
-  "The doctor contacts you if more information is clinically needed",
+  "A doctor may call you briefly before prescribing",
   "Full refund if the doctor declines",
 ]
 

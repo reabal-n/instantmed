@@ -79,7 +79,7 @@ const PRICING_BULLETS = [
   "AHPRA-registered Australian doctor reviews your form",
   "eScript sent to your phone once approved",
   "Collect from any Australian pharmacy",
-  "The doctor contacts you if more information is clinically needed",
+  "A doctor may call you briefly before prescribing",
   "Full refund if the doctor declines",
 ]
 
@@ -258,7 +258,7 @@ export function ErectileDysfunctionLanding() {
             ctaHref="/request?service=consult&subtype=ed"
             onCTAClick={handleHowItWorksCTA}
             isDisabled={isDisabled}
-            subheading="No booked appointment or waiting room. The doctor contacts you if more information is clinically needed."
+            subheading="No booked appointment or waiting room. A doctor reviews your assessment and may call you briefly before prescribing."
           />
 
           {/* 3. Time comparison */}
