@@ -28,6 +28,11 @@ export interface MedCertPatientEmailProps {
    * explain why there's no password to reset.
    */
   isGuest?: boolean
+  /**
+   * Signed heard-about-us token. When present, renders the one-click
+   * "how did you find us?" attribution question below the Google review CTA.
+   */
+  heardToken?: string
 }
 
 export function MedCertPatientEmail({
@@ -37,6 +42,7 @@ export function MedCertPatientEmail({
   certType: _certType = "work",
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
   isGuest = false,
+  heardToken,
 }: MedCertPatientEmailProps) {
   const firstName = patientName.split(" ")[0]
 
@@ -46,6 +52,7 @@ export function MedCertPatientEmail({
       appUrl={appUrl}
       showReviewCTA
       showReferral
+      heardToken={heardToken}
     >
       <HeroBlock
         icon="🎉"

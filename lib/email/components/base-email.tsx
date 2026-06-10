@@ -14,6 +14,7 @@ import { ABN, COMPANY_ADDRESS_SHORT,COMPANY_NAME } from "@/lib/constants"
 import { getPatientCount } from "@/lib/social-proof"
 
 import { colors, fontFamily } from "./email-primitives"
+import { HeardAboutUsLinks } from "./heard-about-us-links"
 import { GoogleReviewCTA, ReferralCTA } from "./review-cta"
 
 /* eslint-disable @next/next/no-head-element -- Email templates, not Next.js pages */
@@ -34,9 +35,15 @@ interface BaseEmailProps {
   intakeId?: string
   /** User ID for PostHog tracking attribution. */
   userId?: string
+  /**
+   * Signed heard-about-us token. When present, renders the one-click
+   * "how did you find us?" attribution MCQ below the review CTA. Generated in
+   * the send path (e.g. reconstruct.ts) via signHeardAboutUsToken(intakeId).
+   */
+  heardToken?: string
 }
 
-export function BaseEmail({ children, previewText, appUrl = "https://instantmed.com.au", showReviewCTA = false, showReferral = false, intakeId, userId }: BaseEmailProps) {
+export function BaseEmail({ children, previewText, appUrl = "https://instantmed.com.au", showReviewCTA = false, showReferral = false, intakeId, userId, heardToken }: BaseEmailProps) {
   const patientFloor = Math.max(500, Math.floor(getPatientCount() / 500) * 500)
   return (
     <html lang="en-AU" style={{ colorScheme: "light dark" }}>
@@ -231,6 +238,7 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                       >
                         {children}
                         {showReviewCTA && <GoogleReviewCTA appUrl={appUrl} intakeId={intakeId} userId={userId} />}
+                        {heardToken && <HeardAboutUsLinks appUrl={appUrl} token={heardToken} />}
                         {showReferral && <ReferralCTA appUrl={appUrl} />}
                       </td>
                     </tr>
