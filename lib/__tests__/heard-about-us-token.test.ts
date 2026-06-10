@@ -24,7 +24,13 @@ describe("heard-about-us-token", () => {
 
   it("rejects a tampered token", () => {
     const token = signHeardAboutUsToken("intake-abc")
-    const tampered = token.slice(0, -1) + (token.endsWith("A") ? "B" : "A")
+    // Tamper the DECODED payload (flip the last HMAC hex char) so the change is
+    // guaranteed to alter a byte. Flipping the last base64url char of the encoded
+    // token can be a no-op when its trailing bits are unused — that made this test
+    // non-deterministic (the embedded timestamp varies the final bytes per run).
+    const decoded = Buffer.from(token, "base64url").toString("utf-8")
+    const tamperedDecoded = decoded.slice(0, -1) + (decoded.endsWith("a") ? "b" : "a")
+    const tampered = Buffer.from(tamperedDecoded, "utf-8").toString("base64url")
     expect(verifyHeardAboutUsToken(tampered)).toBeNull()
   })
 
