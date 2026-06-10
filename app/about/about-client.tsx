@@ -61,7 +61,7 @@ const ABOUT_FAQS = [
   {
     question: "What services does InstantMed offer?",
     answer:
-      "We offer medical certificates, repeat prescriptions, and specialised pathways for ED and hair loss. Weight management, women's health, and broad General Consult requests are planned or retired surfaces, but not open yet.",
+      "We offer medical certificates, repeat prescriptions, and specialised pathways for ED and hair loss. Women's health and weight management are planned for later. We keep our scope deliberately narrow, so anything outside these services is best handled by your regular GP or in-person care.",
   },
   {
     question: "How does InstantMed protect my privacy?",

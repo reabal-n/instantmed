@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic"
 export const metadata: Metadata = {
   title: "Get Started",
   description:
-    `Medical certificates from $19. Repeat medication from ${PRICING_DISPLAY.REPEAT_SCRIPT}, doctor consultations from ${PRICING_DISPLAY.CONSULT}. Reviewed by Australian doctors.`,
+    `Medical certificates from ${PRICING_DISPLAY.MED_CERT}. Repeat medication from ${PRICING_DISPLAY.REPEAT_SCRIPT}, doctor consultations from ${PRICING_DISPLAY.CONSULT}. Reviewed by Australian doctors.`,
   manifest: null,
   icons: {
     shortcut: "/favicon.ico",

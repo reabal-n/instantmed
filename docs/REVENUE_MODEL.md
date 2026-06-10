@@ -26,7 +26,7 @@ All canonical prices live in `lib/constants/index.ts`.
 
 | Service | Current price |
 |---------|---------------|
-| Med cert, 1 day | $19.95 |
+| Med cert, 1 day | $24.95 |
 | Med cert, 2 days | $29.95 |
 | Med cert, 3 days | $39.95 |
 | Repeat prescription | $29.95 |
@@ -48,7 +48,7 @@ Repeat Rx subscription acquisition is dormant/future strategy. Patient-facing ch
 | $45 | 22,222 | 1,852 | 61 |
 | $55 | 18,182 | 1,515 | 50 |
 
-The business should not try to reach $1M with $19.95 med certs alone. It needs a blended AOV lift from 2-3 day med certs, repeat prescriptions, hair loss, ED, women's health, weight loss, and priority fees.
+The business should not try to reach $1M with $24.95 med certs alone. It needs a blended AOV lift from 2-3 day med certs, repeat prescriptions, hair loss, ED, women's health, weight loss, and priority fees.
 
 ## 4. Target Service Mix
 
