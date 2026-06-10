@@ -72,6 +72,7 @@
 | [docs/audits/2026-06-07-conversion-gaps.md](../audits/2026-06-07-conversion-gaps.md) | Conversion gaps audit record 2026-06-07 |
 | [docs/audits/2026-06-07-platform-audit.md](../audits/2026-06-07-platform-audit.md) | Comprehensive platform audit 2026-06-07 |
 | [docs/audits/2026-06-08-scale-reaudit.md](../audits/2026-06-08-scale-reaudit.md) | 11-lens scale re-audit 2026-06-08; shipped Bucket A; Bucket B greenlit |
+| [docs/audits/2026-06-10-comprehensive-audit.md](../audits/2026-06-10-comprehensive-audit.md) | 44-agent platform + business audit 2026-06-10; P0 anon PHI leak fix, competitor/regulatory/channel research, staged scaling plan |
 
 ## docs/plans/ — active
 

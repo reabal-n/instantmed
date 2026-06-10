@@ -5,7 +5,12 @@ import { useRouter } from 'next/navigation'
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 
 import { onFirstInteraction } from '@/lib/browser/first-interaction'
-import { AUTH_HANDOFF_EVENT, createAuthHandoffRefreshGuard } from '@/lib/navigation/auth-handoff'
+import {
+  AUTH_HANDOFF_EVENT,
+  AUTH_HANDOFF_REFRESH_SUPPRESSION_MS,
+  AUTH_HANDOFF_STORAGE_KEY,
+  createAuthHandoffRefreshGuard,
+} from '@/lib/navigation/auth-handoff'
 
 const AUTH_IMMEDIATE_PATH_PREFIXES = [
   '/account',
@@ -130,6 +135,28 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
     let cancelSentryUserInteraction: (() => void) | null = null
     let cancelSentryUserIdle: (() => void) | null = null
     const authHandoffRefreshGuard = createAuthHandoffRefreshGuard()
+
+    // Check whether a full-page navigation was initiated by navigateToPostSignIn.
+    // The in-memory AUTH_HANDOFF_EVENT guard doesn't survive hard navigation —
+    // sessionStorage does. If the flag is recent (< suppression window), activate
+    // the guard now so that the initial TOKEN_REFRESHED/SIGNED_IN event from the
+    // Supabase SDK does NOT call router.refresh() while React is still hydrating
+    // the server-rendered HTML. That race produces "Application error: a
+    // client-side exception has occurred" on every Dashboard click from a
+    // marketing page.
+    try {
+      const storedTs = sessionStorage.getItem(AUTH_HANDOFF_STORAGE_KEY)
+      if (storedTs) {
+        const elapsed = Date.now() - Number(storedTs)
+        if (elapsed >= 0 && elapsed < AUTH_HANDOFF_REFRESH_SUPPRESSION_MS) {
+          authHandoffRefreshGuard.suppress()
+        }
+        // Always clear — one-shot flag; stale entries should not linger.
+        sessionStorage.removeItem(AUTH_HANDOFF_STORAGE_KEY)
+      }
+    } catch {
+      // sessionStorage unavailable — proceed without the cross-nav guard.
+    }
 
     const suppressAuthRefreshForHandoff = () => {
       authHandoffRefreshGuard.suppress()

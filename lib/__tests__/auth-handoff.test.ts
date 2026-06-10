@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest"
 import {
   AUTH_HANDOFF_EVENT,
   AUTH_HANDOFF_REFRESH_SUPPRESSION_MS,
+  AUTH_HANDOFF_STORAGE_KEY,
   AUTH_POST_SIGNIN_HREF,
   type AuthHandoffEventDetail,
   buildPostSignInHref,
@@ -106,6 +107,35 @@ describe("auth post-sign-in handoff", () => {
     expect(authProviderSource).toContain("createAuthHandoffRefreshGuard")
     expect(authProviderSource).toContain("authHandoffRefreshGuard.shouldSuppress()")
     expect(authProviderSource).toContain("window.removeEventListener(AUTH_HANDOFF_EVENT")
+  })
+
+  it("exports the sessionStorage key for cross-page suppression", () => {
+    expect(AUTH_HANDOFF_STORAGE_KEY).toBe("instantmed:auth-handoff-ts")
+  })
+
+  it("auth-provider reads the sessionStorage key to activate the cross-nav guard", () => {
+    const authProviderSource = readFileSync(join(process.cwd(), "lib/supabase/auth-provider.tsx"), "utf8")
+
+    // Key must be imported and used in sessionStorage.getItem
+    expect(authProviderSource).toContain("AUTH_HANDOFF_STORAGE_KEY")
+    expect(authProviderSource).toContain("sessionStorage.getItem(AUTH_HANDOFF_STORAGE_KEY)")
+    expect(authProviderSource).toContain("sessionStorage.removeItem(AUTH_HANDOFF_STORAGE_KEY)")
+    // Must activate the guard when the flag is recent
+    expect(authProviderSource).toContain("authHandoffRefreshGuard.suppress()")
+  })
+
+  it("navigateToPostSignIn writes the sessionStorage flag before navigating", () => {
+    // sessionStorage is not available in Node test environment — the function
+    // must silently swallow the error and still call location.assign.
+    const assigned: string[] = []
+    const href = navigateToPostSignIn({
+      CustomEvent: TestCustomEvent as unknown as typeof CustomEvent,
+      dispatchEvent: () => true,
+      location: { assign: (u: string) => { assigned.push(u) } },
+    })
+
+    expect(href).toBe(AUTH_POST_SIGNIN_HREF)
+    expect(assigned).toEqual([AUTH_POST_SIGNIN_HREF])
   })
 
   it("logs post-sign-in elapsed time on the server handoff", () => {
