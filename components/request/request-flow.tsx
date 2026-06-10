@@ -680,6 +680,21 @@ export function RequestFlow({
     return () => observer.disconnect()
   }, [currentStepId])
 
+  // Scroll to top on step change (2026-06-11 a11y/UX review): a user who
+  // scrolled deep into a long step (e.g. medical history) otherwise lands
+  // mid-page on the next step. Skips the first mount so resuming a saved flow
+  // doesn't yank the page; respects prefers-reduced-motion.
+  const stepScrollInitialized = useRef(false)
+  useEffect(() => {
+    if (!stepScrollInitialized.current) {
+      stepScrollInitialized.current = true
+      return
+    }
+    if (typeof window === "undefined") return
+    const prefersReduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+    window.scrollTo({ top: 0, behavior: prefersReduced ? "auto" : "smooth" })
+  }, [currentStepId])
+
   const handleMobilePrimaryAction = useCallback(() => {
     getMobilePrimaryAction()?.click()
   }, [])
