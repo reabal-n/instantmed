@@ -63,6 +63,12 @@ export const KEEP_INDEXED_BLOG = new Set<string>([
   "generic-vs-brand-medications",
   "when-telehealth-cant-help",
   "is-telehealth-legal-australia",
+  "amoxicillin-guide-australia",
+  "metformin-type-2-diabetes-guide",
+  "omeprazole-vs-pantoprazole",
+  "sertraline-vs-escitalopram",
+  "return-to-work-after-illness",
+  "medical-certificate-surgery-recovery",
 ])
 
 /** Conditions: the ~15 with any GSC impressions in 90 days. */
