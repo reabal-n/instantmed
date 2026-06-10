@@ -1,6 +1,9 @@
 import crypto from "crypto"
 
-const TOKEN_TTL_DAYS = 30
+// 90, not 30: the Spam Act s.18 minimum is 30 days, but an email opened on
+// day 31 (incl. its List-Unsubscribe header) must still have a working link,
+// so the functional window has to comfortably exceed the legal minimum.
+const TOKEN_TTL_DAYS = 90
 const TOKEN_TTL_MS = TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000
 
 function getSecret(): string {

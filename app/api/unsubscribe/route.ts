@@ -39,24 +39,33 @@ export async function POST(request: NextRequest) {
   const rateLimitResponse = await applyRateLimit(request, "standard")
   if (rateLimitResponse) return rateLimitResponse
 
-  let token: string
-  let type: string
+  let token: string | null = null
+  let type: string | null = null
 
-  // Accept both form-encoded (from HTML form) and JSON
+  // Accept both form-encoded (from our HTML confirmation form) and JSON.
   const contentType = request.headers.get("content-type") || ""
   if (contentType.includes("application/x-www-form-urlencoded")) {
     const formData = await request.formData()
-    token = formData.get("token") as string
-    type = (formData.get("type") as string) || "all"
+    token = (formData.get("token") as string) || null
+    type = (formData.get("type") as string) || null
   } else {
     try {
       const body = await request.json()
-      token = body.token
-      type = body.type || "all"
+      token = body.token ?? null
+      type = body.type ?? null
     } catch {
-      return htmlResponse(renderPage("Invalid request", false), 400)
+      // RFC 8058 one-click POSTs send `List-Unsubscribe=One-Click` as the body
+      // (not JSON), with the token in the URL query string — fall through to it.
     }
   }
+
+  // RFC 8058 (Gmail/Yahoo native Unsubscribe button): the List-Unsubscribe
+  // header is <https://.../api/unsubscribe?token=X&type=Y> and the POST body is
+  // only "List-Unsubscribe=One-Click", so the token is in the query string.
+  // Without this fallback the native button 400s and users hit "Report spam".
+  const { searchParams } = new URL(request.url)
+  token = token || searchParams.get("token")
+  type = type || searchParams.get("type") || "all"
 
   if (!token) {
     return htmlResponse(renderPage("Invalid unsubscribe link", false), 400)

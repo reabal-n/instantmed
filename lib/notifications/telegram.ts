@@ -421,13 +421,18 @@ function isSeverityAllowed(severity: TelegramSeverity): boolean {
 export async function sendTelegramAlert(
   message: string,
   options: { severity?: TelegramSeverity } = {}
-): Promise<void> {
+): Promise<boolean> {
+  // Returns true only if the alert was actually delivered. Callers that write a
+  // cooldown/dedup row (e.g. business-alerts) MUST gate that write on this
+  // result — otherwise a transient Telegram failure burns the cooldown and
+  // suppresses re-paging for the whole window. Returns false (not throws) when
+  // disabled/unconfigured/failed so callers never crash on alerting.
   const severity = options.severity ?? "critical"
-  if (!isSeverityAllowed(severity)) return
+  if (!isSeverityAllowed(severity)) return false
 
   const token = getToken()
   const chatId = getChatId()
-  if (!token || !chatId) return
+  if (!token || !chatId) return false
 
   try {
     const response = await fetch(`${TELEGRAM_API}/bot${token}/sendMessage`, {
@@ -443,9 +448,12 @@ export async function sendTelegramAlert(
     if (!response.ok) {
       const body = await response.text()
       log.error("Telegram alert failed", { status: response.status, body })
+      return false
     }
+    return true
   } catch (error) {
     log.error("Telegram alert failed", {}, error instanceof Error ? error : new Error(String(error)))
+    return false
   }
 }
 

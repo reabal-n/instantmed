@@ -69,6 +69,16 @@ function isSupportedEmailType(emailType: string): boolean {
   return SUPPORTED_EMAIL_TYPES.includes(emailType as typeof SUPPORTED_EMAIL_TYPES[number])
 }
 
+// One-off marketing emails owned by their own cron/route (refill-reminder cron,
+// heard-about-us backfill route). They are NOT reconstructable by the generic
+// dispatcher and must NOT be retried here — the cron self-heals on its next
+// eligible run. We still permanently-fail the outbox row, but at info level so
+// it is not treated (and Sentry-alerted) as a reconstruct anomaly.
+const CRON_OWNED_NON_RECONSTRUCTABLE = new Set<string>([
+  "refill_reminder",
+  "heard_about_us_backfill",
+])
+
 /**
  * Permanently fail an outbox row so it won't be retried.
  * Sets retry_count=MAX_RETRIES and status=failed with clear error message.
@@ -264,7 +274,14 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
 
     // STEP 3: Check for unsupported email types
     if (!isSupportedEmailType(claimedRow.email_type)) {
-      logger.warn("[Email Dispatcher] Unsupported email_type - permanent fail", { id: row.id, type: claimedRow.email_type })
+      const cronOwned = CRON_OWNED_NON_RECONSTRUCTABLE.has(claimedRow.email_type)
+      // Cron-owned one-off marketing emails are expected-unsupported: their cron
+      // owns the resend, so fail the row quietly (info) rather than warn/alert.
+      if (cronOwned) {
+        logger.info("[Email Dispatcher] Cron-owned email_type not reconstructable - permanent fail (expected)", { id: row.id, type: claimedRow.email_type })
+      } else {
+        logger.warn("[Email Dispatcher] Unsupported email_type - permanent fail", { id: row.id, type: claimedRow.email_type })
+      }
       await permanentlyFailOutboxRow(row.id, `Unsupported email_type: ${claimedRow.email_type}`, rowContext)
       failed++
       results.push({ id: row.id, success: false, error: `Unsupported email_type: ${claimedRow.email_type}` })

@@ -2,6 +2,7 @@
 
 import { ArrowRight } from "lucide-react"
 import Link from "next/link"
+import { useEffect, useRef } from "react"
 
 import { usePostHog } from "@/components/providers/posthog-provider"
 
@@ -23,16 +24,32 @@ const PROBE_SERVICES = [
  * Demand probe shown post-payment to surface adjacent services the patient
  * may not know we offer. Filters out the service they just ordered.
  * TGA: service names only — no Schedule 4 drug names.
- * PostHog: fires `related_service_probe_clicked` on link tap.
+ * PostHog: fires `related_service_probe_shown` on render (so CTR is computable)
+ * and `related_service_probe_clicked` on link tap. The `surface` prop separates
+ * the logged-in success page from the guest complete-account page.
  */
 export function RelatedServicesProbe({
   currentSubtype,
+  surface = "success",
 }: {
   currentSubtype?: string | null
+  surface?: "success" | "complete_account"
 }) {
   const posthog = usePostHog()
+  const shownFired = useRef(false)
 
   const services = PROBE_SERVICES.filter((s) => s.key !== currentSubtype)
+
+  useEffect(() => {
+    if (shownFired.current || services.length === 0 || !posthog) return
+    shownFired.current = true
+    posthog.capture("related_service_probe_shown", {
+      surface,
+      from_subtype: currentSubtype ?? "unknown",
+      options: services.map((s) => s.key),
+    })
+  }, [posthog, services, surface, currentSubtype])
+
   if (services.length === 0) return null
 
   return (
@@ -47,6 +64,7 @@ export function RelatedServicesProbe({
             href={service.href}
             onClick={() =>
               posthog?.capture("related_service_probe_clicked", {
+                surface,
                 from_subtype: currentSubtype ?? "unknown",
                 to_subtype: service.key,
               })

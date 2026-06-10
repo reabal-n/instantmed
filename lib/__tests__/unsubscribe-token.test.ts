@@ -45,20 +45,21 @@ describe("unsubscribe-token", () => {
       expect(verifyUnsubscribeToken("not-a-valid-token")).toBeNull()
     })
 
-    it("should reject expired tokens (>30 days)", () => {
-      // Mock Date.now to create an old token, then restore
+    it("should reject expired tokens (>90 days)", () => {
+      // TTL is 90 days (Spam Act 30-day minimum + functional headroom so an
+      // email opened on day 31 still has a working List-Unsubscribe link).
       const realNow = Date.now
-      const thirtyOneDaysAgo = realNow() - 31 * 24 * 60 * 60 * 1000
-      vi.spyOn(Date, "now").mockReturnValue(thirtyOneDaysAgo)
+      const ninetyOneDaysAgo = realNow() - 91 * 24 * 60 * 60 * 1000
+      vi.spyOn(Date, "now").mockReturnValue(ninetyOneDaysAgo)
       const token = signUnsubscribeToken("profile-old")
       vi.spyOn(Date, "now").mockReturnValue(realNow())
       expect(verifyUnsubscribeToken(token)).toBeNull()
     })
 
-    it("should accept tokens within 30-day window", () => {
+    it("should accept tokens within the 90-day window (incl. past the 30-day legal minimum)", () => {
       const realNow = Date.now
-      const twentyNineDaysAgo = realNow() - 29 * 24 * 60 * 60 * 1000
-      vi.spyOn(Date, "now").mockReturnValue(twentyNineDaysAgo)
+      const fortyDaysAgo = realNow() - 40 * 24 * 60 * 60 * 1000
+      vi.spyOn(Date, "now").mockReturnValue(fortyDaysAgo)
       const token = signUnsubscribeToken("profile-recent")
       vi.spyOn(Date, "now").mockReturnValue(realNow())
       expect(verifyUnsubscribeToken(token)).not.toBeNull()

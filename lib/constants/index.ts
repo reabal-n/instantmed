@@ -32,6 +32,30 @@ export const CONTACT_PHONE = "0450 722 549"
 // Used in all email templates, dashboard, and post-delivery flows
 export const GOOGLE_REVIEW_URL = "https://g.page/r/CWqy3A7IKcX6EAE/review"
 
+/**
+ * Day-2 review-email destination (GEO plan keystone 2.2). The approval email
+ * keeps the Google ask; the day-2 email rotates to the third-party surfaces
+ * that feed MediCompare rankings + LLM "is X legit" answers (ProductReview,
+ * Trustpilot) so review volume builds where it compounds for GEO.
+ *
+ * Set these env vars (the operator's write-a-review URLs) to activate the
+ * rotation; until then the redirect falls back to Google. Even months ->
+ * ProductReview, odd months -> Trustpilot (each falls back to the other, then
+ * to Google), so each platform reaches its review threshold instead of
+ * splitting volume. Never solicit on InstantMed's own surfaces (AHPRA).
+ */
+export const PRODUCTREVIEW_REVIEW_URL = process.env.PRODUCTREVIEW_REVIEW_URL || ""
+export const TRUSTPILOT_REVIEW_URL = process.env.TRUSTPILOT_REVIEW_URL || ""
+
+/** Pick the day-2 review destination. monthIndex = new Date().getUTCMonth(). */
+export function getRotatingReviewUrl(monthIndex: number): string {
+  const pr = PRODUCTREVIEW_REVIEW_URL
+  const tp = TRUSTPILOT_REVIEW_URL
+  if (!pr && !tp) return GOOGLE_REVIEW_URL
+  const preferProductReview = monthIndex % 2 === 0
+  return (preferProductReview ? pr || tp : tp || pr) || GOOGLE_REVIEW_URL
+}
+
 // Service pricing (in AUD) - SINGLE SOURCE OF TRUTH
 // All display prices MUST use PRICING_DISPLAY, never hardcoded strings
 export const PRICING = {

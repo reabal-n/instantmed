@@ -372,7 +372,7 @@ Cron surface policy: every `app/api/cron/*/route.ts` must be scheduled in `verce
 | Partial Intake Recovery | `/api/cron/recover-partial-intakes` | Hourly (:15) | Pre-checkout draft recovery only; excludes review/checkout drafts so it does not overlap abandoned-checkout recovery |
 | Cleanup Intake Drafts | `/api/cron/cleanup-intake-drafts` | Daily (4 AM UTC) | Delete stale saved intake drafts so anonymous draft storage does not grow unbounded |
 | Refill Reminders | `/api/cron/refill-reminders` | Daily (11 PM UTC / 9 AM AEST) | One-off reactivation: nudges patients to reorder a repeatable script 25-30 days after issue. Ships OFF; no-ops until `REFILL_REMINDER_EMAILS_ENABLED=true`. Marketing-consent gated per patient. NOT the retired subscription nudge — creates no order |
-| Emergency Flags | `/api/cron/emergency-flags` | Hourly | SMS emergency resources to patients who abandoned intakes with red flags |
+| Emergency Flags | `/api/cron/emergency-flags` | Hourly | Sentry-logs red-flag abandoned intakes for clinical monitoring. Does NOT send outbound SMS/email (the route is logging-only; corrected 2026-06-11). |
 | Telegram Notifications | `/api/cron/telegram-notifications` | Every 5 min | Retry missed paid-request Telegram notifications when webhook-time sends fail |
 | AHPRA Re-verification | `/api/cron/ahpra-reverification` | Daily (6 AM AEST) | Flag overdue AHPRA verifications; disable approval for 30+ days overdue |
 | Daily Reconciliation | `/api/cron/daily-reconciliation` | Daily (7 AM AEST) | Identify mismatches: paid without delivery, failed refunds, failed deliveries |

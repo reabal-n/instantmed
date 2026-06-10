@@ -6,6 +6,7 @@ import type React from "react"
 import { useEffect, useRef, useState } from "react"
 
 import { HeardAboutUsCard } from "@/components/patient/heard-about-us-card"
+import { RelatedServicesProbe } from "@/components/patient/related-services-probe"
 import { usePostHog } from "@/components/providers/posthog-provider"
 import { Button } from "@/components/ui/button"
 import { Confetti } from "@/components/ui/confetti"
@@ -188,6 +189,12 @@ export function CompleteAccountForm({
       </p>
     </div>
       {heardToken && <HeardAboutUsCard token={heardToken} />}
+      {/* Cross-sell to the guest majority (most checkouts are guests who land
+          here, not on /patient/intakes/success). 2026-06-11 review: the probe
+          was success-page-only, so guests never saw it. */}
+      <div className="mx-auto mt-4 w-full max-w-md px-4">
+        <RelatedServicesProbe surface="complete_account" />
+      </div>
     </div>
   )
 }

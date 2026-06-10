@@ -1,13 +1,14 @@
 /**
  * Review CTA Redirect
  *
- * Tracks review link clicks via PostHog before redirecting to Google Reviews.
- * Used by email review CTAs for conversion tracking.
+ * Tracks review link clicks via PostHog, then redirects to the rotating day-2
+ * review destination (ProductReview/Trustpilot when configured, else Google).
+ * Used by the day-2 review email; the approval email keeps the Google ask.
  */
 
 import { NextRequest, NextResponse } from "next/server"
 
-import { GOOGLE_REVIEW_URL } from "@/lib/constants"
+import { getRotatingReviewUrl } from "@/lib/constants"
 
 export async function GET(req: NextRequest) {
   const source = req.nextUrl.searchParams.get("utm_source") || "email"
@@ -42,5 +43,5 @@ export async function GET(req: NextRequest) {
     }).catch(() => {}) // Swallow errors - tracking should never block
   }
 
-  return NextResponse.redirect(GOOGLE_REVIEW_URL, { status: 302 })
+  return NextResponse.redirect(getRotatingReviewUrl(new Date().getUTCMonth()), { status: 302 })
 }

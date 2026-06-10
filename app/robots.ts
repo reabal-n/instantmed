@@ -69,16 +69,17 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/patient/", "/doctor/", "/admin/", "/api/", "/auth/"],
       },
     ],
+    // Only advertise sitemaps that actually contain URLs. The compare / intent
+    // / for / guides surfaces are wholesale-iceboxed (noindex,follow, empty
+    // sitemaps per lib/seo/index-policy.ts) — advertising their empty sitemaps
+    // just generated a permanent "Sitemap is empty" error row in GSC. Their
+    // pages stay live and link-followed; they simply aren't sitemap-listed.
     sitemap: [
       `${baseUrl}/sitemap.xml`,
       `${baseUrl}/conditions/sitemap.xml`,
       `${baseUrl}/symptoms/sitemap.xml`,
       `${baseUrl}/locations/sitemap.xml`,
-      `${baseUrl}/guides/sitemap.xml`,
       `${baseUrl}/blog/sitemap.xml`,
-      `${baseUrl}/compare/sitemap.xml`,
-      `${baseUrl}/intent/sitemap.xml`,
-      `${baseUrl}/for/sitemap.xml`,
     ],
   }
 }

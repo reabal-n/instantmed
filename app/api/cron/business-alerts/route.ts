@@ -242,15 +242,21 @@ export async function GET(request: NextRequest) {
 
       if (!recentAlert || recentAlert.length === 0) {
         const lines = telegramWorthy.map((a) => `• ${a.detail}`).join("\n")
-        await sendTelegramAlert(escapeMarkdown(`⚠️ InstantMed business alert\n${lines}`), {
+        const delivered = await sendTelegramAlert(escapeMarkdown(`⚠️ InstantMed business alert\n${lines}`), {
           severity: "critical",
         })
-        await supabase.from("audit_logs").insert({
-          action: "telegram_business_alert",
-          actor_type: "system",
-          metadata: { fingerprint, metrics: [...new Set(telegramWorthy.map((a) => a.metric))] },
-          created_at: new Date().toISOString(),
-        })
+        // Only burn the cooldown if the page actually went out. A transient
+        // Telegram failure must NOT suppress re-paging for the whole window.
+        if (delivered) {
+          await supabase.from("audit_logs").insert({
+            action: "telegram_business_alert",
+            actor_type: "system",
+            metadata: { fingerprint, metrics: [...new Set(telegramWorthy.map((a) => a.metric))] },
+            created_at: new Date().toISOString(),
+          })
+        } else {
+          logger.warn("Business alert Telegram not delivered; cooldown not written (will retry next run)", { fingerprint })
+        }
       } else {
         logger.info("Business alert Telegram suppressed (within cooldown)", { fingerprint })
       }
