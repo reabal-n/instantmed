@@ -706,15 +706,13 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
             </span>
           </div>
           {isPrescriptionCheckout && (
-            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-              <span>
-                One-time fee{isPriority ? " incl. express review" : ""}
-              </span>
+            <div className="pt-1">
               <ExpressReviewToggle
                 id="review-express-review-toggle"
                 checked={isPriority}
                 onCheckedChange={setIsPriority}
                 onOptIn={() => posthog?.capture("express_review_opted_in", { service_type: serviceType })}
+                onOptOut={() => posthog?.capture("express_review_opted_out", { service_type: serviceType })}
               />
             </div>
           )}

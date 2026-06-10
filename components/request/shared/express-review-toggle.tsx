@@ -1,5 +1,7 @@
 "use client"
 
+import { Zap } from "lucide-react"
+
 import { Switch } from "@/components/ui/switch"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { cn } from "@/lib/utils"
@@ -10,39 +12,65 @@ interface ExpressReviewToggleProps {
   id: string
   onCheckedChange: (checked: boolean) => void
   onOptIn?: () => void
+  onOptOut?: () => void
 }
 
+/**
+ * Express review opt-in, rendered as a prominent full-width option row above the
+ * pay button (was an 11px pill in the price summary at 1.9% attach — 2026-06-11
+ * review). Compliant: describes queue priority, never an SLA/turnaround promise.
+ * Fires opt-in AND opt-out so decline is measurable.
+ */
 export function ExpressReviewToggle({
   checked,
   className,
   id,
   onCheckedChange,
   onOptIn,
+  onOptOut,
 }: ExpressReviewToggleProps) {
   return (
-    <Switch
-      id={id}
-      size="sm"
-      checked={checked}
-      onCheckedChange={(next) => {
-        onCheckedChange(next)
-        if (next) onOptIn?.()
-      }}
-      aria-label={checked ? "Disable express review" : "Enable express review"}
+    <label
+      htmlFor={id}
       className={cn(
-        "inline-flex h-8 w-fit max-w-full flex-row-reverse gap-1.5 rounded-full border px-2 shadow-sm shadow-primary/[0.03]",
+        "flex w-full cursor-pointer select-none items-center justify-between gap-3 rounded-xl border px-3.5 py-3",
         "transition-[background-color,border-color,box-shadow] duration-200",
         checked
-          ? "border-primary/35 bg-primary/[0.05] text-primary"
-          : "border-border/50 bg-white text-muted-foreground hover:border-border/70 dark:bg-card",
+          ? "border-primary/40 bg-primary/[0.05] shadow-sm shadow-primary/[0.06]"
+          : "border-border/60 bg-white hover:border-border/80 dark:bg-card",
         className,
       )}
-      childrenClassName="flex items-baseline gap-1 text-[11px] font-medium text-inherit"
     >
-      <span>Express</span>
-      <span className="text-[10px] font-medium text-muted-foreground">
-        +{PRICING_DISPLAY.PRIORITY_FEE}
-      </span>
-    </Switch>
+      <div className="flex min-w-0 items-start gap-2.5">
+        <span
+          className={cn(
+            "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors",
+            checked ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
+          )}
+          aria-hidden
+        >
+          <Zap className="h-3.5 w-3.5" />
+        </span>
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-foreground">
+            Express review{" "}
+            <span className="font-normal text-muted-foreground">· +{PRICING_DISPLAY.PRIORITY_FEE}</span>
+          </p>
+          <p className="text-xs leading-snug text-muted-foreground">
+            Your request is placed ahead of the standard queue.
+          </p>
+        </div>
+      </div>
+      <Switch
+        id={id}
+        checked={checked}
+        onCheckedChange={(next) => {
+          onCheckedChange(next)
+          if (next) onOptIn?.()
+          else onOptOut?.()
+        }}
+        aria-label={checked ? "Disable express review" : "Enable express review"}
+      />
+    </label>
   )
 }

@@ -325,12 +325,13 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
               ? "Doctor review starts after payment. If approved, your certificate is emailed to you."
               : "One-time fee. Your doctor reviews right after."}
           </p>
-          <div className="flex justify-end border-t border-border/40 pt-2">
+          <div className="border-t border-border/40 pt-2.5">
             <ExpressReviewToggle
               id="express-review-toggle"
               checked={isPriority}
               onCheckedChange={setIsPriority}
               onOptIn={() => posthog?.capture('express_review_opted_in', { service_type: serviceType })}
+              onOptOut={() => posthog?.capture('express_review_opted_out', { service_type: serviceType })}
             />
           </div>
         </div>
