@@ -55,7 +55,9 @@ Use:
 
 Use:
 
-> Complete a secure clinical form. A doctor contacts you only if more information is clinically needed.
+> Complete a secure clinical form. A doctor reviews it and may call you briefly before prescribing.
+
+This phrasing (updated 2026-06-10) deliberately foregrounds a possible brief doctor call on prescribing pathways (ED, hair loss, new/repeat scripts) rather than framing a call as a rare exception. It sets the expectation that a real-time touchpoint may occur before a script is issued, which is the medicolegal posture the Medical Board's telehealth guidelines expect for prescribing a patient the practitioner has not consulted in real time. It stays clear of the banned "No call needed" claim while keeping the async, no-appointment appeal ("Start with a private online form"). The earlier "contacts you only if more information is clinically needed" wording is retired on ED/hair surfaces. Do not promise that a call will never happen on any prescribing surface.
 
 ### Approved Med Cert Wedge
 
