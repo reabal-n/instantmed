@@ -5,6 +5,7 @@ import { buildOperationalInvariantAlerts, getOperationalInvariants } from "@/lib
 import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { toError } from "@/lib/errors"
+import { escapeMarkdown, sendTelegramAlert } from "@/lib/notifications/telegram"
 import { createLogger } from "@/lib/observability/logger"
 import { captureCronError } from "@/lib/observability/sentry"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -209,6 +210,21 @@ export async function GET(request: NextRequest) {
           },
         }
       )
+    }
+
+    // Telegram fallback so the operator is still paged when Sentry ingestion is
+    // down. On 2026-06-06 a CSP-report flood exhausted the Sentry quota and
+    // silently dropped every alert (including a 26h review-SLA breach) for days.
+    // Telegram is an independent channel. Gated by TELEGRAM_SYSTEM_ALERTS_ENABLED=1.
+    // Escalate criticals and any 24h review-SLA backlog regardless of tier.
+    const telegramWorthy = alerts.filter(
+      (a) => a.severity === "critical" || a.metric === "ops_sla_breach_backlog",
+    )
+    if (telegramWorthy.length > 0) {
+      const lines = telegramWorthy.map((a) => `• ${a.detail}`).join("\n")
+      await sendTelegramAlert(escapeMarkdown(`⚠️ InstantMed business alert\n${lines}`), {
+        severity: "critical",
+      })
     }
 
     if (alerts.length > 0) {
