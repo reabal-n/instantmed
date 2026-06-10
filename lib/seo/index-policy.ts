@@ -51,6 +51,12 @@ export const KEEP_INDEXED_BLOG = new Set<string>([
   "sick-leave-rights-australia",
   "telehealth-vs-gp-australia",
   "how-to-verify-online-doctor",
+  "sildenafil-vs-tadalafil",
+  "finasteride-vs-minoxidil-hair-loss",
+  "online-doctor-consultation-australia",
+  "how-long-can-medical-certificate-cover",
+  "university-medical-certificates",
+  "medical-certificate-same-day",
 ])
 
 /** Conditions: the ~15 with any GSC impressions in 90 days. */
