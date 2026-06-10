@@ -72,7 +72,8 @@ export function FAQSection({
               <AccordionTrigger className="py-4 text-left text-[15px] font-medium text-foreground hover:no-underline gap-4">
                 {item.question}
               </AccordionTrigger>
-              <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
+              {/* forceMount: answers must exist in the served HTML for Bing/LLM crawlers (GEO) */}
+              <AccordionContent forceMount className="text-sm text-muted-foreground leading-relaxed">
                 {item.answer}
               </AccordionContent>
             </AccordionItem>

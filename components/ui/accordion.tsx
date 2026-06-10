@@ -54,10 +54,18 @@ AccordionTrigger.displayName = "AccordionTrigger"
 const AccordionContent = React.forwardRef<
   React.ComponentRef<typeof AccordionPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+>(({ className, children, forceMount, ...props }, ref) => (
   <AccordionPrimitive.Content
     ref={ref}
-    className="overflow-hidden text-sm data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
+    forceMount={forceMount}
+    className={cn(
+      "overflow-hidden text-sm data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down",
+      // forceMount keeps closed content in the served HTML so crawlers/LLM
+      // bots (which never click) can read it. Radix then no longer unmounts
+      // closed panels, so they must be display-hidden manually. The close
+      // animation degrades to an instant hide; opening still animates.
+      forceMount && "data-[state=closed]:hidden"
+    )}
     {...props}
   >
     <div className={cn("pt-0 pb-4", className)}>{children}</div>

@@ -492,6 +492,12 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     // Only select doctors whose AHPRA verification has not expired (ahpra_next_review_at
     // is null - no expiry set - or in the future). This prevents issuing certificates
     // under credentials that may have lapsed.
+    //
+    // DELIBERATE: this pool does NOT filter on profiles.doctor_available. Operator
+    // decision 2026-06-11: auto-approval runs at all times - the availability toggle
+    // only hides the manual review queue, it must never pause the automated med-cert
+    // pipeline. (The 2026-06-11 hygiene review flagged the missing filter as a P1;
+    // the operator explicitly overruled it. Do not "fix" without a new decision.)
     const nowIso = new Date().toISOString()
     const { data: allDoctors, error: doctorError } = await supabase
       .from("profiles")

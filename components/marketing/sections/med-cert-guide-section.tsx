@@ -211,7 +211,8 @@ export function MedCertGuideSection() {
                     {item.title}
                   </span>
                 </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-5">
+                {/* forceMount: content must exist in the served HTML for Bing/LLM crawlers (GEO) */}
+                <AccordionContent forceMount className="text-sm text-muted-foreground leading-relaxed pb-5">
                   {item.content}
                 </AccordionContent>
               </AccordionItem>

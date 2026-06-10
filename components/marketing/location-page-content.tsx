@@ -397,7 +397,8 @@ export function LocationPageContent({
                   <AccordionTrigger className="text-sm font-medium text-left py-4 hover:no-underline">
                     {faq.q}
                   </AccordionTrigger>
-                  <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
+                  {/* forceMount: answers must exist in the served HTML for Bing/LLM crawlers (GEO) */}
+                  <AccordionContent forceMount className="text-sm text-muted-foreground leading-relaxed">
                     {faq.a}
                   </AccordionContent>
                 </AccordionItem>

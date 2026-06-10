@@ -77,7 +77,8 @@ export function FAQList({
                   {item.question}
                 </span>
               </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground leading-relaxed pb-5">
+              {/* forceMount: answers must exist in the served HTML for Bing/LLM crawlers (GEO) */}
+              <AccordionContent forceMount className="text-muted-foreground leading-relaxed pb-5">
                 {item.answer}
               </AccordionContent>
             </AccordionItem>
@@ -110,7 +111,8 @@ export function FAQList({
                     <AccordionTrigger className="text-sm font-semibold text-foreground">
                       {item.question}
                     </AccordionTrigger>
-                    <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
+                    {/* forceMount: answers must exist in the served HTML for Bing/LLM crawlers (GEO) */}
+                    <AccordionContent forceMount className="text-sm text-muted-foreground leading-relaxed">
                       {item.answer}
                     </AccordionContent>
                   </AccordionItem>

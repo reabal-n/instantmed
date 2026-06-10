@@ -302,7 +302,8 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
                   className="border-b border-border last:border-0"
                 >
                   <AccordionTrigger>{faq.q}</AccordionTrigger>
-                  <AccordionContent>
+                  {/* forceMount: answers must exist in the served HTML for Bing/LLM crawlers (GEO) */}
+                  <AccordionContent forceMount>
                     <p className="text-muted-foreground leading-relaxed">
                       {faq.a}
                     </p>

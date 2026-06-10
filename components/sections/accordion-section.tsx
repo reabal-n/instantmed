@@ -108,7 +108,8 @@ export function AccordionSection({
                     <AccordionTrigger className="text-sm font-semibold text-foreground">
                       {item.question}
                     </AccordionTrigger>
-                    <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
+                    {/* forceMount: answers must exist in the served HTML for Bing/LLM crawlers (GEO) */}
+                    <AccordionContent forceMount className="text-sm text-muted-foreground leading-relaxed">
                       {item.answer}
                     </AccordionContent>
                   </MotionAccordionItem>
