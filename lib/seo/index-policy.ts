@@ -46,6 +46,7 @@ export const KEEP_INDEXED_BLOG = new Set<string>([
   "medical-certificate-carers-leave",
   "erectile-dysfunction-treatment-online-australia",
   "hair-loss-treatment-online-australia",
+  "how-escripts-work",
 ])
 
 /** Conditions: the ~15 with any GSC impressions in 90 days. */
