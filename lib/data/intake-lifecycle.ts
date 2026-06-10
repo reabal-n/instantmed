@@ -36,7 +36,11 @@ import type { IntakeStatus, PaymentStatus } from "@/types/intake"
 export type { IntakeStatus, PaymentStatus }
 
 // Valid status transitions
-const VALID_STATUS_TRANSITIONS: Record<IntakeStatus, IntakeStatus[]> = {
+// Exported for the DB-trigger parity contract test
+// (lib/__tests__/intake-state-machine-parity-contract.test.ts). The app layer
+// must never permit a transition the DB trigger forbids — that mismatch caused
+// the 2026-06-09 checkout_failed→paid stuck-intake incident.
+export const VALID_STATUS_TRANSITIONS: Record<IntakeStatus, IntakeStatus[]> = {
   draft: ["pending_payment", "cancelled"],
   pending_payment: ["paid", "checkout_failed", "cancelled", "expired"],
   checkout_failed: ["pending_payment", "paid", "cancelled"], // Retry, pay on retry, or abandon

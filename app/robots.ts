@@ -68,6 +68,23 @@ export default function robots(): MetadataRoute.Robots {
         allow: ["/", "/llms.txt", "/llms-full.txt"],
         disallow: ["/patient/", "/doctor/", "/admin/", "/api/", "/auth/"],
       },
+      {
+        // Anthropic's current crawler UAs (anthropic-ai is the legacy name)
+        userAgent: "ClaudeBot",
+        allow: ["/", "/llms.txt", "/llms-full.txt"],
+        disallow: ["/patient/", "/doctor/", "/admin/", "/api/", "/auth/"],
+      },
+      {
+        userAgent: "Claude-SearchBot",
+        allow: ["/", "/llms.txt", "/llms-full.txt"],
+        disallow: ["/patient/", "/doctor/", "/admin/", "/api/", "/auth/"],
+      },
+      {
+        // Perplexity's user-initiated fetch UA (distinct from PerplexityBot)
+        userAgent: "Perplexity-User",
+        allow: ["/", "/llms.txt", "/llms-full.txt"],
+        disallow: ["/patient/", "/doctor/", "/admin/", "/api/", "/auth/"],
+      },
     ],
     // Only advertise sitemaps that actually contain URLs. The compare / intent
     // / for / guides surfaces are wholesale-iceboxed (noindex,follow, empty
