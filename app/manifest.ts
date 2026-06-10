@@ -15,7 +15,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "InstantMed",
     short_name: "InstantMed",
-    description: `Online Doctor Australia — Medical certificates, prescriptions & consults from ${PRICING_DISPLAY.MED_CERT}`,
+    description: `Online Doctor Australia: medical certificates, prescriptions and consults from ${PRICING_DISPLAY.MED_CERT}`,
     start_url: "/",
     display: "standalone",
     background_color: "#F8F7F4",
