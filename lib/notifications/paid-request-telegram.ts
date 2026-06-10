@@ -109,24 +109,48 @@ async function markSent(
   intakeId: string,
   messageId: number | null,
 ): Promise<void> {
+  const now = new Date().toISOString()
   const { error } = await supabase
     .from("intakes")
     .update({
-      paid_request_telegram_sent_at: new Date().toISOString(),
+      paid_request_telegram_sent_at: now,
       paid_request_telegram_failed_at: null,
       paid_request_telegram_error: null,
       paid_request_telegram_claimed_at: null,
       paid_request_telegram_message_id: messageId,
-      updated_at: new Date().toISOString(),
+      updated_at: now,
     })
     .eq("id", intakeId)
 
-  if (error) {
-    log.error("Failed to mark paid request Telegram notification sent", {
+  if (!error) return
+
+  // Telegram was already sent. Retry with a minimal update that only sets
+  // sent_at — the critical field the cron filter checks. A partial write is
+  // better than silence: without sent_at the stale-claim window will expire
+  // and the cron will send a duplicate notification.
+  log.warn("markSent failed, retrying with minimal sent_at update to prevent duplicate", {
+    intakeId,
+    error: error.message,
+  })
+  const { error: retryError } = await supabase
+    .from("intakes")
+    .update({ paid_request_telegram_sent_at: now, paid_request_telegram_claimed_at: null, updated_at: now })
+    .eq("id", intakeId)
+
+  if (retryError) {
+    log.error("markSent retry also failed — duplicate notification risk exists", {
       intakeId,
-      error: error.message,
+      originalError: error.message,
+      retryError: retryError.message,
     })
+    throw retryError
   }
+
+  // Retry succeeded: sent_at is now set. Best-effort: save message_id too.
+  void supabase
+    .from("intakes")
+    .update({ paid_request_telegram_message_id: messageId })
+    .eq("id", intakeId)
 }
 
 function captureRetryCapReached(intakeId: string, attempts: number | null | undefined) {
@@ -258,6 +282,10 @@ export async function sendPaidRequestTelegramNotification(
   const isMedCert = serviceSlug.startsWith("med-cert")
   const autoApprovalCandidate = autoApproveFlagOn && isMedCert
 
+  // Track whether the external Telegram call succeeded so the catch block
+  // can distinguish "Telegram failed → allow cron retry" from "Telegram
+  // sent but DB write failed → do NOT allow cron retry via markFailed".
+  let telegramSent = false
   try {
     const sendResult = await notifyNewIntakeViaTelegram({
       intakeId: input.intakeId,
@@ -267,10 +295,24 @@ export async function sendPaidRequestTelegramNotification(
       isPriority,
       autoApprovalCandidate,
     })
+    telegramSent = true
 
     await markSent(input.supabase, input.intakeId, sendResult.messageId)
     return { sent: true }
   } catch (error) {
+    if (telegramSent) {
+      // Telegram sent successfully but markSent threw (after both the main
+      // attempt and the retry inside markSent failed). The message is already
+      // delivered. Do NOT call markFailed — that would clear the claim and
+      // allow the cron to reclaim and send a duplicate. Just re-throw so the
+      // caller knows the DB is in a bad state; the stale claim window will
+      // expire harmlessly since sent_at may not be set.
+      log.error("markSent threw after successful Telegram send — not calling markFailed to prevent duplicate", {
+        intakeId: input.intakeId,
+        error: getErrorMessage(error),
+      })
+      throw error
+    }
     await markFailed(input.supabase, input.intakeId, error)
     captureRetryCapReached(input.intakeId, claim.paid_request_telegram_attempts)
     throw error
