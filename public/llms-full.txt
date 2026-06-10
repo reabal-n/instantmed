@@ -32,7 +32,7 @@ InstantMed supports routine medical certificate requests for Australian patients
 
 **Pricing:**
 
-- 1 day: $19.95
+- 1 day: $24.95
 - 2 days: $29.95
 - 3 days: $39.95
 

@@ -31,9 +31,14 @@ export function HeardAboutUsCard({
   const shownFired = useRef(false)
 
   useEffect(() => {
-    if (!token || shownFired.current) return
+    // Only latch `shownFired` once PostHog is actually ready. On post-conversion
+    // pages telemetry inits on mount, but if `posthog` is still null on first
+    // render, latching here would permanently drop the `shown` event (the effect
+    // re-runs when posthog hydrates, but the ref would already be set), making
+    // the card's show-rate unmeasurable even though it is visibly rendered.
+    if (!token || !posthog || shownFired.current) return
     shownFired.current = true
-    posthog?.capture("heard_about_us_shown")
+    posthog.capture("heard_about_us_shown")
   }, [token, posthog])
 
   if (!token || state === "dismissed") return null
