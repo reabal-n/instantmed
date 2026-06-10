@@ -8,6 +8,7 @@
 import * as Sentry from "@sentry/nextjs"
 
 import { env } from "@/lib/config/env"
+import { signHeardAboutUsToken } from "@/lib/crypto/heard-about-us-token"
 import { logger } from "@/lib/observability/logger"
 import { getGuestCertificateAccessHref, getPatientIntakeDetailHref } from "@/lib/patient/certificate-download"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -71,6 +72,16 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       ? `${env.appUrl}${getGuestCertificateAccessHref(cert.intake_id, guestEmail)}`
       : `${env.appUrl}${getPatientIntakeDetailHref(cert.intake_id)}`
 
+    // One-click "how did you find us?" attribution MCQ, shown below the Google
+    // review CTA in the approval email. Best-effort: a missing INTERNAL_API_SECRET
+    // must not break the cert email.
+    let heardToken: string | undefined
+    try {
+      heardToken = cert.intake_id ? signHeardAboutUsToken(cert.intake_id) : undefined
+    } catch {
+      heardToken = undefined
+    }
+
     const template = MedCertPatientEmail({
       patientName: cert.patient_name,
       dashboardUrl,
@@ -78,6 +89,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       certType: cert.certificate_type as "work" | "study" | "carer",
       appUrl: env.appUrl,
       isGuest,
+      heardToken,
     })
 
     const html = await renderEmailToHtml(template)
