@@ -94,6 +94,7 @@
 | [docs/plans/2026-05-23-doc-content-audit-plan.md](../plans/2026-05-23-doc-content-audit-plan.md) | Active root copy of doc content audit plan |
 | [docs/plans/2026-05-26-minimal-slide-modal-design.md](../plans/2026-05-26-minimal-slide-modal-design.md) | Design doc for the 2026-05-26 cockpit cleanup bundle (2-day auto-approve widening, single-column slide modal, ED prescription preset). |
 | [docs/plans/2026-05-26-minimal-slide-modal-plan.md](../plans/2026-05-26-minimal-slide-modal-plan.md) | 8-task TDD implementation plan companion to the 2026-05-26 design doc. |
+| [docs/plans/2026-06-10-organic-geo-beat-nextclinic-plan.md](../plans/2026-06-10-organic-geo-beat-nextclinic-plan.md) | 90-day organic + GEO/LLM-citation growth plan (beat-NextClinic teardown, citation-layer sequence, verify-loop, ads-resume gate). Awaiting operator approval. |
 
 Some active root plan files also have archived copies. Keep this mapped until the plan-retention decision is reconciled.
 
