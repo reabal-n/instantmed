@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import { Reveal } from '@/components/ui/reveal'
 import { SectionPill } from '@/components/ui/section-pill'
+import { PRICING_DISPLAY } from '@/lib/constants'
 import { serviceCategories } from '@/lib/marketing/homepage'
 import { cn } from '@/lib/utils'
 
@@ -192,7 +193,7 @@ export function ServiceCards() {
           {/* Pricing anchor — answers "can I afford this?" before users click in */}
           <p className="text-base text-muted-foreground max-w-2xl mx-auto mb-1">
             From {' '}
-            <span className="font-semibold text-foreground">$24.95</span>
+            <span className="font-semibold text-foreground">{PRICING_DISPLAY.MED_CERT}</span>
             {' '}&middot; No Medicare needed for medical certificates &middot; Pay once
           </p>
           <p className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground">

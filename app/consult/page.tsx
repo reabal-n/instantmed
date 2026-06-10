@@ -221,7 +221,7 @@ const overviewFaqs = [
 export const metadata: Metadata = {
   title: "Online Doctor Services in Australia | InstantMed",
   description:
-    "See an Australian doctor online for medical certificates, repeat prescriptions, ED, or hair loss. Form-first review, no waiting room, AHPRA-registered. From $24.95.",
+    `See an Australian doctor online for medical certificates, repeat prescriptions, ED, or hair loss. Form-first review, no waiting room, AHPRA-registered. From ${PRICING_DISPLAY.MED_CERT}.`,
   openGraph: {
     title: "Online Doctor Services | InstantMed",
     description:

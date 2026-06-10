@@ -1,3 +1,5 @@
+import { PRICING_DISPLAY } from "@/lib/constants"
+
 export const ED_FAQ = [
   {
     question: "Do I need a video consultation?",
@@ -29,6 +31,6 @@ export const ED_FAQ = [
   },
   {
     question: "How much does it cost?",
-    answer: "Our flat fee is $49.95 for the doctor consultation. Pharmacy costs, if relevant, are separate. There are no subscriptions or ongoing fees.",
+    answer: `Our flat fee is ${PRICING_DISPLAY.MENS_HEALTH} for the doctor consultation. Pharmacy costs, if relevant, are separate. There are no subscriptions or ongoing fees.`,
   },
 ] as const

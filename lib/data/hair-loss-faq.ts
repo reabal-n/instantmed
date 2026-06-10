@@ -1,3 +1,5 @@
+import { PRICING_DISPLAY } from "@/lib/constants"
+
 export const HAIR_LOSS_FAQ = [
   {
     question: "What does the doctor assess?",
@@ -36,7 +38,6 @@ export const HAIR_LOSS_FAQ = [
   },
   {
     question: "How much does it cost?",
-    answer:
-      "Our flat fee is $49.95 for the doctor consultation. Pharmacy costs, if relevant, are separate. There are no subscriptions or ongoing fees required.",
+    answer: `Our flat fee is ${PRICING_DISPLAY.HAIR_LOSS} for the doctor consultation. Pharmacy costs, if relevant, are separate. There are no subscriptions or ongoing fees required.`,
   },
 ] as const

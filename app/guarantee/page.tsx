@@ -13,6 +13,7 @@ import { ProcessSteps } from "@/components/sections/process-steps"
 import type { ChecklistItem, FeatureItem } from "@/components/sections/types"
 import { FAQSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared/navbar"
+import { PRICING_DISPLAY } from "@/lib/constants"
 import { GUARANTEE } from "@/lib/marketing/voice"
 
 // =============================================================================
@@ -71,8 +72,7 @@ const guaranteeFaqs = [
   },
   {
     question: "What about the priority fee?",
-    answer:
-      "The $9.95 Express Review fee is fully refunded alongside the consult fee whenever the guarantee triggers.",
+    answer: `The ${PRICING_DISPLAY.PRIORITY_FEE} Express Review fee is fully refunded alongside the consult fee whenever the guarantee triggers.`,
   },
   {
     question: "Does the guarantee apply if I change my mind?",

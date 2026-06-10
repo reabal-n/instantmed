@@ -1,5 +1,7 @@
 import type { Metadata } from "next"
 
+import { PRICING_DISPLAY } from "@/lib/constants"
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
 
 interface ServiceSEO {
@@ -12,8 +14,7 @@ interface ServiceSEO {
 export const serviceSEO: Record<string, ServiceSEO> = {
   "medical-certificate": {
     title: "Online Medical Certificate Australia | Same Day",
-    description:
-      "Get a medical certificate online in Australia. Same-day certificates for work, uni, or carer's leave. Reviewed by AHPRA-registered doctors. From $24.95.",
+    description: `Get a medical certificate online in Australia. Same-day certificates for work, uni, or carer's leave. Reviewed by AHPRA-registered doctors. From ${PRICING_DISPLAY.MED_CERT}.`,
     keywords: [
       "online medical certificate australia",
       "same day medical certificate",
@@ -41,7 +42,7 @@ export const serviceSEO: Record<string, ServiceSEO> = {
       },
       {
         question: "What does it cost?",
-        answer: "Medical certificates start from $24.95. The exact price depends on the type of certificate required.",
+        answer: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. The exact price depends on the type of certificate required.`,
       },
     ],
   },

@@ -2,11 +2,12 @@
  * Single source of truth for medical certificate FAQ data.
  * Used by both the landing page accordion and the structured data schema.
  */
+import { PRICING_DISPLAY } from "@/lib/constants"
+
 export const MED_CERT_FAQ = [
   {
     question: "How much does it cost?",
-    answer:
-      "$24.95 for a 1-day certificate, $29.95 for 2 days, and $39.95 for 3 days. One flat fee, no hidden costs, no Medicare card needed. If the doctor declines your request, you get a full refund.",
+    answer: `${PRICING_DISPLAY.MED_CERT} for a 1-day certificate, ${PRICING_DISPLAY.MED_CERT_2DAY} for 2 days, and ${PRICING_DISPLAY.MED_CERT_3DAY} for 3 days. One flat fee, no hidden costs, no Medicare card needed. If the doctor declines your request, you get a full refund.`,
   },
   {
     question: "Will my employer accept this?",

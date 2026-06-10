@@ -15,6 +15,8 @@ import {
   Users,
 } from "lucide-react"
 
+import { PRICING_DISPLAY } from "@/lib/constants"
+
 export interface AudiencePageConfig {
   slug: string
   badgeLabel: string
@@ -72,7 +74,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "How much does a medical certificate cost?",
-        a: "A 1-day certificate is $24.95, 2-day is $29.95, and 3-day is $39.95. No hidden fees. If our doctor is unable to issue your certificate, you receive a full refund.",
+        a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. No hidden fees. If our doctor is unable to issue your certificate, you receive a full refund.`,
       },
       {
         q: "Can my employer see my diagnosis?",
@@ -171,7 +173,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "How much does a certificate cost?",
-        a: "A 1-day certificate is $24.95, 2-day is $29.95, and 3-day is $39.95. If the doctor cannot issue your certificate, you receive a full refund.",
+        a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. If the doctor cannot issue your certificate, you receive a full refund.`,
       },
       {
         q: "Will my school see my diagnosis on the certificate?",
@@ -270,7 +272,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "How much does a medical certificate cost?",
-        a: "A 1-day certificate is $24.95, 2-day is $29.95, and 3-day is $39.95. No hidden fees. Full refund if the doctor is unable to issue your certificate.",
+        a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. No hidden fees. Full refund if the doctor is unable to issue your certificate.`,
       },
       {
         q: "Will my employer see what I was sick with?",
@@ -363,7 +365,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "How much does a medical certificate cost?",
-        a: "A 1-day certificate is $24.95, 2-day is $29.95, and 3-day is $39.95. Full refund if the doctor cannot issue your certificate.",
+        a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. Full refund if the doctor cannot issue your certificate.`,
       },
       {
         q: "Will my manager see what I was sick with?",
@@ -456,7 +458,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "How much does a medical certificate cost?",
-        a: "A 1-day certificate is $24.95, 2-day is $29.95, and 3-day is $39.95. If the doctor cannot issue your certificate, you receive a full refund.",
+        a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. If the doctor cannot issue your certificate, you receive a full refund.`,
       },
       {
         q: "Will HR see my diagnosis?",
@@ -554,7 +556,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "How much does it cost?",
-        a: "A 1-day certificate is $24.95, 2-day is $29.95, and 3-day is $39.95. Full refund if the doctor is unable to issue the certificate.",
+        a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. Full refund if the doctor is unable to issue the certificate.`,
       },
       {
         q: "Will the certificate show my child's diagnosis?",
@@ -656,7 +658,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "How much does a certificate cost?",
-        a: "A 1-day certificate is $24.95, 2-day is $29.95, and 3-day is $39.95. Full refund if the doctor cannot issue your certificate.",
+        a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. Full refund if the doctor cannot issue your certificate.`,
       },
       {
         q: "Will my employer see my diagnosis?",
@@ -753,7 +755,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "How much does a medical certificate cost?",
-        a: "A 1-day certificate is $24.95, 2-day is $29.95, and 3-day is $39.95. Full refund if the doctor is unable to issue your certificate.",
+        a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. Full refund if the doctor is unable to issue your certificate.`,
       },
       {
         q: "I don't have an employer - why would I need a certificate?",

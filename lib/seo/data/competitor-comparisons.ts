@@ -147,7 +147,7 @@ const instantmedVsHubHealth: ComparisonEntry = {
         id: "cost",
         title: "Working Out the True Cost",
         paragraphs: [
-          "For a single request, pay-per-request is almost always cheaper. If you need one medical certificate this year, paying InstantMed's $24.95 is hard to beat. The membership model only starts to look better when you're using multiple services a month and the per-service value exceeds the membership fee.",
+          `For a single request, pay-per-request is almost always cheaper. If you need one medical certificate this year, paying InstantMed's ${PRICING_DISPLAY.MED_CERT} is hard to beat. The membership model only starts to look better when you're using multiple services a month and the per-service value exceeds the membership fee.`,
           "For treatment programs, the calculation is different. A weight management program typically involves multiple doctor reviews, medication, coaching, and support over months. If Hub Health bundles those into one monthly fee and you'd be paying for each of those components separately elsewhere, the membership can win on total cost - even though the headline number is higher.",
           "The honest answer: do the maths on your actual usage, not a hypothetical heavy user. Most Australians use telehealth episodically, not continuously. For that profile, pay-per-request usually wins.",
         ],
@@ -392,7 +392,7 @@ const instantmedVsCleanbill: ComparisonEntry = {
         title: "How Telehealth Fills the Gaps",
         paragraphs: [
           "Telehealth isn't a replacement for bulk-billed primary care - and any honest telehealth provider will tell you that. What it is, is a useful gap-filler. When your regular GP is fully booked, when it's 9pm on a Sunday, when you're too unwell to travel, or when you need a certificate for a shift starting in six hours, telehealth gives you a path to care that doesn't require waiting for the clinic to open.",
-          "The cost matters. Paying $24.95 for a same-day medical certificate is a choice that makes sense when the alternative is missing work, losing a shift, or driving an hour to an after-hours clinic. It doesn't always make sense - if your bulk-billed GP can see you tomorrow, the free option is obviously better. The decision depends on urgency.",
+          `The cost matters. Paying ${PRICING_DISPLAY.MED_CERT} for a same-day medical certificate is a choice that makes sense when the alternative is missing work, losing a shift, or driving an hour to an after-hours clinic. It doesn't always make sense - if your bulk-billed GP can see you tomorrow, the free option is obviously better. The decision depends on urgency.`,
           "Used well, telehealth and bulk-billed GP care complement each other. Use your GP for continuity, complex issues, and anything that needs physical examination. Use telehealth for the episodic, time-sensitive needs that a traditional clinic schedule can't absorb.",
         ],
       },
