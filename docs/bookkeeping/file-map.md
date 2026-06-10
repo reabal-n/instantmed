@@ -49,7 +49,7 @@
 |------|---------|
 | [docs/runbooks/comparative-tagline-complaint.md](../runbooks/comparative-tagline-complaint.md) | AHPRA/TGA/Medical Board/Google complaint runbook for the "Faster than your GP." tagline |
 
-## docs/audits/ — 19 (historical + growth records)
+## docs/audits/ — 20 (historical + growth records)
 
 | File | Purpose |
 |------|---------|
@@ -73,6 +73,7 @@
 | [docs/audits/2026-06-07-platform-audit.md](../audits/2026-06-07-platform-audit.md) | Comprehensive platform audit 2026-06-07 |
 | [docs/audits/2026-06-08-scale-reaudit.md](../audits/2026-06-08-scale-reaudit.md) | 11-lens scale re-audit 2026-06-08; shipped Bucket A; Bucket B greenlit |
 | [docs/audits/2026-06-10-comprehensive-audit.md](../audits/2026-06-10-comprehensive-audit.md) | 44-agent platform + business audit 2026-06-10; P0 anon PHI leak fix, competitor/regulatory/channel research, staged scaling plan |
+| [docs/audits/2026-06-11-hygiene-business-review.md](../audits/2026-06-11-hygiene-business-review.md) | 12-agent hygiene + business review 2026-06-11; Express-fee P0, GEO FAQ-HTML blocker, test gaps, resilience, women's-health skeleton, prioritized backlog |
 
 ## docs/plans/ — active
 
