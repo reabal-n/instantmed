@@ -27,6 +27,11 @@ export default defineConfig({
       include: [
         'lib/clinical/**/*.ts',
         'lib/security/**/*.ts',
+        // Payment-path safety surface (checkout ordering, price mapping, refunds,
+        // payment integrity) + the intake state machine. The unit-tested modules
+        // are measured; the E2E-only orchestrators are excluded below.
+        'lib/stripe/**/*.ts',
+        'lib/data/intake-lifecycle.ts',
       ],
       exclude: [
         'lib/__tests__/**',
@@ -43,9 +48,22 @@ export default defineConfig({
         'lib/security/fraud-detector.ts',
         'lib/security/immutable-dates.ts',
         'lib/clinical/consent-versioning.ts',
-        'lib/clinical/execute-cert-approval.ts',
         'lib/clinical/pbs-client.ts',
         'lib/clinical/triage-types.ts',
+        // Stripe: type-only / tiny-helper files
+        'lib/stripe/checkout/types.ts',
+        // Stripe: server-only orchestrators + SDK/DB/Stripe-API surfaces - tested
+        // via E2E (unified-request-flow, consult-subtypes, payment-smoke), not units
+        'lib/stripe/client.ts',
+        'lib/stripe/checkout.ts',
+        'lib/stripe/guest-checkout.ts',
+        'lib/stripe/checkout/auth-and-profile.ts',
+        'lib/stripe/checkout/persistence.ts',
+        'lib/stripe/checkout/stripe-session.ts',
+        'lib/stripe/checkout/pre-checkout-gates.ts',
+        'lib/stripe/checkout/retry-payment.ts',
+        'lib/stripe/referral-coupon.ts',
+        'lib/stripe/post-payment.ts',
       ],
       thresholds: {
         statements: 80,
