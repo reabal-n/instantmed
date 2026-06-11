@@ -1,168 +1,146 @@
-# NHSD_REGISTRATION.md — National Health Services Directory listing (field-values sheet)
+# NHSD_REGISTRATION.md — National Health Services Directory listing
 
-> **Goal.** Get InstantMed listed in the **National Health Services Directory (NHSD)**
-> — a Healthdirect/Australian-government directory (`.gov.au`). It is one of the
-> uncontested third-party citation surfaces in the organic/GEO plan: a high-trust,
-> indexable listing that LLM answers and Google both weight. NextClinic has one;
-> InstantMed does not yet.
+> **Status: DONE (2026-06-11).** InstantMed is registered in Provider Connect
+> Australia (PCA) and **published to NHSD (Consumers + Providers), Services `1 of 1`,
+> consent accepted**. Org Publisher status = Approved/Active. Practitioners
+> published = `0 of 1` (founder's name deliberately removed — no doctor name on the
+> listing). NHSD validates submissions before they appear, so the public
+> healthdirect **Service Finder** entry shows up a few days after publish — search
+> "InstantMed" there to confirm.
 >
-> **This sheet is paste-ready.** Every value below is approved copy you can enter
-> directly. Items marked **⚠ confirm at portal** depend on the live form (NHSD uses
-> SNOMED CT-AU service types and a FHIR data model, so some pick-lists only appear
-> once you're in). Items marked **🔒** need an operator detail not in the repo.
+> This doc is the as-built record + redo guide. It corrects two earlier wrong
+> assumptions: NHSD has **no "Telehealth" service type** (the portal rejects it),
+> and you create **one** service, not four.
 
 ---
 
-## How to register (two pathways)
+## The route: Provider Connect Australia (PCA), not direct-NHSD
 
-1. **Direct NHSD:** https://www.healthdirect.gov.au/register-with-nhsd → "Register an
-   organisation" (service-desk portal).
-2. **Provider Connect Australia™ (PCA™)** via the Australian Digital Health Agency,
-   then publish to NHSD. PCA also lets you push the same data to other partners.
+Register via **PCA** (Australian Digital Health Agency) — you maintain your info
+once and tick a box to publish to NHSD. Then publish: **org → "Partner services"
+tab → "Publish to partner services."** The direct-NHSD portal is the old way; PCA is
+the system InstantMed is set up in.
 
-Have ready: ABN, organisation details, service details, and (optionally)
-practitioner details. NHSD validates submissions before they go live.
+Login: PCA portal (Reabal's ADHA/PRODA account). Org: INSTANTMED PTY. LTD.
 
 ---
 
-## ⚠ Compliance guardrails for the listing copy (read first)
+## ⚠ Compliance guardrails (apply to every free-text field)
 
-These are InstantMed's standing public-surface rules — apply them to every free-text
-field:
-
-- **Never state doctor count or individual doctor names.** Use **"AHPRA-registered
-  doctors"**. A governance role may be described as **"AHPRA-registered Medical
-  Director"** only where a single named governance contact is genuinely required.
+- **Never state doctor count or individual doctor names.** Use "AHPRA-registered
+  doctors". Do **not** publish practitioner records to NHSD (we set Practitioners =
+  `0 of 1`).
 - **No outcome promises** ("guaranteed", "always accepted", "approved in X minutes").
-  Describe the *service*, not a result.
-- **No "no call needed" framing for prescribing.** For Rx/ED/hair, the doctor may
-  contact the patient if clinically needed.
-- Keep it factual: AHPRA-registered doctors review a structured online form; documents
-  / eScripts are delivered digitally.
+- **No "no call needed" framing for prescribing** — for Rx/ED/hair the doctor *may*
+  contact the patient. (The banned phrasing is "contacting you only if more
+  information is clinically needed".)
+- Factual only: AHPRA-registered doctors review a structured online form; documents /
+  eScripts delivered digitally.
 
 ---
 
-## 1. Organisation (FHIR `Organization`)
+## 1. Organisation
 
-| Field | Value (paste) | Notes |
-|-------|---------------|-------|
-| Legal/organisation name | `InstantMed Pty Ltd` | |
-| Trading/display name | `InstantMed` | |
-| ABN | `64 694 559 334` | NHSD validates against ABR |
-| Organisation type | Telehealth / online medical service | ⚠ select nearest SNOMED CT-AU org type at portal |
-| Website | `https://instantmed.com.au` | |
-| Public contact email | `support@instantmed.com.au` | |
-| Public contact phone | `0450 722 549` | |
-| Registered address | `Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010` | Administrative address; care is delivered Australia-wide via telehealth (see §2) |
-| HPI-O (organisation healthcare identifier) | 🔒 ____ | Provide if InstantMed holds one; otherwise leave blank |
+Already registered + ABR-validated. For reference / re-entry:
 
----
-
-## 2. Location / service delivery (FHIR `Location`)
-
-| Field | Value (paste) | Notes |
-|-------|---------------|-------|
-| Delivery mode | **Telehealth (online)** — Australia-wide | ⚠ tick the telehealth / virtual-care flag; InstantMed has no walk-in clinic |
-| Physical/visiting address | Not applicable (online service) | If the form forces a physical address, use the §1 registered address and mark it administrative/non-visiting |
-| Coverage area | Australia (all states & territories) | Patients must be physically in Australia |
-| Languages | English | |
+| Field | Value |
+|-------|-------|
+| Legal name | `INSTANTMED PTY. LTD.` |
+| ABN | `64 694 559 334` |
+| Postal address | `Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010` |
+| Org phone / email | `0450 722 549` / `hello@instantmed.com.au` |
+| Website | `https://instantmed.com.au` |
+| HPI-O for CSP | None provided (left blank — fine; not required) |
 
 ---
 
-## 3. Health service(s) (FHIR `HealthcareService`)
+## 2. Location (PCA "Add a location")
 
-> List InstantMed's **active** service lines only. Women's health and weight
-> management are not launched — **do not list them.** General consult was retired.
-
-**Service 3a — Online medical certificates**
-| Field | Value (paste) |
-|-------|---------------|
-| Service name | `Online medical certificates` |
-| Category / type | General practice / medical certificate (telehealth) — ⚠ map to SNOMED CT-AU |
-| Description | `AHPRA-registered doctors review a structured online request and, if clinically appropriate, issue a medical certificate delivered digitally. For routine work, study and carer's leave. Australia-wide telehealth.` |
-| Eligibility | `Adults 18+ in Australia (parental consent for minors). Medicare not required.` |
-| Fees | Private fee, from `$24.95` (no Medicare rebate) |
-
-**Service 3b — Repeat prescriptions (eScripts)**
-| Field | Value (paste) |
-|-------|---------------|
-| Service name | `Repeat prescriptions online` |
-| Description | `AHPRA-registered doctors review a structured online request for an existing, ongoing medication and, if clinically appropriate, issue an eScript token. The doctor may contact you if more information is needed. Controlled substances are not prescribed online.` |
-| Eligibility | `Adults 18+ in Australia. Medicare required.` |
-| Fees | Private fee, from `$29.95` |
-
-**Service 3c — Erectile dysfunction assessment**
-| Field | Value (paste) |
-|-------|---------------|
-| Service name | `Erectile dysfunction (ED) assessment` |
-| Description | `AHPRA-registered doctors review a structured ED health assessment and, if clinically appropriate, arrange treatment. The doctor may contact you if clinically needed.` |
-| Eligibility | `Adults 18+ in Australia. Medicare required.` |
-| Fees | Private fee, from `$49.95` |
-
-**Service 3d — Hair loss assessment**
-| Field | Value (paste) |
-|-------|---------------|
-| Service name | `Hair loss assessment` |
-| Description | `AHPRA-registered doctors review a structured hair-loss assessment and, if clinically appropriate, arrange treatment. The doctor may contact you if clinically needed.` |
-| Eligibility | `Adults 18+ in Australia. Medicare required.` |
-| Fees | Private fee, from `$49.95` |
+| Field | Value |
+|-------|-------|
+| Advertised name | `InstantMed Telehealth` |
+| Location type | **Virtual – delivers healthcare services virtually** ← the key field (no walk-in clinic) |
+| Currently providing services | ✅ on |
+| Amenities (wheelchair/toilet…) | leave blank (physical-premises only) |
+| Phone / email | `0450 722 549` / `hello@instantmed.com.au` |
+| Website | `https://instantmed.com.au` (⚠ not an email — easy to fat-finger) |
+| Postal address | `Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010` |
 
 ---
 
-## 4. Availability / hours (FHIR `HealthcareService.availableTime`)
+## 3. Healthcare service — ONE service (PCA "Add a healthcare service")
 
-| Field | Value (paste) | Notes |
-|-------|---------------|-------|
-| Request submission | `24/7, every day` | Patients can submit any time |
-| Doctor review hours | `8:00am–10:00pm AEST, 7 days` (for prescriptions/consults) | Medical certificates are reviewed continuously |
-| Stated turnaround | Leave blank or `Doctor review, typically same day` | ⚠ Do **not** enter a guaranteed time — no customer-facing SLA |
-| Public holidays | `Requests accepted; review timing may vary` | |
+> **Critical:** the service **Type** must be **`General practice`** (a supported
+> NHSD type). Do **NOT** search "Telehealth service" / "Telehealth Clinic" — the
+> portal shows *"NHSD does not support this healthcare service type… it will not
+> display on the Service Finder"* and the listing goes invisible. Telehealth is a
+> *delivery mode* (Virtual location + the "also delivered virtually" tick), not a
+> service type. Create **one** General practice service; list the offerings (certs,
+> scripts, ED, hair) in the description — NHSD has no per-offering service types.
 
----
+| Field | Value |
+|-------|-------|
+| Service type | **`General practice`** (supported — no warning banner) |
+| Service name | `InstantMed Telehealth - General practice` (auto-fills; fine to leave) |
+| "This service is also delivered virtually" | ✅ tick it |
+| Contact | business phone/email only (not a personal mobile) |
 
-## 5. Practitioners (FHIR `Practitioner` / `PractitionerRole`) — OPTIONAL
+**Service description (public, ≤500 chars — compliant version):**
 
-> **Operator decision.** NHSD can list individual practitioners, but InstantMed's
-> public-surface rule is to **not** disclose doctor count or names. Options:
-> - **Preferred:** list the **organisation/service only** (skip practitioner records),
->   described as staffed by *AHPRA-registered doctors*.
-> - **If a named contact is mandatory:** list a single **AHPRA-registered Medical
->   Director** as the governance contact — 🔒 name + AHPRA number: ____ — and nothing
->   that implies team size, FRACGP, or peer review unless formally verified.
+> InstantMed is an Australian telehealth service for adults who want a doctor
+> without the wait: medical certificates, repeat prescriptions, and hair-loss and
+> erectile-dysfunction assessments. An AHPRA-registered doctor reviews your secure
+> online form and may contact you if clinically needed. Approved documents and
+> eScripts are delivered digitally and fill at any Australian pharmacy. Available 7
+> days. Medicare optional for certificates, required for prescriptions. Full refund
+> if declined.
 
----
-
-## 6. Endpoints / online presence (FHIR `Endpoint`)
-
-| Field | Value (paste) |
-|-------|---------------|
-| Public website | `https://instantmed.com.au` |
-| Online booking / intake URL | `https://instantmed.com.au/request` |
-| Telehealth platform | InstantMed (own platform; asynchronous, form-first) |
-
----
-
-## 7. Accreditation / credentials (if asked)
-
-| Field | Value (paste) | Notes |
-|-------|---------------|-------|
-| Practitioner registration | All consulting doctors hold current AHPRA registration | |
-| Certification | LegitScript certified — ID `48400566` | Telehealth/pharmacy certification |
-| Privacy | Australian Privacy Principles (APP) compliant; data stored in Australia | See `/privacy` |
+**Availability:** Available 7 days / requests 24-7. **Do not** enter a guaranteed
+turnaround (no customer-facing SLA). Don't publish bank/credentials — not needed.
 
 ---
 
-## 8. After it's live
+## 4. Publish + practitioners
 
-- Record the **NHSD organisation identifier** returned on approval here: 🔒 ____
-  (it can be added to Provider Connect Australia and other directories).
-- Add the live NHSD listing URL to the operator's citation-surface tracker.
-- Re-verify the listing annually (or when prices/services change) — keep it consistent
-  with the `/compare/online-medical-certificate-options` table and the live pricing.
+- **Practitioners: do not publish.** Remove the founder as a published practitioner
+  (we left it at `0 of 1`) — keeps doctor names off the public listing.
+- **Publish:** org → **Partner services** tab → **"Publish to partner services"** →
+  confirm **NHSD for Consumers** shows **Services `1 of 1`** (and NHSD for Providers).
+  That consumer row is the public Service Finder entry — the whole goal.
+- **Skip the practitioner "Publishing" flow** entirely (personal contact details,
+  bank account, credential documents, "add business partners") — it's for individual
+  practitioners sharing personal info; irrelevant here and we don't publish it.
 
 ---
 
-*Sources: Healthdirect NHSD registration (https://www.healthdirect.gov.au/register-with-nhsd),
-NHSD FHIR R4 data model (Organisation/Location/HealthcareService/Practitioner/Endpoint).
-Exact field labels and SNOMED CT-AU pick-lists appear in the live portal — items above
-marked ⚠ are mapped to the nearest standard resource.*
+## 5. Partner-service hygiene (which to keep / remove)
+
+PCA offers ~37 partners. **Keep:** NHSD (Consumers + Providers) — the goal — and the
+**PHNs** (Primary Health Networks: Brisbane North, BSPHN, Country to Coast QLD,
+Country SA, COORDINARE, Capital Health ACT, Healthy North Coast, etc.) + **NSW
+Health** — legitimate primary-care directories you do serve via telehealth; harmless,
+zero removal value. **Remove** (category errors / software you don't use): Australian
+Podiatry Association, Association of Massage Therapists, RxTro, Inca (Precedence
+Health Care), Health Hunter. They add no backlink value and read as miscategorised.
+
+> Note: PHN/partner feeds are **internal/B2B data shares, not public crawlable
+> backlinks.** The only public, LLM-/Google-read directory in this set is **NHSD's
+> Service Finder.** Don't bulk-add partners chasing "backlinks" — there aren't any.
+
+---
+
+## 6. Accreditation / facts (if asked)
+
+| Field | Value |
+|-------|-------|
+| Registration | All consulting doctors hold current AHPRA registration |
+| Certification | LegitScript certified — ID `48400566` |
+| Privacy | Australian Privacy Principles compliant; data stored in Australia (`/privacy`) |
+
+---
+
+## 7. Maintenance
+
+- Re-verify the listing when prices/services change — keep it consistent with the
+  `/compare/online-medical-certificate-options` price table and live `PRICING_DISPLAY`.
+- Founding year: **2026**. Women's health / weight loss are **not** listed (unlaunched).
