@@ -178,6 +178,15 @@ Operational rules:
 | Auto/manual med-cert split | Stable and explainable |
 | QA sample backlog | Current |
 
+### Operator Continuity / Break-Glass
+
+> If the primary operator is unavailable, locked out, or unreachable, the account
+> inventory, sealed-secret **location** register (pointers, never values), and
+> recovery procedure live in [`docs/runbooks/BREAK_GLASS.md`](runbooks/BREAK_GLASS.md).
+> Keep its `🔒 LOCATION: ____` fields filled in and reviewed quarterly. The PHI
+> encryption keys are the single most important continuity control — without them,
+> Supabase backups are unreadable.
+
 ### Security Incident
 
 > Classification levels: SECURITY.md → Security Incident Classification
