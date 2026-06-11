@@ -11,7 +11,7 @@ import { motion } from "framer-motion"
 import { ArrowRight,Search, Shield, Sprout, Target } from "lucide-react"
 import { useCallback } from "react"
 
-import { IntakeStepIntro, QuestionCard, SegmentedChoiceGroup } from "@/components/request/shared/intake-step-primitives"
+import { IntakeStepIntro, QuestionCard, SegmentedChoiceGroup, useRovingRadio } from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -81,6 +81,12 @@ export default function HairLossGoalsStep({ onNext }: HairLossGoalsStepProps) {
     enabled: isComplete,
   })
 
+  const goalRoving = useRovingRadio(
+    GOAL_OPTIONS.length,
+    GOAL_OPTIONS.findIndex((option) => option.value === hairGoal),
+    (index) => setAnswer("hairGoal", GOAL_OPTIONS[index].value),
+  )
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -103,16 +109,19 @@ export default function HairLossGoalsStep({ onNext }: HairLossGoalsStepProps) {
           role="radiogroup"
           aria-label="Hair loss goal"
         >
-          {GOAL_OPTIONS.map((option) => {
+          {GOAL_OPTIONS.map((option, index) => {
             const Icon = option.icon
             const isSelected = hairGoal === option.value
             return (
               <motion.button
                 key={option.value}
+                ref={goalRoving.registerRef(index)}
                 type="button"
                 role="radio"
+                tabIndex={goalRoving.tabIndexFor(index)}
                 variants={prefersReducedMotion ? undefined : stagger.item}
                 onClick={() => setAnswer("hairGoal", option.value)}
+                onKeyDown={(event) => goalRoving.onKeyDown(event, index)}
                 aria-checked={isSelected}
                 aria-label={option.label}
                 className={cn(

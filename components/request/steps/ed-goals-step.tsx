@@ -11,7 +11,7 @@ import { motion } from "framer-motion"
 import { ArrowRight,Heart, Shield, Sparkles, Stethoscope, Target } from "lucide-react"
 import { useCallback } from "react"
 
-import { IntakeStepIntro, QuestionCard, SegmentedChoiceGroup } from "@/components/request/shared/intake-step-primitives"
+import { IntakeStepIntro, QuestionCard, SegmentedChoiceGroup, useRovingRadio } from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -84,6 +84,12 @@ export default function EdGoalsStep({ onNext }: EdGoalsStepProps) {
     enabled: isComplete,
   })
 
+  const goalRoving = useRovingRadio(
+    GOAL_OPTIONS.length,
+    GOAL_OPTIONS.findIndex((option) => option.value === edGoal),
+    (index) => setAnswer("edGoal", GOAL_OPTIONS[index].value),
+  )
+
   return (
     <div className="space-y-4">
       {/* Age gate */}
@@ -118,18 +124,21 @@ export default function EdGoalsStep({ onNext }: EdGoalsStepProps) {
           role="radiogroup"
           aria-label="Treatment goal"
         >
-          {GOAL_OPTIONS.map((option) => {
+          {GOAL_OPTIONS.map((option, index) => {
             const Icon = option.icon
             const isSelected = edGoal === option.value
             return (
               <motion.button
                 key={option.value}
+                ref={goalRoving.registerRef(index)}
                 type="button"
                 role="radio"
                 aria-checked={isSelected}
                 aria-label={option.label}
+                tabIndex={goalRoving.tabIndexFor(index)}
                 variants={prefersReducedMotion ? undefined : stagger.item}
                 onClick={() => setAnswer("edGoal", option.value)}
+                onKeyDown={(event) => goalRoving.onKeyDown(event, index)}
                 className={cn(
                   "flex items-center gap-2.5 p-3 rounded-xl border text-left cursor-pointer transition-[background-color,border-color] text-sm",
                   "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
