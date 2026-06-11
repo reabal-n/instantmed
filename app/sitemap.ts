@@ -3,8 +3,12 @@ import type { MetadataRoute } from "next"
 import { getAuthorityAssetSummaries } from "@/lib/authority-assets"
 import { getSupportedMedCertIntentSlugs } from "@/lib/medical-cert/unsupported-use-cases"
 import { isIceboxedSurfacePath } from "@/lib/seo/index-policy"
+import { routeLastModified } from "@/lib/seo/sitemap-lastmod"
 
-const ROOT_SITEMAP_LAST_MODIFIED = new Date("2026-04-30")
+// Per-URL lastmod is sourced from git history via routeLastModified() (see
+// lib/seo/sitemap-lastmod.ts). These remaining constants cover the data-driven
+// surfaces whose pages share a content-enrichment date rather than a per-route
+// source file.
 const SERVICE_PAGES_LAST_MODIFIED = new Date("2026-04-28")
 const MED_CERT_LOCATION_LAST_MODIFIED = new Date("2026-04-24")
 const AUTHORITY_ASSETS_LAST_MODIFIED = new Date("2026-06-06")
@@ -81,19 +85,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries = [
     ...pillarPages.map((route) => ({
       url: `${baseUrl}${route}`,
-      lastModified: ROOT_SITEMAP_LAST_MODIFIED,
+      lastModified: routeLastModified(route),
       changeFrequency: "weekly" as const,
       priority: 1.0,
     })),
     ...staticPages.map((route) => ({
       url: `${baseUrl}${route}`,
-      lastModified: ROOT_SITEMAP_LAST_MODIFIED,
+      lastModified: routeLastModified(route),
       changeFrequency: route === "" ? ("daily" as const) : ("weekly" as const),
       priority: route === "" ? 1 : 0.9,
     })),
     ...servicePages.map((route) => ({
       url: `${baseUrl}${route}`,
-      lastModified: SERVICE_PAGES_LAST_MODIFIED,
+      // Tracked routes (e.g. /consult, /verify) get a real git-sourced date;
+      // the med-cert intent children fall back to the service-page date.
+      lastModified: routeLastModified(route, SERVICE_PAGES_LAST_MODIFIED.toISOString().slice(0, 10)),
       changeFrequency: "weekly" as const,
       priority: 0.8,
     })),
