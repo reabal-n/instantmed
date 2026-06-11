@@ -4,7 +4,7 @@ import { AnimatePresence,motion } from "framer-motion"
 import { ArrowRight,Info, TrendingUp } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
-import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
+import { IntakeStepIntro, QuestionCard, useRovingRadio } from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
@@ -150,6 +150,11 @@ function ScalePicker({
   highLabel: string
   questionId: string
 }) {
+  const scaleRoving = useRovingRadio(
+    SCALE_VALUES.length,
+    SCALE_VALUES.findIndex((n) => n === value),
+    (index) => onChange(SCALE_VALUES[index]),
+  )
   return (
     <div className="space-y-2">
       {/* Scale circles */}
@@ -165,11 +170,14 @@ function ScalePicker({
             <div key={n} className="flex items-center flex-1 last:flex-none">
               {/* Circle */}
               <button
+                ref={scaleRoving.registerRef(idx)}
                 type="button"
                 role="radio"
                 aria-checked={isSelected}
                 aria-label={`${n} out of 5`}
+                tabIndex={scaleRoving.tabIndexFor(idx)}
                 onClick={() => onChange(n)}
+                onKeyDown={(event) => scaleRoving.onKeyDown(event, idx)}
                 className={cn(
                   "flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 text-sm font-semibold transition-[background-color,border-color,color,box-shadow]",
                   "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",

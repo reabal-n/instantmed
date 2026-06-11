@@ -19,7 +19,7 @@ import {
 } from "lucide-react"
 import { useCallback } from "react"
 
-import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
+import { IntakeStepIntro, QuestionCard, useRovingRadio } from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -112,6 +112,12 @@ export default function HairLossPreferencesStep({
     enabled: isComplete,
   })
 
+  const preferenceRoving = useRovingRadio(
+    PREFERENCE_OPTIONS.length,
+    PREFERENCE_OPTIONS.findIndex((option) => option.value === hairMedicationPreference),
+    (index) => setAnswer("hairMedicationPreference", PREFERENCE_OPTIONS[index].value),
+  )
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -129,18 +135,21 @@ export default function HairLossPreferencesStep({
         role="radiogroup"
         aria-label="Treatment preference"
       >
-        {PREFERENCE_OPTIONS.map((option) => {
+        {PREFERENCE_OPTIONS.map((option, index) => {
           const Icon = option.icon
           const isSelected = hairMedicationPreference === option.value
           return (
             <motion.button
               key={option.value}
+              ref={preferenceRoving.registerRef(index)}
               type="button"
               role="radio"
+              tabIndex={preferenceRoving.tabIndexFor(index)}
               variants={prefersReducedMotion ? undefined : stagger.item}
               onClick={() =>
                 setAnswer("hairMedicationPreference", option.value)
               }
+              onKeyDown={(event) => preferenceRoving.onKeyDown(event, index)}
               aria-checked={isSelected}
               aria-label={`${option.label}: ${option.description}`}
               className={cn(

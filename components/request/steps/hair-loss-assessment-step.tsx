@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 import { AlertCircle, ArrowRight } from "lucide-react"
 import { useCallback, useEffect,useRef, useState } from "react"
 
-import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
+import { IntakeStepIntro, QuestionCard, useRovingRadio } from "@/components/request/shared/intake-step-primitives"
 import { MedicalHistoryToggles } from "@/components/request/shared/medical-history-toggles"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -164,6 +164,12 @@ export default function HairLossAssessmentStep({
 
   const isComplete = !!hairPattern && !!hairFamilyHistory
 
+  const patternRoving = useRovingRadio(
+    PATTERN_OPTIONS.length,
+    PATTERN_OPTIONS.findIndex((option) => option.value === hairPattern),
+    (index) => setAnswer("hairPattern", PATTERN_OPTIONS[index].value),
+  )
+
   const { validationSummary, showBlockingReasons } = useStepValidationSummary(
     isComplete,
     useCallback(() => {
@@ -226,11 +232,14 @@ export default function HairLossAssessmentStep({
             return (
               <motion.button
                 key={option.value}
+                ref={patternRoving.registerRef(idx)}
                 type="button"
                 role="radio"
+                tabIndex={patternRoving.tabIndexFor(idx)}
                 variants={itemVariants}
                 custom={idx}
                 onClick={() => setAnswer("hairPattern", option.value)}
+                onKeyDown={(event) => patternRoving.onKeyDown(event, idx)}
                 aria-checked={isSelected}
                 aria-label={`${option.label} - ${option.badge}`}
                 className={cn(
