@@ -21,6 +21,12 @@ export const metadata: Metadata = {
   title: "Get Started",
   description:
     `Medical certificates from ${PRICING_DISPLAY.MED_CERT}. Repeat medication from ${PRICING_DISPLAY.REPEAT_SCRIPT}, doctor consultations from ${PRICING_DISPLAY.CONSULT}. Reviewed by Australian doctors.`,
+  // The intake app is a form flow, not a content page: its heading renders
+  // client-side per step (so crawlers see no <h1>) and it has no indexable
+  // body. The money/landing pages are the SEO surface and funnel here. noindex
+  // (follow) it so it stops registering as a thin/no-H1 page in Bing/Google
+  // while CTAs still pass link equity. (2026-06-11 Bing site-scan finding.)
+  robots: { index: false, follow: true },
   manifest: null,
   icons: {
     shortcut: "/favicon.ico",
