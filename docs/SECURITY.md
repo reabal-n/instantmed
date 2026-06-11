@@ -16,6 +16,8 @@ Field-level **envelope encryption** using **AES-256-GCM** with unique IV per ope
 
 **Key management:** All environments use `PHI_MASTER_KEY` (base64-encoded 32-byte key) as the master key for envelope encryption. AWS KMS integration was evaluated but not adopted — AES-256-GCM with env-var key is production-ready at current scale. Key rotation: generate new key, re-encrypt PHI fields via `scripts/encrypt-phi-backfill.ts`, update env var.
 
+> **Key escrow / break-glass.** `PHI_MASTER_KEY` + `ENCRYPTION_KEY` are the crown jewels: Supabase backups are AES-256-GCM ciphertext and are **permanently unreadable without these keys**. They must be sealed in ≥2 independent locations (e.g. offline password manager + physical sealed copy with the solicitor), never committed. The continuity inventory + sealed-location register (pointers, never values) lives in [`docs/runbooks/BREAK_GLASS.md`](runbooks/BREAK_GLASS.md). Do **not** rotate these keys without a re-encryption migration.
+
 **Utility API** (`lib/security/phi-encryption.ts`): `encryptPHI()`, `decryptPHI()`, `encryptJSONB()`, `decryptJSONB()` -- all async, return/accept `EncryptedData` (ciphertext, encryptedDataKey, keyId, iv, authTag, version).
 
 **Env vars:** `PHI_ENCRYPTION_ENABLED`, `PHI_ENCRYPTION_WRITE_ENABLED`, `PHI_ENCRYPTION_READ_ENABLED`, `PHI_MASTER_KEY`, `ENCRYPTION_KEY` (min 32 bytes).

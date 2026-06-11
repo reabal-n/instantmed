@@ -1,6 +1,6 @@
 # Doc File Map
 
-> **Last updated:** 2026-06-06.
+> **Last updated:** 2026-06-11.
 > Single source of truth for the full canonical doc surface. A fresh contributor reads this file and knows the doc tree without grepping.
 >
 > **Doc-surface count:** 79 `.md` files per `scripts/doc-audit.sh` (which counts `docs/plans/**` working + archived plans, `docs/superpowers/plans/**`, and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-06-06: 77 -> 79 after the profitability audit record and customer-growth phased plan were present in the tree but not reflected in this bookkeeping map.
@@ -43,11 +43,13 @@
 | [docs/DOCTOR_ONBOARDING.md](../DOCTOR_ONBOARDING.md) | Technical onboarding for new clinicians: capability flags, AHPRA, Parchment linking, identity gates, service-line verification | `project-docs-drift-contract` (7 capability flag keys + AHPRA regex + Parchment env-var floor) |
 | [docs/PHI_KEY_ROTATION_DESIGN.md](../PHI_KEY_ROTATION_DESIGN.md) | DESIGN ONLY (2026-05-24). Three-phase PHI master-key rotation: dual-key reads + operator-paced key swap + optional re-encryption batch. Not yet implemented; operator approval required per phase. | none yet (design doc; will need `phi-key-rotation-contract` when Phase 1 ships) |
 
-## docs/runbooks/ — 1
+## docs/runbooks/ — 3
 
 | File | Purpose |
 |------|---------|
 | [docs/runbooks/comparative-tagline-complaint.md](../runbooks/comparative-tagline-complaint.md) | AHPRA/TGA/Medical Board/Google complaint runbook for the "Faster than your GP." tagline |
+| [docs/runbooks/BREAK_GLASS.md](../runbooks/BREAK_GLASS.md) | Solo-operator continuity: account inventory + sealed-secret location register (pointers, never values) + recovery procedure |
+| [docs/runbooks/NHSD_REGISTRATION.md](../runbooks/NHSD_REGISTRATION.md) | Paste-ready field-values sheet for the National Health Services Directory listing (GEO citation surface) |
 
 ## docs/audits/ — 20 (historical + growth records)
 
