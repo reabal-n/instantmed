@@ -36,7 +36,8 @@ const POPULAR_QUESTIONS = GENERAL_FAQ.flatMap((g) => g.items).filter((item) =>
 
 const RELATED_ARTICLES = [
   { title: "How InstantMed Works", href: "/how-it-works" },
-  { title: "Medical Certificates Guide", href: "/medical-certificate" },
+  { title: "Medical certificates online", href: "/medical-certificate" },
+  { title: "Repeat prescriptions online", href: "/prescriptions" },
   { title: "Understanding eScripts", href: "/blog/understanding-escripts-australia" },
 ]
 

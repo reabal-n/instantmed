@@ -215,8 +215,24 @@ export function ServiceCards() {
         </div>
 
         {/* Note */}
-        <p className="text-center text-xs text-muted-foreground mb-10 sm:mb-14">
+        <p className="text-center text-xs text-muted-foreground mb-3">
           Private service. No Medicare rebate, but PBS subsidies may still apply at the pharmacy.
+        </p>
+
+        {/* Descriptive internal links to the two head money pages. The cards
+            above go straight to intake to protect conversion, so this quiet
+            line is where the homepage passes contextual, keyword-matched link
+            equity to /medical-certificate and /prescriptions. */}
+        <p className="text-center text-xs text-muted-foreground mb-10 sm:mb-14">
+          New here? Read how{" "}
+          <Link href="/medical-certificate" className="text-primary hover:underline">
+            online medical certificates
+          </Link>{" "}
+          and{" "}
+          <Link href="/prescriptions" className="text-primary hover:underline">
+            repeat prescriptions online
+          </Link>{" "}
+          work.
         </p>
 
         {/* Coming soon teaser: compact preview only, not a waitlist surface. */}
