@@ -4,7 +4,13 @@ import { NextRequest, NextResponse } from "next/server"
 import { buildOperationalInvariantAlerts, getOperationalInvariants } from "@/lib/admin/ops-invariants"
 import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
 import { toError } from "@/lib/errors"
+import {
+  buildStaleHumanQueueAlert,
+  STALE_HUMAN_QUEUE_CATEGORIES,
+  STALE_HUMAN_QUEUE_THRESHOLD_HOURS,
+} from "@/lib/monitoring/stale-human-queue"
 import { escapeMarkdown, sendTelegramAlert } from "@/lib/notifications/telegram"
 import { createLogger } from "@/lib/observability/logger"
 import { captureCronError } from "@/lib/observability/sentry"
@@ -178,6 +184,40 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // 8. Human-required (Rx/consult) queue stalled >24h. Medical certificates
+    // auto-approve at all hours, so a stalled HUMAN queue means the operator may
+    // be unavailable and paid scripts/consults are piling up. Per the 2026-06-11
+    // decision we page (Telegram, critical → cooldown'd below), we do NOT
+    // auto-pause the service. See lib/monitoring/stale-human-queue.ts.
+    const staleHumanThreshold = new Date(
+      now.getTime() - STALE_HUMAN_QUEUE_THRESHOLD_HOURS * 60 * 60 * 1000,
+    )
+    const { data: staleHumanRows, count: staleHumanCount } = await filterSeededE2EIntakes(
+      supabase
+        .from("intakes")
+        .select("paid_at", { count: "exact" })
+        .eq("status", "paid")
+        .eq("payment_status", "paid")
+        .in("category", [...STALE_HUMAN_QUEUE_CATEGORIES])
+        .lt("paid_at", staleHumanThreshold.toISOString()),
+    )
+      .order("paid_at", { ascending: true })
+      .limit(1)
+
+    const staleHumanAlert = buildStaleHumanQueueAlert(
+      staleHumanRows?.[0]?.paid_at ?? null,
+      staleHumanCount ?? 0,
+      now,
+    )
+    if (staleHumanAlert) {
+      alerts.push(staleHumanAlert)
+      trackBusinessMetric({
+        metric: staleHumanAlert.metric,
+        severity: "critical",
+        metadata: { count: staleHumanAlert.count },
+      })
+    }
+
     // Fire Sentry alerts for critical items
     const criticalAlerts = alerts.filter((a) => a.severity === "critical")
     if (criticalAlerts.length > 0) {
@@ -282,6 +322,7 @@ export async function GET(request: NextRequest) {
         stuck_pending_emails: stuckPending || 0,
         high_risk_waiting: highRiskWaiting || 0,
         email_sla_breaches: slaBreaches || 0,
+        rx_consult_queue_stalled: staleHumanCount ?? 0,
         ops_sla_breach_backlog: operationalInvariants.slaBreachBacklog,
         ops_cert_refund_orphans: operationalInvariants.certRefundOrphans,
         ops_refund_record_anomalies: operationalInvariants.refundRecordAnomalies,
