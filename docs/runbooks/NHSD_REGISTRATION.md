@@ -4,9 +4,13 @@
 > Australia (PCA) and **published to NHSD (Consumers + Providers), Services `1 of 1`,
 > consent accepted**. Org Publisher status = Approved/Active. Practitioners
 > published = `0 of 1` (founder's name deliberately removed — no doctor name on the
-> listing). NHSD validates submissions before they appear, so the public
-> healthdirect **Service Finder** entry shows up a few days after publish — search
-> "InstantMed" there to confirm.
+> listing).
+>
+> **Live listing:** https://www.healthdirect.gov.au/australian-health-services/healthcare-service/loc/name/type/71eacff6-eb7a-4208-bc98-0520560b11b6
+> · NHSD healthcare-service identifier: `71eacff6-eb7a-4208-bc98-0520560b11b6`. NHSD
+> validates before full propagation, so allow a few days; healthdirect's Service
+> Finder is a JS app (not server-rendered), so verify the rendered name/description
+> and the absence of doctor names in a browser.
 >
 > This doc is the as-built record + redo guide. It corrects two earlier wrong
 > assumptions: NHSD has **no "Telehealth" service type** (the portal rejects it),
