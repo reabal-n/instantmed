@@ -680,10 +680,11 @@ export function RequestFlow({
     return () => observer.disconnect()
   }, [currentStepId])
 
-  // Scroll to top on step change (2026-06-11 a11y/UX review): a user who
-  // scrolled deep into a long step (e.g. medical history) otherwise lands
-  // mid-page on the next step. Skips the first mount so resuming a saved flow
-  // doesn't yank the page; respects prefers-reduced-motion.
+  // Scroll to top + move screen-reader focus to the new step's heading on step
+  // change (2026-06-11 a11y/UX review). Sighted users who scrolled deep into a
+  // long step otherwise land mid-page; SR users got no announcement of the new
+  // step at all. Skips the first mount so resuming a saved flow doesn't yank
+  // the page or steal focus; respects prefers-reduced-motion.
   const stepScrollInitialized = useRef(false)
   useEffect(() => {
     if (!stepScrollInitialized.current) {
@@ -693,6 +694,15 @@ export function RequestFlow({
     if (typeof window === "undefined") return
     const prefersReduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
     window.scrollTo({ top: 0, behavior: prefersReduced ? "auto" : "smooth" })
+
+    // Focus the step heading so screen readers announce the new step. The
+    // heading isn't a normal tab stop, so make it programmatically focusable
+    // for this one focus; preventScroll keeps it from fighting the scrollTo.
+    const heading = contentRef.current?.querySelector<HTMLElement>("h1, h2")
+    if (heading) {
+      heading.setAttribute("tabindex", "-1")
+      heading.focus({ preventScroll: true })
+    }
   }, [currentStepId])
 
   const handleMobilePrimaryAction = useCallback(() => {
