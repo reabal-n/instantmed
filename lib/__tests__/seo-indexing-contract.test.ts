@@ -136,10 +136,16 @@ describe("SEO indexing contracts", () => {
 
   it("does not mark root sitemap URLs as freshly changed on every build", () => {
     const sitemap = read("app/sitemap.ts")
+    const lastmod = read("lib/seo/sitemap-lastmod.ts")
 
-    expect(sitemap).not.toContain("const BUILD_DATE = new Date()")
-    expect(sitemap).toContain("ROOT_SITEMAP_LAST_MODIFIED")
-    expect(sitemap).toContain("SERVICE_PAGES_LAST_MODIFIED")
+    // Per-URL lastmod must be stable (git-sourced + baked into a static map),
+    // never re-stamped at build time — otherwise Google sees every URL as
+    // "changed" on every deploy. The argless `new Date()` is the forbidden
+    // build-time stamp; fixed `new Date("YYYY-MM-DD")` strings are fine.
+    expect(sitemap).not.toContain("new Date()")
+    expect(lastmod).not.toContain("new Date()")
+    expect(sitemap).toContain("routeLastModified")
+    expect(lastmod).toContain("ROUTE_LAST_MODIFIED")
   })
 
   it("keeps GSC indexing audits as read-only diagnostics", () => {

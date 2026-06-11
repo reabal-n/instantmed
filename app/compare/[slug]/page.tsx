@@ -23,7 +23,7 @@ import {
   type ComparisonEntry,
   COMPETITOR_COMPARISONS,
 } from "@/lib/seo/data/competitor-comparisons"
-import { ICEBOX_ROBOTS } from "@/lib/seo/index-policy"
+import { ICEBOX_ROBOTS, shouldIndexCompare } from "@/lib/seo/index-policy"
 
 // Built-in comparisons - general telehealth educational pages.
 // Competitor-specific comparisons live in lib/seo/data/competitor-comparisons.ts
@@ -184,6 +184,22 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
       { feature: "Available 7 days", instantmed: true, competitor: "Most services", winner: "tie" },
       { feature: "Prescription services", instantmed: true, competitor: "Some services", winner: "instantmed" },
     ],
+    // Dated, fact-only cross-provider price table. Prices verified from each
+    // provider's own website (June 2026) — re-verify monthly. Ordered by
+    // single-day price ascending. No ratings, no winner highlighting.
+    providerPriceTable: {
+      pricesVerified: "June 2026",
+      note: "Lowest advertised single-day certificate price from each provider's own website, checked June 2026. Providers set their own prices and run promotions, so confirm the current price on the provider's site. We re-check this table monthly.",
+      rows: [
+        { provider: "MedCertify", singleDayFrom: "$12", ahpraDoctors: true, notable: "Issued in roughly 15–30 minutes; available 24/7." },
+        { provider: "Doccy", singleDayFrom: "$12.90", ahpraDoctors: true, notable: "Available 24/7; a 2–5 day certificate is a flat $28." },
+        { provider: "Qoctor", singleDayFrom: "$14.99", ahpraDoctors: true, notable: "Same-day from $14.99; optional priority queue; also offers referral letters." },
+        { provider: "MIDOC", singleDayFrom: "$18", ahpraDoctors: true, notable: "Advertises certificates issued in about 15 minutes." },
+        { provider: "NextClinic", singleDayFrom: "$19.90", ahpraDoctors: true, notable: "You pay only if the certificate is approved; one-business-hour target." },
+        { provider: "InstantMed", singleDayFrom: PRICING_DISPLAY.MED_CERT, ahpraDoctors: true, isInstantMed: true, notable: "One-off, no subscription; full refund if a doctor declines; also covers repeat prescriptions, ED and hair loss." },
+        { provider: "Updoc", singleDayFrom: "$24.95", ahpraDoctors: true, notable: "Single and multi-day certificates priced the same; optional monthly subscription plans." },
+      ],
+    },
     whenInstantMedBetter: [
       "You need your certificate quickly (under 1 hour)",
       "You want to be able to message the doctor if they have questions",
@@ -646,7 +662,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: comparison.title,
     description: comparison.description,
-    robots: ICEBOX_ROBOTS,
+    // Most compare pages stay noindex,follow (iceboxed). Pages in the compare
+    // keep-set — e.g. the dated cross-provider price table — are re-indexed.
+    robots: shouldIndexCompare(slug) ? { index: true, follow: true } : ICEBOX_ROBOTS,
     keywords: comparison.keywords ?? DEFAULT_COMPARISON_KEYWORDS,
     openGraph: {
       title: comparison.title,
@@ -721,54 +739,102 @@ export default async function ComparisonPage({ params }: PageProps) {
           {/* Comparison Table */}
           <section className="px-4 py-12">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
-                Head-to-Head Comparison
-              </h2>
+              {comparison.providerPriceTable ? (
+                <>
+                  <h2 className="text-2xl font-semibold text-foreground mb-2 text-center">
+                    Online medical certificate prices compared
+                  </h2>
+                  <p className="text-sm text-muted-foreground text-center max-w-2xl mx-auto mb-1">
+                    Every provider below uses AHPRA-registered Australian doctors. You can always confirm a
+                    doctor&apos;s registration on the public AHPRA register.
+                  </p>
+                  <p className="text-xs text-muted-foreground text-center mb-6">
+                    Prices verified {comparison.providerPriceTable.pricesVerified}
+                  </p>
 
-              <div className="bg-white dark:bg-card rounded-2xl border border-border dark:border-border overflow-hidden shadow-sm shadow-primary/[0.04] dark:shadow-none">
-                {/* Header */}
-                <div className="grid grid-cols-3 bg-muted/50 dark:bg-white/[0.06] p-4 border-b border-border dark:border-border">
-                  <div className="font-medium text-muted-foreground">Feature</div>
-                  <div className="font-semibold text-primary text-center">InstantMed</div>
-                  <div className="font-medium text-foreground text-center">{comparison.competitor.name}</div>
-                </div>
+                  <div className="bg-white dark:bg-card rounded-2xl border border-border dark:border-border overflow-hidden shadow-sm shadow-primary/[0.04] dark:shadow-none">
+                    {/* Desktop header */}
+                    <div className="hidden sm:grid grid-cols-[1fr_0.85fr_2.3fr] gap-4 bg-muted/50 dark:bg-white/[0.06] p-4 border-b border-border dark:border-border text-sm font-medium text-muted-foreground">
+                      <div>Provider</div>
+                      <div>Single-day certificate (from)</div>
+                      <div>Notable</div>
+                    </div>
 
-                {/* Rows */}
-                {comparison.comparisonTable.map((row, i) => (
-                  <div
-                    key={i}
-                    className={`grid grid-cols-3 p-4 ${i !== comparison.comparisonTable.length - 1 ? 'border-b border-border/50 dark:border-border' : ''}`}
-                  >
-                    <div className="text-foreground font-medium">{row.feature}</div>
-                    <div className="text-center">
-                      {typeof row.instantmed === 'boolean' ? (
-                        row.instantmed ? (
-                          <CheckCircle2 className="w-5 h-5 text-success mx-auto" />
-                        ) : (
-                          <X className="w-5 h-5 text-muted-foreground/60 mx-auto" />
-                        )
-                      ) : (
-                        <span className={`text-sm ${row.winner === 'instantmed' ? 'text-success font-medium' : 'text-foreground'}`}>
-                          {row.instantmed}
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-center">
-                      {typeof row.competitor === 'boolean' ? (
-                        row.competitor ? (
-                          <CheckCircle2 className="w-5 h-5 text-success mx-auto" />
-                        ) : (
-                          <X className="w-5 h-5 text-muted-foreground/60 mx-auto" />
-                        )
-                      ) : (
-                        <span className={`text-sm ${row.winner === 'competitor' ? 'text-success font-medium' : 'text-foreground'}`}>
-                          {row.competitor}
-                        </span>
-                      )}
-                    </div>
+                    {/* Rows — neutral, no winner highlighting. The InstantMed row
+                        carries a faint tint + bold name for wayfinding only. */}
+                    {comparison.providerPriceTable.rows.map((row, i) => (
+                      <div
+                        key={i}
+                        className={`p-4 border-b border-border/50 dark:border-border last:border-b-0 sm:grid sm:grid-cols-[1fr_0.85fr_2.3fr] sm:gap-4 sm:items-baseline ${row.isInstantMed ? 'bg-primary/[0.04] dark:bg-primary/[0.06]' : ''}`}
+                      >
+                        <div className="flex items-baseline justify-between gap-3 sm:block">
+                          <span className={row.isInstantMed ? 'font-bold text-foreground' : 'font-medium text-foreground'}>
+                            {row.provider}
+                          </span>
+                          <span className="text-foreground sm:hidden">{row.singleDayFrom}</span>
+                        </div>
+                        <div className="hidden sm:block text-foreground">{row.singleDayFrom}</div>
+                        <div className="mt-1.5 sm:mt-0 text-sm text-muted-foreground">{row.notable}</div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+
+                  <p className="mt-4 text-xs text-muted-foreground leading-relaxed">
+                    {comparison.providerPriceTable.note}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
+                    Head-to-Head Comparison
+                  </h2>
+
+                  <div className="bg-white dark:bg-card rounded-2xl border border-border dark:border-border overflow-hidden shadow-sm shadow-primary/[0.04] dark:shadow-none">
+                    {/* Header */}
+                    <div className="grid grid-cols-3 bg-muted/50 dark:bg-white/[0.06] p-4 border-b border-border dark:border-border">
+                      <div className="font-medium text-muted-foreground">Feature</div>
+                      <div className="font-semibold text-primary text-center">InstantMed</div>
+                      <div className="font-medium text-foreground text-center">{comparison.competitor.name}</div>
+                    </div>
+
+                    {/* Rows */}
+                    {comparison.comparisonTable.map((row, i) => (
+                      <div
+                        key={i}
+                        className={`grid grid-cols-3 p-4 ${i !== comparison.comparisonTable.length - 1 ? 'border-b border-border/50 dark:border-border' : ''}`}
+                      >
+                        <div className="text-foreground font-medium">{row.feature}</div>
+                        <div className="text-center">
+                          {typeof row.instantmed === 'boolean' ? (
+                            row.instantmed ? (
+                              <CheckCircle2 className="w-5 h-5 text-success mx-auto" />
+                            ) : (
+                              <X className="w-5 h-5 text-muted-foreground/60 mx-auto" />
+                            )
+                          ) : (
+                            <span className={`text-sm ${row.winner === 'instantmed' ? 'text-success font-medium' : 'text-foreground'}`}>
+                              {row.instantmed}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-center">
+                          {typeof row.competitor === 'boolean' ? (
+                            row.competitor ? (
+                              <CheckCircle2 className="w-5 h-5 text-success mx-auto" />
+                            ) : (
+                              <X className="w-5 h-5 text-muted-foreground/60 mx-auto" />
+                            )
+                          ) : (
+                            <span className={`text-sm ${row.winner === 'competitor' ? 'text-success font-medium' : 'text-foreground'}`}>
+                              {row.competitor}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </section>
 

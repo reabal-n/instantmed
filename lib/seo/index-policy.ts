@@ -106,10 +106,27 @@ export const KEEP_INDEXED_LOCATIONS = new Set<string>([
 
 /**
  * Surfaces iceboxed WHOLESALE (every URL noindexed + dropped from the sitemap):
- * compare, for, guides, intent. All are 0-impression; re-index individually by
- * moving a slug into a keep-set if/when it earns its place.
+ * for, guides, intent. All are 0-impression; re-index individually by moving a
+ * slug into a keep-set if/when it earns its place.
+ *
+ * NOTE: `compare` is NOT wholesale-iceboxed — it has a per-slug keep-set
+ * (KEEP_INDEXED_COMPARE below). Individual compare pages are re-indexed by
+ * adding their slug there; the rest stay noindex,follow.
  */
-export const ICEBOXED_SURFACES = new Set<string>(["compare", "for", "guides", "intent"])
+export const ICEBOXED_SURFACES = new Set<string>(["for", "guides", "intent"])
+
+/**
+ * Compare: per-slug keep-set. The cross-provider price/feature table at
+ * `online-medical-certificate-options` is a dated, fact-only LLM-citation
+ * target (re-indexed 2026-06-11 after the price-table upgrade). Other compare
+ * pages stay noindex,follow until they earn their place.
+ */
+export const KEEP_INDEXED_COMPARE = new Set<string>([
+  "online-medical-certificate-options",
+])
+export function shouldIndexCompare(slug: string): boolean {
+  return KEEP_INDEXED_COMPARE.has(slug)
+}
 
 /**
  * True if a root-sitemap path lives under a wholesale-iceboxed surface

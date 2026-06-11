@@ -26,6 +26,36 @@ export interface GuideSection {
   paragraphs: string[]
 }
 
+/**
+ * A neutral, fact-only cross-provider price/feature row. No ratings, no winner
+ * flags — every value must be a verifiable fact from the provider's own site.
+ */
+export interface ProviderPriceRow {
+  provider: string
+  /** Single-day medical certificate "from" price, e.g. "$12.90". */
+  singleDayFrom: string
+  /** All legitimate AU providers use AHPRA-registered doctors; kept explicit. */
+  ahpraDoctors: boolean
+  /** One verifiable distinguishing fact (model, speed, extras, billing). */
+  notable: string
+  /** Marks our own row for wayfinding only (bolded name) — not a rating. */
+  isInstantMed?: boolean
+}
+
+/**
+ * Optional dated cross-provider price table. When present it renders in place
+ * of the head-to-head `comparisonTable` (facts only, no winner highlighting).
+ * Prices are re-verified monthly — see `pricesVerified`.
+ */
+export interface ProviderPriceTable {
+  /** Human month the prices were last checked, e.g. "June 2026". */
+  pricesVerified: string
+  /** Disclaimer rendered under the table. */
+  note: string
+  /** Rows, typically ordered by price ascending. */
+  rows: ProviderPriceRow[]
+}
+
 export interface ComparisonEntry {
   title: string
   slug: string
@@ -38,6 +68,9 @@ export interface ComparisonEntry {
   }
   heroText: string
   comparisonTable: ComparisonRow[]
+  /** Optional dated neutral multi-provider price table (renders instead of
+   *  comparisonTable when set). */
+  providerPriceTable?: ProviderPriceTable
   whenInstantMedBetter: string[]
   whenCompetitorBetter: string[]
   verdict: string
