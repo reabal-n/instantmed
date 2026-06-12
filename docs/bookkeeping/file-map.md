@@ -1,9 +1,9 @@
 # Doc File Map
 
-> **Last updated:** 2026-06-11.
+> **Last updated:** 2026-06-12.
 > Single source of truth for the full canonical doc surface. A fresh contributor reads this file and knows the doc tree without grepping.
 >
-> **Doc-surface count:** 79 `.md` files per `scripts/doc-audit.sh` (which counts `docs/plans/**` working + archived plans, `docs/superpowers/plans/**`, and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-06-06: 77 -> 79 after the profitability audit record and customer-growth phased plan were present in the tree but not reflected in this bookkeeping map.
+> **Doc-surface count:** 97 `.md` files per `scripts/doc-audit.sh` (which counts the root assistant docs, `wiki/*.md`, `docs/plans/**` working + archived plans, `docs/superpowers/plans/**`, and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-06-12: 89 -> 97 after adding the project wiki/context map.
 >
 > **Owner:** Operator. Update on every doc add, move, or delete. Bump the timestamp.
 
@@ -17,6 +17,19 @@
 | [AGENTS.md](../../AGENTS.md) | Generated from CLAUDE.md | Same. Never hand-edit. Run `scripts/sync-agent-doc.sh` after CLAUDE.md changes. |
 | [PRODUCT.md](../../PRODUCT.md) | Operator | `project-docs-drift-contract` |
 | [DESIGN.md](../../DESIGN.md) | Operator | `project-docs-drift-contract`; `marketing-copy-contract` |
+
+## wiki/ — 8 context-navigation docs
+
+| File | Purpose |
+|------|---------|
+| [wiki/index.md](../../wiki/index.md) | First navigation layer after `CLAUDE.md`; routes future AI sessions to the smallest useful context set |
+| [wiki/context-map.md](../../wiki/context-map.md) | Domain and data-flow map for intake, checkout, staff, patient, prescribing, analytics, SEO, and ops |
+| [wiki/file-directory.md](../../wiki/file-directory.md) | Important file/folder directory with purpose, when to read, and priority |
+| [wiki/architecture.md](../../wiki/architecture.md) | Compact current app structure and live inventory snapshot |
+| [wiki/code-hygiene-audit.md](../../wiki/code-hygiene-audit.md) | Read-only hygiene findings, guardrail status, and risk-ranked hotspots |
+| [wiki/refactor-plan.md](../../wiki/refactor-plan.md) | Deferred small-step refactor plan for future code hygiene work |
+| [wiki/decision-log.md](../../wiki/decision-log.md) | Decisions made while creating and wiring the wiki |
+| [wiki/open-questions.md](../../wiki/open-questions.md) | Product, clinical, legal, and architecture questions not safe to guess |
 
 ## docs/ — 20 canonical satellites
 
@@ -51,7 +64,7 @@
 | [docs/runbooks/BREAK_GLASS.md](../runbooks/BREAK_GLASS.md) | Solo-operator continuity: account inventory + sealed-secret location register (pointers, never values) + recovery procedure |
 | [docs/runbooks/NHSD_REGISTRATION.md](../runbooks/NHSD_REGISTRATION.md) | Paste-ready field-values sheet for the National Health Services Directory listing (GEO citation surface) |
 
-## docs/audits/ — 20 (historical + growth records)
+## docs/audits/ — 21 (historical + growth records)
 
 | File | Purpose |
 |------|---------|
@@ -157,7 +170,7 @@ See [docs/plans/archive/README.md](../plans/archive/README.md) for the retention
 2. Update this file with a new row in the matching table.
 3. Bump `docs/bookkeeping/expected-md-count` by 1 (or by N if adding multiple).
 4. If the new doc should be drift-protected, add a pin assertion in `lib/__tests__/project-docs-drift-contract.test.ts` referencing strings that must remain stable.
-5. If the new doc should appear in CLAUDE.md's satellite-doc table (most should), add a row there too, then run `scripts/sync-agent-doc.sh` to project to AGENTS.md.
+5. If the new doc should appear in `CLAUDE.md`'s satellite-doc table (most should), add a row there too, then run `scripts/sync-agent-doc.sh` to project to `AGENTS.md`.
 6. Run `pnpm doc:audit` to confirm the count guard passes.
 
 ## How to remove a doc

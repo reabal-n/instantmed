@@ -740,7 +740,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `app/doctor/` | Doctor portal under the shared staff shell | `intakes/[id]/` (review detail), `patients/`, `settings/`; queue/scripts entry points resolve through `/dashboard` |
 | `app/patient/` | Patient dashboard | `intakes/` (history + success), `settings/`, `onboarding/`, `documents/` |
 | `app/api/` | API routes (84 route files) | `stripe/webhook/`, `cron/`, `health/`, `certificates/`, `intakes/` |
-| `app/api/cron/` | Scheduled jobs (23) | `stale-queue/`, `email-dispatcher/`, `health-check`, `google-ads-conversions`, `parchment-smoke`, etc. See OPERATIONS.md |
+| `app/api/cron/` | Scheduled jobs (24) | `stale-queue/`, `email-dispatcher/`, `health-check`, `google-ads-conversions`, `parchment-smoke`, etc. See OPERATIONS.md |
 | `app/api/stripe/webhook/` | Stripe handlers | 7 handlers: `checkout-session-completed`, `checkout-session-expired`, `checkout-session-async-payment-succeeded/failed`, `charge-refunded`, `charge-dispute-created`, `payment-intent-payment-failed`. Repeat Rx subscription handlers are retired; unsupported Stripe events are acknowledged and claimed by the dispatcher without running business logic. Registered in `handlers/index.ts`. |
 | `app/request/` | **Sole canonical intake flow.** Single page, step-based wizard. |
 | `app/(dev)/` | Dev-only routes | Email preview only; retired `/cert-preview` and `/sentry-test` prefixes remain fail-closed in middleware |
@@ -756,33 +756,31 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `app/compare/[slug]/` | SEO: comparisons | Service comparison pages |
 | `app/offline/` | Offline fallback | PWA offline page — shown by service worker when network unavailable |
 
-### `components/` — 490 files
+### `components/` — 511 files
 
 | Directory | Count | Purpose |
 |-----------|-------|---------|
 | `ui/` | 69 | shadcn/Radix primitives (Button, Input, Dialog, etc.) |
 | `uix/` | 12 | Thin shared wrappers and re-exports (UserCard, PageBreadcrumbs, DatePickerField, Pagination, Snippet, etc.) |
 | `shared/` | 40 | Header, Footer, InlineAuthStep, CheckoutButton, LazyOverlays |
-| `operator/` | 7 | OperatorShell, bounded staff pages, split panes, local action palettes |
-| `request/` | 50 | Intake flow: `request-flow.tsx` (orchestrator), `steps/` (per-step components), `store.ts` (Zustand) |
-| `marketing/` | 108 | Landing pages, ServiceFunnelPage, testimonials, exit intent |
+| `operator/` | 17 | OperatorShell, bounded staff pages, split panes, local action palettes |
+| `request/` | 51 | Intake flow: `request-flow.tsx` (orchestrator), `steps/` (per-step components), `store.ts` (Zustand) |
+| `marketing/` | 111 | Landing pages, ServiceFunnelPage, testimonials, exit intent |
 | `blog/` | 12 | Guide article template, TOC, visuals, related reading, share controls |
-| `doctor/` | 37 | IntakeReviewPanel, RepeatPrescriptionChecklist, clinical views |
+| `doctor/` | 43 | IntakeReviewPanel, RepeatPrescriptionChecklist, clinical views |
 | `admin/` | 9 | Admin-specific panels and views |
-| `patient/` | 25 | ReferralCard, CrossSellCard, dashboard components |
-| `chat/` | 0 | AI chat intake is not active in the component tree |
-| `charts/` | 1 | LazyAreaChart, LazyBarChart, etc. (dynamic import from recharts) |
+| `patient/` | 28 | ReferralCard, CrossSellCard, dashboard components |
 | `effects/` | 2 | Confetti, ShakeAnimation |
 | `providers/` | 7 | PostHogProvider, ThemeProvider, MotionProvider |
 | `heroes/` | 5 | Morning Canvas hero variants (Split, Centered, Stats, FullBleed) |
 | `ui/morning/` | 7 | Morning Canvas primitives (MeshGradientCanvas, WordReveal, PerspectiveTiltCard) |
 | `ui/skeleton.tsx` | — | SkeletonCard, SkeletonForm, SkeletonList, SkeletonDashboard, Spinner |
 
-### `lib/` — 334 files
+### `lib/` — 872 files
 
 | Directory | Purpose | Key files |
 |-----------|---------|-----------|
-| `lib/auth.ts` | Auth helpers | `getAuthenticatedUserWithProfile()`, `requireRoleOrNull()` |
+| `lib/auth/` | Auth helpers | `helpers.ts`, `staff-capabilities.ts`, post-auth redirects and guest profile linking |
 | `lib/constants/index.ts` | App constants | PRICING, SYSTEM_AUTO_APPROVE_ID, CONTACT_EMAIL |
 | `lib/env.ts` | Env validation | Zod schemas, `getAppUrl()` |
 | `lib/format.ts` | Date formatting | All AEST, `formatDateLong()`, `addDays()` |
@@ -805,7 +803,7 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `lib/observability/` | Logging/monitoring | `logger.ts` (structured logger), `sentry.ts` (helpers) |
 | `lib/feature-flags.ts` | Feature flags | DB-backed via `feature_flags` table, `getFeatureFlags()` |
 | `lib/operational-controls/` | Runtime controls | Capacity fail-closed checks and medication-blocklist answer extraction |
-| `lib/posthog-server.ts` | Server analytics | `getPostHogClient()`, funnel tracking, safety outcome tracking |
+| `lib/analytics/posthog-server.ts` | Server analytics | `getPostHogClient()`, funnel tracking, safety outcome tracking |
 | `lib/validation/` | Validation schemas | `med-cert-schema.ts`, `repeat-script-schema.ts` |
 
 ### Other top-level
@@ -818,10 +816,10 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `types/db.ts` | Supabase generated types + custom interfaces |
 | `types/certificate-template.ts` | PDF template field definitions |
 | `hooks/` | 5 custom hooks (use-connection-status, use-debounce, use-doctor-shortcuts, use-keyboard-navigation, use-landing-analytics) |
-| `e2e/` | 62 Playwright specs, `helpers/` (seed/teardown, auth bypass). Focused paid-flow and ops smoke specs are the blocking CI gate. |
-| `supabase/migrations/` | 79 SQL migration files (1 squashed baseline + 78 incremental). Most recent: `20260602070000_restore_intake_abandonment_tracking.sql` |
+| `e2e/` | 74 TypeScript specs/helpers, including `helpers/` (seed/teardown, auth bypass). Focused paid-flow and ops smoke specs are the blocking CI gate. |
+| `supabase/migrations/` | 84 SQL migration files (1 squashed baseline + 83 incremental). Most recent: `20260612000000_lockdown_anon_readable_surfaces.sql` |
 | `public/templates/` | Static PDF templates for certificate generation |
-| `content/blog/` | 108 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. Rewritten articles must be comprehensive, source-backed, and backed by at least two GPT-generated local visuals. |
+| `content/blog/` | 107 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. Rewritten articles must be comprehensive, source-backed, and backed by at least two GPT-generated local visuals. |
 | `public/images/blog/` | Local WebP hero and article visual assets for health guides. New generated guide visuals carry a deterministic `InstantMed` wordmark added after image generation. |
 | `scripts/audit-health-guides.mjs` | Content QA backlog for guide-only copy, minimum visual depth, local images, rendering defects, source depth, article depth, and safety-boundary gaps |
 

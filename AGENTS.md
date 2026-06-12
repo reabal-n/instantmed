@@ -23,6 +23,7 @@
 
 | File | Scope | When to load |
 |------|-------|-------------|
+| `wiki/index.md` | First navigation layer after the project brain: context map, file directory, architecture snapshot, hygiene audit, refactor plan, decisions, and open questions | After loading the project brain for any non-trivial task, before scanning broad folders |
 | `docs/AI_ONBOARDING.md` | **Start here.** 5-min orientation for AI assistants on UI: top 10 rules, canonical files, common gotchas, ship checklist | **First** UI session in any new context. |
 | `docs/BUSINESS_PLAN.md` | Business strategy, product priority, current one-off operating model, current no-subscription/no-pharmacy decisions | Strategy, roadmap, positioning, pricing, growth work |
 | `docs/REVENUE_MODEL.md` | $1M/year one-off revenue model, service mix, unit economics, hiring triggers | Pricing, growth plans, dashboards, business-model changes |
