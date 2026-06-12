@@ -1,6 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import { initConsentMode, trackConversion, trackFunnelStep, updateConsent } from "../analytics/conversion-tracking"
+import {
+  buildEnhancedConversionsUserData,
+  initConsentMode,
+  trackConversion,
+  trackFunnelStep,
+  updateConsent,
+} from "../analytics/conversion-tracking"
 
 type GtagCall = [string, string, Record<string, unknown>]
 
@@ -85,5 +91,23 @@ describe("conversion tracking", () => {
     const calls = gtagMock.mock.calls as GtagCall[]
     const conversionCall = calls.find(([kind, event]) => kind === "event" && event === "conversion")
     expect(conversionCall?.[2].send_to).toBe("AW-17795889471/4MCMCMrGhYccEL_y3qVC")
+  })
+
+  it("builds the enhanced-conversion user data payload with explicit hashed fields", async () => {
+    await expect(
+      buildEnhancedConversionsUserData({
+        email: " Test@Example.com ",
+        phone: "0412345678",
+        firstName: "Pat",
+        lastName: "Example",
+      }),
+    ).resolves.toEqual({
+      sha256_email_address: "973dfe463ec85785f5f95af5ba3906eedb2d931c24e69824a89ea65dba4e813b",
+      sha256_phone_number: "e41826c28802a198d4806265956e297cca877a5118130441691bed37aad57c72",
+      address: {
+        sha256_first_name: "68d753f055b1a15b39499fdbbe86d614f986d0e50e62817b38e86b20a0935f82",
+        sha256_last_name: "50d858e0985ecc7f60418aaf0cc5ab587f42c2570a884095a9e8ccacd0f6545c",
+      },
+    })
   })
 })

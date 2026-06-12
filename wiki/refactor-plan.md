@@ -29,6 +29,8 @@ Risk: intake draft restoration and URL handoff behavior are conversion-sensitive
 
 ## Batch 3: Conversion Tracking Type Tightening
 
+Status: completed on 2026-06-12. Enhanced-conversion client user data now uses explicit payload types in `lib/analytics/conversion-tracking.ts`, with focused Vitest coverage for the hashed `user_data` wire shape.
+
 Goal: remove the `Record<string, any>` escape hatch in `lib/analytics/conversion-tracking.ts`.
 
 Tiny commits:
@@ -37,6 +39,8 @@ Tiny commits:
 2. Replace `any` with explicit optional fields for hashed email, phone, first name, last name, and address.
 3. Add a focused unit test for user-data payload shape if practical.
 4. Verify lint and typecheck.
+
+Verification completed: focused conversion-tracking Vitest test, lint, typecheck, and doc audit.
 
 Risk: Google Ads enhanced conversion payload shape is strict. Keep wire shape unchanged.
 

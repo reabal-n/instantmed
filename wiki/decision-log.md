@@ -39,3 +39,11 @@ Decision: keep first-render `/request` URL handoff logic in `lib/request/initial
 Reason: consult subtype, certificate type, and duration URL params are conversion-sensitive and should be testable without mounting the full request flow.
 
 Consequence: future changes to URL-seeded intake behavior should update the helper and its focused Vitest contract before editing `components/request/request-flow.tsx`.
+
+## 2026-06-12: Enhanced Conversion Client Payload Is Typed
+
+Decision: define explicit `EnhancedConversionsUserData` and address payload types in `lib/analytics/conversion-tracking.ts`.
+
+Reason: Google Ads enhanced conversion payload keys are strict, and a loose `Record<string, any>` made drift easier to miss.
+
+Consequence: future client-side enhanced-conversion changes should update the typed builder and `lib/__tests__/conversion-tracking.test.ts` together.

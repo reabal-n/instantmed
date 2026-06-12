@@ -48,6 +48,24 @@ interface ConversionData {
   }>
 }
 
+export interface EnhancedConversionsAddressData {
+  sha256_first_name?: string
+  sha256_last_name?: string
+}
+
+export interface EnhancedConversionsUserData {
+  sha256_email_address?: string
+  sha256_phone_number?: string
+  address?: EnhancedConversionsAddressData
+}
+
+export interface EnhancedConversionsInput {
+  email?: string
+  phone?: string
+  firstName?: string
+  lastName?: string
+}
+
 declare global {
   interface Window {
     gtag?: (...args: unknown[]) => void
@@ -73,20 +91,10 @@ async function sha256Hash(value: string): Promise<string | null> {
   }
 }
 
-/**
- * Set Enhanced Conversions user data (hashed email/phone)
- * Call this when you have the user's email (e.g. after patient details step)
- */
-export async function setEnhancedConversionsData(params: {
-  email?: string
-  phone?: string
-  firstName?: string
-  lastName?: string
-}) {
-  if (typeof window === 'undefined') return
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const userData: Record<string, any> = {}
+export async function buildEnhancedConversionsUserData(
+  params: EnhancedConversionsInput,
+): Promise<EnhancedConversionsUserData | null> {
+  const userData: EnhancedConversionsUserData = {}
 
   if (params.email) {
     const hashedEmail = await sha256Hash(params.email)
@@ -98,8 +106,7 @@ export async function setEnhancedConversionsData(params: {
     if (hashedPhone) userData.sha256_phone_number = hashedPhone
   }
 
-  // Address-level Enhanced Conversions data
-  const address: Record<string, string> = {}
+  const address: EnhancedConversionsAddressData = {}
   if (params.firstName) {
     const hashed = await sha256Hash(params.firstName)
     if (hashed) address.sha256_first_name = hashed
@@ -112,13 +119,24 @@ export async function setEnhancedConversionsData(params: {
     userData.address = address
   }
 
-  if (Object.keys(userData).length > 0) {
-    if (window.gtag) {
-      window.gtag('set', 'user_data', userData)
-    } else {
-      window.dataLayer = window.dataLayer || []
-      window.dataLayer.push(['set', 'user_data', userData])
-    }
+  return Object.keys(userData).length > 0 ? userData : null
+}
+
+/**
+ * Set Enhanced Conversions user data (hashed email/phone)
+ * Call this when you have the user's email (e.g. after patient details step)
+ */
+export async function setEnhancedConversionsData(params: EnhancedConversionsInput) {
+  if (typeof window === 'undefined') return
+
+  const userData = await buildEnhancedConversionsUserData(params)
+  if (!userData) return
+
+  if (window.gtag) {
+    window.gtag('set', 'user_data', userData)
+  } else {
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push(['set', 'user_data', userData])
   }
 }
 
