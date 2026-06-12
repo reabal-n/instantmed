@@ -422,6 +422,16 @@ Operational rules:
 
 ## Production Launch Checklist
 
+### Current release gate (updated 2026-06-12)
+
+Before treating a production deploy or paid-traffic ramp as clean:
+
+1. `pnpm release:check` must pass. This includes Node/runtime pins, stack pins, route/cron/orphan checks, strict integration checks via `CHECK_INTEGRATIONS_STRICT=1 pnpm check:integrations`, lint, typecheck, tests, production build, and bundle budget.
+2. GitHub CI `build`, Vercel production deployment status, and the post-deploy smoke workflow must be green.
+3. `Video review (auto)` must be interpreted by failure mode. A failure caused only by committing `docs/reviews/*` directly to protected `main` is deployment-process noise, not app-health evidence; fix the workflow to upload an artifact or open a PR before using "all checks green" as a release signal. A failure from capture, console errors, checkout friction, or low review score is a product-quality blocker.
+4. Google Ads stays blocked until production-scoped runtime proof shows `GOOGLE_ADS_CONVERSION_ACTION_PURCHASE` is an enabled offline click-import `UPLOAD_CLICKS` purchase action and uploads agree with Supabase/PostHog/Stripe truth.
+5. Parchment-backed paid traffic stays blocked until daily production Parchment smoke is green and every prescribing-capable doctor has a production `parchment_user_id`.
+
 ### Supabase
 
 1. Enable **Leaked Password Protection**: Authentication > Providers > Email (HaveIBeenPwned)
@@ -456,12 +466,17 @@ supabase db push --project-ref [SUPABASE_PROJECT_REF]
 1. Verify `SENTRY_DSN` set in production
 2. Uptime monitor on `/`, `/api/health`
 3. Stripe webhook failure alerts configured
+4. `/admin/ops` integrity strip has no unexplained critical cards (review SLA backlog, cert+refund orphans, refund-record anomalies)
+5. Automated video review either succeeds or its failure is classified in the deploy notes
 
 ### Post-Launch Verification
 
 - [ ] Full user flow: sign up -> request -> payment -> delivery
 - [ ] Doctor dashboard access works
 - [ ] Sentry receiving events; Stripe payments succeeding; emails delivering
+- [ ] Post-deploy smoke workflow green
+- [ ] Google Ads purchase preflight green before any paid ramp
+- [ ] Parchment smoke and linked-prescriber checks green before any prescribing-service paid ramp
 
 ### Rollback Runbook
 
@@ -1237,7 +1252,7 @@ ORDER BY i.refunded_at DESC NULLS LAST;
 
 2026-05-23 evening snapshot: **2 orphans**. Per-orphan operator decision needed (revoke vs goodwill-accept). The auto-revoke-on-refund question is clinical/legal policy, not engineering — needs an explicit decision before any contract test or code path is added.
 
-2026-06-01 reconciliation: **0 orphans** after revoking the two fully refunded legacy certificates via production service-role reconciliation. Certificate revocation audit rows and system audit rows were written. No automatic revoke-on-refund product policy was added.
+2026-06-01 reconciliation: **0 orphans** after revoking the two fully refunded legacy certificates via production service-role reconciliation. Certificate revocation audit rows and system audit rows were written. Roadmap status: closed as an active incident; keep this invariant monitored in `/admin/ops`. No automatic revoke-on-refund product policy was added.
 
 ### Q3 — INVALID_TYPE pattern audit across integrations
 
@@ -1268,7 +1283,7 @@ ORDER BY paid_at DESC;
 
 2026-05-23 evening snapshot: 1 row (intake `4fc90333-...`, study cert issued 2026-04-14, marked refunded with no refund record). Operator action: backfill `refund_status` + `refunded_at` from Stripe dashboard OR mark as `not_applicable` with explicit reason.
 
-2026-06-01 reconciliation: **0 anomalies** after backfilling the legacy study-certificate refund from Stripe (`refund_status='succeeded'`, Stripe refund ID, `refunded_at`, and corrected charged amount to match the Stripe PaymentIntent). A system audit row was written.
+2026-06-01 reconciliation: **0 anomalies** after backfilling the legacy study-certificate refund from Stripe (`refund_status='succeeded'`, Stripe refund ID, `refunded_at`, and corrected charged amount to match the Stripe PaymentIntent). A system audit row was written. Roadmap status: closed as an active incident; keep this invariant monitored in `/admin/ops`.
 
 ### How these become alerts
 

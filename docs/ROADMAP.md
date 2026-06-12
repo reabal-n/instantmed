@@ -3,7 +3,7 @@
 > Internal-only product roadmap. Refreshed monthly by the operator.
 > Source of truth for: current operating phase, last-90-days shipped, next-30-60-days priorities, long-term expansion gates.
 >
-> **Last refreshed:** 2026-06-02 (post-reconciled remediation plan). Bump this stamp on every edit.
+> **Last refreshed:** 2026-06-12 (roadmap/operations reconciliation). Bump this stamp on every edit.
 
 ---
 
@@ -22,25 +22,40 @@ Specifics:
 
 | Rank | Priority | Owner | Status |
 |------|----------|-------|--------|
-| 1 | ~~Doc cleanup PR program~~ | Operator + Claude | **DONE 2026-05-23 evening.** PRs #48 + #49 + #50 merged. Plus #51 (test fixes) + #52 (.agents exclusion) + #53 (Stripe handler parity test) follow-ups. CI on main green for the first time in 2+ days. |
-| 2 | **Google Ads production preflight reconciliation** — Vercel has the Google Ads env names; the active work is proving production values hydrate, OAuth mints a token, and `GOOGLE_ADS_CONVERSION_ACTION_PURCHASE` resolves to an enabled `UPLOAD_CLICKS` action. If strict preflight fails, investigate Vercel scope/empty values, OAuth refresh-token validity, conversion-action status/type, or project/team mismatch. | **Operator + Codex** | **Blocking before paid ramp.** No Ads campaign mutations until measurement is trusted. |
-| 3 | ~~Branch protection on `main`~~ | Operator + Claude | **DONE 2026-05-23 evening.** Applied via gh api with required_status_checks: build (strict), no admin enforce (operator can bypass for emergencies), no PR review (solo). Verified via gh api GET. |
-| 4 | **Med cert queue P95 = 165 hours = 7 days** (vs 24h max per OPERATIONS.md). Volume engine has the worst SLA breach. Max wait = 14 days. 56 paid intakes in 90d. Either add doctor capacity, add auto-decline+refund above 24h, batch-review triage, or document & loosen the target with explicit reasoning. | **Operator** | Real refund/support/brand-damage exposure. See OPERATIONS.md §Integration Invariants Q1. |
-| 5 | **Operator decision: 2 cert+refund orphans** — intake `7ea9f367-...` (refunded 2026-05-22) + intake `4fc90333-...` (refunded with legacy data anomaly: no `refund_status` or `refunded_at`). Both certs still `valid`; verify endpoint returns valid status to employers. Decide per-case revoke vs accept; backfill the legacy refund record. The auto-revoke-on-refund question is a clinical/legal policy call, not pure engineering. | **Operator** | Real exposure. See OPERATIONS.md §Integration Invariants Q2 + Q4. |
-| 6 | Memory hygiene pass via `/consolidate-memory` | Operator | Memory edited inline in PRs #49 + #50 + this session refresh; full consolidation pass still useful when next convenient. |
-| 7 | Category-by-category rewrite of remaining ~93 health guide pages | Operator | Ongoing per archived plan `docs/plans/archive/2026-05-04-health-guides-rehaul.md`. No engineering bottleneck. |
-| 8 | **Parchment production prescriber link verification** — confirm every prescribing-capable doctor has `parchment_user_id` + verified via daily smoke. | Operator | Pending pre-launch per `docs/SERVICE_LAUNCH_CHECKLISTS.md`. |
-| 9 | **Paid traffic ramp on ED + hair loss services** — only after per-service launch gates in `docs/SERVICE_LAUNCH_CHECKLISTS.md` are met. | Operator | Gated on #2 (GAds attribution) + #3 (hire trigger per `docs/REVENUE_MODEL.md` §8). |
-| 10 | `/blog` vs `/guides` routing cleanup once page quality stabilises | Operator | Backlog: `docs/plans/2026-05-23-archived-plan-followups.md`. |
-| 11 | Type centralisation + ESLint import boundary enforcement | Operator | Backlog: same followups stub. |
-| 12 | ~~INVALID_TYPE pattern hardening~~ | Operator + Claude | **DONE.** `pnpm check:integrations` now runtime-validates Stripe price type, Google Ads `UPLOAD_CLICKS`, Resend sender/domain, AI model config, and Parchment smoke config; `release:check` runs it with `CHECK_INTEGRATIONS_STRICT=1`. |
-| 13 | **Demand-generation strategy session** — engineering is no longer the bottleneck. Revenue at ~$688/30d (annualized ~$8k vs $1M target = 121x gap). Decide between (a) paid acquisition ramp (gated on #2), (b) SEO compounding via guide rewrite (#7), (c) something else. | **Operator** | Not engineering. 60 min with analytics dashboards. |
+| 1 | **Google Ads production preflight reconciliation** - prove production values hydrate, OAuth mints a token, and `GOOGLE_ADS_CONVERSION_ACTION_PURCHASE` resolves to an enabled offline click-import `UPLOAD_CLICKS` action. If strict preflight fails, investigate Vercel scope/empty values, OAuth refresh-token validity, conversion-action status/type, or project/team mismatch. | **Operator + Codex** | **Blocking before paid ramp.** No Ads campaign mutations until measurement is trusted. `pnpm release:check` already runs `CHECK_INTEGRATIONS_STRICT=1 pnpm check:integrations`; the missing evidence is production-scoped runtime proof. |
+| 2 | **Deploy-status hygiene** - keep CI build and post-deploy smoke green, and fix or explicitly classify the `Video review (auto)` artifact-push failure caused by writing `docs/reviews/*` directly to protected `main`. | **Codex** | Process blocker before treating "all deployment checks green" as true. A video-review red caused only by protected-branch artifact publishing is not app-health evidence, but it should not stay noisy before production. |
+| 3 | **Med cert queue SLA refresh** - re-run the live Q1 invariant and resolve any paid med-cert review backlog above the 24h max / 2h P95 operating target. | **Operator** | Last recorded risk: 2026-05-23 snapshot had med-cert work P95 = 165h and max = 14d. Use `/admin/ops` plus `docs/OPERATIONS.md` Q1 before deciding capacity, batch review, refund/apology, or policy adjustment. |
+| 4 | **Parchment production prescriber link verification** - confirm every prescribing-capable doctor has `parchment_user_id` and daily production smoke is green before paid traffic for repeat scripts, ED, or hair loss. | **Operator** | Pending pre-launch per `docs/SERVICE_LAUNCH_CHECKLISTS.md`. |
+| 5 | Category-by-category rewrite of remaining health guide pages | Operator | Ongoing per archived plan `docs/plans/archive/2026-05-04-health-guides-rehaul.md` and June GEO/content work. No engineering bottleneck unless page templates or indexing tooling drift. |
+| 6 | **Paid traffic ramp on ED + hair loss services** - only after per-service launch gates in `docs/SERVICE_LAUNCH_CHECKLISTS.md` are met. | Operator | Gated on #1 (Ads attribution), #4 (Parchment), and capacity/hire triggers per `docs/REVENUE_MODEL.md` §8. |
+| 7 | **Demand-generation strategy session** - revenue remains far below the $1M/year target; decide between paid acquisition ramp, SEO compounding, or another channel only after measurement is trusted. | **Operator** | Not engineering. 60 min with analytics dashboards. |
+| 8 | Memory hygiene pass via `/consolidate-memory` | Operator | Memory has been updated in several sessions; full consolidation pass still useful when next convenient. |
+| 9 | `/blog` vs `/guides` routing cleanup once page quality stabilises | Operator | Backlog: `docs/plans/2026-05-23-archived-plan-followups.md`. |
+| 10 | Type centralisation + ESLint import boundary enforcement | Operator | Backlog: same followups stub and `/wiki/refactor-plan.md`. |
+
+Closed since the previous refresh:
+- Doc cleanup PR program and branch protection remain done.
+- `INVALID_TYPE` integration hardening is done; the release gate now contains strict runtime validation.
+- Cert+refund orphans and refund-record anomalies were reconciled to **0** on 2026-06-01. Keep Q2/Q4 monitoring live in `/admin/ops`; do not add automatic certificate revocation on refund without an explicit clinical/legal policy decision.
 
 ## 3. Last 90 days shipped
 
 Chronological. One line per material change. Pulled from `git log --since="90 days ago" --pretty=format:"%ad %s"`.
 
-### 2026-05 (this month)
+### 2026-06 (current month)
+
+- 2026-06-12 - Agent-browser approved for in-session verification; Google Ads enhanced conversions now attach hashed email and phone across live upload and cron backfill; `/wiki` project context map shipped; request URL seeding isolated and tested; enhanced-conversion payload typing tightened; doctor queue action guards mapped.
+- 2026-06-11 - Safety, accessibility, SEO/GEO, ops, and hygiene batch: server-side high-stakes block; intake roving tabindex and scroll fixes; live NHSD listing/runbook; Telegram Rx/consult queue-stall alert; pricing display centralisation; dead dependency/module cleanup; Express review option row; `/request` noindex.
+- 2026-06-10 - Reliability and growth instrumentation: Sentry/PostHog noise reductions, fallback Telegram alerting, possible-doctor-call prescribing copy, heard-about-us MCQs in approval emails, approved-today queue list, 90-day organic/GEO plan, ED/hair content pillars.
+- 2026-06-09 - Revenue and operations levers: ED/hair dead-CTA fixes, one-tap renewal prescribing lane, guest checkout triad, attribution survey, med-cert floor/AOV tests, ops breakdown strip, webhook DLQ test-noise suppression, video-review click targeting fixes.
+- 2026-06-08 - Platform audit fix wave: payment amount reconciliation to Stripe truth, doctor patient-search scoping, controlled-substance checkout block, PostHog purchase pixel init, checkout dead-end fixes, multi-channel click attribution, Parchment panel production hardening, PHI scrub, dead infra cleanup, refill reminder dark launch.
+- 2026-06-07 - Auto-approval incident fix, migration backfill guard, platform audit UI/perf/auth batches, OAuth-only set-password flow, staff nav-count cache.
+- 2026-06-06 - Customer growth baseline, recovery conversion/email parity, LLM citation readiness, authority resources, indexing/distribution monitoring.
+- 2026-06-03 -> 2026-06-04 - SEO foundation: GSC audit, reviewer E-E-A-T, content deepening, GPT image pipeline, noindex/index policy, Google Indexing API submitter, reindexing of priority guides, data-asset/privacy plans, LLM crawler/service fixes.
+- 2026-06-01 -> 2026-06-02 - Dashboard auth handoff, video-review workflow guards, protected Google Ads spend report, conversion-funnel audit evidence, attribution/routing/recovery fixes, comprehensive platform audit, hardened integration gates, and production refund reconciliation notes.
+- 2026-06-01 - Cert+refund orphan exposure and legacy refund-record anomaly reconciled to zero in production; see `docs/OPERATIONS.md` Q2/Q4 for the runbook and audit-note trail.
+
+### 2026-05
 
 - **2026-05-23 (evening)** — 6-PR doc cleanup program shipped: #48 structural cleanup + `pnpm doc:audit` tooling + CI wire-in; #49 content audit sweep of 8 canonical docs + memory tree refresh; #50 added `docs/ROADMAP.md` (this file) + `docs/DOCTOR_ONBOARDING.md`; #51 fixed 5 pre-existing test failures (timezone bug in `groupByTime` + stale admin-nav contract assertion) — unblocked CI on main; #52 `.agents/` exclusion in doc:audit; #53 Stripe webhook handler files-vs-Map parity contract (catches zombie handler class of bug). Plus: 13 stale untracked local files cleaned, 5 worktrees + branches pruned. Production visual QA via Claude in Chrome — homepage + /medical-certificate + /erectile-dysfunction + /hair-loss all on-spec, no actionable visual bugs.
 - 2026-05-23 — Easy refund entry points in patient timeline + intake ledger.
