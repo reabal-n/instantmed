@@ -4,7 +4,11 @@ import * as Sentry from "@sentry/nextjs"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { reportGoogleAdsConversionFailure } from "@/lib/analytics/google-ads-conversion-alarm"
-import { fireGoogleAdsPurchaseConversion } from "@/lib/analytics/google-ads-conversion-api"
+import {
+  fireGoogleAdsPurchaseConversion,
+  type GoogleAdsEnhancedUserData,
+  hashEmailForGoogleAds,
+} from "@/lib/analytics/google-ads-conversion-api"
 import {
   hasGoogleAdsUploadClickId,
   isNonRetryableGoogleAdsUploadError,
@@ -119,6 +123,7 @@ function statusFromResult(result: {
 async function recordGoogleAdsConversionAudit({
   amountCents,
   error,
+  hasUserData,
   intakeId,
   result,
   row,
@@ -128,6 +133,7 @@ async function recordGoogleAdsConversionAudit({
 }: {
   amountCents: number | null
   error?: string | null
+  hasUserData: boolean
   intakeId: string
   result: { attempted: boolean; ok?: boolean; error?: string }
   row: GoogleAdsAttributionRow
@@ -147,6 +153,7 @@ async function recordGoogleAdsConversionAudit({
     error_code: error || null,
     has_gbraid: Boolean(row.gbraid),
     has_gclid: Boolean(row.gclid),
+    has_user_data: hasUserData,
     has_wbraid: Boolean(row.wbraid),
     matchtype: row.matchtype || null,
     network: row.network || null,
@@ -178,6 +185,7 @@ async function recordGoogleAdsConversionAudit({
 function trackGoogleAdsPostHogEvent({
   amountCents,
   error,
+  hasUserData,
   intakeId,
   posthogDistinctId,
   result,
@@ -187,6 +195,7 @@ function trackGoogleAdsPostHogEvent({
 }: {
   amountCents: number | null
   error?: string | null
+  hasUserData: boolean
   intakeId: string
   posthogDistinctId: string
   result: { attempted: boolean; ok?: boolean; error?: string }
@@ -216,6 +225,7 @@ function trackGoogleAdsPostHogEvent({
       error: error || null,
       has_gbraid: Boolean(row.gbraid),
       has_gclid: Boolean(row.gclid),
+      has_user_data: hasUserData,
       has_wbraid: Boolean(row.wbraid),
       intake_id: intakeId,
       keyword: row.keyword || null,
@@ -256,6 +266,7 @@ export async function runGoogleAdsPostPaymentAttribution({
   row,
   source,
   supabase,
+  userData,
 }: {
   amountCents?: number | null
   intakeId: string
@@ -263,6 +274,12 @@ export async function runGoogleAdsPostPaymentAttribution({
   row: GoogleAdsAttributionRow
   source: GoogleAdsConversionSource
   supabase: SupabaseClient
+  /**
+   * Raw (un-hashed) first-party customer data for enhanced conversions —
+   * pass the email the customer checked out with (Stripe `customer_details`).
+   * Hashed inside the Conversion API client before leaving the server.
+   */
+  userData?: GoogleAdsEnhancedUserData | null
 }): Promise<{
   attempted: boolean
   ok?: boolean
@@ -277,6 +294,20 @@ export async function runGoogleAdsPostPaymentAttribution({
       : typeof row.amount_cents === "number"
         ? row.amount_cents
         : null
+
+  // Enhanced conversions: attach hashed first-party data (email) to the upload
+  // for higher match rates than gclid alone. Independent kill switch from the
+  // server-conversion one below — set GOOGLE_ADS_ENHANCED_CONVERSIONS_DISABLED=true
+  // to fall back to gclid-only matching WITHOUT disabling server uploads. The
+  // email is normalized + SHA-256 hashed inside the Conversion API client; raw
+  // email never leaves the server, and only `has_user_data` (a boolean) is logged.
+  const enhancedUserData =
+    process.env.GOOGLE_ADS_ENHANCED_CONVERSIONS_DISABLED === "true"
+      ? null
+      : (userData ?? null)
+  const hasUserData = Boolean(
+    enhancedUserData?.email && hashEmailForGoogleAds(enhancedUserData.email),
+  )
 
   // Operator kill switch. Set GOOGLE_ADS_SERVER_CONVERSION_DISABLED=true
   // in Vercel env to disable server-side Conversion API uploads entirely.
@@ -301,6 +332,7 @@ export async function runGoogleAdsPostPaymentAttribution({
     await recordGoogleAdsConversionAudit({
       amountCents: resolvedAmountCents,
       error: result.error,
+      hasUserData: false,
       intakeId,
       result,
       row,
@@ -312,6 +344,7 @@ export async function runGoogleAdsPostPaymentAttribution({
     trackGoogleAdsPostHogEvent({
       amountCents: resolvedAmountCents,
       error: result.error,
+      hasUserData: false,
       intakeId,
       posthogDistinctId,
       result,
@@ -336,6 +369,7 @@ export async function runGoogleAdsPostPaymentAttribution({
       gbraid: row.gbraid,
       wbraid: row.wbraid,
       value: resolvedAmountCents != null ? resolvedAmountCents / 100 : 0,
+      ...(enhancedUserData ? { userData: enhancedUserData } : {}),
     })
   } else {
     result = { attempted: false, ok: false, error: "missing_click_id" }
@@ -347,6 +381,7 @@ export async function runGoogleAdsPostPaymentAttribution({
   await recordGoogleAdsConversionAudit({
     amountCents: resolvedAmountCents,
     error,
+    hasUserData,
     intakeId,
     result,
     row,
@@ -358,6 +393,7 @@ export async function runGoogleAdsPostPaymentAttribution({
   trackGoogleAdsPostHogEvent({
     amountCents: resolvedAmountCents,
     error,
+    hasUserData,
     intakeId,
     posthogDistinctId,
     result,

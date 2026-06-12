@@ -506,6 +506,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
             row: intakeAttribution,
             source: "checkout_session_completed",
             supabase,
+            userData: { email: session.customer_details?.email ?? session.customer_email ?? null },
           })
         } catch (err) {
           log.warn("Server-side Google Ads conversion fire failed", {

@@ -3,11 +3,14 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import {
   buildGoogleAdsClickConversionRequest,
   buildGoogleAdsConversionActionPreflightQuery,
+  buildGoogleAdsUserIdentifiers,
   classifyGoogleAdsConversionActionPreflight,
   extractGoogleAdsErrorCode,
   fireGoogleAdsPurchaseConversion,
   getGoogleAdsSearchUrl,
   getGoogleAdsUploadClickConversionsUrl,
+  hashEmailForGoogleAds,
+  normalizeEmailForGoogleAds,
   preflightGoogleAdsPurchaseConversionAction,
   resetGoogleAdsAccessTokenCacheForTests,
   selectGoogleAdsClickIdentifier,
@@ -90,6 +93,69 @@ describe("google ads conversion api", () => {
       { orderId: "intake_123", value: 49.95 },
       { customerId: "1234567890", conversionActionId: "9876543210" },
     )).toBeNull()
+  })
+
+  it("normalizes emails to Google's enhanced-conversions spec", () => {
+    // lowercase + trim, and gmail/googlemail drops dots in the local part.
+    expect(normalizeEmailForGoogleAds("  Test.User@Gmail.com ")).toBe("testuser@gmail.com")
+    expect(normalizeEmailForGoogleAds("Test.User@GoogleMail.com")).toBe("testuser@googlemail.com")
+    // Non-gmail domains KEEP dots — stripping them would break the match.
+    expect(normalizeEmailForGoogleAds("Test.User@Example.com")).toBe("test.user@example.com")
+    // Unusable inputs return null so we never send a garbage identifier.
+    expect(normalizeEmailForGoogleAds("not-an-email")).toBeNull()
+    expect(normalizeEmailForGoogleAds("@example.com")).toBeNull()
+    expect(normalizeEmailForGoogleAds("")).toBeNull()
+    expect(normalizeEmailForGoogleAds(null)).toBeNull()
+  })
+
+  it("hashes normalized emails as lowercase SHA-256 hex (matches Google's side)", () => {
+    // Golden vectors: sha256 hex of the normalized address.
+    expect(hashEmailForGoogleAds("test@example.com")).toBe(
+      "973dfe463ec85785f5f95af5ba3906eedb2d931c24e69824a89ea65dba4e813b",
+    )
+    expect(hashEmailForGoogleAds("  Test.User@Gmail.com ")).toBe(
+      "dae9c7c55697ba170d6b494c458649bd469af525520280d0dcfc98d74d13b17e",
+    )
+    expect(hashEmailForGoogleAds("bad")).toBeNull()
+  })
+
+  it("builds a single FIRST_PARTY hashed-email user identifier", () => {
+    expect(buildGoogleAdsUserIdentifiers({ email: "test@example.com" })).toEqual([
+      {
+        hashedEmail: "973dfe463ec85785f5f95af5ba3906eedb2d931c24e69824a89ea65dba4e813b",
+        userIdentifierSource: "FIRST_PARTY",
+      },
+    ])
+    expect(buildGoogleAdsUserIdentifiers({ email: null })).toEqual([])
+    expect(buildGoogleAdsUserIdentifiers(null)).toEqual([])
+  })
+
+  it("attaches hashed userIdentifiers to the upload when userData is present", () => {
+    const request = buildGoogleAdsClickConversionRequest(
+      { orderId: "intake_123", gclid: "gclid-value", value: 49.95, userData: { email: "test@example.com" } },
+      { customerId: "1234567890", conversionActionId: "9876543210" },
+    )
+
+    expect(request?.conversions[0].userIdentifiers).toEqual([
+      {
+        hashedEmail: "973dfe463ec85785f5f95af5ba3906eedb2d931c24e69824a89ea65dba4e813b",
+        userIdentifierSource: "FIRST_PARTY",
+      },
+    ])
+  })
+
+  it("omits userIdentifiers entirely when no usable email is present", () => {
+    const noUserData = buildGoogleAdsClickConversionRequest(
+      { orderId: "intake_123", gclid: "gclid-value", value: 49.95 },
+      { customerId: "1234567890", conversionActionId: "9876543210" },
+    )
+    expect(noUserData?.conversions[0]).not.toHaveProperty("userIdentifiers")
+
+    const badEmail = buildGoogleAdsClickConversionRequest(
+      { orderId: "intake_123", gclid: "gclid-value", value: 49.95, userData: { email: "not-an-email" } },
+      { customerId: "1234567890", conversionActionId: "9876543210" },
+    )
+    expect(badEmail?.conversions[0]).not.toHaveProperty("userIdentifiers")
   })
 
   it("builds a targeted conversion action preflight query", () => {

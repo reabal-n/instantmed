@@ -1,5 +1,7 @@
 import "server-only"
 
+import { createHash } from "node:crypto"
+
 import * as Sentry from "@sentry/nextjs"
 
 import { createLogger } from "@/lib/observability/logger"
@@ -51,12 +53,33 @@ interface FireConversionInput {
   value: number
   /** ISO timestamp when the conversion happened. Defaults to now. */
   conversionDateTime?: Date
+  /**
+   * Raw (un-hashed) first-party customer data for enhanced conversions. The
+   * lib normalizes + SHA-256 hashes it before it ever leaves the server, so
+   * callers MUST pass plaintext (never a hash). Currently email only.
+   */
+  userData?: GoogleAdsEnhancedUserData | null
+}
+
+/** Raw, plaintext first-party identifiers. Hashed inside this module. */
+export interface GoogleAdsEnhancedUserData {
+  email?: string | null
 }
 
 type ClickIdentifier = {
   gbraid?: string
   gclid?: string
   wbraid?: string
+}
+
+/**
+ * A single hashed first-party identifier. UserIdentifier is a protobuf oneof,
+ * so each object carries exactly ONE identifier (email here); phone/address go
+ * in their own objects if added later.
+ */
+type GoogleAdsUserIdentifier = {
+  hashedEmail: string
+  userIdentifierSource: "FIRST_PARTY"
 }
 
 interface GoogleAdsClickConversionRequest {
@@ -67,6 +90,7 @@ interface GoogleAdsClickConversionRequest {
     conversionValue: number
     currencyCode: "AUD"
     orderId: string
+    userIdentifiers?: GoogleAdsUserIdentifier[]
   } & ClickIdentifier>
   partialFailure: true
 }
@@ -303,6 +327,54 @@ export function selectGoogleAdsClickIdentifier(input: {
   return null
 }
 
+function sha256Hex(value: string): string {
+  return createHash("sha256").update(value, "utf8").digest("hex")
+}
+
+/**
+ * Normalize an email to Google's enhanced-conversions spec so our hash matches
+ * the hash Google computes on its side (otherwise the upload matches nothing):
+ * lowercase, strip all whitespace, and for gmail/googlemail remove dots in the
+ * local part. Returns null for anything that isn't a plausible address.
+ * Ref: https://support.google.com/google-ads/answer/9888656
+ */
+export function normalizeEmailForGoogleAds(raw?: string | null): string | null {
+  const lowered = raw?.trim().toLowerCase()
+  if (!lowered) return null
+  const at = lowered.lastIndexOf("@")
+  if (at <= 0 || at === lowered.length - 1) return null
+  let local = lowered.slice(0, at)
+  const domain = lowered.slice(at + 1)
+  if (domain === "gmail.com" || domain === "googlemail.com") {
+    local = local.replace(/\./g, "")
+  }
+  const normalized = `${local}@${domain}`.replace(/\s+/g, "")
+  // Reject if normalization collapsed the local part to nothing.
+  return /^[^@\s]+@[^@\s]+$/.test(normalized) ? normalized : null
+}
+
+/** SHA-256 hex of a Google-normalized email, or null if the email is unusable. */
+export function hashEmailForGoogleAds(raw?: string | null): string | null {
+  const normalized = normalizeEmailForGoogleAds(raw)
+  return normalized ? sha256Hex(normalized) : null
+}
+
+/**
+ * Build the `userIdentifiers` array (enhanced conversions) from raw first-party
+ * data. Empty array when nothing usable is present — callers should omit the
+ * field entirely in that case rather than send `userIdentifiers: []`.
+ */
+export function buildGoogleAdsUserIdentifiers(
+  userData?: GoogleAdsEnhancedUserData | null,
+): GoogleAdsUserIdentifier[] {
+  const identifiers: GoogleAdsUserIdentifier[] = []
+  const hashedEmail = hashEmailForGoogleAds(userData?.email)
+  if (hashedEmail) {
+    identifiers.push({ hashedEmail, userIdentifierSource: "FIRST_PARTY" })
+  }
+  return identifiers
+}
+
 export function getGoogleAdsUploadClickConversionsUrl(
   customerId: string,
   apiVersion = process.env.GOOGLE_ADS_API_VERSION || DEFAULT_GOOGLE_ADS_API_VERSION,
@@ -345,6 +417,8 @@ export function buildGoogleAdsClickConversionRequest(
   const conversionActionId = normalizeGoogleAdsNumericId(config.conversionActionId)
   if (!conversionActionId) return null
 
+  const userIdentifiers = buildGoogleAdsUserIdentifiers(input.userData)
+
   return {
     conversions: [
       {
@@ -355,6 +429,7 @@ export function buildGoogleAdsClickConversionRequest(
         conversionValue: input.value,
         currencyCode: "AUD",
         orderId: input.orderId,
+        ...(userIdentifiers.length > 0 ? { userIdentifiers } : {}),
       },
     ],
     partialFailure: true,
