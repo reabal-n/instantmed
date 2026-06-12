@@ -56,7 +56,7 @@ interface FireConversionInput {
   /**
    * Raw (un-hashed) first-party customer data for enhanced conversions. The
    * lib normalizes + SHA-256 hashes it before it ever leaves the server, so
-   * callers MUST pass plaintext (never a hash). Currently email only.
+   * callers MUST pass plaintext (never a hash). Email and phone.
    */
   userData?: GoogleAdsEnhancedUserData | null
 }
@@ -64,6 +64,7 @@ interface FireConversionInput {
 /** Raw, plaintext first-party identifiers. Hashed inside this module. */
 export interface GoogleAdsEnhancedUserData {
   email?: string | null
+  phone?: string | null
 }
 
 type ClickIdentifier = {
@@ -74,13 +75,12 @@ type ClickIdentifier = {
 
 /**
  * A single hashed first-party identifier. UserIdentifier is a protobuf oneof,
- * so each object carries exactly ONE identifier (email here); phone/address go
- * in their own objects if added later.
+ * so each object carries exactly ONE identifier — email and phone go in
+ * separate objects.
  */
-type GoogleAdsUserIdentifier = {
-  hashedEmail: string
-  userIdentifierSource: "FIRST_PARTY"
-}
+type GoogleAdsUserIdentifier =
+  | { hashedEmail: string; userIdentifierSource: "FIRST_PARTY" }
+  | { hashedPhoneNumber: string; userIdentifierSource: "FIRST_PARTY" }
 
 interface GoogleAdsClickConversionRequest {
   conversions: Array<{
@@ -360,9 +360,41 @@ export function hashEmailForGoogleAds(raw?: string | null): string | null {
 }
 
 /**
+ * Normalize a phone to E.164 (with leading `+`) so the hash matches Google's
+ * side, defaulting bare national numbers to Australia (+61). Returns null for
+ * anything that can't be coerced into a plausible E.164 number.
+ * Ref: https://support.google.com/google-ads/answer/9888656
+ */
+export function normalizePhoneForGoogleAds(raw?: string | null): string | null {
+  const trimmed = raw?.trim()
+  if (!trimmed) return null
+  const hadPlus = trimmed.startsWith("+")
+  let digits = trimmed.replace(/\D/g, "")
+  if (!digits) return null
+  if (!hadPlus) {
+    if (digits.startsWith("0")) {
+      // AU national format (04xx…, 02…) → +61, dropping the trunk 0.
+      digits = `61${digits.slice(1)}`
+    } else if (!digits.startsWith("61")) {
+      // Bare national number without trunk 0 (e.g. 4xxxxxxxx) → assume AU.
+      digits = `61${digits}`
+    }
+  }
+  // E.164 allows up to 15 digits; require a sane minimum so junk is dropped.
+  if (digits.length < 8 || digits.length > 15) return null
+  return `+${digits}`
+}
+
+/** SHA-256 hex of a Google-normalized E.164 phone, or null if unusable. */
+export function hashPhoneForGoogleAds(raw?: string | null): string | null {
+  const normalized = normalizePhoneForGoogleAds(raw)
+  return normalized ? sha256Hex(normalized) : null
+}
+
+/**
  * Build the `userIdentifiers` array (enhanced conversions) from raw first-party
- * data. Empty array when nothing usable is present — callers should omit the
- * field entirely in that case rather than send `userIdentifiers: []`.
+ * data — one object per identifier (oneof). Empty array when nothing usable is
+ * present; callers should omit the field entirely rather than send `[]`.
  */
 export function buildGoogleAdsUserIdentifiers(
   userData?: GoogleAdsEnhancedUserData | null,
@@ -371,6 +403,10 @@ export function buildGoogleAdsUserIdentifiers(
   const hashedEmail = hashEmailForGoogleAds(userData?.email)
   if (hashedEmail) {
     identifiers.push({ hashedEmail, userIdentifierSource: "FIRST_PARTY" })
+  }
+  const hashedPhoneNumber = hashPhoneForGoogleAds(userData?.phone)
+  if (hashedPhoneNumber) {
+    identifiers.push({ hashedPhoneNumber, userIdentifierSource: "FIRST_PARTY" })
   }
   return identifiers
 }

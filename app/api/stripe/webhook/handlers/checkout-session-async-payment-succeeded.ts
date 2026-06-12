@@ -219,7 +219,6 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
             row: intakeAttribution,
             source: "checkout_session_async_payment_succeeded",
             supabase,
-            userData: { email: session.customer_details?.email ?? session.customer_email ?? null },
           })
         } catch (err) {
           log.warn("Async server-side Google Ads conversion fire failed", {

@@ -10,7 +10,9 @@ import {
   getGoogleAdsSearchUrl,
   getGoogleAdsUploadClickConversionsUrl,
   hashEmailForGoogleAds,
+  hashPhoneForGoogleAds,
   normalizeEmailForGoogleAds,
+  normalizePhoneForGoogleAds,
   preflightGoogleAdsPurchaseConversionAction,
   resetGoogleAdsAccessTokenCacheForTests,
   selectGoogleAdsClickIdentifier,
@@ -119,14 +121,51 @@ describe("google ads conversion api", () => {
     expect(hashEmailForGoogleAds("bad")).toBeNull()
   })
 
-  it("builds a single FIRST_PARTY hashed-email user identifier", () => {
+  it("normalizes phone numbers to E.164, defaulting bare national numbers to AU", () => {
+    expect(normalizePhoneForGoogleAds("0412 345 678")).toBe("+61412345678")
+    expect(normalizePhoneForGoogleAds("+61 412 345 678")).toBe("+61412345678")
+    expect(normalizePhoneForGoogleAds("61412345678")).toBe("+61412345678")
+    expect(normalizePhoneForGoogleAds("412345678")).toBe("+61412345678")
+    expect(normalizePhoneForGoogleAds("+1 800 555 0102")).toBe("+18005550102")
+    expect(normalizePhoneForGoogleAds("abc")).toBeNull()
+    expect(normalizePhoneForGoogleAds("")).toBeNull()
+    expect(normalizePhoneForGoogleAds(null)).toBeNull()
+  })
+
+  it("hashes E.164 phone numbers as lowercase SHA-256 hex (leading + included)", () => {
+    // Golden vector: sha256 hex of "+61412345678".
+    expect(hashPhoneForGoogleAds("0412 345 678")).toBe(
+      "bc65da54a3ddbacfdc93a0400f0a2d78e41c2180c8255015e9616facfe56f58a",
+    )
+    expect(hashPhoneForGoogleAds("abc")).toBeNull()
+  })
+
+  it("builds one FIRST_PARTY user identifier per provided field (oneof)", () => {
     expect(buildGoogleAdsUserIdentifiers({ email: "test@example.com" })).toEqual([
       {
         hashedEmail: "973dfe463ec85785f5f95af5ba3906eedb2d931c24e69824a89ea65dba4e813b",
         userIdentifierSource: "FIRST_PARTY",
       },
     ])
-    expect(buildGoogleAdsUserIdentifiers({ email: null })).toEqual([])
+    // Email + phone → two separate identifier objects, email first.
+    expect(buildGoogleAdsUserIdentifiers({ email: "test@example.com", phone: "0412 345 678" })).toEqual([
+      {
+        hashedEmail: "973dfe463ec85785f5f95af5ba3906eedb2d931c24e69824a89ea65dba4e813b",
+        userIdentifierSource: "FIRST_PARTY",
+      },
+      {
+        hashedPhoneNumber: "bc65da54a3ddbacfdc93a0400f0a2d78e41c2180c8255015e9616facfe56f58a",
+        userIdentifierSource: "FIRST_PARTY",
+      },
+    ])
+    // Phone only.
+    expect(buildGoogleAdsUserIdentifiers({ phone: "0412 345 678" })).toEqual([
+      {
+        hashedPhoneNumber: "bc65da54a3ddbacfdc93a0400f0a2d78e41c2180c8255015e9616facfe56f58a",
+        userIdentifierSource: "FIRST_PARTY",
+      },
+    ])
+    expect(buildGoogleAdsUserIdentifiers({ email: null, phone: null })).toEqual([])
     expect(buildGoogleAdsUserIdentifiers(null)).toEqual([])
   })
 

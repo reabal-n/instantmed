@@ -7,7 +7,8 @@ const mocks = vi.hoisted(() => ({
   fireGoogleAdsPurchaseConversion: vi.fn(),
 }))
 
-vi.mock("@/lib/analytics/google-ads-conversion-api", () => ({
+vi.mock("@/lib/analytics/google-ads-conversion-api", async (importActual) => ({
+  ...(await importActual<typeof import("@/lib/analytics/google-ads-conversion-api")>()),
   fireGoogleAdsPurchaseConversion: mocks.fireGoogleAdsPurchaseConversion,
 }))
 
@@ -175,6 +176,48 @@ describe("Google Ads post-payment attribution", () => {
       properties: expect.objectContaining({
         $insert_id: "google_ads_server_conversion_attempt:intake_google_success:checkout_session_completed:success:no_error",
       }),
+    })
+  })
+
+  it("forwards enhanced-conversions user data to the upload and flags has_user_data", async () => {
+    mocks.fireGoogleAdsPurchaseConversion.mockResolvedValue({ attempted: true, ok: true })
+
+    const supabase = {
+      from: () => ({
+        insert: async () => ({ error: null }),
+      }),
+    }
+
+    // userData override is injected directly (the live path resolves it from the
+    // patient profile; here we skip the DB + decrypt and assert the wiring).
+    await runGoogleAdsPostPaymentAttribution({
+      amountCents: 4995,
+      intakeId: "intake_ec",
+      posthogDistinctId: "patient_ec",
+      row: {
+        amount_cents: 4995,
+        category: "consult",
+        campaignid: "789",
+        gclid: "gclid-value",
+      },
+      source: "checkout_session_completed",
+      supabase: supabase as never,
+      userData: { email: "test@example.com", phone: "0412 345 678" },
+    })
+
+    expect(mocks.fireGoogleAdsPurchaseConversion).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderId: "intake_ec",
+        gclid: "gclid-value",
+        userData: { email: "test@example.com", phone: "0412 345 678" },
+      }),
+    )
+
+    const attemptEvents = mocks.capture.mock.calls.filter(
+      ([payload]) => payload?.event === "google_ads_server_conversion_attempt",
+    )
+    expect(attemptEvents[0]?.[0]).toMatchObject({
+      properties: expect.objectContaining({ has_user_data: true }),
     })
   })
 })

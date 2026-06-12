@@ -8,6 +8,7 @@ import {
   fireGoogleAdsPurchaseConversion,
   type GoogleAdsEnhancedUserData,
   hashEmailForGoogleAds,
+  hashPhoneForGoogleAds,
 } from "@/lib/analytics/google-ads-conversion-api"
 import {
   hasGoogleAdsUploadClickId,
@@ -15,6 +16,7 @@ import {
 } from "@/lib/analytics/google-ads-upload-audit"
 import { getPostHogBaselineProperties, getPostHogClient } from "@/lib/analytics/posthog-server"
 import { createLogger } from "@/lib/observability/logger"
+import { decryptField } from "@/lib/security/encryption"
 import { sanitizeAuditMetadata } from "@/lib/security/sanitize-audit"
 
 const log = createLogger("google-ads-post-payment")
@@ -259,6 +261,52 @@ function trackGoogleAdsPostHogEvent({
   }
 }
 
+/**
+ * Resolve the patient's plaintext email + phone for enhanced conversions from
+ * their profile (email is stored plaintext; phone is field-level encrypted).
+ * Resilient by design — any failure returns `{}` so a conversion upload is
+ * never blocked by an identity lookup. Raw values are hashed downstream and
+ * never logged. Powers both the live webhook and the cron-backfill paths.
+ */
+async function resolveEnhancedUserData(
+  supabase: SupabaseClient,
+  intakeId: string,
+): Promise<GoogleAdsEnhancedUserData> {
+  try {
+    const { data: intake } = await supabase
+      .from("intakes")
+      .select("patient_id")
+      .eq("id", intakeId)
+      .maybeSingle()
+    const patientId = (intake as { patient_id?: string | null } | null)?.patient_id
+    if (!patientId) return {}
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("email, phone_encrypted")
+      .eq("id", patientId)
+      .maybeSingle()
+    if (!profile) return {}
+
+    const profileRow = profile as { email?: string | null; phone_encrypted?: string | null }
+    const email = profileRow.email?.trim() ? profileRow.email : null
+
+    let phone: string | null = null
+    if (profileRow.phone_encrypted) {
+      try {
+        const decrypted = decryptField<string>(profileRow.phone_encrypted)
+        phone = typeof decrypted === "string" && decrypted.trim() ? decrypted : null
+      } catch {
+        phone = null
+      }
+    }
+
+    return { email, phone }
+  } catch {
+    return {}
+  }
+}
+
 export async function runGoogleAdsPostPaymentAttribution({
   amountCents,
   intakeId,
@@ -295,19 +343,14 @@ export async function runGoogleAdsPostPaymentAttribution({
         ? row.amount_cents
         : null
 
-  // Enhanced conversions: attach hashed first-party data (email) to the upload
-  // for higher match rates than gclid alone. Independent kill switch from the
-  // server-conversion one below — set GOOGLE_ADS_ENHANCED_CONVERSIONS_DISABLED=true
-  // to fall back to gclid-only matching WITHOUT disabling server uploads. The
-  // email is normalized + SHA-256 hashed inside the Conversion API client; raw
-  // email never leaves the server, and only `has_user_data` (a boolean) is logged.
-  const enhancedUserData =
+  // Enhanced conversions: attach hashed first-party data (email + phone) to the
+  // upload for higher match rates than gclid alone. Independent kill switch from
+  // the server-conversion one below — set GOOGLE_ADS_ENHANCED_CONVERSIONS_DISABLED=true
+  // to fall back to gclid-only matching WITHOUT disabling server uploads. Values
+  // are normalized + SHA-256 hashed inside the Conversion API client; raw
+  // email/phone never leave the server, and only `has_user_data` (a boolean) is logged.
+  const enhancedConversionsDisabled =
     process.env.GOOGLE_ADS_ENHANCED_CONVERSIONS_DISABLED === "true"
-      ? null
-      : (userData ?? null)
-  const hasUserData = Boolean(
-    enhancedUserData?.email && hashEmailForGoogleAds(enhancedUserData.email),
-  )
 
   // Operator kill switch. Set GOOGLE_ADS_SERVER_CONVERSION_DISABLED=true
   // in Vercel env to disable server-side Conversion API uploads entirely.
@@ -362,14 +405,25 @@ export async function runGoogleAdsPostPaymentAttribution({
   }
 
   let result: { attempted: boolean; ok?: boolean; error?: string }
+  let hasUserData = false
   if (hasGoogleClickId(row)) {
+    // Resolve hashed email + phone for enhanced conversions only when we're
+    // actually going to upload. Caller may inject `userData` (e.g. tests);
+    // otherwise we read it from the patient profile (live webhook + cron alike).
+    const enhancedUserData = enhancedConversionsDisabled
+      ? null
+      : (userData ?? (await resolveEnhancedUserData(supabase, intakeId)))
+    hasUserData = Boolean(
+      hashEmailForGoogleAds(enhancedUserData?.email) ||
+        hashPhoneForGoogleAds(enhancedUserData?.phone),
+    )
     result = await fireGoogleAdsPurchaseConversion({
       orderId: intakeId,
       gclid: row.gclid,
       gbraid: row.gbraid,
       wbraid: row.wbraid,
       value: resolvedAmountCents != null ? resolvedAmountCents / 100 : 0,
-      ...(enhancedUserData ? { userData: enhancedUserData } : {}),
+      ...(hasUserData ? { userData: enhancedUserData } : {}),
     })
   } else {
     result = { attempted: false, ok: false, error: "missing_click_id" }
