@@ -8,7 +8,7 @@ This map names the main domains, entry points, and files to open first.
 |--------|---------------|--------------|
 | Public marketing | Homepage, active service pages, legal/trust pages, and regulated acquisition copy | `app/page.tsx`, `app/medical-certificate`, `app/prescriptions`, `app/erectile-dysfunction`, `app/hair-loss`, `components/marketing/*` |
 | SEO content | Programmatic condition/symptom/guide/location/intent pages plus MDX health guides | `app/blog/[slug]`, `content/blog/*`, `lib/blog/*`, `lib/seo/*` |
-| Intake | One canonical `/request` flow with service-specific steps | `app/request/page.tsx`, `components/request/request-flow.tsx`, `components/request/steps/*`, `lib/request/step-registry.ts` |
+| Intake | One canonical `/request` flow with service-specific steps | `app/request/page.tsx`, `components/request/request-flow.tsx`, `components/request/steps/*`, `lib/request/step-registry.ts`, `lib/request/initial-url-seeding.ts` |
 | Patient portal | Patient dashboard, intakes, documents, settings, messages, prescriptions, payment history | `app/patient/*`, `components/patient/*`, `lib/data/patient-*` |
 | Staff cockpit | Unified admin, doctor, and support experience. `/dashboard` is canonical; support lands on `/admin/ops` | `app/dashboard`, `app/admin/*`, `app/doctor/*`, `components/operator/*`, `lib/dashboard/*` |
 

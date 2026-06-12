@@ -12,6 +12,8 @@ This is a follow-up plan. Do not bundle these with the first wiki pass unless se
 
 ## Batch 2: Request Flow Hook Review
 
+Status: completed on 2026-06-12. URL seeding now lives in `lib/request/initial-url-seeding.ts` with focused Vitest coverage; `components/request/request-flow.tsx` keeps only the health-profile dependency suppression.
+
 Goal: reduce hook dependency suppressions in `components/request/request-flow.tsx` without changing intake behavior.
 
 Tiny commits:
@@ -20,6 +22,8 @@ Tiny commits:
 2. Extract mount-only URL seeding into a named helper/hook with explicit intent.
 3. Replace broad `eslint-disable react-hooks/exhaustive-deps` comments only where the helper makes dependencies honest.
 4. Verify med-cert, ED, hair-loss, and coming-soon subtype behavior.
+
+Verification completed: focused Vitest coverage for URL-seeded consult subtype, cert type, and duration behavior; lint; typecheck; targeted Chromium Playwright specs for consult subtypes and medical-certificate pre-seeding.
 
 Risk: intake draft restoration and URL handoff behavior are conversion-sensitive. Do not refactor without focused tests.
 

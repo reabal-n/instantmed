@@ -29,12 +29,13 @@ import { requestCx } from "@/components/request/request-cx"
 import { SubtypeMismatchBanner } from "@/components/request/subtype-mismatch-banner"
 import { TimeRemaining } from "@/components/request/time-remaining"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
-import { isValidCertCategory, isValidCertDuration } from "@/lib/marketing/med-cert-selector"
 import {
-  type ConsultSubtype,
+  getInitialRequestUrlDecision,
+  type InitialRequestUrlContext,
+} from "@/lib/request/initial-url-seeding"
+import {
   getStepDefinitionById,
   getStepsForService,
-  isConsultSubtypeAvailable,
   type StepContext,
   type UnifiedServiceType,
   type UnifiedStepId,
@@ -330,6 +331,27 @@ export function RequestFlow({
     setAuthContext,
     lastSavedAt,
   } = useRequestStore()
+
+  const initialUrlContextRef = useRef<InitialRequestUrlContext | null>(null)
+  if (initialUrlContextRef.current === null) {
+    initialUrlContextRef.current = {
+      initialService,
+      initialSubtype,
+      initialCertType,
+      initialDuration,
+      storedConsultSubtype: answers.consultSubtype,
+      storedCertType: answers.certType,
+      storedDuration: answers.duration,
+      lastSavedAt,
+    }
+  }
+
+  const initialDebugContextRef = useRef({
+    initialService,
+    rawServiceParam,
+    storeServiceType: serviceType,
+    currentStepId,
+  })
   
   // Rehydrate persisted store after mount (SSR-safe pattern).
   // The store uses skipHydration:true to avoid a server/client mismatch on first render.
@@ -412,77 +434,27 @@ export function RequestFlow({
     }
   }, [initialService, serviceType, setServiceType])
 
-  // Apply URL context params for consult handoff (survives refresh)
-  // Also detect subtype mismatch between draft and URL
+  // Apply initial URL context once. These values intentionally snapshot the
+  // first render so draft restoration does not keep fighting the URL.
   useEffect(() => {
-    if (initialService === 'consult' && initialSubtype) {
-      const storedSubtype = answers.consultSubtype as string | undefined
-      
-      // Check for subtype mismatch - draft has different subtype than URL
-      if (storedSubtype && storedSubtype !== initialSubtype && lastSavedAt) {
-        // Show mismatch banner instead of silently overwriting
-        setDraftSubtype(storedSubtype)
-        setShowSubtypeMismatch(true)
-        return // Don't auto-apply URL subtype - let user decide
-      }
-      
-      // No mismatch or no existing draft - apply URL subtype
-      setAnswer('consultSubtype', initialSubtype)
-      
-    }
-  // Only run on mount - URL params are the source of truth
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    const initialUrlContext = initialUrlContextRef.current
+    if (!initialUrlContext) return
 
-  // Block Coming Soon subtypes - redirect to landing page
-  useEffect(() => {
-    if (initialService === 'consult' && initialSubtype) {
-      if (!isConsultSubtypeAvailable(initialSubtype as ConsultSubtype)) {
-        const redirectMap: Record<string, string> = {
-          womens_health: '/request',
-          weight_loss: '/weight-loss',
-        }
-        router.replace(redirectMap[initialSubtype] || '/')
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    const decision = getInitialRequestUrlDecision(initialUrlContext)
 
-  // Pre-seed cert type from URL param (from landing page selector)
-  useEffect(() => {
-    if (initialService === 'med-cert' && initialCertType && !answers.certType) {
-      if (isValidCertCategory(initialCertType)) {
-        setAnswer('certType', initialCertType)
-      }
+    if (decision.subtypeMismatch) {
+      setDraftSubtype(decision.subtypeMismatch.draftSubtype)
+      setShowSubtypeMismatch(true)
     }
-  // Only run on mount
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
-  // Pre-seed certificate duration from URL param when a landing CTA displays
-  // a specific price. Direct /request entries still keep the flow default.
-  useEffect(() => {
-    if (initialService === 'med-cert' && initialDuration && !answers.duration) {
-      if (isValidCertDuration(initialDuration)) {
-        setAnswer('duration', initialDuration)
-      }
+    for (const seed of decision.answerSeeds) {
+      setAnswer(seed.key, seed.value)
     }
-  // Only run on mount
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
-  // Dev sanity check: trace service routing on mount
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      posthog?.capture('$debug_request_flow_mount', {
-        initialService,
-        rawServiceParam,
-        storeServiceType: serviceType,
-        currentStepId,
-      })
+    if (decision.redirectPath) {
+      router.replace(decision.redirectPath)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [router, setAnswer])
 
   // Check for existing draft on mount
   useEffect(() => {
@@ -556,6 +528,16 @@ export function RequestFlow({
     answers,
     userEmail,
   })
+
+  const didCaptureDebugMountRef = useRef(false)
+  useEffect(() => {
+    if (didCaptureDebugMountRef.current) return
+    didCaptureDebugMountRef.current = true
+
+    if (process.env.NODE_ENV === 'development') {
+      posthog?.capture('$debug_request_flow_mount', initialDebugContextRef.current)
+    }
+  }, [posthog])
 
   const { hasUnsavedChanges, showExitConfirm, setShowExitConfirm } = useUnsavedChanges({
     answers,

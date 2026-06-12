@@ -39,6 +39,7 @@ Important files and folders referenced by the root docs and current architecture
 | `components/request/steps/*` | Service-specific intake steps | Field, copy, validation, UX changes | Critical |
 | `lib/request/step-registry.ts` | Service step definitions and skip logic | Any intake sequence change | Critical |
 | `lib/request/consult-subtypes.ts` | Specialty/gated subtype launch state | ED, hair loss, women's health, weight loss | Critical |
+| `lib/request/initial-url-seeding.ts` | Pure helper for first-render `/request` URL handoff decisions | URL-seeded subtype, cert type, or duration behavior | Critical |
 | `app/actions/unified-checkout.ts` | Request flow to checkout bridge | Checkout creation from intake | Critical |
 | `lib/stripe/checkout.ts` | Authenticated checkout orchestration | Payment, safety, idempotency, Stripe changes | Critical |
 | `lib/stripe/guest-checkout.ts` | Guest checkout orchestration | Guest payment/account-linking work | Critical |

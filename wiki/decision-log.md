@@ -31,3 +31,11 @@ Decision: adding 8 wiki markdown files increases the counted doc surface from 89
 Reason: `scripts/doc-audit.sh` counts root-level wiki markdown files unless explicitly excluded. Keeping them counted makes the wiki visible to the existing doc discipline.
 
 Consequence: `docs/bookkeeping/expected-md-count` and `docs/bookkeeping/file-map.md` must be updated with the wiki.
+
+## 2026-06-12: Request URL Seeding Is A Pure Decision Helper
+
+Decision: keep first-render `/request` URL handoff logic in `lib/request/initial-url-seeding.ts`.
+
+Reason: consult subtype, certificate type, and duration URL params are conversion-sensitive and should be testable without mounting the full request flow.
+
+Consequence: future changes to URL-seeded intake behavior should update the helper and its focused Vitest contract before editing `components/request/request-flow.tsx`.
