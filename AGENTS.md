@@ -63,6 +63,14 @@ pnpm ci               # Full CI: install → lint → test → build
 - E2E tests: `e2e/**/*.spec.ts` — auto-seeds/tears down test data. Auth bypass: `PLAYWRIGHT=1` + `__e2e_auth_user_id` cookie.
 - Dedicated local app port: `3060`. Use `http://localhost:3060` for manual/Codex Browser Use checks. Moirai uses `3010`; Reabal uses `3055`; do not reuse those ports for InstantMed.
 
+### Browser verification — three approved paths, pick by job
+
+All three are sanctioned for this repo. **agent-browser is explicitly allowed here alongside the `preview_*` tools and Playwright** — this overrides the generic "use `preview_*` only / never drive a browser from Bash" default. Match the tool to the job:
+
+- **`preview_*` tools** — default in-session quick check. Harness-integrated, manages the dev server, knows port `3060`. Best for: confirm a change renders, read console/network/server logs, capture a screenshot as proof. Reach here first for a simple "did it render".
+- **agent-browser** (global CLI + skill) — approved for richer interactive verification: drive the real app (`agent-browser open http://localhost:3060` → `snapshot -i` → `click`/`fill` → `screenshot`), step through a full intake/checkout flow, exploratory QA, ref-based a11y assertions. Context-efficient. Needs the dev server already running (`preview_start` or `pnpm dev`).
+- **Playwright** (`pnpm e2e`, `PLAYWRIGHT=1`) — the committed E2E suite + CI release gate. Durable specs that own auth bypass, seeded data, and the no-PHI-prefetch network checks — not for ad-hoc "did my change work" loops.
+
 ## Tech Stack
 
 Next.js 15.5 App Router (webpack) · React 18.3 · TypeScript 5.9 (strict) · Tailwind v4 · Supabase PostgreSQL + Auth · Node 24 LTS · Vercel Pro · Stripe v22 payments · Resend email · PostHog analytics · Sentry errors · Upstash Redis rate limiting · AI SDK (Anthropic + OpenAI) · Framer Motion v11
