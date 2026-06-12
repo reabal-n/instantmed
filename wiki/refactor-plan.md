@@ -46,6 +46,8 @@ Risk: Google Ads enhanced conversion payload shape is strict. Keep wire shape un
 
 ## Batch 4: Staff Queue Locality Review
 
+Status: mapped on 2026-06-12. The action/guard matrix is recorded in `wiki/code-hygiene-audit.md`; no code split was made because the module is clinically sensitive and existing tests are mostly source-contract coverage.
+
 Goal: make the doctor queue mutation/UI surface easier to understand without weakening clinical ownership guards.
 
 Tiny commits:
@@ -54,6 +56,8 @@ Tiny commits:
 2. Move pure formatting or payload-building helpers only if tests already cover behavior.
 3. Keep server-side claim/ownership enforcement in the mutation path.
 4. Run focused doctor queue tests after each small move.
+
+Next safe move: add a focused unit test for renewal-note formatting, then extract only that pure formatting helper from `quickPrescribeRenewalAction()`.
 
 Risk: staff queue actions are clinical operations, not cosmetic UI code. Do not split files until the enforcement path is proven.
 

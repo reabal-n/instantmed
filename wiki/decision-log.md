@@ -47,3 +47,11 @@ Decision: define explicit `EnhancedConversionsUserData` and address payload type
 Reason: Google Ads enhanced conversion payload keys are strict, and a loose `Record<string, any>` made drift easier to miss.
 
 Consequence: future client-side enhanced-conversion changes should update the typed builder and `lib/__tests__/conversion-tracking.test.ts` together.
+
+## 2026-06-12: Doctor Queue Actions Stay Unsplitted Until Better Tests Exist
+
+Decision: record the current doctor queue action/guard map before moving queue server-action code.
+
+Reason: `app/doctor/queue/actions.ts` owns clinical decision, prescribing, refund, claim, and capability enforcement paths. Existing guard coverage is useful but mostly source-contract based, not enough for broad extraction.
+
+Consequence: future Batch 4 work should start with a focused test around one pure helper, beginning with renewal-note formatting, before moving any code out of the server-action module.
