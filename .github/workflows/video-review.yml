@@ -28,7 +28,7 @@ on:
         type: string
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   # Only one auto review at a time. Cancel any superseded run.
@@ -55,8 +55,6 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-          # Use a PAT or the default GITHUB_TOKEN so we can push commits.
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Loop guard - skip if HEAD says [skip review]
         id: skip-review-guard
@@ -111,17 +109,33 @@ jobs:
             --journey="$JOURNEY" \
             --url="$URL"
 
-      - name: Stage + commit + push report
+      - name: Prepare review artifact
         if: steps.skip-review-guard.outputs.skip_review != 'true'
+        id: review-artifact
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/reviews/
-          if git diff --cached --quiet; then
-            echo "No review artifacts to commit."
+          RUN_DIR=$(ls -1dt docs/reviews/*/ 2>/dev/null | head -1 || echo "")
+          if [ -z "$RUN_DIR" ]; then
+            echo "No review artifacts generated."
+            echo "artifact_ready=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          RUN_DIR=$(ls -1dt docs/reviews/*/ 2>/dev/null | head -1 || echo "")
           RUN_ID=$(basename "${RUN_DIR%/}")
-          git commit -m "review(auto): ${RUN_ID} [skip review]"
-          git push origin main
+          echo "artifact_ready=true" >> "$GITHUB_OUTPUT"
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "run_dir=${RUN_DIR%/}" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Video review artifact"
+            echo ""
+            echo "- Run: \`$RUN_ID\`"
+            echo "- Download the \`video-review-$RUN_ID\` artifact from this workflow run."
+            echo "- Review artifacts are not pushed to protected \`main\` automatically."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload review artifact
+        if: steps.review-artifact.outputs.artifact_ready == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-review-${{ steps.review-artifact.outputs.run_id }}
+          path: ${{ steps.review-artifact.outputs.run_dir }}
+          if-no-files-found: error
+          retention-days: 30
