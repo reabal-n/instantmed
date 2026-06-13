@@ -5,6 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
 
 const PARCHMENT_PRESCRIPTION_EVENT = "parchment:prescription.created"
+const SYSTEM_ADMIN_EMAILS = new Set(["system@instantmed.com.au"])
 
 const RETRYABLE_REASONS = new Set([
   "prescription_sync_failed",
@@ -46,6 +47,7 @@ interface PrescriptionRow {
 
 interface ProfileSummaryRow {
   id: string
+  auth_user_id?: string | null
   can_prescribe_s4?: boolean | null
   can_prescribe_s8?: boolean | null
   full_name: string | null
@@ -357,8 +359,18 @@ function compactIds(values: Array<string | null | undefined>): string[] {
   return Array.from(new Set(values.filter((value): value is string => Boolean(value))))
 }
 
+function normalizeEmail(email: string | null | undefined): string {
+  return (email || "").trim().toLowerCase()
+}
+
+function isSystemProfile(profile: ProfileSummaryRow): boolean {
+  return profile.id === SYSTEM_AUTO_APPROVE_ID
+    || !profile.auth_user_id
+    || SYSTEM_ADMIN_EMAILS.has(normalizeEmail(profile.email))
+}
+
 function isPrescribingCapableProfile(profile: ProfileSummaryRow): boolean {
-  if (profile.id === SYSTEM_AUTO_APPROVE_ID) return false
+  if (isSystemProfile(profile)) return false
 
   return profile.role === "admin"
     || profile.can_prescribe_s4 === true
@@ -401,7 +413,7 @@ export async function getParchmentOpsDashboard(
   ] = await Promise.all([
     supabase
       .from("profiles")
-      .select("id, full_name, email, role, parchment_user_id, can_prescribe_s4, can_prescribe_s8")
+      .select("id, auth_user_id, full_name, email, role, parchment_user_id, can_prescribe_s4, can_prescribe_s8")
       .in("role", ["doctor", "admin"])
       .order("full_name", { ascending: true }),
 
