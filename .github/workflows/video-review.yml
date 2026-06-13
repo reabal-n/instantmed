@@ -133,7 +133,7 @@ jobs:
 
       - name: Upload review artifact
         if: steps.review-artifact.outputs.artifact_ready == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: video-review-${{ steps.review-artifact.outputs.run_id }}
           path: ${{ steps.review-artifact.outputs.run_dir }}
