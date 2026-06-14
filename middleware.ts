@@ -2,6 +2,7 @@ import { type NextRequest,NextResponse } from 'next/server'
 
 import { captureAttributionToCookie } from '@/lib/analytics/middleware-attribution'
 import { isDevOnlyRoute, isVercelProdOrPreview } from '@/lib/dev-only-routes'
+import { getCanonicalRedirect } from '@/lib/navigation/canonical-redirect'
 import { updateSupabaseSession } from '@/lib/supabase/middleware'
 
 // Define protected routes that require authentication.
@@ -44,10 +45,14 @@ function hasE2EAuthBypass(req: NextRequest): boolean {
 export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  // Redirect www → non-www (consolidate domain authority)
-  if (req.nextUrl.hostname === "www.instantmed.com.au") {
+  // Canonical URL: www → non-www AND strip trailing slash, in a single 301 so
+  // we don't chain redirects or split authority across /path, /path/, www, and
+  // www/path/ variants. Excludes the root and /api/* (see getCanonicalRedirect).
+  const canonical = getCanonicalRedirect(req.nextUrl.hostname, pathname)
+  if (canonical) {
     const url = req.nextUrl.clone()
-    url.hostname = "instantmed.com.au"
+    if (canonical.hostname) url.hostname = canonical.hostname
+    if (canonical.pathname) url.pathname = canonical.pathname
     return NextResponse.redirect(url, 301)
   }
 
