@@ -56,6 +56,21 @@ export const SYMPTOM_VOCABULARY: readonly string[] = [
   "vertigo", "faint", "tremor", "numb",
   "blister", "lump", "swelling",
 
+  // Common named conditions patients type in plain language. Added 2026-06-14
+  // after the growth audit found the stem gate silently rejected real
+  // conditions (gout, covid, reflux, shingles…), adding friction to the
+  // symptoms step. Notes:
+  //  - "uti" is matched as a discrete token (ACRONYM_STEMS below), NOT a
+  //    substring — a substring "uti" would let "routine"/"beautiful" pass.
+  //  - blood-in-urine / urinary terms are deliberately NOT here: haematuria as
+  //    a sole complaint should not pass as a routine sick-day symptom.
+  //  - chronic conditions (eczema, psoriasis, sciatica, gout, hernia) pass this
+  //    anti-gibberish gate but are routed to doctor review by auto-approval's
+  //    CHRONIC_CONDITION_KEYWORDS — this gate is UX, not clinical screening.
+  "gout", "covid", "shingl", "reflux",
+  "tonsil", "sprain", "strain", "eczema", "psoriasis", "gastro",
+  "sciatica", "hernia", "abscess",
+
   // Time / severity / context
   "since", "yesterday", "morning", "night", "today", "day", "week",
   "hour", "ago", "started", "began", "last",
@@ -69,6 +84,13 @@ export const SYMPTOM_VOCABULARY: readonly string[] = [
   "concentrate", "sleep", "work", "function", "energy",
   "appetite", "rest", "barely",
 ] as const
+
+/**
+ * Acronyms matched as a discrete token (not substring) so short, common letter
+ * sequences don't accidentally satisfy the gate inside unrelated words — e.g. a
+ * substring "uti" would match "routine", "beautiful", "constitution".
+ */
+const ACRONYM_STEMS: ReadonlySet<string> = new Set(["uti"])
 
 export interface SymptomTextQualityResult {
   valid: boolean
@@ -99,7 +121,9 @@ export function validateSymptomTextQuality(
 
   const lower = trimmed.toLowerCase()
   const hasStem = SYMPTOM_VOCABULARY.some((stem) => lower.includes(stem))
-  if (!hasStem) {
+  const hasAcronym =
+    !hasStem && lower.split(/[^a-z0-9]+/).some((token) => ACRONYM_STEMS.has(token))
+  if (!hasStem && !hasAcronym) {
     return { valid: false, reason: GENERIC_REASON }
   }
 

@@ -306,6 +306,26 @@ describe("evaluateAutoApprovalEligibility", () => {
     expect(result.disqualifyingFlags).toHaveLength(0)
   })
 
+  // Named chronic/structural conditions are accepted by the symptom-text gate
+  // (so patients aren't blocked at the symptoms step) but MUST route to a doctor
+  // rather than auto-issue a cert for an ongoing condition (2026-06-14).
+  it.each([
+    "eczema flare for two days",
+    "psoriasis",
+    "sciatica shooting down my leg",
+    "gout in my big toe",
+    "hernia is painful",
+  ])("blocks named chronic condition: %j", (symptomDetails) => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({ symptomDetails }),
+      makeReadyDraft(),
+      ADULT_PATIENT,
+    )
+    expect(result.eligible).toBe(false)
+    expect(result.disqualifyingFlags.some(f => f.startsWith("chronic"))).toBe(true)
+  })
+
   // ---- Pregnancy ----
 
   it("rejects intake with pregnancy keyword", () => {

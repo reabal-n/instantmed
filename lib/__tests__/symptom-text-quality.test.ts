@@ -130,6 +130,52 @@ describe("validateSymptomTextQuality", () => {
     })
   })
 
+  describe("named conditions previously rejected by the stem gate", () => {
+    // Each phrase is worded so ONLY the newly-added stem can satisfy the gate
+    // (no other existing vocabulary word matches), proving the stem is what
+    // unblocks it. These are real plain-language conditions patients type that
+    // the gate silently rejected, adding friction to the symptoms step.
+    const cases: Array<[string, string]> = [
+      ["gout", "gout"],
+      ["i think i have a uti", "uti"],
+      ["tested positive for covid", "covid"],
+      ["shingles", "shingles"],
+      ["acid reflux", "reflux"],
+      ["tonsillitis", "tonsillitis"],
+      ["psoriasis", "psoriasis"],
+      ["eczema", "eczema"],
+      ["sciatica", "sciatica"],
+      ["gastro", "gastro"],
+      ["hernia", "hernia"],
+      ["abscess", "abscess"],
+      ["i strained it badly", "strain"],
+      ["sprain", "sprain"],
+    ]
+    it.each(cases)("accepts %j (via stem %j)", (text) => {
+      expect(validateSymptomTextQuality(text).valid).toBe(true)
+    })
+
+    it("matches 'uti' as a discrete token, not a substring", () => {
+      // "routine" and "beautiful" both contain the substring "uti"; a substring
+      // match would wrongly pass them through the only gate. (Avoid words like
+      // "day"/"work" here — those are legitimate stems.)
+      expect(validateSymptomTextQuality("routine").valid).toBe(false)
+      expect(validateSymptomTextQuality("beautiful").valid).toBe(false)
+    })
+
+    it("does NOT accept blood-in-urine as a sole symptom (haematuria → doctor)", () => {
+      // Deliberately excluded: haematuria as a lone complaint should not pass
+      // the gate as a routine sick-day symptom.
+      expect(validateSymptomTextQuality("blood in urine").valid).toBe(false)
+      expect(validateSymptomTextQuality("blood in my urine").valid).toBe(false)
+    })
+
+    it("still rejects gibberish after the additions", () => {
+      expect(validateSymptomTextQuality("table chair window curtain garage roof").valid).toBe(false)
+      expect(validateSymptomTextQuality("asdfghjkl qwertyuiop zxcvbnm poiuyt").valid).toBe(false)
+    })
+  })
+
   describe("edge cases", () => {
     it("handles punctuation-heavy input", () => {
       const result = validateSymptomTextQuality(
