@@ -36,7 +36,8 @@ import { Button } from '@/components/ui/button'
 import { useReducedMotion } from '@/components/ui/motion'
 import { CONTACT_EMAIL, PRICING } from '@/lib/constants'
 import { getDailyStats } from '@/lib/marketing/daily-stats'
-import type { MedCertIntentConfig } from '@/lib/marketing/med-cert-intent-config'
+import { MED_CERT_SLUG_CERT_TYPE, type MedCertIntentConfig } from '@/lib/marketing/med-cert-intent-config'
+import { buildMedCertRequestHref } from '@/lib/marketing/med-cert-selector'
 import { cn } from '@/lib/utils'
 
 const trustBadges = [
@@ -87,7 +88,15 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
   const isDisabled = useServiceAvailability().isServiceDisabled('med-cert')
   const liveStats = getDailyStats()
 
-  const ctaHref = isDisabled ? '/contact' : '/request?service=med-cert'
+  // Prefill the wizard's cert type + duration so step 1 arrives as a
+  // confirmation rather than a cold pick. This page already knows the intent
+  // (its slug), so handing it forward removes the worst funnel friction.
+  const ctaHref = isDisabled
+    ? '/contact'
+    : buildMedCertRequestHref({
+        category: MED_CERT_SLUG_CERT_TYPE[config.slug],
+        duration: '1',
+      })
 
   return (
     <MarketingPageShell>
