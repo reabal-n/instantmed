@@ -39,6 +39,9 @@ export function CompleteAccountForm({
 
   const [showConfetti, setShowConfetti] = useState(false)
   const purchaseTrackedRef = useRef(false)
+  // Separate latch for the PostHog purchase event so it can wait for posthog to
+  // hydrate without blocking (or being blocked by) the one-shot gtag fire.
+  const posthogPurchaseFiredRef = useRef(false)
 
   // Fire Google Ads PURCHASE conversion as soon as the guest lands here.
   // Stripe only redirects to this page after a successful payment, so it is
@@ -47,7 +50,7 @@ export function CompleteAccountForm({
   // they never reach /patient/intakes/success. The server-side CAPI fires
   // separately from the Stripe webhook; Google deduplicates on transactionId.
   useEffect(() => {
-    if (!intakeId || purchaseTrackedRef.current) return
+    if (!intakeId) return
     // Don't fire the Google Ads conversion until we have a real
     // amount_cents from the database. The complete-account-page query
     // filters on `payment_status = "paid"` so this should almost always
@@ -58,42 +61,52 @@ export function CompleteAccountForm({
     // CAPI fires separately from the Stripe webhook with the real
     // amount, so we don't lose attribution either way.
     if (amountCents == null) return
-    purchaseTrackedRef.current = true
     const valueDollars = amountCents / 100
-    void trackPurchase({
-      transactionId: intakeId,
-      value: valueDollars,
-      service: serviceSlug || "unknown",
-      serviceName: serviceName || "Request",
-      email,
-      isNewCustomer: isNewCustomer ?? true,
-    })
+
+    // Google Ads / gtag conversion — fire exactly once. Google dedups on
+    // transactionId against the server-side CAPI fire.
+    if (!purchaseTrackedRef.current) {
+      purchaseTrackedRef.current = true
+      void trackPurchase({
+        transactionId: intakeId,
+        value: valueDollars,
+        service: serviceSlug || "unknown",
+        serviceName: serviceName || "Request",
+        email,
+        isNewCustomer: isNewCustomer ?? true,
+      })
+    }
 
     // PostHog parity with /patient/intakes/success. Guest checkouts land here,
-    // not on the success page, so without this capture our funnel sees only
-    // ~5% of real purchases. Cookie fallback covers cases where the Stripe
-    // redirect dropped sessionStorage on mobile Safari.
-    const attribution = getAttribution()
-    posthog?.capture('purchase_completed', {
-      intake_id: intakeId,
-      service: serviceSlug || "unknown",
-      value: valueDollars,
-      currency: 'AUD',
-      guest_checkout: true,
-      utm_source: attribution.utm_source,
-      utm_medium: attribution.utm_medium,
-      utm_campaign: attribution.utm_campaign,
-      utm_content: attribution.utm_content,
-      gclid: attribution.gclid,
-      gbraid: attribution.gbraid,
-      wbraid: attribution.wbraid,
-      campaignid: attribution.campaignid,
-      keyword: attribution.keyword,
-      landing_page: attribution.landing_page,
-      has_gclid: Boolean(attribution.gclid),
-      has_utm_source: Boolean(attribution.utm_source),
-      has_campaignid: Boolean(attribution.campaignid),
-    })
+    // not on the success page, so without this capture our funnel sees only a
+    // fraction of real purchases. Latched separately and gated on `posthog` so
+    // a null-on-first-render instance no longer drops the event (the ~3x
+    // undercount). Cookie fallback covers cases where the Stripe redirect
+    // dropped sessionStorage on mobile Safari.
+    if (!posthogPurchaseFiredRef.current && posthog) {
+      posthogPurchaseFiredRef.current = true
+      const attribution = getAttribution()
+      posthog.capture('purchase_completed', {
+        intake_id: intakeId,
+        service: serviceSlug || "unknown",
+        value: valueDollars,
+        currency: 'AUD',
+        guest_checkout: true,
+        utm_source: attribution.utm_source,
+        utm_medium: attribution.utm_medium,
+        utm_campaign: attribution.utm_campaign,
+        utm_content: attribution.utm_content,
+        gclid: attribution.gclid,
+        gbraid: attribution.gbraid,
+        wbraid: attribution.wbraid,
+        campaignid: attribution.campaignid,
+        keyword: attribution.keyword,
+        landing_page: attribution.landing_page,
+        has_gclid: Boolean(attribution.gclid),
+        has_utm_source: Boolean(attribution.utm_source),
+        has_campaignid: Boolean(attribution.campaignid),
+      })
+    }
   }, [intakeId, amountCents, serviceSlug, serviceName, email, isNewCustomer, posthog])
 
   useEffect(() => {
