@@ -72,6 +72,9 @@ export function SuccessClient({
   )
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const purchaseTrackedRef = useRef(false)
+  // Separate latch for the PostHog purchase event so it can wait for posthog to
+  // hydrate without blocking (or being blocked by) the one-shot gtag fire.
+  const posthogPurchaseFiredRef = useRef(false)
 
   // Cleanup cooldown timer
   useEffect(() => {
@@ -217,7 +220,7 @@ export function SuccessClient({
   }, [intakeId, initialStatus, posthog, serviceName])
 
   useEffect(() => {
-    if (!intakeId || purchaseTrackedRef.current) return
+    if (!intakeId) return
 
     // Don't fire the conversion until we have a real amount_cents from
     // the database. When a patient lands on this page DURING the Stripe
@@ -229,59 +232,67 @@ export function SuccessClient({
     // `resolvedAmountCents` from the API; wait for it.
     if (resolvedAmountCents == null) return
 
-    purchaseTrackedRef.current = true
-
-    // Stripe only redirects here after successful payment. trackPurchase
-    // includes Enhanced Conversions (hashed email) and value.
     const valueDollars = resolvedAmountCents / 100
-    void trackPurchase({
-      transactionId: intakeId,
-      value: valueDollars,
-      service: serviceName || "unknown",
-      serviceName: serviceName || "Request",
-      email: patientEmail,
-      isNewCustomer,
-    })
 
-    // PostHog purchase event - completes the funnel: step_viewed → step_completed → purchase_completed
-    // Surface persisted attribution (UTMs + gclid) onto the event so we can
-    // attribute purchases back to recovery emails, ad campaigns, referrers.
+    // Google Ads / gtag conversion — fire exactly once. Stripe only redirects
+    // here after successful payment. trackPurchase includes Enhanced
+    // Conversions (hashed email) and value; Google dedups on transactionId.
+    if (!purchaseTrackedRef.current) {
+      purchaseTrackedRef.current = true
+      void trackPurchase({
+        transactionId: intakeId,
+        value: valueDollars,
+        service: serviceName || "unknown",
+        serviceName: serviceName || "Request",
+        email: patientEmail,
+        isNewCustomer,
+      })
+    }
+
+    // PostHog purchase event - completes the funnel: step_viewed → step_completed → purchase_completed.
+    // Latched separately and gated on `posthog` so a null-on-first-render
+    // instance no longer drops the event (it was undercounting purchases ~3x
+    // and poisoning every funnel/channel insight). The effect re-runs when
+    // posthog hydrates because posthog is in the dep array.
     // getAttribution() falls back to the first-party cookie when sessionStorage
     // was cleared by the Stripe redirect or by privacy-restricted browsers.
-    const attribution = getAttribution()
-    const cameFromRecoveryEmail = attribution.utm_source === 'recovery_email'
+    if (!posthogPurchaseFiredRef.current && posthog) {
+      posthogPurchaseFiredRef.current = true
+      const attribution = getAttribution()
+      const cameFromRecoveryEmail = attribution.utm_source === 'recovery_email'
 
-    posthog?.capture('purchase_completed', {
-      intake_id: intakeId,
-      service: serviceName || "unknown",
-      value: valueDollars,
-      currency: 'AUD',
-      came_from_recovery_email: cameFromRecoveryEmail,
-      utm_source: attribution.utm_source,
-      utm_medium: attribution.utm_medium,
-      utm_campaign: attribution.utm_campaign,
-      utm_content: attribution.utm_content,
-      gclid: attribution.gclid,
-      gbraid: attribution.gbraid,
-      wbraid: attribution.wbraid,
-      campaignid: attribution.campaignid,
-      keyword: attribution.keyword,
-      landing_page: attribution.landing_page,
-      has_gclid: Boolean(attribution.gclid),
-      has_utm_source: Boolean(attribution.utm_source),
-      has_campaignid: Boolean(attribution.campaignid),
-    })
-
-    // Dedicated event for the recovery-email funnel measurement. Keeps the
-    // PostHog "purchases by hero variant" insight clean while enabling a
-    // separate "purchases that came from recovery emails" insight.
-    if (cameFromRecoveryEmail) {
-      posthog?.capture('purchase_came_from_recovery_email', {
+      posthog.capture('purchase_completed', {
         intake_id: intakeId,
         service: serviceName || "unknown",
         value: valueDollars,
         currency: 'AUD',
+        came_from_recovery_email: cameFromRecoveryEmail,
+        utm_source: attribution.utm_source,
+        utm_medium: attribution.utm_medium,
+        utm_campaign: attribution.utm_campaign,
+        utm_content: attribution.utm_content,
+        gclid: attribution.gclid,
+        gbraid: attribution.gbraid,
+        wbraid: attribution.wbraid,
+        campaignid: attribution.campaignid,
+        keyword: attribution.keyword,
+        landing_page: attribution.landing_page,
+        has_gclid: Boolean(attribution.gclid),
+        has_utm_source: Boolean(attribution.utm_source),
+        has_campaignid: Boolean(attribution.campaignid),
       })
+
+      // Dedicated event for the recovery-email funnel measurement. Keeps the
+      // PostHog "purchases by hero variant" insight clean while enabling a
+      // separate "purchases that came from recovery emails" insight.
+      if (cameFromRecoveryEmail) {
+        posthog.capture('purchase_came_from_recovery_email', {
+          intake_id: intakeId,
+          service: serviceName || "unknown",
+          value: valueDollars,
+          currency: 'AUD',
+        })
+      }
     }
   }, [intakeId, serviceName, resolvedAmountCents, patientEmail, posthog, isNewCustomer])
 
