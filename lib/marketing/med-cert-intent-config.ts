@@ -4,6 +4,7 @@
  */
 
 import { PRICING_DISPLAY } from "@/lib/constants"
+import type { CertCategory } from "@/lib/marketing/med-cert-selector"
 
 export const MED_CERT_INTENT_SLUGS = [
   "work",
@@ -25,6 +26,32 @@ export const MED_CERT_INTENT_SLUGS = [
 ] as const
 
 export type MedCertIntentSlug = (typeof MED_CERT_INTENT_SLUGS)[number]
+
+/**
+ * Maps each intent landing page to the wizard certificate type so its CTA can
+ * pre-fill step 1 (the cert-step) instead of dropping the user on a cold
+ * 3-decision pick. Education intents -> study, care intents -> carer, and all
+ * work/personal-illness intents -> work (the patient's own absence). The user
+ * can still change the type in the wizard; this only removes the blank-start
+ * friction that drives the -43% cert->symptoms drop.
+ */
+export const MED_CERT_SLUG_CERT_TYPE: Record<MedCertIntentSlug, CertCategory> = {
+  work: "work",
+  study: "study",
+  carer: "carer",
+  "sick-leave": "work",
+  university: "study",
+  school: "study",
+  "return-to-work": "work",
+  centrelink: "work",
+  anxiety: "work",
+  flu: "work",
+  "work-from-home": "work",
+  migraine: "work",
+  gastro: "work",
+  "back-pain": "work",
+  covid: "work",
+}
 
 export interface MedCertIntentConfig {
   slug: MedCertIntentSlug

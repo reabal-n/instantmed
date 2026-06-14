@@ -141,6 +141,8 @@ export default function CertificateStep({ onNext, initialDuration, hideIntro = f
   const initialUrlDurationRef = useRef<Duration | null>(parseDuration(initialDuration))
   const urlDurationAppliedRef = useRef(false)
   const storedDurationAppliedRef = useRef(false)
+  const userSelectedTypeRef = useRef(false)
+  const prefillReportedRef = useRef(false)
 
   const certType = answers.certType as CertType | undefined
   // Default to 1 day. Tier 1 review 2026-05-26 (/medical-certificate #5)
@@ -209,6 +211,18 @@ export default function CertificateStep({ onNext, initialDuration, hideIntro = f
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Measure the prefill: when the cert type arrives pre-selected (intent-page
+  // URL handoff or saved prefs) the user didn't pick it cold. Latch only once
+  // posthog is ready so we don't lose the event to the lazy-init race (the
+  // same bug that left heard_about_us at 0 answers).
+  useEffect(() => {
+    if (prefillReportedRef.current || userSelectedTypeRef.current) return
+    if (certType && posthog) {
+      prefillReportedRef.current = true
+      posthog.capture("certificate_prefilled", { cert_type: certType })
+    }
+  }, [certType, posthog])
+
   // Sync to store on every selection change
   useEffect(() => {
     if (!canSyncSelection) return
@@ -240,7 +254,12 @@ export default function CertificateStep({ onNext, initialDuration, hideIntro = f
 
   const handleCertTypeClick = useCallback(
     (typeId: string) => {
+      userSelectedTypeRef.current = true
       setAnswer("certType", typeId)
+      // Previously dark: the wizard never emitted a type-selection event, so
+      // step-1 selection was invisible in PostHog. location distinguishes it
+      // from the landing-page selector's certificate_type_selected.
+      posthog?.capture("certificate_type_selected", { category: typeId, location: "wizard" })
       setErrors((prev) => {
         const e = { ...prev }
         delete e.certType
@@ -250,7 +269,7 @@ export default function CertificateStep({ onNext, initialDuration, hideIntro = f
         durationRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
       }, 300)
     },
-    [setAnswer]
+    [setAnswer, posthog]
   )
 
   // ── Duration click ────────────────────────────────────────────────────
