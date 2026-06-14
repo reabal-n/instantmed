@@ -56,6 +56,16 @@ export const SYMPTOM_VOCABULARY: readonly string[] = [
   "vertigo", "faint", "tremor", "numb",
   "blister", "lump", "swelling",
 
+  // Common named conditions patients type in plain language. Added 2026-06-14
+  // after the growth audit found the stem gate silently rejected real
+  // conditions (gout, UTI, covid, reflux, shingles…), adding friction to the
+  // symptoms step. "uti" is intentionally a loose substring — erring permissive
+  // is correct here; this gate only blocks gibberish, and AI notes + doctor
+  // review run downstream.
+  "gout", "uti", "urine", "urinary", "covid", "shingl", "reflux",
+  "tonsil", "sprain", "strain", "eczema", "psoriasis", "gastro",
+  "sciatica", "hernia", "abscess",
+
   // Time / severity / context
   "since", "yesterday", "morning", "night", "today", "day", "week",
   "hour", "ago", "started", "began", "last",
