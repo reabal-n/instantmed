@@ -150,10 +150,24 @@ describe("validateSymptomTextQuality", () => {
       ["abscess", "abscess"],
       ["i strained it badly", "strain"],
       ["sprain", "sprain"],
-      ["blood in urine", "urine"],
     ]
     it.each(cases)("accepts %j (via stem %j)", (text) => {
       expect(validateSymptomTextQuality(text).valid).toBe(true)
+    })
+
+    it("matches 'uti' as a discrete token, not a substring", () => {
+      // "routine" and "beautiful" both contain the substring "uti"; a substring
+      // match would wrongly pass them through the only gate. (Avoid words like
+      // "day"/"work" here — those are legitimate stems.)
+      expect(validateSymptomTextQuality("routine").valid).toBe(false)
+      expect(validateSymptomTextQuality("beautiful").valid).toBe(false)
+    })
+
+    it("does NOT accept blood-in-urine as a sole symptom (haematuria → doctor)", () => {
+      // Deliberately excluded: haematuria as a lone complaint should not pass
+      // the gate as a routine sick-day symptom.
+      expect(validateSymptomTextQuality("blood in urine").valid).toBe(false)
+      expect(validateSymptomTextQuality("blood in my urine").valid).toBe(false)
     })
 
     it("still rejects gibberish after the additions", () => {

@@ -98,6 +98,12 @@ const INJURY_KEYWORDS = [
 const CHRONIC_CONDITION_KEYWORDS = [
   "chronic", "relapse",
   "long-term", "long term", "recurring",
+  // Named chronic / structural conditions (added 2026-06-14). The symptom-text
+  // gate now accepts these plain-language condition names so patients aren't
+  // blocked at the symptoms step; auto-approval must therefore route them to a
+  // doctor rather than auto-issuing a cert for an ongoing condition. Matched on
+  // word boundaries, so "eczema" matches "eczema flare" but not substrings.
+  "eczema", "psoriasis", "sciatica", "gout", "hernia",
 ]
 
 const PREGNANCY_KEYWORDS = [
