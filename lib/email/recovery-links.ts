@@ -1,5 +1,5 @@
 export interface PartialIntakeRecoveryUrlDraft {
-  consultSubtype?: "ed" | "hair_loss" | null
+  consultSubtype?: "ed" | "hair_loss" | "womens_health" | null
   serviceType: string
   sessionId: string
 }

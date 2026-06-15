@@ -39,7 +39,7 @@ export const SERVICE_LIFECYCLE: Record<ServiceType, ServiceLifecycle> = {
   med_certs: "active",
   common_scripts: "active",
   mens_health: "active",
-  womens_health: "future",
+  womens_health: "active",
   weight_loss: "future",
   referrals: "compatibility_only",
   pathology: "compatibility_only",

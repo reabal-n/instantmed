@@ -50,6 +50,14 @@ describe("partial intake recovery URL builder", () => {
     expect(new URL(hairLoss).pathname).toBe("/request")
     expect(new URL(hairLoss).searchParams.get("subtype")).toBe("hair_loss")
     expectRecoveryParams(hairLoss, "consult")
+
+    const womensHealth = buildPartialIntakeRecoveryUrl({
+      appUrl: APP_URL,
+      draft: { consultSubtype: "womens_health", serviceType: "consult", sessionId: SESSION_ID },
+    })
+    expect(new URL(womensHealth).pathname).toBe("/request")
+    expect(new URL(womensHealth).searchParams.get("subtype")).toBe("womens_health")
+    expectRecoveryParams(womensHealth, "consult")
   })
 
   it("sends retired bare consult drafts to the consult overview", () => {

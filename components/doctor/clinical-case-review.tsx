@@ -124,6 +124,18 @@ function isDuplicatePatientNoteFact(label: string, value: string, patientStory: 
   return normaliseClinicalFactText(patientStory).includes(note)
 }
 
+function getSafetyItemClasses(severity: "info" | "caution" | "block", compact: boolean): string {
+  if (severity === "block") {
+    return "border-red-200 bg-red-50 text-red-900"
+  }
+  if (severity === "caution") {
+    return "border-amber-200 bg-amber-50 text-amber-900"
+  }
+  return compact
+    ? "border-border/60 bg-background text-foreground"
+    : "border-border/60 bg-muted/25 text-foreground"
+}
+
 export function ClinicalCaseReview({
   category,
   subtype,
@@ -206,7 +218,12 @@ export function ClinicalCaseReview({
   }
   const clinicalNoteSection = (
     <section className="rounded-xl border border-border/60 bg-card shadow-sm shadow-primary/[0.035]">
-      <div className="sticky top-0 z-10 flex flex-col gap-2 border-b border-border/60 bg-card/95 px-3 py-2 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+      <div
+        className={cn(
+          "flex flex-col gap-2 border-b border-border/60 px-3 py-2 sm:flex-row sm:items-center sm:justify-between",
+          compact ? "bg-card" : "sticky top-0 z-10 bg-card/95 backdrop-blur",
+        )}
+      >
         <div className="flex items-center gap-2">
           <FileText className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           <p className="text-xs font-semibold text-foreground">
@@ -229,7 +246,7 @@ export function ClinicalCaseReview({
         ) : null}
       </div>
       {isEditableDraftNote ? (
-        <div className="space-y-2 p-3">
+        <div className={cn("space-y-2", compact ? "p-2.5" : "p-3")}>
           {!compact ? (
             <div
               aria-label="Pinned reason for visit"
@@ -413,14 +430,23 @@ export function ClinicalCaseReview({
 
           {visibleFacts.length > 0 ? (
             compact ? (
-              <section aria-label="Request">
-                <dl className="flex flex-wrap gap-x-4 gap-y-1">
-                  {scannableFacts.map((fact) => (
+              <section
+                aria-label="Request"
+                className="rounded-lg border border-border/50 bg-background/80 px-2.5 py-2"
+              >
+                <dl className="flex flex-wrap gap-x-3 gap-y-1">
+                  {visibleFacts.map((fact) => (
                     <div key={`${fact.label}:${fact.value}`} className="flex items-baseline gap-1">
                       <dt className="text-[11px] text-muted-foreground/80 shrink-0">{fact.label}</dt>
-                      <dd className="text-[13px] font-medium text-foreground">{fact.value}</dd>
+                      <dd className="max-w-[28ch] truncate text-[13px] font-medium text-foreground">{fact.value}</dd>
                     </div>
                   ))}
+                  {hiddenFactCount > 0 ? (
+                    <div className="flex items-baseline gap-1 text-[11px] font-medium text-muted-foreground">
+                      <dt className="sr-only">More request facts</dt>
+                      <dd>+{hiddenFactCount} more in full intake</dd>
+                    </div>
+                  ) : null}
                 </dl>
               </section>
             ) : (
@@ -468,27 +494,42 @@ export function ClinicalCaseReview({
               <p className="text-xs font-medium text-muted-foreground">
                 Safety
               </p>
-              <div className="space-y-2">
+              <div
+                className={cn(
+                  compact ? "grid gap-1.5 sm:grid-cols-3" : "space-y-2",
+                )}
+                data-compact-safety-summary={compact ? "true" : undefined}
+              >
                 {summary.safetyItems.map((item) => {
                   const destructive = item.severity === "block"
+                  const SafetyIcon = destructive
+                    ? ShieldAlert
+                    : item.severity === "caution"
+                      ? AlertTriangle
+                      : CheckCircle2
                   return (
                     <div
                       key={`${item.label}:${item.detail}`}
+                      data-safety-severity={item.severity}
                       className={cn(
-                        "flex gap-2 rounded-md border px-3 py-2 text-sm",
-                        destructive
-                          ? "border-red-200 bg-red-50 text-red-900"
-                          : "border-amber-200 bg-amber-50 text-amber-900",
+                        "flex gap-2 rounded-md border",
+                        compact ? "px-2.5 py-2 text-xs" : "px-3 py-2 text-sm",
+                        getSafetyItemClasses(item.severity, compact),
                       )}
                     >
-                      {destructive ? (
-                        <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
-                      ) : (
-                        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                      )}
-                      <div>
+                      <SafetyIcon
+                        className={cn(
+                          "mt-0.5 shrink-0",
+                          compact ? "h-3.5 w-3.5" : "h-4 w-4",
+                          item.severity === "info" && "text-emerald-600",
+                        )}
+                        aria-hidden="true"
+                      />
+                      <div className="min-w-0">
                         <p className="font-medium">{item.label}</p>
-                        <p className="mt-0.5 leading-relaxed">{item.detail}</p>
+                        <p className={cn("mt-0.5 leading-relaxed", compact && "line-clamp-2 text-muted-foreground")}>
+                          {item.detail}
+                        </p>
                       </div>
                     </div>
                   )

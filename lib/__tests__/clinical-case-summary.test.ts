@@ -167,6 +167,76 @@ describe("buildClinicalCaseSummary", () => {
     expect(summary.prescriptionIntent?.directionsTemplate).toMatch(/once daily/i)
   })
 
+  it("turns safe women's health UTI requests into Parchment prescribing context", () => {
+    const summary = buildClinicalCaseSummary({
+      category: "consult",
+      subtype: "womens_health",
+      serviceType: "consult",
+      patientName: "Siena Harding",
+      answers: {
+        womensHealthOption: "uti",
+        utiSymptoms: ["burning", "frequency", "urgency", "cloudy"],
+        utiRedFlags: "no",
+        utiPregnant: "no",
+        has_allergies: "no",
+        takes_medications: "no",
+      },
+    })
+
+    expect(summary.title).toBe("Women's health · UTI")
+    expect(summary.recommendedPlan.action).toBe("prescribe")
+    expect(summary.prescriptionIntent).toMatchObject({
+      presetLabel: "UTI Parchment handoff context",
+      parchmentMode: "open_patient_prescribe",
+    })
+    expect(summary.prescriptionIntent?.directionsTemplate).toMatch(/select first-line uncomplicated lower-UTI antibiotic/i)
+  })
+
+  it("keeps women's health UTI prescribing blocked when red flags are reported", () => {
+    const summary = buildClinicalCaseSummary({
+      category: "consult",
+      subtype: "womens_health",
+      serviceType: "consult",
+      patientName: "Siena Harding",
+      answers: {
+        womensHealthOption: "uti",
+        utiSymptoms: ["burning"],
+        utiRedFlags: "yes",
+        utiPregnant: "no",
+      },
+    })
+
+    expect(summary.recommendedPlan.action).toBe("request_info")
+    expect(summary.prescriptionIntent).toBeUndefined()
+    expect(summary.safetyItems).toContainEqual(
+      expect.objectContaining({ severity: "block", label: "Red flags" }),
+    )
+  })
+
+  it("turns safe women's health pill requests into Parchment prescribing context", () => {
+    const summary = buildClinicalCaseSummary({
+      category: "consult",
+      subtype: "womens_health",
+      serviceType: "consult",
+      patientName: "Siena Harding",
+      answers: {
+        womensHealthOption: "ocp_new",
+        contraceptionType: "start",
+        pregnancyStatus: "no",
+        womens_migraine_aura: "no",
+        womens_blood_clot_history: "no",
+        womens_smoker: "no",
+      },
+    })
+
+    expect(summary.title).toBe("Women's health · New pill")
+    expect(summary.recommendedPlan.action).toBe("prescribe")
+    expect(summary.prescriptionIntent).toMatchObject({
+      presetLabel: "Contraceptive pill Parchment context",
+      medicationSearchHint: "contraceptive pill",
+    })
+  })
+
   it("uses the requested medication as the repeat-prescription Parchment intent", () => {
     const summary = buildClinicalCaseSummary({
       category: "prescription",

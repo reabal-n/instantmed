@@ -31,6 +31,7 @@ import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import { resolveClinicalDecisionNote } from "@/lib/doctor/clinical-notes"
 import { DECLINE_REASONS } from "@/lib/doctor/constants"
 import { buildParchmentPrescriptionContext } from "@/lib/doctor/parchment-prescribing-context"
+import { isPrescribingConsultSubtype } from "@/lib/doctor/service-types"
 import { useDoctorShortcuts } from "@/lib/hooks/use-doctor-shortcuts"
 import type { DeclineReasonCode, IntakeStatus } from "@/types/db"
 
@@ -532,9 +533,16 @@ export function useReviewActions({
   useDoctorShortcuts({
     onApprove: () => {
       if (!intake || intake.status !== "paid" || isPending) return
+      const caseSummary = getClinicalCaseSummary()
       if (service?.type === "med_certs") {
         handleMedCertApprove()
       } else if (service?.type === "repeat_rx" || service?.type === "common_scripts") {
+        handleOpenParchmentPrescribe()
+      } else if (
+        intake.category === "consult" &&
+        isPrescribingConsultSubtype(intake.subtype) &&
+        caseSummary?.prescriptionIntent
+      ) {
         handleOpenParchmentPrescribe()
       } else {
         handleStatusChange("approved")

@@ -12,7 +12,7 @@ export const SERVICE_TYPES = {
 
 export type ServiceTypeValue = (typeof SERVICE_TYPES)[keyof typeof SERVICE_TYPES]
 
-const PRESCRIBING_CONSULT_SUBTYPES = new Set(["ed", "hair_loss"])
+const PRESCRIBING_CONSULT_SUBTYPES = new Set(["ed", "hair_loss", "womens_health"])
 const PRESCRIBING_SERVICE_TYPES = new Set([
   SERVICE_TYPES.COMMON_SCRIPTS,
   SERVICE_TYPES.REPEAT_RX,

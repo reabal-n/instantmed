@@ -52,7 +52,7 @@ import {
   getPatientSnapshotOptionsForCase,
   requiresPrescribingIdentityForCase,
 } from "@/lib/doctor/patient-snapshot"
-import { isConsultServiceType, isKnownDoctorServiceType, SERVICE_TYPES } from "@/lib/doctor/service-types"
+import { isConsultServiceType, isKnownDoctorServiceType, isPrescribingConsultSubtype, SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { formatIntakeStatus } from "@/lib/format/intake"
 import type { DeclineReasonCode, IntakeStatus, IntakeWithDetails } from "@/types/db"
 
@@ -148,11 +148,15 @@ export function IntakeDetailHeader({
 }: IntakeDetailHeaderProps) {
   const service = intake.service as { type?: string } | undefined
   const answers = (intake.answers?.answers ?? {}) as Record<string, unknown>
-  const isPrescribingConsult = intake.category === "consult" && ["ed", "hair_loss"].includes(intake.subtype || "")
+  const isPrescribingConsult = intake.category === "consult" && isPrescribingConsultSubtype(intake.subtype)
   const shouldPrescribeFromConsult = isPrescribingConsult && hasPrescriptionIntent === true
+  const isActivePrescribingStatus = ["paid", "in_review", "awaiting_script"].includes(intake.status)
+  const canShowCompleteConsult =
+    isConsultServiceType(service?.type) &&
+    (shouldPrescribeFromConsult ? isActivePrescribingStatus : intake.status === "paid")
   const isRepeatScript = service?.type === SERVICE_TYPES.REPEAT_RX || service?.type === SERVICE_TYPES.COMMON_SCRIPTS
   const canPrescribeInParchment =
-    ["paid", "in_review", "awaiting_script"].includes(intake.status) &&
+    isActivePrescribingStatus &&
     hasPrescriptionIntent === true &&
     (isRepeatScript || shouldPrescribeFromConsult)
   const snapshotContext = {
@@ -171,7 +175,7 @@ export function IntakeDetailHeader({
   const prescribingActionLabel = hasPrescribingIdentityBlocker ? "Complete patient identity" : null
   const approvalNeedsClinicalNotes =
     (service?.type === SERVICE_TYPES.MED_CERTS && ["paid", "in_review"].includes(intake.status)) ||
-    (isConsultServiceType(service?.type) && intake.status === "paid" && !isPrescribingConsult) ||
+    canShowCompleteConsult ||
     (!isKnownDoctorServiceType(service?.type) && intake.status === "paid")
   const approveDisabledReason =
     approvalNeedsClinicalNotes && !isClinicalNoteSufficient(doctorNotes)
@@ -183,6 +187,7 @@ export function IntakeDetailHeader({
   }
   const actionButtonSize = compact ? "sm" : "default"
   const canApproveAfterPrescribe = intake.script_sent === true
+  const completeConsultNeedsScript = shouldPrescribeFromConsult && !canApproveAfterPrescribe
   const approveAfterPrescribeTitle = hasPrescribingIdentityBlocker
     ? prescribingIdentityTitle
     : canApproveAfterPrescribe
@@ -192,6 +197,13 @@ export function IntakeDetailHeader({
     canPrescribeInParchment && !hasPrescribingIdentityBlocker && !canApproveAfterPrescribe
       ? "Complete or record the prescription in Parchment first."
       : null
+  const completeConsultDisabledReason = shouldPrescribeFromConsult
+    ? hasPrescribingIdentityBlocker
+      ? prescribingIdentityTitle
+      : completeConsultNeedsScript
+        ? "Complete or record the prescription in Parchment first."
+        : approveDisabledReason
+    : approveDisabledReason
 
   const handlePrescribeClick = () => {
     onOpenParchmentPrescribe?.()
@@ -376,17 +388,19 @@ export function IntakeDetailHeader({
                   </Button>
                 )}
                 {onApprovePrescribedScript && (
-                  <Button
-                    size={actionButtonSize}
-                    onClick={onApprovePrescribedScript}
-                    className="bg-primary hover:bg-primary/90"
-                    disabled={isPending || hasPrescribingIdentityBlocker || !canApproveAfterPrescribe}
-                    title={approveAfterPrescribeTitle}
-                    aria-describedby={prescribingApproveHint ? "full-case-prescribing-approve-hint" : undefined}
-                  >
-                    {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
-                    {isPending ? "Approving..." : "Approve"}
-                  </Button>
+                  !shouldPrescribeFromConsult ? (
+                    <Button
+                      size={actionButtonSize}
+                      onClick={onApprovePrescribedScript}
+                      className="bg-primary hover:bg-primary/90"
+                      disabled={isPending || hasPrescribingIdentityBlocker || !canApproveAfterPrescribe}
+                      title={approveAfterPrescribeTitle}
+                      aria-describedby={prescribingApproveHint ? "full-case-prescribing-approve-hint" : undefined}
+                    >
+                      {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+                      {isPending ? "Approving..." : "Approve"}
+                    </Button>
+                  ) : null
                 )}
                 {intake.script_sent === true ? null : (
                   <Button
@@ -401,13 +415,15 @@ export function IntakeDetailHeader({
             )}
 
             {/* For consults - approve after call with notes */}
-            {isConsultServiceType(service?.type) && intake.status === "paid" && !shouldPrescribeFromConsult && (
+            {canShowCompleteConsult && (
               <Button
                 size={actionButtonSize}
-                onClick={() => onStatusChange("approved")}
+                onClick={shouldPrescribeFromConsult && onApprovePrescribedScript
+                  ? onApprovePrescribedScript
+                  : () => onStatusChange("approved")}
                 className="bg-primary hover:bg-primary/90"
-                disabled={isPending || Boolean(approveDisabledReason)}
-                title={approveDisabledReason || undefined}
+                disabled={isPending || Boolean(completeConsultDisabledReason)}
+                title={completeConsultDisabledReason || undefined}
               >
                 {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
                 {isPending ? "Completing..." : "Complete Consultation"}

@@ -912,7 +912,7 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
           ],
         }
       : {
-          action: "approve",
+          action: "prescribe",
           title: "Uncomplicated lower UTI pathway if clinically appropriate",
           rationale: "No red flags and not pregnant on the structured screen. Confirm symptom picture before prescribing.",
           nextSteps: [
@@ -920,6 +920,20 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
             "Check allergies and current medicines, then open Parchment and prescribe within Parchment if satisfied.",
           ],
         }
+    const prescriptionIntent = hasBlock ? undefined : makeIntent({
+      presetLabel: "UTI Parchment handoff context",
+      medicationSearchHint: "UTI antibiotic",
+      directionsTemplate: "Doctor to select first-line uncomplicated lower-UTI antibiotic in Parchment after confirming symptoms, allergies, pregnancy status, renal considerations, and local guidance.",
+      quantityTemplate: "Doctor to confirm in Parchment",
+      repeatsTemplate: "Usually no repeat unless clinically justified",
+      safetyChecks: [
+        "No UTI red flags reported",
+        pregnancyUnsure ? "Pregnancy status needs confirmation" : "Not pregnant per patient report",
+        "Allergies checked",
+        "Current medicines checked",
+      ],
+      cautionChecks: pregnancyUnsure ? ["Pregnancy status unsure"] : undefined,
+    })
 
     const header = patientHeader(input)
     const storySentence = `${input.patientName || "Patient"} requests treatment for symptoms of a urinary tract infection.`
@@ -956,6 +970,7 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
       keyFacts,
       safetyItems,
       recommendedPlan,
+      prescriptionIntent,
       draftNote: note(subjective, objective, assessment, planText),
     }
   }
@@ -1064,7 +1079,7 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
       }
     : combinedContraindicated
       ? {
-          action: "approve",
+          action: "prescribe",
           title: "Progestogen-only pill pathway if clinically appropriate",
           rationale: "A combined-pill contraindication (migraine with aura and/or clot history) was detected. Combined oral contraceptive is unsuitable; a progestogen-only pill can still be considered.",
           nextSteps: [
@@ -1073,7 +1088,7 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
           ],
         }
       : {
-          action: "approve",
+          action: "prescribe",
           title: "Contraceptive pill pathway if clinically appropriate",
           rationale: smoker
             ? "No absolute contraindication detected, but verify age for the smoking caution before choosing a combined pill."
@@ -1083,6 +1098,30 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
             "Check allergies and current medicines, then open Parchment and prescribe within Parchment if satisfied.",
           ],
         }
+  const prescriptionIntent = hasBlock ? undefined : makeIntent({
+    presetLabel: combinedContraindicated
+      ? "Progestogen-only pill Parchment context"
+      : "Contraceptive pill Parchment context",
+    medicationSearchHint: combinedContraindicated ? "progestogen-only pill" : "contraceptive pill",
+    directionsTemplate: combinedContraindicated
+      ? "Doctor to select a progestogen-only pill in Parchment if clinically appropriate after confirming pregnancy exclusion, allergies, current medicines, and patient preference."
+      : "Doctor to select combined or progestogen-only pill in Parchment if clinically appropriate after confirming pregnancy exclusion, blood pressure or cardiovascular risk, allergies, current medicines, and patient preference.",
+    quantityTemplate: "Doctor to confirm in Parchment",
+    repeatsTemplate: "Doctor to confirm in Parchment",
+    safetyChecks: [
+      pregnancyUnsure ? "Pregnancy needs reasonable exclusion" : "Not pregnant per patient report",
+      "Migraine with aura checked",
+      "Blood clot history checked",
+      "Smoking status checked",
+      "Allergies checked",
+      "Current medicines checked",
+    ],
+    cautionChecks: [
+      pregnancyUnsure ? "Pregnancy status unsure" : null,
+      smoker ? "Smoker" : null,
+      combinedContraindicated ? "Combined pill contraindication: steer to progestogen-only" : null,
+    ].filter((item): item is string => Boolean(item)),
+  })
 
   const header = patientHeader(input)
   const requestVerb = isSwitch ? "switch" : isContinue ? "continue" : "start"
@@ -1125,6 +1164,7 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     keyFacts,
     safetyItems,
     recommendedPlan,
+    prescriptionIntent,
     draftNote: note(subjective, objective, assessment, planText),
   }
 }

@@ -20,7 +20,7 @@ import { DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY, LAST_OPENED_DOCTOR_CASE_KEY } from
 import { removeCompletedIntakeFromQueue } from "@/lib/doctor/queue-state"
 import { calculateLiveWaitTime, getQueueClockTickDelayMs, getQueueEnteredAt, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
 import { hasReviewNextRisk, sortForReviewNext } from "@/lib/doctor/review-next"
-import { SERVICE_TYPES } from "@/lib/doctor/service-types"
+import { isPrescribingConsultSubtype, SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
 import { formatServiceType } from "@/lib/format/intake"
 import { useDebounce } from "@/lib/hooks/use-debounce"
@@ -139,7 +139,7 @@ function IntakeReviewPanelLoading() {
 function isQueuePrescribingConsult(serviceType?: string | null, subtype?: string | null): boolean {
   return (
     (serviceType === SERVICE_TYPES.CONSULT || serviceType === SERVICE_TYPES.CONSULTS) &&
-    (subtype === "ed" || subtype === "hair_loss")
+    isPrescribingConsultSubtype(subtype)
   )
 }
 

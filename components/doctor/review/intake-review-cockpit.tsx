@@ -20,6 +20,7 @@ import { SafetyFlagsCard } from "@/components/doctor/review/safety-flags-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { buildClinicalCaseSummary, type ClinicalCaseSummary } from "@/lib/clinical/case-summary"
+import { isPrescribingConsultSubtype } from "@/lib/doctor/service-types"
 import { useDoctorShortcuts } from "@/lib/hooks/use-doctor-shortcuts"
 import { cn } from "@/lib/utils"
 
@@ -220,7 +221,7 @@ export function IntakeReviewCockpit({
       if (intake.status !== "paid" && intake.status !== "in_review") return
       if (
         intake.category === "consult" &&
-        ["ed", "hair_loss"].includes(intake.subtype || "") &&
+        isPrescribingConsultSubtype(intake.subtype) &&
         hasPrescriptionIntent
       ) {
         review.handleOpenParchmentPrescribe()

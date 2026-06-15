@@ -52,14 +52,14 @@ function isEncryptedPHI(value: unknown): value is EncryptedPHI {
   )
 }
 
-async function getRecoveryConsultSubtype(draft: PartialDraft): Promise<"ed" | "hair_loss" | null> {
+async function getRecoveryConsultSubtype(draft: PartialDraft): Promise<"ed" | "hair_loss" | "womens_health" | null> {
   if (draft.service_type !== "consult") return null
   if (isEncryptedPHI(draft.answers_encrypted)) {
     try {
       const answers = await decryptJSONB<Record<string, unknown>>(draft.answers_encrypted)
       const subtype = answers.consultSubtype
 
-      if (subtype === "ed" || subtype === "hair_loss") {
+      if (subtype === "ed" || subtype === "hair_loss" || subtype === "womens_health") {
         return subtype
       }
     } catch (err) {

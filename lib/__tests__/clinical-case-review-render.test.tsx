@@ -72,4 +72,31 @@ describe("ClinicalCaseReview", () => {
       "fever and cough",
     )
   })
+
+  it("renders normal women's health safety findings as compact reviewed facts", () => {
+    const html = render(
+      <ClinicalCaseReview
+        category="consult"
+        subtype="womens_health"
+        serviceType="consult"
+        patientName="Siena Harding"
+        answers={{
+          womensHealthOption: "uti",
+          utiSymptoms: ["burning", "frequency", "urgency", "cloudy"],
+          utiRedFlags: "no",
+          utiPregnant: "no",
+        }}
+        compact
+        hidePatientStory
+        draftNoteValue="S: Patient reports lower urinary tract symptoms.\nO: Structured UTI screen completed.\nA: Likely uncomplicated lower UTI.\nP: Prescribe if clinically appropriate."
+        onDraftNoteChange={() => undefined}
+      />,
+    )
+
+    expect(html).toContain('data-compact-safety-summary="true"')
+    expect(html).toContain('data-safety-severity="info"')
+    expect(html).toContain("Prescribing context")
+    expect(html).not.toContain("bg-amber-50")
+    expect(html).not.toContain("sticky top-0")
+  })
 })

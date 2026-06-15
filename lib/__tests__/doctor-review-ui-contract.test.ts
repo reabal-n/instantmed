@@ -114,13 +114,21 @@ describe("doctor review prescribing controls", () => {
     expect(queueTableSource).toContain("intake.patient.full_name")
   })
 
-  it("routes ED and hair-loss prescribing consult quick actions through the review panel", () => {
+  it("routes prescribing consult quick actions through the review panel", () => {
     expect(queueClientSource).toContain("isQueuePrescribingConsult")
-    expect(queueClientSource).toContain("subtype === \"ed\"")
-    expect(queueClientSource).toContain("subtype === \"hair_loss\"")
+    expect(queueClientSource).toContain("isPrescribingConsultSubtype(subtype)")
     expect(queueClientSource).toContain("handleApprove(intake.id, service?.type, intake.subtype")
     expect(queueTableSource).toContain("isPrescribingConsult")
+    expect(queueTableSource).toContain("isPrescribingConsultSubtype(intake.subtype)")
     expect(queueTableSource).toContain("? \"Prescribe\"")
     expect(queueTableSource).toContain("onApprove(intake.id, service?.type, intake.subtype)")
+  })
+
+  it("shows prescribing consults as Prescribe plus Complete Consultation, not a generic approve pair", () => {
+    expect(queueSheetActionsSource).toContain("shouldPrescribeFromConsult ? handleApprovePrescribedScript")
+    expect(queueSheetActionsSource).toContain("\"Complete Consultation\"")
+    expect(queueSheetActionsSource).toContain("!shouldPrescribeFromConsult ? (")
+    expect(fullCaseHeaderSource).toContain("shouldPrescribeFromConsult && onApprovePrescribedScript")
+    expect(fullCaseHeaderSource).toContain("\"Complete Consultation\"")
   })
 })

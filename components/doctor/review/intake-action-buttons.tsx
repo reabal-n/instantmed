@@ -21,7 +21,7 @@ import {
 } from "@/lib/doctor/patient-snapshot"
 import { QUEUE_WAIT_TARGET_MINUTES } from "@/lib/doctor/queue-pressure"
 import { calculateLiveWaitTime, getQueueClockTickDelayMs, getQueueEnteredAt } from "@/lib/doctor/queue-utils"
-import { isConsultServiceType, isKnownDoctorServiceType } from "@/lib/doctor/service-types"
+import { isConsultServiceType, isKnownDoctorServiceType, isPrescribingConsultSubtype } from "@/lib/doctor/service-types"
 import { formatCurrency } from "@/lib/format"
 import { formatMinutes } from "@/lib/format/dates"
 import { cn } from "@/lib/utils"
@@ -259,16 +259,19 @@ export function IntakeActionButtons({
 
   const hasPrescriptionIntent = Boolean(caseSummary.prescriptionIntent)
   const isRepeatScript = service?.type === "repeat_rx" || service?.type === "common_scripts"
-  const isPrescribingConsult = intake.category === "consult" && ["ed", "hair_loss"].includes(intake.subtype || "")
+  const isPrescribingConsult = intake.category === "consult" && isPrescribingConsultSubtype(intake.subtype)
   const shouldPrescribeFromConsult = isPrescribingConsult && hasPrescriptionIntent
   const isActivePrescribingStatus = ["paid", "in_review", "awaiting_script"].includes(intake.status)
+  const canShowCompleteConsult =
+    isConsultServiceType(service?.type) &&
+    (shouldPrescribeFromConsult ? isActivePrescribingStatus : intake.status === "paid")
   const canPrescribeInParchment =
     isActivePrescribingStatus &&
     ((isRepeatScript && caseSummary.recommendedPlan.action === "prescribe") || shouldPrescribeFromConsult)
   const needsClinicalNotes = !isClinicalNoteSufficient(doctorNotes)
   const approvalNeedsClinicalNotes =
     (service?.type === "med_certs" && ["paid", "in_review"].includes(intake.status)) ||
-    (isConsultServiceType(service?.type) && intake.status === "paid" && !shouldPrescribeFromConsult) ||
+    canShowCompleteConsult ||
     (!isKnownDoctorServiceType(service?.type) && intake.status === "paid")
   const approveDisabledReason = approvalNeedsClinicalNotes && needsClinicalNotes
     ? "Use the draft note or add a brief clinical note."
@@ -319,11 +322,12 @@ export function IntakeActionButtons({
       : `Full refund if you decline. ${refundRecipient} is refunded.`
     : "Opens confirmation."
   const safetyReady =
-    caseSummary.safetyItems.length === 0 &&
+    caseSummary.safetyItems.every((item) => item.severity === "info") &&
     intake.requires_live_consult !== true &&
     intake.risk_tier !== "high"
   const queueEnteredAt = getQueueEnteredAt(intake)
   const canApproveAfterPrescribe = intake.script_sent === true
+  const completeConsultNeedsScript = shouldPrescribeFromConsult && !canApproveAfterPrescribe
   const isActionDisabled = isPending || !isHydrated
   const approveAfterPrescribeTitle = hasPrescribingIdentityBlocker
     ? prescribingIdentityTitle
@@ -334,7 +338,17 @@ export function IntakeActionButtons({
     canPrescribeInParchment && !hasPrescribingIdentityBlocker && !canApproveAfterPrescribe
       ? "Complete or record the prescription in Parchment first."
       : null
-  const visibleDisabledHint = disabledApproveHint ?? prescribingApproveHint
+  const completeConsultDisabledReason = shouldPrescribeFromConsult
+    ? hasPrescribingIdentityBlocker
+      ? prescribingIdentityTitle
+      : completeConsultNeedsScript
+        ? "Complete or record the prescription in Parchment first."
+        : approveDisabledReason
+    : approveDisabledReason
+  const visibleDisabledHint =
+    disabledApproveHint ??
+    (canShowCompleteConsult ? completeConsultDisabledReason : null) ??
+    prescribingApproveHint
 
   const handlePrescribeClick = () => {
     handleOpenParchmentPrescribe()
@@ -445,28 +459,30 @@ export function IntakeActionButtons({
             <Send className="h-4 w-4 mr-1.5" />
             {prescribingActionLabel ?? "Prescribe"}
           </Button>
-          <Button
-            onClick={handleApprovePrescribedScript}
-            className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
-            disabled={isActionDisabled || hasPrescribingIdentityBlocker || !canApproveAfterPrescribe}
-            title={approveAfterPrescribeTitle}
-            aria-describedby={prescribingApproveHint ? "queue-prescribing-approve-hint" : undefined}
-            size="sm"
-          >
-            {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
-            {isPending ? "Approving..." : "Approve"}
-          </Button>
+          {!shouldPrescribeFromConsult ? (
+            <Button
+              onClick={handleApprovePrescribedScript}
+              className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
+              disabled={isActionDisabled || hasPrescribingIdentityBlocker || !canApproveAfterPrescribe}
+              title={approveAfterPrescribeTitle}
+              aria-describedby={prescribingApproveHint ? "queue-prescribing-approve-hint" : undefined}
+              size="sm"
+            >
+              {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
+              {isPending ? "Approving..." : "Approve"}
+            </Button>
+          ) : null}
           {intake.script_sent === true ? null : <MarkSentManuallyButton intakeId={intake.id} disabled={!isHydrated} />}
         </>
       )}
 
       {/* Consults: complete */}
-      {isConsultServiceType(service?.type) && intake.status === "paid" && !shouldPrescribeFromConsult && (
+      {canShowCompleteConsult && (
         <Button
-          onClick={() => handleStatusChange("approved")}
+          onClick={shouldPrescribeFromConsult ? handleApprovePrescribedScript : () => handleStatusChange("approved")}
           className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
-          disabled={isActionDisabled || Boolean(approveDisabledReason)}
-          title={approveDisabledReason || undefined}
+          disabled={isActionDisabled || Boolean(completeConsultDisabledReason)}
+          title={completeConsultDisabledReason || undefined}
           size="sm"
         >
           {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}

@@ -710,8 +710,8 @@ export function RequestFlow({
     return <LazyServiceHub onSelectService={handleSelectService} />
   }
 
-  // Consult without subtype → redirect to service hub (no general consult)
-  // Active subtypes: ed, hair_loss. Coming soon: womens_health, weight_loss.
+  // Consult without subtype: redirect to service hub (no general consult).
+  // Active subtypes: ed, hair_loss, womens_health. Coming soon: weight_loss.
   if (initialService === 'consult' && !initialSubtype) {
     return <LazyServiceHub onSelectService={handleSelectService} />
   }

@@ -19,8 +19,8 @@ describe("DB service model contract", () => {
   })
 
   it("separates active, future, and compatibility-only service rows", () => {
-    const activeServices: ServiceType[] = ["med_certs", "common_scripts", "mens_health"]
-    const futureServices: ServiceType[] = ["womens_health", "weight_loss"]
+    const activeServices: ServiceType[] = ["med_certs", "common_scripts", "mens_health", "womens_health"]
+    const futureServices: ServiceType[] = ["weight_loss"]
     const compatibilityOnlyServices: ServiceType[] = ["referrals", "pathology"]
 
     for (const serviceType of activeServices) {

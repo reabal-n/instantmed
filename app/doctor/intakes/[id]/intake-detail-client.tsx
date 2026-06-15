@@ -33,6 +33,7 @@ import { parseIntakeFlags } from "@/lib/clinical/intake-flags"
 import { buildDoctorIntakeHref, STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
 import type { PatientThreadMessage } from "@/lib/data/patient-messages"
+import { isPrescribingConsultSubtype } from "@/lib/doctor/service-types"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format/intake"
 import { useDoctorShortcuts } from "@/lib/hooks/use-doctor-shortcuts"
 import type { IntakeWithDetails, IntakeWithPatient, PatientNote } from "@/types/db"
@@ -419,7 +420,7 @@ function LegacyIntakeDetailClient({
       if (intake.status === "paid" && !actions.isPending) {
         if (
           intake.category === "consult" &&
-          ["ed", "hair_loss"].includes(intake.subtype || "") &&
+          isPrescribingConsultSubtype(intake.subtype) &&
           hasPrescriptionIntent &&
           actions.handleOpenParchmentPrescribe
         ) {

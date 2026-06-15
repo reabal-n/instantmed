@@ -17,7 +17,7 @@ export interface ParchmentPrescribingEligibility {
   error?: string
 }
 
-export const PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES = ["ed", "hair_loss"] as const
+export const PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES = ["ed", "hair_loss", "womens_health"] as const
 const PRESCRIBING_CONSULT_SUBTYPES = new Set<string>(PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES)
 const PRESCRIBING_SERVICE_TYPES = new Set(["common_scripts", "repeat_rx", "prescription", "repeat-script"])
 export const PARCHMENT_PATIENT_SYNC_STATUSES = ["paid", "in_review", "pending_info", "approved", "awaiting_script"] as const

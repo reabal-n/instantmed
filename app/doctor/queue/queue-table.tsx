@@ -55,7 +55,7 @@ import {
   RENEWAL_FALLBACK_TITLE,
   type RenewalMatch,
 } from "@/lib/doctor/renewal-format"
-import { SERVICE_TYPES } from "@/lib/doctor/service-types"
+import { isPrescribingConsultSubtype, SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { formatServiceType } from "@/lib/format/intake"
 import { cn } from "@/lib/utils"
 import type { IntakeWithPatient } from "@/types/db"
@@ -83,6 +83,7 @@ function getCompactQueueReason(service: { type?: string; name?: string; short_na
   if (service?.type === SERVICE_TYPES.COMMON_SCRIPTS || service?.type === "repeat_rx") return "Prescription request"
   if (subtype === "ed") return "ED consult request"
   if (subtype === "hair_loss") return "Hair loss consult request"
+  if (subtype === "womens_health") return "Women's health consult request"
   return `${service?.short_name || service?.name || "Clinical"} request`
 }
 
@@ -374,7 +375,7 @@ export function QueueTable({
             const subtypeLabel = getConsultSubtypeLabel(intake.subtype)
             const isPrescribingConsult =
               (service?.type === SERVICE_TYPES.CONSULT || service?.type === SERVICE_TYPES.CONSULTS) &&
-              (intake.subtype === "ed" || intake.subtype === "hair_loss")
+              isPrescribingConsultSubtype(intake.subtype)
             const serviceBadgeLabel = compactShell && subtypeLabel
               ? `${subtypeLabel} consult`
               : service?.short_name || formatServiceType(service?.type || "")
