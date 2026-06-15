@@ -190,12 +190,10 @@ export const medicationStepSchema = z
         return
       }
 
-      // A3 softening: a missing strength is no longer a step block — the patient
-      // proceeds and the doctor sees a `medication_strength_missing` flag. Form
-      // remains required here (a separate boundary).
-
-      // A3 softening (boundary 2): a missing form is no longer a step block —
-      // the patient proceeds and the doctor sees a `medication_form_missing` flag.
+      // A3 softening: a missing strength OR a missing form is no longer a step
+      // block — both are now soft flags. The patient proceeds and the doctor
+      // sees a `medication_strength_missing` / `medication_form_missing` flag
+      // (boundary 2) rather than being hard-stopped at this step.
     })
   })
 
@@ -590,6 +588,9 @@ export function validateWomensHealthAssessmentStep(answers: Record<string, unkno
 
   if (option === "ocp_new") {
     if (!answers.contraceptionType) errors.contraceptionType = "Please select what you need"
+    // Client (ContraceptionAssessment.validate) requires this unconditionally for
+    // the new/switch pill screen; mirror it here so a crafted payload can't skip it.
+    if (!answers.contraceptionCurrent) errors.contraceptionCurrent = "Please select an option"
     if (!answers.pregnancyStatus) errors.pregnancyStatus = "Please answer this question"
     if (!answers.womens_migraine_aura) errors.womens_migraine_aura = "Please answer this question"
     if (!answers.womens_blood_clot_history) errors.womens_blood_clot_history = "Please answer this question"

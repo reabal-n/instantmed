@@ -3,7 +3,7 @@
 > Internal-only product roadmap. Refreshed monthly by the operator.
 > Source of truth for: current operating phase, last-90-days shipped, next-30-60-days priorities, long-term expansion gates.
 >
-> **Last refreshed:** 2026-06-12 (roadmap/operations reconciliation). Bump this stamp on every edit.
+> **Last refreshed:** 2026-06-15 (women's-health launch + intake softening). Bump this stamp on every edit.
 
 ---
 
@@ -17,6 +17,7 @@ Specifics:
 - Staff cockpit rebuild shipped 2026-05-12 → 2026-05-20 (Phases 1-8, unified admin/doctor under `/dashboard`).
 - Refund policy unified to 100% on decline across all categories 2026-05-20.
 - Support role + capability flags + intake ledger rebuild + attribution surfacing + identity gating + renewal badges all shipped 2026-05-20 → 2026-05-23.
+- Women's health (UTI + new/switch contraceptive pill) **went live 2026-06-15** — first new service line since the 2026-05 work; weight loss remains the only gated future subtype.
 
 ## 2. Active priorities (next 30 days)
 
@@ -44,6 +45,7 @@ Chronological. One line per material change. Pulled from `git log --since="90 da
 
 ### 2026-06 (current month)
 
+- 2026-06-15 - **Women's health launched** (UTI + new/switch contraceptive pill, scoped via `LIVE_WOMENS_HEALTH_OPTIONS`; `ocp_repeat` routes to the cheaper repeat-script flow, morning-after / period-pain / "other" stay gated). Intake softening (A3): more-than-5 medications, missing strength, missing form, and blank current dose are now flag-for-doctor soft signals instead of hard step blocks; unknown medicines still require a useful free-text description. Intake friction analytics panel + guardrails; standardised intake primitives and mobile flow density; intake step-primitive a11y (disabled-aware roving radio, 48px chip tap targets).
 - 2026-06-12 - Agent-browser approved for in-session verification; Google Ads enhanced conversions now attach hashed email and phone across live upload and cron backfill; `/wiki` project context map shipped; request URL seeding isolated and tested; enhanced-conversion payload typing tightened; doctor queue action guards mapped.
 - 2026-06-11 - Safety, accessibility, SEO/GEO, ops, and hygiene batch: server-side high-stakes block; intake roving tabindex and scroll fixes; live NHSD listing/runbook; Telegram Rx/consult queue-stall alert; pricing display centralisation; dead dependency/module cleanup; Express review option row; `/request` noindex.
 - 2026-06-10 - Reliability and growth instrumentation: Sentry/PostHog noise reductions, fallback Telegram alerting, possible-doctor-call prescribing copy, heard-about-us MCQs in approval emails, approved-today queue list, 90-day organic/GEO plan, ED/hair content pillars.
