@@ -198,13 +198,8 @@ export const medicationStepSchema = z
       // proceeds and the doctor sees a `medication_strength_missing` flag. Form
       // remains required here (a separate boundary).
 
-      if (!medication.form) {
-        ctx.addIssue({
-          code: "custom",
-          path: index === 0 ? ["medicationForm"] : ["medications", index, "form"],
-          message: "Medication form is required.",
-        })
-      }
+      // A3 softening (boundary 2): a missing form is no longer a step block —
+      // the patient proceeds and the doctor sees a `medication_form_missing` flag.
     })
   })
 

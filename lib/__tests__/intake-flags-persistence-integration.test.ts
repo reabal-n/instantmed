@@ -69,4 +69,27 @@ describe("intake flags persistence shape (what risk_flags receives)", () => {
     expect(flag, "the flag persisted to risk_flags").toBeDefined()
     expect(flag?.severity).toBe("attention")
   })
+
+  it("a name-only repeat (no strength, no form) carries a medication_form_missing attention flag", async () => {
+    const input = {
+      category: "prescription",
+      subtype: "repeat",
+      serviceSlug: "repeat-script",
+      answers: {
+        medications: [{ name: "Atorvastatin", pbsCode: "1234" }], // no strength, no form
+        prescribed_before: true,
+        dose_changed: false,
+        last_prescribed: "6_to_12_months",
+        current_dose: "20 mg nightly",
+      },
+    } as never
+
+    const result = await runClinicalValidation(input)
+
+    expect(result.ok).toBe(true)
+    const flags = result.ok ? result.data.intakeFlags : []
+    const formFlag = flags.find((f) => f.code === "medication_form_missing")
+    expect(formFlag, "the form flag persisted to risk_flags").toBeDefined()
+    expect(formFlag?.severity).toBe("attention")
+  })
 })

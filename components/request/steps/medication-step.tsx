@@ -193,7 +193,7 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
       newErrors.medication = "Please search for and select your medication"
     }
     // Belt-and-suspenders: recheck controlled substances in validate
-    medications.forEach((med, index) => {
+    medications.forEach((med) => {
       const name = med.product?.drug_name || med.name
       const code = med.pbsCode || med.product?.pbs_code || ""
       if (name && isControlledSubstance(name)) {
@@ -203,11 +203,9 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
       if (code.toUpperCase() === "UNKNOWN" || name?.toLowerCase().includes("unknown - doctor")) {
         newErrors.medication = "Please enter the medication name, strength, and form"
       }
-      // A3 softening: strength is no longer required to continue — if the patient
-      // leaves it blank, the doctor sees a `medication_strength_missing` flag.
-      if (name && !med.form?.trim()) {
-        newErrors[`form-${index}`] = "Enter the form"
-      }
+      // A3 softening: strength and form are no longer required to continue. If the
+      // patient leaves them blank, the doctor sees medication_strength_missing /
+      // medication_form_missing flags instead of a dead-end.
     })
     setErrors(newErrors)
     setBlockedReasons(Object.values(newErrors))
@@ -238,9 +236,9 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
   }, [controlledBlock, validate, medications, posthog, onNext])
 
   const activeMedications = medications.filter(m => m.product || m.name)
-  // A3 softening: readiness no longer requires strength (doctor-flagged if blank);
-  // form is still required at this boundary.
-  const isComplete = activeMedications.length > 0 && activeMedications.every((med) => med.form?.trim())
+  // A3 softening: readiness no longer requires strength or form (both are
+  // doctor-flagged if blank). A selected/typed medication is enough to continue.
+  const isComplete = activeMedications.length > 0
   // Live-computed; controlledBlock stays (a real clinical block), the stale
   // `errors` object does not gate readiness.
   const canContinue = Boolean(isComplete) && !controlledBlock

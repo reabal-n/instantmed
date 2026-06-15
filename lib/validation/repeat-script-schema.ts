@@ -260,13 +260,10 @@ export function validateRepeatScriptPayload(
     // (`medication_strength_missing`) for the doctor. Form, new-med, dose-change
     // and controlled substances remain hard blocks below.
 
-    if (!medication.form || medication.form.trim() === "") {
-      return {
-        valid: false,
-        error: "Please enter the medication form.",
-        requiresConsult: false,
-      }
-    }
+    // A3 softening (boundary 2): a missing form no longer blocks checkout. The
+    // patient flows through and `deriveIntakeFlags` raises an attention flag
+    // (`medication_form_missing`). New-med, dose-change, unknown-med and
+    // controlled substances remain hard blocks.
 
     // Defense in depth: block controlled medications via PBS code and fuzzy name matching.
     if (isPBSCodeBlocked(medicationCode)) {

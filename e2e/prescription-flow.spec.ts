@@ -344,6 +344,30 @@ test.describe("Prescription: step validation", () => {
     await waitForStep(page, /When were you last prescribed/i)
   })
 
+  test("medication step proceeds with a name only — no strength, no form (A3 boundary 2)", async ({ page }) => {
+    await page.goto("/request?service=repeat-script")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+
+    await waitForStep(page, /Which medication do you need\?/i)
+    const medInput = page.getByRole("combobox").first()
+    await medInput.fill("E2E name only med")
+    await medInput.blur()
+    await page.waitForTimeout(400)
+    const manualOption = page.getByRole("button", { name: /Continue with "E2E name only med"/i })
+    if (await manualOption.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await manualOption.click()
+    }
+
+    // Leave BOTH strength and form blank.
+    await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
+
+    // Continue is enabled on a name alone now, and the flow advances.
+    await expect(page.getByRole("button", { name: /Continue to history/i }).last()).toBeEnabled({ timeout: 5000 })
+    await clickContinue(page)
+    await waitForStep(page, /When were you last prescribed/i)
+  })
+
   test("patient details validates email format", async ({ page }) => {
     await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)

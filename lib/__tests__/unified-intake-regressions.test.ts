@@ -559,8 +559,9 @@ describe("unified intake regressions", () => {
       pbsCode: "UNKNOWN",
     }, identity)).toMatch(/medication/i)
 
-    // A3 softening: a missing strength alone no longer blocks the step — the
-    // patient proceeds and the doctor sees a `medication_strength_missing` flag.
+    // A3 softening: a missing strength or form no longer blocks the step. The
+    // patient proceeds and the doctor sees medication_strength_missing /
+    // medication_form_missing flags. (Unknown-med above still hard-blocks.)
     expect(validateAnswersServerSide("repeat-script", {
       ...baseAnswers,
       medicationName: "Budesonide + formoterol",
@@ -568,13 +569,12 @@ describe("unified intake regressions", () => {
       pbsCode: "MANUAL",
     }, identity)).toBeNull()
 
-    // Form remains a hard block at this boundary (softened in a later commit).
     expect(validateAnswersServerSide("repeat-script", {
       ...baseAnswers,
       medicationName: "Budesonide + formoterol",
       medicationStrength: "100/3 micrograms",
       pbsCode: "MANUAL",
-    }, identity)).toMatch(/form/i)
+    }, identity)).toBeNull()
 
     expect(validateAnswersServerSide("repeat-script", {
       ...baseAnswers,
@@ -603,13 +603,17 @@ describe("unified intake regressions", () => {
       sex: "M",
     }
 
-    expect(String(validateAnswersServerSide("repeat-script", {
+    // A3 softening: a secondary medication missing its form no longer blocks at
+    // the step — it proceeds and the doctor sees a medication_form_missing flag.
+    // (Controlled-substance hard-blocking is a checkout-layer concern, covered by
+    // repeat-script-schema.test.ts, not this step-level validator.)
+    expect(validateAnswersServerSide("repeat-script", {
       ...baseAnswers,
       medications: [
         { name: "Rosuvastatin", strength: "10 mg", form: "tablet", pbsCode: "MANUAL" },
         { name: "Metformin", strength: "500 mg", pbsCode: "MANUAL" },
       ],
-    }, identity))).toMatch(/form/i)
+    }, identity)).toBeNull()
   })
 
   it("requires repeat prescription medication safety questions before checkout", () => {
