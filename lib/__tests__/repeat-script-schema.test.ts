@@ -163,12 +163,13 @@ describe("A3 softening — missing medication form is a flag, not a block (bound
     expect(result.error).toMatch(/controlled substances/i)
   })
 
-  it("still blocks more than 5 medications at the step (softened later, boundary 5)", () => {
+  it("still blocks more than 5 medications at BOTH the step and the server validator (softened later, boundary 5)", () => {
     const medications = Array.from({ length: 6 }, (_, i) => ({
       name: `Med${i}`,
       pbsCode: `code-${i}`,
     }))
-    const result = validateMedicationStep({ medications })
-    expect(result.isValid).toBe(false)
+    // Enforced in two layers — boundary 5 must soften both.
+    expect(validateMedicationStep({ medications }).isValid).toBe(false)
+    expect(validateRepeatScriptPayload({ ...base, medications }).valid).toBe(false)
   })
 })

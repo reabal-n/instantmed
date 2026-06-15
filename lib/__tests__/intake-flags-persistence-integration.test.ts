@@ -70,7 +70,7 @@ describe("intake flags persistence shape (what risk_flags receives)", () => {
     expect(flag?.severity).toBe("attention")
   })
 
-  it("a name-only repeat (no strength, no form) carries a medication_form_missing attention flag", async () => {
+  it("a name-only repeat (no strength, no form) carries BOTH strength and form attention flags", async () => {
     const input = {
       category: "prescription",
       subtype: "repeat",
@@ -88,8 +88,9 @@ describe("intake flags persistence shape (what risk_flags receives)", () => {
 
     expect(result.ok).toBe(true)
     const flags = result.ok ? result.data.intakeFlags : []
-    const formFlag = flags.find((f) => f.code === "medication_form_missing")
-    expect(formFlag, "the form flag persisted to risk_flags").toBeDefined()
-    expect(formFlag?.severity).toBe("attention")
+    const codes = flags.map((f) => f.code)
+    expect(codes).toContain("medication_strength_missing")
+    expect(codes).toContain("medication_form_missing")
+    expect(flags.every((f) => f.severity === "attention")).toBe(true)
   })
 })
