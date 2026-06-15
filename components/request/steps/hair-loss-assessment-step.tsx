@@ -113,6 +113,7 @@ const PREVIOUS_TREATMENTS = [
 // ---------------------------------------------------------------------------
 
 export default function HairLossAssessmentStep({
+  serviceType,
   onNext,
 }: HairLossAssessmentStepProps) {
   const { answers, setAnswer } = useRequestStore()
@@ -168,7 +169,8 @@ export default function HairLossAssessmentStep({
       if (!hairPattern) reasons.push("your hair loss pattern")
       if (!hairFamilyHistory) reasons.push("your family history")
       return reasons
-    }, [hairPattern, hairFamilyHistory])
+    }, [hairPattern, hairFamilyHistory]),
+    { posthog, serviceType, stepId: "hair-loss-assessment" },
   )
 
   const handleNext = () => {

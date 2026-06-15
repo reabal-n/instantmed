@@ -27,13 +27,14 @@ import { RequestFlow } from "@/components/request"
 | `/consult` | Services overview for active specialty pathways |
 | `/request?service=consult&subtype=ed` | ED specialty consult |
 | `/request?service=consult&subtype=hair_loss` | Hair loss specialty consult |
+| `/request?service=consult&subtype=womens_health` | Women's health consult (UTI + contraception) |
 
 Supported service params are defined by `SUPPORTED_SERVICE_SLUGS` and
 `mapServiceParam` in `lib/request/step-registry.ts`. Referral and pathology
 requests are not standalone `/request` checkout services.
 
-Coming-soon consult subtypes (`womens_health`, `weight_loss`) are defined in
-`lib/request/consult-subtypes.ts` and are blocked before checkout even if a
+Consult subtype launch state is defined in `lib/request/consult-subtypes.ts`.
+Women's health is live; weight loss remains blocked before checkout even if a
 client route is bypassed.
 
 ## Architecture

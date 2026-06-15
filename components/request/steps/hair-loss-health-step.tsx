@@ -97,6 +97,7 @@ function SectionComplete({ complete }: { complete: boolean }) {
 // ---------------------------------------------------------------------------
 
 export default function HairLossHealthStep({
+  serviceType,
   onNext,
   onBack,
 }: HairLossHealthStepProps) {
@@ -222,7 +223,8 @@ export default function HairLossHealthStep({
       if (!bpComplete) reasons.push("the blood pressure section")
       if (!medicalComplete) reasons.push("the medical history section")
       return reasons
-    }, [reproductiveComplete, scalpComplete, bpComplete, medicalComplete])
+    }, [reproductiveComplete, scalpComplete, bpComplete, medicalComplete]),
+    { posthog, serviceType, stepId: "hair-loss-health" },
   )
 
   const handleNext = useCallback(() => {

@@ -42,7 +42,7 @@ const ONSET_OPTIONS = [
   { value: "2_plus_years", label: "2+ years" },
 ] as const
 
-export default function HairLossGoalsStep({ onNext }: HairLossGoalsStepProps) {
+export default function HairLossGoalsStep({ serviceType, onNext }: HairLossGoalsStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
 
@@ -58,7 +58,8 @@ export default function HairLossGoalsStep({ onNext }: HairLossGoalsStepProps) {
       if (!hairGoal) reasons.push("your main goal")
       if (!hairOnset) reasons.push("when you first noticed changes")
       return reasons
-    }, [hairGoal, hairOnset])
+    }, [hairGoal, hairOnset]),
+    { posthog, serviceType, stepId: "hair-loss-goals" },
   )
 
   const handleNext = () => {

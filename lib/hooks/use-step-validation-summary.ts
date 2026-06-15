@@ -2,6 +2,21 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 
+import {
+  buildIntakeValidationBlockedProperties,
+  captureIntakeEvent,
+  INTAKE_ANALYTICS_EVENTS,
+  type PostHogCaptureLike,
+} from "@/lib/analytics/intake-events"
+
+interface ValidationSummaryAnalytics {
+  posthog?: PostHogCaptureLike | null
+  serviceType?: string | null
+  stepId: string
+  stepIndex?: number
+  totalSteps?: number
+}
+
 /**
  * Manages the "add these to continue" blocking-reason summary shown when a
  * patient taps Continue before a step is complete.
@@ -42,7 +57,8 @@ import { useCallback, useEffect, useMemo, useState } from "react"
  */
 export function useStepValidationSummary(
   canContinue: boolean,
-  computeReasons: () => string[]
+  computeReasons: () => string[],
+  analytics?: ValidationSummaryAnalytics,
 ) {
   const [hasAttempted, setHasAttempted] = useState(false)
 
@@ -60,7 +76,21 @@ export function useStepValidationSummary(
 
   const showBlockingReasons = useCallback(() => {
     setHasAttempted(true)
-  }, [])
+    const blockers = computeReasons()
+    if (blockers.length > 0 && analytics) {
+      captureIntakeEvent(
+        analytics.posthog,
+        INTAKE_ANALYTICS_EVENTS.validationBlocked,
+        buildIntakeValidationBlockedProperties({
+          serviceType: analytics.serviceType,
+          stepId: analytics.stepId,
+          stepIndex: analytics.stepIndex,
+          totalSteps: analytics.totalSteps,
+          blockers,
+        }),
+      )
+    }
+  }, [analytics, computeReasons])
 
   return { validationSummary: liveReasons, showBlockingReasons }
 }

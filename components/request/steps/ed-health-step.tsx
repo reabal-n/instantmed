@@ -70,7 +70,7 @@ function SectionComplete({ complete }: { complete: boolean }) {
 // Main component
 // ---------------------------------------------------------------------------
 
-export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
+export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthStepProps) {
   const router = useRouter()
   const posthog = usePostHog()
   const { answers, setAnswer } = useRequestStore()
@@ -225,7 +225,8 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
         if (!previousTreatmentComplete) reasons.push("the previous treatment section")
       }
       return reasons
-    }, [edNitrates, gpClearanceRequired, heartComplete, medicationsComplete, allergiesComplete, conditionsComplete, previousTreatmentComplete])
+    }, [edNitrates, gpClearanceRequired, heartComplete, medicationsComplete, allergiesComplete, conditionsComplete, previousTreatmentComplete]),
+    { posthog, serviceType, stepId: "ed-health" },
   )
 
   const handleNext = useCallback(() => {

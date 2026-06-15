@@ -55,7 +55,7 @@ const PREFERENCE_OPTIONS = [
   },
 ] as const
 
-export default function EdPreferencesStep({ onNext }: EdPreferencesStepProps) {
+export default function EdPreferencesStep({ serviceType, onNext }: EdPreferencesStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
 
@@ -65,7 +65,8 @@ export default function EdPreferencesStep({ onNext }: EdPreferencesStepProps) {
 
   const { validationSummary, showBlockingReasons } = useStepValidationSummary(
     isComplete,
-    useCallback(() => ["a treatment preference"], [])
+    useCallback(() => ["a treatment preference"], []),
+    { posthog, serviceType, stepId: "ed-preferences" },
   )
 
   const handleNext = () => {

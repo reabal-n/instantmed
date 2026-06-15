@@ -9,6 +9,8 @@
 import { create } from 'zustand'
 import { persist, type StorageValue } from 'zustand/middleware'
 
+import { capture } from '@/lib/analytics/capture'
+import { buildIntakeAnswerChangedEvent } from '@/lib/analytics/intake-events'
 import { 
   canonicalizeServiceType, 
   migrateLegacyDraft,
@@ -270,16 +272,25 @@ export const useRequestStore = create<RequestState & RequestActions>()(
         safetyTimestamp: confirmed ? new Date().toISOString() : null,
       }),
 
-      setAnswer: (key, value) => set((state) => {
+      setAnswer: (key, value) => {
+        const state = get()
         const answers = isPlainRecord(state.answers) ? state.answers : {}
-        if (Object.is(answers[key], value)) {
-          return state
-        }
+        const previousValue = answers[key]
+        if (Object.is(previousValue, value)) return
 
-        return {
+        set({
           answers: { ...answers, [key]: value },
-        }
-      }),
+        })
+
+        const event = buildIntakeAnswerChangedEvent({
+          serviceType: state.serviceType,
+          stepId: state.currentStepId,
+          answerKey: key,
+          previousValue,
+          nextValue: value,
+        })
+        if (event) capture(event.event, event.properties)
+      },
 
       setAnswers: (nextAnswers) => set((state) => {
         const answers = isPlainRecord(state.answers) ? state.answers : {}

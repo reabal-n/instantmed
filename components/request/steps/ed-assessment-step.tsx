@@ -137,7 +137,7 @@ function getInterpretation(total: number): ScoreInterpretation {
 // Main Component
 // ---------------------------------------------------------------------------
 
-export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepProps) {
+export default function EdAssessmentStep({ serviceType, onNext, onBack }: EdAssessmentStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
   const prefersReducedMotion = useReducedMotion()
@@ -202,7 +202,8 @@ export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepPro
     useCallback(() => {
       const remaining = IIEF_QUESTIONS.length - answeredCount
       return [`${remaining} more ${remaining === 1 ? "question" : "questions"}`]
-    }, [answeredCount])
+    }, [answeredCount]),
+    { posthog, serviceType, stepId: "ed-assessment" },
   )
 
   const handleScaleChange = useCallback((questionId: IIEFQuestion["id"], value: number, index: number) => {

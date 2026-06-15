@@ -27,6 +27,19 @@ async function openRequest(page: Page, path: string) {
   expect(pageErrors, `${path} should not throw client runtime errors`).toEqual([])
 }
 
+async function expectNoHorizontalOverflow(page: Page, label: string) {
+  const metrics = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+    bodyScrollWidth: document.body.scrollWidth,
+  }))
+
+  expect(
+    Math.max(metrics.scrollWidth, metrics.bodyScrollWidth),
+    `${label} should not create horizontal overflow on mobile`,
+  ).toBeLessThanOrEqual(metrics.clientWidth + 2)
+}
+
 test.describe("Production request-flow synthetic", () => {
   test.describe.configure({ mode: "serial" })
 
@@ -63,11 +76,31 @@ test.describe("Production request-flow synthetic", () => {
       { path: "/request?service=repeat-script", text: /Which medication do you need/i },
       { path: "/request?service=consult&subtype=ed", text: /What matters most right now/i },
       { path: "/request?service=consult&subtype=hair_loss", text: /What's your main goal|Hair loss goal/i },
+      { path: "/request?service=consult&subtype=womens_health", text: /What do you need today/i },
     ]
 
     for (const { path, text } of pathways) {
       await openRequest(page, path)
       await expect(page.getByText(text).first()).toBeVisible({ timeout: 15000 })
+      await expectNoRequestCrash(page)
+    }
+  })
+
+  test("active request pathways fit a mobile viewport without horizontal overflow", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+
+    const pathways = [
+      { path: "/request?service=med-cert", text: /Certificate details/i },
+      { path: "/request?service=repeat-script", text: /Which medication do you need/i },
+      { path: "/request?service=consult&subtype=ed", text: /What matters most right now/i },
+      { path: "/request?service=consult&subtype=hair_loss", text: /What's your main goal|Hair loss goal/i },
+      { path: "/request?service=consult&subtype=womens_health", text: /What do you need today/i },
+    ]
+
+    for (const { path, text } of pathways) {
+      await openRequest(page, path)
+      await expect(page.getByText(text).first()).toBeVisible({ timeout: 15000 })
+      await expectNoHorizontalOverflow(page, path)
       await expectNoRequestCrash(page)
     }
   })

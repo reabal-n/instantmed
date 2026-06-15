@@ -3,6 +3,12 @@
 import { useEffect, useMemo, useRef } from "react"
 
 import { shouldTrackIntakeComplete } from "@/lib/analytics/funnel-milestones"
+import {
+  buildIntakeStepCompletedProperties,
+  buildIntakeStepViewedProperties,
+  captureIntakeEvent,
+  INTAKE_ANALYTICS_EVENTS,
+} from "@/lib/analytics/intake-events"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { onFirstInteraction } from "@/lib/browser/first-interaction"
 import { canonicalizeServiceType } from "@/lib/request/draft-storage"
@@ -94,18 +100,23 @@ export function useFlowAnalytics({
 
       // intake_started fires once per flow on the first step
       if (stepNumber === 1) {
-        posthog?.capture("intake_started", {
+        captureIntakeEvent(posthog, INTAKE_ANALYTICS_EVENTS.started, {
           service_type: analyticsServiceType,
           subtype,
         })
       }
 
-      posthog?.capture("step_viewed", {
-        service_type: analyticsServiceType,
-        step_id: currentStep.id,
-        step_number: stepNumber,
-        subtype,
-      })
+      captureIntakeEvent(
+        posthog,
+        INTAKE_ANALYTICS_EVENTS.stepViewed,
+        buildIntakeStepViewedProperties({
+          serviceType: analyticsServiceType,
+          stepId: currentStep.id,
+          stepIndex: currentStepIndex,
+          totalSteps,
+          subtype,
+        }),
+      )
 
       // Fire gtag funnel_step event for every step transition.
       // Enables Google Ads remarketing audiences (e.g. "reached step 3 but didn't check out").
@@ -152,13 +163,18 @@ export function useFlowAnalytics({
     const subtype = (answers.consultSubtype as string | undefined) ?? undefined
     const timeOnStep = Date.now() - stepEnteredAtRef.current
 
-    posthog?.capture("step_completed", {
-      service_type: analyticsServiceType,
-      step_id: currentStepId,
-      step_number: currentStepIndex + 1,
-      subtype,
-      time_on_step_ms: timeOnStep,
-    })
+    captureIntakeEvent(
+      posthog,
+      INTAKE_ANALYTICS_EVENTS.stepCompleted,
+      buildIntakeStepCompletedProperties({
+        serviceType: analyticsServiceType,
+        stepId: currentStepId,
+        stepIndex: currentStepIndex,
+        totalSteps,
+        subtype,
+        timeOnStepMs: timeOnStep,
+      }),
+    )
 
     return timeOnStep
   }

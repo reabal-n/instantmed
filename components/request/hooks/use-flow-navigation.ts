@@ -3,6 +3,11 @@
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useRef } from "react"
 
+import {
+  buildIntakeContinueClickedProperties,
+  captureIntakeEvent,
+  INTAKE_ANALYTICS_EVENTS,
+} from "@/lib/analytics/intake-events"
 import { getConsultSubtypeFirstStep, getConsultSubtypeResetKeys } from "@/lib/request/consult-flow"
 import type { StepDefinition, UnifiedServiceType } from "@/lib/request/step-registry"
 import type { SafetyEvaluationResult } from "@/lib/safety/types"
@@ -152,6 +157,17 @@ export function useFlowNavigation({
   }, [currentStepIndex, currentStepId, analyticsServiceType, prevStep, router, posthog])
 
   const handleNext = useCallback(async () => {
+    captureIntakeEvent(
+      posthog,
+      INTAKE_ANALYTICS_EVENTS.continueClicked,
+      buildIntakeContinueClickedProperties({
+        serviceType: analyticsServiceType,
+        stepId: currentStepId,
+        stepIndex: currentStepIndex,
+        totalSteps: activeSteps.length,
+        subtype: (answers.consultSubtype as string | undefined) ?? undefined,
+      }),
+    )
     trackStepCompleted()
 
     // Run safety pre-check when leaving key clinical steps.
@@ -165,7 +181,7 @@ export function useFlowNavigation({
         const result = evaluateSafety(slug, answers)
 
         if (result.outcome === 'DECLINE' || result.outcome === 'REQUIRES_CALL') {
-          posthog?.capture('safety_precheck_blocked', {
+          captureIntakeEvent(posthog, INTAKE_ANALYTICS_EVENTS.safetyPrecheckBlocked, {
             service_type: analyticsServiceType,
             step_id: currentStepId,
             outcome: result.outcome,
@@ -188,7 +204,7 @@ export function useFlowNavigation({
     // to sync Zustand when the browser pops this entry.
     history.pushState({ instantmedFlow: true }, '')
     flowHistoryDepth.current++
-  }, [trackStepCompleted, analyticsServiceType, currentStepId, nextStep, posthog, effectiveService, answers, setSafetyBlock])
+  }, [trackStepCompleted, analyticsServiceType, currentStepId, currentStepIndex, activeSteps.length, nextStep, posthog, effectiveService, answers, setSafetyBlock])
 
   const handleComplete = useCallback(() => {
     posthog?.capture('request_flow_completed', {

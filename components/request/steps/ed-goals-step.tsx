@@ -42,7 +42,7 @@ const DURATION_OPTIONS = [
   { value: "3_plus_years", label: "3+ years" },
 ] as const
 
-export default function EdGoalsStep({ onNext }: EdGoalsStepProps) {
+export default function EdGoalsStep({ serviceType, onNext }: EdGoalsStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
 
@@ -60,7 +60,8 @@ export default function EdGoalsStep({ onNext }: EdGoalsStepProps) {
       if (!edGoal) reasons.push("your main goal")
       if (!edDuration) reasons.push("how long this has been a concern")
       return reasons
-    }, [edAgeConfirmed, edGoal, edDuration])
+    }, [edAgeConfirmed, edGoal, edDuration]),
+    { posthog, serviceType, stepId: "ed-goals" },
   )
 
   const handleNext = () => {

@@ -64,6 +64,7 @@ const PREFERENCE_OPTIONS = [
 ] as const
 
 export default function HairLossPreferencesStep({
+  serviceType,
   onNext,
 }: HairLossPreferencesStepProps) {
   const { answers, setAnswer } = useRequestStore()
@@ -78,7 +79,8 @@ export default function HairLossPreferencesStep({
 
   const { validationSummary, showBlockingReasons } = useStepValidationSummary(
     isComplete,
-    useCallback(() => ["a treatment preference"], [])
+    useCallback(() => ["a treatment preference"], []),
+    { posthog, serviceType, stepId: "hair-loss-preferences" },
   )
 
   const handleNext = () => {
