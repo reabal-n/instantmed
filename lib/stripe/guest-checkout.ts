@@ -369,7 +369,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     if (!clinicalResult.ok) {
       return { success: false, error: clinicalResult.error }
     }
-    const { serviceSlugForSafety, safetyCheck } = clinicalResult.data
+    const { serviceSlugForSafety, safetyCheck, intakeFlags } = clinicalResult.data
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -717,6 +717,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
           triage_reasons: safetyCheck.triggeredRuleIds,
           requires_live_consult: safetyCheck.requiresCall,
           live_consult_reason: safetyCheck.blockReason || null,
+          risk_flags: intakeFlags,
         })
         .eq("id", intake.id),
     ])

@@ -74,7 +74,7 @@ export async function createIntakeAndCheckoutAction(
     // 2. Clinical validation: payload Zod, blocklist, Sched 8, safety rules.
     const clinicalResult = await runClinicalValidation(input)
     if (!clinicalResult.ok) return { success: false, error: clinicalResult.error }
-    const { serviceSlugForSafety, safetyCheck } = clinicalResult.data
+    const { serviceSlugForSafety, safetyCheck, intakeFlags } = clinicalResult.data
 
     // 3. Auth, profile, age, baseUrl, consent.
     const authResult = await runAuthAndProfile(input)
@@ -201,6 +201,7 @@ export async function createIntakeAndCheckoutAction(
       answers: input.answers,
       serviceSlug: serviceSlugForSafety,
       safetyCheck,
+      intakeFlags,
     })
     await logComplianceAudit({
       intake,

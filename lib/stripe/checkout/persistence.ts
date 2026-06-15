@@ -18,6 +18,7 @@ import {
 } from "@supabase/supabase-js"
 
 import { trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
+import type { IntakeFlag } from "@/lib/clinical/intake-flags"
 import {
   logAccuracyAttestationGiven,
   logRequestCreated,
@@ -250,6 +251,8 @@ export async function applySafetyTriage(
     answers: Record<string, unknown>
     serviceSlug: string
     safetyCheck: ServerSafetyCheck
+    /** Doctor-visible soft flags derived from the intake; written to risk_flags. */
+    intakeFlags: IntakeFlag[]
   },
 ): Promise<void> {
   await Promise.all([
@@ -268,6 +271,7 @@ export async function applySafetyTriage(
         triage_reasons: args.safetyCheck.triggeredRuleIds,
         requires_live_consult: args.safetyCheck.requiresCall,
         live_consult_reason: args.safetyCheck.blockReason || null,
+        risk_flags: args.intakeFlags,
       })
       .eq("id", args.intakeId),
   ])
