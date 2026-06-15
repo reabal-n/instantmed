@@ -61,3 +61,53 @@ describe("UTI checkout clinical path", () => {
     expect(result.ok).toBe(false)
   })
 })
+
+function ocpInput(overrides: Record<string, unknown> = {}) {
+  return {
+    category: "consult",
+    subtype: "womens_health",
+    serviceSlug: "consult",
+    answers: {
+      consultSubtype: "womens_health",
+      womensHealthOption: "ocp_new",
+      contraceptionType: "start",
+      pregnancyStatus: "no",
+      womens_migraine_aura: "no",
+      womens_blood_clot_history: "no",
+      womens_smoker: "no",
+      emergency_symptoms: [],
+      ...overrides,
+    },
+  } as never
+}
+
+describe("OCP (new/switch pill) checkout clinical path", () => {
+  it("allows a clean, contraindication-free new-pill request through to payment", async () => {
+    const result = await runClinicalValidation(ocpInput())
+    expect(result.ok).toBe(true)
+  })
+
+  it("blocks a confirmed-pregnant new-pill request before payment", async () => {
+    const result = await runClinicalValidation(ocpInput({ pregnancyStatus: "yes" }))
+    expect(result.ok).toBe(false)
+  })
+
+  it("blocks a possibly-pregnant new-pill request before payment", async () => {
+    const result = await runClinicalValidation(ocpInput({ pregnancyStatus: "not_sure" }))
+    expect(result.ok).toBe(false)
+  })
+
+  it("routes combined-pill contraindications (migraine-aura / clot / smoker) to a call before payment", async () => {
+    for (const field of ["womens_migraine_aura", "womens_blood_clot_history", "womens_smoker"]) {
+      const result = await runClinicalValidation(ocpInput({ [field]: "yes" }))
+      expect(result.ok, field).toBe(false)
+    }
+  })
+
+  it("blocks checkout when the OCP safety fields are missing (crafted payload)", async () => {
+    const result = await runClinicalValidation(
+      ocpInput({ pregnancyStatus: undefined, womens_migraine_aura: undefined }),
+    )
+    expect(result.ok).toBe(false)
+  })
+})

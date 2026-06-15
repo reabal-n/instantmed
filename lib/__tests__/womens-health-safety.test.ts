@@ -54,6 +54,40 @@ describe("women's health — OCP contraindications are flag-not-block (REQUIRES_
   })
 })
 
+describe("women's health — new/switch pill pregnancy is server-blocked", () => {
+  // Regression: the legacy womens_pregnancy_hormonal rule keyed on
+  // pregnancyStatus === 'pregnant', a value the live intake never emits, so a
+  // pregnant new-pill request silently passed safety as ALLOW. The live guard
+  // is the ocp_pregnancy_* rules, scoped to womensHealthOption === 'ocp_new'.
+  const ocpBase = {
+    consultSubtype: "womens_health",
+    womensHealthOption: "ocp_new",
+    contraceptionType: "start",
+    womens_migraine_aura: "no",
+    womens_blood_clot_history: "no",
+    womens_smoker: "no",
+    emergency_symptoms: [] as string[],
+  }
+
+  it("declines a confirmed-pregnant new/switch pill request", () => {
+    const result = checkSafetyForServer("consult", { ...ocpBase, pregnancyStatus: "yes" })
+    expect(result.outcome).toBe("DECLINE")
+    expect(result.isAllowed).toBe(false)
+  })
+
+  it("requires a call when pregnancy is not ruled out", () => {
+    const result = checkSafetyForServer("consult", { ...ocpBase, pregnancyStatus: "not_sure" })
+    expect(result.outcome).toBe("REQUIRES_CALL")
+    expect(result.requiresCall).toBe(true)
+    expect(result.isAllowed).toBe(false)
+  })
+
+  it("still allows a not-pregnant new-pill request", () => {
+    const result = checkSafetyForServer("consult", { ...ocpBase, pregnancyStatus: "no" })
+    expect(result.isAllowed).toBe(true)
+  })
+})
+
 describe("women's health — required safety fields", () => {
   it("requires the UTI red-flag + pregnancy fields", () => {
     const result = validateSafetyFieldsPresent("consult", {

@@ -127,8 +127,13 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
 
   const checkForControlledSubstance = useCallback((meds: MedicationEntry[]) => {
     for (const med of meds) {
-      const name = med.product?.drug_name || med.name
-      if (name && isControlledSubstance(name)) {
+      // Scan both the named medicine AND the free-text "I don't know the name"
+      // description — the server controlled-substance block (via
+      // buildRepeatScriptMedicationValidationText) scans the description too, so
+      // the in-flow warning must stay in parity or a patient types a controlled
+      // name into the description and is only stopped server-side after paying.
+      const candidates = [med.product?.drug_name || med.name, med.description]
+      if (candidates.some((value) => value && isControlledSubstance(value))) {
         setControlledBlock(CONTROLLED_SUBSTANCE_DISCLAIMER.message)
         return
       }
@@ -232,7 +237,9 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
     medications.forEach((med) => {
       const name = med.product?.drug_name || med.name
       const code = med.pbsCode || med.product?.pbs_code || ""
-      if (name && isControlledSubstance(name)) {
+      // Scan name AND free-text description for parity with the server block.
+      const controlledCandidates = [name, med.description]
+      if (controlledCandidates.some((value) => value && isControlledSubstance(value))) {
         newErrors.medication = "Controlled substances cannot be prescribed online"
         return
       }

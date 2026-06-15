@@ -95,6 +95,32 @@ describe("repeat script medication array safety", () => {
     })
   })
 
+  it("blocks a controlled substance named only in the unknown-medication description", () => {
+    // The "I don't know the name" path carries a free-text description. A patient
+    // must not be able to slip a controlled substance through by naming it only in
+    // that description — the server scan (buildRepeatScriptMedicationValidationText)
+    // must include it.
+    const answers = {
+      medication_name: "Unknown - doctor to identify",
+      medication_display: "Unknown - doctor to identify",
+      pbs_code: "UNKNOWN",
+      prescribed_before: true,
+      dose_changed: false,
+      last_prescribed: "6_to_12_months",
+      current_dose: "As previously prescribed",
+      medications: [
+        {
+          name: "Unknown - doctor to identify",
+          description: "small white tablet, I think it's oxycodone for pain",
+          pbsCode: "UNKNOWN",
+        },
+      ],
+    }
+
+    expect(getMedicationBlocklistCandidate(answers)).toContain("oxycodone")
+    expect(validateRepeatScriptPayload(answers)).toMatchObject({ valid: false })
+  })
+
   it("surfaces all requested medicines in the doctor summary and Parchment handoff context", () => {
     const summary = buildClinicalCaseSummary({
       category: "prescription",
