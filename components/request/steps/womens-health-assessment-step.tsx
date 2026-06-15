@@ -1,9 +1,10 @@
 "use client"
 
-import { AlertCircle, Sparkles, XCircle } from "lucide-react"
+import { AlertCircle, ShieldCheck, Sparkles, XCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useEffect,useState } from "react"
+import { useEffect, useState } from "react"
 
+import { IntakeStepIntro, QuestionCard, SegmentedChoiceGroup, StringBinaryChoice } from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,6 +22,17 @@ interface WomensHealthAssessmentStepProps {
   onNext: () => void
   onBack: () => void
   onComplete: () => void
+}
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null
+
+  return (
+    <p className="flex items-center gap-1 text-xs text-destructive">
+      <AlertCircle className="h-3 w-3" aria-hidden="true" />
+      {message}
+    </p>
+  )
 }
 
 export default function WomensHealthAssessmentStep({ onNext, onBack }: WomensHealthAssessmentStepProps) {
@@ -60,7 +72,7 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
   ocpType?: 'new' | 'repeat'
 }) {
   // Auto-set contraception type from OCP selection if not already set
-  const resolvedType = ocpType === 'repeat' ? 'continue' : ocpType === 'new' ? 'start' : undefined
+  const resolvedType = ocpType === 'repeat' ? 'continue' : undefined
   useEffect(() => {
     if (resolvedType && !answers.contraceptionType) {
       setAnswer("contraceptionType", resolvedType)
@@ -111,122 +123,162 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
     && (!needsPillSafetyScreen || (migraineAura && bloodClotHistory && smoker))
 
   return (
-    <div className="space-y-6">
-      <Alert variant="default" className="border-primary/20 bg-primary/5">
-        <Sparkles className="w-4 h-4" />
-        <AlertDescription className="text-xs">
-          We&apos;ll ask a few questions to ensure contraception is safe and suitable for you.
-        </AlertDescription>
-      </Alert>
+    <div className="space-y-4">
+      <IntakeStepIntro
+        eyebrow="Contraception"
+        title="A few safety checks"
+        description="These answers help the doctor choose a safe option. If anything needs more context, the doctor will contact you."
+      />
 
-      <div className="space-y-3">
-        <Label className="text-sm font-medium">
-          What would you like?<span className="text-destructive ml-0.5">*</span>
-        </Label>
-        <RadioGroup value={contraceptionType} onValueChange={(v) => setAnswer("contraceptionType", v)} className="space-y-2" aria-label="What would you like">
-          {[
-            { value: 'start', label: 'Start contraception for the first time' },
-            { value: 'continue', label: 'Continue / repeat my current contraception' },
-            { value: 'switch', label: 'Switch to a different type' },
-          ].map((opt) => (
-            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]", contraceptionType === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
-              <RadioGroupItem value={opt.value} />
-              <span className="text-sm">{opt.label}</span>
-            </label>
-          ))}
-        </RadioGroup>
-        {errors.contraceptionType && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.contraceptionType}</p>}
-      </div>
+      <QuestionCard compact>
+        <div className="space-y-2.5">
+          <div>
+            <p className="text-sm font-medium">
+              What would you like? <span className="text-destructive">*</span>
+            </p>
+            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+              Choose the closest match for this request.
+            </p>
+          </div>
+          <SegmentedChoiceGroup
+            options={[
+              { value: "start", label: "Start" },
+              { value: "switch", label: "Switch" },
+              { value: "continue", label: "Continue" },
+            ]}
+            value={contraceptionType}
+            onChange={(value) => setAnswer("contraceptionType", value)}
+            ariaLabel="What would you like?"
+            columns="auto"
+          />
+          <FieldError message={errors.contraceptionType} />
+        </div>
+      </QuestionCard>
 
-      <div className="space-y-3">
-        <Label className="text-sm font-medium">
-          Are you currently using any contraception?<span className="text-destructive ml-0.5">*</span>
-        </Label>
-        <RadioGroup value={contraceptionCurrent} onValueChange={(v) => setAnswer("contraceptionCurrent", v)} className="space-y-2" aria-label="Are you currently using any contraception">
-          {[
-            { value: 'pill', label: 'Yes, the pill' },
-            { value: 'iud', label: 'Yes, IUD / implant' },
-            { value: 'other', label: 'Yes, other method' },
-            { value: 'none', label: 'No' },
-          ].map((opt) => (
-            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]", contraceptionCurrent === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
-              <RadioGroupItem value={opt.value} />
-              <span className="text-sm">{opt.label}</span>
-            </label>
-          ))}
-        </RadioGroup>
-        {errors.contraceptionCurrent && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.contraceptionCurrent}</p>}
-      </div>
+      <QuestionCard compact>
+        <div className="space-y-2.5">
+          <div>
+            <p className="text-sm font-medium">
+              Are you currently using contraception? <span className="text-destructive">*</span>
+            </p>
+            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+              This gives the doctor context for starting or switching safely.
+            </p>
+          </div>
+          <SegmentedChoiceGroup
+            options={[
+              { value: "pill", label: "The pill" },
+              { value: "iud", label: "IUD or implant" },
+              { value: "other", label: "Other" },
+              { value: "none", label: "No" },
+            ]}
+            value={contraceptionCurrent}
+            onChange={(value) => setAnswer("contraceptionCurrent", value)}
+            ariaLabel="Are you currently using contraception?"
+            columns="auto"
+          />
+          <FieldError message={errors.contraceptionCurrent} />
+        </div>
+      </QuestionCard>
 
-      {/* Pregnancy screening */}
-      <div className="space-y-3">
-        <Label className="text-sm font-medium">
-          Are you currently pregnant or think you might be?<span className="text-destructive ml-0.5">*</span>
-        </Label>
-        <RadioGroup value={pregnancyStatus} onValueChange={handlePregnancyChange} className="space-y-2" aria-label="Are you currently pregnant or think you might be">
-          {[
-            { value: 'no', label: 'No' },
-            { value: 'not_sure', label: 'Not sure' },
-            { value: 'yes', label: 'Yes' },
-          ].map((opt) => (
-            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]", pregnancyStatus === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
-              <RadioGroupItem value={opt.value} />
-              <span className="text-sm">{opt.label}</span>
-            </label>
-          ))}
-        </RadioGroup>
-        {errors.pregnancyStatus && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.pregnancyStatus}</p>}
-        {pregnancyStatus === 'yes' && (
-          <Alert variant="default" className="border-warning-border bg-warning-light/50 dark:bg-warning/10">
-            <AlertCircle className="w-4 h-4 text-warning" />
-            <AlertDescription className="text-xs text-warning">
-              Some contraception is not suitable during pregnancy. The doctor will discuss safe options with you.
-            </AlertDescription>
-          </Alert>
-        )}
-        {pregnancyStatus === 'not_sure' && (
-          <p className="text-xs text-muted-foreground">
-            Consider taking a pregnancy test before starting contraception.
-          </p>
-        )}
-      </div>
+      <QuestionCard compact>
+        <div className="space-y-2.5">
+          <div>
+            <p className="text-sm font-medium">
+              Are you pregnant or could you be pregnant? <span className="text-destructive">*</span>
+            </p>
+            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+              Some options are not suitable during pregnancy.
+            </p>
+          </div>
+          <SegmentedChoiceGroup
+            options={[
+              { value: "no", label: "No" },
+              { value: "not_sure", label: "Not sure" },
+              { value: "yes", label: "Yes" },
+            ]}
+            value={pregnancyStatus}
+            onChange={handlePregnancyChange}
+            ariaLabel="Are you pregnant or could you be pregnant?"
+            columns="auto"
+          />
+          <FieldError message={errors.pregnancyStatus} />
+          {pregnancyStatus === "yes" && (
+            <Alert variant="default" className="border-warning-border bg-warning-light/50 dark:bg-warning/10">
+              <AlertCircle className="h-4 w-4 text-warning" aria-hidden="true" />
+              <AlertDescription className="text-xs text-warning">
+                Some contraception is not suitable during pregnancy. The doctor will discuss safe options with you.
+              </AlertDescription>
+            </Alert>
+          )}
+          {pregnancyStatus === "not_sure" && (
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              Consider taking a pregnancy test before starting contraception.
+            </p>
+          )}
+        </div>
+      </QuestionCard>
 
       {needsPillSafetyScreen && (
-        <div className="space-y-4 rounded-xl border border-border/50 bg-muted/20 p-3">
-          <p className="text-sm font-medium">A few safety checks for the combined pill</p>
+        <QuestionCard compact className="space-y-4">
+          <div className="flex items-start gap-3">
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+            <div className="space-y-1">
+              <p className="text-sm font-medium">Combined pill safety</p>
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                If any of these apply, the doctor will check whether the combined pill is right for you or suggest a safer option.
+              </p>
+            </div>
+          </div>
           {[
             { key: "womens_migraine_aura", value: migraineAura, label: "Do you get migraines with aura (visual disturbances, flashing lights, or blind spots)?" },
             { key: "womens_blood_clot_history", value: bloodClotHistory, label: "Have you, or a close family member, ever had a blood clot (DVT or pulmonary embolism)?" },
             { key: "womens_smoker", value: smoker, label: "Do you smoke?" },
           ].map((q) => (
-            <div key={q.key} className="space-y-2">
-              <Label className="text-sm">{q.label}<span className="text-destructive ml-0.5">*</span></Label>
-              <RadioGroup value={q.value} onValueChange={(v) => setAnswer(q.key, v)} className="flex gap-2" aria-label={q.label}>
-                {[{ value: "no", label: "No" }, { value: "yes", label: "Yes" }].map((opt) => (
-                  <label key={opt.value} className={cn("flex flex-1 items-center justify-center gap-2 p-2.5 rounded-xl border cursor-pointer transition-[background-color,border-color]", q.value === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
-                    <RadioGroupItem value={opt.value} />
-                    <span className="text-sm">{opt.label}</span>
-                  </label>
-                ))}
-              </RadioGroup>
-              {errors[q.key] && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors[q.key]}</p>}
+            <div key={q.key} className="space-y-2.5">
+              <p className="text-sm font-medium leading-snug">
+                {q.label} <span className="text-destructive">*</span>
+              </p>
+              <StringBinaryChoice
+                value={q.value as "no" | "yes" | undefined}
+                noValue="no"
+                yesValue="yes"
+                onChange={(value) => setAnswer(q.key, value)}
+                ariaLabel={q.label}
+              />
+              <FieldError message={errors[q.key]} />
             </div>
           ))}
-          <p className="text-xs text-muted-foreground">
-            These don&apos;t stop your request. If any apply, the doctor will check whether the combined pill is right for you or suggest a safer option.
-          </p>
-        </div>
+        </QuestionCard>
       )}
 
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">When was your last period? (approximate)</Label>
-        <Input value={lastPeriod} onChange={(e) => setAnswer("lastPeriod", e.target.value)} placeholder="e.g., 2 weeks ago" className="h-11" />
-      </div>
+      <QuestionCard compact className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="womens-last-period" className="text-sm font-medium">
+            When was your last period? (approximate)
+          </Label>
+          <Input
+            id="womens-last-period"
+            value={lastPeriod}
+            onChange={(e) => setAnswer("lastPeriod", e.target.value)}
+            placeholder="e.g., 2 weeks ago"
+            className="h-11"
+          />
+        </div>
 
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">Anything else relevant?</Label>
-        <Textarea value={contraceptionDetails} onChange={(e) => setAnswer("contraceptionDetails", e.target.value)} placeholder="Optional: specific concerns, brand preferences..." className="min-h-[80px] resize-none" />
-      </div>
+        <div className="space-y-2">
+          <Label htmlFor="womens-contraception-details" className="text-sm font-medium">
+            Anything else the doctor should know?
+          </Label>
+          <Textarea
+            id="womens-contraception-details"
+            value={contraceptionDetails}
+            onChange={(e) => setAnswer("contraceptionDetails", e.target.value)}
+            placeholder="Optional: specific concerns, brand preferences, or past side effects"
+            className="min-h-[84px] resize-none"
+          />
+        </div>
+      </QuestionCard>
 
       <Button data-intake-primary-action="true" data-intake-primary-label="Continue" onClick={handleNext} disabled={!isComplete} className="w-full h-12 text-base font-medium max-sm:hidden">Continue</Button>
     </div>
@@ -371,6 +423,7 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
     const newErrors: Record<string, string> = {}
     if (!utiSymptoms || utiSymptoms.length === 0) newErrors.utiSymptoms = "Please select your symptoms"
     if (!utiRedFlags) newErrors.utiRedFlags = "Please answer this question"
+    if (!utiPregnant) newErrors.utiPregnant = "Please answer this question"
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -416,23 +469,27 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
   const isComplete = utiSymptoms && utiSymptoms.length > 0 && utiRedFlags === 'no' && utiPregnant === 'no'
 
   return (
-    <div className="space-y-6">
-      <Alert variant="default" className="border-primary/20 bg-primary/5">
-        <Sparkles className="w-4 h-4" />
-        <AlertDescription className="text-xs">
-          UTI treatment is available without a call for uncomplicated cases.
-        </AlertDescription>
-      </Alert>
+    <div className="space-y-4">
+      <IntakeStepIntro
+        eyebrow="UTI treatment"
+        title="Check this is safe for telehealth"
+        description="UTI treatment can be reviewed online when symptoms are uncomplicated. These questions screen for signs that need in-person care."
+      />
 
-      <div className="space-y-3">
-        <Label className="text-sm font-medium">
-          Which symptoms are you experiencing?<span className="text-destructive ml-0.5">*</span>
-        </Label>
+      <QuestionCard compact>
+        <div className="space-y-1">
+          <p className="text-sm font-medium">
+            Which symptoms do you have? <span className="text-destructive">*</span>
+          </p>
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            Toggle on every symptom that applies.
+          </p>
+        </div>
         <div className="space-y-2">
           {SYMPTOMS.map((symptom) => (
             <div
               key={symptom.value}
-              className="flex items-center justify-between gap-3 p-3 rounded-xl border bg-muted/30"
+              className="flex min-h-12 items-center justify-between gap-3 rounded-xl border border-border/60 bg-background p-3 transition-colors hover:border-primary/50 hover:bg-primary/5"
             >
               <Label htmlFor={`uti-${symptom.value}`} className="text-sm cursor-pointer leading-snug flex-1">
                 {symptom.label}
@@ -445,49 +502,69 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
             </div>
           ))}
         </div>
-        {errors.utiSymptoms && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.utiSymptoms}</p>}
-      </div>
+        <FieldError message={errors.utiSymptoms} />
+      </QuestionCard>
 
-      <div className="space-y-3">
-        <Label className="text-sm font-medium">
-          Do you have any of these symptoms: fever, back/flank pain, feeling very unwell, vomiting?<span className="text-destructive ml-0.5">*</span>
-        </Label>
-        <RadioGroup value={utiRedFlags} onValueChange={handleRedFlagsChange} className="space-y-2" aria-label="Do you have red flag symptoms">
-          <label className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]", utiRedFlags === 'yes' ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
-            <RadioGroupItem value="yes" />
-            <span className="text-sm">Yes</span>
-          </label>
-          <label className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]", utiRedFlags === 'no' ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
-            <RadioGroupItem value="no" />
-            <span className="text-sm">No</span>
-          </label>
-        </RadioGroup>
-        {errors.utiRedFlags && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.utiRedFlags}</p>}
-      </div>
+      <QuestionCard compact>
+        <div className="space-y-2.5">
+          <div>
+            <p className="text-sm font-medium">
+              Any fever, back or flank pain, vomiting, or feeling very unwell? <span className="text-destructive">*</span>
+            </p>
+            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+              These can be signs of a kidney infection or a more serious illness.
+            </p>
+          </div>
+          <StringBinaryChoice
+            value={utiRedFlags as "no" | "yes" | undefined}
+            noValue="no"
+            yesValue="yes"
+            onChange={handleRedFlagsChange}
+            ariaLabel="Any fever, back or flank pain, vomiting, or feeling very unwell?"
+          />
+          <FieldError message={errors.utiRedFlags} />
+        </div>
+      </QuestionCard>
 
-      {/* Pregnancy screening */}
-      <div className="space-y-3">
-        <Label className="text-sm font-medium">
-          Are you currently pregnant?<span className="text-destructive ml-0.5">*</span>
-        </Label>
-        <RadioGroup value={utiPregnant} onValueChange={handlePregnancyChange} className="space-y-2" aria-label="Are you currently pregnant">
-          {[
-            { value: 'no', label: 'No' },
-            { value: 'not_sure', label: 'Not sure' },
-            { value: 'yes', label: 'Yes' },
-          ].map((opt) => (
-            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]", utiPregnant === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
-              <RadioGroupItem value={opt.value} />
-              <span className="text-sm">{opt.label}</span>
-            </label>
-          ))}
-        </RadioGroup>
-      </div>
+      <QuestionCard compact>
+        <div className="space-y-2.5">
+          <div>
+            <p className="text-sm font-medium">
+              Are you pregnant, or could you be pregnant? <span className="text-destructive">*</span>
+            </p>
+            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+              UTIs in pregnancy need in-person assessment.
+            </p>
+          </div>
+          <SegmentedChoiceGroup
+            options={[
+              { value: "no", label: "No" },
+              { value: "not_sure", label: "Not sure" },
+              { value: "yes", label: "Yes" },
+            ]}
+            value={utiPregnant}
+            onChange={handlePregnancyChange}
+            ariaLabel="Are you pregnant, or could you be pregnant?"
+            columns="auto"
+          />
+          <FieldError message={errors.utiPregnant} />
+        </div>
+      </QuestionCard>
 
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">Anything else relevant?</Label>
-        <Textarea value={utiDetails} onChange={(e) => setAnswer("utiDetails", e.target.value)} placeholder="Optional: how long symptoms, previous UTIs..." className="min-h-[80px] resize-none" />
-      </div>
+      <QuestionCard compact>
+        <div className="space-y-2">
+          <Label htmlFor="uti-details" className="text-sm font-medium">
+            Anything else the doctor should know?
+          </Label>
+          <Textarea
+            id="uti-details"
+            value={utiDetails}
+            onChange={(e) => setAnswer("utiDetails", e.target.value)}
+            placeholder="Optional: how long symptoms have been present, previous UTIs, or recent treatment"
+            className="min-h-[84px] resize-none"
+          />
+        </div>
+      </QuestionCard>
 
       <Button data-intake-primary-action="true" data-intake-primary-label="Continue" onClick={handleNext} disabled={!isComplete} className="w-full h-12 text-base font-medium max-sm:hidden">Continue</Button>
     </div>
