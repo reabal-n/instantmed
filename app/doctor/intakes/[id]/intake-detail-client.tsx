@@ -6,6 +6,7 @@ import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } fro
 
 import type { AIDraft } from "@/app/actions/draft-approval"
 import { CertificatePreviewDialog } from "@/components/doctor/certificate-preview-dialog"
+import { IntakeFlagsPanel } from "@/components/doctor/intake-flags-panel"
 import { PatientDecisionStrip } from "@/components/doctor/patient-decision-strip"
 import { PatientProfilePanel } from "@/components/doctor/patient-profile-panel"
 import { DeclineIntakeDialog } from "@/components/doctor/review/decline-intake-dialog"
@@ -28,6 +29,7 @@ import { usePanel } from "@/components/panels/panel-provider"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
+import { parseIntakeFlags } from "@/lib/clinical/intake-flags"
 import { buildDoctorIntakeHref, STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
 import type { PatientThreadMessage } from "@/lib/data/patient-messages"
@@ -293,6 +295,10 @@ function CockpitIntakeDetailClient({
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+            <IntakeFlagsPanel
+              flags={parseIntakeFlags((reviewData.intake as { risk_flags?: unknown }).risk_flags)}
+              className="mb-3"
+            />
             <IntakeReviewCockpit />
           </div>
         </div>
