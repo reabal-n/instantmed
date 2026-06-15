@@ -11,6 +11,19 @@ export const BLOCKED_CONSULT_SUBTYPES: ReadonlySet<ConsultSubtype> = new Set([
   "weight_loss",
 ])
 
+/**
+ * Within women's health, only these option screens are live. Flipping the
+ * subtype gate alone would expose the whole type picker (morning-after,
+ * period-pain, "other"); this keeps the launch scoped to UTI + new/switch pill.
+ * `ocp_repeat` is deliberately absent — "continuing the same pill" is routed to
+ * the cheaper repeat-script flow, not a parallel $49.95 path.
+ */
+export const LIVE_WOMENS_HEALTH_OPTIONS: ReadonlySet<string> = new Set(["uti", "ocp_new"])
+
+export function isWomensHealthOptionLive(option: string | undefined | null): boolean {
+  return typeof option === "string" && LIVE_WOMENS_HEALTH_OPTIONS.has(option)
+}
+
 export const CONSULT_SUBTYPE_LABELS: Record<ConsultSubtype, string> = {
   ed: "Erectile dysfunction",
   hair_loss: "Hair loss treatment",

@@ -462,65 +462,66 @@ const consultRules: SafetyRule[] = [
   // ----------------------------------------
   // BLOOD CLOT HISTORY - Absolute contraindication for combined OCP
   // ----------------------------------------
+  // The three OCP contraindications below are flag-not-block (REQUIRES_CALL):
+  // each is a contraindication to the COMBINED (oestrogen) pill but a
+  // progestogen-only option is usually safe, so the doctor reviews and steers
+  // rather than the system auto-declining. Scoped to a new/switch pill request
+  // (womensHealthOption === 'ocp_new') and fired on the real yes/no fields the
+  // OCP safety screen collects.
   {
     id: 'ocp_blood_clot_contraindication',
-    name: 'Blood Clot History - OCP Contraindication',
-    description: 'Patient has personal or family history of blood clots - absolute contraindication for combined OCP. Not yet collected in intake UI.',
+    name: 'Blood Clot History - Combined OCP Review',
+    description: 'New/switch pill request with a personal/family history of blood clots - combined OCP contraindicated; doctor steers to a progestogen-only option or declines.',
     conditions: [
       { fieldId: 'consultSubtype', operator: 'equals', value: 'womens_health' },
-      { fieldId: 'contraceptionType', operator: 'is_not_empty' },
-      // womens_blood_clot_history: not yet collected by women's health assessment step.
-      // Rule is aspirational - will fire once blood clot screening is added.
-      { fieldId: 'womens_blood_clot_history', operator: 'equals', value: true, derivedFrom: { type: 'duration_days', fields: ['contraceptionType'] } },
+      { fieldId: 'womensHealthOption', operator: 'equals', value: 'ocp_new' },
+      { fieldId: 'womens_blood_clot_history', operator: 'equals', value: 'yes' },
     ],
     conditionLogic: 'AND',
-    outcome: 'DECLINE',
+    outcome: 'REQUIRES_CALL',
     riskTier: 'high',
-    patientMessage: 'Due to your history of blood clots, the combined contraceptive pill is not safe for you. Please speak with your GP about alternative contraception options like the mini-pill, implant, or IUD which may be suitable.',
-    doctorNote: 'Blood clot history - combined OCP contraindicated per WHOMEC Category 4. Declined for safety.',
+    patientMessage: 'Because of your history of blood clots, the combined (oestrogen) pill may not be safe for you. A doctor will review and contact you about safer options like a progestogen-only pill, implant, or IUD.',
+    doctorNote: 'Blood clot history (VTE/DVT/PE) on a new/switch pill request - combined OCP contraindicated per WHOMEC Cat 4. Steer to progestogen-only or decline.',
     priority: 900,
     services: ['gp-consult', 'consult'],
   },
   // ----------------------------------------
-  // MIGRAINE WITH AURA - Absolute contraindication for combined OCP
+  // MIGRAINE WITH AURA - Combined OCP contraindication (flag, not block)
   // ----------------------------------------
   {
     id: 'ocp_migraine_aura_contraindication',
-    name: 'Migraine with Aura - OCP Contraindication',
-    description: 'Patient has migraine with aura - absolute contraindication for combined OCP. Not yet collected in intake UI.',
+    name: 'Migraine with Aura - Combined OCP Review',
+    description: 'New/switch pill request with migraine with aura - combined OCP contraindicated (stroke risk); doctor steers to a progestogen-only option or declines.',
     conditions: [
       { fieldId: 'consultSubtype', operator: 'equals', value: 'womens_health' },
-      { fieldId: 'contraceptionType', operator: 'is_not_empty' },
-      // womens_migraine_aura: not yet collected by women's health assessment step.
-      { fieldId: 'womens_migraine_aura', operator: 'equals', value: true, derivedFrom: { type: 'duration_days', fields: ['contraceptionType'] } },
+      { fieldId: 'womensHealthOption', operator: 'equals', value: 'ocp_new' },
+      { fieldId: 'womens_migraine_aura', operator: 'equals', value: 'yes' },
     ],
     conditionLogic: 'AND',
-    outcome: 'DECLINE',
+    outcome: 'REQUIRES_CALL',
     riskTier: 'high',
-    patientMessage: 'Migraines with visual disturbances (aura) increase stroke risk when combined with oestrogen-containing contraceptives. Please speak with your GP about progestogen-only options like the mini-pill, implant, or hormonal IUD.',
-    doctorNote: 'Migraine with aura - combined OCP contraindicated per WHOMEC Category 4. Stroke risk.',
+    patientMessage: 'Migraines with visual disturbances (aura) raise stroke risk with the combined (oestrogen) pill. A doctor will review and contact you about progestogen-only options like a mini-pill, implant, or hormonal IUD.',
+    doctorNote: 'Migraine with aura on a new/switch pill request - combined OCP contraindicated per WHOMEC Cat 4 (stroke risk). Steer to progestogen-only or decline.',
     priority: 900,
     services: ['gp-consult', 'consult'],
   },
   // ----------------------------------------
-  // SMOKER AGED >35 - Absolute contraindication for combined OCP
+  // SMOKER - Combined OCP review (cardiovascular risk, sharp rise at 35+)
   // ----------------------------------------
   {
     id: 'ocp_smoker_over_35_contraindication',
-    name: 'Smoker Over 35 - OCP Contraindication',
-    description: 'Patient is a smoker aged over 35 - absolute contraindication for combined OCP. Not yet collected in intake UI.',
+    name: 'Smoker - Combined OCP Review',
+    description: 'New/switch pill request from a smoker - combined-pill cardiovascular risk rises sharply at 35+; doctor reviews age and steers to a safer option if needed.',
     conditions: [
       { fieldId: 'consultSubtype', operator: 'equals', value: 'womens_health' },
-      { fieldId: 'contraceptionType', operator: 'is_not_empty' },
-      // womens_smoker, womens_over_35: not yet collected by women's health assessment step.
-      { fieldId: 'womens_smoker', operator: 'equals', value: true, derivedFrom: { type: 'duration_days', fields: ['contraceptionType'] } },
-      { fieldId: 'womens_over_35', operator: 'equals', value: true, derivedFrom: { type: 'age', fields: ['patient_dob'] } },
+      { fieldId: 'womensHealthOption', operator: 'equals', value: 'ocp_new' },
+      { fieldId: 'womens_smoker', operator: 'equals', value: 'yes' },
     ],
     conditionLogic: 'AND',
-    outcome: 'DECLINE',
+    outcome: 'REQUIRES_CALL',
     riskTier: 'high',
-    patientMessage: 'Smoking over age 35 significantly increases cardiovascular risk with oestrogen-containing contraceptives. Please speak with your GP about safer alternatives like the mini-pill, implant, or IUD.',
-    doctorNote: 'Smoker >35 - combined OCP contraindicated per WHOMEC Category 4. Cardiovascular risk.',
+    patientMessage: 'Smoking raises the cardiovascular risk of the combined (oestrogen) pill, especially from age 35. A doctor will review and contact you about whether it is suitable or a safer alternative is better.',
+    doctorNote: 'Smoker on a new/switch pill request - combined OCP cardiovascular risk (WHOMEC Cat 3-4 if >=35). Confirm age + steer to progestogen-only/alternative if needed.',
     priority: 900,
     services: ['gp-consult', 'consult'],
   },
@@ -681,6 +682,51 @@ const consultRules: SafetyRule[] = [
     patientMessage: 'Some hormonal medications are not suitable while breastfeeding. A doctor will call you to discuss safe options.',
     doctorNote: 'Breastfeeding patient requesting hormonal medication - phone assessment required for safe prescribing.',
     priority: 700,
+    services: ['gp-consult', 'consult'],
+  },
+  // ----------------------------------------
+  // UTI RED FLAGS - Decline (possible upper-tract / systemic infection)
+  // Server-side enforcement of the keep-list: the UI blocks client-side, but a
+  // crafted payload must not reach checkout. Fever / flank pain / feeling very
+  // unwell suggests pyelonephritis or urosepsis - needs in-person care.
+  // ----------------------------------------
+  {
+    id: 'uti_red_flags_decline',
+    name: 'UTI Red Flags - Possible Kidney Infection',
+    description: 'Patient reports systemic UTI red flags (fever, flank/back pain, feeling very unwell) - needs in-person assessment',
+    conditions: [
+      { fieldId: 'consultSubtype', operator: 'equals', value: 'womens_health' },
+      { fieldId: 'utiRedFlags', operator: 'is_not_empty' },
+      { fieldId: 'utiRedFlags', operator: 'not_equals', value: 'no' },
+    ],
+    conditionLogic: 'AND',
+    outcome: 'DECLINE',
+    riskTier: 'high',
+    patientMessage: 'Symptoms like fever, back or flank pain, or feeling very unwell can mean a kidney infection, which needs in-person care. Please see a doctor in person or visit an emergency department.',
+    doctorNote: 'UTI red flags reported (fever/flank pain/systemic) - possible pyelonephritis. Declined for in-person assessment.',
+    priority: 950,
+    services: ['gp-consult', 'consult'],
+  },
+  // ----------------------------------------
+  // UTI in PREGNANCY (or possible pregnancy) - Decline
+  // Pregnant UTI needs culture-directed therapy, kidney screening and monitoring;
+  // some antibiotics are unsafe. "not_sure" is treated as possible-pregnant.
+  // ----------------------------------------
+  {
+    id: 'uti_pregnancy_decline',
+    name: 'UTI in Pregnancy - In-Person Assessment',
+    description: 'Patient with UTI is pregnant or might be - needs in-person assessment for safe treatment',
+    conditions: [
+      { fieldId: 'consultSubtype', operator: 'equals', value: 'womens_health' },
+      { fieldId: 'utiPregnant', operator: 'is_not_empty' },
+      { fieldId: 'utiPregnant', operator: 'not_equals', value: 'no' },
+    ],
+    conditionLogic: 'AND',
+    outcome: 'DECLINE',
+    riskTier: 'high',
+    patientMessage: 'UTIs during pregnancy, or when pregnancy is possible, need in-person assessment for safe treatment. Please see your GP or visit a clinic.',
+    doctorNote: 'UTI with possible/confirmed pregnancy - declined for in-person assessment (culture-directed therapy + monitoring needed).',
+    priority: 950,
     services: ['gp-consult', 'consult'],
   },
 ]
