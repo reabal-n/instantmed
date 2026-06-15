@@ -93,4 +93,34 @@ describe("intake flags persistence shape (what risk_flags receives)", () => {
     expect(codes).toContain("medication_form_missing")
     expect(flags.every((f) => f.severity === "attention")).toBe(true)
   })
+
+  it("an unknown medicine WITH a useful description carries medication_needs_identification + the description", async () => {
+    const input = {
+      category: "prescription",
+      subtype: "repeat",
+      serviceSlug: "repeat-script",
+      answers: {
+        medications: [
+          {
+            name: "Unknown - doctor will confirm",
+            pbsCode: "UNKNOWN",
+            description: "small white blood pressure tablet, prescribed by Dr Smith",
+          },
+        ],
+        prescribed_before: true,
+        dose_changed: false,
+        last_prescribed: "6_to_12_months",
+        current_dose: "one daily",
+      },
+    } as never
+
+    const result = await runClinicalValidation(input)
+
+    expect(result.ok).toBe(true)
+    const flags = result.ok ? result.data.intakeFlags : []
+    const flag = flags.find((f) => f.code === "medication_needs_identification")
+    expect(flag, "the identification flag persisted to risk_flags").toBeDefined()
+    expect(flag?.severity).toBe("attention")
+    expect(flag?.detail).toBe("small white blood pressure tablet, prescribed by Dr Smith")
+  })
 })

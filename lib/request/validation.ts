@@ -14,6 +14,7 @@ import {
   buildRepeatScriptMedicationValidationText,
   countRepeatScriptMedicationRows,
   extractRepeatScriptMedications,
+  isUsefulMedicationDescription,
   MAX_REPEAT_SCRIPT_MEDICATIONS,
 } from "@/lib/validation/repeat-script-medications"
 
@@ -185,11 +186,14 @@ export const medicationStepSchema = z
       const pbsCode = medication.pbsCode || ""
       const medicationText = buildRepeatScriptMedicationValidationText(medication).toLowerCase()
 
-      if (pbsCode.toUpperCase() === "UNKNOWN" || medicationText.includes("unknown - doctor")) {
+      // A3 softening (boundary 3): an unknown medicine may pass only with a useful
+      // free-text description; otherwise it stays a hard block at the step.
+      const isUnknown = pbsCode.toUpperCase() === "UNKNOWN" || medicationText.includes("unknown - doctor")
+      if (isUnknown && !isUsefulMedicationDescription(medication.description)) {
         ctx.addIssue({
           code: "custom",
           path: index === 0 ? ["medicationName"] : ["medications", index, "name"],
-          message: "Please enter the medication name, strength, and form.",
+          message: "Tell us what you can about this medicine (what it's for, the name on the box, or how it looks) so the doctor can identify it.",
         })
         return
       }

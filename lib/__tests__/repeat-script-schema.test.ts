@@ -173,3 +173,31 @@ describe("A3 softening — missing medication form is a flag, not a block (bound
     expect(validateRepeatScriptPayload({ ...base, medications }).valid).toBe(false)
   })
 })
+
+describe("A3 softening — unknown medication passes only with a useful description (boundary 3)", () => {
+  const base = {
+    prescribed_before: true,
+    dose_changed: false,
+    last_prescribed: "6_to_12_months",
+    current_dose: "one daily",
+  }
+  const unknown = { name: "Unknown - doctor will confirm", pbsCode: "UNKNOWN" }
+
+  it("still blocks an unknown medication with NO description", () => {
+    const result = validateRepeatScriptPayload({ ...base, medications: [{ ...unknown }] })
+    expect(result.valid).toBe(false)
+  })
+
+  it("still blocks an unknown medication with only a trivial description", () => {
+    const result = validateRepeatScriptPayload({ ...base, medications: [{ ...unknown, description: "idk" }] })
+    expect(result.valid).toBe(false)
+  })
+
+  it("allows an unknown medication WITH a useful free-text description (now a doctor flag)", () => {
+    const result = validateRepeatScriptPayload({
+      ...base,
+      medications: [{ ...unknown, description: "small white blood pressure tablet, prescribed by Dr Smith" }],
+    })
+    expect(result.valid).toBe(true)
+  })
+})

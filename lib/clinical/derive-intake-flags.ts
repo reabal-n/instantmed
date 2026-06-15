@@ -42,10 +42,11 @@ function deriveRepeatScriptFlags(answers: Record<string, unknown>): IntakeFlag[]
     const code = (medication.pbsCode || "").toUpperCase()
     const isUnknown = code === "UNKNOWN" || medication.name.toLowerCase().includes("unknown - doctor")
     if (isUnknown) {
-      // Once a medication is unidentified, strength/form are moot — one flag.
+      // Once a medication is unidentified, strength/form are moot — one flag that
+      // carries the patient's free-text description so the doctor can identify it.
       flags.push(makeIntakeFlag("medication_needs_identification", {
         source: "clinical",
-        detail: medication.displayName || medication.name,
+        detail: medication.description || medication.displayName || medication.name,
       }))
       continue
     }

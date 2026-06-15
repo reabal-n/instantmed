@@ -368,6 +368,32 @@ test.describe("Prescription: step validation", () => {
     await waitForStep(page, /When were you last prescribed/i)
   })
 
+  test("'I don't know the name' requires a description, then proceeds (A3 boundary 3)", async ({ page }) => {
+    await page.goto("/request?service=repeat-script")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+
+    await waitForStep(page, /Which medication do you need\?/i)
+    // Wait for the step to be fully interactive before taking the unknown path.
+    await expect(page.getByRole("combobox").first()).toBeVisible({ timeout: 5000 })
+
+    // Take the "I don't know the exact name" path.
+    const unknownBtn = page.getByRole("button", { name: /I don.?t know the exact name/i })
+    await expect(unknownBtn).toBeVisible({ timeout: 5000 })
+    await unknownBtn.click()
+    const description = page.locator("#medication-description-0")
+    await expect(description).toBeVisible({ timeout: 5000 })
+
+    // With no description, the flow must NOT be ready to advance.
+    await expect(page.getByRole("button", { name: /Continue to history/i })).toHaveCount(0)
+
+    // A useful free-text description unlocks it and advances the flow.
+    await description.fill("small white blood pressure tablet, prescribed by Dr Smith")
+    await expect(page.getByRole("button", { name: /Continue to history/i }).last()).toBeEnabled({ timeout: 5000 })
+    await clickContinue(page)
+    await waitForStep(page, /When were you last prescribed/i)
+  })
+
   test("patient details validates email format", async ({ page }) => {
     await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)

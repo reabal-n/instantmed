@@ -37,15 +37,18 @@ describe("deriveIntakeFlags — repeat script", () => {
     expect(codes(flags)).toEqual(["medication_form_missing"])
   })
 
-  it("flags an unknown medication and does NOT also flag its strength/form", () => {
+  it("flags an unknown medication with the description as detail, and does NOT also flag strength/form", () => {
     const flags = deriveIntakeFlags({
       ...repeatBase,
       answers: {
-        medications: [{ name: "the white one", pbsCode: "UNKNOWN" }],
+        medications: [
+          { name: "Unknown - doctor will confirm", pbsCode: "UNKNOWN", description: "small white blood pressure tablet from Dr Smith" },
+        ],
         current_dose: "one daily",
       },
     })
     expect(codes(flags)).toEqual(["medication_needs_identification"])
+    expect(flags[0].detail).toBe("small white blood pressure tablet from Dr Smith")
   })
 
   it("flags a missing current dose", () => {

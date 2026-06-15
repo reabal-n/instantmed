@@ -553,11 +553,12 @@ describe("unified intake regressions", () => {
       sex: "M",
     }
 
+    // Unknown med with NO description still hard-blocks (A3 boundary 3 floor).
     expect(validateAnswersServerSide("repeat-script", {
       ...baseAnswers,
       medicationName: "Unknown - doctor will confirm",
       pbsCode: "UNKNOWN",
-    }, identity)).toMatch(/medication/i)
+    }, identity)).toMatch(/identify/i)
 
     // A3 softening: a missing strength or form no longer blocks the step. The
     // patient proceeds and the doctor sees medication_strength_missing /

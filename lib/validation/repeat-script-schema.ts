@@ -7,6 +7,7 @@ import {
   buildRepeatScriptMedicationValidationText,
   countRepeatScriptMedicationRows,
   extractRepeatScriptMedications,
+  isUsefulMedicationDescription,
   MAX_REPEAT_SCRIPT_MEDICATIONS,
 } from "@/lib/validation/repeat-script-medications"
 
@@ -239,10 +240,15 @@ export function validateRepeatScriptPayload(
     const isManualEntry = medicationCode === "MANUAL"
     const isUnknownEntry = typeof medicationCode === "string" && medicationCode.toUpperCase() === "UNKNOWN"
 
-    if (isUnknownEntry || medication.name.toLowerCase().includes("unknown - doctor")) {
+    // A3 softening (boundary 3): an unknown medicine may pass ONLY with a useful
+    // free-text description; the doctor then sees a medication_needs_identification
+    // flag carrying that description. Without one, it stays a hard block. The
+    // controlled-substance scan below still runs (the description feeds it).
+    const isUnknown = isUnknownEntry || medication.name.toLowerCase().includes("unknown - doctor")
+    if (isUnknown && !isUsefulMedicationDescription(medication.description)) {
       return {
         valid: false,
-        error: "Please enter the medication name, strength, and form.",
+        error: "Tell us what you can about this medicine (what it's for, the name on the box, or how it looks) so the doctor can identify it.",
         requiresConsult: false,
       }
     }

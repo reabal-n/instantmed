@@ -20,6 +20,7 @@ import { MedicationSearch } from "@/components/shared/medication-search"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { CONTROLLED_SUBSTANCE_DISCLAIMER, isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
@@ -30,6 +31,7 @@ import {
 } from "@/lib/request/intake-answer-normalizers"
 import { addRecentMedication, getSmartDefaults } from "@/lib/request/preferences"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
+import { isUsefulMedicationDescription } from "@/lib/validation/repeat-script-medications"
 
 import { FormField } from "../form-field"
 import { useRequestStore } from "../store"
@@ -54,7 +56,10 @@ interface MedicationEntry {
   strength?: string
   form?: string
   pbsCode?: string
+  description?: string
 }
+
+const UNKNOWN_MEDICATION_NAME = "Unknown - doctor will confirm"
 
 export default function MedicationStep({ onNext }: MedicationStepProps) {
   const { answers, setAnswers, setAnswer } = useRequestStore()
@@ -186,6 +191,37 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
     checkForControlledSubstance(updated)
   }
 
+  // "I don't know the exact name" path (A3 boundary 3). The patient can proceed
+  // only after describing the medicine; the doctor then sees that description on
+  // a medication_needs_identification flag.
+  const handleMarkUnknown = (index: number) => {
+    const updated = [...medications]
+    updated[index] = {
+      product: null,
+      name: UNKNOWN_MEDICATION_NAME,
+      strength: "",
+      form: "",
+      pbsCode: "UNKNOWN",
+      description: "",
+    }
+    syncToStore(updated)
+    setControlledBlock(null)
+  }
+
+  const handleDescriptionChange = (index: number, value: string) => {
+    const updated = [...medications]
+    updated[index] = { ...updated[index], description: value }
+    syncToStore(updated)
+    checkForControlledSubstance(updated)
+  }
+
+  const handleExitUnknown = (index: number) => {
+    const updated = [...medications]
+    updated[index] = { product: null, name: "" }
+    syncToStore(updated)
+    setControlledBlock(null)
+  }
+
   const validate = useCallback(() => {
     const newErrors: Record<string, string> = {}
     const hasAtLeastOne = medications.some(m => m.product || m.name)
@@ -200,8 +236,9 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
         newErrors.medication = "Controlled substances cannot be prescribed online"
         return
       }
-      if (code.toUpperCase() === "UNKNOWN" || name?.toLowerCase().includes("unknown - doctor")) {
-        newErrors.medication = "Please enter the medication name, strength, and form"
+      const isUnknown = code.toUpperCase() === "UNKNOWN" || name?.toLowerCase().includes("unknown - doctor")
+      if (isUnknown && !isUsefulMedicationDescription(med.description)) {
+        newErrors.medication = "Tell us what you can about this medicine so the doctor can identify it"
       }
       // A3 softening: strength and form are no longer required to continue. If the
       // patient leaves them blank, the doctor sees medication_strength_missing /
@@ -237,8 +274,13 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
 
   const activeMedications = medications.filter(m => m.product || m.name)
   // A3 softening: readiness no longer requires strength or form (both are
-  // doctor-flagged if blank). A selected/typed medication is enough to continue.
-  const isComplete = activeMedications.length > 0
+  // doctor-flagged if blank). A selected/typed medication is enough — except an
+  // "I don't know the name" entry, which needs a useful description first.
+  const isComplete = activeMedications.length > 0 && activeMedications.every((med) => {
+    const isUnknown = (med.pbsCode || "").toUpperCase() === "UNKNOWN"
+      || med.name.toLowerCase().includes("unknown - doctor")
+    return !isUnknown || isUsefulMedicationDescription(med.description)
+  })
   // Live-computed; controlledBlock stays (a real clinical block), the stale
   // `errors` object does not gate readiness.
   const canContinue = Boolean(isComplete) && !controlledBlock
@@ -293,85 +335,142 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
       )}
 
       {/* Medication search slots */}
-      {medications.map((med, index) => (
+      {medications.map((med, index) => {
+        const isUnknownEntry = (med.pbsCode || "").toUpperCase() === "UNKNOWN"
+          || med.name.toLowerCase().includes("unknown - doctor")
+        return (
         <QuestionCard key={index} compact>
-          <FormField
-            label={medications.length > 1 ? `Medication ${index + 1}` : "Medication name"}
-            required={index === 0}
-            error={index === 0 ? errors.medication : undefined}
-            helpContent={index === 0 ? {
-              title: "Why do we ask this?",
-              content: "This is for reference only. The doctor will review and confirm the correct medication. All prescribing decisions are made by the clinician."
-            } : undefined}
-          >
-            <div className="mt-2 flex gap-2 items-start">
-              <div className="flex-1">
-                <MedicationSearch
-                  value={med.product}
-                  onChange={(product) => handleMedicationSelect(index, product)}
-                />
-              </div>
-              {medications.length > 1 && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="shrink-0 h-10 w-10 text-muted-foreground hover:text-destructive"
-                  onClick={() => removeMedication(index)}
-                  aria-label={`Remove medication ${index + 1}`}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-          </FormField>
-
-          {(med.product || med.name) && (
-            <div className="rounded-xl border border-border/50 bg-muted/20 p-3">
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <p className="text-sm font-medium">{med.product?.drug_name || med.name}</p>
-                {med.pbsCode && med.pbsCode !== "MANUAL" && (
-                  <span className="text-[11px] text-muted-foreground">PBS {med.pbsCode}</span>
+          {isUnknownEntry ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-medium">Describe your medication</p>
+                {medications.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="shrink-0 h-9 w-9 text-muted-foreground hover:text-destructive"
+                    onClick={() => removeMedication(index)}
+                    aria-label={`Remove medication ${index + 1}`}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <label className="text-xs text-muted-foreground" htmlFor={`medication-strength-${index}`}>
-                    Strength
-                  </label>
-                  <Input
-                    id={`medication-strength-${index}`}
-                    value={med.strength || ""}
-                    onChange={(event) => handleMedicationFieldChange(index, "strength", event.target.value)}
-                    placeholder="e.g. 10 mg"
-                    className="h-10"
-                    aria-invalid={Boolean(errors[`strength-${index}`])}
-                  />
-                  {errors[`strength-${index}`] && (
-                    <p className="text-xs text-destructive">{errors[`strength-${index}`]}</p>
-                  )}
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-muted-foreground" htmlFor={`medication-form-${index}`}>
-                    Form
-                  </label>
-                  <Input
-                    id={`medication-form-${index}`}
-                    value={med.form || ""}
-                    onChange={(event) => handleMedicationFieldChange(index, "form", event.target.value)}
-                    placeholder="e.g. tablet"
-                    className="h-10"
-                    aria-invalid={Boolean(errors[`form-${index}`])}
-                  />
-                  {errors[`form-${index}`] && (
-                    <p className="text-xs text-destructive">{errors[`form-${index}`]}</p>
-                  )}
-                </div>
-              </div>
+              <p className="text-xs text-muted-foreground">
+                Tell the doctor what you can: what it&apos;s for, the name on the box, what it looks like, who prescribed it, or your usual dose.
+              </p>
+              <Textarea
+                id={`medication-description-${index}`}
+                value={med.description || ""}
+                onChange={(event) => handleDescriptionChange(index, event.target.value)}
+                placeholder="e.g. small white tablet for blood pressure, prescribed by Dr Smith"
+                className="min-h-[88px] resize-none"
+                aria-invalid={index === 0 ? Boolean(errors.medication) : undefined}
+              />
+              {index === 0 && errors.medication && (
+                <p className="text-xs text-destructive">{errors.medication}</p>
+              )}
+              <button
+                type="button"
+                onClick={() => handleExitUnknown(index)}
+                className="rounded text-xs text-primary outline-none hover:underline focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              >
+                Actually, let me search for it
+              </button>
             </div>
+          ) : (
+            <>
+              <FormField
+                label={medications.length > 1 ? `Medication ${index + 1}` : "Medication name"}
+                required={index === 0}
+                error={index === 0 ? errors.medication : undefined}
+                helpContent={index === 0 ? {
+                  title: "Why do we ask this?",
+                  content: "This is for reference only. The doctor will review and confirm the correct medication. All prescribing decisions are made by the clinician."
+                } : undefined}
+              >
+                <div className="mt-2 flex gap-2 items-start">
+                  <div className="flex-1">
+                    <MedicationSearch
+                      value={med.product}
+                      onChange={(product) => handleMedicationSelect(index, product)}
+                    />
+                  </div>
+                  {medications.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="shrink-0 h-10 w-10 text-muted-foreground hover:text-destructive"
+                      onClick={() => removeMedication(index)}
+                      aria-label={`Remove medication ${index + 1}`}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+              </FormField>
+
+              {(med.product || med.name) && (
+                <div className="rounded-xl border border-border/50 bg-muted/20 p-3">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <p className="text-sm font-medium">{med.product?.drug_name || med.name}</p>
+                    {med.pbsCode && med.pbsCode !== "MANUAL" && (
+                      <span className="text-[11px] text-muted-foreground">PBS {med.pbsCode}</span>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground" htmlFor={`medication-strength-${index}`}>
+                        Strength
+                      </label>
+                      <Input
+                        id={`medication-strength-${index}`}
+                        value={med.strength || ""}
+                        onChange={(event) => handleMedicationFieldChange(index, "strength", event.target.value)}
+                        placeholder="e.g. 10 mg"
+                        className="h-10"
+                        aria-invalid={Boolean(errors[`strength-${index}`])}
+                      />
+                      {errors[`strength-${index}`] && (
+                        <p className="text-xs text-destructive">{errors[`strength-${index}`]}</p>
+                      )}
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground" htmlFor={`medication-form-${index}`}>
+                        Form
+                      </label>
+                      <Input
+                        id={`medication-form-${index}`}
+                        value={med.form || ""}
+                        onChange={(event) => handleMedicationFieldChange(index, "form", event.target.value)}
+                        placeholder="e.g. tablet"
+                        className="h-10"
+                        aria-invalid={Boolean(errors[`form-${index}`])}
+                      />
+                      {errors[`form-${index}`] && (
+                        <p className="text-xs text-destructive">{errors[`form-${index}`]}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {!med.product && !med.name && (
+                <button
+                  type="button"
+                  onClick={() => handleMarkUnknown(index)}
+                  className="mt-2 rounded text-xs text-primary outline-none hover:underline focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                >
+                  I don&apos;t know the exact name
+                </button>
+              )}
+            </>
           )}
         </QuestionCard>
-      ))}
+        )
+      })}
 
       {/* Add another medication button */}
       {activeMedications.length > 0 && medications.length < 5 && (

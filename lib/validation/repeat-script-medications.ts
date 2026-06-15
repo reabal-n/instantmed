@@ -8,6 +8,24 @@ export interface RepeatScriptMedicationEntry {
   pbsCode?: string
   brandName?: string
   activeIngredient?: string
+  /** Free-text the patient gives when they can't identify the exact medicine. */
+  description?: string
+}
+
+const TRIVIAL_UNKNOWN_DESCRIPTION = /^(unknown|i?\s*d(o|on'?)?\s*n?o?t?\s*know|dunno|idk|not sure|no idea|n\/?a|none|na)\b/i
+
+/**
+ * Floor for the "I don't know the exact name" path (A3 boundary 3): an unknown
+ * medicine may only pass if the patient gives a genuinely useful free-text
+ * description (what it's for, the name on the box, appearance, prescriber, usual
+ * dose) — not just "unknown" / "don't know".
+ */
+export function isUsefulMedicationDescription(description: string | undefined | null): boolean {
+  if (typeof description !== "string") return false
+  const trimmed = description.trim()
+  if (trimmed.length < 10) return false
+  if (TRIVIAL_UNKNOWN_DESCRIPTION.test(trimmed)) return false
+  return true
 }
 
 export interface RepeatScriptMedicationDisplayParts {
@@ -53,6 +71,7 @@ function normalizeMedicationEntry(entry: Record<string, unknown>): RepeatScriptM
     pbsCode: stringValue(entry, ["pbsCode", "pbs_code", "amtCode", "amt_code"]) || stringValue(product, ["pbs_code", "amt_code"]),
     brandName,
     activeIngredient,
+    description: stringValue(entry, ["description", "medicationDescription", "medication_description"]),
   }
 }
 
@@ -158,5 +177,8 @@ export function buildRepeatScriptMedicationValidationText(entry: RepeatScriptMed
     entry.activeIngredient,
     entry.strength,
     entry.form,
+    // Include the free-text description so the controlled-substance / blocklist
+    // scan also sees a medicine named only in the "I don't know" description.
+    entry.description,
   ].filter(Boolean).join(" ")
 }
