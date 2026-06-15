@@ -452,6 +452,13 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
         // A cert carrying any attention-severity intake flag must be reviewed by
         // a human, never auto-issued. Info-severity flags are intentionally
         // excluded so the 1–2 day fast path is preserved.
+        //
+        // NOTE (forward-looking / currently dormant): deriveIntakeFlags only emits
+        // flags for repeat-prescription intakes today, and this auto-approval path
+        // runs for med certs only — so med-cert intakes carry no intake flags yet
+        // and this gate is effectively a no-op in production. It is wired and
+        // fail-safe on purpose: the moment intake flags are extended to med certs,
+        // a flagged cert routes to needs_doctor with no further change here.
         attentionFlagCodes: attentionFlags(parseIntakeFlags((intake as { risk_flags?: unknown }).risk_flags))
           .map((flag) => flag.code),
       },

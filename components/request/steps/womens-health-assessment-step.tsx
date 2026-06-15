@@ -1,19 +1,16 @@
 "use client"
 
-import { AlertCircle, ShieldCheck, Sparkles, XCircle } from "lucide-react"
+import { AlertCircle, ShieldCheck, XCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 import { ChipToggleGroup, IntakeStepIntro, QuestionCard, QuestionPrompt, SegmentedChoiceGroup, StringBinaryChoice } from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
-import { cn } from "@/lib/utils"
 
 import { useRequestStore } from "../store"
 
@@ -44,41 +41,31 @@ export default function WomensHealthAssessmentStep({ onNext, onBack }: WomensHea
 
   const womensHealthOption = answers.womensHealthOption as string | undefined
 
-  // Render different assessments based on option
+  // Render the assessment for the live option. Only uti + ocp_new are live
+  // (LIVE_WOMENS_HEALTH_OPTIONS): the type step routes ocp_repeat to the
+  // repeat-script flow, and morning-after / period-pain / other are gated and
+  // rejected server-side by validateWomensHealthAssessmentStep. Anything else
+  // renders nothing rather than a half-built assessment.
   switch (womensHealthOption) {
-    case 'contraception':
     case 'ocp_new':
-    case 'ocp_repeat':
-      return <ContraceptionAssessment onNext={onNext} answers={answers} setAnswer={setAnswer} errors={errors} setErrors={setErrors} ocpType={womensHealthOption === 'ocp_repeat' ? 'repeat' : womensHealthOption === 'ocp_new' ? 'new' : undefined} />
-    case 'morning_after':
-      return <MorningAfterAssessment onNext={onNext} onBack={onBack} answers={answers} setAnswer={setAnswer} errors={errors} setErrors={setErrors} isBlocked={isBlocked} setIsBlocked={setIsBlocked} blockReason={blockReason} setBlockReason={setBlockReason} router={router} />
+      return <ContraceptionAssessment onNext={onNext} answers={answers} setAnswer={setAnswer} errors={errors} setErrors={setErrors} />
     case 'uti':
       return <UTIAssessment onNext={onNext} onBack={onBack} answers={answers} setAnswer={setAnswer} errors={errors} setErrors={setErrors} isBlocked={isBlocked} setIsBlocked={setIsBlocked} blockReason={blockReason} setBlockReason={setBlockReason} router={router} />
-    case 'period_pain':
-      return <PeriodPainAssessment onNext={onNext} answers={answers} setAnswer={setAnswer} errors={errors} setErrors={setErrors} />
-    case 'other':
     default:
-      return <GeneralWomensAssessment onNext={onNext} answers={answers} setAnswer={setAnswer} errors={errors} setErrors={setErrors} />
+      return null
   }
 }
 
 // Contraception assessment
-function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors, ocpType }: {
+function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors }: {
   onNext: () => void
   answers: Record<string, unknown>
   setAnswer: (key: string, value: unknown) => void
   errors: Record<string, string>
   setErrors: (errors: Record<string, string>) => void
-  ocpType?: 'new' | 'repeat'
 }) {
-  // Auto-set contraception type from OCP selection if not already set
-  const resolvedType = ocpType === 'repeat' ? 'continue' : undefined
-  useEffect(() => {
-    if (resolvedType && !answers.contraceptionType) {
-      setAnswer("contraceptionType", resolvedType)
-    }
-  }, [resolvedType, answers.contraceptionType, setAnswer])
-  const contraceptionType = (answers.contraceptionType as string | undefined) || resolvedType
+  // This component now serves only the live new/switch pill (ocp_new).
+  const contraceptionType = answers.contraceptionType as string | undefined
   const contraceptionCurrent = (answers.contraceptionCurrent as string) || ""
   const pregnancyStatus = (answers.pregnancyStatus as string) || ""
   const lastPeriod = (answers.lastPeriod as string) || ""
@@ -88,7 +75,8 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
   const migraineAura = (answers.womens_migraine_aura as string) || ""
   const bloodClotHistory = (answers.womens_blood_clot_history as string) || ""
   const smoker = (answers.womens_smoker as string) || ""
-  const needsPillSafetyScreen = ocpType === "new"
+  // Always shown — this component only serves the new/switch combined pill now.
+  const needsPillSafetyScreen = true
 
   // If pregnant, flag for doctor call
   const handlePregnancyChange = (value: string) => {
@@ -274,104 +262,6 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
   )
 }
 
-// Morning-after pill assessment
-function MorningAfterAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, isBlocked, setIsBlocked, blockReason, setBlockReason, router }: {
-  onNext: () => void
-  onBack: () => void
-  answers: Record<string, unknown>
-  setAnswer: (key: string, value: unknown) => void
-  errors: Record<string, string>
-  setErrors: (errors: Record<string, string>) => void
-  isBlocked: boolean
-  setIsBlocked: (blocked: boolean) => void
-  blockReason: string
-  setBlockReason: (reason: string) => void
-  router: ReturnType<typeof useRouter>
-}) {
-  const hoursSinceIntercourse = (answers.hoursSinceIntercourse as string) || ""
-  const mapDetails = (answers.mapDetails as string) || ""
-
-  const handleHoursChange = (value: string) => {
-    setAnswer("hoursSinceIntercourse", value)
-    
-    // Hard block if >120h
-    if (value === 'over_120') {
-      setIsBlocked(true)
-      setBlockReason("Emergency contraception is not effective after 120 hours (5 days). Please consult your GP or sexual health clinic for advice.")
-    }
-  }
-
-  const validate = () => {
-    const newErrors: Record<string, string> = {}
-    if (!hoursSinceIntercourse) newErrors.hoursSinceIntercourse = "Please select an option"
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleNext = () => {
-    if (validate()) onNext()
-  }
-
-  if (isBlocked) {
-    return (
-      <div className="space-y-6">
-        <Alert variant="destructive" className="border-destructive/50">
-          <XCircle className="w-5 h-5" />
-          <AlertTitle className="font-semibold">This service is not suitable</AlertTitle>
-          <AlertDescription className="mt-2 text-sm">{blockReason}</AlertDescription>
-        </Alert>
-        <div className="flex flex-col gap-2 pt-2">
-          <Button variant="outline" onClick={() => router.push('/')} className="w-full">Return home</Button>
-          <Button variant="ghost" onClick={onBack} className="w-full">Go back</Button>
-        </div>
-      </div>
-    )
-  }
-
-  const isComplete = hoursSinceIntercourse && hoursSinceIntercourse !== 'over_120'
-
-  return (
-    <div className="space-y-6">
-      <Alert variant="default" className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
-        <Sparkles className="w-4 h-4 text-warning" />
-        <AlertDescription className="text-xs text-warning">
-          Emergency contraception is most effective when taken as soon as possible.
-        </AlertDescription>
-      </Alert>
-
-      <div className="space-y-3">
-        <Label className="text-sm font-medium">
-          How long ago was the unprotected intercourse?<span className="text-destructive ml-0.5">*</span>
-        </Label>
-        <RadioGroup value={hoursSinceIntercourse} onValueChange={handleHoursChange} className="space-y-2" aria-label="How long ago was the unprotected intercourse">
-          {[
-            { value: 'under_24', label: 'Less than 24 hours' },
-            { value: '24_to_72', label: '24-72 hours (1-3 days)' },
-            { value: '72_to_120', label: '72-120 hours (3-5 days)', note: 'Ulipristal (EllaOne) may still be effective' },
-            { value: 'over_120', label: 'More than 120 hours (5+ days)' },
-          ].map((opt) => (
-            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]", hoursSinceIntercourse === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
-              <RadioGroupItem value={opt.value} />
-              <div>
-                <span className="text-sm">{opt.label}</span>
-                {opt.note && <span className="text-xs text-muted-foreground block">{opt.note}</span>}
-              </div>
-            </label>
-          ))}
-        </RadioGroup>
-        {errors.hoursSinceIntercourse && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.hoursSinceIntercourse}</p>}
-      </div>
-
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">Anything else relevant?</Label>
-        <Textarea value={mapDetails} onChange={(e) => setAnswer("mapDetails", e.target.value)} placeholder="Optional: contraception normally used, any concerns..." className="min-h-[80px] resize-none" />
-      </div>
-
-      <Button data-intake-primary-action="true" data-intake-primary-label="Continue" onClick={handleNext} disabled={!isComplete} className="w-full h-12 text-base font-medium max-sm:hidden">Continue</Button>
-    </div>
-  )
-}
-
 // UTI assessment
 function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, isBlocked, setIsBlocked, blockReason, setBlockReason, router }: {
   onNext: () => void
@@ -538,205 +428,6 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
           />
         </div>
       </QuestionCard>
-
-      <Button data-intake-primary-action="true" data-intake-primary-label="Continue" onClick={handleNext} disabled={!isComplete} className="w-full h-12 text-base font-medium max-sm:hidden">Continue</Button>
-    </div>
-  )
-}
-
-// Period pain assessment
-function PeriodPainAssessment({ onNext, answers, setAnswer, errors, setErrors }: {
-  onNext: () => void
-  answers: Record<string, unknown>
-  setAnswer: (key: string, value: unknown) => void
-  errors: Record<string, string>
-  setErrors: (errors: Record<string, string>) => void
-}) {
-  const periodPainSeverity = (answers.periodPainSeverity as string) || ""
-  const periodPainTiming = (answers.periodPainTiming as string) || ""
-  const periodPainTreated = answers.periodPainTreated as string[] | undefined
-  const periodPainImpact = (answers.periodPainImpact as string) || ""
-  const periodPainDetails = (answers.periodPainDetails as string) || ""
-
-  const validate = () => {
-    const newErrors: Record<string, string> = {}
-    if (!periodPainSeverity) newErrors.periodPainSeverity = "Please select pain severity"
-    if (!periodPainTiming) newErrors.periodPainTiming = "Please select when pain starts"
-    if (!periodPainImpact) newErrors.periodPainImpact = "Please select impact on daily activities"
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleNext = () => {
-    if (validate()) onNext()
-  }
-
-  const toggleTreatment = (treatment: string) => {
-    const current = periodPainTreated || []
-    if (current.includes(treatment)) {
-      setAnswer("periodPainTreated", current.filter(t => t !== treatment))
-    } else {
-      setAnswer("periodPainTreated", [...current, treatment])
-    }
-  }
-
-  const isComplete = periodPainSeverity && periodPainTiming && periodPainImpact
-
-  const TREATMENTS = [
-    { key: 'ibuprofen', label: 'Ibuprofen / Nurofen' },
-    { key: 'naproxen', label: 'Naproxen / Ponstan (mefenamic acid)' },
-    { key: 'paracetamol', label: 'Paracetamol' },
-    { key: 'ocp', label: 'Oral contraceptive pill' },
-    { key: 'heat', label: 'Heat pad / hot water bottle' },
-    { key: 'none', label: 'Nothing tried yet' },
-  ]
-
-  return (
-    <div className="space-y-6">
-      <Alert variant="default" className="border-primary/20 bg-primary/5">
-        <Sparkles className="w-4 h-4" />
-        <AlertDescription className="text-xs">
-          Tell us about your period pain so the doctor can recommend appropriate treatment.
-        </AlertDescription>
-      </Alert>
-
-      {/* Severity */}
-      <div className="space-y-3">
-        <Label className="text-sm font-medium">
-          How would you describe the pain severity?<span className="text-destructive ml-0.5">*</span>
-        </Label>
-        <RadioGroup value={periodPainSeverity} onValueChange={(v) => setAnswer("periodPainSeverity", v)} className="space-y-2" aria-label="Period pain severity">
-          {[
-            { value: 'mild', label: 'Mild', description: 'Noticeable but manageable without medication' },
-            { value: 'moderate', label: 'Moderate', description: 'Needs pain relief, limits some activities' },
-            { value: 'severe', label: 'Severe', description: 'Strong medication needed, significant limitation' },
-            { value: 'debilitating', label: 'Debilitating', description: 'Unable to function normally, may miss work or school' },
-          ].map((opt) => (
-            <label key={opt.value} className={cn("flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]", periodPainSeverity === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
-              <RadioGroupItem value={opt.value} className="mt-0.5" />
-              <div>
-                <span className="text-sm font-medium">{opt.label}</span>
-                <span className="text-xs text-muted-foreground block">{opt.description}</span>
-              </div>
-            </label>
-          ))}
-        </RadioGroup>
-        {errors.periodPainSeverity && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.periodPainSeverity}</p>}
-      </div>
-
-      {/* Timing */}
-      <div className="space-y-3">
-        <Label className="text-sm font-medium">
-          When does the pain typically start?<span className="text-destructive ml-0.5">*</span>
-        </Label>
-        <RadioGroup value={periodPainTiming} onValueChange={(v) => setAnswer("periodPainTiming", v)} className="space-y-2" aria-label="When does period pain start">
-          {[
-            { value: 'before', label: 'Before my period starts (1–2 days before)' },
-            { value: 'day1', label: 'On day 1 of my period' },
-            { value: 'day2_3', label: 'Day 2–3 of my period' },
-            { value: 'throughout', label: 'Throughout most of my period' },
-          ].map((opt) => (
-            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]", periodPainTiming === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
-              <RadioGroupItem value={opt.value} />
-              <span className="text-sm">{opt.label}</span>
-            </label>
-          ))}
-        </RadioGroup>
-        {errors.periodPainTiming && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.periodPainTiming}</p>}
-      </div>
-
-      {/* Treatments tried */}
-      <div className="space-y-3">
-        <Label className="text-sm font-medium">What have you tried for pain relief?</Label>
-        <p className="text-xs text-muted-foreground -mt-1">Toggle on anything you&apos;ve used.</p>
-        <div className="space-y-2">
-          {TREATMENTS.map((t) => (
-            <div key={t.key} className="flex items-center justify-between gap-3 p-3 rounded-xl border bg-muted/30">
-              <Label htmlFor={`pp-${t.key}`} className="text-sm cursor-pointer leading-snug flex-1">{t.label}</Label>
-              <Switch
-                id={`pp-${t.key}`}
-                checked={periodPainTreated?.includes(t.key) ?? false}
-                onCheckedChange={() => toggleTreatment(t.key)}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Impact */}
-      <div className="space-y-3">
-        <Label className="text-sm font-medium">
-          How does it affect your daily activities?<span className="text-destructive ml-0.5">*</span>
-        </Label>
-        <RadioGroup value={periodPainImpact} onValueChange={(v) => setAnswer("periodPainImpact", v)} className="space-y-2" aria-label="Impact on daily activities">
-          {[
-            { value: 'none', label: 'Minimal impact - I can carry on as normal' },
-            { value: 'reduced', label: 'Reduced capacity - I slow down but manage' },
-            { value: 'stops_activities', label: 'Stops some activities - rest or light duties only' },
-            { value: 'cannot_function', label: 'I can\'t function - miss work, school, or social plans' },
-          ].map((opt) => (
-            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]", periodPainImpact === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
-              <RadioGroupItem value={opt.value} />
-              <span className="text-sm">{opt.label}</span>
-            </label>
-          ))}
-        </RadioGroup>
-        {errors.periodPainImpact && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.periodPainImpact}</p>}
-      </div>
-
-      {/* Additional info */}
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">Anything else relevant?</Label>
-        <Textarea value={periodPainDetails} onChange={(e) => setAnswer("periodPainDetails", e.target.value)} placeholder="Optional: associated symptoms (nausea, bloating), suspected endometriosis, cycle regularity..." className="min-h-[80px] resize-none" />
-      </div>
-
-      <Button data-intake-primary-action="true" data-intake-primary-label="Continue" onClick={handleNext} disabled={!isComplete} className="w-full h-12 text-base font-medium max-sm:hidden">Continue</Button>
-    </div>
-  )
-}
-
-// General women's health assessment
-function GeneralWomensAssessment({ onNext, answers, setAnswer, errors, setErrors }: {
-  onNext: () => void
-  answers: Record<string, unknown>
-  setAnswer: (key: string, value: unknown) => void
-  errors: Record<string, string>
-  setErrors: (errors: Record<string, string>) => void
-}) {
-  const womensDetails = (answers.womensDetails as string) || ""
-
-  const validate = () => {
-    const newErrors: Record<string, string> = {}
-    if (!womensDetails || womensDetails.length < 20) {
-      newErrors.womensDetails = "Please provide more detail (at least 20 characters)"
-    }
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleNext = () => {
-    if (validate()) onNext()
-  }
-
-  const isComplete = womensDetails.length >= 20
-
-  return (
-    <div className="space-y-6">
-      <Alert variant="default" className="border-primary/20 bg-primary/5">
-        <Sparkles className="w-4 h-4" />
-        <AlertDescription className="text-xs">
-          Please describe your concern and our doctor will review your request.
-        </AlertDescription>
-      </Alert>
-
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">
-          Please describe your concern<span className="text-destructive ml-0.5">*</span>
-        </Label>
-        <Textarea value={womensDetails} onChange={(e) => setAnswer("womensDetails", e.target.value)} placeholder="Describe your symptoms, how long you've had them, and any relevant history..." className="min-h-[120px] resize-none" />
-        {errors.womensDetails && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.womensDetails}</p>}
-        <p className="text-xs text-muted-foreground">{womensDetails.length}/20 characters minimum</p>
-      </div>
 
       <Button data-intake-primary-action="true" data-intake-primary-label="Continue" onClick={handleNext} disabled={!isComplete} className="w-full h-12 text-base font-medium max-sm:hidden">Continue</Button>
     </div>
