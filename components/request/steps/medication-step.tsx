@@ -203,9 +203,8 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
       if (code.toUpperCase() === "UNKNOWN" || name?.toLowerCase().includes("unknown - doctor")) {
         newErrors.medication = "Please enter the medication name, strength, and form"
       }
-      if (name && !med.strength?.trim()) {
-        newErrors[`strength-${index}`] = "Enter the strength"
-      }
+      // A3 softening: strength is no longer required to continue — if the patient
+      // leaves it blank, the doctor sees a `medication_strength_missing` flag.
       if (name && !med.form?.trim()) {
         newErrors[`form-${index}`] = "Enter the form"
       }
@@ -239,7 +238,9 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
   }, [controlledBlock, validate, medications, posthog, onNext])
 
   const activeMedications = medications.filter(m => m.product || m.name)
-  const isComplete = activeMedications.length > 0 && activeMedications.every((med) => med.strength?.trim() && med.form?.trim())
+  // A3 softening: readiness no longer requires strength (doctor-flagged if blank);
+  // form is still required at this boundary.
+  const isComplete = activeMedications.length > 0 && activeMedications.every((med) => med.form?.trim())
   // Live-computed; controlledBlock stays (a real clinical block), the stale
   // `errors` object does not gate readiness.
   const canContinue = Boolean(isComplete) && !controlledBlock

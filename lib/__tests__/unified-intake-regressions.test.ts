@@ -559,12 +559,16 @@ describe("unified intake regressions", () => {
       pbsCode: "UNKNOWN",
     }, identity)).toMatch(/medication/i)
 
+    // A3 softening: a missing strength alone no longer blocks the step — the
+    // patient proceeds and the doctor sees a `medication_strength_missing` flag.
     expect(validateAnswersServerSide("repeat-script", {
       ...baseAnswers,
       medicationName: "Budesonide + formoterol",
+      medicationForm: "inhaler",
       pbsCode: "MANUAL",
-    }, identity)).toMatch(/strength/i)
+    }, identity)).toBeNull()
 
+    // Form remains a hard block at this boundary (softened in a later commit).
     expect(validateAnswersServerSide("repeat-script", {
       ...baseAnswers,
       medicationName: "Budesonide + formoterol",

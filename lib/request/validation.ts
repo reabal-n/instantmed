@@ -194,13 +194,9 @@ export const medicationStepSchema = z
         return
       }
 
-      if (!medication.strength) {
-        ctx.addIssue({
-          code: "custom",
-          path: index === 0 ? ["medicationStrength"] : ["medications", index, "strength"],
-          message: "Medication strength is required.",
-        })
-      }
+      // A3 softening: a missing strength is no longer a step block — the patient
+      // proceeds and the doctor sees a `medication_strength_missing` flag. Form
+      // remains required here (a separate boundary).
 
       if (!medication.form) {
         ctx.addIssue({

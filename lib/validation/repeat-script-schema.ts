@@ -255,13 +255,10 @@ export function validateRepeatScriptPayload(
       }
     }
 
-    if (!medication.strength || medication.strength.trim() === "") {
-      return {
-        valid: false,
-        error: "Please enter the medication strength.",
-        requiresConsult: false,
-      }
-    }
+    // A3 softening: a missing strength no longer blocks checkout. The patient
+    // flows through and `deriveIntakeFlags` raises an attention flag
+    // (`medication_strength_missing`) for the doctor. Form, new-med, dose-change
+    // and controlled substances remain hard blocks below.
 
     if (!medication.form || medication.form.trim() === "") {
       return {

@@ -319,6 +319,31 @@ test.describe("Prescription: step validation", () => {
     await expect(btn).toBeDisabled()
   })
 
+  test("medication step proceeds with a blank strength (A3 soften → doctor flag)", async ({ page }) => {
+    await page.goto("/request?service=repeat-script")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+
+    await waitForStep(page, /Which medication do you need\?/i)
+    const medInput = page.getByRole("combobox").first()
+    await medInput.fill("E2E blank strength med")
+    await medInput.blur()
+    await page.waitForTimeout(400)
+    const manualOption = page.getByRole("button", { name: /Continue with "E2E blank strength med"/i })
+    if (await manualOption.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await manualOption.click()
+    }
+
+    // Leave strength blank; fill only form.
+    await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
+    await page.locator("#medication-form-0").fill("capsule")
+
+    // Continue must be enabled despite the blank strength, and advance the flow.
+    await expect(page.getByRole("button", { name: /Continue to history/i }).last()).toBeEnabled({ timeout: 5000 })
+    await clickContinue(page)
+    await waitForStep(page, /When were you last prescribed/i)
+  })
+
   test("patient details validates email format", async ({ page }) => {
     await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
