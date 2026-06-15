@@ -177,7 +177,7 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
   }
 
   const addMedication = () => {
-    if (medications.length < 5) {
+    if (medications.length < 10) {
       const updated = [...medications, { product: null, name: "" }]
       syncToStore(updated)
       checkForControlledSubstance(updated)
@@ -473,7 +473,7 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
       })}
 
       {/* Add another medication button */}
-      {activeMedications.length > 0 && medications.length < 5 && (
+      {activeMedications.length > 0 && medications.length < 10 && (
         <Button
           type="button"
           variant="outline"

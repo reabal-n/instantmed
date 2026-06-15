@@ -5,10 +5,8 @@
 
 import {
   buildRepeatScriptMedicationValidationText,
-  countRepeatScriptMedicationRows,
   extractRepeatScriptMedications,
   isUsefulMedicationDescription,
-  MAX_REPEAT_SCRIPT_MEDICATIONS,
 } from "@/lib/validation/repeat-script-medications"
 
 // Canonical keys for repeat script medication data
@@ -181,13 +179,8 @@ export interface ValidationResult {
 export function validateRepeatScriptPayload(
   answers: Record<string, unknown>
 ): ValidationResult {
-  if (countRepeatScriptMedicationRows(answers) > MAX_REPEAT_SCRIPT_MEDICATIONS) {
-    return {
-      valid: false,
-      error: `Please request no more than ${MAX_REPEAT_SCRIPT_MEDICATIONS} medications at a time.`,
-      requiresConsult: false,
-    }
-  }
+  // A3 softening (boundary 5): more than 5 medications no longer hard-blocks —
+  // the patient proceeds and the doctor sees a medication_count_high info flag.
 
   const medications = extractRepeatScriptMedications(answers)
 
@@ -309,14 +302,8 @@ export function validateRepeatScriptPayload(
     }
   }
 
-  const currentDose = answers.current_dose || answers.currentDose || answers.dosage_instructions || answers.dosageInstructions
-  if (!currentDose || typeof currentDose !== "string" || currentDose.trim() === "") {
-    return {
-      valid: false,
-      error: "Please enter the dose you currently take.",
-      requiresConsult: false,
-    }
-  }
+  // A3 softening (boundary 4): a missing current dose no longer blocks — the
+  // patient proceeds and the doctor sees a dose_not_stated attention flag.
 
   return { valid: true }
 }

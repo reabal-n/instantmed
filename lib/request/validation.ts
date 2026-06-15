@@ -12,10 +12,8 @@ import { validateSymptomTextQuality } from "@/lib/clinical/symptom-text-quality"
 import { validateCertificateStartDate } from "@/lib/medical-certificates/date-policy"
 import {
   buildRepeatScriptMedicationValidationText,
-  countRepeatScriptMedicationRows,
   extractRepeatScriptMedications,
   isUsefulMedicationDescription,
-  MAX_REPEAT_SCRIPT_MEDICATIONS,
 } from "@/lib/validation/repeat-script-medications"
 
 export interface ValidationResult {
@@ -165,15 +163,8 @@ export const medicationStepSchema = z
   })
   .superRefine((data, ctx) => {
     const answers = data as Record<string, unknown>
-    const medicationRows = countRepeatScriptMedicationRows(answers)
-    if (medicationRows > MAX_REPEAT_SCRIPT_MEDICATIONS) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["medications"],
-        message: `Please request no more than ${MAX_REPEAT_SCRIPT_MEDICATIONS} medications at a time.`,
-      })
-      return
-    }
+    // A3 softening (boundary 5): more than 5 medications no longer blocks the
+    // step — the patient proceeds and the doctor sees a medication_count_high flag.
 
     const medications = extractRepeatScriptMedications(answers)
 
@@ -210,7 +201,9 @@ export const medicationStepSchema = z
 export const medicationHistoryStepSchema = z
   .object({
     prescriptionHistory: nonEmptyString("Please indicate when you last had this prescribed"),
-    currentDose: nonEmptyString("Please enter the dose you currently take"),
+    // A3 softening (boundary 4): current dose is optional; a blank one becomes a
+    // dose_not_stated flag for the doctor rather than a hard block.
+    currentDose: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.prescriptionHistory.trim().toLowerCase() === "never") {

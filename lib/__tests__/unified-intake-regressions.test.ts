@@ -482,7 +482,9 @@ describe("unified intake regressions", () => {
     ).toBe("Enter a valid Medicare number or provide a valid IHI.")
   })
 
-  it("requires the patient-reported dose for repeat medication requests", () => {
+  it("lets a missing patient-reported dose through as a flag, not a block (A3 boundary 4)", () => {
+    // A3 softening: a blank current dose no longer blocks — the patient proceeds
+    // and the doctor sees a dose_not_stated flag.
     expect(validateAnswersServerSide("repeat-script", {
       medicationName: "Budesonide + formoterol",
       medicationStrength: "100/3 micrograms",
@@ -496,7 +498,7 @@ describe("unified intake regressions", () => {
       state: "NSW",
       postcode: "2000",
       sex: "M",
-    }, identity)).toContain("dose")
+    }, identity)).toBeNull()
 
     expect(validateAnswersServerSide("repeat-script", {
       medicationName: "Budesonide + formoterol",

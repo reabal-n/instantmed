@@ -116,14 +116,14 @@ describe("A3 softening — missing medication form is a flag, not a block (bound
     expect(result.valid).toBe(false)
   })
 
-  it("still blocks a missing current dose", () => {
+  it("allows a missing current dose now (softened in boundary 4)", () => {
     const { current_dose: _omit, ...noDose } = base
     void _omit
     const result = validateRepeatScriptPayload({
       ...noDose,
-      medications: [{ name: "Rosuvastatin", pbsCode: "1234" }],
+      medications: [{ name: "Rosuvastatin", form: "tablet", pbsCode: "1234" }],
     })
-    expect(result.valid).toBe(false)
+    expect(result.valid).toBe(true)
   })
 
   it("still blocks a missing last-prescribed", () => {
@@ -163,14 +163,16 @@ describe("A3 softening — missing medication form is a flag, not a block (bound
     expect(result.error).toMatch(/controlled substances/i)
   })
 
-  it("still blocks more than 5 medications at BOTH the step and the server validator (softened later, boundary 5)", () => {
+  it("allows more than 5 medications now at BOTH layers (softened in boundary 5)", () => {
     const medications = Array.from({ length: 6 }, (_, i) => ({
       name: `Med${i}`,
+      strength: "10 mg",
+      form: "tablet",
       pbsCode: `code-${i}`,
     }))
-    // Enforced in two layers — boundary 5 must soften both.
-    expect(validateMedicationStep({ medications }).isValid).toBe(false)
-    expect(validateRepeatScriptPayload({ ...base, medications }).valid).toBe(false)
+    // Both layers softened — patient proceeds, doctor sees a medication_count_high flag.
+    expect(validateMedicationStep({ medications }).isValid).toBe(true)
+    expect(validateRepeatScriptPayload({ ...base, medications }).valid).toBe(true)
   })
 })
 
