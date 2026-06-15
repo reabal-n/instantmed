@@ -47,7 +47,7 @@ test.describe("Consult Sub-Services", () => {
     await expect(comingSoonStrip.getByText("Weight management")).toBeVisible()
   })
 
-  test("women's health UTI flow is reachable and advances to the assessment", async ({ page }) => {
+  test("women's health UTI clean case advances past the safety screen", async ({ page }) => {
     await page.goto("/request?service=consult&subtype=womens_health")
     await waitForPageLoad(page)
     await page.waitForURL(/subtype=womens_health/, { timeout: 15000 })
@@ -58,8 +58,17 @@ test.describe("Consult Sub-Services", () => {
     await page.getByRole("button", { name: /UTI symptoms/i }).click()
     await page.getByRole("button", { name: /^Continue$/i }).last().click()
 
-    // Lands on the UTI assessment with its red-flag safety question.
-    await expect(page.getByText(/red flag|kidney|fever|back pain|unwell/i).first()).toBeVisible({ timeout: 10000 })
+    // UTI assessment: pick a symptom, no red flags, not pregnant.
+    await expect(page.getByText(/Which symptoms are you experiencing/i)).toBeVisible({ timeout: 10000 })
+    await page.locator("#uti-burning").click()
+    await page.getByRole("radiogroup", { name: /red flag/i }).getByText("No", { exact: true }).click()
+    await page.getByRole("radiogroup", { name: /pregnant/i }).getByText("No", { exact: true }).click()
+
+    // Continue is enabled and the flow advances out of the assessment.
+    const continueBtn = page.getByRole("button", { name: /^Continue$/i }).last()
+    await expect(continueBtn).toBeEnabled({ timeout: 5000 })
+    await continueBtn.click()
+    await expect(page.getByText(/Which symptoms are you experiencing/i)).not.toBeVisible({ timeout: 10000 })
   })
 
   test("hub rows route to current active consult subtypes", async ({ page }) => {
