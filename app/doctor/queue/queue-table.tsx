@@ -22,6 +22,7 @@ import { toast } from "sonner"
 
 import { revokeAIApproval } from "@/app/actions/revoke-ai-approval"
 import { quickPrescribeRenewalAction } from "@/app/doctor/queue/actions"
+import { IntakeFlagsBadge } from "@/components/doctor/intake-flags-panel"
 import { PatientProfilePanel } from "@/components/doctor/patient-profile-panel"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Badge } from "@/components/ui/badge"
@@ -45,6 +46,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Pagination, UserCard } from "@/components/uix"
 import { capture } from "@/lib/analytics/capture"
+import { parseIntakeFlags } from "@/lib/clinical/intake-flags"
 import { ADMIN_PRESCRIBING_IDENTITY_HREF, buildDoctorIntakeHref, STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import { buildPatientHandoffSummary } from "@/lib/doctor/patient-handoff"
 import { buildPatientSnapshot, getPatientSnapshotOptionsForCase } from "@/lib/doctor/patient-snapshot"
@@ -530,6 +532,9 @@ export function QueueTable({
                       </Badge>
                     )
                   })()}
+                  {!compactShell ? (
+                    <IntakeFlagsBadge flags={parseIntakeFlags((intake as { risk_flags?: unknown }).risk_flags)} />
+                  ) : null}
                   {/* Soft-claim presence (Phase 7). Two-doctor model: surface
                       who's reviewing a paid case before another doctor opens
                       the same one and races on Approve. The DB-level claim

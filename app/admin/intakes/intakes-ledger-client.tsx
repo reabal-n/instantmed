@@ -15,6 +15,7 @@ import {
 } from "@/components/operator"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
+import { parseIntakeFlags } from "@/lib/clinical/intake-flags"
 import {
   ADMIN_STATUS_PRIORITY,
   type AdminIntakeStatusFilterValue,
@@ -152,6 +153,7 @@ function mapToCaseRow(intake: LedgerRow): CaseRowData {
     refundIndicator: getRefundIndicator(intake),
     isRenewal: Boolean((intake as { is_renewal?: boolean }).is_renewal),
     renewalMatchTitle: renewalMatch ? formatRenewalMatchTitle(renewalMatch) : null,
+    intakeFlags: parseIntakeFlags((intake as { risk_flags?: unknown }).risk_flags),
     paymentStatus: (intake as { payment_status?: string | null }).payment_status ?? null,
     amountCents: (intake as { amount_cents?: number | null }).amount_cents ?? null,
     refundAmountCents: (intake as { refund_amount_cents?: number | null }).refund_amount_cents ?? null,

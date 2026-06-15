@@ -1,3 +1,4 @@
+import type { IntakeFlag } from "@/lib/clinical/intake-flags"
 import type { IntakeStatus } from "@/lib/data/status"
 
 /**
@@ -44,6 +45,12 @@ export type CaseRowData = {
    * the matched medicine isn't known.
    */
   renewalMatchTitle?: string | null
+  /**
+   * Doctor-attention intake flags (softened intake gaps the form let through).
+   * Drives the calm-chrome flag badge. Empty/absent = no badge. Parsed upstream
+   * from intakes.risk_flags so the badge stays consistent across surfaces.
+   */
+  intakeFlags?: IntakeFlag[]
   /**
    * Raw payment_status value. Used to gate the per-row refund action button.
    * Only "paid" and "partially_refunded" are eligible for operator refunds.
