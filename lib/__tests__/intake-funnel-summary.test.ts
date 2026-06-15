@@ -176,6 +176,42 @@ describe("intake funnel summary", () => {
     ])
   })
 
+  it("counts per-service paid + checkoutToPaidRate when paid rows carry coalesced service metadata", () => {
+    // The HogQL coalesce in lib/analytics/posthog-intake-funnel.ts normalizes the
+    // webhook's service_category/service_subtype into the client token vocabulary
+    // (medical_certificate -> med-cert; consult subtypes pass through; slug noise
+    // -> null). After that, paid rows arrive at the summary keyed the same way as
+    // the client step events, so the per-service "paid" column is non-zero rather
+    // than structurally 0.
+    const summary = buildIntakeFunnelSummary({
+      dateFrom: "2026-06-01T00:00:00.000Z",
+      dateTo: "2026-06-15T00:00:00.000Z",
+      days: 14,
+      rows: [
+        // Med cert: paid row keyed as the coalesce now emits it (med-cert, null subtype)
+        { event: "intake_started", serviceType: "med-cert", count: 40 },
+        { event: "checkout_viewed", serviceType: "med-cert", count: 24 },
+        { event: "purchase_completed_server", serviceType: "med-cert", count: 18 },
+        // ED consult: subtype carried through from service_subtype
+        { event: "intake_started", serviceType: "consult", subtype: "ed", count: 12 },
+        { event: "checkout_viewed", serviceType: "consult", subtype: "ed", count: 8 },
+        { event: "purchase_completed_server", serviceType: "consult", subtype: "ed", count: 6 },
+      ],
+    })
+
+    const medCert = summary.byService.find(
+      (svc) => svc.serviceType === "med-cert" && svc.subtype === null,
+    )
+    const ed = summary.byService.find(
+      (svc) => svc.serviceType === "consult" && svc.subtype === "ed",
+    )
+
+    expect(medCert).toMatchObject({ paid: 18, checkoutViewed: 24, checkoutToPaidRate: 75 })
+    expect(ed).toMatchObject({ paid: 6, checkoutViewed: 8, checkoutToPaidRate: 75 })
+    expect(medCert?.paid).toBeGreaterThan(0)
+    expect(ed?.paid).toBeGreaterThan(0)
+  })
+
   it("does not create a service row from paid events that lack service metadata", () => {
     const summary = buildIntakeFunnelSummary({
       dateFrom: "2026-06-01T00:00:00.000Z",

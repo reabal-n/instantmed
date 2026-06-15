@@ -76,6 +76,10 @@ export function useFlowAnalytics({
   const { email: storeEmail } = useRequestStore()
 
   const trackedFunnelEventsRef = useRef<Set<string>>(new Set())
+  // Latches intake_started to once per flow so back-navigation to step 1 does
+  // not re-fire it and inflate the funnel denominator. Reset on serviceType
+  // change alongside trackedFunnelEventsRef.
+  const startedFiredRef = useRef(false)
   const stepEnteredAtRef = useRef<number>(Date.now())
 
   // Canonical service type for analytics (prescription/repeat-script -> 'prescription')
@@ -87,6 +91,7 @@ export function useFlowAnalytics({
   // Reset funnel event de-duplication state when changing flows.
   useEffect(() => {
     trackedFunnelEventsRef.current = new Set()
+    startedFiredRef.current = false
   }, [serviceType])
 
   // Track step views in PostHog + fire gtag funnel_step for remarketing audiences
@@ -98,8 +103,11 @@ export function useFlowAnalytics({
       const subtype = (answers.consultSubtype as string | undefined) ?? undefined
       const stepNumber = currentStepIndex + 1
 
-      // intake_started fires once per flow on the first step
-      if (stepNumber === 1) {
+      // intake_started fires exactly once per flow on the first step. The latch
+      // prevents back-navigation to step 1 from re-firing it (which would
+      // inflate the funnel denominator).
+      if (stepNumber === 1 && !startedFiredRef.current) {
+        startedFiredRef.current = true
         captureIntakeEvent(posthog, INTAKE_ANALYTICS_EVENTS.started, {
           service_type: analyticsServiceType,
           subtype,

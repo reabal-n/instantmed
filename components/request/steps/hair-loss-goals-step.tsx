@@ -59,7 +59,7 @@ export default function HairLossGoalsStep({ serviceType, onNext }: HairLossGoals
       if (!hairOnset) reasons.push("when you first noticed changes")
       return reasons
     }, [hairGoal, hairOnset]),
-    { posthog, serviceType, stepId: "hair-loss-goals" },
+    { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "hair-loss-goals" },
   )
 
   const handleNext = () => {

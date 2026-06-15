@@ -141,11 +141,32 @@ export async function getPostHogIntakeFunnelSnapshot(
   const posthogHost = normalizePostHogHost(
     process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.posthog.com",
   )
+  // The paid-stage event (`purchase_completed_server`, emitted by the Stripe
+  // webhook) carries `service_category` / `service_subtype`, not the
+  // `service_type` / `subtype` the client step events use. Without reading those
+  // the per-service "paid" column resolves to 0 for every row. Two token
+  // mismatches need normalizing so the paid rows bucket with the client rows
+  // (see lib/analytics/intake-funnel-summary.ts normalizeServiceType/Subtype):
+  //   - service_category emits `medical_certificate`; client emits `med-cert`.
+  //     normalizeServiceType only maps the hyphen form, so rewrite it here.
+  //   - service_subtype falls back to `service_slug` when intakes.subtype is
+  //     NULL, producing slug noise (work/study/carer/med-cert-sick/repeat/
+  //     common-scripts/general). Med-cert + prescription client rows carry no
+  //     subtype, so only keep real consult subtypes; otherwise NULL so the
+  //     paid count merges with the client's null-subtype service row.
   const hogql = `
     SELECT
       event,
-      coalesce(properties.service_type, properties.service) AS service_type,
-      coalesce(properties.subtype, properties.consult_subtype) AS subtype,
+      coalesce(
+        properties.service_type,
+        properties.service,
+        if(properties.service_category = 'medical_certificate', 'med-cert', properties.service_category)
+      ) AS service_type,
+      coalesce(
+        properties.subtype,
+        properties.consult_subtype,
+        if(properties.service_subtype IN ('ed', 'hair_loss', 'womens_health', 'weight_loss'), properties.service_subtype, NULL)
+      ) AS subtype,
       properties.step_id AS step_id,
       properties.step_index AS step_index,
       count() AS count

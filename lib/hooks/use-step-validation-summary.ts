@@ -12,6 +12,13 @@ import {
 interface ValidationSummaryAnalytics {
   posthog?: PostHogCaptureLike | null
   serviceType?: string | null
+  /**
+   * Consult subtype (ed / hair_loss / …) for consult-subtype steps. Must match
+   * the value the step_viewed / step_completed events carry (answers.consultSubtype)
+   * so intake_validation_blocked lands in the same funnel bucket — otherwise the
+   * blocked count splits into a null-subtype row.
+   */
+  subtype?: string
   stepId: string
   stepIndex?: number
   totalSteps?: number
@@ -83,6 +90,7 @@ export function useStepValidationSummary(
         INTAKE_ANALYTICS_EVENTS.validationBlocked,
         buildIntakeValidationBlockedProperties({
           serviceType: analytics.serviceType,
+          subtype: analytics.subtype,
           stepId: analytics.stepId,
           stepIndex: analytics.stepIndex,
           totalSteps: analytics.totalSteps,

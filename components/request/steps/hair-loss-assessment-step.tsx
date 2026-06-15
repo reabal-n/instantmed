@@ -170,7 +170,7 @@ export default function HairLossAssessmentStep({
       if (!hairFamilyHistory) reasons.push("your family history")
       return reasons
     }, [hairPattern, hairFamilyHistory]),
-    { posthog, serviceType, stepId: "hair-loss-assessment" },
+    { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "hair-loss-assessment" },
   )
 
   const handleNext = () => {

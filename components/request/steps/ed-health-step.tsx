@@ -226,7 +226,7 @@ export default function EdHealthStep({ serviceType, onNext, onBack }: EdHealthSt
       }
       return reasons
     }, [edNitrates, gpClearanceRequired, heartComplete, medicationsComplete, allergiesComplete, conditionsComplete, previousTreatmentComplete]),
-    { posthog, serviceType, stepId: "ed-health" },
+    { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "ed-health" },
   )
 
   const handleNext = useCallback(() => {

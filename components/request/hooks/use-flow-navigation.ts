@@ -168,7 +168,6 @@ export function useFlowNavigation({
         subtype: (answers.consultSubtype as string | undefined) ?? undefined,
       }),
     )
-    trackStepCompleted()
 
     // Run safety pre-check when leaving key clinical steps.
     // Catches emergencies and hard blocks EARLY, before the patient invests
@@ -197,6 +196,12 @@ export function useFlowNavigation({
         import("@sentry/nextjs").then(({ captureException }) => captureException(err)).catch(() => {})
       }
     }
+
+    // Only count the step as completed once the safety pre-check has passed and
+    // the step actually advances — firing before the early-return above would
+    // over-count completions on friction-prone clinical steps (a DECLINE /
+    // REQUIRES_CALL block keeps the patient on the step).
+    trackStepCompleted()
 
     nextStep()
     // Push a history entry so the browser's Back button maps to "previous step"
