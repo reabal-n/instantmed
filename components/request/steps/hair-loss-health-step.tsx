@@ -224,7 +224,7 @@ export default function HairLossHealthStep({
       if (!medicalComplete) reasons.push("the medical history section")
       return reasons
     }, [reproductiveComplete, scalpComplete, bpComplete, medicalComplete]),
-    { posthog, serviceType, stepId: "hair-loss-health" },
+    { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "hair-loss-health" },
   )
 
   const handleNext = useCallback(() => {

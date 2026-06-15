@@ -526,6 +526,47 @@ const consultRules: SafetyRule[] = [
     services: ['gp-consult', 'consult'],
   },
   // ----------------------------------------
+  // PREGNANCY on a new/switch pill request - Decline (confirmed) / Requires call (possible)
+  // The live pregnancy guard for the OCP path. Fires on the real pregnancyStatus
+  // values the assessment step emits ('yes' | 'no' | 'not_sure'), scoped to
+  // womensHealthOption === 'ocp_new'. Supersedes the legacy womens_pregnancy_hormonal
+  // rule (which keyed on a 'pregnant' value the intake never produces).
+  // ----------------------------------------
+  {
+    id: 'ocp_pregnancy_decline',
+    name: 'Pregnancy - Combined OCP Contraindication',
+    description: 'New/switch pill request from a patient who reports being pregnant - the contraceptive pill is not started in pregnancy.',
+    conditions: [
+      { fieldId: 'consultSubtype', operator: 'equals', value: 'womens_health' },
+      { fieldId: 'womensHealthOption', operator: 'equals', value: 'ocp_new' },
+      { fieldId: 'pregnancyStatus', operator: 'equals', value: 'yes' },
+    ],
+    conditionLogic: 'AND',
+    outcome: 'DECLINE',
+    riskTier: 'high',
+    patientMessage: 'The contraceptive pill is not started during pregnancy. Please speak with your GP or obstetrician about the right care for you.',
+    doctorNote: 'New/switch pill request with reported pregnancy - oral contraceptive contraindicated in pregnancy. Declined; referred to GP/obstetrician.',
+    priority: 950,
+    services: ['gp-consult', 'consult'],
+  },
+  {
+    id: 'ocp_pregnancy_possible',
+    name: 'Possible Pregnancy - Combined OCP Review',
+    description: 'New/switch pill request where pregnancy is not ruled out - exclude pregnancy before starting the pill.',
+    conditions: [
+      { fieldId: 'consultSubtype', operator: 'equals', value: 'womens_health' },
+      { fieldId: 'womensHealthOption', operator: 'equals', value: 'ocp_new' },
+      { fieldId: 'pregnancyStatus', operator: 'equals', value: 'not_sure' },
+    ],
+    conditionLogic: 'AND',
+    outcome: 'REQUIRES_CALL',
+    riskTier: 'high',
+    patientMessage: 'Before starting the pill we need to be sure you are not pregnant. A doctor will review and contact you to confirm before prescribing.',
+    doctorNote: 'New/switch pill request with possible pregnancy (patient unsure) - exclude pregnancy before prescribing. Phone review required.',
+    priority: 900,
+    services: ['gp-consult', 'consult'],
+  },
+  // ----------------------------------------
   // UNDER 18: Age restriction for hair loss
   // ----------------------------------------
   {
@@ -599,8 +640,12 @@ const consultRules: SafetyRule[] = [
   // BROADER WOMEN'S HEALTH SAFETY RULES
   // ============================================
   // ----------------------------------------
-  // PREGNANCY with hormonal medications - Decline
-  // Combined OCP, HRT, and other hormonal treatments are contraindicated in pregnancy
+  // PREGNANCY with hormonal medications - Decline (ASPIRATIONAL / not the live guard)
+  // Combined OCP, HRT, and other hormonal treatments are contraindicated in pregnancy.
+  // Keyed on pregnancyStatus === 'pregnant', a value no live intake emits today, so
+  // this rule does NOT fire on the current OCP path — it is reserved for future
+  // non-OCP hormonal pathways (HRT/menopause). The live OCP pregnancy guard is
+  // ocp_pregnancy_decline / ocp_pregnancy_possible above.
   // ----------------------------------------
   {
     id: 'womens_pregnancy_hormonal',
@@ -664,8 +709,11 @@ const consultRules: SafetyRule[] = [
     services: ['gp-consult', 'consult'],
   },
   // ----------------------------------------
-  // BREASTFEEDING with hormonal medications - Requires call
-  // Some hormonal medications are safe during breastfeeding, others are not
+  // BREASTFEEDING with hormonal medications - Requires call (ASPIRATIONAL / not yet collected)
+  // Some hormonal medications are safe during breastfeeding, others are not.
+  // Keyed on pregnancyStatus === 'breastfeeding'; no live intake offers that value
+  // yet, so this rule does NOT fire today. Kept for when postpartum/breastfeeding
+  // status is collected on the OCP screen.
   // ----------------------------------------
   {
     id: 'womens_breastfeeding_hormonal',

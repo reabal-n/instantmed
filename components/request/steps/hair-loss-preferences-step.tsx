@@ -80,7 +80,7 @@ export default function HairLossPreferencesStep({
   const { validationSummary, showBlockingReasons } = useStepValidationSummary(
     isComplete,
     useCallback(() => ["a treatment preference"], []),
-    { posthog, serviceType, stepId: "hair-loss-preferences" },
+    { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "hair-loss-preferences" },
   )
 
   const handleNext = () => {

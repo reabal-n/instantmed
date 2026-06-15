@@ -203,7 +203,7 @@ export default function EdAssessmentStep({ serviceType, onNext, onBack }: EdAsse
       const remaining = IIEF_QUESTIONS.length - answeredCount
       return [`${remaining} more ${remaining === 1 ? "question" : "questions"}`]
     }, [answeredCount]),
-    { posthog, serviceType, stepId: "ed-assessment" },
+    { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "ed-assessment" },
   )
 
   const handleScaleChange = useCallback((questionId: IIEFQuestion["id"], value: number, index: number) => {

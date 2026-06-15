@@ -8,32 +8,6 @@ import { cn } from "@/lib/utils"
  * (context). Callers pass `parseIntakeFlags(intake.risk_flags)`.
  */
 
-function flagTooltip(flag: IntakeFlag): string {
-  return flag.detail ? `${flag.label}: ${flag.detail}` : flag.label
-}
-
-/**
- * Compact queue-row badge. Renders ONLY when there is at least one
- * attention-severity flag; info flags do not earn a row badge.
- */
-export function IntakeFlagsBadge({ flags, className }: { flags: IntakeFlag[]; className?: string }) {
-  const attention = attentionFlags(flags)
-  if (attention.length === 0) return null
-
-  const label = attention.length === 1 ? attention[0].label : `${attention.length} flags for review`
-
-  return (
-    <span
-      data-intake-flags-badge=""
-      className={cn("inline-flex items-center gap-1.5 text-xs text-muted-foreground", className)}
-      title={attention.map(flagTooltip).join("\n")}
-    >
-      <span className="h-2 w-2 shrink-0 rounded-full bg-amber-500" aria-hidden />
-      {label}
-    </span>
-  )
-}
-
 /**
  * Full "Needs doctor attention" panel for the intake detail page. Lists every
  * flag (attention first, then info). Renders nothing when there are no flags.

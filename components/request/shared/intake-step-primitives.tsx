@@ -24,6 +24,12 @@ export function useRovingRadio(
   count: number,
   selectedIndex: number,
   onSelect: (index: number) => void,
+  /**
+   * Optional predicate marking an option index as disabled. Arrow/Home/End
+   * navigation and the resting tab stop both skip disabled indices so focus
+   * never lands on a non-interactive control (WCAG 2.1.1 — no keyboard trap).
+   */
+  isDisabled?: (index: number) => boolean,
 ) {
   const itemsRef = useRef<(HTMLButtonElement | null)[]>([])
 
@@ -31,32 +37,61 @@ export function useRovingRadio(
     itemsRef.current[index] = el
   }
 
-  // The selected option is the tab stop. If nothing is selected yet, the first
-  // option is, so the group is still keyboard-reachable in one Tab.
-  const tabIndexFor = (index: number) =>
-    (selectedIndex === -1 ? index === 0 : index === selectedIndex) ? 0 : -1
+  const disabledAt = (index: number) => (isDisabled ? isDisabled(index) : false)
+
+  // First option that can actually receive focus. Falls back to 0 when every
+  // option is disabled so the group is never silently dropped from the markup.
+  const firstEnabledIndex = (() => {
+    for (let i = 0; i < count; i++) {
+      if (!disabledAt(i)) return i
+    }
+    return 0
+  })()
+
+  // The selected option is the tab stop. If nothing is selected yet (or the
+  // selected option is disabled), the first ENABLED option is, so the group is
+  // keyboard-reachable in one Tab without landing on a disabled control.
+  const tabIndexFor = (index: number) => {
+    if (disabledAt(index)) return -1
+    const restingIndex =
+      selectedIndex === -1 || disabledAt(selectedIndex) ? firstEnabledIndex : selectedIndex
+    return index === restingIndex ? 0 : -1
+  }
+
+  // Walk from `start` in `step` direction, wrapping, until an enabled option is
+  // found. Returns the start itself if no enabled option exists (all disabled).
+  const nextEnabledIndex = (start: number, step: number) => {
+    for (let i = 1; i <= count; i++) {
+      const candidate = (start + step * i + count * i) % count
+      if (!disabledAt(candidate)) return candidate
+    }
+    return start
+  }
 
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
     let nextIndex: number
     switch (event.key) {
       case "ArrowDown":
       case "ArrowRight":
-        nextIndex = (currentIndex + 1) % count
+        nextIndex = nextEnabledIndex(currentIndex, 1)
         break
       case "ArrowUp":
       case "ArrowLeft":
-        nextIndex = (currentIndex - 1 + count) % count
+        nextIndex = nextEnabledIndex(currentIndex, -1)
         break
       case "Home":
-        nextIndex = 0
+        // First enabled option, then walk forward if index 0 is disabled.
+        nextIndex = disabledAt(0) ? nextEnabledIndex(0, 1) : 0
         break
       case "End":
-        nextIndex = count - 1
+        // Last enabled option, then walk backward if the final index is disabled.
+        nextIndex = disabledAt(count - 1) ? nextEnabledIndex(count - 1, -1) : count - 1
         break
       default:
         return
     }
     event.preventDefault()
+    if (disabledAt(nextIndex)) return
     onSelect(nextIndex)
     itemsRef.current[nextIndex]?.focus()
   }
@@ -335,6 +370,7 @@ export function ChoiceCardGroup<T extends string>({
       const option = options[index]
       if (!option.disabled) onChange(option.value)
     },
+    (index) => options[index]?.disabled === true,
   )
   const mobileGridClass =
     mobileColumns === "three"
@@ -394,7 +430,7 @@ export function ChoiceCardGroup<T extends string>({
             role="radio"
             aria-checked={selected}
             aria-disabled={disabled || undefined}
-            tabIndex={disabled ? -1 : tabIndexFor(index)}
+            tabIndex={tabIndexFor(index)}
             onClick={() => {
               if (!disabled) onChange(option.value)
             }}
@@ -508,7 +544,7 @@ export function ChipToggleGroup({
             data-intake-chip-toggle="true"
             onClick={() => onChange(option.key, !selected)}
             className={requestCx(
-              "inline-flex min-h-10 items-center justify-center rounded-full border px-3 py-2 text-sm font-medium leading-tight transition-[background-color,border-color,color,box-shadow]",
+              "inline-flex min-h-12 items-center justify-center rounded-full border px-3 py-2 text-sm font-medium leading-tight transition-[background-color,border-color,color,box-shadow]",
               "touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
               selected
                 ? "border-primary bg-primary/5 text-foreground ring-1 ring-primary/30"

@@ -45,8 +45,6 @@ export const INTAKE_FLAG_TAXONOMY = {
   medication_form_missing: { label: "Form not provided", severity: "attention" },
   dose_not_stated: { label: "Current dose not stated", severity: "attention" },
   medication_count_high: { label: "More than 5 medications requested", severity: "info" },
-  screening_incomplete: { label: "Optional screening skipped", severity: "info" },
-  symptom_detail_brief: { label: "Brief symptom description", severity: "info" },
 } as const satisfies Record<string, TaxonomyEntry>
 
 export type IntakeFlagCode = keyof typeof INTAKE_FLAG_TAXONOMY
@@ -74,11 +72,6 @@ export function makeIntakeFlag(
 /** Flags the doctor must act on (drives the queue badge + needs_doctor routing). */
 export function attentionFlags(flags: IntakeFlag[]): IntakeFlag[] {
   return flags.filter((flag) => flag.severity === "attention")
-}
-
-/** True iff any flag forces human review (i.e. at least one `attention` flag). */
-export function forcesDoctorReview(flags: IntakeFlag[]): boolean {
-  return flags.some((flag) => flag.severity === "attention")
 }
 
 /** Collapse duplicate codes, keeping the highest-severity instance per code. */
@@ -115,29 +108,4 @@ export function parseIntakeFlags(raw: unknown): IntakeFlag[] {
     out.push(flag)
   }
   return out
-}
-
-function humanize(token: string): string {
-  const spaced = token.replace(/_/g, " ").trim()
-  return spaced.length === 0 ? spaced : spaced.charAt(0).toUpperCase() + spaced.slice(1)
-}
-
-/**
- * Convert an auto-approval engine soft-flag string into an `info` IntakeFlag so
- * the doctor sees *why* a cert was flagged. Engine soft flags are either
- * `"prefix: detail"` (e.g. "draft_review_flag: anxiety") or a bare token
- * (e.g. "panic_co_symptom"). Always `info` — these never force review.
- */
-export function mapEngineSoftFlagToIntakeFlag(softFlag: string): IntakeFlag {
-  const colonIndex = softFlag.indexOf(":")
-  const prefix = (colonIndex >= 0 ? softFlag.slice(0, colonIndex) : softFlag).trim()
-  const detail = colonIndex >= 0 ? softFlag.slice(colonIndex + 1).trim() : ""
-  const flag: IntakeFlag = {
-    code: `auto_${prefix}`,
-    label: humanize(prefix),
-    source: "auto_approval",
-    severity: "info",
-  }
-  if (detail.length > 0) flag.detail = detail
-  return flag
 }

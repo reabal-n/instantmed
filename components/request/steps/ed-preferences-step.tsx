@@ -66,7 +66,7 @@ export default function EdPreferencesStep({ serviceType, onNext }: EdPreferences
   const { validationSummary, showBlockingReasons } = useStepValidationSummary(
     isComplete,
     useCallback(() => ["a treatment preference"], []),
-    { posthog, serviceType, stepId: "ed-preferences" },
+    { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "ed-preferences" },
   )
 
   const handleNext = () => {

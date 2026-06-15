@@ -99,4 +99,35 @@ describe("ClinicalCaseReview", () => {
     expect(html).not.toContain("bg-amber-50")
     expect(html).not.toContain("sticky top-0")
   })
+
+  it("keeps allergies and current medications reachable in-panel in compact mode (not a dead-end hint)", () => {
+    const html = render(
+      <ClinicalCaseReview
+        category="consult"
+        subtype="womens_health"
+        serviceType="consult"
+        patientName="Siena Harding"
+        answers={{
+          womensHealthOption: "uti",
+          utiSymptoms: ["burning", "frequency", "urgency", "cloudy"],
+          utiRedFlags: "no",
+          utiPregnant: "no",
+          known_allergies: "Penicillin — anaphylaxis",
+          current_medications: "Sertraline 50mg daily",
+        }}
+        compact
+        hidePatientStory
+        showFullAnswers={false}
+        draftNoteValue="S: Patient reports lower urinary tract symptoms.\nO: Structured UTI screen completed.\nA: Likely uncomplicated lower UTI.\nP: Prescribe if clinically appropriate."
+        onDraftNoteChange={() => undefined}
+      />,
+    )
+
+    // The allergy + current-medication values must be present in-panel even when
+    // they fall past the compact fact cap — rendered inside the expandable
+    // <details>, not replaced by a "+N more in full intake" dead-end.
+    expect(html).toContain("Penicillin — anaphylaxis")
+    expect(html).toContain("Sertraline 50mg daily")
+    expect(html).not.toContain("in full intake")
+  })
 })

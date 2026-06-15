@@ -61,7 +61,7 @@ export default function EdGoalsStep({ serviceType, onNext }: EdGoalsStepProps) {
       if (!edDuration) reasons.push("how long this has been a concern")
       return reasons
     }, [edAgeConfirmed, edGoal, edDuration]),
-    { posthog, serviceType, stepId: "ed-goals" },
+    { posthog, serviceType, subtype: answers.consultSubtype as string | undefined, stepId: "ed-goals" },
   )
 
   const handleNext = () => {

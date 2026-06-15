@@ -441,13 +441,28 @@ export function ClinicalCaseReview({
                       <dd className="max-w-[28ch] truncate text-[13px] font-medium text-foreground">{fact.value}</dd>
                     </div>
                   ))}
-                  {hiddenFactCount > 0 ? (
-                    <div className="flex items-baseline gap-1 text-[11px] font-medium text-muted-foreground">
-                      <dt className="sr-only">More request facts</dt>
-                      <dd>+{hiddenFactCount} more in full intake</dd>
-                    </div>
-                  ) : null}
                 </dl>
+                {hiddenFactCount > 0 ? (
+                  // Expandable in-panel rather than a dead-end "+N more in full
+                  // intake" hint: allergies + current medications can fall past the
+                  // compact cap, and the prescribing checklist tells the doctor to
+                  // confirm them before Parchment — they must be reachable without
+                  // leaving the review panel. <details> renders its children in the
+                  // DOM even when collapsed, so the data is always present in-panel.
+                  <details className="mt-1.5">
+                    <summary className="cursor-pointer list-none text-[11px] font-medium text-muted-foreground hover:text-foreground">
+                      +{hiddenFactCount} more — including allergies &amp; current medicines
+                    </summary>
+                    <dl className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                      {scannableFacts.slice(visibleFacts.length).map((fact) => (
+                        <div key={`${fact.label}:${fact.value}`} className="flex items-baseline gap-1">
+                          <dt className="text-[11px] text-muted-foreground/80 shrink-0">{fact.label}</dt>
+                          <dd className="max-w-[28ch] truncate text-[13px] font-medium text-foreground">{fact.value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </details>
+                ) : null}
               </section>
             ) : (
               <section
