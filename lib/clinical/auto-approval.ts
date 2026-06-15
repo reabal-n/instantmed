@@ -304,6 +304,13 @@ export function evaluateAutoApprovalEligibility(
     recentCertCount?: number
     /** Whether the requested dates overlap with an existing approved cert */
     hasOverlappingCert?: boolean
+    /**
+     * Attention-severity intake flag codes (from `intakes.risk_flags`). Any
+     * present means a human must review — a flagged cert must NEVER auto-issue.
+     * Info-severity flags are deliberately NOT passed here so the tuned 1–2 day
+     * fast path is preserved.
+     */
+    attentionFlagCodes?: string[]
   },
 ): AutoApprovalEligibility {
   const flags: string[] = []
@@ -324,6 +331,15 @@ export function evaluateAutoApprovalEligibility(
       disqualifyingFlags: ["service_type_mismatch"],
       softFlags: [],
     })
+  }
+
+  // 1a. Doctor-attention intake flags — a flagged cert must NEVER auto-issue.
+  // Sourced from softened intake gaps the doctor must review. Routed
+  // deterministically to needs_doctor (`intake_attention_flags:` is pinned in
+  // DETERMINISTIC_FAILURE_PREFIXES). Info-severity flags are not passed in, so
+  // the 1–2 day fast path below is unaffected.
+  if (options?.attentionFlagCodes && options.attentionFlagCodes.length > 0) {
+    flags.push(`intake_attention_flags: ${options.attentionFlagCodes.join(", ")}`)
   }
 
   // 1b. Repeat request cooldown - block if patient got 3+ certs in the last 7 days

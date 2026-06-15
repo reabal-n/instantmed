@@ -23,6 +23,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { CertReviewData } from "@/types/db"
 
 import { evaluateAutoApprovalEligibility, extractDurationDays, extractStartDate } from "./auto-approval"
+import { attentionFlags, parseIntakeFlags } from "./intake-flags"
 import {
   claimForProcessing, markApproved,
   markFailedRetrying, markIneligible,
@@ -296,6 +297,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
         subtype,
         patient_id,
         auto_approval_attempts,
+        risk_flags,
         service:services!service_id(
           id,
           slug,
@@ -447,6 +449,11 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
         previousApprovalCount: previousApprovalCount ?? 0,
         recentCertCount: recentCertCount ?? 0,
         hasOverlappingCert,
+        // A cert carrying any attention-severity intake flag must be reviewed by
+        // a human, never auto-issued. Info-severity flags are intentionally
+        // excluded so the 1–2 day fast path is preserved.
+        attentionFlagCodes: attentionFlags(parseIntakeFlags((intake as { risk_flags?: unknown }).risk_flags))
+          .map((flag) => flag.code),
       },
     )
 

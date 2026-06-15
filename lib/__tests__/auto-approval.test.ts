@@ -149,6 +149,29 @@ describe("evaluateAutoApprovalEligibility", () => {
     expect(result.eligible).toBe(true)
   })
 
+  it("rejects a med cert carrying an attention intake-flag — a flagged cert never auto-issues", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({ duration: "1" }),
+      makeReadyDraft(),
+      ADULT_PATIENT,
+      { attentionFlagCodes: ["medication_strength_missing"] },
+    )
+    expect(result.eligible).toBe(false)
+    expect(result.disqualifyingFlags.some((f) => f.startsWith("intake_attention_flags:"))).toBe(true)
+  })
+
+  it("ignores empty attentionFlagCodes — a clean cert still auto-approves (info flags never reach here)", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({ duration: "1" }),
+      makeReadyDraft(),
+      ADULT_PATIENT,
+      { attentionFlagCodes: [] },
+    )
+    expect(result.eligible).toBe(true)
+  })
+
   it("rejects when patient DOB is not provided", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
