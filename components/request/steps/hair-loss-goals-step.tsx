@@ -7,21 +7,16 @@
  * Chip grid for goals, segmented duration selector.
  */
 
-import { motion } from "framer-motion"
 import { ArrowRight,Search, Shield, Sprout, Target } from "lucide-react"
 import { useCallback } from "react"
 
-import { IntakeStepIntro, QuestionCard, SegmentedChoiceGroup, useRovingRadio } from "@/components/request/shared/intake-step-primitives"
+import { ChoiceCardGroup, IntakeStepIntro, QuestionCard, QuestionPrompt, SegmentedChoiceGroup } from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { useReducedMotion } from "@/components/ui/motion"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
-import { stagger } from "@/lib/motion"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
-import { cn } from "@/lib/utils"
 
 import { useRequestStore } from "../store"
 
@@ -50,7 +45,6 @@ const ONSET_OPTIONS = [
 export default function HairLossGoalsStep({ onNext }: HairLossGoalsStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
-  const prefersReducedMotion = useReducedMotion()
 
   const hairGoal = (answers.hairGoal as string) || ""
   const hairOnset = (answers.hairOnset as string) || ""
@@ -81,12 +75,6 @@ export default function HairLossGoalsStep({ onNext }: HairLossGoalsStepProps) {
     enabled: isComplete,
   })
 
-  const goalRoving = useRovingRadio(
-    GOAL_OPTIONS.length,
-    GOAL_OPTIONS.findIndex((option) => option.value === hairGoal),
-    (index) => setAnswer("hairGoal", GOAL_OPTIONS[index].value),
-  )
-
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -97,64 +85,21 @@ export default function HairLossGoalsStep({ onNext }: HairLossGoalsStepProps) {
 
       {/* Goal selection - chip grid */}
       <QuestionCard compact>
-        <Label className="text-sm font-medium">
-          What&apos;s your main goal?
-          <span className="text-destructive ml-0.5">*</span>
-        </Label>
-        <motion.div
-          className="grid grid-cols-2 gap-2"
-          variants={prefersReducedMotion ? undefined : stagger.container}
-          initial="initial"
-          animate="animate"
-          role="radiogroup"
-          aria-label="Hair loss goal"
-        >
-          {GOAL_OPTIONS.map((option, index) => {
-            const Icon = option.icon
-            const isSelected = hairGoal === option.value
-            return (
-              <motion.button
-                key={option.value}
-                ref={goalRoving.registerRef(index)}
-                type="button"
-                role="radio"
-                tabIndex={goalRoving.tabIndexFor(index)}
-                variants={prefersReducedMotion ? undefined : stagger.item}
-                onClick={() => setAnswer("hairGoal", option.value)}
-                onKeyDown={(event) => goalRoving.onKeyDown(event, index)}
-                aria-checked={isSelected}
-                aria-label={option.label}
-                className={cn(
-                  "flex items-center gap-2.5 p-3 rounded-xl border text-left cursor-pointer transition-[background-color,border-color] text-sm",
-                  "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
-                  isSelected
-                    ? "border-primary bg-primary/5 ring-1 ring-primary/30"
-                    : "border-border hover:border-primary/50"
-                )}
-              >
-                <div
-                  className={cn(
-                    "flex items-center justify-center w-8 h-8 rounded-lg shrink-0",
-                    isSelected
-                      ? "bg-primary/10 text-primary"
-                      : "bg-muted text-muted-foreground"
-                  )}
-                >
-                  <Icon className="w-4 h-4" />
-                </div>
-                <span className="leading-snug">{option.label}</span>
-              </motion.button>
-            )
-          })}
-        </motion.div>
+        <QuestionPrompt label="What's your main goal?" required />
+        <ChoiceCardGroup
+          options={GOAL_OPTIONS}
+          value={hairGoal}
+          onChange={(value) => setAnswer("hairGoal", value)}
+          ariaLabel="Hair loss goal"
+          columns="two"
+          mobileColumns="two"
+          compact
+        />
       </QuestionCard>
 
       {/* Onset timing - segmented selector */}
       <QuestionCard compact>
-        <Label className="text-sm font-medium">
-          When did you first notice changes?
-          <span className="text-destructive ml-0.5">*</span>
-        </Label>
+        <QuestionPrompt label="When did you first notice changes?" required />
         <SegmentedChoiceGroup
           options={ONSET_OPTIONS}
           value={hairOnset}

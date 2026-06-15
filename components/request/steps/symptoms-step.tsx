@@ -7,8 +7,7 @@
 import { AlertTriangle, ArrowRight } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 
-import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
-import { EnhancedSelectionButton } from "@/components/shared/enhanced-selection-button"
+import { ChipToggleGroup, IntakeStepIntro, QuestionCard, SegmentedChoiceGroup } from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -44,12 +43,12 @@ const SYMPTOM_DURATION_OPTIONS = [
 // always satisfies validateSymptomTextQuality. The textarea stays the source of
 // truth: chips just seed it, and the patient adds specifics.
 const COMMON_SYMPTOM_STARTERS = [
-  "Cold or flu",
-  "Fever",
-  "Headache or migraine",
-  "Stomach bug or nausea",
-  "Cough or sore throat",
-  "Back or muscle pain",
+  { key: "cold_flu", label: "Cold or flu" },
+  { key: "fever", label: "Fever" },
+  { key: "headache_migraine", label: "Headache or migraine" },
+  { key: "stomach_nausea", label: "Stomach bug or nausea" },
+  { key: "cough_sore_throat", label: "Cough or sore throat" },
+  { key: "back_muscle_pain", label: "Back or muscle pain" },
 ] as const
 
 function escapeForRegExp(value: string): string {
@@ -190,6 +189,12 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
   // after the patient fixes a field, leaving the button looking not-ready.
   const isComplete = Boolean(symptomDuration) && detailsQuality.valid
   const canContinue = isComplete && !emergencyRequiresAck && !highStakesRequiresAck
+  const starterValues = Object.fromEntries(
+    COMMON_SYMPTOM_STARTERS.map((starter) => [
+      starter.key,
+      symptomDetails.toLowerCase().includes(starter.label.toLowerCase()),
+    ]),
+  )
 
   // Prune stale field errors + the blocking summary as soon as each field
   // becomes valid, so a fixed form stops showing "Add this to continue".
@@ -253,19 +258,16 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
           error={touched.symptomDetails ? errors.symptomDetails : undefined}
           hint="Tap any that fit, then add detail like when it started."
         >
-          <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Common reasons">
-            {COMMON_SYMPTOM_STARTERS.map((starter) => (
-              <EnhancedSelectionButton
-                key={starter}
-                variant="chip"
-                selected={symptomDetails.toLowerCase().includes(starter.toLowerCase())}
-                onClick={() => toggleSymptomStarter(starter)}
-                className="touch-manipulation"
-              >
-                {starter}
-              </EnhancedSelectionButton>
-            ))}
-          </div>
+          <ChipToggleGroup
+            options={COMMON_SYMPTOM_STARTERS}
+            values={starterValues}
+            onChange={(key) => {
+              const starter = COMMON_SYMPTOM_STARTERS.find((option) => option.key === key)
+              if (starter) toggleSymptomStarter(starter.label)
+            }}
+            ariaLabel="Common reasons"
+            className="mt-2"
+          />
           <Textarea
             value={symptomDetails}
             onChange={(e) => setAnswer("symptomDetails", e.target.value)}
@@ -282,22 +284,17 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
           required
           error={touched.symptomDuration ? errors.symptomDuration : undefined}
         >
-          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4" role="group" aria-label="How long have symptoms been present">
-            {SYMPTOM_DURATION_OPTIONS.map((option) => (
-              <EnhancedSelectionButton
-                key={option.value}
-                variant="chip"
-                selected={symptomDuration === option.value}
-                onClick={() => {
-                  setAnswer("symptomDuration", option.value)
-                  setTouched((prev) => ({ ...prev, symptomDuration: true }))
-                }}
-                className="touch-manipulation"
-              >
-                {option.label}
-              </EnhancedSelectionButton>
-            ))}
-          </div>
+          <SegmentedChoiceGroup
+            options={SYMPTOM_DURATION_OPTIONS}
+            value={symptomDuration}
+            onChange={(value) => {
+              setAnswer("symptomDuration", value)
+              setTouched((prev) => ({ ...prev, symptomDuration: true }))
+            }}
+            ariaLabel="How long have symptoms been present"
+            columns="auto"
+            className="mt-2"
+          />
           {symptomDuration === "week_plus" && (
             <div className="mt-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
               Symptoms lasting more than a week may need an in-person doctor review. You can still submit this request.

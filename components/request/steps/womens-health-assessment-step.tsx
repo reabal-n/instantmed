@@ -4,7 +4,7 @@ import { AlertCircle, ShieldCheck, Sparkles, XCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
-import { IntakeStepIntro, QuestionCard, SegmentedChoiceGroup, StringBinaryChoice } from "@/components/request/shared/intake-step-primitives"
+import { ChipToggleGroup, IntakeStepIntro, QuestionCard, QuestionPrompt, SegmentedChoiceGroup, StringBinaryChoice } from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -132,14 +132,11 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
 
       <QuestionCard compact>
         <div className="space-y-2.5">
-          <div>
-            <p className="text-sm font-medium">
-              What would you like? <span className="text-destructive">*</span>
-            </p>
-            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-              Choose the closest match for this request.
-            </p>
-          </div>
+          <QuestionPrompt
+            label="What would you like?"
+            hint="Choose the closest match for this request."
+            required
+          />
           <SegmentedChoiceGroup
             options={[
               { value: "start", label: "Start" },
@@ -149,7 +146,7 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
             value={contraceptionType}
             onChange={(value) => setAnswer("contraceptionType", value)}
             ariaLabel="What would you like?"
-            columns="auto"
+            columns="three"
           />
           <FieldError message={errors.contraceptionType} />
         </div>
@@ -157,14 +154,11 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
 
       <QuestionCard compact>
         <div className="space-y-2.5">
-          <div>
-            <p className="text-sm font-medium">
-              Are you currently using contraception? <span className="text-destructive">*</span>
-            </p>
-            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-              This gives the doctor context for starting or switching safely.
-            </p>
-          </div>
+          <QuestionPrompt
+            label="Are you currently using contraception?"
+            hint="This gives the doctor context for starting or switching safely."
+            required
+          />
           <SegmentedChoiceGroup
             options={[
               { value: "pill", label: "The pill" },
@@ -183,14 +177,11 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
 
       <QuestionCard compact>
         <div className="space-y-2.5">
-          <div>
-            <p className="text-sm font-medium">
-              Are you pregnant or could you be pregnant? <span className="text-destructive">*</span>
-            </p>
-            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-              Some options are not suitable during pregnancy.
-            </p>
-          </div>
+          <QuestionPrompt
+            label="Are you pregnant or could you be pregnant?"
+            hint="Some options are not suitable during pregnancy."
+            required
+          />
           <SegmentedChoiceGroup
             options={[
               { value: "no", label: "No" },
@@ -200,7 +191,7 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
             value={pregnancyStatus}
             onChange={handlePregnancyChange}
             ariaLabel="Are you pregnant or could you be pregnant?"
-            columns="auto"
+            columns="three"
           />
           <FieldError message={errors.pregnancyStatus} />
           {pregnancyStatus === "yes" && (
@@ -236,9 +227,7 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
             { key: "womens_smoker", value: smoker, label: "Do you smoke?" },
           ].map((q) => (
             <div key={q.key} className="space-y-2.5">
-              <p className="text-sm font-medium leading-snug">
-                {q.label} <span className="text-destructive">*</span>
-              </p>
+              <QuestionPrompt label={q.label} required />
               <StringBinaryChoice
                 value={q.value as "no" | "yes" | undefined}
                 noValue="no"
@@ -458,13 +447,16 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
   }
 
   const SYMPTOMS = [
-    { value: 'burning', label: 'Burning or stinging when urinating' },
-    { value: 'frequency', label: 'Needing to urinate more often' },
-    { value: 'urgency', label: 'Urgent need to urinate' },
-    { value: 'incomplete', label: 'Feeling like bladder isn\'t empty' },
-    { value: 'blood', label: 'Blood in urine' },
-    { value: 'cloudy', label: 'Cloudy or smelly urine' },
+    { key: 'burning', label: 'Burning or stinging' },
+    { key: 'frequency', label: 'Urinating more often' },
+    { key: 'urgency', label: 'Urgent need to go' },
+    { key: 'incomplete', label: 'Not emptying fully' },
+    { key: 'blood', label: 'Blood in urine' },
+    { key: 'cloudy', label: 'Cloudy or smelly' },
   ]
+  const symptomValues = Object.fromEntries(
+    SYMPTOMS.map((symptom) => [symptom.key, utiSymptoms?.includes(symptom.key) ?? false]),
+  )
 
   const isComplete = utiSymptoms && utiSymptoms.length > 0 && utiRedFlags === 'no' && utiPregnant === 'no'
 
@@ -473,69 +465,50 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
       <IntakeStepIntro
         eyebrow="UTI treatment"
         title="Check this is safe for telehealth"
-        description="UTI treatment can be reviewed online when symptoms are uncomplicated. These questions screen for signs that need in-person care."
+        description="These questions check for signs that need in-person care."
       />
 
       <QuestionCard compact>
-        <div className="space-y-1">
-          <p className="text-sm font-medium">
-            Which symptoms do you have? <span className="text-destructive">*</span>
-          </p>
-          <p className="text-xs leading-relaxed text-muted-foreground">
-            Toggle on every symptom that applies.
-          </p>
-        </div>
-        <div className="space-y-2">
-          {SYMPTOMS.map((symptom) => (
-            <div
-              key={symptom.value}
-              className="flex min-h-12 items-center justify-between gap-3 rounded-xl border border-border/60 bg-background p-3 transition-colors hover:border-primary/50 hover:bg-primary/5"
-            >
-              <Label htmlFor={`uti-${symptom.value}`} className="text-sm cursor-pointer leading-snug flex-1">
-                {symptom.label}
-              </Label>
-              <Switch
-                id={`uti-${symptom.value}`}
-                checked={utiSymptoms?.includes(symptom.value) ?? false}
-                onCheckedChange={() => toggleSymptom(symptom.value)}
-              />
-            </div>
-          ))}
-        </div>
+        <QuestionPrompt
+          label="Which symptoms do you have?"
+          hint="Select every symptom that applies."
+          required
+        />
+        <ChipToggleGroup
+          options={SYMPTOMS}
+          values={symptomValues}
+          onChange={(key) => toggleSymptom(key)}
+          ariaLabel="UTI symptoms"
+        />
         <FieldError message={errors.utiSymptoms} />
       </QuestionCard>
 
-      <QuestionCard compact>
-        <div className="space-y-2.5">
-          <div>
-            <p className="text-sm font-medium">
-              Any fever, back or flank pain, vomiting, or feeling very unwell? <span className="text-destructive">*</span>
-            </p>
-            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-              These can be signs of a kidney infection or a more serious illness.
-            </p>
-          </div>
+      <QuestionCard compact className="space-y-3">
+        <div className="space-y-1">
+          <p className="text-sm font-medium leading-snug text-foreground">UTI safety checks</p>
+        </div>
+        <div className="space-y-2">
+          <QuestionPrompt
+            label="Fever, flank or back pain, vomiting, or very unwell?"
+            hint="These can suggest a kidney infection."
+            required
+          />
           <StringBinaryChoice
             value={utiRedFlags as "no" | "yes" | undefined}
             noValue="no"
             yesValue="yes"
             onChange={handleRedFlagsChange}
-            ariaLabel="Any fever, back or flank pain, vomiting, or feeling very unwell?"
+            ariaLabel="Fever, flank or back pain, vomiting, or very unwell?"
           />
           <FieldError message={errors.utiRedFlags} />
         </div>
-      </QuestionCard>
 
-      <QuestionCard compact>
-        <div className="space-y-2.5">
-          <div>
-            <p className="text-sm font-medium">
-              Are you pregnant, or could you be pregnant? <span className="text-destructive">*</span>
-            </p>
-            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-              UTIs in pregnancy need in-person assessment.
-            </p>
-          </div>
+        <div className="space-y-2">
+          <QuestionPrompt
+            label="Pregnant or possibly pregnant?"
+            hint="Pregnancy needs in-person UTI care."
+            required
+          />
           <SegmentedChoiceGroup
             options={[
               { value: "no", label: "No" },
@@ -544,8 +517,8 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
             ]}
             value={utiPregnant}
             onChange={handlePregnancyChange}
-            ariaLabel="Are you pregnant, or could you be pregnant?"
-            columns="auto"
+            ariaLabel="Pregnant or possibly pregnant?"
+            columns="three"
           />
           <FieldError message={errors.utiPregnant} />
         </div>

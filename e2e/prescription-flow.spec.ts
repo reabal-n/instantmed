@@ -61,12 +61,24 @@ async function dismissOverlays(page: Page) {
 
 /** Click a chip / selection button whose visible text matches `label` */
 async function clickChip(page: Page, label: string | RegExp) {
+  const radio = page.getByRole("radio", { name: label })
+  if (await radio.isVisible({ timeout: 1500 }).catch(() => false)) {
+    await radio.click()
+    return
+  }
   await page.getByRole("button", { name: label }).click()
 }
 
 /** Click the primary "Continue" action button at the bottom of a step */
 async function clickContinue(page: Page) {
-  const btn = page.getByRole("button", { name: /^Continue|Continue to/i }).last()
+  const primaryAction = page.locator('[data-intake-primary-action="true"]').last()
+  if (await primaryAction.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await expect(primaryAction).toBeEnabled({ timeout: 5000 })
+    await primaryAction.scrollIntoViewIfNeeded()
+    await primaryAction.click()
+    return
+  }
+  const btn = page.getByRole("button", { name: /^Continue|Continue to|Review your request|Pay \$/i }).last()
   await expect(btn).toBeEnabled({ timeout: 5000 })
   await btn.scrollIntoViewIfNeeded()
   await btn.click()
@@ -117,12 +129,12 @@ async function completeMedicationSearchStep(page: Page) {
 /**
  * Complete the medication history step.
  *
- * Selects "Less than 3 months ago" for when last prescribed,
+ * Selects "Under 3 months" for when last prescribed,
  * and "No side effects" for adverse reactions.
  */
 async function completeMedicationHistoryStep(page: Page) {
   await waitForStep(page, /When were you last prescribed/i)
-  await clickChip(page, /Less than 3 months ago/i)
+  await clickChip(page, /Under 3 months/i)
   await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
   // Side effects question appears after entering the current dose.
   await clickChip(page, /No side effects/i)
@@ -221,7 +233,7 @@ async function verifyCheckoutStep(page: Page) {
   await expect(page.getByText(/Medication/i).first()).toBeVisible()
 
   // Verify correct Stripe price ($29.95 for repeat prescription)
-  await expect(page.getByText("$29.95")).toBeVisible()
+  await expect(page.getByText("$29.95", { exact: true }).first()).toBeVisible()
 
   const checkoutBtn = page.getByRole("button", { name: /^Pay \$/ }).last()
   await expect(checkoutBtn).toBeEnabled({ timeout: 5000 })
@@ -291,13 +303,13 @@ test.describe("Prescription: medication-history gating", () => {
     // Complete medication step
     await completeMedicationSearchStep(page)
 
-    // On medication history step - select "Never prescribed"
+    // On medication history step - select "Never"
     await waitForStep(page, /When were you last prescribed/i)
-    await clickChip(page, /Never prescribed this medication/i)
+    await clickChip(page, /^Never$/i)
 
-    // Warning should appear with "Book a consultation" CTA
+    // Warning should appear with "Browse other services" CTA
     await expect(page.getByText(/This service is for repeat prescriptions only/i)).toBeVisible()
-    await expect(page.getByRole("button", { name: /Book a consultation/i })).toBeVisible()
+    await expect(page.getByRole("link", { name: /Browse other services/i })).toBeVisible()
   })
 })
 
@@ -308,15 +320,18 @@ test.describe("Prescription: medication-history gating", () => {
 test.describe("Prescription: step validation", () => {
   test.setTimeout(60000)
 
-  test("medication step blocks Continue without a selection", async ({ page }) => {
+  test("medication step explains missing selection without advancing", async ({ page }) => {
     await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
-    // On medication step - Continue should be disabled without a selection
+    // Continue stays clickable so the mobile sticky action can explain what is missing.
     await waitForStep(page, /Which medication do you need\?/i)
     const btn = page.getByRole("button", { name: /^Continue$/i }).last()
-    await expect(btn).toBeDisabled()
+    await expect(btn).toBeEnabled()
+    await btn.click()
+    await expect(page.getByText(/Please search for and select your medication/i).first()).toBeVisible()
+    await expect(page.getByRole("heading", { name: /Which medication do you need/i })).toBeVisible()
   })
 
   test("medication step proceeds with a blank strength (A3 soften → doctor flag)", async ({ page }) => {
@@ -405,7 +420,7 @@ test.describe("Prescription: step validation", () => {
     await completeMedicalHistoryStep(page)
 
     // On details step - enter invalid email
-    await waitForStep(page, /This information is required/i)
+    await waitForStep(page, /^Your details$/i)
     const noThanks = page.getByRole("button", { name: /No thanks/i })
     if (await noThanks.isVisible({ timeout: 1000 }).catch(() => false)) {
       await noThanks.click()
@@ -460,7 +475,7 @@ test.describe("Prescription: checkout price verification", () => {
     await waitForStep(page, /One last check/i)
 
     // Verify price is $29.95 (PRICING.REPEAT_SCRIPT)
-    await expect(page.getByText("$29.95")).toBeVisible()
+    await expect(page.getByText("$29.95", { exact: true }).first()).toBeVisible()
 
     // Verify trust badges
     await expect(page.getByText(/AHPRA-registered doctor/i)).toBeVisible()

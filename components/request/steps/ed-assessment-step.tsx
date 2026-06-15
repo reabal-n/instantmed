@@ -4,7 +4,7 @@ import { AnimatePresence,motion } from "framer-motion"
 import { ArrowRight,Info, TrendingUp } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
-import { IntakeStepIntro, QuestionCard, useRovingRadio } from "@/components/request/shared/intake-step-primitives"
+import { IntakeStepIntro, QuestionCard, ScaleChoiceGroup } from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
@@ -131,80 +131,6 @@ function getInterpretation(total: number): ScoreInterpretation {
       "You\u2019re not alone \u2014 effective treatment options exist. A doctor will review your full picture.",
     colorClass: "text-warning",
   }
-}
-
-// ---------------------------------------------------------------------------
-// ScalePicker
-// ---------------------------------------------------------------------------
-
-function ScalePicker({
-  value,
-  onChange,
-  lowLabel,
-  highLabel,
-  questionId,
-}: {
-  value: number | null
-  onChange: (v: number) => void
-  lowLabel: string
-  highLabel: string
-  questionId: string
-}) {
-  const scaleRoving = useRovingRadio(
-    SCALE_VALUES.length,
-    SCALE_VALUES.findIndex((n) => n === value),
-    (index) => onChange(SCALE_VALUES[index]),
-  )
-  return (
-    <div className="space-y-2">
-      {/* Scale circles */}
-      <div
-        className="flex items-center justify-between gap-0"
-        role="radiogroup"
-        aria-label={questionId}
-      >
-        {SCALE_VALUES.map((n, idx) => {
-          const isSelected = value === n
-          const isLast = idx === SCALE_VALUES.length - 1
-          return (
-            <div key={n} className="flex items-center flex-1 last:flex-none">
-              {/* Circle */}
-              <button
-                ref={scaleRoving.registerRef(idx)}
-                type="button"
-                role="radio"
-                aria-checked={isSelected}
-                aria-label={`${n} out of 5`}
-                tabIndex={scaleRoving.tabIndexFor(idx)}
-                onClick={() => onChange(n)}
-                onKeyDown={(event) => scaleRoving.onKeyDown(event, idx)}
-                className={cn(
-                  "flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 text-sm font-semibold transition-[background-color,border-color,color,box-shadow]",
-                  "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
-                  isSelected
-                    ? "border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/20"
-                    : "border-border/50 bg-white dark:bg-card text-muted-foreground hover:border-primary/40"
-                )}
-              >
-                {n}
-              </button>
-
-              {/* Connector line */}
-              {!isLast && (
-                <div className="h-0.5 flex-1 bg-border/30 mx-0.5" />
-              )}
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Labels */}
-      <div className="flex justify-between">
-        <span className="text-[11px] text-muted-foreground">{lowLabel}</span>
-        <span className="text-[11px] text-muted-foreground">{highLabel}</span>
-      </div>
-    </div>
-  )
 }
 
 // ---------------------------------------------------------------------------
@@ -339,17 +265,23 @@ export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepPro
                 <button
                   key={question.id}
                   type="button"
+                  data-ed-assessment-progress-button="true"
                   onClick={() => setActiveQuestionIndex(index)}
                   aria-label={`Go to question ${index + 1}`}
-                  className={cn(
-                    "h-1.5 flex-1 rounded-full transition-colors",
-                    current
-                      ? "bg-primary"
-                      : answered
-                        ? "bg-primary/40"
-                        : "bg-muted",
-                  )}
-                />
+                  className="group flex min-h-10 flex-1 items-center rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                >
+                  <span
+                    data-ed-assessment-progress-bar="true"
+                    className={cn(
+                      "block h-1.5 w-full rounded-full transition-colors",
+                      current
+                        ? "bg-primary"
+                        : answered
+                          ? "bg-primary/40"
+                          : "bg-muted group-hover:bg-muted-foreground/20",
+                    )}
+                  />
+                </button>
               )
             })}
           </div>
@@ -358,12 +290,13 @@ export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepPro
             <p className="text-base font-medium leading-snug">
               {activeQuestion.question}
             </p>
-            <ScalePicker
+            <ScaleChoiceGroup
+              values={SCALE_VALUES}
               value={activeValue}
               onChange={(value) => handleScaleChange(activeQuestion.id, value, activeQuestionIndex)}
               lowLabel={activeQuestion.lowLabel}
               highLabel={activeQuestion.highLabel}
-              questionId={activeQuestion.id}
+              ariaLabel={activeQuestion.id}
             />
           </div>
         </QuestionCard>

@@ -17,7 +17,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 
 import { RequestButton } from "@/components/request/request-button"
 import { requestCx } from "@/components/request/request-cx"
-import { IntakeStepIntro, QuestionCard, useRovingRadio } from "@/components/request/shared/intake-step-primitives"
+import { ChoiceCardGroup, IntakeStepIntro, QuestionCard, useRovingRadio } from "@/components/request/shared/intake-step-primitives"
 import { StepBlockedSummary } from "@/components/request/shared/step-blocked-summary"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { MED_CERT_DURATIONS } from "@/lib/constants"
@@ -38,9 +38,9 @@ interface CertificateStepProps {
 }
 
 const CERT_TYPES = [
-  { id: "work", label: "Work", icon: Briefcase },
-  { id: "study", label: "Study", icon: GraduationCap },
-  { id: "carer", label: "Carer's leave", icon: Heart },
+  { value: "work", label: "Work", icon: Briefcase },
+  { value: "study", label: "Study", icon: GraduationCap },
+  { value: "carer", label: "Carer's leave", icon: Heart },
 ] as const
 
 type CertType = "work" | "study" | "carer"
@@ -344,18 +344,9 @@ export default function CertificateStep({ onNext, initialDuration, hideIntro = f
     enabled: Boolean(canContinue),
   })
 
-  // Roving tabindex + arrow-key navigation for the three radiogroups (WAI-ARIA
-  // radio pattern). Each group is one Tab stop; arrows move focus + selection.
-  const certTypeRoving = useRovingRadio(
-    CERT_TYPES.length,
-    CERT_TYPES.findIndex((type) => type.id === certType),
-    (index) => handleCertTypeClick(CERT_TYPES[index].id),
-  )
-  const durationRoving = useRovingRadio(
-    DURATION_OPTIONS.length,
-    DURATION_OPTIONS.findIndex((days) => days === selectedDays),
-    (index) => handleDaysClick(DURATION_OPTIONS[index]),
-  )
+  // Roving tabindex + arrow-key navigation for the date range group. The
+  // generic type/duration groups use ChoiceCardGroup, which owns the same radio
+  // keyboard pattern for normal option cards.
   const startOffsetRoving = useRovingRadio(
     START_OFFSETS.length,
     START_OFFSETS.findIndex((offset) => offset === startOffset),
@@ -384,43 +375,16 @@ export default function CertificateStep({ onNext, initialDuration, hideIntro = f
           error={touched.certType ? errors.certType : undefined}
           hint="Choose the type that matches your situation"
         >
-          <div
-            className="relative mt-2 grid grid-cols-1 gap-2 min-[400px]:grid-cols-3"
-            role="radiogroup"
-            aria-label="Certificate type"
-          >
-            {CERT_TYPES.map((type, index) => {
-              const isSelected = certType === type.id
-              const Icon = type.icon
-              return (
-                <button
-                  key={type.id}
-                  ref={certTypeRoving.registerRef(index)}
-                  type="button"
-                  role="radio"
-                  aria-checked={isSelected}
-                  tabIndex={certTypeRoving.tabIndexFor(index)}
-                  onClick={() => handleCertTypeClick(type.id)}
-                  onKeyDown={(event) => certTypeRoving.onKeyDown(event, index)}
-                  className={requestCx(
-                    "relative flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border px-2 py-3 text-sm font-medium transition-[background-color,border-color,color] duration-150 touch-manipulation",
-                    "outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-                    isSelected
-                      ? "border-primary bg-primary/5 text-foreground ring-1 ring-primary/30"
-                      : "border-border bg-white dark:bg-card text-foreground hover:border-primary/60 hover:bg-primary/5"
-                  )}
-                >
-                  <Icon
-                    className={requestCx(
-                      "w-4 h-4 transition-colors duration-150",
-                      isSelected ? "text-primary" : "text-muted-foreground"
-                    )}
-                  />
-                  <span>{type.label}</span>
-                </button>
-              )
-            })}
-          </div>
+          <ChoiceCardGroup
+            options={CERT_TYPES}
+            value={certType}
+            onChange={handleCertTypeClick}
+            ariaLabel="Certificate type"
+            columns="three"
+            mobileColumns="three"
+            compact
+            className="mt-2"
+          />
         </FormField>
       </QuestionCard>
 
@@ -433,46 +397,20 @@ export default function CertificateStep({ onNext, initialDuration, hideIntro = f
             required
             error={touched.duration ? errors.duration : undefined}
           >
-            <div
-              className="mt-2 grid grid-cols-3 gap-2"
-              role="radiogroup"
-              aria-label="Certificate duration in days"
-            >
-              {DURATION_OPTIONS.map((days, index) => {
-                const p = MED_CERT_DURATIONS.prices[days]
-                const isSelected = selectedDays === days
-                return (
-                  <button
-                    key={days}
-                    ref={durationRoving.registerRef(index)}
-                    type="button"
-                    role="radio"
-                    aria-checked={isSelected}
-                    tabIndex={durationRoving.tabIndexFor(index)}
-                    onClick={() => handleDaysClick(days)}
-                    onKeyDown={(event) => durationRoving.onKeyDown(event, index)}
-                    className={requestCx(
-                      "flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-xl border px-2 py-2 text-sm font-medium transition-[background-color,border-color,color] duration-150 touch-manipulation",
-                      isSelected
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-white dark:bg-card text-foreground border-border hover:border-primary/60 hover:bg-primary/5"
-                    )}
-                  >
-                    <span>
-                      {days} {days === 1 ? "day" : "days"}
-                    </span>
-                    <span
-                      className={requestCx(
-                        "text-xs",
-                        isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
-                      )}
-                    >
-                      ${p}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
+            <ChoiceCardGroup
+              options={DURATION_OPTIONS.map((days) => ({
+                value: String(days),
+                label: `${days} ${days === 1 ? "day" : "days"}`,
+                description: `$${MED_CERT_DURATIONS.prices[days]}`,
+              }))}
+              value={selectedDays ? String(selectedDays) : ""}
+              onChange={(value) => handleDaysClick(Number(value) as Duration)}
+              ariaLabel="Certificate duration in days"
+              columns="three"
+              mobileColumns="three"
+              compact
+              className="mt-2"
+            />
           </FormField>
           {/* Honest one-tap upgrade for the 1-day floor cohort. Only shown on
               1 day; framed on the true $-delta to 2 days, no popularity claim,

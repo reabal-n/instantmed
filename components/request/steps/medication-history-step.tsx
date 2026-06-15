@@ -12,9 +12,8 @@
 import { ArrowLeft, ArrowRight, Stethoscope } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 
-import { IntakeStepIntro, QuestionCard, SegmentedChoiceGroup } from "@/components/request/shared/intake-step-primitives"
+import { IntakeStepIntro, QuestionCard, SegmentedChoiceGroup, YesNoDetailQuestion } from "@/components/request/shared/intake-step-primitives"
 import { StepBlockedSummary } from "@/components/request/shared/step-blocked-summary"
-import { EnhancedSelectionButton } from "@/components/shared/enhanced-selection-button"
 import { AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -34,11 +33,11 @@ interface MedicationHistoryStepProps {
 }
 
 const PRESCRIPTION_HISTORY_OPTIONS = [
-  { value: "less_than_3_months", label: "Less than 3 months ago" },
-  { value: "3_to_6_months", label: "3-6 months ago" },
-  { value: "6_to_12_months", label: "6-12 months ago" },
-  { value: "over_12_months", label: "Over 12 months ago" },
-  { value: "never", label: "Never prescribed this medication" },
+  { value: "less_than_3_months", label: "Under 3 months" },
+  { value: "3_to_6_months", label: "3-6 months" },
+  { value: "6_to_12_months", label: "6-12 months" },
+  { value: "over_12_months", label: "Over 12 months" },
+  { value: "never", label: "Never" },
 ] as const
 
 export default function MedicationHistoryStep({ serviceType, onNext, onBack }: MedicationHistoryStepProps) {
@@ -69,7 +68,9 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
     // A3 softening (boundary 4): current dose is no longer required to continue —
     // a blank one becomes a dose_not_stated flag for the doctor.
 
-    if (hasSideEffects && !sideEffects.trim()) {
+    if (prescriptionHistory && prescriptionHistory !== "never" && hasSideEffects === undefined) {
+      newErrors.sideEffects = "Please indicate if you have had side effects"
+    } else if (hasSideEffects && !sideEffects.trim()) {
       newErrors.sideEffects = "Please describe the side effects you experienced"
     }
 
@@ -97,7 +98,7 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
   }, [canContinue, blockedReasons.length])
   const hasPrescriptionHistory = Boolean(prescriptionHistory)
   const needsDose = hasPrescriptionHistory && !isNeverPrescribed
-  const needsSideEffects = needsDose && Boolean(currentDose.trim())
+  const needsSideEffects = needsDose
 
   // Keyboard navigation
   useKeyboardNavigation({
@@ -128,7 +129,7 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
               value={prescriptionHistory}
               onChange={(value) => setAnswer("prescriptionHistory", value)}
               ariaLabel="When were you last prescribed this medication?"
-              columns="one"
+              columns="two"
               className="mt-2"
             />
           </FormField>
@@ -200,9 +201,8 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
         <QuestionCard compact>
           <FormField
             label="What dose do you currently take?"
-            required
             error={touched.currentDose ? errors.currentDose : undefined}
-            hint="Copy the wording from your label if you can"
+            hint="Optional. Copy the wording from your label if you can."
           >
             <Textarea
               value={currentDose}
@@ -221,42 +221,21 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
       {/* Side effects */}
       {needsSideEffects && (
         <QuestionCard compact>
-          <FormField
+          <YesNoDetailQuestion
             label="Any side effects with this medication?"
-            required
+            helpText="This helps the doctor decide whether a repeat is safe."
+            noLabel="No side effects"
+            yesLabel="Yes"
+            value={hasSideEffects}
+            onSelect={(value) => {
+              setAnswer("hasSideEffects", value)
+              if (!value) setAnswer("sideEffects", "")
+            }}
+            detail={sideEffects}
+            onDetailChange={(value) => setAnswer("sideEffects", value)}
+            detailPlaceholder="Briefly describe what happened"
             error={errors.sideEffects}
-          >
-            <div className="flex gap-2 mt-2">
-              <EnhancedSelectionButton
-                variant="chip"
-                selected={hasSideEffects === false}
-                onClick={() => {
-                  setAnswer("hasSideEffects", false)
-                  setAnswer("sideEffects", "")
-                }}
-                className="flex-1 touch-manipulation"
-              >
-                No side effects
-              </EnhancedSelectionButton>
-              <EnhancedSelectionButton
-                variant="chip"
-                selected={hasSideEffects === true}
-                onClick={() => setAnswer("hasSideEffects", true)}
-                className="flex-1 touch-manipulation"
-              >
-                Yes
-              </EnhancedSelectionButton>
-            </div>
-
-            {hasSideEffects && (
-              <Textarea
-                value={sideEffects}
-                onChange={(e) => setAnswer("sideEffects", e.target.value)}
-                placeholder="Briefly describe what happened"
-                className="min-h-[72px] mt-3"
-              />
-            )}
-          </FormField>
+          />
         </QuestionCard>
       )}
 

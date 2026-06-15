@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest"
 
 import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing-identity"
 
-// Operator rule (2026-05-21): "Address + Medicare + phone are mandatory for
-// every service EXCEPT medical certificates. Name + DOB + email for ALL."
+// Operator rule (2026-06-15): prescribing services require the prescribing
+// identity bundle (Medicare-or-IHI + sex + phone + structured address).
+// Medical certificates collect name + email + DOB only, so they stay exempt
+// from this gate.
 //
 // The gate is expressed as "anything that is not a med cert" so any future
 // service or consult subtype inherits the correct rule without a code change.

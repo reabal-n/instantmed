@@ -199,10 +199,6 @@ function validatePrescriptionIdentityAnswers(
   const medicareExpiry = normalizeMedicareExpiry(rawMedicareExpiry)
   const ihi = firstStringAnswer(answers, ["ihi_number", "ihiNumber"])
   const validIhi = normalizeValidIhiNumber(ihi)
-  const addressLine1 = firstStringAnswer(answers, ["address_line1", "addressLine1", "address_line_1", "street_address"])
-  const suburb = firstStringAnswer(answers, ["suburb"])
-  const state = firstStringAnswer(answers, ["state"])
-  const postcode = firstStringAnswer(answers, ["postcode"])
   const sex = firstStringAnswer(answers, ["sex", "gender"])
 
   const medicareResult = medicare ? validateMedicareNumber(medicare) : null
@@ -226,6 +222,24 @@ function validatePrescriptionIdentityAnswers(
       return expiryResult.error || "Medicare card expiry is invalid."
     }
   }
+  const addressError = validateStructuredAddressAnswers(answers, requestLabel)
+  if (addressError) return addressError
+  if (!sex || !PRESCRIBING_SEX_VALUES.has(sex.toUpperCase())) {
+    return `Sex is required for ${requestLabel}.`
+  }
+
+  return null
+}
+
+function validateStructuredAddressAnswers(
+  answers: Record<string, unknown>,
+  requestLabel: string,
+): string | null {
+  const addressLine1 = firstStringAnswer(answers, ["address_line1", "addressLine1", "address_line_1", "street_address"])
+  const suburb = firstStringAnswer(answers, ["suburb"])
+  const state = firstStringAnswer(answers, ["state"])
+  const postcode = firstStringAnswer(answers, ["postcode"])
+
   if (!addressLine1) return `Street address is required for ${requestLabel}.`
   if (!suburb || !state || !postcode) {
     return `Address suburb, state, and postcode are required for ${requestLabel}.`
@@ -235,9 +249,6 @@ function validatePrescriptionIdentityAnswers(
   }
   if (!/^\d{4}$/.test(postcode)) {
     return `A valid 4-digit postcode is required for ${requestLabel}.`
-  }
-  if (!sex || !PRESCRIBING_SEX_VALUES.has(sex.toUpperCase())) {
-    return `Sex is required for ${requestLabel}.`
   }
 
   return null

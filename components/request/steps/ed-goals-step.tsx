@@ -7,22 +7,16 @@
  * Age gate (Switch), chip grid for goals, segmented duration selector.
  */
 
-import { motion } from "framer-motion"
 import { ArrowRight,Heart, Shield, Sparkles, Stethoscope, Target } from "lucide-react"
 import { useCallback } from "react"
 
-import { IntakeStepIntro, QuestionCard, SegmentedChoiceGroup, useRovingRadio } from "@/components/request/shared/intake-step-primitives"
+import { ChoiceCardGroup, IntakeStepIntro, QuestionCard, QuestionPrompt, SegmentedChoiceGroup, ToggleList } from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { useReducedMotion } from "@/components/ui/motion"
-import { Switch } from "@/components/ui/switch"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
-import { stagger } from "@/lib/motion"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
-import { cn } from "@/lib/utils"
 
 import { useRequestStore } from "../store"
 
@@ -51,7 +45,6 @@ const DURATION_OPTIONS = [
 export default function EdGoalsStep({ onNext }: EdGoalsStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
-  const prefersReducedMotion = useReducedMotion()
 
   const edAgeConfirmed = answers.edAgeConfirmed as boolean | undefined
   const edGoal = (answers.edGoal as string) || ""
@@ -84,25 +77,13 @@ export default function EdGoalsStep({ onNext }: EdGoalsStepProps) {
     enabled: isComplete,
   })
 
-  const goalRoving = useRovingRadio(
-    GOAL_OPTIONS.length,
-    GOAL_OPTIONS.findIndex((option) => option.value === edGoal),
-    (index) => setAnswer("edGoal", GOAL_OPTIONS[index].value),
-  )
-
   return (
     <div className="space-y-4">
-      {/* Age gate */}
-      <QuestionCard compact className="flex flex-row items-start gap-3">
-        <Switch
-          id="edAgeConfirmed"
-          checked={edAgeConfirmed === true}
-          onCheckedChange={(checked) => setAnswer("edAgeConfirmed", checked)}
-        />
-        <Label htmlFor="edAgeConfirmed" className="text-sm leading-relaxed cursor-pointer">
-          I confirm I am 18 years or older
-        </Label>
-      </QuestionCard>
+      <ToggleList
+        items={[{ key: "edAgeConfirmed", label: "I confirm I am 18 years or older" }]}
+        values={{ edAgeConfirmed }}
+        onChange={(_, checked) => setAnswer("edAgeConfirmed", checked)}
+      />
 
       {/* Header */}
       <IntakeStepIntro
@@ -112,64 +93,21 @@ export default function EdGoalsStep({ onNext }: EdGoalsStepProps) {
 
       {/* Goal selection - chip grid */}
       <QuestionCard compact>
-        <Label className="text-sm font-medium">
-          What&apos;s your main goal?
-          <span className="text-destructive ml-0.5">*</span>
-        </Label>
-        <motion.div
-          className="grid grid-cols-2 gap-2"
-          variants={prefersReducedMotion ? undefined : stagger.container}
-          initial="initial"
-          animate="animate"
-          role="radiogroup"
-          aria-label="Treatment goal"
-        >
-          {GOAL_OPTIONS.map((option, index) => {
-            const Icon = option.icon
-            const isSelected = edGoal === option.value
-            return (
-              <motion.button
-                key={option.value}
-                ref={goalRoving.registerRef(index)}
-                type="button"
-                role="radio"
-                aria-checked={isSelected}
-                aria-label={option.label}
-                tabIndex={goalRoving.tabIndexFor(index)}
-                variants={prefersReducedMotion ? undefined : stagger.item}
-                onClick={() => setAnswer("edGoal", option.value)}
-                onKeyDown={(event) => goalRoving.onKeyDown(event, index)}
-                className={cn(
-                  "flex items-center gap-2.5 p-3 rounded-xl border text-left cursor-pointer transition-[background-color,border-color] text-sm",
-                  "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
-                  isSelected
-                    ? "border-primary bg-primary/5 ring-1 ring-primary/30"
-                    : "border-border hover:border-primary/50"
-                )}
-              >
-                <div
-                  className={cn(
-                    "flex items-center justify-center w-8 h-8 rounded-lg shrink-0",
-                    isSelected
-                      ? "bg-primary/10 text-primary"
-                      : "bg-muted text-muted-foreground"
-                  )}
-                >
-                  <Icon className="w-4 h-4" />
-                </div>
-                <span className="leading-snug">{option.label}</span>
-              </motion.button>
-            )
-          })}
-        </motion.div>
+        <QuestionPrompt label="What's your main goal?" required />
+        <ChoiceCardGroup
+          options={GOAL_OPTIONS}
+          value={edGoal}
+          onChange={(value) => setAnswer("edGoal", value)}
+          ariaLabel="Treatment goal"
+          columns="two"
+          mobileColumns="two"
+          compact
+        />
       </QuestionCard>
 
       {/* Duration - segmented selector */}
       <QuestionCard compact>
-        <Label className="text-sm font-medium">
-          How long has this been a concern?
-          <span className="text-destructive ml-0.5">*</span>
-        </Label>
+        <QuestionPrompt label="How long has this been a concern?" required />
         <SegmentedChoiceGroup
           options={DURATION_OPTIONS}
           value={edDuration}

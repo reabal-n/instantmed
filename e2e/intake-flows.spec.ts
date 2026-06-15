@@ -434,7 +434,7 @@ test.describe("Intake: Repeat Prescription - full flow", () => {
 
     // ── Step 2: Medication history ──
     await waitForStep(page, /When were you last prescribed/i)
-    await clickChip(page, /Less than 3 months ago/i)
+    await clickChip(page, /Under 3 months/i)
     await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
     // Side effects question appears after entering the current dose.
     await clickChip(page, /No side effects/i)
@@ -546,9 +546,9 @@ test.describe("Intake: Validation & edge cases", () => {
     // Complete medication step using the robust helper
     await completeMedicationSearchStep(page)
 
-    // On medication history step - select "Never prescribed"
+    // On medication history step - select "Never"
     await waitForStep(page, /When were you last prescribed/i)
-    await clickChip(page, /Never prescribed this medication/i)
+    await clickChip(page, /^Never$/i)
 
     // Warning should appear with "Browse other services" CTA (rendered as a link)
     await expect(page.getByText(/This service is for repeat prescriptions only/i)).toBeVisible()

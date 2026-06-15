@@ -26,7 +26,7 @@ import {
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
-import { BinaryChoice, IntakeStepIntro, QuestionCard, StringBinaryChoice } from "@/components/request/shared/intake-step-primitives"
+import { BinaryChoice, IntakeStepIntro, QuestionCard, QuestionPrompt, SegmentedChoiceGroup, StringBinaryChoice } from "@/components/request/shared/intake-step-primitives"
 import { MedicalHistoryToggles } from "@/components/request/shared/medical-history-toggles"
 import {
   Accordion,
@@ -41,7 +41,6 @@ import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
-import { cn } from "@/lib/utils"
 
 import { useRequestStore } from "../store"
 
@@ -377,42 +376,18 @@ export default function HairLossHealthStep({
             </AccordionTrigger>
             <AccordionContent className="px-4 space-y-3">
               <div className="space-y-2.5">
-                <p className="text-sm font-medium">
-                  Is your partner currently pregnant or trying to conceive?{" "}
-                  <span className="text-destructive">*</span>
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Some hair loss medicines are not suitable around pregnancy.
-                </p>
-                <div
-                  className="flex flex-col gap-2"
-                  role="radiogroup"
-                  aria-label="Partner pregnancy or conception status"
-                >
-                  {REPRODUCTIVE_OPTIONS.map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      role="radio"
-                      onClick={() =>
-                        setAnswer("hairReproductive", option.value)
-                      }
-                      aria-checked={hairReproductive === option.value}
-                      className={cn(
-                        "w-full px-4 py-3 text-sm rounded-xl border-2 transition-colors text-left",
-                        "hover:bg-accent hover:text-accent-foreground",
-                        "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
-                        hairReproductive === option.value
-                          ? option.value === "yes"
-                            ? "border-rose-300 bg-rose-50 dark:border-rose-700 dark:bg-rose-950/50 text-rose-800 dark:text-rose-200 font-medium"
-                            : "border-sky-300/60 bg-sky-50 dark:border-sky-600/40 dark:bg-sky-500/10 text-sky-800 dark:text-sky-200 font-medium"
-                          : "border-border/50 bg-white dark:bg-card text-foreground"
-                      )}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
+                <QuestionPrompt
+                  label="Is your partner currently pregnant or trying to conceive?"
+                  hint="Some hair loss medicines are not suitable around pregnancy."
+                  required
+                />
+                <SegmentedChoiceGroup
+                  options={REPRODUCTIVE_OPTIONS}
+                  value={hairReproductive}
+                  onChange={(value) => setAnswer("hairReproductive", value)}
+                  ariaLabel="Partner pregnancy or conception status"
+                  columns="one"
+                />
               </div>
             </AccordionContent>
           </AccordionItem>

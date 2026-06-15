@@ -50,6 +50,43 @@ describe("medical certificate checkout contract", () => {
     expect(validateAnswersServerSide("med-cert", answers, identity)).toBeNull()
   })
 
+  it("does not require address, Medicare, sex, or phone for med cert checkout", () => {
+    const today = new Date().toISOString().slice(0, 10)
+    const answers = {
+      certType: "work",
+      duration: "1",
+      startDate: today,
+      symptomDetails: "Fever and sore throat since yesterday.",
+      symptomDuration: "1 day",
+      agreedToTerms: true,
+      confirmedAccuracy: true,
+    }
+
+    expect(validateAnswersServerSide("med-cert", answers, {
+      email: identity.email,
+      fullName: identity.fullName,
+      dateOfBirth: identity.dateOfBirth,
+    })).toBeNull()
+  })
+
+  it("requires date of birth for med cert identity", () => {
+    const today = new Date().toISOString().slice(0, 10)
+    const answers = {
+      certType: "work",
+      duration: "1",
+      startDate: today,
+      symptomDetails: "Fever and sore throat since yesterday.",
+      symptomDuration: "1 day",
+      agreedToTerms: true,
+      confirmedAccuracy: true,
+    }
+
+    expect(validateAnswersServerSide("med-cert", answers, {
+      email: identity.email,
+      fullName: identity.fullName,
+    })).toBe("Date of birth is required")
+  })
+
   it("does not render the full certificate preview or redundant symptom chip wall", () => {
     const checkoutStepSource = readFileSync(
       join(process.cwd(), "components/request/steps/checkout-step.tsx"),

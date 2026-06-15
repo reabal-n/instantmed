@@ -5,6 +5,9 @@ import type { ElementType, KeyboardEvent, ReactNode } from "react"
 import { useRef } from "react"
 
 import { requestCx } from "@/components/request/request-cx"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import { Textarea } from "@/components/ui/textarea"
 
 /**
  * WAI-ARIA roving tabindex + arrow-key navigation for a `role="radiogroup"`.
@@ -167,7 +170,7 @@ interface SegmentedChoiceGroupProps<T extends string> {
   value?: T | ""
   onChange: (value: T) => void
   ariaLabel: string
-  columns?: "auto" | "two" | "one"
+  columns?: "auto" | "three" | "two" | "one"
   className?: string
 }
 
@@ -193,6 +196,7 @@ export function SegmentedChoiceGroup<T extends string>({
         "grid gap-2",
         columns === "one" && "grid-cols-1",
         columns === "two" && "grid-cols-2",
+        columns === "three" && "grid-cols-3",
         columns === "auto" && "grid-cols-2 sm:grid-cols-4",
         className,
       )}
@@ -221,6 +225,350 @@ export function SegmentedChoiceGroup<T extends string>({
           </button>
         )
       })}
+    </div>
+  )
+}
+
+interface ScaleChoiceGroupProps {
+  values: readonly number[]
+  value?: number | null
+  onChange: (value: number) => void
+  ariaLabel: string
+  lowLabel: string
+  highLabel: string
+  className?: string
+}
+
+export function ScaleChoiceGroup({
+  values,
+  value,
+  onChange,
+  ariaLabel,
+  lowLabel,
+  highLabel,
+  className,
+}: ScaleChoiceGroupProps) {
+  const selectedIndex = values.findIndex((option) => option === value)
+  const { registerRef, tabIndexFor, onKeyDown } = useRovingRadio(
+    values.length,
+    selectedIndex,
+    (index) => onChange(values[index]),
+  )
+
+  return (
+    <div className={requestCx("space-y-1.5", className)}>
+      <div
+        data-intake-scale-choice-group="true"
+        role="radiogroup"
+        aria-label={ariaLabel}
+        className="grid grid-cols-5 gap-1.5"
+      >
+        {values.map((option, index) => {
+          const selected = value === option
+          return (
+            <button
+              key={option}
+              ref={registerRef(index)}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              aria-label={`${option} out of ${values.length}`}
+              tabIndex={tabIndexFor(index)}
+              onClick={() => onChange(option)}
+              onKeyDown={(event) => onKeyDown(event, index)}
+              className={requestCx(
+                "flex min-h-11 items-center justify-center rounded-lg border px-2 text-sm font-semibold tabular-nums transition-[background-color,border-color,color,box-shadow]",
+                "touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                selected
+                  ? "border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/20"
+                  : "border-border/60 bg-background text-muted-foreground hover:border-primary/50 hover:bg-primary/5",
+              )}
+            >
+              {option}
+            </button>
+          )
+        })}
+      </div>
+      <div className="flex justify-between gap-3 text-[11px] leading-tight text-muted-foreground">
+        <span>{lowLabel}</span>
+        <span className="text-right">{highLabel}</span>
+      </div>
+    </div>
+  )
+}
+
+export interface ChoiceCardOption<T extends string> extends ChoiceOption<T> {
+  icon?: ElementType
+  chips?: readonly string[]
+  disabled?: boolean
+  disabledLabel?: string
+}
+
+interface ChoiceCardGroupProps<T extends string> {
+  options: readonly ChoiceCardOption<T>[]
+  value?: T | ""
+  onChange: (value: T) => void
+  ariaLabel: string
+  columns?: "one" | "two" | "three"
+  mobileColumns?: "one" | "two" | "three"
+  compact?: boolean
+  hideChipsOnMobile?: boolean
+  className?: string
+}
+
+export function ChoiceCardGroup<T extends string>({
+  options,
+  value,
+  onChange,
+  ariaLabel,
+  columns = "one",
+  mobileColumns = "one",
+  compact = false,
+  hideChipsOnMobile = false,
+  className,
+}: ChoiceCardGroupProps<T>) {
+  const selectedIndex = options.findIndex((option) => option.value === value)
+  const { registerRef, tabIndexFor, onKeyDown } = useRovingRadio(
+    options.length,
+    selectedIndex,
+    (index) => {
+      const option = options[index]
+      if (!option.disabled) onChange(option.value)
+    },
+  )
+  const mobileGridClass =
+    mobileColumns === "three"
+      ? "grid-cols-3"
+      : mobileColumns === "two"
+        ? "grid-cols-2"
+        : "grid-cols-1"
+  const desktopGridClass =
+    columns === "three"
+      ? "sm:grid-cols-3"
+      : columns === "two"
+        ? "sm:grid-cols-2"
+        : "sm:grid-cols-1"
+
+  return (
+    <div
+      data-intake-choice-card-group="true"
+      role="radiogroup"
+      aria-label={ariaLabel}
+      className={requestCx(
+        "grid gap-2",
+        mobileGridClass,
+        desktopGridClass,
+        className,
+      )}
+    >
+      {options.map((option, index) => {
+        const Icon = option.icon
+        const selected = value === option.value
+        const disabled = option.disabled === true
+        const hasDescription = Boolean(option.description)
+        const hasChips = Boolean(option.chips?.length)
+        const chipOnlyHiddenOnMobile = compact && hideChipsOnMobile && hasChips && !hasDescription
+        const hasVisibleMobileSupport = hasDescription || (hasChips && !hideChipsOnMobile)
+        const alignClass = chipOnlyHiddenOnMobile
+          ? "items-center sm:items-start"
+          : compact && !hasVisibleMobileSupport
+            ? "items-center"
+            : "items-start"
+        const iconShellClass = chipOnlyHiddenOnMobile
+          ? "h-7 w-7 sm:h-9 sm:w-9"
+          : compact && !hasVisibleMobileSupport
+            ? "h-7 w-7"
+            : "h-9 w-9"
+        const iconClass = compact ? "h-3.5 w-3.5" : "h-4 w-4"
+        const selectedOffsetClass = chipOnlyHiddenOnMobile
+          ? "sm:mt-0.5"
+          : hasVisibleMobileSupport
+            ? "mt-0.5"
+            : undefined
+
+        return (
+          <button
+            key={option.value}
+            ref={registerRef(index)}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            aria-disabled={disabled || undefined}
+            tabIndex={disabled ? -1 : tabIndexFor(index)}
+            onClick={() => {
+              if (!disabled) onChange(option.value)
+            }}
+            onKeyDown={(event) => {
+              if (!disabled) onKeyDown(event, index)
+            }}
+            className={requestCx(
+              "group w-full rounded-xl border text-left transition-[background-color,border-color,box-shadow] duration-150",
+              "outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+              compact ? "px-2.5 py-2.5" : "px-4 py-3.5",
+              disabled
+                ? "cursor-not-allowed border-dashed border-border bg-muted/30 opacity-70"
+                : selected
+                  ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                  : "border-border/60 bg-background hover:border-primary/50 hover:bg-primary/5",
+            )}
+            data-intake-choice-card="true"
+          >
+            <span className={requestCx("flex gap-2.5", alignClass)}>
+              {Icon && (
+                <span
+                  className={requestCx(
+                    "flex shrink-0 items-center justify-center rounded-lg",
+                    iconShellClass,
+                    selected ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
+                  )}
+                  aria-hidden="true"
+                >
+                  <Icon className={iconClass} />
+                </span>
+              )}
+              <span className="min-w-0 flex-1 space-y-1">
+                <span className="block text-sm font-medium leading-snug text-foreground">
+                  {option.label}
+                </span>
+                {option.description && (
+                  <span className="block text-xs leading-relaxed text-muted-foreground">
+                    {option.description}
+                  </span>
+                )}
+                {option.chips && option.chips.length > 0 && (
+                  <span
+                    className={requestCx(
+                      "flex flex-wrap gap-1.5 pt-1",
+                      compact && hideChipsOnMobile && "hidden sm:flex",
+                    )}
+                  >
+                    {option.chips.map((chip) => (
+                      <span
+                        key={chip}
+                        className="rounded-full bg-muted/50 px-2.5 py-1 text-xs text-muted-foreground"
+                      >
+                        {chip}
+                      </span>
+                    ))}
+                  </span>
+                )}
+              </span>
+              {disabled && option.disabledLabel && (
+                <span className="shrink-0 rounded-full border border-border/60 bg-background px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                  {option.disabledLabel}
+                </span>
+              )}
+              {!disabled && selected && (
+                <span className={requestCx("flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground", selectedOffsetClass)}>
+                  <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                </span>
+              )}
+            </span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+export interface ChipToggleOption {
+  key: string
+  label: string
+}
+
+interface ChipToggleGroupProps {
+  options: readonly ChipToggleOption[]
+  values: Record<string, unknown>
+  onChange: (key: string, checked: boolean) => void
+  ariaLabel: string
+  className?: string
+}
+
+export function ChipToggleGroup({
+  options,
+  values,
+  onChange,
+  ariaLabel,
+  className,
+}: ChipToggleGroupProps) {
+  return (
+    <div
+      data-intake-chip-toggle-group="true"
+      role="group"
+      aria-label={ariaLabel}
+      className={requestCx("flex flex-wrap gap-2", className)}
+    >
+      {options.map((option) => {
+        const selected = values[option.key] === true
+        return (
+          <button
+            key={option.key}
+            type="button"
+            aria-pressed={selected}
+            data-intake-chip-toggle="true"
+            onClick={() => onChange(option.key, !selected)}
+            className={requestCx(
+              "inline-flex min-h-10 items-center justify-center rounded-full border px-3 py-2 text-sm font-medium leading-tight transition-[background-color,border-color,color,box-shadow]",
+              "touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+              selected
+                ? "border-primary bg-primary/5 text-foreground ring-1 ring-primary/30"
+                : "border-border/60 bg-background text-foreground hover:border-primary/50 hover:bg-primary/5",
+            )}
+          >
+            {selected && <Check className="mr-1.5 h-3.5 w-3.5 text-primary" aria-hidden="true" />}
+            {option.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+export interface ToggleListItem {
+  key: string
+  label: string
+  helpText?: string
+}
+
+interface ToggleListProps {
+  items: readonly ToggleListItem[]
+  values: Record<string, unknown>
+  onChange: (key: string, checked: boolean) => void
+  className?: string
+}
+
+export function ToggleList({
+  items,
+  values,
+  onChange,
+  className,
+}: ToggleListProps) {
+  return (
+    <div
+      data-intake-toggle-list="true"
+      className={requestCx("space-y-2", className)}
+    >
+      {items.map((item) => (
+        <div
+          key={item.key}
+          data-intake-toggle-row="true"
+          className="flex min-h-12 items-center justify-between gap-3 rounded-xl border border-border/60 bg-white p-3 shadow-sm shadow-primary/[0.03] dark:bg-card dark:shadow-none"
+        >
+          <Label htmlFor={item.key} className="flex-1 cursor-pointer text-sm leading-snug">
+            {item.label}
+            {item.helpText && (
+              <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground">
+                {item.helpText}
+              </span>
+            )}
+          </Label>
+          <Switch
+            id={item.key}
+            checked={values[item.key] === true}
+            onCheckedChange={(checked) => onChange(item.key, checked)}
+          />
+        </div>
+      ))}
     </div>
   )
 }
@@ -319,5 +667,83 @@ export function StringBinaryChoice<TNo extends string, TYes extends string>({
       noLabel={noLabel}
       className={className}
     />
+  )
+}
+
+interface YesNoDetailQuestionProps {
+  label: string
+  helpText?: string
+  yesLabel?: string
+  noLabel?: string
+  value: boolean | undefined
+  onSelect: (value: boolean) => void
+  detail?: string
+  onDetailChange?: (value: string) => void
+  detailPlaceholder?: string
+  error?: string
+  id?: string
+  className?: string
+}
+
+function questionIdFromLabel(label: string) {
+  return label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+}
+
+export function YesNoDetailQuestion({
+  label,
+  helpText,
+  yesLabel = "Yes",
+  noLabel = "No",
+  value,
+  onSelect,
+  detail,
+  onDetailChange,
+  detailPlaceholder,
+  error,
+  id,
+  className,
+}: YesNoDetailQuestionProps) {
+  const questionId = id || questionIdFromLabel(label)
+  const errorId = `${questionId}-error`
+
+  return (
+    <div
+      data-intake-yes-no-detail-question="true"
+      className={requestCx("space-y-2.5", className)}
+      role="group"
+      aria-labelledby={`${questionId}-label`}
+    >
+      <QuestionPrompt
+        id={`${questionId}-label`}
+        label={label}
+        hint={helpText}
+        required
+      />
+      <BinaryChoice
+        value={value}
+        onChange={onSelect}
+        ariaLabel={label}
+        noLabel={noLabel}
+        yesLabel={yesLabel}
+      />
+      {value === true && onDetailChange && (
+        <Textarea
+          value={detail || ""}
+          onValueChange={onDetailChange}
+          placeholder={detailPlaceholder}
+          className="min-h-[60px]"
+          textareaClassName="text-base sm:text-sm"
+          aria-describedby={error ? errorId : undefined}
+        />
+      )}
+      {error && (
+        <p id={errorId} className="text-xs text-destructive" role="alert" aria-live="polite">
+          {error}
+        </p>
+      )}
+    </div>
   )
 }

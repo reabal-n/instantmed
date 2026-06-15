@@ -1236,7 +1236,7 @@ async function completeRepeatScript(page: Page) {
   await clickContinue(page)
 
   await waitForText(page, /When were you last prescribed/i)
-  await clickChoice(page, /Less than 3 months ago/i)
+  await clickChoice(page, /Under 3 months/i)
   const dose = page.getByPlaceholder(/2 puffs twice daily|1 tablet daily/i).first()
   if (await dose.isVisible({ timeout: 3000 }).catch(() => false)) await dose.fill("1 tablet daily")
   await clickChoice(page, /No side effects/i)

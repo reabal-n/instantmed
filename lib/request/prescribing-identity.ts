@@ -11,10 +11,10 @@ import type { UnifiedServiceType } from "@/types/services"
 // (weight_loss, womens_health, infection, mental_health, general, etc.)
 // inherits the correct gating automatically without a code change.
 //
-// Operator-stated rule (2026-05-21):
-//   Address + Medicare-or-IHI + phone are required for every service EXCEPT med certs.
-//   Name + DOB + email are required for ALL services (enforced at checkout
-//   identity step separately).
+// Operator-stated rule (2026-06-15):
+//   Medical certificates collect name + email + DOB only.
+//   Prescribing services collect the full prescribing identity bundle:
+//   DOB + Medicare-or-IHI + sex + phone + structured address.
 //
 // Contract test: lib/__tests__/prescribing-identity-gate-contract.test.ts
 const MED_CERT_CATEGORIES: ReadonlySet<string> = new Set(["medical_certificate", "med_certs"])

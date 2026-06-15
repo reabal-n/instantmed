@@ -239,12 +239,9 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
     serviceType,
     subtype: consultSubtype,
   })
-  // Show address for prescriptions (required by prescribing software) and consults
-  const showAddress = serviceType !== 'med-cert'
-  const addressRequired = needsPrescriptionDetails
-  const addressStarted = Boolean(addressLine1.trim() || suburb.trim() || state || postcode.trim())
-  const addressNeedsCompletion = addressRequired || addressStarted
-  const showManualAddressFields = addressRequired || addressStarted
+  // Prescribing pathways need the structured address bundle for eScript/Parchment handoff.
+  const needsAddress = needsPrescriptionDetails
+  const showManualAddressFields = needsAddress
   const medicareValidation = needsPrescriptionDetails && medicareNumber.trim()
     ? validateMedicareNumber(medicareNumber)
     : null
@@ -297,24 +294,24 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         }
         break
       case 'addressLine1':
-        if (addressNeedsCompletion && !value?.trim()) {
-          error = addressRequired ? 'Your address is needed to issue the prescription' : 'Street address is required'
+        if (needsAddress && !value?.trim()) {
+          error = "Your address is needed to issue the prescription"
         }
         break
       case 'suburb':
-        if (addressNeedsCompletion && !value?.trim()) {
+        if (needsAddress && !value?.trim()) {
           error = 'Suburb is required'
         }
         break
       case 'state':
-        if (addressNeedsCompletion && !value?.trim()) {
+        if (needsAddress && !value?.trim()) {
           error = 'State is required'
         }
         break
       case 'postcode':
-        if (addressNeedsCompletion && !/^\d{4}$/.test(value || "")) {
+        if (needsAddress && !/^\d{4}$/.test(value || "")) {
           error = 'Enter a valid 4-digit postcode'
-        } else if (addressNeedsCompletion && value && state) {
+        } else if (needsAddress && value && state) {
           const result = validatePostcodeState(value, state as (typeof AUSTRALIAN_STATES)[number])
           error = result.valid ? null : (result.error || "Postcode does not match state")
         }
@@ -330,7 +327,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
     })
 
     return error === null
-  }, [dobInput, needsPhone, needsPrescriptionDetails, addressNeedsCompletion, addressRequired, state, ihiReady, medicareNumberReady])
+  }, [dobInput, needsPhone, needsPrescriptionDetails, needsAddress, state, ihiReady, medicareNumberReady])
   
   const handleBlur = (field: string, value: string | undefined) => {
     setTouched(prev => ({ ...prev, [field]: true }))
@@ -422,9 +419,9 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       }
     }
 
-    if (addressNeedsCompletion) {
+    if (needsAddress) {
       if (!addressLine1.trim()) {
-        newErrors.addressLine1 = addressRequired ? 'Your address is needed to issue the prescription' : 'Street address is required'
+        newErrors.addressLine1 = "Your address is needed to issue the prescription"
       }
       if (!suburb.trim()) {
         newErrors.suburb = 'Suburb is required'
@@ -448,7 +445,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       lastName: true,
       email: true,
       dob: true,
-      phone: true,
+      phone: needsPhone,
       medicareNumber: true,
       medicareIrn: true,
       ihiNumber: true,
@@ -508,7 +505,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
     }
   }
 
-  const addressComplete = !addressNeedsCompletion || (addressLine1 && suburb && state && postcode)
+  const addressComplete = !needsAddress || (addressLine1 && suburb && state && postcode)
   const isComplete = firstName && lastName && email && dob && (!needsPhone || phone) && (!needsPrescriptionDetails || (medicareIdentityReady && sex)) && addressComplete
   const hasNoErrors = Object.keys(errors).length === 0
   const canContinue = isComplete && hasNoErrors
@@ -713,32 +710,31 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       )}
 
       {/* Phone - required for prescriptions and consults */}
-      <FormField
-        label="Mobile phone"
-        required={needsPhone}
-        error={touched.phone ? errors.phone : undefined}
-        icon={Phone}
-        hint={needsPhone ? undefined : "Optional - we'll only call if your doctor needs to follow up"}
-      >
-        <Input
-          type="tel"
-          value={phone}
-          onChange={(e) => setIdentity({ phone: e.target.value })}
-          onBlur={() => handleBlur('phone', phone)}
-          placeholder="0412 345 678"
-          autoComplete="tel"
-          inputMode="tel"
-          aria-invalid={touched.phone && !!errors.phone}
-          data-error={touched.phone && errors.phone ? "true" : undefined}
-          className={cn("h-11", touched.phone && errors.phone && "border-destructive")}
-        />
-        {needsPhone && (
+      {needsPhone && (
+        <FormField
+          label="Mobile phone"
+          required
+          error={touched.phone ? errors.phone : undefined}
+          icon={Phone}
+        >
+          <Input
+            type="tel"
+            value={phone}
+            onChange={(e) => setIdentity({ phone: e.target.value })}
+            onBlur={() => handleBlur('phone', phone)}
+            placeholder="0412 345 678"
+            autoComplete="tel"
+            inputMode="tel"
+            aria-invalid={touched.phone && !!errors.phone}
+            data-error={touched.phone && errors.phone ? "true" : undefined}
+            className={cn("h-11", touched.phone && errors.phone && "border-destructive")}
+          />
           <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1.5">
             <span className="inline-block w-1 h-1 rounded-full bg-primary" />
             Your doctor can contact you here if needed
           </p>
-        )}
-      </FormField>
+        </FormField>
+      )}
 
       {/* Medicare or IHI - required for prescribing pathways */}
       {needsPrescriptionDetails && (
@@ -865,13 +861,12 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         </div>
       )}
 
-      {/* Address - required for prescribing pathways, optional for retired broad consult surfaces */}
-      {showAddress && (
+      {/* Address - required for prescribing pathways */}
+      {needsAddress && (
         <FormField
           label="Address"
-          required={addressRequired}
+          required
           error={touched.addressLine1 ? errors.addressLine1 : undefined}
-          hint={addressRequired ? undefined : "Optional - needed only if your doctor prescribes"}
           icon={MapPin}
         >
           <AddressAutocomplete
@@ -956,11 +951,6 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
                 )}
               </div>
             </div>
-          )}
-          {!addressRequired && (suburb || state || postcode) && (
-            <p className="mt-1 text-xs text-muted-foreground">
-              {[suburb, state, postcode].filter(Boolean).join(", ")}
-            </p>
           )}
         </FormField>
       )}

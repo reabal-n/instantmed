@@ -13,10 +13,9 @@
 import { ArrowRight } from "lucide-react"
 import { useCallback,useEffect,useState } from "react"
 
-import { BinaryChoice, IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
+import { IntakeStepIntro, QuestionCard, YesNoDetailQuestion } from "@/components/request/shared/intake-step-primitives"
 import { StepBlockedSummary } from "@/components/request/shared/step-blocked-summary"
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
@@ -28,65 +27,6 @@ interface MedicalHistoryStepProps {
   onNext: () => void
   onBack: () => void
   onComplete: () => void
-}
-
-interface YesNoQuestionProps {
-  label: string
-  helpText: string
-  yesLabel: string
-  noLabel: string
-  value: boolean | undefined
-  onSelect: (val: boolean) => void
-  detail?: string
-  onDetailChange?: (val: string) => void
-  detailPlaceholder?: string
-  error?: string
-}
-
-function YesNoQuestion({
-  label,
-  helpText,
-  yesLabel,
-  noLabel,
-  value,
-  onSelect,
-  detail,
-  onDetailChange,
-  detailPlaceholder,
-  error,
-}: YesNoQuestionProps) {
-  const questionId = label.replace(/\s+/g, '-').toLowerCase()
-  const errorId = `${questionId}-error`
-
-  return (
-    <div className="space-y-2.5" role="group" aria-labelledby={`${questionId}-label`}>
-      <div>
-        <p id={`${questionId}-label`} className="text-sm font-medium">
-          {label} <span className="text-destructive">*</span>
-        </p>
-        <p className="text-xs text-muted-foreground mt-0.5">{helpText}</p>
-      </div>
-      <BinaryChoice
-        value={value}
-        onChange={onSelect}
-        ariaLabel={label}
-        noLabel={noLabel}
-        yesLabel={yesLabel}
-      />
-      {value === true && onDetailChange && (
-        <Textarea
-          value={detail || ""}
-          onChange={(e) => onDetailChange(e.target.value)}
-          placeholder={detailPlaceholder}
-          className="min-h-[60px] text-sm"
-          aria-describedby={error ? errorId : undefined}
-        />
-      )}
-      {error && (
-        <p id={errorId} className="text-xs text-destructive" role="alert" aria-live="polite">{error}</p>
-      )}
-    </div>
-  )
 }
 
 export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHistoryStepProps) {
@@ -196,7 +136,7 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
       {/* Clinical questions - required */}
       {(!requiresMedicationSafety || !clinicalHistoryComplete) && (
       <QuestionCard className="space-y-5">
-        <YesNoQuestion
+        <YesNoDetailQuestion
           label="Any allergies?"
           helpText="Drug, food, or environmental allergies"
           noLabel="No allergies"
@@ -214,7 +154,7 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
 
         <div className="border-t border-border/40" />
 
-        <YesNoQuestion
+        <YesNoDetailQuestion
           label="Any medical conditions?"
           helpText="Chronic illness, past surgeries, ongoing issues"
           noLabel="No conditions"
@@ -232,7 +172,7 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
 
         <div className="border-t border-border/40" />
 
-        <YesNoQuestion
+        <YesNoDetailQuestion
           label="Taking any other medications?"
           helpText="Prescriptions, over-the-counter, vitamins, supplements"
           noLabel="No medications"
@@ -256,7 +196,7 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
             Safety screening
           </p>
 
-          <YesNoQuestion
+          <YesNoDetailQuestion
             label="Currently pregnant or breastfeeding?"
             helpText="Important for medication safety"
             noLabel="No"
@@ -268,7 +208,7 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
 
           <div className="border-t border-border/40" />
 
-          <YesNoQuestion
+          <YesNoDetailQuestion
             label="Previous adverse reactions to medications?"
             helpText="Allergic reactions, side effects, intolerances"
             noLabel="No reactions"

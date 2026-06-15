@@ -7,7 +7,7 @@
  * `UnifiedServiceType` per `types/services.ts` is `"med-cert"` (hyphen,
  * matching the /request URL convention). The mismatch meant every med-cert
  * intake hit the prescription identity gate and demanded Medicare +
- * structured address. Conversion silently bled out for weeks.
+ * prescribing-only fields. Conversion silently bled out for weeks.
  *
  * This contract pins the BEHAVIOUR of every service-type-gating function
  * in the operator-facing pipeline against EVERY canonical
@@ -57,9 +57,9 @@ const GATED_CONSULT_SUBTYPES = new Set<string>(["weight_loss"])
 describe("service-type Set drift contract", () => {
   // ── requiresPrescribingIdentityForRequest gate ────────────────────────────
   //
-  // Rule (per CLAUDE.md Eligibility): med certs do NOT require Medicare /
-  // structured address. Every other service does. Subtype does not affect
-  // this gate.
+  // Rule: med certs do NOT require the full prescribing identity bundle
+  // (Medicare-or-IHI + sex + phone). Every other service does. Med cert
+  // address is enforced by the checkout details contract instead.
   describe("requiresPrescribingIdentityForRequest", () => {
     const expectedByServiceType: Record<UnifiedServiceType, boolean> = {
       "med-cert": false,

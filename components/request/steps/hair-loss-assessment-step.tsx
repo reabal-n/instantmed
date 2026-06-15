@@ -4,19 +4,16 @@ import { motion } from "framer-motion"
 import { AlertCircle, ArrowRight } from "lucide-react"
 import { useCallback, useEffect,useRef, useState } from "react"
 
-import { IntakeStepIntro, QuestionCard, useRovingRadio } from "@/components/request/shared/intake-step-primitives"
+import { ChoiceCardGroup, IntakeStepIntro, QuestionCard, QuestionPrompt, SegmentedChoiceGroup } from "@/components/request/shared/intake-step-primitives"
 import { MedicalHistoryToggles } from "@/components/request/shared/medical-history-toggles"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
 import { useReducedMotion } from "@/components/ui/motion"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
 import { stagger } from "@/lib/motion"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
-import { cn } from "@/lib/utils"
 
 import { useRequestStore } from "../store"
 import {
@@ -54,7 +51,7 @@ const PATTERN_OPTIONS = [
   },
   {
     value: "slight_recession",
-    label: "Slight recession at temples",
+    label: "Temple recession",
     icon: ScalpMild,
     badge: "Mild",
     badgeClass:
@@ -62,7 +59,7 @@ const PATTERN_OPTIONS = [
   },
   {
     value: "noticeable_thinning",
-    label: "Noticeable thinning / recession",
+    label: "Thinning / recession",
     icon: ScalpModerate,
     badge: "Moderate",
     badgeClass:
@@ -70,7 +67,7 @@ const PATTERN_OPTIONS = [
   },
   {
     value: "crown_plus_hairline",
-    label: "Crown thinning + hairline recession",
+    label: "Crown + hairline",
     icon: ScalpCrown,
     badge: "Notable",
     badgeClass:
@@ -78,7 +75,7 @@ const PATTERN_OPTIONS = [
   },
   {
     value: "significant",
-    label: "Significant overall thinning",
+    label: "Overall thinning",
     icon: ScalpAdvanced,
     badge: "Advanced",
     badgeClass:
@@ -164,12 +161,6 @@ export default function HairLossAssessmentStep({
 
   const isComplete = !!hairPattern && !!hairFamilyHistory
 
-  const patternRoving = useRovingRadio(
-    PATTERN_OPTIONS.length,
-    PATTERN_OPTIONS.findIndex((option) => option.value === hairPattern),
-    (index) => setAnswer("hairPattern", PATTERN_OPTIONS[index].value),
-  )
-
   const { validationSummary, showBlockingReasons } = useStepValidationSummary(
     isComplete,
     useCallback(() => {
@@ -217,62 +208,22 @@ export default function HairLossAssessmentStep({
 
       {/* Norwood pattern selector */}
       <QuestionCard compact>
-        <Label className="text-sm font-medium">
-          Which pattern best describes your hair loss?
-          <span className="text-destructive ml-0.5">*</span>
-        </Label>
-        <div
-          className="grid grid-cols-2 gap-2 sm:grid-cols-3"
-          role="radiogroup"
-          aria-label="Hair loss pattern"
-        >
-          {PATTERN_OPTIONS.map((option, idx) => {
-            const Icon = option.icon
-            const isSelected = hairPattern === option.value
-            return (
-              <motion.button
-                key={option.value}
-                ref={patternRoving.registerRef(idx)}
-                type="button"
-                role="radio"
-                tabIndex={patternRoving.tabIndexFor(idx)}
-                variants={itemVariants}
-                custom={idx}
-                onClick={() => setAnswer("hairPattern", option.value)}
-                onKeyDown={(event) => patternRoving.onKeyDown(event, idx)}
-                aria-checked={isSelected}
-                aria-label={`${option.label} - ${option.badge}`}
-                className={cn(
-                  "flex flex-col items-center gap-1.5 p-2.5 rounded-xl border text-center cursor-pointer transition-[background-color,border-color]",
-                  "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
-                  isSelected
-                    ? "border-primary bg-primary/5 ring-1 ring-primary/30"
-                    : "border-border hover:border-primary/50"
-                )}
-              >
-                <Icon
-                  className={cn(
-                    "w-10 h-10 transition-colors",
-                    isSelected
-                      ? "text-primary"
-                      : "text-muted-foreground"
-                  )}
-                />
-                <span className="text-xs font-medium leading-tight">
-                  {option.label}
-                </span>
-                <span
-                  className={cn(
-                    "inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium",
-                    option.badgeClass
-                  )}
-                >
-                  {option.badge}
-                </span>
-              </motion.button>
-            )
-          })}
-        </div>
+        <QuestionPrompt label="Which pattern best describes your hair loss?" required />
+        <ChoiceCardGroup
+          options={PATTERN_OPTIONS.map((option) => ({
+            value: option.value,
+            label: option.label,
+            icon: option.icon,
+            chips: [option.badge],
+          }))}
+          value={hairPattern}
+          onChange={(value) => setAnswer("hairPattern", value)}
+          ariaLabel="Hair loss pattern"
+          columns="three"
+          mobileColumns="two"
+          hideChipsOnMobile
+          compact
+        />
         {errors.hairPattern && (
           <p
             className="text-xs text-destructive flex items-center gap-1"
@@ -295,31 +246,14 @@ export default function HairLossAssessmentStep({
           ref={familyRef}
         >
           <QuestionCard compact>
-          <Label className="text-sm font-medium">
-            Do you have a family history of hair loss?
-            <span className="text-destructive ml-0.5">*</span>
-          </Label>
-          <RadioGroup
+          <QuestionPrompt label="Do you have a family history of hair loss?" required />
+          <SegmentedChoiceGroup
+            options={FAMILY_HISTORY_OPTIONS}
             value={hairFamilyHistory}
-            onValueChange={(value) => setAnswer("hairFamilyHistory", value)}
-            className="space-y-2"
-            aria-label="Do you have a family history of hair loss"
-          >
-            {FAMILY_HISTORY_OPTIONS.map((option) => (
-              <label
-                key={option.value}
-                className={cn(
-                  "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]",
-                  hairFamilyHistory === option.value
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-primary/50"
-                )}
-              >
-                <RadioGroupItem value={option.value} />
-                <span className="text-sm">{option.label}</span>
-              </label>
-            ))}
-          </RadioGroup>
+            onChange={(value) => setAnswer("hairFamilyHistory", value)}
+            ariaLabel="Do you have a family history of hair loss"
+            columns="one"
+          />
           {errors.hairFamilyHistory && (
             <p
               className="text-xs text-destructive flex items-center gap-1"
@@ -344,12 +278,10 @@ export default function HairLossAssessmentStep({
           ref={treatmentsRef}
         >
           <QuestionCard compact>
-          <Label className="text-sm font-medium">
-            Which treatments have you tried before?
-          </Label>
-          <p className="text-xs text-muted-foreground -mt-1">
-            Toggle on any treatments you have previously used.
-          </p>
+          <QuestionPrompt
+            label="Which treatments have you tried before?"
+            hint="Toggle on any treatments you have previously used."
+          />
           <MedicalHistoryToggles
             items={PREVIOUS_TREATMENTS}
             values={answers}

@@ -54,9 +54,9 @@ async function completeToDetails(page: import("@playwright/test").Page) {
   await page.getByRole("button", { name: /^Continue$/i }).last().click()
 
   await expect(page.getByText(/When were you last prescribed/i).first()).toBeVisible()
-  await page.getByRole("radio", { name: /Less than 3 months ago/i }).click()
+  await page.getByRole("radio", { name: /Under 3 months/i }).click()
   await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
-  await page.getByRole("button", { name: /No side effects/i }).click()
+  await page.getByRole("radio", { name: /No side effects/i }).click()
   await page.getByRole("button", { name: /^Continue$/i }).last().click()
 
   await expect(page.getByRole("heading", { name: /Anything the doctor should know/i })).toBeVisible()
