@@ -10,6 +10,7 @@ import { z } from "zod"
 
 import { validateSymptomTextQuality } from "@/lib/clinical/symptom-text-quality"
 import { validateCertificateStartDate } from "@/lib/medical-certificates/date-policy"
+import { isWomensHealthOptionLive } from "@/lib/request/consult-subtypes"
 import {
   buildRepeatScriptMedicationValidationText,
   extractRepeatScriptMedications,
@@ -580,11 +581,19 @@ export function validateWomensHealthAssessmentStep(answers: Record<string, unkno
   const errors: Record<string, string> = {}
   const option = answers.womensHealthOption as string | undefined
 
-  if (option === "ocp_new" || option === "ocp_repeat") {
+  // Server-trust guard: only live options may reach the assessment. ocp_repeat
+  // is redirected to the repeat-script flow in the type step; morning-after /
+  // period-pain are gated. A crafted payload must not slip a gated option through.
+  if (!isWomensHealthOptionLive(option)) {
+    return { isValid: false, errors: { womensHealthOption: "This option is not available yet." } }
+  }
+
+  if (option === "ocp_new") {
     if (!answers.contraceptionType) errors.contraceptionType = "Please select what you need"
     if (!answers.pregnancyStatus) errors.pregnancyStatus = "Please answer this question"
-  } else if (option === "morning_after") {
-    if (!answers.hoursSinceIntercourse) errors.hoursSinceIntercourse = "Please indicate the timeframe"
+    if (!answers.womens_migraine_aura) errors.womens_migraine_aura = "Please answer this question"
+    if (!answers.womens_blood_clot_history) errors.womens_blood_clot_history = "Please answer this question"
+    if (!answers.womens_smoker) errors.womens_smoker = "Please answer this question"
   } else if (option === "uti") {
     const symptoms = answers.utiSymptoms as string[] | undefined
     if (!symptoms || symptoms.length === 0) errors.utiSymptoms = "Please select at least one symptom"

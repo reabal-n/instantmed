@@ -357,18 +357,21 @@ describe("unified intake regressions", () => {
     )
   })
 
-  it("server-blocks future consult subtypes even if the client route is bypassed", () => {
+  it("server-blocks still-gated consult subtypes even if the client route is bypassed", () => {
+    // weight_loss remains gated.
     expect(
       validateAnswersServerSide("consult", {
         consultSubtype: "weight_loss",
       }, identity),
     ).toContain("not currently available")
 
+    // womens_health launched 2026-06-15: it is no longer subtype-blocked (it
+    // fails later for missing answers, not the "not available" gate).
     expect(
       validateAnswersServerSide("consult", {
         consultSubtype: "womens_health",
       }, identity),
-    ).toContain("not currently available")
+    ).not.toContain("not currently available")
   })
 
   it("normalizes legacy and current consult service types for doctor actions", () => {

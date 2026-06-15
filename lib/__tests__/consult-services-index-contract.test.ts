@@ -26,7 +26,7 @@ function read(path: string): string {
 }
 
 describe("/consult services index contract", () => {
-  it("lists all four active services with their canonical href", () => {
+  it("lists all active services with their canonical href (incl. women's health, live 2026-06-15)", () => {
     const source = read("app/consult/page.tsx")
     expect(source).toContain('name: "Medical certificate"')
     expect(source).toContain('href: "/request?service=med-cert"')
@@ -36,15 +36,18 @@ describe("/consult services index contract", () => {
     expect(source).toContain('href: "/request?service=consult&subtype=ed"')
     expect(source).toContain('name: "Hair loss assessment"')
     expect(source).toContain('href: "/request?service=consult&subtype=hair_loss"')
+    expect(source).toContain('name: "Women\'s health"')
+    expect(source).toContain('href: "/request?service=consult&subtype=womens_health"')
   })
 
-  it("renders coming-soon cards for women's health + weight management (not 'general')", () => {
+  it("keeps weight management as the only coming-soon card (women's health is now live)", () => {
     const source = read("app/consult/page.tsx")
-    expect(source).toContain('id: "womens_health"')
     expect(source).toContain('id: "weight_loss"')
     expect(source).toContain("Coming soon")
-    // No General Consult option in coming-soon (it was retired). The
-    // history comment mentions it intentionally so the diff is searchable.
+    // women's health was promoted out of the coming-soon array.
+    expect(source).not.toContain('id: "womens_health"')
+    // No General Consult option (retired). The history comment mentions it
+    // intentionally so the diff is searchable.
     const withoutComment = source.split("\n").filter((l) => !l.trim().startsWith("*")).join("\n")
     expect(withoutComment).not.toMatch(/General consult|General consultation/i)
   })

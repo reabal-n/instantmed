@@ -7,7 +7,8 @@ import type { ConsultSubtype } from "@/types/services"
  * normalization, and checkout validation cannot drift from each other.
  */
 export const BLOCKED_CONSULT_SUBTYPES: ReadonlySet<ConsultSubtype> = new Set([
-  "womens_health",
+  // womens_health launched 2026-06-15 (UTI + new/switch pill only, scoped by
+  // LIVE_WOMENS_HEALTH_OPTIONS). weight_loss stays gated.
   "weight_loss",
 ])
 

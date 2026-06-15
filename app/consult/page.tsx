@@ -154,6 +154,29 @@ const services: DetailedService[] = [
     ],
     ctaLabel: "Start hair loss assessment",
   },
+  {
+    id: "womens-health",
+    slug: "consult-womens-health",
+    name: "Women's health",
+    href: "/request?service=consult&subtype=womens_health",
+    priceLabel: PRICING_DISPLAY.WOMENS_HEALTH,
+    icon: ShieldCheck,
+    accent: "text-primary bg-primary/10",
+    forWho:
+      "You have UTI symptoms, or you want to start, switch, or continue the contraceptive pill, without the clinic wait.",
+    includes: [
+      "Structured UTI or contraception screen with safety checks",
+      "Doctor reviews suitability",
+      "eScript if clinically appropriate",
+      "Free decline, or a redirect to in-person care, if it isn't safe online",
+    ],
+    steps: [
+      "Tell us your symptoms or what you need",
+      "Doctor reviews against the safety screen",
+      "eScript, referral, or a clear next step in writing",
+    ],
+    ctaLabel: "Start women's health assessment",
+  },
 ]
 
 interface ComingSoonService {
@@ -165,13 +188,6 @@ interface ComingSoonService {
 }
 
 const comingSoon: ComingSoonService[] = [
-  {
-    id: "womens_health",
-    name: "Women's health",
-    description: "Contraception, UTI, morning-after, and broader women's health support.",
-    icon: ShieldCheck,
-    priceLabel: `From ${PRICING_DISPLAY.WOMENS_HEALTH ?? `$${PRICING.WOMENS_HEALTH.toFixed(2)}`}`,
-  },
   {
     id: "weight_loss",
     name: "Weight management",
@@ -262,7 +278,9 @@ export default async function ConsultOverviewPage() {
                 ? PRICING.REPEAT_SCRIPT
                 : service.id === "ed"
                   ? PRICING.MENS_HEALTH
-                  : PRICING.HAIR_LOSS,
+                  : service.id === "womens-health"
+                    ? PRICING.WOMENS_HEALTH
+                    : PRICING.HAIR_LOSS,
           )}
         />
       ))}

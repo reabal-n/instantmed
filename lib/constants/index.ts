@@ -66,7 +66,7 @@ export const PRICING = {
   NEW_SCRIPT: 49.95,      // Reserved historical new-script price; not publicly routed
   CONSULT: 49.95,         // Consult tier (ED, hair loss; parent consult price)
   MENS_HEALTH: 49.95,     // ED consultation
-  WOMENS_HEALTH: 59.95,   // Women's health
+  WOMENS_HEALTH: 49.95,   // Women's health (UTI + new/switch pill) - matches the consult tier
   HAIR_LOSS: 49.95,       // Hair loss consultation
   WEIGHT_LOSS: 89.95,     // Weight loss consultation
   REFERRAL: 29.95,
