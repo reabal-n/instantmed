@@ -659,6 +659,7 @@ export async function getAllIntakesForAdmin(
       category,
       subtype,
       status,
+      risk_flags,
       payment_status,
       refund_status,
       refund_amount_cents,

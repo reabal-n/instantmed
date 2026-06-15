@@ -1,6 +1,7 @@
 import { AlertTriangle, Bolt, RotateCcw, RotateCw } from "lucide-react"
 import Link from "next/link"
 
+import { IntakeFlagsBadge } from "@/components/doctor/intake-flags-panel"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { formatRelativeTime } from "@/lib/operator/cases/time-grouping"
 import {
@@ -163,6 +164,7 @@ export function CaseRow({
       {/* Status + flags */}
       <div className="relative z-[1] pointer-events-none flex min-w-0 items-center gap-2">
         <StatusDot status={row.status} />
+        {row.intakeFlags ? <IntakeFlagsBadge flags={row.intakeFlags} /> : null}
         {row.isPriority ? (
           <span
             className="inline-flex h-5 items-center gap-1 rounded-full bg-amber-100 px-1.5 text-[10px] font-medium text-amber-700"
