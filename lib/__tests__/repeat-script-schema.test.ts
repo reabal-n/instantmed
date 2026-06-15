@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
-import { validateMedicationStep } from "@/lib/request/validation"
 import { getMedicationBlocklistCandidate } from "@/lib/operational-controls/medication-blocklist"
+import { validateMedicationStep } from "@/lib/request/validation"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 
 const validRepeatScriptAnswers = {

@@ -23,11 +23,11 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { CertReviewData } from "@/types/db"
 
 import { evaluateAutoApprovalEligibility, extractDurationDays, extractStartDate } from "./auto-approval"
-import { attentionFlags, parseIntakeFlags } from "./intake-flags"
 import {
   claimForProcessing, markApproved,
   markFailedRetrying, markIneligible,
 } from "./auto-approval-state"
+import { attentionFlags, parseIntakeFlags } from "./intake-flags"
 
 const log = createLogger("auto-approval-pipeline")
 

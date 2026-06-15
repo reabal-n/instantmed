@@ -18,13 +18,13 @@ import {
 } from "@supabase/supabase-js"
 
 import { trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
-import type { IntakeFlag } from "@/lib/clinical/intake-flags"
 import {
   logAccuracyAttestationGiven,
   logRequestCreated,
   logTelehealthConsentGiven,
   logTermsConsentGiven,
 } from "@/lib/audit/compliance-audit"
+import type { IntakeFlag } from "@/lib/clinical/intake-flags"
 import { TELEHEALTH_CONSENT_VERSION,TERMS_VERSION } from "@/lib/constants"
 import { createLogger } from "@/lib/observability/logger"
 import { buildAddressAuditMetadata } from "@/lib/request/address-metadata"
