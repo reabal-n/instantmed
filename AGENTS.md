@@ -1,6 +1,6 @@
 # AGENTS.md — InstantMed
 
-> Australian telehealth platform for specialised one-off services: medical certificates, repeat prescriptions, hair loss, and ED. Women's health, weight loss, and general consult are reserved/retired surfaces and are gated off until launch readiness is explicitly changed. Patients start with a secure clinical form. A doctor reviews, approves/declines, contacts the patient if clinically needed, and delivers documents or eScript tokens digitally.
+> Australian telehealth platform for specialised one-off services: medical certificates, repeat prescriptions, hair loss, ED, and women's health (UTI + new/switch contraceptive pill, launched 2026-06-15). Weight loss and general consult remain reserved/retired surfaces gated off until launch readiness is explicitly changed. Patients start with a secure clinical form. A doctor reviews, approves/declines, contacts the patient if clinically needed, and delivers documents or eScript tokens digitally.
 
 > **This file is the project brain.** Always load first. Satellite docs below for deep dives.
 
@@ -225,7 +225,7 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 | General consult | $49.95 | `STRIPE_PRICE_CONSULT` |
 | ED consult | $49.95 | `STRIPE_PRICE_CONSULT_ED` |
 | Hair loss | $49.95 | `STRIPE_PRICE_CONSULT_HAIR_LOSS` |
-| Women's health (gated future subtype) | $59.95 reserved | `STRIPE_PRICE_CONSULT_WOMENS_HEALTH` |
+| Women's health (UTI + new/switch pill, live 2026-06-15) | $49.95 | `STRIPE_PRICE_CONSULT_WOMENS_HEALTH` |
 | Weight loss (gated future subtype) | $89.95 reserved | `STRIPE_PRICE_CONSULT_WEIGHT_LOSS` |
 | Priority fee (Express Review) | $9.95 | `STRIPE_PRICE_PRIORITY_FEE` |
 | Referral letter | $29.95 | — (display only, not yet Stripe-mapped) |
