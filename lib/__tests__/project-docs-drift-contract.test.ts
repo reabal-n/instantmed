@@ -54,7 +54,8 @@ describe("project docs drift contract", () => {
     for (const source of [agents, claude]) {
       expect(source).toContain("Requests submit 24/7 for every pathway")
       expect(source).toContain("Never hard-block checkout by time of day")
-      expect(source).toContain("Women's health (gated future subtype)")
+      // Women's health launched 2026-06-15 (UTI + new/switch pill); weight loss stays gated.
+      expect(source).toContain("Women's health (UTI + new/switch pill, live 2026-06-15)")
       expect(source).toContain("Weight loss (gated future subtype)")
       // Phase 1 of dashboard remaster (2026-05-11) renamed the "Staff cockpit"
       // workflow heading to "Staff dashboard" and introduced `/dashboard` as the

@@ -71,6 +71,12 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
   const pregnancyStatus = (answers.pregnancyStatus as string) || ""
   const lastPeriod = (answers.lastPeriod as string) || ""
   const contraceptionDetails = (answers.contraceptionDetails as string) || ""
+  // Combined-pill safety screen (new/switch pill only). Drives the REQUIRES_CALL
+  // contraindication rules; doctor steers to a progestogen-only option if needed.
+  const migraineAura = (answers.womens_migraine_aura as string) || ""
+  const bloodClotHistory = (answers.womens_blood_clot_history as string) || ""
+  const smoker = (answers.womens_smoker as string) || ""
+  const needsPillSafetyScreen = ocpType === "new"
 
   // If pregnant, flag for doctor call
   const handlePregnancyChange = (value: string) => {
@@ -88,6 +94,11 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
     if (!contraceptionType) newErrors.contraceptionType = "Please select an option"
     if (!contraceptionCurrent) newErrors.contraceptionCurrent = "Please select an option"
     if (!pregnancyStatus) newErrors.pregnancyStatus = "Please answer this question"
+    if (needsPillSafetyScreen) {
+      if (!migraineAura) newErrors.womens_migraine_aura = "Please answer this question"
+      if (!bloodClotHistory) newErrors.womens_blood_clot_history = "Please answer this question"
+      if (!smoker) newErrors.womens_smoker = "Please answer this question"
+    }
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -97,6 +108,7 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
   }
 
   const isComplete = contraceptionType && contraceptionCurrent && pregnancyStatus
+    && (!needsPillSafetyScreen || (migraineAura && bloodClotHistory && smoker))
 
   return (
     <div className="space-y-6">
@@ -178,6 +190,33 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
           </p>
         )}
       </div>
+
+      {needsPillSafetyScreen && (
+        <div className="space-y-4 rounded-xl border border-border/50 bg-muted/20 p-3">
+          <p className="text-sm font-medium">A few safety checks for the combined pill</p>
+          {[
+            { key: "womens_migraine_aura", value: migraineAura, label: "Do you get migraines with aura (visual disturbances, flashing lights, or blind spots)?" },
+            { key: "womens_blood_clot_history", value: bloodClotHistory, label: "Have you, or a close family member, ever had a blood clot (DVT or pulmonary embolism)?" },
+            { key: "womens_smoker", value: smoker, label: "Do you smoke?" },
+          ].map((q) => (
+            <div key={q.key} className="space-y-2">
+              <Label className="text-sm">{q.label}<span className="text-destructive ml-0.5">*</span></Label>
+              <RadioGroup value={q.value} onValueChange={(v) => setAnswer(q.key, v)} className="flex gap-2" aria-label={q.label}>
+                {[{ value: "no", label: "No" }, { value: "yes", label: "Yes" }].map((opt) => (
+                  <label key={opt.value} className={cn("flex flex-1 items-center justify-center gap-2 p-2.5 rounded-xl border cursor-pointer transition-[background-color,border-color]", q.value === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
+                    <RadioGroupItem value={opt.value} />
+                    <span className="text-sm">{opt.label}</span>
+                  </label>
+                ))}
+              </RadioGroup>
+              {errors[q.key] && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors[q.key]}</p>}
+            </div>
+          ))}
+          <p className="text-xs text-muted-foreground">
+            These don&apos;t stop your request. If any apply, the doctor will check whether the combined pill is right for you or suggest a safer option.
+          </p>
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label className="text-sm font-medium">When was your last period? (approximate)</Label>

@@ -66,9 +66,8 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
     // The inline upsell card below offers a one-click handoff to the new-prescription
     // consult flow ($49.95) so we don't dead-end the patient at their decision point.
 
-    if (prescriptionHistory && prescriptionHistory !== "never" && !currentDose.trim()) {
-      newErrors.currentDose = "Please enter the dose you currently take"
-    }
+    // A3 softening (boundary 4): current dose is no longer required to continue —
+    // a blank one becomes a dose_not_stated flag for the doctor.
 
     if (hasSideEffects && !sideEffects.trim()) {
       newErrors.sideEffects = "Please describe the side effects you experienced"
@@ -78,7 +77,7 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
     setBlockedReasons(Object.values(newErrors))
     setTouched({ prescriptionHistory: true, currentDose: true, sideEffects: true })
     return Object.keys(newErrors).length === 0
-  }, [prescriptionHistory, currentDose, hasSideEffects, sideEffects])
+  }, [prescriptionHistory, hasSideEffects, sideEffects])
 
   const handleNext = useCallback(() => {
     if (validate()) {
@@ -88,7 +87,8 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
   }, [validate, posthog, serviceType, prescriptionHistory, currentDose, hasSideEffects, onNext])
 
   const isNeverPrescribed = prescriptionHistory === "never"
-  const isComplete = prescriptionHistory && !isNeverPrescribed && currentDose.trim() && (hasSideEffects === false || (hasSideEffects && sideEffects.trim()))
+  // A3 softening (boundary 4): current dose no longer gates readiness.
+  const isComplete = prescriptionHistory && !isNeverPrescribed && (hasSideEffects === false || (hasSideEffects && sideEffects.trim()))
   // Live-computed (not gated on the stale `errors` object).
   const canContinue = Boolean(isComplete)
 

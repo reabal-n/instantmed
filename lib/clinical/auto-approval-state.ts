@@ -56,6 +56,11 @@ export const DETERMINISTIC_FAILURE_PREFIXES = [
   // Structural — empty symptom text / overlapping cert dates are answer-derived.
   "empty_symptom_text",
   "overlapping_cert_dates",
+  // Doctor-attention intake flags (softened intake gaps). A flagged cert must be
+  // reviewed by a human; the flag set is answer-derived so it won't change on
+  // retry. Emitted by evaluateAutoApprovalEligibility when attentionFlagCodes is
+  // non-empty.
+  "intake_attention_flags:",
 ]
 
 export function isDeterministicFailure(flags: string[]): boolean {

@@ -551,6 +551,22 @@ function getRequiredSafetyFields(
       fields.add('edRecentHeartEvent')
       fields.add('edSevereHeart')
     }
+
+    if (subtype === 'womens_health') {
+      const option = String(answers.womensHealthOption || answers.womens_health_option || '')
+      if (option === 'uti') {
+        // Keep-list safety gates - must be present so the DECLINE rules can fire.
+        fields.add('utiRedFlags')
+        fields.add('utiPregnant')
+      }
+      if (option === 'ocp_new') {
+        // New/switch pill safety screen (drives the REQUIRES_CALL contraindication rules).
+        fields.add('pregnancyStatus')
+        fields.add('womens_migraine_aura')
+        fields.add('womens_blood_clot_history')
+        fields.add('womens_smoker')
+      }
+    }
   }
 
   if (

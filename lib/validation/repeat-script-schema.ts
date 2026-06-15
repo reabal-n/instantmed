@@ -5,9 +5,8 @@
 
 import {
   buildRepeatScriptMedicationValidationText,
-  countRepeatScriptMedicationRows,
   extractRepeatScriptMedications,
-  MAX_REPEAT_SCRIPT_MEDICATIONS,
+  isUsefulMedicationDescription,
 } from "@/lib/validation/repeat-script-medications"
 
 // Canonical keys for repeat script medication data
@@ -180,13 +179,8 @@ export interface ValidationResult {
 export function validateRepeatScriptPayload(
   answers: Record<string, unknown>
 ): ValidationResult {
-  if (countRepeatScriptMedicationRows(answers) > MAX_REPEAT_SCRIPT_MEDICATIONS) {
-    return {
-      valid: false,
-      error: `Please request no more than ${MAX_REPEAT_SCRIPT_MEDICATIONS} medications at a time.`,
-      requiresConsult: false,
-    }
-  }
+  // A3 softening (boundary 5): more than 5 medications no longer hard-blocks —
+  // the patient proceeds and the doctor sees a medication_count_high info flag.
 
   const medications = extractRepeatScriptMedications(answers)
 
@@ -239,10 +233,15 @@ export function validateRepeatScriptPayload(
     const isManualEntry = medicationCode === "MANUAL"
     const isUnknownEntry = typeof medicationCode === "string" && medicationCode.toUpperCase() === "UNKNOWN"
 
-    if (isUnknownEntry || medication.name.toLowerCase().includes("unknown - doctor")) {
+    // A3 softening (boundary 3): an unknown medicine may pass ONLY with a useful
+    // free-text description; the doctor then sees a medication_needs_identification
+    // flag carrying that description. Without one, it stays a hard block. The
+    // controlled-substance scan below still runs (the description feeds it).
+    const isUnknown = isUnknownEntry || medication.name.toLowerCase().includes("unknown - doctor")
+    if (isUnknown && !isUsefulMedicationDescription(medication.description)) {
       return {
         valid: false,
-        error: "Please enter the medication name, strength, and form.",
+        error: "Tell us what you can about this medicine (what it's for, the name on the box, or how it looks) so the doctor can identify it.",
         requiresConsult: false,
       }
     }
@@ -255,21 +254,15 @@ export function validateRepeatScriptPayload(
       }
     }
 
-    if (!medication.strength || medication.strength.trim() === "") {
-      return {
-        valid: false,
-        error: "Please enter the medication strength.",
-        requiresConsult: false,
-      }
-    }
+    // A3 softening: a missing strength no longer blocks checkout. The patient
+    // flows through and `deriveIntakeFlags` raises an attention flag
+    // (`medication_strength_missing`) for the doctor. Form, new-med, dose-change
+    // and controlled substances remain hard blocks below.
 
-    if (!medication.form || medication.form.trim() === "") {
-      return {
-        valid: false,
-        error: "Please enter the medication form.",
-        requiresConsult: false,
-      }
-    }
+    // A3 softening (boundary 2): a missing form no longer blocks checkout. The
+    // patient flows through and `deriveIntakeFlags` raises an attention flag
+    // (`medication_form_missing`). New-med, dose-change, unknown-med and
+    // controlled substances remain hard blocks.
 
     // Defense in depth: block controlled medications via PBS code and fuzzy name matching.
     if (isPBSCodeBlocked(medicationCode)) {
@@ -309,14 +302,8 @@ export function validateRepeatScriptPayload(
     }
   }
 
-  const currentDose = answers.current_dose || answers.currentDose || answers.dosage_instructions || answers.dosageInstructions
-  if (!currentDose || typeof currentDose !== "string" || currentDose.trim() === "") {
-    return {
-      valid: false,
-      error: "Please enter the dose you currently take.",
-      requiresConsult: false,
-    }
-  }
+  // A3 softening (boundary 4): a missing current dose no longer blocks — the
+  // patient proceeds and the doctor sees a dose_not_stated attention flag.
 
   return { valid: true }
 }

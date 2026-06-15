@@ -53,6 +53,8 @@ const DETERMINISTIC_FLAG_SAMPLES = [
   // Structural — answer-derived.
   "empty_symptom_text",
   "overlapping_cert_dates",
+  // Doctor-attention intake flags — answer-derived, won't change on retry.
+  "intake_attention_flags: medication_strength_missing",
 ] as const
 
 // Flags / reasons whose verdict CAN change on a later attempt, so they must stay

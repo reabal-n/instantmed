@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import { getMedicationBlocklistCandidate } from "@/lib/operational-controls/medication-blocklist"
+import { validateMedicationStep } from "@/lib/request/validation"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 
 const validRepeatScriptAnswers = {
@@ -37,5 +38,168 @@ describe("repeat script schema", () => {
         { name: "Oxycodone", strength: "5 mg", form: "tablet", pbsCode: "MANUAL" },
       ],
     })).toContain("Oxycodone")
+  })
+})
+
+describe("A3 softening — missing medication strength is a flag, not a block", () => {
+  const base = {
+    prescribed_before: true,
+    dose_changed: false,
+    last_prescribed: "6_to_12_months",
+    current_dose: "10 mg nightly",
+  }
+
+  it("allows a repeat with a missing strength (now derived as a doctor flag)", () => {
+    const result = validateRepeatScriptPayload({
+      ...base,
+      medications: [{ name: "Rosuvastatin", form: "tablet", pbsCode: "1234" }],
+    })
+    expect(result.valid).toBe(true)
+  })
+
+  // ---- keep-list: these must STILL hard-block ----
+
+  it("still blocks a never-before-prescribed medicine (new-med stays routed/declined)", () => {
+    const result = validateRepeatScriptPayload({
+      ...base,
+      prescribed_before: false,
+      medications: [{ name: "Rosuvastatin", strength: "10 mg", form: "tablet", pbsCode: "1234" }],
+    })
+    expect(result.valid).toBe(false)
+  })
+
+  it("still blocks a dose change", () => {
+    const result = validateRepeatScriptPayload({
+      ...base,
+      dose_changed: true,
+      medications: [{ name: "Rosuvastatin", strength: "10 mg", form: "tablet", pbsCode: "1234" }],
+    })
+    expect(result.valid).toBe(false)
+  })
+
+  it("still blocks a controlled substance even when its strength is missing", () => {
+    const result = validateRepeatScriptPayload({
+      ...base,
+      medications: [{ name: "Oxycodone", form: "tablet", pbsCode: "MANUAL" }],
+    })
+    expect(result.valid).toBe(false)
+    expect(result.error).toMatch(/controlled substances/i)
+  })
+
+  // (form was a hard block at boundary 1; it is softened in boundary 2 below.)
+})
+
+describe("A3 softening — missing medication form is a flag, not a block (boundary 2)", () => {
+  const base = {
+    prescribed_before: true,
+    dose_changed: false,
+    last_prescribed: "6_to_12_months",
+    current_dose: "10 mg nightly",
+  }
+
+  it("allows a repeat with a missing form (now derived as a doctor flag)", () => {
+    // name only — no strength (already softened) and no form.
+    const result = validateRepeatScriptPayload({
+      ...base,
+      medications: [{ name: "Rosuvastatin", pbsCode: "1234" }],
+    })
+    expect(result.valid).toBe(true)
+  })
+
+  // ---- keep-list: every one of these must STILL hard-block ----
+
+  it("still blocks an unknown medication", () => {
+    const result = validateRepeatScriptPayload({
+      ...base,
+      medications: [{ name: "unknown - doctor will confirm", pbsCode: "UNKNOWN" }],
+    })
+    expect(result.valid).toBe(false)
+  })
+
+  it("allows a missing current dose now (softened in boundary 4)", () => {
+    const { current_dose: _omit, ...noDose } = base
+    void _omit
+    const result = validateRepeatScriptPayload({
+      ...noDose,
+      medications: [{ name: "Rosuvastatin", form: "tablet", pbsCode: "1234" }],
+    })
+    expect(result.valid).toBe(true)
+  })
+
+  it("still blocks a missing last-prescribed", () => {
+    const { last_prescribed: _omit, ...noLast } = base
+    void _omit
+    const result = validateRepeatScriptPayload({
+      ...noLast,
+      medications: [{ name: "Rosuvastatin", pbsCode: "1234" }],
+    })
+    expect(result.valid).toBe(false)
+  })
+
+  it("still blocks a dose change", () => {
+    const result = validateRepeatScriptPayload({
+      ...base,
+      dose_changed: true,
+      medications: [{ name: "Rosuvastatin", pbsCode: "1234" }],
+    })
+    expect(result.valid).toBe(false)
+  })
+
+  it("still blocks a never-before-prescribed medicine", () => {
+    const result = validateRepeatScriptPayload({
+      ...base,
+      prescribed_before: false,
+      medications: [{ name: "Rosuvastatin", pbsCode: "1234" }],
+    })
+    expect(result.valid).toBe(false)
+  })
+
+  it("still blocks a controlled substance", () => {
+    const result = validateRepeatScriptPayload({
+      ...base,
+      medications: [{ name: "Oxycodone", form: "tablet", pbsCode: "MANUAL" }],
+    })
+    expect(result.valid).toBe(false)
+    expect(result.error).toMatch(/controlled substances/i)
+  })
+
+  it("allows more than 5 medications now at BOTH layers (softened in boundary 5)", () => {
+    const medications = Array.from({ length: 6 }, (_, i) => ({
+      name: `Med${i}`,
+      strength: "10 mg",
+      form: "tablet",
+      pbsCode: `code-${i}`,
+    }))
+    // Both layers softened — patient proceeds, doctor sees a medication_count_high flag.
+    expect(validateMedicationStep({ medications }).isValid).toBe(true)
+    expect(validateRepeatScriptPayload({ ...base, medications }).valid).toBe(true)
+  })
+})
+
+describe("A3 softening — unknown medication passes only with a useful description (boundary 3)", () => {
+  const base = {
+    prescribed_before: true,
+    dose_changed: false,
+    last_prescribed: "6_to_12_months",
+    current_dose: "one daily",
+  }
+  const unknown = { name: "Unknown - doctor will confirm", pbsCode: "UNKNOWN" }
+
+  it("still blocks an unknown medication with NO description", () => {
+    const result = validateRepeatScriptPayload({ ...base, medications: [{ ...unknown }] })
+    expect(result.valid).toBe(false)
+  })
+
+  it("still blocks an unknown medication with only a trivial description", () => {
+    const result = validateRepeatScriptPayload({ ...base, medications: [{ ...unknown, description: "idk" }] })
+    expect(result.valid).toBe(false)
+  })
+
+  it("allows an unknown medication WITH a useful free-text description (now a doctor flag)", () => {
+    const result = validateRepeatScriptPayload({
+      ...base,
+      medications: [{ ...unknown, description: "small white blood pressure tablet, prescribed by Dr Smith" }],
+    })
+    expect(result.valid).toBe(true)
   })
 })

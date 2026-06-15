@@ -357,18 +357,21 @@ describe("unified intake regressions", () => {
     )
   })
 
-  it("server-blocks future consult subtypes even if the client route is bypassed", () => {
+  it("server-blocks still-gated consult subtypes even if the client route is bypassed", () => {
+    // weight_loss remains gated.
     expect(
       validateAnswersServerSide("consult", {
         consultSubtype: "weight_loss",
       }, identity),
     ).toContain("not currently available")
 
+    // womens_health launched 2026-06-15: it is no longer subtype-blocked (it
+    // fails later for missing answers, not the "not available" gate).
     expect(
       validateAnswersServerSide("consult", {
         consultSubtype: "womens_health",
       }, identity),
-    ).toContain("not currently available")
+    ).not.toContain("not currently available")
   })
 
   it("normalizes legacy and current consult service types for doctor actions", () => {
@@ -482,7 +485,9 @@ describe("unified intake regressions", () => {
     ).toBe("Enter a valid Medicare number or provide a valid IHI.")
   })
 
-  it("requires the patient-reported dose for repeat medication requests", () => {
+  it("lets a missing patient-reported dose through as a flag, not a block (A3 boundary 4)", () => {
+    // A3 softening: a blank current dose no longer blocks — the patient proceeds
+    // and the doctor sees a dose_not_stated flag.
     expect(validateAnswersServerSide("repeat-script", {
       medicationName: "Budesonide + formoterol",
       medicationStrength: "100/3 micrograms",
@@ -496,7 +501,7 @@ describe("unified intake regressions", () => {
       state: "NSW",
       postcode: "2000",
       sex: "M",
-    }, identity)).toContain("dose")
+    }, identity)).toBeNull()
 
     expect(validateAnswersServerSide("repeat-script", {
       medicationName: "Budesonide + formoterol",
@@ -553,24 +558,29 @@ describe("unified intake regressions", () => {
       sex: "M",
     }
 
+    // Unknown med with NO description still hard-blocks (A3 boundary 3 floor).
     expect(validateAnswersServerSide("repeat-script", {
       ...baseAnswers,
       medicationName: "Unknown - doctor will confirm",
       pbsCode: "UNKNOWN",
-    }, identity)).toMatch(/medication/i)
+    }, identity)).toMatch(/identify/i)
 
+    // A3 softening: a missing strength or form no longer blocks the step. The
+    // patient proceeds and the doctor sees medication_strength_missing /
+    // medication_form_missing flags. (Unknown-med above still hard-blocks.)
     expect(validateAnswersServerSide("repeat-script", {
       ...baseAnswers,
       medicationName: "Budesonide + formoterol",
+      medicationForm: "inhaler",
       pbsCode: "MANUAL",
-    }, identity)).toMatch(/strength/i)
+    }, identity)).toBeNull()
 
     expect(validateAnswersServerSide("repeat-script", {
       ...baseAnswers,
       medicationName: "Budesonide + formoterol",
       medicationStrength: "100/3 micrograms",
       pbsCode: "MANUAL",
-    }, identity)).toMatch(/form/i)
+    }, identity)).toBeNull()
 
     expect(validateAnswersServerSide("repeat-script", {
       ...baseAnswers,
@@ -599,13 +609,17 @@ describe("unified intake regressions", () => {
       sex: "M",
     }
 
-    expect(String(validateAnswersServerSide("repeat-script", {
+    // A3 softening: a secondary medication missing its form no longer blocks at
+    // the step — it proceeds and the doctor sees a medication_form_missing flag.
+    // (Controlled-substance hard-blocking is a checkout-layer concern, covered by
+    // repeat-script-schema.test.ts, not this step-level validator.)
+    expect(validateAnswersServerSide("repeat-script", {
       ...baseAnswers,
       medications: [
         { name: "Rosuvastatin", strength: "10 mg", form: "tablet", pbsCode: "MANUAL" },
         { name: "Metformin", strength: "500 mg", pbsCode: "MANUAL" },
       ],
-    }, identity))).toMatch(/form/i)
+    }, identity)).toBeNull()
   })
 
   it("requires repeat prescription medication safety questions before checkout", () => {

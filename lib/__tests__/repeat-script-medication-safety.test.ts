@@ -41,7 +41,9 @@ const validRepeatAnswers = {
 }
 
 describe("repeat script medication array safety", () => {
-  it("validates every requested medicine before checkout", () => {
+  it("lets an incomplete secondary medicine through as a flag, not a block (A3)", () => {
+    // A3 softening: a secondary medicine missing its form no longer blocks
+    // checkout — it proceeds and the doctor sees a medication_form_missing flag.
     const result = validateAnswersServerSide("repeat-script", {
       ...validRepeatAnswers,
       medications: [
@@ -50,7 +52,7 @@ describe("repeat script medication array safety", () => {
       ],
     }, identity)
 
-    expect(result).toMatch(/form/i)
+    expect(result).toBeNull()
   })
 
   it("normalizes canonical checkout fields from medication arrays when legacy fields are absent", () => {

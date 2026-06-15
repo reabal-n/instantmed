@@ -11,6 +11,7 @@ export interface NormalizedMedicationEntry {
   strength?: string
   form?: string
   pbsCode?: string
+  description?: string
 }
 
 function isPlainRecord(value: unknown): value is Record<string, unknown> {
@@ -61,8 +62,9 @@ function normalizeMedicationEntryAnswer(value: unknown): NormalizedMedicationEnt
   const strength = stringAnswer(value.strength) || product?.strength || ""
   const form = stringAnswer(value.form) || product?.form || ""
   const pbsCode = stringAnswer(value.pbsCode) || product?.pbs_code || ""
+  const description = stringAnswer(value.description)
 
-  if (!product && !name && !strength && !form && !pbsCode) {
+  if (!product && !name && !strength && !form && !pbsCode && !description) {
     return null
   }
 
@@ -72,6 +74,7 @@ function normalizeMedicationEntryAnswer(value: unknown): NormalizedMedicationEnt
     strength,
     form,
     pbsCode,
+    ...(description ? { description } : {}),
   }
 }
 

@@ -15,14 +15,24 @@ InstantMed is **not a broad online GP clinic** and **not a prescribing system**.
 - repeat prescriptions
 - hair loss
 - erectile dysfunction
+- women's health (UTI + new/switch contraceptive pill only) — launched 2026-06-15
+
+**Women's health scope (live 2026-06-15):** narrow and protocol-led. Only
+`uti` and `ocp_new` are live (`LIVE_WOMENS_HEALTH_OPTIONS` in
+`lib/request/consult-subtypes.ts`); morning-after and period-pain stay gated,
+and "continue my current pill" is routed to the repeat-script flow rather than
+a parallel consult. Server-enforced safety: UTI red-flags and pregnancy/
+possible-pregnancy DECLINE to in-person care; combined-pill contraindications
+(migraine-with-aura, blood-clot history, smoker) are REQUIRES_CALL so the
+doctor steers to a progestogen-only option. See `lib/safety/rules.ts` and
+`validateSafetyFieldsPresent` in `lib/safety/evaluate.ts`.
 
 **Retired/gated future scope:** general consult was retired on 2026-05-20
 because it served as a back-channel for gated services with no structured
-screener. Women's health and weight loss have reserved intake subtypes and
-draft step definitions, but they are not currently accepting paid requests.
-Entry and server checkout validation are blocked by
-`lib/request/consult-subtypes.ts` (BLOCKED_CONSULT_SUBTYPES) until launch
-readiness is explicitly changed.
+screener. Weight loss still has a reserved intake subtype and draft step
+definitions but is not currently accepting paid requests. Entry and server
+checkout validation are blocked by `lib/request/consult-subtypes.ts`
+(BLOCKED_CONSULT_SUBTYPES) until launch readiness is explicitly changed.
 
 General Consult is retired publicly; the consult service type remains only as the parent category for active ED and hair-loss pathways.
 

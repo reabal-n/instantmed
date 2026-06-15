@@ -5,7 +5,7 @@ import { waitForPageLoad } from "./helpers/test-utils"
 // General Consult was retired publicly on 2026-05-20 (see CLAUDE.md). The
 // `consult` service type stays in code as the parent category for ED and
 // hair-loss, but `general` is no longer an active hub action or URL flow.
-const ACTIVE_CONSULT_SUBTYPES = ["ed", "hair_loss"] as const
+const ACTIVE_CONSULT_SUBTYPES = ["ed", "hair_loss", "womens_health"] as const
 
 async function clearDrafts(page: Page) {
   await page.addInitScript(() => {
@@ -33,16 +33,42 @@ test.describe("Consult Sub-Services", () => {
     })
   }
 
-  test("coming-soon consult subtypes are not exposed as active hub actions", async ({ page }) => {
+  test("women's health is live; only weight management stays coming-soon", async ({ page }) => {
     await page.goto("/request")
     await waitForPageLoad(page)
 
     const comingSoonStrip = page.locator("[data-coming-soon-strip='true']")
 
-    await expect(page.getByRole("button", { name: /Women's health/i })).not.toBeVisible()
+    // Women's health launched 2026-06-15 - it is an active hub action now.
+    await expect(page.getByRole("button", { name: /Women's health/i })).toBeVisible()
+    await expect(comingSoonStrip.getByText("Women's health")).not.toBeVisible()
+    // Weight management remains gated.
     await expect(page.getByRole("button", { name: /Weight management/i })).not.toBeVisible()
-    await expect(comingSoonStrip.getByText("Women's health")).toBeVisible()
     await expect(comingSoonStrip.getByText("Weight management")).toBeVisible()
+  })
+
+  test("women's health UTI clean case advances past the safety screen", async ({ page }) => {
+    await page.goto("/request?service=consult&subtype=womens_health")
+    await waitForPageLoad(page)
+    await page.waitForURL(/subtype=womens_health/, { timeout: 15000 })
+
+    // Type step: only UTI + contraception are live; morning-after / period-pain
+    // render as disabled "coming soon".
+    await expect(page.getByText(/What do you need help with/i)).toBeVisible({ timeout: 10000 })
+    await page.getByRole("button", { name: /UTI symptoms/i }).click()
+    await page.getByRole("button", { name: /^Continue$/i }).last().click()
+
+    // UTI assessment: pick a symptom, no red flags, not pregnant.
+    await expect(page.getByText(/Which symptoms are you experiencing/i)).toBeVisible({ timeout: 10000 })
+    await page.locator("#uti-burning").click()
+    await page.getByRole("radiogroup", { name: /red flag/i }).getByText("No", { exact: true }).click()
+    await page.getByRole("radiogroup", { name: /pregnant/i }).getByText("No", { exact: true }).click()
+
+    // Continue is enabled and the flow advances out of the assessment.
+    const continueBtn = page.getByRole("button", { name: /^Continue$/i }).last()
+    await expect(continueBtn).toBeEnabled({ timeout: 5000 })
+    await continueBtn.click()
+    await expect(page.getByText(/Which symptoms are you experiencing/i)).not.toBeVisible({ timeout: 10000 })
   })
 
   test("hub rows route to current active consult subtypes", async ({ page }) => {

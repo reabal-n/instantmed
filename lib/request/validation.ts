@@ -10,11 +10,11 @@ import { z } from "zod"
 
 import { validateSymptomTextQuality } from "@/lib/clinical/symptom-text-quality"
 import { validateCertificateStartDate } from "@/lib/medical-certificates/date-policy"
+import { isWomensHealthOptionLive } from "@/lib/request/consult-subtypes"
 import {
   buildRepeatScriptMedicationValidationText,
-  countRepeatScriptMedicationRows,
   extractRepeatScriptMedications,
-  MAX_REPEAT_SCRIPT_MEDICATIONS,
+  isUsefulMedicationDescription,
 } from "@/lib/validation/repeat-script-medications"
 
 export interface ValidationResult {
@@ -164,15 +164,8 @@ export const medicationStepSchema = z
   })
   .superRefine((data, ctx) => {
     const answers = data as Record<string, unknown>
-    const medicationRows = countRepeatScriptMedicationRows(answers)
-    if (medicationRows > MAX_REPEAT_SCRIPT_MEDICATIONS) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["medications"],
-        message: `Please request no more than ${MAX_REPEAT_SCRIPT_MEDICATIONS} medications at a time.`,
-      })
-      return
-    }
+    // A3 softening (boundary 5): more than 5 medications no longer blocks the
+    // step — the patient proceeds and the doctor sees a medication_count_high flag.
 
     const medications = extractRepeatScriptMedications(answers)
 
@@ -185,37 +178,33 @@ export const medicationStepSchema = z
       const pbsCode = medication.pbsCode || ""
       const medicationText = buildRepeatScriptMedicationValidationText(medication).toLowerCase()
 
-      if (pbsCode.toUpperCase() === "UNKNOWN" || medicationText.includes("unknown - doctor")) {
+      // A3 softening (boundary 3): an unknown medicine may pass only with a useful
+      // free-text description; otherwise it stays a hard block at the step.
+      const isUnknown = pbsCode.toUpperCase() === "UNKNOWN" || medicationText.includes("unknown - doctor")
+      if (isUnknown && !isUsefulMedicationDescription(medication.description)) {
         ctx.addIssue({
           code: "custom",
           path: index === 0 ? ["medicationName"] : ["medications", index, "name"],
-          message: "Please enter the medication name, strength, and form.",
+          message: "Tell us what you can about this medicine (what it's for, the name on the box, or how it looks) so the doctor can identify it.",
         })
         return
       }
 
-      if (!medication.strength) {
-        ctx.addIssue({
-          code: "custom",
-          path: index === 0 ? ["medicationStrength"] : ["medications", index, "strength"],
-          message: "Medication strength is required.",
-        })
-      }
+      // A3 softening: a missing strength is no longer a step block — the patient
+      // proceeds and the doctor sees a `medication_strength_missing` flag. Form
+      // remains required here (a separate boundary).
 
-      if (!medication.form) {
-        ctx.addIssue({
-          code: "custom",
-          path: index === 0 ? ["medicationForm"] : ["medications", index, "form"],
-          message: "Medication form is required.",
-        })
-      }
+      // A3 softening (boundary 2): a missing form is no longer a step block —
+      // the patient proceeds and the doctor sees a `medication_form_missing` flag.
     })
   })
 
 export const medicationHistoryStepSchema = z
   .object({
     prescriptionHistory: nonEmptyString("Please indicate when you last had this prescribed"),
-    currentDose: nonEmptyString("Please enter the dose you currently take"),
+    // A3 softening (boundary 4): current dose is optional; a blank one becomes a
+    // dose_not_stated flag for the doctor rather than a hard block.
+    currentDose: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.prescriptionHistory.trim().toLowerCase() === "never") {
@@ -592,11 +581,19 @@ export function validateWomensHealthAssessmentStep(answers: Record<string, unkno
   const errors: Record<string, string> = {}
   const option = answers.womensHealthOption as string | undefined
 
-  if (option === "ocp_new" || option === "ocp_repeat") {
+  // Server-trust guard: only live options may reach the assessment. ocp_repeat
+  // is redirected to the repeat-script flow in the type step; morning-after /
+  // period-pain are gated. A crafted payload must not slip a gated option through.
+  if (!isWomensHealthOptionLive(option)) {
+    return { isValid: false, errors: { womensHealthOption: "This option is not available yet." } }
+  }
+
+  if (option === "ocp_new") {
     if (!answers.contraceptionType) errors.contraceptionType = "Please select what you need"
     if (!answers.pregnancyStatus) errors.pregnancyStatus = "Please answer this question"
-  } else if (option === "morning_after") {
-    if (!answers.hoursSinceIntercourse) errors.hoursSinceIntercourse = "Please indicate the timeframe"
+    if (!answers.womens_migraine_aura) errors.womens_migraine_aura = "Please answer this question"
+    if (!answers.womens_blood_clot_history) errors.womens_blood_clot_history = "Please answer this question"
+    if (!answers.womens_smoker) errors.womens_smoker = "Please answer this question"
   } else if (option === "uti") {
     const symptoms = answers.utiSymptoms as string[] | undefined
     if (!symptoms || symptoms.length === 0) errors.utiSymptoms = "Please select at least one symptom"

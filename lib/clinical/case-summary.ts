@@ -834,13 +834,309 @@ function medCertSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   }
 }
 
+function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
+  const { answers } = input
+  const option = str(answers, "womensHealthOption") || ""
+  const isUti = option === "uti"
+
+  if (isUti) {
+    const symptoms = Array.isArray(raw(answers, "utiSymptoms"))
+      ? (raw(answers, "utiSymptoms") as unknown[]).map(humanize).filter(Boolean)
+      : []
+    const symptomsLabel = symptoms.length > 0 ? symptoms.join(", ") : "Not provided"
+    const redFlags = answerYes(answers, "utiRedFlags")
+    const pregnancyRaw = str(answers, "utiPregnant")
+    const pregnant = pregnancyRaw === "yes"
+    const pregnancyUnsure = pregnancyRaw === "not_sure"
+    const details = str(answers, "utiDetails")
+
+    const safetyItems: ClinicalSafetyItem[] = [
+      {
+        severity: "info" as const,
+        label: "Reported symptoms",
+        detail: symptoms.length > 0
+          ? `Patient reports: ${symptomsLabel}.`
+          : "No symptoms recorded in the structured screen.",
+      },
+      redFlags
+        ? {
+            severity: "block" as const,
+            label: "Red flags",
+            detail: "RED FLAGS REPORTED - decline / needs in-person assessment (e.g. fever, flank pain, vomiting, blood in urine, or systemic features suggesting upper-tract or complicated infection).",
+          }
+        : {
+            severity: "info" as const,
+            label: "Red flags",
+            detail: "Red flags: none reported on the structured screen.",
+          },
+      pregnant
+        ? {
+            severity: "block" as const,
+            label: "Pregnancy",
+            detail: "Pregnant - UTI in pregnancy requires in-person assessment and pregnancy-safe antibiotic selection. Not suitable for asynchronous prescribing.",
+          }
+        : pregnancyUnsure
+          ? {
+              severity: "caution" as const,
+              label: "Pregnancy",
+              detail: "Pregnancy status unsure - confirm before prescribing; antibiotic choice and safety differ in pregnancy.",
+            }
+          : {
+              severity: "info" as const,
+              label: "Pregnancy",
+              detail: "Not pregnant per patient report.",
+            },
+    ]
+
+    const hasBlock = redFlags || pregnant
+    const keyFacts = compactFacts([
+      { label: "Symptoms", value: symptomsLabel },
+      { label: "Red flags", value: yesNo(raw(answers, "utiRedFlags")) },
+      { label: "Pregnant", value: humanize(pregnancyRaw) },
+      fact("Patient details", details),
+      fact("Allergies", firstStr(answers, ["known_allergies", "allergies"])),
+      fact("Conditions", firstStr(answers, ["existing_conditions", "conditions"])),
+      fact("Current medications", firstStr(answers, ["current_medications", "otherMedications", "other_medications"])),
+    ])
+
+    const recommendedPlan: ClinicalPlan = hasBlock
+      ? {
+          action: "request_info",
+          title: "Do not prescribe UTI antibiotics asynchronously",
+          rationale: redFlags
+            ? "Red flags were reported on the structured screen."
+            : "Pregnancy was reported, which requires in-person assessment and pregnancy-safe antibiotic selection.",
+          nextSteps: [
+            "Decline or convert to a clinician-led / in-person consultation.",
+            "Advise GP, urgent care, or emergency review where systemic features are present.",
+          ],
+        }
+      : {
+          action: "approve",
+          title: "Uncomplicated lower UTI pathway if clinically appropriate",
+          rationale: "No red flags and not pregnant on the structured screen. Confirm symptom picture before prescribing.",
+          nextSteps: [
+            "Confirm typical lower-UTI symptoms and absence of upper-tract features.",
+            "Check allergies and current medicines, then open Parchment and prescribe within Parchment if satisfied.",
+          ],
+        }
+
+    const header = patientHeader(input)
+    const storySentence = `${input.patientName || "Patient"} requests treatment for symptoms of a urinary tract infection.`
+
+    const subjective = [
+      `${header}, c/o urinary symptoms suggestive of a UTI.`,
+      symptoms.length > 0 ? `Reported symptoms: ${symptomsLabel.toLowerCase()}.` : null,
+      details ? `Patient notes: ${details}.` : null,
+    ]
+      .filter(Boolean)
+      .join(" ")
+
+    const objective = [
+      "Structured UTI screen completed.",
+      `Red flags: ${yesNo(raw(answers, "utiRedFlags"))}.`,
+      `Pregnant: ${humanize(pregnancyRaw)}.`,
+    ]
+      .filter(Boolean)
+      .join(" ")
+
+    const assessment = hasBlock
+      ? redFlags
+        ? "Red flags reported on UTI screen. Not suitable for asynchronous prescribing - in-person assessment required."
+        : "Pregnancy reported (or possible). UTI in pregnancy requires in-person assessment and pregnancy-safe prescribing."
+      : "Likely uncomplicated lower urinary tract infection. No red flags identified on screen and not pregnant per report."
+
+    const planText = hasBlock
+      ? "Decline asynchronous prescribing. Advise in-person review (GP / urgent care) for assessment and appropriate antibiotic selection."
+      : "First-line empirical therapy for uncomplicated lower UTI if clinically appropriate (e.g. trimethoprim or nitrofurantoin per local guidance and allergies). Counsel on fluids, expected resolution, and to seek review if symptoms worsen, fever or flank pain develop, or no improvement within 48 hours."
+
+    return {
+      title: "Women's health · UTI",
+      patientStory: storySentence,
+      keyFacts,
+      safetyItems,
+      recommendedPlan,
+      draftNote: note(subjective, objective, assessment, planText),
+    }
+  }
+
+  // New / switch contraceptive pill (ocp_new)
+  const contraceptionType = str(answers, "contraceptionType") || ""
+  const isSwitch = contraceptionType === "switch"
+  const isContinue = contraceptionType === "continue"
+  const current = str(answers, "contraceptionCurrent")
+  const pregnancyRaw = str(answers, "pregnancyStatus")
+  const pregnant = pregnancyRaw === "yes"
+  const pregnancyUnsure = pregnancyRaw === "not_sure"
+  const migraineAura = answerYes(answers, "womens_migraine_aura")
+  const clotHistory = answerYes(answers, "womens_blood_clot_history")
+  const smoker = answerYes(answers, "womens_smoker")
+  const lastPeriod = str(answers, "lastPeriod")
+  const details = str(answers, "contraceptionDetails")
+
+  const combinedContraindicated = migraineAura || clotHistory
+  const hasBlock = pregnant
+
+  const safetyItems: ClinicalSafetyItem[] = [
+    {
+      severity: "info" as const,
+      label: "Request type",
+      detail: isSwitch
+        ? "Patient wants to switch contraceptive pill."
+        : isContinue
+          ? "Patient wants to continue / re-supply their current pill."
+          : "Patient wants to start a contraceptive pill.",
+    },
+    pregnant
+      ? {
+          severity: "block" as const,
+          label: "Pregnancy",
+          detail: "Pregnant - do not start the pill. Discuss pregnancy options and arrange appropriate care.",
+        }
+      : pregnancyUnsure
+        ? {
+            severity: "caution" as const,
+            label: "Pregnancy",
+            detail: "Pregnancy status unsure - reasonably exclude pregnancy before starting the pill.",
+          }
+        : {
+            severity: "info" as const,
+            label: "Pregnancy",
+            detail: "Not pregnant per patient report.",
+          },
+    migraineAura
+      ? {
+          severity: "block" as const,
+          label: "Migraine with aura",
+          detail: "Migraine with aura: YES - combined oral contraceptive contraindicated (raised stroke risk). Steer to a progestogen-only pill.",
+        }
+      : {
+          severity: "info" as const,
+          label: "Migraine with aura",
+          detail: "Migraine with aura: none reported.",
+        },
+    clotHistory
+      ? {
+          severity: "block" as const,
+          label: "Blood clot history",
+          detail: "Blood clot history: YES - combined oral contraceptive contraindicated (VTE risk). Steer to a progestogen-only pill.",
+        }
+      : {
+          severity: "info" as const,
+          label: "Blood clot history",
+          detail: "Blood clot history: none reported.",
+        },
+    smoker
+      ? {
+          severity: "caution" as const,
+          label: "Smoker",
+          detail: "Smoker: YES - verify age; cardiovascular risk if 35+. Combined pill generally avoided in smokers aged 35 or over - consider progestogen-only.",
+        }
+      : {
+          severity: "info" as const,
+          label: "Smoker",
+          detail: "Non-smoker per patient report.",
+        },
+  ]
+
+  const keyFacts = compactFacts([
+    { label: "Request", value: humanize(contraceptionType || "start") },
+    fact("Current pill", current),
+    { label: "Pregnant", value: humanize(pregnancyRaw) },
+    { label: "Migraine with aura", value: yesNo(raw(answers, "womens_migraine_aura")) },
+    { label: "Blood clot history", value: yesNo(raw(answers, "womens_blood_clot_history")) },
+    { label: "Smoker", value: yesNo(raw(answers, "womens_smoker")) },
+    fact("Last period", lastPeriod),
+    fact("Patient details", details),
+    fact("Allergies", firstStr(answers, ["known_allergies", "allergies"])),
+    fact("Conditions", firstStr(answers, ["existing_conditions", "conditions"])),
+    fact("Current medications", firstStr(answers, ["current_medications", "otherMedications", "other_medications"])),
+  ])
+
+  const recommendedPlan: ClinicalPlan = hasBlock
+    ? {
+        action: "request_info",
+        title: "Do not start the pill",
+        rationale: "Pregnancy was reported on the structured screen.",
+        nextSteps: [
+          "Do not prescribe. Discuss pregnancy options and arrange appropriate care.",
+        ],
+      }
+    : combinedContraindicated
+      ? {
+          action: "approve",
+          title: "Progestogen-only pill pathway if clinically appropriate",
+          rationale: "A combined-pill contraindication (migraine with aura and/or clot history) was detected. Combined oral contraceptive is unsuitable; a progestogen-only pill can still be considered.",
+          nextSteps: [
+            "Confirm the contraindication and steer to a progestogen-only pill.",
+            "Check allergies and current medicines, then open Parchment and prescribe within Parchment if satisfied.",
+          ],
+        }
+      : {
+          action: "approve",
+          title: "Contraceptive pill pathway if clinically appropriate",
+          rationale: smoker
+            ? "No absolute contraindication detected, but verify age for the smoking caution before choosing a combined pill."
+            : "No combined-pill contraindication was detected on the structured screen.",
+          nextSteps: [
+            "Confirm blood pressure / cardiovascular risk and verify age if a smoker.",
+            "Check allergies and current medicines, then open Parchment and prescribe within Parchment if satisfied.",
+          ],
+        }
+
+  const header = patientHeader(input)
+  const requestVerb = isSwitch ? "switch" : isContinue ? "continue" : "start"
+  const storySentence = `${input.patientName || "Patient"} requests to ${requestVerb} a contraceptive pill.`
+
+  const subjective = [
+    `${header}, requesting to ${requestVerb} a contraceptive pill.`,
+    isSwitch && current ? `Currently on ${current}.` : null,
+    lastPeriod ? `Last period: ${lastPeriod}.` : null,
+    details ? `Patient notes: ${details}.` : null,
+  ]
+    .filter(Boolean)
+    .join(" ")
+
+  const objective = [
+    "Structured contraception screen completed.",
+    `Pregnant: ${humanize(pregnancyRaw)}.`,
+    `Migraine with aura: ${yesNo(raw(answers, "womens_migraine_aura"))}.`,
+    `Blood clot history: ${yesNo(raw(answers, "womens_blood_clot_history"))}.`,
+    `Smoker: ${yesNo(raw(answers, "womens_smoker"))}.`,
+  ]
+    .filter(Boolean)
+    .join(" ")
+
+  const assessment = hasBlock
+    ? "Pregnancy reported. Do not start the pill via this workflow."
+    : combinedContraindicated
+      ? "Combined oral contraceptive contraindicated on screen (migraine with aura and/or VTE history). Progestogen-only pill may be considered if clinically appropriate."
+      : "No combined-pill contraindication identified on screen. Suitable for contraceptive pill prescribing if clinically appropriate."
+
+  const planText = hasBlock
+    ? "Do not prescribe. Discuss pregnancy options and arrange appropriate care."
+    : combinedContraindicated
+      ? "Prescribe a progestogen-only pill if clinically appropriate. Counsel on consistent daily timing, missed-pill rules, and to seek review for new neurological symptoms or leg/chest symptoms suggesting clot."
+      : "Prescribe a contraceptive pill if clinically appropriate (combined or progestogen-only per preference and risk). Counsel on correct use, missed-pill rules, VTE warning signs, and follow-up blood pressure review."
+
+  return {
+    title: "Women's health · New pill",
+    patientStory: storySentence,
+    keyFacts,
+    safetyItems,
+    recommendedPlan,
+    draftNote: note(subjective, objective, assessment, planText),
+  }
+}
+
 /**
  * Fallback summary for consult intakes that don't have a specialty handler.
  * Covers three cases:
  *   1. Legacy `subtype = 'general'` rows from before the 2026-05-20 retirement
  *      (operator should still be able to view them in the case detail page).
- *   2. The gated `womens_health` / `weight_loss` subtypes if they somehow
- *      reach a doctor before their dedicated summaries are built.
+ *   2. The gated `weight_loss` subtype if it somehow reaches a doctor before
+ *      its dedicated summary is built (`womens_health` now has a dedicated
+ *      `womensHealthSummary` handler).
  *   3. Any future consult subtype added to the URL layer before its summary
  *      is wired up.
  * Keeps the payload small — surfaces the raw answers and tells the doctor to
@@ -884,6 +1180,7 @@ function unknownConsultSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
 export function buildClinicalCaseSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   if (input.category === "consult" && input.subtype === "ed") return edSummary(input)
   if (input.category === "consult" && input.subtype === "hair_loss") return hairSummary(input)
+  if (input.category === "consult" && input.subtype === "womens_health") return womensHealthSummary(input)
   if (input.category === "consult") return unknownConsultSummary(input)
   if (input.serviceType === "med_certs" || input.category === "medical_certificate") return medCertSummary(input)
   if (

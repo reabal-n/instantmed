@@ -319,6 +319,81 @@ test.describe("Prescription: step validation", () => {
     await expect(btn).toBeDisabled()
   })
 
+  test("medication step proceeds with a blank strength (A3 soften → doctor flag)", async ({ page }) => {
+    await page.goto("/request?service=repeat-script")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+
+    await waitForStep(page, /Which medication do you need\?/i)
+    const medInput = page.getByRole("combobox").first()
+    await medInput.fill("E2E blank strength med")
+    await medInput.blur()
+    await page.waitForTimeout(400)
+    const manualOption = page.getByRole("button", { name: /Continue with "E2E blank strength med"/i })
+    if (await manualOption.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await manualOption.click()
+    }
+
+    // Leave strength blank; fill only form.
+    await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
+    await page.locator("#medication-form-0").fill("capsule")
+
+    // Continue must be enabled despite the blank strength, and advance the flow.
+    await expect(page.getByRole("button", { name: /Continue to history/i }).last()).toBeEnabled({ timeout: 5000 })
+    await clickContinue(page)
+    await waitForStep(page, /When were you last prescribed/i)
+  })
+
+  test("medication step proceeds with a name only — no strength, no form (A3 boundary 2)", async ({ page }) => {
+    await page.goto("/request?service=repeat-script")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+
+    await waitForStep(page, /Which medication do you need\?/i)
+    const medInput = page.getByRole("combobox").first()
+    await medInput.fill("E2E name only med")
+    await medInput.blur()
+    await page.waitForTimeout(400)
+    const manualOption = page.getByRole("button", { name: /Continue with "E2E name only med"/i })
+    if (await manualOption.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await manualOption.click()
+    }
+
+    // Leave BOTH strength and form blank.
+    await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
+
+    // Continue is enabled on a name alone now, and the flow advances.
+    await expect(page.getByRole("button", { name: /Continue to history/i }).last()).toBeEnabled({ timeout: 5000 })
+    await clickContinue(page)
+    await waitForStep(page, /When were you last prescribed/i)
+  })
+
+  test("'I don't know the name' requires a description, then proceeds (A3 boundary 3)", async ({ page }) => {
+    await page.goto("/request?service=repeat-script")
+    await waitForPageLoad(page)
+    await dismissOverlays(page)
+
+    await waitForStep(page, /Which medication do you need\?/i)
+    // Wait for the step to be fully interactive before taking the unknown path.
+    await expect(page.getByRole("combobox").first()).toBeVisible({ timeout: 5000 })
+
+    // Take the "I don't know the exact name" path.
+    const unknownBtn = page.getByRole("button", { name: /I don.?t know the exact name/i })
+    await expect(unknownBtn).toBeVisible({ timeout: 5000 })
+    await unknownBtn.click()
+    const description = page.locator("#medication-description-0")
+    await expect(description).toBeVisible({ timeout: 5000 })
+
+    // With no description, the flow must NOT be ready to advance.
+    await expect(page.getByRole("button", { name: /Continue to history/i })).toHaveCount(0)
+
+    // A useful free-text description unlocks it and advances the flow.
+    await description.fill("small white blood pressure tablet, prescribed by Dr Smith")
+    await expect(page.getByRole("button", { name: /Continue to history/i }).last()).toBeEnabled({ timeout: 5000 })
+    await clickContinue(page)
+    await waitForStep(page, /When were you last prescribed/i)
+  })
+
   test("patient details validates email format", async ({ page }) => {
     await page.goto("/request?service=repeat-script")
     await waitForPageLoad(page)

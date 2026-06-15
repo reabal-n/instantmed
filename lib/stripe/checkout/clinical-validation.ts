@@ -12,6 +12,8 @@
  */
 
 import { trackSafetyBlock,trackSafetyOutcome } from "@/lib/analytics/posthog-server"
+import { deriveIntakeFlags } from "@/lib/clinical/derive-intake-flags"
+import type { IntakeFlag } from "@/lib/clinical/intake-flags"
 import { checkHighStakesUseCase, isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { isMedicationBlocked, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
@@ -30,6 +32,12 @@ const logger = createLogger("stripe-checkout-clinical")
 export interface ClinicalValidationResult {
   serviceSlugForSafety: string
   safetyCheck: ServerSafetyCheck
+  /**
+   * Doctor-visible flags derived from softened intake gaps (e.g. missing
+   * medication strength). Persisted to `intakes.risk_flags`; never blocks
+   * checkout. The keep-list stays as hard fails above this point.
+   */
+  intakeFlags: IntakeFlag[]
 }
 
 export async function runClinicalValidation(
@@ -203,5 +211,11 @@ export async function runClinicalValidation(
     )
   }
 
-  return stepOk({ serviceSlugForSafety, safetyCheck })
+  const intakeFlags = deriveIntakeFlags({
+    category: input.category,
+    subtype: input.subtype,
+    answers: input.answers,
+  })
+
+  return stepOk({ serviceSlugForSafety, safetyCheck, intakeFlags })
 }
