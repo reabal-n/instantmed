@@ -441,7 +441,6 @@ const nextConfig = {
       { source: "/patient/notifications", destination: "/patient/intakes", permanent: false },
       { source: "/patient/health-summary", destination: "/patient", permanent: false },
       { source: "/patient/new-request", destination: "/request", permanent: false },
-      { source: "/womens-health", destination: "/request", permanent: false },
       { source: "/request/med-cert", destination: "/request?service=med-cert", permanent: true },
       { source: "/request/consult", destination: "/consult", permanent: true },
       { source: "/medical-certificate/request", destination: "/request?service=med-cert", permanent: true },
