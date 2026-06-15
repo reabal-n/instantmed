@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 
 import { CertificatePreviewDialog } from "@/components/doctor/certificate-preview-dialog"
 import { useAuditTrail } from "@/components/doctor/hooks/use-audit-trail"
+import { IntakeFlagsPanel } from "@/components/doctor/intake-flags-panel"
 import { type IntakeLockState, useIntakeLock } from "@/components/doctor/hooks/use-intake-lock"
 import { PatientProfilePanel } from "@/components/doctor/patient-profile-panel"
 import { DeclineIntakeDialog } from "@/components/doctor/review/decline-intake-dialog"
@@ -30,6 +31,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
+import { parseIntakeFlags } from "@/lib/clinical/intake-flags"
 import { buildAdminIntakeHref, buildDoctorIntakeHref } from "@/lib/dashboard/routes"
 import { isReviewLockableStatus } from "@/lib/doctor/intake-lock-status"
 import { logIntakeViewDuration, preloadViewDurationLogging } from "@/lib/doctor/log-view-duration-client"
@@ -770,6 +772,8 @@ export function IntakeReviewPanel({
                 {lockWarning}
               </div>
             )}
+
+            <IntakeFlagsPanel flags={parseIntakeFlags((data.intake as { risk_flags?: unknown }).risk_flags)} />
 
             <IntakeReviewCockpit
               showDecisionStrip

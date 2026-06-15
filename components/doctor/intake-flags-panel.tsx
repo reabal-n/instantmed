@@ -14,7 +14,7 @@ function flagTooltip(flag: IntakeFlag): string {
 
 /**
  * Compact queue-row badge. Renders ONLY when there is at least one
- * attention-severity flag — info flags do not earn a row badge.
+ * attention-severity flag; info flags do not earn a row badge.
  */
 export function IntakeFlagsBadge({ flags, className }: { flags: IntakeFlag[]; className?: string }) {
   const attention = attentionFlags(flags)
@@ -53,7 +53,7 @@ export function IntakeFlagsPanel({ flags, className }: { flags: IntakeFlag[]; cl
     >
       <h3 className="text-sm font-medium text-foreground">Needs doctor attention</h3>
       <p className="mt-0.5 text-xs text-muted-foreground">
-        The form let these through so the patient could finish — your call on each.
+        The form let these through so the patient could finish: your call on each.
       </p>
       <ul className="mt-3 space-y-2">
         {ordered.map((flag, index) => (
@@ -67,7 +67,7 @@ export function IntakeFlagsPanel({ flags, className }: { flags: IntakeFlag[]; cl
             />
             <span className="text-foreground">
               {flag.label}
-              {flag.detail ? <span className="text-muted-foreground"> — {flag.detail}</span> : null}
+              {flag.detail ? <span className="text-muted-foreground">: {flag.detail}</span> : null}
             </span>
           </li>
         ))}
