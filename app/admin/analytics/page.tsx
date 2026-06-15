@@ -1,6 +1,10 @@
 import { EMPTY_GOOGLE_ADS_HEALTH, getGoogleAdsHealth } from "@/lib/analytics/google-ads-health"
 import { buildGoogleAdsProfitSnapshot } from "@/lib/analytics/google-ads-profit-summary"
 import { getGoogleAdsSpendAuditReport } from "@/lib/analytics/google-ads-report"
+import {
+  buildSkippedPostHogIntakeFunnelSnapshot,
+  getPostHogIntakeFunnelSnapshot,
+} from "@/lib/analytics/posthog-intake-funnel"
 import { requireRole } from "@/lib/auth/helpers"
 import { getGeographicBreakdown } from "@/lib/data/analytics-geographic"
 import { getBusinessOperatingScorecard } from "@/lib/data/business-scorecard"
@@ -91,6 +95,9 @@ export default async function AnalyticsDashboardPage() {
 
     // [12] Recovery funnel: partial intakes, recovery sends, and recovered revenue
     getRecoveryScorecard(supabase, now, 30),
+
+    // [13] PostHog product funnel: aggregate-only step friction and drop-off
+    getPostHogIntakeFunnelSnapshot({ days: 30, now }),
   ])
 
   // Extract results with safe fallbacks
@@ -121,6 +128,13 @@ export default async function AnalyticsDashboardPage() {
   const recoveryScorecard = results[12].status === "fulfilled"
     ? results[12].value
     : null
+  const intakeFunnel = results[13].status === "fulfilled"
+    ? results[13].value
+    : buildSkippedPostHogIntakeFunnelSnapshot({
+      days: 30,
+      now,
+      reason: "PostHog funnel query failed before returning a snapshot.",
+    })
 
   // Calculate revenue totals
   const monthRevenue = (revenueResult.data || []).reduce(
@@ -151,6 +165,7 @@ export default async function AnalyticsDashboardPage() {
     },
     googleAds,
     googleAdsProfit,
+    intakeFunnel,
     recoveryScorecard,
     prescriptionFulfilment,
     businessScorecard,

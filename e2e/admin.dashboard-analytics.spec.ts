@@ -32,9 +32,9 @@ test.describe("Admin - Analytics Dashboard", () => {
       timeout: 15000,
     })
 
-    // Should NOT show error banners
-    const errorBanner = page.getByText(/error|failed to load/i)
-    await expect(errorBanner).not.toBeVisible()
+    // Should NOT show route-level error boundaries or loading failures.
+    await expect(page.getByRole("heading", { name: /something went wrong/i })).not.toBeVisible()
+    await expect(page.getByText(/failed to load/i)).not.toBeVisible()
   })
 
   test("analytics page shows key metric cards", async ({ page }) => {

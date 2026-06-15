@@ -13,6 +13,7 @@ import {
   Headphones,
   MailCheck,
   Megaphone,
+  MousePointerClick,
   Pill,
   Receipt,
   Send,
@@ -69,6 +70,14 @@ function formatRatio(value: number | null | undefined): string {
 
 function formatPercentValue(value: number | null | undefined): string {
   return value == null ? "No data" : `${value}%`
+}
+
+function formatStepId(stepId: string): string {
+  return stepId
+    .split(/[-_]/g)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ")
 }
 
 function uploadHealthStatus(analytics: AnalyticsData["googleAds"]): StatusBadgeStatus {
@@ -150,14 +159,23 @@ function profitStatusLabel(status: GoogleAdsProfitStatus): string {
   return "Incomplete"
 }
 
+function intakeFunnelStatus(analytics: AnalyticsData["intakeFunnel"]): StatusBadgeStatus {
+  if (!analytics.ok) return "warning"
+  if (analytics.summary.totals.started === 0) return "neutral"
+  if ((analytics.summary.totals.startToCheckoutRate ?? 0) < 40) return "warning"
+  return "info"
+}
+
 export function AnalyticsDashboardClient({
   analytics,
   geographic,
 }: AnalyticsDashboardClientProps) {
-  const { businessScorecard, funnel, googleAds, googleAdsProfit, recoveryScorecard, prescriptionFulfilment, revenue, queueHealth } = analytics
+  const { businessScorecard, funnel, googleAds, googleAdsProfit, intakeFunnel, recoveryScorecard, prescriptionFulfilment, revenue, queueHealth } = analytics
   const payRate = funnel.started > 0 ? Math.round((funnel.paid / funnel.started) * 100) : 0
   const completeRate = funnel.paid > 0 ? Math.round((funnel.completed / funnel.paid) * 100) : 0
   const googleAdsStatus = uploadHealthStatus(googleAds)
+  const intakeFunnelSummary = intakeFunnel.summary
+  const intakeFunnelBadge = intakeFunnelStatus(intakeFunnel)
   const notificationIssueHref = prescriptionFulfilment.firstNotificationIssueIntakeId
     ? buildStaffEmailHubHref({
         tab: "queue",
@@ -455,6 +473,129 @@ export function AnalyticsDashboardClient({
               trend={{ value: completeRate, label: "of paid" }}
             />
           </DashboardGrid>
+
+          <DashboardCard padding="md">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <MousePointerClick className="h-4 w-4 text-muted-foreground" />
+                  <h3 className="text-sm font-semibold text-foreground">Intake friction</h3>
+                </div>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  Aggregate PostHog events over {intakeFunnelSummary.days} days. Supabase payment truth stays in the cards above.
+                </p>
+              </div>
+              <StatusBadge status={intakeFunnelBadge} size="sm">
+                {intakeFunnel.ok ? "PostHog live" : "No PostHog signal"}
+              </StatusBadge>
+            </div>
+
+            {!intakeFunnel.ok ? (
+              <div className="mt-4 rounded-lg border border-amber-200/70 bg-amber-50 px-3 py-3 text-xs leading-relaxed text-amber-900 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-100">
+                {intakeFunnel.reason}
+              </div>
+            ) : null}
+
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              {intakeFunnelSummary.stages.map((stage) => (
+                <div key={stage.key} className="rounded-lg border border-border/60 bg-muted/30 px-3 py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-medium uppercase tracking-[0.10em] text-muted-foreground">
+                      {stage.label}
+                    </p>
+                    <span className="text-xs text-muted-foreground">
+                      {stage.rateFromPrevious == null ? "baseline" : `${stage.rateFromPrevious}%`}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-2xl font-semibold tabular-nums text-foreground">{stage.count}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {stage.dropOffFromPrevious == null
+                      ? "First recorded event."
+                      : `${stage.dropOffFromPrevious} drop-off from previous stage.`}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 grid gap-3 xl:grid-cols-[minmax(260px,0.85fr)_minmax(0,1.15fr)]">
+              <div className="rounded-lg border border-border/60 bg-muted/30 px-3 py-3">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h4 className="text-xs font-semibold uppercase tracking-[0.10em] text-muted-foreground">
+                    Services
+                  </h4>
+                  <span className="text-xs text-muted-foreground">Start to checkout</span>
+                </div>
+                <div className="grid gap-2">
+                  {intakeFunnelSummary.byService.slice(0, 5).length > 0 ? (
+                    intakeFunnelSummary.byService.slice(0, 5).map((service) => (
+                      <div
+                        key={`${service.serviceType}-${service.subtype ?? "base"}`}
+                        className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-md bg-background/70 px-3 py-2 text-xs"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-foreground">{service.serviceLabel}</p>
+                          <p className="mt-0.5 text-muted-foreground">
+                            {service.started} started, {service.checkoutViewed} checkout
+                          </p>
+                        </div>
+                        <p className="font-semibold tabular-nums text-foreground">
+                          {formatPercentValue(service.startToCheckoutRate)}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="rounded-md bg-background/70 px-3 py-2 text-xs text-muted-foreground">
+                      No service-level intake events in this window.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-border/60 bg-muted/30 px-3 py-3">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h4 className="text-xs font-semibold uppercase tracking-[0.10em] text-muted-foreground">
+                    Top step friction
+                  </h4>
+                  <span className="text-xs text-muted-foreground">Viewed to completed</span>
+                </div>
+                <div className="grid gap-2">
+                  {intakeFunnelSummary.stepFriction.slice(0, 5).length > 0 ? (
+                    intakeFunnelSummary.stepFriction.slice(0, 5).map((step) => (
+                      <div
+                        key={`${step.serviceType}-${step.subtype ?? "base"}-${step.stepId}-${step.stepIndex ?? "x"}`}
+                        className="grid gap-2 rounded-md bg-background/70 px-3 py-2 text-xs md:grid-cols-[minmax(0,1fr)_repeat(4,minmax(62px,auto))]"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-foreground">{formatStepId(step.stepId)}</p>
+                          <p className="mt-0.5 truncate text-muted-foreground">{step.serviceLabel}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Viewed</p>
+                          <p className="font-medium tabular-nums text-foreground">{step.viewed}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Continue</p>
+                          <p className="font-medium tabular-nums text-foreground">{step.continueClicked}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Blocked</p>
+                          <p className="font-medium tabular-nums text-foreground">{step.blocked}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Complete</p>
+                          <p className="font-medium tabular-nums text-foreground">{formatPercentValue(step.completionRate)}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="rounded-md bg-background/70 px-3 py-2 text-xs text-muted-foreground">
+                      No step-level friction rows in this window.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </DashboardCard>
         </section>
 
         {recoveryScorecard ? (
