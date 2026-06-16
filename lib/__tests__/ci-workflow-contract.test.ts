@@ -26,7 +26,10 @@ describe("CI workflow contract", () => {
   })
 
   it("uses the shared release build wrapper so CI and local release checks match", () => {
-    expect(ciWorkflowSource).toContain("Type-check and build (budget: 180s)")
+    expect(ciWorkflowSource).toContain("Restore Next.js build cache")
+    expect(ciWorkflowSource).toContain("uses: actions/cache@v5")
+    expect(ciWorkflowSource).toContain("path: .next/cache")
+    expect(ciWorkflowSource).toContain("Type-check and build (target: 180s, warning: 210s)")
     expect(ciWorkflowSource).toContain("run: pnpm build:release")
   })
 
