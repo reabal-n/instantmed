@@ -3,6 +3,7 @@ import Link from "next/link"
 
 import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
 import { Reveal } from "@/components/ui/reveal"
+import { GUARANTEE } from "@/lib/marketing/voice"
 
 // =============================================================================
 // DATA
@@ -53,7 +54,7 @@ const GUIDE_SECTIONS: GuideBlock[] = [
     sticker: "medical-history",
     title: "What's included in your consultation fee",
     paragraphs: [
-      "When you pay for a consultation through InstantMed, you're paying for a genuine clinical service - not a rubber stamp. Every request is reviewed by an AHPRA-registered doctor who assesses your symptoms, medical history, and the clinical appropriateness of your request. If something doesn't add up, the doctor will ask follow-up questions or decline the request entirely (with a full refund).",
+      `When you pay for a consultation through InstantMed, you're paying for a genuine clinical service - not a rubber stamp. Every request is reviewed by an AHPRA-registered doctor who assesses your symptoms, medical history, and the clinical appropriateness of your request. If something doesn't add up, the doctor will ask follow-up questions or decline the request entirely. ${GUARANTEE}`,
       "Your fee covers the doctor's review time, clinical assessment, document generation (medical certificates with unique verification IDs, or eScript generation for prescriptions), secure digital delivery, and encrypted storage of your records. If the reviewing doctor needs additional information before making a decision, that follow-up is included - no extra charge for the doctor doing their job properly.",
       "You also get access to our certificate verification system, which employers and institutions can use to confirm your certificate was genuinely issued by our practice. This is an additional layer of trust that most traditional paper certificates don't offer.",
     ],
@@ -73,7 +74,7 @@ const GUIDE_SECTIONS: GuideBlock[] = [
     sticker: "synchronize",
     title: "Our refund policy",
     paragraphs: [
-      "If a doctor reviews your request and determines that a certificate or prescription isn't clinically appropriate, you get a full refund. No paperwork, no awkward phone call. The refund is processed automatically and typically lands back in your account within 3-5 business days, depending on your bank.",
+      `${GUARANTEE} No paperwork, no awkward phone call. The refund is processed automatically and typically lands back in your account within 3-5 business days, depending on your bank.`,
       "We don't offer refunds for change-of-mind after a certificate or prescription has been issued - the clinical work has been done and the document has been generated. That said, we're reasonable people. If something genuinely went wrong with your experience, contact us at support@instantmed.com.au and we'll sort it out.",
       "If you have a complaint about the clinical care you received, email complaints@instantmed.com.au. We respond to all complaints within 48 hours and aim to resolve them within 14 days. If you're not satisfied with our resolution, you can escalate to the Health Care Complaints Commission (HCCC) or AHPRA directly.",
     ],

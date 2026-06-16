@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { GUARANTEE } from "@/lib/marketing/voice"
 import { getAllStateSlugs, statesData } from "@/lib/seo/data/states"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
@@ -76,7 +77,7 @@ const STATS = [
   { value: "2011", label: "Telehealth legal in AU", context: "Federally recognised since the MBS reform" },
   { value: `~${SOCIAL_PROOF.certTurnaroundMinutes} min`, label: "Med cert turnaround", context: "Reviewed around the clock" },
   { value: "AHPRA", label: "Clinical governance", context: "Documented standards" },
-  { value: `${PRICING_DISPLAY.MED_CERT}`, label: "From", context: "Private fee, refund if declined" },
+  { value: `${PRICING_DISPLAY.MED_CERT}`, label: "From", context: GUARANTEE },
 ]
 
 const MODALITIES = [

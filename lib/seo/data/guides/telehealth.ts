@@ -4,6 +4,7 @@
  */
 
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { GUARANTEE } from "@/lib/marketing/voice"
 
 import type { GuideData } from "../guides"
 
@@ -162,7 +163,7 @@ export const telehealthGuides: Record<string, GuideData> = {
     ],
     faqs: [
       { q: "Do I need a video call?", a: "Not always. Many services use questionnaires with optional phone follow-up. Check the service's process." },
-      { q: "What if online care is not suitable?", a: "They'll advise you to see a GP in person. Declined refundable categories receive a full refund." },
+      { q: "What if online care is not suitable?", a: `They'll advise you to see a GP in person. ${GUARANTEE}` },
       { q: "Is my information secure?", a: "Reputable services use encrypted systems and comply with Australian privacy law. Your information isn't shared with employers or insurers." }
     ],
     cta: { text: "Try your first telehealth consultation", href: "/request", subtext: `Australian doctors · ${PRICING_DISPLAY.FROM_MED_CERT}` }

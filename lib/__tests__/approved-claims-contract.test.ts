@@ -8,6 +8,7 @@ import {
   BRAND_THESIS,
   FORM_FIRST_WEDGE,
   GUARANTEE,
+  GUARANTEE_LABEL,
   ICONIC_HOOK,
   MED_CERT_WEDGE,
   PROP_PHRASE,
@@ -29,6 +30,8 @@ describe("approved claims registry", () => {
     expect(PROP_PHRASE).toBe(getApprovedClaim("prop_phrase"))
     expect(ICONIC_HOOK).toBe(getApprovedClaim("iconic_hook"))
     expect(GUARANTEE).toBe(getApprovedClaim("refund_guarantee"))
+    expect(GUARANTEE_LABEL).toBe(getApprovedClaim("refund_guarantee_label"))
+    expect(GUARANTEE_LABEL).not.toBe(GUARANTEE)
   })
 
   it("keeps high-risk no-call language scoped to medical certificates", () => {
@@ -45,6 +48,7 @@ describe("approved claims registry", () => {
 
     expect(trustBadgesSource).toContain('getApprovedClaim("trust_no_appointment_label")')
     expect(trustBadgesSource).toContain('getApprovedClaim("trust_talk_if_needed_tooltip")')
+    expect(trustBadgesSource).toContain('getApprovedClaim("refund_guarantee_label")')
     expect(trustBadgesSource).not.toContain("94% of certificates delivered same day")
     expect(trustBadgesSource).not.toContain("Legally valid certificate")
   })

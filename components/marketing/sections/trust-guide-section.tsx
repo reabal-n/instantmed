@@ -3,6 +3,7 @@ import Link from "next/link"
 
 import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
 import { Reveal } from "@/components/ui/reveal"
+import { GUARANTEE } from "@/lib/marketing/voice"
 
 // =============================================================================
 // DATA
@@ -51,7 +52,7 @@ const GUIDE_SECTIONS: Array<{
     paragraphs: [
       "We respond to all complaints within 48 hours. Not 'up to 14 business days,' not 'we'll get back to you when we can.' If you're unhappy with any aspect of our service, email complaints@instantmed.com.au and a real person will respond within two working days. If we can't resolve your concern directly, we'll explain your options for escalation.",
       "You have the right to escalate any complaint to the Health Complaints Commissioner in your state or territory. We won't make this difficult or bury the information - here it is, upfront. You also have the right to lodge a notification with AHPRA if you believe a doctor has behaved unprofessionally. We support your right to do both of these things, because accountability is how trust is built.",
-      "Our pricing is transparent and published on our website. There are no hidden fees, no surprise charges, and no upselling during your consultation. If your request is declined by a doctor - because it doesn't meet clinical criteria - you receive a full refund. You also have the right to access any records we hold about you, request corrections, and understand how your information has been used. These aren't concessions; they're your rights under Australian law.",
+      `Our pricing is transparent and published on our website. There are no hidden fees, no surprise charges, and no upselling during your consultation. ${GUARANTEE} You also have the right to access any records we hold about you, request corrections, and understand how your information has been used. These aren't concessions; they're your rights under Australian law.`,
     ],
   },
   {

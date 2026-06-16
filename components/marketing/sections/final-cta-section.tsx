@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Reveal } from "@/components/ui/reveal"
 import { PRICING } from "@/lib/constants"
+import { GUARANTEE } from "@/lib/marketing/voice"
 
 // =============================================================================
 // COMPONENT
@@ -54,7 +55,7 @@ export function FinalCtaSection({
             From ${price.toFixed(2)} &middot; No account required
           </p>
           <p className="mt-1 text-muted-foreground text-xs">
-            Takes about 2 minutes &middot; Full refund if declined
+            Takes about 2 minutes &middot; {GUARANTEE}
           </p>
 
         </Reveal>

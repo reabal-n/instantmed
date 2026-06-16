@@ -1,4 +1,5 @@
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { GUARANTEE } from "@/lib/marketing/voice"
 
 /**
  * Medical Certificate Flow Microcopy Dictionary - REDESIGNED
@@ -160,7 +161,7 @@ export const MED_CERT_COPY = {
     ],
     
     // Disclaimer
-    disclaimer: "Certificates are issued at the doctor's clinical discretion. If your request cannot be approved, you will receive a full refund.",
+    disclaimer: `Certificates are issued at the doctor's clinical discretion. ${GUARANTEE}`,
     
     // CTA
     cta: "Pay & submit request",
@@ -246,7 +247,7 @@ export const MED_CERT_COPY = {
     ahpra: "AHPRA-registered doctors",
     encrypted: "256-bit encrypted",
     private: "Your data stays private",
-    refund: "Full refund if not approved",
+    refund: GUARANTEE,
   },
 } as const
 

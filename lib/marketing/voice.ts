@@ -104,6 +104,12 @@ export const ICONIC_HOOK = getApprovedClaim("iconic_hook")
  */
 export const GUARANTEE = getApprovedClaim("refund_guarantee")
 
+/**
+ * Compact display label for dense UI like trust badges and stat strips.
+ * Use GUARANTEE for sentence copy.
+ */
+export const GUARANTEE_LABEL = getApprovedClaim("refund_guarantee_label")
+
 // ── Phrases you own (use freely) ──────────────────────────────────────
 
 export const OWNED_PHRASES = [
@@ -115,6 +121,7 @@ export const OWNED_PHRASES = [
   PROP_PHRASE,
   ICONIC_HOOK,
   GUARANTEE,
+  GUARANTEE_LABEL,
   BRAND_THESIS,
   "A real doctor, ready in the time it takes to make a coffee.",
   "A real doctor, online, the moment you need one.",

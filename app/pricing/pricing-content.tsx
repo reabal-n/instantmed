@@ -1,4 +1,4 @@
-import { ArrowRight, Check, Clock, Gift, Shield, Zap } from "lucide-react"
+import { ArrowRight, Check, Gift, Zap } from "lucide-react"
 import Link from "next/link"
 
 import { StatsHero } from "@/components/heroes"
@@ -18,12 +18,15 @@ import { CTABanner } from "@/components/sections/cta-banner"
 import { FAQSection } from "@/components/sections/faq-section"
 import { FAQSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared/navbar"
+import { TrustBadgeRow } from "@/components/shared/trust-badge"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 import { SectionPill } from "@/components/ui/section-pill"
-import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
+import { PRICING_DISPLAY } from "@/lib/constants"
+import { GUARANTEE, GUARANTEE_LABEL } from "@/lib/marketing/voice"
 import { priorityCommercialLinks } from "@/lib/seo/commercial-links"
+import { getService, getServiceMarketingHref } from "@/lib/services/service-catalog"
 import { getPatientCount, SOCIAL_PROOF } from "@/lib/social-proof"
 import { cn } from "@/lib/utils"
 
@@ -31,15 +34,18 @@ import { PricingStickyCta } from "./pricing-sticky-cta"
 
 /* ────────────────────────────── Data ────────────────────────────── */
 
-// Pricing card services. Icon + colour tokens sourced from canonical
-// service-catalog; hex `color` retained for legacy checkmark + button
-// variants (cleaned up in Phase 2 sweep).
+const medCertService = getService("med-cert")
+const repeatRxService = getService("repeat-rx")
+const consultPriceSource = getService("hair-loss")
+
+// Pricing card services. Icon, colour tokens, hrefs, and display prices are
+// sourced from canonical service primitives; only page-specific feature copy
+// stays local.
 const services = [
   {
     name: "Medical Certificate",
-    price: PRICING.MED_CERT,
-    priceLabel: `From $${PRICING.MED_CERT}`,
-    priceSubtext: `1 day: $${PRICING.MED_CERT} · 2 days: $${PRICING.MED_CERT_2DAY}`,
+    priceLabel: `${medCertService.pricePrefix} ${medCertService.price}`,
+    priceSubtext: `1 day: ${PRICING_DISPLAY.MED_CERT} · 2 days: ${PRICING_DISPLAY.MED_CERT_2DAY}`,
     description: "Work, uni, or carer's leave",
     features: [
       "Digital delivery if approved",
@@ -48,16 +54,16 @@ const services = [
       "PDF via email",
     ],
     popular: true,
-    href: "/medical-certificate",
-    iconKey: "FileText",
-    colorToken: "emerald",
-    color: "#059669",
-    cta: `Get your certificate - $${PRICING.MED_CERT}`,
+    href: getServiceMarketingHref(medCertService),
+    iconKey: medCertService.iconKey,
+    colorToken: medCertService.colorToken,
+    checkClass: "text-emerald-600 dark:text-emerald-400",
+    buttonClass: "border-emerald-600/30 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 dark:border-emerald-500/30 dark:text-emerald-400 dark:hover:bg-emerald-950",
+    cta: `Get your certificate - ${medCertService.price}`,
   },
   {
     name: "Prescription",
-    price: PRICING.REPEAT_SCRIPT,
-    priceLabel: `$${PRICING.REPEAT_SCRIPT}`,
+    priceLabel: repeatRxService.price,
     description: "Repeat scripts for ongoing meds",
     features: [
       "E-script to your phone",
@@ -66,17 +72,17 @@ const services = [
       "SMS token delivery",
     ],
     popular: false,
-    href: "/prescriptions",
-    iconKey: "Pill",
-    colorToken: "cyan",
-    color: "#0284C7",
-    cta: `Renew medication - $${PRICING.REPEAT_SCRIPT}`,
+    href: getServiceMarketingHref(repeatRxService),
+    iconKey: repeatRxService.iconKey,
+    colorToken: repeatRxService.colorToken,
+    checkClass: "text-sky-600 dark:text-sky-400",
+    buttonClass: "border-border hover:bg-muted",
+    cta: `Renew medication - ${repeatRxService.price}`,
   },
   {
     name: "Consultation",
-    price: PRICING.HAIR_LOSS,
-    priceLabel: `From $${PRICING.HAIR_LOSS}`,
-    priceSubtext: `ED and hair loss assessments: $${PRICING.HAIR_LOSS}`,
+    priceLabel: PRICING_DISPLAY.FROM_CONSULT,
+    priceSubtext: `ED and hair loss assessments: ${consultPriceSource.price}`,
     description: "ED and hair loss assessments",
     features: [
       "Hair loss and ED assessments",
@@ -88,8 +94,9 @@ const services = [
     href: "/consult",
     iconKey: "Stethoscope",
     colorToken: "sky",
-    color: "#0284C7",
-    cta: `Start assessment - from $${PRICING.HAIR_LOSS}`,
+    checkClass: "text-sky-600 dark:text-sky-400",
+    buttonClass: "border-border hover:bg-muted",
+    cta: `Start assessment - from ${consultPriceSource.price}`,
   },
 ]
 
@@ -98,7 +105,7 @@ const comparisonItems = [
   { label: "Available 7 days a week", us: true, them: false },
   { label: "AHPRA-registered doctors", us: true, them: true },
   { label: "Digital delivery if approved", us: true, them: false },
-  { label: "Full refund if declined", us: true, them: false },
+  { label: GUARANTEE, us: true, them: false },
   { label: "No lock-in contracts", us: true, them: false },
   { label: "Standard workplace evidence", us: true, them: true },
   { label: "E-scripts to any pharmacy", us: true, them: false },
@@ -113,7 +120,7 @@ const pricingFaqs = [
       {
         question: "What if my request is declined?",
         answer:
-          "You receive a full refund if a doctor declines your request. We only charge when the request can proceed clinically.",
+          `${GUARANTEE} We only charge when the request can proceed clinically.`,
       },
       {
         question: "What payment methods do you accept?",
@@ -183,9 +190,9 @@ export function PricingContent() {
           pill="Simple pricing"
           title="Pay per consult. No hidden fees."
           highlightWords={["hidden fees"]}
-          subtitle="Transparent pricing with no hidden fees. Doctor review first, with a full refund if declined."
+          subtitle={`Transparent pricing with no hidden fees. Doctor review first. ${GUARANTEE}`}
           stats={[
-            { value: SOCIAL_PROOF.refundPercent, suffix: "%", label: "Refund if declined" },
+            { value: SOCIAL_PROOF.refundPercent, suffix: "%", label: GUARANTEE_LABEL },
             { value: 0, prefix: "$", label: "Hidden fees" },
             { value: SOCIAL_PROOF.operatingDays, label: "Days a week" },
           ]}
@@ -252,7 +259,7 @@ export function PricingContent() {
 
                   <div className="text-center mb-4">
                     <span className="text-3xl font-semibold">
-                      {service.priceLabel || `$${service.price}`}
+                      {service.priceLabel}
                     </span>
                     <span className="text-muted-foreground ml-1 text-sm">
                       AUD
@@ -271,8 +278,7 @@ export function PricingContent() {
                         className="flex items-start gap-2 text-xs"
                       >
                         <Check
-                          className="w-3.5 h-3.5 mt-0.5 shrink-0"
-                          style={{ color: service.color }}
+                          className={cn("w-3.5 h-3.5 mt-0.5 shrink-0", service.checkClass)}
                         />
                         <span className="text-muted-foreground">
                           {feature}
@@ -288,9 +294,7 @@ export function PricingContent() {
                       "w-full rounded-xl h-12 font-medium",
                       service.popular
                         ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
-                        : service.color === "#059669"
-                          ? "border-emerald-600/30 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 dark:border-emerald-500/30 dark:text-emerald-400 dark:hover:bg-emerald-950"
-                          : "border-border hover:bg-muted"
+                        : service.buttonClass
                     )}
                   >
                     <Link href={service.href}>
@@ -303,29 +307,17 @@ export function PricingContent() {
             </div>
 
             {/* Trust badges */}
-            <div className="mt-8 flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
-              <div className="flex items-center gap-2 bg-muted/50 dark:bg-white/[0.06] rounded-full px-3 py-1.5 border border-border/50">
-                <Shield className="w-3.5 h-3.5 text-primary" />
-                <span>AHPRA registered doctors</span>
-              </div>
-              <div className="flex items-center gap-2 bg-muted/50 dark:bg-white/[0.06] rounded-full px-3 py-1.5 border border-border/50">
-                <Clock className="w-3.5 h-3.5 text-primary" />
-                <span>Doctor-reviewed</span>
-              </div>
-              <div className="flex items-center gap-2 bg-muted/50 dark:bg-white/[0.06] rounded-full px-3 py-1.5 border border-border/50">
-                <Zap className="w-3.5 h-3.5 text-success" />
-                <span className="text-success font-medium">
-                  100% refund guarantee
-                </span>
-              </div>
-            </div>
+            <TrustBadgeRow
+              badges={["ahpra", "form_only", "refund"]}
+              className="mt-8"
+            />
 
             {/* Express Review callout */}
             <div className="mt-6 text-center space-y-2">
               <p className="text-sm text-muted-foreground">
                 <Zap className="inline w-3.5 h-3.5 text-amber-500 mr-1 -mt-0.5" />
                 Need it faster? Add <span className="font-medium text-foreground">Express Review</span> at checkout for{" "}
-                <span className="font-medium text-foreground">${PRICING.PRIORITY_FEE.toFixed(2)}</span>
+                <span className="font-medium text-foreground">{PRICING_DISPLAY.PRIORITY_FEE}</span>
               </p>
               <p className="text-sm text-muted-foreground">
                 <Gift className="inline w-3.5 h-3.5 text-primary mr-1 -mt-0.5" />
@@ -410,7 +402,7 @@ export function PricingContent() {
         {/* CTA */}
         <CTABanner
           title="Ready to get started?"
-          subtitle={`Trusted by ${getPatientCount().toLocaleString()}+ Australians. Get started in under 2 minutes. Full refund if the doctor declines.`}
+          subtitle={`Trusted by ${getPatientCount().toLocaleString()}+ Australians. Get started in under 2 minutes. ${GUARANTEE}`}
           ctaText="Start a consult"
           ctaHref="/medical-certificate"
         />

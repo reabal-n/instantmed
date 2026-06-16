@@ -9,7 +9,15 @@ import {
   useState,
 } from "react"
 
-export type ServiceId = "med-cert" | "scripts" | "consult" | "ed" | "hair-loss"
+export type ServiceId =
+  | "med-cert"
+  | "scripts"
+  | "repeat-rx"
+  | "consult"
+  | "ed"
+  | "hair-loss"
+  | "womens-health"
+  | "weight-loss"
 
 interface AvailabilityState {
   maintenance_mode: boolean
@@ -100,12 +108,13 @@ export function ServiceAvailabilityProvider({ children }: { children: ReactNode 
         case "med-cert":
           return state.disable_med_cert
         case "scripts":
+        case "repeat-rx":
           return state.disable_repeat_scripts
         case "consult":
-          return state.disable_consults
         case "ed":
-          return state.disable_consults
         case "hair-loss":
+        case "womens-health":
+        case "weight-loss":
           return state.disable_consults
         default:
           return false

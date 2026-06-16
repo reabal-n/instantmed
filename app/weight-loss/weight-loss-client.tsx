@@ -39,6 +39,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
+import { GUARANTEE } from "@/lib/marketing/voice"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 const assessmentAreas = [
@@ -125,7 +126,7 @@ const faqs = [
   {
     question: "What if a treatment option is not suitable?",
     answer:
-      "The doctor will explain why and may recommend lifestyle support, GP follow-up, pathology, or in-person care. If we cannot help through InstantMed, your consultation fee is refunded.",
+      `The doctor will explain why and may recommend lifestyle support, GP follow-up, pathology, or in-person care. ${GUARANTEE}`,
   },
   {
     question: "Will I need follow-up?",
@@ -140,7 +141,7 @@ const faqs = [
   {
     question: "What happens if I'm not eligible for treatment?",
     answer:
-      "If the doctor determines InstantMed is not appropriate for you, whether due to BMI criteria, contraindications, or other clinical reasons, you'll receive a full refund. The doctor may also recommend lifestyle support, GP follow-up, or specialist care.",
+      `${GUARANTEE} The doctor may also recommend lifestyle support, GP follow-up, or specialist care.`,
   },
   {
     question: "Can I use this service if I've had weight loss surgery?",

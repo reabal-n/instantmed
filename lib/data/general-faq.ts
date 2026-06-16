@@ -1,3 +1,4 @@
+import { GUARANTEE } from '@/lib/marketing/voice'
 import type { FAQGroup } from '@/types/faq'
 
 /**
@@ -21,7 +22,7 @@ export const GENERAL_FAQ: FAQGroup[] = [
       {
         question: 'How long does it take?',
         answer:
-          "Requests can be submitted any time. Medical certificates are typically reviewed quickly, and prescriptions or consultations are reviewed when a doctor is available. If the doctor declines your request, you get a full refund.",
+          `Requests can be submitted any time. Medical certificates are typically reviewed quickly, and prescriptions or consultations are reviewed when a doctor is available. ${GUARANTEE}`,
       },
       {
         question: 'How do I know if I need an in-person visit instead?',
@@ -36,7 +37,7 @@ export const GENERAL_FAQ: FAQGroup[] = [
       {
         question: 'Why was my request declined?',
         answer:
-          "It usually means the doctor felt an in-person assessment would be safer \u2014 for example, if symptoms suggest something that needs a physical exam. It\u2019s not personal, it\u2019s good medicine. You\u2019ll always get a full refund if we can\u2019t help.",
+          `It usually means the doctor felt an in-person assessment would be safer \u2014 for example, if symptoms suggest something that needs a physical exam. It\u2019s not personal, it\u2019s good medicine. ${GUARANTEE}`,
       },
       {
         question: 'Will a doctor call me?',
@@ -116,7 +117,7 @@ export const GENERAL_FAQ: FAQGroup[] = [
       {
         question: 'What if my request is declined?',
         answer:
-          "You\u2019ll get a full refund within 3\u20135 business days. The doctor may also explain why and suggest an alternative, like an in-person visit for a more thorough assessment.",
+          `${GUARANTEE} The doctor may also explain why and suggest an alternative, like an in-person visit for a more thorough assessment.`,
       },
       {
         question: 'What if I need more than 2 days off?',
@@ -146,7 +147,7 @@ export const GENERAL_FAQ: FAQGroup[] = [
       {
         question: 'What if my prescription request is declined?',
         answer:
-          "You\u2019ll get a full refund. The doctor may suggest alternatives or recommend an in-person visit \u2014 common reasons include needing physical monitoring or potential interactions with other medications.",
+          `${GUARANTEE} The doctor may suggest alternatives or recommend an in-person visit \u2014 common reasons include needing physical monitoring or potential interactions with other medications.`,
       },
       {
         question: 'How do I receive my medication?',
@@ -201,7 +202,7 @@ export const GENERAL_FAQ: FAQGroup[] = [
       {
         question: "What\u2019s your refund policy?",
         answer:
-          "If we can\u2019t help you \u2014 for example, if your request is declined for clinical reasons \u2014 you get a full refund within 3\u20135 business days. No hoops, no hassle.",
+          `${GUARANTEE} No hoops, no hassle.`,
       },
       {
         question: 'Is there a Medicare rebate?',

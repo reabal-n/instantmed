@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { StripePaymentLogos } from '@/components/checkout/payment-logos'
 import { Heading } from '@/components/ui/heading'
 import { PRICING } from '@/lib/constants'
+import { GUARANTEE } from '@/lib/marketing/voice'
 import { SOCIAL_PROOF } from '@/lib/social-proof'
 import { cn } from '@/lib/utils'
 
@@ -115,7 +116,7 @@ export function PricingSection({
           </Link>
           <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 border border-success/20 text-xs font-medium text-success">
             <RefreshCw className="w-3.5 h-3.5 shrink-0" />
-            100% refund if we can&apos;t help
+            {refundNote ?? GUARANTEE}
           </div>
           <p className="mt-2 text-xs text-muted-foreground">No account required</p>
           <StripePaymentLogos className="mt-1.5 opacity-60" />

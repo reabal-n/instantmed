@@ -11,6 +11,9 @@
  * - ResourcePage: FAQ, process guides, disclaimers, privacy
  */
 
+import { PRICING_DISPLAY } from "@/lib/constants"
+import { GUARANTEE } from "@/lib/marketing/voice"
+
 import type { BenefitPage, CertificatePage, ConditionPage, ResourcePage } from "./types"
 
 // ============================================
@@ -1064,8 +1067,7 @@ export const benefitPages: BenefitPage[] = [
       },
       {
         title: "Affordability",
-        content:
-          "Flat $29 fee. No surprise costs, no doctor visit surcharge. Full refund if the doctor declines.",
+        content: `Flat ${PRICING_DISPLAY.MED_CERT} fee. No surprise costs, no doctor visit surcharge. ${GUARANTEE}`,
       },
       {
         title: "Privacy",
@@ -1184,7 +1186,7 @@ export const resourcePages: ResourcePage[] = [
       },
       {
         q: "Can I get a refund?",
-        a: "If the doctor declines after review, refundable categories receive a full refund.",
+        a: GUARANTEE,
       },
     ],
   },

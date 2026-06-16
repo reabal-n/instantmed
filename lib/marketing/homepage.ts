@@ -1,4 +1,12 @@
-import { ABN, COMPANY_ADDRESS,COMPANY_NAME, CONTACT_EMAIL, CONTACT_PHONE, PRICING_DISPLAY } from "@/lib/constants"
+import { ABN, COMPANY_ADDRESS, COMPANY_NAME, CONTACT_EMAIL, CONTACT_PHONE, PRICING_DISPLAY } from "@/lib/constants"
+import { GUARANTEE } from "@/lib/marketing/voice"
+import {
+  type CanonicalServiceId,
+  getService,
+  getServiceMarketingHref,
+  getServiceRequestHref,
+  type ServiceDef,
+} from "@/lib/services/service-catalog"
 
 // Homepage Marketing Data
 // All content centralized for easy updates
@@ -56,19 +64,30 @@ export const trustSignals = [
   },
 ]
 
-export const serviceCategories = [
-  {
-    id: "med-cert",
-    slug: "medical-certificate",
+const HOMEPAGE_SERVICE_ORDER: CanonicalServiceId[] = [
+  "med-cert",
+  "repeat-rx",
+  "ed",
+  "hair-loss",
+  "womens-health",
+  "weight-loss",
+]
+
+type HomepageServiceCopy = {
+  title: string
+  shortTitle: string
+  benefitQuestion: string
+  description: string
+  cta: string
+  benefits: string[]
+}
+
+const HOMEPAGE_SERVICE_COPY: Record<CanonicalServiceId, HomepageServiceCopy> = {
+  "med-cert": {
     title: "Medical Certificates",
     shortTitle: "Med Certs",
     benefitQuestion: "Too sick to see a doctor in person?",
     description: "Get a certificate for work, study, or carer's leave, without leaving bed",
-    icon: "FileText",
-    color: "emerald",
-    priceFrom: 24.95,
-    href: "/request?service=med-cert",
-    popular: true,
     cta: "Get your certificate",
     benefits: [
       "Issued if clinically appropriate",
@@ -76,37 +95,23 @@ export const serviceCategories = [
       "AHPRA-registered doctor on every cert",
     ],
   },
-  {
-    id: "scripts",
-    slug: "prescription",
+  "repeat-rx": {
     title: "Repeat Medication",
     shortTitle: "Medication",
     benefitQuestion: "Need your regular medication?",
     description: "Get your regular medication sorted without the hassle",
-    icon: "Pill",
-    color: "cyan",
-    priceFrom: 29.95,
-    href: "/request?service=repeat-script",
-    popular: false,
     cta: "Renew medication",
     benefits: [
       "Works with any chemist",
       "Repeats included where appropriate",
-      "Sent to your phone via SMS"
+      "Sent to your phone via SMS",
     ],
   },
-  {
-    id: "ed",
-    slug: "erectile-dysfunction",
+  ed: {
     title: "ED Assessment",
     shortTitle: "ED",
     benefitQuestion: "Need a discreet ED assessment?",
     description: "Private ED assessment reviewed by an Australian doctor. No booked appointment or waiting room.",
-    icon: "Lightning",
-    color: "blue",
-    priceFrom: 49.95,
-    href: "/erectile-dysfunction",
-    popular: false,
     cta: "Start assessment",
     benefits: [
       "Form-first doctor review",
@@ -114,18 +119,11 @@ export const serviceCategories = [
       "Prescription only if appropriate",
     ],
   },
-  {
-    id: "hair-loss",
-    slug: "hair-loss",
+  "hair-loss": {
     title: "Hair Loss Assessment",
     shortTitle: "Hair Loss",
     benefitQuestion: "Noticed your hairline changing?",
     description: "Doctor-led assessment for hair loss concerns. Private form-first review.",
-    icon: "Sparkles",
-    color: "amber", // was "violet" — fixed per DESIGN.md §1 prohibition + audit C1/C2
-    priceFrom: 49.95,
-    href: "/hair-loss",
-    popular: false,
     cta: "Start assessment",
     benefits: [
       "Doctor-assessed options",
@@ -133,37 +131,23 @@ export const serviceCategories = [
       "eScript sent straight to your phone",
     ],
   },
-  {
-    id: "womens-health",
-    slug: "womens-health",
+  "womens-health": {
     title: "Women's Health",
     shortTitle: "Women's Health",
     benefitQuestion: "Need support with women's health?",
-    description: "Contraception, UTIs, and more, reviewed by an Australian doctor. No waiting room.",
-    icon: "Heart",
-    color: "pink",
-    href: "/womens-health",
-    popular: false,
-    comingSoon: true,
-    cta: "Coming soon",
+    description: "UTI care and contraceptive pill requests, reviewed by an Australian doctor. No waiting room.",
+    cta: "Start women's health request",
     benefits: [
-      "Contraception and hormonal health",
+      "UTI or contraception screen",
       "Doctor-reviewed form",
-      "eScript sent to your phone",
+      "eScript sent if approved",
     ],
   },
-  {
-    id: "weight-loss",
-    slug: "weight-loss",
+  "weight-loss": {
     title: "Weight Loss",
     shortTitle: "Weight Loss",
     benefitQuestion: "Looking for medical weight management?",
     description: "Doctor-led weight loss assessment with evidence-based treatment options.",
-    icon: "Flame",
-    color: "rose",
-    href: "/weight-loss",
-    popular: false,
-    comingSoon: true,
     cta: "Coming soon",
     benefits: [
       "Evidence-based treatment plans",
@@ -171,7 +155,37 @@ export const serviceCategories = [
       "Ongoing support available",
     ],
   },
-]
+}
+
+function getHomepageServiceHref(service: ServiceDef): string {
+  if (service.id === "med-cert" || service.id === "repeat-rx") {
+    return getServiceRequestHref(service)
+  }
+
+  return getServiceMarketingHref(service)
+}
+
+function toHomepageService(service: ServiceDef) {
+  const copy = HOMEPAGE_SERVICE_COPY[service.id]
+
+  return {
+    ...service,
+    title: copy.title,
+    shortTitle: copy.shortTitle,
+    benefitQuestion: copy.benefitQuestion,
+    description: copy.description,
+    icon: service.iconKey,
+    color: service.colorToken,
+    href: getHomepageServiceHref(service),
+    popular: service.popular ?? false,
+    cta: service.comingSoon ? "Coming soon" : copy.cta,
+    benefits: copy.benefits,
+  }
+}
+
+export const serviceCategories = HOMEPAGE_SERVICE_ORDER.map((id) =>
+  toHomepageService(getService(id)),
+)
 
 export const proofMetrics = [
   {
@@ -191,7 +205,7 @@ export const proofMetrics = [
   },
   {
     label: "Flat pricing",
-    value: "Full refund if declined",
+    value: GUARANTEE,
     icon: "CreditCard",
   },
 ]
@@ -217,55 +231,56 @@ export const howItWorks = [
   },
 ]
 
-export const featuredServices = [
-  {
-    title: "Medical Certificates",
+type FeaturedServiceCopy = {
+  description: string
+  features: string[]
+}
+
+const FEATURED_SERVICE_COPY: Record<CanonicalServiceId, FeaturedServiceCopy> = {
+  "med-cert": {
     description: "Feeling too sick to visit a GP? Get a valid, employer-ready certificate from an AHPRA-registered doctor, without leaving bed.",
-    priceFrom: 24.95,
-    href: "/request?service=med-cert",
     features: ["Sick leave", "Carer's leave", "Uni extensions", "Same-day delivery"],
   },
-  {
-    title: "Repeat Medication",
+  "repeat-rx": {
     description: "Running low on your regular medication? A doctor reviews your request and sends to your phone. Any pharmacy, Australia-wide.",
-    priceFrom: 29.95,
-    href: "/request?service=repeat-script",
     features: ["Contraception", "Blood pressure", "Skin treatments", "Sent to your phone"],
   },
-  {
-    title: "ED Assessment",
+  ed: {
     description: "Discreet doctor-led assessment for ED. A doctor reviews your form and prescribes only if clinically appropriate. No waiting room.",
-    priceFrom: 49.95,
-    href: "/erectile-dysfunction",
     features: ["Form-first review", "Private assessment", "Any Australian pharmacy", "Doctor-reviewed"],
   },
-  {
-    title: "Hair Loss Assessment",
+  "hair-loss": {
     description: "Doctor-led hair loss assessment. Private form-first review, with next steps decided after clinical assessment.",
-    priceFrom: 49.95,
-    href: "/hair-loss",
     features: ["Doctor-assessed options", "Doctor-reviewed", "eScript if approved", "No waiting room"],
   },
-  {
-    title: "Women's Health",
-    description: "Contraception, UTIs, and hormonal health. Reviewed by an Australian doctor, no waiting room required.",
-    href: "/womens-health",
-    comingSoon: true,
-    features: ["Contraception", "UTI treatment", "Hormonal health", "Doctor-reviewed"],
+  "womens-health": {
+    description: "UTI care and contraceptive pill requests. Reviewed by an Australian doctor, no waiting room required.",
+    features: ["UTI treatment", "Contraceptive pill", "Safety screening", "Doctor-reviewed"],
   },
-  {
-    title: "Weight Loss",
+  "weight-loss": {
     description: "Doctor-led weight loss assessment with evidence-based treatment options. Ongoing support available.",
-    href: "/weight-loss",
-    comingSoon: true,
     features: ["Manual review", "Doctor-reviewed", "Safety screening", "No waiting room"],
   },
-]
+}
+
+export const featuredServices = HOMEPAGE_SERVICE_ORDER.map((id) => {
+  const service = getService(id)
+  const copy = FEATURED_SERVICE_COPY[id]
+
+  return {
+    title: HOMEPAGE_SERVICE_COPY[id].title,
+    description: copy.description,
+    priceFrom: service.comingSoon ? undefined : service.priceFrom,
+    href: getHomepageServiceHref(service),
+    comingSoon: service.comingSoon,
+    features: copy.features,
+  }
+})
 
 export const faqItems = [
   {
     question: "What if the doctor says no?",
-    answer: "Full refund if the doctor declines. We'd rather be upfront than charge for something outside online care scope.",
+    answer: `${GUARANTEE} We'd rather be upfront than charge for something outside online care scope.`,
   },
   {
     question: "How fast is it really?",
@@ -277,7 +292,7 @@ export const faqItems = [
   },
   {
     question: "How much does it cost compared to a GP?",
-    answer: `Medical certificates start from $${PRICING_DISPLAY.MED_CERT}, repeat medication from $${PRICING_DISPLAY.REPEAT_SCRIPT}, and consults from $${PRICING_DISPLAY.CONSULT}. A typical GP visit costs $60–120 before Medicare, plus the travel and wait. No Medicare rebate, but you'll likely still save, and definitely save time.`,
+    answer: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}, repeat medication from ${PRICING_DISPLAY.REPEAT_SCRIPT}, and consults from ${PRICING_DISPLAY.CONSULT}. A typical GP visit costs $60–120 before Medicare, plus the travel and wait. No Medicare rebate, but you'll likely still save, and definitely save time.`,
   },
   {
     question: "Does Medicare cover InstantMed?",
@@ -317,5 +332,5 @@ export const slaPolicy = {
     "High-demand periods (public holidays, flu season)",
   ],
   escalationNote: "If your request needs clarification, a doctor may message you or offer a brief call at no extra charge.",
-  refundNote: "If the doctor declines your request, you'll receive a full refund automatically.",
+  refundNote: GUARANTEE,
 }

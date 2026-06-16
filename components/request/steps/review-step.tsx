@@ -21,6 +21,7 @@ import { getAttribution } from "@/lib/analytics/attribution"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { PRICING as APP_PRICING } from "@/lib/constants"
+import { GUARANTEE_LABEL } from "@/lib/marketing/voice"
 import { getAddressReviewSummary } from "@/lib/request/address-metadata"
 import { getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
 import { normalizeMedicationEntriesAnswer, stringAnswer, stringArrayAnswer } from "@/lib/request/intake-answer-normalizers"
@@ -814,7 +815,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
             </span>
             <span className="flex items-center gap-1">
               <RefreshCw className="w-3 h-3" />
-              Full refund if declined
+              {GUARANTEE_LABEL}
             </span>
           </div>
           <div className="flex items-center gap-3">

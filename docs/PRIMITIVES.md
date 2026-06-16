@@ -56,7 +56,7 @@ Service-specific stat configurations for social proof strips.
 
 | Export | Type | What it provides |
 |--------|------|-----------------|
-| `PRICING` | `const object` | Raw prices: `MED_CERT` ($24.95), `MED_CERT_2DAY` ($29.95), `MED_CERT_3DAY` ($39.95), `REPEAT_SCRIPT` ($29.95), `NEW_SCRIPT` ($49.95), `CONSULT` ($49.95), `MENS_HEALTH` ($49.95), `HAIR_LOSS` ($49.95), `REFERRAL` ($29.95), `PATHOLOGY` ($29.95), `PRIORITY_FEE` ($9.95). Women's health and weight-loss prices are reserved future values only and must not render publicly until launch readiness is explicitly changed. |
+| `PRICING` | `const object` | Raw prices: `MED_CERT` ($24.95), `MED_CERT_2DAY` ($29.95), `MED_CERT_3DAY` ($39.95), `REPEAT_SCRIPT` ($29.95), `NEW_SCRIPT` ($49.95), `CONSULT` ($49.95), `MENS_HEALTH` ($49.95), `WOMENS_HEALTH` ($49.95), `HAIR_LOSS` ($49.95), `WEIGHT_LOSS` ($89.95 reserved), `REFERRAL` ($29.95), `PATHOLOGY` ($29.95), `PRIORITY_FEE` ($9.95). Women's health is active; weight-loss remains reserved/future and must not render as a live checkout path until launch readiness is explicitly changed. |
 | `PRICING_DISPLAY` | `const object` | Formatted strings: `MED_CERT` ("$24.95"), `FROM_MED_CERT` ("From $24.95"), `RANGE` ("$24.95 - $49.95"), etc. |
 
 **Rule:** Never hardcode a price. Stripe price IDs are mapped separately in `lib/stripe/price-mapping.ts`.
@@ -74,6 +74,7 @@ Service-specific stat configurations for social proof strips.
 | `MED_CERT_WEDGE` | `string` | Med-cert-only wedge: "No video. No call. No appointment." |
 | `FORM_FIRST_WEDGE` | `string` | Prescribing/specialty wedge: doctor contacts the patient only if clinically needed. |
 | `GUARANTEE` | `string` | Outcome guarantee: "Full refund if the doctor declines." |
+| `GUARANTEE_LABEL` | `string` | Compact display label: "Refund if declined". Use in stat strips, badges, and dense trust rows. |
 | `BANNED_PHRASES` | `readonly string[]` | Brand voice banned phrases enforced by tests. |
 
 **Rule:** Marketing surfaces must import voice constants instead of hardcoding wedge/guarantee copy. Healthcare advertising rules live in `docs/ADVERTISING_COMPLIANCE.md`; SEO rules live in `docs/SEO_CONTENT_POLICY.md`.

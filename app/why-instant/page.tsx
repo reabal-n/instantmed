@@ -12,6 +12,7 @@ import { ProcessSteps } from "@/components/sections/process-steps"
 import type { FeatureItem } from "@/components/sections/types"
 import { FAQSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared/navbar"
+import { GUARANTEE, ICONIC_HOOK } from "@/lib/marketing/voice"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 // =============================================================================
@@ -60,12 +61,12 @@ const whyInstantFaqs = [
   {
     question: "Will my GP appointment ever be replaced by InstantMed?",
     answer:
-      "No, and that is not the goal. InstantMed handles a specific set of common requests that do not require a physical exam (medical certificates, repeat medication, straightforward consults). For anything that needs an in-person assessment, our doctor will tell you so and you pay nothing.",
+      `No, and that is not the goal. InstantMed handles a specific set of common requests that do not require a physical exam (medical certificates, repeat medication, straightforward consults). For anything that needs an in-person assessment, our doctor will tell you so. ${GUARANTEE}`,
   },
   {
     question: "What if my request is more complicated than your form covers?",
     answer:
-      "Our doctor will message you for more information, or recommend you see someone in person. Either is on us. The full refund applies the moment the doctor records the decision.",
+      `Our doctor will message you for more information, or recommend you see someone in person. ${GUARANTEE}`,
   },
   {
     question: "What sources are these GP wait times from?",
@@ -227,7 +228,7 @@ export default function WhyInstantPage() {
 
           <CTABanner
             title="Ready when you are."
-            subtitle="Start with a secure form. Takes about 3 minutes. Full refund if the doctor declines."
+            subtitle={`${ICONIC_HOOK} ${GUARANTEE}`}
             ctaText="Get started"
             ctaHref="/request"
             secondaryText="See our guarantee"

@@ -45,7 +45,7 @@ export type ServiceColorToken =
   | "blue"     // ED treatment
   | "amber"    // hair loss (was `violet`; fixed in Phase 1)
   | "sky"      // general consult
-  | "pink"     // women's health (coming soon)
+  | "pink"     // women's health
   | "rose"     // weight loss (coming soon)
 
 export interface ServiceDef {
@@ -183,4 +183,16 @@ export function getComingSoonServices(): ServiceDef[] {
 
 export function getServiceBySlug(slug: string): ServiceDef | undefined {
   return getAllServices().find((s) => s.slug === slug)
+}
+
+export function getServiceMarketingHref(service: ServiceDef): string {
+  return `/${service.slug}`
+}
+
+export function getServiceRequestHref(service: ServiceDef): string {
+  if (service.serviceRoute === "consult" && service.subtype) {
+    return `/request?service=consult&subtype=${service.subtype}`
+  }
+
+  return `/request?service=${service.serviceRoute}`
 }

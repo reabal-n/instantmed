@@ -15,6 +15,7 @@ import { CTABanner } from "@/components/sections/cta-banner"
 import { FAQSection } from "@/components/sections/faq-section"
 import { FeatureGrid } from "@/components/sections/feature-grid"
 import { Timeline } from "@/components/sections/timeline"
+import { GUARANTEE } from "@/lib/marketing/voice"
 import { commercialComparisonLinks } from "@/lib/seo/commercial-links"
 import { getPatientCount } from "@/lib/social-proof"
 
@@ -34,7 +35,7 @@ const processSteps = [
   {
     title: "Get your document",
     description:
-      "If approved: med cert emailed as PDF, medication sent to your phone for any pharmacy. If declined, you get a full refund automatically.",
+      `If approved: med cert emailed as PDF, medication sent to your phone for any pharmacy. ${GUARANTEE}`,
   },
 ]
 
@@ -43,7 +44,7 @@ const features = [
     icon: <StickerIcon name="clock" size={44} />,
     title: "Fast turnaround",
     description:
-      "Doctor review follows when available. If declined, you get a full refund.",
+      `Doctor review follows when available. ${GUARANTEE}`,
   },
   {
     icon: <StickerIcon name="security-shield" size={44} />,
@@ -71,7 +72,7 @@ const servicePathways = [
     href: "/medical-certificate",
     summary: "For short-term illness, carer's leave, work, study, or employer evidence when a doctor can assess the request safely online.",
     doctorChecks: "Symptoms, dates, red flags, whether the request fits telehealth, and whether the period requested is clinically reasonable.",
-    outcome: "PDF certificate by email and dashboard if approved. Full refund if the doctor cannot issue one safely.",
+    outcome: `PDF certificate by email and dashboard if approved. ${GUARANTEE}`,
   },
   {
     title: "Online prescriptions",
@@ -96,7 +97,7 @@ const howItWorksGuide: GuideSectionData[] = [
     title: "What happens when you submit a request",
     paragraphs: [
       "When you fill in our questionnaire, you're providing the same information you'd give a GP in a face-to-face consultation: your symptoms, how long you've had them, relevant medical history, and any medications you're taking. The form is structured to capture the clinical details a doctor needs to make an informed assessment.",
-      "This isn't a rubber-stamp process. The doctor reads your responses, reviews your history if you've used the service before, and applies the same clinical judgement they would in a consulting room. If something doesn't add up, we'll ask for the missing detail through the platform. If your situation needs in-person care, we'll say so, and you get a full refund.",
+      `This isn't a rubber-stamp process. The doctor reads your responses, reviews your history if you've used the service before, and applies the same clinical judgement they would in a consulting room. If something doesn't add up, we'll ask for the missing detail through the platform. If your situation needs in-person care, we'll say so. ${GUARANTEE}`,
     ],
   },
   {
@@ -143,7 +144,7 @@ const HOW_IT_WORKS_FAQ = [
   { question: "Will my employer accept an online medical certificate?", answer: "Certificates from AHPRA-registered doctors can support workplace evidence requirements. Employer policies and individual circumstances may vary." },
   { question: "Do I need to be available for a call?", answer: "Usually no booked appointment is needed. You submit your form, the doctor reviews it, and we only interrupt you if something important is missing." },
   { question: "Do I need a Medicare card?", answer: "For medical certificates, no. For prescriptions and consultations, Medicare details are requested for identity and prescribing history verification, but this is a private service." },
-  { question: "What if my request is declined?", answer: "You get a full refund. If your situation requires in-person care or falls outside telehealth scope, the doctor will recommend appropriate next steps." },
+  { question: "What if my request is declined?", answer: `${GUARANTEE} If your situation requires in-person care or falls outside telehealth scope, the doctor will recommend appropriate next steps.` },
   { question: "Is my information private?", answer: "Completely. Your health data is encrypted with bank-level security and never shared with employers, insurers, or anyone else without your consent." },
   { question: "Can I use this for my kids?", answer: "We primarily serve adults (18+). Minors may be assessed with parental consent for certain services, but complex paediatric cases should be seen by a GP in person." },
   { question: "How do I receive my documents?", answer: "Medical certificates are emailed as PDFs and available in your patient dashboard. Prescriptions are sent as eScripts via SMS. Take your phone to any pharmacy." },

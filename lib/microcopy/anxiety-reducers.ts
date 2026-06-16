@@ -1,3 +1,5 @@
+import { GUARANTEE } from "@/lib/marketing/voice"
+
 export const ANXIETY_REDUCERS = {
   // Security reassurance
   security: {
@@ -18,7 +20,7 @@ export const ANXIETY_REDUCERS = {
   process: {
     whatHappens: "A real doctor reviews every request. Not a bot, not an algorithm.",
     moreInfo: "If they need more info, they'll reach out",
-    decline: "If the doctor declines, full refund. No awkward conversations.",
+    decline: `${GUARANTEE} No awkward conversations.`,
   },
 
   // Medicare validation
@@ -47,7 +49,7 @@ export const ANXIETY_REDUCERS = {
   // Trust builders
   trust: {
     doctors: "Reviewed by AHPRA-registered Australian doctors",
-    refund: "Full refund if the doctor declines.",
+    refund: GUARANTEE,
     privacy: "We never share your data",
     support: "Real humans if you need help",
   },

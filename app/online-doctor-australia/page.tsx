@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { GUARANTEE } from "@/lib/marketing/voice"
 import { getAllStateSlugs, statesData } from "@/lib/seo/data/states"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
@@ -72,7 +73,7 @@ const STATS = [
   { value: "AHPRA", label: "Registered doctors", context: "Every review by an Australian-registered doctor" },
   { value: "8am-10pm", label: "Review window", context: "Requests can be submitted 24/7" },
   { value: "24/7", label: "Request submission", context: "Rx + consult review follows when available" },
-  { value: `${PRICING_DISPLAY.MED_CERT}`, label: "From", context: "Full refund if declined" },
+  { value: `${PRICING_DISPLAY.MED_CERT}`, label: "From", context: GUARANTEE },
 ]
 
 const SERVICES = [
@@ -319,7 +320,7 @@ export default function OnlineDoctorAustraliaPage() {
                   already been stable on, or a consultation about a new or ongoing symptom. Each one
                   is handled by a doctor who reads your history, applies documented clinical
                   reasoning, and either issues what you need or writes back explaining why they
-                  can&apos;t. If they decline, you get a full refund - we would rather lose a fee
+                  can&apos;t. {GUARANTEE} We would rather lose a fee
                   than issue something that isn&apos;t clinically appropriate.
                 </p>
                 <p>
@@ -702,7 +703,7 @@ export default function OnlineDoctorAustraliaPage() {
               </Heading>
               <p className="text-muted-foreground mb-8">
                 Fill in the form, a doctor reviews it, your certificate or prescription is on the
-                way. Full refund if declined.
+                way. {GUARANTEE}
               </p>
               <div className="flex flex-wrap justify-center gap-3">
                 <Button asChild size="lg" className="rounded-full px-8">
@@ -721,8 +722,7 @@ export default function OnlineDoctorAustraliaPage() {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground mt-4">
-                From {PRICING_DISPLAY.MED_CERT} · AHPRA-registered doctors · Full refund if we
-                can&apos;t help
+                From {PRICING_DISPLAY.MED_CERT} · AHPRA-registered doctors · {GUARANTEE}
               </p>
             </div>
           </section>

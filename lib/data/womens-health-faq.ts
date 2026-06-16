@@ -1,4 +1,5 @@
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { GUARANTEE } from "@/lib/marketing/voice"
 
 export const WOMENS_HEALTH_FAQ = [
   {
@@ -15,7 +16,7 @@ export const WOMENS_HEALTH_FAQ = [
   },
   {
     question: "What if the doctor declines my request?",
-    answer: "Full refund, no questions. If we decline, the doctor will explain why and recommend next steps, which sometimes means seeing your regular GP or attending a clinic in person.",
+    answer: `${GUARANTEE} The doctor will explain why and recommend next steps, which sometimes means seeing your regular GP or attending a clinic in person.`,
   },
   {
     question: "Can I start or switch a contraceptive pill online?",

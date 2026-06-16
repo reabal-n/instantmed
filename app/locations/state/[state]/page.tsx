@@ -9,6 +9,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { GUARANTEE } from "@/lib/marketing/voice"
 import { getAllStateSlugs, getStateBySlug } from "@/lib/seo/data/states"
 import { ICEBOX_ROBOTS } from "@/lib/seo/index-policy"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
@@ -383,7 +384,7 @@ export default async function StatePage({ params }: PageProps) {
                 </Link>
               </Button>
               <p className="text-xs text-muted-foreground mt-4">
-                {PRICING_DISPLAY.FROM_MED_CERT} · AHPRA-registered doctors · Refund if declined
+                {PRICING_DISPLAY.FROM_MED_CERT} · AHPRA-registered doctors · {GUARANTEE}
               </p>
             </div>
           </section>

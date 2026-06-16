@@ -80,7 +80,7 @@ const PRICING_BULLETS = [
   "eScript sent to your phone once approved",
   "Collect from any Australian pharmacy",
   "A doctor may call you briefly before prescribing",
-  "Full refund if the doctor declines",
+  GUARANTEE,
 ]
 
 const LANDING_CONFIG: LandingPageConfig = {
@@ -125,7 +125,7 @@ function EDPricingSection({ isDisabled }: { isDisabled?: boolean }) {
             One flat fee. No hidden costs.
           </Heading>
           <p className="text-muted-foreground max-w-xl mx-auto text-balance">
-            Doctor review first. Full refund if declined.
+            Doctor review first. {GUARANTEE}
           </p>
         </Reveal>
 

@@ -19,6 +19,7 @@ import { Navbar } from '@/components/shared/navbar'
 import { Accordion, AccordionContent,AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { SectionPill } from '@/components/ui/section-pill'
 import { Button } from '@/components/uix'
+import { GUARANTEE } from '@/lib/marketing/voice'
 import type { BenefitPage, CertificatePage, ConditionPage, ResourcePage } from '@/lib/seo/pages'
 
 type PageUnion = ConditionPage | CertificatePage | BenefitPage | ResourcePage
@@ -275,7 +276,7 @@ export function SEOPageTemplate({ page, pageType }: SEOPageProps) {
                 Ready to get started?
               </h2>
               <p className="text-muted-foreground mb-6">
-                Complete your request in under 2 minutes. Full refund if the doctor declines.
+                Complete your request in under 2 minutes. {GUARANTEE}
               </p>
               <Button asChild size="lg" className="rounded-full">
                 <Link href="/request">

@@ -16,6 +16,7 @@ import { Navbar } from '@/components/shared/navbar'
 import { Button } from '@/components/ui/button'
 import { SectionPill } from '@/components/ui/section-pill'
 import { PRICING_DISPLAY } from '@/lib/constants'
+import { GUARANTEE } from '@/lib/marketing/voice'
 
 const baseUrl = 'https://instantmed.com.au'
 
@@ -310,7 +311,7 @@ export default function EmployerAcceptancePage() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <p className="mt-4 text-sm text-muted-foreground">{PRICING_DISPLAY.MED_CERT} • Refund if declined</p>
+              <p className="mt-4 text-sm text-muted-foreground">{PRICING_DISPLAY.MED_CERT} • {GUARANTEE}</p>
             </div>
           </section>
 

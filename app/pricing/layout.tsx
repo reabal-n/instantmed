@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 
 import { BreadcrumbSchema } from "@/components/seo"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { GUARANTEE } from "@/lib/marketing/voice"
 
 // Revalidate every 24 hours - pricing rarely changes
 export const revalidate = 86400
@@ -9,7 +10,7 @@ export const revalidate = 86400
 export const metadata: Metadata = {
   title: "Telehealth Pricing | No Hidden Fees",
   description:
-    `Med certs from ${PRICING_DISPLAY.MED_CERT}, prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}. No subscriptions, no hidden fees. Full refund if the doctor declines.`,
+    `Med certs from ${PRICING_DISPLAY.MED_CERT}, prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}. No subscriptions, no hidden fees. ${GUARANTEE}`,
   keywords: [
     "telehealth pricing australia",
     "online doctor cost",
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "Telehealth Pricing | Simple & Transparent | InstantMed",
-    description: `Medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}. No subscriptions, no hidden fees. Full refund if the doctor declines.`,
+    description: `Medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}. No subscriptions, no hidden fees. ${GUARANTEE}`,
     url: "https://instantmed.com.au/pricing",
     type: "website",
   },

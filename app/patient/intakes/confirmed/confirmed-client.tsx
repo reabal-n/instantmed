@@ -11,6 +11,7 @@ import { Heading } from "@/components/ui/heading"
 import { capture } from "@/lib/analytics/capture"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { buildPatientIntakeSuccessHref } from "@/lib/dashboard/routes"
+import { GUARANTEE } from "@/lib/marketing/voice"
 
 interface ConfirmedClientProps {
   intakeId?: string
@@ -68,8 +69,7 @@ export function ConfirmedClient({ intakeId, email, serviceName: _serviceName }: 
         <p className="text-sm text-muted-foreground">
           <span className="font-medium text-foreground">How does this work?</span>{" "}
           A real doctor reviews your request and decides based on your symptoms and history. 
-          If they need more info, they&apos;ll reach out. If your request isn&apos;t approved, 
-          you get a full refund.{" "}
+          If they need more info, they&apos;ll reach out. {GUARANTEE}{" "}
           <a href="/how-we-decide" className="text-primary hover:underline font-medium">
             Learn how we decide on requests →
           </a>

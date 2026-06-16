@@ -1,5 +1,6 @@
 import { AlertTriangle, Heart,Phone } from "lucide-react"
 
+import { GUARANTEE } from "@/lib/marketing/voice"
 import { cn } from "@/lib/utils"
 
 // =============================================================================
@@ -20,7 +21,7 @@ export const SAFETY_COPY = {
   full: {
     title: "Important safety information",
     body: "This is a telehealth service for non-urgent conditions. If you're experiencing a medical emergency, please call 000 immediately.",
-    refundNote: "If the doctor declines your request, you'll receive a full refund.",
+    refundNote: GUARANTEE,
   },
   // Compact one-liner
   compact: {

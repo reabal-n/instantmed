@@ -18,6 +18,7 @@ import { useReducedMotion } from "@/components/ui/motion"
 import { QUEUE_DISPLAY_CAP, type WaitState } from "@/lib/brand/wait-counter-types"
 import { buildPatientIntakeHref,PATIENT_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
+import { GUARANTEE } from "@/lib/marketing/voice"
 import { cn } from "@/lib/utils"
 
 import { IntakeStatusTracker } from "./intake-status-tracker"
@@ -53,7 +54,7 @@ const FAQ_ITEMS = [
   },
   {
     question: "What if my request isn't approved?",
-    answer: "You get a full refund. The doctor will explain why and suggest next steps if appropriate.",
+    answer: `${GUARANTEE} The doctor will explain why and suggest next steps if appropriate.`,
   },
   {
     question: "How do I get my document?",

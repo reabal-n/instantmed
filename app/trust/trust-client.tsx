@@ -25,6 +25,7 @@ import { Timeline } from "@/components/sections/timeline"
 import { Navbar } from "@/components/shared/navbar"
 import { Heading } from "@/components/ui/heading"
 import { usePatientCount } from "@/lib/hooks/use-patient-count"
+import { GUARANTEE, GUARANTEE_LABEL } from "@/lib/marketing/voice"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
 
@@ -187,7 +188,7 @@ export default function TrustPage() {
         <StatStrip
           stats={[
             { value: mounted ? patientCount : 420, suffix: "+", label: "Patients served" },
-            { value: mounted ? SOCIAL_PROOF.refundPercent : 100, suffix: "%", label: "Refund if declined" },
+            { value: mounted ? SOCIAL_PROOF.refundPercent : 100, suffix: "%", label: GUARANTEE_LABEL },
             { value: mounted ? SOCIAL_PROOF.averageResponseMinutes : 47, suffix: " min", label: "Avg response" },
             { value: mounted ? SOCIAL_PROOF.operatingDays : 7, suffix: " days/wk", label: "Available" },
           ]}
@@ -320,7 +321,7 @@ export default function TrustPage() {
               {[
                 "Every request is human-reviewed",
                 "General complaints responded to within 48 hours",
-                "Full refund if the doctor declines",
+                GUARANTEE,
                 "Escalation to Health Complaints Commissioner",
               ].map((point) => (
                 <li
@@ -399,7 +400,7 @@ export default function TrustPage() {
           subtitle={`Join ${mounted ? patientCount.toLocaleString() : "420"}+ Australians who've already made the switch.`}
           ctaText="Start a request"
           ctaHref="/request"
-          secondaryText="No account required · Full refund if request declined"
+          secondaryText={`No account required · ${GUARANTEE}`}
         />
       </main>
 

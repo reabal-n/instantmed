@@ -28,6 +28,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { getWaitState } from "@/lib/brand/wait-counter"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
+import { GUARANTEE, GUARANTEE_LABEL } from "@/lib/marketing/voice"
 import { cn } from "@/lib/utils"
 
 /**
@@ -76,7 +77,7 @@ const services: DetailedService[] = [
       "1, 2, or 3-day duration",
       "PDF certificate with a verifiable reference number",
       "Reviewed during AEST hours by an Australian doctor",
-      "Full refund if declined",
+      GUARANTEE,
     ],
     steps: [
       "Tell us what's going on (4 short questions)",
@@ -99,7 +100,7 @@ const services: DetailedService[] = [
       "eScript token delivered to your phone",
       "Accepted at every chemist in Australia",
       "Reviewed during AEST hours by an Australian doctor",
-      "Free decline if it isn't clinically appropriate",
+      GUARANTEE,
     ],
     steps: [
       "Search and confirm your medication",
@@ -122,7 +123,7 @@ const services: DetailedService[] = [
       "Validated IIEF-5 screening",
       "Daily, as-needed, or doctor-decides options",
       "eScript if clinically appropriate",
-      "Free decline if anything is unsafe (e.g. nitrates, cardiac risk)",
+      GUARANTEE,
     ],
     steps: [
       "Confidential intake (about 10 minutes)",
@@ -145,7 +146,7 @@ const services: DetailedService[] = [
       "Norwood-scale visual + medical history",
       "Doctor reviews treatment suitability",
       "eScript if clinically appropriate",
-      "Free decline if not clinically suitable",
+      GUARANTEE,
     ],
     steps: [
       "Tell us your goals and history",
@@ -168,7 +169,7 @@ const services: DetailedService[] = [
       "Structured UTI or contraception screen with safety checks",
       "Doctor reviews suitability",
       "eScript if clinically appropriate",
-      "Free decline, or a redirect to in-person care, if it isn't safe online",
+      GUARANTEE,
     ],
     steps: [
       "Tell us your symptoms or what you need",
@@ -220,7 +221,7 @@ const overviewFaqs = [
   },
   {
     question: "How much does it cost?",
-    answer: `Medical certificates from ${PRICING_DISPLAY.MED_CERT}. Repeat prescriptions ${PRICING_DISPLAY.REPEAT_SCRIPT}. ED and hair loss assessments ${PRICING_DISPLAY.MENS_HEALTH}. Flat fee, no Medicare rebate, full refund if the doctor declines.`,
+    answer: `Medical certificates from ${PRICING_DISPLAY.MED_CERT}. Repeat prescriptions ${PRICING_DISPLAY.REPEAT_SCRIPT}. ED and hair loss assessments ${PRICING_DISPLAY.MENS_HEALTH}. Flat fee, no Medicare rebate. ${GUARANTEE}`,
   },
   {
     question: "What if my concern doesn't fit any of these?",
@@ -321,7 +322,7 @@ export default async function ConsultOverviewPage() {
             </li>
             <li className="inline-flex items-center gap-1.5">
               <CheckCircle2 className="h-3.5 w-3.5 text-success" aria-hidden="true" />
-              Refund if declined
+              {GUARANTEE_LABEL}
             </li>
           </ul>
         </div>
@@ -485,9 +486,9 @@ export default async function ConsultOverviewPage() {
             </li>
             <li>
               <ShieldCheck className="mx-auto mb-2 h-5 w-5 text-primary" aria-hidden="true" />
-              <p className="text-sm font-medium text-foreground">Refund if declined</p>
+              <p className="text-sm font-medium text-foreground">{GUARANTEE_LABEL}</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                Decline = full refund. We'd rather route you correctly than keep your money.
+                {GUARANTEE} We'd rather route you correctly than keep your money.
               </p>
             </li>
           </ul>

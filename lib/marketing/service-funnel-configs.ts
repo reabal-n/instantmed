@@ -1,4 +1,5 @@
-import { PRICING_DISPLAY } from "@/lib/constants"
+import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
+import { GUARANTEE } from "@/lib/marketing/voice"
 import type { ServiceFunnelConfig } from '@/types/marketing'
 
 // repeatScriptFunnelConfig was retired 2026-04-28: /repeat-prescriptions
@@ -30,7 +31,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
       {
         icon: 'Shield',
         title: 'Erectile Dysfunction',
-        description: 'Discreet assessment and treatment for ED. Clinically proven medications prescribed if appropriate.',
+        description: 'Private ED assessment. A doctor reviews your form and only prescribes if clinically appropriate.',
         price: PRICING_DISPLAY.MENS_HEALTH,
         href: '/erectile-dysfunction',
       },
@@ -46,24 +47,24 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
 
   whoItsFor: {
     title: 'Is this right for you?',
-    subtitle: 'General consults are suitable for many common health concerns. Here\'s what to know.',
+    subtitle: 'Specialty pathways are for focused, structured online assessments. Here\'s what to know.',
     cards: [
       {
         icon: 'Check',
-        title: 'New health concerns',
-        description: 'Skin conditions, minor infections, cold/flu symptoms, allergies, or other non-urgent health issues you want assessed.',
+        title: 'Focused service needs',
+        description: 'ED or hair loss concerns that fit a structured online assessment.',
         type: 'positive',
       },
       {
         icon: 'Check',
-        title: 'Treatment advice',
-        description: 'Not sure if you need medication? Want a second opinion? A doctor can assess and advise on appropriate treatment.',
+        title: 'Doctor-led next steps',
+        description: 'You want a doctor review before any next step, not a medicine menu.',
         type: 'positive',
       },
       {
         icon: 'AlertCircle',
-        title: 'Call may be required',
-        description: 'Unlike med certs, specialty assessments may require a brief phone or video call so the doctor can properly assess you.',
+        title: 'Follow-up may be required',
+        description: 'Unlike routine medical certificates, specialty assessments may need a doctor message or call if something important is missing.',
         type: 'info',
       },
       {
@@ -77,7 +78,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
 
   howItWorks: {
     title: 'Three steps. A real doctor.',
-    subtitle: 'Start with a questionnaire, then a doctor assesses your situation, often with a brief call.',
+    subtitle: 'Start with a questionnaire, then a doctor assesses your situation and follows up only if needed.',
     steps: [
       {
         number: '1',
@@ -114,8 +115,8 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
       },
       {
         icon: 'Phone',
-        title: 'Expect a call',
-        description: 'The doctor may call you to discuss your symptoms if important information is missing. Please keep your phone nearby.',
+        title: 'Follow-up if needed',
+        description: 'The doctor may message or call you if important information is missing before a clinical decision.',
       },
       {
         icon: 'MessageCircle',
@@ -125,25 +126,24 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
       {
         icon: 'RefreshCw',
         title: 'If we can\'t help',
-        description: 'If your concern requires in-person examination, we\'ll advise you and provide a full refund.',
+        description: `If your concern requires in-person examination, we'll advise you. ${GUARANTEE}`,
       },
     ],
   },
 
   pricing: {
-    title: 'One flat fee. Save $30 to $70 vs a clinic.',
-    subtitle: `${PRICING_DISPLAY.CONSULT} flat fee. No gap fees, no surprises. Same quality of care as in-person.`,
-    price: 49.95,
-    originalPrice: 120,
+    title: 'One flat service fee.',
+    subtitle: `${PRICING_DISPLAY.CONSULT} doctor review. No subscription, no hidden platform fees.`,
+    price: PRICING.CONSULT,
     features: [
       'Full clinical assessment by an AHPRA-registered doctor',
-      'Phone or video consultation',
-      'Medication if clinically appropriate',
+      'Doctor follow-up only if clinically needed',
+      'Prescription only if clinically appropriate',
       'Referral letters if needed',
       'Follow-up messaging with your doctor',
       'Written summary of your consultation',
     ],
-    refundNote: 'Full refund if the doctor declines your request',
+    refundNote: GUARANTEE,
     medicareNote: 'Medicare rebates do not apply to telehealth consultations',
   },
 
@@ -195,7 +195,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
       },
       {
         question: 'What if my issue needs in-person care?',
-        answer: 'If the doctor determines your concern requires a physical examination, they\'ll let you know and recommend seeing a GP in person. You\'ll receive a full refund.',
+        answer: `If the doctor determines your concern requires a physical examination, they'll let you know and recommend seeing a GP in person. ${GUARANTEE}`,
       },
     ],
   },

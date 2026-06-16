@@ -8,14 +8,14 @@ import {
   MedicalServiceSchema,
   SpeakableSchema,
 } from "@/components/seo"
-import { PRICING } from "@/lib/constants"
+import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { WOMENS_HEALTH_FAQ } from "@/lib/data/womens-health-faq"
 
 export const revalidate = 86400
 
 export const metadata: Metadata = {
   title: { absolute: "Women's Health Assessment | UTI + Pill Online | InstantMed" },
-  description: `UTI and contraceptive pill assessment from an Australian doctor. Fill out a secure form, no booked appointment or waiting room. From $${PRICING.WOMENS_HEALTH.toFixed(2)}.`,
+  description: `UTI and contraceptive pill assessment from an Australian doctor. Fill out a secure form, no booked appointment or waiting room. From ${PRICING_DISPLAY.WOMENS_HEALTH}.`,
   keywords: [
     "uti assessment online australia",
     "online uti treatment australia",
@@ -47,7 +47,7 @@ export default function Page() {
     <>
       <SpeakableSchema
         name="Women's Health Assessment Online Australia"
-        description={`UTI and contraceptive pill assessment from an AHPRA-registered Australian doctor. From $${PRICING.WOMENS_HEALTH.toFixed(2)}. Start with a private online form. A doctor reviews it and decides what is clinically appropriate.`}
+        description={`UTI and contraceptive pill assessment from an AHPRA-registered Australian doctor. From ${PRICING_DISPLAY.WOMENS_HEALTH}. Start with a private online form. A doctor reviews it and decides what is clinically appropriate.`}
         url="/womens-health"
       />
       <FAQSchema faqs={[...WOMENS_HEALTH_FAQ]} />
@@ -64,7 +64,7 @@ export default function Page() {
       />
       <HealthArticleSchema
         title="Women's Health Assessment Online Australia"
-        description={`UTI and contraceptive pill assessment from an AHPRA-registered Australian doctor. Secure form-first review. From $${PRICING.WOMENS_HEALTH.toFixed(2)}.`}
+        description={`UTI and contraceptive pill assessment from an AHPRA-registered Australian doctor. Secure form-first review. From ${PRICING_DISPLAY.WOMENS_HEALTH}.`}
         url="/womens-health"
       />
       <WomensHealthLanding />

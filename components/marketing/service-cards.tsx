@@ -4,7 +4,7 @@ import { AlertCircle, ArrowRight, Check, Clock } from 'lucide-react'
 import Link from 'next/link'
 
 import { ServiceIconTile } from '@/components/icons/service-icons'
-import { type ServiceId, useServiceAvailability } from '@/components/providers/service-availability-provider'
+import { useServiceAvailability } from '@/components/providers/service-availability-provider'
 import { Button } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import { Reveal } from '@/components/ui/reveal'
@@ -23,9 +23,11 @@ interface ServiceCardProps {
 }
 
 function ServiceCard({ service, disabled }: ServiceCardProps) {
-  const priceLabel = "priceFrom" in service && typeof service.priceFrom === "number"
-    ? `From $${service.priceFrom.toFixed(2)}`
-    : null
+  const priceLabel = service.comingSoon
+    ? null
+    : service.pricePrefix
+      ? `${service.pricePrefix} ${service.price}`
+      : service.price
 
   return (
     <Link
@@ -205,7 +207,7 @@ export function ServiceCards() {
         {/* Active Service Cards Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-5">
           {activeServices.map((service, i) => {
-            const disabled = isServiceDisabled(service.id as ServiceId)
+            const disabled = isServiceDisabled(service.id)
             return (
               <Reveal key={service.id} delay={i * 0.05}>
                 <ServiceCard service={service} disabled={disabled} />

@@ -19,6 +19,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { PageBreadcrumbs } from "@/components/uix"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { GUARANTEE } from "@/lib/marketing/voice"
 import {
   type ComparisonEntry,
   COMPETITOR_COMPARISONS,
@@ -106,7 +107,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
       },
       {
         q: "What happens if the telehealth doctor declines my request?",
-        a: "A responsible telehealth service will tell you when your issue needs in-person care. At InstantMed, if a doctor can't safely help through telehealth, they'll advise you to see a GP or attend an emergency department - and you'll receive a full refund."
+        a: `A responsible telehealth service will tell you when your issue needs in-person care. At InstantMed, if a doctor can't safely help through telehealth, they'll advise you to see a GP or attend an emergency department. ${GUARANTEE}`
       },
       {
         q: "Does telehealth cost more than seeing a GP?",
@@ -196,7 +197,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
         { provider: "Qoctor", singleDayFrom: "$14.99", ahpraDoctors: true, notable: "Same-day from $14.99; optional priority queue; also offers referral letters." },
         { provider: "MIDOC", singleDayFrom: "$18", ahpraDoctors: true, notable: "Advertises certificates issued in about 15 minutes." },
         { provider: "NextClinic", singleDayFrom: "$19.90", ahpraDoctors: true, notable: "You pay only if the certificate is approved; one-business-hour target." },
-        { provider: "InstantMed", singleDayFrom: PRICING_DISPLAY.MED_CERT, ahpraDoctors: true, isInstantMed: true, notable: "One-off, no subscription; full refund if a doctor declines; also covers repeat prescriptions, ED and hair loss." },
+        { provider: "InstantMed", singleDayFrom: PRICING_DISPLAY.MED_CERT, ahpraDoctors: true, isInstantMed: true, notable: `One-off, no subscription. ${GUARANTEE} Also covers repeat prescriptions, ED and hair loss.` },
         { provider: "Updoc", singleDayFrom: "$24.95", ahpraDoctors: true, notable: "Single and multi-day certificates priced the same; optional monthly subscription plans." },
       ],
     },
@@ -241,7 +242,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
       },
       {
         q: "What happens if my online certificate request is declined?",
-        a: "A reputable service will explain why the request was declined and suggest next steps - usually seeing a GP in person. At InstantMed, declined requests receive a full refund. If a service keeps your money after declining, that's worth questioning."
+        a: `A reputable service will explain why the request was declined and suggest next steps - usually seeing a GP in person. At InstantMed, ${GUARANTEE} If a service keeps your money after declining, that's worth questioning.`
       },
       {
         q: "How long is an online medical certificate valid for?",

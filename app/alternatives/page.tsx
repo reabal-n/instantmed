@@ -3,6 +3,7 @@ import Link from "next/link"
 
 import { BreadcrumbSchema, FAQSchema, HealthArticleSchema } from "@/components/seo"
 import { PRICING } from "@/lib/constants"
+import { GUARANTEE } from "@/lib/marketing/voice"
 
 export const revalidate = 86400
 
@@ -254,7 +255,7 @@ export default function AlternativesPage() {
               If online telehealth fits your situation
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-              An AHPRA-registered Australian doctor reviews your request and emails the certificate to you as a PDF if approved. Full refund if declined.
+              An AHPRA-registered Australian doctor reviews your request and emails the certificate to you as a PDF if approved. {GUARANTEE}
             </p>
             <div className="pt-2">
               <Link

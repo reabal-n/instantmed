@@ -3,6 +3,7 @@ import Link from "next/link"
 
 import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
 import { Reveal } from "@/components/ui/reveal"
+import { GUARANTEE } from "@/lib/marketing/voice"
 
 // =============================================================================
 // DATA
@@ -61,7 +62,7 @@ const GUIDE_SECTIONS: Array<{
     paragraphs: [
       "We're transparent about what our doctors can and can't do via telehealth. Conditions suitable for remote assessment include straightforward, self-limiting illnesses, repeat prescriptions for stable medications, and medical certificates for short-term absences. These are situations where the clinical decision is based primarily on patient-reported history - the same information available remotely as in person.",
       "Conditions requiring a physical examination - suspicious skin lesions, acute joint injuries, chest pain, abdominal pain requiring palpation - are outside the scope of what we can safely assess remotely. WorkCover certificates have specific requirements that typically require an in-person examination. Extended absences beyond a few days generally benefit from face-to-face assessment, and we'll recommend this.",
-      "We'd rather refer you to the right care than pretend we can handle everything. If a doctor reviews your request and determines it's not appropriate for telehealth, they'll let you know and suggest the right next step - whether that's your regular GP, an emergency department, or a specialist. You'll receive a full refund if your request can't be fulfilled. Getting it right matters more than getting the sale.",
+      `We'd rather refer you to the right care than pretend we can handle everything. If a doctor reviews your request and determines it's not appropriate for telehealth, they'll let you know and suggest the right next step - whether that's your regular GP, an emergency department, or a specialist. ${GUARANTEE} Getting it right matters more than getting the sale.`,
     ],
   },
 ]

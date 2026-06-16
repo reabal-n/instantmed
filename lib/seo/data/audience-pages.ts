@@ -16,6 +16,7 @@ import {
 } from "lucide-react"
 
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { GUARANTEE } from "@/lib/marketing/voice"
 
 export interface AudiencePageConfig {
   slug: string
@@ -74,7 +75,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "How much does a medical certificate cost?",
-        a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. No hidden fees. If our doctor is unable to issue your certificate, you receive a full refund.`,
+        a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. No hidden fees. ${GUARANTEE}`,
       },
       {
         q: "Can my employer see my diagnosis?",
@@ -102,7 +103,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "What happens if the doctor declines my request?",
-        a: "If our doctor determines they cannot issue a certificate based on the information provided, you receive a full refund. They may also recommend you see a GP in person.",
+        a: `${GUARANTEE} They may also recommend you see a GP in person.`,
       },
     ],
     whyChoose: [
@@ -173,7 +174,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "How much does a certificate cost?",
-        a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. If the doctor cannot issue your certificate, you receive a full refund.`,
+        a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. ${GUARANTEE}`,
       },
       {
         q: "Will my school see my diagnosis on the certificate?",
@@ -201,7 +202,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "What happens if the doctor declines my request?",
-        a: "You receive a full refund. The doctor may recommend you see a GP in person for a more thorough assessment.",
+        a: `${GUARANTEE} The doctor may recommend you see a GP in person for a more thorough assessment.`,
       },
     ],
     whyChoose: [
@@ -272,7 +273,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "How much does a medical certificate cost?",
-        a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. No hidden fees. Full refund if the doctor is unable to issue your certificate.`,
+        a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. No hidden fees. ${GUARANTEE}`,
       },
       {
         q: "Will my employer see what I was sick with?",
@@ -300,7 +301,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "What happens if the doctor declines my request?",
-        a: "You receive a full refund. The doctor may suggest you see a GP in person for further assessment.",
+        a: `${GUARANTEE} The doctor may suggest you see a GP in person for further assessment.`,
       },
     ],
     whyChoose: [
@@ -365,7 +366,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "How much does a medical certificate cost?",
-        a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. Full refund if the doctor cannot issue your certificate.`,
+        a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. ${GUARANTEE}`,
       },
       {
         q: "Will my manager see what I was sick with?",
@@ -393,7 +394,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "What happens if the doctor declines my request?",
-        a: "You receive a full refund. The doctor may recommend you visit a GP in person for further assessment.",
+        a: `${GUARANTEE} The doctor may recommend you visit a GP in person for further assessment.`,
       },
     ],
     whyChoose: [
@@ -458,7 +459,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "How much does a medical certificate cost?",
-        a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. If the doctor cannot issue your certificate, you receive a full refund.`,
+        a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. ${GUARANTEE}`,
       },
       {
         q: "Will HR see my diagnosis?",
@@ -486,7 +487,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "What happens if the doctor declines my request?",
-        a: "You receive a full refund. The doctor may recommend you see a GP in person for a more thorough assessment.",
+        a: `${GUARANTEE} The doctor may recommend you see a GP in person for a more thorough assessment.`,
       },
     ],
     whyChoose: [
@@ -556,7 +557,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "How much does it cost?",
-        a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. Full refund if the doctor is unable to issue the certificate.`,
+        a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. ${GUARANTEE}`,
       },
       {
         q: "Will the certificate show my child's diagnosis?",
@@ -588,7 +589,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "What happens if the doctor declines the request?",
-        a: "You receive a full refund. The doctor may recommend you take your child to a GP in person for a more thorough assessment.",
+        a: `${GUARANTEE} The doctor may recommend you take your child to a GP in person for a more thorough assessment.`,
       },
     ],
     whyChoose: [
@@ -658,7 +659,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "How much does a certificate cost?",
-        a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. Full refund if the doctor cannot issue your certificate.`,
+        a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. ${GUARANTEE}`,
       },
       {
         q: "Will my employer see my diagnosis?",
@@ -686,7 +687,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "What happens if the doctor declines my request?",
-        a: "You receive a full refund. The doctor may recommend you visit a GP in person for a more thorough assessment.",
+        a: `${GUARANTEE} The doctor may recommend you visit a GP in person for a more thorough assessment.`,
       },
     ],
     whyChoose: [
@@ -755,7 +756,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "How much does a medical certificate cost?",
-        a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. Full refund if the doctor is unable to issue your certificate.`,
+        a: `A 1-day certificate is ${PRICING_DISPLAY.MED_CERT}, 2-day is ${PRICING_DISPLAY.MED_CERT_2DAY}, and 3-day is ${PRICING_DISPLAY.MED_CERT_3DAY}. ${GUARANTEE}`,
       },
       {
         q: "I don't have an employer - why would I need a certificate?",
@@ -787,7 +788,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "What happens if the doctor declines my request?",
-        a: "You receive a full refund. The doctor may suggest you see a GP in person for further assessment.",
+        a: `${GUARANTEE} The doctor may suggest you see a GP in person for further assessment.`,
       },
     ],
     whyChoose: [

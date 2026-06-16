@@ -2,13 +2,14 @@ import type { Metadata } from "next"
 
 import { BreadcrumbSchema, MedicalServiceSchema } from "@/components/seo"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
+import { GUARANTEE } from "@/lib/marketing/voice"
 
 import { PricingContent } from "./pricing-content"
 
 export const metadata: Metadata = {
   title: "Pricing | Transparent Telehealth Costs",
   description:
-    `Simple, transparent pricing for all InstantMed telehealth services. Medical certificates from ${PRICING_DISPLAY.MED_CERT}, prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}. No hidden fees, full refund if the doctor declines.`,
+    `Simple, transparent pricing for all InstantMed telehealth services. Medical certificates from ${PRICING_DISPLAY.MED_CERT}, prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}. No hidden fees. ${GUARANTEE}`,
   keywords: [
     "telehealth pricing australia",
     "online doctor cost",

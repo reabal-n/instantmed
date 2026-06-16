@@ -3,6 +3,7 @@ import Link from "next/link"
 
 import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
 import { Reveal } from "@/components/ui/reveal"
+import { GUARANTEE } from "@/lib/marketing/voice"
 
 // =============================================================================
 // DATA
@@ -41,7 +42,7 @@ const GUIDE_SECTIONS: Array<{
     paragraphs: [
       "Requests are declined when the doctor determines that approving them wouldn't be clinically appropriate. Common reasons include: the condition requires a physical examination that can't be done remotely, the medication needs monitoring (blood tests, blood pressure checks) that we can't verify, the symptoms suggest something more serious that warrants urgent or in-person care, or the information provided is incomplete and the patient hasn't responded to follow-up.",
       "A declined request is not a bad outcome. It's the system working exactly as designed. If every request were approved, you'd rightly question whether anyone was actually reviewing them. The doctor erring on the side of caution is a feature, not a bug. We'd rather refund your payment and point you to the right care than approve something we shouldn't.",
-      "If your request is declined, you receive a full refund automatically. No forms, no waiting, no \"we'll review your refund request within 5-7 business days.\" The doctor will also explain why the request wasn't approved and, where appropriate, recommend next steps - whether that's seeing your regular GP, visiting an urgent care clinic, or providing additional information for reconsideration.",
+      `${GUARANTEE} No forms, no waiting, no "we'll review your refund request within 5-7 business days." The doctor will also explain why the request wasn't approved and, where appropriate, recommend next steps - whether that's seeing your regular GP, visiting an urgent care clinic, or providing additional information for reconsideration.`,
     ],
   },
   {

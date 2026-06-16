@@ -12,6 +12,7 @@
  */
 
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { GUARANTEE } from "@/lib/marketing/voice"
 
 export interface ComparisonRow {
   feature: string
@@ -112,7 +113,7 @@ const instantmedVsHubHealth: ComparisonEntry = {
     { feature: "Median doctor response", instantmed: "~20 min for med certs", competitor: "Varies by program", winner: "instantmed" },
     { feature: "Cancel anytime", instantmed: "No subscription to cancel", competitor: "Yes, via account", winner: "tie" },
     { feature: "AHPRA-registered doctors", instantmed: true, competitor: true, winner: "tie" },
-    { feature: "Refund on declined request", instantmed: "100% on med cert/Rx, 50% on consults", competitor: "Varies by program", winner: "instantmed" },
+    { feature: "Refund on declined request", instantmed: GUARANTEE, competitor: "Varies by program", winner: "instantmed" },
   ],
   whenInstantMedBetter: [
     "You need a single service - a medical certificate, a repeat script, or a one-off consult",
@@ -465,7 +466,7 @@ const instantmedVsQoctor: ComparisonEntry = {
     { feature: "Repeat prescription commitment", instantmed: "Per-request only", competitor: "Per-request only", winner: "tie" },
   ],
   whenInstantMedBetter: [
-    "You want a clearly documented refund guarantee (100% on med cert/Rx declines)",
+    "You want a clearly documented refund guarantee when the doctor declines",
     "You need 24/7 availability for medical certificates",
     "You want the option to fast-track your review for a small add-on fee",
     "You prefer direct doctor messaging when clinical questions come up",
@@ -506,7 +507,7 @@ const instantmedVsQoctor: ComparisonEntry = {
     },
     {
       q: "What happens if my request is declined?",
-      a: "InstantMed refunds 100% of the fee if a medical certificate or prescription request is declined, and 50% if a consult request is declined (the doctor has still reviewed your case and produced a clinical note). Qoctor's refund policy should be checked directly on their terms - different services handle this differently.",
+      a: `InstantMed keeps the same refund promise across refundable request categories: ${GUARANTEE} Qoctor's refund policy should be checked directly on their terms - different services handle this differently.`,
     },
     {
       q: "Which service should I choose if I've never used telehealth before?",
@@ -577,7 +578,7 @@ const instantmedVsInstantScripts: ComparisonEntry = {
     { feature: "Repeat script commitment", instantmed: "Per-request", competitor: "Per-request", winner: "tie" },
     { feature: "24/7 medical certificates", instantmed: true, competitor: "Extended hours", winner: "instantmed" },
     { feature: "Direct doctor messaging", instantmed: true, competitor: "Varies by request", winner: "instantmed" },
-    { feature: "Refund on declined request", instantmed: "100% med cert/Rx, 50% consults", competitor: "Refund policy varies", winner: "instantmed" },
+    { feature: "Refund on declined request", instantmed: GUARANTEE, competitor: "Refund policy varies", winner: "instantmed" },
     { feature: "Brand recognition in Australia", instantmed: "Newer service", competitor: "Well established", winner: "competitor" },
   ],
   whenInstantMedBetter: [
@@ -622,11 +623,11 @@ const instantmedVsInstantScripts: ComparisonEntry = {
     },
     {
       q: "What's the refund policy difference?",
-      a: "InstantMed has a clearly documented policy: 100% refund on declined refundable categories. InstantScripts handles refunds through their own terms - check their policy directly. Services with explicit refund commitments reduce the financial risk of trying them for the first time.",
+      a: `InstantMed has a clearly documented policy: ${GUARANTEE} InstantScripts handles refunds through their own terms - check their policy directly. Services with explicit refund commitments reduce the financial risk of trying them for the first time.`,
     },
     {
       q: "Which service should I try first?",
-      a: "Both are legitimate options. If you're risk-averse and want a guaranteed refund if things don't work out, InstantMed's explicit refund policy makes it a safer trial. If you value an established brand and InstantScripts has worked well for friends or family, starting there is reasonable. There's no wrong answer - and you can always try the other one for your next request.",
+      a: `Both are legitimate options. If you're risk-averse, InstantMed's explicit refund policy (${GUARANTEE}) makes it a safer trial. If you value an established brand and InstantScripts has worked well for friends or family, starting there is reasonable. There's no wrong answer - and you can always try the other one for your next request.`,
     },
   ],
   guideContent: {

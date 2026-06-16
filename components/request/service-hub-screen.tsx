@@ -3,10 +3,8 @@
 /**
  * Service Hub Screen - Premium entry point for /request
  *
- * 5 active service cards (outcome-framed):
- *   Medical certificate · Repeat prescription · ED treatment · Hair loss · General consult
- * 2 coming-soon cards (muted, 2-col grid):
- *   Women's health · Weight management
+ * Active service cards are sourced from SERVICE_CATALOG.
+ * Weight management remains the only coming-soon service card.
  */
 
 import { ChevronRight, RotateCcw, Star, Trash2 } from "lucide-react"

@@ -10,7 +10,7 @@ import { Footer } from "@/components/shared/footer"
 import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
-import { PRICING_DISPLAY } from "@/lib/constants"
+import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import {
   isMedCertIntentSlug,
   medCertIntentConfigs,
@@ -229,7 +229,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
         <MedicalServiceSchema
           name={config.metadata.title.split("|")[0]?.trim() ?? config.h1}
           description={config.metadata.description}
-          price="24.95"
+          price={PRICING.MED_CERT.toFixed(2)}
         />
         <FAQSchema faqs={config.faqs} />
         <MedCertIntentPage config={config} />

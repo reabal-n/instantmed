@@ -1,4 +1,4 @@
-import { PRICING_DISPLAY } from "@/lib/constants"
+import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 
 import { JsonLdScript } from "./json-ld-script"
 
@@ -78,7 +78,7 @@ export function MedCertHowToSchema({ baseUrl = "https://instantmed.com.au" }: { 
       name="How to Get a Medical Certificate Online in Australia"
       description="Request a routine sick, study, or carer's leave certificate from an AHPRA-registered doctor online. No appointment needed."
       totalTime="PT120M"
-      estimatedCost="24.95"
+      estimatedCost={PRICING.MED_CERT.toFixed(2)}
       baseUrl={baseUrl}
       steps={[
         {
@@ -115,7 +115,7 @@ export function PrescriptionHowToSchema({ baseUrl = "https://instantmed.com.au" 
       name="How to Get a Prescription Online in Australia"
       description="Request a prescription from an AHPRA-registered doctor online. If approved, your eScript is sent directly to your phone."
       totalTime="PT120M"
-      estimatedCost="29.95"
+      estimatedCost={PRICING.REPEAT_SCRIPT.toFixed(2)}
       baseUrl={baseUrl}
       steps={[
         {

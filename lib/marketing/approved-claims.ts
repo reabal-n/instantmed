@@ -27,6 +27,7 @@ export type ApprovedClaimId =
   | "prop_phrase"
   | "iconic_hook"
   | "refund_guarantee"
+  | "refund_guarantee_label"
   | "trust_no_appointment_label"
   | "trust_no_appointment_tooltip"
   | "trust_simple_cert_label"
@@ -117,6 +118,13 @@ export const APPROVED_CLAIMS: Record<ApprovedClaimId, ApprovedClaim> = {
     contexts: ["platform", "checkout"],
     risk: "low",
     notes: "Outcome guarantee tied to documented clinical decline. Do not add time-bound review promises.",
+  },
+  refund_guarantee_label: {
+    id: "refund_guarantee_label",
+    text: "Refund if declined",
+    contexts: ["platform", "checkout"],
+    risk: "low",
+    notes: "Short display label for stats, badges, and dense trust rows. Use refund_guarantee for sentence copy.",
   },
   trust_no_appointment_label: {
     id: "trust_no_appointment_label",

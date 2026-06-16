@@ -8,6 +8,7 @@ import { useSyncExternalStore } from 'react'
 
 import { useReducedMotion } from '@/components/ui/motion'
 import { usePatientCount } from '@/lib/hooks/use-patient-count'
+import { GUARANTEE_LABEL } from '@/lib/marketing/voice'
 import { SOCIAL_PROOF } from '@/lib/social-proof'
 import { cn } from '@/lib/utils'
 
@@ -24,7 +25,7 @@ export interface StatEntry {
 export const STAT_PRESETS: Record<string, readonly StatEntry[]> = {
   'med-cert': [
     { icon: Clock, value: SOCIAL_PROOF.certTurnaroundMinutes, suffix: ' min', label: 'avg turnaround', color: 'text-primary' },
-    { icon: ShieldCheck, value: SOCIAL_PROOF.refundPercent, suffix: '%', label: 'refund if declined', color: 'text-success' },
+    { icon: ShieldCheck, value: SOCIAL_PROOF.refundPercent, suffix: '%', label: GUARANTEE_LABEL.toLowerCase(), color: 'text-success' },
     { icon: TrendingUp, value: SOCIAL_PROOF.operatingDays, suffix: '', label: 'days a week', color: 'text-primary' },
     { icon: Send, value: SOCIAL_PROOF.averageResponseMinutes, suffix: ' min', label: 'avg response', color: 'text-cyan-600' },
   ],
@@ -38,7 +39,7 @@ export const STAT_PRESETS: Record<string, readonly StatEntry[]> = {
     { icon: Clock, value: SOCIAL_PROOF.averageResponseMinutes, suffix: ' min', label: 'avg response', color: 'text-primary' },
     { icon: TrendingUp, value: SOCIAL_PROOF.operatingDays, suffix: '', label: 'days a week', color: 'text-primary' },
     { icon: ShieldCheck, value: SOCIAL_PROOF.ahpraVerifiedPercent, suffix: '%', label: 'doctor reviewed', color: 'text-success' },
-    { icon: CheckCircle2, value: SOCIAL_PROOF.refundPercent, suffix: '%', label: "refund if declined", color: 'text-success' },
+    { icon: CheckCircle2, value: SOCIAL_PROOF.refundPercent, suffix: '%', label: GUARANTEE_LABEL.toLowerCase(), color: 'text-success' },
   ],
 } as const
 
@@ -241,7 +242,7 @@ export function StatsStrip({
           <CheckCircle2 className="w-4 h-4 text-emerald-500" />
           <span>
             <span className="font-semibold text-foreground">{SOCIAL_PROOF.refundPercent}%</span>
-            <span className="text-muted-foreground ml-1">refund if declined</span>
+            <span className="text-muted-foreground ml-1">{GUARANTEE_LABEL.toLowerCase()}</span>
           </span>
         </div>
       )}

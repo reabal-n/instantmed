@@ -10,7 +10,7 @@ import { ConsultChatMockup } from '@/components/marketing/mockups/consult-chat-m
 import { EDHeroMockup } from '@/components/marketing/mockups/ed-hero-mockup'
 import { EScriptMockup } from '@/components/marketing/mockups/escript'
 import { HairLossHeroMockup } from '@/components/marketing/mockups/hair-loss-hero-mockup'
-import { type ServiceId,useServiceAvailability } from '@/components/providers/service-availability-provider'
+import { useServiceAvailability } from '@/components/providers/service-availability-provider'
 import { Button } from '@/components/ui/button'
 import { useReducedMotion } from '@/components/ui/motion'
 import { serviceCategories } from '@/lib/marketing/homepage'
@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils'
 const mockupMap: Record<string, React.ComponentType> = {
   'med-cert': CertificateMockup,
   'scripts': EScriptMockup,
+  'repeat-rx': EScriptMockup,
   'consult': ConsultChatMockup,
   'ed': EDHeroMockup,
   'hair-loss': HairLossHeroMockup,
@@ -109,10 +110,8 @@ export function ServicePicker() {
         >
           {serviceCategories.map((service) => {
             const isComingSoon = 'comingSoon' in service && service.comingSoon
-            const displayPrice = "priceFrom" in service && typeof service.priceFrom === "number"
-              ? service.priceFrom
-              : null
-            const disabled = isComingSoon || isServiceDisabled(service.id as ServiceId)
+            const priceLabel = service.pricePrefix ? `${service.pricePrefix} ${service.price}` : service.price
+            const disabled = isComingSoon || isServiceDisabled(service.id)
             const ServiceMockup = mockupMap[service.id]
 
             const cardContent = (
@@ -163,7 +162,7 @@ export function ServicePicker() {
 	                              {service.title}
 	                            </h3>
 	                            <p className="text-sm text-muted-foreground">
-                                {isComingSoon ? "Planned" : displayPrice ? `From $${displayPrice.toFixed(2)}` : "Available now"}
+                                {isComingSoon ? "Planned" : priceLabel}
                               </p>
 	                          </div>
                         </div>

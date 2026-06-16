@@ -59,11 +59,11 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
     tooltip: 'AHPRA-registered medical leadership maintains the clinical governance framework',
   },
   refund: {
-    id: 'refund', label: 'Full refund if declined', icon: ShieldCheck,
+    id: 'refund', label: getApprovedClaim("refund_guarantee_label"), icon: ShieldCheck,
     iconColor: 'text-emerald-600',
     pillClass: 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300',
     hasStyledTier: true,
-    tooltip: 'If your request cannot be approved, you get a full refund',
+    tooltip: getApprovedClaim("refund_guarantee"),
   },
   privacy: {
     id: 'privacy', label: 'Privacy Act protected', icon: Eye,

@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { FAQGroup } from "@/components/ui/faq-list"
 import { Heading } from "@/components/ui/heading"
+import { GUARANTEE } from "@/lib/marketing/voice"
 
 /* ────────────────────────────── Data ────────────────────────────── */
 
@@ -137,7 +138,7 @@ const doctorFaqs: FAQGroup[] = [
       {
         question: "What happens if the doctor has concerns about my request?",
         answer:
-          "If something important is missing, we'll ask for it. The reviewing doctor may also recommend that you see a GP in person, or decline the request entirely. If your request is declined for clinical reasons, you receive a full refund. We would rather refer you to the right care than issue something that is not clinically appropriate.",
+          `If something important is missing, we'll ask for it. The reviewing doctor may also recommend that you see a GP in person, or decline the request entirely. ${GUARANTEE} We would rather refer you to the right care than issue something that is not clinically appropriate.`,
       },
       {
         question: "What clinical oversight is in place?",

@@ -20,7 +20,8 @@ import {
 } from "@/components/seo/healthcare-schema"
 import { Button } from "@/components/ui/button"
 import { getWaitState } from "@/lib/brand/wait-counter"
-import { PRICING_DISPLAY } from "@/lib/constants"
+import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
+import { GUARANTEE } from "@/lib/marketing/voice"
 
 import { BusinessLeadForm } from "./business-lead-form"
 
@@ -136,7 +137,7 @@ const businessFaqs = [
   {
     question: "What happens if a request is declined?",
     answer:
-      "Full refund to the employee. Declined requests don't appear on your invoice. We'd rather route someone to their GP than charge for something outside online care scope.",
+      `${GUARANTEE} Declined requests don't appear on your invoice. We'd rather route someone to their GP than charge for something outside online care scope.`,
   },
   {
     question: "How long do reviews take?",
@@ -196,7 +197,7 @@ export default async function BusinessLandingPage() {
       <MedicalServiceSchema
         name="InstantMed for Business · Medical Certificates"
         description="Sick and carer leave certificates for Australian employees. Co-branded URL, monthly invoicing, AHPRA-registered doctors."
-        price={String(24.95)}
+        price={PRICING.MED_CERT.toFixed(2)}
       />
       <FAQSchema faqs={businessFaqs} />
 

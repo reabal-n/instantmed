@@ -19,6 +19,7 @@ import { TrustBadgeRow } from "@/components/shared/trust-badge"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 import { usePatientCount } from "@/lib/hooks/use-patient-count"
+import { GUARANTEE, GUARANTEE_LABEL } from "@/lib/marketing/voice"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 // =============================================================================
@@ -92,8 +93,7 @@ const VALUES = [
   {
     icon: <StickerIcon name="eye" size={48} />,
     title: "Full transparency",
-    description:
-      "Flat fees, no hidden costs. Full refund if the doctor declines. You'll always know exactly what you're paying for.",
+    description: `Flat fees, no hidden costs. ${GUARANTEE} You'll always know exactly what you're paying for.`,
   },
 ]
 
@@ -153,7 +153,7 @@ export function AboutClient() {
                   </Link>
                 </Button>
                 <p className="text-xs text-muted-foreground">
-                  Takes about 3 minutes. Refund if declined.
+                  Takes about 3 minutes. {GUARANTEE}
                 </p>
               </div>
             </div>
@@ -221,7 +221,7 @@ export function AboutClient() {
                   <div className="flex justify-center">
                     <AnimatedDonutChart
                       value={SOCIAL_PROOF.refundPercent}
-                      label="Refund if declined"
+                      label={GUARANTEE_LABEL}
                       size={140}
                       strokeWidth={12}
                     />

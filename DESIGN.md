@@ -288,7 +288,7 @@ Centered headline + animated stat counters. Used on: pricing, trust.
 <StatsHero
   pill="Label"
   title="Headline"
-  stats={[{ value: 100, suffix: "%", label: "Refund if declined" }]}
+  stats={[{ value: 100, suffix: "%", label: GUARANTEE_LABEL }]}
 />
 ```
 

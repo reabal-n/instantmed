@@ -30,6 +30,7 @@ import { Navbar } from "@/components/shared/navbar"
 import { Button } from "@/components/ui/button"
 import { PageBreadcrumbs } from "@/components/uix"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { GUARANTEE_LABEL } from "@/lib/marketing/voice"
 import { conditionsData } from "@/lib/seo/data/conditions"
 import { ICEBOX_ROBOTS, shouldIndexCondition } from "@/lib/seo/index-policy"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
@@ -78,7 +79,7 @@ const PLATFORM_STATS: StatItem[] = [
   { value: SOCIAL_PROOF.certTurnaroundMinutes, suffix: " min", label: "avg cert turnaround" },
   { value: SOCIAL_PROOF.averageResponseMinutes, suffix: " min", label: "avg doctor review" },
   { value: SOCIAL_PROOF.operatingDays, suffix: "", label: "days a week" },
-  { value: SOCIAL_PROOF.refundPercent, suffix: "%", label: "refund if declined" },
+  { value: SOCIAL_PROOF.refundPercent, suffix: "%", label: GUARANTEE_LABEL.toLowerCase() },
 ]
 
 export default async function ConditionPage({ params }: PageProps) {

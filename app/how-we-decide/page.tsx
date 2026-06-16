@@ -13,6 +13,7 @@ import { ProcessSteps } from "@/components/sections/process-steps"
 import type { ChecklistItem, FeatureItem, ProcessStep } from "@/components/sections/types"
 import { FAQSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared/navbar"
+import { GUARANTEE } from "@/lib/marketing/voice"
 
 // =============================================================================
 // FAQ DATA
@@ -33,7 +34,7 @@ const howWeDecideFaqs = [
   },
   {
     question: "Can I appeal a declined request?",
-    answer: "You can contact us at support@instantmed.com.au with additional information. The doctor may reconsider based on new details, or we can explain the clinical reasoning behind the decision. Either way, you'll receive a full refund for any declined request.",
+    answer: `You can contact us at support@instantmed.com.au with additional information. The doctor may reconsider based on new details, or we can explain the clinical reasoning behind the decision. ${GUARANTEE}`,
   },
   {
     question: "Do you use AI in the decision-making process?",
@@ -168,7 +169,7 @@ const afterSubmitSteps: ProcessStep[] = [
     number: 2,
     title: "You hear back",
     description:
-      "Approved? Your certificate or script is on its way. Declined? Full refund, no drama.",
+      `Approved? Your certificate or script is on its way. ${GUARANTEE}`,
   },
   {
     number: 3,
@@ -209,9 +210,7 @@ export default function HowWeDecidePage() {
         />
 
         <p className="mx-auto max-w-3xl text-center text-sm text-muted-foreground px-4 -mt-12 mb-8">
-          If your request is declined, you get a{" "}
-          <span className="font-medium text-foreground">full refund</span>. No
-          hassle.
+          {GUARANTEE} No hassle.
         </p>
 
         <FeatureGrid
