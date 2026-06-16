@@ -1,0 +1,7 @@
+interface:
+  display_name: "InstantMed Production Incident Review"
+  short_description: "Diagnose and recover production incidents"
+  default_prompt: "Use $instantmed-production-incident-review to investigate this InstantMed production issue."
+
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,7 @@
+interface:
+  display_name: "InstantMed Marketing Compliance Review"
+  short_description: "Review regulated health marketing copy"
+  default_prompt: "Use $instantmed-marketing-compliance-review to review this InstantMed public copy."
+
+policy:
+  allow_implicit_invocation: true

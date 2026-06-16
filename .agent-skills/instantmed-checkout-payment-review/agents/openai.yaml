@@ -1,0 +1,7 @@
+interface:
+  display_name: "InstantMed Checkout Payment Review"
+  short_description: "Review checkout, Stripe, and refund safety"
+  default_prompt: "Use $instantmed-checkout-payment-review to review this InstantMed payment change."
+
+policy:
+  allow_implicit_invocation: true

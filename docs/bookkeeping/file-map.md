@@ -1,9 +1,9 @@
 # Doc File Map
 
-> **Last updated:** 2026-06-12.
+> **Last updated:** 2026-06-16.
 > Single source of truth for the full canonical doc surface. A fresh contributor reads this file and knows the doc tree without grepping.
 >
-> **Doc-surface count:** 97 `.md` files per `scripts/doc-audit.sh` (which counts the root assistant docs, `wiki/*.md`, `docs/plans/**` working + archived plans, `docs/superpowers/plans/**`, and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-06-12: 89 -> 97 after adding the project wiki/context map.
+> **Doc-surface count:** 103 `.md` files per `scripts/doc-audit.sh` (which counts the root assistant docs, `.agent-skills/**/SKILL.md`, `wiki/*.md`, `docs/plans/**` working + archived plans, `docs/superpowers/plans/**`, and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-06-16: 97 -> 103 after adding the repo-owned InstantMed workflow skills.
 >
 > **Owner:** Operator. Update on every doc add, move, or delete. Bump the timestamp.
 
@@ -17,6 +17,19 @@
 | [AGENTS.md](../../AGENTS.md) | Generated from CLAUDE.md | Same. Never hand-edit. Run `scripts/sync-agent-doc.sh` after CLAUDE.md changes. |
 | [PRODUCT.md](../../PRODUCT.md) | Operator | `project-docs-drift-contract` |
 | [DESIGN.md](../../DESIGN.md) | Operator | `project-docs-drift-contract`; `marketing-copy-contract` |
+
+## .agent-skills/ — 6 workflow skills
+
+These are the canonical InstantMed-specific agent workflows. Run `scripts/sync-agent-skills.sh` after edits to refresh local Claude and Codex discovery folders.
+
+| File | Purpose | Pinned by |
+|------|---------|-----------|
+| [.agent-skills/instantmed-checkout-payment-review/SKILL.md](../../.agent-skills/instantmed-checkout-payment-review/SKILL.md) | Checkout, Stripe, refund, webhook, and payment-state safety review | `project-docs-drift-contract` |
+| [.agent-skills/instantmed-clinical-safety-review/SKILL.md](../../.agent-skills/instantmed-clinical-safety-review/SKILL.md) | Clinical policy, intake safety, service launch, prescribing, and doctor-review safety review | `project-docs-drift-contract` |
+| [.agent-skills/instantmed-doc-drift-repair/SKILL.md](../../.agent-skills/instantmed-doc-drift-repair/SKILL.md) | Documentation drift repair and source-of-truth routing | `project-docs-drift-contract` |
+| [.agent-skills/instantmed-marketing-compliance-review/SKILL.md](../../.agent-skills/instantmed-marketing-compliance-review/SKILL.md) | Regulated marketing, SEO, ads, claims, and public-copy compliance review | `project-docs-drift-contract` |
+| [.agent-skills/instantmed-production-incident-review/SKILL.md](../../.agent-skills/instantmed-production-incident-review/SKILL.md) | Production incident, outage, stuck-intake, integration, and recovery review | `project-docs-drift-contract` |
+| [.agent-skills/instantmed-ui-browser-verification/SKILL.md](../../.agent-skills/instantmed-ui-browser-verification/SKILL.md) | UI polish, patient/staff flow verification, browser proof, and visual QA | `project-docs-drift-contract` |
 
 ## wiki/ — 8 context-navigation docs
 

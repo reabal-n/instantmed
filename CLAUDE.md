@@ -74,7 +74,7 @@ All three are sanctioned for this repo. **agent-browser is explicitly allowed he
 
 ## InstantMed Workflow Skills
 
-Use these repo-specific skills automatically when the task matches. They are mirrored in `/Users/rey/.claude/skills` and `/Users/rey/.agents/skills` so Claude Code and Codex can both discover them. Treat safety, payment, incident, and doc-drift workflows as mandatory before edits; UI and marketing workflows are mandatory before final sign-off; trivial typo fixes and read-only explanation can use them as advisory routing.
+Use these repo-specific skills automatically when the task matches. The canonical source lives in `.agent-skills/`; `/Users/rey/.claude/skills` and `/Users/rey/.agents/skills` are generated install targets so Claude Code and Codex can both discover them. After changing any InstantMed skill, run `scripts/sync-agent-skills.sh`, then `scripts/sync-agent-skills.sh --check`. Treat safety, payment, incident, and doc-drift workflows as mandatory before edits; UI and marketing workflows are mandatory before final sign-off; trivial typo fixes and read-only explanation can use them as advisory routing.
 
 | Task trigger | Skill | Gate |
 |--------------|-------|------|

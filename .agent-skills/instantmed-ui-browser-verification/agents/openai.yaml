@@ -1,0 +1,7 @@
+interface:
+  display_name: "InstantMed UI Browser Verification"
+  short_description: "Polish UI and verify it in browser"
+  default_prompt: "Use $instantmed-ui-browser-verification to verify this InstantMed UI change."
+
+policy:
+  allow_implicit_invocation: true

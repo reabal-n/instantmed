@@ -49,6 +49,16 @@ const aiOnboarding = readProjectFile("docs/AI_ONBOARDING.md")
 const design = readProjectFile("DESIGN.md")
 const product = readProjectFile("PRODUCT.md")
 const testing = readProjectFile("docs/TESTING.md")
+const syncAgentSkills = readProjectFile("scripts/sync-agent-skills.sh")
+
+const expectedInstantMedSkills = [
+  "instantmed-checkout-payment-review",
+  "instantmed-clinical-safety-review",
+  "instantmed-doc-drift-repair",
+  "instantmed-marketing-compliance-review",
+  "instantmed-production-incident-review",
+  "instantmed-ui-browser-verification",
+]
 
 describe("project docs drift contract", () => {
   it("keeps root assistant docs aligned on hours, gated services, and staff dashboard rules", () => {
@@ -68,6 +78,39 @@ describe("project docs drift contract", () => {
       expect(source).toContain("OperatorShell")
       expect(source).toContain("`components/operator/*`")
       expect(source).toContain("`AGENTS.md` + `CLAUDE.md`")
+    }
+  })
+
+  it("keeps InstantMed workflow skills repo-owned and installable for Codex and Claude", () => {
+    const skillRoot = join(root, ".agent-skills")
+    const actualSkills = readdirSync(skillRoot, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .sort()
+
+    expect(actualSkills).toEqual(expectedInstantMedSkills)
+
+    for (const source of [agents, claude]) {
+      expect(source).toContain("The canonical source lives in `.agent-skills/`")
+      expect(source).toContain("/Users/rey/.claude/skills")
+      expect(source).toContain("/Users/rey/.agents/skills")
+      expect(source).toContain("scripts/sync-agent-skills.sh --check")
+      for (const skill of expectedInstantMedSkills) {
+        expect(source).toContain(`\`${skill}\``)
+      }
+    }
+
+    expect(syncAgentSkills).toContain('SOURCE_DIR=".agent-skills"')
+    expect(syncAgentSkills).toContain('"$HOME/.agents/skills"')
+    expect(syncAgentSkills).toContain('"$HOME/.claude/skills"')
+
+    for (const skill of expectedInstantMedSkills) {
+      const skillMarkdown = readProjectFile(`.agent-skills/${skill}/SKILL.md`)
+      const openAiConfig = readProjectFile(`.agent-skills/${skill}/agents/openai.yaml`)
+
+      expect(skillMarkdown).toContain(`name: ${skill}`)
+      expect(skillMarkdown).toContain("description: InstantMed")
+      expect(openAiConfig).toContain("allow_implicit_invocation: true")
     }
   })
 

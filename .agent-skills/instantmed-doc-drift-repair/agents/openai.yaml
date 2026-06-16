@@ -1,0 +1,7 @@
+interface:
+  display_name: "InstantMed Doc Drift Repair"
+  short_description: "Repair InstantMed documentation drift"
+  default_prompt: "Use $instantmed-doc-drift-repair to repair this InstantMed documentation drift."
+
+policy:
+  allow_implicit_invocation: true

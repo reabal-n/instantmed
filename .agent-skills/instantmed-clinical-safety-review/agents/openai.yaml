@@ -1,0 +1,7 @@
+interface:
+  display_name: "InstantMed Clinical Safety Review"
+  short_description: "Review clinical launch and safety changes"
+  default_prompt: "Use $instantmed-clinical-safety-review to review this InstantMed clinical or safety change."
+
+policy:
+  allow_implicit_invocation: true
