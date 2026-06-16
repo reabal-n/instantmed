@@ -147,4 +147,7 @@ Health Care), Health Hunter. They add no backlink value and read as miscategoris
 
 - Re-verify the listing when prices/services change — keep it consistent with the
   `/compare/online-medical-certificate-options` price table and live `PRICING_DISPLAY`.
-- Founding year: **2026**. Women's health / weight loss are **not** listed (unlaunched).
+- Founding year: **2026**. Weight loss is unlaunched and must not be listed.
+  Women's health launched 2026-06-15; add or change any directory category only
+  after re-verifying that the listing copy matches the live UTI + new/switch pill
+  scope.

@@ -125,7 +125,7 @@ Before turning on paid traffic for a new doctor on a service line, follow `docs/
 | Repeat prescriptions | All med-cert gates + `review_repeat_rx` granted + `prescribe_s4` granted + Parchment `user_id` linked + production Parchment smoke green + 10 cases reviewed manually with operator QA. `prescribe_s8` granted ONLY if AHPRA register confirms S8 authority. |
 | ED | All repeat-prescription gates + `review_ed` granted + 10 ED cases reviewed manually + nitrate + cardiac contraindication understanding confirmed. |
 | Hair loss | All repeat-prescription gates + `review_hair_loss` granted + 10 hair-loss cases reviewed manually + red-flag escalation understanding confirmed. |
-| Women's health (when launched) | Gated future. Capability + extra clinical onboarding required. |
+| Women's health | All repeat-prescription gates + `review_consults` granted + women's-health scope confirmed: UTI + new/switch pill only, with red-flag, pregnancy-risk, and contraception contraindication escalation understood. |
 | Weight loss (when launched) | Gated future. Capability + monitoring infrastructure + Medical Director sign-off required. |
 
 Production paid traffic gates per `docs/SERVICE_LAUNCH_CHECKLISTS.md` apply BEFORE turning on any campaign — these are SHARED across all doctors on a service line, not per-doctor.

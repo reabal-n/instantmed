@@ -1,9 +1,9 @@
 # Service Launch Checklists
 
-> Production gates for advertising repeat scripts, ED, and hair loss.
+> Production gates for advertising repeat scripts, ED, hair loss, and women's health.
 > Use this before turning on any non-med-cert paid traffic.
 
-**Last updated:** 2026-05-19
+**Last updated:** 2026-06-16
 
 ## Launch Rule
 
@@ -57,6 +57,20 @@ Do not turn on paid traffic for a prescribing or specialty service until every m
 | Photo policy | If photos are used, the page states why, storage handling, and what happens if the doctor cannot assess safely. If photos are not required, the flow must not imply visual diagnosis. | Ambiguous diagnostic promise. |
 | Parchment path | Approved case can be prescribed inside Parchment and patient notification completes. | Launch depends on manual workaround. |
 | Launch threshold | Start with hair-loss assessment intent, not medicine intent. Pause if more than 20% of paid cases are clinically unsuitable in the first 30 cases. | Spend attracts medicine shoppers instead of review intent. |
+
+## Women's Health
+
+Scope is live but deliberately narrow: UTI symptoms and new/switch contraceptive pill only. Continuing the same pill routes to repeat scripts; morning-after, period-pain, and other women's-health requests stay gated.
+
+| Gate | Requirement | Failure mode prevented |
+|------|-------------|------------------------|
+| Scope lock | `womens_health` remains active only through `LIVE_WOMENS_HEALTH_OPTIONS` (`uti`, `ocp_new`); `ocp_repeat` routes to repeat scripts; morning-after, period-pain, and "other" cannot reach checkout. | Broad "women's health clinic" demand enters an under-built pathway. |
+| UTI safety | UTI red flags and pregnancy/possible-pregnancy are required before checkout and decline to in-person care when present. Missing `utiRedFlags` or `utiPregnant` returns `REQUEST_MORE_INFO`, not payment. | Red-flag UTI or pregnancy-risk cases are paid before being redirected. |
+| New/switch pill safety | Pregnancy/possible-pregnancy blocks checkout; migraine with aura, clot history, and smoking risk create `REQUIRES_CALL` before any prescribing outcome. | Higher-risk contraception requests are treated as routine asynchronous repeats. |
+| Doctor surface | The case summary shows women's-health option, key safety answers, and escalation rationale so the doctor can approve, call, or decline without reconstructing the screener. | Structured safety work is lost after payment. |
+| Parchment path | Approved prescribing cases can be completed in Parchment and patient notification completes. | A live prescribing service depends on manual fulfilment. |
+| Paid landing page | Ads and pages stay narrow: UTI assessment or contraception review only. No antibiotic guarantee, pill guarantee, broad women's-health positioning, prescription medicine names, or no-call promise. | AHPRA/TGA/Google risk and unsuitable patient intent increase. |
+| Launch threshold | Keep the first 30 paid cases under daily manual review. Pause if refund rate exceeds 10%, unsuitable-case rate exceeds 20%, or doctor-contact rate exceeds 40%. | Paid traffic scales a high-friction or clinically unsuitable service. |
 
 ## Service-Specific Scorecard
 

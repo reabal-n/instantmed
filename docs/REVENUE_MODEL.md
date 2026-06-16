@@ -3,7 +3,7 @@
 > Canonical revenue model for the current one-off, solo-doctor operating phase.
 > Read this before changing pricing, service mix, growth targets, subscriptions, or staffing assumptions.
 
-**Last updated:** 2026-06-01
+**Last updated:** 2026-06-16
 
 ---
 
@@ -32,7 +32,7 @@ All canonical prices live in `lib/constants/index.ts`.
 | Repeat prescription | $29.95 |
 | ED consult | $49.95 |
 | Hair loss consult | $49.95 |
-| Women's health | $59.95 |
+| Women's health | $49.95 |
 | Weight loss | $89.95 |
 | Priority fee | $9.95 |
 
@@ -60,10 +60,10 @@ The business should not try to reach $1M with $24.95 med certs alone. It needs a
 | Repeat prescriptions | 15% | $30 | 462 | $13,860 |
 | Hair loss | 7% | $50 | 215 | $10,750 |
 | ED | 7% | $50 | 215 | $10,750 |
-| Women's health | 3% | $60 | 92 | $5,520 |
+| Women's health | 3% | $50 | 92 | $4,600 |
 | Weight loss | 3% | $90 | 92 | $8,280 |
 
-This mix produces about $103k monthly gross at roughly 3,076 orders/month. It leaves room for refunds and seasonality while still clearing the $83k/month target.
+This mix produces about $102k monthly gross at roughly 3,076 orders/month. It leaves room for refunds and seasonality while still clearing the $83k/month target.
 
 ### Solo-Doctor Reality Check
 

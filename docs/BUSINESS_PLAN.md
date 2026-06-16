@@ -3,7 +3,7 @@
 > Canonical business strategy for the current operating phase.
 > Read this file before changing service positioning, pricing, growth strategy, landing pages, ads, or roadmap priorities.
 
-**Last updated:** 2026-05-23
+**Last updated:** 2026-06-16
 
 ---
 
@@ -35,9 +35,9 @@ The current goal is to release and scale the platform to its realistic solo-doct
 | 5 | Women's health | Narrow specialist line | Keep scope tight and protocol-led. Avoid broad "women's health clinic" positioning. |
 | 6 | Weight loss | Manual/high-risk line | Highest monitoring and advertising risk. Keep manual-only until staffing and follow-up capacity exist. |
 
-General Consult was retired publicly on 2026-05-20. The `consult` service type stays in code as the parent category for ED and hair-loss subtypes only. `/consult` renders a services-overview page (preserves the SEO surface for "online doctor" queries); `/general-consult` 301s into it. There is no general fallback consult intake. Cases outside the specialised service lines route to GP or in-person care, not into the platform as a paid request.
+General Consult was retired publicly on 2026-05-20. The `consult` service type stays in code as the parent category for ED, hair-loss, and women's-health subtypes only. `/consult` renders a services-overview page (preserves the SEO surface for "online doctor" queries); `/general-consult` 301s into it. There is no general fallback consult intake. Cases outside the specialised service lines route to GP or in-person care, not into the platform as a paid request.
 
-Non-med-cert paid traffic must pass `docs/SERVICE_LAUNCH_CHECKLISTS.md` before launch. The checklist is the operating gate for repeat scripts, ED, and hair loss now that production Parchment is available.
+Non-med-cert paid traffic must pass `docs/SERVICE_LAUNCH_CHECKLISTS.md` before launch. The checklist is the operating gate for repeat scripts, ED, hair loss, and women's health now that production Parchment is available.
 
 ## 4. Positioning
 

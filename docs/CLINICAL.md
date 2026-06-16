@@ -186,7 +186,7 @@ Prescribing is framed as: "a possible outcome of clinician review, occurring sep
 | Repeat prescriptions | One-off eScript review for existing, stable medication only. Call/message if stability, medication history, monitoring, contraindications, or usual-prescriber context is unclear. |
 | Hair loss | One-off form-first doctor assessment. No subscription or outcome guarantee. Avoid drug names in acquisition copy. |
 | Erectile dysfunction | One-off form-first doctor assessment with strict contraindication screening. Cardiac history, nitrate/alpha-blocker use, uncertain medication history, or clinical discomfort requires contact or decline. |
-| Women's health | Gated future service. When launched, keep it narrow and protocol-led. Complex symptoms, pregnancy risk, STI risk, pelvic pain, heavy bleeding, or safety concerns require contact or in-person redirection. |
+| Women's health | Live for UTI + new/switch contraceptive pill only. Keep it narrow and protocol-led; pregnancy risk, UTI red flags, STI risk, pelvic pain, heavy bleeding, complex symptoms, or safety uncertainty require contact, decline, or in-person redirection. |
 | Weight loss | Gated future service. Manual review only in the solo-doctor phase. No automated approval. No ongoing monitoring promise unless operational capacity exists. |
 
 Subscriptions, monthly prescribing, pharmacy fulfilment, and ongoing check-in programs are not part of the current operating model.
