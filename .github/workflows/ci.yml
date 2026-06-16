@@ -31,6 +31,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Restore Next.js build cache
+        uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('app/**', 'components/**', 'content/**', 'lib/**', 'public/**', 'next.config.*', 'postcss.config.*', 'tailwind.config.*', 'tsconfig.json', 'package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('pnpm-lock.yaml') }}-
+
       - name: Check stack pins (Next + tooling/React/Tailwind/Framer Motion)
         run: bash scripts/check-stack-pins.sh
 
@@ -96,7 +104,7 @@ jobs:
       - name: Ban keyword-substring anti-pattern in clinical/safety code
         run: bash scripts/check-keyword-substring-antipattern.sh
 
-      - name: "Type-check and build (budget: 180s)"
+      - name: "Type-check and build (target: 180s, warning: 210s)"
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key-for-build

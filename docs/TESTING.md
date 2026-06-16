@@ -224,7 +224,7 @@ jobs:
       - pnpm typecheck                    # Explicit TypeScript gate
       - pnpm test --run --coverage        # Unit tests + coverage check
       - bash scripts/check-route-conflicts.sh
-      - pnpm build:release                # Production build, captured output, build-time budget warning
+      - pnpm build:release                # Production build, captured output, 180s target / 210s warning budget
   lighthouse:
     needs: build
     steps:
