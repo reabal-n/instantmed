@@ -72,6 +72,29 @@ All three are sanctioned for this repo. **agent-browser is explicitly allowed he
 - **agent-browser** (global CLI + skill) — approved for richer interactive verification: drive the real app (`agent-browser open http://localhost:3060` → `snapshot -i` → `click`/`fill` → `screenshot`), step through a full intake/checkout flow, exploratory QA, ref-based a11y assertions. Context-efficient. Needs the dev server already running (`preview_start` or `pnpm dev`).
 - **Playwright** (`pnpm e2e`, `PLAYWRIGHT=1`) — the committed E2E suite + CI release gate. Durable specs that own auth bypass, seeded data, and the no-PHI-prefetch network checks — not for ad-hoc "did my change work" loops.
 
+## InstantMed Workflow Skills
+
+Use these repo-specific skills automatically when the task matches. They are mirrored in `/Users/rey/.claude/skills` and `/Users/rey/.agents/skills` so Claude Code and Codex can both discover them. Treat safety, payment, incident, and doc-drift workflows as mandatory before edits; UI and marketing workflows are mandatory before final sign-off; trivial typo fixes and read-only explanation can use them as advisory routing.
+
+| Task trigger | Skill | Gate |
+|--------------|-------|------|
+| Clinical policy, intake safety, service launch/gating, consult subtypes, repeat Rx, women's health, ED, hair loss, med cert safety, triage, AI drafting, doctor review surfaces | `instantmed-clinical-safety-review` | Mandatory before edits |
+| Stripe checkout, guest checkout, retry payment, payment state, webhooks, refunds, decline refunds, price mapping, checkout recovery, intake lifecycle payment transitions | `instantmed-checkout-payment-review` | Mandatory before edits |
+| Public copy, homepage/service pages, SEO guides, ads, metadata, schema, claims, pricing copy, testimonials/reviews/social proof, email marketing | `instantmed-marketing-compliance-review` | Mandatory before final sign-off |
+| UI, UX, layout, motion, Tailwind, shadcn components, patient flows, marketing pages, staff cockpit, screenshots, browser or Playwright visual proof | `instantmed-ui-browser-verification` | Mandatory before final sign-off |
+| Production issue, incident, outage, stuck intake, failed payment, webhook DLQ, Sentry/Vercel/PostHog/Supabase/Stripe/Resend/Parchment recovery | `instantmed-production-incident-review` | Mandatory before edits or recovery |
+| Stale docs, source-of-truth drift, `doc:audit`, `CLAUDE.md`/`AGENTS.md`, wiki, architecture/clinical/ops/testing docs, model/version drift | `instantmed-doc-drift-repair` | Mandatory before edits |
+
+### Correction Ladder
+
+When an agent makes a mistake or the user corrects course, persist the learning at the strongest useful layer:
+
+1. **Contract test** — for mechanically checkable failures, such as code/docs model-version drift, route aliases, webhook dispatch parity, or status-transition rules.
+2. **Canonical doc update** — for durable product, clinical, privacy, operations, pricing, architecture, advertising, or launch-policy truth.
+3. **Skill update** — for workflow failures, such as missing guest checkout, retry-payment, doctor-surface, or browser-verification coverage in a repeated review path.
+4. **Memory only** — for personal preference or cross-repo working style that is not enforceable in this codebase, such as proof-scoping language.
+5. **No persistence** — for one-off context, temporary debugging notes, or assumptions that were useful only inside the current thread.
+
 ## Tech Stack
 
 Next.js 15.5 App Router (webpack) · React 18.3 · TypeScript 5.9 (strict) · Tailwind v4 · Supabase PostgreSQL + Auth · Node 24 LTS · Vercel Pro · Stripe v22 payments · Resend email · PostHog analytics · Sentry errors · Upstash Redis rate limiting · AI SDK (Anthropic + OpenAI) · Framer Motion v11

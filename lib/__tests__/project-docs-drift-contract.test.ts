@@ -44,6 +44,7 @@ function findRouteInventoryFiles(dir: string): string[] {
 const agents = readProjectFile("AGENTS.md")
 const claude = readProjectFile("CLAUDE.md")
 const architecture = readProjectFile("docs/ARCHITECTURE.md")
+const aiProvider = readProjectFile("lib/ai/provider.ts")
 const aiOnboarding = readProjectFile("docs/AI_ONBOARDING.md")
 const design = readProjectFile("DESIGN.md")
 const product = readProjectFile("PRODUCT.md")
@@ -118,6 +119,14 @@ describe("project docs drift contract", () => {
     expect(architecture).toContain(`### \`app/\` — ${appFiles.length} files, ${routeFiles.length} route files`)
     expect(architecture).toContain(`| \`app/api/\` | API routes (${apiRoutes.length} route files) |`)
     expect(architecture).toContain("Filesystem route-count drift is guarded by")
+  })
+
+  it("keeps architecture AI model docs aligned with the provider default", () => {
+    const defaultClinicalModel = aiProvider.match(/model:\s*process\.env\.ANTHROPIC_CLINICAL_MODEL\s*\|\|\s*process\.env\.CLAUDE_MODEL\s*\|\|\s*['"]([^'"]+)['"]/)?.[1]
+
+    expect(defaultClinicalModel).toBeTruthy()
+    expect(architecture).toContain(`| \`clinical\` | \`${defaultClinicalModel}\``)
+    expect(architecture).toContain(`| clinical | ${defaultClinicalModel} |`)
   })
 
   it("keeps ROADMAP.md pinned to current operating phase + last refreshed stamp + backlog provenance", () => {

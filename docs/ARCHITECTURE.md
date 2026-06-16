@@ -700,7 +700,7 @@ All AI usage is documentation-assistance only. Safety logic is deterministic (no
 
 | Config key | Model | Temperature | Max tokens | Used for |
 |-----------|-------|-------------|------------|---------|
-| `clinical` | `claude-opus-4-7` | n/a (deprecated) | 2,000 | Medical cert drafts, clinical note generation |
+| `clinical` | `claude-opus-4-8` | n/a (deprecated) | 2,000 | Medical cert drafts, clinical note generation |
 
 **Helper:** `getModelWithConfig("clinical")` is the only runtime model entrypoint.
 
@@ -932,7 +932,7 @@ Models in `lib/ai/provider.ts`. Routed through Vercel AI Gateway in production (
 
 | Profile | Model | Temp | Use |
 |---------|-------|------|-----|
-| clinical | claude-opus-4-7 | n/a | Medical documentation — high accuracy |
+| clinical | claude-opus-4-8 | n/a | Medical documentation — high accuracy |
 
 ## Key Pages
 
