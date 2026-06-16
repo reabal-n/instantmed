@@ -60,9 +60,12 @@ async function clickContinue(page: Page) {
 
 async function selectUtiCleanSafetyPath(page: Page) {
   await expect(page.getByText(/Which symptoms do you have/i)).toBeVisible({ timeout: 10000 })
-  await page.locator("#uti-burning").click()
   await page
-    .getByRole("radiogroup", { name: /fever, back or flank pain/i })
+    .getByRole("group", { name: /UTI symptoms/i })
+    .getByRole("button", { name: /Burning or stinging/i })
+    .click()
+  await page
+    .getByRole("radiogroup", { name: /fever, flank or back pain/i })
     .getByRole("radio", { name: /^No$/ })
     .click()
   await page
@@ -175,7 +178,7 @@ test.describe("Consult Sub-Services", () => {
     // Type step: only UTI + contraception are live; morning-after / period-pain
     // render as disabled "coming soon".
     await expect(page.getByText(/What do you need today/i)).toBeVisible({ timeout: 10000 })
-    await page.getByRole("button", { name: /UTI symptoms/i }).click()
+    await page.getByRole("radio", { name: /UTI symptoms/i }).click()
     await page.getByRole("button", { name: /^Continue$/i }).last().click()
 
     // UTI assessment: pick a symptom, no red flags, not pregnant.
@@ -195,7 +198,7 @@ test.describe("Consult Sub-Services", () => {
     await page.waitForURL(/subtype=womens_health/, { timeout: 15000 })
 
     await expect(page.getByText(/What do you need today/i)).toBeVisible({ timeout: 10000 })
-    await page.getByRole("button", { name: /UTI symptoms/i }).click()
+    await page.getByRole("radio", { name: /UTI symptoms/i }).click()
     await clickContinue(page)
 
     await selectUtiCleanSafetyPath(page)
