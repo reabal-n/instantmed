@@ -11,7 +11,7 @@
 
 import * as React from "react"
 import { renderToStaticMarkup } from "react-dom/server"
-import { describe, expect,it } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 // All templates
 import {
@@ -104,6 +104,15 @@ function expectContains(html: string, ...substrings: string[]) {
 // ============================================================================
 
 describe("Email Templates", () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date("2026-04-11T00:00:00+10:00"))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   describe("WelcomeEmail", () => {
     it("renders with base structure and patient name", () => {
       const html = render(<WelcomeEmail patientName="Sarah Chen" appUrl={APP_URL} />)

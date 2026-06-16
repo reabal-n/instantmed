@@ -15,12 +15,12 @@ import {
   Sparkles,
   Zap,
 } from "lucide-react"
+import dynamic from "next/dynamic"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useMemo, useState, useTransition } from "react"
 import { toast } from "sonner"
 
-import { revokeAIApproval } from "@/app/actions/revoke-ai-approval"
 import { quickPrescribeRenewalAction } from "@/app/doctor/queue/actions"
 import { IntakeFlagsBadge } from "@/components/doctor/intake-flags-panel"
 import { PatientProfilePanel } from "@/components/doctor/patient-profile-panel"
@@ -28,22 +28,6 @@ import { usePanel } from "@/components/panels/panel-provider"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
 import { Pagination, UserCard } from "@/components/uix"
 import { capture } from "@/lib/analytics/capture"
 import { parseIntakeFlags } from "@/lib/clinical/intake-flags"
@@ -64,6 +48,10 @@ import type { IntakeWithPatient } from "@/types/db"
 
 import type { PaginationInfo } from "./types"
 import type { QueueDialogState } from "./use-queue-dialogs"
+
+const QueueDialogs = dynamic(() => import("./queue-dialogs").then((mod) => mod.QueueDialogs), {
+  loading: () => null,
+})
 
 /**
  * Map a consult subtype to a short scanning-aid label for the queue chip.
@@ -185,35 +173,7 @@ export function QueueTable({
   doctorId,
   lastOpenedIntakeId,
   onRememberOpenedCase,
-  dialogs: {
-    declineDialog,
-    setDeclineDialog,
-    declineReasonCode,
-    setDeclineReasonCode,
-    declineReasonNote,
-    setDeclineReasonNote,
-    declineTemplates,
-    handleDecline,
-    handleDeclineTemplateChange,
-    requiresNote,
-    infoDialog,
-    setInfoDialog,
-    infoTemplateCode,
-    infoMessage,
-    setInfoMessage,
-    infoTemplates,
-    handleRequestInfo,
-    handleInfoTemplateChange,
-    flagDialog,
-    setFlagDialog,
-    flagReason,
-    setFlagReason,
-    handleFlag,
-    revokeDialog,
-    setRevokeDialog,
-    revokeReason,
-    setRevokeReason,
-  },
+  dialogs,
   aiApprovedIntakes,
   recentlyCompleted,
   pagination,
@@ -229,10 +189,12 @@ export function QueueTable({
 }: QueueTableProps) {
   const router = useRouter()
   const { openPanel } = usePanel()
-  const [isRevokePending, startTransition] = useTransition()
   const [quickPrescribePending, startQuickPrescribeTransition] = useTransition()
   const [completedExpanded, setCompletedExpanded] = useState(false)
   const [aiExpanded, setAiExpanded] = useState(false)
+  const hasOpenQueueDialog = Boolean(
+    dialogs.declineDialog || dialogs.infoDialog || dialogs.flagDialog || dialogs.revokeDialog,
+  )
 
   const totalPages = pagination ? Math.ceil(pagination.total / pagination.pageSize) : 1
   const currentPage = pagination?.page ?? 1
@@ -725,7 +687,7 @@ export function QueueTable({
                         variant="ghost"
                         size="sm"
                         className="h-8 px-2.5 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={(e) => { e.stopPropagation(); setDeclineDialog(intake.id) }}
+                        onClick={(e) => { e.stopPropagation(); dialogs.setDeclineDialog(intake.id) }}
                         disabled={isPending}
                       >
                         Decline
@@ -737,7 +699,7 @@ export function QueueTable({
                         aria-label={`Request more information for ${intake.patient.full_name}`}
                         onClick={(e) => {
                           e.stopPropagation()
-                          setInfoDialog(intake.id)
+                          dialogs.setInfoDialog(intake.id)
                         }}
                         title="Request more info"
                       >
@@ -915,7 +877,7 @@ export function QueueTable({
                       className="text-xs text-destructive hover:text-destructive shrink-0"
                       onClick={(e) => {
                         e.stopPropagation()
-                        setRevokeDialog(intake.id)
+                        dialogs.setRevokeDialog(intake.id)
                       }}
                     >
                       Revoke
@@ -1022,221 +984,7 @@ export function QueueTable({
         </div>
       )}
 
-      {/* Revoke AI Approval Dialog */}
-      <Dialog
-        open={!!revokeDialog}
-        onOpenChange={() => {
-          setRevokeDialog(null)
-          setRevokeReason("")
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Revoke AI-Approved Certificate</DialogTitle>
-            <DialogDescription>
-              This will invalidate the certificate and move the request back to the review queue. The patient will be
-              notified.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Reason for revocation</label>
-              <Textarea
-                value={revokeReason}
-                onChange={(e) => setRevokeReason(e.target.value)}
-                placeholder="Explain why this certificate should be revoked..."
-                className="min-h-[80px] resize-none"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setRevokeDialog(null)
-                setRevokeReason("")
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={revokeReason.trim().length < 5 || isRevokePending}
-              onClick={() => {
-                if (!revokeDialog) return
-                startTransition(async () => {
-                  const result = await revokeAIApproval({ intakeId: revokeDialog, reason: revokeReason.trim() })
-                  if (result.success) {
-                    toast.success("Certificate revoked. Request moved back to queue.")
-                    setRevokeDialog(null)
-                    setRevokeReason("")
-                    router.refresh()
-                  } else {
-                    toast.error(result.error || "Failed to revoke certificate")
-                  }
-                })
-              }}
-            >
-              {isRevokePending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
-              Revoke Certificate
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Decline Dialog */}
-      <Dialog
-        open={!!declineDialog}
-        onOpenChange={() => {
-          setDeclineDialog(null)
-          setDeclineReasonCode("")
-          setDeclineReasonNote("")
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Decline Request</DialogTitle>
-            <DialogDescription>Select a reason. The patient will be notified by email.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <p className="text-sm font-medium mb-2.5">Reason</p>
-              <div className="flex flex-wrap gap-2">
-                {declineTemplates.map((template) => (
-                  <button
-                    key={template.code}
-                    onClick={() => handleDeclineTemplateChange(template.code)}
-                    className={cn(
-                      "px-3 py-1.5 rounded-full text-sm border transition-colors",
-                      declineReasonCode === template.code
-                        ? "bg-destructive text-destructive-foreground border-destructive"
-                        : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/30"
-                    )}
-                  >
-                    {template.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            {declineReasonCode && (
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Note {requiresNote ? "(required)" : "(optional)"}
-                </label>
-                <Textarea
-                  placeholder="Additional details for the patient..."
-                  value={declineReasonNote}
-                  onChange={(e) => setDeclineReasonNote(e.target.value)}
-                  className="min-h-[80px]"
-                  autoFocus
-                />
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setDeclineDialog(null)
-                setDeclineReasonCode("")
-                setDeclineReasonNote("")
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDecline}
-              disabled={!declineReasonCode || (requiresNote && !declineReasonNote.trim()) || isPending}
-            >
-              Decline & Notify
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Info Request Dialog */}
-      <Dialog
-        open={!!infoDialog}
-        onOpenChange={() => {
-          setInfoDialog(null)
-          setInfoMessage("")
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Request More Information</DialogTitle>
-            <DialogDescription>The patient will be notified by email.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">What do you need?</label>
-              <Select value={infoTemplateCode} onValueChange={handleInfoTemplateChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {infoTemplates.map((template) => (
-                    <SelectItem key={template.code} value={template.code}>
-                      {template.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">Message to patient</label>
-              <Textarea
-                placeholder="Explain what you need..."
-                value={infoMessage}
-                onChange={(e) => setInfoMessage(e.target.value)}
-                className="min-h-[100px]"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setInfoDialog(null)
-                setInfoMessage("")
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleRequestInfo}
-              disabled={!infoTemplateCode || !infoMessage.trim() || isPending}
-            >
-              Send Request
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Flag Dialog */}
-      <Dialog open={!!flagDialog} onOpenChange={() => setFlagDialog(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Flag for Follow-up</DialogTitle>
-            <DialogDescription>Add a note about why this case needs follow-up.</DialogDescription>
-          </DialogHeader>
-          <Textarea
-            placeholder="Follow-up reason..."
-            value={flagReason}
-            onChange={(e) => setFlagReason(e.target.value)}
-            className="min-h-[100px]"
-          />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setFlagDialog(null)}>
-              Cancel
-            </Button>
-            <Button onClick={handleFlag} disabled={!flagReason.trim() || isPending}>
-              Flag
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {hasOpenQueueDialog ? <QueueDialogs dialogs={dialogs} /> : null}
     </>
   )
 }

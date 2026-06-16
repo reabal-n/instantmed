@@ -4,7 +4,11 @@ import {
   AdminIntakesLedgerClient,
   type AdminIntakesLedgerInitialFilters,
 } from "@/app/admin/intakes/intakes-ledger-client"
-import { OperatorPage, OperatorPageHeader, OperatorScrollArea } from "@/components/operator"
+import {
+  OperatorPage,
+  OperatorPageHeader,
+  OperatorScrollArea,
+} from "@/components/operator/operator-page"
 import { PanelProvider } from "@/components/panels/panel-provider"
 import { requireRole } from "@/lib/auth/helpers"
 import {

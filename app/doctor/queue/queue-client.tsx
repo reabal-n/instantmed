@@ -6,8 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
-import { ApprovedTodayList } from "@/components/doctor/approved-today-list"
-import { OperatorSplitPane } from "@/components/operator"
+import { OperatorSplitPane } from "@/components/operator/operator-page"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
 import {
@@ -79,57 +78,26 @@ function IntakeReviewPanelLoading() {
       data-review-skeleton-matched
     >
       <div className="flex h-full w-full flex-col gap-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="space-y-2">
-            <div className={cn(pulse, "h-7 w-56")} />
-            <div className={cn(pulse, "h-4 w-28 rounded-full")} />
-          </div>
-          <div className="flex gap-2">
-            <div className={cn(pulse, "h-8 w-24 rounded-lg")} />
-            <div className={cn(pulse, "h-8 w-20 rounded-lg")} />
-            <div className={cn(pulse, "h-8 w-24 rounded-lg")} />
-          </div>
+        <div className="space-y-2">
+          <div className={cn(pulse, "h-7 w-56")} />
+          <div className={cn(pulse, "h-4 w-28 rounded-full")} />
         </div>
-        <div className="rounded-xl border border-border/55 bg-muted/20 p-3">
-          <div className="grid gap-2 sm:grid-cols-4">
-            <div className={cn(pulse, "h-5 rounded-md")} />
-            <div className={cn(pulse, "h-5 rounded-md")} />
-            <div className={cn(pulse, "h-5 rounded-md")} />
-            <div className={cn(pulse, "h-5 rounded-md")} />
-          </div>
-        </div>
-        <div className="min-h-[116px] rounded-xl border border-border/50 bg-card p-4">
-          <div className={cn(pulse, "h-3 w-28")} />
-          <div className={cn(pulse, "mt-3 h-5 w-full max-w-[70ch]")} />
-          <div className={cn(pulse, "mt-2 h-5 w-4/5")} />
+        <div className="grid gap-2 rounded-xl border border-border/55 bg-muted/20 p-3 sm:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className={cn(pulse, "h-5")} />
+          ))}
         </div>
         <div className="min-h-[136px] rounded-xl border border-border/50 bg-card p-4" data-review-skeleton-reserved>
           <div className={cn(pulse, "h-3 w-32")} />
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            <div className={cn(pulse, "h-10 rounded-lg")} />
-            <div className={cn(pulse, "h-10 rounded-lg")} />
-            <div className={cn(pulse, "h-10 rounded-lg")} />
-            <div className={cn(pulse, "h-10 rounded-lg")} />
-          </div>
+          <div className={cn(pulse, "mt-3 h-20 rounded-lg")} />
         </div>
         <div className="min-h-[154px] rounded-xl border border-border/50 bg-card p-4" data-review-skeleton-reserved>
           <div className={cn(pulse, "h-3 w-24")} />
           <div className={cn(pulse, "mt-3 h-4 w-full")} />
-          <div className={cn(pulse, "mt-2 h-4 w-11/12")} />
           <div className={cn(pulse, "mt-2 h-4 w-10/12")} />
-          <div className={cn(pulse, "mt-4 h-8 w-44 rounded-lg")} />
-        </div>
-        <div className="grid gap-3 md:grid-cols-2">
-          <div className={cn(pulse, "h-20 rounded-lg")} />
-          <div className={cn(pulse, "h-20 rounded-lg")} />
-          <div className={cn(pulse, "h-20 rounded-lg")} />
-          <div className={cn(pulse, "h-20 rounded-lg")} />
         </div>
         <div className="mt-auto rounded-xl border-t border-border bg-background/80 px-3 py-2">
-          <div className="flex items-center justify-between gap-3">
-            <div className={cn(pulse, "h-5 w-52")} />
-            <div className={cn(pulse, "h-8 w-44 rounded-lg")} />
-          </div>
+          <div className={cn(pulse, "h-8 w-full max-w-44 rounded-lg")} />
         </div>
       </div>
     </div>
@@ -148,6 +116,13 @@ const loadIntakeReviewPanel = () =>
 
 const IntakeReviewPanel = dynamic<LazyIntakeReviewPanelProps>(loadIntakeReviewPanel, {
   loading: () => <IntakeReviewPanelLoading />,
+})
+
+const ApprovedTodayList = dynamic<{
+  intakes: IntakeWithPatient[]
+  className?: string
+}>(() => import("@/components/doctor/approved-today-list").then((mod) => mod.ApprovedTodayList), {
+  loading: () => null,
 })
 
 /**
@@ -686,6 +661,13 @@ export function QueueClient({
     if (!removedIntake) return
     const removedIndex = intakes.findIndex((r) => r.id === intakeId)
     setIntakes((prev) => prev.filter((r) => r.id !== intakeId))
+    const restoreRemovedIntake = () => {
+      setIntakes((prev) => {
+        const next = prev.slice()
+        next.splice(Math.max(0, Math.min(removedIndex, prev.length)), 0, removedIntake)
+        return next
+      })
+    }
 
     startTransition(async () => {
       const newStatus: IntakeStatus = "approved"
@@ -693,13 +675,7 @@ export function QueueClient({
       try {
         result = await updateStatusAction(intakeId, newStatus)
       } catch (_err) {
-        // Thrown exception (network error, unhandled server exception) — restore the row.
-        setIntakes((prev) => {
-          const safeIndex = Math.min(removedIndex, prev.length)
-          const next = prev.slice()
-          next.splice(Math.max(0, safeIndex), 0, removedIntake)
-          return next
-        })
+        restoreRemovedIntake()
         toast.error("Failed to approve — please try again")
         return
       }
@@ -711,15 +687,7 @@ export function QueueClient({
               onClick: async () => {
                 const revert = await updateStatusAction(intakeId, "paid")
                 if (revert.success) {
-                  setIntakes((prev) => {
-                    // Re-insert at the original position when possible
-                    // so the queue ordering after Undo matches what the
-                    // doctor saw before clicking Approve.
-                    const safeIndex = Math.min(removedIndex, prev.length)
-                    const next = prev.slice()
-                    next.splice(Math.max(0, safeIndex), 0, removedIntake)
-                    return next
-                  })
+                  restoreRemovedIntake()
                   refreshQueue(true)
                   toast.success("Approval undone")
                 } else {
@@ -730,25 +698,13 @@ export function QueueClient({
             duration: 5000,
         })
       } else if (result.code === "INSUFFICIENT_CLINICAL_NOTES") {
-        // Optimistic rollback. Restore the row at its original position.
-        setIntakes((prev) => {
-          const safeIndex = Math.min(removedIndex, prev.length)
-          const next = prev.slice()
-          next.splice(Math.max(0, safeIndex), 0, removedIntake)
-          return next
-        })
+        restoreRemovedIntake()
         toast.error("Use the draft note or add a brief clinical note before approving.", {
           action: { label: "Open review", onClick: () => openReviewPanel(intakeId) },
           duration: 6000,
         })
       } else {
-        // Generic server failure — same rollback path.
-        setIntakes((prev) => {
-          const safeIndex = Math.min(removedIndex, prev.length)
-          const next = prev.slice()
-          next.splice(Math.max(0, safeIndex), 0, removedIntake)
-          return next
-        })
+        restoreRemovedIntake()
         toast.error(result.error || "Failed to approve")
       }
     })

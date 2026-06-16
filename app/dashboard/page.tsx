@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import nextDynamic from "next/dynamic"
 import { redirect } from "next/navigation"
 import { Suspense } from "react"
 
@@ -9,11 +10,12 @@ import {
   OperatorPage,
   OperatorPageHeader,
   OperatorScrollArea,
-  QueuePressureSignal,
-  SystemHealthPill,
+} from "@/components/operator/operator-page"
+import { QueuePressureSignal } from "@/components/operator/queue-pressure-signal"
+import {
   TestDataBanner,
   TestDataToggleButton,
-} from "@/components/operator"
+} from "@/components/operator/test-data-banner"
 import { PanelProvider } from "@/components/panels/panel-provider"
 import { SkeletonList } from "@/components/ui/skeleton"
 import { requireRole } from "@/lib/auth/helpers"
@@ -48,6 +50,10 @@ import { cn } from "@/lib/utils"
 import type { IntakeWithPatient } from "@/types/db"
 
 const log = createLogger("staff-dashboard")
+
+const SystemHealthPill = nextDynamic(() =>
+  import("@/components/operator/system-health-pill").then((mod) => mod.SystemHealthPill),
+)
 
 export const metadata: Metadata = {
   title: "Staff Dashboard",

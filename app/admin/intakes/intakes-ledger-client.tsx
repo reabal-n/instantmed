@@ -8,11 +8,8 @@ import { toast } from "sonner"
 import { IntakeRefundDialog } from "@/app/doctor/intakes/[id]/intake-refund-dialog"
 import { issueRefundAction } from "@/app/doctor/queue/actions"
 import { IntakeReviewPanel } from "@/components/doctor"
-import {
-  CaseTable,
-  FilterBar,
-  type QuickFilter,
-} from "@/components/operator"
+import { CaseTable } from "@/components/operator/cases/case-table"
+import { FilterBar, type QuickFilter } from "@/components/operator/cases/filter-bar"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
 import { parseIntakeFlags } from "@/lib/clinical/intake-flags"

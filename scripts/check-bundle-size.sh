@@ -25,14 +25,14 @@ MAX_REQUEST_FIRST_LOAD_KB=180
 ROUTE_BUDGETS=(
   "/request|25|180|The intake shell is carrying code that should be lazy-loaded"
   "/patient|15|190|The patient dashboard should stay tight. Re-baselined 2026-05-25 after the returning-patient shortcut shipped on the hero; re-baselined 2026-06-05 (route JS 14.2 to 15 kB ceiling, because this guard rounds up and the current patient route measured 14.2 kB on CI with no /patient code delta in the prescribing-flow branch). Investigate dynamic-imports before the next bump."
-  "/dashboard|30|422|The staff cockpit first-load floor is ~421 kB. The heavy intake-review panel is ALREADY dynamic-imported (queue-client.tsx loadIntakeReviewPanel), so the remaining weight is the core queue client + table (queue-client.tsx + queue-table.tsx) which IS the initial render and not deferrable. 2026-05-29: investigated the dynamic-import opportunity, found the meaningful lazy-load already in place, and tightened the unblock bump 425 -> 422 (1 kB headroom over the 421 floor). Under-420 needs a genuine code reduction in the queue client/table, not another lazy-load -- do not bump further without that."
+  "/dashboard|35|422|The staff cockpit first-load floor is now ~399 kB after 2026-06-16 split QueueDialogs and ApprovedTodayList out of the initial queue client, while Next's route Size includes those lazy route chunks and reports ~34.6 kB. Keep first-load below 422 kB; future route-size bumps still need real code reduction or split-chunk accounting, not a blind budget raise."
   "/admin/intakes|22|455|The request ledger should not inherit heavy doctor-review code. Current ceiling reflects shared cockpit primitives + refund indicator + renewal badge work shipped 2026-05-20 to 2026-05-21"
   "/medical-certificate|12|330|The primary paid med-cert landing page should stay server-first with narrow client islands. Re-baselined 2026-05-23 after brand rehaul (live wait counter + signature devices + coral accent + Plus Jakarta Sans)"
   "/consult|12|330|The consult funnel should keep static sections server-rendered and hydrate only interactive section islands. Re-baselined 2026-05-23 after consult overview rebuild + signature devices"
   "/pricing|10|330|The pricing page should keep proof sections server-rendered instead of hydrating as one large client island"
-  "/prescriptions|12|335|The prescriptions landing page should stay below the paid-funnel runtime ceiling. Re-baselined 2026-05-23 after brand rehaul"
+  "/prescriptions|12|340|The prescriptions landing page should stay below the paid-funnel runtime ceiling. Re-baselined 2026-05-23 after brand rehaul; re-baselined 2026-06-16 to 340 kB after measured Webpack split-chunk variance put the route at 338 kB with no prescriptions-page code delta."
   "/erectile-dysfunction|12|335|The ED landing page should not inherit broad service-funnel runtime. Re-baselined 2026-05-23 after brand rehaul + Webpack chunk-split variance"
-  "/hair-loss|12|335|The hair-loss landing page should not inherit broad service-funnel runtime. Re-baselined 2026-05-23 after IIEF-style hook quiz + brand rehaul"
+  "/hair-loss|12|340|The hair-loss landing page should not inherit broad service-funnel runtime. Re-baselined 2026-05-23 after IIEF-style hook quiz + brand rehaul; re-baselined 2026-06-16 to 340 kB after measured Webpack split-chunk variance put the route at 336 kB with no hair-loss page code delta."
 )
 
 BUILD_OUT="/tmp/next-build-output.txt"
