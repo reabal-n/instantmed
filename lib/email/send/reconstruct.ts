@@ -9,6 +9,7 @@ import * as Sentry from "@sentry/nextjs"
 
 import { env } from "@/lib/config/env"
 import { signHeardAboutUsToken } from "@/lib/crypto/heard-about-us-token"
+import { buildCheckoutPaymentRecoveryUrl } from "@/lib/email/recovery-links"
 import { logger } from "@/lib/observability/logger"
 import { getGuestCertificateAccessHref, getPatientIntakeDetailHref } from "@/lib/patient/certificate-download"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -107,7 +108,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
   async function fetchIntakeContext(intakeId: string) {
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")
-      .select("id, patient_id, service_id, reference_number, amount_cents, paid_at, decline_reason, decline_reason_code, decline_reason_note, refund_amount_cents, parchment_reference")
+      .select("id, patient_id, service_id, reference_number, amount_cents, paid_at, decline_reason, decline_reason_code, decline_reason_note, refund_amount_cents, parchment_reference, guest_email")
       .eq("id", intakeId)
       .single()
 
@@ -349,7 +350,12 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
     if ("error" in ctx) return { success: false, error: ctx.error }
 
     const serviceName = ctx.service.short_name || ctx.service.name
-    const retryUrl = `${env.appUrl}/patient/intakes/${ctx.intake.id}`
+    const retryUrl = buildCheckoutPaymentRecoveryUrl({
+      appUrl: env.appUrl,
+      campaign: "payment_failed",
+      intakeId: ctx.intake.id,
+      isGuest: Boolean(ctx.intake.guest_email),
+    })
 
     return renderDatabaseTemplate("payment_failed", {
       patient_name: ctx.patient.full_name || row.to_name || "there",

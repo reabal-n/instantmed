@@ -32,4 +32,11 @@ describe("email reconstruction contract", () => {
     expect(retryPaymentRouteSource).not.toContain("payment_url: paymentUrl")
     expect(retryPaymentRouteSource).not.toContain("sendEmail")
   })
+
+  it("reconstructs payment-failed emails with a direct checkout recovery URL", () => {
+    expect(reconstructSource).toContain("buildCheckoutPaymentRecoveryUrl")
+    expect(reconstructSource).toContain('campaign: "payment_failed"')
+    expect(reconstructSource).toContain("isGuest: Boolean(ctx.intake.guest_email)")
+    expect(reconstructSource).not.toContain("const retryUrl = `${env.appUrl}/patient/intakes/${ctx.intake.id}`")
+  })
 })
