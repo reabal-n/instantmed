@@ -12,6 +12,11 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "../observability/logger"
 import { sendCriticalEmail,sendViaResend } from "./resend"
 import { sanitizeEmailForLog } from "./send/helpers"
+import {
+  createPendingOutbox,
+  updateOutboxStatus,
+} from "./send/outbox"
+import type { EmailType } from "./send/types"
 
 const log = createLogger("template-sender")
 
@@ -37,6 +42,8 @@ interface SendTemplateEmailParams {
   intakeId?: string
   patientId?: string
   isCritical?: boolean
+  idempotencyKey?: string
+  metadata?: Record<string, unknown>
   attachments?: {
     filename: string
     content: string
@@ -119,6 +126,8 @@ async function logEmailSend(params: {
   success: boolean
   resendId?: string
   error?: string
+  idempotencyKey?: string
+  metadata?: Record<string, unknown>
 }): Promise<void> {
   const supabase = createServiceRoleClient()
 
@@ -133,7 +142,9 @@ async function logEmailSend(params: {
       provider_message_id: params.resendId,
       sent_at: params.success ? new Date().toISOString() : null,
       error_message: params.error,
+      idempotency_key: params.idempotencyKey,
       metadata: {
+        ...(params.metadata ?? {}),
         sent: params.success,
       },
     })
@@ -150,7 +161,17 @@ async function logEmailSend(params: {
  * Send an email using a database template
  */
 export async function sendTemplateEmail(params: SendTemplateEmailParams): Promise<SendResult> {
-  const { to, templateSlug, data, intakeId, patientId, isCritical = false, attachments } = params
+  const {
+    to,
+    templateSlug,
+    data,
+    intakeId,
+    patientId,
+    isCritical = false,
+    attachments,
+    idempotencyKey,
+    metadata,
+  } = params
 
   // Fetch template
   const template = await getTemplate(templateSlug)
@@ -207,6 +228,8 @@ export async function sendTemplateEmail(params: SendTemplateEmailParams): Promis
       success: result.success,
       resendId: result.id,
       error: result.error,
+      idempotencyKey,
+      metadata,
     })
   } else {
     // TWO-PHASE WRITE: insert a pending outbox row BEFORE attempting the send.
@@ -215,19 +238,47 @@ export async function sendTemplateEmail(params: SendTemplateEmailParams): Promis
     const supabase = createServiceRoleClient()
     let outboxId: string | null = null
     try {
-      const { data: pendingRow } = await supabase
-        .from("email_outbox")
-        .insert({
-          email_type: templateSlug,
+      if (idempotencyKey) {
+        const pending = await createPendingOutbox({
+          email_type: templateSlug as EmailType,
           to_email: to,
-          intake_id: intakeId ?? null,
-          patient_id: patientId ?? null,
           subject,
-          status: "pending",
+          provider: "resend",
+          intake_id: intakeId,
+          patient_id: patientId,
+          metadata: metadata ?? {},
+          idempotency_key: idempotencyKey,
         })
-        .select("id")
-        .single()
-      outboxId = pendingRow?.id ?? null
+
+        if (pending.duplicate) {
+          log.info("Template email suppressed by idempotency guard", {
+            templateSlug,
+            intakeId,
+            outboxId: pending.id,
+          })
+          return {
+            success: true,
+            emailId: pending.id ? `duplicate-outbox-${pending.id}` : undefined,
+          }
+        }
+
+        outboxId = pending.id
+      } else {
+        const { data: pendingRow } = await supabase
+          .from("email_outbox")
+          .insert({
+            email_type: templateSlug,
+            to_email: to,
+            intake_id: intakeId ?? null,
+            patient_id: patientId ?? null,
+            subject,
+            status: "pending",
+            metadata: metadata ?? {},
+          })
+          .select("id")
+          .single()
+        outboxId = pendingRow?.id ?? null
+      }
     } catch {
       // Non-blocking — proceed even if pre-send record fails
     }
@@ -237,16 +288,24 @@ export async function sendTemplateEmail(params: SendTemplateEmailParams): Promis
     // Update the pending row with the final status.
     if (outboxId) {
       try {
-        await supabase
-          .from("email_outbox")
-          .update({
-            status: result.success ? "sent" : "failed",
-            provider_message_id: result.id ?? null,
-            sent_at: result.success ? new Date().toISOString() : null,
-            error_message: result.error ?? null,
-            metadata: { sent: result.success },
+        if (idempotencyKey) {
+          await updateOutboxStatus(outboxId, result.success ? "sent" : "failed", {
+            provider_message_id: result.id ?? undefined,
+            error_message: result.error ?? undefined,
+            attempts: 1,
           })
-          .eq("id", outboxId)
+        } else {
+          await supabase
+            .from("email_outbox")
+            .update({
+              status: result.success ? "sent" : "failed",
+              provider_message_id: result.id ?? null,
+              sent_at: result.success ? new Date().toISOString() : null,
+              error_message: result.error ?? null,
+              metadata: { ...(metadata ?? {}), sent: result.success },
+            })
+            .eq("id", outboxId)
+        }
       } catch {
         // Non-blocking — the pending row is enough for the dispatcher to retry
       }
@@ -261,6 +320,8 @@ export async function sendTemplateEmail(params: SendTemplateEmailParams): Promis
         success: result.success,
         resendId: result.id,
         error: result.error,
+        idempotencyKey,
+        metadata,
       })
     }
   }
@@ -281,6 +342,14 @@ export async function sendTemplateEmail(params: SendTemplateEmailParams): Promis
 // ============================================================================
 // CONVENIENCE FUNCTIONS FOR COMMON EMAILS
 // ============================================================================
+
+function buildPaymentFailedEmailIdempotencyKey(input: {
+  checkoutSessionId?: string
+  intakeId?: string
+}): string | undefined {
+  if (!input.intakeId || !input.checkoutSessionId) return undefined
+  return `email:payment_failed:${input.intakeId}:${input.checkoutSessionId}`
+}
 
 /**
  * Send refund processed notification
@@ -344,6 +413,7 @@ export async function sendPaymentFailedEmail(params: {
   retryUrl: string
   intakeId?: string
   patientId?: string
+  checkoutSessionId?: string
 }): Promise<SendResult> {
   return sendTemplateEmail({
     to: params.to,
@@ -356,6 +426,13 @@ export async function sendPaymentFailedEmail(params: {
     },
     intakeId: params.intakeId,
     patientId: params.patientId,
+    idempotencyKey: buildPaymentFailedEmailIdempotencyKey({
+      checkoutSessionId: params.checkoutSessionId,
+      intakeId: params.intakeId,
+    }),
+    metadata: params.checkoutSessionId
+      ? { checkout_session_id: params.checkoutSessionId }
+      : undefined,
   })
 }
 

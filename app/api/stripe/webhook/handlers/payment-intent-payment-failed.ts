@@ -7,6 +7,11 @@ import { sendPaymentFailedEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
 import { stripe } from "@/lib/stripe/client"
 
+import {
+  markCheckoutRecoveryNudgeSent,
+  type PaymentFailureIntakeEmailContext,
+  resolvePaymentFailureRecipient,
+} from "./payment-failure-recovery"
 import type { HandlerResult,WebhookContext } from "./types"
 import { tryClaimEvent } from "./utils"
 
@@ -120,13 +125,13 @@ export async function handlePaymentIntentFailed(ctx: WebhookContext): Promise<Ha
           .eq("id", failedIntakeId)
           .single()
 
-        const patient = (intake?.patient as unknown) as { email?: string; full_name?: string } | null
+        const { email, name } = resolvePaymentFailureRecipient(intake as PaymentFailureIntakeEmailContext | null)
         const service = { name: intake?.category || "Service" }
 
-        if (patient?.email) {
-          await sendPaymentFailedEmail({
-            to: patient.email,
-            patientName: patient.full_name || "there",
+        if (email) {
+          const emailResult = await sendPaymentFailedEmail({
+            to: email,
+            patientName: name,
             serviceName: service?.name || "your request",
             failureReason: failureMessage,
             retryUrl: buildCheckoutPaymentRecoveryUrl({
@@ -136,8 +141,12 @@ export async function handlePaymentIntentFailed(ctx: WebhookContext): Promise<Ha
               isGuest: Boolean((intake as { guest_email?: string | null } | null)?.guest_email),
             }),
             intakeId: failedIntakeId,
+            checkoutSessionId,
           })
-          log.info("Sent payment failure notification", { intakeId: failedIntakeId })
+          if (emailResult.success) {
+            await markCheckoutRecoveryNudgeSent(supabase, failedIntakeId, "payment_intent.payment_failed")
+            log.info("Sent payment failure notification", { intakeId: failedIntakeId })
+          }
         }
       } catch (emailError) {
         log.error("Failed to send payment failure notification", { intakeId: failedIntakeId }, emailError)

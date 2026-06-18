@@ -4,6 +4,11 @@ import { buildCheckoutPaymentRecoveryUrl } from "@/lib/email/recovery-links"
 import { sendPaymentFailedEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
 
+import {
+  markCheckoutRecoveryNudgeSent,
+  type PaymentFailureIntakeEmailContext,
+  resolvePaymentFailureRecipient,
+} from "./payment-failure-recovery"
 import type { HandlerResult,WebhookContext } from "./types"
 import { addToDeadLetterQueue, tryClaimEvent } from "./utils"
 
@@ -64,12 +69,12 @@ export async function handleAsyncPaymentFailed(ctx: WebhookContext): Promise<Han
         .eq("id", intakeId)
         .single()
 
-      const patient = (intake?.patient as unknown) as { email: string; full_name: string } | null
-      if (patient?.email) {
+      const { email, name } = resolvePaymentFailureRecipient(intake as PaymentFailureIntakeEmailContext | null)
+      if (email) {
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
-        await sendPaymentFailedEmail({
-          to: patient.email,
-          patientName: patient.full_name || "there",
+        const emailResult = await sendPaymentFailedEmail({
+          to: email,
+          patientName: name,
           serviceName: intake?.category || "your request",
           failureReason: "Your payment could not be processed. This can happen with bank transfers or direct debit payments.",
           retryUrl: buildCheckoutPaymentRecoveryUrl({
@@ -79,8 +84,12 @@ export async function handleAsyncPaymentFailed(ctx: WebhookContext): Promise<Han
             isGuest: Boolean((intake as { guest_email?: string | null } | null)?.guest_email),
           }),
           intakeId,
+          checkoutSessionId: session.id,
         })
-        log.info("Payment failed email sent", { intakeId })
+        if (emailResult.success) {
+          await markCheckoutRecoveryNudgeSent(supabase, intakeId, "checkout.session.async_payment_failed")
+          log.info("Payment failed email sent", { intakeId })
+        }
       }
     } catch (emailError) {
       log.error("Failed to send payment failed email", { intakeId }, emailError)
