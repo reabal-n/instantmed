@@ -2,6 +2,7 @@ import { after,NextResponse } from "next/server"
 import type Stripe from "stripe"
 
 import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
+import { buildCheckoutPaymentRecoveryUrl } from "@/lib/email/recovery-links"
 import { sendPaymentFailedEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
 import { stripe } from "@/lib/stripe/client"
@@ -115,7 +116,7 @@ export async function handlePaymentIntentFailed(ctx: WebhookContext): Promise<Ha
       try {
         const { data: intake } = await supabase
           .from("intakes")
-          .select("category, patient:profiles!patient_id(email, full_name)")
+          .select("category, guest_email, patient:profiles!patient_id(email, full_name)")
           .eq("id", failedIntakeId)
           .single()
 
@@ -128,7 +129,12 @@ export async function handlePaymentIntentFailed(ctx: WebhookContext): Promise<Ha
             patientName: patient.full_name || "there",
             serviceName: service?.name || "your request",
             failureReason: failureMessage,
-            retryUrl: `${process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"}/patient/intakes/${failedIntakeId}?retry=true`,
+            retryUrl: buildCheckoutPaymentRecoveryUrl({
+              appUrl: process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+              campaign: "payment_failed",
+              intakeId: failedIntakeId,
+              isGuest: Boolean((intake as { guest_email?: string | null } | null)?.guest_email),
+            }),
             intakeId: failedIntakeId,
           })
           log.info("Sent payment failure notification", { intakeId: failedIntakeId })

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import type Stripe from "stripe"
 
+import { buildExpiredCheckoutStartUrl } from "@/lib/email/recovery-links"
 import { sendSessionExpiredEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -71,7 +72,7 @@ export async function handleCheckoutSessionExpired(ctx: WebhookContext): Promise
       try {
         const { data: intake } = await supabase
           .from("intakes")
-          .select("patient:profiles!intakes_patient_id_fkey(email, full_name), category")
+          .select("patient:profiles!intakes_patient_id_fkey(email, full_name), category, subtype")
           .eq("id", intakeId)
           .single()
 
@@ -82,7 +83,12 @@ export async function handleCheckoutSessionExpired(ctx: WebhookContext): Promise
             to: patient.email,
             patientName: patient.full_name || "there",
             serviceName: intake?.category || "your request",
-            resumeUrl: `${appUrl}/request?resume=${intakeId}`,
+            resumeUrl: buildExpiredCheckoutStartUrl({
+              appUrl,
+              campaign: "checkout_expired",
+              category: intake?.category,
+              subtype: (intake as { subtype?: string | null } | null)?.subtype,
+            }),
             intakeId,
           })
           log.info("Session expired email sent", { intakeId })

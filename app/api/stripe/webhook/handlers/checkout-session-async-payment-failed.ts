@@ -1,5 +1,6 @@
 import type Stripe from "stripe"
 
+import { buildCheckoutPaymentRecoveryUrl } from "@/lib/email/recovery-links"
 import { sendPaymentFailedEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -59,7 +60,7 @@ export async function handleAsyncPaymentFailed(ctx: WebhookContext): Promise<Han
     try {
       const { data: intake } = await supabase
         .from("intakes")
-        .select("patient:profiles!intakes_patient_id_fkey(email, full_name), category")
+        .select("patient:profiles!intakes_patient_id_fkey(email, full_name), category, guest_email")
         .eq("id", intakeId)
         .single()
 
@@ -71,7 +72,12 @@ export async function handleAsyncPaymentFailed(ctx: WebhookContext): Promise<Han
           patientName: patient.full_name || "there",
           serviceName: intake?.category || "your request",
           failureReason: "Your payment could not be processed. This can happen with bank transfers or direct debit payments.",
-          retryUrl: `${appUrl}/request?resume=${intakeId}`,
+          retryUrl: buildCheckoutPaymentRecoveryUrl({
+            appUrl,
+            campaign: "async_payment_failed",
+            intakeId,
+            isGuest: Boolean((intake as { guest_email?: string | null } | null)?.guest_email),
+          }),
           intakeId,
         })
         log.info("Payment failed email sent", { intakeId })
