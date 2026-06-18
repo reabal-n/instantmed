@@ -16,7 +16,7 @@
   "crons": [
     {
       "path": "/api/cron/abandoned-checkouts",
-      "schedule": "0 * * * *"
+      "schedule": "*/20 * * * *"
     },
     {
       "path": "/api/cron/refill-reminders",

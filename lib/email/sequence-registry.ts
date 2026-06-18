@@ -35,7 +35,7 @@ export const EMAIL_SEQUENCES: readonly EmailSequenceDefinition[] = [
     status: "active",
     owner: "Submitted unpaid intake",
     trigger: "Pending payment after checkout creation",
-    cadence: "1h nudge, 24h follow-up",
+    cadence: "20-40m nudge, 24h follow-up",
     guard: "Requires pending_payment intake status",
   },
   {

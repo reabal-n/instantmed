@@ -13,7 +13,7 @@ export const maxDuration = 60
 
 /**
  * Cron endpoint to process abandoned checkouts and send recovery emails
- * Runs every hour via Vercel Cron (configured in vercel.json)
+ * Runs every 20 minutes via Vercel Cron (configured in vercel.json)
  */
 export async function GET(request: NextRequest) {
   // Verify cron authentication

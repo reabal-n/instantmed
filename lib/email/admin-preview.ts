@@ -382,7 +382,7 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
       patientName: d.patientName,
       serviceName: d.serviceName,
       resumeUrl: `${APP_URL}/request?resume=abc-123`,
-      hoursAgo: 2,
+      startedAgoLabel: "about 35 minutes ago",
       appUrl: APP_URL,
     }),
   },

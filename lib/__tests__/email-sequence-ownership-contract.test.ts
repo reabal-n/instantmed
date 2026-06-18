@@ -3,6 +3,13 @@ import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
+import {
+  ABANDONED_CHECKOUT_FIRST_NUDGE_DELAY_MINUTES,
+  ABANDONED_CHECKOUT_FIRST_NUDGE_LOOKBACK_HOURS,
+  ABANDONED_CHECKOUT_FOLLOWUP_DELAY_HOURS,
+  ABANDONED_CHECKOUT_FOLLOWUP_LOOKBACK_HOURS,
+  formatAbandonedCheckoutStartedAgo,
+} from "@/lib/email/abandoned-checkout-timing"
 import { buildEmailOutboxIdempotencyKey,DB_IDEMPOTENT_EMAIL_TYPES } from "@/lib/email/send/idempotency"
 import { EMAIL_SEQUENCES } from "@/lib/email/sequence-registry"
 
@@ -50,6 +57,15 @@ const vercelConfig = JSON.parse(readFileSync(join(process.cwd(), "vercel.json"),
   crons: Array<{ path: string; schedule: string }>
 }
 
+function expandMinuteField(field: string): number[] {
+  if (field === "*") return Array.from({ length: 60 }, (_, minute) => minute)
+  if (field.startsWith("*/")) {
+    const step = Number(field.slice(2))
+    return Array.from({ length: 60 }, (_, minute) => minute).filter((minute) => minute % step === 0)
+  }
+  return field.split(",").map((value) => Number(value))
+}
+
 describe("email sequence ownership contract", () => {
   it("keeps draft recovery responsible for pre-intake review and checkout drafts", () => {
     expect(partialRecoverySource).not.toContain('const PAYMENT_STAGE_DRAFT_STEPS = ["review", "checkout"] as const')
@@ -72,14 +88,40 @@ describe("email sequence ownership contract", () => {
 
   it("does not schedule the two recovery sequences at the exact same minute", () => {
     const schedules = new Map(vercelConfig.crons.map((cron) => [cron.path, cron.schedule]))
+    const abandonedMinutes = expandMinuteField(schedules.get("/api/cron/abandoned-checkouts")?.split(" ")[0] ?? "")
+    const partialMinutes = expandMinuteField(schedules.get("/api/cron/recover-partial-intakes")?.split(" ")[0] ?? "")
 
-    expect(schedules.get("/api/cron/abandoned-checkouts")).toBe("0 * * * *")
+    expect(schedules.get("/api/cron/abandoned-checkouts")).toBe("*/20 * * * *")
     expect(schedules.get("/api/cron/recover-partial-intakes")).toBe("15 * * * *")
+    expect(abandonedMinutes.filter((minute) => partialMinutes.includes(minute))).toEqual([])
+  })
+
+  it("keeps checkout-stage recovery faster than draft-stage recovery", () => {
+    const checkoutSequence = EMAIL_SEQUENCES.find((sequence) => sequence.id === "abandoned_checkout")
+
+    expect(ABANDONED_CHECKOUT_FIRST_NUDGE_DELAY_MINUTES).toBe(20)
+    expect(ABANDONED_CHECKOUT_FIRST_NUDGE_LOOKBACK_HOURS).toBe(24)
+    expect(ABANDONED_CHECKOUT_FOLLOWUP_DELAY_HOURS).toBe(24)
+    expect(ABANDONED_CHECKOUT_FOLLOWUP_LOOKBACK_HOURS).toBe(72)
+    expect(partialRecoverySource).toContain("const MIN_IDLE_MINUTES = 60")
+    expect(checkoutSequence?.cadence).toBe("20-40m nudge, 24h follow-up")
+    expect(abandonedCheckoutSource).toContain("firstNudgeReadyAt")
+    expect(abandonedCheckoutSource).toContain("firstNudgeWindowFloor")
+    expect(abandonedCheckoutSource).not.toContain("const oneHourAgo")
+  })
+
+  it("formats faster checkout recovery copy without zero-hour wording", () => {
+    const now = new Date("2026-06-18T12:00:00.000Z")
+
+    expect(formatAbandonedCheckoutStartedAgo("2026-06-18T11:41:00.000Z", now)).toBe("about 20 minutes ago")
+    expect(formatAbandonedCheckoutStartedAgo("2026-06-18T11:26:00.000Z", now)).toBe("about 35 minutes ago")
+    expect(formatAbandonedCheckoutStartedAgo("2026-06-18T10:10:00.000Z", now)).toBe("about 2 hours ago")
+    expect(formatAbandonedCheckoutStartedAgo("not-a-date", now)).toBe("recently")
   })
 
   it("prevents abandoned checkout followup from becoming eligible in the same cron run as the first nudge", () => {
-    expect(abandonedCheckoutSource).toContain('.gte("abandoned_email_sent_at", seventyTwoHoursAgo)')
-    expect(abandonedCheckoutSource).toContain('.lte("abandoned_email_sent_at", twentyFourHoursAgo)')
+    expect(abandonedCheckoutSource).toContain('.gte("abandoned_email_sent_at", followupWindowFloor)')
+    expect(abandonedCheckoutSource).toContain('.lte("abandoned_email_sent_at", followupReadyAt)')
     expect(abandonedCheckoutSource).toContain("prevents a boundary case")
   })
 

@@ -14,7 +14,7 @@ export interface AbandonedCheckoutEmailProps {
   serviceName: string
   resumeUrl: string
   appUrl?: string
-  hoursAgo: number
+  startedAgoLabel: string
 }
 
 export function abandonedCheckoutSubject(serviceName: string) {
@@ -27,7 +27,7 @@ export function AbandonedCheckoutEmail({
   serviceName,
   resumeUrl,
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
-  hoursAgo,
+  startedAgoLabel,
 }: AbandonedCheckoutEmailProps) {
   const firstName = patientName.split(" ")[0]
 
@@ -41,7 +41,7 @@ export function AbandonedCheckoutEmail({
 
       <NameFirstGreeting name={firstName} />
       <Text>
-        You started a <strong>{serviceName}</strong> request about {hoursAgo} hours ago
+        You started a <strong>{serviceName}</strong> request {startedAgoLabel}{" "}
         and stopped before payment. If you still need it, return to the saved
         request and finish payment.
       </Text>

@@ -82,7 +82,7 @@ describe("recovery email template parity", () => {
           patientName="Sam Patient"
           serviceName="Medical Certificate"
           resumeUrl={RESUME_URL}
-          hoursAgo={2}
+          startedAgoLabel="about 35 minutes ago"
           appUrl={APP_URL}
         />,
       ),

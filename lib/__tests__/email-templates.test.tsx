@@ -566,7 +566,7 @@ describe("Email Templates", () => {
           patientName="Jamie Park"
           serviceName="Medical Certificate"
           resumeUrl="https://instantmed.com.au/request?resume=abc"
-          hoursAgo={4}
+          startedAgoLabel="about 4 hours ago"
           appUrl={APP_URL}
         />
       )
@@ -585,7 +585,7 @@ describe("Email Templates", () => {
           patientName="Test Patient"
           serviceName="Medical Certificate"
           resumeUrl="https://instantmed.com.au/request?resume=test"
-          hoursAgo={2}
+          startedAgoLabel="about 2 hours ago"
           appUrl={APP_URL}
         />
       )
@@ -1072,7 +1072,7 @@ describe("Email Template Cross-Checks", () => {
       <NeedsMoreInfoEmail key="10" patientName="Test" requestType="Med Cert" requestId="R4" doctorMessage="More info needed" appUrl={APP_URL} />,
       <GuestCompleteAccountEmail key="11" patientName="Test" requestType="Med Cert" intakeId="i1" completeAccountUrl="https://example.com" appUrl={APP_URL} />,
       <PartialIntakeRecoveryEmail key="12" firstName="Test" serviceName="Med Cert" resumeUrl="https://example.com" appUrl={APP_URL} />,
-      <AbandonedCheckoutEmail key="12b" patientName="Test" serviceName="Med Cert" resumeUrl="https://example.com" hoursAgo={2} appUrl={APP_URL} />,
+      <AbandonedCheckoutEmail key="12b" patientName="Test" serviceName="Med Cert" resumeUrl="https://example.com" startedAgoLabel="about 2 hours ago" appUrl={APP_URL} />,
       <ConsultApprovedEmail key="13" patientName="Test" requestId="R5" appUrl={APP_URL} />,
       <EdApprovedEmail key="14" patientName="Test" medicationName="Sildenafil" requestId="R6" appUrl={APP_URL} />,
       <HairLossApprovedEmail key="15" patientName="Test" medicationName="Finasteride" requestId="R7" appUrl={APP_URL} />,
@@ -1108,7 +1108,7 @@ describe("Email Template Cross-Checks", () => {
       <VerificationCodeEmail key="3" code="123456" appUrl={APP_URL} />,
       <StillReviewingEmail key="4" patientName="Test" requestType="Med Cert" requestId="R1" appUrl={APP_URL} />,
       <PartialIntakeRecoveryEmail key="5" firstName="Test" serviceName="Med Cert" resumeUrl="https://example.com" appUrl={APP_URL} />,
-      <AbandonedCheckoutEmail key="6" patientName="Test" serviceName="Med Cert" resumeUrl="https://example.com" hoursAgo={2} appUrl={APP_URL} />,
+      <AbandonedCheckoutEmail key="6" patientName="Test" serviceName="Med Cert" resumeUrl="https://example.com" startedAgoLabel="about 2 hours ago" appUrl={APP_URL} />,
     ]
 
     for (const template of templates) {
@@ -1253,7 +1253,7 @@ describe("Link validation", () => {
         patientName="Test Patient"
         serviceName="Medical Certificate"
         resumeUrl="https://instantmed.com.au/request?resume=abc"
-        hoursAgo={4}
+        startedAgoLabel="about 4 hours ago"
         appUrl={APP_URL}
       />
     ),

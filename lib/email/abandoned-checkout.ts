@@ -3,6 +3,13 @@
 import * as React from "react"
 
 import { getAppUrl } from "@/lib/config/env"
+import {
+  ABANDONED_CHECKOUT_FIRST_NUDGE_DELAY_MINUTES,
+  ABANDONED_CHECKOUT_FIRST_NUDGE_LOOKBACK_HOURS,
+  ABANDONED_CHECKOUT_FOLLOWUP_DELAY_HOURS,
+  ABANDONED_CHECKOUT_FOLLOWUP_LOOKBACK_HOURS,
+  formatAbandonedCheckoutStartedAgo,
+} from "@/lib/email/abandoned-checkout-timing"
 import { AbandonedCheckoutEmail, abandonedCheckoutSubject } from "@/lib/email/components/templates/abandoned-checkout"
 import { AbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject } from "@/lib/email/components/templates/abandoned-checkout-followup"
 import { canSendMarketingEmail } from "@/lib/email/preferences"
@@ -36,15 +43,20 @@ const SERVICE_NAMES: Record<string, string> = {
 
 /**
  * Find intakes that were created but never paid for (abandoned checkouts)
- * Only targets intakes that are 1-24 hours old to avoid spamming
+ * Targets unpaid checkout-stage intakes after the first nudge delay. This is
+ * intentionally faster than partial-intake recovery because the patient has
+ * already submitted a request and only payment is left.
  * P1 FIX: Now includes guest checkouts by checking guest_email column
  */
 export async function findAbandonedCheckouts(): Promise<AbandonedIntake[]> {
   const supabase = createServiceRoleClient()
   
-  // Find intakes created 1-24 hours ago that are still pending payment
-  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
-  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const firstNudgeReadyAt = new Date(
+    Date.now() - ABANDONED_CHECKOUT_FIRST_NUDGE_DELAY_MINUTES * 60 * 1000,
+  ).toISOString()
+  const firstNudgeWindowFloor = new Date(
+    Date.now() - ABANDONED_CHECKOUT_FIRST_NUDGE_LOOKBACK_HOURS * 60 * 60 * 1000,
+  ).toISOString()
   
   const { data, error } = await supabase
     .from("intakes")
@@ -59,8 +71,8 @@ export async function findAbandonedCheckouts(): Promise<AbandonedIntake[]> {
     `)
     .in("status", ["pending_payment", "checkout_failed"])
     .or("payment_status.eq.pending,payment_status.is.null,payment_status.eq.failed")
-    .gte("created_at", twentyFourHoursAgo)
-    .lte("created_at", oneHourAgo)
+    .gte("created_at", firstNudgeWindowFloor)
+    .lte("created_at", firstNudgeReadyAt)
     .is("abandoned_email_sent_at", null)
   
   if (error) {
@@ -104,7 +116,7 @@ export async function sendAbandonedCheckoutEmail(intake: AbandonedIntake): Promi
   
   const patientName = patient.first_name || "there"
   const serviceName = SERVICE_NAMES[intake.category || ""] || "your request"
-  const hoursAgo = Math.round((Date.now() - new Date(intake.created_at).getTime()) / (1000 * 60 * 60))
+  const startedAgoLabel = formatAbandonedCheckoutStartedAgo(intake.created_at)
   const resumeUrl = buildAbandonedCheckoutResumeUrl({
     appUrl,
     campaign: "abandoned_checkout",
@@ -120,7 +132,7 @@ export async function sendAbandonedCheckoutEmail(intake: AbandonedIntake): Promi
       serviceName,
       resumeUrl,
       appUrl,
-      hoursAgo,
+      startedAgoLabel,
     }),
     emailType: "abandoned_checkout",
     intakeId: intake.id,
@@ -146,16 +158,20 @@ export async function sendAbandonedCheckoutEmail(intake: AbandonedIntake): Promi
 }
 
 /**
- * Find intakes that received the 1h nudge but not the 24h followup
+ * Find intakes that received the first nudge but not the followup.
  * Targets intakes whose first nudge was sent 24-72 hours ago. Using the first
  * send timestamp, not created_at, prevents a boundary case where a newly sent
- * 1h nudge can become eligible for the followup in the same cron run.
+ * first nudge can become eligible for the followup in the same cron run.
  */
 export async function findAbandonedFollowups(): Promise<AbandonedIntake[]> {
   const supabase = createServiceRoleClient()
 
-  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-  const seventyTwoHoursAgo = new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString()
+  const followupReadyAt = new Date(
+    Date.now() - ABANDONED_CHECKOUT_FOLLOWUP_DELAY_HOURS * 60 * 60 * 1000,
+  ).toISOString()
+  const followupWindowFloor = new Date(
+    Date.now() - ABANDONED_CHECKOUT_FOLLOWUP_LOOKBACK_HOURS * 60 * 60 * 1000,
+  ).toISOString()
 
   const { data, error } = await supabase
     .from("intakes")
@@ -170,8 +186,8 @@ export async function findAbandonedFollowups(): Promise<AbandonedIntake[]> {
     `)
     .in("status", ["pending_payment", "checkout_failed"])
     .or("payment_status.eq.pending,payment_status.is.null,payment_status.eq.failed")
-    .gte("abandoned_email_sent_at", seventyTwoHoursAgo)
-    .lte("abandoned_email_sent_at", twentyFourHoursAgo)
+    .gte("abandoned_email_sent_at", followupWindowFloor)
+    .lte("abandoned_email_sent_at", followupReadyAt)
     .not("abandoned_email_sent_at", "is", null)
     .is("abandoned_followup_sent_at", null)
 
@@ -301,7 +317,7 @@ async function acquireCronLock(): Promise<(() => Promise<void>) | null> {
 
 /**
  * Process all abandoned checkouts and send recovery emails
- * Handles both the 1h nudge and the 24h followup in a single cron run
+ * Handles both the first nudge and the 24h followup in a single cron run.
  */
 export async function processAbandonedCheckouts(): Promise<{ sent: number; failed: number; followupSent: number; followupFailed: number; skipped?: boolean }> {
   // Acquire distributed lock to prevent concurrent runs
@@ -311,7 +327,7 @@ export async function processAbandonedCheckouts(): Promise<{ sent: number; faile
   }
 
   try {
-    // Process 1h nudges
+    // Process first nudges.
     const abandonedIntakes = await findAbandonedCheckouts()
     let sent = 0
     let failed = 0
@@ -322,7 +338,7 @@ export async function processAbandonedCheckouts(): Promise<{ sent: number; faile
       await new Promise(resolve => setTimeout(resolve, 100))
     }
 
-    // Process 24h followups
+    // Process 24h followups.
     const followupIntakes = await findAbandonedFollowups()
     let followupSent = 0
     let followupFailed = 0

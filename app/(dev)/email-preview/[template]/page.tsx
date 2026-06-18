@@ -400,7 +400,7 @@ const templates: Record<string, {
         patientName={mock.patientName}
         serviceName="Medical Certificate"
         resumeUrl={`${mock.appUrl}/patient/intakes/${mock.requestId}?retry=true&utm_source=recovery_email&utm_medium=email&utm_campaign=abandoned_checkout`}
-        hoursAgo={2}
+        startedAgoLabel="about 35 minutes ago"
         appUrl={mock.appUrl}
       />
     ),
