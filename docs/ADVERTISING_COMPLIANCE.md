@@ -77,7 +77,7 @@ Only use this on medical certificate surfaces where the protocol supports no-cal
 
 Use:
 
-> Complete a secure clinical form. A doctor contacts you only if more information is clinically needed.
+> Complete a secure clinical form. A doctor reviews it and may call you briefly before prescribing.
 
 Also safe:
 

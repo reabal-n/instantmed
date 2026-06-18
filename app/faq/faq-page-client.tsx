@@ -38,7 +38,7 @@ const RELATED_ARTICLES = [
   { title: "How InstantMed Works", href: "/how-it-works" },
   { title: "Medical certificates online", href: "/medical-certificate" },
   { title: "Repeat prescriptions online", href: "/prescriptions" },
-  { title: "Understanding eScripts", href: "/blog/understanding-escripts-australia" },
+  { title: "Understanding eScripts", href: "/blog/how-escripts-work" },
 ]
 
 const FAQ_CONFIG = {

@@ -24,7 +24,7 @@ export const HAIR_LOSS_FAQ = [
   {
     question: "Is the service really discreet?",
     answer:
-      "Completely. The assessment starts with a private clinical form, and we only interrupt you if something important is missing. Your pharmacy receives only the prescription, not your consultation details. Your bank statement shows 'InstantMed' only.",
+      "Completely. The assessment starts with a private clinical form. The doctor may call briefly before deciding if a safety detail needs clarification. Your pharmacy receives only the prescription, not your consultation details. Your bank statement shows 'InstantMed' only.",
   },
   {
     question: "Can women use these treatments?",

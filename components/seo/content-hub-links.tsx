@@ -1,4 +1,4 @@
-import { Activity, ArrowRight, BookOpen, FileText,Stethoscope } from "lucide-react"
+import { Activity, ArrowRight, BookOpen, FileText, Stethoscope } from "lucide-react"
 import Link from "next/link"
 
 interface ContentLink {
@@ -9,7 +9,7 @@ interface ContentLink {
 
 interface ContentHubLinksProps {
   /** Which service this page is for - determines relevant cross-links */
-  service: "med-cert" | "prescriptions" | "consult"
+  service: "med-cert" | "prescriptions" | "consult" | "ed" | "hair-loss" | "womens-health"
 }
 
 const SERVICE_LINKS: Record<string, {
@@ -98,6 +98,80 @@ const SERVICE_LINKS: Record<string, {
     blog: [
       { href: "/blog/telehealth-vs-gp-australia", label: "Telehealth vs GP: what's actually different?" },
       { href: "/blog/best-online-doctor-australia-comparison", label: "Best online doctors in Australia (2026)" },
+    ],
+  },
+  "ed": {
+    conditions: [
+      { href: "/conditions/type-2-diabetes", label: "Type 2 Diabetes", description: "Health context that can affect ED" },
+      { href: "/conditions/high-cholesterol", label: "High Cholesterol", description: "Cardiovascular risk context" },
+      { href: "/conditions/anxiety", label: "Anxiety", description: "Stress and performance concerns" },
+      { href: "/conditions/thyroid-issues", label: "Thyroid Issues", description: "Hormone-related symptoms and fatigue" },
+    ],
+    symptoms: [
+      { href: "/symptoms/chest-pain", label: "Chest Pain" },
+      { href: "/symptoms/shortness-of-breath", label: "Shortness of Breath" },
+      { href: "/symptoms/heart-palpitations", label: "Heart Palpitations" },
+      { href: "/symptoms/dizziness", label: "Dizziness" },
+    ],
+    guides: [
+      { href: "/blog/erectile-dysfunction-treatment-online-australia", label: "ED assessment online in Australia" },
+      { href: "/blog/telehealth-safety-screening", label: "How telehealth safety screening works" },
+      { href: "/blog/when-telehealth-cant-help", label: "When online care is not enough" },
+    ],
+    blog: [
+      { href: "/blog/how-doctors-review-online-requests", label: "How doctors review online requests" },
+      { href: "/blog/telehealth-privacy-security", label: "Privacy and security in telehealth" },
+      { href: "/blog/ahpra-registered-doctor-meaning", label: "What AHPRA registration means" },
+    ],
+  },
+  "hair-loss": {
+    conditions: [
+      { href: "/conditions/thyroid-issues", label: "Thyroid Issues", description: "A possible contributor to hair changes" },
+      { href: "/conditions/iron-deficiency", label: "Iron Deficiency", description: "Low iron can affect hair shedding" },
+      { href: "/conditions/skin-rash", label: "Scalp Rash", description: "Inflammation and irritation context" },
+      { href: "/conditions/stress", label: "Stress", description: "Stress-related shedding context" },
+    ],
+    symptoms: [
+      { href: "/symptoms/hair-loss", label: "Hair Loss" },
+      { href: "/symptoms/hair-thinning", label: "Hair Thinning" },
+      { href: "/symptoms/itching", label: "Scalp Itching" },
+      { href: "/symptoms/fatigue", label: "Fatigue" },
+    ],
+    guides: [
+      { href: "/blog/hair-loss-treatment-online-australia", label: "Hair loss assessment online in Australia" },
+      { href: "/blog/finasteride-vs-minoxidil-hair-loss", label: "Hair loss treatment options explained" },
+      { href: "/blog/telehealth-safety-screening", label: "How telehealth safety screening works" },
+    ],
+    blog: [
+      { href: "/blog/how-doctors-review-online-requests", label: "How doctors review online requests" },
+      { href: "/blog/when-telehealth-cant-help", label: "When online care is not enough" },
+      { href: "/blog/ahpra-registered-doctor-meaning", label: "What AHPRA registration means" },
+    ],
+  },
+  "womens-health": {
+    conditions: [
+      { href: "/conditions/uti", label: "UTI", description: "Urinary symptoms and safety boundaries" },
+      { href: "/conditions/thrush", label: "Thrush", description: "When symptoms may not be a UTI" },
+      { href: "/conditions/period-pain", label: "Period Pain", description: "When symptoms need a different pathway" },
+      { href: "/conditions/anxiety", label: "Anxiety", description: "Privacy and care context" },
+    ],
+    symptoms: [
+      { href: "/symptoms/burning-when-urinating", label: "Burning Urination" },
+      { href: "/symptoms/frequent-urination", label: "Frequent Urination" },
+      { href: "/symptoms/stomach-pain", label: "Lower Stomach Pain" },
+      { href: "/symptoms/nausea", label: "Nausea" },
+    ],
+    guides: [
+      { href: "/uti-assessment-online", label: "UTI assessment online" },
+      { href: "/contraceptive-pill-assessment-online", label: "Contraceptive pill assessment online" },
+      { href: "/blog/uti-prescription-online-australia", label: "UTI prescription online in Australia" },
+      { href: "/blog/contraceptive-prescription-online", label: "Contraceptive prescriptions online" },
+      { href: "/blog/telehealth-safety-screening", label: "How telehealth safety screening works" },
+    ],
+    blog: [
+      { href: "/blog/uti-antibiotics-online-australia", label: "UTI antibiotics online: what to know" },
+      { href: "/blog/when-telehealth-cant-help", label: "When online care is not enough" },
+      { href: "/blog/how-doctors-review-online-requests", label: "How doctors review online requests" },
     ],
   },
 }

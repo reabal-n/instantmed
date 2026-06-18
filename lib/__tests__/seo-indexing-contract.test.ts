@@ -158,6 +158,8 @@ describe("SEO indexing contracts", () => {
       "/erectile-dysfunction",
       "/hair-loss",
       "/womens-health",
+      "/uti-assessment-online",
+      "/contraceptive-pill-assessment-online",
       "/consult",
     ]) {
       expect(sitemap, route).toContain(`"${route}"`)

@@ -4,7 +4,7 @@ import { GUARANTEE } from "@/lib/marketing/voice"
 export const ED_FAQ = [
   {
     question: "Do I need a video consultation?",
-    answer: "No booked appointment. Fill out our structured health form, and an AHPRA-registered Australian doctor reviews your submission. We only interrupt you if something important is missing.",
+    answer: "No booked appointment. Fill out our structured health form, and an AHPRA-registered Australian doctor reviews your submission. The doctor may call you briefly before deciding if a safety detail needs clarification.",
   },
   {
     question: "How fast will I hear back?",

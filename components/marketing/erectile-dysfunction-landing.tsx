@@ -185,7 +185,7 @@ export function ErectileDysfunctionLanding() {
   return (
     <LandingPageShell
       config={LANDING_CONFIG}
-      afterFooter={<ContentHubLinks service="consult" />}
+      afterFooter={<ContentHubLinks service="ed" />}
     >
       {({ isDisabled, heroCTARef, handleHeroCTA, handleHowItWorksCTA, handleFinalCTA, handleFAQOpen }) => (
         <>

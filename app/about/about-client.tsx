@@ -88,7 +88,7 @@ const VALUES = [
     icon: <StickerIcon name="accessibility" size={48} />,
     title: "Accessible care",
     description:
-      "24/7 medical certificate requests, plus form-first prescription and specialty pathways. We only interrupt you when a key detail is missing.",
+      "24/7 medical certificate requests, plus form-first prescription and specialty pathways. A doctor reviews the form and may call briefly before deciding.",
   },
   {
     icon: <StickerIcon name="eye" size={48} />,

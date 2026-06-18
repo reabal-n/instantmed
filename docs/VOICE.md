@@ -31,7 +31,7 @@ Four strings, four jobs. Do not mix them up.
 | **Tagline (paid-safe)** | *Faster than the wait at your GP.* | Google-Ads-safe variant of the tagline. Substantiable wait-time comparison; lower healthcare-ad-review risk than direct practitioner comparison. | Google Ads, Meta paid, programmatic display. Brand surfaces still use the primary tagline. |
 | **Wedge** | *No appointment. No waiting room. Start with a secure clinical form.* | Default platform mechanism. Removes booking friction without promising that prescribing requests never need doctor contact. | Homepage, request hub, pricing, generic service pages, paid landing pages. |
 | **Med-cert wedge** | *No video. No call. No appointment.* | Med-cert-specific mechanism for suitable administrative documentation requests. | Medical certificate surfaces only. |
-| **Form-first wedge** | *Complete a secure clinical form. A doctor contacts you only if more information is clinically needed.* | Prescribing and specialty-service mechanism. Keeps the moat while preserving clinical discretion. | Prescriptions, ED, hair loss, women's health, weight loss. |
+| **Form-first wedge** | *Complete a secure clinical form. A doctor reviews it and may call you briefly before prescribing.* | Prescribing and specialty-service mechanism. Keeps a possible brief doctor call visible instead of framing contact as a rare exception. | Prescriptions, ED, hair loss, women's health, weight loss. |
 | **Prop phrase** | *Telehealth without the small talk.* | Voice signature. Doubles as the homepage H2 under the tagline H1, and as the campaign sign-off on ad end-frames, email footers, and the about-page lede. | Hero H2, ad end-frames, email footers, press leads, about page lede. |
 | **Iconic hook** | *Start with a secure form. Takes about 3 minutes.* | The conversion-proximate kicker. Sits next to primary CTAs, runs as the headline on Google Ads, anchors the end of long-scroll marketing pages. | CTA proximity, Google Ads headlines, paid social creative, long-scroll closers. |
 
@@ -72,7 +72,7 @@ This is the merchandised promise. It lives above checkout CTAs, inline on hero C
 7. *A real doctor, online, the moment you need one.*
 8. *No appointment. No waiting room. Start with a secure clinical form.*
 9. *No video. No call. No appointment.*
-10. *Complete a secure clinical form. A doctor contacts you only if more information is clinically needed.*
+10. *Complete a secure clinical form. A doctor reviews it and may call you briefly before prescribing.*
 11. *The doctor is in.* (legacy / alternative hook)
 12. *Full refund if the doctor declines.*
 13. *Real doctors. No runaround.*
@@ -108,8 +108,8 @@ These rules sit above normal brand voice.
 | Context | Approved copy | Avoid |
 |---|---|---|
 | Medical certificates | No video. No call. No appointment. | Accepted by all employers, 98% accepted, special consideration, deferred exam. |
-| Prescription services | Complete a secure clinical form. A doctor contacts you only if more information is clinically needed. | No call needed, guaranteed prescription, get [drug] online. |
-| ED / hair loss | Private form-first assessment. Doctor contact only if clinically needed. | No call needed, drug names in ads, outcome guarantees. |
+| Prescription services | Complete a secure clinical form. A doctor reviews it and may call you briefly before prescribing. | No call needed, guaranteed prescription, get [drug] online. |
+| ED / hair loss | Private form-first assessment. A doctor reviews it and may call briefly before prescribing. | No call needed, drug names in ads, outcome guarantees. |
 | Weight loss | Doctor review for weight management options. Extra information or a call may be required for safety. | Weight loss injections, guaranteed weight loss, before/after claims. |
 | Paid ads | Service-level, no drug terms, no testimonials. | Drug names, prescription-only medicine prices, remarketing to health audiences. |
 

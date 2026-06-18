@@ -24,6 +24,30 @@ import { PRICING } from "@/lib/constants"
 import { WOMENS_HEALTH_FAQ } from "@/lib/data/womens-health-faq"
 import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
 
+type WomensHealthIntent = "overview" | "uti" | "pill"
+
+interface WomensHealthIntentCopy {
+  analyticsId: string
+  stickyCta: string
+  stickySummary: string
+  heroTitle: string
+  heroBody: string
+  claimEyebrow: string
+  claimHeadlineLead: string
+  claimHeadlineAccent: string
+  claimBody: string
+  safetyTitle: string
+  safetyBody: string
+  pricingDescription: string
+  faqSubtitle: string
+  referralContext: string
+  finalTitle: string
+  finalSubtitle: string
+  finalCta: string
+  howItWorksSubheading: string
+  pillSectionMode: "primary" | "secondary"
+}
+
 // Below-fold lazy loads
 const HowItWorksInline = dynamic(
   () => import("@/components/marketing/sections/how-it-works-inline").then((m) => m.HowItWorksInline),
@@ -51,6 +75,81 @@ const CTABanner = dynamic(
 // =============================================================================
 
 const WOMENS_HEALTH_HREF = "/request?service=consult&subtype=womens_health"
+
+const INTENT_COPY: Record<WomensHealthIntent, WomensHealthIntentCopy> = {
+  overview: {
+    analyticsId: "womens-health",
+    stickyCta: `Start assessment · $${PRICING.WOMENS_HEALTH.toFixed(2)}`,
+    stickySummary: "2-min form · Doctor-reviewed · No waiting room",
+    heroTitle: "UTI assessment online, without the waiting room.",
+    heroBody: `${FORM_FIRST_WEDGE} A doctor reviews your symptoms and history and decides what is clinically appropriate. ${GUARANTEE}`,
+    claimEyebrow: "Private and clinical",
+    claimHeadlineLead: "UTI assessment, reviewed by a doctor.",
+    claimHeadlineAccent: "Without the waiting room.",
+    claimBody:
+      "A structured doctor review for urinary symptoms. If online care is appropriate, your outcome is sent to your phone and can be actioned at any Australian pharmacy.",
+    safetyTitle: "When you should be seen in person",
+    safetyBody:
+      "A fever, pain in your back or side, blood in your urine, symptoms during pregnancy, or a UTI that keeps returning are signs you need an in-person review. If your answers raise any of these, the doctor will recommend a face-to-face visit and may decline online care.",
+    pricingDescription: "Private online review for UTI and contraceptive pill concerns",
+    faqSubtitle: "Everything you need to know before starting a women's health assessment online.",
+    referralContext: "dealing with a UTI",
+    finalTitle: "UTI assessment, reviewed by a real doctor.",
+    finalSubtitle: "Fill a short form. A doctor reviews it privately and decides what is clinically appropriate.",
+    finalCta: "Start assessment",
+    howItWorksSubheading:
+      "No booked appointment or waiting room. A doctor reviews your assessment and may call you briefly before deciding.",
+    pillSectionMode: "secondary",
+  },
+  uti: {
+    analyticsId: "womens-health-uti",
+    stickyCta: `Start UTI assessment · $${PRICING.WOMENS_HEALTH.toFixed(2)}`,
+    stickySummary: "UTI form · Doctor-reviewed · No waiting room",
+    heroTitle: "UTI assessment online, without the waiting room.",
+    heroBody: `${FORM_FIRST_WEDGE} A doctor reviews your urinary symptoms and safety screen before deciding what is clinically appropriate. ${GUARANTEE}`,
+    claimEyebrow: "UTI assessment",
+    claimHeadlineLead: "Urinary symptoms, reviewed by a doctor.",
+    claimHeadlineAccent: "Clear safety boundaries.",
+    claimBody:
+      "A structured review for common UTI symptoms. If your answers suggest pregnancy risk, kidney symptoms, fever, blood in urine, or recurring infections, the doctor will redirect you to in-person care.",
+    safetyTitle: "When online UTI care is not suitable",
+    safetyBody:
+      "Fever, back or side pain, blood in your urine, pregnancy or possible pregnancy, STI risk, pelvic pain, or repeated UTIs need in-person assessment. The intake asks about these before payment.",
+    pricingDescription: "Private online review for UTI symptoms and safety boundaries",
+    faqSubtitle: "Everything you need to know before starting a UTI assessment online.",
+    referralContext: "dealing with UTI symptoms",
+    finalTitle: "UTI symptoms? Start with a secure form.",
+    finalSubtitle: "A doctor reviews your symptoms and safety answers before deciding what is clinically appropriate.",
+    finalCta: "Start UTI assessment",
+    howItWorksSubheading:
+      "No booked appointment or waiting room. A doctor reviews your UTI safety screen and may call you briefly before deciding.",
+    pillSectionMode: "secondary",
+  },
+  pill: {
+    analyticsId: "womens-health-pill",
+    stickyCta: `Start pill assessment · $${PRICING.WOMENS_HEALTH.toFixed(2)}`,
+    stickySummary: "Pill form · Doctor-reviewed · No waiting room",
+    heroTitle: "Contraceptive pill assessment online.",
+    heroBody: `${FORM_FIRST_WEDGE} A doctor reviews your health history, safety screen, and pill request before deciding what is clinically appropriate. ${GUARANTEE}`,
+    claimEyebrow: "Contraceptive pill assessment",
+    claimHeadlineLead: "Starting or switching the pill.",
+    claimHeadlineAccent: "Doctor-reviewed online.",
+    claimBody:
+      "A structured review for starting or switching the contraceptive pill. If you are continuing the same pill, the repeat-prescription pathway is usually the better fit.",
+    safetyTitle: "What the doctor needs to check",
+    safetyBody:
+      "Pregnancy or possible pregnancy, migraine with aura, clot history, smoking risk, high blood pressure, pelvic pain, heavy bleeding, STI risk, or safety uncertainty can require a call, in-person review, or a different pathway.",
+    pricingDescription: "Private online review to start or switch the contraceptive pill",
+    faqSubtitle: "Everything you need to know before starting a contraceptive pill assessment online.",
+    referralContext: "reviewing contraception options",
+    finalTitle: "Start or switch the pill with doctor review.",
+    finalSubtitle: "Fill a short form. A doctor reviews your safety screen and decides what is clinically appropriate.",
+    finalCta: "Start pill assessment",
+    howItWorksSubheading:
+      "No booked appointment or waiting room. A doctor reviews your contraception safety screen and may call you briefly before deciding.",
+    pillSectionMode: "primary",
+  },
+}
 
 const HOW_IT_WORKS_STEPS = [
   {
@@ -84,22 +183,24 @@ const PRICING_BULLETS = [
   GUARANTEE,
 ]
 
-const LANDING_CONFIG: LandingPageConfig = {
-  serviceId: "consult",
-  analyticsId: "womens-health",
-  sticky: {
-    ctaText: `Start assessment · $${PRICING.WOMENS_HEALTH.toFixed(2)}`,
-    ctaHref: WOMENS_HEALTH_HREF,
-    mobileSummary: "2-min form · Doctor-reviewed · No waiting room",
-    responseTime: "Doctor-reviewed after submission",
-  },
+function getLandingConfig(copy: WomensHealthIntentCopy): LandingPageConfig {
+  return {
+    serviceId: "consult",
+    analyticsId: copy.analyticsId,
+    sticky: {
+      ctaText: copy.stickyCta,
+      ctaHref: WOMENS_HEALTH_HREF,
+      mobileSummary: copy.stickySummary,
+      responseTime: "Doctor-reviewed after submission",
+    },
+  }
 }
 
 // =============================================================================
 // UNIQUE SECTIONS
 // =============================================================================
 
-/** Time comparison — thin wrapper around the shared TimeComparisonViz primitive. */
+/** Time comparison wrapper around the shared TimeComparisonViz primitive. */
 function WomensHealthComparisonViz() {
   return (
     <div className="bg-muted/30 dark:bg-white/[0.02]">
@@ -116,18 +217,26 @@ function WomensHealthComparisonViz() {
   )
 }
 
-/** Contraceptive pill — strong secondary section beneath the UTI-led primary content. */
-function ContraceptivePillSection({ isDisabled }: { isDisabled?: boolean }) {
+/** Contraceptive pill section. Primary on the pill route, secondary elsewhere. */
+function ContraceptivePillSection({
+  isDisabled,
+  mode,
+}: {
+  isDisabled?: boolean
+  mode: WomensHealthIntentCopy["pillSectionMode"]
+}) {
+  const isPrimary = mode === "primary"
+
   return (
     <section id="contraceptive-pill" aria-label="Contraceptive pill assessment" className="py-16 lg:py-20">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         <Reveal className="text-center mb-8">
-          <SectionPill>Also available</SectionPill>
+          <SectionPill>{isPrimary ? "What doctors check" : "Also available"}</SectionPill>
           <Heading level="h2" className="mt-4 mb-2">
             Starting or switching the contraceptive pill
           </Heading>
           <p className="text-sm text-muted-foreground max-w-xl mx-auto text-balance">
-            Request an assessment to start a new pill or switch from your current one. The doctor reviews your history and decides what is clinically appropriate.
+            Request an assessment to start a new pill or switch from your current one. The doctor reviews your history, safety screen, and what is clinically appropriate.
           </p>
         </Reveal>
 
@@ -170,7 +279,7 @@ function ContraceptivePillSection({ isDisabled }: { isDisabled?: boolean }) {
             disabled={isDisabled}
           >
             <Link href={isDisabled ? "/contact" : WOMENS_HEALTH_HREF}>
-              {isDisabled ? "Contact us" : "Start a pill assessment"}
+              {isDisabled ? "Contact us" : "Start pill assessment"}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
@@ -180,7 +289,13 @@ function ContraceptivePillSection({ isDisabled }: { isDisabled?: boolean }) {
   )
 }
 
-function WomensHealthPricingSection({ isDisabled }: { isDisabled?: boolean }) {
+function WomensHealthPricingSection({
+  isDisabled,
+  description,
+}: {
+  isDisabled?: boolean
+  description: string
+}) {
   return (
     <section id="pricing" aria-label="Pricing" className="py-16 lg:py-20">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
@@ -205,7 +320,7 @@ function WomensHealthPricingSection({ isDisabled }: { isDisabled?: boolean }) {
               </div>
 
               <Heading level="h3" className="mb-1">Women&apos;s Health Assessment</Heading>
-              <p className="text-sm text-muted-foreground mb-5">Private online review for UTI and contraceptive pill concerns</p>
+              <p className="text-sm text-muted-foreground mb-5">{description}</p>
 
               <div className="mb-5">
                 <span className="text-4xl font-semibold tracking-tight text-foreground">
@@ -246,20 +361,22 @@ function WomensHealthPricingSection({ isDisabled }: { isDisabled?: boolean }) {
 // MAIN PAGE COMPONENT
 // =============================================================================
 
-export function WomensHealthLanding() {
+export function WomensHealthLanding({ intent = "overview" }: { intent?: WomensHealthIntent }) {
+  const copy = INTENT_COPY[intent]
+
   return (
     <LandingPageShell
-      config={LANDING_CONFIG}
-      afterFooter={<ContentHubLinks service="consult" />}
+      config={getLandingConfig(copy)}
+      afterFooter={<ContentHubLinks service="womens-health" />}
     >
       {({ isDisabled, heroCTARef, handleHeroCTA, handleHowItWorksCTA, handleFinalCTA, handleFAQOpen }) => (
         <>
-          {/* 1. Hero — UTI-led headline + CTA, with the generic eScript hero
+          {/* 1. Hero: UTI-led headline + CTA, with the generic eScript hero
               mockup standing in for the prescribing outcome. */}
           <Hero
-            title="UTI assessment online, without the waiting room."
+            title={copy.heroTitle}
             primaryCta={{
-              text: `Start assessment · $${PRICING.WOMENS_HEALTH.toFixed(2)}`,
+              text: copy.stickyCta,
               href: WOMENS_HEALTH_HREF,
               onClick: handleHeroCTA,
               ref: heroCTARef,
@@ -277,34 +394,34 @@ export function WomensHealthLanding() {
             mockup={<EScriptHeroMockup />}
           >
             <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-7 leading-relaxed text-balance">
-              {FORM_FIRST_WEDGE} A doctor reviews your symptoms and history and decides what is clinically appropriate. {GUARANTEE}
+              {copy.heroBody}
             </p>
           </Hero>
 
           {/* Live wait time */}
           <LiveWaitTime variant="strip" services={["consult"]} />
 
-          {/* Service claim — UTI-led clinical legitimacy without drug-led copy. */}
+          {/* Service claim: UTI-led clinical legitimacy without drug-led copy. */}
           <ServiceClaimSection
-            eyebrow="Private and clinical"
+            eyebrow={copy.claimEyebrow}
             headline={
               <>
-                UTI assessment, reviewed by a doctor. <span className="text-primary">Without the waiting room.</span>
+                {copy.claimHeadlineLead} <span className="text-primary">{copy.claimHeadlineAccent}</span>
               </>
             }
-            body="A structured doctor review for urinary symptoms. If online care is appropriate, your outcome is sent to your phone and can be actioned at any Australian pharmacy."
+            body={copy.claimBody}
           />
 
-          {/* Red-flag honesty strip — when online care is not suitable. */}
+          {/* Red-flag honesty strip: when online care is not suitable. */}
           <section aria-label="When to be seen in person" className="py-8 sm:py-12">
             <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
               <Reveal className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none p-6">
                 <div className="flex items-start gap-3">
                   <ShieldCheck className="h-5 w-5 text-primary shrink-0 mt-0.5" aria-hidden="true" />
                   <div>
-                    <Heading level="h3" className="mb-1.5 text-base">When you should be seen in person</Heading>
+                    <Heading level="h3" className="mb-1.5 text-base">{copy.safetyTitle}</Heading>
                     <p className="text-sm text-muted-foreground">
-                      A fever, pain in your back or side, blood in your urine, symptoms during pregnancy, or a UTI that keeps returning are signs you need an in-person review. If your answers raise any of these, the doctor will recommend a face-to-face visit and may decline online care.
+                      {copy.safetyBody}
                     </p>
                   </div>
                 </div>
@@ -318,29 +435,29 @@ export function WomensHealthLanding() {
             ctaHref={WOMENS_HEALTH_HREF}
             onCTAClick={handleHowItWorksCTA}
             isDisabled={isDisabled}
-            subheading="No booked appointment or waiting room. A doctor reviews your assessment and may call you briefly before deciding."
+            subheading={copy.howItWorksSubheading}
           />
 
           {/* 3. Time comparison */}
           <WomensHealthComparisonViz />
 
-          {/* 4. Contraceptive pill — strong secondary section. */}
-          <ContraceptivePillSection isDisabled={isDisabled} />
+          {/* 4. Contraceptive pill section. */}
+          <ContraceptivePillSection isDisabled={isDisabled} mode={copy.pillSectionMode} />
 
           {/* 5. Doctor profile */}
           <DoctorProfileSection />
 
           {/* 6. Pricing */}
-          <WomensHealthPricingSection isDisabled={isDisabled} />
+          <WomensHealthPricingSection isDisabled={isDisabled} description={copy.pricingDescription} />
 
           {/* Regulatory Partners */}
           <RegulatoryPartners className="py-12" />
 
-          {/* 7. FAQ — shared <FAQSection> primitive. */}
+          {/* 7. FAQ via the shared <FAQSection> primitive. */}
           <FAQSection
             pill="FAQ"
             title="Frequently asked questions"
-            subtitle="Everything you need to know before starting a women's health assessment online."
+            subtitle={copy.faqSubtitle}
             items={WOMENS_HEALTH_FAQ}
             initialCount={4}
             onFAQOpen={handleFAQOpen}
@@ -349,13 +466,13 @@ export function WomensHealthLanding() {
           />
 
           {/* Referral strip */}
-          <ReferralStrip contextText="dealing with a UTI" />
+          <ReferralStrip contextText={copy.referralContext} />
 
-          {/* 8. Final CTA — shared <CTABanner> primitive. */}
+          {/* 8. Final CTA via the shared <CTABanner> primitive. */}
           <CTABanner
-            title="UTI assessment, reviewed by a real doctor."
-            subtitle="Fill a short form. A doctor reviews it privately and decides what is clinically appropriate."
-            ctaText="Start assessment"
+            title={copy.finalTitle}
+            subtitle={copy.finalSubtitle}
+            ctaText={copy.finalCta}
             ctaHref={WOMENS_HEALTH_HREF}
             onCtaClick={handleFinalCTA}
             isDisabled={isDisabled}

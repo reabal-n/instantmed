@@ -4,7 +4,7 @@ import { GUARANTEE } from "@/lib/marketing/voice"
 export const WOMENS_HEALTH_FAQ = [
   {
     question: "Can I get a UTI assessment online?",
-    answer: "Yes. Fill out our structured health form covering your symptoms and health history, and an AHPRA-registered Australian doctor reviews your submission. No booked appointment or waiting room. We only contact you if something important is missing.",
+    answer: "Yes. Fill out our structured health form covering your symptoms and health history, and an AHPRA-registered Australian doctor reviews your submission. No booked appointment or waiting room. The doctor may call you briefly if a safety detail needs clarification.",
   },
   {
     question: "How does the UTI assessment work?",

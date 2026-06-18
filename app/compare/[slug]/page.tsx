@@ -387,7 +387,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
       },
       {
         q: "What technology do I need for a telehealth consultation?",
-        a: "For asynchronous telehealth services like InstantMed, you just need a device with a web browser and an internet connection. You fill in a secure form, a doctor reviews it, and we only interrupt you if something important is missing. Simpler than most people expect."
+        a: "For asynchronous telehealth services like InstantMed, you just need a device with a web browser and an internet connection. You fill in a secure form, a doctor reviews it, and may call briefly before deciding. Simpler than most people expect."
       },
       {
         q: "Is telehealth covered by private health insurance?",

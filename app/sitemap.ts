@@ -55,6 +55,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/hair-loss",
     "/erectile-dysfunction",
     "/womens-health",
+    "/uti-assessment-online",
+    "/contraceptive-pill-assessment-online",
     "/refund-policy",
     "/cookie-policy",
   ]

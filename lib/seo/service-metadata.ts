@@ -38,7 +38,7 @@ export const serviceSEO: Record<string, ServiceSEO> = {
       {
         question: "Do I need to make a phone call?",
         answer:
-          "You submit your information online and a doctor reviews it. We only interrupt you if something important is missing.",
+          "You submit your information online and a doctor reviews it. If a clinical detail needs clarification, the doctor may follow up.",
       },
       {
         question: "What does it cost?",
@@ -77,7 +77,7 @@ export const serviceSEO: Record<string, ServiceSEO> = {
       {
         question: "Do I need to speak to a doctor?",
         answer:
-          "You start with a secure online form. We only interrupt you if something important is missing before the doctor can decide.",
+          "You start with a secure online form. The doctor may call you briefly before deciding if a safety detail needs clarification.",
       },
     ],
   },

@@ -93,10 +93,10 @@ export const APPROVED_CLAIMS: Record<ApprovedClaimId, ApprovedClaim> = {
   },
   form_first_wedge: {
     id: "form_first_wedge",
-    text: "Complete a secure clinical form. We only interrupt you if something important is missing.",
-    contexts: ["prescribing", "specialty", "platform"],
+    text: "Complete a secure clinical form. A doctor reviews it and may call you briefly before prescribing.",
+    contexts: ["prescribing", "specialty"],
     risk: "medium",
-    notes: "Use where a doctor may message or call before making a clinical decision.",
+    notes: "Use for prescribing and specialty surfaces. Keeps a possible brief doctor call visible rather than implying contact is rare.",
   },
   prop_phrase: {
     id: "prop_phrase",

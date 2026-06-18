@@ -330,7 +330,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
               {isMedCertCheckout
                 ? "Payment sends your request to the doctor. Approval is clinical, not automatic."
-                : "Payment sends your request for clinical review. The doctor contacts you only if more information is needed."}
+                : "Payment sends your request for clinical review. The doctor may contact you before deciding."}
             </p>
           </div>
         </div>

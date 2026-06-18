@@ -287,7 +287,7 @@ export function HairLossLanding() {
   return (
     <LandingPageShell
       config={LANDING_CONFIG}
-      afterFooter={<ContentHubLinks service="consult" />}
+      afterFooter={<ContentHubLinks service="hair-loss" />}
     >
       {({ isDisabled, heroCTARef, handleHeroCTA, handleHowItWorksCTA, handleFinalCTA, handleFAQOpen }) => (
         <>

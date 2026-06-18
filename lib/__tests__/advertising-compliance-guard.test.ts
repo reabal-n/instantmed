@@ -30,9 +30,13 @@ const NON_MEDCERT_FORM_FIRST_SURFACES = [
   "app/how-it-works/page.tsx",
   "app/online-doctor-australia/page.tsx",
   "app/weight-loss",
+  "app/womens-health",
+  "app/uti-assessment-online",
+  "app/contraceptive-pill-assessment-online",
   "app/prescriptions",
   "components/marketing/erectile-dysfunction-landing.tsx",
   "components/marketing/hair-loss-landing.tsx",
+  "components/marketing/womens-health-landing.tsx",
   "components/shared/navbar/services-dropdown.tsx",
   "components/marketing/mockups/ed-hero-mockup.tsx",
   "components/marketing/sections/how-it-works-inline.tsx",
@@ -40,6 +44,7 @@ const NON_MEDCERT_FORM_FIRST_SURFACES = [
   "components/marketing/how-it-works.tsx",
   "lib/data/ed-faq.ts",
   "lib/data/hair-loss-faq.ts",
+  "lib/data/womens-health-faq.ts",
   "lib/email/components/templates/abandoned-checkout-followup.tsx",
   "lib/marketing/contextual-messages.ts",
   "lib/marketing/homepage.ts",
@@ -101,8 +106,12 @@ const PAID_PRESCRIPTION_DESTINATION_SURFACES = [
   "app/weight-loss/page.tsx",
   "app/weight-loss/weight-loss-client.tsx",
   "app/prescriptions/page.tsx",
+  "app/womens-health/page.tsx",
+  "app/uti-assessment-online/page.tsx",
+  "app/contraceptive-pill-assessment-online/page.tsx",
   "components/marketing/erectile-dysfunction-landing.tsx",
   "components/marketing/hair-loss-landing.tsx",
+  "components/marketing/womens-health-landing.tsx",
   "components/marketing/prescriptions-landing.tsx",
   "components/marketing/mockups/ed-hero-mockup.tsx",
   "components/marketing/mockups/escript-hero-mockup.tsx",
@@ -112,6 +121,7 @@ const PAID_PRESCRIPTION_DESTINATION_SURFACES = [
   "components/shared/navbar/services-dropdown.tsx",
   "lib/data/ed-faq.ts",
   "lib/data/hair-loss-faq.ts",
+  "lib/data/womens-health-faq.ts",
   "lib/data/prescription-faq.ts",
   "lib/marketing/homepage.ts",
 ]
@@ -226,6 +236,11 @@ const NO_CALL_PATTERNS = [
   /\bno conversation needed\b/i,
   /\bno need to speak\b/i,
   /\bno calls?, no\b/i,
+  /\bwe only interrupt\b/i,
+  /\bwe only contact you if\b/i,
+  /\bdoctor contacts you only if\b/i,
+  /\bfollows up only if\b/i,
+  /\breach(?:es)? out only if\b/i,
 ]
 
 const MED_CERT_ACCEPTANCE_PATTERNS = [
@@ -364,6 +379,13 @@ const PUBLIC_FIXED_TURNAROUND_PATTERNS = [
   /\bsame-day review\b/i,
   /\bdelivered same-day\b/i,
   /\bMost people are sorted\b/i,
+]
+
+const RETIRED_PUBLIC_LINK_TARGETS = [
+  "/blog/understanding-escripts-australia",
+  "/blog/pbs-subsidies-guide",
+  "/blog/how-to-get-medical-certificate-online-australia",
+  "/blog/telehealth-vs-gp-when-to-use-each",
 ]
 
 function toFullPath(relative: string): string {
@@ -604,6 +626,21 @@ describe("advertising compliance guard", () => {
     }
 
     expect(hits).toEqual([])
+  })
+
+  it("keeps public acquisition links pointed at canonical article slugs", () => {
+    const source = collectFiles([
+      "app",
+      "components/marketing",
+      "components/shared",
+      "components/seo",
+      "lib/marketing",
+      "lib/seo",
+    ]).map((file) => readFileSync(file, "utf8")).join("\n")
+
+    for (const target of RETIRED_PUBLIC_LINK_TARGETS) {
+      expect(source, `${target} should not be linked directly`).not.toContain(target)
+    }
   })
 
   it("keeps weight management future-scaffolded but not publicly purchasable", () => {

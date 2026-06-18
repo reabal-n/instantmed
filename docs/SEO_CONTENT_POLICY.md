@@ -147,6 +147,8 @@ Educational medicine pages may link to generic service pages:
 - `/hair-loss`
 - `/weight-loss`
 - `/womens-health`
+- `/uti-assessment-online`
+- `/contraceptive-pill-assessment-online`
 
 They must not pass medicine names into request URLs.
 
@@ -173,6 +175,8 @@ Paid campaigns should use service-level landing pages only:
 - `/hair-loss`
 - `/weight-loss`
 - `/womens-health`
+- `/uti-assessment-online`
+- `/contraceptive-pill-assessment-online`
 
 Those paid destinations should avoid prescription drug names and follow `docs/ADVERTISING_COMPLIANCE.md`.
 

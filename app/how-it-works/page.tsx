@@ -8,7 +8,7 @@ export const revalidate = 86400 // 24h ISR for marketing page
 
 const howItWorksFaqs = [
   { question: "Is this a real doctor?", answer: "Yes. Every request is reviewed by an AHPRA-registered Australian doctor. They're real doctors with real medical degrees and current registration - the same doctors who work in clinics and hospitals." },
-  { question: "How long does it take?", answer: "Requests can be submitted any time. Medical certificates are typically issued quickly, and prescriptions or consultations are reviewed when a doctor is available through a secure form-first workflow. We only interrupt you if something important is missing." },
+  { question: "How long does it take?", answer: "Requests can be submitted any time. Medical certificates are typically issued quickly, and prescription or specialty requests are reviewed when a doctor is available through a secure form-first workflow. The doctor may call briefly before deciding." },
   { question: "Can my employer use an online medical certificate as evidence?", answer: "Certificates from AHPRA-registered doctors can support workplace evidence requirements. Employer policies may vary." },
   { question: "Do I need a Medicare card?", answer: "For medical certificates - no. For prescriptions and consultations - Medicare details are requested so the doctor can verify your identity, but this is a private service and no Medicare rebate is claimed." },
   { question: "What if my request is declined?", answer: `${GUARANTEE} If your situation requires in-person care or falls outside what telehealth can safely manage, the doctor will recommend appropriate next steps.` },

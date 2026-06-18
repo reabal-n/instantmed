@@ -58,8 +58,8 @@ const SERVICES = [
     price: PRICING_DISPLAY.FROM_SCRIPT,
   },
   {
-    name: "GP Consultation",
-    desc: "General health concerns, no appointment",
+    name: "Online doctor services",
+    desc: "Focused services, no waiting room",
     href: "/consult",
     Icon: Stethoscope,
     price: PRICING_DISPLAY.FROM_CONSULT,
@@ -70,12 +70,12 @@ const RELATED = [
   {
     title: "How to Get a Med Cert Online",
     desc: "Step-by-step guide without visiting a clinic",
-    href: "/blog/how-to-get-medical-certificate-online-australia",
+    href: "/blog/medical-certificate-online-australia",
   },
   {
     title: "Telehealth vs In-Person GP",
     desc: "When telehealth is the right choice for your needs",
-    href: "/blog/telehealth-vs-gp-when-to-use-each",
+    href: "/blog/telehealth-vs-gp-australia",
   },
 ]
 

@@ -164,7 +164,7 @@ const services: DetailedService[] = [
     icon: ShieldCheck,
     accent: "text-primary bg-primary/10",
     forWho:
-      "You have UTI symptoms, or you want to start, switch, or continue the contraceptive pill, without the clinic wait.",
+      "You have UTI symptoms, or you want to start or switch the contraceptive pill, without the clinic wait.",
     includes: [
       "Structured UTI or contraception screen with safety checks",
       "Doctor reviews suitability",
@@ -202,7 +202,7 @@ const overviewFaqs = [
   {
     question: "Will the doctor call me?",
     answer:
-      "Our services are form-first. The doctor reviews your questionnaire and responds in writing with a decision, a prescription, or a referral. We only call if something clinically important is missing.",
+      "Our services are form-first. The doctor reviews your questionnaire and responds in writing with a decision, a prescription, or a referral. For prescribing pathways, the doctor may call you briefly before deciding.",
   },
   {
     question: "Can I get a prescription online?",
@@ -238,7 +238,7 @@ const overviewFaqs = [
 export const metadata: Metadata = {
   title: "Online Doctor Services in Australia | InstantMed",
   description:
-    `See an Australian doctor online for medical certificates, repeat prescriptions, ED, hair loss, or women's health. Form-first review, no waiting room, AHPRA-registered. From ${PRICING_DISPLAY.MED_CERT}.`,
+    `Medical certificates, repeat prescriptions, ED, hair loss, and women's health assessments online. Focused services reviewed by Australian doctors. From ${PRICING_DISPLAY.MED_CERT}.`,
   openGraph: {
     title: "Online Doctor Services | InstantMed",
     description:
@@ -338,7 +338,7 @@ export default async function ConsultOverviewPage() {
               alt="Person on a quiet phone consult with an Australian doctor"
               fill
               className="object-cover"
-              loading="lazy"
+              priority
               sizes="(max-width: 1024px) calc(100vw - 4rem), 768px"
             />
           </div>

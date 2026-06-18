@@ -78,7 +78,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
 
   howItWorks: {
     title: 'Three steps. A real doctor.',
-    subtitle: 'Start with a questionnaire, then a doctor assesses your situation and follows up only if needed.',
+    subtitle: 'Start with a questionnaire, then a doctor assesses your situation and may follow up before deciding.',
     steps: [
       {
         number: '1',
@@ -179,7 +179,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
     items: [
       {
         question: 'Will the doctor call me?',
-        answer: 'The doctor will review your questionnaire first, then call or message only when clinically needed. Keep your phone nearby after submitting.',
+        answer: 'The doctor will review your questionnaire first, then may call or message before deciding. Keep your phone nearby after submitting.',
       },
       {
         question: 'Can I get a prescription from a consult?',
@@ -201,9 +201,9 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
   },
 
   finalCta: {
-    headline: 'Talk to a doctor from home',
-    subheadline: 'Start with a quick questionnaire. A doctor reviews and follows up only if something important is missing.',
-    ctaText: 'Talk to a doctor today',
+    headline: 'Start a focused online request',
+    subheadline: 'Start with a quick questionnaire. A doctor reviews it and may call briefly before deciding.',
+    ctaText: 'Start a request',
   },
 
   accentColor: 'sky',

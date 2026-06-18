@@ -37,7 +37,23 @@ describe("approved claims registry", () => {
   it("keeps high-risk no-call language scoped to medical certificates", () => {
     expect(APPROVED_CLAIMS.med_cert_wedge.contexts).toEqual(["medical_certificate"])
     expect(APPROVED_CLAIMS.trust_simple_cert_label.contexts).toEqual(["medical_certificate"])
-    expect(APPROVED_CLAIMS.form_first_wedge.text).toContain("We only interrupt you")
+    expect(APPROVED_CLAIMS.form_first_wedge.contexts).toEqual(["prescribing", "specialty"])
+    expect(APPROVED_CLAIMS.form_first_wedge.text).toBe(
+      "Complete a secure clinical form. A doctor reviews it and may call you briefly before prescribing.",
+    )
+    expect(APPROVED_CLAIMS.form_first_wedge.text).not.toContain("only interrupt")
+  })
+
+  it("keeps prescribing wedge docs aligned with the approved claim", () => {
+    const docs = [
+      "docs/BUSINESS_PLAN.md",
+      "docs/VOICE.md",
+      "docs/ADVERTISING_COMPLIANCE.md",
+      "docs/PRIMITIVES.md",
+    ].map((file) => readFileSync(join(root, file), "utf8")).join("\n")
+
+    expect(docs).toContain(APPROVED_CLAIMS.form_first_wedge.text)
+    expect(docs).not.toContain("A doctor contacts you only if more information is clinically needed")
   })
 
   it("keeps trust badges wired to approved trust primitive copy", () => {

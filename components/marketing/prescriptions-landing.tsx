@@ -77,9 +77,9 @@ const CTABanner = dynamic(
 // =============================================================================
 
 const RELATED_ARTICLES_DATA = [
-  { title: "Understanding eScripts in Australia", href: "/blog/understanding-escripts-australia" },
+  { title: "Understanding eScripts in Australia", href: "/blog/how-escripts-work" },
   { title: "How to Get a Repeat Prescription Online", href: "/blog/repeat-prescription-online" },
-  { title: "PBS Subsidies: What You Need to Know", href: "/blog/pbs-subsidies-guide" },
+  { title: "PBS Subsidies: What You Need to Know", href: "/blog/pbs-pharmaceutical-benefits-scheme" },
 ]
 
 const HOW_IT_WORKS_STEPS = [

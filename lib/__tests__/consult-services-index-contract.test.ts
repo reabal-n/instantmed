@@ -43,10 +43,25 @@ describe("/consult services index contract", () => {
   it("keeps consult metadata and visible copy synced with the active service set", () => {
     const source = read("app/consult/page.tsx")
 
+    expect(source).toContain('canonical: "https://instantmed.com.au/consult"')
     expect(source).toContain("women's health")
     expect(source).toContain("Medical certificates, repeat prescriptions, ED, hair loss, and women's health assessments")
     expect(source).toContain("We treat focused services, properly.")
     expect(source).not.toContain("We treat four things")
+  })
+
+  it("keeps women's health scope narrow and routes same-pill repeats away from the consult promise", () => {
+    const source = read("app/consult/page.tsx")
+
+    expect(source).toContain("start or switch the contraceptive pill")
+    expect(source).not.toContain("start, switch, or continue the contraceptive pill")
+  })
+
+  it("does not hide possible prescribing calls behind retired interruption copy", () => {
+    const source = read("app/consult/page.tsx")
+
+    expect(source).toContain("may call you briefly before deciding")
+    expect(source).not.toContain("We only call if something clinically important is missing")
   })
 
   it("keeps weight management as the only coming-soon card (women's health is now live)", () => {

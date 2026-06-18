@@ -72,7 +72,7 @@ Service-specific stat configurations for social proof strips.
 | `TAGLINE` | `string` | Logo-adjacent promise: "Faster than your GP." |
 | `WEDGE` | `string` | Default platform wedge: no appointment, no waiting room, secure clinical form. |
 | `MED_CERT_WEDGE` | `string` | Med-cert-only wedge: "No video. No call. No appointment." |
-| `FORM_FIRST_WEDGE` | `string` | Prescribing/specialty wedge: doctor contacts the patient only if clinically needed. |
+| `FORM_FIRST_WEDGE` | `string` | Prescribing/specialty wedge: doctor reviews the form and may call briefly before prescribing. |
 | `GUARANTEE` | `string` | Outcome guarantee: "Full refund if the doctor declines." |
 | `GUARANTEE_LABEL` | `string` | Compact display label: "Refund if declined". Use in stat strips, badges, and dense trust rows. |
 | `BANNED_PHRASES` | `readonly string[]` | Brand voice banned phrases enforced by tests. |

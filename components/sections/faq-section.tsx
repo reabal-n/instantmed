@@ -46,6 +46,7 @@ export function FAQSection({
 }: FAQSectionProps) {
   const [expanded, setExpanded] = useState(false)
   const visibleItems = initialCount && !expanded ? items.slice(0, initialCount) : items
+  const idBase = id.replace(/[^a-zA-Z0-9_-]/g, "-")
 
   return (
     <section id={id} className={cn("py-10 sm:py-14 lg:py-24 scroll-mt-20", className)}>
@@ -63,21 +64,35 @@ export function FAQSection({
             }
           }}
         >
-          {visibleItems.map((item, index) => (
-            <AccordionItem
-              key={index}
-              value={index.toString()}
-              className="border-b border-border/30 first:border-t first:border-t-border/30"
-            >
-              <AccordionTrigger className="py-4 text-left text-[15px] font-medium text-foreground hover:no-underline gap-4">
-                {item.question}
-              </AccordionTrigger>
-              {/* forceMount: answers must exist in the served HTML for Bing/LLM crawlers (GEO) */}
-              <AccordionContent forceMount className="text-sm text-muted-foreground leading-relaxed">
-                {item.answer}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
+          {visibleItems.map((item, index) => {
+            const triggerId = `${idBase}-question-${index}`
+            const contentId = `${idBase}-answer-${index}`
+
+            return (
+              <AccordionItem
+                key={index}
+                value={index.toString()}
+                className="border-b border-border/30 first:border-t first:border-t-border/30"
+              >
+                <AccordionTrigger
+                  id={triggerId}
+                  aria-controls={contentId}
+                  className="py-4 text-left text-[15px] font-medium text-foreground hover:no-underline gap-4"
+                >
+                  {item.question}
+                </AccordionTrigger>
+                {/* forceMount: answers must exist in the served HTML for Bing/LLM crawlers (GEO) */}
+                <AccordionContent
+                  id={contentId}
+                  aria-labelledby={triggerId}
+                  forceMount
+                  className="text-sm text-muted-foreground leading-relaxed"
+                >
+                  {item.answer}
+                </AccordionContent>
+              </AccordionItem>
+            )
+          })}
         </Accordion>
 
         {initialCount && !expanded && items.length > initialCount && (
