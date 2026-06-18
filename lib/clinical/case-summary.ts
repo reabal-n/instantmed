@@ -134,6 +134,37 @@ function sentenceHumanize(value: unknown): string {
   return humanize(value).toLowerCase()
 }
 
+function mappedLabel(labels: Record<string, string>, value: string | undefined, fallback = "Not provided"): string {
+  if (!value) return fallback
+  return labels[value] || humanize(value)
+}
+
+function sentenceLabel(value: string): string {
+  return value.toLowerCase()
+}
+
+const ED_GOAL_LABELS: Record<string, string> = {
+  improve_erections: "Improve erections",
+  more_spontaneity: "More spontaneity",
+  boost_confidence: "Boost confidence",
+  better_stamina: "Better stamina",
+  maintain: "Maintain what I have",
+}
+
+const ED_DURATION_LABELS: Record<string, string> = {
+  less_than_3_months: "Less than 3 months",
+  "3_to_12_months": "3-12 months",
+  "1_to_3_years": "1-3 years",
+  "3_plus_years": "3+ years",
+  "6_12_months": "6-12 months",
+}
+
+const ED_PREFERENCE_LABELS: Record<string, string> = {
+  daily: "Daily",
+  prn: "As-needed",
+  doctor_decides: "Doctor to decide",
+}
+
 function hairOnsetLabel(value: string): string {
   const labels: Record<string, string> = {
     not_yet: "Not yet",
@@ -158,6 +189,66 @@ function hairFamilyHistoryLabel(value: string | undefined): string {
     unknown: "Not sure",
   }
   return value ? labels[value] || humanize(value) : "Not provided"
+}
+
+const HAIR_GOAL_LABELS: Record<string, string> = {
+  prevent: "Prevent further loss",
+  regrow: "Regrow what I have lost",
+  both: "Stop loss and regrow",
+  exploring: "Exploring options",
+  slow_loss: "Slow hair loss",
+}
+
+const HAIR_PATTERN_LABELS: Record<string, string> = {
+  none: "No noticeable loss",
+  slight_recession: "Temple recession",
+  noticeable_thinning: "Noticeable thinning",
+  crown_plus_hairline: "Crown and hairline",
+  significant: "Significant overall thinning",
+  extensive: "Extensive loss",
+  male_pattern: "Male-pattern hair loss",
+}
+
+const HAIR_PREFERENCE_LABELS: Record<string, string> = {
+  oral: "Daily oral tablet",
+  topical: "Topical scalp treatment",
+  combination: "Combination (oral + OTC scalp treatment)",
+  doctor_decides: "Doctor to recommend",
+  doctor_recommendation: "Doctor to recommend",
+}
+
+const HAIR_REPRODUCTIVE_LABELS: Record<string, string> = {
+  no: "No",
+  na: "Not applicable",
+  yes: "Yes",
+}
+
+const PREGNANCY_STATUS_LABELS: Record<string, string> = {
+  no: "No",
+  not_sure: "Not sure",
+  yes: "Yes",
+}
+
+const UTI_SYMPTOM_LABELS: Record<string, string> = {
+  burning: "Burning or stinging",
+  frequency: "Urinating more often",
+  urgency: "Urgent need to go",
+  incomplete: "Not emptying fully",
+  blood: "Blood in urine",
+  cloudy: "Cloudy or smelly",
+}
+
+const CONTRACEPTION_TYPE_LABELS: Record<string, string> = {
+  start: "Start pill",
+  switch: "Switch pill",
+  continue: "Repeat prescription route",
+}
+
+const CONTRACEPTION_CURRENT_LABELS: Record<string, string> = {
+  pill: "The pill",
+  iud: "IUD or implant",
+  other: "Other method",
+  none: "None",
 }
 
 function compactFacts(facts: Array<ClinicalKeyFact | false | undefined | null>): ClinicalKeyFact[] {
@@ -282,8 +373,11 @@ function edSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const gpCleared = answerYes(answers, "edGpCleared")
   const hasBlock = hasNitrates || (hasRecentHeartEvent && !gpCleared) || (hasSevereHeart && !gpCleared)
   const goal = str(answers, "edGoal") || "ED treatment"
+  const goalLabel = mappedLabel(ED_GOAL_LABELS, goal, "ED treatment")
   const duration = str(answers, "edDuration") || str(answers, "duration_of_concern") || "unspecified duration"
-  const preference = str(answers, "edPreference") || "doctor decides"
+  const durationLabel = mappedLabel(ED_DURATION_LABELS, duration, "Unspecified duration")
+  const preference = str(answers, "edPreference") || "doctor_decides"
+  const preferenceLabel = mappedLabel(ED_PREFERENCE_LABELS, preference, "Doctor to decide")
   const score = str(answers, "iiefTotal")
 
   const safetyItems: ClinicalSafetyItem[] = [
@@ -327,10 +421,10 @@ function edSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   ].filter(Boolean) as ClinicalSafetyItem[]
 
   const keyFacts = compactFacts([
-    { label: "Main goal", value: humanize(goal) },
-    { label: "Duration", value: humanize(duration) },
+    { label: "Main goal", value: goalLabel },
+    { label: "Duration", value: durationLabel },
     fact("IIEF-5 score", score),
-    { label: "Treatment preference", value: humanize(preference) },
+    { label: "Treatment preference", value: preferenceLabel },
     { label: "Nitrate use", value: yesNo(raw(answers, "edNitrates")) },
     { label: "Recent heart event", value: yesNo(raw(answers, "edRecentHeartEvent")) },
     { label: "Severe heart condition", value: yesNo(raw(answers, "edSevereHeart")) },
@@ -382,13 +476,13 @@ function edSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   // Patient-story / UI sentence keeps the prior shape (goal-led). Only the
   // doctor's SOAP draft note moves to clinical voice. The cockpit renders the
   // story above the note.
-  const storySentence = `${input.patientName || "Patient"} requests help to ${sentenceHumanize(goal)} with symptoms for ${sentenceHumanize(duration)}.`
+  const storySentence = `${input.patientName || "Patient"} requests help with ${sentenceLabel(goalLabel)} for ${sentenceLabel(durationLabel)}.`
 
   const subjective = [
     `${header}, c/o erectile dysfunction.`,
-    duration ? `Symptoms for ${humanize(duration).toLowerCase()}.` : null,
+    duration ? `Symptoms for ${sentenceLabel(durationLabel)}.` : null,
     score ? `IIEF-5 ${score}/25.` : null,
-    preference ? `Patient prefers ${humanize(preference).toLowerCase()} dosing.` : null,
+    preference ? `Patient prefers ${sentenceLabel(preferenceLabel)} dosing.` : null,
   ]
     .filter(Boolean)
     .join(" ")
@@ -422,7 +516,7 @@ function edSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
 
   return {
     title: "Erectile dysfunction consult",
-    patientStory: `${storySentence} Preference: ${sentenceHumanize(preference)}.`,
+    patientStory: `${storySentence} Preference: ${sentenceLabel(preferenceLabel)}.`,
     keyFacts,
     safetyItems,
     recommendedPlan,
@@ -436,12 +530,16 @@ function hairSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const validation = validateHairLossConsult(answers)
   const blockingFlags = validation.flags.filter((flag) => flag.type === "safety_block")
   const cautionFlags = validation.flags.filter((flag) => flag.type !== "safety_block")
-  const goal = str(answers, "hairGoal") || "hair loss treatment"
+  const goal = str(answers, "hairGoal") || "hair_loss_treatment"
+  const goalLabel = mappedLabel(HAIR_GOAL_LABELS, goal, "Hair loss treatment")
   const onset = str(answers, "hairOnset") || "unspecified onset"
   const onsetLabel = hairOnsetLabel(onset)
   const pattern = str(answers, "hairPattern") || "unspecified pattern"
+  const patternLabel = mappedLabel(HAIR_PATTERN_LABELS, pattern, "Unspecified pattern")
   const familyHistoryLabel = hairFamilyHistoryLabel(str(answers, "hairFamilyHistory"))
-  const preference = str(answers, "hairMedicationPreference") || "doctor decides"
+  const preference = str(answers, "hairMedicationPreference") || "doctor_decides"
+  const preferenceLabel = mappedLabel(HAIR_PREFERENCE_LABELS, preference, "Doctor to recommend")
+  const reproductiveLabel = mappedLabel(HAIR_REPRODUCTIVE_LABELS, str(answers, "hairReproductive"), "Not provided")
   const reproductiveBlock = blockingFlags.some((flag) => flag.reason === "reproductive_contraindication")
   const oralRequested = preference === "oral"
   const hasBlock = reproductiveBlock && oralRequested
@@ -460,12 +558,12 @@ function hairSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   ]
 
   const keyFacts = compactFacts([
-    { label: "Goal", value: humanize(goal) },
+    { label: "Goal", value: goalLabel },
     { label: "Onset", value: onsetLabel },
-    { label: "Pattern", value: humanize(pattern) },
+    { label: "Pattern", value: patternLabel },
     { label: "Family history", value: familyHistoryLabel },
-    { label: "Treatment preference", value: humanize(preference) },
-    { label: "Reproductive risk", value: yesNo(raw(answers, "hairReproductive")) },
+    { label: "Treatment preference", value: preferenceLabel },
+    { label: "Reproductive risk", value: reproductiveLabel },
     { label: "Scalp concerns", value: scalpSummary(answers) },
     { label: "Low BP/dizziness", value: yesNo(raw(answers, "hairLowBP")) },
     { label: "Heart conditions/palpitations", value: yesNo(raw(answers, "hairHeartConditions")) },
@@ -508,13 +606,13 @@ function hairSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   })
 
   const header = patientHeader(input)
-  const storySentence = `${input.patientName || "Patient"} requests hair loss treatment for ${sentenceHumanize(pattern)} with onset ${onsetLabel.toLowerCase()}.`
+  const storySentence = `${input.patientName || "Patient"} requests hair loss treatment for ${sentenceLabel(patternLabel)} with onset ${onsetLabel.toLowerCase()}.`
 
   const subjective = [
-    `${header}, c/o androgenetic-pattern hair loss (${humanize(pattern).toLowerCase()}).`,
+    `${header}, c/o androgenetic-pattern hair loss (${sentenceLabel(patternLabel)}).`,
     onset ? `Onset ${onsetLabel.toLowerCase()}.` : null,
-    `Goal: ${humanize(goal).toLowerCase()}.`,
-    preference ? `Patient prefers ${humanize(preference).toLowerCase()} option.` : null,
+    `Goal: ${sentenceLabel(goalLabel)}.`,
+    preference ? `Patient prefers ${sentenceLabel(preferenceLabel)} option.` : null,
   ]
     .filter(Boolean)
     .join(" ")
@@ -543,7 +641,7 @@ function hairSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
 
   return {
     title: "Hair loss consult",
-    patientStory: `${storySentence} Preference: ${sentenceHumanize(preference)}.`,
+    patientStory: `${storySentence} Preference: ${sentenceLabel(preferenceLabel)}.`,
     keyFacts,
     safetyItems,
     recommendedPlan,
@@ -869,11 +967,14 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
 
   if (isUti) {
     const symptoms = Array.isArray(raw(answers, "utiSymptoms"))
-      ? (raw(answers, "utiSymptoms") as unknown[]).map(humanize).filter(Boolean)
+      ? (raw(answers, "utiSymptoms") as unknown[])
+          .map((value) => (typeof value === "string" ? mappedLabel(UTI_SYMPTOM_LABELS, value) : humanize(value)))
+          .filter(Boolean)
       : []
     const symptomsLabel = symptoms.length > 0 ? symptoms.join(", ") : "Not provided"
     const redFlags = answerYes(answers, "utiRedFlags")
     const pregnancyRaw = str(answers, "utiPregnant")
+    const pregnancyLabel = mappedLabel(PREGNANCY_STATUS_LABELS, pregnancyRaw, "Not provided")
     const pregnant = pregnancyRaw === "yes"
     const pregnancyUnsure = pregnancyRaw === "not_sure"
     const details = str(answers, "utiDetails")
@@ -920,7 +1021,7 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     const keyFacts = compactFacts([
       { label: "Symptoms", value: symptomsLabel },
       { label: "Red flags", value: yesNo(raw(answers, "utiRedFlags")) },
-      { label: "Pregnant", value: humanize(pregnancyRaw) },
+      { label: "Pregnant", value: pregnancyLabel },
       fact("Patient details", details),
       fact("Allergies", firstStr(answers, ["known_allergies", "allergies"])),
       fact("Conditions", firstStr(answers, ["existing_conditions", "conditions"])),
@@ -977,7 +1078,7 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     const objective = [
       "Structured UTI screen completed.",
       `Red flags: ${yesNo(raw(answers, "utiRedFlags"))}.`,
-      `Pregnant: ${humanize(pregnancyRaw)}.`,
+      `Pregnant: ${pregnancyLabel}.`,
     ]
       .filter(Boolean)
       .join(" ")
@@ -1007,9 +1108,12 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const contraceptionType = str(answers, "contraceptionType") || ""
   const isSwitch = contraceptionType === "switch"
   const isRepeatRequest = contraceptionType === "continue"
-  const requestLabel = isSwitch ? "Switch pill" : isRepeatRequest ? "Repeat prescription route" : "Start pill"
+  const requestLabel = mappedLabel(CONTRACEPTION_TYPE_LABELS, contraceptionType, "Start pill")
   const current = str(answers, "contraceptionCurrent")
+  const currentLabel = current ? mappedLabel(CONTRACEPTION_CURRENT_LABELS, current) : undefined
+  const currentNoteLabel = currentLabel === "The pill" ? "the pill" : currentLabel
   const pregnancyRaw = str(answers, "pregnancyStatus")
+  const pregnancyLabel = mappedLabel(PREGNANCY_STATUS_LABELS, pregnancyRaw, "Not provided")
   const pregnant = pregnancyRaw === "yes"
   const pregnancyUnsure = pregnancyRaw === "not_sure"
   const migraineAura = answerYes(answers, "womens_migraine_aura")
@@ -1085,8 +1189,8 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
 
   const keyFacts = compactFacts([
     { label: "Request", value: requestLabel },
-    fact("Current pill", current),
-    { label: "Pregnant", value: humanize(pregnancyRaw) },
+    fact("Current contraception", currentLabel),
+    { label: "Pregnant", value: pregnancyLabel },
     { label: "Migraine with aura", value: yesNo(raw(answers, "womens_migraine_aura")) },
     { label: "Blood clot history", value: yesNo(raw(answers, "womens_blood_clot_history")) },
     { label: "Smoker", value: yesNo(raw(answers, "womens_smoker")) },
@@ -1159,7 +1263,7 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const subjective = [
     `${header}, requesting to ${requestVerb} a contraceptive pill.`,
     isRepeatRequest ? "Repeat request should be handled through the repeat-prescription workflow." : null,
-    isSwitch && current ? `Currently on ${current}.` : null,
+    isSwitch && currentNoteLabel ? `Currently using ${currentNoteLabel}.` : null,
     lastPeriod ? `Last period: ${lastPeriod}.` : null,
     details ? `Patient notes: ${details}.` : null,
   ]
@@ -1168,7 +1272,7 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
 
   const objective = [
     "Structured contraception screen completed.",
-    `Pregnant: ${humanize(pregnancyRaw)}.`,
+    `Pregnant: ${pregnancyLabel}.`,
     `Migraine with aura: ${yesNo(raw(answers, "womens_migraine_aura"))}.`,
     `Blood clot history: ${yesNo(raw(answers, "womens_blood_clot_history"))}.`,
     `Smoker: ${yesNo(raw(answers, "womens_smoker"))}.`,

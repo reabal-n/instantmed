@@ -56,6 +56,49 @@ const SYMPTOM_DURATION_LABELS: Record<string, string> = {
   '1_week_plus': 'Over a week',
 }
 
+const YES_NO_REVIEW_LABELS: Record<string, string> = {
+  no: 'No',
+  yes: 'Yes',
+}
+
+const UTI_REVIEW_SYMPTOM_LABELS: Record<string, string> = {
+  burning: 'Burning or stinging',
+  frequency: 'Urinating more often',
+  urgency: 'Urgent need to go',
+  incomplete: 'Not emptying fully',
+  blood: 'Blood in urine',
+  cloudy: 'Cloudy or smelly',
+}
+
+const UTI_PREGNANCY_REVIEW_LABELS: Record<string, string> = {
+  no: 'No',
+  not_sure: 'Not sure',
+  yes: 'Yes',
+}
+
+const CONTRACEPTION_REVIEW_TYPE_LABELS: Record<string, string> = {
+  start: 'Start pill',
+  continue: 'Repeat prescription route',
+  switch: 'Switch pill',
+}
+
+const CONTRACEPTION_CURRENT_REVIEW_LABELS: Record<string, string> = {
+  pill: 'The pill',
+  iud: 'IUD or implant',
+  other: 'Other method',
+  none: 'None',
+}
+
+const PILL_SAFETY_REVIEW_LABELS: Record<string, string> = {
+  womens_migraine_aura: 'Migraine with aura',
+  womens_blood_clot_history: 'Blood clot history',
+  womens_smoker: 'Smoking status',
+}
+
+function reviewLabel(labels: Record<string, string>, value: string | undefined): string {
+  return value ? labels[value] || value : ''
+}
+
 const TRUNCATE_THRESHOLD = 60
 type ReviewItem = { label: string; value: string; badge?: { label: string; tone: "success" | "warning" } }
 
@@ -519,12 +562,20 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
 
       // Contraception details
       if (whOption === 'ocp_new' || whOption === 'ocp_repeat' || whOption === 'contraception') {
-        const CONTRACEPTION_TYPE_LABELS: Record<string, string> = { start: 'Start new', continue: 'Repeat prescription route', switch: 'Switch type' }
-        const CURRENT_LABELS: Record<string, string> = { pill: 'The pill', iud: 'IUD/implant', other: 'Other method', none: 'None' }
-        const PREGNANCY_LABELS: Record<string, string> = { no: 'No', not_sure: 'Not sure', yes: 'Yes' }
-        if (answers.contraceptionType) whItems.push({ label: 'Type', value: CONTRACEPTION_TYPE_LABELS[answers.contraceptionType as string] || String(answers.contraceptionType) })
-        if (answers.contraceptionCurrent) whItems.push({ label: 'Current contraception', value: CURRENT_LABELS[answers.contraceptionCurrent as string] || String(answers.contraceptionCurrent) })
-        if (answers.pregnancyStatus) whItems.push({ label: 'Pregnant', value: PREGNANCY_LABELS[answers.pregnancyStatus as string] || String(answers.pregnancyStatus) })
+        const contraceptionType = stringAnswer(answers.contraceptionType)
+        const contraceptionCurrent = stringAnswer(answers.contraceptionCurrent)
+        const pregnancyStatus = stringAnswer(answers.pregnancyStatus)
+        if (contraceptionType) whItems.push({ label: 'Pill request', value: reviewLabel(CONTRACEPTION_REVIEW_TYPE_LABELS, contraceptionType) })
+        if (contraceptionCurrent) whItems.push({ label: 'Current contraception', value: reviewLabel(CONTRACEPTION_CURRENT_REVIEW_LABELS, contraceptionCurrent) })
+        if (pregnancyStatus) whItems.push({ label: 'Pregnancy check', value: reviewLabel(UTI_PREGNANCY_REVIEW_LABELS, pregnancyStatus) })
+        for (const [key, label] of Object.entries(PILL_SAFETY_REVIEW_LABELS)) {
+          const value = stringAnswer(answers[key])
+          if (value) whItems.push({ label, value: reviewLabel(YES_NO_REVIEW_LABELS, value) })
+        }
+        const lastPeriod = stringAnswer(answers.lastPeriod)
+        const contraceptionDetails = stringAnswer(answers.contraceptionDetails)
+        if (lastPeriod) whItems.push({ label: 'Last period', value: lastPeriod })
+        if (contraceptionDetails) whItems.push({ label: 'Details', value: contraceptionDetails })
       }
 
       // Morning-after details
@@ -536,7 +587,18 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       // UTI details
       if (whOption === 'uti') {
         const utiSymptoms = stringArrayAnswer(answers.utiSymptoms)
-        if (utiSymptoms?.length) whItems.push({ label: 'Symptoms', value: utiSymptoms.join(', ') })
+        const utiRedFlags = stringAnswer(answers.utiRedFlags)
+        const utiPregnant = stringAnswer(answers.utiPregnant)
+        const utiDetails = stringAnswer(answers.utiDetails)
+        if (utiSymptoms?.length) {
+          whItems.push({
+            label: 'Symptoms',
+            value: utiSymptoms.map((symptom) => reviewLabel(UTI_REVIEW_SYMPTOM_LABELS, symptom)).join(', '),
+          })
+        }
+        if (utiRedFlags) whItems.push({ label: 'UTI red flags', value: reviewLabel(YES_NO_REVIEW_LABELS, utiRedFlags) })
+        if (utiPregnant) whItems.push({ label: 'Pregnancy check', value: reviewLabel(UTI_PREGNANCY_REVIEW_LABELS, utiPregnant) })
+        if (utiDetails) whItems.push({ label: 'Details', value: utiDetails })
       }
 
       // General details

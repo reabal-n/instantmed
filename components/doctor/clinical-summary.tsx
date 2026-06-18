@@ -144,6 +144,20 @@ const FIELD_LABELS: Record<string, string> = {
   hairReproductive: "Reproductive Safety",
   hairLowBP: "Low BP/Dizziness",
   hairHeartConditions: "Heart Conditions/Palpitations",
+  // Women's health - current camelCase/snake_case keys from the live UTI and new/switch pill flows
+  womensHealthOption: "Concern",
+  utiSymptoms: "Symptoms",
+  utiRedFlags: "UTI red flags",
+  utiPregnant: "Pregnancy check",
+  utiDetails: "Additional context",
+  contraceptionType: "Pill request",
+  contraceptionCurrent: "Current contraception",
+  pregnancyStatus: "Pregnancy check",
+  womens_migraine_aura: "Migraine with aura",
+  womens_blood_clot_history: "Blood clot history",
+  womens_smoker: "Smoking status",
+  lastPeriod: "Last period",
+  contraceptionDetails: "Additional context",
   // Hair loss - previous-treatment boolean toggles
   triedMinoxidil: "Tried Minoxidil",
   triedFinasteride: "Tried Finasteride",
@@ -240,12 +254,27 @@ const CONSULT_SUBTYPE_FIELDS: Record<string, { label: string; fields: string[]; 
   womens_health: {
     label: "Women's Health Assessment",
     fields: [
+      "womensHealthOption",
+      "utiSymptoms", "utiRedFlags", "utiPregnant", "utiDetails",
+      "contraceptionType", "contraceptionCurrent", "pregnancyStatus",
+      "womens_migraine_aura", "womens_blood_clot_history", "womens_smoker",
+      "lastPeriod", "contraceptionDetails",
       "contraception_type", "current_contraception", "menstrual_history",
       "pregnancy_status", "breastfeeding", "smoking_status",
       "migraine_with_aura", "blood_clot_history", "bmi_category",
       "blood_pressure_status", "liver_disease", "breast_cancer_history",
     ],
-    highlight: ["migraine_with_aura", "blood_clot_history", "pregnancy_status"],
+    highlight: [
+      "utiRedFlags",
+      "utiPregnant",
+      "pregnancyStatus",
+      "womens_migraine_aura",
+      "womens_blood_clot_history",
+      "womens_smoker",
+      "migraine_with_aura",
+      "blood_clot_history",
+      "pregnancy_status",
+    ],
   },
   weight_loss: {
     label: "Weight Loss Assessment",
@@ -310,12 +339,126 @@ const HAIR_FAMILY_HISTORY_LABELS: Record<string, string> = {
   unknown: "Not sure",
 }
 
+const ED_GOAL_LABELS: Record<string, string> = {
+  improve_erections: "Improve erections",
+  more_spontaneity: "More spontaneity",
+  boost_confidence: "Boost confidence",
+  better_stamina: "Better stamina",
+  maintain: "Maintain what I have",
+}
+
+const ED_DURATION_LABELS: Record<string, string> = {
+  less_than_3_months: "Less than 3 months",
+  "3_to_12_months": "3-12 months",
+  "1_to_3_years": "1-3 years",
+  "3_plus_years": "3+ years",
+  "6_12_months": "6-12 months",
+}
+
+const ED_PREFERENCE_LABELS: Record<string, string> = {
+  daily: "Daily",
+  prn: "As-needed",
+  doctor_decides: "Doctor to decide",
+}
+
+const HAIR_GOAL_LABELS: Record<string, string> = {
+  prevent: "Prevent further loss",
+  regrow: "Regrow what I have lost",
+  both: "Stop loss and regrow",
+  exploring: "Exploring options",
+  slow_loss: "Slow hair loss",
+}
+
+const HAIR_PATTERN_LABELS: Record<string, string> = {
+  none: "No noticeable loss",
+  slight_recession: "Temple recession",
+  noticeable_thinning: "Noticeable thinning",
+  crown_plus_hairline: "Crown and hairline",
+  significant: "Significant overall thinning",
+  extensive: "Extensive loss",
+  male_pattern: "Male-pattern hair loss",
+}
+
+const HAIR_PREFERENCE_LABELS: Record<string, string> = {
+  oral: "Daily oral tablet",
+  topical: "Topical scalp treatment",
+  combination: "Combination (oral + OTC scalp treatment)",
+  doctor_decides: "Doctor to recommend",
+  doctor_recommendation: "Doctor to recommend",
+}
+
+const HAIR_REPRODUCTIVE_LABELS: Record<string, string> = {
+  no: "No",
+  na: "Not applicable",
+  yes: "Yes",
+}
+
+const WOMENS_HEALTH_OPTION_LABELS: Record<string, string> = {
+  uti: "UTI treatment",
+  ocp_new: "Start or switch pill",
+  ocp_repeat: "Repeat prescription route",
+}
+
+const UTI_SYMPTOM_LABELS: Record<string, string> = {
+  burning: "Burning or stinging",
+  frequency: "Urinating more often",
+  urgency: "Urgent need to go",
+  incomplete: "Not emptying fully",
+  blood: "Blood in urine",
+  cloudy: "Cloudy or smelly",
+}
+
+const CONTRACEPTION_TYPE_LABELS: Record<string, string> = {
+  start: "Start pill",
+  switch: "Switch pill",
+  continue: "Repeat prescription route",
+}
+
+const CONTRACEPTION_CURRENT_LABELS: Record<string, string> = {
+  pill: "The pill",
+  iud: "IUD or implant",
+  other: "Other method",
+  none: "None",
+}
+
+const PREGNANCY_STATUS_LABELS: Record<string, string> = {
+  no: "No",
+  not_sure: "Not sure",
+  yes: "Yes",
+}
+
+const YES_NO_LABELS: Record<string, string> = {
+  no: "No",
+  yes: "Yes",
+}
+
+function mapStringLabel(labels: Record<string, string>, value: string): string {
+  return labels[value] || value
+}
+
 function formatValue(key: string, value: unknown): string {
   if (value === null || value === undefined) return "—"
   if (typeof value === "boolean") return value ? "Yes" : "No"
-  if (Array.isArray(value)) return value.length > 0 ? value.join(", ") : "None"
+  if (Array.isArray(value)) {
+    if (key === "utiSymptoms") {
+      return value.length > 0 ? value.map((item) => mapStringLabel(UTI_SYMPTOM_LABELS, String(item))).join(", ") : "None"
+    }
+    return value.length > 0 ? value.join(", ") : "None"
+  }
   
   // Special formatting for known fields
+  if (key === "edGoal" && typeof value === "string") {
+    return mapStringLabel(ED_GOAL_LABELS, value)
+  }
+  if (key === "edDuration" && typeof value === "string") {
+    return mapStringLabel(ED_DURATION_LABELS, value)
+  }
+  if (key === "edPreference" && typeof value === "string") {
+    return mapStringLabel(ED_PREFERENCE_LABELS, value)
+  }
+  if (key === "hairGoal" && typeof value === "string") {
+    return mapStringLabel(HAIR_GOAL_LABELS, value)
+  }
   if (key === "symptom_duration" && typeof value === "string") {
     return SYMPTOM_DURATION_LABELS[value] || value
   }
@@ -327,6 +470,33 @@ function formatValue(key: string, value: unknown): string {
   }
   if (key === "hairFamilyHistory" && typeof value === "string") {
     return HAIR_FAMILY_HISTORY_LABELS[value] || value
+  }
+  if (key === "hairPattern" && typeof value === "string") {
+    return mapStringLabel(HAIR_PATTERN_LABELS, value)
+  }
+  if (key === "hairMedicationPreference" && typeof value === "string") {
+    return mapStringLabel(HAIR_PREFERENCE_LABELS, value)
+  }
+  if (key === "hairReproductive" && typeof value === "string") {
+    return mapStringLabel(HAIR_REPRODUCTIVE_LABELS, value)
+  }
+  if (key === "womensHealthOption" && typeof value === "string") {
+    return mapStringLabel(WOMENS_HEALTH_OPTION_LABELS, value)
+  }
+  if (key === "contraceptionType" && typeof value === "string") {
+    return mapStringLabel(CONTRACEPTION_TYPE_LABELS, value)
+  }
+  if (key === "contraceptionCurrent" && typeof value === "string") {
+    return mapStringLabel(CONTRACEPTION_CURRENT_LABELS, value)
+  }
+  if ((key === "pregnancyStatus" || key === "utiPregnant") && typeof value === "string") {
+    return mapStringLabel(PREGNANCY_STATUS_LABELS, value)
+  }
+  if (
+    ["utiRedFlags", "womens_migraine_aura", "womens_blood_clot_history", "womens_smoker"].includes(key)
+    && typeof value === "string"
+  ) {
+    return mapStringLabel(YES_NO_LABELS, value)
   }
   if (key === "duration" && typeof value === "string") {
     return `${value} day${value !== "1" ? "s" : ""}`

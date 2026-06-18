@@ -125,6 +125,24 @@ describe("intake mobile viewport contract", () => {
     expect(source).not.toContain("Never prescribed this medication")
   })
 
+  it("keeps the repeat-prescription new-medication handoff aligned to live specialty services", () => {
+    const source = readProjectFile("components/request/steps/medication-history-step.tsx")
+    expect(source).toContain("ED, hair loss, and women&apos;s health")
+    expect(source).toContain("Not a repeat prescription")
+    expect(source).toContain("Repeat prescriptions are only for medicines another doctor has prescribed before.")
+    expect(source).not.toContain("friendly upsell to consult flow")
+    expect(source).not.toContain("ED and hair loss treatment.")
+  })
+
+  it("keeps ED assessment score copy doctor-review framed instead of outcome-led", () => {
+    const source = readProjectFile("components/request/steps/ed-assessment-step.tsx")
+    expect(source).toContain("A doctor will review your answers")
+    expect(source).not.toContain("respond well to treatment")
+    expect(source).not.toContain("Treatment is very effective")
+    expect(source).not.toContain("Our doctors regularly help patients")
+    expect(source).not.toContain("effective treatment options exist")
+  })
+
   it("keeps women's-health type selection short and limited to actionable paths", () => {
     const source = readProjectFile("components/request/steps/womens-health-type-step.tsx")
     expect(source).toContain("Start or switch pill")
@@ -133,6 +151,19 @@ describe("intake mobile viewport contract", () => {
     expect(source).not.toContain("Period pain or menstrual issues")
     expect(source).not.toContain("The doctor reviews the details after checkout")
     expect(source).not.toContain("disabled={!womensHealthOption}")
+  })
+
+  it("shows women's-health safety answers in the patient review summary with readable labels", () => {
+    const source = readProjectFile("components/request/steps/review-step.tsx")
+    expect(source).toContain("UTI_REVIEW_SYMPTOM_LABELS")
+    expect(source).toContain("PILL_SAFETY_REVIEW_LABELS")
+    expect(source).toContain("UTI red flags")
+    expect(source).toContain("Pregnancy check")
+    expect(source).toContain("Migraine with aura")
+    expect(source).toContain("Blood clot history")
+    expect(source).toContain("Smoking status")
+    expect(source).not.toContain("String(answers.utiPregnant)")
+    expect(source).not.toContain("String(answers.pregnancyStatus)")
   })
 
   it("uses secondary styling, not faded primary styling, for clickable incomplete CTAs", () => {

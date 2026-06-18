@@ -29,7 +29,7 @@ describe("buildClinicalCaseSummary", () => {
 
     expect(summary.title).toBe("Erectile dysfunction consult")
     expect(summary.patientStory).toContain("improve erections")
-    expect(summary.patientStory).toContain("1 to 3 years")
+    expect(summary.patientStory).toContain("1-3 years")
     expect(summary.keyFacts).toContainEqual({ label: "IIEF-5 score", value: "12" })
     expect(summary.keyFacts).toContainEqual({ label: "Alpha blockers", value: "No" })
     expect(summary.recommendedPlan.action).toBe("prescribe")
@@ -38,6 +38,79 @@ describe("buildClinicalCaseSummary", () => {
     expect(summary.prescriptionIntent?.parchmentMode).toBe("open_patient_prescribe")
     expect(summary.draftNote).toMatch(/^S:\s/m)
     expect(summary.draftNote).toMatch(/^P:\s/m)
+  })
+
+  it("renders current specialty enum answers as readable doctor-summary labels", () => {
+    const edSummary = buildClinicalCaseSummary({
+      category: "consult",
+      subtype: "ed",
+      serviceType: "consult",
+      patientName: "Daniel McDonald",
+      answers: {
+        edGoal: "improve_erections",
+        edDuration: "1_to_3_years",
+        edPreference: "prn",
+        edNitrates: "no",
+        edRecentHeartEvent: "no",
+        edSevereHeart: "no",
+        edAlphaBlockers: "no",
+      },
+    })
+
+    expect(edSummary.keyFacts).toContainEqual({ label: "Main goal", value: "Improve erections" })
+    expect(edSummary.keyFacts).toContainEqual({ label: "Duration", value: "1-3 years" })
+    expect(edSummary.keyFacts).toContainEqual({ label: "Treatment preference", value: "As-needed" })
+    expect(edSummary.patientStory).toContain("improve erections")
+    expect(edSummary.patientStory).toContain("1-3 years")
+    expect(edSummary.patientStory).toContain("Preference: as-needed.")
+    expect(edSummary.patientStory).not.toContain("prn")
+
+    const hairSummary = buildClinicalCaseSummary({
+      category: "consult",
+      subtype: "hair_loss",
+      serviceType: "consult",
+      patientName: "Alex Patient",
+      answers: {
+        hairGoal: "both",
+        hairOnset: "over_12_months",
+        hairPattern: "crown_plus_hairline",
+        hairFamilyHistory: "no_or_unsure",
+        hairMedicationPreference: "doctor_decides",
+        hairReproductive: "na",
+        scalpNone: true,
+        hairLowBP: false,
+        hairHeartConditions: false,
+      },
+    })
+
+    expect(hairSummary.keyFacts).toContainEqual({ label: "Treatment preference", value: "Doctor to recommend" })
+    expect(hairSummary.keyFacts).toContainEqual({ label: "Reproductive risk", value: "Not applicable" })
+    expect(hairSummary.patientStory).toContain("Preference: doctor to recommend.")
+    expect(hairSummary.patientStory).not.toContain("doctor decides")
+
+    const pillSummary = buildClinicalCaseSummary({
+      category: "consult",
+      subtype: "womens_health",
+      serviceType: "consult",
+      patientName: "Siena Harding",
+      answers: {
+        womensHealthOption: "ocp_new",
+        contraceptionType: "switch",
+        contraceptionCurrent: "pill",
+        pregnancyStatus: "not_sure",
+        womens_migraine_aura: "no",
+        womens_blood_clot_history: "no",
+        womens_smoker: "no",
+      },
+    })
+
+    expect(pillSummary.keyFacts).toContainEqual({ label: "Request", value: "Switch pill" })
+    expect(pillSummary.keyFacts).toContainEqual({ label: "Current contraception", value: "The pill" })
+    expect(pillSummary.keyFacts).toContainEqual({ label: "Pregnant", value: "Not sure" })
+    expect(pillSummary.draftNote).toContain("Pregnant: Not sure.")
+    expect(pillSummary.draftNote).toContain("Currently using the pill.")
+    expect(pillSummary.draftNote).not.toContain("Not Sure")
+    expect(pillSummary.draftNote).not.toContain("Currently on pill.")
   })
 
   it("hard-blocks ED prescribing when current boolean nitrate screen is positive", () => {
@@ -190,6 +263,14 @@ describe("buildClinicalCaseSummary", () => {
     })
 
     expect(summary.title).toBe("Women's health · UTI")
+    expect(summary.keyFacts).toContainEqual({
+      label: "Symptoms",
+      value: "Burning or stinging, Urinating more often, Urgent need to go, Cloudy or smelly",
+    })
+    expect(summary.draftNote).toContain(
+      "Reported symptoms: burning or stinging, urinating more often, urgent need to go, cloudy or smelly.",
+    )
+    expect(summary.draftNote).not.toContain("Reported symptoms: burning, frequency, urgency, cloudy.")
     expect(summary.recommendedPlan.action).toBe("prescribe")
     expect(summary.prescriptionIntent).toMatchObject({
       presetLabel: "UTI Parchment handoff context",

@@ -164,6 +164,66 @@ describe("ClinicalSummary - hair loss subtype (camelCase keys)", () => {
   })
 })
 
+describe("ClinicalSummary - women's health subtype (current keys)", () => {
+  it("renders current UTI answers in the women's health panel with readable labels and values", () => {
+    const html = render(
+      <ClinicalSummary
+        consultSubtype="womens_health"
+        answers={{
+          womensHealthOption: "uti",
+          utiSymptoms: ["burning", "frequency", "cloudy"],
+          utiRedFlags: "no",
+          utiPregnant: "not_sure",
+          utiDetails: "Symptoms started yesterday.",
+        }}
+      />,
+    )
+
+    expect(html).toContain("Women&#x27;s Health Assessment")
+    expect(html).toContain("Concern")
+    expect(html).toContain("UTI treatment")
+    expect(html).toContain("Symptoms")
+    expect(html).toContain("Burning or stinging")
+    expect(html).toContain("Pregnancy check")
+    expect(html).toContain("Not sure")
+    expect(html).not.toContain("Womens Health Option")
+    expect(html).not.toContain("Uti Pregnant")
+    expect(html).not.toContain("not_sure")
+  })
+
+  it("renders current pill answers in the women's health panel with clinical safety labels", () => {
+    const html = render(
+      <ClinicalSummary
+        consultSubtype="womens_health"
+        answers={{
+          womensHealthOption: "ocp_new",
+          contraceptionType: "switch",
+          contraceptionCurrent: "pill",
+          pregnancyStatus: "not_sure",
+          womens_migraine_aura: "no",
+          womens_blood_clot_history: "yes",
+          womens_smoker: "no",
+          lastPeriod: "2 weeks ago",
+          contraceptionDetails: "Previously had nausea.",
+        }}
+      />,
+    )
+
+    expect(html).toContain("Women&#x27;s Health Assessment")
+    expect(html).toContain("Pill request")
+    expect(html).toContain("Switch pill")
+    expect(html).toContain("Current contraception")
+    expect(html).toContain("The pill")
+    expect(html).toContain("Pregnancy check")
+    expect(html).toContain("Not sure")
+    expect(html).toContain("Migraine with aura")
+    expect(html).toContain("Blood clot history")
+    expect(html).toContain("Smoking status")
+    expect(html).not.toContain("Womens Migraine Aura")
+    expect(html).not.toContain("Ocp New")
+  })
+})
+
 describe("ClinicalSummary - legacy snake_case compat", () => {
   it("still renders legacy snake_case ED keys in Additional Information", () => {
     const legacyEd = {

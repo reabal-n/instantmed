@@ -97,7 +97,7 @@ function getInterpretation(total: number): ScoreInterpretation {
     return {
       label: "Minimal",
       description:
-        "Your responses suggest minimal difficulty. A doctor can still assess whether support would help.",
+        "Your responses suggest minimal difficulty. A doctor will review your answers and decide whether support is appropriate.",
       colorClass: "text-success",
     }
   }
@@ -105,7 +105,7 @@ function getInterpretation(total: number): ScoreInterpretation {
     return {
       label: "Mild",
       description:
-        "Mild symptoms like these often respond well to treatment.",
+        "A doctor will review your answers and check whether treatment is appropriate for your health profile.",
       colorClass: "text-success",
     }
   }
@@ -113,7 +113,7 @@ function getInterpretation(total: number): ScoreInterpretation {
     return {
       label: "Mild\u2013moderate",
       description:
-        "Treatment is very effective at this level.",
+        "Your score gives the doctor useful context. They will decide whether treatment is appropriate.",
       colorClass: "text-primary",
     }
   }
@@ -121,14 +121,14 @@ function getInterpretation(total: number): ScoreInterpretation {
     return {
       label: "Moderate",
       description:
-        "Our doctors regularly help patients in your situation.",
+        "Your score gives the doctor useful context. They will review your full health profile before deciding.",
       colorClass: "text-primary",
     }
   }
   return {
     label: "Significant",
     description:
-      "You\u2019re not alone \u2014 effective treatment options exist. A doctor will review your full picture.",
+      "A doctor will review your answers and your full health profile before deciding what is safe.",
     colorClass: "text-warning",
   }
 }

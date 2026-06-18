@@ -61,8 +61,8 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
     }
 
     // Note: prescriptionHistory === "never" is intentionally NOT a validation error.
-    // The inline upsell card below offers a one-click handoff to the new-prescription
-    // consult flow ($49.95) so we don't dead-end the patient at their decision point.
+    // The inline card explains the repeat-script boundary and points patients
+    // back to the live service hub, without reviving a general-consult fallback.
 
     // A3 softening (boundary 4): current dose is no longer required to continue —
     // a blank one becomes a dose_not_stated flag for the doctor.
@@ -98,6 +98,25 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
   const hasPrescriptionHistory = Boolean(prescriptionHistory)
   const needsDose = hasPrescriptionHistory && !isNeverPrescribed
   const needsSideEffects = needsDose
+  const introEyebrow = !hasPrescriptionHistory
+    ? "History 1 of 3"
+    : isNeverPrescribed
+      ? "Repeat prescription boundary"
+      : !currentDose.trim()
+        ? "History 2 of 3"
+        : "History 3 of 3"
+  const introTitle = !hasPrescriptionHistory
+    ? "Confirm your prescription history"
+    : isNeverPrescribed
+      ? "Not a repeat prescription"
+      : !currentDose.trim()
+        ? "Current dose"
+        : "Side effects"
+  const introDescription = !hasPrescriptionHistory
+    ? "This helps the doctor check this is a safe repeat request."
+    : isNeverPrescribed
+      ? "Repeat prescriptions are only for medicines another doctor has prescribed before."
+      : "Keep it short and copy your label if you can."
 
   // Keyboard navigation
   useKeyboardNavigation({
@@ -108,9 +127,9 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
   return (
     <div className="space-y-4">
       <IntakeStepIntro
-        eyebrow={!hasPrescriptionHistory ? "History 1 of 3" : !currentDose.trim() ? "History 2 of 3" : "History 3 of 3"}
-        title={!hasPrescriptionHistory ? "Confirm your prescription history" : !currentDose.trim() ? "Current dose" : "Side effects"}
-        description={!hasPrescriptionHistory ? "This helps the doctor check this is a safe repeat request." : "Keep it short and copy your label if you can."}
+        eyebrow={introEyebrow}
+        title={introTitle}
+        description={introDescription}
       />
 
       <StepBlockedSummary reasons={blockedReasons} />
@@ -144,7 +163,7 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
         </QuestionCard>
       )}
 
-      {/* New medication detected - friendly upsell to consult flow */}
+      {/* New medication detected - repeat-script boundary */}
       {isNeverPrescribed && (
         <div className="p-4 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] space-y-4">
           <div className="flex gap-3">
@@ -155,8 +174,8 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
               </AlertTitle>
               <AlertDescription className="text-sm text-muted-foreground">
                 We can only prescribe medications you&apos;ve been prescribed before by another doctor.
-                For a new prescription, please visit your GP. We do offer specialty consultations
-                for ED and hair loss treatment.
+                For a new prescription, please visit your GP. InstantMed has specialty requests
+                for ED, hair loss, and women&apos;s health when those pathways fit.
               </AlertDescription>
             </div>
           </div>
