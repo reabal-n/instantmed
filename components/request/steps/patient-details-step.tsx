@@ -12,7 +12,7 @@
  */
 
 import { ArrowRight, Calendar, CreditCard, Lock, Mail, MapPin, Phone, Sparkles, User, Users } from "lucide-react"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { IntakeStepIntro } from "@/components/request/shared/intake-step-primitives"
 import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
@@ -41,6 +41,20 @@ const DATE_OF_BIRTH_PLACEHOLDER = "DD/MM/YYYY"
 const AU_DATE_PATTERN = /^(\d{2})\/(\d{2})\/(\d{4})$/
 const ISO_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/
 const AUSTRALIAN_STATES = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"] as const
+const IDENTITY_METHOD_OPTIONS = [
+  {
+    value: "medicare",
+    label: "Medicare",
+    description: "Most patients",
+  },
+  {
+    value: "ihi",
+    label: "IHI",
+    description: "No Medicare card",
+  },
+] as const
+
+type IdentityMethod = (typeof IDENTITY_METHOD_OPTIONS)[number]["value"]
 
 function formatIsoDateToAu(isoDate: string) {
   const match = ISO_DATE_PATTERN.exec(isoDate)
@@ -126,6 +140,10 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   const ihiNumber = (answers.ihiNumber as string) || ""
   const sex = (answers.sex as string) || ""
   const consultSubtype = answers.consultSubtype as string | undefined
+  const identityMethodManuallyChangedRef = useRef(false)
+  const [identityMethod, setIdentityMethod] = useState<IdentityMethod>(() =>
+    ihiNumber.trim() && !medicareNumber.trim() ? "ihi" : "medicare",
+  )
 
   // BMI auto-calculation for ED subtype
   const bmi = useMemo(() => {
@@ -147,6 +165,13 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       setDobInput(formatIsoDateToAu(dob))
     }
   }, [dob])
+
+  useEffect(() => {
+    if (identityMethodManuallyChangedRef.current) return
+    if (ihiNumber.trim() && !medicareNumber.trim()) {
+      setIdentityMethod("ihi")
+    }
+  }, [ihiNumber, medicareNumber])
 
   // Check for saved identity on mount
   useEffect(() => {
@@ -184,6 +209,9 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       }
       if (savedData.ihiNumber) {
         setAnswer('ihiNumber', savedData.ihiNumber)
+        if (!savedData.medicareNumber) {
+          setIdentityMethod("ihi")
+        }
       }
       setShowAutofillBanner(false)
     }
@@ -273,23 +301,23 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         error = validatePhone(value, needsPhone)
         break
       case 'medicareNumber':
-        if (needsPrescriptionDetails && value) {
+        if (needsPrescriptionDetails && identityMethod === "medicare" && value) {
           const result = validateMedicareNumber(value)
           error = result.valid || ihiReady ? null : (result.error || 'Invalid Medicare number')
-        } else if (needsPrescriptionDetails && !value && !ihiReady) {
+        } else if (needsPrescriptionDetails && identityMethod === "medicare" && !value && !ihiReady) {
           error = 'Enter Medicare details or your IHI'
         }
         break
       case 'medicareIrn':
-        if (needsPrescriptionDetails && medicareNumberReady && !ihiReady && !/^[1-9]$/.test(value || "")) {
+        if (needsPrescriptionDetails && identityMethod === "medicare" && medicareNumberReady && !ihiReady && !/^[1-9]$/.test(value || "")) {
           error = 'Select your Medicare IRN'
         }
         break
       case 'ihiNumber':
-        if (needsPrescriptionDetails && value) {
+        if (needsPrescriptionDetails && identityMethod === "ihi" && value) {
           const result = validateIHI(value)
           error = result.valid ? null : (result.error || 'Enter a valid IHI')
-        } else if (needsPrescriptionDetails && !medicareNumberReady) {
+        } else if (needsPrescriptionDetails && identityMethod === "ihi" && !value && !medicareNumberReady) {
           error = 'Enter an IHI if you do not have Medicare'
         }
         break
@@ -327,7 +355,21 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
     })
 
     return error === null
-  }, [dobInput, needsPhone, needsPrescriptionDetails, needsAddress, state, ihiReady, medicareNumberReady])
+  }, [dobInput, identityMethod, needsPhone, needsPrescriptionDetails, needsAddress, state, ihiReady, medicareNumberReady])
+
+  const handleIdentityMethodChange = (method: IdentityMethod) => {
+    identityMethodManuallyChangedRef.current = true
+    setIdentityMethod(method)
+    setErrors((prev) => {
+      const {
+        medicareNumber: _medicareNumber,
+        medicareIrn: _medicareIrn,
+        ihiNumber: _ihiNumber,
+        ...rest
+      } = prev
+      return rest
+    })
+  }
   
   const handleBlur = (field: string, value: string | undefined) => {
     setTouched(prev => ({ ...prev, [field]: true }))
@@ -402,19 +444,23 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       if (!sex) {
         newErrors.sex = 'Select your sex'
       }
-      if (ihiNumber.trim() && !ihiReady) {
+      if (identityMethod === "ihi" && ihiNumber.trim() && !ihiReady) {
         const result = validateIHI(ihiNumber)
         newErrors.ihiNumber = result.error || 'Enter a valid IHI'
       }
       if (!medicareIdentityReady) {
-        newErrors.medicareNumber = 'Enter Medicare number and IRN, or enter your IHI'
+        if (identityMethod === "ihi") {
+          newErrors.ihiNumber = ihiNumber.trim() ? (newErrors.ihiNumber || 'Enter a valid IHI') : 'Enter your IHI'
+        } else {
+          newErrors.medicareNumber = 'Enter Medicare number and IRN, or choose IHI'
+        }
       } else {
-        if (medicareNumber.trim() && !medicareNumberReady && !ihiReady) {
+        if (identityMethod === "medicare" && medicareNumber.trim() && !medicareNumberReady && !ihiReady) {
           const medicareResult = validateMedicareNumber(medicareNumber)
           newErrors.medicareNumber = medicareResult.error || 'Invalid Medicare number'
         }
       }
-      if (medicareNumberReady && !ihiReady && !/^[1-9]$/.test(medicareIrn)) {
+      if (identityMethod === "medicare" && medicareNumberReady && !ihiReady && !/^[1-9]$/.test(medicareIrn)) {
         newErrors.medicareIrn = 'Select your Medicare IRN'
       }
     }
@@ -744,120 +790,156 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           <div className="space-y-0.5 border-t border-border/50 pt-4">
             <Label className="text-sm font-medium">Prescribing details</Label>
             <p className="text-xs text-muted-foreground">
-              Required to issue your eScript under your name. Encrypted and never shared.
+              Required for your eScript identity match. Kept private and used only for the prescription record.
             </p>
           </div>
-          <FormField
-            label="Medicare number"
-            required={!ihiReady}
-            error={touched.medicareNumber ? errors.medicareNumber : undefined}
-            icon={CreditCard}
-            hint="Use IHI below if you do not have Medicare"
-            helpContent={{ title: "Why do we need this?", content: "Required to issue your prescription under your name. Medicare and IHI details are encrypted and never shared." }}
+          <div
+            role="radiogroup"
+            aria-label="Choose Medicare or IHI"
+            className="grid grid-cols-2 gap-2"
           >
-            <Input
-              type="text"
-              inputMode="numeric"
-              value={medicareNumber}
-              onChange={(e) => {
-                const raw = e.target.value.replace(/[^\d]/g, '').slice(0, 10)
-                setAnswer('medicareNumber', raw)
-                if (touched.medicareNumber) {
-                  const result = validateMedicareNumber(raw)
-                  setErrors((prev) => {
-                    if (!raw.trim() && !ihiReady) return { ...prev, medicareNumber: 'Enter Medicare details or your IHI' }
-                    if (raw.trim() && !result.valid && !ihiReady) return { ...prev, medicareNumber: result.error || 'Invalid Medicare number' }
-                    const { medicareNumber: _, medicareIrn: _medicareIrn, ...rest } = prev
-                    return rest
-                  })
-                }
-              }}
-              onBlur={() => handleBlur('medicareNumber', medicareNumber)}
-              placeholder="10 digits"
-              autoComplete="off"
-              aria-invalid={touched.medicareNumber && !!errors.medicareNumber}
-              data-error={touched.medicareNumber && errors.medicareNumber ? "true" : undefined}
-              className={cn("h-11", touched.medicareNumber && errors.medicareNumber && "border-destructive")}
-            />
-            {medicareNumber.length === 10 && medicareValidation?.valid && !errors.medicareNumber && (
-              <p className="text-xs text-muted-foreground mt-1">
-                {formatMedicareNumber(medicareNumber)}
-              </p>
-            )}
-          </FormField>
-
-          <div className="grid grid-cols-1 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-xs">IRN</Label>
-              <div className="grid grid-cols-9 gap-1">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => {
-                      setAnswer("medicareIrn", String(value))
+            {IDENTITY_METHOD_OPTIONS.map((option) => {
+              const selected = identityMethod === option.value
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  onClick={() => handleIdentityMethodChange(option.value)}
+                  className={cn(
+                    "min-h-14 rounded-xl border px-3 py-2.5 text-left transition-[background-color,border-color,color,box-shadow]",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                    selected
+                      ? "border-primary bg-primary/10 text-primary shadow-sm shadow-primary/10"
+                      : "border-border bg-background text-foreground hover:border-primary/50 hover:bg-primary/5",
+                  )}
+                >
+                  <span className="block text-sm font-semibold leading-tight">{option.label}</span>
+                  <span className={cn(
+                    "mt-0.5 block text-[11px] leading-snug",
+                    selected ? "text-primary/80" : "text-muted-foreground",
+                  )}>
+                    {option.description}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+          {identityMethod === "medicare" ? (
+            <>
+              <FormField
+                label="Medicare number"
+                required={!ihiReady}
+                error={touched.medicareNumber ? errors.medicareNumber : undefined}
+                icon={CreditCard}
+                helpContent={{ title: "Why do we need this?", content: "Used to issue the prescription under your name and match the eScript record." }}
+              >
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  value={medicareNumber}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/[^\d]/g, '').slice(0, 10)
+                    setAnswer('medicareNumber', raw)
+                    if (touched.medicareNumber) {
+                      const result = validateMedicareNumber(raw)
                       setErrors((prev) => {
-                        const { medicareIrn: _, ...rest } = prev
+                        if (!raw.trim() && !ihiReady) return { ...prev, medicareNumber: 'Enter Medicare details or choose IHI' }
+                        if (raw.trim() && !result.valid && !ihiReady) return { ...prev, medicareNumber: result.error || 'Invalid Medicare number' }
+                        const { medicareNumber: _, medicareIrn: _medicareIrn, ...rest } = prev
                         return rest
                       })
-                    }}
-                    className={cn(
-                      "h-10 rounded-md border text-sm font-medium transition-colors",
-                      medicareIrn === String(value)
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-background hover:bg-muted",
-                      touched.medicareIrn && errors.medicareIrn && "border-destructive",
-                    )}
-                    aria-pressed={medicareIrn === String(value)}
-                  >
-                    {value}
-                  </button>
-                ))}
-              </div>
-              {touched.medicareIrn && errors.medicareIrn && (
-                <p className="text-xs text-destructive">{errors.medicareIrn}</p>
-              )}
-            </div>
-          </div>
+                    }
+                  }}
+                  onBlur={() => handleBlur('medicareNumber', medicareNumber)}
+                  placeholder="10 digits"
+                  autoComplete="off"
+                  aria-invalid={touched.medicareNumber && !!errors.medicareNumber}
+                  data-error={touched.medicareNumber && errors.medicareNumber ? "true" : undefined}
+                  className={cn("h-11", touched.medicareNumber && errors.medicareNumber && "border-destructive")}
+                />
+                {medicareNumber.length === 10 && medicareValidation?.valid && !errors.medicareNumber && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {formatMedicareNumber(medicareNumber)}
+                  </p>
+                )}
+              </FormField>
 
-          <FormField
-            label="IHI"
-            required={!medicareIdentityReady}
-            error={touched.ihiNumber ? errors.ihiNumber : undefined}
-            icon={CreditCard}
-            hint="For patients without Medicare"
-            helpContent={{ title: "Where do I find my IHI?", content: "International patients can get their Individual Healthcare Identifier through myGov or the Healthcare Identifiers Service." }}
-          >
-            <Input
-              type="text"
-              inputMode="numeric"
-              value={ihiNumber}
-              onChange={(e) => {
-                const raw = e.target.value.replace(/[^\d]/g, '').slice(0, 16)
-                setAnswer('ihiNumber', raw)
-                if (touched.ihiNumber) {
-                  const result = validateIHI(raw)
-                  setErrors((prev) => {
-                    if (!raw.trim() && !medicareIdentityReady) return { ...prev, ihiNumber: 'Enter your IHI if you do not have Medicare' }
-                    if (raw.trim() && !result.valid) return { ...prev, ihiNumber: result.error || 'Enter a valid IHI' }
-                    const { ihiNumber: _, medicareNumber: _medicareNumber, ...rest } = prev
-                    return rest
-                  })
-                }
-              }}
-              onBlur={() => handleBlur('ihiNumber', ihiNumber)}
-              placeholder="16 digits"
-              autoComplete="off"
-              aria-invalid={touched.ihiNumber && !!errors.ihiNumber}
-              data-error={touched.ihiNumber && errors.ihiNumber ? "true" : undefined}
-              className={cn("h-11", touched.ihiNumber && errors.ihiNumber && "border-destructive")}
-            />
-            {ihiNumber.length === 16 && ihiValidation?.valid && !errors.ihiNumber && (
-              <p className="text-xs text-muted-foreground mt-1">
-                {formatIHI(ihiNumber)}
-              </p>
-            )}
-          </FormField>
+              <div className="grid grid-cols-1 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">IRN</Label>
+                  <div className="grid grid-cols-9 gap-1">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((value) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => {
+                          setAnswer("medicareIrn", String(value))
+                          setErrors((prev) => {
+                            const { medicareIrn: _, ...rest } = prev
+                            return rest
+                          })
+                        }}
+                        className={cn(
+                          "h-10 rounded-md border text-sm font-medium transition-colors",
+                          medicareIrn === String(value)
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border bg-background hover:bg-muted",
+                          touched.medicareIrn && errors.medicareIrn && "border-destructive",
+                        )}
+                        aria-pressed={medicareIrn === String(value)}
+                      >
+                        {value}
+                      </button>
+                    ))}
+                  </div>
+                  {touched.medicareIrn && errors.medicareIrn && (
+                    <p className="text-xs text-destructive">{errors.medicareIrn}</p>
+                  )}
+                </div>
+              </div>
+            </>
+          ) : (
+            <FormField
+              label="Individual Healthcare Identifier"
+              required={!medicareIdentityReady}
+              error={touched.ihiNumber ? errors.ihiNumber : undefined}
+              icon={CreditCard}
+              hint="Use this if you do not have Medicare"
+              helpContent={{ title: "Where do I find my IHI?", content: "You can find your IHI in myGov or through the Healthcare Identifiers Service." }}
+            >
+              <Input
+                type="text"
+                inputMode="numeric"
+                value={ihiNumber}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/[^\d]/g, '').slice(0, 16)
+                  setAnswer('ihiNumber', raw)
+                  if (touched.ihiNumber) {
+                    const result = validateIHI(raw)
+                    setErrors((prev) => {
+                      if (!raw.trim() && !medicareIdentityReady) return { ...prev, ihiNumber: 'Enter your IHI' }
+                      if (raw.trim() && !result.valid) return { ...prev, ihiNumber: result.error || 'Enter a valid IHI' }
+                      const { ihiNumber: _, medicareNumber: _medicareNumber, ...rest } = prev
+                      return rest
+                    })
+                  }
+                }}
+                onBlur={() => handleBlur('ihiNumber', ihiNumber)}
+                placeholder="16 digits"
+                autoComplete="off"
+                aria-invalid={touched.ihiNumber && !!errors.ihiNumber}
+                data-error={touched.ihiNumber && errors.ihiNumber ? "true" : undefined}
+                className={cn("h-11", touched.ihiNumber && errors.ihiNumber && "border-destructive")}
+              />
+              {ihiNumber.length === 16 && ihiValidation?.valid && !errors.ihiNumber && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {formatIHI(ihiNumber)}
+                </p>
+              )}
+            </FormField>
+          )}
         </div>
       )}
 

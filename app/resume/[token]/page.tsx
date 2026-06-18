@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { getAppUrl } from "@/lib/config/env"
 import { verifyCheckoutResumeToken } from "@/lib/crypto/checkout-resume-token"
 import { createLogger } from "@/lib/observability/logger"
+import { buildGuestCheckoutCancelUrl } from "@/lib/stripe/checkout-recovery-link"
 import { getOptionalStripePriceEnv, getPriceIdForRequest, stripe } from "@/lib/stripe/client"
 import { canRetryPaymentForIntake } from "@/lib/stripe/payment-integrity"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -66,7 +67,7 @@ async function rebuildGuestCheckoutSession(
         line_items: lineItems,
         mode: "payment",
         success_url: `${baseUrl}/auth/complete-account?intake_id=${intake.id}&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${baseUrl}/patient/intakes/cancelled?intake_id=${intake.id}`,
+        cancel_url: buildGuestCheckoutCancelUrl({ baseUrl, intakeId: intake.id }),
         customer_email: intake.guest_email ?? undefined,
         customer_creation: intake.guest_email ? "always" : undefined,
         metadata: {

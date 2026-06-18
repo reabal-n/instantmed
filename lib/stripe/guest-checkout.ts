@@ -28,6 +28,7 @@ import type { ServiceCategory } from "@/types/services"
 
 import { runClinicalValidation } from "./checkout/clinical-validation"
 import { reportCheckoutSessionFailure } from "./checkout-error-alarm"
+import { buildGuestCheckoutCancelUrl } from "./checkout-recovery-link"
 import { getAmountCentsForRequest, getOptionalStripePriceEnv, getPriceIdForRequest, stripe } from "./client"
 import { shouldReuseGuestProfileForCheckout } from "./guest-profile-dedupe"
 import { inferStripeLineItemFailureRole, stripePriceErrorUserMessage } from "./line-item-error"
@@ -212,7 +213,7 @@ async function rebuildExpiredGuestSession(
         line_items: lineItems,
         mode: "payment",
         success_url: `${baseUrl}/auth/complete-account?intake_id=${intake.id}&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${baseUrl}/patient/intakes/cancelled?intake_id=${intake.id}`,
+        cancel_url: buildGuestCheckoutCancelUrl({ baseUrl, intakeId: intake.id }),
         customer_email: guestEmail,
         customer_creation: "always",
         metadata: {
@@ -747,7 +748,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     // 6. Build success and cancel URLs
     // Note: Email is passed for account completion flow - retrieved server-side for security
     const successUrl = `${baseUrl}/auth/complete-account?intake_id=${intake.id}&session_id={CHECKOUT_SESSION_ID}`
-    const cancelUrl = `${baseUrl}/patient/intakes/cancelled?intake_id=${intake.id}`
+    const cancelUrl = buildGuestCheckoutCancelUrl({ baseUrl, intakeId: intake.id })
 
     // 7. Create Stripe checkout session
     let session
