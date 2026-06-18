@@ -4,8 +4,18 @@ import { NextRequest, NextResponse } from "next/server"
 import { buildOperationalInvariantAlerts, getOperationalInvariants } from "@/lib/admin/ops-invariants"
 import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
 import { toError } from "@/lib/errors"
+import {
+  buildNoPurchaseRevenueAlert,
+  CHECKOUT_DEMAND_PAYMENT_STATUSES,
+  CHECKOUT_DEMAND_STATUSES,
+  NO_PURCHASE_CRITICAL_WINDOW_HOURS,
+  NO_PURCHASE_WARNING_WINDOW_HOURS,
+  type NoPurchaseRevenueWindow,
+  REVENUE_PURCHASE_PAYMENT_STATUSES,
+} from "@/lib/monitoring/revenue-safety"
 import {
   buildStaleHumanQueueAlert,
   STALE_HUMAN_QUEUE_CATEGORIES,
@@ -21,6 +31,65 @@ const logger = createLogger("cron-business-alerts")
 /** Re-page a still-standing alert signature at most once per this window (4h). */
 const TELEGRAM_ALERT_COOLDOWN_MS = 4 * 60 * 60 * 1000
 
+type BusinessAlert = { metric: string; severity: string; detail: string; count?: number }
+
+async function getNoPurchaseRevenueWindow(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  now: Date,
+  windowHours: number,
+): Promise<NoPurchaseRevenueWindow> {
+  const since = new Date(now.getTime() - windowHours * 60 * 60 * 1000).toISOString()
+  const nowIso = now.toISOString()
+
+  const [paidResult, createdResult, checkoutResult, partialResult] = await Promise.all([
+    filterReportableIntakes(
+      supabase
+        .from("intakes")
+        .select("id", { count: "exact", head: true })
+        .in("payment_status", [...REVENUE_PURCHASE_PAYMENT_STATUSES])
+        .not("paid_at", "is", null)
+        .gte("paid_at", since)
+        .lte("paid_at", nowIso),
+    ),
+    filterReportableIntakes(
+      supabase
+        .from("intakes")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", since)
+        .lte("created_at", nowIso),
+    ),
+    filterReportableIntakes(
+      supabase
+        .from("intakes")
+        .select("id", { count: "exact", head: true })
+        .in("status", [...CHECKOUT_DEMAND_STATUSES])
+        .in("payment_status", [...CHECKOUT_DEMAND_PAYMENT_STATUSES])
+        .gte("created_at", since)
+        .lte("created_at", nowIso),
+    ),
+    supabase
+      .from("partial_intakes")
+      .select("session_id", { count: "exact", head: true })
+      .is("converted_to_intake_id", null)
+      .gte("updated_at", since)
+      .lte("updated_at", nowIso)
+      .gte("expires_at", nowIso),
+  ])
+
+  if (paidResult.error) throw new Error(`No-purchase paid count failed: ${paidResult.error.message}`)
+  if (createdResult.error) throw new Error(`No-purchase intake demand count failed: ${createdResult.error.message}`)
+  if (checkoutResult.error) throw new Error(`No-purchase checkout demand count failed: ${checkoutResult.error.message}`)
+  if (partialResult.error) throw new Error(`No-purchase draft demand count failed: ${partialResult.error.message}`)
+
+  return {
+    windowHours,
+    paidIntakes: paidResult.count ?? 0,
+    createdIntakes: createdResult.count ?? 0,
+    checkoutStageIntakes: checkoutResult.count ?? 0,
+    partialDrafts: partialResult.count ?? 0,
+  }
+}
+
 /**
  * Business Alerts Monitor
  *
@@ -29,6 +98,7 @@ const TELEGRAM_ALERT_COOLDOWN_MS = 4 * 60 * 60 * 1000
  *
  * Metrics checked:
  * - Failed payments in last hour
+ * - No paid intakes despite saved-intake or draft demand
  * - Email delivery failures in last hour
  * - High-risk intakes awaiting review
  * - SLA breaches (intakes past deadline)
@@ -41,7 +111,7 @@ export async function GET(request: NextRequest) {
     const supabase = createServiceRoleClient()
     const now = new Date()
     const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
-    const alerts: Array<{ metric: string; severity: string; detail: string; count?: number }> = []
+    const alerts: BusinessAlert[] = []
 
     // 1. Failed payments in last hour
     const { count: failedPayments } = await supabase
@@ -63,7 +133,30 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // 2. Email delivery failures (certificates not delivered)
+    // 2. Revenue safety: page only when paid orders are silent while the
+    // funnel still has demand. A quiet traffic day should not alert.
+    const criticalNoPurchaseWindow = await getNoPurchaseRevenueWindow(
+      supabase,
+      now,
+      NO_PURCHASE_CRITICAL_WINDOW_HOURS,
+    )
+    const criticalNoPurchaseAlert = buildNoPurchaseRevenueAlert(criticalNoPurchaseWindow)
+    const noPurchaseWindow = criticalNoPurchaseAlert
+      ? criticalNoPurchaseWindow
+      : await getNoPurchaseRevenueWindow(supabase, now, NO_PURCHASE_WARNING_WINDOW_HOURS)
+    const noPurchaseAlert =
+      criticalNoPurchaseAlert ?? buildNoPurchaseRevenueAlert(noPurchaseWindow)
+
+    if (noPurchaseAlert) {
+      alerts.push(noPurchaseAlert)
+      trackBusinessMetric({
+        metric: noPurchaseAlert.metric,
+        severity: noPurchaseAlert.severity,
+        metadata: noPurchaseAlert.metadata,
+      })
+    }
+
+    // 3. Email delivery failures (certificates not delivered)
     const { count: emailFailures } = await supabase
       .from("issued_certificates")
       .select("id", { count: "exact", head: true })
@@ -84,7 +177,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // 3. Bounced emails in last hour (from email_outbox)
+    // 4. Bounced emails in last hour (from email_outbox)
     // Only track the business metric — don't raise a Sentry alert here.
     // Email delivery and Resend's own dashboard flag the domain-level issue.
     // Spam-rate SLO is the
@@ -105,7 +198,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // 4. Emails stuck in pending status for more than 30 minutes
+    // 5. Emails stuck in pending status for more than 30 minutes
     const thirtyMinAgo = new Date(now.getTime() - 30 * 60 * 1000)
     const { count: stuckPending } = await supabase
       .from("email_outbox")
@@ -127,7 +220,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // 5. High-risk intakes waiting in queue
+    // 6. High-risk intakes waiting in queue
     const { count: highRiskWaiting } = await supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
@@ -147,7 +240,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // 6. Critical email delivery SLA - med_cert_patient and script_sent must be delivered within 10 min
+    // 7. Critical email delivery SLA - med_cert_patient and script_sent must be delivered within 10 min
     const tenMinAgo = new Date(now.getTime() - 10 * 60 * 1000)
     const { count: slaBreaches } = await supabase
       .from("email_outbox")
@@ -171,7 +264,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // 7. Weekly ops invariants promoted from dashboard-only visibility to alerting.
+    // 8. Weekly ops invariants promoted from dashboard-only visibility to alerting.
     const operationalInvariants = await getOperationalInvariants(supabase)
     const invariantAlerts = buildOperationalInvariantAlerts(operationalInvariants)
 
@@ -184,7 +277,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // 8. Human-required (Rx/consult) queue stalled >24h. Medical certificates
+    // 9. Human-required (Rx/consult) queue stalled >24h. Medical certificates
     // auto-approve at all hours, so a stalled HUMAN queue means the operator may
     // be unavailable and paid scripts/consults are piling up. Per the 2026-06-11
     // decision we page (Telegram, critical → cooldown'd below), we do NOT
@@ -322,6 +415,13 @@ export async function GET(request: NextRequest) {
         stuck_pending_emails: stuckPending || 0,
         high_risk_waiting: highRiskWaiting || 0,
         email_sla_breaches: slaBreaches || 0,
+        no_purchase_window: {
+          window_hours: noPurchaseWindow.windowHours,
+          paid_intakes: noPurchaseWindow.paidIntakes,
+          created_intakes: noPurchaseWindow.createdIntakes,
+          checkout_stage_intakes: noPurchaseWindow.checkoutStageIntakes,
+          partial_drafts: noPurchaseWindow.partialDrafts,
+        },
         rx_consult_queue_stalled: staleHumanCount ?? 0,
         ops_sla_breach_backlog: operationalInvariants.slaBreachBacklog,
         ops_cert_refund_orphans: operationalInvariants.certRefundOrphans,

@@ -375,7 +375,7 @@ Cron surface policy: every `app/api/cron/*/route.ts` must be scheduled in `verce
 | Email Dispatcher | `/api/cron/email-dispatcher` | Every 5 min | Process pending/failed emails from `email_outbox` with atomic claiming; recovers stale `sending` claims and applies `DAILY_EMAIL_LIMIT` only to marketing/engagement sends |
 | Release Stale Claims | `/api/cron/release-stale-claims` | Every 5 min | Release doctor intake claims that have gone stale to prevent queue stalls |
 | Retry Drafts | `/api/cron/retry-drafts` | Every 5 min | Retry failed AI draft generation with exponential backoff |
-| Business Alerts | `/api/cron/business-alerts` | Every 30 min | Aggregates business metrics: failed payments, email failures, SLA breaches |
+| Business Alerts | `/api/cron/business-alerts` | Every 30 min | Aggregates business metrics: failed payments, no-purchase revenue safety, email failures, SLA breaches |
 | Stale Queue | `/api/cron/stale-queue` | Hourly | Alerts on paid intakes waiting > 4h (warning) or > 8h (critical) |
 | Abandoned Checkouts | `/api/cron/abandoned-checkouts` | Hourly (:00) | Payment-stage recovery for submitted intakes stuck at checkout |
 | Partial Intake Recovery | `/api/cron/recover-partial-intakes` | Hourly (:15) | Pre-checkout draft recovery only; excludes review/checkout drafts so it does not overlap abandoned-checkout recovery |
@@ -788,6 +788,7 @@ Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_
 | Latency | Doctor Review P95 (paid to approved) | < 60 min | `lib/monitoring/queue-health.ts` |
 | Latency | Email Delivery P95 | < 30s | `lib/monitoring/delivery-tracking.ts` |
 | Error | Payment failure rate | > 5% | Stripe webhook |
+| Error | No purchases despite demand | 24h warning / 48h critical when reportable saved intakes or active drafts exist | `/api/cron/business-alerts` |
 | Error | AI draft failure rate | > 10% | `document_drafts.status = failed` + Sentry tag `source:ai_draft` |
 | Error | Email bounce rate | > 5% | `lib/monitoring/delivery-tracking.ts` |
 | Error | 5xx rate | > 1% | `lib/observability/sentry.ts` |
@@ -806,7 +807,7 @@ Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_
 | AI Down | Failure rate > 25% | Sentry (email alert) |
 | Payment DLQ | > 5 items | Sentry (email alert) |
 | Email Bounce Spike | Bounce rate > 5% | Sentry (email alert) |
-| Business Alerts | Failed payments, SLA breaches | Telegram (`lib/notifications/telegram.ts`) |
+| Business Alerts | Failed payments, no-purchase revenue safety, SLA breaches | Telegram (`lib/notifications/telegram.ts`) |
 | Payment Notifications | Successful checkout | Telegram (real-time) |
 | Request Flow Synthetic | Any production request-path render/click failure | GitHub Actions failure |
 | Staff Role Gate | More than one auth-linked human admin, owner-admin missing doctor identity, or doctor missing required prescribing/certificate identity | `pnpm check:staff-roles` release failure |
