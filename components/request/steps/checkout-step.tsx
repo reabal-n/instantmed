@@ -22,7 +22,7 @@ import { getAttribution } from "@/lib/analytics/attribution"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { PRICING as APP_PRICING } from "@/lib/constants"
-import { GUARANTEE_LABEL } from "@/lib/marketing/voice"
+import { GUARANTEE, GUARANTEE_LABEL } from "@/lib/marketing/voice"
 import { getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
 import { normalizeMedicationEntriesAnswer, stringAnswer } from "@/lib/request/intake-answer-normalizers"
 import { getActiveServerDraftSessionId } from "@/lib/request/server-draft"
@@ -90,6 +90,25 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
   const displayLabel = getServiceDisplayLabel(serviceType, consultSubtype)
   const certTypeLabel = certType ? certType.charAt(0).toUpperCase() + certType.slice(1) : "Certificate"
   const durationLabel = duration ? `${duration} day${duration !== "1" ? "s" : ""}` : undefined
+  const checkoutTrustPoints = [
+    {
+      icon: ShieldCheck,
+      title: "Doctor review",
+      body: isMedCertCheckout
+        ? "An AHPRA-registered doctor reviews your request after payment."
+        : "An AHPRA-registered doctor reviews before any prescription or document is issued.",
+    },
+    {
+      icon: RefreshCw,
+      title: "Refund if declined",
+      body: GUARANTEE,
+    },
+    {
+      icon: Lock,
+      title: "Secure payment",
+      body: "Secure Stripe checkout with card and wallet payments.",
+    },
+  ]
 
   // Single consent controls both toggles
   const handleConsentChange = (checked: boolean) => {
@@ -208,7 +227,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
       {!authContext.isAuthenticated && (
         <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
           <UserX className="w-4 h-4 text-primary" aria-hidden="true" />
-          <span>No account required - pay as a guest</span>
+          <span>No account required. Pay as a guest.</span>
         </div>
       )}
 
@@ -287,9 +306,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
-            {isMedCertCheckout
-              ? "Doctor review starts after payment. If approved, your certificate is emailed to you."
-              : "One-time fee. Your doctor reviews right after."}
+            One-time fee. No subscription.
           </p>
           <div className="border-t border-border/40 pt-2.5">
             <ExpressReviewToggle
@@ -300,6 +317,33 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
               onOptOut={() => posthog?.capture('express_review_opted_out', { service_type: serviceType })}
             />
           </div>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-success/20 bg-success/5 p-3.5 dark:border-success/30 dark:bg-success/10">
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success/10 text-success">
+            <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+          </div>
+          <div className="min-w-0">
+            <h4 className="text-sm font-medium text-foreground">Before you pay</h4>
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+              {isMedCertCheckout
+                ? "Payment sends your request to the doctor. Approval is clinical, not automatic."
+                : "Payment sends your request for clinical review. The doctor contacts you only if more information is needed."}
+            </p>
+          </div>
+        </div>
+        <div className="mt-3 grid gap-2 text-sm">
+          {checkoutTrustPoints.map(({ icon: Icon, title, body }) => (
+            <div key={title} className="flex items-start gap-2.5">
+              <Icon className="mt-0.5 h-4 w-4 shrink-0 text-success" aria-hidden="true" />
+              <div className="min-w-0">
+                <p className="font-medium text-foreground">{title}</p>
+                <p className="leading-relaxed text-muted-foreground">{body}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -400,7 +444,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
       </div>
 
       {/* Spacer for sticky CTA on mobile */}
-      <div className="h-36 sm:hidden" />
+      <div className="h-56 sm:hidden" />
 
       {/* Checkout button - sticky on mobile, inline on desktop */}
       <div className="fixed bottom-0 left-0 right-0 z-30 bg-background border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:static sm:bg-transparent sm:border-0 sm:p-0 sm:z-auto">
@@ -433,8 +477,11 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
 
           {/* Stripe + payment method logos - payment trust at the pay moment,
               shown for every service. */}
-          <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-            <Lock className="h-3 w-3 shrink-0" aria-hidden="true" />
+          <div className="flex flex-col items-center justify-center gap-1.5 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <Lock className="h-3 w-3 shrink-0" aria-hidden="true" />
+              Secure Stripe checkout. No subscription.
+            </span>
             <PaymentLogos />
           </div>
         </div>

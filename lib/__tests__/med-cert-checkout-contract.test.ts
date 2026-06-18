@@ -118,4 +118,18 @@ describe("medical certificate checkout contract", () => {
     expect(checkoutStepSource).toContain('label="Pay"')
     expect(checkoutStepSource).toContain('Total{" "}')
   })
+
+  it("keeps checkout trust visible without implying automatic approval", () => {
+    const checkoutStepSource = readFileSync(
+      join(process.cwd(), "components/request/steps/checkout-step.tsx"),
+      "utf8",
+    )
+
+    expect(checkoutStepSource).toContain("Before you pay")
+    expect(checkoutStepSource).toContain("Approval is clinical, not automatic")
+    expect(checkoutStepSource).toContain("Secure Stripe checkout. No subscription.")
+    expect(checkoutStepSource).toContain("GUARANTEE")
+    expect(checkoutStepSource).not.toContain("guaranteed approval")
+    expect(checkoutStepSource).not.toContain("No account required - pay as a guest")
+  })
 })
