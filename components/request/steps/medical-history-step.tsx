@@ -228,7 +228,8 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
         data-intake-primary-label="Continue"
         data-intake-primary-ready={canContinue ? "true" : "false"}
         onClick={handleNext}
-        className={`w-full h-12 max-sm:hidden ${canContinue ? "" : "opacity-60"}`}
+        variant={canContinue ? "default" : "secondary"}
+        className="w-full h-12 max-sm:hidden"
       >
         {canContinue ? (
           <>

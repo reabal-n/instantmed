@@ -130,7 +130,7 @@ describe("validateEdConsult", () => {
 describe("validateHairLossConsult", () => {
   const validHair = {
     hairGoal: "regrow",
-    hairOnset: "1_2_years",
+    hairOnset: "over_12_months",
     hairPattern: "noticeable_thinning",
     hairFamilyHistory: "yes_father",
     hairReproductive: "no",
@@ -174,10 +174,24 @@ describe("validateHairLossConsult", () => {
   })
 
   it("flags recent onset hair loss", () => {
-    const result = validateHairLossConsult({ ...validHair, hairOnset: "few_months" })
+    const result = validateHairLossConsult({ ...validHair, hairOnset: "under_6_months" })
     expect(result.flags).toContainEqual(
       expect.objectContaining({ type: "clinical_note", reason: "recent_onset" })
     )
+  })
+
+  it("still accepts legacy stored hair-loss onset values", () => {
+    for (const hairOnset of ["few_months", "1_2_years", "2_plus_years"]) {
+      const result = validateHairLossConsult({ ...validHair, hairOnset })
+      expect(result.valid).toBe(true)
+    }
+  })
+
+  it("accepts compact and legacy hair-loss family-history values", () => {
+    for (const hairFamilyHistory of ["no_or_unsure", "no", "unknown"]) {
+      const result = validateHairLossConsult({ ...validHair, hairFamilyHistory })
+      expect(result.valid).toBe(true)
+    }
   })
 
   it("accepts combination preference", () => {
@@ -609,7 +623,7 @@ describe("validateConsultBySubtype", () => {
   it("routes hair_loss correctly", () => {
     const result = validateConsultBySubtype("hair_loss", {
       hairGoal: "both",
-      hairOnset: "2_plus_years",
+      hairOnset: "over_12_months",
       hairPattern: "crown_plus_hairline",
       hairFamilyHistory: "yes_both",
       hairReproductive: "no",

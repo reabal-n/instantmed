@@ -42,6 +42,7 @@ describe("intake mobile viewport contract", () => {
     expect(requestFlowSource).toContain("data-intake-primary-ready")
     expect(requestFlowSource).toContain("MutationObserver")
     expect(requestFlowSource).toContain("handleMobilePrimaryAction")
+    expect(requestFlowSource).toContain('variant={mobileActionReady ? "default" : "secondary"}')
     expect(requestFlowSource).toContain("currentStepId !== 'checkout'")
     expect(requestFlowSource).not.toContain("hidden on checkout/review which have their own CTAs")
   })
@@ -134,6 +135,22 @@ describe("intake mobile viewport contract", () => {
     expect(source).not.toContain("disabled={!womensHealthOption}")
   })
 
+  it("uses secondary styling, not faded primary styling, for clickable incomplete CTAs", () => {
+    const sources = [
+      "components/request/steps/certificate-step.tsx",
+      "components/request/steps/medication-step.tsx",
+      "components/request/steps/medication-history-step.tsx",
+      "components/request/steps/medical-history-step.tsx",
+      "components/request/steps/review-step.tsx",
+    ].map((path) => readProjectFile(path))
+
+    for (const source of sources) {
+      expect(source).toContain('data-intake-primary-ready=')
+      expect(source).toContain('variant={')
+      expect(source).not.toContain("opacity-60")
+    }
+  })
+
   it("keeps ED goal selection as a balanced four-option grid", () => {
     const source = readProjectFile("components/request/steps/ed-goals-step.tsx")
     const goalOptionsMatch = source.match(/const GOAL_OPTIONS = \[([\s\S]*?)\] as const/)
@@ -141,6 +158,46 @@ describe("intake mobile viewport contract", () => {
     const optionRows = goalOptionsMatch?.[1].match(/value:/g) ?? []
     expect(optionRows).toHaveLength(4)
     expect(source).not.toContain("Maintain what I have")
+  })
+
+  it("keeps hair-loss onset selection as a balanced four-option grid", () => {
+    const source = readProjectFile("components/request/steps/hair-loss-goals-step.tsx")
+    const onsetOptionsMatch = source.match(/const ONSET_OPTIONS = \[([\s\S]*?)\] as const/)
+    expect(onsetOptionsMatch).toBeTruthy()
+    const optionRows = onsetOptionsMatch?.[1].match(/value:/g) ?? []
+    expect(optionRows).toHaveLength(4)
+    expect(source).toContain('{ value: "under_6_months", label: "Under 6 months" }')
+    expect(source).toContain('{ value: "over_12_months", label: "Over 12 months" }')
+    expect(source).toContain('columns="two"')
+    expect(source).not.toContain('className="sm:grid-cols-5"')
+    expect(source).not.toContain('{ value: "few_months", label: "Few months" }')
+    expect(source).not.toContain('{ value: "1_2_years", label: "1-2 years" }')
+    expect(source).not.toContain('{ value: "2_plus_years", label: "2+ years" }')
+  })
+
+  it("keeps hair-loss family history as a balanced four-option grid", () => {
+    const source = readProjectFile("components/request/steps/hair-loss-assessment-step.tsx")
+    const familyOptionsMatch = source.match(/const FAMILY_HISTORY_OPTIONS = \[([\s\S]*?)\]/)
+    expect(familyOptionsMatch).toBeTruthy()
+    const optionRows = familyOptionsMatch?.[1].match(/value:/g) ?? []
+    expect(optionRows).toHaveLength(4)
+    expect(source).toContain('{ value: "no_or_unsure", label: "No or not sure" }')
+    expect(source).toContain('ariaLabel="Do you have a family history of hair loss"')
+    expect(source).toContain('columns="two"')
+    expect(source).not.toContain('columns="one"')
+    expect(source).not.toContain("Yes, on my father's side")
+    expect(source).not.toContain("Yes, on my mother's side")
+    expect(source).not.toContain('{ value: "no", label: "No family history" }')
+    expect(source).not.toContain('{ value: "unknown", label: "Not sure" }')
+  })
+
+  it("uses compact chips for optional hair-loss previous treatments", () => {
+    const source = readProjectFile("components/request/steps/hair-loss-assessment-step.tsx")
+    expect(source).toContain("ChipToggleGroup")
+    expect(source).toContain('ariaLabel="Previous hair loss treatments"')
+    expect(source).toContain("Select any you have used.")
+    expect(source).not.toContain("<MedicalHistoryToggles")
+    expect(source).not.toContain("Toggle on any treatments")
   })
 
   it("does not render the med-cert two-day upsell nudge", () => {

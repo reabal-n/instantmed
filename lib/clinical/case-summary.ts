@@ -134,6 +134,32 @@ function sentenceHumanize(value: unknown): string {
   return humanize(value).toLowerCase()
 }
 
+function hairOnsetLabel(value: string): string {
+  const labels: Record<string, string> = {
+    not_yet: "Not yet",
+    under_6_months: "Under 6 months",
+    "6_12_months": "6-12 months",
+    over_12_months: "Over 12 months",
+    few_months: "Last few months",
+    "1_2_years": "1-2 years",
+    "2_plus_years": "2+ years",
+  }
+  return labels[value] || humanize(value)
+}
+
+function hairFamilyHistoryLabel(value: string | undefined): string {
+  const labels: Record<string, string> = {
+    yes_father: "Father's side",
+    yes_mother: "Mother's side",
+    yes_both: "Both sides",
+    no_or_unsure: "No or not sure",
+    // Legacy stored draft values from the former separate "No" / "Not sure" UI.
+    no: "No family history",
+    unknown: "Not sure",
+  }
+  return value ? labels[value] || humanize(value) : "Not provided"
+}
+
 function compactFacts(facts: Array<ClinicalKeyFact | false | undefined | null>): ClinicalKeyFact[] {
   return facts.filter(Boolean) as ClinicalKeyFact[]
 }
@@ -412,7 +438,9 @@ function hairSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const cautionFlags = validation.flags.filter((flag) => flag.type !== "safety_block")
   const goal = str(answers, "hairGoal") || "hair loss treatment"
   const onset = str(answers, "hairOnset") || "unspecified onset"
+  const onsetLabel = hairOnsetLabel(onset)
   const pattern = str(answers, "hairPattern") || "unspecified pattern"
+  const familyHistoryLabel = hairFamilyHistoryLabel(str(answers, "hairFamilyHistory"))
   const preference = str(answers, "hairMedicationPreference") || "doctor decides"
   const reproductiveBlock = blockingFlags.some((flag) => flag.reason === "reproductive_contraindication")
   const oralRequested = preference === "oral"
@@ -433,9 +461,9 @@ function hairSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
 
   const keyFacts = compactFacts([
     { label: "Goal", value: humanize(goal) },
-    { label: "Onset", value: humanize(onset) },
+    { label: "Onset", value: onsetLabel },
     { label: "Pattern", value: humanize(pattern) },
-    { label: "Family history", value: humanize(str(answers, "hairFamilyHistory")) },
+    { label: "Family history", value: familyHistoryLabel },
     { label: "Treatment preference", value: humanize(preference) },
     { label: "Reproductive risk", value: yesNo(raw(answers, "hairReproductive")) },
     { label: "Scalp concerns", value: scalpSummary(answers) },
@@ -480,11 +508,11 @@ function hairSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   })
 
   const header = patientHeader(input)
-  const storySentence = `${input.patientName || "Patient"} requests hair loss treatment for ${sentenceHumanize(pattern)} with onset ${sentenceHumanize(onset)}.`
+  const storySentence = `${input.patientName || "Patient"} requests hair loss treatment for ${sentenceHumanize(pattern)} with onset ${onsetLabel.toLowerCase()}.`
 
   const subjective = [
     `${header}, c/o androgenetic-pattern hair loss (${humanize(pattern).toLowerCase()}).`,
-    onset ? `Onset ${humanize(onset).toLowerCase()}.` : null,
+    onset ? `Onset ${onsetLabel.toLowerCase()}.` : null,
     `Goal: ${humanize(goal).toLowerCase()}.`,
     preference ? `Patient prefers ${humanize(preference).toLowerCase()} option.` : null,
   ]

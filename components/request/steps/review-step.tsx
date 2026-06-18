@@ -418,6 +418,8 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       }
       const ONSET_LABELS: Record<string, string> = {
         not_yet: 'Not yet (prevention)',
+        under_6_months: 'Under 6 months',
+        over_12_months: 'Over 12 months',
         few_months: 'Last few months',
         '6_12_months': '6-12 months',
         '1_2_years': '1-2 years',
@@ -432,9 +434,11 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
         extensive: 'Extensive loss',
       }
       const FAMILY_HISTORY_LABELS: Record<string, string> = {
-        yes_father: "Yes, father's side",
-        yes_mother: "Yes, mother's side",
-        yes_both: 'Yes, both sides',
+        yes_father: "Father's side",
+        yes_mother: "Mother's side",
+        yes_both: 'Both sides',
+        no_or_unsure: 'No or not sure',
+        // Legacy stored draft values from the former separate "No" / "Not sure" UI.
         no: 'No family history',
         unknown: 'Not sure',
       }
@@ -763,7 +767,8 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
           data-intake-primary-label={isPrescriptionCheckout ? `Pay $${totalDue.toFixed(2)}` : "Continue to payment"}
           data-intake-primary-ready={safetyConfirmed ? "true" : "false"}
           onClick={safetyConfirmed ? (isPrescriptionCheckout ? handlePayment : handleContinue) : handleDisabledClick}
-          className={`w-full h-12 max-sm:hidden ${safetyConfirmed ? '' : 'opacity-60 hover:opacity-70'}`}
+          variant={safetyConfirmed ? "default" : "secondary"}
+          className="w-full h-12 max-sm:hidden"
           aria-disabled={!safetyConfirmed || isProcessing}
           aria-describedby={!safetyConfirmed ? 'safety-consent-warning' : undefined}
           disabled={isProcessing}

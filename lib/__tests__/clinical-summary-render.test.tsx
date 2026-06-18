@@ -126,9 +126,9 @@ describe("ClinicalSummary - hair loss subtype (camelCase keys)", () => {
   it("renders current hair-loss goal, onset, safety, and medical-history fields in the subtype panel", () => {
     const currentHairLossAnswers = {
       hairGoal: "both",
-      hairOnset: "1_2_years",
+      hairOnset: "over_12_months",
       hairPattern: "noticeable_thinning",
-      hairFamilyHistory: "yes_father",
+      hairFamilyHistory: "no_or_unsure",
       hairMedicationPreference: "combination",
       hairReproductive: "no",
       hairLowBP: true,
@@ -146,6 +146,8 @@ describe("ClinicalSummary - hair loss subtype (camelCase keys)", () => {
 
     expect(html).toContain("Hair Loss Goal")
     expect(html).toContain("Hair Loss Onset")
+    expect(html).toContain("Over 12 months")
+    expect(html).toContain("No or not sure")
     expect(html).toContain("Reproductive Safety")
     expect(html).toContain("Low BP/Dizziness")
     expect(html).toContain("Heart Conditions/Palpitations")

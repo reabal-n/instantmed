@@ -226,9 +226,26 @@ export function validateEdConsult(answers: Answers): ConsultValidationResult {
 // ============================================================================
 
 const HAIR_GOAL_VALUES = ["prevent", "regrow", "both", "exploring"] as const
-const HAIR_ONSET_VALUES = ["not_yet", "few_months", "6_12_months", "1_2_years", "2_plus_years"] as const
+const HAIR_ONSET_VALUES = [
+  "not_yet",
+  "under_6_months",
+  "6_12_months",
+  "over_12_months",
+  // Legacy stored draft values from the former 5-option UI.
+  "few_months",
+  "1_2_years",
+  "2_plus_years",
+] as const
 const HAIR_PATTERN_VALUES = ["none", "slight_recession", "noticeable_thinning", "crown_plus_hairline", "significant", "extensive"] as const
-const HAIR_FAMILY_VALUES = ["yes_father", "yes_mother", "yes_both", "no", "unknown"] as const
+const HAIR_FAMILY_VALUES = [
+  "yes_father",
+  "yes_mother",
+  "yes_both",
+  "no_or_unsure",
+  // Legacy stored draft values from the former separate "No" / "Not sure" UI.
+  "no",
+  "unknown",
+] as const
 const HAIR_REPRODUCTIVE_VALUES = ["no", "na", "yes"] as const
 const HAIR_MED_PREFERENCE_VALUES = ["oral", "combination", "doctor_decides"] as const
 
@@ -282,7 +299,7 @@ export function validateHairLossConsult(answers: Answers): ConsultValidationResu
 
   // Clinical flags - onset
   const onset = str(answers, "hairOnset")
-  if (onset === "few_months") {
+  if (onset === "under_6_months" || onset === "few_months") {
     flags.push({
       type: "clinical_note",
       reason: "recent_onset",

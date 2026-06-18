@@ -37,10 +37,9 @@ const GOAL_OPTIONS = [
 
 const ONSET_OPTIONS = [
   { value: "not_yet", label: "Not yet" },
-  { value: "few_months", label: "Few months" },
+  { value: "under_6_months", label: "Under 6 months" },
   { value: "6_12_months", label: "6-12 months" },
-  { value: "1_2_years", label: "1-2 years" },
-  { value: "2_plus_years", label: "2+ years" },
+  { value: "over_12_months", label: "Over 12 months" },
 ] as const
 
 export default function HairLossGoalsStep({ serviceType, onNext }: HairLossGoalsStepProps) {
@@ -107,8 +106,7 @@ export default function HairLossGoalsStep({ serviceType, onNext }: HairLossGoals
           value={hairOnset}
           onChange={(value) => setAnswer("hairOnset", value)}
           ariaLabel="When did you first notice changes"
-          columns="auto"
-          className="sm:grid-cols-5"
+          columns="two"
         />
       </QuestionCard>
 

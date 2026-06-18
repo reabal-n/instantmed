@@ -887,7 +887,7 @@ export function RequestFlow({
               </RequestButton>
             )}
             <RequestButton
-              variant={mobileActionReady ? "default" : "outline"}
+              variant={mobileActionReady ? "default" : "secondary"}
               size="lg"
               onClick={handleMobilePrimaryAction}
               disabled={!mobileActionClickable}

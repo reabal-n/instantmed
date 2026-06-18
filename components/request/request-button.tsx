@@ -4,12 +4,13 @@ import * as React from "react"
 
 import { requestCx } from "./request-cx"
 
-type RequestButtonVariant = "default" | "outline" | "ghost"
+type RequestButtonVariant = "default" | "outline" | "secondary" | "ghost"
 type RequestButtonSize = "default" | "sm" | "lg" | "icon"
 
 const variantClasses: Record<RequestButtonVariant, string> = {
   default: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md",
   outline: "border border-input bg-white text-foreground hover:bg-muted/50 dark:bg-card",
+  secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
   ghost: "text-foreground hover:bg-muted/50 hover:text-accent-foreground",
 }
 

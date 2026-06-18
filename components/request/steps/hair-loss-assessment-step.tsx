@@ -2,10 +2,16 @@
 
 import { motion } from "framer-motion"
 import { AlertCircle, ArrowRight } from "lucide-react"
-import { useCallback, useEffect,useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
-import { ChoiceCardGroup, IntakeStepIntro, QuestionCard, QuestionPrompt, SegmentedChoiceGroup } from "@/components/request/shared/intake-step-primitives"
-import { MedicalHistoryToggles } from "@/components/request/shared/medical-history-toggles"
+import {
+  ChipToggleGroup,
+  ChoiceCardGroup,
+  IntakeStepIntro,
+  QuestionCard,
+  QuestionPrompt,
+  SegmentedChoiceGroup,
+} from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
@@ -92,11 +98,10 @@ const PATTERN_OPTIONS = [
 ]
 
 const FAMILY_HISTORY_OPTIONS = [
-  { value: "yes_father", label: "Yes, on my father's side" },
-  { value: "yes_mother", label: "Yes, on my mother's side" },
-  { value: "yes_both", label: "Yes, on both sides" },
-  { value: "no", label: "No family history" },
-  { value: "unknown", label: "Not sure" },
+  { value: "yes_father", label: "Father's side" },
+  { value: "yes_mother", label: "Mother's side" },
+  { value: "yes_both", label: "Both sides" },
+  { value: "no_or_unsure", label: "No or not sure" },
 ]
 
 const PREVIOUS_TREATMENTS = [
@@ -248,24 +253,24 @@ export default function HairLossAssessmentStep({
           ref={familyRef}
         >
           <QuestionCard compact>
-          <QuestionPrompt label="Do you have a family history of hair loss?" required />
-          <SegmentedChoiceGroup
-            options={FAMILY_HISTORY_OPTIONS}
-            value={hairFamilyHistory}
-            onChange={(value) => setAnswer("hairFamilyHistory", value)}
-            ariaLabel="Do you have a family history of hair loss"
-            columns="one"
-          />
-          {errors.hairFamilyHistory && (
-            <p
-              className="text-xs text-destructive flex items-center gap-1"
-              role="alert"
-              aria-live="polite"
-            >
-              <AlertCircle className="w-3 h-3" />
-              {errors.hairFamilyHistory}
-            </p>
-          )}
+            <QuestionPrompt label="Do you have a family history of hair loss?" required />
+            <SegmentedChoiceGroup
+              options={FAMILY_HISTORY_OPTIONS}
+              value={hairFamilyHistory}
+              onChange={(value) => setAnswer("hairFamilyHistory", value)}
+              ariaLabel="Do you have a family history of hair loss"
+              columns="two"
+            />
+            {errors.hairFamilyHistory && (
+              <p
+                className="text-xs text-destructive flex items-center gap-1"
+                role="alert"
+                aria-live="polite"
+              >
+                <AlertCircle className="w-3 h-3" />
+                {errors.hairFamilyHistory}
+              </p>
+            )}
           </QuestionCard>
         </motion.div>
       )}
@@ -280,15 +285,16 @@ export default function HairLossAssessmentStep({
           ref={treatmentsRef}
         >
           <QuestionCard compact>
-          <QuestionPrompt
-            label="Which treatments have you tried before?"
-            hint="Toggle on any treatments you have previously used."
-          />
-          <MedicalHistoryToggles
-            items={PREVIOUS_TREATMENTS}
-            values={answers}
-            onChange={(key, checked) => setAnswer(key, checked)}
-          />
+            <QuestionPrompt
+              label="Which treatments have you tried before?"
+              hint="Select any you have used."
+            />
+            <ChipToggleGroup
+              options={PREVIOUS_TREATMENTS}
+              values={answers}
+              onChange={(key, checked) => setAnswer(key, checked)}
+              ariaLabel="Previous hair loss treatments"
+            />
           </QuestionCard>
         </motion.div>
       )}

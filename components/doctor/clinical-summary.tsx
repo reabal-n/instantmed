@@ -289,6 +289,27 @@ const LAST_PRESCRIBED_LABELS: Record<string, string> = {
   over_1yr: "Over a year",
 }
 
+const HAIR_ONSET_LABELS: Record<string, string> = {
+  not_yet: "Not yet",
+  under_6_months: "Under 6 months",
+  "6_12_months": "6-12 months",
+  over_12_months: "Over 12 months",
+  // Legacy stored draft values from the former 5-option intake UI.
+  few_months: "Last few months",
+  "1_2_years": "1-2 years",
+  "2_plus_years": "2+ years",
+}
+
+const HAIR_FAMILY_HISTORY_LABELS: Record<string, string> = {
+  yes_father: "Father's side",
+  yes_mother: "Mother's side",
+  yes_both: "Both sides",
+  no_or_unsure: "No or not sure",
+  // Legacy stored draft values from the former separate "No" / "Not sure" UI.
+  no: "No family history",
+  unknown: "Not sure",
+}
+
 function formatValue(key: string, value: unknown): string {
   if (value === null || value === undefined) return "—"
   if (typeof value === "boolean") return value ? "Yes" : "No"
@@ -300,6 +321,12 @@ function formatValue(key: string, value: unknown): string {
   }
   if (key === "last_prescribed" && typeof value === "string") {
     return LAST_PRESCRIBED_LABELS[value] || value
+  }
+  if (key === "hairOnset" && typeof value === "string") {
+    return HAIR_ONSET_LABELS[value] || value
+  }
+  if (key === "hairFamilyHistory" && typeof value === "string") {
+    return HAIR_FAMILY_HISTORY_LABELS[value] || value
   }
   if (key === "duration" && typeof value === "string") {
     return `${value} day${value !== "1" ? "s" : ""}`

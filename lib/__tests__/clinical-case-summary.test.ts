@@ -113,9 +113,9 @@ describe("buildClinicalCaseSummary", () => {
       patientName: "Alex Patient",
       answers: {
         hairGoal: "both",
-        hairOnset: "1_2_years",
+        hairOnset: "over_12_months",
         hairPattern: "noticeable_thinning",
-        hairFamilyHistory: "yes_father",
+        hairFamilyHistory: "no_or_unsure",
         hairMedicationPreference: "oral",
         hairReproductive: "yes",
         scalpNone: true,
@@ -143,9 +143,9 @@ describe("buildClinicalCaseSummary", () => {
       patientName: "Alex Patient",
       answers: {
         hairGoal: "both",
-        hairOnset: "1_2_years",
+        hairOnset: "over_12_months",
         hairPattern: "noticeable_thinning",
-        hairFamilyHistory: "yes_father",
+        hairFamilyHistory: "no_or_unsure",
         hairMedicationPreference: "oral",
         hairReproductive: "no",
         scalpNone: true,
@@ -158,6 +158,12 @@ describe("buildClinicalCaseSummary", () => {
     })
 
     expect(summary.recommendedPlan.action).toBe("prescribe")
+    expect(summary.keyFacts).toContainEqual(
+      expect.objectContaining({ label: "Onset", value: "Over 12 months" }),
+    )
+    expect(summary.keyFacts).toContainEqual(
+      expect.objectContaining({ label: "Family history", value: "No or not sure" }),
+    )
     expect(summary.prescriptionIntent).toMatchObject({
       medicationName: "Finasteride",
       strength: "1mg",
