@@ -3,6 +3,8 @@ import path from "node:path"
 
 import { describe, expect, it } from "vitest"
 
+import { getActiveServices, getServiceMarketingHref } from "@/lib/services/service-catalog"
+
 const root = process.cwd()
 const marketingNavFiles = [
   "components/shared/navbar.tsx",
@@ -70,6 +72,54 @@ describe("navigation routing contracts", () => {
     expect(leftRail).toContain("patientOverviewActive")
   })
 
+  it("keeps the mobile menu icon pointer-transparent so the button receives taps", () => {
+    const animatedMobileMenu = readFileSync(path.join(root, "components/ui/animated-mobile-menu.tsx"), "utf8")
+
+    expect(animatedMobileMenu).toContain('className="pointer-events-none"')
+    expect(animatedMobileMenu).toContain('aria-hidden="true"')
+  })
+
+  it("animates the mobile drawer content with variant labels so links become visible", () => {
+    const animatedMobileMenu = readFileSync(path.join(root, "components/ui/animated-mobile-menu.tsx"), "utf8")
+
+    expect(animatedMobileMenu).toContain("menuContentVariants")
+    expect(animatedMobileMenu).toContain('animate="open"')
+    expect(animatedMobileMenu).toContain('initial={prefersReducedMotion ? false : "closed"}')
+    expect(animatedMobileMenu).toContain('exit={prefersReducedMotion ? undefined : "closed"}')
+  })
+
+  it("defers first-interaction callbacks so they do not pre-empt the initiating nav click", () => {
+    const firstInteraction = readFileSync(path.join(root, "lib/browser/first-interaction.ts"), "utf8")
+
+    expect(firstInteraction).toContain("FIRST_INTERACTION_CALLBACK_DELAY_MS = 200")
+    expect(firstInteraction).toContain('FIRST_INTERACTION_IGNORE_SELECTOR = \'[data-first-interaction-ignore="true"]\'')
+    expect(firstInteraction).toContain("shouldIgnoreFirstInteraction")
+    expect(firstInteraction).toContain("window.setTimeout")
+    expect(firstInteraction).toContain("if (entry.active) entry.callback()")
+  })
+
+  it("keeps nav link clicks local so deferred loaders do not eat first navigation", () => {
+    const navSources = [
+      "components/shared/navbar.tsx",
+      "components/shared/navbar/animated-nav-link.tsx",
+      "components/shared/navbar/user-menu.tsx",
+      "components/shared/navbar/services-dropdown.tsx",
+      "components/shared/navbar/resources-dropdown.tsx",
+      "components/ui/animated-mobile-menu.tsx",
+      "components/shared/app-sign-in-button.tsx",
+      "components/shared/brand-logo.tsx",
+    ]
+    const navbar = readFileSync(path.join(root, "components/shared/navbar.tsx"), "utf8")
+
+    expect(navbar).toContain('data-first-interaction-ignore="true"')
+
+    for (const relativePath of navSources) {
+      const source = readFileSync(path.join(root, relativePath), "utf8")
+      expect(source, relativePath).toContain("onPointerDown")
+      expect(source, relativePath).toContain("event.stopPropagation()")
+    }
+  })
+
   it("lets the staff dashboard layout use role-aware wrong-role fallback", () => {
     const dashboardLayout = readFileSync(path.join(root, "app/dashboard/layout.tsx"), "utf8")
 
@@ -98,5 +148,17 @@ describe("navigation routing contracts", () => {
           .not.toContain(forbiddenPattern)
       }
     }
+  })
+
+  it("builds the services nav from active catalog services, including women's health", () => {
+    const servicesDropdown = readFileSync(path.join(root, "components/shared/navbar/services-dropdown.tsx"), "utf8")
+    const activeServiceHrefs = getActiveServices().map(getServiceMarketingHref)
+
+    expect(activeServiceHrefs).toContain("/womens-health")
+    expect(activeServiceHrefs).not.toContain("/weight-loss")
+    expect(servicesDropdown).toContain("getActiveServices().map")
+    expect(servicesDropdown).toContain("getServiceMarketingHref(service)")
+    expect(servicesDropdown).toContain('isActivePath("/womens-health")')
+    expect(servicesDropdown).not.toContain('title: "ED Assessment"')
   })
 })

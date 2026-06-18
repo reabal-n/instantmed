@@ -1,8 +1,8 @@
 "use client"
 
-import { AlertCircle, ShieldCheck, XCircle } from "lucide-react"
+import { AlertCircle, ArrowRight, ShieldCheck, XCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useCallback, useState } from "react"
 
 import { ChipToggleGroup, IntakeStepIntro, QuestionCard, QuestionPrompt, SegmentedChoiceGroup, StringBinaryChoice } from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { useStepValidationSummary } from "@/lib/hooks/use-step-validation-summary"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 import { useRequestStore } from "../store"
@@ -77,10 +78,22 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
   const smoker = (answers.womens_smoker as string) || ""
   // Always shown — this component only serves the new/switch combined pill now.
   const needsPillSafetyScreen = true
+  const isComplete = Boolean(
+    contraceptionType && contraceptionCurrent && pregnancyStatus
+      && (!needsPillSafetyScreen || (migraineAura && bloodClotHistory && smoker)),
+  )
+
+  const clearError = (key: string) => {
+    if (!errors[key]) return
+    const nextErrors = { ...errors }
+    delete nextErrors[key]
+    setErrors(nextErrors)
+  }
 
   // If pregnant, flag for doctor call
   const handlePregnancyChange = (value: string) => {
     setAnswer("pregnancyStatus", value)
+    clearError("pregnancyStatus")
     if (value === 'yes') {
       setAnswer("requiresCall", true)
     } else if (answers.requiresCall) {
@@ -91,7 +104,11 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
 
   const validate = () => {
     const newErrors: Record<string, string> = {}
-    if (!contraceptionType) newErrors.contraceptionType = "Please select an option"
+    if (!contraceptionType) {
+      newErrors.contraceptionType = "Please select an option"
+    } else if (!["start", "switch"].includes(contraceptionType)) {
+      newErrors.contraceptionType = "Current-pill repeats go through repeat prescriptions."
+    }
     if (!contraceptionCurrent) newErrors.contraceptionCurrent = "Please select an option"
     if (!pregnancyStatus) newErrors.pregnancyStatus = "Please answer this question"
     if (needsPillSafetyScreen) {
@@ -104,11 +121,28 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
   }
 
   const handleNext = () => {
-    if (validate()) onNext()
+    if (!validate()) {
+      showBlockingReasons()
+      return
+    }
+    onNext()
   }
 
-  const isComplete = contraceptionType && contraceptionCurrent && pregnancyStatus
-    && (!needsPillSafetyScreen || (migraineAura && bloodClotHistory && smoker))
+  const { validationSummary, showBlockingReasons } = useStepValidationSummary(
+    isComplete,
+    useCallback(() => {
+      const reasons: string[] = []
+      if (!contraceptionType || !["start", "switch"].includes(contraceptionType)) reasons.push("start or switch")
+      if (!contraceptionCurrent) reasons.push("current contraception")
+      if (!pregnancyStatus) reasons.push("pregnancy status")
+      if (needsPillSafetyScreen) {
+        if (!migraineAura) reasons.push("migraine with aura")
+        if (!bloodClotHistory) reasons.push("blood clot history")
+        if (!smoker) reasons.push("smoking status")
+      }
+      return reasons
+    }, [bloodClotHistory, contraceptionCurrent, contraceptionType, migraineAura, needsPillSafetyScreen, pregnancyStatus, smoker]),
+  )
 
   return (
     <div className="space-y-4">
@@ -129,12 +163,14 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
             options={[
               { value: "start", label: "Start" },
               { value: "switch", label: "Switch" },
-              { value: "continue", label: "Continue" },
             ]}
             value={contraceptionType}
-            onChange={(value) => setAnswer("contraceptionType", value)}
+            onChange={(value) => {
+              setAnswer("contraceptionType", value)
+              clearError("contraceptionType")
+            }}
             ariaLabel="What would you like?"
-            columns="three"
+            columns="two"
           />
           <FieldError message={errors.contraceptionType} />
         </div>
@@ -155,7 +191,10 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
               { value: "none", label: "No" },
             ]}
             value={contraceptionCurrent}
-            onChange={(value) => setAnswer("contraceptionCurrent", value)}
+            onChange={(value) => {
+              setAnswer("contraceptionCurrent", value)
+              clearError("contraceptionCurrent")
+            }}
             ariaLabel="Are you currently using contraception?"
             columns="auto"
           />
@@ -220,7 +259,10 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
                 value={q.value as "no" | "yes" | undefined}
                 noValue="no"
                 yesValue="yes"
-                onChange={(value) => setAnswer(q.key, value)}
+                onChange={(value) => {
+                  setAnswer(q.key, value)
+                  clearError(q.key)
+                }}
                 ariaLabel={q.label}
               />
               <FieldError message={errors[q.key]} />
@@ -257,7 +299,32 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
         </div>
       </QuestionCard>
 
-      <Button data-intake-primary-action="true" data-intake-primary-label="Continue" onClick={handleNext} disabled={!isComplete} className="w-full h-12 text-base font-medium max-sm:hidden">Continue</Button>
+      {validationSummary.length > 0 && (
+        <Alert variant="destructive" role="alert" aria-live="assertive">
+          <AlertDescription>
+            {validationSummary.length === 1 ? "Add this to continue: " : "Add these to continue: "}
+            {validationSummary.join(", ")}.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <Button
+        data-intake-primary-action="true"
+        data-intake-primary-label="Continue"
+        data-intake-primary-ready={isComplete ? "true" : "false"}
+        onClick={handleNext}
+        variant={isComplete ? "default" : "secondary"}
+        className="w-full h-12 text-base font-medium max-sm:hidden"
+      >
+        {isComplete ? (
+          <>
+            Continue
+            <ArrowRight className="w-4 h-4" />
+          </>
+        ) : (
+          "Continue"
+        )}
+      </Button>
     </div>
   )
 }
@@ -280,9 +347,18 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
   const utiRedFlags = (answers.utiRedFlags as string) || ""
   const utiPregnant = (answers.utiPregnant as string) || ""
   const utiDetails = (answers.utiDetails as string) || ""
+  const isComplete = Boolean(utiSymptoms && utiSymptoms.length > 0 && utiRedFlags === 'no' && utiPregnant === 'no')
+
+  const clearError = (key: string) => {
+    if (!errors[key]) return
+    const nextErrors = { ...errors }
+    delete nextErrors[key]
+    setErrors(nextErrors)
+  }
 
   const handlePregnancyChange = (value: string) => {
     setAnswer("utiPregnant", value)
+    clearError("utiPregnant")
     if (value === 'yes' || value === 'not_sure') {
       setIsBlocked(true)
       setBlockReason("UTIs during pregnancy need in-person assessment. Please see your GP or visit a clinic for safe treatment.")
@@ -291,6 +367,7 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
 
   const handleRedFlagsChange = (value: string) => {
     setAnswer("utiRedFlags", value)
+    clearError("utiRedFlags")
     
     if (value === 'yes') {
       setIsBlocked(true)
@@ -308,17 +385,33 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
   }
 
   const handleNext = () => {
-    if (validate()) onNext()
+    if (!validate()) {
+      showBlockingReasons()
+      return
+    }
+    onNext()
   }
 
   const toggleSymptom = (symptom: string) => {
     const current = utiSymptoms || []
+    clearError("utiSymptoms")
     if (current.includes(symptom)) {
       setAnswer("utiSymptoms", current.filter(s => s !== symptom))
     } else {
       setAnswer("utiSymptoms", [...current, symptom])
     }
   }
+
+  const { validationSummary, showBlockingReasons } = useStepValidationSummary(
+    isComplete,
+    useCallback(() => {
+      const reasons: string[] = []
+      if (!utiSymptoms || utiSymptoms.length === 0) reasons.push("UTI symptoms")
+      if (!utiRedFlags) reasons.push("red-flag safety check")
+      if (!utiPregnant) reasons.push("pregnancy check")
+      return reasons
+    }, [utiPregnant, utiRedFlags, utiSymptoms]),
+  )
 
   if (isBlocked) {
     return (
@@ -347,8 +440,6 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
   const symptomValues = Object.fromEntries(
     SYMPTOMS.map((symptom) => [symptom.key, utiSymptoms?.includes(symptom.key) ?? false]),
   )
-
-  const isComplete = utiSymptoms && utiSymptoms.length > 0 && utiRedFlags === 'no' && utiPregnant === 'no'
 
   return (
     <div className="space-y-4">
@@ -429,7 +520,32 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
         </div>
       </QuestionCard>
 
-      <Button data-intake-primary-action="true" data-intake-primary-label="Continue" onClick={handleNext} disabled={!isComplete} className="w-full h-12 text-base font-medium max-sm:hidden">Continue</Button>
+      {validationSummary.length > 0 && (
+        <Alert variant="destructive" role="alert" aria-live="assertive">
+          <AlertDescription>
+            {validationSummary.length === 1 ? "Add this to continue: " : "Add these to continue: "}
+            {validationSummary.join(", ")}.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <Button
+        data-intake-primary-action="true"
+        data-intake-primary-label="Continue"
+        data-intake-primary-ready={isComplete ? "true" : "false"}
+        onClick={handleNext}
+        variant={isComplete ? "default" : "secondary"}
+        className="w-full h-12 text-base font-medium max-sm:hidden"
+      >
+        {isComplete ? (
+          <>
+            Continue
+            <ArrowRight className="w-4 h-4" />
+          </>
+        ) : (
+          "Continue"
+        )}
+      </Button>
     </div>
   )
 }

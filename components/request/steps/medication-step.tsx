@@ -13,6 +13,7 @@
 import { ArrowRight, Plus, ShieldAlert, X } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 
+import { EarlyRecoveryEmailCard } from "@/components/request/shared/early-recovery-email-card"
 import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
 import { StepBlockedSummary } from "@/components/request/shared/step-blocked-summary"
 import type { SelectedPBSProduct } from "@/components/shared/medication-search"
@@ -61,7 +62,7 @@ interface MedicationEntry {
 
 const UNKNOWN_MEDICATION_NAME = "Unknown - doctor will confirm"
 
-export default function MedicationStep({ onNext }: MedicationStepProps) {
+export default function MedicationStep({ serviceType, onNext }: MedicationStepProps) {
   const { answers, setAnswers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
 
@@ -465,13 +466,15 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
               )}
 
               {!med.product && !med.name && (
-                <button
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={() => handleMarkUnknown(index)}
-                  className="mt-2 rounded text-xs text-primary outline-none hover:underline focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  className="mt-2 min-h-11 w-full justify-start whitespace-normal text-left text-sm"
                 >
-                  I don&apos;t know the exact name
-                </button>
+                  <Plus className="h-4 w-4" aria-hidden="true" />
+                  <span className="leading-snug">Can&apos;t find it? Describe it for the doctor</span>
+                </Button>
               )}
             </>
           )}
@@ -493,9 +496,7 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
         </Button>
       )}
 
-      <p className="px-1 text-xs text-muted-foreground">
-        Your details save automatically if you leave.
-      </p>
+      <EarlyRecoveryEmailCard serviceType={serviceType} stepId="medication" />
 
       {/* Always clickable so a tap surfaces the blocking reason instead of a
           silently greyed mobile dead-end (controlled-substance block excepted —
@@ -503,6 +504,7 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
       <Button
         data-intake-primary-action="true"
         data-intake-primary-label="Continue"
+        data-intake-primary-ready={canContinue ? "true" : "false"}
         onClick={handleNext}
         className={`w-full h-12 max-sm:hidden ${canContinue ? "" : "opacity-60"}`}
       >

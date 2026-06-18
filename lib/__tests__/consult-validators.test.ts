@@ -221,7 +221,7 @@ describe("validateHairLossConsult", () => {
 
 describe("validateContraceptionConsult", () => {
   const validContraception = {
-    contraceptionType: "continue",
+    contraceptionType: "start",
     contraceptionCurrent: "pill",
     pregnancyStatus: "no",
   }
@@ -236,6 +236,16 @@ describe("validateContraceptionConsult", () => {
     const result = validateContraceptionConsult({})
     expect(result.valid).toBe(false)
     expect(result.errors.length).toBe(3)
+  })
+
+  it("rejects current-pill repeats in the new/switch contraception consult", () => {
+    const result = validateContraceptionConsult({
+      ...validContraception,
+      contraceptionType: "continue",
+    })
+
+    expect(result.valid).toBe(false)
+    expect(result.errors).toContain("Contraception request type has an invalid value")
   })
 
   it("flags pregnancy for phone consultation", () => {

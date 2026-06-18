@@ -14,7 +14,11 @@ export function AppSignInButton({
   children?: React.ReactNode
 }) {
   return (
-    <Link href="/sign-in">
+    <Link
+      href="/sign-in"
+      onPointerDown={(event) => event.stopPropagation()}
+      onKeyDown={(event) => event.stopPropagation()}
+    >
       {children}
     </Link>
   )

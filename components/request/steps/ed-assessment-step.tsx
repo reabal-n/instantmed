@@ -376,6 +376,7 @@ export default function EdAssessmentStep({ serviceType, onNext, onBack }: EdAsse
         <Button
           data-intake-primary-action="true"
           data-intake-primary-label="Continue"
+          data-intake-primary-ready={allAnswered ? "true" : "false"}
           onClick={handleNext}
           variant={allAnswered ? "default" : "secondary"}
           className="w-full h-12 text-base font-medium max-sm:hidden"

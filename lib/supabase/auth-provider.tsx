@@ -40,6 +40,7 @@ const AUTH_IMMEDIATE_ROOT_PATHS = new Set([
   '/consult',
   '/erectile-dysfunction',
   '/hair-loss',
+  '/womens-health',
   '/about',
   '/pricing',
   '/contact',
@@ -126,6 +127,7 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
   // Tracks the prior auth user id so we only router.refresh() on a real identity
   // transition (see the onAuthStateChange handler below).
   const prevUserIdRef = useRef<string | null>(null)
+  const initialAuthResolvedRef = useRef(false)
 
   useEffect(() => {
     let cancelled = false
@@ -210,7 +212,13 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
 
               const nextUserId = newSession?.user?.id ?? null
               const prevUserId = prevUserIdRef.current
+              const hasResolvedInitialAuth = initialAuthResolvedRef.current
               prevUserIdRef.current = nextUserId
+
+              if (!hasResolvedInitialAuth) {
+                syncSentryUserContext(newSession)
+                return
+              }
 
               // Refresh server-side state when auth changes
               if (_event === 'SIGNED_IN' || _event === 'SIGNED_OUT' || _event === 'TOKEN_REFRESHED') {
@@ -238,7 +246,10 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
 
           setSession(initialSession)
           setUser(initialSession?.user ?? null)
+          prevUserIdRef.current = initialSession?.user?.id ?? null
+          initialAuthResolvedRef.current = true
           setIsLoaded(true)
+          syncSentryUserContext(initialSession)
         })
         .catch(() => {
           if (!cancelled) setIsLoaded(true)

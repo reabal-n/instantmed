@@ -117,7 +117,11 @@ export function UserMenu({
           size="sm"
           className="text-xs h-7 px-4 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
         >
-          <Link href={REQUEST_HREF}>
+          <Link
+            href={REQUEST_HREF}
+            onPointerDown={(event) => event.stopPropagation()}
+            onKeyDown={(event) => event.stopPropagation()}
+          >
             Start a request
           </Link>
         </Button>
@@ -146,6 +150,8 @@ export function UserMenu({
               event.preventDefault()
               navigateToPostSignIn(window)
             }}
+            onPointerDown={(event) => event.stopPropagation()}
+            onKeyDown={(event) => event.stopPropagation()}
             className="flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors border border-border/40"
           >
             <div className="h-4 w-4 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -159,6 +165,8 @@ export function UserMenu({
               <TooltipTrigger asChild>
                 <Link
                   href="/sign-in"
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onKeyDown={(event) => event.stopPropagation()}
                   className="inline-flex min-h-8 items-center rounded-md px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
                 >
                   Log in

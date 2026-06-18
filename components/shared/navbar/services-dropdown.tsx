@@ -15,14 +15,35 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useReducedMotion } from "@/components/ui/motion"
+import {
+  type CanonicalServiceId,
+  getActiveServices,
+  getServiceMarketingHref,
+  type ServiceDef,
+} from "@/lib/services/service-catalog"
 import { cn } from "@/lib/utils"
 
-export const services: Array<{ serviceId: ServiceId; title: string; href: string; description: string; iconKey: string; color: string; badge?: string }> = [
-  { serviceId: "med-cert", title: "Medical Certificates", href: "/medical-certificate", description: "Work, uni & carer's leave",       iconKey: "FileText",    color: "emerald" },
-  { serviceId: "scripts",  title: "Repeat Medication",    href: "/prescriptions",         description: "Medications you already take", iconKey: "Pill",         color: "cyan"    },
-  { serviceId: "consult",  title: "ED Assessment",        href: "/erectile-dysfunction",  description: "Discreet form-first review",  iconKey: "Lightning",    color: "blue",   badge: "Popular" },
-  { serviceId: "consult",  title: "Hair Loss Assessment", href: "/hair-loss",             description: "Doctor-reviewed assessment", iconKey: "Sparkles",  color: "amber"   },
-]
+type NavService = {
+  serviceId: ServiceId
+  title: string
+  href: string
+  description: string
+  iconKey: ServiceDef["iconKey"]
+  color: ServiceDef["colorToken"]
+  badge?: string
+}
+
+const POPULAR_NAV_SERVICE_IDS = new Set<CanonicalServiceId>(["ed"])
+
+export const services: NavService[] = getActiveServices().map((service) => ({
+  serviceId: service.id,
+  title: service.title,
+  href: getServiceMarketingHref(service),
+  description: service.subtitle,
+  iconKey: service.iconKey,
+  color: service.colorToken,
+  badge: POPULAR_NAV_SERVICE_IDS.has(service.id) ? "Popular" : undefined,
+}))
 
 interface ServicesDropdownProps {
   isActivePath: (path: string) => boolean
@@ -38,7 +59,8 @@ export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
     isActivePath("/medical-certificate") ||
     isActivePath("/prescriptions") ||
     isActivePath("/erectile-dysfunction") ||
-    isActivePath("/hair-loss")
+    isActivePath("/hair-loss") ||
+    isActivePath("/womens-health")
 
   const handleTriggerMouseEnter = () => {
     services.forEach(service => router.prefetch(service.href))
@@ -98,6 +120,8 @@ export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
                       ) : (
                         <Link
                           href={service.href}
+                          onPointerDown={(event) => event.stopPropagation()}
+                          onKeyDown={(event) => event.stopPropagation()}
                           className="flex items-center gap-3 px-3 py-2.5 w-full"
                         >
                           <ServiceIconTile iconKey={service.iconKey} color={service.color} size="sm" variant="sticker" stickerLoading="eager" />

@@ -61,6 +61,17 @@ const navVariants: Variants = {
   },
 }
 
+const menuContentVariants: Variants = {
+  open: {
+    opacity: 1,
+    transition: { duration: 0.18, ease: DRAWER_EASE },
+  },
+  closed: {
+    opacity: 0,
+    transition: { duration: 0.12, ease: DRAWER_EASE },
+  },
+}
+
 // Individual menu item animation variants
 const itemVariants: Variants = {
   open: {
@@ -109,6 +120,8 @@ export const MenuToggle = ({ toggle, isOpen }: MenuToggleProps) => {
   return (
     <button
       onClick={toggle}
+      onPointerDown={(event) => event.stopPropagation()}
+      onKeyDown={(event) => event.stopPropagation()}
       className={cn(
         "relative z-50 flex items-center justify-center",
         "h-10 w-10 rounded-xl",
@@ -120,7 +133,13 @@ export const MenuToggle = ({ toggle, isOpen }: MenuToggleProps) => {
       aria-label={isOpen ? "Close menu" : "Open menu"}
       aria-expanded={isOpen}
     >
-      <svg width="20" height="20" viewBox="0 0 23 23">
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 23 23"
+        className="pointer-events-none"
+        aria-hidden="true"
+      >
         <Path
           variants={{
             closed: { d: "M 2 2.5 L 20 2.5" },
@@ -238,6 +257,8 @@ const MenuItem = ({ item, index, onClose }: MenuItemProps) => {
       <Link
         href={item.href}
         onClick={handleClick}
+        onPointerDown={(event) => event.stopPropagation()}
+        onKeyDown={(event) => event.stopPropagation()}
         className={cn(
           "flex items-center gap-4 px-4 py-3.5 rounded-2xl",
           "transition-[transform,box-shadow] duration-300",
@@ -363,10 +384,10 @@ export function AnimatedMobileMenu({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={prefersReducedMotion ? {} : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={prefersReducedMotion ? undefined : { opacity: 0 }}
-            transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.1 }}
+            variants={menuContentVariants}
+            initial={prefersReducedMotion ? false : "closed"}
+            animate="open"
+            exit={prefersReducedMotion ? undefined : "closed"}
             className="fixed top-0 right-0 bottom-0 z-50 w-[300px] flex flex-col"
           >
             {/* Header */}

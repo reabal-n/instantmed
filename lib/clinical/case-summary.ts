@@ -978,7 +978,8 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   // New / switch contraceptive pill (ocp_new)
   const contraceptionType = str(answers, "contraceptionType") || ""
   const isSwitch = contraceptionType === "switch"
-  const isContinue = contraceptionType === "continue"
+  const isRepeatRequest = contraceptionType === "continue"
+  const requestLabel = isSwitch ? "Switch pill" : isRepeatRequest ? "Repeat prescription route" : "Start pill"
   const current = str(answers, "contraceptionCurrent")
   const pregnancyRaw = str(answers, "pregnancyStatus")
   const pregnant = pregnancyRaw === "yes"
@@ -998,8 +999,8 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
       label: "Request type",
       detail: isSwitch
         ? "Patient wants to switch contraceptive pill."
-        : isContinue
-          ? "Patient wants to continue / re-supply their current pill."
+        : isRepeatRequest
+          ? "Patient selected current-pill repeat; route through the repeat-prescription workflow before prescribing."
           : "Patient wants to start a contraceptive pill.",
     },
     pregnant
@@ -1055,7 +1056,7 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   ]
 
   const keyFacts = compactFacts([
-    { label: "Request", value: humanize(contraceptionType || "start") },
+    { label: "Request", value: requestLabel },
     fact("Current pill", current),
     { label: "Pregnant", value: humanize(pregnancyRaw) },
     { label: "Migraine with aura", value: yesNo(raw(answers, "womens_migraine_aura")) },
@@ -1124,11 +1125,12 @@ function womensHealthSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   })
 
   const header = patientHeader(input)
-  const requestVerb = isSwitch ? "switch" : isContinue ? "continue" : "start"
+  const requestVerb = isSwitch ? "switch" : isRepeatRequest ? "repeat" : "start"
   const storySentence = `${input.patientName || "Patient"} requests to ${requestVerb} a contraceptive pill.`
 
   const subjective = [
     `${header}, requesting to ${requestVerb} a contraceptive pill.`,
+    isRepeatRequest ? "Repeat request should be handled through the repeat-prescription workflow." : null,
     isSwitch && current ? `Currently on ${current}.` : null,
     lastPeriod ? `Last period: ${lastPeriod}.` : null,
     details ? `Patient notes: ${details}.` : null,

@@ -587,7 +587,12 @@ export function validateWomensHealthAssessmentStep(answers: Record<string, unkno
   }
 
   if (option === "ocp_new") {
-    if (!answers.contraceptionType) errors.contraceptionType = "Please select what you need"
+    const contraceptionType = typeof answers.contraceptionType === "string" ? answers.contraceptionType : ""
+    if (!contraceptionType) {
+      errors.contraceptionType = "Please select what you need"
+    } else if (!["start", "switch"].includes(contraceptionType)) {
+      errors.contraceptionType = "Current-pill repeats go through repeat prescriptions."
+    }
     // Client (ContraceptionAssessment.validate) requires this unconditionally for
     // the new/switch pill screen; mirror it here so a crafted payload can't skip it.
     if (!answers.contraceptionCurrent) errors.contraceptionCurrent = "Please select an option"

@@ -154,26 +154,26 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <SupabaseAuthProvider>
-      <html
-        lang="en-AU"
-        data-scroll-behavior="smooth"
-        className={`${sourceSans.variable} ${plusJakarta.variable} ${jetbrainsMono.variable}`}
-        suppressHydrationWarning
-        style={{ backgroundColor: '#f8f7f4' }}
-      >
-        <head>
-          {/* Analytics and replay are interaction-gated; keep only non-analytics
-              DNS hints that may be needed after the patient reaches payment. */}
-          <link rel="dns-prefetch" href="https://js.stripe.com" />
-          <link rel="dns-prefetch" href="https://api.stripe.com" />
-          <link rel="dns-prefetch" href="https://api.dicebear.com" />
+    <html
+      lang="en-AU"
+      data-scroll-behavior="smooth"
+      className={`${sourceSans.variable} ${plusJakarta.variable} ${jetbrainsMono.variable}`}
+      suppressHydrationWarning
+      style={{ backgroundColor: '#f8f7f4' }}
+    >
+      <head>
+        {/* Analytics and replay are interaction-gated; keep only non-analytics
+            DNS hints that may be needed after the patient reaches payment. */}
+        <link rel="dns-prefetch" href="https://js.stripe.com" />
+        <link rel="dns-prefetch" href="https://api.stripe.com" />
+        <link rel="dns-prefetch" href="https://api.dicebear.com" />
 
-        </head>
-        <body
-          className="font-sans antialiased text-foreground"
-          style={{ backgroundColor: "#f8f7f4" }}
-        >
+      </head>
+      <body
+        className="font-sans antialiased text-foreground"
+        style={{ backgroundColor: "#f8f7f4" }}
+      >
+        <SupabaseAuthProvider>
           <OrganizationSchema />
           <WebSiteSchema />
           <AttributionCapture />
@@ -188,8 +188,8 @@ export default function RootLayout({
                 </ServiceAvailabilityProvider>
           </ThemeProvider>
           </PostHogLoader>
-        </body>
-      </html>
-    </SupabaseAuthProvider>
+        </SupabaseAuthProvider>
+      </body>
+    </html>
   )
 }

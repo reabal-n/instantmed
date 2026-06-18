@@ -62,6 +62,8 @@ export function BrandLogo({
         className={cn("flex items-center group", className)}
         aria-label="InstantMed home"
         onClick={onClick}
+        onPointerDown={(event) => event.stopPropagation()}
+        onKeyDown={(event) => event.stopPropagation()}
       >
         {content}
       </Link>

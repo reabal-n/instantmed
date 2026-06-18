@@ -18,6 +18,8 @@ export function AnimatedNavLink({ href, children, icon, isActive, onClick }: Ani
       <Link
         href={href}
         onClick={onClick}
+        onPointerDown={(event) => event.stopPropagation()}
+        onKeyDown={(event) => event.stopPropagation()}
         aria-current={isActive ? "page" : undefined}
         className={cn(
           "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors relative z-10",

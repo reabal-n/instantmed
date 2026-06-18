@@ -60,6 +60,7 @@ interface HealthProfilePrefill {
 interface MobilePrimaryActionState {
   available: boolean
   disabled: boolean
+  ready: boolean
   label: string
 }
 
@@ -238,6 +239,13 @@ function getPrimaryActionLabel(action: HTMLButtonElement | null) {
   return label.replace(/\s+/g, " ").trim()
 }
 
+function getPrimaryActionReady(action: HTMLButtonElement | null) {
+  if (!action || action.disabled) return false
+  if (action.dataset.intakePrimaryReady === "true") return true
+  if (action.dataset.intakePrimaryReady === "false") return false
+  return true
+}
+
 interface RequestFlowProps {
   /** Service from URL param. null = invalid param was provided */
   initialService: UnifiedServiceType | null
@@ -314,6 +322,7 @@ export function RequestFlow({
   const [mobilePrimaryAction, setMobilePrimaryAction] = useState<MobilePrimaryActionState>({
     available: false,
     disabled: true,
+    ready: false,
     label: "Continue",
   })
   const contentRef = useRef<HTMLDivElement>(null)
@@ -602,6 +611,7 @@ export function RequestFlow({
       setMobilePrimaryAction({
         available: false,
         disabled: true,
+        ready: false,
         label: "Continue",
       })
       return
@@ -612,6 +622,7 @@ export function RequestFlow({
       setMobilePrimaryAction({
         available: Boolean(action),
         disabled: action ? action.disabled : true,
+        ready: getPrimaryActionReady(action),
         label: getPrimaryActionLabel(action),
       })
     }
@@ -654,7 +665,7 @@ export function RequestFlow({
     const observer = new MutationObserver(syncPrimaryAction)
     observer.observe(observerTarget, {
       attributes: true,
-      attributeFilter: ["disabled", "data-intake-primary-label"],
+      attributeFilter: ["disabled", "data-intake-primary-label", "data-intake-primary-ready"],
       childList: true,
       subtree: true,
     })
@@ -691,7 +702,8 @@ export function RequestFlow({
     getMobilePrimaryAction()?.click()
   }, [])
 
-  const mobileActionReady = mobilePrimaryAction.available && !mobilePrimaryAction.disabled
+  const mobileActionClickable = mobilePrimaryAction.available && !mobilePrimaryAction.disabled
+  const mobileActionReady = mobileActionClickable && mobilePrimaryAction.ready
   const showMobileSavedCue = mobileActionReady && Boolean(lastSavedAt) && !hasUnsavedChanges
 
   // Service name for display
@@ -875,14 +887,15 @@ export function RequestFlow({
               </RequestButton>
             )}
             <RequestButton
+              variant={mobileActionReady ? "default" : "outline"}
               size="lg"
               onClick={handleMobilePrimaryAction}
-              disabled={!mobileActionReady}
+              disabled={!mobileActionClickable}
               data-intake-mobile-action-ready={mobileActionReady ? "true" : "false"}
               className={requestCx(
                 "h-12 min-w-0 gap-2 text-base font-medium transition-[transform,box-shadow,background-color,opacity] duration-200 ease-out active:scale-[0.98]",
                 mobileActionReady && "shadow-md shadow-primary/20",
-                !mobileActionReady && "shadow-none opacity-70",
+                !mobileActionReady && "shadow-none",
               )}
             >
               {showMobileSavedCue && (

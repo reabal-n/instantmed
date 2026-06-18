@@ -110,4 +110,19 @@ describe("keep-list: validator-level hard-blocks", () => {
     expect(validateWomensHealthAssessmentStep({ womensHealthOption: "morning_after" }).isValid).toBe(false)
     expect(validateWomensHealthAssessmentStep({ womensHealthOption: "period_pain" }).isValid).toBe(false)
   })
+
+  it("rejects current-pill repeats inside the new/switch women's-health assessment", () => {
+    const result = validateWomensHealthAssessmentStep({
+      womensHealthOption: "ocp_new",
+      contraceptionType: "continue",
+      contraceptionCurrent: "pill",
+      pregnancyStatus: "no",
+      womens_migraine_aura: "no",
+      womens_blood_clot_history: "no",
+      womens_smoker: "no",
+    })
+
+    expect(result.isValid).toBe(false)
+    expect(result.errors.contraceptionType).toContain("repeat prescriptions")
+  })
 })

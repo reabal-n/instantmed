@@ -10,6 +10,7 @@
 import { ArrowRight,Search, Shield, Sprout, Target } from "lucide-react"
 import { useCallback } from "react"
 
+import { EarlyRecoveryEmailCard } from "@/components/request/shared/early-recovery-email-card"
 import { ChoiceCardGroup, IntakeStepIntro, QuestionCard, QuestionPrompt, SegmentedChoiceGroup } from "@/components/request/shared/intake-step-primitives"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -121,10 +122,13 @@ export default function HairLossGoalsStep({ serviceType, onNext }: HairLossGoals
         </Alert>
       )}
 
+      <EarlyRecoveryEmailCard serviceType={serviceType} stepId="hair-loss-goals" />
+
       {/* Always clickable — variant signals readiness; handleNext gates progression */}
       <Button
         data-intake-primary-action="true"
         data-intake-primary-label="Continue"
+        data-intake-primary-ready={isComplete ? "true" : "false"}
         onClick={handleNext}
         variant={isComplete ? "default" : "secondary"}
         className="w-full h-12 text-base font-medium max-sm:hidden"

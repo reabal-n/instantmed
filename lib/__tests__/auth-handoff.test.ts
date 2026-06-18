@@ -124,6 +124,33 @@ describe("auth post-sign-in handoff", () => {
     expect(authProviderSource).toContain("authHandoffRefreshGuard.suppress()")
   })
 
+  it("does not refresh the current page while resolving the initial browser auth session", () => {
+    const authProviderSource = readFileSync(join(process.cwd(), "lib/supabase/auth-provider.tsx"), "utf8")
+
+    expect(authProviderSource).toContain("initialAuthResolvedRef")
+    expect(authProviderSource).toContain("const hasResolvedInitialAuth = initialAuthResolvedRef.current")
+    expect(authProviderSource).toContain("if (!hasResolvedInitialAuth)")
+    expect(authProviderSource).toContain("prevUserIdRef.current = initialSession?.user?.id ?? null")
+    expect(authProviderSource).toContain("initialAuthResolvedRef.current = true")
+  })
+
+  it("loads browser auth immediately on the live women's health service page", () => {
+    const authProviderSource = readFileSync(join(process.cwd(), "lib/supabase/auth-provider.tsx"), "utf8")
+
+    expect(authProviderSource).toContain("'/womens-health'")
+  })
+
+  it("keeps the auth provider inside body so auth state does not remount the document", () => {
+    const layoutSource = readFileSync(join(process.cwd(), "app/layout.tsx"), "utf8")
+    const htmlIndex = layoutSource.indexOf("<html")
+    const bodyIndex = layoutSource.indexOf("<body")
+    const providerIndex = layoutSource.indexOf("<SupabaseAuthProvider>")
+
+    expect(htmlIndex).toBeGreaterThan(-1)
+    expect(bodyIndex).toBeGreaterThan(htmlIndex)
+    expect(providerIndex).toBeGreaterThan(bodyIndex)
+  })
+
   it("navigateToPostSignIn writes the sessionStorage flag before navigating", () => {
     // sessionStorage is not available in Node test environment — the function
     // must silently swallow the error and still call location.assign.

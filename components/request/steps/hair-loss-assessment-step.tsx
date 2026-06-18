@@ -310,6 +310,7 @@ export default function HairLossAssessmentStep({
         <Button
           data-intake-primary-action="true"
           data-intake-primary-label="Continue"
+          data-intake-primary-ready={isComplete ? "true" : "false"}
           onClick={handleNext}
           variant={isComplete ? "default" : "secondary"}
           className="w-full h-12 text-base font-medium max-sm:hidden"

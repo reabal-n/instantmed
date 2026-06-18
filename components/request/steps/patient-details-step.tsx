@@ -11,7 +11,7 @@
  * - Keyboard navigation (Enter to continue)
  */
 
-import { ArrowRight, Calendar, CreditCard, EyeOff, Lock, Mail, MapPin, Phone, Sparkles, User, Users } from "lucide-react"
+import { ArrowRight, Calendar, CreditCard, Lock, Mail, MapPin, Phone, Sparkles, User, Users } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { IntakeStepIntro } from "@/components/request/shared/intake-step-primitives"
@@ -1012,14 +1012,14 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       )}
 
       {/* Data security reassurance */}
-      <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground py-1">
+      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 py-1 text-xs text-muted-foreground">
         <span className="flex items-center gap-1">
           <Lock className="w-3 h-3 text-primary" />
-          256-bit encrypted
+          AES-256 encrypted
         </span>
         <span className="flex items-center gap-1">
-          <EyeOff className="w-3 h-3 text-primary" />
-          Never shared with third parties
+          <CreditCard className="w-3 h-3 text-primary" />
+          Payments by Stripe
         </span>
       </div>
 
@@ -1027,6 +1027,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       <Button
         data-intake-primary-action="true"
         data-intake-primary-label={primaryActionLabel}
+        data-intake-primary-ready={canContinue ? "true" : "false"}
         onClick={handleNext}
         variant={canContinue ? "default" : "secondary"}
         className="w-full h-12 max-sm:hidden"

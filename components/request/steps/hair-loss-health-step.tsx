@@ -559,6 +559,7 @@ export default function HairLossHealthStep({
       <Button
         data-intake-primary-action="true"
         data-intake-primary-label="Continue"
+        data-intake-primary-ready={canContinue ? "true" : "false"}
         onClick={handleNext}
         variant={canContinue ? "default" : "secondary"}
         className="w-full h-12 max-sm:hidden"

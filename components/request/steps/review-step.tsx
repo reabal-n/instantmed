@@ -515,7 +515,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
 
       // Contraception details
       if (whOption === 'ocp_new' || whOption === 'ocp_repeat' || whOption === 'contraception') {
-        const CONTRACEPTION_TYPE_LABELS: Record<string, string> = { start: 'Start new', continue: 'Continue/repeat', switch: 'Switch type' }
+        const CONTRACEPTION_TYPE_LABELS: Record<string, string> = { start: 'Start new', continue: 'Repeat prescription route', switch: 'Switch type' }
         const CURRENT_LABELS: Record<string, string> = { pill: 'The pill', iud: 'IUD/implant', other: 'Other method', none: 'None' }
         const PREGNANCY_LABELS: Record<string, string> = { no: 'No', not_sure: 'Not sure', yes: 'Yes' }
         if (answers.contraceptionType) whItems.push({ label: 'Type', value: CONTRACEPTION_TYPE_LABELS[answers.contraceptionType as string] || String(answers.contraceptionType) })
@@ -761,6 +761,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
         <Button
           data-intake-primary-action="true"
           data-intake-primary-label={isPrescriptionCheckout ? `Pay $${totalDue.toFixed(2)}` : "Continue to payment"}
+          data-intake-primary-ready={safetyConfirmed ? "true" : "false"}
           onClick={safetyConfirmed ? (isPrescriptionCheckout ? handlePayment : handleContinue) : handleDisabledClick}
           className={`w-full h-12 max-sm:hidden ${safetyConfirmed ? '' : 'opacity-60 hover:opacity-70'}`}
           aria-disabled={!safetyConfirmed || isProcessing}

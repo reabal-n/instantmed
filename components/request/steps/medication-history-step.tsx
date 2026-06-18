@@ -12,7 +12,7 @@
 import { ArrowLeft, ArrowRight, Stethoscope } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 
-import { IntakeStepIntro, QuestionCard, SegmentedChoiceGroup, YesNoDetailQuestion } from "@/components/request/shared/intake-step-primitives"
+import { IntakeStepIntro, QuestionCard, QuestionPrompt, SegmentedChoiceGroup, YesNoDetailQuestion } from "@/components/request/shared/intake-step-primitives"
 import { StepBlockedSummary } from "@/components/request/shared/step-blocked-summary"
 import { AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -37,7 +37,6 @@ const PRESCRIPTION_HISTORY_OPTIONS = [
   { value: "3_to_6_months", label: "3-6 months" },
   { value: "6_to_12_months", label: "6-12 months" },
   { value: "over_12_months", label: "Over 12 months" },
-  { value: "never", label: "Never" },
 ] as const
 
 export default function MedicationHistoryStep({ serviceType, onNext, onBack }: MedicationHistoryStepProps) {
@@ -118,21 +117,30 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
 
       {/* Prescription history */}
       {(!hasPrescriptionHistory || isNeverPrescribed) && (
-        <QuestionCard compact>
-          <FormField
+        <QuestionCard compact className="space-y-3">
+          <QuestionPrompt
             label="When were you last prescribed this medication?"
             required
-            error={touched.prescriptionHistory ? errors.prescriptionHistory : undefined}
+          />
+          <SegmentedChoiceGroup
+            options={PRESCRIPTION_HISTORY_OPTIONS}
+            value={prescriptionHistory}
+            onChange={(value) => setAnswer("prescriptionHistory", value)}
+            ariaLabel="When were you last prescribed this medication?"
+            columns="two"
+          />
+          {touched.prescriptionHistory && errors.prescriptionHistory && (
+            <p className="text-xs text-destructive" role="alert" aria-live="polite">
+              {errors.prescriptionHistory}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={() => setAnswer("prescriptionHistory", "never")}
+            className="w-full rounded-xl border border-border/60 bg-muted/25 px-3 py-2.5 text-left text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
-            <SegmentedChoiceGroup
-              options={PRESCRIPTION_HISTORY_OPTIONS}
-              value={prescriptionHistory}
-              onChange={(value) => setAnswer("prescriptionHistory", value)}
-              ariaLabel="When were you last prescribed this medication?"
-              columns="two"
-              className="mt-2"
-            />
-          </FormField>
+            I have not been prescribed this before
+          </button>
         </QuestionCard>
       )}
 
@@ -244,6 +252,7 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
       <Button
         data-intake-primary-action="true"
         data-intake-primary-label="Continue"
+        data-intake-primary-ready={canContinue ? "true" : "false"}
         onClick={handleNext}
         className={`w-full h-12 max-sm:hidden ${canContinue ? "" : "opacity-60"}`}
       >

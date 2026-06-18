@@ -53,6 +53,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
       <header
         className={cn("fixed left-0 right-0 z-50 px-4 sm:px-6 top-0")}
         style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}
+        data-first-interaction-ignore="true"
       >
         <nav
           className={cn(
@@ -174,6 +175,8 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                       setMobileMenuOpen(false)
                       navigateToPostSignIn(window)
                     }}
+                    onPointerDown={(event) => event.stopPropagation()}
+                    onKeyDown={(event) => event.stopPropagation()}
                   >
                     <LayoutDashboard className="h-4 w-4" />
                     Dashboard
@@ -189,7 +192,11 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   asChild
                   className="w-full rounded-xl bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
                 >
-                  <Link href="/request">
+                  <Link
+                    href="/request"
+                    onPointerDown={(event) => event.stopPropagation()}
+                    onKeyDown={(event) => event.stopPropagation()}
+                  >
                     Get started
                   </Link>
                 </Button>

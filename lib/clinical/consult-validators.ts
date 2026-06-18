@@ -332,7 +332,7 @@ export function validateHairLossConsult(answers: Answers): ConsultValidationResu
 // WOMEN'S HEALTH - CONTRACEPTION VALIDATOR
 // ============================================================================
 
-const CONTRACEPTION_TYPE_VALUES = ["start", "continue", "switch"] as const
+const CONTRACEPTION_TYPE_VALUES = ["start", "switch"] as const
 const CONTRACEPTION_CURRENT_VALUES = ["pill", "iud", "other", "none"] as const
 const PREGNANCY_STATUS_VALUES = ["no", "not_sure", "yes"] as const
 

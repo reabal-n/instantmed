@@ -39,6 +39,7 @@ describe("intake mobile viewport contract", () => {
   it("uses a real mobile primary-action bar instead of making users scroll to continue", () => {
     expect(requestFlowSource).toContain('data-intake-mobile-action-bar="true"')
     expect(requestFlowSource).toContain("[data-intake-primary-action='true']")
+    expect(requestFlowSource).toContain("data-intake-primary-ready")
     expect(requestFlowSource).toContain("MutationObserver")
     expect(requestFlowSource).toContain("handleMobilePrimaryAction")
     expect(requestFlowSource).toContain("currentStepId !== 'checkout'")
@@ -55,6 +56,7 @@ describe("intake mobile viewport contract", () => {
   it.each(intakeStepFiles)("%s exposes one mobile shell primary action", (path) => {
     const source = readProjectFile(path)
     expect(source).toContain('data-intake-primary-action="true"')
+    expect(source).toContain("data-intake-primary-ready")
     expect(source).toContain("max-sm:hidden")
   })
 
@@ -114,10 +116,43 @@ describe("intake mobile viewport contract", () => {
   it("uses compact repeat-prescription history labels on mobile", () => {
     const source = readProjectFile("components/request/steps/medication-history-step.tsx")
     expect(source).toContain('{ value: "less_than_3_months", label: "Under 3 months" }')
-    expect(source).toContain('{ value: "never", label: "Never" }')
+    expect(source).not.toContain('{ value: "never", label: "Never" }')
+    expect(source).toContain("I have not been prescribed this before")
     expect(source).toContain('columns="two"')
     expect(source).not.toContain("Less than 3 months ago")
     expect(source).not.toContain("Never prescribed this medication")
+  })
+
+  it("keeps women's-health type selection short and limited to actionable paths", () => {
+    const source = readProjectFile("components/request/steps/womens-health-type-step.tsx")
+    expect(source).toContain("Start or switch pill")
+    expect(source).toContain("Choose one. Current-pill repeats go through repeat prescriptions.")
+    expect(source).not.toContain("Emergency contraception")
+    expect(source).not.toContain("Period pain or menstrual issues")
+    expect(source).not.toContain("The doctor reviews the details after checkout")
+    expect(source).not.toContain("disabled={!womensHealthOption}")
+  })
+
+  it("keeps ED goal selection as a balanced four-option grid", () => {
+    const source = readProjectFile("components/request/steps/ed-goals-step.tsx")
+    const goalOptionsMatch = source.match(/const GOAL_OPTIONS = \[([\s\S]*?)\] as const/)
+    expect(goalOptionsMatch).toBeTruthy()
+    const optionRows = goalOptionsMatch?.[1].match(/value:/g) ?? []
+    expect(optionRows).toHaveLength(4)
+    expect(source).not.toContain("Maintain what I have")
+  })
+
+  it("does not render the med-cert two-day upsell nudge", () => {
+    const source = [
+      readProjectFile("components/request/steps/certificate-step.tsx"),
+      readProjectFile("components/request/steps/checkout-step.tsx"),
+    ].join("\n")
+    expect(source).not.toContain("Make it 2 days")
+    expect(source).not.toContain("Need to cover a second day")
+    expect(source).not.toContain("medcert-extra-day")
+    expect(source).not.toContain("medcert_duration_nudge_taken")
+    expect(source).not.toContain("medcert_extra_day_added")
+    expect(source).not.toContain("twoDayUpsellDelta")
   })
 
   it("keeps hair-loss pattern labels short enough for compact mobile cards", () => {

@@ -373,6 +373,7 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
       <Button
         data-intake-primary-action="true"
         data-intake-primary-label="Continue"
+        data-intake-primary-ready={canContinue ? "true" : "false"}
         onClick={handleNext}
         variant={canContinue ? "default" : "secondary"}
         className="h-12 w-full max-sm:hidden"
