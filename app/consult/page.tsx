@@ -35,7 +35,7 @@ import { cn } from "@/lib/utils"
  * `/consult` · the canonical detailed services index.
  *
  * Preserves the SEO surface for "online doctor" queries while routing every
- * visitor to one of the four structured services InstantMed actually
+ * visitor to one of the active structured services InstantMed actually
  * accepts. Each service gets a substantive block (price, who-it's-for,
  * what's included, how-it-works, CTA) so the page does the heavy lifting
  * of explaining the offering up front.
@@ -221,7 +221,7 @@ const overviewFaqs = [
   },
   {
     question: "How much does it cost?",
-    answer: `Medical certificates from ${PRICING_DISPLAY.MED_CERT}. Repeat prescriptions ${PRICING_DISPLAY.REPEAT_SCRIPT}. ED and hair loss assessments ${PRICING_DISPLAY.MENS_HEALTH}. Flat fee, no Medicare rebate. ${GUARANTEE}`,
+    answer: `Medical certificates from ${PRICING_DISPLAY.MED_CERT}. Repeat prescriptions ${PRICING_DISPLAY.REPEAT_SCRIPT}. ED, hair loss, and women's health assessments ${PRICING_DISPLAY.MENS_HEALTH}. Flat fee, no Medicare rebate. ${GUARANTEE}`,
   },
   {
     question: "What if my concern doesn't fit any of these?",
@@ -238,11 +238,11 @@ const overviewFaqs = [
 export const metadata: Metadata = {
   title: "Online Doctor Services in Australia | InstantMed",
   description:
-    `See an Australian doctor online for medical certificates, repeat prescriptions, ED, or hair loss. Form-first review, no waiting room, AHPRA-registered. From ${PRICING_DISPLAY.MED_CERT}.`,
+    `See an Australian doctor online for medical certificates, repeat prescriptions, ED, hair loss, or women's health. Form-first review, no waiting room, AHPRA-registered. From ${PRICING_DISPLAY.MED_CERT}.`,
   openGraph: {
     title: "Online Doctor Services | InstantMed",
     description:
-      "Medical certificates, repeat prescriptions, ED, and hair loss assessments. Form-first review by Australian doctors.",
+      "Medical certificates, repeat prescriptions, ED, hair loss, and women's health assessments. Form-first review by Australian doctors.",
     type: "website",
     url: "https://instantmed.com.au/consult",
   },
@@ -250,7 +250,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Online Doctor Services | InstantMed",
     description:
-      "Medical certificates, repeat prescriptions, ED, and hair loss assessments. Form-first review by Australian doctors.",
+      "Medical certificates, repeat prescriptions, ED, hair loss, and women's health assessments. Form-first review by Australian doctors.",
   },
   alternates: {
     canonical: "https://instantmed.com.au/consult",
@@ -288,7 +288,7 @@ export default async function ConsultOverviewPage() {
       <FAQSchema faqs={overviewFaqs} />
       <HealthArticleSchema
         title="Online Doctor Services in Australia"
-        description="Medical certificates, repeat prescriptions, ED, and hair loss assessments. Form-first review by AHPRA-registered Australian doctors."
+        description="Medical certificates, repeat prescriptions, ED, hair loss, and women's health assessments. Form-first review by AHPRA-registered Australian doctors."
         url="/consult"
       />
 
@@ -304,7 +304,7 @@ export default async function ConsultOverviewPage() {
             See an Australian doctor online
           </h1>
           <p className="mt-3 text-base text-muted-foreground sm:text-lg">
-            We treat four things, properly. Pick the one that fits and a doctor responds in writing.
+            We treat focused services, properly. Pick the one that fits and a doctor responds in writing.
           </p>
           {/* Brand signature device #1 · live wait counter (BRAND.md §6.1).
               WaitCounter self-hides when the data source returns variant='hidden'. */}

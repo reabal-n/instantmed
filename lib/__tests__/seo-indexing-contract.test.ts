@@ -148,6 +148,23 @@ describe("SEO indexing contracts", () => {
     expect(lastmod).toContain("ROUTE_LAST_MODIFIED")
   })
 
+  it("keeps live money pages discoverable in the root sitemap", () => {
+    const sitemap = read("app/sitemap.ts")
+    const lastmod = read("lib/seo/sitemap-lastmod.ts")
+
+    for (const route of [
+      "/medical-certificate",
+      "/prescriptions",
+      "/erectile-dysfunction",
+      "/hair-loss",
+      "/womens-health",
+      "/consult",
+    ]) {
+      expect(sitemap, route).toContain(`"${route}"`)
+      expect(lastmod, route).toContain(`"${route}"`)
+    }
+  })
+
   it("keeps GSC indexing audits as read-only diagnostics", () => {
     const packageJson = JSON.parse(read("package.json")) as {
       scripts?: Record<string, string>

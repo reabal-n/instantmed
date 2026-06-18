@@ -3,15 +3,15 @@
  *
  * After PR1b (2026-05-25), /consult is the canonical detailed services index
  * (was a thin services-overview before, was the General Consult landing page
- * before that). Each of the 4 active services gets a substantive block with
- * a CTA; 2 gated services render as greyed coming-soon cards.
+ * before that). Each active service gets a substantive block with
+ * a CTA; gated services render as greyed coming-soon cards.
  *
  * Pinned here:
- *   - All 4 active services are listed by name + correct href
+ *   - All active services are listed by name + correct href
  *   - "General consult" copy is gone from the FAQ
  *   - The "Not finding your concern?" amber alert block is gone
  *   - Per-service MedicalServiceSchema renders (better SEO than one umbrella)
- *   - Coming-soon cards render Women's Health + Weight Management
+ *   - Weight Management remains the only coming-soon card
  */
 
 import { readFileSync } from "node:fs"
@@ -38,6 +38,15 @@ describe("/consult services index contract", () => {
     expect(source).toContain('href: "/request?service=consult&subtype=hair_loss"')
     expect(source).toContain('name: "Women\'s health"')
     expect(source).toContain('href: "/request?service=consult&subtype=womens_health"')
+  })
+
+  it("keeps consult metadata and visible copy synced with the active service set", () => {
+    const source = read("app/consult/page.tsx")
+
+    expect(source).toContain("women's health")
+    expect(source).toContain("Medical certificates, repeat prescriptions, ED, hair loss, and women's health assessments")
+    expect(source).toContain("We treat focused services, properly.")
+    expect(source).not.toContain("We treat four things")
   })
 
   it("keeps weight management as the only coming-soon card (women's health is now live)", () => {
