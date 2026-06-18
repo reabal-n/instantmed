@@ -16,12 +16,19 @@ export interface CreatePendingOutboxResult {
   duplicate: boolean
 }
 
+type CreatePendingOutboxEntry = Omit<OutboxEntry, "status"> & {
+  initialStatus?: "pending" | "sending"
+}
+
 /**
- * Create a pending outbox row BEFORE attempting to send.
+ * Create an outbox row BEFORE attempting to send.
  * This ensures we have a record even if the process crashes mid-send.
+ * Immediate sends should start as `sending` so the dispatcher cannot pick up
+ * the same row while the provider call is in progress. Deferred sends stay
+ * `pending` until their schedule lapses.
  * Does NOT store email body - dispatcher will reconstruct from intake/certificate data.
  */
-export async function createPendingOutbox(entry: Omit<OutboxEntry, "status">): Promise<CreatePendingOutboxResult> {
+export async function createPendingOutbox(entry: CreatePendingOutboxEntry): Promise<CreatePendingOutboxResult> {
   try {
     const supabase = createServiceRoleClient()
     const idempotencyKey = buildEmailOutboxIdempotencyKey(entry)
@@ -77,7 +84,7 @@ export async function createPendingOutbox(entry: Omit<OutboxEntry, "status">): P
         to_email: entry.to_email,
         to_name: entry.to_name,
         subject: entry.subject,
-        status: "pending",
+        status: entry.initialStatus ?? "pending",
         provider: entry.provider,
         intake_id: entry.intake_id,
         patient_id: entry.patient_id,

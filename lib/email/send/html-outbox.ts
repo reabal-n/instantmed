@@ -35,6 +35,7 @@ export async function sendHtmlEmailWithOutbox(params: SendHtmlEmailWithOutboxPar
     provider: "resend",
     metadata: params.metadata ?? {},
     idempotency_key: params.idempotencyKey,
+    initialStatus: "sending",
   })
 
   if (outboxResult.duplicate) {

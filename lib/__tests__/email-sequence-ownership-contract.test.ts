@@ -26,6 +26,10 @@ const sendEmailSource = readFileSync(
   join(process.cwd(), "lib/email/send-email.ts"),
   "utf8",
 )
+const templateSenderSource = readFileSync(
+  join(process.cwd(), "lib/email/template-sender.ts"),
+  "utf8",
+)
 const outboxSource = readFileSync(
   join(process.cwd(), "lib/email/send/outbox.ts"),
   "utf8",
@@ -87,6 +91,16 @@ describe("email sequence ownership contract", () => {
     expect(htmlOutboxSource).toContain("Sentry.addBreadcrumb")
     expect(sendEmailSource).toContain("outboxResult.duplicate")
     expect(sendEmailSource).toContain("skipped: true")
+  })
+
+  it("keeps immediate recovery sends from being claimed by the dispatcher while in flight", () => {
+    expect(outboxSource).toContain('initialStatus?: "pending" | "sending"')
+    expect(outboxSource).toContain("Immediate sends should start as `sending`")
+    expect(outboxSource).toContain('status: entry.initialStatus ?? "pending"')
+    expect(sendEmailSource).toContain("initialStatus: scheduledFor && new Date(scheduledFor).getTime() > Date.now()")
+    expect(sendEmailSource).toContain(': "sending"')
+    expect(htmlOutboxSource).toContain('initialStatus: "sending"')
+    expect(templateSenderSource).toContain('initialStatus: "sending"')
   })
 
   it("has a DB-backed idempotency key for one-shot lifecycle emails", () => {

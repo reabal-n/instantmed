@@ -248,6 +248,7 @@ export async function sendTemplateEmail(params: SendTemplateEmailParams): Promis
           patient_id: patientId,
           metadata: metadata ?? {},
           idempotency_key: idempotencyKey,
+          initialStatus: "sending",
         })
 
         if (pending.duplicate) {
@@ -272,7 +273,7 @@ export async function sendTemplateEmail(params: SendTemplateEmailParams): Promis
             intake_id: intakeId ?? null,
             patient_id: patientId ?? null,
             subject,
-            status: "pending",
+            status: "sending",
             metadata: metadata ?? {},
           })
           .select("id")

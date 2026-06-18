@@ -296,6 +296,9 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     metadata,
     idempotency_key: idempotencyKey,
     scheduled_for: scheduledFor,
+    initialStatus: scheduledFor && new Date(scheduledFor).getTime() > Date.now()
+      ? "pending"
+      : "sending",
   })
   const outboxId = outboxResult.id
 
