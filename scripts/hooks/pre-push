@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+#
+# Pre-push guard for direct pushes to main.
+#
+# Branch protection requires the GitHub `build` check, but enforce_admins=false
+# and direct pushes to main never go through a PR — so the required check is
+# structurally inert for direct-to-main pushes. On 2026-06-18, four commits
+# reached production with a red/absent `build` check this way. This hook is the
+# local gate: it runs the unit-test suite before allowing a push to main and
+# blocks on failure.
+#
+# Feature-branch pushes are NOT gated (they get CI via their PR). Genuine
+# emergencies can bypass with:  git push --no-verify
+#
+set -euo pipefail
+
+protected_ref="refs/heads/main"
+pushing_to_main=false
+
+# git feeds "<local ref> <local sha> <remote ref> <remote sha>" lines on stdin.
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+  if [ "$remote_ref" = "$protected_ref" ]; then
+    pushing_to_main=true
+  fi
+done
+
+if [ "$pushing_to_main" = false ]; then
+  exit 0
+fi
+
+# Never block on a missing toolchain — that would be worse than no gate.
+if ! command -v pnpm >/dev/null 2>&1; then
+  echo "⚠ pre-push: pnpm not found on PATH — skipping the main push test gate."
+  exit 0
+fi
+
+echo "▶ pre-push: pushing to main — running unit tests (bypass with --no-verify)…"
+if ! pnpm test run; then
+  echo ""
+  echo "✗ pre-push: unit tests failed — push to main blocked."
+  echo "  Fix the tests, or run 'git push --no-verify' for a genuine emergency."
+  exit 1
+fi
+echo "✓ pre-push: unit tests passed — pushing to main."
