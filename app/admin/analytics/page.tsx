@@ -11,6 +11,7 @@ import { getBusinessOperatingScorecard } from "@/lib/data/business-scorecard"
 import { getIntakeMonitoringStats } from "@/lib/data/intakes"
 import { getRecoveryScorecard } from "@/lib/data/recovery-scorecard"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
+import { getRevenueWindowBounds } from "@/lib/data/revenue-dashboard"
 import {
   EMPTY_PRESCRIPTION_FULFILMENT_DASHBOARD,
   getPrescriptionFulfilmentDashboard,
@@ -27,9 +28,12 @@ export default async function AnalyticsDashboardPage() {
   const supabase = createServiceRoleClient()
 
   const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
-  const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
+  // Canonical revenue windows shared with the Payments dashboard + operating
+  // scorecard: Australia/Sydney day boundaries, rolling 30d, last-7-Sydney-days.
+  // The old new Date(y,m,d) anchored to UTC midnight, so a 7:42am-AEST order
+  // counted as "yesterday" and TODAY read $0 while Payments showed the real
+  // total. Sharing one helper is what stops the pages disagreeing.
+  const { todayStart, last7DaysStart, last30DaysStart } = getRevenueWindowBounds(now)
 
   // Fetch only the operator analytics that are worth keeping: revenue,
   // conversion, and queue health. Anything deeper belongs in PostHog or ops.
@@ -38,20 +42,20 @@ export default async function AnalyticsDashboardPage() {
     filterReportableIntakes(supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
-      .gte("created_at", monthAgo.toISOString())),
+      .gte("created_at", last30DaysStart.toISOString())),
 
     // [1] Paid intakes
     filterReportableIntakes(supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
-      .gte("created_at", monthAgo.toISOString())
+      .gte("created_at", last30DaysStart.toISOString())
       .not("paid_at", "is", null)),
 
     // [2] Completed intakes
     filterReportableIntakes(supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
-      .gte("created_at", monthAgo.toISOString())
+      .gte("created_at", last30DaysStart.toISOString())
       .eq("status", "approved")),
 
     // [3] Revenue data - paid intakes with amount
@@ -59,7 +63,7 @@ export default async function AnalyticsDashboardPage() {
       .from("intakes")
       .select("amount_cents, paid_at, created_at")
       .not("paid_at", "is", null)
-      .gte("paid_at", monthAgo.toISOString())),
+      .gte("paid_at", last30DaysStart.toISOString())),
 
     // [4] Monitoring stats (queue health, avg review time)
     getIntakeMonitoringStats(),
@@ -69,14 +73,14 @@ export default async function AnalyticsDashboardPage() {
       .from("intakes")
       .select("amount_cents")
       .not("paid_at", "is", null)
-      .gte("paid_at", weekAgo.toISOString())),
+      .gte("paid_at", last7DaysStart.toISOString())),
 
     // [6] Today's paid intakes for daily revenue
     filterReportableIntakes(supabase
       .from("intakes")
       .select("amount_cents")
       .not("paid_at", "is", null)
-      .gte("paid_at", today.toISOString())),
+      .gte("paid_at", todayStart.toISOString())),
 
     // [7] Google Ads upload health
     getGoogleAdsHealth(supabase),

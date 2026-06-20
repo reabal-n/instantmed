@@ -77,6 +77,10 @@ function isSupportedEmailType(emailType: string): boolean {
 const CRON_OWNED_NON_RECONSTRUCTABLE = new Set<string>([
   "refill_reminder",
   "heard_about_us_backfill",
+  // Abandoned-intake recovery is sent directly by its own cron; a deferred/retry
+  // outbox copy is not reconstructable here. Was permanently-failing + Sentry-
+  // warning as "Unsupported email_type" while the cron delivered it fine.
+  "partial_intake_recovery",
 ])
 
 /**
@@ -108,6 +112,25 @@ async function permanentlyFailOutboxRow(outboxId: string, errorMessage: string, 
     intakeId: context?.intakeId,
     error: errorMessage,
   })
+}
+
+/**
+ * Permanently fail an outbox row WITHOUT a Sentry warning. For cron-owned one-off
+ * emails the generic dispatcher cannot reconstruct (refill reminder, heard-about-us,
+ * partial-intake recovery): their owning cron handles the resend, so an
+ * unreconstructable outbox copy is expected — not a reconstruct anomaly worth alerting.
+ */
+async function quietlyFailOutboxRow(outboxId: string, errorMessage: string): Promise<void> {
+  const supabase = createServiceRoleClient()
+  await supabase
+    .from("email_outbox")
+    .update({
+      status: "failed",
+      retry_count: MAX_RETRIES,
+      error_message: errorMessage,
+      last_attempt_at: new Date().toISOString(),
+    })
+    .eq("id", outboxId)
 }
 
 function getBackoffMinutes(retryCount: number): number {
@@ -276,13 +299,15 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
     if (!isSupportedEmailType(claimedRow.email_type)) {
       const cronOwned = CRON_OWNED_NON_RECONSTRUCTABLE.has(claimedRow.email_type)
       // Cron-owned one-off marketing emails are expected-unsupported: their cron
-      // owns the resend, so fail the row quietly (info) rather than warn/alert.
+      // owns the resend, so fail the row quietly (info, no Sentry). Everything
+      // else is a genuine reconstruct anomaly that keeps the Sentry-warning path.
       if (cronOwned) {
         logger.info("[Email Dispatcher] Cron-owned email_type not reconstructable - permanent fail (expected)", { id: row.id, type: claimedRow.email_type })
+        await quietlyFailOutboxRow(row.id, `Unsupported email_type: ${claimedRow.email_type}`)
       } else {
         logger.warn("[Email Dispatcher] Unsupported email_type - permanent fail", { id: row.id, type: claimedRow.email_type })
+        await permanentlyFailOutboxRow(row.id, `Unsupported email_type: ${claimedRow.email_type}`, rowContext)
       }
-      await permanentlyFailOutboxRow(row.id, `Unsupported email_type: ${claimedRow.email_type}`, rowContext)
       failed++
       results.push({ id: row.id, success: false, error: `Unsupported email_type: ${claimedRow.email_type}` })
       continue
