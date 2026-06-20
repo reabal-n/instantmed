@@ -7,7 +7,8 @@ import { describe, expect, it } from "vitest"
  * Stripe webhook handlers parity contract.
  *
  * Asserts that every file in `app/api/stripe/webhook/handlers/` (other than
- * the framework files index.ts / types.ts / utils.ts) is actually imported
+ * the framework files index.ts / types.ts / utils.ts and shared helper modules
+ * that are imported BY handlers rather than dispatched) is actually imported
  * and dispatched from `index.ts`, AND vice versa.
  *
  * Why this exists:
@@ -39,10 +40,18 @@ import { describe, expect, it } from "vitest"
 
 const HANDLERS_DIR = join(process.cwd(), "app/api/stripe/webhook/handlers")
 const FRAMEWORK_FILES = new Set(["index.ts", "types.ts", "utils.ts"])
+// Shared helpers that live in the handlers dir but are imported BY handlers
+// (payment-failure-recovery.ts is used by both checkout.session.async_payment_failed
+// and payment_intent.payment_failed) rather than dispatched from the Map. They
+// are not event handlers, so they are exempt from the parity check. They are NOT
+// zombies: typecheck/build fails if a real handler stops importing them, which is
+// the safety property that actually matters for a helper.
+const SHARED_HELPER_FILES = new Set(["payment-failure-recovery.ts"])
+const NON_HANDLER_FILES = new Set([...FRAMEWORK_FILES, ...SHARED_HELPER_FILES])
 
 function listHandlerFiles(): string[] {
   return readdirSync(HANDLERS_DIR)
-    .filter((f) => f.endsWith(".ts") && !FRAMEWORK_FILES.has(f))
+    .filter((f) => f.endsWith(".ts") && !NON_HANDLER_FILES.has(f))
     .sort()
 }
 
@@ -52,7 +61,7 @@ function parseImportedHandlerFiles(): string[] {
   const matches = [...indexSource.matchAll(/from\s+["']\.\/([\w-]+)["']/g)]
   return matches
     .map((m) => `${m[1]}.ts`)
-    .filter((f) => !FRAMEWORK_FILES.has(f))
+    .filter((f) => !NON_HANDLER_FILES.has(f))
     .sort()
 }
 

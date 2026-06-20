@@ -2,6 +2,16 @@ import { describe, expect, it } from "vitest"
 
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
 
+/**
+ * DOB string for a patient who is exactly `age` years old today, on any date.
+ * Anchored to Jan 1 of the birth year so the birthday has always already passed
+ * this calendar year — keeps age-based assertions stable instead of flipping on
+ * the fixture's birthday (the 2026-06-20 "35→36" date-bomb).
+ */
+function dobForExactAge(age: number): string {
+  return `${new Date().getFullYear() - age}-01-01`
+}
+
 describe("buildClinicalCaseSummary", () => {
   it("turns an ED request into a patient story, plan, note, and Parchment prescribing intent", () => {
     const summary = buildClinicalCaseSummary({
@@ -443,7 +453,7 @@ describe("buildClinicalCaseSummary", () => {
     const summary = buildClinicalCaseSummary({
       category: "med_cert",
       serviceType: "med_certs",
-      patientDateOfBirth: "1990-06-20",
+      patientDateOfBirth: dobForExactAge(35),
       answers: {
         certType: "work",
         duration: "1",
@@ -643,7 +653,7 @@ describe("buildClinicalCaseSummary", () => {
         category: "medical_certificate",
         serviceType: "med_certs",
         patientName: "Tuki Tkt",
-        patientDateOfBirth: "2000-11-14",
+        patientDateOfBirth: dobForExactAge(25),
         patientSex: "female",
         answers: {
           certType: "work",
