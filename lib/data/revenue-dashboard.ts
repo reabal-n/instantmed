@@ -17,7 +17,6 @@ import {
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const DAY_MS = 24 * 60 * 60 * 1000
-const AEST_OFFSET_MS = 10 * 60 * 60 * 1000
 
 export const REVENUE_DAILY_TARGET_CENTS = 2_740_00
 export const REVENUE_MONTHLY_TARGET_CENTS = 83_333_00
@@ -217,10 +216,31 @@ export async function getRevenueDashboard(
   })
 }
 
+export type RevenueWindowBounds = {
+  todayStart: Date
+  last7DaysStart: Date
+  last30DaysStart: Date
+}
+
+/**
+ * Canonical revenue windows shared across the Payments dashboard, the Analytics
+ * revenue strip, and the operating scorecard. One definition so TODAY / 7 days /
+ * 30 days revenue cannot disagree between surfaces:
+ *  - todayStart      = most recent Australia/Sydney midnight
+ *  - last7DaysStart  = last 7 Sydney calendar days (todayStart - 6 days)
+ *  - last30DaysStart = rolling now - 30 days
+ */
+export function getRevenueWindowBounds(now: Date): RevenueWindowBounds {
+  const todayStart = startOfDaySydney(now)
+  return {
+    todayStart,
+    last7DaysStart: new Date(todayStart.getTime() - 6 * DAY_MS),
+    last30DaysStart: new Date(now.getTime() - 30 * DAY_MS),
+  }
+}
+
 export function buildRevenueDashboard(input: RevenueDashboardInput): RevenueDashboard {
-  const todayStart = startOfDayAest(input.now)
-  const last7DaysStart = new Date(todayStart.getTime() - 6 * DAY_MS)
-  const last30DaysStart = new Date(input.now.getTime() - 30 * DAY_MS)
+  const { todayStart, last7DaysStart, last30DaysStart } = getRevenueWindowBounds(input.now)
   const warningWindow = buildNoPurchaseWindow(input, NO_PURCHASE_WARNING_WINDOW_HOURS)
   const criticalWindow = buildNoPurchaseWindow(input, NO_PURCHASE_CRITICAL_WINDOW_HOURS)
   const criticalAlert = buildNoPurchaseRevenueAlert(criticalWindow)
@@ -306,7 +326,9 @@ function buildRevenueWindow(
     refundCents,
     netCents: grossCents - refundCents,
     orderCount,
-    averageOrderCents: orderCount > 0 ? Math.round(grossCents / orderCount) : null,
+    // AOV reports net-of-refunds revenue so it matches the net headline on the
+    // same card. Using gross/count silently disagreed with the displayed net.
+    averageOrderCents: orderCount > 0 ? Math.round((grossCents - refundCents) / orderCount) : null,
     targetCents,
   }
 }
@@ -360,10 +382,13 @@ function buildServiceMix(paidRows: PaidRevenueRow[]): RevenueDashboardService[] 
   const grouped = new Map<string, RevenueDashboardService>()
 
   for (const row of paidRows) {
-    const key = serviceKey(row.category, row.subtype)
-    const current = grouped.get(key) ?? {
-      key,
-      label: serviceLabel(row.category, row.subtype),
+    // Group by the display label, not category:subtype. Distinct subtypes that
+    // render the SAME label (e.g. medical_certificate work/study/carer all show
+    // "Medical certificates") were producing duplicate rows in the service mix.
+    const label = serviceLabel(row.category, row.subtype)
+    const current = grouped.get(label) ?? {
+      key: label,
+      label,
       grossCents: 0,
       netCents: 0,
       orderCount: 0,
@@ -374,7 +399,7 @@ function buildServiceMix(paidRows: PaidRevenueRow[]): RevenueDashboardService[] 
     current.grossCents += amountCents
     current.netCents += amountCents - refundCents
     current.orderCount += 1
-    grouped.set(key, current)
+    grouped.set(label, current)
   }
 
   return [...grouped.values()]
@@ -418,10 +443,34 @@ function statusLabel(status: RevenueDashboardStatus): string {
   return "Receiving payments"
 }
 
-function startOfDayAest(date: Date): Date {
-  const shifted = date.getTime() + AEST_OFFSET_MS
-  const aestMidnightShifted = Math.floor(shifted / DAY_MS) * DAY_MS
-  return new Date(aestMidnightShifted - AEST_OFFSET_MS)
+/**
+ * UTC instant of the most recent Australia/Sydney midnight at or before `date`.
+ * Uses Intl so it honours both AEST (UTC+10) and AEDT (UTC+11) instead of a
+ * hardcoded +10 offset, which silently shifted day boundaries by an hour during
+ * daylight saving (Oct–Apr).
+ */
+export function startOfDaySydney(date: Date): Date {
+  const dateKey = toSydneyDateKey(date)
+  const naiveUtcMidnight = new Date(`${dateKey}T00:00:00.000Z`)
+  return new Date(naiveUtcMidnight.getTime() - sydneyUtcOffsetMs(naiveUtcMidnight))
+}
+
+/** Milliseconds Australia/Sydney is ahead of UTC at instant `at` (AEST +10 / AEDT +11). */
+function sydneyUtcOffsetMs(at: Date): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Australia/Sydney",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(at)
+  const get = (type: string) => Number(parts.find((part) => part.type === type)?.value)
+  const hour = get("hour") === 24 ? 0 : get("hour")
+  const wallClockAsUtc = Date.UTC(get("year"), get("month") - 1, get("day"), hour, get("minute"), get("second"))
+  return wallClockAsUtc - at.getTime()
 }
 
 function toSydneyDateKey(value: string | Date): string {
@@ -447,10 +496,6 @@ function sumRefunds(rows: RefundRevenueRow[]): number {
     if (row.refund_status === "failed") return sum
     return sum + Number(row.refund_amount_cents ?? 0)
   }, 0)
-}
-
-function serviceKey(category: string | null, subtype: string | null): string {
-  return `${category ?? "unknown"}:${subtype ?? "none"}`
 }
 
 function serviceLabel(category: string | null, subtype: string | null): string {

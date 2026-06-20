@@ -494,6 +494,26 @@ describe("email-dispatcher", () => {
         }),
       )
     })
+
+    it("quietly fails cron-owned partial_intake_recovery without a Sentry warning", async () => {
+      const candidate = makeCandidate({ email_type: "partial_intake_recovery", certificate_id: null })
+      mockOutboxSelect([candidate])
+      mockClaimOutboxRow.mockResolvedValue({ claimed: true, row: candidate })
+
+      const result = await processEmailDispatch()
+
+      expect(result.failed).toBe(1)
+      expect(result.results[0]).toMatchObject({
+        success: false,
+        error: "Unsupported email_type: partial_intake_recovery",
+      })
+      expect(mockSendFromOutboxRow).not.toHaveBeenCalled()
+      // Cron owns the resend, so the dispatcher must NOT raise a Sentry alarm
+      expect(Sentry.captureMessage).not.toHaveBeenCalledWith(
+        expect.stringContaining("permanently failed"),
+        expect.anything(),
+      )
+    })
   })
 
   // -----------------------------------------------------------------------
