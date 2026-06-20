@@ -9,7 +9,7 @@ import {
   SpeakableSchema,
 } from "@/components/seo"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
-import { WOMENS_HEALTH_FAQ } from "@/lib/data/womens-health-faq"
+import { UTI_FAQ } from "@/lib/data/womens-health-faq"
 
 export const revalidate = 86400
 
@@ -50,7 +50,7 @@ export default function Page() {
         description={`UTI symptom assessment from an AHPRA-registered Australian doctor. From ${PRICING_DISPLAY.WOMENS_HEALTH}. Start with a secure form. A doctor reviews it and decides what is clinically appropriate.`}
         url="/uti-assessment-online"
       />
-      <FAQSchema faqs={[...WOMENS_HEALTH_FAQ]} />
+      <FAQSchema faqs={[...UTI_FAQ]} />
       <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://instantmed.com.au" },
