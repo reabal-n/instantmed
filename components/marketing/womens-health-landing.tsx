@@ -21,7 +21,7 @@ import { Heading } from "@/components/ui/heading"
 import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING } from "@/lib/constants"
-import { WOMENS_HEALTH_FAQ } from "@/lib/data/womens-health-faq"
+import { PILL_FAQ, UTI_FAQ, WOMENS_HEALTH_FAQ } from "@/lib/data/womens-health-faq"
 import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
 
 type WomensHealthIntent = "overview" | "uti" | "pill"
@@ -40,6 +40,7 @@ interface WomensHealthIntentCopy {
   safetyBody: string
   pricingDescription: string
   faqSubtitle: string
+  faq: ReadonlyArray<{ question: string; answer: string }>
   referralContext: string
   finalTitle: string
   finalSubtitle: string
@@ -81,10 +82,13 @@ const INTENT_COPY: Record<WomensHealthIntent, WomensHealthIntentCopy> = {
     analyticsId: "womens-health",
     stickyCta: `Start assessment · $${PRICING.WOMENS_HEALTH.toFixed(2)}`,
     stickySummary: "2-min form · Doctor-reviewed · No waiting room",
-    heroTitle: "UTI assessment online, without the waiting room.",
+    // Hub-level H1: targets the broad "women's health assessment online" term and
+    // leaves the "UTI assessment online" head term to the /uti-assessment-online
+    // child page, so the hub and child don't cannibalise the same query.
+    heroTitle: "Women's health assessment online, without the waiting room.",
     heroBody: `${FORM_FIRST_WEDGE} A doctor reviews your symptoms and history and decides what is clinically appropriate. ${GUARANTEE}`,
     claimEyebrow: "Private and clinical",
-    claimHeadlineLead: "UTI assessment, reviewed by a doctor.",
+    claimHeadlineLead: "Women's health, reviewed by a doctor.",
     claimHeadlineAccent: "Without the waiting room.",
     claimBody:
       "A structured doctor review for urinary symptoms. If online care is appropriate, your outcome is sent to your phone and can be actioned at any Australian pharmacy.",
@@ -93,8 +97,9 @@ const INTENT_COPY: Record<WomensHealthIntent, WomensHealthIntentCopy> = {
       "A fever, pain in your back or side, blood in your urine, symptoms during pregnancy, or a UTI that keeps returning are signs you need an in-person review. If your answers raise any of these, the doctor will recommend a face-to-face visit and may decline online care.",
     pricingDescription: "Private online review for UTI and contraceptive pill concerns",
     faqSubtitle: "Everything you need to know before starting a women's health assessment online.",
+    faq: WOMENS_HEALTH_FAQ,
     referralContext: "dealing with a UTI",
-    finalTitle: "UTI assessment, reviewed by a real doctor.",
+    finalTitle: "Women's health, reviewed by a real doctor.",
     finalSubtitle: "Fill a short form. A doctor reviews it privately and decides what is clinically appropriate.",
     finalCta: "Start assessment",
     howItWorksSubheading:
@@ -117,6 +122,7 @@ const INTENT_COPY: Record<WomensHealthIntent, WomensHealthIntentCopy> = {
       "Fever, back or side pain, blood in your urine, pregnancy or possible pregnancy, STI risk, pelvic pain, or repeated UTIs need in-person assessment. The intake asks about these before payment.",
     pricingDescription: "Private online review for UTI symptoms and safety boundaries",
     faqSubtitle: "Everything you need to know before starting a UTI assessment online.",
+    faq: UTI_FAQ,
     referralContext: "dealing with UTI symptoms",
     finalTitle: "UTI symptoms? Start with a secure form.",
     finalSubtitle: "A doctor reviews your symptoms and safety answers before deciding what is clinically appropriate.",
@@ -141,6 +147,7 @@ const INTENT_COPY: Record<WomensHealthIntent, WomensHealthIntentCopy> = {
       "Pregnancy or possible pregnancy, migraine with aura, clot history, smoking risk, high blood pressure, pelvic pain, heavy bleeding, STI risk, or safety uncertainty can require a call, in-person review, or a different pathway.",
     pricingDescription: "Private online review to start or switch the contraceptive pill",
     faqSubtitle: "Everything you need to know before starting a contraceptive pill assessment online.",
+    faq: PILL_FAQ,
     referralContext: "reviewing contraception options",
     finalTitle: "Start or switch the pill with doctor review.",
     finalSubtitle: "Fill a short form. A doctor reviews your safety screen and decides what is clinically appropriate.",
@@ -458,7 +465,7 @@ export function WomensHealthLanding({ intent = "overview" }: { intent?: WomensHe
             pill="FAQ"
             title="Frequently asked questions"
             subtitle={copy.faqSubtitle}
-            items={WOMENS_HEALTH_FAQ}
+            items={copy.faq}
             initialCount={4}
             onFAQOpen={handleFAQOpen}
             viewAllHref="/faq"

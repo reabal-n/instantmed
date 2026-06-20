@@ -286,6 +286,7 @@ const PUBLIC_PRESCRIPTION_DRUG_TERM_PATTERNS = [
   /\bTGA-approved (?:treatments?|medications?)\b/i,
   /\bclinically proven (?:approach|treatment|medication)\b/i,
   /\bdoctor-prescribed treatment\b/i,
+  /\bantibiotics?\b/i,
 ]
 
 const PUBLIC_REVIEW_ADVERTISING_PATTERNS = [
