@@ -188,7 +188,7 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
               { value: "pill", label: "The pill" },
               { value: "iud", label: "IUD or implant" },
               { value: "other", label: "Other" },
-              { value: "none", label: "No" },
+              { value: "none", label: "None" },
             ]}
             value={contraceptionCurrent}
             onChange={(value) => {

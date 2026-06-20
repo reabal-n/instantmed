@@ -35,6 +35,12 @@ describe("women's-health intent entry pages", () => {
       expect(source, page.file).toContain(page.variant)
       expect(source, page.file).toContain(`url="${page.route}"`)
 
+      // Indexability lives next to the canonical assertion (not split into a
+      // separate sitemap contract): the canonical must sit in
+      // metadata.alternates.canonical, and the page must not be noindexed.
+      expect(source, `${page.file} alternates.canonical`).toContain(`canonical: "${page.canonical}"`)
+      expect(source, `${page.file} not noindexed`).not.toMatch(/index:\s*false|\bnoindex\b/i)
+
       for (const copy of page.requiredCopy) {
         expect(source, `${page.file}:${copy}`).toContain(copy)
       }
@@ -51,6 +57,13 @@ describe("women's-health intent entry pages", () => {
     expect(landing).toContain('analyticsId: "womens-health-pill"')
     expect(contentHubLinks).toContain("/uti-assessment-online")
     expect(contentHubLinks).toContain("/contraceptive-pill-assessment-online")
+
+    // The women's-health content-hub block renders on the paid intent pages, so
+    // it must carry no prescription drug-class anchor (the "UTI antibiotics
+    // online" regression). Scoped to the women's-health block so the hair-loss
+    // educational links elsewhere in the file are not in scope.
+    const womensHealthHub = contentHubLinks.slice(contentHubLinks.indexOf('"womens-health": {'))
+    expect(womensHealthHub).not.toMatch(/\bantibiotics?\b/i)
 
     const combinedSource = [landing, ...pages.map((page) => read(page.file))].join("\n")
     expect(combinedSource).not.toContain("womens_health_uti")

@@ -17,12 +17,13 @@ export const metadata: Metadata = {
   title: { absolute: "Women's Health Assessment | UTI + Pill Online | InstantMed" },
   description: `UTI and contraceptive pill assessment from an Australian doctor. Fill out a secure form, no booked appointment or waiting room. From ${PRICING_DISPLAY.WOMENS_HEALTH}.`,
   keywords: [
-    "uti assessment online australia",
-    "online uti treatment australia",
+    // Hub targets the broad women's-health term; the exact "uti assessment online
+    // australia" head term is reserved for the /uti-assessment-online child page.
     "womens health assessment online",
-    "contraceptive pill online australia",
-    "online doctor uti",
     "telehealth womens health australia",
+    "online doctor womens health",
+    "contraceptive pill online australia",
+    "uti and contraceptive pill online",
   ],
   openGraph: {
     title: "Women's Health Assessment | UTI + Pill Online | InstantMed",
