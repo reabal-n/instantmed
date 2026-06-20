@@ -138,6 +138,29 @@ jobs:
           PARCHMENT_SMOKE_USER_ID: ${{ secrets.PARCHMENT_SMOKE_USER_ID }}
         run: pnpm smoke:parchment
 
+      # Detection complement to the pre-push gate: a direct push to main that
+      # fails the build means production may be running unverified code AND the
+      # red can sit unnoticed (it did for days on 2026-06-18). Ping Telegram so
+      # it's seen. Only fires on push-to-main failures; PRs are gated by review.
+      - name: Alert Telegram on main build failure
+        if: ${{ failure() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
+            echo "::warning::TELEGRAM_BOT_TOKEN/CHAT_ID not set as Actions secrets - main-red alert skipped."
+            exit 0
+          fi
+          run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          printf -v msg '🔴 main CI build FAILED - production may be unverified.\ncommit %.9s by %s\n%s' "$GITHUB_SHA" "$GITHUB_ACTOR" "$run_url"
+          curl -sS --max-time 15 -X POST \
+            "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=${msg}" \
+            --data-urlencode "disable_web_page_preview=true" \
+            >/dev/null || echo "::warning::Telegram alert request failed (non-blocking)."
+
   lighthouse:
     needs: build
     runs-on: ubuntu-latest
