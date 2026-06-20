@@ -9,7 +9,7 @@ import {
   SpeakableSchema,
 } from "@/components/seo"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
-import { WOMENS_HEALTH_FAQ } from "@/lib/data/womens-health-faq"
+import { PILL_FAQ } from "@/lib/data/womens-health-faq"
 
 export const revalidate = 86400
 
@@ -50,7 +50,7 @@ export default function Page() {
         description={`Start or switch the contraceptive pill after AHPRA-registered Australian doctor review. From ${PRICING_DISPLAY.WOMENS_HEALTH}. The doctor reviews your safety screen and decides what is clinically appropriate.`}
         url="/contraceptive-pill-assessment-online"
       />
-      <FAQSchema faqs={[...WOMENS_HEALTH_FAQ]} />
+      <FAQSchema faqs={[...PILL_FAQ]} />
       <BreadcrumbSchema
         items={[
           { name: "Home", url: "https://instantmed.com.au" },

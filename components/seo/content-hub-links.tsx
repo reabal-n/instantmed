@@ -169,7 +169,10 @@ const SERVICE_LINKS: Record<string, {
       { href: "/blog/telehealth-safety-screening", label: "How telehealth safety screening works" },
     ],
     blog: [
-      { href: "/blog/uti-antibiotics-online-australia", label: "UTI antibiotics online: what to know" },
+      // No prescription drug-class anchor text/URL here: this block renders on the
+      // women's-health PAID prescription destinations (advertising-compliance §7).
+      // UTI-prescription intent is covered by the /blog/uti-prescription-online
+      // guide above; the drug-class explainer stays reachable from organic surfaces.
       { href: "/blog/when-telehealth-cant-help", label: "When online care is not enough" },
       { href: "/blog/how-doctors-review-online-requests", label: "How doctors review online requests" },
     ],
