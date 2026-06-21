@@ -217,25 +217,14 @@ export function ServiceCards() {
         </div>
 
         {/* Note */}
-        <p className="text-center text-xs text-muted-foreground mb-3">
+        <p className="text-center text-xs text-muted-foreground mb-10 sm:mb-14">
           Private service. No Medicare rebate, but PBS subsidies may still apply at the pharmacy.
         </p>
 
-        {/* Descriptive internal links to the two head money pages. The cards
-            above go straight to intake to protect conversion, so this quiet
-            line is where the homepage passes contextual, keyword-matched link
-            equity to /medical-certificate and /prescriptions. */}
-        <p className="text-center text-xs text-muted-foreground mb-10 sm:mb-14">
-          New here? Read how{" "}
-          <Link href="/medical-certificate" className="text-primary hover:underline">
-            online medical certificates
-          </Link>{" "}
-          and{" "}
-          <Link href="/prescriptions" className="text-primary hover:underline">
-            repeat prescriptions online
-          </Link>{" "}
-          work.
-        </p>
+        {/* NOTE: the descriptive money-page links that used to sit here moved to
+            the server-rendered <HomeServiceLinks /> block in app/(marketing)/page.tsx
+            so they ship in raw HTML (this component is dynamically imported, so its
+            links only reached the streamed RSC payload — a weak crawl signal). */}
 
         {/* Coming soon teaser: compact preview only, not a waitlist surface. */}
         {comingSoonServices.length > 0 && (

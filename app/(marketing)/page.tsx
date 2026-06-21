@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { Suspense } from 'react'
 
 import { Hero } from '@/components/marketing/hero'
+import { HomeServiceLinks } from '@/components/marketing/home-service-links'
 import { IntakeResumeChip } from '@/components/marketing/intake-resume-chip'
 import { MarketingPageShell } from '@/components/marketing/marketing-page-shell'
 import { FAQSchema, MedicalBusinessSchema, SpeakableSchema } from '@/components/seo/healthcare-schema'
@@ -174,6 +175,13 @@ export default async function HomePage() {
 
         {/* 2. Service cards - what we offer */}
         <ServiceCards />
+
+        {/* Server-rendered raw-HTML links to the service landing + pillar pages.
+            ServiceCards is dynamically imported, so its links live only in the
+            streamed RSC payload; this block puts keyword-matched links to the
+            never-crawled money/pillar/verify pages into the static HTML of the
+            highest-authority page (crawl demand). See component header. */}
+        <HomeServiceLinks />
 
         {/* Editorial lifestyle photo, primary. Quiet visual break between
             the dense service grid and the "how it works" rhythm. */}
