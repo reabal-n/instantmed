@@ -72,7 +72,7 @@ export function OpsDashboardClient({ counters, invariants, recoveries, heardAbou
           />
           <CounterCard
             count={counters.webhookDlq.count}
-            label="Webhook DLQ"
+            label="Stripe webhook DLQ"
             helperText={counters.webhookDlq.helperText}
             tone={counters.webhookDlq.tone}
             href={counters.webhookDlq.href}
@@ -168,7 +168,7 @@ export function OpsDashboardClient({ counters, invariants, recoveries, heardAbou
         >
           <header className="border-b border-border/40 px-4 py-3">
             <h2 className="text-sm font-semibold tracking-tight text-foreground">
-              Recent (last 24h)
+              Recent (7 days)
             </h2>
           </header>
           {recoveries.length === 0 ? (

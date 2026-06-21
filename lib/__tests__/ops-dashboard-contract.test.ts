@@ -134,6 +134,20 @@ describe("ops dashboard data contract", () => {
     expect(opsPageSource).toContain("no_awaiting_script_intake")
   })
 
+  it("excludes ALL external patient_not_found webhooks from the prescription-delivery count + feed", () => {
+    // patient_not_found = no InstantMed profile matched (the doctor's non-InstantMed
+    // Parchment scripts). They must not inflate the Parchment-unsynced counter or the
+    // recent feed, regardless of the sandbox sentinel.
+    expect(opsPageSource).toContain('if (error === "patient_not_found") return true')
+  })
+
+  it("uses honest counter + feed labels (Stripe-scoped DLQ, 7-day recent window)", () => {
+    expect(opsClientSource).toContain('label="Stripe webhook DLQ"')
+    expect(opsClientSource).toContain("Recent (7 days)")
+    expect(opsClientSource).not.toContain('label="Webhook DLQ"')
+    expect(opsClientSource).not.toContain("Recent (last 24h)")
+  })
+
   it("does not render a second navigation menu at the bottom of ops", () => {
     expect(opsClientSource).not.toContain("opsActionGroups")
     expect(opsClientSource).not.toContain("Recovery Paths")

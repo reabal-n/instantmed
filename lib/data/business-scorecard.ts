@@ -106,11 +106,11 @@ export function buildBusinessOperatingScorecard(input: BusinessScorecardInput): 
       target: "30-50 orders/day triggers admin/support planning",
     }),
     cacCeilingCents: metric({
-      label: "CAC ceiling",
+      label: "Max CAC @30% first-order",
       value: cacCeilingCents,
       display: cacCeilingCents == null ? "No paid orders" : formatCurrencyCents(cacCeilingCents),
       status: cacCeilingCents == null ? "unknown" : "healthy",
-      target: "Keep CAC below 30% of first-order gross",
+      target: "30% of first-order gross (~AOV) — a spend ceiling, not measured CAC",
     }),
     refundRate: metric({
       label: "Refund rate",
