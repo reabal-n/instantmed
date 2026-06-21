@@ -45,7 +45,6 @@ export function FAQSection({
   initialCount,
 }: FAQSectionProps) {
   const [expanded, setExpanded] = useState(false)
-  const visibleItems = initialCount && !expanded ? items.slice(0, initialCount) : items
   const idBase = id.replace(/[^a-zA-Z0-9_-]/g, "-")
 
   return (
@@ -64,15 +63,23 @@ export function FAQSection({
             }
           }}
         >
-          {visibleItems.map((item, index) => {
+          {items.map((item, index) => {
             const triggerId = `${idBase}-question-${index}`
             const contentId = `${idBase}-answer-${index}`
+            // Render ALL items so every answer is in the served HTML for
+            // Bing/LLM/SGE crawlers (GEO). Overflow items past initialCount are
+            // visually hidden until "Show all" — same UX as the old slice(), but
+            // the text stays in the DOM instead of being omitted entirely.
+            const isOverflow = !!initialCount && !expanded && index >= initialCount
 
             return (
               <AccordionItem
                 key={index}
                 value={index.toString()}
-                className="border-b border-border/30 first:border-t first:border-t-border/30"
+                className={cn(
+                  "border-b border-border/30 first:border-t first:border-t-border/30",
+                  isOverflow && "hidden",
+                )}
               >
                 <AccordionTrigger
                   id={triggerId}
