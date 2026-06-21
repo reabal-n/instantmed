@@ -1,6 +1,6 @@
 # InstantMed - Australian Telehealth Platform
 
-> InstantMed Pty Ltd (ABN 64 694 559 334) is an Australian telehealth platform for one-off medical certificate, repeat prescription, ED, and hair loss requests. AHPRA-registered doctors review requests and decide what is clinically appropriate.
+> InstantMed Pty Ltd (ABN 64 694 559 334) is an Australian telehealth platform for one-off medical certificate, repeat prescription, ED, hair loss, and women's health (UTI and contraceptive pill) requests. AHPRA-registered doctors review requests and decide what is clinically appropriate.
 
 ## Quote-Ready Facts
 
@@ -8,7 +8,7 @@
 - **Address:** Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010
 - **Service area:** Australia-wide telehealth
 - **Clinical model:** AHPRA-registered doctors review each request. Clinical decisions are not automated.
-- **Active services:** Medical certificates, repeat prescriptions, ED, and hair loss requests
+- **Active services:** Medical certificates, repeat prescriptions, ED, hair loss, and women's health (UTI and contraceptive pill) requests
 - **Hours:** Requests can be submitted 24/7. Prescription and consultation review timing is 8am-10pm AEST, 7 days.
 - **Refund policy:** Full refund if the doctor declines the request.
 - **Complaints:** complaints@instantmed.com.au, 24h acknowledgement, 14-day clinical review.
@@ -22,6 +22,8 @@
 3. **Hair loss requests** - Structured form-first assessment for hair loss concerns. The doctor reviews safety information and contacts the patient if more information is clinically needed. $49.95.
 
 4. **ED requests** - Structured form-first assessment for erectile dysfunction concerns. The doctor reviews safety screening and contacts the patient if more information is clinically needed. $49.95.
+
+5. **Women's health requests** - Structured form-first assessment for uncomplicated urinary tract infection (UTI) and for starting, switching, or repeating the contraceptive pill. The doctor reviews safety screening and contacts the patient if more information is clinically needed. $49.95.
 
 ## How It Works
 
@@ -64,6 +66,8 @@
 - Prescriptions: https://instantmed.com.au/prescriptions
 - Hair loss: https://instantmed.com.au/hair-loss
 - Erectile dysfunction: https://instantmed.com.au/erectile-dysfunction
+- Women's health (UTI and contraceptive pill): https://instantmed.com.au/womens-health
+- Online doctor / consult overview: https://instantmed.com.au/consult
 - About: https://instantmed.com.au/about
 - Trust and safety: https://instantmed.com.au/trust
 - Clinical governance: https://instantmed.com.au/clinical-governance
