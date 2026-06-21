@@ -199,6 +199,7 @@ export async function POST(request: Request) {
           partnerPatientId: partner_patient_id,
           prescriberUserId: user_id,
         }),
+        { sentry: false },
       )
       // Return 200 to prevent retries - patient genuinely doesn't exist in our system
       return NextResponse.json({ received: true, warning: "Patient not found" })
@@ -693,15 +694,24 @@ async function recordParchmentWebhookMismatch(
   reason: string,
   eventId: string,
   metadata: Record<string, unknown> = {},
+  opts: { sentry?: boolean } = {},
 ) {
-  Sentry.captureMessage("Parchment webhook could not match prescription.created to an intake", {
-    level: "warning",
-    tags: {
-      source: "parchment-webhook",
-      unmatched_reason: reason,
-    },
-    extra: { eventId },
-  })
+  // patient_not_found = no InstantMed profile matched by construction. The same
+  // Parchment login is used for the doctor's non-InstantMed prescribing, so these
+  // are external scripts (live-verified: 0/132 matched an InstantMed patient), not
+  // InstantMed failures — that call site passes { sentry: false } to keep the
+  // durable audit row without paging ~130 noise warnings/month. Every other reason
+  // (prescriber_not_linked, no_awaiting_script_intake, ...) keeps its warning.
+  if (opts.sentry !== false) {
+    Sentry.captureMessage("Parchment webhook could not match prescription.created to an intake", {
+      level: "warning",
+      tags: {
+        source: "parchment-webhook",
+        unmatched_reason: reason,
+      },
+      extra: { eventId },
+    })
+  }
 
   try {
     await logWebhookFailure(eventId, "parchment:prescription.created", null, reason, metadata)

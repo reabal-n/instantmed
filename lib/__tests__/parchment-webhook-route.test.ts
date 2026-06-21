@@ -263,6 +263,26 @@ describe("Parchment webhook route", () => {
     )
   })
 
+  it("keeps Sentry quiet for external patient_not_found webhooks but writes the durable audit row", async () => {
+    // No InstantMed profile matches the webhook -> patient_not_found. By construction
+    // this is the doctor's non-InstantMed Parchment prescribing (live-verified 0/132
+    // matched an InstantMed patient), not an InstantMed delivery failure. We keep the
+    // durable audit row but skip the Sentry warning to stop ~130 noise alerts/month.
+    mocks.state.patientProfileFound = false
+
+    const response = await POST(makeWebhookRequest())
+
+    expect(response.status).toBe(200)
+    expect(mocks.logWebhookFailure).toHaveBeenCalledWith(
+      "evt_route_1",
+      "parchment:prescription.created",
+      null,
+      "patient_not_found",
+      expect.any(Object),
+    )
+    expect(mocks.captureMessage).not.toHaveBeenCalled()
+  })
+
   it("keeps the Playwright-only Parchment sync skip quiet after script evidence", async () => {
     process.env.PLAYWRIGHT = "1"
 

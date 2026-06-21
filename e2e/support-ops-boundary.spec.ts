@@ -27,7 +27,7 @@ test.describe("Support Ops Boundary", () => {
     await expect(sidebar.getByRole("link", { name: "Requests" })).toHaveAttribute("href", STAFF_TEST_ROUTES.adminIntakes)
 
     const recoveryCounters = page.getByRole("region", { name: "Recovery counters" })
-    await expect(recoveryCounters.getByRole("link", { name: /Webhook DLQ/ })).toHaveAttribute(
+    await expect(recoveryCounters.getByRole("link", { name: /Stripe webhook DLQ/ })).toHaveAttribute(
       "href",
       STAFF_TEST_ROUTES.adminWebhookDlq,
     )

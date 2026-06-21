@@ -26,13 +26,13 @@ test.describe("Ops Index Page", () => {
 
     // Visible labels in the 5 tiles
     await expect(page.getByText("Payment failures")).toBeVisible()
-    await expect(page.getByText("Webhook DLQ")).toBeVisible()
+    await expect(page.getByText("Stripe webhook DLQ")).toBeVisible()
     await expect(page.getByText("Parchment unsynced")).toBeVisible()
     await expect(page.getByText("Missing identity")).toBeVisible()
     await expect(page.getByText("Google Ads conversions")).toBeVisible()
 
-    // Recent (last 24h) block heading visible regardless of content
-    await expect(page.getByRole("heading", { name: /Recent \(last 24h\)/ })).toBeVisible()
+    // Recent (7 days) block heading visible regardless of content
+    await expect(page.getByRole("heading", { name: /Recent \(7 days\)/ })).toBeVisible()
 
     // Retired headings must not appear
     await expect(page.getByRole("heading", { name: "Needs attention" })).toHaveCount(0)
@@ -46,7 +46,7 @@ test.describe("Ops Index Page", () => {
     await page.waitForLoadState("networkidle")
 
     const cards = page.getByRole("region", { name: "Recovery counters" }).getByTestId("counter-card")
-    // Order matches the page: Payment failures, Webhook DLQ, Parchment unsynced,
+    // Order matches the page: Payment failures, Stripe webhook DLQ, Parchment unsynced,
     // Missing identity, Google Ads conversions
     await expect(cards.nth(0)).toHaveAttribute(
       "href",

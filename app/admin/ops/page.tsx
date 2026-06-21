@@ -44,11 +44,15 @@ function isNonActionableParchmentSandboxError(row: AuditRow): boolean {
   const error = metadataString(row.metadata, "error")
   // no_awaiting_script_intake: real patient, prescription written outside an active InstantMed intake
   if (error === "no_awaiting_script_intake") return true
-  // patient_not_found with Parchment's own sandbox sentinel — pre-fix test noise
-  if (
-    error === "patient_not_found"
-    && metadataString(row.metadata, "parchment_patient_id") === "nonexistent-parchment-patient"
-  ) return true
+  // patient_not_found = no InstantMed profile matched the webhook by construction.
+  // The same Parchment login is used for the doctor's non-InstantMed prescribing,
+  // so every patient_not_found is an external script, not an InstantMed delivery
+  // failure (live-verified: 0/132 matched any InstantMed patient). Exclude them all
+  // from the prescription_delivery counter + recent feed. The durable audit row is
+  // still written; the genuinely-actionable reasons (prescription_sync_failed,
+  // prescriber_not_linked, script_completion_failed) involve a matched patient and
+  // are kept.
+  if (error === "patient_not_found") return true
   return false
 }
 

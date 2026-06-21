@@ -255,7 +255,7 @@ export function AnalyticsDashboardClient({
                 status={scorecardStatus(businessScorecard.paidOrderVolume.status)}
               />
               <StatCard
-                label="CAC ceiling"
+                label="Max CAC @30%"
                 value={businessScorecard.cacCeilingCents.display}
                 icon={<WalletCards className="h-5 w-5" />}
                 status={scorecardStatus(businessScorecard.cacCeilingCents.status)}

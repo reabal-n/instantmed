@@ -106,7 +106,7 @@ Review weekly before scaling paid traffic or adding clinical capacity. The point
 |--------|--------------|------------------------|
 | Monthly gross revenue | Pull from Stripe/Supabase paid intakes, net of refunded orders in the same period. | Scale only when revenue is growing with stable refund, chargeback, and queue metrics. |
 | Paid order volume | Paid intakes by service line, excluding seeded E2E and failed checkout rows. | 30-50 orders/day triggers admin/support planning; service mix must not overload prescribing review time. |
-| CAC ceiling | Paid spend divided by paid first orders by channel. | Keep CAC below 30% of first-order gross profit for low-AOV services before increasing spend. |
+| Max CAC @30% first-order (CAC ceiling) | Paid spend divided by paid first orders by channel. | 30% of first-order gross (~AOV) — a spend ceiling, not measured CAC. Keep CAC below this for low-AOV services before increasing spend. |
 | Refund rate | Refunded or partially refunded paid intakes by service line. | Stay below 8-10%; spikes pause paid ramp and trigger eligibility/copy review. |
 | Chargeback rate | Stripe disputes divided by paid orders. | Stay below 0.5%; any cluster gets same-week root-cause review. |
 | Support tickets per 100 orders | Support-visible patient/admin contacts per 100 paid orders. | Stay below 5 per 100; above target means fix product friction before adding demand. |
