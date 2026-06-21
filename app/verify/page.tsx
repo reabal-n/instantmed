@@ -11,6 +11,16 @@ import { VerifyClient } from "./verify-client"
 export const metadata: Metadata = {
   title: "Verify Medical Certificate",
   description: "Employers and institutions can verify the authenticity of medical certificates issued by InstantMed. Enter the verification code to confirm document validity.",
+  // Explicit self-canonical. Without this, /verify inherits the root layout's
+  // default `alternates: { canonical: "/" }` (app/layout.tsx) and ships a
+  // canonical pointing at the homepage, telling Google to fold /verify into the
+  // homepage even though it is indexable and advertised in the sitemap
+  // (app/sitemap.ts, priority 0.8). Absolute URL matches the sibling pattern on
+  // app/medical-certificate/page.tsx. (GSC 2026-06-21: /verify was the only one
+  // of 132 advertised pages with a cross-canonical to the homepage.)
+  alternates: {
+    canonical: "https://instantmed.com.au/verify",
+  },
   openGraph: {
     title: "Verify Medical Certificate | InstantMed",
     description: "Verify the authenticity of medical certificates issued by InstantMed.",
