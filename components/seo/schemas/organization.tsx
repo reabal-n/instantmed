@@ -1,4 +1,4 @@
-import { CONTACT_EMAIL_HELLO,PRICING_DISPLAY } from "@/lib/constants"
+import { CONTACT_EMAIL_HELLO,PRICING,PRICING_DISPLAY } from "@/lib/constants"
 
 import { JsonLdScript } from "./json-ld-script"
 
@@ -108,6 +108,11 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
       itemListElement: [
         {
           "@type": "Offer",
+          // price + priceCurrency are required for a valid Offer; without them
+          // structured-data validators flag "missing field price". Entry price
+          // (med cert is "from" this) in AUD.
+          price: PRICING.MED_CERT.toFixed(2),
+          priceCurrency: "AUD",
           itemOffered: {
             "@type": "MedicalService",
             name: "Medical Certificate",
@@ -116,6 +121,8 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
         },
         {
           "@type": "Offer",
+          price: PRICING.REPEAT_SCRIPT.toFixed(2),
+          priceCurrency: "AUD",
           itemOffered: {
             "@type": "MedicalService",
             name: "Online Prescription",
