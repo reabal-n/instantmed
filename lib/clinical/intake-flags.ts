@@ -45,6 +45,10 @@ export const INTAKE_FLAG_TAXONOMY = {
   medication_form_missing: { label: "Form not provided", severity: "attention" },
   dose_not_stated: { label: "Current dose not stated", severity: "attention" },
   medication_count_high: { label: "More than 5 medications requested", severity: "info" },
+  // A medicine with a dedicated service (hair loss / women's health) was entered
+  // into the generic repeat/prescription flow. The patient is steered in-form;
+  // this flag is the doctor-side backstop so the routing is never client-only.
+  dedicated_service_medication: { label: "Has a dedicated service pathway", severity: "attention" },
 } as const satisfies Record<string, TaxonomyEntry>
 
 export type IntakeFlagCode = keyof typeof INTAKE_FLAG_TAXONOMY
