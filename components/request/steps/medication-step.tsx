@@ -10,8 +10,9 @@
  * - Keyboard navigation
  */
 
-import { ArrowRight, Plus, ShieldAlert, X } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import { ArrowRight, HeartPulse, Plus, ShieldAlert, X } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { EarlyRecoveryEmailCard } from "@/components/request/shared/early-recovery-email-card"
 import { IntakeStepIntro, QuestionCard } from "@/components/request/shared/intake-step-primitives"
@@ -24,6 +25,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { CONTROLLED_SUBSTANCE_DISCLAIMER, isControlledSubstance } from "@/lib/clinical/intake-validation"
+import { type DedicatedServiceMatch, detectDedicatedServiceForMedication } from "@/lib/clinical/medication-service-routing"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import {
   normalizeMedicationEntriesAnswer,
@@ -62,9 +64,15 @@ interface MedicationEntry {
 
 const UNKNOWN_MEDICATION_NAME = "Unknown - doctor will confirm"
 
+// Attribution params preserved when we hand a patient to a dedicated service,
+// mirroring the womens-health-type-step "continue my pill" redirect.
+const MEDICATION_STEER_ATTRIBUTION_PARAMS = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "ref", "gclid", "gbraid", "wbraid"]
+
 export default function MedicationStep({ serviceType, onNext }: MedicationStepProps) {
   const { answers, setAnswers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
+  const router = useRouter()
+  const searchParams = useSearchParams()
 
   // Support both single (legacy) and multi-medication modes
   const existingMedications = normalizeMedicationEntriesAnswer(answers.medications) as MedicationEntry[]
@@ -91,6 +99,8 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [controlledBlock, setControlledBlock] = useState<string | null>(null)
+  // Subtype the patient explicitly chose to keep as a repeat (clears the steer).
+  const [steerDismissedSubtype, setSteerDismissedSubtype] = useState<string | null>(null)
   const [blockedReasons, setBlockedReasons] = useState<string[]>([])
   const [recentMeds, setRecentMeds] = useState<RecentMedication[]>([])
 
@@ -228,6 +238,36 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     setControlledBlock(null)
   }
 
+  // Steer medicines that have a dedicated service (hair loss / women's health)
+  // out of the generic repeat/prescription flow. Intent-aware soft block: the
+  // patient can still keep it as a repeat (e.g. finasteride 5 mg for BPH, or
+  // continuing the same pill). The doctor-side backstop is the
+  // `dedicated_service_medication` flag (lib/clinical/derive-intake-flags.ts).
+  const steerEnabled = serviceType === "repeat-script" || serviceType === "prescription"
+  const serviceSteer = useMemo<DedicatedServiceMatch | null>(() => {
+    if (!steerEnabled) return null
+    for (const med of medications) {
+      const scanText = [med.product?.drug_name, med.name, med.strength, med.form, med.description]
+        .filter(Boolean)
+        .join(" ")
+      const match = detectDedicatedServiceForMedication(scanText)
+      if (match) return match
+    }
+    return null
+  }, [steerEnabled, medications])
+  const steerActive = serviceSteer !== null && serviceSteer.subtype !== steerDismissedSubtype
+
+  const goToDedicatedService = useCallback((subtype: string) => {
+    const params = new URLSearchParams()
+    for (const key of MEDICATION_STEER_ATTRIBUTION_PARAMS) {
+      const value = searchParams.get(key)
+      if (value) params.set(key, value)
+    }
+    params.set("service", "consult")
+    params.set("subtype", subtype)
+    router.push(`/request?${params.toString()}`)
+  }, [router, searchParams])
+
   const validate = useCallback(() => {
     const newErrors: Record<string, string> = {}
     const hasAtLeastOne = medications.some(m => m.product || m.name)
@@ -259,8 +299,9 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
 
   const handleNext = useCallback(() => {
     // A controlled substance is a hard clinical block — the destructive alert
-    // above already explains it; never advance past it.
-    if (controlledBlock) return
+    // above already explains it; never advance past it. The dedicated-service
+    // steer is a soft block with an explicit "keep as repeat" escape.
+    if (controlledBlock || steerActive) return
     if (validate()) {
       // Save to recent medications
       for (const med of medications) {
@@ -278,7 +319,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
       posthog?.capture('step_completed', { step: 'medication', medication_count: medications.filter(m => m.product || m.name).length })
       onNext()
     }
-  }, [controlledBlock, validate, medications, posthog, onNext])
+  }, [controlledBlock, steerActive, validate, medications, posthog, onNext])
 
   const activeMedications = medications.filter(m => m.product || m.name)
   // A3 softening: readiness no longer requires strength or form (both are
@@ -291,7 +332,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   })
   // Live-computed; controlledBlock stays (a real clinical block), the stale
   // `errors` object does not gate readiness.
-  const canContinue = Boolean(isComplete) && !controlledBlock
+  const canContinue = Boolean(isComplete) && !controlledBlock && !steerActive
 
   useEffect(() => {
     if (canContinue && blockedReasons.length > 0) setBlockedReasons([])
@@ -320,6 +361,37 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
           <AlertDescription className="text-xs">
             <p>{controlledBlock}</p>
             <p className="mt-1 font-medium">{CONTROLLED_SUBSTANCE_DISCLAIMER.advice}</p>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Dedicated-service steer (hair loss / women's health) */}
+      {steerActive && serviceSteer && (
+        <Alert>
+          <HeartPulse className="w-4 h-4" />
+          <AlertTitle>{serviceSteer.serviceLabel} has a dedicated service</AlertTitle>
+          <AlertDescription className="text-xs">
+            <p>
+              {serviceSteer.subtype === "womens_health"
+                ? "Starting or switching pills goes through our Women's Health service, which asks the right safety questions before prescribing."
+                : "This medicine is prescribed through our Hair Loss service, which includes the right safety screening."}
+            </p>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <Button type="button" size="sm" onClick={() => goToDedicatedService(serviceSteer.subtype)}>
+                Continue in {serviceSteer.serviceLabel}
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() => setSteerDismissedSubtype(serviceSteer.subtype)}
+              >
+                {serviceSteer.subtype === "womens_health"
+                  ? "I'm continuing my current pill — keep as repeat"
+                  : "I'm continuing an existing prescription — keep as repeat"}
+              </Button>
+            </div>
           </AlertDescription>
         </Alert>
       )}

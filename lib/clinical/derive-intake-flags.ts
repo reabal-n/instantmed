@@ -13,12 +13,14 @@
  */
 
 import {
+  buildRepeatScriptMedicationValidationText,
   countRepeatScriptMedicationRows,
   extractRepeatScriptMedications,
   MAX_REPEAT_SCRIPT_MEDICATIONS,
 } from "@/lib/validation/repeat-script-medications"
 
 import { dedupeIntakeFlags, type IntakeFlag, makeIntakeFlag } from "./intake-flags"
+import { detectDedicatedServiceForMedication } from "./medication-service-routing"
 
 export interface DeriveIntakeFlagsInput {
   category: string
@@ -39,6 +41,20 @@ function deriveRepeatScriptFlags(answers: Record<string, unknown>): IntakeFlag[]
   const medications = extractRepeatScriptMedications(answers)
 
   for (const medication of medications) {
+    // A medicine with a dedicated service (hair loss / women's health) reached
+    // the generic repeat flow. The patient is steered in-form; this is the
+    // doctor-side backstop. Scan the same text the controlled-substance block
+    // uses (name + brand + active ingredient + free-text description).
+    const dedicatedService = detectDedicatedServiceForMedication(
+      buildRepeatScriptMedicationValidationText(medication),
+    )
+    if (dedicatedService) {
+      flags.push(makeIntakeFlag("dedicated_service_medication", {
+        source: "clinical",
+        detail: `${medication.displayName || medication.name} → ${dedicatedService.serviceLabel}`,
+      }))
+    }
+
     const code = (medication.pbsCode || "").toUpperCase()
     const isUnknown = code === "UNKNOWN" || medication.name.toLowerCase().includes("unknown - doctor")
     if (isUnknown) {
