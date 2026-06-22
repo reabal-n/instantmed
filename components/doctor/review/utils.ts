@@ -17,21 +17,22 @@ export function stripGenericClinicalNoteBoilerplate(note: string): string {
 }
 
 /**
- * Format clinical note draft JSON into SOAP clinical note text.
+ * Format clinical note draft JSON into a brief plain-text clinical note paragraph.
+ * Field order: presentingComplaint, historyOfPresentIllness, relevantInformation,
+ * certificateDetails — joined as flowing sentences, no SOAP labels.
  */
 export function formatClinicalNoteContent(content: Record<string, unknown>): string | null {
   const c = content as Record<string, string>
-  const sections: string[] = []
-  const subj = c.presentingComplaint?.trim() || ""
-  const obj = c.historyOfPresentIllness?.trim() || ""
-  const assess = c.relevantInformation?.trim() || ""
-  const plan = c.certificateDetails?.trim() || ""
+  const pieces = [
+    c.presentingComplaint,
+    c.historyOfPresentIllness,
+    c.relevantInformation,
+    c.certificateDetails,
+  ]
+    .map((piece) => piece?.trim() || "")
+    .filter((piece) => piece.length > 0)
 
-  if (subj) sections.push(`Subjective:\n${subj}`)
-  if (obj) sections.push(`Objective:\n${obj}`)
-  if (assess) sections.push(`Assessment:\n${assess}`)
-  if (plan) sections.push(`Plan:\n${plan}`)
-  const formatted = sections.length > 0 ? sections.join("\n\n") : null
+  const formatted = pieces.length > 0 ? pieces.join(" ") : null
   return formatted ? stripGenericClinicalNoteBoilerplate(formatted) || null : null
 }
 

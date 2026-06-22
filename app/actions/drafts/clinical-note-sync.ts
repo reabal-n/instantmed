@@ -31,28 +31,25 @@ function isClinicalNoteJson(content: unknown): content is ClinicalNoteContent {
 }
 
 /**
- * Format clinical note JSON content into SOAP-format text for intake.doctor_notes
+ * Format clinical note JSON content into a brief plain-text paragraph for
+ * intake.doctor_notes.
  *
  * DETERMINISTIC: Same input always produces same output.
- * Section order: Subjective, Objective, Assessment, Plan.
+ * Field order: presentingComplaint, historyOfPresentIllness, relevantInformation,
+ * certificateDetails. No "Subjective:/Objective:/..." labels — the note reads as
+ * one flowing paragraph of sentences separated by a single space.
  */
 function formatClinicalNoteAsText(content: ClinicalNoteContent): string {
-  const sections: string[] = []
+  const pieces = [
+    content.presentingComplaint,
+    content.historyOfPresentIllness,
+    content.relevantInformation,
+    content.certificateDetails,
+  ]
+    .map((piece) => piece?.trim())
+    .filter((piece): piece is string => Boolean(piece))
 
-  if (content.presentingComplaint?.trim()) {
-    sections.push(`Subjective:\n${content.presentingComplaint.trim()}`)
-  }
-  if (content.historyOfPresentIllness?.trim()) {
-    sections.push(`Objective:\n${content.historyOfPresentIllness.trim()}`)
-  }
-  if (content.relevantInformation?.trim()) {
-    sections.push(`Assessment:\n${content.relevantInformation.trim()}`)
-  }
-  if (content.certificateDetails?.trim()) {
-    sections.push(`Plan:\n${content.certificateDetails.trim()}`)
-  }
-
-  return sections.join("\n\n")
+  return pieces.join(" ")
 }
 
 /**
