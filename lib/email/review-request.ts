@@ -4,6 +4,7 @@ import * as React from "react"
 
 import { getAppUrl } from "@/lib/config/env"
 import { signHeardAboutUsToken } from "@/lib/crypto/heard-about-us-token"
+import { SEEDED_E2E_PATIENT_PROFILE_ID } from "@/lib/data/seeded-e2e-data"
 import { ReviewRequestEmail,reviewRequestSubject } from "@/lib/email/components/templates/review-request"
 import { canSendMarketingEmail } from "@/lib/email/preferences"
 import { createLogger } from "@/lib/observability/logger"
@@ -160,4 +161,79 @@ export async function processReviewRequests(): Promise<{
   })
 
   return { requestSent, requestFailed }
+}
+
+/**
+ * One-time / catch-up backfill: approved or completed intakes that NEVER got a
+ * review email (fell outside the daily cron's 48-72h window, or predate it).
+ * Same satisfied-outcome filter as the cron, but no upper time bound — only a
+ * recency floor. Reuses sendReviewRequestEmail, so each send is marketing-
+ * consent gated, deduped via review_email_sent_at (won't double-send with the
+ * cron), and points at the current rotating review surface (ProductReview).
+ */
+export async function findReviewRequestBackfillCandidates(
+  opts: { sinceDays?: number; limit?: number } = {},
+): Promise<ApprovedIntake[]> {
+  const supabase = createServiceRoleClient()
+  const sinceDays = opts.sinceDays ?? 120
+  const since = new Date(Date.now() - sinceDays * 24 * 60 * 60 * 1000).toISOString()
+
+  const { data, error } = await supabase
+    .from("intakes")
+    .select(`
+      id,
+      patient_id,
+      category,
+      approved_at,
+      patient:profiles!patient_id(email, first_name, email_bounced)
+    `)
+    .in("status", ["approved", "completed"])
+    .is("review_email_sent_at", null)
+    .gte("approved_at", since)
+    .not("patient_id", "is", null)
+    .neq("patient_id", SEEDED_E2E_PATIENT_PROFILE_ID)
+    .order("approved_at", { ascending: false })
+
+  if (error) {
+    logger.error("Failed to fetch review backfill candidates", { error: error.message })
+    return []
+  }
+
+  const rows = (data || [])
+    .map((item) => {
+      const patient = Array.isArray(item.patient) ? item.patient[0] : item.patient
+      return { ...item, patient: patient ?? null }
+    })
+    .filter((item) => item.patient?.email && !(item.patient as Record<string, unknown>).email_bounced) as ApprovedIntake[]
+
+  return typeof opts.limit === "number" ? rows.slice(0, opts.limit) : rows
+}
+
+/**
+ * Process the review backfill. dryRun returns the candidate count without
+ * sending; pass limit to stage a partial first send.
+ */
+export async function processReviewRequestBackfill(
+  opts: { sinceDays?: number; limit?: number; dryRun?: boolean } = {},
+): Promise<{ candidates: number; sent: number; failed: number; dryRun: boolean }> {
+  const candidates = await findReviewRequestBackfillCandidates({
+    sinceDays: opts.sinceDays,
+    limit: opts.limit,
+  })
+
+  if (opts.dryRun) {
+    return { candidates: candidates.length, sent: 0, failed: 0, dryRun: true }
+  }
+
+  let sent = 0
+  let failed = 0
+  for (const intake of candidates) {
+    const ok = await sendReviewRequestEmail(intake)
+    if (ok) sent++
+    else failed++
+    await new Promise((resolve) => setTimeout(resolve, 150))
+  }
+
+  logger.info("Processed review backfill", { sent, failed, candidates: candidates.length })
+  return { candidates: candidates.length, sent, failed, dryRun: false }
 }
