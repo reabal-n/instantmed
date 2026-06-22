@@ -29,20 +29,20 @@ import type { IntakeDialogState } from "./use-intake-dialogs"
 const FULL_PAGE_NOTE_AUTOSAVE_MS = 2500
 
 /**
- * Format AI draft content into SOAP clinical note text.
+ * Format AI draft content into a brief plain-text clinical note paragraph.
+ * Field order: presentingComplaint, historyOfPresentIllness, relevantInformation,
+ * certificateDetails — joined as flowing sentences, no SOAP labels.
  */
 function formatDraftAsNote(content: Record<string, unknown>): string {
-  const sections: string[] = []
-  const subj = String(content.presentingComplaint || "").trim()
-  const obj = String(content.historyOfPresentIllness || "").trim()
-  const assess = String(content.relevantInformation || "").trim()
-  const plan = String(content.certificateDetails || "").trim()
-
-  if (subj) sections.push(`Subjective:\n${subj}`)
-  if (obj) sections.push(`Objective:\n${obj}`)
-  if (assess) sections.push(`Assessment:\n${assess}`)
-  if (plan) sections.push(`Plan:\n${plan}`)
-  return sections.join("\n\n")
+  return [
+    content.presentingComplaint,
+    content.historyOfPresentIllness,
+    content.relevantInformation,
+    content.certificateDetails,
+  ]
+    .map((piece) => String(piece || "").trim())
+    .filter((piece) => piece.length > 0)
+    .join(" ")
 }
 
 /** Find a usable clinical_note draft from the AI drafts list. */

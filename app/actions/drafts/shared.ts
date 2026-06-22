@@ -198,6 +198,105 @@ export function formatIntakeContext(
     if (answers.duration || answers.symptomDuration) {
       parts.push(`Duration of Concern: ${sanitizeAnswerValue(answers.duration || answers.symptomDuration, intakeId)}`)
     }
+
+    // Subtype-aware clinical fields. Without these the AI only sees the generic
+    // concern/category/urgency lines and drafts a med-cert-shaped note that
+    // ignores the real ED / hair-loss / women's-health screener data.
+    const consultSubtype = String(
+      answers.consultSubtype || answers.consult_subtype || intake.subtype || ""
+    ).toLowerCase()
+
+    // Helper: only emit a boolean safety line when the flag is truthy
+    // ("yes"/true). Many intake booleans are stored as the string "no".
+    const isTrue = (value: unknown): boolean =>
+      value === true || (typeof value === "string" && value.trim().toLowerCase() === "yes")
+
+    if (consultSubtype === "ed") {
+      if (answers.edGoal) {
+        parts.push(`Goal: ${sanitizeAnswerValue(answers.edGoal, intakeId)}`)
+      }
+      if (answers.edDuration) {
+        parts.push(`Duration: ${String(answers.edDuration).replace(/_/g, "-")}`)
+      }
+      if (answers.iiefTotal != null && answers.iiefTotal !== "") {
+        parts.push(`IIEF-5 score: ${sanitizeAnswerValue(answers.iiefTotal, intakeId)}/25`)
+      }
+      if (answers.edPreference) {
+        parts.push(`Treatment preference: ${String(answers.edPreference).replace(/_/g, "-")}`)
+      }
+      if (answers.previousEdMeds) {
+        parts.push(`Previous ED medication: ${sanitizeAnswerValue(answers.previousEdMeds, intakeId)}`)
+      }
+      if (answers.edPreviousTreatment) {
+        parts.push(`Previous treatment: ${sanitizeAnswerValue(answers.edPreviousTreatment, intakeId)}`)
+      }
+      if (answers.edPreviousEffectiveness) {
+        parts.push(`Previous treatment effectiveness: ${sanitizeAnswerValue(answers.edPreviousEffectiveness, intakeId)}`)
+      }
+      if (answers.symptom_severity) {
+        parts.push(`Severity: ${sanitizeAnswerValue(answers.symptom_severity, intakeId)}`)
+      }
+      // Safety screen — only surface flags that are actively reported.
+      if (isTrue(answers.edNitrates)) parts.push("Nitrate use: reported (contraindication)")
+      if (isTrue(answers.edAlphaBlockers)) parts.push("Alpha-blocker use: reported")
+      if (isTrue(answers.edRecentHeartEvent)) parts.push("Recent cardiac event: reported")
+      if (isTrue(answers.edSevereHeart)) parts.push("Severe heart condition: reported")
+    } else if (consultSubtype === "hair_loss") {
+      if (answers.hairGoal) {
+        parts.push(`Goal: ${sanitizeAnswerValue(answers.hairGoal, intakeId)}`)
+      }
+      if (answers.hairPattern) {
+        parts.push(`Pattern: ${sanitizeAnswerValue(answers.hairPattern, intakeId)}`)
+      }
+      if (answers.hairOnset) {
+        parts.push(`Onset: ${String(answers.hairOnset).replace(/_/g, "-")}`)
+      }
+      if (answers.hairFamilyHistory) {
+        parts.push(`Family history: ${sanitizeAnswerValue(answers.hairFamilyHistory, intakeId)}`)
+      }
+      if (answers.hairMedicationPreference) {
+        parts.push(`Treatment preference: ${String(answers.hairMedicationPreference).replace(/_/g, "-")}`)
+      }
+      // Scalp findings — only surface when reported.
+      if (isTrue(answers.scalpItching)) parts.push("Scalp itching: reported")
+      if (isTrue(answers.scalpDandruff)) parts.push("Dandruff: reported")
+      if (isTrue(answers.scalpPsoriasis)) parts.push("Scalp psoriasis: reported")
+      if (isTrue(answers.scalpFolliculitis)) parts.push("Folliculitis: reported")
+      // Safety screen — only surface flags that are actively reported.
+      if (isTrue(answers.hairHeartConditions)) parts.push("Heart condition: reported")
+      if (isTrue(answers.hairLowBP)) parts.push("Low blood pressure: reported")
+      if (isTrue(answers.hairReproductive)) parts.push("Reproductive/pregnancy consideration: reported")
+    } else if (consultSubtype === "womens_health") {
+      if (answers.womensHealthOption) {
+        parts.push(`Pathway: ${String(answers.womensHealthOption).replace(/_/g, "-")}`)
+      }
+      const utiSymptoms = answers.utiSymptoms
+      if (Array.isArray(utiSymptoms) && utiSymptoms.length > 0) {
+        parts.push(`UTI symptoms: ${utiSymptoms.map(s => sanitizeAnswerValue(s, intakeId)).join(", ")}`)
+      } else if (typeof utiSymptoms === "string" && utiSymptoms.trim()) {
+        parts.push(`UTI symptoms: ${sanitizeAnswerValue(utiSymptoms, intakeId)}`)
+      }
+      if (isTrue(answers.utiRedFlags)) parts.push("UTI red flags: reported")
+      if (isTrue(answers.utiPregnant)) parts.push("Pregnancy: reported")
+      // Allergies / conditions / other medications (women's-health-specific keys;
+      // the generic hasAllergies/currentMedications block below covers the shared keys).
+      if (isTrue(answers.hasAllergies)) {
+        const allergyDetail = answers.allergies
+        parts.push(`Allergies: ${allergyDetail ? sanitizeAnswerValue(allergyDetail, intakeId) : "Yes (not specified)"}`)
+      }
+      if (isTrue(answers.hasConditions)) {
+        const conditionDetail = answers.conditions
+        parts.push(`Conditions: ${conditionDetail ? sanitizeAnswerValue(conditionDetail, intakeId) : "Yes (not specified)"}`)
+      }
+      if (isTrue(answers.hasOtherMedications)) {
+        const medDetail = answers.otherMedications
+        parts.push(`Other medications: ${medDetail ? sanitizeAnswerValue(medDetail, intakeId) : "Yes (not specified)"}`)
+      }
+    }
+
+    if (answers.bmi != null && answers.bmi !== "") {
+      parts.push(`BMI: ${sanitizeAnswerValue(answers.bmi, intakeId)}`)
+    }
   }
 
   // Clinical history fields (all service types - useful for Relevant Information section)
