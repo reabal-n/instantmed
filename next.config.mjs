@@ -12,8 +12,19 @@ const nextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   typescript: {
-    // TypeScript errors have been fixed - enable strict type checking
-    ignoreBuildErrors: false
+    // Type-checking runs in CI (.github/workflows/ci.yml `build` job → `pnpm
+    // typecheck`) and gates every merge to main via branch protection, plus
+    // `pnpm ci` locally. Re-running tsc *inside* `next build` on Vercel duplicated
+    // ~49s/build of billed Build CPU Minutes for zero added safety — a type error
+    // can't reach a production build that CI already blocked. Revert: set both this
+    // and eslint.ignoreDuringBuilds back to false.
+    ignoreBuildErrors: true
+  },
+  eslint: {
+    // Same rationale: ESLint runs in CI (`pnpm lint`, --max-warnings 0) and
+    // pre-commit. Skipping the duplicate lint pass inside `next build` removes it
+    // from billed Vercel build minutes.
+    ignoreDuringBuilds: true
   },
   // Disable dev indicator — triggers SegmentViewNode webpack error in 15.5.x
   devIndicators: false,

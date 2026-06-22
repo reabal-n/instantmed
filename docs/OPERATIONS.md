@@ -363,6 +363,24 @@ Critical paths (Stripe, approvals, prescriptions) are always sampled at 1.0.
 
 ---
 
+## Build & Deployment Cost
+
+Vercel billing is dominated by **Build CPU Minutes**, not runtime compute. Two config-only levers keep it down; each reverts in one line.
+
+**1. Previews are skipped on non-production branches.** `vercel.json` sets `"ignoreCommand": "bash scripts/vercel-ignore-build.sh"`. The script builds only when `VERCEL_GIT_COMMIT_REF` is `main` (production auto-deploy is unchanged) and skips every other branch, so a feature/PR push no longer burns a full preview build (previews were ~half of all builds). Safe because the required CI gate `build` (`.github/workflows/ci.yml`: lint + typecheck + unit tests + Playwright E2E + Lighthouse, all against **localhost**) validates every PR and does **not** consume a Vercel preview URL; branch protection on `main` requires only the `build` check.
+- **Need a preview build** for a specific PR (to run the preview-only `e2e-preview.yml` smoke against the live URL, or eyeball a risky change): put `[preview]` anywhere in the latest commit message. The build runs and Vercel's `deployment_status` re-fires `e2e-preview.yml`.
+- **Revert:** delete the `ignoreCommand` line from `vercel.json` (the script goes inert).
+
+**2. Lint + type-check are not re-run inside `next build`.** `next.config.mjs` sets `typescript.ignoreBuildErrors: true` and `eslint.ignoreDuringBuilds: true`. CI (`pnpm lint` + `pnpm typecheck`) and `pnpm ci` already gate every merge, so re-running them inside the Vercel build was duplicated Build CPU Minutes — measured at **48.9s of a 186s production build**; local `pnpm build` dropped 88s → 67s.
+- **Caveat:** a direct `git push origin main` that bypasses CI (owner has `enforce_admins: false`) would not get an in-build type/lint check. Keep shipping via PR so CI runs — the normal auto-merge flow.
+- **Revert:** set both flags back to `false`.
+
+**Build machine tier (dashboard only).** Production builds run on the **Enhanced** machine (more vCPUs ≈ 2× Build CPU Minutes/build). Builds are not patient-facing, so downgrading to **Standard** in Settings → Build & Deployment roughly halves billed CPU-minutes/build for a longer wall time — recommended for cost. Dashboard-only; not settable via `vercel.json`.
+
+**Already optimal — do not "fix":** the pnpm/build cache restores on Vercel (build log: "Restored build cache from previous deployment"); Sentry source-map upload is token-gated to Vercel with `widenClientFileUpload: false` + `hideSourceMaps: true`. **Turbopack stays off** — hard-pinned, see CLAUDE.md Stack Pin Policy.
+
+---
+
 ## Cron Jobs Reference
 
 All crons use `verifyCronRequest()` from `lib/api/cron-auth.ts` for authentication.
