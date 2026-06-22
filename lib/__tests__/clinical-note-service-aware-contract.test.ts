@@ -17,6 +17,17 @@ const read = (p: string) => readFileSync(join(root, p), "utf8")
  *  3. The note must format as a brief plain paragraph, not SOAP sections.
  */
 describe("clinical note is service-aware + brief paragraph", () => {
+  it("intake context states an explicit, human-readable service label", () => {
+    // "Service Type: consult" was ambiguous — the AI couldn't tell ED from hair
+    // loss and defaulted to a med-cert note. The context must spell out the
+    // service + subtype so the note reflects the real request.
+    const src = read("app/actions/drafts/shared.ts")
+    expect(src).toContain("Hair loss consult")
+    expect(src).toContain("Erectile dysfunction (ED) consult")
+    expect(src).toMatch(/Women's health consult/)
+    expect(src).toContain('parts.push(`Service Type: ${serviceLabel}`)')
+  })
+
   it("formatIntakeContext surfaces consult-subtype clinical fields", () => {
     const src = read("app/actions/drafts/shared.ts")
     // Subtype routing
@@ -40,7 +51,9 @@ describe("clinical note is service-aware + brief paragraph", () => {
     expect(src).toMatch(/erectile dysfunction|\bed\b/i)
     expect(src).toContain("hair loss")
     expect(src).toMatch(/women'?s health|womens_health/i)
-    expect(src).toMatch(/NEVER assume|MUST reflect/i)
+    expect(src).toMatch(/NEVER default to a medical-certificate|write the note for THAT service/i)
+    // The examples must not be copyable verbatim (root cause of the med-cert bug)
+    expect(src).toMatch(/never copy an example\s+verbatim/i)
   })
 
   it("formatClinicalNoteAsText emits a plain paragraph (no SOAP labels)", () => {
