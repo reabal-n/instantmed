@@ -327,7 +327,6 @@ export function IntakeActionButtons({
     intake.risk_tier !== "high"
   const queueEnteredAt = getQueueEnteredAt(intake)
   const canApproveAfterPrescribe = intake.script_sent === true
-  const completeConsultNeedsScript = shouldPrescribeFromConsult && !canApproveAfterPrescribe
   const isActionDisabled = isPending || !isHydrated
   const approveAfterPrescribeTitle = hasPrescribingIdentityBlocker
     ? prescribingIdentityTitle
@@ -338,12 +337,14 @@ export function IntakeActionButtons({
     canPrescribeInParchment && !hasPrescribingIdentityBlocker && !canApproveAfterPrescribe
       ? "Complete or record the prescription in Parchment first."
       : null
+  // Complete Consultation is pressable once prescribing identity is complete.
+  // The script-sent webhook no longer gates it — clicking Complete records the
+  // prescription by the doctor's attestation (handled server-side in
+  // approvePrescribedScriptAction). See operator policy 2026-06-22.
   const completeConsultDisabledReason = shouldPrescribeFromConsult
     ? hasPrescribingIdentityBlocker
       ? prescribingIdentityTitle
-      : completeConsultNeedsScript
-        ? "Complete or record the prescription in Parchment first."
-        : approveDisabledReason
+      : approveDisabledReason
     : approveDisabledReason
   const visibleDisabledHint =
     disabledApproveHint ??

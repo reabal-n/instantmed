@@ -868,10 +868,27 @@ export async function approvePrescribedScriptAction(
     }
   }
 
+  // Operator policy (2026-06-22): the doctor prescribes in the Parchment iframe
+  // and then clicks "Complete Consultation" to finalise. The prescription.created
+  // webhook normally sets script_sent, but it does NOT fire in test mode (and can
+  // lag in prod), which left Complete permanently greyed. Completing on the
+  // doctor's attestation that they prescribed is permitted — the same trust model
+  // as "Mark Sent Manually". Identity stays enforced (the Complete button is
+  // disabled when prescribing identity is incomplete) and updateScriptSent
+  // re-checks status/payment completion eligibility before recording.
   if (intake.script_sent !== true) {
-    return {
-      success: false,
-      error: "Complete or record the prescription in Parchment before approving.",
+    const recorded = await updateScriptSent(
+      intakeId,
+      true,
+      "Prescribed in Parchment — confirmed by the reviewing doctor on completion.",
+      undefined,
+      profile.id,
+    )
+    if (!recorded) {
+      return {
+        success: false,
+        error: "Could not record the prescription. Check the request is paid and eligible for prescribing.",
+      }
     }
   }
 
