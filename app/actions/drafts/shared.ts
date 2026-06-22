@@ -81,7 +81,27 @@ export function formatIntakeContext(
   }
 
   parts.push(`Request Date: ${new Date().toISOString().split("T")[0]}`)
-  parts.push(`Service Type: ${serviceType}`)
+
+  // Explicit, human-readable service label. "Service Type: consult" alone is
+  // ambiguous — the AI cannot tell ED from hair loss from women's health and was
+  // defaulting to a medical-certificate note. Spell out the exact service +
+  // subtype so the clinical note reflects the real request.
+  const consultSubtypeForLabel = String(
+    answers.consultSubtype || answers.consult_subtype || intake.subtype || "",
+  ).toLowerCase()
+  const serviceLabel =
+    draftCategory === "med_cert"
+      ? "Medical certificate"
+      : draftCategory === "repeat_rx"
+        ? "Repeat prescription"
+        : consultSubtypeForLabel === "ed"
+          ? "Erectile dysfunction (ED) consult"
+          : consultSubtypeForLabel === "hair_loss"
+            ? "Hair loss consult"
+            : consultSubtypeForLabel === "womens_health"
+              ? "Women's health consult (UTI / contraceptive pill)"
+              : "Doctor consult"
+  parts.push(`Service Type: ${serviceLabel}`)
 
   // Common fields across all service types (support both camelCase and snake_case).
   // The legacy multi-select symptoms array is rarely populated by current intake

@@ -22,8 +22,14 @@ ${CLINICAL_SAFETY_PREAMBLE}
 Write a BRIEF clinical note based on the patient intake provided.
 
 CRITICAL — MATCH THE SERVICE:
-- The intake gives a "Service Type" (and, for consults, a subtype). Your note MUST
-  reflect the ACTUAL service requested. NEVER assume a medical certificate.
+- The intake's "Service Type:" line names the EXACT service (e.g. "Hair loss
+  consult", "Erectile dysfunction (ED) consult", "Repeat prescription", "Medical
+  certificate"). Write the note for THAT service. ONLY call it a medical
+  certificate if the Service Type literally says "Medical certificate".
+- NEVER default to a medical-certificate note for a consult. If the Service Type
+  is a consult, the note is about that consult concern, not a certificate.
+- The per-service examples below show the STYLE only. NEVER copy an example
+  verbatim — write from this patient's actual intake fields.
 - Services you may see: medical certificate, repeat prescription, or a consult
   subtype — erectile dysfunction (ed), hair loss (hair_loss), or women's health
   (womens_health, e.g. UTI or contraceptive pill).
