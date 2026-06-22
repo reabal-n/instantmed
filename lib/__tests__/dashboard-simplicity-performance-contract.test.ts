@@ -495,12 +495,16 @@ describe("dashboard simplicity and runtime performance contracts", () => {
     expect(notesEditorSource).toContain("setIsNoteFocused(false)")
     expect(notesEditorSource).toContain("min-h-[320px]")
     expect(notesEditorSource).toContain("focus-within:shadow-sm")
-    expect(reviewPanelSource).toContain("patientVisibleStatus")
-    expect(reviewPanelSource).toContain("data-patient-visible-status")
-    expect(reviewPanelSource).toContain("formatPatientVisiblePreview")
-    expect(reviewPanelSource).toContain("You're in the queue.")
-    expect(reviewPanelSource).toContain("You're next.")
-    expect(reviewPanelSource).toContain("A doctor is looking at your request now.")
+    // Patient-facing queue copy was removed from the doctor review header
+    // (2026-06-22 declutter — essentials only). The doctor doesn't need to see
+    // the message shown to the patient; it was pure noise on the review surface.
+    expect(reviewPanelSource).not.toContain("patientVisibleStatus")
+    expect(reviewPanelSource).not.toContain("data-patient-visible-status")
+    expect(reviewPanelSource).not.toContain("formatPatientVisiblePreview")
+    expect(reviewPanelSource).not.toContain("You're next.")
+    expect(reviewPanelSource).not.toContain("A doctor is looking at your request now.")
+    // The redundant "Case X of Y" chrome was also removed from the header.
+    expect(reviewPanelSource).not.toContain("Case {caseIndex + 1} of {totalCases}")
     expect(clinicalCaseReviewSource).toContain("visibleFacts.length > 0")
     expect(clinicalCaseReviewSource).toContain('<details open className="rounded-lg bg-muted/30')
     // "Patient answers" heading was removed in the distill pass; the section now

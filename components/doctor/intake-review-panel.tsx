@@ -185,20 +185,6 @@ function formatClaimStateLabel(lockState: IntakeLockState, now = Date.now()): st
   return lockState.lockedByName ? `${lockState.lockedByName} is reviewing` : "Another doctor is reviewing"
 }
 
-function formatPatientVisiblePreview({
-  status,
-  caseIndex,
-}: {
-  status: string
-  caseIndex?: number
-}): string | null {
-  if (!["paid", "in_review"].includes(status)) return null
-  const queuePosition = typeof caseIndex === "number" && caseIndex === 0
-    ? "You're next."
-    : "You're in the queue."
-  return `${queuePosition} A doctor is looking at your request now.`
-}
-
 export function IntakeReviewPanel({
   intakeId,
   previewIntake,
@@ -609,13 +595,6 @@ export function IntakeReviewPanel({
         previousIntakeCount,
       })
     : null
-  const patientVisibleStatus = inline
-    ? formatPatientVisiblePreview({
-        status: intake.status,
-        caseIndex,
-      })
-    : null
-  const patientFirstName = getPatientFirstName(intake.patient.full_name)
   const queueEnteredAt = getQueueEnteredAt(intake)
 
   return (
@@ -625,7 +604,6 @@ export function IntakeReviewPanel({
         description={[
           service?.short_name || formatServiceType(service?.type || ""),
           formatIntakeStatus(intake.status),
-          caseIndex != null && totalCases != null ? `Case ${caseIndex + 1} of ${totalCases}` : null,
         ].filter(Boolean).join(" · ")}
         onClose={handlePanelClose}
       >
@@ -663,9 +641,6 @@ export function IntakeReviewPanel({
                     targetMinutes={QUEUE_WAIT_TARGET_MINUTES}
                     showTargetState
                   />
-                  {caseIndex != null && totalCases != null && (
-                    <Badge variant="outline" size="sm">Case {caseIndex + 1} of {totalCases}</Badge>
-                  )}
                   {visibleClaimStateLabel ? (
                     <span
                       className={cn(
@@ -679,19 +654,6 @@ export function IntakeReviewPanel({
                     </span>
                   ) : null}
                 </div>
-                {patientVisibleStatus ? (
-                  <p
-                    className="mt-2 max-w-[72ch] truncate text-[11px] font-medium text-muted-foreground/80"
-                    data-patient-visible-status
-                    aria-label="Patient-visible status preview"
-                    title={patientVisibleStatus}
-                  >
-                    <span className="text-muted-foreground/60">
-                      {patientFirstName ? `${patientFirstName} sees: ` : "Patient sees: "}
-                    </span>
-                    {patientVisibleStatus}
-                  </p>
-                ) : null}
               </div>
               <div className="flex flex-wrap items-center justify-end gap-1.5" aria-label="Patient actions">
                 {/* Inline mode: j/k in the queue is the canonical case navigator,
