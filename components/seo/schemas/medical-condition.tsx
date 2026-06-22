@@ -34,6 +34,10 @@ export function MedicalConditionSchema({
 }: MedicalConditionSchemaProps) {
   const drugEntities = medications?.map((med) => ({
     "@type": "Drug",
+    // `name` (Thing.name) is required for a valid Drug entity — without it,
+    // structured-data validators flag "missing field name". Use the generic
+    // (non-proprietary) name as the canonical label.
+    name: med.genericName,
     nonProprietaryName: med.genericName,
     proprietaryName: med.brandNames[0] || med.genericName,
     drugClass: { "@type": "DrugClass", name: med.drugClass },
