@@ -1305,6 +1305,33 @@ ORDER BY paid_at DESC;
 
 2026-06-01 reconciliation: **0 anomalies** after backfilling the legacy study-certificate refund from Stripe (`refund_status='succeeded'`, Stripe refund ID, `refunded_at`, and corrected charged amount to match the Stripe PaymentIntent). A system audit row was written. Roadmap status: closed as an active incident; keep this invariant monitored in `/admin/ops`.
 
+### Q5 — Reactivation reminder funnel (refill reminders → reorders)
+
+Measures whether the one-off refill reminder (`/api/cron/refill-reminders`, fires ~week 10-11 post-issue) actually drives reorders. The first real wave lands ~2026-07-13 (the May-issued scripts maturing into the window). The reorder link carries `utm_source=refill_reminder`, so a paid reorder is attributable. `test=true` outbox rows (operator pre-flight `?testEmail=`) have a NULL `patient_id` and are excluded.
+
+```sql
+WITH sent AS (
+  SELECT patient_id, MIN(created_at) AS reminded_at
+  FROM email_outbox
+  WHERE email_type = 'refill_reminder' AND patient_id IS NOT NULL
+  GROUP BY patient_id
+),
+reorders AS (
+  SELECT DISTINCT s.patient_id
+  FROM sent s
+  JOIN intakes i ON i.patient_id = s.patient_id
+  WHERE i.utm_source = 'refill_reminder'
+    AND i.status IN ('paid', 'approved', 'completed', 'awaiting_script')
+    AND i.created_at >= s.reminded_at
+)
+SELECT
+  (SELECT COUNT(*) FROM sent) AS patients_reminded,
+  (SELECT COUNT(*) FROM reorders) AS patients_reordered,
+  ROUND(100.0 * (SELECT COUNT(*) FROM reorders) / NULLIF((SELECT COUNT(*) FROM sent), 0), 1) AS conversion_pct;
+```
+
+Run after each weekly wave. If conversion is healthy, the reactivation lever works → consider widening (e.g. a second nudge, or backfilling lapsed scripts once a back-catalog exists). If ~0 after a few waves with good deliverability, the email/offer needs rework before scaling.
+
 ### How these become alerts
 
 When the operator wants to formalize:
