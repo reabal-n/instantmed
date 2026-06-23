@@ -178,6 +178,36 @@ export async function sendRefillReminderEmail(candidate: RefillCandidate): Promi
 }
 
 /**
+ * Send ONE refill reminder to an explicit address for pre-flight deliverability
+ * testing. Bypasses the window / consent / dedup logic — it is NOT a patient
+ * lookup (the operator supplies their own address) and writes nothing to
+ * `prescriptions`. NOT gated by REFILL_REMINDER_EMAILS_ENABLED, so it works
+ * before the flag is flipped. CRON_SECRET-gated at the route.
+ */
+export async function sendTestRefillReminder(toEmail: string): Promise<boolean> {
+  const appUrl = getAppUrl()
+  const reorderUrl = `${appUrl}/prescriptions?utm_source=refill_reminder&utm_medium=email&utm_campaign=reactivation&test=1`
+
+  const result = await sendEmail({
+    to: toEmail,
+    subject: refillReminderSubject,
+    template: React.createElement(RefillReminderEmail, {
+      patientName: "there",
+      medicationName: "your medication",
+      appUrl,
+      reorderUrl,
+    }),
+    emailType: "refill_reminder" as import("./send-email").EmailType,
+    metadata: { test: true },
+    tags: [{ name: "category", value: "refill_reminder_test" }],
+  })
+
+  if (result.success) logger.info("Sent TEST refill reminder", { to: toEmail })
+  else logger.error("Failed to send TEST refill reminder", { to: toEmail, error: result.error })
+  return result.success
+}
+
+/**
  * Process all refill reminders. Called from the daily cron. No-ops (without
  * touching the DB) when the feature is disabled.
  */
