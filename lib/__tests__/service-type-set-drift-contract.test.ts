@@ -20,6 +20,7 @@
  */
 import { describe, expect, it } from "vitest"
 
+import { getDraftCategory, normalizeServiceType } from "@/lib/constants/service-types"
 import {
   getParchmentPatientSyncEligibility,
   getParchmentPrescribingEligibility,
@@ -238,6 +239,39 @@ describe("service-type Set drift contract", () => {
       }
       const filter = buildDoctorQueueServiceFilter(profile, services)
       expect(filter).toBe("id.is.null")
+    })
+  })
+
+  // ── Draft category mapping (generate-drafts.ts) ───────────────────────────
+  //
+  // The DB `services.type` value flows into draft generation via
+  // normalizeServiceType -> getDraftCategory. The shared `consult` service row
+  // (the parent for ed/hair_loss/womens_health) has type "consult", which is NOT
+  // a canonical ServiceType, so normalizeServiceType("consult") is null. It MUST
+  // draft as a CONSULT — a med-cert draft for a consult is clinically wrong and
+  // was the live bug behind Sentry INSTANTMED-2Q (fixed in #169). Lock it.
+  describe("draft category mapping (services.type -> draft category)", () => {
+    const expectedDraftByDbServiceType: Record<string, "med_cert" | "repeat_rx" | "consult"> = {
+      med_certs: "med_cert",
+      common_scripts: "repeat_rx",
+      mens_health: "consult",
+      womens_health: "consult",
+      weight_loss: "consult",
+      referrals: "consult",
+      pathology: "consult",
+      consult: "consult", // stray parent type — must NEVER fall back to a med-cert
+    }
+
+    for (const [dbType, expected] of Object.entries(expectedDraftByDbServiceType)) {
+      it(`services.type "${dbType}" drafts as "${expected}"`, () => {
+        expect(getDraftCategory(normalizeServiceType(dbType))).toBe(expected)
+      })
+    }
+
+    it("an unmapped / null service type drafts as a consult, never a med-cert", () => {
+      expect(normalizeServiceType("consult")).toBeNull()
+      expect(getDraftCategory(null)).toBe("consult")
+      expect(getDraftCategory(null)).not.toBe("med_cert")
     })
   })
 
