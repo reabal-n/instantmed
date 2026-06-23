@@ -33,18 +33,26 @@ export const CONTACT_PHONE = "0450 722 549"
 export const GOOGLE_REVIEW_URL = "https://g.page/r/CWqy3A7IKcX6EAE/review"
 
 /**
- * Day-2 review-email destination (GEO plan keystone 2.2). The approval email
- * keeps the Google ask; the day-2 email rotates to the third-party surfaces
- * that feed MediCompare rankings + LLM "is X legit" answers (ProductReview,
- * Trustpilot) so review volume builds where it compounds for GEO.
+ * Off-site review destination (GEO keystone). Every review CTA — the day-2
+ * review email AND the inline approval-email CTA — routes through
+ * /api/review-redirect to the third-party surface that compounds for GEO.
+ * ProductReview.com.au is the AU surface answer-engines (ChatGPT/Perplexity)
+ * cite, and it is already entity-linked from our `sameAs`, so we concentrate
+ * volume there until the listing has a credible base of reviews.
  *
- * Set these env vars (the operator's write-a-review URLs) to activate the
- * rotation; until then the redirect falls back to Google. Even months ->
- * ProductReview, odd months -> Trustpilot (each falls back to the other, then
- * to Google), so each platform reaches its review threshold instead of
- * splitting volume. Never solicit on InstantMed's own surfaces (AHPRA).
+ * ProductReview is the BAKED DEFAULT — a public write-a-review URL, not a
+ * secret — so this works in prod with no env step; the env var only OVERRIDES
+ * it. Trustpilot has no listing yet, so its arm stays empty and
+ * getRotatingReviewUrl resolves to ProductReview every month (the `tp || pr`
+ * branch falls through to pr). Google stays the ultimate fallback.
+ *
+ * Compliance: asking patients for off-site reviews is permitted (AHPRA). We
+ * NEVER display, count, rate, quote, or schema-mark any review on our own
+ * surfaces — that is the s133 line (ADVERTISING_COMPLIANCE.md §6).
  */
-export const PRODUCTREVIEW_REVIEW_URL = process.env.PRODUCTREVIEW_REVIEW_URL || ""
+export const PRODUCTREVIEW_REVIEW_URL =
+  process.env.PRODUCTREVIEW_REVIEW_URL ||
+  "https://www.productreview.com.au/listings/instantmed/write-review"
 export const TRUSTPILOT_REVIEW_URL = process.env.TRUSTPILOT_REVIEW_URL || ""
 
 /** Pick the day-2 review destination. monthIndex = new Date().getUTCMonth(). */
