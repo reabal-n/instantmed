@@ -2,6 +2,10 @@ import "server-only"
 
 import * as React from "react"
 
+import {
+  REFILL_REMINDER_WINDOW_MAX_DAYS,
+  REFILL_REMINDER_WINDOW_MIN_DAYS,
+} from "@/lib/clinical/repeats-policy"
 import { getAppUrl } from "@/lib/config/env"
 import { RefillReminderEmail, refillReminderSubject } from "@/lib/email/components/templates/refill-reminder"
 import { canSendMarketingEmail } from "@/lib/email/preferences"
@@ -12,10 +16,12 @@ import { sendEmail } from "./send-email"
 
 const logger = createLogger("refill-reminder")
 
-// Reorder window: a daily cron, so the 25-30 day band catches each script once
-// as it enters the window; refill_reminder_sent_at dedups across the band.
-const REORDER_WINDOW_MIN_DAYS = 25
-const REORDER_WINDOW_MAX_DAYS = 30
+// Reorder window (days since issue): a daily cron, so the band catches each script
+// once as it enters the window; refill_reminder_sent_at dedups across the band.
+// Tuned to ~week 10-11 — before a ~3-month (script + 2 repeats) supply runs out —
+// from the shared repeats standard so copy + cron can't drift.
+const REORDER_WINDOW_MIN_DAYS = REFILL_REMINDER_WINDOW_MIN_DAYS
+const REORDER_WINDOW_MAX_DAYS = REFILL_REMINDER_WINDOW_MAX_DAYS
 
 interface RefillCandidate {
   id: string
@@ -43,7 +49,7 @@ function dateNDaysAgoISO(days: number): string {
 }
 
 /**
- * Active repeatable scripts issued 25-30 days ago that have never had a refill
+ * Active repeatable scripts issued ~10-11 weeks ago that have never had a refill
  * reminder. Excludes bounced emails and any script the patient has already
  * superseded with a newer script for the same medication (they reordered).
  */

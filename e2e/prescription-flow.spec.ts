@@ -206,6 +206,11 @@ async function completeDetailsStep(page: Page) {
 async function completeReviewStep(page: Page) {
   await waitForStep(page, /One last check/i)
 
+  // Repeat prescriptions surface the "what to expect" repeats note before payment
+  // (lib/clinical/repeats-policy.ts) — assert the standard reaches the patient.
+  await expect(page.getByText(/What to expect/i).first()).toBeVisible()
+  await expect(page.getByText(/up to 2 repeats/i).first()).toBeVisible()
+
   const safetyCheckbox = page.locator("#safety-consent")
   await safetyCheckbox.scrollIntoViewIfNeeded()
   const isChecked = await safetyCheckbox.isChecked().catch(() => false)
