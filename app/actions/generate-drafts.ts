@@ -8,8 +8,6 @@
  * Called after payment is confirmed via Stripe webhook.
  */
 
-import * as Sentry from "@sentry/nextjs"
-
 import { deleteDrafts,draftsExist } from "@/lib/ai/drafts"
 import { getDraftCategory,normalizeServiceType } from "@/lib/constants/service-types"
 
@@ -100,39 +98,14 @@ export async function generateDraftsForIntake(
     const serviceType = normalizeServiceType(service.type)
 
     if (!serviceType) {
-      // Unknown service type - generate ONLY clinical_note draft and log warning to Sentry
-      log.warn("Unknown service type, generating clinical_note only", {
-        intakeId,
-        rawServiceType: service.type,
-      })
-
-      Sentry.captureMessage("Unknown service type in draft generation", {
-        level: "warning",
-        tags: {
-          service_type: service.type,
-          intake_id: intakeId,
-        },
-        extra: {
-          serviceName: service.name,
-          serviceSlug: service.slug,
-        },
-      })
-
-      // Generate only clinical note for unknown service types
-      const patient = intake.patient as { id: string; full_name: string; date_of_birth: string | null } | null
-      const answersArray = intake.answers as { answers: Record<string, unknown> }[] | null
-      const answers = answersArray?.[0]?.answers || {}
-      const intakeContext = formatIntakeContext(intake, patient, answers, "med_certs") // Use med_certs as fallback for context
-
-      const clinicalNoteResult = await generateClinicalNoteDraft(intakeId, intakeContext, answers)
-
-      return {
-        success: true,
-        clinicalNote: clinicalNoteResult,
-      }
+      // Legacy / unmapped service.type (e.g. the retired "General Consult"). Draft it
+      // as a generic consult — NEVER fall back to a med-cert note (clinically wrong;
+      // see #160/#162). getDraftCategory(null) and formatIntakeContext(null) both
+      // resolve to the consult path, with a "Doctor consult" label.
+      log.warn("Unmapped service.type — drafting as a consult", { intakeId, rawServiceType: service.type })
     }
 
-    // Get draft category from canonical service type
+    // Draft category from canonical service type; null (unmapped) maps to "consult".
     const draftCategory = getDraftCategory(serviceType)
 
     const patient = intake.patient as { id: string; full_name: string; date_of_birth: string | null } | null
@@ -169,7 +142,7 @@ export async function generateDraftsForIntake(
     // Build result based on draft category
     const result: GenerateDraftsResult = {
       success: true,
-      serviceType,
+      serviceType: serviceType ?? undefined,
       draftCategory,
       clinicalNote: clinicalNoteResult,
     }
