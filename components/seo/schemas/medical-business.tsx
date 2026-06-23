@@ -1,6 +1,7 @@
 import { CONTACT_EMAIL_HELLO, CONTACT_PHONE,PRICING_DISPLAY } from "@/lib/constants"
 
 import { JsonLdScript } from "./json-ld-script"
+import { SAME_AS_PROFILES } from "./same-as"
 
 interface MedicalBusinessSchemaProps {
   baseUrl?: string
@@ -15,6 +16,10 @@ export function MedicalBusinessSchema({ baseUrl = "https://instantmed.com.au" }:
   const schema = {
     "@context": "https://schema.org",
     "@type": "MedicalBusiness",
+    // Share the organization @id so the homepage's MedicalBusiness +
+    // MedicalOrganization nodes resolve to ONE entity in the graph instead of
+    // two disconnected business records.
+    "@id": `${baseUrl}/#organization`,
     name: "InstantMed",
     description: "Australian telehealth platform for medical certificates, repeat prescriptions, and specialty doctor-reviewed pathways",
     url: baseUrl,
@@ -60,6 +65,9 @@ export function MedicalBusinessSchema({ baseUrl = "https://instantmed.com.au" }:
       name: "Australia"
     },
     priceRange: PRICING_DISPLAY.RANGE,
+    // Verified external identity profiles (entity-linking signal for answer
+    // engines). Identity links only — no rating/review schema. See ./same-as.
+    sameAs: SAME_AS_PROFILES,
   }
 
   return <JsonLdScript id="medical-business-schema" data={schema} />

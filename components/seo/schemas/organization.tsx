@@ -1,6 +1,7 @@
 import { CONTACT_EMAIL_HELLO,PRICING,PRICING_DISPLAY } from "@/lib/constants"
 
 import { JsonLdScript } from "./json-ld-script"
+import { SAME_AS_PROFILES } from "./same-as"
 
 interface OrganizationSchemaProps {
   baseUrl?: string
@@ -99,9 +100,12 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
       email: CONTACT_EMAIL_HELLO,
       availableLanguage: ["English"]
     }],
-    // sameAs omitted - no verified social profiles yet
-    // aggregateRating intentionally omitted: public surfaces use a stars-only
-    // Google badge and do not expose review counts/testimonial schema.
+    // sameAs: verified external identity profiles — the primary entity-linking
+    // signal answer engines use to resolve and cite "InstantMed". Identity links
+    // only (see ./same-as). aggregateRating intentionally omitted: public
+    // surfaces use a stars-only Google badge and never expose review
+    // counts/star scores/testimonial schema.
+    sameAs: SAME_AS_PROFILES,
     hasOfferCatalog: {
       "@type": "OfferCatalog",
       name: "InstantMed Services",

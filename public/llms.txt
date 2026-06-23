@@ -10,6 +10,8 @@
 - **Clinical model:** AHPRA-registered doctors review each request. Clinical decisions are not automated.
 - **Active services:** Medical certificates, repeat prescriptions, ED, hair loss, and women's health (UTI and contraceptive pill) requests
 - **Hours:** Requests can be submitted 24/7. Prescription and consultation review timing is 8am-10pm AEST, 7 days.
+- **Eligibility:** Australia-wide, patients aged 18 and over. Medicare is optional for medical certificates and required for prescription and consultation requests.
+- **Optional express review:** A $9.95 priority add-on moves a request to the front of the doctor queue. Standard review is the default.
 - **Refund policy:** Full refund if the doctor declines the request.
 - **Complaints:** complaints@instantmed.com.au, 24h acknowledgement, 14-day clinical review.
 
@@ -39,6 +41,7 @@
 - InstantMed is not an emergency service. Call 000 for emergencies.
 - Some symptoms, risks, documents, or medicines require in-person care.
 - Medical certificates are issued only when clinically appropriate.
+- Medical certificates are for routine short-term sick, carer's, or study leave only, capped at a maximum of 3 days. They are not issued for high-stakes purposes such as legal, court, fitness-to-drive, firearm, or workers compensation assessments.
 - Employer and institution policies may vary.
 - Prescription only if clinically appropriate after doctor review.
 - The doctor may contact the patient if more information is clinically needed.
@@ -68,6 +71,9 @@
 - Erectile dysfunction: https://instantmed.com.au/erectile-dysfunction
 - Women's health (UTI and contraceptive pill): https://instantmed.com.au/womens-health
 - Online doctor / consult overview: https://instantmed.com.au/consult
+- Verify a medical certificate: https://instantmed.com.au/verify
+- Compare telehealth options: https://instantmed.com.au/compare
+- Information for employers: https://instantmed.com.au/employers
 - About: https://instantmed.com.au/about
 - Trust and safety: https://instantmed.com.au/trust
 - Clinical governance: https://instantmed.com.au/clinical-governance
@@ -79,3 +85,7 @@
 ## Full Reference
 
 For a longer AI-readable service reference, see: https://instantmed.com.au/llms-full.txt
+
+---
+
+Last reviewed: 2026-06-23
