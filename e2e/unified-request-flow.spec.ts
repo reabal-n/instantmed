@@ -28,7 +28,11 @@ test.describe("Unified Request Flow - Medical Certificate", () => {
     
     // Select work certificate type
     await page.getByRole("radio", { name: /Work/i }).click()
-    
+
+    // Length + start date collapse to a summary by default — expand to reach duration
+    const changeDates = page.getByRole("button", { name: /Change length or start date/i })
+    if (await changeDates.isVisible().catch(() => false)) await changeDates.click()
+
     // Select 1 day duration
     await page.getByRole("radio", { name: /1 day/i }).click()
     
@@ -50,6 +54,9 @@ test.describe("Unified Request Flow - Medical Certificate", () => {
     // Wait for certificate step to load
     await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
     
+    // Duration controls collapse to a summary by default — expand them first
+    await page.getByRole("button", { name: /Change length or start date/i }).click()
+
     // Duration options should be visible
     await expect(page.getByRole("radio", { name: /1 day/i })).toBeVisible()
     await expect(page.getByRole("radio", { name: /2 days/i })).toBeVisible()

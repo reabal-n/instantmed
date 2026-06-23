@@ -53,6 +53,10 @@ test.describe("Production request-flow synthetic", () => {
     await workRadio.click()
     await expect(workRadio).toHaveAttribute("aria-checked", "true", { timeout: 5000 })
 
+    // Length + start date collapse to a summary by default — expand to reach the controls
+    const changeDates = page.getByRole("button", { name: /Change length or start date/i })
+    if (await changeDates.isVisible().catch(() => false)) await changeDates.click()
+
     const durationGroup = page.getByRole("radiogroup", { name: /Certificate duration/i })
     const oneDayRadio = durationGroup.getByRole("radio", { name: /1 day/i })
     await oneDayRadio.click()
