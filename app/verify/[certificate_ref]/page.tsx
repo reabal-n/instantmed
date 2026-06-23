@@ -1,5 +1,6 @@
 import {
   AlertTriangle,
+  ArrowRight,
   Building,
   Calendar,
   CheckCircle,
@@ -203,6 +204,34 @@ export default async function VerifyCertificateRefPage({ params }: Props) {
                 <p className="text-xs text-muted-foreground text-center">
                   If you believe this is an error, please contact {CONTACT_EMAIL}
                 </p>
+              </div>
+            </div>
+          )}
+
+          {/* Employer loop — only after a REAL cert is confirmed (trust established).
+              Factual + employer-targeted; routes the verifier to the existing
+              /employers info page. No outcome/availability claim or inducement
+              (AHPRA advertising); stays secondary to the verification result. */}
+          {isAuthentic && cert && (
+            <div className="mt-6 rounded-2xl border border-border/50 bg-white dark:bg-card p-5 shadow-sm">
+              <div className="flex items-start gap-3">
+                <Building className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                <div className="space-y-1.5">
+                  <p className="text-sm font-medium text-foreground">
+                    Verifying certificates for your workplace?
+                  </p>
+                  <p className="text-xs text-muted-foreground leading-snug">
+                    Every certificate InstantMed issues is reviewed by an AHPRA-registered doctor and
+                    can be verified here at any time by its reference number.
+                  </p>
+                  <Link
+                    href="/employers"
+                    className="inline-flex items-center pt-1 text-sm font-medium text-primary hover:underline"
+                  >
+                    How InstantMed works for employers
+                    <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                  </Link>
+                </div>
               </div>
             </div>
           )}
