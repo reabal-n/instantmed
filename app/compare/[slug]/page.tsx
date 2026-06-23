@@ -754,30 +754,41 @@ export default async function ComparisonPage({ params }: PageProps) {
                   </p>
 
                   <div className="bg-white dark:bg-card rounded-2xl border border-border dark:border-border overflow-hidden shadow-sm shadow-primary/[0.04] dark:shadow-none">
-                    {/* Desktop header */}
-                    <div className="hidden sm:grid grid-cols-[1fr_0.85fr_2.3fr] gap-4 bg-muted/50 dark:bg-white/[0.06] p-4 border-b border-border dark:border-border text-sm font-medium text-muted-foreground">
-                      <div>Provider</div>
-                      <div>Single-day certificate (from)</div>
-                      <div>Notable</div>
-                    </div>
-
-                    {/* Rows — neutral, no winner highlighting. The InstantMed row
-                        carries a faint tint + bold name for wayfinding only. */}
-                    {comparison.providerPriceTable.rows.map((row, i) => (
-                      <div
-                        key={i}
-                        className={`p-4 border-b border-border/50 dark:border-border last:border-b-0 sm:grid sm:grid-cols-[1fr_0.85fr_2.3fr] sm:gap-4 sm:items-baseline ${row.isInstantMed ? 'bg-primary/[0.04] dark:bg-primary/[0.06]' : ''}`}
-                      >
-                        <div className="flex items-baseline justify-between gap-3 sm:block">
-                          <span className={row.isInstantMed ? 'font-bold text-foreground' : 'font-medium text-foreground'}>
-                            {row.provider}
-                          </span>
-                          <span className="text-foreground sm:hidden">{row.singleDayFrom}</span>
-                        </div>
-                        <div className="hidden sm:block text-foreground">{row.singleDayFrom}</div>
-                        <div className="mt-1.5 sm:mt-0 text-sm text-muted-foreground">{row.notable}</div>
-                      </div>
-                    ))}
+                    {/* Semantic table for crawler/LLM extraction. Stacks to one
+                        padded card per provider on mobile (price beside the name);
+                        becomes a 3-column table at sm+. Neutral — the InstantMed
+                        row carries a faint tint + bold name for wayfinding only. */}
+                    <table className="block w-full border-collapse sm:table sm:table-fixed">
+                      <caption className="sr-only">
+                        Single-day online medical certificate prices by Australian telehealth provider
+                      </caption>
+                      <thead className="hidden sm:table-header-group">
+                        <tr className="bg-muted/50 dark:bg-white/[0.06] border-b border-border dark:border-border text-sm font-medium text-muted-foreground">
+                          <th scope="col" className="w-[24%] p-4 text-left font-medium">Provider</th>
+                          <th scope="col" className="w-[20%] p-4 text-left font-medium">Single-day certificate (from)</th>
+                          <th scope="col" className="p-4 text-left font-medium">Notable</th>
+                        </tr>
+                      </thead>
+                      <tbody className="block sm:table-row-group">
+                        {comparison.providerPriceTable.rows.map((row, i) => (
+                          <tr
+                            key={i}
+                            className={`block border-b border-border/50 dark:border-border p-4 last:border-b-0 sm:table-row sm:p-0 ${row.isInstantMed ? 'bg-primary/[0.04] dark:bg-primary/[0.06]' : ''}`}
+                          >
+                            <th scope="row" className="block text-left font-normal sm:table-cell sm:p-4 sm:align-baseline">
+                              <span className="flex items-baseline justify-between gap-3 sm:block">
+                                <span className={row.isInstantMed ? 'font-bold text-foreground' : 'font-medium text-foreground'}>
+                                  {row.provider}
+                                </span>
+                                <span className="text-foreground sm:hidden">{row.singleDayFrom}</span>
+                              </span>
+                            </th>
+                            <td className="hidden text-foreground sm:table-cell sm:p-4 sm:align-baseline">{row.singleDayFrom}</td>
+                            <td className="mt-1.5 block text-sm text-muted-foreground sm:mt-0 sm:table-cell sm:p-4 sm:align-baseline">{row.notable}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
 
                   <p className="mt-4 text-xs text-muted-foreground leading-relaxed">
@@ -791,48 +802,56 @@ export default async function ComparisonPage({ params }: PageProps) {
                   </h2>
 
                   <div className="bg-white dark:bg-card rounded-2xl border border-border dark:border-border overflow-hidden shadow-sm shadow-primary/[0.04] dark:shadow-none">
-                    {/* Header */}
-                    <div className="grid grid-cols-3 bg-muted/50 dark:bg-white/[0.06] p-4 border-b border-border dark:border-border">
-                      <div className="font-medium text-muted-foreground">Feature</div>
-                      <div className="font-semibold text-primary text-center">InstantMed</div>
-                      <div className="font-medium text-foreground text-center">{comparison.competitor.name}</div>
-                    </div>
-
-                    {/* Rows */}
-                    {comparison.comparisonTable.map((row, i) => (
-                      <div
-                        key={i}
-                        className={`grid grid-cols-3 p-4 ${i !== comparison.comparisonTable.length - 1 ? 'border-b border-border/50 dark:border-border' : ''}`}
-                      >
-                        <div className="text-foreground font-medium">{row.feature}</div>
-                        <div className="text-center">
-                          {typeof row.instantmed === 'boolean' ? (
-                            row.instantmed ? (
-                              <CheckCircle2 className="w-5 h-5 text-success mx-auto" />
-                            ) : (
-                              <X className="w-5 h-5 text-muted-foreground/60 mx-auto" />
-                            )
-                          ) : (
-                            <span className={`text-sm ${row.winner === 'instantmed' ? 'text-success font-medium' : 'text-foreground'}`}>
-                              {row.instantmed}
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-center">
-                          {typeof row.competitor === 'boolean' ? (
-                            row.competitor ? (
-                              <CheckCircle2 className="w-5 h-5 text-success mx-auto" />
-                            ) : (
-                              <X className="w-5 h-5 text-muted-foreground/60 mx-auto" />
-                            )
-                          ) : (
-                            <span className={`text-sm ${row.winner === 'competitor' ? 'text-success font-medium' : 'text-foreground'}`}>
-                              {row.competitor}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                    {/* Semantic table so answer engines + crawlers extract the
+                        feature matrix reliably (a div grid is not parsed as rows). */}
+                    <table className="w-full table-fixed border-collapse">
+                      <caption className="sr-only">
+                        Feature comparison: InstantMed versus {comparison.competitor.name}
+                      </caption>
+                      <thead>
+                        <tr className="bg-muted/50 dark:bg-white/[0.06] border-b border-border dark:border-border">
+                          <th scope="col" className="p-4 text-left font-medium text-muted-foreground">Feature</th>
+                          <th scope="col" className="p-4 text-center font-semibold text-primary">InstantMed</th>
+                          <th scope="col" className="p-4 text-center font-medium text-foreground">{comparison.competitor.name}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {comparison.comparisonTable.map((row, i) => (
+                          <tr
+                            key={i}
+                            className={i !== comparison.comparisonTable.length - 1 ? 'border-b border-border/50 dark:border-border' : ''}
+                          >
+                            <th scope="row" className="p-4 text-left text-foreground font-medium">{row.feature}</th>
+                            <td className="p-4 text-center">
+                              {typeof row.instantmed === 'boolean' ? (
+                                row.instantmed ? (
+                                  <CheckCircle2 className="w-5 h-5 text-success mx-auto" aria-label="Yes" />
+                                ) : (
+                                  <X className="w-5 h-5 text-muted-foreground/60 mx-auto" aria-label="No" />
+                                )
+                              ) : (
+                                <span className={`text-sm ${row.winner === 'instantmed' ? 'text-success font-medium' : 'text-foreground'}`}>
+                                  {row.instantmed}
+                                </span>
+                              )}
+                            </td>
+                            <td className="p-4 text-center">
+                              {typeof row.competitor === 'boolean' ? (
+                                row.competitor ? (
+                                  <CheckCircle2 className="w-5 h-5 text-success mx-auto" aria-label="Yes" />
+                                ) : (
+                                  <X className="w-5 h-5 text-muted-foreground/60 mx-auto" aria-label="No" />
+                                )
+                              ) : (
+                                <span className={`text-sm ${row.winner === 'competitor' ? 'text-success font-medium' : 'text-foreground'}`}>
+                                  {row.competitor}
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </>
               )}
