@@ -31,6 +31,9 @@ test.describe("Checkout Express Review", () => {
 
     await expect(page.getByRole("heading", { name: "Certificate details" })).toBeVisible()
     await page.getByRole("radio", { name: "Study" }).click()
+    // Length + start date collapse to a summary by default — expand to reach duration
+    const changeDates = page.getByRole("button", { name: /Change length or start date/i })
+    if (await changeDates.isVisible().catch(() => false)) await changeDates.click()
     await page.getByRole("radio", { name: /1 day/i }).click()
     await clickContinue(page)
 

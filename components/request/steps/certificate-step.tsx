@@ -12,7 +12,7 @@
  * Certificates capped at 3 days max.
  */
 
-import { ArrowRight, Briefcase, GraduationCap, Heart } from "lucide-react"
+import { ArrowRight, Briefcase, ChevronDown, GraduationCap, Heart } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import { RequestButton } from "@/components/request/request-button"
@@ -161,6 +161,12 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [blockedReasons, setBlockedReasons] = useState<string[]>([])
+  // Length + start date collapse to a confirmable summary by default so the
+  // first screen is a single decision (certificate type). Opens automatically
+  // when a non-default duration/start is restored or prefilled (effect below),
+  // or when the patient taps the summary to change it.
+  const [expanded, setExpanded] = useState(false)
+  const expandLatchedRef = useRef(false)
 
   const durationRef = useRef<HTMLDivElement>(null)
   const startDateRef = useRef<HTMLDivElement>(null)
@@ -239,6 +245,17 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
     }
   }, [answers.duration, answers.startDate, canSyncSelection, startOffset, selectedDays, setAnswer])
 
+  // Auto-open the length/date detail when a non-default selection is restored
+  // (back-nav) or prefilled from a landing-page handoff, so the patient always
+  // sees their actual choice instead of a collapsed default that hides it.
+  useEffect(() => {
+    if (expandLatchedRef.current || !canSyncSelection) return
+    if ((selectedDays !== null && selectedDays !== 1) || (startOffset !== null && startOffset !== 0)) {
+      expandLatchedRef.current = true
+      setExpanded(true)
+    }
+  }, [canSyncSelection, selectedDays, startOffset])
+
   // Derived
   const price = selectedDays ? MED_CERT_DURATIONS.prices[selectedDays] : null
   const endOffset =
@@ -259,9 +276,9 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
         delete e.certType
         return e
       })
-      setTimeout(() => {
-        durationRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
-      }, 300)
+      // No auto-scroll: length + start collapse to a summary by default, so
+      // picking a type leaves the patient on a single-decision screen with
+      // Continue already actionable rather than jumping the viewport.
     },
     [setAnswer, posthog]
   )
@@ -382,112 +399,141 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
         </FormField>
       </QuestionCard>
 
-      <EarlyRecoveryEmailCard serviceType={serviceType} stepId="certificate" />
-
-      {/* How many days? */}
-      <div ref={durationRef}>
-        <QuestionCard compact>
-          <FormField
-            id="certificate-duration"
-            label="How many days?"
-            required
-            error={touched.duration ? errors.duration : undefined}
-          >
-            <ChoiceCardGroup
-              options={DURATION_OPTIONS.map((days) => ({
-                value: String(days),
-                label: `${days} ${days === 1 ? "day" : "days"}`,
-                description: `$${MED_CERT_DURATIONS.prices[days]}`,
-              }))}
-              value={selectedDays ? String(selectedDays) : ""}
-              onChange={(value) => handleDaysClick(Number(value) as Duration)}
-              ariaLabel="Certificate duration in days"
-              columns="three"
-              mobileColumns="three"
-              compact
-              className="mt-2"
-            />
-          </FormField>
-        </QuestionCard>
-      </div>
-
-      {/* Starting from? */}
-      <div ref={startDateRef}>
-        <QuestionCard compact>
-          <FormField
-            id="certificate-start-date"
-            label="Starting from?"
-            required
-            error={touched.startDate ? errors.startDate : undefined}
-          >
-            <div
-              className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4"
-              role="radiogroup"
-              aria-label="Certificate start date"
-            >
-              {START_OFFSETS.map((offset, index) => {
-                // Multi-day certs visually span the whole range. See
-                // getCertChipRangeState comment for the why. The state
-                // function is pinned by the cert-step-revenue contract
-                // test so a future refactor cannot silently drop the
-                // in-range rendering.
-                const chipState = getCertChipRangeState(offset, startOffset, selectedDays)
-                const isStart = chipState === "start"
-                const isInRange = chipState === "in_range"
-                const isSelected = isStart || isInRange
-                return (
-                  <button
-                    key={offset}
-                    ref={startOffsetRoving.registerRef(index)}
-                    type="button"
-                    role="radio"
-                    aria-checked={isStart}
-                    tabIndex={startOffsetRoving.tabIndexFor(index)}
-                    aria-label={
-                      isInRange
-                        ? `${chipLabel(offset)} (also covered by this certificate)`
-                        : chipLabel(offset)
-                    }
-                    onClick={() => handleStartOffsetClick(offset)}
-                    onKeyDown={(event) => startOffsetRoving.onKeyDown(event, index)}
-                    className={requestCx(
-                      "min-h-12 rounded-xl border px-2 py-2.5 text-sm font-medium transition-[background-color,border-color,color] duration-150 touch-manipulation",
-                      isStart && "bg-primary text-primary-foreground border-primary",
-                      isInRange && !isStart && "bg-primary/15 text-primary border-primary/40",
-                      // Unselected: explicit white + full-opacity border so chips
-                      // read as actionable. Prior `bg-background border-border/60`
-                      // looked greyed-out next to selected chips, making
-                      // "Yesterday" (and other unpicked dates) read as disabled.
-                      // See paid-funnel review 2026-05-25 fix #1.
-                      !isSelected && "bg-white dark:bg-card text-foreground border-border hover:border-primary/60 hover:bg-primary/5"
-                    )}
-                  >
-                    {chipLabel(offset)}
-                  </button>
-                )
-              })}
-            </div>
-          </FormField>
-        </QuestionCard>
-      </div>
-
-      {/* Live summary card — always visible so the patient (especially on
-          mobile) sees exactly which dates the doctor will cover before
-          tapping Continue. Without this, multi-day selections read as
-          ambiguous because chips alone don't enumerate the range. */}
-      {selectedDays !== null && startOffset !== null && endOffset !== null && price && (
-        <div className="flex items-center justify-between px-3 py-2.5 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06]">
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-foreground">
+      {/* Length & start date. Collapsed to a confirmable summary by default so
+          the default mobile screen is a single decision (certificate type);
+          expands to the full duration + start-date controls on tap. Every
+          clinical default (1 day, today), the 3-day cap, the forward-date
+          chips, and the in-range chip rendering are preserved unchanged. */}
+      {!expanded ? (
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          aria-expanded={false}
+          aria-controls="certificate-dates-detail"
+          className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] text-left transition-colors hover:border-primary/40"
+        >
+          <span className="min-w-0">
+            <span className="block text-sm font-semibold text-foreground">
               {selectedDays === 1
-                ? `${summaryLabel(startOffset)} · 1 day`
-                : `${summaryLabel(startOffset)} to ${summaryLabel(endOffset)} · ${selectedDays} days`}
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              No waiting rooms · doctor review when available
-            </p>
+                ? `${summaryLabel(startOffset ?? 0)} · 1 day`
+                : `${summaryLabel(startOffset ?? 0)} to ${summaryLabel(endOffset ?? 0)} · ${selectedDays} days`}
+            </span>
+            <span className="block text-xs text-muted-foreground mt-0.5">
+              Change length or start date
+            </span>
+          </span>
+          <span className="flex items-center gap-1.5 shrink-0 text-primary">
+            {price !== null && <span className="text-base font-semibold">${price}</span>}
+            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+          </span>
+        </button>
+      ) : (
+        <div id="certificate-dates-detail" className="space-y-4">
+          {/* How many days? */}
+          <div ref={durationRef}>
+            <QuestionCard compact>
+              <FormField
+                id="certificate-duration"
+                label="How many days?"
+                required
+                error={touched.duration ? errors.duration : undefined}
+              >
+                <ChoiceCardGroup
+                  options={DURATION_OPTIONS.map((days) => ({
+                    value: String(days),
+                    label: `${days} ${days === 1 ? "day" : "days"}`,
+                    description: `$${MED_CERT_DURATIONS.prices[days]}`,
+                  }))}
+                  value={selectedDays ? String(selectedDays) : ""}
+                  onChange={(value) => handleDaysClick(Number(value) as Duration)}
+                  ariaLabel="Certificate duration in days"
+                  columns="three"
+                  mobileColumns="three"
+                  compact
+                  className="mt-2"
+                />
+              </FormField>
+            </QuestionCard>
           </div>
-          <span className="text-base font-semibold text-primary shrink-0 ml-3">${price}</span>
+
+          {/* Starting from? */}
+          <div ref={startDateRef}>
+            <QuestionCard compact>
+              <FormField
+                id="certificate-start-date"
+                label="Starting from?"
+                required
+                error={touched.startDate ? errors.startDate : undefined}
+              >
+                <div
+                  className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4"
+                  role="radiogroup"
+                  aria-label="Certificate start date"
+                >
+                  {START_OFFSETS.map((offset, index) => {
+                    // Multi-day certs visually span the whole range. See
+                    // getCertChipRangeState comment for the why. The state
+                    // function is pinned by the cert-step-revenue contract
+                    // test so a future refactor cannot silently drop the
+                    // in-range rendering.
+                    const chipState = getCertChipRangeState(offset, startOffset, selectedDays)
+                    const isStart = chipState === "start"
+                    const isInRange = chipState === "in_range"
+                    const isSelected = isStart || isInRange
+                    return (
+                      <button
+                        key={offset}
+                        ref={startOffsetRoving.registerRef(index)}
+                        type="button"
+                        role="radio"
+                        aria-checked={isStart}
+                        tabIndex={startOffsetRoving.tabIndexFor(index)}
+                        aria-label={
+                          isInRange
+                            ? `${chipLabel(offset)} (also covered by this certificate)`
+                            : chipLabel(offset)
+                        }
+                        onClick={() => handleStartOffsetClick(offset)}
+                        onKeyDown={(event) => startOffsetRoving.onKeyDown(event, index)}
+                        className={requestCx(
+                          "min-h-12 rounded-xl border px-2 py-2.5 text-sm font-medium transition-[background-color,border-color,color] duration-150 touch-manipulation",
+                          isStart && "bg-primary text-primary-foreground border-primary",
+                          isInRange && !isStart && "bg-primary/15 text-primary border-primary/40",
+                          // Unselected: explicit white + full-opacity border so chips
+                          // read as actionable. Prior `bg-background border-border/60`
+                          // looked greyed-out next to selected chips, making
+                          // "Yesterday" (and other unpicked dates) read as disabled.
+                          // See paid-funnel review 2026-05-25 fix #1.
+                          !isSelected && "bg-white dark:bg-card text-foreground border-border hover:border-primary/60 hover:bg-primary/5"
+                        )}
+                      >
+                        {chipLabel(offset)}
+                      </button>
+                    )
+                  })}
+                </div>
+              </FormField>
+            </QuestionCard>
+          </div>
+
+          {/* Live summary card — enumerates the exact covered dates while the
+              patient is editing the range, so multi-day selections are never
+              ambiguous. */}
+          {selectedDays !== null && startOffset !== null && endOffset !== null && price && (
+            <div className="flex items-center justify-between px-3 py-2.5 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06]">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-foreground">
+                  {selectedDays === 1
+                    ? `${summaryLabel(startOffset)} · 1 day`
+                    : `${summaryLabel(startOffset)} to ${summaryLabel(endOffset)} · ${selectedDays} days`}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  No waiting rooms · doctor review when available
+                </p>
+              </div>
+              <span className="text-base font-semibold text-primary shrink-0 ml-3">${price}</span>
+            </div>
+          )}
         </div>
       )}
 
@@ -523,6 +569,10 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
           Press Enter to continue
         </p>
       )}
+
+      {/* Early-recovery email capture sits below the primary action so it never
+          interrupts the type → Continue path (paid-funnel review 2026-06-23). */}
+      <EarlyRecoveryEmailCard serviceType={serviceType} stepId="certificate" />
     </div>
   )
 }
