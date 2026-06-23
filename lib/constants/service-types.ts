@@ -317,7 +317,7 @@ export type DraftCategory = "med_cert" | "repeat_rx" | "consult"
  * Map canonical service type to draft category
  * Used by generate-drafts.ts to determine which draft type to generate
  */
-export function getDraftCategory(serviceType: ServiceType): DraftCategory {
+export function getDraftCategory(serviceType: ServiceType | null): DraftCategory {
   switch (serviceType) {
     case "med_certs":
       return "med_cert"

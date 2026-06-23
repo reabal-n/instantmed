@@ -65,7 +65,7 @@ export function formatIntakeContext(
   intake: Record<string, unknown>,
   patient: { full_name: string; date_of_birth: string | null } | null,
   answers: Record<string, unknown>,
-  serviceType: ServiceType
+  serviceType: ServiceType | null
 ): string {
   const intakeId = String(intake.id || "unknown")
   const parts: string[] = []

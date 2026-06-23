@@ -44,7 +44,7 @@ describe("anon-readable surfaces contract", () => {
     // already-applied and neutralised by the lockdown migration's REVOKE, so we only
     // guard against REINTRODUCTION in newer migrations.
     const grantToAnonRe =
-      /grant\s+(all|select)[\s\S]{0,80}?\bon\s+(table\s+)?public\.v_[a-z0-9_]+[\s\S]{0,40}?\bto\s+[^;]*\b(anon|authenticated)\b/i
+      /grant\s+(all|select)[\s\S]{0,80}?\bon\s+(table\s+)?public\.(v_[a-z0-9_]+|document_verifications|compliance_audit_summary)[\s\S]{0,40}?\bto\s+[^;]*\b(anon|authenticated)\b/i
     const offenders = allMigrations()
       .filter((m) => m.name > LOCKDOWN_MIGRATION)
       .filter((m) => grantToAnonRe.test(m.sql))
@@ -84,6 +84,29 @@ describe("anon-readable surfaces contract", () => {
         ? `View(s) created without security_invoker: ${offenders.join("; ")}. ` +
             `Add WITH (security_invoker = on) so the view respects the caller's RLS.`
         : "no offenders",
+    ).toEqual([])
+  })
+
+  it("every locked PHI surface is revoked from BOTH anon and authenticated", () => {
+    // The original lockdown revoked compliance_audit_summary from anon ONLY, leaving the
+    // authenticated grant (and the v_* regex above couldn't see a non-v_ view, so it slipped
+    // through). Assert each named surface has a REVOKE from both roles across the migration
+    // history — 20260623090952_revoke_compliance_audit_summary_authenticated.sql closed it.
+    const PHI_SURFACES = ["v_stuck_intakes", "document_verifications", "compliance_audit_summary"]
+    const allSql = allMigrations().map((m) => m.sql).join("\n").toLowerCase()
+    const missing: string[] = []
+    for (const surface of PHI_SURFACES) {
+      for (const role of ["anon", "authenticated"]) {
+        const re = new RegExp(
+          `revoke\\s+(all|select)\\b[^;]*\\bon\\s+(table\\s+)?public\\.${surface}\\b[^;]*\\bfrom\\b[^;]*\\b${role}\\b`,
+          "i",
+        )
+        if (!re.test(allSql)) missing.push(`${surface} -> ${role}`)
+      }
+    }
+    expect(
+      missing,
+      missing.length ? `PHI surface(s) not revoked from a role: ${missing.join("; ")}` : "all revoked",
     ).toEqual([])
   })
 })
