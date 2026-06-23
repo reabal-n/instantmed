@@ -35,24 +35,26 @@ export const GOOGLE_REVIEW_URL = "https://g.page/r/CWqy3A7IKcX6EAE/review"
 /**
  * Off-site review destination (GEO keystone). Every review CTA — the day-2
  * review email AND the inline approval-email CTA — routes through
- * /api/review-redirect to the third-party surface that compounds for GEO.
- * ProductReview.com.au is the AU surface answer-engines (ChatGPT/Perplexity)
- * cite, and it is already entity-linked from our `sameAs`, so we concentrate
- * volume there until the listing has a credible base of reviews.
+ * /api/review-redirect to ProductReview.com.au, the AU surface answer-engines
+ * (ChatGPT/Perplexity) cite and which we already entity-link from `sameAs`.
  *
- * ProductReview is the BAKED DEFAULT — a public write-a-review URL, not a
- * secret — so this works in prod with no env step; the env var only OVERRIDES
- * it. Trustpilot has no listing yet, so its arm stays empty and
- * getRotatingReviewUrl resolves to ProductReview every month (the `tp || pr`
- * branch falls through to pr). Google stays the ultimate fallback.
+ * Prod sets PRODUCTREVIEW_REVIEW_URL in Vercel (the operator's param'd
+ * write-review link; ProductReview-first since 2026-06-22, with a 30-email
+ * backfill already sent). This baked default MIRRORS that value so the redirect
+ * can never silently fall back to Google if the env is ever cleared — the
+ * failure mode the old `|| ""` fallback allowed. Trustpilot's arm is
+ * intentionally empty, so getRotatingReviewUrl resolves to ProductReview every
+ * month (the `tp || pr` branch falls through to pr), concentrating volume on
+ * the keystone. The query params are ProductReview's non-PHI brand-solicitation
+ * attribution, not secrets.
  *
- * Compliance: asking patients for off-site reviews is permitted (AHPRA). We
- * NEVER display, count, rate, quote, or schema-mark any review on our own
- * surfaces — that is the s133 line (ADVERTISING_COMPLIANCE.md §6).
+ * Compliance: soliciting off-site reviews is permitted (AHPRA). We NEVER
+ * display, count, rate, quote, or schema-mark any review on our own surfaces —
+ * the s133 line (ADVERTISING_COMPLIANCE.md §6).
  */
 export const PRODUCTREVIEW_REVIEW_URL =
   process.env.PRODUCTREVIEW_REVIEW_URL ||
-  "https://www.productreview.com.au/listings/instantmed/write-review"
+  "https://www.productreview.com.au/listings/instantmed/write-review?collectionMethod[internalGroupIdentifier]=write_review_link&collectionMethod[solicitorType]=brand"
 export const TRUSTPILOT_REVIEW_URL = process.env.TRUSTPILOT_REVIEW_URL || ""
 
 /** Pick the day-2 review destination. monthIndex = new Date().getUTCMonth(). */
