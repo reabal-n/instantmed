@@ -64,7 +64,7 @@ export function ReviewHero({ appUrl, serviceCopy, intakeId, userId }: ReviewHero
         lineHeight: "1.6",
         fontFamily,
       }}>
-        {serviceCopy || "If we saved you a trip to the GP, a quick Google review helps other Aussies find fast, easy healthcare. It takes about 30 seconds."}
+        {serviceCopy || "If we saved you a trip to the GP, a quick review helps other Aussies find fast, easy healthcare. It takes about 30 seconds."}
       </p>
 
       {/* CTA Button */}
@@ -88,7 +88,7 @@ export function ReviewHero({ appUrl, serviceCopy, intakeId, userId }: ReviewHero
                   fontFamily,
                 }}
               >
-                {"\u2B50"} Leave a Google review
+                {"\u2B50"} Leave a review
               </a>
             </td>
           </tr>
@@ -147,7 +147,7 @@ export function GoogleReviewCTA({ appUrl, intakeId, userId }: GoogleReviewCTAPro
           ★★★★★
         </p>
         <p style={{ margin: "0 0 14px 0", fontSize: "13px", color: colors.textBody, lineHeight: "1.5", fontFamily }}>
-          If we saved you a trip to the GP, a quick Google review would mean the world to us.
+          If we saved you a trip to the GP, a quick review would mean the world to us.
         </p>
         <a
           className="google-review-btn"
@@ -165,7 +165,7 @@ export function GoogleReviewCTA({ appUrl, intakeId, userId }: GoogleReviewCTAPro
             fontFamily,
           }}
         >
-          Leave a Google review
+          Leave a review
         </a>
       </div>
     </div>

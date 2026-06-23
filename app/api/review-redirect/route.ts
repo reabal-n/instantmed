@@ -1,9 +1,9 @@
 /**
  * Review CTA Redirect
  *
- * Tracks review link clicks via PostHog, then redirects to the rotating day-2
- * review destination (ProductReview/Trustpilot when configured, else Google).
- * Used by the day-2 review email; the approval email keeps the Google ask.
+ * Tracks review link clicks via PostHog, then redirects to the off-site review
+ * destination (ProductReview by default; Google is the ultimate fallback).
+ * Used by both the day-2 review email and the inline approval-email CTA.
  */
 
 import { NextRequest, NextResponse } from "next/server"
