@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label"
 import { getAttribution } from "@/lib/analytics/attribution"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 import { usePostHog } from "@/lib/analytics/posthog-context"
+import { getRepeatsExpectation } from "@/lib/clinical/repeats-policy"
 import { PRICING as APP_PRICING } from "@/lib/constants"
 import { GUARANTEE_LABEL } from "@/lib/marketing/voice"
 import { getAddressReviewSummary } from "@/lib/request/address-metadata"
@@ -306,6 +307,9 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
   // Service info
   const consultSubtypeForLabel = stringAnswer(answers.consultSubtype) || undefined
   const serviceLabel = getServiceDisplayLabel(serviceType, consultSubtypeForLabel)
+  // "What to expect" re: repeats — only for services that get a repeatable script
+  // (null for med certs / women's health / weight loss). Expectation-setting copy.
+  const repeatsExpectation = getRepeatsExpectation(serviceType, consultSubtypeForLabel)
 
   sections.push({
     title: 'Request Type',
@@ -784,6 +788,15 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
             </div>
           )}
         </div>
+
+        {repeatsExpectation && (
+          <div className="px-4 py-3 rounded-2xl border border-border/50 bg-muted/30 dark:bg-white/5">
+            <p className="text-xs leading-snug text-muted-foreground">
+              <span className="font-medium text-foreground">What to expect: </span>
+              {repeatsExpectation}
+            </p>
+          </div>
+        )}
 
         <div ref={consentRef} className={`rounded-2xl border p-4 transition-colors duration-200 ${safetyConfirmed ? 'border-border/50 dark:border-white/10 bg-muted/30 dark:bg-white/5' : 'border-warning-border bg-warning-light/50 dark:bg-warning/10'}`}>
           <div className="flex items-start gap-3">

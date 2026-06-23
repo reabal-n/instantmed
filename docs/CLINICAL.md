@@ -193,6 +193,15 @@ Subscriptions, monthly prescribing, pharmacy fulfilment, and ongoing check-in pr
 
 Repeat-prescription intake is server-enforced as prior-prescription only. If the patient indicates the medicine has never been prescribed before, checkout must be blocked or routed to a consult/regular GP pathway; it must not be normalized into a repeat request.
 
+### Repeat Quantity & Supply Standard
+
+Default: **original script + 2 repeats** (≈ 3 months for a daily medicine, from 28-30 day packs) across repeat prescriptions, hair loss, and ED. This is the standard the prescribing doctor follows in Parchment so supply is consistent and the reactivation reminder can be timed against it.
+
+- **Doctor discretion is retained — this is a default, not a rule.** Prescribe fewer (or none) for a new or just-stabilised medicine, an unclear history, or where a repeat is clinically inappropriate. The doctor sets the actual repeats per patient; AHPRA/TGA require individualised prescribing, so the standard must never become a fixed promise or a clinical straitjacket.
+- **ED:** the 2-repeat default applies even to on-demand medicines (e.g. sildenafil); the dispensed quantity is the doctor's call (a "months of supply" framing does not map to on-demand use).
+- **Patient-facing copy is expectation-setting only** — the intake "what to expect" line (review step) says the doctor *usually* provides ~3 months / up to 2 repeats *if approved*. Never a guarantee, inducement, or subscription/monthly-prescribing implication.
+- **Reactivation:** the one-off refill reminder fires at ~week 10-11 (`/api/cron/refill-reminders`), before a script + 2 repeats runs out. The repeats count, supply months, and reminder window share one source of truth: `lib/clinical/repeats-policy.ts`.
+
 ---
 
 ## AI Boundary Rules

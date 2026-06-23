@@ -1,5 +1,6 @@
 /**
- * Refill Reminder Email - one-off reactivation nudge ~25-30 days post-issue.
+ * Refill Reminder Email - one-off reactivation nudge ~week 10-11 post-issue
+ * (before a script + 2 repeats supply runs out).
  *
  * Reminds a patient that their repeatable script is due for a reorder and links
  * them back into the normal repeat-prescription flow. NOT a subscription: it
@@ -36,9 +37,9 @@ export function RefillReminderEmail({
       <Text>Hi {firstName},</Text>
 
       <Text>
-        It has been about a month since your <strong>{medicationName}</strong> repeat script.
-        If you are running low, you can request another one from an AHPRA-registered doctor in a
-        couple of minutes, without booking a GP appointment.
+        If you're getting near the end of your <strong>{medicationName}</strong> repeats, you can
+        request a fresh script from an AHPRA-registered doctor in a couple of minutes, without
+        booking a GP appointment.
       </Text>
 
       <Button href={reorderUrl}>Reorder {medicationName}</Button>

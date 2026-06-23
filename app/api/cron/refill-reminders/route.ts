@@ -10,8 +10,9 @@ import { captureCronError } from "@/lib/observability/sentry"
 const logger = createLogger("cron-refill-reminders")
 
 /**
- * Daily cron: one-off refill-reminder reactivation email ~25-30 days after a
- * repeatable script was issued. Ships disabled; no-ops until
+ * Daily cron: one-off refill-reminder reactivation email ~week 10-11 after a
+ * repeatable script was issued (before a script + 2 repeats supply runs out;
+ * window in lib/clinical/repeats-policy.ts). Ships disabled; no-ops until
  * REFILL_REMINDER_EMAILS_ENABLED=true. Marketing-consent gated per patient.
  */
 export async function GET(request: NextRequest) {
