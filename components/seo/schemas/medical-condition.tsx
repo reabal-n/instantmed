@@ -84,9 +84,10 @@ export function MedicalConditionSchema({
             })),
           }
         : {}),
-    ...(reviewedDate && {
-      lastReviewed: reviewedDate,
-    }),
+    // NOTE: `lastReviewed` is only valid on MedicalWebPage (schema.org), NOT on
+    // MedicalCondition — the schema.org validator flags it UNKNOWN_FIELD on the
+    // condition root. It lives on mainEntityOfPage.MedicalWebPage below, which is
+    // the correct (and only valid) home. Do not re-add it here.
     mainEntityOfPage: {
       "@type": "MedicalWebPage",
       "@id": `${baseUrl}${url}`,
