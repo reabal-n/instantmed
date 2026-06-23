@@ -30,16 +30,16 @@ export function RefillReminderEmail({
 
   return (
     <BaseEmail
-      previewText={`Time to reorder your ${medicationName} repeat script`}
+      previewText={`Time to reorder ${medicationName} repeat script`}
       appUrl={appUrl}
       showReferral
     >
       <Text>Hi {firstName},</Text>
 
       <Text>
-        If you're getting near the end of your <strong>{medicationName}</strong> repeats, you can
-        request a fresh script from an AHPRA-registered doctor in a couple of minutes, without
-        booking a GP appointment.
+        If <strong>{medicationName}</strong> repeats are running low, you can request a fresh
+        script from an AHPRA-registered doctor in a couple of minutes, without booking a GP
+        appointment.
       </Text>
 
       <Button href={reorderUrl}>Reorder {medicationName}</Button>

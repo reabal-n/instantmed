@@ -191,6 +191,12 @@ const templates = [
     description: "Warm Google review ask sent 2 days after approval",
     category: "engagement",
   },
+  {
+    slug: "refill-reminder",
+    name: "Refill Reminder (Reactivation)",
+    description: "One-off reorder nudge ~week 10-11 after a repeatable script",
+    category: "engagement",
+  },
 ]
 
 const CATEGORY_LABELS: Record<string, string> = {

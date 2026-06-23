@@ -30,6 +30,7 @@ import { PaymentReceiptEmail } from "@/lib/email/components/templates/payment-re
 import { PaymentRetryEmail } from "@/lib/email/components/templates/payment-retry"
 import { PrescriptionApprovedEmail } from "@/lib/email/components/templates/prescription-approved"
 import { ReferralCreditEmail } from "@/lib/email/components/templates/referral-credit"
+import { RefillReminderEmail, refillReminderSubject } from "@/lib/email/components/templates/refill-reminder"
 import { RefundIssuedEmail } from "@/lib/email/components/templates/refund-issued"
 import { RequestDeclinedEmail } from "@/lib/email/components/templates/request-declined"
 import { RequestReceivedEmail } from "@/lib/email/components/templates/request-received"
@@ -439,6 +440,18 @@ const templates: Record<string, {
         appUrl={mock.appUrl}
         intakeId="preview-intake-id"
         heardToken="preview-token"
+      />
+    ),
+  },
+  "refill-reminder": {
+    name: "Refill Reminder (Reactivation)",
+    subject: refillReminderSubject,
+    render: () => (
+      <RefillReminderEmail
+        patientName={mock.patientName}
+        medicationName="Atorvastatin 20mg"
+        appUrl={mock.appUrl}
+        reorderUrl={`${mock.appUrl}/prescriptions`}
       />
     ),
   },
