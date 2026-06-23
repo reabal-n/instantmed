@@ -29,4 +29,22 @@ describe("structured-data required fields", () => {
     expect(src).toContain('"@type": "Drug"')
     expect(src).toMatch(/\bname:\s*med\.(genericName|brandNames)/)
   })
+
+  it("Organization + MedicalBusiness emit sameAs entity links", () => {
+    // sameAs is the primary entity-linking signal answer engines use to resolve
+    // and cite "InstantMed". Pin it so a schema refactor can't silently drop the
+    // identity anchors.
+    const org = read("components/seo/schemas/organization.tsx")
+    const biz = read("components/seo/schemas/medical-business.tsx")
+    const sameAs = read("components/seo/schemas/same-as.ts")
+
+    expect(org).toContain("sameAs: SAME_AS_PROFILES")
+    expect(biz).toContain("sameAs: SAME_AS_PROFILES")
+    // Both homepage org nodes must share one @id so they resolve to one entity.
+    expect(biz).toMatch(/"@id":\s*`\$\{baseUrl\}\/#organization`/)
+
+    // Authoritative identity anchors must stay present.
+    expect(sameAs).toContain("abr.business.gov.au")
+    expect(sameAs).toContain("legitscript.com")
+  })
 })
