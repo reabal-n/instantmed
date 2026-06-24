@@ -70,6 +70,21 @@ export type GoogleAdsPurchaseConversionRow = {
   }
 }
 
+export type GoogleAdsOfflineUploadDiagnosticsRow = {
+  offlineConversionUploadConversionActionSummary?: {
+    alerts?: unknown[]
+    client?: string
+    conversionActionName?: string
+    dailySummaries?: unknown[]
+    jobSummaries?: unknown[]
+    lastUploadDateTime?: string
+    pendingEventCount?: number | string
+    status?: string
+    successfulEventCount?: number | string
+    totalEventCount?: number | string
+  }
+}
+
 export type LocalGoogleAdsPurchaseRow = GoogleAdsAttributionRow & {
   amount_cents?: number | null
   payment_status?: string | null
@@ -165,6 +180,7 @@ export type GoogleAdsSpendAuditReport = {
       refundedAud: number
     }
   }
+  offlineUploadDiagnostics: GoogleAdsOfflineUploadDiagnosticsRow[]
   preflight: GoogleAdsConversionActionPreflightResult
   queryErrors: QueryError[]
   range: GoogleAdsReportRange & { days: number }
@@ -273,6 +289,35 @@ export function buildGoogleAdsPurchaseConversionQuery(
     `WHERE segments.date BETWEEN '${range.startDate}' AND '${range.endDate}'`,
     `AND segments.conversion_action = '${resourceName}'`,
     "ORDER BY metrics.conversions_value DESC",
+  ].join(" ")
+}
+
+function normalizeGoogleAdsReportNumericId(value: string): string {
+  const resourceId = value.trim().match(/\/(\d+)$/)?.[1]
+  const normalized = (resourceId || value).replace(/-/g, "")
+  if (!/^\d+$/.test(normalized)) {
+    throw new Error("Google Ads conversion action id must be numeric")
+  }
+  return normalized
+}
+
+export function buildGoogleAdsOfflineConversionActionSummaryQuery(conversionActionId: string): string {
+  const normalizedConversionActionId = normalizeGoogleAdsReportNumericId(conversionActionId)
+
+  return [
+    "SELECT",
+    "offline_conversion_upload_conversion_action_summary.conversion_action_name,",
+    "offline_conversion_upload_conversion_action_summary.alerts,",
+    "offline_conversion_upload_conversion_action_summary.client,",
+    "offline_conversion_upload_conversion_action_summary.daily_summaries,",
+    "offline_conversion_upload_conversion_action_summary.job_summaries,",
+    "offline_conversion_upload_conversion_action_summary.last_upload_date_time,",
+    "offline_conversion_upload_conversion_action_summary.pending_event_count,",
+    "offline_conversion_upload_conversion_action_summary.status,",
+    "offline_conversion_upload_conversion_action_summary.successful_event_count,",
+    "offline_conversion_upload_conversion_action_summary.total_event_count",
+    "FROM offline_conversion_upload_conversion_action_summary",
+    `WHERE offline_conversion_upload_conversion_action_summary.conversion_action_id = ${normalizedConversionActionId}`,
   ].join(" ")
 }
 
@@ -675,6 +720,13 @@ export async function getGoogleAdsSpendAuditReport({
       queryErrors,
     )
     : []
+  const offlineUploadDiagnostics = preflight.conversionAction?.id
+    ? await runOptionalGoogleAdsQuery<GoogleAdsOfflineUploadDiagnosticsRow>(
+      "offline_upload_diagnostics",
+      buildGoogleAdsOfflineConversionActionSummaryQuery(preflight.conversionAction.id),
+      queryErrors,
+    )
+    : []
   const local = summarizeLocalGoogleAdsPurchases(localRows)
   const ads = summarizeGoogleAdsCampaignRows(campaignRows, local.byCampaign, purchaseConversionRows)
 
@@ -687,6 +739,7 @@ export async function getGoogleAdsSpendAuditReport({
       byCampaign: Array.from(local.byCampaign.values()).sort((a, b) => b.grossRevenueAud - a.grossRevenueAud),
       summary: local.summary,
     },
+    offlineUploadDiagnostics,
     preflight,
     queryErrors,
     range,

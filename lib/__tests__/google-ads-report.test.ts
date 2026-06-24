@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   buildGoogleAdsCampaignPerformanceQuery,
+  buildGoogleAdsOfflineConversionActionSummaryQuery,
   buildGoogleAdsPurchaseConversionQuery,
   summarizeGoogleAdsCampaignRows,
   summarizeLocalGoogleAdsPurchases,
@@ -55,6 +56,26 @@ describe("google ads spend report", () => {
       "WHERE segments.date BETWEEN '2026-05-03' AND '2026-06-02'",
       "AND segments.conversion_action = 'customers/1234567890/conversionActions/9876543210'",
       "ORDER BY metrics.conversions_value DESC",
+    ].join(" "))
+  })
+
+  it("builds an offline upload diagnostics query scoped to the configured purchase action", () => {
+    expect(buildGoogleAdsOfflineConversionActionSummaryQuery(
+      "customers/1234567890/conversionActions/9876543210",
+    )).toBe([
+      "SELECT",
+      "offline_conversion_upload_conversion_action_summary.conversion_action_name,",
+      "offline_conversion_upload_conversion_action_summary.alerts,",
+      "offline_conversion_upload_conversion_action_summary.client,",
+      "offline_conversion_upload_conversion_action_summary.daily_summaries,",
+      "offline_conversion_upload_conversion_action_summary.job_summaries,",
+      "offline_conversion_upload_conversion_action_summary.last_upload_date_time,",
+      "offline_conversion_upload_conversion_action_summary.pending_event_count,",
+      "offline_conversion_upload_conversion_action_summary.status,",
+      "offline_conversion_upload_conversion_action_summary.successful_event_count,",
+      "offline_conversion_upload_conversion_action_summary.total_event_count",
+      "FROM offline_conversion_upload_conversion_action_summary",
+      "WHERE offline_conversion_upload_conversion_action_summary.conversion_action_id = 9876543210",
     ].join(" "))
   })
 
