@@ -3,10 +3,15 @@ import { describe, expect, it } from "vitest"
 import {
   buildGoogleAdsCampaignPerformanceQuery,
   buildGoogleAdsCustomerConversionTrackingSettingsQuery,
+  buildGoogleAdsDiagnosticsWatchResult,
+  buildGoogleAdsEvidenceComparison,
   buildGoogleAdsOfflineConversionActionSummaryQuery,
   buildGoogleAdsPurchaseConversionQuery,
+  getGoogleAdsUploadAuditReconciliation,
+  type GoogleAdsSpendAuditReport,
   summarizeGoogleAdsCampaignRows,
   summarizeGoogleAdsCustomerConversionTrackingSettings,
+  summarizeGoogleAdsOfflineUploadDiagnostics,
   summarizeLocalGoogleAdsPurchases,
 } from "@/lib/analytics/google-ads-report"
 
@@ -106,6 +111,342 @@ describe("google ads spend report", () => {
       acceptedCustomerDataTerms: true,
       customerId: "1234567890",
       enhancedConversionsForLeadsEnabled: false,
+    })
+  })
+
+  it("summarizes offline upload diagnostics job rows for a watched job", () => {
+    const diagnostics = summarizeGoogleAdsOfflineUploadDiagnostics([
+      {
+        offlineConversionUploadConversionActionSummary: {
+          lastUploadDateTime: "2026-06-21 09:24:42.868537",
+          pendingEventCount: "2",
+          status: "EXCELLENT",
+          successfulEventCount: "49",
+          totalEventCount: "51",
+          jobSummaries: [
+            {
+              jobId: "2265599116648626375",
+              successfulCount: "49",
+              failedCount: "1",
+              pendingCount: "1",
+            },
+          ],
+        },
+      },
+    ])
+
+    expect(diagnostics).toMatchObject({
+      lastUploadDateTime: "2026-06-21 09:24:42.868537",
+      pendingEventCount: 2,
+      status: "EXCELLENT",
+      successfulEventCount: 49,
+      totalEventCount: 51,
+      jobSummaries: [
+        {
+          failedCount: 1,
+          jobId: "2265599116648626375",
+          pendingCount: 1,
+          successfulCount: 49,
+          totalCount: 51,
+        },
+      ],
+    })
+  })
+
+  it("reconciles production upload audit rows and separates orphan source anomalies", async () => {
+    const auditRows = [
+      {
+        created_at: "2026-06-24T05:45:03.814Z",
+        intake_id: "real_intake",
+        metadata: {
+          deployment_id: "dpl_live",
+          request_path: "/api/cron/google-ads-conversions",
+          runtime_source: "vercel",
+          source: "cron_backfill",
+          status: "success",
+          upload_job_id: "2265599116648626375",
+          vercel_env: "production",
+        },
+      },
+      {
+        created_at: "2026-06-24T06:07:00.582Z",
+        intake_id: null,
+        metadata: {
+          audit_source_anomaly: true,
+          deployment_id: "missing",
+          error_code: "missing_env",
+          request_path: null,
+          runtime_source: "node",
+          source: "checkout_session_completed",
+          status: "skipped_missing_env",
+        },
+      },
+    ]
+    const supabase = {
+      from: (table: string) => {
+        if (table === "audit_logs") {
+          return {
+            select: () => ({
+              eq: () => ({
+                gte: () => ({
+                  order: () => ({
+                    limit: async () => ({ data: auditRows, error: null }),
+                  }),
+                }),
+              }),
+            }),
+          }
+        }
+
+        return {
+          select: () => ({
+            in: async () => ({ data: [{ id: "real_intake" }], error: null }),
+          }),
+        }
+      },
+    }
+
+    const reconciliation = await getGoogleAdsUploadAuditReconciliation({
+      generatedAt: "2026-06-24T06:16:08.336Z",
+      since: "2026-06-24T05:40:00.000Z",
+      supabase: supabase as never,
+      watchJobId: "2265599116648626375",
+    })
+
+    expect(reconciliation).toMatchObject({
+      byJobId: {
+        "2265599116648626375": 1,
+        missing: 1,
+      },
+      byRequestPath: {
+        "/api/cron/google-ads-conversions": 1,
+        missing: 1,
+      },
+      bySource: {
+        checkout_session_completed: 1,
+        cron_backfill: 1,
+      },
+      orphanRows: {
+        missingIntakeId: 1,
+        total: 1,
+      },
+      watchedJob: {
+        jobId: "2265599116648626375",
+        success: 1,
+        totalRows: 1,
+      },
+    })
+    expect(reconciliation.orphanRows.samples[0]).toMatchObject({
+      runtimeSource: "node",
+      source: "checkout_session_completed",
+      status: "skipped_missing_env",
+    })
+  })
+
+  it("compares watched diagnostics against production audit reconciliation", () => {
+    const diagnostics = summarizeGoogleAdsOfflineUploadDiagnostics([
+      {
+        offlineConversionUploadConversionActionSummary: {
+          lastUploadDateTime: "2026-06-24 05:55:00",
+          status: "EXCELLENT",
+          jobSummaries: [{ jobId: "2265599116648626375", successfulCount: "49" }],
+        },
+      },
+    ])
+
+    const comparison = buildGoogleAdsEvidenceComparison({
+      diagnostics,
+      watchJobId: "2265599116648626375",
+      auditReconciliation: {
+        byDeploymentId: {},
+        byIntakeJoinCheck: {},
+        byJobId: { "2265599116648626375": 50 },
+        byRequestPath: {},
+        byRuntimeSource: {},
+        bySource: {},
+        byStatus: {},
+        byVercelEnv: {},
+        generatedAt: "2026-06-24T06:16:08.336Z",
+        orphanRows: { invalidIntakeJoin: 0, missingIntakeId: 0, samples: [], total: 0 },
+        since: "2026-06-24T05:40:00.000Z",
+        totalRows: 50,
+        watchedJob: {
+          byStatus: { failed: 1, success: 49 },
+          deploymentIds: ["dpl_live"],
+          expiredClickThroughWindow: 1,
+          failed: 1,
+          jobId: "2265599116648626375",
+          latestAt: "2026-06-24T05:46:00.000Z",
+          requestPaths: ["/api/cron/google-ads-conversions"],
+          skipped: 0,
+          sources: ["cron_backfill"],
+          success: 49,
+          totalRows: 50,
+        },
+      },
+    })
+
+    expect(comparison).toMatchObject({
+      googleAdsDiagnostics: {
+        foundWatchedJob: true,
+        jobSummary: {
+          jobId: "2265599116648626375",
+          successfulCount: 49,
+        },
+      },
+      productionAuditLogs: {
+        expiredClickThroughWindow: 1,
+        foundWatchedJob: true,
+        watchedJobRows: 50,
+        watchedJobSuccess: 49,
+      },
+      watchedJobId: "2265599116648626375",
+    })
+  })
+
+  it("classifies an invisible watched job after the processing window", () => {
+    const diagnostics = summarizeGoogleAdsOfflineUploadDiagnostics([
+      {
+        offlineConversionUploadConversionActionSummary: {
+          lastUploadDateTime: "2026-06-21 09:24:42.868537",
+          status: "EXCELLENT",
+          jobSummaries: [],
+        },
+      },
+    ])
+    const report: Omit<GoogleAdsSpendAuditReport, "diagnosticsWatch"> = {
+      ads: {
+        campaigns: [],
+        summary: {
+          avgCpcAud: null,
+          cpaAud: null,
+          purchaseCpaAud: null,
+          purchaseRoas: null,
+          roas: null,
+          totalAllConversions: 0,
+          totalAllConversionsValueAud: 0,
+          totalClicks: 0,
+          totalConversionValueAud: 0,
+          totalConversions: 0,
+          totalImpressions: 0,
+          totalLocalGrossRevenueAud: 0,
+          totalLocalNetRevenueAud: 414.2,
+          totalLocalOrders: 17,
+          totalPurchaseAllConversions: 9,
+          totalPurchaseAllConversionsValueAud: 219.55,
+          totalPurchaseConversionValueAud: 0,
+          totalPurchaseConversions: 0,
+          totalSpendAud: 877.72,
+        },
+      },
+      conversionActions: [],
+      customerConversionTrackingSettings: [
+        {
+          customer: {
+            conversionTrackingSetting: {
+              acceptedCustomerDataTerms: true,
+              enhancedConversionsForLeadsEnabled: true,
+            },
+          },
+        },
+      ],
+      diagnostics,
+      evidenceComparison: {
+        externalSurfaces: {
+          cronResponses: "external_receipt_required" as const,
+          localReceipts: "external_receipt_required" as const,
+          vercelLogs: "external_receipt_required" as const,
+        },
+        googleAdsDiagnostics: {
+          foundWatchedJob: false,
+          jobSummary: null,
+          lastUploadDateTime: diagnostics.lastUploadDateTime,
+          status: diagnostics.status,
+        },
+        productionAuditLogs: {
+          expiredClickThroughWindow: 1,
+          foundWatchedJob: true,
+          orphanRows: 0,
+          watchedJobFailed: 1,
+          watchedJobRows: 50,
+          watchedJobSuccess: 49,
+        },
+        watchedJobId: "2265599116648626375",
+      },
+      finalUrls: [],
+      generatedAt: "2026-06-25T06:00:00.000Z",
+      local: {
+        byCampaign: [],
+        summary: { grossRevenueAud: 464.15, netRevenueAud: 414.2, orders: 17, refundedAud: 49.95 },
+      },
+      offlineUploadDiagnostics: [],
+      preflight: {
+        action: "No action needed.",
+        code: null,
+        conversionAction: {
+          id: "7631611119",
+          name: "InstantMed Server Purchase Import 20260601093317",
+          resourceName: "customers/9205010513/conversionActions/7631611119",
+          status: "ENABLED",
+          type: "UPLOAD_CLICKS",
+        },
+        detail: "ok",
+        label: "ok",
+        ok: true,
+        severity: "ok",
+      },
+      queryErrors: [],
+      range: { days: 30, endDate: "2026-06-25", startDate: "2026-05-27" },
+      searchTerms: [],
+      uploadAuditReconciliation: {
+        byDeploymentId: {},
+        byIntakeJoinCheck: {},
+        byJobId: { "2265599116648626375": 50 },
+        byRequestPath: {},
+        byRuntimeSource: {},
+        bySource: {},
+        byStatus: {},
+        byVercelEnv: {},
+        generatedAt: "2026-06-25T06:00:00.000Z",
+        orphanRows: { invalidIntakeJoin: 0, missingIntakeId: 0, samples: [], total: 0 },
+        since: "2026-06-24T05:45:00.000Z",
+        totalRows: 50,
+        watchedJob: {
+          byStatus: { failed: 1, success: 49 },
+          deploymentIds: [],
+          expiredClickThroughWindow: 1,
+          failed: 1,
+          jobId: "2265599116648626375",
+          latestAt: "2026-06-24T05:46:00.000Z",
+          requestPaths: [],
+          skipped: 0,
+          sources: [],
+          success: 49,
+          totalRows: 50,
+        },
+      },
+    }
+
+    const watch = buildGoogleAdsDiagnosticsWatchResult({
+      now: new Date("2026-06-25T06:00:00.000Z"),
+      processingWindowHours: 24,
+      report,
+      uploadedAt: "2026-06-24T05:45:00.000Z",
+      watchJobId: "2265599116648626375",
+    })
+
+    expect(watch).toMatchObject({
+      acceptedCount: null,
+      jobId: "2265599116648626375",
+      matchedCount: null,
+      matchedCountAvailable: false,
+      pendingCount: null,
+      rejectedCount: null,
+      status: "diagnostics_invisible",
+      classification: {
+        expiredClickThroughWindow: "confirmed",
+        googleProcessingLag: "possible",
+      },
     })
   })
 

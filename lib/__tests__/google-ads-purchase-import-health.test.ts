@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   buildGoogleAdsPurchaseImportAlert,
+  buildGoogleAdsUploadAuditSourceAnomalyAlert,
   type GoogleAdsPurchaseImportHealthSnapshot,
 } from "@/lib/monitoring/google-ads-purchase-import-health"
 
@@ -24,6 +25,18 @@ function snapshot(
     purchaseConversionValueAud: 49.9,
     queryErrors: [],
     rangeDays: 30,
+    uploadAuditReconciliation: {
+      byRequestPath: {},
+      byRuntimeSource: {},
+      bySource: {},
+      byVercelEnv: {},
+      orphanRows: {
+        invalidIntakeJoin: 0,
+        missingIntakeId: 0,
+        samples: [],
+        total: 0,
+      },
+    },
     ...overrides,
   }
 }
@@ -108,15 +121,58 @@ describe("Google Ads purchase import health", () => {
     expect(alert?.detail).toContain("enhanced-conversion setup is incomplete")
   })
 
+  it("alerts separately for Google Ads upload audit rows with no valid intake join", () => {
+    const alert = buildGoogleAdsUploadAuditSourceAnomalyAlert(snapshot({
+      uploadAuditReconciliation: {
+        byRequestPath: { missing: 11 },
+        byRuntimeSource: { node: 11 },
+        bySource: { checkout_session_completed: 11 },
+        byVercelEnv: { missing: 11 },
+        orphanRows: {
+          invalidIntakeJoin: 0,
+          missingIntakeId: 11,
+          samples: [
+            {
+              at: "2026-06-24T06:07:00.582Z",
+              deploymentId: null,
+              requestPath: null,
+              runtimeSource: "node",
+              source: "checkout_session_completed",
+              status: "skipped_missing_env",
+              uploadJobId: null,
+              vercelEnv: null,
+            },
+          ],
+          total: 11,
+        },
+      },
+    }))
+
+    expect(alert).toMatchObject({
+      count: 11,
+      metric: "google_ads_upload_audit_source_anomaly",
+      severity: "critical",
+      metadata: {
+        upload_audit_orphan_rows: 11,
+        upload_audit_request_paths: ["missing"],
+        upload_audit_runtime_sources: ["node"],
+        upload_audit_sources: ["checkout_session_completed"],
+      },
+    })
+    expect(alert?.detail).toContain("audit-source anomaly")
+  })
+
   it("keeps the production cron and PostHog metric wired to the guard", () => {
     const cron = read("app/api/cron/business-alerts/route.ts")
     const posthog = read("lib/analytics/posthog-server.ts")
 
     expect(cron).toContain("getGoogleAdsPurchaseImportHealth")
     expect(cron).toContain("buildGoogleAdsPurchaseImportAlert")
+    expect(cron).toContain("buildGoogleAdsUploadAuditSourceAnomalyAlert")
     expect(cron).toContain("google_ads_purchase_import_health")
     expect(posthog).toContain("'google_ads_purchase_enhanced_conversions_setup_incomplete'")
     expect(posthog).toContain("'google_ads_purchase_imports_zero'")
     expect(posthog).toContain("'google_ads_purchase_primary_conversions_zero'")
+    expect(posthog).toContain("'google_ads_upload_audit_source_anomaly'")
   })
 })

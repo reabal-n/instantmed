@@ -19,6 +19,36 @@ vi.mock("@/lib/analytics/posthog-server", () => ({
   })),
 }))
 
+function googleAdsSupabaseMock(options: { validIntake?: boolean } = {}) {
+  const inserted: unknown[] = []
+  const validIntake = options.validIntake ?? true
+  const supabase = {
+    from: (table: string) => {
+      if (table === "intakes") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({
+                data: validIntake ? { id: "intake_google_1" } : null,
+                error: null,
+              }),
+            }),
+          }),
+        }
+      }
+
+      return {
+        insert: async (payload: unknown) => {
+          inserted.push({ table, payload })
+          return { error: null }
+        },
+      }
+    },
+  }
+
+  return { inserted, supabase }
+}
+
 describe("Google Ads post-payment attribution", () => {
   const originalDisabled = process.env.GOOGLE_ADS_SERVER_CONVERSION_DISABLED
   const originalEnhancedDisabled = process.env.GOOGLE_ADS_ENHANCED_CONVERSIONS_DISABLED
@@ -44,15 +74,7 @@ describe("Google Ads post-payment attribution", () => {
 
   it("audits the server-side kill switch instead of returning a statusless no-op", async () => {
     process.env.GOOGLE_ADS_SERVER_CONVERSION_DISABLED = "true"
-    const inserted: unknown[] = []
-    const supabase = {
-      from: (table: string) => ({
-        insert: async (payload: unknown) => {
-          inserted.push({ table, payload })
-          return { error: null }
-        },
-      }),
-    }
+    const { inserted, supabase } = googleAdsSupabaseMock()
 
     const result = await runGoogleAdsPostPaymentAttribution({
       amountCents: 1995,
@@ -83,8 +105,12 @@ describe("Google Ads post-payment attribution", () => {
         intake_id: "intake_google_1",
         metadata: expect.objectContaining({
           attempted: false,
+          audit_source_anomaly: false,
           error_code: "server_disabled",
           has_gclid: true,
+          has_valid_intake_join: true,
+          request_path: null,
+          runtime_source: "node",
           status: "skipped_disabled",
         }),
       },
@@ -98,11 +124,7 @@ describe("Google Ads post-payment attribution", () => {
       error: "conversionUploadError:TOO_RECENT_CONVERSION_ACTION",
     })
 
-    const supabase = {
-      from: () => ({
-        insert: async () => ({ error: null }),
-      }),
-    }
+    const { supabase } = googleAdsSupabaseMock()
 
     const result = await runGoogleAdsPostPaymentAttribution({
       amountCents: 1995,
@@ -141,11 +163,7 @@ describe("Google Ads post-payment attribution", () => {
       ok: true,
     })
 
-    const supabase = {
-      from: () => ({
-        insert: async () => ({ error: null }),
-      }),
-    }
+    const { supabase } = googleAdsSupabaseMock()
 
     await runGoogleAdsPostPaymentAttribution({
       amountCents: 2995,
@@ -189,11 +207,7 @@ describe("Google Ads post-payment attribution", () => {
   it("forwards enhanced-conversions user data to the upload and flags has_user_data", async () => {
     mocks.fireGoogleAdsPurchaseConversion.mockResolvedValue({ attempted: true, ok: true })
 
-    const supabase = {
-      from: () => ({
-        insert: async () => ({ error: null }),
-      }),
-    }
+    const { supabase } = googleAdsSupabaseMock()
 
     // userData override is injected directly (the live path resolves it from the
     // patient profile; here we skip the DB + decrypt and assert the wiring).
@@ -231,15 +245,7 @@ describe("Google Ads post-payment attribution", () => {
   it("uploads enhanced-conversion user data even when the click id was not captured", async () => {
     mocks.fireGoogleAdsPurchaseConversion.mockResolvedValue({ attempted: true, ok: true })
 
-    const inserted: unknown[] = []
-    const supabase = {
-      from: (table: string) => ({
-        insert: async (payload: unknown) => {
-          inserted.push({ table, payload })
-          return { error: null }
-        },
-      }),
-    }
+    const { inserted, supabase } = googleAdsSupabaseMock()
 
     const result = await runGoogleAdsPostPaymentAttribution({
       amountCents: 4995,
@@ -271,6 +277,7 @@ describe("Google Ads post-payment attribution", () => {
           has_gbraid: false,
           has_gclid: false,
           has_user_data: true,
+          has_valid_intake_join: true,
           has_wbraid: false,
           matching_model: "click_or_user_data",
           status: "success",
@@ -279,17 +286,89 @@ describe("Google Ads post-payment attribution", () => {
     })
   })
 
+  it("records source fingerprinting and marks missing intake joins as audit-source anomalies", async () => {
+    const originals = {
+      GOOGLE_ADS_CLIENT_ID: process.env.GOOGLE_ADS_CLIENT_ID,
+      GOOGLE_ADS_CLIENT_SECRET: process.env.GOOGLE_ADS_CLIENT_SECRET,
+      GOOGLE_ADS_CONVERSION_ACTION_PURCHASE: process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE,
+      GOOGLE_ADS_CUSTOMER_ID: process.env.GOOGLE_ADS_CUSTOMER_ID,
+      GOOGLE_ADS_DEVELOPER_TOKEN: process.env.GOOGLE_ADS_DEVELOPER_TOKEN,
+      GOOGLE_ADS_REFRESH_TOKEN: process.env.GOOGLE_ADS_REFRESH_TOKEN,
+      VERCEL: process.env.VERCEL,
+      VERCEL_DEPLOYMENT_ID: process.env.VERCEL_DEPLOYMENT_ID,
+      VERCEL_ENV: process.env.VERCEL_ENV,
+      VERCEL_GIT_COMMIT_SHA: process.env.VERCEL_GIT_COMMIT_SHA,
+      VERCEL_REGION: process.env.VERCEL_REGION,
+    }
+    process.env.GOOGLE_ADS_CLIENT_ID = "client-id"
+    process.env.GOOGLE_ADS_CLIENT_SECRET = "client-secret"
+    process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE = "7631611119"
+    process.env.GOOGLE_ADS_CUSTOMER_ID = "9205010513"
+    process.env.GOOGLE_ADS_DEVELOPER_TOKEN = "developer-token"
+    process.env.GOOGLE_ADS_REFRESH_TOKEN = "refresh-token"
+    process.env.VERCEL = "1"
+    process.env.VERCEL_DEPLOYMENT_ID = "dpl_test"
+    process.env.VERCEL_ENV = "production"
+    process.env.VERCEL_GIT_COMMIT_SHA = "abc123"
+    process.env.VERCEL_REGION = "syd1"
+
+    try {
+      mocks.fireGoogleAdsPurchaseConversion.mockResolvedValue({ attempted: true, ok: true, jobId: "2265599116648626375" })
+      const { inserted, supabase } = googleAdsSupabaseMock({ validIntake: false })
+
+      await runGoogleAdsPostPaymentAttribution({
+        amountCents: 2495,
+        intakeId: "orphan_intake",
+        posthogDistinctId: "patient_orphan_intake",
+        requestPath: "/api/stripe/webhook",
+        row: {
+          amount_cents: 2495,
+          category: "medical_certificate",
+          campaignid: "123",
+          gclid: "gclid-value",
+        },
+        source: "checkout_session_completed",
+        supabase: supabase as never,
+      })
+
+      expect(inserted[0]).toMatchObject({
+        payload: {
+          intake_id: "orphan_intake",
+          metadata: expect.objectContaining({
+            audit_source_anomaly: true,
+            audit_source_anomaly_reason: "join_missing",
+            deployment_id: "dpl_test",
+            git_sha: "abc123",
+            has_valid_intake_id: true,
+            has_valid_intake_join: false,
+            intake_join_check: "join_missing",
+            request_path: "/api/stripe/webhook",
+            runtime_source: "vercel",
+            upload_job_id: "2265599116648626375",
+            vercel_env: "production",
+            vercel_region: "syd1",
+          }),
+        },
+      })
+      expect((inserted[0] as { payload: { metadata: { env_preflight: unknown } } }).payload.metadata.env_preflight).toMatchObject({
+        google_ads_client_id: true,
+        google_ads_client_secret: true,
+        google_ads_conversion_action_purchase: true,
+        google_ads_customer_id: true,
+        google_ads_developer_token: true,
+        google_ads_refresh_token: true,
+      })
+    } finally {
+      for (const [key, value] of Object.entries(originals)) {
+        if (value === undefined) delete process.env[key]
+        else process.env[key] = value
+      }
+    }
+  })
+
   it("audits a no-click skip when enhanced conversions are disabled", async () => {
     process.env.GOOGLE_ADS_ENHANCED_CONVERSIONS_DISABLED = "true"
-    const inserted: unknown[] = []
-    const supabase = {
-      from: (table: string) => ({
-        insert: async (payload: unknown) => {
-          inserted.push({ table, payload })
-          return { error: null }
-        },
-      }),
-    }
+    const { inserted, supabase } = googleAdsSupabaseMock()
 
     const result = await runGoogleAdsPostPaymentAttribution({
       amountCents: 1995,

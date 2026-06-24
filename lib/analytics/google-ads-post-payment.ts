@@ -65,8 +65,114 @@ type GoogleAdsConversionStatus =
   | "skipped_missing_env"
   | "skipped_no_access_token"
 
+type GoogleAdsAuditRuntimeFingerprint = {
+  deploymentId: string | null
+  gitSha: string | null
+  nodeEnv: string | null
+  requestPath: string | null
+  runtime: string
+  runtimeSource: "vercel" | "node"
+  vercelEnv: string | null
+  vercelRegion: string | null
+}
+
+type GoogleAdsEnvPreflightBooleans = {
+  enhancedConversionsDisabled: boolean
+  hasClientId: boolean
+  hasClientSecret: boolean
+  hasConversionActionPurchase: boolean
+  hasCustomerId: boolean
+  hasDeveloperToken: boolean
+  hasRefreshToken: boolean
+  serverConversionDisabled: boolean
+}
+
+type GoogleAdsIntakeJoinCheck = {
+  hasValidIntakeId: boolean
+  hasValidIntakeJoin: boolean | null
+  intakeJoinCheck: "ok" | "missing_intake_id" | "join_missing" | "query_error"
+}
+
 function clean(value?: string | null): string {
   return value?.trim() ?? ""
+}
+
+function cleanRuntimeValue(value?: string | null): string | null {
+  const normalized = value?.trim()
+  return normalized ? normalized : null
+}
+
+function getGoogleAdsAuditRuntimeFingerprint(requestPath?: string | null): GoogleAdsAuditRuntimeFingerprint {
+  const runtime = cleanRuntimeValue(process.env.NEXT_RUNTIME) || "nodejs"
+
+  return {
+    deploymentId: cleanRuntimeValue(process.env.VERCEL_DEPLOYMENT_ID),
+    gitSha:
+      cleanRuntimeValue(process.env.VERCEL_GIT_COMMIT_SHA) ||
+      cleanRuntimeValue(process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA) ||
+      cleanRuntimeValue(process.env.GIT_SHA),
+    nodeEnv: cleanRuntimeValue(process.env.NODE_ENV),
+    requestPath: cleanRuntimeValue(requestPath),
+    runtime,
+    runtimeSource: process.env.VERCEL === "1" ? "vercel" : "node",
+    vercelEnv: cleanRuntimeValue(process.env.VERCEL_ENV),
+    vercelRegion: cleanRuntimeValue(process.env.VERCEL_REGION),
+  }
+}
+
+function getGoogleAdsEnvPreflightBooleans(): GoogleAdsEnvPreflightBooleans {
+  return {
+    enhancedConversionsDisabled: process.env.GOOGLE_ADS_ENHANCED_CONVERSIONS_DISABLED === "true",
+    hasClientId: Boolean(cleanRuntimeValue(process.env.GOOGLE_ADS_CLIENT_ID)),
+    hasClientSecret: Boolean(cleanRuntimeValue(process.env.GOOGLE_ADS_CLIENT_SECRET)),
+    hasConversionActionPurchase: Boolean(cleanRuntimeValue(process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE)),
+    hasCustomerId: Boolean(cleanRuntimeValue(process.env.GOOGLE_ADS_CUSTOMER_ID)),
+    hasDeveloperToken: Boolean(cleanRuntimeValue(process.env.GOOGLE_ADS_DEVELOPER_TOKEN)),
+    hasRefreshToken: Boolean(cleanRuntimeValue(process.env.GOOGLE_ADS_REFRESH_TOKEN)),
+    serverConversionDisabled: process.env.GOOGLE_ADS_SERVER_CONVERSION_DISABLED === "true",
+  }
+}
+
+async function checkGoogleAdsAuditIntakeJoin(
+  supabase: SupabaseClient,
+  intakeId: string,
+): Promise<GoogleAdsIntakeJoinCheck> {
+  if (!cleanRuntimeValue(intakeId)) {
+    return {
+      hasValidIntakeId: false,
+      hasValidIntakeJoin: false,
+      intakeJoinCheck: "missing_intake_id",
+    }
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("intakes")
+      .select("id")
+      .eq("id", intakeId)
+      .maybeSingle()
+
+    if (error) {
+      return {
+        hasValidIntakeId: true,
+        hasValidIntakeJoin: null,
+        intakeJoinCheck: "query_error",
+      }
+    }
+
+    const hasJoin = Boolean((data as { id?: string | null } | null)?.id)
+    return {
+      hasValidIntakeId: true,
+      hasValidIntakeJoin: hasJoin,
+      intakeJoinCheck: hasJoin ? "ok" : "join_missing",
+    }
+  } catch {
+    return {
+      hasValidIntakeId: true,
+      hasValidIntakeJoin: null,
+      intakeJoinCheck: "query_error",
+    }
+  }
 }
 
 export function hasGoogleClickId(row: GoogleAdsAttributionRow): boolean {
@@ -128,6 +234,7 @@ async function recordGoogleAdsConversionAudit({
   error,
   hasUserData,
   intakeId,
+  requestPath,
   result,
   row,
   source,
@@ -138,42 +245,73 @@ async function recordGoogleAdsConversionAudit({
   error?: string | null
   hasUserData: boolean
   intakeId: string
+  requestPath?: string | null
   result: GoogleAdsConversionUploadResult
   row: GoogleAdsAttributionRow
   source: GoogleAdsConversionSource
   status: GoogleAdsConversionStatus
   supabase: SupabaseClient
 }) {
+  const runtimeFingerprint = getGoogleAdsAuditRuntimeFingerprint(requestPath)
+  const envPreflight = getGoogleAdsEnvPreflightBooleans()
+  const intakeJoin = await checkGoogleAdsAuditIntakeJoin(supabase, intakeId)
+  const auditSourceAnomaly =
+    intakeJoin.hasValidIntakeId === false ||
+    intakeJoin.hasValidIntakeJoin === false
+
   const metadata = sanitizeAuditMetadata({
     action_type: GOOGLE_ADS_CONVERSION_UPLOAD_AUDIT_ACTION,
     amount_cents: amountCents,
     attempted: result.attempted,
+    audit_source_anomaly: auditSourceAnomaly,
+    audit_source_anomaly_reason: auditSourceAnomaly ? intakeJoin.intakeJoinCheck : null,
     campaignid: row.campaignid || null,
     adgroupid: row.adgroupid || null,
     creative: row.creative || null,
     currency: "AUD",
+    deployment_id: runtimeFingerprint.deploymentId,
     device: row.device || null,
+    env_preflight: {
+      google_ads_client_id: envPreflight.hasClientId,
+      google_ads_client_secret: envPreflight.hasClientSecret,
+      google_ads_conversion_action_purchase: envPreflight.hasConversionActionPurchase,
+      google_ads_customer_id: envPreflight.hasCustomerId,
+      google_ads_developer_token: envPreflight.hasDeveloperToken,
+      google_ads_enhanced_conversions_disabled: envPreflight.enhancedConversionsDisabled,
+      google_ads_refresh_token: envPreflight.hasRefreshToken,
+      google_ads_server_conversion_disabled: envPreflight.serverConversionDisabled,
+    },
     error_code: error || null,
+    git_sha: runtimeFingerprint.gitSha,
     has_gbraid: Boolean(row.gbraid),
     has_gclid: Boolean(row.gclid),
     has_user_data: hasUserData,
+    has_valid_intake_id: intakeJoin.hasValidIntakeId,
+    has_valid_intake_join: intakeJoin.hasValidIntakeJoin,
     has_wbraid: Boolean(row.wbraid),
+    intake_join_check: intakeJoin.intakeJoinCheck,
     matchtype: row.matchtype || null,
     matching_model: "click_or_user_data",
     network: row.network || null,
+    node_env: runtimeFingerprint.nodeEnv,
     ok: result.ok ?? false,
     order_id: intakeId,
+    request_path: runtimeFingerprint.requestPath,
+    runtime: runtimeFingerprint.runtime,
+    runtime_source: runtimeFingerprint.runtimeSource,
     upload_job_id: result.jobId ?? null,
     service_type: row.category || null,
     service_slug: row.subtype || row.category || null,
     source,
     status,
+    vercel_env: runtimeFingerprint.vercelEnv,
+    vercel_region: runtimeFingerprint.vercelRegion,
   })
 
   const { error: auditError } = await supabase.from("audit_logs").insert({
     action: GOOGLE_ADS_CONVERSION_UPLOAD_AUDIT_ACTION,
     actor_type: "system",
-    intake_id: intakeId,
+    intake_id: intakeJoin.hasValidIntakeId ? intakeId : null,
     metadata,
     created_at: new Date().toISOString(),
   })
@@ -315,6 +453,7 @@ export async function runGoogleAdsPostPaymentAttribution({
   amountCents,
   intakeId,
   posthogDistinctId,
+  requestPath,
   row,
   source,
   supabase,
@@ -323,6 +462,7 @@ export async function runGoogleAdsPostPaymentAttribution({
   amountCents?: number | null
   intakeId: string
   posthogDistinctId: string
+  requestPath?: string | null
   row: GoogleAdsAttributionRow
   source: GoogleAdsConversionSource
   supabase: SupabaseClient
@@ -380,6 +520,7 @@ export async function runGoogleAdsPostPaymentAttribution({
       error: result.error,
       hasUserData: false,
       intakeId,
+      requestPath,
       result,
       row,
       source,
@@ -441,6 +582,7 @@ export async function runGoogleAdsPostPaymentAttribution({
     error,
     hasUserData,
     intakeId,
+    requestPath,
     result,
     row,
     source,

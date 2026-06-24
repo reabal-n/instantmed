@@ -96,6 +96,10 @@
       "schedule": "45 * * * *"
     },
     {
+      "path": "/api/cron/google-ads-diagnostics-watch",
+      "schedule": "50 * * * *"
+    },
+    {
       "path": "/api/cron/qa-sampling",
       "schedule": "0 6 * * 1"
     },

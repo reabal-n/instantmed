@@ -177,6 +177,7 @@ export async function GET(request: NextRequest) {
         amountCents: row.amount_cents,
         intakeId: row.id,
         posthogDistinctId: row.patient_id || row.id,
+        requestPath: request.nextUrl.pathname,
         row,
         source: "cron_backfill",
         supabase,

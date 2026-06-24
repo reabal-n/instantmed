@@ -13,6 +13,27 @@ export type GoogleAdsPurchaseImportHealthSnapshot = {
   purchaseConversionValueAud: number
   queryErrors: Array<{ name: string; error: string }>
   rangeDays: number
+  uploadAuditReconciliation?: {
+    byRequestPath: Record<string, number>
+    byRuntimeSource: Record<string, number>
+    bySource: Record<string, number>
+    byVercelEnv: Record<string, number>
+    orphanRows: {
+      invalidIntakeJoin: number
+      missingIntakeId: number
+      samples: Array<{
+        at: string | null
+        deploymentId: string | null
+        requestPath: string | null
+        runtimeSource: string | null
+        source: string | null
+        status: string | null
+        uploadJobId: string | null
+        vercelEnv: string | null
+      }>
+      total: number
+    }
+  } | null
 }
 
 export type GoogleAdsPurchaseImportAlert = {
@@ -31,6 +52,16 @@ export type GoogleAdsPurchaseImportAlert = {
     purchase_conversion_value_aud: number
     purchase_conversions: number
     query_errors: string[]
+    upload_audit_orphan_rows?: number
+    upload_audit_orphan_samples?: GoogleAdsPurchaseImportHealthSnapshot["uploadAuditReconciliation"] extends infer T
+      ? T extends { orphanRows: { samples: infer S } }
+        ? S
+        : never
+      : never
+    upload_audit_request_paths?: string[]
+    upload_audit_runtime_sources?: string[]
+    upload_audit_sources?: string[]
+    upload_audit_vercel_envs?: string[]
     window: string
     window_days: number
   }
@@ -39,6 +70,7 @@ export type GoogleAdsPurchaseImportAlert = {
     | "google_ads_purchase_import_health_unavailable"
     | "google_ads_purchase_imports_zero"
     | "google_ads_purchase_primary_conversions_zero"
+    | "google_ads_upload_audit_source_anomaly"
   severity: "critical"
 }
 
@@ -56,8 +88,31 @@ function buildMetadata(snapshot: GoogleAdsPurchaseImportHealthSnapshot): GoogleA
     purchase_conversion_value_aud: snapshot.purchaseConversionValueAud,
     purchase_conversions: snapshot.purchaseConversions,
     query_errors: snapshot.queryErrors.map((error) => `${error.name}:${error.error}`),
+    upload_audit_orphan_rows: snapshot.uploadAuditReconciliation?.orphanRows.total,
+    upload_audit_orphan_samples: snapshot.uploadAuditReconciliation?.orphanRows.samples,
+    upload_audit_request_paths: Object.keys(snapshot.uploadAuditReconciliation?.byRequestPath ?? {}).sort(),
+    upload_audit_runtime_sources: Object.keys(snapshot.uploadAuditReconciliation?.byRuntimeSource ?? {}).sort(),
+    upload_audit_sources: Object.keys(snapshot.uploadAuditReconciliation?.bySource ?? {}).sort(),
+    upload_audit_vercel_envs: Object.keys(snapshot.uploadAuditReconciliation?.byVercelEnv ?? {}).sort(),
     window: `${snapshot.rangeDays}d`,
     window_days: snapshot.rangeDays,
+  }
+}
+
+export function buildGoogleAdsUploadAuditSourceAnomalyAlert(
+  snapshot: GoogleAdsPurchaseImportHealthSnapshot,
+): GoogleAdsPurchaseImportAlert | null {
+  const orphanRows = snapshot.uploadAuditReconciliation?.orphanRows.total ?? 0
+  if (orphanRows <= 0) return null
+
+  return {
+    count: orphanRows,
+    detail:
+      `Google Ads upload audit has ${orphanRows} orphan row` +
+      `${orphanRows === 1 ? "" : "s"} with no valid intake join; classify as audit-source anomaly`,
+    metadata: buildMetadata(snapshot),
+    metric: "google_ads_upload_audit_source_anomaly",
+    severity: "critical",
   }
 }
 

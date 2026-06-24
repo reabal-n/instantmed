@@ -8,7 +8,10 @@ import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
 import { toError } from "@/lib/errors"
-import { buildGoogleAdsPurchaseImportAlert } from "@/lib/monitoring/google-ads-purchase-import-health"
+import {
+  buildGoogleAdsPurchaseImportAlert,
+  buildGoogleAdsUploadAuditSourceAnomalyAlert,
+} from "@/lib/monitoring/google-ads-purchase-import-health"
 import {
   buildNoPurchaseRevenueAlert,
   CHECKOUT_DEMAND_PAYMENT_STATUSES,
@@ -165,6 +168,16 @@ export async function GET(request: NextRequest) {
     let googleAdsPurchaseImportHealth = null
     try {
       googleAdsPurchaseImportHealth = await getGoogleAdsPurchaseImportHealth({ supabase, now })
+      const googleAdsUploadAuditSourceAnomalyAlert =
+        buildGoogleAdsUploadAuditSourceAnomalyAlert(googleAdsPurchaseImportHealth)
+      if (googleAdsUploadAuditSourceAnomalyAlert) {
+        alerts.push(googleAdsUploadAuditSourceAnomalyAlert)
+        trackBusinessMetric({
+          metric: googleAdsUploadAuditSourceAnomalyAlert.metric,
+          severity: googleAdsUploadAuditSourceAnomalyAlert.severity,
+          metadata: googleAdsUploadAuditSourceAnomalyAlert.metadata,
+        })
+      }
       const googleAdsPurchaseImportAlert = buildGoogleAdsPurchaseImportAlert(googleAdsPurchaseImportHealth)
       if (googleAdsPurchaseImportAlert) {
         alerts.push(googleAdsPurchaseImportAlert)

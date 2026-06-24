@@ -36,6 +36,12 @@ describe("Google Ads attribution contract", () => {
     expect(runner).toContain('GOOGLE_ADS_CONVERSION_UPLOAD_AUDIT_ACTION = "google_ads_conversion_upload"')
     expect(runner).toContain('action: GOOGLE_ADS_CONVERSION_UPLOAD_AUDIT_ACTION')
     expect(runner).toContain('actor_type: "system"')
+    expect(runner).toContain("audit_source_anomaly")
+    expect(runner).toContain("deployment_id")
+    expect(runner).toContain("env_preflight")
+    expect(runner).toContain("has_valid_intake_join")
+    expect(runner).toContain("request_path")
+    expect(runner).toContain("runtime_source")
     expect(runner).not.toContain("metadata: { gclid")
 
     expect(cron).toContain("runGoogleAdsPostPaymentAttribution")
@@ -51,7 +57,9 @@ describe("Google Ads attribution contract", () => {
     expect(cron).toContain('searchParams.get("preflight") === "1"')
     expect(cron).toContain("serializePreflight")
     expect(vercel).toContain("/api/cron/google-ads-conversions")
+    expect(vercel).toContain("/api/cron/google-ads-diagnostics-watch")
     expect(heartbeat).toContain('"google-ads-conversions"')
+    expect(heartbeat).toContain('"google-ads-diagnostics-watch"')
   })
 
   it("does not expose Google Ads account mutation from the scheduled backfill route", () => {

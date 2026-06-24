@@ -13,15 +13,30 @@ function parseDays(value: string | null): number {
   return Math.min(Math.max(Math.floor(parsed), 1), 90)
 }
 
+function parseProcessingWindowHours(value: string | null): number {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed)) return 24
+  return Math.min(Math.max(Math.floor(parsed), 1), 168)
+}
+
 export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
 
   try {
     const days = parseDays(request.nextUrl.searchParams.get("days"))
+    const watchJobId = request.nextUrl.searchParams.get("watchJobId")
+    const watchUploadedAt = request.nextUrl.searchParams.get("watchUploadedAt")
+    const diagnosticsProcessingWindowHours = parseProcessingWindowHours(
+      request.nextUrl.searchParams.get("processingWindowHours"),
+    )
     const report = await getGoogleAdsSpendAuditReport({
+      auditSince: watchUploadedAt || undefined,
       days,
+      diagnosticsProcessingWindowHours,
       supabase: createServiceRoleClient(),
+      watchJobId,
+      watchUploadedAt,
     })
 
     return NextResponse.json({
