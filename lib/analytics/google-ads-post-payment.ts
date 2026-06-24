@@ -158,6 +158,7 @@ async function recordGoogleAdsConversionAudit({
     has_user_data: hasUserData,
     has_wbraid: Boolean(row.wbraid),
     matchtype: row.matchtype || null,
+    matching_model: "click_or_user_data",
     network: row.network || null,
     ok: result.ok ?? false,
     order_id: intakeId,
@@ -334,8 +335,6 @@ export async function runGoogleAdsPostPaymentAttribution({
   status?: GoogleAdsConversionStatus
   error?: string
 }> {
-  if (!isLikelyGoogleAttributed(row)) return { attempted: false }
-
   const resolvedAmountCents =
     typeof amountCents === "number"
       ? amountCents
@@ -404,19 +403,20 @@ export async function runGoogleAdsPostPaymentAttribution({
     }
   }
 
+  const enhancedUserData = enhancedConversionsDisabled
+    ? null
+    : (userData ?? (await resolveEnhancedUserData(supabase, intakeId)))
+  const hasUserData = Boolean(
+    hashEmailForGoogleAds(enhancedUserData?.email) ||
+      hashPhoneForGoogleAds(enhancedUserData?.phone),
+  )
+  const hasClickId = hasGoogleClickId(row)
+  const likelyGoogleAttributed = isLikelyGoogleAttributed(row)
+
+  if (!likelyGoogleAttributed && !hasUserData) return { attempted: false }
+
   let result: { attempted: boolean; ok?: boolean; error?: string }
-  let hasUserData = false
-  if (hasGoogleClickId(row)) {
-    // Resolve hashed email + phone for enhanced conversions only when we're
-    // actually going to upload. Caller may inject `userData` (e.g. tests);
-    // otherwise we read it from the patient profile (live webhook + cron alike).
-    const enhancedUserData = enhancedConversionsDisabled
-      ? null
-      : (userData ?? (await resolveEnhancedUserData(supabase, intakeId)))
-    hasUserData = Boolean(
-      hashEmailForGoogleAds(enhancedUserData?.email) ||
-        hashPhoneForGoogleAds(enhancedUserData?.phone),
-    )
+  if (hasClickId || hasUserData) {
     result = await fireGoogleAdsPurchaseConversion({
       orderId: intakeId,
       gclid: row.gclid,

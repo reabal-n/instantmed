@@ -8,7 +8,6 @@ import {
 import {
   GOOGLE_ADS_ATTRIBUTION_SELECT,
   type GoogleAdsAttributionRow,
-  isLikelyGoogleAttributed,
   runGoogleAdsPostPaymentAttribution,
 } from "@/lib/analytics/google-ads-post-payment"
 import {
@@ -56,9 +55,11 @@ function serializePreflight(preflight: GoogleAdsConversionActionPreflightResult)
  *
  * The Stripe webhook fires immediately, but a production-grade Ads pipeline
  * cannot rely on one fire-and-forget serverless call. This cron scans paid
- * intakes that look Google-attributed, skips already-successful uploads, and
- * retries failed/missing upload records using the stable intake id as Google's
- * order id for deduplication.
+ * intakes, skips already-successful uploads, and retries failed/missing upload
+ * records using the stable intake id as Google's order id for deduplication.
+ * Enhanced conversions can match with hashed first-party data even when a
+ * click id was not captured, so this intentionally does not pre-filter to rows
+ * that already look Google-attributed.
  */
 export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
@@ -112,7 +113,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = await filterReportableIntakes(candidateQuery)
     if (error) throw new Error(`Google Ads candidate query failed: ${error.message}`)
 
-    const candidates = ((data || []) as GoogleAdsCandidate[]).filter(isLikelyGoogleAttributed)
+    const candidates = (data || []) as GoogleAdsCandidate[]
     const candidateIds = candidates.map((row) => row.id)
 
     let latestAuditByIntake = new Map<string, GoogleAdsUploadAuditRow>()

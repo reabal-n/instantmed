@@ -8,16 +8,17 @@ import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("google-ads-conversion-api")
 const DEFAULT_GOOGLE_ADS_API_VERSION = "v24"
+export const GOOGLE_ADS_PURCHASE_UPLOAD_JOB_ID = 20260624
 
 /**
  * Server-side Google Ads Conversion API client.
  *
  * Why: browser-side gtag misses ~30% of attribution on iOS Safari (ITP blocks
  * third-party cookies) and other privacy-restricted contexts. Firing the same
- * conversion server-side using the gclid stored at intake submit time recovers
- * that loss. `order_id` keeps upload retries idempotent for this conversion
- * action; Ads account goal settings still decide whether browser and offline
- * actions are counted together.
+ * conversion server-side using the captured click id and/or hashed first-party
+ * identifiers recovers that loss. `order_id` keeps upload retries idempotent
+ * for this conversion action; Ads account goal settings still decide whether
+ * browser and offline actions are counted together.
  *
  * Required env vars (all must be present for the call to fire):
  *   GOOGLE_ADS_CUSTOMER_ID            - 10-digit customer id, no dashes
@@ -92,6 +93,7 @@ interface GoogleAdsClickConversionRequest {
     orderId: string
     userIdentifiers?: GoogleAdsUserIdentifier[]
   } & ClickIdentifier>
+  jobId: number
   partialFailure: true
 }
 
@@ -449,17 +451,17 @@ export function buildGoogleAdsClickConversionRequest(
   config: { customerId: string; conversionActionId: string },
 ): GoogleAdsClickConversionRequest | null {
   const clickIdentifier = selectGoogleAdsClickIdentifier(input)
-  if (!clickIdentifier) return null
   const conversionActionId = normalizeGoogleAdsNumericId(config.conversionActionId)
   if (!conversionActionId) return null
 
   const userIdentifiers = buildGoogleAdsUserIdentifiers(input.userData)
+  if (!clickIdentifier && userIdentifiers.length === 0) return null
 
   return {
     conversions: [
       {
         conversionAction: `customers/${config.customerId}/conversionActions/${conversionActionId}`,
-        ...clickIdentifier,
+        ...(clickIdentifier ?? {}),
         conversionDateTime: formatGoogleAdsDateTime(input.conversionDateTime ?? new Date()),
         conversionEnvironment: "WEB",
         conversionValue: input.value,
@@ -468,6 +470,7 @@ export function buildGoogleAdsClickConversionRequest(
         ...(userIdentifiers.length > 0 ? { userIdentifiers } : {}),
       },
     ],
+    jobId: GOOGLE_ADS_PURCHASE_UPLOAD_JOB_ID,
     partialFailure: true,
   }
 }
@@ -677,8 +680,7 @@ export async function fireGoogleAdsPurchaseConversion(
 
   const body = buildGoogleAdsClickConversionRequest(input, config)
   if (!body) {
-    // No click identifier - this conversion didn't originate from a Google ad
-    // click, so there's nothing for the Conversion API to attribute to.
+    // No click identifier and no usable enhanced-conversion identifiers.
     return { attempted: false, error: "missing_click_id" }
   }
 

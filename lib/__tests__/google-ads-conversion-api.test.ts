@@ -9,6 +9,7 @@ import {
   fireGoogleAdsPurchaseConversion,
   getGoogleAdsSearchUrl,
   getGoogleAdsUploadClickConversionsUrl,
+  GOOGLE_ADS_PURCHASE_UPLOAD_JOB_ID,
   hashEmailForGoogleAds,
   hashPhoneForGoogleAds,
   normalizeEmailForGoogleAds,
@@ -71,6 +72,7 @@ describe("google ads conversion api", () => {
     )
 
     expect(request).toMatchObject({
+      jobId: GOOGLE_ADS_PURCHASE_UPLOAD_JOB_ID,
       partialFailure: true,
       conversions: [
         {
@@ -90,7 +92,46 @@ describe("google ads conversion api", () => {
     )
   })
 
-  it("skips request construction when no Google click id is present", () => {
+  it("builds an enhanced-conversion upload body with user data even when no click id is present", () => {
+    const request = buildGoogleAdsClickConversionRequest(
+      {
+        orderId: "intake_123",
+        value: 49.95,
+        conversionDateTime: new Date("2026-05-03T00:00:00.000Z"),
+        userData: { email: "test@example.com", phone: "0412 345 678" },
+      },
+      { customerId: "1234567890", conversionActionId: "9876543210" },
+    )
+
+    expect(request).toMatchObject({
+      jobId: GOOGLE_ADS_PURCHASE_UPLOAD_JOB_ID,
+      partialFailure: true,
+      conversions: [
+        {
+          conversionAction: "customers/1234567890/conversionActions/9876543210",
+          conversionEnvironment: "WEB",
+          conversionValue: 49.95,
+          currencyCode: "AUD",
+          orderId: "intake_123",
+          userIdentifiers: [
+            {
+              hashedEmail: "973dfe463ec85785f5f95af5ba3906eedb2d931c24e69824a89ea65dba4e813b",
+              userIdentifierSource: "FIRST_PARTY",
+            },
+            {
+              hashedPhoneNumber: "bc65da54a3ddbacfdc93a0400f0a2d78e41c2180c8255015e9616facfe56f58a",
+              userIdentifierSource: "FIRST_PARTY",
+            },
+          ],
+        },
+      ],
+    })
+    expect(request?.conversions[0]).not.toHaveProperty("gclid")
+    expect(request?.conversions[0]).not.toHaveProperty("gbraid")
+    expect(request?.conversions[0]).not.toHaveProperty("wbraid")
+  })
+
+  it("skips request construction when no click id or usable enhanced-conversion data is present", () => {
     expect(buildGoogleAdsClickConversionRequest(
       { orderId: "intake_123", value: 49.95 },
       { customerId: "1234567890", conversionActionId: "9876543210" },

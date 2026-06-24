@@ -21,10 +21,12 @@ vi.mock("@/lib/analytics/posthog-server", () => ({
 
 describe("Google Ads post-payment attribution", () => {
   const originalDisabled = process.env.GOOGLE_ADS_SERVER_CONVERSION_DISABLED
+  const originalEnhancedDisabled = process.env.GOOGLE_ADS_ENHANCED_CONVERSIONS_DISABLED
 
   beforeEach(() => {
     mocks.capture.mockReset()
     mocks.fireGoogleAdsPurchaseConversion.mockReset()
+    delete process.env.GOOGLE_ADS_ENHANCED_CONVERSIONS_DISABLED
   })
 
   afterEach(() => {
@@ -32,6 +34,11 @@ describe("Google Ads post-payment attribution", () => {
       delete process.env.GOOGLE_ADS_SERVER_CONVERSION_DISABLED
     } else {
       process.env.GOOGLE_ADS_SERVER_CONVERSION_DISABLED = originalDisabled
+    }
+    if (originalEnhancedDisabled === undefined) {
+      delete process.env.GOOGLE_ADS_ENHANCED_CONVERSIONS_DISABLED
+    } else {
+      process.env.GOOGLE_ADS_ENHANCED_CONVERSIONS_DISABLED = originalEnhancedDisabled
     }
   })
 
@@ -218,6 +225,102 @@ describe("Google Ads post-payment attribution", () => {
     )
     expect(attemptEvents[0]?.[0]).toMatchObject({
       properties: expect.objectContaining({ has_user_data: true }),
+    })
+  })
+
+  it("uploads enhanced-conversion user data even when the click id was not captured", async () => {
+    mocks.fireGoogleAdsPurchaseConversion.mockResolvedValue({ attempted: true, ok: true })
+
+    const inserted: unknown[] = []
+    const supabase = {
+      from: (table: string) => ({
+        insert: async (payload: unknown) => {
+          inserted.push({ table, payload })
+          return { error: null }
+        },
+      }),
+    }
+
+    const result = await runGoogleAdsPostPaymentAttribution({
+      amountCents: 4995,
+      intakeId: "intake_ec_no_click",
+      posthogDistinctId: "patient_ec_no_click",
+      row: {
+        amount_cents: 4995,
+        category: "consult",
+      },
+      source: "checkout_session_completed",
+      supabase: supabase as never,
+      userData: { email: "test@example.com", phone: "0412 345 678" },
+    })
+
+    expect(result).toMatchObject({ attempted: true, ok: true, status: "success" })
+    expect(mocks.fireGoogleAdsPurchaseConversion).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderId: "intake_ec_no_click",
+        gclid: undefined,
+        gbraid: undefined,
+        wbraid: undefined,
+        userData: { email: "test@example.com", phone: "0412 345 678" },
+      }),
+    )
+    expect(inserted[0]).toMatchObject({
+      payload: {
+        metadata: expect.objectContaining({
+          attempted: true,
+          has_gbraid: false,
+          has_gclid: false,
+          has_user_data: true,
+          has_wbraid: false,
+          matching_model: "click_or_user_data",
+          status: "success",
+        }),
+      },
+    })
+  })
+
+  it("audits a no-click skip when enhanced conversions are disabled", async () => {
+    process.env.GOOGLE_ADS_ENHANCED_CONVERSIONS_DISABLED = "true"
+    const inserted: unknown[] = []
+    const supabase = {
+      from: (table: string) => ({
+        insert: async (payload: unknown) => {
+          inserted.push({ table, payload })
+          return { error: null }
+        },
+      }),
+    }
+
+    const result = await runGoogleAdsPostPaymentAttribution({
+      amountCents: 1995,
+      intakeId: "intake_google_no_click",
+      posthogDistinctId: "patient_google_no_click",
+      row: {
+        amount_cents: 1995,
+        campaignid: "123",
+        category: "medical_certificate",
+      },
+      source: "cron_backfill",
+      supabase: supabase as never,
+      userData: { email: "test@example.com" },
+    })
+
+    expect(result).toMatchObject({
+      attempted: false,
+      error: "missing_click_id",
+      ok: false,
+      status: "skipped_missing_click_id",
+    })
+    expect(mocks.fireGoogleAdsPurchaseConversion).not.toHaveBeenCalled()
+    expect(inserted[0]).toMatchObject({
+      payload: {
+        metadata: expect.objectContaining({
+          attempted: false,
+          has_user_data: false,
+          matching_model: "click_or_user_data",
+          status: "skipped_missing_click_id",
+        }),
+      },
     })
   })
 })

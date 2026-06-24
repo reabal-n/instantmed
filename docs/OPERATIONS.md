@@ -393,7 +393,7 @@ Cron surface policy: every `app/api/cron/*/route.ts` must be scheduled in `verce
 | Email Dispatcher | `/api/cron/email-dispatcher` | Every 5 min | Process pending/failed emails from `email_outbox` with atomic claiming; recovers stale `sending` claims and applies `DAILY_EMAIL_LIMIT` only to marketing/engagement sends |
 | Release Stale Claims | `/api/cron/release-stale-claims` | Every 5 min | Release doctor intake claims that have gone stale to prevent queue stalls |
 | Retry Drafts | `/api/cron/retry-drafts` | Every 5 min | Retry failed AI draft generation with exponential backoff |
-| Business Alerts | `/api/cron/business-alerts` | Every 30 min | Aggregates business metrics: failed payments, no-purchase revenue safety, email failures, SLA breaches |
+| Business Alerts | `/api/cron/business-alerts` | Every 30 min | Aggregates business metrics: failed payments, no-purchase revenue safety, Google Ads purchase-import health, email failures, SLA breaches |
 | Stale Queue | `/api/cron/stale-queue` | Hourly | Alerts on paid intakes waiting > 4h (warning) or > 8h (critical) |
 | Abandoned Checkouts | `/api/cron/abandoned-checkouts` | Every 20 min (:00/:20/:40) | Payment-stage recovery for submitted intakes stuck at checkout; first nudge eligible after 20 min, follow-up 24h after first nudge |
 | Partial Intake Recovery | `/api/cron/recover-partial-intakes` | Hourly (:15) | Pre-checkout draft recovery only; excludes review/checkout drafts so it does not overlap abandoned-checkout recovery |
@@ -405,7 +405,7 @@ Cron surface policy: every `app/api/cron/*/route.ts` must be scheduled in `verce
 | Daily Reconciliation | `/api/cron/daily-reconciliation` | Daily (7 AM AEST) | Identify mismatches: paid without delivery, failed refunds, failed deliveries |
 | Parchment Smoke | `/api/cron/parchment-smoke` | Daily (7:30 AM AEST) | Validate production Parchment token and organisation access without creating a patient or prescription; heartbeat appears in `/admin/ops/parchment` |
 | PostHog Reconciliation | `/api/cron/posthog-reconciliation` | Hourly (:15) | Compare last 24h `intakes.payment_status='paid'` count (Supabase) vs `purchase_completed_server` event count (PostHog, `is_e2e=false`). Sentry alerts on >10% drift; "critical" past 30%. Requires `POSTHOG_PROJECT_API_KEY` (PostHog personal API key with `query:read` scope) + `POSTHOG_PROJECT_ID` (numeric, `277439`). Noops with `skipped: true` if either is missing. |
-| Google Ads Conversions | `/api/cron/google-ads-conversions` | Hourly (:45) | Backfill paid Google-attributed conversion uploads from Supabase truth; skips when the configured offline conversion action preflight is a hard error |
+| Google Ads Conversions | `/api/cron/google-ads-conversions` | Hourly (:45) | Backfill paid conversion uploads from Supabase truth using captured click IDs and/or hashed first-party identifiers; skips when the configured offline conversion action preflight is a hard error |
 | DLQ Monitor | `/api/cron/dlq-monitor` | Daily (9 AM UTC) | Alert on unprocessed Stripe webhook dead letter queue items > 24h old |
 | QA Sampling | `/api/cron/qa-sampling` | Weekly (Mon 6 AM UTC) | Sample 10% of approved intakes from last week for quality review |
 | Data Retention | `/api/cron/data-retention` | Daily (2 AM UTC) | Enforce AU health records retention (see CLINICAL.md → Data Retention Schedule); clean rate limit records |
@@ -448,7 +448,7 @@ Before treating a production deploy or paid-traffic ramp as clean:
 1. `pnpm release:check` must pass. This includes Node/runtime pins, stack pins, route/cron/orphan checks, strict integration checks via `CHECK_INTEGRATIONS_STRICT=1 pnpm check:integrations`, lint, typecheck, tests, production build, and bundle budget.
 2. GitHub CI `build`, Vercel production deployment status, and the post-deploy smoke workflow must be green.
 3. `Video review (auto)` must be interpreted by failure mode. A failure caused only by committing `docs/reviews/*` directly to protected `main` is deployment-process noise, not app-health evidence; fix the workflow to upload an artifact or open a PR before using "all checks green" as a release signal. A failure from capture, console errors, checkout friction, or low review score is a product-quality blocker.
-4. Google Ads stays blocked until production-scoped runtime proof shows `GOOGLE_ADS_CONVERSION_ACTION_PURCHASE` is an enabled offline click-import `UPLOAD_CLICKS` purchase action and uploads agree with Supabase/PostHog/Stripe truth.
+4. Google Ads stays blocked until production-scoped runtime proof shows `GOOGLE_ADS_CONVERSION_ACTION_PURCHASE` is an enabled offline click-import `UPLOAD_CLICKS` purchase action and purchase imports/diagnostics agree with Supabase/PostHog/Stripe truth.
 5. Parchment-backed paid traffic stays blocked until daily production Parchment smoke is green and every prescribing-capable doctor has a production `parchment_user_id`.
 
 ### Supabase

@@ -13,6 +13,10 @@ import {
   isLikelyGoogleAttributed,
 } from "@/lib/analytics/google-ads-post-payment"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
+import {
+  GOOGLE_ADS_PURCHASE_IMPORT_HEALTH_DAYS,
+  type GoogleAdsPurchaseImportHealthSnapshot,
+} from "@/lib/monitoring/google-ads-purchase-import-health"
 
 const DEFAULT_REPORT_DAYS = 30
 const MAX_REPORT_DAYS = 90
@@ -687,5 +691,47 @@ export async function getGoogleAdsSpendAuditReport({
     queryErrors,
     range,
     searchTerms,
+  }
+}
+
+export async function getGoogleAdsPurchaseImportHealth({
+  days = GOOGLE_ADS_PURCHASE_IMPORT_HEALTH_DAYS,
+  now = new Date(),
+  supabase,
+}: {
+  days?: number
+  now?: Date
+  supabase: SupabaseClient
+}): Promise<GoogleAdsPurchaseImportHealthSnapshot> {
+  const range = resolveGoogleAdsReportRange(days, now)
+  const queryErrors: QueryError[] = []
+
+  const [preflight, localRows] = await Promise.all([
+    preflightGoogleAdsPurchaseConversionAction(),
+    getLocalGoogleAdsPurchases(supabase, range),
+  ])
+  const local = summarizeLocalGoogleAdsPurchases(localRows)
+
+  const purchaseConversionActionResourceName = preflight.conversionAction?.resourceName || null
+  const purchaseConversionRows = purchaseConversionActionResourceName
+    ? await runOptionalGoogleAdsQuery<GoogleAdsPurchaseConversionRow>(
+      "purchase_conversion_performance",
+      buildGoogleAdsPurchaseConversionQuery(range, purchaseConversionActionResourceName),
+      queryErrors,
+    )
+    : []
+  const ads = summarizeGoogleAdsCampaignRows([], new Map(), purchaseConversionRows)
+
+  return {
+    generatedAt: now.toISOString(),
+    localNetRevenueAud: local.summary.netRevenueAud,
+    localOrders: local.summary.orders,
+    preflightOk: preflight.ok,
+    purchaseAllConversions: ads.summary.totalPurchaseAllConversions,
+    purchaseAllConversionsValueAud: ads.summary.totalPurchaseAllConversionsValueAud,
+    purchaseConversions: ads.summary.totalPurchaseConversions,
+    purchaseConversionValueAud: ads.summary.totalPurchaseConversionValueAud,
+    queryErrors,
+    rangeDays: range.days,
   }
 }

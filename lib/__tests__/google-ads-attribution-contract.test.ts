@@ -40,6 +40,8 @@ describe("Google Ads attribution contract", () => {
 
     expect(cron).toContain("runGoogleAdsPostPaymentAttribution")
     expect(cron).toContain("preflightGoogleAdsPurchaseConversionAction")
+    expect(cron).toContain("Enhanced conversions can match with hashed first-party data")
+    expect(cron).not.toContain(".filter(isLikelyGoogleAttributed)")
     expect(cron).toContain("skipped_preflight")
     expect(cron).toContain("bestGoogleAdsUploadAuditByIntake")
     expect(cron).toContain("shouldRetryGoogleAdsUploadCandidate")
@@ -85,6 +87,33 @@ describe("Google Ads attribution contract", () => {
     ]).get("uploaded-intake")
 
     expect(shouldRetryGoogleAdsUploadCandidate({ gclid: "gclid-1" }, bestAudit, {
+      force: false,
+    })).toBe(false)
+  })
+
+  it("retries legacy no-click skips once the uploader can use enhanced user data", () => {
+    const legacyNoClickAudit = bestGoogleAdsUploadAuditByIntake([
+      {
+        intake_id: "legacy-no-click-intake",
+        metadata: { status: "skipped_missing_click_id" },
+      },
+    ]).get("legacy-no-click-intake")
+
+    expect(shouldRetryGoogleAdsUploadCandidate({}, legacyNoClickAudit, {
+      force: false,
+    })).toBe(true)
+
+    const newNoSignalAudit = bestGoogleAdsUploadAuditByIntake([
+      {
+        intake_id: "new-no-signal-intake",
+        metadata: {
+          matching_model: "click_or_user_data",
+          status: "skipped_missing_click_id",
+        },
+      },
+    ]).get("new-no-signal-intake")
+
+    expect(shouldRetryGoogleAdsUploadCandidate({}, newNoSignalAudit, {
       force: false,
     })).toBe(false)
   })

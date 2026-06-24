@@ -3,6 +3,7 @@ export type GoogleAdsUploadAuditRow = {
   intake_id: string | null
   metadata: {
     error_code?: string | null
+    matching_model?: string | null
     status?: string | null
   } | null
 }
@@ -35,10 +36,15 @@ export function shouldRetryGoogleAdsUploadCandidate(
 ): boolean {
   const latestStatus = latestAudit?.metadata?.status
   const latestError = latestAudit?.metadata?.error_code || ""
+  const latestMatchingModel = latestAudit?.metadata?.matching_model || ""
 
   if (options.force) return true
   if (latestStatus === "success") return false
-  if (latestStatus === "skipped_missing_click_id" && !hasGoogleAdsUploadClickId(row)) return false
+  if (
+    latestStatus === "skipped_missing_click_id" &&
+    latestMatchingModel === "click_or_user_data" &&
+    !hasGoogleAdsUploadClickId(row)
+  ) return false
   if (isNonRetryableGoogleAdsUploadError(latestError)) return false
 
   return true
