@@ -136,7 +136,7 @@ export function LocationPageContent({
             {...fu(0.06)}
             className="text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl mb-4"
           >
-            Online Doctor in {cityData.name}
+            Online Medical Certificate in {cityData.name}
           </motion.h1>
 
           <motion.p

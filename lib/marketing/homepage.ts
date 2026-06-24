@@ -321,6 +321,20 @@ export const footerLinks = {
     { label: "Why we're faster", href: "/why-instant" },
     { label: "Contact", href: "/contact" },
   ],
+  // Indexed location pages, surfaced in the footer so the homepage + every
+  // money page passes crawl demand to them. These were orphaned (no internal
+  // links from any indexed surface), which starved them of crawl budget.
+  // Keep this list in sync with KEEP_INDEXED_LOCATIONS in lib/seo/index-policy.ts
+  // (only link cities we actually want indexed).
+  locations: [
+    { label: "Sydney", href: "/locations/sydney" },
+    { label: "Melbourne", href: "/locations/melbourne" },
+    { label: "Brisbane", href: "/locations/brisbane" },
+    { label: "Perth", href: "/locations/perth" },
+    { label: "Adelaide", href: "/locations/adelaide" },
+    { label: "Canberra", href: "/locations/canberra" },
+    { label: "Newcastle", href: "/locations/newcastle" },
+  ],
 }
 
 export const slaPolicy = {
