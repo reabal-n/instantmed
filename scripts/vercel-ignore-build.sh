@@ -34,6 +34,8 @@ msg="${VERCEL_GIT_COMMIT_MESSAGE:-}"
 
 if [ "$ref" = "$PROD_BRANCH" ]; then
   # Force a prod build/deploy for an otherwise-skippable commit with [deploy].
+  # NB: matches the token ANYWHERE in the message — don't write the literal
+  # token in prose (e.g. a docs commit about this gate) or it self-triggers.
   case "$msg" in
     *"[deploy]"*)
       echo "✓ '[deploy]' override on main — building + deploying."
@@ -50,6 +52,12 @@ if [ "$ref" = "$PROD_BRANCH" ]; then
   # root commit, empty), we BUILD. Allowlist is conservative — scripts/, public/,
   # supabase/, package.json, the lockfile, and all of app|components|lib
   # (non-test) are treated as runtime and always build.
+  #
+  # Vercel's Ignored Build Step runs in a shallow clone (often depth 1) where
+  # HEAD^ is absent — without this the diff is empty and we fail safe to BUILD
+  # every time, silently defeating the skip. Deepen by one commit so HEAD^
+  # resolves; if the fetch can't run, `changed` stays empty and we still build.
+  git rev-parse --verify -q HEAD^ >/dev/null 2>&1 || git fetch --deepen=1 --quiet >/dev/null 2>&1 || true
   changed="$(git diff --name-only HEAD^ HEAD 2>/dev/null || true)"
   if [ -n "$changed" ]; then
     runtime="$(printf '%s\n' "$changed" | grep -vE '(^docs/)|(^\.github/)|(^e2e/)|(\.md$)|(/__tests__/)|(\.test\.)|(\.spec\.)' || true)"
