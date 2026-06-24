@@ -13,6 +13,7 @@ import { COMPANY_NAME,CONTACT_EMAIL_NOREPLY } from "@/lib/constants"
 import { canAccessDevOnlyRoute } from "@/lib/dev-only-routes"
 import { AbandonedCheckoutEmail, abandonedCheckoutSubject } from "@/lib/email/components/templates/abandoned-checkout"
 import { AbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject } from "@/lib/email/components/templates/abandoned-checkout-followup"
+import { CertReactivationEmail, certReactivationSubject } from "@/lib/email/components/templates/cert-reactivation"
 import { ConsultApprovedEmail } from "@/lib/email/components/templates/consult-approved"
 import { EdApprovedEmail } from "@/lib/email/components/templates/ed-approved"
 import { GuestCompleteAccountEmail } from "@/lib/email/components/templates/guest-complete-account"
@@ -452,6 +453,17 @@ const templates: Record<string, {
         medicationName="Atorvastatin 20mg"
         appUrl={mock.appUrl}
         reorderUrl={`${mock.appUrl}/prescriptions`}
+      />
+    ),
+  },
+  "cert-reactivation": {
+    name: "Med-cert Reactivation",
+    subject: certReactivationSubject,
+    render: () => (
+      <CertReactivationEmail
+        patientName={mock.patientName}
+        appUrl={mock.appUrl}
+        requestUrl={`${mock.appUrl}/medical-certificate`}
       />
     ),
   },
