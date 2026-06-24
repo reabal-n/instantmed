@@ -6,6 +6,7 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import { reportGoogleAdsConversionFailure } from "@/lib/analytics/google-ads-conversion-alarm"
 import {
   fireGoogleAdsPurchaseConversion,
+  type GoogleAdsConversionUploadResult,
   type GoogleAdsEnhancedUserData,
   hashEmailForGoogleAds,
   hashPhoneForGoogleAds,
@@ -137,7 +138,7 @@ async function recordGoogleAdsConversionAudit({
   error?: string | null
   hasUserData: boolean
   intakeId: string
-  result: { attempted: boolean; ok?: boolean; error?: string }
+  result: GoogleAdsConversionUploadResult
   row: GoogleAdsAttributionRow
   source: GoogleAdsConversionSource
   status: GoogleAdsConversionStatus
@@ -158,9 +159,11 @@ async function recordGoogleAdsConversionAudit({
     has_user_data: hasUserData,
     has_wbraid: Boolean(row.wbraid),
     matchtype: row.matchtype || null,
+    matching_model: "click_or_user_data",
     network: row.network || null,
     ok: result.ok ?? false,
     order_id: intakeId,
+    upload_job_id: result.jobId ?? null,
     service_type: row.category || null,
     service_slug: row.subtype || row.category || null,
     source,
@@ -200,7 +203,7 @@ function trackGoogleAdsPostHogEvent({
   hasUserData: boolean
   intakeId: string
   posthogDistinctId: string
-  result: { attempted: boolean; ok?: boolean; error?: string }
+  result: GoogleAdsConversionUploadResult
   row: GoogleAdsAttributionRow
   source: GoogleAdsConversionSource
   status: GoogleAdsConversionStatus
@@ -238,6 +241,7 @@ function trackGoogleAdsPostHogEvent({
       service_category: row.category || null,
       source,
       status,
+      upload_job_id: result.jobId ?? null,
     }
 
     posthog.capture({
@@ -333,9 +337,8 @@ export async function runGoogleAdsPostPaymentAttribution({
   ok?: boolean
   status?: GoogleAdsConversionStatus
   error?: string
+  jobId?: number | string
 }> {
-  if (!isLikelyGoogleAttributed(row)) return { attempted: false }
-
   const resolvedAmountCents =
     typeof amountCents === "number"
       ? amountCents
@@ -404,19 +407,20 @@ export async function runGoogleAdsPostPaymentAttribution({
     }
   }
 
-  let result: { attempted: boolean; ok?: boolean; error?: string }
-  let hasUserData = false
-  if (hasGoogleClickId(row)) {
-    // Resolve hashed email + phone for enhanced conversions only when we're
-    // actually going to upload. Caller may inject `userData` (e.g. tests);
-    // otherwise we read it from the patient profile (live webhook + cron alike).
-    const enhancedUserData = enhancedConversionsDisabled
-      ? null
-      : (userData ?? (await resolveEnhancedUserData(supabase, intakeId)))
-    hasUserData = Boolean(
-      hashEmailForGoogleAds(enhancedUserData?.email) ||
-        hashPhoneForGoogleAds(enhancedUserData?.phone),
-    )
+  const enhancedUserData = enhancedConversionsDisabled
+    ? null
+    : (userData ?? (await resolveEnhancedUserData(supabase, intakeId)))
+  const hasUserData = Boolean(
+    hashEmailForGoogleAds(enhancedUserData?.email) ||
+      hashPhoneForGoogleAds(enhancedUserData?.phone),
+  )
+  const hasClickId = hasGoogleClickId(row)
+  const likelyGoogleAttributed = isLikelyGoogleAttributed(row)
+
+  if (!likelyGoogleAttributed && !hasUserData) return { attempted: false }
+
+  let result: GoogleAdsConversionUploadResult
+  if (hasClickId || hasUserData) {
     result = await fireGoogleAdsPurchaseConversion({
       orderId: intakeId,
       gclid: row.gclid,
@@ -490,5 +494,6 @@ export async function runGoogleAdsPostPaymentAttribution({
     ok: result.ok,
     status,
     error: result.error,
+    jobId: result.jobId,
   }
 }

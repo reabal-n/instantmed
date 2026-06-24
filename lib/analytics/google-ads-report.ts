@@ -13,6 +13,10 @@ import {
   isLikelyGoogleAttributed,
 } from "@/lib/analytics/google-ads-post-payment"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
+import {
+  GOOGLE_ADS_PURCHASE_IMPORT_HEALTH_DAYS,
+  type GoogleAdsPurchaseImportHealthSnapshot,
+} from "@/lib/monitoring/google-ads-purchase-import-health"
 
 const DEFAULT_REPORT_DAYS = 30
 const MAX_REPORT_DAYS = 90
@@ -64,6 +68,37 @@ export type GoogleAdsPurchaseConversionRow = {
     conversionActionName?: string
     date?: string
   }
+}
+
+export type GoogleAdsOfflineUploadDiagnosticsRow = {
+  offlineConversionUploadConversionActionSummary?: {
+    alerts?: unknown[]
+    client?: string
+    conversionActionName?: string
+    dailySummaries?: unknown[]
+    jobSummaries?: unknown[]
+    lastUploadDateTime?: string
+    pendingEventCount?: number | string
+    status?: string
+    successfulEventCount?: number | string
+    totalEventCount?: number | string
+  }
+}
+
+export type GoogleAdsCustomerConversionTrackingSettingsRow = {
+  customer?: {
+    conversionTrackingSetting?: {
+      acceptedCustomerDataTerms?: boolean | string | null
+      enhancedConversionsForLeadsEnabled?: boolean | string | null
+    }
+    id?: string | number
+  }
+}
+
+export type GoogleAdsCustomerConversionTrackingSettingsSummary = {
+  acceptedCustomerDataTerms: boolean | null
+  customerId: string | null
+  enhancedConversionsForLeadsEnabled: boolean | null
 }
 
 export type LocalGoogleAdsPurchaseRow = GoogleAdsAttributionRow & {
@@ -150,6 +185,7 @@ type QueryError = {
 export type GoogleAdsSpendAuditReport = {
   ads: GoogleAdsSpendReport
   conversionActions: GoogleAdsSecondaryRow[]
+  customerConversionTrackingSettings: GoogleAdsCustomerConversionTrackingSettingsRow[]
   finalUrls: GoogleAdsSecondaryRow[]
   generatedAt: string
   local: {
@@ -161,6 +197,7 @@ export type GoogleAdsSpendAuditReport = {
       refundedAud: number
     }
   }
+  offlineUploadDiagnostics: GoogleAdsOfflineUploadDiagnosticsRow[]
   preflight: GoogleAdsConversionActionPreflightResult
   queryErrors: QueryError[]
   range: GoogleAdsReportRange & { days: number }
@@ -188,6 +225,16 @@ function toNumber(value: unknown): number {
     return Number.isFinite(parsed) ? parsed : 0
   }
   return 0
+}
+
+function toBooleanOrNull(value: unknown): boolean | null {
+  if (typeof value === "boolean") return value
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase()
+    if (normalized === "true") return true
+    if (normalized === "false") return false
+  }
+  return null
 }
 
 function microsToAud(value: unknown): number {
@@ -269,6 +316,45 @@ export function buildGoogleAdsPurchaseConversionQuery(
     `WHERE segments.date BETWEEN '${range.startDate}' AND '${range.endDate}'`,
     `AND segments.conversion_action = '${resourceName}'`,
     "ORDER BY metrics.conversions_value DESC",
+  ].join(" ")
+}
+
+function normalizeGoogleAdsReportNumericId(value: string): string {
+  const resourceId = value.trim().match(/\/(\d+)$/)?.[1]
+  const normalized = (resourceId || value).replace(/-/g, "")
+  if (!/^\d+$/.test(normalized)) {
+    throw new Error("Google Ads conversion action id must be numeric")
+  }
+  return normalized
+}
+
+export function buildGoogleAdsOfflineConversionActionSummaryQuery(conversionActionId: string): string {
+  const normalizedConversionActionId = normalizeGoogleAdsReportNumericId(conversionActionId)
+
+  return [
+    "SELECT",
+    "offline_conversion_upload_conversion_action_summary.conversion_action_name,",
+    "offline_conversion_upload_conversion_action_summary.alerts,",
+    "offline_conversion_upload_conversion_action_summary.client,",
+    "offline_conversion_upload_conversion_action_summary.daily_summaries,",
+    "offline_conversion_upload_conversion_action_summary.job_summaries,",
+    "offline_conversion_upload_conversion_action_summary.last_upload_date_time,",
+    "offline_conversion_upload_conversion_action_summary.pending_event_count,",
+    "offline_conversion_upload_conversion_action_summary.status,",
+    "offline_conversion_upload_conversion_action_summary.successful_event_count,",
+    "offline_conversion_upload_conversion_action_summary.total_event_count",
+    "FROM offline_conversion_upload_conversion_action_summary",
+    `WHERE offline_conversion_upload_conversion_action_summary.conversion_action_id = ${normalizedConversionActionId}`,
+  ].join(" ")
+}
+
+export function buildGoogleAdsCustomerConversionTrackingSettingsQuery(): string {
+  return [
+    "SELECT",
+    "customer.id,",
+    "customer.conversion_tracking_setting.accepted_customer_data_terms,",
+    "customer.conversion_tracking_setting.enhanced_conversions_for_leads_enabled",
+    "FROM customer",
   ].join(" ")
 }
 
@@ -390,6 +476,19 @@ export function summarizeLocalGoogleAdsPurchases(rows: LocalGoogleAdsPurchaseRow
       orders,
       refundedAud,
     },
+  }
+}
+
+export function summarizeGoogleAdsCustomerConversionTrackingSettings(
+  rows: GoogleAdsCustomerConversionTrackingSettingsRow[],
+): GoogleAdsCustomerConversionTrackingSettingsSummary {
+  const row = rows[0]
+  const setting = row?.customer?.conversionTrackingSetting
+
+  return {
+    acceptedCustomerDataTerms: toBooleanOrNull(setting?.acceptedCustomerDataTerms),
+    customerId: clean(row?.customer?.id) || null,
+    enhancedConversionsForLeadsEnabled: toBooleanOrNull(setting?.enhancedConversionsForLeadsEnabled),
   }
 }
 
@@ -654,13 +753,26 @@ export async function getGoogleAdsSpendAuditReport({
   const range = resolveGoogleAdsReportRange(days, now)
   const queryErrors: QueryError[] = []
 
-  const [preflight, localRows, campaignRows, searchTerms, finalUrls, conversionActions] = await Promise.all([
+  const [
+    preflight,
+    localRows,
+    campaignRows,
+    searchTerms,
+    finalUrls,
+    conversionActions,
+    customerConversionTrackingSettings,
+  ] = await Promise.all([
     preflightGoogleAdsPurchaseConversionAction(),
     getLocalGoogleAdsPurchases(supabase, range),
     runOptionalGoogleAdsQuery<GoogleAdsCampaignRow>("campaign_performance", buildGoogleAdsCampaignPerformanceQuery(range), queryErrors),
     runOptionalGoogleAdsQuery("search_terms", buildGoogleAdsSearchTermQuery(range), queryErrors),
     runOptionalGoogleAdsQuery("final_urls", buildGoogleAdsFinalUrlQuery(range), queryErrors),
     runOptionalGoogleAdsQuery("conversion_actions", buildGoogleAdsConversionActionsQuery(), queryErrors),
+    runOptionalGoogleAdsQuery<GoogleAdsCustomerConversionTrackingSettingsRow>(
+      "customer_conversion_tracking_settings",
+      buildGoogleAdsCustomerConversionTrackingSettingsQuery(),
+      queryErrors,
+    ),
   ])
 
   const purchaseConversionActionResourceName = preflight.conversionAction?.resourceName || null
@@ -671,21 +783,80 @@ export async function getGoogleAdsSpendAuditReport({
       queryErrors,
     )
     : []
+  const offlineUploadDiagnostics = preflight.conversionAction?.id
+    ? await runOptionalGoogleAdsQuery<GoogleAdsOfflineUploadDiagnosticsRow>(
+      "offline_upload_diagnostics",
+      buildGoogleAdsOfflineConversionActionSummaryQuery(preflight.conversionAction.id),
+      queryErrors,
+    )
+    : []
   const local = summarizeLocalGoogleAdsPurchases(localRows)
   const ads = summarizeGoogleAdsCampaignRows(campaignRows, local.byCampaign, purchaseConversionRows)
 
   return {
     ads,
     conversionActions,
+    customerConversionTrackingSettings,
     finalUrls,
     generatedAt: now.toISOString(),
     local: {
       byCampaign: Array.from(local.byCampaign.values()).sort((a, b) => b.grossRevenueAud - a.grossRevenueAud),
       summary: local.summary,
     },
+    offlineUploadDiagnostics,
     preflight,
     queryErrors,
     range,
     searchTerms,
+  }
+}
+
+export async function getGoogleAdsPurchaseImportHealth({
+  days = GOOGLE_ADS_PURCHASE_IMPORT_HEALTH_DAYS,
+  now = new Date(),
+  supabase,
+}: {
+  days?: number
+  now?: Date
+  supabase: SupabaseClient
+}): Promise<GoogleAdsPurchaseImportHealthSnapshot> {
+  const range = resolveGoogleAdsReportRange(days, now)
+  const queryErrors: QueryError[] = []
+
+  const [preflight, localRows, customerConversionTrackingSettings] = await Promise.all([
+    preflightGoogleAdsPurchaseConversionAction(),
+    getLocalGoogleAdsPurchases(supabase, range),
+    runOptionalGoogleAdsQuery<GoogleAdsCustomerConversionTrackingSettingsRow>(
+      "customer_conversion_tracking_settings",
+      buildGoogleAdsCustomerConversionTrackingSettingsQuery(),
+      queryErrors,
+    ),
+  ])
+  const local = summarizeLocalGoogleAdsPurchases(localRows)
+  const customerSettings = summarizeGoogleAdsCustomerConversionTrackingSettings(customerConversionTrackingSettings)
+
+  const purchaseConversionActionResourceName = preflight.conversionAction?.resourceName || null
+  const purchaseConversionRows = purchaseConversionActionResourceName
+    ? await runOptionalGoogleAdsQuery<GoogleAdsPurchaseConversionRow>(
+      "purchase_conversion_performance",
+      buildGoogleAdsPurchaseConversionQuery(range, purchaseConversionActionResourceName),
+      queryErrors,
+    )
+    : []
+  const ads = summarizeGoogleAdsCampaignRows([], new Map(), purchaseConversionRows)
+
+  return {
+    acceptedCustomerDataTerms: customerSettings.acceptedCustomerDataTerms,
+    enhancedConversionsForLeadsEnabled: customerSettings.enhancedConversionsForLeadsEnabled,
+    generatedAt: now.toISOString(),
+    localNetRevenueAud: local.summary.netRevenueAud,
+    localOrders: local.summary.orders,
+    preflightOk: preflight.ok,
+    purchaseAllConversions: ads.summary.totalPurchaseAllConversions,
+    purchaseAllConversionsValueAud: ads.summary.totalPurchaseAllConversionsValueAud,
+    purchaseConversions: ads.summary.totalPurchaseConversions,
+    purchaseConversionValueAud: ads.summary.totalPurchaseConversionValueAud,
+    queryErrors,
+    rangeDays: range.days,
   }
 }

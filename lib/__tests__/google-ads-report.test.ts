@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest"
 
 import {
   buildGoogleAdsCampaignPerformanceQuery,
+  buildGoogleAdsCustomerConversionTrackingSettingsQuery,
+  buildGoogleAdsOfflineConversionActionSummaryQuery,
   buildGoogleAdsPurchaseConversionQuery,
   summarizeGoogleAdsCampaignRows,
+  summarizeGoogleAdsCustomerConversionTrackingSettings,
   summarizeLocalGoogleAdsPurchases,
 } from "@/lib/analytics/google-ads-report"
 
@@ -56,6 +59,54 @@ describe("google ads spend report", () => {
       "AND segments.conversion_action = 'customers/1234567890/conversionActions/9876543210'",
       "ORDER BY metrics.conversions_value DESC",
     ].join(" "))
+  })
+
+  it("builds an offline upload diagnostics query scoped to the configured purchase action", () => {
+    expect(buildGoogleAdsOfflineConversionActionSummaryQuery(
+      "customers/1234567890/conversionActions/9876543210",
+    )).toBe([
+      "SELECT",
+      "offline_conversion_upload_conversion_action_summary.conversion_action_name,",
+      "offline_conversion_upload_conversion_action_summary.alerts,",
+      "offline_conversion_upload_conversion_action_summary.client,",
+      "offline_conversion_upload_conversion_action_summary.daily_summaries,",
+      "offline_conversion_upload_conversion_action_summary.job_summaries,",
+      "offline_conversion_upload_conversion_action_summary.last_upload_date_time,",
+      "offline_conversion_upload_conversion_action_summary.pending_event_count,",
+      "offline_conversion_upload_conversion_action_summary.status,",
+      "offline_conversion_upload_conversion_action_summary.successful_event_count,",
+      "offline_conversion_upload_conversion_action_summary.total_event_count",
+      "FROM offline_conversion_upload_conversion_action_summary",
+      "WHERE offline_conversion_upload_conversion_action_summary.conversion_action_id = 9876543210",
+    ].join(" "))
+  })
+
+  it("builds the enhanced-conversion account setup query Google documents", () => {
+    expect(buildGoogleAdsCustomerConversionTrackingSettingsQuery()).toBe([
+      "SELECT",
+      "customer.id,",
+      "customer.conversion_tracking_setting.accepted_customer_data_terms,",
+      "customer.conversion_tracking_setting.enhanced_conversions_for_leads_enabled",
+      "FROM customer",
+    ].join(" "))
+  })
+
+  it("summarizes enhanced-conversion account setup flags from Google Ads rows", () => {
+    expect(summarizeGoogleAdsCustomerConversionTrackingSettings([
+      {
+        customer: {
+          id: "1234567890",
+          conversionTrackingSetting: {
+            acceptedCustomerDataTerms: "true",
+            enhancedConversionsForLeadsEnabled: false,
+          },
+        },
+      },
+    ])).toEqual({
+      acceptedCustomerDataTerms: true,
+      customerId: "1234567890",
+      enhancedConversionsForLeadsEnabled: false,
+    })
   })
 
   it("summarizes campaign spend and joins local paid order truth by campaign id", () => {

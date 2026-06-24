@@ -60,7 +60,9 @@ type AuditFailureRow = {
 
 type StaleScriptIntakeRow = {
   id: string
+  approved_at?: string | null
   created_at: string
+  status?: string | null
   updated_at?: string | null
   category?: string | null
   subtype?: string | null
@@ -251,15 +253,21 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
       href: ADMIN_PARCHMENT_OPS_HREF,
       severity: "critical" as const,
     })),
-    ...input.staleScriptIntakes.map((row) => ({
-      id: row.id,
-      categoryId: "stale_scripts" as const,
-      title: "Script still waiting",
-      detail: [row.category, row.subtype].filter(Boolean).join(" / ") || "Awaiting script completion",
-      occurredAt: row.updated_at || row.created_at,
-      href: buildAdminIntakeHref(row.id),
-      severity: "warning" as const,
-    })),
+    ...input.staleScriptIntakes.map((row) => {
+      const approvedWithoutScript = row.status === "approved"
+      return {
+        id: row.id,
+        categoryId: "stale_scripts" as const,
+        title: approvedWithoutScript ? "Approved script missing" : "Script still waiting",
+        detail: approvedWithoutScript
+          ? [row.category, row.subtype, "approved without script evidence"].filter(Boolean).join(" / ")
+            || "Approved without script evidence"
+          : [row.category, row.subtype].filter(Boolean).join(" / ") || "Awaiting script completion",
+        occurredAt: row.approved_at || row.updated_at || row.created_at,
+        href: buildAdminIntakeHref(row.id),
+        severity: "warning" as const,
+      }
+    }),
     ...input.refundFailures.map((row) => ({
       id: row.id,
       categoryId: "refund_failures" as const,

@@ -3,8 +3,10 @@ import "server-only"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
+import { PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES } from "@/lib/doctor/parchment-claim"
 
 const DEFAULT_LOOKBACK_DAYS = 180
+const PRESCRIBING_CONSULT_SUBTYPES = new Set<string>(PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES)
 
 const FULFILMENT_STAGE_LABELS = {
   approved_not_prescribed: "Approved but not prescribed",
@@ -165,13 +167,20 @@ function isPrescriptionFulfilmentRelevant(row: FulfilmentIntakeRow): boolean {
   if (row.script_sent === true) return true
   if (row.parchment_reference?.trim()) return true
 
-  return row.category === "prescription" && Boolean(row.approved_at) && row.status === "approved"
+  const approvedWithoutScriptEvidence = row.status === "approved" && Boolean(row.approved_at)
+  if (!approvedWithoutScriptEvidence) return false
+
+  if (row.category === "prescription") return true
+  return row.category === "consult"
+    && PRESCRIBING_CONSULT_SUBTYPES.has(row.subtype ?? "")
 }
 
 function serviceLabel(row: FulfilmentIntakeRow): string {
   const subtype = row.subtype?.replace(/_/g, " ")
   if (row.subtype === "ed") return "ED consult"
   if (row.subtype === "hair_loss") return "Hair loss consult"
+  if (row.subtype === "womens_health") return "Women's health consult"
+  if (row.subtype === "weight_loss") return "Weight loss consult"
   if (row.subtype === "repeat") return "Repeat prescription"
   if (row.category === "prescription") return subtype ? `Prescription, ${subtype}` : "Prescription"
   if (subtype) return subtype

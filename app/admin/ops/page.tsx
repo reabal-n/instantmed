@@ -19,6 +19,7 @@ import {
   STAFF_ANALYTICS_HREF,
   STAFF_OPS_HREF,
 } from "@/lib/dashboard/routes"
+import { PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES } from "@/lib/doctor/parchment-claim"
 import { getPrescribingIdentityBlockerReport } from "@/lib/doctor/patient-identity-report"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -111,6 +112,8 @@ export default async function OpsDashboardPage() {
     certificateFailuresResult,
     prescriptionWebhookFailuresResult,
     staleScriptIntakesResult,
+    staleApprovedPrescriptionIntakesResult,
+    staleApprovedConsultScriptIntakesResult,
     refundFailuresResult,
     prescribingIdentityResult,
     operationalInvariants,
@@ -161,11 +164,36 @@ export default async function OpsDashboardPage() {
       .then((r) => (r.error ? { data: [] } : r)),
     supabase
       .from("intakes")
-      .select("id, created_at, updated_at, category, subtype")
+      .select("id, created_at, updated_at, approved_at, category, subtype, status")
       .eq("status", "awaiting_script")
       .eq("payment_status", "paid")
       .lt("updated_at", fortyEightHrsAgo.toISOString())
       .order("updated_at", { ascending: true })
+      .limit(20)
+      .then((r) => (r.error ? { data: [] } : r)),
+    supabase
+      .from("intakes")
+      .select("id, created_at, updated_at, approved_at, category, subtype, status")
+      .eq("status", "approved")
+      .eq("payment_status", "paid")
+      .eq("script_sent", false)
+      .is("parchment_reference", null)
+      .eq("category", "prescription")
+      .lt("approved_at", fortyEightHrsAgo.toISOString())
+      .order("approved_at", { ascending: true })
+      .limit(20)
+      .then((r) => (r.error ? { data: [] } : r)),
+    supabase
+      .from("intakes")
+      .select("id, created_at, updated_at, approved_at, category, subtype, status")
+      .eq("status", "approved")
+      .eq("payment_status", "paid")
+      .eq("script_sent", false)
+      .is("parchment_reference", null)
+      .eq("category", "consult")
+      .in("subtype", [...PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES])
+      .lt("approved_at", fortyEightHrsAgo.toISOString())
+      .order("approved_at", { ascending: true })
       .limit(20)
       .then((r) => (r.error ? { data: [] } : r)),
     supabase
@@ -189,13 +217,19 @@ export default async function OpsDashboardPage() {
       (row) => metadataString(row.metadata, "eventType") === "parchment:prescription.created",
     )
 
+  const staleScriptIntakes = [
+    ...(staleScriptIntakesResult.data || []),
+    ...(staleApprovedPrescriptionIntakesResult.data || []),
+    ...(staleApprovedConsultScriptIntakesResult.data || []),
+  ]
+
   const failureOverview = buildOperationalFailureOverview({
     stripeDlq: webhookDlqResult.data || [],
     emailFailures: emailFailuresResult.data || [],
     checkoutFailures: checkoutFailuresResult.data || [],
     certificateFailures: certificateFailuresResult.data || [],
     prescriptionWebhookFailures,
-    staleScriptIntakes: staleScriptIntakesResult.data || [],
+    staleScriptIntakes,
     refundFailures: refundFailuresResult.data || [],
   })
 
