@@ -24,6 +24,10 @@
       "schedule": "0 23 * * *"
     },
     {
+      "path": "/api/cron/cert-reactivation",
+      "schedule": "0 22 * * *"
+    },
+    {
       "path": "/api/cron/recover-partial-intakes",
       "schedule": "15 * * * *"
     },

@@ -197,6 +197,12 @@ const templates = [
     description: "One-off reorder nudge ~week 10-11 after a repeatable script",
     category: "engagement",
   },
+  {
+    slug: "cert-reactivation",
+    name: "Med-cert Reactivation",
+    description: "One nudge to a past med-cert patient whose last cert is 35-120d old",
+    category: "engagement",
+  },
 ]
 
 const CATEGORY_LABELS: Record<string, string> = {

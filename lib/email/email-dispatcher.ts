@@ -76,6 +76,7 @@ function isSupportedEmailType(emailType: string): boolean {
 // it is not treated (and Sentry-alerted) as a reconstruct anomaly.
 const CRON_OWNED_NON_RECONSTRUCTABLE = new Set<string>([
   "refill_reminder",
+  "cert_reactivation",
   "heard_about_us_backfill",
   // Abandoned-intake recovery is sent directly by its own cron; a deferred/retry
   // outbox copy is not reconstructable here. Was permanently-failing + Sentry-

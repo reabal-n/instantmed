@@ -40,6 +40,8 @@ export type EmailType =
   | "review_request"
   // Reactivation / refill reminder (cron-triggered, marketing-consent gated)
   | "refill_reminder"
+  // Med-cert reactivation nudge (cron-triggered, marketing-consent gated)
+  | "cert_reactivation"
   // One-time self-reported attribution backfill (script-triggered, marketing-consent gated)
   | "heard_about_us_backfill"
   | "payment_retry"
@@ -53,6 +55,7 @@ export const MARKETING_EMAIL_TYPES: ReadonlySet<EmailType> = new Set([
   "review_request",
   "referral_credit",
   "refill_reminder",
+  "cert_reactivation",
   "heard_about_us_backfill",
 ])
 
