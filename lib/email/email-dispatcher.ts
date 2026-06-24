@@ -28,9 +28,12 @@ export const MAX_RETRIES = 10
 const BACKOFF_MINUTES = [0, 1, 2, 5, 10, 30, 60, 60, 60, 60]
 const STALE_SENDING_MINUTES = 15
 
-// Email types that the dispatcher can reconstruct and resend
-// Must match the types handled by reconstructEmailHtml() in send-email.ts
-const SUPPORTED_EMAIL_TYPES = [
+// Email types that the dispatcher can reconstruct and resend.
+// MUST match the types handled by reconstructEmailContent() in send/reconstruct.ts
+// — parity is pinned by email-dispatcher-reconstruct-parity-contract.test.ts so a
+// type can't be claimed "supported" here without a reconstruct branch (the bug
+// that silently dropped cron-owned retries + Sentry-warned them).
+export const SUPPORTED_EMAIL_TYPES = [
   // Core approvals & outcomes
   "med_cert_patient",
   "med_cert_employer",
@@ -59,10 +62,7 @@ const SUPPORTED_EMAIL_TYPES = [
   "payment_retry",
   "verification_code",
   // Engagement & retention
-  "abandoned_checkout",
-  "abandoned_checkout_followup",
   "referral_credit",
-  "review_request",
 ] as const
 
 function isSupportedEmailType(emailType: string): boolean {
@@ -74,7 +74,7 @@ function isSupportedEmailType(emailType: string): boolean {
 // dispatcher and must NOT be retried here — the cron self-heals on its next
 // eligible run. We still permanently-fail the outbox row, but at info level so
 // it is not treated (and Sentry-alerted) as a reconstruct anomaly.
-const CRON_OWNED_NON_RECONSTRUCTABLE = new Set<string>([
+export const CRON_OWNED_NON_RECONSTRUCTABLE = new Set<string>([
   "refill_reminder",
   "cert_reactivation",
   "heard_about_us_backfill",
@@ -82,6 +82,14 @@ const CRON_OWNED_NON_RECONSTRUCTABLE = new Set<string>([
   // outbox copy is not reconstructable here. Was permanently-failing + Sentry-
   // warning as "Unsupported email_type" while the cron delivered it fine.
   "partial_intake_recovery",
+  // Abandoned-checkout + day-2 review-request are also cron-owned: their crons
+  // own the (re)send and reconstruct.ts has no branch for them, so a stray outbox
+  // copy must quiet-fail here instead of burning retries + Sentry-warning. Moved
+  // out of SUPPORTED_EMAIL_TYPES (2026-06-24, R1) where they had silently failed
+  // STEP 4 reconstruction on every retry.
+  "abandoned_checkout",
+  "abandoned_checkout_followup",
+  "review_request",
 ])
 
 /**

@@ -474,6 +474,7 @@ export async function GET(request: NextRequest) {
         ops_sla_breach_backlog: operationalInvariants.slaBreachBacklog,
         ops_cert_refund_orphans: operationalInvariants.certRefundOrphans,
         ops_refund_record_anomalies: operationalInvariants.refundRecordAnomalies,
+        ops_paid_but_cancelled: operationalInvariants.paidButCancelled ?? 0,
       },
       checked_at: now.toISOString(),
     })

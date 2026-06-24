@@ -11,6 +11,11 @@ export const MED_CERT_FAQ = [
     answer: `${PRICING_DISPLAY.MED_CERT} for a 1-day certificate, ${PRICING_DISPLAY.MED_CERT_2DAY} for 2 days, and ${PRICING_DISPLAY.MED_CERT_3DAY} for 3 days. One flat fee, no hidden costs, no Medicare card needed. ${GUARANTEE}`,
   },
   {
+    question: "Is an online medical certificate the same as a sick note?",
+    answer:
+      "Yes. A 'sick note', a 'doctor's certificate', and a 'medical certificate' are the same thing - written evidence from a doctor that you were unwell and unable to work or study. Ours are issued by AHPRA-registered doctors and include standard workplace evidence details. Employer and institution policies may vary.",
+  },
+  {
     question: "Will my employer accept this?",
     answer:
       "Our certificates are issued by AHPRA-registered doctors and include standard workplace evidence details. Employer policies may vary.",
