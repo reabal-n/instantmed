@@ -21,11 +21,21 @@ import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 export const metadata: Metadata = {
-  title: "Certificate Verification for Employers | InstantMed",
+  // Plain string flows through the root layout's `%s | InstantMed` title
+  // template; do NOT append "| InstantMed" here or it doubles.
+  title: "How to Verify a Medical Certificate (for Employers)",
   description:
-    "HR teams can verify InstantMed medical certificate authenticity, check document dates, and confirm privacy-limited certificate details without seeing diagnosis information.",
+    "HR teams can verify InstantMed medical certificate authenticity, check document dates, and confirm privacy-limited certificate details without seeing diagnosis information. Single or bulk verification by reference number.",
+  keywords: [
+    "how to verify a medical certificate",
+    "verify medical certificate australia",
+    "check medical certificate authenticity",
+    "medical certificate verification for employers",
+    "is a medical certificate genuine",
+    "bulk verify medical certificates",
+  ],
   openGraph: {
-    title: "Certificate Verification for Employers | InstantMed",
+    title: "How to Verify a Medical Certificate (for Employers) | InstantMed",
     description:
       "Verify InstantMed certificate authenticity with privacy-limited results for HR and payroll teams.",
   },

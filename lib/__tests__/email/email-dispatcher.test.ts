@@ -361,8 +361,11 @@ describe("email-dispatcher", () => {
     })
 
     it("increments warmup count for marketing email sends only", async () => {
+      // referral_credit is a marketing type that is still in SUPPORTED_EMAIL_TYPES
+      // (review_request moved to CRON_OWNED_NON_RECONSTRUCTABLE in R1, so it now
+      // quiet-fails at STEP 3 instead of reaching the STEP 4 send path).
       const candidate = makeCandidate({
-        email_type: "review_request",
+        email_type: "referral_credit",
         certificate_id: null,
       })
       mockOutboxSelect([candidate])

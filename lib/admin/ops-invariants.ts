@@ -37,6 +37,11 @@ export type OperationalInvariants = {
   slaBreachBacklog: number
   certRefundOrphans: number
   refundRecordAnomalies: number
+  // Paid intakes that were cancelled without a refund and are still in reporting
+  // — an undelivered-but-charged order (a live chargeback/complaint vector, e.g.
+  // the 2026-03 $19 med cert `e9c0aec2`). Optional so existing literals/tests
+  // (and any cached callers) stay valid; getOperationalInvariants always sets it.
+  paidButCancelled?: number
   queryFailures?: OperationalInvariantQueryFailure[]
 }
 
@@ -44,12 +49,14 @@ export type OperationalInvariantQueryFailure =
   | "sla_breach_backlog"
   | "cert_refund_orphans"
   | "refund_record_anomalies"
+  | "paid_but_cancelled"
 
 export type OperationalInvariantAlert = {
   metric:
     | "ops_sla_breach_backlog"
     | "ops_cert_refund_orphans"
     | "ops_refund_record_anomalies"
+    | "ops_paid_but_cancelled"
     | "ops_invariant_query_failed"
   severity: "warning" | "critical"
   detail: string
@@ -83,7 +90,7 @@ export async function getOperationalInvariants(
 ): Promise<OperationalInvariants> {
   const slaCutoff = new Date(Date.now() - SLA_REVIEW_HOURS * 60 * 60 * 1000).toISOString()
 
-  const [slaResult, orphanResult, anomalyResult] = await Promise.allSettled([
+  const [slaResult, orphanResult, anomalyResult, paidCancelledResult] = await Promise.allSettled([
     // Q1 proxy: paid intakes still awaiting clinician review past the 24h SLA.
     filterSeededE2EIntakes(
       supabase
@@ -109,6 +116,16 @@ export async function getOperationalInvariants(
         .in("payment_status", [...REFUNDED_PAYMENT_STATUSES])
         .or("refund_status.is.null,refund_status.eq.not_applicable,refunded_at.is.null"),
     ),
+    // Paid + cancelled + still in reporting = charged but undelivered, never
+    // refunded. Excluded rows are already operator-triaged, so they drop out.
+    filterSeededE2EIntakes(
+      supabase
+        .from("intakes")
+        .select("id", { count: "exact", head: true })
+        .eq("payment_status", "paid")
+        .eq("status", "cancelled")
+        .or("exclude_from_reporting.is.null,exclude_from_reporting.eq.false"),
+    ),
   ])
 
   const queryFailures: OperationalInvariantQueryFailure[] = []
@@ -117,6 +134,7 @@ export async function getOperationalInvariants(
     slaBreachBacklog: countOf("sla_breach_backlog", slaResult, queryFailures),
     certRefundOrphans: countOf("cert_refund_orphans", orphanResult, queryFailures),
     refundRecordAnomalies: countOf("refund_record_anomalies", anomalyResult, queryFailures),
+    paidButCancelled: countOf("paid_but_cancelled", paidCancelledResult, queryFailures),
     queryFailures,
   }
 }
@@ -149,6 +167,10 @@ export function certOrphanHelper(count: number): string {
 
 export function refundAnomalyHelper(count: number): string {
   return count === 0 ? "None" : `${count} to reconcile`
+}
+
+export function paidButCancelledHelper(count: number): string {
+  return count === 0 ? "None" : `${count} charged, undelivered`
 }
 
 export function buildOperationalInvariantAlerts(
@@ -190,6 +212,16 @@ export function buildOperationalInvariantAlerts(
       severity: "warning",
       detail: `${invariants.refundRecordAnomalies} refunded intake missing complete refund metadata`,
       count: invariants.refundRecordAnomalies,
+    })
+  }
+
+  if ((invariants.paidButCancelled ?? 0) > 0) {
+    const count = invariants.paidButCancelled ?? 0
+    alerts.push({
+      metric: "ops_paid_but_cancelled",
+      severity: "critical",
+      detail: `${count} paid ${count === 1 ? "intake" : "intakes"} cancelled without refund (charged, undelivered)`,
+      count,
     })
   }
 

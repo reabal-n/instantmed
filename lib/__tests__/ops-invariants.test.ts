@@ -5,6 +5,7 @@ import {
   certOrphanHelper,
   getInvariantQueryFailures,
   invariantTone,
+  paidButCancelledHelper,
   refundAnomalyHelper,
   SLA_BREACH_CRITICAL,
   slaBacklogHelper,
@@ -54,6 +55,11 @@ describe("helper text builders", () => {
   it("refundAnomalyHelper", () => {
     expect(refundAnomalyHelper(0)).toBe("None")
     expect(refundAnomalyHelper(1)).toBe("1 to reconcile")
+  })
+
+  it("paidButCancelledHelper", () => {
+    expect(paidButCancelledHelper(0)).toBe("None")
+    expect(paidButCancelledHelper(1)).toBe("1 charged, undelivered")
   })
 })
 
@@ -117,11 +123,30 @@ describe("buildOperationalInvariantAlerts", () => {
     })).toEqual(["cert_refund_orphans"])
   })
 
-  it("does not alert on clean invariants", () => {
+  it("raises a PHI-free critical alert for paid-but-cancelled (charged, undelivered) intakes", () => {
+    const alerts = buildOperationalInvariantAlerts({
+      slaBreachBacklog: 0,
+      certRefundOrphans: 0,
+      refundRecordAnomalies: 0,
+      paidButCancelled: 1,
+    })
+    expect(alerts).toEqual([
+      {
+        metric: "ops_paid_but_cancelled",
+        severity: "critical",
+        detail: "1 paid intake cancelled without refund (charged, undelivered)",
+        count: 1,
+      },
+    ])
+    expect(JSON.stringify(alerts)).not.toMatch(/patient|email|medicare|phone|address|intakeId/i)
+  })
+
+  it("does not alert on clean invariants (incl. absent paidButCancelled)", () => {
     expect(buildOperationalInvariantAlerts({
       slaBreachBacklog: 0,
       certRefundOrphans: 0,
       refundRecordAnomalies: 0,
+      paidButCancelled: 0,
     })).toEqual([])
   })
 })
