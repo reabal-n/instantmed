@@ -1,3 +1,4 @@
+import { getAiAttributionBreakdown } from "@/lib/admin/ai-attribution-breakdown"
 import { getHeardAboutUsBreakdown } from "@/lib/admin/heard-about-us-breakdown"
 import { buildOperationalFailureOverview } from "@/lib/admin/ops-failures"
 import {
@@ -119,6 +120,7 @@ export default async function OpsDashboardPage() {
     operationalInvariants,
     googleAdsConversionHealth,
     heardAboutUsBreakdown,
+    aiAttributionBreakdown,
   ] = await Promise.all([
     supabase
       .from("stripe_webhook_dead_letter")
@@ -207,6 +209,7 @@ export default async function OpsDashboardPage() {
     getOperationalInvariants(supabase),
     getGoogleAdsConversionUploadHealth(supabase, { lookbackDays: 7 }),
     getHeardAboutUsBreakdown(supabase, { days: 30 }),
+    getAiAttributionBreakdown(supabase, { weeks: 8 }),
   ])
 
   const prescriptionWebhookFailures = (
@@ -327,6 +330,7 @@ export default async function OpsDashboardPage() {
       invariants={invariants}
       recoveries={recoveries}
       heardAboutUs={heardAboutUsBreakdown}
+      aiAttribution={aiAttributionBreakdown}
     />
   )
 }
