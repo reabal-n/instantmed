@@ -9,6 +9,7 @@ import type Stripe from "stripe"
 export interface WebhookContext {
   adminReplay?: boolean
   event: Stripe.Event
+  requestPath?: string | null
   supabase: SupabaseClient
   startTime: number
 }

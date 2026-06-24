@@ -36,10 +36,18 @@ describe("Google Ads attribution contract", () => {
     expect(runner).toContain('GOOGLE_ADS_CONVERSION_UPLOAD_AUDIT_ACTION = "google_ads_conversion_upload"')
     expect(runner).toContain('action: GOOGLE_ADS_CONVERSION_UPLOAD_AUDIT_ACTION')
     expect(runner).toContain('actor_type: "system"')
+    expect(runner).toContain("audit_source_anomaly")
+    expect(runner).toContain("deployment_id")
+    expect(runner).toContain("env_preflight")
+    expect(runner).toContain("has_valid_intake_join")
+    expect(runner).toContain("request_path")
+    expect(runner).toContain("runtime_source")
     expect(runner).not.toContain("metadata: { gclid")
 
     expect(cron).toContain("runGoogleAdsPostPaymentAttribution")
     expect(cron).toContain("preflightGoogleAdsPurchaseConversionAction")
+    expect(cron).toContain("Enhanced conversions can match with hashed first-party data")
+    expect(cron).not.toContain(".filter(isLikelyGoogleAttributed)")
     expect(cron).toContain("skipped_preflight")
     expect(cron).toContain("bestGoogleAdsUploadAuditByIntake")
     expect(cron).toContain("shouldRetryGoogleAdsUploadCandidate")
@@ -49,7 +57,9 @@ describe("Google Ads attribution contract", () => {
     expect(cron).toContain('searchParams.get("preflight") === "1"')
     expect(cron).toContain("serializePreflight")
     expect(vercel).toContain("/api/cron/google-ads-conversions")
+    expect(vercel).toContain("/api/cron/google-ads-diagnostics-watch")
     expect(heartbeat).toContain('"google-ads-conversions"')
+    expect(heartbeat).toContain('"google-ads-diagnostics-watch"')
   })
 
   it("does not expose Google Ads account mutation from the scheduled backfill route", () => {
@@ -85,6 +95,33 @@ describe("Google Ads attribution contract", () => {
     ]).get("uploaded-intake")
 
     expect(shouldRetryGoogleAdsUploadCandidate({ gclid: "gclid-1" }, bestAudit, {
+      force: false,
+    })).toBe(false)
+  })
+
+  it("retries legacy no-click skips once the uploader can use enhanced user data", () => {
+    const legacyNoClickAudit = bestGoogleAdsUploadAuditByIntake([
+      {
+        intake_id: "legacy-no-click-intake",
+        metadata: { status: "skipped_missing_click_id" },
+      },
+    ]).get("legacy-no-click-intake")
+
+    expect(shouldRetryGoogleAdsUploadCandidate({}, legacyNoClickAudit, {
+      force: false,
+    })).toBe(true)
+
+    const newNoSignalAudit = bestGoogleAdsUploadAuditByIntake([
+      {
+        intake_id: "new-no-signal-intake",
+        metadata: {
+          matching_model: "click_or_user_data",
+          status: "skipped_missing_click_id",
+        },
+      },
+    ]).get("new-no-signal-intake")
+
+    expect(shouldRetryGoogleAdsUploadCandidate({}, newNoSignalAudit, {
       force: false,
     })).toBe(false)
   })

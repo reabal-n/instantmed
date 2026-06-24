@@ -8,7 +8,6 @@ import {
 import {
   GOOGLE_ADS_ATTRIBUTION_SELECT,
   type GoogleAdsAttributionRow,
-  isLikelyGoogleAttributed,
   runGoogleAdsPostPaymentAttribution,
 } from "@/lib/analytics/google-ads-post-payment"
 import {
@@ -56,9 +55,11 @@ function serializePreflight(preflight: GoogleAdsConversionActionPreflightResult)
  *
  * The Stripe webhook fires immediately, but a production-grade Ads pipeline
  * cannot rely on one fire-and-forget serverless call. This cron scans paid
- * intakes that look Google-attributed, skips already-successful uploads, and
- * retries failed/missing upload records using the stable intake id as Google's
- * order id for deduplication.
+ * intakes, skips already-successful uploads, and retries failed/missing upload
+ * records using the stable intake id as Google's order id for deduplication.
+ * Enhanced conversions can match with hashed first-party data even when a
+ * click id was not captured, so this intentionally does not pre-filter to rows
+ * that already look Google-attributed.
  */
 export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
@@ -112,7 +113,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = await filterReportableIntakes(candidateQuery)
     if (error) throw new Error(`Google Ads candidate query failed: ${error.message}`)
 
-    const candidates = ((data || []) as GoogleAdsCandidate[]).filter(isLikelyGoogleAttributed)
+    const candidates = (data || []) as GoogleAdsCandidate[]
     const candidateIds = candidates.map((row) => row.id)
 
     let latestAuditByIntake = new Map<string, GoogleAdsUploadAuditRow>()
@@ -170,12 +171,13 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const results: Array<{ id: string; status?: string; ok?: boolean; error?: string }> = []
+    const results: Array<{ id: string; status?: string; ok?: boolean; error?: string; jobId?: number | string }> = []
     for (const row of retryable) {
       const result = await runGoogleAdsPostPaymentAttribution({
         amountCents: row.amount_cents,
         intakeId: row.id,
         posthogDistinctId: row.patient_id || row.id,
+        requestPath: request.nextUrl.pathname,
         row,
         source: "cron_backfill",
         supabase,
@@ -186,11 +188,15 @@ export async function GET(request: NextRequest) {
         status: result.status,
         ok: result.ok,
         error: result.error,
+        jobId: result.jobId,
       })
     }
 
     const skipped = results.filter((result) => result.status?.startsWith("skipped"))
     const failed = results.filter((result) => result.status && result.status !== "success" && !result.status.startsWith("skipped"))
+    const uploadJobIds = Array.from(
+      new Set(results.map((result) => result.jobId).filter((jobId): jobId is number | string => jobId != null)),
+    ).sort((a, b) => String(a).localeCompare(String(b)))
 
     logger.info("Google Ads conversion backfill complete", {
       candidates: candidates.length,
@@ -209,6 +215,7 @@ export async function GET(request: NextRequest) {
       skipped_already_resolved: candidates.length - retryable.length,
       skipped: skipped.length,
       failed: failed.length,
+      upload_job_ids: uploadJobIds,
       batch_limit: BATCH_LIMIT,
     })
   } catch (error) {

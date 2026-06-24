@@ -173,4 +173,36 @@ describe("prescription fulfilment dashboard", () => {
 
     expect(dashboard.stages[0]?.items[0]?.serviceLabel).toBe("ED consult")
   })
+
+  it("includes approved prescribing consults that are missing script evidence", () => {
+    const dashboard = buildPrescriptionFulfilmentDashboard({
+      auditEvents: [],
+      complianceEvents: [],
+      emails: [],
+      intakes: [
+        intake({
+          category: "consult",
+          id: "womens-health-approved",
+          reference_number: "IM-WH",
+          status: "approved",
+          subtype: "womens_health",
+        }),
+        intake({
+          category: "consult",
+          id: "general-consult-approved",
+          reference_number: "IM-GC",
+          status: "approved",
+          subtype: null,
+        }),
+      ],
+      now,
+    })
+
+    expect(dashboard.total).toBe(1)
+    expect(dashboard.stages[0]?.items[0]).toMatchObject({
+      id: "womens-health-approved",
+      serviceLabel: "Women's health consult",
+      stage: "approved_not_prescribed",
+    })
+  })
 })

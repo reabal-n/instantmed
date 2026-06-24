@@ -121,6 +121,38 @@ describe("operational failure overview", () => {
     expect(overview.recent).toEqual([])
   })
 
+  it("surfaces approved prescribing rows that are missing script evidence", () => {
+    const overview = buildOperationalFailureOverview({
+      stripeDlq: [],
+      emailFailures: [],
+      checkoutFailures: [],
+      incompleteRequests: [],
+      certificateFailures: [],
+      prescriptionWebhookFailures: [],
+      staleScriptIntakes: [
+        {
+          id: "intake-approved-script-missing",
+          approved_at: "2026-06-15T08:54:47.656Z",
+          created_at: "2026-06-15T08:30:00.000Z",
+          updated_at: "2026-06-15T08:54:47.656Z",
+          category: "consult",
+          status: "approved",
+          subtype: "womens_health",
+        },
+      ],
+      refundFailures: [],
+    })
+
+    expect(overview.openCount).toBe(1)
+    expect(overview.categories.find((category) => category.id === "stale_scripts")?.count).toBe(1)
+    expect(overview.recent[0]).toMatchObject({
+      id: "intake-approved-script-missing",
+      title: "Approved script missing",
+      detail: "consult / womens_health / approved without script evidence",
+      href: "/admin/intakes/intake-approved-script-missing",
+    })
+  })
+
   it("treats omitted incompleteRequests the same as an empty array", () => {
     const overview = buildOperationalFailureOverview({
       stripeDlq: [],

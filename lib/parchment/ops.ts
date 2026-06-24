@@ -3,6 +3,7 @@ import "server-only"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
+import { PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES } from "@/lib/doctor/parchment-claim"
 
 const PARCHMENT_PRESCRIPTION_EVENT = "parchment:prescription.created"
 const SYSTEM_ADMIN_EMAILS = new Set(["system@instantmed.com.au"])
@@ -64,9 +65,12 @@ interface CronHeartbeatRow {
 
 interface StaleScriptHandoffRow {
   id: string
+  approved_at: string | null
+  category: string | null
   patient_id: string | null
   reference_number: string | null
   status: string
+  subtype: string | null
   updated_at: string | null
   created_at: string | null
   paid_at: string | null
@@ -173,13 +177,18 @@ function mapFailedWebhookRecovery(failure: ParchmentFailedWebhook): ParchmentHan
 
 function mapStaleScriptHandoff(row: StaleScriptHandoffRow): ParchmentHandoffRecoveryItem {
   const reference = row.reference_number ? ` ${row.reference_number}` : ""
+  const service = [row.category, row.subtype].filter(Boolean).join(" / ")
+  const approvedWithoutScript = row.status === "approved"
+
   return {
     id: `stale:${row.id}`,
     kind: "stale_script_handoff",
-    label: "Script handoff pending",
-    reason: `Awaiting script${reference}`,
-    detail: "The case is in awaiting_script without a Parchment reference or sent-script timestamp. Open it and complete the embedded prescribing handoff.",
-    createdAt: row.updated_at || row.paid_at || row.created_at || new Date(0).toISOString(),
+    label: approvedWithoutScript ? "Approved script missing" : "Script handoff pending",
+    reason: approvedWithoutScript ? `Approved without script evidence${reference}` : `Awaiting script${reference}`,
+    detail: approvedWithoutScript
+      ? `The ${service || "prescribing"} case is approved but has no Parchment reference or sent-script timestamp. Open it and complete or reconcile the prescribing handoff.`
+      : "The case is in awaiting_script without a Parchment reference or sent-script timestamp. Open it and complete the embedded prescribing handoff.",
+    createdAt: row.approved_at || row.updated_at || row.paid_at || row.created_at || new Date(0).toISOString(),
     intakeId: row.id,
     patientProfileId: row.patient_id,
     retryable: false,
@@ -399,6 +408,7 @@ export async function getParchmentOpsDashboard(
 ): Promise<ParchmentOpsDashboard> {
   const now = Date.now()
   const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString()
+  const staleHandoffCutoff = new Date(now - 45 * 60 * 1000).toISOString()
 
   const [
     prescriberProfilesResult,
@@ -408,7 +418,9 @@ export async function getParchmentOpsDashboard(
     recentEventsResult,
     recentPrescriptionsResult,
     syncedPrescriptions7dResult,
-    staleScriptHandoffsResult,
+    staleAwaitingScriptHandoffsResult,
+    staleApprovedPrescriptionHandoffsResult,
+    staleApprovedConsultHandoffsResult,
     productionSmokeResult,
   ] = await Promise.all([
     supabase
@@ -462,12 +474,37 @@ export async function getParchmentOpsDashboard(
 
     supabase
       .from("intakes")
-      .select("id, patient_id, reference_number, status, updated_at, created_at, paid_at")
+      .select("id, patient_id, reference_number, status, category, subtype, updated_at, created_at, paid_at, approved_at")
       .eq("status", "awaiting_script")
       .eq("script_sent", false)
       .is("parchment_reference", null)
-      .lt("updated_at", new Date(now - 45 * 60 * 1000).toISOString())
+      .lt("updated_at", staleHandoffCutoff)
       .order("updated_at", { ascending: true })
+      .limit(20),
+
+    supabase
+      .from("intakes")
+      .select("id, patient_id, reference_number, status, category, subtype, updated_at, created_at, paid_at, approved_at")
+      .eq("status", "approved")
+      .eq("payment_status", "paid")
+      .eq("script_sent", false)
+      .is("parchment_reference", null)
+      .eq("category", "prescription")
+      .lt("approved_at", staleHandoffCutoff)
+      .order("approved_at", { ascending: true })
+      .limit(20),
+
+    supabase
+      .from("intakes")
+      .select("id, patient_id, reference_number, status, category, subtype, updated_at, created_at, paid_at, approved_at")
+      .eq("status", "approved")
+      .eq("payment_status", "paid")
+      .eq("script_sent", false)
+      .is("parchment_reference", null)
+      .eq("category", "consult")
+      .in("subtype", [...PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES])
+      .lt("approved_at", staleHandoffCutoff)
+      .order("approved_at", { ascending: true })
       .limit(20),
 
     supabase
@@ -482,7 +519,12 @@ export async function getParchmentOpsDashboard(
     .filter((failure): failure is ParchmentFailedWebhook => failure !== null)
   const historicalWebhookFailures = failedWebhooks.filter(isNonActionableWebhookFailure)
   const actionableFailures = failedWebhooks.filter((failure) => !isNonActionableWebhookFailure(failure))
-  const staleScriptHandoffs = ((staleScriptHandoffsResult.data || []) as StaleScriptHandoffRow[])
+  const staleScriptHandoffRows = [
+    ...(staleAwaitingScriptHandoffsResult.data || []),
+    ...(staleApprovedPrescriptionHandoffsResult.data || []),
+    ...(staleApprovedConsultHandoffsResult.data || []),
+  ] as StaleScriptHandoffRow[]
+  const staleScriptHandoffs = staleScriptHandoffRows
     .map(mapStaleScriptHandoff)
   const handoffRecovery = [
     ...actionableFailures.map(mapFailedWebhookRecovery),

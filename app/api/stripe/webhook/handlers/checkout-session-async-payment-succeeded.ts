@@ -216,6 +216,7 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
             amountCents: session.amount_total,
             intakeId,
             posthogDistinctId,
+            requestPath: ctx.requestPath,
             row: intakeAttribution,
             source: "checkout_session_async_payment_succeeded",
             supabase,

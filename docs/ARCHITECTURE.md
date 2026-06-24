@@ -64,7 +64,7 @@ First-touch attribution is captured client-side by `lib/analytics/attribution.ts
 
 Because referrer-stripped traffic (native LLM apps, in-app browsers, iOS, word-of-mouth — ~50% of paid orders, the "Direct/Unknown" bucket) is structurally invisible to referrer capture, a self-reported `intakes.heard_about_us` column (enum token, NOT PHI, write-once) is collected post-payment via an optional "How did you hear about us?" survey rendered on `/patient/intakes/success`, `/auth/complete-account`, and the review-request email (one-click links). Write path is token-authed (`lib/crypto/heard-about-us-token.ts` → `app/api/attribution/heard`); option set in `lib/analytics/heard-about-us.ts`. Forward-only.
 
-The Stripe webhook reads the persisted intake attribution when payment completes, sends click IDs to the server-side Google Ads Conversion API, mirrors attribution to PostHog, and records a PHI-safe `google_ads_conversion_upload` audit row. The hourly `/api/cron/google-ads-conversions` backfill scans paid Google-looking intakes, skips already-successful uploads, and retries failed or missing uploads using the intake id as Google's `orderId` dedupe key. Admin source reporting in `/admin/analytics` and Business KPIs uses UTM first, then persisted referrer, then direct landing-page fallback.
+The Stripe webhook reads the persisted intake attribution when payment completes, sends captured click IDs and/or hashed first-party user identifiers to the server-side Google Ads Conversion API, mirrors attribution to PostHog, and records a PHI-safe `google_ads_conversion_upload` audit row. The hourly `/api/cron/google-ads-conversions` backfill scans reportable paid intakes, skips already-successful uploads, and retries failed or missing uploads using the intake id as Google's `orderId` dedupe key. It deliberately does not pre-filter to rows that already look Google-attributed, because enhanced conversions can match via hashed first-party data when a click ID was not captured. Admin source reporting in `/admin/analytics` and Business KPIs uses UTM first, then persisted referrer, then direct landing-page fallback.
 
 The Google Ads upload action is deliberately separate from the browser website purchase action: Google Ads offline click uploads require an `UPLOAD_CLICKS` conversion action. If the configured conversion action returns `INVALID_CONVERSION_ACTION_TYPE`, the cron treats it as non-retryable until the env var is updated; call `/api/cron/google-ads-conversions?force=1` after updating the action ID.
 
@@ -731,7 +731,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 
 ## Directory Index
 
-### `app/` — 544 files, 229 route files
+### `app/` — 545 files, 230 route files
 
 Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-contract.test.ts`; `pnpm build` remains the source of truth for expanded static/SSG route output.
 
@@ -741,8 +741,8 @@ Filesystem route-count drift is guarded by `lib/__tests__/project-docs-drift-con
 | `app/admin/` | Admin dashboard | `patients/`, `intakes/`, `emails/`, `features/`, `settings/`, `ops/`, `analytics/` |
 | `app/doctor/` | Doctor portal under the shared staff shell | `intakes/[id]/` (review detail), `patients/`, `settings/`; queue/scripts entry points resolve through `/dashboard` |
 | `app/patient/` | Patient dashboard | `intakes/` (history + success), `settings/`, `onboarding/`, `documents/` |
-| `app/api/` | API routes (85 route files) | `stripe/webhook/`, `cron/`, `health/`, `certificates/`, `intakes/` |
-| `app/api/cron/` | Scheduled jobs (24) | `stale-queue/`, `email-dispatcher/`, `health-check`, `google-ads-conversions`, `parchment-smoke`, etc. See OPERATIONS.md |
+| `app/api/` | API routes (86 route files) | `stripe/webhook/`, `cron/`, `health/`, `certificates/`, `intakes/` |
+| `app/api/cron/` | Scheduled jobs (26) | `stale-queue/`, `email-dispatcher/`, `health-check`, `google-ads-conversions`, `google-ads-diagnostics-watch`, `parchment-smoke`, etc. See OPERATIONS.md |
 | `app/api/stripe/webhook/` | Stripe handlers | 7 handlers: `checkout-session-completed`, `checkout-session-expired`, `checkout-session-async-payment-succeeded/failed`, `charge-refunded`, `charge-dispute-created`, `payment-intent-payment-failed`. Repeat Rx subscription handlers are retired; unsupported Stripe events are acknowledged and claimed by the dispatcher without running business logic. Registered in `handlers/index.ts`. |
 | `app/request/` | **Sole canonical intake flow.** Single page, step-based wizard. |
 | `app/(dev)/` | Dev-only routes | Email preview only; retired `/cert-preview` and `/sentry-test` prefixes remain fail-closed in middleware |

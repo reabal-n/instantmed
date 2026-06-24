@@ -9,6 +9,7 @@ import {
   fireGoogleAdsPurchaseConversion,
   getGoogleAdsSearchUrl,
   getGoogleAdsUploadClickConversionsUrl,
+  GOOGLE_ADS_PURCHASE_UPLOAD_JOB_ID,
   hashEmailForGoogleAds,
   hashPhoneForGoogleAds,
   normalizeEmailForGoogleAds,
@@ -71,6 +72,7 @@ describe("google ads conversion api", () => {
     )
 
     expect(request).toMatchObject({
+      jobId: GOOGLE_ADS_PURCHASE_UPLOAD_JOB_ID,
       partialFailure: true,
       conversions: [
         {
@@ -90,7 +92,49 @@ describe("google ads conversion api", () => {
     )
   })
 
-  it("skips request construction when no Google click id is present", () => {
+  it("builds an enhanced-conversion upload body with user data even when no click id is present", () => {
+    const request = buildGoogleAdsClickConversionRequest(
+      {
+        orderId: "intake_123",
+        value: 49.95,
+        conversionDateTime: new Date("2026-05-03T00:00:00.000Z"),
+        userData: { email: "test@example.com", phone: "0412 345 678" },
+      },
+      { customerId: "1234567890", conversionActionId: "9876543210" },
+    )
+
+    expect(request).toMatchObject({
+      jobId: GOOGLE_ADS_PURCHASE_UPLOAD_JOB_ID,
+      partialFailure: true,
+      conversions: [
+        {
+          conversionAction: "customers/1234567890/conversionActions/9876543210",
+          conversionEnvironment: "WEB",
+          conversionValue: 49.95,
+          currencyCode: "AUD",
+          orderId: "intake_123",
+          consent: {
+            adUserData: "GRANTED",
+          },
+          userIdentifiers: [
+            {
+              hashedEmail: "973dfe463ec85785f5f95af5ba3906eedb2d931c24e69824a89ea65dba4e813b",
+              userIdentifierSource: "FIRST_PARTY",
+            },
+            {
+              hashedPhoneNumber: "bc65da54a3ddbacfdc93a0400f0a2d78e41c2180c8255015e9616facfe56f58a",
+              userIdentifierSource: "FIRST_PARTY",
+            },
+          ],
+        },
+      ],
+    })
+    expect(request?.conversions[0]).not.toHaveProperty("gclid")
+    expect(request?.conversions[0]).not.toHaveProperty("gbraid")
+    expect(request?.conversions[0]).not.toHaveProperty("wbraid")
+  })
+
+  it("skips request construction when no click id or usable enhanced-conversion data is present", () => {
     expect(buildGoogleAdsClickConversionRequest(
       { orderId: "intake_123", value: 49.95 },
       { customerId: "1234567890", conversionActionId: "9876543210" },
@@ -98,14 +142,15 @@ describe("google ads conversion api", () => {
   })
 
   it("normalizes emails to Google's enhanced-conversions spec", () => {
-    // lowercase + trim, and gmail/googlemail drops dots in the local part.
-    expect(normalizeEmailForGoogleAds("  Test.User@Gmail.com ")).toBe("testuser@gmail.com")
-    expect(normalizeEmailForGoogleAds("Test.User@GoogleMail.com")).toBe("testuser@googlemail.com")
-    // Non-gmail domains KEEP dots — stripping them would break the match.
-    expect(normalizeEmailForGoogleAds("Test.User@Example.com")).toBe("test.user@example.com")
+    // lowercase + trim, and gmail/googlemail drops dots plus suffixes in the local part.
+    expect(normalizeEmailForGoogleAds("  Test.User+Shopping@Gmail.com ")).toBe("testuser@gmail.com")
+    expect(normalizeEmailForGoogleAds("Test.User+Shopping@GoogleMail.com")).toBe("testuser@googlemail.com")
+    // Non-gmail domains KEEP dots and plus suffixes — stripping them would break the match.
+    expect(normalizeEmailForGoogleAds("Test.User+NYC@Example.com")).toBe("test.user+nyc@example.com")
     // Unusable inputs return null so we never send a garbage identifier.
     expect(normalizeEmailForGoogleAds("not-an-email")).toBeNull()
     expect(normalizeEmailForGoogleAds("@example.com")).toBeNull()
+    expect(normalizeEmailForGoogleAds("  +promo@gmail.com ")).toBeNull()
     expect(normalizeEmailForGoogleAds("")).toBeNull()
     expect(normalizeEmailForGoogleAds(null)).toBeNull()
   })
@@ -115,8 +160,11 @@ describe("google ads conversion api", () => {
     expect(hashEmailForGoogleAds("test@example.com")).toBe(
       "973dfe463ec85785f5f95af5ba3906eedb2d931c24e69824a89ea65dba4e813b",
     )
-    expect(hashEmailForGoogleAds("  Test.User@Gmail.com ")).toBe(
+    expect(hashEmailForGoogleAds("  Test.User+Shopping@Gmail.com ")).toBe(
       "dae9c7c55697ba170d6b494c458649bd469af525520280d0dcfc98d74d13b17e",
+    )
+    expect(hashEmailForGoogleAds("Test.User+NYC@Example.com")).toBe(
+      "877f04db1041004243a41c9eab8c7f25f8621fd75c3e15ffaad1f2893162bbab",
     )
     expect(hashEmailForGoogleAds("bad")).toBeNull()
   })
@@ -181,6 +229,8 @@ describe("google ads conversion api", () => {
         userIdentifierSource: "FIRST_PARTY",
       },
     ])
+    expect(request?.conversions[0].consent).toEqual({ adUserData: "GRANTED" })
+    expect(request?.conversions[0].consent).not.toHaveProperty("adPersonalization")
   })
 
   it("omits userIdentifiers entirely when no usable email is present", () => {
@@ -434,6 +484,44 @@ describe("google ads conversion api", () => {
       attempted: true,
       ok: false,
       error: "The_click_id_could_not_be_found",
+    })
+
+    global.fetch = originalFetch
+    process.env = originalEnv
+  })
+
+  it("returns the Google Ads upload job id from successful API responses", async () => {
+    const originalFetch = global.fetch
+    const originalEnv = { ...process.env }
+
+    global.fetch = vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ access_token: "access-token", expires_in: 3600 }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        text: async () => JSON.stringify({
+          jobId: "20260624",
+          results: [{ conversionAction: "customers/1234567890/conversionActions/9876543210" }],
+        }),
+      }) as typeof fetch
+
+    process.env.GOOGLE_ADS_CUSTOMER_ID = "1234567890"
+    process.env.GOOGLE_ADS_DEVELOPER_TOKEN = "developer-token"
+    process.env.GOOGLE_ADS_CLIENT_ID = "client-id"
+    process.env.GOOGLE_ADS_CLIENT_SECRET = "client-secret"
+    process.env.GOOGLE_ADS_REFRESH_TOKEN = "refresh-token"
+    process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE = "9876543210"
+
+    await expect(fireGoogleAdsPurchaseConversion({
+      orderId: "intake_123",
+      gclid: "gclid-value",
+      value: 49.95,
+    })).resolves.toMatchObject({
+      attempted: true,
+      ok: true,
+      jobId: "20260624",
     })
 
     global.fetch = originalFetch

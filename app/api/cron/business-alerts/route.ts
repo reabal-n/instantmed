@@ -2,11 +2,16 @@ import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 
 import { buildOperationalInvariantAlerts, getOperationalInvariants } from "@/lib/admin/ops-invariants"
+import { getGoogleAdsPurchaseImportHealth } from "@/lib/analytics/google-ads-report"
 import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { filterReportableIntakes } from "@/lib/data/reporting-filters"
 import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
 import { toError } from "@/lib/errors"
+import {
+  buildGoogleAdsPurchaseImportAlert,
+  buildGoogleAdsUploadAuditSourceAnomalyAlert,
+} from "@/lib/monitoring/google-ads-purchase-import-health"
 import {
   buildNoPurchaseRevenueAlert,
   CHECKOUT_DEMAND_PAYMENT_STATUSES,
@@ -31,7 +36,7 @@ const logger = createLogger("cron-business-alerts")
 /** Re-page a still-standing alert signature at most once per this window (4h). */
 const TELEGRAM_ALERT_COOLDOWN_MS = 4 * 60 * 60 * 1000
 
-type BusinessAlert = { metric: string; severity: string; detail: string; count?: number }
+type BusinessAlert = { metric: string; severity: "critical" | "warning" | "info"; detail: string; count?: number }
 
 async function getNoPurchaseRevenueWindow(
   supabase: ReturnType<typeof createServiceRoleClient>,
@@ -156,7 +161,49 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // 3. Email delivery failures (certificates not delivered)
+    // 3. Google Ads purchase-import safety: local paid Google-attributed orders
+    // must show up in the configured purchase import action. This catches the
+    // expensive blind-bidding state where Stripe/Supabase have revenue but Ads
+    // diagnostics or conversion reports show no import/primary purchase signal.
+    let googleAdsPurchaseImportHealth = null
+    try {
+      googleAdsPurchaseImportHealth = await getGoogleAdsPurchaseImportHealth({ supabase, now })
+      const googleAdsUploadAuditSourceAnomalyAlert =
+        buildGoogleAdsUploadAuditSourceAnomalyAlert(googleAdsPurchaseImportHealth)
+      if (googleAdsUploadAuditSourceAnomalyAlert) {
+        alerts.push(googleAdsUploadAuditSourceAnomalyAlert)
+        trackBusinessMetric({
+          metric: googleAdsUploadAuditSourceAnomalyAlert.metric,
+          severity: googleAdsUploadAuditSourceAnomalyAlert.severity,
+          metadata: googleAdsUploadAuditSourceAnomalyAlert.metadata,
+        })
+      }
+      const googleAdsPurchaseImportAlert = buildGoogleAdsPurchaseImportAlert(googleAdsPurchaseImportHealth)
+      if (googleAdsPurchaseImportAlert) {
+        alerts.push(googleAdsPurchaseImportAlert)
+        trackBusinessMetric({
+          metric: googleAdsPurchaseImportAlert.metric,
+          severity: googleAdsPurchaseImportAlert.severity,
+          metadata: googleAdsPurchaseImportAlert.metadata,
+        })
+      }
+    } catch (error) {
+      const err = toError(error)
+      const alert = {
+        metric: "google_ads_purchase_import_health_failed" as const,
+        severity: "critical",
+        detail: `Google Ads purchase import health check failed: ${err.message}`,
+        count: 1,
+      } satisfies BusinessAlert
+      alerts.push(alert)
+      trackBusinessMetric({
+        metric: alert.metric,
+        severity: alert.severity,
+        metadata: { error: err.message },
+      })
+    }
+
+    // 4. Email delivery failures (certificates not delivered)
     const { count: emailFailures } = await supabase
       .from("issued_certificates")
       .select("id", { count: "exact", head: true })
@@ -177,7 +224,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // 4. Bounced emails in last hour (from email_outbox)
+    // 5. Bounced emails in last hour (from email_outbox)
     // Only track the business metric — don't raise a Sentry alert here.
     // Email delivery and Resend's own dashboard flag the domain-level issue.
     // Spam-rate SLO is the
@@ -198,7 +245,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // 5. Emails stuck in pending status for more than 30 minutes
+    // 6. Emails stuck in pending status for more than 30 minutes
     const thirtyMinAgo = new Date(now.getTime() - 30 * 60 * 1000)
     const { count: stuckPending } = await supabase
       .from("email_outbox")
@@ -220,7 +267,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // 6. High-risk intakes waiting in queue
+    // 7. High-risk intakes waiting in queue
     const { count: highRiskWaiting } = await supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
@@ -240,7 +287,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // 7. Critical email delivery SLA - med_cert_patient and script_sent must be delivered within 10 min
+    // 8. Critical email delivery SLA - med_cert_patient and script_sent must be delivered within 10 min
     const tenMinAgo = new Date(now.getTime() - 10 * 60 * 1000)
     const { count: slaBreaches } = await supabase
       .from("email_outbox")
@@ -264,7 +311,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // 8. Weekly ops invariants promoted from dashboard-only visibility to alerting.
+    // 9. Weekly ops invariants promoted from dashboard-only visibility to alerting.
     const operationalInvariants = await getOperationalInvariants(supabase)
     const invariantAlerts = buildOperationalInvariantAlerts(operationalInvariants)
 
@@ -277,7 +324,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // 9. Human-required (Rx/consult) queue stalled >24h. Medical certificates
+    // 10. Human-required (Rx/consult) queue stalled >24h. Medical certificates
     // auto-approve at all hours, so a stalled HUMAN queue means the operator may
     // be unavailable and paid scripts/consults are piling up. Per the 2026-06-11
     // decision we page (Telegram, critical → cooldown'd below), we do NOT
@@ -422,6 +469,7 @@ export async function GET(request: NextRequest) {
           checkout_stage_intakes: noPurchaseWindow.checkoutStageIntakes,
           partial_drafts: noPurchaseWindow.partialDrafts,
         },
+        google_ads_purchase_import_health: googleAdsPurchaseImportHealth,
         rx_consult_queue_stalled: staleHumanCount ?? 0,
         ops_sla_breach_backlog: operationalInvariants.slaBreachBacklog,
         ops_cert_refund_orphans: operationalInvariants.certRefundOrphans,

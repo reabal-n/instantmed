@@ -98,12 +98,13 @@ export async function POST(request: Request) {
   }
 
   const supabase = getServiceClient()
+  const requestPath = new URL(request.url).pathname
 
   // Route to handler
   const handler = handlers.get(event.type)
 
   if (handler) {
-    const result = await handler({ adminReplay: isAdminReplay, event, supabase, startTime })
+    const result = await handler({ adminReplay: isAdminReplay, event, requestPath, supabase, startTime })
     // If handler returns a NextResponse, use it; otherwise return default success
     if (result) return result
   } else {

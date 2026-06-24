@@ -8,16 +8,17 @@ import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("google-ads-conversion-api")
 const DEFAULT_GOOGLE_ADS_API_VERSION = "v24"
+export const GOOGLE_ADS_PURCHASE_UPLOAD_JOB_ID = 20260624
 
 /**
  * Server-side Google Ads Conversion API client.
  *
  * Why: browser-side gtag misses ~30% of attribution on iOS Safari (ITP blocks
  * third-party cookies) and other privacy-restricted contexts. Firing the same
- * conversion server-side using the gclid stored at intake submit time recovers
- * that loss. `order_id` keeps upload retries idempotent for this conversion
- * action; Ads account goal settings still decide whether browser and offline
- * actions are counted together.
+ * conversion server-side using the captured click id and/or hashed first-party
+ * identifiers recovers that loss. `order_id` keeps upload retries idempotent
+ * for this conversion action; Ads account goal settings still decide whether
+ * browser and offline actions are counted together.
  *
  * Required env vars (all must be present for the call to fire):
  *   GOOGLE_ADS_CUSTOMER_ID            - 10-digit customer id, no dashes
@@ -73,6 +74,12 @@ type ClickIdentifier = {
   wbraid?: string
 }
 
+type GoogleAdsConsentStatus = "GRANTED" | "DENIED" | "UNSPECIFIED"
+
+type GoogleAdsClickConversionConsent = {
+  adUserData: GoogleAdsConsentStatus
+}
+
 /**
  * A single hashed first-party identifier. UserIdentifier is a protobuf oneof,
  * so each object carries exactly ONE identifier — email and phone go in
@@ -90,9 +97,18 @@ interface GoogleAdsClickConversionRequest {
     conversionValue: number
     currencyCode: "AUD"
     orderId: string
+    consent?: GoogleAdsClickConversionConsent
     userIdentifiers?: GoogleAdsUserIdentifier[]
   } & ClickIdentifier>
+  jobId: number
   partialFailure: true
+}
+
+export type GoogleAdsConversionUploadResult = {
+  attempted: boolean
+  ok?: boolean
+  error?: string
+  jobId?: number | string
 }
 
 export type GoogleAdsConversionActionPreflightIssueCode =
@@ -334,9 +350,9 @@ function sha256Hex(value: string): string {
 /**
  * Normalize an email to Google's enhanced-conversions spec so our hash matches
  * the hash Google computes on its side (otherwise the upload matches nothing):
- * lowercase, strip all whitespace, and for gmail/googlemail remove dots in the
- * local part. Returns null for anything that isn't a plausible address.
- * Ref: https://support.google.com/google-ads/answer/9888656
+ * lowercase, strip all whitespace, and for gmail/googlemail remove dots and
+ * plus suffixes in the local part. Returns null for anything implausible.
+ * Ref: https://developers.google.com/google-ads/api/docs/conversions/upload-online#normalize_and_hash_user-provided_data
  */
 export function normalizeEmailForGoogleAds(raw?: string | null): string | null {
   const lowered = raw?.trim().toLowerCase()
@@ -346,7 +362,7 @@ export function normalizeEmailForGoogleAds(raw?: string | null): string | null {
   let local = lowered.slice(0, at)
   const domain = lowered.slice(at + 1)
   if (domain === "gmail.com" || domain === "googlemail.com") {
-    local = local.replace(/\./g, "")
+    local = (local.split("+", 1)[0] || "").replace(/\./g, "")
   }
   const normalized = `${local}@${domain}`.replace(/\s+/g, "")
   // Reject if normalization collapsed the local part to nothing.
@@ -449,25 +465,27 @@ export function buildGoogleAdsClickConversionRequest(
   config: { customerId: string; conversionActionId: string },
 ): GoogleAdsClickConversionRequest | null {
   const clickIdentifier = selectGoogleAdsClickIdentifier(input)
-  if (!clickIdentifier) return null
   const conversionActionId = normalizeGoogleAdsNumericId(config.conversionActionId)
   if (!conversionActionId) return null
 
   const userIdentifiers = buildGoogleAdsUserIdentifiers(input.userData)
+  if (!clickIdentifier && userIdentifiers.length === 0) return null
 
   return {
     conversions: [
       {
         conversionAction: `customers/${config.customerId}/conversionActions/${conversionActionId}`,
-        ...clickIdentifier,
+        ...(clickIdentifier ?? {}),
         conversionDateTime: formatGoogleAdsDateTime(input.conversionDateTime ?? new Date()),
         conversionEnvironment: "WEB",
         conversionValue: input.value,
         currencyCode: "AUD",
         orderId: input.orderId,
+        ...(userIdentifiers.length > 0 ? { consent: { adUserData: "GRANTED" } } : {}),
         ...(userIdentifiers.length > 0 ? { userIdentifiers } : {}),
       },
     ],
+    jobId: GOOGLE_ADS_PURCHASE_UPLOAD_JOB_ID,
     partialFailure: true,
   }
 }
@@ -655,6 +673,15 @@ export async function searchGoogleAds<T extends GoogleAdsSearchRow = GoogleAdsSe
   return Array.isArray(payload.results) ? payload.results : []
 }
 
+function extractGoogleAdsUploadJobId(payload: unknown, fallback: number): number | string {
+  if (payload && typeof payload === "object") {
+    const fields = payload as Record<string, unknown>
+    const jobId = fields.jobId ?? fields.job_id
+    if (typeof jobId === "number" || typeof jobId === "string") return jobId
+  }
+  return fallback
+}
+
 /**
  * Fire a server-side Google Ads conversion for a completed purchase.
  *
@@ -663,7 +690,7 @@ export async function searchGoogleAds<T extends GoogleAdsSearchRow = GoogleAdsSe
  */
 export async function fireGoogleAdsPurchaseConversion(
   input: FireConversionInput,
-): Promise<{ attempted: boolean; ok?: boolean; error?: string }> {
+): Promise<GoogleAdsConversionUploadResult> {
   const config = getGoogleAdsPurchaseConversionConfig()
 
   if (!config) {
@@ -677,8 +704,7 @@ export async function fireGoogleAdsPurchaseConversion(
 
   const body = buildGoogleAdsClickConversionRequest(input, config)
   if (!body) {
-    // No click identifier - this conversion didn't originate from a Google ad
-    // click, so there's nothing for the Conversion API to attribute to.
+    // No click identifier and no usable enhanced-conversion identifiers.
     return { attempted: false, error: "missing_click_id" }
   }
 
@@ -711,7 +737,12 @@ export async function fireGoogleAdsPurchaseConversion(
           status: res.status,
         },
       })
-      return { attempted: true, ok: false, error: extractGoogleAdsErrorCode(responseBody, res.status) }
+      return {
+        attempted: true,
+        ok: false,
+        error: extractGoogleAdsErrorCode(responseBody, res.status),
+        jobId: body.jobId,
+      }
     }
 
     // Partial failures come back in the response body even with 200. Parse and
@@ -722,6 +753,7 @@ export async function fireGoogleAdsPurchaseConversion(
     } catch {
       parsed = null
     }
+    const jobId = extractGoogleAdsUploadJobId(parsed, body.jobId)
     const partialFailure =
       typeof parsed === "object" && parsed !== null && "partialFailureError" in parsed
         ? (parsed as { partialFailureError?: { message?: string } }).partialFailureError
@@ -729,6 +761,7 @@ export async function fireGoogleAdsPurchaseConversion(
     if (partialFailure?.message) {
       const errorCode = extractGoogleAdsErrorCode(responseBody, 200)
       logger.warn("Google Ads Conversion API partial failure", {
+        jobId,
         orderId: input.orderId,
         message: partialFailure.message,
       })
@@ -737,15 +770,16 @@ export async function fireGoogleAdsPurchaseConversion(
         extra: {
           orderId: input.orderId,
           error: errorCode,
+          jobId,
           message: partialFailure.message,
         },
       })
-      return { attempted: true, ok: false, error: errorCode }
+      return { attempted: true, ok: false, error: errorCode, jobId }
     } else {
-      logger.info("Google Ads Conversion API success", { orderId: input.orderId })
+      logger.info("Google Ads Conversion API success", { orderId: input.orderId, jobId })
     }
 
-    return { attempted: true, ok: true }
+    return { attempted: true, ok: true, jobId }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
     logger.error("Google Ads Conversion API threw", { orderId: input.orderId, error: message })

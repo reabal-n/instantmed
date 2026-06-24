@@ -44,7 +44,7 @@ export function ReviewRequestEmail({
       <ReviewHero
         appUrl={appUrl}
         intakeId={intakeId}
-        serviceCopy={`If we saved you a trip to the GP for your ${serviceName.toLowerCase()}, a quick Google review helps other Aussies find fast, easy healthcare. It takes about 30 seconds.`}
+        serviceCopy={`If we saved you a trip to the GP for your ${serviceName.toLowerCase()}, a quick review helps other Aussies find fast, easy healthcare. It takes about 30 seconds.`}
       />
     </BaseEmail>
   )

@@ -27,13 +27,22 @@ const reviewCtaSource = readFileSync(
   join(process.cwd(), "lib/email/components/review-cta.tsx"),
   "utf8",
 )
+const reviewRequestTemplateSource = readFileSync(
+  join(process.cwd(), "lib/email/components/templates/review-request.tsx"),
+  "utf8",
+)
 
 describe("review CTA destination contract", () => {
-  it("does not hardcode platform-specific 'Google review' copy in the email CTAs", () => {
+  it("does not hardcode platform-specific 'Google review' copy in review email surfaces", () => {
     // The destination is the rotating redirect (ProductReview by default), so
     // naming Google in the button/body is misleading + reads as single-platform
     // solicitation. Keep the copy destination-neutral ("Leave a review").
-    expect(reviewCtaSource).not.toMatch(/Google review/i)
+    for (const [label, source] of [
+      ["review CTA", reviewCtaSource],
+      ["review request template", reviewRequestTemplateSource],
+    ] as const) {
+      expect(source, label).not.toMatch(/Google review/i)
+    }
   })
 
   it("defaults the off-site review destination to ProductReview, not Google", () => {

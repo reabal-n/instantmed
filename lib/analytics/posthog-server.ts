@@ -186,7 +186,7 @@ export function trackOperationalBlock(event: {
  * Track business metric events for alerting and dashboards
  */
 export function trackBusinessMetric(event: {
-  metric: 'payment_failed' | 'no_purchase_window' | 'queue_backup' | 'sla_breach' | 'certificate_error' | 'email_delivery_failed' | 'high_risk_intake' | 'ahpra_reverification_overdue' | 'email_bounced' | 'email_stuck_pending' | 'daily_reconciliation' | 'stuck_awaiting_script' | 'ops_sla_breach_backlog' | 'ops_cert_refund_orphans' | 'ops_refund_record_anomalies' | 'ops_invariant_query_failed' | 'rx_consult_queue_stalled'
+  metric: 'payment_failed' | 'no_purchase_window' | 'queue_backup' | 'sla_breach' | 'certificate_error' | 'email_delivery_failed' | 'high_risk_intake' | 'ahpra_reverification_overdue' | 'email_bounced' | 'email_stuck_pending' | 'daily_reconciliation' | 'stuck_awaiting_script' | 'ops_sla_breach_backlog' | 'ops_cert_refund_orphans' | 'ops_refund_record_anomalies' | 'ops_invariant_query_failed' | 'rx_consult_queue_stalled' | 'google_ads_purchase_enhanced_conversions_setup_incomplete' | 'google_ads_purchase_import_health_unavailable' | 'google_ads_purchase_imports_zero' | 'google_ads_purchase_primary_conversions_zero' | 'google_ads_upload_audit_source_anomaly' | 'google_ads_purchase_import_health_failed'
   severity: 'info' | 'warning' | 'critical'
   userId?: string
   metadata?: Record<string, unknown>

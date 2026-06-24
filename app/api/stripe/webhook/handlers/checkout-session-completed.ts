@@ -503,6 +503,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
             amountCents: session.amount_total,
             intakeId,
             posthogDistinctId,
+            requestPath: ctx.requestPath,
             row: intakeAttribution,
             source: "checkout_session_completed",
             supabase,
