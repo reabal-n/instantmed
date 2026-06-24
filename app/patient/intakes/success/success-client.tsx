@@ -442,6 +442,13 @@ export function SuccessClient({
           </p>
         </div>
       )}
+      {/* Self-reported attribution survey, moved up from dead-last. Live data
+          (90d): only ~5% of buyers who were shown the card answered while it
+          sat below the referral block — most never scrolled to it. Placing the
+          one-tap question right after the primary confirmation lifts the
+          shown→answered rate. (Reach is the bigger gap — ~62% of buyers never
+          fire `shown` at all — but that's a separate, larger change.) */}
+      {heardToken && <HeardAboutUsCard token={heardToken} />}
       {patientId && (
         <div>
           <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 font-medium">
@@ -450,7 +457,6 @@ export function SuccessClient({
           <ReferralCard patientId={patientId} />
         </div>
       )}
-      {heardToken && <HeardAboutUsCard token={heardToken} />}
       <RelatedServicesProbe currentSubtype={intakeSubtype} />
     </div>
   )
