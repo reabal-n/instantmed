@@ -366,25 +366,26 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!cityData) return {}
 
   return {
-    title: { absolute: `Online Doctor ${cityData.name} | Med Certs from ${PRICING_DISPLAY.MED_CERT} | InstantMed` },
-    description: `Skip the ${cityData.name} GP queue. AHPRA-registered Australian doctors review online. Med certs from ${PRICING_DISPLAY.MED_CERT}, repeat scripts. No appointment needed.`,
+    title: { absolute: `Online Medical Certificate ${cityData.name} | From ${PRICING_DISPLAY.MED_CERT} | InstantMed` },
+    description: `Get an online medical certificate in ${cityData.name} from ${PRICING_DISPLAY.MED_CERT}. AHPRA-registered Australian doctors review online, so you can skip the GP queue. Repeat scripts and online doctor requests too. No appointment needed.`,
     robots: shouldIndexLocation(city) ? { index: true, follow: true } : ICEBOX_ROBOTS,
     keywords: [
-      `online doctor ${cityData.name.toLowerCase()}`,
-      `telehealth ${cityData.name.toLowerCase()}`,
       `medical certificate ${cityData.name.toLowerCase()}`,
+      `online medical certificate ${cityData.name.toLowerCase()}`,
+      `medical certificate online ${cityData.name.toLowerCase()}`,
+      `online doctor ${cityData.name.toLowerCase()}`,
       `online prescription ${cityData.name.toLowerCase()}`,
-      `doctor ${cityData.name.toLowerCase()}`,
+      `telehealth ${cityData.name.toLowerCase()}`,
     ],
     openGraph: {
-      title: `Online Doctor ${cityData.name} | InstantMed`,
-      description: `Skip the ${cityData.name} GP queue. AHPRA-registered Australian doctors review online. Med certs from ${PRICING_DISPLAY.MED_CERT}, repeat scripts. No appointment needed.`,
+      title: `Online Medical Certificate ${cityData.name} | InstantMed`,
+      description: `Get an online medical certificate in ${cityData.name} from ${PRICING_DISPLAY.MED_CERT}. AHPRA-registered Australian doctors review online, so you can skip the GP queue. Repeat scripts too. No appointment needed.`,
       url: `https://instantmed.com.au/locations/${city}`,
     },
     twitter: {
       card: "summary_large_image",
-      title: `Online Doctor ${cityData.name} | InstantMed`,
-      description: `Skip the ${cityData.name} GP queue. AHPRA-registered Australian doctors review online. Med certs from ${PRICING_DISPLAY.MED_CERT}, repeat scripts. No appointment needed.`,
+      title: `Online Medical Certificate ${cityData.name} | InstantMed`,
+      description: `Get an online medical certificate in ${cityData.name} from ${PRICING_DISPLAY.MED_CERT}. AHPRA-registered Australian doctors review online, so you can skip the GP queue. Repeat scripts too. No appointment needed.`,
     },
     alternates: {
       canonical: `https://instantmed.com.au/locations/${city}`,
@@ -416,8 +417,8 @@ export default async function CityPage({ params }: PageProps) {
     "@context": "https://schema.org",
     "@type": "Service",
     "@id": `https://instantmed.com.au/locations/${city}#service`,
-    name: `Online Doctor in ${cityData.name}`,
-    description: `Online doctor consultations, medical certificates, and prescriptions for ${cityData.name} residents. AHPRA-registered Australian doctors.`,
+    name: `Online Medical Certificates in ${cityData.name}`,
+    description: `Online medical certificates, repeat prescriptions, and doctor consultations for ${cityData.name} residents. AHPRA-registered Australian doctors.`,
     url: `https://instantmed.com.au/locations/${city}`,
     provider: { "@id": "https://instantmed.com.au/#organization" },
     serviceType: "Telehealth",

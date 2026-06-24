@@ -62,7 +62,7 @@ export function Footer({ variant = "marketing" }: FooterProps) {
           </div>
 
           {/* Link columns */}
-          <div className="flex-1 grid grid-cols-2 gap-x-4 gap-y-5 md:gap-x-8">
+          <div className={`flex-1 grid grid-cols-2 gap-x-4 gap-y-5 md:gap-x-8 ${isMarketing ? "md:grid-cols-3" : ""}`}>
             <nav aria-label="Services">
               <p aria-hidden="true" className="uppercase text-[10px] text-muted-foreground font-semibold tracking-wider mb-2">Services</p>
               <div className="flex flex-col gap-1.5">
@@ -84,6 +84,22 @@ export function Footer({ variant = "marketing" }: FooterProps) {
                 ))}
               </div>
             </nav>
+
+            {/* Indexed location pages: internal links so these crawl-starved,
+                previously-orphaned pages get crawl demand from every marketing
+                page. Marketing variant only (checkout/auth stay lean). */}
+            {isMarketing && (
+              <nav aria-label="Medical certificates by city">
+                <p aria-hidden="true" className="uppercase text-[10px] text-muted-foreground font-semibold tracking-wider mb-2">Locations</p>
+                <div className="flex flex-col gap-1.5">
+                  {footerLinks.locations.map((link) => (
+                    <Link key={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors" href={link.href}>
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              </nav>
+            )}
           </div>
         </div>
       </div>
