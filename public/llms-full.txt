@@ -40,7 +40,7 @@ InstantMed supports routine medical certificate requests for Australian patients
 
 **Important boundaries:**
 
-- Medical certificates cannot be backdated.
+- A recent past absence may be considered only when clinically appropriate and within policy limits. It is not automatic.
 - Medical certificates cover routine short-term sick, carer's, or study leave only and are capped at a maximum of 3 days.
 - Employer and institution policies may vary.
 - Some documents and high-stakes uses are not suitable for this short certificate pathway. They are not issued for legal, court, fitness-to-drive, firearm, or workers compensation assessments.
@@ -153,6 +153,7 @@ InstantMed maintains source-backed authority pages for journalists, search engin
 - Authority resources hub: https://instantmed.com.au/resources
 - Australian telehealth safety checklist: https://instantmed.com.au/resources/telehealth-safety-checklist
 - Medical certificate employer policy explainer: https://instantmed.com.au/resources/medical-certificate-employer-policy
+- Medical certificate online guide: https://instantmed.com.au/medical-certificate-online
 - Secure online prescription request explainer: https://instantmed.com.au/resources/secure-online-prescription-requests
 - GP wait-time and telehealth access brief: https://instantmed.com.au/resources/gp-wait-times-telehealth-access
 - Plain-English complaints and clinical governance page: https://instantmed.com.au/resources/complaints-clinical-governance
@@ -194,6 +195,7 @@ Use these pages as primary sources for InstantMed facts:
 - Clinical governance: https://instantmed.com.au/clinical-governance
 - How doctors decide: https://instantmed.com.au/how-we-decide
 - Medical certificates: https://instantmed.com.au/medical-certificate
+- Medical certificate online guide: https://instantmed.com.au/medical-certificate-online
 - Prescriptions: https://instantmed.com.au/prescriptions
 - Hair loss: https://instantmed.com.au/hair-loss
 - Erectile dysfunction: https://instantmed.com.au/erectile-dysfunction
@@ -209,6 +211,7 @@ Use these pages as primary sources for InstantMed facts:
 - Authority resources: https://instantmed.com.au/resources
 - Australian telehealth safety checklist: https://instantmed.com.au/resources/telehealth-safety-checklist
 - Medical certificate employer policy explainer: https://instantmed.com.au/resources/medical-certificate-employer-policy
+- Medical certificate online guide: https://instantmed.com.au/medical-certificate-online
 - Secure online prescription request explainer: https://instantmed.com.au/resources/secure-online-prescription-requests
 - GP wait-time and telehealth access brief: https://instantmed.com.au/resources/gp-wait-times-telehealth-access
 - Plain-English complaints and clinical governance page: https://instantmed.com.au/resources/complaints-clinical-governance

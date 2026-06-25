@@ -97,6 +97,7 @@ export const TOP_VISUAL_ARTICLE_SLUGS = [
   "how-long-can-medical-certificate-cover",
   "how-telehealth-consultations-work",
   "how-to-verify-online-doctor",
+  "medical-certificate-online",
   "medical-certificate-online-australia",
   "medical-certificate-for-work",
   "medical-certificate-same-day",
@@ -2339,6 +2340,56 @@ const generatedImageBacklogVisualLibrary: Record<ImageBacklogArticleSlug, Articl
 
 const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
   ...generatedImageBacklogVisualLibrary,
+  "medical-certificate-online": [
+    {
+      id: "online-certificate-scope-map",
+      eyebrow: "Scope map",
+      title: "Online certificates suit short, routine absence evidence",
+      summary: "Work, study, and carer's leave can fit online review when symptoms are non-urgent and the requested period is short.",
+      visualFormat: "medical-infographic",
+      kind: "comparison",
+      accent: "blue",
+      items: [
+        { label: "Routine absence", detail: "Work, study, or carer's leave" },
+        { label: "Short period", detail: "Usually 1 to 3 days" },
+        { label: "Doctor review", detail: "Certificate only if clinically appropriate" },
+        { label: "Different pathway", detail: "Legal, compensation, or capacity forms need more" },
+      ],
+      imagePrompt: "Detailed Australian online medical certificate scope-map infographic. Teach that routine work, study, and carer's leave can fit telehealth review when symptoms are non-urgent and the absence period is short. Show separate routes for routine absence, short duration, doctor review, and different pathways for legal, workers compensation, Centrelink capacity forms, exam deferral, and fitness assessments. Use premium public-health information design with labelled panels and a clear decision hierarchy. No fake certificate, no fake form, no blank document hero, no app mockup, no patient identifiers, no pricing, no star ratings, no testimonials, no guarantee language.",
+    },
+    {
+      id: "certificate-urgent-boundary-flow",
+      eyebrow: "Care route",
+      title: "Urgent symptoms come before paperwork",
+      summary: "Chest pain, severe breathing trouble, dehydration, severe pain, neurological symptoms, pregnancy red flags, or crisis symptoms need urgent or in-person care.",
+      visualFormat: "red-flag-warning",
+      kind: "warning",
+      accent: "rose",
+      items: [
+        { label: "Emergency", detail: "Chest pain, severe breathlessness, collapse, stroke symptoms", tone: "urgent" },
+        { label: "Urgent review", detail: "Severe dehydration, blood in vomit or stool, severe pain", tone: "urgent" },
+        { label: "Crisis support", detail: "Self-harm risk or immediate mental health danger", tone: "urgent" },
+        { label: "Certificate later", detail: "Sort documentation after safety is handled" },
+      ],
+      imagePrompt: "Calm Australian medical certificate urgent-boundary flowchart. Teach that urgent symptoms come before paperwork. Include emergency branch for chest pain, severe breathlessness, collapse, and stroke symptoms; urgent-review branch for severe dehydration, blood in vomit or stool, severe abdominal pain, severe headache with neurological signs, pregnancy red flags; crisis-support branch for self-harm risk; certificate-later branch once safe. Use labelled public-health decision flow, calm but clear. No ambulance drama, no gore, no fake certificate, no fake form, no app screen, no pricing, no testimonials, no guarantee language.",
+    },
+    {
+      id: "certificate-privacy-evidence-map",
+      eyebrow: "Evidence details",
+      title: "A useful certificate is specific without oversharing",
+      summary: "Routine certificates usually need patient details, date, absence period, clinician details, and verification, not a private diagnosis.",
+      visualFormat: "comparison-graphic",
+      kind: "comparison",
+      accent: "emerald",
+      items: [
+        { label: "Include", detail: "Patient, date, absence period, clinician details" },
+        { label: "Protect", detail: "Diagnosis is usually not needed for ordinary leave" },
+        { label: "Verify", detail: "Employer can check authenticity if needed" },
+        { label: "Policy varies", detail: "Workplaces and institutions can apply their own evidence policy" },
+      ],
+      imagePrompt: "Australian medical certificate privacy and evidence map. Show what routine absence evidence usually includes: patient identity, date issued, absence period, clinician details, verification pathway. Show privacy-protected zone for diagnosis usually not needed for ordinary leave, and policy-varies note for employer or institution evidence rules. Use labelled comparison panels and document-detail callouts without rendering a realistic certificate. No fake certificate, no official-looking form, no patient identifiers, no diagnosis examples, no price, no star ratings, no testimonials, no guarantee language.",
+    },
+  ],
   "erectile-dysfunction": [
     {
       id: "ed-health-context-map",

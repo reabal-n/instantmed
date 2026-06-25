@@ -29,6 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages = [
     "",
     "/medical-certificate",
+    "/medical-certificate-online",
     "/prescriptions",
     // /general-consult is 301 redirected to /consult in next.config.mjs -
     // removed from sitemap so Google stops seeing it as a distinct URL

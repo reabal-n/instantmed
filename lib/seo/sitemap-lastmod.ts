@@ -19,6 +19,7 @@ export const ROUTE_LAST_MODIFIED: Record<string, string> = {
   "/telehealth-australia": "2026-06-06",
   // Money + service landing pages
   "/medical-certificate": "2026-05-19",
+  "/medical-certificate-online": "2026-06-25",
   "/prescriptions": "2026-06-06",
   "/hair-loss": "2026-06-10",
   "/erectile-dysfunction": "2026-06-25",
