@@ -107,7 +107,7 @@ describe("FilterBar", () => {
         density="comfortable"
         onDensityChange={() => {}}
         quickFilters={[
-          { id: "express", label: "Priority" },
+          { id: "priority", label: "Priority" },
           { id: "stale", label: "Stale > 4h" },
         ]}
       />,

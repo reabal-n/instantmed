@@ -124,11 +124,19 @@ describe("medical certificate checkout contract", () => {
       join(process.cwd(), "components/request/steps/checkout-step.tsx"),
       "utf8",
     )
+    const trustFooterSource = readFileSync(
+      join(process.cwd(), "components/checkout/trust-badges.tsx"),
+      "utf8",
+    )
+    const trustPresetSource = readFileSync(
+      join(process.cwd(), "lib/marketing/trust-badges.ts"),
+      "utf8",
+    )
 
-    expect(checkoutStepSource).toContain("TrustBadgeRow")
-    expect(checkoutStepSource).toContain('{ id: "stripe", variant: "styled" }')
-    expect(checkoutStepSource).toContain('"ahpra"')
-    expect(checkoutStepSource).toContain('"refund"')
+    expect(checkoutStepSource).toContain("CheckoutSecurityFooter")
+    expect(checkoutStepSource).not.toContain("TrustBadgeRow")
+    expect(trustFooterSource).toContain('<TrustBadgeRow preset="checkout"')
+    expect(trustPresetSource).toMatch(/checkout:\s*\[\s*\{ id: 'stripe', variant: 'styled' \},\s*'ahpra',\s*'refund',\s*\]/)
     expect(checkoutStepSource).toContain("Secure Stripe checkout. No subscription.")
     expect(checkoutStepSource).not.toContain("Before you pay")
     expect(checkoutStepSource).not.toContain("LegitScriptSeal")

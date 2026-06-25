@@ -106,7 +106,9 @@ Pattern: below `GoogleReviewCTA`, add referral link with $5 credit offer.
 
 ---
 
-## 6. Priority Review
+## 6. Express Review
+
+Terminology note added 2026-06-25: this dated plan used "Express Review". Current product copy calls the same optional fee "Priority review".
 
 **Decision:** Keep default OFF. Default ON feels too aggressive for a healthcare product.
 

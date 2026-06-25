@@ -11,15 +11,16 @@ import { useEffect, useRef, useState } from "react"
 
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
 import { PaymentLogos } from "@/components/checkout/payment-logos"
+import { CheckoutSecurityFooter } from "@/components/checkout/trust-badges"
 import { PriorityReviewToggle } from "@/components/request/shared/priority-review-toggle"
 import { CheckoutButton } from "@/components/shared/checkout-button"
-import { TrustBadgeRow } from "@/components/shared/trust-badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useReducedMotion } from "@/components/ui/motion"
 import { getAttribution } from "@/lib/analytics/attribution"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 import { usePostHog } from "@/lib/analytics/posthog-context"
+import { capturePriorityReviewOptedIn, capturePriorityReviewOptedOut } from "@/lib/analytics/priority-review-events"
 import { PRICING as APP_PRICING } from "@/lib/constants"
 import { getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
 import { normalizeMedicationEntriesAnswer, stringAnswer } from "@/lib/request/intake-answer-normalizers"
@@ -254,23 +255,14 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
               id="priority-review-toggle"
               checked={isPriority}
               onCheckedChange={setIsPriority}
-              onOptIn={() => posthog?.capture('priority_review_opted_in', { service_type: serviceType })}
-              onOptOut={() => posthog?.capture('priority_review_opted_out', { service_type: serviceType })}
+              onOptIn={() => capturePriorityReviewOptedIn(posthog, { service_type: serviceType, surface: "checkout" })}
+              onOptOut={() => capturePriorityReviewOptedOut(posthog, { service_type: serviceType, surface: "checkout" })}
             />
           </div>
         </div>
       </div>
 
-      <div className="rounded-xl border border-border/50 bg-muted/20 px-3 py-2.5">
-        <TrustBadgeRow
-          badges={[
-            { id: "stripe", variant: "styled" },
-            "ahpra",
-            "refund",
-          ]}
-          className="justify-center gap-x-3 gap-y-1.5"
-        />
-      </div>
+      <CheckoutSecurityFooter />
 
       {/* What you'll get - prescription specific */}
       {(serviceType === 'prescription' || serviceType === 'repeat-script') && (

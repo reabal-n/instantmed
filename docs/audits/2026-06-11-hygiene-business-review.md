@@ -11,7 +11,7 @@
 
 ## 1. P0 — operator action required (5 minutes)
 
-### Priority Review fee has never been collected; the env var is the last unknown
+### Express Review fee has never been collected; the env var is the last unknown
 - **History (all verified):** `STRIPE_PRICE_PRIORITY_FEE` in prod carried a trailing newline → Stripe rejected it → **3 checkouts died** (Apr 6 ×2, May 15) with `No such price: 'price_1TIezCEQlW1XRiLn7kexFfUP\n'`. Code-side trim fix shipped 2026-05-15 (`c7b771adc`, `normalizeStripePriceId`). But the Jun 6–7 priority orders charged **base only** — the var was evidently absent from prod in that window (`checkout.ts:158` falls back to base + error log). PostHog 60d: 27 Express opt-ins → 2 paid, **$0 in fees ever**.
 - **Current state:** the var was re-created in Vercel Production **~17:30 AEST Jun 11** (9h before review) as Encrypted/sensitive — the exact mode where CLI 54.x silently stored EMPTY values before (documented gotcha). The price ID itself is **valid live** (`pnpm check:integrations` validates it as `one_time`). I was permission-blocked from overwriting prod env autonomously.
 - **Your one-liner (or approve me to run it):**
@@ -20,6 +20,8 @@
   ```
   Then any deploy picks it up (one just shipped). **Verify:** `/admin/features` price-config health shows the priority fee OK, then one Express test checkout charges base + $9.95.
 - **Follow-up (Claude, after env confirmed):** promote the Express toggle from the 11px pill in the order summary to a full-width option row above the pay button (compliant copy, no SLA promise) + a toggle-off event. Current attach: 1.9%. Expected +$45–90/mo at 10–20% attach. 2h.
+
+Terminology/status note added 2026-06-25: this historical review used "Express Review". The current UI label is "Priority review", and the full-width choice row later shipped in `79b8ab286`.
 
 ## 2. P1 — this week
 
@@ -75,7 +77,7 @@ Further along than "gated" implies: subtype plumbed end-to-end (types→steps→
 ## 7. Recommended sequence
 
 1. **Today (operator, 20m):** Express env one-liner + verify · Telegram test-fire · order the key-escrow print.
-2. **This week (Claude, ~2.5d):** FAQ forceMount · doctor_available filter · high-stakes server block + chip · review-redirect ProductReview · probe-to-guests + events · refund tests · Telegram cooldown fix · unsubscribe RFC fix · Express toggle promotion (after env).
+2. **This week (Claude, ~2.5d):** FAQ forceMount · doctor_available filter · high-stakes server block + chip · review-redirect ProductReview · probe-to-guests + events · refund tests · Telegram cooldown fix · unsubscribe RFC fix · Express toggle promotion (after env; later shipped as Priority review in `79b8ab286`).
 3. **Next 2 weeks (Claude, ~3d):** PRICING_DISPLAY sweep (before floor verdict) · a11y triad · parity contract + checkout-ordering tests · dead-man auto-pause · P3 cleanup PRs · GEO plumbing (robots/sitemap/anchors) · break-glass doc draft.
 4. **You, unchanged:** the four GEO clicks (BWT · NHSD · GSC Request-Indexing · Trustpilot description+categories) — still the multiplier on ~46 indexed pages.
 5. **Phase 0 decisions for women's health** whenever ready — unblocks the 10–14d build well before the 3-month line.

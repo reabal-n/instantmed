@@ -417,6 +417,8 @@ Cron surface policy: every `app/api/cron/*/route.ts` must be scheduled in `verce
 | Cleanup Orphaned Storage | `/api/cron/cleanup-orphaned-storage` | Weekly (Sun 3 AM UTC) | Delete storage files with no DB record after 7-day grace period (max 50/run) |
 | Outbox Archival | `/api/cron/outbox-archival` | Daily (4 AM UTC) | Delete delivered emails >90 days old and exhausted-failed emails >180 days old from `email_outbox` (batch 500) |
 
+**Priority review analytics rename:** From 2026-06-25, patient checkout UI emits `priority_review_opted_in` / `priority_review_opted_out`. To protect existing saved PostHog insights, it also dual-emits the legacy `express_review_opted_in` / `express_review_opted_out` aliases with `legacy_alias_for` through 2026-08-31. New dashboards should use the `priority_review_*` events; delete the aliases only after saved insights are migrated.
+
 **Timezone note:** All cron schedules in `vercel.json` are UTC. "AEST" times above are UTC+10 (standard time). During AEDT (daylight saving, Oct–Apr), these shift 1 hour later in local time (e.g., "6 AM AEST" runs at 7 AM AEDT).
 
 ---

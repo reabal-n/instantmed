@@ -57,7 +57,7 @@ type AdminIntakesLedgerClientProps = {
 }
 
 const QUICK_FILTERS: QuickFilter[] = [
-  { id: "express", label: "Priority" },
+  { id: "priority", label: "Priority" },
   { id: "stale", label: "Stale > 4h" },
   { id: "awaiting_script", label: "Awaiting script" },
   { id: "failed_payment", label: "Failed payment" },
@@ -65,6 +65,19 @@ const QUICK_FILTERS: QuickFilter[] = [
   { id: "refund_failed", label: "Refund failed" },
   { id: "mine", label: "Mine" },
 ]
+
+function normalizeQuickFilterId(filterId: string): string {
+  return filterId === "express" ? "priority" : filterId
+}
+
+function parseQuickFilterParams(raw: string | null): Set<string> {
+  return new Set(
+    (raw ?? "")
+      .split(",")
+      .filter(Boolean)
+      .map(normalizeQuickFilterId),
+  )
+}
 
 const VALID_SORT_FIELDS: SortField[] = [
   "createdAt",
@@ -209,6 +222,7 @@ function intakeMatchesQuickFilter(
   filterId: string,
 ): boolean {
   switch (filterId) {
+    case "priority":
     case "express":
       return Boolean((intake as { is_priority?: boolean }).is_priority)
     case "stale":
@@ -285,7 +299,7 @@ export function AdminIntakesLedgerClient({
 
   const initialQuickFilters = useMemo(() => {
     const raw = searchParams.get("chips")
-    return new Set((raw ?? "").split(",").filter(Boolean))
+    return parseQuickFilterParams(raw)
   }, [searchParams])
 
   const initialSmart = searchParams.get("smart") === "1"
@@ -309,7 +323,7 @@ export function AdminIntakesLedgerClient({
     )
 
     const raw = searchParams.get("chips")
-    const newChipValues = (raw ?? "").split(",").filter(Boolean)
+    const newChipValues = [...parseQuickFilterParams(raw)]
     setActiveChips(prev => {
       if (prev.size === newChipValues.length && newChipValues.every(c => prev.has(c))) return prev
       return new Set(newChipValues)

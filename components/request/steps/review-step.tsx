@@ -9,14 +9,15 @@ import { Check, ChevronDown, ChevronUp, CreditCard, Edit2, Loader2 } from "lucid
 import { useEffect, useRef,useState } from "react"
 
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
+import { CheckoutSecurityFooter } from "@/components/checkout/trust-badges"
 import { PriorityReviewToggle } from "@/components/request/shared/priority-review-toggle"
-import { TrustBadgeRow } from "@/components/shared/trust-badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { getAttribution } from "@/lib/analytics/attribution"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 import { usePostHog } from "@/lib/analytics/posthog-context"
+import { capturePriorityReviewOptedIn, capturePriorityReviewOptedOut } from "@/lib/analytics/priority-review-events"
 import { getRepeatsExpectation } from "@/lib/clinical/repeats-policy"
 import { PRICING as APP_PRICING } from "@/lib/constants"
 import { getAddressReviewSummary } from "@/lib/request/address-metadata"
@@ -778,8 +779,8 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
                 id="review-priority-review-toggle"
                 checked={isPriority}
                 onCheckedChange={setIsPriority}
-                onOptIn={() => posthog?.capture("priority_review_opted_in", { service_type: serviceType })}
-                onOptOut={() => posthog?.capture("priority_review_opted_out", { service_type: serviceType })}
+                onOptIn={() => capturePriorityReviewOptedIn(posthog, { service_type: serviceType, surface: "review" })}
+                onOptOut={() => capturePriorityReviewOptedOut(posthog, { service_type: serviceType, surface: "review" })}
               />
             </div>
           )}
@@ -888,16 +889,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
           )
         )}
 
-        <div className="rounded-xl border border-border/50 bg-muted/20 px-3 py-2.5">
-          <TrustBadgeRow
-            badges={[
-              { id: "stripe", variant: "styled" },
-              "ahpra",
-              "refund",
-            ]}
-            className="justify-center gap-x-3 gap-y-1.5"
-          />
-        </div>
+        <CheckoutSecurityFooter />
       </div>
 
       {showCheckmark && (

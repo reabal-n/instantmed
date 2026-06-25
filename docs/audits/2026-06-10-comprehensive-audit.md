@@ -61,7 +61,7 @@ Related (P2): `profiles` INSERT RLS policy is `with_check=true` for role `public
 - **Women's health is ~1–2 weeks from launchable** (steps, validators, Stripe env, email template all exist; needs landing page + screener deepening + ungate).
 - Weight loss: marketing page is a redirect stub (verifier refuted the CTA-loop claim); steps exist incl. a call-scheduling step.
 - Referral letters/pathology: display-only, no pipeline (~1–2 weeks each; defer).
-- Express attach 1.9% — B7 reframe (two-option choice card) unbuilt; honest value prop is thin at 36-min med-cert reviews. Test on Rx/consult flows or retire on med certs.
+- Historical state at audit time: Express attach 1.9% — B7 reframe (two-option choice card) unbuilt; honest value prop is thin at 36-min med-cert reviews. Terminology/status note added 2026-06-25: Express is now labelled Priority review, and the full-width choice row shipped in `79b8ab286`. Test on Rx/consult flows or retire on med certs.
 - SERVICE_METADATA.weight_loss prices at $49.95 not $89.95 (latent bug for whoever launches it).
 
 ---
@@ -81,7 +81,7 @@ Related (P2): `profiles` INSERT RLS policy is `with_check=true` for role `public
 | NextClinic | $19.90 | from $24.90 | form-first async |
 | Budget cluster (Doccy/OnCare/MediLeave) | $12.90–15.95 | — | async |
 
-- $24.95 1-day is the **most expensive form-first cert in AU**; competitive at 2-day ($29.95 ≈ NextClinic $29.90, beats Hola $39/InstantScripts $49) and 3-day ($39.95). Express $9.95 undercuts Qoctor's $20.99.
+- $24.95 1-day is the **most expensive form-first cert in AU**; competitive at 2-day ($29.95 ≈ NextClinic $29.90, beats Hola $39/InstantScripts $49) and 3-day ($39.95). The optional Express fee, now labelled Priority review, was $9.95 and undercut Qoctor's $20.99.
 - Feature gaps: SMS delivery (everyone has it), "only charged if approved" framing (NextClinic/OnCare — same economics as our refund-on-decline, better conversion copy), AfterPay, native app (skip), delivery (skip), 24/7 (skip).
 - **Live data so far supports holding the floor test**: no volume drop (2.5/day vs 1.14/day prior; n=5), AOV up. Keep the 14-day window + >15% volume kill rule. The real exposure is LLM price comparison — fix llms.txt and ship a price-comparison page we control.
 - **The defensible wedge (three layers no funded player can easily copy):** (a) LLM/dark-traffic dominance (~50% of orders; Wesfarmers/Woolworths budgets buy Google, not citations); (b) minutes-fast auto-approval with real doctor oversight at near-zero marginal labour; (c) conservative-compliance positioning — the regulatory overhang threatens the $12.90 cert mills more than a visibly careful operator. Price slightly above the floor, justified loudly by "a real doctor reviews every request", and let regulation cull the bottom.

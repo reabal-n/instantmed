@@ -29,7 +29,7 @@ Ordered by severity then $ impact. All carry 3/3 confirmed votes unless noted.
 | **TRK-1** | PostHog init gated behind first interaction → `purchase_completed` no-ops on success pages | `instrumentation-client.ts:112-164` | Client purchase under-reports ~90% (6 client vs 204 server/90d); funnel uninterpretable; Smart Bidding value signal thin for non-gclid. *(1 brain P2: server revenue truth intact)* | Add `isPostConversionPath()` bypass to PostHog init (mirror `google-tags.tsx:59` + `global-deferred-clients.tsx:146`) |
 | **CONV-1 / PROFIT-1** | Med-cert symptoms step loses ~36% behind opaque free-text gate, and it's **before email capture** | `components/request/steps/symptoms-step.tsx:112-224`; `step-registry.ts:53-83`; `partial-intake-recovery.ts:97` | Highest-volume service (73% of checkout_initiated), biggest leak, p90 191s on step, AND abandoners are unrecoverable (`email=null`) | Add tap-to-select symptom chips above textarea (mirror ED), AND capture email one step earlier so the existing recovery cron reaches abandoners |
 | **CONV-2** | Continue/Pay button disabled with **no inline reason** on symptoms/cert/ED steps | `components/request/steps/symptoms-step.tsx:215-224` | Patient can't tell why they're stuck → sits on greyed button (drives the 191s p90) → abandons. `patient-details-step.tsx:112` already solved this and wasn't copied | Make primary action always-clickable + run `validate()` on click, OR add the patient-details-style top-of-step validation summary |
-| **PROFIT-2** | Priority Review is an invisible 8px toggle, no value prop → 13% attach | `priority-review-toggle.tsx`; `checkout-step.tsx` | $9.95 = +50% AOV/attach, pure margin; cheapest AOV lever in the catalogue | Reframe as a clean choice card with compliant benefit copy. Keep default OFF. `/clarify` copy |
+| **PROFIT-2** | Express Review is an invisible 8px toggle, no value prop → 13% attach | `express-review-toggle.tsx:22-47`; `checkout-step.tsx:276` | $9.95 = +50% AOV/attach, pure margin; cheapest AOV lever in the catalogue | Reframe as a two-option choice card with compliant benefit line ("reviewed first, most within the hour"). Keep default OFF. `/clarify` copy |
 | **PROFIT-3** | 1/2/3-day med-cert tiers never anchored/upsold; AOV stuck at $19.95 floor | `certificate-step.tsx:147`; `checkout-step.tsx:222`; `lib/constants/index.ts:119` | Med-cert = 73% of volume; `REVENUE_MODEL.md:123` names this the top profit lever; zero clinical complexity (3-day cap already enforced) | Anchor tiers ("covers the weekend / most chosen"), add one-tap "+1 day for $10" upsell at checkout for 1-day selections. `/clarify` copy |
 | **PROFIT-4** | No reactivation/repeat-purchase email exists — LTV structurally zero | `lib/email/review-request.ts`; no winback template | Only post-approval email asks for a Google review. Returning customers = ~zero CAC vs Google Ads (the majority of paid volume) | Build one reactivation cron + template gated by `canSendMarketingEmail`. Start with repeat-script refill reminders timed to supply window |
 
@@ -81,7 +81,7 @@ Apr 20 → May 5 → Jun 2 client `purchase_completed`, exactly tracking `ffd4a7
 |------|---------|-------------|--------|---------|
 | 1. Symptom chips + early email capture | CONV-1, PROFIT-1 | Recover even 5pts of the 37% leak ≈ **~10% more paid med-cert volume**; abandoners become email-recoverable at zero infra cost | **S** | Biggest single recoverable loss, highest-volume service |
 | 2. Always-clickable CTA + inline reason | CONV-2 | Removes the dead-end driving the 191s p90; compounds play #1 | **S** | Pattern already exists in patient-details |
-| 3. Reframe Express as a choice card | PROFIT-2 | 13%→25% attach ≈ +12pts × $9.95 pure margin; scales linearly with volume | **S** | Cheapest AOV lever |
+| 3. Reframe Express as a choice card | PROFIT-2 | 13%→25% attach ≈ +12pts × $9.95 pure margin; scales linearly with volume | **S** | Cheapest AOV lever; later shipped as Priority review in `79b8ab286` |
 | 4. Anchor + upsell 2/3-day tiers | PROFIT-3 | Blended med-cert AOV $20 → toward model's $27 = the gap between ~$40k and ~$54k/mo at target | **S–M** | Top lever named in REVENUE_MODEL; zero clinical complexity |
 | 5. Fix PostHog init gate | TRK-1 | Restores client funnel + Enhanced-Conversions coverage; unblocks every product decision | **S** | One-line bypass; un-blinds analytics |
 | 6. Reactivation / refill-reminder email | PROFIT-4 | +10–20% monthly orders at ~zero CAC | **M** | Best ROI at scale; LTV currently zero by design |
@@ -158,8 +158,10 @@ The 3-brain panel **refuted 1 candidate finding**, so this report is filtered, n
 3. **[CONV-1 + CONV-2] Med-cert symptoms: add tap-to-select chips + always-clickable CTA with inline reason.** Biggest funnel win.
 4. **[PROFIT-1] Move email capture before symptoms** so abandoners hit the existing recovery cron.
 5. **[TRK-1] Add `isPostConversionPath()` bypass to PostHog init.** Un-blinds analytics for everything below.
-6. **[PROFIT-2] Reframe Priority Review as a choice card** with compliant benefit copy (`/clarify`).
+6. **[PROFIT-2] Reframe Express Review as a choice card** with compliant benefit copy (`/clarify`).
 7. **[TRK-3 + TRACK-1] Standardize analytics props** — emit `service`+`service_type` on `intake_started`; delete duplicate `step_completed` captures; pin both with contract tests.
+
+Terminology/status note added 2026-06-25: this historical audit used "Express Review". The current UI label is "Priority review", and the full-width choice row later shipped in `79b8ab286`.
 
 **Week 2 — structural + clinical hardening**
 

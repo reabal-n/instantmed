@@ -199,9 +199,9 @@ async function completeDetailsStep(page: Page) {
 /**
  * Complete the Review step.
  *
- * The review step has an embedded safety consent Switch
- * ("I confirm this is not a medical emergency...") which must be toggled
- * before "Continue to payment" becomes enabled.
+ * The review step has an embedded safety consent Checkbox card
+ * ("I confirm this is not a medical emergency...") which must be ticked before
+ * payment can continue.
  */
 async function completeReviewStep(page: Page) {
   await waitForStep(page, /One last check/i)

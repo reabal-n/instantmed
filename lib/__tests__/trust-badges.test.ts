@@ -3,6 +3,7 @@ import { describe, expect,it } from 'vitest'
 import { BADGE_PRESETS, BADGE_REGISTRY, type BadgeId,resolveEntry } from '@/lib/marketing/trust-badges'
 
 const HERO_BADGE_MAX = 4 // hero CTA area layout constraint - more than 4 pills looks cluttered
+const CHECKOUT_BADGE_MAX = 3 // payment/review rows must stay compact
 
 describe('BADGE_REGISTRY', () => {
   it('contains all expected badge IDs', () => {
@@ -65,6 +66,15 @@ describe('BADGE_PRESETS', () => {
     expect(BADGE_PRESETS.hero_rx.length).toBeLessThanOrEqual(HERO_BADGE_MAX)
     expect(BADGE_PRESETS.hero_consult.length).toBeLessThanOrEqual(HERO_BADGE_MAX)
     expect(BADGE_PRESETS.hero_generic.length).toBeLessThanOrEqual(HERO_BADGE_MAX)
+  })
+
+  it('checkout preset stays capped to a compact proof row', () => {
+    expect(BADGE_PRESETS.checkout).toHaveLength(CHECKOUT_BADGE_MAX)
+    expect(BADGE_PRESETS.checkout).toEqual([
+      { id: 'stripe', variant: 'styled' },
+      'ahpra',
+      'refund',
+    ])
   })
 
   it('no preset has both no_call and no_speaking', () => {

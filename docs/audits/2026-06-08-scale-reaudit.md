@@ -52,7 +52,7 @@ Fix those two and the plateau breaks without spending a dollar more on ads. Ever
 
 **B6 — ED + hair-loss dead-CTA fix + shared validation hook.** #106 fixed the silent-disabled-CTA pattern for med-cert/Rx but never reached ED (4 steps) or hair-loss (4 steps), the 2nd/3rd revenue paths, mobile-concentrated. Extract `useStepValidationSummary` then roll all 8 steps. Keep the nitrate hard-block screen unchanged.
 
-**B7 — AOV reframes.** Express as a 2-option choice card (no SLA promise); med-cert tier anchoring at the selector. Cheapest revenue-per-order lifts; compound with ad spend. Run `/clarify` on copy.
+**B7 — AOV reframes.** Historical state at audit time: Express needed a 2-option choice card (no SLA promise); med-cert tier anchoring at the selector. Cheapest revenue-per-order lifts; compound with ad spend. Run `/clarify` on copy. Terminology/status note added 2026-06-25: Express is now labelled Priority review, and the full-width choice row shipped in `79b8ab286`.
 
 **B8 — In-app doctor provisioning.** `inviteDoctorAction` (Supabase invite + profiles row + capability defaults + Parchment linking). Build before onboarding doctor #2 — gates B2's capacity track.
 
