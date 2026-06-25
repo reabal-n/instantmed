@@ -12,9 +12,9 @@ export const MEDICAL_CERTIFICATE_ONLINE_FAQ = [
     answer: `A 1-day certificate request is ${PRICING_DISPLAY.MED_CERT}, a 2-day request is ${PRICING_DISPLAY.MED_CERT_2DAY}, and a 3-day request is ${PRICING_DISPLAY.MED_CERT_3DAY}. ${GUARANTEE}`,
   },
   {
-    question: "Will my employer accept an online medical certificate?",
+    question: "Can I use an online medical certificate for work?",
     answer:
-      "Fair Work says evidence needs to satisfy a reasonable person, and medical certificates are an example of acceptable evidence. Employer policies can still vary, so no service should promise acceptance by every workplace.",
+      "Fair Work says evidence needs to satisfy a reasonable person, and medical certificates are an example of evidence for personal leave. Workplace policies can still vary, so no service should promise a particular workplace decision.",
   },
   {
     question: "Do I need a Medicare card?",
@@ -39,7 +39,7 @@ export const MEDICAL_CERTIFICATE_ONLINE_FAQ = [
   {
     question: "What is not covered by this short certificate pathway?",
     answer:
-      "It is not for emergencies, workers compensation, court or tribunal matters, jury duty, fitness-for-driving, firearm or aviation assessments, NDIS, TAC, insurance, exam deferral, or complex capacity documents such as Centrelink medical certificates.",
+      "It is not for emergencies, compensation or insurance matters, legal or licensing documents, disability-support programs, driving-capacity assessments, transport or weapons-related clearances, institutional assessment extensions, or complex capacity documents.",
   },
   {
     question: "Will the certificate include my diagnosis?",

@@ -100,10 +100,10 @@ const SUITABLE_ITEMS = [
 
 const NOT_COVERED_ITEMS = [
   "Emergency symptoms, severe injury, or symptoms getting worse quickly.",
-  "Workers compensation, WorkCover, TAC, NDIS, insurance, court, tribunal, custody, jury, aviation, firearm, or fitness-for-driving documents.",
-  "Centrelink medical certificate forms, disability support evidence, long-term capacity reports, or return-to-work capacity assessments.",
-  "Exam deferral, special consideration, or assessment-specific university documents that need a different institutional form.",
-  "Requests for a guaranteed certificate, guaranteed employer acceptance, or a document that hides clinically important facts.",
+  "Compensation, insurance, legal, licensing, travel, weapons, driving-capacity, disability-support, or long-term capacity documents.",
+  "Government benefit forms, disability support evidence, long-term capacity reports, or return-to-work capacity assessments.",
+  "Assessment extensions, institutional special-form requests, or documents that need a campus or employer-specific process.",
+  "Requests for a guaranteed certificate, guaranteed workplace decision, or a document that hides clinically important facts.",
 ] as const
 
 const RED_FLAGS = [
