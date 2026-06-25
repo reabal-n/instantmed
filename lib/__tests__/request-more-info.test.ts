@@ -5,10 +5,12 @@ const mocks = vi.hoisted(() => ({
   createServiceRoleClient: vi.fn(),
   sendEmail: vi.fn(),
   revalidatePath: vi.fn(),
+  revalidateTag: vi.fn(),
 }))
 
 vi.mock("next/cache", () => ({
   revalidatePath: mocks.revalidatePath,
+  revalidateTag: mocks.revalidateTag,
 }))
 
 vi.mock("@/lib/auth/helpers", () => ({

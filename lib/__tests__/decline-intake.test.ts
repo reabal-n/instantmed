@@ -32,6 +32,7 @@ import { mockSupabaseFrom, mockSupabaseSingle, resetAllMocks } from "./setup"
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
+  revalidateTag: vi.fn(),
 }))
 
 const mockRequireRoleOrNull = vi.fn()

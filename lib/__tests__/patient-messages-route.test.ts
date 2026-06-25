@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   createServiceRoleClient: vi.fn(),
   getApiAuth: vi.fn(),
   revalidatePath: vi.fn(),
+  revalidateTag: vi.fn(),
   requireValidCsrf: vi.fn(),
   logger: {
     error: vi.fn(),
@@ -16,6 +17,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("next/cache", () => ({
   revalidatePath: mocks.revalidatePath,
+  revalidateTag: mocks.revalidateTag,
 }))
 
 vi.mock("@/lib/auth/helpers", () => ({
