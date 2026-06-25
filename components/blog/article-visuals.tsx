@@ -118,7 +118,13 @@ function VisualItemRow({
   )
 }
 
-function ArticleVisualPanel({ visual }: { visual: RenderableArticleVisual }) {
+function ArticleVisualPanel({
+  visual,
+  imageLoading,
+}: {
+  visual: RenderableArticleVisual
+  imageLoading: "eager" | "lazy"
+}) {
   const styles = accentStyles[visual.accent]
 
   if (visual.assetPath) {
@@ -146,6 +152,7 @@ function ArticleVisualPanel({ visual }: { visual: RenderableArticleVisual }) {
                   alt={imageAlt}
                   fill
                   className="object-contain"
+                  loading={imageLoading}
                   sizes="(max-width: 640px) 100vw, 480px"
                 />
               </span>
@@ -208,13 +215,19 @@ function ArticleVisualPanel({ visual }: { visual: RenderableArticleVisual }) {
   )
 }
 
-export function ArticleVisuals({ visuals }: { visuals: RenderableArticleVisual[] }) {
+export function ArticleVisuals({
+  visuals,
+  imageLoading = "lazy",
+}: {
+  visuals: RenderableArticleVisual[]
+  imageLoading?: "eager" | "lazy"
+}) {
   if (visuals.length === 0) return null
 
   return (
     <section aria-label="Visual guide" className="my-8 space-y-4">
       {visuals.map((visual) => (
-        <ArticleVisualPanel key={visual.id} visual={visual} />
+        <ArticleVisualPanel key={visual.id} visual={visual} imageLoading={imageLoading} />
       ))}
     </section>
   )
