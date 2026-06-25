@@ -5,7 +5,11 @@ import { hasAdminAccess } from "@/lib/auth/staff-capabilities"
 import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import { decryptProfilePhi } from "@/lib/data/profiles"
 import { doctorCanAccessPatient } from "@/lib/doctor/patient-access"
-import { collapseDuplicatePatientProfiles } from "@/lib/doctor/patient-snapshot"
+import {
+  collapseDuplicatePatientProfiles,
+  type DuplicatePatientGroup,
+  findPotentialDuplicatePatients,
+} from "@/lib/doctor/patient-snapshot"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { logger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -77,6 +81,21 @@ type AuditLogRow = {
   intake_id: string | null
   metadata: Record<string, unknown> | null
   created_at: string
+}
+
+export interface PatientDuplicateCandidate {
+  id: string
+  full_name: string
+  email: string | null
+  phone: string | null
+  date_of_birth: string | null
+  parchment_patient_id: string | null
+  hasAuthUser: boolean
+  matchReason: "strict" | DuplicatePatientGroup["reason"]
+}
+
+type PatientDetailProfileRow = ReturnType<typeof asProfile> & {
+  duplicate_profile_ids?: string[]
 }
 
 function firstStringAnswer(answers: Record<string, unknown>, keys: string[]): string | null {
@@ -369,6 +388,7 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
       provider_number, consent_myhr, onboarding_completed,
       email_verified, email_verified_at,
       avatar_url, stripe_customer_id, parchment_patient_id,
+      normalized_email, normalized_phone,
       merged_into_profile_id, merged_at, merged_by, merge_reason,
       created_at, updated_at
     `)
@@ -401,13 +421,17 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
 
   const decryptedPatient = asProfile(decryptProfilePhi(patient as Record<string, unknown>))
   let patientIds = [patientId]
-  let canonicalPatient = decryptedPatient
+  let canonicalPatient: PatientDetailProfileRow = decryptedPatient
+  let duplicateCandidateProfiles: PatientDetailProfileRow[] = []
+  const duplicateCandidateReasonById = new Map<string, PatientDuplicateCandidate["matchReason"]>()
 
   // Scope duplicate candidates to profiles that share email or name with this patient.
   // Avoids a full-table scan (which transfers wide PHI rows for every patient on every page view).
   const dupFilters: string[] = []
   if (decryptedPatient.email) dupFilters.push(`email.eq.${decryptedPatient.email}`)
+  if (decryptedPatient.normalized_email) dupFilters.push(`normalized_email.eq.${decryptedPatient.normalized_email}`)
   if (decryptedPatient.full_name) dupFilters.push(`full_name.eq.${decryptedPatient.full_name}`)
+  if (decryptedPatient.normalized_phone) dupFilters.push(`normalized_phone.eq.${decryptedPatient.normalized_phone}`)
   const dupFilter = dupFilters.length > 0 ? dupFilters.join(",") : `id.eq.${patientId}`
 
   const { data: duplicateCandidates, error: duplicateCandidatesError } = await supabase
@@ -422,6 +446,7 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
       provider_number, consent_myhr, onboarding_completed,
       email_verified, email_verified_at,
       avatar_url, stripe_customer_id, parchment_patient_id,
+      normalized_email, normalized_phone,
       merged_into_profile_id, merged_at, merged_by, merge_reason,
       created_at, updated_at
     `)
@@ -434,8 +459,11 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
   if (duplicateCandidatesError) {
     logger.warn("Could not fetch duplicate patient candidates", { patientId }, duplicateCandidatesError)
   } else {
+    duplicateCandidateProfiles = (duplicateCandidates || []).map(row => (
+      asProfile(decryptProfilePhi(row as Record<string, unknown>))
+    ))
     const collapsedProfiles = collapseDuplicatePatientProfiles(
-      (duplicateCandidates || []).map(row => asProfile(decryptProfilePhi(row as Record<string, unknown>))),
+      duplicateCandidateProfiles,
     )
     const patientGroup = collapsedProfiles.patients.find((profile) => (
       profile.id === patientId || profile.duplicate_profile_ids?.includes(patientId)
@@ -444,6 +472,24 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
     if (patientGroup) {
       canonicalPatient = patientGroup
       patientIds = [patientGroup.id, ...(patientGroup.duplicate_profile_ids ?? [])]
+      for (const duplicateId of patientGroup.duplicate_profile_ids ?? []) {
+        duplicateCandidateReasonById.set(duplicateId, "strict")
+      }
+    }
+
+    const currentPatientIds = new Set([patientId, canonicalPatient.id, ...patientIds])
+    const potentialDuplicateGroups = findPotentialDuplicatePatients(duplicateCandidateProfiles)
+    for (const group of potentialDuplicateGroups) {
+      if (!group.patientIds.some((candidateId) => currentPatientIds.has(candidateId))) {
+        continue
+      }
+
+      for (const candidateId of group.patientIds) {
+        if (candidateId === canonicalPatient.id) continue
+        if (!duplicateCandidateReasonById.has(candidateId)) {
+          duplicateCandidateReasonById.set(candidateId, group.reason)
+        }
+      }
     }
   }
 
@@ -630,9 +676,30 @@ async function getPatientWithHistory(patientId: string, options: { doctorId?: st
   const lastTouchAttribution = lastTouchIntake
     ? toAttributionRow(lastTouchIntake)
     : null
+  const duplicateCandidatesForClient: PatientDuplicateCandidate[] = options.doctorId
+    ? []
+    : duplicateCandidateProfiles
+      .map((profile) => ({
+        profile,
+        matchReason: duplicateCandidateReasonById.get(profile.id),
+      }))
+      .filter((entry): entry is { profile: PatientDetailProfileRow; matchReason: PatientDuplicateCandidate["matchReason"] } => (
+        Boolean(entry.matchReason) && entry.profile.id !== canonicalPatient.id
+      ))
+      .map(({ profile, matchReason }) => ({
+        id: profile.id,
+        full_name: profile.full_name,
+        email: profile.email ?? null,
+        phone: profile.phone ?? null,
+        date_of_birth: profile.date_of_birth ?? null,
+        parchment_patient_id: profile.parchment_patient_id ?? null,
+        hasAuthUser: Boolean(profile.auth_user_id),
+        matchReason,
+      }))
 
   return {
     patient: canonicalPatient,
+    duplicateCandidates: duplicateCandidatesForClient,
     intakes: transformedIntakes,
     medications: medicationHistory,
     parchmentActivity,
@@ -669,6 +736,7 @@ export default async function PatientDetailPage({ params }: PageProps) {
   return (
     <PatientDetailClient
       patient={data.patient}
+      duplicateCandidates={data.duplicateCandidates}
       intakes={data.intakes}
       medications={data.medications}
       stats={data.stats}

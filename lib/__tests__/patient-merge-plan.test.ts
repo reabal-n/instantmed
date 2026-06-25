@@ -11,6 +11,7 @@ describe("patient profile merge plan", () => {
 
     expect(tableNames).toEqual(expect.arrayContaining([
       "intakes",
+      "prescriptions",
       "issued_certificates",
       "email_outbox",
       "patient_notes",
@@ -26,6 +27,12 @@ describe("patient profile merge plan", () => {
     expect(plan.duplicatePatientIds).toEqual(["dupe-a", "dupe-b"])
     expect(plan.updateOperations).toContainEqual({
       table: "intakes",
+      column: "patient_id",
+      fromPatientIds: ["dupe-a", "dupe-b"],
+      toPatientId: "canonical",
+    })
+    expect(plan.updateOperations).toContainEqual({
+      table: "prescriptions",
       column: "patient_id",
       fromPatientIds: ["dupe-a", "dupe-b"],
       toPatientId: "canonical",

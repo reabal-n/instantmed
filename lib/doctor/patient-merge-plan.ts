@@ -21,6 +21,7 @@ export interface PatientProfileMergePreflightPlan {
 
 export const PATIENT_PROFILE_MERGE_REFERENCE_TABLES: PatientProfileReferenceTable[] = [
   { table: "intakes", column: "patient_id", mergeMode: "reassign", required: true },
+  { table: "prescriptions", column: "patient_id", mergeMode: "reassign", required: true },
   { table: "issued_certificates", column: "patient_id", mergeMode: "reassign", required: true },
   { table: "email_outbox", column: "patient_id", mergeMode: "reassign", required: true },
   { table: "patient_notes", column: "patient_id", mergeMode: "reassign", required: true },

@@ -35,6 +35,7 @@ const INITIAL_FORM: DoctorPatientCreateInput = {
   medicareNumber: "",
   medicareIrn: "",
   medicareExpiry: "",
+  ihiNumber: "",
   addressLine1: "",
   suburb: "",
   state: "",
@@ -197,7 +198,14 @@ export function AddPatientDialog() {
               onChange={(event) => setField("medicareNumber", event.target.value)}
               isInvalid={Boolean(fieldErrors.medicareNumber)}
               errorMessage={fieldErrors.medicareNumber}
-              required
+            />
+            <Input
+              label="IHI"
+              value={form.ihiNumber ?? ""}
+              onChange={(event) => setField("ihiNumber", event.target.value)}
+              isInvalid={Boolean(fieldErrors.ihiNumber)}
+              errorMessage={fieldErrors.ihiNumber}
+              inputMode="numeric"
             />
             <Input
               label="Medicare IRN"
@@ -206,7 +214,6 @@ export function AddPatientDialog() {
               isInvalid={Boolean(fieldErrors.medicareIrn)}
               errorMessage={fieldErrors.medicareIrn}
               maxLength={1}
-              required
             />
             <Input
               label="Medicare expiry (optional)"

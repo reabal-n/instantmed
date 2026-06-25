@@ -14,6 +14,8 @@ import {
   parsePatientDirectorySort,
 } from "@/lib/data/patient-directory"
 
+import { AddPatientDialog } from "../../doctor/patients/add-patient-dialog"
+
 const PAGE_SIZE = 50
 
 export const metadata = { title: "Patients" }
@@ -50,6 +52,7 @@ export default async function AdminPatientsPage({
         description="Find a patient profile, prescribing identity, and request history."
         backHref={STAFF_DASHBOARD_HREF}
         backLabel="Staff cockpit"
+        actions={<AddPatientDialog />}
       />
 
       <OperatorScrollArea>

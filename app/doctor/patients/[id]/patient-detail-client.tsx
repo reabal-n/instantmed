@@ -14,6 +14,7 @@ import {
   Pill,
   Plus,
   RefreshCw,
+  Trash2,
   XCircle,
 } from "lucide-react"
 import Link from "next/link"
@@ -26,7 +27,10 @@ import {
   syncPatientParchmentProfileAction,
 } from "@/app/actions/manual-patient"
 import { addPatientNoteAction } from "@/app/actions/patient-notes"
-import { mergePatientProfilesAction } from "@/app/actions/patient-profile-merge"
+import {
+  deletePatientProfileAction,
+  mergePatientProfilesAction,
+} from "@/app/actions/patient-profile-merge"
 import { AttributionChip, ParchmentPrescribePanel } from "@/components/doctor"
 import { PatientTimeline } from "@/components/doctor/patient-timeline"
 import { usePanel } from "@/components/panels/panel-provider"
@@ -39,7 +43,7 @@ import {
   type AttributionClassificationInput,
   classifyAttributionSource,
 } from "@/lib/analytics/source-classification"
-import { STAFF_DOCTOR_PATIENTS_HREF, STAFF_IDENTITY_HREF } from "@/lib/dashboard/routes"
+import { STAFF_DOCTOR_PATIENTS_HREF, STAFF_IDENTITY_HREF, STAFF_PATIENTS_HREF } from "@/lib/dashboard/routes"
 import { buildPatientSnapshot } from "@/lib/doctor/patient-snapshot"
 import { formatIntakeStatus } from "@/lib/format/intake"
 import { cn } from "@/lib/utils"
@@ -115,6 +119,17 @@ interface ParchmentActivity {
   request_id: string | null
 }
 
+interface PatientDuplicateCandidate {
+  id: string
+  full_name: string
+  email: string | null
+  phone: string | null
+  date_of_birth: string | null
+  parchment_patient_id: string | null
+  hasAuthUser: boolean
+  matchReason: "strict" | "email" | "phone" | "name_dob"
+}
+
 type PatientDetailProfile = Profile & {
   duplicate_profile_ids?: string[]
 }
@@ -143,6 +158,7 @@ function formatParchmentActivityTime(value: string | null | undefined): string |
 
 interface PatientDetailClientProps {
   patient: PatientDetailProfile
+  duplicateCandidates: PatientDuplicateCandidate[]
   intakes: IntakeWithService[]
   medications: PatientMedication[]
   stats: {
@@ -163,6 +179,7 @@ interface PatientDetailClientProps {
 
 export function PatientDetailClient({
   patient,
+  duplicateCandidates,
   intakes,
   medications,
   stats,
@@ -179,6 +196,7 @@ export function PatientDetailClient({
   const { openPanel } = usePanel()
   const [isNotePending, startNoteTransition] = useTransition()
   const [isMergePending, startMergeTransition] = useTransition()
+  const [isDeletePending, startDeleteTransition] = useTransition()
   const [isParchmentSyncPending, startParchmentSyncTransition] = useTransition()
   const [isPrescriptionRefreshPending, startPrescriptionRefreshTransition] = useTransition()
   const [newNote, setNewNote] = useState("")
@@ -197,8 +215,21 @@ export function PatientDetailClient({
     })
   }, [showNoteForm])
   const [showMergeDialog, setShowMergeDialog] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const duplicateProfileIds = patient.duplicate_profile_ids ?? []
-  const canMergeLinkedProfiles = canMergePatientProfiles && duplicateProfileIds.length > 0
+  const reconcileDuplicateProfileIds = Array.from(new Set([
+    ...duplicateProfileIds,
+    ...duplicateCandidates.map((candidate) => candidate.id),
+  ]))
+  const canMergeLinkedProfiles = canMergePatientProfiles && reconcileDuplicateProfileIds.length > 0
+  const signedInDuplicateCandidateCount = duplicateCandidates.filter((candidate) => candidate.hasAuthUser).length
+  const duplicateCandidateNames = duplicateCandidates
+    .slice(0, 3)
+    .map((candidate) => candidate.full_name)
+    .join(", ")
+  const duplicateDialogSubject = duplicateCandidateNames
+    ? `${reconcileDuplicateProfileIds.length} duplicate profile${reconcileDuplicateProfileIds.length === 1 ? "" : "s"} (${duplicateCandidateNames}${duplicateCandidates.length > 3 ? ", ..." : ""})`
+    : `${reconcileDuplicateProfileIds.length} duplicate profile${reconcileDuplicateProfileIds.length === 1 ? "" : "s"}`
 
   const handleOpenParchmentPrescribe = () => {
     openPanel({
@@ -273,19 +304,40 @@ export function PatientDetailClient({
     startMergeTransition(async () => {
       const result = await mergePatientProfilesAction(
         patient.id,
-        duplicateProfileIds,
-        "Merged from linked duplicate profile review",
+        reconcileDuplicateProfileIds,
+        "Reconciled duplicate patient profiles from patient file",
+        true,
       )
-      const mergedCount = result.mergedProfileCount ?? duplicateProfileIds.length
+      const mergedCount = result.mergedProfileCount ?? reconcileDuplicateProfileIds.length
 
       if (result.success) {
-        toast.success(`Merged ${mergedCount} linked profile${mergedCount === 1 ? "" : "s"}`)
+        toast.success(
+          result.syncWarning
+            ? `Reconciled ${mergedCount} profile${mergedCount === 1 ? "" : "s"}. ${result.syncWarning}`
+            : result.syncedToParchment
+              ? `Reconciled ${mergedCount} profile${mergedCount === 1 ? "" : "s"} and synced Parchment`
+              : `Reconciled ${mergedCount} profile${mergedCount === 1 ? "" : "s"}`,
+        )
         setShowMergeDialog(false)
         router.refresh()
         return
       }
 
       toast.error(result.error || "Could not merge linked profiles")
+    })
+  }
+
+  const handleDeletePatientProfile = () => {
+    startDeleteTransition(async () => {
+      const result = await deletePatientProfileAction(patient.id)
+      if (result.success) {
+        toast.success("Empty patient profile deleted")
+        setShowDeleteDialog(false)
+        router.push(STAFF_PATIENTS_HREF)
+        return
+      }
+
+      toast.error(result.error || "Could not delete patient profile")
     })
   }
 
@@ -390,11 +442,13 @@ export function PatientDetailClient({
     },
     {
       label: "Duplicate",
-      value: stats.linkedProfiles > 1
-        ? `${stats.linkedProfiles} linked${canMergeLinkedProfiles ? " · merge available" : ""}`
-        : "Single profile",
-      tone: stats.linkedProfiles > 1 ? "warning" : "muted",
-      icon: stats.linkedProfiles > 1 ? GitMerge : CheckCircle,
+      value: reconcileDuplicateProfileIds.length > 0
+        ? `${reconcileDuplicateProfileIds.length} candidate${reconcileDuplicateProfileIds.length === 1 ? "" : "s"}${canMergeLinkedProfiles ? " · reconcile available" : ""}`
+        : stats.linkedProfiles > 1
+          ? `${stats.linkedProfiles} linked${canMergeLinkedProfiles ? " · reconcile available" : ""}`
+          : "Single profile",
+      tone: stats.linkedProfiles > 1 || reconcileDuplicateProfileIds.length > 0 ? "warning" : "muted",
+      icon: stats.linkedProfiles > 1 || reconcileDuplicateProfileIds.length > 0 ? GitMerge : CheckCircle,
     },
   ]
 
@@ -429,6 +483,18 @@ export function PatientDetailClient({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+          {canMergePatientProfiles ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="border-destructive/35 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              onClick={() => setShowDeleteDialog(true)}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Delete patient
+            </Button>
+          ) : null}
           <EditPatientDialog patient={patient} />
           <Button
             type="button"
@@ -561,9 +627,29 @@ export function PatientDetailClient({
           one bounded row of label / value pairs grouped by purpose. Saves
           ~120 vertical px and pushes the timeline up into the fold. */}
       <div className="rounded-xl border border-border/50 bg-card">
-        {stats.linkedProfiles > 1 ? (
+        {stats.linkedProfiles > 1 || reconcileDuplicateProfileIds.length > 0 ? (
           <div className="flex flex-col gap-2 border-b border-border/40 bg-info-light/40 px-4 py-2.5 text-xs text-info sm:flex-row sm:items-center sm:justify-between">
-            <span>History from {stats.linkedProfiles} linked patient profiles.</span>
+            <div className="space-y-1">
+              <span className="block">
+                {stats.linkedProfiles > 1
+                  ? `History from ${stats.linkedProfiles} linked patient profiles.`
+                  : "Potential duplicate patient profiles found."}
+              </span>
+              {duplicateCandidates.length > 0 ? (
+                <span className="flex flex-wrap gap-1">
+                  {duplicateCandidates.slice(0, 4).map((candidate) => (
+                    <Badge key={candidate.id} variant="outline" size="sm" className="bg-card/80 text-[10px] text-info">
+                      {candidate.full_name} · {candidate.matchReason === "name_dob" ? "name + DOB" : candidate.matchReason}
+                    </Badge>
+                  ))}
+                  {signedInDuplicateCandidateCount > 0 ? (
+                    <Badge variant="warning" size="sm" className="text-[10px]">
+                      {signedInDuplicateCandidateCount} signed-in duplicate{signedInDuplicateCandidateCount === 1 ? "" : "s"} need manual review
+                    </Badge>
+                  ) : null}
+                </span>
+              ) : null}
+            </div>
             {canMergeLinkedProfiles ? (
               <Button
                 type="button"
@@ -573,7 +659,7 @@ export function PatientDetailClient({
                 onClick={() => setShowMergeDialog(true)}
               >
                 <GitMerge className="mr-1 h-3.5 w-3.5" />
-                Merge
+                Reconcile & sync
               </Button>
             ) : null}
           </div>
@@ -744,12 +830,22 @@ export function PatientDetailClient({
       <TypedConfirmDialog
         open={showMergeDialog}
         onOpenChange={setShowMergeDialog}
-        title="Merge linked patient profiles"
-        description={`This moves request history, certificates, email logs, notes, consents, follow-ups, repeat Rx requests, and referral credits from ${duplicateProfileIds.length} guest duplicate profile${duplicateProfileIds.length === 1 ? "" : "s"} into this canonical patient profile. The duplicate profile row${duplicateProfileIds.length === 1 ? "" : "s"} stays archived for audit history. This action cannot be undone.`}
-        requiredText="MERGE"
-        confirmLabel="Merge profiles"
+        title="Reconcile duplicate patient profiles"
+        description={`This moves request history, prescriptions, certificates, email logs, notes, consents, follow-ups, repeat Rx requests, and referral credits from ${duplicateDialogSubject} into this canonical patient profile. The duplicate profile row${reconcileDuplicateProfileIds.length === 1 ? "" : "s"} stays archived for audit history, then InstantMed syncs the canonical identity to Parchment. This action cannot be undone.`}
+        requiredText="RECONCILE"
+        confirmLabel="Reconcile and sync"
         onConfirm={handleMergeLinkedProfiles}
         isPending={isMergePending}
+      />
+      <TypedConfirmDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        title="Delete empty patient profile"
+        description="This permanently deletes only an empty guest/manual patient profile. The server blocks deletion when the profile has a sign-in account, requests, prescriptions, certificates, notes, emails, consents, follow-ups, referral credits, merge audit, or any retained clinical/payment record. This action cannot be undone."
+        requiredText="DELETE"
+        confirmLabel="Delete patient"
+        onConfirm={handleDeletePatientProfile}
+        isPending={isDeletePending}
       />
     </div>
   )
