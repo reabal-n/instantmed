@@ -223,7 +223,7 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
                 {/*
                   Both cards must read as actionable. The outline variant on
                   the non-highlight card was so quiet the Tier 1 review missed
-                  it entirely — "the New Prescription card has no button". Beef
+                  it entirely - "the New Prescription card has no button". Beef
                   up the outline so it can't disappear: primary-tinted border,
                   primary text, soft hover wash. Keeps visual hierarchy
                   (highlight is still the filled primary) without leaving the
@@ -272,6 +272,13 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
             Repeat means medication you already take. New medicines need your regular GP unless they match an active specialty pathway.
           </span>
         </p>
+        <p className="mt-3 text-center text-xs text-muted-foreground">
+          Starting or switching the pill?{" "}
+          <Link href="/contraceptive-pill-assessment-online" className="font-medium text-primary hover:text-primary/80">
+            Read the contraceptive pill assessment guide
+          </Link>
+          .
+        </p>
       </div>
     </section>
   )
@@ -313,7 +320,7 @@ export function PrescriptionsLanding({ children }: PrescriptionsLandingProps) {
     >
       {({ isDisabled, heroCTARef, handleHeroCTA, handleHowItWorksCTA, handleFinalCTA, handleFAQOpen }) => (
         <>
-          {/* 1. Hero — canonical <Hero> with prescription-specific CTAs and
+          {/* 1. Hero - canonical <Hero> with prescription-specific CTAs and
               the eScript hero mockup. Bespoke PrescriptionsHeroSection retired
               in Pass 2; lifestyle photo relocated to EScriptExplainerSection. */}
           <Hero
@@ -364,10 +371,10 @@ export function PrescriptionsLanding({ children }: PrescriptionsLandingProps) {
             />
           </div>
 
-          {/* 2. Service comparison — repeat Rx plus active specialty pathways */}
+          {/* 2. Service comparison - repeat Rx plus active specialty pathways */}
           <ServiceComparisonSection isDisabled={isDisabled} />
 
-          {/* PBS callout strip — addresses pharmacy cost anxiety right after pricing */}
+          {/* PBS callout strip - addresses pharmacy cost anxiety right after pricing */}
           <PBSCalloutStrip />
 
           <CommercialIntentLinksSection
@@ -388,7 +395,7 @@ export function PrescriptionsLanding({ children }: PrescriptionsLandingProps) {
             subheading="From your couch to your pharmacy. Scripts are sent digitally if approved."
           />
 
-          {/* 3. eScript explainer — muted bg for rhythm.
+          {/* 3. eScript explainer - muted bg for rhythm.
               Lifestyle photo relocated here from the hero (was a 16:7 scroll-
               break). Renders as a framed banner below the mockup + facts split.
               Updated 2026-05-26 to use the root /images/rx-1.webp asset
@@ -436,7 +443,7 @@ export function PrescriptionsLanding({ children }: PrescriptionsLandingProps) {
           {/* Regulatory Partners - Medicare excluded */}
           <RegulatoryPartners className="py-12" exclude={["Medicare"]} />
 
-          {/* FAQ — shared <FAQSection> primitive (was bespoke
+          {/* FAQ - shared <FAQSection> primitive (was bespoke
               PrescriptionFAQSection, retired in Pass 2). */}
           <FAQSection
             pill="FAQ"
@@ -459,7 +466,7 @@ export function PrescriptionsLanding({ children }: PrescriptionsLandingProps) {
           {/* Referral strip */}
           <ReferralStrip contextText="who needs their medication renewed" />
 
-          {/* Final CTA — shared <CTABanner> with extended price + microcopy
+          {/* Final CTA - shared <CTABanner> with extended price + microcopy
               props (was bespoke ServiceFinalCTA, retired in Pass 2). */}
           <CTABanner
             title="Your regular medication, renewed from home."

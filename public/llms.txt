@@ -25,7 +25,7 @@
 
 4. **ED requests** - Structured form-first assessment for erectile dysfunction concerns. The doctor reviews safety screening and contacts the patient if more information is clinically needed. $49.95.
 
-5. **Women's health requests** - Structured form-first assessment for uncomplicated urinary tract infection (UTI) and for starting, switching, or repeating the contraceptive pill. The doctor reviews safety screening and contacts the patient if more information is clinically needed. $49.95.
+5. **Women's health requests** - Structured form-first assessment for uncomplicated urinary tract infection (UTI), and for starting or switching the contraceptive pill. Current-pill repeats route through repeat prescriptions. The doctor reviews safety screening and contacts the patient if more information is clinically needed. $49.95.
 
 ## How It Works
 
@@ -70,6 +70,8 @@
 - Hair loss: https://instantmed.com.au/hair-loss
 - Erectile dysfunction: https://instantmed.com.au/erectile-dysfunction
 - Women's health (UTI and contraceptive pill): https://instantmed.com.au/womens-health
+- Contraceptive pill assessment online: https://instantmed.com.au/contraceptive-pill-assessment-online
+- UTI assessment online: https://instantmed.com.au/uti-assessment-online
 - Online doctor / consult overview: https://instantmed.com.au/consult
 - Verify a medical certificate: https://instantmed.com.au/verify
 - Compare telehealth options: https://instantmed.com.au/compare
@@ -88,4 +90,4 @@ For a longer AI-readable service reference, see: https://instantmed.com.au/llms-
 
 ---
 
-Last reviewed: 2026-06-23
+Last reviewed: 2026-06-25

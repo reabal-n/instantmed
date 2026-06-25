@@ -24,7 +24,7 @@ export const ROUTE_LAST_MODIFIED: Record<string, string> = {
   "/erectile-dysfunction": "2026-06-10",
   "/womens-health": "2026-06-16",
   "/uti-assessment-online": "2026-06-19",
-  "/contraceptive-pill-assessment-online": "2026-06-19",
+  "/contraceptive-pill-assessment-online": "2026-06-25",
   "/consult": "2026-06-18",
   "/verify": "2026-05-19",
   // Conversion + trust surfaces

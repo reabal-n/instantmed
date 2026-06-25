@@ -29,6 +29,30 @@ const PILL_FAQ_ITEMS = [
     question: "I already take the pill. Can I get a repeat?",
     answer: "If you are continuing a contraceptive you are already established on, that is handled as a repeat prescription. Start there if your medication and dose are unchanged. The women's health assessment is for starting a new pill, switching, or a UTI concern.",
   },
+  {
+    question: "What information does the doctor need for a pill assessment?",
+    answer: "The assessment asks about your current contraception, pregnancy possibility, migraine with aura, blood clot history, smoking, blood pressure context, other medical conditions, and medicines that may affect contraceptive choice.",
+  },
+  {
+    question: "Can the doctor choose between a combined pill and a mini-pill?",
+    answer: "The doctor decides what is clinically appropriate from your answers. Some people are not suitable for oestrogen-containing options and may need a progestogen-only option, another contraceptive method, a call, or in-person review.",
+  },
+  {
+    question: "Do I need a blood pressure reading?",
+    answer: "Blood pressure can matter for contraceptive safety, especially for oestrogen-containing pills. If the doctor needs a current reading or more context, they may ask for it or recommend in-person review before prescribing.",
+  },
+  {
+    question: "Can I use this if I might be pregnant?",
+    answer: "If you are pregnant or could be pregnant, online pill assessment may not be the right pathway. The doctor may ask for a pregnancy test, contact you for more detail, or recommend in-person care depending on the situation.",
+  },
+  {
+    question: "Can I request a specific pill brand?",
+    answer: "You can tell the doctor what you have used before or what you are hoping to switch from, but the final decision is clinical. The public page does not offer a brand menu and prescription is never guaranteed.",
+  },
+  {
+    question: "Will the pill protect me from STIs?",
+    answer: "No. Oral contraceptive pills do not protect against sexually transmitted infections. Condoms, testing, and in-person sexual health care may still be needed depending on your situation.",
+  },
 ] as const
 
 // Shared questions that apply to both UTI and pill intents.

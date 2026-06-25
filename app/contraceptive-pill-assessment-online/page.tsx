@@ -1,13 +1,14 @@
 import type { Metadata } from "next"
 
-import { WomensHealthLanding } from "@/components/marketing/womens-health-landing"
+import { ContraceptivePillAssessmentLanding } from "@/components/marketing/contraceptive-pill-assessment-landing"
 import {
   BreadcrumbSchema,
   FAQSchema,
   HealthArticleSchema,
-  MedicalServiceSchema,
+  ServiceSchema,
   SpeakableSchema,
 } from "@/components/seo"
+import { getArticleVisualsForRender } from "@/lib/blog/visuals"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { PILL_FAQ } from "@/lib/data/womens-health-faq"
 
@@ -40,15 +41,22 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://instantmed.com.au/contraceptive-pill-assessment-online",
   },
+  robots: {
+    index: true,
+    follow: true,
+  },
 }
 
 export default function Page() {
+  const visuals = getArticleVisualsForRender("contraceptive-pill-assessment-online")
+
   return (
     <>
       <SpeakableSchema
         name="Contraceptive Pill Assessment Online"
         description={`Start or switch the contraceptive pill after AHPRA-registered Australian doctor review. From ${PRICING_DISPLAY.WOMENS_HEALTH}. The doctor reviews your safety screen and decides what is clinically appropriate.`}
         url="/contraceptive-pill-assessment-online"
+        speakableSelectors={["h1", "[data-speakable]"]}
       />
       <FAQSchema faqs={[...PILL_FAQ]} />
       <BreadcrumbSchema
@@ -61,17 +69,19 @@ export default function Page() {
           },
         ]}
       />
-      <MedicalServiceSchema
+      <ServiceSchema
         name="Online Contraceptive Pill Assessment"
         description="Start or switch the contraceptive pill after AHPRA-registered Australian doctor review. Next steps are decided after clinical review."
         price={PRICING.WOMENS_HEALTH.toFixed(2)}
+        url="/contraceptive-pill-assessment-online"
       />
       <HealthArticleSchema
         title="Contraceptive Pill Assessment Online"
         description={`Start or switch the contraceptive pill after AHPRA-registered Australian doctor review. Secure form-first review. From ${PRICING_DISPLAY.WOMENS_HEALTH}.`}
         url="/contraceptive-pill-assessment-online"
+        lastReviewed="2026-06"
       />
-      <WomensHealthLanding intent="pill" />
+      <ContraceptivePillAssessmentLanding visuals={visuals} />
     </>
   )
 }

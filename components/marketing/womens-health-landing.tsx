@@ -278,18 +278,28 @@ function ContraceptivePillSection({
         </div>
 
         <Reveal className="mt-8 text-center">
-          <Button
-            asChild
-            size="lg"
-            variant="outline"
-            className="h-11 font-semibold"
-            disabled={isDisabled}
-          >
-            <Link href={isDisabled ? "/contact" : WOMENS_HEALTH_HREF}>
-              {isDisabled ? "Contact us" : "Start pill assessment"}
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
+          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="h-11 font-semibold"
+              disabled={isDisabled}
+            >
+              <Link href={isDisabled ? "/contact" : WOMENS_HEALTH_HREF}>
+                {isDisabled ? "Contact us" : "Start pill assessment"}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            {!isPrimary && (
+              <Button asChild size="lg" variant="ghost" className="h-11 font-semibold">
+                <Link href="/contraceptive-pill-assessment-online">
+                  Read the pill assessment guide
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            )}
+          </div>
         </Reveal>
       </div>
     </section>

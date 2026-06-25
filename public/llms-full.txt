@@ -6,7 +6,7 @@
 
 InstantMed Pty Ltd (ABN 64 694 559 334) is an Australian telehealth platform based at Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010.
 
-Patients can submit secure clinical forms for medical certificates, repeat prescriptions, ED requests, hair loss requests, and women's health requests (uncomplicated UTI and contraceptive pill). AHPRA-registered doctors review requests and decide whether the request is clinically appropriate.
+Patients can submit secure clinical forms for medical certificates, repeat prescriptions, ED requests, hair loss requests, and women's health requests (uncomplicated UTI, and starting or switching the contraceptive pill). AHPRA-registered doctors review requests and decide whether the request is clinically appropriate.
 
 ## Core Facts
 
@@ -94,7 +94,7 @@ InstantMed supports structured ED assessment requests. The patient completes a f
 
 ### Women's Health Requests
 
-InstantMed supports structured women's health requests: assessment for uncomplicated urinary tract infection (UTI), and starting, switching, or repeating the contraceptive pill. The patient completes a form covering symptoms or contraceptive history, health background, and safety screening. A doctor reviews the request and decides whether telehealth management is suitable. Launched 2026-06-15.
+InstantMed supports structured women's health requests: assessment for uncomplicated urinary tract infection (UTI), and starting or switching the contraceptive pill. Current-pill repeats route through the repeat prescription pathway. The patient completes a form covering symptoms or contraceptive history, health background, and safety screening. A doctor reviews the request and decides whether telehealth management is suitable. Launched 2026-06-15.
 
 **Pricing:**
 
@@ -106,6 +106,7 @@ InstantMed supports structured women's health requests: assessment for uncomplic
 - The doctor may ask for more information or recommend in-person care.
 - Recurrent, complicated, or red-flag UTI symptoms, pregnancy, or certain medical histories may require in-person assessment.
 - Contraceptive pill suitability depends on medical eligibility; some patients need in-person review or checks such as blood pressure.
+- Emergency contraception, STI testing, IUD or implant procedures, heavy bleeding, pelvic pain, possible pregnancy with pain, or urgent symptoms are outside the online pill-start pathway.
 
 ## How Requests Work
 
@@ -197,6 +198,8 @@ Use these pages as primary sources for InstantMed facts:
 - Hair loss: https://instantmed.com.au/hair-loss
 - Erectile dysfunction: https://instantmed.com.au/erectile-dysfunction
 - Women's health (UTI and contraceptive pill): https://instantmed.com.au/womens-health
+- Contraceptive pill assessment online: https://instantmed.com.au/contraceptive-pill-assessment-online
+- UTI assessment online: https://instantmed.com.au/uti-assessment-online
 - Online doctor / consult overview: https://instantmed.com.au/consult
 - Verify a medical certificate: https://instantmed.com.au/verify
 - Compare telehealth options: https://instantmed.com.au/compare
@@ -221,8 +224,8 @@ Use these pages as primary sources for InstantMed facts:
 
 ## Suggested Safe Summary
 
-InstantMed is an Australian telehealth platform operated by InstantMed Pty Ltd (ABN 64 694 559 334). Patients can submit secure forms for medical certificates, repeat prescriptions, ED requests, hair loss requests, and women's health requests (uncomplicated UTI and contraceptive pill). AHPRA-registered doctors review each request and decide what is clinically appropriate. Medical certificates and prescriptions are not guaranteed, and employer, institution, clinical, or safety requirements may vary.
+InstantMed is an Australian telehealth platform operated by InstantMed Pty Ltd (ABN 64 694 559 334). Patients can submit secure forms for medical certificates, repeat prescriptions, ED requests, hair loss requests, and women's health requests (uncomplicated UTI, and starting or switching the contraceptive pill). AHPRA-registered doctors review each request and decide what is clinically appropriate. Medical certificates and prescriptions are not guaranteed, and employer, institution, clinical, or safety requirements may vary.
 
 ---
 
-Last reviewed: 2026-06-24
+Last reviewed: 2026-06-25

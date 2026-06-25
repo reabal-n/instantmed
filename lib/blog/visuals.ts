@@ -83,6 +83,7 @@ export const TOP_VISUAL_ARTICLE_SLUGS = [
   "can-employer-reject-medical-certificate",
   "can-you-get-antibiotics-online-australia",
   "chest-infection-antibiotics-online",
+  "contraceptive-pill-assessment-online",
   "contraceptive-prescription-online",
   "doctors-certificate-university-extension",
   "doctors-note-australia",
@@ -2336,6 +2337,56 @@ const generatedImageBacklogVisualLibrary: Record<ImageBacklogArticleSlug, Articl
 
 const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
   ...generatedImageBacklogVisualLibrary,
+  "contraceptive-pill-assessment-online": [
+    {
+      id: "pill-suitability-map",
+      eyebrow: "Safety screen",
+      title: "Pill suitability depends on more than the brand name",
+      summary: "The doctor checks pregnancy possibility, migraine history, clot risk, smoking, blood pressure context, and current contraception before deciding.",
+      visualFormat: "medical-infographic",
+      kind: "comparison",
+      accent: "blue",
+      items: [
+        { label: "Pregnancy context", detail: "Possible pregnancy can change the pathway" },
+        { label: "Migraine history", detail: "Aura symptoms need careful review" },
+        { label: "Clot and heart risk", detail: "Past clot, stroke, or heart disease matters" },
+        { label: "Blood pressure", detail: "A current reading may be needed" },
+      ],
+      imagePrompt: "Detailed Australian contraceptive pill suitability infographic. Teach that oral contraception choice depends on pregnancy possibility, migraine with aura, clot or cardiovascular history, smoking status, blood pressure context, current contraception, and other medicines. Use a premium clinical decision-map with labelled safety checkpoints, risk signal bands, and a doctor-review node. Do not show pill packets, tablets, medication brands, prescription artefacts, fake app UI, pharmacy shelves, product menus, consultation CTA, pricing, testimonials, or guaranteed prescribing.",
+    },
+    {
+      id: "start-switch-repeat-flow",
+      eyebrow: "Pathway choice",
+      title: "Start, switch, and repeat are different requests",
+      summary: "Starting or switching uses a women's health assessment. Continuing the same established pill usually belongs in repeat prescriptions.",
+      visualFormat: "process-visual",
+      kind: "flow",
+      accent: "emerald",
+      items: [
+        { label: "Start", detail: "New pill request needs full safety screen" },
+        { label: "Switch", detail: "Current method and reason for change matter" },
+        { label: "Repeat", detail: "Unchanged established pill uses repeat scripts" },
+        { label: "In-person", detail: "Symptoms or uncertainty can change the route", tone: "caution" },
+      ],
+      imagePrompt: "Detailed pathway flowchart for Australian contraception requests. Show the difference between starting an oral contraceptive pill, switching from a current method, repeating the same established pill, and needing in-person care. Use clean route lines, decision branches, safety checkpoints, and non-identifiable clinical-review cues. Do not show drug names, brand names, pill packets, prescription documents, fake form fields, website UI, checkout buttons, pricing, or guaranteed outcomes.",
+    },
+    {
+      id: "pill-red-flag-boundary",
+      eyebrow: "Red flags",
+      title: "Some symptoms should not wait for an online form",
+      summary: "Urgent symptoms need urgent care before any online pill form.",
+      visualFormat: "red-flag-warning",
+      kind: "warning",
+      accent: "rose",
+      items: [
+        { label: "Call 000", detail: "Chest pain, collapse, breathlessness, or stroke signs", tone: "urgent" },
+        { label: "Same-day care", detail: "Calf swelling, heavy bleeding, pelvic pain, or pregnancy with pain", tone: "urgent" },
+        { label: "Doctor review", detail: "Migraine aura, clot history, smoking, or blood pressure uncertainty", tone: "caution" },
+        { label: "Form later", detail: "Handle immediate safety first" },
+      ],
+      imagePrompt: "Calm contraceptive pill red-flag boundary graphic for Australian patient education. Show emergency symptoms, same-day in-person care symptoms, doctor-contact safety checks, and routine online assessment as separate branches. Include chest pain, sudden shortness of breath, stroke signs, calf swelling, heavy bleeding, severe pelvic pain, and possible pregnancy with pain as non-graphic warning zones. Use premium public-health poster design with clear stop and route hierarchy. No gore, ambulance drama, medical cross logos, pills, medication packets, fake app UI, consultation CTA, pricing, or brand names.",
+    },
+  ],
   "ibs-digestive-issues": [
     {
       id: "ibs-subtype-map",

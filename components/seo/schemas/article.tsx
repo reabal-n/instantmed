@@ -69,6 +69,7 @@ interface HealthArticleSchemaProps {
   title: string
   description: string
   url: string
+  lastReviewed?: string
   baseUrl?: string
 }
 
@@ -76,6 +77,7 @@ export function HealthArticleSchema({
   title,
   description,
   url,
+  lastReviewed,
   baseUrl = "https://instantmed.com.au",
 }: HealthArticleSchemaProps) {
   const schema = {
@@ -91,6 +93,7 @@ export function HealthArticleSchema({
     },
     inLanguage: "en-AU",
     mainEntityOfPage: { "@type": "WebPage", "@id": `${baseUrl}${url}` },
+    ...(lastReviewed ? { lastReviewed } : {}),
   }
 
   return <JsonLdScript id={`health-article-schema-${url.replace(/\//g, "-")}`} data={schema} />

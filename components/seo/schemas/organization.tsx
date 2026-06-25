@@ -1,4 +1,4 @@
-import { CONTACT_EMAIL_HELLO,PRICING,PRICING_DISPLAY } from "@/lib/constants"
+import { CONTACT_EMAIL_HELLO, PRICING } from "@/lib/constants"
 
 import { JsonLdScript } from "./json-ld-script"
 import { SAME_AS_PROFILES } from "./same-as"
@@ -27,12 +27,6 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
     foundingDate: "2025",
     taxID: "64694559334",
     medicalSpecialty: "PrimaryCare",
-    isAccreditedBy: {
-      "@type": "Organization",
-      name: "Australian Health Practitioner Regulation Agency",
-      alternateName: "AHPRA",
-      url: "https://www.ahpra.gov.au"
-    },
     hasCredential: [
       {
         "@type": "EducationalOccupationalCredential",
@@ -70,29 +64,9 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
       postalCode: "2010",
       addressCountry: "AU"
     },
-    geo: {
-      "@type": "GeoCoordinates",
-      latitude: -33.8830,
-      longitude: 151.2108
-    },
     areaServed: {
       "@type": "Country",
       name: "Australia"
-    },
-    serviceType: [
-      "Telehealth",
-      "Online Medical Consultation",
-      "Medical Certificate",
-      "Online Prescription"
-    ],
-    priceRange: PRICING_DISPLAY.RANGE,
-    currenciesAccepted: "AUD",
-    paymentAccepted: ["Credit Card", "Debit Card"],
-    openingHoursSpecification: {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-      opens: "00:00",
-      closes: "23:59"
     },
     contactPoint: [{
       "@type": "ContactPoint",
@@ -100,11 +74,9 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
       email: CONTACT_EMAIL_HELLO,
       availableLanguage: ["English"]
     }],
-    // sameAs: verified external identity profiles — the primary entity-linking
+    // sameAs: verified external identity profiles - the primary entity-linking
     // signal answer engines use to resolve and cite "InstantMed". Identity links
-    // only (see ./same-as). aggregateRating intentionally omitted: public
-    // surfaces use a stars-only Google badge and never expose review
-    // counts/star scores/testimonial schema.
+    // only (see ./same-as). Public review markup is intentionally omitted.
     sameAs: SAME_AS_PROFILES,
     hasOfferCatalog: {
       "@type": "OfferCatalog",
@@ -112,14 +84,13 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
       itemListElement: [
         {
           "@type": "Offer",
-          // price + priceCurrency are required for a valid Offer; without them
-          // structured-data validators flag "missing field price". Entry price
-          // (med cert is "from" this) in AUD.
+          // price + priceCurrency are required for a valid Offer.
           price: PRICING.MED_CERT.toFixed(2),
           priceCurrency: "AUD",
           itemOffered: {
-            "@type": "MedicalService",
+            "@type": "Service",
             name: "Medical Certificate",
+            serviceType: "Medical certificate request",
             description: "Request a routine sick or study certificate reviewed by an Australian registered doctor"
           }
         },
@@ -128,8 +99,9 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
           price: PRICING.REPEAT_SCRIPT.toFixed(2),
           priceCurrency: "AUD",
           itemOffered: {
-            "@type": "MedicalService",
+            "@type": "Service",
             name: "Online Prescription",
+            serviceType: "Repeat prescription request",
             description: "Request prescriptions for common medications from registered doctors"
           }
         }
