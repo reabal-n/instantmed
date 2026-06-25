@@ -35,7 +35,7 @@ const CANONICAL = "https://instantmed.com.au/online-doctor-australia"
 
 export const metadata: Metadata = {
   title: "Online Doctor Australia | AHPRA-Registered Doctors",
-  description: `See an online doctor in Australia without the waiting room. AHPRA-registered doctors review medical certificates, prescriptions, and consultations. ${PRICING_DISPLAY.FROM_MED_CERT}, requests open 24/7.`,
+  description: `See an online doctor in Australia, no waiting room. AHPRA-registered doctors review medical certificates and prescriptions. ${PRICING_DISPLAY.FROM_MED_CERT}, open 24/7.`,
   keywords: [
     "online doctor australia",
     "online doctor au",

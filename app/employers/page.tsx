@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   // template; do NOT append "| InstantMed" here or it doubles.
   title: "How to Verify a Medical Certificate (for Employers)",
   description:
-    "HR teams can verify InstantMed medical certificate authenticity, check document dates, and confirm privacy-limited certificate details without seeing diagnosis information. Single or bulk verification by reference number.",
+    "Verify an InstantMed medical certificate's authenticity, check the dates, and confirm privacy-limited details, single or in bulk, without seeing any diagnosis.",
   keywords: [
     "how to verify a medical certificate",
     "verify medical certificate australia",
