@@ -75,6 +75,7 @@ describe("SEO indexing contracts", () => {
       "app/prescriptions/page.tsx": [
         "/resources/secure-online-prescription-requests",
         "/resources/repeat-prescription-safety-checklist",
+        "/online-prescriptions",
       ],
       "app/privacy/page.tsx": [
         "/resources/telehealth-privacy-health-data-checklist",
@@ -155,6 +156,7 @@ describe("SEO indexing contracts", () => {
     for (const route of [
       "/medical-certificate",
       "/prescriptions",
+      "/online-prescriptions",
       "/erectile-dysfunction",
       "/hair-loss",
       "/womens-health",

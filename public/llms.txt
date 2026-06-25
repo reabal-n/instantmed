@@ -69,6 +69,7 @@
 - Medical certificates: https://instantmed.com.au/medical-certificate
 - Medical certificate online guide: https://instantmed.com.au/medical-certificate-online
 - Prescriptions: https://instantmed.com.au/prescriptions
+- Online prescriptions guide: https://instantmed.com.au/online-prescriptions
 - Hair loss: https://instantmed.com.au/hair-loss
 - Erectile dysfunction: https://instantmed.com.au/erectile-dysfunction
 - Women's health (UTI and contraceptive pill): https://instantmed.com.au/womens-health
