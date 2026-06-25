@@ -8,11 +8,39 @@ const UTI_FAQ_ITEMS = [
   },
   {
     question: "How does the UTI assessment work?",
-    answer: "You answer a short set of questions about your symptoms, history, and any red flags. A doctor reviews your assessment and decides what is clinically appropriate. If approved, the outcome is sent to your phone and can be actioned at an Australian pharmacy.",
+    answer: "You answer a short set of questions about urinary symptoms, pregnancy possibility, red flags, relevant history, allergies, and medicines. A doctor reviews your assessment and decides what is clinically appropriate. If approved, the outcome is sent digitally and can be actioned at an Australian pharmacy if a prescription is issued.",
   },
   {
     question: "When is an online UTI assessment not suitable?",
     answer: "Online assessment is not appropriate for everyone. A fever, pain in your back or side, blood in your urine, symptoms during pregnancy, or a UTI that keeps coming back are signs you should be seen in person. If your answers raise any of these, the doctor will recommend a face-to-face review and may decline online care.",
+  },
+  {
+    question: "What symptoms usually fit a simple UTI pattern?",
+    answer: "Burning or stinging when passing urine, needing to go more often, urgency, cloudy urine, or a feeling that your bladder has not emptied can fit a lower urinary infection pattern. The doctor still checks whether the overall story is safe for online care.",
+  },
+  {
+    question: "What if I have fever, chills, vomiting, or back pain?",
+    answer: "Do not wait for an online form. Those symptoms can suggest kidney infection or another condition that needs in-person assessment. Seek prompt in-person medical care, and call 000 for emergencies.",
+  },
+  {
+    question: "Can I use this if I am pregnant or might be pregnant?",
+    answer: "No. UTI symptoms during pregnancy or possible pregnancy need in-person assessment so the right tests, monitoring, and treatment choices can be made safely.",
+  },
+  {
+    question: "Do I need a urine test?",
+    answer: "Not every urinary symptom episode needs a urine test before a doctor can make a decision, but testing can be important when symptoms are recurrent, severe, atypical, pregnancy-related, not improving, or associated with blood in the urine.",
+  },
+  {
+    question: "Can men or children use this UTI pathway?",
+    answer: "This pathway is designed for adult women's-health UTI assessment. Men and children with urinary symptoms usually need a different assessment pathway because the causes and safety checks are different.",
+  },
+  {
+    question: "What if my symptoms could be an STI or vaginal infection?",
+    answer: "If you have vaginal discharge, genital sores, pelvic pain, STI exposure, sexual assault, or symptoms that do not fit a simple urinary infection, seek in-person sexual health or GP care rather than using this online UTI pathway.",
+  },
+  {
+    question: "What happens if symptoms do not improve?",
+    answer: "Seek medical review if symptoms worsen, do not improve as expected, return soon after treatment, or are associated with fever, back or side pain, vomiting, or visible blood. You may need testing or in-person review.",
   },
 ] as const
 

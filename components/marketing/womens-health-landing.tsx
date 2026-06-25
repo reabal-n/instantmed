@@ -224,6 +224,77 @@ function WomensHealthComparisonViz() {
   )
 }
 
+function UtiAssessmentSection({ isDisabled }: { isDisabled?: boolean }) {
+  return (
+    <section id="uti-assessment" aria-label="UTI symptom assessment" className="bg-muted/30 py-16 dark:bg-white/[0.02] lg:py-20">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        <Reveal className="mb-8 text-center">
+          <SectionPill>UTI symptoms</SectionPill>
+          <Heading level="h2" className="mb-2 mt-4">
+            UTI symptom assessment, with clear safety boundaries
+          </Heading>
+          <p className="mx-auto max-w-xl text-balance text-sm text-muted-foreground">
+            Start with a symptom and red-flag screen for possible uncomplicated UTI. Fever, back or side pain, pregnancy risk, blood in urine, or recurring symptoms may need in-person care.
+          </p>
+        </Reveal>
+
+        <div className="grid gap-4 sm:grid-cols-3">
+          {[
+            {
+              sticker: "medical-history" as const,
+              title: "Symptom fit",
+              body: "Burning, frequency, urgency, and cloudy urine are checked against the full safety context.",
+            },
+            {
+              sticker: "security-shield" as const,
+              title: "Red flags first",
+              body: "Pregnancy risk, kidney symptoms, systemic illness, and complex history change the route.",
+            },
+            {
+              sticker: "stethoscope" as const,
+              title: "Doctor decides",
+              body: "An AHPRA-registered doctor reviews your answers and decides whether online care is suitable.",
+            },
+          ].map((card, i) => (
+            <Reveal
+              key={card.title}
+              delay={i * 0.1}
+              className="rounded-2xl border border-border/50 bg-white p-5 shadow-md shadow-primary/[0.06] dark:border-white/15 dark:bg-card dark:shadow-none"
+            >
+              <StickerIcon name={card.sticker} size={40} className="mb-3" />
+              <Heading level="h3" className="mb-1.5 text-base">{card.title}</Heading>
+              <p className="text-sm text-muted-foreground">{card.body}</p>
+            </Reveal>
+          ))}
+        </div>
+
+        <Reveal className="mt-8 text-center">
+          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="h-11 font-semibold"
+              disabled={isDisabled}
+            >
+              <Link href={isDisabled ? "/contact" : WOMENS_HEALTH_HREF}>
+                {isDisabled ? "Contact us" : "Start UTI assessment"}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="ghost" className="h-11 font-semibold">
+              <Link href="/uti-assessment-online">
+                Read the UTI assessment guide
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  )
+}
+
 /** Contraceptive pill section. Primary on the pill route, secondary elsewhere. */
 function ContraceptivePillSection({
   isDisabled,
@@ -458,19 +529,22 @@ export function WomensHealthLanding({ intent = "overview" }: { intent?: WomensHe
           {/* 3. Time comparison */}
           <WomensHealthComparisonViz />
 
-          {/* 4. Contraceptive pill section. */}
+          {/* 4. UTI assessment section. */}
+          <UtiAssessmentSection isDisabled={isDisabled} />
+
+          {/* 5. Contraceptive pill section. */}
           <ContraceptivePillSection isDisabled={isDisabled} mode={copy.pillSectionMode} />
 
-          {/* 5. Doctor profile */}
+          {/* 6. Doctor profile */}
           <DoctorProfileSection />
 
-          {/* 6. Pricing */}
+          {/* 7. Pricing */}
           <WomensHealthPricingSection isDisabled={isDisabled} description={copy.pricingDescription} />
 
           {/* Regulatory Partners */}
           <RegulatoryPartners className="py-12" />
 
-          {/* 7. FAQ via the shared <FAQSection> primitive. */}
+          {/* 8. FAQ via the shared <FAQSection> primitive. */}
           <FAQSection
             pill="FAQ"
             title="Frequently asked questions"
@@ -485,7 +559,7 @@ export function WomensHealthLanding({ intent = "overview" }: { intent?: WomensHe
           {/* Referral strip */}
           <ReferralStrip contextText={copy.referralContext} />
 
-          {/* 8. Final CTA via the shared <CTABanner> primitive. */}
+          {/* 9. Final CTA via the shared <CTABanner> primitive. */}
           <CTABanner
             title={copy.finalTitle}
             subtitle={copy.finalSubtitle}

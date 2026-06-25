@@ -1,13 +1,14 @@
 import type { Metadata } from "next"
 
-import { WomensHealthLanding } from "@/components/marketing/womens-health-landing"
+import { UtiAssessmentLanding } from "@/components/marketing/uti-assessment-landing"
 import {
   BreadcrumbSchema,
   FAQSchema,
   HealthArticleSchema,
-  MedicalServiceSchema,
+  ServiceSchema,
   SpeakableSchema,
 } from "@/components/seo"
+import { getArticleVisualsForRender } from "@/lib/blog/visuals"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { UTI_FAQ } from "@/lib/data/womens-health-faq"
 
@@ -40,15 +41,22 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://instantmed.com.au/uti-assessment-online",
   },
+  robots: {
+    index: true,
+    follow: true,
+  },
 }
 
 export default function Page() {
+  const visuals = getArticleVisualsForRender("uti-assessment-online")
+
   return (
     <>
       <SpeakableSchema
         name="UTI Assessment Online Australia"
         description={`UTI symptom assessment from an AHPRA-registered Australian doctor. From ${PRICING_DISPLAY.WOMENS_HEALTH}. Start with a secure form. A doctor reviews it and decides what is clinically appropriate.`}
         url="/uti-assessment-online"
+        speakableSelectors={["h1", "[data-speakable]"]}
       />
       <FAQSchema faqs={[...UTI_FAQ]} />
       <BreadcrumbSchema
@@ -58,17 +66,19 @@ export default function Page() {
           { name: "UTI Assessment", url: "https://instantmed.com.au/uti-assessment-online" },
         ]}
       />
-      <MedicalServiceSchema
+      <ServiceSchema
         name="Online UTI Assessment"
         description="UTI symptom assessment from an AHPRA-registered Australian doctor. Next steps are decided after clinical review."
         price={PRICING.WOMENS_HEALTH.toFixed(2)}
+        url="/uti-assessment-online"
       />
       <HealthArticleSchema
         title="UTI Assessment Online Australia"
         description={`UTI symptom assessment from an AHPRA-registered Australian doctor. Secure form-first review. From ${PRICING_DISPLAY.WOMENS_HEALTH}.`}
         url="/uti-assessment-online"
+        lastReviewed="2026-06"
       />
-      <WomensHealthLanding intent="uti" />
+      <UtiAssessmentLanding visuals={visuals} />
     </>
   )
 }

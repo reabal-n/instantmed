@@ -84,6 +84,7 @@ export const TOP_VISUAL_ARTICLE_SLUGS = [
   "can-you-get-antibiotics-online-australia",
   "chest-infection-antibiotics-online",
   "contraceptive-pill-assessment-online",
+  "uti-assessment-online",
   "contraceptive-prescription-online",
   "doctors-certificate-university-extension",
   "doctors-note-australia",
@@ -2337,6 +2338,56 @@ const generatedImageBacklogVisualLibrary: Record<ImageBacklogArticleSlug, Articl
 
 const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
   ...generatedImageBacklogVisualLibrary,
+  "uti-assessment-online": [
+    {
+      id: "uti-symptom-fit-map",
+      eyebrow: "Symptom fit",
+      title: "A simple UTI pattern is about symptoms plus risk context",
+      summary: "Burning, frequency, urgency, cloudy urine, and lower discomfort can fit a lower urinary pattern, but risk context changes the route.",
+      visualFormat: "medical-infographic",
+      kind: "comparison",
+      accent: "blue",
+      items: [
+        { label: "Lower symptoms", detail: "Burning, frequency, urgency, cloudy urine" },
+        { label: "Risk context", detail: "Pregnancy, kidney risk, recurrence, allergies" },
+        { label: "Other causes", detail: "Vaginal, STI, stone, or pelvic symptoms" },
+        { label: "Doctor review", detail: "Fit, safety, and next step are checked" },
+      ],
+      imagePrompt: "Detailed Australian UTI symptom-fit infographic. Teach that a simple lower urinary symptom pattern depends on burning, frequency, urgency, cloudy urine, lower discomfort, plus risk context such as pregnancy possibility, kidney risk, recurrence, allergies, and other possible causes. Use a respectful urinary-tract diagram, labelled symptom zones, risk-context panels, and doctor-review checkpoint. No urine photos, medicine packaging, drug names, fake app UI, checkout buttons, pharmacy shelves, pricing, or guaranteed outcomes.",
+    },
+    {
+      id: "uti-in-person-boundary-flow",
+      eyebrow: "Care route",
+      title: "Some UTI symptoms need in-person care first",
+      summary: "Fever, flank pain, vomiting, pregnancy risk, severe pain, catheter symptoms, men, children, or feeling very unwell change the safest route.",
+      visualFormat: "red-flag-warning",
+      kind: "warning",
+      accent: "rose",
+      items: [
+        { label: "Urgent care", detail: "Fever, flank pain, vomiting, or very unwell", tone: "urgent" },
+        { label: "In-person", detail: "Pregnancy risk, men, children, catheter symptoms", tone: "urgent" },
+        { label: "Testing likely", detail: "Recurrent, blood, unclear, or not improving", tone: "caution" },
+        { label: "Online review", detail: "Only when the pattern is simple and low risk" },
+      ],
+      imagePrompt: "Calm UTI red-flag decision flow for Australian patient education. Show urgent care, in-person care, testing-likely, and online-review branches. Include fever, flank pain, vomiting, pregnancy possibility, severe pain, catheter symptoms, men, children, visible blood, recurrent symptoms, and not improving as non-graphic route signals. Use a premium public-health flowchart with clear stop and next-step hierarchy. No gore, urine photos, ambulance drama, medicine packets, drug names, fake forms, service CTA, pricing, or guarantees.",
+    },
+    {
+      id: "uti-testing-review-map",
+      eyebrow: "Testing boundary",
+      title: "Testing can be safer when the story is not simple",
+      summary: "Recurrent, atypical, pregnancy-related, blood, recent treatment, or persistent symptoms may need urine testing or in-person review.",
+      visualFormat: "lab-result-explainer",
+      kind: "flow",
+      accent: "amber",
+      items: [
+        { label: "Recurrent", detail: "Repeated episodes need a broader check" },
+        { label: "Atypical", detail: "Symptoms do not fit simple lower UTI" },
+        { label: "Pregnancy", detail: "Prompt assessment and testing are safer", tone: "urgent" },
+        { label: "Not improving", detail: "Review if symptoms persist or worsen", tone: "caution" },
+      ],
+      imagePrompt: "Detailed UTI testing and review boundary explainer for Australia. Show urine testing as one possible next step, recurrent symptoms, atypical symptoms, pregnancy possibility, visible blood, recent treatment, symptoms not improving, and doctor review as labelled decision panels. Use lab-result explainer style with abstract sample/lab icons only, no fake patient data, no urine photos, no medicine packaging, no drug names, no pharmacy shelves, no CTA, no price, no guarantee.",
+    },
+  ],
   "contraceptive-pill-assessment-online": [
     {
       id: "pill-suitability-map",

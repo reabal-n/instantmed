@@ -14,14 +14,14 @@ const pages = [
     file: "app/uti-assessment-online/page.tsx",
     route: "/uti-assessment-online",
     canonical: "https://instantmed.com.au/uti-assessment-online",
-    variant: 'intent="uti"',
+    renderMarker: "UtiAssessmentLanding",
     requiredCopy: ["UTI symptom assessment", "Doctor Review"],
   },
   {
     file: "app/contraceptive-pill-assessment-online/page.tsx",
     route: "/contraceptive-pill-assessment-online",
     canonical: "https://instantmed.com.au/contraceptive-pill-assessment-online",
-    variant: 'intent="pill"',
+    renderMarker: "ContraceptivePillAssessmentLanding",
     requiredCopy: ["Start or switch the contraceptive pill", "doctor review"],
   },
 ]
@@ -32,7 +32,7 @@ describe("women's-health intent entry pages", () => {
       const source = read(page.file)
 
       expect(source, page.file).toContain(page.canonical)
-      expect(source, page.file).toContain(page.variant)
+      expect(source, page.file).toContain(page.renderMarker)
       expect(source, page.file).toContain(`url="${page.route}"`)
 
       // Indexability lives next to the canonical assertion (not split into a
@@ -73,13 +73,19 @@ describe("women's-health intent entry pages", () => {
   })
 
   it("keeps focused women's-health pages service-level and safety-led", () => {
-    const combinedSource = [read("components/marketing/womens-health-landing.tsx"), ...pages.map((page) => read(page.file))].join("\n")
+    const combinedSource = [
+      read("components/marketing/womens-health-landing.tsx"),
+      read("components/marketing/uti-assessment-landing.tsx"),
+      read("components/marketing/contraceptive-pill-assessment-landing.tsx"),
+      ...pages.map((page) => read(page.file)),
+    ].join("\n")
 
     expect(combinedSource).toContain("pregnancy or possible pregnancy")
     expect(combinedSource).toContain("migraine with aura")
     expect(combinedSource).toContain("repeat-prescription pathway")
     expect(combinedSource).toContain("may call you briefly")
-    expect(combinedSource).not.toMatch(/\b(antibiotics?|guaranteed|same[- ]day|no call needed|no phone call)\b/i)
+    expect(combinedSource).not.toMatch(/\b(antibiotics?|same[- ]day|no call needed|no phone call)\b/i)
+    expect(combinedSource).not.toMatch(/\b(guaranteed prescription|guaranteed treatment|treatment guaranteed|prescription guaranteed|guaranteed outcome)\b/i)
     expect(combinedSource).not.toMatch(/\b(sildenafil|tadalafil|finasteride|dutasteride|semaglutide|tirzepatide)\b/i)
   })
 
