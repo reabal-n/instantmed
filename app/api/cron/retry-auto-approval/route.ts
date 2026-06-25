@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 
 import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { normalizeAutoApproveDelayMinutes } from "@/lib/data/types/feature-flags"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import { createLogger } from "@/lib/observability/logger"
@@ -33,8 +34,7 @@ function formatRequestType(category: string | null, subtype: string | null): str
  *
  * Picks up med cert intakes that were paid but not auto-approved
  * (e.g. because the webhook timed out, draft gen was slow, or a transient error).
- * Runs every 3 minutes. Only processes intakes 2-30 minutes old to avoid
- * racing with the webhook's own attempt.
+ * Runs every 3 minutes. Only processes intakes after the configured delay.
  *
  * If AI drafts are missing (e.g. webhook was killed before generating them),
  * this cron will generate them first, then attempt auto-approval.
@@ -144,7 +144,7 @@ export async function GET(request: NextRequest) {
     // -----------------------------------------------------------------------
     // Auto-approval: find intakes eligible for AI review via state machine
     // -----------------------------------------------------------------------
-    const delayMinutes = Math.max(1, flags.auto_approve_delay_minutes)
+    const delayMinutes = normalizeAutoApproveDelayMinutes(flags.auto_approve_delay_minutes)
     const delayAgo = new Date(Date.now() - delayMinutes * 60 * 1000).toISOString()
     const eightHoursAgo = new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString()
 

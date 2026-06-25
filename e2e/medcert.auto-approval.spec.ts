@@ -21,7 +21,7 @@ import {
 
 const AUTO_APPROVAL_FLAGS = {
   ai_auto_approve_enabled: true,
-  auto_approve_delay_minutes: 0,
+  auto_approve_delay_minutes: 10,
   auto_approve_rate_limit_5min: 100,
   auto_approve_daily_cap: 500,
   auto_approve_max_duration_days: 3,

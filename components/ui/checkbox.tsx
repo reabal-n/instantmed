@@ -14,9 +14,11 @@ export interface CheckboxProps extends Omit<React.ComponentProps<typeof Checkbox
   isSelected?: boolean
   onValueChange?: (isSelected: boolean) => void
   children?: React.ReactNode
+  boxClassName?: string
 }
 
 function Checkbox({
+  boxClassName,
   className,
   checked,
   onCheckedChange,
@@ -38,7 +40,8 @@ function Checkbox({
           "ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
           "disabled:cursor-not-allowed disabled:opacity-50",
           "data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground",
-          "transition-colors duration-150"
+          "transition-colors duration-150",
+          boxClassName,
         )}
         {...props}
       >

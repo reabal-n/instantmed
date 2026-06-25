@@ -24,7 +24,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
-import { FLAG_KEYS } from "@/lib/data/types/feature-flags"
+import {
+  FLAG_KEYS,
+  MAX_AUTO_APPROVE_DELAY_MINUTES,
+  MIN_AUTO_APPROVE_DELAY_MINUTES,
+  normalizeAutoApproveDelayMinutes,
+} from "@/lib/data/types/feature-flags"
 
 import type {
   AuditLogSectionProps,
@@ -562,10 +567,15 @@ export function AutoApproveSection({
               <div className="flex items-center gap-2">
                 <Input
                   type="number"
-                  min={0}
-                  max={60}
+                  min={MIN_AUTO_APPROVE_DELAY_MINUTES}
+                  max={MAX_AUTO_APPROVE_DELAY_MINUTES}
                   value={flags.auto_approve_delay_minutes}
-                  onChange={(e) => onSetFlags(prev => ({ ...prev, auto_approve_delay_minutes: Math.min(60, Math.max(0, parseInt(e.target.value, 10) || 0)) }))}
+                  onChange={(e) => onSetFlags(prev => ({
+                    ...prev,
+                    auto_approve_delay_minutes: normalizeAutoApproveDelayMinutes(
+                      parseInt(e.target.value, 10),
+                    ),
+                  }))}
                   onBlur={() => {
                     if (flags.auto_approve_delay_minutes !== initialFlags.auto_approve_delay_minutes) {
                       onSaveFlag(FLAG_KEYS.AUTO_APPROVE_DELAY_MINUTES, flags.auto_approve_delay_minutes)
@@ -576,7 +586,7 @@ export function AutoApproveSection({
                 <span className="text-sm text-muted-foreground">minutes</span>
               </div>
               <p className="text-xs text-muted-foreground w-full">
-                0 = approve immediately in webhook. {">"}0 = wait this long, then the retry cron (every 3 min) picks it up.
+                Minimum {MIN_AUTO_APPROVE_DELAY_MINUTES} minutes. The retry cron checks eligible requests every 3 minutes.
               </p>
             </div>
 

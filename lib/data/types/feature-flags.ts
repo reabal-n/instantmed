@@ -41,6 +41,10 @@ export const FLAG_KEYS = {
 
 export type FlagKey = (typeof FLAG_KEYS)[keyof typeof FLAG_KEYS]
 
+export const MIN_AUTO_APPROVE_DELAY_MINUTES = 10
+export const DEFAULT_AUTO_APPROVE_DELAY_MINUTES = 15
+export const MAX_AUTO_APPROVE_DELAY_MINUTES = 60
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -106,12 +110,10 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   blocked_medication_terms: [],
   safety_screening_symptoms: DEFAULT_SAFETY_SYMPTOMS,
   ai_auto_approve_enabled: false,
-  // 5-minute default is operator-locked. Faster auto-approval reads as
-  // "obviously automated" and erodes trust on a regulated-health product
-  // where the patient expects a doctor reviewed their case. See
-  // memory/decision_auto_approve_delay.md (2026-04-29 decision, reaffirmed
-  // 2026-05-24). Operator can override via /admin/features per intake.
-  auto_approve_delay_minutes: 5,
+  // Approval automation is picked up by cron after a real review delay. Keep a
+  // production floor so paid requests never move from checkout to issued inside
+  // the webhook response path.
+  auto_approve_delay_minutes: DEFAULT_AUTO_APPROVE_DELAY_MINUTES,
   auto_approve_rate_limit_5min: 10,
   auto_approve_daily_cap: 50,
   auto_approve_max_duration_days: 3,
@@ -124,6 +126,17 @@ export const DEFAULT_FLAGS: FeatureFlags = {
 // ============================================================================
 // HELPERS (Client-Safe)
 // ============================================================================
+
+export function normalizeAutoApproveDelayMinutes(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return DEFAULT_AUTO_APPROVE_DELAY_MINUTES
+  }
+
+  return Math.min(
+    MAX_AUTO_APPROVE_DELAY_MINUTES,
+    Math.max(MIN_AUTO_APPROVE_DELAY_MINUTES, Math.trunc(value)),
+  )
+}
 
 /**
  * Get flag display info
@@ -204,7 +217,7 @@ export function getFlagInfo(key: FlagKey): { label: string; description: string 
     },
     auto_approve_delay_minutes: {
       label: "Auto-Approve Delay (minutes)",
-      description: "Minimum wait time after payment before auto-approval triggers. 0 = immediate (in webhook), >0 = handled by retry cron.",
+      description: "Minimum wait time after payment before auto-approval is eligible for the retry cron. Production floor is 10 minutes.",
     },
     auto_approve_rate_limit_5min: {
       label: "Auto-Approve Rate Limit (per 5 min)",

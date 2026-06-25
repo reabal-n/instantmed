@@ -66,7 +66,6 @@ describe("startPostPaymentReviewWork", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.generateDraftsForIntake.mockResolvedValue({ success: true })
-    mocks.getFeatureFlags.mockResolvedValue({ auto_approve_delay_minutes: 0 })
     mocks.markDraftsReady.mockResolvedValue(true)
     mocks.attemptAutoApproval.mockResolvedValue({ autoApproved: false, reason: "needs_doctor" })
   })
@@ -93,7 +92,8 @@ describe("startPostPaymentReviewWork", () => {
 
     expect(mocks.generateDraftsForIntake).toHaveBeenCalledWith(INTAKE_ID)
     expect(mocks.markDraftsReady).toHaveBeenCalledWith(supabase, INTAKE_ID)
-    expect(mocks.attemptAutoApproval).toHaveBeenCalledWith(INTAKE_ID)
+    expect(mocks.attemptAutoApproval).not.toHaveBeenCalled()
+    expect(mocks.getFeatureFlags).not.toHaveBeenCalled()
   })
 
   it("queues draft retry work when post-payment draft generation fails", async () => {

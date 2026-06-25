@@ -6,12 +6,11 @@
  */
 
 import { motion } from "framer-motion"
-import { Check, Clock, Lock, MessageSquare, RefreshCw, ShieldCheck, Smartphone, UserX } from "lucide-react"
+import { Check, Clock, Lock, MessageSquare, Smartphone, UserX } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
 import { PaymentLogos } from "@/components/checkout/payment-logos"
-import { GuaranteeBadge } from "@/components/marketing/guarantee-badge"
 import { ExpressReviewToggle } from "@/components/request/shared/express-review-toggle"
 import { CheckoutButton } from "@/components/shared/checkout-button"
 import { TrustBadgeRow } from "@/components/shared/trust-badge"
@@ -22,7 +21,6 @@ import { getAttribution } from "@/lib/analytics/attribution"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { PRICING as APP_PRICING } from "@/lib/constants"
-import { GUARANTEE, GUARANTEE_LABEL } from "@/lib/marketing/voice"
 import { getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
 import { normalizeMedicationEntriesAnswer, stringAnswer } from "@/lib/request/intake-answer-normalizers"
 import { getActiveServerDraftSessionId } from "@/lib/request/server-draft"
@@ -30,28 +28,6 @@ import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 // getConsultSubtypePrice from @/lib/stripe/price-mapping available if needed
 import { useRequestStore } from "../store"
-
-// Prices sourced from lib/constants.ts (single source of truth)
-const PRICING: Record<UnifiedServiceType, { base: number; label: string }> = {
-  'med-cert': {
-    base: APP_PRICING.MED_CERT,
-    label: 'Medical Certificate'
-  },
-  'prescription': {
-    base: APP_PRICING.REPEAT_SCRIPT,
-    label: 'Prescription Request'
-  },
-  'repeat-script': {
-    base: APP_PRICING.REPEAT_SCRIPT,
-    label: 'Repeat Prescription'
-  },
-  'consult': {
-    base: APP_PRICING.CONSULT,
-    label: 'Doctor Consultation'
-  },
-}
-
-// Use CONSULT_SUBTYPE_DISPLAY_LABELS from display-helpers (single source of truth)
 
 function ReviewItem({ label, value }: { label: string; value: string }) {
   return (
@@ -84,31 +60,10 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
     posthog?.capture('checkout_viewed', { service_type: serviceType, consult_subtype: consultSubtype })
   }, [posthog, serviceType, consultSubtype])
 
-  const _pricing = PRICING[serviceType] || PRICING['med-cert']
-
   const price = getDisplayPrice(serviceType, answers)
   const displayLabel = getServiceDisplayLabel(serviceType, consultSubtype)
   const certTypeLabel = certType ? certType.charAt(0).toUpperCase() + certType.slice(1) : "Certificate"
   const durationLabel = duration ? `${duration} day${duration !== "1" ? "s" : ""}` : undefined
-  const checkoutTrustPoints = [
-    {
-      icon: ShieldCheck,
-      title: "Doctor review",
-      body: isMedCertCheckout
-        ? "An AHPRA-registered doctor reviews your request after payment."
-        : "An AHPRA-registered doctor reviews before any prescription or document is issued.",
-    },
-    {
-      icon: RefreshCw,
-      title: "Refund if declined",
-      body: GUARANTEE,
-    },
-    {
-      icon: Lock,
-      title: "Secure payment",
-      body: "Secure Stripe checkout with card and wallet payments.",
-    },
-  ]
 
   // Single consent controls both toggles
   const handleConsentChange = (checked: boolean) => {
@@ -222,7 +177,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
     // price-critical view — replaced with plain divs so the form
     // renders the instant React hydrates. The deliberate success
     // checkmark animation (further down) keeps its own motion wrapper.
-    <div className="space-y-5">
+    <div className="space-y-3.5 sm:space-y-4">
       {/* Guest badge - only for unauthenticated users */}
       {!authContext.isAuthenticated && (
         <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
@@ -231,24 +186,10 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
         </div>
       )}
 
-      {/* Regulator badges - pinned to the top of checkout so they stay visible
-          when the sticky footer is compressed on small viewports. */}
-      {!isMedCertCheckout && (
-        <div>
-        <TrustBadgeRow
-          badges={[
-            { id: "ahpra", variant: "styled" },
-            { id: "legitscript", variant: "styled" },
-          ]}
-          className="justify-center gap-3"
-        />
-        </div>
-      )}
-
       {/* Summary card */}
       <div
         className={`rounded-2xl border border-border/50 bg-white shadow-md shadow-primary/[0.06] dark:bg-card ${
-          isMedCertCheckout ? "space-y-2 p-3.5" : "space-y-3 p-4"
+          isMedCertCheckout ? "space-y-2.5 p-3.5" : "space-y-3 p-4"
         }`}
       >
         <h3 className="text-sm font-medium flex items-center gap-2">
@@ -320,33 +261,16 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
         </div>
       </div>
 
-      <div className="rounded-xl border border-success/20 bg-success/5 p-3.5 dark:border-success/30 dark:bg-success/10">
-        <div className="flex items-start gap-3">
-          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success/10 text-success">
-            <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-          </div>
-          <div className="min-w-0">
-            <h4 className="text-sm font-medium text-foreground">Before you pay</h4>
-            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-              {isMedCertCheckout
-                ? "Payment sends your request to the doctor. Approval is clinical, not automatic."
-                : "Payment sends your request for clinical review. The doctor may contact you before deciding."}
-            </p>
-          </div>
-        </div>
-        <div className="mt-3 grid gap-2 text-sm">
-          {checkoutTrustPoints.map(({ icon: Icon, title, body }) => (
-            <div key={title} className="flex items-start gap-2.5">
-              <Icon className="mt-0.5 h-4 w-4 shrink-0 text-success" aria-hidden="true" />
-              <div className="min-w-0">
-                <p className="font-medium text-foreground">{title}</p>
-                <p className="leading-relaxed text-muted-foreground">{body}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className="rounded-xl border border-border/50 bg-muted/20 px-3 py-2.5">
+        <TrustBadgeRow
+          badges={[
+            { id: "stripe", variant: "styled" },
+            "ahpra",
+            "refund",
+          ]}
+          className="justify-center gap-x-3 gap-y-1.5"
+        />
       </div>
-
 
       {/* What you'll get - prescription specific */}
       {(serviceType === 'prescription' || serviceType === 'repeat-script') && (
@@ -374,22 +298,19 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
 
       {/* Single combined consent - Checkbox (not Switch) for legal acknowledgment semantics */}
       <div ref={consentRef}>
-        <label
-          htmlFor="consent-checkbox"
-          className={`w-full p-3.5 rounded-xl border-2 text-left transition-[background-color,border-color] duration-200 flex items-start gap-3 cursor-pointer ${
+        <Checkbox
+          id="consent-checkbox"
+          checked={consentGiven}
+          onCheckedChange={(checked) => handleConsentChange(checked === true)}
+          className={`w-full max-w-none items-start rounded-xl border-2 p-3.5 text-left transition-[background-color,border-color,box-shadow] duration-200 ${
             consentGiven
-              ? "border-primary bg-primary/5"
-              : "border-border hover:border-primary/40"
+              ? "border-primary bg-primary/5 shadow-sm shadow-primary/[0.05]"
+              : "border-border bg-white hover:border-primary/40 dark:bg-card"
           }`}
+          boxClassName="mt-0.5 h-5 w-5 rounded-lg border-2"
+          aria-label="Agree to Terms of Service and Privacy Policy"
         >
-          <Checkbox
-            id="consent-checkbox"
-            checked={consentGiven}
-            onCheckedChange={(checked) => handleConsentChange(checked === true)}
-            className="mt-1 shrink-0"
-            aria-label="Agree to Terms of Service and Privacy Policy"
-          />
-          <span className="text-sm leading-relaxed">
+          <span className="block text-sm leading-relaxed text-foreground">
             By paying, I confirm the information I&apos;ve provided is accurate and I agree to the{' '}
             <a href="/terms" className="text-primary underline" target="_blank" onClick={(e) => e.stopPropagation()}>
               Terms of Service
@@ -399,23 +320,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
               Privacy Policy
             </a>
           </span>
-        </label>
-      </div>
-
-      {/* Inline trust strip */}
-      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1.5">
-          <ShieldCheck className="w-3 h-3 text-success" />
-          AHPRA-registered doctors
-        </span>
-        <span className="flex items-center gap-1.5">
-          <Lock className="w-3 h-3" />
-          Stripe secure
-        </span>
-        <span className="flex items-center gap-1.5">
-          <RefreshCw className="w-3 h-3" />
-          {GUARANTEE_LABEL}
-        </span>
+        </Checkbox>
       </div>
 
       {/* Error message */}
@@ -444,19 +349,11 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
       </div>
 
       {/* Spacer for sticky CTA on mobile */}
-      <div className="h-56 sm:hidden" />
+      <div className="h-36 sm:hidden" />
 
       {/* Checkout button - sticky on mobile, inline on desktop */}
       <div className="fixed bottom-0 left-0 right-0 z-30 bg-background border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:static sm:bg-transparent sm:border-0 sm:p-0 sm:z-auto">
-        <div className="max-w-lg mx-auto space-y-2">
-          {/* Refund guarantee pill - sits directly above the pay button. Shown
-              for every service incl. med-cert (highest volume, most price-
-              sensitive): the refund-on-decline promise is the strongest
-              objection-killer at the pay moment. */}
-          <div className="flex justify-center pb-1">
-            <GuaranteeBadge size="md" />
-          </div>
-
+        <div className="max-w-lg mx-auto space-y-1.5">
           {!canCheckout && (
             <p id="checkout-consent-hint" className="text-center text-xs text-warning" aria-live="polite">
               Tick the box above to pay
@@ -472,12 +369,12 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             price={`$${(price + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)).toFixed(2)}`}
             label="Pay"
             loadingLabel="Processing..."
-            variant="prominent"
+            variant="compact"
           />
 
           {/* Stripe + payment method logos - payment trust at the pay moment,
               shown for every service. */}
-          <div className="flex flex-col items-center justify-center gap-1.5 text-xs text-muted-foreground">
+          <div className="flex flex-col items-center justify-center gap-1 text-xs text-muted-foreground">
             <span className="flex items-center gap-1.5">
               <Lock className="h-3 w-3 shrink-0" aria-hidden="true" />
               Secure Stripe checkout. No subscription.

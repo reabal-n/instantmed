@@ -91,20 +91,6 @@ export async function startPostPaymentReviewWork({
       if (result.success && !("skipped" in result && result.skipped)) {
         const { markDraftsReady } = await import("@/lib/clinical/auto-approval-state")
         await markDraftsReady(supabase as never, intakeId)
-
-        try {
-          const { getFeatureFlags } = await import("@/lib/feature-flags")
-          const flags = await getFeatureFlags()
-          if (flags.auto_approve_delay_minutes === 0) {
-            const { attemptAutoApproval } = await import("@/lib/clinical/auto-approval-pipeline")
-            await attemptAutoApproval(intakeId)
-          }
-        } catch (autoErr) {
-          log.warn("Auto-approval error after payment", {
-            intakeId,
-            error: autoErr instanceof Error ? autoErr.message : String(autoErr),
-          })
-        }
       } else if (!result.success) {
         await queueDraftRetry(supabase, intakeId, result.error || "Unknown error")
       }

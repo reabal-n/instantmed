@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 
 import {
   ADMIN_AUDIT_HREF,
@@ -207,6 +207,13 @@ export interface RevalidatePatientOptions {
 }
 
 export function revalidatePatient(options: RevalidatePatientOptions = {}): void {
+  revalidateTag("patient-dashboard")
+  revalidateTag("patient-intakes")
+  if (options.patientId) {
+    revalidateTag(`patient-dashboard-${options.patientId}`)
+    revalidateTag(`patient-intakes-${options.patientId}`)
+  }
+
   revalidatePath(PATIENT_DASHBOARD_HREF)
   if (options.intakeId) {
     revalidatePath(buildPatientIntakeHref(options.intakeId))

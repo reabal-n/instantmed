@@ -18,7 +18,14 @@ vi.mock("@/lib/security/audit-log", () => ({
   logAuditEvent: vi.fn(),
 }))
 
-import { DEFAULT_FLAGS, resolveMaintenanceMode, updateFeatureFlag } from "@/lib/feature-flags"
+import {
+  DEFAULT_AUTO_APPROVE_DELAY_MINUTES,
+  DEFAULT_FLAGS,
+  MIN_AUTO_APPROVE_DELAY_MINUTES,
+  normalizeAutoApproveDelayMinutes,
+  resolveMaintenanceMode,
+  updateFeatureFlag,
+} from "@/lib/feature-flags"
 
 describe("feature flag update validation", () => {
   beforeEach(() => {
@@ -37,6 +44,21 @@ describe("feature flag update validation", () => {
 
     expect(result).toEqual({ success: false, error: "Invalid feature flag value" })
     expect(mocks.createClient).not.toHaveBeenCalled()
+  })
+
+  it("rejects immediate and sub-floor auto-approval delays before touching the database", async () => {
+    const immediate = await updateFeatureFlag("auto_approve_delay_minutes", 0, "admin-id")
+    const underFloor = await updateFeatureFlag("auto_approve_delay_minutes", MIN_AUTO_APPROVE_DELAY_MINUTES - 1, "admin-id")
+
+    expect(immediate).toEqual({ success: false, error: "Invalid feature flag value" })
+    expect(underFloor).toEqual({ success: false, error: "Invalid feature flag value" })
+    expect(mocks.createClient).not.toHaveBeenCalled()
+  })
+
+  it("normalizes persisted auto-approval delays to the production floor and default", () => {
+    expect(DEFAULT_FLAGS.auto_approve_delay_minutes).toBe(DEFAULT_AUTO_APPROVE_DELAY_MINUTES)
+    expect(normalizeAutoApproveDelayMinutes(0)).toBe(MIN_AUTO_APPROVE_DELAY_MINUTES)
+    expect(normalizeAutoApproveDelayMinutes(null)).toBe(DEFAULT_AUTO_APPROVE_DELAY_MINUTES)
   })
 
   it("rejects retired placeholder flags instead of exposing no-op admin toggles", async () => {

@@ -10,6 +10,7 @@ import { logAuditEvent } from "@/lib/security/audit-log"
 // Re-export types and constants from shared module (for backward compatibility)
 export type { FeatureFlags,FlagKey } from "@/lib/data/types/feature-flags"
 export {
+  DEFAULT_AUTO_APPROVE_DELAY_MINUTES,
   DEFAULT_FLAGS,
   DEFAULT_SAFETY_SYMPTOMS,
   FLAG_KEYS,
@@ -18,6 +19,9 @@ export {
   isNumberFlag,
   isServiceKillSwitch,
   isStringFlag,
+  MAX_AUTO_APPROVE_DELAY_MINUTES,
+  MIN_AUTO_APPROVE_DELAY_MINUTES,
+  normalizeAutoApproveDelayMinutes,
 } from "@/lib/data/types/feature-flags"
 
 import type { FeatureFlags, FlagKey } from "@/lib/data/types/feature-flags"
@@ -28,6 +32,9 @@ import {
   isArrayFlag,
   isNumberFlag,
   isStringFlag,
+  MAX_AUTO_APPROVE_DELAY_MINUTES,
+  MIN_AUTO_APPROVE_DELAY_MINUTES,
+  normalizeAutoApproveDelayMinutes,
 } from "@/lib/data/types/feature-flags"
 
 const logger = createLogger("feature-flags")
@@ -72,7 +79,7 @@ function isValidFlagValue(key: FlagKey, value: boolean | string | string[] | num
       return isValidInteger(value, 1, 10_000)
     }
     if (key === FLAG_KEYS.AUTO_APPROVE_DELAY_MINUTES) {
-      return isValidInteger(value, 0, 60)
+      return isValidInteger(value, MIN_AUTO_APPROVE_DELAY_MINUTES, MAX_AUTO_APPROVE_DELAY_MINUTES)
     }
     if (key === FLAG_KEYS.AUTO_APPROVE_RATE_LIMIT_5MIN) {
       return isValidInteger(value, 1, 100)
@@ -157,7 +164,7 @@ async function fetchFlagsFromDB(): Promise<FeatureFlags> {
       } else if (row.key === FLAG_KEYS.AI_AUTO_APPROVE_ENABLED) {
         flags.ai_auto_approve_enabled = row.value === true
       } else if (row.key === FLAG_KEYS.AUTO_APPROVE_DELAY_MINUTES) {
-        flags.auto_approve_delay_minutes = typeof row.value === "number" ? row.value : 2
+        flags.auto_approve_delay_minutes = normalizeAutoApproveDelayMinutes(row.value)
       } else if (row.key === FLAG_KEYS.AUTO_APPROVE_RATE_LIMIT_5MIN) {
         flags.auto_approve_rate_limit_5min = typeof row.value === "number" ? row.value : 10
       } else if (row.key === FLAG_KEYS.AUTO_APPROVE_DAILY_CAP) {
