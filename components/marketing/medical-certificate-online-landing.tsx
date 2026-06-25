@@ -173,6 +173,11 @@ const INTERNAL_LINKS = [
     body: "A common reason for short work absence when movement or duties are affected.",
   },
   {
+    title: "Mental health online",
+    href: "/mental-health-online",
+    body: "Crisis boundaries, GP pathways, privacy, and short certificate review for mental health absences.",
+  },
+  {
     title: "Chest pain",
     href: "/symptoms/chest-pain",
     body: "Chest pain is not a routine certificate request. Check urgent-care boundaries first.",

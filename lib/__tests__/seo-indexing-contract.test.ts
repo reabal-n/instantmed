@@ -159,6 +159,7 @@ describe("SEO indexing contracts", () => {
       "/online-prescriptions",
       "/mens-health",
       "/erectile-dysfunction",
+      "/mental-health-online",
       "/weight-loss-online",
       "/hair-loss",
       "/womens-health",

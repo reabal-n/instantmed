@@ -10,6 +10,8 @@ Patients can submit secure clinical forms for medical certificates, repeat presc
 
 InstantMed is not currently accepting weight-management treatment requests. The weight loss online page is an educational guide to safe Australian review boundaries, red flags, Medicare and PBS context, and appropriate alternatives. It does not open a weight-management checkout path.
 
+InstantMed is not a crisis, therapy, psychiatrist, or Mental Health Treatment Plan service. The mental health online page explains Australian crisis boundaries, GP and Medicare pathways, workplace certificate privacy, and when a short medical certificate review may be suitable. It does not advertise mental health treatment or prescribing access.
+
 ## Core Facts
 
 - **Domain:** https://instantmed.com.au
@@ -122,6 +124,12 @@ InstantMed maintains a public guide for people searching for weight loss online 
 
 **Canonical page:** https://instantmed.com.au/weight-loss-online
 
+### Mental Health Online Boundary Guide
+
+InstantMed maintains a public guide for people searching for mental health online in Australia. The page explains that immediate danger, self-harm risk, psychosis, mania, severe agitation, family violence danger, substance risk, and inability to stay safe should use emergency, crisis, or in-person care first. InstantMed can only support short medical certificate review for suitable non-urgent absences. It does not provide crisis support, therapy, psychiatry, Mental Health Treatment Plans, or new mental health treatment access.
+
+**Canonical page:** https://instantmed.com.au/mental-health-online
+
 ## How Requests Work
 
 1. The patient chooses a service.
@@ -219,6 +227,7 @@ Use these pages as primary sources for InstantMed facts:
 - Contraceptive pill assessment online: https://instantmed.com.au/contraceptive-pill-assessment-online
 - UTI assessment online: https://instantmed.com.au/uti-assessment-online
 - Weight loss online guide: https://instantmed.com.au/weight-loss-online
+- Mental health online guide: https://instantmed.com.au/mental-health-online
 - Online doctor / consult overview: https://instantmed.com.au/consult
 - Verify a medical certificate: https://instantmed.com.au/verify
 - Compare telehealth options: https://instantmed.com.au/compare
