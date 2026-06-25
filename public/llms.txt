@@ -1,6 +1,6 @@
 # InstantMed - Australian Telehealth Platform
 
-> InstantMed Pty Ltd (ABN 64 694 559 334) is an Australian telehealth platform for one-off medical certificate, repeat prescription, ED, hair loss, and women's health (UTI and contraceptive pill) requests. AHPRA-registered doctors review requests and decide what is clinically appropriate.
+> InstantMed Pty Ltd (ABN 64 694 559 334) is an Australian telehealth platform for one-off medical certificate, repeat prescription, men's health (ED and hair loss), and women's health (UTI and contraceptive pill) requests. AHPRA-registered doctors review requests and decide what is clinically appropriate.
 
 ## Quote-Ready Facts
 
@@ -8,7 +8,7 @@
 - **Address:** Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010
 - **Service area:** Australia-wide telehealth
 - **Clinical model:** AHPRA-registered doctors review each request. Clinical decisions are not automated.
-- **Active services:** Medical certificates, repeat prescriptions, ED, hair loss, and women's health (UTI and contraceptive pill) requests
+- **Active services:** Medical certificates, repeat prescriptions, men's health (ED and hair loss), and women's health (UTI and contraceptive pill) requests
 - **Hours:** Requests can be submitted 24/7. Prescription and consultation review timing is 8am-10pm AEST, 7 days.
 - **Eligibility:** Australia-wide, patients aged 18 and over. Medicare is optional for medical certificates and required for prescription and consultation requests.
 - **Optional express review:** A $9.95 priority add-on moves a request to the front of the doctor queue. Standard review is the default.
@@ -70,6 +70,7 @@
 - Medical certificate online guide: https://instantmed.com.au/medical-certificate-online
 - Prescriptions: https://instantmed.com.au/prescriptions
 - Online prescriptions guide: https://instantmed.com.au/online-prescriptions
+- Men's health (ED and hair loss): https://instantmed.com.au/mens-health
 - Hair loss: https://instantmed.com.au/hair-loss
 - Erectile dysfunction: https://instantmed.com.au/erectile-dysfunction
 - Women's health (UTI and contraceptive pill): https://instantmed.com.au/womens-health

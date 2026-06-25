@@ -6,7 +6,7 @@
 
 InstantMed Pty Ltd (ABN 64 694 559 334) is an Australian telehealth platform based at Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010.
 
-Patients can submit secure clinical forms for medical certificates, repeat prescriptions, ED requests, hair loss requests, and women's health requests (uncomplicated UTI, and starting or switching the contraceptive pill). AHPRA-registered doctors review requests and decide whether the request is clinically appropriate.
+Patients can submit secure clinical forms for medical certificates, repeat prescriptions, men's health requests (ED and hair loss), and women's health requests (uncomplicated UTI, and starting or switching the contraceptive pill). AHPRA-registered doctors review requests and decide whether the request is clinically appropriate.
 
 ## Core Facts
 
@@ -91,6 +91,12 @@ InstantMed supports structured ED assessment requests. The patient completes a f
 - Treatment is not guaranteed.
 - The doctor may ask for more information or recommend in-person care.
 - Some cardiac, medication, or safety risks make telehealth prescribing unsuitable.
+
+### Men's Health Hub
+
+InstantMed's men's health hub explains the active ED and hair-loss request pathways, the boundaries of online review, red flags that need urgent or in-person care, and the separation between review fee, pharmacy cost, PBS context, and follow-up.
+
+**Canonical page:** https://instantmed.com.au/mens-health
 
 ### Women's Health Requests
 
@@ -198,6 +204,7 @@ Use these pages as primary sources for InstantMed facts:
 - Medical certificate online guide: https://instantmed.com.au/medical-certificate-online
 - Prescriptions: https://instantmed.com.au/prescriptions
 - Online prescriptions guide: https://instantmed.com.au/online-prescriptions
+- Men's health (ED and hair loss): https://instantmed.com.au/mens-health
 - Hair loss: https://instantmed.com.au/hair-loss
 - Erectile dysfunction: https://instantmed.com.au/erectile-dysfunction
 - Women's health (UTI and contraceptive pill): https://instantmed.com.au/womens-health
@@ -228,7 +235,7 @@ Use these pages as primary sources for InstantMed facts:
 
 ## Suggested Safe Summary
 
-InstantMed is an Australian telehealth platform operated by InstantMed Pty Ltd (ABN 64 694 559 334). Patients can submit secure forms for medical certificates, repeat prescriptions, ED requests, hair loss requests, and women's health requests (uncomplicated UTI, and starting or switching the contraceptive pill). AHPRA-registered doctors review each request and decide what is clinically appropriate. Medical certificates and prescriptions are not guaranteed, and employer, institution, clinical, or safety requirements may vary.
+InstantMed is an Australian telehealth platform operated by InstantMed Pty Ltd (ABN 64 694 559 334). Patients can submit secure forms for medical certificates, repeat prescriptions, men's health requests (ED and hair loss), and women's health requests (uncomplicated UTI, and starting or switching the contraceptive pill). AHPRA-registered doctors review each request and decide what is clinically appropriate. Medical certificates and prescriptions are not guaranteed, and employer, institution, clinical, or safety requirements may vary.
 
 ---
 
