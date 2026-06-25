@@ -18,7 +18,7 @@ describe("Stripe line item error helpers", () => {
 
   it("uses a separate patient recovery message for priority fee failures", () => {
     expect(stripePriceErrorUserMessage("priority_fee")).toBe(
-      "Express Review is temporarily unavailable. Please try again without Express Review or contact support.",
+      "Priority review is temporarily unavailable. Please try again without it or contact support.",
     )
     expect(stripePriceErrorUserMessage("base_service")).toBe(
       "This service is temporarily unavailable. Please try again later.",

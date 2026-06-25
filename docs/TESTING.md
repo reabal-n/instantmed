@@ -172,6 +172,8 @@ Critical paths only — every flow that touches money, auth, or clinical data:
 | Patient portal | Dashboard, intake detail, prescription history |
 | Staff cockpit | Admin/doctor operator pages stay compact, navigable, and visually stable at desktop staff viewport |
 
+The med-cert auto-approval E2E contract uses `/api/test/medcert-immediate-auto-approve` to bypass the production retry-cron delay. That route is test-only, requires `PLAYWRIGHT=1` + `E2E_SECRET`, and must not be treated as the production approval timing path.
+
 ### What NOT to E2E Test
 
 - Marketing pages (no auth, no data — snapshot test if needed)

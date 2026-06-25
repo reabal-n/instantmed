@@ -190,7 +190,7 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
         : {}),
     }
 
-    // Preserve the Express Review ($9.95) add-on on retry. Without re-appending
+    // Preserve the Priority review ($9.95) add-on on retry. Without re-appending
     // it the patient silently loses the priority fee AND the queue priority they
     // paid for; the webhook reconciles amount_cents from session.amount_total so
     // the charge stays correct.

@@ -292,10 +292,10 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
         paid_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         // Reconcile the stored amount to what Stripe actually charged. Referral
-        // credits apply as a coupon and the Express fee adds a line item, so the
+        // credits apply as a coupon and the Priority fee adds a line item, so the
         // list price seeded at checkout differs from amount_total. Refunds are
         // computed from this column — storing the list price made coupon refunds
-        // exceed the charge and Express refunds short by $9.95.
+        // exceed the charge and Priority review refunds short by $9.95.
         amount_cents: session.amount_total,
         // Store Stripe identifiers for refund traceability
         stripe_payment_intent_id: paymentIntentId,

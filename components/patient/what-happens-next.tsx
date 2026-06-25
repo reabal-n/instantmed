@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   ChevronDown,
   HelpCircle,
-  Share2,
   Users,
 } from "lucide-react"
 import Link from "next/link"
@@ -106,7 +105,7 @@ export function WhatHappensNext({
     <>
       {showConfetti && <Confetti trigger={confettiTrigger} options={CONFETTI_OPTIONS} />}
 
-      <div className="max-w-lg mx-auto space-y-6">
+      <div className="max-w-lg mx-auto space-y-4">
         {/* Success header */}
         <motion.div
           initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
@@ -125,13 +124,13 @@ export function WhatHappensNext({
           <h1 className="text-2xl font-semibold tracking-tight mb-2">Request submitted</h1>
           <p className="text-muted-foreground">
             {isMedCert
-              ? "Your certificate request has been received. Check your email shortly."
+              ? "Your certificate request has been received. We'll email it if approved."
               : serviceName
                 ? `Your ${serviceName.toLowerCase()} request is being reviewed by our doctors.`
                 : "Your request is being reviewed by our doctors."}
           </p>
           <p className="text-xs text-muted-foreground mt-2">
-            Check your junk or spam folder if you don't see our email within a few minutes.
+            Check your junk or spam folder if you don't see the email later.
           </p>
 
           {/* Reassurance badge — live-status pulse (docs/BRAND.md §6.1). */}
@@ -162,11 +161,31 @@ export function WhatHappensNext({
           </p>
         </motion.div>
 
-        {/* Live status tracker */}
+        {/* Primary actions */}
         <motion.div
           initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: prefersReducedMotion ? 0 : 0.3 }}
+          className="space-y-2"
+        >
+          <Button asChild size="lg" className="w-full">
+            <Link href={buildPatientIntakeHref(intakeId)}>
+              View request details
+            </Link>
+          </Button>
+
+          <Button asChild variant="outline" size="lg" className="w-full">
+            <Link href={PATIENT_DASHBOARD_HREF}>
+              Go to dashboard
+            </Link>
+          </Button>
+        </motion.div>
+
+        {/* Live status tracker */}
+        <motion.div
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: prefersReducedMotion ? 0 : 0.35 }}
         >
           <IntakeStatusTracker
             intakeId={intakeId}
@@ -181,7 +200,7 @@ export function WhatHappensNext({
           <motion.div
             initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: prefersReducedMotion ? 0 : 0.45 }}
+            transition={{ delay: prefersReducedMotion ? 0 : 0.4 }}
           >
             <div className="flex items-center gap-3 p-4 rounded-xl bg-primary/5 border border-primary/10">
               <div className="shrink-0 h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -205,43 +224,11 @@ export function WhatHappensNext({
           </motion.div>
         )}
 
-        {/* Referral prompt - highest-intent moment */}
-        <motion.div
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: prefersReducedMotion ? 0 : 0.5 }}
-        >
-          <div className="p-4 rounded-xl bg-primary/[0.04] dark:bg-primary/[0.08] border border-border/50 dark:border-white/15">
-            <div className="flex items-start gap-3">
-              <div className="shrink-0 h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Share2 className="h-4 w-4 text-primary" />
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-sm">Know someone who needs this?</p>
-                <p className="text-xs text-muted-foreground mt-0.5 mb-3">
-                  Share your referral link from your dashboard and you both get $5 credit
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  asChild
-                  className="gap-2"
-                >
-                  <Link href={PATIENT_DASHBOARD_HREF}>
-                    <Share2 className="w-3.5 h-3.5" />
-                    Get your referral link
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
         {/* FAQ accordion */}
         <motion.div
           initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: prefersReducedMotion ? 0 : 0.55 }}
+          transition={{ delay: prefersReducedMotion ? 0 : 0.45 }}
         >
           <Card className="overflow-hidden">
             <button
@@ -277,14 +264,9 @@ export function WhatHappensNext({
                       />
                     </button>
                     {expandedFaq === index && (
-                      <motion.div
-                        initial={prefersReducedMotion ? {} : { opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={prefersReducedMotion ? undefined : { opacity: 0, height: 0 }}
-                        className="px-4 pb-4"
-                      >
+                      <div className="px-4 pb-4">
                         <p className="text-sm text-muted-foreground">{item.answer}</p>
-                      </motion.div>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -293,31 +275,11 @@ export function WhatHappensNext({
           </Card>
         </motion.div>
 
-        {/* Action buttons */}
-        <motion.div
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: prefersReducedMotion ? 0 : 0.65 }}
-          className="space-y-3"
-        >
-          <Button asChild size="lg" className="w-full">
-            <Link href={buildPatientIntakeHref(intakeId)}>
-              View request details
-            </Link>
-          </Button>
-          
-          <Button asChild variant="outline" size="lg" className="w-full">
-            <Link href={PATIENT_DASHBOARD_HREF}>
-              Go to dashboard
-            </Link>
-          </Button>
-        </motion.div>
-
         {/* Support footer */}
         <motion.p
           initial={prefersReducedMotion ? {} : { opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: prefersReducedMotion ? 0 : 0.75 }}
+          transition={{ delay: prefersReducedMotion ? 0 : 0.55 }}
           className="text-center text-xs text-muted-foreground"
         >
           Questions?{" "}

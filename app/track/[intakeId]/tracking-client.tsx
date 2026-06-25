@@ -93,20 +93,18 @@ function getTimelineSteps(intake: Intake): TimelineStep[] {
 
 /**
  * Time-based sub-message rotating during the paid→in_review wait.
- * Purpose: the 5-minute auto-approval delay is intentional - patients who
- * see "nothing happening" for 5 minutes suspect the service is broken.
- * Rotating clinical-sounding copy gives the perception that a doctor is
- * actually reviewing the case in real time.
+ * Purpose: auto-approval has a real 10+ minute production floor. Keep the wait
+ * state calm without implying a doctor is already actively reviewing.
  */
 function getProgressMessage(paidAtIso: string | null): string {
   if (!paidAtIso) return "Connecting you with an available doctor..."
   const elapsedMs = Date.now() - new Date(paidAtIso).getTime()
   const elapsedSec = Math.max(0, elapsedMs / 1000)
   if (elapsedSec < 45) return "Connecting you with an available doctor..."
-  if (elapsedSec < 120) return "Doctor is reviewing your answers..."
-  if (elapsedSec < 210) return "Cross-checking your medical history..."
-  if (elapsedSec < 270) return "Finalising your certificate..."
-  return "Preparing to send your document..."
+  if (elapsedSec < 120) return "Your request is in the review queue..."
+  if (elapsedSec < 300) return "A doctor will review the clinical details..."
+  if (elapsedSec < 600) return "We'll email you as soon as a decision is ready..."
+  return "Still reviewing. Some requests take longer depending on clinical details."
 }
 
 export function TrackingClient({
@@ -265,10 +263,7 @@ export function TrackingClient({
               <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
                 <div className="flex items-center gap-1.5">
                   <Clock className="w-3 h-3" />
-                  <span>
-                    Usually delivered within{" "}
-                    {intake.is_priority ? "a few minutes" : "5 minutes"}
-                  </span>
+                  <span>Review timing varies by clinical demand</span>
                 </div>
                 {queuePosition > 0 && intake.status === "paid" && (
                   <span>
@@ -277,7 +272,7 @@ export function TrackingClient({
                 )}
               </div>
               {intake.is_priority && (
-                <p className="text-xs text-warning mt-2">Priority review - fast-tracked</p>
+                <p className="text-xs text-warning mt-2">Priority review - queued ahead of standard requests</p>
               )}
             </div>
           )}

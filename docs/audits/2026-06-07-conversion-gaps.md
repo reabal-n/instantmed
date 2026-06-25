@@ -82,7 +82,7 @@ Items 5, 6, and 9 collapse into the shared-helper rollout (Section 2) once it la
 - POST-2 (pollingError branch strands paid patient, P2), POST-4 (`/confirmed` asserts "payment successful" without checking payment_status, P2).
 - REV-1 (consult double-fires `checkout_viewed`, P1 data-integrity — corrupts consult's reached-checkout denominator; one-line guard `if (isPrescriptionCheckout)` at `review-step.tsx:152-157`). Ship this with POST-3/POST-5 as a measurement-hygiene batch.
 - BLOCK-1/BLOCK-2 (global single-bucket capacity cap throttles med-cert; hard dead-end with no waitlist) — latent, cap defaults off; fix before arming the cap.
-- CKO-4 ($9.95 Express Review dropped on retry), CKO-5 (dormant new-Rx mispricing), GAP-2/GAP-6/GAP-7 (guest resume link, pre-pay identity wall, mistyped-Medicare recovery), RCV-5 (session-expired resume dumps to service hub).
+- CKO-4 ($9.95 Priority Review dropped on retry), CKO-5 (dormant new-Rx mispricing), GAP-2/GAP-6/GAP-7 (guest resume link, pre-pay identity wall, mistyped-Medicare recovery), RCV-5 (session-expired resume dumps to service hub).
 
 ---
 

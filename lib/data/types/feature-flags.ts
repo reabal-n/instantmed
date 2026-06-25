@@ -213,7 +213,7 @@ export function getFlagInfo(key: FlagKey): { label: string; description: string 
     },
     ai_auto_approve_enabled: {
       label: "AI Auto-Approve Med Certs",
-      description: "Automatically approve eligible medical certificates (1-3 day, no flags) within minutes of payment. Doctor batch review still applies.",
+      description: "Automatically approve eligible medical certificates (1-3 day, no flags) after the configured post-payment delay. Doctor batch review still applies.",
     },
     auto_approve_delay_minutes: {
       label: "Auto-Approve Delay (minutes)",

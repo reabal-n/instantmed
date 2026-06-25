@@ -64,7 +64,7 @@ Severity scale: P0 (blocks ship), P1 (should fix before launch), P2 (post-launch
 
 **P2-1: `data-testid` attributes are absent across `app/patient/`.** All patient-portal E2E tests rely on text matchers (`getByRole`, `getByText`). This is fine until the day a copy sweep changes "Continue" to "Next" and 30 tests fail in unexpected places. Add `data-testid` on the dashboard hero CTA, the intake card, the prescriptions list item, and the settings tab triggers. Cheap, durable, future-proofs the tests against copy iteration.
 
-**P2-2: Dashboard hero does not show priority/express-review state.** When a patient paid for the priority fee ($9.95 / `is_priority`), the patient-facing dashboard does not surface that on the intake card. They paid for visibility into their priority status; show it.
+**P2-2: Dashboard hero does not show priority-review state.** When a patient paid for the priority fee ($9.95 / `is_priority`), the patient-facing dashboard does not surface that on the intake card. They paid for visibility into their priority status; show it.
 
 **P2-3: Onboarding completion ribbon could anchor more aggressively.** The "X/N ready" badge in settings is correct but quiet. On a fresh account where Medicare and address are both missing, the dashboard hero already prompts for them via `<ProfileTodoCard>`. The ribbon could become a sticky bar at the top of the dashboard instead of living inside settings, until completion = 100%. Pair with `/clarify` to nail the copy.
 

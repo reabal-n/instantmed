@@ -559,10 +559,10 @@ describe("Stripe webhook payment state transitions", () => {
   })
 
   // Regression: refunds were computed from intakes.amount_cents (the list price),
-  // but referral credits apply as a Stripe coupon and the Express fee adds a line
+  // but referral credits apply as a Stripe coupon and the Priority fee adds a line
   // item, so the true charge (session.amount_total) differs. Storing the list
   // price made manual refunds exceed the charge for coupon customers ("Refund
-  // amount > charge amount") and under-refund Express customers by $9.95. The
+  // amount > charge amount") and under-refund Priority customers by $9.95. The
   // paid transition must reconcile amount_cents to the real amount charged.
   it("reconciles amount_cents to the true Stripe amount_total on the completed paid transition", async () => {
     const { intakeId, supabase, updates } = createPaymentSuccessSupabaseMock()
@@ -595,7 +595,7 @@ describe("Stripe webhook payment state transitions", () => {
   it("reconciles amount_cents to the true Stripe amount_total on the async paid transition", async () => {
     const { intakeId, supabase, updates } = createPaymentSuccessSupabaseMock()
 
-    // Express add-on: base $19.95 + $9.95 priority fee -> customer charged $29.90.
+    // Priority add-on: base price + $9.95 priority fee -> customer charged $29.90.
     await handleAsyncPaymentSucceeded({
       event: makeEvent("checkout.session.async_payment_succeeded", {
         amount_total: 2990,

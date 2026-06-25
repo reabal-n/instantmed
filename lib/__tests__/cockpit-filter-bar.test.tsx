@@ -48,14 +48,14 @@ describe("DensityToggle", () => {
 describe("QuickFilterChip", () => {
   it("renders the label", () => {
     const html = render(
-      <QuickFilterChip label="Express" active={false} onClick={() => {}} />,
+      <QuickFilterChip label="Priority" active={false} onClick={() => {}} />,
     )
-    expect(html).toContain("Express")
+    expect(html).toContain("Priority")
   })
 
   it("uses primary tint when active", () => {
     const html = render(
-      <QuickFilterChip label="Express" active onClick={() => {}} />,
+      <QuickFilterChip label="Priority" active onClick={() => {}} />,
     )
     expect(html).toContain("bg-primary/10")
     expect(html).toContain('aria-pressed="true"')
@@ -63,10 +63,10 @@ describe("QuickFilterChip", () => {
 
   it("never uses brand coral", () => {
     const active = render(
-      <QuickFilterChip label="Express" active onClick={() => {}} />,
+      <QuickFilterChip label="Priority" active onClick={() => {}} />,
     )
     const inactive = render(
-      <QuickFilterChip label="Express" active={false} onClick={() => {}} />,
+      <QuickFilterChip label="Priority" active={false} onClick={() => {}} />,
     )
     expect(active).not.toMatch(/brand-coral|coral/)
     expect(inactive).not.toMatch(/brand-coral|coral/)
@@ -107,12 +107,12 @@ describe("FilterBar", () => {
         density="comfortable"
         onDensityChange={() => {}}
         quickFilters={[
-          { id: "express", label: "Express" },
+          { id: "express", label: "Priority" },
           { id: "stale", label: "Stale > 4h" },
         ]}
       />,
     )
-    expect(html).toContain("Express")
+    expect(html).toContain("Priority")
     expect(html).toContain("Stale &gt; 4h")
   })
 

@@ -168,11 +168,11 @@ export function CaseRow({
         {row.isPriority ? (
           <span
             className="inline-flex h-5 items-center gap-1 rounded-full bg-amber-100 px-1.5 text-[10px] font-medium text-amber-700"
-            aria-label="Express priority"
-            title="Express priority"
+            aria-label="Priority review"
+            title="Priority review"
           >
             <Bolt className="h-3 w-3" aria-hidden="true" />
-            Express
+            Priority
           </span>
         ) : null}
         {row.refundIndicator ? (

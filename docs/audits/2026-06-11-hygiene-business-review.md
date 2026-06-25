@@ -11,7 +11,7 @@
 
 ## 1. P0 — operator action required (5 minutes)
 
-### Express Review fee has never been collected; the env var is the last unknown
+### Priority Review fee has never been collected; the env var is the last unknown
 - **History (all verified):** `STRIPE_PRICE_PRIORITY_FEE` in prod carried a trailing newline → Stripe rejected it → **3 checkouts died** (Apr 6 ×2, May 15) with `No such price: 'price_1TIezCEQlW1XRiLn7kexFfUP\n'`. Code-side trim fix shipped 2026-05-15 (`c7b771adc`, `normalizeStripePriceId`). But the Jun 6–7 priority orders charged **base only** — the var was evidently absent from prod in that window (`checkout.ts:158` falls back to base + error log). PostHog 60d: 27 Express opt-ins → 2 paid, **$0 in fees ever**.
 - **Current state:** the var was re-created in Vercel Production **~17:30 AEST Jun 11** (9h before review) as Encrypted/sensitive — the exact mode where CLI 54.x silently stored EMPTY values before (documented gotcha). The price ID itself is **valid live** (`pnpm check:integrations` validates it as `one_time`). I was permission-blocked from overwriting prod env autonomously.
 - **Your one-liner (or approve me to run it):**

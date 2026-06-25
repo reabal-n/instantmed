@@ -159,7 +159,7 @@ export async function createIntakeAndCheckoutAction(
         category: input.category,
         subtype: input.subtype,
       })
-      return { success: false, error: "Express Review is temporarily unavailable. Please try again without Express Review or contact support." }
+      return { success: false, error: "Priority review is temporarily unavailable. Please try again without it or contact support." }
     }
     const attribution = normalizeAttributionForStorage(resolvedAttribution)
 

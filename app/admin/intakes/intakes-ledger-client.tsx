@@ -57,7 +57,7 @@ type AdminIntakesLedgerClientProps = {
 }
 
 const QUICK_FILTERS: QuickFilter[] = [
-  { id: "express", label: "Express" },
+  { id: "express", label: "Priority" },
   { id: "stale", label: "Stale > 4h" },
   { id: "awaiting_script", label: "Awaiting script" },
   { id: "failed_payment", label: "Failed payment" },

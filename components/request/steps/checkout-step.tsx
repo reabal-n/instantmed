@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from "react"
 
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
 import { PaymentLogos } from "@/components/checkout/payment-logos"
-import { ExpressReviewToggle } from "@/components/request/shared/express-review-toggle"
+import { PriorityReviewToggle } from "@/components/request/shared/priority-review-toggle"
 import { CheckoutButton } from "@/components/shared/checkout-button"
 import { TrustBadgeRow } from "@/components/shared/trust-badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -46,7 +46,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
   const [error, setError] = useState<string | null>(null)
   const [showCheckmark, setShowCheckmark] = useState(false)
   const [consentGiven, setConsentGiven] = useState(false)
-  // Express Review defaults OFF - patient opts in consciously
+  // Priority review defaults OFF - patient opts in consciously
   const [isPriority, setIsPriority] = useState(false)
   const consentRef = useRef<HTMLDivElement>(null)
 
@@ -168,7 +168,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
 
   return (
     // Phase 4b prod hotfix (2026-05-12): the Pay step used to wrap the
-    // summary card / Express Review / consent rows in framer-motion
+    // summary card / priority review / consent rows in framer-motion
     // `stagger.item` variants with `initial="initial"`. On cold loads
     // where the framer-motion stagger animation booted slowly, the
     // entire content stayed at opacity:0 for several seconds, leaving
@@ -231,7 +231,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
           </div>
           {isPriority && (
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Express Review</span>
+              <span className="text-muted-foreground">Priority review</span>
               <span className="font-medium">${APP_PRICING.PRIORITY_FEE.toFixed(2)}</span>
             </div>
           )}
@@ -250,12 +250,12 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             One-time fee. No subscription.
           </p>
           <div className="border-t border-border/40 pt-2.5">
-            <ExpressReviewToggle
-              id="express-review-toggle"
+            <PriorityReviewToggle
+              id="priority-review-toggle"
               checked={isPriority}
               onCheckedChange={setIsPriority}
-              onOptIn={() => posthog?.capture('express_review_opted_in', { service_type: serviceType })}
-              onOptOut={() => posthog?.capture('express_review_opted_out', { service_type: serviceType })}
+              onOptIn={() => posthog?.capture('priority_review_opted_in', { service_type: serviceType })}
+              onOptOut={() => posthog?.capture('priority_review_opted_out', { service_type: serviceType })}
             />
           </div>
         </div>

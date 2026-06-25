@@ -125,10 +125,14 @@ describe("medical certificate checkout contract", () => {
       "utf8",
     )
 
-    expect(checkoutStepSource).toContain("Before you pay")
-    expect(checkoutStepSource).toContain("Approval is clinical, not automatic")
+    expect(checkoutStepSource).toContain("TrustBadgeRow")
+    expect(checkoutStepSource).toContain('{ id: "stripe", variant: "styled" }')
+    expect(checkoutStepSource).toContain('"ahpra"')
+    expect(checkoutStepSource).toContain('"refund"')
     expect(checkoutStepSource).toContain("Secure Stripe checkout. No subscription.")
-    expect(checkoutStepSource).toContain("GUARANTEE")
+    expect(checkoutStepSource).not.toContain("Before you pay")
+    expect(checkoutStepSource).not.toContain("LegitScriptSeal")
+    expect(checkoutStepSource).not.toContain("GoogleAdsCert")
     expect(checkoutStepSource).not.toContain("guaranteed approval")
     expect(checkoutStepSource).not.toContain("No account required - pay as a guest")
   })

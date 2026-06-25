@@ -8,6 +8,15 @@ import { isAllowedDevOnlyRequest } from "@/lib/dev-only-routes"
 import { startPostPaymentReviewWork } from "@/lib/stripe/post-payment"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
+/**
+ * E2E-only immediate auto-approval harness.
+ *
+ * Production auto-approval is delayed by the configured retry-auto-approval cron
+ * gate. This route intentionally bypasses that wait so the paid med-cert
+ * pipeline test can deterministically verify draft sync, approval, PDF storage,
+ * and outbox logging in one test run.
+ */
+
 const PayloadSchema = z.object({
   intakeId: z.string().uuid(),
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -112,6 +121,8 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json({
+    mode: "e2e_immediate_auto_approval",
+    productionDelayBypassed: true,
     success: intake?.status === "approved" && intake.ai_approved === true,
     status: intake?.status,
     autoApprovalState: intake?.auto_approval_state,

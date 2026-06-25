@@ -20,7 +20,7 @@ export function inferStripeLineItemFailureRole(
 
 export function stripePriceErrorUserMessage(role: StripeLineItemFailureRole): string {
   if (role === "priority_fee") {
-    return "Express Review is temporarily unavailable. Please try again without Express Review or contact support."
+    return "Priority review is temporarily unavailable. Please try again without it or contact support."
   }
 
   return "This service is temporarily unavailable. Please try again later."

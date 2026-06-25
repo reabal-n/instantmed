@@ -72,7 +72,7 @@ const guaranteeFaqs = [
   },
   {
     question: "What about the priority fee?",
-    answer: `The ${PRICING_DISPLAY.PRIORITY_FEE} Express Review fee is fully refunded alongside the consult fee whenever the guarantee triggers.`,
+    answer: `The ${PRICING_DISPLAY.PRIORITY_FEE} Priority review fee is fully refunded alongside the request fee whenever the guarantee triggers.`,
   },
   {
     question: "Does the guarantee apply if I change my mind?",

@@ -5,24 +5,20 @@
  * Shows all collected information for patient to verify
  */
 
-import { Check, ChevronDown, ChevronUp, CreditCard, Edit2, Loader2, Lock, RefreshCw,ShieldCheck } from "lucide-react"
+import { Check, ChevronDown, ChevronUp, CreditCard, Edit2, Loader2 } from "lucide-react"
 import { useEffect, useRef,useState } from "react"
 
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
-import { PaymentLogos } from "@/components/checkout/payment-logos"
-import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
-import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
-import { ExpressReviewToggle } from "@/components/request/shared/express-review-toggle"
+import { PriorityReviewToggle } from "@/components/request/shared/priority-review-toggle"
+import { TrustBadgeRow } from "@/components/shared/trust-badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
 import { getAttribution } from "@/lib/analytics/attribution"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { getRepeatsExpectation } from "@/lib/clinical/repeats-policy"
 import { PRICING as APP_PRICING } from "@/lib/constants"
-import { GUARANTEE_LABEL } from "@/lib/marketing/voice"
 import { getAddressReviewSummary } from "@/lib/request/address-metadata"
 import { getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
 import { normalizeMedicationEntriesAnswer, stringAnswer, stringArrayAnswer } from "@/lib/request/intake-answer-normalizers"
@@ -750,7 +746,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       <div className="text-center mb-2">
         <h2 className="text-lg font-semibold">One last check</h2>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Make sure everything looks right. A doctor reviews as soon as you submit.
+          Make sure everything looks right. Doctor review follows after payment.
         </p>
       </div>
 
@@ -778,12 +774,12 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
           </div>
           {isPrescriptionCheckout && (
             <div className="pt-1">
-              <ExpressReviewToggle
-                id="review-express-review-toggle"
+              <PriorityReviewToggle
+                id="review-priority-review-toggle"
                 checked={isPriority}
                 onCheckedChange={setIsPriority}
-                onOptIn={() => posthog?.capture("express_review_opted_in", { service_type: serviceType })}
-                onOptOut={() => posthog?.capture("express_review_opted_out", { service_type: serviceType })}
+                onOptIn={() => posthog?.capture("priority_review_opted_in", { service_type: serviceType })}
+                onOptOut={() => posthog?.capture("priority_review_opted_out", { service_type: serviceType })}
               />
             </div>
           )}
@@ -798,16 +794,20 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
           </div>
         )}
 
-        <div ref={consentRef} className={`rounded-2xl border p-4 transition-colors duration-200 ${safetyConfirmed ? 'border-border/50 dark:border-white/10 bg-muted/30 dark:bg-white/5' : 'border-warning-border bg-warning-light/50 dark:bg-warning/10'}`}>
-          <div className="flex items-start gap-3">
-            <Checkbox
-              id="safety-consent"
-              checked={safetyConfirmed}
-              onCheckedChange={(checked) => handleConsentChange(checked === true)}
-              className="mt-0.5"
-              aria-label={isPrescriptionCheckout ? "Confirm request and payment terms" : "Confirm this is not a medical emergency"}
-            />
-            <Label htmlFor="safety-consent" className="text-sm cursor-pointer leading-snug text-muted-foreground">
+        <div ref={consentRef}>
+          <Checkbox
+            id="safety-consent"
+            checked={safetyConfirmed}
+            onCheckedChange={(checked) => handleConsentChange(checked === true)}
+            className={`w-full max-w-none items-start rounded-xl border-2 p-3.5 text-left transition-[background-color,border-color,box-shadow] duration-200 ${
+              safetyConfirmed
+                ? "border-primary bg-primary/5 shadow-sm shadow-primary/[0.05]"
+                : "border-border bg-white hover:border-primary/40 dark:bg-card"
+            }`}
+            boxClassName="mt-0.5 h-5 w-5 rounded-lg border-2"
+            aria-label={isPrescriptionCheckout ? "Confirm request and payment terms" : "Confirm this is not a medical emergency"}
+          >
+            <span className="block text-sm leading-relaxed text-foreground">
               {isPrescriptionCheckout ? (
                 <>
                   I confirm this is not a medical emergency, my information is accurate, and I agree to the{" "}
@@ -823,10 +823,10 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
               ) : (
                 "I confirm this is not a medical emergency. In an emergency, I'll call 000."
               )}
-            </Label>
-          </div>
+            </span>
+          </Checkbox>
           {!safetyConfirmed && (
-            <p id="safety-consent-warning" className="text-xs text-warning mt-2 pl-7" aria-live="polite">
+            <p id="safety-consent-warning" className="mt-2 text-center text-xs text-warning" aria-live="polite">
               Please confirm above to continue
             </p>
           )}
@@ -888,27 +888,15 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
           )
         )}
 
-        <div className="flex flex-col items-center gap-3">
-          <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <ShieldCheck className="w-3 h-3" />
-              AHPRA-registered doctor
-            </span>
-            <span className="flex items-center gap-1">
-              <RefreshCw className="w-3 h-3" />
-              {GUARANTEE_LABEL}
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <LegitScriptSeal size="sm" />
-            <GoogleAdsCert size="sm" />
-          </div>
-          {isPrescriptionCheckout && (
-            <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-              <Lock className="h-3 w-3 shrink-0" aria-hidden="true" />
-              <PaymentLogos />
-            </div>
-          )}
+        <div className="rounded-xl border border-border/50 bg-muted/20 px-3 py-2.5">
+          <TrustBadgeRow
+            badges={[
+              { id: "stripe", variant: "styled" },
+              "ahpra",
+              "refund",
+            ]}
+            className="justify-center gap-x-3 gap-y-1.5"
+          />
         </div>
       </div>
 

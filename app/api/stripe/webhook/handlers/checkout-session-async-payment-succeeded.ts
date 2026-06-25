@@ -158,7 +158,7 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
         paid_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         // Reconcile the stored amount to what Stripe actually charged (coupon /
-        // Express line item) so refunds match the charge. See checkout-session-
+        // Priority review line item) so refunds match the charge. See checkout-session-
         // completed.ts for the full rationale.
         amount_cents: session.amount_total,
         stripe_payment_intent_id: paymentIntentId,

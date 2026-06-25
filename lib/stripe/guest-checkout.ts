@@ -551,7 +551,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     if (isPriority && !priorityPriceId) {
       return {
         success: false,
-        error: "Express Review is temporarily unavailable. Please try again without Express Review or contact support.",
+        error: "Priority review is temporarily unavailable. Please try again without it or contact support.",
       }
     }
 

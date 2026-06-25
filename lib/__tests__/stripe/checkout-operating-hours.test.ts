@@ -353,7 +353,7 @@ describe("checkout operating hours", () => {
     })
   })
 
-  it("returns an Express Review-specific error when the priority fee Stripe price is invalid", async () => {
+  it("returns a Priority review-specific error when the priority fee Stripe price is invalid", async () => {
     const { supabase, updates } = createGuestCheckoutSupabaseMock()
     mocks.createServiceRoleClient.mockReturnValue(supabase)
     mocks.stripeSessionCreate.mockRejectedValue(new Error("No such price: price_priority"))
@@ -378,7 +378,7 @@ describe("checkout operating hours", () => {
 
       expect(result).toEqual({
         success: false,
-        error: "Express Review is temporarily unavailable. Please try again without Express Review or contact support.",
+        error: "Priority review is temporarily unavailable. Please try again without it or contact support.",
       })
       expect(updates).toContainEqual({
         table: "intakes",
@@ -396,7 +396,7 @@ describe("checkout operating hours", () => {
     }
   })
 
-  it("charges and persists Express Review for guest checkout", async () => {
+  it("charges and persists Priority review for guest checkout", async () => {
     const { inserts, supabase } = createGuestCheckoutSupabaseMock()
     mocks.createServiceRoleClient.mockReturnValue(supabase)
     const previousPriorityPrice = process.env.STRIPE_PRICE_PRIORITY_FEE

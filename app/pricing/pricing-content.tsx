@@ -312,11 +312,11 @@ export function PricingContent() {
               className="mt-8"
             />
 
-            {/* Express Review callout */}
+            {/* Priority review callout */}
             <div className="mt-6 text-center space-y-2">
               <p className="text-sm text-muted-foreground">
                 <Zap className="inline w-3.5 h-3.5 text-amber-500 mr-1 -mt-0.5" />
-                Need it faster? Add <span className="font-medium text-foreground">Express Review</span> at checkout for{" "}
+                Need it sooner? Add <span className="font-medium text-foreground">Priority review</span> at checkout for{" "}
                 <span className="font-medium text-foreground">{PRICING_DISPLAY.PRIORITY_FEE}</span>
               </p>
               <p className="text-sm text-muted-foreground">

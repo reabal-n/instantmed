@@ -81,7 +81,7 @@ export const PRICING = {
   WEIGHT_LOSS: 89.95,     // Weight loss consultation
   REFERRAL: 29.95,
   PATHOLOGY: 29.95,
-  PRIORITY_FEE: 9.95,    // Express review fee
+  PRIORITY_FEE: 9.95,    // Priority review fee
 } as const
 
 // Formatted pricing strings for display - use these everywhere in UI/SEO/marketing

@@ -106,7 +106,7 @@ Pattern: below `GoogleReviewCTA`, add referral link with $5 credit offer.
 
 ---
 
-## 6. Express Review
+## 6. Priority Review
 
 **Decision:** Keep default OFF. Default ON feels too aggressive for a healthcare product.
 

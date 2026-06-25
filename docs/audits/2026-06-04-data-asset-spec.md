@@ -31,7 +31,7 @@ All from operational fields, NO PHI: `intakes.created_at`, `intakes.service_type
 | The after-hours nation | `created_at` hour-of-day | "X% of requests come in **outside 9–5**; the peak hour is N" |
 | Sick season | `created_at` month | "Requests spike **+X% in winter** (Jun–Aug); the single biggest week is W" |
 | What Australians ask for | `service_type` / `subtype` | "Med certs are X% of requests; repeat scripts Y%" |
-| The impatient minority | `is_priority` | "X% pay for express review" |
+| The impatient minority | `is_priority` | "X% pay for priority review" |
 | State of the nation | `profiles.state` (suppress <30) | "Per-capita, [state] requests the most certs" |
 
 Pick the 4–6 with the strongest, most-quotable, genuinely-newsworthy findings (day-of-week + after-hours + winter spike are the natural headline trio — relatable, surprising, journalist-friendly).

@@ -65,7 +65,7 @@ describe("intake mobile viewport contract", () => {
     const checkoutSource = readProjectFile("components/request/steps/checkout-step.tsx")
     expect(checkoutSource).toContain("fixed bottom-0")
     expect(checkoutSource).toContain("CheckoutButton")
-    expect(checkoutSource).toContain("h-56 sm:hidden")
+    expect(checkoutSource).toContain("h-36 sm:hidden")
     expect(checkoutSource).not.toContain('data-intake-primary-action="true"')
   })
 

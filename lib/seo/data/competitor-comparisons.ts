@@ -461,14 +461,14 @@ const instantmedVsQoctor: ComparisonEntry = {
     { feature: "Async form-based workflow", instantmed: true, competitor: true, winner: "tie" },
     { feature: "Doctor messaging on request", instantmed: true, competitor: "Varies", winner: "instantmed" },
     { feature: "24/7 medical certificates", instantmed: true, competitor: "Extended hours", winner: "instantmed" },
-    { feature: "Priority review option", instantmed: `Express Review +${PRICING_DISPLAY.PRIORITY_FEE}`, competitor: "Not advertised", winner: "instantmed" },
+    { feature: "Priority review option", instantmed: `Priority review +${PRICING_DISPLAY.PRIORITY_FEE}`, competitor: "Not advertised", winner: "instantmed" },
     { feature: "Refund on declined request", instantmed: "100% on declined refundable categories", competitor: "Refund policy varies", winner: "instantmed" },
     { feature: "Repeat prescription commitment", instantmed: "Per-request only", competitor: "Per-request only", winner: "tie" },
   ],
   whenInstantMedBetter: [
     "You want a clearly documented refund guarantee when the doctor declines",
     "You need 24/7 availability for medical certificates",
-    "You want the option to fast-track your review for a small add-on fee",
+    "You want the optional Priority review queue position",
     "You prefer direct doctor messaging when clinical questions come up",
     "You prefer repeat scripts handled as separate doctor-reviewed requests",
   ],
@@ -479,7 +479,7 @@ const instantmedVsQoctor: ComparisonEntry = {
     "You have an existing relationship with a specific doctor on their platform",
   ],
   verdict:
-    "Qoctor and InstantMed are genuinely similar services serving similar patients. Both are legitimate, both use AHPRA-registered doctors, and both charge comparable prices. InstantMed's differentiators are the explicit refund policy, 24/7 medical certificate availability, and the Express Review option. If you're already using Qoctor and it's working, there's no strong reason to switch. If you're choosing for the first time and value those specific features, InstantMed will suit you better.",
+    "Qoctor and InstantMed are genuinely similar services serving similar patients. Both are legitimate, both use AHPRA-registered doctors, and both charge comparable prices. InstantMed's differentiators are the explicit refund policy, 24/7 medical certificate availability, and the Priority review option. If you're already using Qoctor and it's working, there's no strong reason to switch. If you're choosing for the first time and value those specific features, InstantMed will suit you better.",
   faqs: [
     {
       q: "Are InstantMed and Qoctor essentially the same service?",
@@ -574,7 +574,7 @@ const instantmedVsInstantScripts: ComparisonEntry = {
     { feature: "Repeat prescription", instantmed: PRICING_DISPLAY.REPEAT_SCRIPT, competitor: "Similar pricing", winner: "tie" },
     { feature: "Specialty assessment", instantmed: PRICING_DISPLAY.FROM_CONSULT, competitor: "Similar pricing", winner: "tie" },
     { feature: "eScript delivery", instantmed: true, competitor: true, winner: "tie" },
-    { feature: "Priority / Express review", instantmed: `+${PRICING_DISPLAY.PRIORITY_FEE} fast-track option`, competitor: "Varies", winner: "instantmed" },
+    { feature: "Priority review", instantmed: `+${PRICING_DISPLAY.PRIORITY_FEE} option`, competitor: "Varies", winner: "instantmed" },
     { feature: "Repeat script commitment", instantmed: "Per-request", competitor: "Per-request", winner: "tie" },
     { feature: "24/7 medical certificates", instantmed: true, competitor: "Extended hours", winner: "instantmed" },
     { feature: "Direct doctor messaging", instantmed: true, competitor: "Varies by request", winner: "instantmed" },
@@ -584,7 +584,7 @@ const instantmedVsInstantScripts: ComparisonEntry = {
   whenInstantMedBetter: [
     "You value a clearly documented refund guarantee for declined requests",
     "You want 24/7 availability for medical certificates",
-    "You want the Express Review option to fast-track your request",
+    "You want the Priority review option",
     "You prefer direct doctor messaging as part of the review process",
     "You prefer repeat scripts handled without a subscription commitment",
   ],
@@ -595,7 +595,7 @@ const instantmedVsInstantScripts: ComparisonEntry = {
     "You want to compare both and use whichever has the better fit for your particular request",
   ],
   verdict:
-    "InstantScripts is an established, well-known Australian telehealth service with a strong script-focused offering. InstantMed is a newer service with comparable core pricing and a few deliberate differentiators - explicit refund policy, 24/7 medical certificate availability, Express Review, and direct messaging. Neither is objectively 'better' across the board. If you value the InstantMed differentiators, choose InstantMed. If name recognition and a longer track record matter more to you, InstantScripts is a reasonable choice.",
+    "InstantScripts is an established, well-known Australian telehealth service with a strong script-focused offering. InstantMed is a newer service with comparable core pricing and a few deliberate differentiators - explicit refund policy, 24/7 medical certificate availability, Priority review, and direct messaging. Neither is objectively 'better' across the board. If you value the InstantMed differentiators, choose InstantMed. If name recognition and a longer track record matter more to you, InstantScripts is a reasonable choice.",
   faqs: [
     {
       q: "Are InstantMed and InstantScripts the same company?",

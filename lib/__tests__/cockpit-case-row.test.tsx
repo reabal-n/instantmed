@@ -52,11 +52,11 @@ describe("CaseRow", () => {
     expect(html).toContain('role="row"')
   })
 
-  it("flags express priority with an accessible label", () => {
+  it("flags priority review with an accessible label", () => {
     const html = render(
       <CaseRow row={{ ...baseRow, isPriority: true }} density="comfortable" />,
     )
-    expect(html).toContain("Express priority")
+    expect(html).toContain("Priority review")
   })
 
   it("flags stale > 4h with an accessible label", () => {

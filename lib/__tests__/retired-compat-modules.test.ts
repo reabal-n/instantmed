@@ -111,7 +111,7 @@ describe("retired compatibility modules", () => {
 
     expect(routePaths).toEqual([
       "app/api/test/login/route.ts",
-      "app/api/test/medcert-auto-approve/route.ts",
+      "app/api/test/medcert-immediate-auto-approve/route.ts",
     ])
     for (const routePath of routePaths) {
       const source = readFileSync(join(root, routePath), "utf8")
@@ -119,7 +119,7 @@ describe("retired compatibility modules", () => {
       expect(source).toContain("isAllowedDevOnlyRequest")
     }
     expect(allE2ESource).toContain("/api/test/login")
-    expect(allE2ESource).toContain("/api/test/medcert-auto-approve")
+    expect(allE2ESource).toContain("/api/test/medcert-immediate-auto-approve")
   })
 
   it("keeps dev-only surfaces fail-closed in production and preview", () => {

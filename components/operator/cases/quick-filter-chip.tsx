@@ -11,7 +11,7 @@ type QuickFilterChipProps = {
 }
 
 /**
- * Toggle chip used in the FilterBar for quick filters like Express,
+ * Toggle chip used in the FilterBar for quick filters like Priority,
  * Stale > 4h, Mine, Failed payment, Awaiting script. Uses --primary for
  * the active state (system blue), never brand coral.
  */

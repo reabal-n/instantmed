@@ -3,7 +3,8 @@
  *
  * Proves the live post-payment worker path can take a paid low-risk med cert
  * through AI draft readiness, deterministic auto-approval, PDF storage, and
- * patient email outbox logging without a doctor clicking approve.
+ * patient email outbox logging without a doctor clicking approve. The test-only
+ * route below deliberately bypasses the production 10+ minute cron delay.
  */
 
 import { expect,test } from "@playwright/test"
@@ -257,7 +258,7 @@ test.describe("Medical Certificate Auto-Approval", () => {
 
       await seedLowRiskAnswers(intakeId, startDate)
 
-      const triggerResponse = await request.post("/api/test/medcert-auto-approve", {
+      const triggerResponse = await request.post("/api/test/medcert-immediate-auto-approve", {
         headers: {
           "X-E2E-SECRET": E2E_SECRET,
         },
@@ -269,6 +270,8 @@ test.describe("Medical Certificate Auto-Approval", () => {
 
       expect(triggerResponse.ok(), await triggerResponse.text()).toBe(true)
       const triggerResult = await triggerResponse.json()
+      expect(triggerResult.mode).toBe("e2e_immediate_auto_approval")
+      expect(triggerResult.productionDelayBypassed).toBe(true)
       expect(triggerResult.success, JSON.stringify(triggerResult)).toBe(true)
 
       const approved = await waitForIntakeStatus(intakeId, "approved", 15000)

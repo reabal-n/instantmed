@@ -1,6 +1,9 @@
 import { expect, test } from "@playwright/test"
 
+import { PRICING, PRICING_DISPLAY } from "../lib/constants"
 import { waitForPageLoad } from "./helpers/test-utils"
+
+const expectedPriorityTotal = `$${(PRICING.MED_CERT + PRICING.PRIORITY_FEE).toFixed(2)}`
 
 async function dismissOverlays(page: import("@playwright/test").Page) {
   const essentialOnly = page.getByRole("button", { name: /Essential only/i })
@@ -23,8 +26,8 @@ async function clickContinue(page: import("@playwright/test").Page) {
   await button.click()
 }
 
-test.describe("Checkout Express Review", () => {
-  test("med-cert checkout keeps Express Review compact and updates the total", async ({ page }) => {
+test.describe("Checkout Priority Review", () => {
+  test("med-cert checkout presents Priority review cleanly and updates the total", async ({ page }) => {
     await page.goto("/request?service=med-cert")
     await waitForPageLoad(page)
     await dismissOverlays(page)
@@ -39,9 +42,9 @@ test.describe("Checkout Express Review", () => {
 
     await expect(page.getByRole("heading", { name: "Your symptoms" })).toBeVisible()
     await page
-      .getByRole("textbox", { name: /Describe your symptoms/i })
+      .getByRole("textbox", { name: /Fever, sore throat, and fatigue/i })
       .fill("Fever sore throat fatigue and headache since yesterday, unable to study today.")
-    await page.getByRole("button", { name: "1-2 days" }).click()
+    await page.getByRole("radio", { name: "1-2 days" }).click()
     await clickContinue(page)
 
     await expect(page.getByRole("heading", { name: "Your details", level: 2 })).toBeVisible()
@@ -54,26 +57,24 @@ test.describe("Checkout Express Review", () => {
     await expect(page.getByRole("heading", { name: "Payment" })).toBeVisible()
     await expect(page.getByText("Ready to submit")).toBeVisible()
     await expect(page.getByText("Skip the queue. Your case is reviewed first.")).toBeHidden()
+    await expect(page.getByText("Express Review")).toBeHidden()
+    await expect(page.getByText("Express", { exact: true })).toBeHidden()
 
-    const expressSwitch = page.locator("#express-review-toggle")
-    const expressChip = page.locator("label").filter({ has: expressSwitch })
-    await expect(expressChip).toBeVisible()
-    await expect(page.getByText("Express", { exact: true })).toBeVisible()
-    await expect(page.getByText("+$9.95")).toBeVisible()
+    const prioritySwitch = page.locator("#priority-review-toggle")
+    await expect(prioritySwitch).toBeVisible()
+    await expect(prioritySwitch).toHaveAttribute("role", "switch")
+    await expect(prioritySwitch.getByText("Priority review")).toBeVisible()
+    await expect(prioritySwitch.getByText(`+${PRICING_DISPLAY.PRIORITY_FEE}`)).toBeVisible()
+    await expect(prioritySwitch.getByText("Moves this request ahead of standard review. No time guarantee.")).toBeVisible()
 
-    const chipBox = await expressChip.boundingBox()
-    expect(chipBox).not.toBeNull()
-    expect(chipBox!.height).toBeLessThanOrEqual(36)
-    expect(chipBox!.width).toBeLessThanOrEqual(130)
+    const rowBox = await prioritySwitch.boundingBox()
+    expect(rowBox).not.toBeNull()
+    expect(rowBox!.height).toBeLessThanOrEqual(80)
+    expect(rowBox!.width).toBeGreaterThan(280)
 
-    const switchBox = await expressSwitch.boundingBox()
-    expect(switchBox).not.toBeNull()
-    expect(switchBox!.height).toBeLessThanOrEqual(24)
-    expect(switchBox!.width).toBeLessThanOrEqual(40)
+    await prioritySwitch.click()
 
-    await expressSwitch.click()
-
-    await expect(page.getByText("Express Review")).toBeVisible()
-    await expect(page.getByText("$29.90").first()).toBeVisible()
+    await expect(page.getByText("Priority review").first()).toBeVisible()
+    await expect(page.getByText(expectedPriorityTotal).first()).toBeVisible()
   })
 })

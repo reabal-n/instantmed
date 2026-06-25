@@ -277,14 +277,11 @@ export const BADGE_PRESETS: Record<string, PresetEntry[]> = {
     'legally_valid',
   ],
 
-  // Checkout
+  // Checkout - compact conversion row only. Keep heavier proof off the pay/review step.
   checkout: [
     { id: 'stripe', variant: 'styled' },
-    'ssl',
-    { id: 'au_data', variant: 'styled' },
     'ahpra',
-    { id: 'legitscript', variant: 'styled' },
-    { id: 'google_pharmacy', variant: 'styled' },
+    'refund',
   ],
 
   // Footer strip - 3 most consumer-relevant

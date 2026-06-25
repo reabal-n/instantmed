@@ -136,7 +136,7 @@ describe("paid request Telegram notification ledger", () => {
     expect(updates[0].paid_request_telegram_sent_at).toEqual(expect.any(String))
   })
 
-  it("passes the resolved detail (medication / duration) through as serviceDetail and sets the Express flag when is_priority is true", async () => {
+  it("passes the resolved detail (medication / duration) through as serviceDetail and sets the Priority flag when is_priority is true", async () => {
     const { sendPaidRequestTelegramNotification } = await import("@/lib/notifications/paid-request-telegram")
     const { supabase } = createSupabaseStub(
       [

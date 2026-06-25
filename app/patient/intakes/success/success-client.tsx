@@ -5,8 +5,6 @@ import { AlertTriangle, Check,Mail } from "lucide-react"
 import { useCallback, useEffect, useRef,useState } from "react"
 
 import { HeardAboutUsCard } from "@/components/patient/heard-about-us-card"
-import { ReferralCard } from "@/components/patient/referral-card"
-import { RelatedServicesProbe } from "@/components/patient/related-services-probe"
 import { WhatHappensNext } from "@/components/patient/what-happens-next"
 import { usePostHog } from "@/components/providers/posthog-provider"
 import { Button } from "@/components/ui/button"
@@ -44,13 +42,11 @@ export function SuccessClient({
   amountCents,
   isPriority = false,
   patientEmail,
-  patientId,
   queuePosition: initialQueuePosition,
   isNewCustomer,
   waitState,
   paymentRetry = false,
   heardToken,
-  intakeSubtype,
 }: SuccessClientProps) {
   const prefersReducedMotion = useReducedMotion()
   const posthog = usePostHog()
@@ -420,8 +416,8 @@ export function SuccessClient({
     )
   }
 
-  // Payment confirmed - show the enhanced "What Happens Next" experience
-  // plus a peak-emotion referral nudge ("share while you wait").
+  // Payment confirmed - show the clinical handoff first. Secondary prompts stay
+  // below the request-detail CTA and status tracker.
   return (
     <div className="space-y-6">
       <WhatHappensNext
@@ -442,22 +438,9 @@ export function SuccessClient({
           </p>
         </div>
       )}
-      {/* Self-reported attribution survey, moved up from dead-last. Live data
-          (90d): only ~5% of buyers who were shown the card answered while it
-          sat below the referral block — most never scrolled to it. Placing the
-          one-tap question right after the primary confirmation lifts the
-          shown→answered rate. (Reach is the bigger gap — ~62% of buyers never
-          fire `shown` at all — but that's a separate, larger change.) */}
+      {/* Self-reported attribution survey. Keep it post-confirmation and below
+          the primary status/CTA so it does not compete with request tracking. */}
       {heardToken && <HeardAboutUsCard token={heardToken} />}
-      {patientId && (
-        <div>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 font-medium">
-            While you wait
-          </p>
-          <ReferralCard patientId={patientId} />
-        </div>
-      )}
-      <RelatedServicesProbe currentSubtype={intakeSubtype} />
     </div>
   )
 }
