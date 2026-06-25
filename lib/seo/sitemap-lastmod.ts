@@ -25,6 +25,7 @@ export const ROUTE_LAST_MODIFIED: Record<string, string> = {
   "/mens-health": "2026-06-25",
   "/hair-loss": "2026-06-10",
   "/erectile-dysfunction": "2026-06-25",
+  "/weight-loss-online": "2026-06-25",
   "/womens-health": "2026-06-16",
   "/uti-assessment-online": "2026-06-25",
   "/contraceptive-pill-assessment-online": "2026-06-25",

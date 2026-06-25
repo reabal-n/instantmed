@@ -149,7 +149,7 @@ describe("SEO indexing contracts", () => {
     expect(lastmod).toContain("ROUTE_LAST_MODIFIED")
   })
 
-  it("keeps live money pages discoverable in the root sitemap", () => {
+  it("keeps live money and high-yield SEO pages discoverable in the root sitemap", () => {
     const sitemap = read("app/sitemap.ts")
     const lastmod = read("lib/seo/sitemap-lastmod.ts")
 
@@ -159,6 +159,7 @@ describe("SEO indexing contracts", () => {
       "/online-prescriptions",
       "/mens-health",
       "/erectile-dysfunction",
+      "/weight-loss-online",
       "/hair-loss",
       "/womens-health",
       "/uti-assessment-online",

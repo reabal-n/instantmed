@@ -664,8 +664,10 @@ describe("advertising compliance guard", () => {
 
     const sitemapSource = readFileSync(toFullPath("app/sitemap.ts"), "utf8")
     const htmlSitemapSource = readFileSync(toFullPath("app/sitemap-html/page.tsx"), "utf8")
-    expect(sitemapSource).not.toContain("weight-loss")
-    expect(htmlSitemapSource).not.toContain("weight-loss")
+    expect(sitemapSource).not.toContain('"/weight-loss"')
+    expect(htmlSitemapSource).not.toContain('href: "/weight-loss"')
+    expect(sitemapSource).toContain('"/weight-loss-online"')
+    expect(htmlSitemapSource).toContain('href: "/weight-loss-online"')
   })
 
   it("keeps internal review and testimonial pages/components retired", () => {

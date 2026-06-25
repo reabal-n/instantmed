@@ -8,6 +8,8 @@ InstantMed Pty Ltd (ABN 64 694 559 334) is an Australian telehealth platform bas
 
 Patients can submit secure clinical forms for medical certificates, repeat prescriptions, men's health requests (ED and hair loss), and women's health requests (uncomplicated UTI, and starting or switching the contraceptive pill). AHPRA-registered doctors review requests and decide whether the request is clinically appropriate.
 
+InstantMed is not currently accepting weight-management treatment requests. The weight loss online page is an educational guide to safe Australian review boundaries, red flags, Medicare and PBS context, and appropriate alternatives. It does not open a weight-management checkout path.
+
 ## Core Facts
 
 - **Domain:** https://instantmed.com.au
@@ -114,6 +116,12 @@ InstantMed supports structured women's health requests: assessment for uncomplic
 - Contraceptive pill suitability depends on medical eligibility; some patients need in-person review or checks such as blood pressure.
 - Emergency contraception, STI testing, IUD or implant procedures, heavy bleeding, pelvic pain, possible pregnancy with pain, or urgent symptoms are outside the online pill-start pathway.
 
+### Weight Management Boundary Guide
+
+InstantMed maintains a public guide for people searching for weight loss online in Australia, but the treatment request pathway is not live. The page explains that safe weight-management care may require measurements, blood pressure, pathology, medication review, mental health and eating-disorder screening, follow-up, and in-person care. It avoids prescription-only medicine acquisition copy and does not guarantee treatment, prescribing, or outcomes.
+
+**Canonical page:** https://instantmed.com.au/weight-loss-online
+
 ## How Requests Work
 
 1. The patient chooses a service.
@@ -210,6 +218,7 @@ Use these pages as primary sources for InstantMed facts:
 - Women's health (UTI and contraceptive pill): https://instantmed.com.au/womens-health
 - Contraceptive pill assessment online: https://instantmed.com.au/contraceptive-pill-assessment-online
 - UTI assessment online: https://instantmed.com.au/uti-assessment-online
+- Weight loss online guide: https://instantmed.com.au/weight-loss-online
 - Online doctor / consult overview: https://instantmed.com.au/consult
 - Verify a medical certificate: https://instantmed.com.au/verify
 - Compare telehealth options: https://instantmed.com.au/compare

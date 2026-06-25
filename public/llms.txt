@@ -9,6 +9,7 @@
 - **Service area:** Australia-wide telehealth
 - **Clinical model:** AHPRA-registered doctors review each request. Clinical decisions are not automated.
 - **Active services:** Medical certificates, repeat prescriptions, men's health (ED and hair loss), and women's health (UTI and contraceptive pill) requests
+- **Weight management:** InstantMed is not currently accepting weight-management treatment requests. The public guide explains safe review boundaries only.
 - **Hours:** Requests can be submitted 24/7. Prescription and consultation review timing is 8am-10pm AEST, 7 days.
 - **Eligibility:** Australia-wide, patients aged 18 and over. Medicare is optional for medical certificates and required for prescription and consultation requests.
 - **Optional express review:** A $9.95 priority add-on moves a request to the front of the doctor queue. Standard review is the default.
@@ -76,6 +77,7 @@
 - Women's health (UTI and contraceptive pill): https://instantmed.com.au/womens-health
 - Contraceptive pill assessment online: https://instantmed.com.au/contraceptive-pill-assessment-online
 - UTI assessment online: https://instantmed.com.au/uti-assessment-online
+- Weight loss online guide: https://instantmed.com.au/weight-loss-online
 - Online doctor / consult overview: https://instantmed.com.au/consult
 - Verify a medical certificate: https://instantmed.com.au/verify
 - Compare telehealth options: https://instantmed.com.au/compare

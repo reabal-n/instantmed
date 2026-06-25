@@ -62,6 +62,7 @@ function buildSections(): SitemapSection[] {
       { label: "Prescriptions", href: "/prescriptions" },
       { label: "Erectile Dysfunction", href: "/erectile-dysfunction" },
       { label: "Hair Loss", href: "/hair-loss" },
+      { label: "Weight Loss Online Guide", href: "/weight-loss-online" },
       { label: "Consult", href: "/consult" },
     ],
   };
