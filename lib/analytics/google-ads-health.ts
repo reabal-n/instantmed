@@ -301,20 +301,30 @@ export async function getGoogleAdsConversionUploadHealth(
 
   const rows = (data || []) as GoogleAdsUploadAuditRow[]
 
+  // Exclude CI / E2E test runs from the production health signal. Real prod
+  // uploads run on Vercel (metadata.runtime_source 'vercel'); CI E2E checkouts
+  // run on node (no Google Ads env → `missing_env`) yet land in prod audit_logs
+  // because CI shares the prod Supabase service-role key. Without this, a stray
+  // CI `missing_env` row flips this /admin/ops card to a false "missing env"
+  // config error. Legacy rows without the fingerprint are treated as prod.
+  const prodRows = rows.filter(
+    (r) => (r.metadata as { runtime_source?: string } | null)?.runtime_source !== "node",
+  )
+
   // Constrain to REPORTABLE intakes only — a seeded/E2E or excluded intake with
   // a failed upload row must not surface as a critical production conversion
   // leak on /admin/ops. Mirrors the filterReportableIntakes() boundary the
   // heavier getGoogleAdsHealth path applies. Fail-soft: if this lookup errors,
   // fall back to the unfiltered rows rather than throwing the ops page.
-  let reportableRows = rows
-  const intakeIds = [...new Set(rows.map((r) => r.intake_id).filter((id): id is string => Boolean(id)))]
+  let reportableRows = prodRows
+  const intakeIds = [...new Set(prodRows.map((r) => r.intake_id).filter((id): id is string => Boolean(id)))]
   if (intakeIds.length > 0) {
     const { data: reportable, error: reportableError } = await filterReportableIntakes(
       supabase.from("intakes").select("id").in("id", intakeIds),
     )
     if (!reportableError && reportable) {
       const reportableIds = new Set((reportable as Array<{ id: string }>).map((r) => r.id))
-      reportableRows = rows.filter((r) => r.intake_id != null && reportableIds.has(r.intake_id))
+      reportableRows = prodRows.filter((r) => r.intake_id != null && reportableIds.has(r.intake_id))
     }
   }
 

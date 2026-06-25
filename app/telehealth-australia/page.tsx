@@ -39,7 +39,7 @@ const CANONICAL = "https://instantmed.com.au/telehealth-australia"
 
 export const metadata: Metadata = {
   title: { absolute: "Telehealth Australia | Online, No Waiting Room | InstantMed" },
-  description: `Telehealth in Australia explained - how it works, what it costs, the Medicare and PBS rules, and which conditions are suitable for virtual care. InstantMed delivers AHPRA-governed telehealth nationwide from ${PRICING_DISPLAY.MED_CERT}.`,
+  description: `Telehealth in Australia explained: how it works, what it costs, Medicare and PBS rules, and which conditions suit virtual care. AHPRA-governed, from ${PRICING_DISPLAY.MED_CERT}.`,
   keywords: [
     "telehealth australia",
     "australian telehealth",
