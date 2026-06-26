@@ -7,12 +7,13 @@ import {
 import type { Profile } from "@/types/db"
 
 export interface ManualPatientFormValues extends PrescribingIdentityFormValues {
-  fullName: string
+  firstName: string
+  lastName: string
   email: string
 }
 
 export type ManualPatientFieldErrors = PrescribingIdentityFieldErrors & Partial<
-  Record<"fullName" | "email", string>
+  Record<"firstName" | "lastName" | "email", string>
 >
 
 export type ManualPatientProfileCreate = PrescribingIdentityProfileUpdates & {
@@ -40,16 +41,12 @@ export interface ManualPatientDuplicateLookup {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-function normalizeFullName(value: string): string {
+function normalizeNamePart(value: string): string {
   return value.trim().replace(/\s+/g, " ")
 }
 
-function splitName(fullName: string): { firstName: string | null; lastName: string | null } {
-  const parts = fullName.split(" ").filter(Boolean)
-  return {
-    firstName: parts[0] ?? null,
-    lastName: parts.length > 1 ? parts.slice(1).join(" ") : null,
-  }
+function composeFullName(firstName: string, lastName: string): string {
+  return [firstName, lastName].filter(Boolean).join(" ")
 }
 
 function normalizeEmail(value: string): string {
@@ -70,7 +67,7 @@ function normalizePhoneForLookup(value: string): string {
 export function buildManualPatientDuplicateLookup(
   input: ManualPatientFormValues,
 ): ManualPatientDuplicateLookup {
-  const fullName = normalizeFullName(input.fullName)
+  const fullName = composeFullName(normalizeNamePart(input.firstName), normalizeNamePart(input.lastName))
   return {
     normalizedEmail: normalizeEmail(input.email),
     normalizedPhone: normalizePhoneForLookup(input.phone),
@@ -82,11 +79,16 @@ export function buildManualPatientProfileCreate(
   input: ManualPatientFormValues,
 ): ManualPatientProfileCreateResult {
   const fieldErrors: ManualPatientFieldErrors = {}
-  const fullName = normalizeFullName(input.fullName)
+  const firstName = normalizeNamePart(input.firstName)
+  const lastName = normalizeNamePart(input.lastName)
+  const fullName = composeFullName(firstName, lastName)
   const email = normalizeEmail(input.email)
 
-  if (!fullName) {
-    fieldErrors.fullName = "Enter the patient's legal name."
+  if (!firstName) {
+    fieldErrors.firstName = "Enter the patient's first name."
+  }
+  if (!lastName) {
+    fieldErrors.lastName = "Enter the patient's last name."
   }
 
   if (!EMAIL_RE.test(email)) {
@@ -103,8 +105,6 @@ export function buildManualPatientProfileCreate(
       fieldErrors,
     }
   }
-
-  const { firstName, lastName } = splitName(fullName)
 
   return {
     valid: true,

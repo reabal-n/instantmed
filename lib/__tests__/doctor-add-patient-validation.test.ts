@@ -6,7 +6,8 @@ import {
 } from "@/lib/doctor/doctor-patient-create"
 
 const validInput: DoctorPatientCreateInput = {
-  fullName: "Glenn James",
+  firstName: "Glenn",
+  lastName: "James",
   email: "GLENN.JAMES@example.com",
   dateOfBirth: "1990-04-12",
   sex: "M",
@@ -48,14 +49,15 @@ describe("validateDoctorPatientCreateInput", () => {
   it("requires first and last name plus Parchment prescribing identity fields", () => {
     const result = validateDoctorPatientCreateInput({
       ...validInput,
-      fullName: "Glenn",
+      firstName: "Glenn",
+      lastName: "",
       email: "bad-email",
       medicareIrn: "0",
       postcode: "3000",
     })
 
     expect(result.valid).toBe(false)
-    expect(result.fieldErrors.fullName).toBe("Enter the patient's first and last name.")
+    expect(result.fieldErrors.lastName).toBe("Enter the patient's last name.")
     expect(result.fieldErrors.email).toBe("Enter a valid patient email address.")
     expect(result.fieldErrors.medicareIrn).toBe("Enter the Medicare IRN as one digit from 1 to 9.")
     expect(result.fieldErrors.postcode).toContain("Postcode 3000")

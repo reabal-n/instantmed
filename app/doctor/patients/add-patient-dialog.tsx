@@ -27,7 +27,8 @@ import type {
 const STATES = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"] as const
 
 const INITIAL_FORM: DoctorPatientCreateInput = {
-  fullName: "",
+  firstName: "",
+  lastName: "",
   email: "",
   dateOfBirth: "",
   sex: "",
@@ -141,12 +142,21 @@ export function AddPatientDialog() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Input
-              label="Full name"
-              value={form.fullName}
-              onChange={(event) => setField("fullName", event.target.value)}
-              isInvalid={Boolean(fieldErrors.fullName)}
-              errorMessage={fieldErrors.fullName}
-              autoComplete="name"
+              label="First name"
+              value={form.firstName}
+              onChange={(event) => setField("firstName", event.target.value)}
+              isInvalid={Boolean(fieldErrors.firstName)}
+              errorMessage={fieldErrors.firstName}
+              autoComplete="given-name"
+              required
+            />
+            <Input
+              label="Last name"
+              value={form.lastName}
+              onChange={(event) => setField("lastName", event.target.value)}
+              isInvalid={Boolean(fieldErrors.lastName)}
+              errorMessage={fieldErrors.lastName}
+              autoComplete="family-name"
               required
             />
             <Input
