@@ -5,17 +5,18 @@ import {
   BreadcrumbSchema,
   FAQSchema,
   HealthArticleSchema,
-  MedicalServiceSchema,
+  ServiceSchema,
   SpeakableSchema,
 } from "@/components/seo"
-import { PRICING } from "@/lib/constants"
+import { getArticleVisualsForRender } from "@/lib/blog/visuals"
+import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { ED_FAQ } from "@/lib/data/ed-faq"
 
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: { absolute: "ED Assessment | Private, No Waiting Room | InstantMed" },
-  description: `Discreet ED assessment from an Australian doctor. Fill out a secure form, no booked appointment or waiting room. From $${PRICING.MENS_HEALTH.toFixed(2)}.`,
+  title: { absolute: "Erectile Dysfunction Assessment Online Australia | InstantMed" },
+  description: `Private erectile dysfunction assessment from an Australian doctor. Start with a secure safety form, no booked waiting room. From ${PRICING_DISPLAY.MENS_HEALTH}.`,
   keywords: [
     "ed assessment online australia",
     "erectile dysfunction assessment online",
@@ -25,8 +26,9 @@ export const metadata: Metadata = {
     "discreet ed assessment",
   ],
   openGraph: {
-    title: "ED Assessment | Private, No Waiting Room | InstantMed",
-    description: "Discreet ED assessment online. Fill out a secure form, no booked appointment or waiting room. Reviewed by an Australian doctor.",
+    title: "Erectile Dysfunction Assessment Online Australia | InstantMed",
+    description:
+      "Private ED assessment online with Australian doctor review, safety screening, and clear in-person care boundaries.",
     url: "https://instantmed.com.au/erectile-dysfunction",
     type: "website",
     locale: "en_AU",
@@ -35,20 +37,27 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "ED Assessment Online Australia | InstantMed",
-    description: "Discreet ED assessment online. Secure form-first doctor review.",
+    description: "Private ED assessment online. Secure form-first doctor review.",
   },
   alternates: {
     canonical: "https://instantmed.com.au/erectile-dysfunction",
   },
+  robots: {
+    index: true,
+    follow: true,
+  },
 }
 
 export default function Page() {
+  const visuals = getArticleVisualsForRender("erectile-dysfunction")
+
   return (
     <>
       <SpeakableSchema
-        name="ED Assessment Online Australia"
-        description={`Discreet, doctor-reviewed ED assessment from an AHPRA-registered Australian doctor. From $${PRICING.MENS_HEALTH.toFixed(2)}. Start with a private online form. A doctor reviews it and may call you briefly before prescribing.`}
+        name="Erectile Dysfunction Assessment Online Australia"
+        description={`Private erectile dysfunction assessment from an AHPRA-registered Australian doctor. From ${PRICING_DISPLAY.MENS_HEALTH}. Start with a secure form. A doctor reviews it and decides what is clinically appropriate.`}
         url="/erectile-dysfunction"
+        speakableSelectors={["h1", "[data-speakable]"]}
       />
       <FAQSchema faqs={[...ED_FAQ]} />
       <BreadcrumbSchema
@@ -57,17 +66,19 @@ export default function Page() {
           { name: "ED Assessment", url: "https://instantmed.com.au/erectile-dysfunction" },
         ]}
       />
-      <MedicalServiceSchema
-        name="Online ED Assessment"
-        description="Discreet erectile dysfunction assessment from an AHPRA-registered Australian doctor. Next steps are decided after clinical review."
+      <ServiceSchema
+        name="Online Erectile Dysfunction Assessment"
+        description="Private erectile dysfunction assessment from an AHPRA-registered Australian doctor. Next steps are decided after clinical review."
         price={PRICING.MENS_HEALTH.toFixed(2)}
-      />
-      <HealthArticleSchema
-        title="ED Assessment Online Australia"
-        description={`Discreet ED assessment from an AHPRA-registered Australian doctor. Secure form-first review. From $${PRICING.MENS_HEALTH.toFixed(2)}.`}
         url="/erectile-dysfunction"
       />
-      <ErectileDysfunctionLanding />
+      <HealthArticleSchema
+        title="Erectile Dysfunction Assessment Online Australia"
+        description={`Private ED assessment from an AHPRA-registered Australian doctor. Secure form-first review. From ${PRICING_DISPLAY.MENS_HEALTH}.`}
+        url="/erectile-dysfunction"
+        lastReviewed="2026-06"
+      />
+      <ErectileDysfunctionLanding visuals={visuals} />
     </>
   )
 }

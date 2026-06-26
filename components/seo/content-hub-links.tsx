@@ -114,6 +114,7 @@ const SERVICE_LINKS: Record<string, {
       { href: "/symptoms/dizziness", label: "Dizziness" },
     ],
     guides: [
+      { href: "/mens-health", label: "Men's health online" },
       { href: "/blog/erectile-dysfunction-treatment-online-australia", label: "ED assessment online in Australia" },
       { href: "/blog/telehealth-safety-screening", label: "How telehealth safety screening works" },
       { href: "/blog/when-telehealth-cant-help", label: "When online care is not enough" },
@@ -138,6 +139,7 @@ const SERVICE_LINKS: Record<string, {
       { href: "/symptoms/fatigue", label: "Fatigue" },
     ],
     guides: [
+      { href: "/mens-health", label: "Men's health online" },
       { href: "/blog/hair-loss-treatment-online-australia", label: "Hair loss assessment online in Australia" },
       { href: "/blog/finasteride-vs-minoxidil-hair-loss", label: "Hair loss treatment options explained" },
       { href: "/blog/telehealth-safety-screening", label: "How telehealth safety screening works" },

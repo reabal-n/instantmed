@@ -75,6 +75,7 @@ describe("SEO indexing contracts", () => {
       "app/prescriptions/page.tsx": [
         "/resources/secure-online-prescription-requests",
         "/resources/repeat-prescription-safety-checklist",
+        "/online-prescriptions",
       ],
       "app/privacy/page.tsx": [
         "/resources/telehealth-privacy-health-data-checklist",
@@ -148,14 +149,18 @@ describe("SEO indexing contracts", () => {
     expect(lastmod).toContain("ROUTE_LAST_MODIFIED")
   })
 
-  it("keeps live money pages discoverable in the root sitemap", () => {
+  it("keeps live money and high-yield SEO pages discoverable in the root sitemap", () => {
     const sitemap = read("app/sitemap.ts")
     const lastmod = read("lib/seo/sitemap-lastmod.ts")
 
     for (const route of [
       "/medical-certificate",
       "/prescriptions",
+      "/online-prescriptions",
+      "/mens-health",
       "/erectile-dysfunction",
+      "/mental-health-online",
+      "/weight-loss-online",
       "/hair-loss",
       "/womens-health",
       "/uti-assessment-online",

@@ -60,11 +60,16 @@ function PrescriptionAuthorityResourceLink() {
       title: "Repeat prescription safety checklist",
       body: "Identity, current medicine details, monitoring needs, safety changes, and secure eScript delivery.",
     },
+    {
+      href: "/online-prescriptions",
+      title: "Online prescriptions in Australia",
+      body: "A practical guide to repeat prescription review, eScripts, PBS, Medicare, and when in-person care is safer.",
+    },
   ] as const
 
   return (
     <section className="px-4 py-8 sm:px-6">
-      <div className="mx-auto grid max-w-5xl gap-4 md:grid-cols-2">
+      <div className="mx-auto grid max-w-5xl gap-4 md:grid-cols-3">
         {resources.map((resource) => (
           <Link
             key={resource.href}

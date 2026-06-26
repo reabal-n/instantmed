@@ -28,6 +28,7 @@ const NON_MEDCERT_FORM_FIRST_SURFACES = [
   "app/about/page.tsx",
   "app/about/about-client.tsx",
   "app/how-it-works/page.tsx",
+  "app/mental-health-online",
   "app/online-doctor-australia/page.tsx",
   "app/weight-loss",
   "app/womens-health",
@@ -42,8 +43,10 @@ const NON_MEDCERT_FORM_FIRST_SURFACES = [
   "components/marketing/sections/how-it-works-inline.tsx",
   "components/marketing/blog-cta-card.tsx",
   "components/marketing/how-it-works.tsx",
+  "components/marketing/mental-health-online-landing.tsx",
   "lib/data/ed-faq.ts",
   "lib/data/hair-loss-faq.ts",
+  "lib/data/mental-health-online-faq.ts",
   "lib/data/womens-health-faq.ts",
   "lib/email/components/templates/abandoned-checkout-followup.tsx",
   "lib/marketing/contextual-messages.ts",
@@ -664,8 +667,10 @@ describe("advertising compliance guard", () => {
 
     const sitemapSource = readFileSync(toFullPath("app/sitemap.ts"), "utf8")
     const htmlSitemapSource = readFileSync(toFullPath("app/sitemap-html/page.tsx"), "utf8")
-    expect(sitemapSource).not.toContain("weight-loss")
-    expect(htmlSitemapSource).not.toContain("weight-loss")
+    expect(sitemapSource).not.toContain('"/weight-loss"')
+    expect(htmlSitemapSource).not.toContain('href: "/weight-loss"')
+    expect(sitemapSource).toContain('"/weight-loss-online"')
+    expect(htmlSitemapSource).toContain('href: "/weight-loss-online"')
   })
 
   it("keeps internal review and testimonial pages/components retired", () => {

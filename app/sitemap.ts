@@ -29,7 +29,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages = [
     "",
     "/medical-certificate",
+    "/medical-certificate-online",
     "/prescriptions",
+    "/online-prescriptions",
     // /general-consult is 301 redirected to /consult in next.config.mjs -
     // removed from sitemap so Google stops seeing it as a distinct URL
     // (was cannibalizing /consult - flagged in SEO audit + GSC).
@@ -52,8 +54,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/our-doctors",
     "/how-we-decide",
     "/alternatives",
+    "/mens-health",
     "/hair-loss",
     "/erectile-dysfunction",
+    "/mental-health-online",
+    "/weight-loss-online",
     "/womens-health",
     "/uti-assessment-online",
     "/contraceptive-pill-assessment-online",

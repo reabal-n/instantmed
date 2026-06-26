@@ -186,6 +186,8 @@ interface ComingSoonService {
   description: string
   icon: LucideIcon
   priceLabel: string
+  guideHref?: string
+  guideLabel?: string
 }
 
 const comingSoon: ComingSoonService[] = [
@@ -195,6 +197,8 @@ const comingSoon: ComingSoonService[] = [
     description: "Structured program for weight management with clinician oversight.",
     icon: Briefcase,
     priceLabel: "Coming soon",
+    guideHref: "/weight-loss-online",
+    guideLabel: "Read the weight-management guide",
   },
 ]
 
@@ -453,6 +457,15 @@ export default async function ConsultOverviewPage() {
                     </span>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">{service.description}</p>
+                  {service.guideHref && service.guideLabel ? (
+                    <Link
+                      href={service.guideHref}
+                      className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+                    >
+                      {service.guideLabel}
+                      <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    </Link>
+                  ) : null}
                 </div>
               </div>
             ))}

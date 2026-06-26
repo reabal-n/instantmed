@@ -7,7 +7,6 @@ import {
   MessageSquareText,
   RotateCcw,
   Search,
-  Star,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -70,16 +69,6 @@ const MED_CERT_HERO_CTA_ID = "med-cert-hero-cta"
 
 const MED_CERT_PILL = (
   <div className="inline-flex items-center gap-2.5 rounded-full px-3 py-1.5 text-xs font-medium bg-white dark:bg-card border border-border/60 shadow-sm shadow-primary/[0.04]">
-    <span
-      className="inline-flex items-center gap-0.5 text-amber-400"
-      role="img"
-      aria-label="Google star rating"
-    >
-      {[1, 2, 3, 4, 5].map((i) => (
-        <Star key={i} className="w-3 h-3 fill-current" aria-hidden="true" />
-      ))}
-    </span>
-    <span className="text-border/70" aria-hidden="true">&middot;</span>
     <span className="text-muted-foreground">No Medicare needed</span>
     <span className="text-border/70 hidden sm:inline" aria-hidden="true">&middot;</span>
     <span className="hidden sm:inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
@@ -170,6 +159,13 @@ function WorkplaceProofPanel() {
             className="inline-flex items-center gap-1 font-medium text-primary hover:text-primary/80"
           >
             Verification guide
+            <ArrowRight className="h-3 w-3" aria-hidden="true" />
+          </Link>
+          <Link
+            href="/medical-certificate-online"
+            className="inline-flex items-center gap-1 font-medium text-primary hover:text-primary/80"
+          >
+            Online certificate guide
             <ArrowRight className="h-3 w-3" aria-hidden="true" />
           </Link>
         </div>

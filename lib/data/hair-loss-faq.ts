@@ -14,17 +14,17 @@ export const HAIR_LOSS_FAQ = [
   {
     question: "What if online care is not suitable?",
     answer:
-      "The doctor will explain why and may recommend doctor review, pathology, or specialist care. If InstantMed cannot help, your consultation fee is refunded.",
+      "The doctor will explain why and may recommend in-person doctor review, pathology, or specialist care. If the doctor declines the request, the review fee is refunded.",
   },
   {
-    question: "Do I need a doctor consultation?",
+    question: "Do I need doctor review?",
     answer:
       "Yes. The assessment is reviewed by an Australian doctor, who decides what is clinically appropriate based on your pattern, medical history, and suitability.",
   },
   {
     question: "Is the service really discreet?",
     answer:
-      "Completely. The assessment starts with a private clinical form. The doctor may call briefly before deciding if a safety detail needs clarification. Your pharmacy receives only the prescription, not your consultation details. Your bank statement shows 'InstantMed' only.",
+      "Yes. The assessment starts with a private clinical form. The doctor may call briefly before deciding if a safety detail needs clarification. Your pharmacy receives only the prescription information needed to dispense, not your full assessment form. Your bank statement shows 'InstantMed' only.",
   },
   {
     question: "Can women use these treatments?",
