@@ -1,9 +1,9 @@
 # Doc File Map
 
-> **Last updated:** 2026-06-16.
+> **Last updated:** 2026-06-26.
 > Single source of truth for the full canonical doc surface. A fresh contributor reads this file and knows the doc tree without grepping.
 >
-> **Doc-surface count:** 103 `.md` files per `scripts/doc-audit.sh` (which counts the root assistant docs, `.agent-skills/**/SKILL.md`, `wiki/*.md`, `docs/plans/**` working + archived plans, `docs/superpowers/plans/**`, and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-06-16: 97 -> 103 after adding the repo-owned InstantMed workflow skills.
+> **Doc-surface count:** 110 `.md` files per `scripts/doc-audit.sh` (which counts the root assistant docs, `.agent-skills/**/SKILL.md`, `wiki/*.md`, `docs/plans/**` working + archived plans, `docs/superpowers/plans/**`, and `docs/reviews/INDEX.md` alongside the canonical satellites below). Reconciled 2026-06-16: 97 -> 103 after adding the repo-owned InstantMed workflow skills; 103 -> 110 on 2026-06-26 after adding the 7 prescribing-rebuild + med-cert implementation plans.
 >
 > **Owner:** Operator. Update on every doc add, move, or delete. Bump the timestamp.
 
@@ -128,11 +128,18 @@ These are the canonical InstantMed-specific agent workflows. Run `scripts/sync-a
 
 Some active root plan files also have archived copies. Keep this mapped until the plan-retention decision is reconciled.
 
-## docs/superpowers/plans/ — 1
+## docs/superpowers/plans/ — 8
 
 | File | Purpose |
 |------|---------|
 | [docs/superpowers/plans/2026-06-06-customer-growth-phased-plan.md](../superpowers/plans/2026-06-06-customer-growth-phased-plan.md) | Phased customer-growth execution plan covering recovery, paid ads, and organic/LLM authority work |
+| [docs/superpowers/plans/2026-06-26-01-shared-addressfinder-primitive.md](../superpowers/plans/2026-06-26-01-shared-addressfinder-primitive.md) | Prescribing rebuild 01: Addressfinder-first shared address primitive — manual-entry escape, provider-neutral labels (QOL + consolidation; Google fallback kept) |
+| [docs/superpowers/plans/2026-06-26-02-prescribing-identity-profile.md](../superpowers/plans/2026-06-26-02-prescribing-identity-profile.md) | Prescribing rebuild 02: canonical patient-profile prescribing identity — split names, Medicare-or-IHI, focused identity editor |
+| [docs/superpowers/plans/2026-06-26-03-prescribing-intake-flow.md](../superpowers/plans/2026-06-26-03-prescribing-intake-flow.md) | Prescribing rebuild 03: one shared prescribing-identity intake step across all prescribing/specialty services |
+| [docs/superpowers/plans/2026-06-26-04-prescribing-packet.md](../superpowers/plans/2026-06-26-04-prescribing-packet.md) | Prescribing rebuild 04: typed PrescribingPacket domain model across review, queue, timeline, and Parchment handoff |
+| [docs/superpowers/plans/2026-06-26-05-parchment-sync-lifecycle.md](../superpowers/plans/2026-06-26-05-parchment-sync-lifecycle.md) | Prescribing rebuild 05: Parchment preflight/fingerprint sync gating; separate prescribe from request completion |
+| [docs/superpowers/plans/2026-06-26-06-doctor-review-ui-simplification.md](../superpowers/plans/2026-06-26-06-doctor-review-ui-simplification.md) | Prescribing rebuild 06: doctor review UI simplification — one packet, exact blockers, identity/Parchment readiness |
+| [docs/superpowers/plans/2026-06-26-07-med-cert-wording.md](../superpowers/plans/2026-06-26-07-med-cert-wording.md) | Prescribing rebuild 07: warmer medical-certificate body wording (third locked support paragraph) |
 
 ## docs/plans/archive/ — completed/superseded plans (90-day retention)
 
