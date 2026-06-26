@@ -10,7 +10,7 @@ import {
   checkHighStakesUseCase,
   MAX_MED_CERT_DURATION_DAYS,
 } from "@/lib/clinical/intake-validation"
-import { getBodyText, getReturnText, renderTemplatePdf } from "@/lib/pdf/template-renderer"
+import { getBodyText, getReturnText, getSupportText, renderTemplatePdf } from "@/lib/pdf/template-renderer"
 
 const ROOT = path.resolve(__dirname, "../..")
 const EXTENSIONS = new Set([".mdx", ".ts", ".tsx"])
@@ -184,12 +184,17 @@ describe("medical certificate medicolegal scope", () => {
   it("renders certificate body text as simple absence evidence, not a fitness clearance", () => {
     const bodyText = getBodyText(baseCertificateInput)
     const returnText = getReturnText(baseCertificateInput)
-    const combined = `${bodyText}\n${returnText}`
+    const supportText = getSupportText()
+    const combined = `${bodyText}\n${returnText}\n${supportText}`
 
     expect(bodyText).toContain("I certify that Sam Martin (DOB: 01/02/1990) consulted me on 8 May 2026.")
     expect(bodyText).toContain("Based on my assessment")
     expect(bodyText).toContain("unable to attend their usual work duties")
     expect(returnText).toBe("This certificate relates to the absence date stated above.")
+    expect(supportText).toBe("Please get in touch with us if you have any questions about this certificate.")
+    expect(supportText).not.toMatch(/\bsupport@/i)
+    expect(supportText).not.toMatch(/\bconcerns\b/i)
+    expect(supportText).not.toMatch(/\bdo not hesitate\b/i)
     expect(combined).not.toMatch(/\broutine sick-leave evidence\b/i)
     expect(combined).not.toMatch(/\b(?:workplace restrictions|capacity assessment)\b/i)
     expect(combined).not.toMatch(/\bfit(?:ness)?[- ]?for[- ]?(?:work|duty|drive|fly)\b/i)
@@ -215,6 +220,14 @@ describe("medical certificate medicolegal scope", () => {
     }
   })
 
+  it("renders all certificate types including the support paragraph without overflow", async () => {
+    for (const certificateType of ["work", "study", "carer"] as const) {
+      const result = await renderTemplatePdf({ ...baseCertificateInput, certificateType })
+      expect(result.success, certificateType).toBe(true)
+      expect(result.buffer).toBeInstanceOf(Buffer)
+    }
+  })
+
   it.runIf(hasPdfToText())("renders the real certificate PDF without clearance or high-stakes wording", async () => {
     const result = await renderTemplatePdf(baseCertificateInput)
     expect(result.success).toBe(true)
@@ -232,6 +245,7 @@ describe("medical certificate medicolegal scope", () => {
       expect(normalizedText).toContain("I certify that Sam Martin")
       expect(normalizedText).toContain("Based on my assessment")
       expect(normalizedText).toContain("This certificate relates to the absence date stated above")
+      expect(normalizedText).toContain("Please get in touch with us if you have any questions about this certificate")
       expect(normalizedText).toContain("To check this certificate")
       expect(normalizedText).not.toMatch(/\btelehealth consultation\b/i)
       expect(normalizedText).not.toMatch(/\bvalid for the purposes stated above\b/i)

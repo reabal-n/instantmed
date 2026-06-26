@@ -179,6 +179,17 @@ export function getReturnText(input: TemplatePdfInput): string {
   return `This certificate relates to the absence ${dateLabel} stated above.`
 }
 
+/**
+ * Warm closing line inviting the patient to reach out with questions.
+ * Deliberately scoped: no diagnosis, capacity, clearance, return-to-work,
+ * legal-validity, acceptance, modality, or high-stakes wording, and no support
+ * email in the body (the footer carries the contact channel). Locked by
+ * lib/__tests__/med-cert-medicolegal-scope.test.ts.
+ */
+export function getSupportText(): string {
+  return "Please get in touch with us if you have any questions about this certificate."
+}
+
 // ---------------------------------------------------------------------------
 // Word-wrapping utility
 // ---------------------------------------------------------------------------
@@ -323,6 +334,14 @@ export async function renderTemplatePdf(input: TemplatePdfInput): Promise<Templa
     const endY = drawWrappedParagraph(returnText, LAYOUT.bodyX, currentY, fontRegular, LAYOUT.fontSize.body, LAYOUT.lineHeight, LAYOUT.bodyWidth)
 
     if (endY > LAYOUT.maxBodyY) {
+      return { success: false, error: "Certificate body text is too long - it would overlap the doctor information block." }
+    }
+
+    // ---- Support paragraph (warm closing line, after absence scope) ----
+    const supportText = getSupportText()
+    const supportEndY = drawWrappedParagraph(supportText, LAYOUT.bodyX, endY + LAYOUT.paragraphGap, fontRegular, LAYOUT.fontSize.body, LAYOUT.lineHeight, LAYOUT.bodyWidth)
+
+    if (supportEndY > LAYOUT.maxBodyY) {
       return { success: false, error: "Certificate body text is too long - it would overlap the doctor information block." }
     }
 
