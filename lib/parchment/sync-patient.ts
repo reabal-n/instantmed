@@ -250,6 +250,25 @@ function splitFullName(fullName: string): { givenName: string; familyName: strin
   }
 }
 
+/**
+ * Resolve the given/family name pair sent to Parchment for the eScript.
+ *
+ * Prefer the structured `first_name`/`last_name` columns (collected explicitly
+ * at intake/settings) so multi-word family names are correct on the script —
+ * `splitFullName` naively treats only the first whitespace token as the given
+ * name (e.g. "Mary Anne Van Der Berg" -> given "Mary", family "Anne Van Der
+ * Berg"). Fall back to the legacy `full_name` split only when either structured
+ * field is missing, so legacy/guest rows without first/last still work.
+ */
+function resolveParchmentName(profile: PatientProfile): { givenName: string; familyName: string } {
+  const first = profile.first_name?.trim()
+  const last = profile.last_name?.trim()
+  if (first && last) {
+    return { givenName: first, familyName: last }
+  }
+  return splitFullName(profile.full_name)
+}
+
 function resolveParchmentSex(
   profile: PatientProfile,
   intakeAnswers?: Record<string, unknown>,
@@ -312,7 +331,7 @@ export function buildCreatePatientRequest(
   patientProfileId: string,
   intakeAnswers?: Record<string, unknown>,
 ): CreatePatientRequest {
-  const { givenName, familyName } = splitFullName(profile.full_name)
+  const { givenName, familyName } = resolveParchmentName(profile)
   const address = buildParchmentAddress(profile, intakeAnswers)
   const email = answerOrProfile(profile.email, intakeAnswers, ["email"])
   const phone = normalizePhone(answerOrProfile(profile.phone, intakeAnswers, ["phone", "mobile", "mobilePhone"]))
@@ -343,7 +362,7 @@ export function buildUpdatePatientRequest(
   profile: PatientProfile,
   intakeAnswers?: Record<string, unknown>,
 ): UpdatePatientRequest {
-  const { givenName, familyName } = splitFullName(profile.full_name)
+  const { givenName, familyName } = resolveParchmentName(profile)
   const address = buildParchmentAddress(profile, intakeAnswers)
   const email = answerOrProfile(profile.email, intakeAnswers, ["email"])
   const phone = normalizePhone(answerOrProfile(profile.phone, intakeAnswers, ["phone", "mobile", "mobilePhone"]))

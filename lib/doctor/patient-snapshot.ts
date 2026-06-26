@@ -37,7 +37,6 @@ export interface PatientSnapshotField {
 export interface PatientSnapshotAddressField extends PatientSnapshotField {
   verificationLabel?: string
   verificationTone?: "success" | "warning" | "outline"
-  verificationProviderLabel?: string
   verified?: boolean
 }
 
@@ -438,7 +437,6 @@ export function buildPatientSnapshot(
         : address.label
           ? "outline"
           : undefined,
-      verificationProviderLabel: addressReviewSummary?.providerLabel,
       verified: addressReviewSummary?.isVerified,
     },
     profileHref: buildStaffPatientHref(patient.id),

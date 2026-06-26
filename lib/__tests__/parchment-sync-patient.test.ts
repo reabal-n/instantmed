@@ -220,3 +220,40 @@ describe("getParchmentPatientIdentityIssues", () => {
     expect(payload.australian_address?.postcode).toBeUndefined()
   })
 })
+
+// Audit follow-up (2026-06-27): plan-02 added structured first_name/last_name so
+// the eScript family name is correct, but Parchment was still naively splitting
+// full_name. The Parchment payload must PREFER the structured names and only fall
+// back to the full_name split when either is missing.
+describe("buildCreate/UpdatePatientRequest name resolution", () => {
+  it("prefers structured first_name/last_name over a naive full_name split", () => {
+    const profile = {
+      ...baseProfile,
+      full_name: "Mary Anne Van Der Berg",
+      first_name: "Mary Anne",
+      last_name: "Van Der Berg",
+    } as Profile
+
+    const createPayload = buildCreatePatientRequest(profile, "profile-1")
+    const updatePayload = buildUpdatePatientRequest(profile)
+
+    // Naive split would have given given="Mary", family="Anne Van Der Berg".
+    expect(createPayload.given_name).toBe("Mary Anne")
+    expect(createPayload.family_name).toBe("Van Der Berg")
+    expect(updatePayload.given_name).toBe("Mary Anne")
+    expect(updatePayload.family_name).toBe("Van Der Berg")
+  })
+
+  it("falls back to the full_name split when structured names are absent", () => {
+    const createPayload = buildCreatePatientRequest(baseProfile, "profile-1")
+    expect(createPayload.given_name).toBe("Joshua")
+    expect(createPayload.family_name).toBe("Bryant")
+  })
+
+  it("falls back to the full_name split when only one structured name is present", () => {
+    const partial = { ...baseProfile, first_name: "Joshua", last_name: null } as Profile
+    const createPayload = buildCreatePatientRequest(partial, "profile-1")
+    expect(createPayload.given_name).toBe("Joshua")
+    expect(createPayload.family_name).toBe("Bryant")
+  })
+})

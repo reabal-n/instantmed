@@ -24,33 +24,10 @@ import { buildParchmentPrescriptionContext } from "@/lib/doctor/parchment-prescr
 import { DOCTOR_QUEUE_FOCUS_AFTER_ACTION_KEY } from "@/lib/doctor/queue-focus"
 import type { IntakeStatus,IntakeWithDetails } from "@/types/db"
 
+import { findClinicalNoteDraft, formatDraftAsNote } from "./intake-helpers"
 import type { IntakeDialogState } from "./use-intake-dialogs"
 
 const FULL_PAGE_NOTE_AUTOSAVE_MS = 2500
-
-/**
- * Format AI draft content into a brief plain-text clinical note paragraph.
- * Field order: presentingComplaint, historyOfPresentIllness, relevantInformation,
- * certificateDetails — joined as flowing sentences, no SOAP labels.
- */
-function formatDraftAsNote(content: Record<string, unknown>): string {
-  return [
-    content.presentingComplaint,
-    content.historyOfPresentIllness,
-    content.relevantInformation,
-    content.certificateDetails,
-  ]
-    .map((piece) => String(piece || "").trim())
-    .filter((piece) => piece.length > 0)
-    .join(" ")
-}
-
-/** Find a usable clinical_note draft from the AI drafts list. */
-function findClinicalNoteDraft(drafts: AIDraft[]): AIDraft | null {
-  return drafts.find(
-    (d) => d.type === "clinical_note" && d.status === "ready" && !d.rejected_at
-  ) ?? null
-}
 
 interface UseIntakeActionsParams {
   intake: IntakeWithDetails

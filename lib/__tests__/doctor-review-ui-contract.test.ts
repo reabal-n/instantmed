@@ -132,6 +132,28 @@ describe("doctor review prescribing controls", () => {
     expect(fullCaseHeaderSource).toContain("\"Complete Consultation\"")
   })
 
+  // Audit follow-up (2026-06-27): plan-06 bulleted the AI draft clinical note, but
+  // the full-page action hook (use-intake-actions.tsx) carried a duplicate local
+  // formatter that joined with " " (flowing sentences), so the full-page surface
+  // never rendered bullets. It must use the single shared bulleted formatter.
+  it("full-page draft note uses the shared bulleted formatter, not a local flowing-sentence copy", () => {
+    const fullCaseActionSource = readFileSync(
+      join(process.cwd(), "app/doctor/intakes/[id]/use-intake-actions.tsx"),
+      "utf8",
+    )
+    expect(fullCaseActionSource).toContain('from "./intake-helpers"')
+    expect(fullCaseActionSource).toContain("formatDraftAsNote")
+    // No local re-definition of the formatter (the deduped, bulleted one is imported).
+    expect(fullCaseActionSource).not.toContain("function formatDraftAsNote")
+    // The canonical formatter bullets each field and joins with newlines.
+    const helperSource = readFileSync(
+      join(process.cwd(), "app/doctor/intakes/[id]/intake-helpers.ts"),
+      "utf8",
+    )
+    expect(helperSource).toMatch(/`• \$\{piece\}`/)
+    expect(helperSource).toContain('.join("\\n")')
+  })
+
   it("gates Prescribe/Complete behind the prescribing-packet blocker on both surfaces", () => {
     // Plan 06: a legacy repeat-Rx missing dose/indication (and no clinical note)
     // disables Prescribe + Complete via getPrescribingPacketBlocker, label

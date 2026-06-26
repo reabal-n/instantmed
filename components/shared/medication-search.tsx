@@ -327,7 +327,7 @@ export function MedicationSearch({
         >
           {options.map((option, index) => (
             <li
-              key={option.pbs_code}
+              key={`${option.pbs_code}-${index}`}
               onClick={() => handleSelect(option)}
               onMouseEnter={() => setHighlightedIndex(index)}
               className={cn(
