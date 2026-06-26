@@ -131,4 +131,16 @@ describe("doctor review prescribing controls", () => {
     expect(fullCaseHeaderSource).toContain("shouldPrescribeFromConsult && onApprovePrescribedScript")
     expect(fullCaseHeaderSource).toContain("\"Complete Consultation\"")
   })
+
+  it("gates Prescribe/Complete behind the prescribing-packet blocker on both surfaces", () => {
+    // Plan 06: a legacy repeat-Rx missing dose/indication (and no clinical note)
+    // disables Prescribe + Complete via getPrescribingPacketBlocker, label
+    // unchanged. Both review surfaces must wire it identically so one surface
+    // can't silently drop the gate.
+    for (const source of [queueSheetActionsSource, fullCaseHeaderSource]) {
+      expect(source).toContain("buildPrescribingPacket")
+      expect(source).toContain("getPrescribingPacketBlocker")
+      expect(source).toContain("packetBlocker.blocked")
+    }
+  })
 })
