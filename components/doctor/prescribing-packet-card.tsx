@@ -31,8 +31,8 @@ function humanizeField(field: PrescribingPacketRequiredField): string {
  * Single canonical medication packet for the doctor review surfaces. Surfaces
  * medication · dose · indication (the dose+indication that PrescriptionIntent
  * lacked), plus optional context, missing-field flags, cautions, and fulfilment
- * status. Calm chrome only — no `bg-amber-50` style pills (see
- * lib/__tests__/review-calm-chrome.test.ts).
+ * status. Calm chrome only — cautions/status use an 8px dot + plain text, never
+ * a tinted-background pill (guarded by lib/__tests__/review-calm-chrome.test.ts).
  */
 export function PrescribingPacketCard({ packet, cautions, className }: PrescribingPacketCardProps) {
   if (packet.serviceKind === "unknown" && !packet.medicationLabel) return null
