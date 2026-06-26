@@ -27,7 +27,8 @@ import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 const STATES = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
 
 const INITIAL_FORM: CreateManualPatientInput = {
-  fullName: "",
+  firstName: "",
+  lastName: "",
   email: "",
   dateOfBirth: "",
   sex: "",
@@ -143,12 +144,20 @@ export function ManualPatientDialog() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Input
-              label="Legal name"
-              value={form.fullName}
-              onChange={(event) => updateField("fullName", event.target.value)}
-              isInvalid={Boolean(fieldErrors.fullName)}
-              errorMessage={fieldErrors.fullName}
-              autoComplete="name"
+              label="First name (legal)"
+              value={form.firstName}
+              onChange={(event) => updateField("firstName", event.target.value)}
+              isInvalid={Boolean(fieldErrors.firstName)}
+              errorMessage={fieldErrors.firstName}
+              autoComplete="given-name"
+            />
+            <Input
+              label="Last name (legal)"
+              value={form.lastName}
+              onChange={(event) => updateField("lastName", event.target.value)}
+              isInvalid={Boolean(fieldErrors.lastName)}
+              errorMessage={fieldErrors.lastName}
+              autoComplete="family-name"
             />
             <Input
               label="Email"
