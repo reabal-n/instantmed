@@ -6,12 +6,14 @@ import {
 } from "@/lib/doctor/prescribing-identity-update"
 
 export interface DoctorPatientCreateInput extends PrescribingIdentityFormValues {
-  fullName: string
+  firstName: string
+  lastName: string
   email: string
 }
 
 export type DoctorPatientCreateFieldErrors = PrescribingIdentityFieldErrors & {
-  fullName?: string
+  firstName?: string
+  lastName?: string
   email?: string
 }
 
@@ -33,26 +35,20 @@ function normalizeEmail(value: string): string {
   return value.trim().toLowerCase()
 }
 
-function splitPatientName(fullName: string): { firstName: string; lastName: string } | null {
-  const parts = fullName.trim().split(/\s+/).filter(Boolean)
-  if (parts.length < 2) return null
-
-  return {
-    firstName: parts[0],
-    lastName: parts.slice(1).join(" "),
-  }
-}
-
 export function validateDoctorPatientCreateInput(
   input: DoctorPatientCreateInput,
 ): DoctorPatientCreateValidationResult {
   const fieldErrors: DoctorPatientCreateFieldErrors = {}
 
-  const fullName = input.fullName.trim().replace(/\s+/g, " ")
-  const name = splitPatientName(fullName)
-  if (!name) {
-    fieldErrors.fullName = "Enter the patient's first and last name."
+  const firstName = input.firstName.trim().replace(/\s+/g, " ")
+  const lastName = input.lastName.trim().replace(/\s+/g, " ")
+  if (!firstName) {
+    fieldErrors.firstName = "Enter the patient's first name."
   }
+  if (!lastName) {
+    fieldErrors.lastName = "Enter the patient's last name."
+  }
+  const fullName = [firstName, lastName].filter(Boolean).join(" ")
 
   const email = normalizeEmail(input.email)
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -62,7 +58,7 @@ export function validateDoctorPatientCreateInput(
   const prescribingResult = buildPrescribingIdentityProfileUpdates(input)
   Object.assign(fieldErrors, prescribingResult.fieldErrors)
 
-  if (!name || !prescribingResult.valid || Object.keys(fieldErrors).length > 0) {
+  if (Object.keys(fieldErrors).length > 0 || !prescribingResult.valid) {
     return {
       valid: false,
       fieldErrors,
@@ -74,8 +70,8 @@ export function validateDoctorPatientCreateInput(
     fieldErrors: {},
     value: {
       fullName,
-      firstName: name.firstName,
-      lastName: name.lastName,
+      firstName,
+      lastName,
       email,
       profileUpdates: prescribingResult.updates,
     },

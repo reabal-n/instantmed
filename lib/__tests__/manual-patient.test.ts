@@ -9,7 +9,8 @@ import {
 } from "@/lib/doctor/manual-patient"
 
 const VALID_INPUT = {
-  fullName: "  Priya   Shah  ",
+  firstName: "  Priya  ",
+  lastName: "  Shah  ",
   email: " PRIYA.SHAH@Example.COM ",
   dateOfBirth: "1990-02-14",
   sex: "female",
@@ -79,7 +80,8 @@ describe("manual patient creation", () => {
   it("rejects incomplete identity before the action can insert a profile", () => {
     const result = buildManualPatientProfileCreate({
       ...VALID_INPUT,
-      fullName: " ",
+      firstName: " ",
+      lastName: " ",
       email: "not-an-email",
       phone: "123",
       medicareNumber: "123",
@@ -89,7 +91,8 @@ describe("manual patient creation", () => {
     expect(result.valid).toBe(false)
     expect(result.profile).toBeNull()
     expect(result.fieldErrors).toMatchObject({
-      fullName: "Enter the patient's legal name.",
+      firstName: "Enter the patient's first name.",
+      lastName: "Enter the patient's last name.",
       email: "Enter a valid email address.",
       phone: expect.any(String),
       medicareNumber: expect.any(String),

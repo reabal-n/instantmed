@@ -33,11 +33,15 @@ function monthInputValue(value: string | null | undefined): string {
 }
 
 function patientFormValue(patient: Profile): DoctorPatientCreateInput {
-  const fullName = patient.full_name?.trim()
-    || [patient.first_name, patient.last_name].filter(Boolean).join(" ").trim()
+  const firstName = (patient.first_name ?? "").trim()
+    || (patient.full_name ?? "").trim().split(/\s+/).filter(Boolean)[0]
+    || ""
+  const lastName = (patient.last_name ?? "").trim()
+    || (patient.full_name ?? "").trim().split(/\s+/).filter(Boolean).slice(1).join(" ")
 
   return {
-    fullName,
+    firstName,
+    lastName,
     email: patient.email ?? "",
     dateOfBirth: patient.date_of_birth ?? "",
     sex: patient.sex ?? "",
@@ -175,12 +179,21 @@ export function EditPatientDialog({ patient }: EditPatientDialogProps) {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Input
-              label="Full name"
-              value={form.fullName}
-              onChange={(event) => setField("fullName", event.target.value)}
-              isInvalid={Boolean(fieldErrors.fullName)}
-              errorMessage={fieldErrors.fullName}
-              autoComplete="name"
+              label="First name"
+              value={form.firstName}
+              onChange={(event) => setField("firstName", event.target.value)}
+              isInvalid={Boolean(fieldErrors.firstName)}
+              errorMessage={fieldErrors.firstName}
+              autoComplete="given-name"
+              required
+            />
+            <Input
+              label="Last name"
+              value={form.lastName}
+              onChange={(event) => setField("lastName", event.target.value)}
+              isInvalid={Boolean(fieldErrors.lastName)}
+              errorMessage={fieldErrors.lastName}
+              autoComplete="family-name"
               required
             />
             <Input

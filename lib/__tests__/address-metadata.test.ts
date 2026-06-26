@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   buildAddressAuditMetadata,
   getAddressReviewSummary,
+  getAddressStatusDisplay,
 } from "@/lib/request/address-metadata"
 import { transformAnswersForUnifiedCheckout } from "@/lib/request/unified-checkout"
 
@@ -38,6 +39,11 @@ describe("address metadata", () => {
       address_verified: false,
       address_provider: "manual",
     })
+  })
+
+  it("renders a provider-neutral status display (no Google/Addressfinder leak)", () => {
+    expect(getAddressStatusDisplay(true)).toBe("Verified address")
+    expect(getAddressStatusDisplay(false)).toBe("Manually entered")
   })
 
   it("formats a compact verified row for review", () => {

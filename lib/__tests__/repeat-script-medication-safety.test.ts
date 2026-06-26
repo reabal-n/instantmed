@@ -36,6 +36,7 @@ const prescriptionIdentity = {
 const validRepeatAnswers = {
   prescriptionHistory: "6_to_12_months",
   currentDose: "As previously prescribed",
+  indication: "Ongoing therapy",
   ...medicalHistory,
   ...prescriptionIdentity,
 }

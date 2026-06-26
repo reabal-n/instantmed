@@ -27,6 +27,7 @@ import { GoogleAccountLinkCard } from "@/components/account/google-account-link-
 import { DashboardCard, DashboardPageHeader } from "@/components/dashboard"
 import { MedicareCapture } from "@/components/intake/medicare-capture"
 import { ProfileAvatarUpload } from "@/components/settings/profile-avatar-upload"
+import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -113,6 +114,11 @@ export function PatientSettingsClient({ profile, email, avatarUrl, emailPreferen
 
   const initialFormData = useMemo(() => ({
     full_name: profile.full_name,
+    first_name: (profile.first_name ?? "").trim()
+      || (profile.full_name ?? "").trim().split(/\s+/).filter(Boolean)[0]
+      || "",
+    last_name: (profile.last_name ?? "").trim()
+      || (profile.full_name ?? "").trim().split(/\s+/).filter(Boolean).slice(1).join(" "),
     phone: profile.phone || "",
     date_of_birth: profile.date_of_birth || "",
     address_line1: profile.address_line1 || "",
@@ -122,7 +128,9 @@ export function PatientSettingsClient({ profile, email, avatarUrl, emailPreferen
   }), [
     profile.address_line1,
     profile.date_of_birth,
+    profile.first_name,
     profile.full_name,
+    profile.last_name,
     profile.phone,
     profile.postcode,
     profile.state,
@@ -548,12 +556,31 @@ export function PatientSettingsClient({ profile, email, avatarUrl, emailPreferen
                 <h3 className="font-medium text-foreground mb-5">Personal Information</h3>
                 <div className="grid gap-5 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="full_name">Full Name</Label>
+                    <Label htmlFor="first_name">First Name</Label>
                     <Input
-                      id="full_name"
-                      value={formData.full_name}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, full_name: e.target.value }))}
+                      id="first_name"
+                      value={formData.first_name}
+                      onChange={(e) => setFormData((prev) => ({
+                        ...prev,
+                        first_name: e.target.value,
+                        full_name: `${e.target.value} ${prev.last_name}`.trim().replace(/\s+/g, " "),
+                      }))}
                       className="rounded-xl bg-white dark:bg-card"
+                      autoComplete="given-name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="last_name">Last Name</Label>
+                    <Input
+                      id="last_name"
+                      value={formData.last_name}
+                      onChange={(e) => setFormData((prev) => ({
+                        ...prev,
+                        last_name: e.target.value,
+                        full_name: `${prev.first_name} ${e.target.value}`.trim().replace(/\s+/g, " "),
+                      }))}
+                      className="rounded-xl bg-white dark:bg-card"
+                      autoComplete="family-name"
                     />
                   </div>
                   <div className="space-y-2">
@@ -642,10 +669,19 @@ export function PatientSettingsClient({ profile, email, avatarUrl, emailPreferen
               <div className="grid gap-5">
                 <div className="space-y-2">
                   <Label htmlFor="street">Street Address</Label>
-                  <Input
+                  <AddressAutocomplete
                     id="street"
                     value={formData.address_line1}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, address_line1: e.target.value }))}
+                    onChange={(value) => setFormData((prev) => ({ ...prev, address_line1: value }))}
+                    onAddressSelect={(address: AddressComponents) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        address_line1: address.addressLine1 || address.fullAddress,
+                        suburb: address.suburb || prev.suburb,
+                        state: address.state || prev.state,
+                        postcode: address.postcode || prev.postcode,
+                      }))
+                    }
                     className="rounded-xl bg-white dark:bg-card"
                   />
                 </div>

@@ -9,6 +9,8 @@ import type { AustralianState } from "@/types/db"
 
 const profileUpdateSchema = z.object({
   full_name: z.string().min(1).max(200).optional().nullable(),
+  first_name: z.string().max(100).optional().nullable(),
+  last_name: z.string().max(100).optional().nullable(),
   phone: z.string().max(20).optional().nullable(),
   street_address: z.string().max(500).optional(),
   address_line1: z.string().max(500).optional(),
@@ -53,6 +55,8 @@ export async function PATCH(request: Request) {
 
     const {
       full_name,
+      first_name,
+      last_name,
       phone,
       street_address,
       address_line1,
@@ -69,6 +73,8 @@ export async function PATCH(request: Request) {
     const updates: Parameters<typeof updateProfile>[1] = {}
 
     if (full_name !== undefined && full_name !== null) updates.full_name = full_name
+    if (first_name !== undefined) updates.first_name = first_name || null
+    if (last_name !== undefined) updates.last_name = last_name || null
     if (phone !== undefined) updates.phone = phone || null
     // Support both field names from client (street_address is legacy, address_line1 is canonical)
     const addressValue = address_line1 !== undefined ? address_line1 : street_address

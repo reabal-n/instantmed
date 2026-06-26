@@ -418,6 +418,7 @@ describe("unified intake regressions", () => {
       medicationForm: "inhaler",
       prescriptionHistory: "6 to 12 months",
       currentDose: "2 puffs twice daily",
+      indication: "asthma",
       ...sharedMedicalHistory,
       medicareNumber: "1111111111",
       medicareIrn: "2",
@@ -444,6 +445,7 @@ describe("unified intake regressions", () => {
       medicationForm: "inhaler",
       prescriptionHistory: "6 to 12 months",
       currentDose: "2 puffs twice daily",
+      indication: "asthma",
       ...sharedMedicalHistory,
       medicareNumber: "1111111111",
       addressLine1: "12 Manual Entry Road",
@@ -470,6 +472,7 @@ describe("unified intake regressions", () => {
       medicationForm: "inhaler",
       prescriptionHistory: "6 to 12 months",
       currentDose: "2 puffs twice daily",
+      indication: "asthma",
       ...sharedMedicalHistory,
       medicareNumber: "0000000000",
       medicareIrn: "2",
@@ -485,10 +488,11 @@ describe("unified intake regressions", () => {
     ).toBe("Enter a valid Medicare number or provide a valid IHI.")
   })
 
-  it("lets a missing patient-reported dose through as a flag, not a block (A3 boundary 4)", () => {
-    // A3 softening: a blank current dose no longer blocks — the patient proceeds
-    // and the doctor sees a dose_not_stated flag.
-    expect(validateAnswersServerSide("repeat-script", {
+  it("blocks repeat checkout when dose or indication is missing; allows when both present", () => {
+    // Operator decision 2026-06-26: repeat-Rx requires dose+frequency and an
+    // indication so the doctor knows exactly what to prescribe (reverses the
+    // earlier A3 boundary-4 softening for repeat scripts).
+    const base = {
       medicationName: "Budesonide + formoterol",
       medicationStrength: "100/3 micrograms",
       medicationForm: "inhaler",
@@ -501,23 +505,24 @@ describe("unified intake regressions", () => {
       state: "NSW",
       postcode: "2000",
       sex: "M",
-    }, identity)).toBeNull()
+    }
 
-    expect(validateAnswersServerSide("repeat-script", {
-      medicationName: "Budesonide + formoterol",
-      medicationStrength: "100/3 micrograms",
-      medicationForm: "inhaler",
-      prescriptionHistory: "6 to 12 months",
-      currentDose: "2 puffs twice daily",
-      ...sharedMedicalHistory,
-      medicareNumber: "1111111111",
-      medicareIrn: "2",
-      addressLine1: "12 Manual Entry Road",
-      suburb: "Sydney",
-      state: "NSW",
-      postcode: "2000",
-      sex: "M",
-    }, identity)).toBeNull()
+    // Missing both dose and indication → blocked.
+    expect(validateAnswersServerSide("repeat-script", base, identity)).not.toBeNull()
+
+    // Dose present, indication missing → still blocked.
+    expect(
+      validateAnswersServerSide("repeat-script", { ...base, currentDose: "2 puffs twice daily" }, identity),
+    ).not.toBeNull()
+
+    // Both present → allowed.
+    expect(
+      validateAnswersServerSide(
+        "repeat-script",
+        { ...base, currentDose: "2 puffs twice daily", indication: "asthma" },
+        identity,
+      ),
+    ).toBeNull()
   })
 
   it("rejects repeat medication requests when the patient says it was never prescribed", () => {
@@ -548,6 +553,7 @@ describe("unified intake regressions", () => {
     const baseAnswers = {
       prescriptionHistory: "6 to 12 months",
       currentDose: "2 puffs twice daily",
+      indication: "asthma",
       ...sharedMedicalHistory,
       medicareNumber: "1111111111",
       medicareIrn: "2",
@@ -599,6 +605,7 @@ describe("unified intake regressions", () => {
       pbsCode: "MANUAL",
       prescriptionHistory: "6 to 12 months",
       currentDose: "10 mg nightly",
+      indication: "high cholesterol",
       ...sharedMedicalHistory,
       medicareNumber: "1111111111",
       medicareIrn: "2",
@@ -629,6 +636,7 @@ describe("unified intake regressions", () => {
       medicationForm: "inhaler",
       prescriptionHistory: "6 to 12 months",
       currentDose: "2 puffs twice daily",
+      indication: "asthma",
       hasAllergies: false,
       hasConditions: false,
       medicareNumber: "1111111111",

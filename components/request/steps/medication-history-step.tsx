@@ -46,6 +46,7 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
   const prescriptionHistory = answers.prescriptionHistory as string | undefined
   const lastPrescribedBy = (answers.lastPrescribedBy as string) || ""
   const currentDose = (answers.currentDose as string) || ""
+  const indication = (answers.indication as string) || ""
   const sideEffects = (answers.sideEffects as string) || ""
   const hasSideEffects = answers.hasSideEffects as boolean | undefined
   
@@ -64,8 +65,15 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
     // The inline card explains the repeat-script boundary and points patients
     // back to the live service hub, without reviving a general-consult fallback.
 
-    // A3 softening (boundary 4): current dose is no longer required to continue —
-    // a blank one becomes a dose_not_stated flag for the doctor.
+    // Repeat-Rx requires dose+frequency and an indication so the doctor knows
+    // exactly what to prescribe (operator decision 2026-06-26).
+    const isRepeatActive = Boolean(prescriptionHistory) && prescriptionHistory !== "never"
+    if (isRepeatActive && !currentDose.trim()) {
+      newErrors.currentDose = "Tell the doctor your current dose and how often you take it"
+    }
+    if (isRepeatActive && !indication.trim()) {
+      newErrors.indication = "Tell the doctor what this medication is for"
+    }
 
     if (prescriptionHistory && prescriptionHistory !== "never" && hasSideEffects === undefined) {
       newErrors.sideEffects = "Please indicate if you have had side effects"
@@ -75,9 +83,9 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
 
     setErrors(newErrors)
     setBlockedReasons(Object.values(newErrors))
-    setTouched({ prescriptionHistory: true, currentDose: true, sideEffects: true })
+    setTouched({ prescriptionHistory: true, currentDose: true, indication: true, sideEffects: true })
     return Object.keys(newErrors).length === 0
-  }, [prescriptionHistory, hasSideEffects, sideEffects])
+  }, [prescriptionHistory, currentDose, indication, hasSideEffects, sideEffects])
 
   const handleNext = useCallback(() => {
     if (validate()) {
@@ -87,8 +95,8 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
   }, [validate, posthog, serviceType, prescriptionHistory, currentDose, hasSideEffects, onNext])
 
   const isNeverPrescribed = prescriptionHistory === "never"
-  // A3 softening (boundary 4): current dose no longer gates readiness.
-  const isComplete = prescriptionHistory && !isNeverPrescribed && (hasSideEffects === false || (hasSideEffects && sideEffects.trim()))
+  // Repeat-Rx readiness now requires dose+frequency and an indication.
+  const isComplete = prescriptionHistory && !isNeverPrescribed && currentDose.trim() && indication.trim() && (hasSideEffects === false || (hasSideEffects && sideEffects.trim()))
   // Live-computed (not gated on the stale `errors` object).
   const canContinue = Boolean(isComplete)
 
@@ -229,7 +237,7 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
           <FormField
             label="What dose do you currently take?"
             error={touched.currentDose ? errors.currentDose : undefined}
-            hint="Optional. Copy the wording from your label if you can."
+            hint="Include how often you take it. Copy the wording from your label if you can."
           >
             <Textarea
               value={currentDose}
@@ -240,6 +248,25 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
               onBlur={() => setTouched((prev) => ({ ...prev, currentDose: true }))}
               placeholder="e.g., 2 puffs twice daily"
               className="min-h-[72px] mt-2"
+            />
+          </FormField>
+        </QuestionCard>
+      )}
+
+      {/* Indication — what the medication is for */}
+      {needsDose && (
+        <QuestionCard compact>
+          <FormField
+            label="What is this medication for?"
+            error={touched.indication ? errors.indication : undefined}
+            hint="The condition or reason you take it — e.g., asthma, blood pressure, acne."
+          >
+            <Input
+              value={indication}
+              onChange={(e) => setAnswer("indication", e.target.value)}
+              onBlur={() => setTouched((prev) => ({ ...prev, indication: true }))}
+              placeholder="e.g., asthma"
+              className="h-11 mt-2"
             />
           </FormField>
         </QuestionCard>
