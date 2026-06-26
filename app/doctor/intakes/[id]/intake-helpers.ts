@@ -18,9 +18,9 @@ export interface IntakeDetailClientProps {
 }
 
 /**
- * Format AI draft content into a brief plain-text clinical note paragraph.
+ * Format AI draft content into a brief bulleted clinical note.
  * Field order: presentingComplaint, historyOfPresentIllness, relevantInformation,
- * certificateDetails — joined as flowing sentences, no SOAP labels.
+ * certificateDetails — one essential bullet per field, no SOAP labels.
  */
 export function formatDraftAsNote(content: Record<string, unknown>): string {
   return [
@@ -31,7 +31,8 @@ export function formatDraftAsNote(content: Record<string, unknown>): string {
   ]
     .map((piece) => String(piece || "").trim())
     .filter((piece) => piece.length > 0)
-    .join(" ")
+    .map((piece) => `• ${piece}`)
+    .join("\n")
 }
 
 /** Find a usable clinical_note draft from the AI drafts list. */

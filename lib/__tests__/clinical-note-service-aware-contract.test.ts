@@ -56,13 +56,14 @@ describe("clinical note is service-aware + brief paragraph", () => {
     expect(src).toMatch(/never copy an example\s+verbatim/i)
   })
 
-  it("formatClinicalNoteAsText emits a plain paragraph (no SOAP labels)", () => {
+  it("formatClinicalNoteAsText emits brief bullets (no SOAP labels)", () => {
     const src = read("app/actions/drafts/clinical-note-sync.ts")
     // The old SOAP labels must be gone from the formatter output
     expect(src).not.toContain("`Subjective:")
     expect(src).not.toContain("`Objective:")
     expect(src).not.toContain("`Assessment:")
-    // Fields are joined into one paragraph
-    expect(src).toMatch(/\.join\(" "\)/)
+    // Plan 06: fields render as brief bullets (one essential line per field).
+    expect(src).toContain("• ")
+    expect(src).toMatch(/\.join\("\\n"\)/)
   })
 })

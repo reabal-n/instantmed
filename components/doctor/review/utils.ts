@@ -17,9 +17,9 @@ export function stripGenericClinicalNoteBoilerplate(note: string): string {
 }
 
 /**
- * Format clinical note draft JSON into a brief plain-text clinical note paragraph.
+ * Format clinical note draft JSON into a brief bulleted clinical note.
  * Field order: presentingComplaint, historyOfPresentIllness, relevantInformation,
- * certificateDetails — joined as flowing sentences, no SOAP labels.
+ * certificateDetails — one essential bullet per field, no SOAP labels.
  */
 export function formatClinicalNoteContent(content: Record<string, unknown>): string | null {
   const c = content as Record<string, string>
@@ -32,7 +32,7 @@ export function formatClinicalNoteContent(content: Record<string, unknown>): str
     .map((piece) => piece?.trim() || "")
     .filter((piece) => piece.length > 0)
 
-  const formatted = pieces.length > 0 ? pieces.join(" ") : null
+  const formatted = pieces.length > 0 ? pieces.map((piece) => `• ${piece}`).join("\n") : null
   return formatted ? stripGenericClinicalNoteBoilerplate(formatted) || null : null
 }
 
