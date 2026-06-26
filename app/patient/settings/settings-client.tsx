@@ -27,6 +27,7 @@ import { GoogleAccountLinkCard } from "@/components/account/google-account-link-
 import { DashboardCard, DashboardPageHeader } from "@/components/dashboard"
 import { MedicareCapture } from "@/components/intake/medicare-capture"
 import { ProfileAvatarUpload } from "@/components/settings/profile-avatar-upload"
+import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -642,10 +643,19 @@ export function PatientSettingsClient({ profile, email, avatarUrl, emailPreferen
               <div className="grid gap-5">
                 <div className="space-y-2">
                   <Label htmlFor="street">Street Address</Label>
-                  <Input
+                  <AddressAutocomplete
                     id="street"
                     value={formData.address_line1}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, address_line1: e.target.value }))}
+                    onChange={(value) => setFormData((prev) => ({ ...prev, address_line1: value }))}
+                    onAddressSelect={(address: AddressComponents) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        address_line1: address.addressLine1 || address.fullAddress,
+                        suburb: address.suburb || prev.suburb,
+                        state: address.state || prev.state,
+                        postcode: address.postcode || prev.postcode,
+                      }))
+                    }
                     className="rounded-xl bg-white dark:bg-card"
                   />
                 </div>
