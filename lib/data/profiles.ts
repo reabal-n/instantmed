@@ -230,6 +230,8 @@ export async function getProfileById(profileId: string): Promise<Profile | null>
       id,
       auth_user_id,
       full_name,
+      first_name,
+      last_name,
       date_of_birth,
       date_of_birth_encrypted,
       email,

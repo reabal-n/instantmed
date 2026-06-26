@@ -19,6 +19,10 @@ const parchmentLaunchSource = readFileSync(
   join(process.cwd(), "app/actions/manual-patient.ts"),
   "utf8",
 )
+const parchmentActionSource = readFileSync(
+  join(process.cwd(), "app/actions/parchment.ts"),
+  "utf8",
+)
 const parchmentWebhookSource = readFileSync(
   join(process.cwd(), "app/api/webhooks/parchment/route.ts"),
   "utf8",
@@ -158,6 +162,14 @@ describe("script sent mutation production contract", () => {
   // (kept, not deleted) stays the canonical completion route.
   it("never records script_sent from a Parchment launch, sync, create, or refresh action", () => {
     expect(parchmentLaunchSource).not.toMatch(/updateScriptSent|markScriptSent|script_sent/)
+  })
+
+  // The PRIMARY Parchment launch surface is app/actions/parchment.ts
+  // (getParchmentPrescribeUrlAction + patient sync/retry). Opening Parchment or
+  // (re)syncing the patient must never mark the script sent — only the deliberate
+  // doctor completion or the prescription.created webhook may.
+  it("never records script_sent from the primary Parchment launch action", () => {
+    expect(parchmentActionSource).not.toMatch(/updateScriptSent|markScriptSent|script_sent/)
   })
 
   it("records script_sent from the webhook only on an eligible prescription.created event", () => {
