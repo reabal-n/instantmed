@@ -294,6 +294,7 @@ export function transformAnswersForUnifiedCheckout(
     transformed.last_prescription_date = answers.lastPrescriptionDate
     transformed.current_dose = answers.currentDose || answers.current_dose
     transformed.dosage_instructions = answers.currentDose || answers.dosageInstructions || answers.dosage_instructions
+    transformed.indication = answers.indication || answers.indication_for
     transformed.side_effects = answers.sideEffects
     transformed.prescribed_before = typeof answers.prescribedBefore === "boolean"
       ? answers.prescribedBefore

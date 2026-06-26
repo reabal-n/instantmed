@@ -136,7 +136,8 @@ async function completeMedicationHistoryStep(page: Page) {
   await waitForStep(page, /When were you last prescribed/i)
   await clickChip(page, /Under 3 months/i)
   await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
-  // Side effects question appears after entering the current dose.
+  await page.getByPlaceholder(/e\.g\., asthma/i).fill("asthma")
+  // Side effects question appears after entering the current dose + indication.
   await clickChip(page, /No side effects/i)
   await clickContinue(page)
 }
