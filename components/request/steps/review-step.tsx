@@ -20,7 +20,7 @@ import { usePostHog } from "@/lib/analytics/posthog-context"
 import { capturePriorityReviewOptedIn, capturePriorityReviewOptedOut } from "@/lib/analytics/priority-review-events"
 import { getRepeatsExpectation } from "@/lib/clinical/repeats-policy"
 import { PRICING as APP_PRICING } from "@/lib/constants"
-import { getAddressReviewSummary } from "@/lib/request/address-metadata"
+import { getAddressReviewSummary, getAddressStatusDisplay } from "@/lib/request/address-metadata"
 import { getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
 import { normalizeMedicationEntriesAnswer, stringAnswer, stringArrayAnswer } from "@/lib/request/intake-answer-normalizers"
 import { getActiveServerDraftSessionId } from "@/lib/request/server-draft"
@@ -727,7 +727,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       label: 'Address',
       value: addressSummary.compact,
       badge: {
-        label: `${addressSummary.statusLabel} - ${addressSummary.providerLabel}`,
+        label: getAddressStatusDisplay(addressSummary.isVerified),
         tone: addressSummary.isVerified ? "success" : "warning",
       },
     })

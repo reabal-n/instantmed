@@ -1,6 +1,6 @@
 import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import { calculateAge, formatShortDateSafe } from "@/lib/format"
-import { getAddressReviewSummary } from "@/lib/request/address-metadata"
+import { getAddressReviewSummary, getAddressStatusDisplay } from "@/lib/request/address-metadata"
 import { requiresPrescribingIdentityForRequest } from "@/lib/request/prescribing-identity"
 import { validateMedicareExpiry, validateMedicareNumber } from "@/lib/validation/medicare"
 import { normalizeValidIhiNumber } from "@/lib/validation/prescribing-identifier"
@@ -427,9 +427,7 @@ export function buildPatientSnapshot(
       value: address.label ?? undefined,
       complete: address.complete,
       verificationLabel: addressReviewSummary
-        ? addressReviewSummary.isVerified
-          ? `Verified via ${addressReviewSummary.providerLabel}`
-          : "Manual address"
+        ? getAddressStatusDisplay(addressReviewSummary.isVerified)
         : address.label
           ? "Profile address"
           : undefined,

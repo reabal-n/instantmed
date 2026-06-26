@@ -82,7 +82,7 @@ describe("buildPatientSnapshot", () => {
     expect(snapshot.address.label).toBe("12 Manual Entry Road")
     expect(snapshot.address.present).toBe(true)
     expect(snapshot.address.complete).toBe(false)
-    expect(snapshot.address.verificationLabel).toBe("Manual address")
+    expect(snapshot.address.verificationLabel).toBe("Manually entered")
     expect(snapshot.address.verificationTone).toBe("warning")
     expect(snapshot.missingCriticalFields).toEqual(["Address suburb", "Address state", "Address postcode"])
     expect(snapshot.completenessTone).toBe("partial")
@@ -183,7 +183,7 @@ describe("buildPatientSnapshot", () => {
 
     expect(snapshot.address.label).toBe("Unit 2, 21 Kent Road, Dapto, NSW, 2530")
     expect(snapshot.address.complete).toBe(true)
-    expect(snapshot.address.verificationLabel).toBe("Verified via Addressfinder")
+    expect(snapshot.address.verificationLabel).toBe("Verified address")
     expect(snapshot.address.verificationTone).toBe("success")
     expect(snapshot.address.verified).toBe(true)
   })

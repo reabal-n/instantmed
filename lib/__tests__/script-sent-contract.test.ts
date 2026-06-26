@@ -15,6 +15,14 @@ const repeatPrescriptionChecklistSource = readFileSync(
   join(process.cwd(), "components/doctor/repeat-prescription-checklist.tsx"),
   "utf8",
 )
+const parchmentLaunchSource = readFileSync(
+  join(process.cwd(), "app/actions/manual-patient.ts"),
+  "utf8",
+)
+const parchmentWebhookSource = readFileSync(
+  join(process.cwd(), "app/api/webhooks/parchment/route.ts"),
+  "utf8",
+)
 
 function functionBody(name: string): string {
   const start = mutationSource.indexOf(`export async function ${name}`)
@@ -141,5 +149,22 @@ describe("script sent mutation production contract", () => {
     expect(repeatPrescriptionChecklistSource).not.toContain("@/app/actions/repeat-prescription")
     expect(repeatPrescriptionChecklistSource).toContain("scriptSentAt")
     expect(repeatPrescriptionChecklistSource).not.toContain("prescriptionSentAt")
+  })
+
+  // Plan 05 (2026-06-26): a FAILED — or successful — Parchment launch/sync must
+  // never mark the script sent. Only the deliberate, evidence/eligibility-gated
+  // doctor completion (approvePrescribedScriptAction / markScriptSentAction) or
+  // the prescription.created webhook may set script_sent. The attestation path
+  // (kept, not deleted) stays the canonical completion route.
+  it("never records script_sent from a Parchment launch, sync, create, or refresh action", () => {
+    expect(parchmentLaunchSource).not.toMatch(/updateScriptSent|markScriptSent|script_sent/)
+  })
+
+  it("records script_sent from the webhook only on an eligible prescription.created event", () => {
+    expect(parchmentWebhookSource).toContain('payload.event_type !== "prescription.created"')
+    expect(parchmentWebhookSource).toContain("updateScriptSent")
+    expect(parchmentWebhookSource).toContain('.eq("status", "awaiting_script")')
+    expect(parchmentWebhookSource).toContain('.eq("payment_status", "paid")')
+    expect(parchmentWebhookSource).toContain('.eq("script_sent", false)')
   })
 })

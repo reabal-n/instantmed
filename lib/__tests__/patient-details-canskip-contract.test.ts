@@ -128,4 +128,45 @@ describe("patient-details canSkip contract", () => {
       expect(steps).toContain("details")
     })
   })
+
+  // The remaining live consult subtypes route through the same
+  // CONSULT_REVIEW_TAIL as ED, so they must share the identical gated identity
+  // step. Pin them explicitly so a future subtype-specific flow can't drop the
+  // shared step or its gate.
+  const liveConsultSubtypes: Array<{ label: string; subtype: string }> = [
+    { label: "hair-loss consult", subtype: "hair_loss" },
+    { label: "women's-health consult", subtype: "womens_health" },
+  ]
+
+  for (const { label, subtype } of liveConsultSubtypes) {
+    describe(label, () => {
+      const ctx: StepContext = { ...fullyIdentified, answers: { consultSubtype: subtype } }
+      const stepIds = (override: Partial<StepContext>) =>
+        getStepsForService("consult", { ...ctx, ...override }).map((s) => s.id)
+
+      it("skips details when the patient has the full identity bundle on profile", () => {
+        expect(stepIds({})).not.toContain("details")
+      })
+
+      it("keeps details when Medicare is missing", () => {
+        expect(stepIds({ hasMedicare: false })).toContain("details")
+      })
+
+      it("keeps details when phone is missing", () => {
+        expect(stepIds({ hasPhone: false })).toContain("details")
+      })
+
+      it("keeps details when address is missing", () => {
+        expect(stepIds({ hasAddress: false })).toContain("details")
+      })
+
+      it("keeps details when prescribing sex is missing", () => {
+        expect(stepIds({ hasSex: false })).toContain("details")
+      })
+
+      it("keeps details when the patient is not authenticated", () => {
+        expect(stepIds({ isAuthenticated: false })).toContain("details")
+      })
+    })
+  }
 })
