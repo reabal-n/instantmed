@@ -200,9 +200,13 @@ export const medicationStepSchema = z
 export const medicationHistoryStepSchema = z
   .object({
     prescriptionHistory: nonEmptyString("Please indicate when you last had this prescribed"),
-    // A3 softening (boundary 4): current dose is optional; a blank one becomes a
-    // dose_not_stated flag for the doctor rather than a hard block.
+    // Repeat-Rx requires dose+frequency and an indication so the doctor knows
+    // exactly what to prescribe (operator decision 2026-06-26; reverses the
+    // earlier A3 boundary-4 softening for repeat scripts). Enforced only for a
+    // genuine repeat — the not-prescribed-before / unknown-medication escapes
+    // are handled upstream in the medication step.
     currentDose: z.string().optional(),
+    indication: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.prescriptionHistory.trim().toLowerCase() === "never") {
@@ -210,6 +214,21 @@ export const medicationHistoryStepSchema = z
         code: "custom",
         path: ["prescriptionHistory"],
         message: "This repeat prescription service is only for medicines prescribed before.",
+      })
+      return
+    }
+    if (!data.currentDose?.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["currentDose"],
+        message: "Tell the doctor your current dose and how often you take it",
+      })
+    }
+    if (!data.indication?.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["indication"],
+        message: "Tell the doctor what this medication is for",
       })
     }
   })
