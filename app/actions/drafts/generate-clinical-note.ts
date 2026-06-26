@@ -62,7 +62,10 @@ IMPORTANT RULES:
 - Do not make clinical diagnoses — that's for the reviewing doctor.
 - Do not mention specific disease names (covid, influenza, etc.) — use general terms.
 - Do not recommend or mention any medications (no S4/S8 drug names).
-- Keep the TOTAL note brief: each field is ONE concise sentence.
+- Keep the TOTAL note brief: each field is ONE concise, factual sentence —
+  essential clinical info only. No filler, no hedging, no preamble, no restating
+  the question, no reassurance or marketing language. If the intake has nothing
+  substantive for a field, use a short neutral phrase ("As per intake."), not padding.
 
 FLAGGING POLICY (requiresReview):
 - Set requiresReview=true ONLY when the clinical content itself raises a concern

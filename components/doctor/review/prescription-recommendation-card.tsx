@@ -37,8 +37,9 @@ export function PrescriptionRecommendationCard({
         ) : null}
       </div>
       {intent.cautionChecks && intent.cautionChecks.length > 0 ? (
-        <p className="mt-1.5 rounded border border-amber-200 bg-amber-50 px-2 py-1 text-xs text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200">
-          {intent.cautionChecks.join(" · ")}
+        <p className="mt-1.5 flex items-start gap-1.5 text-xs text-amber-700 dark:text-amber-300">
+          <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-500" aria-hidden />
+          <span>{intent.cautionChecks.join(" · ")}</span>
         </p>
       ) : null}
     </div>

@@ -36,8 +36,8 @@ function isClinicalNoteJson(content: unknown): content is ClinicalNoteContent {
  *
  * DETERMINISTIC: Same input always produces same output.
  * Field order: presentingComplaint, historyOfPresentIllness, relevantInformation,
- * certificateDetails. No "Subjective:/Objective:/..." labels — the note reads as
- * one flowing paragraph of sentences separated by a single space.
+ * certificateDetails. No "Subjective:/Objective:/..." labels — one essential
+ * bullet per field, separated by newlines.
  */
 function formatClinicalNoteAsText(content: ClinicalNoteContent): string {
   const pieces = [
@@ -49,7 +49,7 @@ function formatClinicalNoteAsText(content: ClinicalNoteContent): string {
     .map((piece) => piece?.trim())
     .filter((piece): piece is string => Boolean(piece))
 
-  return pieces.join(" ")
+  return pieces.map((piece) => `• ${piece}`).join("\n")
 }
 
 /**

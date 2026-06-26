@@ -40,6 +40,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { buildPrescribingPacket, getPrescribingPacketBlocker } from "@/lib/clinical/prescribing-packet"
 import { buildDoctorDocumentBuilderHref } from "@/lib/dashboard/routes"
 import { STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
@@ -182,6 +183,19 @@ export function IntakeDetailHeader({
       ? "Use the draft note or add a brief clinical note."
       : null
 
+  // Plan 06: block Prescribe/Complete for a legacy repeat-Rx missing
+  // medication/dose/indication unless a clinical note exists (then it warns).
+  const packetBlocker = getPrescribingPacketBlocker(
+    buildPrescribingPacket({
+      serviceType: service?.type,
+      subtype: intake.subtype,
+      answers,
+      intake: { status: intake.status, script_sent: intake.script_sent },
+    }),
+    doctorNotes,
+  )
+  const prescribingPacketBlockMessage = packetBlocker.blocked ? packetBlocker.message : null
+
   const getStatusColor = (status: string) => {
     return INTAKE_STATUS[status as StatusType]?.color ?? "bg-primary/10 text-primary"
   }
@@ -200,10 +214,10 @@ export function IntakeDetailHeader({
   const completeConsultDisabledReason = shouldPrescribeFromConsult
     ? hasPrescribingIdentityBlocker
       ? prescribingIdentityTitle
-      : completeConsultNeedsScript
+      : prescribingPacketBlockMessage ?? (completeConsultNeedsScript
         ? "Complete or record the prescription in Parchment first."
-        : approveDisabledReason
-    : approveDisabledReason
+        : approveDisabledReason)
+    : prescribingPacketBlockMessage ?? approveDisabledReason
 
   const handlePrescribeClick = () => {
     onOpenParchmentPrescribe?.()
@@ -380,8 +394,8 @@ export function IntakeDetailHeader({
                     size={actionButtonSize}
                     onClick={handlePrescribeClick}
                     className="bg-blue-600 hover:bg-blue-700"
-                    disabled={isPending || hasPrescribingIdentityBlocker}
-                    title={prescribingIdentityTitle}
+                    disabled={isPending || hasPrescribingIdentityBlocker || packetBlocker.blocked}
+                    title={prescribingPacketBlockMessage ?? prescribingIdentityTitle}
                   >
                     <Send className="h-4 w-4 mr-2" />
                     {prescribingActionLabel ?? "Prescribe"}
@@ -393,7 +407,7 @@ export function IntakeDetailHeader({
                       size={actionButtonSize}
                       onClick={onApprovePrescribedScript}
                       className="bg-primary hover:bg-primary/90"
-                      disabled={isPending || hasPrescribingIdentityBlocker || !canApproveAfterPrescribe}
+                      disabled={isPending || hasPrescribingIdentityBlocker || !canApproveAfterPrescribe || packetBlocker.blocked}
                       title={approveAfterPrescribeTitle}
                       aria-describedby={prescribingApproveHint ? "full-case-prescribing-approve-hint" : undefined}
                     >

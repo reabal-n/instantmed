@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
+import { buildPrescribingPacket, getPrescribingPacketBlocker } from "@/lib/clinical/prescribing-packet"
 import { buildStaffPatientHref } from "@/lib/dashboard/routes"
 import { isClinicalNoteSufficient } from "@/lib/doctor/clinical-notes"
 import {
@@ -268,6 +269,20 @@ export function IntakeActionButtons({
   const canPrescribeInParchment =
     isActivePrescribingStatus &&
     ((isRepeatScript && caseSummary.recommendedPlan.action === "prescribe") || shouldPrescribeFromConsult)
+  // Plan 06: block Prescribe/Complete for a legacy repeat-Rx missing
+  // medication/dose/indication unless a clinical note exists (then it warns).
+  // New repeats can't be missing fields — checkout enforces them (Plan 04).
+  const packetBlocker = useMemo(() => {
+    const packet = buildPrescribingPacket({
+      serviceType: service?.type,
+      subtype: intake.subtype,
+      answers: answers ?? {},
+      intake: { status: intake.status, script_sent: intake.script_sent },
+    })
+    return getPrescribingPacketBlocker(packet, doctorNotes)
+  }, [service?.type, intake.subtype, intake.status, intake.script_sent, answers, doctorNotes])
+  const prescribingPacketBlockMessage = packetBlocker.blocked ? packetBlocker.message : null
+
   const needsClinicalNotes = !isClinicalNoteSufficient(doctorNotes)
   const approvalNeedsClinicalNotes =
     (service?.type === "med_certs" && ["paid", "in_review"].includes(intake.status)) ||
@@ -344,8 +359,8 @@ export function IntakeActionButtons({
   const completeConsultDisabledReason = shouldPrescribeFromConsult
     ? hasPrescribingIdentityBlocker
       ? prescribingIdentityTitle
-      : approveDisabledReason
-    : approveDisabledReason
+      : prescribingPacketBlockMessage ?? approveDisabledReason
+    : prescribingPacketBlockMessage ?? approveDisabledReason
   const visibleDisabledHint =
     disabledApproveHint ??
     (canShowCompleteConsult ? completeConsultDisabledReason : null) ??
@@ -453,8 +468,8 @@ export function IntakeActionButtons({
           <Button
             onClick={handlePrescribeClick}
             className="h-7 px-2.5 text-xs bg-blue-600 hover:bg-blue-700"
-            disabled={isActionDisabled || hasPrescribingIdentityBlocker}
-            title={prescribingIdentityTitle}
+            disabled={isActionDisabled || hasPrescribingIdentityBlocker || packetBlocker.blocked}
+            title={prescribingPacketBlockMessage ?? prescribingIdentityTitle}
             size="sm"
           >
             <Send className="h-4 w-4 mr-1.5" />
@@ -464,8 +479,8 @@ export function IntakeActionButtons({
             <Button
               onClick={handleApprovePrescribedScript}
               className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
-              disabled={isActionDisabled || hasPrescribingIdentityBlocker || !canApproveAfterPrescribe}
-              title={approveAfterPrescribeTitle}
+              disabled={isActionDisabled || hasPrescribingIdentityBlocker || !canApproveAfterPrescribe || packetBlocker.blocked}
+              title={prescribingPacketBlockMessage ?? approveAfterPrescribeTitle}
               aria-describedby={prescribingApproveHint ? "queue-prescribing-approve-hint" : undefined}
               size="sm"
             >

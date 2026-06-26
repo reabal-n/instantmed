@@ -25,11 +25,14 @@ describe("IntakeReviewCockpit source contract", () => {
     )
   })
 
-  it("renders the prescription handoff card", () => {
-    expect(cockpitSource).toMatch(/PrescriptionRecommendationCard/)
+  it("renders the prescribing packet card (medication + dose + indication)", () => {
+    // Plan 06: the cockpit's primary medication card is now PrescribingPacketCard,
+    // which closes the dose+indication gap PrescriptionIntent could not show.
+    expect(cockpitSource).toMatch(/PrescribingPacketCard/)
     expect(cockpitSource).toMatch(
-      /from\s+["']@\/components\/doctor\/review\/prescription-recommendation-card["']/,
+      /from\s+["']@\/components\/doctor\/prescribing-packet-card["']/,
     )
+    expect(cockpitSource).toMatch(/buildPrescribingPacket/)
   })
 
   it("preserves the Cmd+N notes shortcut wiring", () => {
