@@ -310,6 +310,21 @@ export function AddressAutocomplete({
         </p>
       )}
 
+      {/* Always-available manual entry escape — never strand a user on a slow
+          search or an address the provider does not have. */}
+      {!isVerified && !isManualEntry && (
+        <button
+          type="button"
+          className="mt-1.5 text-xs font-medium text-muted-foreground underline underline-offset-2 transition-colors hover:text-foreground"
+          onMouseDown={(event) => {
+            event.preventDefault()
+            handleManualEntry()
+          }}
+        >
+          Enter address manually
+        </button>
+      )}
+
       {/* Suggestions dropdown */}
       {isOpen && suggestions.length > 0 && (
         <ul

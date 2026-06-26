@@ -39,6 +39,16 @@ export function getAddressProviderLabel(provider: AddressProvider | undefined): 
   return "Unknown"
 }
 
+/**
+ * Provider-neutral status for patient/doctor surfaces. Patients and doctors do
+ * not care which search provider matched — only whether the address was
+ * verified against one or typed by hand. Keeps "Google"/"Addressfinder" out of
+ * user-visible copy.
+ */
+export function getAddressStatusDisplay(isVerified: boolean): string {
+  return isVerified ? "Verified address" : "Manually entered"
+}
+
 export function buildAddressAuditMetadata(answers: Record<string, unknown>): Record<string, unknown> {
   const addressLine1 = getString(answers, ["address_line1", "addressLine1", "address_line_1", "street_address"])
   const isVerified = getBoolean(answers, ["address_verified", "addressVerified"])
