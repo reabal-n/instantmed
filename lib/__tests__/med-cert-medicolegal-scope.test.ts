@@ -191,7 +191,7 @@ describe("medical certificate medicolegal scope", () => {
     expect(bodyText).toContain("Based on my assessment")
     expect(bodyText).toContain("unable to attend their usual work duties")
     expect(returnText).toBe("This certificate relates to the absence date stated above.")
-    expect(supportText).toBe("Please get in touch with us if you have any questions about this certificate.")
+    expect(supportText).toBe("Please get in touch with us if you have any questions.")
     expect(supportText).not.toMatch(/\bsupport@/i)
     expect(supportText).not.toMatch(/\bconcerns\b/i)
     expect(supportText).not.toMatch(/\bdo not hesitate\b/i)
@@ -206,7 +206,7 @@ describe("medical certificate medicolegal scope", () => {
     const cases = [
       ["work", "unable to attend their usual work duties"],
       ["study", "unable to attend their usual study activities"],
-      ["carer", "required to provide care or support to an immediate family or household member who was unwell"],
+      ["carer", "required to provide care and support to an immediate family or household member who was unwell"],
     ] as const
 
     for (const [certificateType, expectedPhrase] of cases) {
@@ -244,8 +244,7 @@ describe("medical certificate medicolegal scope", () => {
 
       expect(normalizedText).toContain("I certify that Sam Martin")
       expect(normalizedText).toContain("Based on my assessment")
-      expect(normalizedText).toContain("This certificate relates to the absence date stated above")
-      expect(normalizedText).toContain("Please get in touch with us if you have any questions about this certificate")
+      expect(normalizedText).toContain("This certificate relates to the absence date stated above. Please get in touch with us if you have any questions")
       expect(normalizedText).toContain("To check this certificate")
       expect(normalizedText).not.toMatch(/\btelehealth consultation\b/i)
       expect(normalizedText).not.toMatch(/\bvalid for the purposes stated above\b/i)

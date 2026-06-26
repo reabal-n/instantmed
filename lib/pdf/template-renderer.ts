@@ -170,7 +170,7 @@ export function getBodyText(input: TemplatePdfInput): string {
     case "study":
       return `I certify that ${nameWithDob} consulted me on ${input.consultationDate}. Based on my assessment, they were unable to attend their usual study activities ${datePart}.`
     case "carer":
-      return `I certify that ${nameWithDob} consulted me on ${input.consultationDate}. Based on my assessment, they were required to provide care or support to an immediate family or household member who was unwell ${datePart}.`
+      return `I certify that ${nameWithDob} consulted me on ${input.consultationDate}. Based on my assessment, they were required to provide care and support to an immediate family or household member who was unwell ${datePart}.`
   }
 }
 
@@ -180,14 +180,15 @@ export function getReturnText(input: TemplatePdfInput): string {
 }
 
 /**
- * Warm closing line inviting the patient to reach out with questions.
+ * Warm closing line inviting the patient to reach out with questions. Rendered
+ * on the same paragraph as the absence-scope line (see renderTemplatePdf).
  * Deliberately scoped: no diagnosis, capacity, clearance, return-to-work,
  * legal-validity, acceptance, modality, or high-stakes wording, and no support
  * email in the body (the footer carries the contact channel). Locked by
  * lib/__tests__/med-cert-medicolegal-scope.test.ts.
  */
 export function getSupportText(): string {
-  return "Please get in touch with us if you have any questions about this certificate."
+  return "Please get in touch with us if you have any questions."
 }
 
 // ---------------------------------------------------------------------------
@@ -330,18 +331,11 @@ export async function renderTemplatePdf(input: TemplatePdfInput): Promise<Templa
       return { success: false, error: "Certificate body text is too long - it would overlap the doctor information block." }
     }
 
-    const returnText = getReturnText(sanitisedInput)
-    const endY = drawWrappedParagraph(returnText, LAYOUT.bodyX, currentY, fontRegular, LAYOUT.fontSize.body, LAYOUT.lineHeight, LAYOUT.bodyWidth)
+    // ---- Closing paragraph: absence scope + warm support line, one paragraph ----
+    const closingText = `${getReturnText(sanitisedInput)} ${getSupportText()}`
+    const endY = drawWrappedParagraph(closingText, LAYOUT.bodyX, currentY, fontRegular, LAYOUT.fontSize.body, LAYOUT.lineHeight, LAYOUT.bodyWidth)
 
     if (endY > LAYOUT.maxBodyY) {
-      return { success: false, error: "Certificate body text is too long - it would overlap the doctor information block." }
-    }
-
-    // ---- Support paragraph (warm closing line, after absence scope) ----
-    const supportText = getSupportText()
-    const supportEndY = drawWrappedParagraph(supportText, LAYOUT.bodyX, endY + LAYOUT.paragraphGap, fontRegular, LAYOUT.fontSize.body, LAYOUT.lineHeight, LAYOUT.bodyWidth)
-
-    if (supportEndY > LAYOUT.maxBodyY) {
       return { success: false, error: "Certificate body text is too long - it would overlap the doctor information block." }
     }
 
