@@ -8,18 +8,19 @@ import { toast } from "sonner"
 import { requestMoreInfoAction } from "@/app/actions/request-more-info"
 import { PatientDecisionStrip } from "@/components/doctor/patient-decision-strip"
 import { PatientTimeline } from "@/components/doctor/patient-timeline"
+import { PrescribingPacketCard } from "@/components/doctor/prescribing-packet-card"
 import { RenewalLink } from "@/components/doctor/renewal-link"
 import { IntakeActionButtons } from "@/components/doctor/review/intake-action-buttons"
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
 import { IntakeSecondaryDisclosure } from "@/components/doctor/review/intake-secondary-disclosure"
 import { PatientMessageThread } from "@/components/doctor/review/patient-message-thread"
-import { PrescriptionRecommendationCard } from "@/components/doctor/review/prescription-recommendation-card"
 import { RequestInfoCard } from "@/components/doctor/review/request-info-card"
 import { ReviewBlockersStrip } from "@/components/doctor/review/review-blockers-strip"
 import { SafetyFlagsCard } from "@/components/doctor/review/safety-flags-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { buildClinicalCaseSummary, type ClinicalCaseSummary } from "@/lib/clinical/case-summary"
+import { buildPrescribingPacket } from "@/lib/clinical/prescribing-packet"
 import { isPrescribingConsultSubtype } from "@/lib/doctor/service-types"
 import { useDoctorShortcuts } from "@/lib/hooks/use-doctor-shortcuts"
 import { cn } from "@/lib/utils"
@@ -175,6 +176,16 @@ export function IntakeReviewCockpit({
       answers,
     ],
   )
+  const prescribingPacket = useMemo(
+    () =>
+      buildPrescribingPacket({
+        serviceType: service?.type,
+        subtype: intake.subtype,
+        answers: answers ?? {},
+        intake: { status: intake.status, script_sent: intake.script_sent },
+      }),
+    [service?.type, intake.subtype, intake.status, intake.script_sent, answers],
+  )
   const hasPrescriptionIntent = Boolean(caseSummary.prescriptionIntent)
   const reasonForVisitText = compactDecisionStrip
     ? formatCompactReasonForVisit(caseSummary)
@@ -292,7 +303,10 @@ export function IntakeReviewCockpit({
             />
             {/* Rx rec sits directly below the clinical facts + note so the
                 doctor sees what to prescribe before confirming identity. */}
-            <PrescriptionRecommendationCard intent={caseSummary.prescriptionIntent} />
+            <PrescribingPacketCard
+              packet={prescribingPacket}
+              cautions={caseSummary.prescriptionIntent?.cautionChecks}
+            />
             {showDecisionStrip ? (
               <PatientDecisionStrip
                 intake={intake}
