@@ -14,16 +14,14 @@ import {
   Stethoscope,
   WalletCards,
 } from "lucide-react"
+import dynamic from "next/dynamic"
 import Link from "next/link"
 import type { ReactNode } from "react"
 
-import { ArticleVisuals } from "@/components/blog/article-visuals"
 import {
   type LandingPageConfig,
   LandingPageShell,
 } from "@/components/marketing/shared/landing-page-shell"
-import { FAQSection } from "@/components/sections/faq-section"
-import { ContentHubLinks } from "@/components/seo"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 import { Reveal } from "@/components/ui/reveal"
@@ -33,6 +31,22 @@ import { PRICING_DISPLAY } from "@/lib/constants"
 import { ED_FAQ } from "@/lib/data/ed-faq"
 import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
 import { cn } from "@/lib/utils"
+
+// Below-fold sections are code-split to keep the /erectile-dysfunction route JS
+// under budget (mirrors the hair-loss landing). ssr stays on (default) so the
+// FAQ + content-hub links remain server-rendered for SEO.
+const ArticleVisuals = dynamic(
+  () => import("@/components/blog/article-visuals").then((m) => m.ArticleVisuals),
+  { loading: () => <div className="min-h-[200px]" /> },
+)
+const FAQSection = dynamic(
+  () => import("@/components/sections/faq-section").then((m) => m.FAQSection),
+  { loading: () => <div className="min-h-[300px]" /> },
+)
+const ContentHubLinks = dynamic(
+  () => import("@/components/seo").then((m) => m.ContentHubLinks),
+  { loading: () => <div className="min-h-[120px]" /> },
+)
 
 const ASSESSMENT_HREF = "/request?service=consult&subtype=ed"
 
