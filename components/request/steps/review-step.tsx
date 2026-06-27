@@ -179,6 +179,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
   const { answers, firstName, lastName, email, phone, dob, goToStep, safetyConfirmed, setSafetyConfirmed, getIdentity, setConsent } = useRequestStore()
   const posthog = usePostHog()
   const consentRef = useRef<HTMLDivElement>(null)
+  const errorRef = useRef<HTMLDivElement>(null)
   const isPrescriptionCheckout = serviceType === "prescription" || serviceType === "repeat-script"
   const price = getDisplayPrice(serviceType, answers)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -202,6 +203,11 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       consult_subtype: answers.consultSubtype,
     })
   }, [posthog, serviceType, answers.consultSubtype, isPrescriptionCheckout])
+
+  // Pull a checkout error into view so it isn't missed below the fold / pay CTA.
+  useEffect(() => {
+    if (error) errorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+  }, [error])
 
   const handleConsentChange = (checked: boolean) => {
     setSafetyConfirmed(checked)
@@ -259,6 +265,9 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
         posthog?.capture("checkout_failed", {
           service_type: serviceType,
           stage: "session_creation",
+          // Real reason ("No such price", "Phone number is required", ...) so the
+          // failure breakdown is actionable. System message, not patient input.
+          reason: result.error?.slice(0, 200),
         })
         setError(result.error || "Unable to create payment session. Please try again.")
         return
@@ -268,6 +277,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
         posthog?.capture("checkout_failed", {
           service_type: serviceType,
           stage: "missing_checkout_url",
+          reason: "missing_checkout_url",
         })
         setError("Unable to create payment session. Please try again.")
         return
@@ -281,10 +291,11 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       setTimeout(() => {
         window.location.href = result.checkoutUrl!
       }, 500)
-    } catch {
+    } catch (e) {
       posthog?.capture("checkout_failed", {
         service_type: serviceType,
         stage: "exception",
+        reason: e instanceof Error ? e.message.slice(0, 200) : "exception",
       })
       setError("Something went wrong. Please try again or contact support.")
     } finally {
@@ -864,6 +875,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
           )}
         </Button>
 
+        <div ref={errorRef} aria-live="polite">
         {error && (
           error.toLowerCase().includes("account already exists") ? (
             // Mirror checkout-step.tsx: an account-owning email is intentionally
@@ -884,10 +896,20 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
             </Alert>
           ) : (
             <Alert variant="destructive" role="alert">
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription className="space-y-1">
+                <p>{error}</p>
+                <p className="text-xs opacity-90">
+                  Your card hasn&apos;t been charged. Try again, or email{" "}
+                  <a href="mailto:support@instantmed.com.au" className="font-medium underline">
+                    support@instantmed.com.au
+                  </a>{" "}
+                  if this keeps happening.
+                </p>
+              </AlertDescription>
             </Alert>
           )
         )}
+        </div>
 
         <CheckoutSecurityFooter />
       </div>

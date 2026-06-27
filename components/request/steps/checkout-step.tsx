@@ -50,6 +50,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
   // Priority review defaults OFF - patient opts in consciously
   const [isPriority, setIsPriority] = useState(false)
   const consentRef = useRef<HTMLDivElement>(null)
+  const errorRef = useRef<HTMLDivElement>(null)
 
   const duration = answers.duration as string | undefined
   const consultSubtype = answers.consultSubtype as string | undefined
@@ -60,6 +61,13 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
   useEffect(() => {
     posthog?.capture('checkout_viewed', { service_type: serviceType, consult_subtype: consultSubtype })
   }, [posthog, serviceType, consultSubtype])
+
+  // A failed checkout renders its error above the sticky mobile pay bar, where it
+  // can sit off-screen — pull it into view so the patient sees why payment didn't
+  // start (and how to recover) instead of re-tapping a seemingly-dead button.
+  useEffect(() => {
+    if (error) errorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+  }, [error])
 
   const price = getDisplayPrice(serviceType, answers)
   const displayLabel = getServiceDisplayLabel(serviceType, consultSubtype)
@@ -132,6 +140,10 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
           service_type: serviceType,
           consult_subtype: consultSubtype,
           stage: 'session_creation',
+          // Carry the real reason (e.g. "No such price", "Phone number is
+          // required") so the failure breakdown is actionable, not a single
+          // opaque bucket. System message, not patient input — safe to log.
+          reason: result.error?.slice(0, 200),
         })
         setError(result.error || 'Failed to create checkout session')
         return
@@ -152,14 +164,16 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
           service_type: serviceType,
           consult_subtype: consultSubtype,
           stage: 'session_creation',
+          reason: 'missing_checkout_url',
         })
         setError('Unable to create payment session. Please try again.')
       }
-    } catch {
+    } catch (e) {
       posthog?.capture('checkout_failed', {
         service_type: serviceType,
         consult_subtype: consultSubtype,
         stage: 'exception',
+        reason: e instanceof Error ? e.message.slice(0, 200) : 'exception',
       })
       setError('Something went wrong. Please try again or contact support.')
     } finally {
@@ -316,7 +330,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
       </div>
 
       {/* Error message */}
-      <div aria-live="polite">
+      <div aria-live="polite" ref={errorRef}>
         {error && (
           error.toLowerCase().includes("account already exists") ? (
             <Alert variant="destructive" role="alert">
@@ -334,7 +348,16 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             </Alert>
           ) : (
             <Alert variant="destructive" role="alert">
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription className="space-y-1">
+                <p>{error}</p>
+                <p className="text-xs opacity-90">
+                  Your card hasn&apos;t been charged. Try again, or email{" "}
+                  <a href="mailto:support@instantmed.com.au" className="font-medium underline">
+                    support@instantmed.com.au
+                  </a>{" "}
+                  if this keeps happening.
+                </p>
+              </AlertDescription>
             </Alert>
           )
         )}
