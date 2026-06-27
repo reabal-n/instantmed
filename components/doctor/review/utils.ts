@@ -1,4 +1,5 @@
 import type { AIDraft } from "@/app/actions/draft-approval"
+import { formatClinicalNoteBullets } from "@/lib/doctor/clinical-notes"
 
 export { MIN_CLINICAL_NOTES_LENGTH } from "@/lib/doctor/clinical-notes"
 
@@ -22,17 +23,7 @@ export function stripGenericClinicalNoteBoilerplate(note: string): string {
  * certificateDetails — one essential bullet per field, no SOAP labels.
  */
 export function formatClinicalNoteContent(content: Record<string, unknown>): string | null {
-  const c = content as Record<string, string>
-  const pieces = [
-    c.presentingComplaint,
-    c.historyOfPresentIllness,
-    c.relevantInformation,
-    c.certificateDetails,
-  ]
-    .map((piece) => piece?.trim() || "")
-    .filter((piece) => piece.length > 0)
-
-  const formatted = pieces.length > 0 ? pieces.map((piece) => `• ${piece}`).join("\n") : null
+  const formatted = formatClinicalNoteBullets(content)
   return formatted ? stripGenericClinicalNoteBoilerplate(formatted) || null : null
 }
 

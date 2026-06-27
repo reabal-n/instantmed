@@ -1,4 +1,5 @@
 import type { AIDraft } from "@/app/actions/draft-approval"
+import { formatClinicalNoteBullets } from "@/lib/doctor/clinical-notes"
 import type { IntakeWithDetails, IntakeWithPatient } from "@/types/db"
 
 // Re-export so existing consumers (intake-decline-dialog) keep working.
@@ -19,20 +20,11 @@ export interface IntakeDetailClientProps {
 
 /**
  * Format AI draft content into a brief bulleted clinical note.
- * Field order: presentingComplaint, historyOfPresentIllness, relevantInformation,
- * certificateDetails — one essential bullet per field, no SOAP labels.
+ * Delegates to the single shared formatter so the full-page surface can never
+ * drift from the cockpit/server copies again (see PR #197).
  */
 export function formatDraftAsNote(content: Record<string, unknown>): string {
-  return [
-    content.presentingComplaint,
-    content.historyOfPresentIllness,
-    content.relevantInformation,
-    content.certificateDetails,
-  ]
-    .map((piece) => String(piece || "").trim())
-    .filter((piece) => piece.length > 0)
-    .map((piece) => `• ${piece}`)
-    .join("\n")
+  return formatClinicalNoteBullets(content)
 }
 
 /** Find a usable clinical_note draft from the AI drafts list. */

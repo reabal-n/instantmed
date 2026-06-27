@@ -10,6 +10,7 @@
 
 import * as Sentry from "@sentry/nextjs"
 
+import { formatClinicalNoteBullets } from "@/lib/doctor/clinical-notes"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -40,16 +41,7 @@ function isClinicalNoteJson(content: unknown): content is ClinicalNoteContent {
  * bullet per field, separated by newlines.
  */
 function formatClinicalNoteAsText(content: ClinicalNoteContent): string {
-  const pieces = [
-    content.presentingComplaint,
-    content.historyOfPresentIllness,
-    content.relevantInformation,
-    content.certificateDetails,
-  ]
-    .map((piece) => piece?.trim())
-    .filter((piece): piece is string => Boolean(piece))
-
-  return pieces.map((piece) => `• ${piece}`).join("\n")
+  return formatClinicalNoteBullets(content as unknown as Record<string, unknown>)
 }
 
 /**
