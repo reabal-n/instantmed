@@ -52,14 +52,14 @@ export function CompleteAccountForm({
   useEffect(() => {
     if (!intakeId) return
     // Don't fire the Google Ads conversion until we have a real
-    // amount_cents from the database. The complete-account-page query
-    // filters on `payment_status = "paid"` so this should almost always
-    // be present, but if a race still slips through, the old code
-    // defaulted to $1 — that's worse than no conversion at all because
-    // Smart Bidding trains on a fake low-value purchase. Skip the
-    // browser fire when amount is unknown; the server-side Google Ads
-    // CAPI fires separately from the Stripe webhook with the real
-    // amount, so we don't lose attribution either way.
+    // amount_cents from the database. The complete-account page now
+    // confirms payment via the Stripe session (not just the lagging
+    // payment_status column), so amount_cents is present even during a
+    // webhook race; if it's still unknown the old code defaulted to $1 —
+    // worse than nothing because Smart Bidding trains on a fake low-value
+    // purchase. Skip the browser fire when amount is unknown; the
+    // server-side Google Ads CAPI fires separately from the Stripe webhook
+    // with the real amount, so we don't lose attribution either way.
     if (amountCents == null) return
     const valueDollars = amountCents / 100
 
