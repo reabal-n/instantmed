@@ -1,5 +1,7 @@
 # Parchment Sync And Prescription Lifecycle Implementation Plan
 
+> ⚠️ **PARTIALLY SUPERSEDED (locked decision 2026-06-26; shipped as [#194](https://github.com/reabal-n/instantmed/pull/194)).** This plan's premise — that the Parchment webhook should own fulfilment and that the doctor "Complete Consultation"/"Sent outside Parchment" attestation should be REMOVED or demoted to proof-only — was **reversed**. The `script_sent` attestation is **deliberately kept** because the `prescription.created` webhook doesn't fire in test mode and lags in prod (see `lib/__tests__/script-sent-contract.test.ts` + the CLAUDE.md gotcha). What actually shipped is **lock-only**: a failed Parchment launch/sync never records `script_sent`, and contract tests pin that. The "durable sync state" (fingerprint / needs_resync / persisted rejection) was assessed **low-ROI and intentionally NOT built** (manual resync + 404 self-heal already cover it). **Do NOT implement Steps 2–4 below (removing the approval-path `script_sent` attestation) — they would undo the kept attestation.** Treat this doc as historical context only.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Prevent predictable Parchment failures, persist rejection state, and separate prescribing execution from request completion.

@@ -281,6 +281,13 @@ export function IntakeActionButtons({
     })
     return getPrescribingPacketBlocker(packet, doctorNotes)
   }, [service?.type, intake.subtype, intake.status, intake.script_sent, answers, doctorNotes])
+  // packetBlocker.blocked drives the disabled state + disabled-reason wiring.
+  // The non-blocking warning (legacy repeat-Rx missing dose/indication but a note
+  // exists) is surfaced two ways: the PrescribingPacketCard renders the missing
+  // fields as the primary visual surface, and packetBlocker.message also feeds the
+  // Prescribe/Approve button title as a supplementary nudge (see doctor-review-ui
+  // contract). Do NOT use packetBlocker.message for the disabled-reason — only the
+  // blocked message should gate, so this stays blocked-only.
   const prescribingPacketBlockMessage = packetBlocker.blocked ? packetBlocker.message : null
 
   const needsClinicalNotes = !isClinicalNoteSufficient(doctorNotes)
@@ -469,7 +476,7 @@ export function IntakeActionButtons({
             onClick={handlePrescribeClick}
             className="h-7 px-2.5 text-xs bg-blue-600 hover:bg-blue-700"
             disabled={isActionDisabled || hasPrescribingIdentityBlocker || packetBlocker.blocked}
-            title={prescribingPacketBlockMessage ?? prescribingIdentityTitle}
+            title={packetBlocker.message ?? prescribingIdentityTitle}
             size="sm"
           >
             <Send className="h-4 w-4 mr-1.5" />
@@ -480,7 +487,7 @@ export function IntakeActionButtons({
               onClick={handleApprovePrescribedScript}
               className="h-7 px-2.5 text-xs bg-primary hover:bg-primary/90"
               disabled={isActionDisabled || hasPrescribingIdentityBlocker || !canApproveAfterPrescribe || packetBlocker.blocked}
-              title={prescribingPacketBlockMessage ?? approveAfterPrescribeTitle}
+              title={packetBlocker.message ?? approveAfterPrescribeTitle}
               aria-describedby={prescribingApproveHint ? "queue-prescribing-approve-hint" : undefined}
               size="sm"
             >

@@ -13,8 +13,8 @@
 - Medical certificates require first and last name but do not require Medicare.
 - Prescribing services require full prescribing identity: first/last, DOB, sex, phone, Medicare-or-IHI, structured address.
 - IHI-only remains valid.
-- Medicare path requires number, IRN, expiry.
-- If Medicare exists at all, it must be complete.
+- Medicare path requires number and IRN. **Expiry is NOT required** (locked decision 2026-06-26; this line previously said "expiry" and contradicted plan-02 + the shipped code — `sync-patient.ts` omits `medicare_valid_to` when absent, `types.ts` marks it `.optional()`, migration `20260430000005`). Do not reintroduce an expiry mandate.
+- If a Medicare number is provided, the number + IRN must be complete (expiry still optional).
 - Repeat-script medication packet fields are mandatory only for repeat prescriptions.
 - Do not force repeat-script dose/frequency fields onto ED, hair loss, UTI, pill, or future specialty services.
 

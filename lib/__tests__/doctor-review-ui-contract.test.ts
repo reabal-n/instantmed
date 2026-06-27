@@ -171,4 +171,16 @@ describe("doctor review prescribing controls", () => {
       expect(source).toContain("packetBlocker.blocked")
     }
   })
+
+  it("surfaces the non-blocking packet warning (not just the blocked message) on both surfaces", () => {
+    // Codex review 2026-06-27: getPrescribingPacketBlocker returns a non-blocking
+    // warning (legacy repeat-Rx missing dose/indication WITH a clinical note) whose
+    // message was previously dropped (blocked-only). It must be surfaced — the
+    // PrescribingPacketCard is the primary visual surface, and the Prescribe/Approve
+    // button title uses packetBlocker.message (covers both blocked + warning) so the
+    // computed warning is no longer dead.
+    for (const source of [queueSheetActionsSource, fullCaseHeaderSource]) {
+      expect(source).toContain("packetBlocker.message ??")
+    }
+  })
 })

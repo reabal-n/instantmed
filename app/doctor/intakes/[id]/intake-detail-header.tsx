@@ -194,6 +194,8 @@ export function IntakeDetailHeader({
     }),
     doctorNotes,
   )
+  // blocked-only (gates the disabled-reason). The non-blocking warning surfaces via
+  // the PrescribingPacketCard + the Prescribe/Approve button title (packetBlocker.message).
   const prescribingPacketBlockMessage = packetBlocker.blocked ? packetBlocker.message : null
 
   const getStatusColor = (status: string) => {
@@ -395,7 +397,7 @@ export function IntakeDetailHeader({
                     onClick={handlePrescribeClick}
                     className="bg-blue-600 hover:bg-blue-700"
                     disabled={isPending || hasPrescribingIdentityBlocker || packetBlocker.blocked}
-                    title={prescribingPacketBlockMessage ?? prescribingIdentityTitle}
+                    title={packetBlocker.message ?? prescribingIdentityTitle}
                   >
                     <Send className="h-4 w-4 mr-2" />
                     {prescribingActionLabel ?? "Prescribe"}
@@ -408,7 +410,7 @@ export function IntakeDetailHeader({
                       onClick={onApprovePrescribedScript}
                       className="bg-primary hover:bg-primary/90"
                       disabled={isPending || hasPrescribingIdentityBlocker || !canApproveAfterPrescribe || packetBlocker.blocked}
-                      title={approveAfterPrescribeTitle}
+                      title={packetBlocker.message ?? approveAfterPrescribeTitle}
                       aria-describedby={prescribingApproveHint ? "full-case-prescribing-approve-hint" : undefined}
                     >
                       {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
