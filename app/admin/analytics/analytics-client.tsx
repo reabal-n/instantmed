@@ -483,6 +483,14 @@ export function AnalyticsDashboardClient({
                 </div>
                 <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                   Aggregate PostHog events over {intakeFunnelSummary.days} days. Supabase payment truth stays in the cards above.
+                  {intakeFunnelSummary.totals.serverCheckoutToPaidRate != null ? (
+                    <>
+                      {" "}Trust the <span className="font-medium text-foreground">Payment started (server) → Paid</span> rate
+                      (<span className="font-medium text-foreground">{intakeFunnelSummary.totals.serverCheckoutToPaidRate}%</span>),
+                      not checkout-viewed → paid ({intakeFunnelSummary.totals.checkoutToPaidRate ?? "–"}%): checkout-viewed is a
+                      client event (ad-block / deferred-init droppable) so it understates conversion.
+                    </>
+                  ) : null}
                 </p>
               </div>
               <StatusBadge status={intakeFunnelBadge} size="sm">
@@ -496,7 +504,7 @@ export function AnalyticsDashboardClient({
               </div>
             ) : null}
 
-            <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               {intakeFunnelSummary.stages.map((stage) => (
                 <div key={stage.key} className="rounded-lg border border-border/60 bg-muted/30 px-3 py-3">
                   <div className="flex items-center justify-between gap-3">
