@@ -14,21 +14,37 @@ describe("intake funnel summary", () => {
       rows: [
         { event: "intake_started", count: 100 },
         { event: "checkout_viewed", count: 42 },
+        { event: "intake_funnel_payment_initiated", count: 35 },
         { event: "purchase_completed_server", count: 30 },
       ],
     })
 
     expect(summary.events).toEqual(INTAKE_FUNNEL_EVENT_NAMES)
     expect(summary.totals).toEqual({
+      // client denominator (checkout_viewed) understates: 30/42 = 71%
       checkoutToPaidRate: 71,
       checkoutViewed: 42,
       paid: 30,
+      paymentInitiated: 35,
+      // server denominator (payment_initiated) is the trustworthy one: 30/35 = 86%
+      serverCheckoutToPaidRate: 86,
       startToCheckoutDropOff: 58,
       startToCheckoutRate: 42,
       started: 100,
     })
-    expect(summary.stages.map((stage) => stage.count)).toEqual([100, 42, 30])
-    expect(summary.stages.map((stage) => stage.rateFromPrevious)).toEqual([null, 42, 71])
+    // The trustworthy server rate is higher than the leaky client rate — the
+    // whole point of the fix (Codex review 2026-06-27).
+    expect(summary.totals.serverCheckoutToPaidRate).toBeGreaterThan(
+      summary.totals.checkoutToPaidRate as number,
+    )
+    expect(summary.stages.map((stage) => stage.count)).toEqual([100, 42, 35, 30])
+    expect(summary.stages.map((stage) => stage.rateFromPrevious)).toEqual([null, 42, 83, 86])
+    expect(summary.stages.map((stage) => stage.key)).toEqual([
+      "started",
+      "checkoutViewed",
+      "paymentInitiated",
+      "paid",
+    ])
   })
 
   it("builds sorted step friction rows without patient-entered values", () => {
@@ -145,9 +161,11 @@ describe("intake funnel summary", () => {
       rows: [
         { event: "intake_started", serviceType: "consult", subtype: "ed", count: 12 },
         { event: "checkout_viewed", serviceType: "consult", subtype: "ed", count: 6 },
+        { event: "intake_funnel_payment_initiated", serviceType: "consult", subtype: "ed", count: 5 },
         { event: "purchase_completed_server", serviceType: "consult", subtype: "ed", count: 4 },
         { event: "intake_started", serviceType: "consult", subtype: "hair_loss", count: 10 },
         { event: "checkout_viewed", serviceType: "consult", subtype: "hair_loss", count: 8 },
+        { event: "intake_funnel_payment_initiated", serviceType: "consult", subtype: "hair_loss", count: 6 },
         { event: "purchase_completed_server", serviceType: "consult", subtype: "hair_loss", count: 5 },
       ],
     })
@@ -157,6 +175,8 @@ describe("intake funnel summary", () => {
         checkoutToPaidRate: 67,
         checkoutViewed: 6,
         paid: 4,
+        paymentInitiated: 5,
+        serverCheckoutToPaidRate: 80,
         serviceLabel: "ED",
         serviceType: "consult",
         startToCheckoutRate: 50,
@@ -167,6 +187,8 @@ describe("intake funnel summary", () => {
         checkoutToPaidRate: 63,
         checkoutViewed: 8,
         paid: 5,
+        paymentInitiated: 6,
+        serverCheckoutToPaidRate: 83,
         serviceLabel: "Hair loss",
         serviceType: "consult",
         startToCheckoutRate: 80,
@@ -230,6 +252,8 @@ describe("intake funnel summary", () => {
         checkoutToPaidRate: null,
         checkoutViewed: 7,
         paid: 0,
+        paymentInitiated: 0,
+        serverCheckoutToPaidRate: null,
         serviceLabel: "Medical certificate",
         serviceType: "med-cert",
         startToCheckoutRate: 70,
@@ -237,5 +261,33 @@ describe("intake funnel summary", () => {
         subtype: null,
       },
     ])
+  })
+
+  it("buckets the server payment_initiated category (medical_certificate) into the med-cert client bucket", () => {
+    // payment_initiated carries the Stripe category ("medical_certificate"); the
+    // client step/checkout events carry "med-cert". normalizeServiceType must fold
+    // them into one bucket so the server payment_initiated→paid rate is per-service.
+    const summary = buildIntakeFunnelSummary({
+      dateFrom: "2026-06-01T00:00:00.000Z",
+      dateTo: "2026-06-15T00:00:00.000Z",
+      days: 14,
+      rows: [
+        { event: "intake_started", serviceType: "med-cert", count: 40 },
+        { event: "checkout_viewed", serviceType: "med-cert", count: 24 },
+        { event: "intake_funnel_payment_initiated", serviceType: "medical_certificate", count: 20 },
+        { event: "purchase_completed_server", serviceType: "med-cert", count: 18 },
+      ],
+    })
+
+    const medCert = summary.byService.find((svc) => svc.serviceType === "med-cert")
+    // All four events landed in ONE bucket (no stray "medical_certificate" row).
+    expect(summary.byService).toHaveLength(1)
+    expect(medCert).toMatchObject({
+      checkoutViewed: 24,
+      paid: 18,
+      paymentInitiated: 20,
+      serverCheckoutToPaidRate: 90, // 18/20 server-side (trustworthy)
+      checkoutToPaidRate: 75, // 18/24 client-side (understated)
+    })
   })
 })

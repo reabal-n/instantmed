@@ -3,6 +3,12 @@ import { INTAKE_ANALYTICS_EVENTS } from "@/lib/analytics/intake-events"
 export const INTAKE_FUNNEL_EVENT_NAMES = [
   INTAKE_ANALYTICS_EVENTS.started,
   INTAKE_ANALYTICS_EVENTS.checkoutViewed,
+  // Reliable SERVER event (emitted at Stripe session creation via
+  // trackIntakeFunnelStep) — the trustworthy "reached pay" denominator.
+  // checkout_viewed is client-only (deferred init + adblock-droppable), so the
+  // checkout_viewed→paid rate understates real conversion. payment_initiated→paid
+  // is server→server and is the rate to trust. See serverCheckoutToPaidRate.
+  "intake_funnel_payment_initiated",
   "purchase_completed_server",
 ] as const
 
@@ -40,15 +46,21 @@ export interface IntakeFunnelStageSummary {
   count: number
   dropOffFromPrevious: number | null
   event: (typeof INTAKE_FUNNEL_EVENT_NAMES)[number]
-  key: "started" | "checkoutViewed" | "paid"
+  key: "started" | "checkoutViewed" | "paymentInitiated" | "paid"
   label: string
   rateFromPrevious: number | null
 }
 
 export interface IntakeFunnelTotals {
+  // checkout_viewed (client) → paid. Understates real conversion because the
+  // denominator is a droppable client event; kept for continuity.
   checkoutToPaidRate: number | null
   checkoutViewed: number
   paid: number
+  paymentInitiated: number
+  // payment_initiated (server) → paid. Both server-side, so this is the
+  // TRUSTWORTHY "reached pay → paid" conversion rate. Use this one.
+  serverCheckoutToPaidRate: number | null
   startToCheckoutDropOff: number
   startToCheckoutRate: number | null
   started: number
@@ -58,6 +70,8 @@ export interface IntakeFunnelServiceSummary {
   checkoutToPaidRate: number | null
   checkoutViewed: number
   paid: number
+  paymentInitiated: number
+  serverCheckoutToPaidRate: number | null
   serviceLabel: string
   serviceType: string
   startToCheckoutRate: number | null
@@ -120,7 +134,9 @@ function normalizeServiceType(value: string | null | undefined): string {
   if (value === "repeat-script" || value === "repeat-rx" || value === "repeat-prescription") {
     return "prescription"
   }
-  if (value === "medcert" || value === "medical-certificate") return "med-cert"
+  // payment_initiated carries the Stripe category ("medical_certificate"); the
+  // client step/checkout events carry "med-cert". Normalise both to one bucket.
+  if (value === "medcert" || value === "medical-certificate" || value === "medical_certificate") return "med-cert"
   return value
 }
 
@@ -186,6 +202,7 @@ export function buildIntakeFunnelSummary(
       const key = serviceKey({ serviceType, subtype })
       const existing = serviceBuckets.get(key) ?? {
         checkout_viewed: 0,
+        intake_funnel_payment_initiated: 0,
         intake_started: 0,
         purchase_completed_server: 0,
         serviceType,
@@ -223,6 +240,7 @@ export function buildIntakeFunnelSummary(
 
   const started = totalsByEvent.get(INTAKE_ANALYTICS_EVENTS.started) ?? 0
   const checkoutViewed = totalsByEvent.get(INTAKE_ANALYTICS_EVENTS.checkoutViewed) ?? 0
+  const paymentInitiated = totalsByEvent.get("intake_funnel_payment_initiated") ?? 0
   const paid = totalsByEvent.get("purchase_completed_server") ?? 0
 
   const stages: IntakeFunnelStageSummary[] = [
@@ -243,12 +261,23 @@ export function buildIntakeFunnelSummary(
       rateFromPrevious: rate(checkoutViewed, started),
     },
     {
+      count: paymentInitiated,
+      dropOffFromPrevious: Math.max(checkoutViewed - paymentInitiated, 0),
+      event: "intake_funnel_payment_initiated",
+      key: "paymentInitiated",
+      label: "Payment started (server)",
+      rateFromPrevious: rate(paymentInitiated, checkoutViewed),
+    },
+    {
+      // Paid rate is taken from the reliable server denominator
+      // (payment_initiated), NOT the client checkout_viewed — this is the
+      // trustworthy conversion at the pay moment.
       count: paid,
-      dropOffFromPrevious: Math.max(checkoutViewed - paid, 0),
+      dropOffFromPrevious: Math.max(paymentInitiated - paid, 0),
       event: "purchase_completed_server",
       key: "paid",
       label: "Paid",
-      rateFromPrevious: rate(paid, checkoutViewed),
+      rateFromPrevious: rate(paid, paymentInitiated),
     },
   ]
 
@@ -259,6 +288,8 @@ export function buildIntakeFunnelSummary(
         : null,
       checkoutViewed: bucket.checkout_viewed,
       paid: bucket.purchase_completed_server,
+      paymentInitiated: bucket.intake_funnel_payment_initiated,
+      serverCheckoutToPaidRate: rate(bucket.purchase_completed_server, bucket.intake_funnel_payment_initiated),
       serviceLabel: serviceLabel(bucket),
       serviceType: bucket.serviceType,
       startToCheckoutRate: rate(bucket.checkout_viewed, bucket.intake_started),
@@ -306,6 +337,8 @@ export function buildIntakeFunnelSummary(
       checkoutToPaidRate: rate(paid, checkoutViewed),
       checkoutViewed,
       paid,
+      paymentInitiated,
+      serverCheckoutToPaidRate: rate(paid, paymentInitiated),
       startToCheckoutDropOff: Math.max(started - checkoutViewed, 0),
       startToCheckoutRate: rate(checkoutViewed, started),
       started,
