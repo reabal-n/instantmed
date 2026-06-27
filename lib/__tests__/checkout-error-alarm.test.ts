@@ -27,6 +27,21 @@ describe("reportCheckoutSessionFailure", () => {
     expect(opts.fingerprint).toEqual(["stripe-no-such-price", "medcert"])
   })
 
+  it("escalates a missing STRIPE_PRICE_* env as a fatal alarm with its own fingerprint", async () => {
+    const result = await reportCheckoutSessionFailure(
+      new Error("Missing STRIPE_PRICE_CONSULT_WOMENS_HEALTH environment variable"),
+      { intakeId: "i-4", category: "consult", failedPriceRole: "base" },
+    )
+
+    expect(result.isMisconfiguredPrice).toBe(true)
+    expect(captureException).toHaveBeenCalledTimes(1)
+    const [, opts] = captureException.mock.calls[0] as [unknown, Record<string, unknown>]
+    expect(opts.level).toBe("fatal")
+    expect((opts.tags as Record<string, string>).checkout_error).toBe("missing_price_env")
+    // Distinct fingerprint from "No such price" so the two config faults group separately.
+    expect(opts.fingerprint).toEqual(["stripe-missing-price-env", "base"])
+  })
+
   it("reports a generic session-create failure at error level, not fatal", async () => {
     const result = await reportCheckoutSessionFailure(
       new Error("Stripe API timeout"),

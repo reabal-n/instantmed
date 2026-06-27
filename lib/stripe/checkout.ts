@@ -51,6 +51,7 @@ import {
   createStripeSessionWithRollback,
 } from "./checkout/stripe-session"
 import type { CheckoutResult,CreateCheckoutInput } from "./checkout/types"
+import { reportCheckoutSessionFailure } from "./checkout-error-alarm"
 import { getAmountCentsForRequest, getOptionalStripePriceEnv, getPriceIdForRequest } from "./client"
 import { createReferralCouponIfEligible } from "./referral-coupon"
 
@@ -138,12 +139,27 @@ export async function createIntakeAndCheckoutAction(
       }
     }
 
-    // 7. Resolve pricing (price ID + amount + priority add-on).
-    const priceId = getPriceIdForRequest({
-      category: input.category as ServiceCategory,
-      subtype: input.subtype,
-      answers: input.answers,
-    })
+    // 7. Resolve pricing (price ID + amount + priority add-on). A broken
+    // STRIPE_PRICE_* env makes getPriceIdForRequest throw; catch it so we fire the
+    // fatal price-config alarm and return a graceful message instead of throwing
+    // into the outer catch with no alarm (mirrors the guest path). The intake is
+    // not persisted yet here, so there's no recoverable row to mark — the alarm is
+    // the operator's recovery signal.
+    let priceId: string | null = null
+    try {
+      priceId = getPriceIdForRequest({
+        category: input.category as ServiceCategory,
+        subtype: input.subtype,
+        answers: input.answers,
+      })
+    } catch (priceConfigError) {
+      await reportCheckoutSessionFailure(priceConfigError, {
+        intakeId: "",
+        category: input.category,
+        failedPriceRole: "base",
+      })
+      return { success: false, error: "Unable to determine pricing. Please contact support." }
+    }
     const amountCents = getAmountCentsForRequest({
       category: input.category as ServiceCategory,
       subtype: input.subtype,

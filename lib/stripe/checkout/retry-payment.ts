@@ -11,6 +11,7 @@
 
 import { cookies } from "next/headers"
 
+import { trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { createLogger } from "@/lib/observability/logger"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
@@ -19,6 +20,7 @@ import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { ServiceCategory } from "@/types/services"
 
+import { reportCheckoutSessionFailure } from "../checkout-error-alarm"
 import { getOptionalStripePriceEnv, getPriceIdForRequest, normalizeStripePriceId, stripe } from "../client"
 import { buildPaymentIntentMetadata, canRetryPaymentForIntake } from "../payment-integrity"
 import { createReferralCouponIfEligible } from "../referral-coupon"
@@ -229,10 +231,17 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
         idempotencyKey: retryIdempotencyKey,
       })
     } catch (stripeError: unknown) {
-      if (stripeError instanceof Error) {
-        if (stripeError.message.includes("No such price")) {
-          return { success: false, error: "This service is temporarily unavailable. Please try again later." }
-        }
+      // Alarm on session-create failure. "No such price" (a stale/deleted price
+      // ID stored on the intake) is the same fatal config catastrophe the authed
+      // + guest paths alarm on; retry previously returned a user message with NO
+      // Sentry trace (Codex review 2026-06-27).
+      const { isMisconfiguredPrice } = await reportCheckoutSessionFailure(stripeError, {
+        intakeId: intake.id,
+        category: intake.category || "",
+        failedPriceRole: "base",
+      })
+      if (isMisconfiguredPrice) {
+        return { success: false, error: "This service is temporarily unavailable. Please try again later." }
       }
       return { success: false, error: "Payment system error. Please try again." }
     }
@@ -259,6 +268,16 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
       logger.error("Failed to attach retry checkout session", { intakeId: intake.id }, retryUpdateError)
       return { success: false, error: "Failed to prepare payment retry. Please try again." }
     }
+
+    // Count the retry in the server-side "reached pay" denominator so retried
+    // checkouts aren't invisible in the funnel (mirrors the authed + guest paths;
+    // PR-1a's trustworthy payment_initiated → paid rate otherwise omits retries).
+    trackIntakeFunnelStep({
+      step: "payment_initiated",
+      intakeId: intake.id,
+      serviceSlug: service?.slug || serviceSlugForSafety || "",
+      serviceType: intake.category || "",
+    })
 
     return { success: true, checkoutUrl: session.url, intakeId: intake.id }
   } catch {
