@@ -143,15 +143,21 @@ describe("doctor review prescribing controls", () => {
     )
     expect(fullCaseActionSource).toContain('from "./intake-helpers"')
     expect(fullCaseActionSource).toContain("formatDraftAsNote")
-    // No local re-definition of the formatter (the deduped, bulleted one is imported).
+    // No local re-definition of the formatter (the deduped one is imported).
     expect(fullCaseActionSource).not.toContain("function formatDraftAsNote")
-    // The canonical formatter bullets each field and joins with newlines.
+    // intake-helpers delegates to the single shared bullet formatter (no re-impl).
     const helperSource = readFileSync(
       join(process.cwd(), "app/doctor/intakes/[id]/intake-helpers.ts"),
       "utf8",
     )
-    expect(helperSource).toMatch(/`• \$\{piece\}`/)
-    expect(helperSource).toContain('.join("\\n")')
+    expect(helperSource).toContain("formatClinicalNoteBullets")
+    // The bullet rendering itself lives in the shared source of truth.
+    const sharedSource = readFileSync(
+      join(process.cwd(), "lib/doctor/clinical-notes.ts"),
+      "utf8",
+    )
+    expect(sharedSource).toMatch(/`• \$\{piece\}`/)
+    expect(sharedSource).toContain('.join("\\n")')
   })
 
   it("gates Prescribe/Complete behind the prescribing-packet blocker on both surfaces", () => {

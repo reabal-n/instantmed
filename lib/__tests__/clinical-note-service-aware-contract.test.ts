@@ -56,14 +56,18 @@ describe("clinical note is service-aware + brief paragraph", () => {
     expect(src).toMatch(/never copy an example\s+verbatim/i)
   })
 
-  it("formatClinicalNoteAsText emits brief bullets (no SOAP labels)", () => {
+  it("formatClinicalNoteAsText emits brief bullets via the shared formatter (no SOAP labels)", () => {
     const src = read("app/actions/drafts/clinical-note-sync.ts")
     // The old SOAP labels must be gone from the formatter output
     expect(src).not.toContain("`Subjective:")
     expect(src).not.toContain("`Objective:")
     expect(src).not.toContain("`Assessment:")
-    // Plan 06: fields render as brief bullets (one essential line per field).
-    expect(src).toContain("• ")
-    expect(src).toMatch(/\.join\("\\n"\)/)
+    // Plan 06 + PR #197 dedup: delegate to the single shared bullet formatter
+    // instead of re-implementing the field/bullet logic here.
+    expect(src).toContain("formatClinicalNoteBullets")
+    // The bullet rendering itself lives in the shared source of truth.
+    const shared = read("lib/doctor/clinical-notes.ts")
+    expect(shared).toContain("• ")
+    expect(shared).toMatch(/\.join\("\\n"\)/)
   })
 })
