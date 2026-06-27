@@ -535,12 +535,23 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       return { success: false, error: "Service not available. Please contact support." }
     }
 
-    // 3. Get the price ID early so we can store it on the intake
-    const priceId = getPriceIdForRequest({
-      category: input.category,
-      subtype: input.subtype,
-      answers: input.answers,
-    })
+    // 3. Resolve the price ID early so we can store it on the intake. If price
+    // config is broken (missing/typo'd STRIPE_PRICE_* env), do NOT throw out of
+    // the action before the intake exists — capture null, persist a recoverable
+    // checkout_failed intake below, and fire the fatal config alarm. (A throw
+    // here previously bypassed both the recoverable row and the alarm — Codex
+    // review 2026-06-27.)
+    let priceId: string | null = null
+    let priceConfigError: unknown = null
+    try {
+      priceId = getPriceIdForRequest({
+        category: input.category,
+        subtype: input.subtype,
+        answers: input.answers,
+      })
+    } catch (error) {
+      priceConfigError = error
+    }
     const amountCents = getAmountCentsForRequest({
       category: input.category,
       subtype: input.subtype,
@@ -739,9 +750,19 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       logAccuracyAttestationGiven(intake.id, requestType, guestProfileId),
     ])
 
-    // 5. Validate price ID (already fetched above)
+    // 5. Validate price ID (already fetched above). A null here means resolution
+    // threw — the intake + answers are now persisted (recoverable), so mark it
+    // checkout_failed AND fire the fatal price-config alarm so the broken env is
+    // surfaced instead of silently failing every guest checkout for this tier.
     if (!priceId) {
-      await markGuestCheckoutFailed(supabase, intake.id, "Missing Stripe price ID")
+      const priceErrorMessage =
+        priceConfigError instanceof Error ? priceConfigError.message : "Missing Stripe price ID"
+      await markGuestCheckoutFailed(supabase, intake.id, priceErrorMessage)
+      await reportCheckoutSessionFailure(priceConfigError ?? new Error(priceErrorMessage), {
+        intakeId: intake.id,
+        category: input.category,
+        failedPriceRole: "base",
+      })
       return { success: false, error: "Unable to determine pricing. Please contact support." }
     }
 
