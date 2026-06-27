@@ -194,9 +194,13 @@ export function IntakeDetailHeader({
     }),
     doctorNotes,
   )
-  // blocked-only (gates the disabled-reason). The non-blocking warning surfaces via
-  // the PrescribingPacketCard + the Prescribe/Approve button title (packetBlocker.message).
+  // blocked-only (gates the disabled-reason).
   const prescribingPacketBlockMessage = packetBlocker.blocked ? packetBlocker.message : null
+  // Non-gating warning (legacy repeat-Rx missing dose/indication WITH a clinical
+  // note recorded). This surface does NOT render the PrescribingPacketCard, so
+  // without this the warning was only a button tooltip — surface it visibly near
+  // the controls (calm chrome). Does NOT disable anything.
+  const prescribingPacketWarning = packetBlocker.warning ? packetBlocker.message : null
 
   const getStatusColor = (status: string) => {
     return INTAKE_STATUS[status as StatusType]?.color ?? "bg-primary/10 text-primary"
@@ -373,6 +377,16 @@ export function IntakeDetailHeader({
               <div className="w-full rounded-md border border-warning-border bg-warning-light px-3 py-2 text-sm font-medium text-warning">
                 Complete patient identity before prescribing: {missingPrescribingIdentityFields.join(", ")}
               </div>
+            )}
+
+            {prescribingPacketWarning && (
+              <p
+                data-testid="prescribing-packet-warning"
+                className="flex w-full items-start gap-1.5 text-xs text-amber-700 dark:text-amber-300"
+              >
+                <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-500" aria-hidden />
+                <span>{prescribingPacketWarning}</span>
+              </p>
             )}
 
             {/* For med certs - preview then approve: shows preview dialog first */}

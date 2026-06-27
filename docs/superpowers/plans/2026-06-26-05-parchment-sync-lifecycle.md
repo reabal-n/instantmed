@@ -216,6 +216,8 @@ git commit -m "refactor: derive parchment sync status from identity fingerprint"
 
 ## Task 5: Separate Prescribe, Fulfilment Proof, And Completion
 
+> 🛑 **SUPERSEDED — do NOT implement (locked decision 2026-06-26; see the banner at the top of this file).** Steps 1–5 below remove the doctor `script_sent` attestation and make the Parchment webhook own completion. That premise was **reversed**: the attestation is deliberately **kept** because `prescription.created` doesn't fire in test mode and lags in prod. What shipped ([#194](https://github.com/reabal-n/instantmed/pull/194)) is **lock-only** — a failed Parchment launch/sync never records `script_sent` — pinned by `lib/__tests__/script-sent-contract.test.ts`. The `- [ ]` checkboxes below are historical context, NOT open work; actioning them would undo the kept attestation.
+
 **Files:**
 - Modify `app/doctor/queue/actions.ts`
 - Modify `components/doctor/review/intake-action-buttons.tsx`

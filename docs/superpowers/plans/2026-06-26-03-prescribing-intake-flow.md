@@ -85,7 +85,7 @@ git commit -m "test: lock prescribing identity service gate"
   - `identityMethod`
   - `medicareNumber`
   - `medicareIrn`
-  - `medicareExpiry`
+  - `medicareExpiry` (optional — NOT a required field; locked decision 2026-06-26)
   - `ihiNumber`
   - `addressLine1`
   - `suburb`
@@ -97,7 +97,7 @@ git commit -m "test: lock prescribing identity service gate"
 
 Add tests:
 
-- prescribing checkout blocks Medicare without expiry
+- prescribing checkout allows Medicare without expiry (expiry is optional — locked decision 2026-06-26)
 - prescribing checkout allows IHI-only
 - med cert checkout requires first and last name but not Medicare
 - prescribing checkout blocks missing first or last name
@@ -172,7 +172,7 @@ git commit -m "refactor: reuse prescribing identity step across prescribing flow
 
 Add tests for patient profile/onboarding updates:
 
-- Medicare requires expiry.
+- Medicare expiry is optional (NOT required — locked decision 2026-06-26).
 - IHI-only passes.
 - First/last required.
 - Address metadata persists.

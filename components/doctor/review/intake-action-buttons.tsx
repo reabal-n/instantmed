@@ -282,13 +282,15 @@ export function IntakeActionButtons({
     return getPrescribingPacketBlocker(packet, doctorNotes)
   }, [service?.type, intake.subtype, intake.status, intake.script_sent, answers, doctorNotes])
   // packetBlocker.blocked drives the disabled state + disabled-reason wiring.
-  // The non-blocking warning (legacy repeat-Rx missing dose/indication but a note
-  // exists) is surfaced two ways: the PrescribingPacketCard renders the missing
-  // fields as the primary visual surface, and packetBlocker.message also feeds the
-  // Prescribe/Approve button title as a supplementary nudge (see doctor-review-ui
-  // contract). Do NOT use packetBlocker.message for the disabled-reason — only the
-  // blocked message should gate, so this stays blocked-only.
+  // The non-blocking warning (legacy repeat-Rx missing dose/indication WITH a
+  // clinical note recorded) is surfaced as a visible calm line at the decision
+  // point below (prescribingPacketWarning) AND via the button title — not only the
+  // PrescribingPacketCard, which renders solely in the cockpit (the full-case
+  // header has no card). Do NOT use packetBlocker.message for the disabled-reason —
+  // only the blocked message gates, so this stays blocked-only.
   const prescribingPacketBlockMessage = packetBlocker.blocked ? packetBlocker.message : null
+  // Visible, non-gating nudge for the warning case (note recorded → confirm in Parchment).
+  const prescribingPacketWarning = packetBlocker.warning ? packetBlocker.message : null
 
   const needsClinicalNotes = !isClinicalNoteSufficient(doctorNotes)
   const approvalNeedsClinicalNotes =
@@ -414,6 +416,15 @@ export function IntakeActionButtons({
             </Link>
           </Button>
         </div>
+      )}
+      {prescribingPacketWarning && (
+        <p
+          data-testid="prescribing-packet-warning"
+          className="mb-2 flex items-start gap-1.5 text-xs text-amber-700 dark:text-amber-300"
+        >
+          <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-500" aria-hidden />
+          <span>{prescribingPacketWarning}</span>
+        </p>
       )}
       <div
         className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-x-6 [&>button]:w-full [&>div]:w-full sm:[&>button]:w-auto sm:[&>div]:w-auto"
