@@ -24,57 +24,46 @@ async function dismissOverlays(page: import("@playwright/test").Page) {
   })
 }
 
-async function stubMedicationSearch(page: import("@playwright/test").Page) {
-  await page.route("**/api/medications/search**", async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        results: [
-          {
-            drug_name: "Atorvastatin",
-            strength: "20 mg",
-            form: "tablet",
-            pbs_code: "1234A",
-          },
-        ],
-      }),
-    })
-  })
-}
-
 async function completeToDetails(page: import("@playwright/test").Page) {
   await page.goto("/request?service=repeat-script")
   await dismissOverlays(page)
 
+  const clickPrimary = async () => {
+    // Mobile (390px): the in-step primary action is `max-sm:hidden`; the sticky
+    // mobile action bar carries the visible "Continue" button (last in the DOM).
+    await page.getByRole("button", { name: /^Continue$/i }).last().click()
+  }
+
   await expect(page.getByRole("heading", { name: /Which medication do you need/i })).toBeVisible({ timeout: 20000 })
-  const medicationInput = page.getByRole("combobox", { name: /Medication name search/i })
-  await medicationInput.fill("Atorvastatin")
-  await page.getByRole("option", { name: /Atorvastatin/i }).first().click()
-  await page.getByRole("button", { name: /^Continue$/i }).last().click()
+  // Medication is a free-text name box since #208 (PBS combobox retired).
+  await page.locator("#medication-name-0").fill("Atorvastatin")
+  await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
+  await clickPrimary()
 
   await expect(page.getByText(/When were you last prescribed/i).first()).toBeVisible()
   await page.getByRole("radio", { name: /Under 3 months/i }).click()
   await page.getByPlaceholder(/2 puffs twice daily/i).fill("1 tablet daily")
   await page.getByPlaceholder(/e\.g\., asthma/i).fill("high cholesterol")
   await page.getByRole("radio", { name: /No side effects/i }).click()
-  await page.getByRole("button", { name: /^Continue$/i }).last().click()
+  await clickPrimary()
 
   await expect(page.getByRole("heading", { name: /Anything the doctor should know/i })).toBeVisible()
-  await page.getByRole("radio", { name: /No allergies/i }).click()
-  await page.getByRole("radio", { name: /No conditions/i }).click()
-  await page.getByRole("radio", { name: /No medications/i }).click()
-  await expect(page.getByRole("heading", { name: /Medication safety/i })).toBeVisible()
-  await page.getByRole("radio", { name: /^No$/i }).first().click()
-  await page.getByRole("radio", { name: /No reactions/i }).click()
-  await page.getByRole("button", { name: /^Continue$/i }).last().click()
+  // #209: each question is a radiogroup with a question-specific "no" label;
+  // the separate "Medication safety" / "No reactions" question was folded in.
+  await page.getByRole("radiogroup", { name: /allerg/i }).getByRole("radio", { name: /^None$/i }).click()
+  await page.getByRole("radiogroup", { name: /medical conditions/i }).getByRole("radio", { name: /^No conditions$/i }).click()
+  await page.getByRole("radiogroup", { name: /other medications/i }).getByRole("radio", { name: /^No medications$/i }).click()
+  const pregnancy = page.getByRole("radiogroup", { name: /pregnant or breastfeeding/i })
+  if (await pregnancy.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await pregnancy.getByRole("radio", { name: /^No$/i }).click()
+  }
+  await clickPrimary()
 
   await expect(page.getByRole("heading", { name: /^Your details$/i }).first()).toBeVisible({ timeout: 20000 })
 }
 
 test.describe("Addressfinder mobile path", () => {
   test("selects an Addressfinder result and stores verified provider metadata", async ({ page }) => {
-    await stubMedicationSearch(page)
     await page.route("**/api/places/autocomplete**", async (route) => {
       await route.fulfill({
         status: 200,
@@ -138,7 +127,6 @@ test.describe("Addressfinder mobile path", () => {
   })
 
   test("offers an explicit manual address action when no verified result is found", async ({ page }) => {
-    await stubMedicationSearch(page)
     await page.route("**/api/places/autocomplete**", async (route) => {
       await route.fulfill({
         status: 200,

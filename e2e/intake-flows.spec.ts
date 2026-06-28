@@ -202,13 +202,16 @@ async function completeDetailsStep(
  * The no-medications label is "No medications" (not "No other medications").
  */
 async function completeMedicalHistoryStep(page: Page) {
-  await waitForStep(page, /Any allergies/i)
-  await clickChip(page, /No allergies/i)
-  await clickChip(page, /No conditions/i)
-  await clickChip(page, /No medications/i)
-  if (await page.getByText(/Currently pregnant or breastfeeding/i).isVisible({ timeout: 3000 }).catch(() => false)) {
-    await clickChip(page, /^No$/i)
-    await clickChip(page, /No reactions/i)
+  await waitForStep(page, /Anything the doctor should know/i)
+  // Each question is a Yes/No radiogroup with a question-specific "no" label.
+  // #209 folded the old "previous medication reactions?" toggle into the
+  // allergies question, so there is no separate reactions question.
+  await page.getByRole("radiogroup", { name: /allerg/i }).getByRole("radio", { name: /^None$/i }).click()
+  await page.getByRole("radiogroup", { name: /medical conditions/i }).getByRole("radio", { name: /^No conditions$/i }).click()
+  await page.getByRole("radiogroup", { name: /other medications/i }).getByRole("radio", { name: /^No medications$/i }).click()
+  const pregnancy = page.getByRole("radiogroup", { name: /pregnant or breastfeeding/i })
+  if (await pregnancy.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await pregnancy.getByRole("radio", { name: /^No$/i }).click()
   }
   await clickContinue(page)
 }
@@ -269,32 +272,21 @@ async function verifyCheckoutStep(page: Page) {
 }
 
 /**
- * Complete the medication search step for prescriptions.
+ * Complete the medication step for prescriptions.
  *
- * The MedicationSearch component is a combobox that searches the PBS database.
- * In test environments the PBS API may not return results, so we use multiple
- * fallback strategies:
- *   1. Type a query and try to pick a dropdown result
- *   2. If no results, type a name and blur to trigger manual entry via handleBlur
- *   3. If that still doesn't work, click "I don't know the exact name" fallback
+ * Since #208 the PBS combobox is retired — the medication step is a plain
+ * free-text name box (`#medication-name-0`). Strength/form (`#medication-strength-0`
+ * / `#medication-form-0`) are optional and reveal once a name is typed.
  */
-async function completeMedicationSearchStep(page: Page) {
+async function completeMedicationStep(page: Page) {
   await waitForStep(page, /Which medication do you need\?/i)
 
-  const medInput = page.getByRole("combobox").first()
-  await medInput.fill("E2E test medication")
-  await medInput.blur()
-  await page.waitForTimeout(400)
-
-  const manualOption = page.getByRole("button", { name: /Continue with "E2E test medication"/i })
-  if (await manualOption.isVisible({ timeout: 1000 }).catch(() => false)) {
-    await manualOption.click()
-  }
+  await page.locator("#medication-name-0").fill("E2E test medication")
 
   await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
   await page.locator("#medication-strength-0").fill("500 mg")
   await page.locator("#medication-form-0").fill("capsule")
-  await expect(page.getByRole("button", { name: /Continue to history/i }).last()).toBeEnabled({ timeout: 5000 })
+
   await clickContinue(page)
   await page.waitForTimeout(500)
 }
@@ -430,7 +422,7 @@ test.describe("Intake: Repeat Prescription - full flow", () => {
     await dismissOverlays(page)
 
     // ── Step 1: Medication search ──
-    await completeMedicationSearchStep(page)
+    await completeMedicationStep(page)
 
     // ── Step 2: Medication history ──
     await waitForStep(page, /When were you last prescribed/i)
@@ -545,11 +537,12 @@ test.describe("Intake: Validation & edge cases", () => {
     await dismissOverlays(page)
 
     // Complete medication step using the robust helper
-    await completeMedicationSearchStep(page)
+    await completeMedicationStep(page)
 
-    // On medication history step - select "Never"
+    // On medication history step - take the "never prescribed" escape (#210
+    // renamed the "Never" chip to "I have not been prescribed this before").
     await waitForStep(page, /When were you last prescribed/i)
-    await clickChip(page, /^Never$/i)
+    await clickChip(page, /I have not been prescribed this before/i)
 
     // Warning should appear with "Browse other services" CTA (rendered as a link)
     await expect(page.getByText(/This service is for repeat prescriptions only/i)).toBeVisible()
