@@ -17,6 +17,7 @@ import {
   WalletCards,
   XCircle,
 } from "lucide-react"
+import dynamic from "next/dynamic"
 import Link from "next/link"
 import type { ReactNode, RefObject } from "react"
 
@@ -25,7 +26,6 @@ import {
   type LandingPageConfig,
   LandingPageShell,
 } from "@/components/marketing/shared/landing-page-shell"
-import { FAQSection } from "@/components/sections/faq-section"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 import { Reveal } from "@/components/ui/reveal"
@@ -35,6 +35,14 @@ import { PRICING_DISPLAY } from "@/lib/constants"
 import { ONLINE_PRESCRIPTIONS_FAQ } from "@/lib/data/online-prescriptions-faq"
 import { FORM_FIRST_WEDGE, GUARANTEE } from "@/lib/marketing/voice"
 import { cn } from "@/lib/utils"
+
+// FAQ sits below the fold — lazy-load its client chunk to trim initial JS / TBT.
+// ssr stays on (default) so the FAQ content stays server-rendered for SEO.
+// Matches the ED / hair-loss / women's-health landing pattern.
+const FAQSection = dynamic(
+  () => import("@/components/sections/faq-section").then((m) => m.FAQSection),
+  { loading: () => <div className="min-h-[300px]" /> },
+)
 
 const REQUEST_HREF = "/request?service=repeat-script"
 const MONEY_PAGE_HREF = "/prescriptions"
