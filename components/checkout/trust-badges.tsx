@@ -10,7 +10,6 @@
  * - PaymentMethodIcons - "Secured by Stripe" message
  * - AHPRAStatement - AHPRA registration badge (inline/card/minimal)
  * - CheckoutTrustStrip - Combined trust strip (delegates to TrustBadgeRow)
- * - CheckoutSecurityFooter - Compact shared checkout proof row
  * - DataSecurityStrip - For onboarding/data entry forms
  * - OnboardingTrustFooter - Bottom-of-step trust footer
  */
@@ -170,14 +169,6 @@ export function AHPRAStatement({
 
 export function CheckoutTrustStrip({ className }: { className?: string }) {
   return <TrustBadgeRow preset="checkout" className={className} />
-}
-
-export function CheckoutSecurityFooter({ className }: { className?: string }) {
-  return (
-    <div className={cn("rounded-xl border border-border/50 bg-muted/20 px-3 py-2.5", className)}>
-      <CheckoutTrustStrip className="justify-center gap-x-3 gap-y-1.5" />
-    </div>
-  )
 }
 
 // ── Onboarding / Data Entry ─────────────────────────────────────────

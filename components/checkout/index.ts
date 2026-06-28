@@ -11,7 +11,6 @@ export {
 } from "./payment-logos"
 export {
   AHPRAStatement,
-  CheckoutSecurityFooter,
   CheckoutTrustStrip,
   DataSecurityStrip,
   OnboardingTrustFooter,
