@@ -105,10 +105,11 @@ describe("cert-step revenue contract", () => {
   // money silently.
   describe("mobile visibility", () => {
     it("does not hide the summary line behind a sm: breakpoint", () => {
-      // The summary line includes "doctor review when available". Search
-      // for that string in a context that includes a hidden class — if
-      // present, fail. Specifically scan for `hidden ... sm:flex` or
-      // `hidden ... sm:block` wrapping the summary block.
+      // The summary line confirms the selected dates + price plus a refund
+      // reassurance. It must never be hidden on mobile. Scan for a hidden
+      // class (`hidden ... sm:flex`) wrapping the summary block — keyed on
+      // the `{selectedDays` interpolation, not the reassurance copy (which
+      // changed 2026-06-28 from a review hedge to the refund guarantee).
       //
       // We do this as a source-string check rather than a render test
       // because the bug was a one-line className edit that no
