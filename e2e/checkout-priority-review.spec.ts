@@ -54,18 +54,19 @@ test.describe("Checkout Priority Review", () => {
     await page.locator('input[placeholder="DD/MM/YYYY"]').fill("01/04/1985")
     await clickContinue(page)
 
-    await expect(page.getByRole("heading", { name: "Payment" })).toBeVisible()
-    await expect(page.getByText("Ready to submit")).toBeVisible()
+    // Med-cert now uses the unified review-step (heading "One last check"), not
+    // the retired checkout-step ("Payment" / "Ready to submit").
+    await expect(page.getByRole("heading", { name: "One last check" })).toBeVisible()
     await expect(page.getByText("Skip the queue. Your case is reviewed first.")).toBeHidden()
     await expect(page.getByText("Express Review")).toBeHidden()
     await expect(page.getByText("Express", { exact: true })).toBeHidden()
 
-    const prioritySwitch = page.locator("#priority-review-toggle")
+    const prioritySwitch = page.locator("#review-priority-review-toggle")
     await expect(prioritySwitch).toBeVisible()
     await expect(prioritySwitch).toHaveAttribute("role", "switch")
     await expect(prioritySwitch.getByText("Priority review")).toBeVisible()
     await expect(prioritySwitch.getByText(`+${PRICING_DISPLAY.PRIORITY_FEE}`)).toBeVisible()
-    await expect(prioritySwitch.getByText("Moves this request ahead of standard review. No time guarantee.")).toBeVisible()
+    await expect(prioritySwitch.getByText("Moves ahead of standard review. No time guarantee.")).toBeVisible()
 
     const rowBox = await prioritySwitch.boundingBox()
     expect(rowBox).not.toBeNull()
