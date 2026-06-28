@@ -272,15 +272,15 @@ These must remain human-only regardless of future AI capabilities:
 
 ---
 
-## Medication Search Rules
+## Medication Entry Rules
 
 ### Purpose
 
-Medication search exists solely to help patients recall and reference a medication name they already know. It is not a recommendation, prescribing, clinical decision, or eligibility tool.
+The medication step lets a patient type the name of a medicine they already take so the doctor knows what they are requesting. It is not a recommendation, prescribing, clinical decision, or eligibility tool. (The former PBS reference-search combobox was retired 2026-06-28 — #211; patients now enter free text and the doctor confirms the exact medicine in Parchment/MIMS at prescribing time.)
 
 ### Data Source
 
-PBS (Pharmaceutical Benefits Scheme) public API. Fields are reference metadata only: PBS code, drug name, strength, form, manufacturer. The dataset intentionally excludes dosing instructions, indications, contraindications, warnings, and therapeutic equivalence.
+None. The patient types the name themselves (`components/request/steps/medication-step.tsx`). There is no external lookup, no PBS/AMT API call, and no autocomplete dataset — so the platform never surfaces PBS codes, brand/generic matches, dosing, indications, contraindications, or therapeutic equivalence as clinical guidance.
 
 ### Allowed vs Prohibited Use
 
@@ -295,7 +295,7 @@ PBS (Pharmaceutical Benefits Scheme) public API. Fields are reference metadata o
 ### Controlled Substance Blocking
 
 - **Schedule 8: Hard block** -- no override possible (`lib/clinical/intake-validation.ts`)
-- Controlled substances blocked at the medication search level
+- Controlled substances are blocked on the typed medication text (the free-text box runs `isControlledSubstance()` on every change)
 - Messaging must use "controlled substance" (not "S8") for non-S8 controlled drugs
 - **Defense in depth — three independent layers**, all using `isControlledSubstance()`:
   1. **Medication step UI** — client-side block on the selected medication.
@@ -304,10 +304,9 @@ PBS (Pharmaceutical Benefits Scheme) public API. Fields are reference metadata o
 
 ### Patient-Facing Rules
 
-- Label: "Medication name (optional)"
-- Helper text: "If you know the name, start typing to help us locate it."
-- Results show: product name (primary), active ingredient (secondary, muted), dosage form (tertiary)
-- No result may be highlighted as "recommended", "suitable", "eligible", or "approved"
+- Label: "Medication name" (with optional strength/form)
+- Helper text: "Just type the name. If you're not sure of the exact name, describe it — the doctor confirms the right medicine before prescribing."
+- The box is plain free text — no results list, no autocomplete, and nothing highlighted as "recommended", "suitable", "eligible", or "approved"
 
 ### Forbidden Language
 
@@ -317,7 +316,7 @@ Allowed: "Reference only", "Helps with accuracy", "Doctor will review"
 
 ### Audit Position
 
-"Patients may optionally self-identify a medication name using a public reference list. The system does not recommend, select, or approve medications. All prescribing decisions occur independently within the clinician's prescribing platform."
+"Patients may optionally self-identify a medication name by typing it in. The system does not recommend, select, or approve medications. All prescribing decisions occur independently within the clinician's prescribing platform."
 
 ### Prescribing Boundary Evidence (compliance_audit_log)
 
@@ -469,7 +468,7 @@ When litigation or investigation is anticipated: legal places hold on specific r
 | **AHPRA / Medical Board** | Advertising regulated health services | No misleading claims, testimonials, unreasonable expectations, or encouragement of unnecessary use |
 | **TGA** | Poisons Standard | S8 exclusions; no therapeutic claims in platform |
 | **TGA** | Health service advertising guidance | Health-service ads must not directly or indirectly promote prescription-only medicines |
-| **PBS** | PBS reference data | Advisory only; no prescribing authority implied |
+| **PBS** | PBS/private status (confirmed by the doctor in Parchment) | Advisory only; the platform implies no prescribing authority and no longer surfaces PBS reference data to patients (search retired 2026-06-28) |
 | **Fair Work Ombudsman** | Notice and evidence rules | Employers can ask for evidence that would satisfy a reasonable person; do not overclaim universal acceptance |
 | **Privacy Act 1988 (Cth)** | Australian Privacy Principles | Security, use/disclosure, access, correction |
 | **My Health Records Act 2012** | Data handling | Health record obligations |

@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs"
+import { existsSync,readdirSync, readFileSync } from "node:fs"
 import { join, relative } from "node:path"
 
 import { describe, expect, it } from "vitest"
@@ -162,6 +162,27 @@ describe("project docs drift contract", () => {
     expect(architecture).toContain(`### \`app/\` — ${appFiles.length} files, ${routeFiles.length} route files`)
     expect(architecture).toContain(`| \`app/api/\` | API routes (${apiRoutes.length} route files) |`)
     expect(architecture).toContain("Filesystem route-count drift is guarded by")
+  })
+
+  it("documents the medication step as free-text, not a live PBS search (retired #211)", () => {
+    // The PBS reference-search stack was removed in #211. While the route is
+    // gone, the canonical docs must NOT describe a live patient-facing PBS
+    // medication search — that drift is exactly how a future agent reintroduces
+    // a retired feature (operator review of #211-#213, 2026-06-28).
+    expect(existsSync(join(root, "app/api/medications/search/route.ts"))).toBe(false)
+
+    const clinical = readProjectFile("docs/CLINICAL.md")
+    const operations = readProjectFile("docs/OPERATIONS.md")
+
+    // Retired-feature framings must be gone from the brain + clinical/ops docs.
+    expect(claude).not.toContain("Patient medication search is PBS reference lookup only")
+    expect(agents).not.toContain("Patient medication search is PBS reference lookup only")
+    expect(clinical).not.toContain("## Medication Search Rules")
+    expect(operations).not.toContain("That search is PBS/AMT-backed")
+
+    // ...and the current free-text truth must be present.
+    expect(clinical).toContain("Medication Entry Rules")
+    expect(architecture).toContain("medication-step.tsx")
   })
 
   it("keeps architecture AI model docs aligned with the provider default", () => {
