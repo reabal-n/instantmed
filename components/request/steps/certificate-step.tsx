@@ -23,6 +23,7 @@ import { StepBlockedSummary } from "@/components/request/shared/step-blocked-sum
 import { usePostHog } from "@/lib/analytics/posthog-context"
 import { MED_CERT_DURATIONS } from "@/lib/constants"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
+import { getApprovedClaim } from "@/lib/marketing/approved-claims"
 import { getSmartDefaults, recordStepCompletion, savePreferences } from "@/lib/request/preferences"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
@@ -486,8 +487,14 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
                     ? `${summaryLabel(startOffset)} · 1 day`
                     : `${summaryLabel(startOffset)} to ${summaryLabel(endOffset)} · ${selectedDays} days`}
                 </p>
+                {/* Risk-reversal at the first price-exposure moment. The prior
+                    "doctor review when available" hedge read as uncertain AND
+                    could imply human review on every cert (med certs can be
+                    auto-approved). The refund guarantee is the strongest TRUE
+                    reassurance here — sourced from the approved-claims registry,
+                    matching the final review step. */}
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  No waiting rooms · doctor review when available
+                  {getApprovedClaim("trust_no_waiting_room_label")} · {getApprovedClaim("refund_guarantee_label")}
                 </p>
               </div>
               <span className="text-base font-semibold text-primary shrink-0 ml-3">${price}</span>
