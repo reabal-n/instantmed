@@ -106,25 +106,6 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
   const hasPrescriptionHistory = Boolean(prescriptionHistory)
   const needsDose = hasPrescriptionHistory && !isNeverPrescribed
   const needsSideEffects = needsDose
-  const introEyebrow = !hasPrescriptionHistory
-    ? "History 1 of 3"
-    : isNeverPrescribed
-      ? "Repeat prescription boundary"
-      : !currentDose.trim()
-        ? "History 2 of 3"
-        : "History 3 of 3"
-  const introTitle = !hasPrescriptionHistory
-    ? "Confirm your prescription history"
-    : isNeverPrescribed
-      ? "Not a repeat prescription"
-      : !currentDose.trim()
-        ? "Current dose"
-        : "Side effects"
-  const introDescription = !hasPrescriptionHistory
-    ? "This helps the doctor check this is a safe repeat request."
-    : isNeverPrescribed
-      ? "Repeat prescriptions are only for medicines another doctor has prescribed before."
-      : "Keep it short and copy your label if you can."
 
   // Keyboard navigation
   useKeyboardNavigation({
@@ -135,16 +116,17 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
   return (
     <div className="space-y-4">
       <IntakeStepIntro
-        eyebrow={introEyebrow}
-        title={introTitle}
-        description={introDescription}
+        title={isNeverPrescribed ? "Not a repeat prescription" : "Your prescription history"}
+        description={isNeverPrescribed
+          ? "Repeat prescriptions are only for medicines another doctor has prescribed before."
+          : "A few details so the doctor can safely continue your medicine."}
       />
 
       <StepBlockedSummary reasons={blockedReasons} />
 
-      {/* Prescription history */}
-      {(!hasPrescriptionHistory || isNeverPrescribed) && (
-        <QuestionCard compact className="space-y-3">
+      {/* Prescription history — always visible so answering never swaps the
+          screen out (the old progressive reveal hid this card after a pick). */}
+      <QuestionCard compact className="space-y-3">
           <QuestionPrompt
             label="When were you last prescribed this medication?"
             required
@@ -168,8 +150,7 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
           >
             I have not been prescribed this before
           </button>
-        </QuestionCard>
-      )}
+      </QuestionCard>
 
       {/* New medication detected - repeat-script boundary */}
       {isNeverPrescribed && (
