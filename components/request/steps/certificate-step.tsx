@@ -12,7 +12,7 @@
  * Certificates capped at 3 days max.
  */
 
-import { ArrowRight, Briefcase, ChevronDown, GraduationCap, Heart } from "lucide-react"
+import { ArrowRight, Briefcase, GraduationCap, Heart } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import { RequestButton } from "@/components/request/request-button"
@@ -161,12 +161,6 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [blockedReasons, setBlockedReasons] = useState<string[]>([])
-  // Length + start date collapse to a confirmable summary by default so the
-  // first screen is a single decision (certificate type). Opens automatically
-  // when a non-default duration/start is restored or prefilled (effect below),
-  // or when the patient taps the summary to change it.
-  const [expanded, setExpanded] = useState(false)
-  const expandLatchedRef = useRef(false)
 
   const durationRef = useRef<HTMLDivElement>(null)
   const startDateRef = useRef<HTMLDivElement>(null)
@@ -244,17 +238,6 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
       }
     }
   }, [answers.duration, answers.startDate, canSyncSelection, startOffset, selectedDays, setAnswer])
-
-  // Auto-open the length/date detail when a non-default selection is restored
-  // (back-nav) or prefilled from a landing-page handoff, so the patient always
-  // sees their actual choice instead of a collapsed default that hides it.
-  useEffect(() => {
-    if (expandLatchedRef.current || !canSyncSelection) return
-    if ((selectedDays !== null && selectedDays !== 1) || (startOffset !== null && startOffset !== 0)) {
-      expandLatchedRef.current = true
-      setExpanded(true)
-    }
-  }, [canSyncSelection, selectedDays, startOffset])
 
   // Derived
   const price = selectedDays ? MED_CERT_DURATIONS.prices[selectedDays] : null
@@ -399,36 +382,12 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
         </FormField>
       </QuestionCard>
 
-      {/* Length & start date. Collapsed to a confirmable summary by default so
-          the default mobile screen is a single decision (certificate type);
-          expands to the full duration + start-date controls on tap. Every
-          clinical default (1 day, today), the 3-day cap, the forward-date
-          chips, and the in-range chip rendering are preserved unchanged. */}
-      {!expanded ? (
-        <button
-          type="button"
-          onClick={() => setExpanded(true)}
-          aria-expanded={false}
-          aria-controls="certificate-dates-detail"
-          className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] text-left transition-colors hover:border-primary/40"
-        >
-          <span className="min-w-0">
-            <span className="block text-sm font-semibold text-foreground">
-              {selectedDays === 1
-                ? `${summaryLabel(startOffset ?? 0)} · 1 day`
-                : `${summaryLabel(startOffset ?? 0)} to ${summaryLabel(endOffset ?? 0)} · ${selectedDays} days`}
-            </span>
-            <span className="block text-xs text-muted-foreground mt-0.5">
-              Change length or start date
-            </span>
-          </span>
-          <span className="flex items-center gap-1.5 shrink-0 text-primary">
-            {price !== null && <span className="text-base font-semibold">${price}</span>}
-            <ChevronDown className="w-4 h-4 text-muted-foreground" />
-          </span>
-        </button>
-      ) : (
-        <div id="certificate-dates-detail" className="space-y-4">
+      {/* Length & start date — shown inline (no collapse) so the patient sees the
+          dates + length without an extra tap. The collapse-to-summary default was
+          reverted 2026-06-28 (operator): hiding dates behind a dropdown on a
+          date-centric product read as friction. Clinical defaults (1 day, today),
+          the 3-day cap, forward-date chips, and in-range rendering are unchanged. */}
+      <div id="certificate-dates-detail" className="space-y-4">
           {/* How many days? */}
           <div ref={durationRef}>
             <QuestionCard compact>
@@ -535,7 +494,6 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
             </div>
           )}
         </div>
-      )}
 
       {/* GP note - longer absences. Visible on every viewport so a patient
           on mobile understands the 3-day cap without scrolling laterally. */}
