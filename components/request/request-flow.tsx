@@ -607,16 +607,10 @@ export function RequestFlow({
   })
 
   useEffect(() => {
-    if (currentStepId === 'checkout') {
-      setMobilePrimaryAction({
-        available: false,
-        disabled: true,
-        ready: false,
-        label: "Continue",
-      })
-      return
-    }
-
+    // Every step — including the unified review+pay step — drives this shared
+    // mobile primary-action bar via data-intake-primary-action. (Before the
+    // 2026-06-28 unification the 'checkout' step was excluded because the retired
+    // checkout-step had its own sticky CTA; review-step relies on this bar.)
     const syncPrimaryAction = () => {
       const action = getMobilePrimaryAction()
       setMobilePrimaryAction({
@@ -827,9 +821,7 @@ export function RequestFlow({
       {/* Content with swipe gestures */}
       <main
         ref={contentRef}
-        className={`max-w-lg mx-auto px-4 py-4 sm:py-6 sm:pb-6 touch-pan-y ${
-          currentStepId === 'checkout' ? 'pb-6' : 'pb-[calc(4.25rem+env(safe-area-inset-bottom))]'
-        }`}
+        className="max-w-lg mx-auto px-4 py-4 sm:py-6 sm:pb-6 touch-pan-y pb-[calc(4.25rem+env(safe-area-inset-bottom))]"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -866,8 +858,9 @@ export function RequestFlow({
         </div>
       </main>
 
-      {/* Sticky bottom CTA bar for mobile */}
-      {currentStepId !== 'checkout' && (
+      {/* Sticky bottom CTA bar for mobile — shown on every step including the
+          unified review+pay step (the retired checkout-step had its own bar). */}
+      {(
         <div
           data-intake-mobile-action-bar="true"
           className="fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t px-4 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:hidden"

@@ -29,7 +29,6 @@ const PATIENT_FACING_STEPS = [
   "components/request/steps/symptoms-step.tsx",
   "components/request/steps/certificate-step.tsx",
   "components/request/steps/review-step.tsx",
-  "components/request/steps/checkout-step.tsx",
   "components/request/steps/weight-loss-assessment-step.tsx",
   "components/request/steps/womens-health-assessment-step.tsx",
   "components/request/steps/womens-health-type-step.tsx",

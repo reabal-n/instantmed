@@ -43,7 +43,9 @@ describe("intake mobile viewport contract", () => {
     expect(requestFlowSource).toContain("MutationObserver")
     expect(requestFlowSource).toContain("handleMobilePrimaryAction")
     expect(requestFlowSource).toContain('variant={mobileActionReady ? "default" : "secondary"}')
-    expect(requestFlowSource).toContain("currentStepId !== 'checkout'")
+    // The mobile action bar is no longer excluded on the pay step — the unified
+    // review-step drives it like every other step (2026-06-28 unification).
+    expect(requestFlowSource).not.toContain("currentStepId !== 'checkout'")
     expect(requestFlowSource).not.toContain("hidden on checkout/review which have their own CTAs")
   })
 
@@ -59,14 +61,6 @@ describe("intake mobile viewport contract", () => {
     expect(source).toContain('data-intake-primary-action="true"')
     expect(source).toContain("data-intake-primary-ready")
     expect(source).toContain("max-sm:hidden")
-  })
-
-  it("leaves checkout on its dedicated sticky payment control", () => {
-    const checkoutSource = readProjectFile("components/request/steps/checkout-step.tsx")
-    expect(checkoutSource).toContain("fixed bottom-0")
-    expect(checkoutSource).toContain("CheckoutButton")
-    expect(checkoutSource).toContain("h-36 sm:hidden")
-    expect(checkoutSource).not.toContain('data-intake-primary-action="true"')
   })
 
   it("declares intentional smooth scrolling on the root html element", () => {
@@ -234,7 +228,7 @@ describe("intake mobile viewport contract", () => {
   it("does not render the med-cert two-day upsell nudge", () => {
     const source = [
       readProjectFile("components/request/steps/certificate-step.tsx"),
-      readProjectFile("components/request/steps/checkout-step.tsx"),
+      readProjectFile("components/request/steps/review-step.tsx"),
     ].join("\n")
     expect(source).not.toContain("Make it 2 days")
     expect(source).not.toContain("Need to cover a second day")

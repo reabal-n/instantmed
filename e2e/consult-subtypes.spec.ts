@@ -116,26 +116,15 @@ async function expectEnabledWomensHealthCheckout(page: Page) {
   await expect(page.getByText(/One last check/i)).toBeVisible({ timeout: 10000 })
   await expect(page.getByText("Total today")).toBeVisible()
   await expect(page.getByText("$49.95").first()).toBeVisible()
+  // Unified review+pay step (2026-06-28): the single #safety-consent tick enables
+  // the Pay CTA on the same screen — there is no separate "Continue to payment"
+  // hand-off or second checkout step anymore.
   const safetyCheckbox = page.locator("#safety-consent")
-  if (await safetyCheckbox.isVisible({ timeout: 5000 }).catch(() => false)) {
-    await safetyCheckbox.click()
-  }
-
-  const reviewContinue = page.getByRole("button", { name: /Continue to payment/i })
-  if (await reviewContinue.isVisible({ timeout: 1000 }).catch(() => false)) {
-    await expect(reviewContinue).toBeEnabled({ timeout: 5000 })
-    await reviewContinue.click()
-  }
+  await expect(safetyCheckbox).toBeVisible({ timeout: 5000 })
+  await safetyCheckbox.click()
 
   const payButton = page.getByRole("button", { name: /^Pay \$49\.95$/ }).last()
   await expect(payButton).toBeVisible({ timeout: 10000 })
-  const checkoutConsent = page.locator("#consent-checkbox")
-  if (await checkoutConsent.isVisible({ timeout: 5000 }).catch(() => false)) {
-    const isChecked = await checkoutConsent.isChecked().catch(() => false)
-    if (!isChecked) {
-      await checkoutConsent.click()
-    }
-  }
   await expect(payButton).toBeEnabled({ timeout: 5000 })
   await expect(payButton).toHaveAttribute("aria-disabled", "false")
 }

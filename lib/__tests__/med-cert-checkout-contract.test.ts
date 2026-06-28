@@ -88,8 +88,10 @@ describe("medical certificate checkout contract", () => {
   })
 
   it("does not render the full certificate preview or redundant symptom chip wall", () => {
-    const checkoutStepSource = readFileSync(
-      join(process.cwd(), "components/request/steps/checkout-step.tsx"),
+    // Med-cert now uses the unified review-step as its review+pay surface
+    // (the standalone checkout-step was retired in the 2026-06-28 unification).
+    const reviewStepSource = readFileSync(
+      join(process.cwd(), "components/request/steps/review-step.tsx"),
       "utf8",
     )
     const certificateStepSource = readFileSync(
@@ -101,47 +103,15 @@ describe("medical certificate checkout contract", () => {
       "utf8",
     )
 
-    expect(checkoutStepSource).not.toContain("CertPreviewCard")
-    expect(checkoutStepSource).not.toContain("Preview of your certificate")
+    expect(reviewStepSource).not.toContain("CertPreviewCard")
+    expect(reviewStepSource).not.toContain("Preview of your certificate")
     expect(certificateStepSource).not.toContain("Review my certificate")
     expect(symptomsStepSource).not.toContain("SYMPTOM_GROUPS")
     expect(symptomsStepSource).not.toContain("Previously selected")
   })
 
-  it("keeps the final payment CTA and total row readable without duplicate price text", () => {
-    const checkoutStepSource = readFileSync(
-      join(process.cwd(), "components/request/steps/checkout-step.tsx"),
-      "utf8",
-    )
-
-    expect(checkoutStepSource).not.toContain("label={`Pay $")
-    expect(checkoutStepSource).toContain('label="Pay"')
-    expect(checkoutStepSource).toContain('Total{" "}')
-  })
-
-  it("keeps checkout trust visible without implying automatic approval", () => {
-    const checkoutStepSource = readFileSync(
-      join(process.cwd(), "components/request/steps/checkout-step.tsx"),
-      "utf8",
-    )
-    const trustFooterSource = readFileSync(
-      join(process.cwd(), "components/checkout/trust-badges.tsx"),
-      "utf8",
-    )
-    const trustPresetSource = readFileSync(
-      join(process.cwd(), "lib/marketing/trust-badges.ts"),
-      "utf8",
-    )
-
-    expect(checkoutStepSource).toContain("CheckoutSecurityFooter")
-    expect(checkoutStepSource).not.toContain("TrustBadgeRow")
-    expect(trustFooterSource).toContain('<TrustBadgeRow preset="checkout"')
-    expect(trustPresetSource).toMatch(/checkout:\s*\[\s*\{ id: 'stripe', variant: 'styled' \},\s*'ahpra',\s*'refund',\s*\]/)
-    expect(checkoutStepSource).toContain("Secure Stripe checkout. No subscription.")
-    expect(checkoutStepSource).not.toContain("Before you pay")
-    expect(checkoutStepSource).not.toContain("LegitScriptSeal")
-    expect(checkoutStepSource).not.toContain("GoogleAdsCert")
-    expect(checkoutStepSource).not.toContain("guaranteed approval")
-    expect(checkoutStepSource).not.toContain("No account required - pay as a guest")
-  })
+  // The pay-surface CTA + trust contracts (single Pay button, one quiet trust
+  // cluster, no auto-approval implication) now live in
+  // review-step-priority-contract.test.ts, since review-step is the single
+  // review+pay step for med-cert / prescription / consult after the unification.
 })
