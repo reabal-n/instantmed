@@ -172,8 +172,9 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
               onClick={refreshIntakes}
               disabled={isRefreshing}
               title="Refresh requests"
+              aria-label="Refresh requests"
             >
-              <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+              <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} aria-hidden="true" />
             </Button>
             <Link href={REQUEST_HREF}>
               <Button>
