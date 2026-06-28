@@ -11,8 +11,8 @@
  *
  * All clinical backstops are UNCHANGED and operate on the typed text:
  * - controlled-substance hard block (isControlledSubstance)
- * - dedicated-service steer: finasteride -> hair loss, OCP -> women's health
- *   (detectDedicatedServiceForMedication)
+ * - dedicated-service steer: hair-loss + contraceptive-pill medicines route to
+ *   their own services (detectDedicatedServiceForMedication)
  * - server-side `dedicated_service_medication` attention flag
  *   (lib/clinical/derive-intake-flags.ts), which scans name+strength+form.
  * Dose / frequency / indication stay mandatory in the next step
@@ -217,8 +217,9 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
 
   // Steer medicines that have a dedicated service (hair loss / women's health)
   // out of the generic repeat/prescription flow. Intent-aware soft block: the
-  // patient can still keep it as a repeat (e.g. finasteride 5 mg for BPH, or
-  // continuing the same pill). The doctor-side backstop is the
+  // patient can still keep it as a repeat (e.g. a hair-loss medicine at a dose
+  // used for another condition, or continuing the same pill). The
+  // doctor-side backstop is the
   // `dedicated_service_medication` flag (lib/clinical/derive-intake-flags.ts).
   const steerEnabled = serviceType === "repeat-script" || serviceType === "prescription"
   const serviceSteer = useMemo<DedicatedServiceMatch | null>(() => {
