@@ -8,6 +8,7 @@ import {
   RotateCcw,
   Search,
 } from "lucide-react"
+import dynamic from "next/dynamic"
 import Link from "next/link"
 
 import { CitationFacts } from "@/components/marketing/citation-facts"
@@ -24,7 +25,6 @@ import { HowItWorksInline } from "@/components/marketing/sections/how-it-works-i
 import { LimitationsSection } from "@/components/marketing/sections/limitations-section"
 import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
 import { TimeComparisonViz } from "@/components/marketing/sections/time-comparison-viz"
-import { FAQSection } from "@/components/sections/faq-section"
 import { EmployerLogoMarquee } from "@/components/shared/employer-logo-marquee"
 import { Navbar } from "@/components/shared/navbar"
 import { ReturningPatientBanner } from "@/components/shared/returning-patient-banner"
@@ -35,6 +35,14 @@ import { buildMedCertRequestHref } from "@/lib/marketing/med-cert-selector"
 import { GUARANTEE, MED_CERT_WEDGE } from "@/lib/marketing/voice"
 import { commercialCertificateLinks, commercialLocationLinks } from "@/lib/seo/commercial-links"
 import { getPatientCount, SOCIAL_PROOF } from "@/lib/social-proof"
+
+// FAQ sits below the fold — lazy-load its client chunk to trim initial JS / TBT.
+// ssr stays on (default) so the FAQ content stays server-rendered for SEO.
+// Matches the ED / hair-loss / women's-health landing pattern.
+const FAQSection = dynamic(
+  () => import("@/components/sections/faq-section").then((m) => m.FAQSection),
+  { loading: () => <div className="min-h-[300px]" /> },
+)
 
 // =============================================================================
 // DATA
