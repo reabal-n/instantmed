@@ -28,7 +28,6 @@ const PAID_CLAIM_FILES = [
   "components/marketing/prescriptions-landing.tsx",
   "components/marketing/sections/final-cta-section.tsx",
   "components/marketing/sections/pricing-guide-section.tsx",
-  "components/request/steps/checkout-step.tsx",
   "components/request/steps/review-step.tsx",
   "lib/data/general-faq.ts",
   "lib/data/med-cert-faq.ts",
@@ -61,7 +60,7 @@ describe("paid-facing claims contract", () => {
     })
 
     expect(hits).toEqual([])
-    expect(source("components/request/steps/checkout-step.tsx")).not.toContain("partial for consults")
+    expect(source("components/request/steps/review-step.tsx")).not.toContain("partial for consults")
   })
 
   it("keeps paid prescribing and specialty pages away from stale average-response claims", () => {

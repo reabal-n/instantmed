@@ -78,9 +78,12 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
     },
     {
       id: 'checkout',
-      label: 'Payment',
+      label: 'Review & pay',
       shortLabel: 'Pay',
-      componentPath: 'checkout-step',
+      // Unified 2026-06-28: med-cert now uses the single review+pay step
+      // (review-step) like prescription + consult. The standalone checkout-step
+      // was retired. Step id stays 'checkout' for analytics continuity.
+      componentPath: 'review-step',
       validateFn: 'validateCheckoutStep',
       required: true,
     },
@@ -165,17 +168,13 @@ const CONSULT_REVIEW_TAIL: StepDefinition[] = [
     required: true,
   },
   {
+    // Unified 2026-06-28: consult's separate Review + Payment steps collapsed
+    // into one review+pay step (review-step is now the single pay surface for
+    // every service). The standalone checkout-step was retired.
     id: 'review',
-    label: 'Review',
-    shortLabel: 'Review',
-    componentPath: 'review-step',
-    required: true,
-  },
-  {
-    id: 'checkout',
-    label: 'Payment',
+    label: 'Review & pay',
     shortLabel: 'Pay',
-    componentPath: 'checkout-step',
+    componentPath: 'review-step',
     validateFn: 'validateCheckoutStep',
     required: true,
   },

@@ -323,7 +323,6 @@ describe("code-clean retirement contracts", () => {
 
     const requestSurfaces = [
       "components/request/steps/review-step.tsx",
-      "components/request/steps/checkout-step.tsx",
       "lib/request/unified-checkout.ts",
     ]
     for (const surface of requestSurfaces) {

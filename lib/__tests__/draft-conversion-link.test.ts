@@ -10,15 +10,13 @@ describe("draft conversion link contract", () => {
   it("passes the active server draft session id from checkout surfaces into unified checkout", () => {
     const serverDraftSource = read("lib/request/server-draft.ts")
     const unifiedCheckoutSource = read("app/actions/unified-checkout.ts")
-    const checkoutStepSource = read("components/request/steps/checkout-step.tsx")
+    // review-step is the single unified review+pay surface after the 2026-06-28
+    // unification (checkout-step retired).
     const reviewStepSource = read("components/request/steps/review-step.tsx")
 
     expect(serverDraftSource).toContain("export function getActiveServerDraftSessionId")
     expect(unifiedCheckoutSource).toContain("serverDraftSessionId?: string")
     expect(unifiedCheckoutSource).toContain("serverDraftSessionId")
-
-    expect(checkoutStepSource).toContain("getActiveServerDraftSessionId")
-    expect(checkoutStepSource).toContain("serverDraftSessionId: getActiveServerDraftSessionId")
 
     expect(reviewStepSource).toContain("getActiveServerDraftSessionId")
     expect(reviewStepSource).toContain("serverDraftSessionId: getActiveServerDraftSessionId")

@@ -9,9 +9,6 @@ function readProjectFile(path: string) {
 
 describe("review-step priority checkout contract", () => {
   const reviewStepSource = () => readProjectFile("components/request/steps/review-step.tsx")
-  const checkoutStepSource = () => readProjectFile("components/request/steps/checkout-step.tsx")
-  const trustFooterSource = () => readProjectFile("components/checkout/trust-badges.tsx")
-  const trustPresetSource = () => readProjectFile("lib/marketing/trust-badges.ts")
 
   it("keeps prescriptions and repeat scripts on the review-step pay surface with Priority review", () => {
     const source = reviewStepSource()
@@ -25,13 +22,17 @@ describe("review-step priority checkout contract", () => {
     expect(source).not.toContain("express_review_opted_in")
   })
 
-  it("keeps consult review restrained: no review-step priority upsell or checkout-view double count", () => {
+  it("makes review-step the unified review+pay surface for every service (2026-06-28 unification)", () => {
     const source = reviewStepSource()
 
-    expect(source).toContain("if (!isPrescriptionCheckout) return")
-    expect(source).toContain("For consult, review-step leads to a")
-    expect(source).toMatch(/\{isPrescriptionCheckout && \(\s*<div className="pt-1">[\s\S]*id="review-priority-review-toggle"[\s\S]*<\/div>\s*\)\}/)
-    expect(source).toContain('data-intake-primary-label={isPrescriptionCheckout ? `Pay $${totalDue.toFixed(2)}` : "Continue to payment"}')
+    // Consult now pays on review-step (the separate checkout-step was retired), so
+    // checkout_viewed fires for every service (no consult double-count guard), and
+    // the priority toggle + a single "Pay $X" CTA show for all — no more
+    // review-only "Continue to payment" hand-off.
+    expect(source).not.toContain("if (!isPrescriptionCheckout) return")
+    expect(source).not.toContain('"Continue to payment"')
+    expect(source).toContain('id="review-priority-review-toggle"')
+    expect(source).toContain('data-intake-primary-label={`Pay $${totalDue.toFixed(2)}`}')
   })
 
   it("keeps the consent control a large visible checkbox card, not a tiny control", () => {
@@ -44,18 +45,17 @@ describe("review-step priority checkout contract", () => {
     expect(source).not.toContain('id="safety-consent" checked={safetyConfirmed} />')
   })
 
-  it("routes checkout and review trust through the compact shared footer primitive", () => {
+  it("routes pay-step trust through one quiet cluster, not a boxed shared footer", () => {
     const review = reviewStepSource()
-    const checkout = checkoutStepSource()
-    const footer = trustFooterSource()
-    const presets = trustPresetSource()
 
-    expect(review).toContain("CheckoutSecurityFooter")
-    expect(checkout).toContain("CheckoutSecurityFooter")
+    // The boxed CheckoutSecurityFooter was retired in the 2026-06-28 trust dedup.
+    // review-step now shows ONE quiet cluster: accepted-card logos + a single
+    // muted line (Stripe secure + full refund if declined). No boxed badges, no
+    // duplicate Stripe badge, no AHPRA badge at the pay moment.
+    expect(review).not.toContain("CheckoutSecurityFooter")
     expect(review).not.toContain("TrustBadgeRow")
-    expect(checkout).not.toContain("TrustBadgeRow")
-    expect(footer).toContain('<TrustBadgeRow preset="checkout"')
-    expect(footer).toContain('"rounded-xl border border-border/50 bg-muted/20 px-3 py-2.5"')
-    expect(presets).toMatch(/checkout:\s*\[\s*\{ id: 'stripe', variant: 'styled' \},\s*'ahpra',\s*'refund',\s*\]/)
+    expect(review).toContain("PaymentLogos")
+    expect(review).toContain("Full refund if declined")
+    expect(review).toContain("Secure Stripe checkout")
   })
 })

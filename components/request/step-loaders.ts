@@ -19,7 +19,6 @@ const stepLoaders = {
   'medical-history-step': () => import("./steps/medical-history-step").then((mod) => mod.default),
   'patient-details-step': () => import("./steps/patient-details-step").then((mod) => mod.default),
   'review-step': () => import("./steps/review-step").then((mod) => mod.default),
-  'checkout-step': () => import("./steps/checkout-step").then((mod) => mod.default),
   'ed-goals-step': () => import("./steps/ed-goals-step").then((mod) => mod.default),
   'ed-assessment-step': () => import("./steps/ed-assessment-step").then((mod) => mod.default),
   'ed-health-step': () => import("./steps/ed-health-step").then((mod) => mod.default),

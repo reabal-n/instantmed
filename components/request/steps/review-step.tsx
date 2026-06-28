@@ -5,11 +5,11 @@
  * Shows all collected information for patient to verify
  */
 
-import { Check, ChevronDown, ChevronUp, CreditCard, Edit2, Loader2 } from "lucide-react"
+import { Check, ChevronDown, ChevronUp, CreditCard, Edit2, Loader2, Lock } from "lucide-react"
 import { useEffect, useRef,useState } from "react"
 
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
-import { CheckoutSecurityFooter } from "@/components/checkout/trust-badges"
+import { PaymentLogos } from "@/components/checkout/payment-logos"
 import { PriorityReviewToggle } from "@/components/request/shared/priority-review-toggle"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -175,7 +175,7 @@ function ReviewSection({
   )
 }
 
-export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
+export default function ReviewStep({ serviceType }: ReviewStepProps) {
   const { answers, firstName, lastName, email, phone, dob, goToStep, safetyConfirmed, setSafetyConfirmed, getIdentity, setConsent } = useRequestStore()
   const posthog = usePostHog()
   const consentRef = useRef<HTMLDivElement>(null)
@@ -188,21 +188,16 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
   const [isPriority, setIsPriority] = useState(false)
   const totalDue = price + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)
 
-  // Track checkout view once on mount — mirrors checkout-step.tsx so the
-  // prescription / repeat-script pay step emits the same funnel event as
-  // med-cert + consult (review-step previously only fired checkout_initiated,
-  // leaving prescription/repeat funnels blind at the "reached checkout" step).
+  // review-step is the single review+pay step for EVERY service (the unification
+  // retired the separate consult checkout-step + med-cert checkout-step on
+  // 2026-06-28), so it owns checkout_viewed (reached-checkout) for all of them.
+  // No more consult double-count guard — there is no second checkout surface.
   useEffect(() => {
-    // Only fire checkout_viewed here when review-step IS the pay step
-    // (prescription / repeat-script). For consult, review-step leads to a
-    // separate checkout-step that fires checkout_viewed itself; firing here too
-    // double-counts consult's reached-checkout denominator.
-    if (!isPrescriptionCheckout) return
     posthog?.capture("checkout_viewed", {
       service_type: serviceType,
       consult_subtype: answers.consultSubtype,
     })
-  }, [posthog, serviceType, answers.consultSubtype, isPrescriptionCheckout])
+  }, [posthog, serviceType, answers.consultSubtype])
 
   // Pull a checkout error into view so it isn't missed below the fold / pay CTA.
   useEffect(() => {
@@ -211,25 +206,15 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
 
   const handleConsentChange = (checked: boolean) => {
     setSafetyConfirmed(checked)
-    if (isPrescriptionCheckout) {
-      setConsent("agreedToTerms", checked)
-      setConsent("confirmedAccuracy", checked)
-      setConsent("telehealthConsent", checked)
-    }
-  }
-
-  const handleContinue = () => {
-    posthog?.capture('step_completed', {
-      step: 'review',
-      service_type: serviceType,
-      consult_subtype: answers.consultSubtype,
-      has_safety_consent: safetyConfirmed,
-    })
-    onNext()
+    // review-step is the pay step for every service now, so the single consent
+    // tick records the payment terms + accuracy attestation for all of them.
+    setConsent("agreedToTerms", checked)
+    setConsent("confirmedAccuracy", checked)
+    setConsent("telehealthConsent", checked)
   }
 
   const handlePayment = async () => {
-    if (!safetyConfirmed || !isPrescriptionCheckout) {
+    if (!safetyConfirmed) {
       handleDisabledClick()
       return
     }
@@ -784,17 +769,15 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
               ${totalDue.toFixed(2)}
             </span>
           </div>
-          {isPrescriptionCheckout && (
-            <div className="pt-1">
-              <PriorityReviewToggle
-                id="review-priority-review-toggle"
-                checked={isPriority}
-                onCheckedChange={setIsPriority}
-                onOptIn={() => capturePriorityReviewOptedIn(posthog, { service_type: serviceType, surface: "review" })}
-                onOptOut={() => capturePriorityReviewOptedOut(posthog, { service_type: serviceType, surface: "review" })}
-              />
-            </div>
-          )}
+          <div className="pt-1">
+            <PriorityReviewToggle
+              id="review-priority-review-toggle"
+              checked={isPriority}
+              onCheckedChange={setIsPriority}
+              onOptIn={() => capturePriorityReviewOptedIn(posthog, { service_type: serviceType, surface: "review" })}
+              onOptOut={() => capturePriorityReviewOptedOut(posthog, { service_type: serviceType, surface: "review" })}
+            />
+          </div>
         </div>
 
         {repeatsExpectation && (
@@ -817,24 +800,18 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
                 : "border-border bg-white hover:border-primary/40 dark:bg-card"
             }`}
             boxClassName="mt-0.5 h-5 w-5 rounded-lg border-2"
-            aria-label={isPrescriptionCheckout ? "Confirm request and payment terms" : "Confirm this is not a medical emergency"}
+            aria-label="Confirm request and payment terms"
           >
             <span className="block text-sm leading-relaxed text-foreground">
-              {isPrescriptionCheckout ? (
-                <>
-                  I confirm this is not a medical emergency, my information is accurate, and I agree to the{" "}
-                  <a href="/terms" className="text-primary underline" target="_blank" onClick={(event) => event.stopPropagation()}>
-                    Terms
-                  </a>{" "}
-                  and{" "}
-                  <a href="/privacy" className="text-primary underline" target="_blank" onClick={(event) => event.stopPropagation()}>
-                    Privacy Policy
-                  </a>
-                  .
-                </>
-              ) : (
-                "I confirm this is not a medical emergency. In an emergency, I'll call 000."
-              )}
+              I confirm this is not a medical emergency, my information is accurate, and I agree to the{" "}
+              <a href="/terms" className="text-primary underline" target="_blank" onClick={(event) => event.stopPropagation()}>
+                Terms
+              </a>{" "}
+              and{" "}
+              <a href="/privacy" className="text-primary underline" target="_blank" onClick={(event) => event.stopPropagation()}>
+                Privacy Policy
+              </a>
+              .
             </span>
           </Checkbox>
           {!safetyConfirmed && (
@@ -851,9 +828,9 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
         */}
         <Button
           data-intake-primary-action="true"
-          data-intake-primary-label={isPrescriptionCheckout ? `Pay $${totalDue.toFixed(2)}` : "Continue to payment"}
+          data-intake-primary-label={`Pay $${totalDue.toFixed(2)}`}
           data-intake-primary-ready={safetyConfirmed ? "true" : "false"}
-          onClick={safetyConfirmed ? (isPrescriptionCheckout ? handlePayment : handleContinue) : handleDisabledClick}
+          onClick={safetyConfirmed ? handlePayment : handleDisabledClick}
           variant={safetyConfirmed ? "default" : "secondary"}
           className="w-full h-12 max-sm:hidden"
           aria-disabled={!safetyConfirmed || isProcessing}
@@ -865,13 +842,11 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
               <Loader2 className="h-4 w-4 animate-spin" />
               Processing...
             </>
-          ) : isPrescriptionCheckout ? (
+          ) : (
             <>
               <CreditCard className="h-4 w-4" />
               Pay ${totalDue.toFixed(2)}
             </>
-          ) : (
-            "Continue to payment"
           )}
         </Button>
 
@@ -911,7 +886,16 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
         )}
         </div>
 
-        <CheckoutSecurityFooter />
+        {/* One quiet trust cluster (no boxed badges) — accepted cards + the
+            highest-value pay-moment reassurance. Replaces the old boxed trust
+            footer as part of the 2026-06-28 trust dedup. */}
+        <div className="flex flex-col items-center justify-center gap-1.5 pt-1 text-xs text-muted-foreground">
+          <PaymentLogos />
+          <span className="flex items-center gap-1.5">
+            <Lock className="h-3 w-3 shrink-0" aria-hidden="true" />
+            Secure Stripe checkout · Full refund if declined
+          </span>
+        </div>
       </div>
 
       {showCheckmark && (
