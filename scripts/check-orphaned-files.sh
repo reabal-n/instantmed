@@ -85,12 +85,17 @@ do
   fi
 done
 
-# ── 2b.1. Retired duplicate public API surfaces ─────────────────────────
+# ── 2b.1. Retired public API surfaces ───────────────────────────────────
+# PBS medication lookup retired 2026-06-28 (#208 + dead-code sweep): the
+# medication step is free-text now; the doctor confirms the medicine in
+# Parchment/MIMS. Both the old /api/medications and its /search successor
+# are gone — flag either if it ever comes back.
 for legacy_public_api in \
-  "app/api/medications/route.ts"
+  "app/api/medications/route.ts" \
+  "app/api/medications/search/route.ts"
 do
   if [[ -e "$legacy_public_api" ]]; then
-    echo "ORPHAN: $legacy_public_api still exists (superseded by /api/medications/search)"
+    echo "ORPHAN: $legacy_public_api still exists (PBS medication lookup retired 2026-06-28 — medication step is free-text)"
     orphans=$((orphans + 1))
   fi
 done

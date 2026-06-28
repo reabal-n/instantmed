@@ -69,9 +69,6 @@ const serverEnvSchema = z.object({
   // Google Places API (server-only - NOT NEXT_PUBLIC_)
   GOOGLE_PLACES_API_KEY: z.string().optional(),
 
-  // PBS medication search (server-only)
-  PBS_API_KEY: z.string().optional(),
-
   // PHI encryption
   PHI_ENCRYPTION_ENABLED: z.string().optional(),
   PHI_ENCRYPTION_WRITE_ENABLED: z.string().optional(),

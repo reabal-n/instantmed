@@ -48,7 +48,6 @@ export default defineConfig({
         'lib/security/fraud-detector.ts',
         'lib/security/immutable-dates.ts',
         'lib/clinical/consent-versioning.ts',
-        'lib/clinical/pbs-client.ts',
         'lib/clinical/triage-types.ts',
         // Stripe: type-only / tiny-helper files
         'lib/stripe/checkout/types.ts',

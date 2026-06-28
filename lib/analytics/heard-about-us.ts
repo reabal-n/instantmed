@@ -32,7 +32,3 @@ export const heardAboutUsSchema = z.enum(HEARD_ABOUT_US_VALUES)
 export function isHeardAboutUsValue(value: unknown): value is HeardAboutUsValue {
   return typeof value === "string" && HEARD_ABOUT_US_OPTIONS.some((o) => o.value === value)
 }
-
-export function heardAboutUsLabel(value: string): string {
-  return HEARD_ABOUT_US_OPTIONS.find((o) => o.value === value)?.label ?? value
-}

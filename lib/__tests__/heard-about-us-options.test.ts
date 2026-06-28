@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest"
 import {
   HEARD_ABOUT_US_OPTIONS,
   HEARD_ABOUT_US_VALUES,
-  heardAboutUsLabel,
   heardAboutUsSchema,
   isHeardAboutUsValue,
 } from "@/lib/analytics/heard-about-us"
@@ -38,11 +37,6 @@ describe("heard-about-us options", () => {
     expect(isHeardAboutUsValue("nope")).toBe(false)
     expect(isHeardAboutUsValue(undefined)).toBe(false)
     expect(isHeardAboutUsValue(42)).toBe(false)
-  })
-
-  it("maps values to labels and falls back to the raw value", () => {
-    expect(heardAboutUsLabel("ai")).toBe("ChatGPT or other AI")
-    expect(heardAboutUsLabel("unknown-token")).toBe("unknown-token")
   })
 
   it("keeps the Zod enum and the option list in lockstep", () => {
