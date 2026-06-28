@@ -80,7 +80,10 @@ const FLOATS: FloatingCard[] = [
     bgClass: "bg-brand-coral/10 dark:bg-brand-coral/15",
     title: "Repeat Rx",
     status: `One-off ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
-    statusClass: "text-brand-coral",
+    // Status is small text on a white card — use the AA-safe darkened coral
+    // (icon + tint keep the bright signature --brand-coral). #FF6B5B as text
+    // was ~2.8:1; the siblings already use their dark -700 shade for text.
+    statusClass: "text-brand-coral-strong",
     position: "bottom-left",
   },
   {

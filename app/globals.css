@@ -351,6 +351,11 @@ body {
      (#F87171), which is reserved for destructive states. */
   --brand-coral: #FF6B5B;
   --brand-coral-foreground: #FFFFFF;
+  /* AA-safe coral for small text/labels on light surfaces. The signature
+     --brand-coral (#FF6B5B) is only ~2.8:1 on white, failing WCAG AA for
+     text — use this darkened, same-hue coral when coral is the TEXT color
+     (icons/tints keep --brand-coral). Verified ~4.9:1 on white. */
+  --brand-coral-strong: #C8402F;
 
   /* Legacy/compat tokens - maintained for existing component refs */
   --navy: var(--slate-800);
@@ -453,6 +458,9 @@ body {
   /* Brand signature coral — dark mode. Same hue, same recognition value. */
   --brand-coral: #FF6B5B;
   --brand-coral-foreground: #0B1120;
+  /* On dark surfaces the bright coral already clears AA as text; keep it
+     bright (a darkened coral would fail against dark cards). */
+  --brand-coral-strong: #FF8A7D;
 
   /* Borders - subtle constellation lines */
   --border: rgba(148, 163, 184, 0.12);
@@ -565,6 +573,7 @@ body {
   --color-accent-peach-foreground: var(--accent-peach-foreground);
   --color-brand-coral: var(--brand-coral);
   --color-brand-coral-foreground: var(--brand-coral-foreground);
+  --color-brand-coral-strong: var(--brand-coral-strong);
   --color-navy: var(--navy);
   --color-indigo: var(--indigo);
   --color-violet: var(--violet);
