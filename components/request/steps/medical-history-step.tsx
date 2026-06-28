@@ -1,17 +1,22 @@
 "use client"
 
 /**
- * Medical History Step - Allergies, conditions, other medications
+ * Medical History Step — allergies/reactions, conditions, other medications,
+ * plus a single pregnancy/breastfeeding check for prescribing flows.
  *
- * Layout:
- * 1. Three yes/no clinical questions (allergies, conditions, other meds)
- *    - compact card-based layout, each with conditional detail textarea
- * 2. Safety screening toggles (pregnancy, adverse reactions)
- *    - grouped in a single card with clear "informational only" label
+ * 2026-06-28 (operator): collapsed the previous two-phase reveal — 3 clinical
+ * questions, then the card swapped to a SECOND screen with 2 safety toggles —
+ * into ONE screen. That swap read as "two steps back to back" and made the
+ * screening feel long. The "previous reactions to medications?" toggle is now
+ * folded into the allergies question (a drug allergy IS an adverse reaction —
+ * one prescribing-safety question); the separate `hasAdverseMedicationReactions`
+ * answer key is kept in sync for the doctor summary + the validation contract.
+ * Pregnancy/breastfeeding stays a distinct EXPLICIT yes/no — it must never
+ * silently default to "no".
  */
 
 import { ArrowRight } from "lucide-react"
-import { useCallback,useEffect,useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 import { IntakeStepIntro, QuestionCard, YesNoDetailQuestion } from "@/components/request/shared/intake-step-primitives"
 import { StepBlockedSummary } from "@/components/request/shared/step-blocked-summary"
@@ -40,21 +45,33 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
   const hasOtherMedications = answers.hasOtherMedications as boolean | undefined
   const otherMedications = (answers.otherMedications as string) || ""
   const isPregnantOrBreastfeeding = answers.isPregnantOrBreastfeeding as boolean | undefined
-  const hasAdverseMedicationReactions = answers.hasAdverseMedicationReactions as boolean | undefined
   const requiresMedicationSafety = serviceType === "prescription" || serviceType === "repeat-script"
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [blockedReasons, setBlockedReasons] = useState<string[]>([])
 
+  // The allergies question doubles as the medication-reaction check on
+  // prescribing flows. Keep the separate `hasAdverseMedicationReactions` answer
+  // key in sync with the allergies answer so the doctor summary and the
+  // prescription validation contract still receive it (incl. resumed drafts
+  // saved before this merge).
+  useEffect(() => {
+    if (requiresMedicationSafety && hasAllergies !== undefined && answers.hasAdverseMedicationReactions !== hasAllergies) {
+      setAnswer("hasAdverseMedicationReactions", hasAllergies)
+    }
+  }, [requiresMedicationSafety, hasAllergies, answers.hasAdverseMedicationReactions, setAnswer])
+
   const validate = useCallback(() => {
     const newErrors: Record<string, string> = {}
 
     if (hasAllergies === undefined) {
-      newErrors.allergies = "Please indicate if you have any allergies"
+      newErrors.allergies = requiresMedicationSafety
+        ? "Please tell us about any allergies or medication reactions"
+        : "Please indicate if you have any allergies"
     }
     if (hasAllergies && !allergies.trim()) {
-      newErrors.allergies = "Please list your allergies"
+      newErrors.allergies = "Please list your allergies or reactions"
     }
 
     if (hasConditions === undefined) {
@@ -75,10 +92,6 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
       newErrors.isPregnantOrBreastfeeding = "Please indicate if you are pregnant or breastfeeding"
     }
 
-    if (requiresMedicationSafety && hasAdverseMedicationReactions === undefined) {
-      newErrors.hasAdverseMedicationReactions = "Please indicate if you have had adverse medication reactions"
-    }
-
     setErrors(newErrors)
     setBlockedReasons(Object.values(newErrors))
     setTouched({
@@ -86,10 +99,9 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
       conditions: true,
       otherMedications: true,
       isPregnantOrBreastfeeding: true,
-      hasAdverseMedicationReactions: true,
     })
     return Object.keys(newErrors).length === 0
-  }, [hasAllergies, allergies, hasConditions, conditions, hasOtherMedications, otherMedications, requiresMedicationSafety, isPregnantOrBreastfeeding, hasAdverseMedicationReactions])
+  }, [hasAllergies, allergies, hasConditions, conditions, hasOtherMedications, otherMedications, requiresMedicationSafety, isPregnantOrBreastfeeding])
 
   const handleNext = useCallback(() => {
     if (validate()) {
@@ -102,16 +114,9 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
     hasAllergies !== undefined && (!hasAllergies || allergies.trim()) &&
     hasConditions !== undefined && (!hasConditions || conditions.trim()) &&
     hasOtherMedications !== undefined && (!hasOtherMedications || otherMedications.trim()) &&
-    (!requiresMedicationSafety || (
-      isPregnantOrBreastfeeding !== undefined &&
-      hasAdverseMedicationReactions !== undefined
-    ))
+    (!requiresMedicationSafety || isPregnantOrBreastfeeding !== undefined)
   // Live-computed (not gated on the stale `errors` object).
   const canContinue = Boolean(isComplete)
-  const clinicalHistoryComplete =
-    hasAllergies !== undefined && (!hasAllergies || allergies.trim()) &&
-    hasConditions !== undefined && (!hasConditions || conditions.trim()) &&
-    hasOtherMedications !== undefined && (!hasOtherMedications || otherMedications.trim())
 
   useEffect(() => {
     if (canContinue && blockedReasons.length > 0) setBlockedReasons([])
@@ -126,24 +131,26 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
   return (
     <div className="space-y-4">
       <IntakeStepIntro
-        eyebrow={requiresMedicationSafety ? (clinicalHistoryComplete ? "Health 2 of 2" : "Health 1 of 2") : undefined}
-        title={clinicalHistoryComplete && requiresMedicationSafety ? "Medication safety" : "Anything the doctor should know?"}
-        description={clinicalHistoryComplete && requiresMedicationSafety ? "Two final safety checks for the doctor." : "Clear answers here make the review safer and faster."}
+        title="Anything the doctor should know?"
+        description="A few quick questions so the doctor can prescribe safely."
       />
 
       <StepBlockedSummary reasons={blockedReasons} />
 
-      {/* Clinical questions - required */}
-      {(!requiresMedicationSafety || !clinicalHistoryComplete) && (
+      {/* One screen — no progressive reveal. All checks visible at once. */}
       <QuestionCard className="space-y-5">
         <YesNoDetailQuestion
-          label="Any allergies?"
-          helpText="Drug, food, or environmental allergies"
-          noLabel="No allergies"
+          label={requiresMedicationSafety ? "Any allergies or bad reactions to a medicine?" : "Any allergies?"}
+          helpText="Drug, food, or environmental allergies, and any past medication reactions"
+          noLabel="None"
           yesLabel="Yes"
           value={hasAllergies}
           onSelect={(val) => {
             setAnswer("hasAllergies", val)
+            // The allergies answer is also the medication-reaction signal on
+            // prescribing flows — set both immediately so the validation
+            // contract never sees an undefined `hasAdverseMedicationReactions`.
+            if (requiresMedicationSafety) setAnswer("hasAdverseMedicationReactions", val)
             if (!val) setAnswer("allergies", "")
           }}
           detail={allergies}
@@ -187,42 +194,27 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
           detailPlaceholder="e.g., Metformin 500mg twice daily, Vitamin D 1000IU"
           error={touched.otherMedications ? errors.otherMedications : undefined}
         />
+
+        {/* Pregnancy/breastfeeding — distinct safety signal, kept as its own
+            explicit yes/no (never silently defaulted). Prescribing flows only. */}
+        {requiresMedicationSafety && (
+          <>
+            <div className="border-t border-border/40" />
+            <YesNoDetailQuestion
+              label="Currently pregnant or breastfeeding?"
+              helpText="Important for safe prescribing"
+              noLabel="No"
+              yesLabel="Yes"
+              value={isPregnantOrBreastfeeding}
+              onSelect={(val) => setAnswer('isPregnantOrBreastfeeding', val)}
+              error={touched.isPregnantOrBreastfeeding ? errors.isPregnantOrBreastfeeding : undefined}
+            />
+          </>
+        )}
       </QuestionCard>
-      )}
 
-      {requiresMedicationSafety && clinicalHistoryComplete && (
-        <QuestionCard className="space-y-5">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Safety screening
-          </p>
-
-          <YesNoDetailQuestion
-            label="Currently pregnant or breastfeeding?"
-            helpText="Important for medication safety"
-            noLabel="No"
-            yesLabel="Yes"
-            value={isPregnantOrBreastfeeding}
-            onSelect={(val) => setAnswer('isPregnantOrBreastfeeding', val)}
-            error={touched.isPregnantOrBreastfeeding ? errors.isPregnantOrBreastfeeding : undefined}
-          />
-
-          <div className="border-t border-border/40" />
-
-          <YesNoDetailQuestion
-            label="Previous adverse reactions to medications?"
-            helpText="Allergic reactions, side effects, intolerances"
-            noLabel="No reactions"
-            yesLabel="Yes"
-            value={hasAdverseMedicationReactions}
-            onSelect={(val) => setAnswer('hasAdverseMedicationReactions', val)}
-            error={touched.hasAdverseMedicationReactions ? errors.hasAdverseMedicationReactions : undefined}
-          />
-        </QuestionCard>
-      )}
-
-      {/* Always clickable so a tap surfaces the blocking reason (incl. the
-          progressively-revealed safety questions) instead of a silently greyed
-          mobile dead-end. */}
+      {/* Always clickable so a tap surfaces the blocking reason instead of a
+          silently greyed mobile dead-end. */}
       <Button
         data-intake-primary-action="true"
         data-intake-primary-label="Continue"
