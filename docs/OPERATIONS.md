@@ -150,7 +150,7 @@ Admin-only pages should rely on `requireRole(["admin"])` default redirects so wr
 
 Current safe flow:
 
-1. Patients may use InstantMed medication search only for recall/record accuracy. That search is PBS/AMT-backed and must not be described as MIMS, prescribing advice, or medicine recommendation.
+1. Patients type the medication name as plain free text only for recall/record accuracy (the PBS/AMT reference-search was retired 2026-06-28, #211). It must not be described as MIMS, prescribing advice, or medicine recommendation.
 2. InstantMed stores patient-reported medicine name, strength, form, prior history, current dose, and safety answers on the intake.
 3. Doctor review builds a doctor-facing prescription context from the intake answers.
 4. When the doctor opens Parchment, InstantMed syncs the patient profile and opens the Parchment patient prescription screen by SSO.
