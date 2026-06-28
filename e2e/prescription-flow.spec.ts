@@ -6,7 +6,7 @@ import { waitForPageLoad } from "./helpers/test-utils"
  * Prescription Flow E2E Tests
  *
  * Exercises the full repeat prescription intake flow from start to checkout:
- *   1. Medication search (PBS combobox)
+ *   1. Medication (free-text name + optional strength/form)
  *   2. Medication history (last prescribed, side effects)
  *   3. Medical history (allergies, conditions, other meds)
  *   4. Patient details (name, email, DOB, phone)
@@ -96,32 +96,22 @@ async function waitForStep(page: Page, text: string | RegExp, timeout = 15000) {
 // ---------------------------------------------------------------------------
 
 /**
- * Complete the medication search step.
+ * Complete the medication step.
  *
- * The MedicationSearch component is a combobox that searches the PBS database.
- * In test environments the PBS API may not return results, so we use multiple
- * fallback strategies:
- *   1. Type a query and try to pick a dropdown result
- *   2. If no results, type a name and blur to trigger manual entry via handleBlur
- *   3. If that still doesn't work, click "I don't know the exact name" fallback
+ * Since #208 the PBS combobox is retired — the medication step is a plain
+ * free-text name box (`#medication-name-0`). Optional strength/form fields
+ * (`#medication-strength-0` / `#medication-form-0`) reveal once a name is typed.
  */
-async function completeMedicationSearchStep(page: Page) {
+async function completeMedicationStep(page: Page) {
   await waitForStep(page, /Which medication do you need\?/i)
 
-  const medInput = page.getByRole("combobox").first()
-  await medInput.fill("E2E test medication")
-  await medInput.blur()
-  await page.waitForTimeout(400)
+  await page.locator("#medication-name-0").fill("E2E test medication")
 
-  const manualOption = page.getByRole("button", { name: /Continue with "E2E test medication"/i })
-  if (await manualOption.isVisible({ timeout: 1000 }).catch(() => false)) {
-    await manualOption.click()
-  }
-
+  // Strength + form are optional; they appear once the name is entered.
   await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
   await page.locator("#medication-strength-0").fill("500 mg")
   await page.locator("#medication-form-0").fill("capsule")
-  await expect(page.getByRole("button", { name: /Continue to history/i }).last()).toBeEnabled({ timeout: 5000 })
+
   await clickContinue(page)
   await page.waitForTimeout(500)
 }
@@ -146,13 +136,17 @@ async function completeMedicationHistoryStep(page: Page) {
  * Complete the Medical History step (allergies, conditions, other meds).
  */
 async function completeMedicalHistoryStep(page: Page) {
-  await waitForStep(page, /Any allergies/i)
-  await clickChip(page, /No allergies/i)
-  await clickChip(page, /No conditions/i)
-  await clickChip(page, /No medications/i)
-  if (await page.getByText(/Currently pregnant or breastfeeding/i).isVisible({ timeout: 3000 }).catch(() => false)) {
-    await clickChip(page, /^No$/i)
-    await clickChip(page, /No reactions/i)
+  await waitForStep(page, /Anything the doctor should know/i)
+  // Each question is a Yes/No radiogroup labelled by its question text. #209
+  // folded the old "previous medication reactions?" toggle into the allergies
+  // question, so there is no separate reactions question to answer.
+  await page.getByRole("radiogroup", { name: /allerg/i }).getByRole("radio", { name: /^None$/i }).click()
+  await page.getByRole("radiogroup", { name: /medical conditions/i }).getByRole("radio", { name: /^No conditions$/i }).click()
+  await page.getByRole("radiogroup", { name: /other medications/i }).getByRole("radio", { name: /^No medications$/i }).click()
+  // Prescribing flows add a single pregnancy/breastfeeding check.
+  const pregnancy = page.getByRole("radiogroup", { name: /pregnant or breastfeeding/i })
+  if (await pregnancy.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await pregnancy.getByRole("radio", { name: /^No$/i }).click()
   }
   await clickContinue(page)
 }
@@ -258,8 +252,8 @@ test.describe("Prescription: full flow - start to checkout", () => {
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
-    // ── Step 1: Medication search (PBS combobox) ──
-    await completeMedicationSearchStep(page)
+    // ── Step 1: Medication (free-text name + optional strength/form) ──
+    await completeMedicationStep(page)
 
     // ── Step 2: Medication history ──
     await completeMedicationHistoryStep(page)
@@ -307,11 +301,12 @@ test.describe("Prescription: medication-history gating", () => {
     await dismissOverlays(page)
 
     // Complete medication step
-    await completeMedicationSearchStep(page)
+    await completeMedicationStep(page)
 
-    // On medication history step - select "Never"
+    // On medication history step - take the "never prescribed" escape (#210
+    // renamed the "Never" chip to "I have not been prescribed this before").
     await waitForStep(page, /When were you last prescribed/i)
-    await clickChip(page, /^Never$/i)
+    await clickChip(page, /I have not been prescribed this before/i)
 
     // Warning should appear with "Browse other services" CTA
     await expect(page.getByText(/This service is for repeat prescriptions only/i)).toBeVisible()
@@ -336,7 +331,7 @@ test.describe("Prescription: step validation", () => {
     const btn = page.getByRole("button", { name: /^Continue$/i }).last()
     await expect(btn).toBeEnabled()
     await btn.click()
-    await expect(page.getByText(/Please search for and select your medication/i).first()).toBeVisible()
+    await expect(page.getByText(/Enter the name of the medication you need/i).first()).toBeVisible()
     await expect(page.getByRole("heading", { name: /Which medication do you need/i })).toBeVisible()
   })
 
@@ -346,21 +341,13 @@ test.describe("Prescription: step validation", () => {
     await dismissOverlays(page)
 
     await waitForStep(page, /Which medication do you need\?/i)
-    const medInput = page.getByRole("combobox").first()
-    await medInput.fill("E2E blank strength med")
-    await medInput.blur()
-    await page.waitForTimeout(400)
-    const manualOption = page.getByRole("button", { name: /Continue with "E2E blank strength med"/i })
-    if (await manualOption.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await manualOption.click()
-    }
+    await page.locator("#medication-name-0").fill("E2E blank strength med")
 
     // Leave strength blank; fill only form.
     await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
     await page.locator("#medication-form-0").fill("capsule")
 
-    // Continue must be enabled despite the blank strength, and advance the flow.
-    await expect(page.getByRole("button", { name: /Continue to history/i }).last()).toBeEnabled({ timeout: 5000 })
+    // Continue advances despite the blank strength (doctor sees a missing-strength flag).
     await clickContinue(page)
     await waitForStep(page, /When were you last prescribed/i)
   })
@@ -371,46 +358,10 @@ test.describe("Prescription: step validation", () => {
     await dismissOverlays(page)
 
     await waitForStep(page, /Which medication do you need\?/i)
-    const medInput = page.getByRole("combobox").first()
-    await medInput.fill("E2E name only med")
-    await medInput.blur()
-    await page.waitForTimeout(400)
-    const manualOption = page.getByRole("button", { name: /Continue with "E2E name only med"/i })
-    if (await manualOption.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await manualOption.click()
-    }
+    await page.locator("#medication-name-0").fill("E2E name only med")
 
-    // Leave BOTH strength and form blank.
+    // A name alone is enough to advance; strength/form stay optional.
     await expect(page.locator("#medication-strength-0")).toBeVisible({ timeout: 5000 })
-
-    // Continue is enabled on a name alone now, and the flow advances.
-    await expect(page.getByRole("button", { name: /Continue to history/i }).last()).toBeEnabled({ timeout: 5000 })
-    await clickContinue(page)
-    await waitForStep(page, /When were you last prescribed/i)
-  })
-
-  test("'I don't know the name' requires a description, then proceeds (A3 boundary 3)", async ({ page }) => {
-    await page.goto("/request?service=repeat-script")
-    await waitForPageLoad(page)
-    await dismissOverlays(page)
-
-    await waitForStep(page, /Which medication do you need\?/i)
-    // Wait for the step to be fully interactive before taking the unknown path.
-    await expect(page.getByRole("combobox").first()).toBeVisible({ timeout: 5000 })
-
-    // Take the "I don't know the exact name" path.
-    const unknownBtn = page.getByRole("button", { name: /I don.?t know the exact name/i })
-    await expect(unknownBtn).toBeVisible({ timeout: 5000 })
-    await unknownBtn.click()
-    const description = page.locator("#medication-description-0")
-    await expect(description).toBeVisible({ timeout: 5000 })
-
-    // With no description, the flow must NOT be ready to advance.
-    await expect(page.getByRole("button", { name: /Continue to history/i })).toHaveCount(0)
-
-    // A useful free-text description unlocks it and advances the flow.
-    await description.fill("small white blood pressure tablet, prescribed by Dr Smith")
-    await expect(page.getByRole("button", { name: /Continue to history/i }).last()).toBeEnabled({ timeout: 5000 })
     await clickContinue(page)
     await waitForStep(page, /When were you last prescribed/i)
   })
@@ -421,7 +372,7 @@ test.describe("Prescription: step validation", () => {
     await dismissOverlays(page)
 
     // Fast-forward through steps to reach details
-    await completeMedicationSearchStep(page)
+    await completeMedicationStep(page)
     await completeMedicationHistoryStep(page)
     await completeMedicalHistoryStep(page)
 
@@ -449,7 +400,7 @@ test.describe("Prescription: step validation", () => {
     await dismissOverlays(page)
 
     // Complete all steps up to review
-    await completeMedicationSearchStep(page)
+    await completeMedicationStep(page)
     await completeMedicationHistoryStep(page)
     await completeMedicalHistoryStep(page)
     await completeDetailsStep(page)
@@ -472,7 +423,7 @@ test.describe("Prescription: checkout price verification", () => {
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
-    await completeMedicationSearchStep(page)
+    await completeMedicationStep(page)
     await completeMedicationHistoryStep(page)
     await completeMedicalHistoryStep(page)
     await completeDetailsStep(page)
@@ -483,8 +434,8 @@ test.describe("Prescription: checkout price verification", () => {
     // Verify price is $29.95 (PRICING.REPEAT_SCRIPT)
     await expect(page.getByText("$29.95", { exact: true }).first()).toBeVisible()
 
-    // Verify trust badges
-    await expect(page.getByText(/AHPRA-registered doctor/i)).toBeVisible()
+    // Verify trust badges (review step shows "Secure Stripe checkout · Full refund if declined")
+    await expect(page.getByText(/Secure Stripe checkout/i)).toBeVisible()
     await expect(page.getByText(/Full refund if declined/i)).toBeVisible()
   })
 
@@ -493,7 +444,7 @@ test.describe("Prescription: checkout price verification", () => {
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
-    await completeMedicationSearchStep(page)
+    await completeMedicationStep(page)
     await completeMedicationHistoryStep(page)
     await completeMedicalHistoryStep(page)
     await completeDetailsStep(page)
@@ -528,7 +479,7 @@ test.describe("Prescription: responsive design", () => {
     // Progress indicator should be visible
     await expect(page.getByRole("navigation", { name: /Request progress/i })).toBeVisible()
 
-    // Medication search combobox should be usable
-    await expect(page.getByRole("combobox").first()).toBeVisible()
+    // Medication free-text name box should be usable
+    await expect(page.locator("#medication-name-0")).toBeVisible()
   })
 })
