@@ -58,8 +58,7 @@ components/request/
     ├── womens-health-*-step.tsx
     ├── weight-loss-*-step.tsx
     ├── patient-details-step.tsx
-    ├── review-step.tsx
-    ├── checkout-step.tsx
+    └── review-step.tsx       # unified review + payment (med-cert / prescription / consult)
 ```
 
 ## Features
