@@ -735,7 +735,7 @@ SELECT * FROM intake_events WHERE intake_id = '<ID>' ORDER BY created_at DESC LI
 SELECT i.id, i.reference_number, i.status, eo.error_message
 FROM intakes i JOIN email_outbox eo ON eo.intake_id = i.id
 WHERE i.status = 'approved'
-  AND eo.email_type IN ('request_approved', 'certificate_delivery')
+  AND eo.email_type IN ('request_approved', 'certificate_delivery', 'med_cert_patient', 'script_sent')
   AND eo.status = 'failed';
 ```
 
