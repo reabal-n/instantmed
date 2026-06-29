@@ -41,15 +41,14 @@ export function GuestCompleteAccountEmail({
       <NameFirstGreeting name={firstName} />
       <Text>
         Your {requestType} request is underway. Set up a free account to track
-        it in real-time, download your documents, and reorder in seconds next
-        time.
+        it, open secure document links, and request again faster next time.
       </Text>
 
       <List
         items={[
-          "Track your request status in real-time",
-          "Download your certificate instantly when ready",
-          "Access your medical history",
+          "Track your request status",
+          "Open secure document links when ready",
+          "Keep your request history in one place",
           "Request future certificates faster",
         ]}
       />
@@ -58,8 +57,8 @@ export function GuestCompleteAccountEmail({
 
       <Box variant="info">
         <p style={{ margin: 0, fontSize: "13px", color: colors.infoText }}>
-          No pressure. Your certificate will be emailed to you when it&apos;s ready,
-          even if you don&apos;t create an account.
+          No pressure. We&apos;ll email you when the doctor has finished.
+          Certificate downloads open through a secure InstantMed link.
         </p>
       </Box>
 

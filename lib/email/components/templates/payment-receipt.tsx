@@ -56,7 +56,7 @@ export function PaymentReceiptEmail({
       <Text style={{ fontFamily }}>Hey {firstName},</Text>
 
       <Text style={{ fontFamily }}>
-        Your <strong>{serviceName}</strong> is with a doctor now. We&apos;ll send it over once review is complete and it has been approved.
+        Your <strong>{serviceName}</strong> is with a doctor now. We&apos;ll email you when review is complete with the next step for your request.
       </Text>
 
       <Button href={dashboardUrl}>Track your request</Button>
