@@ -597,7 +597,7 @@ describe("unified intake regressions", () => {
     }, identity)).toBeNull()
   })
 
-  it("validates every active medication in a repeat prescription payload", () => {
+  it("blocks secondary repeat-prescription medicines before checkout", () => {
     const baseAnswers = {
       medicationName: "Rosuvastatin",
       medicationStrength: "10 mg",
@@ -616,17 +616,15 @@ describe("unified intake regressions", () => {
       sex: "M",
     }
 
-    // A3 softening: a secondary medication missing its form no longer blocks at
-    // the step — it proceeds and the doctor sees a medication_form_missing flag.
-    // (Controlled-substance hard-blocking is a checkout-layer concern, covered by
-    // repeat-script-schema.test.ts, not this step-level validator.)
-    expect(validateAnswersServerSide("repeat-script", {
+    const result = validateAnswersServerSide("repeat-script", {
       ...baseAnswers,
       medications: [
         { name: "Rosuvastatin", strength: "10 mg", form: "tablet", pbsCode: "MANUAL" },
         { name: "Metformin", strength: "500 mg", pbsCode: "MANUAL" },
       ],
-    }, identity)).toBeNull()
+    }, identity)
+
+    expect(result).toMatch(/one medication at a time/i)
   })
 
   it("requires repeat prescription medication safety questions before checkout", () => {
