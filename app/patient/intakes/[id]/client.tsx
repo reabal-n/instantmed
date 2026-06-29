@@ -394,9 +394,9 @@ export function IntakeDetailClient({
     startTransition(async () => {
       const result = await retryPaymentForIntakeAction(intake.id)
       if (!result.success) {
-        setActionError(result.error || "Failed to create checkout session")
+        setActionError(result.error || "We couldn't open secure checkout. Please try again in a moment or contact support.")
       } else if (!result.checkoutUrl) {
-        setActionError("No checkout URL received. Please try again.")
+        setActionError("We couldn't open secure checkout. Please try again in a moment or contact support.")
       } else {
         window.location.href = result.checkoutUrl
       }
@@ -524,14 +524,14 @@ export function IntakeDetailClient({
                 <div>
                   <h3 className="text-base font-semibold text-warning">Payment required</h3>
                   <p className="text-sm text-muted-foreground">
-                    Your request is saved but hasn&apos;t been submitted yet. Complete payment to send it to a doctor for review.
+                    Your request is saved. No payment has been taken yet, and it has not been sent to a doctor. Complete payment to send it for review.
                   </p>
                 </div>
                 <Button onClick={handleRetryPayment} disabled={isPending} className="w-full sm:w-auto">
                   {isPending ? (
                     <>
                       <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      Processing...
+                      Opening secure checkout...
                     </>
                   ) : (
                     "Complete payment"
@@ -555,7 +555,7 @@ export function IntakeDetailClient({
                     Payment didn&apos;t go through
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Your information has been saved. Try again with the same or a different card, no need to re-enter your details.
+                    Your request is saved. No completed payment is recorded, and it has not been sent to a doctor. You can try the same card again or use a different one.
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
@@ -563,7 +563,7 @@ export function IntakeDetailClient({
                     {isPending ? (
                       <>
                         <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                        Processing...
+                        Opening secure checkout...
                       </>
                     ) : (
                       <>

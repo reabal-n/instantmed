@@ -140,4 +140,14 @@ describe("POST /api/patient/retry-payment", () => {
     expect(intakeDetailClientSource).toContain("hasAutoRetriedPayment")
     expect(intakeDetailClientSource).toContain("retryPaymentForIntakeAction(intake.id)")
   })
+
+  it("keeps patient retry copy explicit about payment state and free of internal session wording", () => {
+    expect(intakeDetailClientSource).toContain("No payment has been taken yet")
+    expect(intakeDetailClientSource).toContain("No completed payment is recorded")
+    expect(intakeDetailClientSource).toContain("it has not been sent to a doctor")
+    expect(intakeDetailClientSource).toContain("Opening secure checkout...")
+    expect(intakeDetailClientSource).toContain("We couldn't open secure checkout")
+    expect(intakeDetailClientSource).not.toContain("Failed to create checkout session")
+    expect(intakeDetailClientSource).not.toContain("No checkout URL received")
+  })
 })
