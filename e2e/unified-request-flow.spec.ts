@@ -53,9 +53,11 @@ test.describe("Unified Request Flow - Medical Certificate", () => {
   test("can select duration options", async ({ page }) => {
     // Wait for certificate step to load
     await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
-    
-    // Duration controls collapse to a summary by default — expand them first
-    await page.getByRole("button", { name: /Change length or start date/i }).click()
+
+    // Older layouts collapsed duration controls behind a summary button; the
+    // current mobile-tappable date chips render the controls expanded.
+    const changeDates = page.getByRole("button", { name: /Change length or start date/i })
+    if (await changeDates.isVisible().catch(() => false)) await changeDates.click()
 
     // Duration options should be visible
     await expect(page.getByRole("radio", { name: /1 day/i })).toBeVisible()
