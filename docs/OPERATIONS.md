@@ -52,8 +52,9 @@ PLAYWRIGHT=1 STRIPE_WEBHOOK_SECRET=whsec_test_... pnpm e2e e2e/stripe-webhook.sp
 
 1. Check Resend status: https://resend-status.com
 2. Check `/admin/emails/hub` for failed or pending outbox rows, delivery status, and recent queue activity.
-3. Manual retry: click "Retry" on individual failed rows in Email delivery.
-4. If Resend is completely down: emails auto-retry via the `email-dispatcher` cron; stale `sending` claims are recovered back to retryable `failed` rows.
+3. For medical-certificate delivery tickets, check `/admin/ops` → **Certificate delivery rescue** first. It shows whether the certificate was generated, the patient certificate email state, `intakes.document_sent_at`, tracked email-open/click or certificate-download evidence, and the safest support action without exposing raw storage URLs.
+4. Manual retry: click "Retry" on individual failed rows in Email delivery. For generated certificate cases, use the ops rescue panel's **Resend link** action so the patient receives the app-routed secure certificate access link rather than a raw storage URL or attachment.
+5. If Resend is completely down: emails auto-retry via the `email-dispatcher` cron; stale `sending` claims are recovered back to retryable `failed` rows.
 
 ### Database Connection Issues
 
