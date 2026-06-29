@@ -47,6 +47,20 @@ const DRAFT_ID = "e2e00000-0000-0000-0000-000000000040"
 const TEMPLATE_ID = "e2e00000-0000-0000-0000-000000000051"
 const E2E_PROFILE_IDS = [OPERATOR_PROFILE_ID, DOCTOR_PROFILE_ID, SUPPORT_PROFILE_ID, PATIENT_PROFILE_ID]
 
+// Run isolation: the canonical seed fixtures (auth profiles, the reusable
+// review intake, service, clinic identity, certificate template) are SHARED
+// across EVERY E2E run against this Supabase project and are seeded
+// idempotently ("reuse existing"). Deleting them here lets a finishing run
+// yank the fixtures out from under a concurrent run mid-test — the source of
+// the "Canonical seeded intake missing mid-run" / "E2E patient missing" /
+// "...020 service missing" cascades + FK violations seen when multiple CI runs
+// overlap. Default teardown now PRESERVES those parent rows and only clears the
+// transient, per-test child data (drafts/certs/documents/answers/audit/etc.),
+// which the seed + resetIntakeForRetest recreate on the next run. Set
+// E2E_TEARDOWN_RESET_FIXTURES=1 to force a full fixture wipe (e.g. to repair a
+// corrupted seed).
+const PRESERVE_CANONICAL_FIXTURES = process.env.E2E_TEARDOWN_RESET_FIXTURES !== "1"
+
 let cachedIntakeIds: string[] | null = null
 
 async function getE2EIntakeIds(): Promise<string[]> {
@@ -217,8 +231,17 @@ async function deleteCertificateAuditLog() {
 
 async function deleteIntakes() {
   console.log("🗑️  Deleting intakes...")
-  const intakeIds = await getE2EIntakeIds()
-  
+  // Preserve the canonical reusable review intake; only clear extra,
+  // test-created intakes (guest checkout, request flows, etc.).
+  const intakeIds = (await getE2EIntakeIds()).filter(
+    (id) => !(PRESERVE_CANONICAL_FIXTURES && id === INTAKE_ID),
+  )
+
+  if (intakeIds.length === 0) {
+    console.log("✅ Intakes deleted (canonical intake preserved)")
+    return
+  }
+
   const { error } = await supabase
     .from("intakes")
     .delete()
@@ -227,7 +250,7 @@ async function deleteIntakes() {
   if (error && !error.message.includes("0 rows")) {
     console.warn("⚠️  Failed to delete intakes:", error.message)
   } else {
-    console.log("✅ Intakes deleted")
+    console.log(`✅ Intakes deleted${PRESERVE_CANONICAL_FIXTURES ? " (canonical intake preserved)" : ""}`)
   }
 }
 
@@ -247,8 +270,12 @@ async function deleteNotifications() {
 }
 
 async function deleteProfiles() {
+  if (PRESERVE_CANONICAL_FIXTURES) {
+    console.log("⏭️  Preserving canonical E2E profiles (run isolation)")
+    return
+  }
   console.log("🗑️  Deleting profiles...")
-  
+
   const { error } = await supabase
     .from("profiles")
     .delete()
@@ -262,6 +289,10 @@ async function deleteProfiles() {
 }
 
 async function deleteClinicIdentity() {
+  if (PRESERVE_CANONICAL_FIXTURES) {
+    console.log("⏭️  Preserving canonical clinic identity (run isolation)")
+    return
+  }
   console.log("🗑️  Deleting clinic identity...")
 
   const byId = await supabase
@@ -289,8 +320,12 @@ async function deleteClinicIdentity() {
 }
 
 async function deleteService() {
+  if (PRESERVE_CANONICAL_FIXTURES) {
+    console.log("⏭️  Preserving canonical E2E service (run isolation)")
+    return
+  }
   console.log("🗑️  Deleting e2e service (if seeded)...")
-  
+
   // Only delete if it's our test service
   const { error } = await supabase
     .from("services")
@@ -305,6 +340,10 @@ async function deleteService() {
 }
 
 async function deleteCertificateTemplates() {
+  if (PRESERVE_CANONICAL_FIXTURES) {
+    console.log("⏭️  Preserving canonical certificate template (run isolation)")
+    return
+  }
   console.log("🗑️  Deleting e2e certificate templates (if seeded)...")
 
   const byId = await supabase
