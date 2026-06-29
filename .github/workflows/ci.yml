@@ -366,6 +366,11 @@ jobs:
         run: pnpm exec playwright test --project=chromium e2e/admin.ops-index.spec.ts e2e/marketing-dashboard-nav.spec.ts
 
       - name: Run med cert readiness E2E gate (Chromium)
+        # Run even when an earlier UI-nav step failed, so the duplicate-cert
+        # readiness gate is never masked by unrelated flakiness. This does NOT
+        # hide failures: there is no continue-on-error, so a failure here still
+        # fails the job; always() only ensures the step runs for full signal.
+        if: always()
         env:
           PLAYWRIGHT: '1'
           NEXT_PUBLIC_PLAYWRIGHT: '1'
@@ -379,6 +384,9 @@ jobs:
         run: pnpm medcert:readiness:e2e
 
       - name: Run non-medcert paid critical E2E flows (Chromium)
+        # Same rationale: run for full signal even if an earlier step failed.
+        # No continue-on-error, so a failure here still fails the job.
+        if: always()
         env:
           PLAYWRIGHT: '1'
           NEXT_PUBLIC_PLAYWRIGHT: '1'

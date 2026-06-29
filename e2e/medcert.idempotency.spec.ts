@@ -27,7 +27,14 @@ import {
 } from "./helpers/db"
 import { waitForPageLoad } from "./helpers/test-utils"
 
-test.describe("Medical Certificate Idempotency", () => {
+// Serial: all three tests mutate the SAME shared canonical INTAKE_ID
+// (reset -> approve -> issue cert). Under the local default of 2 workers
+// (`fullyParallel: true`), running them concurrently raced on that intake —
+// one test's resetIntakeForRetest deleted the med-cert draft mid-flight, so
+// another's /document page hit the `!draft` redirect to the cockpit (no
+// `data-testid="approve-button"`). Serial keeps them one-at-a-time regardless
+// of worker count. (CI already pins workers:1; this hardens local + future runs.)
+test.describe.serial("Medical Certificate Idempotency", () => {
   test.beforeEach(async ({ page }) => {
     // Login as operator
     const result = await loginAsOperator(page)
