@@ -426,7 +426,7 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
                 error={touched.startDate ? errors.startDate : undefined}
               >
                 <div
-                  className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4"
+                  className="mt-2 grid grid-cols-4 gap-1.5 sm:gap-2"
                   role="radiogroup"
                   aria-label="Certificate start date"
                 >
@@ -456,7 +456,7 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
                         onClick={() => handleStartOffsetClick(offset)}
                         onKeyDown={(event) => startOffsetRoving.onKeyDown(event, index)}
                         className={requestCx(
-                          "min-h-12 rounded-xl border px-2 py-2.5 text-sm font-medium transition-[background-color,border-color,color] duration-150 touch-manipulation",
+                          "min-h-11 sm:min-h-12 rounded-xl border px-1.5 py-2 text-xs sm:px-2 sm:py-2.5 sm:text-sm font-medium transition-[background-color,border-color,color] duration-150 touch-manipulation",
                           isStart && "bg-primary text-primary-foreground border-primary",
                           isInRange && !isStart && "bg-primary/15 text-primary border-primary/40",
                           // Unselected: explicit white + full-opacity border so chips

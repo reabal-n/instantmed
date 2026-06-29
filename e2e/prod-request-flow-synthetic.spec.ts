@@ -108,4 +108,26 @@ test.describe("Production request-flow synthetic", () => {
       await expectNoRequestCrash(page)
     }
   })
+
+  test("med-cert start-date choices remain tappable above the mobile action bar on narrow phones", async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 720 })
+    await openRequest(page, "/request?service=med-cert")
+
+    const actionBar = page.locator('[data-intake-mobile-action-bar="true"]')
+    const dayAfterChoice = page.getByRole("radio", { name: /^Day after$/i })
+
+    await expect(actionBar).toBeVisible()
+    await expect(dayAfterChoice).toBeVisible()
+
+    const actionBarBox = await actionBar.boundingBox()
+    const dayAfterBox = await dayAfterChoice.boundingBox()
+
+    expect(actionBarBox, "mobile action bar should have a measured box").not.toBeNull()
+    expect(dayAfterBox, "Day after choice should have a measured box").not.toBeNull()
+    expect(
+      dayAfterBox!.y + dayAfterBox!.height,
+      "The last start-date chip should sit above the sticky mobile action bar",
+    ).toBeLessThanOrEqual(actionBarBox!.y)
+    expect(dayAfterBox!.height, "Start-date chips should keep a 44px touch target").toBeGreaterThanOrEqual(44)
+  })
 })
