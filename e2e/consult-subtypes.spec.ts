@@ -76,9 +76,18 @@ async function selectUtiCleanSafetyPath(page: Page) {
 
 async function completeConsultMedicalHistory(page: Page) {
   await expect(page.getByText(/Any allergies/i)).toBeVisible({ timeout: 10000 })
-  await page.getByRole("radio", { name: /No allergies/i }).click()
-  await page.getByRole("radio", { name: /No conditions/i }).click()
-  await page.getByRole("radio", { name: /No medications/i }).click()
+  await page
+    .getByRole("radiogroup", { name: /Any allergies/i })
+    .getByRole("radio", { name: /^None$/i })
+    .click()
+  await page
+    .getByRole("radiogroup", { name: /Any medical conditions/i })
+    .getByRole("radio", { name: /No conditions/i })
+    .click()
+  await page
+    .getByRole("radiogroup", { name: /Taking any other medications/i })
+    .getByRole("radio", { name: /No medications/i })
+    .click()
   await clickContinue(page)
 }
 

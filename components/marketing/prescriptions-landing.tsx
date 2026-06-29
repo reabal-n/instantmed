@@ -21,7 +21,6 @@ import {
 } from "@/components/marketing/shared/landing-page-shell"
 import { ReferralStrip } from "@/components/marketing/shared/referral-strip"
 import { RelatedArticles } from "@/components/marketing/shared/related-articles"
-import { ContentHubLinks } from "@/components/seo"
 import { TrustBadgeRow } from "@/components/shared/trust-badge"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
@@ -70,6 +69,10 @@ const FAQSection = dynamic(
 const CTABanner = dynamic(
   () => import("@/components/sections/cta-banner").then((m) => ({ default: m.CTABanner })),
   { loading: () => <div className="min-h-[300px]" /> },
+)
+const ContentHubLinks = dynamic(
+  () => import("@/components/seo/content-hub-links").then((m) => m.ContentHubLinks),
+  { loading: () => <div className="min-h-[320px]" /> },
 )
 
 // =============================================================================
