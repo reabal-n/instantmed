@@ -32,6 +32,7 @@ import { Pagination, UserCard } from "@/components/uix"
 import { capture } from "@/lib/analytics/capture"
 import { parseIntakeFlags } from "@/lib/clinical/intake-flags"
 import { ADMIN_PRESCRIBING_IDENTITY_HREF, buildDoctorIntakeHref, STAFF_DASHBOARD_HREF } from "@/lib/dashboard/routes"
+import { resolveStaffCaseActionLabel } from "@/lib/doctor/case-action-label"
 import { buildPatientHandoffSummary } from "@/lib/doctor/patient-handoff"
 import { buildPatientSnapshot, getPatientSnapshotOptionsForCase } from "@/lib/doctor/patient-snapshot"
 import { LAST_OPENED_DOCTOR_CASE_KEY } from "@/lib/doctor/queue-focus"
@@ -343,6 +344,10 @@ export function QueueTable({
             const serviceBadgeLabel = compactShell && subtypeLabel
               ? `${subtypeLabel} consult`
               : service?.short_name || formatServiceType(service?.type || "")
+            const nextActionLabel = resolveStaffCaseActionLabel(
+              { status: intake.status, subtype: intake.subtype },
+              service?.type,
+            )
 
             const isOpen = openIntakeId === intake.id
             const isSelected = isFocused || isOpen
@@ -366,6 +371,10 @@ export function QueueTable({
               ? getCompactQueueReason(service, intake.subtype)
               : null
             const compactTaxonomyChipClass = "border-border/60 bg-background text-muted-foreground"
+            const compactActionChipClass =
+              intake.status === "pending_info"
+                ? "border-warning-border bg-warning-light text-warning"
+                : "border-primary/25 bg-primary/[0.06] text-primary shadow-none dark:border-primary/35 dark:bg-primary/15 dark:text-primary"
             const compactStatusChipClass = "border-border/60 bg-background text-foreground shadow-none dark:border-white/15 dark:bg-white/5 dark:text-foreground"
             const compactClaimChipClass = "border-border/60 bg-muted/35 text-muted-foreground shadow-none dark:border-white/15 dark:bg-white/5"
             return (
@@ -432,6 +441,20 @@ export function QueueTable({
                   >
                     {serviceBadgeLabel}
                   </Badge>
+                  {compactShell ? (
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "min-w-fit whitespace-nowrap text-xs font-semibold",
+                        compactActionChipClass,
+                      )}
+                      aria-label={`Next action: ${nextActionLabel}`}
+                      title={`Next action: ${nextActionLabel}`}
+                      data-queue-action-chip
+                    >
+                      {nextActionLabel}
+                    </Badge>
+                  ) : null}
                   {showRoutineStatus && (
                     <Badge
                       variant={compactShell ? "default" : "outline"}

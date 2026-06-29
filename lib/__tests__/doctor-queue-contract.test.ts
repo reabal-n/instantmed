@@ -217,6 +217,9 @@ describe("doctor queue production contract", () => {
     expect(queueClientSource).not.toContain("You're ${targetUsedPercent}% into the 2h target.")
 
     expect(queueTableSource).toContain("data-queue-taxonomy-chip")
+    expect(queueTableSource).toContain("data-queue-action-chip")
+    expect(queueTableSource).toContain("resolveStaffCaseActionLabel")
+    expect(queueTableSource).toContain("Next action:")
     expect(queueTableSource).toContain("data-queue-status-chip")
     expect(queueTableSource).toContain("On track")
     expect(queueTableSource).toContain("At risk")

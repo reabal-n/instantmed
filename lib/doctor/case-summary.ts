@@ -1,4 +1,5 @@
 import { buildStaffPatientHref } from "@/lib/dashboard/routes"
+import { resolveStaffCaseActionLabel } from "@/lib/doctor/case-action-label"
 import { isClinicalNoteSufficient } from "@/lib/doctor/clinical-notes"
 import {
   buildPatientSnapshot,
@@ -44,20 +45,6 @@ export interface BuildStaffCaseSummaryInput {
 
 const DONE_STATUSES = new Set(["completed", "declined", "cancelled", "expired"])
 
-export function resolveStaffCaseActionLabel(
-  intake: Pick<StaffCaseIntake, "status">,
-  serviceType?: string | null,
-): string {
-  if (intake.status === "pending_info") return "Waiting on patient"
-  if (intake.status === "awaiting_script") return "Send script"
-  if (intake.status === "approved") return "Finish delivery"
-  if (intake.status === "completed") return "Complete"
-  if (intake.status === "declined") return "Declined"
-  if (serviceType === "med_certs") return "Approve certificate"
-  if (serviceType === "common_scripts" || serviceType === "repeat_rx") return "Prescribe"
-  return "Approve or decline"
-}
-
 export function getStaffCaseServiceLabel(service?: StaffCaseService): string {
   return service?.short_name || service?.name || formatServiceType(service?.type || "")
 }
@@ -102,7 +89,10 @@ export function buildStaffCaseSummary({
     serviceLabel,
     serviceShortLabel: service?.short_name || service?.name || serviceLabel,
     statusLabel: formatIntakeStatus(intake.status),
-    actionLabel: resolveStaffCaseActionLabel(intake, service?.type),
+    actionLabel: resolveStaffCaseActionLabel(
+      { status: intake.status, subtype: intake.subtype },
+      service?.type,
+    ),
     notesLength,
     notesReady,
     notesLabel: notesReady ? "Note ready" : "Add note",
