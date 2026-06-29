@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
+import { buildPatientIntakeHref } from "@/lib/dashboard/routes"
+import { getGuestCertificateAccessHref } from "@/lib/patient/certificate-download"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { TrackingClient } from "./tracking-client"
@@ -25,7 +27,7 @@ export default async function TrackingPage({ params }: PageProps) {
     .from("intakes")
     .select(`
       id, status, created_at, updated_at, is_priority, paid_at,
-      patient:profiles!patient_id ( id ),
+      patient:profiles!patient_id ( id, auth_user_id ),
       service:services!service_id ( name, short_name )
     `)
     .eq("id", intakeId)
@@ -56,5 +58,20 @@ export default async function TrackingPage({ params }: PageProps) {
     service: Array.isArray(intake.service) ? intake.service[0] : intake.service,
   }
 
-  return <TrackingClient intake={intakeForClient} queuePosition={queuePosition} estimatedMinutes={estimatedMinutes} />
+  const isTerminalApproved = intake.status === "approved" || intake.status === "completed"
+  const patient = Array.isArray(intake.patient) ? intake.patient[0] : intake.patient
+  const approvedAccessHref = isTerminalApproved
+    ? patient?.auth_user_id
+      ? buildPatientIntakeHref(intake.id)
+      : getGuestCertificateAccessHref(intake.id)
+    : null
+
+  return (
+    <TrackingClient
+      intake={intakeForClient}
+      queuePosition={queuePosition}
+      estimatedMinutes={estimatedMinutes}
+      approvedAccessHref={approvedAccessHref}
+    />
+  )
 }

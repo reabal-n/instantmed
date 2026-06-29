@@ -493,6 +493,34 @@ export async function updateEmailStatus(
     return { success: false, error: error.message }
   }
 
+  if (status === "sent") {
+    const { data: certificate, error: certError } = await supabase
+      .from("issued_certificates")
+      .select("intake_id")
+      .eq("id", certificateId)
+      .maybeSingle()
+
+    if (certError) {
+      log.warn("Failed to look up certificate intake after email status update", { certificateId }, certError)
+    } else if (certificate?.intake_id) {
+      const { error: intakeError } = await supabase
+        .from("intakes")
+        .update({
+          document_sent_at: updateData.email_sent_at,
+          generated_document_type: "medical_certificate",
+        })
+        .eq("id", certificate.intake_id)
+        .is("document_sent_at", null)
+
+      if (intakeError) {
+        log.warn("Failed to mirror certificate delivery onto intake", {
+          certificateId,
+          intakeId: certificate.intake_id,
+        }, intakeError)
+      }
+    }
+  }
+
   return { success: true }
 }
 

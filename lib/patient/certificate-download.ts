@@ -16,6 +16,7 @@ export function getPatientIntakeDetailHref(intakeId: string): string {
  */
 export function getGuestCertificateAccessHref(intakeId: string, email?: string | null): string {
   const params = new URLSearchParams({ intake_id: intakeId })
+  params.set("access", "certificate")
   if (email) params.set("email", email)
   return `/auth/complete-account?${params.toString()}`
 }

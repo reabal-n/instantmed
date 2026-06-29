@@ -23,6 +23,7 @@ export function CompleteAccountForm({
   serviceName,
   isNewCustomer,
   heardToken,
+  certificateAccess = false,
 }: {
   intakeId?: string
   email?: string
@@ -31,6 +32,7 @@ export function CompleteAccountForm({
   serviceName?: string
   isNewCustomer?: boolean
   heardToken?: string
+  certificateAccess?: boolean
 }) {
   const router = useRouter()
   const { isSignedIn, isLoaded } = useAuth()
@@ -160,9 +162,13 @@ export function CompleteAccountForm({
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-success-light mb-4">
           <Check className="w-8 h-8 text-success" />
         </div>
-        <h1 className="text-2xl font-semibold mb-2">Payment successful</h1>
+        <h1 className="text-2xl font-semibold mb-2">
+          {certificateAccess ? "Your certificate is ready" : "Payment successful"}
+        </h1>
         <p className="text-muted-foreground">
-          Create a free account to view and download your certificate, see the doctor&apos;s notes, and contact support - all in one place.
+          {certificateAccess
+            ? "Create a free account to securely view and download your certificate."
+            : "Create a free account to track your request, see the doctor's notes, and contact support - all in one place."}
         </p>
       </div>
 
@@ -179,19 +185,25 @@ export function CompleteAccountForm({
           className="w-full rounded-xl"
           size="lg"
         >
-          Create Account & View Certificate
+          {certificateAccess ? "Create Account & View Certificate" : "Create Account & Track Request"}
         </Button>
 
-        <p className="text-xs text-center text-muted-foreground">
-          Your certificate will be emailed to you regardless.{" "}
-          <button
-            type="button"
-            onClick={() => router.push(`/patient/intakes/confirmed?intake_id=${intakeId}&email=${encodeURIComponent(email || '')}`)}
-            className="underline underline-offset-2 hover:text-foreground transition-colors"
-          >
-            Skip for now
-          </button>
-        </p>
+        {certificateAccess ? (
+          <p className="text-xs text-center text-muted-foreground">
+            Certificate downloads open through a secure account link so access stays private and audit-logged.
+          </p>
+        ) : (
+          <p className="text-xs text-center text-muted-foreground">
+            We&apos;ll email you when the doctor has finished.{" "}
+            <button
+              type="button"
+              onClick={() => router.push(`/patient/intakes/confirmed?intake_id=${intakeId}&email=${encodeURIComponent(email || '')}`)}
+              className="underline underline-offset-2 hover:text-foreground transition-colors"
+            >
+              Skip for now
+            </button>
+          </p>
+        )}
       </div>
 
       <p className="text-xs text-center text-muted-foreground mt-4">
@@ -201,13 +213,15 @@ export function CompleteAccountForm({
         </a>
       </p>
     </div>
-      {heardToken && <HeardAboutUsCard token={heardToken} />}
-      {/* Cross-sell to the guest majority (most checkouts are guests who land
-          here, not on /patient/intakes/success). 2026-06-11 review: the probe
-          was success-page-only, so guests never saw it. */}
-      <div className="mx-auto mt-4 w-full max-w-md px-4">
-        <RelatedServicesProbe surface="complete_account" />
-      </div>
+      {!certificateAccess && heardToken && <HeardAboutUsCard token={heardToken} />}
+      {!certificateAccess && (
+        <div className="mx-auto mt-4 w-full max-w-md px-4">
+          {/* Cross-sell to the guest majority (most checkouts are guests who land
+              here, not on /patient/intakes/success). 2026-06-11 review: the probe
+              was success-page-only, so guests never saw it. */}
+          <RelatedServicesProbe surface="complete_account" />
+        </div>
+      )}
     </div>
   )
 }

@@ -46,9 +46,9 @@ export function ConfirmedClient({ intakeId, email, serviceName: _serviceName }: 
             <p className="font-medium text-sm">Check your email</p>
             <p className="text-sm text-muted-foreground">
               {email ? (
-                <>We&apos;ll send your certificate to <span className="font-medium">{email}</span></>
+                <>We&apos;ll email <span className="font-medium">{email}</span> when the doctor has finished.</>
               ) : (
-                "We'll email your certificate once it's ready"
+                "We'll email you when the doctor has finished."
               )}
             </p>
           </div>

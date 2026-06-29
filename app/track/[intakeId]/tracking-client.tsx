@@ -19,6 +19,7 @@ interface Intake {
   is_priority?: boolean
   patient: {
     id: string
+    auth_user_id?: string | null
   }
   service?: {
     name?: string
@@ -30,6 +31,7 @@ interface TrackingClientProps {
   intake: Intake
   queuePosition: number
   estimatedMinutes: number
+  approvedAccessHref: string | null
 }
 
 type TimelineStep = {
@@ -82,8 +84,8 @@ function getTimelineSteps(intake: Intake): TimelineStep[] {
           ? "Your request could not be approved"
           : intake.status === "pending_info"
             ? "Doctor needs additional information"
-            : "Your document is ready and has been emailed",
-      status: currentStep >= 4 ? "current" : "upcoming",
+            : "Your document is ready",
+      status: currentStep >= 4 ? "complete" : "upcoming",
       timestamp: currentStep >= 4 ? intake.updated_at : undefined,
     },
   ]
@@ -111,6 +113,7 @@ export function TrackingClient({
   intake: initialRequest,
   queuePosition: initialQueuePosition,
   estimatedMinutes: initialEstimatedMinutes,
+  approvedAccessHref,
 }: TrackingClientProps) {
   const [intake, setIntake] = useState(initialRequest)
   const [queuePosition, setQueuePosition] = useState(initialQueuePosition)
@@ -176,6 +179,7 @@ export function TrackingClient({
 
   const steps = getTimelineSteps(intake)
   const isComplete = ["approved", "declined", "pending_info", "completed"].includes(intake.status)
+  const canViewCertificate = intake.status === "approved" || intake.status === "completed"
 
   return (
     <main className="min-h-screen bg-background">
@@ -346,10 +350,19 @@ export function TrackingClient({
             </Button>
           )}
 
-          {isComplete && intake.status === "approved" && (
-            <Button className="w-full" size="lg">
-              <FileText className="w-4 h-4 mr-2" />
-              Download Document
+          {isComplete && canViewCertificate && (
+            <Button className="w-full" size="lg" asChild={Boolean(approvedAccessHref)}>
+              {approvedAccessHref ? (
+                <Link href={approvedAccessHref}>
+                  <FileText className="w-4 h-4 mr-2" />
+                  View certificate
+                </Link>
+              ) : (
+                <span className="inline-flex items-center justify-center">
+                  <FileText className="w-4 h-4 mr-2" />
+                  View certificate
+                </span>
+              )}
             </Button>
           )}
 

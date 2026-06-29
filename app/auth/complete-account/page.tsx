@@ -33,7 +33,7 @@ async function isStripeSessionPaid(sessionId: string | undefined): Promise<boole
 export default async function CompleteAccountPage({
   searchParams,
 }: {
-  searchParams: Promise<{ request_id?: string; intake_id?: string; email?: string; session_id?: string }>
+  searchParams: Promise<{ request_id?: string; intake_id?: string; email?: string; session_id?: string; access?: string }>
 }) {
   const params = await searchParams
   // Support both intake_id (guest checkout) and request_id (legacy)
@@ -132,6 +132,7 @@ export default async function CompleteAccountPage({
               serviceName={serviceName}
               isNewCustomer={isNewCustomer}
               heardToken={heardToken}
+              certificateAccess={params.access === "certificate"}
             />
           </Suspense>
         </div>
