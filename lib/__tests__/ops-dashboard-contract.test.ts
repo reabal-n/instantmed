@@ -256,6 +256,10 @@ describe("ops dashboard data contract", () => {
     expect(opsClientSource).toContain('id="certificate-delivery-rescue"')
     expect(opsClientSource).toContain('label="Cert timestamp drift"')
     expect(opsClientSource).toContain("invariants.certificateSentMissingTimestamp")
+    expect(opsClientSource).toContain("repairCertificateDocumentSentAtAction")
+    expect(opsClientSource).toContain("Repair timestamps")
+    expect(opsClientSource).toContain("canOpenEmailHub && invariants.certificateSentMissingTimestamp.count > 0")
+    expect(opsClientSource).toContain("does not resend emails or expose certificate URLs")
   })
 
   it("keeps core ops pages as recovery rows instead of dense tables", () => {

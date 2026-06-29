@@ -8,12 +8,14 @@ import {
   FileText,
   Mail,
   RefreshCw,
+  Wrench,
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 
+import { repairCertificateDocumentSentAtAction } from "@/app/actions/certificate-document-sent-repair"
 import { resendCertificateAsStaff } from "@/app/actions/resend-certificate"
 import {
   CounterCard,
@@ -178,7 +180,11 @@ export function OpsDashboardClient({
 }: OpsDashboardClientProps) {
   const router = useRouter()
   const [resendingIntakeId, setResendingIntakeId] = useState<string | null>(null)
+  const [repairingTimestamps, setRepairingTimestamps] = useState(false)
+  const [timestampRepairArmed, setTimestampRepairArmed] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const canRepairCertificateTimestamps =
+    canOpenEmailHub && invariants.certificateSentMissingTimestamp.count > 0
   const answerRate =
     heardAboutUs.paidTotal > 0
       ? Math.round((heardAboutUs.answered / heardAboutUs.paidTotal) * 100)
@@ -206,6 +212,45 @@ export function OpsDashboardClient({
         toast.error(error instanceof Error ? error.message : "Could not resend secure certificate link")
       } finally {
         setResendingIntakeId(null)
+      }
+    })
+  }
+
+  const handleRepairCertificateTimestamps = () => {
+    if (!timestampRepairArmed) {
+      setTimestampRepairArmed(true)
+      toast.info(
+        "Click Confirm repair to mirror sent-email evidence. This does not resend emails or expose certificate URLs.",
+      )
+      return
+    }
+
+    setTimestampRepairArmed(false)
+    setRepairingTimestamps(true)
+    startTransition(async () => {
+      try {
+        const result = await repairCertificateDocumentSentAtAction()
+        const summary = result.data
+
+        if (!result.success) {
+          toast.error(result.error || "Could not repair certificate timestamps")
+          return
+        }
+
+        const repaired = summary?.updatedCount ?? 0
+        const failed = summary?.failedCount ?? 0
+        if (repaired === 0 && failed === 0) {
+          toast.success("No repairable certificate timestamps found")
+        } else if (failed > 0) {
+          toast.warning(`Repaired ${repaired}; ${failed} failed. Check logs before retrying.`)
+        } else {
+          toast.success(`Repaired ${repaired} certificate timestamp${repaired === 1 ? "" : "s"}`)
+        }
+        router.refresh()
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Could not repair certificate timestamps")
+      } finally {
+        setRepairingTimestamps(false)
       }
     })
   }
@@ -274,6 +319,21 @@ export function OpsDashboardClient({
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
+              {canRepairCertificateTimestamps ? (
+                <Button
+                  size="sm"
+                  variant={timestampRepairArmed ? "default" : "outline"}
+                  className="h-7 gap-1.5 px-2.5 text-xs"
+                  onClick={handleRepairCertificateTimestamps}
+                  disabled={repairingTimestamps && isPending}
+                >
+                  <Wrench
+                    className={cn("h-3.5 w-3.5", repairingTimestamps && isPending && "animate-spin")}
+                    aria-hidden
+                  />
+                  {timestampRepairArmed ? "Confirm repair" : "Repair timestamps"}
+                </Button>
+              ) : null}
               <Badge variant={certificateDelivery.actionCount > 0 ? "destructive" : "secondary"} size="sm">
                 {certificateDelivery.actionCount} action{certificateDelivery.actionCount === 1 ? "" : "s"}
               </Badge>

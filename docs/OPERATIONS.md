@@ -1358,7 +1358,7 @@ WHERE i.category = 'medical_certificate'
   AND i.patient_id != 'e2e00000-0000-0000-0000-000000000002';
 ```
 
-Operator action: open `/admin/ops` → **Certificate delivery rescue**, confirm whether the certificate email was sent/delivered/clicked or downloaded, then use the recommended support action. This invariant is detection only; do not bulk-resend certificates because of this count.
+Operator action: open `/admin/ops` → **Certificate delivery rescue**, confirm whether the certificate email was sent/delivered/clicked or downloaded, then use the recommended support action. If the invariant is non-zero, admins can use **Repair timestamps** in the rescue panel to mirror proven sent certificate-email evidence onto `intakes.document_sent_at` for recent valid certificates. This does not resend emails, expose raw storage URLs, or attach certificate files. Do not bulk-resend certificates because of this count.
 
 ### How these become alerts
 
