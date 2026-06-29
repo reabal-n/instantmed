@@ -16,8 +16,12 @@ function stub(result: { data: unknown; error: unknown }) {
   return { from: () => chain } as never
 }
 
-// A created_at inside the trailing window (this week), so it lands in the series.
-const recentIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+// A created_at guaranteed inside the CURRENT week bucket (weekly.at(-1)).
+// Must be `now`, not `now - 24h`: weeks are bucketed by Monday (mondayUTC,
+// matching Postgres date_trunc('week')), so on a Monday `now - 24h` falls into
+// the PRIOR week and the weekly.at(-1) assertions flake. `now` is always in the
+// current week regardless of weekday.
+const recentIso = new Date().toISOString()
 
 describe("classifyAiUtmSource", () => {
   it("maps known AI hosts to engine labels", () => {
