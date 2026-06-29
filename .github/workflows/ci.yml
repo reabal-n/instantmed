@@ -316,6 +316,12 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # The blocking E2E suite reuses a deterministic Supabase fixture set.
+    # Serialize it across branches so one run's teardown cannot remove child
+    # records while another run is inside the document/review flow.
+    concurrency:
+      group: instantmed-shared-e2e-fixtures
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v6.0.2
 
@@ -335,6 +341,7 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Verify required E2E secrets
+        id: verify_e2e_secrets
         env:
           E2E_SECRET: ${{ secrets.E2E_SECRET }}
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
@@ -354,6 +361,7 @@ jobs:
           exit "$missing"
 
       - name: Run ops E2E smoke (Chromium)
+        if: ${{ steps.verify_e2e_secrets.outcome == 'success' }}
         env:
           PLAYWRIGHT: '1'
           NEXT_PUBLIC_PLAYWRIGHT: '1'
@@ -370,7 +378,7 @@ jobs:
         # readiness gate is never masked by unrelated flakiness. This step is
         # NOT error-tolerant: a failure here still fails the job; always() only
         # ensures the step runs (for full signal) regardless of prior steps.
-        if: always()
+        if: ${{ always() && steps.verify_e2e_secrets.outcome == 'success' }}
         env:
           PLAYWRIGHT: '1'
           NEXT_PUBLIC_PLAYWRIGHT: '1'
@@ -386,7 +394,7 @@ jobs:
       - name: Run non-medcert paid critical E2E flows (Chromium)
         # Same rationale: run for full signal even if an earlier step failed.
         # NOT error-tolerant — a failure here still fails the job.
-        if: always()
+        if: ${{ always() && steps.verify_e2e_secrets.outcome == 'success' }}
         env:
           PLAYWRIGHT: '1'
           NEXT_PUBLIC_PLAYWRIGHT: '1'

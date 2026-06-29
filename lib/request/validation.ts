@@ -164,13 +164,19 @@ export const medicationStepSchema = z
   })
   .superRefine((data, ctx) => {
     const answers = data as Record<string, unknown>
-    // A3 softening (boundary 5): more than 5 medications no longer blocks the
-    // step — the patient proceeds and the doctor sees a medication_count_high flag.
-
     const medications = extractRepeatScriptMedications(answers)
 
     if (medications.length === 0) {
       ctx.addIssue({ code: "custom", path: ["medicationName"], message: "Please select or enter a medication" })
+      return
+    }
+
+    if (medications.length > 1) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["medications"],
+        message: "Request one medication at a time so the doctor can review the right dose and history.",
+      })
       return
     }
 

@@ -47,7 +47,7 @@ describe("IntakeFlagsPanel", () => {
         flags={[makeIntakeFlag("medication_count_high"), makeIntakeFlag("medication_strength_missing")]}
       />,
     )
-    expect(html.indexOf("Strength not provided")).toBeLessThan(html.indexOf("More than 5 medications"))
+    expect(html.indexOf("Strength not provided")).toBeLessThan(html.indexOf("More than one medication"))
   })
 
   it("renders a flag read from the persisted risk_flags JSONB shape (the slide-over path)", () => {

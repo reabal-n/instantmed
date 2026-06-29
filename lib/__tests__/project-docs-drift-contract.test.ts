@@ -49,6 +49,10 @@ const aiOnboarding = readProjectFile("docs/AI_ONBOARDING.md")
 const design = readProjectFile("DESIGN.md")
 const product = readProjectFile("PRODUCT.md")
 const testing = readProjectFile("docs/TESTING.md")
+const requestReadme = readProjectFile("components/request/README.md")
+const ciWorkflow = readProjectFile(".github/workflows/ci.yml")
+const e2eSeed = readProjectFile("scripts/e2e/seed.ts")
+const e2eTeardown = readProjectFile("scripts/e2e/teardown.ts")
 const syncAgentSkills = readProjectFile("scripts/sync-agent-skills.sh")
 
 const expectedInstantMedSkills = [
@@ -183,6 +187,35 @@ describe("project docs drift contract", () => {
     // ...and the current free-text truth must be present.
     expect(clinical).toContain("Medication Entry Rules")
     expect(architecture).toContain("medication-step.tsx")
+  })
+
+  it("documents one medication per repeat request so dose/history answers stay unambiguous", () => {
+    const clinical = readProjectFile("docs/CLINICAL.md")
+
+    expect(clinical).toContain("One repeat-prescription request covers one medication")
+    expect(architecture).toContain("active repeat requests accept exactly one medication row")
+    expect(claude).toContain("one medication per repeat request")
+    expect(agents).toContain("one medication per repeat request")
+  })
+
+  it("keeps the retired checkout-step out of active flow docs", () => {
+    expect(existsSync(join(root, "components/request/steps/checkout-step.tsx"))).toBe(false)
+
+    for (const source of [architecture, requestReadme, claude, agents]) {
+      expect(source).not.toContain("checkout-step.tsx")
+    }
+
+    expect(architecture).toContain("review-step.tsx -> unified-checkout.ts")
+    expect(requestReadme).toContain("Register its lazy loader in `step-loaders.ts`")
+    expect(requestReadme).not.toContain("Import and register it in `step-router.tsx`")
+  })
+
+  it("keeps shared E2E fixture docs aligned with preserved canonical fixtures", () => {
+    expect(testing).toContain("canonical auth/profile/intake fixtures use deterministic shared IDs")
+    expect(testing).toContain("E2E_TEARDOWN_RESET_FIXTURES=1")
+    expect(ciWorkflow).toContain("instantmed-shared-e2e-fixtures")
+    expect(e2eTeardown).not.toContain("Deletes all seeded test data by e2e_run_id")
+    expect(e2eSeed).not.toContain("All rows tagged with e2e_run_id for teardown")
   })
 
   it("keeps architecture AI model docs aligned with the provider default", () => {

@@ -305,7 +305,8 @@ None. The patient types the name themselves (`components/request/steps/medicatio
 ### Patient-Facing Rules
 
 - Label: "Medication name" (with optional strength/form)
-- Helper text: "Just type the name. If you're not sure of the exact name, describe it — the doctor confirms the right medicine before prescribing."
+- One repeat-prescription request covers one medication. Patients with multiple repeats submit separate requests so the dose, indication, and side-effect answers stay tied to the right medicine.
+- Helper text: "Request one regular medicine at a time. Type the name, or describe it if you're not sure — the doctor confirms the right medicine before prescribing."
 - The box is plain free text — no results list, no autocomplete, and nothing highlighted as "recommended", "suitable", "eligible", or "approved"
 
 ### Forbidden Language

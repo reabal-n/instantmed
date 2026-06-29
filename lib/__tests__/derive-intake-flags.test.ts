@@ -61,8 +61,8 @@ describe("deriveIntakeFlags — repeat script", () => {
     expect(codes(flags)).toEqual(["dose_not_stated"])
   })
 
-  it("flags more than 5 medications as an info flag", () => {
-    const medications = Array.from({ length: 6 }, (_, i) => ({
+  it("flags legacy multi-medication payloads as an info flag", () => {
+    const medications = Array.from({ length: 2 }, (_, i) => ({
       name: `Med${i}`,
       strength: "10 mg",
       form: "tablet",

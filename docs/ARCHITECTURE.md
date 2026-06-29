@@ -173,7 +173,7 @@ Prescribing cases require the structured fields before checkout. They are normal
 ### Payment Flow
 
 ```
-checkout-step.tsx -> unified-checkout.ts createCheckoutFromUnifiedFlow()
+review-step.tsx -> unified-checkout.ts createCheckoutFromUnifiedFlow()
   -> lib/stripe/checkout.ts createIntakeAndCheckoutAction()
      1. Env/DB service kill-switches   2. Capacity limit   3. Zod validation
      4. Medication blocklist   5. Safety completeness + rules   6. Auth check
@@ -202,7 +202,7 @@ checkout-step.tsx -> unified-checkout.ts createCheckoutFromUnifiedFlow()
 
 | Layer | Mechanism |
 |-------|-----------|
-| Client | Idempotency key per submission (`checkout-step.tsx`) |
+| Client | Idempotency key per submission (`review-step.tsx`) |
 | Server | Key validation >=16 chars (`checkout.ts:284`) |
 | Database | UNIQUE constraint on `intakes.idempotency_key` |
 | Stripe | Idempotency key on `sessions.create()` (guest flow) |
@@ -318,7 +318,7 @@ Static-PDF overlay config is stored as immutable JSONB in `certificate_templates
 
 ## Prescription Workflow
 
-**Medication entry:** Free-text box (`components/request/steps/medication-step.tsx`) — the patient types the medication name (with optional strength/form) or describes it. The PBS reference combobox + `GET /api/medications/search` lookup (and `lib/clinical/pbs-client.ts`) were **retired 2026-06-28** (#208 + dead-code sweep): the lookup was slow and read as a hard "search and select from a list" gate, while the doctor confirms the exact medicine in Parchment/MIMS at prescribing time anyway.
+**Medication entry:** Free-text box (`components/request/steps/medication-step.tsx`) — the patient types one medication name per request (with optional strength/form) or describes it. The PBS reference combobox + `GET /api/medications/search` lookup (and `lib/clinical/pbs-client.ts`) were **retired 2026-06-28** (#208 + dead-code sweep): the lookup was slow and read as a hard "search and select from a list" gate, while the doctor confirms the exact medicine in Parchment/MIMS at prescribing time anyway.
 
 **Hard constraints:** No clinical interpretation, substitution, eligibility logic, approval automation, or AI in the intake. Clinical backstops operate on the typed text: controlled-substance hard block (`isControlledSubstance` in `lib/clinical/intake-validation.ts`), the dedicated-service steer (hair-loss + contraceptive-pill medicines route to their own services via `detectDedicatedServiceForMedication`), and the server-side `dedicated_service_medication` attention flag (`lib/clinical/derive-intake-flags.ts`).
 
@@ -326,7 +326,7 @@ Static-PDF overlay config is stored as immutable JSONB in `certificate_templates
 
 **Controlled substances:** `lib/clinical/intake-validation.ts` hard-blocks Schedule 8 in both form and chat paths.
 
-**Repeat medication normalization:** Repeat-prescription validation, medication blocklists, AI draft context, and doctor-facing case summaries all read through the canonical repeat-medication extractors. Scalar fields (`medicationName`, `medication_strength`, etc.) and the multi-medication `answers.medications[]` array stay aligned. Every active medication entry must have name, strength, and form; `prescriptionHistory = "never"` is rejected server-side because this flow is not for new prescriptions.
+**Repeat medication normalization:** Repeat-prescription validation, medication blocklists, AI draft context, and doctor-facing case summaries all read through the canonical repeat-medication extractors. Scalar fields (`medicationName`, `medication_strength`, etc.) and the `answers.medications[]` compatibility array stay aligned, but active repeat requests accept exactly one medication row so the single dose/history answer remains unambiguous. The medication name is required; strength/form are optional and surface as doctor attention flags when missing. `prescriptionHistory = "never"` is rejected server-side because this flow is not for new prescriptions.
 
 **Workflow:** Patient submits -> Doctor reviews in portal -> Doctor approves for prescribing after identity completeness check -> Doctor prescribes in embedded Parchment or external fallback -> Parchment webhook or manual confirmation marks script sent -> Patient notified via email.
 

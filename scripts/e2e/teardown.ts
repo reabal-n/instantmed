@@ -2,7 +2,8 @@
 /**
  * E2E Test Data Teardown Script
  * 
- * Deletes all seeded test data by e2e_run_id in correct FK order.
+ * Deletes transient E2E child data in FK order. Canonical shared fixtures are
+ * preserved by default so overlapping runs cannot remove parent rows mid-test.
  * 
  * Usage: pnpm e2e:teardown
  * Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY

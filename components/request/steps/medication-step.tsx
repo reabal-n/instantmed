@@ -19,7 +19,7 @@
  * (medication-history) for repeat-Rx.
  */
 
-import { ArrowRight, HeartPulse, Plus, ShieldAlert, X } from "lucide-react"
+import { ArrowRight, HeartPulse, ShieldAlert } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
@@ -77,9 +77,9 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  // Support both single (legacy) and multi-medication modes. Old drafts may
-  // carry a PBS `selectedMedication` object — collapse it to its display name
-  // so it shows as free text in the box.
+  // Old drafts may carry a PBS `selectedMedication` object or multiple
+  // medication rows. Collapse everything to the first requested medicine: a
+  // repeat request now covers one medicine so dose/history answers stay clear.
   const existingMedications = normalizeMedicationEntriesAnswer(answers.medications) as MedicationEntry[]
   const legacyProduct = normalizeMedicationProductAnswer(answers.selectedMedication) as { drug_name?: string; strength?: string; form?: string } | null
   const medicationName = stringAnswer(answers.medicationName)
@@ -89,12 +89,13 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
   // Initialize medications array from existing data
   const [medications, setMedications] = useState<MedicationEntry[]>(() => {
     if (existingMedications && existingMedications.length > 0) {
-      return existingMedications.map((med) => ({
+      const med = existingMedications[0] ?? { name: "" }
+      return [{
         name: med.name || "",
         strength: med.strength,
         form: med.form,
         pbsCode: med.pbsCode,
-      }))
+      }]
     }
     const seededName = medicationName || legacyProduct?.drug_name || ""
     if (seededName) {
@@ -131,12 +132,13 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
 
   // Sync medications to store
   const syncToStore = useCallback((meds: MedicationEntry[]) => {
-    setMedications(meds)
-    // Always keep medications[] in answers
-    setAnswer("medications", meds)
+    const primary = meds[0] ?? { name: "" }
+    const next = [primary]
+    setMedications(next)
+    // Always keep medications[] in answers; one request covers one medicine.
+    setAnswer("medications", next)
     // Backward compat: primary medication fields from first entry. The PBS
     // product object is cleared — patients enter free text now.
-    const primary = meds[0]
     if (primary) {
       setAnswers({
         selectedMedication: null,
@@ -196,21 +198,6 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
       form: med.form || "",
       pbsCode: med.pbsCode || "MANUAL",
     }
-    syncToStore(updated)
-    checkForControlledSubstance(updated)
-  }
-
-  const addMedication = () => {
-    if (medications.length < 10) {
-      const updated = [...medications, { name: "" }]
-      syncToStore(updated)
-      checkForControlledSubstance(updated)
-    }
-  }
-
-  const removeMedication = (index: number) => {
-    if (medications.length <= 1) return
-    const updated = medications.filter((_, i) => i !== index)
     syncToStore(updated)
     checkForControlledSubstance(updated)
   }
@@ -307,7 +294,7 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
     <div className="space-y-4">
       <IntakeStepIntro
         title="Which medication do you need?"
-        description="Just type the name. If you're not sure of the exact name, describe it — the doctor confirms the right medicine before prescribing."
+        description="Request one regular medicine at a time. Type the name, or describe it if you're not sure — the doctor confirms the right medicine before prescribing."
       />
 
       <StepBlockedSummary reasons={blockedReasons} />
@@ -373,41 +360,27 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
         </div>
       )}
 
-      {/* Medication entries */}
+      {/* Medication entry */}
       {medications.map((med, index) => (
         <QuestionCard key={index} compact>
           <FormField
-            label={medications.length > 1 ? `Medication ${index + 1}` : "Medication name"}
-            required={index === 0}
-            error={index === 0 ? errors.medication : undefined}
-            helpContent={index === 0 ? {
+            label="Medication name"
+            required
+            error={errors.medication}
+            helpContent={{
               title: "Why do we ask this?",
               content: "So the doctor knows what you're requesting. This is for reference — the doctor reviews and confirms the correct medication before prescribing."
-            } : undefined}
+            }}
           >
-            <div className="mt-2 flex gap-2 items-start">
-              <Input
-                id={`medication-name-${index}`}
-                value={med.name}
-                onChange={(event) => handleMedicationNameChange(index, event.target.value)}
-                placeholder="e.g. Atorvastatin 20 mg — or describe it (white tablet for cholesterol)"
-                autoComplete="off"
-                className="h-11 flex-1"
-                aria-invalid={index === 0 ? Boolean(errors.medication) : undefined}
-              />
-              {medications.length > 1 && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="shrink-0 h-11 w-11 text-muted-foreground hover:text-destructive"
-                  onClick={() => removeMedication(index)}
-                  aria-label={`Remove medication ${index + 1}`}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
+            <Input
+              id={`medication-name-${index}`}
+              value={med.name}
+              onChange={(event) => handleMedicationNameChange(index, event.target.value)}
+              placeholder="e.g. Atorvastatin 20 mg — or describe it (white tablet for cholesterol)"
+              autoComplete="off"
+              className="mt-2 h-11"
+              aria-invalid={Boolean(errors.medication)}
+            />
           </FormField>
 
           {med.name.trim() && (
@@ -440,20 +413,6 @@ export default function MedicationStep({ serviceType, onNext }: MedicationStepPr
           )}
         </QuestionCard>
       ))}
-
-      {/* Add another medication button */}
-      {activeMedications.length > 0 && medications.length < 10 && (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={addMedication}
-          className="w-full gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Add another medication
-        </Button>
-      )}
 
       <EarlyRecoveryEmailCard serviceType={serviceType} stepId="medication" />
 

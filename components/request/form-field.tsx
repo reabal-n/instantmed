@@ -42,7 +42,16 @@ export function FormField({
   id: providedId,
 }: FormFieldProps) {
   const generatedId = useId()
-  const fieldId = providedId || generatedId
+  let firstChildId: string | undefined
+  React.Children.forEach(children, (child) => {
+    if (firstChildId || !React.isValidElement(child)) return
+    const props = child.props as { id?: unknown }
+    if (typeof props.id === "string" && props.id.length > 0) {
+      firstChildId = props.id
+    }
+  })
+
+  const fieldId = providedId || firstChildId || generatedId
   const errorId = `${fieldId}-error`
   const hintId = `${fieldId}-hint`
 

@@ -1,4 +1,4 @@
-export const MAX_REPEAT_SCRIPT_MEDICATIONS = 5
+export const MAX_REPEAT_SCRIPT_MEDICATIONS = 1
 
 export interface RepeatScriptMedicationEntry {
   name: string

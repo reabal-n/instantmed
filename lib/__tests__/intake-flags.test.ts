@@ -19,8 +19,8 @@ describe("makeIntakeFlag", () => {
   })
 
   it("accepts a detail and source override and reads severity from the taxonomy", () => {
-    const flag = makeIntakeFlag("medication_count_high", { detail: "7 medications", source: "clinical" })
-    expect(flag.detail).toBe("7 medications")
+    const flag = makeIntakeFlag("medication_count_high", { detail: "2 medications", source: "clinical" })
+    expect(flag.detail).toBe("2 medications")
     expect(flag.source).toBe("clinical")
     expect(flag.severity).toBe("info")
   })

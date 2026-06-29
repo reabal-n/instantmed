@@ -44,7 +44,7 @@ export const INTAKE_FLAG_TAXONOMY = {
   medication_strength_missing: { label: "Strength not provided", severity: "attention" },
   medication_form_missing: { label: "Form not provided", severity: "attention" },
   dose_not_stated: { label: "Current dose not stated", severity: "attention" },
-  medication_count_high: { label: "More than 5 medications requested", severity: "info" },
+  medication_count_high: { label: "More than one medication requested", severity: "info" },
   // A medicine with a dedicated service (hair loss / women's health) was entered
   // into the generic repeat/prescription flow. The patient is steered in-form;
   // this flag is the doctor-side backstop so the routing is never client-only.

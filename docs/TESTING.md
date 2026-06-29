@@ -123,7 +123,7 @@ Do not use public inboxes such as Mailinator for staff, admin, privileged, or PH
 
 ### Test Data
 
-E2E tests auto-seed and teardown test data. Seed/teardown scripts in `scripts/e2e/`, invoked by `e2e/global-setup.ts` and `e2e/global-teardown.ts`. Helpers in `e2e/helpers/`:
+E2E tests auto-seed and teardown test data. Seed/teardown scripts in `scripts/e2e/`, invoked by `e2e/global-setup.ts` and `e2e/global-teardown.ts`. The canonical auth/profile/intake fixtures use deterministic shared IDs and are preserved by default during teardown; only transient child records are cleared unless `E2E_TEARDOWN_RESET_FIXTURES=1` is set for a deliberate full fixture reset. CI serializes the blocking E2E job across branches because those shared fixtures point at the same Supabase project. Helpers in `e2e/helpers/`:
 - `auth.ts` — `loginAsTestUser()` / `logoutTestUser()` via `/api/test/login` endpoint
 - `db.ts` — database helpers for test data
 - `test-utils.ts` — shared test utilities

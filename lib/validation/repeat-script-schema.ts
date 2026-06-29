@@ -7,6 +7,7 @@ import {
   buildRepeatScriptMedicationValidationText,
   extractRepeatScriptMedications,
   isUsefulMedicationDescription,
+  MAX_REPEAT_SCRIPT_MEDICATIONS,
 } from "@/lib/validation/repeat-script-medications"
 
 // Canonical keys for repeat script medication data
@@ -179,9 +180,6 @@ export interface ValidationResult {
 export function validateRepeatScriptPayload(
   answers: Record<string, unknown>
 ): ValidationResult {
-  // A3 softening (boundary 5): more than 5 medications no longer hard-blocks —
-  // the patient proceeds and the doctor sees a medication_count_high info flag.
-
   const medications = extractRepeatScriptMedications(answers)
 
   if (medications.length === 0) {
@@ -256,8 +254,8 @@ export function validateRepeatScriptPayload(
 
     // A3 softening: a missing strength no longer blocks checkout. The patient
     // flows through and `deriveIntakeFlags` raises an attention flag
-    // (`medication_strength_missing`) for the doctor. Form, new-med, dose-change
-    // and controlled substances remain hard blocks below.
+    // (`medication_strength_missing`) for the doctor. New-med, dose-change and
+    // controlled substances remain hard blocks below.
 
     // A3 softening (boundary 2): a missing form no longer blocks checkout. The
     // patient flows through and `deriveIntakeFlags` raises an attention flag
@@ -289,6 +287,19 @@ export function validateRepeatScriptPayload(
         error: "Schedule 8 and controlled substances cannot be prescribed through this service. Please see your regular doctor.",
         requiresConsult: false,
       }
+    }
+  }
+
+  // Keep the repeat-Rx contract one medicine per request. The dose/history step
+  // collects one current dose, one indication, and one side-effect answer; a
+  // multi-medicine payload would make those answers ambiguous for the reviewer.
+  // This check runs after the controlled-substance scan above so a hidden S8
+  // medicine is still reported as a controlled-substance block.
+  if (medications.length > MAX_REPEAT_SCRIPT_MEDICATIONS) {
+    return {
+      valid: false,
+      error: "Please request one medication at a time so the doctor can review the correct dose and history.",
+      requiresConsult: false,
     }
   }
 

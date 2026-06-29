@@ -8,7 +8,7 @@
  * - Required supporting data (clinic_identity, certificate_template, document_draft)
  * 
  * Features:
- * - All rows tagged with e2e_run_id for teardown
+ * - Deterministic canonical fixture IDs for shared E2E auth/intake records
  * - Idempotent: reuses existing rows if they exist
  * - Validates all seeded data before exiting
  * - Prints compact summary

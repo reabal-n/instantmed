@@ -118,13 +118,11 @@ export default function MyNewStep({ serviceType, onNext, onBack }: StepProps) {
 }
 ```
 
-2. Import and register it in `step-router.tsx`:
+2. Register its lazy loader in `step-loaders.ts`:
 
 ```ts
-import MyNewStep from "./steps/my-new-step"
-
-const stepComponents = {
-  "my-new-step": MyNewStep,
+const stepLoaders = {
+  "my-new-step": () => import("./steps/my-new-step").then((mod) => mod.default),
 }
 ```
 

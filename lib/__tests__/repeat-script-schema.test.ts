@@ -163,16 +163,17 @@ describe("A3 softening — missing medication form is a flag, not a block (bound
     expect(result.error).toMatch(/controlled substances/i)
   })
 
-  it("allows more than 5 medications now at BOTH layers (softened in boundary 5)", () => {
-    const medications = Array.from({ length: 6 }, (_, i) => ({
+  it("blocks multiple medications at BOTH layers so one dose/history answer is unambiguous", () => {
+    const medications = Array.from({ length: 2 }, (_, i) => ({
       name: `Med${i}`,
       strength: "10 mg",
       form: "tablet",
       pbsCode: `code-${i}`,
     }))
-    // Both layers softened — patient proceeds, doctor sees a medication_count_high flag.
-    expect(validateMedicationStep({ medications }).isValid).toBe(true)
-    expect(validateRepeatScriptPayload({ ...base, medications }).valid).toBe(true)
+    expect(validateMedicationStep({ medications }).isValid).toBe(false)
+    const result = validateRepeatScriptPayload({ ...base, medications })
+    expect(result.valid).toBe(false)
+    expect(result.error).toMatch(/one medication at a time/i)
   })
 })
 
