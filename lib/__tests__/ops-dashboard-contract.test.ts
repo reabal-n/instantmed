@@ -262,6 +262,16 @@ describe("ops dashboard data contract", () => {
     expect(opsClientSource).toContain("does not resend emails or expose certificate URLs")
   })
 
+  it("surfaces approved med-cert intakes missing certificate records as a compact ops invariant", () => {
+    expect(opsPageSource).toContain("approvedCertificateMissingRecordHelper")
+    expect(opsPageSource).toContain("approvedCertificateMissingRecord")
+    expect(opsPageSource).toContain("#certificate-delivery-rescue")
+
+    expect(opsClientSource).toContain('label="Cert missing record"')
+    expect(opsClientSource).toContain("invariants.approvedCertificateMissingRecord")
+    expect(opsClientSource).toContain("xl:grid-cols-6")
+  })
+
   it("keeps core ops pages as recovery rows instead of dense tables", () => {
     expect(opsClientSource).not.toContain("StaffCommandPalette")
     expect(opsClientSource).not.toContain("OpsCommandPalette")

@@ -475,6 +475,7 @@ export async function GET(request: NextRequest) {
         ops_cert_refund_orphans: operationalInvariants.certRefundOrphans,
         ops_refund_record_anomalies: operationalInvariants.refundRecordAnomalies,
         ops_paid_but_cancelled: operationalInvariants.paidButCancelled ?? 0,
+        ops_approved_certificate_missing_record: operationalInvariants.approvedCertificateMissingRecord ?? 0,
         ops_certificate_sent_missing_timestamp: operationalInvariants.certificateSentMissingTimestamp ?? 0,
       },
       checked_at: now.toISOString(),

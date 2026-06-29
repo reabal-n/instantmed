@@ -4,7 +4,9 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import {
+  approvedCertificateMissingRecordHelper,
   buildOperationalInvariantAlerts,
+  CERTIFICATE_MISSING_RECORD_DAYS,
   CERTIFICATE_SENT_TIMESTAMP_DRIFT_DAYS,
   certificateSentMissingTimestampHelper,
   certOrphanHelper,
@@ -76,6 +78,11 @@ describe("helper text builders", () => {
     expect(certificateSentMissingTimestampHelper(0)).toBe("All mirrored")
     expect(certificateSentMissingTimestampHelper(1)).toBe("1 missing sent timestamp")
     expect(certificateSentMissingTimestampHelper(3)).toBe("3 missing sent timestamps")
+  })
+
+  it("approvedCertificateMissingRecordHelper", () => {
+    expect(approvedCertificateMissingRecordHelper(0)).toBe("All generated")
+    expect(approvedCertificateMissingRecordHelper(2)).toBe("2 need escalation")
   })
 })
 
@@ -177,14 +184,53 @@ describe("buildOperationalInvariantAlerts", () => {
     expect(JSON.stringify(alerts)).not.toMatch(/patient|email|medicare|phone|address|intakeId/i)
   })
 
+  it("raises a PHI-free critical alert when an approved certificate intake has no certificate record", () => {
+    const alerts = buildOperationalInvariantAlerts({
+      slaBreachBacklog: 0,
+      certRefundOrphans: 0,
+      refundRecordAnomalies: 0,
+      paidButCancelled: 0,
+      approvedCertificateMissingRecord: 2,
+      certificateSentMissingTimestamp: 0,
+    })
+
+    expect(alerts).toEqual([
+      {
+        metric: "ops_approved_certificate_missing_record",
+        severity: "critical",
+        detail: "2 approved medical certificate intakes are missing a certificate record",
+        count: 2,
+      },
+    ])
+    expect(JSON.stringify(alerts)).not.toMatch(/patient|email|medicare|phone|address|intakeId/i)
+  })
+
   it("does not alert on clean invariants (incl. absent paidButCancelled)", () => {
     expect(buildOperationalInvariantAlerts({
       slaBreachBacklog: 0,
       certRefundOrphans: 0,
       refundRecordAnomalies: 0,
       paidButCancelled: 0,
+      approvedCertificateMissingRecord: 0,
       certificateSentMissingTimestamp: 0,
     })).toEqual([])
+  })
+})
+
+describe("approved certificate missing record monitor contract", () => {
+  it("counts recent terminal paid med-cert intakes without an issued certificate row", () => {
+    expect(CERTIFICATE_MISSING_RECORD_DAYS).toBe(14)
+    expect(opsInvariantsSource).toContain("countApprovedCertificateMissingRecord")
+    expect(opsInvariantsSource).toContain('.from("intakes")')
+    expect(opsInvariantsSource).toContain('.eq("category", "medical_certificate")')
+    expect(opsInvariantsSource).toContain('.eq("payment_status", "paid")')
+    expect(opsInvariantsSource).toContain('.in("status", ["approved", "completed"])')
+    expect(opsInvariantsSource).toContain('.gte("approved_at", sinceIso)')
+    expect(opsInvariantsSource).toContain('.or("exclude_from_reporting.is.null,exclude_from_reporting.eq.false")')
+    expect(opsInvariantsSource).toContain('.from("issued_certificates")')
+    expect(opsInvariantsSource).toContain('.select("intake_id")')
+    expect(opsInvariantsSource).toContain("!generatedIntakeIds.has(id)")
+    expect(opsInvariantsSource).toContain("ops_approved_certificate_missing_record")
   })
 })
 

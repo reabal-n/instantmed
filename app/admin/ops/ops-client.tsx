@@ -54,6 +54,7 @@ export interface OpsDashboardClientProps {
     certRefundOrphans: CounterCellData
     refundRecordAnomalies: CounterCellData
     certificateSentMissingTimestamp: CounterCellData
+    approvedCertificateMissingRecord: CounterCellData
     queryFailures: CounterCellData
   }
   recoveries: Array<{
@@ -451,7 +452,7 @@ export function OpsDashboardClient({
           <h2 className="mb-3 text-sm font-semibold tracking-tight text-foreground">
             Integrity (weekly invariants)
           </h2>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
             <CounterCard
               count={invariants.slaBreachBacklog.count}
               label="Review SLA backlog"
@@ -479,6 +480,13 @@ export function OpsDashboardClient({
               helperText={invariants.certificateSentMissingTimestamp.helperText}
               tone={invariants.certificateSentMissingTimestamp.tone}
               href={invariants.certificateSentMissingTimestamp.href}
+            />
+            <CounterCard
+              count={invariants.approvedCertificateMissingRecord.count}
+              label="Cert missing record"
+              helperText={invariants.approvedCertificateMissingRecord.helperText}
+              tone={invariants.approvedCertificateMissingRecord.tone}
+              href={invariants.approvedCertificateMissingRecord.href}
             />
             <CounterCard
               count={invariants.queryFailures.count}

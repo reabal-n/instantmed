@@ -702,8 +702,11 @@ After every rollback, within 24 hours:
 | In review or pending info | > 60 minutes | `review_timeout` |
 | Approved but no delivery email | > 10 minutes | `delivery_pending` |
 | Approved but delivery email failed | Any | `delivery_failed` |
+| Approved/completed medical certificate but no certificate record | Recent paid med-cert approval (14d) with no `issued_certificates` row | `ops_approved_certificate_missing_record` |
 
 **Escalation:** The `stale-queue` cron monitors paid requests still waiting for review through PostHog and Sentry. Telegram is intentionally reserved for new paid request notifications only. Patient delay emails use `patient_delay_email_hours` (default 2h), and Sentry severity becomes critical when 5+ intakes breach that threshold.
+
+**Certificate generation monitor:** `/admin/ops` also surfaces a critical **Cert missing record** invariant for recent paid medical-certificate intakes that are approved/completed but have no generated certificate row. Use the certificate delivery rescue panel first; do not resend a link until a certificate record exists.
 
 **Kill switches:** `DISABLE_INTAKE_EVENTS=true` (disable event logging), `DISABLE_STUCK_INTAKE_SENTRY=true` (disable stuck intake Sentry warnings), `DISABLE_RECONCILIATION_SENTRY=true` (disable reconciliation mismatch Sentry warnings).
 

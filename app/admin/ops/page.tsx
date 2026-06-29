@@ -3,6 +3,7 @@ import { getCertificateDeliveryRescueCases } from "@/lib/admin/certificate-deliv
 import { getHeardAboutUsBreakdown } from "@/lib/admin/heard-about-us-breakdown"
 import { buildOperationalFailureOverview } from "@/lib/admin/ops-failures"
 import {
+  approvedCertificateMissingRecordHelper,
   certificateSentMissingTimestampHelper,
   certOrphanHelper,
   getOperationalInvariants,
@@ -314,6 +315,14 @@ export default async function OpsDashboardPage() {
       tone: invariantTone(operationalInvariants.certificateSentMissingTimestamp ?? 0, Number.POSITIVE_INFINITY),
       helperText: certificateSentMissingTimestampHelper(
         operationalInvariants.certificateSentMissingTimestamp ?? 0,
+      ),
+      href: `${STAFF_OPS_HREF}#certificate-delivery-rescue`,
+    },
+    approvedCertificateMissingRecord: {
+      count: operationalInvariants.approvedCertificateMissingRecord ?? 0,
+      tone: invariantTone(operationalInvariants.approvedCertificateMissingRecord ?? 0, 1),
+      helperText: approvedCertificateMissingRecordHelper(
+        operationalInvariants.approvedCertificateMissingRecord ?? 0,
       ),
       href: `${STAFF_OPS_HREF}#certificate-delivery-rescue`,
     },
