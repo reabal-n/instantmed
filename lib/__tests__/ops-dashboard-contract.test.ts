@@ -248,6 +248,16 @@ describe("ops dashboard data contract", () => {
     expect(opsClientSource).not.toContain("Recovery palette")
   })
 
+  it("surfaces certificate timestamp drift as a compact ops invariant linked to the rescue panel", () => {
+    expect(opsPageSource).toContain("certificateSentMissingTimestampHelper")
+    expect(opsPageSource).toContain("certificateSentMissingTimestamp")
+    expect(opsPageSource).toContain("#certificate-delivery-rescue")
+
+    expect(opsClientSource).toContain('id="certificate-delivery-rescue"')
+    expect(opsClientSource).toContain('label="Cert timestamp drift"')
+    expect(opsClientSource).toContain("invariants.certificateSentMissingTimestamp")
+  })
+
   it("keeps core ops pages as recovery rows instead of dense tables", () => {
     expect(opsClientSource).not.toContain("StaffCommandPalette")
     expect(opsClientSource).not.toContain("OpsCommandPalette")

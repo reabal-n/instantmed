@@ -27,6 +27,7 @@ const REFUNDED_PAYMENT_STATUSES = ["refunded", "partially_refunded"] as const
 
 // Review SLA hard ceiling per docs/REVENUE_MODEL.md.
 const SLA_REVIEW_HOURS = 24
+export const CERTIFICATE_SENT_TIMESTAMP_DRIFT_DAYS = 14
 
 // Backlog at or above this many overdue cases flips the SLA card from warning
 // to critical. Tuned for a solo / small-roster clinic: one breach is a warning,
@@ -42,6 +43,10 @@ export type OperationalInvariants = {
   // the 2026-03 $19 med cert `e9c0aec2`). Optional so existing literals/tests
   // (and any cached callers) stay valid; getOperationalInvariants always sets it.
   paidButCancelled?: number
+  // Recent certificate delivery emails that were sent, but the patient-facing
+  // intake mirror still lacks document_sent_at. Optional for backwards-compatible
+  // test literals; getOperationalInvariants always sets it.
+  certificateSentMissingTimestamp?: number
   queryFailures?: OperationalInvariantQueryFailure[]
 }
 
@@ -50,6 +55,7 @@ export type OperationalInvariantQueryFailure =
   | "cert_refund_orphans"
   | "refund_record_anomalies"
   | "paid_but_cancelled"
+  | "certificate_sent_missing_timestamp"
 
 export type OperationalInvariantAlert = {
   metric:
@@ -57,6 +63,7 @@ export type OperationalInvariantAlert = {
     | "ops_cert_refund_orphans"
     | "ops_refund_record_anomalies"
     | "ops_paid_but_cancelled"
+    | "ops_certificate_sent_missing_timestamp"
     | "ops_invariant_query_failed"
   severity: "warning" | "critical"
   detail: string
@@ -81,16 +88,67 @@ function countOf(
   return result.value.count ?? 0
 }
 
+async function countCertificateSentMissingTimestamp(
+  supabase: SupabaseClient,
+  sinceIso: string,
+): Promise<CountResult> {
+  const { data: sentRows, error: emailError } = await supabase
+    .from("email_outbox")
+    .select("intake_id")
+    .eq("email_type", "med_cert_patient")
+    .eq("status", "sent")
+    .gte("created_at", sinceIso)
+    .not("intake_id", "is", null)
+    .limit(5000)
+
+  if (emailError) {
+    return { count: null, error: emailError }
+  }
+
+  const intakeIds = [
+    ...new Set(
+      ((sentRows ?? []) as Array<{ intake_id: string | null }>)
+        .map((row) => row.intake_id)
+        .filter((id): id is string => typeof id === "string" && id.length > 0),
+    ),
+  ]
+
+  if (intakeIds.length === 0) {
+    return { count: 0, error: null }
+  }
+
+  const { count, error } = await filterSeededE2EIntakes(
+    supabase
+      .from("intakes")
+      .select("id", { count: "exact", head: true })
+      .in("id", intakeIds)
+      .eq("category", "medical_certificate")
+      .is("document_sent_at", null)
+      .or("exclude_from_reporting.is.null,exclude_from_reporting.eq.false"),
+  )
+
+  return { count, error }
+}
+
 /**
- * One-shot read of the three DB-countable operational invariants. Pass the
+ * One-shot read of the DB-countable operational invariants. Pass the
  * service-role client (RLS-bypassing) from the calling server component.
  */
 export async function getOperationalInvariants(
   supabase: SupabaseClient,
 ): Promise<OperationalInvariants> {
   const slaCutoff = new Date(Date.now() - SLA_REVIEW_HOURS * 60 * 60 * 1000).toISOString()
+  const certificateTimestampCutoff = new Date(
+    Date.now() - CERTIFICATE_SENT_TIMESTAMP_DRIFT_DAYS * 24 * 60 * 60 * 1000,
+  ).toISOString()
 
-  const [slaResult, orphanResult, anomalyResult, paidCancelledResult] = await Promise.allSettled([
+  const [
+    slaResult,
+    orphanResult,
+    anomalyResult,
+    paidCancelledResult,
+    certificateTimestampResult,
+  ] = await Promise.allSettled([
     // Q1 proxy: paid intakes still awaiting clinician review past the 24h SLA.
     filterSeededE2EIntakes(
       supabase
@@ -126,6 +184,7 @@ export async function getOperationalInvariants(
         .eq("status", "cancelled")
         .or("exclude_from_reporting.is.null,exclude_from_reporting.eq.false"),
     ),
+    countCertificateSentMissingTimestamp(supabase, certificateTimestampCutoff),
   ])
 
   const queryFailures: OperationalInvariantQueryFailure[] = []
@@ -135,6 +194,11 @@ export async function getOperationalInvariants(
     certRefundOrphans: countOf("cert_refund_orphans", orphanResult, queryFailures),
     refundRecordAnomalies: countOf("refund_record_anomalies", anomalyResult, queryFailures),
     paidButCancelled: countOf("paid_but_cancelled", paidCancelledResult, queryFailures),
+    certificateSentMissingTimestamp: countOf(
+      "certificate_sent_missing_timestamp",
+      certificateTimestampResult,
+      queryFailures,
+    ),
     queryFailures,
   }
 }
@@ -171,6 +235,10 @@ export function refundAnomalyHelper(count: number): string {
 
 export function paidButCancelledHelper(count: number): string {
   return count === 0 ? "None" : `${count} charged, undelivered`
+}
+
+export function certificateSentMissingTimestampHelper(count: number): string {
+  return count === 0 ? "All mirrored" : `${count} missing sent ${count === 1 ? "timestamp" : "timestamps"}`
 }
 
 export function buildOperationalInvariantAlerts(
@@ -221,6 +289,16 @@ export function buildOperationalInvariantAlerts(
       metric: "ops_paid_but_cancelled",
       severity: "critical",
       detail: `${count} paid ${count === 1 ? "intake" : "intakes"} cancelled without refund (charged, undelivered)`,
+      count,
+    })
+  }
+
+  if ((invariants.certificateSentMissingTimestamp ?? 0) > 0) {
+    const count = invariants.certificateSentMissingTimestamp ?? 0
+    alerts.push({
+      metric: "ops_certificate_sent_missing_timestamp",
+      severity: "warning",
+      detail: `${count} recent certificate ${count === 1 ? "send is" : "sends are"} missing document_sent_at`,
       count,
     })
   }

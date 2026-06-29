@@ -51,6 +51,7 @@ export interface OpsDashboardClientProps {
     slaBreachBacklog: CounterCellData
     certRefundOrphans: CounterCellData
     refundRecordAnomalies: CounterCellData
+    certificateSentMissingTimestamp: CounterCellData
     queryFailures: CounterCellData
   }
   recoveries: Array<{
@@ -258,6 +259,7 @@ export function OpsDashboardClient({
         </section>
 
         <section
+          id="certificate-delivery-rescue"
           aria-label="Certificate delivery rescue"
           className="rounded-xl border border-border/50 bg-card shadow-sm shadow-primary/[0.04]"
         >
@@ -389,7 +391,7 @@ export function OpsDashboardClient({
           <h2 className="mb-3 text-sm font-semibold tracking-tight text-foreground">
             Integrity (weekly invariants)
           </h2>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
             <CounterCard
               count={invariants.slaBreachBacklog.count}
               label="Review SLA backlog"
@@ -410,6 +412,13 @@ export function OpsDashboardClient({
               helperText={invariants.refundRecordAnomalies.helperText}
               tone={invariants.refundRecordAnomalies.tone}
               href={invariants.refundRecordAnomalies.href}
+            />
+            <CounterCard
+              count={invariants.certificateSentMissingTimestamp.count}
+              label="Cert timestamp drift"
+              helperText={invariants.certificateSentMissingTimestamp.helperText}
+              tone={invariants.certificateSentMissingTimestamp.tone}
+              href={invariants.certificateSentMissingTimestamp.href}
             />
             <CounterCard
               count={invariants.queryFailures.count}

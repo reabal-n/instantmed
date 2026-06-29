@@ -1336,11 +1336,35 @@ SELECT
 
 Run after each weekly wave. If conversion is healthy, the reactivation lever works → consider widening (e.g. a second nudge, or backfilling lapsed scripts once a back-catalog exists). If ~0 after a few waves with good deliverability, the email/offer needs rework before scaling.
 
+### Q6 — Certificate sent but intake timestamp missing (14d)
+
+Detects medical-certificate requests where the patient certificate email was sent, but the intake mirror still lacks `document_sent_at`. This is the drift class that can make patient tracking and support triage look like delivery is still pending even when the secure app-routed certificate link has gone out.
+
+```sql
+WITH recent_sent_cert_emails AS (
+  SELECT DISTINCT intake_id
+  FROM email_outbox
+  WHERE email_type = 'med_cert_patient'
+    AND status = 'sent'
+    AND intake_id IS NOT NULL
+    AND created_at >= NOW() - INTERVAL '14 days'
+)
+SELECT COUNT(*) AS certificate_sent_missing_document_sent_at
+FROM intakes i
+JOIN recent_sent_cert_emails e ON e.intake_id = i.id
+WHERE i.category = 'medical_certificate'
+  AND i.document_sent_at IS NULL
+  AND COALESCE(i.exclude_from_reporting, false) = false
+  AND i.patient_id != 'e2e00000-0000-0000-0000-000000000002';
+```
+
+Operator action: open `/admin/ops` → **Certificate delivery rescue**, confirm whether the certificate email was sent/delivered/clicked or downloaded, then use the recommended support action. This invariant is detection only; do not bulk-resend certificates because of this count.
+
 ### How these become alerts
 
 When the operator wants to formalize:
 
 1. Wrap each query in a Vercel cron route under `app/api/cron/`.
-2. **DONE (2026-05-29).** `/admin/ops` renders an "Integrity (weekly invariants)" strip with 3 cards: Review SLA backlog (Q1 proxy: paid intakes awaiting review past 24h), Cert + refund orphans (Q2), Refund record anomalies (Q4). Counts come from `getOperationalInvariants()` in `lib/admin/ops-invariants.ts` (service-role, seeded-E2E filtered, fail-soft). The cert-orphan card is critical on any non-zero count; SLA backlog goes critical at `SLA_BREACH_CRITICAL` (10).
+2. **DONE (2026-05-29, expanded 2026-06-29).** `/admin/ops` renders an "Integrity (weekly invariants)" strip for Review SLA backlog (Q1 proxy: paid intakes awaiting review past 24h), Cert + refund orphans (Q2), Refund record anomalies (Q4), Cert timestamp drift (Q6, 14d), and Invariant query failures. Counts come from `getOperationalInvariants()` in `lib/admin/ops-invariants.ts` (service-role, seeded-E2E filtered, fail-soft). The cert-orphan card is critical on any non-zero count; SLA backlog goes critical at `SLA_BREACH_CRITICAL` (10); cert timestamp drift stays warning-only and links to the certificate delivery rescue panel.
 3. Sentry alert when any count is non-zero (severity warning) or P95 exceeds target (severity critical).
 4. Update `docs/SECURITY.md` Kill Switches table if the alert should pause new paid intakes.

@@ -3,6 +3,7 @@ import { getCertificateDeliveryRescueCases } from "@/lib/admin/certificate-deliv
 import { getHeardAboutUsBreakdown } from "@/lib/admin/heard-about-us-breakdown"
 import { buildOperationalFailureOverview } from "@/lib/admin/ops-failures"
 import {
+  certificateSentMissingTimestampHelper,
   certOrphanHelper,
   getOperationalInvariants,
   invariantTone,
@@ -307,6 +308,14 @@ export default async function OpsDashboardPage() {
       tone: invariantTone(operationalInvariants.refundRecordAnomalies, Number.POSITIVE_INFINITY),
       helperText: refundAnomalyHelper(operationalInvariants.refundRecordAnomalies),
       href: buildStaffLedgerHref({ chips: ["refunded"] }),
+    },
+    certificateSentMissingTimestamp: {
+      count: operationalInvariants.certificateSentMissingTimestamp ?? 0,
+      tone: invariantTone(operationalInvariants.certificateSentMissingTimestamp ?? 0, Number.POSITIVE_INFINITY),
+      helperText: certificateSentMissingTimestampHelper(
+        operationalInvariants.certificateSentMissingTimestamp ?? 0,
+      ),
+      href: `${STAFF_OPS_HREF}#certificate-delivery-rescue`,
     },
     queryFailures: {
       count: operationalInvariants.queryFailures?.length ?? 0,

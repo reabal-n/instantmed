@@ -1,7 +1,12 @@
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
+
 import { describe, expect, it } from "vitest"
 
 import {
   buildOperationalInvariantAlerts,
+  CERTIFICATE_SENT_TIMESTAMP_DRIFT_DAYS,
+  certificateSentMissingTimestampHelper,
   certOrphanHelper,
   getInvariantQueryFailures,
   invariantTone,
@@ -10,6 +15,11 @@ import {
   SLA_BREACH_CRITICAL,
   slaBacklogHelper,
 } from "@/lib/admin/ops-invariants"
+
+const opsInvariantsSource = readFileSync(
+  join(process.cwd(), "lib/admin/ops-invariants.ts"),
+  "utf8",
+)
 
 describe("invariantTone", () => {
   it("is neutral at zero regardless of threshold", () => {
@@ -60,6 +70,12 @@ describe("helper text builders", () => {
   it("paidButCancelledHelper", () => {
     expect(paidButCancelledHelper(0)).toBe("None")
     expect(paidButCancelledHelper(1)).toBe("1 charged, undelivered")
+  })
+
+  it("certificateSentMissingTimestampHelper", () => {
+    expect(certificateSentMissingTimestampHelper(0)).toBe("All mirrored")
+    expect(certificateSentMissingTimestampHelper(1)).toBe("1 missing sent timestamp")
+    expect(certificateSentMissingTimestampHelper(3)).toBe("3 missing sent timestamps")
   })
 })
 
@@ -141,12 +157,47 @@ describe("buildOperationalInvariantAlerts", () => {
     expect(JSON.stringify(alerts)).not.toMatch(/patient|email|medicare|phone|address|intakeId/i)
   })
 
+  it("raises a PHI-free warning when recent certificate sent emails lack document_sent_at", () => {
+    const alerts = buildOperationalInvariantAlerts({
+      slaBreachBacklog: 0,
+      certRefundOrphans: 0,
+      refundRecordAnomalies: 0,
+      paidButCancelled: 0,
+      certificateSentMissingTimestamp: 3,
+    })
+
+    expect(alerts).toEqual([
+      {
+        metric: "ops_certificate_sent_missing_timestamp",
+        severity: "warning",
+        detail: "3 recent certificate sends are missing document_sent_at",
+        count: 3,
+      },
+    ])
+    expect(JSON.stringify(alerts)).not.toMatch(/patient|email|medicare|phone|address|intakeId/i)
+  })
+
   it("does not alert on clean invariants (incl. absent paidButCancelled)", () => {
     expect(buildOperationalInvariantAlerts({
       slaBreachBacklog: 0,
       certRefundOrphans: 0,
       refundRecordAnomalies: 0,
       paidButCancelled: 0,
+      certificateSentMissingTimestamp: 0,
     })).toEqual([])
+  })
+})
+
+describe("certificate sent timestamp drift monitor contract", () => {
+  it("uses a 14-day sent med-cert email signal and only counts intakes missing document_sent_at", () => {
+    expect(CERTIFICATE_SENT_TIMESTAMP_DRIFT_DAYS).toBe(14)
+    expect(opsInvariantsSource).toContain('.from("email_outbox")')
+    expect(opsInvariantsSource).toContain('.eq("email_type", "med_cert_patient")')
+    expect(opsInvariantsSource).toContain('.eq("status", "sent")')
+    expect(opsInvariantsSource).toContain('.gte("created_at", sinceIso)')
+    expect(opsInvariantsSource).toContain("filterSeededE2EIntakes")
+    expect(opsInvariantsSource).toContain('.eq("category", "medical_certificate")')
+    expect(opsInvariantsSource).toContain('.is("document_sent_at", null)')
+    expect(opsInvariantsSource).toContain('.or("exclude_from_reporting.is.null,exclude_from_reporting.eq.false")')
   })
 })
