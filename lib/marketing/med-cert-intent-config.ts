@@ -926,29 +926,80 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "flu",
     h1: "Medical certificate for the flu.",
     heroSubheadline:
-      `Fever, aches, can't get out of bed? Request your sick note from home. A doctor reviews your request. From ${PRICING_DISPLAY.MED_CERT}.`,
-    explainerTitle: "Get your certificate without leaving the house",
-    explainerSubtitle: "Influenza and flu-like illness are among the most common reasons for work absence.",
+      `Flu can mean fever, chills, body aches, cough, fatigue, and a genuine need to stay away from work or study. Complete a secure form so a doctor can assess whether routine sick-leave evidence is appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
+    explainerTitle: "Flu, flu-like illness, and work absence",
+    explainerSubtitle: "For short absences where symptoms are clear and online review is clinically suitable.",
     explainerParagraphs: [
-      "When you have the flu, the last thing you want to do is drive to a clinic. Our AHPRA-registered doctors review your symptoms and issue a certificate if clinically appropriate, all online, while you stay in bed.",
-      "Flu certificates typically cover 1–5 days depending on symptom severity. You describe your symptoms and how long you've been unwell. The doctor determines the appropriate duration.",
+      "Flu and flu-like illness can come on suddenly with fever, chills, body aches, sore throat, cough, headache, and fatigue. A routine online certificate may document a short absence where the history is clear and no in-person care is needed.",
+      "You answer a structured health form covering when symptoms started, which symptoms you have, how they affect work, study or commuting, the dates you need reviewed, any test results, and safety answers that help the doctor decide whether online review is appropriate.",
+      "An approved certificate includes standard absence evidence. It is not a clearance to return while infectious, a fit-for-duty assessment, test-result proof, travel clearance, or advice about your employer's isolation policy.",
+    ],
+    detailSections: [
+      {
+        title: "When online review fits",
+        body:
+          "Online review is best suited to short flu or flu-like absences where symptoms are clear, manageable at home, and the request is for routine evidence.",
+        items: [
+          "Fever, chills, aches, cough, sore throat, headache, or fatigue affecting work, study, commuting, or usual duties",
+          "Symptoms that are stable or improving, with no severe breathing symptoms or major deterioration",
+          "No employer clearance, public-health form, travel document, or formal test-result evidence required",
+        ],
+      },
+      {
+        title: "What the doctor checks",
+        body:
+          "The doctor checks whether your symptom pattern, timing, requested dates, and safety answers support routine absence evidence.",
+        items: [
+          "When symptoms started, whether fever is present, and whether symptoms are improving, unchanged, or worsening",
+          "How the illness affects attendance, concentration, physical duties, study, commuting, or caring responsibilities",
+          "Whether breathlessness, chest pain, confusion, dehydration, pregnancy, immune suppression, or severe worsening symptoms point to in-person care",
+        ],
+      },
+      {
+        title: "What the certificate includes",
+        body:
+          "A routine flu certificate focuses on the absence period. It does not need to list private symptom detail unless the doctor decides it is clinically relevant.",
+        items: [
+          "Your name, the doctor's details, the review date, and the medically appropriate absence period",
+          "A statement that you were unfit for work, study, or usual duties for the stated period",
+          "Verification details your employer or institution can use to confirm the certificate came from InstantMed",
+        ],
+      },
+      {
+        title: "When a standard certificate is not enough",
+        body:
+          "Some flu-related requests need in-person assessment, a test provider, a public-health source, or an employer-specific pathway.",
+        items: [
+          "Severe breathlessness, chest pain, confusion, fainting, dehydration, pregnancy concerns, immune suppression, or worsening illness",
+          "Return-to-work clearance, fitness-for-duty, travel clearance, isolation-release letters, vaccination records, or test-result proof",
+          "Workers compensation, insurance, legal, court, or employer forms that require specific capacity or diagnosis detail",
+        ],
+      },
     ],
     recognitionTitle: "Workplace evidence",
     recognitionSubtitle:
-      "Flu certificates include standard doctor and absence details. Employer policies may vary.",
+      "Flu certificates include standard doctor and absence details. Employer and institution policies may vary.",
     recognitionBadges: [
-      { label: "Workplace evidence", sub: "Policy dependent" },
-      { label: "Workplace evidence", sub: "Policy dependent" },
-      { label: "Stay home", sub: "No clinic visit needed" },
+      { label: "Routine evidence", sub: "Absence period" },
+      { label: "Red flags", sub: "In-person boundary" },
+      { label: "Employer policy", sub: "May vary" },
     ],
-    ctaTitle: "Rest up. We'll handle the paperwork.",
+    relatedLinks: [
+      {
+        href: "/medical-certificate/carer",
+        label: "Need evidence for caring for someone else?",
+        description:
+          "Use the carer's certificate pathway when your absence is because you are caring for a child, dependant, or family member with flu-like illness.",
+      },
+    ],
+    ctaTitle: "Request flu absence evidence",
     ctaSubtitle:
-      "Two minutes on your phone. Doctor review. Certificate to your inbox.",
-    ctaButtonText: "Get your certificate",
+      "For short flu or flu-like absences where routine certificate evidence is clinically appropriate.",
+    ctaButtonText: "Start certificate request",
     metadata: {
       title: `Medical Certificate for Flu | Sick Note Online ${PRICING_DISPLAY.MED_CERT}`,
       description:
-        `Get a medical certificate for flu or influenza. AHPRA-registered doctors review your request online. Stay home, no clinic visit needed. From ${PRICING_DISPLAY.MED_CERT}.`,
+        `Request a medical certificate for flu or flu-like illness. AHPRA-registered doctors review symptoms, requested dates, and safety answers. From ${PRICING_DISPLAY.MED_CERT}. Employer policies vary.`,
       keywords: [
         "medical certificate for flu",
         "flu sick certificate",
@@ -961,22 +1012,32 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "Can I get a medical certificate for flu without seeing a doctor in person?",
         answer:
-          "Our AHPRA-registered doctors assess your flu symptoms via a quick questionnaire and issue a certificate if clinically appropriate. Employer policies may vary.",
+          "Online review may be suitable for a short flu or flu-like absence if your symptoms, requested dates, and safety answers support routine certificate evidence. The doctor decides whether a certificate is clinically appropriate.",
+      },
+      {
+        question: "Do I need a confirmed influenza test?",
+        answer:
+          "Not always. Routine sick-leave evidence can often be based on symptoms and the doctor's review rather than a formal influenza test. If your employer, school, university, travel provider, or public-health direction requires test-result proof, check that requirement separately.",
       },
       {
         question: "How many days will my flu certificate cover?",
         answer:
-          "Most flu certificates cover 2–5 days depending on symptom severity. The doctor determines the appropriate duration based on your self-reported symptoms and recovery timeline.",
+          "The doctor decides the period after reviewing your answers. Routine online certificates are best suited to short absences; persistent, worsening, or high-risk symptoms may need in-person care or your regular GP.",
       },
       {
-        question: "Can I get a certificate if I was sick yesterday?",
+        question: "Can the doctor review an absence that started before today?",
         answer:
-          "Yes. We can often issue certificates for absences up to 48 hours ago if clinically appropriate. Be accurate about when your symptoms started.",
+          "Enter the exact symptom start date and the dates you need reviewed. Retrospective certificates depend on the clinical information available and may not be appropriate.",
       },
       {
-        question: "What's the difference between flu and a cold?",
+        question: "What symptoms need urgent or in-person care?",
         answer:
-          "Flu typically comes on suddenly with fever, body aches, and fatigue. A cold is usually milder with a runny nose as the main symptom. Both can qualify for a medical certificate. Describe your symptoms accurately in the form.",
+          "Seek urgent or in-person care for difficulty breathing, chest pain, confusion, fainting, severe dehydration, inability to keep fluids down, pregnancy concerns, immune suppression, severe worsening symptoms, or symptoms that feel unsafe to manage at home.",
+      },
+      {
+        question: "What if I am caring for someone else with flu symptoms?",
+        answer:
+          "If your absence is because you are caring for a child, dependant, or family member with flu-like illness, a carer's leave certificate may be the better pathway.",
       },
     ],
   },
