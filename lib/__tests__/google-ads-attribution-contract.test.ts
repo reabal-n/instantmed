@@ -89,16 +89,24 @@ describe("Google Ads attribution contract", () => {
 
     expect(watch).not.toContain("2265599116648626375")
     expect(watch).not.toContain("2026-06-24T05:45:00.000Z")
+    expect(watch).toContain("GOOGLE_ADS_DIAGNOSTICS_WATCH_REQUEST_ID")
     expect(watch).toContain("GOOGLE_ADS_DIAGNOSTICS_WATCH_JOB_ID")
+    expect(watch).toContain('request.nextUrl.searchParams.get("requestId")')
+    expect(watch).toContain("upload_identifier")
   })
 
-  it("does not pin Google Ads conversion uploads to a static diagnostics job id", () => {
+  it("does not pin conversion uploads to a static diagnostics job id or request id", () => {
     const uploadApi = read("lib/analytics/google-ads-conversion-api.ts")
+    const dataManagerApi = read("lib/analytics/google-ads-data-manager-api.ts")
+    const runner = read("lib/analytics/google-ads-post-payment.ts")
 
     expect(uploadApi).not.toContain("GOOGLE_ADS_PURCHASE_UPLOAD_JOB_ID")
     expect(uploadApi).not.toContain("jobId: 20260624")
     expect(uploadApi).not.toContain("2265599116648626375")
     expect(uploadApi).toContain("Google assigns a unique diagnostics job id")
+    expect(dataManagerApi).toContain("requestId")
+    expect(runner).toContain("request_id")
+    expect(runner).toContain("upload_identifier")
   })
 
   it("does not reprocess an order that already has a successful upload", () => {

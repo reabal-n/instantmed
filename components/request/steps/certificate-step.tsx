@@ -13,11 +13,10 @@
  */
 
 import { ArrowRight, Briefcase, GraduationCap, Heart } from "lucide-react"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { type ComponentType, useCallback, useEffect, useRef, useState } from "react"
 
 import { RequestButton } from "@/components/request/request-button"
 import { requestCx } from "@/components/request/request-cx"
-import { EarlyRecoveryEmailCard } from "@/components/request/shared/early-recovery-email-card"
 import { ChoiceCardGroup, IntakeStepIntro, QuestionCard, useRovingRadio } from "@/components/request/shared/intake-step-primitives"
 import { StepBlockedSummary } from "@/components/request/shared/step-blocked-summary"
 import { usePostHog } from "@/lib/analytics/posthog-context"
@@ -47,6 +46,10 @@ const CERT_TYPES = [
 
 type CertType = "work" | "study" | "carer"
 type Duration = 1 | 2 | 3
+type EarlyRecoveryEmailCardComponent = ComponentType<{
+  serviceType: UnifiedServiceType
+  stepId: string
+}>
 
 const DURATION_OPTIONS: Duration[] = [1, 2, 3]
 
@@ -133,6 +136,45 @@ function summaryLabel(offset: number): string {
   if (offset === 2) return "Day after"
   const d = offsetToDate(offset)
   return d.toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short" })
+}
+
+function DeferredEarlyRecoveryEmailCard({
+  serviceType,
+  stepId,
+}: {
+  serviceType: UnifiedServiceType
+  stepId: string
+}) {
+  const [EarlyRecoveryEmailCard, setEarlyRecoveryEmailCard] =
+    useState<EarlyRecoveryEmailCardComponent | null>(null)
+
+  useEffect(() => {
+    let mounted = true
+    const load = () => {
+      import("@/components/request/shared/early-recovery-email-card")
+        .then((mod) => {
+          if (mounted) setEarlyRecoveryEmailCard(() => mod.EarlyRecoveryEmailCard)
+        })
+        .catch(() => {})
+    }
+
+    if (typeof requestIdleCallback !== "undefined") {
+      const id = requestIdleCallback(load, { timeout: 1600 })
+      return () => {
+        mounted = false
+        cancelIdleCallback(id)
+      }
+    }
+
+    const id = setTimeout(load, 300)
+    return () => {
+      mounted = false
+      clearTimeout(id)
+    }
+  }, [])
+
+  if (!EarlyRecoveryEmailCard) return null
+  return <EarlyRecoveryEmailCard serviceType={serviceType} stepId={stepId} />
 }
 
 // ─── Component ────────────────────────────────────────────────────────────
@@ -537,7 +579,7 @@ export default function CertificateStep({ serviceType, onNext, initialDuration, 
 
       {/* Early-recovery email capture sits below the primary action so it never
           interrupts the type → Continue path (paid-funnel review 2026-06-23). */}
-      <EarlyRecoveryEmailCard serviceType={serviceType} stepId="certificate" />
+      <DeferredEarlyRecoveryEmailCard serviceType={serviceType} stepId="certificate" />
     </div>
   )
 }

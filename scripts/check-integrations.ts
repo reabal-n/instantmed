@@ -73,10 +73,16 @@ hydrateLocalEnv([
   "GOOGLE_ADS_CONVERSION_ACTION_PURCHASE",
   "GOOGLE_ADS_CUSTOMER_ID",
   "GOOGLE_ADS_DEVELOPER_TOKEN",
+  "GOOGLE_ADS_DIAGNOSTICS_WATCH_REQUEST_ID",
   "GOOGLE_ADS_LOGIN_CUSTOMER_ID",
   "GOOGLE_ADS_QUOTA_PROJECT_ID",
   "GOOGLE_ADS_REFRESH_TOKEN",
   "GOOGLE_ADS_SERVER_CONVERSION_DISABLED",
+  "GOOGLE_DATA_MANAGER_CLIENT_ID",
+  "GOOGLE_DATA_MANAGER_CLIENT_SECRET",
+  "GOOGLE_DATA_MANAGER_CONVERSIONS_ENABLED",
+  "GOOGLE_DATA_MANAGER_QUOTA_PROJECT_ID",
+  "GOOGLE_DATA_MANAGER_REFRESH_TOKEN",
   "PARCHMENT_API_URL",
   "PARCHMENT_ORGANIZATION_ID",
   "PARCHMENT_PARTNER_ID",
@@ -190,6 +196,28 @@ async function fetchGoogleAdsAccessToken(): Promise<string | null> {
   const clientId = process.env.GOOGLE_ADS_CLIENT_ID
   const clientSecret = process.env.GOOGLE_ADS_CLIENT_SECRET
   const refreshToken = process.env.GOOGLE_ADS_REFRESH_TOKEN
+  if (!isConfigured(clientId) || !isConfigured(clientSecret) || !isConfigured(refreshToken)) return null
+
+  const response = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      refresh_token: refreshToken,
+      grant_type: "refresh_token",
+    }),
+  })
+
+  if (!response.ok) return null
+  const payload = await response.json() as { access_token?: string }
+  return payload.access_token ?? null
+}
+
+async function fetchGoogleDataManagerAccessToken(): Promise<string | null> {
+  const clientId = process.env.GOOGLE_DATA_MANAGER_CLIENT_ID
+  const clientSecret = process.env.GOOGLE_DATA_MANAGER_CLIENT_SECRET
+  const refreshToken = process.env.GOOGLE_DATA_MANAGER_REFRESH_TOKEN
   if (!isConfigured(clientId) || !isConfigured(clientSecret) || !isConfigured(refreshToken)) return null
 
   const response = await fetch("https://oauth2.googleapis.com/token", {
@@ -362,6 +390,59 @@ async function checkStripePriceTypes(): Promise<CheckResult[]> {
 
 async function checkGoogleAdsConversionAction(): Promise<CheckResult[]> {
   return [await preflightGoogleAdsPurchaseConversionAction()]
+}
+
+async function checkGoogleDataManagerConversions(): Promise<CheckResult[]> {
+  if (process.env.GOOGLE_DATA_MANAGER_CONVERSIONS_ENABLED !== "true") {
+    return [
+      result(
+        "pass",
+        "Google Data Manager conversions",
+        "GOOGLE_DATA_MANAGER_CONVERSIONS_ENABLED is not true; legacy Google Ads API uploader remains active.",
+      ),
+    ]
+  }
+
+  const missingKeys = missingConfiguredEnvKeys([
+    "GOOGLE_DATA_MANAGER_CLIENT_ID",
+    "GOOGLE_DATA_MANAGER_CLIENT_SECRET",
+    "GOOGLE_DATA_MANAGER_REFRESH_TOKEN",
+  ])
+  if (!normalizeGoogleAdsNumericId(process.env.GOOGLE_ADS_CUSTOMER_ID)) {
+    missingKeys.push("GOOGLE_ADS_CUSTOMER_ID")
+  }
+  if (!normalizeGoogleAdsNumericId(process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE)) {
+    missingKeys.push("GOOGLE_ADS_CONVERSION_ACTION_PURCHASE")
+  }
+
+  if (missingKeys.length > 0) {
+    return [
+      result(
+        strictStatus(),
+        "Google Data Manager conversions",
+        `Data Manager rollout is enabled but env is incomplete (${formatEnvList(missingKeys)}).`,
+      ),
+    ]
+  }
+
+  const accessToken = await fetchGoogleDataManagerAccessToken()
+  if (!accessToken) {
+    return [
+      result(
+        strictStatus(),
+        "Google Data Manager conversions",
+        "Data Manager OAuth token could not be minted; refresh token must include https://www.googleapis.com/auth/datamanager.",
+      ),
+    ]
+  }
+
+  return [
+    result(
+      "pass",
+      "Google Data Manager conversions",
+      "Data Manager OAuth token minted and purchase destination env is present.",
+    ),
+  ]
 }
 
 async function checkResendDomainOwnership(): Promise<CheckResult[]> {
@@ -579,6 +660,7 @@ async function main() {
   const checks = [
     ...(await checkStripePriceTypes()),
     ...(await checkGoogleAdsConversionAction()),
+    ...(await checkGoogleDataManagerConversions()),
     ...(await checkResendDomainOwnership()),
     ...(await checkAnthropicModels()),
     ...(await checkOpenAIReviewModel()),

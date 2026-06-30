@@ -8,6 +8,11 @@ import {
   searchGoogleAds,
 } from "@/lib/analytics/google-ads-conversion-api"
 import {
+  type GoogleDataManagerRequestStatusResult,
+  isGoogleDataManagerConversionsEnabled,
+  retrieveGoogleDataManagerRequestStatus,
+} from "@/lib/analytics/google-ads-data-manager-api"
+import {
   GOOGLE_ADS_ATTRIBUTION_SELECT,
   GOOGLE_ADS_CONVERSION_UPLOAD_AUDIT_ACTION,
   type GoogleAdsAttributionRow,
@@ -139,6 +144,8 @@ export type GoogleAdsUploadAuditAnomalySample = {
   runtimeSource: string | null
   source: string | null
   status: string | null
+  uploadApi: string | null
+  uploadIdentifier: string | null
   uploadJobId: string | null
   vercelEnv: string | null
 }
@@ -155,6 +162,7 @@ export type GoogleAdsWatchedUploadAuditSummary = {
   sources: string[]
   success: number
   totalRows: number
+  uploadIdentifier: string
 }
 
 export type GoogleAdsUploadAuditReconciliation = {
@@ -162,9 +170,11 @@ export type GoogleAdsUploadAuditReconciliation = {
   byIntakeJoinCheck: Record<string, number>
   byJobId: Record<string, number>
   byRequestPath: Record<string, number>
+  byRequestId: Record<string, number>
   byRuntimeSource: Record<string, number>
   bySource: Record<string, number>
   byStatus: Record<string, number>
+  byUploadIdentifier: Record<string, number>
   byVercelEnv: Record<string, number>
   generatedAt: string
   orphanRows: {
@@ -218,6 +228,8 @@ export type GoogleAdsDiagnosticsWatchResult = {
     googleProcessingLag: GoogleAdsDiagnosticsClassificationValue
     payloadShape: GoogleAdsDiagnosticsClassificationValue
   }
+  dataManagerRequestStatus: string | null
+  dataManagerStatusError: string | null
   diagnosticsJobSummary: GoogleAdsOfflineUploadJobSummary | null
   eligibleAt: string
   jobId: string
@@ -316,6 +328,7 @@ export type GoogleAdsSpendAuditReport = {
   ads: GoogleAdsSpendReport
   conversionActions: GoogleAdsSecondaryRow[]
   customerConversionTrackingSettings: GoogleAdsCustomerConversionTrackingSettingsRow[]
+  dataManagerRequestStatus: GoogleDataManagerRequestStatusResult | null
   diagnostics: GoogleAdsOfflineUploadDiagnosticsSummary
   diagnosticsWatch: GoogleAdsDiagnosticsWatchResult | null
   evidenceComparison: GoogleAdsEvidenceComparison
@@ -380,6 +393,26 @@ function asRecord(value: unknown): Record<string, unknown> | null {
 function normalizeJobId(value: unknown): string | null {
   const id = clean(value)
   return id ? id : null
+}
+
+function normalizeUploadIdentifier(value: unknown): string | null {
+  const id = clean(value)
+  return id ? id : null
+}
+
+function getAuditUploadIdentifier(metadata: Record<string, unknown> | null | undefined): string | null {
+  return normalizeUploadIdentifier(
+    metadata?.upload_identifier ?? metadata?.request_id ?? metadata?.upload_job_id ?? metadata?.job_id,
+  )
+}
+
+function shouldFetchDataManagerRequestStatus(watchJobId?: string | null): boolean {
+  const uploadIdentifier = normalizeUploadIdentifier(watchJobId)
+  if (!uploadIdentifier) return false
+
+  return isGoogleDataManagerConversionsEnabled() ||
+    Boolean(clean(process.env.GOOGLE_ADS_DIAGNOSTICS_WATCH_REQUEST_ID)) ||
+    !/^\d+$/.test(uploadIdentifier)
 }
 
 function incrementCounter(counter: Record<string, number>, value: unknown): void {
@@ -948,12 +981,12 @@ function summarizeWatchedJobRows(
   rows: GoogleAdsRawUploadAuditRow[],
   watchJobId: string | null | undefined,
 ): GoogleAdsWatchedUploadAuditSummary | null {
-  const normalizedJobId = normalizeJobId(watchJobId)
-  if (!normalizedJobId) return null
+  const uploadIdentifier = normalizeUploadIdentifier(watchJobId)
+  if (!uploadIdentifier) return null
 
   const watchedRows = rows.filter((row) => {
     const metadata = asRecord(row.metadata)
-    return normalizeJobId(metadata?.upload_job_id ?? metadata?.job_id) === normalizedJobId
+    return getAuditUploadIdentifier(metadata) === uploadIdentifier
   })
 
   if (watchedRows.length === 0) {
@@ -962,13 +995,14 @@ function summarizeWatchedJobRows(
       deploymentIds: [],
       expiredClickThroughWindow: 0,
       failed: 0,
-      jobId: normalizedJobId,
+      jobId: uploadIdentifier,
       latestAt: null,
       requestPaths: [],
       skipped: 0,
       sources: [],
       success: 0,
       totalRows: 0,
+      uploadIdentifier,
     }
   }
 
@@ -1013,13 +1047,14 @@ function summarizeWatchedJobRows(
     deploymentIds: Array.from(deploymentIds).sort(),
     expiredClickThroughWindow,
     failed,
-    jobId: normalizedJobId,
+    jobId: uploadIdentifier,
     latestAt,
     requestPaths: Array.from(requestPaths).sort(),
     skipped,
     sources: Array.from(sources).sort(),
     success,
     totalRows: watchedRows.length,
+    uploadIdentifier,
   }
 }
 
@@ -1038,6 +1073,8 @@ function buildGoogleAdsUploadAuditAnomalySample(
     runtimeSource: getAuditMetadataString(metadata, "runtime_source"),
     source: getAuditMetadataString(metadata, "source"),
     status: getAuditMetadataString(metadata, "status"),
+    uploadApi: getAuditMetadataString(metadata, "upload_api"),
+    uploadIdentifier: getAuditUploadIdentifier(metadata),
     uploadJobId: getAuditMetadataString(metadata, "upload_job_id"),
     vercelEnv: getAuditMetadataString(metadata, "vercel_env"),
   }
@@ -1083,9 +1120,11 @@ export async function getGoogleAdsUploadAuditReconciliation({
   const byIntakeJoinCheck: Record<string, number> = {}
   const byJobId: Record<string, number> = {}
   const byRequestPath: Record<string, number> = {}
+  const byRequestId: Record<string, number> = {}
   const byRuntimeSource: Record<string, number> = {}
   const bySource: Record<string, number> = {}
   const byStatus: Record<string, number> = {}
+  const byUploadIdentifier: Record<string, number> = {}
   const byVercelEnv: Record<string, number> = {}
   const orphanSamples: GoogleAdsUploadAuditAnomalySample[] = []
   let invalidIntakeJoin = 0
@@ -1095,6 +1134,8 @@ export async function getGoogleAdsUploadAuditReconciliation({
     const metadata = asRecord(row.metadata)
     const status = getAuditMetadataString(metadata, "status") || "unknown"
     const uploadJobId = getAuditMetadataString(metadata, "upload_job_id") || "missing"
+    const requestId = getAuditMetadataString(metadata, "request_id") || "missing"
+    const uploadIdentifier = getAuditUploadIdentifier(metadata) || "missing"
     const source = getAuditMetadataString(metadata, "source") || "unknown"
     const requestPath = getAuditMetadataString(metadata, "request_path") || "missing"
     const deploymentId = getAuditMetadataString(metadata, "deployment_id") || "missing"
@@ -1108,6 +1149,8 @@ export async function getGoogleAdsUploadAuditReconciliation({
 
     incrementCounter(byStatus, status)
     incrementCounter(byJobId, uploadJobId)
+    incrementCounter(byRequestId, requestId)
+    incrementCounter(byUploadIdentifier, uploadIdentifier)
     incrementCounter(bySource, source)
     incrementCounter(byRequestPath, requestPath)
     incrementCounter(byDeploymentId, deploymentId)
@@ -1127,9 +1170,11 @@ export async function getGoogleAdsUploadAuditReconciliation({
     byIntakeJoinCheck,
     byJobId,
     byRequestPath,
+    byRequestId,
     byRuntimeSource,
     bySource,
     byStatus,
+    byUploadIdentifier,
     byVercelEnv,
     generatedAt,
     orphanRows: {
@@ -1189,6 +1234,24 @@ function classificationValue(
   return condition ? "confirmed" : fallback
 }
 
+function statusFromDataManagerRequestStatus(
+  requestStatus: string | null | undefined,
+  totalPurchaseConversions: number,
+): GoogleAdsDiagnosticsWatchResult["status"] | null {
+  if (requestStatus === "SUCCESS") {
+    return totalPurchaseConversions > 0
+      ? "diagnostics_accepted"
+      : "diagnostics_accepted_primary_zero"
+  }
+  if (requestStatus === "FAILED" || requestStatus === "PARTIAL_SUCCESS") {
+    return "diagnostics_rejected"
+  }
+  if (requestStatus === "PROCESSING" || requestStatus === "REQUEST_STATUS_UNKNOWN") {
+    return "diagnostics_pending"
+  }
+  return null
+}
+
 export function buildGoogleAdsDiagnosticsWatchResult({
   now,
   processingWindowHours,
@@ -1212,6 +1275,9 @@ export function buildGoogleAdsDiagnosticsWatchResult({
   const processingWindowElapsed = now.getTime() >= Date.parse(eligibleAt)
   const diagnosticsJobSummary =
     report.diagnostics.jobSummaries.find((job) => job.jobId === watchJobId) ?? null
+  const dataManagerStatusResult = report.dataManagerRequestStatus ?? null
+  const dataManagerRequestStatus = dataManagerStatusResult?.status ?? null
+  const dataManagerStatusError = dataManagerStatusResult?.error ?? null
   const customerSettings = summarizeGoogleAdsCustomerConversionTrackingSettings(
     report.customerConversionTrackingSettings,
   )
@@ -1243,6 +1309,34 @@ export function buildGoogleAdsDiagnosticsWatchResult({
     payloadShape: classificationValue(hasNonExpiredFailedAudit, diagnosticsJobSummary ? "not_indicated" : "unknown"),
   }
 
+  const dataManagerWatchStatus = statusFromDataManagerRequestStatus(
+    dataManagerRequestStatus,
+    report.ads.summary.totalPurchaseConversions,
+  )
+  if (dataManagerWatchStatus) {
+    return {
+      acceptedCount: null,
+      classification: {
+        ...baseClassification,
+        attributionDateLag: dataManagerWatchStatus === "diagnostics_accepted_primary_zero" ? "possible" : "not_indicated",
+        googleProcessingLag: dataManagerWatchStatus === "diagnostics_pending" ? "possible" : "not_indicated",
+        payloadShape: dataManagerWatchStatus === "diagnostics_rejected" ? "confirmed" : "not_indicated",
+      },
+      dataManagerRequestStatus,
+      dataManagerStatusError,
+      diagnosticsJobSummary: null,
+      eligibleAt,
+      jobId: watchJobId,
+      matchedCount: null,
+      matchedCountAvailable: false,
+      pendingCount: null,
+      processingWindowElapsed,
+      rejectedCount: null,
+      status: dataManagerWatchStatus,
+      uploadedAt: normalizedUploadedAt,
+    }
+  }
+
   if (!processingWindowElapsed) {
     return {
       acceptedCount: null,
@@ -1251,6 +1345,8 @@ export function buildGoogleAdsDiagnosticsWatchResult({
         attributionDateLag: "possible",
         googleProcessingLag: "possible",
       },
+      dataManagerRequestStatus,
+      dataManagerStatusError,
       diagnosticsJobSummary: null,
       eligibleAt,
       jobId: watchJobId,
@@ -1277,6 +1373,8 @@ export function buildGoogleAdsDiagnosticsWatchResult({
         googleProcessingLag: watchedAuditSucceededWithoutErrors ? "confirmed" : "possible",
         payloadShape: watchedAuditSucceededWithoutErrors ? "not_indicated" : baseClassification.payloadShape,
       },
+      dataManagerRequestStatus,
+      dataManagerStatusError,
       diagnosticsJobSummary: null,
       eligibleAt,
       jobId: watchJobId,
@@ -1309,6 +1407,8 @@ export function buildGoogleAdsDiagnosticsWatchResult({
       attributionDateLag: status === "diagnostics_accepted_primary_zero" ? "possible" : "not_indicated",
       googleProcessingLag: "not_indicated",
     },
+    dataManagerRequestStatus,
+    dataManagerStatusError,
     diagnosticsJobSummary,
     eligibleAt,
     jobId: watchJobId,
@@ -1383,6 +1483,15 @@ export async function getGoogleAdsSpendAuditReport({
   const local = summarizeLocalGoogleAdsPurchases(localRows)
   const ads = summarizeGoogleAdsCampaignRows(campaignRows, local.byCampaign, purchaseConversionRows)
   const diagnostics = summarizeGoogleAdsOfflineUploadDiagnostics(offlineUploadDiagnostics)
+  const dataManagerRequestStatus = shouldFetchDataManagerRequestStatus(watchJobId)
+    ? await retrieveGoogleDataManagerRequestStatus(watchJobId || "")
+    : null
+  if (dataManagerRequestStatus?.error) {
+    queryErrors.push({
+      name: "data_manager_request_status",
+      error: compactQueryError(dataManagerRequestStatus.error),
+    })
+  }
   const uploadAuditReconciliation = await getGoogleAdsUploadAuditReconciliation({
     generatedAt,
     since: auditSince || `${range.startDate}T00:00:00.000Z`,
@@ -1402,6 +1511,7 @@ export async function getGoogleAdsSpendAuditReport({
         ads,
         conversionActions,
         customerConversionTrackingSettings,
+        dataManagerRequestStatus,
         diagnostics,
         evidenceComparison,
         finalUrls,
@@ -1426,6 +1536,7 @@ export async function getGoogleAdsSpendAuditReport({
     ads,
     conversionActions,
     customerConversionTrackingSettings,
+    dataManagerRequestStatus,
     diagnostics,
     diagnosticsWatch,
     evidenceComparison,

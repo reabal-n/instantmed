@@ -4,7 +4,13 @@ import { runGoogleAdsPostPaymentAttribution } from "@/lib/analytics/google-ads-p
 
 const mocks = vi.hoisted(() => ({
   capture: vi.fn(),
+  fireGoogleAdsDataManagerPurchaseConversion: vi.fn(),
   fireGoogleAdsPurchaseConversion: vi.fn(),
+}))
+
+vi.mock("@/lib/analytics/google-ads-data-manager-api", async (importActual) => ({
+  ...(await importActual<typeof import("@/lib/analytics/google-ads-data-manager-api")>()),
+  fireGoogleAdsDataManagerPurchaseConversion: mocks.fireGoogleAdsDataManagerPurchaseConversion,
 }))
 
 vi.mock("@/lib/analytics/google-ads-conversion-api", async (importActual) => ({
@@ -50,16 +56,24 @@ function googleAdsSupabaseMock(options: { validIntake?: boolean } = {}) {
 }
 
 describe("Google Ads post-payment attribution", () => {
+  const originalDataManagerEnabled = process.env.GOOGLE_DATA_MANAGER_CONVERSIONS_ENABLED
   const originalDisabled = process.env.GOOGLE_ADS_SERVER_CONVERSION_DISABLED
   const originalEnhancedDisabled = process.env.GOOGLE_ADS_ENHANCED_CONVERSIONS_DISABLED
 
   beforeEach(() => {
     mocks.capture.mockReset()
+    mocks.fireGoogleAdsDataManagerPurchaseConversion.mockReset()
     mocks.fireGoogleAdsPurchaseConversion.mockReset()
+    delete process.env.GOOGLE_DATA_MANAGER_CONVERSIONS_ENABLED
     delete process.env.GOOGLE_ADS_ENHANCED_CONVERSIONS_DISABLED
   })
 
   afterEach(() => {
+    if (originalDataManagerEnabled === undefined) {
+      delete process.env.GOOGLE_DATA_MANAGER_CONVERSIONS_ENABLED
+    } else {
+      process.env.GOOGLE_DATA_MANAGER_CONVERSIONS_ENABLED = originalDataManagerEnabled
+    }
     if (originalDisabled === undefined) {
       delete process.env.GOOGLE_ADS_SERVER_CONVERSION_DISABLED
     } else {
@@ -242,6 +256,69 @@ describe("Google Ads post-payment attribution", () => {
     )
     expect(attemptEvents[0]?.[0]).toMatchObject({
       properties: expect.objectContaining({ has_user_data: true }),
+    })
+  })
+
+  it("uses Data Manager uploads behind the rollout flag and audits the request id explicitly", async () => {
+    process.env.GOOGLE_DATA_MANAGER_CONVERSIONS_ENABLED = "true"
+    mocks.fireGoogleAdsDataManagerPurchaseConversion.mockResolvedValue({
+      attempted: true,
+      ok: true,
+      requestId: "126365e1-16d0-4c81-9de9-f362711e250a",
+      uploadApi: "data_manager_api",
+      uploadIdentifier: "126365e1-16d0-4c81-9de9-f362711e250a",
+    })
+    mocks.fireGoogleAdsPurchaseConversion.mockResolvedValue({
+      attempted: true,
+      ok: true,
+      jobId: "legacy-job-id",
+    })
+
+    const { inserted, supabase } = googleAdsSupabaseMock()
+    const paidAt = new Date("2026-06-30T03:51:48.645Z")
+
+    const result = await runGoogleAdsPostPaymentAttribution({
+      amountCents: 2495,
+      conversionDateTime: paidAt,
+      intakeId: "intake_data_manager",
+      posthogDistinctId: "patient_data_manager",
+      row: {
+        amount_cents: 2495,
+        category: "medical_certificate",
+        campaignid: "123",
+        gclid: "gclid-value",
+      },
+      source: "cron_backfill",
+      supabase: supabase as never,
+      userData: { email: "test@example.com" },
+    })
+
+    expect(result).toMatchObject({
+      attempted: true,
+      ok: true,
+      requestId: "126365e1-16d0-4c81-9de9-f362711e250a",
+      status: "success",
+      uploadApi: "data_manager_api",
+      uploadIdentifier: "126365e1-16d0-4c81-9de9-f362711e250a",
+    })
+    expect(mocks.fireGoogleAdsDataManagerPurchaseConversion).toHaveBeenCalledWith(
+      expect.objectContaining({
+        conversionDateTime: paidAt,
+        gclid: "gclid-value",
+        orderId: "intake_data_manager",
+        userData: { email: "test@example.com" },
+      }),
+    )
+    expect(mocks.fireGoogleAdsPurchaseConversion).not.toHaveBeenCalled()
+    expect(inserted[0]).toMatchObject({
+      payload: {
+        metadata: expect.objectContaining({
+          request_id: "126365e1-16d0-4c81-9de9-f362711e250a",
+          upload_api: "data_manager_api",
+          upload_identifier: "126365e1-16d0-4c81-9de9-f362711e250a",
+          upload_job_id: null,
+        }),
+      },
     })
   })
 

@@ -4,6 +4,8 @@ import * as React from "react"
 
 import { requestCx } from "./request-cx"
 
+export const INTAKE_PRIMARY_ACTION_CHANGE_EVENT = "instantmed:intake-primary-action-change"
+
 type RequestButtonVariant = "default" | "outline" | "secondary" | "ghost"
 type RequestButtonSize = "default" | "sm" | "lg" | "icon"
 
@@ -25,6 +27,9 @@ export interface RequestButtonProps extends React.ButtonHTMLAttributes<HTMLButto
   variant?: RequestButtonVariant
   size?: RequestButtonSize
   isLoading?: boolean
+  "data-intake-primary-action"?: string
+  "data-intake-primary-label"?: string
+  "data-intake-primary-ready"?: string
 }
 
 export const RequestButton = React.forwardRef<HTMLButtonElement, RequestButtonProps>(
@@ -42,6 +47,14 @@ export const RequestButton = React.forwardRef<HTMLButtonElement, RequestButtonPr
     ref
   ) => {
     const isDisabled = disabled || isLoading
+    const primaryActionFlag = props["data-intake-primary-action"]
+    const primaryActionLabel = props["data-intake-primary-label"]
+    const primaryActionReady = props["data-intake-primary-ready"]
+
+    React.useEffect(() => {
+      if (primaryActionFlag !== "true" || typeof window === "undefined") return
+      window.dispatchEvent(new Event(INTAKE_PRIMARY_ACTION_CHANGE_EVENT))
+    }, [isDisabled, primaryActionFlag, primaryActionLabel, primaryActionReady])
 
     return (
       <button

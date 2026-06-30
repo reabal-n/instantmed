@@ -22,18 +22,41 @@ function parseProcessingWindowHours(value: string | null): number {
   return Math.min(Math.max(Math.floor(parsed), 1), 168)
 }
 
-function resolveWatchJobId(request: NextRequest): string | null {
-  return (
-    request.nextUrl.searchParams.get("jobId")?.trim() ||
-    process.env.GOOGLE_ADS_DIAGNOSTICS_WATCH_JOB_ID?.trim() ||
-    null
-  )
+function clean(value: string | null | undefined): string | null {
+  const trimmed = value?.trim()
+  return trimmed || null
+}
+
+function resolveWatchUploadIdentifier(request: NextRequest): {
+  jobId: string | null
+  requestId: string | null
+  uploadIdentifier: string | null
+} {
+  const requestId =
+    clean(request.nextUrl.searchParams.get("requestId")) ||
+    clean(process.env.GOOGLE_ADS_DIAGNOSTICS_WATCH_REQUEST_ID)
+  if (requestId) {
+    return {
+      jobId: null,
+      requestId,
+      uploadIdentifier: requestId,
+    }
+  }
+
+  const jobId =
+    clean(request.nextUrl.searchParams.get("jobId")) ||
+    clean(process.env.GOOGLE_ADS_DIAGNOSTICS_WATCH_JOB_ID)
+  return {
+    jobId,
+    requestId: null,
+    uploadIdentifier: jobId,
+  }
 }
 
 function resolveUploadedAt(request: NextRequest): string | null {
   return (
-    request.nextUrl.searchParams.get("uploadedAt")?.trim() ||
-    process.env.GOOGLE_ADS_DIAGNOSTICS_WATCH_UPLOADED_AT?.trim() ||
+    clean(request.nextUrl.searchParams.get("uploadedAt")) ||
+    clean(process.env.GOOGLE_ADS_DIAGNOSTICS_WATCH_UPLOADED_AT) ||
     null
   )
 }
@@ -51,7 +74,11 @@ export async function GET(request: NextRequest) {
   await recordCronHeartbeat("google-ads-diagnostics-watch")
 
   const now = new Date()
-  const jobId = resolveWatchJobId(request)
+  const {
+    jobId,
+    requestId,
+    uploadIdentifier,
+  } = resolveWatchUploadIdentifier(request)
   const uploadedAt = resolveUploadedAt(request)
   const processingWindowHours = parseProcessingWindowHours(
     request.nextUrl.searchParams.get("processingWindowHours") ||
@@ -59,12 +86,12 @@ export async function GET(request: NextRequest) {
       null,
   )
 
-  if (!jobId || !uploadedAt) {
+  if (!uploadIdentifier || !uploadedAt) {
     return NextResponse.json({
       success: true,
       skipped: true,
-      reason: "watch_job_not_configured",
-      detail: "Set GOOGLE_ADS_DIAGNOSTICS_WATCH_JOB_ID and GOOGLE_ADS_DIAGNOSTICS_WATCH_UPLOADED_AT after a fresh upload job is emitted.",
+      reason: "watch_upload_not_configured",
+      detail: "Set GOOGLE_ADS_DIAGNOSTICS_WATCH_REQUEST_ID for Data Manager uploads, or legacy GOOGLE_ADS_DIAGNOSTICS_WATCH_JOB_ID, plus GOOGLE_ADS_DIAGNOSTICS_WATCH_UPLOADED_AT after a fresh upload is emitted.",
       checked_at: now.toISOString(),
     })
   }
@@ -77,6 +104,8 @@ export async function GET(request: NextRequest) {
       skipped: true,
       reason: "processing_window_pending",
       job_id: jobId,
+      request_id: requestId,
+      upload_identifier: uploadIdentifier,
       uploaded_at: uploadedAt,
       processing_window_hours: processingWindowHours,
       eligible_at: eligibleAt.toISOString(),
@@ -91,7 +120,7 @@ export async function GET(request: NextRequest) {
       diagnosticsProcessingWindowHours: processingWindowHours,
       now,
       supabase: createServiceRoleClient(),
-      watchJobId: jobId,
+      watchJobId: uploadIdentifier,
       watchUploadedAt: uploadedAt,
     })
     const diagnosticsWatch = report.diagnosticsWatch
@@ -102,6 +131,8 @@ export async function GET(request: NextRequest) {
         level: "error",
         tags: {
           google_ads_upload_job_id: jobId,
+          google_ads_upload_request_id: requestId,
+          google_ads_upload_identifier: uploadIdentifier,
           google_ads_watch_status: diagnosticsWatch?.status || "missing_watch_result",
           source: "google-ads-diagnostics-watch",
         },
@@ -113,22 +144,27 @@ export async function GET(request: NextRequest) {
       })
       logger.warn("Google Ads diagnostics watch failed", {
         jobId,
+        requestId,
         status: diagnosticsWatch?.status || "missing_watch_result",
+        uploadIdentifier,
       })
     } else {
-      logger.info("Google Ads diagnostics watch passed", { jobId })
+      logger.info("Google Ads diagnostics watch passed", { jobId, requestId, uploadIdentifier })
     }
 
     return NextResponse.json(
       {
         success: !failingStatus,
         checked_at: now.toISOString(),
+        data_manager_request_status: report.dataManagerRequestStatus,
         diagnostics_watch: diagnosticsWatch,
         evidence_comparison: report.evidenceComparison,
         google_ads_diagnostics: report.diagnostics,
         job_id: jobId,
         offline_upload_diagnostics: report.offlineUploadDiagnostics,
         query_errors: report.queryErrors,
+        request_id: requestId,
+        upload_identifier: uploadIdentifier,
         upload_audit_reconciliation: report.uploadAuditReconciliation,
       },
       { status: failingStatus ? 503 : 200 },
@@ -140,8 +176,10 @@ export async function GET(request: NextRequest) {
       {
         error: err.message,
         job_id: jobId,
+        request_id: requestId,
         sentry_event_id: eventId,
         success: false,
+        upload_identifier: uploadIdentifier,
       },
       { status: 500 },
     )
