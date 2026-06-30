@@ -10,6 +10,7 @@ function readProjectFile(path: string) {
 }
 
 const requestFlowSource = readProjectFile("components/request/request-flow.tsx")
+const requestButtonSource = readProjectFile("components/request/request-button.tsx")
 const rootLayoutSource = readProjectFile("app/layout.tsx")
 const intakePrimitivesSource = readProjectFile("components/request/shared/intake-step-primitives.tsx")
 
@@ -39,8 +40,10 @@ describe("intake mobile viewport contract", () => {
   it("uses a real mobile primary-action bar instead of making users scroll to continue", () => {
     expect(requestFlowSource).toContain('data-intake-mobile-action-bar="true"')
     expect(requestFlowSource).toContain("[data-intake-primary-action='true']")
-    expect(requestFlowSource).toContain("data-intake-primary-ready")
-    expect(requestFlowSource).toContain("MutationObserver")
+    expect(requestButtonSource).toContain("data-intake-primary-ready")
+    expect(requestFlowSource).toContain("INTAKE_PRIMARY_ACTION_CHANGE_EVENT")
+    expect(requestFlowSource).not.toContain("MutationObserver")
+    expect(requestButtonSource).toContain("window.dispatchEvent(new Event(INTAKE_PRIMARY_ACTION_CHANGE_EVENT))")
     expect(requestFlowSource).toContain("handleMobilePrimaryAction")
     expect(requestFlowSource).toContain('variant={mobileActionReady ? "default" : "secondary"}')
     // The mobile action bar is no longer excluded on the pay step — the unified

@@ -24,7 +24,7 @@ import { type ComponentType, useCallback, useEffect, useMemo, useRef, useState }
 import { AutoSaveIndicator } from "@/components/request/auto-save-indicator"
 import { DraftRestorationBanner } from "@/components/request/draft-restoration-banner"
 import { ProgressBar } from "@/components/request/progress-bar"
-import { RequestButton } from "@/components/request/request-button"
+import { INTAKE_PRIMARY_ACTION_CHANGE_EVENT, RequestButton } from "@/components/request/request-button"
 import { requestCx } from "@/components/request/request-cx"
 import { SubtypeMismatchBanner } from "@/components/request/subtype-mismatch-banner"
 import { TimeRemaining } from "@/components/request/time-remaining"
@@ -621,50 +621,35 @@ export function RequestFlow({
       })
     }
 
-    syncPrimaryAction()
-
-    // Performance: this observer is the single biggest contributor to
-    // the /request route's mobile Lighthouse Total Blocking Time. PR #63
-    // scoped it to mobile-only + the step content container (was over
-    // budget at 301ms vs 200ms target, came down to 282ms). The mobile
-    // primary-action bar only renders on viewports below sm: (640px),
-    // and only the step content's primary action button needs to be
-    // tracked — not the whole document.
-    //
-    // Three scoping reductions:
-    //   1. Skip the observer entirely on desktop where the bar doesn't
-    //      render. Saves the whole DOM-watch on the majority of
-    //      sessions.
-    //   2. On mobile, narrow the target from document.body to the
-    //      step content container (contentRef). Cuts the surface area
-    //      that fires the callback by orders of magnitude — framer-
-    //      motion frames in the sticky CTA, nav button hover states,
-    //      Sentry/PostHog DOM injections etc. no longer trigger
-    //      syncPrimaryAction.
-    //   3. Drop `characterData: true`. The button's label is driven by
-    //      the `data-intake-primary-label` attribute (already in
-    //      attributeFilter), not by textContent — so every form-field
-    //      validation message change, every framer-motion text
-    //      interpolation, and every inline-input keystroke was firing
-    //      a no-op syncPrimaryAction. Pure overhead.
     const isMobileViewport =
       typeof window !== "undefined" &&
       window.matchMedia &&
       window.matchMedia("(max-width: 640px)").matches
     if (!isMobileViewport) {
+      syncPrimaryAction()
       return
     }
 
-    const observerTarget = contentRef.current ?? document.body
-    const observer = new MutationObserver(syncPrimaryAction)
-    observer.observe(observerTarget, {
-      attributes: true,
-      attributeFilter: ["disabled", "data-intake-primary-label", "data-intake-primary-ready"],
-      childList: true,
-      subtree: true,
-    })
+    let frameId: number | null = null
+    const schedulePrimaryActionSync = () => {
+      if (frameId !== null) return
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null
+        syncPrimaryAction()
+      })
+    }
 
-    return () => observer.disconnect()
+    // Performance: the old implementation used a broad subtree observer here
+    // and it showed up directly in the /request mobile Lighthouse TBT gate. The
+    // step's primary RequestButton now announces mount/disabled/ready changes,
+    // so the mobile sticky CTA can mirror it without watching the whole step DOM.
+    window.addEventListener(INTAKE_PRIMARY_ACTION_CHANGE_EVENT, schedulePrimaryActionSync)
+    syncPrimaryAction()
+
+    return () => {
+      window.removeEventListener(INTAKE_PRIMARY_ACTION_CHANGE_EVENT, schedulePrimaryActionSync)
+      if (frameId !== null) window.cancelAnimationFrame(frameId)
+    }
   }, [currentStepId])
 
   // Scroll to top + move screen-reader focus to the new step's heading on step
