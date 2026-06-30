@@ -1011,29 +1011,72 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "migraine",
     h1: "Medical certificate for migraine.",
     heroSubheadline:
-      `Migraines can be debilitating. Get your sick note from home, no bright screens required. A doctor reviews your request. From ${PRICING_DISPLAY.MED_CERT}.`,
-    explainerTitle: "When a migraine stops you from working",
-    explainerSubtitle: "Migraine is a recognised medical condition that can make it impossible to work safely.",
+      `Migraine symptoms can make work unsafe or impractical. An AHPRA-registered doctor reviews your answers and decides whether a certificate is clinically appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
+    explainerTitle: "Migraine and work absence",
+    explainerSubtitle: "For short migraine-related absences where online doctor review is clinically suitable.",
     explainerParagraphs: [
-      "Migraines aren't just headaches. They can involve nausea, vomiting, light and sound sensitivity, and visual disturbances, making it unsafe and impossible to work. Our AHPRA-registered doctors understand this and assess migraine requests accordingly.",
-      "You describe your symptoms in a quick form. A doctor reviews it and issues a certificate if clinically appropriate. Keep screen time minimal. The form takes about two minutes.",
+      "Migraine can involve severe headache, nausea, vomiting, light or sound sensitivity, visual symptoms, dizziness, and cognitive fog. Those symptoms can affect driving, screen use, concentration, safety-critical work, and ordinary work capacity.",
+      "You answer a structured health form covering when symptoms started, whether this is your usual migraine pattern, the dates you need covered, what makes work unsafe or impractical, and any red flags that would make online review inappropriate.",
+      "If approved, your certificate is emailed as a PDF with standard workplace evidence details. A routine migraine certificate documents absence. It is not a migraine management plan, a fitness-for-duty certificate, or a substitute for urgent assessment when headache symptoms are new, severe, unusual, or associated with neurological warning signs.",
     ],
     recognitionTitle: "Workplace evidence",
     recognitionSubtitle:
       "Medical certificates for migraines include standard workplace evidence details. Employer policies may vary.",
     recognitionBadges: [
-      { label: "Recognised condition", sub: "Neurological illness" },
+      { label: "Clinical review", sub: "Pattern and red flags" },
       { label: "Workplace evidence", sub: "Policy dependent" },
-      { label: "Minimal screen time", sub: "Quick form" },
+      { label: "Short absences", sub: "Doctor assessed" },
     ],
-    ctaTitle: "Sort your certificate before the next one hits",
+    detailSections: [
+      {
+        title: "When online review fits",
+        body:
+          "Online review is best suited to short migraine-related absences where the symptoms are consistent with your usual pattern and no physical examination is needed.",
+        items: [
+          "Known or recurrent migraine symptoms affecting your ability to work, study, commute, or use screens safely",
+          "A short absence where symptoms are improving, self-care is manageable, and the requested dates are clear",
+          "No sudden worst-ever headache, neurological deficit, head injury, fever, neck stiffness, or pregnancy concern",
+        ],
+      },
+      {
+        title: "What the doctor checks",
+        body:
+          "The doctor checks whether your symptoms, timing, work impact, usual migraine history, and requested dates support routine absence evidence.",
+        items: [
+          "When the headache began, how severe it is, and whether it matches previous migraine episodes",
+          "Associated symptoms such as aura, visual disturbance, nausea, vomiting, light sensitivity, or cognitive fog",
+          "Whether the story suggests a red flag headache that needs urgent or in-person assessment instead",
+        ],
+      },
+      {
+        title: "What the certificate includes",
+        body:
+          "If approved, the certificate includes the standard information employers usually need for sick-leave evidence without publishing unnecessary clinical detail.",
+        items: [
+          "Your name, the doctor's details, the review date, and the period assessed as medically appropriate",
+          "A statement that you were medically unfit for work or study for the stated period",
+          "Verification details your employer or institution can use to check the document came from InstantMed",
+        ],
+      },
+      {
+        title: "When a standard certificate is not enough",
+        body:
+          "Some migraine or headache situations need more than a routine online absence certificate.",
+        items: [
+          "First, worst, sudden, unusual, or progressively worsening headache",
+          "Weakness, numbness, confusion, fainting, speech trouble, vision loss, fever, neck stiffness, head injury, or persistent vomiting",
+          "Fitness-for-duty, driving, safety-critical work, workplace restriction, insurance, workers compensation, or long-term migraine management documentation",
+        ],
+      },
+    ],
+    ctaTitle: "Request migraine absence evidence",
     ctaSubtitle:
-      "Two minutes. A doctor reviews it. Certificate to your inbox.",
+      "Complete the health form so a doctor can assess whether routine certificate evidence is appropriate.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: `Medical Certificate for Migraine | Sick Note Online ${PRICING_DISPLAY.MED_CERT}`,
       description:
-        `Get a medical certificate for a migraine. AHPRA-registered doctors review your request online. From ${PRICING_DISPLAY.MED_CERT}.`,
+        `Request a medical certificate for migraine absence. AHPRA-registered doctors review your answers online. From ${PRICING_DISPLAY.MED_CERT}. Employer policies vary.`,
       keywords: [
         "medical certificate for migraine",
         "migraine sick certificate",
@@ -1046,17 +1089,32 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "Can I get a medical certificate for a migraine?",
         answer:
-          "Yes. Migraine is a recognised neurological condition. Our AHPRA-registered doctors assess migraine requests and issue a certificate if the symptoms are consistent and clinical assessment supports it.",
+          "Online review may be suitable for a short migraine-related absence if your symptoms, timing, history, and requested dates support routine certificate evidence. The doctor decides whether a certificate is clinically appropriate.",
       },
       {
         question: "How long will the certificate cover?",
         answer:
-          "Most migraine certificates cover 1–2 days. If you have a history of complex or prolonged migraines, describe this in the form. The doctor will assess the appropriate duration.",
+          "The doctor decides the period after reviewing your answers. Routine online certificates are best suited to short absences; recurrent, prolonged, or complex migraine patterns may need review by your regular GP or treating specialist.",
       },
       {
         question: "Do I need to have a diagnosis of migraine?",
         answer:
-          "Not necessarily. If you've experienced symptoms consistent with migraine (severe headache, nausea, light sensitivity), describe them accurately. The doctor makes the clinical determination.",
+          "Not always. Describe your symptoms accurately, including whether this matches previous episodes or is new for you. New, severe, unusual, or changing headache symptoms may need urgent or in-person assessment rather than a routine online certificate.",
+      },
+      {
+        question: "Will the certificate show my migraine diagnosis?",
+        answer:
+          "Routine certificates usually state the period you were medically unfit for work or study. They do not need to disclose your diagnosis unless there is a specific clinical or administrative reason.",
+      },
+      {
+        question: "What if I drive or do safety-critical work?",
+        answer:
+          "Tell the doctor about your duties. A routine medical certificate documents absence only; it does not certify fitness to drive, return to safety-critical duties, or perform modified work.",
+      },
+      {
+        question: "When should I not use this pathway?",
+        answer:
+          "Do not use this pathway for a sudden worst-ever headache, new neurological symptoms, head injury, fever with neck stiffness, fainting, pregnancy-related concern, severe dehydration, or any symptoms that feel dangerous or unusual for you. Seek urgent care instead.",
       },
     ],
   },
