@@ -27,6 +27,11 @@ export const metadata: Metadata = {
   // (follow) it so it stops registering as a thin/no-H1 page in Bing/Google
   // while CTAs still pass link equity. (2026-06-11 Bing site-scan finding.)
   robots: { index: false, follow: true },
+  // Clear the root-layout homepage canonical. /request should be crawled for
+  // link discovery, but it should not canonicalize to the homepage.
+  alternates: {
+    canonical: null,
+  },
   manifest: null,
   icons: {
     shortcut: "/favicon.ico",

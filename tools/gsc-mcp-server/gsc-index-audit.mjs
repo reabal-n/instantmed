@@ -3,6 +3,23 @@ import { google } from "googleapis"
 const SITE_URL = "sc-domain:instantmed.com.au"
 const SITE_ORIGIN = "https://instantmed.com.au"
 const USER_AGENT = "InstantMedGscIndexAudit/1.0"
+const DEFAULT_PRIORITY_INSPECTION_PATHS = [
+  "/medical-certificate",
+  "/medical-certificate-online",
+  "/prescriptions",
+  "/online-prescriptions",
+  "/erectile-dysfunction",
+  "/hair-loss",
+  "/womens-health",
+  "/uti-assessment-online",
+  "/contraceptive-pill-assessment-online",
+  "/pricing",
+  "/telehealth-australia",
+  "/online-doctor-australia",
+  "/weight-loss-online",
+  "/compare/online-medical-certificate-options",
+]
+const DEFAULT_INSPECT_LIMIT = DEFAULT_PRIORITY_INSPECTION_PATHS.length
 
 function parseArgs(argv) {
   const args = new Map()
@@ -120,7 +137,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2))
   const startDate = args.get("start-date") ?? daysAgo(93)
   const endDate = args.get("end-date") ?? daysAgo(3)
-  const inspectLimit = Number(args.get("inspect-limit") ?? 12)
+  const inspectLimit = Number(args.get("inspect-limit") ?? DEFAULT_INSPECT_LIMIT)
 
   const auth = new google.auth.GoogleAuth({
     scopes: ["https://www.googleapis.com/auth/webmasters.readonly"],
@@ -136,16 +153,12 @@ async function main() {
   const performanceSet = new Set(performancePages.map((row) => row.page))
   const liveUrls = live.sitemaps.flatMap((sitemap) => sitemap.urls)
   const zeroPerformanceUrls = liveUrls.filter((url) => !performanceSet.has(url))
+  const defaultPriorityUrls = DEFAULT_PRIORITY_INSPECTION_PATHS.map(
+    (path) => `${SITE_ORIGIN}${path}`,
+  )
   const priorityUrls = [
-    `${SITE_ORIGIN}/medical-certificate`,
-    `${SITE_ORIGIN}/prescriptions`,
-    `${SITE_ORIGIN}/consult`,
-    `${SITE_ORIGIN}/online-doctor-australia`,
-    `${SITE_ORIGIN}/telehealth-australia`,
-    `${SITE_ORIGIN}/pricing`,
-    `${SITE_ORIGIN}/our-doctors`,
-    `${SITE_ORIGIN}/reviews`,
-    ...zeroPerformanceUrls.slice(0, Math.max(0, inspectLimit - 8)),
+    ...defaultPriorityUrls,
+    ...zeroPerformanceUrls.slice(0, Math.max(0, inspectLimit - defaultPriorityUrls.length)),
   ]
 
   const inspected = []

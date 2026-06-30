@@ -46,6 +46,10 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://instantmed.com.au/prescriptions',
   },
+  robots: {
+    index: true,
+    follow: true,
+  },
 }
 
 function PrescriptionAuthorityResourceLink() {
