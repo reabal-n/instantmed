@@ -451,6 +451,7 @@ async function resolveEnhancedUserData(
 
 export async function runGoogleAdsPostPaymentAttribution({
   amountCents,
+  conversionDateTime,
   intakeId,
   posthogDistinctId,
   requestPath,
@@ -460,6 +461,7 @@ export async function runGoogleAdsPostPaymentAttribution({
   userData,
 }: {
   amountCents?: number | null
+  conversionDateTime?: Date | null
   intakeId: string
   posthogDistinctId: string
   requestPath?: string | null
@@ -568,6 +570,7 @@ export async function runGoogleAdsPostPaymentAttribution({
       gbraid: row.gbraid,
       wbraid: row.wbraid,
       value: resolvedAmountCents != null ? resolvedAmountCents / 100 : 0,
+      ...(conversionDateTime ? { conversionDateTime } : {}),
       ...(hasUserData ? { userData: enhancedUserData } : {}),
     })
   } else {

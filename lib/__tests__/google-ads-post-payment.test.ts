@@ -208,11 +208,13 @@ describe("Google Ads post-payment attribution", () => {
     mocks.fireGoogleAdsPurchaseConversion.mockResolvedValue({ attempted: true, ok: true })
 
     const { supabase } = googleAdsSupabaseMock()
+    const paidAt = new Date("2026-06-24T05:45:00.000Z")
 
     // userData override is injected directly (the live path resolves it from the
     // patient profile; here we skip the DB + decrypt and assert the wiring).
     await runGoogleAdsPostPaymentAttribution({
       amountCents: 4995,
+      conversionDateTime: paidAt,
       intakeId: "intake_ec",
       posthogDistinctId: "patient_ec",
       row: {
@@ -228,6 +230,7 @@ describe("Google Ads post-payment attribution", () => {
 
     expect(mocks.fireGoogleAdsPurchaseConversion).toHaveBeenCalledWith(
       expect.objectContaining({
+        conversionDateTime: paidAt,
         orderId: "intake_ec",
         gclid: "gclid-value",
         userData: { email: "test@example.com", phone: "0412 345 678" },

@@ -76,7 +76,20 @@ describe("Google Ads attribution contract", () => {
         "conversionUploadError:INVALID_CONVERSION_ACTION_TYPE:The_conversion_action_specified_in_the_uplo",
       ),
     ).toBe(true)
+    expect(
+      isNonRetryableGoogleAdsConversionError(
+        "conversionUploadError:EXPIRED_EVENT:The_click_happened_too_long_before_the_conversion",
+      ),
+    ).toBe(true)
     expect(isNonRetryableGoogleAdsConversionError("conversionUploadError:TOO_RECENT")).toBe(false)
+  })
+
+  it("does not pin diagnostics watch to the stale June 24 recovery job", () => {
+    const watch = read("app/api/cron/google-ads-diagnostics-watch/route.ts")
+
+    expect(watch).not.toContain("2265599116648626375")
+    expect(watch).not.toContain("2026-06-24T05:45:00.000Z")
+    expect(watch).toContain("GOOGLE_ADS_DIAGNOSTICS_WATCH_JOB_ID")
   })
 
   it("does not reprocess an order that already has a successful upload", () => {
