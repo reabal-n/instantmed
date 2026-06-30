@@ -138,4 +138,24 @@ describe("Google Ads attribution contract", () => {
       force: false,
     })).toBe(false)
   })
+
+  it("does not retry expired click-identifier skips unless explicitly forced", () => {
+    const expiredClickAudit = bestGoogleAdsUploadAuditByIntake([
+      {
+        intake_id: "expired-click-intake",
+        metadata: {
+          error_code: "expired_click_identifier",
+          matching_model: "click_or_user_data",
+          status: "skipped_expired_click_identifier",
+        },
+      },
+    ]).get("expired-click-intake")
+
+    expect(shouldRetryGoogleAdsUploadCandidate({ gclid: "stale-gclid" }, expiredClickAudit, {
+      force: false,
+    })).toBe(false)
+    expect(shouldRetryGoogleAdsUploadCandidate({ gclid: "stale-gclid" }, expiredClickAudit, {
+      force: true,
+    })).toBe(true)
+  })
 })

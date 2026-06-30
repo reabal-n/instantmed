@@ -289,6 +289,98 @@ describe("Google Ads post-payment attribution", () => {
     })
   })
 
+  it("drops expired click identifiers while preserving enhanced-conversion user data", async () => {
+    mocks.fireGoogleAdsPurchaseConversion.mockResolvedValue({ attempted: true, ok: true })
+
+    const { inserted, supabase } = googleAdsSupabaseMock()
+    const paidAt = new Date("2026-06-30T01:00:00.000Z")
+
+    const result = await runGoogleAdsPostPaymentAttribution({
+      amountCents: 2995,
+      conversionDateTime: paidAt,
+      intakeId: "intake_stale_click_with_user_data",
+      posthogDistinctId: "patient_stale_click_with_user_data",
+      row: {
+        amount_cents: 2995,
+        attribution_captured_at: "2026-03-20T00:00:00.000Z",
+        campaignid: "123",
+        category: "medical_certificate",
+        gclid: "stale-gclid",
+      },
+      source: "cron_backfill",
+      supabase: supabase as never,
+      userData: { email: "test@example.com" },
+    })
+
+    expect(result).toMatchObject({ attempted: true, ok: true, status: "success" })
+    expect(mocks.fireGoogleAdsPurchaseConversion).toHaveBeenCalledWith(
+      expect.objectContaining({
+        conversionDateTime: paidAt,
+        gbraid: undefined,
+        gclid: undefined,
+        orderId: "intake_stale_click_with_user_data",
+        userData: { email: "test@example.com" },
+        wbraid: undefined,
+      }),
+    )
+    expect(inserted[0]).toMatchObject({
+      payload: {
+        metadata: expect.objectContaining({
+          attempted: true,
+          click_identifier_expired: true,
+          dropped_expired_click_identifier: true,
+          has_gclid: true,
+          has_user_data: true,
+          status: "success",
+        }),
+      },
+    })
+  })
+
+  it("skips expired click identifiers when no enhanced-conversion user data is available", async () => {
+    mocks.fireGoogleAdsPurchaseConversion.mockResolvedValue({ attempted: true, ok: true })
+
+    const { inserted, supabase } = googleAdsSupabaseMock()
+
+    const result = await runGoogleAdsPostPaymentAttribution({
+      amountCents: 2995,
+      conversionDateTime: new Date("2026-06-30T01:00:00.000Z"),
+      intakeId: "intake_stale_click_no_user_data",
+      posthogDistinctId: "patient_stale_click_no_user_data",
+      row: {
+        amount_cents: 2995,
+        attribution_captured_at: "2026-03-20T00:00:00.000Z",
+        campaignid: "123",
+        category: "medical_certificate",
+        gclid: "stale-gclid",
+      },
+      source: "cron_backfill",
+      supabase: supabase as never,
+    })
+
+    expect(result).toMatchObject({
+      attempted: false,
+      error: "expired_click_identifier",
+      ok: false,
+      status: "skipped_expired_click_identifier",
+    })
+    expect(mocks.fireGoogleAdsPurchaseConversion).not.toHaveBeenCalled()
+    expect(inserted[0]).toMatchObject({
+      payload: {
+        metadata: expect.objectContaining({
+          attempted: false,
+          click_identifier_expired: true,
+          dropped_expired_click_identifier: true,
+          error_code: "expired_click_identifier",
+          has_gclid: true,
+          has_user_data: false,
+          matching_model: "click_or_user_data",
+          status: "skipped_expired_click_identifier",
+        }),
+      },
+    })
+  })
+
   it("records source fingerprinting and marks missing intake joins as audit-source anomalies", async () => {
     const originals = {
       GOOGLE_ADS_CLIENT_ID: process.env.GOOGLE_ADS_CLIENT_ID,

@@ -43,6 +43,7 @@ export function shouldRetryGoogleAdsUploadCandidate(
 
   if (options.force) return true
   if (latestStatus === "success") return false
+  if (latestStatus === "skipped_expired_click_identifier") return false
   if (
     latestStatus === "skipped_missing_click_id" &&
     latestMatchingModel === "click_or_user_data" &&
