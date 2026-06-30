@@ -94,29 +94,86 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "work",
     h1: "Medical certificate for work.",
     heroSubheadline:
-      `Your employer asked for a sick note. A real Australian doctor reviews your request. No appointments, no waiting rooms. From ${PRICING_DISPLAY.MED_CERT}.`,
-    explainerTitle: "When you might need one",
-    explainerSubtitle: "Work certificates cover most short-term absences. Here's what to know.",
+      `Need routine evidence for a short work absence? Complete a secure form so a doctor can assess whether a work certificate is appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
+    explainerTitle: "Work absence evidence",
+    explainerSubtitle: "For short work absences where online doctor review is clinically suitable.",
     explainerParagraphs: [
-      "If you've called in sick, your employer may ask for documentation. Our certificates are issued by AHPRA-registered doctors and include standard workplace evidence details.",
-      "You fill in a quick form describing your situation. A doctor reviews it and decides whether a certificate is appropriate. If approved, it lands in your inbox as a PDF. No phone call required in most cases.",
+      "If illness or injury stops you attending work, your employer may ask for evidence for the absence period. This page is for routine short absences where a doctor can make a safe decision from your history without examining you in person.",
+      "You answer a structured health form covering your symptoms, when they started, the work dates affected, how your duties or commute are affected, and safety answers that help the doctor decide whether online review is appropriate.",
+      "An approved certificate includes standard absence evidence. It is not employer policy advice, a return-to-work clearance, a fit-for-duty assessment, a workplace adjustment letter, workers compensation evidence, or a document requiring capacity or restriction wording.",
+    ],
+    detailSections: [
+      {
+        title: "When online review fits",
+        body:
+          "Online review is best suited to short work absences where the request is for routine evidence and symptoms are clear from your history.",
+        items: [
+          "A short illness or minor injury affecting attendance, concentration, physical duties, customer-facing work, commuting, or usual work duties",
+          "Symptoms that are stable or improving, with no red flags suggesting urgent or in-person care is needed",
+          "No employer-specific form, workplace adjustment, work-from-home approval, capacity wording, or return-to-work clearance required",
+        ],
+      },
+      {
+        title: "What the doctor checks",
+        body:
+          "The doctor checks whether your symptoms, timing, requested dates, role context, and safety answers support routine absence evidence.",
+        items: [
+          "When symptoms started, which work dates were affected, and whether symptoms are improving, unchanged, or worsening",
+          "How the illness or injury affects attendance, concentration, physical duties, customer-facing duties, driving, machinery, or commuting",
+          "Whether chest pain, breathing difficulty, fainting, neurological symptoms, severe pain, significant injury, or worsening illness point to in-person care",
+        ],
+      },
+      {
+        title: "What the certificate includes",
+        body:
+          "A routine work certificate focuses on the absence period. It does not usually need to list your diagnosis or private symptom detail.",
+        items: [
+          "Your name, the doctor's details, the review date, and the medically appropriate absence period",
+          "A standard statement that you were unable to attend work duties for the stated period",
+          "Verification details your employer can use to confirm the certificate came from InstantMed",
+        ],
+      },
+      {
+        title: "When a standard certificate is not enough",
+        body:
+          "Some work-related requests need your regular GP, an occupational-health provider, an employer pathway, or in-person assessment.",
+        items: [
+          "Return-to-work clearance, fit-for-duty, capacity, restrictions, safe-driving, machinery, site medical, or safety-critical role documents",
+          "Workers compensation, insurance, legal, court, workplace investigation, or employer forms that need specific diagnosis or capacity detail",
+          "Longer or repeated absences, severe symptoms, significant injury, or any situation where the doctor needs an examination before giving evidence",
+        ],
+      },
     ],
     recognitionTitle: "Workplace evidence",
     recognitionSubtitle:
-      "Certificates include standard workplace evidence details. Some employers may have their own documentation requirements. Check with yours.",
+      "Work certificates include standard doctor and absence details. Employer policies and workplace requirements may vary.",
     recognitionBadges: [
-      { label: "Workplace evidence", sub: "Doctor-issued" },
-      { label: "Large & small businesses", sub: "Commonly used" },
-      { label: "Full-time & casual", sub: "All employment types" },
+      { label: "Routine evidence", sub: "Absence period" },
+      { label: "Doctor-reviewed", sub: "Clinical decision" },
+      { label: "Employer policy", sub: "May vary" },
     ],
-    ctaTitle: "Ready when you are",
+    relatedLinks: [
+      {
+        href: "/medical-certificate/work-from-home",
+        label: "Asked to work from home instead?",
+        description:
+          "Use the work-from-home guidance when the question is modified duties, remote work, or employer permission rather than simple absence evidence.",
+      },
+      {
+        href: "/medical-certificate/employer-acceptance",
+        label: "Want workplace evidence guidance?",
+        description:
+          "Read the employer evidence guide for conservative guidance on online certificates, verification, and policy caveats.",
+      },
+    ],
+    ctaTitle: "Request work absence evidence",
     ctaSubtitle:
-      "Two minutes to complete the form. A doctor reviews it. Certificate to your inbox.",
-    ctaButtonText: "Get your certificate",
+      "For short work absences where routine certificate evidence is clinically appropriate.",
+    ctaButtonText: "Start certificate request",
     metadata: {
       title: `Medical Certificate for Work | Sick Note Online ${PRICING_DISPLAY.MED_CERT}`,
       description:
-        `Medical certificate for work absence. AHPRA-registered doctors review your request. From ${PRICING_DISPLAY.MED_CERT}. Employer policies may vary.`,
+        `Request a medical certificate for a short work absence. AHPRA-registered doctors review symptoms, requested dates, and safety answers. From ${PRICING_DISPLAY.MED_CERT}. Employer policies vary.`,
       keywords: [
         "medical certificate for work",
         "sick certificate work",
@@ -129,27 +186,32 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "When do employers require a medical certificate?",
         answer:
-          "Many employers ask for a certificate when you've taken sick leave, especially for absences of more than a day or two. Their policy will specify when documentation is needed.",
+          "Many employers ask for evidence when you take sick or personal leave. The exact trigger depends on your workplace policy, so check whether they need a standard certificate or a specific employer form.",
       },
       {
         question: "Will my employer accept an online medical certificate?",
         answer:
-          "Our certificates are issued by AHPRA-registered Australian doctors and include the usual details: doctor's name, provider number, dates of illness, and signature. Some employers may have their own policies. Check with yours.",
+          "A doctor-issued certificate can support workplace evidence requirements, but employer policies and individual circumstances may vary. Check your workplace policy if you need a specific form, extra wording, or clearance document.",
       },
       {
-        question: "How quickly will I receive it?",
+        question: "What happens after I submit the form?",
         answer:
-          "Medical certificate requests are available 24/7. You'll get an email when the doctor starts reviewing.",
+          "A doctor reviews the information you provide and decides whether routine certificate evidence is clinically appropriate. The outcome may be approval, a request for more information, or redirection to in-person care.",
       },
       {
         question: "Can I get a certificate for a day I've already missed?",
         answer:
-          "Yes. We can issue certificates for absences up to 48 hours ago if clinically appropriate. Just indicate the dates you were unwell when completing the questionnaire.",
+          "Enter the exact date or dates you need reviewed. Retrospective certificates depend on the clinical information available and may not be appropriate in every case.",
       },
       {
         question: "How long can a certificate cover?",
         answer:
-          "Most work certificates cover 1–3 days for acute illness. The doctor determines the appropriate duration based on your symptoms. Longer periods may require a new request.",
+          "InstantMed's medical certificate pathway is for short absences and is capped at 3 days. The doctor decides the appropriate absence period based on your history. Longer or repeated absences may need your regular GP or treating practitioner.",
+      },
+      {
+        question: "Can the certificate say I can return to work or work from home?",
+        answer:
+          "No. A routine work certificate documents an absence period when clinically appropriate. Return-to-work clearance, fit-for-duty, workplace restrictions, and work-from-home approvals usually need your employer's pathway, occupational health, or your regular GP.",
       },
     ],
   },
