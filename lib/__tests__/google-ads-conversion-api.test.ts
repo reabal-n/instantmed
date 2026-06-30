@@ -9,7 +9,6 @@ import {
   fireGoogleAdsPurchaseConversion,
   getGoogleAdsSearchUrl,
   getGoogleAdsUploadClickConversionsUrl,
-  GOOGLE_ADS_PURCHASE_UPLOAD_JOB_ID,
   hashEmailForGoogleAds,
   hashPhoneForGoogleAds,
   normalizeEmailForGoogleAds,
@@ -72,7 +71,6 @@ describe("google ads conversion api", () => {
     )
 
     expect(request).toMatchObject({
-      jobId: GOOGLE_ADS_PURCHASE_UPLOAD_JOB_ID,
       partialFailure: true,
       conversions: [
         {
@@ -85,6 +83,7 @@ describe("google ads conversion api", () => {
         },
       ],
     })
+    expect(request).not.toHaveProperty("jobId")
     expect(request?.conversions[0]).not.toHaveProperty("gbraid")
     expect(request?.conversions[0]).not.toHaveProperty("wbraid")
     expect(request?.conversions[0].conversionDateTime).toMatch(
@@ -104,7 +103,6 @@ describe("google ads conversion api", () => {
     )
 
     expect(request).toMatchObject({
-      jobId: GOOGLE_ADS_PURCHASE_UPLOAD_JOB_ID,
       partialFailure: true,
       conversions: [
         {
@@ -129,6 +127,7 @@ describe("google ads conversion api", () => {
         },
       ],
     })
+    expect(request).not.toHaveProperty("jobId")
     expect(request?.conversions[0]).not.toHaveProperty("gclid")
     expect(request?.conversions[0]).not.toHaveProperty("gbraid")
     expect(request?.conversions[0]).not.toHaveProperty("wbraid")
