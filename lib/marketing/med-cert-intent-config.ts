@@ -496,16 +496,59 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "school",
     h1: "Medical certificate for school.",
     heroSubheadline:
-      `Documentation for your child's school absence. A doctor reviews your request. From ${PRICING_DISPLAY.MED_CERT}.`,
+      `Documentation for your child's school absence. An AHPRA-registered doctor reviews your answers and decides whether a certificate is clinically appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
     explainerTitle: "When schools require medical evidence",
-    explainerSubtitle: "Some schools ask for a medical certificate to excuse a child's absence.",
+    explainerSubtitle: "For school-aged children with short illness-related absences.",
     explainerParagraphs: [
-      "If your child has been unwell and missed school, the school may request a medical certificate. Our certificates are issued by AHPRA-registered doctors and document the period of unfitness.",
-      "You complete a form describing your child's illness. A doctor reviews it. For children, we may need a brief call to confirm details. The certificate is then sent to your inbox. Some schools have their own documentation requirements, so check yours.",
+      "If your child has been unwell and missed school, the school may ask for medical evidence. This page is for routine school absence documentation where a doctor can make a safe decision from the history you provide as the parent or guardian.",
+      "You complete a structured form describing your child's symptoms, when they started, the school dates missed, and any safety concerns. For children, the doctor may ask follow-up questions or request a brief call before deciding whether a certificate can be issued.",
+      "If approved, the certificate is emailed as a PDF with standard doctor-issued details. School attendance policies vary. Some schools, childcare services, or programs may need different wording, an in-person assessment, or a return-to-school clearance rather than a routine absence certificate.",
+    ],
+    detailSections: [
+      {
+        title: "When online review fits",
+        body:
+          "Online review is best suited to school-aged children with short, clearly described illness where the doctor does not need to examine the child in person.",
+        items: [
+          "Short absence from primary or secondary school due to common acute illness",
+          "Symptoms are mild or improving, and the requested dates match the illness history",
+          "A parent or guardian can provide enough detail about symptoms, timing, and care so far",
+        ],
+      },
+      {
+        title: "What the doctor checks",
+        body:
+          "The doctor checks whether the child's symptoms, timing, age, absence dates, and safety answers support routine school absence documentation.",
+        items: [
+          "When symptoms started, whether they are improving, and whether the child is drinking and passing urine",
+          "Whether fever, pain, breathing, rash, dehydration, injury, or drowsiness needs urgent or in-person care",
+          "Whether the request is for absence evidence only, not clearance to return after a contagious illness",
+        ],
+      },
+      {
+        title: "What the certificate includes",
+        body:
+          "A routine school certificate focuses on the child's inability to attend school for a period. It usually does not need diagnosis details.",
+        items: [
+          "Child's name, review date, recommended absence dates, and doctor details",
+          "A statement about unfitness for school or usual activities for the relevant period",
+          "Verification details so the school can check the document if required",
+        ],
+      },
+      {
+        title: "When it may not be enough",
+        body:
+          "Some child health and school situations need a different pathway. The doctor will not issue a routine certificate if online review is not safe.",
+        items: [
+          "Return-to-school clearance, childcare clearance, infectious-disease exclusion decisions, or program-specific forms",
+          "Children who are very young, worsening, dehydrated, unusually drowsy, short of breath, or in severe pain",
+          "Long absences, repeated absences, injury, complex conditions, or any situation needing examination",
+        ],
+      },
     ],
     recognitionTitle: "School documentation",
     recognitionSubtitle:
-      "Certificates are often used for school documentation. School attendance policies vary; some may require additional documentation. Check yours before submitting.",
+      "School attendance policies vary. Check whether your school needs a routine absence certificate, a clearance document, or its own form.",
     recognitionBadges: [
       { label: "Primary & secondary", sub: "Public & private" },
       { label: "AHPRA doctors", sub: "Doctor-issued" },
@@ -513,34 +556,51 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     ],
     ctaTitle: "Documentation for school absences",
     ctaSubtitle:
-      "Quick form, doctor review. Certificate to your inbox if approved.",
+      "Parent-completed form. Doctor review. Certificate to your inbox if approved.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: `Medical Certificate for School | Child Absence ${PRICING_DISPLAY.MED_CERT}`,
       description:
-        `Medical certificate for school absence. Document your child's illness for the school. AHPRA-registered doctors review your request. From ${PRICING_DISPLAY.MED_CERT}.`,
+        `Request a medical certificate for school absence. AHPRA-registered doctors review parent or guardian answers. From ${PRICING_DISPLAY.MED_CERT}. School policies vary.`,
       keywords: [
         "medical certificate for school",
         "school absence certificate",
         "child sick certificate",
         "school medical certificate australia",
+        "child school absence certificate",
+        "doctor certificate for school absence",
       ],
     },
     faqs: [
       {
         question: "Can I get a certificate for my child's school absence?",
         answer:
-          "Yes. You complete the form on behalf of your child. A doctor reviews it. We may need a brief call to confirm details for paediatric cases. The certificate is sent to your email.",
+          "Yes, where online review is clinically appropriate. A parent or guardian completes the form on behalf of the child. The doctor reviews the answers and may ask follow-up questions or request a brief call for child-safety reasons.",
       },
       {
-        question: "Will the school accept it?",
+        question: "Can I submit it to the school?",
         answer:
-          "Our certificates are issued by AHPRA-registered doctors and are often used for school documentation. School policies vary; some may have specific requirements. Check your school's attendance policy before submitting.",
+          "You can submit it where your school allows routine medical certificates as absence evidence. InstantMed certificates are issued by AHPRA-registered doctors and include standard doctor, date, and absence details. School policies vary.",
       },
       {
         question: "Do I need to be the child's parent?",
         answer:
-          "Yes. The person requesting the certificate should be the parent or guardian. You'll provide your details and describe your child's illness.",
+          "The person requesting the certificate should be the parent or guardian. You provide your details, your child's details, and a clear description of the illness and school dates missed.",
+      },
+      {
+        question: "Does this clear my child to return to school?",
+        answer:
+          "No. A routine school absence certificate documents illness-related absence. It is not a return-to-school clearance, childcare clearance, or infectious-disease exclusion decision.",
+      },
+      {
+        question: "Will the certificate include my child's diagnosis?",
+        answer:
+          "Usually no. Routine school absence evidence normally focuses on whether the child was medically unfit for school for the relevant period. Diagnosis details are usually not needed.",
+      },
+      {
+        question: "When should I not use this pathway?",
+        answer:
+          "Do not use online review for a child who is very unwell, dehydrated, unusually drowsy, short of breath, in severe pain, injured, or worsening. Seek urgent or in-person care instead.",
       },
     ],
   },
