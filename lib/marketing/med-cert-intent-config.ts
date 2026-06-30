@@ -438,56 +438,111 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "university",
     h1: "Medical certificate for university.",
     heroSubheadline:
-      `Study absence documentation. A doctor reviews your request. From ${PRICING_DISPLAY.MED_CERT}.`,
+      `University absence documentation for short illness. An AHPRA-registered doctor reviews your answers and decides whether a certificate is clinically appropriate. From ${PRICING_DISPLAY.MED_CERT}.`,
     explainerTitle: "When uni requires medical evidence",
-    explainerSubtitle: "Universities often need a medical certificate to support absence documentation.",
+    explainerSubtitle: "For routine university absence evidence where online doctor review is clinically suitable.",
     explainerParagraphs: [
-      "If illness has affected your ability to complete assignments or sit exams, your university may require a medical certificate. Our certificates are issued by AHPRA-registered doctors and include the standard details: doctor's name, provider number, dates, and attestation of unfitness.",
-      "Policies vary by institution; some specify exactly what they need. Check yours before applying. You fill in a quick form, a doctor reviews it, and if appropriate, your certificate lands in your inbox.",
+      "If illness has affected your attendance, tutorials, labs, placement preparation, or ordinary study duties, your university may ask for medical evidence. This page is for routine university absence documentation, not provider-specific forms or detailed academic reports.",
+      "You answer a structured health form covering your symptoms, when they started, the university dates affected, and whether your course or placement creates extra safety requirements. A doctor reviews those answers before deciding whether a certificate can be issued.",
+      "If approved, your certificate is emailed as a PDF with standard doctor-issued details. University policies vary by faculty, campus, course, and deadline. Check the policy before applying, especially if the request relates to an assessment process or placement.",
+    ],
+    detailSections: [
+      {
+        title: "When online review fits",
+        body:
+          "Online review is best suited to short, low-risk university absences where the clinical story is clear and the requested dates match the illness described.",
+        items: [
+          "Short absence from lectures, tutorials, labs, online attendance, or ordinary study duties",
+          "Common acute illness such as cold, flu, gastro, migraine, period pain, or a mental health day",
+          "No placement clearance, fitness-to-attend wording, or university-specific form required",
+        ],
+      },
+      {
+        title: "What the doctor checks",
+        body:
+          "The doctor checks whether the symptoms, timing, affected university dates, and safety answers support routine absence evidence.",
+        items: [
+          "When symptoms started and whether they affected attendance or study capacity",
+          "Whether the requested dates are clinically reasonable for the condition described",
+          "Whether red-flag symptoms, placement duties, or course requirements point to in-person care",
+        ],
+      },
+      {
+        title: "What the certificate includes",
+        body:
+          "A routine university certificate focuses on whether you were medically unfit for study or usual duties for a period. It usually does not need diagnosis details.",
+        items: [
+          "Your name, review date, recommended absence dates, and doctor details",
+          "A statement about unfitness for study, attendance, or usual duties for the relevant period",
+          "Verification details so the document can be checked if required",
+        ],
+      },
+      {
+        title: "When it may not be enough",
+        body:
+          "Some university processes need more than a standard certificate. We keep those boundaries clear before a certificate is issued.",
+        items: [
+          "University forms, detailed academic reports, placement clearance, or fitness-to-attend wording",
+          "Long absences, repeated absences, disability support, or ongoing course adjustments",
+          "Severe symptoms, injury, or any situation where the doctor needs to examine you",
+        ],
+      },
     ],
     recognitionTitle: "Evidence for universities",
     recognitionSubtitle:
-      "Institutional policies vary. Check your university's evidence requirements before applying.",
+      "University policies vary by institution, faculty, and course. Check your evidence requirements before applying.",
     recognitionBadges: [
-      { label: "Go8 universities", sub: "Group of Eight" },
-      { label: "ATN & IRU", sub: "University networks" },
-      { label: "Private unis", sub: "Check policy" },
+      { label: "Universities", sub: "Check policy" },
+      { label: "TAFE & RTOs", sub: "Use study page" },
+      { label: "Private providers", sub: "Policy dependent" },
     ],
     ctaTitle: "Get the documentation your uni needs",
     ctaSubtitle:
-      "Quick form, real doctor review. Certificate to your inbox if approved.",
+      "Quick form. Real doctor review. Certificate to your inbox if approved.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: `Medical Certificate for University | Student Absence ${PRICING_DISPLAY.MED_CERT}`,
       description:
-        `Medical certificate for university absences. AHPRA-registered doctors review your request. From ${PRICING_DISPLAY.MED_CERT}. University policies vary.`,
+        `Request a medical certificate for university absence. AHPRA-registered doctors review your answers. From ${PRICING_DISPLAY.MED_CERT}. University policies vary.`,
       keywords: [
         "medical certificate for university",
         "uni medical certificate",
         "student absence medical certificate",
         "university medical certificate australia",
+        "medical certificate for uni absence",
+        "university absence certificate",
       ],
     },
     faqs: [
       {
-        question: "Do universities accept online certificates?",
+        question: "Can I submit this to my university?",
         answer:
-          "Our certificates are issued by AHPRA-registered doctors and include standard doctor, date, and absence details. Policies vary. Check your institution's requirements before applying.",
+          "You can submit it where your university allows routine medical certificates as absence evidence. InstantMed certificates are issued by AHPRA-registered doctors and include standard doctor, date, and absence details. University policies and deadlines vary.",
       },
       {
-        question: "Can I use this as study documentation?",
+        question: "Can I use this as university absence documentation?",
         answer:
-          "You can submit it as supporting documentation where your university allows medical certificates. Your institution's policy will specify what they need and any deadlines.",
+          "Yes, where your university accepts a standard medical certificate for absence documentation. It can support short illness-related absence from usual study duties, but it does not replace university-specific forms or detailed reports.",
       },
       {
         question: "What if my university needs extra documentation?",
         answer:
-          "Check your university's policy before submitting. Some requests require extra forms or an in-person assessment, and those may be outside InstantMed's online scope.",
+          "Check your university's policy before submitting. Some requests require a university form, extra wording, a treating practitioner report, or an in-person assessment. Those may be outside InstantMed's online certificate scope.",
       },
       {
-        question: "How quickly can I get it?",
+        question: "What if my request is tied to a deadline?",
         answer:
-          "Doctor review follows when available during review hours. Plan ahead for deadlines. We can't guarantee same-day delivery during peak periods.",
+          "Check the deadline and evidence rules before applying. Doctor review timing depends on clinical review and whether more information is needed, so do not rely on this pathway for an urgent university cutoff.",
+      },
+      {
+        question: "Will the certificate include my diagnosis?",
+        answer:
+          "Usually no. Routine university absence evidence normally focuses on whether you were medically unfit for study or usual duties for the relevant period. Private clinical details are usually not needed.",
+      },
+      {
+        question: "When should I not use this pathway?",
+        answer:
+          "Do not use a standard university certificate for emergencies, placement clearance, fitness-to-attend decisions, disability support reports, insurance claims, legal processes, or symptoms that need urgent or in-person care.",
       },
     ],
   },
