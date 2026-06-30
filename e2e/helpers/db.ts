@@ -371,28 +371,6 @@ async function deleteCertificateApprovalArtifactsForIntake(
   supabase: SupabaseClient,
   intakeId: string
 ): Promise<void> {
-  const { data: certs, error: certSelectError } = await supabase
-    .from("issued_certificates")
-    .select("id")
-    .eq("intake_id", intakeId)
-
-  if (certSelectError) {
-    throw new Error(`Failed to fetch issued certificates for reset: ${certSelectError.message}`)
-  }
-
-  const certIds = (certs || []).map(cert => cert.id)
-
-  if (certIds.length > 0) {
-    const { error: auditDeleteError } = await supabase
-      .from("certificate_audit_log")
-      .delete()
-      .in("certificate_id", certIds)
-
-    if (auditDeleteError) {
-      throw new Error(`Failed to delete certificate audit logs for reset: ${auditDeleteError.message}`)
-    }
-  }
-
   const { error: documentDeleteError } = await supabase
     .from("intake_documents")
     .delete()
@@ -420,13 +398,41 @@ async function deleteCertificateApprovalArtifactsForIntake(
     throw new Error(`Failed to delete AI audit rows for reset: ${aiAuditDeleteError.message}`)
   }
 
-  const { error: certDeleteError } = await supabase
-    .from("issued_certificates")
-    .delete()
-    .eq("intake_id", intakeId)
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    const { data: certs, error: certSelectError } = await supabase
+      .from("issued_certificates")
+      .select("id")
+      .eq("intake_id", intakeId)
 
-  if (certDeleteError) {
-    throw new Error(`Failed to delete issued certificates for reset: ${certDeleteError.message}`)
+    if (certSelectError) {
+      throw new Error(`Failed to fetch issued certificates for reset: ${certSelectError.message}`)
+    }
+
+    const certIds = (certs || []).map(cert => cert.id)
+
+    if (certIds.length > 0) {
+      const { error: auditDeleteError } = await supabase
+        .from("certificate_audit_log")
+        .delete()
+        .in("certificate_id", certIds)
+
+      if (auditDeleteError) {
+        throw new Error(`Failed to delete certificate audit logs for reset: ${auditDeleteError.message}`)
+      }
+    }
+
+    const { error: certDeleteError } = await supabase
+      .from("issued_certificates")
+      .delete()
+      .eq("intake_id", intakeId)
+
+    if (!certDeleteError) return
+
+    if (certDeleteError.code !== "23503" || attempt === 3) {
+      throw new Error(`Failed to delete issued certificates for reset: ${certDeleteError.message}`)
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 250))
   }
 }
 
